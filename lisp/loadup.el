@@ -542,6 +542,7 @@ lost after dumping")))
                                      user-real-login-name
                                      system-name
                                      command-line-args noninteractive
+                                     load-history
                                      ;; Any let-bound variables during
                                      ;; dump process will be useless.
                                      faces coding-systems coding-system-aliases
@@ -651,6 +652,45 @@ lost after dumping")))
                (push (cons s (get-charset-property s :name))
                      charset-aliases))))
          obarray)
+
+        ;; Convert preloaded file names in load-history to relative
+        (let ((simple-file-name
+               ;; Look for simple.el or simple.elc and use their directory
+               ;; as the place where all Lisp files live.
+               (locate-file "simple" load-path (get-load-suffixes)))
+              lisp-dir lisp-dir-length)
+          ;; Don't abort if simple.el cannot be found, but print a warning.
+          ;; Although in most usage we are going to cryptically abort a moment
+          ;; later anyway, due to missing required bidi data files (eg bug#13430).
+          (if (null simple-file-name)
+              (let ((standard-output 'external-debugging-output)
+                    (lispdir (expand-file-name "../lisp" data-directory)))
+                (princ "Warning: Could not find simple.el or simple.elc")
+                (terpri)
+                (when (getenv "EMACSLOADPATH")
+                  (princ "The EMACSLOADPATH environment variable is set, \
+please check its value")
+                  (terpri))
+                (unless (file-readable-p lispdir)
+                  (princ (format "Lisp directory %s not readable?" lispdir))
+                  (terpri)))
+            (setq lisp-dir (file-truename (file-name-directory simple-file-name)))
+            (setq lisp-dir-length (length lisp-dir))
+            (let ((fake-load-history
+                   (mapcar (lambda (elt)
+                             (if (and (stringp (car elt))
+                                      (file-name-absolute-p (car elt))
+                                      (> (length (car elt)) lisp-dir-length)
+                                      (string-equal lisp-dir
+                                                    (substring (car elt) 0 lisp-dir-length))
+                                      )
+                                 (cons (substring (car elt) lisp-dir-length)
+                                       (cdr elt))
+                               elt))
+                           load-history)))
+              (push `(setq load-history ',fake-load-history)
+                    cmds))))
+
         (message "Dumping into dumped.elc...printing...")
         (with-current-buffer (generate-new-buffer "dumped.elc")
           (setq default-directory invocation-directory)
