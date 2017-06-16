@@ -317,6 +317,8 @@
 (load "emacs-lisp/float-sup")
 
 (load "emacs-lisp/cl-macs")
+(load "emacs-lisp/cl-lib")
+(load "emacs-lisp/gv")
 
 (load "vc/vc-hooks")
 (load "vc/ediff-hook")
