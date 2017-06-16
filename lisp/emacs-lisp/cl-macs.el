@@ -3243,7 +3243,6 @@ STRUCT and SLOT-NAME are symbols.  INST is a structure instance."
 (run-hooks 'cl-macs-load-hook)
 
 ;; Local variables:
-;; byte-compile-dynamic: t
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

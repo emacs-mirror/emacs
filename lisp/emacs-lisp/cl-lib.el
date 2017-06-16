@@ -666,8 +666,4 @@ of record objects."
    (t
     (advice-remove 'type-of #'cl--old-struct-type-of))))
 
-;; Local variables:
-;; byte-compile-dynamic: t
-;; End:
-
 ;;; cl-lib.el ends here
