@@ -1466,9 +1466,16 @@ deferred until the prefix key sequence is pressed."
               (symbolp (car args)))
          `((,(car args) nil ,name)))
         ((and (= (length args) 1)
-              (or (not (listp (car args)))
-                  (eq 'quote (caar args))))
+              (stringp (car args)))
          `((,(use-package-as-mode name) ,(car args) ,name)))
+        ((and (= (length args) 1)
+              (listp (car args))
+              (eq 'quote (caar args)))
+         `((,(use-package-as-mode name) ,@(cdar args) ,name)))
+        ((and (= (length args) 2)
+              (listp (nth 1 args))
+              (eq 'quote (car (nth 1 args))))
+         `((,(car args) ,@(cdr (nth 1 args)) ,name)))
         (t (mapcar
             (apply-partially #'use-package--normalize-delight-1 name)
             (if (symbolp (car args)) (list args) args)))))
@@ -1477,9 +1484,7 @@ deferred until the prefix key sequence is pressed."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      body
-     (mapcar (lambda (arg)
-               `(delight ',(nth 0 arg) ,(nth 1 arg) ',(nth 2 arg)))
-             args))))
+     `((delight '(,@args))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
