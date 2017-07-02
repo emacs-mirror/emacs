@@ -330,6 +330,14 @@ convert it to a string and return that."
   (if (stringp string-or-symbol) string-or-symbol
     (symbol-name string-or-symbol)))
 
+(defun use-package-as-mode (string-or-symbol)
+  "If STRING-OR-SYMBOL ends in `-mode' (or its name does), return
+it as a symbol.  Otherwise, return it as a symbol with `-mode'
+appended."
+  (let ((string (use-package-as-string string-or-symbol)))
+    (intern (if (string-match "-mode\\'" string) string
+              (concat string "-mode")))))
+
 (defun use-package-load-name (name &optional noerror)
   "Return a form which will load or require NAME depending on
 whether it's a string or symbol."
@@ -1435,26 +1443,43 @@ deferred until the prefix key sequence is pressed."
 ;;; :delight
 ;;
 
+(defun use-package--normalize-delight-1 (name args)
+  "Normalize ARGS for a single call to `delight'."
+  (when (eq :eval (car args))
+    ;; Handle likely common mistake.
+    (use-package-error ":delight mode line constructs must be quoted"))
+  (cond ((and (= (length args) 1) (symbolp (car args)))
+         `(,(nth 0 args) nil ,name))
+        ((= (length args) 2)
+         `(,(nth 0 args) ,(nth 1 args) ,name))
+        ((= (length args) 3)
+         args)
+        (t
+         (use-package-error
+          ":delight expects `delight' arguments or a list of them"))))
+
 (defun use-package-normalize/:delight (name keyword args)
   "Normalize arguments to delight."
-  (cond
-   ((and (= (length args) 1)
-         (symbolp (car args)))
-    (list (car args) nil name))
-   ((and (= (length args) 2)
-         (symbolp (car args)))
-    (list (car args) (cadr args) (use-package-as-symbol name)))
-   ((and (= (length args) 3)
-         (symbolp (car args)))
-    args)
-   (t
-    (use-package-error ":delight expects same args as delight function"))))
+  (cond ((null args)
+         `((,(use-package-as-mode name) nil ,name)))
+        ((and (= (length args) 1)
+              (symbolp (car args)))
+         `((,(car args) nil ,name)))
+        ((and (= (length args) 1)
+              (or (not (listp (car args)))
+                  (eq 'quote (caar args))))
+         `((,(use-package-as-mode name) ,(car args) ,name)))
+        (t (mapcar
+            (apply-partially #'use-package--normalize-delight-1 name)
+            (if (symbolp (car args)) (list args) args)))))
 
 (defun use-package-handler/:delight (name keyword args rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      body
-     `((delight (quote ,(nth 0 args)) ,(nth 1 args) (quote ,(nth 2 args))) t))))
+     (mapcar (lambda (arg)
+               `(delight ',(nth 0 arg) ,(nth 1 arg) ',(nth 2 arg)))
+             args))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
