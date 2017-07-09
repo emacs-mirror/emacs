@@ -1544,6 +1544,7 @@ this file.  Usage:
 :functions       Declare certain functions to silence the byte-compiler.
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
+:delight         Support for delight.el (if installed).
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive."
   (declare (indent 1))
