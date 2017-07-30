@@ -1512,7 +1512,6 @@ this file.  Usage:
 :mode            Form to be added to `auto-mode-alist'.
 :magic           Form to be added to `magic-mode-alist'.
 :magic-fallback  Form to be added to `magic-fallback-mode-alist'.
-:mode            Form to be added to `auto-mode-alist'.
 :interpreter     Form to be added to `interpreter-mode-alist'.
 
 :commands        Define autoloads for commands that will be defined by the
