@@ -978,12 +978,15 @@ or mount points potentially requiring authentication as a different user.")
 ;;       nil)))
 
 (defun locate-dominating-file (file name)
-  "Look up the directory hierarchy from FILE for a directory containing NAME.
+  "Starting from FILE, look up directory hierarchy for directory containing NAME.
+FILE can be a file or a directory.  If it's a file, its directory will
+serve as the starting point for searching the hierarchy of directories.
 Stop at the first parent directory containing a file NAME,
 and return the directory.  Return nil if not found.
 Instead of a string, NAME can also be a predicate taking one argument
 \(a directory) and returning a non-nil value if that directory is the one for
-which we're looking."
+which we're looking.  The predicate will be called with every file/directory
+the function needs to examine, starting with FILE."
   ;; We used to use the above locate-dominating-files code, but the
   ;; directory-files call is very costly, so we're much better off doing
   ;; multiple calls using the code in here.
@@ -1596,8 +1599,8 @@ automatically choosing a major mode, use \\[find-file-literally]."
                         (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
-	(mapcar 'switch-to-buffer (nreverse value))
-      (switch-to-buffer value))))
+	(mapcar 'pop-to-buffer-same-window (nreverse value))
+      (pop-to-buffer-same-window value))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -2543,7 +2546,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.[ckz]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
      ("\\.bash\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
+     ("\\(/\\|\\`\\)\\.\\(shrc\\|zshrc\\|m?kshrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
      ("\\.m?spec\\'" . sh-mode)
      ("\\.m[mes]\\'" . nroff-mode)
@@ -6552,6 +6555,75 @@ regardless of the language.")
 
 (defvar insert-directory-ls-version 'unknown)
 
+(defun insert-directory-wildcard-in-dir-p (dir)
+  "Return non-nil if DIR contents a shell wildcard in the directory part.
+The return value is a cons (DIR . WILDCARDS); DIR is the
+`default-directory' in the Dired buffer, and WILDCARDS are the wildcards.
+
+Valid wildcards are '*', '?', '[abc]' and '[a-z]'."
+  (let ((wildcards "[?*"))
+    (when (and (or (not (featurep 'ls-lisp))
+                   ls-lisp-support-shell-wildcards)
+               (string-match (concat "[" wildcards "]") (file-name-directory dir))
+               (not (file-exists-p dir))) ; Prefer an existing file to wildcards.
+      (let ((regexp (format "\\`\\([^%s]+/\\)\\([^%s]*[%s].*\\)"
+                            wildcards wildcards wildcards)))
+        (string-match regexp dir)
+        (cons (match-string 1 dir) (match-string 2 dir))))))
+
+(defun insert-directory-clean (beg switches)
+  (when (if (stringp switches)
+	    (string-match "--dired\\>" switches)
+	  (member "--dired" switches))
+    ;; The following overshoots by one line for an empty
+    ;; directory listed with "--dired", but without "-a"
+    ;; switch, where the ls output contains a
+    ;; "//DIRED-OPTIONS//" line, but no "//DIRED//" line.
+    ;; We take care of that case later.
+    (forward-line -2)
+    (when (looking-at "//SUBDIRED//")
+      (delete-region (point) (progn (forward-line 1) (point)))
+      (forward-line -1))
+    (if (looking-at "//DIRED//")
+	(let ((end (line-end-position))
+	      (linebeg (point))
+	      error-lines)
+	  ;; Find all the lines that are error messages,
+	  ;; and record the bounds of each one.
+	  (goto-char beg)
+	  (while (< (point) linebeg)
+	    (or (eql (following-char) ?\s)
+		(push (list (point) (line-end-position)) error-lines))
+	    (forward-line 1))
+	  (setq error-lines (nreverse error-lines))
+	  ;; Now read the numeric positions of file names.
+	  (goto-char linebeg)
+	  (forward-word-strictly 1)
+	  (forward-char 3)
+	  (while (< (point) end)
+	    (let ((start (insert-directory-adj-pos
+			  (+ beg (read (current-buffer)))
+			  error-lines))
+		  (end (insert-directory-adj-pos
+			(+ beg (read (current-buffer)))
+			error-lines)))
+	      (if (memq (char-after end) '(?\n ?\s))
+		  ;; End is followed by \n or by " -> ".
+		  (put-text-property start end 'dired-filename t)
+		;; It seems that we can't trust ls's output as to
+		;; byte positions of filenames.
+		(put-text-property beg (point) 'dired-filename nil)
+		(end-of-line))))
+	  (goto-char end)
+	  (beginning-of-line)
+	  (delete-region (point) (progn (forward-line 1) (point))))
+      ;; Take care of the case where the ls output contains a
+      ;; "//DIRED-OPTIONS//"-line, but no "//DIRED//"-line
+      ;; and we went one line too far back (see above).
+      (forward-line 1))
+    (if (looking-at "//DIRED-OPTIONS//")
+	(delete-region (point) (progn (forward-line 1) (point))))))
+
 ;; insert-directory
 ;; - must insert _exactly_one_line_ describing FILE if WILDCARD and
 ;;   FULL-DIRECTORY-P is nil.
@@ -6611,13 +6683,19 @@ normally equivalent short `-D' option is just passed on to
 			   default-file-name-coding-system))))
 	    (setq result
 		  (if wildcard
-		      ;; Run ls in the directory part of the file pattern
-		      ;; using the last component as argument.
-		      (let ((default-directory
-			      (if (file-name-absolute-p file)
-				  (file-name-directory file)
-				(file-name-directory (expand-file-name file))))
-			    (pattern (file-name-nondirectory file)))
+		      ;; If the wildcard is just in the file part, then run ls in
+                      ;; the directory part of the file pattern using the last
+                      ;; component as argument.  Otherwise, run ls in the longest
+                      ;; subdirectory of the directory part free of wildcards; use
+                      ;; the remaining of the file pattern as argument.
+		      (let* ((dir-wildcard (insert-directory-wildcard-in-dir-p file))
+                             (default-directory
+                               (cond (dir-wildcard (car dir-wildcard))
+                                     (t
+			              (if (file-name-absolute-p file)
+				          (file-name-directory file)
+				        (file-name-directory (expand-file-name file))))))
+			     (pattern (if dir-wildcard (cdr dir-wildcard) (file-name-nondirectory file))))
 			;; NB since switches is passed to the shell, be
 			;; careful of malicious values, eg "-l;reboot".
 			;; See eg dired-safe-switches-p.
@@ -6665,7 +6743,8 @@ normally equivalent short `-D' option is just passed on to
 				  (setq file (expand-file-name file)))
 			      (list
 			       (if full-directory-p
-				   (concat (file-name-as-directory file) ".")
+				   ;; (concat (file-name-as-directory file) ".")
+                                   file
 				 file))))))))
 
 	  ;; If we got "//DIRED//" in the output, it means we got a real
@@ -6736,59 +6815,7 @@ normally equivalent short `-D' option is just passed on to
 	      ;; Unix.  Access the file to get a suitable error.
 	      (access-file file "Reading directory")
 	      (error "Listing directory failed but `access-file' worked")))
-
-	  (when (if (stringp switches)
-		    (string-match "--dired\\>" switches)
-		  (member "--dired" switches))
-	    ;; The following overshoots by one line for an empty
-	    ;; directory listed with "--dired", but without "-a"
-	    ;; switch, where the ls output contains a
-	    ;; "//DIRED-OPTIONS//" line, but no "//DIRED//" line.
-	    ;; We take care of that case later.
-	    (forward-line -2)
-            (when (looking-at "//SUBDIRED//")
-              (delete-region (point) (progn (forward-line 1) (point)))
-              (forward-line -1))
-	    (if (looking-at "//DIRED//")
-		(let ((end (line-end-position))
-		      (linebeg (point))
-		      error-lines)
-		  ;; Find all the lines that are error messages,
-		  ;; and record the bounds of each one.
-		  (goto-char beg)
-		  (while (< (point) linebeg)
-		    (or (eql (following-char) ?\s)
-			(push (list (point) (line-end-position)) error-lines))
-		    (forward-line 1))
-		  (setq error-lines (nreverse error-lines))
-		  ;; Now read the numeric positions of file names.
-		  (goto-char linebeg)
-		  (forward-word-strictly 1)
-		  (forward-char 3)
-		  (while (< (point) end)
-		    (let ((start (insert-directory-adj-pos
-				  (+ beg (read (current-buffer)))
-				  error-lines))
-			  (end (insert-directory-adj-pos
-				(+ beg (read (current-buffer)))
-				error-lines)))
-		      (if (memq (char-after end) '(?\n ?\s))
-			  ;; End is followed by \n or by " -> ".
-			  (put-text-property start end 'dired-filename t)
-			;; It seems that we can't trust ls's output as to
-			;; byte positions of filenames.
-			(put-text-property beg (point) 'dired-filename nil)
-			(end-of-line))))
-		  (goto-char end)
-		  (beginning-of-line)
-		  (delete-region (point) (progn (forward-line 1) (point))))
-	      ;; Take care of the case where the ls output contains a
-	      ;; "//DIRED-OPTIONS//"-line, but no "//DIRED//"-line
-	      ;; and we went one line too far back (see above).
-	      (forward-line 1))
-	    (if (looking-at "//DIRED-OPTIONS//")
-		(delete-region (point) (progn (forward-line 1) (point)))))
-
+          (insert-directory-clean beg switches)
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read
 			    file-name-coding-system

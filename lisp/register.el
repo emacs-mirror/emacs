@@ -164,6 +164,10 @@ display such a window regardless."
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
+          (when (or (eq ?\C-g last-input-event)
+                    (eq 'escape last-input-event)
+                    (eq ?\C-\[ last-input-event))
+            (keyboard-quit))
 	  (if (characterp last-input-event) last-input-event
 	    (error "Non-character input-event")))
       (and (timerp timer) (cancel-timer timer))

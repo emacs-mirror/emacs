@@ -2,7 +2,7 @@
 # Attempt to guess a canonical system name.
 #   Copyright 1992-2017 Free Software Foundation, Inc.
 
-timestamp='2017-05-27'
+timestamp='2017-07-19'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -1429,8 +1429,8 @@ cat >&2 <<EOF
 $0: unable to guess system type
 
 This script (version $timestamp), has failed to recognize the
-operating system you are using. If your script is old, overwrite
-config.guess and config.sub with the latest versions from:
+operating system you are using. If your script is old, overwrite *all*
+copies of config.guess and config.sub with the latest versions from:
 
   http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess
 and

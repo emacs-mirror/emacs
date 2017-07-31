@@ -696,6 +696,10 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Create an "clean" ruler.
          (ruler
           (propertize
+           ;; FIXME: `make-string' returns a unibyte string if it's ASCII-only,
+           ;; which prevents further `aset' from inserting non-ASCII chars,
+           ;; hence the need for `string-to-multibyte'.
+           ;; http://lists.gnu.org/archive/html/emacs-devel/2017-05/msg00841.html
            (string-to-multibyte
 	    (make-string w ruler-mode-basic-graduation-char))
            'face 'ruler-mode-default

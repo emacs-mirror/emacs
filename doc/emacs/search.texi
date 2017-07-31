@@ -1747,6 +1747,10 @@ at the first match after such line.
 You can also run @kbd{M-s o} when an incremental search is active;
 this uses the current search string.
 
+Note that matches for the regexp you type are extended to include
+complete lines, and a match that starts before the previous match ends
+is not considered a match.
+
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
 @kindex C-o @r{(Occur mode)}

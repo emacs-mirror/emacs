@@ -3479,6 +3479,24 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    if (! NILP (result))
 	      return unbind_to (count, result);
 	  }
+        if (!quoted && multibyte)
+          {
+            int ch = STRING_CHAR ((unsigned char *) read_buffer);
+            switch (ch)
+              {
+              case 0x2018: /* LEFT SINGLE QUOTATION MARK */
+              case 0x2019: /* RIGHT SINGLE QUOTATION MARK */
+              case 0x201B: /* SINGLE HIGH-REVERSED-9 QUOTATION MARK */
+              case 0x201C: /* LEFT DOUBLE QUOTATION MARK */
+              case 0x201D: /* RIGHT DOUBLE QUOTATION MARK */
+              case 0x201F: /* DOUBLE HIGH-REVERSED-9 QUOTATION MARK */
+              case 0x301E: /* DOUBLE PRIME QUOTATION MARK */
+              case 0xFF02: /* FULLWIDTH QUOTATION MARK */
+              case 0xFF07: /* FULLWIDTH APOSTROPHE */
+                xsignal2 (Qinvalid_read_syntax, build_string ("strange quote"),
+                          CALLN (Fstring, make_number (ch)));
+              }
+          }
 	{
 	  Lisp_Object result;
 	  ptrdiff_t nbytes = p - read_buffer;

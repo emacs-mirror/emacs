@@ -2158,7 +2158,7 @@ To adjust bottom dividers for frames individually, use the frame
 parameter `bottom-divider-width'."
   :type '(restricted-sexp
           :tag "Default width of bottom dividers"
-          :match-alternatives (frame-window-divider-width-valid-p))
+          :match-alternatives (window-divider-width-valid-p))
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
@@ -2175,7 +2175,7 @@ To adjust right dividers for frames individually, use the frame
 parameter `right-divider-width'."
   :type '(restricted-sexp
           :tag "Default width of right dividers"
-          :match-alternatives (frame-window-divider-width-valid-p))
+          :match-alternatives (window-divider-width-valid-p))
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)

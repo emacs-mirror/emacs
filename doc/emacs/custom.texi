@@ -1701,6 +1701,7 @@ and mouse events:
 (global-set-key (kbd "C-c y") 'clipboard-yank)
 (global-set-key (kbd "C-M-q") 'query-replace)
 (global-set-key (kbd "<f5>") 'flyspell-mode)
+(global-set-key (kbd "C-<f5>") 'display-line-numbers-mode)
 (global-set-key (kbd "C-<right>") 'forward-sentence)
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
 @end example

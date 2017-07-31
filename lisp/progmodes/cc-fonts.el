@@ -1182,10 +1182,15 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		  (goto-char match-pos)
 		  (backward-char)
 		  (c-backward-token-2)
-		  (or (looking-at c-block-stmt-2-key)
-		      (looking-at c-block-stmt-1-2-key)
-		      (looking-at c-typeof-key))))
-	   (cons nil t))
+		  (cond
+		   ((looking-at c-paren-stmt-key)
+		    ;; Allow comma separated <> arglists in for statements.
+		    (cons nil nil))
+		   ((or (looking-at c-block-stmt-2-key)
+			(looking-at c-block-stmt-1-2-key)
+			(looking-at c-typeof-key))
+		    (cons nil t))
+		   (t nil)))))
 	  ;; Near BOB.
 	  ((<= match-pos (point-min))
 	   (cons 'arglist t))
@@ -1226,13 +1231,16 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; Got a cached hit in some other type of arglist.
 	  (type
 	   (cons 'arglist t))
-	  (not-front-decl
+	  ((and not-front-decl
 	   ;; The point is within the range of a previously
 	   ;; encountered type decl expression, so the arglist
 	   ;; is probably one that contains declarations.
 	   ;; However, if `c-recognize-paren-inits' is set it
 	   ;; might also be an initializer arglist.
-	   ;;
+		(or (not c-recognize-paren-inits)
+		    (save-excursion
+		      (goto-char match-pos)
+		      (not (c-back-over-member-initializers)))))
 	   ;; The result of this check is cached with a char
 	   ;; property on the match token, so that we can look
 	   ;; it up again when refontifying single lines in a
@@ -1243,17 +1251,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; Got an open paren preceded by an arith operator.
 	  ((and (eq (char-before match-pos) ?\()
 		(save-excursion
+		  (goto-char match-pos)
 		  (and (zerop (c-backward-token-2 2))
 		       (looking-at c-arithmetic-op-regexp))))
 	   (cons nil nil))
 	  ;; In a C++ member initialization list.
 	  ((and (eq (char-before match-pos) ?,)
 	  	(c-major-mode-is 'c++-mode)
-	  	(save-excursion (c-back-over-member-initializers)))
+	  	(save-excursion
+		  (goto-char match-pos)
+		  (c-back-over-member-initializers)))
 	   (c-put-char-property (1- match-pos) 'c-type 'c-not-decl)
 	   (cons 'not-decl nil))
 	  ;; At start of a declaration inside a declaration paren.
 	  ((save-excursion
+	     (goto-char match-pos)
 	     (and (memq (char-before match-pos) '(?\( ?\,))
 		  (c-go-up-list-backward match-pos)
 		  (eq (char-after) ?\()

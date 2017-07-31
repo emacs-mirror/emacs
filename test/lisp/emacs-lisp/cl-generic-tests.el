@@ -219,5 +219,29 @@
   (should (equal (cl--generic-1 '(5) nil) '("cinq" (5))))
   (should (equal (cl--generic-1 '(6) nil) '("six" a))))
 
+(cl-defgeneric cl-generic-tests--generic (x))
+(cl-defmethod cl-generic-tests--generic ((x string))
+  (message "%s is a string" x))
+(cl-defmethod cl-generic-tests--generic ((x integer))
+  (message "%s is a number" x))
+(cl-defgeneric cl-generic-tests--generic-without-methods (x y))
+(defvar cl-generic-tests--this-file
+  (file-truename (or load-file-name buffer-file-name)))
+
+(ert-deftest cl-generic-tests--method-files--finds-methods ()
+  "`method-files' returns a list of files and methods for a generic function."
+  (let ((retval (cl--generic-method-files 'cl-generic-tests--generic)))
+    (should (equal (length retval) 2))
+    (mapc (lambda (x)
+            (should (equal (car x) cl-generic-tests--this-file))
+            (should (equal (cadr x) 'cl-generic-tests--generic)))
+          retval)
+    (should-not (equal (nth 0 retval) (nth 1 retval)))))
+
+(ert-deftest cl-generic-tests--method-files--nonexistent-methods ()
+  "`method-files' returns nil if asked to find a method which doesn't exist."
+  (should-not (cl--generic-method-files 'cl-generic-tests--undefined-generic))
+  (should-not (cl--generic-method-files 'cl-generic-tests--generic-without-methods)))
+
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

@@ -945,6 +945,7 @@ If EXTERNAL, browse the URL using `shr-external-browser'."
     (when (and (buffer-name buffer)
 	       (not (plist-get status :error)))
       (url-store-in-cache image-buffer)
+      (goto-char (point-min))
       (when (or (search-forward "\n\n" nil t)
 		(search-forward "\r\n\r\n" nil t))
 	(let ((data (shr-parse-image-data)))
@@ -998,7 +999,7 @@ element is the data blob and the second element is the content-type."
 		      (create-image data nil t :ascent 100
 				    :format content-type))
 		     ((eq content-type 'image/svg+xml)
-		      (create-image data 'imagemagick t :ascent 100))
+		      (create-image data 'svg t :ascent 100))
 		     ((eq size 'full)
 		      (ignore-errors
 			(shr-rescale-image data content-type

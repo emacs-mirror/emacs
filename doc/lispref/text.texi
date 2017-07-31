@@ -4236,6 +4236,7 @@ A marker represents a buffer position to jump to.
 A string is text saved in the register.
 
 @item a rectangle
+@cindex rectangle, as contents of a register
 A rectangle is represented by a list of strings.
 
 @item @code{(@var{window-configuration} @var{position})}

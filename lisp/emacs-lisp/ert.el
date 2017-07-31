@@ -135,7 +135,7 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
     ;; Note that nil is still a valid value for the `name' slot in
     ;; ert-test objects.  It designates an anonymous test.
     (error "Attempt to define a test named nil"))
-  (put symbol 'ert--test definition)
+  (define-symbol-prop symbol 'ert--test definition)
   definition)
 
 (defun ert-make-test-unbound (symbol)
@@ -214,12 +214,6 @@ description of valid values for RESULT-TYPE.
                         ,@(when tags-supplied-p
                             `(:tags ,tags))
                         :body (lambda () ,@body)))
-         ;; This hack allows `symbol-file' to associate `ert-deftest'
-         ;; forms with files, and therefore enables `find-function' to
-         ;; work with tests.  However, it leads to warnings in
-         ;; `unload-feature', which doesn't know how to undefine tests
-         ;; and has no mechanism for extension.
-         (push '(ert-deftest . ,name) current-load-list)
          ',name))))
 
 ;; We use these `put' forms in addition to the (declare (indent)) in
@@ -2405,8 +2399,7 @@ To be used in the ERT results buffer."
            (buffer-disable-undo)
            (erase-buffer)
            (ert-simple-view-mode)
-           ;; Use unibyte because `debugger-setup-buffer' also does so.
-           (set-buffer-multibyte nil)
+           (set-buffer-multibyte t)     ; mimic debugger-setup-buffer
            (setq truncate-lines t)
            (ert--print-backtrace backtrace t)
            (goto-char (point-min))
@@ -2539,7 +2532,7 @@ To be used in the ERT results buffer."
           (insert (if test-name (format "%S" test-name) "<anonymous test>"))
           (insert " is a test")
           (let ((file-name (and test-name
-                                (symbol-file test-name 'ert-deftest))))
+                                (symbol-file test-name 'ert--test))))
             (when file-name
               (insert (format-message " defined in `%s'"
                                       (file-name-nondirectory file-name)))

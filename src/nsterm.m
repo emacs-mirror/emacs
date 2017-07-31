@@ -5497,6 +5497,19 @@ ns_term_shutdown (int sig)
 	 object:nil];
 #endif
 
+#ifdef NS_IMPL_COCOA
+  if ([NSApp activationPolicy] == NSApplicationActivationPolicyProhibited) {
+    /* Set the app's activation policy to regular when we run outside
+       of a bundle.  This is already done for us by Info.plist when we
+       run inside a bundle. */
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [NSApp setApplicationIconImage:
+	     [EmacsImage
+	       allocInitFromFile:
+		 build_string("icons/hicolor/128x128/apps/emacs.png")]];
+  }
+#endif
+
   ns_send_appdefined (-2);
 }
 

@@ -1395,6 +1395,11 @@ invoke `occur'."
   "Show all lines in the current buffer containing a match for REGEXP.
 If a match spreads across multiple lines, all those lines are shown.
 
+Each match is extended to include complete lines.  Only non-overlapping
+matches are considered.  (Note that extending matches to complete
+lines could cause some of the matches to overlap; if so, they will not
+be shown as separate matches.)
+
 Each line is displayed with NLINES lines before and after, or -NLINES
 before if NLINES is negative.
 NLINES defaults to `list-matching-lines-default-context-lines'.

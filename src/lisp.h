@@ -838,13 +838,13 @@ make_lisp_symbol (struct Lisp_Symbol *sym)
 INLINE Lisp_Object
 builtin_lisp_symbol (int index)
 {
-  return make_lisp_symbol (lispsym + index);
+  return make_lisp_symbol (&lispsym[index].s);
 }
 
 INLINE void
 (CHECK_SYMBOL) (Lisp_Object x)
 {
- lisp_h_CHECK_SYMBOL (x);
+  lisp_h_CHECK_SYMBOL (x);
 }
 
 /* In the size word of a vector, this bit means the vector has been marked.  */

@@ -418,8 +418,8 @@ to this macro."
     (when decl (setq body (remove decl body)))
     `(progn
        (defun ,fsym ,args ,@body)
-       (put ',fsym 'edebug-form-spec ',(cadr (assq 'debug decl)))
-       (put ',name 'pcase-macroexpander #',fsym))))
+       (define-symbol-prop ',fsym 'edebug-form-spec ',(cadr (assq 'debug decl)))
+       (define-symbol-prop ',name 'pcase-macroexpander #',fsym))))
 
 (defun pcase--match (val upat)
   "Build a MATCH structure, hoisting all `or's and `and's outside."
@@ -929,7 +929,6 @@ QPAT can take the following forms:
           (app cdr ,(list '\` (cdr qpat)))))
    ((or (stringp qpat) (integerp qpat) (symbolp qpat)) `',qpat)
    (t (error "Unknown QPAT: %S" qpat))))
-
 
 (provide 'pcase)
 ;;; pcase.el ends here

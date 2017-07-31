@@ -104,7 +104,9 @@ a font height that isn't optimal."
     ;; when combined with Monospaced and with other standard fonts.
     ;; One of its uses is for 'tex-verbatim' and 'Info-quoted' faces,
     ;; so the result must be different from the default face's font,
-    ;; and must be monospaced.
+    ;; and must be monospaced.  For 'tex-verbatim', it is desirable
+    ;; that the font really is a Serif font, so as to look like
+    ;; TeX's 'verbatim'.
     ("Monospace Serif"
 
      ;; This looks good on GNU/Linux.

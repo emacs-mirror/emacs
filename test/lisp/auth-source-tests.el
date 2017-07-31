@@ -215,7 +215,7 @@
 
 (ert-deftest auth-source-test-remembrances-of-things-past ()
   (let ((password-cache t)
-        (password-data (make-vector 7 0)))
+        (password-data (copy-hash-table password-data)))
     (auth-source-remember '(:host "wedd") '(4 5 6))
     (should (auth-source-remembered-p '(:host "wedd")))
     (should-not (auth-source-remembered-p '(:host "xedd")))

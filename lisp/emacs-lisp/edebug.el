@@ -3213,8 +3213,8 @@ instrument cannot be found, signal an error."
      ((consp func-marker)
       (message "%s is already instrumented." func)
       (list func))
-     ((get func 'cl--generic)
-      (let ((method-defs (method-files func))
+     ((cl-generic-p func)
+      (let ((method-defs (cl--generic-method-files func))
             symbols)
         (unless method-defs
           (error "Could not find any method definitions for %s" func))

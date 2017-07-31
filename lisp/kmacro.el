@@ -1,4 +1,4 @@
-;;; kmacro.el --- enhanced keyboard macros
+;;; kmacro.el --- enhanced keyboard macros -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
 
@@ -565,7 +565,8 @@ Use \\[kmacro-insert-counter] to insert (and increment) the macro counter.
 The counter value can be set or modified via \\[kmacro-set-counter] and \\[kmacro-add-counter].
 The format of the counter can be modified via \\[kmacro-set-format].
 
-Use \\[kmacro-name-last-macro] to give it a permanent name.
+Use \\[kmacro-name-last-macro] to give it a name that will remain valid even
+after another macro is defined.
 Use \\[kmacro-bind-to-key] to bind it to a key sequence."
   (interactive "P")
   (if (or defining-kbd-macro executing-kbd-macro)
@@ -628,8 +629,8 @@ just the last key in the key sequence that you used to call this
 command.  See `kmacro-call-repeat-key' and `kmacro-call-repeat-with-arg'
 for details on how to adjust or disable this behavior.
 
-To make a macro permanent so you can call it even after defining
-others, use \\[kmacro-name-last-macro]."
+To give a macro a name so you can call it even after defining others,
+use \\[kmacro-name-last-macro]."
   (interactive "p")
   (let ((repeat-key (and (or (and (null no-repeat)
                                   (> (length (this-single-command-keys)) 1))
@@ -730,8 +731,8 @@ With \\[universal-argument], call second macro in macro ring."
 With numeric prefix ARG, repeat macro that many times.
 Zero argument means repeat until there is an error.
 
-To give a macro a permanent name, so you can call it
-even after defining other macros, use \\[kmacro-name-last-macro]."
+To give a macro a name, so you can call it even after defining other
+macros, use \\[kmacro-name-last-macro]."
   (interactive "P")
   (if defining-kbd-macro
       (kmacro-end-macro nil))

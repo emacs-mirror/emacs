@@ -15,7 +15,10 @@ jump back to that position once, or many times.
   Each register has a name that consists of a single character, which
 we will denote by @var{r}; @var{r} can be a letter (such as @samp{a})
 or a number (such as @samp{1}); case matters, so register @samp{a} is
-not the same as register @samp{A}.
+not the same as register @samp{A}.  You can also set a register in
+non-alphanumeric characters, for instance @samp{*} or @samp{C-d}.
+Note, it's not possible to set a register in @samp{C-g} or @samp{ESC},
+because these keys are reserved to terminate interactive commands.
 
 @findex view-register
   A register can store a position, a piece of text, a rectangle, a

@@ -1,4 +1,4 @@
-;;; find-lisp.el --- emulation of find in Emacs Lisp
+;;; find-lisp.el --- emulation of find in Emacs Lisp  -*- lexical-binding: t -*-
 
 ;; Author: Peter Breton
 ;; Created: Fri Mar 26 1999

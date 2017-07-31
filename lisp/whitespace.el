@@ -1,4 +1,4 @@
-;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
+;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
 

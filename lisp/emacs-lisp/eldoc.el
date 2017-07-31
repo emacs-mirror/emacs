@@ -160,6 +160,10 @@ This is used to determine if `eldoc-idle-delay' is changed by the user.")
 It should receive the same arguments as `message'.")
 
 (defun eldoc-edit-message-commands ()
+  "Return an obarray containing common editing commands.
+
+When `eldoc-print-after-edit' is non-nil, ElDoc messages are only
+printed after commands contained in this obarray."
   (let ((cmds (make-vector 31 0))
 	(re (regexp-opt '("delete" "insert" "edit" "electric" "newline"))))
     (mapatoms (lambda (s)
@@ -211,16 +215,21 @@ expression point is on."
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()
-  "Turn on `eldoc-mode' if the buffer has eldoc support enabled.
+  "Turn on `eldoc-mode' if the buffer has ElDoc support enabled.
 See `eldoc-documentation-function' for more detail."
   (when (eldoc--supported-p)
     (eldoc-mode 1)))
 
 (defun eldoc--supported-p ()
+  "Non-nil if an ElDoc function is set for this buffer."
   (not (memq eldoc-documentation-function '(nil ignore))))
 
 
 (defun eldoc-schedule-timer ()
+  "Ensure `eldoc-timer' is running.
+
+If the user has changed `eldoc-idle-delay', update the timer to
+reflect the change."
   (or (and eldoc-timer
            (memq eldoc-timer timer-idle-list)) ;FIXME: Why?
       (setq eldoc-timer
@@ -229,8 +238,7 @@ See `eldoc-documentation-function' for more detail."
 	     (lambda ()
                (when (or eldoc-mode
                          (and global-eldoc-mode
-                              (not (memq eldoc-documentation-function
-                                         '(nil ignore)))))
+                              (eldoc--supported-p)))
                  (eldoc-print-current-symbol-info))))))
 
   ;; If user has changed the idle delay, update the timer.
@@ -268,16 +276,19 @@ Otherwise work like `message'."
           (force-mode-line-update)))
     (apply 'message format-string args)))
 
-(defun eldoc-message (&rest args)
+(defun eldoc-message (&optional format-string &rest args)
+  "Display FORMAT-STRING formatted with ARGS as an ElDoc message.
+
+Store the message (if any) in `eldoc-last-message', and return it."
   (let ((omessage eldoc-last-message))
     (setq eldoc-last-message
-	  (cond ((eq (car args) eldoc-last-message) eldoc-last-message)
-		((null (car args)) nil)
+	  (cond ((eq format-string eldoc-last-message) eldoc-last-message)
+		((null format-string) nil)
 		;; If only one arg, no formatting to do, so put it in
 		;; eldoc-last-message so eq test above might succeed on
 		;; subsequent calls.
-		((null (cdr args)) (car args))
-		(t (apply #'format-message args))))
+		((null args) format-string)
+		(t (apply #'format-message format-string args))))
     ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
     ;; are recorded in a log.  Do not put eldoc messages in that log since
     ;; they are Legion.
@@ -289,6 +300,7 @@ Otherwise work like `message'."
   eldoc-last-message)
 
 (defun eldoc--message-command-p (command)
+  "Return non-nil if COMMAND is in `eldoc-message-commands'."
   (and (symbolp command)
        (intern-soft (symbol-name command) eldoc-message-commands)))
 
@@ -299,6 +311,7 @@ Otherwise work like `message'."
 ;; before the next command executes, which does away with the flicker.
 ;; This doesn't seem to be required for Emacs 19.28 and earlier.
 (defun eldoc-pre-command-refresh-echo-area ()
+  "Reprint `eldoc-last-message' in the echo area."
   (and eldoc-last-message
        (not (minibufferp))      ;We don't use the echo area when in minibuffer.
        (if (and (eldoc-display-message-no-interference-p)
@@ -310,6 +323,7 @@ Otherwise work like `message'."
 
 ;; Decide whether now is a good time to display a message.
 (defun eldoc-display-message-p ()
+  "Return non-nil when it is appropriate to display an ElDoc message."
   (and (eldoc-display-message-no-interference-p)
        ;; If this-command is non-nil while running via an idle
        ;; timer, we're still in the middle of executing a command,
@@ -322,6 +336,7 @@ Otherwise work like `message'."
 ;; Check various conditions about the current environment that might make
 ;; it undesirable to print eldoc messages right this instant.
 (defun eldoc-display-message-no-interference-p ()
+  "Return nil if displaying a message would cause interference."
   (not (or executing-kbd-macro (bound-and-true-p edebug-active))))
 
 
@@ -347,6 +362,7 @@ variable) is taken into account if the major mode specific function does not
 return any documentation.")
 
 (defun eldoc-print-current-symbol-info ()
+  "Print the text produced by `eldoc-documentation-function'."
   ;; This is run from post-command-hook or some idle timer thing,
   ;; so we need to be careful that errors aren't ignored.
   (with-demoted-errors "eldoc error: %s"
@@ -361,6 +377,13 @@ return any documentation.")
 ;; truncated or eliminated entirely from the output to make room for the
 ;; description.
 (defun eldoc-docstring-format-sym-doc (prefix doc &optional face)
+  "Combine PREFIX and DOC, and shorten the result to fit in the echo area.
+
+When PREFIX is a symbol, propertize its symbol name with FACE
+before combining it with DOC.  If FACE is not provided, just
+apply the nil face.
+
+See also: `eldoc-echo-area-use-multiline-p'."
   (when (symbolp prefix)
     (setq prefix (concat (propertize (symbol-name prefix) 'face face) ": ")))
   (let* ((ea-multi eldoc-echo-area-use-multiline-p)
@@ -390,22 +413,26 @@ return any documentation.")
 ;; These functions do display-command table management.
 
 (defun eldoc-add-command (&rest cmds)
+  "Add each of CMDS to the obarray `eldoc-message-commands'."
   (dolist (name cmds)
     (and (symbolp name)
          (setq name (symbol-name name)))
     (set (intern name eldoc-message-commands) t)))
 
 (defun eldoc-add-command-completions (&rest names)
+  "Pass every prefix completion of NAMES to `eldoc-add-command'."
   (dolist (name names)
     (apply #'eldoc-add-command (all-completions name obarray 'commandp))))
 
 (defun eldoc-remove-command (&rest cmds)
+  "Remove each of CMDS from the obarray `eldoc-message-commands'."
   (dolist (name cmds)
     (and (symbolp name)
          (setq name (symbol-name name)))
     (unintern name eldoc-message-commands)))
 
 (defun eldoc-remove-command-completions (&rest names)
+  "Pass every prefix completion of NAMES to `eldoc-remove-command'."
   (dolist (name names)
     (apply #'eldoc-remove-command
            (all-completions name eldoc-message-commands))))
@@ -418,9 +445,9 @@ return any documentation.")
  "down-list" "end-of-" "exchange-point-and-mark" "forward-" "goto-"
  "handle-select-window" "indent-for-tab-command" "left-" "mark-page"
  "mark-paragraph" "mouse-set-point" "move-" "move-beginning-of-"
- "move-end-of-" "newline" "next-" "other-window" "pop-global-mark" "previous-"
- "recenter" "right-" "scroll-" "self-insert-command" "split-window-"
- "up-list")
+ "move-end-of-" "newline" "next-" "other-window" "pop-global-mark"
+ "previous-" "recenter" "right-" "scroll-" "self-insert-command"
+ "split-window-" "up-list")
 
 (provide 'eldoc)
 

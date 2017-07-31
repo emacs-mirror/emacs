@@ -111,7 +111,6 @@ lisp/mh-e/mh-autoloads.el
 lisp/subdirs.el
 
 # Dependencies.
-.deps/
 deps/
 
 # Logs and temporaries.
@@ -138,6 +137,7 @@ gmon.out
 oo/
 oo-spd/
 src/*.map
+vgcore.*[0-9]
 
 # Tests.
 test/manual/biditest.txt

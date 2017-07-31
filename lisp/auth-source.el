@@ -200,8 +200,6 @@ Note that if EPA/EPG is not available, this should NOT be used."
                            (const :tag "Save GPG-encrypted password tokens" gpg)
                            (const :tag "Don't encrypt tokens" never))))))
 
-(defvar auth-source-magic "auth-source-magic ")
-
 (defcustom auth-source-do-cache t
   "Whether auth-source should cache information with `password-cache'."
   :group 'auth-source
@@ -782,16 +780,16 @@ Returns the deleted entries."
 (defun auth-source-forget-all-cached ()
   "Forget all cached auth-source data."
   (interactive)
-  (cl-do-symbols (sym password-data)
-    ;; when the symbol name starts with auth-source-magic
-    (when (string-match (concat "^" auth-source-magic) (symbol-name sym))
-      ;; remove that key
-      (password-cache-remove (symbol-name sym))))
+  (maphash (lambda (key _password)
+             (when (eq 'auth-source (car-safe key))
+               ;; remove that key
+               (password-cache-remove key)))
+           password-data)
   (setq auth-source-netrc-cache nil))
 
 (defun auth-source-format-cache-entry (spec)
   "Format SPEC entry to put it in the password cache."
-  (concat auth-source-magic (format "%S" spec)))
+  `(auth-source . ,spec))
 
 (defun auth-source-remember (spec found)
   "Remember FOUND search results for SPEC."
@@ -822,18 +820,16 @@ This is not a full `auth-source-search' spec but works similarly.
 For instance, \(:host \"myhost\" \"yourhost\") would find all the
 cached data that was found with a search for those two hosts,
 while \(:host t) would find all host entries."
-  (let ((count 0)
-        sname)
-    (cl-do-symbols (sym password-data)
-      ;; when the symbol name matches with auth-source-magic
-      (when (and (setq sname (symbol-name sym))
-                 (string-match (concat "^" auth-source-magic "\\(.+\\)")
-                               sname)
-                 ;; and the spec matches what was stored in the cache
-                 (auth-source-specmatchp spec (read (match-string 1 sname))))
-        ;; remove that key
-        (password-cache-remove sname)
-        (cl-incf count)))
+  (let ((count 0))
+    (maphash
+     (lambda (key _password)
+       (when (and (eq 'auth-source (car-safe key))
+                  ;; and the spec matches what was stored in the cache
+                  (auth-source-specmatchp spec (cdr key)))
+         ;; remove that key
+         (password-cache-remove key)
+         (cl-incf count)))
+     password-data)
     count))
 
 (defun auth-source-specmatchp (spec stored)

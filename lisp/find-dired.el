@@ -1,4 +1,4 @@
-;;; find-dired.el --- run a `find' command and dired the output
+;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 1994-1995, 2000-2017 Free Software Foundation,
 ;; Inc.

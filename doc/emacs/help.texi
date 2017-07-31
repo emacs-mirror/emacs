@@ -320,11 +320,20 @@ search for non-customizable variables too.
 Search for variables.  With a prefix argument, search for
 customizable variables only.
 
+@item M-x apropos-local-variable
+@findex apropos-local-variable
+Search for buffer-local variables.
+
 @item M-x apropos-value
 @findex apropos-value
 Search for variables whose values match the specified pattern.  With a
 prefix argument, search also for functions with definitions matching
 the pattern, and Lisp symbols with properties matching the pattern.
+
+@item M-x apropos-local-value
+@findex apropos-local-value
+Search for buffer-local variables whose values match the specified
+pattern.
 
 @item C-h d
 @kindex C-h d

@@ -292,31 +292,6 @@ cf. Bug#25477."
   (should-error (eval '(dolist "foo") t)
                 :type 'wrong-type-argument))
 
-(require 'cl-generic)
-(cl-defgeneric subr-tests--generic (x))
-(cl-defmethod subr-tests--generic ((x string))
-  (message "%s is a string" x))
-(cl-defmethod subr-tests--generic ((x integer))
-  (message "%s is a number" x))
-(cl-defgeneric subr-tests--generic-without-methods (x y))
-(defvar subr-tests--this-file
-  (file-truename (or load-file-name buffer-file-name)))
-
-(ert-deftest subr-tests--method-files--finds-methods ()
-  "`method-files' returns a list of files and methods for a generic function."
-  (let ((retval (method-files 'subr-tests--generic)))
-    (should (equal (length retval) 2))
-    (mapc (lambda (x)
-            (should (equal (car x) subr-tests--this-file))
-            (should (equal (cadr x) 'subr-tests--generic)))
-          retval)
-    (should-not (equal (nth 0 retval) (nth 1 retval)))))
-
-(ert-deftest subr-tests--method-files--nonexistent-methods ()
-  "`method-files' returns nil if asked to find a method which doesn't exist."
-  (should-not (method-files 'subr-tests--undefined-generic))
-  (should-not (method-files 'subr-tests--generic-without-methods)))
-
 (ert-deftest subr-tests-bug22027 ()
   "Test for http://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)

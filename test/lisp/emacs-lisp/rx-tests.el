@@ -33,5 +33,15 @@
                                   (number-sequence ?< ?\])
                                   (number-sequence ?- ?:))))))
 
+(ert-deftest rx-pcase ()
+  (should (equal (pcase "a 1 2 3 1 1 b"
+                   ((rx (let u (+ digit)) space
+                        (let v (+ digit)) space
+                        (let v (+ digit)) space
+                        (backref u) space
+                        (backref 1))
+                    (list u v)))
+                 '("1" "3"))))
+
 (provide 'rx-tests)
 ;; rx-tests.el ends here.

@@ -4527,11 +4527,9 @@ If the file already exists, overwrite it only on confirmation."
 
 (defcustom todo-print-buffer-function #'ps-print-buffer-with-faces
   "Function called by `todo-print-buffer' to print Todo mode buffers.
-The function should take an optional argument whose non-nil value
-is a string naming a file to save the print image to; calling
-`todo-print-buffer-to-file' prompts for the file name, which is
-passed to this function.  Calling this function with no or a nil
-argument sends the image to the printer."
+Called with one argument which can either be:
+- a string, naming a file to save the print image to.
+- nil, to send the image to the printer."
   :type 'symbol
   :group 'todo)
 

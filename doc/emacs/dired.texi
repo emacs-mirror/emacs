@@ -64,10 +64,22 @@ you to operate on the listed files.  @xref{Directories}.
 directory name using the minibuffer, and opens a @dfn{Dired buffer}
 listing the files in that directory.  You can also supply a wildcard
 file name pattern as the minibuffer argument, in which case the Dired
-buffer lists all files matching that pattern.  The usual history and
-completion commands can be used in the minibuffer; in particular,
-@kbd{M-n} puts the name of the visited file (if any) in the minibuffer
-(@pxref{Minibuffer History}).
+buffer lists all files matching that pattern.  A wildcard may appear
+in the directory part as well.
+For instance,
+
+@example
+C-x d  ~/foo/*.el  @key{RET}
+C-x d  ~/foo/*/*.el  @key{RET}
+@end example
+
+The former lists all the files with extension @samp{.el} in directory
+@samp{foo}.  The latter lists the files with extension @samp{.el}
+in subdirectories 2 levels of depth below @samp{foo}.
+
+The usual history and completion commands can be used in the minibuffer;
+in particular, @kbd{M-n} puts the name of the visited file (if any) in
+the minibuffer (@pxref{Minibuffer History}).
 
   You can also invoke Dired by giving @kbd{C-x C-f} (@code{find-file})
 a directory name.

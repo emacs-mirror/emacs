@@ -835,7 +835,7 @@ cannot be completed sensibly: `custom-ident',
 (defface css-selector '((t :inherit font-lock-function-name-face))
   "Face to use for selectors."
   :group 'css)
-(defface css-property '((t :inherit font-lock-variable-name-face))
+(defface css-property '((t :inherit font-lock-keyword-face))
   "Face to use for properties."
   :group 'css)
 (defface css-proprietary-property '((t :inherit (css-property italic)))

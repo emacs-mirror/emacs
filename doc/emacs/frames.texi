@@ -575,7 +575,8 @@ font names in X resource files.
 If you are running Emacs on the GNOME desktop, you can tell Emacs to
 use the default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
-For this to work, Emacs must have been compiled with Gconf support.
+For this to work, Emacs must have been compiled with support for
+Gsettings (or the older Gconf).
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font

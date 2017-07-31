@@ -1,4 +1,4 @@
-;;; dired-aux.el --- less commonly used parts of dired
+;;; dired-aux.el --- less commonly used parts of dired -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2017 Free Software
 ;; Foundation, Inc.
@@ -742,8 +742,6 @@ can be produced by `dired-get-marked-files', for example."
                (string-match regexp res))))
   (let* ((on-each (not (dired--star-or-qmark-p command "*" 'keep)))
 	 (no-subst (not (dired--star-or-qmark-p command "?" 'keep)))
-	 (star (string-match "\\*" command))
-	 (qmark (string-match "\\?" command))
          ;; Get confirmation for wildcards that may have been meant
          ;; to control substitution of a file name or the file name list.
          (ok (cond ((not (or on-each no-subst))

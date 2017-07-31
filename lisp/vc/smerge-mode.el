@@ -938,21 +938,23 @@ It has the following disadvantages:
 - cannot use `diff -w' because the weighting causes added spaces in a line
   to be represented as added copies of some line, so `diff -w' can't do the
   right thing any more.
-- may in degenerate cases take a 1KB input region and turn it into a 1MB
-  file to pass to diff.")
+- Is a bit more costly (may in degenerate cases use temp files that are 10x
+  larger than the refined regions).")
 
 (defun smerge--refine-forward (n)
   (let ((case-fold-search nil)
         (re "[[:upper:]]?[[:lower:]]+\\|[[:upper:]]+\\|[[:digit:]]+\\|.\\|\n"))
     (when (and smerge-refine-ignore-whitespace
                ;; smerge-refine-weight-hack causes additional spaces to
-               ;; appear as additional lines as well, so even if diff ignore
+               ;; appear as additional lines as well, so even if diff ignores
                ;; whitespace changes, it'll report added/removed lines :-(
                (not smerge-refine-weight-hack))
       (setq re (concat "[ \t]*\\(?:" re "\\)")))
     (dotimes (_i n)
       (unless (looking-at re) (error "Smerge refine internal error"))
       (goto-char (match-end 0)))))
+
+(defvar smerge--refine-long-words)
 
 (defun smerge--refine-chopup-region (beg end file &optional preproc)
   "Chopup the region into small elements, one per line.
@@ -976,18 +978,46 @@ chars to try and eliminate some spurious differences."
       (subst-char-in-region (point-min) (point-max) ?\n ?\s))
     (goto-char (point-min))
     (while (not (eobp))
-      (funcall smerge-refine-forward-function 1)
-      (let ((s (if (prog2 (forward-char -1) (bolp) (forward-char 1))
-                   nil
-                 (buffer-substring (line-beginning-position) (point)))))
-        ;; We add \n after each char except after \n, so we get
-        ;; one line per text char, where each line contains
-        ;; just one char, except for \n chars which are
-        ;; represented by the empty line.
-        (unless (eq (char-before) ?\n) (insert ?\n))
-        ;; HACK ALERT!!
-        (if smerge-refine-weight-hack
-            (dotimes (_i (1- (length s))) (insert s "\n")))))
+      (cl-assert (bolp))
+      (let ((start (point)))
+        (funcall smerge-refine-forward-function 1)
+        (let ((len (- (point) start)))
+          (cl-assert (>= len 1))
+          ;; We add \n after each chunk except after \n, so we get
+          ;; one line per text chunk, where each line contains
+          ;; just one chunk, except for \n chars which are
+          ;; represented by the empty line.
+          (unless (bolp) (insert ?\n))
+          (when (and smerge-refine-weight-hack (> len 1))
+            (let ((s (buffer-substring-no-properties start (point))))
+              ;; The weight-hack inserts N copies of words of size N,
+              ;; so it naturally suffers from an O(N²) blow up.
+              ;; To circumvent this, we map each long word
+              ;; to a shorter (but still unique) replacement.
+              ;; Another option would be to change smerge--refine-forward
+              ;; so it chops up long words into smaller ones.
+              (when (> len 8)
+                (let ((short (gethash s smerge--refine-long-words)))
+                  (unless short
+                    ;; To avoid accidental conflicts with ≤8 words,
+                    ;; we make sure the replacement is >8 chars.  Overall,
+                    ;; this should bound the blowup factor to ~10x,
+                    ;; tho if those chars end up encoded as multiple bytes
+                    ;; each, it could probably still reach ~30x in
+                    ;; pathological cases.
+                    (setq short
+                          (concat (substring s 0 7)
+                                  " "
+                                  (string
+                                   (+ ?0
+                                      (hash-table-count
+                                       smerge--refine-long-words)))
+                                  "\n"))
+                    (puthash s short smerge--refine-long-words))
+                  (delete-region start (point))
+                  (insert short)
+                  (setq s short)))
+              (dotimes (_i (1- len)) (insert s)))))))
     (unless (bolp) (error "Smerge refine internal error"))
     (let ((coding-system-for-write 'emacs-internal))
       (write-region (point-min) (point-max) file nil 'nomessage))))
@@ -1042,7 +1072,9 @@ used to replace chars to try and eliminate some spurious differences."
   (let* ((pos (point))
          deactivate-mark         ; The code does not modify any visible buffer.
          (file1 (make-temp-file "diff1"))
-         (file2 (make-temp-file "diff2")))
+         (file2 (make-temp-file "diff2"))
+         (smerge--refine-long-words
+          (if smerge-refine-weight-hack (make-hash-table :test #'equal))))
     (unless (markerp beg1) (setq beg1 (copy-marker beg1)))
     (unless (markerp beg2) (setq beg2 (copy-marker beg2)))
     ;; Chop up regions into smaller elements and save into files.
@@ -1062,7 +1094,7 @@ used to replace chars to try and eliminate some spurious differences."
                               ;; also and more importantly because otherwise it
                               ;; may happen that diff doesn't behave like
                               ;; smerge-refine-weight-hack expects it to.
-                              ;; See http://thread.gmane.org/gmane.emacs.devel/82685.
+                              ;; See http://thread.gmane.org/gmane.emacs.devel/82685, aka https://lists.gnu.org/archive/html/emacs-devel/2007-11/msg00401.html
                               "-awd" "-ad")
                           file1 file2))
           ;; Process diff's output.

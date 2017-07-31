@@ -352,7 +352,7 @@ This macro is used to test if macroexpansion in `should' works."
   (let ((abc (ert-get-test 'ert-test-abc)))
     (should (equal (ert-test-tags abc) '(bar)))
     (should (equal (ert-test-documentation abc) "foo")))
-  (should (equal (symbol-file 'ert-test-deftest 'ert-deftest)
+  (should (equal (symbol-file 'ert-test-deftest 'ert--test)
                  (symbol-file 'ert-test--which-file 'defun)))
 
   (ert-deftest ert-test-def () :expected-result ':passed)

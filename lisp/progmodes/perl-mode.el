@@ -213,25 +213,6 @@
             (regexp-opt perl--syntax-exp-intro-keywords)
             "\\|[-?:.,;|&+*=!~({[]\\|\\(^\\)\\)[ \t\n]*")))
 
-;; FIXME: handle here-docs and regexps.
-;; <<EOF <<"EOF" <<'EOF' (no space)
-;; see `man perlop'
-;; ?...?
-;; /.../
-;; m [...]
-;; m /.../
-;; q /.../ = '...'
-;; qq /.../ = "..."
-;; qx /.../ = `...`
-;; qr /.../ = precompiled regexp =~=~ m/.../
-;; qw /.../
-;; s /.../.../
-;; s <...> /.../
-;; s '...'...'
-;; tr /.../.../
-;; y /.../.../
-;;
-;; <file*glob>
 (defun perl-syntax-propertize-function (start end)
   (let ((case-fold-search nil))
     (goto-char start)
@@ -324,23 +305,25 @@
       ((concat
         "\\(?:"
         ;; << "EOF", << 'EOF', or << \EOF
-        "<<[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\)"
+        "<<\\(~\\)?[ \t]*\\('[^'\n]*'\\|\"[^\"\n]*\"\\|\\\\[[:alpha:]][[:alnum:]]*\\)"
         ;; The <<EOF case which needs perl--syntax-exp-intro-regexp, to
         ;; disambiguate with the left-bitshift operator.
-        "\\|" perl--syntax-exp-intro-regexp "<<\\(?1:\\sw+\\)\\)"
+        "\\|" perl--syntax-exp-intro-regexp "<<\\(?2:\\sw+\\)\\)"
         ".*\\(\n\\)")
-       (3 (let* ((st (get-text-property (match-beginning 3) 'syntax-table))
-                 (name (match-string 1)))
-            (goto-char (match-end 1))
+       (4 (let* ((st (get-text-property (match-beginning 4) 'syntax-table))
+                 (name (match-string 2))
+                 (indented (match-beginning 1)))
+            (goto-char (match-end 2))
             (if (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
                 ;; Leave the property of the newline unchanged.
                 st
               (cons (car (string-to-syntax "< c"))
                     ;; Remember the names of heredocs found on this line.
-                    (cons (pcase (aref name 0)
-                            (`?\\ (substring name 1))
-                            ((or `?\" `?\' `?\`) (substring name 1 -1))
-                            (_ name))
+                    (cons (cons (pcase (aref name 0)
+                                  (`?\\ (substring name 1))
+                                  ((or `?\" `?\' `?\`) (substring name 1 -1))
+                                  (_ name))
+                                indented)
                           (cdr st)))))))
       ;; We don't call perl-syntax-propertize-special-constructs directly
       ;; from the << rule, because there might be other elements (between
@@ -383,7 +366,9 @@
           (goto-char (nth 8 state)))
         (while (and names
                     (re-search-forward
-                     (concat "^" (regexp-quote (pop names)) "\n")
+                     (pcase-let ((`(,name . ,indented) (pop names)))
+                       (concat "^" (if indented "[ \t]*")
+                               (regexp-quote name) "\n"))
                      limit 'move))
           (unless names
             (put-text-property (1- (point)) (point) 'syntax-table

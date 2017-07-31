@@ -165,7 +165,8 @@ Summary:
   (if (memq method '(no-next-method no-applicable-method))
       (symbol-function method)
     (let ((generic (cl-generic-ensure-function method)))
-      (symbol-function (cl--generic-name generic)))))
+      (or (symbol-function (cl--generic-name generic))
+          (cl--generic-make-function generic)))))
 
 ;;;###autoload
 (defun eieio--defmethod (method kind argclass code)

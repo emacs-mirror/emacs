@@ -250,6 +250,11 @@ specified if @samp{off}.
 Gamma correction for colors, equivalent to the frame parameter
 @code{screen-gamma}.
 
+@item @code{scrollBar} (class @code{ScrollBar})
+@cindex tool bar
+If the value of this resource is @samp{off} or @samp{false} or
+@samp{0}, Emacs disables Scroll Bar mode at startup (@pxref{Scroll Bars}).
+
 @item @code{scrollBarWidth} (class @code{ScrollBarWidth})
 @cindex scrollbar width
 The scroll bar width in pixels, equivalent to the frame parameter

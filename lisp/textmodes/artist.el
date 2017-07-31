@@ -4889,7 +4889,7 @@ If optional argument STATE is positive, turn borders on."
      (select-window (posn-window (event-start last-input-event)))
      (list last-input-event
 	   (if (display-popup-menus-p)
-	       (x-popup-menu last-nonmenu-event artist-popup-menu-table)
+	       (x-popup-menu t artist-popup-menu-table)
 	     'no-popup-menus))))
 
   (if (eq op 'no-popup-menus)

@@ -32745,7 +32745,7 @@ even if the actual number needs less space.
 The default value of nil means compute the space dynamically.
 Any other value is treated as nil.  */);
   Vdisplay_line_numbers_width = Qnil;
-  DEFSYM (Qdisplay_line_numbers_width, "display-line-number-width");
+  DEFSYM (Qdisplay_line_numbers_width, "display-line-numbers-width");
   Fmake_variable_buffer_local (Qdisplay_line_numbers_width);
 
   DEFVAR_LISP ("display-line-numbers-current-absolute",

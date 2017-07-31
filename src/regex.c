@@ -1942,7 +1942,7 @@ struct range_table_work_area
    returned.  If name is not a valid character class name zero, or RECC_ERROR,
    is returned.
 
-   Otherwise, if *strp doesn’t begin with "[:name:]", -1 is returned.
+   Otherwise, if *strp doesn't begin with "[:name:]", -1 is returned.
 
    The function can be used on ASCII and multibyte (UTF-8-encoded) strings.
  */
@@ -1954,8 +1954,8 @@ re_wctype_parse (const unsigned char **strp, unsigned limit)
   if (limit < 4 || beg[0] != '[' || beg[1] != ':')
     return -1;
 
-  beg += 2;  /* skip opening ‘[:’ */
-  limit -= 3;  /* opening ‘[:’ and half of closing ‘:]’; --limit handles rest */
+  beg += 2;  /* skip opening "[:" */
+  limit -= 3;  /* opening "[:" and half of closing ":]"; --limit handles rest */
   for (it = beg; it[0] != ':' || it[1] != ']'; ++it)
     if (!--limit)
       return -1;
@@ -1985,7 +1985,7 @@ re_wctype_parse (const unsigned char **strp, unsigned limit)
            2 [:cntrl:]
            1 [:ff:]
 
-     If you update this list, consider also updating chain of or’ed conditions
+     If you update this list, consider also updating chain of or'ed conditions
      in execute_charset function.
    */
 

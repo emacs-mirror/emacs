@@ -254,6 +254,7 @@ Restart the Aspell/Ispell/Hunspell process, using @var{dict} as the dictionary.
 Kill the Aspell/Ispell/Hunspell subprocess.
 @item M-@key{TAB}
 @itemx @key{ESC} @key{TAB}
+@itemx C-M-i
 Complete the word before point based on the spelling dictionary
 (@code{ispell-complete-word}).
 @item M-x flyspell-mode

@@ -189,26 +189,25 @@ This shell should support pipe redirect syntax."
     ;; Return the answer
     ans))
 
-(defconst semantic-symref-grep--line-re
-  "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):")
-
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-grep))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
-  (cond ((eq (oref tool :resulttype) 'file)
-	 ;; Search for files
-	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
-	   (match-string 1)))
-        ((eq (oref tool :resulttype) 'line-and-text)
-         (when (re-search-forward semantic-symref-grep--line-re nil t)
-           (list (string-to-number (match-string 2))
-                 (match-string 1)
-                 (buffer-substring-no-properties (point) (line-end-position)))))
-	(t
-	 (when (re-search-forward semantic-symref-grep--line-re nil t)
-	   (cons (string-to-number (match-string 2))
-		 (match-string 1))
-	   ))))
+  (pcase-let
+      ((`(,grep-re ,file-group ,line-group . ,_) (car (grep-regexp-alist))))
+    (cond ((eq (oref tool :resulttype) 'file)
+	   ;; Search for files
+	   (when (re-search-forward "^\\([^\n]+\\)$" nil t)
+	     (match-string 1)))
+          ((eq (oref tool :resulttype) 'line-and-text)
+           (when (re-search-forward grep-re nil t)
+             (list (string-to-number (match-string line-group))
+                   (match-string file-group)
+                   (buffer-substring-no-properties (point) (line-end-position)))))
+	  (t
+	   (when (re-search-forward grep-re nil t)
+	     (cons (string-to-number (match-string line-group))
+		   (match-string file-group))
+	     )))))
 
 (provide 'semantic/symref/grep)
 

@@ -2423,7 +2423,9 @@ the values of the @code{:family}, @code{:foundry}, @code{:width},
 The name of a face from which to inherit attributes, or a list of face
 names.  Attributes from inherited faces are merged into the face like
 an underlying face would be, with higher priority than underlying
-faces (@pxref{Displaying Faces}).  If a list of faces is used,
+faces (@pxref{Displaying Faces}).  If the face to inherit from is
+@code{unspecified}, it is treated the same as @code{nil}, since Emacs
+never merges @code{:inherit} attributes.  If a list of faces is used,
 attributes from faces earlier in the list override those from later
 faces.
 @end table

@@ -1,4 +1,4 @@
-;;; ido.el --- interactively do things with buffers and files
+;;; ido.el --- interactively do things with buffers and files -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
 

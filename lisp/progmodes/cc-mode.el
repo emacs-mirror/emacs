@@ -1539,6 +1539,21 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
       (setq new-pos capture-opener))
     (and (/= new-pos pos) new-pos)))
 
+(defun c-fl-decl-end (pos)
+  ;; If POS is inside a declarator, return the end of the token that follows
+  ;; the declarator, otherwise return nil.
+  (goto-char pos)
+  (let ((lit-start (c-literal-start))
+	pos1)
+    (if lit-start (goto-char lit-start))
+    (c-backward-syntactic-ws)
+    (when (setq pos1 (c-on-identifier))
+      (goto-char pos1)
+      (when (and (c-forward-declarator)
+		 (eq (c-forward-token-2) 0))
+	(c-backward-syntactic-ws)
+	(point)))))
+
 (defun c-change-expand-fl-region (_beg _end _old-len)
   ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock
   ;; region.  This will usually be the smallest sequence of whole lines
@@ -1552,18 +1567,16 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
       (setq c-new-BEG
 	    (or (c-fl-decl-start c-new-BEG) (c-point 'bol c-new-BEG))
 	    c-new-END
-	    (save-excursion
-	      (goto-char c-new-END)
-	      (if (bolp)
-		  (point)
-		(c-point 'bonl c-new-END))))))
+	    (or (c-fl-decl-end c-new-END)
+		(c-point 'bonl (max (1- c-new-END) (point-min)))))))
 
 (defun c-context-expand-fl-region (beg end)
   ;; Return a cons (NEW-BEG . NEW-END), where NEW-BEG is the beginning of a
   ;; "local" declaration containing BEG (see `c-fl-decl-start') or BOL BEG is
   ;; in.  NEW-END is beginning of the line after the one END is in.
-  (cons (or (c-fl-decl-start beg) (c-point 'bol beg))
-	(c-point 'bonl end)))
+  (c-save-buffer-state ()
+    (cons (or (c-fl-decl-start beg) (c-point 'bol beg))
+	  (or (c-fl-decl-end end) (c-point 'bonl (1- end))))))
 
 (defun c-before-context-fl-expand-region (beg end)
   ;; Expand the region (BEG END) as specified by

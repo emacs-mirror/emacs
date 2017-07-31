@@ -1101,23 +1101,68 @@ The selected font will be the default on both the existing and future frames."
                     :button (:radio . (eq tool-bar-mode nil))))
       menu)))
 
-(defun toggle-display-line-numbers ()
-  (interactive)
-  (if display-line-numbers
-      (setq display-line-numbers nil)
-    (setq display-line-numbers t))
-  (force-mode-line-update))
+(defun menu-bar-display-line-numbers-mode (type)
+  (setq display-line-numbers-type type)
+  (if global-display-line-numbers-mode
+      (global-display-line-numbers-mode)
+    (display-line-numbers-mode)))
+
+(defvar menu-bar-showhide-line-numbers-menu
+  (let ((menu (make-sparse-keymap "Line Numbers")))
+
+    (bindings--define-key menu [visual]
+      `(menu-item "Visual Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode 'visual)
+                     (message "Visual line numbers enabled"))
+                  :help "Enable visual line numbers"
+                  :button (:radio . (eq display-line-numbers 'visual))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [relative]
+      `(menu-item "Relative Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode 'relative)
+                     (message "Relative line numbers enabled"))
+                  :help "Enable relative line numbers"
+                  :button (:radio . (eq display-line-numbers 'relative))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [absolute]
+      `(menu-item "Absolute Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode t)
+                     (setq display-line-numbers t)
+                     (message "Absolute line numbers enabled"))
+                  :help "Enable absolute line numbers"
+                  :button (:radio . (eq display-line-numbers t))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [none]
+      `(menu-item "No Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode nil)
+                     (message "Line numbers disabled"))
+                  :help "Disable line numbers"
+                  :button (:radio . (null display-line-numbers))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [global]
+      (menu-bar-make-mm-toggle global-display-line-numbers-mode
+                               "Global Line Numbers Mode"
+                               "Set line numbers globally"))
+    menu))
 
 (defvar menu-bar-showhide-menu
   (let ((menu (make-sparse-keymap "Show/Hide")))
 
     (bindings--define-key menu [display-line-numbers]
       `(menu-item "Line Numbers for All Lines"
-                  ,(lambda ()
-                     (interactive)
-                     (toggle-display-line-numbers))
-                  :help "Show the line number alongside each line"
-                  :button (:toggle . display-line-numbers)))
+		  ,menu-bar-showhide-line-numbers-menu))
 
     (bindings--define-key menu [column-number-mode]
       (menu-bar-make-mm-toggle column-number-mode
@@ -2375,10 +2420,6 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
       ;; `setup-specified-language-environment', for instance,
       ;; expects this to be set from a menu keymap.
       (setq last-command-event (car (last event)))
-      ;; Update `this-command' and run `pre-command-hook' so that
-      ;; things like `delete-selection-pre-hook' will work correctly.
-      (setq this-command cmd)
-      (run-hooks 'pre-command-hook)
       ;; mouse-major-mode-menu was using `command-execute' instead.
       (call-interactively cmd))))
 

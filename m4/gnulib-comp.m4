@@ -113,6 +113,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime-internal:
   # Code from module multiarch:
   # Code from module nocrash:
+  # Code from module nstrftime:
   # Code from module openat-h:
   # Code from module pipe2:
   # Code from module pselect:
@@ -139,7 +140,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module stpcpy:
-  # Code from module strftime:
   # Code from module string:
   # Code from module strtoimax:
   # Code from module strtoll:
@@ -314,6 +314,7 @@ AC_DEFUN([gl_INIT],
   fi
   gl_TIME_MODULE_INDICATOR([mktime])
   gl_MULTIARCH
+  gl_FUNC_GNU_STRFTIME
   gl_FUNC_PIPE2
   gl_UNISTD_MODULE_INDICATOR([pipe2])
   gl_FUNC_PSELECT
@@ -365,7 +366,6 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_STPCPY
   fi
   gl_STRING_MODULE_INDICATOR([stpcpy])
-  gl_FUNC_GNU_STRFTIME
   gl_HEADER_STRING_H
   gl_FUNC_STRTOIMAX
   if test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1; then
@@ -893,6 +893,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mkostemp.c
   lib/mktime-internal.h
   lib/mktime.c
+  lib/nstrftime.c
   lib/openat-priv.h
   lib/openat-proc.c
   lib/openat.h
@@ -924,7 +925,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/stpcpy.c
-  lib/strftime.c
   lib/strftime.h
   lib/string.in.h
   lib/strtoimax.c
@@ -1013,6 +1013,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/nocrash.m4
+  m4/nstrftime.m4
   m4/off_t.m4
   m4/pipe2.m4
   m4/pselect.m4
@@ -1037,7 +1038,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/stpcpy.m4
-  m4/strftime.m4
   m4/string_h.m4
   m4/strtoimax.m4
   m4/strtoll.m4
