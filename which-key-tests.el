@@ -1,9 +1,9 @@
 ;;; which-key-tests.el --- Tests for which-key.el -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Justin Burkett
+;; Copyright (C) 2017  Free Software Foundation, Inc.
 
 ;; Author: Justin Burkett <justin@burkett.cc>
-;; URL: https://github.com/justbur/emacs-which-key
+;; Maintainer: Justin Burkett <justin@burkett.cc>
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

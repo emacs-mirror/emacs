@@ -1,8 +1,9 @@
 ;;; which-key.el --- Display available keybindings in popup  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Justin Burkett
+;; Copyright (C) 2017  Free Software Foundation, Inc.
 
 ;; Author: Justin Burkett <justin@burkett.cc>
+;; Maintainer: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
 ;; Version: 3.0.1
 ;; Keywords:
@@ -32,9 +33,6 @@
 ;; the popup will look like along with information about additional features can
 ;; be found at https://github.com/justbur/emacs-which-key.
 ;;
-;; which-key started as a rewrite of guide-key
-;; (https://github.com/kai2nenobu/guide-key), but the feature sets have since
-;; diverged.
 
 ;;; Code:
 
