@@ -677,11 +677,12 @@ If the package is installed, its entry is removed from
               use-package--deferred-packages)
      (if packages
          (list
-          (completing-read
-           "Select package: "
-           packages
-           nil
-           'require-match)
+          (intern
+           (completing-read
+            "Select package: "
+            packages
+            nil
+            'require-match))
           :interactive)
        (user-error "No packages with deferred installation"))))
   (let ((spec (gethash name use-package--deferred-packages)))
