@@ -1750,9 +1750,9 @@ Namazu provides a little more information, for instance a score."
     (with-slots (switches config-file) engine
       `(,(format "--config=%s" config-file)
 	"search"
-	(if thread
-	    "--output=threads"
-	  "--output=files")
+	,(if thread
+	     "--output=threads"
+	   "--output=files")
 	"--duplicate=1" ; I have found this necessary, I don't know why.
 	,@switches
 	,(if limit (format "--limit=%d" limit) "")
