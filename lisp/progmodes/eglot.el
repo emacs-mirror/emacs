@@ -41,13 +41,14 @@
 (defun eglot--current-process ()
   "The current logical EGLOT process"
   (let ((cur (project-current)))
-    (unless cur
-      (eglot--error "No current project, so no process"))
-    (gethash cur eglot--processes-by-project)))
+    (and cur
+         (gethash cur eglot--processes-by-project))))
 
 (defun eglot--current-process-or-lose ()
   (or (eglot--current-process)
-      (eglot--error "No current EGLOT process")))
+      (eglot--error "No current EGLOT process%s"
+                    (if (project-current) ""
+                      " (Also no current project)"))))
 
 (defmacro eglot--define-process-var (var-sym initval &optional doc)
   (declare (indent 2))
