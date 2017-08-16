@@ -64,6 +64,9 @@
 (eglot--define-process-var eglot--message-mark nil
   "Point where next unread message starts")
 
+(eglot--define-process-var eglot--short-name nil
+  "A short name")
+
 (eglot--define-process-var eglot--expected-bytes nil
   "How many bytes declared by server")
 
@@ -92,25 +95,29 @@
           (and timeout-fn
                `((cl-function ,timeout-fn)))))
 
-(defun eglot--command ()
-  (cdr (assoc major-mode eglot-executables)))
+(defun eglot--command (&optional errorp)
+  (let ((probe (cdr (assoc major-mode eglot-executables))))
+    (unless (or (not errorp)
+                probe)
+      (eglot--error "Don't know how to start EGLOT for %s buffers"
+                    major-mode))
+    probe))
 
-(defun eglot-new-process (&optional interactive)
+(defun eglot-new-process (&optional _interactive)
   "Starts a new EGLOT process and initializes it"
   (interactive (list t))
   (let ((project (project-current))
-        (command (eglot--command)))
-    (unless command (eglot--error "Cannot work without an LSP executable"))
+        (command (eglot--command 'errorp)))
     (unless project (eglot--error "Cannot work without a current project!"))
     (let ((current-process (eglot--current-process)))
       (when (and current-process
                  (process-live-p current-process))
         (eglot-quit-server current-process 'sync)))
-    (let ((good-name
-           (format "EGLOT server (%s)"
-                   (file-name-base
-                    (directory-file-name
-                     (car (project-roots (project-current))))))))
+    (let* ((short-name (file-name-base
+                        (directory-file-name
+                         (car (project-roots (project-current))))))
+           (good-name
+            (format "EGLOT server (%s)" short-name)))
       (with-current-buffer (get-buffer-create
                             (format "*%s inferior*" good-name))
         (let* ((proc
@@ -123,6 +130,7 @@
                               :stderr (get-buffer-create (format "*%s stderr*"
                                                                  good-name))))
                (inhibit-read-only t))
+          (setf (eglot--short-name proc) short-name)
           (puthash (project-current) proc eglot--processes-by-project)
           (erase-buffer)
           (let ((marker (point-marker)))
@@ -133,9 +141,7 @@
             (let ((inhibit-read-only t))
               (insert
                (format "\n-----------------------------------\n"))))
-          (eglot--protocol-initialize proc)
-          (when interactive
-            (display-buffer (eglot-events-buffer proc))))))))
+          (eglot--protocol-initialize proc))))))
 
 (defun eglot-quit-server (process &optional sync)
   (interactive (list (eglot--current-process)))
@@ -246,7 +252,7 @@
                                buffer))
                        buffer))))
     (when interactive
-      (pop-to-buffer buffer))
+      (display-buffer buffer))
     buffer))
 
 (defun eglot--log-event (proc type message)
@@ -294,6 +300,10 @@
 
 (defun eglot--next-request-id ()
   (setq eglot--next-request-id (1+ eglot--next-request-id)))
+
+(defun eglot-forget-pending-continuations (process)
+  (interactive (eglot--current-process))
+  (clrhash (eglot--pending-continuations process)))
 
 (defun eglot--call-with-request (process
                                   async-p
@@ -388,6 +398,94 @@
   (display-warning 'eglot
      (apply #'format format args)
      :warning))
+
+
+
+;;; Mode line
+;;;
+
+
+(defface eglot-mode-line
+  '((t (:inherit font-lock-constant-face :weight bold)))
+  "Face for package-name in EGLOT's mode line."
+  :group 'eglot)
+
+(define-minor-mode eglot-mode
+  "Minor mode for buffers where EGLOT is possible")
+
+(defvar eglot-menu)
+
+(defvar eglot-mode-map (make-sparse-keymap))
+
+(easy-menu-define eglot-menu eglot-mode-map "SLY"
+  `("EGLOT" ))
+
+(defvar eglot--mode-line-format
+  `(:eval (eglot--mode-line-format)))
+
+(put 'eglot--mode-line-format 'risky-local-variable t)
+
+(defun eglot--mode-line-format ()
+  (let* ((proc (eglot--current-process))
+         (name (and proc
+                    (process-live-p proc)
+                    (eglot--short-name proc)))
+         (pending (and proc
+                       (hash-table-count
+                        (eglot--pending-continuations proc))))
+         (format-number (lambda (n) (cond ((and n (not (zerop n)))
+                                           (format "%d" n))
+                                          (n "-")
+                                          (t "*")))))
+    (append
+     `((:propertize "eglot"
+                    face eglot-mode-line
+                    keymap ,(let ((map (make-sparse-keymap)))
+                              (define-key map [mode-line down-mouse-1]
+                                eglot-menu)
+                              map)
+                    mouse-face mode-line-highlight
+                    help-echo "mouse-1: pop-up EGLOT menu"
+                    ))
+     (if name
+         `(" "
+           (:propertize
+            ,name
+            face eglot-mode-line
+            keymap ,(let ((map (make-sparse-keymap)))
+                      (define-key map [mode-line mouse-1] 'eglot-events-buffer)
+                      (define-key map [mode-line mouse-2] 'eglot-quit-server)
+                      (define-key map [mode-line mouse-3] 'eglot-new-process)
+                      map)
+            mouse-face mode-line-highlight
+            help-echo ,(concat "mouse-1: events buffer\n"
+                               "mouse-2: quit server\n"
+                               "mouse-3: new process"))
+           "/"
+           (:propertize
+            ,(funcall format-number pending)
+            help-echo ,(if name
+                           (format
+                            "%s pending events outgoing\n%s"
+                            pending
+                            (concat "mouse-1: go to events buffer"
+                                    "mouse-3: forget pending continuations"))
+                         "No current connection")
+            mouse-face mode-line-highlight
+            face ,(cond ((and pending (cl-plusp pending))
+                         'warning)
+                        (t
+                         'eglot-mode-line))
+            keymap ,(let ((map (make-sparse-keymap)))
+                      (define-key map [mode-line mouse-1]
+                        'eglot-events-buffer)
+                      (define-key map [mode-line mouse-3]
+                        'eglot-forget-pending-continuations)
+                      map)))))))
+
+(add-to-list 'mode-line-misc-info
+             `(t
+               (" [" eglot--mode-line-format "] ")))
 
 (provide 'eglot)
 ;;; eglot.el ends here
