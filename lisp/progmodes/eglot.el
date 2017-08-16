@@ -67,7 +67,7 @@
 (eglot--define-process-var eglot--expected-bytes nil
   "How many bytes declared by server")
 
-(eglot--define-process-var eglot--continuations (make-hash-table)
+(eglot--define-process-var eglot--pending-continuations (make-hash-table)
   "A hash table of request ID to continuation lambdas")
 
 (eglot--define-process-var eglot--events-buffer nil
@@ -264,12 +264,14 @@
   (let* ((response-id (plist-get message :id))
          (err (plist-get message :error))
          (continuations (and response-id
-                             (gethash response-id (eglot--continuations)))))
+                             (gethash response-id (eglot--pending-continuations)))))
     (cond ((and response-id
                 (not continuations))
            (eglot--warn "Ooops no continuation for id %s" response-id))
           (continuations
            (cancel-timer (third continuations))
+           (remhash response-id
+                    (eglot--pending-continuations))
            (cond (err
                   (apply (second continuations) err))
                  (t
@@ -303,7 +305,7 @@
          (timeout-fn (or timeout-fn
                          (lambda ()
                            (eglot--warn "Tired of waiting for reply to %s" id)
-                           (remhash id (eglot--continuations process)))))
+                           (remhash id (eglot--pending-continuations process)))))
          (error-fn (or error-fn
                        (cl-function
                         (lambda (&key code message)
@@ -330,7 +332,7 @@
                                          timeout-fn
                                        (lambda ()
                                          (throw catch-tag (apply timeout-fn))))))
-               (eglot--continuations process))
+               (eglot--pending-continuations process))
       (unless async-p
         (while t
           (unless (eq (process-status process) 'open)
