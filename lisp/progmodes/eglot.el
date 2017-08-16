@@ -70,7 +70,7 @@
   "Point where next unread message starts")
 
 (eglot--define-process-var eglot--short-name nil
-  "A short name")
+  "A short name for the process")
 
 (eglot--define-process-var eglot--expected-bytes nil
   "How many bytes declared by server")
@@ -80,6 +80,9 @@
 
 (eglot--define-process-var eglot--events-buffer nil
   "A buffer pretty-printing the EGLOT RPC events")
+
+(eglot--define-process-var eglot--capabilities :unreported
+  "Holds list of capabilities that server reported")
 
 (cl-defmacro eglot--request (process
                               method
@@ -367,29 +370,11 @@
                  :capabilities (:workspace (:executeCommand (:dynamicRegistration t))
                                            :textDocument (:synchronization (:didSave t))))
    (lambda (&key capabilities)
-     (cl-destructuring-bind
-         (&rest all
-                &key
-                ;; capabilities reported by server
-                _textDocumentSync
-                _hoverProvider
-                _completionProvider
-                _definitionProvider
-                _referencesProvider
-                _documentHighlightProvider
-                _documentSymbolProvider
-                _workspaceSymbolProvider
-                _codeActionProvider
-                _documentFormattingProvider
-                _documentRangeFormattingProvider
-                _renameProvider
-                _executeCommandProvider
-                )
-         capabilities
-       (when interactive
+     (setf (eglot--capabilities process) capabilities)
+     (when interactive
          (eglot--message
           "So yeah I got lots (%d) of capabilities"
-          (length all)))))))
+          (length capabilities))))))
 
 (defun eglot-quit-server (process &optional sync)
   (interactive (list (eglot--current-process-or-lose)))
