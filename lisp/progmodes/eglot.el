@@ -117,6 +117,7 @@
     (let ((current-process (eglot--current-process)))
       (when (and current-process
                  (process-live-p current-process))
+        (eglot--message "Asking current process to terminate first")
         (eglot-quit-server current-process 'sync)))
     (let* ((short-name (file-name-base
                         (directory-file-name
@@ -147,7 +148,6 @@
               (insert
                (format "\n-----------------------------------\n"))))
           (eglot--protocol-initialize proc interactive))))))
-
 
 (defun eglot--process-sentinel (process change)
   (with-current-buffer (process-buffer process)
@@ -353,8 +353,7 @@
 
 
 ;;; Requests
-;;; 
-
+;;;
 (defun eglot--protocol-initialize (process interactive)
   (eglot--request
    process
@@ -445,8 +444,6 @@
 
 ;;; Mode line
 ;;;
-
-
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
   "Face for package-name in EGLOT's mode line."
