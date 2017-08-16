@@ -414,11 +414,47 @@
 
 ;;; Notifications
 ;;;
+(defvar-local eglot--diagnostic-overlays nil)
+
 (cl-defun eglot--textDocument/publishDiagnostics
     (_process &key uri diagnostics)
   "Handle notification publishDiagnostics"
-  (eglot--message "So yeah I got %s for %s"
-                  diagnostics uri))
+  (let* ((obj (url-generic-parse-url uri))
+	 (filename (car (url-path-and-query obj)))
+         (buffer (find-buffer-visiting filename)))
+    (cond
+     (buffer
+      (with-current-buffer buffer
+        (eglot--message "OK so add some %s diags" (length diagnostics))
+        (mapc #'delete-overlay eglot--diagnostic-overlays)
+        (setq eglot--diagnostic-overlays nil)
+        (cl-flet ((pos-at (pos-plist)
+                          (save-excursion
+                            (goto-char (point-min))
+                            (forward-line (plist-get pos-plist :line))
+                            (forward-char (plist-get pos-plist :character))
+                            (point))))
+          (loop for diag across diagnostics
+                do (cl-destructuring-bind (&key range severity
+                                                _code _source message)
+                       diag
+                     (cl-destructuring-bind (&key start end)
+                         range
+                       (let* ((begin-pos (pos-at start))
+                              (end-pos (pos-at end))
+                              (ov (make-overlay begin-pos
+                                                end-pos
+                                                buffer)))
+                         (push ov eglot--diagnostic-overlays)
+                         (overlay-put ov 'face
+                                      (case severity
+                                        (1 'flymake-errline)
+                                        (2 'flymake-warnline)))
+                         (overlay-put ov 'help-echo
+                                      message)
+                         (overlay-put ov 'eglot--diagnostic diag))))))))
+     (t
+      (eglot--message "OK so %s isn't visited" filename)))))
 
 
 ;;; Helpers
