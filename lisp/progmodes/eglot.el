@@ -36,7 +36,6 @@
 (defvar eglot-executables '((rust-mode . ("rls")))
   "Alist mapping major modes to server executables")
 
-;;; TODO: Soon to be per-project
 (defvar eglot--processes-by-project (make-hash-table :test #'equal))
 
 (defun eglot--current-process ()
@@ -279,7 +278,6 @@
            (eglot--debug "No implemetation for notification %s yet"
                          (plist-get message :method))))))
 
-;; (setq json-encoding-pretty-print nil) ; for debug
 (defvar eglot--expect-carriage-return nil)
 
 (defun eglot--process-send (proc message)
