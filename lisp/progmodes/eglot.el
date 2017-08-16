@@ -45,12 +45,16 @@
       (eglot--error "No current project, so no process"))
     (gethash cur eglot--processes-by-project)))
 
+(defun eglot--current-process-or-lose ()
+  (or (eglot--current-process)
+      (eglot--error "No current EGLOT process")))
+
 (defmacro eglot--define-process-var (var-sym initval &optional doc)
   (declare (indent 2))
   `(progn
      (put ',var-sym 'function-documentation ,doc)
      (defun ,var-sym (&optional process)
-       (let* ((proc (or process (eglot--current-process)))
+       (let* ((proc (or process (eglot--current-process-or-lose)))
               (probe (process-get proc ',var-sym)))
          (or probe
              (let ((def ,initval))
@@ -58,7 +62,7 @@
                def))))
      (gv-define-setter ,var-sym (to-store &optional process)
        (let ((prop ',var-sym))
-         `(let ((proc (or ,process (eglot--current-process))))
+         `(let ((proc (or ,process (eglot--current-process-or-lose))))
             (process-put proc ',prop ,to-store))))))
 
 (eglot--define-process-var eglot--message-mark nil
@@ -103,7 +107,7 @@
                     major-mode))
     probe))
 
-(defun eglot-new-process (&optional _interactive)
+(defun eglot-new-process (&optional interactive)
   "Starts a new EGLOT process and initializes it"
   (interactive (list t))
   (let ((project (project-current))
@@ -141,10 +145,10 @@
             (let ((inhibit-read-only t))
               (insert
                (format "\n-----------------------------------\n"))))
-          (eglot--protocol-initialize proc))))))
+          (eglot--protocol-initialize proc interactive))))))
 
 (defun eglot-quit-server (process &optional sync)
-  (interactive (list (eglot--current-process)))
+  (interactive (list (eglot--current-process-or-lose)))
   (eglot--message "Asking server to terminate")
   (eglot--request
       process
@@ -238,7 +242,7 @@
                  )))))))
 
 (defun eglot-events-buffer (process &optional interactive)
-  (interactive (list (eglot--current-process) t))
+  (interactive (list (eglot--current-process-or-lose) t))
   (let* ((probe (eglot--events-buffer process))
          (buffer (or (and (buffer-live-p probe)
                           probe)
@@ -302,7 +306,7 @@
   (setq eglot--next-request-id (1+ eglot--next-request-id)))
 
 (defun eglot-forget-pending-continuations (process)
-  (interactive (eglot--current-process))
+  (interactive (eglot--current-process-or-lose))
   (clrhash (eglot--pending-continuations process)))
 
 (defun eglot--call-with-request (process
@@ -350,38 +354,41 @@
           (accept-process-output nil 0.01))))))
 
 
-(defun eglot--protocol-initialize (process)
+(defun eglot--protocol-initialize (process interactive)
   (eglot--request
-    process
-    :initialize
-    `(:processId  ,(emacs-pid)
-                  :rootPath  ,(concat "" ;; FIXME RLS doesn't like "file://"
-                                      (expand-file-name (car (project-roots
-                                                              (project-current)))))
-                  :initializationOptions  []
-                  :capabilities (:workspace (:executeCommand (:dynamicRegistration t))
-                                            :textDocument (:synchronization (:didSave t)))
-                  )
-    (lambda (&key capabilities)
-      (cl-destructuring-bind
-          (&rest all
-                 &key
-                 _textDocumentSync
-                 _hoverProvider
-                 _completionProvider
-                 _definitionProvider
-                 _referencesProvider
-                 _documentHighlightProvider
-                 _documentSymbolProvider
-                 _workspaceSymbolProvider
-                 _codeActionProvider
-                 _documentFormattingProvider
-                 _documentRangeFormattingProvider
-                 _renameProvider
-                 _executeCommandProvider
-                 )
-          capabilities
-        (message "so yeah I got lots (%d) of capabilities" (length all))))))
+   process
+   :initialize
+   `(:processId  ,(emacs-pid)
+                 :rootPath  ,(concat "" ;; FIXME RLS doesn't like "file://"
+                                     (expand-file-name (car (project-roots
+                                                             (project-current)))))
+                 :initializationOptions  []
+                 :capabilities (:workspace (:executeCommand (:dynamicRegistration t))
+                                           :textDocument (:synchronization (:didSave t))))
+   (lambda (&key capabilities)
+     (cl-destructuring-bind
+         (&rest all
+                &key
+                ;; capabilities reported by server
+                _textDocumentSync
+                _hoverProvider
+                _completionProvider
+                _definitionProvider
+                _referencesProvider
+                _documentHighlightProvider
+                _documentSymbolProvider
+                _workspaceSymbolProvider
+                _codeActionProvider
+                _documentFormattingProvider
+                _documentRangeFormattingProvider
+                _renameProvider
+                _executeCommandProvider
+                )
+         capabilities
+       (when interactive
+         (eglot--message
+          "So yeah I got lots (%d) of capabilities"
+          (length all)))))))
 
 (defun eglot--debug (format &rest args)
   (display-warning 'eglot
