@@ -153,9 +153,16 @@
   (with-current-buffer (process-buffer process)
     (eglot--debug "Process state changed to %s" change)
     (when (not (process-live-p process))
+      ;; Remember to cancel all timers
+      ;;
+      (maphash (lambda (id v) 
+                 (cl-destructuring-bind (_success _error timeout) v
+                   (eglot--message "Cancelling timer for continuation %s" id)
+                   (cancel-timer timeout)))
+               (eglot--pending-continuations process))
       (cond ((process-get process 'eglot--moribund)
              (eglot--message "Process exited with status %s"
-                              (process-exit-status process)))
+                             (process-exit-status process)))
             (t
              (eglot--warn "Process unexpectedly changed to %s" change))))))
 
@@ -319,26 +326,30 @@
                                       :method  ,method
                                       :params  ,params))
     (catch catch-tag
-      (puthash id
-               (list (if async-p
-                         success-fn
-                       (lambda (&rest args)
-                         (throw catch-tag (apply success-fn args))))
-                     (if async-p
-                         error-fn
-                       (lambda (&rest args)
-                         (throw catch-tag (apply error-fn args))))
-                     (run-with-timer 5 nil
-                                     (if async-p
-                                         timeout-fn
-                                       (lambda ()
-                                         (throw catch-tag (apply timeout-fn))))))
-               (eglot--pending-continuations process))
-      (unless async-p
-        (while t
-          (unless (eq (process-status process) 'open)
-            (eglot--error "Process %s died unexpectedly" process))
-          (accept-process-output nil 0.01))))))
+      (let ((timeout-timer
+             (run-with-timer 5 nil
+                             (if async-p
+                                 timeout-fn
+                               (lambda ()
+                                 (throw catch-tag (apply timeout-fn)))))))
+        (puthash id
+                 (list (if async-p
+                           success-fn
+                         (lambda (&rest args)
+                           (throw catch-tag (apply success-fn args))))
+                       (if async-p
+                           error-fn
+                         (lambda (&rest args)
+                           (throw catch-tag (apply error-fn args))))
+                       timeout-timer)
+                 (eglot--pending-continuations process))
+        (unless async-p
+          (unwind-protect
+              (while t
+                (unless (process-live-p process)
+                  (eglot--error "Process %s died unexpectedly" process))
+                (accept-process-output nil 0.01))
+            (cancel-timer timeout-timer)))))))
 
 
 ;;; Requests
