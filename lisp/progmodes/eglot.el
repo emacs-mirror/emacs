@@ -287,8 +287,13 @@
                  (t
                   (apply (first continuations) (plist-get message :result)))))
           (t
-           (eglot--debug "No implemetation for notification %s yet"
-                         (plist-get message :method))))))
+           (let* ((method (plist-get message :method))
+                  (handler-sym (intern (concat "eglot--"
+                                              method))))
+             (if (functionp handler-sym)
+                 (apply handler-sym proc (plist-get message :params))
+               (eglot--debug "No implemetation for notification %s yet"
+                         method)))))))
 
 (defvar eglot--expect-carriage-return nil)
 
@@ -391,6 +396,14 @@
           (length all)))))))
 
 (defun eglot--debug (format &rest args)
+
+;;; Notifications
+;;;
+(cl-defun eglot--textDocument/publishDiagnostics
+    (_process &key uri diagnostics)
+  "Handle notification publishDiagnostics"
+  (eglot--message "So yeah I got %s for %s"
+                  diagnostics uri))
   (display-warning 'eglot
      (apply #'format format args)
      :debug))
