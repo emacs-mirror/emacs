@@ -84,24 +84,8 @@
 (eglot--define-process-var eglot--capabilities :unreported
   "Holds list of capabilities that server reported")
 
-(cl-defmacro eglot--request (process
-                              method
-                              params
-                              success-fn
-                              &key
-                              error-fn
-                              timeout-fn
-                              (async-p t))
-  (append `(eglot--call-with-request
-            ,process
-            ,async-p
-            ,method
-            ,params
-            (cl-function ,success-fn))
-          (and error-fn
-               `((cl-function ,error-fn)))
-          (and timeout-fn
-               `((cl-function ,timeout-fn)))))
+(eglot--define-process-var eglot--moribund nil
+  "Non-nil if process is about to exit")
 
 (defun eglot--command (&optional errorp)
   (let ((probe (cdr (assoc major-mode eglot-executables))))
@@ -116,12 +100,12 @@
   (interactive (list t))
   (let ((project (project-current))
         (command (eglot--command 'errorp)))
-    (unless project (eglot--error "Cannot work without a current project!"))
+    (unless project (eglot--error "(new-process) Cannot work without a current project!"))
     (let ((current-process (eglot--current-process)))
       (when (and current-process
                  (process-live-p current-process))
-        (eglot--message "Asking current process to terminate first")
-        (eglot-quit-server current-process 'sync)))
+        (eglot--message "(new-process) Asking current process to terminate first")
+        (eglot-quit-server current-process 'sync interactive)))
     (let* ((short-name (file-name-base
                         (directory-file-name
                          (car (project-roots (project-current))))))
@@ -154,20 +138,23 @@
 
 (defun eglot--process-sentinel (process change)
   (with-current-buffer (process-buffer process)
-    (eglot--debug "Process state changed to %s" change)
+    (eglot--debug "(sentinel) Process state changed to %s" change)
     (when (not (process-live-p process))
       ;; Remember to cancel all timers
       ;;
-      (maphash (lambda (id v) 
-                 (cl-destructuring-bind (_success _error timeout) v
-                   (eglot--message "Cancelling timer for continuation %s" id)
+      (maphash (lambda (id triplet)
+                 (cl-destructuring-bind (_success _error timeout) triplet
+                   (eglot--message
+                    "(sentinel) Cancelling timer for continuation %s" id)
                    (cancel-timer timeout)))
                (eglot--pending-continuations process))
-      (cond ((process-get process 'eglot--moribund)
-             (eglot--message "Process exited with status %s"
+      (cond ((eglot--moribund process)
+             (eglot--message "(sentinel) Moribund process exited with status %s"
                              (process-exit-status process)))
             (t
-             (eglot--warn "Process unexpectedly changed to %s" change))))))
+             (eglot--warn "(sentinel) Process unexpectedly changed to %s"
+                          change)))
+      (delete-process process))))
 
 (defun eglot--process-filter (proc string)
   (when (buffer-live-p (process-buffer proc))
@@ -306,35 +293,44 @@
   (interactive (eglot--current-process-or-lose))
   (clrhash (eglot--pending-continuations process)))
 
-(defun eglot--call-with-request (process
-                                  async-p
-                                  method
-                                  params
-                                  success-fn
-                                  &optional error-fn timeout-fn)
+(cl-defun eglot--request (process
+                       method
+                       params
+                       &key success-fn error-fn timeout-fn (async-p t))
   (let* ((id (eglot--next-request-id))
-         (timeout-fn (or timeout-fn
-                         (lambda ()
-                           (eglot--warn "Tired of waiting for reply to %s" id)
-                           (remhash id (eglot--pending-continuations process)))))
-         (error-fn (or error-fn
-                       (cl-function
-                        (lambda (&key code message)
-                          (eglot--warn "Request id=%s errored with code=%s: %s"
-                                        id code message)))))
+         (timeout-fn
+          (or timeout-fn
+              (lambda ()
+                (eglot--warn
+                 "(request) Tired of waiting for reply to %s" id)
+                (remhash id (eglot--pending-continuations process)))))
+         (error-fn
+          (or error-fn
+              (cl-function
+               (lambda (&key code message)
+                 (eglot--warn
+                  "(request) Request id=%s errored with code=%s: %s"
+                  id code message)))))
+         (success-fn
+          (or success-fn
+              (cl-function
+               (lambda (&rest result-body)
+                 (eglot--debug
+                  "(request) Request id=%s replied to with result=%s: %s"
+                  id result-body)))))
          (catch-tag (cl-gensym (format "eglot--tag-%d-" id))))
     (eglot--process-send process
-                          `(:jsonrpc  "2.0"
-                                      :id  ,id
-                                      :method  ,method
-                                      :params  ,params))
+                         `(:jsonrpc  "2.0"
+                                     :id  ,id
+                                     :method  ,method
+                                     :params  ,params))
     (catch catch-tag
       (let ((timeout-timer
              (run-with-timer 5 nil
                              (if async-p
                                  timeout-fn
                                (lambda ()
-                                 (throw catch-tag (apply timeout-fn)))))))
+                                 (throw catch-tag (funcall timeout-fn)))))))
         (puthash id
                  (list (if async-p
                            success-fn
@@ -350,9 +346,18 @@
           (unwind-protect
               (while t
                 (unless (process-live-p process)
-                  (eglot--error "Process %s died unexpectedly" process))
+                  (cond ((eglot--moribund process)
+                         (throw catch-tag (delete-process process)))
+                        (t
+                         (eglot--error
+                          "(request) Proc %s died unexpectedly during request with code %s"
+                          process
+                          (process-exit-status process)))))
                 (accept-process-output nil 0.01))
-            (cancel-timer timeout-timer)))))))
+            (when (memq timeout-timer timer-list)
+              (eglot--message
+               "(request) Last-change cancelling timer for continuation %s" id)
+              (cancel-timer timeout-timer))))))))
 
 
 ;;; Requests
@@ -363,38 +368,51 @@
    :initialize
    `(:processId  ,(emacs-pid)
                  :rootPath  ,(concat "" ;; FIXME RLS doesn't like "file://"
-                                     "file://"
+                                     ;; "file://"
                                      (expand-file-name (car (project-roots
                                                              (project-current)))))
                  :initializationOptions  []
                  :capabilities (:workspace (:executeCommand (:dynamicRegistration t))
                                            :textDocument (:synchronization (:didSave t))))
-   (lambda (&key capabilities)
-     (setf (eglot--capabilities process) capabilities)
-     (when interactive
-         (eglot--message
-          "So yeah I got lots (%d) of capabilities"
-          (length capabilities))))))
+   :success-fn (cl-function
+                (lambda (&key capabilities)
+                  (setf (eglot--capabilities process) capabilities)
+                  (when interactive
+                    (eglot--message
+                     "So yeah I got lots (%d) of capabilities"
+                     (length capabilities)))))))
 
-(defun eglot-quit-server (process &optional sync)
-  (interactive (list (eglot--current-process-or-lose)))
-  (eglot--message "Asking server to terminate")
-  (eglot--request
-      process
-      :shutdown
-      nil
-      (lambda (&rest _anything)
-        (eglot--message "Now asking server to exit")
-        (process-put process 'eglot--moribund t)
-        (eglot--process-send process
-                              `(:jsonrpc  "2.0"
-                                          :method  :exit)))
-      :async-p (not sync)
-      :timeout-fn (lambda ()
-                    (eglot--warn "Brutally deleting existing process %s"
-                                  process)
-                    (process-put process 'eglot--moribund t)
-                    (delete-process process))))
+(defun eglot-quit-server (process &optional sync interactive)
+  "Politely ask the server PROCESS to quit.
+If SYNC, don't leave this function with the server still
+running."
+  (interactive (list (eglot--current-process-or-lose) t t))
+  (when interactive
+    (eglot--message "(eglot-quit-server) Asking %s politely to terminate"
+                    process))
+  (let ((brutal (lambda ()
+                  (eglot--warn "Brutally deleting existing process %s"
+                               process)
+                  (setf (eglot--moribund process) t)
+                  (delete-process process))))
+    (eglot--request
+     process
+     :shutdown
+     nil
+     :success-fn (lambda (&rest _anything)
+                   (when interactive
+                     (eglot--message "Now asking %s politely to exit" process))
+                   (setf (eglot--moribund process) t)
+                   (eglot--request process
+                                   :exit
+                                   nil
+                                   :success-fn brutal
+                                   :async-p (not sync)
+                                   :error-fn brutal
+                                   :timeout-fn brutal))
+     :error-fn brutal
+     :async-p (not sync)
+     :timeout-fn brutal)))
 
 
 ;;; Notifications
