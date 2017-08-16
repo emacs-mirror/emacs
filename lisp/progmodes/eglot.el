@@ -148,25 +148,6 @@
                (format "\n-----------------------------------\n"))))
           (eglot--protocol-initialize proc interactive))))))
 
-(defun eglot-quit-server (process &optional sync)
-  (interactive (list (eglot--current-process-or-lose)))
-  (eglot--message "Asking server to terminate")
-  (eglot--request
-      process
-      :shutdown
-      nil
-      (lambda (&rest _anything)
-        (eglot--message "Now asking server to exit")
-        (process-put process 'eglot--moribund t)
-        (eglot--process-send process
-                              `(:jsonrpc  "2.0"
-                                          :method  :exit)))
-      :async-p (not sync)
-      :timeout-fn (lambda ()
-                    (eglot--warn "Brutally deleting existing process %s"
-                                  process)
-                    (process-put process 'eglot--moribund t)
-                    (delete-process process))))
 
 (defun eglot--process-sentinel (process change)
   (with-current-buffer (process-buffer process)
@@ -359,6 +340,9 @@
             (eglot--error "Process %s died unexpectedly" process))
           (accept-process-output nil 0.01))))))
 
+
+;;; Requests
+;;; 
 
 (defun eglot--protocol-initialize (process interactive)
   (eglot--request
@@ -366,6 +350,7 @@
    :initialize
    `(:processId  ,(emacs-pid)
                  :rootPath  ,(concat "" ;; FIXME RLS doesn't like "file://"
+                                     "file://"
                                      (expand-file-name (car (project-roots
                                                              (project-current)))))
                  :initializationOptions  []
@@ -396,7 +381,26 @@
           "So yeah I got lots (%d) of capabilities"
           (length all)))))))
 
-(defun eglot--debug (format &rest args)
+(defun eglot-quit-server (process &optional sync)
+  (interactive (list (eglot--current-process-or-lose)))
+  (eglot--message "Asking server to terminate")
+  (eglot--request
+      process
+      :shutdown
+      nil
+      (lambda (&rest _anything)
+        (eglot--message "Now asking server to exit")
+        (process-put process 'eglot--moribund t)
+        (eglot--process-send process
+                              `(:jsonrpc  "2.0"
+                                          :method  :exit)))
+      :async-p (not sync)
+      :timeout-fn (lambda ()
+                    (eglot--warn "Brutally deleting existing process %s"
+                                  process)
+                    (process-put process 'eglot--moribund t)
+                    (delete-process process))))
+
 
 ;;; Notifications
 ;;;
@@ -405,6 +409,12 @@
   "Handle notification publishDiagnostics"
   (eglot--message "So yeah I got %s for %s"
                   diagnostics uri))
+
+
+;;; Helpers
+;;;
+(defun
+    eglot--debug (format &rest args)
   (display-warning 'eglot
      (apply #'format format args)
      :debug))
