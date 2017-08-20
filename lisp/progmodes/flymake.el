@@ -427,6 +427,24 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
     (setq flymake-mode-line mode-line)
     (force-mode-line-update)))
 
+(defun flymake-report (diagnostics)
+  (save-restriction
+    (widen)
+    (setq flymake-err-info
+          (flymake-fix-line-numbers
+           diagnostics 1 (count-lines (point-min) (point-max))))
+    (flymake-delete-own-overlays)
+    (flymake-highlight-err-lines flymake-err-info)
+    (let ((err-count (flymake-get-err-count flymake-err-info "e"))
+          (warn-count (flymake-get-err-count flymake-err-info "w")))
+      (flymake-log 2 "%s: %d error(s), %d warning(s) in %.2f second(s)"
+                   (buffer-name) err-count warn-count
+                   (- (float-time) flymake-check-start-time))
+      (if (and (equal 0 err-count) (equal 0 warn-count))
+          (flymake-report-status "" "")
+        (flymake-report-status (format "%d/%d" err-count warn-count) "")))))
+
+
 ;; Nothing in flymake uses this at all any more, so this is just for
 ;; third-party compatibility.
 (define-obsolete-function-alias 'flymake-display-warning 'message-box "26.1")
