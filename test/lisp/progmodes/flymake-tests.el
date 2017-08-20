@@ -26,7 +26,11 @@
 (require 'flymake)
 
 (defvar flymake-tests-data-directory
-  (expand-file-name "lisp/progmodes/flymake-resources" (getenv "EMACS_TEST_DIRECTORY"))
+  (expand-file-name "lisp/progmodes/flymake-resources"
+                    (or (getenv "EMACS_TEST_DIRECTORY")
+                        (expand-file-name "../../.."
+                                          (or load-file-name
+                                              buffer-file-name))))
   "Directory containing flymake test data.")
 
 
@@ -41,8 +45,17 @@
           (setq-local flymake-proc-warning-predicate predicate)
           (goto-char (point-min))
           (flymake-mode 1)
-          ;; Weirdness here...  https://debbugs.gnu.org/17647#25
+          ;; Weirdness here...  http://debbugs.gnu.org/17647#25
+          ;; ... meaning `sleep-for', and even
+          ;; `accept-process-output', won't suffice as ways to get
+          ;; process filters and sentinels to run, though they do work
+          ;; fine in a non-interactive batch session. The only thing
+          ;; that will indeed unblock pending process output is
+          ;; reading an input event, so, as a workaround, use a dummy
+          ;; `read-event' with a very short timeout.
+          (unless noninteractive (read-event "" nil 0.1))
           (while (and flymake-is-running (< (setq i (1+ i)) 10))
+            (unless noninteractive (read-event "" nil 0.1))
             (sleep-for (+ 0.5 flymake-no-changes-timeout)))
           (flymake-goto-next-error)
           (face-at-point))
@@ -59,7 +72,7 @@
   (skip-unless (and (executable-find "gcc") (executable-find "make")))
   (should (eq 'flymake-warning
               (flymake-tests--current-face "test.c"
-               (lambda (msg) (string-match "^[Ww]arning" msg))))))
+                                           (lambda (msg) (string-match "^[Ww]arning" msg))))))
 
 (ert-deftest warning-predicate-rx-perl ()
   "Test perl warning via regular expression predicate."
