@@ -105,8 +105,6 @@ NAME is the file name function to use, default `flymake-get-real-file-name'."
 (defvar flymake-processes nil
   "List of currently active flymake processes.")
 
-(defvar-local flymake-output-residual nil)
-
 (defun flymake-get-file-name-mode-and-masks (file-name)
   "Return the corresponding entry from `flymake-allowed-file-name-masks'."
   (unless (stringp file-name)
@@ -395,16 +393,75 @@ Create parent directories as needed."
   (write-region nil nil file-name nil 566)
   (flymake-log 3 "saved buffer %s in file %s" (buffer-name) file-name))
 
-(defun flymake-process-filter (process output)
-  "Parse OUTPUT and highlight error lines.
-It's flymake process filter."
-  (let ((source-buffer (process-buffer process)))
+(defun flymake-proc--diagnostics-for-pattern (proc pattern)
+  (condition-case err
+      (pcase-let ((`(,regexp ,file-idx ,line-idx ,_col-idx ,message-idx)
+                   pattern)
+                  (retval))
+        (while (search-forward-regexp regexp nil t)
+          (let ((fname (and file-idx (match-string file-idx)))
+                (message (and message-idx (match-string message-idx)))
+                (line-number (and line-idx (string-to-number
+                                            (match-string line-idx)))))
+            (with-current-buffer (process-buffer proc)
+              (push (flymake-ler-make-ler
+                     fname
+                     line-number
+                     (if (and message
+                              (cond ((stringp flymake-warning-predicate)
+                                     (string-match flymake-warning-predicate
+                                                   message))
+                                    ((functionp flymake-warning-predicate)
+                                     (funcall flymake-warning-predicate
+                                              message))))
+                         "w"
+                       "e")
+                     message
+                     (and fname
+                          (funcall (flymake-get-real-file-name-function
+                                    fname)
+                                   fname)))
+                    retval))))
+        retval)
+    (error
+     (flymake-log 1 "Error parsing process output for pattern %s: %s"
+                  pattern err)
+     nil)))
 
-    (flymake-log 3 "received %d byte(s) of output from process %d"
-                 (length output) (process-id process))
-    (when (buffer-live-p source-buffer)
-      (with-current-buffer source-buffer
-        (flymake-parse-output-and-residual output)))))
+(defun flymake-process-filter (proc string)
+  "Parse STRING and collect diagnostics info."
+  (flymake-log 3 "received %d byte(s) of output from process %d"
+               (length string) (process-id proc))
+  (let ((output-buffer (process-get proc 'flymake-proc--output-buffer)))
+    (when (and (buffer-live-p (process-buffer proc))
+               output-buffer)
+      (with-current-buffer output-buffer
+        (let ((moving (= (point) (process-mark proc)))
+              (inhibit-read-only t)
+              (unprocessed-mark
+               (or (process-get proc 'flymake-proc--unprocessed-mark)
+                   (set-marker (make-marker) (point-min)))))
+          (save-excursion
+            ;; Insert the text, advancing the process marker.
+            (goto-char (process-mark proc))
+            (insert string)
+            (set-marker (process-mark proc) (point)))
+          (if moving (goto-char (process-mark proc)))
+
+          ;; check for new diagnostics
+          ;;
+          (save-excursion
+            (goto-char unprocessed-mark)
+            (dolist (pattern flymake-err-line-patterns)
+              (let ((new (flymake-proc--diagnostics-for-pattern proc pattern)))
+                (process-put
+                 proc
+                 'flymake-proc--collected-diagnostics
+                 (append new
+                         (process-get proc
+                                      'flymake-proc--collected-diagnostics)))))
+            (process-put proc 'flymake-proc--unprocessed-mark
+                         (point-marker))))))))
 
 (defun flymake-process-sentinel (process _event)
   "Sentinel for syntax check buffers."
@@ -412,10 +469,12 @@ It's flymake process filter."
     (let* ((exit-status       (process-exit-status process))
            (command           (process-command process))
            (source-buffer     (process-buffer process))
-           (cleanup-f         (flymake-get-cleanup-function (buffer-file-name source-buffer))))
+           (cleanup-f         (flymake-get-cleanup-function
+                               (buffer-file-name source-buffer))))
 
       (flymake-log 2 "process %d exited with code %d"
                    (process-id process) exit-status)
+      (kill-buffer (process-get process 'flymake-proc--output-buffer))
       (condition-case err
           (progn
             (flymake-log 3 "cleaning up using %s" cleanup-f)
@@ -428,9 +487,9 @@ It's flymake process filter."
 
             (when (buffer-live-p source-buffer)
               (with-current-buffer source-buffer
-
-                (flymake-parse-residual)
-                (flymake-post-syntax-check exit-status command)
+                (flymake-post-syntax-check
+                 exit-status command
+                 (process-get process 'flymake-proc--collected-diagnostics))
                 (setq flymake-is-running nil))))
         (error
          (let ((err-str (format "Error in process sentinel for buffer %s: %s"
@@ -439,79 +498,16 @@ It's flymake process filter."
            (with-current-buffer source-buffer
              (setq flymake-is-running nil))))))))
 
-(defun flymake-post-syntax-check (exit-status command)
-  (let ((err-count (flymake-get-err-count flymake-new-err-info "e"))
-        (warn-count (flymake-get-err-count flymake-new-err-info "w")))
-    (if (equal 0 exit-status)
-        (flymake-report flymake-new-err-info)
-      (if flymake-check-was-interrupted
-          (flymake-report-status nil "") ;; STOPPED
-        (if (and (zerop err-count) (zerop warn-count))
-            (flymake-report-fatal-status "CFGERR"
-                                         (format "Configuration error has occurred while running %s" command))
-          (flymake-report flymake-new-err-info))))
-    (setq flymake-new-err-info nil)))
-
-
-(defun flymake-parse-output-and-residual (output)
-  "Split OUTPUT into lines, merge in residual if necessary."
-  (let* ((buffer-residual     flymake-output-residual)
-         (total-output        (if buffer-residual (concat buffer-residual output) output))
-         (lines-and-residual  (flymake-split-output total-output))
-         (lines               (nth 0 lines-and-residual))
-         (new-residual        (nth 1 lines-and-residual)))
-    (setq flymake-output-residual new-residual)
-    (setq flymake-new-err-info
-          (flymake-parse-err-lines
-           flymake-new-err-info lines))))
-
-(defvar-local flymake-new-err-info nil
-  "Same as `flymake-err-info', effective when a syntax check is in progress.")
-
-(defun flymake-parse-residual ()
-  "Parse residual if it's non empty."
-  (when flymake-output-residual
-    (setq flymake-new-err-info
-          (flymake-parse-err-lines
-           flymake-new-err-info
-           (list flymake-output-residual)))
-    (setq flymake-output-residual nil)))
-
-(defun flymake-parse-err-lines (err-info-list lines)
-  "Parse err LINES, store info in ERR-INFO-LIST."
-  (let* ((count              (length lines))
-	 (idx                0)
-	 (line-err-info      nil)
-	 (real-file-name     nil)
-	 (source-file-name   buffer-file-name)
-	 (get-real-file-name-f (flymake-get-real-file-name-function source-file-name)))
-
-    (while (< idx count)
-      (setq line-err-info (flymake-parse-line (nth idx lines)))
-      (when line-err-info
-	(setq real-file-name (funcall get-real-file-name-f
-                                      (flymake-ler-file line-err-info)))
-	(setq line-err-info (flymake-ler-set-full-file line-err-info real-file-name))
-
-	(when (flymake-same-files real-file-name source-file-name)
-	  (setq line-err-info (flymake-ler-set-file line-err-info nil))
-	  (setq err-info-list (flymake-add-err-info err-info-list line-err-info))))
-      (flymake-log 3 "parsed `%s', %s line-err-info" (nth idx lines) (if line-err-info "got" "no"))
-      (setq idx (1+ idx)))
-    err-info-list))
-
-(defun flymake-split-output (output)
-  "Split OUTPUT into lines.
-Return last one as residual if it does not end with newline char.
-Returns ((LINES) RESIDUAL)."
-  (when (and output (> (length output) 0))
-    (let* ((lines (split-string output "[\n\r]+" t))
-	   (complete (equal "\n" (char-to-string (aref output (1- (length output))))))
-	   (residual nil))
-      (when (not complete)
-	(setq residual (car (last lines)))
-	(setq lines (butlast lines)))
-      (list lines residual))))
+(defun flymake-post-syntax-check (exit-status command diagnostics)
+  (if (equal 0 exit-status)
+      (flymake-report diagnostics)
+    (if flymake-check-was-interrupted
+        (flymake-report-status nil "") ;; STOPPED
+      (if (null diagnostics)
+          (flymake-report-fatal-status
+           "CFGERR"
+           (format "Configuration error has occurred while running %s" command))
+        (flymake-report diagnostics)))))
 
 (defun flymake-reformat-err-line-patterns-from-compile-el (original-list)
   "Grab error line patterns from ORIGINAL-LIST in compile.el format.
@@ -569,43 +565,6 @@ from compile.el")
 Takes a single argument, the error's text and should return non-nil
 if it's a warning.
 Instead of a function, it can also be a regular expression.")
-
-(defun flymake-parse-line (line)
-  "Parse LINE to see if it is an error or warning.
-Return its components if so, nil otherwise."
-  (let ((raw-file-name nil)
-	(line-no 0)
-	(err-type "e")
-	(err-text nil)
-	(patterns flymake-err-line-patterns)
-	(matched nil))
-    (while (and patterns (not matched))
-      (when (string-match (car (car patterns)) line)
-	(let* ((file-idx (nth 1 (car patterns)))
-	       (line-idx (nth 2 (car patterns))))
-
-	  (setq raw-file-name (if file-idx (match-string file-idx line) nil))
-	  (setq line-no       (if line-idx (string-to-number
-                                            (match-string line-idx line)) 0))
-	  (setq err-text      (if (> (length (car patterns)) 4)
-				  (match-string (nth 4 (car patterns)) line)
-				(flymake-patch-err-text
-                                 (substring line (match-end 0)))))
-	  (if (null err-text)
-              (setq err-text "<no error text>")
-            (when (cond ((stringp flymake-warning-predicate)
-                         (string-match flymake-warning-predicate err-text))
-                        ((functionp flymake-warning-predicate)
-                         (funcall flymake-warning-predicate err-text)))
-              (setq err-type "w")))
-	  (flymake-log
-           3 "parse line: file-idx=%s line-idx=%s file=%s line=%s text=%s"
-           file-idx line-idx raw-file-name line-no err-text)
-	  (setq matched t)))
-      (setq patterns (cdr patterns)))
-    (if matched
-	(flymake-ler-make-ler raw-file-name line-no err-type err-text)
-      ())))
 
 (defun flymake-get-project-include-dirs-imp (basedir)
   "Include dirs for the project current file belongs to."
@@ -714,37 +673,41 @@ Return its components if so, nil otherwise."
             (flymake-start-syntax-check-process cmd args dir)))))))
 
 (defun flymake-start-syntax-check-process (cmd args dir)
-"Start syntax check process."
-(condition-case err
-    (let* ((process
-            (let ((default-directory (or dir default-directory)))
-              (when dir
-                (flymake-log 3 "starting process on dir %s" dir))
-              (apply 'start-file-process
-                     "flymake-proc" (current-buffer) cmd args))))
-      (set-process-sentinel process 'flymake-process-sentinel)
-      (set-process-filter process 'flymake-process-filter)
-      (set-process-query-on-exit-flag process nil)
-      (push process flymake-processes)
+  "Start syntax check process."
+  (condition-case err
+      (let* ((process
+              (let ((default-directory (or dir default-directory)))
+                (when dir
+                  (flymake-log 3 "starting process on dir %s" dir))
+                (make-process :name "flymake-proc"
+                              :buffer (current-buffer)
+                              :command (cons cmd args)
+                              :noquery t
+                              :filter 'flymake-process-filter
+                              :sentinel 'flymake-process-sentinel))))
+        (setf (process-get process 'flymake-proc--output-buffer)
+              (generate-new-buffer
+                (format " *flymake output for %s*" (current-buffer))))
+        (push process flymake-processes)
 
-      (setq flymake-is-running t)
-      (setq flymake-last-change-time nil)
+        (setq flymake-is-running t)
+        (setq flymake-last-change-time nil)
 
-      (flymake-report-status nil "*")
-      (flymake-log 2 "started process %d, command=%s, dir=%s"
-                   (process-id process) (process-command process)
-                   default-directory)
-      process)
-  (error
-   (let* ((err-str
-           (format-message
-            "Failed to launch syntax check process `%s' with args %s: %s"
-            cmd args (error-message-string err)))
-          (source-file-name buffer-file-name)
-          (cleanup-f        (flymake-get-cleanup-function source-file-name)))
-     (flymake-log 0 err-str)
-     (funcall cleanup-f)
-     (flymake-report-fatal-status "PROCERR" err-str)))))
+        (flymake-report-status nil "*")
+        (flymake-log 2 "started process %d, command=%s, dir=%s"
+                     (process-id process) (process-command process)
+                     default-directory)
+        process)
+    (error
+     (let* ((err-str
+             (format-message
+              "Failed to launch syntax check process `%s' with args %s: %s"
+              cmd args (error-message-string err)))
+            (source-file-name buffer-file-name)
+            (cleanup-f        (flymake-get-cleanup-function source-file-name)))
+       (flymake-log 0 err-str)
+       (funcall cleanup-f)
+       (flymake-report-fatal-status "PROCERR" err-str)))))
 
 (defun flymake-kill-process (proc)
   "Kill process PROC."

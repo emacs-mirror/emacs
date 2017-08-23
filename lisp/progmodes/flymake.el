@@ -32,7 +32,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defgroup flymake nil
   "Universal on-the-fly syntax checker."
@@ -427,24 +427,6 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
     (setq flymake-mode-line mode-line)
     (force-mode-line-update)))
 
-(defun flymake-report (diagnostics)
-  (save-restriction
-    (widen)
-    (setq flymake-err-info
-          (flymake-fix-line-numbers
-           diagnostics 1 (count-lines (point-min) (point-max))))
-    (flymake-delete-own-overlays)
-    (flymake-highlight-err-lines flymake-err-info)
-    (let ((err-count (flymake-get-err-count flymake-err-info "e"))
-          (warn-count (flymake-get-err-count flymake-err-info "w")))
-      (flymake-log 2 "%s: %d error(s), %d warning(s) in %.2f second(s)"
-                   (buffer-name) err-count warn-count
-                   (- (float-time) flymake-check-start-time))
-      (if (and (equal 0 err-count) (equal 0 warn-count))
-          (flymake-report-status "" "")
-        (flymake-report-status (format "%d/%d" err-count warn-count) "")))))
-
-
 ;; Nothing in flymake uses this at all any more, so this is just for
 ;; third-party compatibility.
 (define-obsolete-function-alias 'flymake-display-warning 'message-box "26.1")
@@ -460,25 +442,42 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
                (buffer-name) status warning))
 
-(defun flymake-fix-line-numbers (err-info-list min-line max-line)
-  "Replace line numbers with fixed value.
-If line-numbers is less than MIN-LINE, set line numbers to MIN-LINE.
-If line numbers is greater than MAX-LINE, set line numbers to MAX-LINE.
-The reason for this fix is because some compilers might report
-line number outside the file being compiled."
-  (let* ((count     (length err-info-list))
-	 (err-info  nil)
-	 (line      0))
-    (while (> count 0)
-      (setq err-info (nth (1- count) err-info-list))
-      (setq line (flymake-er-get-line err-info))
-      (when (or (< line min-line) (> line max-line))
-	(setq line (if (< line min-line) min-line max-line))
-	(setq err-info-list (flymake-set-at err-info-list (1- count)
-					    (flymake-er-make-er line
-								(flymake-er-get-line-err-info-list err-info)))))
-      (setq count (1- count))))
-  err-info-list)
+(defun flymake--fix-line-numbers (diagnostic)
+  "Ensure DIAGNOSTIC has sensible error lines"
+  (setf (flymake-ler-line diagnostic)
+        (min (max (flymake-ler-line diagnostic)
+                  1)
+             (line-number-at-pos (point-max) 'absolute))))
+
+(defun flymake-report (diagnostics)
+  (save-restriction
+    (widen)
+    (mapc #'flymake--fix-line-numbers diagnostics)
+    (flymake-delete-own-overlays)
+    (setq flymake-err-info
+          (cl-loop with grouped
+                   for diag in diagnostics
+                   for line = (flymake-ler-line diag)
+                   for existing = (assoc line grouped)
+                   if existing
+                   do (setcdr existing
+                              (list diag (cl-second existing)))
+                   else
+                   do (push (list line (list diag)) grouped)
+                   finally (return grouped)))
+    (flymake-highlight-err-lines flymake-err-info)
+    (let ((err-count (flymake-get-err-count flymake-err-info "e"))
+          (warn-count (flymake-get-err-count flymake-err-info "w")))
+      (when flymake-check-start-time
+        (flymake-log 2 "%s: %d error(s), %d warning(s) in %.2f second(s)"
+                     (buffer-name) err-count warn-count
+                     (- (float-time) flymake-check-start-time)))
+      (if (and (equal 0 err-count) (equal 0 warn-count))
+          (flymake-report-status "" "")
+        (flymake-report-status (format "%d/%d" err-count warn-count) "")))))
+
+(defvar-local flymake--backend nil
+  "The currently active backend selected by `flymake-mode'")
 
 ;;;###autoload
 (define-minor-mode flymake-mode nil
