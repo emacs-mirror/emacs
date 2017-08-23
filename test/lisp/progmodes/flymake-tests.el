@@ -38,7 +38,7 @@
         (i 0))
     (unwind-protect
         (with-current-buffer buffer
-          (setq-local flymake-warning-predicate predicate)
+          (setq-local flymake-proc-warning-predicate predicate)
           (goto-char (point-min))
           (flymake-mode 1)
           ;; Weirdness here...  https://debbugs.gnu.org/17647#25
