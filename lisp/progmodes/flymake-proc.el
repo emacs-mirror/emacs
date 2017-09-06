@@ -395,33 +395,41 @@ Create parent directories as needed."
 
 (defun flymake-proc--diagnostics-for-pattern (proc pattern)
   (condition-case err
-      (pcase-let ((`(,regexp ,file-idx ,line-idx ,_col-idx ,message-idx)
+      (pcase-let ((`(,regexp ,file-idx ,line-idx ,col-idx ,message-idx)
                    pattern)
                   (retval))
         (while (search-forward-regexp regexp nil t)
-          (let ((fname (and file-idx (match-string file-idx)))
-                (message (and message-idx (match-string message-idx)))
-                (line-number (and line-idx (string-to-number
-                                            (match-string line-idx)))))
+          (let* ((fname (and file-idx (match-string file-idx)))
+                 (message (and message-idx (match-string message-idx)))
+                 (line-string (and line-idx (match-string line-idx)))
+                 (line-number (and line-string
+                                   (string-to-number line-string)))
+                 (col-string (and col-idx (match-string col-idx)))
+                 (col-number (and col-string
+                                  (string-to-number col-string))))
             (with-current-buffer (process-buffer proc)
-              (push (flymake-ler-make-ler
-                     fname
-                     line-number
-                     (if (and message
-                              (cond ((stringp flymake-proc-warning-predicate)
-                                     (string-match flymake-proc-warning-predicate
-                                                   message))
-                                    ((functionp flymake-proc-warning-predicate)
-                                     (funcall flymake-proc-warning-predicate
-                                              message))))
-                         "w"
-                       "e")
-                     message
-                     (and fname
-                          (funcall (flymake-proc--get-real-file-name-function
-                                    fname)
-                                   fname)))
-                    retval))))
+              (push
+               (flymake-ler-make
+                :file fname
+                :line line-number
+                :col col-number
+                :type (if (and
+                           message
+                           (cond ((stringp flymake-proc-warning-predicate)
+                                  (string-match flymake-proc-warning-predicate
+                                                message))
+                                 ((functionp flymake-proc-warning-predicate)
+                                  (funcall flymake-proc-warning-predicate
+                                           message))))
+                          "w"
+                        "e")
+                :text message
+                :full-file (and fname
+                                (funcall
+                                 (flymake-proc--get-real-file-name-function
+                                  fname)
+                                 fname)))
+               retval))))
         retval)
     (error
      (flymake-log 1 "Error parsing process output for pattern %s: %s"

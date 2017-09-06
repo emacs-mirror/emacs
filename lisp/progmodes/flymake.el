@@ -136,223 +136,119 @@ are the string substitutions (see the function `format')."
       (let* ((msg (apply #'format-message text args)))
 	(message "%s" msg))))
 
-(defun flymake-ins-after (list pos val)
-  "Insert VAL into LIST after position POS.
-POS counts from zero."
-  (let ((tmp (copy-sequence list)))
-    (setcdr (nthcdr pos tmp) (cons val (nthcdr (1+ pos) tmp)))
-    tmp))
-
-(defun flymake-set-at (list pos val)
-  "Set VAL at position POS in LIST.
-POS counts from zero."
-  (let ((tmp (copy-sequence list)))
-    (setcar (nthcdr pos tmp) val)
-    tmp))
-
-(defun flymake-er-make-er (line-no line-err-info-list)
-  (list line-no line-err-info-list))
-
-(defun flymake-er-get-line (err-info)
-  (nth 0 err-info))
-
-(defun flymake-er-get-line-err-info-list (err-info)
-  (nth 1 err-info))
-
 (cl-defstruct (flymake-ler
-               (:constructor nil)
-               (:constructor flymake-ler-make-ler (file line type text &optional full-file)))
-  file line type text full-file)
+               (:constructor flymake-ler-make))
+  file line col type text full-file)
 
-(defun flymake-ler-set-file (line-err-info file)
-  (flymake-ler-make-ler file
-			(flymake-ler-line line-err-info)
-			(flymake-ler-type line-err-info)
-			(flymake-ler-text line-err-info)
-			(flymake-ler-full-file line-err-info)))
+(defun flymake-ler-errorp (diag)
+  "Tell if DIAG is a flymake error or something else"
+  (string= "e" (flymake-ler-type diag)))
 
-(defun flymake-ler-set-full-file (line-err-info full-file)
-  (flymake-ler-make-ler (flymake-ler-file line-err-info)
-			(flymake-ler-line line-err-info)
-			(flymake-ler-type line-err-info)
-			(flymake-ler-text line-err-info)
-			full-file))
-
-(defun flymake-ler-set-line (line-err-info line)
-  (flymake-ler-make-ler (flymake-ler-file line-err-info)
-			line
-			(flymake-ler-type line-err-info)
-			(flymake-ler-text line-err-info)
-			(flymake-ler-full-file line-err-info)))
-
-(defun flymake-get-line-err-count (line-err-info-list type)
-  "Return number of errors of specified TYPE.
-Value of TYPE is either \"e\" or \"w\"."
-  (let* ((idx        0)
-	 (count      (length line-err-info-list))
-	 (err-count  0))
-
-    (while (< idx count)
-      (when (equal type (flymake-ler-type (nth idx line-err-info-list)))
-	(setq err-count (1+ err-count)))
-      (setq idx (1+ idx)))
-    err-count))
-
-(defun flymake-get-err-count (err-info-list type)
-  "Return number of errors of specified TYPE for ERR-INFO-LIST."
-  (let* ((idx        0)
-	 (count      (length err-info-list))
-	 (err-count  0))
-    (while (< idx count)
-      (setq err-count (+ err-count (flymake-get-line-err-count (nth 1 (nth idx err-info-list)) type)))
-      (setq idx (1+ idx)))
-    err-count))
-
-(defun flymake-highlight-err-lines (err-info-list)
-  "Highlight error lines in BUFFER using info from ERR-INFO-LIST."
-  (save-excursion
-    (dolist (err err-info-list)
-      (flymake-highlight-line (car err) (nth 1 err)))))
-
-(defun flymake-overlay-p (ov)
-  "Determine whether overlay OV was created by flymake."
-  (and (overlayp ov) (overlay-get ov 'flymake-overlay)))
-
-(defun flymake-make-overlay (beg end tooltip-text face bitmap)
-  "Allocate a flymake overlay in range BEG and END."
-  (when (not (flymake-region-has-flymake-overlays beg end))
-    (let ((ov (make-overlay beg end nil t))
-	  (fringe (and flymake-fringe-indicator-position
-		       (propertize "!" 'display
-				   (cons flymake-fringe-indicator-position
-					 (if (listp bitmap)
-					     bitmap
-					   (list bitmap)))))))
-      (overlay-put ov 'face           face)
-      (overlay-put ov 'help-echo      tooltip-text)
+(defun flymake--place-overlay (beg end tooltip-text face bitmap diag)
+  "Place a flymake overlay in range BEG and END.
+Make a flymake fringe overlay for the line at BEG, if needed."
+  (let* ((fringe-overlay
+          (or (cl-find-if (lambda (ov)
+                            (overlay-get ov 'flymake--fringe-overlay))
+                          (overlays-at beg))
+              (make-overlay beg (1+ beg)))))
+    (let ((ov fringe-overlay))
+      (overlay-put ov 'help-echo
+                   (concat tooltip-text "\n"
+                           (overlay-get ov 'help-echo)))
+      (overlay-put ov 'before-string
+                   (and flymake-fringe-indicator-position
+                        (propertize "!" 'display
+                                    (cons flymake-fringe-indicator-position
+                                          (if (listp bitmap)
+                                              bitmap
+                                            (list bitmap))
+                                          ))))
+      (overlay-put ov 'evaporate t)
       (overlay-put ov 'flymake-overlay  t)
       (overlay-put ov 'priority 100)
-      (overlay-put ov 'evaporate t)
-      (overlay-put ov 'before-string fringe)
-      ;;+(flymake-log 3 "created overlay %s" ov)
       ov)
-    (flymake-log 3 "created an overlay at (%d-%d)" beg end)))
+    (let ((ov (make-overlay beg end)))
+      (overlay-put ov 'face face)
+      (overlay-put ov 'help-echo
+                   (concat tooltip-text "\n"
+                           (overlay-get ov 'help-echo)))
+      (overlay-put ov 'evaporate t)
+      (overlay-put ov 'flymake-overlay t)
+      (overlay-put ov 'flymake--diagnostic diag))
+    (cl-loop for i from 0
+             for overlay in
+             (flymake--overlays
+              'flymake--diagnostic
+              (lambda (_ov1 ov2)
+                (flymake-ler-errorp
+                 (overlay-get ov2 'flymake--diagnostic)))
+              beg end)
+             do (overlay-put overlay 'priority (+ 100 i)))))
+
+(defun flymake--overlays (&optional filter compare beg end)
+  (cl-remove-if-not
+   (lambda (ov)
+     (and (overlay-get ov 'flymake-overlay)
+          (or (not filter)
+              (cond ((functionp filter) (funcall filter ov))
+                    ((symbolp filter) (overlay-get ov filter))))))
+   (save-restriction
+     (widen)
+     (let ((ovs (overlays-in (or beg (point-min))
+                             (or end (point-max)))))
+       (if compare
+           (cl-sort ovs
+                    compare
+                    :key #'overlay-start)
+         ovs)))))
 
 (defun flymake-delete-own-overlays ()
   "Delete all flymake overlays in BUFFER."
-  (dolist (ol (overlays-in (point-min) (point-max)))
-    (when (flymake-overlay-p ol)
-      (delete-overlay ol)
-      ;;+(flymake-log 3 "deleted overlay %s" ol)
-      )))
+  (mapc #'delete-overlay (flymake--overlays)))
 
-(defun flymake-region-has-flymake-overlays (beg end)
-  "Check if region specified by BEG and END has overlay.
-Return t if it has at least one flymake overlay, nil if no overlay."
-  (let ((ov                  (overlays-in beg end))
-	(has-flymake-overlays  nil))
-    (while (consp ov)
-      (when (flymake-overlay-p (car ov))
-	(setq has-flymake-overlays t))
-      (setq ov (cdr ov)))
-    has-flymake-overlays))
-
-(defface flymake-errline
+(defface flymake-error
   '((((supports :underline (:style wave)))
      :underline (:style wave :color "Red1"))
     (t
      :inherit error))
-  "Face used for marking error lines."
+  "Face used for marking error regions."
   :version "24.4"
   :group 'flymake)
 
-(defface flymake-warnline
+(defface flymake-warning
   '((((supports :underline (:style wave)))
      :underline (:style wave :color "DarkOrange"))
     (t
      :inherit warning))
-  "Face used for marking warning lines."
+  "Face used for marking warning regions."
   :version "24.4"
   :group 'flymake)
 
-(defun flymake-highlight-line (line-no line-err-info-list)
-  "Highlight line LINE-NO in current buffer.
-Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
-  (goto-char (point-min))
-  (forward-line (1- line-no))
-  (pcase-let* ((beg (progn (back-to-indentation) (point)))
-               (end (progn
-                      (end-of-line)
-                      (skip-chars-backward " \t\f\t\n" beg)
-                      (if (eq (point) beg)
-                          (line-beginning-position 2)
-                        (point))))
-               (tooltip-text (mapconcat #'flymake-ler-text line-err-info-list "\n"))
-               (`(,face ,bitmap)
-                (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-                    (list 'flymake-errline flymake-error-bitmap)
-                  (list 'flymake-warnline flymake-warning-bitmap))))
-    (flymake-make-overlay beg end tooltip-text face bitmap)))
+(define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
+(define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
 
-(defun flymake-find-err-info (err-info-list line-no)
-  "Find (line-err-info-list pos) for specified LINE-NO."
-  (if err-info-list
-      (let* ((line-err-info-list  nil)
-	     (pos       0)
-	     (count     (length err-info-list)))
-
-	(while (and (< pos count) (< (car (nth pos err-info-list)) line-no))
-	  (setq pos (1+ pos)))
-	(when (and (< pos count) (equal (car (nth pos err-info-list)) line-no))
-	  (setq line-err-info-list (flymake-er-get-line-err-info-list (nth pos err-info-list))))
-	(list line-err-info-list pos))
-    '(nil 0)))
-
-(defun flymake-line-err-info-is-less-or-equal (line-one line-two)
-  (or (string< (flymake-ler-type line-one) (flymake-ler-type line-two))
-      (and (string= (flymake-ler-type line-one) (flymake-ler-type line-two))
-	   (not (flymake-ler-file line-one)) (flymake-ler-file line-two))
-      (and (string= (flymake-ler-type line-one) (flymake-ler-type line-two))
-	   (or (and      (flymake-ler-file line-one)       (flymake-ler-file line-two))
-	       (and (not (flymake-ler-file line-one)) (not (flymake-ler-file line-two)))))))
-
-(defun flymake-add-line-err-info (line-err-info-list line-err-info)
-  "Update LINE-ERR-INFO-LIST with the error LINE-ERR-INFO.
-For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'.
-The new element is inserted in the proper position, according to
-the predicate `flymake-line-err-info-is-less-or-equal'.
-The updated value of LINE-ERR-INFO-LIST is returned."
-  (if (not line-err-info-list)
-      (list line-err-info)
-    (let* ((count  (length line-err-info-list))
-	   (idx    0))
-      (while (and (< idx count) (flymake-line-err-info-is-less-or-equal (nth idx line-err-info-list) line-err-info))
-	(setq idx (1+ idx)))
-      (cond ((equal 0     idx)    (setq line-err-info-list (cons line-err-info line-err-info-list)))
-	    (t                    (setq line-err-info-list (flymake-ins-after line-err-info-list (1- idx) line-err-info))))
-      line-err-info-list)))
-
-(defun flymake-add-err-info (err-info-list line-err-info)
-  "Update ERR-INFO-LIST with the error LINE-ERR-INFO, preserving sort order.
-Returns the updated value of ERR-INFO-LIST.
-For the format of ERR-INFO-LIST, see `flymake-err-info'.
-For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
-  (let* ((line-no             (if (flymake-ler-file line-err-info) 1 (flymake-ler-line line-err-info)))
-	 (info-and-pos        (flymake-find-err-info err-info-list line-no))
-	 (exists              (car info-and-pos))
-	 (pos                 (nth 1 info-and-pos))
-	 (line-err-info-list  nil)
-	 (err-info            nil))
-
-    (if exists
-	(setq line-err-info-list (flymake-er-get-line-err-info-list (car (nthcdr pos err-info-list)))))
-    (setq line-err-info-list (flymake-add-line-err-info line-err-info-list line-err-info))
-
-    (setq err-info (flymake-er-make-er line-no line-err-info-list))
-    (cond (exists             (setq err-info-list (flymake-set-at err-info-list pos err-info)))
-	  ((equal 0 pos)      (setq err-info-list (cons err-info err-info-list)))
-	  (t                  (setq err-info-list (flymake-ins-after err-info-list (1- pos) err-info))))
-    err-info-list))
+(defun flymake--highlight-line (diagnostic)
+  "Highlight buffer with info in DIAGNOSTIC.
+Reuse overlays if necessary
+Perhaps use the message text as a hint to enhance highlighting."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((line-no (flymake-ler-line diagnostic)))
+      (forward-line (1- line-no))
+      (pcase-let* ((beg (progn (back-to-indentation) (point)))
+                   (end (progn
+                          (end-of-line)
+                          (skip-chars-backward " \t\f\t\n" beg)
+                          (if (eq (point) beg)
+                              (line-beginning-position 2)
+                            (point))))
+                   (tooltip-text (flymake-ler-text diagnostic))
+                   (`(,face ,bitmap)
+                    (if (equal "e" (flymake-ler-type diagnostic))
+                        (list 'flymake-errline flymake-error-bitmap)
+                      (list 'flymake-warnline flymake-warning-bitmap))))
+        (flymake--place-overlay beg end tooltip-text face bitmap diagnostic)))))
 
 (defvar-local flymake-is-running nil
   "If t, flymake syntax check process is running for the current buffer.")
@@ -368,7 +264,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 
 	(setq flymake-last-change-time nil)
 	(flymake-log 3 "starting syntax check as more than 1 second passed since last change")
-	(flymake-start-syntax-check)))))
+	(flymake--start-syntax-check)))))
 
 (define-obsolete-function-alias 'flymake-display-err-menu-for-current-line
   'flymake-popup-current-error-menu "24.4")
@@ -376,38 +272,36 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 (defun flymake-popup-current-error-menu (&optional event)
   "Pop up a menu with errors/warnings for current line."
   (interactive (list last-nonmenu-event))
-  (let* ((line-no (line-number-at-pos))
-         (errors (or (car (flymake-find-err-info flymake-err-info line-no))
-                     (user-error "No errors for current line")))
-         (menu (mapcar (lambda (x)
-                         (if (flymake-ler-file x)
-                             (cons (format "%s - %s(%d)"
-                                           (flymake-ler-text x)
-                                           (flymake-ler-file x)
-                                           (flymake-ler-line x))
-                                   x)
-                           (list (flymake-ler-text x))))
-                       errors))
+  (let* ((diag-overlays (or
+                         (flymake--overlays 'flymake--diagnostic nil
+                                            (line-beginning-position)
+                                            (line-end-position))
+                         (user-error "No flymake problem for current line")))
+         (menu (mapcar (lambda (ov)
+                         (let ((diag (overlay-get ov 'flymake--diagnostic)))
+                           (cons (format "%s - %s(%s)"
+                                         (flymake-ler-text diag)
+                                         (or (flymake-ler-file diag)
+                                             "(no file)")
+                                         (or (flymake-ler-line diag)
+                                             "?"))
+                                 ov)))
+                       diag-overlays))
          (event (if (mouse-event-p event)
                     event
                   (list 'mouse-1 (posn-at-point))))
-         (title (format "Line %d: %d error(s), %d warning(s)"
-                        line-no
-                        (flymake-get-line-err-count errors "e")
-                        (flymake-get-line-err-count errors "w")))
+         (diagnostics (mapcar (lambda (ov) (overlay-get ov 'flymake--diagnostic))
+                              diag-overlays))
+         (title (format "Line %d: %d error(s), %d other(s)"
+                        (line-number-at-pos)
+                        (cl-count-if #'flymake-ler-errorp diagnostics)
+                        (cl-count-if-not #'flymake-ler-errorp diagnostics)))
          (choice (x-popup-menu event (list title (cons "" menu)))))
     (flymake-log 3 "choice=%s" choice)
-    (when choice
-      (flymake-goto-file-and-line (flymake-ler-full-file choice)
-                                  (flymake-ler-line choice)))))
-
-(defun flymake-goto-file-and-line (file line)
-  "Try to get buffer for FILE and goto line LINE in it."
-  (if (not (file-exists-p file))
-      (flymake-log 1 "File %s does not exist" file)
-    (find-file file)
-    (goto-char (point-min))
-    (forward-line (1- line))))
+    ;; FIXME: What is the point of going to the problem locus if we're
+    ;; certainly already there?
+    ;;
+    (when choice (goto-char (overlay-start choice)))))
 
 ;; flymake minor mode declarations
 (defvar-local flymake-mode-line nil)
@@ -452,32 +346,18 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 (defun flymake-report (diagnostics)
   (save-restriction
     (widen)
-    (mapc #'flymake--fix-line-numbers diagnostics)
     (flymake-delete-own-overlays)
-    (setq flymake-err-info
-          (cl-loop with grouped
-                   for diag in diagnostics
-                   for line = (flymake-ler-line diag)
-                   for existing = (assoc line grouped)
-                   if existing
-                   do (setcdr existing
-                              (list diag (cl-second existing)))
-                   else
-                   do (push (list line (list diag)) grouped)
-                   finally (return grouped)))
-    (flymake-highlight-err-lines flymake-err-info)
-    (let ((err-count (flymake-get-err-count flymake-err-info "e"))
-          (warn-count (flymake-get-err-count flymake-err-info "w")))
+    (mapc #'flymake--fix-line-numbers diagnostics)
+    (mapc #'flymake--highlight-line diagnostics)
+    (let ((err-count (cl-count-if #'flymake-ler-errorp diagnostics))
+          (warn-count (cl-count-if-not #'flymake-ler-errorp diagnostics)))
       (when flymake-check-start-time
-        (flymake-log 2 "%s: %d error(s), %d warning(s) in %.2f second(s)"
+        (flymake-log 2 "%s: %d error(s), %d other(s) in %.2f second(s)"
                      (buffer-name) err-count warn-count
                      (- (float-time) flymake-check-start-time)))
-      (if (and (equal 0 err-count) (equal 0 warn-count))
+      (if (null diagnostics)
           (flymake-report-status "" "")
         (flymake-report-status (format "%d/%d" err-count warn-count) "")))))
-
-(defvar-local flymake--backend nil
-  "The currently active backend selected by `flymake-mode'")
 
 ;;;###autoload
 (define-minor-mode flymake-mode nil
@@ -507,7 +387,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
                  ;; trying if the directory is read-only (bug#8954).
                  (file-writable-p (file-name-directory buffer-file-name)))
         (with-demoted-errors
-            (flymake-start-syntax-check))))))
+            (flymake--start-syntax-check))))))
 
    ;; Turning the mode OFF.
    (t
@@ -542,14 +422,14 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   (let((new-text (buffer-substring start stop)))
     (when (and flymake-start-syntax-check-on-newline (equal new-text "\n"))
       (flymake-log 3 "starting syntax check as new-line has been seen")
-      (flymake-start-syntax-check))
+      (flymake--start-syntax-check))
     (setq flymake-last-change-time (float-time))))
 
 (defun flymake-after-save-hook ()
   (if (local-variable-p 'flymake-mode (current-buffer))	; (???) other way to determine whether flymake is active in buffer being saved?
       (progn
 	(flymake-log 3 "starting syntax check as buffer was saved")
-	(flymake-start-syntax-check)))) ; no more mode 3. cannot start check if mode 3 (to temp copies) is active - (???)
+	(flymake--start-syntax-check)))) ; no more mode 3. cannot start check if mode 3 (to temp copies) is active - (???)
 
 (defun flymake-kill-buffer-hook ()
   (when flymake-timer
@@ -558,85 +438,41 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 
 ;;;###autoload
 (defun flymake-find-file-hook ()
-  ;;+(when flymake-start-syntax-check-on-find-file
-  ;;+    (flymake-log 3 "starting syntax check on file open")
-  ;;+    (flymake-start-syntax-check)
-  ;;+)
   (when (and (not (local-variable-p 'flymake-mode (current-buffer)))
 	     (flymake-can-syntax-check-file buffer-file-name))
     (flymake-mode)
     (flymake-log 3 "automatically turned ON flymake mode")))
 
-(defun flymake-get-first-err-line-no (err-info-list)
-  "Return first line with error."
-  (when err-info-list
-    (flymake-er-get-line (car err-info-list))))
+(defun flymake-goto-next-error (&optional n interactive)
+  "Go to next, or Nth next, flymake error in buffer."
+  (interactive (list 1 t))
+  (let* ((n (or n 1))
+	 (ovs (flymake--overlays 'flymake--diagnostic
+				 (if (cl-plusp n) #'< #'>)))
+	 (chain (cl-member-if (lambda (ov)
+				(if (cl-plusp n)
+				    (> (overlay-start ov)
+					(point))
+				  (< (overlay-start ov)
+				      (point))))
+			      ovs))
+	 (target (nth (1- n) chain)))
+    (if target
+	(goto-char (overlay-start target))
+      (when interactive
+	(user-error "No more flymake errors")))))
 
-(defun flymake-get-last-err-line-no (err-info-list)
-  "Return last line with error."
-  (when err-info-list
-    (flymake-er-get-line (nth (1- (length err-info-list)) err-info-list))))
-
-(defun flymake-get-next-err-line-no (err-info-list line-no)
-  "Return next line with error."
-  (when err-info-list
-    (let* ((count  (length err-info-list))
-	   (idx    0))
-      (while (and (< idx count) (>= line-no (flymake-er-get-line (nth idx err-info-list))))
-	(setq idx (1+ idx)))
-      (if (< idx count)
-	  (flymake-er-get-line (nth idx err-info-list))))))
-
-(defun flymake-get-prev-err-line-no (err-info-list line-no)
-  "Return previous line with error."
-  (when err-info-list
-    (let* ((count (length err-info-list)))
-      (while (and (> count 0) (<= line-no (flymake-er-get-line (nth (1- count) err-info-list))))
-	(setq count (1- count)))
-      (if (> count 0)
-	  (flymake-er-get-line (nth (1- count) err-info-list))))))
-
-(defun flymake-skip-whitespace ()
-  "Move forward until non-whitespace is reached."
-  (while (looking-at "[ \t]")
-    (forward-char)))
-
-(defun flymake-goto-line (line-no)
-  "Go to line LINE-NO, then skip whitespace."
-  (goto-char (point-min))
-  (forward-line (1- line-no))
-  (flymake-skip-whitespace))
-
-(defun flymake-goto-next-error ()
-  "Go to next error in err ring."
-  (interactive)
-  (let ((line-no (flymake-get-next-err-line-no flymake-err-info (line-number-at-pos))))
-    (when (not line-no)
-      (setq line-no (flymake-get-first-err-line-no flymake-err-info))
-      (flymake-log 1 "passed end of file"))
-    (if line-no
-	(flymake-goto-line line-no)
-      (flymake-log 1 "no errors in current buffer"))))
-
-(defun flymake-goto-prev-error ()
-  "Go to previous error in err ring."
-  (interactive)
-  (let ((line-no (flymake-get-prev-err-line-no flymake-err-info (line-number-at-pos))))
-    (when (not line-no)
-      (setq line-no (flymake-get-last-err-line-no flymake-err-info))
-      (flymake-log 1 "passed beginning of file"))
-    (if line-no
-	(flymake-goto-line line-no)
-      (flymake-log 1 "no errors in current buffer"))))
-
-(defun flymake-patch-err-text (string)
-  (if (string-match "^[\n\t :0-9]*\\(.*\\)$" string)
-      (match-string 1 string)
-    string))
+(defun flymake-goto-prev-error (&optional n interactive)
+  "Go to previous, or Nth previous, flymake error in buffer."
+  (interactive (list 1 t))
+  (flymake-goto-next-error (- (or n 1)) interactive))
 
 (provide 'flymake)
 
-(declare-function flymake-start-syntax-check "flymake-proc")
+(defun flymake--start-syntax-check ()
+  (flymake-proc-start-syntax-check))
+
+(declare-function flymake-proc-start-syntax-check "flymake-proc")
 (declare-function flymake-can-syntax-check-file "flymake-proc")
 
 (require 'flymake-proc)

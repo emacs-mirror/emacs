@@ -51,26 +51,26 @@
 (ert-deftest warning-predicate-rx-gcc ()
   "Test GCC warning via regexp predicate."
   (skip-unless (and (executable-find "gcc") (executable-find "make")))
-  (should (eq 'flymake-warnline
+  (should (eq 'flymake-warning
               (flymake-tests--current-face "test.c" "^[Ww]arning"))))
 
 (ert-deftest warning-predicate-function-gcc ()
   "Test GCC warning via function predicate."
   (skip-unless (and (executable-find "gcc") (executable-find "make")))
-  (should (eq 'flymake-warnline
+  (should (eq 'flymake-warning
               (flymake-tests--current-face "test.c"
                (lambda (msg) (string-match "^[Ww]arning" msg))))))
 
 (ert-deftest warning-predicate-rx-perl ()
   "Test perl warning via regular expression predicate."
   (skip-unless (executable-find "perl"))
-  (should (eq 'flymake-warnline
+  (should (eq 'flymake-warning
               (flymake-tests--current-face "test.pl" "^Scalar value"))))
 
 (ert-deftest warning-predicate-function-perl ()
   "Test perl warning via function predicate."
   (skip-unless (executable-find "perl"))
-  (should (eq 'flymake-warnline
+  (should (eq 'flymake-warning
               (flymake-tests--current-face
                "test.pl"
                (lambda (msg) (string-match "^Scalar value" msg))))))
