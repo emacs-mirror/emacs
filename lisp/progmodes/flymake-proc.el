@@ -409,7 +409,7 @@ Create parent directories as needed."
                                   (string-to-number col-string))))
             (with-current-buffer (process-buffer proc)
               (push
-               (flymake-ler-make
+               (flymake-make-diagnostic
                 :file fname
                 :line line-number
                 :col col-number
