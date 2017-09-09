@@ -1833,6 +1833,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
     {
       /* Setup translate_prev_byte1/2/3/4 from CHAR_BASE.  Only a
 	 byte following them are the target of translation.  */
+      eassume (0x80 <= char_base && char_base <= MAX_CHAR);
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       int cblen = CHAR_STRING (char_base, str);
 
