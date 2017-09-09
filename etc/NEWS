@@ -16,6 +16,37 @@ You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
 
+* Changes in Emacs 25.3
+
+This is mainly a release to fix security-relevant bugs.
+
+** Enriched text mode no longer supports the 'FUNCTION' and 'display'
+translations, and Gnus no longer processes enriched text when
+inlining.  This fixes bugs introduced in Emacs 19.29.  To work around
+these bugs in Emacs versions 19.29 through 25.2, append the following
+to your ~/.emacs file:
+
+  (provide 'enriched)
+  (defun enriched-mode (&optional arg))
+  (defun enriched-decode (from to))
+
+Thanks to Charles A. Roelli for reporting this bug; see:
+https://bugs.gnu.org/28350
+
+** TLS/SSL connections no longer fall back on the openssl s_client
+command to set up SSL connections in some hopefully-unlikely cases.
+This fixes a bug introduced in Emacs 22.1.  To work around this bug in
+Emacs versions 22.1 through 25.2, append the following to your
+~/.emacs file:
+
+  (setq tls-program '("gnutls-cli --x509cafile %t -p %p %h"))
+
+You may need to omit the "--x509cafile %t" on older installations.
+
+Thanks to Kurt Roeckx for reporting this bug to Debian; see:
+https://bugs.debian.org/766397
+
+
 * Changes in Emacs 25.2
 
 This is mainly a bug-fix release, but there are some other changes.
