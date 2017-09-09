@@ -590,6 +590,7 @@ sanitize_char_width (EMACS_INT width)
    columns C will occupy on the screen when displayed in the current
    buffer.  */
 
+#undef CHAR_WIDTH /* in case system headers follow ISO/IEC TS 18661-1:2014 */
 #define CHAR_WIDTH(c)		\
   (ASCII_CHAR_P (c)		\
    ? ASCII_CHAR_WIDTH (c)	\
