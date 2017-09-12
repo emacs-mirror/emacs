@@ -29,7 +29,7 @@ as part of instantiating the property, so decoding 'x-display' is
 vulnerable to executing arbitrary malicious Lisp code included in the
 text (e.g., sent as part of an email message).
 
-This vulnerability was introduced in Emacs 19.29.  To work around that
+This vulnerability was introduced in Emacs 21.1.  To work around that
 in Emacs versions before 25.3, append the following to your ~/.emacs
 init file:
 
