@@ -503,6 +503,9 @@ the range of text to assign text property SYMBOL with value VALUE."
 		  (error nil)))))
     (unless prop
       (message "Warning: invalid <x-display> parameter %s" param))
-    (list start end 'display prop)))
+    ;; Disabled in Emacs 25.3 to avoid execution of arbitrary Lisp
+    ;; forms in display properties stored within enriched text.
+    ;; (list start end 'display prop)))
+    (list start end)))
 
 ;;; enriched.el ends here

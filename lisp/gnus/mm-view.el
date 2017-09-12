@@ -383,10 +383,12 @@
 	(goto-char (point-max))))
     (save-restriction
       (narrow-to-region b (point))
-      (when (member type '("enriched" "richtext"))
-        (set-text-properties (point-min) (point-max) nil)
-	(ignore-errors
-	  (enriched-decode (point-min) (point-max))))
+      ;; Disabled in Emacs 25.3 to avoid execution of arbitrary Lisp
+      ;; forms in display properties supported by enriched.el.
+      ;; (when (member type '("enriched" "richtext"))
+      ;;   (set-text-properties (point-min) (point-max) nil)
+      ;; 	(ignore-errors
+      ;; 	  (enriched-decode (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle
        `(lambda ()
