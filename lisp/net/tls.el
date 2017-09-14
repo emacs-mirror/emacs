@@ -106,7 +106,7 @@ successful negotiation."
 	  (repeat :inline t :tag "Other" (string)))
     (list :tag "List of commands"
 	  (repeat :tag "Command" (string))))
-  :version "25.3"                       ; remove s_client
+  :version "25.4"                       ; remove s_client
   :group 'tls)
 
 (defcustom tls-process-connection-type nil
