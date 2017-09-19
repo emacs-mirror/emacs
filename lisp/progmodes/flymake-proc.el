@@ -1,4 +1,4 @@
-;;; flymake-proc.el --- Flymake for external syntax checker processes  -*- lexical-binding: t; -*-
+;;; flymake-proc.el --- Flymake backend for external tools  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
 
@@ -26,9 +26,13 @@
 ;;
 ;; Flymake is a minor Emacs mode performing on-the-fly syntax checks.
 ;;
-;; This file contains the most original implementation of flymake's
-;; main source of on-the-fly diagnostic info, the external syntax
-;; checker backend.
+;; This file contains a significant part of the original flymake's
+;; implementation, a buffer-checking mechanism that parses the output
+;; of an external syntax check tool with regular expressions.
+;;
+;; That work has been adapted into a flymake "backend" function,
+;; `flymake-proc-legacy-flymake' suitable for adding to the
+;; `flymake-diagnostic-functions' variable.
 ;;
 ;;; Bugs/todo:
 
@@ -412,7 +416,7 @@ Create parent directories as needed."
                              :warning)
                             (t
                              :error)))))))
-    (condition-case err
+    (condition-case-unless-debug err
         (cl-loop
          with (regexp file-idx line-idx col-idx message-idx) = pattern
          while (search-forward-regexp regexp nil t)
@@ -497,11 +501,13 @@ Create parent directories as needed."
            (diagnostics (process-get
                          proc
                          'flymake-proc--collected-diagnostics))
-           (interrupted (process-get proc 'flymake-proc--interrupted)))
+           (interrupted (process-get proc 'flymake-proc--interrupted))
+           (panic nil)
+           (output-buffer (process-get proc 'flymake-proc--output-buffer)))
       (flymake-log 2 "process %d exited with code %d"
-                   (process-id proc) exit-status)
-      (unwind-protect
-          (when (buffer-live-p source-buffer)
+                   (process-id process) exit-status)
+      (condition-case-unless-debug err
+          (progn
             (flymake-log 3 "cleaning up using %s" cleanup-f)
             (with-current-buffer source-buffer
               (funcall cleanup-f)
@@ -509,19 +515,24 @@ Create parent directories as needed."
                      (funcall flymake-proc--report-fn diagnostics))
                     (interrupted
                      (flymake-proc--panic :stopped interrupted))
+                    (diagnostics
+                     ;; non-zero exit but some diagnostics is quite
+                     ;; normal...
+                     (funcall flymake-proc--report-fn diagnostics))
                     ((null diagnostics)
-                     ;; non-zero exit but no errors is strange
+                     ;; ...but no diagnostics is strange, so panic.
+                     (setq panic t)
                      (flymake-proc--panic
                       :configuration-error
                       (format "Command %s errored, but no diagnostics"
-                              command)))
-                    (diagnostics
-                     (funcall flymake-proc--report-fn diagnostics)))))
+                              command))))))
         (delete-process proc)
         (setq flymake-proc--processes
               (delq proc flymake-proc--processes))
-        (unless (> flymake-log-level 2)
-          (kill-buffer (process-get proc 'flymake-proc--output-buffer)))))))
+        (if panic
+            (flymake-log 1 "Output buffer %s kept alive for debugging"
+                         output-buffer)
+          (kill-buffer output-buffer))))))
 
 (defun flymake-proc--panic (problem explanation)
   "Tell flymake UI about a fatal PROBLEM with this backend.
@@ -679,7 +690,7 @@ expression. A match indicates `:warning' type, otherwise
     (flymake-log 2 "deleted file %s" file-name)))
 
 (defun flymake-proc--safe-delete-directory (dir-name)
-  (condition-case nil
+  (condition-case-unless-debug nil
       (progn
 	(delete-directory dir-name)
 	(flymake-log 2 "deleted dir %s" dir-name))
@@ -687,13 +698,21 @@ expression. A match indicates `:warning' type, otherwise
      (flymake-log 1 "Failed to delete dir %s, error ignored" dir-name))))
 
 
-(defun flymake-proc-start-syntax-check (report-fn &optional interactive)
-  "Start syntax checking for current buffer."
+(defun flymake-proc-legacy-flymake (report-fn &optional interactive)
+  "Flymake backend based on the original flymake implementation.
+This function is suitable for inclusion in
+`flymake-dianostic-types-alist'. For backward compatibility, it
+can also be executed interactively independently of
+`flymake-mode'."
   ;; Interactively, behave as if flymake had invoked us through its
   ;; `flymake-diagnostic-functions' with a suitable ID so flymake can
   ;; clean up consistently
-  (interactive (list (flymake-make-report-fn 'flymake-proc-start-syntax-check)
-                     t))
+  (interactive (list
+                (lambda (diags &rest args)
+                  (apply (flymake-make-report-fn 'flymake-proc-legacy-flymake)
+                         diags
+                         (append args '(:force t))))
+                t))
   (cond
    ((process-live-p flymake-proc--process)
     (when interactive
@@ -728,9 +747,13 @@ expression. A match indicates `:warning' type, otherwise
                                                          dir)
                t)))))))
 
+(define-obsolete-function-alias 'flymake-start-syntax-check
+  'flymake-proc-legacy-flymake "26.1"
+  "Flymake backend based on the original flymake implementation.")
+
 (defun flymake-proc--start-syntax-check-process (cmd args dir)
   "Start syntax check process."
-  (condition-case err
+  (condition-case-unless-debug err
       (let* ((process
               (let ((default-directory (or dir default-directory)))
                 (when dir
@@ -1070,7 +1093,7 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; Hook onto flymake-ui
 (add-to-list 'flymake-diagnostic-functions
-             'flymake-proc-start-syntax-check)
+             'flymake-proc-legacy-flymake)
 
 
 ;;;;
@@ -1254,9 +1277,6 @@ Return its components if so, nil otherwise.")
   (define-obsolete-function-alias 'flymake-safe-delete-directory
     'flymake-proc--safe-delete-directory "26.1"
     nil)
-  (define-obsolete-function-alias 'flymake-start-syntax-check
-    'flymake-proc-start-syntax-check "26.1"
-    "Start syntax checking for current buffer.")
   (define-obsolete-function-alias 'flymake-stop-all-syntax-checks
     'flymake-proc-stop-all-syntax-checks "26.1"
     "Kill all syntax check processes.")
