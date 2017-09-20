@@ -361,7 +361,8 @@ return DEFAULT."
   "Start a syntax check for buffer BUFFER if necessary."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
-      (when (and (not flymake-is-running)
+      (when (and flymake-mode
+                 (not flymake-is-running)
 		 flymake-last-change-time
 		 (> (- (float-time) flymake-last-change-time)
                     flymake-no-changes-timeout))
