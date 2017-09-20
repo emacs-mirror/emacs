@@ -182,7 +182,7 @@ verify FILTER, sort them by COMPARE (using KEY)."
 
 (defface flymake-warning
   '((((supports :underline (:style wave)))
-     :underline (:style wave :color "DarkOrange"))
+     :underline (:style wave :color "deep sky blue"))
     (t
      :inherit warning))
   "Face used for marking warning regions."
