@@ -49,23 +49,24 @@ SEVERITY-PREDICATE is used to setup
          (i 0))
     (unwind-protect
         (with-current-buffer buffer
-          (when sev-pred-supplied-p
-            (setq-local flymake-proc-warning-predicate severity-predicate))
-          (goto-char (point-min))
-          (flymake-mode 1)
-          ;; Weirdness here...  http://debbugs.gnu.org/17647#25
-          ;; ... meaning `sleep-for', and even
-          ;; `accept-process-output', won't suffice as ways to get
-          ;; process filters and sentinels to run, though they do work
-          ;; fine in a non-interactive batch session. The only thing
-          ;; that will indeed unblock pending process output is
-          ;; reading an input event, so, as a workaround, use a dummy
-          ;; `read-event' with a very short timeout.
-          (unless noninteractive (read-event "" nil 0.1))
-          (while (and flymake-is-running (< (setq i (1+ i)) 10))
+          (save-excursion
+            (when sev-pred-supplied-p
+              (setq-local flymake-proc-warning-predicate severity-predicate))
+            (goto-char (point-min))
+            (flymake-mode 1)
+            ;; Weirdness here...  http://debbugs.gnu.org/17647#25
+            ;; ... meaning `sleep-for', and even
+            ;; `accept-process-output', won't suffice as ways to get
+            ;; process filters and sentinels to run, though they do work
+            ;; fine in a non-interactive batch session. The only thing
+            ;; that will indeed unblock pending process output is
+            ;; reading an input event, so, as a workaround, use a dummy
+            ;; `read-event' with a very short timeout.
             (unless noninteractive (read-event "" nil 0.1))
-            (sleep-for (+ 0.5 flymake-no-changes-timeout)))
-          (funcall fn))
+            (while (and flymake-is-running (< (setq i (1+ i)) 10))
+              (unless noninteractive (read-event "" nil 0.1))
+              (sleep-for (+ 0.5 flymake-no-changes-timeout)))
+            (funcall fn)))
       (and buffer
            (not visiting)
            (let (kill-buffer-query-functions) (kill-buffer buffer))))))
@@ -113,6 +114,21 @@ SEVERITY-PREDICATE is used to setup
     (flymake-goto-next-error)
     (should (eq 'flymake-warning
                 (face-at-point)))))
+
+(ert-deftest errors-and-warnings ()
+  "Test GCC warning via function predicate."
+  (skip-unless (and (executable-find "gcc") (executable-find "make")))
+  (flymake-tests--with-flymake
+      ("errors-and-warnings.c")
+    (flymake-goto-next-error)
+    (should (eq 'flymake-error (face-at-point)))
+    (flymake-goto-next-error)
+    (should (eq 'flymake-warning (face-at-point)))
+    (flymake-goto-next-error)
+    (should (eq 'flymake-warning (face-at-point)))
+    (flymake-goto-next-error)
+    (should (eq 'flymake-error (face-at-point)))
+    (should-error (flymake-goto-next-error nil t)) ))
 
 (provide 'flymake-tests)
 
