@@ -558,15 +558,19 @@ return DEFAULT."
          (chain (cl-member-if (lambda (ov)
                                 (if (cl-plusp n)
                                     (> (overlay-start ov)
-					(point))
-				  (< (overlay-start ov)
-				      (point))))
-			      ovs))
-	 (target (nth (1- n) chain)))
-    (if target
-	(goto-char (overlay-start target))
-      (when interactive
-	(user-error "No more flymake errors")))))
+                                       (point))
+                                  (< (overlay-start ov)
+                                     (point))))
+                              ovs))
+         (target (nth (1- n) chain)))
+    (cond (target
+           (goto-char (overlay-start target))
+           (when interactive
+             (message
+              (funcall (overlay-get target 'help-echo)
+                       nil nil (point)))))
+          (interactive
+           (user-error "No more flymake errors")))))
 
 (defun flymake-goto-prev-error (&optional n interactive)
   "Go to previous, or Nth previous, flymake error in buffer."
