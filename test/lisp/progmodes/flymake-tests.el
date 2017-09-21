@@ -41,7 +41,7 @@
                                                      nil sev-pred-supplied-p))
   "Call FN after flymake setup in FILE, using `flymake-proc`.
 SEVERITY-PREDICATE is used to setup
-`flymake-proc-warning-predicate'."
+`flymake-proc-diagnostic-type-pred'"
   (let* ((file (expand-file-name file flymake-tests-data-directory))
          (visiting (find-buffer-visiting file))
          (buffer (or visiting (find-file-noselect file)))
@@ -51,7 +51,7 @@ SEVERITY-PREDICATE is used to setup
         (with-current-buffer buffer
           (save-excursion
             (when sev-pred-supplied-p
-              (setq-local flymake-proc-warning-predicate severity-predicate))
+              (setq-local flymake-proc-diagnostic-type-pred severity-predicate))
             (goto-char (point-min))
             (flymake-mode 1)
             ;; Weirdness here...  http://debbugs.gnu.org/17647#25
@@ -115,13 +115,13 @@ SEVERITY-PREDICATE is used to setup
     (should (eq 'flymake-warning
                 (face-at-point)))))
 
-(ert-deftest errors-and-warnings ()
+(ert-deftest different-diagnostic-types ()
   "Test GCC warning via function predicate."
   (skip-unless (and (executable-find "gcc") (executable-find "make")))
   (flymake-tests--with-flymake
       ("errors-and-warnings.c")
     (flymake-goto-next-error)
-    (should (eq 'flymake-error (face-at-point)))
+    (should (eq 'flymake-note (face-at-point)))
     (flymake-goto-next-error)
     (should (eq 'flymake-warning (face-at-point)))
     (flymake-goto-next-error)

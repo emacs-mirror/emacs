@@ -189,6 +189,15 @@ verify FILTER, sort them by COMPARE (using KEY)."
   :version "24.4"
   :group 'flymake)
 
+(defface flymake-note
+  '((((supports :underline (:style wave)))
+     :underline (:style wave :color "yellow green"))
+    (t
+     :inherit warning))
+  "Face used for marking note regions."
+  :version "26.1"
+  :group 'flymake)
+
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
 
@@ -226,13 +235,14 @@ Or nil if the region is invalid."
            nil)))
 
 (defvar flymake-diagnostic-types-alist
-  `((("e" :error error)
+  `((:error
      . ((flymake-category . flymake-error)))
-    (("w" :warning warning)
-     . ((flymake-category . flymake-warning))))
+    (:warning
+     . ((flymake-category . flymake-warning)))
+    (:note
+     . ((flymake-category . flymake-note))))
   "Alist ((KEY . PROPS)*) of properties of flymake error types.
-KEY can be anything passed as `:type' to `flymake-diag-make', or
-a list of these objects.
+KEY can be anything passed as `:type' to `flymake-diag-make'.
 
 PROPS is an alist of properties that are applied, in order, to
 the diagnostics of each type.  The recognized properties are:
@@ -259,27 +269,21 @@ the diagnostics of each type.  The recognized properties are:
 (put 'flymake-error 'face 'flymake-error)
 (put 'flymake-error 'bitmap flymake-error-bitmap)
 (put 'flymake-error 'severity (warning-numeric-level :error))
-(put 'flymake-error 'mode-line-face 'compilation-error)
 
 (put 'flymake-warning 'face 'flymake-warning)
 (put 'flymake-warning 'bitmap flymake-warning-bitmap)
 (put 'flymake-warning 'severity (warning-numeric-level :warning))
-(put 'flymake-warning 'mode-line-face 'compilation-warning)
 
 (put 'flymake-note 'face 'flymake-note)
 (put 'flymake-note 'bitmap flymake-warning-bitmap)
 (put 'flymake-note 'severity (warning-numeric-level :debug))
-(put 'flymake-note 'mode-line-face 'compilation-info)
 
 (defun flymake--lookup-type-property (type prop &optional default)
   "Look up PROP for TYPE in `flymake-diagnostic-types-alist'.
 If TYPE doesn't declare PROP in either
-`flymake-diagnostic-types-alist' or its associated category,
-return DEFAULT."
-  (let ((alist-probe (assoc type flymake-diagnostic-types-alist
-                            (lambda (entry key)
-                              (or (equal key entry)
-                                  (member key entry))))))
+`flymake-diagnostic-types-alist' or its associated
+`flymake-category', return DEFAULT."
+  (let ((alist-probe (assoc type flymake-diagnostic-types-alist)))
     (cond (alist-probe
            (let* ((alist (cdr alist-probe))
                   (prop-probe (assoc prop alist)))

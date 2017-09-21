@@ -394,47 +394,51 @@ Create parent directories as needed."
   (flymake-log 3 "saved buffer %s in file %s" (buffer-name) file-name))
 
 (defun flymake-proc--diagnostics-for-pattern (proc pattern)
-  (condition-case err
-      (pcase-let ((`(,regexp ,file-idx ,line-idx ,col-idx ,message-idx)
-                   pattern)
-                  (retval))
-        (while (search-forward-regexp regexp nil t)
-          (let* ((fname (and file-idx (match-string file-idx)))
-                 (message (and message-idx (match-string message-idx)))
-                 (line-string (and line-idx (match-string line-idx)))
-                 (line-number (and line-string
-                                   (string-to-number line-string)))
-                 (col-string (and col-idx (match-string col-idx)))
-                 (col-number (and col-string
-                                  (string-to-number col-string))))
-            (with-current-buffer (process-buffer proc)
-              (push
-               (flymake-make-diagnostic
-                :file fname
-                :line line-number
-                :col col-number
-                :type (if (and
-                           message
-                           (cond ((stringp flymake-proc-warning-predicate)
-                                  (string-match flymake-proc-warning-predicate
-                                                message))
-                                 ((functionp flymake-proc-warning-predicate)
-                                  (funcall flymake-proc-warning-predicate
-                                           message))))
-                          "w"
-                        "e")
-                :text message
-                :full-file (and fname
-                                (funcall
-                                 (flymake-proc--get-real-file-name-function
-                                  fname)
-                                 fname)))
-               retval))))
-        retval)
-    (error
-     (flymake-log 1 "Error parsing process output for pattern %s: %s"
-                  pattern err)
-     nil)))
+  (cl-flet ((guess-type
+             (pred message)
+             (cond ((null message)
+                    :error)
+                   ((stringp pred)
+                    (if (string-match pred message)
+                        :warning
+                      :error))
+                   ((functionp pred)
+                    (let ((probe (funcall pred message)))
+                      (cond ((assoc-default probe
+                                            flymake-diagnostic-types-alist)
+                             probe)
+                            (probe
+                             :warning)
+                            (t
+                             :error)))))))
+    (condition-case err
+        (cl-loop
+         with (regexp file-idx line-idx col-idx message-idx) = pattern
+         while (search-forward-regexp regexp nil t)
+         for fname = (and file-idx (match-string file-idx))
+         for message = (and message-idx (match-string message-idx))
+         for line-string = (and line-idx (match-string line-idx))
+         for line-number = (and line-string
+                                (string-to-number line-string))
+         for col-string = (and col-idx (match-string col-idx))
+         for col-number = (and col-string
+                               (string-to-number col-string))
+         collect (with-current-buffer (process-buffer proc)
+                   (flymake-make-diagnostic
+                    :file fname
+                    :line line-number
+                    :col col-number
+                    :type (guess-type flymake-proc-diagnostic-type-pred message)
+                    :text message
+                    :full-file (and fname
+                                    (funcall
+                                     (flymake-proc--get-real-file-name-function
+                                      fname)
+                                     fname)))))
+      (error
+       (flymake-log 1 "Error parsing process output for pattern %s: %s"
+                    pattern err)
+       nil))))
 
 (defun flymake-proc--process-filter (proc string)
   "Parse STRING and collect diagnostics info."
@@ -567,12 +571,29 @@ Convert it to flymake internal format."
 Use `flymake-proc-reformat-err-line-patterns-from-compile-el' to add patterns
 from compile.el")
 
-(define-obsolete-variable-alias 'flymake-warning-re 'flymake-proc-warning-predicate "24.4")
-(defvar flymake-proc-warning-predicate "^[wW]arning"
-  "Predicate matching against error text to detect a warning.
-Takes a single argument, the error's text and should return non-nil
-if it's a warning.
-Instead of a function, it can also be a regular expression.")
+(define-obsolete-variable-alias 'flymake-warning-re 'flymake-proc-diagnostic-type-pred "26.1")
+(defvar flymake-proc-diagnostic-type-pred
+  'flymake-proc-default-guess
+  "Predicate matching against diagnostic text to detect its type.
+Takes a single argument, the diagnostic's text and should return
+a value suitable for indexing
+`flymake-diagnostic-types-alist' (which see). If the returned
+value is nil, a type of `error' is assumed. For some backward
+compatibility, if a non-nil value is returned that that doesn't
+index that alist, a type of `:warning' is assumed.
+
+Instead of a function, it can also be a string, a regular
+expression. A match indicates `:warning' type, otherwise
+`:error'")
+
+(defun flymake-proc-default-guess (text)
+  "Guess if TEXT means a warning, a note or an error."
+  (cond ((string-match "^[wW]arning" text)
+         :warning)
+        ((string-match "^[nN]ote" text)
+         :note)
+        (t
+         :error)))
 
 (defun flymake-proc-get-project-include-dirs-imp (basedir)
   "Include dirs for the project current file belongs to."
@@ -1167,12 +1188,6 @@ Convert it to flymake internal format.")
 (REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
 Use `flymake-reformat-err-line-patterns-from-compile-el' to add patterns
 from compile.el")
-  (define-obsolete-variable-alias 'flymake-warning-predicate
-    'flymake-proc-warning-predicate "26.1"
-    "Predicate matching against error text to detect a warning.
-Takes a single argument, the error's text and should return non-nil
-if it's a warning.
-Instead of a function, it can also be a regular expression.")
   (define-obsolete-function-alias 'flymake-parse-line
     'flymake-proc-parse-line "26.1"
     "Parse LINE to see if it is an error or warning.
