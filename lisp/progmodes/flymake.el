@@ -476,6 +476,17 @@ If TYPE doesn't declare PROP in either
           (flymake-report-status "" "")
         (flymake-report-status (format "%d/%d" err-count warn-count) "")))))
 
+(defun flymake--start-syntax-check (&optional deferred)
+  (cl-labels ((start
+               ()
+               (remove-hook 'post-command-hook #'start 'local)
+               (setq flymake-check-start-time (float-time))
+               (flymake-proc-start-syntax-check)))
+    (if (and deferred
+             this-command)
+        (add-hook 'post-command-hook #'start 'append 'local)
+      (start))))
+
 ;;;###autoload
 (define-minor-mode flymake-mode nil
   :group 'flymake :lighter flymake-mode-line
@@ -539,7 +550,7 @@ If TYPE doesn't declare PROP in either
   (let((new-text (buffer-substring start stop)))
     (when (and flymake-start-syntax-check-on-newline (equal new-text "\n"))
       (flymake-log 3 "starting syntax check as new-line has been seen")
-      (flymake--start-syntax-check))
+      (flymake--start-syntax-check 'deferred))
     (setq flymake-last-change-time (float-time))))
 
 (defun flymake-after-save-hook ()
@@ -590,9 +601,6 @@ If TYPE doesn't declare PROP in either
   (flymake-goto-next-error (- (or n 1)) interactive))
 
 (provide 'flymake)
-
-(defun flymake--start-syntax-check ()
-  (flymake-proc-start-syntax-check))
 
 (declare-function flymake-proc-start-syntax-check "flymake-proc")
 (declare-function flymake-can-syntax-check-file "flymake-proc")
