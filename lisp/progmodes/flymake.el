@@ -139,10 +139,29 @@ are the string substitutions (see the function `format')."
 	(message "%s" msg))))
 
 (cl-defstruct (flymake--diag
-               (:constructor flymake-make-diagnostic))
-  file line col type text full-file)
-(define-obsolete-function-alias 'flymake-ler-make 'flymake-make-diagnostic "26.1"
-  "Constructor for objects of type `flymake--diag'")
+               (:constructor flymake--diag-make))
+  buffer beg end type text)
+
+(defun flymake-make-diagnostic (buffer
+                                beg
+                                end
+                                type
+                                text)
+  "Mark BUFFER's region from BEG to END with a flymake diagnostic.
+TYPE is a key to `flymake-diagnostic-types-alist' and TEXT is a
+description of the problem detected in this region."
+  (flymake--diag-make :buffer buffer :beg beg :end end :type type :text text))
+
+(defun flymake-ler-make-ler (file line type text &optional full-file)
+  (let* ((file (or full-file file))
+         (buf (find-buffer-visiting file)))
+    (unless buf (error "No buffer visiting %s" file))
+    (pcase-let* ((`(,beg . ,end)
+                  (with-current-buffer buf
+                    (flymake-diag-region line nil))))
+      (flymake-make-diagnostic buf beg end type text))))
+
+(make-obsolete 'flymake-ler-make-ler 'flymake-make-diagnostic "26.1")
 
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.
@@ -201,15 +220,14 @@ verify FILTER, sort them by COMPARE (using KEY)."
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
 
-(defun flymake--diag-region (diagnostic)
-  "Return the region (BEG . END) for DIAGNOSTIC.
+(defun flymake-diag-region (line col)
+  "Compute region (BEG . END) corresponding to LINE and COL.
 Or nil if the region is invalid."
-  ;; FIXME: make this a generic function
   (condition-case-unless-debug _err
-      (save-excursion
-        (goto-char (point-min))
-        (let ((line (flymake--diag-line diagnostic))
-              (col (flymake--diag-col diagnostic)))
+      (let ((line (min (max line 1)
+                       (line-number-at-pos (point-max) 'absolute))))
+        (save-excursion
+          (goto-char (point-min))
           (forward-line (1- line))
           (cl-flet ((fallback-bol
                      () (progn (back-to-indentation) (point)))
@@ -316,8 +334,9 @@ If TYPE doesn't declare PROP in either
 
 (defun flymake--highlight-line (diagnostic)
   "Highlight buffer with info in DIAGNOSTIC."
-  (when-let* ((region (flymake--diag-region diagnostic))
-              (ov (make-overlay (car region) (cdr region))))
+  (when-let* ((ov (make-overlay
+                   (flymake--diag-beg diagnostic)
+                   (flymake--diag-end diagnostic))))
     ;; First set `category' in the overlay, then copy over every other
     ;; property.
     ;;
@@ -388,12 +407,7 @@ If TYPE doesn't declare PROP in either
                          (user-error "No flymake problem for current line")))
          (menu (mapcar (lambda (ov)
                          (let ((diag (overlay-get ov 'flymake--diagnostic)))
-                           (cons (format "%s - %s(%s)"
-                                         (flymake--diag-text diag)
-                                         (or (flymake--diag-file diag)
-                                             "(no file)")
-                                         (or (flymake--diag-line diag)
-                                             "?"))
+                           (cons (flymake--diag-text diag)
                                  ov)))
                        diag-overlays))
          (event (if (mouse-event-p event)
@@ -445,26 +459,10 @@ If TYPE doesn't declare PROP in either
   (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
                (buffer-name) status warning))
 
-(defun flymake--fix-line-numbers (diagnostic)
-  "Ensure DIAGNOSTIC has sensible error lines"
-  (setf (flymake--diag-line diagnostic)
-        (min (max (flymake--diag-line diagnostic)
-                  1)
-             (line-number-at-pos (point-max) 'absolute))))
-
 (defun flymake-report (diagnostics)
   (save-restriction
     (widen)
     (flymake-delete-own-overlays)
-    (setq diagnostics
-          (cl-remove-if-not
-           (lambda (diag)
-             (let ((ff (flymake--diag-full-file diag)))
-               (and ff
-                    (equal (expand-file-name ff)
-                           (expand-file-name (buffer-file-name))))))
-           diagnostics))
-    (mapc #'flymake--fix-line-numbers diagnostics)
     (mapc #'flymake--highlight-line diagnostics)
     (let ((err-count (cl-count-if #'flymake--diag-errorp diagnostics))
           (warn-count (cl-count-if-not #'flymake--diag-errorp diagnostics)))

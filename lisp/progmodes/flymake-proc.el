@@ -423,18 +423,24 @@ Create parent directories as needed."
          for col-string = (and col-idx (match-string col-idx))
          for col-number = (and col-string
                                (string-to-number col-string))
-         collect (with-current-buffer (process-buffer proc)
-                   (flymake-make-diagnostic
-                    :file fname
-                    :line line-number
-                    :col col-number
-                    :type (guess-type flymake-proc-diagnostic-type-pred message)
-                    :text message
-                    :full-file (and fname
-                                    (funcall
-                                     (flymake-proc--get-real-file-name-function
-                                      fname)
-                                     fname)))))
+         for full-file = (with-current-buffer (process-buffer proc)
+                           (and fname
+                                (funcall
+                                 (flymake-proc--get-real-file-name-function
+                                  fname)
+                                 fname)))
+         for buffer = (and full-file
+                           (find-buffer-visiting full-file))
+         if (eq buffer (process-buffer proc))
+         collect (with-current-buffer buffer
+                   (pcase-let ((`(,beg . ,end)
+                                (flymake-diag-region line-number col-number)))
+                     (flymake-make-diagnostic
+                      buffer beg end
+                      (guess-type flymake-proc-diagnostic-type-pred message)
+                      message)))
+         else
+         do (flymake-log 2 "No buffer found for diagnosed file %s" fname))
       (error
        (flymake-log 1 "Error parsing process output for pattern %s: %s"
                     pattern err)
@@ -486,7 +492,8 @@ Create parent directories as needed."
 
       (flymake-log 2 "process %d exited with code %d"
                    (process-id process) exit-status)
-      (kill-buffer (process-get process 'flymake-proc--output-buffer))
+      (unless (> flymake-log-level 2)
+        (kill-buffer (process-get process 'flymake-proc--output-buffer)))
       (condition-case err
           (progn
             (flymake-log 3 "cleaning up using %s" cleanup-f)
