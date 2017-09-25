@@ -1,4 +1,4 @@
-;;; flymake-tests.el --- Test suite for flymake
+;;; flymake-tests.el --- Test suite for flymake -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
@@ -53,7 +53,7 @@ SEVERITY-PREDICATE is used to setup
             (when sev-pred-supplied-p
               (setq-local flymake-proc-diagnostic-type-pred severity-predicate))
             (goto-char (point-min))
-            (flymake-mode 1)
+            (unless flymake-mode (flymake-mode 1))
             ;; Weirdness here...  http://debbugs.gnu.org/17647#25
             ;; ... meaning `sleep-for', and even
             ;; `accept-process-output', won't suffice as ways to get
@@ -63,7 +63,7 @@ SEVERITY-PREDICATE is used to setup
             ;; reading an input event, so, as a workaround, use a dummy
             ;; `read-event' with a very short timeout.
             (unless noninteractive (read-event "" nil 0.1))
-            (while (and flymake-is-running (< (setq i (1+ i)) 10))
+            (while (and (flymake-is-running) (< (setq i (1+ i)) 10))
               (unless noninteractive (read-event "" nil 0.1))
               (sleep-for (+ 0.5 flymake-no-changes-timeout)))
             (funcall fn)))
@@ -129,6 +129,121 @@ SEVERITY-PREDICATE is used to setup
     (flymake-goto-next-error)
     (should (eq 'flymake-error (face-at-point)))
     (should-error (flymake-goto-next-error nil t)) ))
+
+(defmacro flymake-tests--assert-set (set
+                                     should
+                                     should-not)
+  (declare (indent 1))
+  `(progn
+     ,@(cl-loop
+        for s in should
+        collect `(should (memq ,s ,set)))
+     ,@(cl-loop
+        for s in should-not
+        collect `(should-not (memq ,s ,set)))))
+
+(ert-deftest dummy-backends ()
+  "Test GCC warning via function predicate."
+  (with-temp-buffer
+    (cl-labels
+        ((diagnose
+          (report-fn type words)
+          (funcall
+           report-fn
+           (cl-loop
+            for word in words
+            append
+            (save-excursion
+              (goto-char (point-min))
+              (cl-loop while (word-search-forward word nil t)
+                       collect (flymake-make-diagnostic
+                                (current-buffer)
+                                (match-beginning 0)
+                                (match-end 0)
+                                type
+                                (concat word " is wrong")))))))
+         (error-backend
+          (report-fn)
+          (run-with-timer
+           0.5 nil
+           #'diagnose report-fn :error '("manha" "prognata")))
+         (warning-backend
+          (report-fn)
+          (run-with-timer
+           0.5 nil
+           #'diagnose report-fn :warning '("ut" "dolor")))
+         (sync-backend
+          (report-fn)
+          (diagnose report-fn :note '("quis" "commodo")))
+         (refusing-backend
+          (_report-fn)
+          nil)
+         (panicking-backend
+          (report-fn)
+          (run-with-timer
+           0.5 nil
+           report-fn :panic :explanation "The spanish inquisition!"))
+         (crashing-backend
+          (_report-fn)
+          ;; HACK: Shoosh log during tests
+          (setq-local warning-minimum-log-level :emergency)
+          (error "crashed")))
+      (insert "Lorem ipsum dolor sit amet, consectetur adipiscing
+    elit, sed do eiusmod tempor incididunt ut labore et dolore
+    manha aliqua. Ut enim ad minim veniam, quis nostrud
+    exercitation ullamco laboris nisi ut aliquip ex ea commodo
+    consequat. Duis aute irure dolor in reprehenderit in
+    voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non prognata
+    sunt in culpa qui officia deserunt mollit anim id est
+    laborum.")
+      (let ((flymake-diagnostic-functions
+             (list #'error-backend #'warning-backend #'sync-backend
+                   #'refusing-backend #'panicking-backend
+                   #'crashing-backend
+                   )))
+        (flymake-mode)
+        ;; FIXME: accessing some flymake-ui's internals here...
+        (flymake-tests--assert-set flymake--running-backends
+          (#'error-backend #'warning-backend #'panicking-backend)
+          (#'sync-backend #'crashing-backend #'refusing-backend))
+
+        (flymake-tests--assert-set flymake--disabled-backends
+          (#'crashing-backend)
+          (#'error-backend #'warning-backend #'sync-backend
+                           #'panicking-backend #'refusing-backend))
+
+        (cl-loop repeat 10 while (flymake-is-running)
+                 unless noninteractive do (read-event "" nil 0.1)
+                 do (sleep-for (+ 0.5 flymake-no-changes-timeout)))
+
+        (should (eq flymake--running-backends '()))
+
+        (flymake-tests--assert-set flymake--disabled-backends
+          (#'crashing-backend #'panicking-backend)
+          (#'error-backend #'warning-backend #'sync-backend
+                           #'refusing-backend))
+
+        (goto-char (point-min))
+        (flymake-goto-next-error)
+        (should (eq 'flymake-warning (face-at-point))) ; dolor
+        (flymake-goto-next-error)
+        (should (eq 'flymake-warning (face-at-point))) ; ut
+        (flymake-goto-next-error)
+        (should (eq 'flymake-error (face-at-point))) ; manha
+        (flymake-goto-next-error)
+        (should (eq 'flymake-warning (face-at-point))) ; Ut
+        (flymake-goto-next-error)
+        (should (eq 'flymake-note (face-at-point))) ; quis
+        (flymake-goto-next-error)
+        (should (eq 'flymake-warning (face-at-point))) ; ut
+        (flymake-goto-next-error)
+        (should (eq 'flymake-note (face-at-point))) ; commodo
+        (flymake-goto-next-error)
+        (should (eq 'flymake-warning (face-at-point))) ; dolor
+        (flymake-goto-next-error)
+        (should (eq 'flymake-error (face-at-point))) ; prognata
+        (should-error (flymake-goto-next-error nil t))))))
 
 (provide 'flymake-tests)
 

@@ -35,6 +35,7 @@
 (require 'cl-lib)
 (require 'thingatpt) ; end-of-thing
 (require 'warnings) ; warning-numeric-level
+(eval-when-compile (require 'subr-x)) ; when-let*, if-let*
 
 (defgroup flymake nil
   "Universal on-the-fly syntax checker."
@@ -119,15 +120,6 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
 (defvar-local flymake-check-start-time nil
   "Time at which syntax check was started.")
 
-(defvar-local flymake-check-was-interrupted nil
-  "Non-nil if syntax check was killed by `flymake-compile'.")
-
-(defvar-local flymake-err-info nil
-  "Sorted list of line numbers and lists of err info in the form (file, err-text).")
-
-(defvar-local flymake-new-err-info nil
-  "Same as `flymake-err-info', effective when a syntax check is in progress.")
-
 (defun flymake-log (level text &rest args)
   "Log a message at level LEVEL.
 If LEVEL is higher than `flymake-log-level', the message is
@@ -140,7 +132,7 @@ are the string substitutions (see the function `format')."
 
 (cl-defstruct (flymake--diag
                (:constructor flymake--diag-make))
-  buffer beg end type text)
+  buffer beg end type text backend)
 
 (defun flymake-make-diagnostic (buffer
                                 beg
@@ -186,9 +178,9 @@ verify FILTER, sort them by COMPARE (using KEY)."
                                          #'identity))
          ovs)))))
 
-(defun flymake-delete-own-overlays ()
+(defun flymake-delete-own-overlays (&optional filter)
   "Delete all flymake overlays in BUFFER."
-  (mapc #'delete-overlay (flymake--overlays)))
+  (mapc #'delete-overlay (flymake--overlays :filter filter)))
 
 (defface flymake-error
   '((((supports :underline (:style wave)))
@@ -251,6 +243,55 @@ Or nil if the region is invalid."
                 (cons beg end))))))
     (error (flymake-log 4 "Invalid region for diagnostic %s")
            nil)))
+
+(defvar flymake-diagnostic-functions nil
+  "List of flymake backends i.e. sources of flymake diagnostics.
+
+This variable holds an arbitrary number of \"backends\" or
+\"checkers\" providing the flymake UI's \"frontend\" with
+information about where and how to annotate problems diagnosed in
+a buffer.
+
+Backends are lisp functions sharing a common calling
+convention. Whenever flymake decides it is time to re-check the
+buffer, each backend is called with a single argument, a
+REPORT-FN callback, detailed below.  Backend functions are first
+expected to quickly and inexpensively announce the feasibility of
+checking the buffer (i.e. they aren't expected to immediately
+start checking the buffer):
+
+* If the backend function returns nil, flymake forgets about this
+  backend for the current check, but will call it again the next
+  time;
+
+* If the backend function returns non-nil, flymake expects this backend to
+  check the buffer and call its REPORT-FN callback function. If
+  the computation involved is inexpensive, the backend function
+  may do so synchronously before returning. If it is not, it may
+  do so after retuning, using idle timers, asynchronous
+  processes or other asynchronous mechanisms.
+
+* If the backend function signals an error, it is disabled, i.e. flymake
+  will not attempt it again for this buffer until `flymake-mode'
+  is turned off and on again.
+
+When calling REPORT-FN, the first argument passed to it decides
+how to proceed. Recognized values are:
+
+* A (possibly empty) list of objects created with
+  `flymake-make-diagnostic', causing flymake to annotate the
+  buffer with this information and consider the backend has
+  having finished its check normally.
+
+* The symbol `:progress', signalling that the backend is still
+  working and will call REPORT-FN again in the future.
+
+* The symbol `:panic', signalling that the backend has
+  encountered an exceptional situation and should be disabled.
+
+In the latter cases, it is also possible to provide REPORT-FN
+with a string as the keyword argument `:explanation'. The string
+should give human-readable details of the situation.")
 
 (defvar flymake-diagnostic-types-alist
   `((:error
@@ -376,16 +417,11 @@ If TYPE doesn't declare PROP in either
     (overlay-put ov 'flymake-overlay t)
     (overlay-put ov 'flymake--diagnostic diagnostic)))
 
-
-(defvar-local flymake-is-running nil
-  "If t, flymake syntax check process is running for the current buffer.")
-
 (defun flymake-on-timer-event (buffer)
   "Start a syntax check for buffer BUFFER if necessary."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (when (and flymake-mode
-                 (not flymake-is-running)
 		 flymake-last-change-time
 		 (> (- (float-time) flymake-last-change-time)
                     flymake-no-changes-timeout))
@@ -427,59 +463,123 @@ If TYPE doesn't declare PROP in either
     (when choice (goto-char (overlay-start choice)))))
 
 ;; flymake minor mode declarations
-(defvar-local flymake-mode-line nil)
-(defvar-local flymake-mode-line-e-w nil)
-(defvar-local flymake-mode-line-status nil)
+(defvar-local flymake-lighter nil)
 
-(defun flymake-report-status (e-w &optional status)
-  "Show status in mode line."
-  (when e-w
-    (setq flymake-mode-line-e-w e-w))
-  (when status
-    (setq flymake-mode-line-status status))
-  (let* ((mode-line " Flymake"))
-    (when (> (length flymake-mode-line-e-w) 0)
-      (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
-    (setq mode-line (concat mode-line flymake-mode-line-status))
-    (setq flymake-mode-line mode-line)
-    (force-mode-line-update)))
+(defun flymake--update-lighter (info &optional extended)
+  "Update Flymake’s \"lighter\" with INFO and EXTENDED."
+  (setq flymake-lighter (format " Flymake(%s%s)"
+                                info
+                                (if extended
+                                    (format ",%s" extended)
+                                  ""))))
 
 ;; Nothing in flymake uses this at all any more, so this is just for
 ;; third-party compatibility.
 (define-obsolete-function-alias 'flymake-display-warning 'message-box "26.1")
 
-(defun flymake-report-fatal-status (status warning)
-  "Display a warning and switch flymake mode off."
-  ;; This first message was always shown by default, and flymake-log
-  ;; does nothing by default, hence the use of message.
-  ;; Another option is display-warning.
-  (if (< flymake-log-level 0)
-      (message "Flymake: %s. Flymake will be switched OFF" warning))
-  (flymake-mode 0)
-  (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
-               (buffer-name) status warning))
+(defvar-local flymake--running-backends nil
+  "List of currently active flymake backends.
+An active backend is a member of `flymake-diagnostic-functions'
+that has been invoked but hasn't reported any final status yet.")
 
-(defun flymake-report (diagnostics)
-  (save-restriction
-    (widen)
-    (flymake-delete-own-overlays)
-    (mapc #'flymake--highlight-line diagnostics)
-    (let ((err-count (cl-count-if #'flymake--diag-errorp diagnostics))
-          (warn-count (cl-count-if-not #'flymake--diag-errorp diagnostics)))
-      (when flymake-check-start-time
-        (flymake-log 2 "%s: %d error(s), %d other(s) in %.2f second(s)"
-                     (buffer-name) err-count warn-count
-                     (- (float-time) flymake-check-start-time)))
-      (if (null diagnostics)
-          (flymake-report-status "" "")
-        (flymake-report-status (format "%d/%d" err-count warn-count) "")))))
+(defvar-local flymake--disabled-backends nil
+  "List of currently disabled flymake backends.
+A backend is disabled if it reported `:panic'.")
+
+(defun flymake-is-running ()
+  "Tell if flymake has running backends in this buffer"
+  flymake--running-backends)
+
+(defun flymake--disable-backend (backend action &optional explanation)
+  (cl-pushnew backend flymake--disabled-backends)
+  (flymake-log 0 "Disabled the backend %s due to reports of %s (%s)"
+               backend action explanation))
+
+(cl-defun flymake--handle-report (backend action &key explanation)
+  "Handle reports from flymake backend identified by BACKEND."
+  (cond
+   ((not (memq backend flymake--running-backends))
+    (error "Ignoring unexpected report from backend %s" backend))
+   ((eq action :progress)
+    (flymake-log 3 "Backend %s reports progress: %s" backend explanation))
+   ((eq :panic action)
+    (flymake--disable-backend backend action explanation))
+   ((listp action)
+    (let ((diagnostics action))
+      (save-restriction
+        (widen)
+        (flymake-delete-own-overlays
+         (lambda (ov)
+           (eq backend
+               (flymake--diag-backend
+                (overlay-get ov 'flymake--diagnostic)))))
+        (mapc (lambda (diag)
+                (flymake--highlight-line diag)
+                (setf (flymake--diag-backend diag) backend))
+              diagnostics)
+        (let ((err-count (cl-count-if #'flymake--diag-errorp diagnostics))
+              (warn-count (cl-count-if-not #'flymake--diag-errorp
+                                           diagnostics)))
+          (when flymake-check-start-time
+            (flymake-log 2 "%d error(s), %d other(s) in %.2f second(s)"
+                         err-count warn-count
+                         (- (float-time) flymake-check-start-time)))
+          (if (null diagnostics)
+              (flymake--update-lighter "[ok]")
+            (flymake--update-lighter
+             (format "%d/%d" err-count warn-count)))))))
+   (t
+    (flymake--disable-backend "?"
+                              :strange
+                              (format "unknown action %s (%s)"
+                                      action explanation))))
+  (unless (eq action :progress)
+    (flymake--stop-backend backend)))
+
+(defun flymake-make-report-fn (backend)
+  "Make a suitable anonymous report function for BACKEND.
+BACKEND is used to help flymake distinguish diagnostic
+sources."
+  (lambda (&rest args)
+    (apply #'flymake--handle-report backend args)))
+
+(defun flymake--stop-backend (backend)
+  "Stop the backend BACKEND."
+  (setq flymake--running-backends (delq backend flymake--running-backends)))
+
+(defun flymake--run-backend (backend)
+  "Run the backend BACKEND."
+  (push backend flymake--running-backends)
+  ;; FIXME: Should use `condition-case-unless-debug'
+  ;; here, but that won't let me catch errors during
+  ;; testing where `debug-on-error' is always t
+  (condition-case err
+      (unless (funcall backend
+                       (flymake-make-report-fn backend))
+        (flymake--stop-backend backend))
+    (error
+     (flymake--disable-backend backend :error
+                               err)
+     (flymake--stop-backend backend))))
 
 (defun flymake--start-syntax-check (&optional deferred)
-  (cl-labels ((start
-               ()
-               (remove-hook 'post-command-hook #'start 'local)
-               (setq flymake-check-start-time (float-time))
-               (flymake-proc-start-syntax-check)))
+  "Start a syntax check.
+Start it immediately, or after current command if DEFERRED is
+non-nil."
+  (cl-labels
+      ((start
+        ()
+        (remove-hook 'post-command-hook #'start 'local)
+        (setq flymake-check-start-time (float-time))
+        (dolist (backend flymake-diagnostic-functions)
+          (cond ((memq backend flymake--running-backends)
+                 (flymake-log 2 "Backend %s still running, not restarting"
+                              backend))
+                ((memq backend flymake--disabled-backends)
+                 (flymake-log 2 "Backend %s is disabled, not starting"
+                              backend))
+                (t
+                 (flymake--run-backend backend))))))
     (if (and deferred
              this-command)
         (add-hook 'post-command-hook #'start 'append 'local)
@@ -487,33 +587,27 @@ If TYPE doesn't declare PROP in either
 
 ;;;###autoload
 (define-minor-mode flymake-mode nil
-  :group 'flymake :lighter flymake-mode-line
+  :group 'flymake :lighter flymake-lighter
+  (setq flymake--running-backends nil
+        flymake--disabled-backends nil)
   (cond
-
    ;; Turning the mode ON.
    (flymake-mode
     (cond
-     ((not buffer-file-name)
-      (message "Flymake unable to run without a buffer file name"))
-     ((not (flymake-can-syntax-check-file buffer-file-name))
-      (flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name)))
+     ((not flymake-diagnostic-functions)
+      (error "flymake cannot check syntax in buffer %s" (buffer-name)))
      (t
       (add-hook 'after-change-functions 'flymake-after-change-function nil t)
       (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
       (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
-      ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
 
-      (flymake-report-status "" "")
+      (flymake--update-lighter "*" "*")
 
       (setq flymake-timer
             (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
-      (when (and flymake-start-syntax-check-on-find-file
-                 ;; Since we write temp files in current dir, there's no point
-                 ;; trying if the directory is read-only (bug#8954).
-                 (file-writable-p (file-name-directory buffer-file-name)))
-        (with-demoted-errors
-            (flymake--start-syntax-check))))))
+      (when flymake-start-syntax-check-on-find-file
+        (flymake--start-syntax-check)))))
 
    ;; Turning the mode OFF.
    (t
@@ -526,9 +620,7 @@ If TYPE doesn't declare PROP in either
 
     (when flymake-timer
       (cancel-timer flymake-timer)
-      (setq flymake-timer nil))
-
-    (setq flymake-is-running nil))))
+      (setq flymake-timer nil)))))
 
 ;;;###autoload
 (defun flymake-mode-on ()
@@ -564,8 +656,8 @@ If TYPE doesn't declare PROP in either
 
 ;;;###autoload
 (defun flymake-find-file-hook ()
-  (when (and (not (local-variable-p 'flymake-mode (current-buffer)))
-	     (flymake-can-syntax-check-file buffer-file-name))
+  (unless (or flymake-mode
+	      (null flymake-diagnostic-functions))
     (flymake-mode)
     (flymake-log 3 "automatically turned ON flymake mode")))
 
@@ -599,9 +691,6 @@ If TYPE doesn't declare PROP in either
   (flymake-goto-next-error (- (or n 1)) interactive))
 
 (provide 'flymake)
-
-(declare-function flymake-proc-start-syntax-check "flymake-proc")
-(declare-function flymake-can-syntax-check-file "flymake-proc")
 
 (require 'flymake-proc)
 ;;; flymake.el ends here
