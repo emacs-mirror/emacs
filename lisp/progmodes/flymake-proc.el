@@ -441,7 +441,7 @@ Create parent directories as needed."
                       (guess-type flymake-proc-diagnostic-type-pred message)
                       message)))
          else
-         do (flymake-log 2 "No buffer found for diagnosed file %s" fname))
+         do (flymake-log 2 "Reference to file %s is out of scope" fname))
       (error
        (flymake-log 1 "Error parsing process output for pattern %s: %s"
                     pattern err)
@@ -532,7 +532,7 @@ May only be called in a dynamic environment where
            flymake-proc--report-fn)
       (funcall flymake-proc--report-fn :panic
                :explanation (format "%s: %s" problem explanation))
-    (error "Trouble telling flymake-ui about problem %s(%s)"
+    (flymake-error "Trouble telling flymake-ui about problem %s(%s)"
                    problem explanation)))
 
 (defun flymake-proc-reformat-err-line-patterns-from-compile-el (original-list)
@@ -676,13 +676,13 @@ expression. A match indicates `:warning' type, otherwise
 (defun flymake-proc--safe-delete-file (file-name)
   (when (and file-name (file-exists-p file-name))
     (delete-file file-name)
-    (flymake-log 1 "deleted file %s" file-name)))
+    (flymake-log 2 "deleted file %s" file-name)))
 
 (defun flymake-proc--safe-delete-directory (dir-name)
   (condition-case nil
       (progn
 	(delete-directory dir-name)
-	(flymake-log 1 "deleted dir %s" dir-name))
+	(flymake-log 2 "deleted dir %s" dir-name))
     (error
      (flymake-log 1 "Failed to delete dir %s, error ignored" dir-name))))
 
@@ -758,15 +758,11 @@ expression. A match indicates `:warning' type, otherwise
                      default-directory)
         process)
     (error
-     (let* ((err-str
-             (format-message
-              "Failed to launch syntax check process `%s' with args %s: %s"
-              cmd args (error-message-string err)))
-            (source-file-name buffer-file-name)
-            (cleanup-f        (flymake-proc--get-cleanup-function source-file-name)))
-       (flymake-log 0 err-str)
-       (funcall cleanup-f)
-       (flymake-proc--panic :make-process-error err-str)))))
+     (flymake-proc--panic :make-process-error
+                          (format-message
+                           "Failed to launch syntax check process `%s' with args %s: %s"
+                           cmd args (error-message-string err)))
+     (funcall (flymake-proc--get-cleanup-function buffer-file-name)))))
 
 (defun flymake-proc-stop-all-syntax-checks (&optional reason)
   "Kill all syntax check processes."
@@ -917,7 +913,6 @@ Return full-name.  Names are real, not patched."
                                         (file-name-directory source-file-name))))
     (if buildfile-dir
         (setq flymake-proc--base-dir buildfile-dir)
-      (flymake-log 1 "no buildfile (%s) for %s" buildfile-name source-file-name)
       (flymake-proc--panic
        "NOMK" (format "No buildfile (%s) found for %s"
                       buildfile-name source-file-name)))))
@@ -933,8 +928,10 @@ Return full-name.  Names are real, not patched."
 
     (if (not master-and-temp-master)
 	(progn
-	  (flymake-log 1 "cannot find master file for %s" source-file-name)
-          (flymake-proc--panic "NOMASTER" "")	; NOMASTER
+          (flymake-proc--panic
+           "NOMASTER"
+           (format-message "cannot find master file for %s"
+                           source-file-name))
           nil)
       (setq flymake-proc--master-file-name (nth 0 master-and-temp-master))
       (setq flymake-proc--temp-master-file-name (nth 1 master-and-temp-master)))))

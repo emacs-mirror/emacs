@@ -46,7 +46,8 @@ SEVERITY-PREDICATE is used to setup
          (visiting (find-buffer-visiting file))
          (buffer (or visiting (find-file-noselect file)))
          (process-environment (cons "LC_ALL=C" process-environment))
-         (i 0))
+         (i 0)
+         (warning-minimum-log-level :error))
     (unwind-protect
         (with-current-buffer buffer
           (save-excursion
