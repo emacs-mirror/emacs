@@ -4,7 +4,7 @@
 @set VERSION 0.3
 @set UPDATED April 2004
 @settitle GNU Flymake @value{VERSION}
-@include docstyle.texi
+@include ../emacs/docstyle.texi
 @syncodeindex pg cp
 @comment %**end of header
 
@@ -53,7 +53,8 @@ modify this GNU manual.''
 * Overview of Flymake::
 * Installing Flymake::
 * Using Flymake::
-* Configuring Flymake::
+* Extending Flymake::
+* Proc backend::
 * Flymake Implementation::
 * GNU Free Documentation License::
 * Index::
@@ -63,29 +64,28 @@ modify this GNU manual.''
 @chapter Overview
 @cindex Overview of Flymake
 
-Flymake is a universal on-the-fly syntax checker implemented as an
-Emacs minor mode.  Flymake runs the pre-configured syntax check tool
-(compiler for C++ files, @code{perl} for perl files, etc.)@: in the
-background, passing it a temporary copy of the current buffer, and
-parses the output for known error/warning message patterns.  Flymake
-then highlights erroneous lines (i.e., lines for which at least one
-error or warning has been reported by the syntax check tool), and
-displays an overall buffer status in the mode line.  Status information
-displayed by Flymake contains total number of errors and warnings
-reported for the buffer during the last syntax check.
+Flymake is a universal on-the-fly buffer checker implemented as an
+Emacs minor mode. When enabled, Flymake visually annotates the buffer
+with diagnostic information coming from one or more different sources,
+or @emph{backend}.
+
+Historically, Flymake used to accept a diagnostics from a single
+backend (albeit a very flexible one) which selected a syntax check
+tool from a preconfigured list (compiler for C++ files, @code{perl}
+for perl files, etc.)@: and executed it in the background, passing it
+a temporary copy of the current buffer, and parses the output for
+known error/warning message patterns. This backend is still available
+as a fallback and a default(@pxref{Proc backend}).
+
+Flymake annotates the buffer by highlighting erroneous lines or
+regions and displays an overall buffer status in the mode line.
+Status information displayed by Flymake contains totals for different
+types of diagnostics.
 
 @code{flymake-goto-next-error} and @code{flymake-goto-prev-error}
 functions allow for easy navigation to the next/previous erroneous
-line, respectively.
-
-Calling @code{flymake-display-err-menu-for-current-line} will popup a
-menu containing error messages reported by the syntax check tool for
-the current line.  Errors/warnings belonging to another file, such as a
-@code{.h} header file included by a @code{.c} file, are shown in the
-current buffer as belonging to the first line.  Menu items for such
-messages also contain a filename and a line number.  Selecting such a
-menu item will automatically open the file and jump to the line with
-error.
+line, respectively. When @code{flymake-mode} is active, they are
+mapped to @kbd{M-n} and @kbd{M-p}, respectively, and by default.
 
 Syntax check is done ``on-the-fly''.  It is started whenever
 
@@ -97,33 +97,15 @@ delay is configurable).
 @end itemize
 
 Flymake is a universal syntax checker in the sense that it's easily
-extended to support new syntax check tools and error message
-patterns.  @xref{Configuring Flymake}.
+extended to support new backends.  @xref{Customizable variables}.
 
 @node Installing Flymake
 @chapter Installing
 @cindex Installing Flymake
 
-
-Flymake is packaged in a single file, @code{flymake.el}.
-
-To install/update Flymake, place @code{flymake.el} to a directory
-somewhere on Emacs load path.  You might also want to byte-compile
-@code{flymake.el} to improve performance.
-
-Also, place the following line in the @code{.emacs} file.
-
-@lisp
-(require 'flymake)
-@end lisp
-
-You might also map the most frequently used Flymake functions, such as
-@code{flymake-goto-next-error}, to some keyboard shortcuts:
-
-@lisp
-(global-set-key [f3] 'flymake-display-err-menu-for-current-line)
-(global-set-key [f4] 'flymake-goto-next-error)
-@end lisp
+Flymake is included with Emacs and its main commands, like
+@code{flymake-mode}, are autoloaded. This means there is usually
+nothing to do by way of installation.
 
 @node Using Flymake
 @chapter Using Flymake
@@ -132,10 +114,10 @@ You might also map the most frequently used Flymake functions, such as
 @menu
 * Flymake mode::
 * Running the syntax check::
-* Navigating to error lines::
-* Viewing error messages::
+* Navigating to error lines::   @c * Viewing error messages::
 * Syntax check statuses::
 * Troubleshooting::
+* Customizable variables::
 @end menu
 
 @node Flymake mode
@@ -161,10 +143,9 @@ line in @code{.emacs}:
 
 When @code{flymake-mode} is active, syntax check is started
 automatically on any of the three conditions mentioned above.  Syntax
-check can also be started manually by using the
-@code{flymake-start-syntax-check-for-current-buffer} function.  This
-can be used, for example, when changes were made to some other buffer
-affecting the current buffer.
+check can also be started manually by using the @code{flymake-start}
+function.  This can be used, for example, when changes were made to
+some other buffer affecting the current buffer.
 
 @node Navigating to error lines
 @section Navigating to error lines
@@ -185,21 +166,24 @@ navigate the highlighted lines.
 
 @end multitable
 
-These functions treat erroneous lines as a linked list.  Therefore,
-@code{flymake-goto-next-error} will go to the first erroneous line
-when invoked in the end of the buffer.
+If the user options @code{flymake-wrap-around} is active
+(@pxref{Customizable variables}), these functions treat diagnostics
+as a linked list.  Therefore, @code{flymake-goto-next-error} will go
+to the first diagnostic when invoked in the end of the buffer.
 
-@node Viewing error messages
-@section Viewing error messages
-@cindex Viewing error messages
+@c jt@2017/09/27: The latest redesign more than likely broke this.
+@c
+@c @node Viewing error messages
+@c @section Viewing error messages
+@c @cindex Viewing error messages
 
-To view error messages belonging to the current line, use the
-@code{flymake-display-err-menu-for-current-line} function.  If there's
-at least one error or warning reported for the current line, this
-function will display a popup menu with error/warning texts.
-Selecting the menu item whose error belongs to another file brings
-forward that file with the help of the
-@code{flymake-goto-file-and-line} function.
+@c To view error messages belonging to the current line, use the
+@c @code{flymake-display-err-menu-for-current-line} function.  If there's
+@c at least one error or warning reported for the current line, this
+@c function will display a popup menu with error/warning texts.
+@c Selecting the menu item whose error belongs to another file brings
+@c forward that file with the help of the
+@c @code{flymake-goto-file-and-line} function.
 
 @node Syntax check statuses
 @section Syntax check statuses
@@ -209,29 +193,22 @@ After syntax check is finished, its status is displayed in the mode line.
 The following statuses are defined.
 
 @multitable @columnfractions 0.25 0.75
-@item Flymake* or Flymake:E/W*
-@tab  Flymake is currently running.  For the second case, E/W contains the
-error and warning count for the previous run.
+@item Flymake:run
+@tab  Flymake is currently running at least one backend.
 
 @item Flymake
-@tab  Syntax check is not running.  Usually this means syntax check was
-successfully passed (no errors, no warnings).  Other possibilities are:
-syntax check was killed as a result of executing
-@code{flymake-compile}, or syntax check cannot start as compilation
-is currently in progress.
+@tab Flymake was unable to successfully execute any backend.
 
-@item Flymake:E/W
-@tab  Number of errors/warnings found by the syntax check process.
-
-@item Flymake:!
-@tab  Flymake was unable to find master file for the current buffer.
+@item Flymake [<errors> <warnings> ... ]
+@tab  Normal operation, number of errors/warnings found by the syntax check process.
 @end multitable
 
-The following errors cause a warning message and switch flymake mode
-OFF for the buffer.
+The default backend @code{flymake-proc-legacy-flymake} may encounter
+some situations that cause a warning message to the @code{*Flymake
+log*} buffer.
 
 @multitable @columnfractions 0.25 0.75
-@item CFGERR
+@item @code{:configuration-error}
 @tab  Syntax check process returned nonzero exit code, but no
 errors/warnings were reported.  This indicates a possible configuration
 error (for example, no suitable error message patterns for the
@@ -243,10 +220,11 @@ syntax check tool).
 @item NOMK
 @tab  Flymake was unable to find a suitable buildfile for the current buffer.
 
-@item PROCERR
+@item @code{:make-process-error}
 @tab  Flymake was unable to launch a syntax check process.
 @end multitable
 
+These ``panic'' situations cause the backend to be disabled.
 
 @node Troubleshooting
 @section Troubleshooting
@@ -255,70 +233,20 @@ syntax check tool).
 
 Flymake uses a simple logging facility for indicating important points
 in the control flow.  The logging facility sends logging messages to
-the @file{*Messages*} buffer.  The information logged can be used for
+the @file{*Flymake log*} buffer.  The information logged can be used for
 resolving various problems related to Flymake.
 
-Logging output is controlled by the @code{flymake-log-level}
-variable.  @code{3} is the  most verbose level, and @code{-1} switches
-logging off.
-
-@node Configuring Flymake
-@chapter Configuring and Extending Flymake
-@cindex Configuring and Extending Flymake
-
-@menu
-* Customizable variables::
-* Adding support for a new syntax check tool::
-@end menu
-
-Flymake was designed to be easily extended for supporting new syntax
-check tools and error message patterns.
+Logging output is controlled by the Emacs @code{warning-minimum-log-level}
+and @code{warning-minimum-level} variables.
 
 @node Customizable variables
 @section Customizable variables
 @cindex Customizable variables
 
-This section summarizes variables used for Flymake
-configuration.
+This section summarizes variables used for the configuration of the
+Flymake user interface.
 
 @table @code
-@item flymake-log-level
-Controls logging output, see @ref{Troubleshooting}.
-
-@item flymake-allowed-file-name-masks
-A list of @code{(filename-regexp, init-function, cleanup-function
-getfname-function)} for configuring syntax check tools.  @xref{Adding
-support for a new syntax check tool}.
-
-@ignore
-@item flymake-buildfile-dirs
-A list of directories (relative paths) for searching a
-buildfile.  @xref{Locating the buildfile}.
-@end ignore
-
-@item flymake-master-file-dirs
-A list of directories for searching a master file.  @xref{Locating a
-master file}.
-
-@item flymake-get-project-include-dirs-function
-A function used for obtaining a list of project include dirs (C/C++
-specific).  @xref{Getting the include directories}.
-
-@item flymake-master-file-count-limit
-@itemx flymake-check-file-limit
-Used when looking for a master file.  @xref{Locating a master file}.
-
-@item flymake-err-line-patterns
-Patterns for error/warning messages in the form @code{(regexp file-idx
-line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
-
-@item flymake-warning-predicate
-Predicate to classify error text as warning. @xref{Parsing the output}.
-
-@item flymake-compilation-prevents-syntax-check
-A flag indicating whether compilation and syntax check of the same
-file cannot be run simultaneously.
-
 @item flymake-no-changes-timeout
 If any changes are made to the buffer, syntax check is automatically
 started after @code{flymake-no-changes-timeout} seconds.
@@ -327,13 +255,17 @@ started after @code{flymake-no-changes-timeout} seconds.
 A boolean flag indicating whether to start syntax check after a
 newline character is added to the buffer.
 
-@item flymake-errline
-A custom face for highlighting lines for which at least one error has
-been reported.
+@item flymake-error
+A custom face for highlighting regions for which an error has been
+reported.
 
-@item flymake-warnline
-A custom face for highlighting lines for which at least one warning
-and no errors have been reported.
+@item flymake-warning
+A custom face for highlighting regions for which a warning has been
+reported.
+
+@item flymake-note
+A custom face for highlighting regions for which a note has been
+reported.
 
 @item flymake-error-bitmap
 A bitmap used in the fringe to mark lines for which an error has
@@ -346,6 +278,70 @@ been reported.
 @item flymake-fringe-indicator-position
 Which fringe (if any) should show the warning/error bitmaps.
 
+@item flymake-wrap-around
+If non-nil, moving to errors with @code{flymake-goto-next-error} and
+@code{flymake-goto-prev-error} wraps around buffer boundaries.
+
+@end table
+
+@node Extending Flymake
+@chapter Extending Flymake
+@cindex Extending Flymake
+
+@node Proc backend
+@chapter The legacy ``Proc'' backend
+@cindex Proc backend
+
+@menu
+* Proc customization variables::
+* Adding support for a new syntax check tool::
+@end menu
+
+The backend @code{flymake-proc-legacy-backend} was originally designed
+to be extended for supporting new syntax check tools and error message
+patterns. It is also controlled by its own set of customization variables
+
+@node Proc customization variables
+@section Customization variables for the Proc backend
+@cindex Proc customization variables
+
+@table @code
+@item flymake-proc-log-level
+Controls logging output, see @ref{Troubleshooting}.
+
+@item flymake-proc-allowed-file-name-masks
+A list of @code{(filename-regexp, init-function, cleanup-function
+getfname-function)} for configuring syntax check tools.  @xref{Adding
+support for a new syntax check tool}.
+
+@ignore
+@item flymake-proc-buildfile-dirs
+A list of directories (relative paths) for searching a
+buildfile.  @xref{Locating the buildfile}.
+@end ignore
+
+@item flymake-proc-master-file-dirs
+A list of directories for searching a master file.  @xref{Locating a
+master file}.
+
+@item flymake-proc-get-project-include-dirs-function
+A function used for obtaining a list of project include dirs (C/C++
+specific).  @xref{Getting the include directories}.
+
+@item flymake-proc-master-file-count-limit
+@itemx flymake-proc-check-file-limit
+Used when looking for a master file.  @xref{Locating a master file}.
+
+@item flymake-proc-err-line-patterns
+Patterns for error/warning messages in the form @code{(regexp file-idx
+line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
+
+@item flymake-proc-warning-predicate
+Predicate to classify error text as warning. @xref{Parsing the output}.
+
+@item flymake-proc-compilation-prevents-syntax-check
+A flag indicating whether compilation and syntax check of the same
+file cannot be run simultaneously.
 @end table
 
 @node Adding support for a new syntax check tool
