@@ -525,10 +525,15 @@ A backend is disabled if it reported `:panic'.")
   (flymake-log :warning "Disabled the backend %s due to reports of %s (%s)"
                backend action explanation))
 
-(cl-defun flymake--handle-report (backend action &key explanation)
-  "Handle reports from flymake backend identified by BACKEND."
+(cl-defun flymake--handle-report (backend action &key explanation force)
+  "Handle reports from flymake backend identified by BACKEND.
+
+BACKEND, ACTION and EXPLANATION conform to the calling convention
+described in `flymake-diagnostic-functions' (which see). Optional
+FORCE says to handle a report even if it was not expected."
   (cond
-   ((not (memq backend flymake--running-backends))
+   ((and (not (memq backend flymake--running-backends))
+         (not force))
     (flymake-error "Ignoring unexpected report from backend %s" backend))
    ((eq action :progress)
     (flymake-log 3 "Backend %s reports progress: %s" backend explanation))
@@ -850,4 +855,5 @@ diagnostics of type `:error' and `:warning'."
 (provide 'flymake)
 
 (require 'flymake-proc)
+(require 'flymake-elisp)
 ;;; flymake.el ends here
