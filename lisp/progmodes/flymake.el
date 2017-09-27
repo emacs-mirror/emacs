@@ -465,7 +465,7 @@ associated `flymake-category' return DEFAULT."
 
 	(setq flymake-last-change-time nil)
 	(flymake-log :debug "starting syntax check after no changes for some time")
-	(flymake--start-syntax-check)))))
+	(flymake-start)))))
 
 (define-obsolete-function-alias 'flymake-display-err-menu-for-current-line
   'flymake-popup-current-error-menu "24.4")
@@ -595,15 +595,22 @@ sources."
                                err)
      (flymake--stop-backend backend))))
 
-(defun flymake--start-syntax-check (&optional deferred)
+(defun flymake-start (&optional deferred interactive)
   "Start a syntax check.
 Start it immediately, or after current command if DEFERRED is
-non-nil."
+non-nil.  With optional INTERACTIVE or interactively, clear any
+stale information about running and automatically disabled
+backends."
+  (interactive (list nil t))
   (cl-labels
       ((start
         ()
         (remove-hook 'post-command-hook #'start 'local)
         (setq flymake-check-start-time (float-time))
+        (when interactive
+          (setq flymake--diagnostics-table (make-hash-table)
+                flymake--running-backends nil
+                flymake--disabled-backends nil))
         (dolist (backend flymake-diagnostic-functions)
           (cond ((memq backend flymake--running-backends)
                  (flymake-log :debug "Backend %s still running, not restarting"
@@ -639,7 +646,7 @@ non-nil."
       (setq flymake--diagnostics-table (make-hash-table))
 
       (when flymake-start-syntax-check-on-find-file
-        (flymake--start-syntax-check)))))
+        (flymake-start)))))
 
    ;; Turning the mode OFF.
    (t
@@ -669,13 +676,13 @@ non-nil."
   (let((new-text (buffer-substring start stop)))
     (when (and flymake-start-syntax-check-on-newline (equal new-text "\n"))
       (flymake-log :debug "starting syntax check as new-line has been seen")
-      (flymake--start-syntax-check 'deferred))
+      (flymake-start 'deferred))
     (setq flymake-last-change-time (float-time))))
 
 (defun flymake-after-save-hook ()
   (when flymake-mode
     (flymake-log :debug "starting syntax check as buffer was saved")
-    (flymake--start-syntax-check))) ; no more mode 3. cannot start check if mode 3 (to temp copies) is active - (???)
+    (flymake-start)))
 
 (defun flymake-kill-buffer-hook ()
   (when flymake-timer
