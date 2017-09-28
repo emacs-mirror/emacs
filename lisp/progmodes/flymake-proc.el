@@ -66,7 +66,10 @@
   :type 'integer)
 
 (defcustom flymake-proc-allowed-file-name-masks
-  '(("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'" flymake-proc-simple-make-init)
+  '(("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'"
+     flymake-proc-simple-make-init
+     nil
+     flymake-proc-real-file-name-considering-includes)
     ("\\.xml\\'" flymake-proc-xml-init)
     ("\\.html?\\'" flymake-proc-xml-init)
     ("\\.cs\\'" flymake-proc-simple-make-init)
@@ -419,12 +422,25 @@ Create parent directories as needed."
     (condition-case-unless-debug err
         (cl-loop
          with (regexp file-idx line-idx col-idx message-idx) = pattern
-         while (search-forward-regexp regexp nil t)
+         while (and
+                (search-forward-regexp regexp nil t)
+                ;; If the preceding search spanned more than one line,
+                ;; move to the start of the line we ended up in. This
+                ;; preserves the usefulness of the patterns in
+                ;; `flymake-proc-err-line-patterns', which were
+                ;; written primarily for flymake's original
+                ;; line-by-line parsing and thus never spanned
+                ;; multiple lines.
+                (if (/= (line-number-at-pos (match-beginning 0))
+                        (line-number-at-pos))
+                    (goto-char (line-beginning-position))
+                  t))
          for fname = (and file-idx (match-string file-idx))
          for message = (and message-idx (match-string message-idx))
          for line-string = (and line-idx (match-string line-idx))
-         for line-number = (and line-string
-                                (string-to-number line-string))
+         for line-number = (or (and line-string
+                                    (string-to-number line-string))
+                               1)
          for col-string = (and col-idx (match-string col-idx))
          for col-number = (and col-string
                                (string-to-number col-string))
@@ -436,7 +452,7 @@ Create parent directories as needed."
                                  fname)))
          for buffer = (and full-file
                            (find-buffer-visiting full-file))
-         if (eq buffer (process-buffer proc))
+         if (and (eq buffer (process-buffer proc)) message)
          collect (with-current-buffer buffer
                    (pcase-let ((`(,beg . ,end)
                                 (flymake-diag-region line-number col-number)))
@@ -1029,6 +1045,13 @@ Use CREATE-TEMP-F for creating temp copy."
    'flymake-proc-get-include-dirs
    '("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'")
    "[ \t]*#[ \t]*include[ \t]*\"\\([[:word:]0-9/\\_.]*%s\\)\""))
+
+(defun flymake-proc-real-file-name-considering-includes (scraped)
+  (flymake-proc-get-real-file-name
+   (let ((case-fold-search t))
+     (replace-regexp-in-string "^in file included from[ \t*]"
+                               ""
+                               scraped))))
 
 ;;;; .java/make specific
 (defun flymake-proc-simple-make-java-init ()

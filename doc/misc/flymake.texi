@@ -492,7 +492,7 @@ our case this target might look like this:
 
 @verbatim
 check-syntax:
-	gcc -o /dev/null -S ${CHK_SOURCES}
+	gcc -o /dev/null -S ${CHK_SOURCES} || true
 @end verbatim
 
 @noindent
@@ -504,7 +504,7 @@ Automake variable @code{COMPILE}:
 
 @verbatim
 check-syntax:
-	$(COMPILE) -o /dev/null -S ${CHK_SOURCES}
+	$(COMPILE) -o /dev/null -S ${CHK_SOURCES} || true
 @end verbatim
 
 @node Flymake Implementation

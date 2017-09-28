@@ -1,10 +1,13 @@
- int main()
+/* Flymake should notice an error on the next line, since
+   that file has at least one warning.*/
+#include "some-problems.h"
+/* But not this one */
+#include "no-problems.h"
+
+int main()
 {
-  char c = 1000;
+  char c = 1000; /* a note and a warning */
   int bla;
-  /* The following line should have one warning and one error. The
-     warning spans the full line because gcc (at least 6.3.0) points
-     places the error at the =, which isn't a sexp.*/
-  char c; if (bla == (void*)3);
+  char c; if (bla == (void*)3); /* an error, and two warnings */
   return c;
 }

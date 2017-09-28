@@ -122,13 +122,33 @@ SEVERITY-PREDICATE is used to setup
   (flymake-tests--with-flymake
       ("errors-and-warnings.c")
     (flymake-goto-next-error)
+    (should (eq 'flymake-error (face-at-point)))
+    (flymake-goto-next-error)
     (should (eq 'flymake-note (face-at-point)))
     (flymake-goto-next-error)
     (should (eq 'flymake-warning (face-at-point)))
     (flymake-goto-next-error)
+    (should (eq 'flymake-error (face-at-point)))
+    (flymake-goto-next-error)
+    (should (eq 'flymake-warning (face-at-point)))
+    (flymake-goto-next-error)
+    (should (eq 'flymake-warning (face-at-point)))
+    (let ((flymake-wrap-around nil))
+      (should-error (flymake-goto-next-error nil nil t))) ))
+
+(ert-deftest included-c-header-files ()
+  "Test inclusion of .h header files."
+  (skip-unless (and (executable-find "gcc") (executable-find "make")))
+  (flymake-tests--with-flymake
+      ("some-problems.h")
+    (flymake-goto-next-error)
     (should (eq 'flymake-warning (face-at-point)))
     (flymake-goto-next-error)
     (should (eq 'flymake-error (face-at-point)))
+    (let ((flymake-wrap-around nil))
+      (should-error (flymake-goto-next-error nil nil t))) )
+  (flymake-tests--with-flymake
+      ("no-problems.h")
     (let ((flymake-wrap-around nil))
       (should-error (flymake-goto-next-error nil nil t))) ))
 
