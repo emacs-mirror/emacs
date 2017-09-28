@@ -630,9 +630,14 @@ backends."
         (add-hook 'post-command-hook #'start 'append 'local)
       (start))))
 
+(defvar flymake-mode-map
+  (let ((map (make-sparse-keymap)))
+    map)
+  "Keymap for `flymake-mode'.")
+
 ;;;###autoload
 (define-minor-mode flymake-mode nil
-  :group 'flymake :lighter flymake--mode-line-format
+  :group 'flymake :lighter flymake--mode-line-format :keymap flymake-mode-map
   (setq flymake--running-backends nil
         flymake--disabled-backends nil)
   (cond
