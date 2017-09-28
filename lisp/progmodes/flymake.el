@@ -44,7 +44,8 @@
   :link '(custom-manual "(flymake) Top")
   :group 'tools)
 
-(defcustom flymake-error-bitmap '(exclamation-mark error)
+(defcustom flymake-error-bitmap '(flymake-double-exclamation-mark
+                                  compilation-error)
   "Bitmap (a symbol) used in the fringe for indicating errors.
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap.  For possible bitmap
@@ -59,7 +60,7 @@ this is used."
                        (symbol :tag "Bitmap")
                        (face :tag "Face"))))
 
-(defcustom flymake-warning-bitmap 'question-mark
+(defcustom flymake-warning-bitmap '(exclamation-mark compilation-warning)
   "Bitmap (a symbol) used in the fringe for indicating warnings.
 The value may also be a list of two elements where the second
 element specifies the face for the bitmap.  For possible bitmap
@@ -69,6 +70,21 @@ The option `flymake-fringe-indicator-position' controls how and where
 this is used."
   :group 'flymake
   :version "24.3"
+  :type '(choice (symbol :tag "Bitmap")
+                 (list :tag "Bitmap and face"
+                       (symbol :tag "Bitmap")
+                       (face :tag "Face"))))
+
+(defcustom flymake-note-bitmap '(exclamation-mark compilation-info)
+  "Bitmap (a symbol) used in the fringe for indicating info notes.
+The value may also be a list of two elements where the second
+element specifies the face for the bitmap.  For possible bitmap
+symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
+
+The option `flymake-fringe-indicator-position' controls how and where
+this is used."
+  :group 'flymake
+  :version "26.1"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
                        (symbol :tag "Bitmap")
@@ -116,6 +132,25 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
 (defcustom flymake-wrap-around t
   "If non-nil, moving to errors wraps around buffer boundaries."
   :group 'flymake :type 'boolean)
+
+(define-fringe-bitmap 'flymake-double-exclamation-mark
+  (vector #b00000000
+          #b00000000
+          #b00000000
+          #b00000000
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b00000000
+          #b01100110
+          #b00000000
+          #b00000000
+          #b00000000))
 
 (defvar-local flymake-timer nil
   "Timer for starting syntax check.")
@@ -366,17 +401,17 @@ the diagnostics of each type.  The recognized properties are:
   that differ from an existing type by only a few properties.")
 
 (put 'flymake-error 'face 'flymake-error)
-(put 'flymake-error 'bitmap flymake-error-bitmap)
+(put 'flymake-error 'bitmap 'flymake-error-bitmap)
 (put 'flymake-error 'severity (warning-numeric-level :error))
 (put 'flymake-error 'mode-line-face 'compilation-error)
 
 (put 'flymake-warning 'face 'flymake-warning)
-(put 'flymake-warning 'bitmap flymake-warning-bitmap)
+(put 'flymake-warning 'bitmap 'flymake-warning-bitmap)
 (put 'flymake-warning 'severity (warning-numeric-level :warning))
 (put 'flymake-warning 'mode-line-face 'compilation-warning)
 
 (put 'flymake-note 'face 'flymake-note)
-(put 'flymake-note 'bitmap nil)
+(put 'flymake-note 'bitmap 'flymake-note-bitmap)
 (put 'flymake-note 'severity (warning-numeric-level :debug))
 (put 'flymake-note 'mode-line-face 'compilation-info)
 
@@ -400,14 +435,19 @@ associated `flymake-category' return DEFAULT."
           (t
            default))))
 
-(defun flymake--fringe-overlay-spec (bitmap)
-  (and flymake-fringe-indicator-position
-       bitmap
-       (propertize "!" 'display
-                   (cons flymake-fringe-indicator-position
-                         (if (listp bitmap)
-                             bitmap
-                           (list bitmap))))))
+(defun flymake--fringe-overlay-spec (bitmap &optional recursed)
+  (if (and (symbolp bitmap)
+           (boundp bitmap)
+           (not recursed))
+      (flymake--fringe-overlay-spec
+       (symbol-value bitmap) t)
+    (and flymake-fringe-indicator-position
+         bitmap
+         (propertize "!" 'display
+                     (cons flymake-fringe-indicator-position
+                           (if (listp bitmap)
+                               bitmap
+                             (list bitmap)))))))
 
 (defun flymake--highlight-line (diagnostic)
   "Highlight buffer with info in DIAGNOSTIC."
@@ -433,7 +473,8 @@ associated `flymake-category' return DEFAULT."
                               (and cat
                                    (plist-member (symbol-plist cat) prop))))
                   (overlay-put ov prop value))))
-      (default-maybe 'bitmap flymake-error-bitmap)
+      (default-maybe 'bitmap 'flymake-error-bitmap)
+      (default-maybe 'face 'flymake-error)
       (default-maybe 'before-string
         (flymake--fringe-overlay-spec
          (overlay-get ov 'bitmap)))
