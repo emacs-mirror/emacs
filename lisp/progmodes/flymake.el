@@ -36,7 +36,7 @@
 (require 'thingatpt) ; end-of-thing
 (require 'warnings) ; warning-numeric-level, display-warning
 (require 'compile) ; for some faces
-(eval-when-compile (require 'subr-x)) ; when-let*, if-let*, hash-table-keys
+(eval-when-compile (require 'subr-x)) ; when-let*, if-let*
 
 (defgroup flymake nil
   "Universal on-the-fly syntax checker."
@@ -53,7 +53,6 @@ symbols, see `fringe-bitmaps'.  See also `flymake-warning-bitmap'.
 
 The option `flymake-fringe-indicator-position' controls how and where
 this is used."
-  :group 'flymake
   :version "24.3"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
@@ -68,7 +67,6 @@ symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
 
 The option `flymake-fringe-indicator-position' controls how and where
 this is used."
-  :group 'flymake
   :version "24.3"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
@@ -83,7 +81,6 @@ symbols, see `fringe-bitmaps'.  See also `flymake-error-bitmap'.
 
 The option `flymake-fringe-indicator-position' controls how and where
 this is used."
-  :group 'flymake
   :version "26.1"
   :type '(choice (symbol :tag "Bitmap")
                  (list :tag "Bitmap and face"
@@ -94,7 +91,6 @@ this is used."
   "The position to put flymake fringe indicator.
 The value can be nil (do not use indicators), `left-fringe' or `right-fringe'.
 See `flymake-error-bitmap' and `flymake-warning-bitmap'."
-  :group 'flymake
   :version "24.3"
   :type '(choice (const left-fringe)
 		 (const right-fringe)
@@ -102,24 +98,20 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
 
 (defcustom flymake-start-syntax-check-on-newline t
   "Start syntax check if newline char was added/removed from the buffer."
-  :group 'flymake
   :type 'boolean)
 
 (defcustom flymake-no-changes-timeout 0.5
   "Time to wait after last change before starting compilation."
-  :group 'flymake
   :type 'number)
 
 (defcustom flymake-gui-warnings-enabled t
   "Enables/disables GUI warnings."
-  :group 'flymake
   :type 'boolean)
 (make-obsolete-variable 'flymake-gui-warnings-enabled
 			"it no longer has any effect." "26.1")
 
 (defcustom flymake-start-syntax-check-on-find-file t
   "Start syntax check on find file."
-  :group 'flymake
   :type 'boolean)
 
 (defcustom flymake-log-level -1
@@ -131,7 +123,7 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
 
 (defcustom flymake-wrap-around t
   "If non-nil, moving to errors wraps around buffer boundaries."
-  :group 'flymake :type 'boolean)
+  :type 'boolean)
 
 (define-fringe-bitmap 'flymake-double-exclamation-mark
   (vector #b00000000
@@ -209,7 +201,7 @@ generated it."
                                 end
                                 type
                                 text)
-  "Mark BUFFER's region from BEG to END with a flymake diagnostic.
+  "Make a flymake diagnostic for BUFFER's region from BEG to END.
 TYPE is a key to `flymake-diagnostic-types-alist' and TEXT is a
 description of the problem detected in this region."
   (flymake--diag-make :buffer buffer :beg beg :end end :type type :text text))
@@ -230,23 +222,22 @@ description of the problem detected in this region."
 If BEG is non-nil and END is nil, consider only `overlays-at'
 BEG. Otherwise consider `overlays-in' the region comprised by BEG
 and END, defaulting to the whole buffer.  Remove all that do not
-verify FILTER, sort them by COMPARE (using KEY)."
-  (cl-remove-if-not
-   (lambda (ov)
-     (and (overlay-get ov 'flymake-overlay)
-          (or (not filter)
-              (cond ((functionp filter) (funcall filter ov))
-                    ((symbolp filter) (overlay-get ov filter))))))
-   (save-restriction
-     (widen)
-     (let ((ovs (if (and beg (null end))
+verify FILTER, a function, and sort them by COMPARE (using KEY)."
+  (save-restriction
+    (widen)
+    (let ((ovs (cl-remove-if-not
+                (lambda (ov)
+                  (and (overlay-get ov 'flymake)
+                       (or (not filter)
+                           (funcall filter ov))))
+                (if (and beg (null end))
                     (overlays-at beg t)
                   (overlays-in (or beg (point-min))
-                               (or end (point-max))))))
-       (if compare
-           (cl-sort ovs compare :key (or key
-                                         #'identity))
-         ovs)))))
+                               (or end (point-max)))))))
+      (if compare
+          (cl-sort ovs compare :key (or key
+                                        #'identity))
+        ovs))))
 
 (defun flymake-delete-own-overlays (&optional filter)
   "Delete all flymake overlays in BUFFER."
@@ -258,8 +249,7 @@ verify FILTER, sort them by COMPARE (using KEY)."
     (t
      :inherit error))
   "Face used for marking error regions."
-  :version "24.4"
-  :group 'flymake)
+  :version "24.4")
 
 (defface flymake-warning
   '((((supports :underline (:style wave)))
@@ -267,8 +257,7 @@ verify FILTER, sort them by COMPARE (using KEY)."
     (t
      :inherit warning))
   "Face used for marking warning regions."
-  :version "24.4"
-  :group 'flymake)
+  :version "24.4")
 
 (defface flymake-note
   '((((supports :underline (:style wave)))
@@ -276,8 +265,7 @@ verify FILTER, sort them by COMPARE (using KEY)."
     (t
      :inherit warning))
   "Face used for marking note regions."
-  :version "26.1"
-  :group 'flymake)
+  :version "26.1")
 
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
@@ -323,7 +311,7 @@ Return nil if the region is invalid."
   "List of flymake backends i.e. sources of flymake diagnostics.
 
 This variable holds an arbitrary number of \"backends\" or
-\"checkers\" providing the flymake UI's \"frontend\" with
+\"checkers\" providing the flymake user interface with
 information about where and how to annotate problems diagnosed in
 a buffer.
 
@@ -339,19 +327,23 @@ start checking the buffer):
   backend for the current check, but will call it again the next
   time;
 
-* If the backend function returns non-nil, flymake expects this backend to
-  check the buffer and call its REPORT-FN callback function. If
-  the computation involved is inexpensive, the backend function
-  may do so synchronously before returning. If it is not, it may
-  do so after retuning, using idle timers, asynchronous
-  processes or other asynchronous mechanisms.
+* If the backend function returns non-nil, flymake expects this
+  backend to check the buffer and call its REPORT-FN callback
+  function exactly once. If the computation involved is
+  inexpensive, the backend function may do so synchronously
+  before returning. If it is not, it may do so after returning,
+  using idle timers, asynchronous processes or other asynchronous
+  mechanisms.
 
-* If the backend function signals an error, it is disabled, i.e. flymake
-  will not attempt it again for this buffer until `flymake-mode'
-  is turned off and on again.
+* If the backend function signals an error, it is disabled,
+  i.e. flymake will not attempt it again for this buffer until
+  `flymake-mode' is turned off and on again.
 
-When calling REPORT-FN, the first argument passed to it decides
-how to proceed. Recognized values are:
+Backends are required to call REPORT-FN with a single argument
+ACTION followed by an optional list of keywords parameters and
+their values (:KEY1 VALUE1 :KEY2 VALUE2...).
+
+The possible values for ACTION are.
 
 * A (possibly empty) list of objects created with
   `flymake-make-diagnostic', causing flymake to annotate the
@@ -364,9 +356,13 @@ how to proceed. Recognized values are:
 * The symbol `:panic', signalling that the backend has
   encountered an exceptional situation and should be disabled.
 
-In the latter cases, it is also possible to provide REPORT-FN
-with a string as the keyword argument `:explanation'. The string
-should give human-readable details of the situation.")
+The recognized optional keyword arguments are:
+
+* ‘:explanation’: value should give user-readable details of
+  the situation encountered, if any.
+
+* ‘:force’: value should be a boolean forcing the flymake UI
+  to consider the report even if was somehow unexpected.")
 
 (defvar flymake-diagnostic-types-alist
   `((:error
@@ -491,7 +487,7 @@ associated `flymake-category' return DEFAULT."
     ;; Some properties can't be overriden
     ;;
     (overlay-put ov 'evaporate t)
-    (overlay-put ov 'flymake-overlay t)
+    (overlay-put ov 'flymake t)
     (overlay-put ov 'flymake--diagnostic diagnostic)))
 
 (defun flymake-on-timer-event (buffer)
@@ -588,9 +584,9 @@ sources."
   "Run the backend BACKEND."
   (push backend flymake--running-backends)
   (remhash backend flymake--diagnostics-table)
-  ;; FIXME: Should use `condition-case-unless-debug'
-  ;; here, but that won't let me catch errors during
-  ;; testing where `debug-on-error' is always t
+  ;; FIXME: Should use `condition-case-unless-debug' here, but that
+  ;; won't let me catch errors from inside `ert-deftest' where
+  ;; `debug-on-error' is always t
   (condition-case err
       (unless (funcall backend
                        (flymake-make-report-fn backend))
@@ -681,6 +677,9 @@ backends."
   "Turn flymake mode off."
   (flymake-mode 0))
 
+(make-obsolete 'flymake-mode-on 'flymake-mode "26.1")
+(make-obsolete 'flymake-mode-off 'flymake-mode "26.1")
+
 (defun flymake-after-change-function (start stop _len)
   "Start syntax check for current buffer if it isn't already running."
   (let((new-text (buffer-substring start stop)))
@@ -708,14 +707,19 @@ backends."
 
 (defun flymake-goto-next-error (&optional n filter interactive)
   "Go to Nth next flymake error in buffer matching FILTER.
+
+Interactively, always move to the next error.  Interactively, and
+with a prefix arg, skip any diagnostics with a severity less than
+‘:warning’.
+
+If ‘flymake-wrap-around’ is non-nil, resumes search from top
+at end of buffer.
+
 FILTER is a list of diagnostic types found in
 `flymake-diagnostic-types-alist', or nil, if no filter is to be
-applied.
-
-Interactively, always goes to the next error.  Also
-interactively, FILTER is determined by the prefix arg.  With no
-prefix arg, don't use a filter, otherwise only consider
-diagnostics of type `:error' and `:warning'."
+applied."
+  ;; TODO: let filter be a number, a severity below which diags are
+  ;; skipped.
   (interactive (list 1
                      (if current-prefix-arg
                          '(:error :warning))
@@ -759,14 +763,17 @@ diagnostics of type `:error' and `:warning'."
 
 (defun flymake-goto-prev-error (&optional n filter interactive)
   "Go to Nth previous flymake error in buffer matching FILTER.
+
+Interactively, always move to the previous error.  Interactively,
+and with a prefix arg, skip any diagnostics with a severity less
+than ‘:warning’.
+
+If ‘flymake-wrap-around’ is non-nil, resumes search from top
+at end of buffer.
+
 FILTER is a list of diagnostic types found in
 `flymake-diagnostic-types-alist', or nil, if no filter is to be
-applied.
-
-Interactively, always goes to the previous error.  Also
-interactively, FILTER is determined by the prefix arg.  With no
-prefix arg, don't use a filter, otherwise only consider
-diagnostics of type `:error' and `:warning'."
+applied."
   (interactive (list 1 (if current-prefix-arg
                            '(:error :warning))
                      t))
@@ -782,7 +789,8 @@ diagnostics of type `:error' and `:warning'."
 (defun flymake--mode-line-format ()
   "Produce a pretty minor mode indicator."
   (let ((running flymake--running-backends)
-        (reported (hash-table-keys flymake--diagnostics-table)))
+        (reported (cl-plusp
+                   (hash-table-count flymake--diagnostics-table))))
     `((:propertize " Flymake"
                    mouse-face mode-line-highlight
                    ,@(when (not reported)

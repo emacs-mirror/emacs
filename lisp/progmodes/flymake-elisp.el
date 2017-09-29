@@ -1,9 +1,9 @@
 ;;; flymake-elisp.el --- Flymake backends for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  João Távora
+;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
-;; Keywords:
+;; Keywords: languages tools
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

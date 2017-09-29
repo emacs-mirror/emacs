@@ -118,6 +118,78 @@ NAME is the file name function to use, default `flymake-proc-get-real-file-name'
 (defvar flymake-proc--report-fn nil
   "If bound, function used to report back to flymake's UI.")
 
+(defun flymake-proc-reformat-err-line-patterns-from-compile-el (original-list)
+  "Grab error line patterns from ORIGINAL-LIST in compile.el format.
+Convert it to flymake internal format."
+  (let* ((converted-list '()))
+    (dolist (item original-list)
+      (setq item (cdr item))
+      (let ((regexp (nth 0 item))
+	    (file (nth 1 item))
+	    (line (nth 2 item))
+	    (col (nth 3 item)))
+	(if (consp file)	(setq file (car file)))
+	(if (consp line)	(setq line (car line)))
+	(if (consp col)	(setq col (car col)))
+
+	(when (not (functionp line))
+	  (setq converted-list (cons (list regexp file line col) converted-list)))))
+    converted-list))
+
+(defvar flymake-proc-err-line-patterns ; regexp file-idx line-idx col-idx (optional) text-idx(optional), match-end to end of string is error text
+  (append
+   '(
+     ;; MS Visual C++ 6.0
+     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(\\(error\\|warning\\|fatal error\\) \\(C[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
+      1 3 nil 4)
+     ;; jikes
+     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\):\\([0-9]+\\):[0-9]+:[0-9]+:[0-9]+: \\(\\(Error\\|Warning\\|Caution\\|Semantic Error\\):[ \t\n]*\\(.+\\)\\)"
+      1 3 nil 4)
+     ;; MS midl
+     ("midl[ ]*:[ ]*\\(command line error .*\\)"
+      nil nil nil 1)
+     ;; MS C#
+     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\),[0-9]+): \\(\\(error\\|warning\\|fatal error\\) \\(CS[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
+      1 3 nil 4)
+     ;; perl
+     ("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1)
+     ;; PHP
+     ("\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)" 2 3 nil 1)
+     ;; LaTeX warnings (fileless) ("\\(LaTeX \\(Warning\\|Error\\): .*\\) on input line \\([0-9]+\\)" 20 3 nil 1)
+     ;; ant/javac.  Note this also matches gcc warnings!
+     (" *\\(\\[javac\\] *\\)?\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?:[ \t\n]*\\(.+\\)"
+      2 4 5 6))
+   ;; compilation-error-regexp-alist)
+   (flymake-proc-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
+  "Patterns for matching error/warning lines.  Each pattern has the form
+\(REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
+Use `flymake-proc-reformat-err-line-patterns-from-compile-el' to add patterns
+from compile.el")
+
+(define-obsolete-variable-alias 'flymake-warning-re 'flymake-proc-diagnostic-type-pred "26.1")
+(defvar flymake-proc-diagnostic-type-pred
+  'flymake-proc-default-guess
+  "Predicate matching against diagnostic text to detect its type.
+Takes a single argument, the diagnostic's text and should return
+a value suitable for indexing
+`flymake-diagnostic-types-alist' (which see). If the returned
+value is nil, a type of `:error' is assumed. For some backward
+compatibility, if a non-nil value is returned that that doesn't
+index that alist, a type of `:warning' is assumed.
+
+Instead of a function, it can also be a string, a regular
+expression. A match indicates `:warning' type, otherwise
+`:error'")
+
+(defun flymake-proc-default-guess (text)
+  "Guess if TEXT means a warning, a note or an error."
+  (cond ((string-match "^[wW]arning" text)
+         :warning)
+        ((string-match "^[nN]ote" text)
+         :note)
+        (t
+         :error)))
+
 (defun flymake-proc--get-file-name-mode-and-masks (file-name)
   "Return the corresponding entry from `flymake-proc-allowed-file-name-masks'."
   (unless (stringp file-name)
@@ -242,10 +314,10 @@ to the beginning of the list (File.h -> File.cpp moved to top)."
 Nil means search the entire file.")
 
 (defun flymake-proc--check-patch-master-file-buffer
-       (master-file-temp-buffer
-        master-file-name patched-master-file-name
-        source-file-name patched-source-file-name
-        include-dirs regexp)
+    (master-file-temp-buffer
+     master-file-name patched-master-file-name
+     source-file-name patched-source-file-name
+     include-dirs regexp)
   "Check if MASTER-FILE-NAME is a master file for SOURCE-FILE-NAME.
 If yes, patch a copy of MASTER-FILE-NAME to include PATCHED-SOURCE-FILE-NAME
 instead of SOURCE-FILE-NAME.
@@ -296,7 +368,7 @@ instead of reading master file from disk."
                                        (length source-file-nondir)) nil))
                 (flymake-log 3 "inc-name=%s" inc-name)
                 (when (flymake-proc--check-include source-file-name inc-name
-                                             include-dirs)
+                                                   include-dirs)
                   (setq found t)
                   ;;  replace-match is not used here as it fails in
                   ;; XEmacs with 'last match not a buffer' error as
@@ -562,79 +634,7 @@ May only be called in a dynamic environment where
     (flymake-error "Trouble telling flymake-ui about problem %s(%s)"
                    problem explanation)))
 
-(defun flymake-proc-reformat-err-line-patterns-from-compile-el (original-list)
-  "Grab error line patterns from ORIGINAL-LIST in compile.el format.
-Convert it to flymake internal format."
-  (let* ((converted-list '()))
-    (dolist (item original-list)
-      (setq item (cdr item))
-      (let ((regexp (nth 0 item))
-	    (file (nth 1 item))
-	    (line (nth 2 item))
-	    (col (nth 3 item)))
-	(if (consp file)	(setq file (car file)))
-	(if (consp line)	(setq line (car line)))
-	(if (consp col)	(setq col (car col)))
-
-	(when (not (functionp line))
-	  (setq converted-list (cons (list regexp file line col) converted-list)))))
-    converted-list))
-
 (require 'compile)
-
-(defvar flymake-proc-err-line-patterns ; regexp file-idx line-idx col-idx (optional) text-idx(optional), match-end to end of string is error text
-  (append
-   '(
-     ;; MS Visual C++ 6.0
-     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) : \\(\\(error\\|warning\\|fatal error\\) \\(C[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
-      1 3 nil 4)
-     ;; jikes
-     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\):\\([0-9]+\\):[0-9]+:[0-9]+:[0-9]+: \\(\\(Error\\|Warning\\|Caution\\|Semantic Error\\):[ \t\n]*\\(.+\\)\\)"
-      1 3 nil 4)
-     ;; MS midl
-     ("midl[ ]*:[ ]*\\(command line error .*\\)"
-      nil nil nil 1)
-     ;; MS C#
-     ("\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\),[0-9]+): \\(\\(error\\|warning\\|fatal error\\) \\(CS[0-9]+\\):[ \t\n]*\\(.+\\)\\)"
-      1 3 nil 4)
-     ;; perl
-     ("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1)
-     ;; PHP
-     ("\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)" 2 3 nil 1)
-     ;; LaTeX warnings (fileless) ("\\(LaTeX \\(Warning\\|Error\\): .*\\) on input line \\([0-9]+\\)" 20 3 nil 1)
-     ;; ant/javac.  Note this also matches gcc warnings!
-     (" *\\(\\[javac\\] *\\)?\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\):\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?:[ \t\n]*\\(.+\\)"
-      2 4 5 6))
-   ;; compilation-error-regexp-alist)
-   (flymake-proc-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
-  "Patterns for matching error/warning lines.  Each pattern has the form
-\(REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
-Use `flymake-proc-reformat-err-line-patterns-from-compile-el' to add patterns
-from compile.el")
-
-(define-obsolete-variable-alias 'flymake-warning-re 'flymake-proc-diagnostic-type-pred "26.1")
-(defvar flymake-proc-diagnostic-type-pred
-  'flymake-proc-default-guess
-  "Predicate matching against diagnostic text to detect its type.
-Takes a single argument, the diagnostic's text and should return
-a value suitable for indexing
-`flymake-diagnostic-types-alist' (which see). If the returned
-value is nil, a type of `error' is assumed. For some backward
-compatibility, if a non-nil value is returned that that doesn't
-index that alist, a type of `:warning' is assumed.
-
-Instead of a function, it can also be a string, a regular
-expression. A match indicates `:warning' type, otherwise
-`:error'")
-
-(defun flymake-proc-default-guess (text)
-  "Guess if TEXT means a warning, a note or an error."
-  (cond ((string-match "^[wW]arning" text)
-         :warning)
-        ((string-match "^[nN]ote" text)
-         :note)
-        (t
-         :error)))
 
 (defun flymake-proc-get-project-include-dirs-imp (basedir)
   "Include dirs for the project current file belongs to."
@@ -717,7 +717,7 @@ expression. A match indicates `:warning' type, otherwise
 (defun flymake-proc-legacy-flymake (report-fn &optional interactive)
   "Flymake backend based on the original flymake implementation.
 This function is suitable for inclusion in
-`flymake-dianostic-types-alist'. For backward compatibility, it
+`flymake-diagnostic-types-alist'. For backward compatibility, it
 can also be executed interactively independently of
 `flymake-mode'."
   ;; Interactively, behave as if flymake had invoked us through its
@@ -764,8 +764,7 @@ can also be executed interactively independently of
                t)))))))
 
 (define-obsolete-function-alias 'flymake-start-syntax-check
-  'flymake-proc-legacy-flymake "26.1"
-  "Flymake backend based on the original flymake implementation.")
+  'flymake-proc-legacy-flymake "26.1")
 
 (defun flymake-proc--start-syntax-check-process (cmd args dir)
   "Start syntax check process."
@@ -1016,8 +1015,8 @@ Use CREATE-TEMP-F for creating temp copy."
     (if buildfile-dir
 	(let* ((temp-source-file-name  (flymake-proc-init-create-temp-buffer-copy create-temp-f)))
 	  (setq args (flymake-proc--get-syntax-check-program-args temp-source-file-name buildfile-dir
-							    use-relative-base-dir use-relative-source
-							    get-cmdline-f))))
+							          use-relative-base-dir use-relative-source
+							          get-cmdline-f))))
     args))
 
 (defun flymake-proc-simple-make-init ()
@@ -1123,291 +1122,72 @@ Use CREATE-TEMP-F for creating temp copy."
 
 (progn
   (define-obsolete-variable-alias 'flymake-compilation-prevents-syntax-check
-    'flymake-proc-compilation-prevents-syntax-check "26.1"
-    "If non-nil, don't start syntax check if compilation is running.")
+    'flymake-proc-compilation-prevents-syntax-check "26.1")
   (define-obsolete-variable-alias 'flymake-xml-program
-    'flymake-proc-xml-program "26.1"
-    "Program to use for XML validation.")
+    'flymake-proc-xml-program "26.1")
   (define-obsolete-variable-alias 'flymake-master-file-dirs
-    'flymake-proc-master-file-dirs "26.1"
-    "Dirs where to look for master files.")
+    'flymake-proc-master-file-dirs "26.1")
   (define-obsolete-variable-alias 'flymake-master-file-count-limit
     'flymake-proc-master-file-count-limit "26.1"
     "Max number of master files to check.")
   (define-obsolete-variable-alias 'flymake-allowed-file-name-masks
-    'flymake-proc-allowed-file-name-masks "26.1"
-    "Files syntax checking is allowed for.
-This is an alist with elements of the form:
-  REGEXP INIT [CLEANUP [NAME]]
-REGEXP is a regular expression that matches a file name.
-INIT is the init function to use.
-CLEANUP is the cleanup function to use, default `flymake-simple-cleanup'.
-NAME is the file name function to use, default `flymake-get-real-file-name'.")
-  (define-obsolete-variable-alias 'flymake-processes
-    'flymake-proc--processes "26.1"
-    "List of currently active flymake processes.")
-  (define-obsolete-function-alias 'flymake-get-file-name-mode-and-masks
-    'flymake-proc--get-file-name-mode-and-masks "26.1"
-    "Return the corresponding entry from ‘flymake-allowed-file-name-masks’.")
-  (define-obsolete-function-alias 'flymake-get-init-function
-    'flymake-proc--get-init-function "26.1"
-    "Return init function to be used for the file.")
-  (define-obsolete-function-alias 'flymake-get-cleanup-function
-    'flymake-proc--get-cleanup-function "26.1"
-    "Return cleanup function to be used for the file.")
-  (define-obsolete-function-alias 'flymake-get-real-file-name-function
-    'flymake-proc--get-real-file-name-function "26.1"
-    nil)
-  (define-obsolete-variable-alias 'flymake-find-buildfile-cache
-    'flymake-proc--find-buildfile-cache "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-get-buildfile-from-cache
-    'flymake-proc--get-buildfile-from-cache "26.1"
-    "Look up DIR-NAME in cache and return its associated value.
-If DIR-NAME is not found, return nil.")
-  (define-obsolete-function-alias 'flymake-add-buildfile-to-cache
-    'flymake-proc--add-buildfile-to-cache "26.1"
-    "Associate DIR-NAME with BUILDFILE in the buildfile cache.")
-  (define-obsolete-function-alias 'flymake-clear-buildfile-cache
-    'flymake-proc--clear-buildfile-cache "26.1"
-    "Clear the buildfile cache.")
-  (define-obsolete-function-alias 'flymake-find-buildfile
-    'flymake-proc--find-buildfile "26.1"
-    "Find buildfile starting from current directory.
-Buildfile includes Makefile, build.xml etc.
-Return its file name if found, or nil if not found.")
-  (define-obsolete-function-alias 'flymake-fix-file-name
-    'flymake-proc--fix-file-name "26.1"
-    "Replace all occurrences of ‘\\’ with ‘/’.")
-  (define-obsolete-function-alias 'flymake-same-files
-    'flymake-proc--same-files "26.1"
-    "Check if FILE-NAME-ONE and FILE-NAME-TWO point to same file.
-Return t if so, nil if not.
-
-(fn FILE-NAME-ONE FILE-NAME-TWO)")
-  (define-obsolete-variable-alias 'flymake-included-file-name\)
-    'flymake-proc--included-file-name\) "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-find-possible-master-files
-    'flymake-proc--find-possible-master-files "26.1"
-    "Find (by name and location) all possible master files.
-
-Name is specified by FILE-NAME and location is specified by
-MASTER-FILE-DIRS.  Master files include .cpp and .c for .h.
-Files are searched for starting from the .h directory and max
-max-level parent dirs.  File contents are not checked.")
-  (define-obsolete-function-alias 'flymake-master-file-compare
-    'flymake-proc--master-file-compare "26.1"
-    "Compare two files specified by FILE-ONE and FILE-TWO.
-This function is used in sort to move most possible file names
-to the beginning of the list (File.h -> File.cpp moved to top).")
+    'flymake-proc-allowed-file-name-masks "26.1")
   (define-obsolete-variable-alias 'flymake-check-file-limit
-    'flymake-proc-check-file-limit "26.1"
-    "Maximum number of chars to look at when checking possible master file.
-Nil means search the entire file.")
-  (define-obsolete-function-alias 'flymake-check-patch-master-file-buffer
-    'flymake-proc--check-patch-master-file-buffer "26.1"
-    "Check if MASTER-FILE-NAME is a master file for SOURCE-FILE-NAME.
-If yes, patch a copy of MASTER-FILE-NAME to include PATCHED-SOURCE-FILE-NAME
-instead of SOURCE-FILE-NAME.
-
-For example, foo.cpp is a master file if it includes foo.h.
-
-When a buffer for MASTER-FILE-NAME exists, use it as a source
-instead of reading master file from disk.")
-  (define-obsolete-function-alias 'flymake-replace-region
-    'flymake-proc--replace-region "26.1"
-    "Replace text in BUFFER in region (BEG END) with REP.")
-  (define-obsolete-function-alias 'flymake-read-file-to-temp-buffer
-    'flymake-proc--read-file-to-temp-buffer "26.1"
-    "Insert contents of FILE-NAME into newly created temp buffer.")
-  (define-obsolete-function-alias 'flymake-copy-buffer-to-temp-buffer
-    'flymake-proc--copy-buffer-to-temp-buffer "26.1"
-    "Copy contents of BUFFER into newly created temp buffer.")
-  (define-obsolete-function-alias 'flymake-check-include
-    'flymake-proc--check-include "26.1"
-    "Check if SOURCE-FILE-NAME can be found in include path.
-Return t if it can be found via include path using INC-NAME.")
-  (define-obsolete-function-alias 'flymake-find-buffer-for-file
-    'flymake-proc--find-buffer-for-file "26.1"
-    "Check if there exists a buffer visiting FILE-NAME.
-Return t if so, nil if not.")
-  (define-obsolete-function-alias 'flymake-create-master-file
-    'flymake-proc--create-master-file "26.1"
-    "Save SOURCE-FILE-NAME with a different name.
-Find master file, patch and save it.")
-  (define-obsolete-function-alias 'flymake-save-buffer-in-file
-    'flymake-proc--save-buffer-in-file "26.1"
-    "Save the entire buffer contents into file FILE-NAME.
-Create parent directories as needed.")
-  (define-obsolete-function-alias 'flymake-process-filter
-    'flymake-proc--process-filter "26.1"
-    "Parse OUTPUT and highlight error lines.
-It’s flymake process filter.")
-  (define-obsolete-function-alias 'flymake-process-sentinel
-    'flymake-proc--process-sentinel "26.1"
-    "Sentinel for syntax check buffers.")
-  (define-obsolete-function-alias 'flymake-post-syntax-check
-    'flymake-proc--post-syntax-check "26.1"
-    nil)
+    'flymake-proc-check-file-limit "26.1")
   (define-obsolete-function-alias 'flymake-reformat-err-line-patterns-from-compile-el
-    'flymake-proc-reformat-err-line-patterns-from-compile-el "26.1"
-    "Grab error line patterns from ORIGINAL-LIST in compile.el format.
-Convert it to flymake internal format.")
+    'flymake-proc-reformat-err-line-patterns-from-compile-el "26.1")
   (define-obsolete-variable-alias 'flymake-err-line-patterns
-    'flymake-proc-err-line-patterns "26.1"
-    "Patterns for matching error/warning lines.  Each pattern has the form
-(REGEXP FILE-IDX LINE-IDX COL-IDX ERR-TEXT-IDX).
-Use `flymake-reformat-err-line-patterns-from-compile-el' to add patterns
-from compile.el")
+    'flymake-proc-err-line-patterns "26.1")
   (define-obsolete-function-alias 'flymake-parse-line
-    'flymake-proc-parse-line "26.1"
-    "Parse LINE to see if it is an error or warning.
-Return its components if so, nil otherwise.")
-  (define-obsolete-function-alias 'flymake-get-project-include-dirs-imp
-    'flymake-proc--get-project-include-dirs-imp "26.1"
-    "Include dirs for the project current file belongs to.")
-  (define-obsolete-variable-alias 'flymake-get-project-include-dirs-function
-    'flymake-proc--get-project-include-dirs-function "26.1"
-    "Function used to get project include dirs, one parameter: basedir name.")
-  (define-obsolete-function-alias 'flymake-get-project-include-dirs
-    'flymake-proc--get-project-include-dirs "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-get-system-include-dirs
-    'flymake-proc--get-system-include-dirs "26.1"
-    "System include dirs - from the ‘INCLUDE’ env setting.")
-  (define-obsolete-variable-alias 'flymake-project-include-dirs-cache
-    'flymake-proc--project-include-dirs-cache "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-add-project-include-dirs-to-cache
-    'flymake-proc--add-project-include-dirs-to-cache "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-clear-project-include-dirs-cache
-    'flymake-proc--clear-project-include-dirs-cache "26.1"
-    nil)
+    'flymake-proc-parse-line "26.1")
   (define-obsolete-function-alias 'flymake-get-include-dirs
-    'flymake-proc-get-include-dirs "26.1"
-    "Get dirs to use when resolving local file names.")
-  (define-obsolete-variable-alias 'flymake-restore-formatting
-    'flymake-proc--restore-formatting "26.1"
-    nil)
-  (define-obsolete-variable-alias 'flymake-get-program-dir
-    'flymake-proc--get-program-dir "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-safe-delete-file
-    'flymake-proc--safe-delete-file "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-safe-delete-directory
-    'flymake-proc--safe-delete-directory "26.1"
-    nil)
+    'flymake-proc-get-include-dirs "26.1")
   (define-obsolete-function-alias 'flymake-stop-all-syntax-checks
-    'flymake-proc-stop-all-syntax-checks "26.1"
-    "Kill all syntax check processes.")
-  (define-obsolete-function-alias 'flymake-compilation-is-running
-    'flymake-proc--compilation-is-running "26.1"
-    nil)
+    'flymake-proc-stop-all-syntax-checks "26.1")
   (define-obsolete-function-alias 'flymake-compile
-    'flymake-proc-compile "26.1"
-    "Kill all flymake syntax checks, start compilation.")
+    'flymake-proc-compile "26.1")
   (define-obsolete-function-alias 'flymake-create-temp-inplace
-    'flymake-proc-create-temp-inplace "26.1"
-    nil)
+    'flymake-proc-create-temp-inplace "26.1")
   (define-obsolete-function-alias 'flymake-create-temp-with-folder-structure
-    'flymake-proc-create-temp-with-folder-structure "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-delete-temp-directory
-    'flymake-proc--delete-temp-directory "26.1"
-    "Attempt to delete temp dir created by ‘flymake-create-temp-with-folder-structure’, do not fail on error.")
-  (define-obsolete-variable-alias 'flymake-temp-source-file-name
-    'flymake-proc--temp-source-file-name "26.1"
-    nil)
-  (define-obsolete-variable-alias 'flymake-master-file-name
-    'flymake-proc--master-file-name "26.1"
-    nil)
-  (define-obsolete-variable-alias 'flymake-temp-master-file-name
-    'flymake-proc--temp-master-file-name "26.1"
-    nil)
-  (define-obsolete-variable-alias 'flymake-base-dir
-    'flymake-proc--base-dir "26.1"
-    nil)
+    'flymake-proc-create-temp-with-folder-structure "26.1")
   (define-obsolete-function-alias 'flymake-init-create-temp-buffer-copy
-    'flymake-proc-init-create-temp-buffer-copy "26.1"
-    "Make a temporary copy of the current buffer, save its name in buffer data and return the name.")
+    'flymake-proc-init-create-temp-buffer-copy "26.1")
   (define-obsolete-function-alias 'flymake-simple-cleanup
-    'flymake-proc-simple-cleanup "26.1"
-    "Do cleanup after ‘flymake-init-create-temp-buffer-copy’.
-Delete temp file.")
+    'flymake-proc-simple-cleanup "26.1")
   (define-obsolete-function-alias 'flymake-get-real-file-name
-    'flymake-proc-get-real-file-name "26.1"
-    "Translate file name from error message to \"real\" file name.
-Return full-name.  Names are real, not patched.")
-  (define-obsolete-function-alias 'flymake-get-full-patched-file-name
-    'flymake-proc--get-full-patched-file-name "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-get-full-nonpatched-file-name
-    'flymake-proc--get-full-nonpatched-file-name "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-init-find-buildfile-dir
-    'flymake-proc--init-find-buildfile-dir "26.1"
-    "Find buildfile, store its dir in buffer data and return its dir, if found.")
-  (define-obsolete-function-alias 'flymake-init-create-temp-source-and-master-buffer-copy
-    'flymake-proc--init-create-temp-source-and-master-buffer-copy "26.1"
-    "Find master file (or buffer), create its copy along with a copy of the source file.")
+    'flymake-proc-get-real-file-name "26.1")
   (define-obsolete-function-alias 'flymake-master-cleanup
-    'flymake-proc-master-cleanup "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-get-syntax-check-program-args
-    'flymake-proc--get-syntax-check-program-args "26.1"
-    "Create a command line for syntax check using GET-CMD-LINE-F.")
+    'flymake-proc-master-cleanup "26.1")
   (define-obsolete-function-alias 'flymake-get-make-cmdline
-    'flymake-proc-get-make-cmdline "26.1"
-    nil)
+    'flymake-proc-get-make-cmdline "26.1")
   (define-obsolete-function-alias 'flymake-get-ant-cmdline
-    'flymake-proc-get-ant-cmdline "26.1"
-    nil)
+    'flymake-proc-get-ant-cmdline "26.1")
   (define-obsolete-function-alias 'flymake-simple-make-init-impl
-    'flymake-proc-simple-make-init-impl "26.1"
-    "Create syntax check command line for a directly checked source file.
-Use CREATE-TEMP-F for creating temp copy.")
+    'flymake-proc-simple-make-init-impl "26.1")
   (define-obsolete-function-alias 'flymake-simple-make-init
-    'flymake-proc-simple-make-init "26.1"
-    nil)
+    'flymake-proc-simple-make-init "26.1")
   (define-obsolete-function-alias 'flymake-master-make-init
-    'flymake-proc-master-make-init "26.1"
-    "Create make command line for a source file checked via master file compilation.")
+    'flymake-proc-master-make-init "26.1")
   (define-obsolete-function-alias 'flymake-find-make-buildfile
-    'flymake-proc--find-make-buildfile "26.1"
-    nil)
+    'flymake-proc--find-make-buildfile "26.1")
   (define-obsolete-function-alias 'flymake-master-make-header-init
-    'flymake-proc-master-make-header-init "26.1"
-    nil)
+    'flymake-proc-master-make-header-init "26.1")
   (define-obsolete-function-alias 'flymake-simple-make-java-init
-    'flymake-proc-simple-make-java-init "26.1"
-    nil)
+    'flymake-proc-simple-make-java-init "26.1")
   (define-obsolete-function-alias 'flymake-simple-ant-java-init
-    'flymake-proc-simple-ant-java-init "26.1"
-    nil)
+    'flymake-proc-simple-ant-java-init "26.1")
   (define-obsolete-function-alias 'flymake-simple-java-cleanup
-    'flymake-proc-simple-java-cleanup "26.1"
-    "Cleanup after ‘flymake-simple-make-java-init’ -- delete temp file and dirs.")
+    'flymake-proc-simple-java-cleanup "26.1")
   (define-obsolete-function-alias 'flymake-perl-init
-    'flymake-proc-perl-init "26.1"
-    nil)
+    'flymake-proc-perl-init "26.1")
   (define-obsolete-function-alias 'flymake-php-init
-    'flymake-proc-php-init "26.1"
-    nil)
-  (define-obsolete-function-alias 'flymake-get-tex-args
-    'flymake-proc--get-tex-args "26.1"
-    nil)
+    'flymake-proc-php-init "26.1")
   (define-obsolete-function-alias 'flymake-simple-tex-init
-    'flymake-proc-simple-tex-init "26.1"
-    nil)
+    'flymake-proc-simple-tex-init "26.1")
   (define-obsolete-function-alias 'flymake-master-tex-init
-    'flymake-proc-master-tex-init "26.1"
-    nil)
+    'flymake-proc-master-tex-init "26.1")
   (define-obsolete-function-alias 'flymake-xml-init
-    'flymake-proc-xml-init "26.1"
-    nil))
+    'flymake-proc-xml-init "26.1"))
 
 
 
