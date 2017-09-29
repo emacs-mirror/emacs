@@ -22,6 +22,25 @@
 
 ;;; Commentary:
 
+;; Together with nnoo.el, this file defines the basic behavior of
+;; Gnus' backends.  General server functions like `gnus-open-server'
+;; and `gnus-request-set-mark' all have a common behavior:
+
+;; 1. They accept a server as an argument, or else accept a group as
+;;    an argument and find the server from the group.
+
+;; 2. For functions that aren't mandatory, they see if the server
+;;    implements the function in question, using
+;;    `gnus-check-backend-function'.
+
+;; 3. They get the server-specific version of the function with
+;;    `gnus-get-function', and call it with `funcall'.  Ie,
+;;    `gnus-open-server' finds its function with:
+
+;;    (gnus-get-function server 'open-server)
+
+;;    and funcalls it.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -605,7 +624,7 @@ from other groups -- for instance, search results and the like."
           (gnus-try-warping-via-registry)))))
 
 (defun gnus-request-head (article group)
-  "Request the head of ARTICLE in GROUP."
+  "Request the head (ie headers) of ARTICLE in GROUP."
   (let* ((gnus-command-method (gnus-find-method-for-group group))
 	 (head (gnus-get-function gnus-command-method 'request-head t))
 	 res clean-up)
@@ -845,7 +864,10 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
     result))
 
 (defun gnus-close-backends ()
-  ;; Send a close request to all backends that support such a request.
+  "Send a close request to all backends that support closing."
+  ;; Why would this use `gnus-valid-select-methods', when those aren't
+  ;; actually servers?  How is this different from what
+  ;; `gnus-group-suspend' does?
   (let ((methods gnus-valid-select-methods)
 	(gnus-inhibit-demon t)
 	func gnus-command-method)

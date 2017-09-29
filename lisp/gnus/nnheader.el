@@ -24,6 +24,19 @@
 
 ;;; Commentary:
 
+;; This file implements communication with the (slightly-misnamed)
+;; `nntp-server-buffer'.  When Gnus sends requests to the backends,
+;; they insert their responses into this buffer, and the various
+;; `nnheader-*' functions read and parse those responses.  The
+;; responses might be control strings like "211 OK", and they might be
+;; full article headers and bodies.  Some backend's server responses
+;; are only interpretable by that backend; they still use this buffer
+;; to insert server responses, but then read (and remove) those
+;; responses themselves.
+
+;; Failure to clear this buffer, or to set point correctly, is an easy
+;; Gnus bug.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -564,7 +577,10 @@ the line could be found."
 
 ;; Various cruft the backends and Gnus need to communicate.
 
-(defvar nntp-server-buffer nil)
+(defvar nntp-server-buffer nil
+  "Buffer used for communication with server backends.
+When Gnus sends a request to the various servers, they insert
+their responses into this buffer.")
 (defvar nntp-process-response nil)
 
 (defvar nnheader-callback-function nil)

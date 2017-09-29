@@ -1161,7 +1161,21 @@ REST is a plist of following:
 :variable-document  The documentation for the variable.
 :variable-group     The group for customizing the variable.
 :variable-type      The type for customizing the variable.
-:variable-default   The default value of the variable."
+:variable-default   The default value of the variable.
+
+This macro can define several things for PARAM: a group
+parameter, a function accessor, and a variable.  The parameter
+has the name PARAM, which is what will be stored in
+`gnus-newsrc-alist'.  The function accesssor returns the value of
+the parameter when called with a group as its only argument.  The
+variable is by default named `gnus-parameter-PARAM-alist', and
+holds a list of '(regexp value) pairs, where the regexp is
+matched again group names, and value is the default value for
+matched groups.
+
+In other words, PARAM is set for a single group, while
+`gnus-parameter-PARAM-alist' works the other way, by providing
+default parameter values for whole classes of matching groups."
   (let* ((type (plist-get rest :type))
 	 (parameter-type (plist-get rest :parameter-type))
 	 (parameter-document (plist-get rest :parameter-document))
@@ -2689,8 +2703,10 @@ such as a mark that says whether an article is stored in the cache
   "Gnus variables saved in the quick startup file.")
 
 (defvar gnus-newsrc-alist nil
-  "Assoc list of read articles.
-`gnus-newsrc-hashtb' should be kept so that both hold the same information.")
+  "Assoc list of groups and their info.
+Each element is a list of group name, marks and article numbers,
+and other parameters set by the user.  `gnus-newsrc-hashtb'
+should be kept so that both hold the same information.")
 
 (defvar gnus-registry-alist nil
   "Assoc list of registry data.

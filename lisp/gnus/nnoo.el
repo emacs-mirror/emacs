@@ -22,13 +22,42 @@
 
 ;;; Commentary:
 
+;; This file defines Gnus' non-object-oriented polymorphism scheme for
+;; server backends.  It allows the rest of the code to be relatively
+;; agnostic about how particular backends (eg IMAP, maildir, nntp,
+;; etc) actually work: it simply calls standard functions on them, and
+;; retrieves standard variable values from them.
+
+;; New backends are created using `nnoo-declare' (functionally
+;; equivalent to `defclass').  The macro `defvoo' creates server
+;; variables (equivalent to slots in EIEIO).  The macro `deffoo'
+;; creates server functions (equivalent to generic methods).
+
+;; The Gnus manual goes into fair detail about this
+;; inheritance/polymorphism system, see (info "(gnus) Writing New Back
+;; Ends").
+
+;; Any time the user switches servers, the function
+;; `nnoo-change-servers' copies all the relevant server variables into
+;; global variables, to make that server the "current server".
+
 ;;; Code:
 
 (require 'nnheader)
 (eval-when-compile (require 'cl))
 
-(defvar nnoo-definition-alist nil)
-(defvar nnoo-state-alist nil)
+(defvar nnoo-definition-alist nil
+  "A list of all available server backends.
+All backends that have been defined with `nnoo-declare' appear
+here.  Each backend appears as a list of four elements: the
+symbol name of the backend, the parent backends it inherits from,
+a list of potential server variables, and a list of backend
+functions it implements.")
+
+(defvar nnoo-state-alist nil
+  "A list of all the current servers.
+Includes their server variables and their active groups.")
+
 (defvar nnoo-parent-backend nil)
 
 (defmacro defvoo (var init &optional doc &rest map)
@@ -57,6 +86,9 @@
     (setcar funcs (cons func (car funcs)))))
 
 (defmacro nnoo-declare (backend &rest parents)
+  "Declare BACKEND as a new backend, inheriting from PARENTS.
+Any functions or variables not implemented by BACKEND may be used
+from PARENTS instead."
   `(eval-and-compile
      (if (assq ',backend nnoo-definition-alist)
 	 (setcar (cdr (assq ',backend nnoo-definition-alist))

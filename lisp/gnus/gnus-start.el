@@ -22,6 +22,37 @@
 
 ;;; Commentary:
 
+;; This file contains all the code necessary to get Gnus up and
+;; running.  The main entrypoint is `gnus-1', which clears any
+;; existing variables and re-loads from the various init files.  The
+;; most important steps in `gnus-1' are:
+
+;; 1. Read the "gnus.el" init file with `gnus-read-init-file'.
+;; 2. Run `gnus-start-news-server' to open the server listed in
+;;    `gnus-select-method'.
+;; 3. Call `gnus-setup-news', which is the heart of startup, see
+;;    below.
+;; 4. Set up the *Group* buffer and mode and list of groups, etc.
+
+;; The function `gnus-setup-news' does the next level of work.  It
+;; does two main things: first it calls `gnus-read-newsrc-file', which
+;; reads the ".newsrc.eld" file and sets the variable
+;; `gnus-newsrc-alist', holding all known groups and their marks, and
+;; eventually calls `gnus-make-hashtable-from-newsrc-alist', which
+;; uses `gnus-newsrc-alist' to populate `gnus-newsrc-hashtb'.
+
+;; Later, it calls `gnus-get-unread-articles', which is also the
+;; function called anytime the user "updates" Gnus with "g" in the
+;; Group buffer.  `gnus-get-unread-articles' first decides which
+;; groups should be updated, then calls
+;; `gnus-get-unread-articles-in-group' on each one.  This updates the
+;; group's active and marks information.
+
+;; There are also `gnus-activate-group', which may or may not also
+;; request a scan of the group.  We're currently investigating what
+;; these terms actually mean.
+
+
 ;;; Code:
 
 (require 'gnus)
@@ -840,7 +871,9 @@ prompt the user for the name of an NNTP server to use."
 ;;;
 
 (defvar gnus-dribble-ignore nil)
-(defvar gnus-dribble-eval-file nil)
+(defvar gnus-dribble-eval-file nil
+  "When non-nil, the dribble file should be read.
+This flag is set in `gnus-1', and checked by `gnus-setup-news'.")
 
 (defun gnus-dribble-file-name ()
   "Return the dribble file for the current .newsrc."
@@ -1463,6 +1496,7 @@ newsgroup."
 	  (when (> (cdr cache-active) (cdr active))
 	    (setcdr active (cdr cache-active))))))))
 
+;;FIXME: What does "activate" actually MEAN?
 (defun gnus-activate-group (group &optional scan dont-check method
 				  dont-sub-check)
   "Check whether a group has been activated or not.
@@ -1614,9 +1648,10 @@ backend check whether the group actually exists."
 	(setcar (gnus-group-entry (gnus-info-group info)) num))
       num)))
 
-;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
-;; and compute how many unread articles there are in each group.
 (defun gnus-get-unread-articles (&optional level dont-connect one-level)
+  "Go though `gnus-newsrc-alist' and compare with
+`gnus-active-hashtb' and compute how many unread articles there
+are in each group."
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1838,9 +1873,12 @@ backend check whether the group actually exists."
       (dolist (info infos)
 	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
 
-;; Create a hash table out of the newsrc alist.  The `car's of the
-;; alist elements are used as keys.
 (defun gnus-make-hashtable-from-newsrc-alist ()
+  "Create a hash table out of the newsrc alist.
+For each element in `gnus-newsrc-alist', representing a group and
+its marks, create an equivalent entry in `gnus-newsrc-hashtb'.
+If there was already an entry for the group in the hashtable,
+preserve the original entry's unread counts."
   (let ((alist gnus-newsrc-alist)
 	(ohashtb gnus-newsrc-hashtb)
 	prev info method rest methods)

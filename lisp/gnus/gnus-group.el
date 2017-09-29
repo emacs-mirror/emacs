@@ -2080,7 +2080,7 @@ that group."
      no-article nil no-display nil select-articles)))
 
 (defun gnus-group-select-group (&optional all)
-  "Select this newsgroup.
+  "Read news in this newsgroup.
 No article is selected automatically.
 If the group is opened, just switch the summary buffer.
 If ALL is non-nil, already read articles become readable.
