@@ -1114,8 +1114,7 @@ Use CREATE-TEMP-F for creating temp copy."
 
 
 ;;;; Hook onto flymake-ui
-(add-to-list 'flymake-diagnostic-functions
-             'flymake-proc-legacy-flymake)
+(add-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
 
 
 ;;;;

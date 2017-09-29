@@ -308,36 +308,36 @@ Return nil if the region is invalid."
     (error (flymake-error "Invalid region line=%s col=%s" line col))))
 
 (defvar flymake-diagnostic-functions nil
-  "List of flymake backends i.e. sources of flymake diagnostics.
+  "Special hook of Flymake backends to check a buffer.
 
-This variable holds an arbitrary number of \"backends\" or
-\"checkers\" providing the flymake user interface with
-information about where and how to annotate problems diagnosed in
-a buffer.
+The functions in this hook diagnose problems in a buffer’s
+contents and provide the Flymake user interface with information
+about where and how to annotate problems diagnosed in a buffer.
 
-Backends are lisp functions sharing a common calling
-convention. Whenever flymake decides it is time to re-check the
-buffer, each backend is called with a single argument, a
-REPORT-FN callback, detailed below.  Backend functions are first
+Whenever Flymake or the user decides to re-check the buffer, each
+function is called with a common calling convention, a single
+REPORT-FN argument, detailed below.  Backend functions are first
 expected to quickly and inexpensively announce the feasibility of
-checking the buffer (i.e. they aren't expected to immediately
-start checking the buffer):
+checking the buffer via the return value (i.e. they aren't
+required to immediately start checking the buffer):
 
-* If the backend function returns nil, flymake forgets about this
-  backend for the current check, but will call it again the next
-  time;
+* If the backend function returns nil, Flymake forgets about this
+  backend for the current check, but will call it again for the
+  next one;
 
-* If the backend function returns non-nil, flymake expects this
+* If the backend function returns non-nil, Flymake expects this
   backend to check the buffer and call its REPORT-FN callback
-  function exactly once. If the computation involved is
-  inexpensive, the backend function may do so synchronously
-  before returning. If it is not, it may do so after returning,
-  using idle timers, asynchronous processes or other asynchronous
-  mechanisms.
+  function exactly once.  If the computation involved is
+  inexpensive, the backend function may do so synchronously,
+  before returning.  If it is not, it should do so after
+  returning, using idle timers, asynchronous processes or other
+  asynchronous mechanisms.
 
 * If the backend function signals an error, it is disabled,
-  i.e. flymake will not attempt it again for this buffer until
-  `flymake-mode' is turned off and on again.
+  i.e. Flymake will not use it again for the current or any
+  future checks of this buffer.  Certain commands, like turning
+  `flymake-mode' on and off again, resets the list of disabled
+  backends.
 
 Backends are required to call REPORT-FN with a single argument
 ACTION followed by an optional list of keywords parameters and
@@ -346,7 +346,7 @@ their values (:KEY1 VALUE1 :KEY2 VALUE2...).
 The possible values for ACTION are.
 
 * A (possibly empty) list of objects created with
-  `flymake-make-diagnostic', causing flymake to annotate the
+  `flymake-make-diagnostic', causing Flymake to annotate the
   buffer with this information and consider the backend has
   having finished its check normally.
 
@@ -361,7 +361,7 @@ The recognized optional keyword arguments are:
 * ‘:explanation’: value should give user-readable details of
   the situation encountered, if any.
 
-* ‘:force’: value should be a boolean forcing the flymake UI
+* ‘:force’: value should be a boolean forcing the Flymake UI
   to consider the report even if was somehow unexpected.")
 
 (defvar flymake-diagnostic-types-alist
@@ -612,15 +612,18 @@ backends."
           (setq flymake--diagnostics-table (make-hash-table)
                 flymake--running-backends nil
                 flymake--disabled-backends nil))
-        (dolist (backend flymake-diagnostic-functions)
-          (cond ((memq backend flymake--running-backends)
-                 (flymake-log :debug "Backend %s still running, not restarting"
-                              backend))
-                ((memq backend flymake--disabled-backends)
-                 (flymake-log :debug "Backend %s is disabled, not starting"
-                              backend))
-                (t
-                 (flymake--run-backend backend))))))
+        (run-hook-wrapped
+         'flymake-diagnostic-functions
+         (lambda (backend)
+           (cond ((memq backend flymake--running-backends)
+                  (flymake-log :debug "Backend %s still running, not restarting"
+                               backend))
+                 ((memq backend flymake--disabled-backends)
+                  (flymake-log :debug "Backend %s is disabled, not starting"
+                               backend))
+                 (t
+                  (flymake--run-backend backend)))
+           nil))))
     (if (and deferred
              this-command)
         (add-hook 'post-command-hook #'start 'append 'local)

@@ -159,10 +159,8 @@ Runs in a batch-mode Emacs.  Interactively use variable
 
 (defun flymake-elisp-setup-backends ()
   "Setup flymake for elisp work."
-  (add-to-list (make-local-variable 'flymake-diagnostic-functions)
-               'flymake-elisp-checkdoc t)
-  (add-to-list (make-local-variable 'flymake-diagnostic-functions)
-               'flymake-elisp-byte-compile t))
+  (add-hook 'flymake-diagnostic-functions 'flymake-elisp-checkdoc t t)
+  (add-hook 'flymake-diagnostic-functions 'flymake-elisp-byte-compile t t))
 
 (add-hook 'emacs-lisp-mode-hook
           'flymake-elisp-setup-backends)
