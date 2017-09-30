@@ -46,7 +46,7 @@
     collected))
 
 (defun flymake-elisp-checkdoc (report-fn)
-  "A flymake backend for `checkdoc'.
+  "A Flymake backend for `checkdoc'.
 Calls REPORT-FN directly."
   (unless (derived-mode-p 'emacs-lisp-mode)
     (error "Can only work on `emacs-lisp-mode' buffers"))
@@ -178,7 +178,7 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (pp collected)))
 
 (defun flymake-elisp-setup-backends ()
-  "Setup flymake for elisp work."
+  "Setup Flymake for elisp work."
   (add-hook 'flymake-diagnostic-functions 'flymake-elisp-checkdoc t t)
   (add-hook 'flymake-diagnostic-functions 'flymake-elisp-byte-compile t t))
 

@@ -110,14 +110,14 @@ NAME is the file name function to use, default `flymake-proc-get-real-file-name'
                               function))))
 
 (defvar-local flymake-proc--current-process nil
-  "Currently active flymake process for a buffer, if any.")
+  "Currently active Flymake process for a buffer, if any.")
 
 (defvar flymake-proc--report-fn nil
   "If bound, function used to report back to flymake's UI.")
 
 (defun flymake-proc-reformat-err-line-patterns-from-compile-el (original-list)
   "Grab error line patterns from ORIGINAL-LIST in compile.el format.
-Convert it to flymake internal format."
+Convert it to Flymake internal format."
   (let* ((converted-list '()))
     (dolist (item original-list)
       (setq item (cdr item))
@@ -624,7 +624,7 @@ Create parent directories as needed."
                (kill-buffer output-buffer)))))))
 
 (defun flymake-proc--panic (problem explanation)
-  "Tell flymake UI about a fatal PROBLEM with this backend.
+  "Tell Flymake UI about a fatal PROBLEM with this backend.
 May only be called in a dynamic environment where
 `flymake-proc--dynamic-report-fn' is bound"
   (flymake-log 0 "%s: %s" problem explanation)
@@ -716,7 +716,7 @@ May only be called in a dynamic environment where
 
 
 (defun flymake-proc-legacy-flymake (report-fn &optional interactive)
-  "Flymake backend based on the original flymake implementation.
+  "Flymake backend based on the original Flymake implementation.
 This function is suitable for inclusion in
 `flymake-diagnostic-types-alist'. For backward compatibility, it
 can also be executed interactively independently of
@@ -738,7 +738,7 @@ can also be executed interactively independently of
       (when (process-live-p proc)
         (when interactive
           (user-error
-           "There's already a flymake process running in this buffer")
+           "There's already a Flymake process running in this buffer")
           (kill-process proc))))
     (when
         ;; A number of situations make us not want to error right away
@@ -815,7 +815,7 @@ can also be executed interactively independently of
        compilation-in-progress))
 
 (defun flymake-proc-compile ()
-  "Kill all flymake syntax checks, start compilation."
+  "Kill all Flymake syntax checks, start compilation."
   (interactive)
   (flymake-proc-stop-all-syntax-checks "Stopping for proper compilation")
   (call-interactively 'compile))

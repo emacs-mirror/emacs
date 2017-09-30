@@ -88,7 +88,7 @@ this is used."
                        (face :tag "Face"))))
 
 (defcustom flymake-fringe-indicator-position 'left-fringe
-  "The position to put flymake fringe indicator.
+  "The position to put Flymake fringe indicator.
 The value can be nil (do not use indicators), `left-fringe' or `right-fringe'.
 See `flymake-error-bitmap' and `flymake-warning-bitmap'."
   :version "24.3"
@@ -202,7 +202,7 @@ generated it."
                                 end
                                 type
                                 text)
-  "Make a flymake diagnostic for BUFFER's region from BEG to END.
+  "Make a Flymake diagnostic for BUFFER's region from BEG to END.
 TYPE is a key to `flymake-diagnostic-types-alist' and TEXT is a
 description of the problem detected in this region."
   (flymake--diag-make :buffer buffer :beg beg :end end :type type :text text))
@@ -241,7 +241,7 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
         ovs))))
 
 (defun flymake-delete-own-overlays (&optional filter)
-  "Delete all flymake overlays in BUFFER."
+  "Delete all Flymake overlays in BUFFER."
   (mapc #'delete-overlay (flymake--overlays :filter filter)))
 
 (defface flymake-error
@@ -317,12 +317,12 @@ about where and how to annotate problems diagnosed in a buffer.
 
 Whenever Flymake or the user decides to re-check the buffer, each
 function is called with a common calling convention, a single
-REPORT-FN argument, detailed below.  Backend functions are
-expected to initiate the buffer check, but aren't required to
-complete it check before exiting: if the computation involved is
-expensive, especially for large buffers, that task can be
-scheduled for the future using asynchronous processes or other
-asynchronous mechanisms.
+REPORT-FN argument and a list of keword value pairs, detailed
+below.  Backend functions are expected to initiate the buffer
+check, but aren't required to complete it check before exiting:
+if the computation involved is expensive, especially for large
+buffers, that task can be scheduled for the future using
+asynchronous processes or other asynchronous mechanisms.
 
 In any case, backend functions are expected to return quickly or
 signal an error, in which case the backend is disabled.  Flymake
@@ -333,7 +333,7 @@ and on again, reset the list of disabled backends.
 If the function returns, Flymake considers the backend to be
 \"running\". If it has not done so already, the backend is
 expected to call the function REPORT-FN with a single argument
-ACTION followed by an optional list of keyword arguments and
+ACTION followed by an optional list of keyword-value pairs
 their values (:KEY1 VALUE1 :KEY2 VALUE2...).
 
 The possible values for ACTION are.
@@ -369,7 +369,7 @@ The recognized optional keyword arguments are:
      . ((flymake-category . flymake-warning)))
     (:note
      . ((flymake-category . flymake-note))))
-  "Alist ((KEY . PROPS)*) of properties of flymake error types.
+  "Alist ((KEY . PROPS)*) of properties of Flymake error types.
 KEY can be anything passed as `:type' to `flymake-diag-make'.
 
 PROPS is an alist of properties that are applied, in order, to
@@ -502,7 +502,7 @@ associated `flymake-category' return DEFAULT."
 	(flymake-log :debug "starting syntax check after no changes for some time")
 	(flymake-start)))))
 
-;; Nothing in flymake uses this at all any more, so this is just for
+;; Nothing in Flymake uses this at all any more, so this is just for
 ;; third-party compatibility.
 (define-obsolete-function-alias 'flymake-display-warning 'message-box "26.1")
 
@@ -536,10 +536,11 @@ present the backend is disabled.")
          (puthash ,b ,state-var flymake--backend-state)))))
 
 (defun flymake-is-running ()
-  "Tell if flymake has running backends in this buffer"
+  "Tell if Flymake has running backends in this buffer"
   (flymake-running-backends))
 
-(cl-defun flymake--handle-report (backend token action &key explanation force)
+(cl-defun flymake--handle-report (backend token action
+                                          &key explanation force)
   "Handle reports from BACKEND identified by TOKEN.
 
 BACKEND, ACTION and EXPLANATION, and FORCE conform to the calling
@@ -598,8 +599,8 @@ not expected."
 
 (defun flymake-make-report-fn (backend &optional token)
   "Make a suitable anonymous report function for BACKEND.
-BACKEND is used to help flymake distinguish different diagnostic
-sources.  If provided, TOKEN helps flymake distinguish between
+BACKEND is used to help Flymake distinguish different diagnostic
+sources.  If provided, TOKEN helps Flymake distinguish between
 different runs of the same backend."
   (let ((buffer (current-buffer)))
     (lambda (&rest args)
@@ -726,12 +727,12 @@ Interactively, with a prefix arg, FORCE is t."
 
 ;;;###autoload
 (defun flymake-mode-on ()
-  "Turn flymake mode on."
+  "Turn Flymake mode on."
   (flymake-mode 1))
 
 ;;;###autoload
 (defun flymake-mode-off ()
-  "Turn flymake mode off."
+  "Turn Flymake mode off."
   (flymake-mode 0))
 
 (make-obsolete 'flymake-mode-on 'flymake-mode "26.1")
@@ -763,7 +764,7 @@ Interactively, with a prefix arg, FORCE is t."
     (flymake-log :warning "Turned on in `flymake-find-file-hook'")))
 
 (defun flymake-goto-next-error (&optional n filter interactive)
-  "Go to Nth next flymake error in buffer matching FILTER.
+  "Go to Nth next Flymake error in buffer matching FILTER.
 
 Interactively, always move to the next error.  Interactively, and
 with a prefix arg, skip any diagnostics with a severity less than
@@ -813,13 +814,13 @@ applied."
               (funcall (overlay-get target 'help-echo)
                        nil nil (point)))))
           (interactive
-           (user-error "No more flymake errors%s"
+           (user-error "No more Flymake errors%s"
                        (if filter
                            (format " of types %s" filter)
                          ""))))))
 
 (defun flymake-goto-prev-error (&optional n filter interactive)
-  "Go to Nth previous flymake error in buffer matching FILTER.
+  "Go to Nth previous Flymake error in buffer matching FILTER.
 
 Interactively, always move to the previous error.  Interactively,
 and with a prefix arg, skip any diagnostics with a severity less
