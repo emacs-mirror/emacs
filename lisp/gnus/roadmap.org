@@ -1,0 +1,284 @@
+# Time-stamp: <2017-10-17 09:44:14 eric>
+#+TITLE: Gnus Roadmap
+#+SUBTITLE: Potential fixups and refactoring for Gnus
+#+DATE: <2017-10-17 Tue>
+#+AUTHOR: Eric Abrahamsen
+#+EMAIL: eric@ericabrahamsen.net
+#+LANGUAGE: en
+
+# The "user" tag indicates a non-backwards-compatible change that the
+# user would have to be made aware of.
+* Easy fixes and updates
+** TODO Obsolete ~gnus-default-nntp-server~
+Along with ~gnus-nntp-server~, and just remove that whole "select an
+nntp server" mechanism completely. ~gnus-nntp-server~ was obsoleted in
+24.1, might let it sit for a bit longer.
+** TODO Replace ~gnus-copy-sequence~ with ~copy-tree~
+It does the same thing.
+** TODO Replace ~gnus-last-element~ with ~(car (last LIST))~
+Using ~last~ is more efficient.
+** TODO Remove ~gnus-replace-in-string~
+Looks like this is only here for other Emacsen.
+** TODO Is ~gnus-eval-in-buffer-window~ redundant?
+Is it the same as ~save-window-excursion~ plus ~with-current-buffer~?
+** TODO Replace ~gnus-string>~ with ~string>~
+** TODO Remove ~gnus-y-or-n-p~ and ~gnus-yes-or-no-p~
+Why the call to ~message~?
+** TODO Revisit ~gnus-make-hashtable~ and ~gnus-create-hash-size~
+:PROPERTIES:
+:ID:       c636957d-3fe5-4e22-83f6-b4e2bada8466
+:END:
+Not sure if these are obsolete, but they refer to SPARC machines, so
+it's worth revisiting. If we [[id:c636957d-3fe5-4e22-83f6-b4e2bada8466][use real hashtables]], this won't be an
+issue.
+** TODO Use dolist where possible
+There's a whole lot of code that uses ~(while (setq thing (car
+list))...)~ and the like, and it makes already-convoluted functions
+that much more difficult to parse. There are cleaner conventions that
+could be used now.
+** TODO Use ~process-live-p~
+Instead of ~(memq (process-status process) '(open run))~. Except that
+the current code checks ~'(open run)~, and ~process-live-p~ checks
+~'(run open listen connect stop)~. Probably won't behave the same.
+** CANCELLED Replace ~gnus-string<~ with ~string<~
+:LOGBOOK:
+- State "CANCELLED"  from "TODO"       [2017-10-06 Fri 09:02] \\
+  Nope, looks like this one does behave differently, with respect to
+  ~case-fold-search~ and of course the symbols.
+:END:
+* Medium-level refactoring
+** TODO Combine gnus-expert-user and gnus-novice-user                 :user:
+Why would we need both? The docstrings make them sound similar. If
+"novice" governs verbosity /and/ confirmations, and "expert" just
+governs confirmations, then we could move all verbosity behavior under
+~gnus-verbose~ and only keep one "expert" setting that only governed
+confirmations. It also seems like ~gnus-interactive-catchup~ should be
+part of the "expert" setting, though perhaps ~gnus-interactive-exit~
+should remain its own thing.
+** TODO Consolidate server lists
+Vars that list the currently-defined servers:
+
+1. ~gnus-server-alist~: Contains servers either defined by Gnus, or
+   added by the user through the Server buffer interface.
+2. ~gnus-opened-servers~: Holds all the servers (both opened and in
+   other statuses), their parameters, and a status symbol.
+3. ~nnoo-state-alist~: Holds all the servers, some other servers (?),
+   and all the groups and marks.
+5. ~gnus-server-method-cache~: A simpler alist of server names and
+   server variables.
+
+How redundant are these?
+
+Vars that list servers that might be:
+
+1. ~gnus-valid-select-methods~: Fairly lightweight list of defined
+   server types and their category keys. Set by
+   ~gnus-declare-backend~.
+2. ~nnoo-definition-alist~: Heavyweight list of defined server types
+   with all their possible server parameters and functions.
+3. ~gnus-predefined-server-alist~: This one not so much, it just
+   indicates what we should start out with.
+
+** TODO Use real hashtables
+:PROPERTIES:
+:ID:       a77c3c3f-ee90-4fdd-99d7-fd4c636c14bb
+:END:
+These variables are currently called hashtables, but actually use
+obarrays. Are any of them worth turning into real hash tables?
+
+- gnus-dup-hashtb
+- gnus-async-hashtb
+- gnus-killed-hashtb
+- gnus-active-hashtb
+- gnus-newsrc-hashtb
+- gnus-backlog-hashtb
+- gnus-moderated-hashtb
+- gnus-agent-spam-hashtb
+- gnus-description-hashtb
+- gnus-cache-active-hashtb
+- gnus-cache-total-fetched-hashtb
+- gnus-agent-total-fetched-hashtb
+** TODO Refactor group reading/selection
+This wouldn't have to be as hard as it sounds.
+
+Right now we do (in make-believe code):
+
+#+BEGIN_SRC emacs-lisp
+  (gnus-group-read-group
+   (gnus-summary-read-group
+    (gnus-summary-read-group-1
+     (gnus-select-newsgroup
+      (gnus-request-group)
+      (gnus-retrieve-headers)))))
+#+END_SRC
+
+Almost all those functions, apart from the two innermost ones, are
+involved in most aspects of summary buffer creation: choosing articles
+to read, manipulating marks, doing encoding, handling peripheral stuff
+like caching, handling errors, and doing the visual setup of the
+\star{}Summary\star buffer.
+
+Try to unpick these functions a bit:
+
+- ~gnus-group-read-group~ :: And other similar functions should be
+     thin interactive wrappers that handle user prompts.
+- ~gnus-summary-read-group~ :: Calls ~gnus-select-newsgroup~ to get
+     the desired article headers, consults the display-/select-related
+     arguments, and handles either setting up the summary buffer, or
+     quitting. This function doesn't fool with the selection of
+     articles at all.
+- ~gnus-select-newsgroup~ :: Is passed arguments saying how many/which
+     articles to fetch. Examines the group info, calls
+     ~gnus-request-group~ and ~gnus-retrieve-headers~, and passes the
+     headers back up. This function has nothing to do with the visual
+     presentation of the summary buffer.
+
+That would get us a step closer to being able to write tests.
+
+Also, the various arguments like ~show-all~, ~no-display~,
+~no-article~, ~select-articles~, etc, are either stepping on each
+others' toes, or should be documented a little better so their
+relationship is clearer.
+** TODO Update to use ~decode-coding-string~
+Get rid of the last uses of ~string-(to|from)-(uni|multi)byte~.
+Finally clear up those compiler warnings.
+** TODO Consolidate directory variables                               :user:
+Is there really a need for separate variables for ~gnus-directory~,
+~gnus-home-directory~, and ~gnus-default-directory~?
+** TODO Consider using side windows                                   :user:
+Instead of Gnus' window config?
+* Hard refactoring
+** TODO Write mark-setting macros
+The goal would be to get all opaque write-only code out of the
+"gnus-sum" and "gnus-group" files, and moved into (probably)
+"gnus-range". When hackers and bug-reporters look at these files, they
+shouldn't have to interpret code bits like ~(setcdr list (cddr
+list))~. Create a handful of macros with sensible names to handle
+the common transactions.
+* Ambitious stuff
+** TODO Use EIEIO classes for groups
+We could get ~gnus-define-group-parameter~ and the customization edit
+interface for free.  Subclassing groups could allow pretty different
+group behavior for different servers. Would do away with distinction
+between "group" and "info".
+** TODO Use EIEIO classes for servers                                 :user:
+Could do away with all of nnoo.el. Would do away with the "select
+method" vs "command method" vs "server" vs "backend" distinction, and
+we could drop very much code used for bouncing back and forth between
+servers and methods. Would allow us to use slots and generic methods
+instead of ~defvoo~ and ~deffoo~.
+
+This might also require changing the way Gnus saves its state, but
+hopefully in a positive way. Currently we've got:
+
+- gnus.el :: Holds ~gnus-select-method~ and
+     ~gnus-secondary-select-methods~, as well as all gnus-related
+     variable/customization settings.
+- newsrc.eld :: Holds marks, as well as all state set by the user,
+     such as topic topology, group sorting, group settings, etc.
+
+This change would mean three different files:
+
+- gnus.el :: Only holds variable/customization settings, custom
+     functions, etc.
+- gnus-servers.el :: Holds all server definitions, group parameter
+     customizations, and all user-editable state set through Gnus'
+     interfaces (such as topic topology).
+- gnus-marks.el :: This would contain nothing but group-to-marks
+     correspondences. Different server or group classes could store
+     their marks differently: ie, on a remote server, or in a
+     database. But by default, they'd all be stuck in this file.
+
+Implications:
+
+1. Everything in gnus.el is theoretically editable via the
+   customization interface, plus custom functions.
+2. Everything in gnus-servers.el is meant to be edited through Gnus'
+   own interfaces. To define servers, you go to the \star{}Server\star
+   buffer and run insert/delete/edit commands there. It would be
+   possible to edit the file by hand, but it's /meant/ to be edited
+   within Gnus.
+3. gnus-marks.el should only be edited by Gnus. If you want to
+   share/propagate marks between machines, Gnus will provide
+   mechanisms for doing that.
+4. Files one and two can now be safely kept within version control.
+   They represent options and state that have been explicitly set by
+   the user, and which can reasonably be expected not to change on a
+   day-to-day basis.
+*** How to handle server methods
+Goals:
+
+- When a server is closed, prompt the user to open it. If it opens,
+  proceed as normal; if it doesn't, either raise an error or punt
+  down the line.
+- When a server is denied, either raise an error or punt down the
+  line.
+- Both the server methods and the top-level functions calling them
+  should be as simple as possible, with very little boilerplate. A
+  ~request-list~ method should simply retrieve and return the list.
+  The calling functions should at most handle exceptions. Everything
+  else should be hidden inside implementation.
+- Agent intervention should be as transparent as possible. In fact,
+  much of what is called agent behavior now could simply be
+  base-level methods on ~gnus-server~: if the actual server can't
+  handle whatever it is, it just punts down to ~cl-call-next-method~.
+  That's where things like caching, draft handling, or unplugged
+  outbox handling could happen.
+
+Possibilities:
+
+1. Suck it up and write a lot of boilerplate. In fact, once I get into
+   implementation, it may become obvious that different sorts of
+   server methods need different sorts of behavior, and it doesn't
+   make sense to unify everything.
+2. Use a single method, ~gnus-server-function~, which takes two
+   arguments: the server, and the function name as a symbol. Kind of
+   like how it works now, actually. Then there's only one method that
+   needs :before and :around methods. A little stupid, though.
+3. We don't have the MOP in elisp, but generic methods are
+   cl-defstructs, which also do inheritance. Make a new generic struct
+   type, say called ~gnus-server-generic~, which inherits from
+   ~cl--generic-method~, and then add :before and :around methods to
+   that. Then the only wonkiness is that (once again) you need to use
+   a special ~defun~-type form. But it might not be that bad. I wonder
+   if the inheritance would Just Work.
+** TODO Remove ~gnus-secondary-select-methods~                        :user:
+Instead just have a single ~gnus-select-methods~ option. Some people
+will love this idea, some will hate it.
+** TODO Rethink ~nntp-server-buffer~ behavior -- threading?
+~nnheader-init-server-buffer~ creates a buffer named ~< *nntpd*>~,
+where all servers write their responses -- so far so good. The buffer
+does not actually have a process associated with it. Servers with
+long-running processes, like nntp and imap, maintain process-buffer
+lists in variables like ~nntp-connection-alist~ and
+~nnimap-connection-alist~. However, these variables only ever hold a
+single element (even when there are multiple IMAP servers configured,
+for example), and the element is swapped out as different servers are
+opened. The element is a list of the ~nntp-server-buffer~, and the
+server's process buffer. How is the element swapped out? Why? What's
+the point of doing ~(cadr (assoc nntp-server-buffer
+nnimap-connection-alist))~ to get the imap server buffer? Why are all
+the process buffers then kept in ~nnimap-process-buffers~?
+
+If each server wrote to its own output buffer (and servers with
+long-running processes could attach their process to this buffer), we
+could separate concerns completely. Each server would read its output
+independently, and we could use threading for process concurrency,
+instead of the present ~retrieve-group-data-early~ system.
+** TODO Incorporate something like "gnus-pers" by default             :user:
+The separation of reading and sending is correct, and admirable, but
+sometimes inconvenient. At the very least, if a "from" address could
+be associated with a server, that would give us a lot of leeway.
+** TODO Allow backends to handle drafts and archives                  :user:
+The idea is that mail-like backends should be given a shot to handle
+draft saving and message archiving. Imap servers, for instance, could
+advertise themselves has being able to do this. Create new functions
+~request-save-draft~ and ~request-archive-message~, and only if the
+server in question doesn't have those functions (or we're unplugged)
+does the agent handle it locally.
+** TODO Asynchronous message sending                                  :user:
+Another big enchilada. It would require the ability to update marks
+and make server requests out of band, which wouldn't be possible until
+we were using objects and had done away with nnoo's concept of the
+"current server". Beyond that, it would require very careful error
+handling, obviously.
