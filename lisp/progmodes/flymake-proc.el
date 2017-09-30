@@ -109,11 +109,8 @@ NAME is the file name function to use, default `flymake-proc-get-real-file-name'
                               (const :tag "flymake-proc-get-real-file-name" nil)
                               function))))
 
-(defvar-local flymake-proc--process nil
+(defvar-local flymake-proc--current-process nil
   "Currently active flymake process for a buffer, if any.")
-
-(defvar flymake-proc--processes nil
-  "List of currently active flymake processes.")
 
 (defvar flymake-proc--report-fn nil
   "If bound, function used to report back to flymake's UI.")
@@ -543,9 +540,7 @@ Create parent directories as needed."
   "Parse STRING and collect diagnostics info."
   (flymake-log 3 "received %d byte(s) of output from process %d"
                (length string) (process-id proc))
-  (let ((output-buffer (process-get proc 'flymake-proc--output-buffer))
-        (flymake-proc--report-fn
-         (process-get proc 'flymake-proc--report-fn)))
+  (let ((output-buffer (process-get proc 'flymake-proc--output-buffer)))
     (when (and (buffer-live-p (process-buffer proc))
                output-buffer)
       (with-current-buffer output-buffer
@@ -578,49 +573,55 @@ Create parent directories as needed."
 
 (defun flymake-proc--process-sentinel (proc _event)
   "Sentinel for syntax check buffers."
-  (when (memq (process-status proc) '(signal exit))
-    (let* ((exit-status   (process-exit-status proc))
-           (command       (process-command proc))
-           (source-buffer (process-buffer proc))
-           (flymake-proc--report-fn (process-get proc
-                                                 'flymake-proc--report-fn))
-           (cleanup-f (flymake-proc--get-cleanup-function
-                       (buffer-file-name source-buffer)))
-           (diagnostics (process-get
-                         proc
-                         'flymake-proc--collected-diagnostics))
-           (interrupted (process-get proc 'flymake-proc--interrupted))
-           (panic nil)
-           (output-buffer (process-get proc 'flymake-proc--output-buffer)))
-      (flymake-log 2 "process %d exited with code %d"
-                   (process-id process) exit-status)
-      (condition-case-unless-debug err
-          (progn
-            (flymake-log 3 "cleaning up using %s" cleanup-f)
-            (with-current-buffer source-buffer
-              (funcall cleanup-f)
-              (cond ((equal 0 exit-status)
-                     (funcall flymake-proc--report-fn diagnostics))
-                    (interrupted
-                     (flymake-proc--panic :stopped interrupted))
-                    (diagnostics
-                     ;; non-zero exit but some diagnostics is quite
-                     ;; normal...
-                     (funcall flymake-proc--report-fn diagnostics))
-                    ((null diagnostics)
-                     ;; ...but no diagnostics is strange, so panic.
-                     (setq panic t)
-                     (flymake-proc--panic
-                      :configuration-error
-                      (format "Command %s errored, but no diagnostics"
-                              command))))))
-        (delete-process proc)
-        (setq flymake-proc--processes
-              (delq proc flymake-proc--processes))
-        (if panic
-            (flymake-log 1 "Output buffer %s kept alive for debugging"
-                         output-buffer)
-          (kill-buffer output-buffer))))))
+  (let (debug
+        (pid (process-id proc))
+        (source-buffer (process-buffer proc)))
+    (unwind-protect
+        (when (buffer-live-p source-buffer)
+          (with-current-buffer source-buffer
+            (cond ((process-get proc 'flymake-proc--obsolete)
+                   (flymake-log 3 "proc %s considered obsolete"
+                                pid))
+                  ((process-get proc 'flymake-proc--interrupted)
+                   (flymake-log 3 "proc %s interrupted by user"
+                                pid))
+                  ((not (process-live-p proc))
+                   (let* ((exit-status   (process-exit-status proc))
+                          (command       (process-command proc))
+                          (diagnostics (process-get
+                                        proc
+                                        'flymake-proc--collected-diagnostics)))
+                     (flymake-log 2 "process %d exited with code %d"
+                                  pid exit-status)
+                     (cond
+                      ((equal 0 exit-status)
+                       (funcall flymake-proc--report-fn diagnostics
+                                :explanation (format "a gift from %s" (process-id proc))
+                                ))
+                      (diagnostics
+                       ;; non-zero exit but some diagnostics is quite
+                       ;; normal...
+                       (funcall flymake-proc--report-fn diagnostics
+                                :explanation (format "a gift from %s" (process-id proc))))
+                      ((null diagnostics)
+                       ;; ...but no diagnostics is strange, so panic.
+                       (setq debug debug-on-error)
+                       (flymake-proc--panic
+                        :configuration-error
+                        (format "Command %s errored, but no diagnostics"
+                                command)))))))))
+      (let ((output-buffer (process-get proc 'flymake-proc--output-buffer)))
+        (cond (debug
+               (flymake-log 3 "Output buffer %s kept alive for debugging"
+                            output-buffer))
+              (t
+               (when (buffer-live-p source-buffer)
+                 (with-current-buffer source-buffer
+                   (let ((cleanup-f (flymake-proc--get-cleanup-function
+                                     (buffer-file-name))))
+                     (flymake-log 3 "cleaning up using %s" cleanup-f)
+                     (funcall cleanup-f))))
+               (kill-buffer output-buffer)))))))
 
 (defun flymake-proc--panic (problem explanation)
   "Tell flymake UI about a fatal PROBLEM with this backend.
@@ -729,87 +730,85 @@ can also be executed interactively independently of
                          diags
                          (append args '(:force t))))
                 t))
-  (cond
-   ((process-live-p flymake-proc--process)
-    (when interactive
-      (user-error
-       "There's already a flymake process running in this buffer")))
-   ((and buffer-file-name
-         ;; Since we write temp files in current dir, there's no point
-         ;; trying if the directory is read-only (bug#8954).
-         (file-writable-p (file-name-directory buffer-file-name))
-         (or (not flymake-proc-compilation-prevents-syntax-check)
-             (not (flymake-proc--compilation-is-running))))
-    (let ((init-f (flymake-proc--get-init-function buffer-file-name)))
-      (unless init-f (error "Can find a suitable init function"))
-      (flymake-proc--clear-buildfile-cache)
-      (flymake-proc--clear-project-include-dirs-cache)
+  (let ((proc flymake-proc--current-process)
+        (flymake-proc--report-fn report-fn))
+    (when (processp proc)
+      (process-put proc 'flymake-proc--obsolete t)
+      (flymake-log 3 "marking %s obsolete" (process-id proc))
+      (when (process-live-p proc)
+        (when interactive
+          (user-error
+           "There's already a flymake process running in this buffer")
+          (kill-process proc))))
+    (when
+        ;; A number of situations make us not want to error right away
+        ;; (and disable ourselves), in case the situation changes in
+        ;; the near future.
+        (and buffer-file-name
+             ;; Since we write temp files in current dir, there's no point
+             ;; trying if the directory is read-only (bug#8954).
+             (file-writable-p (file-name-directory buffer-file-name))
+             (or (not flymake-proc-compilation-prevents-syntax-check)
+                 (not (flymake-proc--compilation-is-running))))
+      (let ((init-f (flymake-proc--get-init-function buffer-file-name)))
+        (unless init-f (error "Can find a suitable init function"))
+        (flymake-proc--clear-buildfile-cache)
+        (flymake-proc--clear-project-include-dirs-cache)
 
-      (let* ((flymake-proc--report-fn report-fn)
-             (cleanup-f (flymake-proc--get-cleanup-function buffer-file-name))
-             (cmd-and-args (funcall init-f))
-             (cmd          (nth 0 cmd-and-args))
-             (args         (nth 1 cmd-and-args))
-             (dir          (nth 2 cmd-and-args)))
-        (cond ((not cmd-and-args)
-               (progn
-                 (flymake-log 0 "init function %s for %s failed, cleaning up"
-                              init-f buffer-file-name)
-                 (funcall cleanup-f)))
-              (t
-               (setq flymake-last-change-time nil)
-               (flymake-proc--start-syntax-check-process cmd
-                                                         args
-                                                         dir)
-               t)))))))
+        (let* ((cleanup-f (flymake-proc--get-cleanup-function buffer-file-name))
+               (cmd-and-args (funcall init-f))
+               (cmd          (nth 0 cmd-and-args))
+               (args         (nth 1 cmd-and-args))
+               (dir          (nth 2 cmd-and-args))
+               (success nil))
+          (unwind-protect
+              (cond
+               ((not cmd-and-args)
+                (flymake-log 0 "init function %s for %s failed, cleaning up"
+                             init-f buffer-file-name))
+               (t
+                (setq flymake-last-change-time nil)
+                (setq proc
+                      (let ((default-directory (or dir default-directory)))
+                        (when dir
+                          (flymake-log 3 "starting process on dir %s" dir))
+                        (make-process
+                         :name "flymake-proc"
+                         :buffer (current-buffer)
+                         :command (cons cmd args)
+                         :noquery t
+                         :filter
+                         (lambda (proc string)
+                           (let ((flymake-proc--report-fn report-fn))
+                             (flymake-proc--process-filter proc string)))
+                         :sentinel
+                         (lambda (proc event)
+                           (let ((flymake-proc--report-fn report-fn))
+                             (flymake-proc--process-sentinel proc event))))))
+                (process-put proc 'flymake-proc--output-buffer
+                             (generate-new-buffer
+                              (format " *flymake output for %s*" (current-buffer))))
+                (setq flymake-proc--current-process proc)
+                (flymake-log 2 "started process %d, command=%s, dir=%s"
+                             (process-id proc) (process-command proc)
+                             default-directory)
+                (setq success t)))
+            (unless success
+              (funcall cleanup-f))))))))
 
 (define-obsolete-function-alias 'flymake-start-syntax-check
   'flymake-proc-legacy-flymake "26.1")
 
-(defun flymake-proc--start-syntax-check-process (cmd args dir)
-  "Start syntax check process."
-  (condition-case-unless-debug err
-      (let* ((process
-              (let ((default-directory (or dir default-directory)))
-                (when dir
-                  (flymake-log 3 "starting process on dir %s" dir))
-                (make-process :name "flymake-proc"
-                              :buffer (current-buffer)
-                              :command (cons cmd args)
-                              :noquery t
-                              :filter 'flymake-proc--process-filter
-                              :sentinel 'flymake-proc--process-sentinel))))
-        (process-put process 'flymake-proc--output-buffer
-                     (generate-new-buffer
-                      (format " *flymake output for %s*" (current-buffer))))
-        (process-put process 'flymake-proc--report-fn
-                     flymake-proc--report-fn)
-
-        (setq-local flymake-proc--process process)
-        (push process flymake-proc--processes)
-
-        (setq flymake-is-running t)
-        (setq flymake-last-change-time nil)
-
-        (flymake-log 2 "started process %d, command=%s, dir=%s"
-                     (process-id process) (process-command process)
-                     default-directory)
-        process)
-    (error
-     (flymake-proc--panic :make-process-error
-                          (format-message
-                           "Failed to launch syntax check process `%s' with args %s: %s"
-                           cmd args (error-message-string err)))
-     (funcall (flymake-proc--get-cleanup-function buffer-file-name)))))
-
 (defun flymake-proc-stop-all-syntax-checks (&optional reason)
   "Kill all syntax check processes."
   (interactive (list "Interrupted by user"))
-  (mapc (lambda (proc)
-          (kill-process proc)
-          (process-put proc 'flymake-proc--interrupted reason)
-          (flymake-log 2 "killed process %d" (process-id proc)))
-        flymake-proc--processes))
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (let (p flymake-proc--current-process)
+        (when (process-live-p p)
+          (kill-process p)
+          (process-put p 'flymake-proc--interrupted reason)
+          (flymake-log 2 "killed process %d" (process-id p)))))))
 
 (defun flymake-proc--compilation-is-running ()
   (and (boundp 'compilation-in-progress)

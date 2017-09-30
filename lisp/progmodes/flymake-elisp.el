@@ -48,14 +48,15 @@
 (defun flymake-elisp-checkdoc (report-fn)
   "A flymake backend for `checkdoc'.
 Calls REPORT-FN directly."
-  (when (derived-mode-p 'emacs-lisp-mode)
-    (funcall report-fn
-             (cl-loop for (text start end _unfixable) in
-                      (flymake-elisp--checkdoc-1)
-                      collect
-                      (flymake-make-diagnostic
-                       (current-buffer)
-                       start end :note text)))))
+  (unless (derived-mode-p 'emacs-lisp-mode)
+    (error "Can only work on `emacs-lisp-mode' buffers"))
+  (funcall report-fn
+           (cl-loop for (text start end _unfixable) in
+                    (flymake-elisp--checkdoc-1)
+                    collect
+                    (flymake-make-diagnostic
+                     (current-buffer)
+                     start end :note text))))
 
 (defun flymake-elisp--byte-compile-done (report-fn
                                          origin-buffer
@@ -94,40 +95,59 @@ Calls REPORT-FN directly."
     (kill-buffer output-buffer)
     (ignore-errors (delete-file temp-file))))
 
+(defvar-local flymake-elisp--byte-compile-process nil
+  "Buffer-local process started for byte-compiling the buffer.")
+
 (defun flymake-elisp-byte-compile (report-fn)
-  "A flymake backend for elisp byte compilation.
+  "A Flymake backend for elisp byte compilation.
 Spawn an Emacs process that byte-compiles a file representing the
 current buffer state and calls REPORT-FN when done."
   (interactive (list (lambda (stuff)
                        (message "aha %s" stuff))))
-  (when (derived-mode-p 'emacs-lisp-mode)
-    (let ((temp-file (make-temp-file "flymake-elisp-byte-compile"))
-          (origin-buffer (current-buffer)))
-      (save-restriction
-        (widen)
-        (write-region (point-min) (point-max) temp-file nil 'nomessage))
-      (let* ((output-buffer (generate-new-buffer " *flymake-elisp-byte-compile*")))
-        (make-process
-         :name "flymake-elisp-byte-compile"
-         :buffer output-buffer
-         :command (list (expand-file-name invocation-name invocation-directory)
-                        "-Q"
-                        "--batch"
-                        ;; "--eval" "(setq load-prefer-newer t)" ; for testing
-                        "-L" default-directory
-                        "-l" "flymake-elisp"
-                        "-f" "flymake-elisp--batch-byte-compile"
-                        temp-file)
-         :connection-type 'pipe
-         :sentinel
-         (lambda (proc _event)
-           (unless (process-live-p proc)
-             (flymake-elisp--byte-compile-done report-fn
-                                               origin-buffer
-                                               output-buffer
-                                               temp-file))))
-        :stderr null-device
-        :noquery t))))
+  (unless (derived-mode-p 'emacs-lisp-mode)
+    (error "Can only work on `emacs-lisp-mode' buffers"))
+  (when flymake-elisp--byte-compile-process
+    (process-put flymake-elisp--byte-compile-process 'flymake-elisp--obsolete t)
+    (when (process-live-p flymake-elisp--byte-compile-process)
+      (kill-process flymake-elisp--byte-compile-process)))
+  (let ((temp-file (make-temp-file "flymake-elisp-byte-compile"))
+        (origin-buffer (current-buffer)))
+    (save-restriction
+      (widen)
+      (write-region (point-min) (point-max) temp-file nil 'nomessage))
+    (let* ((output-buffer (generate-new-buffer " *flymake-elisp-byte-compile*")))
+      (setq
+       flymake-elisp--byte-compile-process
+       (make-process
+        :name "flymake-elisp-byte-compile"
+        :buffer output-buffer
+        :command (list (expand-file-name invocation-name invocation-directory)
+                       "-Q"
+                       "--batch"
+                       ;; "--eval" "(setq load-prefer-newer t)" ; for testing
+                       "-L" default-directory
+                       "-l" "flymake-elisp"
+                       "-f" "flymake-elisp--batch-byte-compile"
+                       temp-file)
+        :connection-type 'pipe
+        :sentinel
+        (lambda (proc _event)
+          (unless (process-live-p proc)
+            (unwind-protect
+                (cond
+                 ((zerop (process-exit-status proc))
+                  (flymake-elisp--byte-compile-done report-fn
+                                                    origin-buffer
+                                                    output-buffer
+                                                    temp-file))
+                 ((process-get proc 'flymake-elisp--obsolete)
+                  (flymake-log 3 "proc %s considered obsolete" proc))
+                 (t
+                  (funcall report-fn
+                           :panic
+                           :explanation (format "proc %s died violently" proc)))))))))
+      :stderr null-device
+      :noquery t)))
 
 (defun flymake-elisp--batch-byte-compile (&optional file)
   "Helper for `flymake-elisp-byte-compile'.
