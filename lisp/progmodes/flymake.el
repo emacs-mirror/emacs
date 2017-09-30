@@ -101,7 +101,8 @@ See `flymake-error-bitmap' and `flymake-warning-bitmap'."
   :type 'boolean)
 
 (defcustom flymake-no-changes-timeout 0.5
-  "Time to wait after last change before starting compilation."
+  "Time to wait after last change before automatically checking buffer.
+If nil, never start checking buffer automatically like this."
   :type 'number)
 
 (defcustom flymake-gui-warnings-enabled t
@@ -496,6 +497,7 @@ associated `flymake-category' return DEFAULT."
     (with-current-buffer buffer
       (when (and flymake-mode
 		 flymake-last-change-time
+                 flymake-no-changes-timeout
 		 (> (- (float-time) flymake-last-change-time)
                     flymake-no-changes-timeout))
 
