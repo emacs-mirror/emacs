@@ -244,8 +244,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
-  (add-hook 'flymake-diagnostic-functions #'flymake-elisp-checkdoc nil t)
-  (add-hook 'flymake-diagnostic-functions #'flymake-elisp-byte-compile nil t))
+  (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
+  (add-hook 'flymake-diagnostic-functions #'elisp-flymake-byte-compile nil t))
 
 ;; Font-locking support.
 
@@ -812,7 +812,7 @@ non-nil result supercedes the xrefs produced by
   (apply #'nconc
          (let (lst)
            (dolist (sym (apropos-internal regexp))
-            (push (elisp--xref-find-definitions sym) lst))
+             (push (elisp--xref-find-definitions sym) lst))
            (nreverse lst))))
 
 (defvar elisp--xref-identifier-completion-table
@@ -1111,7 +1111,7 @@ If CHAR is not a character, return nil."
           ;; interactive call would use it.
           ;; FIXME: Is it really the right place for this?
           (when (eq (car-safe expr) 'interactive)
-	       (setq expr
+	    (setq expr
                   `(call-interactively
                     (lambda (&rest args) ,expr args))))
 	  expr)))))
@@ -1176,7 +1176,7 @@ POS specifies the starting position where EXP was found and defaults to point."
             (and (not (special-variable-p var))
                  (save-excursion
                    (zerop (car (syntax-ppss (match-beginning 0)))))
-              (push var vars))))
+                 (push var vars))))
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
@@ -1381,7 +1381,7 @@ or elsewhere, return a 1-line docstring."
 		    (t (help-function-arglist sym)))))
              ;; Stringify, and store before highlighting, downcasing, etc.
 	     (elisp--last-data-store sym (elisp-function-argstring args)
-                                    'function))))))
+                                     'function))))))
     ;; Highlight, truncate.
     (if argstring
 	(elisp--highlight-function-argument
@@ -1589,6 +1589,158 @@ ARGLIST is either a string, or a list of strings or symbols."
     (if (and str (string-match "\\`([^ )]+ ?" str))
         (replace-match "(" t t str)
       str)))
+
+;;; Flymake support
+
+(defun elisp-flymake--checkdoc-1 ()
+  "Do actual work for `elisp-flymake-checkdoc'."
+  (let (collected)
+    (let* ((checkdoc-create-error-function
+            (lambda (text start end &optional unfixable)
+              (push (list text start end unfixable) collected)
+              nil))
+           (checkdoc-autofix-flag nil)
+           (checkdoc-generate-compile-warnings-flag nil)
+           (buf (generate-new-buffer " *checkdoc-temp*"))
+           (checkdoc-diagnostic-buffer buf))
+      (unwind-protect
+          (save-excursion
+            (checkdoc-current-buffer t))
+        (kill-buffer buf)))
+    collected))
+
+;;;###autoload
+(defun elisp-flymake-checkdoc (report-fn)
+  "A Flymake backend for `checkdoc'.
+Calls REPORT-FN directly."
+  (unless (derived-mode-p 'emacs-lisp-mode)
+    (error "Can only work on `emacs-lisp-mode' buffers"))
+  (funcall report-fn
+           (cl-loop for (text start end _unfixable) in
+                    (elisp-flymake--checkdoc-1)
+                    collect
+                    (flymake-make-diagnostic
+                     (current-buffer)
+                     start end :note text))))
+
+(defun elisp-flymake--byte-compile-done (report-fn
+                                         origin-buffer
+                                         output-buffer
+                                         temp-file)
+  (unwind-protect
+      (with-current-buffer
+          origin-buffer
+        (save-excursion
+          (save-restriction
+            (widen)
+            (funcall
+             report-fn
+             (cl-loop with data =
+                      (with-current-buffer output-buffer
+                        (goto-char (point-min))
+                        (search-forward ":elisp-flymake-output-start")
+                        (read (point-marker)))
+                      for (string pos _fill level) in data
+                      do (goto-char pos)
+                      for beg = (if (< (point) (point-max))
+                                    (point)
+                                  (line-beginning-position))
+                      for end = (min
+                                 (line-end-position)
+                                 (or (cdr
+                                      (bounds-of-thing-at-point 'sexp))
+                                     (point-max)))
+                      collect (flymake-make-diagnostic
+                               (current-buffer)
+                               (if (= beg end) (1- beg) beg)
+                               end
+                               level
+                               string))))))
+    (kill-buffer output-buffer)
+    (ignore-errors (delete-file temp-file))))
+
+(defvar-local elisp-flymake--byte-compile-process nil
+  "Buffer-local process started for byte-compiling the buffer.")
+
+;;;###autoload
+(defun elisp-flymake-byte-compile (report-fn)
+  "A Flymake backend for elisp byte compilation.
+Spawn an Emacs process that byte-compiles a file representing the
+current buffer state and calls REPORT-FN when done."
+  (interactive (list (lambda (stuff)
+                       (message "aha %s" stuff))))
+  (unless (derived-mode-p 'emacs-lisp-mode)
+    (error "Can only work on `emacs-lisp-mode' buffers"))
+  (when elisp-flymake--byte-compile-process
+    (process-put elisp-flymake--byte-compile-process 'elisp-flymake--obsolete t)
+    (when (process-live-p elisp-flymake--byte-compile-process)
+      (kill-process elisp-flymake--byte-compile-process)))
+  (let ((temp-file (make-temp-file "elisp-flymake-byte-compile"))
+        (origin-buffer (current-buffer)))
+    (save-restriction
+      (widen)
+      (write-region (point-min) (point-max) temp-file nil 'nomessage))
+    (let* ((output-buffer (generate-new-buffer " *elisp-flymake-byte-compile*")))
+      (setq
+       elisp-flymake--byte-compile-process
+       (make-process
+        :name "elisp-flymake-byte-compile"
+        :buffer output-buffer
+        :command (list (expand-file-name invocation-name invocation-directory)
+                       "-Q"
+                       "--batch"
+                       ;; "--eval" "(setq load-prefer-newer t)" ; for testing
+                       "-L" default-directory
+                       "-f" "elisp-flymake--batch-compile-for-flymake"
+                       temp-file)
+        :connection-type 'pipe
+        :sentinel
+        (lambda (proc _event)
+          (unless (process-live-p proc)
+            (unwind-protect
+                (cond
+                 ((zerop (process-exit-status proc))
+                  (elisp-flymake--byte-compile-done report-fn
+                                                    origin-buffer
+                                                    output-buffer
+                                                    temp-file))
+                 ((process-get proc 'elisp-flymake--obsolete)
+                  (flymake-log :warning "byte-compile process %s obsolete" proc))
+                 (t
+                  (funcall report-fn
+                           :panic
+                           :explanation
+                           (format "byte-compile process %s died" proc)))))))))
+      :stderr null-device
+      :noquery t)))
+
+(defun elisp-flymake--batch-compile-for-flymake (&optional file)
+  "Helper for `elisp-flymake-byte-compile'.
+Runs in a batch-mode Emacs.  Interactively use variable
+`buffer-file-name' for FILE."
+  (interactive (list buffer-file-name))
+  (let* ((file (or file
+                   (car command-line-args-left)))
+         (dummy-elc-file)
+         (byte-compile-log-buffer
+          (generate-new-buffer " *dummy-byte-compile-log-buffer*"))
+         (byte-compile-dest-file-function
+          (lambda (source)
+            (setq dummy-elc-file (make-temp-file (file-name-nondirectory source)))))
+         (collected)
+         (byte-compile-log-warning-function
+          (lambda (string &optional position fill level)
+            (push (list string position fill level)
+                  collected)
+            t)))
+    (unwind-protect
+        (byte-compile-file file)
+      (ignore-errors
+        (delete-file dummy-elc-file)
+        (kill-buffer byte-compile-log-buffer)))
+    (prin1 :elisp-flymake-output-start)
+    (terpri)
+    (pp collected)))
 
 (provide 'elisp-mode)
 ;;; elisp-mode.el ends here
