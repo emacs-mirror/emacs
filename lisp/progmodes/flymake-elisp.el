@@ -20,7 +20,8 @@
 
 ;;; Commentary:
 
-;; Flymake backends for elisp work.
+;; Flymake backends for elisp work, `flymake-elisp-checkdoc' and
+;; `flymake-elisp-byte-compile'.
 
 ;;; Code:
 (require 'flymake)
@@ -45,6 +46,7 @@
           (kill-buffer buf))))
     collected))
 
+;;;###autoload
 (defun flymake-elisp-checkdoc (report-fn)
   "A Flymake backend for `checkdoc'.
 Calls REPORT-FN directly."
@@ -98,6 +100,7 @@ Calls REPORT-FN directly."
 (defvar-local flymake-elisp--byte-compile-process nil
   "Buffer-local process started for byte-compiling the buffer.")
 
+;;;###autoload
 (defun flymake-elisp-byte-compile (report-fn)
   "A Flymake backend for elisp byte compilation.
 Spawn an Emacs process that byte-compiles a file representing the
@@ -176,19 +179,6 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (prin1 :flymake-elisp-output-start)
     (terpri)
     (pp collected)))
-
-(defun flymake-elisp-setup-backends ()
-  "Setup Flymake for elisp work."
-  (add-hook 'flymake-diagnostic-functions 'flymake-elisp-checkdoc t t)
-  (add-hook 'flymake-diagnostic-functions 'flymake-elisp-byte-compile t t))
-
-(add-hook 'emacs-lisp-mode-hook
-          'flymake-elisp-setup-backends)
-
-(dolist (buffer (buffer-list))
-  (with-current-buffer buffer
-    (when (derived-mode-p 'emacs-lisp-mode)
-      (flymake-elisp-setup-backends))))
 
 (provide 'flymake-elisp)
 ;;; flymake-elisp.el ends here

@@ -26,9 +26,21 @@
 ;;
 ;; Flymake is a minor Emacs mode performing on-the-fly syntax checks.
 ;;
+;; Flymake collects diagnostic information for multiple sources,
+;; called backends, and visually annotates the relevant portions in
+;; the buffer.
+;;
 ;; This file contains the UI for displaying and interacting with the
-;; results of such checks, as well as entry points for backends to
-;; hook on to. Backends are sources of diagnostic info.
+;; results produced by these backends, as well as entry points for
+;; backends to hook on to.
+;;
+;; The main entry points are `flymake-mode' and `flymake-start'
+;;
+;; The docstrings of these variabless are relevant to understanding how
+;; Flymake works for both the user and the backend programmer:
+;;
+;; * `flymake-diagnostic-functions'
+;; * `flymake-diagnostic-types-alist'
 ;;
 ;;; Code:
 
@@ -197,6 +209,7 @@ generated it."
                (:constructor flymake--diag-make))
   buffer beg end type text backend)
 
+;;;###autoload
 (defun flymake-make-diagnostic (buffer
                                 beg
                                 end
@@ -687,9 +700,8 @@ Interactively, with a prefix arg, FORCE is t."
       (start))))
 
 (defvar flymake-mode-map
-  (let ((map (make-sparse-keymap)))
-    map)
-  "Keymap for `flymake-mode'.")
+  (let ((map (make-sparse-keymap))) map)
+  "Keymap for `flymake-mode'")
 
 ;;;###autoload
 (define-minor-mode flymake-mode nil
@@ -756,7 +768,6 @@ Interactively, with a prefix arg, FORCE is t."
     (cancel-timer flymake-timer)
     (setq flymake-timer nil)))
 
-;;;###autoload
 (defun flymake-find-file-hook ()
   (unless (or flymake-mode
               (null flymake-diagnostic-functions))
@@ -936,11 +947,8 @@ applied."
                         '(:propertize " "))
              (:propertize "]")))))))
 
-
-
-
 (provide 'flymake)
 
 (require 'flymake-proc)
-(require 'flymake-elisp)
+
 ;;; flymake.el ends here

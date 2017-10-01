@@ -243,7 +243,9 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
-            #'elisp-completion-at-point nil 'local))
+            #'elisp-completion-at-point nil 'local)
+  (add-hook 'flymake-diagnostic-functions #'flymake-elisp-checkdoc nil t)
+  (add-hook 'flymake-diagnostic-functions #'flymake-elisp-byte-compile nil t))
 
 ;; Font-locking support.
 
