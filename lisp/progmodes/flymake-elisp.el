@@ -32,18 +32,18 @@
 (defun flymake-elisp--checkdoc-1 ()
   "Do actual work for `flymake-elisp-checkdoc'."
   (let (collected)
-    (cl-letf (((symbol-function 'checkdoc-create-error)
-               (lambda (text start end &optional unfixable)
-                 (push (list text start end unfixable) collected)
-                 nil)))
-      (let* ((checkdoc-autofix-flag nil)
-             (checkdoc-generate-compile-warnings-flag nil)
-             (buf (generate-new-buffer " *checkdoc-temp*"))
-             (checkdoc-diagnostic-buffer buf))
-        (unwind-protect
-            (save-excursion
-              (checkdoc-current-buffer t))
-          (kill-buffer buf))))
+    (let* ((checkdoc-create-error-function
+            (lambda (text start end &optional unfixable)
+              (push (list text start end unfixable) collected)
+              nil))
+           (checkdoc-autofix-flag nil)
+           (checkdoc-generate-compile-warnings-flag nil)
+           (buf (generate-new-buffer " *checkdoc-temp*"))
+           (checkdoc-diagnostic-buffer buf))
+      (unwind-protect
+          (save-excursion
+            (checkdoc-current-buffer t))
+        (kill-buffer buf)))
     collected))
 
 ;;;###autoload
@@ -165,14 +165,14 @@ Runs in a batch-mode Emacs.  Interactively use variable
          (byte-compile-dest-file-function
           (lambda (source)
             (setq dummy-elc-file (make-temp-file (file-name-nondirectory source)))))
-         (collected))
+         (collected)
+         (byte-compile-log-warning-function
+          (lambda (string &optional position fill level)
+            (push (list string position fill level)
+                  collected)
+            t)))
     (unwind-protect
-        (cl-letf (((symbol-function 'byte-compile-log-warning)
-                   (lambda (string &optional fill level)
-                     (push (list string byte-compile-last-position fill level)
-                           collected)
-                     t)))
-          (byte-compile-file file))
+        (byte-compile-file file)
       (ignore-errors
         (delete-file dummy-elc-file)
         (kill-buffer byte-compile-log-buffer)))
