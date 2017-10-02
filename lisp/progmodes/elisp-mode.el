@@ -1610,7 +1610,7 @@ ARGLIST is either a string, or a list of strings or symbols."
     collected))
 
 ;;;###autoload
-(defun elisp-flymake-checkdoc (report-fn)
+(defun elisp-flymake-checkdoc (report-fn &rest _args)
   "A Flymake backend for `checkdoc'.
 Calls REPORT-FN directly."
   (unless (derived-mode-p 'emacs-lisp-mode)
@@ -1663,7 +1663,7 @@ Calls REPORT-FN directly."
   "Buffer-local process started for byte-compiling the buffer.")
 
 ;;;###autoload
-(defun elisp-flymake-byte-compile (report-fn)
+(defun elisp-flymake-byte-compile (report-fn &rest _args)
   "A Flymake backend for elisp byte compilation.
 Spawn an Emacs process that byte-compiles a file representing the
 current buffer state and calls REPORT-FN when done."

@@ -715,7 +715,7 @@ May only be called in a dynamic environment where
      (flymake-log 1 "Failed to delete dir %s, error ignored" dir-name))))
 
 
-(defun flymake-proc-legacy-flymake (report-fn &optional interactive)
+(defun flymake-proc-legacy-flymake (report-fn &rest args)
   "Flymake backend based on the original Flymake implementation.
 This function is suitable for inclusion in
 `flymake-diagnostic-types-alist'. For backward compatibility, it
@@ -729,8 +729,9 @@ can also be executed interactively independently of
                   (apply (flymake-make-report-fn 'flymake-proc-legacy-flymake)
                          diags
                          (append args '(:force t))))
-                t))
-  (let ((proc flymake-proc--current-process)
+                :interactive t))
+  (let ((interactive (plist-get args :interactive))
+        (proc flymake-proc--current-process)
         (flymake-proc--report-fn report-fn))
     (when (processp proc)
       (process-put proc 'flymake-proc--obsolete t)

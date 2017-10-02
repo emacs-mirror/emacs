@@ -322,20 +322,28 @@ Return nil if the region is invalid."
     (error (flymake-error "Invalid region line=%s col=%s" line col))))
 
 (defvar flymake-diagnostic-functions nil
-  "Special hook of Flymake backends to check a buffer.
+  "Special hook of Flymake backends that check a buffer.
 
 The functions in this hook diagnose problems in a buffer’s
-contents and provide the Flymake user interface with information
+contents and provide information to the Flymake user interface
 about where and how to annotate problems diagnosed in a buffer.
 
 Whenever Flymake or the user decides to re-check the buffer, each
-function is called with a common calling convention, a single
-REPORT-FN argument and a list of keword value pairs, detailed
-below.  Backend functions are expected to initiate the buffer
-check, but aren't required to complete it check before exiting:
-if the computation involved is expensive, especially for large
-buffers, that task can be scheduled for the future using
-asynchronous processes or other asynchronous mechanisms.
+function is called with an arbitrary number of arguments:
+
+* the first argument is always REPORT-FN, a callback function
+  detailed below;
+
+* the remaining arguments are keyword-value pairs in the
+  form (:KEY VALUE :KEY2 VALUE2...).  Currently, Flymake provides
+  no such arguments, but backend functions must be prepared to
+  accept to accept and possibly ignore any number of them.
+
+Backend functions are expected to initiate the buffer check, but
+aren't required to complete it check before exiting: if the
+computation involved is expensive, especially for large buffers,
+that task can be scheduled for the future using asynchronous
+processes or other asynchronous mechanisms.
 
 In any case, backend functions are expected to return quickly or
 signal an error, in which case the backend is disabled.  Flymake
@@ -346,10 +354,10 @@ and on again, reset the list of disabled backends.
 If the function returns, Flymake considers the backend to be
 \"running\". If it has not done so already, the backend is
 expected to call the function REPORT-FN with a single argument
-ACTION followed by an optional list of keyword-value pairs
-their values (:KEY1 VALUE1 :KEY2 VALUE2...).
+REPORT-ACTION also followed by an optional list of keyword-value
+pairs in the form (:REPORT-KEY VALUE :REPORT-KEY2 VALUE2...).
 
-The possible values for ACTION are.
+Currently accepted values for REPORT-ACTION are:
 
 * A (possibly empty) list of diagnostic objects created with
   `flymake-make-diagnostic', causing Flymake to annotate the
@@ -367,7 +375,7 @@ The possible values for ACTION are.
 * The symbol `:panic', signalling that the backend has
   encountered an exceptional situation and should be disabled.
 
-The recognized optional keyword arguments are:
+Currently accepted REPORT-KEY arguments are:
 
 * ‘:explanation’: value should give user-readable details of
   the situation encountered, if any.
@@ -552,11 +560,12 @@ present the backend is disabled.")
   "Tell if Flymake has running backends in this buffer"
   (flymake-running-backends))
 
-(cl-defun flymake--handle-report (backend token action
-                                          &key explanation force)
+(cl-defun flymake--handle-report (backend token report-action
+                                          &key explanation force
+                                          &allow-other-keys)
   "Handle reports from BACKEND identified by TOKEN.
 
-BACKEND, ACTION and EXPLANATION, and FORCE conform to the calling
+BACKEND, REPORT-ACTION and EXPLANATION, and FORCE conform to the calling
 convention described in `flymake-diagnostic-functions' (which
 see). Optional FORCE says to handle a report even if TOKEN was
 not expected."
@@ -579,14 +588,14 @@ not expected."
              (not force))
         (flymake-error "Obsolete report from backend %s with explanation %s"
                        backend explanation))
-       ((eq :panic action)
+       ((eq :panic report-action)
         (flymake--disable-backend backend explanation))
-       ((not (listp action))
+       ((not (listp report-action))
         (flymake--disable-backend backend
-                                  (format "Unknown action %S" action))
-        (flymake-error "Expected report, but got unknown key %s" action))
+                                  (format "Unknown action %S" report-action))
+        (flymake-error "Expected report, but got unknown key %s" report-action))
        (t
-        (setq new-diags action)
+        (setq new-diags report-action)
         (save-restriction
           (widen)
           (unless (cl-getf state :diags)
