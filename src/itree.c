@@ -519,7 +519,8 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
           else
             interval_stack_push (stack, node->right);
         }
-      if (node->left != &tree->nil && pos <= node->left->limit)
+      if (node->left != &tree->nil
+          && pos <= node->left->limit + node->left->offset)
         interval_stack_push (stack, node->left);
 
       /* node->begin == pos implies no front-advance. */
@@ -578,7 +579,8 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
           else
             interval_stack_push (stack, node->right);
         }
-      if (node->left != &tree->nil && pos <= node->left->limit)
+      if (node->left != &tree->nil
+          && pos <= node->left->limit + node->left->offset)
         interval_stack_push (stack, node->left);
 
       if (pos < node->begin)
