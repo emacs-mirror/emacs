@@ -309,7 +309,9 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   node->left = &tree->nil;
   node->right = &tree->nil;
   node->color = ITREE_RED;
-  node->offset = offset;
+  node->offset = 0;
+  node->begin -= offset;
+  node->end -= offset;
   node->limit = node->end;
   node->otick = tree->otick - 1;
 
