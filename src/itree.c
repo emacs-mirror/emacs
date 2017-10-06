@@ -404,6 +404,28 @@ interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
   return node;
 }
 
+/* Fill memory pointed at via NODES with all nodes of TREE in the
+   given ORDER.
+
+   The size of NODES must be sufficiently large.
+ */
+
+void
+interval_tree_nodes (struct interval_tree *tree,
+                     struct interval_node **nodes,
+                     enum interval_tree_order order)
+{
+  struct interval_node *node;
+
+  interval_tree_iter_start (tree, PTRDIFF_MIN, PTRDIFF_MAX, order);
+  while ((node = interval_tree_iter_next (tree)))
+    {
+      *nodes = node;
+      ++nodes;
+    }
+  interval_tree_iter_finish (tree);
+}
+
 /* Start a generator iterating all intervals in [BEGIN,END) in the
    given ORDER. Only one iterator per tree can be running at any
    time.

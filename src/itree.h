@@ -85,4 +85,5 @@ void interval_tree_iter_finish(struct interval_tree *);
 struct interval_node *interval_tree_iter_next(struct interval_tree *);
 void interval_tree_insert_gap(struct interval_tree *, ptrdiff_t, ptrdiff_t);
 void interval_tree_delete_gap(struct interval_tree *, ptrdiff_t, ptrdiff_t);
+void interval_tree_nodes (struct interval_tree *tree, struct interval_node **nodes, enum interval_tree_order order);
 #endif
