@@ -879,6 +879,56 @@ delete_all_overlays (struct buffer *b)
   interval_tree_clear (b->overlays);
 }
 
+/* Adjust the position of overlays in the current buffer according to
+   MULTIBYTE.
+
+   Assume that positions currently correspond to byte positions, if
+   MULTIBYTE is true and to character positions if not.
+*/
+
+static void
+set_overlays_multibyte (bool multibyte)
+{
+  if (! current_buffer->overlays || Z == Z_BYTE)
+    return;
+
+  struct interval_node **nodes = NULL;
+  struct interval_tree *tree = current_buffer->overlays;
+  const intmax_t size = interval_tree_size (tree);
+
+  USE_SAFE_ALLOCA;
+  SAFE_NALLOCA (nodes, 1, size);
+  interval_tree_nodes (tree, nodes, ITREE_ASCENDING);
+
+  for (int i = 0; i < size; ++i, ++nodes)
+    {
+      struct interval_node * const node = *nodes;
+
+      if (multibyte)
+        {
+          ptrdiff_t begin = interval_node_begin (tree, node);
+          ptrdiff_t end = interval_node_end (tree, node);
+
+          /* This models the behavior of markers.  (The behavior of
+             text-intervals differs slightly.) */
+          while (begin < Z_BYTE
+                 && !CHAR_HEAD_P (FETCH_BYTE (begin)))
+            begin++;
+          while (end < Z_BYTE
+                 && !CHAR_HEAD_P (FETCH_BYTE (end)))
+            end++;
+          interval_node_set_region (tree, node, BYTE_TO_CHAR (begin),
+                                    BYTE_TO_CHAR (end));
+        }
+      else
+        {
+          interval_node_set_region (tree, node, CHAR_TO_BYTE (node->begin),
+                                    CHAR_TO_BYTE (node->end));
+        }
+    }
+  SAFE_FREE ();
+}
+
 /* Reinitialize everything about a buffer except its name and contents
    and local variables.
    If called on an already-initialized buffer, the list of overlays
@@ -2456,6 +2506,7 @@ current buffer is cleared.  */)
       /* Do this first, so it can use CHAR_TO_BYTE
 	 to calculate the old correspondences.  */
       set_intervals_multibyte (0);
+      set_overlays_multibyte (0);
 
       bset_enable_multibyte_characters (current_buffer, Qnil);
 
@@ -2648,6 +2699,7 @@ current buffer is cleared.  */)
       /* Do this last, so it can calculate the new correspondences
 	 between chars and bytes.  */
       set_intervals_multibyte (1);
+      set_overlays_multibyte (1);
     }
 
   if (!EQ (old_undo, Qt))
