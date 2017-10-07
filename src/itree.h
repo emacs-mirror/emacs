@@ -36,7 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct interval_node;
 struct interval_node
 {
-  enum { ITREE_RED, ITREE_BLACK } color;
   struct interval_node *parent;
   struct interval_node *left;
   struct interval_node *right;
@@ -46,6 +45,7 @@ struct interval_node
   ptrdiff_t offset;		/* The amount of shift to apply to this subtree. */
   uintmax_t otick;              /* offset modified tick */
   Lisp_Object data;             /* Exclusively used by the client. */
+  enum { ITREE_RED, ITREE_BLACK } color;
   bool_bf visited : 1;          /* For traversal via generator. */
   bool_bf rear_advance : 1;     /* Same as for marker and overlays.  */
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
