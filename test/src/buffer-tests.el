@@ -1215,10 +1215,65 @@ with parameters from the *Messages* buffer modification."
 (ert-deftest test-overlay-multibyte-transition-1 ()
   (with-temp-buffer
     (set-buffer-multibyte t)
-    (insert "Ä")
-    (let ((ov (make-overlay (point-min) (point-max))))
+    (insert "ääää")
+    ;; aeaeaeae
+    ;; 1 2 3 4 5
+    ;; 123456789
+    (let ((nonempty-bob (make-overlay 1 2))
+          (empty-bob    (make-overlay 1 1))
+          (empty        (make-overlay 2 2))
+          (nonempty     (make-overlay 2 4))
+          (nonempty-eob (make-overlay 4 5))
+          (empty-eob    (make-overlay 5 5)))
       (set-buffer-multibyte nil)
-      (should (eq (overlay-end ov) (point-max))))))
+      (cl-macrolet ((ovshould (ov begin end)
+                      `(should (equal (list (overlay-start ,ov) (overlay-end ,ov))
+                                      (list ,begin ,end)))))
+        (ovshould nonempty-bob 1 3)
+        (ovshould empty-bob    1 1)
+        (ovshould empty        3 3)
+        (ovshould nonempty     3 7)
+        (ovshould nonempty-eob 7 9)
+        (ovshould empty-eob    9 9)))))
+
+(ert-deftest test-overlay-multibyte-transition-2 ()
+  (with-temp-buffer
+    (set-buffer-multibyte t)
+    (insert "ääää")
+    (set-buffer-multibyte nil)
+    ;; aeaeaeae
+    ;; 1 2 3 4 5
+    ;; 123456789
+    (let ((nonempty-bob-end (make-overlay 1 2))
+          (nonempty-bob-beg (make-overlay 1 3))
+          (empty-bob        (make-overlay 1 1))
+          (empty-beg        (make-overlay 3 3))
+          (empty-end        (make-overlay 2 2))
+          (nonempty-beg-beg (make-overlay 3 7))
+          (nonempty-beg-end (make-overlay 3 8))
+          (nonempty-end-beg (make-overlay 4 7))
+          (nonempty-end-end (make-overlay 4 8))
+          (nonempty-eob-beg (make-overlay 5 9))
+          (nonempty-eob-end (make-overlay 6 9))
+          (empty-eob        (make-overlay 9 9)))
+      (set-buffer-multibyte t)
+      (cl-macrolet ((ovshould (ov begin end)
+                      `(should (equal (list (overlay-start ,ov) (overlay-end ,ov))
+                                      (list ,begin ,end)))))
+        (ovshould nonempty-bob-end 1 2)
+        (ovshould nonempty-bob-beg 1 2)
+        (ovshould empty-bob        1 1)
+        (ovshould empty-beg        2 2)
+        (ovshould empty-end        2 2)
+        (ovshould nonempty-beg-beg 2 4)
+        (ovshould nonempty-beg-end 2 5)
+        (ovshould nonempty-end-beg 3 4)
+        (ovshould nonempty-end-end 3 5)
+        (ovshould nonempty-eob-beg 3 5)
+        (ovshould nonempty-eob-end 4 5)
+        (ovshould empty-eob        5 5)))))
+
+
 
 
 ;; +===================================================================================+
