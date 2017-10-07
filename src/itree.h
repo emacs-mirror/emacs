@@ -46,7 +46,7 @@ struct interval_node
   ptrdiff_t offset;		/* The amount of shift to apply to this subtree. */
   uintmax_t otick;              /* offset modified tick */
   Lisp_Object data;             /* Exclusively used by the client. */
-  bool_bf visited;              /* For traversal via generator. */
+  bool_bf visited : 1;          /* For traversal via generator. */
   bool_bf rear_advance : 1;     /* Same as for marker and overlays.  */
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };
