@@ -58,7 +58,7 @@ struct interval_tree
   uintmax_t otick;              /* offset tick, compared with node's otick. */
   intmax_t size;                /* Number of nodes in the tree. */
   struct interval_generator *iter;
-  bool_bf iter_running;
+  bool_bf iter_running : 1;
 };
 
 enum interval_tree_order {
