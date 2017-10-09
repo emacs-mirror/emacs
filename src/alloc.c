@@ -6306,15 +6306,11 @@ mark_buffer (struct buffer *buffer)
      a special way just before the sweep phase, and after stripping
      some of its elements that are not needed any more.  */
 
-  if (buffer->overlays)
-    {
-      struct interval_node *node;
-      buffer_overlay_iter_start (buffer, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-
-      while ((node = buffer_overlay_iter_next (buffer)))
-        mark_overlay (XOVERLAY (node->data));
-      buffer_overlay_iter_finish (buffer);
-    }
+  struct interval_node *node;
+  buffer_overlay_iter_start (buffer, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
+  while ((node = buffer_overlay_iter_next (buffer)))
+    mark_overlay (XOVERLAY (node->data));
+  buffer_overlay_iter_finish (buffer);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))

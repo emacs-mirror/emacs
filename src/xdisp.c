@@ -5790,48 +5790,46 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
     }									\
   while (false)
 
-  if (current_buffer->overlays)
+
+  buffer_overlay_iter_start (current_buffer,
+                             charpos - 1, charpos + 1, ITREE_DESCENDING);
+  /* Process overlays.  */
+  while ((node = buffer_overlay_iter_next (current_buffer)))
     {
-      buffer_overlay_iter_start (current_buffer,
-                                 charpos - 1, charpos + 1, ITREE_DESCENDING);
-      /* Process overlays.  */
-      while ((node = buffer_overlay_iter_next (current_buffer)))
-        {
-          overlay = node->data;
-          eassert (OVERLAYP (overlay));
-          start = node->begin;
-          end = node->end;
+      overlay = node->data;
+      eassert (OVERLAYP (overlay));
+      start = node->begin;
+      end = node->end;
 
-          /* Skip this overlay if it doesn't start or end at IT's current
-             position.  */
-          if (end != charpos && start != charpos)
-            continue;
+      /* Skip this overlay if it doesn't start or end at IT's current
+         position.  */
+      if (end != charpos && start != charpos)
+        continue;
 
-          /* Skip this overlay if it doesn't apply to IT->w.  */
-          window = Foverlay_get (overlay, Qwindow);
-          if (WINDOWP (window) && XWINDOW (window) != it->w)
-            continue;
+      /* Skip this overlay if it doesn't apply to IT->w.  */
+      window = Foverlay_get (overlay, Qwindow);
+      if (WINDOWP (window) && XWINDOW (window) != it->w)
+        continue;
 
-          /* If the text ``under'' the overlay is invisible, both before-
-             and after-strings from this overlay are visible; start and
-             end position are indistinguishable.  */
-          invisible = Foverlay_get (overlay, Qinvisible);
-          invis = TEXT_PROP_MEANS_INVISIBLE (invisible);
+      /* If the text ``under'' the overlay is invisible, both before-
+         and after-strings from this overlay are visible; start and
+         end position are indistinguishable.  */
+      invisible = Foverlay_get (overlay, Qinvisible);
+      invis = TEXT_PROP_MEANS_INVISIBLE (invisible);
 
-          /* If overlay has a non-empty before-string, record it.  */
-          if ((start == charpos || (end == charpos && invis != 0))
-              && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
-              && SCHARS (str))
-            RECORD_OVERLAY_STRING (overlay, str, false);
+      /* If overlay has a non-empty before-string, record it.  */
+      if ((start == charpos || (end == charpos && invis != 0))
+          && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
+          && SCHARS (str))
+        RECORD_OVERLAY_STRING (overlay, str, false);
 
-          /* If overlay has a non-empty after-string, record it.  */
-          if ((end == charpos || (start == charpos && invis != 0))
-              && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
-              && SCHARS (str))
-            RECORD_OVERLAY_STRING (overlay, str, true);
-        }
-      buffer_overlay_iter_finish (current_buffer);
+      /* If overlay has a non-empty after-string, record it.  */
+      if ((end == charpos || (start == charpos && invis != 0))
+          && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
+          && SCHARS (str))
+        RECORD_OVERLAY_STRING (overlay, str, true);
     }
+  buffer_overlay_iter_finish (current_buffer);
 
 #undef RECORD_OVERLAY_STRING
 

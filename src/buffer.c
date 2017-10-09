@@ -607,14 +607,9 @@ static void
 copy_overlays (struct buffer *from, struct buffer *to)
 {
   eassert (to && ! to->overlays);
-
   struct interval_node *node;
 
-  if (! from->overlays)
-    return;
-
   buffer_overlay_iter_start (from, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-
   while ((node = buffer_overlay_iter_next (from)))
     {
       Lisp_Object ov = node->data;
@@ -2277,20 +2272,16 @@ swap_buffer_overlays (struct buffer *buffer, struct buffer *other)
 {
   struct interval_node *node;
 
-  if (buffer->overlays)
-    {
-      buffer_overlay_iter_start  (buffer, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-      while ((node = buffer_overlay_iter_next (buffer)))
-        XOVERLAY (node->data)->buffer = other;
-      buffer_overlay_iter_finish (buffer);
-    }
-  if (other->overlays)
-    {
-      buffer_overlay_iter_start (other, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-      while ((node = buffer_overlay_iter_next (other)))
-        XOVERLAY (node->data)->buffer = buffer;
-      buffer_overlay_iter_finish (other);
-    }
+  buffer_overlay_iter_start  (buffer, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
+  while ((node = buffer_overlay_iter_next (buffer)))
+    XOVERLAY (node->data)->buffer = other;
+  buffer_overlay_iter_finish (buffer);
+
+  buffer_overlay_iter_start (other, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
+  while ((node = buffer_overlay_iter_next (other)))
+    XOVERLAY (node->data)->buffer = buffer;
+  buffer_overlay_iter_finish (other);
+
   /* Swap the interval trees. */
   void *tmp = buffer->overlays;
   buffer->overlays = other->overlays;
@@ -2837,11 +2828,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
   ptrdiff_t len = *len_ptr;
   ptrdiff_t next = ZV;
   Lisp_Object *vec = *vec_ptr;
-
   struct interval_node *node;
-
-  if (! current_buffer->overlays)
-    return idx;
 
   buffer_overlay_iter_start (current_buffer, beg,
                              /* Find empty OV at Z ? */
@@ -2904,9 +2891,6 @@ next_overlay_change (ptrdiff_t pos)
   ptrdiff_t next = ZV;
   struct interval_node *node;
 
-  if (! current_buffer->overlays)
-    return next;
-
   buffer_overlay_iter_start (current_buffer, pos, ZV, ITREE_ASCENDING);
   while ((node = buffer_overlay_iter_next (current_buffer)))
     {
@@ -2934,9 +2918,6 @@ previous_overlay_change (ptrdiff_t pos)
 {
   struct interval_node *node;
   ptrdiff_t prev = BEGV;
-
-  if (! current_buffer->overlays)
-    return prev;
 
   buffer_overlay_iter_start (current_buffer, BEGV, pos, ITREE_DESCENDING);
   while ((node = buffer_overlay_iter_next (current_buffer)))
@@ -3022,9 +3003,6 @@ overlay_touches_p (ptrdiff_t pos)
 {
   struct interval_node *node;
   bool result = false;
-
-  if (! current_buffer->overlays)
-    return false;
 
   /* We need to find overlays ending in pos, as well as empty ones at
      pos. */
@@ -3729,16 +3707,13 @@ However, the overlays you get are the real objects that the buffer uses. */)
   (void)
 {
   Lisp_Object overlays = Qnil;
+  struct interval_node *node;
 
-  if (current_buffer->overlays)
-    {
-      struct interval_node *node;
+  buffer_overlay_iter_start (current_buffer, BEG, Z, ITREE_DESCENDING);
+  while ((node = buffer_overlay_iter_next (current_buffer)))
+    overlays = Fcons (node->data, overlays);
+  buffer_overlay_iter_finish (current_buffer);
 
-      buffer_overlay_iter_start (current_buffer, BEG, Z, ITREE_DESCENDING);
-      while ((node = buffer_overlay_iter_next (current_buffer)))
-        overlays = Fcons (node->data, overlays);
-      buffer_overlay_iter_finish (current_buffer);
-    }
   return Fcons (overlays, Qnil);
 }
 
@@ -3972,15 +3947,10 @@ call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, bool after,
 void
 evaporate_overlays (ptrdiff_t pos)
 {
-  Lisp_Object hit_list;
+  Lisp_Object hit_list = Qnil;
   struct interval_node *node;
 
-  if (! current_buffer->overlays)
-    return;
-
-  hit_list = Qnil;
   buffer_overlay_iter_start (current_buffer, pos, pos, ITREE_ASCENDING);
-
   while ((node = buffer_overlay_iter_next (current_buffer)))
     {
       if (node->end == pos
@@ -3988,6 +3958,7 @@ evaporate_overlays (ptrdiff_t pos)
         hit_list = Fcons (node->data, hit_list);
     }
   buffer_overlay_iter_finish (current_buffer);
+
   for (; CONSP (hit_list); hit_list = XCDR (hit_list))
     Fdelete_overlay (XCAR (hit_list));
 }
