@@ -741,14 +741,15 @@ If the package is installed, its entry is removed from
               (progn
                 (when (assoc package (bound-and-true-p package-pinned-packages))
                   (package-read-all-archive-contents))
-                (if (assoc package package-archive-contents)
-                    (progn (package-install package) t)
-                  (progn
-                    (package-refresh-contents)
-                    (when (assoc package (bound-and-true-p
-                                          package-pinned-packages))
-                      (package-read-all-archive-contents))
-                    (package-install package))))
+                (cond ((assoc package package-archive-contents)
+                       (package-install package)
+                       t)
+                      (t
+                       (package-refresh-contents)
+                       (when (assoc package
+                                    (bound-and-true-p package-pinned-packages))
+                         (package-read-all-archive-contents))
+                       (package-install package))))
             (error (message "Error: Cannot load %s: %S" name err)
                    nil))))))
 
