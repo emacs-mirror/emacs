@@ -737,17 +737,21 @@ If the package is installed, its entry is removed from
                 ;; bypassed.
                 (member context '(:byte-compile :ensure :config))
                 (y-or-n-p (format "Install package %S?" package))))
-          (with-demoted-errors (format "Cannot load %s: %%S" name)
-            (when (assoc package (bound-and-true-p package-pinned-packages))
-              (package-read-all-archive-contents))
-            (if (assoc package package-archive-contents)
-                (progn (package-install package) t)
+          (condition-case-unless-debug err
               (progn
-                (package-refresh-contents)
-                (when (assoc package (bound-and-true-p
-                                      package-pinned-packages))
+                (when (assoc package (bound-and-true-p package-pinned-packages))
                   (package-read-all-archive-contents))
-                (package-install package))))))))
+                (cond ((assoc package package-archive-contents)
+                       (package-install package)
+                       t)
+                      (t
+                       (package-refresh-contents)
+                       (when (assoc package
+                                    (bound-and-true-p package-pinned-packages))
+                         (package-read-all-archive-contents))
+                       (package-install package))))
+            (error (message "Error: Cannot load %s: %S" name err)
+                   nil))))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest
