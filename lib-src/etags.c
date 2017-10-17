@@ -127,6 +127,9 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <unlocked-io.h>
 #include <c-ctype.h>
 #include <c-strcase.h>
+#include <fnmatch.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #include <assert.h>
 #ifdef NDEBUG
@@ -136,6 +139,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #include <getopt.h>
 #include <regex.h>
+
+#include <stat-time.h>
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
  Leave it undefined to make the program "etags", which makes emacs-style
@@ -335,6 +340,42 @@ typedef struct regexp
   bool multi_line;		/* do a multi-line match on the whole file */
 } regexp;
 
+/* A saved set of options.  These mirror some global flags.  */
+struct saved_options
+{
+  bool typedefs;
+  bool typedefs_or_cplusplus;
+  bool constantypedefs;
+  int globals;
+  int members;
+  int declarations;
+  int no_line_directive;
+  int no_duplicates;
+  bool cplusplus;
+  bool ignoreindent;
+  int packages_only;
+  int class_qualify;
+};
+
+/* A single entry in the file-name matching table.  */
+struct filename_matcher
+{
+  /* Saved argument text storage.  This starts life as a copy of the argument
+     text, but is processed in-place.  */
+  char *arg_storage;
+  /* Parsed regular expressions.  */
+  regexp *regexps;
+  /* Specified language, or NULL.  */
+  language *lang;
+  /* The glob pattern.  */
+  char *pattern;
+  /* True if this was a "!" (ignore) pattern.  */
+  bool ignore;
+  /* True if the arguments included a multi-line regexp.  */
+  bool need_filebuf;
+  /* If not ignored, the options that should be used for this parse.  */
+  struct saved_options options;
+};
 
 /* Many compilers barf on this:
 	Lang_function Ada_funcs;
@@ -420,6 +461,9 @@ static void free_filename_hash (void);
 static void copy_entries_from_old_file (FILE *old_file,
 					const char *old_filename,
 					FILE *out_file);
+static void walk_directory (const char *dirname);
+static void read_dot_etags (void);
+
 
 static char searchar = '/';	/* use /.../ searches */
 
@@ -473,12 +517,15 @@ static int packages_only;	/* --packages-only: in Ada, only tag packages*/
 static int class_qualify;	/* -Q: produce class-qualified tags in C++/Java */
 static int debug;		/* --debug */
 
+static bool find_mode;		/* --find */
+
 /* STDIN is defined in LynxOS system headers */
 #ifdef STDIN
 # undef STDIN
 #endif
 
 #define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
+#define FIND_MODE 0x1002	/* returned by getopt_long on --find */
 static bool parsing_stdin;	/* --parse-stdin used */
 
 static regexp *p_head;		/* list of all regexps */
@@ -507,6 +554,7 @@ static struct option longopts[] =
   { "parse-stdin",        required_argument, NULL,               STDIN },
   { "version",            no_argument,       NULL,               'V'   },
   { "update",             no_argument,       NULL,               'u'   },
+  { "find",               no_argument,       NULL,               FIND_MODE },
 
 #if CTAGS /* Ctags options */
   { "backward-search",    no_argument,       NULL,               'B'   },
@@ -1073,40 +1121,81 @@ Relative ones are stored relative to the output file's directory.\n");
 }
 
 
-int
-main (int argc, char **argv)
+static struct saved_options default_options;
+
+/* Create a struct saved_options from the current state.  */
+static struct saved_options
+save_options (void)
 {
-  int i;
+  struct saved_options result;
+
+  result.typedefs = typedefs;
+  result.typedefs_or_cplusplus = typedefs_or_cplusplus;
+  result.constantypedefs = constantypedefs;
+  result.globals = globals;
+  result.members = members;
+  result.declarations = declarations;
+  result.no_line_directive = no_line_directive;
+  result.no_duplicates = no_duplicates;
+  result.cplusplus = cplusplus;
+  result.ignoreindent = ignoreindent;
+  result.packages_only = packages_only;
+  result.class_qualify = class_qualify;
+
+  return result;
+}
+
+/* Set the global state from some saved options.  */
+static void
+set_global_state (const struct saved_options *options)
+{
+  typedefs = options->typedefs;
+  typedefs_or_cplusplus = options->typedefs_or_cplusplus;
+  constantypedefs = options->constantypedefs;
+  globals = options->globals;
+  members = options->members;
+  declarations = options->declarations;
+  no_line_directive = options->no_line_directive;
+  no_duplicates = options->no_duplicates;
+  cplusplus = options->cplusplus;
+  ignoreindent = options->ignoreindent;
+  packages_only = options->packages_only;
+  class_qualify = options->class_qualify;
+}
+
+/* Result of parse_options.  Some options are set globally, but some are
+   returned here.  */
+struct parsed_options
+{
+  bool help_asked;
+  argument *argbuffer;
   unsigned int nincluded_files;
   char **included_files;
-  argument *argbuffer;
-  int current_arg, file_count;
-  linebuffer filename_lb;
-  bool help_asked = false;
-  ptrdiff_t len;
-  char *optstring;
-  int opt;
+  int file_count;
+  int current_arg;
+};
 
-  progname = argv[0];
-  nincluded_files = 0;
-  included_files = xnew (argc, char *);
-  current_arg = 0;
-  file_count = 0;
+/* Parse the options.  If SETTINGS_ONLY is true, then only settings affecting
+   the parse are allowed; this is used when parsing the config file.  */
+static struct parsed_options
+parse_options (int argc, char **argv, bool settings_only)
+{
+  argument *argbuffer;
+  char *optstring;
+  int opt, file_count = 0, current_arg = 0;
+  ptrdiff_t len;
+  unsigned int nincluded_files = 0;
+  char **included_files = settings_only ? NULL : xnew (argc, char *);
+  bool help_asked = false;
+  struct parsed_options result;
 
   /* Allocate enough no matter what happens.  Overkill, but each one
      is small. */
   argbuffer = xnew (argc, argument);
 
-  /*
-   * Always find typedefs and structure tags.
-   * Also default to find macro constants, enum constants, struct
-   * members and global variables.  Do it for both etags and ctags.
-   */
-  typedefs = typedefs_or_cplusplus = constantypedefs = true;
-  globals = members = true;
-
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
+  optind = 1;
   optstring = concat ("-ac:Cf:Il:o:Qr:RSVhHu",
 		      (CTAGS) ? "BxdtTvw" : "Di:",
 		      "");
@@ -1120,6 +1209,9 @@ main (int argc, char **argv)
 	break;
 
       case 1:
+	if (settings_only)
+	  fatal ("can't specify file names via config file");
+
 	/* This means that a file name has been seen.  Record it. */
 	argbuffer[current_arg].arg_type = at_filename;
 	argbuffer[current_arg].what     = optarg;
@@ -1131,6 +1223,9 @@ main (int argc, char **argv)
 	break;
 
       case STDIN:
+	if (settings_only)
+	  fatal ("option `--parse-stdin' not valid in config file");
+
 	/* Parse standard input.  Idea by Vivek <vivek@etla.org>. */
 	argbuffer[current_arg].arg_type = at_stdin;
 	argbuffer[current_arg].what     = optarg;
@@ -1149,6 +1244,8 @@ main (int argc, char **argv)
       case 'C': cplusplus = true;		break;
       case 'f':		/* for compatibility with old makefiles */
       case 'o':
+	if (settings_only)
+	  fatal ("option `-%c' not valid in config file", opt);
 	if (tagfile)
 	  {
 	    error ("-o option may only be given once.");
@@ -1190,10 +1287,14 @@ main (int argc, char **argv)
 	++current_arg;
 	break;
       case 'V':
+	if (settings_only)
+	  fatal ("option `-V' not valid in config file");
 	print_version ();
 	break;
       case 'h':
       case 'H':
+	if (settings_only)
+	  fatal ("option `-%c' not valid in config file", opt);
 	help_asked = true;
 	break;
       case 'Q':
@@ -1201,9 +1302,20 @@ main (int argc, char **argv)
 	break;
       case 'u': update = true;					break;
 
+      case FIND_MODE:
+	if (settings_only)
+	  fatal ("option `--find' not valid in config file");
+	find_mode = true;
+	break;
+
 	/* Etags options */
       case 'D': constantypedefs = false;			break;
-      case 'i': included_files[nincluded_files++] = optarg;	break;
+
+      case 'i':
+	if (settings_only)
+	  fatal ("option `-i' not valid in config file");
+	included_files[nincluded_files++] = optarg;
+	break;
 
 	/* Ctags options. */
       case 'B': searchar = '?';					break;
@@ -1221,6 +1333,8 @@ main (int argc, char **argv)
   /* No more options.  Store the rest of arguments. */
   for (; optind < argc; optind++)
     {
+      if (settings_only)
+	fatal ("can't specify file names via config file");
       argbuffer[current_arg].arg_type = at_filename;
       argbuffer[current_arg].what = argv[optind];
       len = strlen (argv[optind]);
@@ -1232,16 +1346,153 @@ main (int argc, char **argv)
 
   argbuffer[current_arg].arg_type = at_end;
 
-  if (help_asked)
+  result.help_asked = help_asked;
+  result.argbuffer = argbuffer;
+  result.nincluded_files = nincluded_files;
+  result.included_files = included_files;
+  result.file_count = file_count;
+  result.current_arg = current_arg;
+  return result;
+}
+
+/* Process the command line arguments in ARGBUFFER.  FILENAME_LB is a
+   linebuffer suitable for reading file names.  */
+static void
+process_arguments (argument *argbuffer, linebuffer *filename_lb)
+{
+  int i;
+  language *lang = NULL;
+
+  /*
+   * Loop through files finding functions.
+   */
+  for (i = 0; argbuffer[i].arg_type != at_end; i++)
+    {
+      char *this_file;
+
+      switch (argbuffer[i].arg_type)
+	{
+	case at_language:
+	  lang = argbuffer[i].lang;
+	  break;
+	case at_regexp:
+	  analyze_regex (argbuffer[i].what);
+	  break;
+	case at_filename:
+	  this_file = argbuffer[i].what;
+	  /* Input file named "-" means read file names from stdin
+	     (one per line) and use them. */
+	  if (streq (this_file, "-"))
+	    {
+	      if (parsing_stdin)
+		fatal ("cannot parse standard input "
+		       "AND read file names from it");
+	      while (readline_internal (filename_lb, stdin, "-") > 0)
+		process_file_name (filename_lb->buffer, lang);
+	    }
+	  else
+	    process_file_name (this_file, lang);
+	  break;
+        case at_stdin:
+          this_file = argbuffer[i].what;
+          process_file (stdin, this_file, lang);
+          break;
+	default:
+	  error ("internal error: arg_type");
+	}
+    }
+}
+
+/* Validate the command line options in OPTIONS, issuing an error for any
+   invalid uses.  */
+static void
+validate_arguments (const struct parsed_options *options)
+{
+  argument *arg;
+
+  if (!find_mode)
+    {
+      if (options->nincluded_files == 0 && options->file_count == 0)
+	{
+	  error ("no input files specified.");
+	  suggest_asking_for_help ();
+	}
+      return;
+    }
+
+  if (options->nincluded_files > 0)
+    {
+      error ("--include cannot be used with --find");
+      suggest_asking_for_help ();
+    }
+
+  if (append_to_tagfile)
+    {
+      error ("-a cannot be used with --find");
+      suggest_asking_for_help ();
+    }
+
+  if (tagfile != NULL)
+    {
+      error ("--output cannot be used with --find");
+      suggest_asking_for_help ();
+    }
+
+  for (arg = options->argbuffer; arg->arg_type != at_end; ++arg)
+    {
+      if (arg->arg_type == at_stdin)
+	{
+	  error ("--parse-stdin cannot be used with --find");
+	  suggest_asking_for_help ();
+	}
+      else if (arg->arg_type == at_filename)
+	{
+	  error ("file names are ignored with --find");
+	  suggest_asking_for_help ();
+	}
+      else if (arg->arg_type == at_regexp)
+	{
+	  error ("regular expressions are ignored with --find");
+	  suggest_asking_for_help ();
+	}
+    }
+}
+
+int
+main (int argc, char **argv)
+{
+  int i;
+  linebuffer filename_lb;
+  struct parsed_options options;
+  argument *argbuffer;
+  unsigned int nincluded_files;
+  char **included_files;
+  int current_arg;
+
+  progname = argv[0];
+
+  /*
+   * Always find typedefs and structure tags.
+   * Also default to find macro constants, enum constants, struct
+   * members and global variables.  Do it for both etags and ctags.
+   */
+  typedefs = typedefs_or_cplusplus = constantypedefs = true;
+  globals = members = true;
+
+  options = parse_options (argc, argv, false);
+  argbuffer = options.argbuffer;
+  nincluded_files = options.nincluded_files;
+  included_files = options.included_files;
+  current_arg = options.current_arg;
+
+  /* Save the command-line settings for --find mode.  */
+  default_options = save_options ();
+
+  if (options.help_asked)
     print_help (argbuffer);
     /* NOTREACHED */
 
-  if (nincluded_files == 0 && file_count == 0)
-    {
-      error ("no input files specified.");
-      suggest_asking_for_help ();
-      /* NOTREACHED */
-    }
+  validate_arguments (&options);
 
   if (tagfile == NULL)
     tagfile = savestr (CTAGS ? "tags" : "TAGS");
@@ -1267,6 +1518,9 @@ main (int argc, char **argv)
   linebuffer_init (&filename_lb);
   linebuffer_init (&filebuf);
   linebuffer_init (&token_name);
+
+  if (find_mode)
+    read_dot_etags ();
 
   if (!CTAGS)
     {
@@ -1299,45 +1553,10 @@ main (int argc, char **argv)
 	pfatal (tagfile);
     }
 
-  /*
-   * Loop through files finding functions.
-   */
-  for (i = 0; i < current_arg; i++)
-    {
-      static language *lang;	/* non-NULL if language is forced */
-      char *this_file;
-
-      switch (argbuffer[i].arg_type)
-	{
-	case at_language:
-	  lang = argbuffer[i].lang;
-	  break;
-	case at_regexp:
-	  analyze_regex (argbuffer[i].what);
-	  break;
-	case at_filename:
-	  this_file = argbuffer[i].what;
-	  /* Input file named "-" means read file names from stdin
-	     (one per line) and use them. */
-	  if (streq (this_file, "-"))
-	    {
-	      if (parsing_stdin)
-		fatal ("cannot parse standard input "
-		       "AND read file names from it");
-	      while (readline_internal (&filename_lb, stdin, "-") > 0)
-		process_file_name (filename_lb.buffer, lang);
-	    }
-	  else
-	    process_file_name (this_file, lang);
-	  break;
-        case at_stdin:
-          this_file = argbuffer[i].what;
-          process_file (stdin, this_file, lang);
-          break;
-	default:
-	  error ("internal error: arg_type");
-	}
-    }
+  if (find_mode)
+    walk_directory (".");
+  else
+    process_arguments (argbuffer, &filename_lb);
 
   free_regexps ();
   free (lb.buffer);
@@ -7532,6 +7751,351 @@ filename_seen (const char *filename)
 
   char **slot = find_filename_hash_slot (filename);
   return *slot != NULL;
+}
+
+
+
+/* Modification time of .etags file.  */
+static struct timespec dot_etags_time;
+
+/* Return true if A is newer than B.  */
+static bool
+time_newer (const struct timespec *a, const struct timespec *b)
+{
+  return (a->tv_sec > b->tv_sec
+	  || (a->tv_sec == b->tv_sec
+	      && a->tv_nsec > b->tv_nsec));
+}
+
+/* Size of filename matcher array.  */
+static int filename_matcher_size;
+/* Next available entry in filename matcher array.  */
+static int filename_matcher_next;
+/* Filename matchers.  */
+static struct filename_matcher *matchers;
+
+/* Dequote INPUT in place.  This applies shell-like quoting rules, where \
+   escapes a single character, '' surround a string (and suppress backslash
+   dequoting), and "" surround a string (and still allow backslash dequoting).
+*/
+static char *
+dequote (char *input)
+{
+  char quote = '\0';
+  char *out = input;
+
+  while (true)
+    {
+      if (*input == '\0')
+	{
+	  *out = '\0';
+	  return input;
+	}
+
+      if (*input == quote)
+	{
+	  quote = '\0';
+	  ++input;
+	}
+      else if (*input == '\'' || *input == '"')
+	quote = *input++;
+      else if (*input == '\\' && input[1] != '\0' && quote != '\'')
+	{
+	  ++input;
+	  *out++ = *input++;
+	}
+      else if (c_isspace (*input))
+	{
+	  if (!quote)
+	    break;
+	  *out++ = *input++;
+	}
+      else
+	*out++ = *input++;
+    }
+
+  *out = '\0';
+  /* Use +1 here to skip over the whitespace we just cleared.  */
+  return input + 1;
+}
+
+/* Split INPUT into arguments at spaces, following the shell-like quoting rules
+   implemented by "dequote".  ARGC and ARGV are out parameters; ARGV is
+   allocated with malloc and must be freed by the caller. */
+static void
+split_arguments (char *input, int *argc, char ***argv)
+{
+  *argc = 1;
+  *argv = xnew (2, char *);
+  (*argv)[0] = progname;
+  (*argv)[1] = NULL;
+
+  while (true)
+    {
+      input = skip_spaces (input);
+      if (*input == '\0' || *input == '#')
+	break;
+
+      ++*argc;
+      xrnew (*argv, 1 + *argc, char *);
+
+      (*argv)[*argc - 1] = input;
+      (*argv)[*argc] = NULL;
+
+      input = dequote (input);
+    }
+}
+
+/* Parse a single line from a .etags file.  LINE is the contents of the line.
+   LINENO is the line number.  */
+static void
+add_entry (char *line, int lineno)
+{
+  bool is_ignore = false;
+  char *rx_end;
+
+  if (filename_matcher_next == filename_matcher_size)
+    {
+      if (filename_matcher_size == 0)
+	filename_matcher_size = 32;
+      else
+	filename_matcher_size *= 2;
+
+      matchers = (struct filename_matcher *)
+	xrealloc (matchers, (filename_matcher_size
+			     * sizeof (struct filename_matcher)));
+    }
+
+  if (*line == '#' || *line == '\0')
+    {
+      /* Comment.  */
+      return;
+    }
+  else if (*line == '!')
+    {
+      ++line;
+      is_ignore = true;
+    }
+  else if (c_isspace (*line))
+    fatal (".etags:%d: error: invalid leading space", lineno);
+
+  rx_end = skip_non_spaces (line);
+  matchers[filename_matcher_next].pattern = savenstr (line, rx_end - line);
+
+  if (!is_ignore)
+    {
+      int argc, j;
+      char **argv;
+      struct parsed_options options;
+      char *save_args = savestr (rx_end);
+
+      split_arguments (save_args, &argc, &argv);
+
+      set_global_state (&default_options);
+      /* FIXME error handling here could be way better */
+      options = parse_options (argc, argv, true);
+
+      for (j = 0;
+	   options.argbuffer && options.argbuffer[j].arg_type != at_end;
+	   ++j)
+	{
+	  switch (options.argbuffer[j].arg_type)
+	    {
+	    case at_language:
+	      matchers[filename_matcher_next].lang = options.argbuffer[j].lang;
+	      break;
+	    case at_regexp:
+	      analyze_regex (options.argbuffer[j].what);
+	      break;
+	    case at_filename:
+	    case at_stdin:
+	    default:
+	      pfatal ("internal error: arg_type");
+	    }
+	}
+
+      matchers[filename_matcher_next].arg_storage = save_args;
+      matchers[filename_matcher_next].regexps = p_head;
+      matchers[filename_matcher_next].need_filebuf = need_filebuf;
+      matchers[filename_matcher_next].options = save_options ();
+
+      p_head = NULL;
+      free (options.argbuffer);
+      free (argv);
+    }
+  else if (*rx_end && *rx_end != '#')
+    fatal (".etags:%d: error: non-empty `!' matcher", lineno);
+
+  matchers[filename_matcher_next].ignore = is_ignore;
+  ++filename_matcher_next;
+}
+
+/* If the .etags file is older than the TAGS file, set the global "update"
+   flag.  Otherwise, clear the flag.  */
+static void
+maybe_set_update_mode (void)
+{
+  struct stat st;
+  struct timespec mtime;
+
+  update = false;
+
+  /* If no TAGS file, nothing to do here.  */
+  if (stat (tagfile, &st) != 0)
+    return;
+
+  /* If the TAGS file is newer than the .etags file, just update.  */
+  mtime = get_stat_mtime (&st);
+  if (time_newer (&mtime, &dot_etags_time))
+    update = true;
+}
+
+/* Read the .etags file and parse its contents.  */
+static void
+read_dot_etags (void)
+{
+  FILE *dotetags = fopen (".etags", "r");
+  linebuffer line;
+  int lineno = 1;
+  struct stat st;
+
+  if (dotetags == NULL)
+    pfatal ("Could not open .etags");
+
+  if (fstat (fileno (dotetags), &st) != 0)
+    pfatal ("Could not stat .etags");
+  dot_etags_time = get_stat_mtime (&st);
+
+  linebuffer_init (&line);
+
+  while (true)
+    {
+      /* Parsing the options might change this, so reset it each time through
+	 the loop.  */
+      need_filebuf = false;
+
+      long r = readline_internal (&line, dotetags, ".etags");
+      if (r < 0)
+	pfatal ("reading .etags");
+      if (r == 0)
+	break;
+
+      add_entry (line.buffer, lineno);
+      ++lineno;
+    }
+
+  fclose (dotetags);
+  free (line.buffer);
+
+  maybe_set_update_mode ();
+}
+
+/* Give a filename, check the matchers.  The last match in the list wins.  If
+   no matcher matches, check the built-in suffix list.  If the file should be
+   parsed, set the global options and return true.  Otherwise, return
+   false.  */
+static bool
+set_options_from_filename (const char *filename, language **lang)
+{
+  int i;
+  const struct filename_matcher *result = NULL;
+  const char *ext;
+  char *uncompressed_name = NULL;
+
+  if (get_compressor_from_suffix (filename, &ext) != NULL)
+    {
+      uncompressed_name = savenstr (filename, ext - filename);
+      filename = uncompressed_name;
+    }
+
+  set_global_state (&default_options);
+  p_head = NULL;
+  *lang = NULL;
+  need_filebuf = false;
+
+  for (i = 0; i < filename_matcher_next; ++i)
+    {
+      if (fnmatch (matchers[i].pattern, filename, 0) == 0)
+	result = &matchers[i];
+    }
+
+  if (result != NULL)
+    {
+      free (uncompressed_name);
+
+      if (result->ignore)
+	return false;
+
+      set_global_state (&result->options);
+      p_head = result->regexps;
+      need_filebuf = result->need_filebuf;
+
+      return true;
+    }
+
+  /* FIXME case sensitivity?  */
+  *lang = get_language_from_filename (filename, true);
+  free (uncompressed_name);
+  return *lang != NULL;
+}
+
+
+
+/* Walk the directory DIRNAME and its children, looking for files to parse
+   according to the rules from the .etags file.  */
+static void
+walk_directory (const char *dirname)
+{
+  DIR *dirp;
+  struct dirent *entry;
+
+  dirp = opendir (dirname);
+  if (dirp == NULL)
+    fatal ("couldn't open directory %s", dirname);
+
+  while ((entry = readdir (dirp)) != NULL)
+    {
+      char *filename;
+      struct stat st;
+      language *lang;
+
+      if (streq (entry->d_name, ".") || streq (entry->d_name, "..")
+	  || streq (entry->d_name, ".etags"))
+	continue;
+
+      filename = concat (dirname, "/", entry->d_name);
+
+      if (stat (filename, &st) == 0)
+	{
+	  if (S_ISDIR (st.st_mode))
+	    {
+	      char *etags = concat (filename, "/", ".etags");
+	      if (access (etags, R_OK) == 0)
+		{
+		  /* Has a .etags file, so ignore.  */
+		}
+	      else
+		walk_directory (filename);
+	      free (etags);
+	    }
+	  else if (S_ISREG (st.st_mode)
+		   && set_options_from_filename (filename, &lang))
+	    {
+	      struct timespec t = get_stat_mtime (&st);
+
+	      if (update && time_newer (&dot_etags_time, &t))
+		{
+		  /* Nothing - .etags is newer.  */
+		}
+	      else
+		process_file_name (filename, lang);
+	    }
+	}
+
+      free (filename);
+    }
+
+  closedir (dirp);
 }
 
 /*
