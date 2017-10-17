@@ -159,6 +159,7 @@ the user specified."
     :functions
     :defer
     :custom
+    :custom-face
     :init
     :after
     :demand
@@ -1441,7 +1442,34 @@ deferred until the prefix key sequence is pressed."
              args)
      body)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; :custom-face
+;;
 
+(defun use-package-normalize/:custom-face (name-symbol keyword arg)
+  "Normalize use-package custom-face keyword."
+  (let ((error-msg (format "%s wants a (<symbol> <face-spec>) or list of these" name-symbol)))
+    (unless (listp arg)
+      (use-package-error error-msg))
+    (dolist (def arg arg)
+      (unless (listp def)
+        (use-package-error error-msg))
+      (let ((face (nth 0 def))
+            (spec (nth 1 def)))
+        (when (or (not face)
+                  (not spec)
+                  (> (length arg) 2))
+          (use-package-error error-msg))))))
+
+(defun use-package-handler/:custom-face (name keyword args rest state)
+  "Generate use-package custom-face keyword code."
+  (let ((body (use-package-process-keywords name rest state)))
+    (use-package-concat
+     (mapcar (lambda (def)
+               `(custom-set-faces (quote ,def)))
+             args)
+     body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1590,6 +1618,7 @@ this file.  Usage:
 :diminish        Support for diminish.el (if installed).
 :delight         Support for delight.el (if installed).
 :custom          Call `customize-set-variable' with each variable definition.
+:custom-face     Call `customize-set-faces' with each face definition.
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive."
   (declare (indent 1))
