@@ -158,6 +158,7 @@ the user specified."
     :defines
     :functions
     :defer
+    :custom
     :init
     :after
     :demand
@@ -1406,6 +1407,44 @@ deferred until the prefix key sequence is pressed."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;;; :custom
+;;
+
+(defun use-package-normalize/:custom (name-symbol keyword arg)
+  "Normalize use-package custom keyword."
+  (let ((error-msg (format "%s wants a (<symbol> <form> <optional string comment>) or list of these" name-symbol)))
+    (unless (listp arg)
+      (use-package-error error-msg))
+    (dolist (def arg arg)
+      (unless (listp def)
+        (use-package-error error-msg))
+      (let ((variable (nth 0 def))
+            (value (nth 1 def))
+            (comment (nth 2 def)))
+        (when (or (not variable)
+                  (not value)
+                  (> (length def) 3)
+                  (and comment (not (stringp comment))))
+          (use-package-error error-msg))))))
+
+(defun use-package-handler/:custom (name keyword args rest state)
+  "Generate use-package custom keyword code."
+  (let ((body (use-package-process-keywords name rest state)))
+    (use-package-concat
+     (mapcar (lambda (def)
+               (let ((variable (nth 0 def))
+                     (value (nth 1 def))
+                     (comment (nth 2 def)))
+                 (unless comment
+                   (setq comment (format "Customized with use-package %s" name)))
+                 `(customize-set-variable (quote ,variable) ,value ,comment)))
+             args)
+     body)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;;; :diminish
 ;;
 
@@ -1550,6 +1589,7 @@ this file.  Usage:
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
 :delight         Support for delight.el (if installed).
+:custom          Call `customize-set-variable' with each variable definition.
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive."
   (declare (indent 1))
