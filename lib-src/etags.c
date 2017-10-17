@@ -413,6 +413,13 @@ static void linebuffer_setlen (linebuffer *, int);
 static void *xmalloc (size_t);
 static void *xrealloc (void *, size_t);
 
+static void add_filename_to_hash (const char *filename);
+static bool filename_seen (const char *filename);
+static void free_filename_hash (void);
+
+static void copy_entries_from_old_file (FILE *old_file,
+					const char *old_filename,
+					FILE *out_file);
 
 static char searchar = '/';	/* use /.../ searches */
 
@@ -421,6 +428,8 @@ static char *progname;		/* name this program was invoked with */
 static char *cwd;		/* current working directory */
 static char *tagfiledir;	/* directory of tagfile */
 static FILE *tagf;		/* ioptr for tags file */
+static FILE *otagf;		/* ioptr for old tags file, used by update */
+static char *otagsfilename;	/* name of temporary file used by update */
 static ptrdiff_t whatlen_max;	/* maximum length of any 'what' member */
 
 static fdesc *fdhead;		/* head of file description list */
@@ -497,6 +506,7 @@ static struct option longopts[] =
   { "ignore-case-regex",  required_argument, NULL,               'c'   },
   { "parse-stdin",        required_argument, NULL,               STDIN },
   { "version",            no_argument,       NULL,               'V'   },
+  { "update",             no_argument,       NULL,               'u'   },
 
 #if CTAGS /* Ctags options */
   { "backward-search",    no_argument,       NULL,               'B'   },
@@ -505,7 +515,6 @@ static struct option longopts[] =
   { "globals",            no_argument,       &globals,           1     },
   { "typedefs",           no_argument,       NULL,               't'   },
   { "typedefs-and-c++",   no_argument,       NULL,               'T'   },
-  { "update",             no_argument,       NULL,               'u'   },
   { "vgrind",             no_argument,       NULL,               'v'   },
   { "no-warn",            no_argument,       NULL,               'w'   },
 
@@ -1020,6 +1029,10 @@ Relative ones are stored relative to the output file's directory.\n");
         files and then rewriting the new entries at the end of the\n\
         tags file.  It is often faster to simply rebuild the entire\n\
         tag file than to use this.");
+  else
+    puts ("-u, --update\n\
+        Update the tag entries for the given files, leaving tag\n\
+        entries for other files in place.");
 
   if (CTAGS)
     {
@@ -1094,8 +1107,8 @@ main (int argc, char **argv)
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
-  optstring = concat ("-ac:Cf:Il:o:Qr:RSVhH",
-		      (CTAGS) ? "BxdtTuvw" : "Di:",
+  optstring = concat ("-ac:Cf:Il:o:Qr:RSVhHu",
+		      (CTAGS) ? "BxdtTvw" : "Di:",
 		      "");
 
   while ((opt = getopt_long (argc, argv, optstring, longopts, NULL)) != EOF)
@@ -1186,6 +1199,7 @@ main (int argc, char **argv)
       case 'Q':
 	class_qualify = 1;
 	break;
+      case 'u': update = true;					break;
 
 	/* Etags options */
       case 'D': constantypedefs = false;			break;
@@ -1196,7 +1210,6 @@ main (int argc, char **argv)
       case 'd': constantypedefs = true;				break;
       case 't': typedefs = true;				break;
       case 'T': typedefs = typedefs_or_cplusplus = true;	break;
-      case 'u': update = true;					break;
       case 'v': vgrind_style = true;				FALLTHROUGH;
       case 'x': cxref_style = true;				break;
       case 'w': no_warnings = true;				break;
@@ -1263,7 +1276,25 @@ main (int argc, char **argv)
 	  set_binary_mode (STDOUT_FILENO, O_BINARY);
 	}
       else
-	tagf = fopen (tagfile, append_to_tagfile ? "ab" : "wb");
+	{
+	  if (update)
+	    {
+	      otagsfilename = relative_filename ("OTAGS", tagfiledir);
+	      if (rename (tagfile, otagsfilename) < 0)
+		{
+		  /* On failure, there's nothing to update.  */
+		  update = false;
+		}
+	      else
+		{
+		  otagf = fopen (otagsfilename, "r");
+		  if (otagf == NULL)
+		    pfatal (otagsfilename);
+		}
+	    }
+
+	  tagf = fopen (tagfile, append_to_tagfile ? "ab" : "wb");
+	}
       if (tagf == NULL)
 	pfatal (tagfile);
     }
@@ -1326,14 +1357,30 @@ main (int argc, char **argv)
 	  /* Output file entries that have no tags. */
 	  for (fdp = fdhead; fdp != NULL; fdp = fdp->next)
 	    if (!fdp->written)
-	      fprintf (tagf, "\f\n%s,0\n", fdp->taggedfname);
+	      {
+		fprintf (tagf, "\f\n%s,0\n", fdp->taggedfname);
+		add_filename_to_hash (fdp->taggedfname);
+	      }
 
 	  while (nincluded_files-- > 0)
-	    fprintf (tagf, "\f\n%s,include\n", *included_files++);
+	    {
+	      add_filename_to_hash (*included_files);
+	      fprintf (tagf, "\f\n%s,include\n", *included_files++);
+	    }
+
+	  if (otagf != NULL)
+	    {
+	      assert (update);
+	      copy_entries_from_old_file (otagf, otagsfilename, tagf);
+	      fclose (otagf);
+	      unlink (otagsfilename);
+	    }
 
 	  if (fclose (tagf) == EOF)
 	    pfatal (tagfile);
 	}
+
+      free_filename_hash ();
 
       return EXIT_SUCCESS;
     }
@@ -1393,6 +1440,66 @@ main (int argc, char **argv)
   return EXIT_SUCCESS;
 }
 
+/* In update mode, copy some tag entries from OLD_FILE (which is named
+   OLD_FILENAME) to the new tag file, OUT_FILE.  Only entries from files that
+   were not read during this invocation are copied.  */
+static void
+copy_entries_from_old_file (FILE *old_file, const char *old_filename, FILE *out_file)
+{
+  linebuffer line;
+
+  need_filebuf = false;
+
+  linebuffer_init (&line);
+  while (true)
+    {
+      char *comma, *filename;
+      bool should_copy;
+
+      if (readline_internal (&line, old_file, old_filename) <= 0)
+	break;
+
+      if (line.len < 1 || !strneq (line.buffer, "\f", 1))
+	goto error;
+
+      if (readline_internal (&line, old_file, old_filename) <= 0)
+	goto error;
+
+      comma = memchr (line.buffer, ',', line.len);
+      if (comma == NULL)
+	goto error;
+
+      filename = savenstr (line.buffer, comma - line.buffer);
+      should_copy = !filename_seen (filename);
+      free (filename);
+
+      if (should_copy)
+	{
+	  fputs ("\f\n", out_file);
+	  fwrite (line.buffer, line.len, 1, out_file);
+	  fputs ("\n", out_file);
+	}
+
+      while (true)
+	{
+	  if (readline_internal (&line, old_file, old_filename) <= 0)
+	    break;
+
+	  if (should_copy)
+	    {
+	      fwrite (line.buffer, line.len, 1, out_file);
+	      fputs ("\n", out_file);
+	    }
+	}
+    }
+
+  free (line.buffer);
+  return;
+
+ error:
+  error ("invalid TAGS file");
+  free (line.buffer);
+}
 
 /*
  * Return a compressor given the file name.  If EXTPTR is non-zero,
@@ -2342,6 +2449,7 @@ put_entry (node *np)
 	      fprintf (tagf, "\f\n%s,%d\n",
 		       fdp->taggedfname, total_size_of_entries (np));
 	      fdp->written = true;
+	      add_filename_to_hash (fdp->taggedfname);
 	    }
 	  fputs (np->regex, tagf);
 	  fputc ('\177', tagf);
@@ -7301,6 +7409,129 @@ xrealloc (void *ptr, size_t size)
   if (result == NULL)
     fatal ("virtual memory exhausted");
   return result;
+}
+
+
+
+/* The filename hash table.  */
+static char **filename_hash_table;
+/* Total number of slots in the filename hash table.  This is always a power of
+   two.  */
+static int filename_hash_size = 0;
+/* Number of non-empty entries in the filename hash table.  */
+static int filename_entries = 0;
+
+/* Free the filename hash table.  */
+static void
+free_filename_hash (void)
+{
+  int i;
+
+  for (i = 0; i < filename_hash_size; ++i)
+    if (filename_hash_table[i] != NULL)
+      free (filename_hash_table[i]);
+
+  free (filename_hash_table);
+  filename_hash_table = NULL;
+  filename_hash_size = 0;
+  filename_entries = 0;
+}
+
+/* Compute a hash for FILENAME.  */
+static unsigned
+hash_filename (const char *filename)
+{
+  unsigned r = 0;
+  unsigned char c;
+
+  while ((c = *filename++) != 0)
+    r = r * 67 + c - 113;
+
+  return r;
+}
+
+/* Find the hash table slot for FILENAME.  If the slot holds NULL, then
+   FILENAME does not yet exist in the hash table.  */
+static char **
+find_filename_hash_slot (const char *filename)
+{
+  unsigned val = hash_filename (filename) % filename_hash_size;
+  unsigned index = val;
+
+  while (true)
+    {
+      if (filename_hash_table[index] == NULL
+	  || streq (filename_hash_table[index], filename))
+	return &filename_hash_table[index];
+
+      /* Add 1 because, if VAL==0, we won't advance.  */
+      index = (index + val + 1) % filename_hash_size;
+    }
+}
+
+static void resize_filename_hash (void);
+
+/* A helper function for add_filename_to_hash and resize_filename_hash.  Find
+   FILENAME in the hash table.  If SAVED_COPY is not NULL, it will be stored in
+   the hash; otherwise, FILENAME will be copied if needed.  */
+static void
+internal_add_filename_to_hash (const char *filename, char *saved_copy)
+{
+  char **slot;
+
+  if (filename_hash_size == 0)
+    {
+      filename_hash_size = 128;
+      filename_hash_table = (char **) xmalloc (128 * sizeof (char *));
+      memset (filename_hash_table, 0, 128 * sizeof (char *));
+    }
+
+  slot = find_filename_hash_slot (filename);
+  if (*slot == NULL)
+    {
+      *slot = saved_copy ? saved_copy : savestr (filename);
+      ++filename_entries;
+
+      if (4 * filename_entries >= 3 * filename_hash_size)
+	resize_filename_hash ();
+    }
+}
+
+/* Grow the filename hash table.  */
+static void
+resize_filename_hash (void)
+{
+  char **old_slots = filename_hash_table;
+  int old_len = filename_hash_size;
+  int i;
+
+  filename_hash_size *= 2;
+  filename_hash_table = (char **) xmalloc (filename_hash_size * sizeof (char *));
+  memset (filename_hash_table, 0, filename_hash_size * sizeof (char *));
+
+  for (i = 0; i < old_len; ++i)
+    if (old_slots[i] != NULL)
+      internal_add_filename_to_hash (old_slots[i], old_slots[i]);
+
+  free (old_slots);
+}
+
+/* Add FILENAME to the filename hash table.  */
+static void
+add_filename_to_hash (const char *filename)
+{
+  internal_add_filename_to_hash (filename, NULL);
+}
+
+/* Return true iff FILENAME is in the filename hash table.  */
+static bool
+filename_seen (const char *filename)
+{
+  if (filename_hash_size == 0)
+    return false;
+
+  char **slot = find_filename_hash_slot (filename);
+  return *slot != NULL;
 }
 
 /*
