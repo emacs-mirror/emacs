@@ -78,7 +78,9 @@ Vars that list servers that might be:
    with all their possible server parameters and functions.
 3. ~gnus-predefined-server-alist~: This one not so much, it just
    indicates what we should start out with.
-
+** TODO Use Wisent parser for server output
+Once CEDET is fully merged into Emacs, write a proper parser for NNTP
+and IMAP server output.
 ** TODO Use real hashtables
 :PROPERTIES:
 :ID:       a77c3c3f-ee90-4fdd-99d7-fd4c636c14bb
