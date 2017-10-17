@@ -1285,19 +1285,19 @@ main (int argc, char **argv)
 	  analyze_regex (argbuffer[i].what);
 	  break;
 	case at_filename:
-	      this_file = argbuffer[i].what;
-	      /* Input file named "-" means read file names from stdin
-		 (one per line) and use them. */
-	      if (streq (this_file, "-"))
-		{
-		  if (parsing_stdin)
-		    fatal ("cannot parse standard input "
-			   "AND read file names from it");
-		  while (readline_internal (&filename_lb, stdin, "-") > 0)
-		    process_file_name (filename_lb.buffer, lang);
-		}
-	      else
-		process_file_name (this_file, lang);
+	  this_file = argbuffer[i].what;
+	  /* Input file named "-" means read file names from stdin
+	     (one per line) and use them. */
+	  if (streq (this_file, "-"))
+	    {
+	      if (parsing_stdin)
+		fatal ("cannot parse standard input "
+		       "AND read file names from it");
+	      while (readline_internal (&filename_lb, stdin, "-") > 0)
+		process_file_name (filename_lb.buffer, lang);
+	    }
+	  else
+	    process_file_name (this_file, lang);
 	  break;
         case at_stdin:
           this_file = argbuffer[i].what;
