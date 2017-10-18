@@ -405,10 +405,10 @@ static char *skip_name (char *);
 static char *savenstr (const char *, ptrdiff_t);
 static char *savestr (const char *);
 static char *etags_getcwd (void);
-static char *relative_filename (char *, char *);
-static char *absolute_filename (char *, char *);
+static char *relative_filename (const char *, const char *);
+static char *absolute_filename (const char *, const char *);
 static char *absolute_dirname (char *, char *);
-static bool filename_is_absolute (char *f);
+static bool filename_is_absolute (const char *f);
 static void canonicalize_filename (char *);
 static char *etags_mktmp (void);
 static void linebuffer_init (linebuffer *);
@@ -1415,7 +1415,7 @@ main (int argc, char **argv)
  * Idea by Vladimir Alexiev <vladimir@cs.ualberta.ca> (1998)
  */
 static compressor *
-get_compressor_from_suffix (char *file, char **extptr)
+get_compressor_from_suffix (const char *file, const char **extptr)
 {
   compressor *compr;
   char *slash, *suffix;
@@ -1495,7 +1495,7 @@ get_language_from_interpreter (char *interpreter)
  * Return a language given the file name.
  */
 static language *
-get_language_from_filename (char *file, bool case_sensitive)
+get_language_from_filename (const char *file, boot case_sensitive)
 {
   language *lang;
   const char **name, **ext, *suffix;
@@ -1543,7 +1543,8 @@ process_file_name (char *file, language *lang)
   fdesc *fdp;
   compressor *compr;
   char *compressed_name, *uncompressed_name;
-  char *ext, *real_name UNINIT, *tmp_name UNINIT;
+  const char *ext;
+  char *real_name UNINIT, *tmp_name UNINIT;
   int retval;
 
   canonicalize_filename (file);
@@ -7090,10 +7091,11 @@ etags_mktmp (void)
 /* Return a newly allocated string containing the file name of FILE
    relative to the absolute directory DIR (which should end with a slash). */
 static char *
-relative_filename (char *file, char *dir)
+relative_filename (const char *file, const char *dir)
 {
-  char *fp, *dp, *afn, *res;
-  ptrdiff_t i;
+  const char *fp, *dp;
+  char *afn, *res;
+  ptrdiff i;
 
   /* Find the common root of file and dir (with a trailing slash). */
   afn = absolute_filename (file, cwd);
@@ -7129,7 +7131,7 @@ relative_filename (char *file, char *dir)
 /* Return a newly allocated string containing the absolute file name
    of FILE given DIR (which should end with a slash). */
 static char *
-absolute_filename (char *file, char *dir)
+absolute_filename (const char *file, const char *dir)
 {
   char *slashp, *cp, *res;
 
@@ -7212,7 +7214,7 @@ absolute_dirname (char *file, char *dir)
 /* Whether the argument string is an absolute file name.  The argument
    string must have been canonicalized with canonicalize_filename. */
 static bool
-filename_is_absolute (char *fn)
+filename_is_absolute (const char *fn)
 {
   return (fn[0] == '/'
 #ifdef DOS_NT
