@@ -78,9 +78,7 @@ You can <q>uit; don't modify this file.")))
 This function has two choices: it can return, in which case the modification
 of the buffer will proceed, or it can (signal 'file-supersession (file)),
 in which case the proposed buffer modification will not be made.
-
-You can rewrite this to use any criterion you like to choose which one to do.
-The buffer in question is current when this function is called."
+You can rewrite this to use any criterion you like to choose which one to do."
   (discard-input)
   (save-window-excursion
     (let (answer)
@@ -118,7 +116,8 @@ If you say `y' to go ahead and modify this buffer,
 you risk ruining the work of whoever rewrote the file.
 If you say `n', the change you started to make will be aborted.
 
-Usually, you should type `n' and then `M-x revert-buffer',
-to get the latest version of the file, then make the change again.")))
+You might consider answering `n', running `M-x revert-buffer' to
+bring the text in Emacs into accord with what is on disk, and then
+making the change again.")))
 
 

@@ -8,7 +8,7 @@
 ;;; 
 ;;;    Copyright (C) 1986 Free Software Foundation, Inc.
 ;;; 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
 ;;;
 ;;; Batten@uk.ac.bham.multics (Ian G. Batten)
 ;;;

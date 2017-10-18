@@ -1,18 +1,3 @@
-;; When we are about to make a backup file,
-;; uncompress the file we visited
-;; so that making the backup can work properly.
-;; This is used as a write-file-hook.
-
-(defun uncompress-backup-file ()
-  (and buffer-file-name make-backup-files (not buffer-backed-up)
-       (not (file-exists-p buffer-file-name))
-       (call-process "uncompress" nil nil nil buffer-file-name))
-  nil)
-
-(or (assoc "\\.Z$" auto-mode-alist)
-    (setq auto-mode-alist
-	  (cons '("\\.Z$" . uncompress-while-visiting) auto-mode-alist)))
-
 (defun uncompress-while-visiting ()
   "Temporary \"major mode\" used for .Z files, to uncompress the contents.
 It then selects a major mode from the uncompressed file name and contents."
@@ -25,14 +10,10 @@ It then selects a major mode from the uncompressed file name and contents."
     (shell-command-on-region (point-min) (point-max) "uncompress" t))
   (message "Uncompressing...done")
   (set-buffer-modified-p nil)
-  (make-local-variable 'write-file-hooks)
-  (or (memq 'uncompress-backup-file write-file-hooks)
-      (setq write-file-hooks (cons 'uncompress-backup-file write-file-hooks)))
   (normal-mode))
 
-(or (memq 'find-compressed-version find-file-not-found-hooks)
-    (setq find-file-not-found-hooks
-	  (cons 'find-compressed-version find-file-not-found-hooks)))
+(setq auto-mode-alist
+      (cons '("\\.Z$" . uncompress-while-visiting) auto-mode-alist))
 
 (defun find-compressed-version ()
   "Hook to read and uncompress the compressed version of a file."
@@ -45,3 +26,6 @@ It then selects a major mode from the uncompressed file name and contents."
 	(goto-char (point-min))
 	(setq error nil)
 	t)))
+
+(setq find-file-not-found-hooks
+      (cons 'find-compressed-version find-file-not-found-hooks))

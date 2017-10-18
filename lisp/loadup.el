@@ -1,4 +1,4 @@
-;;Load up standardly loaded Lisp files for Emacs.
+;Load up standardly loaded Lisp files for Emacs.
 ;; This is loaded into a bare Emacs to make a dumpable one.
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
@@ -18,6 +18,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Disable undo in the *scratch* buffer so it doesn't get dumped.
+(buffer-flush-undo (get-buffer "*scratch*"))
 
 (load "subr")
 (garbage-collect)
@@ -62,10 +64,6 @@
     (progn
       (garbage-collect)
       (load "vms-patch")))
-(if (fboundp 'atan)	; preload some constants and 
-    (progn		; floating pt. functions if 
-      (garbage-collect)	; we have float support.
-      (load "float-sup")))
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
@@ -103,6 +101,10 @@
 (load "site-init" t)
 (garbage-collect)
 
+;;; Re-enable undo in the *scratch* buffer, so the dumped Emacs will
+;;; start up that way.
+(buffer-enable-undo (get-buffer "*scratch*"))
+
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))
     (if (eq system-type 'vax-vms)
@@ -110,24 +112,32 @@
 	  (message "Dumping data as file temacs.dump")
 	  (dump-emacs "temacs.dump" "temacs")
 	  (kill-emacs))
-      (let ((name (concat "emacs-" emacs-version)))
-	(while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			     "-"
-			     (substring name (match-end 0)))))
-	(message "Dumping under names xemacs and %s" name))
-      (condition-case ()
-	  (delete-file "xemacs")
-	(file-error nil))
-      (dump-emacs "xemacs" "temacs")
-      ;; Recompute NAME now, so that it isn't set when we dump.
-      (let ((name (concat "emacs-" emacs-version)))
-	(while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			     "-"
-			     (substring name (match-end 0)))))
-	(add-name-to-file "xemacs" name t))
-      (kill-emacs)))
+      (if (fboundp 'dump-emacs-data)
+	  ;; Handle the IBM RS/6000, and perhaps eventually other machines.
+	  (progn
+	    ;; This strange nesting is so that the variable `name'
+	    ;; is not bound when the data is dumped.
+	    (message "Dumping data as file ../etc/EMACS-DATA")
+	    (dump-emacs-data "../etc/EMACS-DATA")
+	    (kill-emacs))
+	(let ((name (concat "emacs-" emacs-version)))
+	  (while (string-match "[^-+_.a-zA-Z0-9]+" name)
+	    (setq name (concat (downcase (substring name 0 (match-beginning 0)))
+			       "-"
+			       (substring name (match-end 0)))))
+	  (message "Dumping under names xemacs and %s" name))
+	(condition-case ()
+	    (delete-file "xemacs")
+	  (file-error nil))
+	(dump-emacs "xemacs" "temacs")
+	;; Recompute NAME now, so that it isn't set when we dump.
+	(let ((name (concat "emacs-" emacs-version)))
+	  (while (string-match "[^-+_.a-zA-Z0-9]+" name)
+	    (setq name (concat (downcase (substring name 0 (match-beginning 0)))
+			       "-"
+			       (substring name (match-end 0)))))
+	  (add-name-to-file "xemacs" name t))
+	(kill-emacs))))
 
 ;; Avoid error if user loads some more libraries now.
 (setq purify-flag nil)

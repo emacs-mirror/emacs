@@ -23,12 +23,12 @@
 
 (defvar ledit-mode-map nil)
 
-(defconst ledit-zap-file (concat "/tmp/" (user-login-name) ".l1")
+(defconst ledit-zap-file (concat "/tmp/" (getenv "USER") ".l1")
   "File name for data sent to Lisp by Ledit.")
-(defconst ledit-read-file (concat "/tmp/" (user-login-name) ".l2")
+(defconst ledit-read-file (concat "/tmp/" (getenv "USER") ".l2")
   "File name for data sent to Ledit by Lisp.")
 (defconst ledit-compile-file 
-  (concat "/tmp/" (user-login-name) ".l4")
+  (concat "/tmp/" (getenv "USER") ".l4")
   "File name for data sent to Lisp compiler by Ledit.")
 (defconst ledit-buffer "*LEDIT*"
   "Name of buffer in which Ledit accumulates data to send to Lisp.")
@@ -57,19 +57,19 @@
   (message "Region saved for Lisp"))
 
 (defun ledit-zap-defun-to-lisp ()
-  "Carry the current defun to Lisp."
+  "Carry the current defun to lisp"
   (interactive)
   (ledit-save-defun)
   (ledit-go-to-lisp))
 
 (defun ledit-zap-defun-to-liszt ()
-  "Carry the current defun to liszt."
+  "Carry the current defun to liszt"
   (interactive)
   (ledit-save-defun)
   (ledit-go-to-liszt))
 
 (defun ledit-zap-region-to-lisp (beg end)
-  "Carry the current region to Lisp."
+  "Carry the current region to lisp"
   (interactive "r")
   (ledit-save-region beg end)
   (ledit-go-to-lisp))
@@ -104,7 +104,7 @@
   (load ledit-read-file t t))
 
 (defun ledit-setup ()
-  "Set up key bindings for the Lisp/Emacs interface."
+  "Set up key bindings for the Lisp / Emacs interface"
   (if (not ledit-mode-map)
       (progn (setq ledit-mode-map (make-sparse-keymap))
 	     (lisp-mode-commands ledit-mode-map)))
@@ -116,13 +116,13 @@
 (ledit-setup)
 
 (defun ledit-mode ()
-  "\\<ledit-mode-map>Major mode for editing text and stuffing it to a Lisp job.
+  "Major mode for editing text and stuffing it to a Lisp job.
 Like Lisp mode, plus these special commands:
-  \\[ledit-save-defun]	-- record defun at or after point
+  M-C-d	-- record defun at or after point
 	   for later transmission to Lisp job.
-  \\[ledit-save-region] -- record region for later transmission to Lisp job.
-  \\[ledit-go-to-lisp] -- transfer to Lisp job and transmit saved text.
-  \\[ledit-go-to-liszt] -- transfer to Liszt (Lisp compiler) job
+  M-C-r -- record region for later transmission to Lisp job.
+  C-x z -- transfer to Lisp job and transmit saved text.
+  M-C-c -- transfer to Liszt (Lisp compiler) job
 	   and transmit saved text.
 \\{ledit-mode-map}
 To make Lisp mode automatically change to Ledit mode,

@@ -86,18 +86,18 @@ are bound.")
 
 (define-abbrev-table 'mim-mode-abbrev-table nil)
 
-(defconst indent-mim-function 'indent-mim-function
+(defconst indent-mim-hook 'indent-mim-hook
   "Controls (via properties) indenting of special forms.
-\(put 'FOO 'indent-mim-function n\), integer n, means lines inside
+\(put 'FOO 'indent-mim-hook n\), integer n, means lines inside
 <FOO ...> will be indented n spaces from start of form.
-\(put 'FOO 'indent-mim-function 'DEFINE\) is like above but means use
+\(put 'FOO 'indent-mim-hook 'DEFINE\) is like above but means use
 value of mim-body-indent as offset from start of form.
-\(put 'FOO 'indent-mim-function <cons>\) where <cons> is a list or pointted list
+\(put 'FOO 'indent-mim-hook <cons>\) where <cons> is a list or pointted list
 of integers, means indent each form in <FOO ...> by the amount specified
 in <cons>.  When <cons> is exhausted, indent remaining forms by
-`mim-body-indent' unless <cons> is a pointed list, in which case the last
-cdr is used.  Confused?  Here is an example:
-\(put 'FROBIT 'indent-mim-function '\(4 2 . 1\)\)
+mim-body-indent unless <cons> is a pointted list, in which case the last
+cdr is used.  Confused? Here is an example:
+\(put 'FROBIT 'indent-mim-hook '\(4 2 . 1\)\)
 <FROBIT
      <CHOMP-IT>
    <CHOMP-SOME-MORE>
@@ -111,7 +111,7 @@ Finally, the property can be a function name (read the code).")
 
 (defvar mim-body-indent 2
   "*Amount to indent in special forms which have DEFINE property on
-`indent-mim-function'.")
+indent-mim-hook.")
 
 (defvar indent-mim-arglist t
   "*nil means indent arglists like ordinary lists.
@@ -125,16 +125,16 @@ Examples (for values 'stack, t, nil):
      \"AUX\"                  \"AUX\"                     \"AUX\"
      BLETCH ...             BLETCH ...                BLETCH ...")
 
-(put 'DEFINE 'indent-mim-function 'DEFINE)
-(put 'DEFMAC 'indent-mim-function 'DEFINE)
-(put 'BIND 'indent-mim-function 'DEFINE)
-(put 'PROG 'indent-mim-function 'DEFINE)
-(put 'REPEAT 'indent-mim-function 'DEFINE)
-(put 'CASE 'indent-mim-function 'DEFINE)
-(put 'FUNCTION 'indent-mim-function 'DEFINE)
-(put 'MAPF 'indent-mim-function 'DEFINE)
-(put 'MAPR 'indent-mim-function 'DEFINE)
-(put 'UNWIND 'indent-mim-function (cons (* 2 mim-body-indent) mim-body-indent))
+(put 'DEFINE 'indent-mim-hook 'DEFINE)
+(put 'DEFMAC 'indent-mim-hook 'DEFINE)
+(put 'BIND 'indent-mim-hook 'DEFINE)
+(put 'PROG 'indent-mim-hook 'DEFINE)
+(put 'REPEAT 'indent-mim-hook 'DEFINE)
+(put 'CASE 'indent-mim-hook 'DEFINE)
+(put 'FUNCTION 'indent-mim-hook 'DEFINE)
+(put 'MAPF 'indent-mim-hook 'DEFINE)
+(put 'MAPR 'indent-mim-hook 'DEFINE)
+(put 'UNWIND 'indent-mim-hook (cons (* 2 mim-body-indent) mim-body-indent))
 
 (defvar mim-down-parens-only t
   "*nil means treat ADECLs and ATOM trailers like structures when
@@ -150,17 +150,35 @@ only open paren syntax characters will be considered.")
 (defun mim-mode ()
   "Major mode for editing Mim (MDL in MDL) code.
 Commands:
-    If value of `mim-mode-hysterical-bindings' is non-nil, then following
-commands are assigned to escape keys as well (e.g. ESC f = ESC C-f).
+    If value of mim-mode-hysterical-bindings is non-nil, then following
+commands are assigned to escape keys as well (e.g. M-f = M-C-f).
 The default action is bind the escape keys.
-\\{mim-mode-map}
+  Tab        Indents the current line as MDL code.
+  Delete     Converts tabs to spaces as it moves back.
+  M-C-f      Move forward over next mim object.
+  M-C-b      Move backward over previous mim object.
+  M-C-p      Move to beginning of previous toplevel mim object.
+  M-C-n      Move to the beginning of the next toplevel mim object.
+  M-C-a      Move to the top of surrounding toplevel mim form.
+  M-C-e      Move to the end of surrounding toplevel mim form.
+  M-C-u      Move up a level of mim structure backwards.
+  M-C-d      Move down a level of mim structure forwards.
+  M-C-t      Transpose mim objects on either side of point.
+  M-C-k      Kill next mim object.
+  M-C-h      Place mark at end of next mim object.
+  M-C-o      Insert a newline before current line and indent.
+  M-Delete   Kill previous mim object.
+  M-^        Join current line to previous line.
+  M-\\        Delete whitespace around point.
+  M-;        Move to existing comment or insert empty comment if none.
+  M-Tab      Indent following mim object and all contained lines.
 Other Commands:
   Use \\[describe-function] to obtain documentation.
   replace-in-mim-object  find-mim-definition  fast-syntax-check-mim
   slow-syntax-check-mim  backward-down-mim-object  forward-up-mim-object
 Variables:
   Use \\[describe-variable] to obtain documentation.
-  mim-mode-hook  indent-mim-comment  indent-mim-arglist  indent-mim-function
+  mim-mode-hook  indent-mim-comment  indent-mim-arglist  indent-mim-hook
   mim-body-indent  mim-down-parens-only  mim-stop-for-slop
   mim-mode-hysterical-bindings
 Entry to this mode calls the value of mim-mode-hook if non-nil."
@@ -592,15 +610,15 @@ is reached."
       ;; then state corresponds to containing environment.  if desired
       ;; indentation not determined, we are inside a form, so call hook.
       (or desired-indent
-	  (and indent-mim-function
+	  (and indent-mim-hook
 	       (not retry)
 	       (setq desired-indent
-		     (funcall indent-mim-function state indent-point)))
+		     (funcall indent-mim-hook state indent-point)))
 	  (setq desired-indent (current-column)))
       (goto-char indent-point)		; back to where we started
       desired-indent)))			; return column to indent to
 
-(defun indent-mim-function (state indent-point)
+(defun indent-mim-hook (state indent-point)
   "Compute indentation for Mim special forms.  Returns column or nil."
   (let ((containing-sexp (car (cdr state))) (current-indent (point)))
     (save-excursion
@@ -618,7 +636,7 @@ is reached."
 		  (intern-soft (buffer-substring (point)
 						 (progn (forward-sexp 1)
 							(point)))))
-		 (method (get function 'indent-mim-function)))
+		 (method (get function 'indent-mim-hook)))
 	    (if (or (if (equal method 'DEFINE) (setq method mim-body-indent))
 		    (integerp method))
 		;; only use method if its first line after containing-sexp.
@@ -651,7 +669,7 @@ is reached."
 (defun indent-mim-offset (state indent-point)
   ;; offset forms explicitly according to list of indentations.
   (let ((mim-body-indent mim-body-indent)
-	(indentations (get function 'indent-mim-function))
+	(indentations (get function 'indent-mim-hook))
 	(containing-sexp (car (cdr state)))
 	(last-sexp (car (nthcdr 2 state)))
 	indentation)

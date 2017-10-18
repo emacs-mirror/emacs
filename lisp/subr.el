@@ -1,5 +1,5 @@
 ;; Basic lisp subroutines for Emacs
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,28 +18,15 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(defun one-window-p (&optional arg)
+(defun one-window-p (&optional nomini)
   "Returns non-nil if there is only one window.
 Optional arg NOMINI non-nil means don't count the minibuffer
 even if it is active."
-  (eq (selected-window)
-      (next-window (selected-window) (if arg 'arg))))
-
-(defun walk-windows (proc &optional minibuf all-screens)
-  "Cycle through all visible windows, calling PROC for each one.
-PROC is called with a window as argument.
-Optional second arg MINIBUF t means count the minibuffer window
-even if not active.  If MINIBUF is neither t nor nil it means
-not to count the minibuffer even if it is active.
-Optional third arg ALL-SCREENS t means include all windows in all screens;
-otherwise cycle within the selected screen."
-  (let* ((walk-windows-start (selected-window))
-	 (walk-windows-current walk-windows-start))
-    (while (progn
-	     (setq walk-windows-current
-		   (next-window walk-windows-current minibuf all-screens))
-	     (funcall proc walk-windows-current)
-	     (not (eq walk-windows-current walk-windows-start))))))
+  (let ((base-window (selected-window)))
+    (if (and nomini (eq base-window (minibuffer-window)))
+	(setq base-window (next-window base-window)))
+    (eq base-window
+	(next-window base-window (if nomini 'arg)))))
 
 (defun read-quoted-char (&optional prompt)
   "Like `read-char', except that if the first character read is an octal
@@ -77,22 +64,22 @@ Optional argument PROMPT specifies a string to use to prompt the user."
 ;from mentioning keys that run this command.
 (put 'undefined 'suppress-keymap t)
 
-(defun suppress-keymap (map &optional nodigits)
-  "Make MAP override all normally self-inserting keys to be undefined.
-Normally, as an exception, digits and minus-sign are set to make prefix args,
-but optional second arg NODIGITS non-nil treats them like other chars."
-  (let ((i 0))
-    (while (<= i 127)
-      (if (eql (lookup-key global-map (char-to-string i)) 'self-insert-command)
-	  (define-key map (char-to-string i) 'undefined))
+(defun suppress-keymap (map &optional arg)
+  "Make MAP override all buffer-modifying commands to be undefined.
+Works by knowing which commands are normally buffer-modifying.
+Normally also makes digits set numeric arg,
+but optional second arg NODIGITS non-nil prevents this."
+  (let ((i ? ))
+    (while (< i 127)
+      (aset map i 'undefined)
       (setq i (1+ i))))
-  (or nodigits
+  (or arg
       (let (loop)
-	(define-key map "-" 'negative-argument)
+	(aset map ?- 'negative-argument)
 	;; Make plain numbers do numeric args.
 	(setq loop ?0)
 	(while (<= loop ?9)
-	  (define-key map (char-to-string loop) 'digit-argument)
+	  (aset map loop 'digit-argument)
 	  (setq loop (1+ loop))))))
 
 ;; now in fns.c
@@ -126,9 +113,7 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 
 (defun substitute-key-definition (olddef newdef keymap)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
-In other words, OLDDEF is replaced with NEWDEF where ever it appears.
-Prefix keymaps reached from KEYMAP are not checked recursively;
-perhaps they ought to be."
+In other words, OLDDEF is replaced with NEWDEF where ever it appears."
   (if (arrayp keymap)
       (let ((len (length keymap))
 	    (i 0))
@@ -160,11 +145,11 @@ perhaps they ought to be."
 (fset 'send-string 'process-send-string)
 (fset 'send-region 'process-send-region)
 (fset 'show-buffer 'set-window-buffer)
-(fset 'buffer-flush-undo 'buffer-disable-undo)
 
 ; alternate names
 (fset 'string= 'string-equal)
 (fset 'string< 'string-lessp)
+(fset 'mod '%)
 (fset 'move-marker 'set-marker)
 (fset 'eql 'eq)
 (fset 'not 'null)
@@ -208,25 +193,6 @@ If it is a list, the elements are called, in order, with no arguments."
 		 (mapcar 'funcall value)
 	       (funcall value)))))
     (setq hooklist (cdr hooklist))))
-
-;; Tell C code how to call this function.
-(defconst run-hooks 'run-hooks
-  "Variable by which C primitives find the function `run-hooks'.
-Don't change it.")
-
-(defun add-hook (hook function)
-  "Add to the value of HOOK the function FUNCTION unless already present.
-HOOK should be a symbol, and FUNCTION may be any valid function.
-HOOK's value should be a list of functions, not a single function.
-If HOOK is void, it is first set to nil."
-  (or (boundp hook) (set hook nil))
-  (or (if (consp function)
-	  ;; Clever way to tell whether a given lambda-expression
-	  ;; is equal to anything in the hook.
-	  (let ((tail (assoc (cdr function) (symbol-value hook))))
-	    (equal function tail))
-	(memq function (symbol-value hook)))
-      (set hook (cons function hook))))
 
 (defun momentary-string-display (string pos &optional exit-char message) 
   "Momentarily display STRING in the buffer at POS.
@@ -258,70 +224,18 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    (delete-region pos insert-end)))
       (setq buffer-file-name name)
       (set-buffer-modified-p modified))))
-
-(defun start-process-shell-command (name buffer &rest args)
-  "Start a program in a subprocess.  Return the process object for it.
-Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is command name, the name of a shell command.
-Remaining arguments are the arguments for the command.
-Wildcards and redirection are handle as usual in the shell."
-  (if (eq system-type 'vax-vms)
-      (apply 'start-process name buffer args)
-    (start-process name buffer shell-file-name "-c"
-		   (concat "exec " (mapconcat 'identity args " ")))))
 
-(defun eval-after-load (file form)
-  "Arrange that, if FILE is ever loaded, FORM will be run at that time.
-This makes or adds to an entry on `after-load-alist'.
-FILE should be the name of a library, with no directory name."
-  (or (assoc file after-load-alist)
-      (setq after-load-alist (cons (list file) after-load-alist)))
-  (nconc (assoc file after-load-alist) (list form))
-  form)
+(defun undo-start ()
+  "Move undo-pointer to front of undo records.
+The next call to undo-more will undo the most recently made change."
+  (if (eq buffer-undo-list t)
+      (error "No undo information in this buffer"))
+  (setq pending-undo-list buffer-undo-list))
 
-(defun eval-next-after-load (file)
-  "Read the following input sexp, and run it whenever FILE is loaded.
-This makes or adds to an entry on `after-load-alist'.
-FILE should be the name of a library, with no directory name."
-  (eval-after-load file (read)))
-
-(defmacro defun-inline (name args &rest body)
-  "Create an \"inline defun\" (actually a macro).
-Use just like `defun'."
-  (nconc (list 'defmacro name '(&rest args))
-	 (if (stringp (car body))
-	     (prog1 (list (car body))
-	       (setq body (or (cdr body) body))))
-	 (list (list 'cons (list 'quote
-				 (cons 'lambda (cons args body)))
-		     'args))))
-
-(defun user-original-login-name ()
-  "Return user's login name from original login.
-This tries to remain unaffected by `su', by looking in environment variables."
-  (or (getenv "LOGNAME") (getenv "USER") (user-login-name)))
-
-(defun force-mode-line-update (&optional all)
-  "Force the mode-line of the current buffer to be redisplayed.
-With optional non-nil ALL then force then force redisplay of all mode-lines."
-  (if all (save-excursion (set-buffer (other-buffer))))
-  (set-buffer-modified-p (buffer-modified-p)))
-
-(defun keyboard-translate (from to)
-  "Translate character FROM to TO at a low level.
-This function creates a `keyboard-translate-table' if necessary
-and then modifies one entry in it."
-  (or (boundp 'keyboard-translate-table)
-      (let ((table (make-string 256))
-	    (i 0))
-	(while (< i 256)
-	  (aset table i i)
-	  (setq i (1+ i)))
-	(setq keyboard-translate-table table)))
-  (aset keyboard-translate-table from to))
+(defun undo-more (count)
+  "Undo back N undo-boundaries beyond what was already undone recently.
+Call undo-start to get ready to undo recent changes,
+then call undo-more one or more times to undo them."
+  (or pending-undo-list
+      (error "No further undo information"))
+  (setq pending-undo-list (primitive-undo count pending-undo-list)))

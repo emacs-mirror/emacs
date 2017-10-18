@@ -1,5 +1,5 @@
 ;; Terminal emulator for GNU Emacs.
-;; Copyright (C) 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 ;; Written by Richard Mlynarik, November 1986.
 
 ;; This file is part of GNU Emacs.
@@ -37,9 +37,9 @@ it through the emulator.  Type ? after typing it for a list of
 possible commands.
 This variable is local to each terminal-emulator buffer.")
 
-(defvar terminal-scrolling t ;;>> Setting this to T sort-of defeats my whole aim in writing this package...
-  "*If non-nil, the terminal-emulator will losingly `scroll' when output occurs
-past the bottom of the screen.  If nil, output will win and `wrap' to the top
+(defvar terminal-scrolling t
+  "*If non-nil, the terminal-emulator will `scroll' when output occurs
+past the bottom of the screen.  If nil, output will `wrap' to the top
 of the screen.
 This variable is local to each terminal-emulator buffer.")
 
@@ -88,8 +88,6 @@ performance.")
     (define-key map "\C-o" 'te-flush-pending-output)
     (define-key map "m" 'te-toggle-more-processing)
     (define-key map "x" 'te-escape-extended-command)
-    ;;>> What use is this?  Why is it in the default terminal-emulator map?
-    (define-key map "w" 'te-edit)
     (define-key map "?" 'te-escape-help)
     (define-key map (char-to-string help-char) 'te-escape-help)
     (setq terminal-escape-map map)))
@@ -100,8 +98,6 @@ performance.")
     nil
   (setq te-escape-command-alist
 	'(("Set Escape Character" . te-set-escape-char)
-          ;;>> What use is this?  Why is it in the default terminal-emulator map?
-	  ("Edit" . te-edit)
 	  ("Refresh" . redraw-display)
 	  ("Record Output" . te-set-output-log)
 	  ("Photo" . te-set-output-log)
@@ -177,7 +173,7 @@ Other chars following \"%s\" are interpreted as follows:\n"
 	 (princ (substitute-command-keys "\\{terminal-escape-map}\n"))
 	 (princ (format "\nSubcommands of \"%s\" (%s)\n"
 			(where-is-internal 'te-escape-extended-command
-					   terminal-escape-map nil t)
+					   terminal-escape-map t)
 			'te-escape-extended-command))
 	 (let ((l (if (fboundp 'sortcar)
 		      (sortcar (copy-sequence te-escape-command-alist)
@@ -258,7 +254,7 @@ Very poor man's file transfer protocol."
       (save-excursion
 	(set-buffer (get-buffer-create name))
 	(fundamental-mode)
-	(buffer-disable-undo (current-buffer))
+	(buffer-flush-undo (current-buffer))
 	(erase-buffer)))
     (setq te-log-buffer (get-buffer name))
     (message "Recording terminal emulator output into buffer \"%s\""
@@ -352,7 +348,7 @@ allowing the next page of output to appear"
       (princ "Terminal-emulator more break.\n\n")
       (princ (format "Type \"%s\" (te-more-break-resume)\n%s\n"
 		     (where-is-internal 'te-more-break-resume
-					terminal-more-break-map nil t)
+					terminal-more-break-map t)
 		     (documentation 'te-more-break-resume)))
       (princ (substitute-command-keys "\\{terminal-more-break-map}\n"))
       (princ "Any other key is passed through to the program
@@ -393,19 +389,16 @@ the terminal emulator."
 
 
 (defun te-pass-through ()
-  "Character is passed to the program running under the terminal emulator.
-One characters is treated specially:
-the terminal escape character (normally C-^)
-lets you type a terminal emulator command."
+  "Send the last character typed through the terminal-emulator
+without any interpretation"
   (interactive)
-  (cond ((= last-input-char terminal-escape-char)
-	 (call-interactively 'te-escape))
-	(t
-	 (and terminal-more-processing (null (cdr te-pending-output))
-	      (te-set-more-count nil))
-	 (send-string te-process (make-string 1 last-input-char))
-	 (te-process-output t))))
-
+  (if (eql last-input-char terminal-escape-char)
+      (call-interactively 'te-escape)
+    (and terminal-more-processing
+	 (null (cdr te-pending-output))
+	 (te-set-more-count nil))
+    (send-string te-process (make-string 1 last-input-char))
+    (te-process-output t))) 
 
 (defun te-set-window-start ()
   (let* ((w (get-buffer-window (current-buffer)))
@@ -426,82 +419,6 @@ lets you type a terminal emulator command."
     (while tem
       (setq length (+ length (length (car tem))) tem (cdr tem)))
     length))
-
-;;>> What use is this terminal-edit stuff anyway?
-;;>>  If nothing else, it was written by somebody who didn't
-;;>>  competently understand the terminal-emulator...
-
-(defvar terminal-edit-map nil)
-(if terminal-edit-map
-    nil
-  (setq terminal-edit-map (make-sparse-keymap))
-  (define-key terminal-edit-map "\C-c\C-c" 'terminal-cease-edit))
-
-;; Terminal Edit mode is suitable only for specially formatted data.
-(put 'terminal-edit-mode 'mode-class 'special)
-
-(defun terminal-edit-mode ()
-  "Major mode for editing the contents of a terminal-emulator buffer.
-The editing commands are the same as in Fundamental mode,
-together with a command \\<terminal-edit-mode-map>to return to terminal emulation: \\[terminal-cease-edit]."
-  (use-local-map terminal-edit-map)
-  (setq major-mode 'terminal-edit-mode)
-  (setq mode-name "Terminal Edit")
-  (setq mode-line-modified (default-value 'mode-line-modified))
-  (setq mode-line-process nil)
-  (run-hooks 'terminal-edit-mode-hook))
-
-(defun te-edit ()
-  "Start editing the terminal emulator buffer with ordinary Emacs commands."
-  (interactive)
-  (terminal-edit-mode)
-  (set-buffer-modified-p (buffer-modified-p))
-  ;; Make mode line update.
-  (if (eq (key-binding "\C-c\C-c") 'terminal-cease-edit)
-      (message "Editing: Type C-c C-c to return to Terminal")
-    (message (substitute-command-keys
-	       "Editing: Type \\[terminal-cease-edit] to return to Terminal"))))
-
-(defun terminal-cease-edit ()
-  "Finish editing message; switch back to Terminal proper."
-  (interactive)
-
-  ;;>> emulator will blow out if buffer isn't exactly te-width x te-height
-  (let ((buffer-read-only nil))
-    (widen)
-    (let ((opoint (point-marker))
-          (width te-width)
-          (h (1- te-height)))
-      (goto-char (point-min))
-      (while (>= h 0)
-        (let ((p (point)))
-          (cond ((search-forward "\n" (+ p width) 'move)
-                 (forward-char -1)
-                 (insert-char ?\  (- width (- (point) p)))
-                 (forward-char 1))
-                ((eobp)
-                 (insert-char ?\  (- width (- (point) p))))
-                ((= (following-char) ?\n)
-                 (forward-char 1))
-                (t
-                 (setq p (point))
-                 (if (search-forward "\n" nil t)
-                     (delete-region p (1- (point)))
-                     (delete-region p (point-max))))))
-        (if (= h 0)
-            (if (not (eobp)) (delete-region (point) (point-max)))
-            (if (eobp) (insert ?\n)))
-        (setq h (1- h)))
-      (goto-char opoint)
-      (set-marker opoint nil nil)
-      (setq te-saved-point (point))
-      (setq te-redisplay-count 0)
-      (setq te-more-count -1)))
-
-  (setq mode-line-modified (default-value 'mode-line-modified))
-  (setq major-mode 'terminal-mode)
-  (setq mode-name "terminal")
-  (setq mode-line-process '(": %s")))
 
 ;;;; more break hair
 
@@ -606,6 +523,28 @@ move to start of new line, clear to end of line."
   (beginning-of-line)
   (te-set-window-start))
 
+;; ^p ^j
+;; Handle the `do' or `nl' termcap capability.
+;;>> I am not sure why this broken, obsolete, capability is here.
+;;>> Perhaps it is for VIle.  No comment was made about why it
+;;>> was added (in "Sun Dec  6 01:22:27 1987  Richard Stallman")
+(defun te-down-vertically-or-scroll ()
+  "Move down a line vertically, or scroll at bottom."
+  (let ((column (current-column)))
+    (end-of-line)
+    (if (eobp)
+	(progn
+	  (delete-region (point-min) (+ (point-min) te-width))
+	  (goto-char (point-min))
+	  (delete-char 1)
+	  (goto-char (point-max))
+	  (insert ?\n)
+	  (insert-char ?\  te-width)
+	  (beginning-of-line))
+      (forward-line 1))
+    (move-to-column column))
+  (te-set-window-start))
+
 ; ^p = x+32 y+32
 (defun te-move-to-position ()
   ;; must offset by #o40 since cretinous unix won't send a 004 char through
@@ -613,7 +552,7 @@ move to start of new line, clear to end of line."
 	(x (- (te-get-char) 32)))
     (if (or (> x te-width)
 	    (> y te-height))
-	()
+	() ;(error "fucked %d %d" x y)
       (goto-char (+ (point-min) x (* y (1+ te-width))))
       ;(te-set-window-start?)
       ))
@@ -745,7 +684,9 @@ move to start of new line, clear to end of line."
 ;;  Are we living twenty years in the past yet?
 
 (defun te-losing-unix ()
-  nil)
+  ;(what lossage)
+  ;(message "fucking-unix: %d" char)
+  )
 
 ;; ^i
 (defun te-output-tab ()
@@ -754,28 +695,6 @@ move to start of new line, clear to end of line."
 	 (l (min (- 8 (logand x 7))
 		 (progn (end-of-line) (- (point) p)))))
     (goto-char (+ p l))))
-
-;; ^p ^j
-;; Handle the `do' or `nl' termcap capability.
-;;>> I am not sure why this broken, obsolete, capability is here.
-;;>> Perhaps it is for VIle.  No comment was made about why it
-;;>> was added (in "Sun Dec  6 01:22:27 1987  Richard Stallman")
-(defun te-down-vertically-or-scroll ()
-  "Move down a line vertically, or scroll at bottom."
-  (let ((column (current-column)))
-    (end-of-line)
-    (if (eobp)
-	(progn
-	  (delete-region (point-min) (+ (point-min) te-width))
-	  (goto-char (point-min))
-	  (delete-char 1)
-	  (goto-char (point-max))
-	  (insert ?\n)
-	  (insert-char ?\  te-width)
-	  (beginning-of-line))
-      (forward-line 1))
-    (move-to-column column))
-  (te-set-window-start))
 
 ;; Also:
 ;;  ^m => beginning-of-line (for which it -should- be using ^p ^a, right?!!)
@@ -798,7 +717,7 @@ move to start of new line, clear to end of line."
 		   (setq te-log-buffer nil)
 		 (set-buffer te-log-buffer)
 		 (goto-char (point-max))
-		 (insert-before-markers string)
+		 (insert string)
 		 (set-buffer (process-buffer process))))
 	  (setq te-pending-output (nconc te-pending-output (list string)))
 	  (te-update-pending-output-display)
@@ -813,9 +732,7 @@ move to start of new line, clear to end of line."
 	  (setq te-saved-point (point)))
       (set-buffer obuf))))
 
-;; (A version of the following comment which might be distractingly offensive
-;; to some readers has been moved to term-nasty.el.)
-;; unix lacks ITS-style tty control...
+;; fucking unix has -such- braindamaged lack of tty control...
 (defun te-process-output (preemptable)
   ;;>> There seems no good reason to ever disallow preemption
   (setq preemptable t)
@@ -900,11 +817,11 @@ move to start of new line, clear to end of line."
 				 ;; I don't remember doing so, either.
 				 ;; (Perhaps some operating system or
 				 ;; other is completely incompetent...)
-				 (?\C-m . te-beginning-of-line)
-				 (?\C-g . te-beep)             
-				 (?\C-h . te-backward-char)     
-				 (?\C-i . te-output-tab))))     
-		    'te-losing-unix)))
+				 (?\C-m . te-beginning-of-line) ;fuck me harder
+				 (?\C-g . te-beep)             ;again and again!
+				 (?\C-h . te-backward-char)     ;wa12id!!
+				 (?\C-i . te-output-tab))))     ;(spiked)
+		    'te-losing-unix)))		      ;That feels better
 	  (te-redisplay-if-necessary 1))
 	(and preemptable
 	     (input-pending-p)
@@ -1114,17 +1031,16 @@ work with `terminfo' we will try to use it."
       (progn (message
  "Note:  Meta key disabled due to maybe-eventually-reparable braindamage")
 	     (sit-for 1)))
-  (setq inhibit-quit t)			;sport death
-  (use-local-map terminal-map)
-  (run-hooks 'terminal-mode-hook)
   (message "Entering emacs terminal-emulator...  Type %s %s for help"
 	   (single-key-description terminal-escape-char)
 	   (mapconcat 'single-key-description
 		      (where-is-internal 'te-escape-help
 					 terminal-escape-map
-					 nil t)
-		      " ")))
-
+					 t)
+		      " "))
+  (setq inhibit-quit t)			;sport death
+  (use-local-map terminal-map)
+  (run-hooks 'terminal-mode-hook))
 
 (defun te-parse-program-and-args (s)
   (cond ((string-match "\\`\\([a-zA-Z0-9-+=_.@/:]+[ \t]*\\)+\\'" s)
@@ -1153,7 +1069,7 @@ work with `terminfo' we will try to use it."
 One should not call this -- it is an internal function
 of the terminal-emulator"
   (kill-all-local-variables)
-  (buffer-disable-undo (current-buffer))
+  (buffer-flush-undo (current-buffer))
   (setq major-mode 'terminal-mode)
   (setq mode-name "terminal")
 ; (make-local-variable 'Helper-return-blurb)
@@ -1196,33 +1112,33 @@ of the terminal-emulator"
 
 ;;;; what a complete loss
 
-(defun te-quote-arg-for-sh (string)
+(defun te-quote-arg-for-sh (fuckme)
   (cond ((string-match "\\`[a-zA-Z0-9-+=_.@/:]+\\'"
-		       string)
-	 string)
-	((not (string-match "[$]" string))
+		       fuckme)
+	 fuckme)
+	((not (string-match "[$]" fuckme))
 	 ;; "[\"\\]" are special to sh and the lisp reader in the same way
-	 (prin1-to-string string))
+	 (prin1-to-string fuckme))
 	(t
 	 (let ((harder "")
-	       (start 0)
-	       (end 0))
-	   (while (cond ((>= start (length string))
+	       (cretin 0)
+	       (stupid 0))
+	   (while (cond ((>= cretin (length fuckme))
 			 nil)
 			;; this is the set of chars magic with "..." in `sh'
-			((setq end (string-match "[\"\\$]"
-						 string start))
+			((setq stupid (string-match "[\"\\$]"
+						    fuckme cretin))
 			 t)
 			(t (setq harder (concat harder
-						(substring string start)))
+						(substring fuckme cretin)))
 			   nil))
-	     (setq harder (concat harder (substring string start end)
+	     (setq harder (concat harder (substring fuckme cretin stupid)
                                   ;; Can't use ?\\ since `concat'
                                   ;; unfortunately does prin1-to-string
                                   ;; on fixna.  Amazing.
 				  "\\"
-				  (substring string
-					     end
-					     (1+ end)))
-		   start (1+ end)))
+				  (substring fuckme
+					     stupid
+					     (1+ stupid)))
+		   cretin (1+ stupid)))
 	   (concat "\"" harder "\"")))))

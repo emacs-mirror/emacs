@@ -1,0 +1,38 @@
+#!/bin/sh
+# Shell script for building and installing Emacs.
+# This is an alternative to `make install', 
+# and it still exists just because it always has.
+set -x
+
+EMACS=/usr/local/emacs
+BIN=/usr/local/bin
+
+/bin/sed "s;/usr/local/emacs;$EMACS;" < src/paths.h-dist > src/paths.h
+
+(cd etc; make) || exit 1
+(cd src; make) || exit 1
+
+# The double quotes prevent an error from sh on Suns 
+# when the directory does not exist yet.
+# We use sh -c pwd instead of just pwd because on some systems (Suns?)
+# plan pwd tends to give back the specified name sometimes.
+if [ `sh -c pwd` != "`(cd $EMACS; sh -c pwd)`" ]
+then
+  mv `pwd` $EMACS
+  if [ $? != '0' ]
+  then
+    mkdir $EMACS
+    echo mv `pwd` to $EMACS failed--using tar to copy.
+    tar cf - . | (cd $EMACS; umask 0; tar xf -)
+    if [ $? != '0' ]
+    then
+      echo tar-copying `pwd` to $EMACS failed.
+      exit 1
+    fi
+  fi
+fi
+
+cp $EMACS/etc/[ce]tags $BIN
+cp $EMACS/etc/emacsclient $BIN
+mv $EMACS/src/xemacs $BIN/emacs
+rm $EMACS/src/temacs

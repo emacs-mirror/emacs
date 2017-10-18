@@ -1,5 +1,5 @@
 ;; Run Scheme under Emacs
-;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,7 +20,7 @@
 ;;; Requires C-Scheme release 5 or later
 ;;; Changes to Control-G handler require runtime version 13.85 or later
 
-;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
+;;; $Header: xscheme.el,v 1.23 89/04/28 22:59:40 GMT cph Rel $
 
 (require 'scheme)
 
@@ -176,15 +176,13 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-interaction-mode-map}
 
 Entry to this mode calls the value of scheme-interaction-mode-hook
-with no args, if that value is non-nil.
- Likewise with the value of scheme-mode-hook.
- scheme-interaction-mode-hook is called after scheme-mode-hook."
+with no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (scheme-interaction-mode-initialize)
   (scheme-mode-variables)
   (make-local-variable 'xscheme-previous-send)
-  (run-hooks 'scheme-mode-hook 'scheme-interaction-mode-hook))
+  (run-hooks 'scheme-interaction-mode-hook))
 
 (defun scheme-interaction-mode-initialize ()
   (use-local-map scheme-interaction-mode-map)
@@ -678,8 +676,6 @@ When called, the current buffer will be the Scheme process-buffer.")
 (defvar xscheme-process-filter-alist
   '((?D xscheme-enter-debugger-mode
 	xscheme-process-filter:string-action)
-    (?E xscheme-eval
-	xscheme-process-filter:string-action)
     (?P xscheme-set-prompt-variable
 	xscheme-process-filter:string-action)
     (?R xscheme-enter-interaction-mode
@@ -774,9 +770,6 @@ the remaining input.")
 (defun xscheme-unsolicited-read-char ()
   nil)
 
-(defun xscheme-eval (string)
-  (eval (car (read-from-string string))))
-
 (defun xscheme-message (string)
   (if (not (zerop (length string)))
       (xscheme-write-message-1 string (format ";%s" string))))

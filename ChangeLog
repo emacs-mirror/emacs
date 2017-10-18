@@ -1,0 +1,94 @@
+Fri Oct 30 19:36:38 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 18.59 released.
+
+Wed Oct 28 19:30:14 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* vmsdist.com: Don't copy vaxcrtl.olb into distribution.
+	Assume VMS version 5.5 or newer.
+
+Sat Oct  3 01:32:44 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* build-install: Use sh -c pwd, not just pwd.
+
+Fri Oct  2 19:14:07 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (install.xenix): Delete spurious space.
+
+Tue Aug 25 18:04:27 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (src/paths.h): Use just `sed', not `/bin/sed'.
+
+Sun Jun  7 14:21:01 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (install): Get rid of -s from install commands.
+
+Thu Feb 13 14:53:26 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (install): Use INSTALL to install programs.
+	(INSTALL): New variable.
+
+Sun Feb  9 21:41:17 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (mkdir): Create BINDIR and MANDIR if nec.
+	Don't chmod LIBDIR.
+
+	* build-install: Use normal convention for EMACS dir.
+	Fix syntax in directory name comparison.
+	Install emacsclient.  Deleted the chmod for executables.
+	Start with #! to force use of sh.
+
+Sat Feb  1 17:40:30 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* install.sh: New file.
+
+Fri Jan 31 23:46:51 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (clean, distclean): Clean oldXMenu subdir.
+
+Mon Jan 27 16:29:53 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (install): Remove `B' from tar xf command.
+
+	* Makefile (CLEANDIR): Add oldXMenu.
+
+Sat Jan 25 00:06:59 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* build-install: Finish updating to sh syntax.
+
+Fri Jan 17 22:56:27 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (LIBDIR): Change back to /usr/local/emacs.
+	(It got changed recently but I don't know why.)
+
+Sat Mar  9 23:21:20 1991  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* Makefile (clean): Use /bin/pwd, not pwd.  
+
+Fri Sep 28 22:36:32 1990  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* Makefile (install, install.sysv, install.xenix):
+	Install wakeup instead of loadst.  No need for setuid or setgid.
+
+Tue Aug  7 13:19:35 1990  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile (clean): Clean etc if that's not the installation dir.
+
+Thu Apr 26 13:36:18 1990  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile (paths.h): Make sed alter each name in the path.
+
+Tue Aug 30 13:43:43 1988  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile (install.sysv): Use cpio, not tar.
+
+Wed Aug  3 19:20:13 1988  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile (lockdir): Rename `lock' target.
+	Depend on it from install*, not from `all'.
+
+Mon May 16 02:08:08 1988  Richard Stallman  (rms at frosted-flakes.ai.mit.edu)
+
+	* Makefile: Changed LIBDIR and BINDIR back to /usr/local/{emacs,bin}
+	to match build-install and paths.h.
+

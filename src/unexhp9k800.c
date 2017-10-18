@@ -60,6 +60,7 @@ unexec(new_name, old_name, new_end_of_text, dummy1, dummy2)
   int old_size, new_size;
   struct header hdr;
   struct som_exec_auxhdr auxhdr;
+  long i;
   
   /* For the greatest flexibility, should create a temporary file in
      the same directory as the new file.  When everything is complete,
@@ -81,7 +82,10 @@ unexec(new_name, old_name, new_end_of_text, dummy1, dummy2)
   
   /* Decide how large the new and old data areas are */
   old_size = auxhdr.exec_dsize;
-  new_size = sbrk(0) - auxhdr.exec_dmem;
+  /* I suspect these two statements are separate
+     to avoid a compiler bug in hpux version 8.  */
+  i = sbrk (0);
+  new_size = i - auxhdr.exec_dmem;
   
   /* Copy the old file to the new, up to the data space */
   lseek(old, 0, 0);

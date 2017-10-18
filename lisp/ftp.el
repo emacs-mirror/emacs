@@ -18,10 +18,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Prevent changes in major modes from altering these variables.
-(put 'ftp-temp-file-name 'permanent-local t)
-(put 'ftp-file 'permanent-local t)
-(put 'ftp-host 'permanent-local t)
 
 ;; you can turn this off by doing
 ;;  (setq ftp-password-alist 'compulsory-urinalysis)
@@ -112,16 +108,14 @@ we prompt for the user name and password."
 					   (if filep "" "-directory")
 					   host file))))
     (set-buffer buffer)
-    (let ((process nil)
+    (let ((process (ftp-setup-buffer host file))
 	  (case-fold-search nil))
       (let ((win nil))
 	(unwind-protect
-	    (progn
-	      (setq process (ftp-setup-buffer host file))
-	      (if (setq win (ftp-login process host user password))
-		  (message "Logged in")
-		(error "Ftp login failed")))
-	  (or win (and process (delete-process process)))))
+	    (if (setq win (ftp-login process host user password))
+		(message "Logged in")
+	      (error "Ftp login lost"))
+	  (or win (delete-process process))))
       (message "Opening %s %s:%s..." (if filep "file" "directory")
 	       host file)
       (if (ftp-command process
@@ -161,37 +155,34 @@ USER and PASSWORD are defaulted from the values used when
   (let ((buffer (get-buffer-create (format "*ftp %s:%s*" host file)))
 	(tmp (make-temp-name "/tmp/emacsftp")))
     (write-region (point-min) (point-max) tmp)
-    (save-excursion
-      (set-buffer buffer)
-      (make-local-variable 'ftp-temp-file-name)
-      (setq ftp-temp-file-name tmp)
-      (let ((process (ftp-setup-buffer host file))
-	    (case-fold-search nil))
-	(let ((win nil))
-	  (unwind-protect
-	      (if (setq win (ftp-login process host user password))
-		  (message "Logged in")
+    (set-buffer buffer)
+    (make-local-variable 'ftp-temp-file-name)
+    (setq ftp-temp-file-name tmp)
+    (let ((process (ftp-setup-buffer host file))
+	  (case-fold-search nil))
+      (let ((win nil))
+	(unwind-protect
+	    (if (setq win (ftp-login process host user password))
+		(message "Logged in")
 	        (error "Ftp login lost"))
-	    (or win (delete-process process))))
-	(message "Opening file %s:%s..." host file)
-	(if (ftp-command process
-			 (format "send \"%s\" \"%s\"\nquit\n" tmp file)
-			 "150.*\n"
-			 "200.*\n")
-	    (progn (forward-line 1)
-		   (setq foo1 (current-buffer))
-		   (let ((buffer-read-only nil))
-		     (delete-region (point-min) (point)))
-		   (message "Saving %s:%s in background.  Bye!" host file)
-		   (set-process-sentinel process
-					 'ftp-asynchronous-output-sentinel)
-		   process)
-	  (switch-to-buffer buffer)
-	  (setq foo2 (current-buffer))
-	  (let ((buffer-read-only nil))
-	    (insert-before-markers "<<<Ftp lost>>>"))
-	  (delete-process process)
-	  (error "Ftp write %s:%s lost" host file))))))
+	  (or win (delete-process process))))
+      (message "Opening file %s:%s..." host file)
+      (if (ftp-command process
+		       (format "send \"%s\" \"%s\"\nquit\n" tmp file)
+		       "\\(150\\|125\\).*\n"
+		       "200.*\n")
+	  (progn (forward-line 1)
+		 (let ((buffer-read-only nil))
+		   (delete-region (point-min) (point)))
+		 (message "Saving %s:%s in background.  Bye!" host file)
+		 (set-process-sentinel process
+				       'ftp-asynchronous-output-sentinel)
+		 process)
+	(switch-to-buffer buffer)
+	(let ((buffer-read-only nil))
+	  (insert-before-markers "<<<Ftp lost>>>"))
+	(delete-process process)
+	(error "Ftp write %s:%s lost" host file)))))
 
 
 (defun ftp-setup-buffer (host file)
@@ -205,14 +196,13 @@ USER and PASSWORD are defaulted from the values used when
 		  (while (get-buffer-process (current-buffer))
 		    (kill-process (get-buffer-process (current-buffer))))
 		(error "Foo"))))
-  ;(buffer-disable-undo (current-buffer))
+  ;(buffer-flush-undo (current-buffer))
   (setq buffer-read-only nil)
   (erase-buffer)
   (make-local-variable 'ftp-host)
   (setq ftp-host host)
   (make-local-variable 'ftp-file)
   (setq ftp-file file)
-  (setq foo3 (current-buffer))
   (setq buffer-read-only t)
   (start-process "ftp" (current-buffer) "ftp" "-i" "-n" "-g"))
 
@@ -222,7 +212,7 @@ USER and PASSWORD are defaulted from the values used when
   (if (ftp-command process
 		   (format "open %s\nuser %s %s\n" host user password)
 		   "230.*\n"
-		   "\\(Connected to \\|220\\|331\\|Remote system type\\|Using.*mode\\|Remember to set\\).*\n")
+		   "\\(Connected to \\|220\\|331\\).*\n")
       t
     (switch-to-buffer (process-buffer process))
     (delete-process process)
@@ -233,7 +223,8 @@ USER and PASSWORD are defaulted from the values used when
 
 (defun ftp-command (process command win ignore)
   (process-send-string process command)
-  (let ((p 1))
+  (let ((p 1)
+	(case-fold-search t))
     (while (numberp p)
       (cond ;((not (bolp)))
 	    ((looking-at win)
@@ -242,9 +233,13 @@ USER and PASSWORD are defaulted from the values used when
 	    ((looking-at "^ftp> \\|^\n")
 	     (goto-char (match-end 0)))
 	    ((looking-at ignore)
+	     ;; Ignore status messages whose codes indicate no problem.
+	     (forward-line 1))
+	    ((looking-at "^[^0-9]")
+	     ;; Ignore any lines that don't have status codes.
 	     (forward-line 1))
 	    ((not (search-forward "\n" nil t))
-	     ;; the way asynchronous process-output works with (point)
+	     ;; the way asynchronous process-output fucks with (point)
 	     ;;  is really really disgusting.
 	     (setq p (point))
 	     (condition-case ()
@@ -275,27 +270,26 @@ USER and PASSWORD are defaulted from the values used when
 	   (set-buffer (process-buffer process))
 	   (let (msg
 		 (r (if input "[0-9]+ bytes received in [0-9]+\\.[0-9]+ seconds.*$" "[0-9]+ bytes sent in [0-9]+\\.[0-9]+ seconds.*$")))
-	     (let ((buffer-read-only nil))
-	       (goto-char (point-max))
-	       (search-backward "226 ")
-	       (if (looking-at r)
-		   (search-backward "226 "))
-	       (let ((p (point)))
-		 (setq msg (concat (format "ftp %s %s:%s done"
-					   (if input "read" "write")
-					   ftp-host ftp-file)
-				   (if (re-search-forward r nil t)
-				       (concat ": " (buffer-substring
-						      (match-beginning 0)
-						      (match-end 0)))
-				       "")))
-		 (delete-region p (point-max))
-		 (save-excursion
-		   (set-buffer (get-buffer-create "*ftp log*"))
-		   (let ((buffer-read-only nil))
-		     (insert msg ?\n)))))
-	     ;; Note the preceding let must end here
-	     ;; so it doesn't cross the (kill-buffer (current-buffer)).
+	     (goto-char (point-max))
+	     (search-backward "226 ")
+	     (if (looking-at r)
+		 (search-backward "226 "))
+	     (let ((p (point)))
+	       (setq msg (concat (format "ftp %s %s:%s done"
+					 (if input "read" "write")
+					 ftp-host ftp-file)
+				 (if (re-search-forward r nil t)
+				     (concat ": " (buffer-substring
+						    (match-beginning 0)
+						    (match-end 0)))
+				     "")))
+	       (let ((buffer-read-only nil))
+		 (delete-region p (point-max)))
+	       (save-excursion
+		 (set-buffer (get-buffer-create "*ftp log*"))
+		 (let ((buffer-read-only nil))
+		   (insert msg ?\n)))
+	       (set-buffer-modified-p nil))
 	     (if (not input)
 		 (progn
 		   (condition-case ()
@@ -303,8 +297,6 @@ USER and PASSWORD are defaulted from the values used when
 			    ftp-temp-file-name
 			    (delete-file ftp-temp-file-name))
 		     (error nil))
-		   ;; Kill the temporary buffer which the ftp process
-		   ;; puts its output in.
 		   (kill-buffer (current-buffer)))
 	       ;; You don't want to look at this.
 	       (let ((kludge (generate-new-buffer (format "%s:%s (ftp)"
@@ -312,7 +304,6 @@ USER and PASSWORD are defaulted from the values used when
 		 (setq kludge (prog1 (buffer-name kludge) (kill-buffer kludge)))
 		 (rename-buffer kludge)
 		 ;; ok, you can look again now.
-		 (set-buffer-modified-p nil)
 		 (ftp-setup-write-file-hooks)))
 	     (if (and asynchronous
 		      ;(waiting-for-user-input-p)
@@ -350,15 +341,20 @@ USER and PASSWORD are defaulted from the values used when
   (setq buffer-read-only nil))
 
 (defun ftp-write-file-hook ()
-  (let ((process (ftp-write-file ftp-host ftp-file)))
+  (let ((buffer (current-buffer))
+	(process (ftp-write-file ftp-host ftp-file)))
     (set-process-sentinel process 'ftp-synchronous-output-sentinel)
     (message "FTP writing %s:%s..." ftp-host ftp-file)
     (while (eq (process-status process) 'run)
       (condition-case ()
 	  (accept-process-output process)
 	(error nil)))
-    (set-buffer-modified-p nil)
-    (message "FTP writing %s:%s...done" ftp-host ftp-file))
+    (and (eq (process-status process) 'exit)
+	 (= (process-exit-status process) 0)
+         (save-excursion
+           (set-buffer buffer)
+	   (set-buffer-modified-p nil))))
+  (message "Written")
   t)
 
 (defun ftp-revert-buffer (&rest ignore)

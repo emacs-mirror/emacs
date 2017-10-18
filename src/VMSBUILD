@@ -1,0 +1,67 @@
+How to compile, link and build GNU Emacs under VMS.
+
+
+A runnable Emacs on VMS consists of two files, an exe file and
+a map file.  (It also refers to a DOC file in the [-.etc] sibling directory.
+These files are made automatically and kept straight by Emacs version number.)
+
+For an Emacs being built and tested, these files are `temacs.exe' and
+`temacs.dump' in this directory.
+
+For an installed Emacs, these files are `emacs.exe' and
+`emacs.dump' in the directory above this one.  These names are known
+only in the file `emacs.com', also in that directory.
+
+Before you can run Emacs or compile or build any part of Emacs,
+you must run `emacs.com'.  It sets up logical names that are used
+by everything else.
+
+Before compiling anything on VMS, you must copy `config.h-dist' to
+`config.h' and make sure it is set up for VMS, using files `m-vax.h'
+and `s-vms4-4.h'.  Also copy `vmspaths.h' to `paths.h'.
+`paths.h-dist' is for Unix only.  (On VMS versions before 4.4, the
+file names have `_' in place of `-', and you should use `s-vms.h'
+rather than `s-vms4-4.h'.)
+
+Execute `compile.com' to recompile all files that need recompilation.
+ Alternatively, execute `precomp.com' to define a command `ccom' that
+ can be used to recompile individual files.  `ccom' works by executing
+ `ccom.com'.
+
+ If you compile with optimization, note that in compiler version
+ 3.0 there is a bug affecting inline functions.  So you must specify
+ /OPTIMIZE=NOINLINE when compiling `dispnew.c'.  If you still have problems,
+ try using /NOOPT.
+
+Compilation will give you lots of warnings about symbols longer than 30
+ characters.  You must just ignore them.  Alternatively, you can
+ compile the C program `vms-pp.c' and run all the .c and .h files
+ through that program and then compile the results.
+ (On VMS versions before 4.4, the program is called `vms_pp.c'.)
+
+ **If you use `vms-pp.c', please save the originals .c and .h files
+ and distribute them rather than the transformed files
+ if you wish to distribute copies of Emacs.  Help minimize confusion!**
+
+Execute `link.com' to link the compiled files into `temacs.exe'.
+ This process uses `temacs.opt'.  You will get lots of linker warnings
+ telling you that there were compiler warnings.  Just ignore them.
+
+Execute `[-.etc]complink.com' to compile and link the files
+ in the [emacs.etc] directory.  This must be done before 
+ `[-.etc]makedoc.com' can be run.
+
+Execute `[-.etc]makedoc.com' to create or update the file `[-.etc]doc.'.
+ This must be done if that file does not yet exist or if any of
+ the Emacs C sources or preloaded Lisp sources has changed.
+ It must be done before `build.com' is run in order to take effect.
+
+Execute `build.com' to run `temacs.exe', initialize it and preload
+ some Lisp code, and dump the map file `temacs.dump' containing a copy
+ of all the impure storage after initialization.
+
+Execute `testemacs.com' to define the `runtemacs' command
+ to run `temacs.exe' with its map file `temacs.dump'.
+
+To install an Emacs, rename `temacs.dump' as `[-]emacs.dump' and
+ rename `temacs.exe' as `[-]emacs.exe'.

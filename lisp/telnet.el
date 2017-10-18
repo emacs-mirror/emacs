@@ -1,4 +1,4 @@
-;; Copyright (C) 1985, 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1985 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 
@@ -16,42 +16,20 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
 ;; Author William F. Schelter
 
 ;;to do fix software types for lispm:
 ;;to eval current expression.  Also to try to send escape keys correctly.
 ;;essentially we'll want the rubout-handler off.
 
-;; filter is simplistic but should be okay for typical shell usage.
-;; needs hacking if it is going to deal with asynchronous output in a sane
-;; manner
-
-(require 'comint)
-(provide 'telnet)
-
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map nil)
 (defvar telnet-prompt-pattern "^[^#$%>]*[#$%>] *")
+(defvar telnet-interrupt-string "\^c" "String sent by C-c.")
+(defvar telnet-count 0)
 (defvar telnet-replace-c-g nil)
-(make-variable-buffer-local
- (defvar telnet-remote-echoes t
-   "True if the telnet process will echo input."))
-(make-variable-buffer-local
- (defvar telnet-interrupt-string "\C-c" "String sent by C-c."))
-
-(defvar telnet-count 0
-  "Number of output strings read from the telnet process
-while looking for the initial password.")
-
-(defvar telnet-initial-count -50
-  "Initial value of telnet-count.  Should be set to the negative of the
-number of terminal writes telnet will make setting up the host connection.")
-
-(defvar telnet-maximum-count 4
-  "Maximum value telnet-count can have.
-After this many passes, we stop looking for initial setup data.
-Should be set to the number of terminal writes telnet will make
-rejecting one login and prompting for the again for a username and password.")
+(defvar telnet-remote-echoes nil)
 
 (defun telnet-interrupt-subjob ()
   (interactive)
@@ -60,7 +38,7 @@ rejecting one login and prompting for the again for a username and password.")
 
 (defun telnet-c-z ()
   (interactive)
-  (send-string nil "\C-z"))
+  (send-string nil ""))
 
 (defun send-process-next-char ()
   (interactive)
@@ -70,30 +48,33 @@ rejecting one login and prompting for the again for a username and password.")
 		  (prog1 (read-char)
 		    (setq quit-flag nil))))))
 
-; initialization on first load.
-(if telnet-mode-map
-    nil
-  (setq telnet-mode-map (copy-keymap comint-mode-map))
+(setq telnet-mode-map (make-sparse-keymap))
+
+(progn
   (define-key telnet-mode-map "\C-m" 'telnet-send-input)
-;  (define-key telnet-mode-map "\C-j" 'telnet-send-input)
+  (define-key telnet-mode-map "\C-j" 'telnet-send-input)
+  (define-key telnet-mode-map "\C-c\C-d" 'shell-send-eof)
   (define-key telnet-mode-map "\C-c\C-q" 'send-process-next-char)
   (define-key telnet-mode-map "\C-c\C-c" 'telnet-interrupt-subjob) 
-  (define-key telnet-mode-map "\C-c\C-z" 'telnet-c-z))
+  (define-key telnet-mode-map "\C-c\C-z" 'telnet-c-z)
+  (define-key telnet-mode-map "\C-c\C-u" 'kill-shell-input)
+  (define-key telnet-mode-map "\C-c\C-w" 'backward-kill-word)
+  (define-key telnet-mode-map "\C-c\C-o" 'kill-output-from-shell)
+  (define-key telnet-mode-map "\C-c\C-r" 'show-output-from-shell))
 
 ;;maybe should have a flag for when have found type
 (defun telnet-check-software-type-initialize (string)
   "Tries to put correct initializations in.  Needs work."
-  (let ((case-fold-search t))
-    (cond ((string-match "unix" string)
-	 (setq telnet-prompt-pattern comint-prompt-regexp)
+  (cond ((string-match "unix" string)
+	 (setq telnet-prompt-pattern shell-prompt-pattern)
 	 (setq telnet-new-line "\n"))
 	((string-match "tops-20" string) ;;maybe add telnet-replace-c-g
 	 (setq telnet-prompt-pattern  "[@>]*"))
 	((string-match "its" string)
 	 (setq telnet-prompt-pattern  "^[^*>]*[*>] *"))
 	((string-match "explorer" string)  ;;explorer telnet needs work
-	 (setq telnet-replace-c-g ?\n))))
-  (setq comint-prompt-regexp telnet-prompt-pattern))
+	 (setq telnet-replace-c-g ?\n))
+	))
 
 (defun telnet-initial-filter (proc string)
   ;For reading up to and including password; also will get machine type.
@@ -105,76 +86,133 @@ rejecting one login and prompting for the again for a username and password.")
 	 (let* ((echo-keystrokes 0)
 		(password (read-password)))
 	   (setq telnet-count 0)
-	   (send-string proc (concat password telnet-new-line))))
+	   (send-string proc (concat password  telnet-new-line))))
 	(t (telnet-check-software-type-initialize string)
 	   (telnet-filter proc string)
-	   (cond ((> telnet-count telnet-maximum-count)
+	   (cond ((> telnet-count 4)
 		  (set-process-filter proc 'telnet-filter))
 		 (t (setq telnet-count (1+ telnet-count)))))))
 
 (defun telnet-filter (proc string)
-  (let ((at-end
-	 (and (eq (process-buffer proc) (current-buffer))
-	      (= (point) (point-max)))))
-    (save-excursion
-      (set-buffer (process-buffer proc))
-      (goto-char (process-mark proc))
-      (let ((now (point)))
-	(let ((index 0) c-m)
-	  (while (setq c-m (string-match "\C-m" string index))
-	    (insert-before-markers (substring string index c-m))
-	    (setq index (1+ c-m)))
-	  (insert-before-markers (substring string index)))
-	(and telnet-replace-c-g
-	     (subst-char-in-region now (point) ?\C-g telnet-replace-c-g)))
-;      (if (and (integer-or-marker-p last-input-start)
-;	       (marker-position last-input-start)
-;	       telnet-remote-echoes)
-;	  (delete-region last-input-start last-input-end))
-      )
-    (if at-end
-	(goto-char (point-max)))))
+  (save-excursion
+    (set-buffer (process-buffer proc))
+    (goto-char (point-max))
+    (let ((now (point)))
+      (insert string)
+      (subst-char-in-region now (point) ?\^m ?\ )
+      (and telnet-replace-c-g
+	   (subst-char-in-region now (point) ?\^g telnet-replace-c-g)))
+    (if (process-mark proc)
+	(set-marker (process-mark proc) (point)))
+    (if (and (integer-or-marker-p last-input-start)
+	     (marker-position last-input-start)
+	     telnet-remote-echoes)
+	(delete-region last-input-start last-input-end)))
+  (if (eq (process-buffer proc)
+	  (current-buffer))
+      (goto-char (point-max))))
+
+(defun delete-char-or-send-eof (arg killp)
+  "At end of buffer, send eof to subshell.  Otherwise delete character."
+  (interactive "p\nP")
+  (if (and (eobp) (not killp))
+      (process-send-eof)
+    (delete-char arg killp)))
 
 (defun telnet-send-input ()
-  (interactive)
-  (comint-send-input telnet-new-line telnet-remote-echoes))
+  "Send input to remote host
+At end of buffer, sends all text after last output
+as input to the telnet, including a telnet-new-line inserted at the end.
+Not at end, copies current line to the end of the buffer and sends it,
+after first attempting to discard any prompt at the beginning of the line
+by matching the regexp that is the value of telnet-prompt-pattern if possible."
+ (interactive)
+ (let (copied)
+  (end-of-line)
+  (if (eobp)
+      (progn
+	(move-marker last-input-start
+		     (process-mark (get-buffer-process (current-buffer))))
+	(move-marker last-input-end (point)))
+    (beginning-of-line)
+    (re-search-forward telnet-prompt-pattern nil t)
+    (let ((copy (buffer-substring (point)
+				  (progn (forward-line 1) (point)))))
+      (goto-char (point-max))
+      (move-marker last-input-start (point))
+      (insert copy) (setq copied t)
+      (move-marker last-input-end (point))))
+  (save-excursion
+    (goto-char last-input-start)
+    (let ((process (get-buffer-process (current-buffer))))
+      (send-region process last-input-start last-input-end)
+      (if (not copied) (send-string process telnet-new-line))
+      (set-marker (process-mark process) (point))))))
 
 (defun telnet (arg)
   "Open a network login connection to host named HOST (a string).
 Communication with HOST is recorded in a buffer *HOST-telnet*.
 Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen telnet connection to host: ")
+  (require 'shell)
   (let ((name (concat arg "-telnet" )))
-    (switch-to-buffer (make-comint name "telnet"))
+    (switch-to-buffer (make-shell name "telnet"))
     (set-process-filter (get-process name) 'telnet-initial-filter)
+    (accept-process-output (get-process name))
     (erase-buffer)
     (send-string  name (concat "open " arg "\n"))
     (telnet-mode)
-    (setq telnet-count telnet-initial-count)))
-
-(defun telnet-mode ()
-  "This mode is for use during telnet from a buffer to another
-host. It has most of the same commands as comint-mode.
-There is a variable ``telnet-interrupt-string'' which is the character
-sent to try to stop execution of a job on the remote host.
-Data is sent to the remote host when RET is typed.
-
-\\{telnet-mode-map}
-
-Bugs:
---Replaces  by a space, really should remove."
-  (interactive)
-  (comint-mode)
-  (setq major-mode 'telnet-mode
-	mode-name "Telnet"
-	comint-prompt-regexp telnet-prompt-pattern)
-  (use-local-map telnet-mode-map)
-  (run-hooks 'telnet-mode-hook))
+    (setq telnet-count -16)))
 
 (defun read-password ()
   (let ((answ "") tem)
-    (message "Reading password...")
-    (while (not (or (= (setq tem (read-char)) ?\^m)
-		    (= tem ?\n)))
+    (while (prog1 (not (memq (setq tem (read-char))
+			     '(?\C-m ?\n ?\C-g)))
+	     (setq quit-flag nil))
       (setq answ (concat answ (char-to-string tem))))
     answ))
+
+(defun telnet-mode ()
+  "This mode is for use during telnet from a buffer to another
+host. It has most of the same commands as shell mode.
+There is a variable `telnet-interrupt-string' which is the character
+sent to try to stop execution of a job on the remote host.
+Data is sent to the remote host when `return' is typed.
+Thus if you may need to edit the data before sending you
+should use c-n to move down a line.  Then you can return
+to alter a previous line.  Of course you should not use this
+mode of telnet if you want to run emacs like programs on the
+remote host (at least not yet!).
+
+The following commands imitate the usual Unix interrupt and
+editing control characters:
+\\{telnet-mode-map}
+
+Bugs:
+--Replace  by a space, really should remove.
+--For Unix interacts poorly with tcsh although csh,sh,ksh are ok."
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'telnet-mode)
+  (setq mode-name "Telnet")
+  (setq mode-line-process '(": %s"))
+  (make-local-variable 'last-input-start)
+  (use-local-map telnet-mode-map)
+  (let ((tem telnet-prompt-pattern))
+    (make-local-variable 'telnet-prompt-pattern)
+    (setq telnet-prompt-pattern tem))
+  (make-local-variable 'telnet-interrupt-string)
+  (setq telnet-interrupt-string "")
+  (make-local-variable 'telnet-new-line)
+  (setq telnet-new-line "\r")
+  (make-local-variable 'last-input-start)
+  (setq last-input-start (make-marker))
+  (make-local-variable 'last-input-end)
+  (setq last-input-end (make-marker))
+  (make-local-variable 'telnet-remote-echoes)
+  (setq telnet-remote-echoes t)
+  (make-local-variable 'telnet-replace-c-g)
+  (setq telnet-replace-c-g nil))
+
+
+

@@ -24,7 +24,7 @@
 
 (defun Electric-command-history-redo-expression (&optional noconfirm)
   "Edit current history line in minibuffer and execute result.
-With prefix arg NOCONFIRM, execute current line as-is without editing."
+With prefix argument NOCONFIRM, execute current line as is without editing."
   (interactive "P")
   (let (todo)
     (save-excursion
@@ -73,23 +73,35 @@ With prefix arg NOCONFIRM, execute current line as-is without editing."
   (define-key electric-history-map "\e\C-v" 'scroll-other-window))
 
 (defvar electric-command-history-hook nil
-  "If non-nil, its value is called by `electric-command-history'.")
+  "If non-nil, its value is called by  electric-command-history.")
 
 (defun electric-command-history ()
-  "\\<electric-history-map>Major mode for examining and redoing commands from `command-history'.
-This pops up a window with the Command History listing.
-The number of command listed is controlled by `list-command-history-max'.
-The command history is filtered by `list-command-history-filter' if non-nil.
+  "Major mode for examining and redoing commands from  command-history.
+The number of command listed is controlled by  list-command-history-max.
+The command history is filtered by  list-command-history-filter  if non-nil.
 Combines typeout Command History list window with menu like selection
 of an expression from the history for re-evaluation in the *original* buffer.
 
-The history displayed is filtered by `list-command-history-filter' if non-nil.
+The history displayed is filtered by  list-command-history-filter  if non-nil.
 
-Like Emacs-Lisp mode except that characters do not insert themselves and
-Tab and Linefeed do not indent.  Instead these commands are provided:
-\\{electric-history-map}
+This pops up a window with the Command History listing.  If the very
+next character typed is Space, the listing is killed and the previous
+window configuration is restored.  Otherwise, you can browse in the
+Command History with  Return  moving down and  Delete  moving up, possibly
+selecting an expression to be redone with Space or quitting with `Q'.
 
-Calls the value of `electric-command-history-hook' if that is non-nil.
+Like Emacs-Lisp Mode except that characters do not insert themselves and
+Tab and linefeed do not indent.  Instead these commands are provided:
+Space or !	edit then evaluate current line in history inside
+		   the ORIGINAL buffer which invoked this mode.
+		   The previous window configuration is restored
+		   unless the invoked command changes it.
+C-c C-c, C-], Q	Quit and restore previous window configuration.
+LFD, RET	Move to the next line in the history.
+DEL		Move to the previous line in the history.
+?		Provides a complete list of commands.
+
+Calls the value of  electric-command-history-hook  if that is non-nil
 The Command History listing is recomputed each time this mode is invoked."
   (interactive)
   (let ((electric-history-in-progress t)

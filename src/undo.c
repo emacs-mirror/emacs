@@ -3,20 +3,19 @@
 
 This file is part of GNU Emacs.
 
-GNU Emacs is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY.  No author or distributor
-accepts responsibility to anyone for the consequences of using it
-or for whether it serves any particular purpose or works at all,
-unless he says so in writing.  Refer to the GNU Emacs General Public
-License for full details.
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
 
-Everyone is granted permission to copy, modify and redistribute
-GNU Emacs, but only under the conditions described in the
-GNU Emacs General Public License.   A copy of this license is
-supposed to have been given to you along with GNU Emacs so you
-can know your rights and responsibilities.  It should be in a
-file named COPYING.  Among other things, the copyright notice
-and this notice must be preserved on all copies.  */
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #include "config.h"
@@ -72,7 +71,7 @@ record_insert (beg, length)
 record_delete (beg, length)
      int beg, length;
 {
-  Lisp_Object lbeg, lend, sbeg;
+  Lisp_Object lbeg, llength, lend, sbeg;
 
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
@@ -88,10 +87,10 @@ record_delete (beg, length)
   else
     XFASTINT (sbeg) = beg;
   XFASTINT (lbeg) = beg;
+  XFASTINT (llength) = length;
   XFASTINT (lend) = beg + length;
-  current_buffer->undo_list
-    = Fcons (Fcons (Fbuffer_substring (lbeg, lend), sbeg),
-	     current_buffer->undo_list);
+  current_buffer->undo_list = Fcons (Fcons (Fbuffer_substring (lbeg, lend), sbeg),
+			     current_buffer->undo_list);
 }
 
 /* Record that a replacement is about to take place,
@@ -143,47 +142,12 @@ truncate_undo_list (list, minsize, maxsize)
      Lisp_Object list;
      int minsize, maxsize;
 {
-  Lisp_Object prev, next, last_boundary;
+  Lisp_Object prev, next, save_prev;
   int size_so_far = 0;
 
   prev = Qnil;
   next = list;
-  last_boundary = Qnil;
-
-  /* Always preserve at least the most recent undo record.
-     If the first element is an undo boundary, skip past it.  */
-  if (XTYPE (next) == Lisp_Cons
-      && XCONS (next)->car == Qnil)
-    {
-      /* Add in the space occupied by this element and its chain link.  */
-      size_so_far += sizeof (struct Lisp_Cons);
-
-      /* Advance to next element.  */
-      prev = next;
-      next = XCONS (next)->cdr;
-    }
-  while (XTYPE (next) == Lisp_Cons
-	 && XCONS (next)->car != Qnil)
-    {
-      Lisp_Object elt;
-      elt = XCONS (next)->car;
-
-      /* Add in the space occupied by this element and its chain link.  */
-      size_so_far += sizeof (struct Lisp_Cons);
-      if (XTYPE (elt) == Lisp_Cons)
-	{
-	  size_so_far += sizeof (struct Lisp_Cons);
-	  if (XTYPE (XCONS (elt)->car) == Lisp_String)
-	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCONS (elt)->car)->size);
-	}
-
-      /* Advance to next element.  */
-      prev = next;
-      next = XCONS (next)->cdr;
-    }
-  if (XTYPE (next) == Lisp_Cons)
-    last_boundary = prev;
+  save_prev = Qnil;
 
   while (XTYPE (next) == Lisp_Cons)
     {
@@ -198,19 +162,18 @@ truncate_undo_list (list, minsize, maxsize)
 	{
 	  if (size_so_far > maxsize)
 	    break;
-	  last_boundary = prev;
+	  save_prev = prev;
 	  if (size_so_far > minsize)
 	    break;
 	}
 
       /* Add in the space occupied by this element and its chain link.  */
-      size_so_far += sizeof (struct Lisp_Cons);
+      size_so_far += 8;
       if (XTYPE (elt) == Lisp_Cons)
 	{
-	  size_so_far += sizeof (struct Lisp_Cons);
+	  size_so_far += 8;
 	  if (XTYPE (XCONS (elt)->car) == Lisp_String)
-	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCONS (elt)->car)->size);
+	    size_so_far += 6 + XSTRING (XCONS (elt)->car)->size;
 	}
 
       /* Advance to next element.  */
@@ -223,9 +186,9 @@ truncate_undo_list (list, minsize, maxsize)
     return list;
 
   /* Truncate at the boundary where we decided to truncate.  */
-  if (!NULL (last_boundary))
+  if (!NULL (save_prev))
     {
-      XCONS (last_boundary)->cdr = Qnil;
+      XCONS (save_prev)->cdr = Qnil;
       return list;
     }
   else
@@ -304,7 +267,9 @@ Return what remains of the list.")
 		  if (pos < BEGV || pos > ZV)
 		    error ("Changes to be undone are outside visible portion of buffer");
 		  SET_PT (pos);
-		  Finsert (1, &membuf);
+		  /* The idea here is to leave mark after this text,
+		     which will be the desirable thing if undoing C-w.  */
+		  Finsert_before_markers (1, &membuf);
 		  SET_PT (pos);
 		}
 	    }

@@ -1,0 +1,538 @@
+This is Info file ../info/emacs, produced by Makeinfo-1.49 from the
+input file emacs.texi.
+
+   This file documents the GNU Emacs editor.
+
+   Copyright (C) 1985, 1986, 1988, 1992 Richard M. Stallman.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided also
+that the sections entitled "The GNU Manifesto", "Distribution" and "GNU
+General Public License" are included exactly as in the original, and
+provided that the entire resulting derived work is distributed under the
+terms of a permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that the sections entitled "The GNU Manifesto",
+"Distribution" and "GNU General Public License" may be included in a
+translation approved by the author instead of in the original English.
+
+
+File: emacs,  Node: Key Index,  Next: Command Index,  Prev: Glossary,  Up: Top
+
+Key (Character) Index
+*********************
+
+* Menu:
+
+* ! (query-replace):                    Query Replace.
+* ! (Dired, V19):                       Shell Commands in Dired.
+* " (TeX mode):                         TeX Editing.
+* $ (Dired, V19):                       Hiding Subdirectories.
+* % C (Dired, V19):                     Dired Regexps.
+* % d (Dired, V19):                     Dired Regexps.
+* % H (Dired, V19):                     Dired Regexps.
+* % l (Dired, V19):                     Dired Case Conversion.
+* % m (Dired, V19):                     Dired Regexps.
+* % R (Dired, V19):                     Dired Regexps.
+* % S (Dired, V19):                     Dired Regexps.
+* % u (Dired, V19):                     Dired Case Conversion.
+* * (Dired, V19):                       Marks in Dired.
+* , (query-replace):                    Query Replace.
+* . (query-replace):                    Query Replace.
+* . (Rmail):                            Rmail Scrolling.
+* / (Dired, V19):                       Marks in Dired.
+* < (Rmail in V19):                     Mail Changes.
+* = (Dired, V19):                       Comparison in Dired.
+* > (Rmail):                            Rmail Motion.
+* @ (Dired, V19):                       Marks in Dired.
+* TAB (Shell mode in V19):              Shell Changes.
+* a (Rmail):                            Rmail Labels.
+* B (Dired, V19):                       Multiple Files.
+* c (Rmail):                            Rmail Reply.
+* C (Dired, V19):                       Multiple Files.
+* c (Dired, V19):                       Marks in Dired.
+* C-a:                                  Basic.
+* C-a (Shell mode in V19):              Shell Changes.
+* C-b:                                  Basic.
+* C-c:                                  Keys.
+* C-c ' (Picture mode):                 Insert in Picture.
+* C-c . (Picture mode):                 Insert in Picture.
+* C-c / (Picture mode):                 Insert in Picture.
+* C-c ; (Fortran mode):                 Fortran Comments.
+* C-c < (Picture mode):                 Insert in Picture.
+* C-c < (GUD in V19):                   Commands of GUD.
+* C-c > (Picture mode):                 Insert in Picture.
+* C-c > (GUD in V19):                   Commands of GUD.
+* C-c TAB (TeX mode in V19):            TeX Mode Changes.
+* C-c { (TeX mode in V19):              TeX Mode Changes.
+* C-c } (TeX mode in V19):              TeX Mode Changes.
+* C-c C-b (Outline mode):               Outline Motion.
+* C-c C-b (Picture mode):               Insert in Picture.
+* C-c C-b (TeX mode):                   TeX Print.
+* C-c C-c (Edit Abbrevs):               Editing Abbrevs.
+* C-c C-c (Edit Tab Stops):             Tab Stops.
+* C-c C-c (Mail mode):                  Mail Mode.
+* C-c C-c (Occur mode):                 Other Repeating Search.
+* C-c C-c (Shell mode):                 Shell Mode.
+* C-c C-c (GUD in V19):                 Commands of GUD.
+* C-c C-d (Picture mode):               Basic Picture.
+* C-c C-d (Shell mode):                 Shell Mode.
+* C-c C-e (TeX mode in V19):            TeX Mode Changes.
+* C-c C-f (LaTeX mode):                 TeX Editing.
+* C-c C-f (Outline mode):               Outline Motion.
+* C-c C-f (Picture mode):               Insert in Picture.
+* C-c C-f (GUD in V19):                 Commands of GUD.
+* C-c C-f C-c (Mail mode):              Mail Mode.
+* C-c C-f C-s (Mail mode):              Mail Mode.
+* C-c C-f C-t (Mail mode):              Mail Mode.
+* C-c C-h (Outline mode):               Outline Visibility.
+* C-c C-i (Outline mode):               Outline Visibility.
+* C-c C-i (GUD in V19):                 Commands of GUD.
+* C-c C-k (Picture mode):               Rectangles in Picture.
+* C-c C-k (TeX mode):                   TeX Print.
+* C-c C-l (TeX mode):                   TeX Print.
+* C-c C-l (GUD in V19):                 Commands of GUD.
+* C-c C-n (Fortran mode):               Fortran Motion.
+* C-c C-n (Outline mode):               Outline Motion.
+* C-c C-n (GUD in V19):                 Commands of GUD.
+* C-c C-o (Shell mode):                 Shell Mode.
+* C-c C-o (Shell mode in V19):          Shell Changes.
+* C-c C-o (TeX mode in V19):            TeX Mode Changes.
+* C-c C-p (Fortran mode):               Fortran Motion.
+* C-c C-p (Outline mode):               Outline Motion.
+* C-c C-p (TeX mode):                   TeX Print.
+* C-c C-q (Mail mode):                  Mail Mode.
+* C-c C-q (TeX mode):                   TeX Print.
+* C-c C-r (Fortran mode):               Fortran Columns.
+* C-c C-r (Shell mode):                 Shell Mode.
+* C-c C-r (TeX mode):                   TeX Print.
+* C-c C-r (Shell mode in V19):          Shell Changes.
+* C-c C-s (Mail mode):                  Mail Mode.
+* C-c C-s (Outline mode):               Outline Visibility.
+* C-c C-s (GUD in V19):                 Commands of GUD.
+* C-c C-u (Outline mode):               Outline Motion.
+* C-c C-u (Shell mode):                 Shell Mode.
+* C-c C-v (TeX mode in V19):            TeX Mode Changes.
+* C-c C-w (Fortran mode):               Fortran Columns.
+* C-c C-w (Mail mode):                  Mail Mode.
+* C-c C-w (Picture mode):               Rectangles in Picture.
+* C-c C-w (Shell mode):                 Shell Mode.
+* C-c C-x (Picture mode):               Rectangles in Picture.
+* C-c C-y (Mail mode):                  Mail Mode.
+* C-c C-y (Mail mode):                  Rmail Reply.
+* C-c C-y (Picture mode):               Rectangles in Picture.
+* C-c C-y (Shell mode):                 Shell Mode.
+* C-c C-z (Shell mode):                 Shell Mode.
+* C-c C-\ (Shell mode):                 Shell Mode.
+* C-c TAB (Picture mode):               Tabs in Picture.
+* C-c \ (Picture mode):                 Insert in Picture.
+* C-c ^ (Picture mode):                 Insert in Picture.
+* C-c ` (Picture mode):                 Insert in Picture.
+* C-d:                                  Killing.
+* C-d (Rmail):                          Rmail Deletion.
+* C-d (Shell mode in V19):              Shell Changes.
+* C-e:                                  Basic.
+* C-f:                                  Basic.
+* C-g:                                  Minibuffer.
+* C-h:                                  Keys.
+* C-h a:                                Help.
+* C-h a (V19):                          New Commands.
+* C-h b:                                Help.
+* C-h c:                                Help.
+* C-h C-c:                              Help.
+* C-h C-d:                              Help.
+* C-h C-f (V19):                        New Commands.
+* C-h C-k (V19):                        New Commands.
+* C-h C-w:                              Help.
+* C-h f:                                Help.
+* C-h f:                                Documentation.
+* C-h i:                                Help.
+* C-h k:                                Help.
+* C-h l:                                Help.
+* C-h m:                                Help.
+* C-h n:                                Help.
+* C-h s:                                Syntax Change.
+* C-h t:                                Basic.
+* C-h t:                                Help.
+* C-h v:                                Documentation.
+* C-h v:                                Help.
+* C-h v:                                Examining.
+* C-h w:                                Help.
+* C-k:                                  Killing.
+* C-k:                                  Killing.
+* C-l:                                  Basic.
+* C-l:                                  Scrolling.
+* C-l (query-replace):                  Query Replace.
+* C-M-@:                                Lists.
+* C-M-@:                                Marking Objects.
+* C-M-a:                                Defuns.
+* C-M-a (Fortran mode):                 Fortran Motion.
+* C-M-b:                                Lists.
+* C-M-c:                                Recursive Edit.
+* C-M-d:                                Lists.
+* C-M-d (Dired, V19):                   Subdirectories in Dired.
+* C-M-e:                                Defuns.
+* C-M-e (Fortran mode):                 Fortran Motion.
+* C-M-f:                                Lists.
+* C-M-f (V19):                          Changed Commands.
+* C-M-h:                                Defuns.
+* C-M-h:                                Marking Objects.
+* C-M-h (Fortran mode):                 Fortran Motion.
+* C-M-k:                                Killing.
+* C-M-k:                                Lists.
+* C-M-l (Rmail):                        Rmail Make Summary.
+* C-M-l (Rmail):                        Rmail Labels.
+* C-M-l (V19):                          New Commands.
+* C-M-m (Rmail in V19):                 Mail Changes.
+* C-M-n:                                Lists.
+* C-M-n (Rmail):                        Rmail Labels.
+* C-M-n (Dired, V19):                   Subdirectories in Dired.
+* C-M-n (Summary mode) (GNUS, V19):     Summary of GNUS.
+* C-M-o:                                Indentation Commands.
+* C-M-p:                                Lists.
+* C-M-p (Rmail):                        Rmail Labels.
+* C-M-p (Dired, V19):                   Subdirectories in Dired.
+* C-M-p (Summary mode) (GNUS, V19):     Summary of GNUS.
+* C-M-q:                                Multi-line Indent.
+* C-M-q (Fortran mode):                 ForIndent Commands.
+* C-M-r (Rmail):                        Rmail Make Summary.
+* C-M-r (V19):                          New Commands.
+* C-M-s:                                Regexp Search.
+* C-M-t:                                Transpose.
+* C-M-t:                                Lists.
+* C-M-u:                                Lists.
+* C-M-u (Dired, V19):                   Subdirectories in Dired.
+* C-M-v:                                Minibuffer Edit.
+* C-M-v:                                Other Window.
+* C-M-w:                                Appending Kills.
+* C-M-x:                                External Lisp.
+* C-M-x:                                Lisp Eval.
+* C-M-\:                                Indentation Commands.
+* C-M-\:                                Multi-line Indent.
+* C-n:                                  Basic.
+* C-n (Rmail summary):                  Rmail Summary Edit.
+* C-n (Group mode) (GNUS, V19):         Summary of GNUS.
+* C-n (Rmail summary in V19):           Mail Changes.
+* C-n (Summary mode) (GNUS, V19):       Summary of GNUS.
+* C-o:                                  Blank Lines.
+* C-o (Rmail):                          Rmail Output.
+* C-o (V19):                            Changed Commands.
+* C-p:                                  Basic.
+* C-p (Rmail summary):                  Rmail Summary Edit.
+* C-p (Group mode) (GNUS, V19):         Summary of GNUS.
+* C-p (Rmail summary in V19):           Mail Changes.
+* C-p (Summary mode) (GNUS, V19):       Summary of GNUS.
+* C-q:                                  Basic.
+* C-r:                                  Incremental Search.
+* C-r (query-replace):                  Query Replace.
+* C-s:                                  Incremental Search.
+* C-SPC:                                Setting Mark.
+* C-t:                                  Basic.
+* C-t:                                  Transpose.
+* C-u:                                  Arguments.
+* C-u - C-x ;:                          Comments.
+* C-u C-@:                              Mark Ring.
+* C-u C-SPC:                            Mark Ring.
+* C-u TAB:                              Multi-line Indent.
+* C-v:                                  Scrolling.
+* C-w:                                  Killing.
+* C-w (query-replace):                  Query Replace.
+* C-x:                                  Keys.
+* C-x $:                                Selective Display.
+* C-x & (GUD in V19):                   GUD Customization.
+* C-x (:                                Basic Kbd Macro.
+* C-x ):                                Basic Kbd Macro.
+* C-x +:                                Defining Abbrevs.
+* C-x -:                                Defining Abbrevs.
+* C-x .:                                Fill Prefix.
+* C-x /:                                RegPos.
+* C-x 0:                                Change Window.
+* C-x 1:                                Change Window.
+* C-x 2:                                Split Window.
+* C-x 2 (V19):                          Changed Commands.
+* C-x 3 (V19):                          Binding Changes.
+* C-x 4:                                Pop Up Window.
+* C-x 4 .:                              Find Tag.
+* C-x 4 a:                              Change Log.
+* C-x 4 a (V19):                        M-x Changes.
+* C-x 4 b:                              Select Buffer.
+* C-x 4 C-o (V19):                      Binding Changes.
+* C-x 4 d:                              Dired Enter.
+* C-x 4 f:                              Visiting.
+* C-x 4 m:                              Sending Mail.
+* C-x 4 r (V19):                        New Commands.
+* C-x 5:                                Split Window.
+* C-x 5 . (V19):                        New Commands.
+* C-x 5 (V19):                          New Commands.
+* C-x 5 b (V19):                        New Commands.
+* C-x 5 C-f (V19):                      New Commands.
+* C-x 5 m (V19):                        New Commands.
+* C-x ;:                                Comments.
+* C-x <:                                Horizontal Scrolling.
+* C-x =:                                Position Info.
+* C-x >:                                Horizontal Scrolling.
+* C-x SPC (V19):                        Commands of GUD.
+* C-x }:                                Change Window.
+* C-x a:                                Accumulating Text.
+* C-x a (V19):                          Binding Changes.
+* C-x b:                                Select Buffer.
+* C-x C-a:                              Defining Abbrevs.
+* C-x C-b:                              List Buffers.
+* C-x C-c:                              Exiting.
+* C-x C-d:                              ListDir.
+* C-x C-e:                              Lisp Eval.
+* C-x C-f:                              Visiting.
+* C-x C-h:                              Defining Abbrevs.
+* C-x C-l:                              Case.
+* C-x C-l (V19):                        Binding Changes.
+* C-x C-o:                              Blank Lines.
+* C-x C-o:                              Killing.
+* C-x C-p:                              Pages.
+* C-x C-p:                              Marking Objects.
+* C-x C-q:                              Misc Buffer.
+* C-x C-q (V19):                        Editing with VC.
+* C-x C-s:                              Saving.
+* C-x C-t:                              Transpose.
+* C-x C-u:                              Case.
+* C-x C-u (V19):                        Binding Changes.
+* C-x C-v:                              Visiting.
+* C-x C-v (V19):                        Changed Commands.
+* C-x C-w:                              Saving.
+* C-x C-x:                              Setting Mark.
+* C-x d:                                Dired Enter.
+* C-x DEL:                              Killing.
+* C-x DEL:                              Kill Errors.
+* C-x DEL:                              Sentences.
+* C-x e:                                Basic Kbd Macro.
+* C-x ESC:                              Repetition.
+* C-x f:                                Fill Commands.
+* C-x g:                                RegText.
+* C-x h:                                Marking Objects.
+* C-x j:                                RegPos.
+* C-x k:                                Kill Buffer.
+* C-x l:                                Pages.
+* C-x m:                                Sending Mail.
+* C-x n:                                Narrowing.
+* C-x n (V19):                          Binding Changes.
+* C-x o:                                Other Window.
+* C-x q:                                Kbd Macro Query.
+* C-x r (V19):                          Binding Changes.
+* C-x s:                                Saving.
+* C-x s (V19):                          Changed Commands.
+* C-x TAB:                              Indentation Commands.
+* C-x u:                                Undo.
+* C-x v = (V19):                        Comparing Versions.
+* C-x v a (V19):                        Change Logs and VC.
+* C-x v c (V19):                        Editing with VC.
+* C-x v d (V19):                        VC Status.
+* C-x v h (V19):                        Version Headers.
+* C-x v i (V19):                        Editing with VC.
+* C-x v l (V19):                        VC Status.
+* C-x v r (V19):                        Making Snapshots.
+* C-x v s (V19):                        Making Snapshots.
+* C-x v u (V19):                        Editing with VC.
+* C-x w:                                Narrowing.
+* C-x x:                                RegText.
+* C-x [:                                Pages.
+* C-x ]:                                Pages.
+* C-x ^:                                Change Window.
+* C-x `:                                Compilation.
+* C-y:                                  Kill Ring.
+* C-z:                                  Exiting.
+* C-z (V19):                            New Commands.
+* C-]:                                  Quitting.
+* C-]:                                  Recursive Edit.
+* C-_:                                  Undo.
+* d (Rmail summary):                    Rmail Summary Edit.
+* d (Rmail):                            Rmail Deletion.
+* DEL:                                  Program Modes.
+* DEL:                                  Major Modes.
+* DEL:                                  Basic.
+* DEL:                                  Killing.
+* DEL:                                  Kill Errors.
+* DEL (query-replace):                  Query Replace.
+* DEL (Rmail summary):                  Rmail Summary Edit.
+* DEL (Rmail):                          Rmail Scrolling.
+* DEL (Group mode) (GNUS, V19):         Summary of GNUS.
+* DEL (Summary mode) (GNUS, V19):       Summary of GNUS.
+* e (Rmail):                            Rmail Deletion.
+* e (Rmail in V19):                     Mail Changes.
+* ESC:                                  Keys.
+* ESC (query-replace):                  Query Replace.
+* f (Rmail):                            Rmail Reply.
+* g (Rmail):                            Rmail Files.
+* g (Dired, V19):                       Editing Dired Buffer.
+* G (Dired, V19):                       Multiple Files.
+* h (Rmail):                            Rmail Make Summary.
+* H (Dired, V19):                       Multiple Files.
+* Help:                                 Help.
+* i (Rmail):                            Rmail Files.
+* i (Dired, V19):                       Subdirectories in Dired.
+* j (Rmail summary):                    Rmail Summary Edit.
+* j (Rmail):                            Rmail Motion.
+* k (rmail):                            Rmail Labels.
+* k (Dired, V19):                       Editing Dired Buffer.
+* l (Rmail):                            Rmail Make Summary.
+* L (Dired, V19):                       Multiple Files.
+* l (Dired, V19):                       Editing Dired Buffer.
+* l (Group mode) (GNUS, V19):           Summary of GNUS.
+* L (Group mode) (GNUS, V19):           Summary of GNUS.
+* LFD:                                  Basic Indent.
+* LFD:                                  Major Modes.
+* LFD (TeX mode):                       TeX Editing.
+* m (Rmail):                            Rmail Reply.
+* m (Dired, V19):                       Marks in Dired.
+* M (Dired, V19):                       Multiple Files.
+* M-!:                                  Single Shell.
+* M-! (V19):                            Changed Commands.
+* M-$:                                  Spelling.
+* M-$ (Dired, V19):                     Hiding Subdirectories.
+* M-$ (V19):                            Spell Changes.
+* M-%:                                  Query Replace.
+* M-':                                  Expanding Abbrevs.
+* M-(:                                  Balanced Editing.
+* M-):                                  Balanced Editing.
+* M-,:                                  Tags Search.
+* M-.:                                  Find Tag.
+* M-. (V19):                            Tags Changes.
+* M-/:                                  Dynamic Abbrevs.
+* M-1:                                  Arguments.
+* M-;:                                  Comments.
+* M-<:                                  Basic.
+* M-=:                                  Position Info.
+* M-= (Dired, V19):                     Comparison in Dired.
+* M->:                                  Basic.
+* M-?:                                  Nroff Mode.
+* M-? (Shell mode in V19):              Shell Changes.
+* M-@:                                  Words.
+* M-@:                                  Marking Objects.
+* M-DEL (Dired, V19):                   Marks in Dired.
+* M-TAB (V19):                          Tags Changes.
+* M--:                                  Arguments.
+* M-- M-c:                              Fixing Case.
+* M-- M-l:                              Fixing Case.
+* M-- M-u:                              Fixing Case.
+* M-{ (TeX mode):                       TeX Editing.
+* M-{ (V19):                            Binding Changes.
+* M-} (TeX mode):                       TeX Editing.
+* M-} (V19):                            Binding Changes.
+* M-a:                                  Sentences.
+* M-a (C mode in V19):                  New Commands.
+* M-b:                                  Words.
+* M-c:                                  Case.
+* M-d:                                  Words.
+* M-d:                                  Killing.
+* M-DEL:                                Kill Errors.
+* M-DEL:                                Killing.
+* M-DEL:                                Words.
+* M-e:                                  Sentences.
+* M-e (C mode in V19):                  New Commands.
+* M-ESC:                                Lisp Eval.
+* M-f:                                  Words.
+* M-g:                                  Fill Commands.
+* M-g (V19):                            Binding Changes.
+* M-h:                                  Marking Objects.
+* M-h:                                  Paragraphs.
+* M-i:                                  Tab Stops.
+* M-k:                                  Sentences.
+* M-k:                                  Killing.
+* M-l:                                  Case.
+* M-LFD:                                Comments.
+* M-LFD (Fortran mode):                 ForIndent Commands.
+* M-m:                                  Indentation Commands.
+* M-n:                                  Nroff Mode.
+* M-n:                                  Repetition.
+* M-n (Rmail):                          Rmail Motion.
+* M-n (Rmail summary in V19):           Mail Changes.
+* M-n (Shell mode in V19):              Shell Changes.
+* M-n (V19):                            New Facilities.
+* M-p:                                  Nroff Mode.
+* M-p:                                  Repetition.
+* M-p (Rmail):                          Rmail Motion.
+* M-p (Rmail summary in V19):           Mail Changes.
+* M-p (Shell mode in V19):              Shell Changes.
+* M-p (V19):                            New Facilities.
+* M-q:                                  Fill Commands.
+* M-q (C mode in V19):                  New Commands.
+* M-q (C mode in V19):                  Filling Changes.
+* M-r:                                  Basic.
+* M-r (Shell mode in V19):              Shell Changes.
+* M-r (V19):                            New Facilities.
+* M-s:                                  Fill Commands.
+* M-s (Rmail):                          Rmail Motion.
+* M-s (Shell mode in V19):              Shell Changes.
+* M-s (Summary mode) (GNUS, V19):       Summary of GNUS.
+* M-s (V19):                            New Facilities.
+* M-SPC:                                Killing.
+* M-t:                                  Transpose.
+* M-t:                                  Words.
+* M-TAB:                                Tabs in Picture.
+* M-TAB:                                Lisp Completion.
+* M-u:                                  Case.
+* M-v:                                  Scrolling.
+* M-w:                                  Kill Ring.
+* M-x:                                  M-x.
+* M-x gnus (V19):                       GNUS.
+* M-y:                                  Earlier Kills.
+* M-z:                                  Killing.
+* M-z (V19):                            Changed Commands.
+* M-[:                                  Paragraphs.
+* M-\:                                  Killing.
+* M-\:                                  Indentation Commands.
+* M-]:                                  Paragraphs.
+* M-^:                                  Killing.
+* M-^:                                  Indentation Commands.
+* M-^ (V19):                            Changed Commands.
+* M-|:                                  Single Shell.
+* M-~:                                  Saving.
+* n (Rmail summary):                    Rmail Summary Edit.
+* n (Rmail):                            Rmail Motion.
+* n (Group mode) (GNUS, V19):           Summary of GNUS.
+* n (Rmail summary in V19):             Mail Changes.
+* o (Rmail):                            Rmail Output.
+* O (Dired, V19):                       Multiple Files.
+* p (Rmail summary):                    Rmail Summary Edit.
+* p (Rmail):                            Rmail Motion.
+* P (Dired, V19):                       Multiple Files.
+* p (Group mode) (GNUS, V19):           Summary of GNUS.
+* p (Rmail summary in V19):             Mail Changes.
+* q (Rmail summary):                    Rmail Summary Edit.
+* q (Rmail):                            Rmail.
+* q (Group mode) (GNUS, V19):           Summary of GNUS.
+* r (Rmail):                            Rmail Reply.
+* R (Dired, V19):                       Multiple Files.
+* RET:                                  Basic.
+* RET (Shell mode):                     Shell Mode.
+* s (Rmail):                            Rmail.
+* S (Dired, V19):                       Multiple Files.
+* s (Summary mode) (GNUS, V19):         Summary of GNUS.
+* SPC:                                  Completion.
+* SPC (query-replace):                  Query Replace.
+* SPC (Rmail summary):                  Rmail Summary Edit.
+* SPC (Rmail):                          Rmail Scrolling.
+* SPC (Group mode) (GNUS, V19):         Summary of GNUS.
+* SPC (Summary mode) (GNUS, V19):       Summary of GNUS.
+* t (Rmail):                            Rmail Editing.
+* TAB:                                  Basic Indent.
+* TAB:                                  Completion.
+* TAB:                                  Indentation.
+* TAB:                                  Text Mode.
+* TAB:                                  Indentation.
+* TAB:                                  Major Modes.
+* u (Rmail summary):                    Rmail Summary Edit.
+* u (Rmail):                            Rmail Deletion.
+* u (Group mode) (GNUS, V19):           Summary of GNUS.
+* w (Rmail):                            Rmail Editing.
+* x (Rmail summary):                    Rmail Summary Edit.
+* x (Rmail in V19):                     Mail Changes.
+* Z (Dired, V19):                       Multiple Files.
+* z (Group mode) (GNUS, V19):           Summary of GNUS.
+* ^ (query-replace):                    Query Replace.
+
+

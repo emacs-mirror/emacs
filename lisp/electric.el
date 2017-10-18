@@ -31,8 +31,7 @@
 	  (n 0)
 	  (window-min-height 0)
 	  (buffer-read-only nil)
-	  (modified (buffer-modified-p))
-	  (buffer (current-buffer)))
+	  (modified (buffer-modified-p)))
       (unwind-protect
 	  (progn
 	    (select-window window)
@@ -45,10 +44,8 @@
 	(delete-region (point-min) (point))
 	(set-buffer-modified-p modified)
 	(goto-char p)
-	(select-window w)
-	;; Make sure we unbind buffer-read-only
-	;; with the proper current buffer.
-	(set-buffer buffer)))))
+	(select-window w)))))
+      
       
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is to

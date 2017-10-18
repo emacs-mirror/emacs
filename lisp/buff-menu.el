@@ -1,5 +1,5 @@
 ;; Buffer menu main function and support functions.
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -39,14 +39,11 @@
   (define-key Buffer-menu-mode-map "\C-k" 'Buffer-menu-delete)
   (define-key Buffer-menu-mode-map "x" 'Buffer-menu-execute)
   (define-key Buffer-menu-mode-map " " 'next-line)
-  (define-key Buffer-menu-mode-map "n" 'next-line)
-  (define-key Buffer-menu-mode-map "p" 'previous-line)
   (define-key Buffer-menu-mode-map "\177" 'Buffer-menu-backup-unmark)
   (define-key Buffer-menu-mode-map "~" 'Buffer-menu-not-modified)
   (define-key Buffer-menu-mode-map "?" 'describe-mode)
   (define-key Buffer-menu-mode-map "u" 'Buffer-menu-unmark)
-  (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark)
-  (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table))
+  (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark))
 
 ;; Buffer Menu mode is suitable only for specially formatted data.
 (put 'Buffer-menu-mode 'mode-class 'special)
@@ -55,24 +52,24 @@
   "Major mode for editing a list of buffers.
 Each line describes one of the buffers in Emacs.
 Letters do not insert themselves; instead, they are commands.
-\\<Buffer-menu-mode-map>
-\\[Buffer-menu-mark] -- mark buffer to be displayed.
-\\[Buffer-menu-select] -- select buffer of line point is on.
+m -- mark buffer to be displayed.
+q -- select buffer of line point is on.
   Also show buffers marked with m in other windows.
-\\[Buffer-menu-1-window] -- select that buffer in full-screen window.
-\\[Buffer-menu-2-window] -- select that buffer in one window,
+1 -- select that buffer in full-screen window.
+2 -- select that buffer in one window,
   together with buffer selected before this one in another window.
-\\[Buffer-menu-this-window] -- select that buffer in place of the buffer menu buffer.
-\\[Buffer-menu-other-window] -- select that buffer in another window,
+f -- select that buffer in place of the buffer menu buffer.
+o -- select that buffer in another window,
   so the buffer menu buffer remains visible in its window.
-\\[Buffer-menu-visit-tags-table] -- visit-tags-table this buffer.
-\\[Buffer-menu-not-modified] -- clear modified-flag on that buffer.
-\\[Buffer-menu-save] -- mark that buffer to be saved, and move down.
-\\[Buffer-menu-delete] -- mark that buffer to be deleted, and move down.
-\\[Buffer-menu-delete-backwards] -- mark that buffer to be deleted, and move up.
-\\[Buffer-menu-execute] -- delete or save marked buffers.
-\\[Buffer-menu-unmark] -- remove all kinds of marks from current line.
-\\[Buffer-menu-backup-unmark] -- back up a line and remove marks."
+~ -- clear modified-flag on that buffer.
+s -- mark that buffer to be saved, and move down.
+d or k -- mark that buffer to be deleted, and move down.
+C-d -- mark that buffer to be deleted, and move up.
+x -- delete or save marked buffers.
+u -- remove all kinds of marks from current line.
+Delete -- back up a line and remove marks.
+
+Precisely,\\{Buffer-menu-mode-map}"
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
   (setq truncate-lines t)
@@ -112,7 +109,7 @@ Type q immediately to make the buffer menu go away."
    "Commands: d, s, x; 1, 2, m, u, q; delete; ~;  ? for help."))
 
 (defun Buffer-menu-mark ()
-  "Mark buffer on this line for being displayed by \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
+  "Mark buffer on this line for being displayed by \\[Buffer-menu-select] command."
   (interactive)
   (beginning-of-line)
   (if (looking-at " [-M]")
@@ -144,7 +141,7 @@ Type q immediately to make the buffer menu go away."
   (forward-line -1))
 
 (defun Buffer-menu-delete ()
-  "Mark buffer on this line to be deleted by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command."
+  "Mark buffer on this line to be deleted by \\[Buffer-menu-execute] command."
   (interactive)
   (beginning-of-line)
   (if (looking-at " [-M]")		;header lines
@@ -155,7 +152,7 @@ Type q immediately to make the buffer menu go away."
       (forward-line 1))))
 
 (defun Buffer-menu-delete-backwards ()
-  "Mark buffer on this line to be deleted by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command
+  "Mark buffer on this line to be deleted by \\[Buffer-menu-execute] command
 and then move up one line"
   (interactive)
   (Buffer-menu-delete)
@@ -163,7 +160,7 @@ and then move up one line"
   (if (looking-at " [-M]") (forward-line 1)))
 
 (defun Buffer-menu-save ()
-  "Mark buffer on this line to be saved by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command."
+  "Mark buffer on this line to be saved by \\[Buffer-menu-execute] command."
   (interactive)
   (beginning-of-line)
   (forward-char 1)
@@ -189,7 +186,7 @@ and then move up one line"
 	 (insert ? )))))
 
 (defun Buffer-menu-execute ()
-  "Save and/or delete buffers marked with \\<Buffer-menu-mode-map>\\[Buffer-menu-save] or \\<Buffer-menu-mode-map>\\[Buffer-menu-delete] commands."
+  "Save and/or delete buffers marked with \\[Buffer-menu-save] or \\[Buffer-menu-delete] commands."
   (interactive)
   (save-excursion
     (goto-char (point-min))
@@ -221,8 +218,8 @@ and then move up one line"
  	  (forward-char -1))))))
 
 (defun Buffer-menu-select ()
-  "Select this line's buffer; also display buffers marked with `>'.
-You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] command."
+  "Select this line's buffer; also display buffers marked with \">\".
+You can mark buffers with the \\[Buffer-menu-mark] command."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer))	      
@@ -247,14 +244,6 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
       (switch-to-buffer (car others))
       (setq others (cdr others)))
     (other-window 1)))			;back to the beginning!
-
-(defun Buffer-menu-visit-tags-table ()
-  "Visit the tags table in the buffer on this line.  See `visit-tags-table'."
-  (interactive)
-  (let ((file (buffer-file-name (Buffer-menu-buffer t))))
-    (if file
-	(visit-tags-table file)
-      (error "Specified buffer has no file"))))
 
 (defun Buffer-menu-1-window ()
   "Select this line's buffer, alone, in full screen."

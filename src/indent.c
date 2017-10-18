@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1990 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,11 +22,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "indent.h"
-#include "screen.h"
 #include "window.h"
 #include "termchar.h"
 #include "termopts.h"
-#include "disptab.h"
+
+#define CR '\015'
 
 /* Indentation can insert tabs if this is non-zero;
    otherwise always uses spaces */
@@ -34,8 +34,6 @@ int indent_tabs_mode;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
-
-#define CR 015
 
 /* These three values memoize the current column to avoid recalculation */
 /* Some things in set last_known_column_point to -1
@@ -48,23 +46,6 @@ int last_known_column_point;
 int last_known_column_modified;
 
 extern int minibuf_prompt_width;
-
-/* Get the display table to use for the current buffer.  */
-
-struct Lisp_Vector *
-buffer_display_table ()
-{
-  Lisp_Object thisbuf;
-
-  thisbuf = current_buffer->display_table;
-  if (XTYPE (thisbuf) == Lisp_Vector
-      && XVECTOR (thisbuf)->size == DISP_TABLE_SIZE)
-    return XVECTOR (thisbuf);
-  if (XTYPE (Vstandard_display_table) == Lisp_Vector
-      && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
-    return XVECTOR (Vstandard_display_table);
-  return 0;
-}
 
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
   "Return the horizontal position of point.  Beginning of line is column 0.\n\
@@ -74,8 +55,7 @@ and point.  (eg control characters will have a width of 2 or 4, tabs\n\
 will have a variable width)\n\
 Ignores finite width of screen, which means that this function may return\n\
 values greater than (screen-width).\n\
-Whether the line is visible (if `selective-display' is t) has no effect;\n\
-however, ^M is treated as end of line when `selective-display' is t.")
+Whether the line is visible (if `selective-display' is t) has no effect.")
   ()
 {
   Lisp_Object temp;
@@ -83,18 +63,22 @@ however, ^M is treated as end of line when `selective-display' is t.")
   return temp;
 }
 
+/* Cancel any recorded value of the horizontal position.  */
+
+invalidate_current_column ()
+{
+  last_known_column_point = 0;
+}
+
 int
 current_column ()
 {
   register int col;
-  register unsigned char *ptr, *stop;
+  register unsigned char *ptr, *stop, c;
   register int tab_seen;
-  int post_tab;
-  register int c;
+  register int post_tab;
   register int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NULL (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = buffer_display_table ();
-  int stopchar;
 
   if (point == last_known_column_point
       && MODIFF == last_known_column_modified)
@@ -131,8 +115,7 @@ current_column ()
 	}
 
       c = *--ptr;
-      if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
+      if (c >= 040 && c < 0177)
 	{
 	  col++;
 	}
@@ -149,8 +132,6 @@ current_column ()
 	  col = 0;
 	  tab_seen = 1;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	col += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
       else
 	col += (ctl_arrow && c < 0200) ? 2 : 4;
     }
@@ -168,11 +149,45 @@ current_column ()
   return col;
 }
 
+ToCol (col)
+     int col;
+{
+  register int fromcol = current_column ();
+  register int n;
+  register int tab_width = XINT (current_buffer->tab_width);
+
+  if (fromcol > col)
+    return;
+
+  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+
+  if (indent_tabs_mode)
+    {
+      n = col / tab_width - fromcol / tab_width;
+      if (n)
+	{
+	  while (n-- > 0)
+	    insert ("\t", 1);
+
+	  fromcol = (col / tab_width) * tab_width;
+	}
+    }
+
+  while (fromcol < col)
+    {
+      insert ("        ", min (8, col - fromcol));
+      fromcol += min (8, col - fromcol);
+    }
+
+  last_known_column = col;
+  last_known_column_point = point;
+  last_known_column_modified = MODIFF;
+}
 
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
   "Indent from point with tabs and spaces until COLUMN is reached.\n\
-Optional second argument MIN says always do at least MIN spaces\n\
-even if that goes past COLUMN; by default, MIN is zero.")
+Always do at least MIN spaces even if that goes past COLUMN;\n\
+by default, MIN is zero.")
   (col, minimum)
      Lisp_Object col, minimum;
 {
@@ -190,7 +205,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
   if (mincol < XINT (col)) mincol = XINT (col);
 
   if (fromcol == mincol)
-    return make_number (mincol);
+    return make_number (fromcol);
 
   if (tab_width <= 0 || tab_width > 20) tab_width = 8;
 
@@ -237,10 +252,10 @@ position_indentation (pos)
   register int tab_width = XINT (current_buffer->tab_width);
   register unsigned char *p;
   register unsigned char *stop;
-  
+
   if (tab_width <= 0 || tab_width > 20) tab_width = 8;
-  
-  stop = &FETCH_CHAR (BUFFER_CEILING_OF (pos)) + 1;
+
+  stop = &FETCH_CHAR (BufferSafeCeiling (pos)) + 1;
   p = &FETCH_CHAR (pos);
   while (1)
     {
@@ -250,7 +265,7 @@ position_indentation (pos)
 	    return column;
 	  pos += p - &FETCH_CHAR (pos);
 	  p = &FETCH_CHAR (pos);
-	  stop = &FETCH_CHAR (BUFFER_CEILING_OF (pos)) + 1;
+	  stop = &FETCH_CHAR (BufferSafeCeiling (pos)) + 1;
 	}
       switch (*p++)
 	{
@@ -266,43 +281,29 @@ position_indentation (pos)
     }
 }
 
-DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, 0,
+DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 1, 0,
   "Move point to column COLUMN in the current line.\n\
-The column of a character is calculated by adding together the widths\n\
-as displayed of the previous characters in the line.\n\
-This function ignores line-continuation;\n\
-there is no upper limit on the column number a character can have\n\
-and horizontal scrolling has no effect.\n\n\
-If specified column is within a character, point goes after that character.\n\
-If it's past end of line, point goes to end of line.\n\n\
-A non-nil second (optional) argument FORCE means, if the line\n\
-is too short to reach column COLUMN then add spaces/tabs to get there,\n\
-and if COLUMN is in the middle of a tab character, change it to spaces.")
-  (column, force)
-     Lisp_Object column, force;
+COLUMN is calculated by adding together the widths of all the displayed\n\
+representations of the character between the start of the previous line\n\
+and point.  (eg control characters will have a width of 2 or 4, tabs\n\
+will have a variable width)\n\
+Ignores finite width of screen, which means that this function may be\n\
+passed values greater than (screen-width)")
+  (column)
+     Lisp_Object column;
 {
-  register int pos;
+  register int pos = point;
   register int col = current_column ();
   register int goal;
-  register int end;
+  register int end = ZV;
   register int tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NULL (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = buffer_display_table ();
 
   Lisp_Object val;
-  int prev_col;
-  int c;
 
   if (tab_width <= 0 || tab_width > 20) tab_width = 8;
-  CHECK_NATNUM (column, 0);
+  CHECK_NUMBER (column, 0);
   goal = XINT (column);
-
- retry:
-  pos = point;
-  end = ZV;
-
-  /* If we're starting past the desired column,
-     back up to beginning of line and scan from there.  */
   if (col > goal)
     {
       pos = find_next_newline (pos, -1);
@@ -311,43 +312,25 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 
   while (col < goal && pos < end)
     {
-      c = FETCH_CHAR (pos);
+      int c = FETCH_CHAR (pos);
       if (c == '\n')
 	break;
       if (c == '\r' && EQ (current_buffer->selective_display, Qt))
 	break;
       pos++;
+      col++;
       if (c == '\t')
 	{
-	  prev_col = col;
-	  col += tab_width;
+	  col += tab_width - 1;
 	  col = col / tab_width * tab_width;
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	col += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
       else if (ctl_arrow && (c < 040 || c == 0177))
         col++;
       else if (c < 040 || c >= 0177)
         col += 3;
-      else
-	col++;
     }
 
   SET_PT (pos);
-
-  /* If a tab char made us overshoot, change it to spaces
-     and scan through it again.  */
-  if (!NULL (force) && col > goal && c == '\t' && prev_col < goal)
-    {
-      del_range (point - 1, point);
-      Findent_to (make_number (col - 1));
-      insert_char (' ');
-      goto retry;
-    }
-
-  /* If line ends prematurely, add space to the end.  */
-  if (col < goal && !NULL (force))
-    Findent_to (make_number (col = goal));
 
   last_known_column = col;
   last_known_column_point = point;
@@ -359,102 +342,47 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 
 struct position val_compute_motion;
 
-/* Scan the current buffer forward from offset FROM, pretending that
-   this is at line FROMVPOS, column FROMHPOS, until reaching buffer
-   offset TO or line TOVPOS, column TOHPOS (whichever comes first),
-   and return the ending buffer position and screen location.
-
-   WIDTH is the number of columns available to display text;
-   compute_motion uses this to handle continuation lines and such.
-   HSCROLL is the number of columns not being displayed at the left
-   margin; this is usually taken from a window's hscroll member.
-   TAB_OFFSET is a mysterious value, perhaps the number of columns of
-   the first tab that aren't being displayed, perhaps because of a
-   continuation line or something.
-
-   compute_motion returns a pointer to a struct position.  The bufpos
-   member gives the buffer position at the end of the scan, and hpos
-   and vpos give its cartesian location.  I'm not clear on what the
-   other members are.
-
-   For example, to find the buffer position of column COL of line LINE
-   of a certain window, pass the window's starting location as FROM
-   and the window's upper-left coordinates as FROMVPOS and FROMHPOS.
-   Pass the buffer's ZV as TO, to limit the scan to the end of the
-   visible section of the buffer, and pass LINE and COL as TOVPOS and
-   TOHPOS.  
-
-   When displaying in window w, a typical formula for WIDTH is:
-
-	window_width - 1
-	 - (window_width + window_left != screen_width)
-
-	where
-	  window_width is XFASTINT (w->width),
-	  window_left is XFASTINT (w->left),
-	  and screen_width = SCREEN_WIDTH (XSCREEN (window->screen))    
-
-   This accounts for the continuation-line backslashes, and the window
-   borders if the window is split vertically.  */
-
 struct position *
 compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, tab_offset)
      int from, fromvpos, fromhpos, to, tovpos, tohpos;
      register int width;
      int hscroll, tab_offset;
 {
-/* Note that `cpos' is CURRENT_VPOS << SHORTBITS + CURRENT_HPOS,
-   and that CURRENT_HPOS may be negative.  Use these macros
-   to extract the hpos or the vpos from cpos or anything like it.
- */
-#ifndef SHORT_CAST_BUG
-#define HPOS(VAR) (short) (VAR)
-#else
-#define HPOS(VAR) (((VAR) & (1 << (SHORTBITS - 1)) \
-		    ? ~((1 << SHORTBITS) - 1) : 0) \
-		   | (VAR) & ((1 << SHORTBITS) - 1))
-/* #define HPOS(VAR) (((VAR) & 0x8000 ? 0xffff0000 : 0) | ((VAR) & 0xffff)) */
-#endif /* SHORT_CAST_BUG */
+  register int hpos = fromhpos;
+  register int vpos = fromvpos;
 
-#define VPOS(VAR) (((VAR) >> SHORTBITS) + (HPOS (VAR) < 0))
-
-
-#ifndef TAHOE_REGISTER_BUG
-  register
-#endif /* TAHOE_REGISTER_BUG */
-    int cpos = fromhpos + (fromvpos << SHORTBITS);
-  register int target = tohpos + (tovpos << SHORTBITS);
   register int pos;
   register int c;
   register int tab_width = XFASTINT (current_buffer->tab_width);
   register int ctl_arrow = !NULL (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = buffer_display_table ();
   int selective
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
 	: !NULL (current_buffer->selective_display) ? -1 : 0;
-  int prevpos;
-  int selective_rlen
-    = (selective && dp && XTYPE (DISP_INVIS_ROPE (dp)) == Lisp_String
-       ? XSTRING (DISP_INVIS_ROPE (dp))->size / sizeof (GLYPH) : 0);
+  int prev_vpos, prev_hpos;
 
   if (tab_width <= 0 || tab_width > 20) tab_width = 8;
-  for (pos = from; pos < to && cpos < target; pos++)
+  for (pos = from; pos < to; pos++)
     {
-      prevpos = cpos;
+      /* Stop if past the target screen position.  */
+      if (vpos > tovpos
+	  || (vpos == tovpos && hpos >= tohpos))
+	break;
+
+      prev_vpos = vpos;
+      prev_hpos = hpos;
+
       c = FETCH_CHAR (pos);
-      if (c >= 040 && c < 0177
-	  && (dp == 0 || XTYPE (DISP_CHAR_ROPE (dp, c)) != Lisp_String))
-	cpos++;
+      if (c >= 040 && c < 0177)
+	hpos++;
       else if (c == '\t')
 	{
-	  cpos += tab_width
-	    - HPOS (cpos + tab_offset + hscroll - (hscroll > 0)
-		    /* Add tab_width here to make sure positive.
-		       cpos can be negative after continuation
-		       but can't be less than -tab_width.  */
-		    + tab_width)
-	      % tab_width;
+	  hpos += tab_width - ((hpos + tab_offset + hscroll - (hscroll > 0)
+				/* Add tab_width here to make sure positive.
+				   hpos can be negative after continuation
+				   but can't be less than -tab_width.  */
+				+ tab_width)
+			       % tab_width);
 	}
       else if (c == '\n')
 	{
@@ -463,61 +391,72 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      /* Skip any number of invisible lines all at once */
 	      do
 		{
-		  while (++pos < to && FETCH_CHAR(pos) != '\n');
+		  while (++pos < to && FETCH_CHAR (pos) != '\n');
 		}
-	      while (selective > 0 && position_indentation (pos + 1) >= selective);
+	      while (pos < to && position_indentation (pos + 1) >= selective);
 	      pos--;
 	      /* Allow for the " ..." that is displayed for them. */
-	      if (selective_rlen)
+	      if (!NULL (current_buffer->selective_display_ellipses))
 		{
-		  cpos += selective_rlen;
-		  if (HPOS (cpos) >= width)
-		    cpos -= HPOS (cpos) - width;
+		  hpos += 4;
+		  if (hpos >= width)
+		    hpos = width;
 		}
+	      /* We have skipped the invis text, but not the newline after.  */
 	    }
 	  else
-	    cpos += (1 << SHORTBITS) - HPOS (cpos);
-	  cpos -= hscroll;
-	  if (hscroll > 0) cpos++; /* Count the ! on column 0 */
-	  tab_offset = 0;
+	    {
+	      /* A visible line follows.
+		 Skip this newline and advance to next line.  */
+	      vpos++;
+	      hpos = 0;
+	      hpos -= hscroll;
+	      if (hscroll > 0) hpos++; /* Count the ! on column 0 */
+	      tab_offset = 0;
+	    }
 	}
       else if (c == CR && selective < 0)
 	{
 	  /* In selective display mode,
 	     everything from a ^M to the end of the line is invisible */
-	  while (pos < to && FETCH_CHAR(pos) != '\n') pos++;
+	  while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
+	  /* Stop *before* the real newline.  */
 	  pos--;
 	  /* Allow for the " ..." that is displayed for them. */
-	  if (selective_rlen)
+	  if (!NULL (current_buffer->selective_display_ellipses))
 	    {
-	      cpos += selective_rlen;
-	      if (HPOS (cpos) >= width)
-		cpos -= HPOS (cpos) - width;
+	      hpos += 4;
+	      if (hpos >= width)
+		hpos = width;
 	    }
 	}
-      else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
-	cpos += XSTRING (DISP_CHAR_ROPE (dp, c))->size / sizeof (GLYPH);
       else
-	cpos += (ctl_arrow && c < 0200) ? 2 : 4;
+	hpos += (ctl_arrow && c < 0200) ? 2 : 4;
 
-      if (HPOS (cpos) >= width
-	  && (HPOS (cpos) > width
-	      || (pos < (ZV - 1)
+      /* Handle right margin.  */
+      if (hpos >= width
+	  && (hpos > width
+	      || (pos < ZV - 1
 		  && FETCH_CHAR (pos + 1) != '\n')))
 	{
-	  if (cpos >= target)
+	  if (vpos > tovpos
+	      || (vpos == tovpos && hpos >= tohpos))
 	    break;
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width + 1 < SCREEN_WIDTH (selected_screen))
+		  && width + 1 < screen_width)
 	      || !NULL (current_buffer->truncate_lines))
 	    {
-	      while (pos < to && FETCH_CHAR(pos) != '\n') pos++;
+	      /* Truncating: skip to newline.  */
+	      while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
 	      pos--;
+	      hpos = width;
 	    }
 	  else
 	    {
-	      cpos += (1 << SHORTBITS) - width;
+	      /* Continuing.  */
+	      vpos++;
+	      hpos -= width;
 	      tab_offset += width;
 	    }
 
@@ -525,44 +464,35 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     }
 
   val_compute_motion.bufpos = pos;
-  val_compute_motion.hpos = HPOS (cpos);
-  val_compute_motion.vpos = VPOS (cpos);
-  val_compute_motion.prevhpos = HPOS (prevpos);
+  val_compute_motion.hpos = hpos;
+  val_compute_motion.vpos = vpos;
+  val_compute_motion.prevhpos = prev_hpos;
 
   /* Nonzero if have just continued a line */
   val_compute_motion.contin
-    = pos != from
-      && (val_compute_motion.vpos != VPOS (prevpos))
-      && c != '\n';
+    = (pos != from
+       && (val_compute_motion.vpos != prev_vpos)
+       && c != '\n');
 
   return &val_compute_motion;
 }
-#undef HPOS
-#undef VPOS
-
 
-/* Return the column of position POS in window W's buffer,
-   rounded down to a multiple of the internal width of W.
-   This is the amount of indentation of position POS
-   that is not visible in its horizontal position in the window.  */
-
-int
 pos_tab_offset (w, pos)
      struct window *w;
      register int pos;
 {
   int opoint = point;
   int col;
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left)
-       != SCREEN_WIDTH (XSCREEN (w->screen)));
 
   if (pos == BEGV || FETCH_CHAR (pos - 1) == '\n')
     return 0;
   SET_PT (pos);
   col = current_column ();
   SET_PT (opoint);
-  return col - (col % width);
+  return (col
+	  - (col % (XFASTINT (w->width) - 1
+		    - (XFASTINT (w->width) + XFASTINT (w->left)
+		       != screen_width))));
 }
 
 /* start_hpos is the hpos of the first character of the buffer:
@@ -603,7 +533,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	    prevline = find_next_newline (prevline - 1, -1);
 	  pos = *compute_motion (prevline, 0,
 				 lmargin + (prevline == 1 ? start_hpos : 0),
-				 from, 10000, 10000,
+				 from, 1 << (INTBITS - 2), 0,
 				 width, hscroll, 0);
 	}
       else
@@ -612,7 +542,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	  pos.vpos = 0;
 	}
       return compute_motion (from, vpos, pos.hpos,
-			     ZV, vtarget, - (1 << (SHORTBITS - 1)),
+			     ZV, vtarget, - (1 << (INTBITS - 2)),
 			     width, hscroll, pos.vpos * width);
     }
 
@@ -634,7 +564,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	}
       pos = *compute_motion (prevline, 0,
 			     lmargin + (prevline == 1 ? start_hpos : 0),
-			     from, 10000, 10000,
+			     from, 1 << (INTBITS - 2), 0,
 			     width, hscroll, 0);
       vpos -= pos.vpos;
       first = 0;
@@ -670,13 +600,13 @@ Returns number of lines moved; may be closer to zero than LINES\n\
 {
   struct position pos;
   register struct window *w = XWINDOW (selected_window);
-  int width = XFASTINT (w->width) - 1
-    - (XFASTINT (w->width) + XFASTINT (w->left)
-       != SCREEN_WIDTH (XSCREEN (w->screen)));
 
   CHECK_NUMBER (lines, 0);
 
-  pos = *vmotion (point, XINT (lines), width,
+  pos = *vmotion (point, XINT (lines),
+		  XFASTINT (w->width) - 1
+		  - (XFASTINT (w->width) + XFASTINT (w->left)
+		     != XFASTINT (XWINDOW (minibuf_window)->width)),
 		  /* Not XFASTINT since perhaps could be negative */
 		  XINT (w->hscroll), selected_window);
 

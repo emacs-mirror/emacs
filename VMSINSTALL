@@ -1,0 +1,129 @@
+* Installing GNU Emacs from a VMS install kit
+
+If you receive a VMS distribution tape containing an install kit, you
+can restore Emacs and run it immediately on any VMS system 4.2 or newer.
+The installation command file will automatically rename certain files
+whose names must vary according to the version of VMS in use.
+
+However, it is not certain we will have the install kit developed
+soon, so until that is done, you may receive an ordinary BACKUP
+saveset instead.
+
+* Installing GNU Emacs from an ordinary VMS BACKUP saveset
+
+If you receive a VMS distribution tape in VMS BACKUP interchange
+format you can restore Emacs and run it on VMS versions 4.2 or newer
+after executing a few commands.  What you must do depends on the
+VMS version (one procedure for VMS 4.2 or 4.3; another procedure
+for newer VMS versions).
+
+For VMS versions 4.4 and up, make sure the file
+SYS$SYSTEM:RIGHTSLIST.DAT has WORLD:R access.  Emacs reads this file
+to check file access.
+
+In order to compile Emacs with the VMS C compiler, you will need a
+pagefile quota of around 22000 pages, plus enough swap space to handle
+that.  (This was in VMS 5.1-1, with 5 meg of physical memory.)  See
+HELP SYSGEN CREATE and HELP SYSGEN INSTALL for more information.
+
+Choose a directory to restore to, say DEV:[LIB].  Do:
+
+	$ mount/foreign mta0:
+	$ backup/log mta0: dev:[lib...]
+
+Now, if you are using VMS version 4.4 or later, set your default to
+the directory DEV:[LIB.EMACS] and run the command file
+DEV:[LIB.EMACS]ALLRENAME.COM:
+
+	$ set default dev:[lib.emacs]
+	$ @allrename [...] "_" "-"
+
+This renames all files in the Emacs distribution from their old-VMS
+names (containing `_' characters) to their new-VMS names (containing
+`-' instead).
+
+Now, edit DEV:[LIB.EMACS]EMACS.COM.  Replace the definition of
+EMACS_LIBRARY with the appropriate device and directory.  The
+definition initially reads as follows:
+
+	$ define /translation=concealed emacs_library	sys$device:[emacs.]
+
+You would replace this with:
+
+	$ define /translation=concealed emacs_library	dev:[lib.emacs.]
+
+Now execute the command file DEV:[LIB.EMACS]EMACS.COM.  This defines
+a command EMACS that runs a suspendable permanent Emacs.  To
+fully install Emacs, you must arrange for users to run this file
+on login, or arrange for this file to be run when the system boots.
+
+The distribution contains an Emacs executable in
+DEV:[LIB.EMACS]EMACS.EXE.  It uses DEV:[LIB.EMACS]EMACS.DUMP every time
+it runs.  The EMACS.EXE has been linked with the non-sharable C
+library, so it should run on any VMS V4.4+ system, whether or not the
+C compiler exists.  The .OBJ files are all there, so you can relink
+with /debug if you want to have fun.
+
+A few C source files contain compilation conditionals that depend
+on the version of VMS.  We have compiled these files specially for
+VMS version 4.2 (or 4.3) in object files with extension .JBO.
+So to run on VMS 4.2, rename all the .JBO files to .OBJ, then
+link and build Emacs as described in DEV:[LIB.EMACS.SRC]VMSBUILD.
+
+	$ set def [.src]
+	$ rename *.jbo *.obj
+	$ @precomp
+	$ @link
+	$ @build
+	$ rename temacs.exe [-]emacs.exe
+	$ rename temacs.dump [-]emacs.dump
+
+To be clean, you should also edit the file [.SRC]CONFIG.H to #include
+the file S_VMS4_2.H.  Then the proper conditionals will be activated
+if you ever recompile.
+
+* Moving a Unix distribution to VMS.
+
+Moving a Unix distribution to VMS is mostly a matter of transferring
+the files to the VMS system, but with old versions of VMS (prior to
+4.4) it is a little more complicated because some of the file names
+used on Unix are not supported by VMS.  Every `-' in a Unix file name
+must be changed to a `_' on VMS.  (In VMS versions 4.4 and up, this is
+not necessary, since `-' is allowed in file names.)
+
+A few other changes must be made regardless of the version of VMS:
+
+1) Copy the file [.SRC]VMSPATHS.H to [.SRC]PATHS.H, replacing any existing
+file PATHS.H in that directory.
+
+2) Delete any file [.SRC]CONFIG.H and replace it with a copy of
+CONFIG.H-DIST.  Then edit this file so it specifies `m-vax.h' as the
+second include file and for the first include file one of
+`s-vms4-0.h', `s-vms4-2.h', `s-vms4-4.h' or `s-vms5-5.h'.  (Use the
+highest version not greater than the VMS version you are running.  For
+VMS versions prior to 4.4, the `-' characters must be replaced with
+`_'.)
+
+You can now compile, link, build and install Emacs as described in
+[.SRC]VMSBUILD..
+
+* Moving a VMS distribution to Unix.
+
+Delete all .OBJ files, and PATHS.H and CONFIG.H.  Then copy the
+remaining files, changing each `_' in a file name to `-`.  Unix will
+allow filenames with `_' but Emacs will not work with them!
+
+Names which on VMS end in a period (have a null extension) should
+have no period on Unix.  Thus, "YMAKEFILE." becomes "ymakefile".
+
+VMS file names are case-insensitive.  On Unix, case is significant.
+Most of the file names must be in lower case or they will not work.
+There are only a few exceptions:
+
+1) CHANGELOG. becomes ChangeLog
+2) MAKEFILE. becomes Makefile
+3) TAGS. becomes TAGS
+4) Files of English text with null extensions keep their names
+ in upper case.  For example, README. becomes README and
+ [.ETC]GNU. becomes GNU
+

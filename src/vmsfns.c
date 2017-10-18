@@ -64,21 +64,36 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <descrip.h>
 #include <dvidef.h>
 #include <prvdef.h>
-/* #include <clidef.h> */
+#include <clidef.h>
 #include <iodef.h>
 #include <ssdef.h>
 #include <errno.h>
+
+/* GCC does not carry this header file.  Doesn't matter, we define the symbol
+   we need below, if not already defined.  */
+#ifndef __GNUC__
+#include <syidef.h>
+#endif
 
 #ifdef VMS4_4   /* I am being cautious; perhaps this exists in older versions */
 #include <jpidef.h>
 #endif
 
-/* #include <syidef.h> */
-
+#ifndef CLI$M_NOWAIT
 #define	CLI$M_NOWAIT	1	/* clidef.h is missing from C library */
+#endif
+
+#ifndef SYI$_VERSION
 #define	SYI$_VERSION	4096	/* syidef.h is missing from C library */
+#endif
+
+#ifndef JPI$_CLINAME
 #define	JPI$_CLINAME	522	/* JPI$_CLINAME is missing from jpidef.h */
+#endif
+
+#ifndef JPI$_MASTER_PID
 #define	JPI$_MASTER_PID	805	/* JPI$_MASTER_PID missing from jpidef.h */
+#endif
 #define	LIB$_NOSUCHSYM	1409892 /* libclidef.h missing */
 
 #define	MSGSIZE	160		/* Maximum size for mailbox operations */
@@ -274,12 +289,12 @@ DEFUN ("default-subprocess-input-handler",
      Lisp_Object name, input;
 {
   /* Just insert in current buffer */
-  insert1 (input);
+  insert (XSTRING (input)->data, XSTRING (input)->size);
   insert ("\n", 1);
 }
 
 DEFUN ("spawn-subprocess", Fspawn_subprocess, Sspawn_subprocess, 1, 3, 0,
-  "Spawn an asynchronous VMS suprocess for command processing.")
+  "Spawns an asynchronous VMS suprocess for command processing.")
   (name, input_handler, exit_handler)
      Lisp_Object name, input_handler, exit_handler;
 {
@@ -287,6 +302,7 @@ DEFUN ("spawn-subprocess", Fspawn_subprocess, Sspawn_subprocess, 1, 3, 0,
   char output_mbx_name[20];
   struct dsc$descriptor_s output_mbx_dsc;
   struct process_list *ptr, *p, *prev;
+  static int dummy = CLI$M_NOWAIT;
 
   CHECK_NUMBER (name, 0);
   if (! input_mbx_chan)
@@ -321,7 +337,8 @@ DEFUN ("spawn-subprocess", Fspawn_subprocess, Sspawn_subprocess, 1, 3, 0,
       ptr = next;
     }
   if (! ptr)
-    ptr = xmalloc (sizeof (struct process_list));
+    ptr = (struct process_list *) xmalloc (sizeof (struct process_list));
+
   if (! create_mbx (&output_mbx_dsc, output_mbx_name, &ptr->mbx_chan, 2))
     {
       free (ptr);
@@ -332,7 +349,7 @@ DEFUN ("spawn-subprocess", Fspawn_subprocess, Sspawn_subprocess, 1, 3, 0,
   ptr->input_handler = input_handler;
   ptr->exit_handler = exit_handler;
   message ("Creating subprocess...");
-  status = lib$spawn (0, &output_mbx_dsc, &input_mbx_dsc, &CLI$M_NOWAIT, 0,
+  status = lib$spawn (0, &output_mbx_dsc, &input_mbx_dsc, &dummy, 0,
                       &ptr->process_id, 0, 0, exit_ast, &ptr->process_active);
   if (! (status & 1))
     {
@@ -516,6 +533,7 @@ create_mbx (dsc, buf, chan, buffer_factor)
 {
   int strval[2];
   int status;
+  static int dummy = DVI$_DEVNAM;
 
   status = sys$crembx (0, chan, MSGSIZE, MSGSIZE * buffer_factor, 0, 0, 0);
   if (! (status & 1))
@@ -524,8 +542,8 @@ create_mbx (dsc, buf, chan, buffer_factor)
       return 0;
     }
   strval[0] = 16;
-  strval[1] = buf;
-  status = lib$getdvi (&DVI$_DEVNAM, chan, 0, 0, strval,
+  strval[1] = (int) buf;
+  status = lib$getdvi (&dummy, chan, 0, 0, strval,
 		       &dsc->dsc$w_length);
   if (! (status & 1))
     return 0;
@@ -578,7 +596,7 @@ or nil depending upon whether the privilege is already enabled.")
      Lisp_Object priv, value, getprv;
 {
   int prvmask[2], prvlen, newmask[2];
-  char * prvname;
+  unsigned char * prvname;
   int found, i;
   struct privilege_list * ptr;
 
@@ -650,7 +668,7 @@ These are the possibilities for the first arg (upper or lower case ok):\n\
      Lisp_Object type, arg1, arg2;
 {
   int i, typelen;
-  char * typename;
+  unsigned char * typename;
   struct vms_objlist * ptr;
 
   CHECK_STRING (type, 0);
@@ -676,8 +694,9 @@ translate_id (pid, owner)
 			 * flag is 0, return self. */
 {
   int status, code, id, i, numeric, size;
-  char * p;
+  unsigned char * p;
   int prcnam[2];
+  static int dummy = JPI$_PID;
 
   if (NULL (pid)
       || XTYPE (pid) == Lisp_String && XSTRING (pid)->size == 0
@@ -716,8 +735,8 @@ translate_id (pid, owner)
   if (numeric)
     return (id);
   prcnam[0] = XSTRING (pid)->size;
-  prcnam[1] = XSTRING (pid)->data;
-  status = lib$getjpi (&JPI$_PID, 0, prcnam, &id);
+  prcnam[1] = (int) XSTRING (pid)->data;
+  status = lib$getjpi (&dummy, 0, prcnam, &id);
   if (! (status & 1))
     error ("Cannot find process id: %s",
 	   vmserrstr (status));
@@ -734,7 +753,7 @@ getjpi (jpicode, arg, numeric)
 {
   int id, status, numval;
   char str[128];
-  int strdsc[2] = { sizeof (str), str };
+  int strdsc[2] = { sizeof (str), (int) str };
   short strlen;
 
   id = translate_id (arg, 0);
@@ -835,12 +854,13 @@ static Lisp_Object
 vms_version_fn (arg1, arg2)
      Lisp_Object arg1, arg2;
 {
-  char str[40];
+  char str[256];		/* Max logical translation is 255 bytes.  */
   int status;
-  int strdsc[2] = { sizeof (str), str };
+  int strdsc[2] = { sizeof (str), (int) str };
   short strlen;
+  static int dummy = SYI$_VERSION;
 
-  status = lib$getsyi (&SYI$_VERSION, 0, strdsc, &strlen, 0, 0);
+  status = lib$getsyi (&dummy, 0, strdsc, &strlen, 0, 0);
   if (! (status & 1))
     error ("Unable to obtain version: %s", vmserrstr (status));
   return (make_string (str, strlen));
@@ -850,14 +870,14 @@ static Lisp_Object
 vms_trnlog (arg1, arg2)
      Lisp_Object arg1, arg2;
 {
-  char str[256];		/* Max logical translation is 255 bytes.  */
+  char str[1025];		/* Max symbol translation is 1024 bytes.  */
   int status, symdsc[2];
-  int strdsc[2] = { sizeof (str), str };
+  int strdsc[2] = { sizeof (str), (int) str };
   short length, level;
 
   CHECK_STRING (arg1, 0);
   symdsc[0] = XSTRING (arg1)->size;
-  symdsc[1] = XSTRING (arg1)->data;
+  symdsc[1] = (int) XSTRING (arg1)->data;
   status = lib$sys_trnlog (symdsc, &length, strdsc);
   if (! (status & 1))
     error ("Unable to translate logical name: %s", vmserrstr (status));
@@ -870,14 +890,14 @@ static Lisp_Object
 vms_symbol (arg1, arg2)
      Lisp_Object arg1, arg2;
 {
-  char str[1025];		/* Max symbol translation is 1024 bytes.  */
+  char str[100];
   int status, symdsc[2];
-  int strdsc[2] = { sizeof (str), str };
+  int strdsc[2] = { sizeof (str), (int) str };
   short length, level;
 
   CHECK_STRING (arg1, 0);
   symdsc[0] = XSTRING (arg1)->size;
-  symdsc[1] = XSTRING (arg1)->data;
+  symdsc[1] = (int) XSTRING (arg1)->data;
   status = lib$get_symbol (symdsc, strdsc, &length, &level);
   if (! (status & 1)) {
     if (status == LIB$_NOSUCHSYM)
@@ -894,12 +914,13 @@ vms_proclist (arg1, arg2)
 {
   Lisp_Object retval;
   int id, status, pid;
+  static int dummy = JPI$_PID;
 
   retval = Qnil;
   pid = -1;
   for (;;)
     {
-      status = lib$getjpi (&JPI$_PID, &pid, 0, &id);
+      status = lib$getjpi (&dummy, &pid, 0, &id);
       if (status == SS$_NOMOREPROC)
 	break;
       if (! (status & 1))

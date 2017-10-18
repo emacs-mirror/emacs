@@ -1,6 +1,6 @@
-;; -*-Emacs-Lisp-*- run a shell in an Emacs window
-;; Copyright (C) 1985, 1986, 1987, 1990 Free Software Foundation, Inc.
-  
+;; Run subshell under Emacs
+;; Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -17,23 +17,18 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Hacked from tea.el and shell.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
 
-;;; Since this mode is built on top of the general command-interpreter-in-
-;;; a-buffer mode (comint mode), it shares a common base functionality, 
-;;; and a common set of bindings, with all modes derived from comint mode.
-
-;;; For documentation on the functionality provided by comint mode, and
-;;; the hooks available for customising it, see the file comint.el.
-
-;;; Needs fixin:
-;;; When sending text from a source file to a subprocess, the process-mark can 
-;;; move off the window, so you can lose sight of the process interactions.
-;;; Maybe I should ensure the process mark is in the window when I send
-;;; text to the process? Switch selectable?
-
-(require 'comint)
 (provide 'shell)
+
+(defvar last-input-start nil
+  "In a shell-mode buffer, marker for start of last unit of input.")
+(defvar last-input-end nil
+  "In a shell-mode buffer, marker for end of last unit of input.")
+
+(defvar shell-mode-map nil)
+
+(defvar shell-directory-stack nil
+  "List of directories saved by pushd in this buffer's shell.")
 
 (defvar shell-popd-regexp "popd"
   "*Regexp to match subshell commands equivalent to popd.")
@@ -47,346 +42,409 @@
 (defvar explicit-shell-file-name nil
   "*If non-nil, is file name to use for explicitly requested inferior shell.")
 
+;In loaddefs.el now.
+;(defconst shell-prompt-pattern
+;  "^[^#$%>]*[#$%>] *"
+;  "*Regexp used by Newline command to match subshell prompts.
+;Anything from beginning of line up to the end of what this pattern matches
+;is deemed to be prompt, and is not reexecuted.")
+
+(defun shell-mode ()
+  "Major mode for interacting with an inferior shell.
+Shell name is same as buffer name, sans the asterisks.
+Return at end of buffer sends line as input.
+Return not at end copies rest of line to end and sends it.
+
+The following commands imitate the usual Unix interrupt and
+editing control characters:
+\\{shell-mode-map}
+
+Entry to this mode calls the value of shell-mode-hook with no args,
+if that value is non-nil.
+
+cd, pushd and popd commands given to the shell are watched
+by Emacs to keep this buffer's default directory
+the same as the shell's working directory.
+Variables shell-cd-regexp, shell-pushd-regexp and shell-popd-regexp
+are used to match these command names.
+
+You can send text to the shell (or its subjobs) from other buffers
+using the commands process-send-region, process-send-string
+and lisp-send-defun."
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'shell-mode)
+  (setq mode-name "Shell")
+  (setq mode-line-process '(": %s"))
+  (use-local-map shell-mode-map)
+  (make-local-variable 'shell-directory-stack)
+  (setq shell-directory-stack nil)
+  (make-local-variable 'last-input-start)
+  (setq last-input-start (make-marker))
+  (make-local-variable 'last-input-end)
+  (setq last-input-end (make-marker))
+  (run-hooks 'shell-mode-hook))
+
+(if shell-mode-map
+    nil
+  (setq shell-mode-map (make-sparse-keymap))
+  (define-key shell-mode-map "\C-m" 'shell-send-input)
+  (define-key shell-mode-map "\C-c\C-d" 'shell-send-eof)
+  (define-key shell-mode-map "\C-c\C-u" 'kill-shell-input)
+  (define-key shell-mode-map "\C-c\C-w" 'backward-kill-word)
+  (define-key shell-mode-map "\C-c\C-c" 'interrupt-shell-subjob)
+  (define-key shell-mode-map "\C-c\C-z" 'stop-shell-subjob)
+  (define-key shell-mode-map "\C-c\C-\\" 'quit-shell-subjob)
+  (define-key shell-mode-map "\C-c\C-o" 'kill-output-from-shell)
+  (define-key shell-mode-map "\C-c\C-r" 'show-output-from-shell)
+  (define-key shell-mode-map "\C-c\C-y" 'copy-last-shell-input))
+
 (defvar explicit-csh-args
   (if (eq system-type 'hpux)
       ;; -T persuades HP's csh not to think it is smarter
       ;; than us about what terminal modes to use.
       '("-i" "-T")
     '("-i"))
-  "*Args passed to inferior shell by M-x shell, if the shell is csh.
+  "Args passed to inferior shell by M-x shell, if the shell is csh.
 Value is a list of strings, which may be nil.")
 
-(defvar shell-dirstack nil
-  "List of directories saved by pushd in this buffer's shell.")
-
-(defvar shell-dirstack-query "dirs"
-  "Command used by shell-resync-dirlist to query shell.")
-
-(defvar shell-mode-map ())
-(cond ((not shell-mode-map)
-       (setq shell-mode-map (copy-keymap comint-mode-map))
-       (define-key shell-mode-map "\t" 'comint-dynamic-complete)
-       (define-key shell-mode-map "\M-?"  'comint-dynamic-list-completions)))
-
-(defvar shell-mode-hook '()
-  "*Hook for customising shell mode")
-
-
-;;; Basic Procedures
-;;; ===========================================================================
-;;;
-
-(defun shell-mode ()
-  "Major mode for interacting with an inferior shell.
-Return after the end of the process' output sends the text from the 
-    end of process to the end of the current line.
-Return before end of process output copies rest of line to end (skipping
-    the prompt) and sends it.
-M-x send-invisible reads a line of text without echoing it, and sends it to
-    the shell.
-
-If you accidentally suspend your process, use \\[comint-continue-subjob]
-to continue it.
-
-cd, pushd and popd commands given to the shell are watched by Emacs to keep
-this buffer's default directory the same as the shell's working directory.
-M-x dirs queries the shell and resyncs Emacs' idea of what the current 
-    directory stack is.
-M-x dirtrack-toggle turns directory tracking on and off.
-
-\\{shell-mode-map}
-Customisation: Entry to this mode runs the hooks on comint-mode-hook and
-shell-mode-hook (in that order).
-
-Variables shell-cd-regexp, shell-pushd-regexp and shell-popd-regexp are used
-to match their respective commands."
-  (interactive)
-  (comint-mode)
-  (setq major-mode 'shell-mode
-        mode-name "Shell"
-        comint-prompt-regexp shell-prompt-pattern
-        comint-input-sentinel 'shell-directory-tracker)
-  (use-local-map shell-mode-map)
-  (make-local-variable 'shell-dirstack)
-  (set (make-local-variable 'shell-dirtrackp) t)
-  (run-hooks 'shell-mode-hook))
-
-
 (defun shell ()
   "Run an inferior shell, with I/O through buffer *shell*.
 If buffer exists but shell process is not running, make new shell.
-If buffer exists and shell process is running, just switch to buffer *shell*.
-
-The shell to use comes from the first non-nil variable found from these:
-explicit-shell-file-name in Emacs, ESHELL in the environment or SHELL in the
-environment.  If none is found, /bin/sh is used.
-
-If a file ~/.emacs_SHELLNAME exists, it is given as initial input, simulating
-a start-up file for the shell like .profile or .cshrc.  Note that this may
-lose due to a timing error if the shell discards input when it starts up.
-
+Program used comes from variable explicit-shell-file-name,
+ or (if that is nil) from the ESHELL environment variable,
+ or else from SHELL if there is no ESHELL.
+If a file ~/.emacs_SHELLNAME exists, it is given as initial input
+ (Note that this may lose due to a timing error if the shell
+  discards input when it starts up.)
 The buffer is put in shell-mode, giving commands for sending input
-and controlling the subjobs of the shell.
+and controlling the subjobs of the shell.  See shell-mode.
+See also variable shell-prompt-pattern.
 
-The shell file name, sans directories, is used to make a symbol name
+The shell file name (sans directories) is used to make a symbol name
 such as `explicit-csh-arguments'.  If that symbol is a variable,
 its value is used as a list of arguments when invoking the shell.
 Otherwise, one argument `-i' is passed to the shell.
 
-\(Type \\[describe-mode] in the shell buffer for a list of commands.)"
+Note that many people's .cshrc files unconditionally clear the prompt.
+If yours does, you will probably want to change it."
   (interactive)
-  (cond ((not (comint-check-proc "*shell*"))
-	 (let* ((prog (or explicit-shell-file-name
-			  (getenv "ESHELL")
-			  (getenv "SHELL")
-			  "/bin/sh"))
-		(name (file-name-nondirectory prog))
-		(startfile (concat "~/.emacs_" name))
-		(xargs-name (intern-soft (concat "explicit-" name "-args"))))
-	   (set-buffer (apply 'make-comint "shell" prog
-			      (if (file-exists-p startfile) startfile)
-			      (if (and xargs-name (boundp xargs-name))
-				  (symbol-value xargs-name)
-				  '("-i"))))
-	   (shell-mode))))
-  (switch-to-buffer "*shell*"))
+  (let* ((prog (or explicit-shell-file-name
+		   (getenv "ESHELL")
+		   (getenv "SHELL")
+		   "/bin/sh"))		     
+	 (name (file-name-nondirectory prog)))
+    (switch-to-buffer
+     (apply 'make-shell "shell" prog
+	    (if (file-exists-p (concat "~/.emacs_" name))
+		(concat "~/.emacs_" name))
+	    (let ((symbol (intern-soft (concat "explicit-" name "-args"))))
+	      (if (and symbol (boundp symbol))
+		  (symbol-value symbol)
+		'("-i")))))))
 
+(defun make-shell (name program &optional startfile &rest switches)
+  (let ((buffer (get-buffer-create (concat "*" name "*")))
+	proc status size)
+    (setq proc (get-buffer-process buffer))
+    (if proc (setq status (process-status proc)))
+    (save-excursion
+      (set-buffer buffer)
+      ;;    (setq size (buffer-size))
+      (if (memq status '(run stop))
+	  nil
+	(if proc (delete-process proc))
+	(setq proc (apply 'start-process name buffer
+			  (concat exec-directory "env")
+			  (format "TERMCAP=emacs:co#%d:tc=unknown:"
+				  (screen-width))
+			  "TERM=emacs"
+			  "EMACS=t"
+			  "-"
+			  (or program explicit-shell-file-name
+			      (getenv "ESHELL")
+			      (getenv "SHELL")
+			      "/bin/sh")
+			  switches))
+	(cond (startfile
+	       ;;This is guaranteed to wait long enough
+	       ;;but has bad results if the shell does not prompt at all
+	       ;;	     (while (= size (buffer-size))
+	       ;;	       (sleep-for 1))
+	       ;;I hope 1 second is enough!
+	       (sleep-for 1)
+	       (goto-char (point-max))
+	       (insert-file-contents startfile)
+	       (setq startfile (buffer-substring (point) (point-max)))
+	       (delete-region (point) (point-max))
+	       (process-send-string proc startfile)))
+	(setq name (process-name proc)))
+      (goto-char (point-max))
+      (set-marker (process-mark proc) (point))
+      (or (eq major-mode 'shell-mode) (shell-mode)))
+    buffer))
 
-;;; Directory tracking
-;;; ===========================================================================
-;;; This code provides the shell mode input sentinel
-;;;     SHELL-DIRECTORY-TRACKER
-;;; that tracks cd, pushd, and popd commands issued to the shell, and
-;;; changes the current directory of the shell buffer accordingly.
-;;;
-;;; This is basically a fragile hack, although it's more accurate than
-;;; the original version in shell.el. It has the following failings:
-;;; 1. It doesn't know about the cdpath shell variable.
-;;; 2. It only spots the first command in a command sequence. E.g., it will
-;;;    miss the cd in "ls; cd foo"
-;;; 3. More generally, any complex command (like ";" sequencing) is going to
-;;;    throw it. Otherwise, you'd have to build an entire shell interpreter in
-;;;    emacs lisp.  Failing that, there's no way to catch shell commands where
-;;;    cd's are buried inside conditional expressions, aliases, and so forth.
-;;;
-;;; The whole approach is a crock. Shell aliases mess it up. File sourcing
-;;; messes it up. You run other processes under the shell; these each have
-;;; separate working directories, and some have commands for manipulating
-;;; their w.d.'s (e.g., the lcd command in ftp). Some of these programs have
-;;; commands that do *not* effect the current w.d. at all, but look like they
-;;; do (e.g., the cd command in ftp).  In shells that allow you job
-;;; control, you can switch between jobs, all having different w.d.'s. So
-;;; simply saying %3 can shift your w.d..
-;;;
-;;; The solution is to relax, not stress out about it, and settle for
-;;; a hack that works pretty well in typical circumstances. Remember
-;;; that a half-assed solution is more in keeping with the spirit of Unix, 
-;;; anyway. Blech.
-;;;
-;;; One good hack not implemented here for users of programmable shells
-;;; is to program up the shell w.d. manipulation commands to output
-;;; a coded command sequence to the tty. Something like
-;;;     ESC | <cwd> |
-;;; where <cwd> is the new current working directory. Then trash the
-;;; directory tracking machinery currently used in this package, and
-;;; replace it with a process filter that watches for and strips out
-;;; these messages.
+(defvar shell-set-directory-error-hook 'ignore
+  "Function called with no arguments when shell-send-input
+recognizes a change-directory command but gets an error
+trying to change Emacs's default directory.")
 
-;;; REGEXP is a regular expression. STR is a string. START is a fixnum.
-;;; Returns T if REGEXP matches STR where the match is anchored to start
-;;; at position START in STR. Sort of like LOOKING-AT for strings.
-(defun shell-front-match (regexp str start)
-  (eq start (string-match regexp str start)))
-
-(defun shell-directory-tracker (str)
-  "Tracks cd, pushd and popd commands issued to the shell.
-This function is called on each input passed to the shell.
-It watches for cd, pushd and popd commands and sets the buffer's
-default directory to track these commands.
-
-You may toggle this tracking on and off with M-x dirtrack-toggle.
-If emacs gets confused, you can resync with the shell with M-x dirs.
-
-See variables shell-cd-regexp, shell-pushd-regexp, and shell-popd-regexp.
-Environment variables are expanded, see function substitute-in-file-name."
-  (condition-case err
-    (cond (shell-dirtrackp
-	   (string-match "^\\s *" str) ; skip whitespace
-	   (let ((bos (match-end 0))
-		 (x nil))
-	     (cond ((setq x (shell-match-cmd-w/optional-arg shell-popd-regexp
-							       str bos))
-		    (shell-process-popd (substitute-in-file-name x)))
-		   ((setq x (shell-match-cmd-w/optional-arg shell-pushd-regexp
-							       str bos))
-		    (shell-process-pushd (substitute-in-file-name x)))
-		   ((setq x (shell-match-cmd-w/optional-arg shell-cd-regexp
-							       str bos))
-		    (shell-process-cd (substitute-in-file-name x)))))))
-    (error (message (car (cdr err))))))
-
-
-;;; Try to match regexp CMD to string, anchored at position START.
-;;; CMD may be followed by a single argument. If a match, then return
-;;; the argument, if there is one, or the empty string if not. If
-;;; no match, return nil.
-
-(defun shell-match-cmd-w/optional-arg (cmd str start)
-  (and (shell-front-match cmd str start)
-       (let ((eoc (match-end 0))) ; end of command
-	 (cond ((shell-front-match "\\s *\\(\;\\|$\\)" str eoc)
-		"")			; no arg
-	       ((shell-front-match "\\s +\\([^ \t\;]+\\)\\s *\\(\;\\|$\\)"
-				      str eoc)
-		(substring str (match-beginning 1) (match-end 1))) ; arg
-	       (t nil))))) ; something else.
-;;; The first regexp is [optional whitespace, (";" or the end of string)].
-;;; The second regexp is [whitespace, (an arg), optional whitespace,
-;;;     (";" or end of string)].
-
-
-;;; popd [+n]
-(defun shell-process-popd (arg)
-  (let ((num (if (zerop (length arg)) 0 ; no arg means +0
-		 (shell-extract-num arg))))
-    (if (and num (< num (length shell-dirstack)))
-	(if (= num 0) ; condition-case because the CD could lose.
-	    (condition-case nil (progn (cd (car shell-dirstack))
-				       (setq shell-dirstack
-					     (cdr shell-dirstack))
-				       (shell-dirstack-message))
-	      (error (message "Couldn't cd.")))
-	    (let* ((ds (cons nil shell-dirstack))
-		   (cell (nthcdr (- num 1) ds)))
-	      (rplacd cell (cdr (cdr cell)))
-	      (setq shell-dirstack (cdr ds))
-	      (shell-dirstack-message)))
-	(message "Bad popd."))))
-
-
-;;; cd [dir]
-(defun shell-process-cd (arg)
-  (condition-case nil (progn (cd (if (zerop (length arg)) (getenv "HOME")
-				     arg))
-			     (shell-dirstack-message))
-	   (error (message "Couldn't cd."))))
-
-
-;;; pushd [+n | dir]
-(defun shell-process-pushd (arg)
-  (if (zerop (length arg))
-      ;; no arg -- swap pwd and car of shell stack
-      (condition-case nil (if shell-dirstack
-			      (let ((old default-directory))
-				(cd (car shell-dirstack))
-				(setq shell-dirstack
-				      (cons old (cdr shell-dirstack)))
-				(shell-dirstack-message))
-			      (message "Directory stack empty."))
-	(message "Couldn't cd."))
-
-      (let ((num (shell-extract-num arg)))
-	(if num				; pushd +n
-	    (if (> num (length shell-dirstack))
-		(message "Directory stack not that deep.")
-		(let* ((ds (cons default-directory shell-dirstack))
-		       (dslen (length ds))
-		       (front (nthcdr num ds))
-		       (back (reverse (nthcdr (- dslen num) (reverse ds))))
-		       (new-ds (append front back)))
-		  (condition-case nil
-		      (progn (cd (car new-ds))
-			     (setq shell-dirstack (cdr new-ds))
-			     (shell-dirstack-message))
-		    (error (message "Couldn't cd.")))))
-	       
-	    ;; pushd <dir>
-	    (let ((old-wd default-directory))
-	      (condition-case nil
-		  (progn (cd arg)
-			 (setq shell-dirstack
-			       (cons old-wd shell-dirstack))
-			 (shell-dirstack-message))
-		(error (message "Couldn't cd."))))))))
-
-;; If STR is of the form +n, for n>0, return n. Otherwise, nil.
-(defun shell-extract-num (str)
-  (and (string-match "^\\+[1-9][0-9]*$" str)
-       (string-to-int str)))
-
-
-(defun shell-dirtrack-toggle ()
-  "Turn directory tracking on and off in a shell buffer."
+(defun shell-send-input ()
+  "Send input to subshell.
+At end of buffer, sends all text after last output
+ as input to the subshell, including a newline inserted at the end.
+When not at end, copies current line to the end of the buffer and sends it,
+after first attempting to discard any prompt at the beginning of the line
+by matching the regexp that is the value of shell-prompt-pattern if possible.
+This regexp should start with \"^\"."
   (interactive)
-  (setq shell-dirtrackp (not shell-dirtrackp))
-  (message "directory tracking %s."
-	   (if shell-dirtrackp "ON" "OFF")))
+  (or (get-buffer-process (current-buffer))
+      (error "Current buffer has no process"))
+  (end-of-line)
+  (if (eobp)
+      (progn
+	(move-marker last-input-start
+		     (process-mark (get-buffer-process (current-buffer))))
+	(insert ?\n)
+	(move-marker last-input-end (point)))
+    (beginning-of-line)
+    ;; Exclude the shell prompt, if any.
+    (re-search-forward shell-prompt-pattern
+		       (save-excursion (end-of-line) (point))
+		       t)
+    (let ((copy (buffer-substring (point)
+				  (progn (forward-line 1) (point)))))
+      (goto-char (point-max))
+      (move-marker last-input-start (point))
+      (insert copy)
+      (move-marker last-input-end (point))))
+  ;; Even if we get an error trying to hack the working directory,
+  ;; still send the input to the subshell.
+  (condition-case ()
+      (save-excursion
+	(goto-char last-input-start)
+	(shell-set-directory))
+    (error (funcall shell-set-directory-error-hook)))
+  (let ((process (get-buffer-process (current-buffer))))
+    (process-send-region process last-input-start last-input-end)
+    (set-marker (process-mark process) (point))))
 
-;;; For your typing convenience:
-(fset 'dirtrack-toggle 'shell-dirtrack-toggle)
+;;;  If this code changes (shell-send-input and shell-set-directory),
+;;;  the customization tutorial in
+;;;  info/customizing-tutorial must also change, since it explains this
+;;;  code.  Please let marick@gswd-vms.arpa know of any changes you
+;;;  make. 
 
-
-(defun shell-resync-dirs ()
-  "Resync the buffer's idea of the current directory stack.
-This command queries the shell with the command bound to 
-shell-dirstack-query (default \"dirs\"), reads the next
-line output and parses it to form the new directory stack.
-DON'T issue this command unless the buffer is at a shell prompt.
-Also, note that if some other subprocess decides to do output
-immediately after the query, its output will be taken as the
-new directory stack -- you lose. If this happens, just do the
-command again."
+(defun shell-set-directory ()
+  (cond ((and (looking-at shell-popd-regexp)
+	      (memq (char-after (match-end 0)) '(?\; ?\n)))
+	 (if shell-directory-stack
+	     (progn
+	       (cd (car shell-directory-stack))
+	       (setq shell-directory-stack (cdr shell-directory-stack)))))
+	((looking-at shell-pushd-regexp)
+	 (cond ((memq (char-after (match-end 0)) '(?\; ?\n))
+		(if shell-directory-stack
+		    (let ((old default-directory))
+		      (cd (car shell-directory-stack))
+		      (setq shell-directory-stack
+			    (cons old (cdr shell-directory-stack))))))
+	       ((memq (char-after (match-end 0)) '(?\  ?\t))
+		(let (dir)
+		  (skip-chars-forward "^ ")
+		  (skip-chars-forward " \t")
+		  (if (file-directory-p
+			(setq dir
+			      (expand-file-name
+				(substitute-in-file-name
+				  (buffer-substring
+				    (point)
+				    (progn
+				      (skip-chars-forward "^\n \t;")
+				      (point)))))))
+		      (progn
+			(setq shell-directory-stack
+			      (cons default-directory shell-directory-stack))
+			(cd dir)))))))
+	((looking-at shell-cd-regexp)
+	 (cond ((memq (char-after (match-end 0)) '(?\; ?\n))
+		(cd (getenv "HOME")))
+	       ((memq (char-after (match-end 0)) '(?\  ?\t))
+		(let (dir)
+		  (forward-char 3)
+		  (skip-chars-forward " \t")
+		  (if (file-directory-p
+			(setq dir
+			      (expand-file-name
+				(substitute-in-file-name
+				  (buffer-substring
+				    (point)
+				    (progn
+				      (skip-chars-forward "^\n \t;")
+				      (point)))))))
+		      (cd dir))))))))
+  
+(defun shell-send-eof ()
+  "Send eof to subshell (or to the program running under it)."
   (interactive)
-  (let* ((proc (get-buffer-process (current-buffer)))
-	 (pmark (process-mark proc)))
-    (goto-char pmark)
-    (insert shell-dirstack-query) (insert "\n")
-    (sit-for 0) ; force redisplay
-    (comint-send-string proc shell-dirstack-query) 
-    (comint-send-string proc "\n")
-    (set-marker pmark (point))
-    (let ((pt (point))) ; wait for 1 line
-      ;; This extra newline prevents the user's pending input from spoofing us.
-      (insert "\n") (backward-char 1)
-      (while (not (looking-at ".+\n"))
-	(accept-process-output proc)
-	(goto-char pt)))
-    (goto-char pmark) (delete-char 1) ; remove the extra newline
-    ;; That's the dirlist. grab it & parse it.
-    (let* ((dl (buffer-substring (match-beginning 0) (- (match-end 0) 1)))
-	   (dl-len (length dl))
-	   (ds '())			; new dir stack
-	   (i 0))
-      (while (< i dl-len)
-	;; regexp = optional whitespace, (non-whitespace), optional whitespace
-	(string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
-	(setq ds (cons (substring dl (match-beginning 1) (match-end 1))
-		       ds))
-	(setq i (match-end 0)))
-      (let ((ds (reverse ds)))
-	(condition-case nil
-	    (progn (cd (car ds))
-		   (setq shell-dirstack (cdr ds))
-		   (shell-dirstack-message))
-	  (error (message "Couldn't cd.")))))))
+  (process-send-eof))
 
-;;; For your typing convenience:
-(fset 'dirs 'shell-resync-dirs)
+(defun kill-output-from-shell ()
+  "Kill all output from shell since last input."
+  (interactive)
+  (goto-char (point-max))
+  (beginning-of-line)
+  (kill-region last-input-end (point))
+  (insert "*** output flushed ***\n")
+  (goto-char (point-max)))
 
+(defun show-output-from-shell ()
+  "Display start of this batch of shell output at top of window.
+Also put cursor there."
+  (interactive)
+  (set-window-start (selected-window) last-input-end)
+  (goto-char last-input-end))
 
-;;; Show the current dirstack on the message line.
-;;; Pretty up dirs a bit by changing "/usr/jqr/foo" to "~/foo".
-;;; (This isn't necessary if the dirlisting is generated with a simple "dirs".)
-;;; All the commands that mung the buffer's dirstack finish by calling
-;;; this guy.
-(defun shell-dirstack-message ()
-  (let ((msg "")
-	(ds (cons default-directory shell-dirstack)))
-    (while ds
-      (let ((dir (car ds)))
-	(if (string-match (format "^%s\\(/\\|$\\)" (getenv "HOME")) dir)
-	    (setq dir (concat "~/" (substring dir (match-end 0)))))
-	(if (string-equal dir "~/") (setq dir "~"))
-	(setq msg (concat msg dir " "))
-	(setq ds (cdr ds))))
-    (message msg)))
+(defun copy-last-shell-input ()
+  "Copy previous shell input, sans newline, and insert before point."
+  (interactive)
+  (insert (buffer-substring last-input-end last-input-start))
+  (delete-char -1))
+
+(defun interrupt-shell-subjob ()
+  "Interrupt this shell's current subjob."
+  (interactive)
+  (interrupt-process nil t))
+
+(defun kill-shell-subjob ()
+  "Send kill signal to this shell's current subjob."
+  (interactive)
+  (kill-process nil t))
+
+(defun quit-shell-subjob ()
+  "Send quit signal to this shell's current subjob."
+  (interactive)
+  (quit-process nil t))
+
+(defun stop-shell-subjob ()
+  "Stop this shell's current subjob."
+  (interactive)
+  (stop-process nil t))
+
+(defun kill-shell-input ()
+  "Kill all text since last stuff output by the shell or its subjobs."
+  (interactive)
+  (kill-region (process-mark (get-buffer-process (current-buffer)))
+	       (point)))
+
+(defvar inferior-lisp-mode-map nil)
+(if inferior-lisp-mode-map
+    nil
+  (setq inferior-lisp-mode-map (copy-alist shell-mode-map))
+  (lisp-mode-commands inferior-lisp-mode-map)
+  (define-key inferior-lisp-mode-map "\e\C-x" 'lisp-send-defun))
+
+(defvar inferior-lisp-program "lisp"
+  "*Program name for invoking an inferior Lisp with `run-lisp'.")
+
+(defvar inferior-lisp-load-command "(load \"%s\")\n"
+  "*Format-string for building a Lisp expression to load a file.
+This format string should use %s to substitute a file name
+and should result in a Lisp expression that will command the inferior Lisp
+to load that file.  The default works acceptably on most Lisps.
+The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\\n\"
+produces cosmetically superior output for this application,
+but it works only in Common Lisp.")
+
+(defvar inferior-lisp-prompt "^.*>:? *$"
+  "*Regexp to recognize prompts from the inferior Lisp.
+Default is right for Franz Lisp and kcl.")
+
+(defun inferior-lisp-mode ()
+  "Major mode for interacting with an inferior Lisp process.
+Runs a Lisp interpreter as a subprocess of Emacs, with Lisp I/O
+through an Emacs buffer.  Variable inferior-lisp-program controls
+which Lisp interpreter is run.  Variables inferior-lisp-prompt
+and inferior-lisp-load-command can customize this mode for different
+Lisp interpreters.
+
+Commands:
+DELETE converts tabs to spaces as it moves back.
+TAB indents for Lisp; with argument, shifts rest
+ of expression rigidly with the current line.
+Meta-Control-Q does TAB on each line starting within following expression.
+Paragraphs are separated only by blank lines.  Semicolons start comments.
+
+Return at end of buffer sends line as input.
+Return not at end copies rest of line to end and sends it.
+
+The following commands imitate the usual Unix interrupt and
+editing control characters:
+\\{shell-mode-map}
+
+Entry to this mode calls the value of lisp-mode-hook with no arguments,
+if that value is non-nil.  Likewise with the value of shell-mode-hook.
+lisp-mode-hook is called after shell-mode-hook.
+
+You can send text to the inferior Lisp from other buffers
+using the commands process-send-region, process-send-string
+and \\[lisp-send-defun]."
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'inferior-lisp-mode)
+  (setq mode-name "Inferior Lisp")
+  (setq mode-line-process '(": %s"))
+  (lisp-mode-variables t)
+  (use-local-map inferior-lisp-mode-map)
+  (make-local-variable 'last-input-start)
+  (setq last-input-start (make-marker))
+  (make-local-variable 'last-input-end)
+  (setq last-input-end (make-marker))
+  (run-hooks 'shell-mode-hook 'lisp-mode-hook))
+
+(defun run-lisp ()
+  "Run an inferior Lisp process, input and output via buffer *lisp*."
+  (interactive)
+  (switch-to-buffer (make-shell "lisp" inferior-lisp-program))
+  (inferior-lisp-mode))
+
+(defun lisp-send-defun (display-flag)
+  "Send the current defun to the Lisp process made by M-x run-lisp.
+With argument, force redisplay and scrolling of the *lisp* buffer.
+Variable `inferior-lisp-load-command' controls formatting of
+the `load' form that is set to the Lisp process."
+  (interactive "P")
+  (or (get-process "lisp")
+      (error "No current lisp process"))
+  (save-excursion
+   (end-of-defun)
+   (let ((end (point))
+	 (filename (format "/tmp/emlisp%d" (process-id (get-process "lisp")))))
+     (beginning-of-defun)
+     (write-region (point) end filename nil 'nomessage)
+     (process-send-string "lisp" (format inferior-lisp-load-command filename)))
+   (if display-flag
+       (let* ((process (get-process "lisp"))
+	      (buffer (process-buffer process))
+	      (w (or (get-buffer-window buffer) (display-buffer buffer)))
+	      (height (window-height w))
+	      (end))
+	 (save-excursion
+	   (set-buffer buffer)
+	   (setq end (point-max))
+	   (while (progn
+		    (accept-process-output process)
+		    (goto-char (point-max))
+		    (beginning-of-line)
+		    (or (= (point-max) end)
+			(not (looking-at inferior-lisp-prompt)))))
+	   (setq end (point-max))
+	   (vertical-motion (- 4 height))
+	   (set-window-start w (point)))
+	 (set-window-point w end)))))
+
+(defun lisp-send-defun-and-go ()
+  "Send the current defun to the inferior Lisp, and switch to *lisp* buffer."
+  (interactive)
+  (lisp-send-defun nil)
+  (switch-to-buffer "*lisp*"))

@@ -1,5 +1,5 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1990 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "syntax.h"
 
-Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
+Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_hook;
 
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
@@ -68,13 +68,11 @@ On attempt to pass beginning or end of buffer, stop and signal error.")
 }
 
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "p",
-  "Move ARG lines forward (backward if ARG is negative).\n\
-Precisely, if point is on line I, move to the start of line I + ARG.\n\
+  "If point is on line i, move to the start of line i + ARG.\n\
 If there isn't room, go as far as possible (no error).\n\
-Returns the count of lines left to move.  If moving forward,\n\
-that is ARG - number of lines moved; if backward, ARG + number moved.\n\
-With positive ARG, a non-empty line at the end counts as one line\n\
-  successfully moved (for the return value).")
+Returns the count of lines left to move.\n\
+With positive ARG, a non-empty line traversed at end of buffer \n\
+ counts as one line successfully moved (for the return value).")
   (n)
      Lisp_Object n;
 {
@@ -94,7 +92,7 @@ With positive ARG, a non-empty line at the end counts as one line\n\
   pos = scan_buffer ('\n', pos2, count - negp, &shortage);
   if (shortage > 0
       && (negp
-	  || (ZV >= BEGV
+	  || (ZV > BEGV && pos != pos2
 	      && FETCH_CHAR (pos - 1) != '\n')))
     shortage--;
   SET_PT (pos);
@@ -193,29 +191,23 @@ ARG was explicitly specified.")
 }
 
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
-  "Insert the character you type.\n\
-Whichever character you type to run this command is inserted.")
+  "Insert this character.  Prefix arg is repeat-count.")
   (arg)
      Lisp_Object arg;
 {
   CHECK_NUMBER (arg, 0);
 
-  /* Barf if the key that invoked this was not a character.  */
-  if (XTYPE (last_command_char) != Lisp_Int)
-    bitch_at_user ();
-  else
-    while (XINT (arg) > 0)
-      {
-	XFASTINT (arg)--;	/* Ok since old and new vals both nonneg */
-	internal_self_insert (XINT (last_command_char), XFASTINT (arg) != 0);
-      }
-
+  while (XINT (arg) > 0)
+    {
+      XFASTINT (arg)--;		/* Ok since old and new vals both nonneg */
+      self_insert_internal (last_command_char, XFASTINT (arg) != 0);
+    }
   return Qnil;
 }
 
 DEFUN ("newline", Fnewline, Snewline, 0, 1, "P",
   "Insert a newline.  With arg, insert that many newlines.\n\
-In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
+In Auto Fill mode, can break the preceding line if no numeric arg.")
   (arg1)
      Lisp_Object arg1;
 {
@@ -233,8 +225,8 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
      than inserting at the ebginning fo a line,
      And the textual result is the same.
      So if at beginning, pretend to be at the end.
-     Must avoid internal_self_insert in that case since point is wrong.
-     Luckily internal_self_insert's special features all do nothing in that case.  */
+     Must avoid self_insert_internal in that case since point is wrong.
+     Luckily self_insert_internal's special features all do nothing in that case.  */
 
   flag = point > BEGV && FETCH_CHAR (point - 1) == '\n';
   if (flag)
@@ -245,7 +237,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
       if (flag)
 	insert (&c1, 1);
       else
-	internal_self_insert ('\n', !NULL (arg1));
+	self_insert_internal ('\n', !NULL (arg1));
       XFASTINT (arg)--;		/* Ok since old and new vals both nonneg */
     }
 
@@ -255,7 +247,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   return Qnil;
 }
 
-internal_self_insert (c1, noautofill)
+self_insert_internal (c1, noautofill)
      char c1;
      int noautofill;
 {
@@ -264,9 +256,6 @@ internal_self_insert (c1, noautofill)
   Lisp_Object tem;
   register enum syntaxcode synt;
   register int c = c1;
-
-  if (!NULL (Vbefore_change_function) || !NULL (Vafter_change_function))
-    hairy = 1;
 
   if (!NULL (current_buffer->overwrite_mode)
       && point < ZV
@@ -289,12 +278,12 @@ internal_self_insert (c1, noautofill)
     }
   if ((c == ' ' || c == '\n')
       && !noautofill
-      && !NULL (current_buffer->auto_fill_function)
+      && !NULL (current_buffer->auto_fill_hook)
       && current_column () > XFASTINT (current_buffer->fill_column))
     {
       if (c1 != '\n')
 	insert (&c1, 1);
-      call0 (current_buffer->auto_fill_function);
+      call0 (current_buffer->auto_fill_hook);
       if (c1 == '\n')
 	insert (&c1, 1);
       hairy = 1;
@@ -303,9 +292,9 @@ internal_self_insert (c1, noautofill)
     insert (&c1, 1);
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
-      && !NULL (Vblink_paren_function) && INTERACTIVE)
+      && !NULL (Vblink_paren_hook) && FROM_KBD)
     {
-      call0 (Vblink_paren_function);
+      call0 (Vblink_paren_hook);
       hairy = 1;
     }
   return hairy;
@@ -321,10 +310,9 @@ syms_of_cmds ()
   Qkill_forward_chars = intern ("kill-forward-chars");
   staticpro (&Qkill_forward_chars);
 
-  DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
-    "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
-More precisely, a char with closeparen syntax is self-inserted.");
-  Vblink_paren_function = Qnil;
+  DEFVAR_LISP ("blink-paren-hook", &Vblink_paren_hook,
+    "Function called, if non-nil, whenever a char with closeparen syntax is self-inserted.");
+  Vblink_paren_hook = Qnil;
 
   defsubr (&Sforward_char);
   defsubr (&Sbackward_char);
@@ -343,15 +331,15 @@ keys_of_cmds ()
 {
   int n;
 
-  initial_define_key (global_map, Ctl('M'), "newline");
-  initial_define_key (global_map, Ctl('I'), "self-insert-command");
+  ndefkey (Vglobal_map, Ctl('M'), "newline");
+  ndefkey (Vglobal_map, Ctl('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
-    initial_define_key (global_map, n, "self-insert-command");
+    ndefkey (Vglobal_map, n, "self-insert-command");
 
-  initial_define_key (global_map, Ctl ('A'), "beginning-of-line");
-  initial_define_key (global_map, Ctl ('B'), "backward-char");
-  initial_define_key (global_map, Ctl ('D'), "delete-char");
-  initial_define_key (global_map, Ctl ('E'), "end-of-line");
-  initial_define_key (global_map, Ctl ('F'), "forward-char");
-  initial_define_key (global_map, 0177, "delete-backward-char");
+  ndefkey (Vglobal_map, Ctl ('A'), "beginning-of-line");
+  ndefkey (Vglobal_map, Ctl ('B'), "backward-char");
+  ndefkey (Vglobal_map, Ctl ('D'), "delete-char");
+  ndefkey (Vglobal_map, Ctl ('E'), "end-of-line");
+  ndefkey (Vglobal_map, Ctl ('F'), "forward-char");
+  ndefkey (Vglobal_map, 0177, "delete-backward-char");
 }

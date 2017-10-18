@@ -23,50 +23,27 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 
-/* Generate output from a format-spec FORMAT,
-   terminated at position FORMAT_END.
-   Output goes in BUFFER, which has room for BUFSIZE chars.
-   If the output does not fit, truncate it to fit.
-   Returns the number of characters stored into BUFFER.
-   ARGS points to the vector of arguments, and NARGS says how many.
-   A double counts as two arguments.  */
-
-doprnt (buffer, bufsize, format, format_end, nargs, args)
+doprnt (buffer, bufsize, format, nargs, args)
      char *buffer;
      register int bufsize;
      char *format;
-     char *format_end;
      int nargs;
      char **args;
 {
   int cnt = 0;			/* Number of arg to gobble next */
   register char *fmt = format;	/* Pointer into format string */
   register char *bufptr = buffer; /* Pointer into output buffer.. */
-  /* Use this for sprintf unless we need something really big.  */
-  char tembuf[100];
-  /* Size of sprintf_buffer.  */
-  int size_allocated = 100;
-  /* Buffer to use for sprintf.  Either tembuf or same as BIG_BUFFER.  */
-  char *sprintf_buffer = tembuf;
-  /* Buffer we have got with malloc.  */
-  char *big_buffer = 0;
+  char tembuf[80];
   register int tem;
   char *string;
   char fmtcpy[20];
   int minlen;
-  int size;			/* Field width factor; e.g., %90d */
-
-  if (format_end == 0)
-    format_end = format + strlen (format);
 
   bufsize--;
-  while (fmt != format_end && bufsize > 0)	/* Loop until end of format
-						   string or buffer full */
+  while (*fmt && bufsize > 0)	/* Loop until end of format string or buffer full */
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
-	  int size_bound;
-
 	  fmt++;
 	  /* Copy this one %-spec into fmtcopy.  */
 	  string = fmtcpy;
@@ -79,52 +56,23 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	      fmt++;
 	    }
 	  *string = 0;
-	  /* Get an idea of how much space we might need.  */
-	  size_bound = atoi (&fmtcpy[1]) + 50;
-	  /* Make sure we have that much.  */
-	  if (size_bound > size_allocated)
-	    {
-	      if (big_buffer)
-		big_buffer = (char *) xrealloc (big_buffer, size_bound);
-	      else
-		big_buffer = (char *) xmalloc (size_bound);
-	      sprintf_buffer = big_buffer;
-	      size_allocated = size_bound;
-	    }
 	  minlen = 0;
 	  switch (*fmt++)
 	    {
 	    default:
 	      error ("Invalid format operation %%%c", fmt[-1]);
 
-/*	    case 'b': */
+	    case 'b':
 	    case 'd':
 	    case 'o':
 	    case 'x':
 	      if (cnt == nargs)
 		error ("Format string wants too many arguments");
-	      sprintf (sprintf_buffer, fmtcpy, args[cnt++]);
-	      /* Now copy into final output, truncating as nec.  */
-	      string = sprintf_buffer;
+	      sprintf (tembuf, fmtcpy, args[cnt++]);
+	      /* Now copy tembuf into final output, truncating as nec.  */
+	      string = tembuf;
 	      goto doit;
 
-	    case 'f':
-	    case 'e':
-	    case 'g':
-	      {
-		union { double d; char *half[2]; } u;
-		if (cnt + 1 == nargs)
-		  error ("Format string wants too many arguments");
-		u.half[0] = args[cnt++];
-		u.half[1] = args[cnt++];
-		sprintf (sprintf_buffer, fmtcpy, u.d);
-		/* Now copy into final output, truncating as nec.  */
-		string = sprintf_buffer;
-		goto doit;
-	      }
-
-	    case 'S':
-	      string[-1] = 's';
 	    case 's':
 	      if (cnt == nargs)
 		error ("Format string wants too many arguments");
@@ -175,10 +123,6 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
       *bufptr++ = *fmt++;	/* Just some characters; Copy 'em */
       bufsize--;
     };
-
-  /* If we had to malloc something, free it.  */
-  if (big_buffer)
-    free (big_buffer);
 
   *bufptr = 0;		/* Make sure our string end with a '\0' */
   return bufptr - buffer;

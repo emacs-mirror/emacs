@@ -24,7 +24,7 @@
 
 (require 'mim-mode)
 
-(defconst medit-zap-file (concat "/tmp/" (user-login-name) ".medit.mud")
+(defconst medit-zap-file (concat "/tmp/" (getenv "USER") ".medit.mud")
   "File name for data sent to MDL by Medit.")
 (defconst medit-buffer "*MEDIT*"
   "Name of buffer in which Medit accumulates data to send to MDL.")
@@ -92,7 +92,7 @@ Optionally, offers to save changed files."
 (defconst medit-mode-map nil)
 (if (not medit-mode-map)
     (progn
-      (setq medit-mode-map (copy-keymap mim-mode-map))
+      (setq medit-mode-map (copy-alist mim-mode-map))
       (define-key medit-mode-map "\e\z" 'medit-save-define)
       (define-key medit-mode-map "\e\^z" 'medit-save-buffer)
       (define-key medit-mode-map "\^xz" 'medit-goto-mdl)

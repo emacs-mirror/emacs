@@ -1,0 +1,69 @@
+Sun Oct 18 17:46:43 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* XMakeAssoc.c (XMakeAssoc): Use malloc, not Xmalloc.
+	* XCrAssoc.c (XCreateAssocTable): Use malloc and calloc directly.
+	* XDelAssoc.c (XDeleteAssoc): Use free, not Xfree.
+	* XDestAssoc.c (XDestroyAssocTable): Likewise.
+
+Sat Oct 17 17:35:03 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* XDelAssoc.c, XLookAssoc.c, XCrAssoc.c, XDestAssoc.c, XMakeAssoc.c:
+	Use Xlib.h, not Xlibint.h.
+	* XLookAssoc.c, XMakeAssoc.c, XCrAssoc.c (NULL): Defined.
+	* XMakeAssoc.c, XCrAssoc.c: Include errno.h.  Declare errno.
+	* XMakeAssoc.c (_XIOErrorFunction): Declared.
+
+Sat Sep 19 03:44:41 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* XDelAssoc.c, XLookAssoc.c, XCrAssoc.c, XDestAssoc.c, XMakeAssoc.c:
+	Specify dir X11/ when including Xlibint.h.
+
+Thu Sep 17 18:46:54 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* XDelAssoc.c, XLookAssoc.c, XCrAssoc.c, XDestAssoc.c, XMakeAssoc.c:
+	New files.
+
+	* Makefile (SRCS, OBJS): Compile those files.
+
+Fri Jan 31 23:45:10 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (clean): Delete object files and library.
+	(distclean): New target.
+
+Wed Jan 29 14:38:32 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (libXMenu11.a): Put `-' on ranlib line.
+
+Mon Jan 27 15:25:35 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (EXTRA): New variable.
+	(libXMenu11.a): Use that.
+
+	* insque.c: New file.
+
+Sun Jan 26 00:43:25 1992  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (CC): Assignment commented out.
+
+Sat Nov 16 06:27:39 1991  Noah Friedman  (friedman at nutrimat)
+
+        * copyright.h: New file (copied from X11R4 distribution)
+        * All files: Replaced occurrences of #include <X11/copyright.h>
+          with #include "copyright.h"
+
+Fri Oct 25 00:03:06 1991  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+
+	* XMenu.h (enum _xmmode): Remove spurious comma.
+
+	* X10.h: New file.
+	* XMenu.h, XMenuInt.h: Include X10.h from this dir.
+
+Tue Nov 13 17:17:59 1990  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* XMenu.h (struct _xmenu): Use unsigned long for colors.
+
+Mon Nov 12 18:55:06 1990  Richard Stallman  (rms at mole.ai.mit.edu)
+
+	* Internal.c: Declare argument `display' in some functions.
+
+

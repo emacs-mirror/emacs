@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1990 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,8 +26,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "syntax.h"
 
 Lisp_Object Qsyntax_table_p;
-
-int words_include_escapes;
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
   "Return t if ARG is a syntax table.\n\
@@ -139,9 +137,9 @@ char syntax_code_spec[13] =
 
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
   "Return the syntax code of CHAR, described by a character.\n\
-For example, if CHAR is a word constituent, the character `?w' is returned.\n\
+For example, if CHAR is a word constituent, ?w is returned.\n\
 The characters that correspond to various syntax codes\n\
-are listed in the documentation of `modify-syntax-entry'.")
+are listed in the documentation of  modify-syntax-entry.")
   (ch)
      Lisp_Object ch;
 {
@@ -158,25 +156,23 @@ DEFUN ("modify-syntax-entry", foo, bar, 0, 0, 0,
 The syntax is changed only for table TABLE, which defaults to\n\
  the current buffer's syntax table.\n\
 The first character of S should be one of the following:\n\
-  Space    whitespace syntax.    w   word constituent.\n\
-  _        symbol constituent.   .   punctuation.\n\
-  (        open-parenthesis.     )   close-parenthesis.\n\
-  \"        string quote.         \\   character-quote.\n\
-  $        paired delimiter.     '   expression quote or prefix operator.\n\
-  <	   comment starter.	 >   comment ender.\n\
+  Space or -   whitespace syntax.    w   word constituent.\n\
+  _            symbol constituent.   .   punctuation.\n\
+  (            open-parenthesis.     )   close-parenthesis.\n\
+  \"            string quote.         \\   escape character.\n\
+  $            paired delimiter.     '   expression prefix operator.\n\
+  <            comment starter.      >   comment ender.\n\
+  /	       character quote.\n\
 Only single-character comment start and end sequences are represented thus.\n\
 Two-character sequences are represented as described below.\n\
 The second character of S is the matching parenthesis,\n\
- used only if the first character is `(' or `)'.\n\
+ used only if the first character is ( or ).\n\
 Any additional characters are flags.\n\
-Defined flags are the characters 1, 2, 3, 4, and p.\n\
+Defined flags are the characters 1, 2, 3 and 4.\n\
  1 means C is the start of a two-char comment start sequence.\n\
  2 means C is the second character of such a sequence.\n\
  3 means C is the start of a two-char comment end sequence.\n\
- 4 means C is the second character of such a sequence.\n\
- p means C is a prefix character for `backward-prefix-chars';
-   such characters are treated as whitespace when they occur
-   between expressions.")
+ 4 means C is the second character of such a sequence.")
 
 */
 
@@ -228,10 +224,6 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
       case '4':
 	XFASTINT (val) |= 1 << 19;
 	break;
-
-      case 'p':
-	XFASTINT (val) |= 1 << 20;
-	break;
       }
 	
   XVECTOR (syntax_table)->contents[0xFF & XINT (c)] = val;
@@ -245,14 +237,14 @@ describe_syntax (value)
     Lisp_Object value;
 {
   register enum syntaxcode code;
-  char desc, match, start1, start2, end1, end2, prefix;
+  char desc, match, start1, start2, end1, end2;
   char str[2];
 
   Findent_to (make_number (16), make_number (1));
 
   if (XTYPE (value) != Lisp_Int)
     {
-      insert_string ("invalid");
+      InsStr ("invalid");
       return;
     }
 
@@ -262,11 +254,10 @@ describe_syntax (value)
   start2 = (XINT (value) >> 17) & 1;
   end1 = (XINT (value) >> 18) & 1;
   end2 = (XINT (value) >> 19) & 1;
-  prefix = (XINT (value) >> 20) & 1;
 
   if ((int) code < 0 || (int) code >= (int) Smax)
     {
-      insert_string ("invalid");
+      InsStr ("invalid");
       return;
     }
   desc = syntax_code_spec[(int) code];
@@ -288,10 +279,7 @@ describe_syntax (value)
   if (end2)
     insert ("4", 1);
 
-  if (prefix)
-    insert ("p", 1);
-
-  insert_string ("\twhich means: ");
+  InsStr ("\twhich means: ");
 
 #ifdef SWITCH_ENUM_BUG
   switch ((int) code)
@@ -300,57 +288,55 @@ describe_syntax (value)
 #endif
     {
     case Swhitespace:
-      insert_string ("whitespace"); break;
+      InsStr ("whitespace"); break;
     case Spunct:
-      insert_string ("punctuation"); break;
+      InsStr ("punctuation"); break;
     case Sword:
-      insert_string ("word"); break;
+      InsStr ("word"); break;
     case Ssymbol:
-      insert_string ("symbol"); break;
+      InsStr ("symbol"); break;
     case Sopen:
-      insert_string ("open"); break;
+      InsStr ("open"); break;
     case Sclose:
-      insert_string ("close"); break;
+      InsStr ("close"); break;
     case Squote:
-      insert_string ("quote"); break;
+      InsStr ("quote"); break;
     case Sstring:
-      insert_string ("string"); break;
+      InsStr ("string"); break;
     case Smath:
-      insert_string ("math"); break;
+      InsStr ("math"); break;
     case Sescape:
-      insert_string ("escape"); break;
+      InsStr ("escape"); break;
     case Scharquote:
-      insert_string ("charquote"); break;
+      InsStr ("charquote"); break;
     case Scomment:
-      insert_string ("comment"); break;
+      InsStr ("comment"); break;
     case Sendcomment:
-      insert_string ("endcomment"); break;
+      InsStr ("endcomment"); break;
     default:
-      insert_string ("invalid");
+      InsStr ("invalid");
       return;
     }
 
   if (match)
     {
-      insert_string (", matches ");
+      InsStr (", matches ");
       
       str[0] = match, str[1] = 0;
       insert (str, 1);
     }
 
   if (start1)
-    insert_string (",\n\t  is the first character of a comment-start sequence");
+    InsStr (",\n\t  is the first character of a comment-start sequence");
   if (start2)
-    insert_string (",\n\t  is the second character of a comment-start sequence");
+    InsStr (",\n\t  is the second character of a comment-start sequence");
 
   if (end1)
-    insert_string (",\n\t  is the first character of a comment-end sequence");
+    InsStr (",\n\t  is the first character of a comment-end sequence");
   if (end2)
-    insert_string (",\n\t  is the second character of a comment-end sequence");
-  if (prefix)
-    insert_string (",\n\t  is a prefix character for `backward-prefix-chars'");
+    InsStr (",\n\t  is the second character of a comment-end sequence");
 
-  insert_string ("\n");
+  InsStr ("\n");
 }
 
 Lisp_Object
@@ -359,14 +345,14 @@ describe_syntax_1 (vector)
 {
   struct buffer *old = current_buffer;
   set_buffer_internal (XBUFFER (Vstandard_output));
-  describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil);
+  describe_vector (vector, Qnil, describe_syntax, 0, Qnil);
   set_buffer_internal (old);
   return Qnil;
 }
 
 DEFUN ("describe-syntax", Fdescribe_syntax, Sdescribe_syntax, 0, 0, "",
   "Describe the syntax specifications in the syntax table.\n\
-The descriptions are inserted in a buffer, which is then displayed.")
+The descriptions are inserted in a buffer, which is selected so you can see it.")
   ()
 {
   internal_with_output_to_temp_buffer
@@ -375,16 +361,15 @@ The descriptions are inserted in a buffer, which is then displayed.")
   return Qnil;
 }
 
-/* Return the position across COUNT words from FROM.
+/* Return the position across `count' words from `from'.
    If that many words cannot be found before the end of the buffer, return 0.
-   COUNT negative means scan backward and stop at word beginning.  */
+   `count' negative means scan backward and stop at word beginning.  */
 
 scan_words (from, count)
      register int from, count;
 {
   register int beg = BEGV;
   register int end = ZV;
-  register int code;
 
   immediate_quit = 1;
   QUIT;
@@ -398,22 +383,15 @@ scan_words (from, count)
 	      immediate_quit = 0;
 	      return 0;
 	    }
-	  code = SYNTAX (FETCH_CHAR (from));
-	  if (words_include_escapes
-	      && (code == Sescape || code == Scharquote))
-	    break;
-	  if (code == Sword)
+	  if (SYNTAX(FETCH_CHAR (from)) == Sword)
 	    break;
 	  from++;
 	}
       while (1)
 	{
 	  if (from == end) break;
-	  code = SYNTAX (FETCH_CHAR (from));
-	  if (!(words_include_escapes
-		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword)
-	      break;
+	  if (SYNTAX(FETCH_CHAR (from)) != Sword)
+	    break;
 	  from++;
 	}
       count--;
@@ -427,22 +405,15 @@ scan_words (from, count)
 	      immediate_quit = 0;
 	      return 0;
 	    }
-	  code = SYNTAX (FETCH_CHAR (from - 1));
-	  if (words_include_escapes
-	      && (code == Sescape || code == Scharquote))
-	    break;
-	  if (code == Sword)
+	  if (SYNTAX(FETCH_CHAR (from - 1)) == Sword)
 	    break;
 	  from--;
 	}
       while (1)
 	{
 	  if (from == beg) break;
-	  code = SYNTAX (FETCH_CHAR (from - 1));
-	  if (!(words_include_escapes
-		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword)
-	      break;
+	  if (SYNTAX(FETCH_CHAR (from - 1)) != Sword)
+	    break;
 	  from--;
 	}
       count++;
@@ -506,8 +477,6 @@ scan_lists (from, count, depth, sexpflag)
 	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from))
 	      && parse_sexp_ignore_comments)
 	    code = Scomment, from++;
-	  if (SYNTAX_PREFIX (c))
-	    continue;
 
 #ifdef SWITCH_ENUM_BUG
 	  switch ((int) code)
@@ -635,8 +604,6 @@ scan_lists (from, count, depth, sexpflag)
 	      && !char_quoted (from - 1)
 	      && parse_sexp_ignore_comments)
 	    code = Sendcomment, from--;
-	  if (SYNTAX_PREFIX (c))
-	    continue;
 
 #ifdef SWITCH_ENUM_BUG
 	  switch ((int) (quoted ? Sword : code))
@@ -650,12 +617,11 @@ scan_lists (from, count, depth, sexpflag)
 	      /* This word counts as a sexp; count object finished after passing it. */
 	      while (from > stop)
 		{
-		  quoted = char_quoted (from - 1);
-		  if (quoted)
+		  if (quoted = char_quoted (from - 1))
 		    from--;
-		  if (! (quoted || SYNTAX(FETCH_CHAR (from - 1)) == Sword
-			 || SYNTAX(FETCH_CHAR (from - 1)) == Ssymbol
-			 || SYNTAX(FETCH_CHAR (from - 1)) == Squote))
+		  if (! (quoted || SYNTAX(FETCH_CHAR (from - 1)) == Sword ||
+			 SYNTAX(FETCH_CHAR (from - 1)) == Ssymbol ||
+			 SYNTAX(FETCH_CHAR (from - 1)) == Squote))
             	    goto done2;
 		  from--;
 		}
@@ -685,63 +651,19 @@ scan_lists (from, count, depth, sexpflag)
 	      break;
 
 	    case Sendcomment:
-	      if (!parse_sexp_ignore_comments)
-		break;
-	      /* Look back, counting the parity of string-quotes,
-		 and recording the comment-starters seen.
-		 When we reach a safe place, assume that's not in a string;
-		 then step the main scan to the earliest comment-starter seen
-		 an even number of string quotes away from the safe place.
-
-		 OFROM[I] is position of the earliest comment-starter seen
-		 which is I+2X quotes from the comment-end.
-		 PARITY is current parity of quotes from the comment end.  */
-	      {
-		int ofrom[2];
-		int parity = 0;
-
-		ofrom[0] = ofrom[1] = from;
-
-		/* At beginning of range to scan, we're outside of strings;
-		   that determines quote parity to the comment-end.  */
-		while (from != stop)
-		  {
-		    /* Move back and examine a character.  */
-		    from--;
-
-		    c = FETCH_CHAR (from);
-		    code = SYNTAX (c);
-
-		    /* If this char is the second of a 2-char comment sequence,
-		       back up and give the pair the appropriate syntax.  */
-		    if (from > stop && SYNTAX_COMEND_SECOND (c)
-			&& SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1)))
-		      code = Sendcomment, from--;
-		    else if (from > stop && SYNTAX_COMSTART_SECOND (c)
-			     && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1)))
-		      code = Scomment, from--;
-
-		    /* Ignore escaped characters.  */
-		    if (char_quoted (from))
-		      continue;
-
-		    /* Track parity of quotes between here and comment-end.  */
-		    if (code == Sstring)
-		      parity ^= 1;
-
-		    /* Record comment-starters according to that
-		       quote-parity to the comment-end.  */
-		    if (code == Scomment)
-		      ofrom[parity] = from;
-
-		    /* If we come to another comment-end,
-		       assume it's not inside a string.
-		       That determines the quote parity to the comment-end.  */
-		    if (code == Sendcomment)
-		      break;
-		  }
-		from = ofrom[parity];
-	      }
+	      if (!parse_sexp_ignore_comments) break;
+	      if (from != stop) from--;
+	      while (1)
+		{
+		  if (SYNTAX (c = FETCH_CHAR (from)) == Scomment)
+		    break;
+		  if (from == stop) goto done;
+		  from--;
+		  if (SYNTAX_COMSTART_SECOND (c)
+		      && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from))
+		      && !char_quoted (from))
+		    break;
+		}
 	      break;
 
 	    case Sstring:
@@ -787,9 +709,9 @@ char_quoted (pos)
   register int beg = BEGV;
   register int quoted = 0;
 
-  while (pos > beg
-	 && ((code = SYNTAX (FETCH_CHAR (pos - 1))) == Scharquote
-	     || code == Sescape))
+  while (pos > beg &&
+	 ((code = SYNTAX (FETCH_CHAR (pos - 1))) == Scharquote
+	  || code == Sescape))
     pos--, quoted = !quoted;
   return quoted;
 }
@@ -803,9 +725,9 @@ only places where the depth in parentheses becomes zero\n\
 are candidates for stopping; COUNT such places are counted.\n\
 Thus, a positive value for DEPTH means go out levels.\n\
 \n\
-Comments are ignored if `parse-sexp-ignore-comments' is non-nil.\n\
+Comments are ignored if parse-sexp-ignore-comments is non-nil.\n\
 \n\
-If the beginning or end of (the accessible part of) the buffer is reached\n\
+If the beginning or end of (the visible part of) the buffer is reached\n\
 and the depth is wrong, an error is signaled.\n\
 If the depth is right but the count is not used up, nil is returned.")
   (from, count, depth)
@@ -820,15 +742,14 @@ If the depth is right but the count is not used up, nil is returned.")
 
 DEFUN ("scan-sexps", Fscan_sexps, Sscan_sexps, 2, 2, 0,
   "Scan from character number FROM by COUNT balanced expressions.\n\
-If COUNT is negative, scan backwards.\n\
 Returns the character number of the position thus found.\n\
 \n\
-Comments are ignored if `parse-sexp-ignore-comments' is non-nil.\n\
+Comments are ignored if parse-sexp-ignore-comments is non-nil.\n\
 \n\
-If the beginning or end of (the accessible part of) the buffer is reached\n\
+If the beginning or end of (the visible part of) the buffer is reached\n\
 in the middle of a parenthetical grouping, an error is signaled.\n\
-If the beginning or end is reached between groupings\n\
-but before count is used up, nil is returned.")
+If the beginning or end is reached between groupings but before count is used up,\n\
+nil is returned.")
   (from, count)
      Lisp_Object from, count;
 {
@@ -840,16 +761,13 @@ but before count is used up, nil is returned.")
 
 DEFUN ("backward-prefix-chars", Fbackward_prefix_chars, Sbackward_prefix_chars,
   0, 0, 0,
-  "Move point backward over any number of chars with prefix syntax.\n\
-This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
+  "Move point backward over any number of chars with syntax \"prefix\".")
   ()
 {
   int beg = BEGV;
   int pos = point;
 
-  while (pos > beg && !char_quoted (pos - 1)
-	 && (SYNTAX (FETCH_CHAR (pos - 1)) == Squote
-	     || SYNTAX_PREFIX (FETCH_CHAR (pos - 1))))
+  while (pos > beg && !char_quoted (pos - 1) && SYNTAX (FETCH_CHAR (pos - 1)) == Squote)
     pos--;
 
   SET_PT (pos);
@@ -950,8 +868,6 @@ scan_sexps_forward (from, end, targetdepth, stopbefore, oldstate)
       if (from < end && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
 	   && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
 	code = Scomment, from++;
-      if (SYNTAX_PREFIX (FETCH_CHAR (from - 1)))
-	continue;
 #ifdef SWITCH_ENUM_BUG
       switch ((int) code)
 #else
@@ -1192,11 +1108,11 @@ syms_of_syntax ()
   staticpro (&Qsyntax_table_p);
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
-    "Non-nil means `forward-sexp', etc., should treat comments as whitespace.");
-
-  words_include_escapes = 0;
-  DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
-    "Non-nil means `forward-word', etc., should treat escape chars part of words.");
+    "Non-nil means forward-sexp, etc., should treat comments as whitespace.\n\
+Non-nil works only when the comment terminator is something like *\/,\n\
+and appears only when it ends a comment.\n\
+If comments are terminated by newlines,\n\
+you must make this variable nil.");
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);

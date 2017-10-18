@@ -51,6 +51,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* not VMS */
 #endif /* LOAD_AVE_TYPE */
 
+#ifdef DGUX
+#include <sys/dg_sys_info.h>  /* for load average info - DJB */
+#endif
+
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */
 #undef vector
@@ -62,11 +66,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "commands.h"
 
-#ifdef MULTI_SCREEN
-#include "screen.h"
-#endif
-
+#ifdef lint
 #include "buffer.h"
+#endif /* lint */
 
 Lisp_Object Qstring_lessp;
 
@@ -82,38 +84,25 @@ DEFUN ("random", Frandom, Srandom, 0, 1, 0,
   "Return a pseudo-random number.\n\
 On most systems all integers representable in Lisp are equally likely.\n\
   This is 24 bits' worth.\n\
-With argument N, return random number in interval [0,N).\n\
-With argument t, set the random number seed from the current time and pid.")
+On some systems, absolute value of result never exceeds 2 to the 14.\n\
+If optional argument is supplied as  t,\n\
+ the random number seed is set based on the current time and pid.")
   (arg)
      Lisp_Object arg;
 {
-  int val;
   extern long random ();
   extern srandom ();
   extern long time ();
 
   if (EQ (arg, Qt))
     srandom (getpid () + time (0));
-  val = random ();
-  if (XTYPE (arg) == Lisp_Int && XINT (arg) != 0)
-    {
-      /* Try to take our random number from the higher bits of VAL,
-	 not the lower, since (says Gentzel) the low bits of `random'
-	 are less random than the higher ones.  */
-      val &= 0xfffffff;		/* Ensure positive.  */
-      val >>= 5;
-      if (XINT (arg) < 10000)
-	val >>= 6;
-      val %= XINT (arg);
-    }
-  return make_number (val);
+  return make_number ((int) random ());
 }
 
 /* Random data-structure functions */
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
-  "Return the length of vector, list or string SEQUENCE.\n\
-A byte-code function object is also allowed.")
+  "Return the length of vector, list or string SEQUENCE.")
   (obj)
      register Lisp_Object obj;
 {
@@ -121,8 +110,7 @@ A byte-code function object is also allowed.")
   register int i;
 
  retry:
-  if (XTYPE (obj) == Lisp_Vector || XTYPE (obj) == Lisp_String
-      || XTYPE (obj) == Lisp_Compiled)
+  if (XTYPE (obj) == Lisp_Vector || XTYPE (obj) == Lisp_String)
     return Farray_length (obj);
   else if (CONSP (obj))
     {
@@ -149,7 +137,6 @@ A byte-code function object is also allowed.")
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
   "T if two strings have identical contents.\n\
-Case is significant.\n\
 Symbols are also allowed; their print names are used instead.")
   (s1, s2)
      register Lisp_Object s1, s2;
@@ -169,7 +156,6 @@ Symbols are also allowed; their print names are used instead.")
 
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
   "T if first arg string is less than second in lexicographic order.\n\
-Case is significant.\n\
 Symbols are also allowed; their print names are used instead.")
   (s1, s2)
      register Lisp_Object s1, s2;
@@ -217,10 +203,9 @@ concat2 (s1, s2)
 }
 
 DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
-  "Concatenate all the arguments and make the result a list.\n\
+  "Concatenate arguments and make the result a list.\n\
 The result is a list whose elements are the elements of all the arguments.\n\
-Each argument may be a list, vector or string.\n\
-The last argument is not copied if it is a list.")
+Each argument may be a list, vector or string.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -229,7 +214,7 @@ The last argument is not copied if it is a list.")
 }
 
 DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
-  "Concatenate all the arguments and make the result a string.\n\
+  "Concatenate arguments and make the result a string.\n\
 The result is a string whose elements are the elements of all the arguments.\n\
 Each argument may be a string, a list of numbers, or a vector of numbers.")
   (nargs, args)
@@ -240,7 +225,7 @@ Each argument may be a string, a list of numbers, or a vector of numbers.")
 }
 
 DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
-  "Concatenate all the arguments and make the result a vector.\n\
+  "Concatenate arguments and make the result a vector.\n\
 The result is a vector whose elements are the elements of all the arguments.\n\
 Each argument may be a list, vector or string.")
   (nargs, args)
@@ -251,9 +236,7 @@ Each argument may be a list, vector or string.")
 }
 
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
-  "Return a copy of a list, vector or string.\n\
-The elements of a list or vector are not copied; they are shared\n\
-with the original.")
+  "Return a copy of a list, vector or string.")
   (arg)
      Lisp_Object arg;
 {
@@ -293,8 +276,7 @@ concat (nargs, args, target_type, last_special)
     {
       this = args[argnum];
       if (!(CONSP (this) || NULL (this)
-	    || XTYPE (this) == Lisp_Vector || XTYPE (this) == Lisp_String
-	    || XTYPE (this) == Lisp_Compiled))
+          || XTYPE (this) == Lisp_Vector || XTYPE (this) == Lisp_String))
 	{
 	  if (XTYPE (this) == Lisp_Int)
             args[argnum] = Fint_to_string (this);
@@ -391,11 +373,10 @@ concat (nargs, args, target_type, last_special)
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
   "Return a copy of ALIST.\n\
-This is an alist which represents the same mapping from objects to objects,\n\
-but does not share the alist structure with ALIST.\n\
+This is a new alist which represents the same mapping\n\
+from objects to objects, but does not share the alist structure with ALIST.\n\
 The objects mapped (cars and cdrs of elements of the alist)\n\
-are shared, however.\n\
-Elements of ALIST that are not conses are also shared.")
+are shared, however.")
   (alist)
      Lisp_Object alist;
 {
@@ -444,7 +425,7 @@ If FROM or TO is negative, it counts from the end.")
 }
 
 DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
-  "Take cdr N times on LIST, returns the result.")
+  "Takes cdr N times on LIST, returns the result.")
   (n, list)
      Lisp_Object n;
      register Lisp_Object list;
@@ -461,7 +442,7 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
 }
 
 DEFUN ("nth", Fnth, Snth, 2, 2, 0,
-  "Return the Nth element of LIST.\n\
+  "Returns the Nth element of LIST.\n\
 N counts from zero.  If LIST is not that long, nil is returned.")
   (n, list)
      Lisp_Object n, list;
@@ -470,7 +451,7 @@ N counts from zero.  If LIST is not that long, nil is returned.")
 }
 
 DEFUN ("elt", Felt, Selt, 2, 2, 0,
-  "Return element of SEQUENCE at index N.")
+  "Returns element of SEQUENCE at index N.")
   (seq, n)
      register Lisp_Object seq, n;
 {
@@ -487,27 +468,8 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
     }
 }
 
-DEFUN ("member", Fmember, Smember, 2, 2, 0,
-  "Return non-nil if ELT is an element of LIST.  Comparison done with EQUAL.\n\
-The value is actually the tail of LIST whose car is ELT.")
-  (elt, list)
-     register Lisp_Object elt;
-     Lisp_Object list;
-{
-  register Lisp_Object tail;
-  for (tail = list; !NULL (tail); tail = Fcdr (tail))
-    {
-      register Lisp_Object tem;
-      tem = Fcar (tail);
-      if (! NULL (Fequal (elt, tem)))
-	return tail;
-      QUIT;
-    }
-  return Qnil;
-}
-
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
-  "Return non-nil if ELT is an element of LIST.  Comparison done with EQ.\n\
+  "Returns non-nil if ELT is an element of LIST.  Comparison done with EQ.\n\
 The value is actually the tail of LIST whose car is ELT.")
   (elt, list)
      register Lisp_Object elt;
@@ -525,9 +487,8 @@ The value is actually the tail of LIST whose car is ELT.")
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
-  "Return non-nil if ELT is `eq' to the car of an element of LIST.\n\
-The value is actually the element of LIST whose car is ELT.\n\
-Elements of LIST that are not conses are ignored.")
+  "Returns non-nil if ELT is the car of an element of LIST.  Comparison done with eq.\n\
+The value is actually the element of LIST whose car is ELT.")
   (key, list)
      register Lisp_Object key;
      Lisp_Object list;
@@ -566,7 +527,7 @@ assq_no_quit (key, list)
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
-  "Return non-nil if ELT is `equal' to the car of an element of LIST.\n\
+  "Returns non-nil if ELT is the car of an element of LIST.  Comparison done with  equal.\n\
 The value is actually the element of LIST whose car is ELT.")
   (key, list)
      register Lisp_Object key;
@@ -586,7 +547,7 @@ The value is actually the element of LIST whose car is ELT.")
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
-  "Return non-nil if ELT is `eq' to the cdr of an element of LIST.\n\
+  "Returns non-nil if ELT is the cdr of an element of LIST.  Comparison done with EQ.\n\
 The value is actually the element of LIST whose cdr is ELT.")
   (key, list)
      register Lisp_Object key;
@@ -606,11 +567,10 @@ The value is actually the element of LIST whose cdr is ELT.")
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
-  "Delete by side effect any occurrences of ELT as a member of LIST.\n\
-The modified LIST is returned.  Comparison is done with `eq'.\n\
+  "Deletes by side effect any occurrences of ELT as a member of LIST.\n\
+The modified LIST is returned.\n\
 If the first member of LIST is ELT, there is no way to remove it by side effect;\n\
-therefore, write `(setq foo (delq element foo))'\n\
-to be sure of changing the value of `foo'.")
+therefore, write  (setq foo (delq element foo))  to be sure of changing  foo.")
   (elt, list)
      register Lisp_Object elt;
      Lisp_Object list;
@@ -639,8 +599,7 @@ to be sure of changing the value of `foo'.")
 }
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
-  "Reverse LIST by modifying cdr pointers.\n\
-Returns the beginning of the reversed list.")
+  "Reverses LIST by modifying cdr pointers.  Returns the beginning of the reversed list.")
   (list)
      Lisp_Object list;
 {
@@ -661,8 +620,8 @@ Returns the beginning of the reversed list.")
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-  "Reverse LIST, copying.  Returns the beginning of the reversed list.\n\
-See also the function `nreverse', which is used more often.")
+  "Reverses LIST, copying.  Returns the beginning of the reversed list.\n\
+See also the function  nreverse, which is used more often.")
   (list)
      Lisp_Object list;
 {
@@ -774,7 +733,7 @@ merge (org_l1, org_l2, pred)
 
 DEFUN ("get", Fget, Sget, 2, 2, 0,
   "Return the value of SYMBOL's PROPNAME property.\n\
-This is the last VALUE stored with `(put SYMBOL PROPNAME VALUE)'.")
+This is the last VALUE stored with  (put SYMBOL PROPNAME VALUE).")
   (sym, prop)
      Lisp_Object sym;
      register Lisp_Object prop;
@@ -792,7 +751,7 @@ This is the last VALUE stored with `(put SYMBOL PROPNAME VALUE)'.")
 
 DEFUN ("put", Fput, Sput, 3, 3, 0,
   "Store SYMBOL's PROPNAME property with value VALUE.\n\
-It can be retrieved with `(get SYMBOL PROPNAME)'.")
+It can be retrieved with  (get SYMBOL PROPNAME).")
   (sym, prop, val)
      Lisp_Object sym;
      register Lisp_Object prop;
@@ -1025,6 +984,7 @@ Thus, \" \" as SEP results in spaces between the values return by FN.")
   int nargs;
   register Lisp_Object *args;
   register int i;
+  int j;
   struct gcpro gcpro1;
 
   len = Flength (seq);
@@ -1038,9 +998,10 @@ Thus, \" \" as SEP results in spaces between the values return by FN.")
   mapcar1 (leni, args, fn, seq);
   UNGCPRO;
 
-  for (i = leni - 1; i >= 0; i--)
-    args[i + i] = args[i];
-      
+  /* Broken Xenix/386 compiler can't use a register variable here */
+  for (j = leni - 1; j > 0; j--)
+    args[j + j] = args[j];
+
   for (i = 1; i < nargs; i += 2)
     args[i] = sep;
 
@@ -1048,9 +1009,8 @@ Thus, \" \" as SEP results in spaces between the values return by FN.")
 }
 
 DEFUN ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
-  "Apply FUNCTION to each element of SEQUENCE, and make a list of the results.\n\
-The result is a list just as long as SEQUENCE.\n\
-SEQUENCE may be a list, a vector or a string.")
+  "Apply FUNCTION to each element of LIST, and make a list of the results.\n\
+The result is a list just as long as LIST.")
   (fn, seq)
      Lisp_Object fn, seq;
 {
@@ -1071,12 +1031,13 @@ SEQUENCE may be a list, a vector or a string.")
 
 DEFUN ("y-or-n-p", Fy_or_n_p, Sy_or_n_p, 1, 1, 0,
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".\n\
+Takes one argument, which is the string to display to ask the question.\n\
+It should end in a space; `y-or-n-p' adds `(y or n) ' to it.\n\
 No confirmation of the answer is requested; a single character is enough.\n\
 Also accepts Space to mean yes, or Delete to mean no.")
   (prompt)
      Lisp_Object prompt;
 {
-  register Lisp_Object obj; 
   register int ans;
   Lisp_Object xprompt;
   Lisp_Object args[2];
@@ -1091,19 +1052,10 @@ Also accepts Space to mean yes, or Delete to mean no.")
     {
       message ("%s(y or n) ", XSTRING (xprompt)->data);
       cursor_in_echo_area = 1;
-
-      obj = read_char (0);
-      if (XTYPE (obj) == Lisp_Int)
-	ans = XINT (obj);
-      else
-	continue;
-
+      ans = read_command_char (0);
       cursor_in_echo_area = -1;
       message ("%s(y or n) %c", XSTRING (xprompt)->data, ans);
       cursor_in_echo_area = ocech;
-      /* Accept a C-g or C-] (abort-recursive-edit) as quit requests.  */
-      if (ans == 7 || ans == '\035')
-	Vquit_flag = Qt;
       QUIT;
       if (ans >= 0)
 	ans = DOWNCASE (ans);
@@ -1124,25 +1076,15 @@ Also accepts Space to mean yes, or Delete to mean no.")
   UNGCPRO;
   return (ans == 'y' ? Qt : Qnil);
 }
-
-/* This is how C code calls `yes-or-no-p' and allows the user
-   to redefined it.
-
-   Anything that calls this function must protect from GC!  */
-
-Lisp_Object
-do_yes_or_no_p (prompt)
-     Lisp_Object prompt;
-{
-  return call1 (intern ("yes-or-no-p"), prompt);
-}
 
 /* Anything that calls this function must protect from GC!  */
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
-  "Ask user a yes or no question.  Return t if answer is yes.\n\
-The user must confirm the answer with a newline,\n\
-and can rub it out if not confirmed.")
+  "Ask user a yes-or-no question.  Return t if answer is yes.\n\
+Takes one argument, which is the string to display to ask the question.\n\
+It should end in a space; `yes-or-no-p' adds `(yes or no) ' to it.\n\
+The user must confirm the answer with RET,\n\
+and can edit it until it as been confirmed.")
   (prompt)
      Lisp_Object prompt;
 {
@@ -1160,7 +1102,7 @@ and can rub it out if not confirmed.")
   while (1)
     {
       ans = Fdowncase (read_minibuf (Vminibuffer_local_map,
-				     Qnil, prompt, Qnil, 0));
+				     Qnil, prompt, 0));
       if (XSTRING (ans)->size == 3 && !strcmp (XSTRING (ans)->data, "yes"))
 	{
 	  UNGCPRO;
@@ -1177,10 +1119,14 @@ and can rub it out if not confirmed.")
       message ("Please answer yes or no.");
       Fsleep_for (make_number (2));
     }
-  UNGCPRO;
 }
 
 /* Avoid static vars inside a function since in HPUX they dump as pure.  */
+#ifdef DGUX
+static struct dg_sys_info_load_info load_info;  /* what-a-mouthful! */
+
+#else /* Not DGUX */
+
 static int ldav_initialized;
 static int ldav_channel;
 #ifdef LOAD_AVE_TYPE
@@ -1192,13 +1138,27 @@ static struct nlist ldav_nl[2];
 #define channel ldav_channel
 #define initialized ldav_initialized
 #define nl ldav_nl
+#endif /* Not DGUX */
 
 DEFUN ("load-average", Fload_average, Sload_average, 0, 0, 0,
-  "Return list of 1 minute, 5 minute and 15 minute load averages.\n\
-Each of the three load averages is multiplied by 100,\n\
-then converted to integer.")
+  "Return the current 1 minute, 5 minute and 15 minute load averages\n\
+in a list (all floating point load average values are multiplied by 100\n\
+and then turned into integers).")
   ()
 {
+#ifdef DGUX
+  /* perhaps there should be a "sys_load_avg" call in sysdep.c?! - DJB */
+  load_info.one_minute     = 0.0;	/* just in case there is an error */
+  load_info.five_minute    = 0.0;
+  load_info.fifteen_minute = 0.0;
+  dg_sys_info (&load_info, DG_SYS_INFO_LOAD_INFO_TYPE,
+	       DG_SYS_INFO_LOAD_VERSION_0);
+
+  return Fcons (make_number ((int)(load_info.one_minute * 100.0)),
+		Fcons (make_number ((int)(load_info.five_minute * 100.0)),
+		       Fcons (make_number ((int)(load_info.fifteen_minute * 100.0)),
+			      Qnil)));
+#else /* not DGUX */
 #ifndef LOAD_AVE_TYPE
   error ("load-average not implemented for this operating system");
 
@@ -1268,19 +1228,29 @@ then converted to integer.")
       strcpy (nl[0].n_name, LDAV_SYMBOL);
       nl[1].n_zeroes = 0;
 #else /* NLIST_STRUCT */
-#ifdef convex
+#if defined (convex) || defined (NeXT)
       nl[0].n_un.n_name = LDAV_SYMBOL;
       nl[1].n_un.n_name = 0;
-#else /* not convex */
+#else /* not convex or NeXT */
       nl[0].n_name = LDAV_SYMBOL;
       nl[1].n_name = 0;
-#endif /* not convex */
+#endif /* not convex of NeXT */
 #endif /* NLIST_STRUCT */
 
+#ifdef IRIS_4D
+	{
+#include <sys/types.h>
+#include <sys/sysmp.h>
+	    nl[0].n_value = sysmp(MP_KERNADDR, MPKA_AVENRUN);
+	    nl[0].n_value &= 0x7fffffff;
+	}
+#else
       nlist (KERNEL_FILE, nl);
+#endif /* IRIS */
 
 #ifdef FIXUP_KERNEL_SYMBOL_ADDR
-      FIXUP_KERNEL_SYMBOL_ADDR (nl);
+      if ((nl[0].n_type & N_TYPE) != N_ABS)
+	nl[0].n_value = (nlp->n_value >> 2) | 0xc0000000;
 #endif /* FIXUP_KERNEL_SYMBOL_ADDR */
     }
   /*
@@ -1320,6 +1290,7 @@ then converted to integer.")
 		       Fcons (make_number (LOAD_AVE_CVT (load_ave[2])),
 			      Qnil)));
 #endif /* LOAD_AVE_TYPE */
+#endif /* not DGUX */
 }
 
 #undef channel
@@ -1332,8 +1303,8 @@ DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 1, 0,
   "Returns t if FEATURE is present in this Emacs.\n\
 Use this to conditionalize execution of lisp code based on the presence or\n\
 absence of emacs or environment extensions.\n\
-Use `provide' to declare that a feature is available.\n\
-This function looks at the value of the variable `features'.")
+Use  provide  to declare that a feature is available.\n\
+This function looks at the value of the variable  features.")
      (feature)
      Lisp_Object feature;
 {
@@ -1359,10 +1330,8 @@ DEFUN ("provide", Fprovide, Sprovide, 1, 1, 0,
 }
 
 DEFUN ("require", Frequire, Srequire, 1, 2, 0,
-  "If feature FEATURE is not loaded, load it from FILENAME.\n\
-If FEATURE is not a member of the list `features', then the feature\n\
-is not loaded; so load the file FILENAME.\n\
-If FILENAME is omitted, the printname of FEATURE is used as the file name.")
+  "If FEATURE is not present in Emacs (ie (featurep FEATURE) is false),\n\
+load FILENAME.  FILENAME is optional and defaults to FEATURE.")
      (feature, file_name)
      Lisp_Object feature, file_name;
 {
@@ -1387,7 +1356,7 @@ If FILENAME is omitted, the printname of FEATURE is used as the file name.")
 
       /* Once loading finishes, don't undo it.  */
       Vautoload_queue = Qt;
-      feature = unbind_to (count, feature);
+      unbind_to (count);
     }
   return feature;
 }
@@ -1399,7 +1368,7 @@ syms_of_fns ()
 
   DEFVAR_LISP ("features", &Vfeatures,
     "A list of symbols which are the features of the executing emacs.\n\
-Used by `featurep' and `require', and altered by `provide'.");
+Used by  featurep  and  require, and altered by  provide.");
   Vfeatures = Qnil;
 
   defsubr (&Sidentity);
@@ -1416,7 +1385,6 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Snthcdr);
   defsubr (&Snth);
   defsubr (&Selt);
-  defsubr (&Smember);
   defsubr (&Smemq);
   defsubr (&Sassq);
   defsubr (&Sassoc);

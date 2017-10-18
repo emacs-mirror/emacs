@@ -21,71 +21,52 @@
 ;(defconst lpr-switches nil
 ;  "*List of strings to pass as extra switch args to lpr when it is invoked.")
 
-(defvar lpr-command (if (eq system-type 'usg-unix-v)
+(defvar lpr-command (if (memq system-type
+			      '(usg-unix-v hpux silicon-graphics-unix))
 			"lp" "lpr")
   "Shell command for printing a file")
-
-(defvar print-region-function nil
-  "Function to call to print the region on a printer.
-See definition of `print-region-1' for calling conventions.")
 
 (defun lpr-buffer ()
   "Print buffer contents as with Unix command `lpr'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive)
-  (print-region-1 (point-min) (point-max) lpr-switches nil))
+  (print-region-1 (point-min) (point-max) lpr-switches))
 
 (defun print-buffer ()
   "Print buffer contents as with Unix command `lpr -p'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive)
-  (print-region-1 (point-min) (point-max) lpr-switches t))
+  (print-region-1 (point-min) (point-max) (cons "-p" lpr-switches)))
 
 (defun lpr-region (start end)
   "Print region contents as with Unix command `lpr'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive "r")
-  (print-region-1 start end lpr-switches nil))
+  (print-region-1 start end lpr-switches))
 
 (defun print-region (start end)
   "Print region contents as with Unix command `lpr -p'.
 `lpr-switches' is a list of extra switches (strings) to pass to lpr."
   (interactive "r")
-  (print-region-1 start end lpr-switches t))
+  (print-region-1 start end (cons "-p" lpr-switches)))
 
-(defun print-region-1 (start end switches page-headers)
+(defun print-region-1 (start end switches)
   (let ((name (concat (buffer-name) " Emacs buffer"))
 	(width tab-width))
     (save-excursion
-      (message "Spooling...")
-      (if (/= tab-width 8)
-	  (progn
-	    (print-region-new-buffer start end)
-	    (setq tab-width width)
-	    (untabify (point-min) (point-max))))
-      (if page-headers
-	  (if (eq system-type 'usg-unix-v)
-	      (progn
-		(print-region-new-buffer)
-		(call-process-region start end "pr" t t nil))
-	    ;; On BSD, use an option to get page headers.
-	    (setq switches (cons "-p" switches))))
-      (apply (or print-region-function 'call-process-region)
-	     (nconc (list start end lpr-command
-			  nil nil nil)
-		    (nconc (and (eq system-type 'berkeley-unix)
-				(list "-J" name "-T" name))
-			   switches)))
-      (message "Spooling...done"))))
-
-;; This function copies the text between start and end
-;; into a new buffer, makes that buffer current,
-;; and sets start and end to the buffer bounds.
-;; start and end are used free.
-(defun print-region-new-buffer ()
-  (or (string= (buffer-name) " *spool temp*")
-      (let ((oldbuf (current-buffer)))
-	(set-buffer (get-buffer-create " *spool temp*"))
-	(widen) (erase-buffer)
-	(insert-buffer-substring oldbuf start end)
-	(setq start (point-min) end (point-max)))))
+     (message "Spooling...")
+     (if (/= tab-width 8)
+	 (let ((oldbuf (current-buffer)))
+	  (set-buffer (get-buffer-create " *spool temp*"))
+	  (widen) (erase-buffer)
+	  (insert-buffer-substring oldbuf start end)
+	  (setq tab-width width)
+	  (untabify (point-min) (point-max))
+	  (setq start (point-min) end (point-max))))
+     (apply 'call-process-region
+	    (nconc (list start end lpr-command
+			 nil nil nil)
+		   (nconc (and (eq system-type 'berkeley-unix)
+			       (list "-J" name "-T" name))
+			  switches)))
+     (message "Spooling...done"))))

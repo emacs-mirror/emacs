@@ -1,0 +1,70 @@
+See the file VMSINSTALL for VMS installation information.
+
+* Deficiencies of VMS GNU Emacs
+
+All GNU Emacs features which on Unix work by running a Unix utility
+in a subprocess currently do not work on VMS.
+
+These include reading and sending mail, reading and posting netnews,
+spelling correction, displaying the time and load in the mode line,
+and the `sort-columns' command.  (dired and sending output to printers
+don't work in version 18, but will in version 19.)  Naturally, the
+commands to view Unix manual pages and execute Unix shell commands
+also do not work.
+
+It is not possible to fix these problems in a general way on VMS
+because they involve interfaces to parts of the operating system which
+work very differently on VMS.  Each feature must be reimplemented
+individually.
+
+I hope that someone will send me an implementation for directory listing
+on VMS.  This should not be very hard to do.  Most of the code you need
+is already provided in [.src]dired.c.
+
+The normal commands for running an inferior shell or lisp with I/O
+through an Emacs buffer do not work on VMS in Emacs version 18, but
+will work in version 19.  For the meanwhile, you can create a DCL
+subprocess which does I/O through an Emacs buffer and get a similar
+effect.  See the file [.lisp]vms-patch.el.
+
+* Specifying terminal type.
+
+To specify a terminal type for Emacs that is not known to VMS,
+define the logical name EMACS_TERM with the terminal type as value.
+Terminal types are looked up in the termcap data base, which is
+found as the file `[etc]termcap.dat' in the Emacs distribution.
+
+* Specifying file names.
+
+GNU Emacs accepts both Unix and VMS file name syntax.  Most Lisp
+code that runs in Emacs uses Unix syntax so it can run everywhere.
+Users on VMS will generally type file names with VMS syntax.
+
+The EMACSLOADPATH logical name, if you use it, should contain
+directory names in Unix syntax, separated by commas.
+
+find-file prompts with the current directory.  You can then type a
+relative directory spec to get somewhere else in the hirearchy.  For
+instance:
+
+Find File: emacs_library:[src][-.lisp]startup.el
+
+is converted to emacs_library:[lisp]startup.el by
+expand-file-name.  The basic rule is:  
+][- is treated like /.. (dir:[file.sub][-.other] ==> dir:[file.other],
+                         dir:[file.sub][-] ==> dir:[file])
+][. elides the ][ (dir:[file][.sub] ==> dir:[file.sub])
+][alpha backs up to the previous [ (dir:[file][other] ==> dir:[other])
+a colon appearing after a ] forces a new "root" disk.
+	(dev:[file]dev2:[other] ==> dev2:[other])
+expand-file-name also tries to be smart about decnet node names,
+but this is not yet known to work.
+
+* A possible problem.
+
+For VMS versions 4.4 and up, make sure the file
+SYS$SYSTEM:RIGHTSLIST.DAT has WORLD:R access.  Emacs reads this file
+to check file access.  If this file does not have appropriate access,
+Emacs may think that you cannot write any files.
+
+

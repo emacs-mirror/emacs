@@ -20,17 +20,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define Ctl(c) ((c)&037)
 
-/* Define the names of keymaps, just so people can refer to
-   them in calls to initial_define_key */
+/* Define the names of keymaps, just so people can refer to them in calls to defkey */
 
-extern Lisp_Object global_map;
+extern Lisp_Object Vglobal_map;
 
-extern Lisp_Object meta_map;
+extern Lisp_Object Vesc_map;
 
-extern Lisp_Object control_x_map;
-
-/* Keymap for mouse commands.  */
-extern Lisp_Object Vglobal_mouse_map;
+extern Lisp_Object Vctl_x_map;
 
 extern Lisp_Object Vminibuffer_local_map;
 
@@ -43,7 +39,7 @@ extern Lisp_Object Vminibuffer_local_completion_map;
 extern Lisp_Object Vminibuffer_local_must_match_map;
 
 /* Last character of last key sequence.  */
-extern Lisp_Object last_command_char;
+extern int last_command_char;
 
 /* Command character to be re-read, or -1 */
 extern int unread_command_char;
@@ -54,11 +50,13 @@ extern Lisp_Object last_command;
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;
 
+/* Character that causes a quit.  Normally C-g.  */
+extern int quit_char;
+
 extern Lisp_Object Vexecuting_macro;
 
 /* Nonzero if input is coming from the keyboard */
-
-#define INTERACTIVE (NULL (Vexecuting_macro) && !noninteractive)
+#define FROM_KBD (NULL (Vexecuting_macro) && !noninteractive)
 
 /* Set this nonzero to force reconsideration of mode line. */
 

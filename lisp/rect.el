@@ -111,9 +111,8 @@ and ending with the line where the region ends."
   (operate-on-rectangle 'delete-rectangle-line start end t))
 
 (defun delete-extract-rectangle (start end)
-  "Delete contents of rectangle and return it as a list of strings.
-Arguments START and END are the corners of the rectangle.
-The value is list of strings, one for each line of the rectangle."
+  "Return and delete contents of rectangle with corners at START and END.
+Value is list of strings, one for each line of the rectangle."
   (let (lines)
     (operate-on-rectangle 'delete-extract-rectangle-line
 			  start end t)
@@ -181,10 +180,9 @@ but insted winds up to the right of the rectangle."
 			  (point)))
     (indent-to column)))
 
-(defun clear-rectangle (start end)
+(defun clear-rectangle (start end &optional preserve-position)
   "Blank out rectangle with corners at point and mark.
-The text previously in the region is overwritten by the blanks.
-When called from a program, requires two args which specify the corners."
+The text previously in the region is overwritten by the blanks."
   (interactive "r")
   (operate-on-rectangle 'clear-rectangle-line start end t))
 
@@ -193,7 +191,8 @@ When called from a program, requires two args which specify the corners."
   (let ((column (+ (current-column) endextra)))
     (delete-region (point)
                    (progn (goto-char startpos)
-			  (skip-chars-backward " \t")
+			  (or preserve-position
+			      (skip-chars-backward " \t"))
 			  (point)))
     (indent-to column)))
 

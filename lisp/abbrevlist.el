@@ -22,7 +22,7 @@
 (provide 'abbrevlist)
 
 (defun list-one-abbrev-table (abbrev-table output-buffer)
-  "Display alphabetical listing of ABBREV-TABLE in buffer OUTPUT-BUFFER."
+  "Display alphabetical listing of ABBREV-TABLE in buffer BUFFER."
   (with-output-to-temp-buffer output-buffer
     (save-excursion
       (let ((abbrev-list nil) (first-column 0))

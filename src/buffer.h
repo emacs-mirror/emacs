@@ -18,50 +18,35 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#ifdef lint
-#include "undo.h"
-#endif /* lint */
+#define SET_PT  PT =
 
-
-#define SET_PT(position) (current_buffer->text.pt = (position))
+/* Just for laughs, use the same names as in ITS TECO, around 1973.  */
 
 /* Character position of beginning of buffer.  */ 
 #define BEG (1)
-
 /* Character position of beginning of accessible range of buffer.  */ 
 #define BEGV (current_buffer->text.begv)
-
-/* Character position of point in buffer.  The "+ 0" makes this
-   not an l-value, so you can't assign to it.  Use SET_PT instead.  */ 
-#define PT (current_buffer->text.pt + 0)
-
+/* Character position of point in buffer.  */ 
+#define PT (current_buffer->text.pt)
 /* Character position of gap in buffer.  */ 
 #define GPT (current_buffer->text.gpt)
-
 /* Character position of end of accessible range of buffer.  */ 
 #define ZV (current_buffer->text.zv)
-
 /* Character position of end of buffer.  */ 
 #define Z (current_buffer->text.z)
-
 /* Modification count.  */
 #define MODIFF (current_buffer->text.modiff)
 
 /* Address of beginning of buffer.  */ 
 #define BEG_ADDR (current_buffer->text.beg)
-
 /* Address of beginning of accessible range of buffer.  */ 
 #define BEGV_ADDR (&FETCH_CHAR (current_buffer->text.begv))
-
 /* Address of point in buffer.  */ 
 #define PT_ADDR (&FETCH_CHAR (current_buffer->text.pt))
-
 /* Address of beginning of gap in buffer.  */ 
 #define GPT_ADDR (current_buffer->text.beg + current_buffer->text.gpt - 1)
-
 /* Address of end of gap in buffer.  */
 #define GAP_END_ADDR (current_buffer->text.beg + current_buffer->text.gpt + current_buffer->text.gap_size - 1)
-
 /* Address of end of accessible range of buffer.  */ 
 #define ZV_ADDR (&FETCH_CHAR (current_buffer->text.zv))
 
@@ -73,22 +58,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Character position of beginning of buffer.  */ 
 #define BUF_BEG(buf) (1)
-
 /* Character position of beginning of accessible range of buffer.  */ 
 #define BUF_BEGV(buf) ((buf)->text.begv)
-
 /* Character position of point in buffer.  */ 
 #define BUF_PT(buf) ((buf)->text.pt)
-
 /* Character position of gap in buffer.  */ 
 #define BUF_GPT(buf) ((buf)->text.gpt)
-
 /* Character position of end of accessible range of buffer.  */ 
 #define BUF_ZV(buf) ((buf)->text.zv)
-
 /* Character position of end of buffer.  */ 
 #define BUF_Z(buf) ((buf)->text.z)
-
 /* Modification count.  */
 #define BUF_MODIFF(buf) ((buf)->text.modiff)
 
@@ -111,34 +90,33 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Convert the address of a char in the buffer into a character position.  */
 #define PTR_CHAR_POS(ptr) \
-((ptr) - (current_buffer)->text.beg					\
- - (ptr - (current_buffer)->text.beg < (unsigned) GPT ? 0 : GAP_SIZE)	\
- + 1)
+((ptr) - (current_buffer)->text.beg		\
+ - (ptr - (current_buffer)->text.beg < (unsigned) GPT ? 0 : GAP_SIZE))
 
 struct buffer_text
   {
-    unsigned char *beg;		/* Actual address of buffer contents. */    
-    int begv;			/* Index of beginning of accessible range. */
-    int pt;			/* Position of point in buffer. */
-    int gpt;			/* Index of gap in buffer. */
-    int zv;			/* Index of end of accessible range. */
-    int z;			/* Index of end of buffer. */
-    int gap_size;		/* Size of buffer's gap */
-    int modiff;			/* This counts buffer-modification events
-				   for this buffer.  It is incremented for
-				   each such event, and never otherwise
-				   changed.  */
-
+    /* Actual address of buffer contents.  */
+    unsigned char *beg;
+    /* Values of BEGV ... Z in this buffer.  */
+    int begv;
+    int pt;
+    int gpt;
+    int zv;
+    int z;
+    /* Value of GAP_SIZE in this buffer.  */
+    int gap_size;
+    /* This counts buffer-modification events for this buffer.
+       It is incremented for each such event, and never otherwise changed.  */
+    int modiff;
   };
 
 struct buffer
   {
     /* Everything before the `name' slot must be of a non-Lisp_Object type,
-       and every slot after `name' must be a Lisp_Object.
-
-       Check out mark_buffer (alloc.c) to see why.
+       and every slot after `name' must be a Lisp_Object
+       This is known about by both mark_buffer (alloc.c) and
+       Flist_buffer_local_variables (buffer.c)
      */
-
     /* This structure holds the coordinates of the buffer contents.  */
     struct buffer_text text;
     /* Next buffer, in chain of all buffers including killed buffers.
@@ -148,22 +126,22 @@ struct buffer
     /* Flags saying which DEFVAR_PER_BUFFER variables
        are local to this buffer.  */
     int local_var_flags;
-    /* Value of text.modified as of when visited file was read or written. */
+    /* Value of text.modified as of when visited file was read or written.  */
     int save_modified;
+    /* the value of text.modified at the last auto-save. */
+    int auto_save_modified;
     /* Set to the modtime of the visited file when read or written.
        -1 means visited file was nonexistent.
        0 means visited file modtime unknown; in no case complain
        about any mismatch on next save attempt.  */
     int modtime;
-    /* the value of text.modiff at the last auto-save. */
-    int auto_save_modified;
     /* Position in buffer at which display started
        the last time this buffer was displayed */
     int last_window_start;
 
     /* This is a special exception -- as this slot should not be
        marked by gc_sweep, and as it is not lisp-accessible as
-       a local variable -- so we regard it as not really being of type
+       a local variable -- so re regard it as not really being of type
        Lisp_Object */
     /* the markers that refer to this buffer.
        This is actually a single marker ---
@@ -178,12 +156,11 @@ struct buffer
 
     /* the name of this buffer */
     Lisp_Object name;
-    /* Nuked: buffer number, assigned when buffer made Lisp_Object number;*/
     /* the name of the file associated with this buffer */
     Lisp_Object filename;
     /* Dir for expanding relative pathnames */
     Lisp_Object directory;
-    /* true iff this buffer has been been backed
+    /* True iff this buffer has been been backed
        up (if you write to its associated file
        and it hasn't been backed up, then a
        backup will be made) */
@@ -207,14 +184,14 @@ struct buffer
     Lisp_Object major_mode;
     /* Pretty name of major mode (eg "Lisp") */
     Lisp_Object mode_name;
-    /* Format string for mode line */
+    /* Format description for mode line */
     Lisp_Object mode_line_format;
 
     /* Keys that are bound local to this buffer */
     Lisp_Object keymap;
     /* This buffer's local abbrev table */
     Lisp_Object abbrev_table;
-    /* This buffer's syntax table. */
+    /* This buffer's syntax table.  */
     Lisp_Object syntax_table;
 
     /* Values of several buffer-local variables */
@@ -224,13 +201,8 @@ struct buffer
     Lisp_Object tab_width;
     Lisp_Object fill_column;
     Lisp_Object left_margin;
-    /* Function to call when insert space past fill column */
-    Lisp_Object auto_fill_function;
-
-    /* String of length 256 mapping each char to its lower-case version.  */
-    Lisp_Object downcase_table;
-    /* String of length 256 mapping each char to its upper-case version.  */
-    Lisp_Object upcase_table;
+    /* Function to call when insert space past fiull column */
+    Lisp_Object auto_fill_hook;
 
     /* Non-nil means do not display continuation lines */
     Lisp_Object truncate_lines;
@@ -239,31 +211,18 @@ struct buffer
     /* Non-nil means do selective display;
        See doc string in syms_of_buffer (buffer.c) for details.  */
     Lisp_Object selective_display;
-#ifndef old
     /* Non-nil means show ... at end of line followed by invisible lines.  */
     Lisp_Object selective_display_ellipses;
-#endif
-    /* Alist of (FUNCTION . STRING) for each minor mode enabled in buffer. */
-    Lisp_Object minor_modes;
     /* t if "self-insertion" should overwrite */
     Lisp_Object overwrite_mode;
     /* non-nil means abbrev mode is on.  Expand abbrevs automatically. */
     Lisp_Object abbrev_mode;
-    /* Display table to use for text in this buffer. */
-    Lisp_Object display_table;
-    /* Translate table for case-folding search.  */
-    Lisp_Object case_canon_table;
-    /* Inverse translate (equivalence class) table for case-folding search.  */
-    Lisp_Object case_eqv_table;
     /* Changes in the buffer are recorded here for undo.
        t means don't record anything.  */
     Lisp_Object undo_list;
-
-    /* List of fields in this buffer.  */
-    Lisp_Object fieldlist;
 };
 
-extern struct buffer *current_buffer;
+extern struct buffer *current_buffer;		/* points to the current buffer */
 
 /* This structure holds the default values of the buffer-local variables
    defined with DefBufferLispVar, that have special slots in each buffer.
@@ -295,63 +254,17 @@ extern struct buffer buffer_local_flags;
 
 extern struct buffer buffer_local_symbols;
 
-/* Point in the current buffer. */
+/* Some aliases for info about the current buffer.  */
 
-#define point (current_buffer->text.pt + 0)
+#define point current_buffer->text.pt
 
 /* Return character at position n.  No range checking */
 #define FETCH_CHAR(n) *(((n)>= GPT ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
+  
+/* BufferSafeCeiling (resp. BufferSafeFloor), when applied to n, return */
+/* the max (resp. min) p such that &FETCH_CHAR (p) - &FETCH_CHAR (n) == p - n   */
+#define BufferSafeCeiling(n) (((n) < GPT && GPT < ZV ? GPT : ZV) - 1)
 
-/* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return
-   the max (resp. min) p such that
-
-   &FETCH_CHAR (p) - &FETCH_CHAR (n) == p - n       */
-
-#define BUFFER_CEILING_OF(n) (((n) < GPT && GPT < ZV ? GPT : ZV) - 1)
-#define BUFFER_FLOOR_OF(n) (BEGV <= GPT && GPT <= (n) ? GPT : BEGV)
+#define BufferSafeFloor(n) (BEGV <= GPT && GPT <= (n) ? GPT : BEGV)
 
 extern void reset_buffer ();
-
-/* Functions to call before and after each text change. */
-extern Lisp_Object Vbefore_change_function;
-extern Lisp_Object Vafter_change_function;
-extern Lisp_Object Vfirst_change_function;
-
-/* Fields.
-
-A field is like a marker but it defines a region rather than a
-point.  Like a marker, a field is asocated with a buffer.
-The field mechanism uses the marker mechanism in the
-sense that its start and end points are maintained as markers
-updated in the usual way as the buffer changes.
-
-A field can be protected or unprotected.  If it is protected,
-no modifications can be made that affect the field in its buffer,
-when protected field checking is enabled.
-
-Each field also contains an alist, in which you can store
-whatever you like.  */
-
-/* Slots in a field:  */
-
-#define FIELD_BUFFER(f) (XVECTOR(f)->contents[1])
-#define FIELD_START_MARKER(f) (XVECTOR(f)->contents[2])
-#define FIELD_END_MARKER(f) (XVECTOR(f)->contents[3])
-#define FIELD_PROTECTED_FLAG(f) (XVECTOR(f)->contents[4])
-#define FIELD_ALIST(f) (XVECTOR(f)->contents[5])
-
-/* Allocation of buffer data. */
-#ifdef REL_ALLOC
-#define BUFFER_ALLOC(data,size) ((unsigned char *) r_alloc (&data, (size)))
-#define BUFFER_REALLOC(data,size) ((unsigned char *) r_re_alloc (&data, (size)))
-#define BUFFER_FREE(data) (r_alloc_free (&data))
-#define R_ALLOC_DECLARE(var,data) (r_alloc_declare (&var, (data)))
-#else
-#define BUFFER_ALLOC(data,size) (data = (unsigned char *) malloc ((size)))
-#define BUFFER_REALLOC(data,size) ((unsigned char *) realloc ((data), (size)))
-#define BUFFER_FREE(data) (free ((data)))
-#define R_ALLOC_DECLARE(var,data)
-#endif
-
-/* A search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer searchbuf;

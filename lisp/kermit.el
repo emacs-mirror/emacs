@@ -66,6 +66,19 @@
 ;; option to force kermit to be local, to use stdin and stdout for interactive
 ;; speech, and to forget about cbreak mode.
 
+;; 2) The "clean-filter" can be a troublesome item.  The main problem arises if
+;; you are running a program under shell-mode which is doing periodic output,
+;; and you then try to switch to another buffer.  I came across this while
+;; running kermit file transfers - kermit prints a dot each time a packet is
+;; received. Since emacs is interrupted each time a dot is printed, it becomes
+;; impossible to edit the other buffer.  If you hit a key while the filter code
+;; is running, that character will wind up in the *shell* buffer instead of the
+;; current one!  So you need to be careful to turn the filter off before
+;; leaving the buffer if a program is still running.  In fact, you can't even
+;; use "M-x clean-shell-off" to do this, because you won't be able to type
+;; "clean-shell-off" in the minibuffer!!  So you need to have this command
+;; bound to a keystroke.
+
 ;; Please let me know if any bugs turn up.
 ;; Feb 1988, Jeff Norden - jeff@colgate.csnet
 
@@ -90,49 +103,82 @@
 ;; extra bindings for folks suffering form ^S/^Q braindamage:
 (define-key shell-mode-map "\C-c\\" 'kermit-esc)
 
-(defun kermit-send-input-cr ()
-  "Like \\[comint-send-input] but end the line with carriage-return."
+(defun shell-send-input-cr ()
+  "Like \\[shell-send-input] but end the line with carriage-return."
   (interactive)
-  (comint-send-input "\r"))
+  (end-of-line)
+    (if (eobp)
+	(progn
+	  (move-marker last-input-start
+	       (process-mark (get-buffer-process (current-buffer))))
+	  (insert ?\n)
+	  (move-marker last-input-end (point)))
+    (beginning-of-line)
+    (re-search-forward shell-prompt-pattern nil t)
+    (let ((copy (buffer-substring (point)
+				  (progn (forward-line 1) (point)))))
+      (goto-char (point-max))
+      (move-marker last-input-start (point))
+      (insert copy)
+      (move-marker last-input-end (point))))
+    (condition-case ()
+	(save-excursion
+	  (goto-char last-input-start)
+	  (shell-set-directory))
+      (error (funcall shell-set-directory-error-hook)))
+  (let ((process (get-buffer-process (current-buffer))))
+    (process-send-region process last-input-start (- last-input-end 1))
+    (process-send-string process "\r")
+    (set-marker (process-mark process) (point))))
 
 ;; This is backwards of what makes sense, but ...
-(define-key shell-mode-map "\n" 'kermit-send-input-cr)
+(define-key shell-mode-map "\n" 'shell-send-input-cr)
 
 (defun kermit-default-cr ()
   "Make RETURN end the line with carriage-return and LFD end it with a newline.
 This is useful for talking to other systems on which carriage-return
 is the normal way to end a line."
   (interactive)
-  (define-key shell-mode-map "\r" 'kermit-send-input-cr)
-  (define-key shell-mode-map "\n" 'comint-send-input))
+  (define-key shell-mode-map "\r" 'shell-send-input-cr)
+  (define-key shell-mode-map "\n" 'shell-send-input))
 
 (defun kermit-default-nl ()
   "Make RETURN end the line with a newline char.  This is the default state.
 In this state, use LFD to send a line and end it with a carriage-return."
   (interactive)
-  (define-key shell-mode-map "\n" 'kermit-send-input-cr)
-  (define-key shell-mode-map "\r" 'comint-send-input))
+  (define-key shell-mode-map "\n" 'shell-send-input-cr)
+  (define-key shell-mode-map "\r" 'shell-send-input))
 
-(defun kermit-clean-filter (proc str)
-  "Strip ^M and ^@ characters from process output."
-  (save-excursion
-    (let ((beg (process-mark proc)))
-      (set-buffer (process-buffer proc))
-      (goto-char beg)
-      (insert-before-markers str)
-      (while (re-search-backware "[\r\C-a]+" beg t)
-	(replace-match "")))))
+;; This filter works, but I don't especially recommend it.
+(defun kermit-clean-filter (process string)
+  "A process filter which deletes all ^M's and ^@'s from the output."
+  (set-buffer (process-buffer process))
+  (let 
+      ((firstpos (string-match "[^\C-@\r]+" string))
+       (buffermark (process-mark process))
+       (oldpt (point))
+       (newstring '"")
+       goback)
+    (while firstpos
+      (setq newstring 
+	    (concat newstring (substring string firstpos (match-end 0))))
+      (setq firstpos (string-match "[^\C-@\r]+" string (match-end 0))))
+    (goto-char (marker-position buffermark))
+    (setq goback (< oldpt (point)))
+    (insert newstring)
+    (set-marker buffermark (point))
+    (if goback (goto-char oldpt))))
 
 (defun kermit-clean-on ()
   "Delete all null characters and ^M's from the kermit output.
 Note that another (perhaps better) way to do this is to use the
-command \"kermit | tr -d '\\015'\"."
+command `kermit | tr -d '\\015''."
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer))
 		      'kermit-clean-filter))
 
 (defun kermit-clean-off ()
-  "Cancel a previous kermit-clean-shell-on command."
+  "Cancel a previous kermit-clean-shell-on command"
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer)) nil))
 

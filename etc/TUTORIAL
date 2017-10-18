@@ -296,7 +296,7 @@ commands that can destroy a lot of text save it, while the ones that
 attack only one character, or nothing but blank lines and spaces, do
 not save.
 
-For instance, type C-n a couple times to position the cursor
+For instance, type C-n a couple times to postion the cursor
 at some line on this screen.
 
 >> Do this now, move the cursor and kill that line with C-k.
@@ -533,7 +533,7 @@ to replace it with--each one ended with a Return.
    Then type M-x repl s<Return>changed<Return>altered<Return>.
 
    Notice how this line has changed: you've replaced
-   the word c-h-a-n-g-e-d with "altered" wherever it occurred
+   the word c-h-a-n-g-e-d with "altered" wherever it occured
    after the cursor.
 
 

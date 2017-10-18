@@ -67,17 +67,14 @@ Type \\[describe-mode] in that buffer for a list of commands."
 (put 'Edit-options-mode 'mode-class 'special)
 
 (defun Edit-options-mode ()
-  "\\<Edit-options-mode-map>\
-Major mode for editing Emacs user option settings.
+  "Major mode for editing Emacs user option settings.
 Special commands are:
-\\[Edit-options-set] -- set variable point points at.  New value read using minibuffer.
-\\[Edit-options-toggle] -- toggle variable, t -> nil, nil -> t.
-\\[Edit-options-t] -- set variable to t.
-\\[Edit-options-nil] -- set variable to nil.
-Changed values made by these commands take effect immediately.
-
+s -- set variable point points at.  New value read using minibuffer.
+x -- toggle variable, t -> nil, nil -> t.
+1 -- set variable to t.
+0 -- set variable to nil.
 Each variable description is a paragraph.
-For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph] move back and forward by paragraphs."
+For convenience, the characters p and n move back and forward by paragraphs."
   (kill-all-local-variables)
   (set-syntax-table emacs-lisp-mode-syntax-table)
   (use-local-map Edit-options-mode-map)
@@ -87,8 +84,7 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
   (setq paragraph-start "^\t")
   (setq truncate-lines t)
   (setq major-mode 'Edit-options-mode)
-  (setq mode-name "Options")
-  (run-hooks 'Edit-options-mode-hook))
+  (setq mode-name "Options"))
 
 (defun Edit-options-set () (interactive)
   (Edit-options-modify
@@ -106,18 +102,18 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
 (defun Edit-options-modify (modfun)
   (save-excursion
    (let (var pos)
-     (re-search-backward "^;; \\|\\`")
+     (re-search-backward "^;; ")
      (forward-char 3)
      (setq pos (point))
      (save-restriction
-       (narrow-to-region pos (progn (end-of-line) (1- (point))))
-       (goto-char pos)
-       (setq var (read (current-buffer))))
+      (narrow-to-region pos (progn (end-of-line) (1- (point))))
+      (goto-char pos)
+      (setq var (read (current-buffer))))
      (goto-char pos)
      (forward-line 1)
      (forward-char 1)
      (save-excursion
-       (set var (funcall modfun var)))
+      (set var (funcall modfun var)))
      (kill-sexp 1)
      (prin1 (symbol-value var) (current-buffer)))))
 

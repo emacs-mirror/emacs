@@ -3,23 +3,6 @@
 ; (borrows heavily from Mick Jordan's Modula-2 package for GNU,
 ; as modified by Peter Robinson, Michael Schmidt, and Tom Perrine.)
 
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
-
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
-;; any later version.
-
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 (setq auto-mode-alist (cons (cons "\\.ada$" 'ada-mode) auto-mode-alist))
 
@@ -106,30 +89,33 @@
 Most control constructs and declarations of Ada can be inserted in the buffer
 by typing Control-C followed by a character mnemonic for the construct.
 
-\\<ada-mode-map>\\[ada-array] array         	\\[ada-exception-block]    exception block
-\\[ada-exception]  exception      \\[ada-declare-block]    declare block
-\\[ada-package-spec]  package spec   \\[ada-package-body]    package body
-\\[ada-procedure-spec]  procedure spec \\[ada-subprogram-body]    proc/func body
-\\[ada-function-spec]  func spec      \\[ada-for-loop]    for loop
-                        \\[ada-if]    if
-                        \\[ada-elsif]    elsif
-                        \\[ada-else]    else
-\\[ada-private]  private        \\[ada-loop]    loop
-\\[ada-record]  record         \\[ada-case]    case
-\\[ada-subtype]  subtype        \\[ada-separate]    separate
-\\[ada-type]  type           \\[ada-tabsize]    tab spacing for indents
-\\[ada-when]  when           \\[ada-while]    while
-                        \\[ada-exit]    exit
-\\[ada-paired-parens]    paired parens  \\[ada-inline-comment]    inline comment
-                        \\[ada-header]    header spec
-\\[ada-compile]    compile        \\[ada-bind]    bind
-\\[ada-find-listing]    find error list
-\\[ada-library-name]    name library   \\[ada-options-for-bind]    options for bind
+C-c C-a  array         	C-c b    exception block
+C-c C-e  exception      C-c d    declare block
+C-c C-k  package spec   C-c k    package body
+C-c C-p  procedure spec C-c p    proc/func body
+C-c C-f  func spec      C-c f    for loop
+                        C-c i    if
+                        C-c I    elsif
+                        C-c e    else
+C-c C-v  private        C-c l    loop
+C-c C-r  record         C-c c    case
+C-c C-s  subtype        C-c s    separate
+C-c C-t  type           C-c t    tab spacing for indents
+C-c C-w  when           C-c w    while
+                        C-c x    exit
+C-c (    paired parens  C-c -    inline comment
+                        C-c h    header sec
+C-c C    compile        C-c B    bind
+C-c E    find error list
+C-c L    name library   C-c O    options for bind
 
-\\[ada-backward-to-same-indent] and \\[ada-forward-to-same-indent] move backward and forward respectively to the next line
+C-c < and C-c > move backward and forward respectively to the next line
 having the same (or lesser) level of indentation.
 
-Variable `ada-indent' controls the number of spaces for indent/undent."
+Variable ada-indent controls the number of spaces for indent/undent.
+
+\\{ada-mode-map}
+"
   (interactive)
   (kill-all-local-variables)
   (use-local-map ada-mode-map)
@@ -153,7 +139,7 @@ Variable `ada-indent' controls the number of spaces for indent/undent."
   (make-local-variable 'comment-start)
   (setq comment-start "--")
   (make-local-variable 'comment-end)
-  (setq comment-end "")
+  (setq comment-end "\n")
   (make-local-variable 'comment-column)
   (setq comment-column 41)
   (make-local-variable 'comment-start-skip)
@@ -165,9 +151,8 @@ Variable `ada-indent' controls the number of spaces for indent/undent."
   (run-hooks 'ada-mode-hook))
 
 (defun ada-tabsize (s)
-  "Changes spacing used for indentation.
-The prefix argument is used as the new spacing."
-  (interactive "p")
+  "changes spacing used for indentation. Reads spacing from minibuffer."
+  (interactive "nnew indentation spacing: ")
   (setq ada-indent s))
 
 (defun ada-newline ()
@@ -188,9 +173,9 @@ The prefix argument is used as the new spacing."
   (backward-delete-char-untabify ada-indent nil))
 
 (defun ada-go-to-this-indent (step indent-level)
-  "Move point repeatedly by STEP lines until the current line has
-given INDENT-LEVEL or less, or the start or end of the buffer is reached.
-Ignore blank lines, statement labels and block or loop names."
+  "Move point repeatedly by <step> lines till the current line
+has given indent-level or less, or the start/end of the buffer is hit.
+Ignore blank lines, statement labels, block/loop names."
   (while (and
 	  (zerop (forward-line step))
 	  (or (looking-at "^[ 	]*$")
@@ -202,21 +187,21 @@ Ignore blank lines, statement labels and block or loop names."
 
 (defun ada-backward-to-same-indent ()
   "Move point backwards to nearest line with same indentation or less.
-If not found, point is left at the top of the buffer."
+If not found, point is left at top of buffer."
   (interactive)
   (ada-go-to-this-indent -1 (current-indentation))
   (back-to-indentation))
 
 (defun ada-forward-to-same-indent ()
   "Move point forwards to nearest line with same indentation or less.
-If not found, point is left at the start of the last line in the buffer."
+If not found, point is left at start of last line in buffer."
   (interactive)
   (ada-go-to-this-indent 1 (current-indentation))
   (back-to-indentation))
 
 (defun ada-array ()
-  "Insert array type definition.  Uses the minibuffer to prompt
-for component type and index subtypes."
+  "Insert array type definition, prompting for component type,
+leaving the user to type in the index subtypes."
   (interactive)
   (insert "array ()")
   (backward-char)
@@ -228,9 +213,8 @@ for component type and index subtypes."
   (end-of-line))
 
 (defun ada-case ()
-  "Build skeleton case statement.
-Uses the minibuffer to prompt for the selector expression.
-Also builds the first when clause."
+  "Build skeleton case statment, prompting for the selector expression.
+starts up the first when clause, too."
   (interactive)
   (insert "case ")
   (insert (read-string "selector expression: ") " is")
@@ -243,59 +227,57 @@ Also builds the first when clause."
   (ada-when))
 
 (defun ada-declare-block ()
-  "Insert a block with a declare part.
-Indent for the first declaration."
+  "Insert a block with a declare part and indent for the 1st declaration."
   (interactive)
   (let ((ada-block-name (read-string "[block name]: ")))
     (insert "declare")
     (cond
-     ( (not (string-equal ada-block-name ""))
-       (beginning-of-line)
-       (open-line 1)
-       (insert ada-block-name ":")
-       (next-line 1)
-       (end-of-line)))
+      ( (not (string-equal ada-block-name ""))
+	(beginning-of-line)
+	(open-line 1)
+	(insert ada-block-name ":")
+	(next-line 1)
+	(end-of-line)))
     (ada-newline)
     (ada-newline)
     (insert "begin")
     (ada-newline)
     (ada-newline)
     (if (string-equal ada-block-name "")
-	(insert "end;")
+      (insert "end;")
       (insert "end " ada-block-name ";"))
-    )
+   )
   (end-of-line -2)
   (ada-tab))
 
 (defun ada-exception-block ()
-  "Insert a block with an exception part.
-Indent for the first line of code."
+  "Insert a block with an exception part and indent for the 1st line of code."
   (interactive)
   (let ((block-name (read-string "[block name]: ")))
     (insert "begin")
     (cond
-     ( (not (string-equal block-name ""))
-       (beginning-of-line)
-       (open-line 1)
-       (insert block-name ":")
-       (next-line 1)
-       (end-of-line)))
+      ( (not (string-equal block-name ""))
+	(beginning-of-line)
+	(open-line 1)
+	(insert block-name ":")
+	(next-line 1)
+	(end-of-line)))
     (ada-newline)
     (ada-newline)
     (insert "exception")
     (ada-newline)
     (ada-newline)
     (cond
-     ( (string-equal block-name "")
-       (insert "end;"))
-     ( t
-       (insert "end " block-name ";")))
-    )
+      ( (string-equal block-name "")
+	(insert "end;"))
+      ( t
+	(insert "end " block-name ";")))
+   )
   (end-of-line -2)
   (ada-tab))
 
 (defun ada-exception ()
-  "Insert an indented exception part into a block."
+  "Undent and insert an exception part into a block. Reindent."
   (interactive)
   (ada-untab)
   (insert "exception")
@@ -385,7 +367,7 @@ Indent for the first line of code."
   (ada-tab))
 
 (defun ada-loop ()
-  "Insert a skeleton loop statement.  exit statement added by hand."
+  "insert a skeleton loop statement.  exit statement added by hand."
   (interactive)
   (insert "loop ")
   (let* ((ada-loop-name (read-string "[loop name]: "))
@@ -440,10 +422,10 @@ Indent for the first line of code."
   (ada-tab))
 
 (defun ada-get-arg-list ()
-  "Read from the user a procedure or function argument list.
+  "Read from user a procedure or function argument list.
 Add parens unless arguments absent, and insert into buffer.
-Individual arguments are arranged vertically if entered one at a time.
-Arguments ending with `;' are presumed single and stacked."
+Individual arguments are arranged vertically if entered one-at-a-time.
+Arguments ending with ';' are presumed single and stacked."
   (insert " (")
   (let ((ada-arg-indent (current-column))
 	(ada-args (read-string "[arguments]: ")))
@@ -474,9 +456,9 @@ Arguments ending with `;' are presumed single and stacked."
   (ada-get-arg-list))
 
 (defun get-ada-subprogram-name ()
-  "Return (without moving point or mark) a pair whose CAR is the name of
-the function or procedure whose spec immediately precedes point, and whose
-CDR is the column number where the procedure/function keyword was found."
+  "Return (without moving point or mark) a pair whose CAR is
+the name of the function or procedure whose spec immediately precedes point,
+and whose CDR is the column nbr the procedure/function keyword was found at."
   (save-excursion
     (let ((ada-proc-indent 0))
       (if (re-search-backward
@@ -495,7 +477,7 @@ CDR is the column number where the procedure/function keyword was found."
 
 (defun ada-subprogram-body ()
   "Insert frame for subprogram body.
-Invoke right after `ada-function-spec' or `ada-procedure-spec'."
+Invoke right after ada-function-spec or ada-procedure-spec."
   (interactive)
   (insert " is")
   (let ((ada-subprogram-name-col (get-ada-subprogram-name)))
@@ -510,7 +492,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   (ada-tab))
 
 (defun ada-separate ()
-  "Finish a body stub with `is separate'."
+  "Finish a body stub with 'is separate'."
   (interactive)
   (insert " is")
   (ada-newline)
@@ -586,9 +568,8 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   (backward-char))
 
 (defun ada-inline-comment ()
-  "Start a comment after the end of the line, indented at least
-`comment-column' spaces.  If starting after `end-comment-column',
-start a new line."
+  "Start a comment after the end of the line, indented at least COMMENT-COLUMN.
+If starting after END-COMMENT-COLUMN, start a new line."
   (interactive)
   (end-of-line)
   (if (> (current-column) end-comment-column) (newline))
@@ -596,30 +577,30 @@ start a new line."
   (insert " -- "))
 
 (defun ada-display-comment ()
-"Inserts three comment lines, making a display comment."
+"Inserts 3 comment lines, making a display comment."
   (interactive)
   (insert "--\n-- \n--")
   (end-of-line 0))
 
 ;; Much of this is specific to Ada-Ed
 
-(defvar ada-lib-dir-name "lib" "*Current Ada program library directory.")
+(defvar ada-lib-dir-name "lib" "*Current ada program library directory.")
 (defvar ada-bind-opts "" "*Options to supply for binding.")
 
 (defun ada-library-name (ada-lib-name)
-  "Specify name of Ada library directory for later compilations."
-  (interactive "DName of Ada library directory: ")
+  "Specify name of ada library directory for later compilations."
+  (interactive "Dname of ada library directory: ")
   (setq ada-lib-dir-name ada-lib-name))
 
 (defun ada-options-for-bind ()
-  "Specify options, such as -m and -i, needed for `ada-bind'."
-  (setq ada-bind-opts (read-string "-m and -i options for `ada-bind': ")))
+  "Specify options, such as -m and -i, needed for adabind."
+  (setq ada-bind-opts (read-string "-m and -i options for adabind: ")))
 
-(defun ada-compile (arg)
+(defun ada-compile (ada-prefix-arg)
   "Save the current buffer and compile it into the current program library.
 Initialize the library if a prefix arg is given."
   (interactive "P")
-  (let* ((ada-init (if (null arg) "" "-n "))
+  (let* ((ada-init (if (null ada-prefix-arg) "" "-n "))
 	(ada-source-file (buffer-name)))
     (compile
      (concat "adacomp " ada-init "-l " ada-lib-dir-name " " ada-source-file))))

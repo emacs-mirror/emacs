@@ -24,14 +24,10 @@
 ;; If these settings are not right, override them with `setq'
 ;; in site-init.el.  Do not change this file.
 
-(defvar Info-directory-list
-  (list "/usr/local/lib/info/"
-	(expand-file-name "../info/" exec-directory))
-  "List of directories to search for Info documentation files.")
+(defvar Info-directory (expand-file-name "../info/" exec-directory))
 
 (defvar news-path "/usr/spool/news/"
   "The root directory below which all news files are stored.")
-
 (defvar news-inews-program
   (cond ((file-exists-p "/usr/bin/inews") "/usr/bin/inews")
 	((file-exists-p "/usr/local/inews") "/usr/local/inews")
@@ -40,50 +36,27 @@
 	(t "inews"))
   "Program to post news.")
 
-(defvar gnus-default-nntp-server ""
-  ;; set this to your local server
-  "The name of the host running an NNTP server.
-If it is a string such as \":DIRECTORY\", then ~/DIRECTORY
-is used as a news spool.  `gnus-nntp-server' is initialised from NNTPSERVER
-environment variable or, if none, this value.")
-
-(defvar gnus-nntp-service "nntp"
-  "NNTP service name, usually \"nntp\" or 119).
-Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
-should be set to `(system-name)'.")
-
-(defvar gnus-your-domain nil
-  "Your domain name without your host name like: \"stars.flab.Fujitsu.CO.JP\"
-The DOMAINNAME environment variable is used instead if defined.  If
-the function `system-name' returns a fully qualified domain name, there is no
-need to define the name.")
-
-(defvar gnus-your-organization ""
-  "Your organization like: \"Fujitsu Laboratories Ltd., Kawasaki, Japan.\"
-The `ORGANIZATION' environment variable is used instead if defined.")
-
 (defvar mh-progs
-  (cond ((file-directory-p "/usr/new/mh") "/usr/new/mh/")
-	((file-directory-p "/usr/local/bin/mh") "/usr/local/bin/mh/")
-	((file-directory-p "/usr/local/mh/") "/usr/local/mh/")
-	(t "/usr/local/bin/"))
-  "Directory containing MH commands")
+  (cond ((file-directory-p "/usr/bin/mh/") "/usr/bin/mh/") ;Ultrix 4.2
+	((file-directory-p "/usr/new/mh/") "/usr/new/mh/") ;Ultrix <4.2
+        ((file-directory-p "/usr/local/bin/mh/") "/usr/local/bin/mh/")
+        ((file-directory-p "/usr/local/mh/") "/usr/local/mh/")
+        (t "/usr/local/bin/"))
+  "Directory containing MH commands.")
 
 (defvar mh-lib
-  (cond ((file-directory-p "/usr/new/lib/mh") "/usr/new/lib/mh/")
-	((file-directory-p "/usr/local/lib/mh") "/usr/local/lib/mh/")
-	(t "/usr/local/bin/mh/"))
-  "Directory of MH library")
+  (cond ((file-directory-p "/usr/lib/mh/") "/usr/lib/mh/") ;Ultrix 4.2
+	((file-directory-p "/usr/new/lib/mh/") "/usr/new/lib/mh/") ;Ultrix <4.2
+        ((file-directory-p "/usr/local/lib/mh/") "/usr/local/lib/mh/")
+        (t "/usr/local/bin/mh/"))
+  "Directory of MH library.")
 
-(defvar rmail-file-name "~/RMAIL"
+(defconst rmail-file-name "~/RMAIL"
   "Name of user's primary mail file.")
 
-(defvar gnus-startup-file "~/.newsrc"
-  "The file listing groups to which user is subscribed.
-Will use `gnus-startup-file'-SERVER instead if exists.")
-
 (defconst rmail-spool-directory
-  (if (memq system-type '(hpux usg-unix-v unisoft-unix rtu irix))
+  (if (memq system-type '(hpux usg-unix-v unisoft-unix rtu
+			       silicon-graphics-unix))
       "/usr/mail/"
     "/usr/spool/mail/")
   "Name of directory used by system mailer for delivering new mail.
@@ -131,18 +104,6 @@ Append a section-number or section-name to get a directory name.")
 	  '("/usr/man/cat.C" "/usr/man/cat.CP" "/usr/man/cat.CT"
 	    "/usr/man/cat.DOS/" "/usr/man/cat.F" "/usr/man/cat.HW"
 	    "/usr/man/cat.M/" "/usr/man/cat.S" "/usr/man/cat.LOCAL"))
-	 ((file-exists-p "/usr/man/cat3/cat3")
-	  ;; This is for UMAX.
-	  '("/usr/man/cat1"       "/usr/man/cat2"
-	    "/usr/man/cat3"       "/usr/man/cat3/cat3"
-	    "/usr/man/cat3/cat3b" "/usr/man/cat3/cat3c"
-	    "/usr/man/cat3/cat3f" "/usr/man/cat3/cat3m"
-	    "/usr/man/cat3/cat3n" "/usr/man/cat3/cat3p"
-	    "/usr/man/cat3/cat3s" "/usr/man/cat3/cat3u"
-	    "/usr/man/cat3/cat3x" "/usr/man/cat4"
-	    "/usr/man/cat5"       "/usr/man/cat6"
-	    "/usr/man/cat7"       "/usr/man/cat8"
-	    "/usr/man/catl"       "/usr/man/catn"))
 	 ((file-exists-p "/usr/man/cat1")
 	  '("/usr/man/cat1" "/usr/man/cat2" "/usr/man/cat3"
 	    "/usr/man/cat4" "/usr/man/cat5" "/usr/man/cat6"
@@ -152,12 +113,7 @@ Append a section-number or section-name to get a directory name.")
 	     "/usr/catman/p_man/man2" "/usr/catman/p_man/man3"
 	     "/usr/catman/p_man/man4" "/usr/catman/p_man/man5"
 	     "/usr/catman/a_man/man1" "/usr/catman/a_man/man7"
-	     "/usr/catman/a_man/man8" "/usr/catman/local"
-	     "/usr/catman/a_man/man8" "/usr/catman/local/man1"
-	     "/usr/catman/local/man2" "/usr/catman/local/man3"
-	     "/usr/catman/local/man4" "/usr/catman/local/man5"
-	     "/usr/catman/local/man6" "/usr/catman/local/man7"
-	     "/usr/catman/local/man8")))
+	     "/usr/catman/a_man/man8" "/usr/catman/local")))
   "List of directories containing formatted manual pages.")
 
 (defconst abbrev-file-name 

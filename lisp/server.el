@@ -1,5 +1,5 @@
 ;; Lisp code for GNU Emacs running as server process.
-;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1990 Free Software Foundation, Inc.
 ;; Author William Sommerfeld, wesommer@athena.mit.edu.
 ;; Changes by peck@sun.com and by rms.
 
@@ -24,7 +24,7 @@
 ;;; a server for other processes.
 
 ;;; Load this library and do M-x server-edit to enable Emacs as a server.
-;;; Emacs runs the program ../etc/emacsserver as a subprocess
+;;; Emacs runs the program ../etc/server as a subprocess
 ;;; for communication with clients.  If there are no client buffers to edit, 
 ;;; server-edit acts like (switch-to-buffer (other-buffer))
 
@@ -44,33 +44,21 @@
 ;;; Your editing commands and Emacs's display output go to and from
 ;;; the terminal in the usual way.  Thus, server operation is possible
 ;;; only when Emacs can talk to the terminal at the time you invoke
-;;; the client.  This is possible in four cases:
+;;; the client.  This is possible in two cases:
 
 ;;; 1. On a window system, where Emacs runs in one window and the
 ;;; program that wants to use "the editor" runs in another.
 
-;;; 2. On a multi-terminal system, where Emacs runs on one terminal and the
-;;; program that wants to use "the editor" runs on another.
-
-;;; 3. When the program that wants to use "the editor" is running
+;;; 2. When the program that wants to use "the editor" is running
 ;;; as a subprocess of Emacs.
-
-;;; 4. On a system with job control, when Emacs is suspended, the program
-;;; that wants to use "the editor" will stop and display
-;;; "Waiting for Emacs...".  It can then be suspended, and Emacs can be
-;;; brought into the foreground for editing.  When done editing, Emacs is
-;;; suspended again, and the client program is brought into the foreground.
 
 ;;; The buffer local variable "server-buffer-clients" lists 
 ;;; the clients who are waiting for this buffer to be edited.  
 ;;; The global variable "server-clients" lists all the waiting clients,
 ;;; and which files are yet to be edited for each.
 
-(defvar server-program "emacsserver"
+(defvar server-program "server"
   "*The program to use as the edit server")
-
-(defvar server-visit-hook nil
-  "*List of hooks to call when switching to a buffer for the Emacs server.")
 
 (defvar server-process nil 
   "the current server process")
@@ -85,13 +73,6 @@ When a buffer is marked as \"done\", it is removed from this list.")
 
 (defvar server-buffer-clients nil
   "List of clientids for clients requesting editing of current buffer.")
-;; Changing major modes should not erase this local.
-(put 'server-buffer-clients 'permanent-local t)
-
-(defvar server-temp-file-regexp "^/tmp/Re\\|/draft$"
-  "*Regexp which should match filenames of temporary files
-which are deleted and reused after each edit
-by the programs that invoke the emacs server.")
 
 (make-variable-buffer-local 'server-buffer-clients)
 (setq-default server-buffer-clients nil)
@@ -129,6 +110,9 @@ Prefix arg means just kill any existing server communications subprocess."
 	(set-process-sentinel server-process nil)
 	(condition-case () (delete-process server-process) (error nil))))
   (condition-case () (delete-file "~/.emacs_server") (error nil))
+  (condition-case ()
+      (delete-file (format "/tmp/esrv%d-%s" (user-uid) (system-name)))
+    (error nil))
   ;; If we already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
@@ -137,7 +121,8 @@ Prefix arg means just kill any existing server communications subprocess."
       nil
     (if server-process
 	(server-log (message "Restarting server")))
-    (setq server-process (start-process "server" nil server-program))
+    (let ((process-connection-type nil))
+      (setq server-process (start-process "server" nil server-program)))
     (set-process-sentinel server-process 'server-sentinel)
     (set-process-filter server-process 'server-process-filter)
     (process-kill-without-query server-process)))
@@ -196,8 +181,7 @@ FILES is an alist whose elements are (FILENAME LINENUMBER)."
  			     filen
  			     ", write buffer to file? "))
  		    (write-file filen)))
- 	    (set-buffer (find-file-noselect filen))
-	    (run-hooks 'server-visit-hook)))
+ 	    (set-buffer (find-file-noselect filen))))
 	(goto-line (nth 1 (car files)))
   	(setq server-buffer-clients (cons (car client) server-buffer-clients))
   	(setq client-record (cons (current-buffer) client-record)))
@@ -233,15 +217,11 @@ as a suggestion for what to select next."
     (bury-buffer buffer)
     next-buffer))
 
-(defun server-temp-file-p (buffer)
-  "Return non-nil if BUFFER contains a file considered temporary.
-These are files whose names suggest they are repeatedly
-reused to pass information to another program.
-
-The variable `server-temp-file-regexp' controls which filenames
-are considered temporary."
-  (and (buffer-file-name buffer)
-       (string-match server-temp-file-regexp (buffer-file-name buffer))))
+(defun mh-draft-p (buffer)
+  "Return non-nil if this BUFFER is an mh <draft> file.
+Since MH deletes draft *BEFORE* it is edited, the server treats them specially."
+ ;; This may not be appropriately robust for all cases.
+  (string= (buffer-name buffer) "draft"))
 
 (defun server-done ()
   "Offer to save current buffer, mark it as \"done\" for clients,
@@ -249,7 +229,7 @@ bury it, and return a suggested buffer to select next."
   (let ((buffer (current-buffer)))
     (if server-buffer-clients
 	(progn
- 	  (if (server-temp-file-p buffer)
+ 	  (if (mh-draft-p buffer)
  	      (progn (save-buffer)
 		     (write-region (point-min) (point-max)
 				   (concat buffer-file-name "~"))
@@ -262,15 +242,11 @@ bury it, and return a suggested buffer to select next."
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
 If a server buffer is current, it is marked \"done\" and optionally saved.
+MH <draft> files are always saved and backed up, no questions asked.
 When all of a client's buffers are marked as \"done\", the client is notified.
-
-Temporary files such as MH <draft> files are always saved and backed up,
-no questions asked.  The variable `server-temp-file-regexp' controls
-which filenames are considered temporary.
 
 If invoked with a prefix argument, or if there is no server process running, 
 starts server process and that is all.  Invoked by \\[server-edit]."
-
   (interactive "P")
   (if (or arg
 	  (not server-process)

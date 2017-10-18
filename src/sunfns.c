@@ -15,13 +15,19 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 Author: Jeff Peck, Sun Microsystems, Inc. <peck@sun.com>
+    This file provides selection and menu support in SunView
+    [also a function to change the sunview cursor]
+    
 Original ideas by David Kastan and Eric Negaard, SRI International
 Major help from: Steve Greenbaum, Reasoning Systems, Inc.
  		    <froud@kestrel.arpa>
 who first discovered the Menu_Base_Kludge.
+    Modified 12/91    Jeff Peck to compile without sunview libraries:
+    #define NO_SUNVIEW   	
+    disables SunView support leaving just sit-for-millisecs, sleep-for-millisecs
  */
 
 /*
@@ -32,13 +38,17 @@ who first discovered the Menu_Base_Kludge.
 #include <stdio.h>
 #include <errno.h>
 #include <signal.h>
+
+#ifndef NO_SUNVIEW
 #include <sunwindow/window_hs.h>
 #include <suntool/selection.h>
 #include <suntool/menu.h>
 #include <suntool/walkmenu.h>
 #include <suntool/frame.h>
 #include <suntool/window.h>
+#endif	/* NO_SUNVIEW */
 
+#include <sys/time.h>		/* for tv_sec, tv_usec */
 #include <fcntl.h>
 #undef NULL /* We don't need sunview's idea of NULL */
 #include "lisp.h"
@@ -46,6 +56,7 @@ who first discovered the Menu_Base_Kludge.
 #include "buffer.h"
 #include "termhooks.h"
 
+#ifndef NO_SUNVIEW
 /* conversion to/from character & screen coordinates */
 /* From Gosling Emacs SunWindow driver by Chris Torek */
 
@@ -57,8 +68,10 @@ who first discovered the Menu_Base_Kludge.
 #define StoCX(sx) ((sx) / Sun_Font_Xsize)
 #define StoCY(sy) ((sy) / Sun_Font_Ysize)
 
+#endif	/* NO_SUNVIEW */
 #define CHECK_GFX(x) if((win_fd<0)&&(Fsun_window_init(),(win_fd<0)))return(x)
 int win_fd = -1;
+#ifndef NO_SUNVIEW 
 struct pixfont *Sun_Font;	/* The font */
 int Sun_Font_Xsize;		/* Width of font  */
 int Sun_Font_Ysize;		/* Height of font */
@@ -68,7 +81,7 @@ int Sun_Font_Ysize;		/* Height of font */
 static Frame Menu_Base_Frame;
 static int Menu_Base_fd;
 static Lisp_Object sm_kludge_string;
-#endif
+#endif	/* Menu_Base_Kludge */
 struct cursor CurrentCursor;	/* The current cursor */
 
 static short CursorData[16];	/* Build cursor here */
@@ -91,22 +104,30 @@ static short ArrowCursorData[16] = {
 	0xD800,0x9800,0x0C00,0x0C00,0x0600,0x0600,0x0300,0x0300};
 static mpr_static(ArrowCursorMpr, 16, 16, 1, ArrowCursorData);
 struct cursor DefaultCursor = {0, 0, PIX_SRC ^ PIX_DST, &ArrowCursorMpr};
-#endif
+#endif	/* RIGHT_ARROW_CURSOR */
+#endif	/* NO_SUNVIEW */
 
 /*
  *	Initialize window
  */
 DEFUN ("sun-window-init", Fsun_window_init, Ssun_window_init, 0, 1, 0,
+#ifndef NO_SUNVIEW 
        "One time setup for using Sun Windows with mouse.\n\
 Unless optional argument FORCE is non-nil, is a noop after its first call.\n\
 Returns a number representing the file descriptor of the open Sun Window,\n\
-or -1 if can not open it.")
+or -1 if can not open it."
+#else
+       "One time setup for using Sun Windows with mouse.\n\
+Unless optional argument FORCE is non-nil, is a noop after its first call.\n\
+Dummy version, compiled with NO_SUNWINDOW, returns -1."
+#endif	/* NO_SUNVIEW */
+       )
       (force)
       Lisp_Object force;
 {
   char *cp;
   static int already_initialized = 0;
-
+#ifndef NO_SUNVIEW 
   if ((! already_initialized) || (!NULL(force))) {
     cp = getenv("WINDOW_GFX");
     if (cp != 0) win_fd = open(cp, 2);
@@ -127,9 +148,10 @@ or -1 if can not open it.")
 					FRAME_NO_CONFIRM, 1,
 					0);
 	Menu_Base_fd = (int) window_get(Menu_Base_Frame, WIN_FD);
-#endif
+#endif	/* Menu_Base_Kludge */
       }
   }
+#endif	/* NO_SUNVIEW */
   return(make_number(win_fd));
 }
 
@@ -137,7 +159,9 @@ or -1 if can not open it.")
  *	Mouse sit-for (allows a shorter interval than the regular sit-for
  *	and can be interrupted by the mouse)
  */
-DEFUN ("sit-for-millisecs", Fsit_for_millisecs, Ssit_for_millisecs, 1, 1, 0,
+DEFUN ("sit-for-millisecs",
+       Fsit_for_millisecs,
+       Ssit_for_millisecs, 1, 1, 0,
    "Like sit-for, but ARG is milliseconds. \n\
 Perform redisplay, then wait for ARG milliseconds or until\n\
 input is available.  Returns t if wait completed with no input.\n\
@@ -153,7 +177,7 @@ Redisplay does not happen if input is available before it starts.")
   Timeout.tv_usec = (XINT(n) - (Timeout.tv_sec * 1000)) * 1000;
 
   if (detect_input_pending()) return(Qnil);
-  redisplay_preserve_echo_area ();
+  redisplay ();
   /*
    *	Check for queued keyboard input/mouse hits again
    *	(A bit screen update can take some time!)
@@ -189,8 +213,8 @@ DEFUN ("update-display", Fupdate_display, Supdate_display, 0, 0, 0,
   redisplay_preserve_echo_area ();
   return(Qt);
 }
-
 
+#ifndef NO_SUNVIEW 
 /*
  *	Change the Sun mouse icon
  */
@@ -451,7 +475,7 @@ as a menu label.")
    xpos += XINT (XCONS (Pair)->cdr);
    ypos += XINT (XCONS (Pair)->car);
  }
-#endif
+#endif	/* Menu_Base_Kludge */
 
   button = XINT(Button);
   if(button == 4) button = 3;
@@ -472,30 +496,34 @@ as a menu label.")
  * Right button gets lost, and event sequencing or delivery gets mixed up
  * So, until that gets fixed, we use this <Menu_Base_Frame> kludge:
  */
-#endif
+#endif	/* Menu_Base_Kludge */
   menu_destroy (menu);
 
   return ((int)Value ? Value : Qnil);
 }
-
+#endif	/* NO_SUNVIEW */
 
 /*
  *	Define everything
  */
 syms_of_sunfns()
 {
+#ifndef NO_SUNVIEW
 #ifdef  Menu_Base_Kludge
   /* i'm just too lazy to re-write this into C code */
   /* so we will call this elisp function from C */
   sm_kludge_string = make_pure_string ("sm::menu-kludge", 15);
-#endif /* Menu_Base_Kludge */
+#endif	/* Menu_Base_Kludge */
 
+#endif	/* NO_SUNVIEW */
   defsubr(&Ssun_window_init);
   defsubr(&Ssit_for_millisecs);
   defsubr(&Ssleep_for_millisecs);
   defsubr(&Supdate_display);
+#ifndef NO_SUNVIEW
   defsubr(&Ssun_change_cursor_icon);
   defsubr(&Ssun_set_selection);
   defsubr(&Ssun_get_selection);
   defsubr(&Ssun_menu_internal);
+#endif	/* NO_SUNVIEW */
 }

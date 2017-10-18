@@ -56,7 +56,8 @@ See also auto-save-file-name-p."
   (if buffer-file-name
       (concat (file-name-directory buffer-file-name)
 	      "_$"
-	      (file-name-nondirectory buffer-file-name)
+	      (file-name-sans-versions (file-name-nondirectory
+					buffer-file-name))
 	      "$")
     (expand-file-name (concat "_$_" (make-legal-file-name (buffer-name)) "$"))))
 
@@ -81,29 +82,3 @@ If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
   nil)
 
 (setq suspend-hook 'vms-suspend-hook)
-
-(defun vms-read-directory (dirname switches buffer)
-  (save-excursion
-    (set-buffer buffer)
-    (subprocess-command-to-buffer
-     (concat "DIRECTORY " switches " " dirname)
-     buffer)
-    (goto-char (point-min))
-    ;; Remove all the trailing blanks.
-    (while (search-forward " \n")
-      (forward-char -1)
-      (delete-horizontal-space))
-    (goto-char (point-min))))
-
-(setq dired-listing-switches
-      "/SIZE/DATE/OWNER/WIDTH=(FILENAME=32,SIZE=5)")
-
-(setq print-region-function
-      '(lambda (start end command ign1 ign2 ign3 &rest switches)
-	 (write-region start end "sys$login:delete-me.txt")
-	 (send-command-to-subprocess
-	  1
-	  (concat command
-		  " sys$login:delete-me.txt/name=""GNUprintbuffer"" "
-		  (mapconcat 'identity switches " "))
-	  nil nil nil)))

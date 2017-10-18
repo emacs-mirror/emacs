@@ -18,7 +18,18 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(insert-file-contents "../lisp/version.el")
+;; Find the file version.el in the path for lisp files, 
+;; and set version-file.
+(setq version-file nil)
+(setq temp (mapcar '(lambda (dir)
+		      (cons dir (file-exists-p (expand-file-name "version.el" dir))))
+		   load-path))
+(while temp
+  (and (cdr (car temp)) (null version-file)
+       (setq version-file (expand-file-name "version.el" (car (car temp)))))
+  (setq temp (cdr temp)))
+      
+(insert-file-contents version-file)
 
 (re-search-forward "emacs-version \"[^\"]*[0-9]+\"")
 (forward-char -1)
@@ -36,7 +47,7 @@
 			   (progn (skip-chars-forward "^\"") (point))))
 
 
-(write-region (point-min) (point-max) "../lisp/version.el" nil 'nomsg)
+(write-region (point-min) (point-max) version-file nil 'nomsg)
 (erase-buffer)
 (set-buffer-modified-p nil)
 

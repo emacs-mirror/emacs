@@ -1,0 +1,1335 @@
+This is Info file ../info/emacs, produced by Makeinfo-1.49 from the
+input file emacs.texi.
+
+   This file documents the GNU Emacs editor.
+
+   Copyright (C) 1985, 1986, 1988, 1992 Richard M. Stallman.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided also
+that the sections entitled "The GNU Manifesto", "Distribution" and "GNU
+General Public License" are included exactly as in the original, and
+provided that the entire resulting derived work is distributed under the
+terms of a permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that the sections entitled "The GNU Manifesto",
+"Distribution" and "GNU General Public License" may be included in a
+translation approved by the author instead of in the original English.
+
+
+File: emacs,  Node: Concepts of VC,  Next: Editing with VC,  Up: Version Control
+
+Concepts of Version Control
+---------------------------
+
+   When a file is under version control, we also say that it is
+"registered" in the version control system.  Each registered file has a
+corresponding "master file" which represents the file's present state
+plus its change history, so that you can reconstruct from it either the
+current version or any specified earlier version.  Usually the master
+file also records a change comment for each version.
+
+   The file that is maintained under version control is sometimes called
+the "work file" corresponding to its master file.
+
+   To examine a file, you "check it out".  This extracts a version of
+the file (typically, the most recent) from the master.  If you want to
+edit the file, you must check it out "locked".  Only one user can do
+this at a time for any given source file.  When you are done with your
+editing, you must "check in" the new version.  This records the new
+version in the master file, and unlocks the source file so that other
+people can lock it and thus modify it.
+
+   These are the basic operations of version control. Checking in and
+checking out both use the single Emacs command `C-x C-q'
+(`vc-toggle-read-only').
+
+
+File: emacs,  Node: Editing with VC,  Next: Variables for Check-in/out,  Prev: Concepts of VC,  Up: Version Control
+
+Editing with Version Control
+----------------------------
+
+   When you visit a file that is maintained using version control, the
+mode line displays `RCS' or `SCCS' to inform you that version control
+is in use, and also (in case you care) which low-level system the file
+is actually stored in.  Normally, such a source file is read-only, and
+the mode line indicates this with `%%'.)
+
+   These are the commands that you use to edit a file maintained with
+version control:
+
+`C-x C-q'
+     Check the visited file in or out.
+
+`C-x v u'
+     Revert the buffer and the file to the last checked in version.
+
+`C-x v c'
+     Remove the last-entered change from the master for the visited
+     file. This undoes your last check-in.
+
+`C-x v i'
+     Register the visited file in version control.
+
+(`C-x v' is the prefix key for version control commands; all of these
+commands except for `C-x C-q' start with `C-x v'.)
+
+   If you want to edit the file, type `C-x C-q'
+(`vc-toggle-read-only').  This "checks out" and locks the file, so that
+you can edit it.  The file is writable after check-out, but only for
+you, not for anyone else.
+
+   Emacs does not save backup files for source files that are maintained
+with version control.  If you want to make backup files despite version
+control, set the variable `vc-make-backups' to a non-`nil' value.
+
+   When you are finished editing the file, type `C-x C-q' again. When
+used on a file that is checked out, this command checks the file in. 
+But check-in does not start immediately; first, you must enter a "log
+entry"--a description of the changes in the new version. `C-x C-q' pops
+up a buffer for you to enter this in.  When you are finished typing in
+the log entry, type `C-c C-c' to terminate it; this is when actual
+check-in takes place.
+
+   Once you have checked in your changes, the file is unlocked, so that
+other users can lock it and modify it.
+
+   Normally the work file exists all the time, whether it is locked or
+not.  If you set `vc-keep-workfiles' to `nil', then checking in a new
+version with `C-x C-q' deletes the work file; but any attempt to visit
+the file with Emacs creates it again.
+
+   Actually, it is not impossible to lock a file that someone else has
+locked.  If you try to check out a file that is locked, `C-x C-q' asks
+you whether you want to "steal the lock."  If you say yes, the file
+becomes locked by you, but a message is sent to the person who had
+formerly locked the file, to inform him or her of what has happened.
+
+   If you want to discard your current set of changes and revert to the
+last version checked in, use `C-x v u' (`vc-revert-buffer'). This
+cancels your last check-out, leaving the file unlocked.  If you want to
+make a different set of changes, you must first check the file out
+again.  `C-x v u' requies confirmation, unless it sees that you haven't
+made any changes since the last checked-in version.
+
+   `C-x v u' is also the command to use if you lock a file and then
+don't actually change it.
+
+   You can even cancel a change after checking it in, with `C-x v c'
+(`vc-cancel-version').  Normally, `C-x v c' reverts your workfile and
+buffer to the previous version (the one that precedes the version that
+is deleted), but you can prevent the reversion by giving the command a
+prefix argument.  Then the buffer does not change.
+
+   This command with a prefix argument is useful when you have checked
+in a change and then discover a trivial error in it; you can cancel the
+erroneous check-in, fix the error, and repeat the check-in.
+
+   Be careful when invoking `C-x v c', as it is easy to throw away a
+lot of work with it.  To help you be careful, this command always asks
+for confirmation with `yes'.
+
+   You can register the visited file for version control using
+`C-x v i' (`vc-register').  This uses RCS if RCS is installed on your
+system; otherwise, it uses SCCS.
+
+   By default, the initial version number is 1.1.  If you want to use a
+different number, give `C-x v i' a prefix argument; then it reads the
+initial version number using the minibuffer.
+
+   After `C-x v i', the file is unlocked and read-only.  Type `C-x C-q'
+if you wish to edit it.
+
+   If `vc-initial-comment' is non-`nil', `C-x v i' reads an initial
+comment (much like a log entry) to describe the purpose of this source
+file.
+
+
+File: emacs,  Node: Variables for Check-in/out,  Next: Comparing Versions,  Prev: Editing with VC,  Up: Version Control
+
+Variables Affecting Check-in and Check-out
+------------------------------------------
+
+   If `vc-suppress-confirm' is non-`nil', then `C-x C-q' and `C-x v i'
+can save the current buffer without asking, and `C-x v u' also operates
+without asking for confirmation. (This variable does not affect `C-x v
+c'; that is so drastic that it should always ask for confirmation.)
+
+   VC mode does much of its work by running the shell commands for RCS
+and SCCS.  If `vc-command-messages' is non-`nil', VC displays messages
+to indicate which shell commands it runs, and additional messages when
+the commands finish.
+
+   Normally, VC assumes that it can deduce the locked/unlocked state of
+files by looking at the file permissions of the work file; this is
+fast.  However, if the `RCS' or `SCCS' subdirectory is actually a
+symbolic link, then VC does not trust the file permissions to reflect
+this status.
+
+   You can specify the criterion for whether to trust the file
+permissions by setting the variable `vc-mistrust-permissions'.  Its
+value may be `t' (always mistrust the file permissions and check the
+master file), `nil' (always trust the file permissions), or a function
+of one argument which makes the decision.  The argument is the directory
+name of the `RCS' or `SCCS' subdirectory.  A non-`nil' value from the
+function says to mistrust the file permissions.
+
+   If you find that the file permissions of work files are changed
+erroneously, then you can set `vc-mistrust-permissions' to `t' so that
+VC always checks the master file.
+
+
+File: emacs,  Node: Log Entries,  Next: Change Logs and VC,  Prev: Snapshots,  Up: Version Control
+
+Log Entries
+-----------
+
+   When you're editing an initial or change comment for inclusion in a
+master file, finish your entry by typing `C-c C-c'.
+
+`C-c C-c'
+     Finish the comment edit normally (`vc-finish-logentry'). This
+     finishes check-in.
+
+   To abort check-in, just don't type `C-c C-c' in that buffer.  You
+can switch buffers and do other editing.  As long as you don't try to
+check in another file, the comment you were editing remains in its
+buffer, and you can go back to that buffer at any time to complete the
+check-in.
+
+   If you change several source files for the same reason, it is often
+convenient to specify the same log entry for many of the files.  To do
+this, use the history of previous log entries.  The commands `M-n',
+`M-p', `M-s' and `M-r' for doing this work just like the minibuffer
+history commands (except that they don't use the minibuffer).
+
+   The history of previous log entries is actually stored in previous
+pages of the log entry editing buffer; they are normally hidden by
+narrowing.
+
+   Each time you check in a file, the log entry buffer is put into VC
+Log mode, which involves running two hook variables: `text-mode-hook'
+and `vc-log-mode-hook'.
+
+
+File: emacs,  Node: Change Logs and VC,  Next: Version Headers,  Prev: Log Entries,  Up: Version Control
+
+Change Logs and VC
+------------------
+
+   Emacs users often record brief summaries of program changes in a file
+called `ChangeLog', which is kept in the same directory as the source
+files, and is usually meant to be distributed along with the source
+files.  You can maintain `ChangeLog' from the version control logs with
+the following command.
+
+`C-x v a'
+     Visit the current directory's change log file and create new
+     entries for versions checked in since the most recent entry in the
+     change log file (`vc-update-change-log').
+
+     This command works with RCS only; it does not work with SCCS.
+
+   For example, suppose the first line of `ChangeLog' is dated 10 April
+1992, and suppose the only check-in since then was by Nathaniel
+Bowditch to `rcs2log' on 8 May 1992 with log text `Ignore log messages
+that start with `#'.'.  Then `C-x v a' visits `ChangeLog' and inserts
+text like this:
+
+     Fri May  8 21:45:00 1992  Nathaniel Bowditch  (nat@apn.org)
+     
+             * rcs2log: Ignore log messages that start with `#'.
+
+You can then further edit as you wish.
+
+   A log entry whose text begins with `#' is not copied to `ChangeLog'.
+ For example, if you merely fix some misspellings in comments, you can
+log the change with an entry beginning with `#' to avoid putting such
+trivia into `ChangeLog'.
+
+   When `C-x v a' adds several change log entries at once, it groups
+related log entries together if they all are checked in by the same
+author at nearly the same time.  If the log entries for several such
+files all have the same text, it coalesces them into a single entry.
+For example, suppose the most recent check-ins have the following log
+entries:
+
+For `vc.texinfo':
+     Fix expansion typos.
+For `vc.el':
+     Don't call expand-file-name.
+For `vc-hooks.el':
+     Don't call expand-file-name.
+
+   They appear like this in `ChangeLog':
+
+     Wed Apr  1 08:57:59 1992  Nathaniel Bowditch  (nat@apn.org)
+     
+             * vc.texinfo: Fix expansion typos.
+     
+             * vc.el, vc-hooks.el: Don't call expand-file-name.
+
+   Normally, `C-x v a' separates log entries by a blank line, but you
+can mark several related log entries to be clumped together (without an
+intervening blank line) by starting the text of each related log entry
+with a label of the form `{CLUMPNAME} '.  The label itself is not
+copied to `ChangeLog'.  For example, suppose the log entries are:
+
+For `vc.texinfo':
+     {expand} Fix expansion typos.
+For `vc.el':
+     {expand} Don't call expand-file-name.
+For `vc-hooks.el':
+     {expand} Don't call expand-file-name.
+
+   Then the text in `ChangeLog' looks like this:
+
+     Wed Apr  1 08:57:59 1992  Nathaniel Bowditch  (nat@apn.org)
+     
+             * vc.texinfo: Fix expansion typos.
+             * vc.el, vc-hooks.el: Don't call expand-file-name.
+
+   Normally, the log entry for file `foo' is displayed as `* foo: TEXT
+OF LOG ENTRY'.  But by convention, the `:' after `foo' is omitted if
+the text of the log entry starts with `(FUNCTIONNAME): '.  For example,
+if the log entry for `vc.el' is `(vc-do-command): Check call-process
+status.', then the text in `ChangeLog' looks like this:
+
+     Wed May  6 10:53:00 1992  Nathaniel Bowditch  (nat@apn.org)
+     
+             * vc.el (vc-do-command): Check call-process status.
+
+
+File: emacs,  Node: Comparing Versions,  Next: VC Status,  Prev: Variables for Check-in/out,  Up: Version Control
+
+Comparing Versions
+------------------
+
+   To compare two versions of a file, use `C-x v =' (`vc-diff').
+
+   Plain `C-x v =' compares the current buffer contents (saving them in
+the file if necessary) with the last checked-in version of the file.
+With a prefix argument, `C-x v =' reads a filename and two version
+numbers, and compares those versions of the file you specify.
+
+   If you supply a directory name instead of the name of a work file,
+this command compares the two specified versions of all registered files
+in that directory and its subdirectories.  You can also specify a
+snapshot name (*note Snapshots::.) instead of one or both version
+numbers.
+
+   You can specify a checked-in version by its number; you can specify
+the most recent checked-in version with `-'; and you can specify the
+current buffer contents with `+'.  Thus, you can compare two checked-in
+versions, or compare a checked-in version with the text you are editing.
+
+   This command works by running the `diff' utility, getting the
+options from the variable `diff-switches'.  It displays the output in a
+special buffer in another window.
+
+
+File: emacs,  Node: VC Status,  Next: Renaming and VC,  Prev: Comparing Versions,  Up: Version Control
+
+VC Status Commands
+------------------
+
+   To get the detailed version control status of one file, type `C-x v
+l' (`vc-print-log').  It displays the history of changes to the current
+file, including the text of the log entries.  The output appears in a
+separate window.
+
+   When you are working on a large program, it's often useful to find
+all the files that are currently locked, or all the files maintained in
+version control at all.  You can do so using these commands, both of
+which operate on the branch of the file system starting at the current
+directory.
+
+   You can use `C-x v d' (`vc-directory') to show all the locked files
+in or beneath the current directory.  This includes all files that are
+locked by any user.
+
+   With a prefix argument, `C-x v d' shows all the version control
+activity in the current directory--it lists all files in or beneath the
+current directory that are maintained with version control.
+
+
+File: emacs,  Node: Renaming and VC,  Next: Snapshots,  Prev: VC Status,  Up: Version Control
+
+Renaming VC Work Files and Master Files
+---------------------------------------
+
+   When you rename a registered file, you must also rename its master
+file correspondingly to get proper results.  Use `vc-rename-file' to
+rename the source file as you specify, and rename its master file
+accordingly.  It also updates any snapshots (*note Snapshots::.) that
+mention the file, so that they use the new name; despite this, the
+snapshot thus modified may not completely work (*note Snapshot
+Caveats::.).
+
+   You cannot use `vc-rename-file' on a file that is locked by someone
+else.
+
+   `vc-rename-file' is not bound to a key because it's not likely to be
+used frequently.
+
+
+File: emacs,  Node: Snapshots,  Next: Log Entries,  Prev: Renaming and VC,  Up: Version Control
+
+Snapshots
+---------
+
+   A "snapshot" is a named set of file versions (one for each
+registered file) that you can treat as a unit.  One important kind of
+snapshot is a "release", a (theoretically) stable version of the system
+that is ready for distribution to users.
+
+* Menu:
+
+* Making Snapshots::		The snapshot facilities.
+* Snapshot Caveats::		Things to be careful of, when using snapshots.
+
+
+File: emacs,  Node: Making Snapshots,  Next: Snapshot Caveats,  Up: Snapshots
+
+Making and Using Snapshots
+..........................
+
+   There are two basic commands for snapshots; one makes a snapshot
+with a given name, the other retrieves a named snapshot.
+
+`C-x v s NAME RET'
+     Define the last saved versions of every registered file in or
+     under the current directory as a snapshot named NAME
+     (`vc-create-snapshot').
+
+`C-x v r NAME RET'
+     Check out all registered files at or below the current directory
+     level using whatever versions correspond to the snapshot NAME
+     (`vc-retrieve-snapshot').
+
+     This function reports an error if any files are locked at or below
+     the current directory, without changing anything; this is to avoid
+     overwriting work in progress.
+
+   You shouldn't need to use `vc-retrieve-snapshot' very often; you can
+get difference reports between two snapshots without retrieving either
+one, using `C-x =' (*note Comparing Versions::.).  Thus, retrieving a
+snapshot is only necessary if you need to study or compile portions of
+the snapshot.
+
+   A snapshot uses a very small amount of resources--just enough to
+record the list of file names and which version belongs to the
+snapshot.  Thus, you need not hesitate to create snapshots whenever
+they are useful.
+
+   You can give a snapshot name as an argument to `C-x v =' (*note
+Comparing Versions::.).  Thus, you can use it to compare a snapshot
+against the current files, or two snapshots against each other, or a
+snapshot against a named version.
+
+
+File: emacs,  Node: Snapshot Caveats,  Prev: Making Snapshots,  Up: Snapshots
+
+Snapshot Caveats
+................
+
+   VC's snapshot facilities are modeled on RCS's named-configuration
+support.  They use RCS's native facilities for this, so under VC
+snapshots made using RCS are visible even when you bypass VC.
+
+   For SCCS, VC implements snapshots itself.  The files it uses contain
+name/file/version-number triples.  These snapshots are visible only
+through VC.
+
+   File renaming and deletion can create some difficulties with
+snapshots. This is not a VC-specific problem, but a general design
+issue in version control systems that no one has solved very well yet.
+
+   If you rename a registered file, you need to rename its master along
+with it (the function `vc-rename-file' does this automatically). If you
+are using SCCS, you must also update the records of the snapshot, to
+mention the file by its new name (`vc-rename-file' does this, too). 
+This makes the snapshot remain valid for retrieval, but it does not
+solve all problems.
+
+   For example, some of the files in the program probably refer to
+others by name.  At the very least, the makefile probably mentions the
+file that you renamed.  If you retrieve an old snapshot, the renamed
+file is retrieved under its new name, which is not the name that the
+makefile expects.  So the program won't really work.
+
+   If you use snapshots, don't rename either work files or master files
+except by means of `vc-rename-file'.  It knows how to update snapshots
+so that you can still retrieve them.  An old snapshot that refers to a
+master file that no longer exists under the recorded name is invalid;
+VC can no longer retrieve it.  It would be beyond the scope of this
+manual to explain enough about RCS and SCCS to teach the reader how to
+update the snapshots by hand.
+
+
+File: emacs,  Node: Version Headers,  Prev: Change Logs and VC,  Up: Version Control
+
+Inserting Version Control Headers
+---------------------------------
+
+   Sometimes it is convenient to put version identification strings
+directly into working files.  Certain special strings called "version
+headers" are replaced in each successive version by the number of that
+version.
+
+   You can use the `C-x v h' command (`vc-insert-headers') to insert a
+suitable header string.
+
+`C-x v h'
+     Insert headers in a file for use with your version-control system.
+
+   The default header string is `$ld$' for RCS and `%W%' for SCCS.  You
+can specify other headers to insert by setting the variable
+`vc-header-string'.  Its value (if non-`nil') should be the string to
+be inserted.  You can also specify a list of strings; then each string
+in the list is inserted as a separate header on a line of its own.  (It
+is often important to use "superfluous" backslashes when writing a Lisp
+string constant for this use, to prevent the string in the constant
+from being interpreted as a header itself if the Emacs Lisp file
+containing it is maintained with version control.)
+
+   Each header is inserted surrounded by tabs, inside comment
+delimiters, on a new line at the start of the buffer.  Normally the
+ordinary comment start and comment end strings of the current mode are
+used, but for certain modes, there are special comment delimiters for
+this purpose; the variable `vc-comment-alist' specifies them.  Each
+element of this list has the form `(MODE STARTER ENDER)'.
+
+   `vc-static-header-alist' is consulted to add further strings based
+on the name of the buffer.  Its value should be a list of dotted pairs;
+the CAR of each pair is a regular expression that should match the
+buffer name, and the CDR is the format to use on each header.  A string
+is inserted for each file name pattern that matches the buffer name,
+and for each header taken from `vc-header-string'.  The default value
+for `vc-static-header-alist' is:
+
+     (("\\.c$" .
+       "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n\
+     #endif /* lint */\n"))
+
+which specifies insertion of a string of this form:
+
+
+     #ifndef lint
+     static char vcid[] = "HEADER-STRING";
+     #endif /* lint */
+
+
+File: emacs,  Node: Emerge,  Next: Debuggers,  Prev: Version Control,  Up: Version 19
+
+Emerge
+======
+
+   It's not unusual for programmers to get their signals crossed and
+modify the same program in two different directions.  To recover from
+this confusion, you need to merge the two versions.  Emerge makes this
+easier.
+
+* Menu:
+
+* Overview of Emerge::
+* Submodes of Emerge::
+* State of Difference::
+* Merge Commands::
+* Exiting Emerge::
+* Combining in Emerge::
+* Fine Points of Emerge::
+
+
+File: emacs,  Node: Overview of Emerge,  Next: Submodes of Emerge,  Up: Emerge
+
+Overview of Emerge
+------------------
+
+   To start Emerge, run one of these four commands:
+
+`M-x emerge-files'
+     Merge two specified files.
+
+`M-x emerge-files-with-ancestor'
+     Merge two specified files, with reference to a common ancestor.
+
+`M-x emerge-buffers'
+     Merge two buffers (the currently accessible portions).
+
+`M-x emerge-buffers-with-ancestor'
+     Merge two buffers (the currently accessible portions) with
+     reference to a common ancestor in another buffer.
+
+   The Emerge commands compare two texts, and display the results in
+three buffers: one for each input text (the "A buffer" and the "B
+buffer"), and one (the "merge buffer") where merging takes place. The
+merge buffer does not show just the differences.  Rather, it shows you
+the full text, but wherever the input texts differ, you can choose
+which one of them to include in the merge buffer.
+
+   If a common ancestor version is available, from which the two texts
+to be merged were both derived, Emerge can use it to guess which
+alternative is right.  Wherever one current version agrees with the
+ancestor, Emerge presumes that the other current version is a deliberate
+change which should be kept in the merged version.  Use the
+"with-ancestor" commands if you want to specify a common ancestor text.
+ These commands read three file or buffer names--variant A, variant B,
+and the common ancestor.
+
+   After the comparison is done and the buffers are prepared, the actual
+merging starts.  You control the merging interactively by editing the
+merge buffer.  The merge buffer shows you a full merged text, not just
+differences.  For each point where the input texts differ, you can
+choose which one of them to include in the merge buffer.
+
+   The merge buffer has a special major mode, Emerge mode, with commands
+for making these choices.  But you can also edit the buffer with
+ordinary Emacs commands.
+
+   At any given time, the attention of Emerge is focused on one
+particular difference, called the "selected" difference.  This
+difference is marked off in the three buffers by
+
+     vvvvvvvvvvvvvvvvvvvv
+
+above and
+
+     ^^^^^^^^^^^^^^^^^^^^
+
+below.  Emerge numbers all the differences sequentially and the mode
+line always shows the number of the selected difference.
+
+   Normally, the merge buffer starts out with the A version of the text.
+But when the A version of a part of the buffer agrees with the common
+ancestor, then the B version is preferred for that part.
+
+   Normally, Emerge stores the merged output in place of the first input
+text (the A file or buffer).  If you give a prefix argument to
+`emerge-files' or `emerge-files-with-ancestor', it reads the name of
+the output file using the minibuffer.  (This is the last file name
+those commands read.)
+
+   If you abort Emerge with `C-u q', the output is not saved.
+
+
+File: emacs,  Node: Submodes of Emerge,  Next: State of Difference,  Prev: Overview of Emerge,  Up: Emerge
+
+Submodes of Emerge
+------------------
+
+   You can choose between two modes for giving merge commands: Fast mode
+and Edit mode.  In Fast mode, basic Emerge commands are single
+characters, but ordinary Emacs commands are disabled.  This is
+convenient if you use only Emerge commands.
+
+   In Edit mode, all Emerge commands start with the prefix character
+`C-c', and the normal Emacs commands are also available.  This allows
+editing the merge buffer, but slows down Emerge operations.
+
+   Use `e' to switch to Edit mode, and `f' to switch to Fast mode. The
+mode line indicates Edit and Fast modes with `E' and `F'.
+
+   Emerge has two additional submodes that affect how particular merge
+commands work: Auto Advance mode and Skip Prefers mode.
+
+   If Auto Advance mode is in effect, the `a' and `b' commands advance
+to the next difference.  This lets you go through the merge faster
+doing ordinary things.  The mode line indicates Auto Advance mode with
+`A'.
+
+   If Skip Prefers mode is in effect, the `n' and `p' commands skip
+over differences in states prefer-A and prefer-B.  Thus you will only
+see differences for which neither version is presumed "correct".  The
+mode line indicates Skip Prefers mode with `S'.
+
+   Use the command `emerge-auto-advance-mode' to set or clear Auto
+Advance mode.  Use `emerge-skip-prefers-mode' to set or clear Skip
+Prefers mode.  A positive argument turns the mode on, a nonpositive
+argument turns it off, and no argument toggles it.
+
+
+File: emacs,  Node: State of Difference,  Next: Merge Commands,  Prev: Submodes of Emerge,  Up: Emerge
+
+State of a Difference
+---------------------
+
+   In the merge buffer, a difference is marked `vvvvvvvvvvvvvvvvvvvv'
+above and `^^^^^^^^^^^^^^^^^^^^' below.  Such a difference can have one
+of seven states:
+
+A
+     The difference is showing the A version.  The `a' command always
+     produces this state; the mode line indicates it with `A'.
+
+B
+     The difference is showing the B version.  The `b' command always
+     produces this state; the mode line indicates it with `B'.
+
+default-A
+default-B
+     The difference is showing the A or the B state by default, because
+     you haven't made a choice.  All differences start in the default-A
+     state (and thus the merge buffer is a copy of the A buffer),
+     except those for which one alternative is "preferred" (see below).
+
+     When you select a difference, its state changes from default-A or
+     default-B to plain A or B.  Thus, the selected difference never has
+     state default-A or default-B, and these states are never displayed
+     in the mode line.
+
+     The command `d a' chooses default-A as the default state, and `d
+     b' chooses default-B.  This chosen default applies to all
+     differences which you haven't selected and for which no
+     alternative is preferred. If you are moving through the merge
+     sequentially, the differences you haven't selected are those
+     following the selected one.  Thus, while moving sequentially, you
+     can effectively make the A version the default for some sections
+     of the merge buffer and the B version the default for others by
+     using `d a' and `d b' at the end of each section.
+
+prefer-A
+prefer-B
+     The difference is showing the A or B state because it is
+     "preferred".  This means that you haven't made an explicit choice,
+     but one alternative seems likely to be right because the other
+     alternative agrees with the common ancestor.  Thus, where the A
+     buffer agrees with the common ancestor, the B version is
+     preferred, because chances are it is the one that was actually
+     changed.
+
+     These two states are displayed in the mode line as `A*' and `B*'.
+
+combined
+     The difference is showing a combination of the A and B states, as a
+     result of the `x c' or `x C' commands.
+
+     Once a difference is in this state, the `a' and `b' commands don't
+     do anything to it unless you give them a prefix argument.
+
+     The mode line displays this state as `comb'.
+
+
+File: emacs,  Node: Merge Commands,  Next: Exiting Emerge,  Prev: State of Difference,  Up: Emerge
+
+Merge Commands
+--------------
+
+   Here are the Merge commands for Fast mode; in Edit mode, precede
+these with `C-c' and turn all the letters into control characters.
+
+`p'
+     Select the previous difference.
+
+`n'
+     Select the next difference.
+
+`a'
+     Choose the A version of this difference.
+
+`b'
+     Choose the B version of this difference.
+
+`j'
+     Select a particular difference; specify the sequence number of that
+     difference as a prefix argument.
+
+`M-x emerge-select-difference'
+     Select the run of differences containing the current location. 
+     You can use this command in the merge buffer or in the A or B
+     buffer.
+
+`q'
+     Quit--finish the merge.  With an argument, abort the merge.
+
+`f'
+     Go into fast mode.
+
+`e'
+     Go into edit mode.
+
+`l'
+     Recenter (like `C-l') all three windows.
+
+`-'
+     Specify part of a prefix numeric argument.
+
+`DIGIT'
+     Also specify part of a prefix numeric argument.
+
+`d a'
+     Choose the A version as the default from here down in the merge
+     buffer.
+
+`d b'
+     Choose the B version as the default from here down in the merge
+     buffer.
+
+`c a'
+     Copy the A version of this difference into the kill ring.
+
+`c b'
+     Copy the B version of this difference into the kill ring.
+
+`i a'
+     Insert the A version of this difference at the point.
+
+`i b'
+     Insert the B version of this difference at the point.
+
+`m'
+     Put the point and mark around the difference region.
+
+`^'
+     Scroll all three windows down (like `M-v').
+
+`v'
+     Scroll all three windows up (like `C-v').
+
+`<'
+     Scroll all three windows left (like `C-x <').
+
+`>'
+     Scroll all three windows right (like `C-x >').
+
+`|'
+     Reset horizontal scroll on all three windows.
+
+`x 1'
+     Shrink the merge window to one line.  (Use `C-u l' to restore it
+     to full size.)
+
+`x c'
+     Combine the two versions of this difference.
+
+`x f'
+     Show the files/buffers Emerge is operating on in Help window. (Use
+     `C-u l' to restore windows.)
+
+`x j'
+     Join this difference with the following one. (`C-u x j' joins this
+     difference with the previous one.)
+
+`x s'
+     Split this difference into two differences.  Before you use this
+     command, position point in each of the three buffers to the place
+     where you want to split the difference.
+
+`x t'
+     Trim identical lines off top and bottom of the difference. Such
+     lines occur when the A and B versions are identical but differ
+     from the ancestor version.
+
+
+File: emacs,  Node: Exiting Emerge,  Next: Combining in Emerge,  Prev: Merge Commands,  Up: Emerge
+
+Exiting Emerge
+--------------
+
+   The `q' (`emerge-quit') command finishes the merge, storing the
+results into the output file.  It restores the A and B buffers to their
+proper contents, or kills them if they were created by Emerge.  It also
+disables the Emerge commands in the merge buffer, since executing them
+later could damage the contents of the various buffers.
+
+   `C-u q' aborts the merge.  Aborting means that Emerge does not write
+the output file.
+
+   If Emerge was called from another Lisp program, then its return value
+is `t' or `nil' to indicate success or failure.
+
+
+File: emacs,  Node: Combining in Emerge,  Next: Fine Points of Emerge,  Prev: Exiting Emerge,  Up: Emerge
+
+Combining the Two Versions
+--------------------------
+
+   Sometimes you want to keep *both* alternatives for a particular
+locus.  To do this, use `x c', which edits the merge buffer like this:
+
+     #ifdef NEW
+     VERSION FROM A FILE
+     #else /* NEW */
+     VERSION FROM B FILE
+     #endif /* NEW */
+
+   While this example shows C preprocessor conditionals delimiting the
+two alternative versions, you can specify the strings you want by
+setting the variable `emerge-combine-template' to a list of three
+strings. The default setting, which produces the results shown above,
+looks like this:
+
+     ("#ifdef NEW\n"
+      "#else /* NEW */\n"
+      "#endif /* NEW */\n")
+
+
+File: emacs,  Node: Fine Points of Emerge,  Prev: Combining in Emerge,  Up: Emerge
+
+Fine Points of Emerge
+---------------------
+
+   You can have any number of merges going at once--just don't use any
+one buffer as input to more than one merge at once, since that will
+cause the read-only/modified/auto-save status save-and-restore to screw
+up.
+
+   Starting Emerge can take a long time because it needs to compare the
+files.  Emacs can't do anything else until `diff' finishes.  Perhaps in
+the future someone will change Emerge to do the comparison in the
+background when the input files are large--then you could keep on doing
+other things with Emacs until Emerge gets ready to accept commands.
+
+   After the merge has been set up, Emerge runs the hooks in
+`emerge-startup-hook'.
+
+   During the merge, you musn't try to edit the A and B buffers
+yourself. Emerge modifies them temporarily, but ultimately puts them
+back the way they were.
+
+
+File: emacs,  Node: Debuggers,  Next: Other New Modes,  Prev: Emerge,  Up: Version 19
+
+Running Debuggers Under Emacs
+=============================
+
+   The GUD (Grand Unified Debugger) library provides an interface to
+various symbolic debuggers from within Emacs.  We recommend the
+debugger GDB, which is free software, but you can also run DBX or SDB
+if you have them.
+
+* Menu:
+
+* Starting GUD::	How to start a debugger subprocess.
+* Debugger Operation::	Connection between the debugger and source buffers.
+* Commands of GUD::	Keybindings for common commands.
+* GUD Customization::	Defining your own commands for GUD.
+
+
+File: emacs,  Node: Starting GUD,  Next: Debugger Operation,  Up: Debuggers
+
+Starting GUD
+------------
+
+   There are three commands for starting a debugger.  Each corresponds
+to a particular debugger program.
+
+`M-x gdb RET FILE RET'
+`M-x dbx RET FILE RET'
+     Run GDB or DBX in a subprocess of Emacs.  Both of these commands
+     select the buffer used for input and output to the debugger.
+
+`M-x sdb RET FILE RET'
+     Run SDB in a subprocess of Emacs.  SDB's messages do not mention
+     file names, so the Emacs interface to SDB depends on having a tags
+     table (*note Tags::.) to find which file each function is in.  If
+     you have not visited a tags table or the tags table doesn't list
+     one of the functions, you get a message saying `The sdb support
+     requires a valid tags table to work'.  If this happens, generate a
+     valid tags table in the working directory and try again.
+
+   You can only run one debugger process at a time.
+
+
+File: emacs,  Node: Debugger Operation,  Next: Commands of GUD,  Prev: Starting GUD,  Up: Debuggers
+
+Debugger Operation
+------------------
+
+   When you run a debugger with GUD, the debugger displays source files
+via Emacs--Emacs finds the source file and moves point to the line
+where the program is executing.  An arrow (`=>') indicates the current
+execution line, and it stays put even if you move the cursor.
+
+   You can start editing the file at any time.  The arrow is not part of
+the file's text; it appears only on the screen.  If you do modify a
+source file, keep in mind that inserting or deleting lines will throw
+off the arrow's positioning; GUD has no way of figuring out which line
+corresponded before your changes to the line number in a debugger
+message.  Also, you'll typically have to recompile and restart the
+program for your changes to be reflected in the debugger's tables.
+
+   If you wish, you can control your debugger process entirely through
+the debugger buffer, which uses a variant of Shell mode.  All the usual
+commands for your debugger are available, and you can use the Shell mode
+history commands to repeat them.
+
+
+File: emacs,  Node: Commands of GUD,  Next: GUD Customization,  Prev: Debugger Operation,  Up: Debuggers
+
+Commands of GUD
+---------------
+
+   GUD provides a command available in all buffers for setting
+breakpoints.  This command is defined globally because you need to use
+it in the source files' buffers.
+
+`C-x SPC'
+     Set a breakpoint on the line that point is on.
+
+   The debugger buffer has a number of keybindings for invoking common
+debugging commands quickly:
+
+`C-c C-l'
+     Display in another window the last line referred to in the GUD
+     buffer (that is, the line indicated in the last location message).
+     This runs the command `gud-refresh'.
+
+`C-c C-s'
+     Execute a single line of code (`gud-step').  If the code contains
+     a function call, execution stops after entering the called
+     function.
+
+`C-c C-n'
+     Execute a single line of code, stepping across entire function
+     calls at full speed (`gud-next').
+
+`C-c C-i'
+     Execute a single machine instruction (`gud-stepi').
+
+`C-c C-c'
+     Continue execution until the next breakpoint, or other event that
+     would normally stop the program (`gud-cont').
+
+   The above commands are common to all supported debuggers.  If you are
+using GDB or (some versions of) DBX, these additional commands are
+available:
+
+`C-c <'
+     Select the next enclosing stack frame (`gud-up').  This is
+     equivalent to the `up' command.
+
+`C-c >'
+     Select the next inner stack frame (`gud-down').  This is
+     equivalent to the `down' command.
+
+   If you are using GDB, two additional keybindings are available:
+
+`C-c C-f'
+     Run the program until the selected stack frame returns (or until it
+     stops for some other reason).
+
+`TAB'
+     Complete the symbol in the buffer before point, using the set of
+     all symbols known to GDB.
+
+   These commands interpret a prefix argument as a repeat count, when
+that makes sense.
+
+   After each command that changes the program counter, GUD displays the
+new current source line, and updates the location of the arrow.
+
+
+File: emacs,  Node: GUD Customization,  Prev: Commands of GUD,  Up: Debuggers
+
+GUD Customization
+-----------------
+
+   On startup, GUD executes one of the following hooks:
+`gdb-mode-hook', if you are using GDB; `dbx-mode-hook', if you are
+using DBX; and `sdb-mode-hook', if you are using SDB.  You can use
+these hooks to define custom keybindings for the debugger interaction
+buffer.
+
+   Here is a convenient way to define a command that sends a particular
+command string to the debugger, and set up a key binding for it in the
+debugger interaction buffer:
+
+     (gud-def FUNCTION CMDSTRING BINDING DOCSTRING)
+
+   This defines a command named FUNCTION which sends CMDSTRING to the
+debugger process, with documentation string DOCSTRING, and binds it to
+BINDING in the debugger buffer's mode.  (If BINDING is `nil', this
+defines the command but does not make a binding for it; you can make a
+binding explicitly, perhaps using one of the above hooks.)
+
+   Commands defined with `gud-def' handle prefix arguments by passing
+them to the debugger, appended to end of CMDSTRING with a space in
+between.  (This use of prefix arguments works with GDB and DBX, but not
+with SDB.)
+
+   You can also set up commands that you can send to the debugger while
+in another buffer, such as a source file.  Set the variable
+`gud-commands' to a list of strings containing debugger commands you
+might want to send.
+
+`C-x &'
+     Send a custom command to the debugger process
+     (`send-gud-command').  Normally, send the CAR of the
+     `gud-commands' list; a prefix argument specifies which element of
+     that list to use (counting from 0).
+
+     If the string contains `%s', `C-x &' substitutes a numeric value
+     found in the buffer at or near point.  It looks for decimal,
+     octal, or hexadecimal numbers, with `0x' allowed.  This lets you
+     define commands to chase pointers whose numeric values have been
+     displayed.
+
+
+File: emacs,  Node: Other New Modes,  Next: Key Sequence Changes,  Prev: Debuggers,  Up: Version 19
+
+Other New Modes
+===============
+
+   There is now a Perl mode for editing Perl programs and an Icon mode
+for editing Icon programs.
+
+   C++ mode is like C mode, except that it understands C++ comment
+syntax and certain other differences between C and C++.  It also has a
+command `fill-c++-comment' which fills a paragraph made of comment
+lines. The command `comment-region' is useful in C++ mode for commenting
+out several consecutive lines, or removing the commenting out of such
+lines.
+
+   WordStar emulation is available--type `M-x wordstar-mode'. For more
+information, type `C-h f wordstar-mode RET'.
+
+   The command `C-o' in Buffer Menu mode now displays the current
+line's buffer in another window but does not select it.  This is like
+the existing command `o' which selects the current line's buffer in
+another window.
+
+* Menu:
+
+* Asm Mode::		A major mode for editing assembler files.
+* Edebug Mode::		A new Lisp debugger.
+* Editing Binary Files::Hexl mode lets you edit a binary file as numbers.
+
+
+File: emacs,  Node: Asm Mode,  Next: Edebug Mode,  Up: Other New Modes
+
+Asm Mode
+--------
+
+   Asm mode is a new major mode for editing files of assembler code. It
+defines these commands:
+
+`TAB'
+     `tab-to-tab-stop'.
+
+`LFD'
+     Insert a newline and then indent using `tab-to-tab-stop'.
+
+`:'
+     Insert a colon and then remove the indentation from before the
+     label preceding colon.  Then do `tab-to-tab-stop'.
+
+`;'
+     Insert or align a comment.
+
+
+File: emacs,  Node: Edebug Mode,  Next: Editing Binary Files,  Prev: Asm Mode,  Up: Other New Modes
+
+Edebug Mode
+-----------
+
+   Edebug is a new source-level debugger for Emacs Lisp programs.
+
+   To use Edebug, use the command `M-x edebug-defun' to "evaluate" a
+function definition in an Emacs Lisp file.  We put "evaluate" in
+quotation marks because it doesn't just evaluate the function, it also
+inserts additional information to support source-level debugging.
+
+   You must also do this:
+
+     (setq debugger 'edebug-debug)
+
+to cause errors and single-stepping to use Edebug instead of the usual
+Emacs Lisp debugger.
+
+   For more information, see `The Emacs Extensions Manual', which
+should be included in the Emacs 19 distribution.
+
+
+File: emacs,  Node: Editing Binary Files,  Prev: Edebug Mode,  Up: Other New Modes
+
+Editing Binary Files
+--------------------
+
+   There is a new major mode for editing binary files: Hexl mode.  To
+use it, use `M-x hexl-find-file' instead of `C-x C-f' to visit the
+file.  This command converts the file's contents to hexadecimal and lets
+you edit the translation.  When you save the file, it is converted
+automatically back to binary.
+
+   You can also use `M-x hexl-mode' to translate an existing buffer
+into hex.  This is useful if you visit a file normally and discover it
+is a binary file.
+
+   Hexl mode has a few other commands:
+
+`C-M-d'
+     Insert a byte with a code typed in decimal.
+
+`C-M-o'
+     Insert a byte with a code typed in octal.
+
+`C-M-x'
+     Insert a byte with a code typed in hex.
+
+`C-x ['
+     Move to the beginning of a 1k-byte "page".
+
+`C-x ]'
+     Move to the end of a 1k-byte "page".
+
+`M-g'
+     Move to an address specified in hex.
+
+`M-j'
+     Move to an address specified in decimal.
+
+`C-c C-c'
+     Leave Hexl mode, going back to the major mode this buffer had
+     before you invoked `hexl-mode'.
+
+
+File: emacs,  Node: Key Sequence Changes,  Next: Hook Changes,  Prev: Other New Modes,  Up: Version 19
+
+Changes in Key Sequences
+========================
+
+   In Emacs 18, a key sequence was a sequence of characters, which
+represented keyboard input.
+
+   In Emacs 19, you can still use a sequence of characters as a key
+sequence, but you aren't limited to characters.  You can also use Lisp
+symbols which represent terminal function keys or mouse buttons.  If the
+function key has a word as its label, then that word is also the name of
+the symbol which represents the function key.  Other function keys are
+assigned Lisp names as follows:
+
+`kp-add', `kp-decimal', `kp-divide', ...
+     Keypad keys (to the right of the regular keyboard), with names or
+     punctuation
+
+`kp-0', `kp-1', ...
+     Keypad keys with digits
+
+`kp-f1', `kp-f2', `kp-f3', `kp-f4'
+     Keypad PF keys
+
+`left', `up', `right', `down'
+     Cursor arrow keys
+
+   A key sequence which contains non-characters must be a vector rather
+than a string.
+
+   Thus, to bind function key `f1' to `rmail', write the following:
+
+     (global-set-key [f1] 'rmail)
+
+(To find the name of a key, type `C-h k' and then the key.)
+
+   To bind the right-arrow key to the command `forward-char', you can
+use this expression:
+
+     (global-set-key [right] 'forward-char)
+
+using the Lisp syntax for a vector containing the symbol `right'.
+
+   And this is how to make `C-x RIGHTARROW' move forward a page:
+
+     (global-set-key [?\C-x right] 'forward-page)
+
+where `?\C-x' is the Lisp syntax for an integer whose value is the code
+for the character `C-x'.
+
+   You can use modifier keys such as CTRL, META and SHIFT with function
+keys.  To represent these modifiers, prepend the strings `C-', `M-' and
+`S-' to the symbol name.  Thus, here is how to make `M-RIGHTARROW' move
+forward a word:
+
+     (global-set-key [M-right] 'forward-word)
+
+   Emacs uses symbols to designate mouse buttons, too. The ordinary
+mouse events in Emacs are "click" events; these happen when you press a
+button and release it without moving the mouse. You can also get "drag"
+events, when you move the mouse while holding the button down.  Drag
+events happen when you finally let go of the button.
+
+   The symbols for basic click events are `mouse-1' for the leftmost
+button, `mouse-2' for the next, and so on.  Here is how you can
+redefine the second mouse button to split the current window:
+
+     (global-set-key [mouse-2] 'split-window-vertically)
+
+   The symbols for drag events are similar, but have the prefix `drag-'
+before the word `mouse'.  For example, dragging the left button
+generates a `drag-mouse-1' event.
+
+   You can also request events when the mouse button is pressed down.
+These events start with `down-' instead of `drag-'.  Such events are
+generated only if they have key bindings.  When you get a button-down
+event, a corresponding click or drag event will always follow.
+
+   The symbols for mouse events also indicate the status of the modifier
+keys, with the usual prefixes `C-', `M-' and `S-'. These always follow
+`drag-' or `down-'.
+
+   When mouse events occur in special parts of a frame or window, such
+as a mode line or a scroll bar, the event symbol shows nothing special.
+ The information about the special part is implicit in other data (the
+screen location of the event).  But `read-key-sequence' figures out this
+aspect of the event, and encodes it with make-believe prefix keys, all
+of which are symbols: `mode-line', `vertical-line',
+`horizontal-scrollbar' and `vertical-scrollbar'.  Thus, to define the
+command for clicking the left button in a mode line, you could use this
+key sequence:
+
+     [mode-line mouse-1]
+
+   You are not limited to defining individual function keys or mouse
+buttons; these can appear anywhere in a key sequence, just as characters
+can.  You can even mix together all three kinds of inputs in one key
+sequence--but mixing mouse buttons with keyboard inputs is probably not
+convenient for actual use.
+
+
+File: emacs,  Node: Hook Changes,  Prev: Key Sequence Changes,  Up: Version 19
+
+Changes Regarding Hooks
+=======================
+
+   A "hook variable" is a variable that exists so that you can store in
+it functions for Emacs to call on certain occasions.  (The functions
+that you put in hook variables are called "hook functions".)  Emacs 19
+has a new convention for naming hook variables that indicates more
+reliably how to use them.
+
+   All the variables whose names end in `-hook' are "normal hooks";
+their values are lists of functions to be called with no arguments. 
+You can use `add-hook' (see below) to install hook functions in these
+hooks.  We have made all Emacs hooks into normal hooks except when
+there is some reason this won't work.
+
+   A few hook-like variables are "abnormal"--they don't use the normal
+convention.  This is either because the user-supplied functions receive
+arguments, or because their return values matter.  These variables have
+names that end in `-function' (if the value is a single function) or
+`-functions' (if the value is a list of functions).
+
+   Thus, you can always tell from the variable's name precisely how to
+install a new hook function in the variable.  If the name indicates a
+normal hook, then you also know how to write your hook function.
+
+   To add a hook function to a normal hook, use `add-hook'.  It takes
+care of adding a new hook function to any functions already installed in
+a given hook.  It takes two arguments, the hook symbol and the function
+to add.  For example,
+
+     (add-hook 'text-mode-hook 'my-text-hook-function)
+
+is how to arrange to call `my-text-hook-function' when entering Text
+mode or related modes. Two new hooks are worth noting here.  Expansion
+of an abbrev first runs the hook `pre-abbrev-expand-hook'.
+`kill-buffer-hook' now runs whenever a buffer is killed.
+
+

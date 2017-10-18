@@ -47,12 +47,12 @@ ZW|gator|HP 9000 model 237 emulating AAA:\
 ZY|gator-52|HP 9000 model 237 emulating VT52:\
 	:cr=^M:do=^J:nl=^J:bl=^G:\
 	:le=^H:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:cm=\EY%+ %+ :co#128:li#47:nd=\EC:\
-	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:\
+	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:
 	:ce=\EK:ho=\EH:
 ZZ|gator-52t|HP 9000 model 237 emulating extra-tall VT52:\
 	:cr=^M:do=^J:nl=^J:bl=^G:\
 	:le=^H:bs:cd=\EJ:ce=\EK:cl=\EH\EJ:cm=\EY%+ %+ :co#128:li#94:nd=\EC:\
-	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:\
+	:ta=^I:pt:sr=\EI:up=\EA:ku=\EA:kd=\EB:kr=\EC:kl=\ED:kb=^H:
 	:ce=\EK:ho=\EH:
 #
 # N: ANN ARBOR
@@ -461,9 +461,9 @@ ZN|aaa60|ambas60|ambassador60|ann arbor ambassador/60 lines:\
 	:li#60:mi:tc=aaax:
 # vt100 -- this has been changed to delete the "pt" ("real tabs")
 # option, which was losing. -- walter 10/84
-d0|vt100-132|vt125-132|dec vt100 with 132 columns:\
+d0|vt100-132|vt101-132|vt102-132|vt125-132|vt131-132|dec vt100 with 132 columns:\
 	:co#132:tc=vt100:
-d0|vt100|vt100-am|vt100-80|vt125|vt125-80|dec vt100:\
+d0|vt100|vt100-am|vt100-80|vt101|vt101-80|vt102|vt102-80|vt125|vt125-80|vt131|vt131-80|dec vt100:\
 	:cr=^M:bl=^G:le=^H:do=\ED:ho=\E[H:\
 	:co#80:li#24:cl=45\E[H\E[2J:bs:am:cm=5\E[%i%d;%dH:nd=\E[C:up=\E[A:\
 	:ce=2\E[K:cd=2*\E[J:so=2\E[7m:se=2\E[m:us=2\E[4m:ue=2\E[m:\
@@ -549,7 +549,7 @@ nunix-61|nu-telnet-61|nu-full| Full nu screen thru telnet:\
 # It is bad form to use ^J,^L,^K to scroll the screen.
 # If the VT2xx doesn't have newline mode set those characters
 # donot move the cursor down a line.  Use \ED instead.
-d0|vt200-80|vt200|vt300-80|VT 200 with 80 columns, on VMS:\
+d0|vt200-80|vt200|vt300-80|vt300|VT 200 with 80 columns, on VMS:\
 	:AL=\E[%dL:DC=\E[%dP:DL=\E[%dM:DO=\E[%dB:IC=\E[%d@:\
 	:LE=\E[%dD:RI=\E[%dC:SR=1*\E[%dM:UP=\E[%dA:al=\E[L:\
 	:am:bl=^G:bs:cd=2*\E[J:ce=2*\E[K:cl=45\E[H\E[2J:\

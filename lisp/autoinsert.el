@@ -53,14 +53,14 @@
 			    ("\\.h$" . "h-insert.c")
 			    ("[Mm]akefile" . "makefile.inc")
 			    ("\\.bib$" . "tex-insert.tex"))
-  "A list specifying text to insert by default into a new file.
+  "Alist specifying text to insert by default into a new file.
 Elements look like (REGEXP . FILENAME); if the new file's name
 matches REGEXP, then the file FILENAME is inserted into the buffer.
 Only the first matching element is effective.")
 
 ;;; Establish a default value for auto-insert-directory
 (defvar auto-insert-directory "~/insert/"
-  "*Directory from which auto-inserted files are taken.")
+  "Directory from which auto-inserted files are taken.")
 
 (defun insert-auto-insert-files ()
   "Insert default contents into a new file.
@@ -80,9 +80,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
     (if insert-file
         (let ((file (concat auto-insert-directory insert-file)))
           (if (file-readable-p file)
-	      (progn
-		(insert-file-contents file)
-		(set-buffer-modified-p nil))
+              (insert-file-contents file)
             (message "Auto-insert: file %s not found" file)
 	    (sleep-for 1))))))
 

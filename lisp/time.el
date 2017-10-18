@@ -1,5 +1,5 @@
 ;; Display time and load in mode line of Emacs.
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,15 +29,11 @@ Default is system-dependent, and is the same as used by Rmail.")
 
 (defvar display-time-string nil)
 
-(defvar display-time-hook nil
-  "* List of functions to be called when the time is updated on the mode line.")
-
 (defun display-time ()
   "Display current time and load level in mode line of each buffer.
 Updates automatically every minute.
-If `display-time-day-and-date' is non-nil, the current day and date
-are displayed as well.
-After each update, `display-time-hook' is run with `run-hooks'."
+If display-time-day-and-date is non-nil, the current day and date
+are displayed as well."
   (interactive)
   (let ((live (and display-time-process
 		   (eq (process-status display-time-process) 'run))))
@@ -50,10 +46,11 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	      (setq global-mode-string
 		    (append global-mode-string '(display-time-string))))
 	  (setq display-time-string "")
-	  (setq display-time-process
-		(start-process "display-time" nil
-			       "wakeup"
-			       (int-to-string display-time-interval)))
+	  (let ((process-connection-type nil))
+	    (setq display-time-process
+		  (start-process "display-time" nil
+				 (concat exec-directory "wakeup")
+				 (int-to-string display-time-interval))))
 	  (process-kill-without-query display-time-process)
 	  (set-process-sentinel display-time-process 'display-time-sentinel)
 	  (set-process-filter display-time-process 'display-time-filter)))))
@@ -68,7 +65,27 @@ After each update, `display-time-hook' is run with `run-hooks'."
 
 (defun display-time-filter (proc string)
   (let ((time (current-time-string))
-	(load (format "%03d" (car (load-average))))
+	(load (condition-case ()
+		  (if (zerop (car (load-average))) ""
+		    (format "%03d" (car (load-average))))
+		(error
+		 (condition-case ()
+		     (unwind-protect
+			 (save-excursion
+			   (set-buffer (get-buffer-create " *uptime*"))
+			   (call-process "/usr/ucb/uptime" nil (current-buffer))
+			   (goto-char (point-min))
+			   (search-forward "average: ")
+			   ;; Get the integer part and fraction part,
+			   ;; discarding the period.
+			   ;; (Because code below adds a period.)
+			   (concat
+			    (buffer-substring (point)
+					      (progn (forward-word 1) (point)))
+			    (buffer-substring (1+ (point))
+					      (progn (forward-word 1) (point)))))
+		       (kill-buffer " *uptime*"))
+		   (error "")))))
 	(mail-spool-file (or display-time-mail-file
 			     (getenv "MAIL")
 			     (concat rmail-spool-directory
@@ -84,8 +101,10 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	  (setq hour 12)))
     (setq display-time-string
 	  (concat (format "%d" hour) (substring time 13 16)
-		  (if pm "pm " "am ")
-		  (substring load 0 -2) "." (substring load -2)
+		  (if pm "pm" "am")
+		  (if (string= load "")
+		      ""
+		    (concat " " (substring load 0 -2) "." (substring load -2)))
 		  (if (and (file-exists-p mail-spool-file)
 			   ;; file not empty?
 			   (> (nth 7 (file-attributes mail-spool-file)) 0))
@@ -95,7 +114,6 @@ After each update, `display-time-hook' is run with `run-hooks'."
     (if display-time-day-and-date
 	(setq display-time-string
 	      (concat (substring time 0 11) display-time-string))))
-  (run-hooks 'display-time-hook)
   ;; Force redisplay of all buffers' mode lines to be considered.
   (save-excursion (set-buffer (other-buffer)))
   (set-buffer-modified-p (buffer-modified-p))

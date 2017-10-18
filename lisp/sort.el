@@ -38,7 +38,6 @@ across a sort record.  They will be called many times from within sort-subr.
 
 NEXTRECFUN is called with point at the end of the previous record.
 It moves point to the start of the next record.
-It should move point to the end of the buffer if there are no more records.
 The first record is assumed to start at the position of point when sort-subr
 is called.
 
@@ -52,12 +51,12 @@ STARTKEYFUN and ENDKEYFUN are called.  If STARTKEYFUN is nil, the key
 starts at the beginning of the record.
 
 ENDKEYFUN moves from the start of the sort key to the end of the sort key.
-ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
+ENDRECFUN may be nil if STARTKEYFUN returns a value or if it would be the
 same as ENDRECFUN."
   (save-excursion
     (message "Finding sort keys...")
     (let* ((sort-lists (sort-build-lists nextrecfun endrecfun
-					 startkeyfun endkeyfun))
+					startkeyfun endkeyfun))
 	   (old (reverse sort-lists)))
       (if (null sort-lists)
 	  ()
@@ -67,7 +66,6 @@ same as ENDRECFUN."
 	      (if (fboundp 'sortcar)
 		  (sortcar sort-lists
 			   (cond ((numberp (car (car sort-lists)))
-				  ;; This handles both ints and floats.
 				  '<)
 				 ((consp (car (car sort-lists)))
 				  'buffer-substring-lessp)
@@ -89,11 +87,10 @@ same as ENDRECFUN."
 	(if reverse (setq sort-lists (nreverse sort-lists)))
 	(message "Reordering buffer...")
 	(sort-reorder-buffer sort-lists old)))
-    (message "Reordering buffer... Done"))
-  nil)
+    (message "Reordering buffer... Done")))
 
 ;; Parse buffer into records using the arguments as Lisp expressions;
-;; return a list of records.  Each record looks like (KEY STARTPOS . ENDPOS)
+;; return a list of records.  Each record looks like (KEY STARTPOS ENDPOS)
 ;; where KEY is the sort key (a number or string),
 ;; and STARTPOS and ENDPOS are the bounds of this record in the buffer.
 
@@ -131,8 +128,8 @@ same as ENDRECFUN."
 					  (equal (car key) start-rec)
 					  (equal (cdr key) (point)))
 				     (cons key key)
-				   (cons key (cons start-rec (point))))
-				 sort-lists)))
+				     (list key start-rec (point)))
+				sort-lists)))
       (and (not done) nextrecfun (funcall nextrecfun)))
     sort-lists))
 
@@ -140,12 +137,6 @@ same as ENDRECFUN."
   (let ((inhibit-quit t)
 	(last (point-min))
 	(min (point-min)) (max (point-max)))
-    ;; Make sure insertions done for reordering
-    ;; do not go after any markers at the end of the sorted region,
-    ;; by inserting a space to separate them.
-    (goto-char (point-max))
-    (insert-before-markers " ")
-    (narrow-to-region min (1- (point-max)))
     (while sort-lists
       (goto-char (point-max))
       (insert-buffer-substring (current-buffer)
@@ -154,57 +145,49 @@ same as ENDRECFUN."
       (goto-char (point-max))
       (insert-buffer-substring (current-buffer)
 			       (nth 1 (car sort-lists))
-			       (cdr (cdr (car sort-lists))))
-      (setq last (cdr (cdr (car old)))
+			       (nth 2 (car sort-lists)))
+      (setq last (nth 2 (car old))
 	    sort-lists (cdr sort-lists)
 	    old (cdr old)))
     (goto-char (point-max))
     (insert-buffer-substring (current-buffer)
 			     last
 			     max)
-    ;; Delete the original copy of the text.
-    (delete-region min max)
-    ;; Get rid of the separator " ".
-    (goto-char (point-max))
-    (narrow-to-region min (1+ (point)))
-    (delete-region (point) (1+ (point)))))
+    (delete-region min max)))	;get rid of old version
 
 (defun sort-lines (reverse beg end) 
   "Sort lines in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort)."
   (interactive "P\nr")
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (sort-subr reverse 'forward-line 'end-of-line))))
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (sort-subr reverse 'forward-line 'end-of-line)))
 
 (defun sort-paragraphs (reverse beg end)
   "Sort paragraphs in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort)."
   (interactive "P\nr")
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (sort-subr reverse
-		 (function (lambda () (skip-chars-forward "\n \t\f")))
-		 'forward-paragraph))))
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (sort-subr reverse
+	       (function (lambda () (skip-chars-forward "\n \t\f")))
+	       'forward-paragraph)))
 
 (defun sort-pages (reverse beg end)
   "Sort pages in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort)."
   (interactive "P\nr")
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (sort-subr reverse
-		 (function (lambda () (skip-chars-forward "\n")))
-		 'forward-page))))
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (sort-subr reverse
+	       (function (lambda () (skip-chars-forward "\n")))
+	       'forward-page)))
 
 (defvar sort-fields-syntax-table nil)
 (if sort-fields-syntax-table nil
@@ -216,14 +199,13 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
     (modify-syntax-entry ?\  " " table)
     (modify-syntax-entry ?\t " " table)
     (modify-syntax-entry ?\n " " table)
-    (modify-syntax-entry ?\. "_" table)	; for floating pt. numbers. -wsr
     (setq sort-fields-syntax-table table)))
 
 (defun sort-numeric-fields (field beg end)
   "Sort lines in region numerically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
 Specified field must contain a number in each line of the region.
-With a negative arg, sorts by the ARGth field counted from the right.
+With a negative arg, sorts by the -ARG'th field, in reverse order.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
@@ -234,36 +216,14 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 			      (buffer-substring
 			        (point)
 				(save-excursion
-				  ;; This is just wrong! Even without floats...
-				  ;; (skip-chars-forward "[0-9]")
-				  (forward-sexp 1)
+				  (skip-chars-forward "-0-9")
 				  (point))))))
-		 nil))
-
-(defun sort-float-fields (field beg end)
-  "Sort lines in region numerically by the ARGth field of each line.
-Fields are separated by whitespace and numbered from 1 up.  Specified field
-must contain a floating point number in each line of the region.  With a
-negative arg, sorts by the ARGth field counted from the right.  Called from a
-program, there are three arguments: FIELD, BEG and END.  BEG and END specify
-region to sort."
-  (interactive "p\nr")
-  (sort-fields-1 field beg end
-		 (function (lambda ()
-			     (sort-skip-fields (1- field))
-			     (string-to-float
-			      (buffer-substring
-			       (point)
-			       (save-excursion
-				 (re-search-forward
-				  "[+-]?[0-9]*\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
-				 (point))))))
 		 nil))
 
 (defun sort-fields (field beg end)
   "Sort lines in region lexicographically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
-With a negative arg, sorts by the ARGth field counted from the right.
+With a negative arg, sorts by the -ARG'th field, in reverse order.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
@@ -274,32 +234,27 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 		 (function (lambda () (skip-chars-forward "^ \t\n")))))
 
 (defun sort-fields-1 (field beg end startkeyfun endkeyfun)
-  (let ((tbl (syntax-table)))
-    (if (zerop field) (setq field 1))
+  (let ((reverse (< field 0))
+	(tbl (syntax-table)))
+    (setq field (max 1 field (- field)))
     (unwind-protect
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region beg end)
-	    (goto-char (point-min))
-	    (set-syntax-table sort-fields-syntax-table)
-	    (sort-subr nil
-		       'forward-line 'end-of-line
-		       startkeyfun endkeyfun)))
+	(save-restriction
+	  (narrow-to-region beg end)
+	  (goto-char (point-min))
+	  (set-syntax-table sort-fields-syntax-table)
+	  (sort-subr reverse
+		     'forward-line 'end-of-line
+		     startkeyfun endkeyfun))
       (set-syntax-table tbl))))
 
 (defun sort-skip-fields (n)
-  (let ((bol (point))
-	(eol (save-excursion (end-of-line 1) (point))))
-    (if (> n 0) (forward-word n)
-      (end-of-line)
-      (forward-word (1+ n)))
-    (if (or (and (>= (point) eol) (> n 0))
-	    ;; this is marginally wrong; if the first line of the sort
-	    ;; at bob has the wrong number of fields the error won't be
-	    ;; reported until the next short line.
-	    (and (< (point) bol) (< n 0)))
+  (let ((eol (save-excursion (end-of-line 1) (point))))
+    (forward-word n)
+    (if (> (point) eol)
 	(error "Line has too few fields: %s"
-	       (buffer-substring bol eol)))
+	       (buffer-substring (save-excursion
+				   (beginning-of-line) (point))
+				 eol)))
     (skip-chars-forward " \t")))
 
 
@@ -319,51 +274,45 @@ With a negative prefix arg sorts in reverse order.
 
 For example: to sort lines in the region by the first word on each line
  starting with the letter \"f\",
- RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\=\\<f\\w*\\>\""
-  ;; using negative prefix arg to mean "reverse" is now inconsistent with
-  ;; other sort-.*fields functions but then again this was before, since it
-  ;; didn't use the magnitude of the arg to specify anything.
+ RECORD-REGEXP would be \"^.*$\" and KEY \"\\<f\\w*\\>\""
   (interactive "P\nsRegexp specifying records to sort: 
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))
 	((string-match "\\`\\\\[1-9]\\'" key-regexp)
 	 (setq key-regexp (- (aref key-regexp 1) ?0))))
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (let (sort-regexp-record-end) ;isn't dynamic scoping wonderful?
-	(re-search-forward record-regexp)
-	(setq sort-regexp-record-end (point))
-	(goto-char (match-beginning 0))
-	(sort-subr reverse
-		   (function (lambda ()
-			       (and (re-search-forward record-regexp nil 'move)
-				    (setq sort-regexp-record-end (match-end 0))
-				    (goto-char (match-beginning 0)))))
-		   (function (lambda ()
-			       (goto-char sort-regexp-record-end)))
-		   (function (lambda ()
-			       (let ((n 0))
-				 (cond ((numberp key-regexp)
-					(setq n key-regexp))
-				       ((re-search-forward
-					  key-regexp sort-regexp-record-end t)
-					(setq n 0))
-				       (t (throw 'key nil)))
-				 (condition-case ()
-				     (if (fboundp 'buffer-substring-lessp)
-					 (cons (match-beginning n)
-					       (match-end n))
-					 (buffer-substring (match-beginning n)
-							   (match-end n)))
-				   ;; if there was no such register
-				   (error (throw 'key nil)))))))))))
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (let (sort-regexp-record-end) ;isn't dynamic scoping wonderful?
+      (re-search-forward record-regexp)
+      (setq sort-regexp-record-end (point))
+      (goto-char (match-beginning 0))
+      (sort-subr reverse
+		 (function (lambda ()
+			     (and (re-search-forward record-regexp nil 'move)
+				  (setq sort-regexp-record-end (match-end 0))
+				  (goto-char (match-beginning 0)))))
+		 (function (lambda ()
+			     (goto-char sort-regexp-record-end)))
+		 (function (lambda ()
+			     (let ((n 0))
+			       (cond ((numberp key-regexp)
+				      (setq n key-regexp))
+				     ((re-search-forward
+				        key-regexp sort-regexp-record-end t)
+				      (setq n 0))
+				     (t (throw 'key nil)))
+			       (condition-case ()
+				   (if (fboundp 'buffer-substring-lessp)
+				       (cons (match-beginning n)
+					     (match-end n))
+				       (buffer-substring (match-beginning n)
+							 (match-end n)))
+				 ;; if there was no such register
+				 (error (throw 'key nil))))))))))
 
 
-(defvar sort-columns-subprocess t)
-
 (defun sort-columns (reverse &optional beg end)
   "Sort lines in region alphabetically by a certain range of columns.
 For the purpose of this command, the region includes
@@ -371,11 +320,9 @@ the entire line that point is in and the entire line the mark is in.
 The column positions of point and mark bound the range of columns to sort on.
 A prefix argument means sort into reverse order.
 
-Note that `sort-columns' rejects text that contains tabs,
-because tabs could be split across the specified columns
-and it doesn't know how to handle that.  Also, when possible,
-it uses the `sort' utility program, which doesn't understand tabs.
-Use \\[untabify] to convert tabs to spaces before sorting."
+Note that sort-columns uses the sort utility program and therefore
+cannot work on text containing TAB characters.  Use M-x untabify
+to convert tabs to spaces before sorting."
   (interactive "P\nr")
   (save-excursion
     (let (beg1 end1 col-beg1 col-end1 col-start col-end)
@@ -391,48 +338,7 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
 	  (error "sort-columns does not work with tabs.  Use M-x untabify."))
-      (if (not (eq system-type 'vax-vms))
-	  ;; Use the sort utility if we can; it is 4 times as fast.
-	  (call-process-region beg1 end1 "sort" t t nil
-			       (if reverse "-rt\n" "-t\n")
-			       (concat "+0." col-start)
-			       (concat "-0." col-end))
-	;; On VMS, use Emacs's own facilities.
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region beg1 end1)
-	    (goto-char beg1)
-	    (sort-subr reverse 'forward-line 'end-of-line
-		       (function (lambda () (move-to-column col-start) nil))
-		       (function (lambda () (move-to-column col-end) nil)))))))))
-
-(defun reverse-region (beg end)
-  "Reverse the order of lines in a region.
-From a program takes two point or marker arguments, BEG and END."
-  (interactive "r")
-  (if (> beg end)
-      (let (mid) (setq mid end end beg beg mid)))
-  (save-excursion
-    ;; put beg at the start of a line and end and the end of one --
-    ;; the largest possible region which fits this criteria
-    (goto-char beg)
-    (or (bolp) (forward-line 1))
-    (setq beg (point))
-    (goto-char end)
-    ;; the test for bolp is for those times when end is on an empty line;
-    ;; it is probably not the case that the line should be included in the
-    ;; reversal; it isn't difficult to add it afterward.
-    (or (and (eolp) (not (bolp))) (progn (forward-line -1) (end-of-line)))
-    (setq end (point-marker))
-    ;; the real work.  this thing cranks through memory on large regions.
-    (let (ll (do t))
-      (while do
-	(goto-char beg)
-	(setq ll (cons (buffer-substring (point) (progn (end-of-line) (point)))
-		       ll))
-	(setq do (/= (point) end))
-	(delete-region beg (if do (1+ (point)) (point))))
-      (while (cdr ll)
-	(insert (car ll) "\n")
-	(setq ll (cdr ll)))
-      (insert (car ll)))))
+      (call-process-region beg1 end1 "sort" t t nil
+			   (if reverse "-rt\n" "-t\n")
+                           (concat "+0." col-start)
+                           (concat "-0." col-end)))))

@@ -56,8 +56,8 @@ Use \\[set-gnu-bindings] to restore previous global bindings."
 
 (defun rebind-and-record (bindings)
   "Establish many new global bindings and record the bindings replaced.
-Arg BINDINGS is an alist whose elements are (KEY DEFINITION).
-Returns a similar alist whose elements describe the same KEYs
+Arg is an alist whose elements are (KEY DEFINITION).
+Value is a similar alist whose elements describe the same KEYs
 but each with the old definition that was replaced,"
   (let (old)
     (while bindings

@@ -42,7 +42,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 * }
 */
 
-DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0, "Mocklisp version of `if'.")
+DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0, "if  for mocklisp programs")
   (args)
      Lisp_Object args;
 {
@@ -101,11 +101,11 @@ ml_apply (function, args)
 
   specbind (Qmocklisp_arguments, args);
   val = Fprogn (Fcdr (function));
-  return unbind_to (count, val);
+  unbind_to (count);
+  return val;
 }
 
-DEFUN ("ml-nargs", Fml_nargs, Sml_nargs, 0, 0, 0,
-  "Number of arguments to currently executing mocklisp function.")
+DEFUN ("ml-nargs", Fml_nargs, Sml_nargs, 0, 0, 0, "# arguments to this mocklisp function")
   ()
 {
   if (EQ (Vmocklisp_arguments, Qinteractive))
@@ -113,8 +113,7 @@ DEFUN ("ml-nargs", Fml_nargs, Sml_nargs, 0, 0, 0,
   return Flength (Vmocklisp_arguments);
 }
 
-DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0,
-  "Argument number N to currently executing mocklisp function.")
+DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0, "Argument #N to this mocklisp function.")
   (n, prompt)
      Lisp_Object n, prompt;
 {
@@ -126,7 +125,7 @@ DEFUN ("ml-arg", Fml_arg, Sml_arg, 1, 2, 0,
 }
 
 DEFUN ("ml-interactive", Fml_interactive, Sml_interactive, 0, 0, 0,
- "True if currently executing mocklisp function was called interactively.")
+ "True if this mocklisp function was called interactively.")
   ()
 {
   return (EQ (Vmocklisp_arguments, Qinteractive)) ? Qt : Qnil;
@@ -175,7 +174,7 @@ DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_
   return Qnil;
 }
 
-#if 0 /* Now in mlsupport.el */
+#ifdef NOTDEF /* Now in mlsupport.el */
 
 DEFUN ("ml-substr", Fml_substr, Sml_substr, 3, 3, 0,
   "Return a substring of STRING, starting at index FROM and of length LENGTH.\n\
@@ -213,7 +212,9 @@ is converted into a string by expressing it in decimal.")
       if (XTYPE (tem) == Lisp_Int)
 	tem = Fint_to_string (tem);
       if (XTYPE (tem) == Lisp_String)
-	insert1 (tem);
+	{
+	  insert (XSTRING (tem)->data, XSTRING (tem)->size);
+	}
       else
 	{
 	  tem = wrong_type_argument (Qstringp, tem);

@@ -1,0 +1,949 @@
+This is Info file ../info/emacs, produced by Makeinfo-1.49 from the
+input file emacs.texi.
+
+   This file documents the GNU Emacs editor.
+
+   Copyright (C) 1985, 1986, 1988, 1992 Richard M. Stallman.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided also
+that the sections entitled "The GNU Manifesto", "Distribution" and "GNU
+General Public License" are included exactly as in the original, and
+provided that the entire resulting derived work is distributed under the
+terms of a permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that the sections entitled "The GNU Manifesto",
+"Distribution" and "GNU General Public License" may be included in a
+translation approved by the author instead of in the original English.
+
+
+File: emacs,  Node: Command Index,  Next: Variable Index,  Prev: Key Index,  Up: Top
+
+Command and Function Index
+**************************
+
+* Menu:
+
+* abbrev-mode:                          Abbrevs.
+* abbrev-prefix-mark:                   Expanding Abbrevs.
+* abort-recursive-edit:                 Quitting.
+* abort-recursive-edit:                 Recursive Edit.
+* add-change-log-entry:                 Change Log.
+* add-change-log-entry (V19):           M-x Changes.
+* add-change-log-entry-other-window:    Change Log.
+* add-global-abbrev:                    Defining Abbrevs.
+* add-hook (V19):                       Hook Changes.
+* add-mode-abbrev:                      Defining Abbrevs.
+* add-name-to-file:                     Misc File Ops.
+* append-next-kill:                     Appending Kills.
+* append-to-buffer:                     Accumulating Text.
+* append-to-file:                       Misc File Ops.
+* append-to-file:                       Accumulating Text.
+* apropos:                              Help.
+* apropros (V19):                       New Commands.
+* ask-user-about-lock:                  Interlocking.
+* auto-fill-mode:                       Auto Fill.
+* auto-save-mode:                       Auto Save Control.
+* back-to-indentation:                  Indentation Commands.
+* backward-char:                        Basic.
+* backward-delete-char-untabify:        Program Modes.
+* backward-kill-sentence:               Sentences.
+* backward-kill-sentence:               Kill Errors.
+* backward-kill-sentence:               Killing.
+* backward-kill-word:                   Killing.
+* backward-kill-word:                   Words.
+* backward-kill-word:                   Kill Errors.
+* backward-list:                        Lists.
+* backward-page:                        Pages.
+* backward-paragraph:                   Paragraphs.
+* backward-sentence:                    Sentences.
+* backward-sexp:                        Lists.
+* backward-text-line:                   Nroff Mode.
+* backward-up-list:                     Lists.
+* backward-word:                        Words.
+* batch-byte-compile:                   Compiling Libraries.
+* beginning-of-buffer:                  Basic.
+* beginning-of-defun:                   Defuns.
+* beginning-of-fortran-subprogram:      Fortran Motion.
+* beginning-of-line:                    Basic.
+* buffer-enable-undo:                   Undo.
+* buffer-menu:                          Several Buffers.
+* byte-compile-file:                    Compiling Libraries.
+* byte-recompile-directory:             Compiling Libraries.
+* c-beginning-of-statement (V19):       New Commands.
+* c-end-of-statement (V19):             New Commands.
+* c-fill-paragraph (V19):               Filling Changes.
+* c-fill-paragraph (V19):               New Commands.
+* c-indent-line:                        Basic Indent.
+* c-macro-expand:                       Macro Expansion.
+* c-up-conditional (V19):               New Commands.
+* calendar-count-days-region (V19):     Calendar.
+* calendar-cursor-holidays (V19):       Calendar.
+* calendar-goto-astro-date (V19):       Calendar.
+* calendar-goto-french-date (V19):      Calendar.
+* calendar-goto-hebrew-date (V19):      Calendar.
+* calendar-goto-islamic-date (V19):     Calendar.
+* calendar-goto-iso-date (V19):         Calendar.
+* calendar-goto-julian-date (V19):      Calendar.
+* calendar-print-astro-date (V19):      Calendar.
+* calendar-print-french-date (V19):     Calendar.
+* calendar-print-hebrew-date (V19):     Calendar.
+* calendar-print-islamic-date (V19):    Calendar.
+* calendar-print-iso-date (V19):        Calendar.
+* calendar-print-julian-date (V19):     Calendar.
+* calendar-print-mayan-date (V19):      Calendar.
+* calendar-unmark (V19):                Calendar.
+* calendar-unmark (V19):                Displaying Diary.
+* call-last-kbd-macro:                  Basic Kbd Macro.
+* cancel-debug-on-entry:                Lisp Debug.
+* capitalize-word:                      Case.
+* capitalize-word:                      Fixing Case.
+* center-line:                          Fill Commands.
+* clear-rectangle:                      Rectangles.
+* comint-continue-subjob (V19):         Shell Changes.
+* comint-dynamic-complete (V19):        Shell Changes.
+* comint-dynamic-list-completions (V19): Shell Changes.
+* comint-kill-output (V19):             Shell Changes.
+* comint-next-input (V19):              Shell Changes.
+* comint-next-matching-input (V19):     Shell Changes.
+* comint-previous-input (V19):          Shell Changes.
+* comint-previous-matching-input (V19): Shell Changes.
+* comint-show-output (V19):             Shell Changes.
+* command-apropos:                      Help.
+* comment-region (V19):                 New Commands.
+* compare-windows:                      Other Window.
+* compare-windows (V19):                M-x Changes.
+* compile:                              Compilation.
+* compile (V19):                        M-x Changes.
+* convert-mocklisp-buffer:              Mocklisp.
+* copy-file:                            Misc File Ops.
+* copy-last-shell-input:                Shell Mode.
+* copy-region-as-kill:                  Kill Ring.
+* copy-to-buffer:                       Accumulating Text.
+* copy-to-register:                     RegText.
+* count-lines-page:                     Pages.
+* count-lines-region:                   Position Info.
+* count-matches:                        Other Repeating Search.
+* count-text-lines:                     Nroff Mode.
+* dabbrev-expand:                       Dynamic Abbrevs.
+* dbx (V19):                            Starting GUD.
+* debug:                                Lisp Debug.
+* debug-on-entry:                       Lisp Debug.
+* default-value:                        Locals.
+* define-abbrevs:                       Saving Abbrevs.
+* define-key:                           Rebinding.
+* delete-backward-char:                 Killing.
+* delete-backward-char:                 Basic.
+* delete-backward-char:                 Kill Errors.
+* delete-blank-lines:                   Killing.
+* delete-blank-lines:                   Blank Lines.
+* delete-char:                          Basic Picture.
+* delete-char:                          Killing.
+* delete-file:                          Misc File Ops.
+* delete-horizontal-space:              Killing.
+* delete-horizontal-space:              Indentation Commands.
+* delete-indentation:                   Killing.
+* delete-indentation:                   Indentation Commands.
+* delete-matching-lines:                Other Repeating Search.
+* delete-non-matching-lines:            Other Repeating Search.
+* delete-other-windows:                 Change Window.
+* delete-rectangle:                     Rectangles.
+* delete-window:                        Change Window.
+* describe-bindings:                    Help.
+* describe-copying:                     Help.
+* describe-distribution:                Help.
+* describe-function:                    Documentation.
+* describe-function:                    Help.
+* describe-key:                         Help.
+* describe-key-briefly:                 Help.
+* describe-mode:                        Help.
+* describe-no-warranty:                 Help.
+* describe-syntax:                      Syntax Change.
+* describe-variable:                    Documentation.
+* describe-variable:                    Examining.
+* describe-variable:                    Help.
+* diary (V19):                          Displaying Diary.
+* diff (V19):                           New Commands.
+* diff-backup (V19):                    New Commands.
+* digit-argument:                       Arguments.
+* dired:                                Dired Enter.
+* dired-backup-diff (V19):              Comparison in Dired.
+* dired-change-marks (V19):             Marks in Dired.
+* dired-diff (V19):                     Comparison in Dired.
+* dired-do-byte-compile (V19):          Multiple Files.
+* dired-do-chgrp (V19):                 Multiple Files.
+* dired-do-chmod (V19):                 Multiple Files.
+* dired-do-chown (V19):                 Multiple Files.
+* dired-do-compress (V19):              Multiple Files.
+* dired-do-copy (V19):                  Multiple Files.
+* dired-do-copy-regexp (V19):           Dired Regexps.
+* dired-do-hardlink (V19):              Multiple Files.
+* dired-do-hardlink-regexp (V19):       Dired Regexps.
+* dired-do-kill-lines (V19):            Editing Dired Buffer.
+* dired-do-load (V19):                  Multiple Files.
+* dired-do-print (V19):                 Multiple Files.
+* dired-do-redisplay (V19):             Editing Dired Buffer.
+* dired-do-rename (V19):                Multiple Files.
+* dired-do-rename-regexp (V19):         Dired Regexps.
+* dired-do-shell-command (V19):         Shell Commands in Dired.
+* dired-do-symlink (V19):               Multiple Files.
+* dired-do-symlink-regexp (V19):        Dired Regexps.
+* dired-downcase (V19):                 Dired Case Conversion.
+* dired-flag-files-regexp (V19):        Dired Regexps.
+* dired-hide-all (V19):                 Hiding Subdirectories.
+* dired-hide-subdir (V19):              Hiding Subdirectories.
+* dired-mark (V19):                     Marks in Dired.
+* dired-mark-directories (V19):         Marks in Dired.
+* dired-mark-executables (V19):         Marks in Dired.
+* dired-mark-files-regexp (V19):        Dired Regexps.
+* dired-mark-symlinks (V19):            Marks in Dired.
+* dired-maybe-insert-subdir (V19):      Subdirectories in Dired.
+* dired-next-subdir (V19):              Subdirectories in Dired.
+* dired-other-window:                   Pop Up Window.
+* dired-other-window:                   Dired Enter.
+* dired-prev-subdir (V19):              Subdirectories in Dired.
+* dired-tree-down (V19):                Subdirectories in Dired.
+* dired-tree-up (V19):                  Subdirectories in Dired.
+* dired-unmark-all-files (V19):         Marks in Dired.
+* dired-upcase (V19):                   Dired Case Conversion.
+* dirs (V19):                           Shell Changes.
+* disable-command:                      Disabling.
+* disassemble:                          Compiling Libraries.
+* display-buffer (V19):                 Binding Changes.
+* display-time:                         Mode Line.
+* dissociated-press:                    Dissociated Press.
+* do-auto-save:                         Auto Save Control.
+* doctor:                               Total Frustration.
+* down-list:                            Lists.
+* downcase-region:                      Case.
+* downcase-word:                        Fixing Case.
+* downcase-word:                        Case.
+* edebug-defun (V19):                   Edebug Mode.
+* edit-abbrevs:                         Editing Abbrevs.
+* edit-abbrevs-redefine:                Editing Abbrevs.
+* edit-options:                         Edit Options.
+* edit-picture:                         Picture.
+* edit-tab-stops:                       Text Mode.
+* edit-tab-stops:                       Tab Stops.
+* edit-tab-stops-note-changes:          Tab Stops.
+* edt-emulation-off:                    Emulation.
+* edt-emulation-on:                     Emulation.
+* electric-nroff-mode:                  Nroff Mode.
+* emacs-lisp-mode:                      Lisp Eval.
+* emacs-version:                        Bugs.
+* emerge-auto-advance-mode (V19):       Submodes of Emerge.
+* emerge-buffers (V19):                 Overview of Emerge.
+* emerge-buffers-with-ancestor (V19):   Overview of Emerge.
+* emerge-files (V19):                   Overview of Emerge.
+* emerge-files-with-ancestor (V19):     Overview of Emerge.
+* emerge-skip-prefers-mode (V19):       Submodes of Emerge.
+* enable-command:                       Disabling.
+* end-kbd-macro:                        Basic Kbd Macro.
+* end-of-buffer:                        Basic.
+* end-of-defun:                         Defuns.
+* end-of-fortran-subprogram:            Fortran Motion.
+* end-of-line:                          Basic.
+* enlarge-window:                       Change Window.
+* enlarge-window-horizontally:          Change Window.
+* evade-flow-control-on (V19):          New Facilities.
+* eval-current-buffer:                  Lisp Eval.
+* eval-defun:                           Lisp Eval.
+* eval-expression:                      Lisp Eval.
+* eval-last-sexp:                       Lisp Eval.
+* eval-region:                          Lisp Eval.
+* exchange-point-and-mark:              Setting Mark.
+* execute-extended-command:             M-x.
+* exit-recursive-edit:                  Recursive Edit.
+* expand-abbrev:                        Expanding Abbrevs.
+* expand-region-abbrevs:                Expanding Abbrevs.
+* fancy-diary-display (V19):            Simple and Fancy.
+* fill-c++-comment (V19):               Other New Modes.
+* fill-individual-paragraphs:           Fill Prefix.
+* fill-individual-paragraphs (V19):     Filling Changes.
+* fill-paragraph:                       Fill Commands.
+* fill-region:                          Fill Commands.
+* fill-region-as-paragraph:             Fill Commands.
+* fill-region-as-paragraph (V19):       Filling Changes.
+* find-alternate-file:                  Visiting.
+* find-dired:                           Dired and Find.
+* find-file:                            Visiting.
+* find-file-other-frame (V19):          New Commands.
+* find-file-other-window:               Pop Up Window.
+* find-file-other-window:               Visiting.
+* find-file-read-only-other-window (V19): New Commands.
+* find-grep-dired:                      Dired and Find.
+* find-name-dired:                      Dired and Find.
+* find-tag:                             Find Tag.
+* find-tag-other-frame (V19):           New Commands.
+* find-tag-other-window:                Find Tag.
+* find-tag-other-window:                Pop Up Window.
+* find-tag-regexp (V19):                Tags Changes.
+* fortran-column-ruler:                 Fortran Columns.
+* fortran-comment-region:               Fortran Comments.
+* fortran-indent-line:                  ForIndent Commands.
+* fortran-indent-subprogram:            ForIndent Commands.
+* fortran-mode:                         Fortran.
+* fortran-next-statement:               Fortran Motion.
+* fortran-previous-statement:           Fortran Motion.
+* fortran-split-line:                   ForIndent Commands.
+* fortran-window-create:                Fortran Columns.
+* forward-char:                         Basic.
+* forward-list:                         Lists.
+* forward-page:                         Pages.
+* forward-paragraph:                    Paragraphs.
+* forward-sentence:                     Sentences.
+* forward-sexp:                         Lists.
+* forward-text-line:                    Nroff Mode.
+* forward-word:                         Words.
+* gdb (V19):                            Starting GUD.
+* global-set-key:                       Rebinding.
+* global-set-key (V19):                 Key Sequence Changes.
+* gnus (V19):                           GNUS.
+* gnus-Group-exit (V19):                Summary of GNUS.
+* gnus-Group-list-all-groups (V19):     Summary of GNUS.
+* gnus-Group-list-groups (V19):         Summary of GNUS.
+* gnus-Group-next-group (V19):          Summary of GNUS.
+* gnus-Group-next-unread-group (V19):   Summary of GNUS.
+* gnus-Group-prev-group (V19):          Summary of GNUS.
+* gnus-Group-prev-unread-group (V19):   Summary of GNUS.
+* gnus-Group-read-group (V19):          Summary of GNUS.
+* gnus-Group-suspend (V19):             Summary of GNUS.
+* gnus-Group-unsubscribe-current-group (V19): Summary of GNUS.
+* gnus-Summary-isearch-article (V19):   Summary of GNUS.
+* gnus-Summary-next-page (V19):         Summary of GNUS.
+* gnus-Summary-next-same-subject (V19): Summary of GNUS.
+* gnus-Summary-next-subject (V19):      Summary of GNUS.
+* gnus-Summary-prev-page (V19):         Summary of GNUS.
+* gnus-Summary-prev-same-subject (V19): Summary of GNUS.
+* gnus-Summary-prev-subject (V19):      Summary of GNUS.
+* gnus-Summary-search-article-forward (V19): Summary of GNUS.
+* gnus-Summary-sort-by-author (V19):    Summary of GNUS.
+* gnus-Summary-sort-by-date (V19):      Summary of GNUS.
+* gnus-Summary-sort-by-number (V19):    Summary of GNUS.
+* gnus-Summary-sort-by-subject (V19):   Summary of GNUS.
+* goto-char:                            Basic.
+* goto-line:                            Basic.
+* grep:                                 Compilation.
+* gud-cont (V19):                       Commands of GUD.
+* gud-def (V19):                        GUD Customization.
+* gud-down (V19):                       Commands of GUD.
+* gud-finish (V19):                     Commands of GUD.
+* gud-next (V19):                       Commands of GUD.
+* gud-refresh (V19):                    Commands of GUD.
+* gud-step (V19):                       Commands of GUD.
+* gud-stepi (V19):                      Commands of GUD.
+* gud-up (V19):                         Commands of GUD.
+* hanoi:                                Amusements.
+* help-with-tutorial:                   Basic.
+* help-with-tutorial:                   Help.
+* hide-body:                            Outline Visibility.
+* hide-entry:                           Outline Visibility.
+* hide-leaves:                          Outline Visibility.
+* hide-subtree:                         Outline Visibility.
+* holidays (V19):                       Calendar.
+* iconify-frame (V19):                  New Commands.
+* indent-c-exp:                         Multi-line Indent.
+* indent-for-comment:                   Comments.
+* indent-new-comment-line:              Comments.
+* indent-region:                        Multi-line Indent.
+* indent-region:                        Indentation Commands.
+* indent-relative:                      Indentation Commands.
+* indent-rigidly:                       Indentation Commands.
+* indent-sexp:                          Multi-line Indent.
+* indented-text-mode:                   Text Mode.
+* info:                                 Help.
+* insert-abbrevs:                       Saving Abbrevs.
+* insert-anniversary-diary-entry (V19): New Entries.
+* insert-block-diary-entry (V19):       New Entries.
+* insert-cyclic-diary-entry (V19):      New Entries.
+* insert-diary-entry (V19):             New Entries.
+* insert-file:                          Misc File Ops.
+* insert-kbd-macro:                     Save Kbd Macro.
+* insert-monthly-diary-entry (V19):     New Entries.
+* insert-parentheses:                   Balanced Editing.
+* insert-register:                      RegText.
+* insert-weekly-diary-entry (V19):      New Entries.
+* insert-yearly-diary-entry (V19):      New Entries.
+* interrupt-shell-subjob:               Shell Mode.
+* inverse-add-global-abbrev:            Defining Abbrevs.
+* inverse-add-mode-abbrev:              Defining Abbrevs.
+* isearch (V19):                        Search Changes.
+* isearch-backward:                     Incremental Search.
+* isearch-backward-regexp:              Regexp Search.
+* isearch-backward-regexp (V19):        New Commands.
+* isearch-forward:                      Incremental Search.
+* isearch-forward-regexp:               Regexp Search.
+* ispell-buffer (V19):                  Spell Changes.
+* ispell-region (V19):                  Spell Changes.
+* just-one-space:                       Killing.
+* kbd-macro-query:                      Kbd Macro Query.
+* kill-all-abbrevs:                     Defining Abbrevs.
+* kill-buffer:                          Kill Buffer.
+* kill-comment:                         Comments.
+* kill-compilation:                     Compilation.
+* kill-ispell (V19):                    Spell Changes.
+* kill-line:                            Killing.
+* kill-line:                            Killing.
+* kill-local-variable:                  Locals.
+* kill-output-from-shell:               Shell Mode.
+* kill-rectangle:                       Rectangles.
+* kill-region:                          Killing.
+* kill-sentence:                        Killing.
+* kill-sentence:                        Sentences.
+* kill-sexp:                            Lists.
+* kill-sexp:                            Killing.
+* kill-some-buffers:                    Kill Buffer.
+* kill-word:                            Killing.
+* kill-word:                            Words.
+* latex-mode:                           TeX Mode.
+* LaTeX-mode:                           TeX Mode.
+* lisp-complete-symbol:                 Lisp Completion.
+* lisp-indent-line:                     Basic Indent.
+* lisp-interaction-mode:                Lisp Interaction.
+* lisp-mode:                            External Lisp.
+* lisp-send-defun:                      External Lisp.
+* list-abbrevs:                         Editing Abbrevs.
+* list-buffers:                         List Buffers.
+* list-command-history:                 Repetition.
+* list-directory:                       ListDir.
+* list-matching-lines:                  Other Repeating Search.
+* list-options:                         Edit Options.
+* list-tags:                            List Tags.
+* load:                                 Loading.
+* load-file:                            Loading.
+* load-library:                         Loading.
+* local-set-key:                        Rebinding.
+* lpr-buffer:                           Hardcopy.
+* lpr-region:                           Hardcopy.
+* mail:                                 Sending Mail.
+* mail-cc:                              Mail Mode.
+* mail-fill-yanked-message:             Mail Mode.
+* mail-other-frame (V19):               New Commands.
+* mail-other-window:                    Pop Up Window.
+* mail-other-window:                    Sending Mail.
+* mail-send:                            Mail Mode.
+* mail-send-and-exit:                   Mail Mode.
+* mail-signature:                       Mail Mode.
+* mail-subject:                         Mail Mode.
+* mail-to:                              Mail Mode.
+* mail-yank-original:                   Mail Mode.
+* mail-yank-original:                   Rmail Reply.
+* make-local-variable:                  Locals.
+* make-symbolic-link:                   Misc File Ops.
+* make-symbolic-link (V19):             M-x Changes.
+* make-variable-buffer-local:           Locals.
+* manual-entry:                         Documentation.
+* manual-entry (V19):                   M-x Changes.
+* mark-calendar-holidays (V19):         Calendar.
+* mark-defun:                           Defuns.
+* mark-defun:                           Marking Objects.
+* mark-diary-entries (V19):             Displaying Diary.
+* mark-fortran-subprogram:              Fortran Motion.
+* mark-page:                            Pages.
+* mark-page:                            Marking Objects.
+* mark-paragraph:                       Paragraphs.
+* mark-paragraph:                       Marking Objects.
+* mark-sexp:                            Marking Objects.
+* mark-sexp:                            Lists.
+* mark-whole-buffer:                    Marking Objects.
+* mark-word:                            Marking Objects.
+* mark-word:                            Words.
+* minibuffer-complete:                  Completion.
+* minibuffer-complete-word:             Completion.
+* modify-syntax-entry:                  Syntax Change.
+* move-over-close-and-reindent:         Balanced Editing.
+* move-to-window-line:                  Basic.
+* name-last-kbd-macro:                  Save Kbd Macro.
+* narrow-to-region:                     Narrowing.
+* negative-argument:                    Arguments.
+* newline:                              Basic.
+* newline-and-indent:                   Basic Indent.
+* next-complex-command:                 Repetition.
+* next-error:                           Compilation.
+* next-file:                            Tags Stepping.
+* next-history-element (V19):           New Facilities.
+* next-line:                            Basic.
+* next-matching-history-element (V19):  New Facilities.
+* normal-mode:                          Choosing Modes.
+* not-modified:                         Saving.
+* nroff-mode:                           Nroff Mode.
+* occur:                                Other Repeating Search.
+* open-dribble-file:                    Bugs.
+* open-line:                            Blank Lines.
+* open-rectangle:                       Rectangles.
+* open-termscript:                      Bugs.
+* other-window:                         Other Window.
+* outline-backward-same-level:          Outline Motion.
+* outline-forward-same-level:           Outline Motion.
+* outline-mode:                         Outline Mode.
+* outline-next-visible-heading:         Outline Motion.
+* outline-previous-visible-heading:     Outline Motion.
+* outline-up-heading:                   Outline Motion.
+* overwrite-mode:                       Minor Modes.
+* picture-backward-clear-column:        Basic Picture.
+* picture-backward-column:              Basic Picture.
+* picture-clear-column:                 Basic Picture.
+* picture-clear-line:                   Basic Picture.
+* picture-clear-rectangle:              Rectangles in Picture.
+* picture-clear-rectangle-to-register:  Rectangles in Picture.
+* picture-forward-column:               Basic Picture.
+* picture-motion:                       Insert in Picture.
+* picture-motion-reverse:               Insert in Picture.
+* picture-move-down:                    Basic Picture.
+* picture-move-up:                      Basic Picture.
+* picture-movement-down:                Insert in Picture.
+* picture-movement-left:                Insert in Picture.
+* picture-movement-ne:                  Insert in Picture.
+* picture-movement-nw:                  Insert in Picture.
+* picture-movement-right:               Insert in Picture.
+* picture-movement-se:                  Insert in Picture.
+* picture-movement-sw:                  Insert in Picture.
+* picture-movement-up:                  Insert in Picture.
+* picture-newline:                      Basic Picture.
+* picture-open-line:                    Basic Picture.
+* picture-set-tab-stops:                Tabs in Picture.
+* picture-tab:                          Tabs in Picture.
+* picture-tab-search:                   Tabs in Picture.
+* picture-yank-rectangle:               Rectangles in Picture.
+* picture-yank-rectangle-from-register: Rectangles in Picture.
+* plain-tex-mode:                       TeX Mode.
+* plain-TeX-mode:                       TeX Mode.
+* point-to-register:                    RegPos.
+* prepend-to-buffer:                    Accumulating Text.
+* previous-complex-command:             Repetition.
+* previous-history-element (V19):       New Facilities.
+* previous-line:                        Basic.
+* previous-matching-history-element (V19): New Facilities.
+* print-buffer:                         Hardcopy.
+* print-diary-entries (V19):            Printing Diary.
+* print-region:                         Hardcopy.
+* query-replace:                        Query Replace.
+* query-replace-regexp:                 Query Replace.
+* quietly-read-abbrev-file:             Saving Abbrevs.
+* quit-shell-subjob:                    Shell Mode.
+* quoted-insert:                        Basic.
+* re-search-backward:                   Regexp Search.
+* re-search-forward:                    Regexp Search.
+* read-abbrev-file:                     Saving Abbrevs.
+* recenter:                             Scrolling.
+* recenter:                             Basic.
+* recover-file:                         Recover.
+* register-to-point:                    RegPos.
+* reload-ispell (V19):                  Spell Changes.
+* rename-buffer:                        Misc Buffer.
+* rename-file:                          Misc File Ops.
+* repeat-complex-command:               Repetition.
+* replace-regexp:                       Unconditional Replace.
+* replace-string:                       Unconditional Replace.
+* reposition-window (V19):              New Commands.
+* revert-buffer:                        Reverting.
+* revert-buffer (Dired, V19):           Editing Dired Buffer.
+* revert-buffer (V19):                  Basic Changes.
+* rmail:                                Rmail.
+* rmail-add-label:                      Rmail Labels.
+* rmail-beginning-of-message:           Rmail Scrolling.
+* rmail-continue:                       Rmail Reply.
+* rmail-delete-backward:                Rmail Deletion.
+* rmail-delete-forward:                 Rmail Deletion.
+* rmail-edit-current-message:           Rmail Editing.
+* rmail-expunge:                        Rmail Deletion.
+* rmail-forward:                        Rmail Reply.
+* rmail-get-new-mail:                   Rmail Files.
+* rmail-input:                          Rmail Files.
+* rmail-kill-label:                     Rmail Labels.
+* rmail-last-message:                   Rmail Motion.
+* rmail-mail:                           Rmail Reply.
+* rmail-next-labeled-message:           Rmail Labels.
+* rmail-next-message:                   Rmail Motion.
+* rmail-next-undeleted-message:         Rmail Motion.
+* rmail-output:                         Rmail Output.
+* rmail-output-to-rmail-file:           Rmail Output.
+* rmail-previous-labeled-message:       Rmail Labels.
+* rmail-previous-message:               Rmail Motion.
+* rmail-previous-undeleted-message:     Rmail Motion.
+* rmail-quit:                           Rmail.
+* rmail-reply:                          Rmail Reply.
+* rmail-resend (V19):                   Mail Changes.
+* rmail-retry-failure (V19):            Mail Changes.
+* rmail-save:                           Rmail.
+* rmail-search:                         Rmail Motion.
+* rmail-show-message:                   Rmail Motion.
+* rmail-summary:                        Rmail Make Summary.
+* rmail-summary-by-labels:              Rmail Labels.
+* rmail-summary-by-labels:              Rmail Make Summary.
+* rmail-summary-by-recipients:          Rmail Make Summary.
+* rmail-summary-delete-forward:         Rmail Summary Edit.
+* rmail-summary-exit:                   Rmail Summary Edit.
+* rmail-summary-goto-msg:               Rmail Summary Edit.
+* rmail-summary-next-all:               Rmail Summary Edit.
+* rmail-summary-next-msg:               Rmail Summary Edit.
+* rmail-summary-previous-all:           Rmail Summary Edit.
+* rmail-summary-previous-msg:           Rmail Summary Edit.
+* rmail-summary-quit:                   Rmail Summary Edit.
+* rmail-summary-scroll-msg-down:        Rmail Summary Edit.
+* rmail-summary-scroll-msg-up:          Rmail Summary Edit.
+* rmail-summary-undelete:               Rmail Summary Edit.
+* rmail-toggle-header:                  Rmail Editing.
+* rmail-undelete-previous-message:      Rmail Deletion.
+* run-lisp:                             External Lisp.
+* save-buffer:                          Saving.
+* save-buffers-kill-emacs:              Exiting.
+* save-some-buffers:                    Saving.
+* scroll-bar-mode (V19):                Basic Changes.
+* scroll-down:                          Scrolling.
+* scroll-left:                          Horizontal Scrolling.
+* scroll-other-window:                  Other Window.
+* scroll-right:                         Horizontal Scrolling.
+* scroll-up:                            Scrolling.
+* sdb (V19):                            Starting GUD.
+* search-backward:                      Nonincremental Search.
+* search-forward:                       Nonincremental Search.
+* self-insert:                          Basic.
+* send-gud-command (V19):               GUD Customization.
+* send-invisible (V19):                 Shell Changes.
+* send-shell-input:                     Shell Mode.
+* set-comment-column:                   Comments.
+* set-fill-column:                      Fill Commands.
+* set-fill-prefix:                      Fill Prefix.
+* set-gnu-bindings:                     Emulation.
+* set-goal-column:                      Basic.
+* set-gosmacs-bindings:                 Emulation.
+* set-mark-command:                     Setting Mark.
+* set-rmail-inbox-list:                 Rmail Files.
+* set-selective-display:                Selective Display.
+* set-variable:                         Examining.
+* set-visited-file-name:                Saving.
+* setq-default:                         Locals.
+* shell:                                Interactive Shell.
+* shell-command:                        Single Shell.
+* shell-command-on-region:              Single Shell.
+* shell-send-eof:                       Shell Mode.
+* show-all:                             Outline Visibility.
+* show-all-diary-entries (V19):         Displaying Diary.
+* show-branches:                        Outline Visibility.
+* show-children:                        Outline Visibility.
+* show-entry:                           Outline Visibility.
+* show-output-from-shell:               Shell Mode.
+* show-subtree:                         Outline Visibility.
+* sort-columns:                         Sorting.
+* sort-fields:                          Sorting.
+* sort-lines:                           Sorting.
+* sort-numeric-fields:                  Sorting.
+* sort-pages:                           Sorting.
+* sort-paragraphs:                      Sorting.
+* spell-buffer:                         Spelling.
+* spell-region:                         Spelling.
+* spell-string:                         Spelling.
+* spell-word:                           Spelling.
+* split-line:                           Indentation Commands.
+* split-window-horizontally:            Split Window.
+* split-window-vertically:              Split Window.
+* start-kbd-macro:                      Basic Kbd Macro.
+* stop-shell-subjob:                    Shell Mode.
+* substitute-key-definition:            Rebinding.
+* super-apropos (V19):                  New Commands.
+* suspend-emacs:                        Exiting.
+* switch-to-buffer:                     Select Buffer.
+* switch-to-buffer-other-frame (V19):   New Commands.
+* switch-to-buffer-other-window:        Pop Up Window.
+* tab-to-tab-stop:                      Text Mode.
+* tab-to-tab-stop:                      Tab Stops.
+* tabify:                               Just Spaces.
+* tags-apropos:                         List Tags.
+* tags-loop-continue:                   Tags Search.
+* tags-query-replace:                   Tags Search.
+* tags-search:                          Tags Search.
+* tex-bibtex-file (V19):                TeX Mode Changes.
+* TeX-buffer:                           TeX Print.
+* TeX-close-LaTeX-block:                TeX Editing.
+* tex-close-latex-block (V19):          TeX Mode Changes.
+* TeX-insert-braces:                    TeX Editing.
+* TeX-insert-quote:                     TeX Editing.
+* TeX-kill-job:                         TeX Print.
+* tex-latex-block (V19):                TeX Mode Changes.
+* tex-mode:                             TeX Mode.
+* TeX-mode:                             TeX Mode.
+* TeX-print:                            TeX Print.
+* TeX-recenter-output-buffer:           TeX Print.
+* TeX-region:                           TeX Print.
+* TeX-show-print-queue:                 TeX Print.
+* TeX-terminate-paragraph:              TeX Editing.
+* tex-view (V19):                       TeX Mode Changes.
+* texinfo-mode:                         Texinfo Mode.
+* text-mode:                            Text Mode.
+* toggle-read-only:                     Misc Buffer.
+* top-level:                            Recursive Edit.
+* top-level:                            Quitting.
+* transpose-chars:                      Transpose.
+* transpose-chars:                      Basic.
+* transpose-lines:                      Transpose.
+* transpose-sexps:                      Lists.
+* transpose-sexps:                      Transpose.
+* transpose-words:                      Transpose.
+* transpose-words:                      Words.
+* undigestify-rmail-message:            Rmail Digest.
+* undo:                                 Undo.
+* unexpand-abbrev:                      Expanding Abbrevs.
+* universal-argument:                   Arguments.
+* unrmail:                              Mail Changes.
+* untabify:                             Just Spaces.
+* up-list:                              TeX Editing.
+* upcase-region:                        Case.
+* upcase-word:                          Fixing Case.
+* upcase-word:                          Case.
+* validate-TeX-buffer:                  TeX Editing.
+* vc-cancel-version (V19):              Editing with VC.
+* vc-create-snapshot (V19):             Making Snapshots.
+* vc-diff (V19):                        Comparing Versions.
+* vc-directory (V19):                   VC Status.
+* vc-insert-headers (V19):              Version Headers.
+* vc-print-log (V19):                   VC Status.
+* vc-register (V19):                    Editing with VC.
+* vc-rename-file (V19):                 Renaming and VC.
+* vc-retrieve-snapshot (V19):           Making Snapshots.
+* vc-revert-buffer (V19):               Editing with VC.
+* vc-toggle-read-only (V19):            Editing with VC.
+* vc-update-change-log (V19):           Change Logs and VC.
+* vi-mode:                              Emulation.
+* view-buffer:                          Misc Buffer.
+* view-buffer (V19):                    M-x Changes.
+* view-diary-entries (V19):             Displaying Diary.
+* view-emacs-news:                      Help.
+* view-file:                            Misc File Ops.
+* view-file (V19):                      M-x Changes.
+* view-lossage:                         Help.
+* view-register:                        Registers.
+* vip-mode:                             Emulation.
+* visit-tags-table:                     Select Tag Table.
+* what-cursor-position:                 Position Info.
+* what-line:                            Position Info.
+* what-page:                            Position Info.
+* where-is:                             Help.
+* widen:                                Narrowing.
+* word-search-backward:                 Word Search.
+* word-search-forward:                  Word Search.
+* write-abbrev-file:                    Saving Abbrevs.
+* write-file:                           Saving.
+* write-region:                         Misc File Ops.
+* Yank:                                 Kill Ring.
+* yank-pop:                             Earlier Kills.
+* yank-rectangle:                       Rectangles.
+* yow:                                  Amusements.
+* zap-to-char:                          Killing.
+
+
+File: emacs,  Node: Variable Index,  Next: Concept Index,  Prev: Command Index,  Up: Top
+
+Variable Index
+**************
+
+* Menu:
+
+* abbrev-all-caps:                      Expanding Abbrevs.
+* abbrev-file-name:                     Saving Abbrevs.
+* abbrev-mode:                          Abbrevs.
+* auto-mode-alist:                      Choosing Modes.
+* auto-save-default:                    Auto Save Control.
+* auto-save-interval:                   Auto Save Control.
+* auto-save-timeout (V19):              Basic Changes.
+* auto-save-visited-file-name:          Auto Save Files.
+* backup-by-copying:                    Backup Copying.
+* backup-by-copying-when-linked:        Backup Copying.
+* backup-by-copying-when-mismatch:      Backup Copying.
+* blink-matching-paren:                 Matching.
+* blink-matching-paren-distance:        Matching.
+* buffer-read-only:                     Misc Buffer.
+* c-argdecl-indent:                     C Indent.
+* c-auto-newline:                       C Indent.
+* c-brace-imaginary-offset:             C Indent.
+* c-brace-offset:                       C Indent.
+* c-continued-statement-offset:         C Indent.
+* c-indent-level:                       C Indent.
+* c-label-offset:                       C Indent.
+* c-mode-hook:                          Program Modes.
+* c-mode-map:                           Keymaps.
+* c-tab-always-indent:                  C Indent.
+* case-fold-search:                     Replacement and Case.
+* case-fold-search:                     Search Case.
+* case-replace:                         Replacement and Case.
+* command-history:                      Repetition.
+* command-line-args:                    Command Switches.
+* comment-column:                       Comments.
+* comment-end:                          Comments.
+* comment-indent-hook:                  Comments.
+* comment-line-start:                   Fortran Comments.
+* comment-line-start-skip:              Fortran Comments.
+* comment-multi-line:                   Comments.
+* comment-start:                        Comments.
+* comment-start-skip:                   Comments.
+* compile-command:                      Compilation.
+* completion-auto-help:                 Completion.
+* completion-ignored-extensions:        Completion.
+* ctl-arrow:                            Display Vars.
+* ctl-x-map:                            Keymaps.
+* dbx-mode-hook:                        GUD Customization.
+* debug-on-error:                       Lisp Debug.
+* debug-on-quit:                        Lisp Debug.
+* default-directory:                    File Names.
+* default-major-mode:                   Choosing Modes.
+* delete-auto-save-files:               Auto Save Files.
+* diary-display-hook (V19):             Simple and Fancy.
+* diary-file (V19):                     Diary Entries.
+* diff-switches (V19):                  New Commands.
+* dired-chown-program (V19):            Multiple Files.
+* dired-copy-preserve-time (V19):       Multiple Files.
+* dired-kept-versions:                  Dired Deletion.
+* dired-listing-switches:               Dired Enter.
+* echo-keystrokes:                      Display Vars.
+* emacs-lisp-mode-hook:                 Program Modes.
+* emerge-combine-template (V19):        Combining in Emerge.
+* emerge-startup-hook (V19):            Fine Points of Emerge.
+* enable-local-variables (V19):         Basic Changes.
+* enable-recursive-minibuffers:         Minibuffer Edit.
+* esc-map:                              Keymaps.
+* european-calendar-style (V19):        European Calendar Style.
+* explicit-shell-file-name:             Interactive Shell.
+* fill-column:                          Fill Commands.
+* fill-prefix:                          Fill Prefix.
+* find-file-hooks:                      Visiting.
+* find-file-not-found-hooks:            Visiting.
+* find-file-run-dired:                  Visiting.
+* fortran-check-all-num-for-matching-do: ForIndent Vars.
+* fortran-column-ruler:                 Fortran Columns.
+* fortran-comment-indent-char:          Fortran Comments.
+* fortran-comment-indent-style:         Fortran Comments.
+* fortran-comment-line-column:          Fortran Comments.
+* fortran-comment-region:               Fortran Comments.
+* fortran-continuation-char:            ForIndent Conv.
+* fortran-continuation-indent:          ForIndent Vars.
+* fortran-do-indent:                    ForIndent Vars.
+* fortran-electric-line-number:         ForIndent Num.
+* fortran-if-indent:                    ForIndent Vars.
+* fortran-line-number-indent:           ForIndent Num.
+* fortran-minimum-statement-indent:     ForIndent Vars.
+* gdb-mode-hook:                        GUD Customization.
+* global-map:                           Keymaps.
+* help-map:                             Keymaps.
+* indent-tabs-mode:                     Just Spaces.
+* Info-directory-list (V19):            Info Changes.
+* INFOPATH:                             Info Changes.
+* inhibit-local-variables:              File Variables.
+* inhibit-local-variables (V19):        Basic Changes.
+* initial-major-mode:                   Entering Emacs.
+* insert-default-directory:             Minibuffer File.
+* insert-default-directory:             File Names.
+* inverse-video:                        Display Vars.
+* kept-new-versions:                    Backup Deletion.
+* kept-old-versions:                    Backup Deletion.
+* kill-buffer-hook (V19):               Hook Changes.
+* kill-ring-max:                        Earlier Kills.
+* LaTeX-mode-hook:                      TeX Print.
+* lisp-body-indent:                     Lisp Indent.
+* lisp-indent-offset:                   Lisp Indent.
+* lisp-interaction-mode-hook:           Program Modes.
+* lisp-mode-hook:                       Program Modes.
+* lisp-mode-map:                        Keymaps.
+* list-directory-brief-switches:        ListDir.
+* list-directory-verbose-switches:      ListDir.
+* load-path:                            Loading.
+* lpr-command:                          Hardcopy.
+* lpr-switches:                         Hardcopy.
+* mail-archive-file-name:               Mail Headers.
+* mail-default-reply-to:                Mail Headers.
+* mail-header-separator:                Mail Format.
+* mail-mode-hook:                       Mail Mode.
+* mail-setup-hook:                      Mail Mode.
+* mail-signature (V19):                 Mail Changes.
+* mail-yank-prefix (V19):               Mail Changes.
+* make-backup-files:                    Backup.
+* mark-ring:                            Mark Ring.
+* mark-ring-max:                        Mark Ring.
+* meta-flag:                            Characters.
+* minibuffer-local-completion-map:      Keymaps.
+* minibuffer-local-map:                 Keymaps.
+* minibuffer-local-must-match-map:      Keymaps.
+* minibuffer-local-ns-map:              Keymaps.
+* mode-line-inverse-video:              Display Vars.
+* mode-line-inverse-video:              Mode Line.
+* muddle-mode-hook:                     Program Modes.
+* next-screen-context-lines:            Scrolling.
+* no-redraw-on-reenter:                 Display Vars.
+* nroff-mode-hook:                      Nroff Mode.
+* outline-mode-hook:                    Outline Mode.
+* outline-regexp:                       Outline Format.
+* page-delimiter:                       Pages.
+* paragraph-separate:                   Paragraphs.
+* paragraph-start:                      Paragraphs.
+* parse-sexp-ignore-comments:           Syntax Entry.
+* picture-mode-hook:                    Picture.
+* picture-tab-chars:                    Tabs in Picture.
+* plain-TeX-mode-hook:                  TeX Print.
+* pre-abbrev-expand-hook (V19):         Hook Changes.
+* repeat-complex-command-map:           Keymaps.
+* require-final-newline:                Saving.
+* rmail-dont-reply-to:                  Rmail Reply.
+* rmail-edit-mode-hook:                 Rmail Editing.
+* rmail-ignored-headers:                Rmail Editing.
+* rmail-output-file-alist:              Mail Changes.
+* save-abbrevs:                         Saving Abbrevs.
+* scheme-mode-hook:                     Program Modes.
+* scroll-step:                          Scrolling.
+* sdb-mode-hook:                        GUD Customization.
+* search-delete-char:                   Incremental Search.
+* search-exit-char:                     Incremental Search.
+* search-quote-char:                    Incremental Search.
+* search-repeat-char:                   Incremental Search.
+* search-reverse-char:                  Incremental Search.
+* search-slow-speed:                    Incremental Search.
+* search-slow-window-lines:             Incremental Search.
+* search-yank-line-char:                Incremental Search.
+* search-yank-word-char:                Incremental Search.
+* selective-display-ellipses:           Outline Visibility.
+* selective-display-ellipses:           Display Vars.
+* sentence-end:                         Sentences.
+* shell-cd-regexp:                      Interactive Shell.
+* shell-file-name:                      Single Shell.
+* shell-popd-regexp:                    Interactive Shell.
+* shell-prompt-pattern:                 Shell Mode.
+* shell-pushd-regexp:                   Interactive Shell.
+* shell-set-directory-error-hook:       Interactive Shell.
+* split-window-keep-point (V19):        Changed Commands.
+* tab-stop-list:                        Tab Stops.
+* tab-width:                            Display Vars.
+* tags-file-name:                       Select Tag Table.
+* term-file-prefix:                     Terminal Init.
+* term-setup-hook:                      Terminal Init.
+* tex-directory (V19):                  TeX Mode Changes.
+* TeX-mode-hook:                        TeX Print.
+* text-mode-hook:                       Text Mode.
+* track-eol:                            Basic.
+* trim-versions-without-asking:         Backup Deletion.
+* truncate-lines:                       Continuation Lines.
+* truncate-partial-width-windows:       Split Window.
+* undo-limit:                           Undo.
+* undo-strong-limit:                    Undo.
+* vc-command-messages (V19):            Variables for Check-in/out.
+* vc-comment-alist (V19):               Version Headers.
+* vc-header-string (V19):               Version Headers.
+* vc-initial-comment (V19):             Editing with VC.
+* vc-keep-workfiles (V19):              Editing with VC.
+* vc-log-mode-hook (V19):               Log Entries.
+* vc-make-backups (V19):                Editing with VC.
+* vc-mistrust-permissions (V19):        Variables for Check-in/out.
+* vc-static-header-alist (V19):         Version Headers.
+* vc-suppress-confirm (V19):            Variables for Check-in/out.
+* version-control:                      Backup Names.
+* version-control (V19):                New Facilities.
+* VERSION_CONTROL:                      New Facilities.
+* visible-bell:                         Display Vars.
+* window-min-height:                    Change Window.
+* window-min-width:                     Change Window.
+* write-file-hooks:                     Saving.
+
+

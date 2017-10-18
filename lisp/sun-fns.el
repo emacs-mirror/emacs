@@ -1,5 +1,5 @@
 ;; Subroutines of Mouse handling for Sun windows
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1991, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -17,6 +17,15 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Upgrade   Apr, 1992, Jeff Peck
+;;; modeline-menu
+;;; modeline resize
+;;; mouse-fill-paragraph(s)
+;;; mouse in Buffer-menu
+;;;
+;;; Fix       Aug, 1989, Jeff Peck
+;;; minibuf-prompt-length 
+;;;
 ;;; Submitted Mar. 1987, Jeff Peck
 ;;;		 	 Sun Microsystems Inc. <peck@sun.com>
 ;;; Conceived Nov. 1986, Stan Jefferson,
@@ -420,13 +429,88 @@ relative X divided by window width."
   "Pop-up menu of commands."
   (sun-menu-evaluate window x (1- y) 'minibuffer-menu))
 
+;;; Thanks to Joe Wells for this hack.
+;;; GNU Emacs should supply something better...  Oh well.
+(defun minibuf-prompt-length ()
+  "Returns the length of the current minibuffer prompt."
+  (save-window-excursion
+    (select-window (minibuffer-window))
+    (save-excursion
+      (let ((screen-width (screen-width))
+	    (point-min (point-min))
+	    length)
+	(goto-char point-min)
+	(insert-char ?a screen-width)
+	(goto-char point-min)
+	(vertical-motion 1)
+	(setq length (- screen-width (point)))
+	(goto-char point-min)
+	(delete-char screen-width)
+	length))))
+
 (defun mini-move-point (window x y)
-  ;; -6 is good for most common cases
-  (mouse-move-point window (- x 6) 0))
+  (mouse-move-point window (- x (minibuf-prompt-length)) 0))
 
 (defun mini-set-mark-and-stuff (window x y)
-  ;; -6 is good for most common cases
-  (mouse-set-mark-and-stuff window (- x 6) 0))
+  (mouse-set-mark-and-stuff window (- x (minibuf-prompt-length)) 0))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;;; resize from modeline
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+
+(defvar *modeline-hit* nil "store original modline-hit data")
+
+(defun modeline-hit (w x y) (interactive)
+  (setq *modeline-hit* (cons w (caddr hit))))
+
+(defun mouse-drag-modeline (w x y) (interactive)
+  (if *modeline-hit*
+      (let ((delta (- (cdr *modeline-hit*) (caddr hit)))
+	    (win (car *modeline-hit*)))
+	(setq *modeline-hit* nil)
+	(eval-in-window win (shrink-window delta)))))
+
+;; Modeline drag to resize:
+;; Watch out for interference if you use "up" for something else
+;; For example: '(text up left) is used...
+(global-set-mouse '(modeline      middle)	'modeline-hit)
+(global-set-mouse '(modeline   up middle)	'mouse-drag-modeline)
+(global-set-mouse '(text       up middle)	'mouse-drag-modeline)
+(global-set-mouse '(scrollbar  up middle)	'mouse-drag-modeline)
+(global-set-mouse '(minibuffer up middle)	'mouse-drag-modeline)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;;; modeline-menu functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+
+
+;; parse thru a modeline-menu, finding item under nth character
+(defun nth-menu-elt (n menu)
+  (let ((n (- n (length (caar menu)))))
+    (if (< n 0)
+	(cdar menu)
+	(if (consp (cdr menu))
+	    (nth-menu-elt n (cdr menu))
+	    (cdar menu)))))
+
+(defun modeline-menu-command (x menu)
+  "*Evaluate the command associated with the character N of the MENU.
+Each element of MENU is of the form (STRING . ACTION). The STRING is 
+displayed in the modeline and ACTION to invoked when that string is moused. 
+If (commandp ACTION) is true,the ACTION is called interactively; 
+otherwise, ACTION is evaled."
+  (let ((command (nth-menu-elt x menu)))
+    (if (commandp command)
+	(call-interactively command)
+	(eval command))))
+
+(defun modeline-menu-string (menu)
+  "*Extract the strings in (cdr MENU) and concatenate them into a string.
+The string in (car MENU) is not included in the returned string.
+    For best results, (length (caar menu)) should equal 
+    the prefix in the actual modeline format string."
+  (apply 'concat (mapcar 'car (cdr menu))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
@@ -434,19 +518,18 @@ relative X divided by window width."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
 (defun Buffer-at-mouse (w x y)
-  "Calls Buffer-menu-buffer from mouse click."
   (save-window-excursion 
     (mouse-move-point w x y)
-    (beginning-of-line)
     (Buffer-menu-buffer t)))
 
 (defun mouse-buffer-bury (w x y)
   "Bury the indicated buffer."
   (bury-buffer (Buffer-at-mouse w x y))
+  (list-buffers)
   )
 
 (defun mouse-buffer-select (w x y)
-  "Put the indicated buffer in selected window."
+  "Select the indicated buffer in other-window."
   (switch-to-buffer (Buffer-at-mouse w x y))
   (list-buffers)
   )
@@ -458,6 +541,13 @@ relative X divided by window width."
     (Buffer-menu-delete)
     ))
 
+(defun mouse-buffer-mark (w x y)
+  "mark indicated buffer for delete"
+  (save-window-excursion
+    (mouse-move-point w x y)
+    (Buffer-menu-mark)
+    ))
+
 (defun mouse-buffer-execute (w x y)
   "execute buffer-menu selections"
   (save-window-excursion
@@ -465,6 +555,31 @@ relative X divided by window width."
     (Buffer-menu-execute)
     ))
   
+(defun buffer-modeline-menu-cmd (w x y)
+  (select-window w)
+  ;; goto a line with a buffer, skip first two lines
+  (let ((line-no (count-lines 1 (point))))
+    (if (< line-no 2) (forward-line (- 2 line-no))))
+  (modeline-menu-command x buffer-modeline-menu))
+
+(defvar buffer-modeline-menu '(("--%%-" . (forward-line -1))
+			       (" [ " . (forward-line -1))
+			       ("Mark " . Buffer-menu-mark)
+			       ("Del " . Buffer-menu-delete)
+			       ("Save " . Buffer-menu-save)
+			       ("Undo " . Buffer-menu-unmark)
+			       ("Prev " . (forward-line -1))
+			       ("Next " . (forward-line 1))
+			       ("Edit " . Buffer-menu-select)
+			       ("eXec " . Buffer-menu-execute)
+			       ("] " . (forward-line 1))
+			       )
+  "*Each element of this list is a character STRING
+\(that is displayed in the modeline\) consed to an ACTION to invoke
+when that string is moused. If (commandp ACTION) is true,
+the ACTION is called interactively; otherwise, ACTION is evaled."
+  )
+
 (defun enable-mouse-in-buffer-list ()
   "Call this to enable mouse selections in *Buffer List*
     LEFT puts the indicated buffer in the selected window.
@@ -472,16 +587,71 @@ relative X divided by window width."
     RIGHT marks the indicated buffer for deletion.
     MIDDLE-RIGHT deletes the marked buffers.
 To unmark a buffer marked for deletion, select it with LEFT."
-  (save-window-excursion
-    (list-buffers)			; Initialize *Buffer List*
-    (set-buffer "*Buffer List*")
-    (local-set-mouse '(text middle) 'mouse-buffer-bury)
-    (local-set-mouse '(text left) 'mouse-buffer-select)	    
-    (local-set-mouse '(text right) 'mouse-buffer-delete)
-    (local-set-mouse '(text middle right) 'mouse-buffer-execute)
-    )
+  
+  (local-set-mouse '(text left)   'mouse-buffer-select)	    
+  (local-set-mouse '(text middle) 'mouse-buffer-bury)
+  (local-set-mouse '(text right)  'mouse-buffer-delete)
+  (local-set-mouse '(text middle left) 'mouse-buffer-mark)
+  (local-set-mouse '(text middle right) 'mouse-buffer-execute)
+  (setq mode-line-buffer-identification
+	(list (modeline-menu-string buffer-modeline-menu) "%b"))
+  (local-set-mouse '(modeline left) 'buffer-modeline-menu-cmd)
+  (local-set-mouse '(modeline left double) 'buffer-modeline-menu-cmd)
   )
 
+(defvar buffer-menu-mode-hook nil "run-hooks when entering Buffer Menu mode.")
+
+(if (memq 'enable-mouse-in-buffer-list buffer-menu-mode-hook)
+    nil
+    (setq buffer-menu-mode-hook
+	  (cons 'enable-mouse-in-buffer-list buffer-menu-mode-hook)))
+
+;; make sure a new buffer is created using buffer-menu-mode-hook
+(if (get-buffer "*Buffer List*") (kill-buffer "*Buffer List*"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;;; mouse fill (useful to re-format mail messages with long lines
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+(defun mouse-fill-paragraph (w x y)
+  "Utility function to fill paragraphs from mouse click, 
+useful in Mail to read things that have long lines."
+  (eval-in-window w
+    (mouse-move-point w x y)
+    (let (fill-prefix)
+      (fill-paragraph nil))))
+
+
+(defun fill-some-paragraphs ()
+  "*Fill the succeeding paragraphs that have the same prefix."
+  (interactive)
+  (let (fill-prefix fpr eop beg end)
+    (set-fill-prefix)
+    ;; if no fill-prefix, then match lines beginning with an alpha char.
+    (setq fpr (or fill-prefix "[a-zA-Z]"))
+    (setq fpr (if (let ((sm (string-match "[ \t]*" fpr)))
+		    (and sm (= (length fpr) (match-end 0))))
+		  ;; if fill-prefix is just TAB-SPACE, then also accept
+		  ;; empty lines in the region.
+		  (concat "\\(" fpr "\\)\\|\\(^$\\)")
+		  (regexp-quote fpr)
+		))
+    ;; now that we have the prefix, find a region of lines that match:
+    (save-excursion 
+      (beginning-of-line 1)
+      (setq beg (point))
+      ;; find lines with similar prefixes:
+      (while (progn (forward-line 1)
+		    (setq end (point))
+		    (and (not (eobp)) (looking-at fpr))))
+      (fill-region beg end nil))))
+
+;; fill all succeeding paragraphs with this fill prefix
+(defun mouse-fill-paragraphs (w x y)
+  "Utility function to fill paragraphs from mouse click, 
+useful in Mail to read things that have long lines."
+  (eval-in-window w
+    (mouse-move-point w x y)
+    (fill-some-paragraphs)))
 
 ;;;*******************************************************************
 ;;;
@@ -586,18 +756,20 @@ To unmark a buffer marked for deletion, select it with LEFT."
 ;;;
 ;;; Note: meta of any single button selects window.
 
-(global-set-mouse '(modeline      left)	'mouse-scroll-up)
-(global-set-mouse '(modeline meta left)	'mouse-select-window)
+(global-set-mouse '(modeline double left)	'mouse-scroll-up)
+(global-set-mouse '(modeline shift  left)	'mouse-scroll-up)
+(global-set-mouse '(modeline double  middle)	'mouse-scroll-proportional)
+(global-set-mouse '(modeline shift   middle)	'mouse-scroll-proportional)
+(global-set-mouse '(modeline double right)	'mouse-scroll-down)
+(global-set-mouse '(modeline shift  right)	'mouse-scroll-down)
 
-(global-set-mouse '(modeline         middle)	'mouse-scroll-proportional)
+(global-set-mouse '(modeline meta   left)	'mouse-select-window)
 (global-set-mouse '(modeline meta    middle)	'mouse-select-window)
-(global-set-mouse '(modeline control middle)	'mouse-split-horizontally)
-
-(global-set-mouse '(modeline      right)	'mouse-scroll-down)
-(global-set-mouse '(modeline meta right)	'mouse-select-window)
+(global-set-mouse '(modeline meta   right)	'mouse-select-window)
 
 ;;; control-left selects this window, control-right deletes it.
 (global-set-mouse '(modeline control left)	'mouse-delete-other-windows)
+(global-set-mouse '(modeline control middle)	'mouse-split-horizontally)
 (global-set-mouse '(modeline control right)	'mouse-delete-window)
 
 ;; in case of confusion, just select it:
@@ -610,6 +782,7 @@ To unmark a buffer marked for deletion, select it with LEFT."
 (global-set-mouse '(modeline shift  control meta right)	'mouse-help-region)
 (global-set-mouse '(modeline double control meta right)	'mouse-help-region)
 
+
 ;;;
 ;;; Minibuffer Mousemap
 ;;; Demonstrating some variety:
@@ -618,8 +791,8 @@ To unmark a buffer marked for deletion, select it with LEFT."
 
 (global-set-mouse '(minibuffer         middle)	'mini-set-mark-and-stuff)
 
-(global-set-mouse '(minibuffer shift   middle) '(select-previous-complex-command))
-(global-set-mouse '(minibuffer double  middle) '(select-previous-complex-command))
+(global-set-mouse '(minibuffer shift   middle) '(prev-complex-command))
+(global-set-mouse '(minibuffer double  middle) '(prev-complex-command))
 (global-set-mouse '(minibuffer control middle) '(next-complex-command 1))
 (global-set-mouse '(minibuffer meta    middle) '(previous-complex-command 1))
 

@@ -87,10 +87,11 @@ Returns MARKER.")
   CHECK_MARKER (marker, 0);
   /* If position is nil or a marker that points nowhere,
      make this marker point nowhere.  */
-  if (NULL (pos)
-      || (XTYPE (pos) == Lisp_Marker && !XMARKER (pos)->buffer))
+  if (NULL (pos) ||
+      (XTYPE (pos) == Lisp_Marker && !XMARKER (pos)->buffer))
     {
-      unchain_marker (marker);
+      if (XMARKER (marker)->buffer)
+	unchain_marker (marker);
       return marker;
     }
 
@@ -104,7 +105,8 @@ Returns MARKER.")
       /* If buffer is dead, set marker to point nowhere.  */
       if (EQ (b->name, Qnil))
 	{
-	  unchain_marker (marker);
+	  if (XMARKER (marker)->buffer)
+	    unchain_marker (marker);
 	  return marker;
 	}
     }
@@ -121,7 +123,8 @@ Returns MARKER.")
 
   if (m->buffer != b)
     {
-      unchain_marker (marker);
+      if (m->buffer != 0)
+	unchain_marker (marker);
       m->chain = b->markers;
       b->markers = marker;
       m->buffer = b;
@@ -130,9 +133,7 @@ Returns MARKER.")
   return marker;
 }
 
-/* This version of Fset_marker won't let the position
-   be outside the visible part.  */
-
+/* This version of Fset_marker won't let the position be outside the visible part.  */
 Lisp_Object 
 set_marker_restricted (marker, pos, buffer)
      Lisp_Object marker, pos, buffer;
@@ -147,7 +148,8 @@ set_marker_restricted (marker, pos, buffer)
   if (NULL (pos) ||
       (XTYPE (pos) == Lisp_Marker && !XMARKER (pos)->buffer))
     {
-      unchain_marker (marker);
+      if (XMARKER (marker)->buffer)
+	unchain_marker (marker);
       return marker;
     }
 
@@ -161,7 +163,8 @@ set_marker_restricted (marker, pos, buffer)
       /* If buffer is dead, set marker to point nowhere.  */
       if (EQ (b->name, Qnil))
 	{
-	  unchain_marker (marker);
+	  if (XMARKER (marker)->buffer)
+	    unchain_marker (marker);
 	  return marker;
 	}
     }
@@ -179,7 +182,8 @@ set_marker_restricted (marker, pos, buffer)
 
   if (m->buffer != b)
     {
-      unchain_marker (marker);
+      if (m->buffer != 0)
+	unchain_marker (marker);
       m->chain = b->markers;
       b->markers = marker;
       m->buffer = b;
@@ -189,8 +193,8 @@ set_marker_restricted (marker, pos, buffer)
 }
 
 /* This is called during garbage collection,
-   so we must be careful to ignore and preserve mark bits,
-   including those in chain fields of markers.  */
+ so we must be careful to ignore and preserve mark bits,
+ including those in chain fields of markers.  */
 
 unchain_marker (marker)
      register Lisp_Object marker;
@@ -200,8 +204,6 @@ unchain_marker (marker)
   register struct buffer *b;
 
   b = XMARKER (marker)->buffer;
-  if (b == 0)
-    return;
 
   if (EQ (b->name, Qnil))
     abort ();
@@ -271,8 +273,8 @@ at that position in the current buffer.")
 
   while (1)
     {
-      if (XTYPE (marker) == Lisp_Int
-	  || XTYPE (marker) == Lisp_Marker)
+      if (XTYPE (marker) == Lisp_Int ||
+	  XTYPE (marker) == Lisp_Marker)
 	{
 	  new = Fmake_marker ();
 	  Fset_marker (new, marker,

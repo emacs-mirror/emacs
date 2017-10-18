@@ -1,5 +1,5 @@
 ;; GNU Emacs window commands aside from those written in C.
-;; Copyright (C) 1985, 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -18,59 +18,12 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(defun count-windows (&optional minibuf)
-   "Returns the number of visible windows.
-Optional arg NO-MINI non-nil means don't count the minibuffer
-even if it is active."
-   (let ((count 0))
-     (walk-windows (function (lambda ()
-			       (setq count (+ count 1))))
-		   minibuf)
-     count))
-
-(defun balance-windows ()
-  "Makes all visible windows the same size (approximately)."
-  (interactive)
-  (let ((count 0))
-    (walk-windows (function (lambda (w)
-			      (setq count (+ count 1))))
-		  'nomini)
-    (let ((size (/ (screen-height) count)))
-      (walk-windows (function (lambda (w)
-				(select-window w)
-				(enlarge-window (- size (window-height)))))
-		    'nomini))))
-
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
-The uppermost window gets ARG lines and the other gets the rest.
-With no argument, split equally or close to it.
-Both windows display the same buffer now current.
-The new selected window is the one that the current value of point
-appears in.
-
-The value of point can change if the text around point 
-is hidden by the new mode line."
+This window becomes the uppermost of the two, and gets
+ARG lines.  No arg means split equally."
   (interactive "P")
-  (let ((old-w (selected-window))
-	(old-point (point))
-	new-w bottom switch)
-    (setq new-w (split-window nil (and arg (prefix-numeric-value arg))))
-    (save-excursion
-      (set-buffer (window-buffer))
-      (goto-char (window-start))
-      (vertical-motion (window-height))
-      (set-window-start new-w (point))
-      (if (> (point) (window-point new-w))
-	  (set-window-point new-w (point)))
-      (vertical-motion -1)
-      (setq bottom (point)))
-    (if (<= bottom (point))
-	(set-window-point old-w (1- bottom)))
-    (if (< (window-start new-w) old-point)
-	(progn
-	  (set-window-point new-w old-point)
-	  (select-window new-w)))))
+  (split-window nil (and arg (prefix-numeric-value arg))))
 
 (defun split-window-horizontally (&optional arg)
   "Split current window into two windows side by side.
@@ -89,21 +42,7 @@ ARG columns.  No arg means split equally."
   (interactive "p")
   (shrink-window arg t))
 
-(defun window-config-to-register (name)
-  "Save the current window configuration in register REG (a letter).
-It can be later retrieved using \\[M-x register-to-window-config]."
-  (interactive "cSave window configuration in register: ")
-  (set-register name (current-window-configuration)))
-
-(defun register-to-window-config (name)
-  "Restore (make current) the window configuration in register REG (a letter).
-Use with a register previously set with \\[window-config-to-register]."
-  (interactive "cRestore window configuration from register: ")
-  (set-window-configuration (get-register name)))
-
 (define-key ctl-x-map "2" 'split-window-vertically)
 (define-key ctl-x-map "5" 'split-window-horizontally)
-(define-key ctl-x-map "6" 'window-config-to-register)
-(define-key ctl-x-map "7" 'register-to-window-config)
 (define-key ctl-x-map "}" 'enlarge-window-horizontally)
 (define-key ctl-x-map "{" 'shrink-window-horizontally)

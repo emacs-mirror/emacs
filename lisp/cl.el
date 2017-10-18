@@ -1,22 +1,21 @@
 ;; Common-Lisp extensions for GNU Emacs Lisp.
-;; Copyright (C) 1987, 1988, 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY.  No author or distributor
-;; accepts responsibility to anyone for the consequences of using it
-;; or for whether it serves any particular purpose or works at all,
-;; unless he says so in writing.  Refer to the GNU Emacs General Public
-;; License for full details.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 1, or (at your option)
+;; any later version.
 
-;; Everyone is granted permission to copy, modify and redistribute
-;; GNU Emacs, but only under the conditions described in the
-;; GNU Emacs General Public License.   A copy of this license is
-;; supposed to have been given to you along with GNU Emacs so you
-;; can know your rights and responsibilities.  It should be in a
-;; file named COPYING.  Among other things, the copyright notice
-;; and this notice must be preserved on all copies.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;;;
 ;;;; These are extensions to Emacs Lisp that provide some form of
@@ -44,7 +43,6 @@
 ;;;; to quiroz@cs.rochester.edu
 
 (provide 'cl)
-(defvar cl-version "2.0 beta 29 October 1989")
 
 
 ;;;; GLOBAL
@@ -57,33 +55,65 @@
 ;;;;    Cesar Quiroz @ UofR DofCSc - Dec. 1986
 ;;;;       (quiroz@cs.rochester.edu)
 
-;;; Too many pieces of the rest of this package use psetq.  So it is unwise to
-;;; use here anything but plain Emacs Lisp!  There is a neater recursive form
-;;; for the algorithm that deals with the bodies.
+(defmacro psetq (&rest pairs)
+  "(psetq {VARIABLE VALUE}...): In parallel, set each VARIABLE to its VALUE.
+All the VALUEs are evaluated, and then all the VARIABLEs are set.
+Aside from order of evaluation, this is the same as `setq'."
+  (let ((nforms (length pairs))		;count of args
+	;; next are used to destructure the call
+	symbols				;even numbered args
+	forms				;odd numbered args
+	;; these are used to generate code
+	bindings			;for the let
+	newsyms				;list of gensyms
+	assignments			;for the setq
+	;; auxiliary indices
+	i)
+    ;; check there is a reasonable number of forms
+    (if (/= (% nforms 2) 0)
+	(error "Odd number of arguments to `psetq'"))
 
-(defmacro psetq (&rest body)
-  "(psetq {var value }...) => nil
-Like setq, but all the values are computed before any assignment is made."
-  (let ((length (length body)))
-    (cond ((/= (% length 2) 0)
-           (error "psetq needs an even number of arguments, %d given"
-                  length))
-          ((null body)
-           '())
-          (t
-           (list 'prog1 nil
-                 (let ((setqs     '())
-                       (bodyforms (reverse body)))
-                   (while bodyforms
-                     (let* ((value (car bodyforms))
-                            (place (cadr bodyforms)))
-                       (setq bodyforms (cddr bodyforms))
-                       (if (null setqs)
-                           (setq setqs (list 'setq place value))
-                         (setq setqs (list 'setq place
-                                           (list 'prog1 value
-                                                 setqs))))))
-                   setqs))))))
+    ;; destructure the args
+    (let ((ptr pairs)			;traverses the args
+	  var				;visits each symbol position
+	  )
+      (while ptr
+	(setq var (car ptr))		;next variable
+	(if (not (symbolp var))
+	    (error "`psetq' expected a symbol, found '%s'."
+		   (prin1-to-string var)))
+	(setq symbols (cons var symbols))
+	(setq forms   (cons (car (cdr ptr)) forms))
+	(setq ptr (cdr (cdr ptr)))))
+
+    ;; assign new symbols to the bindings
+    (let ((ptr forms)			;traverses the forms
+	  form				;each form goes here
+	  newsym			;gensym for current value of form
+	  )
+      (while ptr
+	(setq form (car ptr))
+	(setq newsym (gensym))
+	(setq bindings (cons (list newsym form) bindings))
+	(setq newsyms (cons newsym newsyms))
+	(setq ptr (cdr ptr))))
+    (setq newsyms (nreverse newsyms))	;to sync with symbols
+    
+    ;; pair symbols with newsyms for assignment
+    (let ((ptr1 symbols)		;traverses original names
+	  (ptr2 newsyms)		;traverses new symbols
+	  )
+      (while ptr1
+	(setq assignments
+	      (cons (car ptr1) (cons (car ptr2) assignments)))
+	(setq ptr1 (cdr ptr1))
+	(setq ptr2 (cdr ptr2))))
+    
+    ;; generate code
+    (list 'let
+	  bindings
+	  (cons 'setq assignments)
+	  nil)))
 
 ;;; utilities
 ;;;
@@ -108,8 +138,8 @@ symbols, the pairings list and the newsyms list are returned."
 (defun zip-lists (evens odds)
   "Merge two lists EVENS and ODDS, taking elts from each list alternatingly.
 EVENS and ODDS are two lists.  ZIP-LISTS constructs a new list, whose
-even numbered elements (0,2,...) come from EVENS and whose odd numbered
-elements (1,3,...) come from ODDS.
+even numbered elements (0,2,...) come from EVENS and whose odd
+numbered elements (1,3,...) come from ODDS. 
 The construction stops when the shorter list is exhausted."
   (do* ((p0   evens    (cdr p0))
         (p1   odds     (cdr p1))
@@ -138,7 +168,7 @@ elements to start with."
     (setq odds  (cons next odds))))
 
 (defun reassemble-argslists (argslists)
-  "(reassemble-argslists ARGSLISTS) => a list of lists
+  "(reassemble-argslists ARGSLISTS).
 ARGSLISTS is a list of sequences.  Return a list of lists, the first
 sublist being all the entries coming from ELT 0 of the original
 sublists, the next those coming from ELT 1 and so on, until the
@@ -148,9 +178,45 @@ shortest list is exhausted."
     (dotimes (i minlen (nreverse result))
       ;; capture all the elements at index i
       (setq result
-            (cons (mapcar (function (lambda (sublist) (elt sublist i)))
+            (cons (mapcar
+                   (function (lambda (sublist) (elt sublist i)))
                    argslists)
                   result)))))
+
+;;; to help parsing keyword arguments
+
+(defun build-klist (argslist acceptable)
+  "Decode a keyword argument list ARGSLIST for keywords in ACCEPTABLE.
+ARGSLIST is a list, presumably the &rest argument of a call, whose
+even numbered elements must be keywords.
+ACCEPTABLE is a list of keywords, the only ones that are truly acceptable.
+The result is an alist containing the arguments named by the keywords
+in ACCEPTABLE, or nil if something failed."
+
+  ;; check legality of the arguments, then destructure them
+  (unless (and (listp argslist)
+               (evenp (length argslist)))
+    (error "Odd number of keyword-args"))
+  (unless (and (listp acceptable)
+               (every 'keywordp acceptable))
+    (error "Second arg should be a list of keywords"))
+  (multiple-value-bind
+      (keywords forms)
+      (unzip-list argslist)
+    (unless (every 'keywordp keywords)
+      (error "Expected keywords, found `%s'"
+             (prin1-to-string keywords)))
+    (do*                                ;pick up the pieces
+        ((auxlist                       ;auxiliary a-list, may
+          (pairlis keywords forms))     ;contain repetitions and junk
+         (ptr    acceptable  (cdr ptr)) ;pointer in acceptable
+         (this  (car ptr)  (car ptr))   ;current acceptable keyword
+         (auxval nil)                   ;used to move values around
+         (alist  '()))                  ;used to build the result
+        ((endp ptr) alist)
+      ;; if THIS appears in auxlist, use its value
+      (when (setq auxval (assoc this auxlist))
+        (setq alist (cons auxval alist))))))
 
 
 ;;; Checking that a list of symbols contains no duplicates is a common
@@ -163,14 +229,14 @@ shortest list is exhausted."
 ;;; 4th pass.
 (defun duplicate-symbols-p (list)
   "Find all symbols appearing more than once in LIST.
-Return a list of all such duplicates; nil if there are no duplicates."
+Return a list of all such duplicates; `nil' if there are no duplicates."
   (let  ((duplicates '())               ;result built here
          (propname   (gensym))          ;we use a fresh property
          )
     ;; check validity
     (unless (and (listp list)
                  (every 'symbolp list))
-      (error "a list of symbols is needed"))
+      (error "A list of symbols is needed"))
     ;; pass 1: mark
     (dolist (x list)
       (put x propname 0))
@@ -200,46 +266,51 @@ Return a list of all such duplicates; nil if there are no duplicates."
 
 (defmacro defkeyword (x &optional docstring)
   "Make symbol X a keyword (symbol whose value is itself).
-Optional second arg DOCSTRING is a documentation string for it."
-  (cond ((symbolp x)
-         (list 'defconst x (list 'quote x) docstring))
-        (t
-         (error "`%s' is not a symbol" (prin1-to-string x)))))
+Optional second argument is a documentation string for it."
+  (cond
+   ((symbolp x)
+    (list 'defconst x (list 'quote x)))
+   (t
+    (error "`%s' is not a symbol" (prin1-to-string x)))))
 
 (defun keywordp (sym)
-  "Return t if SYM is a keyword."
-  (if (and (symbolp sym) (char-equal (aref (symbol-name sym) 0) ?\:))
-      ;; looks like one, make sure value is right
-      (set sym sym)
-    nil))
+  "Return `t' if SYM is a keyword."
+  (cond
+   ((and (symbolp sym)
+         (char-equal (aref (symbol-name sym) 0) ?\:))
+    ;; looks like one, make sure value is right
+    (set sym sym))
+   (t
+    nil)))
 
 (defun keyword-of (sym)
   "Return a keyword that is naturally associated with symbol SYM.
 If SYM is keyword, the value is SYM.
 Otherwise it is a keyword whose name is `:' followed by SYM's name."
-  (cond ((keywordp sym)
-         sym)
-        ((symbolp sym)
-         (let ((newsym (intern (concat ":" (symbol-name sym)))))
-           (set newsym newsym)))
-        (t
-         (error "expected a symbol, not `%s'" (prin1-to-string sym)))))
+  (cond
+   ((keywordp sym)
+    sym)
+   ((symbolp sym)
+    (let ((newsym (intern (concat ":" (symbol-name sym)))))
+      (set newsym newsym)))
+   (t
+    (error "Expected a symbol, not `%s'" (prin1-to-string sym)))))
 
 ;;; Temporary symbols.  
 ;;; 
 
 (defvar *gentemp-index* 0
-  "Integer used by `gentemp' to produce new names.")
+  "Integer used by gentemp to produce new names.")
 
 (defvar *gentemp-prefix* "T$$_"
-  "Names generated by `gentemp begin' with this string by default.")
+  "Names generated by gentemp begin with this string by default.")
 
 (defun gentemp (&optional prefix oblist)
   "Generate a fresh interned symbol.
-There are two optional arguments, PREFIX and OBLIST.  PREFIX is the string
-that begins the new name, OBLIST is the obarray used to search for old
-names.  The defaults are just right, YOU SHOULD NEVER NEED THESE ARGUMENTS
-IN YOUR OWN CODE."
+There are 2 optional arguments, PREFIX and OBLIST.  PREFIX is the
+string that begins the new name, OBLIST is the obarray used to search for
+old names.  The defaults are just right, YOU SHOULD NEVER NEED THESE
+ARGUMENTS IN YOUR OWN CODE."
   (if (null prefix)
       (setq prefix *gentemp-prefix*))
   (if (null oblist)
@@ -254,15 +325,16 @@ IN YOUR OWN CODE."
     newsymbol))
 
 (defvar *gensym-index* 0
-  "Integer used by `gensym' to produce new names.")
+  "Integer used by gensym to produce new names.")
 
 (defvar *gensym-prefix* "G$$_"
-  "Names generated by `gensym' begin with this string by default.")
+  "Names generated by gensym begin with this string by default.")
 
 (defun gensym (&optional prefix)
   "Generate a fresh uninterned symbol.
-Optional arg PREFIX is the string that begins the new name.  Most people
-take just the default, except when debugging needs suggest otherwise."
+There is an  optional argument, PREFIX.  PREFIX is the
+string that begins the new name. Most people take just the default,
+except when debugging needs suggest otherwise."
   (if (null prefix)
       (setq prefix *gensym-prefix*))
   (let ((newsymbol nil)
@@ -286,10 +358,10 @@ take just the default, except when debugging needs suggest otherwise."
 ;;;;       (quiroz@cs.rochester.edu)
 
 ;;; indentation info
-(put 'case      'lisp-indent-function 1)
-(put 'ecase     'lisp-indent-function 1)
-(put 'when      'lisp-indent-function 1)
-(put 'unless    'lisp-indent-function 1)
+(put 'case      'lisp-indent-hook 1)
+(put 'ecase     'lisp-indent-hook 1)
+(put 'when      'lisp-indent-hook 1)
+(put 'unless    'lisp-indent-hook 1)
 
 ;;; WHEN and UNLESS
 ;;; These two forms are simplified ifs, with a single branch.
@@ -316,7 +388,7 @@ HEAD   -> t             = catch all, must be last clause
        -> otherwise     = same as t
        -> nil           = illegal
        -> atom          = activated if (eql  EXPR HEAD)
-       -> list of atoms = activated if (memq EXPR HEAD)
+       -> list of atoms = activated if (member EXPR HEAD)
 BODY   -> list of forms, implicit PROGN is built around it.
 EXPR is evaluated only once."
   (let* ((newsym (gentemp))
@@ -334,12 +406,12 @@ EXPR is evaluated only once."
     ;; check that no 't clause is present.
     ;; case-clausify would put one such at the beginning of clauses
     (if (eq (caar clauses) t)
-        (error "no clause-head should be `t' or `otherwise' for `ecase'"))
+        (error "No clause-head should be `t' or `otherwise' for `ecase'"))
     ;; insert error-catching clause
     (setq clauses
           (cons
            (list 't (list 'error
-                          "ecase on %s = %s failed to take any branch"
+                          "ecase on %s = %s failed to take any branch."
                           (list 'quote expr)
                           (list 'prin1-to-string newsym)))
            clauses))
@@ -362,28 +434,29 @@ reverse order."
     (let ((head (car curclause))
           (body (cdr curclause)))
       ;; construct a cond-clause according to the head
-      (cond ((null head)
-             (error "case clauses cannot have null heads: `%s'"
-                    (prin1-to-string curclause)))
-            ((or (eq head 't)
-                 (eq head 'otherwise))
-             ;; check it is the last clause
-             (if (not (endp nextpos))
-                 (error "clause with `t' or `otherwise' head must be last"))
-             ;; accept this clause as a 't' for cond
-             (setq result (cons (cons 't body) result)))
-            ((atom head)
-             (setq result
-                   (cons (cons (list 'eql newsym (list 'quote head)) body)
-                         result)))
-            ((listp head)
-             (setq result
-                   (cons (cons (list 'memq newsym (list 'quote head)) body)
-                         result)))
-            (t
-             ;; catch-all for this parser
-             (error "don't know how to parse case clause `%s'"
-                    (prin1-to-string head)))))))
+      (cond
+       ((null head)
+        (error "Case clauses cannot have null heads: `%s'"
+               (prin1-to-string curclause)))
+       ((or (eq head 't)
+            (eq head 'otherwise))
+        ;; check it is the last clause
+        (if (not (endp nextpos))
+            (error "Clause with `t' or `otherwise' head must be last"))
+        ;; accept this clause as a 't' for cond
+        (setq result (cons (cons 't body) result)))
+       ((atom head)
+        (setq result
+              (cons (cons (list 'eql newsym (list 'quote head)) body)
+                    result)))
+       ((listp head)
+        (setq result
+              (cons (cons (list 'member newsym (list 'quote head)) body)
+                    result)))
+       (t
+        ;; catch-all for this parser
+        (error "Don't know how to parse case clause `%s'."
+               (prin1-to-string head)))))))
 
 ;;;; end of cl-conditionals.el
 
@@ -405,29 +478,26 @@ reverse order."
 ;;;;       (quiroz@cs.rochester.edu)
 
 ;;; some lisp-indentation information
-(put 'do                'lisp-indent-function 2)
-(put 'do*               'lisp-indent-function 2)
-(put 'dolist            'lisp-indent-function 1)
-(put 'dotimes           'lisp-indent-function 1)
-(put 'do-symbols        'lisp-indent-function 1)
-(put 'do-all-symbols    'lisp-indent-function 1)
+(put 'do                'lisp-indent-hook 2)
+(put 'do*               'lisp-indent-hook 2)
+(put 'dolist            'lisp-indent-hook 1)
+(put 'dotimes           'lisp-indent-hook 1)
+(put 'do-symbols        'lisp-indent-hook 1)
+(put 'do-all-symbols    'lisp-indent-hook 1)
 
 
 (defmacro do (stepforms endforms &rest body)
-  "(do STEPFORMS ENDFORMS . BODY): Iterate BODY, stepping some local
-variables.  STEPFORMS must be a list of symbols or lists.  In the second
-case, the lists must start with a symbol and contain up to two more forms.
-In the STEPFORMS, a symbol is the same as a (symbol).  The other two forms
+  "(do STEPFORMS ENDFORMS . BODY): Iterate BODY, stepping some local variables.
+STEPFORMS must be a list of symbols or lists.  In the second case, the
+lists must start with a symbol and contain up to two more forms. In
+the STEPFORMS, a symbol is the same as a (symbol).  The other 2 forms
 are the initial value (def. NIL) and the form to step (def. itself).
-
 The values used by initialization and stepping are computed in parallel.
-The ENDFORMS are a list (CONDITION . ENDBODY).  If the CONDITION evaluates
-to true in any iteration, ENDBODY is evaluated and the last form in it is
-returned.
-
-The BODY (which may be empty) is evaluated at every iteration, with the
-symbols of the STEPFORMS bound to the initial or stepped values."
-
+The ENDFORMS are a list (CONDITION . ENDBODY).  If the CONDITION
+evaluates to true in any iteration, ENDBODY is evaluated and the last
+form in it is returned.
+The BODY (which may be empty) is evaluated at every iteration, with
+the symbols of the STEPFORMS bound to the initial or stepped values."
   ;; check the syntax of the macro
   (and (check-do-stepforms stepforms)
        (check-do-endforms endforms))
@@ -445,16 +515,13 @@ symbols of the STEPFORMS bound to the initial or stepped values."
 (defmacro do* (stepforms endforms &rest body)
   "`do*' is to `do' as `let*' is to `let'.
 STEPFORMS must be a list of symbols or lists.  In the second case, the
-lists must start with a symbol and contain up to two more forms.  In the
-STEPFORMS, a symbol is the same as a (symbol).  The other two forms are
-the initial value (def. NIL) and the form to step (def. itself).
-
+lists must start with a symbol and contain up to two more forms. In
+the STEPFORMS, a symbol is the same as a (symbol).  The other 2 forms
+are the initial value (def. NIL) and the form to step (def. itself).
 Initializations and steppings are done in the sequence they are written.
-
-The ENDFORMS are a list (CONDITION . ENDBODY).  If the CONDITION evaluates
-to true in any iteration, ENDBODY is evaluated and the last form in it is
-returned.
-
+The ENDFORMS are a list (CONDITION . ENDBODY).  If the CONDITION
+evaluates to true in any iteration, ENDBODY is evaluated and the last
+form in it is returned.
 The BODY (which may be empty) is evaluated at every iteration, with
 the symbols of the STEPFORMS bound to the initial or stepped values."
   ;; check the syntax of the macro
@@ -475,53 +542,65 @@ the symbols of the STEPFORMS bound to the initial or stepped values."
 
 (defun check-do-stepforms (forms)
   "True if FORMS is a valid stepforms for the do[*] macro (q.v.)"
-  (if (nlistp forms)
-      (error "init/step form for do[*] should be a list, not `%s'"
-             (prin1-to-string forms))
+  (cond
+   ((nlistp forms)
+    (error "Init/Step form for do[*] should be a list, not `%s'"
+           (prin1-to-string forms)))
+   (t                                   ;valid list
+    ;; each entry must be a symbol, or a list whose car is a symbol
+    ;; and whose length is no more than three
     (mapcar
      (function
       (lambda (entry)
-        (if (not (or (symbolp entry)
-                     (and (listp entry)
-                          (symbolp (car entry))
-                          (< (length entry) 4))))
-            (error "init/step must be %s, not `%s'"
-                   "symbol or (symbol [init [step]])"
-                   (prin1-to-string entry)))))
-     forms)))
+        (cond
+         ((or (symbolp entry)
+              (and (listp entry)
+                   (symbolp (car entry))
+                   (< (length entry) 4)))
+          t)
+         (t
+          (error
+           "Init/Step must be symbol or (symbol [init [step]]), not `%s'"
+           (prin1-to-string entry))))))
+     forms))))
 
 (defun check-do-endforms (forms)
   "True if FORMS is a valid endforms for the do[*] macro (q.v.)"
-  (if (nlistp forms)
-      (error "termination form for do macro should be a list, not `%s'"
-             (prin1-to-string forms))))
+  (cond
+   ((listp forms)
+    t)
+   (t
+    (error "Termination form for do macro should be a list, not `%s'"
+           (prin1-to-string forms)))))
 
 (defun extract-do-inits (forms)
   "Returns a list of the initializations (for do) in FORMS
-(a stepforms, see the do macro).
-FORMS is assumed syntactically valid."
+-a stepforms, see the do macro-. Forms is assumed syntactically valid."
   (mapcar
    (function
     (lambda (entry)
-      (cond ((symbolp entry)
-             (list entry nil))
-            ((listp entry)
-             (list (car entry) (cadr entry))))))
+      (cond
+       ((symbolp entry)
+        (list entry nil))
+       ((listp entry)
+        (list (car entry) (cadr entry))))))
    forms))
-
+
 ;;; There used to be a reason to deal with DO differently than with
 ;;; DO*.  The writing of PSETQ has made it largely unnecessary.
 
 (defun extract-do-steps (forms)
-  "EXTRACT-DO-STEPS FORMS => an s-expr.
-FORMS is the stepforms part of a DO macro (q.v.).  This function constructs
-an s-expression that does the stepping at the end of an iteration."
+  "EXTRACT-DO-STEPS FORMS => an s-expr
+FORMS is the stepforms part of a DO macro (q.v.).  This function
+constructs an s-expression that does the stepping at the end of an
+iteration."
   (list (cons 'psetq (select-stepping-forms forms))))
 
 (defun extract-do*-steps (forms)
-  "EXTRACT-DO*-STEPS FORMS => an s-expr.
-FORMS is the stepforms part of a DO* macro (q.v.).  This function constructs
-an s-expression that does the stepping at the end of an iteration."
+  "EXTRACT-DO*-STEPS FORMS => an s-expr
+FORMS is the stepforms part of a DO* macro (q.v.).  This function
+constructs an s-expression that does the stepping at the end of an
+iteration."
   (list (cons 'setq (select-stepping-forms forms))))
 
 (defun select-stepping-forms (forms)
@@ -532,30 +611,34 @@ an s-expression that does the stepping at the end of an iteration."
 	)
     (while ptr				;(not (endp entry)) might be safer
       (setq entry (car ptr))
-      (cond ((and (listp entry) (= (length entry) 3))
-             (setq result (append       ;append in reverse order!
-                           (list (caddr entry) (car entry))
-                           result))))
+      (cond
+       ((and (listp entry)
+	     (= (length entry) 3))
+	(setq result (append		;append in reverse order!
+		      (list (caddr entry) (car entry))
+		      result))))
       (setq ptr (cdr ptr)))		;step in the list of forms
+    ;;put things back in the
+    ;;correct order before return
     (nreverse result)))
 
 ;;; Other iterative constructs
 
 (defmacro dolist  (stepform &rest body)
   "(dolist (VAR LIST [RESULTFORM]) . BODY): do BODY for each elt of LIST.
-The RESULTFORM defaults to nil.  The VAR is bound to successive elements
-of the value of LIST and remains bound (to the nil value) when the
+The RESULTFORM defaults to nil.  The VAR is bound to successive
+elements of the value of LIST and remains bound (to the nil value) when the
 RESULTFORM is evaluated."
   ;; check sanity
   (cond
    ((nlistp stepform)
-    (error "stepform for `dolist' should be (VAR LIST [RESULT]), not `%s'"
+    (error "Stepform for `dolist' should be (VAR LIST [RESULT]), not `%s'"
            (prin1-to-string stepform)))
    ((not (symbolp (car stepform)))
-    (error "first component of stepform should be a symbol, not `%s'"
+    (error "First component of stepform should be a symbol, not `%s'"
            (prin1-to-string (car stepform))))
    ((> (length stepform) 3)
-    (error "too many components in stepform `%s'"
+    (error "Too many components in stepform `%s'"
            (prin1-to-string stepform))))
   ;; generate code
   (let* ((var (car stepform))
@@ -571,23 +654,23 @@ RESULTFORM is evaluated."
                 resultform))))
 
 (defmacro dotimes (stepform &rest body)
-  "(dotimes (VAR COUNTFORM [RESULTFORM]) . BODY): Repeat BODY, counting in VAR.
+  "(dotimes (VAR COUNTFORM [RESULTFORM]) .  BODY): Repeat BODY, counting in VAR.
 The COUNTFORM should return a positive integer.  The VAR is bound to
-successive integers from 0 to COUNTFORM - 1 and the BODY is repeated for
+successive integers from 0 to COUNTFORM-1 and the BODY is repeated for
 each of them.  At the end, the RESULTFORM is evaluated and its value
-returned.  During this last evaluation, the VAR is still bound, and its
-value is the number of times the iteration occurred.  An omitted RESULTFORM
+returned. During this last evaluation, the VAR is still bound, and its
+value is the number of times the iteration occurred. An omitted RESULTFORM
 defaults to nil."
   ;; check sanity 
   (cond
    ((nlistp stepform)
-    (error "stepform for `dotimes' should be (VAR COUNT [RESULT]), not `%s'"
+    (error "Stepform for `dotimes' should be (VAR COUNT [RESULT]), not `%s'"
            (prin1-to-string stepform)))
    ((not (symbolp (car stepform)))
-    (error "first component of stepform should be a symbol, not `%s'"
+    (error "First component of stepform should be a symbol, not `%s'"
            (prin1-to-string (car stepform))))
    ((> (length stepform) 3)
-    (error "too many components in stepform `%s'"
+    (error "Too many components in stepform `%s'"
            (prin1-to-string stepform))))
   ;; generate code
   (let* ((var (car stepform))
@@ -612,13 +695,13 @@ See also the function `mapatoms'."
   ;; check sanity
   (cond
    ((nlistp stepform)
-    (error "stepform for `do-symbols' should be (VAR OBARRAY [RESULT]), not `%s'"
+    (error "Stepform for `do-symbols' should be (VAR OBARRAY [RESULT]), not `%s'"
            (prin1-to-string stepform)))
    ((not (symbolp (car stepform)))
-    (error "first component of stepform should be a symbol, not `%s'"
+    (error "First component of stepform should be a symbol, not `%s'"
            (prin1-to-string (car stepform))))
    ((> (length stepform) 3)
-    (error "too many components in stepform `%s'"
+    (error "Too many components in stepform `%s'"
            (prin1-to-string stepform))))
   ;; generate code
   (let* ((var (car stepform))
@@ -648,12 +731,12 @@ Normally BODY uses `throw' or `signal' to cause an exit.
 The forms in BODY should be lists, as non-lists are reserved for new features."
   ;; check that the body doesn't have atomic forms
   (if (nlistp body)
-      (error "body of `loop' should be a list of lists or nil")
+      (error "Body of `loop' should be a list of lists or nil")
     ;; ok, it is a list, check for atomic components
     (mapcar
      (function (lambda (component)
                  (if (nlistp component)
-                     (error "components of `loop' should be lists"))))
+                     (error "Components of `loop' should be lists"))))
      body)
     ;; build the infinite loop
     (cons 'while (cons 't body))))
@@ -668,101 +751,52 @@ The forms in BODY should be lists, as non-lists are reserved for new features."
 ;;;;    Cesar Quiroz @ UofR DofCSc - Dec. 1986
 ;;;;       (quiroz@cs.rochester.edu)
 
-(defvar *cl-valid-named-list-accessors*
-    '(first rest second third fourth fifth sixth seventh eighth ninth tenth))
-(defvar *cl-valid-nth-offsets*
-    '((second   . 1)
-      (third    . 2)
-      (fourth   . 3)
-      (fifth    . 4)
-      (sixth    . 5)
-      (seventh  . 6)
-      (eighth   . 7)
-      (ninth    . 8)
-      (tenth    . 9)))
 
-(defun byte-compile-named-list-accessors (form)
-  "Generate code for (<accessor> FORM), where <accessor> is one of the named
-list accessors: first, second, ..., tenth, rest."
-  (let* ((fun       (car form))
-         (arg       (cadr form))
-         (valid     *cl-valid-named-list-accessors*)
-         (offsets   *cl-valid-nth-offsets*))
-    (if (or (null (cdr form)) (cddr form))
-        (error "%s needs exactly one argument, seen `%s'"
-               fun (prin1-to-string form)))
-    (if (not (memq fun valid))
-        (error "`%s' not in {first, ..., tenth, rest}" fun))
-    (cond ((eq fun 'first)
-           (byte-compile-form arg)
-           (setq byte-compile-depth (1- byte-compile-depth))
-           (byte-compile-out byte-car 0))
-          ((eq fun 'rest)
-           (byte-compile-form arg)
-           (setq byte-compile-depth (1- byte-compile-depth))
-           (byte-compile-out byte-cdr 0))
-          (t                            ;one of the others
-           (byte-compile-constant (cdr (assoc fun offsets)))
-           (byte-compile-form arg)
-           (setq byte-compile-depth (1- byte-compile-depth))
-           (byte-compile-out byte-nth 0)
-           ))))
 
 ;;; Synonyms for list functions
 (defun first (x)
   "Synonym for `car'"
   (car x))
-(put 'first 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun second (x)
   "Return the second element of the list LIST."
   (nth 1 x))
-(put 'second 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun third (x)
   "Return the third element of the list LIST."
   (nth 2 x))
-(put 'third 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun fourth (x)
   "Return the fourth element of the list LIST."
   (nth 3 x))
-(put 'fourth 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun fifth (x)
   "Return the fifth element of the list LIST."
   (nth 4 x))
-(put 'fifth 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun sixth (x)
   "Return the sixth element of the list LIST."
   (nth 5 x))
-(put 'sixth 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun seventh (x)
   "Return the seventh element of the list LIST."
   (nth 6 x))
-(put 'seventh 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun eighth (x)
   "Return the eighth element of the list LIST."
   (nth 7 x))
-(put 'eighth 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun ninth (x)
   "Return the ninth element of the list LIST."
   (nth 8 x))
-(put 'ninth 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun tenth (x)
   "Return the tenth element of the list LIST."
   (nth 9 x))
-(put 'tenth 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun rest (x)
   "Synonym for `cdr'"
   (cdr x))
-(put 'rest 'byte-compile 'byte-compile-named-list-accessors)
 
 (defun endp (x)
   "t if X is nil, nil if X is a cons; error otherwise."
@@ -774,7 +808,7 @@ list accessors: first, second, ..., tenth, rest."
 (defun last (x)
   "Returns the last link in the list LIST."
   (if (nlistp x)
-      (error "arg to `last' must be a list"))
+      (error "Arg to `last' must be a list"))
   (do ((current-cons    x       (cdr current-cons))
        (next-cons    (cdr x)    (cdr next-cons)))
       ((endp next-cons) current-cons)))
@@ -786,17 +820,30 @@ list accessors: first, second, ..., tenth, rest."
        (slow x (cdr slow))              ;slow pointer, leaps by 1
        (ready nil))                     ;indicates termination
       (ready n)
-    (cond ((endp fast)
-           (setq ready t))              ;return n
-          ((endp (cdr fast))
-           (setq n (+ n 1))
-           (setq ready t))              ;return n+1
-          ((and (eq fast slow) (> n 0))
-           (setq n nil)
-           (setq ready t))              ;return nil
-          (t
-           (setq n (+ n 2))))))         ;just advance counter
+    (cond
+     ((endp fast)
+      (setq ready t))                   ;return n
+     ((endp (cdr fast))
+      (setq n (+ n 1))
+      (setq ready t))                   ;return n+1
+     ((and (eq fast slow) (> n 0))
+      (setq n nil)
+      (setq ready t))                   ;return nil
+     (t
+      (setq n (+ n 2))))))              ;just advance counter
 
+(defun member (item list)
+  "Look for ITEM in LIST; return first link in LIST whose car is `eql' to ITEM."
+  (let ((ptr list)
+        (done nil)
+        (result '()))
+    (while (not (or done (endp ptr)))
+      (cond ((eql item (car ptr))
+             (setq done t)
+             (setq result ptr)))
+      (setq ptr (cdr ptr)))
+    result))
+
 (defun butlast (list &optional n)
   "Return a new list like LIST but sans the last N elements.
 N defaults to 1.  If the list doesn't have N elements, nil is returned."
@@ -818,9 +865,11 @@ Thus, (list* 1 2 3 '(a b)) returns (1 2 3 a b)."
   "Return a list which contains ITEM but is otherwise like LIST.
 If ITEM occurs in LIST, the value is LIST.  Otherwise it is (cons ITEM LIST).
 When comparing ITEM against elements, `eql' is used."
-  (if (memq item list)
-      list
-    (cons item list)))
+  (cond
+   ((member item list)
+    list)
+   (t
+    (cons item list))))
 
 (defun ldiff (list sublist)
   "Return a new list like LIST but sans SUBLIST.
@@ -831,175 +880,119 @@ SUBLIST must be one of the links in LIST; otherwise the value is LIST itself."
        (reverse result))
     (setq result (cons (car curcons) result))))
 
-;;; The popular c[ad]*r functions and other list accessors.
-
-;;; To implement this efficiently, a new byte compile handler is used to
-;;; generate the minimal code, saving one function call.
-
-(defun byte-compile-ca*d*r (form)
-  "Generate code for a (c[ad]+r argument).  This realizes the various
-combinations of car and cdr whose names are supported in this implementation.
-To use this functionality for a given function,just give its name a
-'byte-compile property of 'byte-compile-ca*d*r"
-  (let* ((fun (car form))
-         (arg (cadr form))
-         (seq (mapcar (function (lambda (letter)
-                                  (if (= letter ?a)
-                                      'byte-car 'byte-cdr)))
-                      (cdr (nreverse (cdr (append (symbol-name fun) nil)))))))
-    ;; SEQ is a list of byte-car and byte-cdr in the correct order.
-    (if (null seq)
-        (error "internal: `%s' cannot be compiled by byte-compile-ca*d*r"
-               (prin1-to-string form)))
-    (if (or (null (cdr form)) (cddr form))
-        (error "%s needs exactly one argument, seen `%s'"
-               fun (prin1-to-string form)))
-    (byte-compile-form arg)
-    (setq byte-compile-depth (1- byte-compile-depth))
-    ;; the rest of this code doesn't change the stack depth!
-    (while seq
-      (byte-compile-out (car seq) 0)
-      (setq seq (cdr seq)))))
+;;; The popular c[ad]*r functions.
 
 (defun caar (X)
   "Return the car of the car of X."
   (car (car X)))
-(put 'caar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cadr (X)
   "Return the car of the cdr of X."
   (car (cdr X)))
-(put 'cadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdar (X)
   "Return the cdr of the car of X."
   (cdr (car X)))
-(put 'cdar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cddr (X)
   "Return the cdr of the cdr of X."
   (cdr (cdr X)))
-(put 'cddr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caaar (X)
   "Return the car of the car of the car of X."
   (car (car (car X))))
-(put 'caaar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caadr (X)
   "Return the car of the car of the cdr of X."
   (car (car (cdr X))))
-(put 'caadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cadar (X)
   "Return the car of the cdr of the car of X."
   (car (cdr (car X))))
-(put 'cadar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdaar (X)
   "Return the cdr of the car of the car of X."
   (cdr (car (car X))))
-(put 'cdaar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caddr (X)
   "Return the car of the cdr of the cdr of X."
   (car (cdr (cdr X))))
-(put 'caddr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdadr (X)
   "Return the cdr of the car of the cdr of X."
   (cdr (car (cdr X))))
-(put 'cdadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cddar (X)
   "Return the cdr of the cdr of the car of X."
   (cdr (cdr (car X))))
-(put 'cddar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdddr (X)
   "Return the cdr of the cdr of the cdr of X."
   (cdr (cdr (cdr X))))
-(put 'cdddr 'byte-compile 'byte-compile-ca*d*r)
-
+
 (defun caaaar (X)
   "Return the car of the car of the car of the car of X."
   (car (car (car (car X)))))
-(put 'caaaar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caaadr (X)
   "Return the car of the car of the car of the cdr of X."
   (car (car (car (cdr X)))))
-(put 'caaadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caadar (X)
   "Return the car of the car of the cdr of the car of X."
   (car (car (cdr (car X)))))
-(put 'caadar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cadaar (X)
   "Return the car of the cdr of the car of the car of X."
   (car (cdr (car (car X)))))
-(put 'cadaar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdaaar (X)
   "Return the cdr of the car of the car of the car of X."
   (cdr (car (car (car X)))))
-(put 'cdaaar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caaddr (X)
   "Return the car of the car of the cdr of the cdr of X."
   (car (car (cdr (cdr X)))))
-(put 'caaddr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cadadr (X)
   "Return the car of the cdr of the car of the cdr of X."
   (car (cdr (car (cdr X)))))
-(put 'cadadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdaadr (X)
   "Return the cdr of the car of the car of the cdr of X."
   (cdr (car (car (cdr X)))))
-(put 'cdaadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun caddar (X)
   "Return the car of the cdr of the cdr of the car of X."
   (car (cdr (cdr (car X)))))
-(put 'caddar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdadar (X)
   "Return the cdr of the car of the cdr of the car of X."
   (cdr (car (cdr (car X)))))
-(put 'cdadar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cddaar (X)
   "Return the cdr of the cdr of the car of the car of X."
   (cdr (cdr (car (car X)))))
-(put 'cddaar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cadddr (X)
   "Return the car of the cdr of the cdr of the cdr of X."
   (car (cdr (cdr (cdr X)))))
-(put 'cadddr 'byte-compile 'byte-compile-ca*d*r)
-
+
 (defun cddadr (X)
   "Return the cdr of the cdr of the car of the cdr of X."
   (cdr (cdr (car (cdr X)))))
-(put 'cddadr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdaddr (X)
   "Return the cdr of the car of the cdr of the cdr of X."
   (cdr (car (cdr (cdr X)))))
-(put 'cdaddr 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cdddar (X)
   "Return the cdr of the cdr of the cdr of the car of X."
   (cdr (cdr (cdr (car X)))))
-(put 'cdddar 'byte-compile 'byte-compile-ca*d*r)
 
 (defun cddddr (X)
   "Return the cdr of the cdr of the cdr of the cdr of X."
   (cdr (cdr (cdr (cdr X)))))
-(put 'cddddr 'byte-compile 'byte-compile-ca*d*r)
 
 ;;; some inverses of the accessors are needed for setf purposes
 
@@ -1008,16 +1001,17 @@ To use this functionality for a given function,just give its name a
   (rplaca (nthcdr n list) newval))
 
 (defun setnthcdr (n list newval)
-  "(setnthcdr N LIST NEWVAL) => NEWVAL
+  "SETNTHCDR N LIST NEWVAL => NEWVAL
 As a side effect, sets the Nth cdr of LIST to NEWVAL."
-  (cond ((< n 0)
-         (error "N must be 0 or greater, not %d" n))
-        ((= n 0)
-         (rplaca list (car newval))
-         (rplacd list (cdr newval))
-         newval)
-        (t
-         (rplacd (nthcdr (- n 1) list) newval))))
+  (cond
+   ((< n 0)
+    (error "N must be 0 or greater, not %d" n))
+   ((= n 0)
+    (rplaca list (car newval))
+    (rplacd list (cdr newval))
+    newval)
+   (t
+    (rplacd (nthcdr (- n 1) list) newval))))
 
 ;;; A-lists machinery
 
@@ -1031,7 +1025,7 @@ Does not copy ALIST."
 optional 3rd arg ALIST is nconc'd at the end.  KEYS and DATA must
 have the same length."
   (unless (= (length keys) (length data))
-    (error "keys and data should be the same length"))
+    (error "Keys and data should be the same length"))
   (do* ;;collect keys and data in front of alist
       ((kptr keys (cdr kptr))           ;traverses the keys
        (dptr data (cdr dptr))           ;traverses the data
@@ -1041,6 +1035,7 @@ have the same length."
       ((endp kptr) result)
     (setq result (acons key item result))))
 
+;;;; end of cl-lists.el
 
 ;;;; SEQUENCES
 ;;;; Emacs Lisp provides many of the 'sequences' functionality of
@@ -1136,50 +1131,8 @@ A sequence means either a list or a vector."
       (unless applyval
         (setq ready t)
         (setq result t)))))
-
-;;; More sequence functions that don't need keyword arguments
 
-(defun concatenate (type &rest sequences)
-  "(concatenate TYPE &rest SEQUENCES) => a sequence
-The sequence returned is of type TYPE (must be 'list, 'string, or 'vector) and
-contains the concatenation of the elements of all the arguments, in the order
-given."
-  (let ((sequences (append sequences '(()))))
-    (case type
-      (list
-       (apply (function append) sequences))
-      (string
-       (apply (function concat) sequences))
-      (vector
-       (apply (function vector) (apply (function append) sequences)))
-      (t
-       (error "type for concatenate `%s' not 'list, 'string or 'vector"
-              (prin1-to-string type))))))
 
-(defun map (type function &rest sequences)
-  "(map TYPE FUNCTION &rest SEQUENCES) => a sequence
-The FUNCTION is called on each set of elements from the SEQUENCES \(stopping
-when the shortest sequence is terminated\) and the results are possibly
-returned in a sequence of type TYPE \(one of 'list, 'vector, 'string, or nil\)
-giving NIL for TYPE gets rid of the values."
-  (if (not (memq type (list 'list 'string 'vector nil)))
-      (error "type for map `%s' not 'list, 'string, 'vector or nil"
-             (prin1-to-string type)))
-  (let ((argslists (reassemble-argslists sequences))
-        results)
-    (if (null type)
-        (while argslists                ;don't bother accumulating
-          (apply function (car argslists))
-          (setq argslists (cdr argslists)))
-      (setq results (mapcar (function (lambda (args) (apply function args)))
-                            argslists))
-      (case type
-        (list
-         results)
-        (string
-         (funcall (function concat) results))
-        (vector
-         (apply (function vector) results))))))
 
 ;;; an inverse of elt is needed for setf purposes
 
@@ -1187,16 +1140,20 @@ giving NIL for TYPE gets rid of the values."
   "In SEQUENCE, set the Nth element to NEWVAL.  Returns NEWVAL.
 A sequence means either a list or a vector."
   (let ((l (length seq)))
-    (if (or (< n 0) (>= n l))
-        (error "N(%d) should be between 0 and %d" n l)
-      ;; only two cases need be considered valid, as strings are arrays
-      (cond ((listp seq)
-             (setnth n seq newval))
-            ((arrayp seq)
-             (aset seq n newval))
-            (t
-             (error "SEQ should be a sequence, not `%s'"
-                    (prin1-to-string seq)))))))
+    (cond
+     ((or (< n 0)
+          (>= n l))
+      (error "N(%d) should be between 0 and %d" n l))
+     (t
+      ;; only two cases need be considered
+      (cond
+       ((listp seq)
+        (setnth n seq newval))
+       ((arrayp seq)
+        (aset seq n newval))
+       (t
+        (error "SEQ should be a sequence, not `%s'"
+               (prin1-to-string seq))))))))
 
 ;;; Testing with keyword arguments.
 ;;;
@@ -1207,334 +1164,67 @@ A sequence means either a list or a vector."
 ;;; constructs an association list.  That association list is used to
 ;;; test for satisfaction and matching.
 
-;;; DON'T USE MEMBER, NOR ANY FUNCTION THAT COULD TAKE KEYWORDS HERE!!!
-
-(defun build-klist (argslist acceptable &optional allow-other-keys)
-  "Decode a keyword argument list ARGSLIST for keywords in ACCEPTABLE.
-ARGSLIST is a list, presumably the &rest argument of a call, whose
-even numbered elements must be keywords.
-ACCEPTABLE is a list of keywords, the only ones that are truly acceptable.
-The result is an alist containing the arguments named by the keywords
-in ACCEPTABLE, or an error is signalled, if something failed.
-If the third argument (an optional) is non-nil, other keys are acceptable."
-  ;; check legality of the arguments, then destructure them
-  (unless (and (listp argslist)
-               (evenp (length argslist)))
-    (error "build-klist: odd number of keyword-args"))
-  (unless (and (listp acceptable)
-               (every 'keywordp acceptable))
-    (error "build-klist: second arg should be a list of keywords"))
-  (multiple-value-bind
-      (keywords forms)
-      (unzip-list argslist)
-    (unless (every 'keywordp keywords)
-      (error "build-klist: expected keywords, found `%s'"
-             (prin1-to-string keywords)))
-    (unless (or allow-other-keys
-                (every (function (lambda (keyword)
-                                   (memq keyword acceptable)))
-                       keywords))
-      (error "bad keyword[s]: %s not in %s"
-             (prin1-to-string (mapcan (function (lambda (keyword)
-                                                  (if (memq keyword acceptable)
-                                                      nil
-                                                    (list keyword))))
-                                      keywords))
-             (prin1-to-string acceptable)))
-    (do* ;;pick up the pieces
-        ((auxlist                       ;auxiliary a-list, may
-          (pairlis keywords forms))     ;contain repetitions and junk
-         (ptr    acceptable  (cdr ptr)) ;pointer in acceptable
-         (this  (car ptr)  (car ptr))   ;current acceptable keyword
-         (auxval nil)                   ;used to move values around
-         (alist  '()))                  ;used to build the result
-        ((endp ptr) alist)
-      ;; if THIS appears in auxlist, use its value
-      (when (setq auxval (assq this auxlist))
-        (setq alist (cons auxval alist))))))
-
-
-(defun extract-from-klist (klist key &optional default)
-  "(extract-from-klist KLIST KEY [DEFAULT]) => value of KEY or DEFAULT
+(defun extract-from-klist (key klist &optional default)
+  "EXTRACT-FROM-KLIST KEY KLIST [DEFAULT] => value of KEY or DEFAULT
 Extract value associated with KEY in KLIST (return DEFAULT if nil)."
-  (let ((retrieved (cdr (assq key klist))))
+  (let ((retrieved (cdr (assoc key klist))))
     (or retrieved default)))
 
-(defun keyword-argument-supplied-p (klist key)
-  "(keyword-argument-supplied-p KLIST KEY) => nil or something
-NIL if KEY (a keyword) does not appear in the KLIST."
-  (assq key klist))
-
 (defun add-to-klist (key item klist)
-  "(ADD-TO-KLIST KEY ITEM KLIST) => new KLIST
+  "ADD-TO-KLIST KEY ITEM KLIST => new KLIST
 Add association (KEY . ITEM) to KLIST."
   (setq klist (acons key item klist)))
 
 (defun elt-satisfies-test-p (item elt klist)
-  "(elt-satisfies-test-p ITEM ELT KLIST) => t or nil
+  "ELT-SATISFIES-TEST-P ITEM ELT KLIST => t or nil
 KLIST encodes a keyword-arguments test, as in CH. 14 of CLtL.
 True if the given ITEM and ELT satisfy the test."
-  (let ((test     (extract-from-klist klist :test))
-        (test-not (extract-from-klist klist :test-not))
-        (keyfn    (extract-from-klist klist :key 'identity)))
-    (cond (test
-           (funcall test item (funcall keyfn elt)))
-          (test-not
-           (not (funcall test-not item (funcall keyfn elt))))
-          (t                            ;should never happen
-           (error "neither :test nor :test-not in `%s'"
-                  (prin1-to-string klist))))))
+  (let ((test     (extract-from-klist :test klist))
+        (test-not (extract-from-klist :test-not klist))
+        (keyfn    (extract-from-klist :key klist 'identity)))
+    (cond
+     (test
+      (funcall test item (funcall keyfn elt)))
+     (test-not
+      (not (funcall test-not item (funcall keyfn elt))))
+     (t                                 ;should never happen
+      (error "Neither :test nor :test-not in `%s'"
+             (prin1-to-string klist))))))
 
 (defun elt-satisfies-if-p   (item klist)
-  "(elt-satisfies-if-p ITEM KLIST) => t or nil
+  "ELT-SATISFIES-IF-P ITEM KLIST => t or nil
 True if an -if style function was called and ITEM satisfies the
 predicate under :predicate in KLIST."
-  (let ((predicate (extract-from-klist klist :predicate))
-        (keyfn     (extract-from-klist klist :key 'identity)))
+  (let ((predicate (extract-from-klist :predicate klist))
+        (keyfn     (extract-from-klist :key 'identity)))
     (funcall predicate item (funcall keyfn elt))))
 
 (defun elt-satisfies-if-not-p (item klist)
-  "(elt-satisfies-if-not-p ITEM KLIST) => t or nil
+  "ELT-SATISFIES-IF-NOT-P ITEM KLIST => t or nil
 KLIST encodes a keyword-arguments test, as in CH. 14 of CLtL.
 True if an -if-not style function was called and ITEM does not satisfy
 the predicate under :predicate in KLIST."
-  (let ((predicate (extract-from-klist klist :predicate))
-        (keyfn     (extract-from-klist klist :key 'identity)))
+  (let ((predicate (extract-from-klist :predicate klist))
+        (keyfn     (extract-from-klist :key 'identity)))
     (not (funcall predicate item (funcall keyfn elt)))))
-
+
 (defun elts-match-under-klist-p (e1 e2 klist)
-  "(elts-match-under-klist-p E1 E2 KLIST) => t or nil
+  "ELTS-MATCH-UNDER-KLIST-P E1 E2 KLIST => t or nil
 KLIST encodes a keyword-arguments test, as in CH. 14 of CLtL.
 True if elements E1 and E2 match under the tests encoded in KLIST."
-  (let ((test     (extract-from-klist klist :test))
-        (test-not (extract-from-klist klist :test-not))
-        (keyfn    (extract-from-klist klist :key 'identity)))
-    (if (and test test-not)
-        (error "both :test and :test-not in `%s'"
-               (prin1-to-string klist)))
-    (cond (test
-           (funcall test (funcall keyfn e1) (funcall keyfn e2)))
-          (test-not
-           (not (funcall test-not (funcall keyfn e1) (funcall keyfn e2))))
-          (t                            ;should never happen
-           (error "neither :test nor :test-not in `%s'"
-                  (prin1-to-string klist))))))
-
-;;; This macro simplifies using keyword args.  It is less clumsy than using
-;;; the primitives build-klist, etc...  For instance, member could be written
-;;; this way:
-
-;;; (defun member (item list &rest kargs)
-;;;  (with-keyword-args kargs (test test-not (key 'identity))
-;;;    ...))
-
-;;; Suggested by Robert Potter (potter@cs.rochester.edu, 15 Nov 1989)
-
-(defmacro with-keyword-args (keyargslist vardefs &rest body)
-  "(WITH-KEYWORD-ARGS KEYARGSLIST VARDEFS . BODY)
-KEYARGSLIST can be either a symbol or a list of one or two symbols.  
-In the second case, the second symbol is either T or NIL, indicating whether
-keywords other than the mentioned ones are tolerable.
-
-VARDEFS is a list.  Each entry is either a VAR (symbol) or matches
-\(VAR [DEFAULT [KEYWORD]]).  Just giving VAR is the same as giving
-\(VAR nil :VAR).
-
-The BODY is executed in an environment where each VAR (a symbol) is bound to
-the value present in the KEYARGSLIST provided, or to the DEFAULT.  The value
-is searched by using the keyword form of VAR (i.e., :VAR) or the optional
-keyword if provided.
-
-Notice that this macro doesn't distinguish between a default value given
-explicitly by the user and one provided by default.  See also the more
-primitive functions build-klist, add-to-klist, extract-from-klist,
-keyword-argument-supplied-p, elt-satisfies-test-p, elt-satisfies-if-p,
-elt-satisfies-if-not-p, elts-match-under-klist-p.  They provide more complete,
-if clumsier, control over this feature."
-  (let (allow-other-keys)
-    (if (listp keyargslist)
-        (if (> (length keyargslist) 2)
-            (error
-             "`%s' should be SYMBOL, (SYMBOL), or (SYMBOL t-OR-nil)"
-             (prin1-to-string keyargslist))
-          (setq allow-other-keys (cadr keyargslist)
-                keyargslist      (car keyargslist))
-          (if (not (and
-                    (symbolp keyargslist)
-                    (memq allow-other-keys '(t nil))))
-              (error
-               "first subform should be SYMBOL, (SYMBOL), or (SYMBOL t-OR-nil)"
-               )))
-      (if (symbolp keyargslist)
-          (setq allow-other-keys nil)
-        (error
-         "first subform should be SYMBOL, (SYMBOL), or (SYMBOL t-OR-nil)")))
-    (let (vars defaults keywords forms
-          (klistname (gensym "KLIST_")))
-      (mapcar (function (lambda (entry)
-                          (if (symbolp entry) ;defaulty case
-                              (setq entry (list entry nil (keyword-of entry))))
-                          (let* ((l (length entry))
-                                 (v (car entry))
-                                 (d (cadr entry))
-                                 (k (caddr entry)))
-                            (if (or (< l 1) (> l 3))
-                                (error
-                                 "`%s' must match (VAR [DEFAULT [KEYWORD]])"
-                                 (prin1-to-string entry)))
-                            (if (or (null v) (not (symbolp v)))
-                                (error
-                                 "bad variable `%s': must be non-null symbol"
-                                 (prin1-to-string v)))
-                            (setq vars (cons v vars))
-                            (setq defaults (cons d defaults))
-                            (if (< l 3)
-                                (setq k (keyword-of v)))
-                            (if (and (= l 3)
-                                     (or (null k)
-                                         (not (keywordp k))))
-                                (error
-                                 "bad keyword `%s'" (prin1-to-string k)))
-                            (setq keywords (cons k keywords))
-                            (setq forms (cons (list v (list 'extract-from-klist
-                                                            klistname
-                                                            k
-                                                            d))
-                                              forms)))))
-              vardefs)
-      (append
-       (list 'let* (nconc (list (list klistname
-                                      (list 'build-klist keyargslist
-                                            (list 'quote keywords)
-                                            allow-other-keys)))
-                          (nreverse forms)))
-       body))))
-(put 'with-keyword-args 'lisp-indent-function 1)
-
-
-;;; REDUCE
-;;; It is here mostly as an example of how to use KLISTs.
-;;;
-;;; First of all, you need to declare the keywords (done elsewhere in this
-;;; file):
-;;;         (defkeyword :from-end "syntax of sequence functions")
-;;;         (defkeyword :start "syntax of sequence functions")
-;;; etc...
-;;;
-;;; Then, you capture all the possible keyword arguments with a &rest
-;;; argument.  You can pass that list downward again, of course, but
-;;; internally you need to parse it into a KLIST (an alist, really).  One uses
-;;; (build-klist REST-ARGS ACCEPTABLE-KEYWORDS [ALLOW-OTHER]).  You can then
-;;; test for presence by using (keyword-argument-supplied-p KLIST KEY) and
-;;; extract a value with (extract-from-klist KLIST KEY [DEFAULT]).
-
-(defun reduce (function sequence &rest kargs)
-  "Apply FUNCTION (a function of two arguments) to succesive pairs of elements
-from SEQUENCE.  Some keyword arguments are valid after FUNCTION and SEQUENCE:
-:from-end       If non-nil, process the values backwards
-:initial-value  If given, prefix it to the SEQUENCE.  Suffix, if :from-end
-:start          Restrict reduction to the subsequence from this index
-:end            Restrict reduction to the subsequence BEFORE this index.
-If the sequence is empty and no :initial-value is given, the FUNCTION is
-called on zero (not two) arguments.  Otherwise, if there is exactly one
-element in the combination of SEQUENCE and the initial value, that element is
-returned."
-  (let* ((klist (build-klist kargs '(:from-end :start :end :initial-value)))
-         (length (length sequence))
-         (from-end (extract-from-klist klist :from-end))
-         (initial-value-given (keyword-argument-supplied-p
-                               klist :initial-value))
-         (start (extract-from-klist kargs :start 0))
-         (end   (extract-from-klist kargs :end length)))
-    (setq sequence (cl$subseq-as-list sequence start end))
-    (if from-end
-        (setq sequence (reverse sequence)))
-    (if initial-value-given
-        (setq sequence (cons (extract-from-klist klist :initial-value)
-                             sequence)))
-    (if (null sequence)
-        (funcall function)              ;only use of 0 arguments
-      (let* ((result (car sequence))
-             (sequence (cdr sequence)))
-        (while sequence
-          (setq result   (if from-end
-                             (funcall function (car sequence) result)
-                           (funcall function result (car sequence)))
-                sequence (cdr sequence)))
-        result))))
-
-(defun cl$subseq-as-list (sequence start end)
-  "(cl$subseq-as-list SEQUENCE START END) => a list"
-  (let ((list (append sequence nil))
-        (length (length sequence))
-        result)
-    (if (< start 0)
-        (error "start should be >= 0, not %d" start))
-    (if (> end length)
-        (error "end should be <= %d, not %d" length end))
-    (if (and (zerop start) (= end length))
-        list
-      (let ((i start)
-            (vector (apply 'vector list)))
-        (while (/= i end)
-          (setq result (cons (elt vector i) result))
-          (setq i      (+ i 1)))
-        (nreverse result)))))
+  (let ((test     (extract-from-klist :test klist))
+        (test-not (extract-from-klist :test-not klist))
+        (keyfn    (extract-from-klist :key klist 'identity)))
+    (cond
+     (test
+      (funcall test (funcall keyfn e1) (funcall keyfn e2)))
+     (test-not
+      (not (funcall test-not (funcall keyfn e1) (funcall keyfn e2))))
+     (t                                 ;should never happen
+      (error "Neither :test nor :test-not in `%s'"
+             (prin1-to-string klist))))))
 
 ;;;; end of cl-sequences.el
-
-;;;; Some functions with keyword arguments
-;;;;
-;;;; Both list and sequence functions are considered here together.  This
-;;;; doesn't fit any more with the original split of functions in files.
-
-(defun member (item list &rest kargs)
-  "Look for ITEM in LIST; return first tail of LIST the car of whose first
-cons cell tests the same as ITEM.  Admits arguments :key, :test, and :test-not."
-  (if (null kargs)                      ;treat this fast for efficiency
-      (memq item list)
-    (let* ((klist     (build-klist kargs '(:test :test-not :key)))
-           (test      (extract-from-klist klist :test))
-           (testnot   (extract-from-klist klist :test-not))
-           (key       (extract-from-klist klist :key 'identity)))
-      ;; another workaround allegledly for speed
-      (if (and (or (eq test 'eq) (eq test 'eql)
-                   (eq test (symbol-function 'eq))
-                   (eq test (symbol-function 'eql)))
-               (null testnot)
-               (or (eq key 'identity)   ;either by default or so given
-                   (eq key (function identity)) ;could this happen?
-                   (eq key (symbol-function 'identity)) ;sheer paranoia
-                   ))
-          (memq item list)
-        (if (and test testnot)
-            (error ":test and :test-not both specified for member"))
-        (if (not (or test testnot))
-            (setq test 'eql))
-        ;; final hack: remove the indirection through the function names
-        (if testnot
-            (if (symbolp testnot)
-                (setq testnot (symbol-function testnot)))
-          (if (symbolp test)
-              (setq test (symbol-function test))))
-        (if (symbolp key)
-            (setq key (symbol-function key)))
-        ;; ok, go for it
-        (let ((ptr list)
-              (done nil)
-              (result '()))
-          (if testnot
-              (while (not (or done (endp ptr)))
-                (cond ((not (funcall testnot item (funcall key (car ptr))))
-                       (setq done t)
-                       (setq result ptr)))
-                (setq ptr (cdr ptr)))
-            (while (not (or done (endp ptr)))
-                (cond ((funcall test item (funcall key (car ptr)))
-                       (setq done t)
-                       (setq result ptr)))
-                (setq ptr (cdr ptr))))
-          result)))))
 
 ;;;; MULTIPLE VALUES
 ;;;;    This package approximates the behavior of the multiple-values
@@ -1543,12 +1233,15 @@ cons cell tests the same as ITEM.  Admits arguments :key, :test, and :test-not."
 ;;;;    Cesar Quiroz @ UofR DofCSc - Dec. 1986
 ;;;;       (quiroz@cs.rochester.edu)
 
+
+
 ;;; Lisp indentation information
-(put 'multiple-value-bind  'lisp-indent-function 2)
-(put 'multiple-value-setq  'lisp-indent-function 2)
-(put 'multiple-value-list  'lisp-indent-function nil)
-(put 'multiple-value-call  'lisp-indent-function 1)
-(put 'multiple-value-prog1 'lisp-indent-function 1)
+(put 'multiple-value-bind  'lisp-indent-hook 2)
+(put 'multiple-value-setq  'lisp-indent-hook 2)
+(put 'multiple-value-list  'lisp-indent-hook nil)
+(put 'multiple-value-call  'lisp-indent-hook 1)
+(put 'multiple-value-prog1 'lisp-indent-hook 1)
+
 
 ;;; Global state of the package is kept here
 (defvar *mvalues-values* nil
@@ -1573,6 +1266,7 @@ the first value."
   (setq *mvalues-count*  (length *mvalues-values*))
   (car *mvalues-values*))
 
+
 (defun values-list (&optional val-forms)
   "Produce multiple values (zero or mode).  Each element of LIST is one value.
 This is equivalent to (apply 'values LIST)."
@@ -1582,6 +1276,7 @@ This is equivalent to (apply 'values LIST)."
   (setq *mvalues-values* val-forms)
   (setq *mvalues-count* (length *mvalues-values*))
   (car *mvalues-values*))
+
 
 ;;; Callers that want to see the multiple values use these macros.
 
@@ -1665,7 +1360,7 @@ Forms a list of pairs `(,(nth i vars) (nth i vals)) for i from 0 to
 the length of VARS (a list of symbols).  VALS is just a fresh symbol."
   (if (or (nlistp vars)
           (notevery 'symbolp vars))
-      (error "expected a list of symbols, not `%s'"
+      (error "Expected a list of symbols, not `%s'"
              (prin1-to-string vars)))
   (let* ((nvars    (length vars))
          (clauses '()))
@@ -1703,50 +1398,55 @@ the length of VARS (a list of symbols).  VALS is just a fresh symbol."
 
 (defun abs (number)
   "Return the absolute value of NUMBER."
-  (if (< number 0)
-      (- number)
-    number))
+  (cond
+   ((< number 0)
+    (- 0 number))
+   (t                                   ;number is >= 0
+    number)))
 
 (defun signum (number)
   "Return -1, 0 or 1 according to the sign of NUMBER."
-  (cond ((< number 0)
-         -1)
-        ((> number 0)
-         1)
-        (t                              ;exactly zero
-         0)))
+  (cond
+   ((< number 0)
+    -1)
+   ((> number 0)
+    1)
+   (t                                   ;exactly zero
+    0)))
 
 (defun gcd (&rest integers)
   "Return the greatest common divisor of all the arguments.
 The arguments must be integers.  With no arguments, value is zero."
   (let ((howmany (length integers)))
-    (cond ((= howmany 0)
-           0)
-          ((= howmany 1)
-           (abs (car integers)))
-          ((> howmany 2)
-           (apply (function gcd)
-                  (cons (gcd (nth 0 integers) (nth 1 integers))
-                        (nthcdr 2 integers))))
-          (t                            ;howmany=2
-           ;; essentially the euclidean algorithm
-           (when (zerop (* (nth 0 integers) (nth 1 integers)))
-             (error "a zero argument is invalid for `gcd'"))
-           (do* ((absa (abs (nth 0 integers))) ; better to operate only
-                 (absb (abs (nth 1 integers))) ;on positives.
-                 (dd (max absa absb))   ; setup correct order for the
-                 (ds (min absa absb))   ;succesive divisions.
-                 ;; intermediate results
-                 (q 0)
-                 (r 0)
-                 ;; final results
-                 (done nil)             ; flag: end of iterations
-                 (result 0))            ; final value
-               (done result)
-             (setq q (/ dd ds))
-             (setq r (% dd ds))
-             (cond ((zerop r) (setq done t) (setq result ds))
-                   (t         (setq dd ds)  (setq ds r))))))))
+    (cond
+     ((= howmany 0)
+      0)
+     ((= howmany 1)
+      (abs (car integers)))
+     ((> howmany 2)
+      (apply (function gcd)
+       (cons (gcd (nth 0 integers) (nth 1 integers))
+             (nthcdr 2 integers))))
+     (t                                 ;howmany=2
+      ;; essentially the euclidean algorithm
+      (when (zerop (* (nth 0 integers) (nth 1 integers)))
+        (error "A zero argument is invalid for `gcd'"))
+      (do* ((absa (abs (nth 0 integers))) ; better to operate only
+            (absb (abs (nth 1 integers))) ;on positives.
+            (dd (max absa absb))        ; setup correct order for the
+            (ds (min absa absb))        ;succesive divisions.
+            ;; intermediate results
+            (q 0)
+            (r 0)
+            ;; final results
+            (done nil)                  ; flag: end of iterations
+            (result 0))                 ; final value
+          (done result)
+        (setq q (/ dd ds))
+        (setq r (% dd ds))
+        (cond 
+         ((zerop r) (setq done t) (setq result ds))
+         ( t        (setq dd ds)  (setq ds r))))))))
 
 (defun lcm (integer &rest more)
   "Return the least common multiple of all the arguments.
@@ -1756,43 +1456,48 @@ The arguments must be integers and there must be at least one of them."
         (b       (nth 0 more))
         prod                            ; intermediate product
         (yetmore (nthcdr 1 more)))
-    (cond ((zerop howmany)
-           (abs a))
-          ((> howmany 1)                ; recursive case
-           (apply (function lcm)
-                  (cons (lcm a b) yetmore)))
-          (t                            ; base case, just 2 args
-           (setq prod (* a b))
-           (cond
-            ((zerop prod)
-             0)
-            (t
-             (/ (abs prod) (gcd a b))))))))
+    (cond
+     ((zerop howmany)
+      (abs a))
+     ((> howmany 1)                     ; recursive case
+      (apply (function lcm)
+             (cons (lcm a b) yetmore)))
+     (t                                 ; base case, just 2 args
+      (setq prod (* a b))
+      (cond
+       ((zerop prod)
+        0)
+       (t
+        (/ (abs prod) (gcd a b))))))))
 
 (defun isqrt (number)
   "Return the integer square root of NUMBER.
 NUMBER must not be negative.  Result is largest integer less than or
 equal to the real square root of the argument."
-  ;; The method used here is essentially the Newtonian iteration
-  ;;    x[n+1] <- (x[n] + Number/x[n]) / 2
-  ;; suitably adapted to integer arithmetic.
-  ;; Thanks to Philippe Schnoebelen <phs@lifia.imag.fr> for suggesting the
-  ;; termination condition.
-  (cond ((minusp number)
-         (error "argument to `isqrt' (%d) must not be negative"
-                number))
-        ((zerop number)
-         0)
-        (t                              ;so (>= number 0)
-         (do* ((approx 1)               ;any positive integer will do
-               (new 0)                  ;init value irrelevant
-               (done nil))
-             (done (if (> (* approx approx) number)
-                       (- approx 1)
-                     approx))
-           (setq new    (/ (+ approx (/ number approx)) 2)
-                 done   (or (= new approx) (= new (+ approx 1)))
-                 approx new)))))
+  (cond
+   ((minusp number)
+    (error "Argument to `isqrt' must not be negative"))
+   ((zerop number)
+    0)
+   ((<= number 3)
+    1)
+   (t
+    ;; This is some sort of newtonian iteration, trying not to get in
+    ;; an infinite loop.  That's why I catch 0, 1, 2 and 3 as special
+    ;; cases, so then rounding won't make this iteration loop.
+    (do* ((approx (/ number 2) iter)
+          (done nil)
+          (iter   0))
+        (done (if (> (* approx approx) number)
+                  (- approx 1)          ;reached from above
+                  approx))
+      (setq iter
+            (/ (+ approx
+                  (/ number approx)
+                  (if (>= (% number approx) (/ approx 2))
+                      1 0))
+               2))
+      (setq done (eql approx iter))))))
 
 (defun floor (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding toward minus infinity.
@@ -1805,15 +1510,16 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
     (multiple-value-bind
         (q r s)
         (safe-idiv number divisor)
-      (cond ((zerop s)
-             (values 0 0))
-            ((plusp s)
-             (values q r))
-            (t                          ;opposite-signs case
-             (if (zerop r)
-                 (values (- q) 0)
-               (let ((q (- (+ q 1))))
-                 (values q (- number (* q divisor)))))))))))
+      (cond
+       ((zerop s)
+        (values 0 0))
+       ((plusp s)
+        (values q r))
+       (t
+        (unless (zerop r)
+          (setq q (- 0 (+ q 1)))
+          (setq r (- number (* q divisor))))
+        (values q r)))))))
 
 (defun ceiling (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding toward plus infinity.
@@ -1826,12 +1532,16 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
     (multiple-value-bind
         (q r s)
         (safe-idiv number divisor)
-      (cond ((zerop s)
-             (values 0 0))
-            ((plusp s)
-             (values (+ q 1) (- r divisor)))
-            (t
-             (values (- q) (+ number (* q divisor)))))))))
+      (cond
+       ((zerop s)
+        (values 0 0))
+       ((minusp s)
+        (values q r))
+       (t
+        (unless (zerop r)
+          (setq q (+ q 1))
+          (setq r (- number (* q divisor))))
+        (values q r)))))))
 
 (defun truncate (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding toward zero.
@@ -1844,35 +1554,41 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
     (multiple-value-bind
         (q r s)
         (safe-idiv number divisor)
-      (cond ((zerop s)
-             (values 0 0))
-            ((plusp s)                  ;same as floor
-             (values q r))
-            (t                          ;same as ceiling
-             (values (- q) (+ number (* q divisor)))))))))
+      (cond
+       ((zerop s)
+        (values 0 0))
+       ((plusp s)
+        (values q r))
+       (t
+        (unless (zerop r)
+          (setq q (- 0 q))
+          (setq r (- number (* q divisor))))
+        (values q r)))))))
 
 (defun round (number &optional divisor)
   "Divide DIVIDEND by DIVISOR, rounding to nearest integer.
 DIVISOR defaults to 1.  The remainder is produced as a second value."
-  (cond ((and (null divisor)            ; trivial case
-              (numberp number))
-         (values number 0))    
-        (t                              ; do the division
-         (multiple-value-bind
-             (q r s)
-             (safe-idiv number divisor)
-           (setq r (abs r))
-           ;; adjust magnitudes first, and then signs
-           (let ((other-r (- (abs divisor) r)))
-             (cond ((> r other-r)
-                    (setq q (+ q 1)))
-                   ((and (= r other-r)
-                         (oddp q))
-                    ;; round to even is mandatory
-                    (setq q (+ q 1))))
-             (setq q (* s q))
-             (setq r (- number (* q divisor)))
-             (values q r))))))
+  (cond
+   ((and (null divisor)                 ; trivial case
+         (numberp number))
+    (values number 0))    
+   (t                                   ; do the division
+    (multiple-value-bind
+        (q r s)
+        (safe-idiv number divisor)
+      (setq r (abs r))
+      ;; adjust magnitudes first, and then signs
+      (let ((other-r (- (abs divisor) r)))
+        (cond
+         ((> r other-r)
+          (setq q (+ q 1)))
+         ((and (= r other-r)
+               (oddp q))
+          ;; round to even is mandatory
+          (setq q (+ q 1))))
+        (setq q (* s q))
+        (setq r (- number (* q divisor)))
+        (values q r))))))
 
 (defun mod (number divisor)
   "Return remainder of X by Y (rounding quotient toward minus infinity).
@@ -1893,15 +1609,13 @@ That is, the remainder goes with the quotient produced by `truncate'."
 ;;; computations when working with negatives, so the idea here is to
 ;;; make sure we know what is coming back to the caller in all cases.
 
-;;; Signum computation fixed by mad@math.keio.JUNET (MAEDA Atusi)
-
 (defun safe-idiv (a b)
   "SAFE-IDIV A B => Q R S
 Q=|A|/|B|, R is the rest, S is the sign of A/B."
   (unless (and (numberp a) (numberp b))
-    (error "arguments to `safe-idiv' must be numbers"))
+    (error "Arguments to `safe-idiv' must be numbers"))
   (when (zerop b)
-    (error "cannot divide %d by zero" a))
+    (error "Cannot divide %d by zero" a))
   (let* ((absa (abs a))
          (absb (abs b))
          (q    (/ absa absb))
@@ -1938,54 +1652,55 @@ than one PLACE and VALUE, each PLACE is set from its VALUE before
 the next PLACE is evaluated."
   (let ((nforms (length pairs)))
     ;; check the number of subforms
-    (cond ((/= (% nforms 2) 0)
-           (error "odd number of arguments to `setf'"))
-          ((= nforms 0)
-           nil)
-          ((> nforms 2)
-           ;; this is the recursive case
-           (cons 'progn
-                 (do*                   ;collect the place-value pairs
-                     ((args pairs (cddr args))
-                      (place (car args) (car args))
-                      (value (cadr args) (cadr args))
-                      (result '()))
-                     ((endp args) (nreverse result))
-                   (setq result
-                         (cons (list 'setf place value)
-                               result)))))
-          (t                            ;i.e., nforms=2
-           ;; this is the base case (SETF PLACE VALUE)
-           (let* ((place (car pairs))
-                  (value (cadr pairs))
-                  (head  nil)
-                  (updatefn nil))
-             ;; dispatch on the type of the PLACE
-             (cond ((symbolp place)
-                    (list 'setq place value))
-                   ((and (listp place)
-                         (setq head (car place))
-                         (symbolp head)
-                         (setq updatefn (get head :setf-update-fn)))
-                    (if (or (and (consp updatefn) (eq (car updatefn) 'lambda))
-                            (and (symbolp updatefn)
-                                 (fboundp updatefn)
-                                 (let ((defn (symbol-function updatefn)))
-                                   (or (subrp defn)
-                                       (and (consp defn)
-                                            (eq (car defn) 'lambda))))))
-                        (cons updatefn (append (cdr place) (list value)))
-                      (multiple-value-bind
-                          (bindings newsyms)
-                          (pair-with-newsyms (append (cdr place) (list value)))
-                        ;; this let gets new symbols to ensure adequate 
-                        ;; order of evaluation of the subforms.
-                        (list 'let
-                              bindings              
-                              (cons updatefn newsyms)))))
-                   (t
-                    (error "no `setf' update-function for `%s'"
-                           (prin1-to-string place)))))))))
+    (cond
+     ((/= (% nforms 2) 0)
+      (error "Odd number of arguments to `setf'"))
+     ((= nforms 0)
+      nil)
+     ((> nforms 2)
+      ;; this is the recursive case
+      (cons 'progn
+            (do*                        ;collect the place-value pairs
+                ((args pairs (cddr args))
+                 (place (car args) (car args))
+                 (value (cadr args) (cadr args))
+                 (result '()))
+                ((endp args) (nreverse result))
+              (setq result
+                    (cons (list 'setf place value)
+                          result)))))
+     (t                                 ;i.e., nforms=2
+      ;; this is the base case (SETF PLACE VALUE)
+      (let* ((place (car pairs))
+             (value (cadr pairs))
+             (head  nil)
+             (updatefn nil))
+        ;; dispatch on the type of the PLACE
+        (cond
+         ((symbolp place)
+          (list 'setq place value))
+         ((and (listp place)
+               (setq head (car place))
+               (symbolp head)
+               (setq updatefn (get head :setf-update-fn)))
+	  (if (or (and (consp updatefn) (eq (car updatefn) 'lambda))
+		  (and (symbolp updatefn)
+		       (fboundp updatefn)
+		       (let ((defn (symbol-function updatefn)))
+			 (or (subrp defn)
+			     (and (consp defn) (eq (car defn) 'lambda))))))
+	      (cons updatefn (append (cdr place) (list value)))
+	    (multiple-value-bind
+		(bindings newsyms)
+		(pair-with-newsyms (append (cdr place) (list value)))
+	      ;; this let* gets new symbols to ensure adequate order of
+	      ;; evaluation of the subforms.
+	      (list 'let
+		    bindings              
+		    (cons updatefn newsyms)))))
+         (t
+          (error "No `setf' update-function for `%s'"
+                 (prin1-to-string place)))))))))
 
 (defmacro defsetf (accessfn updatefn &optional docstring)
   "Define how `setf' works on a certain kind of generalized variable.
@@ -1998,15 +1713,11 @@ updating called for."
   ;; reject ill-formed requests.  too bad one can't test for functionp
   ;; or macrop.
   (when (not (symbolp accessfn))
-    (error "first argument of `defsetf' must be a symbol, not `%s'"
+    (error "First argument of `defsetf' must be a symbol, not `%s'"
            (prin1-to-string accessfn)))
   ;; update properties
-  (list 'progn
-        (list 'put (list 'quote accessfn)
-              :setf-update-fn (list 'function updatefn))
-        (list 'put (list 'quote accessfn) :setf-update-doc docstring)
-        ;; any better thing to return?
-        (list 'quote accessfn)))
+  (put accessfn :setf-update-fn updatefn)
+  (put accessfn :setf-update-doc docstring))
 
 ;;; This section provides the "default" setfs for Common-Emacs-Lisp
 ;;; The user will not normally add anything to this, although
@@ -2035,11 +1746,14 @@ updating called for."
                        (apply 'list* (butlast (cdr args)))
                        (last args)))
            (newupdater nil))            ; its update-fn, if any
-      (if (and (symbolp fnform)
-               (setq newupdater (get fnform :setf-update-fn)))
-          (apply  newupdater applyargs)
-        (error "can't `setf' to `%s'"
-               (prin1-to-string fnform)))))
+      (cond
+       ((and (symbolp fnform)
+             (setq newupdater (get fnform :setf-update-fn)))
+        ;; just do it
+        (apply  newupdater applyargs))
+       (t
+        (error "Can't `setf' to `%s'"
+               (prin1-to-string fnform))))))
   "`apply' is a special case for `setf'")
 
 
@@ -2219,21 +1933,22 @@ updating called for."
   (lambda (list val) (setcdr (cddr list) val))
   "`setf' inversion for `cddddr'")
 
-(defsetf get put "`setf' inversion for `get' is `put'")
+
+(defsetf get
+  put
+  "`setf' inversion for `get' is `put'")
 
-(defsetf symbol-function fset
+(defsetf symbol-function
+  fset
   "`setf' inversion for `symbol-function' is `fset'")
 
-(defsetf symbol-plist setplist
+(defsetf symbol-plist
+  setplist
   "`setf' inversion for `symbol-plist' is `setplist'")
 
-(defsetf symbol-value set
+(defsetf symbol-value
+  set
   "`setf' inversion for `symbol-value' is `set'")
-
-(defsetf point goto-char
-  "To set (point) to N, use (goto-char N)")
-
-;; how about defsetfing other Emacs forms?
 
 ;;; Modify macros
 ;;;
@@ -2275,39 +1990,31 @@ updating called for."
 ;;; sides. The evaluations are done in an environment where they
 ;;; appear to occur in parallel.
 
-(defmacro psetf (&rest body)
-  "(psetf {var value }...) => nil
-Like setf, but all the values are computed before any assignment is made."
-  (let ((length (length body)))
-    (cond ((/= (% length 2) 0)
-           (error "psetf needs an even number of arguments, %d given"
-                  length))
-          ((null body)
-           '())
-          (t
-           (list 'prog1 nil
-                 (let ((setfs     '())
-                       (bodyforms (reverse body)))
-                   (while bodyforms
-                     (let* ((value (car bodyforms))
-                            (place (cadr bodyforms)))
-                       (setq bodyforms (cddr bodyforms))
-                       (if (null setfs)
-                           (setq setfs (list 'setf place value))
-                         (setq setfs (list 'setf place
-                                           (list 'prog1 value
-                                                 setfs))))))
-                   setfs))))))
+(defmacro psetf (&rest pairs)
+  "(psetf {PLACE VALUE}...): Set several generalized variables in parallel.
+All the VALUEs are computed, and then all the PLACEs are stored as in `setf'.
+See also `psetq', `shiftf' and `rotatef'."
+  (unless (evenp (length pairs))
+    (error "Odd number of arguments to `psetf'"))
+  (multiple-value-bind
+      (places forms)
+      (unzip-list pairs)
+    ;; obtain fresh symbols to simulate the parallelism
+    (multiple-value-bind
+        (bindings newsyms)
+        (pair-with-newsyms forms)
+      (list 'let
+            bindings
+            (cons 'setf (zip-lists places newsyms))
+            nil))))
 
 ;;; SHIFTF and ROTATEF 
 ;;;
 
 (defmacro shiftf (&rest forms)
-  "(shiftf PLACE1 PLACE2... NEWVALUE)
-Set PLACE1 to PLACE2, PLACE2 to PLACE3...
+  "(shiftf PLACE1 PLACE2... NEWVALUE): set PLACE1 to PLACE2, PLACE2 to PLACE3...
 Each PLACE is set to the old value of the following PLACE,
-and the last PLACE is set to the value NEWVALUE.  
-Returns the old value of PLACE1."
+and the last PLACE is set to the value NEWVALUE."
   (unless (> (length forms) 1)
     (error "`shiftf' needs more than one argument"))
   (let ((places (butlast forms))
@@ -2325,18 +2032,20 @@ Returns the old value of PLACE1."
 (defmacro rotatef (&rest places)
   "(rotatef PLACE...) sets each PLACE to the old value of the following PLACE.
 The last PLACE is set to the old value of the first PLACE.
-Thus, the values rotate through the PLACEs.  Returns nil."
-  (if (null places)
-      nil
-   (multiple-value-bind
-       (bindings newsyms)
-       (pair-with-newsyms places)
-     (list
-      'let bindings
-      (cons 'setf
-            (zip-lists places
-                       (append (cdr newsyms) (list (car newsyms)))))
-      nil))))
+Thus, the values rotate through the PLACEs."
+  (cond
+   ((null places)
+    nil)
+   (t
+    (multiple-value-bind
+	(bindings newsyms)
+	(pair-with-newsyms places)
+      (list
+       'let bindings
+       (cons 'setf
+	     (zip-lists places
+			(append (cdr newsyms) (list (car newsyms)))))
+       nil)))))
 
 ;;;; STRUCTS
 ;;;;    This file provides the structures mechanism.  See the
@@ -2364,27 +2073,16 @@ Thus, the values rotate through the PLACEs.  Returns nil."
 (defkeyword :structure-slots     "List of the slot's names")
 (defkeyword :structure-indices   "List of (KEYWORD-NAME . INDEX)")
 (defkeyword :structure-initforms "List of (KEYWORD-NAME . INITFORM)")
-(defkeyword :structure-includes
-            "() or list of a symbol, that this struct includes")
-(defkeyword :structure-included-in
-            "List of the structs that include this")
 
 
 (defmacro defstruct (&rest args)
   "(defstruct NAME [DOC-STRING] . SLOTS)  define NAME as structure type.
 NAME must be a symbol, the name of the new structure.  It could also
-be a list (NAME . OPTIONS).  
-
-Each option is either a symbol, or a list of a keyword symbol taken from the
-list \{:conc-name, :copier, :constructor, :predicate, :include,
-:print-function, :type, :initial-offset\}.  The meanings of these are as in
-CLtL, except that no BOA-constructors are provided, and the options
-\{:print-fuction, :type, :initial-offset\} are ignored quietly.  All these
-structs are named, in the sense that their names can be used for type
-discrimination.
-
-The DOC-STRING is established as the `structure-doc' property of NAME.
-
+be a list (NAME . OPTIONS), but not all options are supported currently.
+As of Dec. 1986, this is supporting :conc-name, :copier and :predicate
+completely, :include arguably completely and :constructor only to
+change the name of the default constructor.  No BOA constructors allowed.
+The DOC-STRING is established as the 'structure-doc' property of NAME.
 The SLOTS are one or more of the following:
 SYMBOL -- meaning the SYMBOL is the name of a SLOT of NAME
 list of SYMBOL and VALUE -- meaning that VALUE is the initial value of
@@ -2398,11 +2096,10 @@ them.  `setf' of the accessors sets their values."
     ;; Names for the member functions come from the options.  The
     ;; slots* stuff collects info about the slots declared explicitly. 
     (multiple-value-bind
-        (conc-name constructor copier predicate
-         moreslotsn moreslots moreinits included)
+        (conc-name constructor copier predicate moreslotsn moreslots moreinits)
         (parse$defstruct$options name options slots)
       ;; The moreslots* stuff refers to slots gained as a consequence
-      ;; of (:include clauses). -- Oct 89:  Only one :include tolerated
+      ;; of (:include clauses).
       (when (and (numberp moreslotsn)
                  (> moreslotsn 0))
         (setf slotsn (+ slotsn moreslotsn))
@@ -2419,74 +2116,18 @@ them.  `setf' of the accessors sets their values."
       (let (properties functions keywords accessors alterators returned)
         ;; compute properties of NAME
         (setq properties
-              (append
-               (list
-                (list 'put (list 'quote name) :structure-doc
-                      docstring)
-                (list 'put (list 'quote name) :structure-slotsn
-                      slotsn)
-                (list 'put (list 'quote name) :structure-slots
-                      (list 'quote slots))
-                (list 'put (list 'quote name) :structure-initforms
-                      (list 'quote initlist))
-                (list 'put (list 'quote name) :structure-indices
-                      (list 'quote (extract$indices initlist))))
-               ;; If this definition :includes another defstruct,
-               ;; modify both property lists.
-               (cond (included
-                      (list
-                       (list 'put
-                             (list 'quote name)
-                             :structure-includes
-                             (list 'quote included))
-                       (list 'pushnew
-                             (list 'quote name)
-                             (list 'get (list 'quote (car included))
-                                   :structure-included-in))))
-                     (t
-                      (list
-                       (let ((old (gensym)))
-                         (list 'let 
-                               (list (list old
-                                           (list 'car
-                                                 (list 'get
-                                                       (list 'quote name)
-                                                       :structure-includes))))
-                               (list 'when old
-                                     (list 'put
-                                           old
-                                           :structure-included-in
-                                           (list 'delq
-                                                 (list 'quote name)
-                                                 ;; careful with destructive
-                                                 ;;manipulation!
-                                                 (list
-                                                  'append
-                                                  (list
-                                                   'get
-                                                   old
-                                                   :structure-included-in)
-                                                  '())
-                                                 )))))
-                       (list 'put
-                             (list 'quote name)
-                             :structure-includes
-                             '()))))
-               ;; If this definition used to be :included in another, warn
-               ;; that things make break.  On the other hand, the redefinition
-               ;; may be trivial, so don't call it an error.
-               (let ((old (gensym)))
-                 (list
-                  (list 'let
-                        (list (list old (list 'get
-                                              (list 'quote name)
-                                              :structure-included-in)))
-                        (list 'when old
-                              (list 'message
-                                    "`%s' redefined.  Should redefine `%s'?"
-                                    (list 'quote name)
-                                    (list 'prin1-to-string old))))))))
-
+              (list
+               (list 'put (list 'quote name) :structure-doc
+                     docstring)
+               (list 'put (list 'quote name) :structure-slotsn
+                     slotsn)
+               (list 'put (list 'quote name) :structure-slots
+                     (list 'quote slots))
+               (list 'put (list 'quote name) :structure-initforms
+                     (list 'quote initlist))
+               (list 'put (list 'quote name) :structure-indices
+                     (list 'quote (extract$indices initlist)))))
+
         ;; Compute functions associated with NAME.  This is not
 	;; handling BOA constructors yet, but here would be the place.
         (setq functions
@@ -2500,34 +2141,18 @@ them.  `setf' of the accessors sets their values."
                (list 'fset (list 'quote copier)
                      (list 'function
                            (list 'lambda (list 'struct)
-                                 (list 'copy-sequence 'struct))))
-               (let ((typetag (gensym)))
-                 (list 'fset (list 'quote predicate)
-                       (list 
-                        'function
-                        (list 
-                         'lambda (list 'thing)
-                         (list 'and
-                               (list 'vectorp 'thing)
-                               (list 'let
-                                     (list (list typetag
-                                                 (list 'elt 'thing 0)))
-                                     (list 'or
-                                           (list
-                                            'and
-                                            (list 'eq
-                                                  typetag
-                                                  (list 'quote name))
-                                            (list '=
-                                                  (list 'length 'thing)
-                                                  (1+ slotsn)))
-                                           (list
-                                            'memq
-                                            typetag
-                                            (list 'get
-                                                  (list 'quote name)
-                                                  :structure-included-in))))))
-                        )))))
+                                 (list 'copy-vector 'struct))))
+               (list 'fset (list 'quote predicate)
+                     (list 'function
+                           (list 'lambda (list 'thing)
+                                 (list 'and
+                                       (list 'vectorp 'thing)
+                                       (list 'eq
+                                             (list 'elt 'thing 0)
+                                             (list 'quote name))
+                                       (list '=
+                                             (list 'length 'thing)
+                                             (1+ slotsn))))))))
         ;; compute accessors for NAME's slots
         (multiple-value-setq
             (accessors alterators keywords)
@@ -2545,7 +2170,7 @@ them.  `setf' of the accessors sets their values."
                      accessors alterators returned))))))
 
 (defun parse$defstruct$args (args)
-  "(parse$defstruct$args ARGS) => NAME OPTIONS DOCSTRING SLOTSN SLOTS INITLIST
+  "PARSE$DEFSTRUCT$ARGS ARGS => NAME OPTIONS DOCSTRING SLOTSN SLOTS INITLIST
 NAME=symbol, OPTIONS=list of, DOCSTRING=string, SLOTSN=count of slots,
 SLOTS=list of their names, INITLIST=alist (keyword . initform)."
   (let (name                            ;args=(symbol...) or ((symbol...)...)
@@ -2556,15 +2181,16 @@ SLOTS=list of their names, INITLIST=alist (keyword . initform)."
         (slots '())                     ;list of slot names
         (initlist '()))                 ;list of (slot keyword . initform)
     ;; extract name and options
-    (cond ((symbolp (car args))         ;simple name
-           (setq name    (car args)
-                 options '()))
-          ((and (listp   (car args))    ;(name . options)
-                (symbolp (caar args)))
-           (setq name    (caar args)
-                 options (cdar args)))
-          (t
-           (error "first arg to `defstruct' must be symbol or (symbol ...)")))
+    (cond
+     ((symbolp (car args))              ;simple name
+      (setq name    (car args)
+            options '()))
+     ((and (listp   (car args))         ;(name . options)
+           (symbolp (caar args)))
+      (setq name    (caar args)
+            options (cdar args)))
+     (t
+      (error "First arg to `defstruct' must be symbol or (symbol ...)")))
     (setq slotargs (cdr args))
     ;; is there a docstring?
     (when (stringp (car slotargs))
@@ -2577,7 +2203,7 @@ SLOTS=list of their names, INITLIST=alist (keyword . initform)."
       (values name options docstring slotsn slots initlist))))
 
 (defun process$slots (slots)
-  "(process$slots SLOTS) => SLOTSN SLOTSLIST INITLIST
+  "PROCESS$SLOTS SLOTS => SLOTSN SLOTSLIST INITLIST
 Converts a list of symbols or lists of symbol and form into the last 3
 values returned by PARSE$DEFSTRUCT$ARGS."
   (let ((slotsn (length slots))         ;number of slots
@@ -2587,35 +2213,28 @@ values returned by PARSE$DEFSTRUCT$ARGS."
         ((ptr  slots     (cdr ptr))
          (this (car ptr) (car ptr)))
         ((endp ptr))
-      (cond ((symbolp this)
-             (setq slotslist (cons this slotslist))
-             (setq initlist (acons (keyword-of this) nil initlist)))
-            ((and (listp this)
-                  (symbolp (car this)))
-             (let ((name (car this))
-                   (form (cadr this)))
-               ;; this silently ignores any slot options.  bad...
-               (setq slotslist (cons name slotslist))
-               (setq initlist  (acons (keyword-of name) form initlist))))
-            (t
-             (error "slot should be symbol or (symbol ...), not `%s'"
-                    (prin1-to-string this)))))
+      (cond
+       ((symbolp this)
+        (setq slotslist (cons this slotslist))
+        (setq initlist (acons (keyword-of this) nil initlist)))
+       ((and (listp this)
+             (symbolp (car this)))
+        (let ((name (car this))
+              (form (cadr this)))
+          ;; this silently ignores any slot options.  bad...
+          (setq slotslist (cons name slotslist))
+          (setq initlist  (acons (keyword-of name) form initlist))))
+       (t
+        (error "Slot should be symbol or (symbol ...), not `%s'"
+               (prin1-to-string this)))))
     (values slotsn (nreverse slotslist) (nreverse initlist))))
 
 (defun parse$defstruct$options (name options slots)
-  "(parse$defstruct$options name OPTIONS SLOTS) => many values
-A defstruct named NAME, with options list OPTIONS, has already slots SLOTS.
-Parse the OPTIONS and return the updated form of the struct's slots and other
-information.  The values returned are:
-
-   CONC-NAME is the string to use as prefix/suffix in the methods,
-   CONST is the name of the official constructor,
-   COPIER is the name of the structure copier,
-   PRED is the name of the type predicate,
-   MORESLOTSN is the number of slots added by :include,
-   MORESLOTS is the list of slots added by :include,
-   MOREINITS is the list of initialization forms added by :include,
-   INCLUDED is nil, or the list of the symbol added by :include"
+  "PARSE$DEFSTRUCT$OPTIONS NAME OPTIONS SLOTS => CONC-NAME CONST COPIER PRED
+Returns at least those 4 values (a string and 3 symbols, to name the necessary
+functions),  might return also things discovered by actually
+inspecting the options, namely MORESLOTSN MORESLOTS MOREINITS, as can
+be created by :include, and perhaps a list of BOACONSTRUCTORS."
   (let* ((namestring (symbol-name name))
          ;; to build the return values
          (conc-name  (concat namestring "-"))
@@ -2632,7 +2251,6 @@ information.  The values returned are:
          these-slotsn                   ;When :include is found, the
          these-slots                    ; info about the included
          these-inits                    ; structure is added here.
-         included                       ;NIL or (list INCLUDED)
          )
     ;; Values above are the defaults.  Now we read the options themselves
     (dolist (option options)
@@ -2643,7 +2261,7 @@ information.  The values returned are:
           (:named
            )                            ;ignore silently
           (t
-           (error "can't recognize option `%s'"
+           (error "Can't recognize option `%s'"
                   (prin1-to-string option)))))
        ((and (listp option)
              (keywordp (setq option-head (car option))))
@@ -2667,7 +2285,7 @@ information.  The values returned are:
                         (null option-rest))
                    option-second)
                   (t
-                   (error "can't recognize option `%s'"
+                   (error "Can't recognize option `%s'"
                           (prin1-to-string option))))))
 
           (:constructor                 ;no BOA-constructors allowed
@@ -2677,7 +2295,7 @@ information.  The values returned are:
                         (null option-rest))
                    option-second)
                   (t
-                   (error "can't recognize option `%s'"
+                   (error "Can't recognize option `%s'"
                           (prin1-to-string option))))))
           (:predicate
            (setq pred
@@ -2686,11 +2304,11 @@ information.  The values returned are:
                         (null option-rest))
                    option-second)
                   (t
-                   (error "can't recognize option `%s'"
+                   (error "Can't recognize option `%s'"
                           (prin1-to-string option))))))
           (:include
            (unless (symbolp option-second)
-             (error "arg to `:include' should be a symbol, not `%s'"
+             (error "Arg to `:include' should be a symbol, not `%s'"
                     (prin1-to-string option-second)))
            (setq these-slotsn (get option-second :structure-slotsn)
                  these-slots  (get option-second :structure-slots)
@@ -2699,10 +2317,6 @@ information.  The values returned are:
                         (> these-slotsn 0))
              (error "`%s' is not a valid structure"
                     (prin1-to-string option-second)))
-           (if included
-               (error "`%s' already includes `%s', can't include `%s' too"
-                      name (car included) option-second)
-             (push option-second included))
            (multiple-value-bind
                (xtra-slotsn xtra-slots xtra-inits)
                (process$slots option-rest)
@@ -2719,18 +2333,17 @@ information.  The values returned are:
           ((:print-function :type :initial-offset)
            )                            ;ignore silently
           (t
-           (error "can't recognize option `%s'"
+           (error "Can't recognize option `%s'"
                   (prin1-to-string option)))))
        (t
-        (error "can't recognize option `%s'"
+        (error "Can't recognize option `%s'"
                (prin1-to-string option)))))
     ;; Return values found
     (values conc-name const copier pred
-            moreslotsn moreslots moreinits
-            included)))
+            moreslotsn moreslots moreinits)))
 
 (defun simplify$inits (slots initlist)
-  "(simplify$inits SLOTS INITLIST) => new INITLIST
+  "SIMPLIFY$INITS SLOTS INITLIST => new INITLIST
 Removes from INITLIST - an ALIST - any shadowed bindings."
   (let ((result '())                    ;built here
         key                             ;from the slot 
@@ -2741,7 +2354,7 @@ Removes from INITLIST - an ALIST - any shadowed bindings."
     (nreverse result)))
 
 (defun extract$indices (initlist)
-  "(extract$indices INITLIST) => indices list
+  "EXTRACT$INDICES INITLIST => indices list
 Kludge.  From a list of pairs (keyword . form) build a list of pairs
 of the form (keyword . position in list from 0).  Useful to precompute
 some of the work of MAKE$STRUCTURE$INSTANCE."
@@ -2752,7 +2365,7 @@ some of the work of MAKE$STRUCTURE$INSTANCE."
             index  (+ index 1)))))
 
 (defun build$accessors$for (name conc-name predicate slots slotsn)
-  "(build$accessors$for NAME PREDICATE SLOTS SLOTSN) => FSETS DEFSETFS KWDS
+  "BUILD$ACCESSORS$FOR NAME PREDICATE SLOTS SLOTSN  => FSETS DEFSETFS KWDS
 Generate the code for accesors and defsetfs of a structure called
 NAME, whose slots are SLOTS.  Also, establishes the keywords for the
 slots names."
@@ -2775,7 +2388,7 @@ slots names."
                                          (list 'aref 'object (1+ i)))
                                    (list 't
                                          (list 'error
-                                               "`%s' is not a struct %s"
+                                               "`%s' not a %s."
                                                (list 'prin1-to-string
                                                      'object)
                                                (list 'prin1-to-string
@@ -2803,7 +2416,7 @@ slots names."
                 keywords))))
 
 (defun make$structure$instance (name args)
-  "(make$structure$instance NAME ARGS) => new struct NAME
+  "MAKE$STRUCTURE$INSTANCE NAME ARGS => new struct NAME
 A struct of type NAME is created, some slots might be initialized
 according to ARGS (the &rest argument of MAKE-name)."
   (unless (symbolp name)
@@ -2821,7 +2434,7 @@ according to ARGS (the &rest argument of MAKE-name)."
       (error "`%s' is not a defined structure"
              (prin1-to-string name)))
     (unless (evenp (length args))
-      (error "slot initializers `%s' not of even length"
+      (error "Slot initializers `%s' not of even length"
              (prin1-to-string args)))
     ;; analyze the initializers provided by the call
     (multiple-value-bind
@@ -2829,7 +2442,7 @@ according to ARGS (the &rest argument of MAKE-name)."
         (unzip-list args)               ; by the user
       ;; check that all the arguments are introduced by keywords 
       (unless (every (function keywordp) speckwds)
-        (error "all of the names in `%s' should be keywords"
+        (error "All of the names in `%s' should be keywords"
                (prin1-to-string speckwds)))
       ;; check that all the keywords are known
       (dolist (kwd speckwds)
@@ -2862,276 +2475,5 @@ according to ARGS (the &rest argument of MAKE-name)."
              (cons name initializers)))))
 
 ;;;; end of cl-structs.el
-
-;;; For lisp-interaction mode, so that multiple values can be seen when passed
-;;; back.  Lies every now and then...
-
-(defvar - nil "form currently under evaluation")
-(defvar + nil "previous -")
-(defvar ++ nil "previous +")
-(defvar +++ nil "previous ++")
-(defvar / nil "list of values returned by +")
-(defvar // nil "list of values returned by ++")
-(defvar /// nil "list of values returned by +++")
-(defvar * nil "(first) value of +")
-(defvar ** nil "(first) value of ++")
-(defvar *** nil "(first) value of +++")
-
-(defun cl-eval-print-last-sexp ()
-  "Evaluate sexp before point; print value\(s\) into current buffer.
-If the evaled form returns multiple values, they are shown one to a line.
-The variables -, +, ++, +++, *, **, ***, /, //, /// have their usual meaning.
-
-It clears the multiple-value passing mechanism, and does not pass back
-multiple values.  Use this only if you are debugging cl.el and understand well
-how the multiple-value stuff works, because it can be fooled into believing
-that multiple values have been returned when they actually haven't, for
-instance 
-    \(identity \(values nil 1\)\)
-However, even when this fails, you can trust the first printed value to be
-\(one of\) the returned value\(s\)."
-  (interactive)
-  ;; top level call, can reset mvalues
-  (setq *mvalues-count*  nil
-        *mvalues-values* nil)
-  (setq -  (car (read-from-string
-                 (buffer-substring
-                  (let ((stab (syntax-table)))
-                    (unwind-protect
-                        (save-excursion
-                          (set-syntax-table emacs-lisp-mode-syntax-table)
-                          (forward-sexp -1)
-                          (point))
-                      (set-syntax-table stab)))
-                  (point)))))
-  (setq *** **
-        **  *
-        *   (eval -))
-  (setq /// //
-        //  /
-        /   *mvalues-values*)
-  (setq +++ ++
-        ++  +
-        +   -)
-  (cond ((or (null *mvalues-count*)     ;mvalues mechanism not used
-             (not (eq * (car *mvalues-values*))))
-         (print * (current-buffer)))
-        ((null /)                       ;no values returned
-         (terpri (current-buffer)))
-        (t                              ;more than zero mvalues
-         (terpri (current-buffer))
-         (mapcar (function (lambda (value)
-                             (prin1 value (current-buffer))
-                             (terpri (current-buffer))))
-                 /)))
-  (setq *mvalues-count*  nil            ;make sure
-        *mvalues-values* nil))
-
-;;;; More LISTS functions
-;;;;
-
-;;; Some mapping functions on lists, commonly useful.
-;;; They take no extra sequences, to go along with Emacs Lisp's MAPCAR.
-
-(defun mapc (function list)
-  "(MAPC FUNCTION LIST) => LIST
-Apply FUNCTION to each element of LIST, return LIST.
-Like mapcar, but called only for effect."
-  (let ((args list))
-    (while args
-      (funcall function (car args))
-      (setq args (cdr args))))
-  list)
-
-(defun maplist (function list)
-  "(MAPLIST FUNCTION LIST) => list'ed results of FUNCTION on cdrs of LIST
-Apply FUNCTION to successive sublists of LIST, return the list of the results"
-  (let ((args list)
-        results '())
-    (while args
-      (setq results (cons (funcall function args) results)
-            args (cdr args)))
-    (nreverse results)))
-
-(defun mapl (function list)
-  "(MAPL FUNCTION LIST) => LIST
-Apply FUNCTION to successive cdrs of LIST, return LIST.
-Like maplist, but called only for effect."
-  (let ((args list))
-    (while args
-      (funcall function args)
-      (setq args (cdr args)))
-    list))
-
-(defun mapcan (function list)
-  "(MAPCAN FUNCTION LIST) => nconc'd results of FUNCTION on LIST
-Apply FUNCTION to each element of LIST, nconc the results.
-Beware: nconc destroys its first argument!  See copy-list."
-  (let ((args list)
-        (results '()))
-    (while args
-      (setq results (nconc (funcall function (car args)) results)
-            args (cdr args)))
-    (nreverse results)))
-
-(defun mapcon (function list)
-  "(MAPCON FUNCTION LIST) => nconc'd results of FUNCTION on cdrs of LIST
-Apply FUNCTION to successive sublists of LIST, nconc the results.
-Beware: nconc destroys its first argument!  See copy-list."
-  (let ((args list)
-        (results '()))
-    (while args
-      (setq results (nconc (funcall function args) results)
-            args (cdr args)))
-    (nreverse results)))
-
-;;; Copiers
-
-(defun copy-list (list)
-  "Build a copy of LIST"
-  (append list '()))
-
-(defun copy-tree (tree)
-  "Build a copy of the tree of conses TREE
-The argument is a tree of conses, it is recursively copied down to
-non conses.  Circularity and sharing of substructure are not
-necessarily preserved."
-  (if (consp tree)
-      (cons (copy-tree (car tree))
-            (copy-tree (cdr tree)))
-    tree))
-
-;;; reversals, and destructive manipulations of a list's spine
-
-(defun revappend (x y)
-  "does what (append (reverse X) Y) would, only faster"
-  (if (endp x)
-      y
-    (revappend (cdr x) (cons (car x) y))))
-
-(defun nreconc (x y)
-  "does (nconc (nreverse X) Y) would, only faster
-Destructive on X, be careful."
-  (if (endp x)
-      y
-    ;; reuse the first cons of x, making it point to y
-    (nreconc (cdr x) (prog1 x (rplacd x y)))))
-
-(defun nbutlast (list &optional n)
-  "Side-effected LIST truncated N+1 conses from the end.
-This is the destructive version of BUTLAST.  Returns () and does not
-modify the LIST argument if the length of the list is not at least N."
-  (when (null n) (setf n 1))
-  (let ((length (list-length list)))
-    (cond ((null length)
-           list)
-          ((< length n)
-           '())
-          (t
-           (setnthcdr (- length n) list nil)
-           list))))
-
-;;; Substitutions
-
-(defun subst (new old tree)
-  "NEW replaces OLD in a copy of TREE
-Uses eql for the test."
-  (subst-if new (function (lambda (x) (eql x old))) tree))
-
-(defun subst-if-not (new test tree)
-  "NEW replaces any subtree or leaf that fails TEST in a copy of TREE"
-  ;; (subst-if new (function (lambda (x) (not (funcall test x)))) tree)
-  (cond ((not (funcall test tree))
-         new)
-        ((atom tree)
-         tree)
-        (t                              ;no match so far
-         (let ((head (subst-if-not new test (car tree)))
-               (tail (subst-if-not new test (cdr tree))))
-           ;; If nothing changed, return originals.  Else use the new
-           ;; components to assemble a new tree.
-           (if (and (eql head (car tree))
-                    (eql tail (cdr tree)))
-               tree
-             (cons head tail))))))
-
-(defun subst-if (new test tree)
-  "NEW replaces any subtree or leaf that satisfies TEST in a copy of TREE"
-  (cond ((funcall test tree)
-         new)
-        ((atom tree)
-         tree)
-        (t                              ;no match so far
-         (let ((head (subst-if new test (car tree)))
-               (tail (subst-if new test (cdr tree))))
-           ;; If nothing changed, return originals.  Else use the new
-           ;; components to assemble a new tree.
-           (if (and (eql head (car tree))
-                    (eql tail (cdr tree)))
-               tree
-             (cons head tail))))))
-
-(defun sublis (alist tree)
-  "Use association list ALIST to modify a copy of TREE
-If a subtree or leaf of TREE is a key in ALIST, it is replaced by the
-associated value.  Not exactly Common Lisp, but close in spirit and
-compatible with the native Emacs Lisp ASSOC, which uses EQUAL."
-  (let ((toplevel (assoc tree alist)))
-    (cond (toplevel                     ;Bingo at top
-           (cdr toplevel))
-          ((atom tree)                  ;Give up on this
-           tree)
-          (t
-           (let ((head (sublis alist (car tree)))
-                 (tail (sublis alist (cdr tree))))
-             (if (and (eql head (car tree))
-                      (eql tail (cdr tree)))
-                 tree
-               (cons head tail)))))))
-
-(defun member-if (predicate list)
-  "PREDICATE is applied to the members of LIST.  As soon as one of them
-returns true, that tail of the list if returned.  Else NIL."
-  (catch 'found-member-if
-    (while (not (endp list))
-      (if (funcall predicate (car list))
-          (throw 'found-member-if list)
-        (setq list (cdr list))))
-    nil))
-
-(defun member-if-not (predicate list)
-  "PREDICATE is applied to the members of LIST.  As soon as one of them
-returns false, that tail of the list if returned.  Else NIL."
-  (catch 'found-member-if-not
-    (while (not (endp list))
-      (if (funcall predicate (car list))
-          (setq list (cdr list))
-        (throw 'found-member-if-not list)))
-    nil))
-
-(defun tailp (sublist list)
-  "(tailp SUBLIST LIST) => True if SUBLIST is a sublist of LIST."
-  (catch 'tailp-found
-    (while (not (endp list))
-      (if (eq sublist list)
-          (throw 'tailp-found t)
-        (setq list (cdr list))))
-    nil))
-
-;;; Suggestion of phr%widow.Berkeley.EDU@lilac.berkeley.edu
-
-(defmacro declare (&rest decls)
-  "Ignore a Common-Lisp declaration."
-  "declarations are ignored in this implementation")
-
-(defun proclaim (&rest decls)
-  "Ignore a Common-Lisp proclamation."
-  "declarations are ignored in this implementation")
-
-(defmacro the (type form)
-  "(the TYPE FORM) macroexpands to FORM
-No checking is even attempted.  This is just for compatibility with
-Common-Lisp codes."
-  form)
 
 ;;;; end of cl.el

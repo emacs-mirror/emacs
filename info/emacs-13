@@ -1,0 +1,1330 @@
+This is Info file ../info/emacs, produced by Makeinfo-1.49 from the
+input file emacs.texi.
+
+   This file documents the GNU Emacs editor.
+
+   Copyright (C) 1985, 1986, 1988, 1992 Richard M. Stallman.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided also
+that the sections entitled "The GNU Manifesto", "Distribution" and "GNU
+General Public License" are included exactly as in the original, and
+provided that the entire resulting derived work is distributed under the
+terms of a permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that the sections entitled "The GNU Manifesto",
+"Distribution" and "GNU General Public License" may be included in a
+translation approved by the author instead of in the original English.
+
+
+File: emacs,  Node: TeX Mode Changes,  Next: Shell Changes,  Prev: Filling Changes,  Up: Version 19
+
+Changes in TeX Mode
+===================
+
+   The old TeX mode bindings of `M-{' and `M-}' have been moved to `C-c
+{' and `C-c }'.  (These commands are `up-list' and `tex-insert-braces';
+they are the TeX equivalents of `M-(' and `M-)'.)
+
+   The new command `C-c C-o' (`tex-latex-block') inserts a matching
+`\begin'--`\end' pair.  The new command `C-c C-e'
+(`tex-close-latex-block') inserts a matching `\end' for the last
+unterminated `\begin'.
+
+   You can run BibTeX on the current file using `C-c TAB'
+(`tex-bibtex-file').
+
+   There is a new command `C-c C-v' (`tex-view') for running a DVI
+previewer.
+
+   You can specify the directory to use for running TeX by setting the
+variable `tex-directory'.  `"."' is the default value.  If your
+environment variable `TEXINPUTS' contains relative directory names, or
+if your files contains `\input' commands with relative file names, then
+`tex-directory' *must* be `"."' or you will get the wrong results. 
+Otherwise, it is safe to specify some other directory, such as `/tmp'.
+
+   There is now a third variant of TeX mode, for SliTeX.  This is in
+addition to the variants for plain TeX and LaTeX.  As before, the
+correct variant is chosen automatically when you visit a file.
+
+
+File: emacs,  Node: Shell Changes,  Next: Spell Changes,  Prev: TeX Mode Changes,  Up: Version 19
+
+Changes in Shell Mode
+=====================
+
+   Shell mode has been completely replaced with a new implementation.
+The basic idea is the same: Emacs runs a subshell, and all input and
+output to the subshell go through the shell buffer.  But the special
+commands of Shell mode have been redesigned.
+
+`TAB'
+     Complete the file name before point in the shell buffer
+     (`comint-dynamic-complete').
+
+`M-?'
+     To get a list of all possible completions of the file name before,
+     type `M-?'  (`comint-dynamic-list-completions').
+
+`M-p'
+`M-n'
+     There is a new convenient history mechanism for repeating previous
+     shell inputs.  Use the command `M-p' (`comint-previous-input') to
+     recall the last input; it copies the text of that input to the
+     place where you are editing.  If you repeat `M-p', it replaces the
+     copied input with successively earlier inputs.  `M-n' is similar
+     but goes in the opposite direction, towards the present
+     (`comint-next-input').
+
+     When you find the previous input you want, you can resubmit it by
+     typing RET, or you can edit it first and then resubmit it if you
+     wish.
+
+     These shell history commands operate outside the minibuffer, but
+     they are completely analogous to the minibuffer history commands.
+
+`M-r'
+`M-s'
+     You can also use `M-r' and `M-s' to search for (respectively)
+     earlier or later inputs starting with a given string.  First type
+     the string, then type `M-r' (`comint-previous-matching-input') to
+     yank a previous input from the history which starts with that
+     string. You can repeat `M-r' to find successively earlier inputs
+     starting with the same string.
+
+     You can start moving in the opposite direction (toward more recent
+     inputs) by typing `M-s' (`comint-next-matching-input') instead of
+     `M-r'.  As long as you don't use any commands except `M-r' and
+     `M-s', they keep using the same string that you had entered
+     initially.
+
+     These commands serve a purpose similar to that of `M-r' and `M-s'
+     in the minibuffer, but do not work in quite the same way.  We may
+     change the interface of these commands, as well as that of the
+     analogous minibuffer commands; one goal will be to make the two
+     sets of commands compatible.  But we haven't yet figured out which
+     of the possible interfaces is best.  To find out what interface is
+     actually supported in Emacs 19, type `C-h f
+     comint-previous-matching-input RET'.
+
+`C-c C-o'
+     Kill the last batch of output from a shell command
+     (`comint-kill-output').  This is useful if a shell command spews
+     out lots of output that just gets in the way.
+
+`C-c C-r'
+     Scroll to display the beginning of the last batch of output at the
+     top of the window; it also moves the cursor there
+     (`comint-show-output').
+
+`C-a'
+     If you type `C-a' on a line that starts with a shell prompt, it
+     moves to the end of the prompt, not to the very beginning of the
+     line.
+
+`C-d'
+     Typed at the end of the shell buffer, `C-d' sends EOF to the
+     subshell.  Typed at any other position in the buffer, `C-d'
+     deletes a character as usual.
+
+`M-x dirs'
+     If Emacs gets confused while trying to track changes in the shell's
+     current directory, type `M-x dirs' to re-synchronize.
+
+`M-x send-invisible'
+     This command reads a line of text without echoing it, and sends it
+     to the shell.
+
+`M-x comint-continue-subjob'
+     If you accidentally suspend your process, use this command to
+     continue it.
+
+
+File: emacs,  Node: Spell Changes,  Next: Tags Changes,  Prev: Shell Changes,  Up: Version 19
+
+Changes in Spell Checking
+=========================
+
+   Emacs 19 uses the Ispell program for spelling correction instead of
+the Unix spell program.  Ispell has many advantages; one is that it can
+be started the first time you check a word, and left running thereafter,
+which makes further checking much faster.  If you want to get rid of the
+Ispell process, use `M-x kill-ispell'.
+
+   To check the entire current buffer, use `M-x ispell-buffer'.  Use
+`M-x ispell-region' to check just the current region.
+
+   Ispell commands often involve interactive replacement of words. You
+can interrupt the interactive replacement with `C-g'. You can restart
+it again afterward with `C-u M-$'.
+
+   Interactive replacement shows you one misspelling at a time and asks
+you what to do.  To answer, type one of the following characters:
+
+`DIGIT'
+     Replace the word (this time) with one of the displayed near-misses.
+     The digit you use says which near-miss to use.
+
+`a'
+     Accept this word this time.
+
+`i'
+     Insert this word in your private dictionary so that Ispell will
+     consider it correct it from now on.
+
+`r'
+     Replace the word this time with a string typed by you.
+
+   When the Ispell process starts, it reads your private dictionary
+which is the file `~/ispell.words'.  Words that you "insert" with the
+`i' command are added to that file, but not right away--only at the end
+of the interactive replacement procedure.
+
+   Use the `M-x reload-ispell' command to reload your private
+dictionary from `~/ispell.words' if you edit the file outside of Ispell.
+
+
+File: emacs,  Node: Mail Changes,  Next: Info Changes,  Prev: Tags Changes,  Up: Version 19
+
+Changes in Mail Reading and Sending
+===================================
+
+   `%' is now a word-separator character in Mail mode.  This is because
+that character frequently appears in addresses.
+
+   If you set the variable `mail-signature' non-`nil', then `mail'
+inserts the contents of your `.signature' file automatically when it
+initializes a mail buffer.  If you don't want your signature in a
+particular message, just delete it from the buffer before you send the
+message.
+
+   You can specify the text to insert at the beginning of each line when
+you use `C-c C-y' to yank the message you are replying to.  Set
+`mail-yank-prefix' to the desired string.  A value of `nil' (the
+default) means to use indentation, as in Emacs 18.  If you use `C-u' by
+itself as the prefix argument to `C-c C-y', then it does not insert
+anything at the beginning of the lines, regardless of the value of
+`mail-yank-prefix'.
+
+   You can easily convert an Rmail file to system mailbox format with
+the command `unrmail'.  This command reads two arguments, the name of
+the Rmail file to convert, and the name of the new mailbox file. The
+Rmail file is unchanged by this command.
+
+   Rmail now initially positions you at the first message in the Rmail
+file that you have not seen.  This may not be a message that just
+arrived; it may have arrived in a previous session during which you did
+not select it.  You can then read all the unseen messages going
+forwards.
+
+   When a message that you sent "bounces" back to you, you can retry
+sending it by typing `C-M-m' (`rmail-retry-failure') on the failure
+message.
+
+   By contrast, the new command `M-x rmail-resend' is used for
+forwarding a message and marking it as "resentby" you, with the special
+header fields `Resent-by:' and `Resent-to:'.
+
+   Another new Rmail command is `<', which moves to the first message.
+(This is for symmetry with `>'.)  `<' is actually an alias for `j'.
+
+   `e' (`rmail-edit-current-message') is now the command to edit a
+message.  To expunge, type `x'.  We know this will surprise people some
+of the time, but the surprise will not be disastrous--if you type `e'
+meaning to expunge, just type `C-c C-c' to leave Rmail Edit mode, and
+then type `x'.
+
+   The variable `rmail-output-file-alist' now controls the default for
+the file to output a message to.
+
+   In the Rmail summary, `C-n' and `C-p' are now ordinary cursor motion
+commands.  To move in the summary *and* select a new message, use `n'
+and `p' (which skip deleted messages) or `M-n' and `M-p' (which stop at
+all messages).  These are, of course, the same commands you would use
+in the Rmail buffer.
+
+
+File: emacs,  Node: Tags Changes,  Next: Mail Changes,  Prev: Spell Changes,  Up: Version 19
+
+Changes in Tags Commands
+========================
+
+   `M-.' (`find-tag') and the other commands to find a tag now look
+first for an exact match in the tags table, and try substring matches
+only afterward.
+
+   Another change in `M-.' is that it has no effect on what `M-,' will
+do subsequently.  You can no longer use `M-,' to find the next similar
+tag; instead, use `M-.' with a prefix argument.
+
+   The new command `find-tag-regexp' successively visits the tags that
+match a specified regular expression.
+
+   You can now use more than one tags table.  Using `visit-tags-table'
+to load a new tags table does not discard the other tables previously
+loaded.  The other tags commands use all the tags tables that are
+loaded; the first one they use is the one that mentions the current
+visited file.
+
+   You can specify a precise list of tags tables by setting the variable
+`tags-table-list' to a list of strings, like this:
+
+     (setq tags-table-list
+           '("~/emacs" "/usr/local/lib/emacs/src"))
+
+This tells `find-tag' to look at the `TAGS' files in your `~/emacs'
+directory and in the `/usr/local/lib/emacs/src' directory.  The order
+depends on which file you are in and which tags table mentions that
+file, as explained above.
+
+   You can now use the tags table for completion of names during
+ordinary editing.  The command `M-TAB' (except in Emacs Lisp and Lisp
+Interaction modes) completes the identifier in the buffer before point,
+using the set of all tags as the list of possible completions.
+
+   `tags-query-replace' and `tags-search' now create buffers only
+temporarily for the files that they have to search (those which are not
+already visited in Emacs buffers).  If one of these files contains a
+match for the search pattern, then its buffer continues to exist;
+otherwise, it is killed.
+
+
+File: emacs,  Node: Info Changes,  Next: Dired Changes,  Prev: Mail Changes,  Up: Version 19
+
+Changes in Info
+===============
+
+   There are new commands in Info mode.
+
+`]'
+     Move forward a node, going up and down levels as needed in a
+     depth-first tree walk.  This command treats all the nodes in the
+     file as forming a single sequence in which the "children" of a
+     node follow that node. It is the equivalent of reading a printed
+     manual sequentially.
+
+`['
+     Similar, but move backward.
+
+`<'
+     Move to the top node of the current Info file.
+
+`>'
+     Move to the last node of the file.
+
+`SPC'
+     Scroll through this node, or advance to the next node in
+     depth-first order (like `]').
+
+`i STRING RET'
+     Move to the node associated with STRING in the index or indices of
+     this manual.  If there is more than one match for STRING, the `i'
+     command finds the first match.
+
+`,'
+     Find the next match for the string in the previous `i' command, and
+     go to that node.
+
+   If you click the middle mouse button near a cross-reference, menu
+item or node pointer while in Info, you will go to the node which is
+referenced.
+
+   The variable `Info-directory-list' specifies a list of directory
+names that contain Info files.  Each time Info looks for an Info file,
+it searches all these directories.  This makes it easy to install the
+Info files that come with various packages.  You can specify the path
+with the environment variable `INFOPATH'.
+
+
+File: emacs,  Node: Dired Changes,  Next: GNUS,  Prev: Info Changes,  Up: Version 19
+
+Changes in Dired
+================
+
+   Dired has many new features which allow you to do these things:
+
+   * Make distinguishable types of marks for different operations.
+
+   * Rename, copy, or make links to many files at once.
+
+   * Display contents of subdirectories in the same Dired buffer as the
+     parent directory.
+
+* Menu:
+
+* Marks in Dired::	    Flagging for deletion vs marking for other actions.
+* Multiple Files::	    How to copy, rename, print, compress, etc.
+			      either one file or several files.
+* Shell Commands in Dired:: Running a shell command on the marked files.
+* Dired Regexps::	    Using patterns to rename multiple files.
+* Dired Case Conversion::   Converting file names to upper or lower case.
+* Comparison in Dired::	    Running `diff' by way of Dired.
+* Subdirectories in Dired:: Adding subdirectories to the Dired buffer.
+* Hiding Subdirectories::   Making subdirectories visible or invisible.
+* Editing Dired Buffer::    Discarding lines for files of no interest.
+* Dired and Find::	    Using `find' to select the files for Dired to show.
+
+
+File: emacs,  Node: Marks in Dired,  Next: Multiple Files,  Up: Dired Changes
+
+Setting and Clearing Marks
+--------------------------
+
+   There are now two kinds of marker that you can put on a file in
+Dired: `D' for deletion, and `*' for any other kind of operation. The
+`x' command deletes only files marked with `D', and most other Dired
+commands operate only on the files marked with `*'.
+
+   To mark files with `D' (also called "flagging" the files), you can
+use `d' as usual.  Here are some commands for marking with `*' (and
+also for unmarking):
+
+`m'
+     Mark the current file with `*', for an operation other than
+     deletion (`dired-mark').
+
+`*'
+     Mark all executable files (`dired-mark-executables'). With a
+     prefix argument, unmark all those files.
+
+`@'
+     Mark all symbolic links (`dired-mark-symlinks').  With a prefix
+     argument, unmark all those files.
+
+`/'
+     Mark all files which are actually directories, except for `.' and
+     `..' (`dired-mark-directories').  With a prefix argument, unmark
+     all those files.
+
+`M-DEL'
+     Remove a specific or all marks from every file
+     (`dired-unmark-all-files'). With an argument, query for each
+     marked file. Type your help character, usually `C-h', at that time
+     for help.
+
+`c OLD NEW'
+     Replace all marks that use the character OLD with marks that use
+     the character NEW.  You can use almost any character as a mark
+     character by means of this command, to distinguish various classes
+     of files.  If OLD is ` ', then the command operates on all
+     unmarked files; if NEW is ` ', then the command unmarks the files
+     it acts on.
+
+     To illustrate the power of this command, here is how to put `*'
+     marks on all the files that were unmarked, while unmarking all
+     those that had `*' marks:
+
+          c * t c SPC * c t SPC
+
+
+File: emacs,  Node: Multiple Files,  Next: Shell Commands in Dired,  Prev: Marks in Dired,  Up: Dired Changes
+
+Operating on Multiple Files
+---------------------------
+
+   The Dired commands to operate on files (rename them, copy them, and
+so on) have been generalized to work on multiple files.  There are also
+some additional commands in this series.
+
+   All of these commands use the same convention to decide which files
+to manipulate:
+
+   * If you give the command a numeric prefix argument N, it operates
+     on the next N files, starting with the current file.
+
+   * Otherwise, if there are marked files, the commands operate on all
+     the marked files.
+
+   * Otherwise, the command operates on the current file only.
+
+   Here are the commands that operate on multiple files in this way:
+
+`C'
+     Copy the specified files (`dired-do-copy').  You must specify a
+     directory to copy into, or (if copying a single file) a new name.
+
+     If `dired-copy-preserve-time' is non-`nil', then copying with this
+     command sets the modification time of the new file to be the same
+     as that of the old file.
+
+`R'
+     Rename the specified files (`dired-do-rename').  You must specify
+     a directory to rename into, or (if renaming a single file) a new
+     name.
+
+     Dired automatically changes the visited file name of buffers
+     associated with renamed files so that they refer to the new names.
+
+`H'
+     Make hard links to the specified files (`dired-do-hardlink'). You
+     must specify a directory to make the links in, or (if making just
+     one link) the name to give the link.
+
+`S'
+     Make symbolic links to the specified files (`dired-do-symlink').
+     You must specify a directory to make the links in, or (if making
+     just one link) the name to give the link.
+
+`M'
+     Change the mode (also called "permission bits") of the specified
+     files (`dired-do-chmod').  This calls the `chmod' program, so you
+     can describe the desired mode change with any argument that
+     `chmod' would handle.
+
+`G'
+     Change the group of the specified files (`dired-do-chgrp').
+
+`O'
+     Change the owner of the specified files (`dired-do-chown'). (On
+     most systems, only the superuser can do this.)
+
+     The variable `dired-chown-program' specifies the name of the
+     program to use to do the work (different systems put `chown' in
+     different places.
+
+`Z'
+     Compress or uncompress the specified files. If the file appears to
+     be a compressed file, it is uncompressed; otherwise, it is
+     compressed (`dired-do-compress').
+
+`L'
+     Load the specified Emacs Lisp files (`dired-do-load').
+
+`B'
+     Byte compile the specified Emacs Lisp files
+     (`dired-do-byte-compile').
+
+`P'
+     Print the specified files (`dired-do-print').  This command uses
+     the variables `lpr-command' and `lpr-switches' just as `lpr-file'
+     does (*note Hardcopy::.).
+
+
+File: emacs,  Node: Shell Commands in Dired,  Next: Dired Regexps,  Prev: Multiple Files,  Up: Dired Changes
+
+Shell Commands in Dired
+-----------------------
+
+   The dired command `!' (`dired-do-shell-command') reads a shell
+command string in the minibuffer and runs the shell command on all the
+specified files.  There are two ways of applying a shell command to
+multiple files:
+
+   * If you use `*' in the shell command, then it runs just once, with
+     the list of file names substituted for the `*'.
+
+     Thus, `! tar cf foo.tar * RET' runs `tar' on the entire list of
+     file names, putting them into one tar file `foo.tar'.  The file
+     names are inserted in the order that they appear in the Dired
+     buffer.
+
+   * If the command string doesn't contain `*', then it runs once *for
+     each file*, with the file name attached at the end.
+
+     For example, `! uudecode RET' runs `uudecode' on each file.
+
+   What if you want to run the shell command once for each file but with
+the file name inserted in the middle?  Or if you want to use the file
+names in a more complicated fashion?  Use a shell loop.  For example,
+this shell command would run `uuencode' on each of the specified files,
+writing the output into a corresponding `.uu' file:
+
+     for file in *; uuencode $file $file >$file.uu; done
+
+   The working directory for the shell command is the top level
+directory of the Dired buffer.
+
+   The `!' command does not attempt to update the Dired buffer to show
+new or modified files, because it doesn't know what those files might
+be.  Type `g' to update the Dired buffer.
+
+
+File: emacs,  Node: Dired Regexps,  Next: Dired Case Conversion,  Prev: Shell Commands in Dired,  Up: Dired Changes
+
+Regular Expression File Name Substitution
+-----------------------------------------
+
+   Here are commands that select files according to a regular
+expression:
+
+`% m REGEXP RET'
+     Mark all files whose names match the regular expression REGEXP
+     (`dired-mark-files-regexp').
+
+     Only the non-directory part of the file name is used in matching. 
+     Use `^' and `$' to anchor matches.  Exclude subdirs by hiding them
+     (*note Hiding Subdirectories::.).
+
+`% d REGEXP RET'
+     Flag for deletion all files whose names match the regular
+     expression REGEXP (`dired-flag-files-regexp').
+
+`% R FROM RET TO RET'
+`% C FROM RET TO RET'
+`% H FROM RET TO RET'
+`% S FROM RET TO RET'
+     These four commands rename, copy, make hard links and make soft
+     links, in each case computing the new name by regular expression
+     substitution from the name of the old file.
+
+   The four regular expression substitution commands effectively perform
+`query-replace-regexp' on the selected file names in the Dired buffer. 
+They read two arguments: a regular expression FROM, and a substitution
+pattern TO.  Each selected file name is matched against the regular
+expression, and then the part which matched is replaced with the
+substitution pattern.  You can use `\&' and `\DIGIT' in the
+substitution pattern to refer to all or part of the old file name.
+
+   Thus, `% R ^.*$ RET x-\& RET' renames each selected file by
+prepending `x-' to its name.  The inverse of this is to remove `x-'
+from the front of each file name.  One way to do that is `% R ^x-.*$
+RET \& RET'; another is `% R ^x- RET RET'.  (Use `^' and `$' to anchor
+matches that should span the whole filename.)
+
+   If the regular expression matches more than once in a file name,
+only the first match is replaced.
+
+   Normally, the replacement process does not consider the directory
+names; it operates on the file name within the directory.  If you
+specify a prefix argument of zero, then replacement affects the entire
+file name.
+
+   Often you will want to apply the command to all files matching the
+same REGEXP that you use in the command.  To do this, mark those files
+with `% m REGEXP RET', then use the same regular expression in `% R'. 
+To make this easier, `% R' uses the last regular expression specified
+in a `%' command as a default.
+
+
+File: emacs,  Node: Dired Case Conversion,  Next: Comparison in Dired,  Prev: Dired Regexps,  Up: Dired Changes
+
+Dired Case Conversion
+---------------------
+
+   Here are commands for changing the case of selected files:
+
+`% u'
+     Rename each of the selected files to an upper case name
+     (`dired-upcase').
+
+`% l'
+     Rename each of the selected files to a lower case name
+     (`dired-downcase').
+
+
+File: emacs,  Node: Comparison in Dired,  Next: Subdirectories in Dired,  Prev: Dired Case Conversion,  Up: Dired Changes
+
+File Comparison with Dired
+--------------------------
+
+   Here are two commands to run `diff' on selected files:
+
+`='
+     Compare the current file with another file (the file at the mark),
+     by running the `diff' program (`dired-diff').  The file at the
+     mark is the first argument of `diff', and the file at point is the
+     second argument.
+
+`M-='
+     Compare the current file with its backup file
+     (`dired-backup-diff'). If there are several numerical backups, use
+     the most recent one.  If this file is a backup, compare it to its
+     original.  The backup file is the first file given to `diff'.
+
+
+File: emacs,  Node: Subdirectories in Dired,  Next: Hiding Subdirectories,  Prev: Comparison in Dired,  Up: Dired Changes
+
+Subdirectories in Dired
+-----------------------
+
+   One Dired buffer can now display more than one directory.
+
+   The simplest way to include multiple directories is to specify the
+options `-lR' for running `ls'.  That produces a recursive directory
+listing showing all subdirectories, all within the same Dired buffer.
+
+   But the simplest way is not usually the most convenient way--usually
+the complete recursive listing is more than you want.  So there is a
+Dired command to insert a single subdirectory into the Dired buffer:
+
+`i'
+     Use the `i' (`dired-maybe-insert-subdir') command on a line that
+     describes a file which is a directory.  It inserts the contents of
+     that directory into the same Dired buffer.  Inserted subdirectory
+     contents follow the top-level directory of the Dired buffer, just
+     as they do in `ls -lR' output.
+
+     If the subdirectory's contents are already present in the buffer,
+     the `i' command just moves to it (type `l' (`dired-do-redisplay')
+     to refresh it).  It sets the Emacs mark before moving, so `C-x
+     C-x' takes you back to the old position in the buffer.
+
+   When you have subdirectories in the Dired buffer, you can use the
+page motion commands `C-x [' and `C-x ]' to move by entire directories.
+
+   The following commands move up and down in the tree of directories
+in one Dired buffer:
+
+`C-M-u'
+     Go up to the parent directory's headerline (`dired-tree-up').
+
+`C-M-d'
+     Go down in the tree, to the first subdirectory's headerline
+     (`dired-tree-down').
+
+   The following commands move forwards and backwards to subdirectory
+headerlines:
+
+`C-M-n'
+     Go to next subdirectory headerline, regardless of level
+     (`dired-next-subdir').
+
+`C-M-p'
+     Go to previous subdirectory headerline, regardless of level
+     (`dired-prev-subdir').
+
+
+File: emacs,  Node: Hiding Subdirectories,  Next: Editing Dired Buffer,  Prev: Subdirectories in Dired,  Up: Dired Changes
+
+Hiding Subdirectories
+---------------------
+
+   "Hiding" a subdirectory means to make it invisible, except for its
+headerline.  Files inside a hidden subdirectory are never considered by
+Dired.  For example, the commands to operate on marked files ignore
+files in hidden directories even if they are marked.  Thus you can use
+hiding to temporarily exclude subdirectories from operations without
+having to remove the markers.
+
+   The hiding commands toggle; that is they unhide what was hidden and
+vice versa.
+
+`$'
+     Hide or reveal the current subdirectory and move point to the next
+     subdirectory (`dired-hide-subdir').  A prefix argument serves as a
+     repeat count.
+
+`M-$'
+     Hide all subdirectories, leaving only their header lines
+     (`dired-hide-all').  Or, if any subdirectory is currently hidden,
+     make all subdirectories visible again.  You can use this command
+     to get an overview in very deep directory trees or to move quickly
+     to subdirectories far away.
+
+
+File: emacs,  Node: Editing Dired Buffer,  Next: Dired and Find,  Prev: Hiding Subdirectories,  Up: Dired Changes
+
+Editing the Dired Buffer
+------------------------
+
+`l'
+     Update the specified files in a Dired buffer.  This means reading
+     their current status from the file system and changing the buffer
+     to reflect it properly (`dired-do-redisplay').
+
+     If you use this command on a subdirectory header line, it updates
+     the contents of the subdirectory.
+
+`g'
+     Update the entire contents of the Dired buffer (`revert-buffer'). 
+     Preserve all marks except for those on files that have vanished. 
+     Hidden subdirectories are updated but remain hidden.
+
+`k'
+     Kill all marked lines (`dired-do-kill-lines').  With a prefix
+     argument, kill that many lines starting with the current line.
+
+     This command does not delete files; it just deletes text from the
+     Dired buffer.
+
+     If you kill the line for a file that is a directory, then its
+     contents are also deleted from the buffer.  Typing `C-u k' on the
+     header line for a subdirectory is another way to delete a
+     subdirectory from the Dired buffer.
+
+     The `g' command will bring back any individual lines that you have
+     killed in this way, but not subdirectories--you must use `i' to
+     reinsert each subdirectory.
+
+
+File: emacs,  Node: Dired and Find,  Prev: Editing Dired Buffer,  Up: Dired Changes
+
+Dired and `find'
+----------------
+
+   You can select a set of files for display in a Dired buffer more
+flexibly by using the `find' utility to choose the files.
+
+   To search for files with names matching a wildcard pattern use
+`find-name-dired'.  Its arguments are DIRECTORY and PATTERN.  It
+selects all the files in DIRECTORY or its subdirectories whose own
+names match PATTERN.
+
+   The files thus selected are displayed in a Dired buffer in which the
+ordinary Dired commands are available.
+
+   If you want to test the contents of files, rather than their names,
+use `find-grep-dired'.  This command takes two minibuffer arguments,
+DIRECTORY and REGEXP; it selects all the files in DIRECTORY or its
+subdirectories that contain a match for REGEXP.  It works by running
+`find' and `grep'.
+
+   The most general command in this series is `find-dired', which lets
+you specify any condition that `find' can test.  It takes two
+minibuffer arguments, DIRECTORY and FIND-ARGS; it runs `find' in
+DIRECTORY with FIND-ARGS as the arguments to `find' that specify which
+files to accept.  To use this command, you need to know how to use
+`find'.
+
+
+File: emacs,  Node: GNUS,  Next: Calendar/Diary,  Prev: Dired Changes,  Up: Version 19
+
+GNUS
+====
+
+   GNUS is an Emacs subsystem for reading and responding to netnews. 
+You can use GNUS to browse through news groups, look at summaries of
+articles in specific group, and read articles of interest.  You can
+respond to authors or write replies to all the readers of a news group.
+
+   This document introduces GNUS and describes several basic features.
+Full documentation will appear in `The GNU Emacs Extensions Manual'.
+
+   To start GNUS, type `M-x gnus RET'.
+
+* Menu:
+
+* Buffers of GNUS::   The Newsgroups, Summary and Article buffers.
+* GNUS Startup::      What you should know about starting GNUS.
+* Summary of GNUS::   A short description of the basic GNUS commands.
+
+
+File: emacs,  Node: Buffers of GNUS,  Next: GNUS Startup,  Up: GNUS
+
+GNUS's Three Buffers
+--------------------
+
+   GNUS creates and uses three Emacs buffers, each with its own
+particular purpose and its own major mode.
+
+   The "Newsgroup buffer" contains a list of newsgroups.  This is the
+first buffer that GNUS displays when it starts up.  Normally the list
+contains only the newsgroups to which you subscribe (which are listed in
+your `.newsrc' file) and which contain unread articles.  Use this
+buffer to select a specific newsgroup.
+
+   The "Summary buffer" lists the articles in a single newsgroup,
+including their subjects, their numbers, and who posted them.  GNUS
+creates a Summary buffer for a newsgroup when you select the group in
+the Newsgroup buffer.  Use this buffer to select an article, and to move
+around in an article.
+
+   The "Article buffer" displays the text of an article.  You rarely
+need to select this buffer because you can read the text while keeping
+the Summary buffer selected.
+
+
+File: emacs,  Node: GNUS Startup,  Next: Summary of GNUS,  Prev: Buffers of GNUS,  Up: GNUS
+
+When GNUS Starts Up
+-------------------
+
+   At startup, GNUS reads your `.newsrc' news initialization file and
+attempts to communicate with the local news server, which is a
+repository of news articles.  The news server need not be the same
+computer you are logged in on.
+
+   If you start GNUS and connect to the server, but do not see any
+newsgroups listed in the Newsgroup buffer, type `L' to get a listing of
+all the newsgroups.  Then type `u' to unsubscribe from particular
+newsgroups.  (Move the cursor using `n' and `p' or the usual Emacs
+commands.)  When you quit with `q', GNUS automatically records the
+subscribed groups in your `.newsrc' initialization file.  (You do not
+have to edit this file yourself, although you may.) Next time you start
+GNUS, you will see only the subscribed groups.
+
+
+File: emacs,  Node: Summary of GNUS,  Prev: GNUS Startup,  Up: GNUS
+
+Summary of GNUS Commands
+------------------------
+
+   Reading news is a two step process:
+
+  1. Choose a newsgroup in the Newsgroup buffer.
+
+  2. Choose an article in the Summary buffer.  The article is displayed
+     in the Article buffer in a large window, below the Summary buffer
+     in its small window.
+
+   Each buffer has commands particular to it, but commands that do the
+same things have similar keybindings.  Here are commands for the
+Newsgroup and Summary buffers:
+
+`z'
+     In the Newsgroup buffer, suspend GNUS.  You can return to GNUS
+     later by selecting the Newsgroup buffer and typing `g' to get
+     newly arrived articles.
+
+`q'
+     In the Newsgroup buffer, update your `.newsrc' initialization file
+     and quit GNUS.
+
+     In the Summary buffer, exit the current newsgroup and return to the
+     Newsgroup buffer.  Thus, typing `q' twice quits GNUS.
+
+`L'
+     In the Newsgroup buffer, list all the newsgroups available on your
+     news server.  This may be a long list!
+
+`l'
+     In the Newsgroup buffer, list only the newsgroups to which you
+     subscribe and which contain unread articles.
+
+`u'
+     In the Newsgroup buffer, unsubscribe from (or subscribe to) the
+     newsgroup listed in the line that point is on.  When you quit GNUS
+     by typing `q', GNUS lists your subscribed-to newsgroups in your
+     `.newsrc' file.  The next time you start GNUS, you see only the
+     newsgroups listed in your `.newsrc' file.
+
+     You may also edit your `.newsrc' file directly in Emacs.  First
+     quit GNUS, then visit the `.newsrc' file.  For example, you can
+     remove all the `alt.' groups by going to the beginning of the file
+     and typing `M-x flush-lines RET alt RET'.  Next time you start
+     GNUS, you will see only the newsgroups still listed in the
+     `.newsrc' file.
+
+`SPC'
+     In the Newsgroup buffer, select the group on the line under the
+     cursor and display the first unread article in that group.
+
+     In the Summary buffer,
+
+        - Select the article on the line under the cursor if none is
+          selected.
+
+        - Scroll the text of the article if one is selected.
+
+        - Select the next unread article if at the end of the current
+          article.
+
+     Thus, you can move through all the articles by repeatedly typing
+     SPC.
+
+`DEL'
+     In the Newsgroup Buffer, move point to the previous newsgroup
+     containing unread articles.
+
+     In the Summary buffer, scroll the text of the article backwards.
+
+`n'
+     Move point to the next unread newsgroup, or select the next unread
+     article.
+
+`p'
+     Move point to the previous unread newsgroup, or select the previous
+     unread article.
+
+`C-n'
+`C-p'
+     Move point to the next or previous item, even if it is marked as
+     read. This does not select the article or newsgroup on that line.
+
+`s'
+     In the Summary buffer, do an incremental search of the current
+     text in the Article buffer, just as if you switched to the Article
+     buffer and typed `C-s'.
+
+`M-s REGEXP RET'
+     In the Summary buffer, search forward for articles containing a
+     match for REGEXP.
+
+`C-c C-s C-n'
+`C-c C-s C-s'
+`C-c C-s C-d'
+`C-c C-s C-a'
+     In the Summary buffer, sort the list of articles by number,
+     subject, date, or author.
+
+`C-M-n'
+`C-M-p'
+     In the Summary buffer, read the next or previous article with the
+     same subject as the current article.
+
+
+File: emacs,  Node: Calendar/Diary,  Next: Version Control,  Prev: GNUS,  Up: Version 19
+
+Calendar and Diary
+==================
+
+   The calendar facility in Emacs 19 is almost completely new, and it
+comes with a diary feature.  You can use the diary to keep track of
+appointments, anniversaries, and other events.
+
+   To use the diary, you must write diary entries in a particular file,
+called your "diary file".  Its name is `~/diary'.  Emacs displays the
+entries for particular dates by finding them in the diary file,
+formatting them, and displaying them in a diary display buffer.
+
+* Menu:
+
+* Calendar::			New features of the calendar proper.
+* Entries: Diary Entries.	The location and form of a diary entry.
+* New Entries::			Inserting diary entries using the calendar.
+* Displaying Diary::            How to display diary entries from the calendar.
+* European Calendar Style ::    Day-month-year style for dates.
+* Simple and Fancy::            The diary has two modes for display.
+* Other Diary Features::        The diary has many advanced commands.
+* Startup Diary::		How to display your diary when you start Emacs.
+* Printing Diary:: 		Print selected entries of the diary.
+
+
+File: emacs,  Node: Calendar,  Next: Diary Entries,  Up: Calendar/Diary
+
+Calendar
+--------
+
+   In Emacs 19 you can use ordinary Emacs cursor commands to move
+through the calendar, which scrolls automatically to display different
+months or different years.  Character motion translates to days, line
+motion to weeks, sentence and paragraph motion to months, and page
+motion to years.  The vertical and horizontal scroll commands also
+handle the calendar suitably.
+
+   `p d' displays the selected date as a day within the year.  `g d'
+selects a date given as month, day, year.  Type `.' to go back to
+today's date.
+
+   The command `M-=', which normally gives the number of lines in the
+region, in Calendar mode gives the number of days in the region
+(`calendar-count-days-region').
+
+   The calendar facility also knows about other important calendars. 
+The commands for these come in pairs; the commands to convert *to*
+another calendar start with the `p' prefix (short for "print"), and the
+commands to convert from another calendar start with the `g' prefix
+(short for "go to").  Here is a complete list:
+
+`g a', `p a'
+     The astronomical calendar, a simple count of days elapsed since
+     noon, Monday, January 1, 4713 B.C. on the Julian calendar.  The
+     number of days elapsed is also called the "Julian day number"
+     (`calendar-goto-astro-date', `calendar-print-astro-date').
+
+`g c', `p c'
+     ISO commercial calendar
+     (`calendar-goto-iso-date', `calendar-print-iso-date').
+
+`g f', `p f'
+     French revolutionary calendar
+     (`calendar-goto-french-date',
+     `calendar-print-french-date').
+
+`g h', `p h'
+     Hebrew calendar
+     (`calendar-goto-hebrew-date',
+     `calendar-print-hebrew-date').
+
+`g i', `p i'
+     Islamic calendar
+     (`calendar-goto-islamic-date',
+     `calendar-print-islamic-date').
+
+`g j', `p j'
+     Julian calendar
+     (`calendar-goto-julian-date',
+     `calendar-print-julian-date').
+
+`p m'
+     Mayan calendar (`calendar-print-mayan-date').
+
+   The calendar also knows the dates of standard holidays.  Type `h'
+(`calendar-cursor-holidays') to display a list of holidays for the
+selected date.  This list appears in another window.  Type `x'
+(`mark-calendar-holidays') to mark each day that is a holiday with `*'
+in the calendar itself.  The command `u' (`calendar-unmark') turns off
+this marking.
+
+   At any time, you can use `M-x holidays' to display a list of
+holidays for the present month and the preceding and following months.
+
+
+File: emacs,  Node: Diary Entries,  Next: New Entries,  Prev: Calendar,  Up: Calendar/Diary
+
+Diary Entries
+-------------
+
+   To use the diary feature, you must write "diary entries" that
+describe plans associated with particular dates, and put them in your
+"diary file", which is normally the file `~/diary'.  You can specify a
+different name for it by setting the variable `diary-file'; you would
+do this before using any of the commands that operate on the diary.
+
+   Diary file entries follow a simple convention: begin entries with a
+date at the beginning of a line, followed optionally by a time, and
+then by the text of the entry:
+
+     DATE OPTIONAL-TIME-OF-DAY TEXT-OF-ENTRY
+
+To continue an entry over two or more lines, indent the second and
+subsequent lines.  The lines of the entry after the first are called
+"continuation lines".  Other lines in the diary file that are not part
+of any entry are comment lines; Emacs does not display these.
+
+   When you make diary entries using Calendar mode, Emacs inserts the
+date for you in the appropriate format and places the cursor so you can
+type the text of the entry.
+
+   You can write entries in any order and Emacs will display the
+entries by date.  However, time-of-day entries can be sorted
+chronologically only in a diary mode called Fancy mode; in Simple mode,
+Emacs displays time-of-day entries in their order in the diary file.
+
+
+File: emacs,  Node: Displaying Diary,  Next: European Calendar Style,  Prev: New Entries,  Up: Calendar/Diary
+
+Calendar Commands to Display Diary Entries
+------------------------------------------
+
+   In Calendar mode, use the following commands to display your diary
+entries:
+
+`d'
+     Display any diary entries for the date under the cursor
+     (`view-diary-entries').
+
+     With a numeric argument, Emacs shows the diary entries for that
+     many successive days, starting with and including the date under
+     the cursor. Thus, `2 d' displays all the entries for the selected
+     date and for the following day.
+
+`s'
+     Display your entire diary file (`show-all-diary-entries').
+
+`m'
+     In the calendar, mark all visible dates that have diary entries
+     (`mark-diary-entries').
+
+`u'
+     Unmark the calendar (`calendar-unmark').
+
+   At any time, not just in Calendar mode, you can display today's diary
+entries by typing:
+
+     M-x diary
+
+With a prefix argument N, this command displays diary entries for N
+successive days, starting from and including today.
+
+
+File: emacs,  Node: New Entries,  Next: Displaying Diary,  Prev: Diary Entries,  Up: Calendar/Diary
+
+Calendar Commands for Making Diary Entries
+------------------------------------------
+
+   Calendar mode provides several commands to help you make diary file
+entries.  These commands work by visiting the diary file and inserting
+the date information; you must finish the job by inserting the text of
+the entry, and then save the diary file with `C-x C-s'.  The commands
+are:
+
+`i d'
+     Add a diary entry for the selected date in the calendar
+     (`insert-diary-entry').
+
+`i w'
+     Add a diary entry for the selected day of the week
+     (`insert-weekly-diary-entry').  This entry is displayed each week
+     on the selected day.
+
+`i m'
+     Add a diary entry for the selected day of the month
+     (`insert-monthly-diary-entry').  This entry is displayed each month
+     on the selected day.
+
+`i y'
+     Add a diary entry for the selected day of the year
+     (`insert-yearly-diary-entry').  This entry is displayed each year
+     on the selected day.
+
+   Here are commands for entering more complex kinds of diary entries in
+Calendar mode.  These kinds of entries operate properly only in Fancy
+Diary Display mode (*note Simple and Fancy::.).
+
+`i a'
+     Add an anniversary diary entry for the selected date
+     (`insert-anniversary-diary-entry').
+
+     Select the date you want remembered, in the proper year--if it is a
+     birthday, remember to go to the person's year of birth!  Then type
+     `i a' and enter the text of the entry.
+
+     In the textual part of the entry you can type `%d'.  When Emacs
+     displays the entry in the diary buffer, the `%d' is replaced by the
+     number of years since the date.  Thus, if you use `%d years old' as
+     the text of the entry, it will display as `53 years old' on the
+     53rd birthday.
+
+`i c'
+     Add a cyclic diary entry starting at the date
+     (`insert-cyclic-diary-entry').  An entry is displayed on a
+     specified starting date and then is repeatedly displayed at the
+     specified interval.  This is useful for ten day cycles of
+     preventive maintenance and similar activities.
+
+     To use this command, first select the start date.  The command
+     reads the interval (the number of days between repetitions) using
+     the minibuffer, then inserts the beginning of the entry.
+
+`i b'
+     Add a block diary entry for the current region
+     (`insert-block-diary-entry').  With a block entry, Emacs writes
+     the same message in the display for successive days.
+
+     Position point and mark at the beginning and end of the block of
+     days you want entered and type `i b'.  This sets up the diary
+     entry's date info and positions point so you can write the text of
+     the entry. People usually use this command for trips or vacations.
+
+
+File: emacs,  Node: European Calendar Style,  Next: Simple and Fancy,  Prev: Displaying Diary,  Up: Calendar/Diary
+
+European Calendar Style
+-----------------------
+
+   By default, Emacs interprets and displays diary dates in civilian
+American form, `MONTH/DAY/YEAR': `2/15/1993', or `February 15, 1993'.
+
+   Alternatively, you can specify the European calendar style for
+writing dates: `DAY/MONTH/YEAR', `15/2/1993' or `15 February 1993'.  To
+do this, set the variable `european-calendar-style' to `t', before
+using any calendar or diary command.  This also affects display of
+dates.
+
+   Here's how to do this in your `.emacs' file:
+
+     (setq european-calendar-style t)
+
+
+File: emacs,  Node: Simple and Fancy,  Next: Other Diary Features,  Prev: European Calendar Style,  Up: Calendar/Diary
+
+Simple and Fancy Diary Display
+------------------------------
+
+   There are two modes for displaying a subset of diary entries: Simple
+mode and Fancy mode.  Fancy mode provides a more dramatic display for
+the diary, and can also display the actual matching date for diary
+entries that match more than one date.
+
+   By default, Emacs uses Simple mode, which is quicker than Fancy mode.
+Another advantage of Simple mode is that you can edit the displayed
+diary entries "in place" and save them.  When you use Fancy mode, it is
+useless to edit the displayed subset of the diary; instead you must
+visit the diary file separately.  To select Fancy mode, set
+`diary-display-hook' to `fancy-diary-display' like this:
+
+     (setq diary-display-hook 'fancy-diary-display)
+
+
+File: emacs,  Node: Other Diary Features,  Next: Startup Diary,  Prev: Simple and Fancy,  Up: Calendar/Diary
+
+Other Diary Features
+--------------------
+
+   Here are some additional diary features.  These will be explained in
+full in `The GNU Emacs Extensions Manual'.
+
+   You can schedule meetings on a date such as the first Tuesday of
+every month.  This is called an "offset" date.  The diary has commands
+for specifying such meetings, but not in Calendar mode.  To create such
+an entry, you need to edit the diary file yourself.
+
+   You can make entries according to Hebrew and Islamic dates.  Calendar
+mode provides commands of the form `i h d' to add a diary entry for the
+Hebrew date corresponding to the selected date and `i i d' to add a
+diary entry for the Islamic date corresponding to the selected date. 
+You can make entries that repeat every week, month, or year. Before
+using these commands, you must set the
+`nongregorian-diary-listing-hook' and the
+`nongregorian-diary-marking-hook' in your `.emacs' file.
+
+   You can include other diary files in your diary display.  This way, a
+group of people can share a common diary file.
+
+
+File: emacs,  Node: Startup Diary,  Next: Printing Diary,  Prev: Other Diary Features,  Up: Calendar/Diary
+
+Displaying your Diary on Emacs Startup
+--------------------------------------
+
+   If you start a new Emacs each day, you might want to display your
+diary automatically at that time.  To do so, put this in your `.emacs'
+file:
+
+     (diary)
+
+   If you want to see both the calendar and your diary at startup, use
+this instead:
+
+     (setq view-diary-entries-initially t)
+     (calendar)
+
+
+File: emacs,  Node: Printing Diary,  Prev: Startup Diary,  Up: Calendar/Diary
+
+Printing the Displayed Part of the Diary
+----------------------------------------
+
+   To print the selected diary entries as they appear on the screen, use
+`M-x print-diary-entries'.  The same variables that customize
+`lpr-buffer' also affect this command.
+
+   In Simple mode, the diary display buffer uses selective display
+(*note Selective Display::.).  This means that what you see on the
+screen is just part of the text in the Emacs buffer.  The diary entries
+that don't apply to the dates you asked for are still in the buffer, but
+hidden.  The ordinary printing commands such as `lpr-buffer' would not
+do what you want; they print the entire text, including the hidden
+parts.  This is why we need `print-diary-entries'.
+
+
+File: emacs,  Node: Version Control,  Next: Emerge,  Prev: Calendar/Diary,  Up: Version 19
+
+Version Control
+===============
+
+   "Version control systems" are packages that can record multiple
+versions of a source file, usually storing the unchanged parts of the
+file just once.  Version control systems also record history information
+such as the creation time of each version, who created it, and a
+description of what was changed in that version.
+
+   The GNU project recommends the version control system known as RCS,
+which is free software and available from the Free Software Foundation.
+Emacs supports use of either RCS or SCCS (a proprietary, but widely
+used, version control system that is not quite as powerful as RCS)
+through a facility called VC.  The same Emacs commands work with either
+RCS or SCCS, so you hardly have to know which one of them you are using.
+
+* Menu:
+
+* Concepts of VC::
+* Editing with VC::
+* Variables for Check-in/out::
+* Comparing Versions::
+* VC Status::
+* Renaming and VC::
+* Snapshots::
+* Log Entries::
+* Change Logs and VC::
+* Version Headers::
+
+

@@ -53,7 +53,7 @@ extern struct direct *readdir ();
 #include "commands.h"
 
 #include "regex.h"
-#include "search.h"
+#include "filetypes.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -64,31 +64,34 @@ extern struct direct *readdir ();
 #define lstat stat
 #endif
 
+extern int completion_ignore_case;
+
 Lisp_Object Vcompletion_ignored_extensions;
 
 Lisp_Object Qcompletion_ignore_case;
 
-DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
+DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 3, 0,
   "Return a list of names of files in DIRECTORY.\n\
-There are three optional arguments:\n\
-If FULL is non-nil, absolute pathnames of the files are returned.\n\
-If MATCH is non-nil, only pathnames containing that regexp are returned.\n\
-If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
- NOSORT is useful if you plan to sort the result yourself.")
-  (dirname, full, match, nosort)
-     Lisp_Object dirname, full, match, nosort;
+If FULL is non-NIL, absolute pathnames of the files are returned.\n\
+If MATCH is non-NIL, only pathnames containing that regexp are returned.")
+  (dirname, full, match)
+     Lisp_Object dirname, full, match;
 {
   DIR *d;
+  char slashfilename[MAXNAMLEN+2];
+  char *filename = slashfilename;
   int length;
   Lisp_Object list, name;
+
+  /* In search.c */
+  extern struct re_pattern_buffer searchbuf;
 
   if (!NULL (match))
     {
       CHECK_STRING (match, 3);
       /* Compile it now so we don't get an error after opendir */
 #ifdef VMS
-      compile_pattern (match, &searchbuf,
-		       buffer_defaults.downcase_table->contents);
+      compile_pattern (match, &searchbuf, (char *) downcase_table);
 #else
       compile_pattern (match, &searchbuf, 0);
 #endif
@@ -100,6 +103,10 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
   list = Qnil;
   length = XSTRING (dirname)->size;
+#ifndef VMS
+  if (length == 0   ||  XSTRING (dirname)->data[length - 1] != '/')
+    *filename++ = '/';
+#endif /* VMS */
 
   /* Loop reading blocks */
   while (1)
@@ -111,38 +118,20 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       len = NAMLEN (dp);
       if (dp->d_ino)
 	{
-	  if (NULL (match)
-	      || (0 <= re_search (&searchbuf, dp->d_name, len, 0, len, 0)))
+	  strncpy (filename, dp->d_name, len);
+	  filename[len] = 0;
+	  if (NULL (match) ||
+	      (0 <= re_search (&searchbuf, filename, len, 0, len, 0)))
 	    {
 	      if (!NULL (full))
-		{
-		  int index = XSTRING (dirname)->size;
-		  int total = len + index;
-#ifndef VMS
-		  if (length == 0
-		      || XSTRING (dirname)->data[length - 1] != '/')
-		    total++;
-#endif /* VMS */
-
-		  name = make_uninit_string (total);
-		  bcopy (XSTRING (dirname)->data, XSTRING (name)->data,
-			 index);
-#ifndef VMS
-		  if (length == 0
-		      || XSTRING (dirname)->data[length - 1] != '/')
-		    XSTRING (name)->data[index++] = '/';
-#endif /* VMS */
-		  bcopy (dp->d_name, XSTRING (name)->data + index, len);
-		}
+		name = concat2 (dirname, build_string (slashfilename));
 	      else
-		name = make_string (dp->d_name, len);
+		name = build_string (filename);
 	      list = Fcons (name, list);
 	    }
 	}
     }
   closedir (d);
-  if (!NULL (nosort))
-    return list;
   return Fsort (Fnreverse (list), Qstring_lessp);
 }
 
@@ -151,8 +140,8 @@ Lisp_Object file_name_completion ();
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
   2, 2, 0,
   "Complete file name FILE in directory DIR.\n\
-Returns the longest string\n\
-common to all filenames in DIR that start with FILE.\n\
+Returns the longest string common to all filenames in DIR\n\
+that start with FILE.\n\
 If there is only one and FILE matches it exactly, returns t.\n\
 Returns nil if DIR contains no name starting with FILE.")
   (file, dirname)
@@ -170,8 +159,7 @@ Returns nil if DIR contains no name starting with FILE.")
 
 DEFUN ("file-name-all-completions", Ffile_name_all_completions,
   Sfile_name_all_completions, 2, 2, 0,
-  "Return a list of all completions of file name FILE in directory DIR.\n\
-These are all file names in directory DIR which begin with FILE.")
+  "Return a list of all completions of file name FILE in directory DIR.")
   (file, dirname)
      Lisp_Object file, dirname;
 {
@@ -197,7 +185,6 @@ file_name_completion (file, dirname, all_flag, ver_flag)
      int all_flag, ver_flag;
 {
   DIR *d;
-  DIRENTRY *dp;
   int bestmatchsize, skip;
   register int compare, matchsize;
   unsigned char *p1, *p2;
@@ -219,21 +206,17 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   if (ver_flag)
     readfunc = readdirver;
   file = Fupcase (file);
-#else  /* not VMS */
+#endif /* VMS */
+
   CHECK_STRING (file, 0);
-#endif /* not VMS */
 
   dirname = Fexpand_file_name (dirname, Qnil);
   bestmatch = Qnil;
 
-  /* With passcount = 0, ignore files that end in an ignored extension.
+  /* passcount = 0, ignore files that end in an ignored extension.
      If nothing found then try again with passcount = 1, don't ignore them.
      If looking for all completions, start with passcount = 1,
-     so always take even the ignored ones.
-
-     ** It would not actually be helpful to the user to ignore any possible
-     completions when making a list of them.**  */
-
+     so always take even the ignored ones.  */
   for (passcount = !!all_flag; NULL (bestmatch) && passcount < 2; passcount++)
     {
       if (!(d = opendir (XSTRING (Fdirectory_file_name (dirname))->data)))
@@ -326,6 +309,32 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		  matchsize = scmp(p1, p2, compare);
 		  if (matchsize < 0)
 		    matchsize = compare;
+		  if (completion_ignore_case)
+		    {
+		      /* If this is an exact match except for case,
+			 use it as the best match rather than one that is not
+			 an exact match.  This way, we get the case pattern
+			 of the actual match.  */
+		      if ((matchsize == len
+			   && matchsize < XSTRING (bestmatch)->size)
+			  ||
+			  /* If there is no exact match ignoring case,
+			     prefer a match that does not change the case
+			     of the input.  */
+			  (((matchsize == len)
+			    ==
+			    (matchsize == XSTRING (bestmatch)->size))
+			   /* If there is more than one exact match aside from
+			      case, and one of them is exact including case,
+			      prefer that one.  */
+			   && !bcmp (p2, XSTRING (file)->data, XSTRING (file)->size)
+			   && bcmp (p1, XSTRING (file)->data, XSTRING (file)->size)))
+			{
+			  bestmatch = make_string (dp->d_name, len);
+			  if (directoryp)
+			    bestmatch = Ffile_name_as_directory (bestmatch);
+			}
+		    }
 		  /* If this dirname all matches,
 		     see if implicit following slash does too.  */
 		  if (directoryp
@@ -333,18 +342,30 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		      && bestmatchsize > matchsize
 		      && p1[matchsize] == '/')
 		    matchsize++;
-		  bestmatchsize = min (matchsize, bestmatchsize);
+		  bestmatchsize = matchsize;
 		}
 	    }
 	}
       closedir (d);
     }
 
-  unbind_to (count, Qnil);
+  unbind_to (count);
 
   if (all_flag || NULL (bestmatch))
     return bestmatch;
-  if (matchcount == 1 && bestmatchsize == XSTRING (file)->size)
+
+  /* If we are ignoring case, and there is no exact match,
+     and no additional text was supplied,
+     don't change the case of what the user typed.  */
+  if (completion_ignore_case && bestmatchsize == XSTRING (file)->size
+      && XSTRING (bestmatch)->size > bestmatchsize)
+    return file;
+
+  /* Return t if the supplied string is an exact match (counting case);
+     it does not require any change to be made.  */
+  if (matchcount == 1 && bestmatchsize == XSTRING (file)->size
+      && !bcmp (XSTRING (bestmatch)->data, XSTRING (file)->data,
+		bestmatchsize))
     return Qt;
   return Fsubstring (bestmatch, make_number (0), make_number (bestmatchsize));
  quit:
@@ -371,7 +392,17 @@ file_name_completion_stat (dirname, dp, st_addr)
   bcopy (dp->d_name, fullname + pos, len);
   fullname[pos + len] = 0;
 
+#ifdef S_IFLNK
+  /* Use ordinary stat first, if that succeeds,
+     so that a symlink pointing to a directory is considered a directory.
+     Afterward, use lstat, so that a link pointing to nowhere
+     at least seems to exist.  */
+  if (stat (fullname, st_addr) >= 0)
+    return 0;
+  return lstat (fullname, st_addr);
+#else
   return stat (fullname, st_addr);
+#endif
 }
 
 Lisp_Object
@@ -398,13 +429,12 @@ Otherwise, list elements are:\n\
  8. File modes, as a string of ten letters or dashes as in ls -l.\n\
  9. t iff file's gid would change if file were deleted and recreated.\n\
 10. inode number.\n\
-11. Device number.\n\
 \n\
 If file does not exists, returns nil.")
   (filename)
      Lisp_Object filename;
 {
-  Lisp_Object values[12];
+  Lisp_Object values[11];
   Lisp_Object dirname;
   struct stat s;
   struct stat sdir;
@@ -451,8 +481,7 @@ If file does not exists, returns nil.")
 #undef BSD4_2 /* ok, you can look again without throwing up */
 #endif
   values[10] = make_number (s.st_ino);
-  values[11] = make_number (s.st_dev);
-  return Flist (sizeof(values) / sizeof(values[0]), values);
+  return Flist (11, values);
 }
 
 syms_of_dired ()
@@ -471,8 +500,6 @@ syms_of_dired ()
 #endif /* VMS */
 
   DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
-    "*Completion ignores filenames ending in any string in this list.\n\
-This variable does not affect lists of possible completions,\n\
-but does affect the commands that actually do completions.");
+    "*Completion ignores filenames ending in any string in this list.");
   Vcompletion_ignored_extensions = Qnil;
 }

@@ -283,8 +283,9 @@ VAR is a string, the name of the variable,\n\
 
 DEFUN ("setenv", Fsetenv, Ssetenv, 1, 2,
   "sEnvironment variable: \nsSet %s to value: ",
-  "Set the value of environment variable VAR to VALUE.\n\
-Both args must be strings.  Returns VALUE.")
+  "Return the value of environment variable VAR, as a string.\n\
+When invoked interactively, print the value in the echo area.\n\
+VAR is a string, the name of the variable.")
   (str, val)
      Lisp_Object str;
      Lisp_Object val;

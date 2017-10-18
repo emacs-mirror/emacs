@@ -21,45 +21,36 @@
 (defvar register-alist nil
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.
 NAME is a character (a number).  CONTENTS is a string, number,
-screen configuration, mark or list.
-A list represents a rectangle; its elements are strings.")
+mark or list.  A list represents a rectangle; its elements are strings.")
 
 (defun get-register (char)
   "Return contents of Emacs register named CHAR, or nil if none."
   (cdr (assq char register-alist)))
 
 (defun set-register (char value)
-  "Set contents of Emacs register named CHAR to VALUE.
-Returns VALUE."
+  "Set contents of Emacs register named CHAR to VALUE."
   (let ((aelt (assq char register-alist)))
     (if aelt
 	(setcdr aelt value)
       (setq aelt (cons char value))
-      (setq register-alist (cons aelt register-alist)))
-    value))
+      (setq register-alist (cons aelt register-alist)))))
 
-(defun point-to-register (char arg)
-  "Store current location of point in register REGISTER.
-With prefix argument, store current screen configuration.
-Use \\[jump-to-register] to go to that location or restore that configuration.
+(defun point-to-register (char)
+  "Store current location of point in a register.
 Argument is a character, naming the register."
-  (interactive "cPoint to register: \nP")
-  (set-register char (if arg (current-screen-configuration) (point-marker))))
+  (interactive "cPoint to register: ")
+  (set-register char (point-marker)))
 
-(fset 'register-to-point 'jump-to-register)
-(defun jump-to-register (char)
+(defun register-to-point (char)
   "Move point to location stored in a register.
 Argument is a character, naming the register."
-  (interactive "cJump to register: ")
+  (interactive "cRegister to point: ")
   (let ((val (get-register char)))
-    (condition-case ()
-	(set-screen-configuration val)
-      (error
-       (if (markerp val)
-	   (progn
-	     (switch-to-buffer (marker-buffer val))
-	     (goto-char val))
-	 (error "Register doesn't contain a buffer position or screen configuration"))))))
+    (if (markerp val)
+	(progn
+	  (switch-to-buffer (marker-buffer val))
+	  (goto-char val))
+      (error "Register doesn't contain a buffer position"))))
 
 ;(defun number-to-register (arg char)
 ;  "Store a number in a register.
@@ -133,7 +124,7 @@ Interactively, second arg is non-nil if prefix arg is supplied."
 	(if (or (integerp val) (markerp val))
 	    (princ (+ 0 val) (current-buffer))
 	  (error "Register does not contain text")))))
-  (if (not arg) (exchange-point-and-mark)))
+  (or arg (exchange-point-and-mark)))
 
 (defun copy-to-register (char start end &optional delete-flag)
   "Copy region into register REG.

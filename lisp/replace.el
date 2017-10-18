@@ -38,10 +38,7 @@ Applies to all lines after point."
 	    (if (< start end)
 		(delete-region start end))))
 	(setq start (save-excursion (forward-line 1)
-				    (point)))
-	;; If the match was empty, avoid matching again at same place.
-	(and (not (eobp)) (= (match-beginning 0) (match-end 0))
-	     (forward-char 1))))))
+				    (point)))))))
 
 (fset 'delete-matching-lines 'flush-lines)
 (defun flush-lines (regexp)
@@ -61,14 +58,15 @@ Applies to lines after point."
 (defun how-many (regexp)
   "Print number of matches for REGEXP following point."
   (interactive "sHow many matches for (regexp): ")
-  (let ((count 0) opoint)
+  (let ((count 0) (opoint -1))
     (save-excursion
-     (while (and (not (eobp))
-		 (progn (setq opoint (point))
-			(re-search-forward regexp nil t)))
-       (if (= opoint (point))
-	   (forward-char 1)
-	 (setq count (1+ count))))
+      ;; If we did forward-char on the previous loop,
+      ;; and that brought us to eof, search anyway.
+      (while (and (or (not (eobp)) (/= opoint (point)))
+		  (re-search-forward regexp nil t))
+	(if (prog1 (= opoint (point)) (setq opoint (point)))
+	    (forward-char 1)
+	  (setq count (1+ count))))
      (message "%d occurrences" count))))
 
 (defvar occur-mode-map ())
@@ -80,7 +78,6 @@ Applies to lines after point."
 (defvar occur-buffer nil)
 (defvar occur-nlines nil)
 (defvar occur-pos-list nil)
-(defvar occur-last-string "")
 
 (defun occur-mode ()
   "Major mode for output from \\[occur].
@@ -104,18 +101,15 @@ in the buffer that the occurrences were found in.
       (progn
 	(setq occur-buffer nil
 	      occur-pos-list nil)
-	(error "Buffer in which occurrences were found is deleted")))
+	(error "Buffer in which occurences were found is deleted.")))
   (let* ((occur-number (save-excursion
-			 (beginning-of-line)
-			 (/ (1- (count-lines (point-min)
-					     (save-excursion
-					       (beginning-of-line)
-					       (point))))
-			    (cond ((< occur-nlines 0)
-				   (- 2 occur-nlines))
-				  ((> occur-nlines 0)
-				   (+ 2 (* 2 occur-nlines)))
-				  (t 1)))))
+			(beginning-of-line)
+			(/ (1- (count-lines (point-min) (point)))
+			   (cond ((< occur-nlines 0)
+				  (- 2 occur-nlines))
+				 ((> occur-nlines 0)
+				  (+ 2 (* 2 occur-nlines)))
+				 (t 1)))))
 	 (pos (nth occur-number occur-pos-list)))
     (pop-to-buffer occur-buffer)
     (goto-char (marker-position pos))))
@@ -125,41 +119,27 @@ in the buffer that the occurrences were found in.
 match.  A negative number means to include that many lines before the match.
 A positive number means to include that many lines both before and after.")
 
-(defvar occur-whole-buffer nil
-  "If t, occur operates on whole buffer, otherwise occur starts from point.
-default is nil.")
-
 (fset 'list-matching-lines 'occur)
-
 (defun occur (regexp &optional nlines)
-  "Show lines containing a match for REGEXP.  If the global variable
-occur-whole-buffer is non-nil, the entire buffer is searched, otherwise
-search begins at point.  Interactively, REGEXP defaults to the last REGEXP
-used interactively.
-
-Each line is displayed with NLINES lines before and after,
-or -NLINES before if NLINES is negative.
+  "Show all lines following point containing a match for REGEXP.
+Display each line with NLINES lines before and after,
+ or -NLINES before if NLINES is negative.
 NLINES defaults to list-matching-lines-default-context-lines.
 Interactively it is the prefix arg.
 
 The lines are shown in a buffer named *Occur*.
 It serves as a menu to find any of the occurrences in this buffer.
 \\[describe-mode] in that buffer will explain how."
-  (interactive (list (setq occur-last-string
-			   (read-string "List lines matching regexp: "
-					occur-last-string))
-		     current-prefix-arg))
+  (interactive "sList lines matching regexp: \nP")
   (setq nlines (if nlines (prefix-numeric-value nlines)
 		 list-matching-lines-default-context-lines))
   (let ((first t)
 	(buffer (current-buffer))
-	(linenum 1)
-	(prevpos (point-min)))
-    (if (not occur-whole-buffer)
-	(save-excursion
-	  (beginning-of-line)
-	  (setq linenum (1+ (count-lines (point-min) (point))))
-	  (setq prevpos (point))))
+	linenum prevpos)
+    (save-excursion
+      (beginning-of-line)
+      (setq linenum (1+ (count-lines (point-min) (point))))
+      (setq prevpos (point)))
     (with-output-to-temp-buffer "*Occur*"
       (save-excursion
 	(set-buffer standard-output)
@@ -173,14 +153,13 @@ It serves as a menu to find any of the occurrences in this buffer.
       (if (eq buffer standard-output)
 	  (goto-char (point-max)))
       (save-excursion
-	(if occur-whole-buffer
-	    (beginning-of-buffer))
 	;; Find next match, but give up if prev match was at end of buffer.
 	(while (and (not (= prevpos (point-max)))
 		    (re-search-forward regexp nil t))
-	  (beginning-of-line)
-	  (setq linenum (+ linenum (count-lines prevpos (point))))
-	  (setq prevpos (point))
+	  (beginning-of-line 1)
+	  (save-excursion
+	    (setq linenum (+ linenum (count-lines prevpos (point))))
+	    (setq prevpos (point)))
 	  (let* ((start (save-excursion
 			  (forward-line (if (< nlines 0) nlines (- nlines)))
 			  (point)))
@@ -228,34 +207,21 @@ C-r to enter recursive edit (\\[exit-recursive-edit] to get out again),
 C-w to delete match and recursive edit,
 C-l to clear the screen, redisplay, and offer same replacement again,
 ! to replace all remaining matches with no more questions,
-^ to move point back to previous match."
+^ to move point back to previous match.
+
+Type a Space now to remove this message."
   "Help message while in query-replace")
 
-(defun perform-replace (from-string replacements
-		        query-flag regexp-flag delimited-flag
-			&optional repeat-count)
-  "Subroutine of `query-replace'.  Its complexity handles interactive queries.
-Don't use this in your own program unless you want to query and set the mark
-just as `query-replace' does.  Instead, write a simple loop like this:
-  (while (re-search-forward \"foo[ \t]+bar\" nil t)
-    (replace-match \"foobar\" nil nil))
-which will run faster and do exactly what you probably want."
+(defun perform-replace (from-string to-string
+		        query-flag regexp-flag delimited-flag)
   (let ((nocasify (not (and case-fold-search case-replace
 			    (string-equal from-string
 					  (downcase from-string)))))
 	(literal (not regexp-flag))
 	(search-function (if regexp-flag 're-search-forward 'search-forward))
 	(search-string from-string)
-	(next-replacement nil)
-	(replacement-index 0)
 	(keep-going t)
-	(stack nil)
-	(next-rotate-count 0)
-	(replace-count 0)
 	(lastrepl nil))			;Position after last match considered.
-    (if (stringp replacements)
-	(setq next-replacement replacements)
-      (or repeat-count (setq repeat-count 1)))
     (if delimited-flag
 	(setq search-function 're-search-forward
 	      search-string (concat "\\b"
@@ -263,137 +229,82 @@ which will run faster and do exactly what you probably want."
 				      (regexp-quote from-string))
 				    "\\b")))
     (push-mark)
-    (undo-boundary)
+    (push-mark)
     (while (and keep-going
 		(not (eobp))
-		(funcall search-function search-string nil t)
-		(if (eq lastrepl (point))
-		    (progn 
-		      ;; Don't replace the null string 
-		      ;; right after end of previous replacement.
-		      (forward-char 1)
-		      (funcall search-function search-string nil t))
-		  t))
-      ;; If time for a change, advance to next replacement string.
-      (if (and (listp replacements)
-	       (= next-rotate-count replace-count))
-	  (progn
-	    (setq next-rotate-count
-		  (+ next-rotate-count repeat-count))
-	    (setq next-replacement (nth replacement-index replacements))
-	    (setq replacement-index (% (1+ replacement-index) (length replacements)))))
-      (if (not query-flag)
-	  (progn
-	    (replace-match next-replacement nocasify literal)
-	    (setq replace-count (1+ replace-count)))
+		(progn
+		 (set-mark (point))
+		 (funcall search-function search-string nil t)))
+      ;; Don't replace the null string 
+      ;; right after end of previous replacement.
+      (if (eq lastrepl (point))
+	  (forward-char 1)
 	(undo-boundary)
-	(let (done replaced)
-	  (while (not done)
-	    ;; Preserve the match data.  Process filters and sentinels
-	    ;; could run inside read-char..
-	    (let ((data (match-data))
-		  (help-form
-		   '(concat "Query replacing "
-			    (if regexp-flag "regexp " "")
-			    from-string " with " next-replacement ".\n\n"
-			    (substitute-command-keys query-replace-help))))
-	      (setq char help-char)
-	      (while (or (not (numberp char)) (= char help-char))
-		(message "Query replacing %s with %s: " from-string next-replacement)
-		(setq char (read-event))
-		(if (and (numberp char) (= char ??))
-		    (setq unread-command-char help-char char help-char)))
-	      (store-match-data data))
-	    (cond ((or (= char ?\e)
-		       (= char ?q))
-		   (setq keep-going nil)
-		   (setq done t))
-		  ((= char ?^)
-		   (let ((elt (car stack)))
-		     (goto-char (car elt))
-		     (setq replaced (eq t (cdr elt)))
+	(if (not query-flag)
+	    (replace-match to-string nocasify literal)
+	  (let (done replaced)
+	    (while (not done)
+	      ;; Preserve the match data.  Process filters and sentinels
+	      ;; could run inside read-char..
+	      (let ((data (match-data))
+		    (help-form
+		     '(concat "Query replacing "
+			      (if regexp-flag "regexp " "")
+			      from-string " with " to-string ".\n\n"
+			      (substitute-command-keys query-replace-help))))
+		(setq char help-char)
+		(while (= char help-char)
+		  (message "Query replacing %s with %s: " from-string to-string)
+		  (setq char (read-char))
+		  (if (= char ??)
+		      (setq unread-command-char help-char char help-char)))
+		(store-match-data data))
+	      (cond ((or (= char ?\e)
+			 (= char ?q))
+		     (setq keep-going nil)
+		     (setq done t))
+		    ((= char ?^)
+		     (goto-char (mark))
+		     (setq replaced t))
+		    ((or (= char ?\ )
+			 (= char ?y))
 		     (or replaced
-			 (store-match-data (cdr elt)))
-		     (setq stack (cdr stack))))		     
-		  ((or (= char ?\ )
-		       (= char ?y))
-		   (or replaced
-		       (replace-match next-replacement nocasify literal))
-		   (setq done t replaced t))
-		  ((= char ?\.)
-		   (or replaced
-		       (replace-match next-replacement nocasify literal))
-		   (setq keep-going nil)
-		   (setq done t replaced t))
-		  ((= char ?\,)
-		   (if (not replaced)
-		       (progn
-			 (replace-match next-replacement nocasify literal)
-			 (setq replaced t))))
-		  ((= char ?!)
-		   (or replaced
-		       (replace-match next-replacement nocasify literal))
-		   (setq done t query-flag nil replaced t))
-		  ((or (= char ?\177)
-		       (= char ?n))
-		   (setq done t))
-		  ((= char ?\C-l)
-		   (recenter nil))
-		  ((= char ?\C-r)
-		   (store-match-data
-		    (prog1 (match-data)
-		      (save-excursion (recursive-edit)))))
-		  ((= char ?\C-w)
-		   (delete-region (match-beginning 0) (match-end 0))
-		   (store-match-data
-		    (prog1 (match-data)
-		      (save-excursion (recursive-edit))))
-		   (setq replaced t))
-		  (t
-		   (setq keep-going nil)
-		   (setq unread-command-char char)
-		   (setq done t))))
-	  ;; Record previous position for ^ when we move on.
-	  ;; Change markers to numbers in the match data
-	  ;; since lots of markers slow down editing.
-	  (setq stack
-		(cons (cons (point)
-			    (or replaced
-				(mapcar
-				 (function (lambda (elt)
-					     (and elt
-						  (marker-position elt))))
-				 (match-data))))
-		      stack))
-	  (if replaced (setq replace-count (1+ replace-count)))))
-      (setq lastrepl (point)))
-    (and keep-going stack)))
-
-(defun map-query-replace-regexp (regexp to-strings &optional arg)
-  "Replace some matches for REGEXP with various strings, in rotation.
-The second argument TO-STRINGS contains the replacement strings, separated
-by spaces.  This command works like `query-replace-regexp' except
-that each successive replacement uses the next successive replacement string,
-wrapping around from the last such string to the first.
-
-Non-interactively, TO-STRINGS may be a list of replacement strings.
-
-A prefix argument N says to use each replacement string N times
-before rotating to the next."
-  (interactive "sMap query replace (regexp): \nsQuery replace %s with (space-separated strings): \nP")
-  (let (replacements)
-    (if (listp to-strings)
-	(setq replacements to-strings)
-      (while (/= (length to-strings) 0)
-	(if (string-match " " to-strings)
-	    (setq replacements
-		  (append replacements
-			  (list (substring to-strings 0
-					   (string-match " " to-strings))))
-		  to-strings (substring to-strings
-				       (1+ (string-match " " to-strings))))
-	  (setq replacements (append replacements (list to-strings))
-		to-strings ""))))
-    (perform-replace regexp replacements t t nil arg))
-  (message "Done"))
+			 (replace-match to-string nocasify literal))
+		     (setq done t))
+		    ((= char ?\.)
+		     (or replaced
+			 (replace-match to-string nocasify literal))
+		     (setq keep-going nil)
+		     (setq done t))
+		    ((= char ?\,)
+		     (if (not replaced)
+			 (progn
+			   (replace-match to-string nocasify literal)
+			   (setq replaced t))))
+		    ((= char ?!)
+		     (or replaced
+			 (replace-match to-string nocasify literal))
+		     (setq done t query-flag nil))
+		    ((or (= char ?\177)
+			 (= char ?n))
+		     (setq done t))
+		    ((= char ?\C-l)
+		     (recenter nil))
+		    ((= char ?\C-r)
+		     (store-match-data
+		       (prog1 (match-data)
+			 (save-excursion (recursive-edit)))))
+		    ((= char ?\C-w)
+		     (delete-region (match-beginning 0) (match-end 0))
+		     (store-match-data
+		       (prog1 (match-data)
+			 (save-excursion (recursive-edit))))
+		     (setq replaced t))
+		    (t
+		     (setq keep-going nil)
+		     (setq unread-command-char char)
+		     (setq done t))))))
+	(setq lastrepl (point))))
+    (pop-mark)
+    keep-going))
 

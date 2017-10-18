@@ -20,18 +20,16 @@
 (defun manual-entry (topic &optional section)
   "Display the Unix manual entry for TOPIC.
 TOPIC is either the title of the entry, or has the form TITLE(SECTION)
-where SECTION is the desired section of the manual, as in \"tty(4)\"."
+where SECTION is the desired section of the manual, as in `tty(4)'."
   (interactive "sManual entry (topic): ")
-  (if (= (length topic) 0)
-      (error "Must specify topic"))
   (if (and (null section)
 	   (string-match "\\`[ \t]*\\([^( \t]+\\)[ \t]*(\\(.+\\))[ \t]*\\'" topic))
       (setq section (substring topic (match-beginning 2)
 				     (match-end 2))
 	    topic (substring topic (match-beginning 1)
 				   (match-end 1))))
-  (with-output-to-temp-buffer (concat "*" topic " Manual Entry*")
-    (buffer-disable-undo standard-output)
+  (with-output-to-temp-buffer "*Manual Entry*"
+    (buffer-flush-undo standard-output)
     (save-excursion
       (set-buffer standard-output)
       (message "Looking for formatted entry for %s%s..."
@@ -89,28 +87,11 @@ where SECTION is the desired section of the manual, as in \"tty(4)\"."
       (message "Cleaning manual entry for %s..." topic)
       (nuke-nroff-bs)
       (set-buffer-modified-p nil)
-      (setq buffer-read-only t)
-      (view-mode nil 'bury-buffer)
       (message ""))))
 
-;; Hint: BS stands for more things than "back space"
+;; Hint: BS stands form more things than "back space"
 (defun nuke-nroff-bs ()
   (interactive "*")
-  ;; Nuke headers: "MORE(1) UNIX Programmer's Manual MORE(1)"
-  ;; We expext to find a footer just before the header except at the beginning.
-  (goto-char (point-min))
-  (while (re-search-forward "^ *\\([A-Za-z][-_.A-Za-z0-9]*([0-9A-Z]+)\\).*\\1$" nil t)
-    (let (start end)
-      ;; Put START and END around footer and header and garbage blank lines.
-      ;; Fixed line counts are risky, but allow us to preserve
-      ;; significant blank lines.
-      (setq start (save-excursion (forward-line -10) (point)))
-      (setq end (save-excursion (forward-line 4) (point)))
-      (delete-region start end)))
-  ;; Catch the final footer.
-  (goto-char (point-max))
-  (delete-region (point) (save-excursion (forward-line -7) (point)))
-
   ;; Nuke underlining and overstriking (only by the same letter)
   (goto-char (point-min))
   (while (search-forward "\b" nil t)
@@ -119,9 +100,6 @@ where SECTION is the desired section of the manual, as in \"tty(4)\"."
       (cond ((= preceding following)
 	     ;; x\bx
 	     (delete-char -2))
-	    ((and (= preceding ?o) (= following ?\+))
-	     ;; o\b+ 
-	     (delete-char -2))
 	    ((= preceding ?\_)
 	     ;; _\b
 	     (delete-char -2))
@@ -129,10 +107,28 @@ where SECTION is the desired section of the manual, as in \"tty(4)\"."
 	     ;; \b_
 	     (delete-region (1- (point)) (1+ (point)))))))
 
-  ;; Zap ESC7, ESC8, and ESC9.
-  ;; This is for Sun man pages like "man 1 csh"
+  ;; Nuke headers: "MORE(1) UNIX Programmer's Manual MORE(1)"
   (goto-char (point-min))
-  (while (re-search-forward "\e[789]" nil t)
+  (while (re-search-forward "^ *\\([A-Za-z][-_A-Za-z0-9]*([0-9A-Z]+)\\).*\\1$" nil t)
+    (replace-match ""))
+  
+  ;; Nuke footers: "Printed 12/3/85	27 April 1981	1"
+  ;;    Sun appear to be on drugz:
+  ;;     "Sun Release 3.0B  Last change: 1 February 1985     1"
+  ;;    HP are even worse!
+  ;;     "     Hewlett-Packard   -1- (printed 12/31/99)"  FMHWA12ID!!
+  ;;    System V (well WICATs anyway):
+  ;;     "Page 1			  (printed 7/24/85)"
+  ;;    Who is administering PCP to these corporate bozos?
+  (goto-char (point-min))
+  (while (re-search-forward
+	   (cond ((eq system-type 'hpux)
+		  "^[ \t]*Hewlett-Packard\\(\\| Company\\)[ \t]*- [0-9]* -.*$")
+		 ((eq system-type 'usg-unix-v)
+		  "^ *Page [0-9]*.*(printed [0-9/]*)$")
+		 (t
+		  "^\\(Printed\\|Sun Release\\) [0-9].*[0-9]$"))
+	   nil t)
     (replace-match ""))
 
   ;; Crunch blank lines
