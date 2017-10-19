@@ -228,6 +228,29 @@ TYPE is a key to `flymake-diagnostic-types-alist' and TEXT is a
 description of the problem detected in this region."
   (flymake--diag-make :buffer buffer :beg beg :end end :type type :text text))
 
+;;;###autoload
+(defun flymake-diagnostics (&optional beg end)
+  "Get Flymake diagnostics in region comprised between BEG and END.
+
+If neither BEG or END is supplied, use the whole buffer,
+otherwise if BEG is non-nil and END is nil, consider only
+diagnostics at BEG."
+  (mapcar (lambda (ov) (overlay-get ov 'flymake-diagnostic))
+          (flymake--overlays :beg beg :end end)))
+
+(defmacro flymake--diag-accessor (public internal thing)
+  "Make PUBLIC an alias for INTERNAL, add doc using THING."
+  `(defsubst ,public (diag)
+     ,(format "Get Flymake diagnostic DIAG's %s." (symbol-name thing))
+     (,internal diag)))
+
+(flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-buffer buffer)
+(flymake--diag-accessor flymake-diagnostic-text flymake--diag-text text)
+(flymake--diag-accessor flymake-diagnostic-type flymake--diag-type type)
+(flymake--diag-accessor flymake-diagnostic-beg flymake--diag-beg beg)
+(flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
+(flymake--diag-accessor flymake-diagnostic-backend flymake--diag-backend backend)
+
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.
 If BEG is non-nil and END is nil, consider only `overlays-at'
@@ -238,7 +261,7 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
     (widen)
     (let ((ovs (cl-remove-if-not
                 (lambda (ov)
-                  (and (overlay-get ov 'flymake)
+                  (and (overlay-get ov 'flymake-diagnostic)
                        (or (not filter)
                            (funcall filter ov))))
                 (if (and beg (null end))
@@ -498,18 +521,15 @@ associated `flymake-category' return DEFAULT."
       (default-maybe 'help-echo
         (lambda (_window _ov pos)
           (mapconcat
-           (lambda (ov)
-             (overlay-get ov 'flymake-text))
-           (flymake--overlays :beg pos)
+           #'flymake--diag-text
+           (flymake-diagnostics pos)
            "\n")))
       (default-maybe 'severity (warning-numeric-level :error))
       (default-maybe 'priority (+ 100 (overlay-get ov 'severity))))
     ;; Some properties can't be overridden.
     ;;
     (overlay-put ov 'evaporate t)
-    (overlay-put ov 'flymake t)
-    (overlay-put ov 'flymake-text (flymake--diag-text diagnostic))
-    (overlay-put ov 'flymake--diagnostic diagnostic)))
+    (overlay-put ov 'flymake-diagnostic diagnostic)))
 
 ;; Nothing in Flymake uses this at all any more, so this is just for
 ;; third-party compatibility.
@@ -600,7 +620,7 @@ not expected."
              (lambda (ov)
                (eq backend
                    (flymake--diag-backend
-                    (overlay-get ov 'flymake--diagnostic))))))
+                    (overlay-get ov 'flymake-diagnostic))))))
           (mapc (lambda (diag)
                   (flymake--highlight-line diag)
                   (setf (flymake--diag-backend diag) backend))
@@ -899,7 +919,7 @@ applied."
                                  (lambda (ov)
                                    (let ((diag (overlay-get
                                                 ov
-                                                'flymake--diagnostic)))
+                                                'flymake-diagnostic)))
                                      (and diag
                                           (or (not filter)
                                               (memq (flymake--diag-type diag)
@@ -1089,13 +1109,13 @@ applied."
   (interactive (list (point) t))
   (let* ((id (or (tabulated-list-get-id pos)
                  (user-error "Nothing at point")))
-         (overlay (plist-get id :overlay)))
-    (with-current-buffer (overlay-buffer overlay)
+         (diag (plist-get id :diagnostic)))
+    (with-current-buffer (flymake--diag-buffer diag)
       (with-selected-window
           (display-buffer (current-buffer) other-window)
-        (goto-char (overlay-start overlay))
-        (pulse-momentary-highlight-region (overlay-start overlay)
-                                          (overlay-end overlay)
+        (goto-char (flymake--diag-beg diag))
+        (pulse-momentary-highlight-region (flymake--diag-beg diag)
+                                          (flymake--diag-end diag)
                                           'highlight))
       (current-buffer))))
 
@@ -1108,18 +1128,16 @@ POS can be a buffer position or a button"
 
 (defun flymake--diagnostics-buffer-entries ()
   (with-current-buffer flymake--diagnostics-buffer-source
-    (cl-loop for ov in (flymake--overlays)
-             for diag = (overlay-get ov
-                                     'flymake--diagnostic)
+    (cl-loop for diag in (flymake-diagnostics)
              for (line . col) =
              (save-excursion
-               (goto-char (overlay-start ov))
+               (goto-char (flymake--diag-beg diag))
                (cons (line-number-at-pos)
                      (- (point)
                         (line-beginning-position))))
              for type = (flymake--diag-type diag)
              collect
-             (list (list :overlay ov
+             (list (list :diagnostic diag
                          :line line
                          :severity (flymake--lookup-type-property
                                     type

@@ -361,34 +361,38 @@ priority but without an overlay face.
                          (flymake-category . flymake-note))))
 @end example
 
-@vindex flymake-text
+@vindex flymake-diagnostics
+@vindex flymake-diagnostic-backend
+@vindex flymake-diagnostic-buffer
+@vindex flymake-diagnostic-text
+@vindex flymake-diagnostic-beg
+@vindex flymake-diagnostic-end
 As you might have guessed, Flymake's annotations are implemented as
 overlays (@pxref{Overlays,,, elisp, The Emacs Lisp Reference Manual}).
 Along with the properties that you specify for the specific type of
-diagnostic, Flymake adds the property @code{flymake-text} to these
-overlays, and sets it to the message string that the backend used to
-describe the diagnostic.
+diagnostic, Flymake adds the property @code{flymake-diagnostic} to
+these overlays, and sets it to the object that the backend created
+with @code{flymake-make-diagnostic}.
 
-Since overlays also support arbitrary keymaps, you can use this
-property @code{flymake-text} to create interactive annotations, such
-as in the following example of binding a @kbd{mouse-3} event (middle
-mouse button click) to an Internet search for the text of a
-@code{:warning} or @code{:error}.
+Since overlays also support arbitrary keymaps, you can this along with
+the functions @code{flymake-diagnostics} and
+@code{flymake-diagnostic-text} (@pxref{Flymake utility functions}) to
+create interactive annotations, such as in the following example of
+binding a @kbd{mouse-3} event (middle mouse button click) to an
+Internet search for the text of a @code{:warning} or @code{:error}.
 
 @example
 (defun my-search-for-message (event)
   (interactive "e")
-  (let ((ovs (overlays-at (posn-point (event-start event))))
-        ov)
-    ;; loop until flymake overlay we clicked on is recovered
-    (while (not (overlay-get (setq ov (pop ovs)) 'flymake-text)))
-    (when ov
-      (eww-browse-url
-       (concat "https://duckduckgo.com/?q="
-               (replace-regexp-in-string " "
-                                         "+"
-                                         (overlay-get ov 'flymake-text)))
-       t))))
+  (let* ((diags (flymake-diagnostics (posn-point (event-start event))))
+         (topmost-diag (car diags)))
+    (eww-browse-url
+       (concat
+        "https://duckduckgo.com/?q="
+        (replace-regexp-in-string " "
+                                  "+"
+                                  (flymake-diagnostic-text topmost-diag)))
+       t)))
 
 (dolist (type '(:warning :error))
   (let ((a (assoc type flymake-diagnostic-types-alist)))
@@ -511,6 +515,23 @@ Make a Flymake diagnostic for @var{buffer}'s region from @var{beg} to
 @var{end}.  @var{type} is a key to
 @code{flymake-diagnostic-types-alist} and @var{text} is a description
 of the problem detected in this region.
+@end deffn
+
+@cindex access diagnostic object
+These objects' properties can be accessed with the functions
+@code{flymake-diagnostic-backend}, @code{flymake-diagnostic-buffer},
+@code{flymake-diagnostic-text}, @code{flymake-diagnostic-beg},
+@code{flymake-diagnostic-end} and @code{flymake-diagnostic-type}.
+
+Additionally, the function @code{flymake-diagnostics} will collect
+such objects in the region you specify.
+
+@cindex collect diagnostic objects
+@deffn Function flymake-diagnostics beg end
+Get a list of Flymake diagnostics in the region comprised between
+@var{beg} and @var{end}.  If neither @var{beg} or @var{end} is
+supplied, use the whole buffer, otherwise if @var{beg} is non-nil and
+@var{end} is nil, consider only diagnostics at @var{beg}.
 @end deffn
 
 @cindex buffer position from line and column number
