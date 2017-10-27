@@ -54,7 +54,7 @@ specify Emacs's autobuild procedure.
 The file 'Makefile.in' is a template used by 'configure' to create
 'Makefile'.
 
-The file 'make-dist' is a shell script to build a distribution tar
+The file 'make-dist' is a bash shell script to build a distribution tar
 file from the current Emacs tree, containing only those files
 appropriate for distribution.  If you make extensive changes to Emacs,
 this script will help you distribute your version to others.
