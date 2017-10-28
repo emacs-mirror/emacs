@@ -25,7 +25,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <gtk/gtk.h>
 #include "../lwlib/lwlib-widget.h"
+#ifdef HAVE_PGTK
+#include "pgtkterm.h"
+#define EVENT GdkEvent
+#else
 #include "xterm.h"
+#define EVENT XEvent
+#endif
 
 /* Minimum and maximum values used for GTK scroll bars  */
 
@@ -105,7 +111,7 @@ extern void xg_modify_menubar_widgets (GtkWidget *menubar,
 
 extern void xg_update_frame_menubar (struct frame *f);
 
-extern bool xg_event_is_for_menubar (struct frame *, const XEvent *);
+extern bool xg_event_is_for_menubar (struct frame *, const EVENT *);
 
 extern ptrdiff_t xg_get_scroll_id_for_window (Display *dpy, Window wid);
 
@@ -142,7 +148,7 @@ extern void xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 							int portion,
 							int position,
 							int whole);
-extern bool xg_event_is_for_scrollbar (struct frame *, const XEvent *);
+extern bool xg_event_is_for_scrollbar (struct frame *, const EVENT *);
 extern int xg_get_default_scrollbar_width (struct frame *f);
 extern int xg_get_default_scrollbar_height (struct frame *f);
 
@@ -157,9 +163,15 @@ extern void xg_frame_set_char_size (struct frame *f, int width, int height);
 extern GtkWidget * xg_win_to_widget (Display *dpy, Window wdesc);
 
 extern int xg_get_scale (struct frame *f);
+#ifndef HAVE_PGTK
 extern void xg_display_open (char *display_name, Display **dpy);
 extern void xg_display_close (Display *dpy);
 extern GdkCursor * xg_create_default_cursor (Display *dpy);
+#else
+extern void xg_display_open (char *display_name, GdkDisplay **dpy);
+extern void xg_display_close (GdkDisplay *gdpy);
+extern GdkCursor * xg_create_default_cursor (GdkDisplay *gdpy);
+#endif
 
 extern bool xg_create_frame_widgets (struct frame *f);
 extern void xg_free_frame_widgets (struct frame *f);

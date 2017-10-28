@@ -245,6 +245,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #define GCGraphicsExposures 0
 #endif /* HAVE_NS */
+
+#ifdef HAVE_PGTK
+#define GCGraphicsExposures 0
+#endif /* HAVE_NS */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #include "buffer.h"
@@ -566,6 +570,26 @@ x_create_gc (struct frame *f,
 
 static void
 x_free_gc (struct frame *f, Emacs_GC *gc)
+{
+  xfree (gc);
+}
+#endif  /* HAVE_NS */
+
+#ifdef HAVE_PGTK
+/* PGTK emulation of GCs */
+
+static GC
+x_create_gc (struct frame *f,
+	     unsigned long mask,
+	     XGCValues *xgcv)
+{
+  GC gc = xmalloc (sizeof *gc);
+  *gc = *xgcv;
+  return gc;
+}
+
+static void
+x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
 }

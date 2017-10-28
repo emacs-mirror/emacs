@@ -3298,7 +3298,7 @@ struct frame;
 #endif
 
 /* Define if the windowing system provides a tool-bar.  */
-#if defined (USE_GTK) || defined (HAVE_NS)
+#if (defined (USE_GTK) && !defined(HAVE_PGTK)) || defined (HAVE_NS)
 #define HAVE_EXT_TOOL_BAR true
 #endif
 

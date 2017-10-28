@@ -1487,7 +1487,7 @@ If FRAME is nil, the current FRAME is used."
 	    match (cond ((eq req 'type)
 			 (or (memq (window-system frame) options)
 			     (and (memq 'graphic options)
-				  (memq (window-system frame) '(x w32 ns)))
+				  (memq (window-system frame) '(x w32 ns pgtk)))
 			     ;; FIXME: This should be revisited to use
 			     ;; display-graphic-p, provided that the
 			     ;; color selection depends on the number
@@ -2755,7 +2755,7 @@ Note: Other faces cannot inherit from the cursor face."
   '((default
      :box (:line-width 1 :style released-button)
      :foreground "black")
-    (((type x w32 ns) (class color))
+    (((type x w32 ns pgtk) (class color))
      :background "grey75")
     (((type x) (class mono))
      :background "grey"))

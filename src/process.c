@@ -5599,8 +5599,12 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    timeout = make_timespec (0, 0);
 #endif
 
+#if defined HAVE_PGTK
+	  nfds = pgtk_select (max_desc + 1,
+			      &Available, (check_write ? &Writeok : 0),
+			      NULL, &timeout, NULL);
+#elif defined HAVE_GLIB && !defined HAVE_NS
 	  /* Non-macOS HAVE_GLIB builds call thread_select in xgselect.c.  */
-#if defined HAVE_GLIB && !defined HAVE_NS
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
 			    NULL, &timeout, NULL);

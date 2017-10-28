@@ -22,7 +22,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "frame.h"
+#ifdef HAVE_PGTK
+#include "pgtkterm.h"
+#else
 #include "xterm.h"
+#endif
 #include "xwidget.h"
 #include "emacsgtkfixed.h"
 
@@ -182,7 +186,11 @@ emacs_fixed_get_preferred_width (GtkWidget *widget,
 {
   EmacsFixed *fixed = EMACS_FIXED (widget);
   EmacsFixedPrivate *priv = fixed->priv;
+#ifdef HAVE_PGTK
+  int w = priv->f->output_data.pgtk->size_hints.min_width;
+#else
   int w = priv->f->output_data.x->size_hints.min_width;
+#endif
   if (minimum) *minimum = w;
   if (natural) *natural = w;
 }
@@ -194,11 +202,17 @@ emacs_fixed_get_preferred_height (GtkWidget *widget,
 {
   EmacsFixed *fixed = EMACS_FIXED (widget);
   EmacsFixedPrivate *priv = fixed->priv;
+#ifdef HAVE_PGTK
+  int h = priv->f->output_data.pgtk->size_hints.min_height;
+#else
   int h = priv->f->output_data.x->size_hints.min_height;
+#endif
   if (minimum) *minimum = h;
   if (natural) *natural = h;
 }
 
+
+#ifndef HAVE_PGTK
 
 /* Override the X function so we can intercept Gtk+ 3 calls.
    Use our values for min_width/height so that KDE don't freak out
@@ -234,8 +248,13 @@ XSetWMSizeHints (Display *d,
 
   if ((hints->flags & PMinSize) && f)
     {
+#ifdef HAVE_PGTK
+      int w = f->output_data.pgtk->size_hints.min_width;
+      int h = f->output_data.pgtk->size_hints.min_height;
+#else
       int w = f->output_data.x->size_hints.min_width;
       int h = f->output_data.x->size_hints.min_height;
+#endif
       data[5] = w;
       data[6] = h;
     }
@@ -253,3 +272,5 @@ XSetWMNormalHints (Display *d, Window w, XSizeHints *hints)
 {
   XSetWMSizeHints (d, w, hints, XA_WM_NORMAL_HINTS);
 }
+
+#endif

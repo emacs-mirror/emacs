@@ -134,6 +134,14 @@ typedef Emacs_Pixmap Emacs_Pix_Context;
 #define FACE_COLOR_TO_PIXEL(face_color, frame) face_color
 #endif
 
+#ifdef HAVE_PGTK
+#include "pgtkgui.h"
+/* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
+typedef struct pgtk_display_info Display_Info;
+typedef Emacs_Pixmap XImagePtr;
+typedef XImagePtr XImagePtr_or_DC;
+#endif
+
 #ifdef HAVE_WINDOW_SYSTEM
 # include <time.h>
 # include "fontset.h"
@@ -1392,6 +1400,9 @@ struct glyph_string
 #if defined (HAVE_NTGUI)
   Emacs_GC *gc;
   HDC hdc;
+#endif
+#if defined (HAVE_PGTK)
+  XGCValues xgcv;
 #endif
 
   /* A pointer to the first glyph in the string.  This glyph

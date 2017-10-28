@@ -1312,7 +1312,7 @@ please check its value")
   ;; only because all other settings of no-blinking-cursor are here.
   (unless (or noninteractive
 	      emacs-basic-display
-	      (and (memq window-system '(x w32 ns))
+	      (and (memq window-system '(x w32 ns pgtk))
 		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
 				'("no" "off" "false" "0")))))
     (setq no-blinking-cursor t))
@@ -1962,6 +1962,8 @@ we put it on this frame."
     ;; frame visible.
     (if (eq (window-system) 'w32)
 	(sit-for 0 t))
+    (if (eq (window-system) 'pgtk)
+	(sit-for 0.1 t))
     (dolist (frame (append (frame-list) (list (selected-frame))))
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))

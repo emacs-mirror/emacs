@@ -30,6 +30,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "pdumper.h"
 
+#include "pgtkterm.h"
+
 /* Fringe bitmaps are represented in three different ways:
 
    Logical bitmaps are used internally to denote things like
@@ -1398,7 +1400,7 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
    On W32 and MAC (little endian), there's no need to do this.
 */
 
-#if defined (HAVE_X_WINDOWS)
+#if defined (HAVE_X_WINDOWS) || defined(HAVE_PGTK)
 static const unsigned char swap_nibble[16] = {
   0x0, 0x8, 0x4, 0xc,           /* 0000 1000 0100 1100 */
   0x2, 0xa, 0x6, 0xe,           /* 0010 1010 0110 1110 */
@@ -1460,6 +1462,25 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 	}
 #endif /* not USE_CAIRO */
 #endif /* HAVE_X_WINDOWS */
+
+#if !defined(HAVE_X_WINDOWS) && defined (HAVE_PGTK)
+      unsigned short *bits = fb->bits;
+      int j;
+
+      for (j = 0; j < fb->height; j++)
+	{
+	  unsigned short b = *bits;
+#ifdef WORDS_BIGENDIAN
+	  *bits++ = (b << (16 - fb->width));
+#else
+	  b = (unsigned short)((swap_nibble[b & 0xf] << 12)
+			       | (swap_nibble[(b>>4) & 0xf] << 8)
+			       | (swap_nibble[(b>>8) & 0xf] << 4)
+			       | (swap_nibble[(b>>12) & 0xf]));
+	  *bits++ = (b >> (16 - fb->width));
+#endif
+	}
+#endif /* !HAVE_X_WINDOWS && HAVE_PGTK */
 
 #ifdef HAVE_NTGUI
       unsigned short *bits = fb->bits;

@@ -6403,6 +6403,19 @@ init_display_interactive (void)
     }
 #endif
 
+#ifdef HAVE_PGTK
+  if (!inhibit_window_system
+#ifndef CANNOT_DUMP
+     && initialized
+#endif
+      )
+    {
+      Vinitial_window_system = Qpgtk;
+      Vwindow_system_version = make_fixnum (1);
+      return;
+    }
+#endif
+
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (STDIN_FILENO))
     fatal ("standard input is not a tty");
