@@ -123,7 +123,7 @@ become available:
   `use-package--foo--pre-config-hook'
   `use-package--foo--post-config-hook'
 
-This way, you can add to these hooks before evalaution of a
+This way, you can add to these hooks before evaluation of a
 `use-package` declaration, and exercise some control over what
 happens.
 
@@ -290,7 +290,7 @@ found."
   "Attempt to find and jump to the `use-package' form that loaded
 PACKAGE. This will only find the form if that form actually
 required PACKAGE. If PACKAGE was previously required then this
-function will jump to the file that orginally required PACKAGE
+function will jump to the file that originally required PACKAGE
 instead."
   (interactive (list (completing-read "Package: " features)))
   (let* ((package (if (stringp package) (intern package) package))
