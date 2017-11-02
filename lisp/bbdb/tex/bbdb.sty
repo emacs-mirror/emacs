@@ -1,0 +1,89 @@
+% bbdb.sty --- basic LaTeX style for TeXing BBDB
+%
+% Copyright (C) 2017 Roland Winkler <winkler@gnu.org>
+%
+% This file is part of the Insidious Big Brother Database (aka BBDB),
+%
+% BBDB is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% BBDB is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with BBDB.  If not, see <http://www.gnu.org/licenses/>.
+
+%% Commentary:
+%
+% This file defines a basic LaTeX style for TeXing BBDB.
+
+\def\bbdb@name#1#2{\textbf{#2, #1}}
+\def\bbdb@organization#1{#1}
+\def\bbdb@affix#1{\emph{affix:} #1}
+\def\bbdb@aka#1{\emph{aka:} #1}
+\def\bbdb@phone#1#2{\emph{#1:} #2}
+\def\bbdb@mail#1#2{\ifx\href\undefined
+    \texttt{#2}%
+  \else
+    \href{mailto:#1}{\texttt{#2}}%
+  \fi}
+\def\bbdb@address#1#2{\emph{#1:} #2}
+\def\bbdb@xfield#1#2{\emph{#1:} #2}
+
+% \def\bbdb@separator#1{\hline}
+\def\bbdb@separator#1{\\\hline
+\multicolumn{\LT@cols}{@{}c@{}}{\hrulefill\ #1\rule{0pt}{2.2ex}\ \hrulefill}\\}
+
+\RequirePackage{longtable}
+\newenvironment{bbdb}[1]{%
+\let\name\bbdb@name
+\let\organization\bbdb@organization
+\let\affix\bbdb@affix
+\let\aka\bbdb@aka
+\let\phone\bbdb@phone
+\let\mail\bbdb@mail
+\let\address\bbdb@address
+\let\xfield\bbdb@xfield
+\let\bbdbseparator\bbdb@separator
+\begin{longtable}[l]{@{}#1@{}}}%
+{\\ \hline \multicolumn{\LT@cols}{c}{Printed \today}\\ \hline\end{longtable}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\bbdbrecord@name#1#2{{\raggedright\textbf{#2, #1}\dotfill\par}}
+\def\bbdbrecord@organization#1{#1\par}
+\def\bbdbrecord@affix#1{\bbdbrecord@par{\emph{affix:} #1}}
+\def\bbdbrecord@aka#1{\bbdbrecord@par{\emph{aka:} #1}}
+\def\bbdbrecord@phone#1#2{\hspace*{\fill}\emph{#1:} #2\par}
+\def\bbdbrecord@mail#1#2{\ifx\href\undefined
+    \texttt{#2}%
+  \else
+    \href{mailto:#1}{\texttt{#2}}%
+  \fi\par}
+\def\bbdbrecord@par#1{{\leftskip 1em\parindent -\leftskip#1\par}}
+\def\bbdbrecord@address#1#2{\bbdbrecord@par{\emph{#1:} #2}}
+\def\bbdbrecord@xfield#1#2{\bbdbrecord@par{\emph{#1:} #2}}
+
+\newenvironment{bbdbrecord}{%
+\smallbreak
+\parskip 0pt
+\parindent 0pt
+\let\name\bbdbrecord@name
+\let\organization\bbdbrecord@organization
+\let\affix\bbdbrecord@affix
+\let\aka\bbdbrecord@aka
+\let\phone\bbdbrecord@phone
+\let\mail\bbdbrecord@mail
+\let\address\bbdbrecord@address
+\let\xfield\bbdbrecord@xfield}{\medbreak}
+
+\newcommand*{\bbdbseparator}[1]{\vspace{3ex}\noindent
+  \fbox{\parbox{\dimexpr\linewidth-2\fboxrule-2\fboxsep}%
+               {\centering\textbf{#1}}}%
+  \vspace{1ex}}
+
+% \endinput % Fails when inlining this file.
