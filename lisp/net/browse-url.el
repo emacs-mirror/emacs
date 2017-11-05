@@ -302,6 +302,22 @@ Defaults to the value of `browse-url-firefox-arguments' at the time
   :version "24.1"
   :group 'browse-url)
 
+(defcustom browse-url-vivaldi-program
+  (let ((candidates '("vivaldi" "vivaldi-stable")))
+    (while (and candidates (not (executable-find (car candidates))))
+      (setq candidates (cdr candidates)))
+    (or (car candidates) "vivaldi"))
+  "The name by which to invoke Vivaldi."
+  :type 'string
+  :version "25.3"
+  :group 'browse-url)
+
+(defcustom browse-url-vivaldi-arguments nil
+  "A list of strings to pass to Vivaldi as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :version "25.3"
+  :group 'browse-url)
+
 (defcustom browse-url-galeon-program "galeon"
   "The name by which to invoke Galeon."
   :type 'string
@@ -930,6 +946,7 @@ instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
     ((executable-find browse-url-chromium-program) 'browse-url-chromium)
+    ((executable-find browse-url-vivaldi-program) 'browse-url-vivaldi)
 ;;;    ((executable-find browse-url-galeon-program) 'browse-url-galeon)
     ((executable-find browse-url-kde-program) 'browse-url-kde)
 ;;;    ((executable-find browse-url-netscape-program) 'browse-url-netscape)
@@ -1130,6 +1147,24 @@ The optional argument NEW-WINDOW is not used."
 	   (append
 	    browse-url-chromium-arguments
 	    (list url)))))
+
+
+  (defun browse-url-vivaldi (url &optional _new-window)
+    "Ask the Vivaldi WWW browser to load URL.
+  Default to the URL around or before point.  The strings in
+  variable `browse-url-vivaldi-arguments' are also passed to
+  Vivaldi.
+  The optional argument NEW-WINDOW is not used."
+    (interactive (browse-url-interactive-arg "URL: "))
+    (setq url (browse-url-encode-url url))
+    (let* ((process-environment (browse-url-process-environment)))
+      (apply 'start-process
+             (concat "vivaldi " url) nil
+             browse-url-vivaldi-program
+             (append
+              browse-url-vivaldi-arguments
+              (list url)))))
+
 
 (defun browse-url-chrome (url &optional _new-window)
   "Ask the Google Chrome WWW browser to load URL.
