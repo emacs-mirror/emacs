@@ -164,7 +164,8 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 The record is filtered according to `eudc-bbdb-current-return-attributes'"
   (require 'bbdb)
   (let ((attrs (or eudc-bbdb-current-return-attributes
-		   '(firstname lastname aka company phones addresses net notes)))
+		   '(firstname lastname aka company phones
+			       addresses net notes)))
 	attr
 	eudc-rec
 	val)
