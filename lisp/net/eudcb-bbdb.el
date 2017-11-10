@@ -144,6 +144,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
   (let (s c val)
     (nreverse
      (mapcar (lambda (address)
+	       (setq val nil)
 	       (setq c (bbdb-address-streets address))
 	       (dotimes (n 3)
 		 (unless (zerop (length (setq s (nth n c))))
