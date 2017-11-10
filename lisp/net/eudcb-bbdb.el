@@ -66,7 +66,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 (eudc-protocol-set 'eudc-protocol-has-default-query-attributes nil 'bbdb)
 
 (defun eudc-bbdb-format-query (query)
-  "Format a EUDC query alist into a list suitable to `bbdb-search'."
+  "Format QUERY, an EUDC alist, into a list suitable to `bbdb-search'."
   (let* ((firstname (cdr (assq 'firstname query)))
 	 (lastname (cdr (assq 'lastname query)))
 	 (name (or (and firstname lastname
@@ -81,7 +81,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 
 
 (defun eudc-bbdb-filter-non-matching-record (record)
-  "Return RECORD if it matches `eudc-bbdb-current-query', nil otherwise."
+  "Return RECORD if it is a match for `eudc-bbdb-current-query', nil otherwise."
   (require 'bbdb)
   (catch 'unmatch
     (progn
@@ -126,6 +126,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 		  (&optional dont-check-disk already-in-db-buffer))
 
 (defun eudc-bbdb-extract-phones (record)
+  "Extract phone numbers from BBDB RECORD."
   (require 'bbdb)
   ;; Keep same order as in BBDB record.
   (nreverse
@@ -140,6 +141,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 	   (bbdb-record-phones record))))
 
 (defun eudc-bbdb-extract-addresses (record)
+  "Extract addresses from BBDB RECORD."
   (require 'bbdb)
   (let (s c val)
     (nreverse
@@ -249,7 +251,9 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 ;;{{{      High-level interfaces (interactive functions)
 
 (defun eudc-bbdb-set-server (dummy)
-  "Set the EUDC server to BBDB."
+  "Set the EUDC server to BBDB.
+Take a DUMMY argument to match other EUDC backend set-server
+functions."
   (interactive)
   (eudc-set-server dummy 'bbdb)
   (message "BBDB server selected"))
