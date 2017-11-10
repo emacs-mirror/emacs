@@ -73,10 +73,10 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 			(concat firstname " " lastname))
 		   firstname
 		   lastname))
-	(company (cdr (assq 'company query)))
-	(net (cdr (assq 'net query)))
-	(notes (cdr (assq 'notes query)))
-	(phone (cdr (assq 'phone query))))
+	 (company (cdr (assq 'company query)))
+	 (net (cdr (assq 'net query)))
+	 (notes (cdr (assq 'notes query)))
+	 (phone (cdr (assq 'phone query))))
     (list name company net notes phone)))
 
 
@@ -91,7 +91,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
               (case-fold-search t)
               bbdb-val)
           (or (and (memq attr '(firstname lastname aka company phones
-                                addresses net))
+                                          addresses net))
                    (progn
                      (setq bbdb-val
                            (eval (list (intern (concat "bbdb-record-"
