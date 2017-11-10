@@ -110,19 +110,6 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 	      (throw 'unmatch nil))))
       record)))
 
-;; External.
-(declare-function bbdb-phone-location   "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-phone-string     "ext:bbdb" (phone))
-(declare-function bbdb-record-phones    "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-address-streets  "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-address-city     "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-address-state    "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-address-zip      "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-address-location "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-record-addresses "ext:bbdb" t) ; via bbdb-defstruct
-(declare-function bbdb-records          "ext:bbdb"
-		  (&optional dont-check-disk already-in-db-buffer))
-
 (defun eudc-bbdb-extract-phones (record)
   "Extract phone numbers from BBDB RECORD."
   (require 'bbdb)
