@@ -890,19 +890,26 @@ external directory format to the BBDB format is a highly customizable
 process.
 
 @defvar eudc-bbdb-conversion-alist
-The value of this variable should be a symbol naming an alist defining a
-mapping between BBDB field names onto directory attribute names records.
+The value of this variable should be a symbol naming an alist defining
+a mapping from BBDB field names to directory attribute names.
+
 This is a protocol-local variable and is initialized upon protocol
-switch (@pxref{Server/Protocol Locals}).  The alist is made of cells of the
-form @code{(@var{bbdb-field} . @var{spec-or-list})}.
-@var{bbdb-field} is the name of a field
-that must be defined in your BBDB environment (standard field names are
-@code{name}, @code{company}, @code{net}, @code{phone}, @code{address}
-and @code{notes}).
-@var{spec-or-list} is either a single mapping specification or a list of
-mapping specifications.  Lists of mapping specifications are valid for
-the @code{phone} and @code{address} BBDB fields only. @var{spec}s are
-actually s-expressions which are evaluated as follows:
+switch (@pxref{Server/Protocol Locals}).  The alist is made of cells
+of the form @code{(@var{bbdb-field} . @var{spec-or-list})}.
+
+@var{bbdb-field} is the name of a field that must be defined in your
+BBDB environment.  Standard field names are @code{name},
+@code{organization}, @code{mail}, @code{phone}, @code{address} and
+@code{notes}.  Historical field names for @code{organization},
+@code{mail}, @code{phone}, and @code{address} are still supported;
+they are, respectively @code{company}, @code{net}, @code{phones}, and
+@code{addresses}.
+
+@var{spec-or-list} is either a single mapping
+specification or a list of mapping specifications.  Lists of mapping
+specifications are valid for the @code{phone} and @code{address} BBDB
+fields only. @var{spec}s are actually s-expressions which are
+evaluated as follows:
 
 @table @asis
 @item a string

@@ -42,18 +42,24 @@
 
 (defun eudc-bbdb-field (field-symbol)
   "Convert FIELD-SYMBOL so that it is recognized by the current BBDB version.
-BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
-  ;; This just-in-time translation permits upgrading from BBDB 2 to
-  ;; BBDB 3 without restarting Emacs.
-  (if (and (eq field-symbol 'net)
-	   (eudc--using-bbdb-3-or-newer-p))
-      'mail
-    field-symbol))
+BBDB < 3 used `company', `phones', `addresses' and `net' where
+BBDB >= 3 uses `organization', `phone', `address' and `mail'
+respectively.
+
+EUDC users may be referring to old BBDB fields in their
+configuration, so for convenience this function enables support
+for continued use of those old names."
+  (cond
+   ((eq field-symbol 'company) 'organization)
+   ((eq field-symbol 'phones) 'phone)
+   ((eq field-symbol 'addresses) 'address)
+   ((eq field-symbol 'net) 'mail)
+   (t field-symbol)))
 
 (defvar eudc-bbdb-attributes-translation-alist
   '((name . lastname)
-    (email . net)
-    (phone . phones))
+    (email . mail)
+    (phone . phone))
   "Alist mapping EUDC attribute names to BBDB names.")
 
 (eudc-protocol-set 'eudc-query-function 'eudc-bbdb-query-internal 'bbdb)
@@ -71,11 +77,13 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 			(concat firstname " " lastname))
 		   firstname
 		   lastname))
-	 (company (cdr (assq 'company query)))
-	 (net (cdr (assq 'net query)))
+	 (organization (or (cdr (assq 'organization query))
+			   (cdr (assq 'company query))))
+	 (mail (or (cdr (assq 'mail query))
+		   (cdr (assq 'net query))))
 	 (notes (cdr (assq 'notes query)))
 	 (phone (cdr (assq 'phone query))))
-    (list name company net notes phone)))
+    (list name organization mail notes phone)))
 
 
 (defun eudc-bbdb-filter-non-matching-record (record)
@@ -88,15 +96,13 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 	      (val (cdr condition))
 	      (case-fold-search t)
 	      bbdb-val)
-	  (or (and (memq attr '(firstname lastname aka company phones
-					  addresses net))
+	  (or (and (memq attr '(firstname lastname aka
+					  organization phone address mail
+					  ;; BBDB < 3 fields.
+					  company phones addresses net))
 		   (progn
-		     (setq bbdb-val
-			   (eval (list (intern (concat "bbdb-record-"
-						       (symbol-name
-							(eudc-bbdb-field
-							 attr))))
-				       'record)))
+		     (setq bbdb-val (bbdb-record-field record
+						       (eudc-bbdb-field attr)))
 		     (if (listp bbdb-val)
 			 (if eudc-bbdb-enable-substring-matches
 			     (eval `(or ,@(mapcar (lambda (subval)
@@ -118,12 +124,12 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
    (mapcar (function
 	    (lambda (phone)
 	      (if eudc-bbdb-use-locations-as-attribute-names
-		  (cons (intern (bbdb-phone-location phone))
+		  (cons (intern (bbdb-phone-label phone))
 			(bbdb-phone-string phone))
 		(cons 'phones (format "%s: %s"
-				      (bbdb-phone-location phone)
+				      (bbdb-phone-label phone)
 				      (bbdb-phone-string phone))))))
-	   (bbdb-record-phones record))))
+	   (bbdb-record-phone record))))
 
 (defun eudc-bbdb-extract-addresses (record)
   "Extract addresses from BBDB RECORD."
@@ -143,20 +149,20 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 				     (concat c ", " s)
 				   c)
 				 " "
-				 (bbdb-address-zip address)))
+				 (bbdb-address-postcode address)))
 	       (if eudc-bbdb-use-locations-as-attribute-names
-		   (cons (intern (bbdb-address-location address)) val)
-		 (cons 'addresses (concat (bbdb-address-location address)
-					  "\n" val))))
-	     (bbdb-record-addresses record)))))
+		   (cons (intern (bbdb-address-label address)) val)
+		 (cons 'address (concat (bbdb-address-label address)
+					"\n" val))))
+	     (bbdb-record-address record)))))
 
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
 The record is filtered according to `eudc-bbdb-current-return-attributes'"
   (require 'bbdb)
   (let ((attrs (or eudc-bbdb-current-return-attributes
-		   '(firstname lastname aka company phones
-			       addresses net notes)))
+		   '(firstname lastname aka organization phone address mail
+			       notes)))
 	attr
 	eudc-rec
 	val)
@@ -164,21 +170,26 @@ The record is filtered according to `eudc-bbdb-current-return-attributes'"
 	       (setq attr (car attrs))
 	     (setq attrs (cdr attrs)))
       (cond
-       ((eq attr 'phones)
+       ((or (eq attr 'phone)
+	    ;; BBDB < 3 field.
+	    (eq attr 'phones))
 	(setq val (eudc-bbdb-extract-phones record)))
-       ((eq attr 'addresses)
+       ((or (eq attr 'address)
+	    ;; BBDB < 3 field.
+	    (eq attr 'addresses))
 	(setq val (eudc-bbdb-extract-addresses record)))
-       ((memq attr '(firstname lastname aka company net notes))
-	(setq val (eval
-		   (list (intern
-			  (concat "bbdb-record-"
-				  (symbol-name (eudc-bbdb-field attr))))
-			 'record))))
+       ((memq attr '(firstname lastname aka
+			       organization mail notes
+			       ;; BBDB < 3 fields.
+			       company net))
+	(setq val (bbdb-record-field record (eudc-bbdb-field attr))))
        (t
 	(error "Unknown BBDB attribute")))
       (cond
        ((or (not val) (equal val ""))) ; do nothing
-       ((memq attr '(phones addresses))
+       ((memq attr '(phone address
+			   ;; BBDB < 3 fields.
+			   phones addresses))
 	(setq eudc-rec (append val eudc-rec)))
        ((and (listp val)
 	     (= 1 (length val)))
