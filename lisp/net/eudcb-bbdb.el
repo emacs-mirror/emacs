@@ -30,10 +30,8 @@
 ;;; Code:
 
 (require 'eudc)
-
-;; Make it loadable on systems without bbdb.
-(require 'bbdb nil t)
-(require 'bbdb-com nil t)
+(require 'bbdb)
+(require 'bbdb-com)
 
 ;;{{{      Internal cooking
 
