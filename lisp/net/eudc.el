@@ -111,6 +111,7 @@
 
 (defun eudc--using-bbdb-3-or-newer-p ()
   "Return non-nil if BBDB version is 3 or greater."
+  (declare (obsolete nil "26.1"))
   (or
    ;; MELPA versions of BBDB may have a bad package version, but
    ;; they're all version 3 or later.
