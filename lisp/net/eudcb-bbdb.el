@@ -86,30 +86,30 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
   (catch 'unmatch
     (progn
       (dolist (condition eudc-bbdb-current-query)
-        (let ((attr (car condition))
-              (val (cdr condition))
-              (case-fold-search t)
-              bbdb-val)
-          (or (and (memq attr '(firstname lastname aka company phones
-                                          addresses net))
-                   (progn
-                     (setq bbdb-val
-                           (eval (list (intern (concat "bbdb-record-"
-                                                       (symbol-name
-                                                        (eudc-bbdb-field
-                                                         attr))))
-                                       'record)))
-                     (if (listp bbdb-val)
-                         (if eudc-bbdb-enable-substring-matches
-                             (eval `(or ,@(mapcar (lambda (subval)
-                                                    (string-match val subval))
-                                                  bbdb-val)))
-                           (member (downcase val)
-                                   (mapcar 'downcase bbdb-val)))
-                       (if eudc-bbdb-enable-substring-matches
-                           (string-match val bbdb-val)
-                         (string-equal (downcase val) (downcase bbdb-val))))))
-              (throw 'unmatch nil))))
+	(let ((attr (car condition))
+	      (val (cdr condition))
+	      (case-fold-search t)
+	      bbdb-val)
+	  (or (and (memq attr '(firstname lastname aka company phones
+					  addresses net))
+		   (progn
+		     (setq bbdb-val
+			   (eval (list (intern (concat "bbdb-record-"
+						       (symbol-name
+							(eudc-bbdb-field
+							 attr))))
+				       'record)))
+		     (if (listp bbdb-val)
+			 (if eudc-bbdb-enable-substring-matches
+			     (eval `(or ,@(mapcar (lambda (subval)
+						    (string-match val subval))
+						  bbdb-val)))
+			   (member (downcase val)
+				   (mapcar 'downcase bbdb-val)))
+		       (if eudc-bbdb-enable-substring-matches
+			   (string-match val bbdb-val)
+			 (string-equal (downcase val) (downcase bbdb-val))))))
+	      (throw 'unmatch nil))))
       record)))
 
 ;; External.
@@ -123,7 +123,7 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 (declare-function bbdb-address-location "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-record-addresses "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-records          "ext:bbdb"
-                  (&optional dont-check-disk already-in-db-buffer))
+		  (&optional dont-check-disk already-in-db-buffer))
 
 (defun eudc-bbdb-extract-phones (record)
   (require 'bbdb)
@@ -141,23 +141,23 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
   (require 'bbdb)
   (let (s c val)
     (mapcar (lambda (address)
-              (setq c (bbdb-address-streets address))
-              (dotimes (n 3)
-                (unless (zerop (length (setq s (nth n c))))
-                  (setq val (concat val s "\n"))))
-              (setq c (bbdb-address-city address)
-                    s (bbdb-address-state address))
-              (setq val (concat val
-                                (if (and (> (length c) 0) (> (length s) 0))
-                                    (concat c ", " s)
-                                  c)
-                                " "
-                                (bbdb-address-zip address)))
-              (if eudc-bbdb-use-locations-as-attribute-names
-                  (cons (intern (bbdb-address-location address)) val)
-                (cons 'addresses (concat (bbdb-address-location address)
-                                         "\n" val))))
-            (bbdb-record-addresses record))))
+	      (setq c (bbdb-address-streets address))
+	      (dotimes (n 3)
+		(unless (zerop (length (setq s (nth n c))))
+		  (setq val (concat val s "\n"))))
+	      (setq c (bbdb-address-city address)
+		    s (bbdb-address-state address))
+	      (setq val (concat val
+				(if (and (> (length c) 0) (> (length s) 0))
+				    (concat c ", " s)
+				  c)
+				" "
+				(bbdb-address-zip address)))
+	      (if eudc-bbdb-use-locations-as-attribute-names
+		  (cons (intern (bbdb-address-location address)) val)
+		(cons 'addresses (concat (bbdb-address-location address)
+					 "\n" val))))
+	    (bbdb-record-addresses record))))
 
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
