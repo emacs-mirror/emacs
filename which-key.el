@@ -1363,6 +1363,18 @@ which are strings. KEY is of the form produced by `key-binding'."
        (current-local-map) (kbd (which-key--current-key-string (car keydesc))))
       (intern (cdr keydesc))))
 
+(defun which-key--map-binding-p (map keydesc)
+  (or
+   (when (bound-and-true-p evil-state)
+     (eq (which-key--safe-lookup-key
+          map
+          (kbd (which-key--current-key-string
+                (format "<%s-state> %s" evil-state (car keydesc)))))
+         (intern (cdr keydesc))))
+   (eq (which-key--safe-lookup-key
+        map (kbd (which-key--current-key-string (car keydesc))))
+       (intern (cdr keydesc)))))
+
 (defun which-key--maybe-get-prefix-title (keys)
   "KEYS is a string produced by `key-description'.
 A title is possibly returned using
@@ -1615,10 +1627,12 @@ Requires `which-key-compute-remaps' to be non-nil"
           (forward-line))
         (nreverse bindings)))))
 
-(defun which-key--get-formatted-key-bindings (&optional bindings)
+(defun which-key--get-formatted-key-bindings (&optional bindings filter)
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
   (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
+    (when filter
+      (setq unformatted (cl-remove-if-not filter unformatted)))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
@@ -2023,6 +2037,21 @@ after first page."
   (which-key--create-buffer-and-show nil))
 
 ;;;###autoload
+(defun which-key-show-major-mode ()
+  "Show top-level bindings in the map of the current major mode.
+
+This function will also detect evil bindings made using
+`evil-define-key' in this map. These bindings will depend on the
+current evil state. "
+  (interactive)
+  (setq which-key--using-top-level t)
+  (let ((map-sym (intern (format "%s-map" major-mode))))
+    (if (and (boundp map-sym) (keymapp (symbol-value map-sym)))
+        (which-key--create-buffer-and-show
+         nil nil (apply-partially #'which-key--map-binding-p (symbol-value map-sym)))
+      (message "which-key: No map named %s" map-sym))))
+
+;;;###autoload
 (defun which-key-undo-key ()
   "Undo last keypress and force which-key update."
   (interactive)
@@ -2215,7 +2244,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
                (which-key--hide-popup)
                (setq unread-command-events (listify-key-sequence key))))))))
 
-(defun which-key--create-buffer-and-show (&optional prefix-keys from-keymap)
+(defun which-key--create-buffer-and-show (&optional prefix-keys from-keymap filter)
   "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
@@ -2223,7 +2252,8 @@ Finally, show the buffer."
   (let ((start-time (when which-key--debug (current-time)))
         (formatted-keys (which-key--get-formatted-key-bindings
                          (when from-keymap
-                           (which-key--get-keymap-bindings from-keymap))))
+                           (which-key--get-keymap-bindings from-keymap))
+                         filter))
         (prefix-keys (key-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys))
