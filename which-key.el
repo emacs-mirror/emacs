@@ -1525,19 +1525,18 @@ alists. Returns a list (key separator description)."
            new-list))))
     (nreverse new-list)))
 
-(defun which-key--get-keymap-bindings (keymap &optional filter)
+(defun which-key--get-keymap-bindings (keymap)
   "Retrieve top-level bindings from KEYMAP."
   (let (bindings)
     (map-keymap
      (lambda (ev def)
-       (unless (and (functionp filter) (funcall filter ev def))
-         (cl-pushnew
-          (cons (key-description (list ev))
-                (cond ((keymapp def) "Prefix Command")
-                      ((symbolp def) (copy-sequence (symbol-name def)))
-                      ((eq 'lambda (car-safe def)) "lambda")
-                      (t (format "%s" def))))
-          bindings :test (lambda (a b) (string= (car a) (car b))))))
+       (cl-pushnew
+        (cons (key-description (list ev))
+              (cond ((keymapp def) "Prefix Command")
+                    ((symbolp def) (copy-sequence (symbol-name def)))
+                    ((eq 'lambda (car-safe def)) "lambda")
+                    (t (format "%s" def))))
+        bindings :test (lambda (a b) (string= (car a) (car b)))))
      keymap)
     bindings))
 
@@ -2204,9 +2203,10 @@ is selected interactively by mode in `minor-mode-map-alist'."
                                    (cons keymap-name keymap)))
           (t (which-key--hide-popup)))))
 
-(defun which-key--evil-operator-filter (_ev def)
-  (and (functionp def)
-       (evil-get-command-property def :suppress-operator)))
+(defun which-key--evil-operator-filter (binding)
+  (let ((def (intern (cdr binding))))
+    (and (functionp def)
+         (not (evil-get-command-property def :suppress-operator)))))
 
 (defun which-key--show-evil-operator-keymap ()
   (if which-key--inhibit-next-operator-popup
@@ -2220,8 +2220,8 @@ is selected interactively by mode in `minor-mode-map-alist'."
             which-key--using-show-operator-keymap t)
       (when (keymapp keymap)
         (let ((formatted-keys (which-key--get-formatted-key-bindings
-                               (which-key--get-keymap-bindings
-                                keymap 'which-key--evil-operator-filter))))
+                               (which-key--get-keymap-bindings keymap)
+                               #'which-key--evil-operator-filter)))
           (cond ((= (length formatted-keys) 0)
                  (message "which-key: Keymap empty"))
                 ((listp which-key-side-window-location)
