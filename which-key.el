@@ -1399,7 +1399,7 @@ no title exists."
              (if alternate alternate
                (concat "Following " keys)))
             (t ""))))
-    (which-key--using-top-level "Top-level bindings")
+    (which-key--using-top-level which-key--using-top-level)
     (which-key--current-show-keymap-name
      which-key--current-show-keymap-name)
     (t "")))
@@ -2033,7 +2033,7 @@ after first page."
 (defun which-key-show-top-level ()
   "Show top-level bindings."
   (interactive)
-  (setq which-key--using-top-level t)
+  (setq which-key--using-top-level "Top-level bindings")
   (which-key--create-buffer-and-show nil))
 
 ;;;###autoload
@@ -2044,7 +2044,7 @@ This function will also detect evil bindings made using
 `evil-define-key' in this map. These bindings will depend on the
 current evil state. "
   (interactive)
-  (setq which-key--using-top-level t)
+  (setq which-key--using-top-level "Major-mode bindings")
   (let ((map-sym (intern (format "%s-map" major-mode))))
     (if (and (boundp map-sym) (keymapp (symbol-value map-sym)))
         (which-key--create-buffer-and-show
