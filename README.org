@@ -2,14 +2,8 @@
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[https://travis-ci.org/justbur/emacs-which-key][file:https://travis-ci.org/justbur/emacs-which-key.svg?branch=master]]
 
 ** Recent Changes
-*** 2016-12-20: Added =which-key-max-display-columns=
-Allows control over the number of columns in the popup. See [[#other-options][Other Options]].
-*** 2016-11-21: Replacement list changes
-The alists controlling the replacement of key binding descriptions was
-simplified to use one centralized alist, =which-key-replacement-alist=. This
-change also allows for some new features compared to the old method. The other
-alists are deprecated. See [[#custom-string-replacement-options][Custom String Replacement Options]].
-
+*** 2017-11-13: Added =which-key-show-major-mode=
+    Shows active bindings in current major-mode map.
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following
 your currently entered incomplete command (a prefix) in a popup. For example,
@@ -21,34 +15,33 @@ the popup will look like are included below. =which-key= started as a rewrite of
 [[https://github.com/kai2nenobu/guide-key][guide-key-mode]], but the feature sets have diverged to a certain extent.
 
 ** Table of Contents                                                  :TOC_3:
- - [[#which-key][which-key]]
-   - [[#recent-changes][Recent Changes]]
-     - [[#2016-12-20-added-which-key-max-display-columns][2016-12-20: Added =which-key-max-display-columns=]]
-     - [[#2016-11-21-replacement-list-changes][2016-11-21: Replacement list changes]]
-   - [[#introduction][Introduction]]
-   - [[#install][Install]]
-     - [[#melpa][MELPA]]
-     - [[#manually][Manually]]
-   - [[#initial-setup][Initial Setup]]
-     - [[#side-window-bottom-option][Side Window Bottom Option]]
-     - [[#side-window-right-option][Side Window Right Option]]
-     - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
-     - [[#minibuffer-option][Minibuffer Option]]
-   - [[#additional-commands][Additional Commands]]
-   - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
-     - [[#popup-type-options][Popup Type Options]]
-     - [[#custom-string-replacement-options][Custom String Replacement Options]]
-     - [[#sorting-options][Sorting Options]]
-     - [[#paging-options][Paging Options]]
-     - [[#face-customization-options][Face Customization Options]]
-     - [[#other-options][Other Options]]
-   - [[#support-for-third-party-libraries][Support for Third-Party Libraries]]
-     - [[#key-chord][Key-chord]]
-     - [[#evil-operators][Evil operators]]
-     - [[#god-mode][God-mode]]
-   - [[#more-examples][More Examples]]
-     - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
-   - [[#thanks][Thanks]]
+- [[#which-key][which-key]]
+  - [[#recent-changes][Recent Changes]]
+    - [[#2017-11-13-added-which-key-show-major-mode][2017-11-13: Added =which-key-show-major-mode=]]
+  - [[#introduction][Introduction]]
+  - [[#install][Install]]
+    - [[#melpa][MELPA]]
+    - [[#manually][Manually]]
+  - [[#initial-setup][Initial Setup]]
+    - [[#side-window-bottom-option][Side Window Bottom Option]]
+    - [[#side-window-right-option][Side Window Right Option]]
+    - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
+    - [[#minibuffer-option][Minibuffer Option]]
+  - [[#additional-commands][Additional Commands]]
+  - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
+    - [[#popup-type-options][Popup Type Options]]
+    - [[#custom-string-replacement-options][Custom String Replacement Options]]
+    - [[#sorting-options][Sorting Options]]
+    - [[#paging-options][Paging Options]]
+    - [[#face-customization-options][Face Customization Options]]
+    - [[#other-options][Other Options]]
+  - [[#support-for-third-party-libraries][Support for Third-Party Libraries]]
+    - [[#key-chord][Key-chord]]
+    - [[#evil-operators][Evil operators]]
+    - [[#god-mode][God-mode]]
+  - [[#more-examples][More Examples]]
+    - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
+  - [[#thanks][Thanks]]
 
 ** Install
 *** MELPA
@@ -128,6 +121,9 @@ variable =max-mini-window-height=.
 ** Additional Commands
 - =which-key-show-top-level= will show most key bindings without a prefix. It is
   most and not all, because many are probably not interesting to most users.
+- =which-key-show-major-mode= will show the currently active major-mode
+  bindings. It's similar to =C-h m= but in a which-key format. It is also aware
+  of evil commands defined using =evil-define-key=.
 - =which-key-show-next-page= is the command used for paging.
 - =which-key-undo= can be used to undo the last keypress when in the middle of a
   key sequence.
