@@ -164,7 +164,7 @@ LOCATION is used as the address location for bbdb."
 
 ;; External.
 (declare-function bbdb-parse-phone-number "ext:bbdb-com"
-                  (string &optional number-type))
+		  (string &optional number-type))
 (declare-function bbdb-parse-phone "ext:bbdb-com" (string &optional style))
 (declare-function bbdb-string-trim "ext:bbdb" (string))
 
