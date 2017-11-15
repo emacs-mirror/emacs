@@ -31,10 +31,8 @@
 ;;; Code:
 
 (require 'eudc)
-
-;; NOERROR is so we can compile it.
-(require 'bbdb nil t)
-(require 'bbdb-com nil t)
+(require 'bbdb)
+(require 'bbdb-com)
 
 (defun eudc-create-bbdb-record (record &optional silent)
   "Create a BBDB record using the RECORD alist.
