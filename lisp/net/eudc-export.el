@@ -60,10 +60,14 @@ If SILENT is non-nil then the created BBDB record is not displayed."
 	     (conversion-alist (symbol-value eudc-bbdb-conversion-alist)))
 
       ;; BBDB standard fields
-      (setq bbdb-name (eudc-parse-spec (cdr (assq 'name conversion-alist)) record nil)
-	    bbdb-company (eudc-parse-spec (cdr (assq 'company conversion-alist)) record nil)
-	    bbdb-net (eudc-parse-spec (cdr (assq 'net conversion-alist)) record nil)
-	    bbdb-notes (eudc-parse-spec (cdr (assq 'notes conversion-alist)) record nil))
+      (setq bbdb-name (eudc-parse-spec
+		       (cdr (assq 'name conversion-alist)) record nil)
+	    bbdb-company (eudc-parse-spec
+			  (cdr (assq 'company conversion-alist)) record nil)
+	    bbdb-net (eudc-parse-spec
+		      (cdr (assq 'net conversion-alist)) record nil)
+	    bbdb-notes (eudc-parse-spec
+			(cdr (assq 'notes conversion-alist)) record nil))
       (setq spec (cdr (assq 'address conversion-alist)))
       (setq bbdb-address (delq nil (eudc-parse-spec (if (listp (car spec))
 						      spec
@@ -79,8 +83,16 @@ If SILENT is non-nil then the created BBDB record is not displayed."
 			       (mapcar (function
 					(lambda (mapping)
 					  (if (and (not (memq (car mapping)
-							      '(name company net address phone notes)))
-						   (setq value (eudc-parse-spec (cdr mapping) record nil)))
+							      '(name
+								company
+								net
+								address
+								phone
+								notes)))
+						   (setq value
+							 (eudc-parse-spec
+							  (cdr mapping)
+							  record nil)))
 					      (cons (car mapping) value))))
 				       conversion-alist)))
       (setq bbdb-notes (delq nil bbdb-notes))
@@ -118,7 +130,8 @@ If RECURSE is non-nil then SPEC may be a list of atomic specs."
 	       (eudc-parse-spec spec-elem record nil))
 	    spec))
    (t
-    (error "Invalid specification for `%s' in `eudc-bbdb-conversion-alist'" spec))))
+    (error
+     "Invalid specification for `%s' in `eudc-bbdb-conversion-alist'" spec))))
 
 (defun eudc-bbdbify-address (addr location)
   "Parse ADDR into a vector compatible with BBDB.
@@ -187,7 +200,9 @@ LOCATION is used as the phone location for BBDB."
 			     (bbdb-parse-phone-number phone)))
 	(error
 	 (if (string= "phone number unparsable." (cadr err))
-	     (if (not (y-or-n-p (format "BBDB claims %S to be unparsable--insert anyway? " phone)))
+	     (if (not (y-or-n-p
+		       (format (concat  "BBDB claims %S to be unparsable"
+					"--insert anyway? ") phone)))
 		 (error "Phone number unparsable")
 	       (setq phone-list (list (bbdb-string-trim phone))))
 	   (signal (car err) (cdr err)))))
