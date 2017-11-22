@@ -98,16 +98,12 @@ If SILENT is non-nil then the created BBDB record is not displayed."
       (setq bbdb-notes (delq nil bbdb-notes))
       (setq bbdb-record (bbdb-create-internal
 			 bbdb-name
-			 ,@(when (eudc--using-bbdb-3-or-newer-p)
-			     '(nil
-			       nil))
+			 nil
+			 nil
 			 bbdb-company
 			 bbdb-net
-			 ,@(if (eudc--using-bbdb-3-or-newer-p)
-			       '(bbdb-phones
-				 bbdb-address)
-			     '(bbdb-address
-			       bbdb-phones))
+			 bbdb-phones
+			 bbdb-address
 			 bbdb-notes))
       (or silent
 	  (bbdb-display-records (list bbdb-record))))))
@@ -195,9 +191,7 @@ LOCATION is used as the phone location for BBDB."
    ((stringp phone)
     (let (phone-list)
       (condition-case err
-	  (setq phone-list (if (eudc--using-bbdb-3-or-newer-p)
-			       (bbdb-parse-phone phone)
-			     (bbdb-parse-phone-number phone)))
+	  (setq phone-list (bbdb-parse-phone phone))
 	(error
 	 (if (string= "phone number unparsable." (cadr err))
 	     (if (not (y-or-n-p
