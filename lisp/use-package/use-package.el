@@ -1471,7 +1471,9 @@ deferred until the prefix key sequence is pressed."
         (use-package-error
          (concat label " a (<symbol> <value> [comment])"
                  " or list of these")))
-      arg)))
+      (if (symbolp (car arg))
+          (list arg)
+        arg))))
 
 (defun use-package-handler/:custom (name keyword args rest state)
   "Generate use-package custom keyword code."
