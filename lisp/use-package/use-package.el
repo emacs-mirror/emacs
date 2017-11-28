@@ -1411,23 +1411,20 @@ deferred until the prefix key sequence is pressed."
 ;;; :custom
 ;;
 
-(defun use-package-normalize/:custom (name-symbol keyword arg)
+(defun use-package-normalize/:custom (name-symbol keyword args)
   "Normalize use-package custom keyword."
-  (let ((error-msg (format "%s wants a (<symbol> <form> <optional string comment>) or list of these" name-symbol)))
-    (unless (listp arg)
-      (use-package-error error-msg))
-    (dolist (def arg arg)
-      (unless (listp def)
-        (use-package-error error-msg))
-      (let ((variable (nth 0 def))
-            (value (nth 1 def))
-            (comment (nth 2 def)))
-        (when (or (not variable)
-                  (and (not value)
-                       (not (eq value nil)))
-                  (> (length def) 3)
-                  (and comment (not (stringp comment))))
-          (use-package-error error-msg))))))
+  (cond
+   ((and (= (length args) 1)
+         (listp (car args))
+         (listp (car (car args))))
+    (car args))
+   ((and (= (length args) 1)
+         (listp (car args)))
+    args)
+   (t
+    (use-package-error
+     (concat label " a (<symbol> <value> [comment])"
+             " or list of these")))))
 
 (defun use-package-handler/:custom (name keyword args rest state)
   "Generate use-package custom keyword code."
@@ -1437,7 +1434,7 @@ deferred until the prefix key sequence is pressed."
                (let ((variable (nth 0 def))
                      (value (nth 1 def))
                      (comment (nth 2 def)))
-                 (unless comment
+                 (unless (and comment (stringp comment))
                    (setq comment (format "Customized with use-package %s" name)))
                  `(customize-set-variable (quote ,variable) ,value ,comment)))
              args)
