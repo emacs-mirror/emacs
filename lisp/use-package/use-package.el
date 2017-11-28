@@ -1420,7 +1420,7 @@ deferred until the prefix key sequence is pressed."
     (lambda (label arg)
       (unless (or (symbolp arg) (consp arg))
         (use-package-error
-         (concat label " a <symbol> or a (<symbol> . <symbol or function>)"
+         (concat label " a <symbol> or (<symbol or list of symbols> . <symbol or function>)"
                  " or list of these")))
       (use-package-normalize-pairs
        #'(lambda (k)
@@ -1463,20 +1463,15 @@ deferred until the prefix key sequence is pressed."
 ;;; :custom
 ;;
 
-(defun use-package-normalize/:custom (name-symbol keyword args)
+(defun use-package-normalize/:custom (name keyword args)
   "Normalize use-package custom keyword."
-  (cond
-   ((and (= (length args) 1)
-         (listp (car args))
-         (listp (car (car args))))
-    (car args))
-   ((and (= (length args) 1)
-         (listp (car args)))
-    args)
-   (t
-    (use-package-error
-     (concat label " a (<symbol> <value> [comment])"
-             " or list of these")))))
+  (use-package-as-one (symbol-name keyword) args
+    (lambda (label arg)
+      (unless (listp arg)
+        (use-package-error
+         (concat label " a (<symbol> <value> [comment])"
+                 " or list of these")))
+      arg)))
 
 (defun use-package-handler/:custom (name keyword args rest state)
   "Generate use-package custom keyword code."
