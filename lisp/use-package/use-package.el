@@ -158,6 +158,7 @@ the user specified."
     :defines
     :functions
     :defer
+    :hook
     :custom
     :custom-face
     :init
@@ -1408,6 +1409,54 @@ deferred until the prefix key sequence is pressed."
                 (ignore
                  (message (format "Cannot load %s" ',name)))
               ,@config-body)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; :hook
+;;
+
+(defun use-package-normalize/:hook (name keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    (lambda (label arg)
+      (unless (or (symbolp arg) (consp arg))
+        (use-package-error
+         (concat label " a <symbol> or a (<symbol> . <symbol or function>)"
+                 " or list of these")))
+      (use-package-normalize-pairs
+       #'(lambda (k)
+           (or (symbolp k)
+               (and (listp k)
+                    (listp (cdr k))
+                    (seq-every-p #'symbolp k))))
+       #'(lambda (v)
+           (or (symbolp v) (functionp v)))
+       name label arg))))
+
+(defun use-package-handler/:hook (name keyword args rest state)
+  "Generate use-package custom keyword code."
+  (let ((commands (let (funs)
+                    (dolist (def args)
+                      (if (symbolp (cdr def))
+                          (setq funs (cons (cdr def) funs))))
+                    (nreverse funs))))
+    (use-package-concat
+     (use-package-process-keywords name
+       (if commands
+           (use-package-sort-keywords
+            (use-package-plist-maybe-put rest :defer t))
+         rest)
+       (if commands
+           (use-package-plist-append state :commands commands)
+         state))
+     (cl-mapcan
+      (lambda (def)
+        (let ((syms (car def))
+              (fun (cdr def)))
+          (mapcar
+           #'(lambda (sym) 
+               `(add-hook (quote ,(intern (format "%s-hook" sym)))
+                          (function ,fun)))
+           (if (symbolp syms) (list syms) syms)))) args))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
