@@ -828,12 +828,12 @@ If the package is installed, its entry is removed from
 (defun use-package-as-one (label args f)
   "Call F on the first element of ARGS if it has one element, or all of ARGS."
   (declare (indent 1))
-  (if (and (listp args) (listp (cdr args)))
+  (if (and (not (null args)) (listp args) (listp (cdr args)))
       (if (= (length args) 1)
           (funcall f label (car args))
         (funcall f label args))
     (use-package-error
-     (concat label " wants a list"))))
+     (concat label " wants a non-empty list"))))
 
 (put 'use-package-as-one 'lisp-indent-function 'defun)
 
