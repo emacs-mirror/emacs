@@ -1650,10 +1650,12 @@ this file.  Usage:
       (let ((body
              (macroexp-progn
               (use-package-process-keywords name
-                (if use-package-always-demand
+                (if (and use-package-always-demand
+                         (not (memq :defer args)))
                     (append args '(:demand t))
                   args)
-                (and use-package-always-defer (list :deferred t))))))
+                (and use-package-always-defer
+                     (list :deferred t))))))
         (if use-package-debug
             (display-buffer
              (save-current-buffer
