@@ -534,7 +534,10 @@ This is in contrast to merely setting it to 0."
       (if (memq keyword use-package-keywords)
           (cons keyword
                 (cons arg (use-package-normalize-plist name tail)))
-        (use-package-error (format "Unrecognized keyword: %s" keyword))))))
+        (ignore
+         (display-warning 'use-package
+                          (format "Unrecognized keyword: %s" keyword)
+                          :warning))))))
 
 (defun use-package-process-keywords (name plist &optional state)
   "Process the next keyword in the free-form property list PLIST.
