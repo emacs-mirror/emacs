@@ -1659,15 +1659,14 @@ this file.  Usage:
                   args)
                 (and use-package-always-defer
                      (list :deferred t))))))
-        (if use-package-debug
-            (display-buffer
-             (save-current-buffer
-               (let ((buf (get-buffer-create "*use-package*")))
-                 (with-current-buffer buf
-                   (delete-region (point-min) (point-max))
-                   (emacs-lisp-mode)
-                   (insert (pp-to-string body)))
-                 buf))))
+        (when use-package-debug
+          (display-buffer
+           (save-current-buffer
+             (with-current-buffer (get-buffer-create "*use-package*")
+               (goto-char (point-max))
+               (emacs-lisp-mode)
+               (insert (pp-to-string body))
+               (current-buffer)))))
         body))))
 
 
