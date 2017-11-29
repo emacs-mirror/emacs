@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
+;; Package-Requires: ((bind-key "1.0"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -40,8 +40,6 @@
 ;;; Code:
 
 (require 'bind-key)
-(require 'bytecomp)
-(require 'diminish nil t)
 (require 'bytecomp)
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'regexp-opt))
@@ -1607,7 +1605,8 @@ deferred until the prefix key sequence is pressed."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      body
-     `((delight '(,@args))))))
+     `((if (fboundp 'delight)
+           (delight '(,@args)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
