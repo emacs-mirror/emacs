@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Requires: ((bind-key "1.0"))
+;; Package-Requires: ((emacs "24.3") (bind-key "1.0"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
 
