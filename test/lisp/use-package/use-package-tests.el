@@ -84,6 +84,20 @@
   (should (equal (use-package-normalize-diminish 'foopkg :diminish '(foo . "bar"))
                  '((foo . "bar")))))
 
+(ert-deftest use-package--recognize-function-test ()
+  (should (use-package--recognize-function 'sym))
+  (should (use-package--recognize-function #'sym))
+  (should (use-package--recognize-function (lambda () ...)))
+  (should (use-package--recognize-function '(lambda () ...)))
+  (should (use-package--recognize-function #'(lambda () ...))))
+
+(ert-deftest use-package--normalize-function-test ()
+  (should (equal (use-package--normalize-function 'sym) 'sym))
+  (should (equal (use-package--normalize-function #'sym) 'sym))
+  (should (equal (use-package--normalize-function (lambda () ...)) (lambda () ...)))
+  (should (equal (use-package--normalize-function '(lambda () ...)) (lambda () ...)))
+  (should (equal (use-package--normalize-function #'(lambda () ...)) (lambda () ...))))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t

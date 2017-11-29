@@ -267,10 +267,10 @@ function symbol (unquoted)."
                (cl-mapcan
                 (lambda (form)
                   (if prefix-map
-                      `((bind-key ,(car form) ',(cdr form) ,prefix-map ,filter))
+                      `((bind-key ,(car form) #',(cdr form) ,prefix-map ,filter))
                     (if (and map (not (eq map 'global-map)))
-                        `((bind-key ,(car form) ',(cdr form) ,map ,filter))
-                      `((bind-key ,(car form) ',(cdr form) nil ,filter)))))
+                        `((bind-key ,(car form) #',(cdr form) ,map ,filter))
+                      `((bind-key ,(car form) #',(cdr form) nil ,filter)))))
                 first))
          (when next
            (bind-keys-form
@@ -305,7 +305,7 @@ function symbol (unquoted)."
   (cond
    ((listp elem)
     (cond
-     ((eq 'lambda (car elem))
+     ((memq (car elem) '(lambda function))
       (if (and bind-key-describe-special-forms
                (stringp (nth 2 elem)))
           (nth 2 elem)
