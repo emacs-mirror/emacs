@@ -1690,6 +1690,9 @@ this file.  Usage:
                  `(eval-when-compile
                     ,@(mapcar #'(lambda (var) `(defvar ,var))
                               (plist-get args :defines))
+                    ,@(mapcar #'(lambda (fn) `(declare-function
+                                          ,fn ,(use-package-as-string name)))
+                              (plist-get args :functions))
                     (with-demoted-errors
                         ,(format "Cannot load %s: %%S" name)
                       ,(if (eq use-package-verbose 'debug)
