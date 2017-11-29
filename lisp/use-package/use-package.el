@@ -829,10 +829,12 @@ If the package is installed, its entry is removed from
 ;;; :requires
 ;;
 
-(defun use-package-as-one (label args f)
-  "Call F on the first element of ARGS if it has one element, or all of ARGS."
+(defun use-package-as-one (label args f &optional allow-empty)
+  "Call F on the first element of ARGS if it has one element, or all of ARGS.
+If ALLOW-EMPTY is non-nil, it's OK for ARGS to be an empty list."
   (declare (indent 1))
-  (if (and (not (null args)) (listp args) (listp (cdr args)))
+  (if (or (and (not (null args)) (listp args) (listp (cdr args)))
+          (and allow-empty (null args)))
       (if (= (length args) 1)
           (funcall f label (car args))
         (funcall f label args))
@@ -1546,7 +1548,7 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-normalize/:diminish (name keyword args)
   (use-package-as-one (symbol-name keyword) args
-    (apply-partially #'use-package-normalize-diminish name)))
+    (apply-partially #'use-package-normalize-diminish name) t))
 
 (defun use-package-handler/:diminish (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
