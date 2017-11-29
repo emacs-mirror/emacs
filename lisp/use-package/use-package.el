@@ -371,19 +371,18 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
   (if (not use-package-inject-hooks)
       (use-package-expand name-string (format "%s" keyword) body)
     (let ((keyword-name (substring (format "%s" keyword) 1)))
-      (when body
-        `((when ,(macroexp-progn
-                  (use-package-expand name-string (format "pre-%s hook" keyword)
-                    `((run-hook-with-args-until-failure
-                       ',(intern (concat "use-package--" name-string
-                                         "--pre-" keyword-name "-hook"))))))
-            ,(macroexp-progn
-              (use-package-expand name-string (format "%s" keyword) body))
-            ,(macroexp-progn
-              (use-package-expand name-string (format "post-%s hook" keyword)
-                `((run-hooks
-                   ',(intern (concat "use-package--" name-string
-                                     "--post-" keyword-name "-hook"))))))))))))
+      `((when ,(macroexp-progn
+                (use-package-expand name-string (format "pre-%s hook" keyword)
+                  `((run-hook-with-args-until-failure
+                     ',(intern (concat "use-package--" name-string
+                                       "--pre-" keyword-name "-hook"))))))
+          ,(macroexp-progn
+            (use-package-expand name-string (format "%s" keyword) body))
+          ,(macroexp-progn
+            (use-package-expand name-string (format "post-%s hook" keyword)
+              `((run-hooks
+                 ',(intern (concat "use-package--" name-string
+                                   "--post-" keyword-name "-hook")))))))))))
 
 (defun use-package--with-elapsed-timer (text body)
   "BODY is a list of forms, so `((foo))' if only `foo' is being called."
@@ -1703,10 +1702,15 @@ this file.  Usage:
       (let ((body
              (macroexp-progn
               (use-package-process-keywords name
-                (if (and use-package-always-demand
-                         (not (memq :defer args)))
-                    (append args '(:demand t))
-                  args)
+                (let ((args* (if (and use-package-always-demand
+                                      (not (memq :defer args)))
+                                 (append args '(:demand t))
+                               args)))
+                  (unless (plist-member args* :init)
+                    (plist-put args* :init nil))
+                  (unless (plist-member args* :config)
+                    (plist-put args* :config nil))
+                  args*)
                 (and use-package-always-defer
                      (list :deferred t))))))
         (when use-package-debug
