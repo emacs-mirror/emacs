@@ -41,6 +41,7 @@
 
 (require 'bind-key)
 (require 'bytecomp)
+(require 'seq)
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'regexp-opt))
 
