@@ -161,9 +161,13 @@ can safely be called at any time."
                                (key-description ,namevar))
                              (quote ,keymap)))
             (,bindingvar (lookup-key (or ,keymap global-map) ,keyvar)))
-       (add-to-list 'personal-keybindings
-                    (list ,kdescvar ,command
-                          (unless (numberp ,bindingvar) ,bindingvar)))
+       (let ((entry (assoc ,kdescvar personal-keybindings))
+             (details (list ,command
+                            (unless (numberp ,bindingvar)
+                              ,bindingvar))))
+         (if entry
+             (setcdr entry details)
+           (add-to-list 'personal-keybindings (cons ,kdescvar details))))
        ,(if predicate
             `(define-key (or ,keymap global-map) ,keyvar
                '(menu-item "" nil :filter (lambda (&optional _)
