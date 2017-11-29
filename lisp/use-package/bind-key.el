@@ -374,8 +374,8 @@ function symbol (unquoted)."
                              (car (compare-keybindings l r))))))
 
         (if (not (eq (cdar last-binding) (cdar binding)))
-            (princ (format "\n\n%s\n%s\n\n"
-                           (cdar binding)
+            (princ (format "\n\n%s: %s\n%s\n\n"
+                           (cdar binding) (caar binding)
                            (make-string (+ 21 (car bind-key-column-widths)
                                            (cdr bind-key-column-widths)) ?-)))
           (if (and last-binding
