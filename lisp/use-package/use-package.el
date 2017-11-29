@@ -41,6 +41,7 @@
 
 (require 'bind-key)
 (require 'bytecomp)
+(require 'cl-lib)
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'regexp-opt))
 
@@ -1426,7 +1427,7 @@ deferred until the prefix key sequence is pressed."
            (or (symbolp k)
                (and (listp k)
                     (listp (cdr k))
-                    (seq-every-p #'symbolp k))))
+                    (cl-every #'symbolp k))))
        #'(lambda (v)
            (or (symbolp v) (functionp v)))
        name label arg))))
@@ -1452,7 +1453,7 @@ deferred until the prefix key sequence is pressed."
         (let ((syms (car def))
               (fun (cdr def)))
           (mapcar
-           #'(lambda (sym) 
+           #'(lambda (sym)
                `(add-hook (quote ,(intern (format "%s-hook" sym)))
                           (function ,fun)))
            (if (symbolp syms) (list syms) syms)))) args))))
