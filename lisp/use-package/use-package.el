@@ -1734,6 +1734,7 @@ this file.  Usage:
   (declare (indent 1))
   (unless (member :disabled args)
     (let ((name-symbol (if (stringp name) (intern name) name))
+          (orig-args args)
           (args (use-package-normalize-plist name args)))
       (dolist (spec use-package-defaults)
         (setq args (use-package-sort-keywords
@@ -1769,7 +1770,8 @@ this file.  Usage:
                                  (append args '(:demand t))
                                args)))
                   (when (and use-package-always-ensure
-                             (plist-member args* :load-path))
+                             (plist-member args* :load-path)
+                             (not (plist-member orig-args :ensure)))
                     (plist-put args* :ensure nil))
                   (unless (plist-member args* :init)
                     (plist-put args* :init nil))
