@@ -27,6 +27,7 @@
 - Support multiple symbols passed to `:after`, and a mini-DSL using `:all` and
   `:any`.
 - `:mode` and `:interpreter` can now accept `(rx ...)` forms.
+- Using `:load-path` without also using `:ensure` now implies `:ensure nil`.
 - `:bind (:map foo-map ...)` now defers binding in the map until the package
   has been loaded.
 - Print key bindings for keymaps in `describe-personal-keybindings`.
