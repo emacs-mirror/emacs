@@ -76,8 +76,6 @@
 ;;   (should (equal (macroexpand (use-package))
 ;;                  '())))
 
-(defvar tried-to-install)
-
 (ert-deftest use-package-test/:ensure ()
   (let ((use-package-always-ensure nil))
     (match-expansion
@@ -160,11 +158,11 @@
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil 'nil))))
 
-  (flet ((use-package-ensure-elpa
-          (name ensure state context &optional no-refresh)
-          (when ensure
-            (setq tried-to-install name))))
-    (let (tried-to-install)
+  (let (tried-to-install)
+    (flet ((use-package-ensure-elpa
+            (name ensure state context &optional no-refresh)
+            (when ensure
+              (setq tried-to-install name))))
       (eval '(use-package foo :ensure t))
       (should (eq tried-to-install 'foo)))))
 
