@@ -830,8 +830,8 @@ If the package is installed, its entry is removed from
 If ALLOW-EMPTY is non-nil, it's OK for ARGS to be an empty list."
   (declare (indent 1))
   (if (if args
-          (listp args) (listp (cdr args))
-          allow-empty)
+          (and (listp args) (listp (cdr args)))
+        allow-empty)
       (if (= (length args) 1)
           (funcall f label (car args))
         (funcall f label args))
