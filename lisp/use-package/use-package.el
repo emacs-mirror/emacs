@@ -1,13 +1,13 @@
 ;;; use-package.el --- A use-package declaration for simplifying your .emacs
 
-;; Copyright (C) 2012 John Wiegley
+;; Copyright (C) 2012-2017 John Wiegley
 
-;; Author: John Wiegley <jwiegley@gmail.com>
-;; Maintainer: John Wiegley <jwiegley@gmail.com>
+;; Author: John Wiegley <johnw@newartisans.com>
+;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 17 Jun 2012
-;; Modified: 17 Oct 2016
-;; Version: 2.3
-;; Package-Requires: ((emacs "24.3") (bind-key "1.0"))
+;; Modified: 29 Nov 2017
+;; Version: 2.4
+;; Package-Requires: ((emacs "24.3") (bind-key "2.4"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
 

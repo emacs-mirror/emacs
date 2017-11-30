@@ -1,11 +1,12 @@
 ;;; bind-key.el --- A simple way to manage personal keybindings
 
-;; Copyright (c) 2012-2015 john wiegley
+;; Copyright (c) 2012-2017 John Wiegley
 
-;; Author: John Wiegley <jwiegley@gmail.com>
-;; Maintainer: John Wiegley <jwiegley@gmail.com>
+;; Author: John Wiegley <johnw@newartisans.com>
+;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 16 Jun 2012
-;; Version: 1.0
+;; Modified: 29 Nov 2017
+;; Version: 2.4
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
