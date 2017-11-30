@@ -729,31 +729,32 @@ If the package is installed, its entry is removed from
                    "(an unquoted symbol name)")))))))
 
 (defun use-package-ensure-elpa (name ensure state context &optional no-refresh)
-  (let ((package (or (when (eq ensure t) (use-package-as-symbol name))
+  (let ((package (or (and (eq ensure t) (use-package-as-symbol name))
                      ensure)))
     (when package
       (require 'package)
       (or (package-installed-p package)
-          (not (or
-                ;; Contexts in which the confirmation prompt is
-                ;; bypassed.
-                (member context '(:byte-compile :ensure :config))
-                (y-or-n-p (format "Install package %S?" package))))
+          ;; Contexts in which the confirmation prompt is bypassed.
+          (not (or (member context '(:byte-compile :ensure :config))
+                   (y-or-n-p (format "Install package %S?" package))))
           (condition-case-unless-debug err
-              (progn
-                (when (assoc package (bound-and-true-p package-pinned-packages))
+              (let ((pinned (assoc package (bound-and-true-p
+                                            package-pinned-packages))))
+                (when pinned
                   (package-read-all-archive-contents))
-                (cond ((assoc package package-archive-contents)
-                       (package-install package)
-                       t)
-                      (t
-                       (package-refresh-contents)
-                       (when (assoc package
-                                    (bound-and-true-p package-pinned-packages))
-                         (package-read-all-archive-contents))
-                       (package-install package))))
-            (error (message "Error: Cannot load %s: %S" name err)
-                   nil))))))
+                (if (assoc package package-archive-contents)
+                    (package-install package)
+                  (package-refresh-contents)
+                  (when pinned
+                    (package-read-all-archive-contents))
+                  (package-install package))
+                t)
+            (error
+             (ignore
+              (display-warning 'use-package
+                               (format "Failed to install %s: %s"
+                                       name (error-message-string err))
+                               :error))))))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest
