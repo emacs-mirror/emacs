@@ -1014,6 +1014,7 @@ If RECURSED is non-nil, recurse into sublists."
 
 (defun use-package--recognize-function (v &optional additional-pred)
   "A predicate that recognizes functional constructions:
+  nil
   sym
   'sym
   (quote sym)
@@ -1025,11 +1026,10 @@ If RECURSED is non-nil, recurse into sublists."
   #'(lambda () ...)
   (function (lambda () ...))"
   (pcase v
-    ((pred use-package--non-nil-symbolp) t)
+    ((pred symbolp) t)
     (`(,(or `quote `function)
-       ,(pred use-package--non-nil-symbolp)) t)
-    ((pred functionp) t)
-    (`(function (lambda . ,_)) t)
+       ,(pred symbolp)) t)
+    ((pred commandp) t)
     (_ (and additional-pred
             (funcall additional-pred v)))))
 
@@ -1038,9 +1038,9 @@ If RECURSED is non-nil, recurse into sublists."
   sym
   #'(lambda () ...)"
   (pcase v
-    ((pred use-package--non-nil-symbolp) v)
+    ((pred symbolp) v)
     (`(,(or `quote `function)
-       ,(and sym (pred use-package--non-nil-symbolp))) sym)
+       ,(and sym (pred symbolp))) sym)
     (`(lambda . ,_) v)
     (`(quote ,(and lam `(lambda . ,_))) lam)
     (`(function ,(and lam `(lambda . ,_))) lam)
@@ -1057,10 +1057,12 @@ representing symbols (that may need to be autloaded)."
                               (use-package--normalize-function (cdr x)))
                       x)) args)))
     (cons nargs
-          (delete nil (mapcar #'(lambda (x)
-                                  (and (consp x)
-                                       (use-package--non-nil-symbolp (cdr x))
-                                       (cdr x))) nargs)))))
+          (delete
+           nil (mapcar
+                #'(lambda (x)
+                    (and (consp x)
+                         (use-package--non-nil-symbolp (cdr x))
+                         (cdr x))) nargs)))))
 
 (defun use-package-normalize-binder (name keyword args)
   (use-package-as-one (symbol-name keyword) args
@@ -1500,11 +1502,12 @@ representing symbols (that may need to be autloaded)."
       (lambda (def)
         (let ((syms (car def))
               (fun (cdr def)))
-          (mapcar
-           #'(lambda (sym)
-               `(add-hook (quote ,(intern (format "%s-hook" sym)))
-                          (function ,fun)))
-           (if (use-package--non-nil-symbolp syms) (list syms) syms))))
+          (when fun
+            (mapcar
+             #'(lambda (sym)
+                 `(add-hook (quote ,(intern (format "%s-hook" sym)))
+                            (function ,fun)))
+             (if (use-package--non-nil-symbolp syms) (list syms) syms)))))
       nargs))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
