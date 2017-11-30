@@ -48,6 +48,9 @@
 (declare-function package-installed-p "package")
 (declare-function package-read-all-archive-contents "package" ())
 
+(defconst use-package-version "2.4"
+  "This version of use-package.")
+
 (defgroup use-package nil
   "A use-package declaration for simplifying your `.emacs'."
   :group 'startup)
