@@ -68,9 +68,7 @@
                    (b-mode " b" foo))
                  (use-package-normalize/:delight 'foo :delight '((a-mode)
                                                                  (b-mode " b")))))
-  (should-error (use-package-normalize/:delight 'foo :delight '((:eval 1))))
-
-  )
+  (should-error (use-package-normalize/:delight 'foo :delight '((:eval 1)))))
 
 (ert-deftest use-package-normalize-diminish ()
   (should (equal (use-package-normalize-diminish 'foopkg :diminish nil)
