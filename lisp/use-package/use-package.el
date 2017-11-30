@@ -1012,7 +1012,7 @@ If RECURSED is non-nil, recurse into sublists."
              (setq last-item x))) arg)))
    (t arg)))
 
-(defun use-package--recognize-function (v &optional additional-pred)
+(defun use-package--recognize-function (v &optional binding additional-pred)
   "A predicate that recognizes functional constructions:
   nil
   sym
@@ -1026,10 +1026,12 @@ If RECURSED is non-nil, recurse into sublists."
   #'(lambda () ...)
   (function (lambda () ...))"
   (pcase v
-    ((pred symbolp) t)
+    ((and x (guard (if binding
+                       (symbolp x)
+                     (use-package--non-nil-symbolp x)))) t)
     (`(,(or `quote `function)
-       ,(pred symbolp)) t)
-    ((pred commandp) t)
+       ,(pred use-package--non-nil-symbolp)) t)
+    ((and x (guard (if binding (commandp x) (functionp x)))) t)
     (_ (and additional-pred
             (funcall additional-pred v)))))
 
@@ -1076,7 +1078,7 @@ representing symbols (that may need to be autloaded)."
            (pcase k
              ((pred stringp) t)
              ((pred vectorp) t)))
-       #'(lambda (v) (use-package--recognize-function v #'stringp))
+       #'(lambda (v) (use-package--recognize-function v t #'stringp))
        name label arg))))
 
 (defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
