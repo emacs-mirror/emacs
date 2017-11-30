@@ -1166,7 +1166,7 @@ representing symbols (that may need to be autloaded)."
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-pairs
                      #'use-package-regex-p
-                     #'(lambda (v) (use-package--recognize-function v #'null))
+                     #'use-package--recognize-function
                      name)))
 
 (defun use-package-handle-mode (name alist args rest state)
