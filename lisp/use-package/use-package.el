@@ -1765,7 +1765,8 @@ this file.  Usage:
                                       (not (memq :defer args)))
                                  (append args '(:demand t))
                                args)))
-                  (when (and (plist-member args* :load-path)
+                  (when (and use-package-always-ensure
+                             (plist-member args* :load-path)
                              (not (plist-member args* :ensure)))
                     (plist-put args* :ensure nil))
                   (unless (plist-member args* :init)
