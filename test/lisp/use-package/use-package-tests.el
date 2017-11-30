@@ -25,6 +25,19 @@
 (require 'ert)
 (require 'use-package)
 
+(defmacro expand-minimally (form)
+  `(let ((use-package-verbose nil)
+         (use-package-expand-minimally t))
+     (macroexpand ',form)))
+
+(defmacro match-expansion (form value)
+  `(should (pcase (expand-minimally ,form)
+             (,value t))))
+
+;; `cl-flet' does not work for the mocking we do below, while `flet' does.
+(eval-when-compile
+  (setplist 'flet (plist-delete (symbol-plist 'flet) 'byte-obsolete-info)))
+
 (ert-deftest use-package-test-recognize-function ()
   (should (use-package--recognize-function 'sym))
   (should (use-package--recognize-function #'sym))
@@ -63,9 +76,97 @@
 ;;   (should (equal (macroexpand (use-package))
 ;;                  '())))
 
-;; (ert-deftest use-package-test/:ensure ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(defvar tried-to-install)
+
+(ert-deftest use-package-test/:ensure ()
+  (let ((use-package-always-ensure nil))
+    (match-expansion
+     (use-package foo :ensure t)
+     `(progn
+        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure t)
+     `(progn
+        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure nil))
+    (match-expansion
+     (use-package foo :ensure nil)
+     `(progn
+        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure nil)
+     `(progn
+        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure nil))
+    (match-expansion
+     (use-package foo :load-path "foo")
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :load-path "foo")
+     `(progn
+        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure nil))
+    (match-expansion
+     (use-package foo :ensure nil :load-path "foo")
+     `(progn
+        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure nil :load-path "foo")
+     `(progn
+        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure nil))
+    (match-expansion
+     (use-package foo :ensure t :load-path "foo")
+     `(progn
+        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (require 'foo nil 'nil))))
+
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure t :load-path "foo")
+     `(progn
+        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (eval-and-compile
+          (add-to-list 'load-path ,(pred stringp)))
+        (require 'foo nil 'nil))))
+
+  (flet ((use-package-ensure-elpa
+          (name ensure state context &optional no-refresh)
+          (when ensure
+            (setq tried-to-install name))))
+    (let (tried-to-install)
+      (eval '(use-package foo :ensure t))
+      (should (eq tried-to-install 'foo)))))
 
 ;; (ert-deftest use-package-test/:if ()
 ;;   (should (equal (macroexpand (use-package))
@@ -212,9 +313,10 @@
 ;;                  '())))
 
 (ert-deftest use-package-test/:after ()
-  (should (equal (macroexpand '(use-package foo :after bar))
-                 '(eval-after-load 'bar
-                    '(require 'foo nil t)))))
+  (match-expansion
+   (use-package foo :after bar)
+   `(eval-after-load 'bar
+      '(require 'foo nil t))))
 
 ;; (ert-deftest use-package-test/:demand ()
 ;;   (should (equal (macroexpand (use-package))
