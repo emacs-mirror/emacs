@@ -1769,8 +1769,7 @@ this file.  Usage:
                                  (append args '(:demand t))
                                args)))
                   (when (and use-package-always-ensure
-                             (plist-member args* :load-path)
-                             (not (plist-member args* :ensure)))
+                             (plist-member args* :load-path))
                     (plist-put args* :ensure nil))
                   (unless (plist-member args* :init)
                     (plist-put args* :init nil))
