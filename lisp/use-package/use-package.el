@@ -1026,7 +1026,7 @@ If RECURSED is non-nil, recurse into sublists."
   (function (lambda () ...))"
   (pcase v
     ((pred use-package--non-nil-symbolp) t)
-    (`(,(or 'quote 'function)
+    (`(,(or `quote `function)
        ,(pred use-package--non-nil-symbolp)) t)
     ((pred functionp) t)
     (`(function (lambda . ,_)) t)
@@ -1039,7 +1039,7 @@ If RECURSED is non-nil, recurse into sublists."
   #'(lambda () ...)"
   (pcase v
     ((pred use-package--non-nil-symbolp) v)
-    (`(,(or 'quote 'function)
+    (`(,(or `quote `function)
        ,(and sym (pred use-package--non-nil-symbolp))) sym)
     (`(lambda . ,_) v)
     (`(quote ,(and lam `(lambda . ,_))) lam)
