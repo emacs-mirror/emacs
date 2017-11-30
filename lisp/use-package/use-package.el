@@ -722,7 +722,7 @@ If the package is installed, its entry is removed from
       t
     (use-package-only-one (symbol-name keyword) args
       (lambda (label arg)
-        (if (use-package--non-nil-symbolp arg)
+        (if (symbolp arg)
             arg
           (use-package-error
            (concat ":ensure wants an optional package name "
