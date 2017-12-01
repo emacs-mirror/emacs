@@ -739,14 +739,15 @@ If the package is installed, its entry is removed from
           (not (or (member context '(:byte-compile :ensure :config))
                    (y-or-n-p (format "Install package %S?" package))))
           (condition-case-unless-debug err
-              (let ((pinned (assoc package (bound-and-true-p
-                                            package-pinned-packages))))
-                (when pinned
+              (progn
+                (when (assoc package (bound-and-true-p
+                                      package-pinned-packages))
                   (package-read-all-archive-contents))
                 (if (assoc package package-archive-contents)
                     (package-install package)
                   (package-refresh-contents)
-                  (when pinned
+                  (when (assoc package (bound-and-true-p
+                                        package-pinned-packages))
                     (package-read-all-archive-contents))
                   (package-install package))
                 t)
