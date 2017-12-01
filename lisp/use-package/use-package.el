@@ -1763,7 +1763,9 @@ this file.  Usage:
                       ,(if (eq use-package-verbose 'debug)
                            `(message "Compiling package %s" ',name-symbol))
                       ,(unless (plist-get args :no-require)
-                         (use-package-load-name name)))))))
+                         `(load ,(if (stringp name)
+                                     name
+                                   (symbol-name name)) nil t)))))))
 
       (let ((body
              (macroexp-progn
