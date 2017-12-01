@@ -160,8 +160,8 @@ the user specified."
     :commands
     :defines
     :functions
-    :defer
     :hook
+    :defer
     :custom
     :custom-face
     :init
