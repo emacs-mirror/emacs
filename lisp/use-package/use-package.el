@@ -1768,6 +1768,10 @@ this file.  Usage:
                                      (not (memq :defer args)))
                                 (plist-put args :demand t)
                               args))))
+                      ;; The :demand keyword should not override :after
+                      (if (and (plist-member args* :after)
+                               (plist-member args* :demand))
+                          (setq args* (use-package-plist-delete args* :demand)))
                       (when (and use-package-always-ensure
                                  (plist-member args* :load-path)
                                  (not (plist-member orig-args :ensure)))

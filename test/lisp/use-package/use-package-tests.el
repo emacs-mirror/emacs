@@ -928,7 +928,25 @@
                                  (load "foo" nil t))))
         (require 'foo nil 'nil)
         (config)
-        t))))
+        t)))
+
+  ;; #529 - :demand should not override an explicit use of :after
+  (match-expansion
+   (use-package foo :demand t :after bar)
+   `(progn
+      (eval-after-load 'bar
+        '(require 'foo nil t))))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :demand t :after bar)
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (eval-after-load 'bar
+          '(require 'foo nil t))))))
 
 (ert-deftest use-package-test/:config ()
   (match-expansion
