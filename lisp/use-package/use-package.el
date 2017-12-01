@@ -1787,7 +1787,6 @@ this file.  Usage:
                (emacs-lisp-mode)
                (insert (pp-to-string body))
                (current-buffer)))))
-        (message "body = %s" body)
         body))))
 
 
