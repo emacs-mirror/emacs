@@ -1097,9 +1097,8 @@ representing symbols (that may need to be autloaded)."
         (use-package-plist-maybe-put rest :defer t))
        (use-package-plist-append state :commands commands))
      `((ignore
-        ,(macroexpand
-          `(,(if bind-macro bind-macro 'bind-keys)
-            :package ,name ,@nargs)))))))
+        (,(if bind-macro bind-macro 'bind-keys)
+         :package ,name ,@nargs))))))
 
 (defun use-package-handler/:bind* (name keyword arg rest state)
   (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
