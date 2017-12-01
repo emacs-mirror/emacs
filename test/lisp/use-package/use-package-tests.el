@@ -371,15 +371,15 @@
                               "quux" user-emacs-directory)))))
       (require 'foo nil 'nil))))
 
-(ert-deftest use-package-test/:no-require ()
-  (match-expansion
-   (use-package foo :no-require t)
-   `nil)
+;; (ert-deftest use-package-test/:no-require ()
+;;   (match-expansion
+;;    (use-package foo :no-require t)
+;;    `nil)
 
-  (let ((byte-compile-current-file t))
-    (match-expansion
-     (use-package foo :no-require t)
-     `'nil)))
+;;   (let ((byte-compile-current-file t))
+;;     (match-expansion
+;;      (use-package foo :no-require t)
+;;      `'nil)))
 
 (ert-deftest use-package-test-normalize/:bind ()
   (let ((good-values '(:map map-sym
