@@ -30,9 +30,9 @@
          (use-package-expand-minimally t))
      (macroexpand ',form)))
 
-(defmacro match-expansion (form value)
+(defmacro match-expansion (form &rest value)
   `(should (pcase (expand-minimally ,form)
-             (,value t))))
+             ,@(mapcar #'(lambda (x) (list x t)) value))))
 
 ;; `cl-flet' does not work for the mocking we do below, while `flet' does.
 (eval-when-compile
