@@ -30,7 +30,7 @@
       use-package-expand-minimally t
       max-lisp-eval-depth 8000)
 
-;; (let ((byte-compile-current-file nil)) (expand-minimally ())
+;; (let ((byte-compile-current-file nil)) (expand-minimally ()))
 (fset 'insert-expansion
       [?\C-\M-  ?\M-w ?\M-: ?\M-p ?\C-e ?\C-b ?\C-b ?\C-\M-b ?\C-y ?\C-\M-k return ?\C-\M-  ?\M-w C-return ?\C-z ?\C-n ?\C-f ?\C-y ?\C-\M-k])
 
@@ -160,13 +160,24 @@
              (config)
              t))))))
 
-;; (ert-deftest use-package-test/:pin ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:pin ()
+  (match-expansion
+   (use-package foo :pin foo)
+   `(progn
+      (use-package-pin-package 'foo "foo")
+      (require 'foo nil 'nil)))
 
-;; (ert-deftest use-package-test/:defer-install ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :pin "foo")
+   `(progn
+      (use-package-pin-package 'foo "foo")
+      (require 'foo nil 'nil))))
+
+(ert-deftest use-package-test/:defer-install ()
+  (match-expansion
+   (use-package foo :defer-install t)
+   `(progn
+      (require 'foo nil 'nil))))
 
 (ert-deftest use-package-test-normalize/:ensure ()
   (flet ((norm (&rest args)
