@@ -36,6 +36,15 @@
 
 ;; `cl-flet' does not work for the mocking we do below, while `flet' does.
 (eval-when-compile
+  (defun plist-delete (plist property)
+    "Delete PROPERTY from PLIST"
+    (let (p)
+      (while plist
+        (if (not (eq property (car plist)))
+            (setq p (plist-put p (car plist) (nth 1 plist))))
+        (setq plist (cddr plist)))
+      p))
+
   (setplist 'flet (plist-delete (symbol-plist 'flet) 'byte-obsolete-info)))
 
 (ert-deftest use-package-test-recognize-function ()
