@@ -85,6 +85,16 @@
 ;;   (should (equal (macroexpand (use-package))
 ;;                  '())))
 
+(ert-deftest use-package-test-normalize/:ensure ()
+  (flet ((norm (&rest args)
+               (apply #'use-package-normalize/:ensure
+                      'foopkg :ensure args)))
+    (should (equal (norm '(t)) t))
+    (should (equal (norm '(nil)) nil))
+    (should (equal (norm '(sym)) 'sym))
+    (should-error (norm '(1)))
+    (should-error (norm '("Hello")))))
+
 (ert-deftest use-package-test/:ensure ()
   (let ((use-package-always-ensure nil))
     (match-expansion
