@@ -42,8 +42,9 @@
 (require 'bind-key)
 (require 'bytecomp)
 (require 'cl-lib)
-(eval-when-compile (require 'cl))
-(eval-when-compile (require 'regexp-opt))
+(eval-when-compile
+  (require 'cl)
+  (require 'regexp-opt))
 
 (declare-function package-installed-p "package")
 (declare-function package-read-all-archive-contents "package" ())
@@ -683,11 +684,8 @@ If the package is installed, its entry is removed from
      (if packages
          (list
           (intern
-           (completing-read
-            "Select package: "
-            packages
-            nil
-            'require-match))
+           (completing-read "Select package: "
+                            packages nil 'require-match))
           :interactive)
        (user-error "No packages with deferred installation"))))
   (let ((spec (gethash name use-package--deferred-packages)))
@@ -960,7 +958,7 @@ If ALLOW-EMPTY is non-nil, it's OK for ARGS to be an empty list."
 (defun use-package-handler/:preface (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
-     (unless (null arg)
+     (when arg
        `((eval-and-compile ,@arg)))
      body)))
 
@@ -1450,11 +1448,13 @@ representing symbols (that may need to be autloaded)."
         (unless (or (null config-body) (equal config-body '(t)))
           `((eval-after-load ,(if (symbolp name) `',name name)
               ',(macroexp-progn config-body))))
-      ;; Here we are checking the marker value for deferred
-      ;; installation set in `use-package-handler/:ensure'. See also
+
+      ;; Here we are checking the marker value for deferred installation set
+      ;; in `use-package-handler/:ensure'. See also
       ;; `use-package-handler/:defer-install'.
       (when (eq (plist-get state :defer-install) :ensure)
         (use-package-install-deferred-package name :config))
+
       (use-package--with-elapsed-timer
           (format "Loading package %s" name)
         (if use-package-expand-minimally
