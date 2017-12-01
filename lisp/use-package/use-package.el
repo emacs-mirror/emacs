@@ -1141,17 +1141,18 @@ representing symbols (that may need to be autloaded)."
 
 (defun use-package-handler/:bind-keymap
     (name keyword arg rest state &optional override)
-  (let ((form (mapcar
-               #'(lambda (binding)
-                   `(,(if override
-                          'bind-key*
-                        'bind-key)
-                     ,(car binding)
-                     #'(lambda ()
-                         (interactive)
-                         (use-package-autoload-keymap
-                          ',(cdr binding) ',(use-package-as-symbol name)
-                          ,override)))) arg)))
+  (let ((form
+         (mapcar
+          #'(lambda (binding)
+              `(,(if override
+                     'bind-key*
+                   'bind-key)
+                ,(car binding)
+                #'(lambda ()
+                    (interactive)
+                    (use-package-autoload-keymap
+                     ',(cdr binding) ',(use-package-as-symbol name)
+                     ,override)))) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
