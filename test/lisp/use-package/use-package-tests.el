@@ -267,59 +267,59 @@
 (ert-deftest use-package-test/:if ()
   (match-expansion
    (use-package foo :if t)
-   `(if (symbol-value 't)
-        (progn
-          (require 'foo nil 'nil))))
+   `(progn
+      (when (symbol-value 't)
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :if (and t t))
-   `(if (and t t)
-        (progn
-          (require 'foo nil 'nil))))
+   `(progn
+      (when (and t t)
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :if nil)
-   `(if nil
-        (progn
-          (require 'foo nil 'nil)))))
+   `(progn
+      (when nil
+        (require 'foo nil 'nil)))))
 
 (ert-deftest use-package-test/:when ()
   (match-expansion
    (use-package foo :when t)
-   `(if (symbol-value 't)
-        (progn
-          (require 'foo nil 'nil))))
+   `(progn
+      (when (symbol-value 't)
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :when (and t t))
-   `(if (and t t)
-        (progn
-          (require 'foo nil 'nil))))
+   `(progn
+      (when (and t t)
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :when nil)
-   `(if nil
-        (progn
-          (require 'foo nil 'nil)))))
+   `(progn
+      (when nil
+        (require 'foo nil 'nil)))))
 
-(ert-deftest use-package-test/:when ()
+(ert-deftest use-package-test/:unless ()
   (match-expansion
    (use-package foo :unless t)
-   `(if (symbol-value 't)
-        nil
-      (require 'foo nil 'nil)))
+   `(progn
+      (unless (symbol-value 't)
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :unless (and t t))
-   `(if (and t t)
-        nil
-      (require 'foo nil 'nil)))
+   `(progn
+      (unless (and t t)
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :unless nil)
-   `(if nil
-        nil
-      (require 'foo nil 'nil))))
+   `(progn
+      (unless nil
+        (require 'foo nil 'nil)))))
 
 ;; (ert-deftest use-package-test/:requires ()
 ;;   (should (equal (macroexpand (use-package))
@@ -446,7 +446,8 @@
 (ert-deftest use-package-test/:defines ()
   (match-expansion
    (use-package foo :defines bar)
-   `(require 'foo nil 'nil))
+   `(progn
+      (require 'foo nil 'nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -463,7 +464,8 @@
 (ert-deftest use-package-test/:functions ()
   (match-expansion
    (use-package foo :functions bar)
-   `(require 'foo nil 'nil))
+   `(progn
+      (require 'foo nil 'nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -479,13 +481,17 @@
 
   (match-expansion
    (use-package foo :defer t :functions bar)
-   `nil)
+   `(progn))
 
-  ;; jww (2017-12-01): This exposes a bug.
-  ;; (let ((byte-compile-current-file t))
-  ;;   (match-expansion
-  ;;    (use-package foo :defer t :functions bar)
-  ;;    `'nil))
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :defer t :functions bar)
+     `(progn
+        (eval-and-compile
+          (declare-function bar "foo")
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t)))))))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -576,8 +582,9 @@
 (ert-deftest use-package-test/:after ()
   (match-expansion
    (use-package foo :after bar)
-   `(eval-after-load 'bar
-      '(require 'foo nil t))))
+   `(progn
+      (eval-after-load 'bar
+        '(require 'foo nil t)))))
 
 ;; (ert-deftest use-package-test/:demand ()
 ;;   (should (equal (macroexpand (use-package))

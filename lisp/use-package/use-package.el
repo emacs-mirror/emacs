@@ -1760,25 +1760,25 @@ this file.  Usage:
                                      (symbol-name name)) nil t)))))))))
 
       (let ((body
-             (macroexp-progn
-              (use-package-process-keywords name
-                (let ((args*
-                       (use-package-sort-keywords
-                        (if (and use-package-always-demand
-                                 (not (memq :defer args)))
-                            (plist-put args :demand t)
-                          args))))
-                  (when (and use-package-always-ensure
-                             (plist-member args* :load-path)
-                             (not (plist-member orig-args :ensure)))
-                    (plist-put args* :ensure nil))
-                  (unless (plist-member args* :init)
-                    (plist-put args* :init nil))
-                  (unless (plist-member args* :config)
-                    (plist-put args* :config '(t)))
-                  args*)
-                (and use-package-always-defer
-                     (list :deferred t))))))
+             `(progn
+                ,@(use-package-process-keywords name
+                    (let ((args*
+                           (use-package-sort-keywords
+                            (if (and use-package-always-demand
+                                     (not (memq :defer args)))
+                                (plist-put args :demand t)
+                              args))))
+                      (when (and use-package-always-ensure
+                                 (plist-member args* :load-path)
+                                 (not (plist-member orig-args :ensure)))
+                        (plist-put args* :ensure nil))
+                      (unless (plist-member args* :init)
+                        (plist-put args* :init nil))
+                      (unless (plist-member args* :config)
+                        (plist-put args* :config '(t)))
+                      args*)
+                    (and use-package-always-defer
+                         (list :deferred t))))))
         (when use-package-debug
           (display-buffer
            (save-current-buffer
@@ -1787,6 +1787,7 @@ this file.  Usage:
                (emacs-lisp-mode)
                (insert (pp-to-string body))
                (current-buffer)))))
+        (message "body = %s" body)
         body))))
 
 
