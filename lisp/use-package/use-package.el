@@ -1780,7 +1780,7 @@ this file.  Usage:
                   (unless (plist-member args* :init)
                     (plist-put args* :init nil))
                   (unless (plist-member args* :config)
-                    (plist-put args* :config nil))
+                    (plist-put args* :config '(t)))
                   args*)
                 (and use-package-always-defer
                      (list :deferred t))))))
