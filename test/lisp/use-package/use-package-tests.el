@@ -194,28 +194,28 @@
     (match-expansion
      (use-package foo :ensure t)
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (use-package-ensure-elpa 'foo 't 'nil)
         (require 'foo nil 'nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
      (use-package foo :ensure t)
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (use-package-ensure-elpa 'foo 't 'nil)
         (require 'foo nil 'nil))))
 
   (let ((use-package-always-ensure nil))
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (use-package-ensure-elpa 'foo 'nil 'nil)
         (require 'foo nil 'nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (use-package-ensure-elpa 'foo 'nil 'nil)
         (require 'foo nil 'nil))))
 
   (let ((use-package-always-ensure nil))
@@ -230,7 +230,7 @@
     (match-expansion
      (use-package foo :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (use-package-ensure-elpa 'foo 'nil 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil 'nil))))
@@ -239,7 +239,7 @@
     (match-expansion
      (use-package foo :ensure nil :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (use-package-ensure-elpa 'foo 'nil 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil 'nil))))
@@ -248,7 +248,7 @@
     (match-expansion
      (use-package foo :ensure nil :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil :ensure)
+        (use-package-ensure-elpa 'foo 'nil 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil 'nil))))
@@ -257,7 +257,7 @@
     (match-expansion
      (use-package foo :ensure t :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (use-package-ensure-elpa 'foo 't 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil 'nil))))
@@ -266,14 +266,14 @@
     (match-expansion
      (use-package foo :ensure t :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil :ensure)
+        (use-package-ensure-elpa 'foo 't 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil 'nil))))
 
   (let (tried-to-install)
     (flet ((use-package-ensure-elpa
-            (name ensure state context &optional no-refresh)
+            (name ensure state &optional no-refresh)
             (when ensure
               (setq tried-to-install name)))
            (require (&rest ignore)))

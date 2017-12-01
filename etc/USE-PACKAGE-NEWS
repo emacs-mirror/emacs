@@ -15,6 +15,9 @@
   
 - Emacs 24.3 or higher is now a requirement.
 
+- The `:defer-install` keyword has been remove. It may reappear as an add-on
+  module for use-package in a future release. See issue #442 for more details.
+
 ### Other changes
 
 - Upgrade license to GPL 3.
