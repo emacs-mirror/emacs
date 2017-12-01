@@ -139,7 +139,6 @@ the user specified."
 
 (defcustom use-package-keywords
   '(:disabled
-    :preface
     :pin
     :defer-install
     :ensure
@@ -148,6 +147,9 @@ the user specified."
     :unless
     :requires
     :load-path
+    :defines
+    :functions
+    :preface
     :no-require
     :bind
     :bind*
@@ -158,8 +160,6 @@ the user specified."
     :magic
     :magic-fallback
     :commands
-    :defines
-    :functions
     :hook
     :defer
     :custom
