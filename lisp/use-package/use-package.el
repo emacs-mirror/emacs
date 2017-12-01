@@ -1252,8 +1252,7 @@ representing symbols (that may need to be autloaded)."
 (defalias 'use-package-normalize/:defines 'use-package-normalize-symlist)
 
 (defun use-package-handler/:defines (name keyword arg rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    body))
+  (use-package-process-keywords name rest state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1263,16 +1262,7 @@ representing symbols (that may need to be autloaded)."
 (defalias 'use-package-normalize/:functions 'use-package-normalize-symlist)
 
 (defun use-package-handler/:functions (name keyword arg rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    (if (not (bound-and-true-p byte-compile-current-file))
-        body
-      (use-package-concat
-       (unless (null arg)
-         `((eval-when-compile
-             ,@(mapcar
-                #'(lambda (fn)
-                    `(declare-function ,fn ,(use-package-as-string name))) arg))))
-       body))))
+  (use-package-process-keywords name rest state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1750,22 +1740,23 @@ this file.  Usage:
       ;; scope.
       (if (bound-and-true-p byte-compile-current-file)
           (setq args
-                (use-package-plist-cons
+                (use-package-plist-append
                  args :preface
-                 `(eval-when-compile
-                    ,@(mapcar #'(lambda (var) `(defvar ,var))
-                              (plist-get args :defines))
-                    ,@(mapcar #'(lambda (fn) `(declare-function
-                                          ,fn ,(use-package-as-string name)))
-                              (plist-get args :functions))
-                    (with-demoted-errors
-                        ,(format "Cannot load %s: %%S" name)
-                      ,(if (eq use-package-verbose 'debug)
-                           `(message "Compiling package %s" ',name-symbol))
-                      ,(unless (plist-get args :no-require)
-                         `(load ,(if (stringp name)
-                                     name
-                                   (symbol-name name)) nil t)))))))
+                 (use-package-concat
+                  (mapcar #'(lambda (var) `(defvar ,var))
+                          (plist-get args :defines))
+                  (mapcar #'(lambda (fn) `(declare-function
+                                      ,fn ,(use-package-as-string name)))
+                          (plist-get args :functions))
+                  `((eval-when-compile
+                      (with-demoted-errors
+                          ,(format "Cannot load %s: %%S" name)
+                        ,(if (eq use-package-verbose 'debug)
+                             `(message "Compiling package %s" ',name-symbol))
+                        ,(unless (plist-get args :no-require)
+                           `(load ,(if (stringp name)
+                                       name
+                                     (symbol-name name)) nil t)))))))))
 
       (let ((body
              (macroexp-progn
