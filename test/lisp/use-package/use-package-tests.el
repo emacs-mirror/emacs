@@ -25,6 +25,10 @@
 (require 'ert)
 (require 'use-package)
 
+(setq use-package-always-ensure nil
+      use-package-verbose nil
+      use-package-expand-minimally t)
+
 (defmacro expand-minimally (form)
   `(let ((use-package-verbose nil)
          (use-package-expand-minimally t))
@@ -34,7 +38,6 @@
   `(should (pcase (expand-minimally ,form)
              ,@(mapcar #'(lambda (x) (list x t)) value))))
 
-;; `cl-flet' does not work for the mocking we do below, while `flet' does.
 (eval-when-compile
   (defun plist-delete (plist property)
     "Delete PROPERTY from PLIST"
@@ -45,9 +48,14 @@
         (setq plist (cddr plist)))
       p))
 
+  ;; `cl-flet' does not work for some of the mocking we do below, while `flet'
+  ;; always does.
   (setplist 'flet (plist-delete (symbol-plist 'flet) 'byte-obsolete-info)))
 
 (ert-deftest use-package-test-recognize-function ()
+  (should (use-package--recognize-function nil t))
+  (should-not (use-package--recognize-function nil))
+  (should (use-package--recognize-function t))
   (should (use-package--recognize-function 'sym))
   (should (use-package--recognize-function #'sym))
   (should (use-package--recognize-function (lambda () ...)))
@@ -59,6 +67,8 @@
   (should-not (use-package--recognize-function '(nil . nil))))
 
 (ert-deftest use-package-test-normalize-function ()
+  (should (equal (use-package--normalize-function nil) nil))
+  (should (equal (use-package--normalize-function t) t))
   (should (equal (use-package--normalize-function 'sym) 'sym))
   (should (equal (use-package--normalize-function #'sym) 'sym))
   (should (equal (use-package--normalize-function (lambda () ...)) (lambda () ...)))
@@ -69,13 +79,81 @@
   (should (equal (use-package--normalize-function "Hello") "Hello"))
   (should (equal (use-package--normalize-function '(nil . nil)) '(nil . nil))))
 
-;; (ert-deftest use-package-test/:disabled ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:disabled ()
+  (match-expansion
+   (use-package foo :disabled t)
+   `())
 
-;; (ert-deftest use-package-test/:preface ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   ;; jww (2017-11-30): Should :disabled ignore its argument?
+   (use-package foo :disabled nil)
+   `()))
+
+(ert-deftest use-package-test/:preface ()
+  (match-expansion
+   (use-package foo :preface (t))
+   `(progn
+      (eval-and-compile
+        (t))
+      (require 'foo nil 'nil)))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :preface (t))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t)))
+          (t))
+        (require 'foo nil 'nil))))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo
+       :preface (preface)
+       :init (init)
+       :config (config)
+       :functions func
+       :defines def)
+     `(progn
+        (eval-and-compile
+          (defvar def)
+          (declare-function func "foo")
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t)))
+          (preface))
+        (init)
+        (require 'foo nil 'nil)
+        (config)
+        t)))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo
+       :preface (preface)
+       :init (init)
+       :config (config)
+       :functions func
+       :defines def
+       :defer t)
+     `(progn
+        (eval-and-compile
+          (defvar def)
+          (declare-function func "foo")
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t)))
+          (preface))
+        (init)
+        (eval-after-load 'foo
+          '(progn
+             (config)
+             t))))))
 
 ;; (ert-deftest use-package-test/:pin ()
 ;;   (should (equal (macroexpand (use-package))
@@ -181,33 +259,127 @@
     (flet ((use-package-ensure-elpa
             (name ensure state context &optional no-refresh)
             (when ensure
-              (setq tried-to-install name))))
-      (eval '(use-package foo :ensure t))
+              (setq tried-to-install name)))
+           (require (&rest ignore)))
+      (use-package foo :ensure t)
       (should (eq tried-to-install 'foo)))))
 
-;; (ert-deftest use-package-test/:if ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:if ()
+  (match-expansion
+   (use-package foo :if t)
+   `(if (symbol-value 't)
+        (progn
+          (require 'foo nil 'nil))))
 
-;; (ert-deftest use-package-test/:when ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :if (and t t))
+   `(if (and t t)
+        (progn
+          (require 'foo nil 'nil))))
 
-;; (ert-deftest use-package-test/:unless ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :if nil)
+   `(if nil
+        (progn
+          (require 'foo nil 'nil)))))
+
+(ert-deftest use-package-test/:when ()
+  (match-expansion
+   (use-package foo :when t)
+   `(if (symbol-value 't)
+        (progn
+          (require 'foo nil 'nil))))
+
+  (match-expansion
+   (use-package foo :when (and t t))
+   `(if (and t t)
+        (progn
+          (require 'foo nil 'nil))))
+
+  (match-expansion
+   (use-package foo :when nil)
+   `(if nil
+        (progn
+          (require 'foo nil 'nil)))))
+
+(ert-deftest use-package-test/:when ()
+  (match-expansion
+   (use-package foo :unless t)
+   `(if (symbol-value 't)
+        nil
+      (require 'foo nil 'nil)))
+
+  (match-expansion
+   (use-package foo :unless (and t t))
+   `(if (and t t)
+        nil
+      (require 'foo nil 'nil)))
+
+  (match-expansion
+   (use-package foo :unless nil)
+   `(if nil
+        nil
+      (require 'foo nil 'nil))))
 
 ;; (ert-deftest use-package-test/:requires ()
 ;;   (should (equal (macroexpand (use-package))
 ;;                  '())))
 
-;; (ert-deftest use-package-test/:load-path ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:load-path ()
+  (match-expansion
+   (use-package foo :load-path "bar")
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path
+                     ,(pred (apply-partially
+                             #'string=
+                             (expand-file-name
+                              "bar" user-emacs-directory)))))
+      (require 'foo nil 'nil)))
 
-;; (ert-deftest use-package-test/:no-require ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :load-path ("bar" "quux"))
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path
+                     ,(pred (apply-partially
+                             #'string=
+                             (expand-file-name
+                              "bar" user-emacs-directory)))))
+      (eval-and-compile
+        (add-to-list 'load-path
+                     ,(pred (apply-partially
+                             #'string=
+                             (expand-file-name
+                              "quux" user-emacs-directory)))))
+      (require 'foo nil 'nil)))
+
+  (match-expansion
+   (use-package foo :load-path (lambda () (list "bar" "quux")))
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path
+                     ,(pred (apply-partially
+                             #'string=
+                             (expand-file-name
+                              "bar" user-emacs-directory)))))
+      (eval-and-compile
+        (add-to-list 'load-path
+                     ,(pred (apply-partially
+                             #'string=
+                             (expand-file-name
+                              "quux" user-emacs-directory)))))
+      (require 'foo nil 'nil))))
+
+(ert-deftest use-package-test/:no-require ()
+  (match-expansion
+   (use-package foo :no-require t)
+   `nil)
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :no-require t)
+     `'nil)))
 
 (ert-deftest use-package-test-normalize/:bind ()
   (let ((good-values '(:map map-sym
@@ -271,13 +443,64 @@
 ;;   (should (equal (macroexpand (use-package))
 ;;                  '())))
 
-;; (ert-deftest use-package-test/:defines ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:defines ()
+  (match-expansion
+   (use-package foo :defines bar)
+   `(require 'foo nil 'nil))
 
-;; (ert-deftest use-package-test/:functions ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :defines bar)
+     `(progn
+        (eval-and-compile
+          (defvar bar)
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t))))
+        (require 'foo nil 'nil)))))
+
+(ert-deftest use-package-test/:functions ()
+  (match-expansion
+   (use-package foo :functions bar)
+   `(require 'foo nil 'nil))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :functions bar)
+     `(progn
+        (eval-and-compile
+          (declare-function bar "foo")
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t))))
+        (require 'foo nil 'nil))))
+
+  (match-expansion
+   (use-package foo :defer t :functions bar)
+   `nil)
+
+  ;; jww (2017-12-01): This exposes a bug.
+  ;; (let ((byte-compile-current-file t))
+  ;;   (match-expansion
+  ;;    (use-package foo :defer t :functions bar)
+  ;;    `'nil))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :defer t :config (config) :functions bar)
+     `(progn
+        (eval-and-compile
+          (declare-function bar "foo")
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t))))
+        (eval-after-load 'foo
+          '(progn
+             (config)
+             t))))))
 
 ;; (ert-deftest use-package-test/:defer ()
 ;;   (should (equal (macroexpand (use-package))
@@ -302,9 +525,30 @@
                  '(((bar1 bar2) . baz)
                    ((quux1 quux2) . bow)))))
 
-;; (ert-deftest use-package-test/:hook ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:hook ()
+  (let ((byte-compile-current-file t))
+    (should
+     (equal                             ; pcase crashes
+      (expand-minimally
+       (use-package foo
+         :bind (("C-a" . key))
+         :hook (hook . fun)))
+      '(progn
+         (eval-and-compile
+           (eval-when-compile
+             (with-demoted-errors "Cannot load foo: %S" nil
+                                  (load "foo" nil t))))
+         (unless (fboundp 'fun)
+           (autoload #'fun "foo" nil t))
+         (eval-when-compile
+           (declare-function fun "foo"))
+         (unless (fboundp 'key)
+           (autoload #'key "foo" nil t))
+         (eval-when-compile
+           (declare-function key "foo"))
+         (add-hook 'hook-hook #'fun)
+         (ignore
+          (bind-keys :package foo ("C-a" . key))))))))
 
 (ert-deftest use-package-test-normalize/:custom ()
   (should-error (use-package-normalize/:custom 'foopkg :custom nil))
