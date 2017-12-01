@@ -27,7 +27,12 @@
 
 (setq use-package-always-ensure nil
       use-package-verbose nil
-      use-package-expand-minimally t)
+      use-package-expand-minimally t
+      max-lisp-eval-depth 8000)
+
+;; (let ((byte-compile-current-file nil)) (expand-minimally ())
+(fset 'insert-expansion
+      [?\C-\M-  ?\M-w ?\M-: ?\M-p ?\C-e ?\C-b ?\C-b ?\C-\M-b ?\C-y ?\C-\M-k return ?\C-\M-  ?\M-w C-return ?\C-z ?\C-n ?\C-f ?\C-y ?\C-\M-k])
 
 (defmacro expand-minimally (form)
   `(let ((use-package-verbose nil)
@@ -321,9 +326,23 @@
       (unless nil
         (require 'foo nil 'nil)))))
 
-;; (ert-deftest use-package-test/:requires ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:requires ()
+  (match-expansion
+   (use-package foo :requires bar)
+   `(progn
+      (when (not (member nil (mapcar #'featurep '(bar))))
+        (require 'foo nil 'nil))))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :requires bar)
+     `(progn
+        (when (not (member nil (mapcar #'featurep '(bar))))
+          (eval-and-compile
+            (eval-when-compile
+              (with-demoted-errors "Cannot load foo: %S" nil
+                                   (load "foo" nil t))))
+          (require 'foo nil 'nil))))))
 
 (ert-deftest use-package-test/:load-path ()
   (match-expansion
@@ -336,6 +355,22 @@
                              (expand-file-name
                               "bar" user-emacs-directory)))))
       (require 'foo nil 'nil)))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :load-path "bar")
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path
+                       ,(pred (apply-partially
+                               #'string=
+                               (expand-file-name
+                                "bar" user-emacs-directory)))))
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (require 'foo nil 'nil))))
 
   (match-expansion
    (use-package foo :load-path ("bar" "quux"))
@@ -371,77 +406,197 @@
                               "quux" user-emacs-directory)))))
       (require 'foo nil 'nil))))
 
-;; (ert-deftest use-package-test/:no-require ()
-;;   (match-expansion
-;;    (use-package foo :no-require t)
-;;    `nil)
+(ert-deftest use-package-test/:no-require ()
+  (match-expansion
+   (use-package foo :no-require t)
+   `(progn))
 
-;;   (let ((byte-compile-current-file t))
-;;     (match-expansion
-;;      (use-package foo :no-require t)
-;;      `'nil)))
+  (match-expansion
+   (use-package foo :no-require t :config (config))
+   `(progn
+      (config)
+      t))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :no-require t)
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil nil)))))))
 
 (ert-deftest use-package-test-normalize/:bind ()
-  (let ((good-values '(:map map-sym
-                            ("str" . sym) ("str" . "str")
-                            ([vec] . sym) ([vec] . "str"))))
-    (should (equal (use-package-normalize-binder
-                    'foopkg :bind good-values)
-                   good-values)))
-  (should-error (use-package-normalize-binder
-                 'foopkg :bind '("foo")))
-  (should-error (use-package-normalize-binder
-                 'foopkg :bind '("foo" . 99)))
-  (should-error (use-package-normalize-binder
-                 'foopkg :bind '(99 . sym))))
+  (flet ((norm (&rest args)
+               (apply #'use-package-normalize-binder
+                      'foopkg :bind args)))
+    (let ((good-values '(:map map-sym
+                              ("str" . sym) ("str" . "str")
+                              ([vec] . sym) ([vec] . "str"))))
+      (should (equal (norm good-values) good-values)))
+    (should-error (norm '("foo")))
+    (should-error (norm '("foo" . 99)))
+    (should-error (norm '(99 . sym)))))
 
-;; (ert-deftest use-package-test/:bind ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:bind ()
+  (match-expansion
+   (use-package foo :bind ("C-k" . key))
+   `(progn
+      (unless (fboundp 'key)
+        (autoload #'key "foo" nil t))
+      (ignore
+       (bind-keys :package foo ("C-k" . key))))))
 
-;; (ert-deftest use-package-test/:bind* ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:bind* ()
+  (match-expansion
+   (use-package foo :bind* ("C-k" . key))
+   `(progn
+      (unless (fboundp 'key)
+        (autoload #'key "foo" nil t))
+      (ignore
+       (bind-keys* :package foo ("C-k" . key))))))
 
-;; (ert-deftest use-package-test/:bind-keymap ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:bind-keymap ()
+  (match-expansion
+   (use-package foo :bind-keymap ("C-k" . key))
+   `(progn
+      (ignore
+       (bind-key "C-k"
+                 #'(lambda ()
+                     (interactive)
+                     (use-package-autoload-keymap 'key 'foo nil)))))))
 
-;; (ert-deftest use-package-test/:bind-keymap* ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:bind-keymap* ()
+  (match-expansion
+   (use-package foo :bind-keymap* ("C-k" . key))
+   `(progn
+      (ignore
+       (bind-key* "C-k"
+                  #'(lambda ()
+                      (interactive)
+                      (use-package-autoload-keymap 'key 'foo t)))))))
 
-;; (ert-deftest use-package-test/:interpreter ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:interpreter ()
+  (match-expansion
+   (use-package foo :interpreter "interp")
+   `(progn
+      (unless (fboundp 'foo)
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'interpreter-mode-alist
+                    '("interp" . foo)))))
+
+  (match-expansion
+   (use-package foo :interpreter ("interp" . fun))
+   `(progn
+      (unless (fboundp 'fun)
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'interpreter-mode-alist
+                    '("interp" . fun))))))
 
 (ert-deftest use-package-test-normalize/:mode ()
-  (should (equal (use-package-normalize-mode 'foopkg :mode '(".foo"))
-                 '((".foo" . foopkg))))
-  (should (equal (use-package-normalize-mode 'foopkg :mode '(".foo" ".bar"))
-                 '((".foo" . foopkg) (".bar" . foopkg))))
-  (should (equal (use-package-normalize-mode 'foopkg :mode '((".foo" ".bar")))
-                 '((".foo" . foopkg) (".bar" . foopkg))))
-  (should (equal (use-package-normalize-mode 'foopkg :mode '((".foo")))
-                 '((".foo" . foopkg))))
-  (should (equal (use-package-normalize-mode 'foopkg :mode '((".foo" . foo) (".bar" . bar)))
-                 '((".foo" . foo) (".bar" . bar)))))
+  (flet ((norm (&rest args)
+               (apply #'use-package-normalize/:mode
+                      'foopkg :mode args)))
+    (should (equal (norm '(".foo"))
+                   '((".foo" . foopkg))))
+    (should (equal (norm '(".foo" ".bar"))
+                   '((".foo" . foopkg) (".bar" . foopkg))))
+    (should (equal (norm '((".foo" ".bar")))
+                   '((".foo" . foopkg) (".bar" . foopkg))))
+    (should (equal (norm '((".foo")))
+                   '((".foo" . foopkg))))
+    (should (equal (norm '((".foo" . foo) (".bar" . bar)))
+                   '((".foo" . foo) (".bar" . bar))))))
 
-;; (ert-deftest use-package-test/:mode ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:mode ()
+  (match-expansion
+   (use-package foo :mode "interp")
+   `(progn
+      (unless (fboundp 'foo)
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'auto-mode-alist
+                    '("interp" . foo)))))
 
-;; (ert-deftest use-package-test/:magic ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :mode ("interp" . fun))
+   `(progn
+      (unless (fboundp 'fun)
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'auto-mode-alist
+                    '("interp" . fun))))))
 
-;; (ert-deftest use-package-test/:magic-fallback ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:magic ()
+  (match-expansion
+   (use-package foo :magic "interp")
+   `(progn
+      (unless (fboundp 'foo)
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'magic-mode-alist
+                    '("interp" . foo)))))
 
-;; (ert-deftest use-package-test/:commands ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :magic ("interp" . fun))
+   `(progn
+      (unless (fboundp 'fun)
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'magic-mode-alist
+                    '("interp" . fun))))))
+
+(ert-deftest use-package-test/:magic-fallback ()
+  (match-expansion
+   (use-package foo :magic-fallback "interp")
+   `(progn
+      (unless (fboundp 'foo)
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'magic-fallback-mode-alist
+                    '("interp" . foo)))))
+
+  (match-expansion
+   (use-package foo :magic-fallback ("interp" . fun))
+   `(progn
+      (unless (fboundp 'fun)
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'magic-fallback-mode-alist
+                    '("interp" . fun))))))
+
+(ert-deftest use-package-test/:commands ()
+  (match-expansion
+   (use-package foo :commands bar)
+   `(progn
+      (unless (fboundp 'bar)
+        (autoload #'bar "foo" nil t))))
+
+  (match-expansion
+   (use-package foo :commands (bar quux))
+   `(progn
+      (unless (fboundp 'bar)
+        (autoload #'bar "foo" nil t))
+      (unless (fboundp 'quux)
+        (autoload #'quux "foo" nil t))))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :commands (bar quux))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (unless (fboundp 'bar)
+          (autoload #'bar "foo" nil t))
+        (eval-when-compile
+          (declare-function bar "foo"))
+        (unless (fboundp 'quux)
+          (autoload #'quux "foo" nil t))
+        (eval-when-compile
+          (declare-function quux "foo"))))))
 
 (ert-deftest use-package-test/:defines ()
   (match-expansion
@@ -508,28 +663,54 @@
              (config)
              t))))))
 
-;; (ert-deftest use-package-test/:defer ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:defer ()
+  (match-expansion
+   (use-package foo)
+   `(progn
+      (require 'foo nil 'nil)))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo)
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (require 'foo nil 'nil))))
+
+  (match-expansion
+   (use-package foo :defer t)
+   `(progn))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :defer t)
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))))))
 
 (ert-deftest use-package-test-normalize/:hook ()
-  (should-error (use-package-normalize/:hook 'foopkg :hook nil))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '(bar))
-                 '((bar . foopkg))))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '((bar . baz)))
-                 '((bar . baz))))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '(((bar baz) . quux)))
-                 '(((bar baz) . quux))))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '(bar baz))
-                 '(((bar baz) . foopkg))))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '((bar baz) (quux bow)))
-                 '(((bar baz) . foopkg) ((quux bow) . foopkg))))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '((bar . baz) (quux . bow)))
-                 '((bar . baz) (quux . bow))))
-  (should (equal (use-package-normalize/:hook 'foopkg :hook '(((bar1 bar2) . baz)
-                                                              ((quux1 quux2) . bow)))
-                 '(((bar1 bar2) . baz)
-                   ((quux1 quux2) . bow)))))
+  (flet ((norm (&rest args)
+               (apply #'use-package-normalize/:hook
+                      'foopkg :hook args)))
+    (should-error (norm nil))
+    (should (equal (norm '(bar))
+                   '((bar . foopkg))))
+    (should (equal (norm '((bar . baz)))
+                   '((bar . baz))))
+    (should (equal (norm '(((bar baz) . quux)))
+                   '(((bar baz) . quux))))
+    (should (equal (norm '(bar baz))
+                   '(((bar baz) . foopkg))))
+    (should (equal (norm '((bar baz) (quux bow)))
+                   '(((bar baz) . foopkg) ((quux bow) . foopkg))))
+    (should (equal (norm '((bar . baz) (quux . bow)))
+                   '((bar . baz) (quux . bow))))
+    (should (equal (norm '(((bar1 bar2) . baz) ((quux1 quux2) . bow)))
+                   '(((bar1 bar2) . baz) ((quux1 quux2) . bow))))))
 
 (ert-deftest use-package-test/:hook ()
   (let ((byte-compile-current-file t))
@@ -557,42 +738,227 @@
           (bind-keys :package foo ("C-a" . key))))))))
 
 (ert-deftest use-package-test-normalize/:custom ()
-  (should-error (use-package-normalize/:custom 'foopkg :custom nil))
-  (should-error (use-package-normalize/:custom 'foopkg :custom '(bar)))
-  ;; (should-error (use-package-normalize/:custom 'foopkg :custom '((foo bar baz quux))))
-  (should (equal (use-package-normalize/:custom 'foopkg :custom '(foo bar))
-                 '((foo bar))))
-  ;; (should-error (use-package-normalize/:custom 'foopkg :custom '(foo bar baz)))
-  ;; (should (equal (use-package-normalize/:custom 'foopkg :custom '(foo bar "baz"))
-  ;;                '((foo bar baz))))
-  )
+  (flet ((norm (&rest args)
+               (apply #'use-package-normalize/:custom
+                      'foopkg :custom args)))
+    (should-error (norm nil))
+    (should-error (norm '(bar)))
+    ;; (should-error (norm '((foo bar baz quux))))
+    (should (equal (norm '(foo bar)) '((foo bar))))
+    ;; (should-error (norm '(foo bar baz)))
+    ;; (should (equal (norm '(foo bar "baz"))
+    ;;                '((foo bar baz))))
+    ))
 
-;; (ert-deftest use-package-test/:custom ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:custom ()
+  (match-expansion
+   (use-package foo :custom (foo bar))
+   `(progn
+      (customize-set-variable 'foo bar "Customized with use-package foo")
+      (require 'foo nil 'nil))))
 
-;; (ert-deftest use-package-test/:custom-face ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:custom-face ()
+  (match-expansion
+   (use-package foo :custom-face (foo ((t (:background "#e4edfc")))))
+   `(progn
+      (custom-set-faces '(foo ((t (:background "#e4edfc")))))
+      (require 'foo nil 'nil))))
 
-;; (ert-deftest use-package-test/:init ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:init ()
+  (match-expansion
+   (use-package foo :init (init))
+   `(progn
+      (init)
+      (require 'foo nil 'nil)))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :init (init))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (init)
+        (require 'foo nil 'nil)))))
 
 (ert-deftest use-package-test/:after ()
   (match-expansion
    (use-package foo :after bar)
    `(progn
       (eval-after-load 'bar
-        '(require 'foo nil t)))))
+        '(require 'foo nil t))))
 
-;; (ert-deftest use-package-test/:demand ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :after bar)
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (eval-after-load 'bar
+          '(require 'foo nil t)))))
 
-;; (ert-deftest use-package-test/:config ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+  (match-expansion
+   (use-package foo :after (bar quux))
+   `(progn
+      (eval-after-load 'quux
+        '(eval-after-load 'bar
+           '(require 'foo nil t)))))
+
+  (match-expansion
+   (use-package foo :after (:all bar quux))
+   `(progn
+      (eval-after-load 'quux
+        '(eval-after-load 'bar
+           '(require 'foo nil t)))))
+
+  (match-expansion
+   (use-package foo :after (:any bar quux))
+   `(progn
+      (progn
+        (eval-after-load 'bar
+          '(require 'foo nil t))
+        (eval-after-load 'quux
+          '(require 'foo nil t)))))
+
+  (match-expansion
+   (use-package foo :after (:all (:any bar quux) bow))
+   `(progn
+      (eval-after-load 'bow
+        '(progn
+           (eval-after-load 'bar
+             '(require 'foo nil t))
+           (eval-after-load 'quux
+             '(require 'foo nil t))))))
+
+  (match-expansion
+   (use-package foo :after (:any (:all bar quux) bow))
+   `(progn
+      (progn
+        (eval-after-load 'quux
+          '(eval-after-load 'bar
+             '(require 'foo nil t)))
+        (eval-after-load 'bow
+          '(require 'foo nil t)))))
+
+  (match-expansion
+   (use-package foo :after (:all (:any bar quux) (:any bow baz)))
+   `(progn
+      (progn
+        (eval-after-load 'bow
+          '(progn
+             (eval-after-load 'bar
+               '(require 'foo nil t))
+             (eval-after-load 'quux
+               '(require 'foo nil t))))
+        (eval-after-load 'baz
+          '(progn
+             (eval-after-load 'bar
+               '(require 'foo nil t))
+             (eval-after-load 'quux
+               '(require 'foo nil t)))))))
+
+  (match-expansion
+   (use-package foo :after (:any (:all bar quux) (:all bow baz)))
+   `(progn
+      (progn
+        (eval-after-load 'quux
+          '(eval-after-load 'bar
+             '(require 'foo nil t)))
+        (eval-after-load 'baz
+          '(eval-after-load 'bow
+             '(require 'foo nil t))))))
+
+  (match-expansion
+   (use-package foo :after (:any (:all bar quux) (:any bow baz)))
+   `(progn
+      (progn
+        (eval-after-load 'quux
+          '(eval-after-load 'bar
+             '(require 'foo nil t)))
+        (progn
+          (eval-after-load 'bow
+            '(require 'foo nil t))
+          (eval-after-load 'baz
+            '(require 'foo nil t)))))))
+
+(ert-deftest use-package-test/:demand ()
+  (match-expansion
+   (use-package foo :demand t)
+   `(progn
+      (require 'foo nil 'nil)))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :demand t)
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (require 'foo nil 'nil))))
+
+  (match-expansion
+   (use-package foo :demand t :config (config))
+   `(progn
+      (require 'foo nil 'nil)
+      (config)
+      t))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :demand t :config (config))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (require 'foo nil 'nil)
+        (config)
+        t))))
+
+(ert-deftest use-package-test/:config ()
+  (match-expansion
+   (use-package foo :config (config))
+   `(progn
+      (require 'foo nil 'nil)
+      (config)
+      t))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :config (config))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (require 'foo nil 'nil)
+        (config)
+        t)))
+
+  (match-expansion
+   (use-package foo :defer t :config (config))
+   `(progn
+      (eval-after-load 'foo
+        '(progn
+           (config)
+           t))))
+
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package foo :defer t :config (config))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load foo: %S" nil
+                                 (load "foo" nil t))))
+        (eval-after-load 'foo
+          '(progn
+             (config)
+             t))))))
 
 (ert-deftest use-package-test-normalize/:diminish ()
   (should (equal (use-package-normalize-diminish 'foopkg :diminish nil)
@@ -606,9 +972,35 @@
   (should (equal (use-package-normalize-diminish 'foopkg :diminish '(foo . "bar"))
                  '((foo . "bar")))))
 
-;; (ert-deftest use-package-test/:diminish ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:diminish ()
+  (match-expansion
+   (use-package foo :diminish nil)
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'diminish)
+          (diminish 'foo-mode))))
+
+  (match-expansion
+   (use-package foo :diminish bar)
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'diminish)
+          (diminish 'bar))))
+
+  (match-expansion
+   (use-package foo :diminish "bar")
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'diminish)
+          (diminish 'foo-mode "bar"))))
+
+
+  (match-expansion
+   (use-package foo :diminish (foo . "bar"))
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'diminish)
+          (diminish 'foo "bar")))))
 
 (ert-deftest use-package-test-normalize/:delight ()
   (should (equal `((foo-mode nil foo))
@@ -623,19 +1015,59 @@
                  (use-package-normalize/:delight 'foo :delight '("abc"))))
   (should (equal `((foo-mode (:eval 1) foo))
                  (use-package-normalize/:delight 'foo :delight '('(:eval 1)))))
-  (should (equal `((a-mode nil foo)
-                   (b-mode " b" foo))
-                 (use-package-normalize/:delight 'foo :delight '((a-mode)
-                                                                 (b-mode " b")))))
+  (should (equal (use-package-normalize/:delight 'foo :delight '((a-mode) (b-mode " b")))
+                 `((a-mode nil foo) (b-mode " b" foo))))
   (should-error (use-package-normalize/:delight 'foo :delight '((:eval 1)))))
 
-;; (ert-deftest use-package-test/:delight ()
-;;   (should (equal (macroexpand (use-package))
-;;                  '())))
+(ert-deftest use-package-test/:delight ()
+  (match-expansion
+   (use-package foo :delight)
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'delight)
+          (delight '((foo-mode nil foo))))))
+
+  (should-error
+   (match-expansion
+    (use-package foo :delight nil)
+    `(progn
+       (require 'foo nil 'nil)
+       (if (fboundp 'diminish)
+           (diminish 'foo-mode)))))
+
+  (match-expansion
+   (use-package foo :delight bar)
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'delight)
+          (delight '((bar nil foo))))))
+
+  (match-expansion
+   (use-package foo :delight "bar")
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'delight)
+          (delight '((foo-mode "bar" foo))))))
+
+  (should-error
+   (match-expansion
+    (use-package foo :delight (foo . "bar"))
+    `(progn
+       (require 'foo nil 'nil)
+       (if (fboundp 'diminish)
+           (diminish 'foo "bar")))))
+
+  (match-expansion
+   (use-package foo :delight (foo "bar"))
+   `(progn
+      (require 'foo nil 'nil)
+      (if (fboundp 'delight)
+          (delight '((foo "bar" foo)))))))
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:
+
 ;;; use-package-tests.el ends here
