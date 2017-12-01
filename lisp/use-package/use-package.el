@@ -933,7 +933,8 @@ If ALLOW-EMPTY is non-nil, it's OK for ARGS to be an empty list."
 
 (defun use-package-handler/:no-require (name keyword arg rest state)
   ;; This keyword has no functional meaning.
-  (use-package-process-keywords name rest state))
+  (use-package-process-keywords name rest
+    (plist-put state :no-require t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1459,12 +1460,15 @@ representing symbols (that may need to be autloaded)."
           (format "Loading package %s" name)
         (if use-package-expand-minimally
             (use-package-concat
-             (list (use-package-load-name name))
+             (unless (plist-get state ':no-require)
+               (list (use-package-load-name name)))
              config-body)
-          `((if (not ,(use-package-load-name name t))
-                (ignore
-                 (message (format "Cannot load %s" ',name)))
-              ,@config-body)))))))
+          (if (plist-get state ':no-require)
+              config-body
+            `((if (not ,(use-package-load-name name t))
+                  (ignore
+                   (message (format "Cannot load %s" ',name)))
+                ,@config-body))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
