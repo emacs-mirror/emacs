@@ -1741,11 +1741,10 @@ this file.  Usage:
           (orig-args args)
           (args (use-package-normalize-plist name args)))
       (dolist (spec use-package-defaults)
-        (setq args (use-package-sort-keywords
-                    (if (eval (nth 2 spec))
-                        (use-package-plist-maybe-put
-                         args (nth 0 spec) (eval (nth 1 spec)))
-                      args))))
+        (setq args (if (eval (nth 2 spec))
+                       (use-package-plist-maybe-put
+                        args (nth 0 spec) (eval (nth 1 spec)))
+                     args)))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
       ;; scope.
@@ -1769,10 +1768,12 @@ this file.  Usage:
       (let ((body
              (macroexp-progn
               (use-package-process-keywords name
-                (let ((args* (if (and use-package-always-demand
-                                      (not (memq :defer args)))
-                                 (append args '(:demand t))
-                               args)))
+                (let ((args*
+                       (use-package-sort-keywords
+                        (if (and use-package-always-demand
+                                 (not (memq :defer args)))
+                            (plist-put args :demand t)
+                          args))))
                   (when (and use-package-always-ensure
                              (plist-member args* :load-path)
                              (not (plist-member orig-args :ensure)))
