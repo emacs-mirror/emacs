@@ -305,8 +305,8 @@ appended."
   "Return a form which will load or require NAME depending on
 whether it's a string or symbol."
   (if (stringp name)
-      `(load ,name ',noerror)
-    `(require ',name nil ',noerror)))
+      `(load ,name ,noerror)
+    `(require ',name nil ,noerror)))
 
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
@@ -345,6 +345,20 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
               `((run-hooks
                  ',(intern (concat "use-package--" name-string
                                    "--post-" keyword-name "-hook")))))))))))
+
+(defun use-package--require (name &optional no-require body)
+  (use-package--with-elapsed-timer
+      (format "Loading package %s" name)
+    (if use-package-expand-minimally
+        (use-package-concat
+         (unless no-require
+           (list (use-package-load-name name)))
+         body)
+      (if no-require
+          body
+        `((if (not ,(use-package-load-name name t))
+              (ignore (message (format "Cannot load %s" ',name)))
+            ,@body))))))
 
 (defun use-package--with-elapsed-timer (text body)
   "BODY is a list of forms, so `((foo))' if only `foo' is being called."
@@ -1204,7 +1218,7 @@ representing symbols (that may need to be autloaded)."
        (list (funcall
               (use-package-require-after-load arg)
               (macroexp-progn
-               `((require (quote ,name) nil t))))))
+               (use-package--require name)))))
      body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1262,20 +1276,8 @@ representing symbols (that may need to be autloaded)."
         (unless (or (null config-body) (equal config-body '(t)))
           `((eval-after-load ,(if (symbolp name) `',name name)
               ',(macroexp-progn config-body))))
-
-      (use-package--with-elapsed-timer
-          (format "Loading package %s" name)
-        (if use-package-expand-minimally
-            (use-package-concat
-             (unless (plist-get state ':no-require)
-               (list (use-package-load-name name)))
-             config-body)
-          (if (plist-get state ':no-require)
-              config-body
-            `((if (not ,(use-package-load-name name t))
-                  (ignore
-                   (message (format "Cannot load %s" ',name)))
-                ,@config-body))))))))
+      (use-package--require name (plist-get state ':no-require)
+                            config-body))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

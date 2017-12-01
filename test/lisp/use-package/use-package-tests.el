@@ -100,7 +100,7 @@
    `(progn
       (eval-and-compile
         (t))
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -112,7 +112,7 @@
                 "Cannot load foo: %S" nil
                 (load "foo" nil t)))
           (t))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -132,7 +132,7 @@
                 (load "foo" nil t)))
           (preface))
         (init)
-        (require 'foo nil 'nil)
+        (require 'foo nil nil)
         (config)
         t)))
 
@@ -165,19 +165,19 @@
    (use-package foo :pin foo)
    `(progn
       (use-package-pin-package 'foo "foo")
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (match-expansion
    (use-package foo :pin "foo")
    `(progn
       (use-package-pin-package 'foo "foo")
-      (require 'foo nil 'nil))))
+      (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:defer-install ()
   (match-expansion
    (use-package foo :defer-install t)
    `(progn
-      (require 'foo nil 'nil))))
+      (require 'foo nil nil))))
 
 (ert-deftest use-package-test-normalize/:ensure ()
   (flet ((norm (&rest args)
@@ -195,28 +195,28 @@
      (use-package foo :ensure t)
      `(progn
         (use-package-ensure-elpa 'foo 't 'nil)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
      (use-package foo :ensure t)
      `(progn
         (use-package-ensure-elpa 'foo 't 'nil)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure nil))
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
         (use-package-ensure-elpa 'foo 'nil 'nil)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
         (use-package-ensure-elpa 'foo 'nil 'nil)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure nil))
     (match-expansion
@@ -224,7 +224,7 @@
      `(progn
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
@@ -233,7 +233,7 @@
         (use-package-ensure-elpa 'foo 'nil 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure nil))
     (match-expansion
@@ -242,7 +242,7 @@
         (use-package-ensure-elpa 'foo 'nil 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
@@ -251,7 +251,7 @@
         (use-package-ensure-elpa 'foo 'nil 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure nil))
     (match-expansion
@@ -260,7 +260,7 @@
         (use-package-ensure-elpa 'foo 't 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((use-package-always-ensure t))
     (match-expansion
@@ -269,7 +269,7 @@
         (use-package-ensure-elpa 'foo 't 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let (tried-to-install)
     (flet ((use-package-ensure-elpa
@@ -285,64 +285,64 @@
    (use-package foo :if t)
    `(progn
       (when (symbol-value 't)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :if (and t t))
    `(progn
       (when (and t t)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :if nil)
    `(progn
       (when nil
-        (require 'foo nil 'nil)))))
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:when ()
   (match-expansion
    (use-package foo :when t)
    `(progn
       (when (symbol-value 't)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :when (and t t))
    `(progn
       (when (and t t)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :when nil)
    `(progn
       (when nil
-        (require 'foo nil 'nil)))))
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:unless ()
   (match-expansion
    (use-package foo :unless t)
    `(progn
       (unless (symbol-value 't)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :unless (and t t))
    `(progn
       (unless (and t t)
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :unless nil)
    `(progn
       (unless nil
-        (require 'foo nil 'nil)))))
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:requires ()
   (match-expansion
    (use-package foo :requires bar)
    `(progn
       (when (not (member nil (mapcar #'featurep '(bar))))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -353,7 +353,7 @@
             (eval-when-compile
               (with-demoted-errors "Cannot load foo: %S" nil
                                    (load "foo" nil t))))
-          (require 'foo nil 'nil))))))
+          (require 'foo nil nil))))))
 
 (ert-deftest use-package-test/:load-path ()
   (match-expansion
@@ -365,7 +365,7 @@
                              #'string=
                              (expand-file-name
                               "bar" user-emacs-directory)))))
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -381,7 +381,7 @@
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :load-path ("bar" "quux"))
@@ -398,7 +398,7 @@
                              #'string=
                              (expand-file-name
                               "quux" user-emacs-directory)))))
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (match-expansion
    (use-package foo :load-path (lambda () (list "bar" "quux")))
@@ -415,7 +415,7 @@
                              #'string=
                              (expand-file-name
                               "quux" user-emacs-directory)))))
-      (require 'foo nil 'nil))))
+      (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:no-require ()
   (match-expansion
@@ -613,7 +613,7 @@
   (match-expansion
    (use-package foo :defines bar)
    `(progn
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -625,13 +625,13 @@
             (with-demoted-errors
                 "Cannot load foo: %S" nil
                 (load "foo" nil t))))
-        (require 'foo nil 'nil)))))
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:functions ()
   (match-expansion
    (use-package foo :functions bar)
    `(progn
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -643,7 +643,7 @@
             (with-demoted-errors
                 "Cannot load foo: %S" nil
                 (load "foo" nil t))))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :defer t :functions bar)
@@ -678,7 +678,7 @@
   (match-expansion
    (use-package foo)
    `(progn
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -688,7 +688,7 @@
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :defer t)
@@ -766,21 +766,21 @@
    (use-package foo :custom (foo bar))
    `(progn
       (customize-set-variable 'foo bar "Customized with use-package foo")
-      (require 'foo nil 'nil))))
+      (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:custom-face ()
   (match-expansion
    (use-package foo :custom-face (foo ((t (:background "#e4edfc")))))
    `(progn
       (custom-set-faces '(foo ((t (:background "#e4edfc")))))
-      (require 'foo nil 'nil))))
+      (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:init ()
   (match-expansion
    (use-package foo :init (init))
    `(progn
       (init)
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -791,14 +791,14 @@
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
         (init)
-        (require 'foo nil 'nil)))))
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:after ()
   (match-expansion
    (use-package foo :after bar)
    `(progn
       (eval-after-load 'bar
-        '(require 'foo nil t))))
+        '(require 'foo nil nil))))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -809,30 +809,30 @@
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
         (eval-after-load 'bar
-          '(require 'foo nil t)))))
+          '(require 'foo nil nil)))))
 
   (match-expansion
    (use-package foo :after (bar quux))
    `(progn
       (eval-after-load 'quux
         '(eval-after-load 'bar
-           '(require 'foo nil t)))))
+           '(require 'foo nil nil)))))
 
   (match-expansion
    (use-package foo :after (:all bar quux))
    `(progn
       (eval-after-load 'quux
         '(eval-after-load 'bar
-           '(require 'foo nil t)))))
+           '(require 'foo nil nil)))))
 
   (match-expansion
    (use-package foo :after (:any bar quux))
    `(progn
       (progn
         (eval-after-load 'bar
-          '(require 'foo nil t))
+          '(require 'foo nil nil))
         (eval-after-load 'quux
-          '(require 'foo nil t)))))
+          '(require 'foo nil nil)))))
 
   (match-expansion
    (use-package foo :after (:all (:any bar quux) bow))
@@ -840,9 +840,9 @@
       (eval-after-load 'bow
         '(progn
            (eval-after-load 'bar
-             '(require 'foo nil t))
+             '(require 'foo nil nil))
            (eval-after-load 'quux
-             '(require 'foo nil t))))))
+             '(require 'foo nil nil))))))
 
   (match-expansion
    (use-package foo :after (:any (:all bar quux) bow))
@@ -850,9 +850,9 @@
       (progn
         (eval-after-load 'quux
           '(eval-after-load 'bar
-             '(require 'foo nil t)))
+             '(require 'foo nil nil)))
         (eval-after-load 'bow
-          '(require 'foo nil t)))))
+          '(require 'foo nil nil)))))
 
   (match-expansion
    (use-package foo :after (:all (:any bar quux) (:any bow baz)))
@@ -861,15 +861,15 @@
         (eval-after-load 'bow
           '(progn
              (eval-after-load 'bar
-               '(require 'foo nil t))
+               '(require 'foo nil nil))
              (eval-after-load 'quux
-               '(require 'foo nil t))))
+               '(require 'foo nil nil))))
         (eval-after-load 'baz
           '(progn
              (eval-after-load 'bar
-               '(require 'foo nil t))
+               '(require 'foo nil nil))
              (eval-after-load 'quux
-               '(require 'foo nil t)))))))
+               '(require 'foo nil nil)))))))
 
   (match-expansion
    (use-package foo :after (:any (:all bar quux) (:all bow baz)))
@@ -877,10 +877,10 @@
       (progn
         (eval-after-load 'quux
           '(eval-after-load 'bar
-             '(require 'foo nil t)))
+             '(require 'foo nil nil)))
         (eval-after-load 'baz
           '(eval-after-load 'bow
-             '(require 'foo nil t))))))
+             '(require 'foo nil nil))))))
 
   (match-expansion
    (use-package foo :after (:any (:all bar quux) (:any bow baz)))
@@ -888,18 +888,18 @@
       (progn
         (eval-after-load 'quux
           '(eval-after-load 'bar
-             '(require 'foo nil t)))
+             '(require 'foo nil nil)))
         (progn
           (eval-after-load 'bow
-            '(require 'foo nil t))
+            '(require 'foo nil nil))
           (eval-after-load 'baz
-            '(require 'foo nil t)))))))
+            '(require 'foo nil nil)))))))
 
 (ert-deftest use-package-test/:demand ()
   (match-expansion
    (use-package foo :demand t)
    `(progn
-      (require 'foo nil 'nil)))
+      (require 'foo nil nil)))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -909,12 +909,12 @@
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
-        (require 'foo nil 'nil))))
+        (require 'foo nil nil))))
 
   (match-expansion
    (use-package foo :demand t :config (config))
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (config)
       t))
 
@@ -926,7 +926,7 @@
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
-        (require 'foo nil 'nil)
+        (require 'foo nil nil)
         (config)
         t)))
 
@@ -935,7 +935,7 @@
    (use-package foo :demand t :after bar)
    `(progn
       (eval-after-load 'bar
-        '(require 'foo nil t))))
+        '(require 'foo nil nil))))
 
   (let ((byte-compile-current-file t))
     (match-expansion
@@ -946,13 +946,13 @@
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
         (eval-after-load 'bar
-          '(require 'foo nil t))))))
+          '(require 'foo nil nil))))))
 
 (ert-deftest use-package-test/:config ()
   (match-expansion
    (use-package foo :config (config))
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (config)
       t))
 
@@ -964,7 +964,7 @@
           (eval-when-compile
             (with-demoted-errors "Cannot load foo: %S" nil
                                  (load "foo" nil t))))
-        (require 'foo nil 'nil)
+        (require 'foo nil nil)
         (config)
         t)))
 
@@ -1005,21 +1005,21 @@
   (match-expansion
    (use-package foo :diminish nil)
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'diminish)
           (diminish 'foo-mode))))
 
   (match-expansion
    (use-package foo :diminish bar)
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'diminish)
           (diminish 'bar))))
 
   (match-expansion
    (use-package foo :diminish "bar")
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'diminish)
           (diminish 'foo-mode "bar"))))
 
@@ -1027,7 +1027,7 @@
   (match-expansion
    (use-package foo :diminish (foo . "bar"))
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'diminish)
           (diminish 'foo "bar")))))
 
@@ -1052,7 +1052,7 @@
   (match-expansion
    (use-package foo :delight)
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'delight)
           (delight '((foo-mode nil foo))))))
 
@@ -1060,21 +1060,21 @@
    (match-expansion
     (use-package foo :delight nil)
     `(progn
-       (require 'foo nil 'nil)
+       (require 'foo nil nil)
        (if (fboundp 'diminish)
            (diminish 'foo-mode)))))
 
   (match-expansion
    (use-package foo :delight bar)
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'delight)
           (delight '((bar nil foo))))))
 
   (match-expansion
    (use-package foo :delight "bar")
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'delight)
           (delight '((foo-mode "bar" foo))))))
 
@@ -1082,14 +1082,14 @@
    (match-expansion
     (use-package foo :delight (foo . "bar"))
     `(progn
-       (require 'foo nil 'nil)
+       (require 'foo nil nil)
        (if (fboundp 'diminish)
            (diminish 'foo "bar")))))
 
   (match-expansion
    (use-package foo :delight (foo "bar"))
    `(progn
-      (require 'foo nil 'nil)
+      (require 'foo nil nil)
       (if (fboundp 'delight)
           (delight '((foo "bar" foo)))))))
 
