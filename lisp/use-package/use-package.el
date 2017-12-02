@@ -192,7 +192,7 @@ Must be set before loading use-package."
 
 (defcustom use-package-ensure-function 'use-package-ensure-elpa
   "Function that ensures a package is installed.
-This function is called with four arguments: the name of the
+This function is called with three arguments: the name of the
 package declared in the `use-package' form; the argument passed
 to `:ensure'; and the current `state' plist created by previous
 handlers.
