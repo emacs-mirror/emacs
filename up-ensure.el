@@ -35,6 +35,10 @@
 
 (require 'up-core)
 
+(eval-when-compile
+  (declare-function package-installed-p "package")
+  (declare-function package-read-all-archive-contents "package" ()))
+
 (defcustom use-package-always-ensure nil
   "Treat every package as though it had specified using `:ensure SEXP'.
 See also `use-package-defaults', which uses this value."
