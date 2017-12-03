@@ -245,6 +245,8 @@ Must be set before loading use-package."
 
 (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
 
+(defvar use-package--hush-function)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Utility functions
@@ -1113,8 +1115,8 @@ deferred until the prefix key sequence is pressed."
                               ',(use-package-as-symbol name) nil t)))
      (if (or (not arg) (null body))
          body
-       (list (use-package-require-after-load
-              name (macroexp-progn body)))))))
+       `((eval-after-load ',name
+           ',(funcall use-package--hush-function body)))))))
 
 ;;;; :after
 
@@ -1321,37 +1323,44 @@ no keyword implies `:all'."
 ;;; The main macro
 ;;
 
-(defun use-package-core (name args)
-  (let ((orig-args (cl-copy-list args)))
-    (setq args (use-package-normalize-keywords name args))
-    (let ((body (macroexp-progn
-                 (use-package-process-keywords name args
-                   (and (plist-get args :demand)
-                        (list :demand t))))))
-      (if use-package-expand-minimally
-          body
-        `(condition-case-unless-debug err
-             ,body
-           (error
-            (let ((msg (format "%s: %s" ',name (error-message-string err))))
-              (when (eq use-package-verbose 'debug)
-                (setq msg (concat msg " (see the *use-package* buffer)"))
-                (with-current-buffer (get-buffer-create "*use-package*")
-                  (goto-char (point-max))
-                  (insert "-----\n" msg "\n\n"
-                          (pp-to-string ',`(use-package ,name ,@orig-args))
+(defun use-package-hush (name args args* expanded body)
+  `(condition-case-unless-debug err
+       ,(macroexp-progn body)
+     (error
+      (let ((msg (format "%s: %s" ',name (error-message-string err))))
+        ,(when (eq use-package-verbose 'debug)
+           `(progn
+              (setq msg (concat msg " (see the *use-package* buffer)"))
+              (with-current-buffer (get-buffer-create "*use-package*")
+                (goto-char (point-max))
+                (insert "-----\n" msg
+                        ,(concat
+                          "\n\n"
+                          (pp-to-string `(use-package ,name ,@args))
                           "\n  -->\n\n"
-                          (pp-to-string ',`(use-package ,name ,@args))
+                          (pp-to-string `(use-package ,name ,@args*))
                           "\n  ==>\n\n"
-                          (pp-to-string
-                           ',(let ((use-package-verbose 'errors)
-                                   (use-package-expand-minimally t))
-                               (macroexp-progn
-                                (use-package-process-keywords name args
-                                  (and (plist-get args :demand)
-                                       (list :demand t)))))))
-                  (emacs-lisp-mode)))
-              (ignore (display-warning 'use-package msg :error)))))))))
+                          (pp-to-string (macroexp-progn expanded))))
+                (emacs-lisp-mode))))
+        (ignore (display-warning 'use-package msg :error))))))
+
+(defun use-package-core (name args)
+  (let* ((args* (use-package-normalize-keywords name args))
+         (use-package--hush-function
+          (if use-package-expand-minimally
+              #'macroexp-progn
+            (let ((use-package--hush-function #'macroexp-progn))
+              (apply-partially
+               #'use-package-hush name args args*
+               (let ((use-package-verbose 'errors)
+                     (use-package-expand-minimally t))
+                 (use-package-process-keywords name args*
+                   (and (plist-get args* :demand)
+                        (list :demand t)))))))))
+    (funcall use-package--hush-function
+             (use-package-process-keywords name args*
+               (and (plist-get args* :demand)
+                    (list :demand t))))))
 
 ;;;###autoload
 (defmacro use-package (name &rest args)
