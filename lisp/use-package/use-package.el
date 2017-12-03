@@ -1717,7 +1717,6 @@ this file.  Usage:
 (provide 'use-package)
 
 ;; Local Variables:
-;; outline-regexp: ";;;\\(;* [^\s\t\n]\\|###autoload\\)\\|("
 ;; indent-tabs-mode: nil
 ;; End:
 
