@@ -1416,8 +1416,8 @@ this file.  Usage:
           (use-package-core name args)
         (error
          (ignore
-          (let ((msg (format "Failed to parse package %s %s: %s"
-                             name args (error-message-string err))))
+          (let ((msg (format "Failed to parse package %s: %s"
+                             name (error-message-string err))))
             (display-warning 'use-package msg :error))))))))
 
 (put 'use-package 'lisp-indent-function 'defun)
