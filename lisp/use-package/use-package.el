@@ -57,6 +57,53 @@
 (defconst use-package-version "2.4"
   "This version of use-package.")
 
+(defcustom use-package-keywords
+  '(:disabled
+    :pin
+    :ensure
+    :if :when :unless
+    :requires
+    :load-path
+    :no-require
+    :preface :defines :functions
+    :after
+    :custom
+    :custom-face
+    :init
+    :bind
+    :bind*
+    :bind-keymap
+    :bind-keymap*
+    :interpreter
+    :mode
+    :magic
+    :magic-fallback
+    :hook
+    ;; Any other keyword that also declares commands to be autoloaded (such as
+    ;; :bind) must appear before this keyword.
+    :commands
+    :defer
+    :demand
+    :load
+    ;; This must occur almost last; the only forms which should appear after
+    ;; are those that must happen directly after the config forms.
+    :config
+    :diminish
+    :delight)
+  "The set of valid keywords, in the order they are processed in.
+The order of this list is *very important*, so it is only
+advisable to insert new keywords, never to delete or reorder
+them. Further, attention should be paid to the NEWS.md if the
+default order ever changes, as they may have subtle effects on
+the semantics of use-package declarations and may necessitate
+changing where you had inserted a new keyword earlier.
+
+Note that `:disabled' is special in this list, as it causes
+nothing at all to happen, even if the rest of the use-package
+declaration is incorrect."
+  :type '(repeat symbol)
+  :group 'use-package)
+
 (defcustom use-package-verbose nil
   "Whether to report about loading and configuration details.
 
@@ -168,53 +215,6 @@ user-supplied configuration is not evaluated, so be certain to
 return `t' if you only wish to add behavior to what the user
 had specified."
   :type 'boolean
-  :group 'use-package)
-
-(defcustom use-package-keywords
-  '(:disabled
-    :pin
-    :ensure
-    :if :when :unless
-    :requires
-    :load-path
-    :no-require
-    :preface :defines :functions
-    :after
-    :custom
-    :custom-face
-    :init
-    :bind
-    :bind*
-    :bind-keymap
-    :bind-keymap*
-    :interpreter
-    :mode
-    :magic
-    :magic-fallback
-    :hook
-    ;; Any other keyword that also declares commands to be autoloaded (such as
-    ;; :bind) must appear before this keyword.
-    :commands
-    :defer
-    :demand
-    :load
-    ;; This must occur almost last; the only forms which should appear after
-    ;; are those that must happen directly after the config forms.
-    :config
-    :diminish
-    :delight)
-  "The set of valid keywords, in the order they are processed in.
-The order of this list is *very important*, so it is only
-advisable to insert new keywords, never to delete or reorder
-them. Further, attention should be paid to the NEWS.md if the
-default order ever changes, as they may have subtle effects on
-the semantics of use-package declarations and may necessitate
-changing where you had inserted a new keyword earlier.
-
-Note that `:disabled' is special in this list, as it causes
-nothing at all to happen, even if the rest of the use-package
-declaration is incorrect."
-  :type '(repeat symbol)
   :group 'use-package)
 
 (defcustom use-package-expand-minimally nil
