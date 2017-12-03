@@ -1618,31 +1618,30 @@ no more than once."
                  (use-package-process-keywords name args
                    (and (plist-get args :demand)
                         (list :demand t))))))
-      (if (not (eq use-package-verbose 'debug))
+      (if use-package-expand-minimally
           body
         `(condition-case-unless-debug err
              ,body
            (error
             (let ((msg (format "%s: %s" ',name (error-message-string err))))
-              (with-current-buffer (get-buffer-create "*use-package*")
-                (goto-char (point-max))
-                (insert "-----\n" msg "\n\n"
-                        (pp-to-string ',`(use-package ,name ,@orig-args))
-                        "\n  -->\n\n"
-                        (pp-to-string ',`(use-package ,name ,@args))
-                        "\n  ==>\n\n"
-                        (pp-to-string
-                         ',(let ((use-package-verbose 'errors)
-                                 (use-package-expand-minimally t))
-                             (macroexp-progn
-                              (use-package-process-keywords name args
-                                (and (plist-get args :demand)
-                                     (list :demand t)))))))
-                (emacs-lisp-mode))
-              (ignore
-               (display-warning
-                'use-package (concat msg " (see the *use-package* buffer)")
-                :error)))))))))
+              (when (eq use-package-verbose 'debug)
+                (setq msg (concat msg " (see the *use-package* buffer)"))
+                (with-current-buffer (get-buffer-create "*use-package*")
+                  (goto-char (point-max))
+                  (insert "-----\n" msg "\n\n"
+                          (pp-to-string ',`(use-package ,name ,@orig-args))
+                          "\n  -->\n\n"
+                          (pp-to-string ',`(use-package ,name ,@args))
+                          "\n  ==>\n\n"
+                          (pp-to-string
+                           ',(let ((use-package-verbose 'errors)
+                                   (use-package-expand-minimally t))
+                               (macroexp-progn
+                                (use-package-process-keywords name args
+                                  (and (plist-get args :demand)
+                                       (list :demand t)))))))
+                  (emacs-lisp-mode)))
+              (ignore (display-warning 'use-package msg :error)))))))))
 
 ;;;###autoload
 (defmacro use-package (name &rest args)
