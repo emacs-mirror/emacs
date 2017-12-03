@@ -1426,47 +1426,6 @@ this file.  Usage:
 
 (put 'use-package 'lisp-indent-function 'defun)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Jump to declaration
-;;
-
-(defun use-package-find-require (package)
-  "Find file that required PACKAGE by searching `load-history'.
-Returns an absolute file path or nil if none is found."
-  (catch 'suspect
-    (dolist (filespec load-history)
-      (dolist (entry (cdr filespec))
-        (when (equal entry (cons 'require package))
-          (throw 'suspect (car filespec)))))))
-
-(defun use-package-jump-to-package-form (package)
-  "Attempt to find and jump to the `use-package' form that loaded
-PACKAGE. This will only find the form if that form actually
-required PACKAGE. If PACKAGE was previously required then this
-function will jump to the file that originally required PACKAGE
-instead."
-  (interactive (list (completing-read "Package: " features)))
-  (let* ((package (if (stringp package) (intern package) package))
-         (requiring-file (use-package-find-require package))
-         file location)
-    (if (null requiring-file)
-        (user-error "Can't find file requiring file; may have been autoloaded")
-      (setq file (if (string= (file-name-extension requiring-file) "elc")
-                     (concat (file-name-sans-extension requiring-file) ".el")
-                   requiring-file))
-      (when (file-exists-p file)
-        (find-file-other-window file)
-        (save-excursion
-          (goto-char (point-min))
-          (setq location
-                (re-search-forward
-                 (format (eval use-package-form-regexp-eval) package) nil t)))
-        (if (null location)
-            (message "No use-package form found.")
-          (goto-char location)
-          (beginning-of-line))))))
-
 (provide 'up-core)
 
 ;; Local Variables:

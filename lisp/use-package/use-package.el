@@ -40,9 +40,12 @@
 ;;; Code:
 
 (require 'up-core)
+
 (require 'up-ensure)
 (require 'up-diminish)
 (require 'up-delight)
+
+(autoload #'use-package-jump-to-package-form "up-jump" nil t)
 
 (provide 'use-package)
 
