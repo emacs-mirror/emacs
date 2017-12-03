@@ -96,31 +96,31 @@
   (setplist 'flet (plist-delete (symbol-plist 'flet) 'byte-obsolete-info)))
 
 (ert-deftest use-package-test-recognize-function ()
-  (should (use-package--recognize-function nil t))
-  (should-not (use-package--recognize-function nil))
-  (should (use-package--recognize-function t))
-  (should (use-package--recognize-function 'sym))
-  (should (use-package--recognize-function #'sym))
-  (should (use-package--recognize-function (lambda () ...)))
-  (should (use-package--recognize-function '(lambda () ...)))
-  (should (use-package--recognize-function #'(lambda () ...)))
+  (should (use-package-recognize-function nil t))
+  (should-not (use-package-recognize-function nil))
+  (should (use-package-recognize-function t))
+  (should (use-package-recognize-function 'sym))
+  (should (use-package-recognize-function #'sym))
+  (should (use-package-recognize-function (lambda () ...)))
+  (should (use-package-recognize-function '(lambda () ...)))
+  (should (use-package-recognize-function #'(lambda () ...)))
 
-  (should-not (use-package--recognize-function 1))
-  (should-not (use-package--recognize-function "Hello"))
-  (should-not (use-package--recognize-function '(nil . nil))))
+  (should-not (use-package-recognize-function 1))
+  (should-not (use-package-recognize-function "Hello"))
+  (should-not (use-package-recognize-function '(nil . nil))))
 
 (ert-deftest use-package-test-normalize-function ()
-  (should (equal (use-package--normalize-function nil) nil))
-  (should (equal (use-package--normalize-function t) t))
-  (should (equal (use-package--normalize-function 'sym) 'sym))
-  (should (equal (use-package--normalize-function #'sym) 'sym))
-  (should (equal (use-package--normalize-function (lambda () ...)) (lambda () ...)))
-  (should (equal (use-package--normalize-function '(lambda () ...)) (lambda () ...)))
-  (should (equal (use-package--normalize-function #'(lambda () ...)) (lambda () ...)))
+  (should (equal (use-package-normalize-function nil) nil))
+  (should (equal (use-package-normalize-function t) t))
+  (should (equal (use-package-normalize-function 'sym) 'sym))
+  (should (equal (use-package-normalize-function #'sym) 'sym))
+  (should (equal (use-package-normalize-function (lambda () ...)) (lambda () ...)))
+  (should (equal (use-package-normalize-function '(lambda () ...)) (lambda () ...)))
+  (should (equal (use-package-normalize-function #'(lambda () ...)) (lambda () ...)))
 
-  (should (equal (use-package--normalize-function 1) 1))
-  (should (equal (use-package--normalize-function "Hello") "Hello"))
-  (should (equal (use-package--normalize-function '(nil . nil)) '(nil . nil))))
+  (should (equal (use-package-normalize-function 1) 1))
+  (should (equal (use-package-normalize-function "Hello") "Hello"))
+  (should (equal (use-package-normalize-function '(nil . nil)) '(nil . nil))))
 
 (ert-deftest use-package-test/:disabled-1 ()
   (match-expansion
@@ -953,7 +953,7 @@
                `(funcall ,_)))
           (progn
             (eval-after-load 'bow
-              `(funcall ,use-package--next142993))
+              `(funcall ,_))
             (eval-after-load 'baz
               `(funcall ,_))))))))
 
