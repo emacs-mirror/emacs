@@ -27,23 +27,40 @@
 ### Other changes
 
 - Upgrade license to GPL 3.
+
 - New `:hook` keyword.
+
 - New keywords `:custom (foo1 bar1) (foo2 bar2)` etc., and `:custom-face`.
+
 - New `:magic` and `:magic-fallback` keywords.
+
 - New `:defer-install` keyword.
+
 - New customization variable `use-package-enable-imenu-support`.
+
 - Allow `:diminish` to take no arguments.
+
 - Support multiple symbols passed to `:after`, and a mini-DSL using `:all` and
   `:any`.
+
 - `:mode` and `:interpreter` can now accept `(rx ...)` forms.
+
 - Using `:load-path` without also using `:ensure` now implies `:ensure nil`.
+
 - `:bind (:map foo-map ...)` now defers binding in the map until the package
   has been loaded.
+
 - Print key bindings for keymaps in `describe-personal-keybindings`.
+
 - When `use-package-inject-hooks` is non-nil, always fire `:init` and
   `:config` hooks.
+
 - Documentation added for the `:after`, `:defer-install`, `:delight`,
   `:requires`, `:when` and `:unless` keywords.
+
+- The source code is now broken into several files, so that certain optional
+  features (diminish, delight, ensure) may be maintained separately from the
+  core functionality.
 
 ### Bug fixes
 
