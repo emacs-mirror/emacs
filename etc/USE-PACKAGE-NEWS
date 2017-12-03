@@ -18,6 +18,12 @@
 - The `:defer-install` keyword has been remove. It may reappear as an add-on
   module for use-package in a future release. See issue #442 for more details.
 
+- The ordering of several elements of `use-package-keywords' have changed; if
+  you have this customized you will need to rework your changes.
+
+- There is no longer a `use-package-debug` option, since `use-package-verbose`
+  already has the possible value of `debug`.
+
 ### Other changes
 
 - Upgrade license to GPL 3.
