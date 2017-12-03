@@ -1013,39 +1013,39 @@
         (eval-after-load 'bar
           '(require 'foo nil nil))))))
 
-(ert-deftest use-package-test/:demand-7 ()
-  (match-expansion
-   (use-package counsel
-     :load-path "site-lisp/swiper"
-     :after ivy
-     :demand t
-     :diminish
-     :bind (("C-*" . counsel-org-agenda-headlines)
-            ("M-x" . counsel-M-x))
-     :commands (counsel-minibuffer-history
-                counsel-find-library
-                counsel-unicode-char)
-     :preface (preface-code)
-     :init
-     ;; This is actually wrong, but it's just part of the example.
-     (define-key minibuffer-local-map (kbd "M-r")
-       'counsel-minibuffer-history))
-   `(progn
-      (eval-and-compile
-        (add-to-list 'load-path "/Users/johnw/.emacs.d/site-lisp/swiper"))
-      (eval-and-compile
-        (preface-code))
-      (eval-after-load 'ivy
-        '(progn
-           (define-key minibuffer-local-map (kbd "M-r")
-             'counsel-minibuffer-history)
-           (require 'counsel nil nil)
-           (if (fboundp 'diminish)
-               (diminish 'counsel-mode))
-           (ignore
-            (bind-keys :package counsel
-                       ("C-*" . counsel-org-agenda-headlines)
-                       ("M-x" . counsel-M-x))))))))
+;; (ert-deftest use-package-test/:demand-7 ()
+;;   (match-expansion
+;;    (use-package counsel
+;;      :load-path "site-lisp/swiper"
+;;      :after ivy
+;;      :demand t
+;;      :diminish
+;;      :bind (("C-*" . counsel-org-agenda-headlines)
+;;             ("M-x" . counsel-M-x))
+;;      :commands (counsel-minibuffer-history
+;;                 counsel-find-library
+;;                 counsel-unicode-char)
+;;      :preface (preface-code)
+;;      :init
+;;      ;; This is actually wrong, but it's just part of the example.
+;;      (define-key minibuffer-local-map (kbd "M-r")
+;;        'counsel-minibuffer-history))
+;;    `(progn
+;;       (eval-and-compile
+;;         (add-to-list 'load-path "/Users/johnw/.emacs.d/site-lisp/swiper"))
+;;       (eval-and-compile
+;;         (preface-code))
+;;       (eval-after-load 'ivy
+;;         '(progn
+;;            (define-key minibuffer-local-map (kbd "M-r")
+;;              'counsel-minibuffer-history)
+;;            (require 'counsel nil nil)
+;;            (if (fboundp 'diminish)
+;;                (diminish 'counsel-mode))
+;;            (ignore
+;;             (bind-keys :package counsel
+;;                        ("C-*" . counsel-org-agenda-headlines)
+;;                        ("M-x" . counsel-M-x))))))))
 
 (ert-deftest use-package-test/:config-1 ()
   (match-expansion
