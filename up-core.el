@@ -229,11 +229,10 @@ Must be set before loading use-package."
   :type 'boolean
   :set
   #'(lambda (sym value)
-      (if value
-          (eval-after-load 'lisp-mode
+      (eval-after-load 'lisp-mode
+        (if value
             `(add-to-list 'lisp-imenu-generic-expression
-                          (list "Packages" ,use-package-form-regexp-eval 2)))
-        (eval-after-load 'lisp-mode
+                          (list "Packages" ,use-package-form-regexp-eval 2))
           `(setq lisp-imenu-generic-expression
                  (remove (list "Packages" ,use-package-form-regexp-eval 2)
                          lisp-imenu-generic-expression)))))
