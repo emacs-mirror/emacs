@@ -12,7 +12,7 @@
   ``` elisp
       (use-package diminish :ensure t)
   ```
-  
+
 - Emacs 24.3 or higher is now a requirement.
 
 - The `:defer-install` keyword has been remove. It may reappear as an add-on
@@ -27,6 +27,14 @@
 ### Other changes
 
 - Upgrade license to GPL 3.
+
+- If `use-package-verbose` is set to the symbol `debug`, any evaluation errors
+  during package configuration will cause a complete report to be written to a
+  `*use-package*` buffer, including: the text of the error, the `use-package`
+  declaration that caused the error, the post-normalized form of this
+  declaration, and the macro-expanded version (without verbosity-related
+  code). Note that this still does not help if there are parsing errors, which
+  will still cause Emacs to encounter a Lisp error at startup time.
 
 - New `:hook` keyword.
 
@@ -58,6 +66,12 @@
 - Documentation added for the `:after`, `:defer-install`, `:delight`,
   `:requires`, `:when` and `:unless` keywords.
 
+- New undocumented (and currently experimental) keyword `:load` may be used to
+  change the name of the actual package loaded, rather than the package name,
+  and may even add other names. For example: `(use-package auctex :load
+  tex-site)`. This keyword is used internally to generate the `require` for a
+  package, so that deferral is simply a matter of not generating this keyword.
+
 - The source code is now broken into several files, so that certain optional
   features (diminish, delight, ensure) may be maintained separately from the
   core functionality.
@@ -69,4 +83,3 @@
 - Append to *use-package* when debugging, don't clear it.
 - Don't allow :commands, :bind, etc., to be given an empty list.
 - Explicit :defer t should override use-package-always-demand.
-
