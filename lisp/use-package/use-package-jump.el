@@ -1,4 +1,4 @@
-;;; up-jump.el --- Attempt to jump to a use-package declaration
+;;; use-package-jump.el --- Attempt to jump to a use-package declaration
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(require 'up-core)
+(require 'use-package-core)
 
 (defun use-package-find-require (package)
   "Find file that required PACKAGE by searching `load-history'.
@@ -74,4 +74,4 @@ instead."
           (goto-char location)
           (beginning-of-line))))))
 
-(provide 'up-jump)
+(provide 'use-package-jump)

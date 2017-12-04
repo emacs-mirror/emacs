@@ -39,15 +39,15 @@
 
 ;;; Code:
 
-(require 'up-core)
+(require 'use-package-core)
 
-(require 'up-bind-key)
-(require 'up-diminish)
-(require 'up-delight)
-(require 'up-ensure)
+(require 'use-package-bind-key)
+(require 'use-package-diminish)
+(require 'use-package-delight)
+(require 'use-package-ensure)
 
-(declare-function use-package-jump-to-package-form "up-jump")
-(autoload #'use-package-jump-to-package-form "up-jump" nil t)
+(declare-function use-package-jump-to-package-form "use-package-jump")
+(autoload #'use-package-jump-to-package-form "use-package-jump" nil t)
 
 (provide 'use-package)
 

@@ -1,4 +1,4 @@
-;;; up-ensure.el --- Support for the :ensure and :pin keywords
+;;; use-package-ensure.el --- Support for the :ensure and :pin keywords
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -34,7 +34,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'up-core)
+(require 'use-package-core)
 
 (defgroup use-package-ensure nil
   "Support for :ensure and :pin keywords in use-package declarations."
@@ -201,4 +201,4 @@ manually updated package."
 (add-to-list 'use-package-keywords :ensure)
 (add-to-list 'use-package-keywords :pin)
 
-(provide 'up-ensure)
+(provide 'use-package-ensure)

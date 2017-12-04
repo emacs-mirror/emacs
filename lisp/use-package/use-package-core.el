@@ -1,4 +1,4 @@
-;;; up-core.el --- A configuration macro for simplifying your .emacs
+;;; use-package-core.el --- A configuration macro for simplifying your .emacs
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -1344,7 +1344,7 @@ this file.  Usage:
 
 (put 'use-package 'lisp-indent-function 'defun)
 
-(provide 'up-core)
+(provide 'use-package-core)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

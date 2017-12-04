@@ -1,4 +1,4 @@
-;;; up-delight.el --- Support for the :delight keyword
+;;; use-package-delight.el --- Support for the :delight keyword
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-(require 'up-core)
+(require 'use-package-core)
 
 (defun use-package-normalize-delight (name args)
   "Normalize ARGS for a single call to `delight'."
@@ -84,4 +84,4 @@
 
 (add-to-list 'use-package-keywords :delight t)
 
-(provide 'up-delight)
+(provide 'use-package-delight)

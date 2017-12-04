@@ -1,4 +1,4 @@
-;;; up-diminish.el --- Support for the :diminish keyword
+;;; use-package-diminish.el --- Support for the :diminish keyword
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-(require 'up-core)
+(require 'use-package-core)
 
 (defun use-package-normalize-diminish (name label arg &optional recursed)
   "Normalize the arguments to diminish down to a list of one of two forms:
@@ -73,4 +73,4 @@
 
 (add-to-list 'use-package-keywords :diminish t)
 
-(provide 'up-diminish)
+(provide 'use-package-diminish)

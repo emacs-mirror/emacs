@@ -1,4 +1,4 @@
-;;; up-bind-key.el --- Support for the :bind/:bind-keymap keywords
+;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(require 'up-core)
+(require 'use-package-core)
 (require 'bind-key)
 
 ;;;###autoload
@@ -127,4 +127,4 @@ deferred until the prefix key sequence is pressed."
 (defun use-package-handler/:bind-keymap* (name keyword arg rest state)
   (use-package-handler/:bind-keymap name keyword arg rest state t))
 
-(provide 'up-bind-key)
+(provide 'use-package-bind-key)
