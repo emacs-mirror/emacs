@@ -97,6 +97,21 @@ declaration is incorrect."
   :type '(repeat symbol)
   :group 'use-package)
 
+(defcustom use-package-deferring-keywords
+  '(:bind
+    :bind*
+    :bind-keymap
+    :bind-keymap*
+    :interpreter
+    :mode
+    :magic
+    :magic-fallback
+    :commands
+    :hook)
+  "Unless `:demand' is used, keywords in this list imply deferred loading."
+  :type '(repeat symbol)
+  :group 'use-package)
+
 (defcustom use-package-verbose nil
   "Whether to report about loading and configuration details.
 If you customize this, then you should require the `use-package'
@@ -499,16 +514,9 @@ This is in contrast to merely setting it to 0."
     ;; Certain keywords imply :defer, if :demand was not specified.
     (when (and (not (plist-member args :demand))
                (not (plist-member args :defer))
-               (or (plist-member args :bind)
-                   (plist-member args :bind*)
-                   (plist-member args :bind-keymap)
-                   (plist-member args :bind-keymap*)
-                   (plist-member args :interpreter)
-                   (plist-member args :mode)
-                   (plist-member args :magic)
-                   (plist-member args :magic-fallback)
-                   (plist-member args :commands)
-                   (plist-member args :hook)))
+               (cl-some #'identity
+                        (mapcar (apply-partially #'plist-member args)
+                                use-package-deferring-keywords)))
       (setq args (append args '(:defer t))))
 
     (when (and (plist-member args :load)

@@ -35,6 +35,10 @@
   declaration, and the macro-expanded version (without verbosity-related
   code). Note that this still does not help if there are parsing errors, which
   will still cause Emacs to encounter a Lisp error at startup time.
+  
+- New customization variable `use-package-deferring-keywords`, mainly intended
+  for use by extension packages, indicates keywords that, if used without
+  `:demand`, cause deferred loading (as if `:defer t` had been specified).
 
 - New `:hook` keyword.
 
