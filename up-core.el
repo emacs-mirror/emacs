@@ -273,16 +273,6 @@ Must be set before loading use-package."
   "Report MSG as an error, so the user knows it came from this package."
   (error "use-package: %s" msg))
 
-(defun use-package-hush (f body)
-  (condition-case-unless-debug err
-      (macroexp-progn body)
-    (error
-     (if (stringp f)
-         (ignore (display-warning 'use-package
-                                  (format f (error-message-string err))
-                                  :error))
-       (funcall f err)))))
-
 (defsubst use-package-concat (&rest elems)
   "Delete all empty lists from ELEMS (nil or (list nil)), and append them."
   (apply #'append (delete nil (delete (list nil) elems))))
@@ -1307,6 +1297,11 @@ no keyword implies `:all'."
 ;;; The main macro
 ;;
 
+(defsubst use-package-hush (context body)
+  `((condition-case-unless-debug err
+        ,(macroexp-progn body)
+      (error (funcall ,context err)))))
+
 (defun use-package-core (name args)
   (let* ((context (gensym "use-package--warning"))
          (args* (use-package-normalize-keywords name args))
@@ -1409,9 +1404,14 @@ this file.  Usage:
     (macroexp-progn
      (if (eq use-package-verbose 'errors)
          (use-package-core name args)
-       (use-package-hush
-        (format "Failed to parse package %s: %%s" name)
-        '((use-package-core name args)))))))
+       (condition-case-unless-debug err
+           (use-package-core name args)
+         (error
+          (ignore
+           (display-warning
+            'use-package
+            (format "Failed to parse package %s: %s"
+                    name (error-message-string err)) :error))))))))
 
 (put 'use-package 'lisp-indent-function 'defun)
 

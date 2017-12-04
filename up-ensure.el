@@ -143,22 +143,31 @@ manually updated package."
                      "(an unquoted symbol name)")))))))
 
 (defun use-package-ensure-elpa (name ensure state &optional no-refresh)
-  (let ((package (or (and (eq ensure t) (use-package-as-symbol name))
-                     ensure)))
+  (let ((package
+         (or (and (eq ensure t) (use-package-as-symbol name))
+             ensure)))
     (when package
       (require 'package)
       (unless (package-installed-p package)
-        (use-package-hush
-         (format "Failed to install %s: %%s" name)
-         '((when (assoc package (bound-and-true-p package-pinned-packages))
-             (package-read-all-archive-contents))
-           (if (assoc package package-archive-contents)
-               (package-install package)
-             (package-refresh-contents)
-             (when (assoc package (bound-and-true-p package-pinned-packages))
-               (package-read-all-archive-contents))
-             (package-install package))
-           t))))))
+        (condition-case-unless-debug err
+            (progn
+              (when (assoc package (bound-and-true-p
+                                    package-pinned-packages))
+                (package-read-all-archive-contents))
+              (if (assoc package package-archive-contents)
+                  (package-install package)
+                (package-refresh-contents)
+                (when (assoc package (bound-and-true-p
+                                      package-pinned-packages))
+                  (package-read-all-archive-contents))
+                (package-install package))
+              t)
+          (error
+           (ignore
+            (display-warning 'use-package
+                             (format "Failed to install %s: %s"
+                                     name (error-message-string err))
+                             :error))))))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state)))
