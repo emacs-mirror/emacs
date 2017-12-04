@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(require 'cl)
 (require 'ert)
 (require 'use-package)
 
@@ -59,6 +60,11 @@
 (defmacro expand-minimally (form)
   `(let ((use-package-verbose 'errors)
          (use-package-expand-minimally t))
+     (macroexpand-1 ',form)))
+
+(defmacro expand-maximally (form)
+  `(let ((use-package-verbose 'debug)
+         (use-package-expand-minimally nil))
      (macroexpand-1 ',form)))
 
 (defmacro match-expansion (form &rest value)
@@ -214,9 +220,9 @@
   (flet ((norm (&rest args)
                (apply #'use-package-normalize/:ensure
                       'foopkg :ensure args)))
-    (should (equal (norm '(t)) t))
-    (should (equal (norm '(nil)) nil))
-    (should (equal (norm '(sym)) 'sym))
+    (should (equal (norm '(t)) '(t)))
+    (should (equal (norm '(nil)) '(nil)))
+    (should (equal (norm '(sym)) '(sym)))
     (should-error (norm '(1)))
     (should-error (norm '("Hello")))))
 
@@ -225,7 +231,7 @@
     (match-expansion
      (use-package foo :ensure t)
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-2 ()
@@ -233,7 +239,7 @@
     (match-expansion
      (use-package foo :ensure t)
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-3 ()
@@ -241,7 +247,7 @@
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-4 ()
@@ -249,7 +255,7 @@
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-5 ()
@@ -275,7 +281,7 @@
     (match-expansion
      (use-package foo :ensure nil :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -285,7 +291,7 @@
     (match-expansion
      (use-package foo :ensure nil :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -295,7 +301,7 @@
     (match-expansion
      (use-package foo :ensure t :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -305,7 +311,7 @@
     (match-expansion
      (use-package foo :ensure t :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -319,6 +325,30 @@
            (require (&rest ignore)))
       (use-package foo :ensure t)
       (should (eq tried-to-install 'foo)))))
+
+(ert-deftest use-package-test/:ensure-12 ()
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure bar)
+     `(progn
+        (use-package-ensure-elpa 'foo '(bar) 'nil)
+        (require 'foo nil nil)))))
+
+(ert-deftest use-package-test/:ensure-13 ()
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure bar :ensure quux)
+     `(progn
+        (use-package-ensure-elpa 'foo '(bar quux) 'nil)
+        (require 'foo nil nil)))))
+
+(ert-deftest use-package-test/:ensure-14 ()
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure bar :ensure (quux bow))
+     `(progn
+        (use-package-ensure-elpa 'foo '(bar quux bow) 'nil)
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:if-1 ()
   (match-expansion
@@ -671,6 +701,52 @@
         (autoload #'bar "foo" nil t))
       (bar))))
 
+(ert-deftest use-package-test/:commands-5 ()
+  (match-expansion
+   (use-package gnus-harvest
+     :load-path "lisp/gnus-harvest"
+     :commands gnus-harvest-install
+     :demand t
+     :config
+     (if (featurep 'message-x)
+         (gnus-harvest-install 'message-x)
+       (gnus-harvest-install)))
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
+      (require 'gnus-harvest nil nil)
+      (if (featurep 'message-x)
+          (gnus-harvest-install 'message-x)
+        (gnus-harvest-install))
+      t)))
+
+(ert-deftest use-package-test/:commands-6 ()
+  (let ((byte-compile-current-file t))
+    (match-expansion
+     (use-package gnus-harvest
+       :load-path "lisp/gnus-harvest"
+       :commands gnus-harvest-install
+       :demand t
+       :config
+       (if (featurep 'message-x)
+           (gnus-harvest-install 'message-x)
+         (gnus-harvest-install)))
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors "Cannot load gnus-harvest: %S" nil
+                                 (load "gnus-harvest" nil t))))
+        (eval-when-compile
+          (declare-function gnus-harvest-install "gnus-harvest"))
+        (require 'gnus-harvest nil nil)
+        (if
+            (featurep 'message-x)
+            (gnus-harvest-install 'message-x)
+          (gnus-harvest-install))
+        t))))
+
 (ert-deftest use-package-test/:defines-1 ()
   (match-expansion
    (use-package foo :defines bar)
@@ -815,6 +891,38 @@
          (ignore
           (bind-keys :package foo ("C-a" . key))))))))
 
+(ert-deftest use-package-test/:hook-2 ()
+  (match-expansion
+   (use-package foo
+     :hook (hook . fun))
+   `(progn
+      (unless (fboundp 'fun)
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-hook 'hook-hook #'fun)))))
+
+(ert-deftest use-package-test/:hook-3 ()
+  (let ((use-package-hook-name-suffix nil))
+    (match-expansion
+     (use-package foo
+       :hook (hook . fun))
+     `(progn
+        (unless (fboundp 'fun)
+          (autoload #'fun "foo" nil t))
+        (ignore
+         (add-hook 'hook #'fun))))))
+
+(ert-deftest use-package-test/:hook-4 ()
+  (let ((use-package-hook-name-suffix "-special"))
+    (match-expansion
+     (use-package foo
+       :hook (hook . fun))
+     `(progn
+        (unless (fboundp 'fun)
+          (autoload #'fun "foo" nil t))
+        (ignore
+         (add-hook 'hook-special #'fun))))))
+
 (ert-deftest use-package-test-normalize/:custom ()
   (flet ((norm (&rest args)
                (apply #'use-package-normalize/:custom
@@ -860,6 +968,35 @@
                                  (load "foo" nil t))))
         (init)
         (require 'foo nil nil)))))
+
+(ert-deftest use-package-test/:catch-1 ()
+  (match-expansion
+   (use-package foo :catch t)
+   `(let
+        ((,_ #'(lambda (keyword err)
+                 (let ((msg (format "%s/%s: %s" 'foo keyword
+                                    (error-message-string err))))
+                   nil
+                   (ignore (display-warning 'use-package msg :error))))))
+      (condition-case-unless-debug err
+          (require 'foo nil nil)
+        (error
+         (funcall ,_ :catch err))))))
+
+(ert-deftest use-package-test/:catch-2 ()
+  (match-expansion
+   (use-package foo :catch nil)
+   `(require 'foo nil nil)))
+
+(ert-deftest use-package-test/:catch-3 ()
+  (match-expansion
+   (use-package foo :catch (lambda (keyword error)))
+   `(let
+        ((,_ (lambda (keyword error))))
+      (condition-case-unless-debug err
+          (require 'foo nil nil)
+        (error
+         (funcall ,_ :catch err))))))
 
 (ert-deftest use-package-test/:after-1 ()
   (match-expansion
@@ -1218,6 +1355,38 @@
       (require 'foo nil nil)
       (if (fboundp 'delight)
           (delight '((foo "bar" foo)))))))
+
+(ert-deftest use-package-test/506 ()
+  (match-expansion
+   (use-package ess-site
+     :ensure ess
+     :pin melpa-stable)
+   `(progn
+      (use-package-pin-package 'ess-site "melpa-stable")
+      (use-package-ensure-elpa 'ess-site
+                               '(ess)
+                               'nil)
+      (require 'ess-site nil nil))))
+
+(ert-deftest use-package-test/538 ()
+  (match-expansion
+   (use-package mu4e
+     :commands (mu4e)
+     :bind (("<f9>" . mu4e))
+     :init
+     :config
+     (config))
+   `(progn
+      (unless
+          (fboundp 'mu4e)
+        (autoload #'mu4e "mu4e" nil t))
+      (eval-after-load 'mu4e
+        '(progn
+           (config)
+           t))
+      (ignore
+       (bind-keys :package mu4e
+                  ("<f9>" . mu4e))))))
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

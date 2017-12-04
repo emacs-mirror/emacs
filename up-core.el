@@ -63,6 +63,7 @@
     :defines
     :functions
     :preface
+    :catch
     :after
     :custom
     :custom-face
@@ -148,6 +149,8 @@ See also `use-package-defaults', which uses this value."
   '(;; this '(t) has special meaning; see `use-package-handler/:config'
     (:config '(t) t)
     (:init nil t)
+    (:catch t (lambda (args)
+                (not use-package-expand-minimally)))
     (:defer use-package-always-defer
             (lambda (args)
               (and use-package-always-defer
@@ -175,6 +178,13 @@ be attempted."
                                   use-package-keywords))
                 (choice :tag "Default value" sexp)
                 (choice :tag "Enable if non-nil" sexp function)))
+  :group 'use-package)
+
+(defcustom use-package-hook-name-suffix "-hook"
+  "Text append to the name of hooks mentioned by :hook.
+Set to `nil' if you don't want this to happen; it's only a
+convenience."
+  :type '(choice string (const :tag "No suffix" nil))
   :group 'use-package)
 
 (defcustom use-package-minimum-reported-time 0.1
@@ -261,8 +271,6 @@ Must be set before loading use-package."
      (2 font-lock-constant-face nil t))))
 
 (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
-
-(defvar use-package--hush-function)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -851,7 +859,7 @@ deferred until the prefix key sequence is pressed."
           (setq unread-command-events
                 (listify-key-sequence kv)))
       (use-package-error
-       (format "use-package: package.el %s failed to define keymap %s"
+       (format "package.el %s failed to define keymap %s"
                package keymap-symbol)))))
 
 (defun use-package-normalize-mode (name keyword args)
@@ -929,17 +937,6 @@ deferred until the prefix key sequence is pressed."
 (defun use-package-handler/:no-require (name keyword arg rest state)
   (use-package-process-keywords name rest state))
 
-;;;; :preface
-
-(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
-
-(defun use-package-handler/:preface (name keyword arg rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    (use-package-concat
-     (when arg
-       `((eval-and-compile ,@arg)))
-     body)))
-
 ;;;; :defines
 
 (defalias 'use-package-normalize/:defines 'use-package-normalize-symlist)
@@ -953,6 +950,67 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-handler/:functions (name keyword arg rest state)
   (use-package-process-keywords name rest state))
+
+;;;; :preface
+
+(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
+
+(defun use-package-handler/:preface (name keyword arg rest state)
+  (let ((body (use-package-process-keywords name rest state)))
+    (use-package-concat
+     (when arg
+       `((eval-and-compile ,@arg)))
+     body)))
+
+;;;; :catch
+
+(defvar use-package--form)
+(defvar use-package--hush-function #'(lambda (keyword body) body))
+
+(defsubst use-package-hush (context keyword body)
+  `((condition-case-unless-debug err
+        ,(macroexp-progn body)
+      (error (funcall ,context ,keyword err)))))
+
+(defun use-package-normalize/:catch (name keyword args)
+  (if (null args)
+      t
+    (use-package-only-one (symbol-name keyword) args
+      use-package--hush-function)))
+
+(defun use-package-handler/:catch (name keyword arg rest state)
+  (let* ((context (gensym "use-package--warning")))
+    (cond
+     ((not arg)
+      (use-package-process-keywords name rest state))
+     ((eq arg t)
+      `((let ((,context
+               #'(lambda (keyword err)
+                   (let ((msg (format "%s/%s: %s" ',name keyword
+                                      (error-message-string err))))
+                     ,(when (eq use-package-verbose 'debug)
+                        `(progn
+                           (with-current-buffer
+                               (get-buffer-create "*use-package*")
+                             (goto-char (point-max))
+                             (insert "-----\n" msg ,use-package--form)
+                             (emacs-lisp-mode))
+                           (setq msg
+                                 (concat msg
+                                         " (see the *use-package* buffer)"))))
+                     (ignore (display-warning 'use-package msg :error))))))
+          ,@(let ((use-package--hush-function
+                   (apply-partially #'use-package-hush context)))
+              (funcall use-package--hush-function keyword
+                       (use-package-process-keywords name rest state))))))
+     ((functionp arg)
+      `((let ((,context ,arg))
+          ,@(let ((use-package--hush-function
+                   (apply-partially #'use-package-hush context)))
+              (funcall use-package--hush-function keyword
+                       (use-package-process-keywords name rest state))))))
+     (t
+      (use-package-error "The :catch keyword expects 't' or a function")))))
 
 ;;;; :bind, :bind*
 
@@ -1085,8 +1143,11 @@ deferred until the prefix key sequence is pressed."
                  (when fun
                    (mapcar
                     #'(lambda (sym)
-                        `(add-hook (quote ,(intern (format "%s-hook" sym)))
-                                   (function ,fun)))
+                        `(add-hook
+                          (quote ,(intern
+                                   (concat (symbol-name sym)
+                                           use-package-hook-name-suffix)))
+                          (function ,fun)))
                     (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
            nargs))))))
 
@@ -1096,20 +1157,20 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-handler/:commands (name keyword arg rest state)
   (use-package-concat
-   (unless (plist-get state :demand)
-     ;; Since we deferring load, establish any necessary autoloads, and also
-     ;; keep the byte-compiler happy.
-     (let ((name-string (use-package-as-string name)))
-       (cl-mapcan
-        #'(lambda (command)
-            (when (symbolp command)
-              (append
+   ;; Since we deferring load, establish any necessary autoloads, and also
+   ;; keep the byte-compiler happy.
+   (let ((name-string (use-package-as-string name)))
+     (cl-mapcan
+      #'(lambda (command)
+          (when (symbolp command)
+            (append
+             (unless (plist-get state :demand)
                `((unless (fboundp ',command)
-                   (autoload #',command ,name-string nil t)))
-               (when (bound-and-true-p byte-compile-current-file)
-                 `((eval-when-compile
-                     (declare-function ,command ,name-string)))))))
-        (delete-dups arg))))
+                   (autoload #',command ,name-string nil t))))
+             (when (bound-and-true-p byte-compile-current-file)
+               `((eval-when-compile
+                   (declare-function ,command ,name-string)))))))
+      (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
 ;;;; :defer
@@ -1253,7 +1314,7 @@ no keyword implies `:all'."
           (use-package-hook-injector (use-package-as-string name)
                                      :init arg)))
      (when init-body
-       (funcall use-package--hush-function
+       (funcall use-package--hush-function :init
                 (if use-package-check-before-init
                     `((when (locate-library ,(use-package-as-string name))
                         ,@init-body))
@@ -1285,7 +1346,7 @@ no keyword implies `:all'."
         body
       (use-package-with-elapsed-timer
           (format "Configuring package %s" name-symbol)
-        (funcall use-package--hush-function
+        (funcall use-package--hush-function :config
                  (use-package-concat
                   (use-package-hook-injector
                    (symbol-name name-symbol) :config arg)
@@ -1297,52 +1358,24 @@ no keyword implies `:all'."
 ;;; The main macro
 ;;
 
-(defsubst use-package-hush (context body)
-  `((condition-case-unless-debug err
-        ,(macroexp-progn body)
-      (error (funcall ,context err)))))
-
-(defun use-package-core (name args)
-  (let* ((context (gensym "use-package--warning"))
-         (args* (use-package-normalize-keywords name args))
-         (use-package--hush-function #'identity))
-    (if use-package-expand-minimally
-        (use-package-process-keywords name args*
-          (and (plist-get args* :demand)
-               (list :demand t)))
-      `((let
-            ((,context
-              #'(lambda (err)
-                  (let ((msg (format "%s: %s" ',name (error-message-string err))))
-                    ,(when (eq use-package-verbose 'debug)
-                       `(progn
-                          (with-current-buffer (get-buffer-create "*use-package*")
-                            (goto-char (point-max))
-                            (insert
-                             "-----\n" msg
-                             ,(concat
-                               "\n\n"
-                               (pp-to-string `(use-package ,name ,@args))
-                               "\n  -->\n\n"
-                               (pp-to-string `(use-package ,name ,@args*))
-                               "\n  ==>\n\n"
-                               (pp-to-string
-                                (macroexp-progn
-                                 (let ((use-package-verbose 'errors)
-                                       (use-package-expand-minimally t))
-                                   (use-package-process-keywords name args*
-                                     (and (plist-get args* :demand)
-                                          (list :demand t))))))))
-                            (emacs-lisp-mode))
-                          (setq msg (concat msg " (see the *use-package* buffer)"))))
-                    (ignore (display-warning 'use-package msg :error))))))
-          ,(let ((use-package--hush-function
-                  (apply-partially #'use-package-hush context)))
-             (macroexp-progn
-              (funcall use-package--hush-function
+(defmacro use-package-core (name args)
+  `(let* ((args* (use-package-normalize-keywords ,name ,args))
+          (use-package--form
+           (concat "\n\n"
+                   (pp-to-string `(use-package ,name ,@,args))
+                   "\n  -->\n\n"
+                   (pp-to-string `(use-package ,name ,@args*))
+                   "\n  ==>\n\n"
+                   (pp-to-string
+                    (macroexp-progn
+                     (let ((use-package-verbose 'errors)
+                           (use-package-expand-minimally t))
                        (use-package-process-keywords name args*
                          (and (plist-get args* :demand)
-                              (list :demand t)))))))))))
+                              (list :demand t)))))))))
+     (use-package-process-keywords name args*
+       (and (plist-get args* :demand)
+            (list :demand t)))))
 
 ;;;###autoload
 (defmacro use-package (name &rest args)
