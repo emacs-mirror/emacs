@@ -891,6 +891,38 @@
          (ignore
           (bind-keys :package foo ("C-a" . key))))))))
 
+(ert-deftest use-package-test/:hook-2 ()
+  (match-expansion
+   (use-package foo
+     :hook (hook . fun))
+   `(progn
+      (unless (fboundp 'fun)
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-hook 'hook-hook #'fun)))))
+
+(ert-deftest use-package-test/:hook-3 ()
+  (let ((use-package-hook-name-suffix nil))
+    (match-expansion
+     (use-package foo
+       :hook (hook . fun))
+     `(progn
+        (unless (fboundp 'fun)
+          (autoload #'fun "foo" nil t))
+        (ignore
+         (add-hook 'hook #'fun))))))
+
+(ert-deftest use-package-test/:hook-4 ()
+  (let ((use-package-hook-name-suffix "-special"))
+    (match-expansion
+     (use-package foo
+       :hook (hook . fun))
+     `(progn
+        (unless (fboundp 'fun)
+          (autoload #'fun "foo" nil t))
+        (ignore
+         (add-hook 'hook-special #'fun))))))
+
 (ert-deftest use-package-test-normalize/:custom ()
   (flet ((norm (&rest args)
                (apply #'use-package-normalize/:custom

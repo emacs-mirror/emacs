@@ -180,6 +180,13 @@ be attempted."
                 (choice :tag "Enable if non-nil" sexp function)))
   :group 'use-package)
 
+(defcustom use-package-hook-name-suffix "-hook"
+  "Text append to the name of hooks mentioned by :hook.
+Set to `nil' if you don't want this to happen; it's only a
+convenience."
+  :type '(choice string (const :tag "No suffix" nil))
+  :group 'use-package)
+
 (defcustom use-package-minimum-reported-time 0.1
   "Minimal load time that will be reported.
 Note that `use-package-verbose' has to be set to a non-nil value
@@ -1136,8 +1143,11 @@ deferred until the prefix key sequence is pressed."
                  (when fun
                    (mapcar
                     #'(lambda (sym)
-                        `(add-hook (quote ,(intern (format "%s-hook" sym)))
-                                   (function ,fun)))
+                        `(add-hook
+                          (quote ,(intern
+                                   (concat (symbol-name sym)
+                                           use-package-hook-name-suffix)))
+                          (function ,fun)))
                     (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
            nargs))))))
 

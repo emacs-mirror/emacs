@@ -66,6 +66,8 @@
 
 - New customization variable `use-package-enable-imenu-support`.
 
+- New customization variable `use-package-hook-name-suffix`.
+
 - Allow `:diminish` to take no arguments.
 
 - Support multiple symbols passed to `:after`, and a mini-DSL using `:all` and
