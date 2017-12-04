@@ -546,17 +546,19 @@
   (match-expansion
    (use-package foo :interpreter "interp")
    `(progn
-      (add-to-list 'interpreter-mode-alist '("interp" . foo))
       (unless (fboundp 'foo)
-        (autoload #'foo "foo" nil t)))))
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'interpreter-mode-alist '("interp" . foo))))))
 
 (ert-deftest use-package-test/:interpreter-2 ()
   (match-expansion
    (use-package foo :interpreter ("interp" . fun))
    `(progn
-      (add-to-list 'interpreter-mode-alist '("interp" . fun))
       (unless (fboundp 'fun)
-        (autoload #'fun "foo" nil t)))))
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'interpreter-mode-alist '("interp" . fun))))))
 
 (ert-deftest use-package-test-normalize/:mode ()
   (flet ((norm (&rest args)
@@ -577,49 +579,55 @@
   (match-expansion
    (use-package foo :mode "interp")
    `(progn
-      (add-to-list 'auto-mode-alist '("interp" . foo))
       (unless (fboundp 'foo)
-        (autoload #'foo "foo" nil t)))))
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'auto-mode-alist '("interp" . foo))))))
 
 (ert-deftest use-package-test/:mode-2 ()
   (match-expansion
    (use-package foo :mode ("interp" . fun))
    `(progn
-      (add-to-list 'auto-mode-alist '("interp" . fun))
       (unless (fboundp 'fun)
-        (autoload #'fun "foo" nil t)))))
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'auto-mode-alist '("interp" . fun))))))
 
 (ert-deftest use-package-test/:magic-1 ()
   (match-expansion
    (use-package foo :magic "interp")
    `(progn
-      (add-to-list 'magic-mode-alist '("interp" . foo))
       (unless (fboundp 'foo)
-        (autoload #'foo "foo" nil t)))))
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'magic-mode-alist '("interp" . foo))))))
 
 (ert-deftest use-package-test/:magic-2 ()
   (match-expansion
    (use-package foo :magic ("interp" . fun))
    `(progn
-      (add-to-list 'magic-mode-alist '("interp" . fun))
       (unless (fboundp 'fun)
-        (autoload #'fun "foo" nil t)))))
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'magic-mode-alist '("interp" . fun))))))
 
 (ert-deftest use-package-test/:magic-fallback-1 ()
   (match-expansion
    (use-package foo :magic-fallback "interp")
    `(progn
-      (add-to-list 'magic-fallback-mode-alist '("interp" . foo))
       (unless (fboundp 'foo)
-        (autoload #'foo "foo" nil t)))))
+        (autoload #'foo "foo" nil t))
+      (ignore
+       (add-to-list 'magic-fallback-mode-alist '("interp" . foo))))))
 
 (ert-deftest use-package-test/:magic-fallback-2 ()
   (match-expansion
    (use-package foo :magic-fallback ("interp" . fun))
    `(progn
-      (add-to-list 'magic-fallback-mode-alist '("interp" . fun))
       (unless (fboundp 'fun)
-        (autoload #'fun "foo" nil t)))))
+        (autoload #'fun "foo" nil t))
+      (ignore
+       (add-to-list 'magic-fallback-mode-alist '("interp" . fun))))))
 
 (ert-deftest use-package-test/:commands-1 ()
   (match-expansion
@@ -785,7 +793,6 @@
              (with-demoted-errors
                  "Cannot load foo: %S" nil
                  (load "foo" nil t))))
-         (add-hook 'hook-hook #'fun)
          (unless (fboundp 'fun)
            (autoload #'fun "foo" nil t))
          (eval-when-compile
@@ -794,6 +801,8 @@
            (autoload #'key "foo" nil t))
          (eval-when-compile
            (declare-function key "foo"))
+         (ignore
+          (add-hook 'hook-hook #'fun))
          (ignore
           (bind-keys :package foo ("C-a" . key))))))))
 

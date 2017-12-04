@@ -973,21 +973,20 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-handler/:bind-keymap
     (name keyword arg rest state &optional override)
-  (let ((form
-         (mapcar
-          #'(lambda (binding)
-              `(,(if override
-                     'bind-key*
-                   'bind-key)
-                ,(car binding)
-                #'(lambda ()
-                    (interactive)
-                    (use-package-autoload-keymap
-                     ',(cdr binding) ',(use-package-as-symbol name)
-                     ,override)))) arg)))
-    (use-package-concat
-     (use-package-process-keywords name rest state)
-     `((ignore ,@form)))))
+  (use-package-concat
+   (use-package-process-keywords name rest state)
+   `((ignore
+      ,@(mapcar
+         #'(lambda (binding)
+             `(,(if override
+                    'bind-key*
+                  'bind-key)
+               ,(car binding)
+               #'(lambda ()
+                   (interactive)
+                   (use-package-autoload-keymap
+                    ',(cdr binding) ',(use-package-as-symbol name)
+                    ,override)))) arg)))))
 
 (defun use-package-handler/:bind-keymap* (name keyword arg rest state)
   (use-package-handler/:bind-keymap name keyword arg rest state t))
@@ -999,17 +998,18 @@ deferred until the prefix key sequence is pressed."
   (cl-destructuring-bind (nargs . commands)
       (use-package-normalize-commands args)
     (use-package-concat
-     (mapcar
-      #'(lambda (thing)
-          `(add-to-list
-            ',alist
-            ',(cons (use-package-normalize-regex (car thing))
-                    (cdr thing))))
-      nargs)
      (use-package-process-keywords name
        (use-package-sort-keywords
         (use-package-plist-append rest :commands commands))
-       state))))
+       state)
+     `((ignore
+        ,@(mapcar
+           #'(lambda (thing)
+               `(add-to-list
+                 ',alist
+                 ',(cons (use-package-normalize-regex (car thing))
+                         (cdr thing))))
+           nargs))))))
 
 (defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
 
@@ -1064,21 +1064,22 @@ deferred until the prefix key sequence is pressed."
   (cl-destructuring-bind (nargs . commands)
       (use-package-normalize-commands args)
     (use-package-concat
-     (cl-mapcan
-      #'(lambda (def)
-          (let ((syms (car def))
-                (fun (cdr def)))
-            (when fun
-              (mapcar
-               #'(lambda (sym)
-                   `(add-hook (quote ,(intern (format "%s-hook" sym)))
-                              (function ,fun)))
-               (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
-      nargs)
      (use-package-process-keywords name
        (use-package-sort-keywords
         (use-package-plist-append rest :commands commands))
-       state))))
+       state)
+     `((ignore
+        ,@(cl-mapcan
+           #'(lambda (def)
+               (let ((syms (car def))
+                     (fun (cdr def)))
+                 (when fun
+                   (mapcar
+                    #'(lambda (sym)
+                        `(add-hook (quote ,(intern (format "%s-hook" sym)))
+                                   (function ,fun)))
+                    (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
+           nargs))))))
 
 ;;;; :commands
 
