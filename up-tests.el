@@ -219,9 +219,9 @@
   (flet ((norm (&rest args)
                (apply #'use-package-normalize/:ensure
                       'foopkg :ensure args)))
-    (should (equal (norm '(t)) t))
-    (should (equal (norm '(nil)) nil))
-    (should (equal (norm '(sym)) 'sym))
+    (should (equal (norm '(t)) '(t)))
+    (should (equal (norm '(nil)) '(nil)))
+    (should (equal (norm '(sym)) '(sym)))
     (should-error (norm '(1)))
     (should-error (norm '("Hello")))))
 
@@ -230,7 +230,7 @@
     (match-expansion
      (use-package foo :ensure t)
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-2 ()
@@ -238,7 +238,7 @@
     (match-expansion
      (use-package foo :ensure t)
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-3 ()
@@ -246,7 +246,7 @@
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-4 ()
@@ -254,7 +254,7 @@
     (match-expansion
      (use-package foo :ensure nil)
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-5 ()
@@ -280,7 +280,7 @@
     (match-expansion
      (use-package foo :ensure nil :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -290,7 +290,7 @@
     (match-expansion
      (use-package foo :ensure nil :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 'nil 'nil)
+        (use-package-ensure-elpa 'foo '(nil) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -300,7 +300,7 @@
     (match-expansion
      (use-package foo :ensure t :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -310,7 +310,7 @@
     (match-expansion
      (use-package foo :ensure t :load-path "foo")
      `(progn
-        (use-package-ensure-elpa 'foo 't 'nil)
+        (use-package-ensure-elpa 'foo '(t) 'nil)
         (eval-and-compile
           (add-to-list 'load-path ,(pred stringp)))
         (require 'foo nil nil)))))
@@ -324,6 +324,30 @@
            (require (&rest ignore)))
       (use-package foo :ensure t)
       (should (eq tried-to-install 'foo)))))
+
+(ert-deftest use-package-test/:ensure-12 ()
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure bar)
+     `(progn
+        (use-package-ensure-elpa 'foo '(bar) 'nil)
+        (require 'foo nil nil)))))
+
+(ert-deftest use-package-test/:ensure-13 ()
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure bar :ensure quux)
+     `(progn
+        (use-package-ensure-elpa 'foo '(bar quux) 'nil)
+        (require 'foo nil nil)))))
+
+(ert-deftest use-package-test/:ensure-14 ()
+  (let ((use-package-always-ensure t))
+    (match-expansion
+     (use-package foo :ensure bar :ensure (quux bow))
+     `(progn
+        (use-package-ensure-elpa 'foo '(bar quux bow) 'nil)
+        (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:if-1 ()
   (match-expansion
@@ -1318,18 +1342,6 @@
       (ignore
        (bind-keys :package mu4e
                   ("<f9>" . mu4e))))))
-
-(ert-deftest use-package-test/539 ()
-  (match-expansion
-   (use-package foo
-     :requires bar
-     :after quux
-     :ensure bow)
-   `(progn
-      (use-package-ensure-elpa 'foo 'bow 'nil)
-      (when (featurep 'bar)
-        (eval-after-load 'quux
-          '(require 'foo nil nil))))))
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

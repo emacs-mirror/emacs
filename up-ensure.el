@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'up-core)
 
 (defgroup use-package-ensure nil
@@ -58,9 +59,9 @@ See also `use-package-defaults', which uses this value."
 (defcustom use-package-ensure-function 'use-package-ensure-elpa
   "Function that ensures a package is installed.
 This function is called with three arguments: the name of the
-package declared in the `use-package' form; the argument passed
-to `:ensure'; and the current `state' plist created by previous
-handlers.
+package declared in the `use-package' form; the arguments passed
+to all `:ensure' keywords (always a list, even if only one); and
+the current `state' plist created by previous handlers.
 
 Note that this function is called whenever `:ensure' is provided,
 even if it is nil. It is up to the function to decide on the
@@ -136,38 +137,43 @@ manually updated package."
       t
     (use-package-only-one (symbol-name keyword) args
       #'(lambda (label arg)
-          (if (symbolp arg)
-              arg
+          (cond
+           ((symbolp arg)
+            (list arg))
+           ((and (listp arg) (cl-every #'symbolp arg))
+            arg)
+           (t
             (use-package-error
              (concat ":ensure wants an optional package name "
-                     "(an unquoted symbol name)")))))))
+                     "(an unquoted symbol name)"))))))))
 
-(defun use-package-ensure-elpa (name ensure state &optional no-refresh)
-  (let ((package
-         (or (and (eq ensure t) (use-package-as-symbol name))
-             ensure)))
-    (when package
-      (require 'package)
-      (unless (package-installed-p package)
-        (condition-case-unless-debug err
-            (progn
-              (when (assoc package (bound-and-true-p
-                                    package-pinned-packages))
-                (package-read-all-archive-contents))
-              (if (assoc package package-archive-contents)
-                  (package-install package)
-                (package-refresh-contents)
+(defun use-package-ensure-elpa (name args state &optional no-refresh)
+  (dolist (ensure args)
+    (let ((package
+           (or (and (eq ensure t) (use-package-as-symbol name))
+               ensure)))
+      (when package
+        (require 'package)
+        (unless (package-installed-p package)
+          (condition-case-unless-debug err
+              (progn
                 (when (assoc package (bound-and-true-p
                                       package-pinned-packages))
                   (package-read-all-archive-contents))
-                (package-install package))
-              t)
-          (error
-           (ignore
-            (display-warning 'use-package
-                             (format "Failed to install %s: %s"
-                                     name (error-message-string err))
-                             :error))))))))
+                (if (assoc package package-archive-contents)
+                    (package-install package)
+                  (package-refresh-contents)
+                  (when (assoc package (bound-and-true-p
+                                        package-pinned-packages))
+                    (package-read-all-archive-contents))
+                  (package-install package))
+                t)
+            (error
+             (ignore
+              (display-warning 'use-package
+                               (format "Failed to install %s: %s"
+                                       name (error-message-string err))
+                               :error)))))))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state)))
@@ -184,7 +190,7 @@ manually updated package."
     body))
 
 (add-to-list 'use-package-defaults
-             '(:ensure use-package-always-ensure
+             '(:ensure (list use-package-always-ensure)
                        (lambda (args)
                          (and use-package-always-ensure
                               (not (plist-member args :load-path))))) t)
