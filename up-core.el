@@ -939,17 +939,6 @@ deferred until the prefix key sequence is pressed."
 (defun use-package-handler/:no-require (name keyword arg rest state)
   (use-package-process-keywords name rest state))
 
-;;;; :preface
-
-(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
-
-(defun use-package-handler/:preface (name keyword arg rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    (use-package-concat
-     (when arg
-       `((eval-and-compile ,@arg)))
-     body)))
-
 ;;;; :defines
 
 (defalias 'use-package-normalize/:defines 'use-package-normalize-symlist)
@@ -963,6 +952,17 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-handler/:functions (name keyword arg rest state)
   (use-package-process-keywords name rest state))
+
+;;;; :preface
+
+(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
+
+(defun use-package-handler/:preface (name keyword arg rest state)
+  (let ((body (use-package-process-keywords name rest state)))
+    (use-package-concat
+     (when arg
+       `((eval-and-compile ,@arg)))
+     body)))
 
 ;;;; :bind, :bind*
 
