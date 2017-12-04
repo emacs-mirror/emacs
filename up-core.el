@@ -1115,8 +1115,7 @@ deferred until the prefix key sequence is pressed."
                               ',(use-package-as-symbol name) nil t)))
      (if (or (not arg) (null body))
          body
-       `((eval-after-load ',name
-           ',(funcall use-package--hush-function body)))))))
+       `((eval-after-load ',name ',(macroexp-progn body)))))))
 
 ;;;; :after
 
@@ -1242,10 +1241,12 @@ no keyword implies `:all'."
    (let ((init-body
           (use-package-hook-injector (use-package-as-string name)
                                      :init arg)))
-     (if use-package-check-before-init
-         `((if (locate-library ,(use-package-as-string name))
-               ,(macroexp-progn init-body)))
-       init-body))
+     (when init-body
+       (funcall use-package--hush-function
+                (if use-package-check-before-init
+                    `((when (locate-library ,(use-package-as-string name))
+                        ,@init-body))
+                  init-body))))
    (use-package-process-keywords name rest state)))
 
 ;;;; :load
@@ -1269,16 +1270,16 @@ no keyword implies `:all'."
 (defun use-package-handler/:config (name keyword arg rest state)
   (let* ((body (use-package-process-keywords name rest state))
          (name-symbol (use-package-as-symbol name)))
-    (if (or (null arg)
-            (equal arg '(t)))
+    (if (or (null arg) (equal arg '(t)))
         body
       (use-package-with-elapsed-timer
           (format "Configuring package %s" name-symbol)
-        (use-package-concat
-         (use-package-hook-injector
-          (symbol-name name-symbol) :config arg)
-         body
-         (list t))))))
+        (funcall use-package--hush-function
+                 (use-package-concat
+                  (use-package-hook-injector
+                   (symbol-name name-symbol) :config arg)
+                  body
+                  (list t)))))))
 
 ;;;; :diminish
 
@@ -1324,32 +1325,32 @@ no keyword implies `:all'."
 ;;
 
 (defun use-package-hush (name args args* expanded body)
-  `(condition-case-unless-debug err
-       ,(macroexp-progn body)
-     (error
-      (let ((msg (format "%s: %s" ',name (error-message-string err))))
-        ,(when (eq use-package-verbose 'debug)
-           `(progn
-              (setq msg (concat msg " (see the *use-package* buffer)"))
-              (with-current-buffer (get-buffer-create "*use-package*")
-                (goto-char (point-max))
-                (insert "-----\n" msg
-                        ,(concat
-                          "\n\n"
-                          (pp-to-string `(use-package ,name ,@args))
-                          "\n  -->\n\n"
-                          (pp-to-string `(use-package ,name ,@args*))
-                          "\n  ==>\n\n"
-                          (pp-to-string (macroexp-progn expanded))))
-                (emacs-lisp-mode))))
-        (ignore (display-warning 'use-package msg :error))))))
+  `((condition-case-unless-debug err
+        ,(macroexp-progn body)
+      (error
+       (let ((msg (format "%s: %s" ',name (error-message-string err))))
+         ,(when (eq use-package-verbose 'debug)
+            `(progn
+               (setq msg (concat msg " (see the *use-package* buffer)"))
+               (with-current-buffer (get-buffer-create "*use-package*")
+                 (goto-char (point-max))
+                 (insert "-----\n" msg
+                         ,(concat
+                           "\n\n"
+                           (pp-to-string `(use-package ,name ,@args))
+                           "\n  -->\n\n"
+                           (pp-to-string `(use-package ,name ,@args*))
+                           "\n  ==>\n\n"
+                           (pp-to-string (macroexp-progn expanded))))
+                 (emacs-lisp-mode))))
+         (ignore (display-warning 'use-package msg :error)))))))
 
 (defun use-package-core (name args)
   (let* ((args* (use-package-normalize-keywords name args))
          (use-package--hush-function
           (if use-package-expand-minimally
-              #'macroexp-progn
-            (let ((use-package--hush-function #'macroexp-progn))
+              #'identity
+            (let ((use-package--hush-function #'identity))
               (apply-partially
                #'use-package-hush name args args*
                (let ((use-package-verbose 'errors)
@@ -1419,15 +1420,16 @@ this file.  Usage:
 :pin             Pin the package to an archive."
   (declare (indent 1))
   (unless (memq :disabled args)
-    (if (eq use-package-verbose 'errors)
-        (use-package-core name args)
-      (condition-case-unless-debug err
-          (use-package-core name args)
-        (error
-         (ignore
-          (let ((msg (format "Failed to parse package %s: %s"
-                             name (error-message-string err))))
-            (display-warning 'use-package msg :error))))))))
+    (macroexp-progn
+     (if (eq use-package-verbose 'errors)
+         (use-package-core name args)
+       (condition-case-unless-debug err
+           (use-package-core name args)
+         (error
+          (ignore
+           (let ((msg (format "Failed to parse package %s: %s"
+                              name (error-message-string err))))
+             (display-warning 'use-package msg :error)))))))))
 
 (put 'use-package 'lisp-indent-function 'defun)
 
