@@ -1147,20 +1147,20 @@ deferred until the prefix key sequence is pressed."
 
 (defun use-package-handler/:commands (name keyword arg rest state)
   (use-package-concat
-   (unless (plist-get state :demand)
-     ;; Since we deferring load, establish any necessary autoloads, and also
-     ;; keep the byte-compiler happy.
-     (let ((name-string (use-package-as-string name)))
-       (cl-mapcan
-        #'(lambda (command)
-            (when (symbolp command)
-              (append
+   ;; Since we deferring load, establish any necessary autoloads, and also
+   ;; keep the byte-compiler happy.
+   (let ((name-string (use-package-as-string name)))
+     (cl-mapcan
+      #'(lambda (command)
+          (when (symbolp command)
+            (append
+             (unless (plist-get state :demand)
                `((unless (fboundp ',command)
-                   (autoload #',command ,name-string nil t)))
-               (when (bound-and-true-p byte-compile-current-file)
-                 `((eval-when-compile
-                     (declare-function ,command ,name-string)))))))
-        (delete-dups arg))))
+                   (autoload #',command ,name-string nil t))))
+             (when (bound-and-true-p byte-compile-current-file)
+               `((eval-when-compile
+                   (declare-function ,command ,name-string)))))))
+      (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
 ;;;; :defer
