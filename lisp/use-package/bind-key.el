@@ -197,7 +197,7 @@ See `bind-key' for more details."
   "Similar to `bind-key', but overrides any mode-specific bindings."
   `(bind-key ,key-name ,command override-global-map ,predicate))
 
-(defun bind-keys-form (args)
+(defun bind-keys-form (args keymap)
   "Bind multiple keys at once.
 
 Accepts keyword arguments:
@@ -217,25 +217,37 @@ function symbol (unquoted)."
   (if (and (eq (car args) :package)
            (not (eq (car (cdr (cdr args))) :map)))
       (setq args (cons :map (cons 'global-map args))))
-  (let* ((map (plist-get args :map))
-         (doc (plist-get args :prefix-docstring))
-         (prefix-map (plist-get args :prefix-map))
-         (prefix (plist-get args :prefix))
-         (filter (plist-get args :filter))
-         (menu-name (plist-get args :menu-name))
-         (pkg (plist-get args :package))
-         (key-bindings (progn
-                         (while (keywordp (car args))
-                           (pop args)
-                           (pop args))
-                         args)))
+  (let ((map keymap)
+        doc
+        prefix-map
+        prefix
+        filter
+        menu-name
+        pkg)
+
+    ;; Process any initial keyword arguments
+    (let ((cont t))
+      (while (and cont args)
+        (if (pcase (car args)
+              (`:map (setq map (cadr args)))
+              (`:prefix-docstring (setq doc (cadr args)))
+              (`:prefix-map (setq prefix-map (cadr args)))
+              (`:prefix (setq prefix (cadr args)))
+              (`:filter (setq filter (cadr args)) t)
+              (`:menu-name (setq menu-name (cadr args)))
+              (`:package (setq pkg (cadr args))))
+            (setq args (cddr args))
+          (setq cont nil))))
+
     (when (or (and prefix-map (not prefix))
               (and prefix (not prefix-map)))
       (error "Both :prefix-map and :prefix must be supplied"))
+
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
-    (let ((args key-bindings)
-          saw-map first next)
+
+    ;; Process key binding arguments
+    (let (first next)
       (while args
         (if (keywordp (car args))
             (progn
@@ -245,6 +257,7 @@ function symbol (unquoted)."
               (nconc first (list (car args)))
             (setq first (list (car args))))
           (setq args (cdr args))))
+
       (cl-flet
           ((wrap (map bindings)
                  (if (and map pkg (not (eq map 'global-map)))
@@ -254,6 +267,7 @@ function symbol (unquoted)."
                              ,(if (symbolp pkg) `',pkg pkg)
                            '(progn ,@bindings))))
                    bindings)))
+
         (append
          (when prefix-map
            `((defvar ,prefix-map)
@@ -275,10 +289,9 @@ function symbol (unquoted)."
                         `((bind-key ,(car form) ,fun nil ,filter))))))
                 first))
          (when next
-           (bind-keys-form
-            (if pkg
-                (cons :package (cons pkg next))
-              next))))))))
+           (bind-keys-form (if pkg
+                               (cons :package (cons pkg next))
+                             next) map)))))))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
@@ -296,12 +309,12 @@ Accepts keyword arguments:
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
-  (macroexp-progn (bind-keys-form args)))
+  (macroexp-progn (bind-keys-form args nil)))
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
   (macroexp-progn
-   (bind-keys-form `(:map override-global-map ,@args))))
+   (bind-keys-form args 'override-global-map)))
 
 (defun get-binding-description (elem)
   (cond

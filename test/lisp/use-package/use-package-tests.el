@@ -77,7 +77,7 @@
     (unless (looking-at "(match-expansion")
       (backward-up-list))
     (when (looking-at "(match-expansion")
-      (search-forward "(use-package")
+      (re-search-forward "(\\(use-package\\|bind-key\\)")
       (goto-char (match-beginning 0))
       (let ((decl (read (current-buffer))))
         (kill-sexp)
@@ -1355,6 +1355,81 @@
       (require 'foo nil nil)
       (if (fboundp 'delight)
           (delight '((foo "bar" foo)))))))
+
+(ert-deftest use-package-test/334-1 ()
+  (let (foo1-map foo2-map
+                 bar1-func1
+                 bar1-func2
+                 bar2-func1
+                 bar2-func2
+                 bar3-func1
+                 bar3-func2
+                 bar4-func1
+                 bar4-func2)
+    (match-expansion
+     (bind-keys :map foo1-map
+                ("Y" . foo1)
+                :prefix "y"
+                :prefix-map bar1-prefix-map
+                ("y" . bar1-func1)
+                ("f" . bar1-func2)
+                :prefix "y"
+                :prefix-map bar2-prefix-map
+                ("y" . bar2-func1)
+                ("f" . bar2-func2)
+                :map foo2-map
+                ("Y" . foo2)
+                :prefix "y"
+                :prefix-map bar3-prefix-map
+                ("y" . bar3-func1)
+                ("f" . bar3-func2)
+                :prefix "y"
+                :prefix-map bar4-prefix-map
+                ("y" . bar4-func1)
+                ("f" . bar4-func2))
+     `(progn
+        (bind-key "Y" #'foo1 foo1-map nil)
+        (defvar bar1-prefix-map)
+        (define-prefix-command 'bar1-prefix-map)
+        (bind-key "y" 'bar1-prefix-map foo1-map nil)
+        (bind-key "y" #'bar1-func1 bar1-prefix-map nil)
+        (bind-key "f" #'bar1-func2 bar1-prefix-map nil)
+        (defvar bar2-prefix-map)
+        (define-prefix-command 'bar2-prefix-map)
+        (bind-key "y" 'bar2-prefix-map foo1-map nil)
+        (bind-key "y" #'bar2-func1 bar2-prefix-map nil)
+        (bind-key "f" #'bar2-func2 bar2-prefix-map nil)
+        (bind-key "Y" #'foo2 foo2-map nil)
+        (defvar bar3-prefix-map)
+        (define-prefix-command 'bar3-prefix-map)
+        (bind-key "y" 'bar3-prefix-map foo2-map nil)
+        (bind-key "y" #'bar3-func1 bar3-prefix-map nil)
+        (bind-key "f" #'bar3-func2 bar3-prefix-map nil)
+        (defvar bar4-prefix-map)
+        (define-prefix-command 'bar4-prefix-map)
+        (bind-key "y" 'bar4-prefix-map foo2-map nil)
+        (bind-key "y" #'bar4-func1 bar4-prefix-map nil)
+        (bind-key "f" #'bar4-func2 bar4-prefix-map nil)))))
+
+(ert-deftest use-package-test/334-2 ()
+  (let (w3m-lnum-mode-map
+        w3m-print-current-url
+        w3m-lnum-print-this-url
+        w3m-print-this-url)
+    (match-expansion
+     (bind-keys :map w3m-lnum-mode-map
+                :prefix "y"
+                :prefix-map w3m-y-prefix-map
+                ("y" . w3m-print-current-url)
+                ("f" . w3m-lnum-print-this-url)
+                ("t" . w3m-print-this-url))
+     `(progn
+        (defvar w3m-y-prefix-map)
+        (define-prefix-command 'w3m-y-prefix-map)
+        (bind-key "y" 'w3m-y-prefix-map w3m-lnum-mode-map nil)
+        (bind-key "y" #'w3m-print-current-url w3m-y-prefix-map nil)
+        (bind-key "f" #'w3m-lnum-print-this-url w3m-y-prefix-map nil)
+        (bind-key "t" #'w3m-print-this-url w3m-y-prefix-map nil)))))
 
 (ert-deftest use-package-test/506 ()
   (match-expansion
