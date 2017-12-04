@@ -1332,14 +1332,14 @@ no keyword implies `:all'."
       (error (,context err)))))
 
 (defun use-package-core (name args)
-  (let ((context (gensym "use-package--warning"))
-        (args* (use-package-normalize-keywords name args))
-        (use-package--hush-function #'identity))
+  (let* ((context (gensym "use-package--warning"))
+         (args* (use-package-normalize-keywords name args))
+         (use-package--hush-function #'identity)
+         (process `(use-package-process-keywords ',name ',args*
+                     ',(and (plist-get args* :demand)
+                            (list :demand t)))))
     (if use-package-expand-minimally
-        (funcall use-package--hush-function
-                 (use-package-process-keywords name args*
-                   (and (plist-get args* :demand)
-                        (list :demand t))))
+        (eval process)
       `((cl-flet
             ((,context
               (err)
@@ -1362,18 +1362,14 @@ no keyword implies `:all'."
                             (macroexp-progn
                              (let ((use-package-verbose 'errors)
                                    (use-package-expand-minimally t))
-                               (use-package-process-keywords name args*
-                                 (and (plist-get args* :demand)
-                                      (list :demand t))))))))
+                               (eval process))))))
                         (emacs-lisp-mode))))
                 (ignore (display-warning 'use-package msg :error)))))
           ,(let ((use-package--hush-function
                   (apply-partially #'use-package-hush context)))
              (macroexp-progn
               (funcall use-package--hush-function
-                       (use-package-process-keywords name args*
-                         (and (plist-get args* :demand)
-                              (list :demand t)))))))))))
+                       (eval process)))))))))
 
 ;;;###autoload
 (defmacro use-package (name &rest args)
@@ -1439,9 +1435,10 @@ this file.  Usage:
            (use-package-core name args)
          (error
           (ignore
-           (let ((msg (format "Failed to parse package %s: %s"
-                              name (error-message-string err))))
-             (display-warning 'use-package msg :error)))))))))
+           (display-warning
+            'use-package
+            (format "Failed to parse package %s: %s"
+                    name (error-message-string err)) :error))))))))
 
 (put 'use-package 'lisp-indent-function 'defun)
 
