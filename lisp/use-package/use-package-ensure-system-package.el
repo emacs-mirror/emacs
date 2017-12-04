@@ -20,7 +20,12 @@
 ;;; Code:
 
 (require 'use-package)
-(require 'system-packages)
+(require 'system-packages nil t)
+
+(eval-when-compile
+  (defvar system-packages-packagemanager)
+  (defvar system-packages-supported-package-managers)
+  (defvar system-packages-usesudo))
 
 (defun use-package-ensure-system-package-install-command (pack)
   "Return the default install command for `pack'."

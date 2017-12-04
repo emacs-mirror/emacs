@@ -45,6 +45,7 @@
 (require 'up-diminish)
 (require 'up-delight)
 
+(declare-function use-package-jump-to-package-form "up-jump")
 (autoload #'use-package-jump-to-package-form "up-jump" nil t)
 
 (provide 'use-package)

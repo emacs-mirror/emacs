@@ -17,7 +17,7 @@
 ;;; Code:
 
 (require 'bind-key)
-(require 'key-chord)
+(require 'key-chord nil t)
 
 ;;;###autoload
 (defmacro bind-chord (chord command &optional keymap)
