@@ -99,7 +99,6 @@ declaration is incorrect."
 
 (defcustom use-package-verbose nil
   "Whether to report about loading and configuration details.
-
 If you customize this, then you should require the `use-package'
 feature in files that use `use-package', even if these files only
 contain compiled expansions of the macros. If you don't do so,
