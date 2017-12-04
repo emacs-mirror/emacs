@@ -15,14 +15,24 @@
 
 - Emacs 24.3 or higher is now a requirement.
 
-- The `:defer-install` keyword has been remove. It may reappear as an add-on
+- The `:defer-install` keyword has been removed. It may reappear as an add-on
   module for use-package in a future release. See issue #442 for more details.
-
-- The ordering of several elements of `use-package-keywords' have changed; if
-  you have this customized you will need to rework your changes.
 
 - There is no longer a `use-package-debug` option, since `use-package-verbose`
   already has the possible value of `debug`.
+
+- The ordering of several elements of `use-package-keywords` have changed; if
+  you had previously customized this (or were an extension author adding to
+  this list), you may need to rework your changes.
+
+- For extension authors, the way `:commands` are propagated down for
+  autoloading has changed. They used to be passed through the `state`
+  parameter, but are now done as an extension to `rest`. Please see
+  `use-package-handler/:bind` for a canonical example.
+
+- For extension authors, if you add a keyword to `use-package-keywords` whose
+  presence should indicate deferred loading, please also add it to
+  `use-package-deferring-keywords`.
 
 ### Other changes
 
@@ -34,8 +44,8 @@
   declaration that caused the error, the post-normalized form of this
   declaration, and the macro-expanded version (without verbosity-related
   code). Note that this still does not help if there are parsing errors, which
-  will still cause Emacs to encounter a Lisp error at startup time.
-  
+  cause Emacs to register a Lisp error at startup time.
+
 - New customization variable `use-package-deferring-keywords`, mainly intended
   for use by extension packages, indicates keywords that, if used without
   `:demand`, cause deferred loading (as if `:defer t` had been specified).
