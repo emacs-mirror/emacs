@@ -1350,4 +1350,4 @@ this file.  Usage:
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; use-package.el ends here
+;;; use-package-core.el ends here

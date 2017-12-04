@@ -75,3 +75,5 @@ instead."
           (beginning-of-line))))))
 
 (provide 'use-package-jump)
+
+;;; use-package-jump.el ends here

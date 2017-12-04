@@ -85,3 +85,5 @@
 (add-to-list 'use-package-keywords :delight t)
 
 (provide 'use-package-delight)
+
+;;; use-package-delight.el ends here

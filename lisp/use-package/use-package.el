@@ -51,8 +51,4 @@
 
 (provide 'use-package)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; use-package.el ends here

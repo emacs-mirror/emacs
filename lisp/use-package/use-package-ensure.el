@@ -202,3 +202,5 @@ manually updated package."
 (add-to-list 'use-package-keywords :pin)
 
 (provide 'use-package-ensure)
+
+;;; use-package-ensure.el ends here

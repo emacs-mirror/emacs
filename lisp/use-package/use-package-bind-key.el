@@ -128,3 +128,5 @@ deferred until the prefix key sequence is pressed."
   (use-package-handler/:bind-keymap name keyword arg rest state t))
 
 (provide 'use-package-bind-key)
+
+;;; use-package-bind-key.el ends here
