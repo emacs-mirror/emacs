@@ -866,6 +866,35 @@
         (init)
         (require 'foo nil nil)))))
 
+(ert-deftest use-package-test/:catch-1 ()
+  (match-expansion
+   (use-package foo :catch t)
+   `(let
+        ((,_ #'(lambda (keyword err)
+                 (let ((msg (format "%s/%s: %s" 'foo keyword
+                                    (error-message-string err))))
+                   nil
+                   (ignore (display-warning 'use-package msg :error))))))
+      (condition-case-unless-debug err
+          (require 'foo nil nil)
+        (error
+         (funcall ,_ :catch err))))))
+
+(ert-deftest use-package-test/:catch-2 ()
+  (match-expansion
+   (use-package foo :catch nil)
+   `(require 'foo nil nil)))
+
+(ert-deftest use-package-test/:catch-3 ()
+  (match-expansion
+   (use-package foo :catch (lambda (keyword error)))
+   `(let
+        ((,_ (lambda (keyword error))))
+      (condition-case-unless-debug err
+          (require 'foo nil nil)
+        (error
+         (funcall ,_ :catch err))))))
+
 (ert-deftest use-package-test/:after-1 ()
   (match-expansion
    (use-package foo :after bar)
