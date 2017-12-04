@@ -1356,6 +1356,18 @@
       (if (fboundp 'delight)
           (delight '((foo "bar" foo)))))))
 
+(ert-deftest use-package-test/506 ()
+  (match-expansion
+   (use-package ess-site
+     :ensure ess
+     :pin melpa-stable)
+   `(progn
+      (use-package-pin-package 'ess-site "melpa-stable")
+      (use-package-ensure-elpa 'ess-site
+                               '(ess)
+                               'nil)
+      (require 'ess-site nil nil))))
+
 (ert-deftest use-package-test/538 ()
   (match-expansion
    (use-package mu4e
