@@ -35,6 +35,10 @@
 
 (require 'up-core)
 
+(defgroup use-package-ensure nil
+  "Support for :ensure and :pin keywords in use-package declarations."
+  :group 'use-package)
+
 (eval-when-compile
   (declare-function package-installed-p "package")
   (declare-function package-read-all-archive-contents "package" ()))
@@ -43,13 +47,13 @@
   "Treat every package as though it had specified using `:ensure SEXP'.
 See also `use-package-defaults', which uses this value."
   :type 'sexp
-  :group 'use-package)
+  :group 'use-package-ensure)
 
 (defcustom use-package-always-pin nil
   "Treat every package as though it had specified using `:pin SYM'.
 See also `use-package-defaults', which uses this value."
   :type 'symbol
-  :group 'use-package)
+  :group 'use-package-ensure)
 
 (defcustom use-package-ensure-function 'use-package-ensure-elpa
   "Function that ensures a package is installed.
@@ -67,7 +71,7 @@ This function should return non-nil if the package is installed.
 The default value uses package.el to install the package."
   :type '(choice (const :tag "package.el" use-package-ensure-elpa)
                  (function :tag "Custom"))
-  :group 'use-package)
+  :group 'use-package-ensure)
 
 ;;;; :pin
 
