@@ -66,7 +66,6 @@
     :after
     :custom
     :custom-face
-    :init
     :bind
     :bind*
     :bind-keymap
@@ -79,6 +78,7 @@
     ;; Any other keyword that also declares commands to be autoloaded (such as
     ;; :bind) must appear before this keyword.
     :commands
+    :init
     :defer
     :demand
     :load

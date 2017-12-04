@@ -662,6 +662,15 @@
         (eval-when-compile
           (declare-function quux "foo"))))))
 
+(ert-deftest use-package-test/:commands-4 ()
+  (match-expansion
+   (use-package foo :commands bar :init (bar))
+   `(progn
+      (unless
+          (fboundp 'bar)
+        (autoload #'bar "foo" nil t))
+      (bar))))
+
 (ert-deftest use-package-test/:defines-1 ()
   (match-expansion
    (use-package foo :defines bar)
