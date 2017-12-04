@@ -851,7 +851,7 @@ deferred until the prefix key sequence is pressed."
           (setq unread-command-events
                 (listify-key-sequence kv)))
       (use-package-error
-       (format "use-package: package.el %s failed to define keymap %s"
+       (format "package.el %s failed to define keymap %s"
                package keymap-symbol)))))
 
 (defun use-package-normalize-mode (name keyword args)
