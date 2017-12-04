@@ -1219,6 +1219,38 @@
       (if (fboundp 'delight)
           (delight '((foo "bar" foo)))))))
 
+(ert-deftest use-package-test/538 ()
+  (match-expansion
+   (use-package mu4e
+     :commands (mu4e)
+     :bind (("<f9>" . mu4e))
+     :init
+     :config
+     (config))
+   `(progn
+      (unless
+          (fboundp 'mu4e)
+        (autoload #'mu4e "mu4e" nil t))
+      (eval-after-load 'mu4e
+        '(progn
+           (config)
+           t))
+      (ignore
+       (bind-keys :package mu4e
+                  ("<f9>" . mu4e))))))
+
+(ert-deftest use-package-test/539 ()
+  (match-expansion
+   (use-package foo
+     :requires bar
+     :after quux
+     :ensure bow)
+   `(progn
+      (use-package-ensure-elpa 'foo 'bow 'nil)
+      (when (featurep 'bar)
+        (eval-after-load 'quux
+          '(require 'foo nil nil))))))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t
