@@ -585,7 +585,7 @@ next value for the STATE."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;; Arguments
+;;; Argument Processing
 ;;
 
 (defun use-package-only-one (label args f)
