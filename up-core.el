@@ -104,7 +104,8 @@ If you customize this, then you should require the `use-package'
 feature in files that use `use-package', even if these files only
 contain compiled expansions of the macros. If you don't do so,
 then the expanded macros do their job silently."
-  :type '(choice (const :tag "Quiet" nil)
+  :type '(choice (const :tag "Quiet, without catching errors" errors)
+                 (const :tag "Quiet" nil)
                  (const :tag "Verbose" t)
                  (const :tag "Debug" debug))
   :group 'use-package)
