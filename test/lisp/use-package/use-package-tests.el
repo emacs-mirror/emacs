@@ -1469,6 +1469,15 @@
       (ignore
        (bind-keys :package mu4e ("<f9>" . mu4e))))))
 
+(ert-deftest bind-key/:prefix-map ()
+  (match-expansion
+   (bind-keys :prefix "<f1>"
+              :prefix-map my/map)
+   `(progn
+      (defvar my/map)
+      (define-prefix-command 'my/map)
+      (bind-key "<f1>" 'my/map nil nil))))
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; no-byte-compile: t
