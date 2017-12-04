@@ -1282,44 +1282,6 @@ no keyword implies `:all'."
                   body
                   (list t)))))))
 
-;;;; :diminish
-
-(defun use-package-normalize-diminish (name label arg &optional recursed)
-  "Normalize the arguments to diminish down to a list of one of two forms:
-     SYMBOL
-     (SYMBOL . STRING)"
-  (cond
-   ((not arg)
-    (list (use-package-as-mode name)))
-   ((use-package-non-nil-symbolp arg)
-    (list arg))
-   ((stringp arg)
-    (list (cons (use-package-as-mode name) arg)))
-   ((and (consp arg) (stringp (cdr arg)))
-    (list arg))
-   ((and (not recursed) (listp arg) (listp (cdr arg)))
-    (mapcar #'(lambda (x) (car (use-package-normalize-diminish
-                           name label x t))) arg))
-   (t
-    (use-package-error
-     (concat label " wants a string, symbol, "
-             "(symbol . string) or list of these")))))
-
-(defun use-package-normalize/:diminish (name keyword args)
-  (use-package-as-one (symbol-name keyword) args
-    (apply-partially #'use-package-normalize-diminish name) t))
-
-(defun use-package-handler/:diminish (name keyword arg rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    (use-package-concat
-     (mapcar #'(lambda (var)
-                 `(if (fboundp 'diminish)
-                      ,(if (consp var)
-                           `(diminish ',(car var) ,(cdr var))
-                         `(diminish ',var))))
-             arg)
-     body)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; The main macro
