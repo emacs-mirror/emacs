@@ -1,0 +1,1000 @@
+\input texinfo    @c -*- texinfo -*-
+@c %**start of header
+@setfilename use-package.info
+@settitle use-package User Manual
+@documentencoding UTF-8
+@documentlanguage en
+@c %**end of header
+
+@copying
+@quotation
+Copyright (C) 2012-2017 John Wiegley <johnw@@newartisans.com>
+
+You can redistribute this document and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This document is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* use-package: (use-package). Declarative package configuration for Emacs.
+@end direntry
+
+@finalout
+@titlepage
+@title use-package User Manual
+@subtitle for version 2.4
+@author John Wiegley
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top use-package User Manual
+
+use-package is@dots{}
+
+@quotation
+Copyright (C) 2012-2017 John Wiegley <johnw@@newartisans.com>
+
+You can redistribute this document and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version.
+
+This document is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+@end quotation
+@end ifnottex
+
+@menu
+* Introduction::
+* Installation::
+* Getting Started::
+* Keywords::
+* FAQ::
+* Debugging Tools::
+* Command Index::
+* Function Index::
+* Variable Index::
+
+@detailmenu
+--- The Detailed Node Listing ---
+
+
+Installation
+
+* Installing from an Elpa Archive::
+* Installing from the Git Repository::
+* Post-Installation Tasks::
+
+
+
+
+Keywords
+
+* @code{:after}: @code{after}. 
+* @code{:bind-keymap}, @code{:bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
+* @code{:bind}, @code{:bind*}: @code{bind} @code{bind*}. 
+* @code{:commands}: @code{commands}. 
+* @code{:preface}, @code{:init}, @code{:config}: @code{preface} @code{init} @code{config}. 
+* @code{:custom}: @code{custom}. 
+* @code{:custom-face}: @code{custom-face}. 
+* @code{:defer}, @code{:demand}: @code{defer} @code{demand}. 
+* @code{:defines}, @code{:functions}: @code{defines} @code{functions}. 
+* @code{:diminish}, @code{:delight}: @code{diminish} @code{delight}. 
+* @code{:disabled}: @code{disabled}. 
+* @code{:ensure}, @code{:pin}: @code{ensure} @code{pin}. 
+* @code{:hook}: @code{hook}. 
+* @code{:if}, @code{:when}, @code{:unless}: @code{if} @code{when} @code{unless}. 
+* @code{:load-path}: @code{load-path}. 
+* @code{:mode}, @code{:interpreter}: @code{mode} @code{interpreter}. 
+* @code{:magic}, @code{:magic-fallback}: @code{magic} @code{magic-fallback}. 
+* @code{:no-require}: @code{no-require}. 
+* @code{:requires}: @code{requires}. 
+
+
+
+@code{:bind}, @code{:bind*}
+
+* Binding to local keymaps::
+
+FAQ
+
+* FAQ - How to @dots{}?::
+* FAQ - Issues and Errors::
+
+FAQ - How to @dots{}?
+
+* This is a question::
+
+
+FAQ - Issues and Errors
+
+* This is an issues::
+@end detailmenu
+@end menu
+
+@node Introduction
+@chapter Introduction
+
+TODO
+
+@node Installation
+@chapter Installation
+
+use-package can be installed using Emacs' package manager or manually from
+its development repository.
+
+@menu
+* Installing from an Elpa Archive::
+* Installing from the Git Repository::
+* Post-Installation Tasks::
+@end menu
+
+@node Installing from an Elpa Archive
+@section Installing from an Elpa Archive
+
+use-package is available from Melpa and Melpa-Stable. If you haven't used
+Emacs' package manager before, then it is high time you familiarize yourself
+with it by reading the documentation in the Emacs manual, see
+@ref{Packages,,,emacs,}. Then add one of the archives to @code{package-archives}:
+
+@itemize
+@item
+To use Melpa:
+@end itemize
+
+@lisp
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "http://melpa.org/packages/") t)
+@end lisp
+
+@itemize
+@item
+To use Melpa-Stable:
+@end itemize
+
+@lisp
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+@end lisp
+
+Once you have added your preferred archive, you need to update the
+local package list using:
+
+@example
+M-x package-refresh-contents RET
+@end example
+
+Once you have done that, you can install use-package and its dependencies
+using:
+
+@example
+M-x package-install RET use-package RET
+@end example
+
+Now see @ref{Post-Installation Tasks}.
+
+@node Installing from the Git Repository
+@section Installing from the Git Repository
+
+First, use Git to clone the use-package repository:
+
+@example
+$ git clone https://github.com/jwiegley/use-package.git ~/.emacs.d/site-lisp/use-package
+$ cd ~/.emacs.d/site-lisp/use-package
+@end example
+
+Then compile the libraries and generate the info manuals:
+
+@example
+$ make
+@end example
+
+You may need to create @code{/path/to/use-package/config.mk} with the following
+content before running @code{make}:
+
+@example
+LOAD_PATH  = -L /path/to/use-package
+@end example
+
+Finally add this to your init file:
+
+@lisp
+(add-to-list 'load-path "~/.emacs.d/site-lisp/use-package")
+(require 'use-package)
+
+(with-eval-after-load 'info
+  (info-initialize)
+  (add-to-list 'Info-directory-list
+	       "~/.emacs.d/site-lisp/use-package/"))
+@end lisp
+
+Note that elements of @code{load-path} should not end with a slash, while those of
+@code{Info-directory-list} should.
+
+Instead of running use-package directly from the repository by adding it to
+the @code{load-path}, you might want to instead install it in some other directory
+using @code{sudo make install} and setting @code{load-path} accordingly.
+
+To update use-package use:
+
+@example
+$ git pull
+$ make
+@end example
+
+At times it might be necessary to run @code{make clean all} instead.
+
+To view all available targets use @code{make help}.
+
+Now see @ref{Post-Installation Tasks}.
+
+@node Post-Installation Tasks
+@section Post-Installation Tasks
+
+After installing use-package you should verify that you are indeed using the
+use-package release you think you are using. It's best to restart Emacs before
+doing so, to make sure you are not using an outdated value for @code{load-path}.
+
+@example
+C-h v use-package-version RET
+@end example
+
+should display something like
+
+@example
+use-package-version’s value is "2.4"
+@end example
+
+If you are completely new to use-package then see @ref{Getting Started}.
+
+If you run into problems, then please see the @ref{FAQ}.  Also see the
+@ref{Debugging Tools}.
+
+@node Getting Started
+@chapter Getting Started
+
+TODO. For now, see @code{README.md}.
+
+@node Keywords
+@chapter Keywords
+
+@menu
+* @code{:after}: @code{after}. 
+* @code{:bind-keymap}, @code{:bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
+* @code{:bind}, @code{:bind*}: @code{bind} @code{bind*}. 
+* @code{:commands}: @code{commands}. 
+* @code{:preface}, @code{:init}, @code{:config}: @code{preface} @code{init} @code{config}. 
+* @code{:custom}: @code{custom}. 
+* @code{:custom-face}: @code{custom-face}. 
+* @code{:defer}, @code{:demand}: @code{defer} @code{demand}. 
+* @code{:defines}, @code{:functions}: @code{defines} @code{functions}. 
+* @code{:diminish}, @code{:delight}: @code{diminish} @code{delight}. 
+* @code{:disabled}: @code{disabled}. 
+* @code{:ensure}, @code{:pin}: @code{ensure} @code{pin}. 
+* @code{:hook}: @code{hook}. 
+* @code{:if}, @code{:when}, @code{:unless}: @code{if} @code{when} @code{unless}. 
+* @code{:load-path}: @code{load-path}. 
+* @code{:mode}, @code{:interpreter}: @code{mode} @code{interpreter}. 
+* @code{:magic}, @code{:magic-fallback}: @code{magic} @code{magic-fallback}. 
+* @code{:no-require}: @code{no-require}. 
+* @code{:requires}: @code{requires}. 
+@end menu
+
+@node @code{after}
+@section @code{:after}
+
+Sometimes it only makes sense to configure a package after another has been
+loaded, because certain variables or functions are not in scope until that
+time. This can achieved using an @code{:after} keyword that allows a fairly rich
+description of the exact conditions when loading should occur. Here is an
+example:
+
+@lisp
+(use-package hydra
+  :load-path "site-lisp/hydra")
+
+(use-package ivy
+  :load-path "site-lisp/swiper")
+
+(use-package ivy-hydra
+  :after (ivy hydra))
+@end lisp
+
+In this case, because all of these packages are demand-loaded in the order
+they occur, the use of @code{:after} is not strictly necessary. By using it,
+however, the above code becomes order-independent, without an implicit
+depedence on the nature of your init file.
+
+By default, @code{:after (foo bar)} is the same as @code{:after (:all foo bar)}, meaning
+that loading of the given package will not happen until both @code{foo} and @code{bar}
+have been loaded. Here are some of the other possibilities:
+
+@lisp
+:after (foo bar)
+:after (:all foo bar)
+:after (:any foo bar)
+:after (:all (:any foo bar) (:any baz quux))
+:after (:any (:all foo bar) (:all baz quux))
+@end lisp
+
+When you nest selectors, such as @code{(:any (:all foo bar) (:all baz quux))}, it
+means that the package will be loaded when either both @code{foo} and @code{bar} have
+been loaded, or both @code{baz} and @code{quux} have been loaded.
+
+@node @code{bind-keymap} @code{bind-keymap*}
+@section @code{:bind-keymap}, @code{:bind-keymap*}
+
+Normally @code{:bind} expects that commands are functions that will be autoloaded
+from the given package. However, this does not work if one of those commands
+is actually a keymap, since keymaps are not functions, and cannot be
+autoloaded using Emacs' @code{autoload} mechanism.
+
+To handle this case, @code{use-package} offers a special, limited variant of
+@code{:bind} called @code{:bind-keymap}. The only difference is that the "commands"
+bound to by @code{:bind-keymap} must be keymaps defined in the package, rather than
+command functions. This is handled behind the scenes by generating custom code
+that loads the package containing the keymap, and then re-executes your
+keypress after the first load, to reinterpret that keypress as a prefix key.
+
+For example:
+
+@lisp
+(use-package projectile
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+@end lisp
+
+@node @code{bind} @code{bind*}
+@section @code{:bind}, @code{:bind*}
+
+Another common thing to do when loading a module is to bind a key to primary
+commands within that module:
+
+@lisp
+(use-package ace-jump-mode
+  :bind ("C-." . ace-jump-mode))
+@end lisp
+
+This does two things: first, it creates an autoload for the @code{ace-jump-mode}
+command and defers loading of @code{ace-jump-mode} until you actually use it.
+Second, it binds the key @code{C-.} to that command.  After loading, you can use
+@code{M-x describe-personal-keybindings} to see all such keybindings you've set
+throughout your @code{.emacs} file.
+
+A more literal way to do the exact same thing is:
+
+@lisp
+(use-package ace-jump-mode
+  :commands ace-jump-mode
+  :init
+  (bind-key "C-." 'ace-jump-mode))
+@end lisp
+
+When you use the @code{:commands} keyword, it creates autoloads for those commands
+and defers loading of the module until they are used. Since the @code{:init} form
+is always run---even if @code{ace-jump-mode} might not be on your system---remember
+to restrict @code{:init} code to only what would succeed either way.
+
+The @code{:bind} keyword takes either a cons or a list of conses:
+
+@lisp
+(use-package hi-lock
+  :bind (("M-o l" . highlight-lines-matching-regexp)
+	 ("M-o r" . highlight-regexp)
+	 ("M-o w" . highlight-phrase)))
+@end lisp
+
+The @code{:commands} keyword likewise takes either a symbol or a list of symbols.
+
+NOTE: Special keys like @code{tab} or @code{F1}-@code{Fn} can be written in square brackets,
+i.e. @code{[tab]} instead of @code{"tab"}. The syntax for the keybindings is similar to
+the "kbd" syntax: see @uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-Rebinding.html, the Emacs Manual} for more information.
+
+Examples:
+
+@lisp
+(use-package helm
+  :bind (("M-x" . helm-M-x)
+	 ("M-<f5>" . helm-find-files)
+	 ([f10] . helm-buffers-list)
+	 ([S-f10] . helm-recentf)))
+@end lisp
+
+@menu
+* Binding to local keymaps::
+@end menu
+
+@node Binding to local keymaps
+@subsection Binding to local keymaps
+
+Slightly different from binding a key to a keymap, is binding a key @strong{within} a
+local keymap that only exists after the package is loaded.  @code{use-package}
+supports this with a @code{:map} modifier, taking the local keymap to bind to:
+
+@lisp
+(use-package helm
+  :bind (:map helm-command-map
+	 ("C-c h" . helm-execute-persistent-action)))
+@end lisp
+
+The effect of this statement is to wait until @code{helm} has loaded, and then to
+bind the key @code{C-c h} to @code{helm-execute-persistent-action} within Helm's local
+keymap, @code{helm-mode-map}.
+
+Multiple uses of @code{:map} may be specified. Any binding occurring before the
+first use of @code{:map} are applied to the global keymap:
+
+@lisp
+(use-package term
+  :bind (("C-c t" . term)
+	 :map term-mode-map
+	 ("M-p" . term-send-up)
+	 ("M-n" . term-send-down)
+	 :map term-raw-map
+	 ("M-o" . other-window)
+	 ("M-p" . term-send-up)
+	 ("M-n" . term-send-down)))
+@end lisp
+
+@node @code{commands}
+@section @code{:commands}
+
+@node @code{preface} @code{init} @code{config}
+@section @code{:preface}, @code{:init}, @code{:config}
+
+Here is the simplest @code{use-package} declaration:
+
+@lisp
+;; This is only needed once, near the top of the file
+(eval-when-compile
+  ;; Following line is not needed if use-package.el is in ~/.emacs.d
+  (add-to-list 'load-path "<path where use-package is installed>")
+  (require 'use-package))
+
+(use-package foo)
+@end lisp
+
+This loads in the package @code{foo}, but only if @code{foo} is available on your
+system. If not, a warning is logged to the @code{*Messages*} buffer. If it
+succeeds, a message about @code{"Loading foo"} is logged, along with the time it
+took to load, if it took over 0.1 seconds.
+
+Use the @code{:init} keyword to execute code before a package is loaded.  It
+accepts one or more forms, up until the next keyword:
+
+@lisp
+(use-package foo
+  :init
+  (setq foo-variable t))
+@end lisp
+
+Similarly, @code{:config} can be used to execute code after a package is loaded.
+In cases where loading is done lazily (see more about autoloading below), this
+execution is deferred until after the autoload occurs:
+
+@lisp
+(use-package foo
+  :init
+  (setq foo-variable t)
+  :config
+  (foo-mode 1))
+@end lisp
+
+As you might expect, you can use @code{:init} and @code{:config} together:
+
+@lisp
+(use-package color-moccur
+  :commands (isearch-moccur isearch-all)
+  :bind (("M-s O" . moccur)
+	 :map isearch-mode-map
+	 ("M-o" . isearch-moccur)
+	 ("M-O" . isearch-moccur-all))
+  :init
+  (setq isearch-lazy-highlight t)
+  :config
+  (use-package moccur-edit))
+@end lisp
+
+In this case, I want to autoload the commands @code{isearch-moccur} and
+@code{isearch-all} from @code{color-moccur.el}, and bind keys both at the global level
+and within the @code{isearch-mode-map} (see next section).  When the package is
+actually loaded (by using one of these commands), @code{moccur-edit} is also
+loaded, to allow editing of the @code{moccur} buffer.
+
+@node @code{custom}
+@section @code{:custom}
+
+The @code{:custom} keyword allows customization of package custom variables.
+
+@lisp
+(use-package comint
+  :custom
+  (comint-buffer-maximum-size 20000 "Increase comint buffer size.")
+  (comint-prompt-read-only t "Make the prompt read only."))
+@end lisp
+
+The documentation string is not mandatory.
+
+@node @code{custom-face}
+@section @code{:custom-face}
+
+The @code{:custom-face} keyword allows customization of package custom faces.
+
+@lisp
+(use-package eruby-mode
+  :custom-face
+  (eruby-standard-face ((t (:slant italic)))))
+@end lisp
+
+@node @code{defer} @code{demand}
+@section @code{:defer}, @code{:demand}
+
+In almost all cases you don't need to manually specify @code{:defer t}. This is
+implied whenever @code{:bind} or @code{:mode} or @code{:interpreter} is used. Typically, you
+only need to specify @code{:defer} if you know for a fact that some other package
+will do something to cause your package to load at the appropriate time, and
+thus you would like to defer loading even though use-package isn't creating
+any autoloads for you.
+
+You can override package deferral with the @code{:demand} keyword. Thus, even if
+you use @code{:bind}, using @code{:demand} will force loading to occur immediately and
+not establish an autoload for the bound key.
+
+@node @code{defines} @code{functions}
+@section @code{:defines}, @code{:functions}
+
+Another feature of @code{use-package} is that it always loads every file that it
+can when @code{.emacs} is being byte-compiled.  This helps to silence spurious
+warnings about unknown variables and functions.
+
+However, there are times when this is just not enough.  For those times, use
+the @code{:defines} and @code{:functions} keywords to introduce dummy variable and
+function declarations solely for the sake of the byte-compiler:
+
+@lisp
+(use-package texinfo
+  :defines texinfo-section-list
+  :commands texinfo-mode
+  :init
+  (add-to-list 'auto-mode-alist '("\\.texi$" . texinfo-mode)))
+@end lisp
+
+If you need to silence a missing function warning, you can use @code{:functions}:
+
+@lisp
+(use-package ruby-mode
+  :mode "\\.rb\\'"
+  :interpreter "ruby"
+  :functions inf-ruby-keys
+  :config
+  (defun my-ruby-mode-hook ()
+    (require 'inf-ruby)
+    (inf-ruby-keys))
+
+  (add-hook 'ruby-mode-hook 'my-ruby-mode-hook))
+@end lisp
+
+@node @code{diminish} @code{delight}
+@section @code{:diminish}, @code{:delight}
+
+@code{use-package} also provides built-in support for the diminish and delight
+utilities---if you have them installed. Their purpose is to remove or change
+minor mode strings in your mode-line.
+
+@uref{https://github.com/myrjola/diminish.el, diminish} is invoked with the @code{:diminish} keyword, which is passed either a
+minor mode symbol, a cons of the symbol and its replacement string, or just a
+replacement string, in which case the minor mode symbol is guessed to be the
+package name with "-mode" appended at the end:
+
+@lisp
+(use-package abbrev
+  :diminish abbrev-mode
+  :config
+  (if (file-exists-p abbrev-file-name)
+      (quietly-read-abbrev-file)))
+@end lisp
+
+@uref{https://elpa.gnu.org/packages/delight.html, delight} is invoked with the @code{:delight} keyword, which is passed a minor mode
+symbol, a replacement string or quoted @uref{https://www.gnu.org/software/emacs/manual/html_node/elisp/Mode-Line-Data.html, mode-line data} (in which case the minor
+mode symbol is guessed to be the package name with "-mode" appended at the
+end), both of these, or several lists of both. If no arguments are provided,
+the default mode name is hidden completely.
+
+@lisp
+;; Don't show anything for rainbow-mode.
+(use-package rainbow-mode
+  :delight)
+
+;; Don't show anything for auto-revert-mode, which doesn't match
+;; its package name.
+(use-package autorevert
+  :delight auto-revert-mode)
+
+;; Remove the mode name for projectile-mode, but show the project name.
+(use-package projectile
+  :delight '(:eval (concat " " (projectile-project-name))))
+
+;; Completely hide visual-line-mode and change auto-fill-mode to " AF".
+(use-package emacs
+  :delight
+  (auto-fill-function " AF")
+  (visual-line-mode))
+@end lisp
+
+@node @code{disabled}
+@section @code{:disabled}
+
+The @code{:disabled} keyword can turn off a module you're having difficulties with,
+or stop loading something you're not using at the present time:
+
+@lisp
+(use-package ess-site
+  :disabled
+  :commands R)
+@end lisp
+
+When byte-compiling your @code{.emacs} file, disabled declarations are omitted
+from the output entirely, to accelerate startup times.
+
+@node @code{ensure} @code{pin}
+@section @code{:ensure}, @code{:pin}
+
+You can use @code{use-package} to load packages from ELPA with @code{package.el}. This
+is particularly useful if you share your @code{.emacs} among several machines; the
+relevant packages are downloaded automatically once declared in your @code{.emacs}.
+The @code{:ensure} keyword causes the package(s) to be installed automatically if
+not already present on your system (set @code{(setq use-package-always-ensure t)}
+if you wish this behavior to be global for all packages):
+
+@lisp
+(use-package magit
+  :ensure t)
+@end lisp
+
+If you need to install a different package from the one named by
+@code{use-package}, you can specify it like this:
+
+@lisp
+(use-package tex
+  :ensure auctex)
+@end lisp
+
+Lastly, when running on Emacs 24.4 or later, use-package can pin a package to
+a specific archive, allowing you to mix and match packages from different
+archives.  The primary use-case for this is preferring packages from the
+@code{melpa-stable} and @code{gnu} archives, but using specific packages from @code{melpa}
+when you need to track newer versions than what is available in the @code{stable}
+archives is also a valid use-case.
+
+By default @code{package.el} prefers @code{melpa} over @code{melpa-stable} due to the
+versioning @code{(> evil-20141208.623 evil-1.0.9)}, so even if you are tracking
+only a single package from @code{melpa}, you will need to tag all the non-@code{melpa}
+packages with the appropriate archive. If this really annoys you, then you can
+set @code{use-package-always-pin} to set a default.
+
+If you want to manually keep a package updated and ignore upstream updates,
+you can pin it to @code{manual}, which as long as there is no repository by that
+name, will Just Work(tm).
+
+@code{use-package} throws an error if you try to pin a package to an archive that
+has not been configured using @code{package-archives} (apart from the magic
+@code{manual} archive mentioned above):
+
+@example
+Archive 'foo' requested for package 'bar' is not available.
+@end example
+
+Example:
+
+@lisp
+(use-package company
+  :ensure t
+  :pin melpa-stable)
+
+(use-package evil
+  :ensure t)
+  ;; no :pin needed, as package.el will choose the version in melpa
+
+(use-package adaptive-wrap
+  :ensure t
+  ;; as this package is available only in the gnu archive, this is
+  ;; technically not needed, but it helps to highlight where it
+  ;; comes from
+  :pin gnu)
+
+(use-package org
+  :ensure t
+  ;; ignore org-mode from upstream and use a manually installed version
+  :pin manual)
+@end lisp
+
+@strong{NOTE}: the @code{:pin} argument has no effect on emacs versions < 24.4.
+
+@node @code{hook}
+@section @code{:hook}
+
+The @code{:hook} keyword allows adding functions onto hooks, here only the basename
+of the hook is required. Thus, all of the following are equivalent:
+
+@lisp
+(use-package ace-jump-mode
+  :hook prog-mode)
+
+(use-package ace-jump-mode
+  :hook (prog-mode . ace-jump-mode))
+
+(use-package ace-jump-mode
+  :commands ace-jump-mode
+  :init
+  (add-hook 'prog-mode-hook #'ace-jump-mode))
+@end lisp
+
+And likewise, when multiple hooks should be applied, the following are also
+equivalent:
+
+@lisp
+(use-package ace-jump-mode
+  :hook (prog-mode text-mode))
+
+(use-package ace-jump-mode
+  :hook ((prog-mode text-mode) . ace-jump-mode))
+
+(use-package ace-jump-mode
+  :hook ((prog-mode . ace-jump-mode)
+	 (text-mode . ace-jump-mode)))
+
+(use-package ace-jump-mode
+  :commands ace-jump-mode
+  :init
+  (add-hook 'prog-mode-hook #'ace-jump-mode)
+  (add-hook 'text-mode-hook #'ace-jump-mode))
+@end lisp
+
+The use of @code{:hook}, as with @code{:bind}, @code{:mode}, @code{:interpreter}, etc., causes the
+functions being hooked to implicitly be read as @code{:commands} (meaning they will
+establish interactive @code{autoload} definitions for that module, if not already
+defined as functions), and so @code{:defer t} is also implied by @code{:hook}.
+
+@node @code{if} @code{when} @code{unless}
+@section @code{:if}, @code{:when}, @code{:unless}
+
+You can use the @code{:if} keyword to predicate the loading and initialization of
+modules.
+
+For example, I only want @code{edit-server} running for my main, graphical Emacs,
+not for other Emacsen I may start at the command line:
+
+@lisp
+(use-package edit-server
+  :if window-system
+  :init
+  (add-hook 'after-init-hook 'server-start t)
+  (add-hook 'after-init-hook 'edit-server-start t))
+@end lisp
+
+In another example, we can load things conditional on the operating system:
+
+@lisp
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize))
+@end lisp
+
+Note that @code{:when} is provided as an alias for @code{:if}, and @code{:unless foo} means
+the same thing as @code{:if (not foo)}.
+
+@node @code{load-path}
+@section @code{:load-path}
+
+If your package needs a directory added to the @code{load-path} in order to load,
+use @code{:load-path}. This takes a symbol, a function, a string or a list of
+strings. If the path is relative, it is expanded within
+@code{user-emacs-directory}:
+
+@lisp
+(use-package ess-site
+  :load-path "site-lisp/ess/lisp/"
+  :commands R)
+@end lisp
+
+Note that when using a symbol or a function to provide a dynamically generated
+list of paths, you must inform the byte-compiler of this definition so the
+value is available at byte-compilation time. This is done by using the special
+form @code{eval-and-compile} (as opposed to @code{eval-when-compile}). Further, this
+value is fixed at whatever was determined during compilation, to avoid looking
+up the same information again on each startup:
+
+@lisp
+(eval-and-compile
+  (defun ess-site-load-path ()
+    (shell-command "find ~ -path ess/lisp")))
+
+(use-package ess-site
+  :load-path (lambda () (list (ess-site-load-path)))
+  :commands R)
+@end lisp
+
+@node @code{mode} @code{interpreter}
+@section @code{:mode}, @code{:interpreter}
+
+Similar to @code{:bind}, you can use @code{:mode} and @code{:interpreter} to establish a
+deferred binding within the @code{auto-mode-alist} and @code{interpreter-mode-alist}
+variables. The specifier to either keyword can be a cons cell, a list of cons
+cells, or a string or regexp:
+
+@lisp
+(use-package ruby-mode
+  :mode "\\.rb\\'"
+  :interpreter "ruby")
+
+;; The package is "python" but the mode is "python-mode":
+(use-package python
+  :mode ("\\.py\\'" . python-mode)
+  :interpreter ("python" . python-mode))
+@end lisp
+
+If you aren't using @code{:commands}, @code{:bind}, @code{:bind*}, @code{:bind-keymap},
+@code{:bind-keymap*}, @code{:mode}, or @code{:interpreter} (all of which imply @code{:defer}; see
+the docstring for @code{use-package} for a brief description of each), you can
+still defer loading with the @code{:defer} keyword:
+
+@lisp
+(use-package ace-jump-mode
+  :defer t
+  :init
+  (autoload 'ace-jump-mode "ace-jump-mode" nil t)
+  (bind-key "C-." 'ace-jump-mode))
+@end lisp
+
+This does exactly the same thing as the following:
+
+@lisp
+(use-package ace-jump-mode
+  :bind ("C-." . ace-jump-mode))
+@end lisp
+
+@node @code{magic} @code{magic-fallback}
+@section @code{:magic}, @code{:magic-fallback}
+
+Similar to `:mode` and `:interpreter`, you can also use `:magic` and
+`:magic-fallback` to cause certain function to be run if the beginning of a
+file matches a given regular expression. The difference between the two is
+that `:magic-fallback` has a lower priority than `:mode`. For example:
+
+``` elisp
+(use-package pdf-tools
+  :load-path "site-lisp/pdf-tools/lisp"
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install))
+```
+
+This registers an autoloaded command for `pdf-view-mode`, defers loading of
+`pdf-tools`, and runs `pdf-view-mode` if the beginning of a buffer matches the
+string `"%PDF"`.
+
+@node @code{no-require}
+@section @code{:no-require}
+
+Normally, @code{use-package} will load each package at compile time before
+compiling the configuration, to ensure that any necessary symbols are in scope
+to satisfy the byte-compiler. At times this can cause problems, since a
+package may have special loading requirements, and all that you want to use
+@code{use-package} for is to add a configuration to the @code{eval-after-load} hook. In
+such cases, use the @code{:no-require} keyword:
+
+@lisp
+(use-package foo
+  :no-require t
+  :config
+  (message "This is evaluated when `foo' is loaded"))
+@end lisp
+
+@node @code{requires}
+@section @code{:requires}
+
+While the @code{:after} keyword delays loading until the dependencies are loaded,
+the somewhat simpler @code{:requires} keyword simply never loads the package if the
+dependencies are not available at the time the @code{use-package} declaration is
+encountered. By "available" in this context it means that @code{foo} is available
+of @code{(featurep 'foo)} evaulates to a non-nil value. For example:
+
+@lisp
+(use-package abbrev
+  :requires foo)
+@end lisp
+
+This is the same as:
+
+@lisp
+(use-package abbrev
+  :if (featurep 'foo))
+@end lisp
+
+As a convenience, a list of such packages may be specified:
+
+@lisp
+(use-package abbrev
+  :requires (foo bar baz))
+@end lisp
+
+For more complex logic, such as that supported by @code{:after}, simply use @code{:if}
+and the appropriate Lisp expression.
+
+@node FAQ
+@appendix FAQ
+
+The next two nodes lists frequently asked questions.
+
+Please also use the @ref{Debugging Tools}.
+
+@menu
+* FAQ - How to @dots{}?::
+* FAQ - Issues and Errors::
+@end menu
+
+@node FAQ - How to @dots{}?
+@appendixsec FAQ - How to @dots{}?
+
+@menu
+* This is a question::
+@end menu
+
+@node This is a question
+@appendixsubsec This is a question
+
+This is an answer.
+
+@node FAQ - Issues and Errors
+@appendixsec FAQ - Issues and Errors
+
+@menu
+* This is an issues::
+@end menu
+
+@node This is an issues
+@appendixsubsec This is an issues
+
+This is a description.
+
+@node Debugging Tools
+@chapter Debugging Tools
+
+TODO
+
+Please also see the @ref{FAQ}.
+
+@node Command Index
+@appendix Command Index
+
+@printindex cp
+
+@node Function Index
+@appendix Function Index
+
+@printindex fn
+
+@node Variable Index
+@appendix Variable Index
+
+@printindex vr
+
+@bye
