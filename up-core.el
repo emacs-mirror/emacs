@@ -1328,47 +1328,49 @@ no keyword implies `:all'."
 (defsubst use-package-hush (context body)
   `((condition-case-unless-debug err
         ,(macroexp-progn body)
-      (error (,context err)))))
+      (error (funcall ,context err)))))
 
 (defun use-package-core (name args)
   (let* ((context (gensym "use-package--warning"))
          (args* (use-package-normalize-keywords name args))
-         (use-package--hush-function #'identity)
-         (process `(use-package-process-keywords ',name ',args*
-                     ',(and (plist-get args* :demand)
-                            (list :demand t)))))
+         (use-package--hush-function #'identity))
     (if use-package-expand-minimally
-        (eval process)
-      `((cl-flet
+        (use-package-process-keywords name args*
+          (and (plist-get args* :demand)
+               (list :demand t)))
+      `((let
             ((,context
-              (err)
-              (let ((msg (format "%s: %s" ',name
-                                 (error-message-string err))))
-                ,(when (eq use-package-verbose 'debug)
-                   `(progn
-                      (setq msg (concat msg " (see the *use-package* buffer)"))
-                      (with-current-buffer (get-buffer-create "*use-package*")
-                        (goto-char (point-max))
-                        (insert
-                         "-----\n" msg
-                         ,(concat
-                           "\n\n"
-                           (pp-to-string `(use-package ,name ,@args))
-                           "\n  -->\n\n"
-                           (pp-to-string `(use-package ,name ,@args*))
-                           "\n  ==>\n\n"
-                           (pp-to-string
-                            (macroexp-progn
-                             (let ((use-package-verbose 'errors)
-                                   (use-package-expand-minimally t))
-                               (eval process))))))
-                        (emacs-lisp-mode))))
-                (ignore (display-warning 'use-package msg :error)))))
+              #'(lambda (err)
+                  (let ((msg (format "%s: %s" ',name (error-message-string err))))
+                    ,(when (eq use-package-verbose 'debug)
+                       `(progn
+                          (with-current-buffer (get-buffer-create "*use-package*")
+                            (goto-char (point-max))
+                            (insert
+                             "-----\n" msg
+                             ,(concat
+                               "\n\n"
+                               (pp-to-string `(use-package ,name ,@args))
+                               "\n  -->\n\n"
+                               (pp-to-string `(use-package ,name ,@args*))
+                               "\n  ==>\n\n"
+                               (pp-to-string
+                                (macroexp-progn
+                                 (let ((use-package-verbose 'errors)
+                                       (use-package-expand-minimally t))
+                                   (use-package-process-keywords name args*
+                                     (and (plist-get args* :demand)
+                                          (list :demand t))))))))
+                            (emacs-lisp-mode))
+                          (setq msg (concat msg " (see the *use-package* buffer)"))))
+                    (ignore (display-warning 'use-package msg :error))))))
           ,(let ((use-package--hush-function
                   (apply-partially #'use-package-hush context)))
              (macroexp-progn
               (funcall use-package--hush-function
-                       (eval process)))))))))
+                       (use-package-process-keywords name args*
+                         (and (plist-get args* :demand)
+                              (list :demand t)))))))))))
 
 ;;;###autoload
 (defmacro use-package (name &rest args)
