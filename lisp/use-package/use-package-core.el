@@ -452,20 +452,36 @@ This is in contrast to merely setting it to 0."
             (return-from outer index))
         (incf index)))
 
-(defun use-package-sort-keywords (plist)
-  (let (plist-grouped)
-    (while plist
-      (push (cons (car plist) (cadr plist))
-            plist-grouped)
-      (setq plist (cddr plist)))
-    (let (result)
-      (dolist (x
-               (nreverse
-                (sort plist-grouped
-                      #'(lambda (l r) (< (use-package-keyword-index (car l))
-                                    (use-package-keyword-index (car r)))))))
-        (setq result (cons (car x) (cons (cdr x) result))))
-      result)))
+(defun use-package-normalize-plist (name input &optional plist merge-function)
+  "Given a pseudo-plist, normalize it to a regular plist.
+The normalized key/value pairs from input are added to PLIST,
+extending any keys already present."
+  (when input
+    (let* ((keyword (car input))
+           (xs (use-package-split-list #'keywordp (cdr input)))
+           (args (car xs))
+           (tail (cdr xs))
+           (normalizer (intern (concat "use-package-normalize/"
+                                       (symbol-name keyword))))
+           (arg (cond ((functionp normalizer)
+                       (funcall normalizer name keyword args))
+                      ((= (length args) 1)
+                       (car args))
+                      (t
+                       args))))
+      (if (memq keyword use-package-keywords)
+          (progn
+            (setq plist (use-package-normalize-plist
+                         name tail plist merge-function))
+            (plist-put plist keyword
+                       (if (plist-member plist keyword)
+                           (funcall merge-function keyword
+                                    arg (plist-get plist keyword))
+                         arg)))
+        (ignore
+         (display-warning 'use-package
+                          (format "Unrecognized keyword: %s" keyword)
+                          :warning))))))
 
 (defun use-package-unalias-keywords (name args)
   (setq args (cl-nsubstitute :if :when args))
@@ -481,6 +497,21 @@ This is in contrast to merely setting it to 0."
     (`:after `(:all ,new ,old))
     (`:defer old)
     (_ (append new old))))
+
+(defun use-package-sort-keywords (plist)
+  (let (plist-grouped)
+    (while plist
+      (push (cons (car plist) (cadr plist))
+            plist-grouped)
+      (setq plist (cddr plist)))
+    (let (result)
+      (dolist (x
+               (nreverse
+                (sort plist-grouped
+                      #'(lambda (l r) (< (use-package-keyword-index (car l))
+                                    (use-package-keyword-index (car r)))))))
+        (setq result (cons (car x) (cons (cdr x) result))))
+      result)))
 
 (defun use-package-normalize-keywords (name args)
   (let* ((name-symbol (if (stringp name) (intern name) name))
@@ -539,37 +570,6 @@ This is in contrast to merely setting it to 0."
 
     ;; Sort the list of keywords based on the order of `use-package-keywords'.
     (use-package-sort-keywords args)))
-
-(defun use-package-normalize-plist (name input &optional plist merge-function)
-  "Given a pseudo-plist, normalize it to a regular plist.
-The normalized key/value pairs from input are added to PLIST,
-extending any keys already present."
-  (when input
-    (let* ((keyword (car input))
-           (xs (use-package-split-list #'keywordp (cdr input)))
-           (args (car xs))
-           (tail (cdr xs))
-           (normalizer (intern (concat "use-package-normalize/"
-                                       (symbol-name keyword))))
-           (arg (cond ((functionp normalizer)
-                       (funcall normalizer name keyword args))
-                      ((= (length args) 1)
-                       (car args))
-                      (t
-                       args))))
-      (if (memq keyword use-package-keywords)
-          (progn
-            (setq plist (use-package-normalize-plist
-                         name tail plist merge-function))
-            (plist-put plist keyword
-                       (if (plist-member plist keyword)
-                           (funcall merge-function keyword
-                                    arg (plist-get plist keyword))
-                         arg)))
-        (ignore
-         (display-warning 'use-package
-                          (format "Unrecognized keyword: %s" keyword)
-                          :warning))))))
 
 (defun use-package-process-keywords (name plist &optional state)
   "Process the next keyword in the free-form property list PLIST.
