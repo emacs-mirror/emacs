@@ -60,7 +60,9 @@
     :requires
     :load-path
     :no-require
-    :preface :defines :functions
+    :defines
+    :functions
+    :preface
     :after
     :custom
     :custom-face
