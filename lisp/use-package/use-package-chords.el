@@ -23,8 +23,6 @@
 (require 'use-package)
 (require 'bind-chord)
 
-(add-to-list 'use-package-keywords :chords t)
-
 (defalias 'use-package-normalize/:chords 'use-package-normalize-binder)
 
 (defun use-package-handler/:chords (name keyword arg rest state)
@@ -44,5 +42,8 @@
                 `(bind-chords :package ,name ,@arg)))))))
     (use-package-handler/:preface name keyword chord-binder rest state)))
 
+(add-to-list 'use-package-keywords :chords t)
+
 (provide 'use-package-chords)
+
 ;;; use-package-chords.el ends here

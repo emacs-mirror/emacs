@@ -58,4 +58,5 @@ function symbol (unquoted)."
               key-bindings)))))
 
 (provide 'bind-chord)
+
 ;;; bind-chord.el ends here

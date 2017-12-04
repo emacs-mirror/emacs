@@ -22,8 +22,6 @@
 (require 'use-package)
 (require 'system-packages)
 
-(add-to-list 'use-package-keywords :ensure-system-package t)
-
 (defun use-package-ensure-system-package-install-command (pack)
   "Return the default install command for `pack'."
   (let ((command
@@ -66,5 +64,8 @@
                     (async-shell-command ,(cdr cons)))) arg)
      body)))
 
+(add-to-list 'use-package-keywords :ensure-system-package t)
+
 (provide 'use-package-ensure-system-package)
+
 ;;; use-package-ensure-system-package.el ends here
