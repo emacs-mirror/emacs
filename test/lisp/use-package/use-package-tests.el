@@ -343,11 +343,33 @@
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-14 ()
+  (match-expansion
+   (use-package ess-site
+     :ensure ess1
+     :ensure ess2
+     :ensure (ess3 :pin "melpa-unstable")
+     :pin melpa-stable)
+   `(progn
+      (use-package-pin-package 'ess-site "melpa-stable")
+      (use-package-ensure-elpa 'ess-site
+                               '(ess1 ess2
+                                      (ess3 . "melpa-unstable"))
+                               'nil)
+      (require 'ess-site nil nil))))
+
+(ert-deftest use-package-test/:ensure-15 ()
   (let ((use-package-always-ensure t))
     (match-expansion
-     (use-package foo :ensure bar :ensure (quux bow))
+     (use-package foo
+       :pin "elpa"
+       :ensure bar
+       :ensure (quux :pin "melpa"))
      `(progn
-        (use-package-ensure-elpa 'foo '(bar quux bow) 'nil)
+        (use-package-pin-package 'foo "elpa")
+        (use-package-ensure-elpa 'foo
+                                 '(bar
+                                   (quux . "melpa"))
+                                 'nil)
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:if-1 ()
@@ -1431,18 +1453,6 @@
         (bind-key "f" #'w3m-lnum-print-this-url w3m-y-prefix-map nil)
         (bind-key "t" #'w3m-print-this-url w3m-y-prefix-map nil)))))
 
-(ert-deftest use-package-test/506 ()
-  (match-expansion
-   (use-package ess-site
-     :ensure ess
-     :pin melpa-stable)
-   `(progn
-      (use-package-pin-package 'ess-site "melpa-stable")
-      (use-package-ensure-elpa 'ess-site
-                               '(ess)
-                               'nil)
-      (require 'ess-site nil nil))))
-
 (ert-deftest use-package-test/538 ()
   (match-expansion
    (use-package mu4e
@@ -1452,16 +1462,12 @@
      :config
      (config))
    `(progn
-      (unless
-          (fboundp 'mu4e)
+      (unless (fboundp 'mu4e)
         (autoload #'mu4e "mu4e" nil t))
       (eval-after-load 'mu4e
-        '(progn
-           (config)
-           t))
+        '(progn (config) t))
       (ignore
-       (bind-keys :package mu4e
-                  ("<f9>" . mu4e))))))
+       (bind-keys :package mu4e ("<f9>" . mu4e))))))
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

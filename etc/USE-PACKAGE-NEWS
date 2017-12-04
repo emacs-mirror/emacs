@@ -50,6 +50,26 @@
   for use by extension packages, indicates keywords that, if used without
   `:demand`, cause deferred loading (as if `:defer t` had been specified).
 
+- The `:ensure` keyword now accepts a specific pinning sub-keyword. For
+  example:
+
+  ``` elisp
+  (use-package foo
+    :pin "elpa")
+  ```
+
+  This ensure the package `foo` is installed from `"elpa"`.
+
+  ``` elisp
+  (use-package foo
+    :ensure bar
+    :ensure (quux :pin "melpa"))
+  ```
+
+  This says that `foo` ensures that `bar` is installed, as well as `quux` from
+  `"melpa"`. It does *not* ensure that `foo` is installed, because explicit
+  `:ensure` keywords were given.
+
 - New `:hook` keyword.
 
 - New `:catch` keyword. If `t` or `nil`, it enables (the default, see

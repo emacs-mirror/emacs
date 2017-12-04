@@ -137,15 +137,17 @@ manually updated package."
       t
     (use-package-only-one (symbol-name keyword) args
       #'(lambda (label arg)
-          (cond
-           ((symbolp arg)
-            (list arg))
-           ((and (listp arg) (cl-every #'symbolp arg))
-            arg)
-           (t
-            (use-package-error
-             (concat ":ensure wants an optional package name "
-                     "(an unquoted symbol name)"))))))))
+          (pcase arg
+            ((pred symbolp)
+             (list arg))
+            (`(,(and pkg (pred symbolp))
+               :pin ,(and repo (or (pred stringp)
+                                   (pred symbolp))))
+             (list (cons pkg repo)))
+            (_
+             (use-package-error
+              (concat ":ensure wants an optional package name "
+                      "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
 (defun use-package-ensure-elpa (name args state &optional no-refresh)
   (dolist (ensure args)
@@ -154,6 +156,9 @@ manually updated package."
                ensure)))
       (when package
         (require 'package)
+        (when (consp package)
+          (use-package-pin-package (car package) (cdr package))
+          (setq package (car package)))
         (unless (package-installed-p package)
           (condition-case-unless-debug err
               (progn
