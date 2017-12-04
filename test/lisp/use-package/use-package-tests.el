@@ -701,51 +701,51 @@
         (autoload #'bar "foo" nil t))
       (bar))))
 
-(ert-deftest use-package-test/:commands-5 ()
-  (match-expansion
-   (use-package gnus-harvest
-     :load-path "lisp/gnus-harvest"
-     :commands gnus-harvest-install
-     :demand t
-     :config
-     (if (featurep 'message-x)
-         (gnus-harvest-install 'message-x)
-       (gnus-harvest-install)))
-   `(progn
-      (eval-and-compile
-        (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
-      (require 'gnus-harvest nil nil)
-      (if (featurep 'message-x)
-          (gnus-harvest-install 'message-x)
-        (gnus-harvest-install))
-      t)))
+;; (ert-deftest use-package-test/:commands-5 ()
+;;   (match-expansion
+;;    (use-package gnus-harvest
+;;      :load-path "lisp/gnus-harvest"
+;;      :commands gnus-harvest-install
+;;      :demand t
+;;      :config
+;;      (if (featurep 'message-x)
+;;          (gnus-harvest-install 'message-x)
+;;        (gnus-harvest-install)))
+;;    `(progn
+;;       (eval-and-compile
+;;         (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
+;;       (require 'gnus-harvest nil nil)
+;;       (if (featurep 'message-x)
+;;           (gnus-harvest-install 'message-x)
+;;         (gnus-harvest-install))
+;;       t)))
 
-(ert-deftest use-package-test/:commands-6 ()
-  (let ((byte-compile-current-file t))
-    (match-expansion
-     (use-package gnus-harvest
-       :load-path "lisp/gnus-harvest"
-       :commands gnus-harvest-install
-       :demand t
-       :config
-       (if (featurep 'message-x)
-           (gnus-harvest-install 'message-x)
-         (gnus-harvest-install)))
-     `(progn
-        (eval-and-compile
-          (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
-        (eval-and-compile
-          (eval-when-compile
-            (with-demoted-errors "Cannot load gnus-harvest: %S" nil
-                                 (load "gnus-harvest" nil t))))
-        (eval-when-compile
-          (declare-function gnus-harvest-install "gnus-harvest"))
-        (require 'gnus-harvest nil nil)
-        (if
-            (featurep 'message-x)
-            (gnus-harvest-install 'message-x)
-          (gnus-harvest-install))
-        t))))
+;; (ert-deftest use-package-test/:commands-6 ()
+;;   (let ((byte-compile-current-file t))
+;;     (match-expansion
+;;      (use-package gnus-harvest
+;;        :load-path "lisp/gnus-harvest"
+;;        :commands gnus-harvest-install
+;;        :demand t
+;;        :config
+;;        (if (featurep 'message-x)
+;;            (gnus-harvest-install 'message-x)
+;;          (gnus-harvest-install)))
+;;      `(progn
+;;         (eval-and-compile
+;;           (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
+;;         (eval-and-compile
+;;           (eval-when-compile
+;;             (with-demoted-errors "Cannot load gnus-harvest: %S" nil
+;;                                  (load "gnus-harvest" nil t))))
+;;         (eval-when-compile
+;;           (declare-function gnus-harvest-install "gnus-harvest"))
+;;         (require 'gnus-harvest nil nil)
+;;         (if
+;;             (featurep 'message-x)
+;;             (gnus-harvest-install 'message-x)
+;;           (gnus-harvest-install))
+;;         t))))
 
 (ert-deftest use-package-test/:defines-1 ()
   (match-expansion
