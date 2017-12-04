@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 29 Nov 2017
 ;; Version: 2.4
-;; Package-Requires: ((emacs "24.3") (bind-key "2.4"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
 
@@ -39,7 +39,6 @@
 
 ;;; Code:
 
-(require 'bind-key)
 (require 'bytecomp)
 (require 'cl-lib)
 
@@ -737,20 +736,6 @@ If RECURSED is non-nil, recurse into sublists."
            (prog1
                (let ((ret (use-package-normalize-pairs
                            key-pred val-pred name label x t)))
-                 ;; Currently, the handling of keyword arguments by
-                 ;; `use-package' and `bind-key' is non-uniform and
-                 ;; undocumented. As a result, `use-package-normalize-pairs'
-                 ;; (as it is currently implemented) does not correctly handle
-                 ;; the keyword-argument syntax of `bind-keys'. A permanent
-                 ;; solution to this problem will require a careful
-                 ;; consideration of the desired keyword-argument interface
-                 ;; for `use-package' and `bind-key'. However, in the
-                 ;; meantime, we have a quick patch to fix a serious bug in
-                 ;; the handling of keyword arguments. Namely, the code below
-                 ;; would normally unwrap lists that were passed as keyword
-                 ;; arguments (for example, the `:filter' argument in `:bind')
-                 ;; without the (not (keywordp last-item)) clause. See #447
-                 ;; for further discussion.
                  (if (and (listp ret)
                           (not (keywordp last-item)))
                      (car ret)
@@ -811,49 +796,6 @@ representing symbols (that may need to be autloaded)."
                     (and (consp x)
                          (use-package-non-nil-symbolp (cdr x))
                          (cdr x))) nargs)))))
-
-(defun use-package-normalize-binder (name keyword args)
-  (use-package-as-one (symbol-name keyword) args
-    #'(lambda (label arg)
-        (unless (consp arg)
-          (use-package-error
-           (concat label " a (<string or vector> . <symbol, string or function>)"
-                   " or list of these")))
-        (use-package-normalize-pairs
-         #'(lambda (k)
-             (pcase k
-               ((pred stringp) t)
-               ((pred vectorp) t)))
-         #'(lambda (v) (use-package-recognize-function v t #'stringp))
-         name label arg))))
-
-;;;###autoload
-(defun use-package-autoload-keymap (keymap-symbol package override)
-  "Loads PACKAGE and then binds the key sequence used to invoke
-this function to KEYMAP-SYMBOL. It then simulates pressing the
-same key sequence a again, so that the next key pressed is routed
-to the newly loaded keymap.
-
-This function supports use-package's :bind-keymap keyword. It
-works by binding the given key sequence to an invocation of this
-function for a particular keymap. The keymap is expected to be
-defined by the package. In this way, loading the package is
-deferred until the prefix key sequence is pressed."
-  (if (not (require package nil t))
-      (use-package-error (format "Cannot load package.el: %s" package))
-    (if (and (boundp keymap-symbol)
-             (keymapp (symbol-value keymap-symbol)))
-        (let* ((kv (this-command-keys-vector))
-               (key (key-description kv))
-               (keymap (symbol-value keymap-symbol)))
-          (if override
-              (bind-key* key keymap)
-            (bind-key key keymap))
-          (setq unread-command-events
-                (listify-key-sequence kv)))
-      (use-package-error
-       (format "package.el %s failed to define keymap %s"
-               package keymap-symbol)))))
 
 (defun use-package-normalize-mode (name keyword args)
   "Normalize arguments for keywords which add regexp/mode pairs to an alist."
@@ -1004,52 +946,6 @@ deferred until the prefix key sequence is pressed."
                        (use-package-process-keywords name rest state))))))
      (t
       (use-package-error "The :catch keyword expects 't' or a function")))))
-
-;;;; :bind, :bind*
-
-(defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
-(defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
-
-(defun use-package-handler/:bind
-    (name keyword args rest state &optional bind-macro)
-  (cl-destructuring-bind (nargs . commands)
-      (use-package-normalize-commands args)
-    (use-package-concat
-     (use-package-process-keywords name
-       (use-package-sort-keywords
-        (use-package-plist-append rest :commands commands))
-       state)
-     `((ignore
-        (,(if bind-macro bind-macro 'bind-keys)
-         :package ,name ,@nargs))))))
-
-(defun use-package-handler/:bind* (name keyword arg rest state)
-  (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
-
-;;;; :bind-keymap, :bind-keymap*
-
-(defalias 'use-package-normalize/:bind-keymap 'use-package-normalize-binder)
-(defalias 'use-package-normalize/:bind-keymap* 'use-package-normalize-binder)
-
-(defun use-package-handler/:bind-keymap
-    (name keyword arg rest state &optional override)
-  (use-package-concat
-   (use-package-process-keywords name rest state)
-   `((ignore
-      ,@(mapcar
-         #'(lambda (binding)
-             `(,(if override
-                    'bind-key*
-                  'bind-key)
-               ,(car binding)
-               #'(lambda ()
-                   (interactive)
-                   (use-package-autoload-keymap
-                    ',(cdr binding) ',(use-package-as-symbol name)
-                    ,override)))) arg)))))
-
-(defun use-package-handler/:bind-keymap* (name keyword arg rest state)
-  (use-package-handler/:bind-keymap name keyword arg rest state t))
 
 ;;;; :interpreter
 
