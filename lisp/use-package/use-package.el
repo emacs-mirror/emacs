@@ -41,9 +41,10 @@
 
 (require 'up-core)
 
-(require 'up-ensure)
+(require 'up-bind-key)
 (require 'up-diminish)
 (require 'up-delight)
+(require 'up-ensure)
 
 (declare-function use-package-jump-to-package-form "up-jump")
 (autoload #'use-package-jump-to-package-form "up-jump" nil t)
