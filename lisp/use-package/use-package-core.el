@@ -1244,7 +1244,7 @@ no keyword implies `:all'."
 (defun use-package-handler/:load (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (cl-dolist (pkg arg)
-      (setq body (use-package-require pkg nil body)))
+      (setq body (use-package-require (if (eq t pkg) name pkg) nil body)))
     body))
 
 ;;;; :config
