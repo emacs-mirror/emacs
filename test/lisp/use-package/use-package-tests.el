@@ -1663,6 +1663,24 @@
                ("C-c C-r" . org-ref-helm-insert-cite-link))
    `(bind-key "C-c C-r" #'org-ref-helm-insert-cite-link override-global-map nil)))
 
+(ert-deftest use-package-test/560 ()
+  (match-expansion
+   (use-package notmuch
+     :preface (setq-default notmuch-command (executable-find "notmuch"))
+     :if notmuch-command
+     :requires foo
+     :load-path "my-load-path"
+     :defines var)
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path "/Users/johnw/.emacs.d/my-load-path"))
+      (when (featurep 'foo)
+        (eval-and-compile
+          (setq-default notmuch-command
+                        (executable-find "notmuch")))
+        (when (symbol-value 'notmuch-command)
+          (require 'notmuch nil nil))))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"

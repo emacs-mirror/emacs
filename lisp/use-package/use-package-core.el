@@ -55,13 +55,13 @@
 
 (defcustom use-package-keywords
   '(:disabled
-    :if :when :unless
-    :requires
     :load-path
-    :no-require
+    :requires
     :defines
     :functions
     :preface
+    :if :when :unless
+    :no-require
     :catch
     :after
     :custom
