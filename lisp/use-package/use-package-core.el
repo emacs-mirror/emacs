@@ -877,7 +877,8 @@ representing symbols (that may need to be autloaded)."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      (mapcar #'(lambda (path)
-                 `(eval-and-compile (add-to-list 'load-path ,path))) arg)
+                 `(eval-and-compile (add-to-list 'load-path ,path)))
+             arg)
      body)))
 
 ;;;; :no-require
