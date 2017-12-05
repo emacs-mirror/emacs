@@ -26,6 +26,8 @@
 (require 'ert)
 (require 'use-package)
 
+(defvar running-on-travis nil)
+
 (setq use-package-always-ensure nil
       use-package-verbose 'errors
       use-package-expand-minimally t
@@ -822,51 +824,52 @@
         (autoload #'bar "foo" nil t))
       (bar))))
 
-;; (ert-deftest use-package-test/:commands-5 ()
-;;   (match-expansion
-;;    (use-package gnus-harvest
-;;      :load-path "lisp/gnus-harvest"
-;;      :commands gnus-harvest-install
-;;      :demand t
-;;      :config
-;;      (if (featurep 'message-x)
-;;          (gnus-harvest-install 'message-x)
-;;        (gnus-harvest-install)))
-;;    `(progn
-;;       (eval-and-compile
-;;         (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
-;;       (require 'gnus-harvest nil nil)
-;;       (if (featurep 'message-x)
-;;           (gnus-harvest-install 'message-x)
-;;         (gnus-harvest-install))
-;;       t)))
+(unless running-on-travis
+  (ert-deftest use-package-test/:commands-5 ()
+    (match-expansion
+     (use-package gnus-harvest
+       :load-path "lisp/gnus-harvest"
+       :commands gnus-harvest-install
+       :demand t
+       :config
+       (if (featurep 'message-x)
+           (gnus-harvest-install 'message-x)
+         (gnus-harvest-install)))
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
+        (require 'gnus-harvest nil nil)
+        (if (featurep 'message-x)
+            (gnus-harvest-install 'message-x)
+          (gnus-harvest-install))
+        t)))
 
-;; (ert-deftest use-package-test/:commands-6 ()
-;;   (let ((byte-compile-current-file t))
-;;     (match-expansion
-;;      (use-package gnus-harvest
-;;        :load-path "lisp/gnus-harvest"
-;;        :commands gnus-harvest-install
-;;        :demand t
-;;        :config
-;;        (if (featurep 'message-x)
-;;            (gnus-harvest-install 'message-x)
-;;          (gnus-harvest-install)))
-;;      `(progn
-;;         (eval-and-compile
-;;           (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
-;;         (eval-and-compile
-;;           (eval-when-compile
-;;             (with-demoted-errors "Cannot load gnus-harvest: %S" nil
-;;                                  (load "gnus-harvest" nil t))))
-;;         (eval-when-compile
-;;           (declare-function gnus-harvest-install "gnus-harvest"))
-;;         (require 'gnus-harvest nil nil)
-;;         (if
-;;             (featurep 'message-x)
-;;             (gnus-harvest-install 'message-x)
-;;           (gnus-harvest-install))
-;;         t))))
+  (ert-deftest use-package-test/:commands-6 ()
+    (let ((byte-compile-current-file t))
+      (match-expansion
+       (use-package gnus-harvest
+         :load-path "lisp/gnus-harvest"
+         :commands gnus-harvest-install
+         :demand t
+         :config
+         (if (featurep 'message-x)
+             (gnus-harvest-install 'message-x)
+           (gnus-harvest-install)))
+       `(progn
+          (eval-and-compile
+            (add-to-list 'load-path "/Users/johnw/.emacs.d/lisp/gnus-harvest"))
+          (eval-and-compile
+            (eval-when-compile
+              (with-demoted-errors "Cannot load gnus-harvest: %S" nil
+                                   (load "gnus-harvest" nil t))))
+          (eval-when-compile
+            (declare-function gnus-harvest-install "gnus-harvest"))
+          (require 'gnus-harvest nil nil)
+          (if
+              (featurep 'message-x)
+              (gnus-harvest-install 'message-x)
+            (gnus-harvest-install))
+          t)))))
 
 (ert-deftest use-package-test/:defines-1 ()
   (match-expansion
@@ -1336,39 +1339,40 @@
         (eval-after-load 'bar
           '(require 'foo nil nil))))))
 
-;; (ert-deftest use-package-test/:demand-7 ()
-;;   (match-expansion
-;;    (use-package counsel
-;;      :load-path "site-lisp/swiper"
-;;      :after ivy
-;;      :demand t
-;;      :diminish
-;;      :bind (("C-*" . counsel-org-agenda-headlines)
-;;             ("M-x" . counsel-M-x))
-;;      :commands (counsel-minibuffer-history
-;;                 counsel-find-library
-;;                 counsel-unicode-char)
-;;      :preface (preface-code)
-;;      :init
-;;      ;; This is actually wrong, but it's just part of the example.
-;;      (define-key minibuffer-local-map (kbd "M-r")
-;;        'counsel-minibuffer-history))
-;;    `(progn
-;;       (eval-and-compile
-;;         (add-to-list 'load-path "/Users/johnw/.emacs.d/site-lisp/swiper"))
-;;       (eval-and-compile
-;;         (preface-code))
-;;       (eval-after-load 'ivy
-;;         '(progn
-;;            (define-key minibuffer-local-map (kbd "M-r")
-;;              'counsel-minibuffer-history)
-;;            (require 'counsel nil nil)
-;;            (if (fboundp 'diminish)
-;;                (diminish 'counsel-mode))
-;;            (ignore
-;;             (bind-keys :package counsel
-;;                        ("C-*" . counsel-org-agenda-headlines)
-;;                        ("M-x" . counsel-M-x))))))))
+(unless running-on-travis
+  (ert-deftest use-package-test/:demand-7 ()
+    (match-expansion
+     (use-package counsel
+       :load-path "site-lisp/swiper"
+       :after ivy
+       :demand t
+       :diminish
+       :bind (("C-*" . counsel-org-agenda-headlines)
+              ("M-x" . counsel-M-x))
+       :commands (counsel-minibuffer-history
+                  counsel-find-library
+                  counsel-unicode-char)
+       :preface (preface-code)
+       :init
+       ;; This is actually wrong, but it's just part of the example.
+       (define-key minibuffer-local-map (kbd "M-r")
+         'counsel-minibuffer-history))
+     `(progn
+        (eval-and-compile
+          (add-to-list 'load-path "/Users/johnw/.emacs.d/site-lisp/swiper"))
+        (eval-and-compile
+          (preface-code))
+        (eval-after-load 'ivy
+          '(progn
+             (define-key minibuffer-local-map (kbd "M-r")
+               'counsel-minibuffer-history)
+             (require 'counsel nil nil)
+             (if (fboundp 'diminish)
+                 (diminish 'counsel-mode))
+             (ignore
+              (bind-keys :package counsel
+                         ("C-*" . counsel-org-agenda-headlines)
+                         ("M-x" . counsel-M-x)))))))))
 
 (ert-deftest use-package-test/:config-1 ()
   (match-expansion
@@ -1663,25 +1667,26 @@
                ("C-c C-r" . org-ref-helm-insert-cite-link))
    `(bind-key "C-c C-r" #'org-ref-helm-insert-cite-link override-global-map nil)))
 
-;; (ert-deftest use-package-test/560 ()
-;;   (flet ((executable-find (name)))
-;;     (let (notmuch-command)
-;;       (match-expansion
-;;        (use-package notmuch
-;;          :preface (setq-default notmuch-command (executable-find "notmuch"))
-;;          :if notmuch-command
-;;          :requires foo
-;;          :load-path "my-load-path"
-;;          :defines var)
-;;        `(progn
-;;           (eval-and-compile
-;;             (add-to-list 'load-path "/Users/johnw/.emacs.d/my-load-path"))
-;;           (when (featurep 'foo)
-;;             (eval-and-compile
-;;               (setq-default notmuch-command
-;;                             (executable-find "notmuch")))
-;;             (when (symbol-value 'notmuch-command)
-;;               (require 'notmuch nil nil))))))))
+(unless running-on-travis
+  (ert-deftest use-package-test/560 ()
+    (flet ((executable-find (name)))
+      (let (notmuch-command)
+        (match-expansion
+         (use-package notmuch
+           :preface (setq-default notmuch-command (executable-find "notmuch"))
+           :if notmuch-command
+           :requires foo
+           :load-path "my-load-path"
+           :defines var)
+         `(progn
+            (eval-and-compile
+              (add-to-list 'load-path "/Users/johnw/.emacs.d/my-load-path"))
+            (when (featurep 'foo)
+              (eval-and-compile
+                (setq-default notmuch-command
+                              (executable-find "notmuch")))
+              (when (symbol-value 'notmuch-command)
+                (require 'notmuch nil nil)))))))))
 
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
