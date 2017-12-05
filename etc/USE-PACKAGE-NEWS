@@ -108,6 +108,14 @@
 - Documentation added for the `:after`, `:defer-install`, `:delight`,
   `:requires`, `:when` and `:unless` keywords.
 
+- `:requires SYM` is subtly different from `:if (featurep SYM)`, in that it
+  happens before the `:preface`. This means that using `:requires` will cause
+  definitions in the `:preface` to not be visible to the byte-compiler,
+  leading to possible warnings about unknown functions, or functions that may
+  not be available at run-time (which can generally be ignored, since
+  `:requires` is intended as a check for basic system functionality; `:after`
+  should be used to check for the presence of other modules).
+
 - New undocumented (and currently experimental) keyword `:load` may be used to
   change the name of the actual package loaded, rather than the package name,
   and may even add other names. For example: `(use-package auctex :load
