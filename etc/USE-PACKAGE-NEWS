@@ -118,6 +118,24 @@
   features (diminish, delight, ensure) may be maintained separately from the
   core functionality.
 
+- When using the `:after` keyword, now even autoloadeds keybinding are
+  deferred until after that other package has loaded, in order to allow
+  convenient `:bind` to maps only present in that other package. Consider the
+  following:
+
+  ``` elisp
+  (use-package helm-descbinds
+    :load-path "site-lisp/helm-descbinds"
+    :after helm
+    :bind ("C-h b" . helm-descbinds)
+    :init
+    (fset 'describe-bindings 'helm-descbinds))
+  ```
+
+  The binding of `C-h b` here will not occur until helm is loaded; and after
+  it is loaded, `helm-descbinds` itself is not loaded until the user presses
+  `C-h b`.
+
 ### Bug fixes
 
 - Repeating a bind no longer causes duplicates in personal-keybindings.
