@@ -546,26 +546,115 @@
         (eval-when-compile
           (with-demoted-errors "Cannot load foo: %S" nil nil))))))
 
-(ert-deftest use-package-test-normalize/:bind ()
-  (flet ((norm (&rest args)
-               (apply #'use-package-normalize-binder
-                      'foopkg :bind args)))
-    (let ((good-values '(:map map-sym
-                              ("str" . sym) ("str" . "str")
-                              ([vec] . sym) ([vec] . "str"))))
-      (should (equal (norm good-values) good-values)))
-    (should-error (norm '("foo")))
-    (should-error (norm '("foo" . 99)))
-    (should-error (norm '(99 . sym)))))
+(defun use-package-test-normalize-bind (&rest args)
+  (apply #'use-package-normalize-binder 'foo :bind args))
+
+(ert-deftest use-package-test-normalize/:bind-1 ()
+  (should (equal (use-package-test-normalize-bind
+                  '(("C-a" . alpha)))
+                 '(("C-a" . alpha)))))
+
+(ert-deftest use-package-test-normalize/:bind-2 ()
+  (should (equal (use-package-test-normalize-bind
+                  '(("C-a" . alpha)
+                    :map foo-map
+                    ("C-b" . beta)))
+                 '(("C-a" . alpha)
+                   :map foo-map
+                   ("C-b" . beta)))))
+
+(ert-deftest use-package-test-normalize/:bind-3 ()
+  (should (equal (use-package-test-normalize-bind
+                  '(:map foo-map
+                         ("C-a" . alpha)
+                         ("C-b" . beta)))
+                 '(:map foo-map
+                        ("C-a" . alpha)
+                        ("C-b" . beta)))))
 
 (ert-deftest use-package-test/:bind-1 ()
   (match-expansion
-   (use-package foo :bind ("C-k" . key))
+   (use-package foo :bind ("C-k" . key1) ("C-u" . key2))
    `(progn
-      (unless (fboundp 'key)
-        (autoload #'key "foo" nil t))
+      (unless
+          (fboundp 'key1)
+        (autoload #'key1 "foo" nil t))
+      (unless
+          (fboundp 'key2)
+        (autoload #'key2 "foo" nil t))
       (ignore
-       (bind-keys :package foo ("C-k" . key))))))
+       (bind-keys :package foo
+                  ("C-k" . key1)
+                  ("C-u" . key2))))))
+
+(ert-deftest use-package-test/:bind-2 ()
+  (match-expansion
+   (use-package foo :bind (("C-k" . key1) ("C-u" . key2)))
+   `(progn
+      (unless (fboundp 'key1)
+        (autoload #'key1 "foo" nil t))
+      (unless (fboundp 'key2)
+        (autoload #'key2 "foo" nil t))
+      (ignore
+       (bind-keys :package foo
+                  ("C-k" . key1)
+                  ("C-u" . key2))))))
+
+(ert-deftest use-package-test/:bind-3 ()
+  (match-expansion
+   (use-package foo :bind (:map my-map ("C-k" . key1) ("C-u" . key2)))
+   `(progn
+      (unless
+          (fboundp 'key1)
+        (autoload #'key1 "foo" nil t))
+      (unless
+          (fboundp 'key2)
+        (autoload #'key2 "foo" nil t))
+      (ignore
+       (bind-keys :package foo :map my-map
+                  ("C-k" . key1)
+                  ("C-u" . key2))))))
+
+(ert-deftest use-package-test/:bind-4 ()
+  (should-error
+   (match-expansion
+    (use-package foo :bind :map my-map ("C-k" . key1) ("C-u" . key2))
+    `(ignore
+      (bind-keys :package foo)))))
+
+(ert-deftest use-package-test/:bind-5 ()
+  (match-expansion
+   (use-package foo :bind ("C-k" . key1) (:map my-map ("C-u" . key2)))
+   `(progn
+      (unless (fboundp 'key1)
+        (autoload #'key1 "foo" nil t))
+      (unless (fboundp 'key2)
+        (autoload #'key2 "foo" nil t))
+      (ignore
+       (bind-keys :package foo
+                  ("C-k" . key1)
+                  :map my-map
+                  ("C-u" . key2))))))
+
+(ert-deftest use-package-test/:bind-6 ()
+  (match-expansion
+   (use-package foo
+     :bind
+     ("C-k" . key1)
+     (:map my-map ("C-u" . key2))
+     (:map my-map2 ("C-u" . key3)))
+   `(progn
+      (unless (fboundp 'key1)
+        (autoload #'key1 "foo" nil t))
+      (unless (fboundp 'key2)
+        (autoload #'key2 "foo" nil t))
+      (unless (fboundp 'key3)
+        (autoload #'key3 "foo" nil t))
+      (ignore
+       (bind-keys :package foo
+                  ("C-k" . key1)
+                  :map my-map ("C-u" . key2)
+                  :map my-map2 ("C-u" . key3))))))
 
 (ert-deftest use-package-test/:bind*-1 ()
   (match-expansion
@@ -1523,6 +1612,40 @@
    `(progn
       (use-package-ensure-elpa 'hydra '(t) 'nil)
       (require 'hydra nil nil))))
+
+(ert-deftest use-package-test/545 ()
+  (match-expansion
+   (use-package spacemacs-theme
+     :ensure t
+     :init                                 ; or :config
+     (load-theme 'spacemacs-dark t)
+     )
+   `(progn
+      (use-package-ensure-elpa 'spacemacs-theme '(t) 'nil)
+      (load-theme 'spacemacs-dark t)
+      (require 'spacemacs-theme nil nil))
+   ))
+
+(ert-deftest use-package-test/550 ()
+  (match-expansion
+   (use-package company-try-hard
+     :ensure t
+     :bind
+     ("C-c M-/" . company-try-hard)
+     (:map company-active-map
+           ("C-c M-/" . company-try-hard)))
+   `(progn
+      (use-package-ensure-elpa 'company-try-hard
+                               '(t)
+                               'nil)
+      (unless
+          (fboundp 'company-try-hard)
+        (autoload #'company-try-hard "company-try-hard" nil t))
+      (ignore
+       (bind-keys :package company-try-hard
+                  ("C-c M-/" . company-try-hard)
+                  :map company-active-map
+                  ("C-c M-/" . company-try-hard))))))
 
 (ert-deftest use-package-test/558 ()
   (match-expansion

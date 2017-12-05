@@ -67,17 +67,44 @@ deferred until the prefix key sequence is pressed."
                package keymap-symbol)))))
 
 (defun use-package-normalize-binder (name keyword args)
-  (use-package-as-one (symbol-name keyword) args
-    #'(lambda (label arg)
-        (unless (consp arg)
+  (let ((arg args)
+        args*)
+    (while arg
+      (let ((x (car arg)))
+        (cond
+         ;; (KEY . COMMAND)
+         ((and (consp x)
+               (or (stringp (car x))
+                   (vectorp (car x)))
+               (or (use-package-recognize-function (cdr x) t #'stringp)))
+          (setq args* (nconc args* (list x)))
+          (setq arg (cdr arg)))
+         ;; KEYWORD
+         ;;   :map KEYMAP
+         ;;   :prefix-docstring STRING
+         ;;   :prefix-map SYMBOL
+         ;;   :prefix STRING
+         ;;   :filter SEXP
+         ;;   :menu-name STRING
+         ((or (and (eq x :map) (symbolp (cadr arg)))
+              (and (eq x :prefix) (stringp (cadr arg)))
+              (and (eq x :prefix-map) (symbolp (cadr arg)))
+              (and (eq x :prefix-docstring) (stringp (cadr arg)))
+              (eq x :filter)
+              (and (eq x :menu-name) (stringp (cadr arg))))
+          (setq args* (nconc args* (list x (cadr arg))))
+          (setq arg (cddr arg)))
+         ((listp x)
+          (setq args*
+                (nconc args* (use-package-normalize-binder name keyword x)))
+          (setq arg (cdr arg)))
+         (t
+          ;; Error!
           (use-package-error
-           (concat label " a (<string or vector> . <symbol, string or function>)"
-                   " or list of these")))
-        (use-package-normalize-pairs
-         #'(lambda (k) (cond ((stringp k) t)
-                        ((vectorp k) t)))
-         #'(lambda (v) (use-package-recognize-function v t #'stringp))
-         name label arg))))
+           (concat (symbol-name name)
+                   " wants arguments acceptable to the `bind-keys' macro,"
+                   " or a list of such values"))))))
+    args*))
 
 ;;;; :bind, :bind*
 
