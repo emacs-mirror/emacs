@@ -51,6 +51,7 @@
          (use-package-error
           ":delight expects `delight' arguments or a list of them"))))
 
+;;;###autoload
 (defun use-package-normalize/:delight (name keyword args)
   "Normalize arguments to delight."
   (cond ((null args)
@@ -75,6 +76,7 @@
                 (list args)
               args)))))
 
+;;;###autoload
 (defun use-package-handler/:delight (name keyword args rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat

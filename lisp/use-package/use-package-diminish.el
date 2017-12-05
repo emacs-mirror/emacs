@@ -56,10 +56,12 @@
      (concat label " wants a string, symbol, "
              "(symbol . string) or list of these")))))
 
+;;;###autoload
 (defun use-package-normalize/:diminish (name keyword args)
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-diminish name) t))
 
+;;;###autoload
 (defun use-package-handler/:diminish (name keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat

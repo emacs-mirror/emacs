@@ -23,8 +23,10 @@
 (require 'use-package)
 (require 'bind-chord)
 
+;;;###autoload
 (defalias 'use-package-normalize/:chords 'use-package-normalize-binder)
 
+;;;###autoload
 (defun use-package-handler/:chords (name keyword arg rest state)
   "Handler for `:chords' keyword in `use-package'."
   (let* ((commands (remq nil (mapcar #'(lambda (arg)

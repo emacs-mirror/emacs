@@ -50,6 +50,7 @@
     (cons arg (use-package-ensure-system-package-install-command (symbol-name arg))))
    ((consp arg) arg)))
 
+;;;###autoload
 (defun use-package-normalize/:ensure-system-package (name-symbol keyword args)
   "Turn `arg' into a list of cons-es of (`package-name' . `install-command')."
   (use-package-only-one (symbol-name keyword) args
@@ -60,6 +61,7 @@
        (t
         (list (use-package-ensure-system-package-consify arg)))))))
 
+;;;###autoload
 (defun use-package-handler/:ensure-system-package (name keyword arg rest state)
   "Execute the handler for `:ensure-system-package' keyword in `use-package'."
   (let ((body (use-package-process-keywords name rest state)))

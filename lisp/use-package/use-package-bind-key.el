@@ -83,9 +83,12 @@ deferred until the prefix key sequence is pressed."
 
 ;;;; :bind, :bind*
 
+;;;###autoload
 (defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
+;;;###autoload
 (defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
 
+;;;###autoload
 (defun use-package-handler/:bind
     (name keyword args rest state &optional bind-macro)
   (cl-destructuring-bind (nargs . commands)
@@ -104,9 +107,12 @@ deferred until the prefix key sequence is pressed."
 
 ;;;; :bind-keymap, :bind-keymap*
 
+;;;###autoload
 (defalias 'use-package-normalize/:bind-keymap 'use-package-normalize-binder)
+;;;###autoload
 (defalias 'use-package-normalize/:bind-keymap* 'use-package-normalize-binder)
 
+;;;###autoload
 (defun use-package-handler/:bind-keymap
     (name keyword arg rest state &optional override)
   (use-package-concat
@@ -124,6 +130,7 @@ deferred until the prefix key sequence is pressed."
                     ',(cdr binding) ',(use-package-as-symbol name)
                     ,override)))) arg)))))
 
+;;;###autoload
 (defun use-package-handler/:bind-keymap* (name keyword arg rest state)
   (use-package-handler/:bind-keymap name keyword arg rest state t))
 

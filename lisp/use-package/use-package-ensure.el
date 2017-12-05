@@ -132,6 +132,7 @@ manually updated package."
 
 (defvar package-archive-contents)
 
+;;;###autoload
 (defun use-package-normalize/:ensure (name keyword args)
   (if (null args)
       (list t)
@@ -180,6 +181,7 @@ manually updated package."
                                        name (error-message-string err))
                                :error)))))))))
 
+;;;###autoload
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state)))
     ;; We want to avoid installing packages when the `use-package' macro is
