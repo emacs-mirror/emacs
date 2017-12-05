@@ -81,9 +81,19 @@
       (goto-char (match-beginning 0))
       (let ((decl (read (current-buffer))))
         (kill-sexp)
-        (let ((use-package-verbose 'errors)
-              (use-package-expand-minimally t))
-          (insert ?\n ?\` (pp-to-string (macroexpand-1 decl))))))))
+        (let (vars)
+          (catch 'exit
+            (save-excursion
+              (while (ignore-errors (backward-up-list) t)
+                (when (looking-at "(let\\s-+")
+                  (goto-char (match-end 0))
+                  (setq vars (read (current-buffer)))
+                  (throw 'exit t)))))
+          (eval
+           `(let (,@ (append vars
+                             '((use-package-verbose 'errors)
+                               (use-package-expand-minimally t))))
+              (insert ?\n ?\` (pp-to-string (macroexpand-1 decl))))))))))
 
 (bind-key "C-c C-u" #'fix-expansion emacs-lisp-mode-map)
 
