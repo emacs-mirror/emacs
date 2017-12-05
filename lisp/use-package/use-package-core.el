@@ -552,6 +552,10 @@ extending any keys already present."
     ;; Certain keywords imply :defer, if :demand was not specified.
     (when (and (not (plist-member args :demand))
                (not (plist-member args :defer))
+               (not (or (equal '(t) (plist-get args :load))
+                        (equal (list (use-package-as-string name))
+                               (mapcar #'use-package-as-string
+                                       (plist-get args :load)))))
                (cl-some #'identity
                         (mapcar (apply-partially #'plist-member args)
                                 use-package-deferring-keywords)))

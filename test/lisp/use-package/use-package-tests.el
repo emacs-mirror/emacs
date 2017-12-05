@@ -1044,6 +1044,27 @@
         (ignore
          (add-hook 'hook-special #'fun))))))
 
+(ert-deftest use-package-test/:hook-5 ()
+  (match-expansion
+   (use-package erefactor
+     :load-path "foo"
+     :after elisp-mode
+     :load t
+     :hook (emacs-lisp-mode
+            . (lambda ()
+                (bind-key "\C-c\C-v" erefactor-map emacs-lisp-mode-map))))
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path ,(pred stringp)))
+      (eval-after-load 'elisp-mode
+        '(progn
+           (require 'erefactor nil nil)
+           (ignore
+            (add-hook
+             'emacs-lisp-mode-hook
+             #'(lambda nil
+                 (bind-key "" erefactor-map emacs-lisp-mode-map)))))))))
+
 (ert-deftest use-package-test-normalize/:custom ()
   (flet ((norm (&rest args)
                (apply #'use-package-normalize/:custom
