@@ -138,17 +138,19 @@ manually updated package."
       (list t)
     (use-package-only-one (symbol-name keyword) args
       #'(lambda (label arg)
-          (pcase arg
-            ((pred symbolp)
-             (list arg))
-            (`(,(and pkg (pred symbolp))
-               :pin ,(and repo (or (pred stringp)
-                                   (pred symbolp))))
-             (list (cons pkg repo)))
-            (_
-             (use-package-error
-              (concat ":ensure wants an optional package name "
-                      "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
+          (cond
+           ((symbolp arg)
+            (list arg))
+           ((and (listp arg) (= 3 (length arg))
+                 (symbolp (nth 0 arg))
+                 (eq :pin (nth 1 arg))
+                 (or (stringp (nth 2 arg))
+                     (symbolp (nth 2 arg))))
+            (list (cons (nth 0 arg) (nth 2 arg))))
+           (t
+            (use-package-error
+             (concat ":ensure wants an optional package name "
+                     "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
 (defun use-package-ensure-elpa (name args state &optional no-refresh)
   (dolist (ensure args)

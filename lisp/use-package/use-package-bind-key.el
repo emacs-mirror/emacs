@@ -74,10 +74,8 @@ deferred until the prefix key sequence is pressed."
            (concat label " a (<string or vector> . <symbol, string or function>)"
                    " or list of these")))
         (use-package-normalize-pairs
-         #'(lambda (k)
-             (pcase k
-               ((pred stringp) t)
-               ((pred vectorp) t)))
+         #'(lambda (k) (cond ((stringp k) t)
+                        ((vectorp k) t)))
          #'(lambda (v) (use-package-recognize-function v t #'stringp))
          name label arg))))
 
@@ -91,8 +89,9 @@ deferred until the prefix key sequence is pressed."
 ;;;###autoload
 (defun use-package-handler/:bind
     (name keyword args rest state &optional bind-macro)
-  (cl-destructuring-bind (nargs . commands)
-      (use-package-normalize-commands args)
+  (let* ((result (use-package-normalize-commands args))
+         (nargs (car result))
+         (commands (cdr result)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
