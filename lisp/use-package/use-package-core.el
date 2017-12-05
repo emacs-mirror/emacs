@@ -478,10 +478,7 @@ extending any keys already present."
                            (funcall merge-function keyword
                                     arg (plist-get plist keyword))
                          arg)))
-        (ignore
-         (display-warning 'use-package
-                          (format "Unrecognized keyword: %s" keyword)
-                          :warning))))))
+        (use-package-error (format "Unrecognized keyword: %s" keyword))))))
 
 (defun use-package-unalias-keywords (name args)
   (setq args (cl-nsubstitute :if :when args))
