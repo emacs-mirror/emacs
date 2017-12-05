@@ -26,7 +26,7 @@
 (require 'ert)
 (require 'use-package)
 
-(defvar running-on-travis nil)
+(defvar running-on-travis t)
 
 (setq use-package-always-ensure nil
       use-package-verbose 'errors
