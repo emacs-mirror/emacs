@@ -118,7 +118,9 @@
     [[./img/which-key-minibuffer.png]]
     
     Note the maximum height of the minibuffer is controlled through the built-in
-    variable =max-mini-window-height=.
+    variable =max-mini-window-height=. Also, the paging commands do not work
+    reliably with the minibuffer option. Use the side window on the bottom
+    option if you need paging.
     
 ** Additional Commands
    - =which-key-show-top-level= will show most key bindings without a prefix. It

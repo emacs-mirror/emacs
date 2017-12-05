@@ -778,7 +778,10 @@ bottom."
 
 ;;;###autoload
 (defun which-key-setup-minibuffer ()
-  "Apply suggested settings for minibuffer."
+  "Apply suggested settings for minibuffer.
+Do not use this setup if you use the paging commands. Instead use
+`which-key-setup-side-window-bottom', which is nearly identical
+but more functional."
   (interactive)
   (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'minibuffer
