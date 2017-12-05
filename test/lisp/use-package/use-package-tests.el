@@ -1477,6 +1477,12 @@
       (use-package-ensure-elpa 'hydra '(t) 'nil)
       (require 'hydra nil nil))))
 
+(ert-deftest use-package-test/558 ()
+  (match-expansion
+   (bind-keys* :package org-ref
+               ("C-c C-r" . org-ref-helm-insert-cite-link))
+   `(bind-key "C-c C-r" #'org-ref-helm-insert-cite-link override-global-map nil)))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"

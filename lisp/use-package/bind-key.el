@@ -222,8 +222,10 @@ function symbol (unquoted)."
   ;; jww (2016-02-26): This is a hack; this whole function needs to be
   ;; rewritten to normalize arguments the way that use-package.el does.
   (if (and (eq (car args) :package)
-           (not (eq (car (cdr (cdr args))) :map)))
+           (not (eq (car (cdr (cdr args))) :map))
+           (not keymap))
       (setq args (cons :map (cons 'global-map args))))
+
   (let ((map keymap)
         doc
         prefix-map
@@ -267,7 +269,7 @@ function symbol (unquoted)."
 
       (cl-flet
           ((wrap (map bindings)
-                 (if (and map pkg (not (eq map 'global-map)))
+                 (if (and map pkg (not (memq map '(global-map override-global-map))))
                      `((if (boundp ',map)
                            (progn ,@bindings)
                          (eval-after-load
@@ -320,8 +322,7 @@ function symbol (unquoted)."
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
-  (macroexp-progn
-   (bind-keys-form args 'override-global-map)))
+  (macroexp-progn (bind-keys-form args 'override-global-map)))
 
 (defun get-binding-description (elem)
   (cond
