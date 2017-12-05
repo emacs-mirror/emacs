@@ -1469,6 +1469,14 @@
       (ignore
        (bind-keys :package mu4e ("<f9>" . mu4e))))))
 
+(ert-deftest use-package-test/543 ()
+  (match-expansion
+   (use-package hydra
+     :ensure)
+   `(progn
+      (use-package-ensure-elpa 'hydra '(t) 'nil)
+      (require 'hydra nil nil))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"

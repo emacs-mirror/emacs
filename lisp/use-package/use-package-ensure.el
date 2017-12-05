@@ -134,7 +134,7 @@ manually updated package."
 
 (defun use-package-normalize/:ensure (name keyword args)
   (if (null args)
-      t
+      (list t)
     (use-package-only-one (symbol-name keyword) args
       #'(lambda (label arg)
           (pcase arg
