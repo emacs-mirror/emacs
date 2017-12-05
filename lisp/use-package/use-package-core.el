@@ -276,19 +276,6 @@ Must be set before loading use-package."
 ;;; Utility functions
 ;;
 
-(defvar use-package-gensym-counter 0
-  "Number used to construct the name of the next symbol created
-by `use-package-gensym'.")
-
-(defun use-package-gensym (&optional prefix)
-  "Return a new uninterned symbol.
-The name is made by appending `gensym-counter' to PREFIX.
-PREFIX is a string, and defaults to \"g\"."
-  (let ((num (prog1 use-package-gensym-counter
-               (setq use-package-gensym-counter
-                     (1+ use-package-gensym-counter)))))
-    (make-symbol (format "%s%d" (or prefix "g") num))))
-
 (defsubst use-package-error (msg)
   "Report MSG as an error, so the user knows it came from this package."
   (error "use-package: %s" msg))
@@ -649,9 +636,9 @@ If ALLOW-EMPTY is non-nil, it's OK for ARGS to be an empty list."
 (defun use-package-memoize (f arg)
   "Ensure the macro-expansion of F applied to ARG evaluates ARG
 no more than once."
-  (let ((loaded (use-package-gensym "use-package--loaded"))
-        (result (use-package-gensym "use-package--result"))
-        (next (use-package-gensym "use-package--next")))
+  (let ((loaded (cl-gensym "use-package--loaded"))
+        (result (cl-gensym "use-package--result"))
+        (next (cl-gensym "use-package--next")))
     `((lexical-let (,loaded ,result)
         (lexical-let ((,next (lambda ()
                                (if ,loaded
@@ -934,7 +921,7 @@ representing symbols (that may need to be autloaded)."
       use-package--hush-function)))
 
 (defun use-package-handler/:catch (name keyword arg rest state)
-  (let* ((context (use-package-gensym "use-package--warning")))
+  (let* ((context (cl-gensym "use-package--warning")))
     (cond
      ((not arg)
       (use-package-process-keywords name rest state))
