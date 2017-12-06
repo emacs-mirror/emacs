@@ -94,6 +94,10 @@
 
 - New customization variable `use-package-hook-name-suffix`.
 
+- New customization variable `use-package-compute-statistics`, and an
+  accompanying command `M-x use-package-report`. See the README for more
+  details.
+
 - Allow `:diminish` to take no arguments.
 
 - Support multiple symbols passed to `:after`, and a mini-DSL using `:all` and
