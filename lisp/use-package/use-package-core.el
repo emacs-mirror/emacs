@@ -643,14 +643,14 @@ no more than once."
   (let ((loaded (cl-gensym "use-package--loaded"))
         (result (cl-gensym "use-package--result"))
         (next (cl-gensym "use-package--next")))
-    `((defvar ,loaded nil)
-      (defvar ,result nil)
-      (defvar ,next #'(lambda ()
-                        (if ,loaded
-                            ,result
-                          (setq ,loaded t)
-                          (setq ,result ,arg))))
-      ,(funcall f `(funcall ,next)))))
+    `((defconst ,loaded nil)
+      (defconst ,result nil)
+      (defconst ,next #'(lambda ()
+                          (if ,loaded
+                              ,result
+                            (setq ,loaded t)
+                            (setq ,result ,arg))))
+      ,@(funcall f `((funcall ,next))))))
 
 (defsubst use-package-normalize-value (label arg)
   "Normalize the Lisp value given by ARG.
@@ -946,9 +946,8 @@ representing symbols (that may need to be autloaded)."
           #'(lambda (keyword err)
               (let ((msg (format "%s/%s: %s" ',name keyword
                                  (error-message-string err))))
-                ,(when (eq use-package-verbose 'debug)
-                   `(progn
-                      (with-current-buffer
+                ,@(when (eq use-package-verbose 'debug)
+                    `((with-current-buffer
                           (get-buffer-create "*use-package*")
                         (goto-char (point-max))
                         (insert "-----\n" msg ,use-package--form)
@@ -1134,15 +1133,11 @@ FEATURES is a list containing keywords `:and' and `:all', where
 no keyword implies `:all'."
   (cond
    ((use-package-non-nil-symbolp features)
-    `(eval-after-load ',features
-       ,(if (member (car body) '(quote backquote \' \`))
-            body
-          (list 'quote body))))
+    `((eval-after-load ',features ',(macroexp-progn body))))
    ((and (consp features)
          (memq (car features) '(:or :any)))
-    (macroexp-progn
-     (mapcar #'(lambda (x) (use-package-require-after-load x body))
-             (cdr features))))
+    (cl-mapcan #'(lambda (x) (use-package-require-after-load x body))
+               (cdr features)))
    ((and (consp features)
          (memq (car features) '(:and :all)))
     (cl-dolist (next (cdr features))
@@ -1157,8 +1152,7 @@ no keyword implies `:all'."
     (if (or (null uses) (null body))
         body
       (if (<= uses 1)
-          (list (use-package-require-after-load
-                 arg (list 'quote (macroexp-progn body))))
+          (use-package-require-after-load arg body)
         (use-package-memoize
          (apply-partially #'use-package-require-after-load arg)
          (macroexp-progn body))))))
