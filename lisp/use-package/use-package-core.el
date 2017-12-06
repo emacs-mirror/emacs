@@ -108,8 +108,8 @@ declaration is incorrect."
     :mode
     :magic
     :magic-fallback
-    :commands
-    :hook)
+    :hook
+    :commands)
   "Unless `:demand' is used, keywords in this list imply deferred loading."
   :type '(repeat symbol)
   :group 'use-package)
