@@ -643,14 +643,11 @@ no more than once."
   (let ((loaded (cl-gensym "use-package--loaded"))
         (result (cl-gensym "use-package--result"))
         (next (cl-gensym "use-package--next")))
-    `((defconst ,loaded nil)
-      (defconst ,result nil)
-      (defconst ,next #'(lambda ()
-                          (if ,loaded
-                              ,result
-                            (setq ,loaded t)
-                            (setq ,result ,arg))))
-      ,@(funcall f `((funcall ,next))))))
+    `((lexical-let (,loaded ,result)
+        ,@(funcall f `((if ,loaded
+                           ,result
+                         (setq ,loaded t)
+                         (setq ,result ,arg))))))))
 
 (defsubst use-package-normalize-value (label arg)
   "Normalize the Lisp value given by ARG.
