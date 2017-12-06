@@ -29,6 +29,8 @@
 (setq use-package-always-ensure nil
       use-package-verbose 'errors
       use-package-expand-minimally t
+      ;; These are needed for certain tests below where the `pcase' match
+      ;; expression is large and contains holes, such as the :after tests.
       max-lisp-eval-depth 8000
       max-specpdl-size 8000)
 
