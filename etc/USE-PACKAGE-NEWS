@@ -80,6 +80,12 @@
 
 - New keywords `:custom (foo1 bar1) (foo2 bar2)` etc., and `:custom-face`.
 
+  NOTE: These are only for people who wish to keep customizations with their
+  accompanying use-package declarations. Functionally, the only benefit over
+  using `setq` in a `:config` block is that customizations might execute code
+  when values are assigned. If you currently use `M-x customize-option` and
+  save to a settings file, you do not want to use this option.
+
 - New `:magic` and `:magic-fallback` keywords.
 
 - New `:defer-install` keyword.
