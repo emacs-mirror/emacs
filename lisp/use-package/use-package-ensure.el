@@ -200,7 +200,7 @@ manually updated package."
 
 (add-to-list 'use-package-defaults
              '(:ensure (list use-package-always-ensure)
-                       (lambda (args)
+                       (lambda (name args)
                          (and use-package-always-ensure
                               (not (plist-member args :load-path))))) t)
 

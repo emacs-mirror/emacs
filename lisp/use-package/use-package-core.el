@@ -148,15 +148,15 @@ See also `use-package-defaults', which uses this value."
   '(;; this '(t) has special meaning; see `use-package-handler/:config'
     (:config '(t) t)
     (:init nil t)
-    (:catch t (lambda (args)
+    (:catch t (lambda (name args)
                 (not use-package-expand-minimally)))
     (:defer use-package-always-defer
-            (lambda (args)
+            (lambda (name args)
               (and use-package-always-defer
                    (not (plist-member args :defer))
                    (not (plist-member args :demand)))))
     (:demand use-package-always-demand
-             (lambda (args)
+             (lambda (name args)
                (and use-package-always-demand
                     (not (plist-member args :defer))
                     (not (plist-member args :demand))))))
@@ -168,9 +168,9 @@ is a form that can be evaluated to determine whether or not to
 assign a default value; if it evaluates to nil, then the default
 value is not assigned even if the keyword is not present in the
 `use-package' form. This third element may also be a function, in
-which case it receives the list of keywords (in normalized form),
-and should return nil or t according to whether defaulting should
-be attempted."
+which case it receives the name of the package (as a symbol) and
+a list of keywords (in normalized form). It should return nil or
+t according to whether defaulting should be attempted."
   :type `(repeat
           (list (choice :tag "Keyword"
                         ,@(mapcar #'(lambda (k) (list 'const k))
@@ -534,7 +534,7 @@ extending any keys already present."
     (cl-dolist (spec use-package-defaults)
       (when (let ((func (nth 2 spec)))
               (if (and func (functionp func))
-                  (funcall func args)
+                  (funcall func name args)
                 (eval func)))
         (setq args (use-package-plist-maybe-put
                     args (nth 0 spec) (eval (nth 1 spec))))))
