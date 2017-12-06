@@ -863,6 +863,13 @@ representing symbols (that may need to be autloaded)."
   (setq use-package-statistics (make-hash-table)))
 
 (defun use-package-report ()
+  "Show current statistics gathered about use-package declarations.
+In the table that's generated, the status field has the following
+meaning:
+  Configured        :config has been processed (the package is loaded!)
+  Initialized       :init has been processed (load status unknown)
+  Prefaced          :preface has been processed
+  Declared          the use-package declaration was seen"
   (interactive)
   (with-current-buffer (get-buffer-create "*use-package statistics*")
     (delete-region (point-min) (point-max))
