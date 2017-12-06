@@ -1364,18 +1364,20 @@ no keyword implies `:all'."
 (defmacro use-package-core (name args)
   `(let* ((args* (use-package-normalize-keywords ,name ,args))
           (use-package--form
-           (concat "\n\n"
-                   (pp-to-string `(use-package ,name ,@,args))
-                   "\n  -->\n\n"
-                   (pp-to-string `(use-package ,name ,@args*))
-                   "\n  ==>\n\n"
-                   (pp-to-string
-                    (macroexp-progn
-                     (let ((use-package-verbose 'errors)
-                           (use-package-expand-minimally t))
-                       (use-package-process-keywords name args*
-                         (and (plist-get args* :demand)
-                              (list :demand t)))))))))
+           (if (eq use-package-verbose 'debug)
+               (concat "\n\n"
+                       (pp-to-string `(use-package ,name ,@,args))
+                       "\n  -->\n\n"
+                       (pp-to-string `(use-package ,name ,@args*))
+                       "\n  ==>\n\n"
+                       (pp-to-string
+                        (macroexp-progn
+                         (let ((use-package-verbose 'errors)
+                               (use-package-expand-minimally t))
+                           (use-package-process-keywords name args*
+                             (and (plist-get args* :demand)
+                                  (list :demand t)))))))
+             "")))
      (use-package-process-keywords name args*
        (and (plist-get args* :demand)
             (list :demand t)))))
