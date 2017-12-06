@@ -666,6 +666,18 @@
                   :map my-map ("C-u" . key2)
                   :map my-map2 ("C-u" . key3))))))
 
+(ert-deftest use-package-test/:bind-7 ()
+  (match-expansion
+   (use-package foo
+     :ensure
+     :bind ("C-c r" . browse-at-remote))
+   `(progn
+      (use-package-ensure-elpa 'foo '(t) 'nil)
+      (unless (fboundp 'browse-at-remote)
+        (autoload #'browse-at-remote "foo" nil t))
+      (ignore
+       (bind-keys :package foo ("C-c r" . browse-at-remote))))))
+
 (ert-deftest use-package-test/:bind*-1 ()
   (match-expansion
    (use-package foo :bind* ("C-k" . key))
