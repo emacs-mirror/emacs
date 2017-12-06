@@ -476,12 +476,8 @@ extending any keys already present."
            (tail (cdr xs))
            (normalizer (intern (concat "use-package-normalize/"
                                        (symbol-name keyword))))
-           (arg (cond ((functionp normalizer)
-                       (funcall normalizer name keyword args))
-                      ((= (length args) 1)
-                       (car args))
-                      (t
-                       args))))
+           (arg (and (functionp normalizer)
+                     (funcall normalizer name keyword args))))
       (if (memq keyword use-package-keywords)
           (progn
             (setq plist (use-package-normalize-plist

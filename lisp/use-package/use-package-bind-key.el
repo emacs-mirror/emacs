@@ -66,6 +66,7 @@ deferred until the prefix key sequence is pressed."
        (format "package.el %s failed to define keymap %s"
                package keymap-symbol)))))
 
+;;;###autoload
 (defun use-package-normalize-binder (name keyword args)
   (let ((arg args)
         args*)
