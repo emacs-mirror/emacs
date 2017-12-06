@@ -181,7 +181,7 @@ be attempted."
 
 (defcustom use-package-hook-name-suffix "-hook"
   "Text append to the name of hooks mentioned by :hook.
-Set to `nil' if you don't want this to happen; it's only a
+Set to nil if you don't want this to happen; it's only a
 convenience."
   :type '(choice string (const :tag "No suffix" nil))
   :group 'use-package)
@@ -214,8 +214,8 @@ performed.
 
 NOTE: If the `pre-init' hook return a nil value, that block's
 user-supplied configuration is not evaluated, so be certain to
-return `t' if you only wish to add behavior to what the user
-had specified."
+return t if you only wish to add behavior to what the user had
+specified."
   :type 'boolean
   :group 'use-package)
 
@@ -248,8 +248,9 @@ This is used by `use-package-jump-to-package-form' and
   :group 'use-package)
 
 (defcustom use-package-enable-imenu-support nil
-  "If non-nil, adjust `lisp-imenu-generic-expression' to include
-support for finding `use-package' and `require' forms.
+  "If non-nil, cause imenu to see `use-package' declarations.
+This is done by adjusting `lisp-imenu-generic-expression' to
+include support for finding `use-package' and `require' forms.
 
 Must be set before loading use-package."
   :type 'boolean
@@ -305,7 +306,7 @@ convert it to a string and return that."
       (stringp re)))
 
 (defun use-package-normalize-regex (re)
-  "Given some regexp-like thing, resolve it down to a regular expression."
+  "Given some regexp-like thing in RE, resolve to a regular expression."
   (cond
    ((and (listp re) (eq (car re) 'rx)) (eval re))
    ((stringp re) re)
@@ -329,15 +330,16 @@ appended."
               (concat string "-mode")))))
 
 (defsubst use-package-load-name (name &optional noerror)
-  "Return a form which will load or require NAME depending on
-whether it's a string or symbol."
+  "Return a form which will load or require NAME.
+It does the right thing no matter if NAME is a string or symbol.
+Argument NOERROR means to indicate load failures as a warning."
   (if (stringp name)
       `(load ,name ,noerror)
     `(require ',name nil ,noerror)))
 
 (defun use-package-hook-injector (name-string keyword body)
-  "Wrap pre/post hook injections around a given keyword form.
-ARGS is a list of forms, so `((foo))' if only `foo' is being called."
+  "Wrap pre/post hook injections around the given BODY for KEYWORD.
+The BODY is a list of forms, so `((foo))' if only `foo' is being called."
   (if (not use-package-inject-hooks)
       body
     (let ((keyword-name (substring (format "%s" keyword) 1)))
@@ -651,7 +653,8 @@ no more than once."
       ,(funcall f `(funcall ,next)))))
 
 (defsubst use-package-normalize-value (label arg)
-  "Normalize a value."
+  "Normalize the Lisp value given by ARG.
+The argument LABEL is ignored."
   (cond ((null arg) nil)
         ((eq t arg) t)
         ((use-package-non-nil-symbolp arg)
