@@ -86,7 +86,11 @@
 
 - New customization variable `use-package-enable-imenu-support`.
 
-- New customization variable `use-package-hook-name-suffix`.
+- New customization variable `use-package-hook-name-suffix`. Any symbols named
+  in `:hook`, or in the CAR of cons cells passed to `:hook`, have this text
+  appended to them as a convenience. If you find yourself using this keyword
+  to add to hooks of different names, or just don't want such appending done,
+  you can change the text to an empty string.
 
 - New customization variable `use-package-compute-statistics`, and an
   accompanying command `M-x use-package-report`. See the README for more
