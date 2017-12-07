@@ -1190,107 +1190,114 @@
 (ert-deftest use-package-test/:after-5 ()
   (match-expansion
    (use-package foo :after (:any bar quux))
-   `(lexical-let (,_ ,_)
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (require 'foo nil nil)))))
       (eval-after-load 'bar
-        '(if ,_ ,_
-           (setq ,_ t)
-           (setq ,_ (require 'foo nil nil))))
+        '(funcall ,_))
       (eval-after-load 'quux
-        '(if ,_ ,_
-           (setq ,_ t)
-           (setq ,_ (require 'foo nil nil)))))))
+        '(funcall ,_)))))
 
 (ert-deftest use-package-test/:after-6 ()
   (match-expansion
    (use-package foo :after (:all (:any bar quux) bow))
-   `(lexical-let (,_ ,_)
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (require 'foo nil nil)))))
       (eval-after-load 'bow
         '(progn
            (eval-after-load 'bar
-             '(if ,_ ,_
-                (setq ,_ t)
-                (setq ,_ (require 'foo nil nil))))
+             '(funcall ,_))
            (eval-after-load 'quux
-             '(if ,_ ,_
-                (setq ,_ t)
-                (setq ,_ (require 'foo nil nil)))))))
-   ))
+             '(funcall ,_)))))))
 
 (ert-deftest use-package-test/:after-7 ()
   (match-expansion
    (use-package foo :after (:any (:all bar quux) bow))
-   `(lexical-let (,_ ,_)
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (require 'foo nil nil)))))
       (eval-after-load 'quux
         '(eval-after-load 'bar
-           '(if ,_ ,_
-              (setq ,_ t)
-              (setq ,_ (require 'foo nil nil)))))
+           '(funcall ,_)))
       (eval-after-load 'bow
-        '(if ,_ ,_
-           (setq ,_ t)
-           (setq ,_ (require 'foo nil nil)))))
-   ))
+        '(funcall ,_)))))
 
 (ert-deftest use-package-test/:after-8 ()
   (match-expansion
    (use-package foo :after (:all (:any bar quux) (:any bow baz)))
-   `(lexical-let (,_ ,_)
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (require 'foo nil nil)))))
       (eval-after-load 'bow
         '(progn
            (eval-after-load 'bar
-             '(if ,_ ,_
-                (setq ,_ t)
-                (setq ,_ (require 'foo nil nil))))
+             '(funcall ,_))
            (eval-after-load 'quux
-             '(if ,_ ,_
-                (setq ,_ t)
-                (setq ,_ (require 'foo nil nil))))))
+             '(funcall ,_))))
       (eval-after-load 'baz
         '(progn
            (eval-after-load 'bar
-             '(if ,_ ,_
-                (setq ,_ t)
-                (setq ,_ (require 'foo nil nil))))
+             '(funcall ,_))
            (eval-after-load 'quux
-             '(if ,_ ,_
-                (setq ,_ t)
-                (setq ,_ (require 'foo nil nil)))))))
-   ))
+             '(funcall ,_)))))))
 
 (ert-deftest use-package-test/:after-9 ()
   (match-expansion
    (use-package foo :after (:any (:all bar quux) (:all bow baz)))
-   `(lexical-let (,_ ,_)
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (require 'foo nil nil)))))
       (eval-after-load 'quux
         '(eval-after-load 'bar
-           '(if ,_ ,_
-              (setq ,_ t)
-              (setq ,_ (require 'foo nil nil)))))
+           '(funcall ,_)))
       (eval-after-load 'baz
         '(eval-after-load 'bow
-           '(if ,_ ,_
-              (setq ,_ t)
-              (setq ,_ (require 'foo nil nil))))))
-   ))
+           '(funcall ,_))))))
 
 (ert-deftest use-package-test/:after-10 ()
   (match-expansion
    (use-package foo :after (:any (:all bar quux) (:any bow baz)))
-   `(lexical-let (,_ ,_)
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (require 'foo nil nil)))))
       (eval-after-load 'quux
         '(eval-after-load 'bar
-           '(if ,_ ,_
-              (setq ,_ t)
-              (setq ,_ (require 'foo nil nil)))))
+           '(funcall ,_)))
       (eval-after-load 'bow
-        '(if ,_ ,_
-           (setq ,_ t)
-           (setq ,_ (require 'foo nil nil))))
+        '(funcall ,_))
       (eval-after-load 'baz
-        '(if ,_ ,_
-           (setq ,_ t)
-           (setq ,_ (require 'foo nil nil)))))
-   ))
+        '(funcall ,_)))))
 
 (ert-deftest use-package-test/:demand-1 ()
   (match-expansion
