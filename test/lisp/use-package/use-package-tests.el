@@ -1087,7 +1087,7 @@
      :hook (emacs-lisp-mode . function))
    `(progn
       (eval-and-compile
-        (add-to-list 'load-path "/Users/johnw/.emacs.d/foo"))
+        (add-to-list 'load-path ,(pred stringp)))
       (eval-after-load 'elisp-mode
         '(progn
            (unless (fboundp 'function)
@@ -1103,7 +1103,7 @@
      :hook (emacs-lisp-mode . (lambda () (function))))
    `(progn
       (eval-and-compile
-        (add-to-list 'load-path "/Users/johnw/.emacs.d/foo"))
+        (add-to-list 'load-path ,(pred stringp)))
       (eval-after-load 'elisp-mode
         '(progn
            (require 'erefactor nil nil)
