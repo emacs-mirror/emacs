@@ -671,17 +671,14 @@ If ALLOW-EMPTY is non-nil, it's OK for ARGS to be an empty list."
 (defun use-package-memoize (f arg)
   "Ensure the macro-expansion of F applied to ARG evaluates ARG
 no more than once."
-  (let* ((loaded (cl-gensym "use-package--loaded"))
-         (result (cl-gensym "use-package--result"))
-         (next (cl-gensym "use-package--next"))
-         (body `(lexical-let (,loaded ,result)
-                  ,@(funcall f `((if ,loaded
-                                     ,result
-                                   (setq ,loaded t)
-                                   (setq ,result ,arg)))))))
-    `(,(if (eq use-package-verbose 'errors)
-           body
-         (macroexpand body)))))
+  (let ((loaded (cl-gensym "use-package--loaded"))
+        (result (cl-gensym "use-package--result"))
+        (next (cl-gensym "use-package--next")))
+    `((lexical-let (,loaded ,result)
+        ,@(funcall f `((if ,loaded
+                           ,result
+                         (setq ,loaded t)
+                         (setq ,result ,arg))))))))
 
 (defsubst use-package-normalize-value (label arg)
   "Normalize the Lisp value given by ARG.
