@@ -152,10 +152,10 @@ remapped given the currently active keymaps."
         `(((nil . "Prefix Command") . (nil . "prefix"))
           ((nil . "\\`\\?\\?\\'") . (nil . "lambda"))
           ((nil . "which-key-show-next-page-no-cycle") . (nil . "wk next pg"))
-          (("<\\([[:alnum:]-]+\\)>") . ("\\1"))
           ,@(unless which-key-dont-use-unicode
-              '((("left") . ("←"))
-                (("right") . ("→"))))))
+              '((("<left>") . ("←"))
+                (("<right>") . ("→"))))
+          (("<\\([[:alnum:]-]+\\)>") . ("\\1"))))
   "Association list to determine how to manipulate descriptions
 of key bindings in the which-key popup. Each element of the list
 is a nested cons cell with the format
