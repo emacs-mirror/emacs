@@ -25,10 +25,8 @@
   you had previously customized this (or were an extension author adding to
   this list), you may need to rework your changes.
 
-- For extension authors, the way `:commands` are propagated down for
-  autoloading has changed. They used to be passed through the `state`
-  parameter, but are now done as an extension to `rest`. Please see
-  `use-package-handler/:bind` for a canonical example.
+- For extension authors, `:commands` should no longer be propagated down for
+  autoloading. See more below.
 
 ### Other changes
 
