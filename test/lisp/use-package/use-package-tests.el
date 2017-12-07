@@ -1213,8 +1213,7 @@
            (eval-after-load 'quux
              '(if ,_ ,_
                 (setq ,_ t)
-                (setq ,_ (require 'foo nil nil)))))))
-   ))
+                (setq ,_ (require 'foo nil nil)))))))))
 
 (ert-deftest use-package-test/:after-7 ()
   (match-expansion
@@ -1228,8 +1227,7 @@
       (eval-after-load 'bow
         '(if ,_ ,_
            (setq ,_ t)
-           (setq ,_ (require 'foo nil nil)))))
-   ))
+           (setq ,_ (require 'foo nil nil)))))))
 
 (ert-deftest use-package-test/:after-8 ()
   (match-expansion
@@ -1254,8 +1252,7 @@
            (eval-after-load 'quux
              '(if ,_ ,_
                 (setq ,_ t)
-                (setq ,_ (require 'foo nil nil)))))))
-   ))
+                (setq ,_ (require 'foo nil nil)))))))))
 
 (ert-deftest use-package-test/:after-9 ()
   (match-expansion
@@ -1270,8 +1267,7 @@
         '(eval-after-load 'bow
            '(if ,_ ,_
               (setq ,_ t)
-              (setq ,_ (require 'foo nil nil))))))
-   ))
+              (setq ,_ (require 'foo nil nil))))))))
 
 (ert-deftest use-package-test/:after-10 ()
   (match-expansion
@@ -1289,8 +1285,7 @@
       (eval-after-load 'baz
         '(if ,_ ,_
            (setq ,_ t)
-           (setq ,_ (require 'foo nil nil)))))
-   ))
+           (setq ,_ (require 'foo nil nil)))))))
 
 (ert-deftest use-package-test/:demand-1 ()
   (match-expansion
