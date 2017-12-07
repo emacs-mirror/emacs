@@ -179,6 +179,29 @@ t according to whether defaulting should be attempted."
                 (choice :tag "Enable if non-nil" sexp function)))
   :group 'use-package)
 
+(defcustom use-package-merge-key-alist
+  '((:if    . (lambda (new old) `(and ,new ,old)))
+    (:after . (lambda (new old) `(:all ,new ,old)))
+    (:defer . (lambda (new old) old)))
+  "Alist of keys and the functions used to merge multiple values.
+For example, if the following form is provided:
+
+  (use-package foo :if pred1 :if pred2)
+
+Then based on the above defaults, the merged result will be:
+
+  (use-package foo :if (and pred1 pred2))
+
+This is done so that, at the stage of invoking handlers, each
+handler is called only once."
+  :type `(repeat
+          (cons (choice :tag "Keyword"
+                        ,@(mapcar #'(lambda (k) (list 'const k))
+                                  use-package-keywords)
+                        (const :tag "Any" t))
+                function))
+  :group 'use-package)
+
 (defcustom use-package-hook-name-suffix "-hook"
   "Text append to the name of hooks mentioned by :hook.
 Set to nil if you don't want this to happen; it's only a
@@ -484,8 +507,8 @@ extending any keys already present."
                          name tail plist merge-function))
             (plist-put plist keyword
                        (if (plist-member plist keyword)
-                           (funcall merge-function keyword
-                                    arg (plist-get plist keyword))
+                           (funcall merge-function keyword arg
+                                    (plist-get plist keyword))
                          arg)))
         (use-package-error (format "Unrecognized keyword: %s" keyword))))))
 
@@ -498,10 +521,10 @@ extending any keys already present."
   args)
 
 (defun use-package-merge-keys (key new old)
-  (cond ((eq :if key) `(and ,new ,old))
-        ((eq :after key) `(:all ,new ,old))
-        ((eq :defer key) old)
-        (t (append new old))))
+  (let ((merger (assq key use-package-merge-key-alist)))
+    (if merger
+        (funcall (cdr merger) new old)
+      (append new old))))
 
 (defun use-package-sort-keywords (plist)
   (let (plist-grouped)
