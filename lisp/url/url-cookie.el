@@ -1,4 +1,4 @@
-;;; url-cookie.el --- URL cookie support
+;;; url-cookie.el --- URL cookie support  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -73,6 +73,55 @@ telling Microsoft that."
   "Load FNAME, default `url-cookie-file'."
   ;; It's completely normal for the cookies file not to exist yet.
   (load (or fname url-cookie-file) t t))
+
+(defun url-cookie-parse-file-netscape (filename &optional long-session)
+  "Load cookies from FILENAME in Netscape/Mozilla format.
+When LONG-SESSION is non-nil, session cookies (expiring at t=0
+i.e. 1970-1-1) are loaded as expiring one year from now instead."
+  (interactive "fLoad Netscape/Mozilla cookie file: ")
+  (let ((n 0))
+    (with-temp-buffer
+      (insert-file-contents-literally filename)
+      (goto-char (point-min))
+      (when (not (looking-at-p "# Netscape HTTP Cookie File\n"))
+	(error (format "File %s doesn't look like a netscape cookie file" filename)))
+      (while (not (eobp))
+	(when (not (looking-at-p (rx bol (* space) "#")))
+	  (let* ((line (buffer-substring (point) (save-excursion (end-of-line) (point))))
+		 (fields (split-string line "\t")))
+	    (cond
+	     ;;((>= 1 (length line) 0)
+	     ;; (message "skipping empty line"))
+	     ((= (length fields) 7)
+	      (let ((dom (nth 0 fields))
+		    ;; (match (nth 1 fields))
+		    (path (nth 2 fields))
+		    (secure (string= (nth 3 fields) "TRUE"))
+		    ;; session cookies (expire time = 0) are supposed
+		    ;; to be removed when the browser is closed, but
+		    ;; the main point of loading external cookie is to
+		    ;; reuse a browser session, so to prevent the
+		    ;; cookie from being detected as expired straight
+		    ;; away, make it expire a year from now
+		    (expires (format-time-string
+			      "%d %b %Y %T [GMT]"
+			      (seconds-to-time
+			       (let ((s (string-to-number (nth 4 fields))))
+				 (if (and (= s 0) long-session)
+				     (seconds-to-time (+ (* 365 24 60 60) (float-time)))
+				   s)))))
+		    (key (nth 5 fields))
+		    (val (nth 6 fields)))
+		(cl-incf n)
+		;;(message "adding <%s>=<%s> exp=<%s> dom=<%s> path=<%s> sec=%S" key val expires dom path secure)
+		(url-cookie-store key val expires dom path secure)
+		))
+	     (t
+	      (message "ignoring malformed cookie line <%s>" line)))))
+	(forward-line))
+      (when (< 0 n)
+	(setq url-cookies-changed-since-last-save t))
+      (message "added %d cookies from file %s" n filename))))
 
 (defun url-cookie-clean-up (&optional secure)
   (let ((var (if secure 'url-cookie-secure-storage 'url-cookie-storage))
@@ -161,7 +210,7 @@ telling Microsoft that."
   (let ((exp (url-cookie-expires cookie)))
     (and (> (length exp) 0)
 	 (condition-case ()
-	     (> (float-time) (float-time (date-to-time exp)))
+	     (time-less-p (date-to-time exp) nil)
 	   (error nil)))))
 
 (defun url-cookie-retrieve (host &optional localpart secure)
@@ -227,25 +276,21 @@ telling Microsoft that."
   :group 'url-cookie)
 
 (defun url-cookie-host-can-set-p (host domain)
-  (let ((last nil)
-	(case-fold-search t))
-    (cond
-     ((string= host domain)	; Apparently netscape lets you do this
-      t)
-     ((zerop (length domain))
-      nil)
-     (t
-      ;; Remove the dot from wildcard domains before matching.
-      (when (eq ?. (aref domain 0))
-	(setq domain (substring domain 1)))
-      (and (url-domsuf-cookie-allowed-p domain)
-	   ;; Need to check and make sure the host is actually _in_ the
-	   ;; domain it wants to set a cookie for though.
-	   (string-match (concat (regexp-quote domain) "$") host))))))
+  (cond
+   ((string= host domain)	; Apparently netscape lets you do this
+    t)
+   ((zerop (length domain))
+    nil)
+   (t
+    ;; Remove the dot from wildcard domains before matching.
+    (when (eq ?. (aref domain 0))
+      (setq domain (substring domain 1)))
+    (and (url-domsuf-cookie-allowed-p domain)
+         (string-suffix-p domain host 'ignore-case)))))
 
 (defun url-cookie-handle-set-cookie (str)
   (setq url-cookies-changed-since-last-save t)
-  (let* ((args (url-parse-args str t))
+  (let* ((args (nreverse (url-parse-args str t)))
 	 (case-fold-search t)
 	 (secure (and (assoc-string "secure" args t) t))
 	 (domain (or (cdr-safe (assoc-string "domain" args t))
@@ -253,44 +298,16 @@ telling Microsoft that."
 	 (current-url (url-view-url t))
 	 (trusted url-cookie-trusted-urls)
 	 (untrusted url-cookie-untrusted-urls)
-	 (expires (cdr-safe (assoc-string "expires" args t)))
+	 (max-age (cdr-safe (assoc-string "max-age" args t)))
 	 (localpart (or (cdr-safe (assoc-string "path" args t))
 			(file-name-directory
 			 (url-filename url-current-object))))
-	 (rest nil))
-    (dolist (this args)
-      (or (member (downcase (car this)) '("secure" "domain" "expires" "path"))
-	  (setq rest (cons this rest))))
-
-    ;; Sometimes we get dates that the timezone package cannot handle very
-    ;; gracefully - take care of this here, instead of in url-cookie-expired-p
-    ;; to speed things up.
-    (and expires
-	 (string-match
-	  (concat "^[^,]+, +\\(..\\)-\\(...\\)-\\(..\\) +"
-		  "\\(..:..:..\\) +\\[*\\([^]]+\\)\\]*$")
-	  expires)
-	 (setq expires (concat (match-string 1 expires) " "
-			       (match-string 2 expires) " "
-			       (match-string 3 expires) " "
-			       (match-string 4 expires) " ["
-			       (match-string 5 expires) "]")))
-
-    ;; This one is for older Emacs/XEmacs variants that don't
-    ;; understand this format without tenths of a second in it.
-    ;; Wednesday, 30-Dec-2037 16:00:00 GMT
-    ;;       - vs -
-    ;; Wednesday, 30-Dec-2037 16:00:00.00 GMT
-    (and expires
-	 (string-match
-	  "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)*[ \t]+\\([-+a-zA-Z0-9]+\\)"
-	  expires)
-	 (setq expires (concat (match-string 1 expires) "-"	; day
-			       (match-string 2 expires) "-"	; month
-			       (match-string 3 expires) " "	; year
-			       (match-string 4 expires) ".00 " ; hour:minutes:seconds
-			       (match-string 6 expires)))) ":" ; timezone
-
+	 (expires nil))
+    (if (and max-age (string-match "\\`-?[0-9]+\\'" max-age))
+	(setq expires (format-time-string "%a %b %d %H:%M:%S %Y GMT"
+					  (time-add nil (read max-age))
+					  t))
+      (setq expires (cdr-safe (assoc-string "expires" args t))))
     (while (consp trusted)
       (if (string-match (car trusted) current-url)
 	  (setq trusted (- (match-end 0) (match-beginning 0)))
@@ -314,8 +331,9 @@ telling Microsoft that."
 	   (not trusted)
 	   (save-window-excursion
 	     (with-output-to-temp-buffer "*Cookie Warning*"
-	       (dolist (x rest)
-                 (princ (format "%s - %s" (car x) (cdr x)))))
+	       (princ (format "%s=\"%s\"\n" (caar args) (cdar args)))
+	       (dolist (x (cdr args))
+		 (princ (format "  %s=\"%s\"\n" (car x) (cdr x)))))
 	     (prog1
 		 (not (funcall url-confirmation-func
 			       (format "Allow %s to set these cookies? "
@@ -326,8 +344,8 @@ telling Microsoft that."
       nil)
      ((url-cookie-host-can-set-p (url-host url-current-object) domain)
       ;; Cookie is accepted by the user, and passes our security checks.
-      (dolist (cur rest)
-	(url-cookie-store (car cur) (cdr cur) expires domain localpart secure)))
+      (url-cookie-store (caar args) (cdar args)
+			expires domain localpart secure))
      (t
       (url-lazy-message "%s tried to set a cookie for domain %s - rejected."
 			(url-host url-current-object) domain)))))
@@ -380,8 +398,8 @@ instead delete all cookies that do not match REGEXP."
   "Display a buffer listing the current URL cookies, if there are any.
 Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
   (interactive)
-  (when (and (null url-cookie-secure-storage)
-	     (null url-cookie-storage))
+  (unless (or url-cookie-secure-storage
+              url-cookie-storage)
     (error "No cookies are defined"))
 
   (pop-to-buffer "*url cookies*")
@@ -442,20 +460,13 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
 		     (forward-line 1)
 		     (point)))))
 
-(defun url-cookie-quit ()
-  "Kill the current buffer."
-  (interactive)
-  (kill-buffer (current-buffer)))
-
 (defvar url-cookie-mode-map
   (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q" 'url-cookie-quit)
     (define-key map [delete] 'url-cookie-delete)
     (define-key map [(control k)] 'url-cookie-delete)
     map))
 
-(define-derived-mode url-cookie-mode nil "URL Cookie"
+(define-derived-mode url-cookie-mode special-mode "URL Cookie"
   "Mode for listing cookies.
 
 \\{url-cookie-mode-map}"

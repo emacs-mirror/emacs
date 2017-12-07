@@ -2143,10 +2143,11 @@ main(37,571
 	class D 41,622
 		D(43,659
 
-el-src/TAGTEST.EL,148
+el-src/TAGTEST.EL,179
 (foo::defmumble bletch 1,0
-(defalias 'pending-delete-mode pending-delete-mode5,102
-(defalias (quote explicitly-quoted-pending-delete-mode)8,175
+(defun foo==bar foo==bar2,33
+(defalias 'pending-delete-mode pending-delete-mode6,149
+(defalias (quote explicitly-quoted-pending-delete-mode)9,222
 
 el-src/emacs/lisp/progmodes/etags.el,5069
 (defvar tags-file-name 34,1034
@@ -3135,6 +3136,15 @@ module A9,57
     alias_method ( :foo2,foo237,586
 A::Constant Constant42,655
 
+scm-src/test.scm,260
+(define hello 1,0
+(set! hello 3,32
+(define (hello-world)5,62
+(define (there-is-a-=-in-the-middle!)there-is-a-=-in-the-middle!10,128
+(define =starts-with-equals! =starts-with-equals!12,171
+(define (((((curry-test 14,205
+(define-syntax test-begin17,265
+
 tex-src/testenv.tex,52
 \newcommand{\nm}\nm4,77
 \section{blah}blah8,139
@@ -3145,11 +3155,11 @@ tex-src/gzip.texi,303
 @node Overview,83,2705
 @node Sample,166,7272
 @node Invoking gzip,Invoking gzip210,8828
-@node Advanced usage,Advanced usage357,13495
-@node Environment,420,15207
-@node Tapes,437,15768
-@node Problems,460,16767
-@node Concept Index,Concept Index473,17287
+@node Advanced usage,Advanced usage357,13496
+@node Environment,420,15208
+@node Tapes,437,15769
+@node Problems,460,16768
+@node Concept Index,Concept Index473,17288
 
 tex-src/texinfo.tex,30627
 \def\texinfoversion{\texinfoversion26,1032

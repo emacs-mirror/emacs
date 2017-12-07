@@ -17,14 +17,18 @@ The characters ">>" at the left margin indicate directions for you to
 try using a command.  For instance:
 <<Blank lines inserted around following line by help-with-tutorial>>
 [Middle of page left blank for didactic purposes.   Text continues below]
->> Now type C-v (View next screen) to move to the next screen.
+>> Now type C-v (View next screen) to scroll down in the tutorial.
 	(go ahead, do it by holding down the CONTROL key while typing v).
-	From now on, you should do this again whenever you finish
-	reading the screen.
+	From now on, please do this whenever you reach the end of the screen.
 
-Note that there is an overlap of two lines when you move from screen
-to screen; this provides some continuity so you can continue reading
+Note that there is an overlap of two lines when you scroll a whole
+screenful; this provides some continuity so you can continue reading
 the text.
+
+This is a copy of the Emacs tutorial text, customized slightly for
+you.  Later on we will instruct you to try various commands to alter
+this text.  Don't worry if you change this text before we tell you to;
+that is called "editing" and that's what Emacs is for.
 
 The first thing that you need to know is how to move around from place
 to place in the text.  You already know how to move forward one screen,
@@ -33,6 +37,7 @@ and type v, or type <ESC>v if you do not have a META, EDIT, or ALT key).
 
 >> Try typing M-v and then C-v, a few times.
 
+It is ok to scroll this text in other ways, if you know how.
 
 * SUMMARY
 ---------
@@ -55,7 +60,6 @@ The following commands are useful for viewing screenfuls:
 You can also use the PageUp and PageDn keys to move by screenfuls, if
 your terminal has them, but you can edit more efficiently if you use
 C-v and M-v.
-
 
 * BASIC CURSOR CONTROL
 ----------------------
@@ -1128,7 +1132,7 @@ and comes with permission to distribute copies on certain conditions:
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Please read the file COPYING and then do give copies of GNU Emacs to
 your friends.  Help stamp out software obstructionism ("ownership") by

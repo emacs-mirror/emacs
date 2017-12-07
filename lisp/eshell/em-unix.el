@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -961,7 +961,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
      ;; after setting
      (throw 'eshell-replace-command
 	    (eshell-parse-command (car time-args)
-;;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-08/msg00205.html
+;;; https://lists.gnu.org/r/bug-gnu-emacs/2007-08/msg00205.html
 				  (eshell-stringify-list
 				   (eshell-flatten-list (cdr time-args))))))))
 

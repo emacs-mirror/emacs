@@ -253,7 +253,7 @@ of a command pipe.
 @findex --search-path
 @item --search-path=@var{paths}
 This option lets you specify search paths for your input files.
-@var{paths} is a list of directory names, separated from each other by a
+@var{paths} is a list of directories, separated by
 either a colon or a semicolon, depending on the operating system.
 @end table
 

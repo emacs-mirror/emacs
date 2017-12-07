@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -140,8 +140,8 @@
 	 (calc-change-current-selection sel)
        (error "%d is not a valid sub-formula index" num)))))
 
-;; The variables calc-fnp-op and calc-fnp-num are local to 
-;; calc-find-nth-part (and calc-select-previous) but used by 
+;; The variables calc-fnp-op and calc-fnp-num are local to
+;; calc-find-nth-part (and calc-select-previous) but used by
 ;; calc-find-nth-part-rec, which is called by them.
 (defvar calc-fnp-op)
 (defvar calc-fnp-num)
@@ -650,7 +650,7 @@
 	  alg)
      (let ((calc-dollar-values (list sel))
 	   (calc-dollar-used 0))
-       (setq alg (calc-do-alg-entry "" "Replace selection with: " nil 
+       (setq alg (calc-do-alg-entry "" "Replace selection with: " nil
                                     'calc-selection-history))
        (and alg
 	    (progn

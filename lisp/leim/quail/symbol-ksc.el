@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; 94.10.24   Written for Mule Ver.2.0 (koaunghi.un@zdv.uni-tuebingen.de)
 ;;; 94.11.04   Updated for Mule Ver.2.1 (koaunghi.un@zdv.uni-tuebingen.de)

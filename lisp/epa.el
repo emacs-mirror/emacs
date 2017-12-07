@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -561,7 +561,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 				      (epg-sub-key-creation-time (car pointer)))
 		(error "????-??-??"))
 	      (if (epg-sub-key-expiration-time (car pointer))
-		  (format (if (time-less-p (current-time)
+		  (format (if (time-less-p nil
 					   (epg-sub-key-expiration-time
 					    (car pointer)))
 			      "\n\tExpires: %s"

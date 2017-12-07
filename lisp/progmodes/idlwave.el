@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -5240,7 +5240,7 @@ Can run from `after-save-hook'."
 	  class
 	  (cond ((not (boundp 'idlwave-scanning-lib))
 		 (list  'buffer (buffer-file-name)))
-;		((string= (downcase (file-name-base))
+;		((string= (downcase (file-name-base (buffer-file-name))
 ;			  (downcase name))
 ;		 (list 'lib))
 ;		(t (cons 'lib (file-name-nondirectory (buffer-file-name))))

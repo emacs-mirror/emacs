@@ -22,7 +22,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -1186,7 +1186,7 @@ fs_query_fontset (Lisp_Object name, int name_pattern)
     {
       tem = Frassoc (name, Vfontset_alias_alist);
       if (NILP (tem))
-	tem = Fassoc (name, Vfontset_alias_alist);
+	tem = Fassoc (name, Vfontset_alias_alist, Qnil);
       if (CONSP (tem) && STRINGP (XCAR (tem)))
 	name = XCAR (tem);
       else if (name_pattern == 0)

@@ -1,4 +1,4 @@
-;;; ob-org.el --- org-babel functions for org code block evaluation
+;;; ob-org.el --- Babel Functions for Org Code Blocks -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,7 +41,7 @@
   "Default header inserted during export of org blocks.")
 
 (defun org-babel-expand-body:org (body params)
-  (dolist (var (mapcar #'cdr (org-babel-get-header params :var)))
+  (dolist (var (org-babel--get-vars params))
     (setq body (replace-regexp-in-string
 		(regexp-quote (format "$%s" (car var)))
 		(format "%s" (cdr var))
@@ -51,7 +51,7 @@
 (defun org-babel-execute:org (body params)
   "Execute a block of Org code with.
 This function is called by `org-babel-execute-src-block'."
-  (let ((result-params (split-string (or (cdr (assoc :results params)) "")))
+  (let ((result-params (split-string (or (cdr (assq :results params)) "")))
 	(body (org-babel-expand-body:org
 	       (replace-regexp-in-string "^," "" body) params)))
     (cond
@@ -61,7 +61,7 @@ This function is called by `org-babel-execute-src-block'."
      ((member "ascii" result-params) (org-export-string-as body 'ascii t))
      (t body))))
 
-(defun org-babel-prep-session:org (session params)
+(defun org-babel-prep-session:org (_session _params)
   "Return an error because org does not support sessions."
   (error "Org does not support sessions"))
 

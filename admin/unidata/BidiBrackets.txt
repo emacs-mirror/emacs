@@ -1,6 +1,6 @@
-# BidiBrackets-9.0.0.txt
-# Date: 2016-06-07, 22:30:00 GMT [AG, LI, KW]
-# © 2016 Unicode®, Inc.
+# BidiBrackets-10.0.0.txt
+# Date: 2017-04-12, 17:30:00 GMT [AG, LI, KW]
+# © 2017 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
@@ -8,7 +8,7 @@
 # For documentation, see http://www.unicode.org/reports/tr44/
 #
 # Bidi_Paired_Bracket and Bidi_Paired_Bracket_Type Properties
-# 
+#
 # This file is a normative contributory data file in the Unicode
 # Character Database.
 #

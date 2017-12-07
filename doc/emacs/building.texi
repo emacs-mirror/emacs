@@ -90,6 +90,10 @@ inserted above point, which remains at the end.  Otherwise, point
 remains fixed while compilation output is added at the end of the
 buffer.
 
+  While compilation proceeds, the mode line is updated to show the
+number of errors, warnings, and informational messages that have been
+seen so far.
+
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
   If you change the variable @code{compilation-scroll-output} to a
@@ -1385,7 +1389,7 @@ Loading,,, elisp, the Emacs Lisp Reference Manual}.
 
 @vindex load-path
   The Emacs Lisp load path is specified by the variable
-@code{load-path}.  Its value should be a list of directory names
+@code{load-path}.  Its value should be a list of directories
 (strings).  These directories are searched, in the specified order, by
 the @kbd{M-x load-library} command, the lower-level @code{load}
 function, and other Emacs functions that find Emacs Lisp libraries.  A

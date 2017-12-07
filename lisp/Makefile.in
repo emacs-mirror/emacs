@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 SHELL = @SHELL@
 
@@ -132,13 +132,13 @@ PHONY_EXTRAS =
 # This could lead to problems in parallel builds if automatically
 # generated *.el files (eg loaddefs etc) were being changed at the same time.
 # One solution was to add autoloads as a prerequisite:
-# http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
-# http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00171.html
+# https://lists.gnu.org/r/emacs-pretest-bug/2007-01/msg00469.html
+# https://lists.gnu.org/r/bug-gnu-emacs/2007-12/msg00171.html
 # However, this meant that running these targets modified loaddefs.el,
 # every time (due to time-stamping).  Calling these rules from
 # bootstrap-after would modify loaddefs after src/emacs, resulting
 # in make install remaking src/emacs for no real reason:
-# http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
+# https://lists.gnu.org/r/emacs-devel/2008-02/msg00311.html
 # Nowadays these commands don't scan automatically generated files,
 # since they will never contain any useful information
 # (see finder-no-scan-regexp and custom-dependencies-no-scan-regexp).
@@ -481,7 +481,7 @@ check-defun-dups:
 ## ones that don't change very often at that) seems pretty pointless
 ## to me.
 
-# http://debbugs.gnu.org/1004
+# https://debbugs.gnu.org/1004
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-*.elc files on the macros in other cc-*.el and the
 # version string in cc-defs.el.

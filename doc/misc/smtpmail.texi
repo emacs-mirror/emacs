@@ -290,7 +290,7 @@ and @code{plain} for no encryption.
 Use of any form of TLS/SSL requires support in Emacs.  You can either
 use the built-in support (in Emacs 24.1 and later), or the
 @file{starttls.el} Lisp library.  The built-in support uses the GnuTLS
-@footnote{@url{http://www.gnu.org/software/gnutls/}} library.
+@footnote{@url{https://www.gnu.org/software/gnutls/}} library.
 If your Emacs has GnuTLS support built-in, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.
 Otherwise, you must use the @file{starttls.el} library (see that file for
@@ -300,7 +300,7 @@ requires one of the following external tools to be installed:
 @enumerate
 @item
 The GnuTLS command line tool @samp{gnutls-cli}, which you can get from
-@url{http://www.gnu.org/software/gnutls/}.  This is the recommended
+@url{https://www.gnu.org/software/gnutls/}.  This is the recommended
 tool, mainly because it can verify server certificates.
 
 @item

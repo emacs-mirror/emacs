@@ -121,7 +121,7 @@ character (i.e., an integer), @code{nil} otherwise.
   The following functions create strings, either from scratch, or by
 putting strings together, or by taking them apart.
 
-@defun make-string count character
+@defun make-string count character &optional multibyte
 This function returns a string made up of @var{count} repetitions of
 @var{character}.  If @var{count} is negative, an error is signaled.
 
@@ -131,6 +131,13 @@ This function returns a string made up of @var{count} repetitions of
 (make-string 0 ?x)
      @result{} ""
 @end example
+
+  Normally, if @var{character} is an @acronym{ASCII} character, the
+result is a unibyte string.  But if the optional argument
+@var{multibyte} is non-@code{nil}, the function will produce a
+multibyte string instead.  This is useful when you later need to
+concatenate the result with non-@acronym{ASCII} strings or replace
+some of its characters with non-@acronym{ASCII} characters.
 
   Other functions to compare with this one include @code{make-vector}
 (@pxref{Vectors}) and @code{make-list} (@pxref{Building Lists}).
@@ -812,30 +819,32 @@ formatting feature described here; they differ from @code{format-message} only
 in how they use the result of formatting.
 
 @defun format string &rest objects
-This function returns a new string that is made by copying
-@var{string} and then replacing any format specification
-in the copy with encodings of the corresponding @var{objects}.  The
+This function returns a string equal to @var{string}, replacing any format
+specifications with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
 
 The characters in @var{string}, other than the format specifications,
 are copied directly into the output, including their text properties,
 if any.  Any text properties of the format specifications are copied
 to the produced string representations of the argument @var{objects}.
+
+The output string need not be newly-allocated.  For example, if
+@code{x} is the string @code{"foo"}, the expressions @code{(eq x
+(format x))} and @code{(eq x (format "%s" x))} might both yield
+@code{t}.
 @end defun
 
 @defun format-message string &rest objects
-@cindex curved quotes
-@cindex curly quotes
+@cindex curved quotes, in formatted messages
+@cindex curly quotes, in formatted messages
 This function acts like @code{format}, except it also converts any
 grave accents (@t{`}) and apostrophes (@t{'}) in @var{string} as per the
 value of @code{text-quoting-style}.
 
-A format that quotes with grave accents and apostrophes @t{`like
-this'} typically generates curved quotes @t{‘like this’}.  In
-contrast, a format that quotes with only apostrophes @t{'like this'}
-typically generates two closing curved quotes @t{’like this’}, an
-unusual style in English.  @xref{Keys in Documentation}, for how the
-@code{text-quoting-style} variable affects generated quotes.
+Typically grave accent and apostrophe in the format translate to
+matching curved quotes, e.g., @t{"Missing `%s'"} might result in
+@t{"Missing ‘foo’"}.  @xref{Text Quoting Style}, for how to influence
+or inhibit this translation.
 @end defun
 
 @cindex @samp{%} in format

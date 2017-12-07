@@ -1,4 +1,4 @@
-;;; find-dired.el --- run a `find' command and dired the output
+;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 1994-1995, 2000-2017 Free Software Foundation,
 ;; Inc.
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -255,14 +255,14 @@ See `find-name-arg' to customize the arguments."
 (defalias 'lookfor-dired 'find-grep-dired)
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
-  "Find files in DIR matching a regexp REGEXP and start Dired on output.
+  "Find files in DIR that contain matches for REGEXP and start Dired on output.
 The command run (after changing into DIR) is
 
   find . \\( -type f -exec `grep-program' `find-grep-options' \\
     -e REGEXP {} \\; \\) -ls
 
-where the car of the variable `find-ls-option' specifies what to
-use in place of \"-ls\" as the final argument."
+where the first string in the value of the variable `find-ls-option'
+specifies what to use in place of \"-ls\" as the final argument."
   ;; Doc used to say "Thus ARG can also contain additional grep options."
   ;; i) Presumably ARG == REGEXP?
   ;; ii) No it can't have options, since it gets shell-quoted.

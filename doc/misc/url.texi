@@ -112,11 +112,11 @@ technically obsolete despite its widespread vernacular usage.)
 meaning.  For example, the URI
 
 @example
-http://www.gnu.org/software/emacs/
+https://www.gnu.org/software/emacs/
 @end example
 
 @noindent
-specifies the scheme component @samp{http}, the hostname component
+specifies the scheme component @samp{https}, the hostname component
 @samp{www.gnu.org}, and the path component @samp{/software/emacs/}.
 
 @cindex parsed URIs
@@ -401,7 +401,7 @@ gateway method to be used.  @xref{Gateways in general}.
 @defopt url-honor-refresh-requests
 If this option is non-@code{nil} (the default), the @code{url} library
 honors the HTTP @samp{Refresh} header, which is used by servers to
-direct clients to reload documents from the same URL or a or different
+direct clients to reload documents from the same URL or a different
 one.  If the value is @code{nil}, the @samp{Refresh} header is
 ignored; any other value means to ask the user on each request.
 @end defopt

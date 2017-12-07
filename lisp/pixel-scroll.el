@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Usage:
 ;;
@@ -74,10 +74,13 @@
 More wait will result in slow and gentle scroll.")
 
 (defvar pixel-resolution-fine-flag nil
-  "Set scrolling resolution to a pixel instead of a line.
-After a pixel scroll, typing C-n or C-p scrolls the window to
-make it fully visible, and undoes the effect of the pixel-level
-scroll.")
+  "Set scrolling resolution to pixels instead of a line.
+When it is t, scrolling resolution is number of pixels obtained
+by `frame-char-height' instead of a line.  When it is number,
+scrolling resolution is set to number of pixels specified.  In
+case you need scrolling resolution of a pixel, set to 1.  After a
+pixel scroll, typing \\[next-line] or \\[previous-line] scrolls the window to make it
+fully visible, and undoes the effect of the pixel-level scroll.")
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-mode
@@ -102,13 +105,16 @@ This is an alternative of `scroll-up'.  Scope moves downward."
   (interactive)
   (or arg (setq arg 1))
   (dotimes (ii arg) ; move scope downward
-    (if (pixel-eob-at-top-p) ; when end-of-the-buffer is close
-        (scroll-up 1) ; relay on robust method
-      (when (pixel-point-at-top-p) ; prevent too late
-        (vertical-motion 1)) ; move point downward
-      (pixel-scroll-pixel-up (if pixel-resolution-fine-flag
-                                 1
-                               (pixel-line-height)))))) ; move scope downward
+    (let ((amt (if pixel-resolution-fine-flag
+                   (if (integerp pixel-resolution-fine-flag)
+                       pixel-resolution-fine-flag
+                     (frame-char-height))
+                 (pixel-line-height))))
+      (while (pixel-point-at-top-p amt) ; prevent too late (multi tries)
+        (vertical-motion 1))            ; move point downward
+      (if (pixel-eob-at-top-p)          ; when end-of-the-buffer is close
+          (scroll-up 1)                 ; relay on robust method
+        (pixel-scroll-pixel-up amt))))) ; move scope downward
 
 (defun pixel-scroll-down (&optional arg)
   "Scroll text of selected window down ARG lines.
@@ -116,48 +122,63 @@ This is and alternative of `scroll-down'.  Scope moves upward."
   (interactive)
   (or arg (setq arg 1))
   (dotimes (ii arg)
-    (if (or (pixel-bob-at-top-p) ; when beginning-of-the-buffer is seen
-            (pixel-eob-at-top-p)) ; for file with a long line
-        (scroll-down 1) ; relay on robust method
-      (while (pixel-point-at-bottom-p) ; prevent too late (multi tries)
-        (vertical-motion -1))
-      (pixel-scroll-pixel-down (if pixel-resolution-fine-flag
-                                   1
-                                 (pixel-line-height -1))))))
+    (let ((amt (if pixel-resolution-fine-flag
+                   (if (integerp pixel-resolution-fine-flag)
+                       pixel-resolution-fine-flag
+                     (frame-char-height))
+                 (pixel-line-height -1))))
+      (while (pixel-point-at-bottom-p amt) ; prevent too late (multi tries)
+        (vertical-motion -1))              ; move point upward
+      (if (or (pixel-bob-at-top-p amt)     ; when beginning-of-the-buffer is seen
+              (pixel-eob-at-top-p))        ; for file with a long line
+          (scroll-down 1)                  ; relay on robust method
+        (pixel-scroll-pixel-down amt)))))
 
-(defun pixel-bob-at-top-p ()
-  "Return non-nil if beginning of buffer is at top of window."
-  (equal (window-start) (point-min)))
+(defun pixel-bob-at-top-p (amt)
+  "Return non-nil if window-start is at beginning of the current buffer.
+Window must be vertically scrolled by not more than AMT pixels."
+  (and (equal (window-start) (point-min))
+       (< (window-vscroll nil t) amt)))
 
 (defun pixel-eob-at-top-p ()
   "Return non-nil if end of buffer is at top of window."
   (<= (count-lines (window-start) (window-end)) 2)) ; count-screen-lines
 
 (defun pixel-posn-y-at-point ()
-  "Return y coordinates of point in pixels of current window."
-  (let ((hscroll0 (window-hscroll))
-        (y (cdr (posn-x-y (posn-at-point)))))
-    ;; when point is out of scope by hscroll
-    (unless y
-      (save-excursion
-        (set-window-hscroll nil (current-column))
-        (setq y (cdr (posn-x-y (posn-at-point))))
-        (set-window-hscroll nil hscroll0)))
-    y))
+  "Return y coordinates of point in pixels of current window.
+This returns nil when horizontally scrolled."
+  (when (equal (window-hscroll) 0)
+    (save-excursion
+      ;; When there's an overlay string on a line, move
+      ;; point by (beginning-of-visual-line).
+      (beginning-of-visual-line)
+      ;; (- (cadr (pos-visible-in-window-p (point) nil t))
+      ;;    (line-pixel-height))
+      (cdr (posn-x-y (posn-at-point))))))
 
-(defun pixel-point-at-top-p ()
-  "Return if point is located at top of a window."
-  (let* ((y (pixel-posn-y-at-point))
-         (top-margin y))
-    (< top-margin (pixel-line-height))))
+(defun pixel-point-at-top-p (amt)
+  "Return if point is located at top of a window on coming scroll of AMT pixels.
+When location of point was not obtained, this returns if point is at top
+of window."
+  (let ((y (pixel-posn-y-at-point))
+        top-margin)
+    (cond
+     (y
+      (setq top-margin y)
+      (< top-margin amt))
+     (t
+      (<= (count-lines (window-start) (point)) 1)))))
 
-(defun pixel-point-at-bottom-p ()
-  "Return if point is located at bottom of a window."
-  (let* ((y (pixel-posn-y-at-point))
-         (edges (window-inside-pixel-edges))
+(defun pixel-point-at-bottom-p (amt)
+  "Return if point is located at bottom of window on coming scroll of AMT pixels.
+When location of point was not obtained, this returns nil."
+  (let* ((edges (window-inside-pixel-edges))
          (height (- (nth 3 edges) (nth 1 edges))) ; (- bottom top)
-         (bottom-margin (- height (+ y (line-pixel-height))))) ; bottom margin
-    (< bottom-margin (pixel-line-height -1)))) ; coming unseen line
+         (y (pixel-posn-y-at-point))
+         bottom-margin)
+    (when y
+      (setq bottom-margin (- height (+ y (pixel-visual-line-height))))
+      (< bottom-margin amt)))) ; coming unseen line
 
 (defun pixel-scroll-pixel-up (amt)
   "Scroll text of selected windows up AMT pixels.
@@ -173,8 +194,12 @@ Scope moves upward."
   (while (> amt 0)
     (let ((vs (window-vscroll nil t)))
       (if (equal vs 0)
-          (pixel-scroll-down-and-set-window-vscroll
-           (1- (pixel-line-height -1)))
+          (progn
+            ;; On horizontal scrolling, move cursor.
+            (when (> (window-hscroll) 0)
+              (vertical-motion -1))
+            (pixel-scroll-down-and-set-window-vscroll
+             (1- (pixel-line-height -1))))
         (set-window-vscroll nil (1- vs) t))
       (setq amt (1- amt))
       (sit-for pixel-wait))))
@@ -189,11 +214,16 @@ Scope moves downward.  This function returns number of pixels
 that was scrolled."
   (let* ((src (window-vscroll nil t))  ; EXAMPLE (initial)      @0   @8  @88
          (height (pixel-line-height))  ;                        25   25   23
-         (line (1+ (/ src height)))    ; catch up + one line    Ä1   Ä1   Ä4
+         (line (1+ (/ src height)))    ; catch up + one line     1    1    4
          (dst (* line height))         ; goal                  @25  @25  @92
          (delta (- dst src)))          ; pixels to be scrolled  25   17    4
     (pixel--whistlestop-pixel-up (1- delta)) ; until one less  @24  @24  @91
-    (scroll-up line) (sit-for pixel-wait) ; scroll 1 pixel      @0   @0   @0
+    (dotimes (ii line)
+      ;; On horizontal scrolling, move cursor.
+      (when (> (window-hscroll) 0)
+        (vertical-motion 1))
+      (scroll-up 1))
+    (sit-for pixel-wait)               ; scroll 1 pixel         @0   @0   @0
     delta))
 
 (defun pixel--whistlestop-pixel-up (n)
@@ -211,9 +241,61 @@ unseen line above the first line, respectively, is provided."
   (or pos (setq pos (window-start)))
   (when (< pos 0)
     (setq pos (pixel-point-at-unseen-line)))
-  (save-excursion
-    (goto-char pos)
-    (line-pixel-height))) ; frame-char-height
+  (let ((vs1 (window-vscroll nil t))
+        height)
+    (set-window-vscroll nil 0 t)
+    (save-excursion
+      (goto-char pos)
+      (setq height (pixel-visual-line-height))) ; line-pixel-height, frame-char-height
+    (set-window-vscroll nil vs1 t)
+    height))
+
+(defun pixel-visual-line-height ()
+  "Return height in pixels of text line where cursor is in the selected window."
+  (let ((pos (pixel-visible-pos-in-window)))
+    (cond
+     ;; When a char of line is shown, obtain height by
+     ;; (line-pixel-height).
+     (pos (save-excursion (goto-char pos) (line-pixel-height)))
+     ;; When no char of line is shown but the line is at the top,
+     ;; obtain height by (line-pixel-height).  This is based on
+     ;; expected response from display engine.  See following
+     ;; discussion.
+     ;; https://lists.gnu.org/r/emacs-devel/2017-10/msg00621.html
+     ((equal (count-lines (window-start) (point)) 1)
+      (line-pixel-height))
+     ;; No char of line is shown and the line is not at the top,
+     ;; obtain height by (frame-char-height).
+     (t (frame-char-height)))))
+
+(defun pixel-visible-pos-in-window ()
+  "Return position shown on text line where cursor is in the selected window.
+This will look for positions of point and end-of-visual-line,
+then positions from beginning-of-visual-line to
+end-of-visual-line.  When no char in a line is shown, this
+returns nil."
+  (let* ((beginning-of-visual-line-pos (save-excursion (beginning-of-visual-line) (point)))
+         (end-of-visual-line-pos (save-excursion (end-of-visual-line) (point)))
+         (pos-list (number-sequence beginning-of-visual-line-pos end-of-visual-line-pos))
+         (edges (window-inside-pixel-edges))
+         (width (- (nth 2 edges) (nth 0 edges)))
+         posn-x
+         visible-pos)
+    ;; Optimize list of position to be surveyed.
+    (push end-of-visual-line-pos pos-list)
+    (push (point) pos-list)
+    (delete-dups pos-list)
+    ;; Find out a char with position X that is more than zero and less
+    ;; than width of screen.
+    (while (and (not visible-pos)
+                pos-list)
+      (setq posn-x (car (pos-visible-in-window-p (car pos-list) nil t)))
+      (if (and posn-x
+               (<= 0 posn-x)
+               (< posn-x width))
+          (setq visible-pos (car pos-list))
+        (setq pos-list (cdr pos-list))))
+    visible-pos))
 
 (defun pixel-point-at-unseen-line ()
   "Return the character position of line above the selected window.

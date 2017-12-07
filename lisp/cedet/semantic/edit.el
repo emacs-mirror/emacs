@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -221,7 +221,7 @@ Argument START, END, and LENGTH specify the bounds of the change."
   )
 
 (defun semantic-edits-change-in-one-tag-p (change hits)
-  "Return non-nil of the overlay CHANGE exists solely in one leaf tag.
+  "Return non-nil if the overlay CHANGE exists solely in one leaf tag.
 HITS is the list of tags that CHANGE is in.  It can have more than
 one tag in it if the leaf tag is within a parent tag."
   (and (< (semantic-tag-start (car hits))

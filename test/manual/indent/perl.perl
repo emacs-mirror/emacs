@@ -53,6 +53,14 @@ EOF1
 bar
 EOF2
 
+print <<~"EOF1" . <<\EOF2 . s/he"llo/th'ere/;
+foo
+EOF2
+   bar
+   EOF1
+bar
+EOF2
+
 print $'; # This should not start a string!
 
 print "hello" for /./;

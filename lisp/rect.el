@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -449,6 +449,10 @@ With a prefix (or a FILL) argument, also fill too short lines."
 (defun string-rectangle (start end string)
   "Replace rectangle contents with STRING on each line.
 The length of STRING need not be the same as the rectangle width.
+
+When called interactively and option `rectangle-preview' is
+non-nil, display the result as the user enters the string into
+the minibuffer.
 
 Called from a program, takes three args; START, END and STRING."
   (interactive

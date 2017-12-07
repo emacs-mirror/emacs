@@ -19,11 +19,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'url-vars)
+(require 'url-parse)
 
 ;; Fixme: support SSH explicitly or via a url-gateway-rlogin-program?
 
@@ -245,8 +246,9 @@ overriding the value of `url-gateway-method'."
 			   name buffer host service
 			   :type gw-method
 			   ;; Use non-blocking socket if we can.
-			   :nowait (featurep 'make-network-process
-                                             '(:nowait t))))
+			   :nowait (and (featurep 'make-network-process)
+                                        (url-asynchronous url-current-object)
+                                        '(:nowait t))))
                          (`socks
 			  (socks-open-network-stream name buffer host service))
 			 (`telnet

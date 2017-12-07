@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* The basic idea is to consider two vectors as similar if, when
@@ -279,6 +279,11 @@ diag (OFFSET xoff, OFFSET xlim, OFFSET yoff, OFFSET ylim, bool find_minimal,
         continue;
 
 #ifdef USE_HEURISTIC
+      bool heuristic = ctxt->heuristic;
+#else
+      bool heuristic = false;
+#endif
+
       /* Heuristic: check occasionally for a diagonal that has made lots
          of progress compared with the edit distance.  If we have any
          such, find the one that has made the most progress and return it
@@ -287,7 +292,7 @@ diag (OFFSET xoff, OFFSET xlim, OFFSET yoff, OFFSET ylim, bool find_minimal,
          With this heuristic, for vectors with a constant small density
          of changes, the algorithm is linear in the vector size.  */
 
-      if (200 < c && big_snake && ctxt->heuristic)
+      if (200 < c && big_snake && heuristic)
         {
           {
             OFFSET best = 0;
@@ -367,7 +372,6 @@ diag (OFFSET xoff, OFFSET xlim, OFFSET yoff, OFFSET ylim, bool find_minimal,
               }
           }
         }
-#endif /* USE_HEURISTIC */
 
       /* Heuristic: if we've gone well beyond the call of duty, give up
          and report halfway between our best results so far.  */

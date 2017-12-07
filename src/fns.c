@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -35,6 +35,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "window.h"
 #include "puresize.h"
+#include "gnutls.h"
+
+#if defined WINDOWSNT && defined HAVE_GNUTLS3
+# define gnutls_rnd w32_gnutls_rnd
+#endif
 
 static void sort_vector_copy (Lisp_Object, ptrdiff_t,
 			      Lisp_Object *restrict, Lisp_Object *restrict);
@@ -477,7 +482,9 @@ usage: (vconcat &rest SEQUENCES)   */)
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
        doc: /* Return a copy of a list, vector, string, char-table or record.
 The elements of a list, vector or record are not copied; they are
-shared with the original.  */)
+shared with the original.
+If the original sequence is empty, this function may return
+the same empty object instead of its copy.  */)
   (Lisp_Object arg)
 {
   if (NILP (arg)) return arg;
@@ -1417,17 +1424,22 @@ assq_no_quit (Lisp_Object key, Lisp_Object list)
   return Qnil;
 }
 
-DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
-       doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
-The value is actually the first element of LIST whose car equals KEY.  */)
-  (Lisp_Object key, Lisp_Object list)
+DEFUN ("assoc", Fassoc, Sassoc, 2, 3, 0,
+       doc: /* Return non-nil if KEY is equal to the car of an element of LIST.
+The value is actually the first element of LIST whose car equals KEY.
+
+Equality is defined by TESTFN if non-nil or by `equal' if nil.  */)
+     (Lisp_Object key, Lisp_Object list, Lisp_Object testfn)
 {
   Lisp_Object tail = list;
   FOR_EACH_TAIL (tail)
     {
       Lisp_Object car = XCAR (tail);
       if (CONSP (car)
-	  && (EQ (XCAR (car), key) || !NILP (Fequal (XCAR (car), key))))
+	  && (NILP (testfn)
+	      ? (EQ (XCAR (car), key) || !NILP (Fequal
+						(XCAR (car), key)))
+	      : !NILP (call2 (testfn, XCAR (car), key))))
 	return car;
     }
   CHECK_LIST_END (tail, list);
@@ -1977,7 +1989,11 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   (Lisp_Object symbol, Lisp_Object propname)
 {
   CHECK_SYMBOL (symbol);
-  return Fplist_get (XSYMBOL (symbol)->plist, propname);
+  Lisp_Object propval = Fplist_get (CDR (Fassq (symbol, Voverriding_plist_environment)),
+                                    propname);
+  if (!NILP (propval))
+    return propval;
+  return Fplist_get (XSYMBOL (symbol)->u.s.plist, propname);
 }
 
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
@@ -2007,7 +2023,7 @@ The PLIST is modified by side effects.  */)
       if (EQ (tail, li.tortoise))
 	circular_list (plist);
     }
-  CHECK_LIST_END (tail, plist);
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
   Lisp_Object newcell
     = Fcons (prop, Fcons (val, NILP (prev) ? plist : XCDR (XCDR (prev))));
   if (NILP (prev))
@@ -2023,7 +2039,7 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
 {
   CHECK_SYMBOL (symbol);
   set_symbol_plist
-    (symbol, Fplist_put (XSYMBOL (symbol)->plist, propname, value));
+    (symbol, Fplist_put (XSYMBOL (symbol)->u.s.plist, propname, value));
   return value;
 }
 
@@ -2047,7 +2063,7 @@ one of the properties on the list.  */)
 	circular_list (plist);
     }
 
-  CHECK_LIST_END (tail, plist);
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
 
   return Qnil;
 }
@@ -2079,7 +2095,7 @@ The PLIST is modified by side effects.  */)
       if (EQ (tail, li.tortoise))
 	circular_list (plist);
     }
-  CHECK_LIST_END (tail, plist);
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
   Lisp_Object newcell = list2 (prop, val);
   if (NILP (prev))
     return newcell;
@@ -2844,7 +2860,7 @@ The value is actually the tail of PLIST whose car is PROP.  */)
       if (EQ (tail, li.tortoise))
 	circular_list (tail);
     }
-  CHECK_LIST_END (tail, plist);
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
   return Qnil;
 }
 
@@ -4735,22 +4751,42 @@ make_digest_string (Lisp_Object digest, int digest_size)
   return digest;
 }
 
-/* ALGORITHM is a symbol: md5, sha1, sha224 and so on. */
-
-static Lisp_Object
-secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
-	     Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror,
-	     Lisp_Object binary)
+DEFUN ("secure-hash-algorithms", Fsecure_hash_algorithms,
+       Ssecure_hash_algorithms, 0, 0, 0,
+       doc: /* Return a list of all the supported `secure_hash' algorithms. */)
+  (void)
 {
-  ptrdiff_t size, start_char = 0, start_byte, end_char = 0, end_byte;
-  register EMACS_INT b, e;
-  register struct buffer *bp;
-  EMACS_INT temp;
-  int digest_size;
-  void *(*hash_func) (const char *, size_t, void *);
-  Lisp_Object digest;
+  return listn (CONSTYPE_HEAP, 6,
+                Qmd5,
+                Qsha1,
+                Qsha224,
+                Qsha256,
+                Qsha384,
+                Qsha512);
+}
 
-  CHECK_SYMBOL (algorithm);
+/* Extract data from a string or a buffer. SPEC is a list of
+(BUFFER-OR-STRING-OR-SYMBOL START END CODING-SYSTEM NOERROR) which behave as
+specified with `secure-hash' and in Info node
+`(elisp)Format of GnuTLS Cryptography Inputs'.  */
+char *
+extract_data_from_object (Lisp_Object spec,
+                          ptrdiff_t *start_byte,
+                          ptrdiff_t *end_byte)
+{
+  Lisp_Object object = XCAR (spec);
+
+  if (CONSP (spec)) spec = XCDR (spec);
+  Lisp_Object start = CAR_SAFE (spec);
+
+  if (CONSP (spec)) spec = XCDR (spec);
+  Lisp_Object end = CAR_SAFE (spec);
+
+  if (CONSP (spec)) spec = XCDR (spec);
+  Lisp_Object coding_system = CAR_SAFE (spec);
+
+  if (CONSP (spec)) spec = XCDR (spec);
+  Lisp_Object noerror = CAR_SAFE (spec);
 
   if (STRINGP (object))
     {
@@ -4778,23 +4814,24 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 1);
 
-      size = SCHARS (object);
+      ptrdiff_t size = SCHARS (object), start_char, end_char;
       validate_subarray (object, start, end, size, &start_char, &end_char);
 
-      start_byte = !start_char ? 0 : string_char_to_byte (object, start_char);
-      end_byte = (end_char == size
-		  ? SBYTES (object)
-		  : string_char_to_byte (object, end_char));
+      *start_byte = !start_char ? 0 : string_char_to_byte (object, start_char);
+      *end_byte = (end_char == size
+                   ? SBYTES (object)
+                   : string_char_to_byte (object, end_char));
     }
-  else
+  else if (BUFFERP (object))
     {
       struct buffer *prev = current_buffer;
+      EMACS_INT b, e;
 
       record_unwind_current_buffer ();
 
       CHECK_BUFFER (object);
 
-      bp = XBUFFER (object);
+      struct buffer *bp = XBUFFER (object);
       set_buffer_internal (bp);
 
       if (NILP (start))
@@ -4814,7 +4851,11 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
 	}
 
       if (b > e)
-	temp = b, b = e, e = temp;
+	{
+	  EMACS_INT temp = b;
+	  b = e;
+	  e = temp;
+	}
 
       if (!(BEGV <= b && e <= ZV))
 	args_out_of_range (start, end);
@@ -4887,9 +4928,54 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
 
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
-      start_byte = 0;
-      end_byte = SBYTES (object);
+      *start_byte = 0;
+      *end_byte = SBYTES (object);
     }
+  else if (EQ (object, Qiv_auto))
+    {
+#ifdef HAVE_GNUTLS3
+      /* Format: (iv-auto REQUIRED-LENGTH).  */
+
+      if (! NATNUMP (start))
+        error ("Without a length, `iv-auto' can't be used; see ELisp manual");
+      else
+        {
+	  EMACS_INT start_hold = XFASTINT (start);
+          object = make_uninit_string (start_hold);
+          gnutls_rnd (GNUTLS_RND_NONCE, SSDATA (object), start_hold);
+
+          *start_byte = 0;
+          *end_byte = start_hold;
+        }
+#else
+      error ("GnuTLS is not available, so `iv-auto' can't be used");
+#endif
+    }
+
+  return SSDATA (object);
+}
+
+
+/* ALGORITHM is a symbol: md5, sha1, sha224 and so on. */
+
+static Lisp_Object
+secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
+	     Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror,
+	     Lisp_Object binary)
+{
+  ptrdiff_t start_byte, end_byte;
+  int digest_size;
+  void *(*hash_func) (const char *, size_t, void *);
+  Lisp_Object digest;
+
+  CHECK_SYMBOL (algorithm);
+
+  Lisp_Object spec = list5 (object, start, end, coding_system, noerror);
+
+  const char *input = extract_data_from_object (spec, &start_byte, &end_byte);
+
+  if (input == NULL)
+    error ("secure_hash: failed to extract data from object, aborting!");
 
   if (EQ (algorithm, Qmd5))
     {
@@ -4928,7 +5014,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start,
      hexified value */
   digest = make_uninit_string (digest_size * 2);
 
-  hash_func (SSDATA (object) + start_byte,
+  hash_func (input + start_byte,
 	     end_byte - start_byte,
 	     SSDATA (digest));
 
@@ -4979,6 +5065,8 @@ The two optional arguments START and END are positions specifying for
 which part of OBJECT to compute the hash.  If nil or omitted, uses the
 whole OBJECT.
 
+The full list of algorithms can be obtained with `secure-hash-algorithms'.
+
 If BINARY is non-nil, returns a string in binary form.  */)
   (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object binary)
 {
@@ -5026,13 +5114,6 @@ disregarding any coding systems.  If nil, use the current buffer.  */ )
 void
 syms_of_fns (void)
 {
-  DEFSYM (Qmd5,    "md5");
-  DEFSYM (Qsha1,   "sha1");
-  DEFSYM (Qsha224, "sha224");
-  DEFSYM (Qsha256, "sha256");
-  DEFSYM (Qsha384, "sha384");
-  DEFSYM (Qsha512, "sha512");
-
   /* Hash table stuff.  */
   DEFSYM (Qhash_table_p, "hash-table-p");
   DEFSYM (Qeq, "eq");
@@ -5069,12 +5150,31 @@ syms_of_fns (void)
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
 
+  /* Crypto and hashing stuff.  */
+  DEFSYM (Qiv_auto, "iv-auto");
+
+  DEFSYM (Qmd5,    "md5");
+  DEFSYM (Qsha1,   "sha1");
+  DEFSYM (Qsha224, "sha224");
+  DEFSYM (Qsha256, "sha256");
+  DEFSYM (Qsha384, "sha384");
+  DEFSYM (Qsha512, "sha512");
+
+  /* Miscellaneous stuff.  */
+
   DEFSYM (Qstring_lessp, "string-lessp");
   DEFSYM (Qprovide, "provide");
   DEFSYM (Qrequire, "require");
   DEFSYM (Qyes_or_no_p_history, "yes-or-no-p-history");
   DEFSYM (Qcursor_in_echo_area, "cursor-in-echo-area");
   DEFSYM (Qwidget_type, "widget-type");
+
+  DEFVAR_LISP ("overriding-plist-environment", Voverriding_plist_environment,
+               doc: /* An alist that overrides the plists of the symbols which it lists.
+Used by the byte-compiler to apply `define-symbol-prop' during
+compilation.  */);
+  Voverriding_plist_environment = Qnil;
+  DEFSYM (Qoverriding_plist_environment, "overriding-plist-environment");
 
   staticpro (&string_char_byte_cache_string);
   string_char_byte_cache_string = Qnil;
@@ -5093,6 +5193,7 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   Fmake_var_non_special (Qfeatures);
   DEFSYM (Qsubfeatures, "subfeatures");
   DEFSYM (Qfuncall, "funcall");
+  DEFSYM (Qplistp, "plistp");
 
 #ifdef HAVE_LANGINFO_CODESET
   DEFSYM (Qcodeset, "codeset");
@@ -5187,6 +5288,7 @@ this variable.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
+  defsubr (&Ssecure_hash_algorithms);
   defsubr (&Ssecure_hash);
   defsubr (&Sbuffer_hash);
   defsubr (&Slocale_info);

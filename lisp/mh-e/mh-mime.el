@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -659,6 +659,7 @@ buttons for alternative parts that are usually suppressed."
          (attachmentp (equal (car (mm-handle-disposition handle))
                              "attachment"))
          (inlinep (and (equal (car (mm-handle-disposition handle)) "inline")
+                       (mm-automatic-display-p handle)
                        (mm-inlinable-p handle)
                        (mm-inlined-p handle)))
          (displayp (or inlinep                   ; show if inline OR
@@ -669,6 +670,7 @@ buttons for alternative parts that are usually suppressed."
                                 (and (not (equal
                                            (mm-handle-media-supertype handle)
                                            "image"))
+                                     (mm-automatic-display-p handle)
                                      (mm-inlinable-p handle)
                                      (mm-inlined-p handle)))))))
     (save-restriction

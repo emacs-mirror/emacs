@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -75,20 +75,20 @@ system, including many technical ones.  Examples:
           (`(,seq ,re)
            (let ((count 0)
                  (re (eval re t)))
-             (dolist (pair (ucs-names))
-               (let ((name (car pair))
-                     (char (cdr pair)))
-                 (when (and (characterp char) ;; Ignore char-ranges.
-                            (string-match re name))
-                   (let ((keys (if (stringp seq)
-                                   (replace-match seq nil nil name)
-                                 (funcall seq name char))))
-                     (if (listp keys)
-                         (dolist (x keys)
-                           (setq count (1+ count))
-                           (push (list x char) newrules))
-                       (setq count (1+ count))
-                       (push (list keys char) newrules))))))
+             (maphash
+              (lambda (name char)
+                (when (and (characterp char) ;; Ignore char-ranges.
+                           (string-match re name))
+                  (let ((keys (if (stringp seq)
+                                  (replace-match seq nil nil name)
+                                (funcall seq name char))))
+                    (if (listp keys)
+                        (dolist (x keys)
+                          (setq count (1+ count))
+                          (push (list x char) newrules))
+                      (setq count (1+ count))
+                      (push (list keys char) newrules)))))
+               (ucs-names))
              ;; (message "latin-ltx: %d mappings for %S" count re)
 	     ))))
       (setq newrules (delete-dups newrules))
@@ -206,7 +206,7 @@ system, including many technical ones.  Examples:
 
  ((lambda (name char)
     (let* ((base (concat (match-string 1 name) (match-string 3 name)))
-           (basechar (cdr (assoc base (ucs-names)))))
+           (basechar (gethash base (ucs-names))))
       (when (latin-ltx--ascii-p basechar)
         (string (if (match-end 2) ?^ ?_) basechar))))
   "\\(.*\\)SU\\(?:B\\|\\(PER\\)\\)SCRIPT \\(.*\\)")
@@ -547,7 +547,7 @@ system, including many technical ones.  Examples:
  ("\\propto" ?∝)
  ("\\qed" ?∎)
  ("\\quad" ? )
- ("\\rangle" ?⟩) ;; Was ?〉, see bug#12948.
+ ("\\rangle" ?\⟩) ;; Was ?〉, see bug#12948.
  ("\\rbrace" ?})
  ("\\rbrack" ?\])
  ("\\rceil" ?⌉)
@@ -739,8 +739,8 @@ system, including many technical ones.  Examples:
  ("\\textdiscount" ?⁒)
  ("\\textestimated" ?℮)
  ("\\textopenbullet" ?◦)
- ("\\textlquill" ?⁅)
- ("\\textrquill" ?⁆)
+ ("\\textlquill" ?\⁅)
+ ("\\textrquill" ?\⁆)
  ("\\textcircledP" ?℗)
  ("\\textreferencemark" ?※)
  )

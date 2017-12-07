@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -184,6 +184,7 @@ switches."
                      (?M . edited)
                      (?D . removed)
                      (?R . removed)
+                     (?! . needs-update)
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
@@ -700,8 +701,7 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
   (let (multifile file status propstat)
     (goto-char (point-min))
     (while (re-search-forward
-            ;; Ignore the files with status X.
-	    "^\\(?:\\?\\|[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
+            "^\\(?:\\?\\|[ ACDGIMR!~][ MC][ L][ +][ SX]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
       (setq file (or (unless multifile filename)

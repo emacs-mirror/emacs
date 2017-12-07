@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -85,10 +85,12 @@
     ;; 3.4.5 Other Linker Script Commands
     "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION"
     "INHIBIT_COMMON_ALLOCATION" "INSERT" "AFTER" "BEFORE"
-    "NOCROSSREFS" "OUTPUT_ARCH" "LD_FEATURE"
-    ;; 3.5.2 PROVIDE
+    "NOCROSSREFS" "NOCROSSREFS_TO" "OUTPUT_ARCH" "LD_FEATURE"
+    ;; 3.5.2 HIDDEN
+    "HIDDEN"
+    ;; 3.5.3 PROVIDE
     "PROVIDE"
-    ;; 3.5.3 PROVIDE_HIDDEN
+    ;; 3.5.4 PROVIDE_HIDDEN
     "PROVIDE_HIDDEN"
     ;; 3.6 SECTIONS Command
     "SECTIONS"
@@ -142,6 +144,7 @@
     "DEFINED"
     "LENGTH" "len" "l"
     "LOADADDR"
+    "LOG2CEIL"
     "MAX"
     "MIN"
     "NEXT"

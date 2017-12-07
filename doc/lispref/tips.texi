@@ -68,10 +68,13 @@ costs.}.  Use two hyphens to separate prefix and name if the symbol is
 not meant to be used by other packages.
 
 Occasionally, for a command name intended for users to use, it is more
-convenient if some words come before the package's name prefix.  And
-constructs that define functions, variables, etc., work better if they
-start with @samp{defun} or @samp{defvar}, so put the name prefix later
-on in the name.
+convenient if some words come before the package's name prefix.  For
+example, it is our convention to have commands that list objects named
+as @samp{list-@var{something}}, e.g., a package called @samp{frob}
+could have a command @samp{list-frobs}, when its other global symbols
+begin with @samp{frob-}.  Also, constructs that define functions,
+variables, etc., work better if they start with @samp{defun} or
+@samp{defvar}, so put the name prefix later on in the name.
 
 This recommendation applies even to names for traditional Lisp
 primitives that are not primitives in Emacs Lisp---such as
@@ -531,9 +534,17 @@ that you know @emph{will} be defined, use a @code{declare-function}
 statement (@pxref{Declaring Functions}).
 
 @item
-If you use many functions and variables from a certain file, you can
-add a @code{require} for that package to avoid compilation warnings
-for them.  For instance,
+If you use many functions, macros, and variables from a certain file,
+you can add a @code{require} (@pxref{Named Features, require}) for
+that package to avoid compilation warnings for them, like this:
+
+@example
+(require 'foo)
+@end example
+
+@noindent
+If you need only macros from some file, you can require it only at
+compile time (@pxref{Eval During Compile}).  For instance,
 
 @example
 (eval-when-compile
@@ -741,7 +752,7 @@ preceded by @samp{URL}.  For example,
 
 @smallexample
 The home page for the GNU project has more information (see URL
-`http://www.gnu.org/').
+`https://www.gnu.org/').
 @end smallexample
 
 @item
@@ -944,7 +955,7 @@ explains these conventions, starting with an example:
 
 ;; This file is free software@dots{}
 @dots{}
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this file.  If not, see <https://www.gnu.org/licenses/>.
 @end group
 @end smallexample
 
@@ -966,7 +977,7 @@ might need to list them instead.  Do not say that the copyright holder
 is the Free Software Foundation (or that the file is part of GNU
 Emacs) unless your file has been accepted into the Emacs distribution.
 For more information on the form of copyright and license notices, see
-@uref{http://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
+@uref{https://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
 website}.
 
   After the copyright notice come several @dfn{header comment} lines,

@@ -18,7 +18,7 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ### Commentary:
@@ -172,7 +172,10 @@ test x"$prefix" = x && { prefix="`get_config_var prefix`" || exit 4 ; }
 test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
 
 VERSION=`
-  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <$SRC/configure.ac
+  sed -n 's/^AC_INIT([	 ]*emacs[	 ]*,[	 ]*\([^	 ),]*\).*/\1/p' <$SRC/configure.ac
+` || exit 4
+test -n "$VERSION" || VERSION=`
+  sed -n 's/^AC_INIT([	 ]*GNU Emacs[	 ]*,[	 ]*\([^	 ),]*\).*/\1/p' <$SRC/configure.ac
 ` || exit 4
 test -n "$VERSION" || { printf '%s\n' >&2 "$me: no version in configure.ac"; exit 4; }
 

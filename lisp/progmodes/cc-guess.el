@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -494,8 +494,7 @@ is called with one argument, the guessed style."
   ;; If an entry in `c-offsets-alist' holds a guessed value, move it to
   ;; front in the field. In addition alphabetical sort by entry name is done.
   (setq style (copy-tree style))
-  (let ((offsets-alist-cell (assq 'c-offsets-alist style))
-	(guessed-syntactic-symbols (c-guess-guessed-syntactic-symbols)))
+  (let ((offsets-alist-cell (assq 'c-offsets-alist style)))
     (setcdr offsets-alist-cell
 	    (sort (cdr offsets-alist-cell)
 		  (lambda (a b)

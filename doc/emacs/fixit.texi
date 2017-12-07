@@ -227,7 +227,7 @@ case-convert it and go on typing.  @xref{Case}.
 
   This section describes the commands to check the spelling of a
 single word or of a portion of a buffer.  These commands only work if
-the spelling checker program Aspell, Ispell or Hunspell is installed.
+the spelling checker program Hunspell, Aspell, Ispell or Enchant is installed.
 These programs are not part of Emacs, but one of them is usually
 installed in GNU/Linux and other free operating systems.
 @ifnottex
@@ -249,11 +249,12 @@ Check and correct spelling in the region.
 Check and correct spelling in a draft mail message, excluding cited
 material.
 @item M-x ispell-change-dictionary @key{RET} @var{dict} @key{RET}
-Restart the Aspell/Ispell/Hunspell process, using @var{dict} as the dictionary.
+Restart the spell-checker process, using @var{dict} as the dictionary.
 @item M-x ispell-kill-ispell
-Kill the Aspell/Ispell/Hunspell subprocess.
+Kill the spell-checker subprocess.
 @item M-@key{TAB}
 @itemx @key{ESC} @key{TAB}
+@itemx C-M-i
 Complete the word before point based on the spelling dictionary
 (@code{ispell-complete-word}).
 @item M-x flyspell-mode
@@ -318,8 +319,8 @@ Accept the incorrect word---treat it as correct, but only in this
 editing session and for this buffer.
 
 @item i
-Insert this word in your private dictionary file so that Aspell or Ispell
-or Hunspell will consider it correct from now on, even in future sessions.
+Insert this word in your private dictionary file so that it will be
+considered correct from now on, even in future sessions.
 
 @item m
 Like @kbd{i}, but you can also specify dictionary completion
@@ -363,7 +364,7 @@ character; type that digit or character to choose it.
 
 @cindex @code{ispell} program
 @findex ispell-kill-ispell
-  Once started, the Aspell or Ispell or Hunspell subprocess continues
+  Once started, the spell-checker subprocess continues
 to run, waiting for something to do, so that subsequent spell checking
 commands complete more quickly.  If you want to get rid of the
 process, use @kbd{M-x ispell-kill-ispell}.  This is not usually
@@ -374,7 +375,7 @@ spelling correction.
 @vindex ispell-local-dictionary
 @vindex ispell-personal-dictionary
 @findex ispell-change-dictionary
-  Ispell, Aspell and Hunspell look up spelling in two dictionaries:
+  Spell-checkers look up spelling in two dictionaries:
 the standard dictionary and your personal dictionary.  The standard
 dictionary is specified by the variable @code{ispell-local-dictionary}
 or, if that is @code{nil}, by the variable @code{ispell-dictionary}.

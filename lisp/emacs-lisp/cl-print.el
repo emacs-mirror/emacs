@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -78,6 +78,16 @@ call other entry points instead, such as `cl-prin1'."
     (cl-print-object (aref object i) stream))
   (princ "]" stream))
 
+(cl-defmethod cl-print-object ((object hash-table) stream)
+  (princ "#<hash-table " stream)
+  (princ (hash-table-test object) stream)
+  (princ " " stream)
+  (princ (hash-table-count object) stream)
+  (princ "/" stream)
+  (princ (hash-table-size object) stream)
+  (princ (format " 0x%x" (sxhash object)) stream)
+  (princ ">" stream))
+
 (define-button-type 'help-byte-code
   'follow-link t
   'action (lambda (button)
@@ -85,12 +95,13 @@ call other entry points instead, such as `cl-prin1'."
   'help-echo (purecopy "mouse-2, RET: disassemble this function"))
 
 (defvar cl-print-compiled nil
-  "Control how to print byte-compiled functions.  Can be:
+  "Control how to print byte-compiled functions.
+Acceptable values include:
 - `static' to print the vector of constants.
 - `disassemble' to print the disassembly of the code.
 - nil to skip printing any details about the code.")
 
-(defvar cl-print-compiled-button nil
+(defvar cl-print-compiled-button t
   "Control how to print byte-compiled functions into buffers.
 When the stream is a buffer, make the bytecode part of the output
 into a button whose action shows the function's disassembly.")
@@ -105,10 +116,11 @@ into a button whose action shows the function's disassembly.")
     (if args
         (prin1 args stream)
       (princ "()" stream)))
-  (let ((doc (documentation object 'raw)))
-    (when doc
-      (princ " " stream)
-      (prin1 doc stream)))
+  (pcase (help-split-fundoc (documentation object 'raw) object)
+    ;; Drop args which `help-function-arglist' already printed.
+    (`(,_usage . ,(and doc (guard (stringp doc))))
+     (princ " " stream)
+     (prin1 doc stream)))
   (let ((inter (interactive-form object)))
     (when inter
       (princ " " stream)
@@ -130,7 +142,7 @@ into a button whose action shows the function's disassembly.")
     (let ((button-start (and cl-print-compiled-button
                              (bufferp stream)
                              (with-current-buffer stream (point)))))
-      (princ "#<bytecode>" stream)
+      (princ (format "#<bytecode 0x%x>" (sxhash object)) stream)
       (when (eq cl-print-compiled 'static)
         (princ " " stream)
         (cl-print-object (aref object 2) stream))
@@ -252,6 +264,11 @@ into a button whose action shows the function's disassembly.")
 
 ;;;###autoload
 (defun cl-prin1 (object &optional stream)
+  "Print OBJECT on STREAM according to its type.
+Output is further controlled by the variables
+`cl-print-readably', `cl-print-compiled', along with output
+variables for the standard printing functions.  See Info
+node `(elisp)Output Variables'."
   (cond
    (cl-print-readably (prin1 object stream))
    ((not print-circle) (cl-print-object object stream))
@@ -261,6 +278,7 @@ into a button whose action shows the function's disassembly.")
 
 ;;;###autoload
 (defun cl-prin1-to-string (object)
+  "Return a string containing the `cl-prin1'-printed representation of OBJECT."
   (with-temp-buffer
     (cl-prin1 object (current-buffer))
     (buffer-string)))

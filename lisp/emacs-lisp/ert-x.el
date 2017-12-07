@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -286,27 +286,60 @@ BUFFER defaults to current buffer.  Does not modify BUFFER."
 
 
 (defmacro ert-with-message-capture (var &rest body)
-  "Execute BODY while collecting anything written with `message' in VAR.
+  "Execute BODY while collecting messages in VAR.
 
-Capture all messages produced by `message' when it is called from
-Lisp, and concatenate them separated by newlines into one string.
+Capture messages issued by Lisp code and concatenate them
+separated by newlines into one string.  This includes messages
+written by `message' as well as objects printed by `print',
+`prin1' and `princ' to the echo area.  Messages issued from C
+code using the above mentioned functions will not be captured.
 
 This is useful for separating the issuance of messages by the
 code under test from the behavior of the *Messages* buffer."
   (declare (debug (symbolp body))
            (indent 1))
-  (let ((g-advice (cl-gensym)))
+  (let ((g-message-advice (gensym))
+        (g-print-advice (gensym))
+        (g-collector (gensym)))
     `(let* ((,var "")
-            (,g-advice (lambda (func &rest args)
-                         (if (or (null args) (equal (car args) ""))
-                             (apply func args)
-                           (let ((msg (apply #'format-message args)))
-                             (setq ,var (concat ,var msg "\n"))
-                             (funcall func "%s" msg))))))
-       (advice-add 'message :around ,g-advice)
+            (,g-collector (lambda (msg) (setq ,var (concat ,var msg))))
+            (,g-message-advice (ert--make-message-advice ,g-collector))
+            (,g-print-advice (ert--make-print-advice ,g-collector)))
+       (advice-add 'message :around ,g-message-advice)
+       (advice-add 'prin1 :around ,g-print-advice)
+       (advice-add 'princ :around ,g-print-advice)
+       (advice-add 'print :around ,g-print-advice)
        (unwind-protect
            (progn ,@body)
-         (advice-remove 'message ,g-advice)))))
+         (advice-remove 'print ,g-print-advice)
+         (advice-remove 'princ ,g-print-advice)
+         (advice-remove 'prin1 ,g-print-advice)
+         (advice-remove 'message ,g-message-advice)))))
+
+(defun ert--make-message-advice (collector)
+  "Create around advice for `message' for `ert-collect-messages'.
+COLLECTOR will be called with the message before it is passed
+to the real `message'."
+  (lambda (func &rest args)
+    (if (or (null args) (equal (car args) ""))
+        (apply func args)
+      (let ((msg (apply #'format-message args)))
+        (funcall collector (concat msg "\n"))
+        (funcall func "%s" msg)))))
+
+(defun ert--make-print-advice (collector)
+  "Create around advice for print functions for `ert-collect-messages'.
+The created advice function will just call the original function
+unless the output is going to the echo area (when PRINTCHARFUN is
+t or PRINTCHARFUN is nil and `standard-output' is t).  If the
+output is destined for the echo area, the advice function will
+convert it to a string and pass it to COLLECTOR first."
+  (lambda (func object &optional printcharfun)
+    (if (not (eq t (or printcharfun standard-output)))
+        (funcall func object printcharfun)
+      (funcall collector (with-output-to-string
+                           (funcall func object)))
+      (funcall func object printcharfun))))
 
 
 (provide 'ert-x)

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 set mode "c++-mode"
 
@@ -56,7 +56,7 @@ Override this to affect applications, or the outer class structure for
 the user-facing template."
 ----
 class {{?NAME}} {{#PARENTS}}{{#FIRST}}: {{/FIRST}}public {{NAME}}{{/PARENTS}}
-{     
+{
    {{^}}
 };
 ----
@@ -111,7 +111,7 @@ Override this with your own preference to avoid using doxygen."
 ----
 
 ;;; DOXYGEN FEATURES
-;; 
+;;
 ;;
 context classdecl
 

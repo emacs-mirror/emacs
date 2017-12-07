@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -24,7 +24,7 @@
 (require 'hi-lock)
 
 (ert-deftest hi-lock-bug26666 ()
-  "Test for http://debbugs.gnu.org/26666 ."
+  "Test for https://debbugs.gnu.org/26666 ."
   (let ((faces hi-lock-face-defaults))
     (with-temp-buffer
       (insert "a A b B\n")
@@ -34,6 +34,18 @@
         (dotimes (_ 2)
           (let ((face (hi-lock-read-face-name)))
             (hi-lock-set-pattern "a" face))))
+      (should (equal hi-lock--unused-faces (cdr faces))))))
+
+(ert-deftest hi-lock-test-set-pattern ()
+  (let ((faces hi-lock-face-defaults))
+    (with-temp-buffer
+      (insert "foo bar")
+      (cl-letf (((symbol-function 'completing-read)
+                 (lambda (prompt coll x y z hist defaults)
+                   (car defaults))))
+        (hi-lock-set-pattern "9999" (hi-lock-read-face-name)) ; No match
+        (hi-lock-set-pattern "foo" (hi-lock-read-face-name)))
+      ;; Only one match, then we have used just 1 face
       (should (equal hi-lock--unused-faces (cdr faces))))))
 
 (provide 'hi-lock-tests)

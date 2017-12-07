@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -264,7 +264,7 @@ distribution.  Mixed-case symbols are convenience aliases.")
   "LaTeX label and citation support."
   :tag "RefTeX"
   :link '(url-link :tag "Home Page"
-                   "http://www.gnu.org/software/auctex/reftex.html")
+                   "https://www.gnu.org/software/auctex/reftex.html")
   :link '(emacs-commentary-link :tag "Commentary in reftex.el" "reftex.el")
   :link '(custom-manual "(reftex)Top")
   :prefix "reftex-"

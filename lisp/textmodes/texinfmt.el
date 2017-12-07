@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2022,7 +2022,7 @@ commands that are defined in texinfo.tex for printed output.
             (push (- end-of-template start-of-template)
                   texinfo-multitable-width-list)
             ;; Remove carriage return from within a template, if any.
-            ;; This helps those those who want to use more than
+            ;; This helps those who want to use more than
             ;; one line's worth of words in @multitable line.
             (narrow-to-region start-of-template end-of-template)
             (goto-char (point-min))

@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -274,12 +274,9 @@ buffer-local and set them to nil."
   (run-hook-with-args-until-success 'tags-table-format-functions))
 
 ;;;###autoload
-(defun tags-table-mode ()
+(define-derived-mode tags-table-mode special-mode "Tags Table"
   "Major mode for tags table file buffers."
-  (interactive)
-  (setq major-mode 'tags-table-mode     ;FIXME: Use define-derived-mode.
-        mode-name "Tags Table"
-        buffer-undo-list t)
+  (setq buffer-undo-list t)
   (initialize-new-tags-table))
 
 ;;;###autoload
@@ -439,25 +436,25 @@ Returns non-nil if it is a valid table."
       (progn
 	(set-buffer (get-file-buffer file))
         (or verify-tags-table-function (tags-table-mode))
-	(if (or (verify-visited-file-modtime (current-buffer))
-		;; Decide whether to revert the file.
-		;; revert-without-query can say to revert
-		;; or the user can say to revert.
-		(not (or (let ((tail revert-without-query)
-			       (found nil))
-			   (while tail
-			     (if (string-match (car tail) buffer-file-name)
-				 (setq found t))
-			     (setq tail (cdr tail)))
-			   found)
-			 tags-revert-without-query
-			 (yes-or-no-p
-			  (format "Tags file %s has changed, read new contents? "
-				  file)))))
-	    (and verify-tags-table-function
-		 (funcall verify-tags-table-function))
+	(unless (or (verify-visited-file-modtime (current-buffer))
+		    ;; Decide whether to revert the file.
+		    ;; revert-without-query can say to revert
+		    ;; or the user can say to revert.
+		    (not (or (let ((tail revert-without-query)
+			           (found nil))
+			       (while tail
+			         (if (string-match (car tail) buffer-file-name)
+				     (setq found t))
+			         (setq tail (cdr tail)))
+			       found)
+			     tags-revert-without-query
+			     (yes-or-no-p
+			      (format "Tags file %s has changed, read new contents? "
+				      file)))))
 	  (revert-buffer t t)
-	  (tags-table-mode)))
+	  (tags-table-mode))
+        (and verify-tags-table-function
+	     (funcall verify-tags-table-function)))
     (when (file-exists-p file)
       (let* ((buf (find-file-noselect file))
              (newfile (buffer-file-name buf)))
@@ -470,7 +467,9 @@ Returns non-nil if it is a valid table."
         ;; Only change buffer now that we're done using potentially
         ;; buffer-local variables.
         (set-buffer buf)
-        (tags-table-mode)))))
+        (tags-table-mode)
+        (and verify-tags-table-function
+	     (funcall verify-tags-table-function))))))
 
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
@@ -599,12 +598,13 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		;; be frobnicated, and CONT will be set non-nil so we don't
 		;; do it below.
 		(and buffer-file-name
-		     (or
-		      ;; First check only tables already in buffers.
-		      (tags-table-including buffer-file-name t)
-		      ;; Since that didn't find any, now do the
-		      ;; expensive version: reading new files.
-		      (tags-table-including buffer-file-name nil)))
+                     (save-current-buffer
+                       (or
+                        ;; First check only tables already in buffers.
+                        (tags-table-including buffer-file-name t)
+                        ;; Since that didn't find any, now do the
+                        ;; expensive version: reading new files.
+                        (tags-table-including buffer-file-name nil))))
 		;; Fourth, use the user variable tags-file-name, if it is
 		;; not already in the current list.
 		(and tags-file-name
@@ -2059,7 +2059,7 @@ see the doc of that variable if you want to add names to the list."
 
 (define-derived-mode select-tags-table-mode special-mode "Select Tags Table"
   "Major mode for choosing a current tags table among those already loaded."
-  (setq buffer-read-only t))
+  )
 
 (defun select-tags-table-select (button)
   "Select the tags table named on this line."

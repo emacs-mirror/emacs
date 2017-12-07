@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_FONT_H
 #define EMACS_FONT_H
@@ -244,7 +244,7 @@ enum font_property_index
 
 struct font_spec
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
   Lisp_Object props[FONT_SPEC_MAX];
 };
 
@@ -252,7 +252,7 @@ struct font_spec
 
 struct font_entity
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
 };
 
@@ -265,7 +265,7 @@ struct font_entity
 
 struct font
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */

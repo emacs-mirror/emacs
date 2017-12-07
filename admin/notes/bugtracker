@@ -1,6 +1,6 @@
 NOTES ON THE EMACS BUG TRACKER   -*- outline -*-
 
-The Emacs Bug Tracker can be found at http://debbugs.gnu.org/
+The Emacs Bug Tracker can be found at https://debbugs.gnu.org/
 
 * Quick-start guide
 
@@ -33,14 +33,14 @@ tags 123 moreinfo|unreproducible|wontfix|patch
 
 * More detailed information
 
-For a list of all bugs, see http://debbugs.gnu.org/db/pa/lemacs.html
+For a list of all bugs, see https://debbugs.gnu.org/db/pa/lemacs.html
 This is a static page, updated once a day.  There is also a dynamic
 list, generated on request. This accepts various options, eg to see
 the most recent bugs:
 
-http://debbugs.gnu.org/cgi/pkgreport.cgi?newest=100
+https://debbugs.gnu.org/cgi/pkgreport.cgi?newest=100
 
-Or follow the links on the front page http://debbugs.gnu.org .
+Or follow the links on the front page https://debbugs.gnu.org .
 
 ** How do I report a bug in Emacs now?
 The same way as you always did.  Send mail to bug-gnu-emacs@gnu.org,
@@ -73,7 +73,7 @@ cc everyone on replies.)
 (Many people think the submitter SHOULD be automatically subscribed
 to subsequent discussion, but this does not seem to be implemented.
 See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078
-See also http://debbugs.gnu.org/5439 )
+See also https://debbugs.gnu.org/5439 )
 
 Do NOT send a separate copy to the bug list address, since this may
 generate a new report.  The only time to send mail to the bug list
@@ -95,12 +95,15 @@ normal bug reporting.)
 
 ** When reporting a new bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
-Instead, use "X-Debbugs-CC:".  This ensures the Cc address will get a
+Instead, use "X-Debbugs-CC:".  This ensures the Cc address(es) will get a
 mail with the bug report number in.  If you do not do this, each reply
 in the subsequent discussion might end up creating a new bug.
 This is annoying.  (So annoying that a form of message-id tracking has
 been implemented to hopefully stop this happening, but it is still
 better to use X-Debbugs-CC.)
+
+If you want to send copies to more than one address, add them
+comma-separated in only one X-Debbugs-CC line.
 
 Like any X-Debbugs- header, this one can also be specified in the
 pseudo-header (see below), if your mail client does not let you add
@@ -246,7 +249,7 @@ reopen 123
 *** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 The available tags are:
 patch wontfix moreinfo unreproducible fixed notabug
-See http://debbugs.gnu.org/Developer#tags
+See https://debbugs.gnu.org/Developer#tags
 The list of tags can be prefixed with +, - or =, meaning to add (the
 default), remove, or reset the tags. E.g.:
 
@@ -254,7 +257,7 @@ tags 123 + wontfix
 
 ** URL shortcuts
 
-http://debbugs.gnu.org/...
+https://debbugs.gnu.org/...
 
 123             # given bug number
 123;mbox=yes    # mbox version of given bug
@@ -314,11 +317,11 @@ search box.  The only piece you really need to add is the "users"
 portion, the rest has the same syntax as normal.
 
 **** To browse bugs by usertag:
-http://debbugs.gnu.org/cgi/pkgindex.cgi?indexon=users
+https://debbugs.gnu.org/cgi/pkgindex.cgi?indexon=users
 
 **** To find all bugs usertagged by a given email address:
 
-http://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs
+https://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs
 
 (Supposedly, the "users" field can be a comma-separated list of more
 than one email address, but it does not seem to work for me.)
@@ -328,7 +331,7 @@ than one email address, but it does not seem to work for me.)
 This works just like a normal tags search, but with the addition of a
 "users" field.  Eg:
 
-http://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs;tag=calendar
+https://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs;tag=calendar
 
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
@@ -377,7 +380,7 @@ You must unmerge, clone, then re-merge.
 *** To set severity:
 severity 123 critical|grave|serious|important|normal|minor|wishlist
 
-See http://debbugs.gnu.org/Developer#severities for the meanings.
+See https://debbugs.gnu.org/Developer#severities for the meanings.
 
 *** To set the owner of a bug:
 owner 123 A Hacker <none@example.com>
@@ -435,10 +438,10 @@ The bug will be re-archived after the next 28 day period of no activity.
 
 It's a function of the number of displayed bugs.  You can speed things
 up by only looking at the newest 100 bugs:
-http://debbugs.gnu.org/cgi-bin/pkgreport.cgi?newest=100;package=emacs
+https://debbugs.gnu.org/cgi-bin/pkgreport.cgi?newest=100;package=emacs
 
 Or use the static index:
-http://debbugs.gnu.org/db/ix/full.html
+https://debbugs.gnu.org/db/ix/full.html
 
 ** What are those "mbox folder" links on the bug report pages?
 
@@ -484,7 +487,7 @@ the bug web-pages.
 
 *** Debian stuff
 
-http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
+https://lists.gnu.org/r/emacs-devel/2009-11/msg00440.html
 
 ** Gnus-specific voodoo
 
@@ -493,7 +496,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 *** If the above is not available:
 (add-hook 'gnus-article-mode-hook
           (lambda ()
-             (setq bug-reference-url-format "http://debbugs.gnu.org/%s")
+             (setq bug-reference-url-format "https://debbugs.gnu.org/%s")
               (bug-reference-mode 1)))
 
 and you can click on the bug number in the subject header.
@@ -507,8 +510,8 @@ reference, you don't need to read these as a user of the system.
 Getting mail from the Emacs bug list into the tracker requires the
 assistance of sysadmin at gnu.org.  The test tracker set-up was, I
 think, [gnu.org #359140]:
-http://lists.gnu.org/archive/html/savannah-hackers/2008-03/msg00074.html
-http://lists.gnu.org/archive/html/savannah-hackers/2008-04/msg00034.html
+https://lists.gnu.org/r/savannah-hackers/2008-03/msg00074.html
+https://lists.gnu.org/r/savannah-hackers/2008-04/msg00034.html
 
 ** The debbugs.gnu.org setup was handled in [gnu.org #510605].
 There are two pieces (replace AT with @ in the following):
@@ -548,11 +551,11 @@ It does basic spam processing on the moderator requests and
 automatically rejects the obviously bogus ones.  Someone still has to
 accept the good ones though.  The advantage of this would not be having
 to run and tune our own spam filter.  See
-http://savannah.nongnu.org/projects/listhelper
+https://savannah.nongnu.org/projects/listhelper
 
 An "X-Debbugs-Envelope-To" header is used to keep track of where the
 mail was actually bound for:
-http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg01211.html
+https://lists.gnu.org/r/emacs-devel/2009-11/msg01211.html
 
 ** Mailing list recipient/sender filters.
 The following mailman filters are useful to stop messages being

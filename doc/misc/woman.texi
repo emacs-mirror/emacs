@@ -939,7 +939,7 @@ is
 Any environment variables (names of which must have the Unix-style form
 @code{$NAME}, e.g., @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
-evaluate to a @emph{single} directory name.  Trailing @file{/}s are
+evaluate to a @emph{single} name of a directory.  Trailing @file{/}s are
 ignored.  (Specific directories in @code{woman-path} are also searched.)
 
 On Microsoft platforms I recommend including drive letters explicitly,
@@ -989,7 +989,7 @@ and on other platforms is @code{nil}.
 Any environment variables (names of which must have the Unix-style form
 @code{$NAME}, e.g., @code{$HOME}, @code{$EMACSDATA}, @code{$EMACS_DIR},
 regardless of platform) are evaluated first but each element must
-evaluate to a @emph{single} directory name (regexp, see above).  For
+evaluate to a @emph{single} name of a directory (regexp, see above).  For
 example
 
 @lisp
@@ -1290,7 +1290,7 @@ inelegantly, then please
 @enumerate
 @item
 try the latest version of @file{woman.el} from the Emacs repository
-on @uref{http://savannah.gnu.org/projects/emacs/}.  If it still fails, please
+on @uref{https://savannah.gnu.org/projects/emacs/}.  If it still fails, please
 
 @item
 use @kbd{M-x report-emacs-bug} to send a bug report.

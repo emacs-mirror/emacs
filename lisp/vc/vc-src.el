@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -180,7 +180,7 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-src-dir-status-files (dir files update-function)
   ;; FIXME: Use one src status -a call for this
-  (if (not files) (setq files (vc-expand-dirs (list dir) 'RCS)))
+  (if (not files) (setq files (vc-expand-dirs (list dir) 'SRC)))
   (let ((result nil))
     (dolist (file files)
       (let ((state (vc-state file))

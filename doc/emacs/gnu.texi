@@ -30,8 +30,8 @@ that different wording could help avoid.  Footnotes added in 1993 help
 clarify these points.
 
 For up-to-date information about available GNU software, please see
-our web site, @uref{http://www.gnu.org}.  For software tasks and other
-ways to contribute, see @uref{http://www.gnu.org/help}.
+our web site, @uref{https://www.gnu.org}.  For software tasks and other
+ways to contribute, see @uref{https://www.gnu.org/help}.
 @end quotation
 
 @unnumberedsec What's GNU@?  Gnu's Not Unix!
@@ -379,7 +379,7 @@ urge people to reject the term ``intellectual property'' entirely,
 lest it lead others to suppose that those laws form one coherent
 issue.  The way to be clear is to discuss patents, copyrights, and
 trademarks separately.  See
-@uref{http://www.gnu.org/philosophy/not-ipr.xhtml} for more
+@uref{https://www.gnu.org/philosophy/not-ipr.xhtml} for more
 explanation of how this term spreads confusion and bias.} carefully
 (such as lawyers) say that there is no intrinsic right to intellectual
 property.  The kinds of supposed intellectual property rights that the
@@ -495,7 +495,7 @@ distinguish between ``free software'' and ``freeware''.  The term
 ``freeware'' means software you are free to redistribute, but usually
 you are not free to study and change the source code, so most of it is
 not free software.  See
-@uref{http://www.gnu.org/philosophy/words-to-avoid.html} for more
+@uref{https://www.gnu.org/philosophy/words-to-avoid.html} for more
 explanation.}, asking for donations from satisfied users, or selling
 hand-holding services.  I have met people who are already working this
 way successfully.

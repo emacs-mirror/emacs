@@ -213,6 +213,6 @@ issues to be addressed.  Interested developers should contact
 @email{emacs-devel@@gnu.org}.
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, the
+@url{https://lists.gnu.org/mailman/listinfo/emacs-devel, the
 emacs-devel mailing list}.
 @end ifhtml

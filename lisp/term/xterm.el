@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -67,6 +67,11 @@ clipboard.  Since clipboard data is base 64 encoded, the actual number of
 string bytes that can be copied is 3/4 of this value."
   :version "25.1"
   :type 'integer)
+
+(defcustom xterm-set-window-title nil
+  "Whether Emacs should set window titles to an Emacs frame in an XTerm."
+  :version "27.1"
+  :type 'boolean)
 
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters send by the terminal to end a bracketed paste.")
@@ -610,7 +615,7 @@ Return the pasted text as a string."
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors
   ;; The names in the comments taken from XTerm-col.ad in the xterm
-  ;; distribution, see ftp://dickey.his.com/xterm/.  RGB values are
+  ;; distribution, see https://invisible-island.net/xterm/.  RGB values are
   ;; from rgb.txt.
   '(("black"          0 (  0   0   0))	; black
     ("red"            1 (205   0   0))	; red3
@@ -802,6 +807,8 @@ We run the first FUNCTION whose STRING matches the input events."
     (when (memq 'setSelection xterm-extra-capabilities)
       (xterm--init-activate-set-selection)))
 
+  (when xterm-set-window-title
+    (xterm--init-frame-title))
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
   (xterm--init-bracketed-paste-mode)
@@ -827,6 +834,34 @@ We run the first FUNCTION whose STRING matches the input events."
 (defun xterm--init-activate-set-selection ()
   "Terminal initialization for `gui-set-selection'."
   (set-terminal-parameter nil 'xterm--set-selection t))
+
+(defun xterm--init-frame-title ()
+  "Terminal initialization for XTerm frame titles."
+  (xterm-set-window-title)
+  (add-hook 'after-make-frame-functions 'xterm-set-window-title-flag)
+  (add-hook 'window-configuration-change-hook 'xterm-unset-window-title-flag)
+  (add-hook 'post-command-hook 'xterm-set-window-title)
+  (add-hook 'minibuffer-exit-hook 'xterm-set-window-title))
+
+(defvar xterm-window-title-flag nil
+  "Whether a new frame has been created, calling for a title update.")
+
+(defun xterm-set-window-title-flag (_frame)
+  "Set `xterm-window-title-flag'.
+See `xterm--init-frame-title'"
+  (setq xterm-window-title-flag t))
+
+(defun xterm-unset-window-title-flag ()
+  (when xterm-window-title-flag
+    (setq xterm-window-title-flag nil)
+    (xterm-set-window-title)))
+
+(defun xterm-set-window-title (&optional terminal)
+  "Set the window title of the Xterm TERMINAL.
+The title is constructed from `frame-title-format'."
+  (send-string-to-terminal
+   (format "\e]2;%s\a" (format-mode-line frame-title-format))
+   terminal))
 
 (defun xterm--selection-char (type)
   (pcase type

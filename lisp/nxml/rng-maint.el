@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -226,11 +226,10 @@
 
 (defun rng-time-function (function &rest args)
   (let* ((start (current-time))
-	 (val (apply function args))
-	 (end (current-time)))
+	 (val (apply function args)))
     (message "%s ran in %g seconds"
 	     function
-	     (float-time (time-subtract end start)))
+	     (float-time (time-subtract nil start)))
     val))
 
 (defun rng-time-tokenize-buffer ()

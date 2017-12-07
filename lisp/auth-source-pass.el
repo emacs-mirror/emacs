@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -139,11 +139,6 @@ CONTENTS is the contents of a password-store formatted file."
                                     (mapconcat #'identity (cdr pair) ":")))))
                         (cdr lines)))))
 
-(defun auth-source-pass--user-match-p (entry user)
-  "Return true iff ENTRY match USER."
-  (or (null user)
-      (string= user (auth-source-pass-get "user" entry))))
-
 (defun auth-source-pass--hostname (host)
   "Extract hostname from HOST."
   (let ((url (url-generic-parse-url host)))
@@ -158,6 +153,11 @@ CONTENTS is the contents of a password-store formatted file."
      ((and user hostname) (format "%s@%s" user hostname))
      (hostname hostname)
      (t host))))
+
+(defun auth-source-pass--user (host)
+  "Extract user from HOST and return it.
+Return nil if no match was found."
+  (url-user (url-generic-parse-url host)))
 
 (defun auth-source-pass--do-debug (&rest msg)
   "Call `auth-source-do-debug` with MSG and a prefix."
@@ -235,14 +235,17 @@ matching USER."
 If many matches are found, return the first one.  If no match is
 found, return nil."
   (or
-   (if (url-user (url-generic-parse-url host))
+   (if (auth-source-pass--user host)
        ;; if HOST contains a user (e.g., "user@host.com"), <HOST>
        (auth-source-pass--find-one-by-entry-name (auth-source-pass--hostname-with-user host) user)
      ;; otherwise, if USER is provided, search for <USER>@<HOST>
      (when (stringp user)
        (auth-source-pass--find-one-by-entry-name (concat user "@" (auth-source-pass--hostname host)) user)))
-   ;; if that didn't work, search for HOST without it's user component if any
+   ;; if that didn't work, search for HOST without its user component, if any
    (auth-source-pass--find-one-by-entry-name (auth-source-pass--hostname host) user)
+   ;; if that didn't work, search for HOST with user extracted from it
+   (auth-source-pass--find-one-by-entry-name
+    (auth-source-pass--hostname host) (auth-source-pass--user host))
    ;; if that didn't work, remove subdomain: foo.bar.com -> bar.com
    (let ((components (split-string host "\\.")))
      (when (= (length components) 3)

@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'cl-lib)
 (require 'auth-source)
 
 (defvar secrets-enabled t
@@ -215,7 +216,7 @@
 
 (ert-deftest auth-source-test-remembrances-of-things-past ()
   (let ((password-cache t)
-        (password-data (make-vector 7 0)))
+        (password-data (copy-hash-table password-data)))
     (auth-source-remember '(:host "wedd") '(4 5 6))
     (should (auth-source-remembered-p '(:host "wedd")))
     (should-not (auth-source-remembered-p '(:host "xedd")))
@@ -227,6 +228,66 @@
     (auth-source-forget+ :host t)
     (should-not (auth-source-remembered-p '(:host "xedd")))
     (should-not (auth-source-remembered-p '(:host t)))))
+
+(ert-deftest auth-source-test-searches ()
+  "Test auth-source searches with various parameters"
+  :tags '(auth-source auth-source/netrc)
+  (let* ((entries '("machine a1 port a2 user a3 password a4"
+                    "machine b1 port b2 user b3 password b4"
+                    "machine c1 port c2 user c3 password c4"))
+         ;; First element: test description.
+         ;; Second element: expected return data, serialized to a string.
+         ;; Rest of elements: the parameters for `auth-source-search'.
+         (tests '(("any host, max 1"
+                   "((:host \"a1\" :port \"a2\" :user \"a3\" :secret \"a4\"))"
+                   :max 1 :host t)
+                  ("any host, default max is 1"
+                   "((:host \"a1\" :port \"a2\" :user \"a3\" :secret \"a4\"))"
+                   :host t)
+                  ("any host, boolean return"
+                   "t"
+                   :host t :max 0)
+                  ("no parameters, default max is 1"
+                   "((:host \"a1\" :port \"a2\" :user \"a3\" :secret \"a4\"))"
+                   )
+                  ("host c1, default max is 1"
+                   "((:host \"c1\" :port \"c2\" :user \"c3\" :secret \"c4\"))"
+                   :host "c1")
+                  ("host list of (c1), default max is 1"
+                   "((:host \"c1\" :port \"c2\" :user \"c3\" :secret \"c4\"))"
+                   :host ("c1"))
+                  ("any host, max 4"
+                   "((:host \"a1\" :port \"a2\" :user \"a3\" :secret \"a4\") (:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\") (:host \"c1\" :port \"c2\" :user \"c3\" :secret \"c4\"))"
+                   :host t :max 4)
+                  ("host b1, default max is 1"
+                  "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
+                   :host "b1")
+                  ("host b1, port b2, user b3, default max is 1"
+                  "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
+                   :host "b1" :port "b2" :user "b3")
+                  ))
+
+         (netrc-file (make-temp-file "auth-source-test" nil nil
+                                     (mapconcat 'identity entries "\n")))
+         (auth-sources (list netrc-file))
+         (auth-source-do-cache nil)
+         found found-as-string)
+
+    (dolist (test tests)
+      (cl-destructuring-bind (testname needed &rest parameters) test
+        (setq found (apply #'auth-source-search parameters))
+        (when (listp found)
+          (dolist (f found)
+            (setf f (plist-put f :secret
+	                       (let ((secret (plist-get f :secret)))
+		                 (if (functionp secret)
+		                     (funcall secret)
+		                   secret))))))
+
+        (setq found-as-string (format "%s: %S" testname found))
+        ;; (message "With parameters %S found: [%s] needed: [%s]" parameters found-as-string needed)
+        (should (equal found-as-string (concat testname ": " needed)))))
+    (delete-file netrc-file)))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

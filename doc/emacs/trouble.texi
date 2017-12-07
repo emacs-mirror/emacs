@@ -491,7 +491,7 @@ are suggestions for workarounds and solutions.
 
 @cindex bug tracker
 @item
-The GNU Bug Tracker at @url{http://debbugs.gnu.org}.  Emacs bugs are
+The GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Emacs bugs are
 filed in the tracker under the @samp{emacs} package.  The tracker
 records information about the status of each bug, the initial bug
 report, and the follow-up messages by the bug reporter and Emacs
@@ -509,7 +509,7 @@ by the Emacs maintainers, are shown by @kbd{M-x debbugs-gnu-usertags}.
 @item
 The @samp{bug-gnu-emacs} mailing list (also available as the newsgroup
 @samp{gnu.emacs.bug}).  You can read the list archives at
-@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs}.  This list
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs}.  This list
 works as a mirror of the Emacs bug reports and follow-up messages
 which are sent to the bug tracker.  It also contains old bug reports
 from before the bug tracker was introduced (in early 2008).
@@ -524,7 +524,7 @@ The @samp{emacs-pretest-bug} mailing list.  This list is no longer
 used, and is mainly of historical interest.  At one time, it was used
 for bug reports in development (i.e., not yet released) versions of
 Emacs.  You can read the archives for 2003 to mid 2007 at
-@url{http://lists.gnu.org/archive/html/emacs-pretest-bug/}.  Nowadays,
+@url{https://lists.gnu.org/r/emacs-pretest-bug/}.  Nowadays,
 it is an alias for @samp{bug-gnu-emacs}.
 
 @item
@@ -680,7 +680,7 @@ will be sent to the Emacs maintainers at
 @email{bug-gnu-emacs@@gnu.org}.
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}.
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}.
 @end ifhtml
 (If you want to suggest an improvement or new feature, use the same
 address.)  If you cannot send mail from inside Emacs, you can copy the
@@ -690,7 +690,7 @@ and send it to that address.  Or you can simply send an email to that
 address describing the problem.
 
 Your report will be sent to the @samp{bug-gnu-emacs} mailing list, and
-stored in the GNU Bug Tracker at @url{http://debbugs.gnu.org}.  Please
+stored in the GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Please
 include a valid reply email address, in case we need to ask you for
 more information about your report.  Submissions are moderated, so
 there may be a delay before your report appears.
@@ -1084,7 +1084,7 @@ improvement they bring about.
 For a fix for an existing bug, it is
 best to reply to the relevant discussion on the @samp{bug-gnu-emacs}
 list, or the bug entry in the GNU Bug Tracker at
-@url{http://debbugs.gnu.org}.  Explain why your change fixes the bug.
+@url{https://debbugs.gnu.org}.  Explain why your change fixes the bug.
 
 @item
 For a new feature, include a description of the feature and your
@@ -1176,7 +1176,7 @@ documentation, i.e., Texinfo files.
 @xref{Change Log},
 @ifset WWW_GNU_ORG
 see
-@url{http://www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html},
+@url{https://www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html},
 @end ifset
 @xref{Change Log Concepts, Change Log Concepts,
 Change Log Concepts, standards, GNU Coding Standards}.
@@ -1223,11 +1223,11 @@ repository (@pxref{Sending Patches}).
 
 @item
 check if existing bug reports are fixed in newer versions of Emacs
-@url{http://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
+@url{https://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
 
 @item
 fix existing bug reports
-@url{http://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
+@url{https://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
 
 @item
 @c etc/TODO not in WWW_GNU_ORG
@@ -1251,7 +1251,7 @@ If you would like to work on improving Emacs, please contact the maintainers at
 @email{emacs-devel@@gnu.org}.
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, the
+@url{https://lists.gnu.org/mailman/listinfo/emacs-devel, the
 emacs-devel mailing list}.
 @end ifhtml
 You can ask for suggested projects or suggest your own ideas.
@@ -1262,7 +1262,7 @@ you have not yet started work, it is useful to contact
 @email{emacs-devel@@gnu.org}
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, emacs-devel}
+@url{https://lists.gnu.org/mailman/listinfo/emacs-devel, emacs-devel}
 @end ifhtml
 before you start; it might be possible to suggest ways to make your
 extension fit in better with the rest of Emacs.
@@ -1274,7 +1274,7 @@ require a copyright assignment to the FSF; @xref{Copyright Assignment}.
 The development version of Emacs can be downloaded from the
 repository where it is actively maintained by a group of developers.
 See the Emacs project page
-@url{http://savannah.gnu.org/projects/emacs/} for access details.
+@url{https://savannah.gnu.org/projects/emacs/} for access details.
 
 It is important to write your patch based on the current working
 version.  If you start from an older version, your patch may be
@@ -1296,7 +1296,7 @@ desired change), refer to:
 @ifset WWW_GNU_ORG
 @ifhtml
 the Emacs Manual
-@url{http://www.gnu.org/software/emacs/manual/emacs.html}.
+@url{https://www.gnu.org/software/emacs/manual/emacs.html}.
 @end ifhtml
 @ifnothtml
 @xref{Top, Emacs Manual,,emacs}.
@@ -1310,7 +1310,7 @@ the Emacs Manual
 @ifset WWW_GNU_ORG
 @ifhtml
 the Emacs Lisp Reference Manual
-@url{http://www.gnu.org/software/emacs/manual/elisp.html}.
+@url{https://www.gnu.org/software/emacs/manual/elisp.html}.
 @end ifhtml
 @ifnothtml
 @xref{Top, Emacs Lisp Reference Manual,,elisp}.
@@ -1321,7 +1321,7 @@ the Emacs Lisp Reference Manual
 @end ifclear
 
 @item
-@url{http://www.gnu.org/software/emacs}
+@url{https://www.gnu.org/software/emacs}
 
 @item
 @url{http://www.emacswiki.org/}
@@ -1337,7 +1337,7 @@ the Emacs Lisp Reference Manual
 @cindex coding standards
 
 Contributed code should follow the GNU Coding Standards
-@url{http://www.gnu.org/prep/standards/}. This may also be available
+@url{https://www.gnu.org/prep/standards/}. This may also be available
 in info on your system.
 
 If it doesn't, we'll need to find someone to fix the code before we
@@ -1350,7 +1350,7 @@ Emacs has additional style and coding conventions:
 @ifset WWW_GNU_ORG
 @ifhtml
 the ``Tips and Conventions'' Appendix in the Emacs Lisp Reference
-@url{http://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
+@url{https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
 @end ifhtml
 @ifnothtml
 @xref{Tips, ``Tips and Conventions'' Appendix in the Emacs Lisp Reference, Tips
@@ -1385,11 +1385,11 @@ Use @code{?\s} instead of @code{? } in Lisp code for a space character.
 The FSF (Free Software Foundation) is the copyright holder for GNU Emacs.
 The FSF is a nonprofit with a worldwide mission to promote computer
 user freedom and to defend the rights of all free software users.
-For general information, see the website @url{http://www.fsf.org/}.
+For general information, see the website @url{https://www.fsf.org/}.
 
 Generally speaking, for non-trivial contributions to GNU Emacs we
 require that the copyright be assigned to the FSF@.  For the reasons
-behind this, see @url{http://www.gnu.org/licenses/why-assign.html}.
+behind this, see @url{https://www.gnu.org/licenses/why-assign.html}.
 
 Copyright assignment is a simple process.  Residents of some countries
 can do it entirely electronically.  We can help you get started, and
@@ -1426,7 +1426,7 @@ Send a message to
 the mailing list @email{help-gnu-emacs@@gnu.org},
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
+@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
 help-gnu-emacs mailing list},
 @end ifhtml
 or post your request on newsgroup @code{gnu.emacs.help}.  (This
@@ -1434,7 +1434,7 @@ mailing list and newsgroup interconnect, so it does not matter which
 one you use.)
 
 @item
-Look in the @uref{http://www.fsf.org/resources/service/, service
+Look in the @uref{https://www.fsf.org/resources/service/, service
 directory} for someone who might help you for a fee.
 @end itemize
 

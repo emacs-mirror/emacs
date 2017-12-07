@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -120,7 +120,7 @@
 (defvar calc-curve-fit-history nil
   "History for calc-curve-fit.")
 
-(defun calc-curve-fit (arg &optional calc-curve-model 
+(defun calc-curve-fit (arg &optional calc-curve-model
                            calc-curve-coefnames calc-curve-varnames)
   (interactive "P")
   (calc-slow-wrapper
@@ -148,7 +148,7 @@
                   "P prefix = plot result"
 		  "' = alg entry, $ = stack, u = Model1, U = Model2")))
      (while (not calc-curve-model)
-       (message 
+       (message
         "Fit to model: %s:%s%s"
         (nth which msgs)
         (if plot "P" " ")
@@ -194,27 +194,27 @@
 		      calc-curve-varnames nil)
 		nil))
 	     ((= key ?1)  ; linear or multilinear
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ calc-curve-nvars) (and homog 0))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-mul calc-curve-coefnames
                               (cons 'vec (cons 1 (cdr calc-curve-varnames))))))
 	     ((and (>= key ?2) (<= key ?9))   ; polynomial
 	      (calc-get-fit-variables 1 (- key ?0 -1) (and homog 0))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-build-polynomial-expr (cdr calc-curve-coefnames)
                                                 (nth 1 calc-curve-varnames))))
 	     ((= key ?i)  ; exact polynomial
 	      (calc-get-fit-variables 1 (1- (length (nth 1 data)))
 				      (and homog 0))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-build-polynomial-expr (cdr calc-curve-coefnames)
                                                 (nth 1 calc-curve-varnames))))
 	     ((= key ?p)  ; power law
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ calc-curve-nvars) (and homog 1))
-	      (setq calc-curve-model 
-                    (math-mul 
+	      (setq calc-curve-model
+                    (math-mul
                      (nth 1 calc-curve-coefnames)
                      (calcFunc-reduce
                       '(var mul var-mul)
@@ -223,9 +223,9 @@
                        calc-curve-varnames
                        (cons 'vec (cdr (cdr calc-curve-coefnames))))))))
 	     ((= key ?^)  ; exponential law
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ calc-curve-nvars) (and homog 1))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-mul (nth 1 calc-curve-coefnames)
                               (calcFunc-reduce
                                '(var mul var-mul)
@@ -258,9 +258,9 @@
                                                (cdr (nth 1 plot)))))))
               (calc-fit-hubbert-linear-curve func))
 	     ((memq key '(?e ?E))
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ calc-curve-nvars) (and homog 1))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-mul (nth 1 calc-curve-coefnames)
                               (calcFunc-reduce
                                '(var mul var-mul)
@@ -275,18 +275,18 @@
                                  (cons 'vec (cdr (cdr calc-curve-coefnames)))
                                  calc-curve-varnames))))))
 	     ((memq key '(?x ?X))
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ calc-curve-nvars) (and homog 0))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-mul calc-curve-coefnames
                               (cons 'vec (cons 1 (cdr calc-curve-varnames)))))
 	      (setq calc-curve-model (if (eq key ?x)
 			      (list 'calcFunc-exp calc-curve-model)
 			    (list '^ 10 calc-curve-model))))
 	     ((memq key '(?l ?L))
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ calc-curve-nvars) (and homog 0))
-	      (setq calc-curve-model 
+	      (setq calc-curve-model
                     (math-mul calc-curve-coefnames
                               (cons 'vec
                                     (cons 1 (cdr (calcFunc-map
@@ -296,7 +296,7 @@
                                                           var-log10))
                                                   calc-curve-varnames)))))))
 	     ((= key ?q)
-	      (calc-get-fit-variables calc-curve-nvars 
+	      (calc-get-fit-variables calc-curve-nvars
                                       (1+ (* 2 calc-curve-nvars)) (and homog 0))
 	      (let ((c calc-curve-coefnames)
 		    (v calc-curve-varnames))
@@ -310,15 +310,15 @@
 					   (list '- (car v) (nth 1 c))
 					   2)))))))
 	     ((= key ?g)
-	      (setq 
-               calc-curve-model 
-               (math-read-expr 
+	      (setq
+               calc-curve-model
+               (math-read-expr
                 "(AFit / BFit sqrt(2 pi)) exp(-0.5 * ((XFit - CFit) / BFit)^2)")
                calc-curve-varnames '(vec (var XFit var-XFit))
                calc-curve-coefnames '(vec (var AFit var-AFit)
                                           (var BFit var-BFit)
                                           (var CFit var-CFit)))
-	      (calc-get-fit-variables 1 (1- (length calc-curve-coefnames)) 
+	      (calc-get-fit-variables 1 (1- (length calc-curve-coefnames))
                                       (and homog 1)))
 	     ((memq key '(?\$ ?\' ?u ?U))
 	      (let* ((defvars nil)
@@ -327,7 +327,7 @@
 		    (let* ((calc-dollar-values calc-arg-values)
 			   (calc-dollar-used 0)
 			   (calc-hashes-used 0))
-		      (setq calc-curve-model 
+		      (setq calc-curve-model
                             (calc-do-alg-entry "" "Model formula: "
                                                nil 'calc-curve-fit-history))
 		      (if (/= (length calc-curve-model) 1)
@@ -358,19 +358,19 @@
 				 (or (null (nth 3 calc-curve-model))
 				     (math-vectorp (nth 3 calc-curve-model))))
 			    (setq calc-curve-varnames (nth 2 calc-curve-model)
-				  calc-curve-coefnames 
+				  calc-curve-coefnames
                                   (or (nth 3 calc-curve-model)
                                       (cons 'vec
                                             (math-all-vars-but
-                                             calc-curve-model 
+                                             calc-curve-model
                                              calc-curve-varnames)))
 				  calc-curve-model (nth 1 calc-curve-model))
 			  (error "Incorrect model specifier")))))
 		(or calc-curve-varnames
-		    (let ((with-y 
+		    (let ((with-y
                            (eq (car-safe calc-curve-model) 'calcFunc-eq)))
 		      (if calc-curve-coefnames
-			  (calc-get-fit-variables 
+			  (calc-get-fit-variables
                            (if with-y (1+ calc-curve-nvars) calc-curve-nvars)
                            (1- (length calc-curve-coefnames))
                            (math-all-vars-but
@@ -378,9 +378,9 @@
                            nil with-y)
 			(let* ((coefs (math-all-vars-but calc-curve-model nil))
 			       (vars nil)
-			       (n (- 
-                                   (length coefs) 
-                                   calc-curve-nvars 
+			       (n (-
+                                   (length coefs)
+                                   calc-curve-nvars
                                    (if with-y 2 1)))
 			       p)
 			  (if (< n 0)
@@ -388,12 +388,12 @@
 			  (setq p (nthcdr n coefs))
 			  (setq vars (cdr p))
 			  (setcdr p nil)
-			  (calc-get-fit-variables 
+			  (calc-get-fit-variables
                            (if with-y (1+ calc-curve-nvars) calc-curve-nvars)
                            (length coefs)
                            vars coefs with-y)))))
 		(if record-entry
-		    (calc-record (list 'vec calc-curve-model 
+		    (calc-record (list 'vec calc-curve-model
                                        calc-curve-varnames calc-curve-coefnames)
 				 "modl"))))
 	     (t (beep))))
@@ -422,7 +422,7 @@
           (calc-graph-set-styles nil nil)
           (calc-graph-point-style nil))
         (setq plot (cdr (nth 1 plot)))
-        (setq plot 
+        (setq plot
               (list 'intv
                     3
                     (math-sub
@@ -1446,7 +1446,7 @@
 ;;; Open Romberg method; "qromo" in section 4.4.
 
 ;; The variable math-ninteg-temp is local to math-ninteg-romberg,
-;; but is used by math-ninteg-midpoint, which is used by 
+;; but is used by math-ninteg-midpoint, which is used by
 ;; math-ninteg-romberg.
 (defvar math-ninteg-temp)
 
@@ -1564,7 +1564,7 @@
 
 ;; The variables math-fit-first-var, math-fit-first-coef and
 ;; math-fit-new-coefs are local to math-general-fit, but are used by
-;; calcFunc-fitvar, calcFunc-fitparam and calcFunc-fitdummy 
+;; calcFunc-fitvar, calcFunc-fitparam and calcFunc-fitdummy
 ;; (respectively), which are used by math-general-fit.
 (defvar math-fit-first-var)
 (defvar math-fit-first-coef)
@@ -1903,7 +1903,7 @@
 	  (function (lambda (x y) (string< (nth 1 x) (nth 1 y)))))))
 
 ;; The variables math-all-vars-vars (the vars for math-all-vars) and
-;; math-all-vars-found are local to math-all-vars-in, but are used by 
+;; math-all-vars-found are local to math-all-vars-in, but are used by
 ;; math-all-vars-rec which is called by math-all-vars-in.
 (defvar math-all-vars-vars)
 (defvar math-all-vars-found)

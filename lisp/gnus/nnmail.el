@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1883,7 +1883,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
 	     (setq days (days-to-time days))
 	     ;; Compare the time with the current time.
 	     (if (null time)
-		 (time-subtract (current-time) days)
+		 (time-subtract nil days)
 	       (ignore-errors (time-less-p days (time-since time)))))))))
 
 (declare-function gnus-group-mark-article-read "gnus-group" (group article))

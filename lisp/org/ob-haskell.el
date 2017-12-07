@@ -1,4 +1,4 @@
-;;; ob-haskell.el --- org-babel functions for haskell evaluation
+;;; ob-haskell.el --- Babel Functions for Haskell    -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,9 +41,9 @@
 ;;; Code:
 (require 'ob)
 (require 'comint)
-(eval-when-compile (require 'cl))
 
 (declare-function org-remove-indentation "org" (code &optional n))
+(declare-function org-trim "org" (s &optional keep-lead))
 (declare-function haskell-mode "ext:haskell-mode" ())
 (declare-function run-haskell "ext:inf-haskell" (&optional arg))
 (declare-function inferior-haskell-load-file
@@ -61,42 +61,35 @@
 
 (defun org-babel-execute:haskell (body params)
   "Execute a block of Haskell code."
-  (let* ((session (cdr (assoc :session params)))
-         (vars (mapcar #'cdr (org-babel-get-header params :var)))
-         (result-type (cdr (assoc :result-type params)))
+  (let* ((session (cdr (assq :session params)))
+         (result-type (cdr (assq :result-type params)))
          (full-body (org-babel-expand-body:generic
 		     body params
 		     (org-babel-variable-assignments:haskell params)))
          (session (org-babel-haskell-initiate-session session params))
          (raw (org-babel-comint-with-output
 		  (session org-babel-haskell-eoe t full-body)
-                (insert (org-babel-trim full-body))
+                (insert (org-trim full-body))
                 (comint-send-input nil t)
                 (insert org-babel-haskell-eoe)
                 (comint-send-input nil t)))
          (results (mapcar
-                   #'org-babel-haskell-read-string
+                   #'org-babel-strip-quotes
                    (cdr (member org-babel-haskell-eoe
-                                (reverse (mapcar #'org-babel-trim raw)))))))
+                                (reverse (mapcar #'org-trim raw)))))))
     (org-babel-reassemble-table
      (let ((result
-            (case result-type
-              (output (mapconcat #'identity (reverse (cdr results)) "\n"))
-              (value (car results)))))
-       (org-babel-result-cond (cdr (assoc :result-params params))
-	 result (org-babel-haskell-table-or-string result)))
-     (org-babel-pick-name (cdr (assoc :colname-names params))
-			  (cdr (assoc :colname-names params)))
-     (org-babel-pick-name (cdr (assoc :rowname-names params))
-			  (cdr (assoc :rowname-names params))))))
+            (pcase result-type
+              (`output (mapconcat #'identity (reverse (cdr results)) "\n"))
+              (`value (car results)))))
+       (org-babel-result-cond (cdr (assq :result-params params))
+	 result (org-babel-script-escape result)))
+     (org-babel-pick-name (cdr (assq :colname-names params))
+			  (cdr (assq :colname-names params)))
+     (org-babel-pick-name (cdr (assq :rowname-names params))
+			  (cdr (assq :rowname-names params))))))
 
-(defun org-babel-haskell-read-string (string)
-  "Strip \\\"s from around a haskell string."
-  (if (string-match "^\"\\([^\000]+\\)\"$" string)
-      (match-string 1 string)
-    string))
-
-(defun org-babel-haskell-initiate-session (&optional session params)
+(defun org-babel-haskell-initiate-session (&optional _session _params)
   "Initiate a haskell session.
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session."
@@ -131,13 +124,7 @@ then create one.  Return the initialized session."
 	    (format "let %s = %s"
 		    (car pair)
 		    (org-babel-haskell-var-to-haskell (cdr pair))))
-	  (mapcar #'cdr (org-babel-get-header params :var))))
-
-(defun org-babel-haskell-table-or-string (results)
-  "Convert RESULTS to an Emacs-lisp table or string.
-If RESULTS look like a table, then convert them into an
-Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-script-escape results))
+	  (org-babel--get-vars params)))
 
 (defun org-babel-haskell-var-to-haskell (var)
   "Convert an elisp value VAR into a haskell variable.
@@ -157,7 +144,7 @@ specifying a variable of the same value."
 When called with a prefix argument the resulting
 .lhs file will be exported to a .tex file.  This function will
 create two new files, base-name.lhs and base-name.tex where
-base-name is the name of the current org-mode file.
+base-name is the name of the current Org file.
 
 Note that all standard Babel literate programming
 constructs (header arguments, no-web syntax etc...) are ignored."
@@ -185,12 +172,12 @@ constructs (header arguments, no-web syntax etc...) are ignored."
         (save-match-data (setq indentation (length (match-string 1))))
         (replace-match (save-match-data
                          (concat
-                          "#+begin_latex\n\\begin{code}\n"
+                          "#+begin_export latex\n\\begin{code}\n"
                           (if (or preserve-indentp
                                   (string-match "-i" (match-string 2)))
                               (match-string 3)
                             (org-remove-indentation (match-string 3)))
-                          "\n\\end{code}\n#+end_latex\n"))
+                          "\n\\end{code}\n#+end_export\n"))
                        t t)
         (indent-code-rigidly (match-beginning 0) (match-end 0) indentation)))
     (save-excursion

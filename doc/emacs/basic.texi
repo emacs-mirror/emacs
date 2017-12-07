@@ -630,7 +630,8 @@ Display the line number of point.
 @item M-x line-number-mode
 @itemx M-x column-number-mode
 Toggle automatic display of the current line number or column number.
-@xref{Optional Mode Line}.
+@xref{Optional Mode Line}.  If you want to have a line number
+displayed before each line, see @ref{Display Custom}.
 
 @item M-=
 Display the number of lines, words, and characters that are present in

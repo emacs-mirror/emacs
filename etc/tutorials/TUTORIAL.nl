@@ -1254,7 +1254,7 @@ and comes with permission to distribute copies on certain conditions:
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Please read the file COPYING and then do give copies of GNU Emacs to
 your friends.  Help stamp out software obstructionism ("ownership") by

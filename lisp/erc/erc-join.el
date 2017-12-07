@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,7 +39,7 @@
   "Enable autojoining."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-autojoin-mode "erc-join" nil t)
+;;;###autoload(autoload 'erc-autojoin-mode "erc-join" nil t)
 (define-erc-module autojoin nil
   "Makes ERC autojoin on connects and reconnects."
   ((add-hook 'erc-after-connect 'erc-autojoin-channels)
@@ -215,7 +215,7 @@ This function is run from `erc-nickserv-identified-hook'."
 ;;; erc-join.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

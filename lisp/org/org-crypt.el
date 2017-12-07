@@ -1,5 +1,4 @@
-;;; org-crypt.el --- Public key encryption for org-mode entries
-
+;;; org-crypt.el --- Public Key Encryption for Org Entries -*- lexical-binding: t; -*-
 ;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
@@ -7,7 +6,7 @@
 ;; Keywords: org-mode
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: Peter Jones <pjones@pmade.com>
-;; Description: Adds public key encryption to org-mode buffers
+;; Description: Adds public key encryption to Org buffers
 ;; URL: http://www.newartisans.com/software/emacs.html
 ;; Compatibility: Emacs22
 
@@ -24,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -104,10 +103,10 @@ t        : Disable auto-save-mode for the current buffer
 nil      : Leave auto-save-mode enabled.
            This may cause data to be written to disk unencrypted!
 
-'ask     : Ask user whether or not to disable auto-save-mode
+`ask'    : Ask user whether or not to disable auto-save-mode
            for the current buffer.
 
-'encrypt : Leave auto-save-mode enabled for the current buffer,
+`encrypt': Leave auto-save-mode enabled for the current buffer,
            but automatically re-encrypt all decrypted entries
            *before* auto-saving.
            NOTE: This only works for entries which have a tag
@@ -142,7 +141,7 @@ See `org-crypt-disable-auto-save'."
       (message "org-decrypt: Decrypting entry with auto-save-mode enabled.  This may cause leakage."))
      ((eq org-crypt-disable-auto-save 'encrypt)
       (message "org-decrypt: Enabling re-encryption on auto-save.")
-      (org-add-hook 'auto-save-hook
+      (add-hook 'auto-save-hook
 		    (lambda ()
 		      (message "org-crypt: Re-encrypting all decrypted entries due to auto-save.")
 		      (org-encrypt-entries))
@@ -164,96 +163,96 @@ See `org-crypt-disable-auto-save'."
   (if (and (string= crypt-key (get-text-property 0 'org-crypt-key str))
 	   (string= (sha1 str) (get-text-property 0 'org-crypt-checksum str)))
       (get-text-property 0 'org-crypt-text str)
-    (set (make-local-variable 'epg-context) (epg-make-context nil t t))
+    (setq-local epg-context (epg-make-context nil t t))
     (epg-encrypt-string epg-context str (epg-list-keys epg-context crypt-key))))
 
 (defun org-encrypt-entry ()
   "Encrypt the content of the current headline."
   (interactive)
   (require 'epg)
-  (save-excursion
-    (org-back-to-heading t)
-    (set (make-local-variable 'epg-context) (epg-make-context nil t t))
-    (let ((start-heading (point)))
-      (forward-line)
-      (when (not (looking-at "-----BEGIN PGP MESSAGE-----"))
-        (let ((folded (outline-invisible-p))
-              (crypt-key (org-crypt-key-for-heading))
-              (beg (point))
-              end encrypted-text)
-          (goto-char start-heading)
-          (org-end-of-subtree t t)
-          (org-back-over-empty-lines)
-          (setq end (point)
-                encrypted-text
-		(org-encrypt-string (buffer-substring beg end) crypt-key))
-          (delete-region beg end)
-          (insert encrypted-text)
-          (when folded
-            (goto-char start-heading)
-            (hide-subtree))
-          nil)))))
+  (org-with-wide-buffer
+   (org-back-to-heading t)
+   (setq-local epg-context (epg-make-context nil t t))
+   (let ((start-heading (point)))
+     (org-end-of-meta-data)
+     (unless (looking-at-p "-----BEGIN PGP MESSAGE-----")
+       (let ((folded (org-invisible-p))
+	     (crypt-key (org-crypt-key-for-heading))
+	     (beg (point)))
+	 (goto-char start-heading)
+	 (org-end-of-subtree t t)
+	 (org-back-over-empty-lines)
+	 (let ((contents (delete-and-extract-region beg (point))))
+	   (condition-case err
+	       (insert (org-encrypt-string contents crypt-key))
+	     ;; If encryption failed, make sure to insert back entry
+	     ;; contents in the buffer.
+	     (error (insert contents) (error (nth 1 err)))))
+	 (when folded
+	   (goto-char start-heading)
+	   (outline-hide-subtree))
+	 nil)))))
 
 (defun org-decrypt-entry ()
   "Decrypt the content of the current headline."
   (interactive)
   (require 'epg)
   (unless (org-before-first-heading-p)
-    (save-excursion
-      (org-back-to-heading t)
-      (let ((heading-point (point))
-	    (heading-was-invisible-p
-	     (save-excursion
-	       (outline-end-of-heading)
-	       (outline-invisible-p))))
-	(forward-line)
-	(when (looking-at "-----BEGIN PGP MESSAGE-----")
-	  (org-crypt-check-auto-save)
-          (set (make-local-variable 'epg-context) (epg-make-context nil t t))
-	  (let* ((end (save-excursion
-			(search-forward "-----END PGP MESSAGE-----")
-			(forward-line)
-			(point)))
-		 (encrypted-text (buffer-substring-no-properties (point) end))
-		 (decrypted-text
-		  (decode-coding-string
-		   (epg-decrypt-string
-		    epg-context
-		    encrypted-text)
-		   'utf-8)))
-	    ;; Delete region starting just before point, because the
-	    ;; outline property starts at the \n of the heading.
-	    (delete-region (1- (point)) end)
-	    ;; Store a checksum of the decrypted and the encrypted
-	    ;; text value.  This allow reusing the same encrypted text
-	    ;; if the text does not change, and therefore avoid a
-	    ;; re-encryption process.
-	    (insert "\n" (propertize decrypted-text
-				     'org-crypt-checksum (sha1 decrypted-text)
-				     'org-crypt-key (org-crypt-key-for-heading)
-				     'org-crypt-text encrypted-text))
-	    (when heading-was-invisible-p
-	      (goto-char heading-point)
-	      (org-flag-subtree t))
-	    nil))))))
+    (org-with-wide-buffer
+     (org-back-to-heading t)
+     (let ((heading-point (point))
+	   (heading-was-invisible-p
+	    (save-excursion
+	      (outline-end-of-heading)
+	      (org-invisible-p))))
+       (org-end-of-meta-data)
+       (when (looking-at "-----BEGIN PGP MESSAGE-----")
+	 (org-crypt-check-auto-save)
+	 (setq-local epg-context (epg-make-context nil t t))
+	 (let* ((end (save-excursion
+		       (search-forward "-----END PGP MESSAGE-----")
+		       (forward-line)
+		       (point)))
+		(encrypted-text (buffer-substring-no-properties (point) end))
+		(decrypted-text
+		 (decode-coding-string
+		  (epg-decrypt-string
+		   epg-context
+		   encrypted-text)
+		  'utf-8)))
+	   ;; Delete region starting just before point, because the
+	   ;; outline property starts at the \n of the heading.
+	   (delete-region (1- (point)) end)
+	   ;; Store a checksum of the decrypted and the encrypted
+	   ;; text value.  This allows reusing the same encrypted text
+	   ;; if the text does not change, and therefore avoid a
+	   ;; re-encryption process.
+	   (insert "\n" (propertize decrypted-text
+				    'org-crypt-checksum (sha1 decrypted-text)
+				    'org-crypt-key (org-crypt-key-for-heading)
+				    'org-crypt-text encrypted-text))
+	   (when heading-was-invisible-p
+	     (goto-char heading-point)
+	     (org-flag-subtree t))
+	   nil))))))
 
 (defun org-encrypt-entries ()
   "Encrypt all top-level entries in the current buffer."
   (interactive)
-  (let (todo-only)
+  (let ((org--matcher-tags-todo-only nil))
     (org-scan-tags
      'org-encrypt-entry
      (cdr (org-make-tags-matcher org-crypt-tag-matcher))
-     todo-only)))
+     org--matcher-tags-todo-only)))
 
 (defun org-decrypt-entries ()
   "Decrypt all entries in the current buffer."
   (interactive)
-  (let (todo-only)
+  (let ((org--matcher-tags-todo-only nil))
     (org-scan-tags
      'org-decrypt-entry
      (cdr (org-make-tags-matcher org-crypt-tag-matcher))
-     todo-only)))
+     org--matcher-tags-todo-only)))
 
 (defun org-at-encrypted-entry-p ()
   "Is the current entry encrypted?"
@@ -267,7 +266,7 @@ See `org-crypt-disable-auto-save'."
   "Add a hook to automatically encrypt entries before a file is saved to disk."
   (add-hook
    'org-mode-hook
-   (lambda () (org-add-hook 'before-save-hook 'org-encrypt-entries nil t))))
+   (lambda () (add-hook 'before-save-hook 'org-encrypt-entries nil t))))
 
 (add-hook 'org-reveal-start-hook 'org-decrypt-entry)
 

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -218,9 +218,6 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 
 (defun eshell-hist-initialize ()
   "Initialize the history management code for one Eshell buffer."
-  (add-hook 'eshell-expand-input-functions
-	    'eshell-expand-history-references nil t)
-
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-history-reference nil t))
@@ -444,7 +441,6 @@ line, with the most recent command last.  See also
 	     (ignore-dups eshell-hist-ignoredups))
 	(with-temp-buffer
 	  (insert-file-contents file)
-	  ;; Save restriction in case file is already visited...
 	  ;; Watch for those date stamps in history files!
 	  (goto-char (point-max))
 	  (while (and (< count size)
@@ -488,7 +484,9 @@ See also `eshell-read-history'."
 	  (while (> index 0)
 	    (setq index (1- index))
 	    (let ((start (point)))
-	      (insert (ring-ref ring index) ?\n)
+              ;; Remove properties before inserting, to avoid trouble
+              ;; with read-only strings (Bug#28700).
+              (insert (substring-no-properties (ring-ref ring index)) ?\n)
 	      (subst-char-in-region start (1- (point)) ?\n ?\177)))
 	  (eshell-with-private-file-modes
 	   (write-region (point-min) (point-max) file append

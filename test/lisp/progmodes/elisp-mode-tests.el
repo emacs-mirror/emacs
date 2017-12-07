@@ -18,12 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'ert)
 (require 'xref)
+(eval-when-compile (require 'cl-lib))
 
 ;;; Completion
 
@@ -179,6 +180,61 @@
         (erase-buffer) (insert "?B") (message nil)
         (call-interactively #'eval-last-sexp)
         (should (equal (current-message) "66 (#o102, #x42, ?B)"))))))
+
+;;; eldoc
+
+(defun elisp-mode-tests--face-propertized-string (string)
+  "Return substring of STRING with a non-nil `face' property."
+  (let* ((start (next-single-property-change 0 'face string))
+         (end (and start (next-single-property-change start 'face string))))
+    (and end
+         (substring string start end))))
+
+(ert-deftest elisp--highlight-function-argument-indexed ()
+  (dotimes (i 3)
+    (should
+     (equal (elisp-mode-tests--face-propertized-string
+             (elisp--highlight-function-argument 'foo "(A B C)" (1+ i) "foo: "))
+            (propertize (nth i '("A" "B" "C"))
+                        'face 'eldoc-highlight-function-argument)))))
+
+(ert-deftest elisp--highlight-function-argument-keyed-1 ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(foo prompt bar :b 2)")
+    (goto-char (1+ (point-min)))
+    (cl-flet ((bold-arg (i)
+               (elisp-mode-tests--face-propertized-string
+                (elisp--highlight-function-argument
+                 'foo "(PROMPT LST &key A B C)" i "foo: "))))
+      (should-not (bold-arg 0))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 1) "PROMPT"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 2) "LST"))
+      ;; Both `:b' and `2' should highlight the `B' arg.
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 3) "B"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 4) "B")))))
+
+(ert-deftest elisp--highlight-function-argument-keyed-2 ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(foo :b :a 1)")
+    (goto-char (1+ (point-min)))
+    (cl-flet ((bold-arg (i)
+               (elisp-mode-tests--face-propertized-string
+                (elisp--highlight-function-argument
+                 'foo "(X &key A B C)" i "foo: "))))
+      (should-not (bold-arg 0))
+      ;; The `:b' specifies positional arg `X'.
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 1) "X"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 2) "A"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 3) "A")))))
 
 ;;; xref
 

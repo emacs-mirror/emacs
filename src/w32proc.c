@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
    Drew Bliss                   Oct 14, 1993
@@ -485,7 +485,7 @@ stop_timer_thread (int which)
   struct itimer_data *itimer =
     (which == ITIMER_REAL) ? &real_itimer : &prof_itimer;
   int i;
-  DWORD err, exit_code = 255;
+  DWORD err = 0, exit_code = 255;
   BOOL status;
 
   /* Signal the thread that it should terminate.  */
@@ -838,7 +838,7 @@ alarm (int seconds)
        updates the status of the read accordingly, and signals the 2nd
        event object, char_avail, on whose handle sys_select is
        waiting.  This tells sys_select that the file descriptor
-       allocated for the subprocess or the the stream is ready to be
+       allocated for the subprocess or the stream is ready to be
        read from.
 
    When the subprocess exits or the network/serial stream is closed,
@@ -1449,7 +1449,11 @@ waitpid (pid_t pid, int *status, int options)
 
   do
     {
-      maybe_quit ();
+      /* When child_status_changed calls us with WNOHANG in OPTIONS,
+	 we are supposed to be non-interruptible, so don't allow
+	 quitting in that case.  */
+      if (!dont_wait)
+	maybe_quit ();
       active = WaitForMultipleObjects (nh, wait_hnd, FALSE, timeout_ms);
     } while (active == WAIT_TIMEOUT && !dont_wait);
 
@@ -1488,12 +1492,17 @@ waitpid (pid_t pid, int *status, int options)
     }
   if (retval == STILL_ACTIVE)
     {
-      /* Should never happen.  */
+      /* Should never happen.  But it does, with invoking git-gui.exe
+	 asynchronously.  So we punt, and just report this process as
+	 exited with exit code 259, when we are called with WNOHANG
+	 from child_status_changed, because in that case we already
+	 _know_ the process has died.  */
       DebPrint (("Wait.WaitForMultipleObjects returned an active process\n"));
-      if (pid > 0 && dont_wait)
-	return 0;
-      errno = EINVAL;
-      return -1;
+      if (!(pid > 0 && dont_wait))
+	{
+	  errno = EINVAL;
+	  return -1;
+	}
     }
 
   /* Massage the exit code from the process to match the format expected
@@ -1622,38 +1631,43 @@ w32_executable_type (char * filename,
               /* Look for Cygwin DLL in the DLL import list. */
               IMAGE_DATA_DIRECTORY import_dir =
                 data_dir[IMAGE_DIRECTORY_ENTRY_IMPORT];
-              IMAGE_IMPORT_DESCRIPTOR * imports =
-		RVA_TO_PTR (import_dir.VirtualAddress,
-			    rva_to_section (import_dir.VirtualAddress,
-					    nt_header),
-			    executable);
 
-              for ( ; imports->Name; imports++)
-                {
-		  IMAGE_SECTION_HEADER * section =
-		    rva_to_section (imports->Name, nt_header);
-                  char * dllname = RVA_TO_PTR (imports->Name, section,
-                                               executable);
+	      /* Import directory can be missing in .NET DLLs.  */
+	      if (import_dir.VirtualAddress != 0)
+		{
+		  IMAGE_IMPORT_DESCRIPTOR * imports =
+		    RVA_TO_PTR (import_dir.VirtualAddress,
+				rva_to_section (import_dir.VirtualAddress,
+						nt_header),
+				executable);
 
-                  /* The exact name of the Cygwin DLL has changed with
-                     various releases, but hopefully this will be
-                     reasonably future-proof.  */
-                  if (strncmp (dllname, "cygwin", 6) == 0)
-                    {
-                      *is_cygnus_app = TRUE;
-                      break;
-                    }
-		  else if (strncmp (dllname, "msys-", 5) == 0)
+		  for ( ; imports->Name; imports++)
 		    {
-		      /* This catches both MSYS 1.x and MSYS2
-			 executables (the DLL name is msys-1.0.dll and
-			 msys-2.0.dll, respectively).  There doesn't
-			 seem to be a reason to distinguish between
-			 the two, for now.  */
-		      *is_msys_app = TRUE;
-		      break;
+		      IMAGE_SECTION_HEADER * section =
+			rva_to_section (imports->Name, nt_header);
+		      char * dllname = RVA_TO_PTR (imports->Name, section,
+						   executable);
+
+		      /* The exact name of the Cygwin DLL has changed with
+			 various releases, but hopefully this will be
+			 reasonably future-proof.  */
+		      if (strncmp (dllname, "cygwin", 6) == 0)
+			{
+			  *is_cygnus_app = TRUE;
+			  break;
+			}
+		      else if (strncmp (dllname, "msys-", 5) == 0)
+			{
+			  /* This catches both MSYS 1.x and MSYS2
+			     executables (the DLL name is msys-1.0.dll and
+			     msys-2.0.dll, respectively).  There doesn't
+			     seem to be a reason to distinguish between
+			     the two, for now.  */
+			  *is_msys_app = TRUE;
+			  break;
+			}
 		    }
-                }
+		}
             }
   	}
     }
@@ -2624,6 +2638,12 @@ sys_kill (pid_t pid, int sig)
               /* Set the foreground window to the child.  */
               if (SetForegroundWindow (cp->hwnd))
                 {
+		  /* Record the state of the Ctrl key: the user could
+		     have it depressed while we are simulating Ctrl-C,
+		     in which case we will have to leave the state of
+		     Ctrl depressed when we are done.  */
+		  short ctrl_state = GetKeyState (VK_CONTROL) & 0x8000;
+
                   /* Generate keystrokes as if user had typed Ctrl-Break or
                      Ctrl-C.  */
                   keybd_event (VK_CONTROL, control_scan_code, 0, 0);
@@ -2640,6 +2660,9 @@ sys_kill (pid_t pid, int sig)
                   Sleep (100);
 
                   SetForegroundWindow (foreground_window);
+		  /* If needed, restore the state of Ctrl.  */
+		  if (ctrl_state != 0)
+		    keybd_event (VK_CONTROL, control_scan_code, 0, 0);
                 }
               /* Detach from the foreground and child threads now that
                  the foreground switching is over.  */

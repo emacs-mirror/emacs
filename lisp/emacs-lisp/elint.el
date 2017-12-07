@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -463,21 +463,9 @@ Return nil if there are no more forms, t otherwise."
    ;; Import variable definitions
    ((memq (car form) '(require cc-require cc-require-when-compile))
     (let ((name (eval (cadr form)))
-	  (file (eval (nth 2 form)))
-	  (elint-doing-cl (bound-and-true-p elint-doing-cl)))
+	  (file (eval (nth 2 form))))
       (unless (memq name elint-features)
 	(add-to-list 'elint-features name)
-	;; cl loads cl-macs in an opaque manner.
-	;; Since cl-macs requires cl, we can just process cl-macs.
-        ;; FIXME: AFAIK, `cl' now behaves properly and does not need any
-        ;; special treatment any more.  Can someone who understands this
-        ;; code confirm?  --Stef
-	(and (eq name 'cl) (not elint-doing-cl)
-	     ;; We need cl if elint-form is to be able to expand cl macros.
-	     (require 'cl)
-	     (setq name 'cl-macs
-		   file nil
-		   elint-doing-cl t)) ; blech
 	(setq elint-env (elint-add-required-env elint-env name file))))))
   elint-env)
 

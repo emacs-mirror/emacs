@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_GNUTLS_DEFINED
 #define EMACS_GNUTLS_DEFINED
@@ -22,6 +22,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
+
+#if 0x030000 <= GNUTLS_VERSION_NUMBER
+# define HAVE_GNUTLS3
+# include <gnutls/crypto.h>
+#endif
 
 #include "lisp.h"
 
@@ -82,6 +87,7 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte);
 extern ptrdiff_t emacs_gnutls_record_check_pending (gnutls_session_t state);
 #ifdef WINDOWSNT
 extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
+extern int w32_gnutls_rnd (gnutls_rnd_level_t, void *, size_t);
 #endif
 extern Lisp_Object emacs_gnutls_deinit (Lisp_Object);
 extern Lisp_Object emacs_gnutls_global_init (void);

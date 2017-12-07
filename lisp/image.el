@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,8 +34,8 @@
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]\\(?:\
-\\(?:\\(?:#[^\r\n]*[\r\n]\\)?[[:space:]]\\)+\
-\\(?:\\(?:#[^\r\n]*[\r\n]\\)?[0-9]\\)+\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)*[[:space:]]\\)+\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)*[0-9]\\)+\
 \\)\\{2\\}" . pbm)
     ("\\`GIF8[79]a" . gif)
     ("\\`\x89PNG\r\n\x1a\n" . png)
@@ -976,11 +976,12 @@ default is 20%."
     image))
 
 (defun image--get-imagemagick-and-warn ()
-  (unless (fboundp 'imagemagick-types)
+  (unless (or (fboundp 'imagemagick-types) (featurep 'ns))
     (error "Can't rescale images without ImageMagick support"))
   (let ((image (image--get-image)))
     (image-flush image)
-    (plist-put (cdr image) :type 'imagemagick)
+    (when (fboundp 'imagemagick-types)
+      (plist-put (cdr image) :type 'imagemagick))
     image))
 
 (defun image--change-size (factor)

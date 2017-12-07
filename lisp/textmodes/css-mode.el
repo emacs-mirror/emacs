@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -764,7 +764,6 @@ cannot be completed sensibly: `custom-ident',
   "Self inserting keys which should trigger re-indentation."
   :version "22.2"
   :type '(repeat character)
-  :options '((?\} ?\;))
   :group 'css)
 
 (defvar css-mode-syntax-table
@@ -836,7 +835,7 @@ cannot be completed sensibly: `custom-ident',
 (defface css-selector '((t :inherit font-lock-function-name-face))
   "Face to use for selectors."
   :group 'css)
-(defface css-property '((t :inherit font-lock-variable-name-face))
+(defface css-property '((t :inherit font-lock-keyword-face))
   "Face to use for properties."
   :group 'css)
 (defface css-proprietary-property '((t :inherit (css-property italic)))
@@ -897,7 +896,7 @@ cannot be completed sensibly: `custom-ident',
                      ;; No face.
                      nil)))
     ;; Variables.
-    (,(concat "--" css-ident-re) (0 font-lock-variable-name-face))
+    (,(concat (rx symbol-start) "--" css-ident-re) (0 font-lock-variable-name-face))
     ;; Properties.  Again, we don't limit ourselves to css-property-ids.
     (,(concat "\\(?:[{;]\\|^\\)[ \t]*\\("
               "\\(?:\\(" css-proprietary-nmstart-re "\\)\\|"
@@ -1046,7 +1045,7 @@ This function simply drops any transparency."
   "Check whether STR, seen at point, is CSS named color.
 Returns STR if it is a valid color.  Special care is taken
 to exclude some SCSS constructs."
-  (when-let ((color (assoc str css--color-map)))
+  (when-let* ((color (assoc str css--color-map)))
     (save-excursion
       (goto-char start-point)
       (forward-comment (- (point)))
@@ -1150,12 +1149,12 @@ This function is intended to be good enough to help SMIE during
 tokenization, but should not be regarded as a reliable function
 for determining whether point is within a selector."
   (save-excursion
-    (re-search-forward "[{};)]" nil t)
+    (re-search-forward "[{};]" nil t)
     (eq (char-before) ?\{)))
 
 (defun css--colon-inside-funcall ()
   "Return t if point is inside a function call."
-  (when-let (opening-paren-pos (nth 1 (syntax-ppss)))
+  (when-let* ((opening-paren-pos (nth 1 (syntax-ppss))))
     (save-excursion
       (goto-char opening-paren-pos)
       (eq (char-after) ?\())))
@@ -1206,9 +1205,12 @@ for determining whether point is within a selector."
     (`(:before . "{")
      (when (or (smie-rule-hanging-p) (smie-rule-bolp))
        (smie-backward-sexp ";")
-       (smie-indent-virtual)))
-    (`(:before . ,(or "{" "("))
-     (if (smie-rule-hanging-p) (smie-rule-parent 0)))
+       (unless (eq (char-after) ?\{)
+         (smie-indent-virtual))))
+    (`(:before . "(")
+     (cond
+      ((smie-rule-hanging-p) (smie-rule-parent 0))
+      ((not (smie-rule-bolp)) 0)))
     (`(:after . ":-property")
      (when (smie-rule-hanging-p)
        css-indent-offset))))
@@ -1373,6 +1375,7 @@ tags, classes and IDs."
               :exit-function
               ,(lambda (string status)
                  (and (eq status 'finished)
+                      (eolp)
                       prop-table
                       (test-completion string prop-table)
                       (not (and sel-table
@@ -1576,7 +1579,7 @@ to look up will be substituted there."
   (goto-char (point-min))
   (let ((window (get-buffer-window (current-buffer) 'visible)))
     (when window
-      (when (re-search-forward "^Summary" nil 'move)
+      (when (re-search-forward "^\\(Summary\\|Syntax\\)" nil 'move)
         (beginning-of-line)
         (set-window-start window (point))))))
 
@@ -1657,14 +1660,13 @@ on what is seen near point."
       (setq symbol (concat ":" symbol)))
     (let ((url (format css-lookup-url-format symbol))
           (buffer (get-buffer-create "*MDN CSS*")))
-      (save-selected-window
-        ;; Make sure to display the buffer before calling `eww', as
-        ;; that calls `pop-to-buffer-same-window'.
-        (switch-to-buffer-other-window buffer)
-        (with-current-buffer buffer
-          (eww-mode)
-          (add-hook 'eww-after-render-hook #'css--mdn-after-render nil t)
-          (eww url))))))
+      ;; Make sure to display the buffer before calling `eww', as that
+      ;; calls `pop-to-buffer-same-window'.
+      (switch-to-buffer-other-window buffer)
+      (with-current-buffer buffer
+        (eww-mode)
+        (add-hook 'eww-after-render-hook #'css--mdn-after-render nil t)
+        (eww url)))))
 
 (provide 'css-mode)
 ;;; css-mode.el ends here

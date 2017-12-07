@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <windows.h>
 #include <stdlib.h>
@@ -36,9 +36,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 char *sys_ctime (const time_t *);
 FILE *sys_fopen (const char *, const char *);
+int sys_mkdir (const char *, mode_t);
 int sys_chdir (const char *);
 int mkostemp (char *, int);
 int sys_rename (const char *, const char *);
+int sys_open (const char *, int, int);
 
 /* MinGW64 defines _TIMEZONE_DEFINED and defines 'struct timespec' in
    its system headers.  */
@@ -245,6 +247,12 @@ sys_chdir (const char * path)
   return _chdir (path);
 }
 
+int
+sys_mkdir (const char * path, mode_t mode)
+{
+  return _mkdir (path);
+}
+
 static FILETIME utc_base_ft;
 static long double utc_base;
 static int init = 0;
@@ -396,61 +404,6 @@ lstat (const char * path, struct stat * buf)
   return stat (path, buf);
 }
 
-/* Implementation of mkostemp for MS-Windows, to avoid race conditions
-   when using mktemp.  Copied from w32.c.
-
-   This is used only in update-game-score.c.  It is overkill for that
-   use case, since update-game-score renames the temporary file into
-   the game score file, which isn't atomic on MS-Windows anyway, when
-   the game score already existed before running the program, which it
-   almost always does.  But using a simpler implementation just to
-   make a point is uneconomical...  */
-
-int
-mkostemp (char * template, int flags)
-{
-  char * p;
-  int i, fd = -1;
-  unsigned uid = GetCurrentThreadId ();
-  int save_errno = errno;
-  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
-
-  errno = EINVAL;
-  if (template == NULL)
-    return -1;
-
-  p = template + strlen (template);
-  i = 5;
-  /* replace up to the last 5 X's with uid in decimal */
-  while (--p >= template && p[0] == 'X' && --i >= 0)
-    {
-      p[0] = '0' + uid % 10;
-      uid /= 10;
-    }
-
-  if (i < 0 && p[0] == 'X')
-    {
-      i = 0;
-      do
-	{
-	  p[0] = first_char[i];
-	  if ((fd = open (template,
-			  flags | _O_CREAT | _O_EXCL | _O_RDWR,
-			  S_IRUSR | S_IWUSR)) >= 0
-	      || errno != EEXIST)
-	    {
-	      if (fd >= 0)
-		errno = save_errno;
-	      return fd;
-	    }
-	}
-      while (++i < sizeof (first_char));
-    }
-
-  /* Template is badly formed or else we can't generate a unique name.  */
-  return -1;
-}
-
 /* On Windows, you cannot rename into an existing file.  */
 int
 sys_rename (const char *from, const char *to)
@@ -463,4 +416,10 @@ sys_rename (const char *from, const char *to)
 	retval = rename (from, to);
     }
   return retval;
+}
+
+int
+sys_open (const char * path, int oflag, int mode)
+{
+  return _open (path, oflag, mode);
 }

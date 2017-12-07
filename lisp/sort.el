@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -406,7 +406,7 @@ the sort order."
 
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
-  "Sort the text in the region region lexicographically.
+  "Sort the text in the region lexicographically.
 If called interactively, prompt for two regular expressions,
 RECORD-REGEXP and KEY-REGEXP.
 

@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -315,20 +315,18 @@ module_free_global_ref (emacs_env *env, emacs_value ref)
   MODULE_FUNCTION_BEGIN ();
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   Lisp_Object obj = value_to_lisp (ref);
-  EMACS_UINT hashcode;
-  ptrdiff_t i = hash_lookup (h, obj, &hashcode);
+  ptrdiff_t i = hash_lookup (h, obj, NULL);
 
   if (i >= 0)
     {
-      Lisp_Object value = HASH_VALUE (h, i);
-      EMACS_INT refcount = XFASTINT (value) - 1;
+      EMACS_INT refcount = XFASTINT (HASH_VALUE (h, i)) - 1;
       if (refcount > 0)
-        {
-          value = make_natnum (refcount);
-          set_hash_value_slot (h, i, value);
-        }
+        set_hash_value_slot (h, i, make_natnum (refcount));
       else
-	hash_remove_from_table (h, value);
+        {
+          eassert (refcount == 0);
+          hash_remove_from_table (h, obj);
+        }
     }
 
   if (module_assertions)
@@ -575,6 +573,8 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t length)
   MODULE_FUNCTION_BEGIN (module_nil);
   if (! (0 <= length && length <= STRING_BYTES_BOUND))
     xsignal0 (Qoverflow_error);
+  /* FIXME: AUTO_STRING_WITH_LEN requires STR to be null-terminated,
+     but we shouldn’t require that.  */
   AUTO_STRING_WITH_LEN (lstr, str, length);
   return lisp_to_value (env,
                         code_convert_string_norecord (lstr, Qutf_8, false));
@@ -599,7 +599,6 @@ module_get_user_ptr (emacs_env *env, emacs_value uptr)
 static void
 module_set_user_ptr (emacs_env *env, emacs_value uptr, void *ptr)
 {
-  /* FIXME: This function should return bool because it can fail.  */
   MODULE_FUNCTION_BEGIN ();
   Lisp_Object lisp = value_to_lisp (uptr);
   CHECK_USER_PTR (lisp);
@@ -619,7 +618,6 @@ static void
 module_set_user_finalizer (emacs_env *env, emacs_value uptr,
 			   emacs_finalizer_function fin)
 {
-  /* FIXME: This function should return bool because it can fail.  */
   MODULE_FUNCTION_BEGIN ();
   Lisp_Object lisp = value_to_lisp (uptr);
   CHECK_USER_PTR (lisp);
@@ -638,7 +636,6 @@ check_vec_index (Lisp_Object lvec, ptrdiff_t i)
 static void
 module_vec_set (emacs_env *env, emacs_value vec, ptrdiff_t i, emacs_value val)
 {
-  /* FIXME: This function should return bool because it can fail.  */
   MODULE_FUNCTION_BEGIN ();
   Lisp_Object lvec = value_to_lisp (vec);
   check_vec_index (lvec, i);
@@ -657,7 +654,6 @@ module_vec_get (emacs_env *env, emacs_value vec, ptrdiff_t i)
 static ptrdiff_t
 module_vec_size (emacs_env *env, emacs_value vec)
 {
-  /* FIXME: Return a sentinel value (e.g., -1) on error.  */
   MODULE_FUNCTION_BEGIN (0);
   Lisp_Object lvec = value_to_lisp (vec);
   CHECK_VECTOR (lvec);
@@ -819,9 +815,13 @@ in_current_thread (void)
 static void
 module_assert_thread (void)
 {
-  if (! module_assertions || in_current_thread ())
+  if (!module_assertions)
     return;
-  module_abort ("Module function called from outside the current Lisp thread");
+  if (!in_current_thread ())
+    module_abort ("Module function called from outside "
+                  "the current Lisp thread");
+  if (gc_in_progress)
+    module_abort ("Module function called during garbage collection");
 }
 
 static void
@@ -983,7 +983,7 @@ value_to_lisp (emacs_value v)
   return o;
 }
 
-/* Attempt to convert O to an emacs_value.  Do not do any checking or
+/* Attempt to convert O to an emacs_value.  Do not do any checking
    or allocate any storage; the caller should prevent or detect
    any resulting bit pattern that is not a valid emacs_value.  */
 static emacs_value
@@ -997,10 +997,6 @@ lisp_to_value_bits (Lisp_Object o)
 		 : (INTEGERP (o) ? u << VALBITS : u & VALMASK) + XTYPE (o));
   return (emacs_value) p;
 }
-
-#ifndef HAVE_STRUCT_ATTRIBUTE_ALIGNED
-enum { HAVE_STRUCT_ATTRIBUTE_ALIGNED = 0 };
-#endif
 
 /* Convert O to an emacs_value.  Allocate storage if needed; this can
    signal if memory is exhausted.  Must be an injective function.  */
@@ -1029,19 +1025,6 @@ lisp_to_value (emacs_env *env, Lisp_Object o)
       /* Package the incompressible object pointer inside a pair
 	 that is compressible.  */
       Lisp_Object pair = Fcons (o, ltv_mark);
-
-      if (! HAVE_STRUCT_ATTRIBUTE_ALIGNED)
-	{
-	  /* Keep calling Fcons until it returns a compressible pair.
-	     This shouldn't take long.  */
-	  while ((intptr_t) XCONS (pair) & (GCALIGNMENT - 1))
-	    pair = Fcons (o, pair);
-
-	  /* Plant the mark.  The garbage collector will eventually
-	     reclaim any just-allocated incompressible pairs.  */
-	  XSETCDR (pair, ltv_mark);
-	}
-
       v = (emacs_value) ((intptr_t) XCONS (pair) + Lisp_Cons);
     }
 

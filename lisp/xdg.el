@@ -19,7 +19,7 @@
 ;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs. If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs. If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,8 +29,13 @@
 ;; - XDG Base Directory Specification
 ;; - Thumbnail Managing Standard
 ;; - xdg-user-dirs configuration
+;; - Desktop Entry Specification
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 
 ;; XDG Base Directory Specification
@@ -80,7 +85,7 @@
 
 (defun xdg-thumb-uri (filename)
   "Return the canonical URI for FILENAME.
-If FILENAME has absolute path /foo/bar.jpg, its canonical URI is
+If FILENAME has absolute file name /foo/bar.jpg, its canonical URI is
 file:///foo/bar.jpg"
   (concat "file://" (expand-file-name filename)))
 
@@ -89,8 +94,8 @@ file:///foo/bar.jpg"
   (concat (md5 (xdg-thumb-uri filename)) ".png"))
 
 (defun xdg-thumb-mtime (filename)
-  "Return modification time of FILENAME as integral seconds from the epoch."
-  (floor (float-time (nth 5 (file-attributes filename)))))
+  "Return modification time of FILENAME as an Emacs timestamp."
+  (file-attribute-modification-time (file-attributes filename)))
 
 
 ;; XDG User Directories
@@ -128,23 +133,187 @@ This should be called at the beginning of a line."
 (defun xdg--user-dirs-parse-file (filename)
   "Return alist of xdg-user-dirs from FILENAME."
   (let (elt res)
-    (with-temp-buffer
-      (insert-file-contents filename)
-      (goto-char (point-min))
-      (while (not (eobp))
-        (setq elt (xdg--user-dirs-parse-line))
-        (when (consp elt) (push elt res))
-        (forward-line)))
+    (when (file-readable-p filename)
+      (with-temp-buffer
+        (insert-file-contents filename)
+        (goto-char (point-min))
+        (while (not (eobp))
+          (setq elt (xdg--user-dirs-parse-line))
+          (when (consp elt) (push elt res))
+          (forward-line))))
     res))
 
 (defun xdg-user-dir (name)
-  "Return the path of user directory referred to by NAME."
+  "Return the directory referred to by NAME."
   (when (null xdg-user-dirs)
     (setq xdg-user-dirs
           (xdg--user-dirs-parse-file
            (expand-file-name "user-dirs.dirs" (xdg-config-home)))))
   (let ((dir (cdr (assoc name xdg-user-dirs))))
     (when dir (expand-file-name dir))))
+
+
+;; Desktop Entry Specification
+;; https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-1.1.html
+
+(defconst xdg-desktop-group-regexp
+  (rx "[" (group-n 1 (+? (in " -Z\\^-~"))) "]")
+  "Regexp matching desktop file group header names.")
+
+;; TODO Localized strings left out intentionally, as Emacs has no
+;; notion of l10n/i18n
+(defconst xdg-desktop-entry-regexp
+  (rx (group-n 1 (+ (in "A-Za-z0-9-")))
+      ;; (? "[" (group-n 3 (+ nonl)) "]")
+      (* blank) "=" (* blank)
+      (group-n 2 (* nonl)))
+  "Regexp matching desktop file entry key-value pairs.")
+
+(defun xdg-desktop-read-group ()
+  "Return hash table of group of desktop entries in the current buffer."
+  (let ((res (make-hash-table :test #'equal)))
+    (while (not (or (eobp) (looking-at xdg-desktop-group-regexp)))
+      (skip-chars-forward "[:blank:]")
+      (cond
+       ((eolp))
+       ((= (following-char) ?#))
+       ((looking-at xdg-desktop-entry-regexp)
+        (puthash (match-string 1) (match-string 2) res))
+       ;; Filter localized strings
+       ((looking-at (rx (group-n 1 (+ (in alnum "-"))) (* blank) "[")))
+       (t (error "Malformed line: %s"
+                 (buffer-substring (point) (point-at-eol)))))
+      (forward-line))
+    res))
+
+(defun xdg-desktop-read-file (filename &optional group)
+  "Return group contents of desktop file FILENAME as a hash table.
+Optional argument GROUP defaults to the string \"Desktop Entry\"."
+  (with-temp-buffer
+    (insert-file-contents-literally filename)
+    (goto-char (point-min))
+    (while (and (skip-chars-forward "[:blank:]" (line-end-position))
+                (or (eolp) (= (following-char) ?#)))
+      (forward-line))
+    (unless (looking-at xdg-desktop-group-regexp)
+      (error "Expected group name!  Instead saw: %s"
+             (buffer-substring (point) (point-at-eol))))
+    (when group
+      (while (and (re-search-forward xdg-desktop-group-regexp nil t)
+                  (not (equal (match-string 1) group)))))
+    (forward-line)
+    (xdg-desktop-read-group)))
+
+(defun xdg-desktop-strings (value)
+  "Partition VALUE into elements delimited by unescaped semicolons."
+  (let (res)
+    (setq value (string-trim-left value))
+    (dolist (x (split-string (replace-regexp-in-string "\\\\;" "\0" value) ";"))
+      (push (replace-regexp-in-string "\0" ";" x) res))
+    (when (null (string-match-p "[^[:blank:]]" (car res))) (pop res))
+    (nreverse res)))
+
+
+;; MIME apps specification
+;; https://standards.freedesktop.org/mime-apps-spec/mime-apps-spec-1.0.1.html
+
+(defvar xdg-mime-table nil
+  "Table of MIME type to desktop file associations.
+The table is an alist with keys being MIME major types (\"application\",
+\"audio\", etc.), and values being hash tables.  Each hash table has
+MIME subtypes as keys and lists of desktop file absolute filenames.")
+
+(defun xdg-mime-apps-files ()
+  "Return a list of files containing MIME/Desktop associations.
+The list is in order of descending priority: user config, then
+admin config, and finally system cached associations."
+  (let ((xdg-data-dirs (xdg-data-dirs))
+        (desktop (getenv "XDG_CURRENT_DESKTOP"))
+        res)
+    (when desktop
+      (setq desktop (format "%s-mimeapps.list" desktop)))
+    (dolist (name (cons "mimeapps.list" desktop))
+      (push (expand-file-name name (xdg-config-home)) res)
+      (push (expand-file-name (format "applications/%s" name) (xdg-data-home))
+            res)
+      (dolist (dir (xdg-config-dirs))
+        (push (expand-file-name name dir) res))
+      (dolist (dir xdg-data-dirs)
+        (push (expand-file-name (format "applications/%s" name) dir) res)))
+    (dolist (dir xdg-data-dirs)
+      (push (expand-file-name "applications/mimeinfo.cache" dir) res))
+    (nreverse res)))
+
+(defun xdg-mime-collect-associations (mime files)
+  "Return a list of desktop file names associated with MIME.
+The associations are searched in the list of file names FILES,
+which is expected to be ordered by priority as in
+`xdg-mime-apps-files'."
+  (let ((regexp (concat (regexp-quote mime) "=\\([^[:cntrl:]]*\\)$"))
+        res sec defaults added removed cached)
+    (with-temp-buffer
+      (dolist (f (reverse files))
+        (when (file-readable-p f)
+          (insert-file-contents-literally f nil nil nil t)
+          (goto-char (point-min))
+          (let (end)
+            (while (not (or (eobp) end))
+              (if (= (following-char) ?\[)
+                  (progn (setq sec (char-after (1+ (point))))
+                         (forward-line))
+                (if (not (looking-at regexp))
+                    (forward-line)
+                  (dolist (str (xdg-desktop-strings (match-string 1)))
+                    (cl-pushnew str
+                                (cond ((eq sec ?D) defaults)
+                                      ((eq sec ?A) added)
+                                      ((eq sec ?R) removed)
+                                      ((eq sec ?M) cached))
+                                :test #'equal))
+                  (while (and (zerop (forward-line))
+                              (/= (following-char) ?\[)))))))
+          ;; Accumulate results into res
+          (dolist (f cached)
+            (when (not (member f removed)) (cl-pushnew f res :test #'equal)))
+          (dolist (f added)
+            (when (not (member f removed)) (push f res)))
+          (dolist (f removed)
+            (setq res (delete f res)))
+          (dolist (f defaults)
+            (push f res))
+          (setq defaults nil added nil removed nil cached nil))))
+    (delete-dups res)))
+
+(defun xdg-mime-apps (mime)
+  "Return list of desktop files associated with MIME, otherwise nil.
+The list is in order of descending priority, and each element is
+an absolute file name of a readable file.
+Results are cached in `xdg-mime-table'."
+  (pcase-let ((`(,type ,subtype) (split-string mime "/"))
+              (xdg-data-dirs (xdg-data-dirs))
+              (caches (xdg-mime-apps-files))
+              (files ()))
+    (let ((mtim1 (get 'xdg-mime-table 'mtime))
+          (mtim2 (cl-loop for f in caches when (file-readable-p f)
+                          maximize (float-time (nth 5 (file-attributes f))))))
+      ;; If one of the MIME/Desktop cache files has been modified:
+      (when (or (null mtim1) (time-less-p mtim1 mtim2))
+        (setq xdg-mime-table nil)))
+    (when (null (assoc type xdg-mime-table))
+      (push (cons type (make-hash-table :test #'equal)) xdg-mime-table))
+    (if (let ((def (make-symbol "def"))
+              (table (cdr (assoc type xdg-mime-table))))
+          (not (eq (setq files (gethash subtype table def)) def)))
+        files
+      (and files (setq files nil))
+      (let ((dirs (mapcar (lambda (dir) (expand-file-name "applications" dir))
+                          (cons (xdg-data-home) xdg-data-dirs))))
+        ;; Not being particular about desktop IDs
+        (dolist (f (nreverse (xdg-mime-collect-associations mime caches)))
+          (push (locate-file f dirs) files))
+        (when files
+          (put 'xdg-mime-table 'mtime (current-time)))
+        (puthash subtype (delq nil files) (cdr (assoc type xdg-mime-table)))))))
 
 (provide 'xdg)
 

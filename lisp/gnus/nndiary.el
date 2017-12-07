@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -1532,7 +1532,7 @@ all.  This may very well take some time.")
 	  ;; past. A permanent schedule never expires.
 	  (and sched
 	       (setq sched (nndiary-last-occurrence sched))
-	       (time-less-p sched (current-time))))
+	       (time-less-p sched nil)))
       ;; else
       (nnheader-report 'nndiary "Could not read file %s" file)
       nil)

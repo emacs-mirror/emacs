@@ -24,7 +24,7 @@ find some things, or what options to use.
 'src/config.h' file containing system-dependent definitions.
 Running the 'make' utility then builds the package for your system.
 
-Building Emacs requires GNU make, <http://www.gnu.org/software/make/>.
+Building Emacs requires GNU make, <https://www.gnu.org/software/make/>.
 On most systems that Emacs supports, this is the default 'make' program.
 
 Here's the procedure to build Emacs using 'configure' on systems which
@@ -162,7 +162,7 @@ can be found (in the unlikely event that your distribution does not
 provide them).  By default, libraries marked with an X are required if
 X11 is being used.
 
-    libXaw3d          http://directory.fsf.org/project/xaw3d/
+    libXaw3d          https://directory.fsf.org/project/xaw3d/
   X libxpm for XPM:   http://www.x.org/releases/current/src/lib/
   X libpng for PNG:   http://www.libpng.org/
     libz (for PNG):   http://www.zlib.net/
@@ -187,7 +187,7 @@ them.
 On the GNU system, Emacs supports both X fonts and local fonts
 (i.e. fonts managed by the fontconfig library).  If you need more
 fonts than your distribution normally provides, you must install them
-yourself.  See <URL:http://www.gnu.org/software/freefont/> for a large
+yourself.  See <https://www.gnu.org/software/freefont/> for a large
 number of free Unicode fonts.
 
 * GNU/Linux development packages
@@ -261,10 +261,10 @@ Emacs with the options '--without-dbus --without-gconf --without-gsettings'.
 
 To read email via a network protocol like IMAP or POP, you can
 configure Emacs with the option '--with-mailutils', so that it always
-uses the GNU Mailutils 'movemail' program to retrieve mail.  Otherwise
-the Emacs build procedure builds and installs an auxiliary 'movemail'
-program, a limited and insecure substitute that Emacs can use when
-Mailutils is not installed; when this happens, there are several
+uses the GNU Mailutils 'movemail' program to retrieve mail; this is
+the default if GNU Mailutils is installed.  Otherwise the Emacs build
+procedure builds and installs an auxiliary 'movemail' program, a
+limited and insecure substitute; when this happens, there are several
 configure options such as --without-pop that provide fine-grained
 control over Emacs 'movemail' construction.
 
@@ -272,10 +272,11 @@ The Emacs mail reader RMAIL is configured to be able to read mail from
 a POP3 server by default.  Versions of the POP protocol older than
 POP3 are not supported.  While POP3 support is typically enabled,
 whether Emacs actually uses POP3 is controlled by individual users;
-see the Rmail chapter of the Emacs manual.  Unless you configure
---with-mailutils, it is a good idea to configure --without-pop so that
+see the Rmail chapter of the Emacs manual.  Unless --with-mailutils is
+in effect, it is a good idea to configure without POP3 support so that
 users are less likely to inadvertently read email via insecure
-channels.
+channels.  On native MS-Windows, --with-pop is the default; on other
+platforms, --without-pop is the default.
 
 For image support you may have to download, build, and install the
 appropriate image support libraries for image types other than XBM and
@@ -340,17 +341,13 @@ Use --disable-silent-rules to cause 'make' to give more details about
 the commands it executes.  This can be helpful when debugging a build
 that goes awry.  'make V=1' also enables the extra chatter.
 
-Use --enable-link-time-optimization to enable link-time optimizer.  If
-you're using GNU compiler, this feature is supported since version 4.5.0.
-If 'configure' can determine number of online CPUS on your system, final
-link-time optimization and code generation is executed in parallel using
-one job per each available online CPU.
-
-This option is also supported for clang.  You should have GNU binutils
-with 'gold' linker and plugin support, and clang with LLVMgold.so plugin.
-Read http://llvm.org/docs/GoldPlugin.html for details.  Also note that
-this feature is still experimental, so prepare to build binutils and
-clang from the corresponding source code repositories.
+Use --enable-link-time-optimization to enable link-time optimization.
+With GCC, you need GCC 4.5.0 and later, and 'configure' arranges for
+linking to be parallelized if possible.  With Clang, you need GNU
+binutils with the gold linker and plugin support, along with the LLVM
+gold plugin <http://llvm.org/docs/GoldPlugin.html>.  Link time
+optimization is not the default as it tends to cause crashes and to
+make Emacs slower.
 
 The '--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to '/usr/local'.
@@ -550,7 +547,7 @@ information on this.
 Emacs info files.
 
 8) If your system uses lock files to interlock access to mailer inbox files,
-and if you did not configure --with-mailutils, then you might need to
+and if --with-mailutils is not in effect, then you might need to
 make the Emacs-specific 'movemail' program setuid or setgid in order
 to enable it to write the lock files.  We believe this is safe.
 
@@ -683,4 +680,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

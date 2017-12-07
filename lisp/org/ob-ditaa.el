@@ -1,4 +1,4 @@
-;;; ob-ditaa.el --- org-babel functions for ditaa evaluation
+;;; ob-ditaa.el --- Babel Functions for ditaa        -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -81,15 +81,21 @@ Do not leave leading or trailing spaces in this string."
 (defun org-babel-execute:ditaa (body params)
   "Execute a block of Ditaa code with org-babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	 (out-file (let ((el (cdr (assoc :file params))))
-                     (or el
-                         (error
-                          "ditaa code block requires :file header argument"))))
-	 (cmdline (cdr (assoc :cmdline params)))
-	 (java (cdr (assoc :java params)))
+  (let* ((out-file (or (cdr (assq :file params))
+		       (error
+			"ditaa code block requires :file header argument")))
+	 (cmdline (cdr (assq :cmdline params)))
+	 (java (cdr (assq :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))
-	 (eps (cdr (assoc :eps params)))
+	 (eps (cdr (assq :eps params)))
+	 (eps-file (when eps
+		     (org-babel-process-file-name (concat in-file ".eps"))))
+	 (pdf-cmd (when (and (or (string= (file-name-extension out-file) "pdf")
+				 (cdr (assq :pdf params))))
+		    (concat
+		     "epstopdf"
+		     " " eps-file
+		     " -o=" (org-babel-process-file-name out-file))))
 	 (cmd (concat org-babel-ditaa-java-cmd
 		      " " java " " org-ditaa-jar-option " "
 		      (shell-quote-argument
@@ -97,13 +103,9 @@ This function is called by `org-babel-execute-src-block'."
 			(if eps org-ditaa-eps-jar-path org-ditaa-jar-path)))
 		      " " cmdline
 		      " " (org-babel-process-file-name in-file)
-		      " " (org-babel-process-file-name out-file)))
-	 (pdf-cmd (when (and (or (string= (file-name-extension out-file) "pdf")
-				 (cdr (assoc :pdf params))))
-		    (concat
-		     "epstopdf"
-		     " " (org-babel-process-file-name (concat in-file ".eps"))
-		     " -o=" (org-babel-process-file-name out-file)))))
+		      " " (if pdf-cmd
+			      eps-file
+			    (org-babel-process-file-name out-file)))))
     (unless (file-exists-p org-ditaa-jar-path)
       (error "Could not find ditaa.jar at %s" org-ditaa-jar-path))
     (with-temp-file in-file (insert body))
@@ -111,7 +113,7 @@ This function is called by `org-babel-execute-src-block'."
     (when pdf-cmd (message pdf-cmd) (shell-command pdf-cmd))
     nil)) ;; signal that output has already been written to file
 
-(defun org-babel-prep-session:ditaa (session params)
+(defun org-babel-prep-session:ditaa (_session _params)
   "Return an error because ditaa does not support sessions."
   (error "Ditaa does not support sessions"))
 

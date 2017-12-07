@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -52,7 +52,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-
+(require 'generator)
 
 
 ;; ================================================================
@@ -668,6 +668,21 @@ a null element stored in the AVL tree.)"
 (defun avl-tree-stack-empty-p (avl-tree-stack)
   "Return t if AVL-TREE-STACK is empty, nil otherwise."
   (null (avl-tree--stack-store avl-tree-stack)))
+
+
+(iter-defun avl-tree-iter (tree &optional reverse)
+  "Return an AVL tree iterator object.
+
+Calling `iter-next' on this object will retrieve the next element
+from TREE. If REVERSE is non-nil, elements are returned in
+reverse order.
+
+Note that any modification to TREE *immediately* invalidates all
+iterators created from TREE before the modification (in
+particular, calling `iter-next' will give unpredictable results)."
+  (let ((stack (avl-tree-stack tree reverse)))
+    (while (not (avl-tree-stack-empty-p stack))
+      (iter-yield (avl-tree-stack-pop stack)))))
 
 
 (provide 'avl-tree)

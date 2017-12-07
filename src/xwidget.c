@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -585,22 +585,20 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
      xwidget on screen.  Moving and clipping is done here.  Also view
      initialization.  */
   struct xwidget *xww = s->xwidget;
-  struct xwidget_view *xv;
+  struct xwidget_view *xv = xwidget_view_lookup (xww, s->w);
   int clip_right;
   int clip_bottom;
   int clip_top;
   int clip_left;
 
-  /* FIXME: The result of this call is discarded.
-     What if the lookup fails?  */
-  xwidget_view_lookup (xww, s->w);
-
   int x = s->x;
   int y = s->y + (s->height / 2) - (xww->height / 2);
 
   /* Do initialization here in the display loop because there is no
-     other time to know things like window placement etc.  */
-  xv = xwidget_init_view (xww, s, x, y);
+     other time to know things like window placement etc.  Do not
+     create a new view if we have found one that is usable.  */
+  if (!xv)
+    xv = xwidget_init_view (xww, s, x, y);
 
   int text_area_x, text_area_y, text_area_width, text_area_height;
 

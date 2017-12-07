@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 By Adrian Robert, based on code from original nsmenu.m (Carl Edman,
@@ -532,9 +532,14 @@ x_activate_menubar (struct frame *f)
 {
   ++trackingMenu;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
   // On 10.6 we get repeated calls, only the one for NSSystemDefined is "real".
-  if ([[NSApp currentEvent] type] != NSSystemDefined) return;
+  if (
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+      NSAppKitVersionNumber < NSAppKitVersionNumber10_7 &&
+#endif
+      [[NSApp currentEvent] type] != NSEventTypeSystemDefined)
+    return;
 #endif
 
   /* When dragging from one menu to another, we get willOpen followed by didClose,

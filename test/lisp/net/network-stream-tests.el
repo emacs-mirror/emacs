@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -280,8 +280,11 @@
                       (< (setq times (1+ times)) 10))
             (sit-for 0.1))
           (should proc)
-          (while (eq (process-status proc) 'connect)
-            (sit-for 0.1)))
+          (setq times 0)
+          (while (and (eq (process-status proc) 'connect)
+                      (< (setq times (1+ times)) 10))
+            (sit-for 0.1))
+          (skip-unless (not (eq (process-status proc) 'connect))))
       (if (process-live-p server) (delete-process server)))
     (setq status (gnutls-peer-status proc))
     (should (consp status))

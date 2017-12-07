@@ -1,4 +1,4 @@
-;;; ob-fortran.el --- org-babel functions for fortran
+;;; ob-fortran.el --- Babel Functions for Fortran    -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,10 +29,12 @@
 ;;; Code:
 (require 'ob)
 (require 'cc-mode)
+(require 'cl-lib)
 
 (declare-function org-entry-get "org"
 		  (pom property &optional inherit literal-nil))
-(declare-function org-every "org" (pred seq))
+(declare-function org-remove-indentation "org" (code &optional n))
+(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("fortran" . "F90"))
@@ -47,43 +49,42 @@
   "This function should only be called by `org-babel-execute:fortran'"
   (let* ((tmp-src-file (org-babel-temp-file "fortran-src-" ".F90"))
          (tmp-bin-file (org-babel-temp-file "fortran-bin-" org-babel-exeext))
-         (cmdline (cdr (assoc :cmdline params)))
-         (flags (cdr (assoc :flags params)))
-         (full-body (org-babel-expand-body:fortran body params))
-         (compile
-	  (progn
-	    (with-temp-file tmp-src-file (insert full-body))
-	    (org-babel-eval
-	     (format "%s -o %s %s %s"
-		     org-babel-fortran-compiler
-		     (org-babel-process-file-name tmp-bin-file)
-		     (mapconcat 'identity
-				(if (listp flags) flags (list flags)) " ")
-		     (org-babel-process-file-name tmp-src-file)) ""))))
+         (cmdline (cdr (assq :cmdline params)))
+         (flags (cdr (assq :flags params)))
+         (full-body (org-babel-expand-body:fortran body params)))
+    (with-temp-file tmp-src-file (insert full-body))
+    (org-babel-eval
+     (format "%s -o %s %s %s"
+	     org-babel-fortran-compiler
+	     (org-babel-process-file-name tmp-bin-file)
+	     (mapconcat 'identity
+			(if (listp flags) flags (list flags)) " ")
+	     (org-babel-process-file-name tmp-src-file)) "")
     (let ((results
-           (org-babel-trim
-            (org-babel-eval
-             (concat tmp-bin-file (if cmdline (concat " " cmdline) "")) ""))))
+           (org-trim
+            (org-remove-indentation
+	     (org-babel-eval
+	      (concat tmp-bin-file (if cmdline (concat " " cmdline) "")) "")))))
       (org-babel-reassemble-table
-       (org-babel-result-cond (cdr (assoc :result-params params))
+       (org-babel-result-cond (cdr (assq :result-params params))
 	 (org-babel-read results)
          (let ((tmp-file (org-babel-temp-file "f-")))
            (with-temp-file tmp-file (insert results))
            (org-babel-import-elisp-from-file tmp-file)))
        (org-babel-pick-name
-        (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+        (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
        (org-babel-pick-name
-        (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))))
+        (cdr (assq :rowname-names params)) (cdr (assq :rownames params)))))))
 
 (defun org-babel-expand-body:fortran (body params)
   "Expand a block of fortran or fortran code with org-babel according to
-it's header arguments."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
-        (main-p (not (string= (cdr (assoc :main params)) "no")))
-        (includes (or (cdr (assoc :includes params))
+its header arguments."
+  (let ((vars (org-babel--get-vars params))
+        (main-p (not (string= (cdr (assq :main params)) "no")))
+        (includes (or (cdr (assq :includes params))
                       (org-babel-read (org-entry-get nil "includes" t))))
         (defines (org-babel-read
-                  (or (cdr (assoc :defines params))
+                  (or (cdr (assq :defines params))
                       (org-babel-read (org-entry-get nil "defines" t))))))
     (mapconcat 'identity
 	       (list
@@ -107,17 +108,17 @@ it's header arguments."
 (defun org-babel-fortran-ensure-main-wrap (body params)
   "Wrap body in a \"program ... end program\" block if none exists."
   (if (string-match "^[ \t]*program[ \t]*.*" (capitalize body))
-      (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
+      (let ((vars (org-babel--get-vars params)))
 	(if vars (error "Cannot use :vars if `program' statement is present"))
 	body)
     (format "program main\n%s\nend program main\n" body)))
 
-(defun org-babel-prep-session:fortran (session params)
+(defun org-babel-prep-session:fortran (_session _params)
   "This function does nothing as fortran is a compiled language with no
 support for sessions"
   (error "Fortran is a compiled languages -- no support for sessions"))
 
-(defun org-babel-load-session:fortran (session body params)
+(defun org-babel-load-session:fortran (_session _body _params)
   "This function does nothing as fortran is a compiled language with no
 support for sessions"
   (error "Fortran is a compiled languages -- no support for sessions"))
@@ -145,7 +146,7 @@ of the same value."
       (format "character(len=%d), parameter ::  %S = '%s'\n"
               (length val) var val))
      ;; val is a matrix
-     ((and (listp val) (org-every #'listp val))
+     ((and (listp val) (cl-every #'listp val))
       (format "real, parameter :: %S(%d,%d) = transpose( reshape( %s , (/ %d, %d /) ) )\n"
 	      var (length val) (length (car val))
 	      (org-babel-fortran-transform-list val)

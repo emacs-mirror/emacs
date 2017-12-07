@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -216,8 +216,9 @@ determine where the desktop is saved."
   :version "22.1")
 
 (defcustom desktop-auto-save-timeout auto-save-timeout
-  "Number of seconds idle time before auto-save of the desktop.
-The idle timer activates auto-saving only when window configuration changes.
+  "Number of seconds of idle time before auto-saving the desktop.
+The desktop will be auto-saved when this amount of idle time have
+passed after some change in the window configuration.
 This applies to an existing desktop file when `desktop-save-mode' is enabled.
 Zero or nil means disable auto-saving due to idleness."
   :type '(choice (const :tag "Off" nil)
@@ -709,8 +710,8 @@ if different)."
   (setq desktop-io-file-version nil)
   (dolist (var desktop-globals-to-clear)
     (if (symbolp var)
-	(eval `(setq-default ,var nil))
-      (eval `(setq-default ,(car var) ,(cdr var)))))
+	(set-default var nil)
+      (set-default var (eval (cdr var)))))
   (let ((preserve-regexp (concat "^\\("
                                  (mapconcat (lambda (regexp)
                                               (concat "\\(" regexp "\\)"))
@@ -1046,7 +1047,8 @@ without further confirmation."
 	  (or (not new-modtime)		; nothing to overwrite
 	      (equal desktop-file-modtime new-modtime)
 	      (yes-or-no-p (if desktop-file-modtime
-			       (if (> (float-time new-modtime) (float-time desktop-file-modtime))
+			       (if (time-less-p desktop-file-modtime
+						new-modtime)
 				   "Desktop file is more recent than the one loaded.  Save anyway? "
 				 "Desktop file isn't the one loaded.  Overwrite it? ")
 			     "Current desktop was not loaded from a file.  Overwrite this desktop file? "))
@@ -1238,7 +1240,13 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	    ;; disabled when loading the desktop fails with errors,
 	    ;; thus not overwriting the desktop with broken contents.
 	    (setq desktop-autosave-was-enabled
-		  (memq 'desktop-auto-save-set-timer window-configuration-change-hook))
+		  (memq 'desktop-auto-save-set-timer
+                        ;; Use the toplevel value of the hook, in case some
+                        ;; feature makes window-configuration-change-hook
+                        ;; buffer-local, and puts there stuff which
+                        ;; doesn't include our timer.
+                        (default-toplevel-value
+                          'window-configuration-change-hook)))
 	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
 	    (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
@@ -1361,10 +1369,11 @@ Called by the timer created in `desktop-auto-save-set-timer'."
     (desktop-save desktop-dirname nil t)))
 
 (defun desktop-auto-save-set-timer ()
-  "Set the auto-save timer.
+  "Set the desktop auto-save timer.
 Cancel any previous timer.  When `desktop-auto-save-timeout' is a positive
-integer, start a new idle timer to call `desktop-auto-save' repeatedly
-after that many seconds of idle time."
+integer, start a new idle timer to call `desktop-auto-save' after that many
+seconds of idle time.
+This function is called from `window-configuration-change-hook'."
   (desktop-auto-save-cancel-timer)
   (when (and (integerp desktop-auto-save-timeout)
 	     (> desktop-auto-save-timeout 0))
@@ -1554,8 +1563,7 @@ and try to load that."
           (setq buffer-display-time
                 (if buffer-display-time
                     (time-add buffer-display-time
-                              (time-subtract (current-time)
-                                             desktop-file-modtime))
+                              (time-subtract nil desktop-file-modtime))
                   (current-time)))
 	  (unless (< desktop-file-version 208) ; Don't misinterpret any old custom args
 	    (dolist (record compacted-vars)

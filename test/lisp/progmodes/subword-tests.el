@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -58,12 +58,12 @@
       (insert line)
 
       ;; Test forward motion.
-      
+
       (goto-char (point-min))
       (let ((stops (make-string (length fwrd) ?\ )))
         (while (progn
                  (aset stops (1- (point)) ?\*)
-                 (not (eobp)))          
+                 (not (eobp)))
           (forward-word))
         (should (equal stops fwrd)))
 
@@ -73,7 +73,7 @@
       (let ((stops (make-string (length bkwd) ?\ )))
         (while (progn
                  (aset stops (1- (point)) ?\*)
-                 (not (bobp)))          
+                 (not (bobp)))
           (backward-word))
         (should (equal stops bkwd))))))
 

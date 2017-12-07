@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -176,10 +176,30 @@ underneath each nick."
   "If non-nil, activity in this buffer is considered low priority.")
 (make-variable-buffer-local 'rcirc-low-priority-flag)
 
-(defvar rcirc-omit-mode nil
-  "Non-nil if Rcirc-Omit mode is enabled.
-Use the command `rcirc-omit-mode' to change this variable.")
-(make-variable-buffer-local 'rcirc-omit-mode)
+(defcustom rcirc-omit-responses
+  '("JOIN" "PART" "QUIT" "NICK")
+  "Responses which will be hidden when `rcirc-omit-mode' is enabled."
+  :type '(repeat string)
+  :group 'rcirc)
+
+(define-minor-mode rcirc-omit-mode
+  "Toggle the hiding of \"uninteresting\" lines.
+With a prefix argument ARG, enable Rcirc-Omit mode if ARG is
+positive, and disable it otherwise. If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Uninteresting lines are those whose responses are listed in
+`rcirc-omit-responses'."
+  nil " Omit" nil
+  (if rcirc-omit-mode
+      (progn
+	(add-to-invisibility-spec '(rcirc-omit . nil))
+	(message "Rcirc-Omit mode enabled"))
+    (remove-from-invisibility-spec '(rcirc-omit . nil))
+    (message "Rcirc-Omit mode disabled"))
+  (dolist (window (get-buffer-window-list (current-buffer)))
+    (with-selected-window window
+      (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
 
 (defcustom rcirc-time-format "%H:%M "
   "Describes how timestamps are printed.
@@ -1405,12 +1425,6 @@ the of the following escape sequences replaced by the described values:
 		:value-type string)
   :group 'rcirc)
 
-(defcustom rcirc-omit-responses
-  '("JOIN" "PART" "QUIT" "NICK")
-  "Responses which will be hidden when `rcirc-omit-mode' is enabled."
-  :type '(repeat string)
-  :group 'rcirc)
-
 (defun rcirc-format-response-string (process sender response target text)
   "Return a nicely-formatted response string, incorporating TEXT
 \(and perhaps other arguments).  The specific formatting used
@@ -1881,9 +1895,6 @@ if ARG is omitted or nil."
 (or (assq 'rcirc-low-priority-flag minor-mode-alist)
     (setq minor-mode-alist
           (cons '(rcirc-low-priority-flag " LowPri") minor-mode-alist)))
-(or (assq 'rcirc-omit-mode minor-mode-alist)
-    (setq minor-mode-alist
-          (cons '(rcirc-omit-mode " Omit") minor-mode-alist)))
 
 (defun rcirc-toggle-ignore-buffer-activity ()
   "Toggle the value of `rcirc-ignore-buffer-activity-flag'."
@@ -1904,23 +1915,6 @@ if ARG is omitted or nil."
 	       "Activity in this buffer is low priority"
 	     "Activity in this buffer is normal priority"))
   (force-mode-line-update))
-
-(defun rcirc-omit-mode ()
-  "Toggle the Rcirc-Omit mode.
-If enabled, \"uninteresting\" lines are not shown.
-Uninteresting lines are those whose responses are listed in
-`rcirc-omit-responses'."
-  (interactive)
-  (setq rcirc-omit-mode (not rcirc-omit-mode))
-  (if rcirc-omit-mode
-      (progn
-	(add-to-invisibility-spec '(rcirc-omit . nil))
-	(message "Rcirc-Omit mode enabled"))
-    (remove-from-invisibility-spec '(rcirc-omit . nil))
-    (message "Rcirc-Omit mode disabled"))
-  (dolist (window (get-buffer-window-list (current-buffer)))
-    (with-selected-window window
-      (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
 
 (defun rcirc-switch-to-server-buffer ()
   "Switch to the server buffer associated with current channel buffer."
@@ -2339,7 +2333,7 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-ctcp-sender-PING (process target _request)
   "Send a CTCP PING message to TARGET."
-  (let ((timestamp (format "%.0f" (float-time))))
+  (let ((timestamp (format-time-string "%s")))
     (rcirc-send-ctcp process target "PING" timestamp)))
 
 (defun rcirc-cmd-me (args &optional process target)
@@ -2505,12 +2499,15 @@ If ARG is given, opens the URL in a new browser window."
            (end (match-end 0))
            (url (match-string-no-properties 0))
            (link-text (buffer-substring-no-properties start end)))
-      (make-button start end
-		   'face 'rcirc-url
-		   'follow-link t
-		   'rcirc-url url
-		   'action (lambda (button)
-			     (browse-url (button-get button 'rcirc-url))))
+      ;; Add a button for the URL.  Note that we use `make-text-button',
+      ;; rather than `make-button', as text-buttons are much faster in
+      ;; large buffers.
+      (make-text-button start end
+			'face 'rcirc-url
+			'follow-link t
+			'rcirc-url url
+			'action (lambda (button)
+				  (browse-url (button-get button 'rcirc-url))))
       ;; record the url if it is not already the latest stored url
       (when (not (string= link-text (caar rcirc-urls)))
         (push (cons link-text start) rcirc-urls)))))

@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 %package semantic-make-by
 %provide semantic/bovine/make-by
@@ -134,7 +134,7 @@ elements: element some-whitespace elements
 	  ( ,@$1 )
 	| ;;EMPTY
 	;
-  
+
 element: sub-element element
 	 ( (concat (car ,$1) (car ,$2)) )
        | ;;EMPTY

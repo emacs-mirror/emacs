@@ -2,6 +2,9 @@
 #
 # History:
 #
+# 2016-08-15 Combined registration of the MSARG collection and of
+#            sequences in that collection.
+#
 # 2014-05-16 Combined registration of the Moji_Joho collection and of
 #            sequences in that collection.
 #
@@ -11,17 +14,17 @@
 #            collection. Registration of additional sequences in the
 #            Hanyo-Denshi collection.
 #
-# 2010-11-14 Combined registration of the Hanyo-Denshi collection and of
-#            sequences in that collection.
+# 2010-11-14 Combined registration of the Hanyo-Denshi collection and
+#            of sequences in that collection.
 #
-# 2007-12-14 Combined registration of the Adobe-Japan1 collection and of
-#            sequences in that collection.
+# 2007-12-14 Combined registration of the Adobe-Japan1 collection and
+#            of sequences in that collection.
 #
 # This file is part of the Unicode Ideographic Variation Database (IVD).
 # For more details on the IVD, see UTS #37:
 # http://www.unicode.org/reports/tr37/
 #
-# Copyright 2006-2014 Unicode, Inc.
+# Copyright 2006-2016 Unicode, Inc.
 # For terms of use, see: http://www.unicode.org/terms_of_use.html
 #
 3402 E0100; Adobe-Japan1; CID+13698
@@ -268,6 +271,9 @@
 36C3 E0100; Hanyo-Denshi; IA1426
 36C3 E0101; Hanyo-Denshi; TK01020180
 36C3 E0102; Hanyo-Denshi; TK01020240
+36C7 E0100; MSARG; MA_9856
+36C7 E0101; MSARG; ME_36C7_001
+36C7 E0102; MSARG; ME_36C7_002
 36CF E0100; Adobe-Japan1; CID+17494
 36EE E0100; Moji_Joho; MJ000648
 36EE E0101; Moji_Joho; MJ000649
@@ -4847,6 +4853,8 @@
 5554 E0101; Hanyo-Denshi; TK01014490
 5556 E0100; Adobe-Japan1; CID+4394
 5557 E0100; Adobe-Japan1; CID+4395
+5557 E0101; MSARG; MB_B0E8
+5557 E0102; MSARG; ME_5557_001
 5558 E0100; Adobe-Japan1; CID+21280
 555A E0100; Adobe-Japan1; CID+21281
 555A E0101; Hanyo-Denshi; JB2162
@@ -8319,6 +8327,8 @@
 5EF8 E0100; Adobe-Japan1; CID+4762
 5EF8 E0101; Moji_Joho; MJ011106
 5EF8 E0102; Moji_Joho; MJ011107
+5EF8 E0103; MSARG; MA_9059
+5EF8 E0104; MSARG; ME_5EF8_001
 5EF9 E0100; Adobe-Japan1; CID+16853
 5EF9 E0101; Moji_Joho; MJ011108
 5EF9 E0102; Moji_Joho; MJ011109
@@ -8529,6 +8539,8 @@
 5F55 E0100; Moji_Joho; MJ011232
 5F55 E0101; Hanyo-Denshi; KS112100
 5F55 E0101; Moji_Joho; MJ057475
+5F55 E0102; MSARG; MD_5F55
+5F55 E0103; MSARG; ME_5F55_001
 5F56 E0100; Adobe-Japan1; CID+4780
 5F56 E0101; Hanyo-Denshi; JA5533
 5F56 E0101; Moji_Joho; MJ011233
@@ -26361,6 +26373,8 @@
 8846 E0105; Hanyo-Denshi; KS386520
 8846 E0105; Moji_Joho; MJ058677
 8846 E0106; Hanyo-Denshi; TK01083450
+8846 E0107; MSARG; MA_8FBC
+8846 E0108; MSARG; ME_8846_001
 8848 E0100; Adobe-Japan1; CID+22465
 8849 E0100; Adobe-Japan1; CID+22466
 884A E0100; Adobe-Japan1; CID+18635
@@ -31073,6 +31087,8 @@
 93C5 E0101; Hanyo-Denshi; JB6930
 93C5 E0102; Hanyo-Denshi; TK01093900
 93C6 E0100; Adobe-Japan1; CID+8679
+93C6 E0101; MSARG; MA_9264
+93C6 E0102; MSARG; ME_93C6_001
 93C7 E0100; Adobe-Japan1; CID+18865
 93C8 E0100; Adobe-Japan1; CID+7029
 93C8 E0101; Hanyo-Denshi; JA7926
@@ -32678,6 +32694,8 @@
 98EB E0102; Moji_Joho; MJ028359
 98EB E0103; Hanyo-Denshi; FT2689
 98EB E0103; Moji_Joho; MJ028358
+98EC E0100; MSARG; MA_914B
+98EC E0101; MSARG; ME_98EC_001
 98ED E0100; Adobe-Japan1; CID+4289
 98ED E0101; Hanyo-Denshi; JA5012
 98ED E0101; Moji_Joho; MJ028362
@@ -33545,6 +33563,8 @@
 9AE3 E0100; Adobe-Japan1; CID+7278
 9AE4 E0100; Adobe-Japan1; CID+22934
 9AE5 E0100; Adobe-Japan1; CID+19007
+9AE5 E0101; MSARG; MD_9AE5
+9AE5 E0102; MSARG; ME_9AE5_001
 9AE6 E0100; Adobe-Japan1; CID+7279
 9AE7 E0100; Adobe-Japan1; CID+22935
 9AE9 E0100; Adobe-Japan1; CID+19008
@@ -35487,6 +35507,8 @@ FA29 E0100; Adobe-Japan1; CID+8687
 20C50 E0101; Moji_Joho; MJ057161
 20C74 E0100; Hanyo-Denshi; KS041540
 20C74 E0101; Hanyo-Denshi; TK01014200
+20C98 E0100; MSARG; MD_20C98
+20C98 E0101; MSARG; ME_20C98_001
 20C9C E0100; Hanyo-Denshi; TK01014280
 20C9C E0101; Hanyo-Denshi; TK01014620
 20D45 E0100; Adobe-Japan1; CID+17359
@@ -35689,6 +35711,8 @@ FA29 E0100; Adobe-Japan1; CID+8687
 21A41 E0101; Hanyo-Denshi; TK01022390
 21A62 E0100; Hanyo-Denshi; KS082510
 21A62 E0101; Hanyo-Denshi; TK01022590
+21A74 E0100; MSARG; MD_21A74
+21A74 E0101; MSARG; ME_21A74_001
 21AA2 E0100; Moji_Joho; MJ034079
 21AA2 E0101; Moji_Joho; MJ034080
 21B33 E0100; Hanyo-Denshi; KS084630

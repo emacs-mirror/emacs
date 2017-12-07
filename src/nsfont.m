@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 */
@@ -301,7 +301,7 @@ ns_charset_covers(NSCharacterSet *set1, NSCharacterSet *set2, float pct)
     int i, off = 0, tot = 0;
 
     /* Work around what appears to be a GNUstep bug.
-       See <http://bugs.gnu.org/11853>.  */
+       See <https://bugs.gnu.org/11853>.  */
     if (! (bytes1 && bytes2))
       return NO;
 

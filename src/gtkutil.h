@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef GTKUTIL_H
 #define GTKUTIL_H
@@ -143,8 +143,8 @@ extern void xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
 							int position,
 							int whole);
 extern bool xg_event_is_for_scrollbar (struct frame *, const XEvent *);
-extern int xg_get_default_scrollbar_width (void);
-extern int xg_get_default_scrollbar_height (void);
+extern int xg_get_default_scrollbar_width (struct frame *f);
+extern int xg_get_default_scrollbar_height (struct frame *f);
 
 extern void update_frame_tool_bar (struct frame *f);
 extern void free_frame_tool_bar (struct frame *f);
@@ -156,6 +156,7 @@ extern void xg_frame_resized (struct frame *f,
 extern void xg_frame_set_char_size (struct frame *f, int width, int height);
 extern GtkWidget * xg_win_to_widget (Display *dpy, Window wdesc);
 
+extern int xg_get_scale (struct frame *f);
 extern void xg_display_open (char *display_name, Display **dpy);
 extern void xg_display_close (Display *dpy);
 extern GdkCursor * xg_create_default_cursor (Display *dpy);

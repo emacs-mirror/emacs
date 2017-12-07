@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -164,6 +164,10 @@ display such a window regardless."
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
+          (when (or (eq ?\C-g last-input-event)
+                    (eq 'escape last-input-event)
+                    (eq ?\C-\[ last-input-event))
+            (keyboard-quit))
 	  (if (characterp last-input-event) last-input-event
 	    (error "Non-character input-event")))
       (and (timerp timer) (cancel-timer timer))
@@ -178,8 +182,11 @@ Use \\[jump-to-register] to go to that location or restore that configuration.
 Argument is a character, naming the register.
 
 Interactively, reads the register using `register-read-with-preview'."
-  (interactive (list (register-read-with-preview "Point to register: ")
-		     current-prefix-arg))
+  (interactive (list (register-read-with-preview
+                      (if current-prefix-arg
+                          "Frame configuration to register: "
+                        "Point to register: "))
+                     current-prefix-arg))
   ;; Turn the marker into a file-ref if the buffer is killed.
   (add-hook 'kill-buffer-hook 'register-swap-out nil t)
   (set-register register

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -71,7 +71,7 @@ end program progname
     (should (string-equal (buffer-string) f90-test-indent))))
 
 (ert-deftest f90-test-bug3729 ()
-  "Test for http://debbugs.gnu.org/3729 ."
+  "Test for https://debbugs.gnu.org/3729 ."
   :expected-result :failed
   (with-temp-buffer
     (f90-mode)
@@ -90,7 +90,7 @@ end subroutine test")
     (should (= 0 (current-indentation)))))
 
 (ert-deftest f90-test-bug3730 ()
-  "Test for http://debbugs.gnu.org/3730 ."
+  "Test for https://debbugs.gnu.org/3730 ."
   (with-temp-buffer
     (f90-mode)
     (insert "a" )
@@ -104,7 +104,7 @@ end subroutine test")
 ;; TODO bug#5593
 
 (ert-deftest f90-test-bug8691 ()
-  "Test for http://debbugs.gnu.org/8691 ."
+  "Test for https://debbugs.gnu.org/8691 ."
   (with-temp-buffer
     (f90-mode)
     (insert "module modname
@@ -119,13 +119,13 @@ end module modname")
 ;; TODO bug#8812
 
 (ert-deftest f90-test-bug8820 ()
-  "Test for http://debbugs.gnu.org/8820 ."
+  "Test for https://debbugs.gnu.org/8820 ."
   (with-temp-buffer
     (f90-mode)
     (should (eq (char-syntax ?%) (string-to-char ".")))))
 
 (ert-deftest f90-test-bug9553a ()
-  "Test for http://debbugs.gnu.org/9553 ."
+  "Test for https://debbugs.gnu.org/9553 ."
   (with-temp-buffer
     (f90-mode)
     (insert "!!!")
@@ -136,7 +136,7 @@ end module modname")
     (should (equal "!!! a" (buffer-substring (point) (+ 5 (point)))))))
 
 (ert-deftest f90-test-bug9553b ()
-  "Test for http://debbugs.gnu.org/9553 ."
+  "Test for https://debbugs.gnu.org/9553 ."
   (with-temp-buffer
     (f90-mode)
     (insert "!!!")
@@ -147,7 +147,7 @@ end module modname")
     (should (equal "!!! a" (buffer-substring (point) (+ 5 (point)))))))
 
 (ert-deftest f90-test-bug9690 ()
-  "Test for http://debbugs.gnu.org/9690 ."
+  "Test for https://debbugs.gnu.org/9690 ."
   (with-temp-buffer
     (f90-mode)
     (insert "#include \"foo.h\"")
@@ -155,7 +155,7 @@ end module modname")
     (should (= 0 (current-indentation)))))
 
 (ert-deftest f90-test-bug13138 ()
-  "Test for http://debbugs.gnu.org/13138 ."
+  "Test for https://debbugs.gnu.org/13138 ."
   (with-temp-buffer
     (f90-mode)
     (insert "program prog
@@ -174,7 +174,7 @@ end program prog")
     (should (= 0 (current-indentation)))))
 
 (ert-deftest f90-test-bug-19809 ()
-  "Test for http://debbugs.gnu.org/19809 ."
+  "Test for https://debbugs.gnu.org/19809 ."
   (with-temp-buffer
     (f90-mode)
     ;; The Fortran standard says that continued strings should have
@@ -189,7 +189,7 @@ end program prog")
     (should (= (point) (point-max)))))
 
 (ert-deftest f90-test-bug20680 ()
-  "Test for http://debbugs.gnu.org/20680 ."
+  "Test for https://debbugs.gnu.org/20680 ."
   (with-temp-buffer
     (f90-mode)
     (insert "module modname
@@ -202,7 +202,7 @@ end module modname")
     (should (= 2 (current-indentation)))))
 
 (ert-deftest f90-test-bug20680b ()
-  "Test for http://debbugs.gnu.org/20680 ."
+  "Test for https://debbugs.gnu.org/20680 ."
   (with-temp-buffer
     (f90-mode)
     (insert "module modname
@@ -215,7 +215,7 @@ end module modname")
     (should (= 2 (current-indentation)))))
 
 (ert-deftest f90-test-bug20969 ()
-  "Test for http://debbugs.gnu.org/20969 ."
+  "Test for https://debbugs.gnu.org/20969 ."
   (with-temp-buffer
     (f90-mode)
     (insert "module modname
@@ -228,7 +228,7 @@ end module modname")
     (should (= 2 (current-indentation)))))
 
 (ert-deftest f90-test-bug20969b ()
-  "Test for http://debbugs.gnu.org/20969 ."
+  "Test for https://debbugs.gnu.org/20969 ."
   (with-temp-buffer
     (f90-mode)
     (insert "module modname
@@ -241,7 +241,7 @@ end module modname")
     (should (= 2 (current-indentation)))))
 
 (ert-deftest f90-test-bug21794 ()
-  "Test for http://debbugs.gnu.org/21794 ."
+  "Test for https://debbugs.gnu.org/21794 ."
   (with-temp-buffer
     (f90-mode)
     (insert "program prog
@@ -256,21 +256,25 @@ end program prog")
     (should (= 5 (current-indentation)))))
 
 (ert-deftest f90-test-bug25039 ()
-  "Test for http://debbugs.gnu.org/25039 ."
+  "Test for https://debbugs.gnu.org/25039 and 28786."
   (with-temp-buffer
     (f90-mode)
     (insert "program prog
 select type (a)
-class is (c1)
-x = 1
 type is (t1)
 x = 2
+class is (c1)
+x = 1
+class default
+x=3
 end select
 end program prog")
     (f90-indent-subprogram)
     (forward-line -3)
-    (should (= 2 (current-indentation))) ; type is
+    (should (= 2 (current-indentation))) ; class default
     (forward-line -2)
-    (should (= 2 (current-indentation))))) ; class is
+    (should (= 2 (current-indentation))) ; class is
+    (forward-line -2)
+    (should (= 2 (current-indentation))))) ; type is
 
 ;;; f90-tests.el ends here

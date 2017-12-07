@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,7 +44,7 @@
     map)
   "Keymap used by bug reference buttons.")
 
-;; E.g., "http://gcc.gnu.org/PR%s"
+;; E.g., "https://gcc.gnu.org/PR%s"
 (defvar bug-reference-url-format nil
   "Format used to turn a bug number into a URL.
 The bug number is supplied as a string, so this should have a single %s.
@@ -73,9 +73,11 @@ so that it is considered safe, see `enable-local-variables'.")
   "Regular expression matching bug references.
 The second subexpression should match the bug reference (usually a number)."
   :type 'string
-  :safe 'stringp
   :version "24.3"			; previously defconst
   :group 'bug-reference)
+
+;;;###autoload
+(put 'bug-reference-bug-regexp 'safe-local-variable 'stringp)
 
 (defun bug-reference-set-overlay-properties ()
   "Set properties of bug reference overlays."

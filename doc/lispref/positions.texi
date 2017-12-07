@@ -432,11 +432,16 @@ prints a message reporting the number of lines, words, and characters
 in the buffer, or in the region if the region is active.
 @end deffn
 
-@defun line-number-at-pos &optional pos
+@defun line-number-at-pos &optional pos absolute
 @cindex line number
 This function returns the line number in the current buffer
-corresponding to the buffer position @var{pos}.  If @var{pos} is @code{nil}
-or omitted, the current buffer position is used.
+corresponding to the buffer position @var{pos}.  If @var{pos} is
+@code{nil} or omitted, the current buffer position is used. If
+@var{absolute} is @code{nil}, the default, counting starts at
+@code{(point-min)}, so the value refers to the contents of the
+accessible portion of the (potentially narrowed) buffer.  If
+@var{absolute} is non-@code{nil}, ignore any narrowing and return
+the absolute line number.
 @end defun
 
 @ignore

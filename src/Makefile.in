@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # Note that this file is edited by msdos/sed1v2.inp for MSDOS.  That
@@ -234,6 +234,8 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
 GETADDRINFO_A_LIBS = @GETADDRINFO_A_LIBS@
 
+LIBLCMS2 = @LIBLCMS2@
+
 LIBZ = @LIBZ@
 
 ## system-specific libs for dynamic modules, else empty
@@ -278,7 +280,7 @@ GNU_OBJC_CFLAGS=$(patsubst -specs=%-hardened-cc1,,@GNU_OBJC_CFLAGS@)
 ## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
 ## empty.
 W32_OBJ=@W32_OBJ@
-## -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32 lusp10 -lcomctl32
+## -lkernel32 -luser32 -lusp10 -lgdi32 -lole32 -lcomdlg32 -lcomctl32
 ## --lwinspool if HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
 
@@ -389,7 +391,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
+	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
 	thread.o systhread.o \
@@ -490,7 +492,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) \
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LIBLCMS2) \
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether these files
@@ -639,13 +641,13 @@ mostlyclean:
 	rm -f globals.h gl-stamp
 	rm -f *.res *.tmp
 clean: mostlyclean
-	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
+	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
 ## but not things like config.status or TAGS.
 bootstrap-clean: clean
-	rm -f epaths.h config.h config.stamp
+	rm -f emacs-module.h epaths.h config.h config.stamp
 	if test -f ./.gdbinit; then \
 	  mv ./.gdbinit ./.gdbinit.save; \
 	  if test -f "$(srcdir)/.gdbinit"; then rm -f ./.gdbinit.save; \
@@ -659,7 +661,7 @@ distclean: bootstrap-clean
 maintainer-clean: distclean
 	rm -f TAGS
 versionclean:
-	-rm -f emacs$(EXEEXT) emacs-*.*.*$(EXEEXT) ../etc/DOC*
+	-rm -f emacs$(EXEEXT) emacs-*.*.*[0-9]$(EXEEXT) ../etc/DOC*
 extraclean: distclean
 	-rm -f *~ \#*
 

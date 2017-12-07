@@ -1,4 +1,4 @@
-;;; ob-js.el --- org-babel functions for Javascript
+;;; ob-js.el --- Babel Functions for Javascript      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,7 +39,6 @@
 
 ;;; Code:
 (require 'ob)
-(eval-when-compile (require 'cl))
 
 (declare-function run-mozilla "ext:moz" (arg))
 
@@ -56,20 +55,20 @@
   :type 'string)
 
 (defvar org-babel-js-function-wrapper
-  "require('sys').print(require('sys').inspect(function(){%s}()));"
+  "require('sys').print(require('sys').inspect(function(){\n%s\n}()));"
   "Javascript code to print value of body.")
 
 (defun org-babel-execute:js (body params)
   "Execute a block of Javascript code with org-babel.
 This function is called by `org-babel-execute-src-block'"
-  (let* ((org-babel-js-cmd (or (cdr (assoc :cmd params)) org-babel-js-cmd))
-         (result-type (cdr (assoc :result-type params)))
+  (let* ((org-babel-js-cmd (or (cdr (assq :cmd params)) org-babel-js-cmd))
+         (result-type (cdr (assq :result-type params)))
          (full-body (org-babel-expand-body:generic
 		     body params (org-babel-variable-assignments:js params)))
-	 (result (if (not (string= (cdr (assoc :session params)) "none"))
+	 (result (if (not (string= (cdr (assq :session params)) "none"))
 		     ;; session evaluation
 		     (let ((session (org-babel-prep-session:js
-				     (cdr (assoc :session params)) params)))
+				     (cdr (assq :session params)) params)))
 		       (nth 1
 			    (org-babel-comint-with-output
 				(session (format "%S" org-babel-js-eoe) t body)
@@ -89,7 +88,7 @@ This function is called by `org-babel-execute-src-block'"
 		     (org-babel-eval
 		      (format "%s %s" org-babel-js-cmd
 			      (org-babel-process-file-name script-file)) "")))))
-    (org-babel-result-cond (cdr (assoc :result-params params))
+    (org-babel-result-cond (cdr (assq :result-params params))
       result (org-babel-js-read result))))
 
 (defun org-babel-js-read (results)
@@ -97,14 +96,17 @@ This function is called by `org-babel-execute-src-block'"
 If RESULTS look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
   (org-babel-read
-   (if (and (stringp results) (string-match "^\\[.+\\]$" results))
+   (if (and (stringp results)
+	    (string-prefix-p "[" results)
+	    (string-suffix-p "]" results))
        (org-babel-read
         (concat "'"
                 (replace-regexp-in-string
                  "\\[" "(" (replace-regexp-in-string
                             "\\]" ")" (replace-regexp-in-string
-                                       ", " " " (replace-regexp-in-string
-						 "'" "\"" results))))))
+                                       ",[[:space:]]" " "
+				       (replace-regexp-in-string
+					"'" "\"" results))))))
      results)))
 
 (defun org-babel-js-var-to-js (var)
@@ -113,7 +115,7 @@ Convert an elisp value into a string of js source code
 specifying a variable of the same value."
   (if (listp var)
       (concat "[" (mapconcat #'org-babel-js-var-to-js var ", ") "]")
-    (format "%S" var)))
+    (replace-regexp-in-string "\n" "\\\\n" (format "%S" var))))
 
 (defun org-babel-prep-session:js (session params)
   "Prepare SESSION according to the header arguments specified in PARAMS."
@@ -133,7 +135,7 @@ specifying a variable of the same value."
   (mapcar
    (lambda (pair) (format "var %s=%s;"
 			  (car pair) (org-babel-js-var-to-js (cdr pair))))
-   (mapcar #'cdr (org-babel-get-header params :var))))
+   (org-babel--get-vars params)))
 
 (defun org-babel-js-initiate-session (&optional session)
   "If there is not a current inferior-process-buffer in SESSION

@@ -3,7 +3,7 @@ eval '(exit $?0)' && eval 'exec perl -wS -0777 -pi "$0" "$@"'
     if 0;
 # Update an FSF copyright year list to include the current year.
 
-my $VERSION = '2016-01-12.23:13'; # UTC
+my $VERSION = '2017-09-13.06:45'; # UTC
 
 # Copyright (C) 2009-2017 Free Software Foundation, Inc.
 #
@@ -18,7 +18,7 @@ my $VERSION = '2016-01-12.23:13'; # UTC
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Written by Jim Meyering and Joel E. Denny
 

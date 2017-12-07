@@ -1,9 +1,9 @@
-;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
+;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: data, wp
 ;; Version: 13.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -495,7 +495,8 @@ Used when `whitespace-style' includes the value `spaces'.")
 (defvar whitespace-tab 'whitespace-tab
   "Symbol face used to visualize TAB.
 Used when `whitespace-style' includes the value `tabs'.")
-(make-obsolete-variable 'whitespace-tab "use the face instead." "24.4")
+(make-obsolete-variable 'whitespace-tab
+                        "customize the face `whitespace-tab' instead." "24.4")
 
 (defface whitespace-tab
   '((((class color) (background dark))

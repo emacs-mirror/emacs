@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -402,7 +402,7 @@ is called as a function to find the defun's beginning."
   "Return non-nil if the point is in an \"emptyish\" line.
 This means a line that consists entirely of comments and/or
 whitespace."
-;; See http://lists.gnu.org/archive/html/help-gnu-emacs/2016-08/msg00141.html
+;; See https://lists.gnu.org/r/help-gnu-emacs/2016-08/msg00141.html
   (save-excursion
     (forward-line 0)
     (< (line-end-position)
@@ -525,7 +525,7 @@ the one(s) already marked."
   (interactive "p")
   (setq arg (or arg 1))
   ;; There is no `mark-defun-back' function - see
-  ;; https://lists.gnu.org/archive/html/bug-gnu-emacs/2016-11/msg00079.html
+  ;; https://lists.gnu.org/r/bug-gnu-emacs/2016-11/msg00079.html
   ;; for explanation
   (when (eq last-command 'mark-defun-back)
     (setq arg (- arg)))
@@ -574,7 +574,7 @@ the one(s) already marked."
                   (goto-char beg)
                   (unless (= arg -1)    ; beginning-of-defun behaves
                                         ; strange with zero arg - see
-                                        ; https://lists.gnu.org/archive/html/bug-gnu-emacs/2017-02/msg00196.html
+                                        ; https://lists.gnu.org/r/bug-gnu-emacs/2017-02/msg00196.html
                     (beginning-of-defun (1- (- arg))))
                   (push-mark end nil t))))))
   (skip-chars-backward "[:space:]\n")

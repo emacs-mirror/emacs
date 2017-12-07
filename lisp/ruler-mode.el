@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -304,7 +304,15 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
 
 (defsubst ruler-mode-window-col (n)
   "Return a column number relative to the selected window.
-N is a column number relative to selected frame."
+N is a column number relative to selected frame.
+If required, account for screen estate taken by `display-line-numbers'."
+  (if display-line-numbers
+      ;; FIXME: ruler-mode relies on N being an integer, so if the
+      ;; 'line-number' face is customized to use a font that is larger
+      ;; or smaller than that of the default face, the alignment might
+      ;; be off by up to half a column, unless the font width is an
+      ;; integral multiple or divisor of the default face's font.
+      (setq n (- n (round (line-number-display-width 'columns)))))
   (- n
      (or (car (window-margins)) 0)
      (fringe-columns 'left)
@@ -665,7 +673,12 @@ Optional argument PROPS specifies other text properties to apply."
   (let* ((w (ruler-mode-text-scaled-window-width))
          (m (window-margins))
          (f (window-fringes))
-         (i 0)
+         (i (if display-line-numbers
+                ;; FIXME: ruler-mode relies on I being an integer, so
+                ;; the column numbers might be slightly off if the
+                ;; line-number face is customized.
+                (round (line-number-display-width 'columns))
+              0))
          (j (ruler-mode-text-scaled-window-hscroll))
          ;; Setup the scrollbar, fringes, and margins areas.
          (lf (ruler-mode-space
@@ -696,8 +709,18 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Create an "clean" ruler.
          (ruler
           (propertize
-           (string-to-multibyte
-	    (make-string w ruler-mode-basic-graduation-char))
+           ;; Make the part of header-line corresponding to the
+           ;; line-number display be blank, not filled with
+           ;; ruler-mode-basic-graduation-char.
+           (if display-line-numbers
+               (let* ((lndw (round (line-number-display-width 'columns)))
+                      ;; We need a multibyte string here so we could
+                      ;; later use aset to insert multibyte characters
+                      ;; into that string.
+                      (s (make-string lndw ?\s t)))
+                 (concat s (make-string (- w lndw)
+                                        ruler-mode-basic-graduation-char t)))
+             (make-string w ruler-mode-basic-graduation-char t))
            'face 'ruler-mode-default
            'local-map ruler-mode-map
            'help-echo (cond

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -206,7 +206,7 @@ If `url-standalone-mode' is non-nil, cached items never expire."
 	   (time-add
 	    cache-time
 	    (seconds-to-time (or expire-time url-cache-expire-time)))
-	   (current-time))))))
+	   nil)))))
 
 (defun url-cache-prune-cache (&optional directory)
   "Remove all expired files from the cache.

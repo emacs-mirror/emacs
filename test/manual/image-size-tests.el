@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; To test: Load the file and eval (image-size-tests).
 ;; A non-erroring result is a success.
@@ -25,8 +25,8 @@
 (defmacro im-should (image width height &rest props)
   `(let ((im (im-image ,image ,@props)))
      (unless (im-compare im ,width ,height)
-       (error "%s didn't succeed; size is %s"
-              ',props (image-size im t)))))
+       (error "%s %s didn't succeed; size is %s"
+              ',image ',props (image-size im t)))))
 
 (defun im-image (type &rest props)
   (let ((image-scaling-factor 1))
@@ -67,6 +67,9 @@
   ;; Both max-width/height.
   (im-should :w 100 50 :max-width 100 :max-height 75)
   (im-should :w 50 25 :max-width 100 :max-height 25)
+  ;; :width and :max-height (max-height wins).
+  (im-should :w 400 200 :width 400 :max-height 200)
+  (im-should :w 400 200 :width 500 :max-height 200)
 
   ;; Test the image that's taller than it is wide.
   (im-should :h 100 200)
@@ -87,6 +90,9 @@
   ;; Both max-width/height.
   (im-should :h 50 100 :max-width 75 :max-height 100)
   (im-should :h 25 50 :max-width 25 :max-height 100)
+  ;; :height and :max-width (max-width wins).
+  (im-should :h 200 400 :height 400 :max-width 200)
+  (im-should :h 200 400 :height 500 :max-width 200)
   )
 
 ;;; image-size-tests.el ends here

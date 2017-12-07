@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -452,7 +452,8 @@ The following commands are available:
     (if server (error "No such server: %s" server)
       (error "No server on the current line")))
   (unless (assoc server gnus-server-alist)
-    (error "Read-only server %s" server))
+    (error "Server %s must be deleted from your configuration files"
+	   server))
   (gnus-dribble-touch)
   (let ((buffer-read-only nil))
     (gnus-delete-line))
@@ -608,7 +609,7 @@ The following commands are available:
     (error "%s already exists" to))
   (unless (gnus-server-to-method from)
     (error "%s: no such server" from))
-  (let ((to-entry (cons from (gnus-copy-sequence
+  (let ((to-entry (cons from (copy-tree
 			      (gnus-server-to-method from)))))
     (setcar to-entry to)
     (setcar (nthcdr 2 to-entry) to)
@@ -642,7 +643,8 @@ The following commands are available:
   (unless server
     (error "No server on current line"))
   (unless (assoc server gnus-server-alist)
-    (error "This server can't be edited"))
+    (error "Server %s must be edited in your configuration files"
+	   server))
   (let ((info (cdr (assoc server gnus-server-alist))))
     (gnus-close-server info)
     (gnus-edit-form
@@ -1157,7 +1159,7 @@ Requesting compaction of %s... (this may take a long time)"
       (error "The server under point can't host the Emacs Cloud"))
 
     (when (not (string-equal gnus-cloud-method server))
-      (custom-set-variables '(gnus-cloud-method server))
+      (customize-set-variable 'gnus-cloud-method server)
       ;; Note we can't use `Custom-save' here.
       (when (gnus-yes-or-no-p
              (format "The new cloud host server is %S now. Save it? " server))

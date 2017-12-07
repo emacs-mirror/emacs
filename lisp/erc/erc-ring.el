@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,7 +42,7 @@
   "An input ring for ERC."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-ring-mode "erc-ring" nil t)
+;;;###autoload(autoload 'erc-ring-mode "erc-ring" nil t)
 (define-erc-module ring nil
   "Stores input in a ring so that previous commands and messages can
 be recalled using M-p and M-n."
@@ -146,5 +146,6 @@ containing a password."
 
 ;;; erc-ring.el ends here
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:

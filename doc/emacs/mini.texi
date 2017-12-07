@@ -89,7 +89,10 @@ the default directory.  If you now type @kbd{buffer.c} as input, that
 specifies the file @file{/u2/emacs/src/buffer.c}.  @xref{File Names},
 for information about the default directory.
 
-  You can specify the parent directory with @file{..}:
+  Alternative defaults for the file name you may want are available by
+typing @kbd{M-n}, see @ref{Minibuffer History}.
+
+  You can specify a file in the parent directory with @file{..}:
 @file{/a/b/../foo.el} is equivalent to @file{/a/foo.el}.
 Alternatively, you can use @kbd{M-@key{DEL}} to kill directory names
 backwards (@pxref{Words}).
@@ -609,8 +612,6 @@ Move to a later item in the minibuffer history that matches
 
 @kindex M-p @r{(minibuffer history)}
 @kindex M-n @r{(minibuffer history)}
-@kindex UP @r{(minibuffer history)}
-@kindex DOWN @r{(minibuffer history)}
 @findex next-history-element
 @findex previous-history-element
   While in the minibuffer, @kbd{M-p} (@code{previous-history-element})
@@ -627,8 +628,25 @@ typed @kbd{M-p}), Emacs tries fetching from a list of default
 arguments: values that you are likely to enter.  You can think of this
 as moving through the ``future history''.
 
+@cindex future history for file names
+@cindex minibuffer defaults for file names
+@vindex file-name-at-point-functions
+  The ``future history'' for file names includes several possible
+alternatives you may find useful, such as the file name or the URL at
+point in the current buffer.  The defaults put into the ``future
+history'' in this case are controlled by the functions mentioned in
+the value of the option @code{file-name-at-point-functions}.  By
+default, its value invokes the @code{ffap} package (@pxref{FFAP}),
+which tries to guess the default file or URL from the text around
+point.  To disable this guessing, customize the option to a @code{nil}
+value, then the ``future history'' of file names will include only the
+file, if any, visited by the current buffer, and the default
+directory.
+
 @findex previous-line-or-history-element
 @findex next-line-or-history-element
+@kindex UP @r{(minibuffer history)}
+@kindex DOWN @r{(minibuffer history)}
   The arrow keys @kbd{@key{UP}} and @kbd{@key{DOWN}} work like
 @kbd{M-p} and @kbd{M-n}, but if the current history item is longer
 than a single line, they allow you to move to the previous or next

@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -689,6 +689,7 @@ okay.  See `mode-line-format'.")
 ;; `kill-all-local-variables', because they have no default value.
 ;; For consistency, we give them the `permanent-local' property, even
 ;; though `kill-all-local-variables' does not actually consult it.
+;; See init_buffer_once in buffer.c for the origins of this list.
 
 (mapc (lambda (sym) (put sym 'permanent-local t))
       '(buffer-file-name default-directory buffer-backed-up
@@ -697,7 +698,8 @@ okay.  See `mode-line-format'.")
 	point-before-scroll buffer-file-truename
 	buffer-file-format buffer-auto-save-file-format
 	buffer-display-count buffer-display-time
-	enable-multibyte-characters))
+	enable-multibyte-characters
+	buffer-file-coding-system truncate-lines))
 
 ;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)

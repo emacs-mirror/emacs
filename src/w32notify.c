@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Eli Zaretskii <eliz@gnu.org>.
 
@@ -423,7 +423,7 @@ remove_watch (struct notification *dirwatch)
     {
       int i;
       BOOL status;
-      DWORD exit_code = 0, err;
+      DWORD exit_code = 0, err = 0;
 
       /* Only the thread that issued the outstanding I/O call can call
 	 CancelIo on it.  (CancelIoEx is available only since Vista.)
@@ -642,7 +642,7 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
   /* Remove the watch object from watch list.  Do this before freeing
      the object, do that even if we fail to free it, watch_list is
      kept free of junk.  */
-  watch_object = Fassoc (watch_descriptor, watch_list);
+  watch_object = Fassoc (watch_descriptor, watch_list, Qnil);
   if (!NILP (watch_object))
     {
       watch_list = Fdelete (watch_object, watch_list);
@@ -679,7 +679,7 @@ the watcher thread exits abnormally for any other reason.  Removing the
 watch by calling `w32notify-rm-watch' also makes it invalid.  */)
      (Lisp_Object watch_descriptor)
 {
-  Lisp_Object watch_object = Fassoc (watch_descriptor, watch_list);
+  Lisp_Object watch_object = Fassoc (watch_descriptor, watch_list, Qnil);
 
   if (!NILP (watch_object))
     {

@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -215,8 +215,9 @@ x_real_pos_and_offsets (struct frame *f,
   int win_x = 0, win_y = 0, outer_x = 0, outer_y = 0;
   int real_x = 0, real_y = 0;
   bool had_errors = false;
-  Window win = (FRAME_PARENT_FRAME (f)
-		? FRAME_X_WINDOW (FRAME_PARENT_FRAME (f))
+  struct frame *parent_frame = FRAME_PARENT_FRAME (f);
+  Window win = (parent_frame
+		? FRAME_X_WINDOW (parent_frame)
 		: f->output_data.x->parent_desc);
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   long max_len = 400;
@@ -355,8 +356,8 @@ x_real_pos_and_offsets (struct frame *f,
 	outer_geom_cookie = xcb_get_geometry (xcb_conn,
 					      FRAME_OUTER_WINDOW (f));
 
-      if ((dpyinfo->root_window == f->output_data.x->parent_desc)
-	  && !FRAME_PARENT_FRAME (f))
+      if (!parent_frame
+	  && dpyinfo->root_window == f->output_data.x->parent_desc)
 	/* Try _NET_FRAME_EXTENTS if our parent is the root window.  */
 	prop_cookie = xcb_get_property (xcb_conn, 0, win,
 					dpyinfo->Xatom_net_frame_extents,
@@ -470,8 +471,7 @@ x_real_pos_and_offsets (struct frame *f,
 #endif
     }
 
-  if ((dpyinfo->root_window == f->output_data.x->parent_desc)
-      && !FRAME_PARENT_FRAME (f))
+  if (!parent_frame && dpyinfo->root_window == f->output_data.x->parent_desc)
     {
       /* Try _NET_FRAME_EXTENTS if our parent is the root window.  */
 #ifdef USE_XCB
@@ -1120,6 +1120,14 @@ enum mouse_cursor {
   mouse_cursor_hand,
   mouse_cursor_horizontal_drag,
   mouse_cursor_vertical_drag,
+  mouse_cursor_left_edge,
+  mouse_cursor_top_left_corner,
+  mouse_cursor_top_edge,
+  mouse_cursor_top_right_corner,
+  mouse_cursor_right_edge,
+  mouse_cursor_bottom_right_corner,
+  mouse_cursor_bottom_edge,
+  mouse_cursor_bottom_left_corner,
   mouse_cursor_max
 };
 
@@ -1139,13 +1147,21 @@ struct mouse_cursor_types {
 
 /* This array must stay in sync with enum mouse_cursor above!  */
 static const struct mouse_cursor_types mouse_cursor_types[] = {
-  { "text",      &Vx_pointer_shape,                XC_xterm             },
-  { "nontext",   &Vx_nontext_pointer_shape,        XC_left_ptr          },
-  { "hourglass", &Vx_hourglass_pointer_shape,      XC_watch             },
-  { "modeline",  &Vx_mode_pointer_shape,           XC_xterm             },
-  { NULL,        &Vx_sensitive_text_pointer_shape, XC_hand2             },
-  { NULL,        &Vx_window_horizontal_drag_shape, XC_sb_h_double_arrow },
-  { NULL,        &Vx_window_vertical_drag_shape,   XC_sb_v_double_arrow },
+  { "text",      &Vx_pointer_shape,                    XC_xterm               },
+  { "nontext",   &Vx_nontext_pointer_shape,            XC_left_ptr            },
+  { "hourglass", &Vx_hourglass_pointer_shape,          XC_watch               },
+  { "modeline",  &Vx_mode_pointer_shape,               XC_xterm               },
+  { NULL,        &Vx_sensitive_text_pointer_shape,     XC_hand2               },
+  { NULL,        &Vx_window_horizontal_drag_shape,     XC_sb_h_double_arrow   },
+  { NULL,        &Vx_window_vertical_drag_shape,       XC_sb_v_double_arrow   },
+  { NULL,        &Vx_window_left_edge_shape,           XC_left_side           },
+  { NULL,        &Vx_window_top_left_corner_shape,     XC_top_left_corner     },
+  { NULL,        &Vx_window_top_edge_shape,            XC_top_side            },
+  { NULL,        &Vx_window_top_right_corner_shape,    XC_top_right_corner    },
+  { NULL,        &Vx_window_right_edge_shape,          XC_right_side          },
+  { NULL,        &Vx_window_bottom_right_corner_shape, XC_bottom_right_corner },
+  { NULL,        &Vx_window_bottom_edge_shape,         XC_bottom_side         },
+  { NULL,        &Vx_window_bottom_left_corner_shape,  XC_bottom_left_corner  },
 };
 
 struct mouse_cursor_data {
@@ -1296,6 +1312,14 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   INSTALL_CURSOR (hand_cursor, hand);
   INSTALL_CURSOR (horizontal_drag_cursor, horizontal_drag);
   INSTALL_CURSOR (vertical_drag_cursor, vertical_drag);
+  INSTALL_CURSOR (left_edge_cursor, left_edge);
+  INSTALL_CURSOR (top_left_corner_cursor, top_left_corner);
+  INSTALL_CURSOR (top_edge_cursor, top_edge);
+  INSTALL_CURSOR (top_right_corner_cursor, top_right_corner);
+  INSTALL_CURSOR (right_edge_cursor, right_edge);
+  INSTALL_CURSOR (bottom_right_corner_cursor, bottom_right_corner);
+  INSTALL_CURSOR (bottom_edge_cursor, bottom_edge);
+  INSTALL_CURSOR (bottom_left_corner_cursor, bottom_left_corner);
 
 #undef INSTALL_CURSOR
 
@@ -2038,7 +2062,7 @@ x_set_scroll_bar_default_width (struct frame *f)
   int unit = FRAME_COLUMN_WIDTH (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  int minw = xg_get_default_scrollbar_width ();
+  int minw = xg_get_default_scrollbar_width (f);
 #else
   int minw = 16;
 #endif
@@ -2059,7 +2083,7 @@ x_set_scroll_bar_default_height (struct frame *f)
   int height = FRAME_LINE_HEIGHT (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  int min_height = xg_get_default_scrollbar_height ();
+  int min_height = xg_get_default_scrollbar_height (f);
 #else
   int min_height = 16;
 #endif
@@ -2875,7 +2899,7 @@ x_window (struct frame *f, long window_prompting)
   XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
   XtSetArg (al[ac], XtNborderWidth, 0); ac++;
-  frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass, pane_widget,
+  frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass (), pane_widget,
 				 al, ac);
 
   f->output_data.x->edit_widget = frame_widget;
@@ -3814,6 +3838,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qno_special_glyphs, Qnil,
+		       NULL, NULL, RES_TYPE_BOOLEAN);
 
   x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_foreground,
 					"scrollBarForeground",
@@ -4858,7 +4884,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #ifdef USE_GTK
   double mm_width_per_pixel, mm_height_per_pixel;
   GdkDisplay *gdpy;
+#if ! GTK_CHECK_VERSION (3, 22, 0)
   GdkScreen *gscreen;
+#endif
   gint primary_monitor = 0, n_monitors, i;
   Lisp_Object monitor_frames, rest, frame;
   static const char *source = "Gdk";
@@ -4870,11 +4898,15 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
   gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+#if GTK_CHECK_VERSION (3, 22, 0)
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+#else
   gscreen = gdk_display_get_default_screen (gdpy);
 #if GTK_CHECK_VERSION (2, 20, 0)
   primary_monitor = gdk_screen_get_primary_monitor (gscreen);
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
+#endif
   monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
   monitors = xzalloc (n_monitors * sizeof *monitors);
 
@@ -4883,11 +4915,22 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       struct frame *f = XFRAME (frame);
 
       if (FRAME_X_P (f) && FRAME_DISPLAY_INFO (f) == dpyinfo
-	  && !EQ (frame, tip_frame))
+	  && !(EQ (frame, tip_frame)
+#ifdef USE_GTK
+	       && !NILP (Fframe_parameter (tip_frame, Qtooltip))
+#endif
+	       ))
 	{
 	  GdkWindow *gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
 
+#if GTK_CHECK_VERSION (3, 22, 0)
+          for (i = 0; i < n_monitors; i++)
+            if (gdk_display_get_monitor_at_window (gdpy, gwin)
+                == gdk_display_get_monitor (gdpy, i))
+              break;
+#else
 	  i = gdk_screen_get_monitor_at_window (gscreen, gwin);
+#endif
 	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
@@ -4898,9 +4941,19 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       GdkRectangle rec, work;
       struct MonitorInfo *mi = &monitors[i];
 
+#if GTK_CHECK_VERSION (3, 22, 0)
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      if (gdk_monitor_is_primary (monitor))
+        primary_monitor = i;
+      gdk_monitor_get_geometry (monitor, &rec);
+#else
       gdk_screen_get_monitor_geometry (gscreen, i, &rec);
+#endif
 
-#if GTK_CHECK_VERSION (2, 14, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
+      width_mm = gdk_monitor_get_width_mm (monitor);
+      height_mm = gdk_monitor_get_height_mm (monitor);
+#elif GTK_CHECK_VERSION (2, 14, 0)
       width_mm = gdk_screen_get_monitor_width_mm (gscreen, i);
       height_mm = gdk_screen_get_monitor_height_mm (gscreen, i);
 #endif
@@ -4909,7 +4962,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       if (height_mm < 0)
 	height_mm = rec.height * mm_height_per_pixel + 0.5;
 
-#if GTK_CHECK_VERSION (3, 4, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
+      gdk_monitor_get_workarea (monitor, &work);
+#elif GTK_CHECK_VERSION (3, 4, 0)
       gdk_screen_get_monitor_workarea (gscreen, i, &work);
 #else
       /* Emulate the behavior of GTK+ 3.4.  */
@@ -4942,7 +4997,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       mi->mm_width = width_mm;
       mi->mm_height = height_mm;
 
-#if GTK_CHECK_VERSION (2, 14, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
+      mi->name = g_strdup (gdk_monitor_get_model (monitor));
+#elif GTK_CHECK_VERSION (2, 14, 0)
       mi->name = gdk_screen_get_monitor_plug_name (gscreen, i);
 #endif
     }
@@ -5286,7 +5343,7 @@ Frames are listed from topmost (first) to bottommost (last).  */)
 static void
 x_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
 {
-#ifdef USE_GTK
+#if defined (USE_GTK) && GTK_CHECK_VERSION (2, 18, 0)
   block_input ();
   xg_frame_restack (f1, f2, above_flag);
   unblock_input ();
@@ -6196,6 +6253,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qno_special_glyphs, Qnil,
+		       NULL, NULL, RES_TYPE_BOOLEAN);
 
   /* Init faces before x_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -6273,7 +6332,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
     }
 
   /* FIXME - can this be done in a similar way to normal frames?
-     http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
+     https://lists.gnu.org/r/emacs-devel/2007-10/msg00641.html */
 
   /* Set the `display-type' frame parameter before setting up faces. */
   {
@@ -7486,6 +7545,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_no_accept_focus,
   x_set_z_group,
   x_set_override_redirect,
+  x_set_no_special_glyphs,
 };
 
 void
@@ -7563,6 +7623,62 @@ or when you set the mouse color.  */);
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_vertical_drag_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-left-edge-cursor",
+	       Vx_window_left_edge_shape,
+  doc: /* Pointer shape indicating a left x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_left_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-left-corner-cursor",
+	       Vx_window_top_left_corner_shape,
+  doc: /* Pointer shape indicating a top left x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_top_left_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-edge-cursor",
+	       Vx_window_top_edge_shape,
+  doc: /* Pointer shape indicating a top x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_top_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-right-corner-cursor",
+	       Vx_window_top_right_corner_shape,
+  doc: /* Pointer shape indicating a top right x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_top_right_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-right-edge-cursor",
+	       Vx_window_right_edge_shape,
+  doc: /* Pointer shape indicating a right x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_right_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-right-corner-cursor",
+	       Vx_window_bottom_right_corner_shape,
+  doc: /* Pointer shape indicating a bottom right x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_bottom_right_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-edge-cursor",
+	       Vx_window_bottom_edge_shape,
+  doc: /* Pointer shape indicating a bottom x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_bottom_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-left-corner-cursor",
+	       Vx_window_bottom_left_corner_shape,
+  doc: /* Pointer shape indicating a bottom left x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_bottom_left_corner_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
     doc: /* A string indicating the foreground color of the cursor box.  */);

@@ -280,7 +280,7 @@ in a list of directories specified by the variable @code{load-path}.
 @defvar load-path
 The value of this variable is a list of directories to search when
 loading files with @code{load}.  Each element is a string (which must be
-a directory name) or @code{nil} (which stands for the current working
+a directory) or @code{nil} (which stands for the current working
 directory).
 @end defvar
 
@@ -339,7 +339,7 @@ the above initialization procedure.  Emacs initializes
 @code{load-path} based on the value of the environment variable.
 
 The syntax of @env{EMACSLOADPATH} is the same as used for @code{PATH};
-directory names are separated by @samp{:} (or @samp{;}, on some
+directories are separated by @samp{:} (or @samp{;}, on some
 operating systems).
 @ignore
 @c AFAICS, does not (yet) work right to specify non-absolute elements.
@@ -467,6 +467,10 @@ order to install the real definition and other associated code, then
 runs the real definition as if it had been loaded all along.
 Autoloading can also be triggered by looking up the documentation of
 the function or macro (@pxref{Documentation Basics}).
+
+@menu
+* When to Autoload::   When to Use Autoload.
+@end menu
 
   There are two ways to set up an autoloaded function: by calling
 @code{autoload}, and by writing a ``magic'' comment in the
@@ -698,6 +702,42 @@ symbol's new function value.  If the value of the optional argument
 @var{macro-only} is @code{macro}, this function avoids loading a
 function, only a macro.
 @end defun
+
+@node When to Autoload
+@subsection When to Use Autoload
+@cindex autoload, when to use
+
+Do not add an autoload comment unless it is really necessary.
+Autoloading code means it is always globally visible.  Once an item is
+autoloaded, there is no compatible way to transition back to it not
+being autoloaded (after people become accustomed to being able to use it
+without an explicit load).
+
+@itemize
+@item
+The most common items to autoload are the interactive entry points to a
+library.  For example, if @file{python.el} is a library defining a
+major-mode for editing Python code, autoload the definition of the
+@code{python-mode} function, so that people can simply use @kbd{M-x
+python-mode} to load the library.
+
+@item
+Variables usually don't need to be autoloaded.  An exception is if the
+variable on its own is generally useful without the whole defining
+library being loaded.  (An example of this might be something like
+@code{find-exec-terminator}.)
+
+@item
+Don't autoload a user option just so that a user can set it.
+
+@item
+Never add an autoload @emph{comment} to silence a compiler warning in
+another file.  In the file that produces the warning, use
+@code{(defvar foo)} to silence an undefined variable warning, and
+@code{declare-function} (@pxref{Declaring Functions}) to silence an
+undefined function warning; or require the relevant library; or use an
+explicit autoload @emph{statement}.
+@end itemize
 
 @node Repeated Loading
 @section Repeated Loading
@@ -1144,3 +1184,8 @@ object.
 
 Loadable modules in Emacs are enabled by using the
 @kbd{--with-modules} option at configure time.
+
+If you write your own dynamic modules, you may wish to verify their
+conformance to the Emacs dynamic module API.  Invoking Emacs with the
+@kbd{--module-assertions} option will help you in this matter.
+@xref{Initial Options,,,emacs, The GNU Emacs Manual}.

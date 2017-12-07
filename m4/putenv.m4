@@ -1,4 +1,4 @@
-# putenv.m4 serial 20
+# putenv.m4 serial 21
 dnl Copyright (C) 2002-2017 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -36,6 +36,8 @@ AC_DEFUN([gl_FUNC_PUTENV],
              [case "$host_os" in
                         # Guess yes on glibc systems.
                 *-gnu*) gl_cv_func_svid_putenv="guessing yes" ;;
+                        # Guess no on native Windows.
+                mingw*) gl_cv_func_svid_putenv="guessing no" ;;
                         # If we don't know, assume the worst.
                 *)      gl_cv_func_svid_putenv="guessing no" ;;
               esac

@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* New display code by Gerd Moellmann <gerd@gnu.org>.  */
 /* Xt features made by Fred Pierresteguy.  */
@@ -23,9 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef USE_CAIRO
 #include <math.h>
-#endif
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -233,7 +231,7 @@ static void x_sync_with_move (struct frame *, int, int, bool);
 static int handle_one_xevent (struct x_display_info *,
 			      const XEvent *, int *,
 			      struct input_event *);
-#if ! (defined USE_X_TOOLKIT || defined USE_MOTIF)
+#if ! (defined USE_X_TOOLKIT || defined USE_MOTIF) && defined USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
 static void x_wm_set_window_state (struct frame *, int);
@@ -999,7 +997,11 @@ x_update_begin (struct frame *f)
 {
 #ifdef USE_CAIRO
   if (! NILP (tip_frame) && XFRAME (tip_frame) == f
-      && ! FRAME_VISIBLE_P (f))
+      && ! FRAME_VISIBLE_P (f)
+#ifdef USE_GTK
+      && !NILP (Fframe_parameter (tip_frame, Qtooltip))
+#endif
+      )
     return;
 
   if (! FRAME_CR_SURFACE (f))
@@ -1102,8 +1104,9 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 			      : FRAME_FOREGROUND_PIXEL (f));
   Display *display = FRAME_X_DISPLAY (f);
 
-  if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
-    /* Vertical.  */
+  if ((y1 - y0 > x1 - x0) && (x1 - x0 >= 3))
+    /* A vertical divider, at least three pixels wide: Draw first and
+       last pixels differently.  */
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
@@ -1115,8 +1118,9 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
       x_fill_rectangle (f, f->output_data.x->normal_gc,
 			x1 - 1, y0, 1, y1 - y0);
     }
-  else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
-    /* Horizontal.  */
+  else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
+    /* A horizontal divider, at least three pixels high: Draw first and
+       last pixels differently.  */
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
@@ -1130,6 +1134,8 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
     }
   else
     {
+    /* In any other case do not draw the first and last pixels
+       differently.  */
       XSetForeground (display, f->output_data.x->normal_gc, color);
       x_fill_rectangle (f, f->output_data.x->normal_gc,
 			x0, y0, x1 - x0, y1 - y0);
@@ -1384,12 +1390,13 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	  {
 	    unsigned long color = face->background;
 	    Display *display = FRAME_X_DISPLAY (f);
+	    GC gc = f->output_data.x->normal_gc;
 
-	    XSetForeground (display, f->output_data.x->normal_gc, color);
-	    x_fill_rectangle (f, f->output_data.x->normal_gc,
-			      0, y, width, height);
-	    x_fill_rectangle (f, f->output_data.x->normal_gc,
-			      FRAME_PIXEL_WIDTH (f) - width, y, width, height);
+	    XSetForeground (display, gc, color);
+	    x_fill_rectangle (f, gc, 0, y, width, height);
+	    x_fill_rectangle (f, gc, FRAME_PIXEL_WIDTH (f) - width, y,
+			      width, height);
+	    XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
 	  }
 	else
 	  {
@@ -3475,6 +3482,23 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
   s->background_filled_p = true;
 }
 
+static void
+x_get_scale_factor(Display *disp, int *scale_x, int *scale_y)
+{
+  const int base_res = 96;
+  struct x_display_info * dpyinfo = x_display_info_for_display (disp);
+
+  *scale_x = *scale_y = 1;
+
+  if (dpyinfo)
+    {
+      if (dpyinfo->resx > base_res)
+	*scale_x = floor (dpyinfo->resx / base_res);
+      if (dpyinfo->resy > base_res)
+	*scale_y = floor (dpyinfo->resy / base_res);
+    }
+}
+
 /*
    Draw a wavy line under S. The wave fills wave_height pixels from y0.
 
@@ -3485,11 +3509,16 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
     wave_height = 3  | *   *   *   *
 
 */
-
 static void
 x_draw_underwave (struct glyph_string *s)
 {
-  int wave_height = 3, wave_length = 2;
+  /* Adjust for scale/HiDPI.  */
+  int scale_x, scale_y;
+
+  x_get_scale_factor (s->display, &scale_x, &scale_y);
+
+  int wave_height = 3 * scale_y, wave_length = 2 * scale_x, thickness = scale_y;
+
 #ifdef USE_CAIRO
   x_draw_horizontal_wave (s->f, s->gc, s->x, s->ybase - wave_height + 3,
 			  s->width, wave_height, wave_length);
@@ -3501,7 +3530,7 @@ x_draw_underwave (struct glyph_string *s)
   dx = wave_length;
   dy = wave_height - 1;
   x0 = s->x;
-  y0 = s->ybase - wave_height + 3;
+  y0 = s->ybase + wave_height / 2 - scale_y;
   width = s->width;
   xmax = x0 + width;
 
@@ -3535,6 +3564,8 @@ x_draw_underwave (struct glyph_string *s)
 
   while (x1 <= xmax)
     {
+      XSetLineAttributes (s->display, s->gc, thickness, LineSolid, CapButt,
+                          JoinRound);
       XDrawLine (s->display, FRAME_X_DRAWABLE (s->f), s->gc, x1, y1, x2, y2);
       x1  = x2, y1 = y2;
       x2 += dx, y2 = y0 + odd*dy;
@@ -3847,7 +3878,7 @@ static void
 x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height, int shift_by)
 {
 /* Never called on a GUI frame, see
-   http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00456.html
+   https://lists.gnu.org/r/emacs-devel/2015-05/msg00456.html
 */
   XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
 	     f->output_data.x->normal_gc,
@@ -3996,7 +4027,13 @@ XTflash (struct frame *f)
        when the scroll bars and the edit widget share the same X window.  */
     GdkWindow *window = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
 #ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 22, 0)
+    cairo_region_t *region = gdk_window_get_visible_region (window);
+    GdkDrawingContext *context = gdk_window_begin_draw_frame (window, region);
+    cairo_t *cr = gdk_drawing_context_get_cairo_context (context);
+#else
     cairo_t *cr = gdk_cairo_create (window);
+#endif
     cairo_set_source_rgb (cr, 1, 1, 1);
     cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE);
 #define XFillRectangle(d, win, gc, x, y, w, h) \
@@ -4110,7 +4147,12 @@ XTflash (struct frame *f)
 
 #ifdef USE_GTK
 #ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 22, 0)
+      gdk_window_end_draw_frame (window, context);
+      cairo_region_destroy (region);
+#else
       cairo_destroy (cr);
+#endif
 #else
       g_object_unref (G_OBJECT (gc));
 #endif
@@ -5696,7 +5738,6 @@ xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
   int whole, portion, height, width;
   enum scroll_bar_part part;
   bool horizontal = bar->horizontal;
-
 
   if (horizontal)
     {
@@ -7972,7 +8013,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             {
 #ifdef USE_GTK
               /* This seems to be needed for GTK 2.6 and later, see
-                 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
+                 https://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
               x_clear_area (f,
                             event->xexpose.x, event->xexpose.y,
                             event->xexpose.width, event->xexpose.height);
@@ -8683,9 +8724,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
       if (f)
         {
-	  /* Don't call x_net_wm_state for the scroll bar window.
-	     (Bug#24963, Bug#25887)  */
+#ifdef USE_GTK
+	  /* For GTK+ don't call x_net_wm_state for the scroll bar
+	     window.  (Bug#24963, Bug#25887) */
 	  if (configureEvent.xconfigure.window == FRAME_X_WINDOW (f))
+#endif
 	    x_net_wm_state (f, configureEvent.xconfigure.window);
 
 #ifdef USE_X_TOOLKIT
@@ -9008,6 +9051,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   return count;
 }
 
+#if defined USE_X_TOOLKIT || defined USE_MOTIF || defined USE_GTK
+
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
    i.e. looping while a popup menu or a dialog is posted.
@@ -9026,6 +9071,7 @@ x_dispatch_event (XEvent *event, Display *display)
 
   return finish;
 }
+#endif
 
 /* Read events coming from the X server.
    Return as soon as there are no more events to be read.
@@ -9925,7 +9971,11 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
       /* Don't change the size of a tip frame; there's no point in
 	 doing it because it's done in Fx_show_tip, and it leads to
 	 problems because the tip frame has no widget.  */
-      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+      if (NILP (tip_frame) || XFRAME (tip_frame) != f
+#ifdef USE_GTK
+	  || NILP (Fframe_parameter (tip_frame, Qtooltip))
+#endif
+	  )
 	{
 	  adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 			     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3,
@@ -10994,17 +11044,22 @@ x_sync_with_move (struct frame *f, int left, int top, bool fuzzy)
 void
 x_wait_for_event (struct frame *f, int eventtype)
 {
-  int level = interrupt_input_blocked;
+  if (!FLOATP (Vx_wait_for_event_timeout))
+    return;
 
+  int level = interrupt_input_blocked;
   fd_set fds;
   struct timespec tmo, tmo_at, time_now;
   int fd = ConnectionNumber (FRAME_X_DISPLAY (f));
 
   f->wait_event_type = eventtype;
 
-  /* Set timeout to 0.1 second.  Hopefully not noticeable.
-     Maybe it should be configurable.  */
-  tmo = make_timespec (0, 100 * 1000 * 1000);
+  /* Default timeout is 0.1 second.  Hopefully not noticeable.  */
+  double timeout = XFLOAT_DATA (Vx_wait_for_event_timeout);
+  time_t timeout_seconds = (time_t) timeout;
+  tmo = make_timespec
+    (timeout_seconds, (long int) ((timeout - timeout_seconds)
+                                  * 1000 * 1000 * 1000));
   tmo_at = timespec_add (current_timespec (), tmo);
 
   while (f->wait_event_type)
@@ -11330,8 +11385,13 @@ xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
 
 /* Change of visibility.  */
 
-/* This function sends the request to make the frame visible, but may
-   return before it the frame's visibility is changed.  */
+/* This tries to wait until the frame is really visible, depending on
+   the value of Vx_wait_for_event_timeout.
+   However, if the window manager asks the user where to position
+   the frame, this will return before the user finishes doing that.
+   The frame will not actually be visible at that time,
+   but it will become visible later when the window manager
+   finishes with it.  */
 
 void
 x_make_frame_visible (struct frame *f)
@@ -11402,10 +11462,13 @@ x_make_frame_visible (struct frame *f)
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
   {
+    Lisp_Object frame;
     /* This must be before UNBLOCK_INPUT
        since events that arrive in response to the actions above
        will set it when they are handled.  */
     bool previously_visible = f->output_data.x->has_been_visible;
+
+    XSETFRAME (frame, f);
 
     int original_left = f->left_pos;
     int original_top = f->top_pos;
@@ -11453,6 +11516,26 @@ x_make_frame_visible (struct frame *f)
 
 	unblock_input ();
       }
+
+    /* Try to wait for a MapNotify event (that is what tells us when a
+       frame becomes visible).  */
+
+#ifdef CYGWIN
+    /* On Cygwin, which uses input polling, we need to force input to
+       be read.  See
+       https://lists.gnu.org/r/emacs-devel/2013-12/msg00351.html
+       and https://debbugs.gnu.org/cgi/bugreport.cgi?bug=24091#131.
+       Fake an alarm signal to let the handler know that there's
+       something to be read.
+
+       It could be confusing if a real alarm arrives while processing
+       the fake one.  Turn it off and let the handler reset it.  */
+    int old_poll_suppress_count = poll_suppress_count;
+    poll_suppress_count = 1;
+    poll_for_input_1 ();
+    poll_suppress_count = old_poll_suppress_count;
+#endif
+    x_wait_for_event (f, MapNotify);
   }
 }
 
@@ -11757,6 +11840,22 @@ x_free_frame_resources (struct frame *f)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->horizontal_drag_cursor);
       if (f->output_data.x->vertical_drag_cursor != 0)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->vertical_drag_cursor);
+      if (f->output_data.x->left_edge_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->left_edge_cursor);
+      if (f->output_data.x->top_left_corner_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->top_left_corner_cursor);
+      if (f->output_data.x->top_edge_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->top_edge_cursor);
+      if (f->output_data.x->top_right_corner_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->top_right_corner_cursor);
+      if (f->output_data.x->right_edge_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->right_edge_cursor);
+      if (f->output_data.x->bottom_right_corner_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_right_corner_cursor);
+      if (f->output_data.x->bottom_edge_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_edge_cursor);
+      if (f->output_data.x->bottom_left_corner_cursor != 0)
+	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_left_corner_cursor);
 
       XFlush (FRAME_X_DISPLAY (f));
     }
@@ -12217,7 +12316,7 @@ static void
 x_setup_pointer_blanking (struct x_display_info *dpyinfo)
 {
   /* FIXME: the brave tester should set EMACS_XFIXES because we're suspecting
-     X server bug, see http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17609.  */
+     X server bug, see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=17609.  */
   if (egetenv ("EMACS_XFIXES") && x_probe_xfixes_extension (dpyinfo->display))
     dpyinfo->toggle_visible_pointer = xfixes_toggle_visible_pointer;
   else
@@ -12420,7 +12519,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       {
 	terminal->kboard = allocate_kboard (Qx);
 
-	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
+	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->u.s.function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 
@@ -12456,7 +12555,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->xcb_connection = xcb_conn;
 #endif
 
-  /* http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg00194.html  */
+  /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
   dpyinfo->smallest_font_height = 1;
   dpyinfo->smallest_char_width = 1;
 
@@ -13232,6 +13331,17 @@ This should be one of the symbols `ctrl', `alt', `hyper', `meta',
 keysyms.  The default is nil, which is the same as `super'.  */);
   Vx_super_keysym = Qnil;
 
+  DEFVAR_LISP ("x-wait-for-event-timeout", Vx_wait_for_event_timeout,
+    doc: /* How long to wait for X events.
+
+Emacs will wait up to this many seconds to receive X events after
+making changes which affect the state of the graphical interface.
+Under some window managers this can take an indefinite amount of time,
+so it is important to limit the wait.
+
+If set to a non-float value, there will be no wait at all.  */);
+  Vx_wait_for_event_timeout = make_float (0.1);
+
   DEFVAR_LISP ("x-keysym-table", Vx_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
   Vx_keysym_table = make_hash_table (hashtest_eql, 900,
@@ -13256,6 +13366,7 @@ transition between the various maximization states.  */);
     doc: /* Non-nil means rely on gtk_window_move to set frame positions.
 If this variable is t (the default), the GTK build uses the function
 gtk_window_move to set or store frame positions and disables some time
-consuming frame position adjustments.  */);
+consuming frame position adjustments.  In newer versions of GTK, Emacs
+always uses gtk_window_move and ignores the value of this variable.  */);
   x_gtk_use_window_move = true;
 }

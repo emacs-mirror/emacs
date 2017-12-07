@@ -1,4 +1,4 @@
-;;; org-faces.el --- Face definitions for Org-mode.
+;;; org-faces.el --- Face definitions -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -28,32 +28,12 @@
 
 ;;; Code:
 
-(require 'org-macs)
-(require 'org-compat)
-
-(defun org-copy-face (old-face new-face docstring &rest attributes)
-  (unless (facep new-face)
-    (if (fboundp 'set-face-attribute)
-	(progn
-	  (make-face new-face)
-	  (set-face-attribute new-face nil :inherit old-face)
-	  (apply 'set-face-attribute new-face nil attributes)
-	  (set-face-doc-string new-face docstring))
-      (copy-face old-face new-face)
-      (if (fboundp 'set-face-doc-string)
-	  (set-face-doc-string new-face docstring)))))
-(put 'org-copy-face 'lisp-indent-function 2)
-
-(when (featurep 'xemacs)
-  (put 'mode-line 'face-alias 'modeline))
-
 (defgroup org-faces nil
-  "Faces in Org-mode."
+  "Faces in Org mode."
   :tag "Org Faces"
   :group 'org-appearance)
 
-(defface org-default
-  (org-compatible-face 'default nil)
+(defface org-default '((t :inherit default))
   "Face used for default text."
   :group 'org-faces)
 
@@ -65,99 +45,49 @@ The foreground color of this face should be equal to the background
 color of the frame."
   :group 'org-faces)
 
-(defface org-level-1 ;; originally copied from font-lock-function-name-face
-  (org-compatible-face 'outline-1
-    '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 8)) (:foreground "blue" :bold t))
-      (t (:bold t))))
+(defface org-level-1 '((t :inherit outline-1))
   "Face used for level 1 headlines."
   :group 'org-faces)
 
-(defface org-level-2 ;; originally copied from font-lock-variable-name-face
-  (org-compatible-face 'outline-2
-    '((((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
-      (((class color) (min-colors 16) (background dark))  (:foreground "LightGoldenrod"))
-      (((class color) (min-colors 8)  (background light)) (:foreground "yellow"))
-      (((class color) (min-colors 8)  (background dark))  (:foreground "yellow" :bold t))
-      (t (:bold t))))
+(defface org-level-2 '((t :inherit outline-2))
   "Face used for level 2 headlines."
   :group 'org-faces)
 
-(defface org-level-3 ;; originally copied from font-lock-keyword-face
-  (org-compatible-face 'outline-3
-    '((((class color) (min-colors 88) (background light)) (:foreground "Purple"))
-      (((class color) (min-colors 88) (background dark))  (:foreground "Cyan1"))
-      (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
-      (((class color) (min-colors 16) (background dark))  (:foreground "Cyan"))
-      (((class color) (min-colors 8)  (background light)) (:foreground "purple" :bold t))
-      (((class color) (min-colors 8)  (background dark))  (:foreground "cyan" :bold t))
-      (t (:bold t))))
+(defface org-level-3 '((t :inherit outline-3))
   "Face used for level 3 headlines."
   :group 'org-faces)
 
-(defface org-level-4   ;; originally copied from font-lock-comment-face
-  (org-compatible-face 'outline-4
-    '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
-      (((class color) (min-colors 88) (background dark))  (:foreground "chocolate1"))
-      (((class color) (min-colors 16) (background light)) (:foreground "red"))
-      (((class color) (min-colors 16) (background dark))  (:foreground "red1"))
-      (((class color) (min-colors 8) (background light))  (:foreground "red" :bold t))
-      (((class color) (min-colors 8) (background dark))   (:foreground "red" :bold t))
-      (t (:bold t))))
+(defface org-level-4 '((t :inherit outline-4))
   "Face used for level 4 headlines."
   :group 'org-faces)
 
-(defface org-level-5 ;; originally copied from font-lock-type-face
-  (org-compatible-face 'outline-5
-    '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
-      (((class color) (min-colors 8)) (:foreground "green"))))
+(defface org-level-5 '((t :inherit outline-5))
   "Face used for level 5 headlines."
   :group 'org-faces)
 
-(defface org-level-6 ;; originally copied from font-lock-constant-face
-  (org-compatible-face 'outline-6
-    '((((class color) (min-colors 16) (background light)) (:foreground "CadetBlue"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
-      (((class color) (min-colors 8)) (:foreground "magenta"))))
+(defface org-level-6 '((t :inherit outline-6))
   "Face used for level 6 headlines."
   :group 'org-faces)
 
-(defface org-level-7 ;; originally copied from font-lock-builtin-face
-  (org-compatible-face 'outline-7
-    '((((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))
-      (((class color) (min-colors 8)) (:foreground "blue"))))
+(defface org-level-7 '((t :inherit outline-7))
   "Face used for level 7 headlines."
   :group 'org-faces)
 
-(defface org-level-8 ;; originally copied from font-lock-string-face
-  (org-compatible-face 'outline-8
-    '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
-      (((class color) (min-colors 8)) (:foreground "green"))))
+(defface org-level-8 '((t :inherit outline-8))
   "Face used for level 8 headlines."
   :group 'org-faces)
 
-(defface org-special-keyword ;; originally copied from font-lock-string-face
-  (org-compatible-face 'font-lock-keyword-face
-    '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
-      (t (:italic t))))
+(defface org-special-keyword '((t :inherit font-lock-keyword-face))
   "Face used for special keywords."
   :group 'org-faces)
 
-(defface org-drawer ;; originally copied from font-lock-function-name-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 8)) (:foreground "blue" :bold t))
-      (t (:bold t))))
+(defface org-drawer	   ;Copied from `font-lock-function-name-face'
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 8)) (:foreground "blue" :bold t))
+    (t (:bold t)))
   "Face used for drawers."
   :group 'org-faces)
 
@@ -166,18 +96,17 @@ color of the frame."
   :group 'org-faces)
 
 (defface org-column
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light))
-       (:background "grey90" :weight normal :slant normal :strike-through nil
-		    :underline nil))
-      (((class color) (min-colors 16) (background dark))
-       (:background "grey30" :weight normal :slant normal :strike-through nil
-		    :underline nil))
-      (((class color) (min-colors 8))
-       (:background "cyan" :foreground "black"
-		    :weight normal :slant normal :strike-through nil
-		    :underline nil))
-      (t (:inverse-video t))))
+  '((((class color) (min-colors 16) (background light))
+     (:background "grey90" :weight normal :slant normal :strike-through nil
+		  :underline nil))
+    (((class color) (min-colors 16) (background dark))
+     (:background "grey30" :weight normal :slant normal :strike-through nil
+		  :underline nil))
+    (((class color) (min-colors 8))
+     (:background "cyan" :foreground "black"
+		  :weight normal :slant normal :strike-through nil
+		  :underline nil))
+    (t (:inverse-video t)))
   "Face for column display of entry properties.
 This is actually only part of the face definition for the text in column view.
 The following faces apply, with this priority.
@@ -198,59 +127,33 @@ character (this might for example be the a TODO keyword) might still
 shine through in some properties.  So when your column view looks
 funny, with \"random\" colors, weight, strike-through, try to explicitly
 set the properties in the `org-column' face.  For example, set
-:underline to nil, or the :slant to `normal'.
-
-Under XEmacs, the rules are simpler, because the XEmacs version of
-column view defines special faces for each outline level.  See the file
-`org-colview-xemacs.el' in Org's contrib/ directory for details."
+:underline to nil, or the :slant to `normal'."
   :group 'org-faces)
 
 (defface org-column-title
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light))
-       (:background "grey90" :underline t :weight bold))
-      (((class color) (min-colors 16) (background dark))
-       (:background "grey30" :underline t :weight bold))
-      (((class color) (min-colors 8))
-       (:background "cyan" :foreground "black" :underline t :weight bold))
-      (t (:inverse-video t))))
+  '((((class color) (min-colors 16) (background light))
+     (:background "grey90" :underline t :weight bold))
+    (((class color) (min-colors 16) (background dark))
+     (:background "grey30" :underline t :weight bold))
+    (((class color) (min-colors 8))
+     (:background "cyan" :foreground "black" :underline t :weight bold))
+    (t (:inverse-video t)))
   "Face for column display of entry properties."
   :group 'org-faces)
 
-(defface org-agenda-column-dateline
-  (org-compatible-face 'org-column
-    '((t nil)))
+(defface org-agenda-column-dateline '((t :inherit org-column))
   "Face used in agenda column view for datelines with summaries."
   :group 'org-faces)
 
-(defface org-warning
-  (org-compatible-face 'font-lock-warning-face
-    '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold t))
-      (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :bold t))
-      (((class color) (min-colors 8)  (background light)) (:foreground "red"  :bold t))
-      (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :bold t))
-      (t (:bold t))))
+(defface org-warning '((t :inherit font-lock-warning-face))
   "Face for deadlines and TODO keywords."
   :group 'org-faces)
 
-(defface org-archived    ; similar to shadow
-  (org-compatible-face 'shadow
-    '((((class color grayscale) (min-colors 88) (background light))
-       (:foreground "grey50"))
-      (((class color grayscale) (min-colors 88) (background dark))
-       (:foreground "grey70"))
-      (((class color) (min-colors 8) (background light))
-       (:foreground "green"))
-      (((class color) (min-colors 8) (background dark))
-       (:foreground "yellow"))))
+(defface org-archived '((t :inherit shadow))
   "Face for headline with the ARCHIVE tag."
   :group 'org-faces)
 
-(defface org-link
-  (org-compatible-face 'link
-    '((((class color) (background light)) (:foreground "Purple" :underline t))
-      (((class color) (background dark)) (:foreground "Cyan" :underline t))
-      (t (:underline t))))
+(defface org-link '((t :inherit link))
   "Face for links."
   :group 'org-faces)
 
@@ -283,12 +186,11 @@ column view defines special faces for each outline level.  See the file
   :group 'org-faces)
 
 (defface org-date-selected
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :inverse-video t))
-      (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :inverse-video t))
-      (((class color) (min-colors 8)  (background light)) (:foreground "red"  :inverse-video t))
-      (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :inverse-video t))
-      (t (:inverse-video t))))
+  '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :inverse-video t))
+    (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :inverse-video t))
+    (((class color) (min-colors 8)  (background light)) (:foreground "red"  :inverse-video t))
+    (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :inverse-video t))
+    (t (:inverse-video t)))
   "Face for highlighting the calendar day when using `org-read-date'.
 Using a bold face here might cause discrepancies while displaying the
 calendar."
@@ -301,43 +203,38 @@ calendar."
   "Face for diary-like sexp date specifications."
   :group 'org-faces)
 
-(defface org-tag
-  '((t (:bold t)))
+(defface org-tag '((t (:bold t)))
   "Default face for tags.
 Note that the variable `org-tag-faces' can be used to overrule this face for
 specific tags."
   :group 'org-faces)
 
-(defface org-list-dt
-  '((t (:bold t)))
+(defface org-list-dt '((t (:bold t)))
   "Default face for definition terms in lists."
   :group 'org-faces)
 
-(defface org-todo ; font-lock-warning-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold t))
-      (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :bold t))
-      (((class color) (min-colors 8)  (background light)) (:foreground "red"  :bold t))
-      (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :bold t))
-      (t (:inverse-video t :bold t))))
+(defface org-todo		 ;Copied from `font-lock-warning-face'
+  '((((class color) (min-colors 16) (background light)) (:foreground "Red1" :bold t))
+    (((class color) (min-colors 16) (background dark))  (:foreground "Pink" :bold t))
+    (((class color) (min-colors 8)  (background light)) (:foreground "red"  :bold t))
+    (((class color) (min-colors 8)  (background dark))  (:foreground "red"  :bold t))
+    (t (:inverse-video t :bold t)))
   "Face for TODO keywords."
   :group 'org-faces)
 
-(defface org-done ;; originally copied from font-lock-type-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen" :bold t))
-      (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen" :bold t))
-      (((class color) (min-colors 8)) (:foreground "green"))
-      (t (:bold t))))
+(defface org-done		    ;Copied from `font-lock-type-face'
+  '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen" :bold t))
+    (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen" :bold t))
+    (((class color) (min-colors 8)) (:foreground "green"))
+    (t (:bold t)))
   "Face used for todo keywords that indicate DONE items."
   :group 'org-faces)
 
-(defface org-agenda-done ;; originally copied from font-lock-type-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
-      (((class color) (min-colors 8)) (:foreground "green"))
-      (t (:bold nil))))
+(defface org-agenda-done	    ;Copied from `font-lock-type-face'
+  '((((class color) (min-colors 16) (background light)) (:foreground "ForestGreen"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "PaleGreen"))
+    (((class color) (min-colors 8)) (:foreground "green"))
+    (t (:bold nil)))
   "Face used in agenda, to indicate lines switched to DONE.
 This face is used to de-emphasize items that where brightly colored in the
 agenda because they were things to do, or overdue.  The DONE state itself
@@ -346,11 +243,10 @@ is of course immediately visible, but for example a passed deadline is
 of the frame, for example."
   :group 'org-faces)
 
-(defface org-headline-done ;; originally copied from font-lock-string-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
-      (((class color) (min-colors 8)  (background light)) (:bold nil))))
+(defface org-headline-done	  ;Copied from `font-lock-string-face'
+  '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
+    (((class color) (min-colors 8)  (background light)) (:bold nil)))
   "Face used to indicate that a headline is DONE.
 This face is only used if `org-fontify-done-headline' is set.  If applies
 to the part of the headline after the DONE keyword."
@@ -388,18 +284,14 @@ determines if it is a foreground or a background color."
 		   (string :tag "Color")
 		   (sexp :tag "Face")))))
 
-(defface org-priority ;; originally copied from font-lock-string-face
-  (org-compatible-face 'font-lock-keyword-face
-    '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
-      (t (:italic t))))
+(defface org-priority '((t :inherit font-lock-keyword-face))
   "Face used for priority cookies."
   :group 'org-faces)
 
 (defcustom org-priority-faces nil
   "Faces for specific Priorities.
 This is a list of cons cells, with priority character in the car
-and faces in the cdr.  The face can be a symbol, a color as
+and faces in the cdr.  The face can be a symbol, a color
 as a string, or a property list of attributes, like
     (:foreground \"blue\" :weight bold :underline t).
 If it is a color string, the variable `org-faces-easy-properties'
@@ -421,18 +313,17 @@ determines if it is a foreground or a background color."
     (setq org-tags-special-faces-re
 	  (concat ":\\(" (mapconcat 'car value "\\|") "\\):"))))
 
-(defface org-checkbox
-  (org-compatible-face 'bold
-    '((t (:bold t))))
+(defface org-checkbox '((t :inherit bold))
   "Face for checkboxes."
   :group 'org-faces)
 
+(defface org-checkbox-statistics-todo '((t (:inherit org-todo)))
+  "Face used for unfinished checkbox statistics."
+  :group 'org-faces)
 
-(org-copy-face 'org-todo 'org-checkbox-statistics-todo
-  "Face used for unfinished checkbox statistics.")
-
-(org-copy-face 'org-done 'org-checkbox-statistics-done
-  "Face used for finished checkbox statistics.")
+(defface org-checkbox-statistics-done '((t (:inherit org-done)))
+  "Face used for finished checkbox statistics."
+  :group 'org-faces)
 
 (defcustom org-tag-faces nil
   "Faces for specific tags.
@@ -454,44 +345,32 @@ changes."
 		   (string :tag "Foreground color")
 		   (sexp :tag "Face")))))
 
-(defface org-table ;; originally copied from font-lock-function-name-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 8)  (background light)) (:foreground "blue"))
-      (((class color) (min-colors 8)  (background dark)))))
+(defface org-table	   ;Copied from `font-lock-function-name-face'
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 8)  (background light)) (:foreground "blue"))
+    (((class color) (min-colors 8)  (background dark))))
   "Face used for tables."
   :group 'org-faces)
 
 (defface org-formula
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
-      (((class color) (min-colors 8)  (background light)) (:foreground "red"))
-      (((class color) (min-colors 8)  (background dark)) (:foreground "red"))
-      (t (:bold t :italic t))))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
+    (((class color) (min-colors 8)  (background light)) (:foreground "red"))
+    (((class color) (min-colors 8)  (background dark)) (:foreground "red"))
+    (t (:bold t :italic t)))
   "Face for formulas."
   :group 'org-faces)
 
-(defface org-code
-  (org-compatible-face 'shadow
-    '((((class color grayscale) (min-colors 88) (background light))
-       (:foreground "grey50"))
-      (((class color grayscale) (min-colors 88) (background dark))
-       (:foreground "grey70"))
-      (((class color) (min-colors 8) (background light))
-       (:foreground "green"))
-      (((class color) (min-colors 8) (background dark))
-       (:foreground "yellow"))))
+(defface org-code '((t :inherit shadow))
   "Face for fixed-width text like code snippets."
   :group 'org-faces
   :version "22.1")
 
-(defface org-meta-line
-  (org-compatible-face 'font-lock-comment-face nil)
-  "Face for meta lines startin with \"#+\"."
+(defface org-meta-line '((t :inherit font-lock-comment-face))
+  "Face for meta lines starting with \"#+\"."
   :group 'org-faces
   :version "22.1")
 
@@ -510,60 +389,37 @@ changes."
 follows a #+DATE:, #+AUTHOR: or #+EMAIL: keyword."
   :group 'org-faces)
 
-(defface org-document-info-keyword
-  (org-compatible-face 'shadow
-    '((((class color grayscale) (min-colors 88) (background light))
-       (:foreground "grey50"))
-      (((class color grayscale) (min-colors 88) (background dark))
-       (:foreground "grey70"))
-      (((class color) (min-colors 8) (background light))
-       (:foreground "green"))
-      (((class color) (min-colors 8) (background dark))
-       (:foreground "yellow"))))
+(defface org-document-info-keyword '((t :inherit shadow))
   "Face for #+TITLE:, #+AUTHOR:, #+EMAIL: and #+DATE: keywords."
   :group 'org-faces)
 
-(defface org-block
-  (org-compatible-face 'shadow
-    '((((class color grayscale) (min-colors 88) (background light))
-       (:foreground "grey50"))
-      (((class color grayscale) (min-colors 88) (background dark))
-       (:foreground "grey70"))
-      (((class color) (min-colors 8) (background light))
-       (:foreground "green"))
-      (((class color) (min-colors 8) (background dark))
-       (:foreground "yellow"))))
-  "Face text in #+begin ... #+end blocks."
+(defface org-block '((t :inherit shadow))
+  "Face text in #+begin ... #+end blocks.
+For source-blocks `org-src-block-faces' takes precedence.
+See also `org-fontify-quote-and-verse-blocks'."
+  :group 'org-faces
+  :version "26.1")
+
+(defface org-block-begin-line '((t (:inherit org-meta-line)))
+  "Face used for the line delimiting the begin of source blocks."
+  :group 'org-faces)
+
+(defface org-block-end-line '((t (:inherit org-block-begin-line)))
+  "Face used for the line delimiting the end of source blocks."
+  :group 'org-faces)
+
+(defface org-verbatim '((t (:inherit shadow)))
+  "Face for fixed-with text like code snippets"
   :group 'org-faces
   :version "22.1")
 
-(defface org-block-background '((t ()))
-  "Face used for the source block background.")
+(defface org-quote '((t (:inherit org-block)))
+  "Face for #+BEGIN_QUOTE ... #+END_QUOTE blocks."
+  :group 'org-faces)
 
-(org-copy-face 'org-meta-line 'org-block-begin-line
-  "Face used for the line delimiting the begin of source blocks.")
-
-(org-copy-face 'org-meta-line 'org-block-end-line
-  "Face used for the line delimiting the end of source blocks.")
-
-(defface org-verbatim
-  (org-compatible-face 'shadow
-    '((((class color grayscale) (min-colors 88) (background light))
-       (:foreground "grey50" :underline t))
-      (((class color grayscale) (min-colors 88) (background dark))
-       (:foreground "grey70" :underline t))
-      (((class color) (min-colors 8) (background light))
-       (:foreground "green" :underline t))
-      (((class color) (min-colors 8) (background dark))
-       (:foreground "yellow" :underline t))))
-  "Face for fixed-with text like code snippets."
-  :group 'org-faces
-  :version "22.1")
-
-(org-copy-face 'org-block 'org-quote
-  "Face for #+BEGIN_QUOTE ... #+END_QUOTE blocks.")
-(org-copy-face 'org-block 'org-verse
-  "Face for #+BEGIN_VERSE ... #+END_VERSE blocks.")
+(defface org-verse '((t (:inherit org-block)))
+  "Face for #+BEGIN_VERSE ... #+END_VERSE blocks."
+  :group 'org-faces)
 
 (defcustom org-fontify-quote-and-verse-blocks nil
   "Non-nil means, add a special face to #+begin_quote and #+begin_verse block.
@@ -573,64 +429,64 @@ content of these blocks will still be treated as Org syntax."
   :version "24.1"
   :type 'boolean)
 
-(defface org-clock-overlay ;; copied from secondary-selection
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light))
-       (:background "yellow1"))
-      (((class color) (min-colors 88) (background dark))
-       (:background "SkyBlue4"))
-      (((class color) (min-colors 16) (background light))
-       (:background "yellow"))
-      (((class color) (min-colors 16) (background dark))
-       (:background "SkyBlue4"))
-      (((class color) (min-colors 8))
-       (:background "cyan" :foreground "black"))
-      (t (:inverse-video t))))
+(defface org-clock-overlay	    ;Copied from `secondary-selection'
+  '((((class color) (min-colors 88) (background light))
+     (:background "LightGray" :foreground "black"))
+    (((class color) (min-colors 88) (background dark))
+     (:background "SkyBlue4" :foreground "white"))
+    (((class color) (min-colors 16) (background light))
+     (:background "gray" :foreground "black"))
+    (((class color) (min-colors 16) (background dark))
+     (:background "SkyBlue4" :foreground "white"))
+    (((class color) (min-colors 8))
+     (:background "cyan" :foreground "black"))
+    (t (:inverse-video t)))
   "Basic face for displaying the secondary selection."
   :group 'org-faces)
 
-(defface org-agenda-structure ;; originally copied from font-lock-function-name-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
-      (((class color) (min-colors 8)) (:foreground "blue" :bold t))
-      (t (:bold t))))
+(defface org-agenda-structure ;Copied from `font-lock-function-name-face'
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 8)) (:foreground "blue" :bold t))
+    (t (:bold t)))
   "Face used in agenda for captions and dates."
   :group 'org-faces)
 
-(org-copy-face 'org-agenda-structure 'org-agenda-date
-  "Face used in agenda for normal days.")
+(defface org-agenda-date '((t (:inherit org-agenda-structure)))
+  "Face used in agenda for normal days."
+  :group 'org-faces)
 
-(org-copy-face 'org-agenda-date 'org-agenda-date-today
+(defface org-agenda-date-today
+  '((t (:inherit org-agenda-date :weight bold :italic t)))
   "Face used in agenda for today."
-  :weight 'bold :italic 't)
+  :group 'org-faces)
 
-(org-copy-face 'secondary-selection 'org-agenda-clocking
-  "Face marking the current clock item in the agenda.")
+(defface org-agenda-clocking '((t (:inherit secondary-selection)))
+  "Face marking the current clock item in the agenda."
+  :group 'org-faces)
 
-(org-copy-face 'org-agenda-date 'org-agenda-date-weekend
+(defface org-agenda-date-weekend '((t (:inherit org-agenda-date :weight bold)))
   "Face used in agenda for weekend days.
-See the variable `org-agenda-weekend-days' for a definition of which days
-belong to the weekend."
-  :weight 'bold)
+
+See the variable `org-agenda-weekend-days' for a definition of
+which days belong to the weekend."
+  :group 'org-faces)
 
 (defface org-scheduled
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
-      (((class color) (min-colors 8)) (:foreground "green"))
-      (t (:bold t :italic t))))
+  '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
+    (((class color) (min-colors 8)) (:foreground "green"))
+    (t (:bold t :italic t)))
   "Face for items scheduled for a certain day."
   :group 'org-faces)
 
 (defface org-scheduled-today
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
-      (((class color) (min-colors 8)) (:foreground "green"))
-      (t (:bold t :italic t))))
+  '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
+    (((class color) (min-colors 8)) (:foreground "green"))
+    (t (:bold t :italic t)))
   "Face for items scheduled for a certain day."
   :group 'org-faces)
 
@@ -641,22 +497,20 @@ belong to the weekend."
   :group 'org-faces)
 
 (defface org-scheduled-previously
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
-      (((class color) (min-colors 8)  (background light)) (:foreground "red"))
-      (((class color) (min-colors 8)  (background dark)) (:foreground "red" :bold t))
-      (t (:bold t))))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
+    (((class color) (min-colors 8)  (background light)) (:foreground "red"))
+    (((class color) (min-colors 8)  (background dark)) (:foreground "red" :bold t))
+    (t (:bold t)))
   "Face for items scheduled previously, and not yet done."
   :group 'org-faces)
 
 (defface org-upcoming-deadline
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
-      (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
-      (((class color) (min-colors 8)  (background light)) (:foreground "red"))
-      (((class color) (min-colors 8)  (background dark)) (:foreground "red" :bold t))
-      (t (:bold t))))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
+    (((class color) (min-colors 8)  (background light)) (:foreground "red"))
+    (((class color) (min-colors 8)  (background dark)) (:foreground "red" :bold t))
+    (t (:bold t)))
   "Face for items scheduled previously, and not yet done."
   :group 'org-faces)
 
@@ -666,7 +520,7 @@ belong to the weekend."
     (0.0 . default))
   "Faces for showing deadlines in the agenda.
 This is a list of cons cells.  The cdr of each cell is a face to be used,
-and it can also just be like (:foreground \"yellow\").
+and it can also just be like \\='(:foreground \"yellow\").
 Each car is a fraction of the head-warning time that must have passed for
 this the face in the cdr to be used for display.  The numbers must be
 given in descending order.  The head-warning time is normally taken
@@ -686,65 +540,61 @@ month and 365.24 days for a year)."
 	   (sexp :tag "Face"))))
 
 (defface org-agenda-restriction-lock
-  (org-compatible-face nil
-    '((((class color) (min-colors 88) (background light)) (:background "#eeeeee"))
-      (((class color) (min-colors 88) (background dark))  (:background "#1C1C1C"))
-      (((class color) (min-colors 16) (background light)) (:background "#eeeeee"))
-      (((class color) (min-colors 16) (background dark))  (:background "#1C1C1C"))
-      (((class color) (min-colors 8)) (:background "cyan" :foreground "black"))
-      (t (:inverse-video t))))
+  '((((class color) (min-colors 88) (background light)) (:background "#eeeeee"))
+    (((class color) (min-colors 88) (background dark))  (:background "#1C1C1C"))
+    (((class color) (min-colors 16) (background light)) (:background "#eeeeee"))
+    (((class color) (min-colors 16) (background dark))  (:background "#1C1C1C"))
+    (((class color) (min-colors 8)) (:background "cyan" :foreground "black"))
+    (t (:inverse-video t)))
   "Face for showing the agenda restriction lock."
   :group 'org-faces)
 
-(defface org-agenda-filter-tags
-  (org-compatible-face 'mode-line nil)
+(defface org-agenda-filter-tags '((t :inherit mode-line))
   "Face for tag(s) in the mode-line when filtering the agenda."
   :group 'org-faces)
 
-(defface org-agenda-filter-regexp
-  (org-compatible-face 'mode-line nil)
+(defface org-agenda-filter-regexp '((t :inherit mode-line))
   "Face for regexp(s) in the mode-line when filtering the agenda."
   :group 'org-faces)
 
-(defface org-agenda-filter-category
-  (org-compatible-face 'mode-line nil)
-  "Face for categories(s) in the mode-line when filtering the agenda."
+(defface org-agenda-filter-category '((t :inherit mode-line))
+  "Face for categories in the mode-line when filtering the agenda."
   :group 'org-faces)
 
-(defface org-time-grid ;; originally copied from font-lock-variable-name-face
-  (org-compatible-face nil
-    '((((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
-      (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
-      (((class color) (min-colors 8)) (:foreground "yellow" :weight light))))
+(defface org-agenda-filter-effort '((t :inherit mode-line))
+  "Face for effort in the mode-line when filtering the agenda."
+  :group 'org-faces)
+
+(defface org-time-grid	   ;Copied from `font-lock-variable-name-face'
+  '((((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
+    (((class color) (min-colors 8)) (:foreground "yellow" :weight light)))
   "Face used for time grids."
   :group 'org-faces)
 
-(org-copy-face 'org-time-grid 'org-agenda-current-time
-  "Face used to show the current time in the time grid.")
+(defface org-agenda-current-time '((t (:inherit org-time-grid)))
+  "Face used to show the current time in the time grid."
+  :group 'org-faces)
 
-(defface org-agenda-diary
-  (org-compatible-face 'default nil)
+(defface org-agenda-diary '((t :inherit default))
   "Face used for agenda entries that come from the Emacs diary."
   :group 'org-faces)
 
-(defface org-agenda-calendar-event
-  (org-compatible-face 'default nil)
+(defface org-agenda-calendar-event '((t :inherit default))
   "Face used to show events and appointments in the agenda."
   :group 'org-faces)
 
-(defface org-agenda-calendar-sexp
-  (org-compatible-face 'default nil)
+(defface org-agenda-calendar-sexp '((t :inherit default))
   "Face used to show events computed from a S-expression."
   :group 'org-faces)
 
 (defconst org-level-faces
   '(org-level-1 org-level-2 org-level-3 org-level-4
-		org-level-5 org-level-6 org-level-7 org-level-8
-		))
+		org-level-5 org-level-6 org-level-7 org-level-8))
 
 (defcustom org-n-level-faces (length org-level-faces)
   "The number of different faces to be used for headlines.
-Org-mode defines 8 different headline faces, so this can be at most 8.
+Org mode defines 8 different headline faces, so this can be at most 8.
 If it is less than 8, the level-1 face gets re-used for level N+1 etc."
   :type 'integer
   :group 'org-faces)
@@ -777,25 +627,26 @@ level org-n-level-faces"
   :version "24.4"
   :package-version '(Org . "8.0"))
 
-(defface org-macro
-  (org-compatible-face 'org-latex-and-related nil)
+(defface org-macro '((t :inherit org-latex-and-related))
   "Face for macros."
   :group 'org-faces
   :version "24.4"
   :package-version '(Org . "8.0"))
 
-(defface org-tag-group
-  (org-compatible-face 'org-tag nil)
+(defface org-tag-group '((t :inherit org-tag))
   "Face for group tags."
   :group 'org-faces
   :version "24.4"
   :package-version '(Org . "8.0"))
 
-(org-copy-face 'mode-line 'org-mode-line-clock
-  "Face used for clock display in mode line.")
-(org-copy-face 'mode-line 'org-mode-line-clock-overrun
+(defface org-mode-line-clock '((t (:inherit mode-line)))
+  "Face used for clock display in mode line."
+  :group 'org-faces)
+
+(defface org-mode-line-clock-overrun
+  '((t (:inherit mode-line :background "red")))
   "Face used for clock display for overrun tasks in mode line."
-  :background "red")
+  :group 'org-faces)
 
 (provide 'org-faces)
 

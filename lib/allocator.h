@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -29,7 +29,7 @@ struct allocator
   /* Do not use GCC attributes such as __attribute__ ((malloc)) with
      the function types pointed at by these members, because these
      attributes do not work with pointers to functions.  See
-     <http://lists.gnu.org/archive/html/bug-gnulib/2011-04/msg00007.html>.  */
+     <https://lists.gnu.org/r/bug-gnulib/2011-04/msg00007.html>.  */
 
   /* Call ALLOCATE to allocate memory, like 'malloc'.  On failure ALLOCATE
      should return NULL, though not necessarily set errno.  When given

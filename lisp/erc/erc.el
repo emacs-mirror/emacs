@@ -28,20 +28,20 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; ERC is a powerful, modular, and extensible IRC client for Emacs.
 
 ;; For more information, see the following URLs:
-;; * http://sv.gnu.org/projects/erc/
+;; * https://sv.gnu.org/projects/erc/
 ;; * http://www.emacswiki.org/cgi-bin/wiki/ERC
 
 
 
 ;; As of 2006-06-13, ERC development is now hosted on Savannah
-;; (http://sv.gnu.org/projects/erc).  I invite everyone who wants to
+;; (https://sv.gnu.org/projects/erc).  I invite everyone who wants to
 ;; hack on it to contact me <mwolson@gnu.org> in order to get write
 ;; access to the shared Arch archive.
 
@@ -67,6 +67,8 @@
 
 ;;; Code:
 
+(load "erc-loaddefs" nil t)
+
 (eval-when-compile (require 'cl-lib))
 (require 'font-lock)
 (require 'pp)
@@ -75,7 +77,7 @@
 (require 'erc-compat)
 
 (defvar erc-official-location
-  "http://emacswiki.org/cgi-bin/wiki/ERC (mailing list: erc-discuss@gnu.org)"
+  "https://emacswiki.org/cgi-bin/wiki/ERC (mailing list: erc-discuss@gnu.org)"
   "Location of the ERC client on the Internet.")
 
 (defgroup erc nil
@@ -399,25 +401,28 @@ If no server buffer exists, return nil."
   ;; This is useful for ordered name completion.
   (last-message-time nil))
 
-(defsubst erc-get-channel-user (nick)
+(define-inline erc-get-channel-user (nick)
   "Find the (USER . CHANNEL-DATA) element corresponding to NICK
 in the current buffer's `erc-channel-users' hash table."
-  (gethash (erc-downcase nick) erc-channel-users))
+  (inline-quote (gethash (erc-downcase ,nick) erc-channel-users)))
 
-(defsubst erc-get-server-user (nick)
+(define-inline erc-get-server-user (nick)
   "Find the USER corresponding to NICK in the current server's
 `erc-server-users' hash table."
-  (erc-with-server-buffer
-    (gethash (erc-downcase nick) erc-server-users)))
+  (inline-letevals (nick)
+    (inline-quote (erc-with-server-buffer
+		    (gethash (erc-downcase ,nick) erc-server-users)))))
 
-(defsubst erc-add-server-user (nick user)
+(define-inline erc-add-server-user (nick user)
   "This function is for internal use only.
 
 Adds USER with nickname NICK to the `erc-server-users' hash table."
-  (erc-with-server-buffer
-    (puthash (erc-downcase nick) user erc-server-users)))
+  (inline-letevals (nick user)
+    (inline-quote
+     (erc-with-server-buffer
+       (puthash (erc-downcase ,nick) ,user erc-server-users)))))
 
-(defsubst erc-remove-server-user (nick)
+(define-inline erc-remove-server-user (nick)
   "This function is for internal use only.
 
 Removes the user with nickname NICK from the `erc-server-users'
@@ -425,8 +430,10 @@ hash table.  This user is not removed from the
 `erc-channel-users' lists of other buffers.
 
 See also: `erc-remove-user'."
-  (erc-with-server-buffer
-    (remhash (erc-downcase nick) erc-server-users)))
+  (inline-letevals (nick)
+    (inline-quote
+     (erc-with-server-buffer
+       (remhash (erc-downcase ,nick) erc-server-users)))))
 
 (defun erc-change-user-nickname (user new-nick)
   "This function is for internal use only.
@@ -497,45 +504,55 @@ Removes all users in the current channel.  This is called by
              erc-channel-users)
     (clrhash erc-channel-users)))
 
-(defsubst erc-channel-user-owner-p (nick)
+(define-inline erc-channel-user-owner-p (nick)
   "Return non-nil if NICK is an owner of the current channel."
-  (and nick
-       (hash-table-p erc-channel-users)
-       (let ((cdata (erc-get-channel-user nick)))
-         (and cdata (cdr cdata)
-              (erc-channel-user-owner (cdr cdata))))))
+  (inline-letevals (nick)
+    (inline-quote
+     (and ,nick
+	  (hash-table-p erc-channel-users)
+	  (let ((cdata (erc-get-channel-user ,nick)))
+	    (and cdata (cdr cdata)
+		 (erc-channel-user-owner (cdr cdata))))))))
 
-(defsubst erc-channel-user-admin-p (nick)
+(define-inline erc-channel-user-admin-p (nick)
   "Return non-nil if NICK is an admin in the current channel."
-  (and nick
+  (inline-letevals (nick)
+    (inline-quote
+     (and ,nick
        (hash-table-p erc-channel-users)
-       (let ((cdata (erc-get-channel-user nick)))
+       (let ((cdata (erc-get-channel-user ,nick)))
          (and cdata (cdr cdata)
-              (erc-channel-user-admin (cdr cdata))))))
+              (erc-channel-user-admin (cdr cdata))))))))
 
-(defsubst erc-channel-user-op-p (nick)
+(define-inline erc-channel-user-op-p (nick)
   "Return non-nil if NICK is an operator in the current channel."
-  (and nick
+  (inline-letevals (nick)
+    (inline-quote
+     (and ,nick
        (hash-table-p erc-channel-users)
-       (let ((cdata (erc-get-channel-user nick)))
+       (let ((cdata (erc-get-channel-user ,nick)))
          (and cdata (cdr cdata)
-              (erc-channel-user-op (cdr cdata))))))
+              (erc-channel-user-op (cdr cdata))))))))
 
-(defsubst erc-channel-user-halfop-p (nick)
+(define-inline erc-channel-user-halfop-p (nick)
   "Return non-nil if NICK is a half-operator in the current channel."
-  (and nick
+  (inline-letevals (nick)
+    (inline-quote
+     (and ,nick
        (hash-table-p erc-channel-users)
-       (let ((cdata (erc-get-channel-user nick)))
+       (let ((cdata (erc-get-channel-user ,nick)))
          (and cdata (cdr cdata)
-              (erc-channel-user-halfop (cdr cdata))))))
+              (erc-channel-user-halfop (cdr cdata))))))))
 
-(defsubst erc-channel-user-voice-p (nick)
+(define-inline erc-channel-user-voice-p (nick)
   "Return non-nil if NICK has voice in the current channel."
-  (and nick
+  (inline-letevals (nick)
+    (inline-quote
+     (and ,nick
        (hash-table-p erc-channel-users)
-       (let ((cdata (erc-get-channel-user nick)))
+       (let ((cdata (erc-get-channel-user ,nick)))
          (and cdata (cdr cdata)
-              (erc-channel-user-voice (cdr cdata))))))
+              (erc-channel-user-voice (cdr cdata))))))))
 
 (defun erc-get-channel-user-list ()
   "Return a list of users in the current channel.  Each element
@@ -1260,7 +1277,7 @@ erc-NAME-enable, and erc-NAME-disable.
 
 Example:
 
-  ;;;###autoload (autoload \\='erc-replace-mode \"erc-replace\")
+  ;;;###autoload(autoload \\='erc-replace-mode \"erc-replace\")
   (define-erc-module replace nil
     \"This mode replaces incoming text according to `erc-replace-alist'.\"
     ((add-hook \\='erc-insert-modify-hook
@@ -1343,10 +1360,11 @@ capabilities."
     (add-hook hook fun nil t)
     fun))
 
-(defsubst erc-log (string)
+(define-inline erc-log (string)
   "Logs STRING if logging is on (see `erc-log-p')."
-  (when erc-log-p
-    (erc-log-aux string)))
+  (inline-quote
+   (when erc-log-p
+     (erc-log-aux ,string))))
 
 (defun erc-server-buffer ()
   "Return the server buffer for the current buffer's process.
@@ -2548,9 +2566,7 @@ consumption for long-lived IRC or Emacs sessions."
      (maphash
       (lambda (nick last-PRIVMSG-time)
         (when
-            (> (float-time (time-subtract
-                            (current-time)
-                            last-PRIVMSG-time))
+            (> (float-time (time-subtract nil last-PRIVMSG-time))
                erc-lurker-threshold-time)
           (remhash nick hash)))
       hash)
@@ -2617,7 +2633,7 @@ server within `erc-lurker-threshold-time'.  See also
                    (gethash server erc-lurker-state (make-hash-table)))))
     (or (null last-PRIVMSG-time)
         (> (float-time
-            (time-subtract (current-time) last-PRIVMSG-time))
+            (time-subtract nil last-PRIVMSG-time))
            erc-lurker-threshold-time))))
 
 (defcustom erc-common-server-suffixes
@@ -2650,9 +2666,9 @@ otherwise `erc-server-announced-name'.  SERVER is matched against
   "Predicate indicating whether the parsed ERC response PARSED should be hidden.
 
 Messages are always hidden if the message type of PARSED appears in
-`erc-hide-list'. Message types that appear in `erc-network-hide-list'
-or `erc-channel-hide-list' are are only hidden if the target matches
-the network or channel in the list. In addition, messages whose type
+`erc-hide-list'.  Message types that appear in `erc-network-hide-list'
+or `erc-channel-hide-list' are only hidden if the target matches
+the network or channel in the list.  In addition, messages whose type
 is a member of `erc-lurker-hide-list' are hidden if `erc-lurker-p'
 returns non-nil."
   (let* ((command (erc-response.command parsed))

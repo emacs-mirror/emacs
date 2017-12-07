@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -148,6 +148,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 (modify-category-entry '(#xF900 . #xFAFF) ?C)
 (modify-category-entry '(#xF900 . #xFAFF) ?c)
 (modify-category-entry '(#xF900 . #xFAFF) ?|)
+(modify-category-entry '(#x1B170 . #x1B2FF) ?c)
 (modify-category-entry '(#x20000 . #x2FFFF) ?|)
 (modify-category-entry '(#x20000 . #x2FFFF) ?C)
 (modify-category-entry '(#x20000 . #x2FFFF) ?c)
@@ -220,6 +221,8 @@ with L, LRE, or LRO Unicode bidi character type.")
 (modify-category-entry #x309F ?\|)
 (modify-category-entry #x30A0 ?H)
 (modify-category-entry #x30FC ?H)
+
+(modify-category-entry '(#x1B000 . #x1B1FF) ?j)
 
 
 ;; JISX0208
@@ -1196,10 +1199,11 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#xFE30 . #xFE6F)
 	   (#xFF01 . #xFF60)
 	   (#xFFE0 . #xFFE6)
-	   (#x16FE0 . #x16FE0)
+	   (#x16FE0 . #x16FE1)
 	   (#x17000 . #x187EC)
 	   (#x18800 . #x18AF2)
-	   (#x1B000 . #x1B001)
+	   (#x1B000 . #x1B11E)
+           (#x1B170 . #x1B2FB)
 	   (#x1F004 . #x1F004)
 	   (#x1F0CF . #x1F0CF)
 	   (#x1F18E . #x1F18E)
@@ -1229,15 +1233,13 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x1F6CC . #x1F6CC)
 	   (#x1F6D0 . #x1F6D2)
 	   (#x1F6EB . #x1F6EC)
-	   (#x1F6F4 . #x1F6F6)
-	   (#x1F910 . #x1F91E)
-	   (#x1F920 . #x1F927)
-	   (#x1F930 . #x1F930)
-	   (#x1F933 . #x1F93E)
-	   (#x1F940 . #x1F94B)
-	   (#x1F950 . #x1F95E)
-	   (#x1F980 . #x1F991)
+	   (#x1F6F4 . #x1F6F8)
+	   (#x1F910 . #x1F93E)
+	   (#x1F940 . #x1F94C)
+	   (#x1F950 . #x1F96B)
+	   (#x1F980 . #x1F997)
 	   (#x1F9C0 . #x1F9C0)
+           (#x1F9D0 . #x1F9E6)
 	   (#x20000 . #x2FFFF)
 	   (#x30000 . #x3FFFF))))
   (dolist (elt l)

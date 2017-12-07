@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Original author: YAMAMOTO Mitsuharu
 */
@@ -82,3 +82,7 @@ typedef const struct _EmacsScreenFont *ScreenFontRef; /* opaque */
 extern void mac_register_font_driver (struct frame *f);
 extern void *macfont_get_nsctfont (struct font *font);
 extern void macfont_update_antialias_threshold (void);
+
+/* This is an undocumented function. */
+extern void CGContextSetFontSmoothingStyle(CGContextRef, int)
+  __attribute__((weak_import));

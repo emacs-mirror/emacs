@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -87,7 +87,7 @@ use c-constant-symbol instead."
   :value nil
   :tag "Symbol"
   :format "%t: %v\n%d"
-  :match (lambda (widget value) (symbolp value))
+  :match (lambda (_widget value) (symbolp value))
   :value-to-internal
   (lambda (widget value)
     (let ((s (if (symbolp value)
@@ -98,7 +98,7 @@ use c-constant-symbol instead."
 	  (setq s (concat s (make-string (- l (length s)) ?\ ))))
       s))
   :value-to-external
-  (lambda (widget value)
+  (lambda (_widget value)
     (if (stringp value)
 	(intern (progn
 		  (string-match "\\`[^ ]*" value)
@@ -109,14 +109,14 @@ use c-constant-symbol instead."
   "An integer or the value nil."
   :value nil
   :tag "Optional integer"
-  :match (lambda (widget value) (or (integerp value) (null value))))
+  :match (lambda (_widget value) (or (integerp value) (null value))))
 
 (define-widget 'c-symbol-list 'sexp
   "A single symbol or a list of symbols."
   :tag "Symbols separated by spaces"
   :validate 'widget-field-validate
   :match
-  (lambda (widget value)
+  (lambda (_widget value)
     (or (symbolp value)
 	(catch 'ok
 	  (while (listp value)
@@ -125,7 +125,7 @@ use c-constant-symbol instead."
 	    (setq value (cdr value)))
 	  (null value))))
   :value-to-internal
-  (lambda (widget value)
+  (lambda (_widget value)
     (cond ((null value)
 	   "")
 	  ((symbolp value)
@@ -138,7 +138,7 @@ use c-constant-symbol instead."
 	  (t
 	   value)))
   :value-to-external
-  (lambda (widget value)
+  (lambda (_widget value)
     (if (stringp value)
 	(let (list end)
 	  (while (string-match "\\S +" value end)
@@ -167,7 +167,7 @@ use c-constant-symbol instead."
 (defmacro defcustom-c-stylevar (name val doc &rest args)
   "Define a style variable NAME with VAL and DOC.
 More precisely, convert the given `:type FOO', mined out of ARGS,
-to an aggregate `:type (radio STYLE (PREAMBLE FOO))', append some
+to an aggregate `:type (radio STYLE (PREAMBLE FOO))', append
 some boilerplate documentation to DOC, arrange for the fallback
 value of NAME to be VAL, and call `custom-declare-variable' to
 do the rest of the work.
@@ -1227,8 +1227,8 @@ As described below, each cons cell in this list has the form:
 
 When a line is indented, CC Mode first determines the syntactic
 context of it by generating a list of symbols called syntactic
-elements.  The global variable `c-syntactic-context' is bound to the
-that list.  Each element in the list is in turn a list where the first
+elements.  The global variable `c-syntactic-context' is bound to that
+list.  Each element in the list is in turn a list where the first
 element is a syntactic symbol which tells what kind of construct the
 indentation point is located within.  More elements in the syntactic
 element lists are optional.  If there is one more and it isn't nil,

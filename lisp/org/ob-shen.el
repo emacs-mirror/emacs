@@ -1,4 +1,4 @@
-;;; ob-shen.el --- org-babel functions for Shen
+;;; ob-shen.el --- Babel Functions for Shen          -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,7 +43,7 @@
 
 (defun org-babel-expand-body:shen (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
+  (let ((vars (org-babel--get-vars params)))
     (if (> (length vars) 0)
         (concat "(let "
                 (mapconcat (lambda (var)
@@ -63,14 +63,13 @@
   "Execute a block of Shen code with org-babel.
 This function is called by `org-babel-execute-src-block'"
   (require 'inf-shen)
-  (let* ((result-type (cdr (assoc :result-type params)))
-	 (result-params (cdr (assoc :result-params params)))
+  (let* ((result-params (cdr (assq :result-params params)))
          (full-body (org-babel-expand-body:shen body params)))
     (let ((results
            (with-temp-buffer
              (insert full-body)
              (call-interactively #'shen-eval-defun))))
-      (org-babel-result-cond result-params 
+      (org-babel-result-cond result-params
         results
         (condition-case nil (org-babel-script-escape results)
           (error results))))))

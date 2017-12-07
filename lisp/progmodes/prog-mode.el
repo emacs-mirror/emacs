@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -225,11 +225,11 @@ on the symbol."
       (apply #'font-lock-flush prettify-symbols--current-symbol-bounds)
       (setq prettify-symbols--current-symbol-bounds nil))
     ;; Unprettify the current symbol.
-    (when-let ((c (get-prop-as-list 'composition))
-	       (s (get-prop-as-list 'prettify-symbols-start))
-	       (e (get-prop-as-list 'prettify-symbols-end))
-	       (s (apply #'min s))
-	       (e (apply #'max e)))
+    (when-let* ((c (get-prop-as-list 'composition))
+	        (s (get-prop-as-list 'prettify-symbols-start))
+	        (e (get-prop-as-list 'prettify-symbols-end))
+	        (s (apply #'min s))
+	        (e (apply #'max e)))
       (with-silent-modifications
 	(setq prettify-symbols--current-symbol-bounds (list s e))
 	(remove-text-properties s e '(composition))))))

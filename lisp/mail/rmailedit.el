@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -188,10 +188,6 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (beginning-of-line)
       (insert ">")
       (forward-line)))
-  ;; Make sure buffer ends with a blank line so as not to run this
-  ;; message together with the following one.
-  (goto-char (point-max))
-  (rmail-ensure-blank-line)
   (let ((old rmail-old-text)
 	(pruned rmail-old-pruned)
 	(mime-state rmail-old-mime-state)
@@ -224,10 +220,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (setq old nil)
       (goto-char (point-min))
       (search-forward "\n\n")
-      (setq headers-end (point-marker))
-      (goto-char (point-min))
+      (setq headers-end (point-marker)) ; first character of body
       (save-restriction
-	(narrow-to-region (point) headers-end)
+	(narrow-to-region (point-min) headers-end)
 	;; If they changed the message's encoding, rewrite the charset=
 	;; header for them, so that subsequent rmail-show-message
 	;; decodes it correctly.
@@ -240,6 +235,38 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 				      'us-ascii
 				    new-coding))))
 	       old-coding mime-beg mime-end content-type)
+          ;; If there's no content-type in the edited headers, look for one
+          ;; in the original headers and add it to the edited headers
+          ;; (Bug #26918)
+          (unless (mail-fetch-field "Content-Type")
+            (let (old-content-type
+                  (msgbeg (rmail-msgbeg rmail-current-message))
+                  (msgend (rmail-msgend rmail-current-message)))
+              (with-current-buffer rmail-view-buffer ; really the mbox buffer
+                (save-restriction
+                  (narrow-to-region msgbeg msgend)
+                  (goto-char (point-min))
+                  (setq limit (search-forward "\n\n"))
+                  (narrow-to-region (point-min) limit)
+                  (goto-char (point-min))
+                  (when (re-search-forward "^content-type:" limit t)
+                    (forward-line)
+                    (setq old-content-type (buffer-substring
+                                            (match-beginning 0) (point))))))
+              (when old-content-type
+                (save-excursion
+                  (goto-char headers-end) ; first char of body
+                  (backward-char)         ; add header before second newline
+                  (insert old-content-type)
+                  ;;Add it to rmail-old-headers as though it had been
+                  ;;there originally, to avoid rmail-edit-update-headers
+                  ;;an extra copy
+                  (let ((header (substring old-content-type 0
+                                           (length "content-type"))))
+                    (unless (assoc header rmail-old-headers)
+                      (push (cons header old-content-type) rmail-old-headers)))
+                  ))))
+          (goto-char (point-min))
 	  (if (re-search-forward rmail-mime-charset-pattern nil 'move)
 	      (setq mime-beg (match-beginning 1)
 		    mime-end (match-end 1)
@@ -281,29 +308,40 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 	  (setq character-coding (downcase character-coding)))
 
       (goto-char limit)
-      (let ((inhibit-read-only t))
-	(let ((data-buffer (current-buffer))
-	      (end (copy-marker (point) t)))
-	  (with-current-buffer rmail-view-buffer
-	    (encode-coding-region headers-end (point-max) coding-system
-				  data-buffer))
-	  (delete-region end (point-max)))
-
+      (let ((inhibit-read-only t)
+            (data-buffer (current-buffer))
+            (start (copy-marker (point) nil)) ; new body will be between
+            (end (copy-marker (point) t)))    ; these two markers
+        (if mime-state
+            ;; Message is already in encoded state
+            (insert-buffer-substring rmail-view-buffer headers-end
+                                     (with-current-buffer rmail-view-buffer
+                                       (point-max)))
+          (with-current-buffer rmail-view-buffer
+            (encode-coding-region headers-end (point-max) coding-system
+                                  data-buffer)))
 	;; Apply to the mbox buffer any changes in header fields
 	;; that the user made while editing in the view buffer.
-	(rmail-edit-update-headers (rmail-edit-diff-headers
+        (rmail-edit-update-headers (rmail-edit-diff-headers
 				    rmail-old-headers new-headers))
-
 	;; Re-apply content-transfer-encoding, if any, on the message body.
 	(cond
+	 (mime-state)		    ; if set, already transfer-encoded
 	 ((string= character-coding "quoted-printable")
-	  (mail-quote-printable-region (point) (point-max)))
+	  (mail-quote-printable-region start end))
 	 ((and (string= character-coding "base64") is-text-message)
-	  (base64-encode-region (point) (point-max)))
+	  (base64-encode-region start end))
 	 ((and (eq character-coding 'uuencode) is-text-message)
-	  (error "uuencoded messages are not supported"))))
+	  (error "uuencoded messages are not supported")))
+        ;; After encoding, make sure buffer ends with a blank line so as not to
+        ;; run this message together with the following one.
+        (goto-char end)
+        (rmail-ensure-blank-line)
+        ;; Delete previous body.  This must be after all insertions at the end,
+        ;; so the marker for the beginning of the next message isn't messed up.
+        (delete-region end (point-max)))
       (rmail-set-attribute rmail-edited-attr-index t))
-    ;;??? BROKEN perhaps.
+;;;??? BROKEN perhaps.
 ;;;    (if (boundp 'rmail-summary-vector)
 ;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
     (rmail-show-message)

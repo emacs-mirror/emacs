@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 default namespace rng = "http://relaxng.org/ns/structure/1.0"
 namespace local = ""
@@ -39,7 +39,7 @@ param = element param { commonAttributes, nameNCName, xsd:string }
 
 exceptPattern = element except { common & pattern+ }
 
-grammarContent = 
+grammarContent =
   definition
   | element div { common & grammarContent* }
   | element include { href, (common & includeContent*) }
@@ -54,7 +54,7 @@ definition =
 
 combine = attribute combine { "choice" | "interleave" }
 
-nameClass = 
+nameClass =
   element name { commonAttributes, xsd:QName }
   | element anyName { common & exceptNameClass? }
   | element nsName { common & exceptNameClass? }
@@ -69,7 +69,7 @@ type = attribute type { xsd:NCName }
 
 common = commonAttributes, foreignElement*
 
-commonAttributes = 
+commonAttributes =
   attribute ns { xsd:string }?,
   attribute datatypeLibrary { xsd:anyURI }?,
   foreignAttribute*

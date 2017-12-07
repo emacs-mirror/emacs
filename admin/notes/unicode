@@ -15,9 +15,10 @@ Emacs uses the following files from the Unicode Character Database
   . BidiBrackets.txt
   . IVD_Sequences.txt
   . NormalizationTest.txt
+  . SpecialCasing.txt
   . BidiCharacterTest.txt
 
-First, the first 6 files need to be copied into admin/unidata/, and
+First, the first 7 files need to be copied into admin/unidata/, and
 then Emacs should be rebuilt for them to take effect.  Rebuilding
 Emacs updates several derived files elsewhere in the Emacs source
 tree, mainly in lisp/international/.
@@ -305,4 +306,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

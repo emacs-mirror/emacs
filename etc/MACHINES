@@ -40,7 +40,7 @@ the list at the end of this file.
   these systems relate to the GNU project, because that will help
   spread the GNU idea that software should be free--and thus encourage
   people to write more free software.  For more information, see
-  <http://www.gnu.org/gnu/linux-and-gnu.html>.
+  <https://www.gnu.org/gnu/linux-and-gnu.html>.
 
 *** 64-bit GNU/Linux
 
@@ -127,4 +127,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

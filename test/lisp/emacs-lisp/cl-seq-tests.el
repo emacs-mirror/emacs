@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,7 +27,7 @@
 (require 'cl-seq)
 
 (ert-deftest cl-union-test-00 ()
-  "Test for http://debbugs.gnu.org/22729 ."
+  "Test for https://debbugs.gnu.org/22729 ."
   (let ((str1 "foo")
         (str2 (make-string 3 ?o)))
     ;; Emacs may make two string literals eql when reading.
@@ -293,7 +293,7 @@ Body are forms defining the test."
     (should (= 3 (cl-search (nthcdr 2 list) list2)))))
 
 (ert-deftest cl-seq-test-bug24264 ()
-  "Test for http://debbugs.gnu.org/24264 ."
+  "Test for https://debbugs.gnu.org/24264 ."
   (let ((list  (append (make-list 8000005 1) '(8)))
         (list2 (make-list 8000005 2)))
     (should (cl-position 8 list))

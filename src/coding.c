@@ -21,7 +21,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*** TABLE OF CONTENTS ***
 
@@ -10236,7 +10236,7 @@ usage: (define-coding-system-internal ...)  */)
       ASET (attrs, coding_attr_ccl_encoder, val);
 
       val = args[coding_arg_ccl_valids];
-      valids = Fmake_string (make_number (256), make_number (0));
+      valids = Fmake_string (make_number (256), make_number (0), Qnil);
       for (tail = val; CONSP (tail); tail = XCDR (tail))
 	{
 	  int from, to;
@@ -10539,7 +10539,7 @@ usage: (define-coding-system-internal ...)  */)
 	  ASET (this_spec, 2, this_eol_type);
 	  Fputhash (this_name, this_spec, Vcoding_system_hash_table);
 	  Vcoding_system_list = Fcons (this_name, Vcoding_system_list);
-	  val = Fassoc (Fsymbol_name (this_name), Vcoding_system_alist);
+	  val = Fassoc (Fsymbol_name (this_name), Vcoding_system_alist, Qnil);
 	  if (NILP (val))
 	    Vcoding_system_alist
 	      = Fcons (Fcons (Fsymbol_name (this_name), Qnil),
@@ -10554,7 +10554,7 @@ usage: (define-coding-system-internal ...)  */)
 
   Fputhash (name, spec_vec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (name, Vcoding_system_list);
-  val = Fassoc (Fsymbol_name (name), Vcoding_system_alist);
+  val = Fassoc (Fsymbol_name (name), Vcoding_system_alist, Qnil);
   if (NILP (val))
     Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (name), Qnil),
 				  Vcoding_system_alist);
@@ -10662,7 +10662,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (alias, Vcoding_system_list);
-  val = Fassoc (Fsymbol_name (alias), Vcoding_system_alist);
+  val = Fassoc (Fsymbol_name (alias), Vcoding_system_alist, Qnil);
   if (NILP (val))
     Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
 				  Vcoding_system_alist);

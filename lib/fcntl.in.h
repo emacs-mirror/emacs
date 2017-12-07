@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* written by Paul Eggert */
 
@@ -213,7 +213,10 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 #endif
 
 #ifndef O_CLOEXEC
-# define O_CLOEXEC 0
+# define O_CLOEXEC 0x40000000 /* Try to not collide with system O_* flags.  */
+# define GNULIB_defined_O_CLOEXEC 1
+#else
+# define GNULIB_defined_O_CLOEXEC 0
 #endif
 
 #ifndef O_DIRECT

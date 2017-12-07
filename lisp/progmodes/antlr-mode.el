@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -619,7 +619,7 @@ COUNT starts with 1.  GEN-SEP is used to separate long variable values."
   '((java-mode ("%sTokenTypes.java") ("%s.java"))
     (c++-mode ("%sTokenTypes.hpp") ("%s.cpp" "%s.hpp")))
   "Language dependent formats which specify generated files.
-Each element in this list looks looks like
+Each element in this list looks like
   (MAJOR-MODE (VOCAB-FILE-FORMAT...) (CLASS-FILE-FORMAT...)).
 
 The element whose MAJOR-MODE is equal to `antlr-language' is used to

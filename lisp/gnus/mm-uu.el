@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -393,7 +393,7 @@ apply the face `mm-uu-extract'."
 
 (defun mm-uu-org-src-code-block-extract ()
   (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
-                  '("text/x-org")))
+		  '("text/x-org" (charset . gnus-decoded))))
 
 (defvar gnus-newsgroup-name)
 

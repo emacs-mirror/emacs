@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,7 +30,7 @@
 
 (defvar math-rewrite-default-iters 100)
 
-;; The variable calc-rewr-sel is local to calc-rewrite-selection and 
+;; The variable calc-rewr-sel is local to calc-rewrite-selection and
 ;; calc-rewrite, but is used by calc-locate-selection-marker.
 (defvar calc-rewr-sel)
 
@@ -219,7 +219,7 @@
 		 (not (equal math-rewrite-whole-expr save-expr))))
       (if (symbolp (car sched))
 	  (progn
-	    (setq math-rewrite-whole-expr 
+	    (setq math-rewrite-whole-expr
                   (math-normalize (list (car sched) math-rewrite-whole-expr)))
 	    (if trace-buffer
 		(let ((fmt (math-format-stack-value
@@ -490,13 +490,13 @@
 
 ;; The variable math-import-list is local to part of math-compile-rewrites,
 ;; but is also used in a different part, and so the local version could
-;; be affected by the non-local version when math-compile-rewrites calls itself. 
+;; be affected by the non-local version when math-compile-rewrites calls itself.
 (defvar math-import-list nil)
 
-;; The variables math-regs, math-num-regs, math-prog-last, math-bound-vars, 
+;; The variables math-regs, math-num-regs, math-prog-last, math-bound-vars,
 ;; math-conds, math-copy-neg, math-rhs, math-pattern, math-remembering and
-;; math-aliased-vars are local to math-compile-rewrites, 
-;; but are used by many functions math-rwcomp-*, which are called by 
+;; math-aliased-vars are local to math-compile-rewrites,
+;; but are used by many functions math-rwcomp-*, which are called by
 ;; math-compile-rewrites.
 (defvar math-regs)
 (defvar math-num-regs)
@@ -753,8 +753,8 @@
     (list expr)))
 
 ;; The variables math-rewrite-heads-heads (i.e.; heads for math-rewrite-heads)
-;; math-rewrite-heads-blanks and math-rewrite-heads-skips are local to 
-;; math-rewrite-heads, but used by math-rewrite-heads-rec, which is called by 
+;; math-rewrite-heads-blanks and math-rewrite-heads-skips are local to
+;; math-rewrite-heads, but used by math-rewrite-heads-rec, which is called by
 ;; math-rewrite-heads.
 (defvar math-rewrite-heads-heads)
 (defvar math-rewrite-heads-skips)
@@ -844,7 +844,7 @@
   (cond ((equal expr math-rwcomp-subst-old) math-rwcomp-subst-new)
 	((Math-primp expr) expr)
 	(t (if (eq (car expr) math-rwcomp-subst-old-func)
-	       (math-build-call math-rwcomp-subst-new-func 
+	       (math-build-call math-rwcomp-subst-new-func
                                 (mapcar 'math-rwcomp-subst-rec
                                         (cdr expr)))
 	     (cons (car expr)
@@ -1489,12 +1489,12 @@
 		 (progn (terpri) (princ (car pc))
 			(if (and (natnump (nth 1 (car pc)))
 				 (< (nth 1 (car pc)) (length math-apply-rw-regs)))
-			    (princ 
+			    (princ
                              (format "\n  part = %s"
                                      (aref math-apply-rw-regs (nth 1 (car pc))))))))
 
 	    (cond ((eq (setq op (car (setq inst (car pc)))) 'func)
-		   (if (and (consp 
+		   (if (and (consp
                              (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (eq (car part)
 				(car (setq inst (cdr (cdr inst)))))
@@ -1533,7 +1533,7 @@
 		   (aset mark 2 0))
 
 		  ((eq op 'try)
-		   (if (and (consp (setq part 
+		   (if (and (consp (setq part
                                          (aref math-apply-rw-regs (car (cdr inst)))))
 			    (memq (car part) (nth 2 inst))
 			    (= (length part) 3)
@@ -1658,7 +1658,7 @@
 			 op (aref mark 2))
 		   (cond ((eq op 0)
 			  (if (setq op (cdr (aref mark 1)))
-			      (aset math-apply-rw-regs (nth 4 inst) 
+			      (aset math-apply-rw-regs (nth 4 inst)
                                     (car (aset mark 1 op)))
 			    (if (nth 5 inst)
 				(progn
@@ -1668,7 +1668,7 @@
 			      (math-rwfail t))))
 			 ((eq op 1)
 			  (if (setq op (cdr (aref mark 1)))
-			      (aset math-apply-rw-regs (nth 4 inst) 
+			      (aset math-apply-rw-regs (nth 4 inst)
                                     (car (aset mark 1 op)))
 			    (if (= (aref mark 3) 1)
 				(if (nth 5 inst)
@@ -1725,7 +1725,7 @@
 			 (t (math-rwfail t))))
 
 		  ((eq op 'integer)
-		   (if (Math-integerp (setq part 
+		   (if (Math-integerp (setq part
                                             (aref math-apply-rw-regs (nth 1 inst))))
 		       (setq pc (cdr pc))
 		     (if (Math-primp part)
@@ -1756,7 +1756,7 @@
 			 (math-rwfail)))))
 
 		  ((eq op 'negative)
-		   (if (math-looks-negp (setq part 
+		   (if (math-looks-negp (setq part
                                               (aref math-apply-rw-regs (nth 1 inst))))
 		       (setq pc (cdr pc))
 		     (if (Math-primp part)
@@ -1774,7 +1774,7 @@
 		       (setq part (math-rweval
 				   (math-simplify
 				    (calcFunc-sign
-				     (math-sub 
+				     (math-sub
                                       (aref math-apply-rw-regs (nth 1 inst))
                                       (aref math-apply-rw-regs (nth 3 inst))))))))
 		   (if (cond ((eq op 'calcFunc-eq)
@@ -1793,7 +1793,7 @@
 		     (math-rwfail)))
 
 		  ((eq op 'func-def)
-		   (if (and 
+		   (if (and
                         (consp (setq part (aref math-apply-rw-regs (car (cdr inst)))))
                         (eq (car part)
                             (car (setq inst (cdr (cdr inst))))))
@@ -1815,8 +1815,8 @@
 		     (math-rwfail)))
 
 		  ((eq op 'func-opt)
-		   (if (or (not 
-                            (and 
+		   (if (or (not
+                            (and
                              (consp
                               (setq part (aref math-apply-rw-regs (car (cdr inst)))))
                              (eq (car part) (nth 2 inst))))
@@ -1833,7 +1833,7 @@
 		     (setq pc (cdr pc))))
 
 		  ((eq op 'mod)
-		   (if (if (Math-zerop 
+		   (if (if (Math-zerop
                             (setq part (aref math-apply-rw-regs (nth 1 inst))))
 			   (Math-zerop (nth 3 inst))
 			 (and (not (Math-zerop (nth 2 inst)))
@@ -1847,7 +1847,7 @@
 		     (math-rwfail)))
 
 		  ((eq op 'apply)
-		   (if (and (consp 
+		   (if (and (consp
                              (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (not (Math-objvecp part))
 			    (not (eq (car part) 'var)))
@@ -1860,19 +1860,19 @@
 		     (math-rwfail)))
 
 		  ((eq op 'cons)
-		   (if (and (consp 
+		   (if (and (consp
                              (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (eq (car part) 'vec)
 			    (cdr part))
 		       (progn
 			 (aset math-apply-rw-regs (nth 2 inst) (nth 1 part))
-			 (aset math-apply-rw-regs (nth 3 inst) 
+			 (aset math-apply-rw-regs (nth 3 inst)
                                (cons 'vec (cdr (cdr part))))
 			 (setq pc (cdr pc)))
 		     (math-rwfail)))
 
 		  ((eq op 'rcons)
-		   (if (and (consp 
+		   (if (and (consp
                              (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (eq (car part) 'vec)
 			    (cdr part))
@@ -1898,7 +1898,7 @@
 		   (setq pc (cdr pc)))
 
 		  ((eq op 'copy)
-		   (aset math-apply-rw-regs (nth 2 inst) 
+		   (aset math-apply-rw-regs (nth 2 inst)
                          (aref math-apply-rw-regs (nth 1 inst)))
 		   (setq pc (cdr pc)))
 

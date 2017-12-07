@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -127,6 +127,11 @@ This function is intended to be set to `auth-source-debug`."
   (auth-source-pass--with-store '(("foo.bar.com/foo"))
     (should (equal (auth-source-pass--find-match "foo.bar.com" nil)
                    nil))))
+
+(ert-deftest auth-source-pass-find-match-matching-extracting-user-from-host ()
+  (auth-source-pass--with-store '(("foo.com/bar"))
+    (should (equal (auth-source-pass--find-match "https://bar@foo.com" nil)
+                   "foo.com/bar"))))
 
 (ert-deftest auth-source-pass-search-with-user-first ()
   (auth-source-pass--with-store '(("foo") ("user@foo"))

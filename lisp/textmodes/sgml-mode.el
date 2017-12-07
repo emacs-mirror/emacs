@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2242,8 +2242,8 @@ The result is cached in `html--buffer-classes-cache'."
              (classes
               (seq-mapcat
                (lambda (el)
-                 (when-let (class-list
-                            (cdr (assq 'class (dom-attributes el))))
+                 (when-let* ((class-list
+                              (cdr (assq 'class (dom-attributes el)))))
                    (split-string class-list)))
                (dom-by-class dom ""))))
         (setq-local html--buffer-classes-cache (cons tick classes))
@@ -2260,8 +2260,8 @@ The result is cached in `html--buffer-ids-cache'."
              (ids
               (seq-mapcat
                (lambda (el)
-                 (when-let (id-list
-                            (cdr (assq 'id (dom-attributes el))))
+                 (when-let* ((id-list
+                              (cdr (assq 'id (dom-attributes el)))))
                    (split-string id-list)))
                (dom-by-id dom ""))))
         (setq-local html--buffer-ids-cache (cons tick ids))

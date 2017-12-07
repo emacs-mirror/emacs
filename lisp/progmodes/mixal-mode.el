@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; Major mode for the mix asm language.
@@ -30,7 +30,7 @@
 ;; For optimal use, also use GNU MDK.  Compiling needs mixasm, running
 ;; and debugging needs mixvm and mixvm.el from GNU MDK.  You can get
 ;; GNU MDK from `https://savannah.gnu.org/projects/mdk/' and
-;; `ftp://ftp.gnu.org/pub/gnu/mdk'.
+;; `https://ftp.gnu.org/pub/gnu/mdk'.
 ;;
 ;; To use this mode, place the following in your init file:
 ;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,15 +44,15 @@
     (1- n))
   "The number of digits in an Emacs float.")
 
-;;; Find the largest power of 10 which is an Emacs float, 
-;;; then back off by one so that any float d.dddd...eN 
+;;; Find the largest power of 10 which is an Emacs float,
+;;; then back off by one so that any float d.dddd...eN
 ;;; is an Emacs float, for acceptable d.dddd....
 
 (defvar math-largest-emacs-expt
   (let ((x 1)
         (pow 1e2))
-    ;; The following loop is for efficiency; it should stop when 
-    ;; 10^(2x) is too large.  This could be indicated by a range 
+    ;; The following loop is for efficiency; it should stop when
+    ;; 10^(2x) is too large.  This could be indicated by a range
     ;; error when computing 10^(2x) or an infinite value for 10^(2x).
     (while (and
             pow
@@ -102,9 +102,9 @@ If this can't be done, return NIL."
           (condition-case nil
               (math-read-number
                (number-to-string
-                (funcall fn 
-			 (string-to-number 
-			  (let 
+                (funcall fn
+			 (string-to-number
+			  (let
                               ((calc-number-radix 10)
                                (calc-twos-complement-mode nil)
                                (calc-float-format (list 'float calc-internal-prec))
@@ -948,7 +948,7 @@ If this can't be done, return NIL."
                                     (math-mul xs (car sc))
                                     (math-sqr (cdr sc)))))))
            (math-make-sdev (calcFunc-sec (nth 1 x))
-                           (math-div 
+                           (math-div
                             (math-mul (nth 2 x)
                                       (calcFunc-sin (nth 1 x)))
                             (math-sqr (calcFunc-cos (nth 1 x)))))))
@@ -1010,7 +1010,7 @@ If this can't be done, return NIL."
                                     (math-mul xs (cdr sc))
                                     (math-sqr (car sc)))))))
            (math-make-sdev (calcFunc-csc (nth 1 x))
-                           (math-div 
+                           (math-div
                             (math-mul (nth 2 x)
                                       (calcFunc-cos (nth 1 x)))
                             (math-sqr (calcFunc-sin (nth 1 x)))))))
@@ -1114,7 +1114,7 @@ If this can't be done, return NIL."
                 (sh (math-mul-float (math-sub-float expx expmx) '(float 5 -1)))
                 (ch (math-mul-float (math-add-float expx expmx) '(float 5 -1)))
 		(sc (math-sin-cos-raw (nth 1 x)))
-		(d (math-add-float 
+		(d (math-add-float
                     (math-mul-float (math-sqr (car sc))
                                     (math-sqr sh))
                     (math-mul-float (math-sqr (cdr sc))
@@ -1139,7 +1139,7 @@ If this can't be done, return NIL."
                 (sh (math-mul-float (math-sub-float expx expmx) '(float 5 -1)))
                 (ch (math-mul-float (math-add-float expx expmx) '(float 5 -1)))
 		(sc (math-sin-cos-raw (nth 1 x)))
-		(d (math-add-float 
+		(d (math-add-float
                     (math-mul-float (math-sqr (car sc))
                                     (math-sqr ch))
                     (math-mul-float (math-sqr (cdr sc))
@@ -1164,17 +1164,17 @@ If this can't be done, return NIL."
                 (sh (math-mul-float (math-sub-float expx expmx) '(float 5 -1)))
                 (ch (math-mul-float (math-add-float expx expmx) '(float 5 -1)))
 		(sc (math-sin-cos-raw (nth 1 x)))
-		(d (math-add-float 
+		(d (math-add-float
                     (math-sqr (car sc))
                     (math-sqr sh))))
 	   (and (not (eq (nth 1 d) 0))
 		(list 'cplx
-		      (math-div-float 
+		      (math-div-float
                        (math-mul-float (car sc) (cdr sc))
                        d)
                       (math-neg
-                       (math-div-float 
-                        (math-mul-float sh ch) 
+                       (math-div-float
+                        (math-mul-float sh ch)
                         d))))))
 	((eq (car x) 'polar)
 	 (math-polar (math-cot-raw (math-complex x))))
@@ -1223,7 +1223,7 @@ If this can't be done, return NIL."
 	   (math-cos-raw-2 xmpo2 orgx))
 	  ((math-lessp-float x (math-neg (math-pi-over-4)))
 	   (math-neg (math-cos-raw-2 (math-add (math-pi-over-2) x) orgx)))
-	  ((math-with-extra-prec -1 (math-nearly-zerop-float x orgx)) 
+	  ((math-with-extra-prec -1 (math-nearly-zerop-float x orgx))
            '(float 0 0))
           ((math-use-emacs-fn 'sin x))
 	  (calc-symbolic-mode (signal 'inexact-result nil))
@@ -1765,7 +1765,7 @@ If this can't be done, return NIL."
 	 '(float 0 0))
 	(calc-symbolic-mode (signal 'inexact-result nil))
 	((math-posp (nth 1 x))    ; positive and real
-         (cond 
+         (cond
           ((math-use-emacs-fn 'log x))
           (t
            (let ((xdigs (1- (math-numdigs (nth 1 x)))))
@@ -1818,7 +1818,7 @@ If this can't be done, return NIL."
 (defconst math-approx-ln-10
   (math-read-number-simple "2.302585092994045684018")
   "An approximation for ln(10).")
-     
+
 (math-defcache math-ln-10 math-approx-ln-10
   (math-ln-raw-2 '(float 1 1)))
 
@@ -1963,7 +1963,7 @@ If this can't be done, return NIL."
 	     (math-div '(float 2 0) (math-add expx (math-div -1 expx))))))
 	((eq (car-safe x) 'sdev)
 	 (math-make-sdev (calcFunc-csch (nth 1 x))
-			 (math-mul (nth 2 x) 
+			 (math-mul (nth 2 x)
                                    (math-mul (calcFunc-csch (nth 1 x))
                                              (calcFunc-coth (nth 1 x))))))
 	((eq (car x) 'intv)

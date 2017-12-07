@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -83,13 +83,21 @@ When this is `function', only ask when called non-interactively."
   :type 'regexp
   :group 'executable)
 
-
 (defcustom executable-prefix "#!"
-  "Interpreter magic number prefix inserted when there was no magic number."
-  :version "24.3"                       ; "#! " -> "#!"
+  "Interpreter magic number prefix inserted when there was no magic number.
+Use of `executable-prefix-env' is preferable to this option."
+  :version "26.1"                       ; deprecated
   :type 'string
   :group 'executable)
 
+(defcustom executable-prefix-env nil
+  "If non-nil, use \"/usr/bin/env\" in interpreter magic number.
+If this variable is non-nil, the interpreter magic number inserted
+by `executable-set-magic' will be \"#!/usr/bin/env INTERPRETER\",
+otherwise it will be \"#!/path/to/INTERPRETER\"."
+  :version "26.1"
+  :type 'boolean
+  :group 'executable)
 
 (defcustom executable-chmod 73
   "After saving, if the file is not executable, set this mode.
@@ -199,7 +207,7 @@ command to find the next error.  The buffer is also in `comint-mode' and
 (defun executable-set-magic (interpreter &optional argument
 					 no-query-flag insert-flag)
   "Set this buffer's interpreter to INTERPRETER with optional ARGUMENT.
-The variables `executable-magicless-file-regexp', `executable-prefix',
+The variables `executable-magicless-file-regexp', `executable-prefix-env',
 `executable-insert', `executable-query' and `executable-chmod' control
 when and how magic numbers are inserted or replaced and scripts made
 executable."
@@ -219,6 +227,14 @@ executable."
 			   interpreter)
 			 (and argument (string< "" argument) " ")
 			 argument))
+
+  ;; For backward compatibility, allow `executable-prefix-env' to be
+  ;; overridden by custom `executable-prefix'.
+  (if (string-match "#!\\([ \t]*/usr/bin/env[ \t]*\\)?$" executable-prefix)
+      (if executable-prefix-env
+          (setq argument (concat "/usr/bin/env "
+                                 (file-name-nondirectory argument))))
+    (setq argument (concat (substring executable-prefix 2) argument)))
 
   (or buffer-read-only
       (if buffer-file-name
@@ -241,15 +257,13 @@ executable."
 			   ;; Make buffer visible before question.
 			   (switch-to-buffer (current-buffer))
 			   (y-or-n-p (format-message
-				      "Replace magic number by `%s%s'? "
-				      executable-prefix argument))))
+				      "Replace magic number by `#!%s'? "
+				      argument))))
 		     (progn
 		       (replace-match argument t t nil 1)
-		       (message "Magic number changed to `%s'"
-				(concat executable-prefix argument)))))
-	  (insert executable-prefix argument ?\n)
-	  (message "Magic number changed to `%s'"
-		   (concat executable-prefix argument)))))
+		       (message "Magic number changed to `#!%s'" argument))))
+	  (insert "#!" argument ?\n)
+	  (message "Magic number changed to `#!%s'" argument))))
     interpreter)
 
 

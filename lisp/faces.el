@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,11 +102,18 @@ a font height that isn't optimal."
     ;; Monospace Serif is an Emacs invention, intended to work around
     ;; portability problems when using Courier.  It should work well
     ;; when combined with Monospaced and with other standard fonts.
+    ;; One of its uses is for 'tex-verbatim' and 'Info-quoted' faces,
+    ;; so the result must be different from the default face's font,
+    ;; and must be monospaced.  For 'tex-verbatim', it is desirable
+    ;; that the font really is a Serif font, so as to look like
+    ;; TeX's 'verbatim'.
     ("Monospace Serif"
 
      ;; This looks good on GNU/Linux.
      "Courier 10 Pitch"
-     ;; This looks good on MS-Windows and OS X.
+     ;; This looks good on MS-Windows and OS X.  Note that this is
+     ;; actually a sans-serif font, but it's here for lack of a better
+     ;; alternative.
      "Consolas"
      ;; This looks good on macOS.  "Courier" looks good too, but is
      ;; jagged on GNU/Linux and so is listed later as "courier".
@@ -1447,7 +1454,7 @@ If FRAME is omitted or nil, use the selected frame."
 	(setq face (list face)))
     (with-help-window (help-buffer)
       (with-current-buffer standard-output
-	(dolist (f face)
+	(dolist (f face (buffer-string))
 	  (if (stringp f) (setq f (intern f)))
 	  ;; We may get called for anonymous faces (i.e., faces
 	  ;; expressed using prop-value plists).  Those can't be
@@ -2354,7 +2361,7 @@ If you set `term-file-prefix' to nil, this function does nothing."
 (defface variable-pitch
   '((((type w32))
      ;; This is a workaround for an issue discussed in
-     ;; http://lists.gnu.org/archive/html/emacs-devel/2016-04/msg00746.html.
+     ;; https://lists.gnu.org/r/emacs-devel/2016-04/msg00746.html.
      ;; We need (a) the splash screen not to pick up bold-italics variant of
      ;; the font, and (b) still be able to request bold/italic/larger size
      ;; variants in the likes of EWW.
@@ -2464,6 +2471,35 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
   :group 'basic-faces)
+
+;; Definition stolen from linum.el.
+(defface line-number
+  '((t :inherit (shadow default)))
+  "Face for displaying line numbers.
+This face is used when `display-line-numbers' is non-nil.
+
+If you customize the font of this face, make sure it is a
+monospaced font, otherwise line numbers will not line up,
+and text lines might move horizontally as you move through
+the buffer."
+  :version "26.1"
+  :group 'basic-faces
+  :group 'display-line-numbers)
+
+(defface line-number-current-line
+  '((t :inherit line-number))
+  "Face for displaying the current line number.
+This face is used when `display-line-numbers' is non-nil.
+
+If you customize the font of this face, make sure it is a
+monospaced font, otherwise line numbers will not line up,
+and text lines might move horizontally as you move through
+the buffer.  Similarly, making this face's font different
+from that of the `line-number' face could produce such
+unwanted effects."
+  :version "26.1"
+  :group 'basic-faces
+  :group 'display-line-numbers)
 
 (defface escape-glyph
   '((((background dark)) :foreground "cyan")
@@ -2592,6 +2628,11 @@ Use the face `mode-line-highlight' for features that can be selected."
      :underline t))
   "Basic header-line face."
   :version "21.1"
+  :group 'basic-faces)
+
+(defface header-line-highlight '((t :inherit highlight))
+  "Basic header line face for highlighting."
+  :version "26.1"
   :group 'basic-faces)
 
 (defface vertical-border
@@ -2814,6 +2855,13 @@ It is used for characters of no fonts too."
      :inherit underline))
   "Face used for a matching paren."
   :group 'paren-showing-faces)
+
+(defface show-paren-match-expression
+  '((t :inherit show-paren-match))
+  "Face used for a matching paren when highlighting the whole expression.
+This face is used by `show-paren-mode'."
+  :group 'paren-showing-faces
+  :version "26.1")
 
 (defface show-paren-mismatch
   '((((class color)) (:foreground "white" :background "purple"))

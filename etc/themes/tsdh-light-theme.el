@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -64,7 +64,7 @@ Used and created by Tassilo Horn.")
  '(gnus-group-news-3-empty ((t (:foreground "tomato2")))) '(header-line ((t (:inherit mode-line :inverse-video t))))
  '(hl-line ((t (:background "#f0f0f1"))))
  '(hl-paren-face ((t (:weight bold))) t)
- '(minibuffer-prompt ((t (:foreground "#0184bc" :family "DeJaVu" :box (:line-width -1 :style released-button) :weight bold))))
+ '(minibuffer-prompt ((t (:foreground "#0184bc" :box (:line-width -1 :style released-button) :weight bold))))
  '(mode-line ((t (:background "#f0f0f1" :box (:line-width 1 :color "#383a42")))))
  '(mode-line-inactive ((t (:inherit mode-line :foreground "#a0a1a7"))))
  '(org-agenda-date ((t (:inherit org-agenda-structure))))
@@ -90,6 +90,15 @@ Used and created by Tassilo Horn.")
  '(outline-7 ((t (:inherit font-lock-builtin-face :weight bold))))
  '(outline-8 ((t (:inherit font-lock-string-face :weight bold))))
  '(rcirc-my-nick ((t (:foreground "LightSkyBlue" :weight bold))))
+ '(realgud-overlay-arrow1  ((t (:foreground "dark green"))))
+ '(realgud-overlay-arrow2  ((t (:foreground "#c18401"))))
+ '(realgud-overlay-arrow3  ((t (:foreground "gray60"))))
+ '(realgud-bp-disabled-face      ((t (:foreground "gray60"))))
+ '(realgud-bp-line-enabled-face  ((t (:underline "red"))))
+ '(realgud-bp-line-disabled-face ((t (:underline "gray60"))))
+ '(realgud-file-name             ((t :foreground "dark green")))
+ '(realgud-line-number           ((t :foreground "#0184bc")))
+ '(realgud-backtrace-number      ((t :foreground "#0184bc" :weight bold)))
  '(region ((t (:background "lightgoldenrod1"))))
  '(show-paren-match ((t (:background "Cyan1" :weight bold))))
  '(show-paren-mismatch ((t (:background "deep pink" :weight bold))))

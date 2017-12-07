@@ -1,4 +1,4 @@
-;;; ob-msc.el --- org-babel functions for mscgen evaluation
+;;; ob-msc.el --- Babel Functions for Mscgen         -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -65,15 +65,15 @@
 This function is called by `org-babel-execute-src-block'.
 Default filetype is png.  Modify by setting :filetype parameter to
 mscgen supported formats."
-  (let* ((out-file (or (cdr (assoc :file params)) "output.png" ))
-         (filetype (or (cdr (assoc :filetype params)) "png" )))
-    (unless (cdr (assoc :file params))
+  (let* ((out-file (or (cdr (assq :file params)) "output.png" ))
+         (filetype (or (cdr (assq :filetype params)) "png" )))
+    (unless (cdr (assq :file params))
       (error "
 ERROR: no output file specified.  Add \":file name.png\" to the src header"))
     (org-babel-eval (concat "mscgen -T " filetype " -o " out-file) body)
     nil)) ;; signal that output has already been written to file
 
-(defun org-babel-prep-session:mscgen (session params)
+(defun org-babel-prep-session:mscgen (_session _params)
   "Raise an error because Mscgen doesn't support sessions."
   (error "Mscgen does not support sessions"))
 

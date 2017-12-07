@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -186,14 +186,29 @@ If ADVANCE is non-nil, move forward by one line afterwards."
 Populated by `tabulated-list-init-header'.")
 (defvar tabulated-list--header-overlay nil)
 
+(defun tabulated-list-line-number-width ()
+  "Return the width taken by display-line-numbers in the current buffer."
+  ;; line-number-display-width returns the value for the selected
+  ;; window, which might not be the window in which the current buffer
+  ;; is displayed.
+  (if (not display-line-numbers)
+           0
+    (let ((cbuf-window (get-buffer-window (current-buffer) t)))
+      (if (window-live-p cbuf-window)
+          (with-selected-window cbuf-window
+            (line-number-display-width 'columns))
+        4))))
+
 (defun tabulated-list-init-header ()
   "Set up header line for the Tabulated List buffer."
   ;; FIXME: Should share code with tabulated-list-print-col!
   (let ((x (max tabulated-list-padding 0))
 	(button-props `(help-echo "Click to sort by column"
-			mouse-face highlight
+			mouse-face header-line-highlight
 			keymap ,tabulated-list-sort-button-map))
 	(cols nil))
+    (if display-line-numbers
+        (setq x (+ x (tabulated-list-line-number-width))))
     (push (propertize " " 'display `(space :align-to ,x)) cols)
     (dotimes (n (length tabulated-list-format))
       (let* ((col (aref tabulated-list-format n))
@@ -368,7 +383,7 @@ changing `tabulated-list-sort-key'."
              (equal entry-id id)
              (setq entry-id nil
                    saved-pt (point)))
-        ;; If the buffer this empty, simply print each elt.
+        ;; If the buffer is empty, simply print each elt.
         (if (or (not update) (eobp))
             (apply tabulated-list-printer elt)
           (while (let ((local-id (tabulated-list-get-id)))
@@ -582,6 +597,23 @@ With a numeric prefix argument N, sort the Nth column."
     (tabulated-list-init-header)
     (tabulated-list-print t)))
 
+(defvar tabulated-list--current-lnum-width nil)
+(defun tabulated-list-watch-line-number-width (_window)
+  (if display-line-numbers
+      (let ((lnum-width (tabulated-list-line-number-width)))
+        (when (not (= tabulated-list--current-lnum-width lnum-width))
+          (setq-local tabulated-list--current-lnum-width lnum-width)
+          (tabulated-list-init-header)))))
+
+(defun tabulated-list-window-scroll-function (window _start)
+  (if display-line-numbers
+      (let ((lnum-width
+             (with-selected-window window
+               (line-number-display-width 'columns))))
+        (when (not (= tabulated-list--current-lnum-width lnum-width))
+          (setq-local tabulated-list--current-lnum-width lnum-width)
+          (tabulated-list-init-header)))))
+
 ;;; The mode definition:
 
 (define-derived-mode tabulated-list-mode special-mode "Tabulated"
@@ -624,7 +656,16 @@ as the ewoc pretty-printer."
   (setq-local glyphless-char-display tabulated-list-glyphless-char-display)
   ;; Avoid messing up the entries' display just because the first
   ;; column of the first entry happens to begin with a R2L letter.
-  (setq bidi-paragraph-direction 'left-to-right))
+  (setq bidi-paragraph-direction 'left-to-right)
+  ;; This is for if/when they turn on display-line-numbers
+  (add-hook 'display-line-numbers-mode-hook #'tabulated-list-revert nil t)
+  ;; This is for if/when they customize the line-number face or when
+  ;; the line-number width needs to change due to scrolling.
+  (setq-local tabulated-list--current-lnum-width 0)
+  (add-hook 'pre-redisplay-functions
+            #'tabulated-list-watch-line-number-width nil t)
+  (add-hook 'window-scroll-functions
+            #'tabulated-list-window-scroll-function nil t))
 
 (put 'tabulated-list-mode 'mode-class 'special)
 

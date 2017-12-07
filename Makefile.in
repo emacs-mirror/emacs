@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -448,7 +448,7 @@ config.status: ${srcdir}/configure
 	fi
 
 $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
-	cd $(srcdir) && ./autogen.sh
+	cd $(srcdir) && ./autogen.sh autoconf
 
 # ==================== Installation ====================
 
@@ -511,7 +511,7 @@ install-nt:
 ## For them, it is empty.
 INSTALL_ARCH_INDEP_EXTRA = @INSTALL_ARCH_INDEP_EXTRA@
 
-## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
+## https://lists.gnu.org/r/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
 set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 	  `id -un 2> /dev/null`; do \
@@ -550,11 +550,11 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 
 ## Note that we use tar instead of plain old cp -R/-r because the latter
 ## is apparently not portable (even in 2012!).
-## http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00278.html
+## https://lists.gnu.org/r/emacs-devel/2012-05/msg00278.html
 ## I have no idea which platforms Emacs supports where cp -R does not
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
-## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
+## https://lists.gnu.org/r/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
@@ -991,8 +991,7 @@ ${srcdir}/info/dir: ${info_dir_deps}
 	$(AM_V_at)${MKDIR_P} ${srcdir}/info
 	$(AM_V_GEN)(cd ${srcdir}/doc && \
 	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
-	) >$@.tmp
-	mv $@.tmp $@
+	) >$@.tmp && mv $@.tmp $@
 
 INSTALL_DVI = install-emacs-dvi install-lispref-dvi \
 	install-lispintro-dvi install-misc-dvi
@@ -1094,7 +1093,7 @@ check-info: info
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean
-	cd $(srcdir) && ./autogen.sh
+	cd $(srcdir) && ./autogen.sh autoconf
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) all
 
@@ -1116,7 +1115,7 @@ ChangeLog:
 	  ./$(emacslog) -o $(CHANGELOG) -n $(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Check that we are in a good state for changing history.
-PREFERRED_BRANCH = master
+PREFERRED_BRANCH = emacs-26
 preferred-branch-is-current:
 	git branch | grep -q '^\* $(PREFERRED_BRANCH)$$'
 unchanged-history-files:

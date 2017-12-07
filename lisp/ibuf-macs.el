@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -301,12 +301,16 @@ bound to the current value of the filter.
        (defun ,fn-name (qualifier)
 	 ,(or documentation "This filter is not documented.")
 	 (interactive (list ,reader))
-	 (ibuffer-push-filter (cons ',name qualifier))
-	 (message "%s"
-		  (format ,(concat (format "Filter by %s added: " description)
-				   " %s")
-			  qualifier))
-	 (ibuffer-update nil t))
+	 (if (null (ibuffer-push-filter (cons ',name qualifier)))
+	     (message "%s"
+		      (format ,(concat (format "Filter by %s already applied: " description)
+				       " %s")
+			      qualifier))
+           (message "%s"
+		    (format ,(concat (format "Filter by %s added: " description)
+				     " %s")
+			    qualifier))
+	   (ibuffer-update nil t)))
        (push (list ',name ,description
 		   (lambda (buf qualifier)
                      (condition-case nil

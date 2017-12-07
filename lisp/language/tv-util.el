@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code
 
@@ -72,7 +72,7 @@
 	(tone-rule '(tr . bl))
 	(prev-viet nil)
 	ch info pos components overhang)
-    (while (< from to) 
+    (while (< from to)
       (or ch
 	  (setq ch (char-after from)
 		info (aref tai-viet-glyph-info ch)))
@@ -138,4 +138,3 @@
 
 ;;
 (provide 'tai-viet-util)
-

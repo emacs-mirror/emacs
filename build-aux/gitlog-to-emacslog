@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 LC_ALL=C
 export LC_ALL
@@ -68,7 +68,7 @@ if [ -f "$output" ]; then
 fi
 
 # If this is not a Git repository, just generate an empty ChangeLog.
-test -e .git || {
+test -r .git || {
   >"$output"
   exit
 }
@@ -81,7 +81,7 @@ test -e .git || {
   --ignore-line='^; ' --format='%B' \
   "$gen_origin..$new_origin" >"ChangeLog.tmp" || exit
 
-if test -e "ChangeLog.tmp"; then
+if test -r "ChangeLog.tmp"; then
 
   # Fix up bug references.
   # This would be better as eg a --transform option to gitlog-to-changelog,

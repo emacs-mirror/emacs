@@ -1,0 +1,9 @@
+[Default Applications]
+x-test/foo=a.desktop
+
+[Added Associations]
+x-test/foo=b.desktop
+x-test/baz=a.desktop
+
+[Removed Associations]
+x-test/foo=c.desktop;d.desktop

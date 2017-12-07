@@ -3367,7 +3367,7 @@ be strings that are compared case-insensitively.
     (sxhash (upcase a)))
 
   (define-hash-table-test 'case-fold 'case-fold-string=
-                          'case-fold-string-hash))
+                          'case-fold-string-hash)
 
   (make-hash-table :test 'case-fold)
 
@@ -4893,7 +4893,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

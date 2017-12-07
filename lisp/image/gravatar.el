@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -77,11 +77,7 @@
          (not (file-exists-p (url-cache-create-filename url))))
         (t (let ((cache-time (url-is-cached url)))
              (if cache-time
-                 (time-less-p
-                  (time-add
-                   cache-time
-                   gravatar-cache-ttl)
-                  (current-time))
+                 (time-less-p (time-add cache-time gravatar-cache-ttl) nil)
                t)))))
 
 (defun gravatar-get-data ()

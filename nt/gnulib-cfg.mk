@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this file.  If not, see <http://www.gnu.org/licenses/>.
+# along with this file.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # Gnulib modules to be omitted from Emacs.
@@ -49,8 +49,9 @@ OMIT_GNULIB_MODULE_dirent = true
 OMIT_GNULIB_MODULE_dirfd = true
 OMIT_GNULIB_MODULE_fcntl = true
 OMIT_GNULIB_MODULE_fcntl-h = true
+OMIT_GNULIB_MODULE_fsusage = true
 OMIT_GNULIB_MODULE_inttypes-incomplete = true
-OMIT_GNULIB_MODULE_mkostemp = true
+OMIT_GNULIB_MODULE_open = true
 OMIT_GNULIB_MODULE_pipe2 = true
 OMIT_GNULIB_MODULE_secure_getenv = true
 OMIT_GNULIB_MODULE_signal-h = true
@@ -60,5 +61,4 @@ OMIT_GNULIB_MODULE_sys_select = true
 OMIT_GNULIB_MODULE_sys_stat = true
 OMIT_GNULIB_MODULE_sys_time = true
 OMIT_GNULIB_MODULE_sys_types = true
-OMIT_GNULIB_MODULE_tempname = true
 OMIT_GNULIB_MODULE_unistd = true

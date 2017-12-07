@@ -146,7 +146,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    #if !defined _FORTIFY_SOURCE && defined __OPTIMIZE__ && __OPTIMIZE__
    # define _FORTIFY_SOURCE 2
    #endif
-  
+
 
 /* Define to 1 if futimesat mishandles a NULL file name. */
 #undef FUTIMESAT_NULL_BUG
@@ -1659,7 +1659,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Please see the Gnulib manual for how to use these macros.
 
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
-   <http://lists.gnu.org/archive/html/bug-texinfo/2013-02/msg00030.html>.
+   <https://lists.gnu.org/r/bug-texinfo/2013-02/msg00030.html>.
 
    Suppress extern inline with Sun C in standards-conformance mode, as it
    mishandles inline functions that call each other.  E.g., for 'inline void f
@@ -1669,7 +1669,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    Suppress the use of extern inline on problematic Apple configurations, as
    Libc at least through Libc-825.26 (2013-04-09) mishandles it; see, e.g.,
-   <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
+   <https://lists.gnu.org/r/bug-gnulib/2012-12/msg00023.html>.
    Perhaps Apple will fix this some day.  */
 #if (defined __APPLE__ \
      && ((! defined _DONT_USE_CTYPE_INLINE_ \
@@ -1827,4 +1827,3 @@ Local Variables:
 mode: c
 End:
 */
-

@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -57,7 +57,7 @@ If not, see <http://www\\.gnu\\.org/licenses/>\\)\\.")
      "SUCH DAMAGE\\.")				      ; BSD
     ("Permission is hereby granted, free of charge" . ; X11
      "authorization from the X Consortium\\."))
-  "Alist of regexps defining start end end of text to elide.
+  "Alist of regexps defining start and end of text to elide.
 
 The cars of elements of the list are searched for in order.  Text is
 elided with an invisible overlay from the end of the line where the

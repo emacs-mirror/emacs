@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -91,7 +91,7 @@
 	     ;; no-conversion gives the user a chance to fix it.
 	     'no-conversion)
 	    ;; There are other things we might try here in the future
-	    ;; eg UTF-8 BOM, UTF-16 with no BOM 
+	    ;; eg UTF-8 BOM, UTF-16 with no BOM
 	    ;; translate to EBCDIC
 	    (t
 	     (let ((enc-pos (xmltok-get-declared-encoding-position limit)))

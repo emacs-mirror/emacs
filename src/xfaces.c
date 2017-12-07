@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* New face implementation by Gerd Moellmann <gerd@gnu.org>.  */
 
@@ -4088,12 +4088,15 @@ color_distance (XColor *x, XColor *y)
 }
 
 
-DEFUN ("color-distance", Fcolor_distance, Scolor_distance, 2, 3, 0,
+DEFUN ("color-distance", Fcolor_distance, Scolor_distance, 2, 4, 0,
        doc: /* Return an integer distance between COLOR1 and COLOR2 on FRAME.
 COLOR1 and COLOR2 may be either strings containing the color name,
-or lists of the form (RED GREEN BLUE).
-If FRAME is unspecified or nil, the current frame is used.  */)
-  (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame)
+or lists of the form (RED GREEN BLUE), each in the range 0 to 65535 inclusive.
+If FRAME is unspecified or nil, the current frame is used.
+If METRIC is specified, it should be a function that accepts
+two lists of the form (RED GREEN BLUE) aforementioned. */)
+  (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame,
+   Lisp_Object metric)
 {
   struct frame *f = decode_live_frame (frame);
   XColor cdef1, cdef2;
@@ -4107,7 +4110,16 @@ If FRAME is unspecified or nil, the current frame is used.  */)
 	   && defined_color (f, SSDATA (color2), &cdef2, false)))
     signal_error ("Invalid color", color2);
 
-  return make_number (color_distance (&cdef1, &cdef2));
+  if (NILP (metric))
+    return make_number (color_distance (&cdef1, &cdef2));
+  else
+    return call2 (metric,
+                  list3 (make_number (cdef1.red),
+                         make_number (cdef1.green),
+                         make_number (cdef1.blue)),
+                  list3 (make_number (cdef2.red),
+                         make_number (cdef2.green),
+                         make_number (cdef2.blue)));
 }
 
 
@@ -4475,6 +4487,7 @@ lookup_basic_face (struct frame *f, int face_id)
     case MOUSE_FACE_ID:			name = Qmouse;			break;
     case MENU_FACE_ID:			name = Qmenu;			break;
     case WINDOW_DIVIDER_FACE_ID:	name = Qwindow_divider;		break;
+    case VERTICAL_BORDER_FACE_ID: 	name = Qvertical_border; 	break;
     case WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID:	name = Qwindow_divider_first_pixel;	break;
     case WINDOW_DIVIDER_LAST_PIXEL_FACE_ID:	name = Qwindow_divider_last_pixel;	break;
     case INTERNAL_BORDER_FACE_ID:	name = Qinternal_border; 	break;
@@ -6232,7 +6245,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
       int red, green, blue;
       int num;
 
-      while (fgets (buf, sizeof (buf), fp) != NULL) {
+      while (fgets_unlocked (buf, sizeof (buf), fp) != NULL) {
 	if (sscanf (buf, "%d %d %d %n", &red, &green, &blue, &num) == 3)
 	  {
 #ifdef HAVE_NTGUI

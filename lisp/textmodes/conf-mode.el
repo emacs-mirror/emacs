@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -175,6 +175,16 @@ not align (only setting space according to `conf-assignment-space')."
     table)
   "Syntax table in use in Xdefaults style `conf-mode' buffers.")
 
+(defvar conf-toml-mode-syntax-table
+  (let ((table (make-syntax-table conf-mode-syntax-table)))
+    (modify-syntax-entry ?\" "\"" table)
+    (modify-syntax-entry ?' "\"" table)
+    (modify-syntax-entry ?\\ "\\" table)
+    (modify-syntax-entry ?#  "<" table)
+    ;; override
+    (modify-syntax-entry ?\; "." table)
+    table)
+  "Syntax table in use in TOML style `conf-mode' buffers.")
 
 (defvar conf-font-lock-keywords
   '(;; [section] (do this first because it may look like a parameter)
@@ -241,6 +251,22 @@ This variable is best set in the file local variables, or through
     ;; section { ... } (do this last because some assign ...{...)
     ("^[ \t]*\\([^:\n]+\\)[ \t\n]*{[^{}]*?$" 1 'font-lock-type-face prepend))
   "Keywords to highlight in Conf Colon mode.")
+
+(defvar conf-toml-font-lock-keywords
+  '(;; [section] (do this first because it may look like a parameter)
+    (conf-toml-recognize-section 0 'font-lock-type-face prepend)
+    ;; var=val or var[index]=val
+    ("^\\s-*\\(.+?\\)\\(?:\\[\\(.*?\\)\\]\\)?\\s-*="
+     (1 'font-lock-variable-name-face)
+     (2 'font-lock-constant-face nil t))
+    ("\\_<false\\|true\\_>" 0 'font-lock-keyword-face))
+  "Keywords to highlight in Conf TOML mode.")
+
+(defvar conf-desktop-font-lock-keywords
+  `(,@conf-font-lock-keywords
+    ("\\_<false\\|true\\_>" 0 'font-lock-constant-face)
+    ("\\_<%[uUfFick%]\\_>" 0 'font-lock-constant-face))
+  "Keywords to highlight in Conf Desktop mode.")
 
 (defvar conf-assignment-sign ?=
   "Sign used for assignments (char or string).")
@@ -429,16 +455,7 @@ The optional arg FONT-LOCK is the value for FONT-LOCK-KEYWORDS."
 ;;;###autoload
 (define-derived-mode conf-unix-mode conf-mode "Conf[Unix]"
   "Conf Mode starter for Unix style Conf files.
-Comments start with `#'.
-For details see `conf-mode'.  Example:
-
-# Conf mode font-locks this right on Unix and with \\[conf-unix-mode]
-
-[Desktop Entry]
-	 Encoding=UTF-8
-	 Name=The GIMP
-	 Name[ca]=El GIMP
-	 Name[cs]=GIMP"
+Comments start with `#'.  For details see `conf-mode'."
   (conf-mode-initialize "#"))
 
 ;;;###autoload
@@ -616,6 +633,61 @@ For details see `conf-mode'.  Example:
 *background:			gray99
 *foreground:			black"
   (conf-mode-initialize "!"))
+
+(defun conf-toml-recognize-section (limit)
+  "Font-lock helper function for conf-toml-mode.
+Handles recognizing TOML section names, like [section],
+\[[section]], or [something.\"else\".section]."
+  (save-excursion
+    ;; Skip any number of "[" to handle things like [[section]].
+    (when (re-search-forward "^\\s-*\\[+" limit t)
+      (let ((start (point)))
+        (backward-char)
+        (let ((end (min limit
+                        (condition-case nil
+                            (progn
+                              (forward-list)
+                              (1- (point)))
+                          (scan-error
+                           (end-of-line)
+                           (point))))))
+          ;; If there is a comma in the text, then we assume this is
+          ;; an array and not a section.  (This could be refined to
+          ;; look only for unquoted commas if necessary.)
+          (save-excursion
+            (goto-char start)
+            (unless (search-forward "," end t)
+              (set-match-data (list start end))
+              t)))))))
+
+;;;###autoload
+(define-derived-mode conf-toml-mode conf-mode "Conf[TOML]"
+  "Conf Mode starter for TOML files.
+Comments start with `#' and \"assignments\" are with `='.
+For details see `conf-mode'.  Example:
+
+# Conf mode font-locks this right with \\[conf-toml-mode]
+
+\[entry]
+value = \"some string\""
+  (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
+  (setq-local conf-assignment-column 0)
+  (setq-local conf-assignment-sign ?=))
+
+;;;###autoload
+(define-derived-mode conf-desktop-mode conf-unix-mode "Conf[Desktop]"
+  "Conf Mode started for freedesktop.org Desktop files.
+Comments start with `#' and \"assignments\" are with `='.
+For details see `conf-mode'.
+
+# Conf mode font-locks this correctly with \\[conf-desktop-mode]
+	[Desktop Entry]
+	Name=GNU Image Manipulation Program
+	Name[oc]=Editor d'imatge GIMP
+	Exec=gimp-2.8 %U
+	Terminal=false"
+  (conf-mode-initialize "#" 'conf-desktop-font-lock-keywords)
+  (conf-quote-normal nil))
 
 (provide 'conf-mode)
 

@@ -511,7 +511,7 @@ to insert it anywhere in the template search list.
 If there are multiple templates with the same context and name, the
 template with the highest priority number will be used.
 
-If multiple files have the same priority, then then sort order is
+If multiple files have the same priority, then the sort order is
 unpredictable.  If no template names match, then it doesn't matter.
 
 Example:

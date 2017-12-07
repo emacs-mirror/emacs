@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -214,8 +214,8 @@ file named by `eshell-aliases-file'.")
 
 (defvar eshell-prevent-alias-expansion nil)
 
-(defun eshell-maybe-replace-by-alias (command args)
-  "If COMMAND has an alias definition, call that instead using ARGS."
+(defun eshell-maybe-replace-by-alias (command _args)
+  "Call COMMAND's alias definition, if it exists."
   (unless (and eshell-prevent-alias-expansion
 	       (member command eshell-prevent-alias-expansion))
     (let ((alias (eshell-lookup-alias command)))

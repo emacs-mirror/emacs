@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1175,7 +1175,8 @@
   :short-name  "CNS11643-15"
   :long-name "CNS11643-15 (Chinese traditional)"
   :code-space [33 126 33 126]
-  :code-offset #x27A000)
+  :code-offset #x27A000
+  :unify-map "CNS-F")
 
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
@@ -1186,6 +1187,7 @@
 (unify-charset 'chinese-cns11643-5)
 (unify-charset 'chinese-cns11643-6)
 (unify-charset 'chinese-cns11643-7)
+(unify-charset 'chinese-cns11643-15)
 (unify-charset 'big5)
 (unify-charset 'chinese-big5-1)
 (unify-charset 'chinese-big5-2)

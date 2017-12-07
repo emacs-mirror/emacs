@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -266,7 +266,7 @@ reason.  Removing the watch by calling `gfile-rm-watch' also makes it
 invalid.  */)
      (Lisp_Object watch_descriptor)
 {
-  Lisp_Object watch_object = Fassoc (watch_descriptor, watch_list);
+  Lisp_Object watch_object = Fassoc (watch_descriptor, watch_list, Qnil);
   if (NILP (watch_object))
     return Qnil;
   else

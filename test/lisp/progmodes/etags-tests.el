@@ -17,14 +17,20 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'ert)
 (require 'etags)
+(eval-when-compile (require 'cl-lib))
 
 (defvar his-masters-voice t)
+
+(defconst etags-tests--test-dir
+  (or (getenv "EMACS_TEST_DIRECTORY")
+      (expand-file-name "../../.."
+                        (or load-file-name buffer-file-name))))
 
 (defun y-or-n-p (_prompt)
   "Replacement for `y-or-n-p' that returns what we tell it to."
@@ -38,8 +44,7 @@
     (set-buffer buf-with-global-tags)
     (setq default-directory (expand-file-name "."))
     (visit-tags-table
-     (expand-file-name "manual/etags/ETAGS.good_1"
-                       (getenv "EMACS_TEST_DIRECTORY")))
+     (expand-file-name "manual/etags/ETAGS.good_1" etags-tests--test-dir))
     ;; Check that tags in ETAGS.good_1 are recognized.
     (setq xref-buf (xref-find-definitions "LL_Task_Procedure_Access/t"))
     (should (bufferp xref-buf))
@@ -55,8 +60,7 @@
     (setq default-directory (expand-file-name "."))
     (let (his-masters-voice)
       (visit-tags-table
-       (expand-file-name "manual/etags/ETAGS.good_3"
-                         (getenv "EMACS_TEST_DIRECTORY"))
+       (expand-file-name "manual/etags/ETAGS.good_3" etags-tests--test-dir)
        t))
     ;; Check that tags in ETAGS.good_1 are recognized.
     (setq xref-buf (xref-find-definitions "LL_Task_Procedure_Access/t"))
@@ -84,8 +88,26 @@
   (set-buffer (get-buffer-create "*foobar*"))
   (fundamental-mode)
   (visit-tags-table
-   (expand-file-name "manual/etags/ETAGS.good_3"
-                     (getenv "EMACS_TEST_DIRECTORY"))
+   (expand-file-name "manual/etags/ETAGS.good_3" etags-tests--test-dir)
    t)
   (should (equal (should-error (xref-find-definitions "foobar123"))
                  '(user-error "No definitions found for: foobar123"))))
+
+(ert-deftest etags-buffer-local-tags-table-list ()
+  "Test that a buffer-local value of `tags-table-list' is used."
+  (let ((file (make-temp-file "etag-test-tmpfile")))
+    (unwind-protect
+        (progn
+          (set-buffer (find-file-noselect file))
+          (fundamental-mode)
+          (setq-local tags-table-list
+                      (list (expand-file-name "manual/etags/ETAGS.good_3"
+                                              etags-tests--test-dir)))
+          (cl-letf ((tag-tables tags-table-list)
+                    (tags-file-name nil)
+                    ((symbol-function 'read-file-name)
+                     (lambda (&rest _)
+                       (error "We should not prompt the user"))))
+            (should (visit-tags-table-buffer))
+            (should (equal tags-file-name (car tag-tables)))))
+      (delete-file file))))

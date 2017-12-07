@@ -5,26 +5,30 @@ copyright.html.
 
 The names, URLs, and dates for these files are as follows.
 
+BidiBrackets.txt
+http://www.unicode.org/Public/UNIDATA/BidiBrackets.txt
+2017-04-20
+
 BidiMirroring.txt
 http://www.unicode.org/Public/UNIDATA/BidiMirroring.txt
-2013-12-17
+2017-04-20
 
 IVD_Sequences.txt
-http://www.unicode.org/ivd/data/2014-05-16/IVD_Sequences.txt
-2014-05-16
+http://www.unicode.org/ivd/
+2016-08-15
 
 UnicodeData.txt
 http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
-2014-03-10
+2017-03-07
 
 Blocks.txt
 http://www.unicode.org/Public/8.0.0/ucd/Blocks.txt
-2014-11-10
+2017-04-20
 
 NormalizationTest.txt
 http://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
-2016-07-16
+2017-03-08
 
 SpecialCasing.txt
 http://unicode.org/Public/UNIDATA/SpecialCasing.txt
-2016-03-03
+2017-04-20

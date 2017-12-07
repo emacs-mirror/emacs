@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 set mode "srecode-template-mode"
 set escape_start "$"
@@ -83,7 +83,7 @@ template gapsomething :blank
 template inlinetext
 "Insert text that has no newlines"
 ----
- *In the middle* 
+ *In the middle*
 ----
 
 template includable :blank

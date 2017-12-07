@@ -61,7 +61,7 @@ Emacs @value{EMACSVER}.
 
 This FAQ is maintained by the developers and users of Emacs on MS Windows.
 If you find any errors, or have any suggestions, please send them to
-the @url{http://lists.gnu.org/mailman/listinfo/help-emacs-windows,
+the @url{https://lists.gnu.org/mailman/listinfo/help-emacs-windows,
 help-emacs-windows} mailing list.
 
 At time of writing, the latest version of GNU Emacs is version @value{EMACSVER}.
@@ -164,7 +164,7 @@ instructions (requires DJGPP).
 @cindex Emacs source code
 @cindex source for Emacs
 You can download Emacs releases from
-@uref{http://ftpmirror.gnu.org/emacs/, ftp.gnu.org mirrors}.  They
+@uref{https://ftpmirror.gnu.org/emacs/, ftp.gnu.org mirrors}.  They
 are distributed as compressed tar files, digitally signed by the
 maintainer who made the release.
 
@@ -181,7 +181,7 @@ to give it a try.  @xref{Compiling}.
 @cindex latest development version of Emacs
 @cindex Emacs Development
 The development version of Emacs is available from
-@uref{http://savannah.gnu.org/projects/emacs, Savannah}, the GNU
+@uref{https://savannah.gnu.org/projects/emacs, Savannah}, the GNU
 development site.
 
 @node Compiling
@@ -581,7 +581,7 @@ update your registry (you may need to reboot).
 Shane Holder gives some background on how "Scancode Map" is used
 by the system:
 @ignore
-http://ftp.gnu.org/old-gnu/emacs/windows/docs/ntemacs/contrib/caps-ctrl-registry.txt
+https://ftp.gnu.org/old-gnu/emacs/windows/docs/ntemacs/contrib/caps-ctrl-registry.txt
 From: Shane Holder <holder@@mordor.rsn.hp.com>
 To: ntemacs-users@@cs.washington.edu
 Date: 04 Dec 1996 14:36:21 -0600
@@ -913,7 +913,7 @@ Fonts in Emacs 22 and earlier are named using the X Logical Font
 Description (XLFD) format.  Emacs on Windows ignores many of the
 fields, and populates them with * when listing fonts.  Former
 maintainer Andrew Innes wrote
-@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/x-font-details,
+@uref{https://www.gnu.org/software/emacs/windows/ntemacs/discuss/x-font-details,
 this explanation} of what each field in the font string means and how
 Emacs treated them back in 19.34.  Since then, multilingual support and
 a redisplay overhaul to support variable width fonts have changed things
@@ -1060,7 +1060,7 @@ support packages of various components of Windows itself, GNU/Linux
 distributions these days come with a number of Free truetype fonts
 that cover a wide range of languages.  The GNU Unifont project
 contains glyphs for most of the Unicode codespace, and can be
-downloaded from @uref{http://ftpmirror.gnu.org/unifont, ftp.gnu.org
+downloaded from @uref{https://ftpmirror.gnu.org/unifont, ftp.gnu.org
 mirrors}.
 
 @node Third-party multibyte
@@ -1136,7 +1136,7 @@ There are a number of methods by which you can control automatic CR/LF
 translation in Emacs, a situation that reflects the fact that the
 default support was not very robust in the past.  For a discussion of
 this issue, take a look at
-@uref{http://www.gnu.org/software/emacs/windows/ntemacs/todo/translate,
+@uref{https://www.gnu.org/software/emacs/windows/ntemacs/todo/translate,
 this collection of email messages} on the topic.
 
 @menu
@@ -1339,7 +1339,7 @@ When an EOF is sent to a subprocess running in an interactive shell
 with @code{process-send-eof}, the shell terminates unexpectedly as
 if its input was closed.  This affects the use of @kbd{C-c C-d} in
 shell buffers.  See
-@uref{http://www.gnu.org/software/emacs/windows/ntemacs/todo/shell-ctrl-d,
+@uref{https://www.gnu.org/software/emacs/windows/ntemacs/todo/shell-ctrl-d,
 this discussion} for more details.
 
 @node Using shell
@@ -1752,7 +1752,7 @@ AUCTeX is an Emacs package for writing LaTeX files, which also
 includes preview-latex, an Emacs mode for previewing the formatted
 contents of LaTeX documents.  Pre-compiled versions for Windows are
 available from
-@uref{http://www.gnu.org/software/auctex/download-for-windows.html, the
+@uref{https://www.gnu.org/software/auctex/download-for-windows.html, the
 AUCTeX site}.
 
 @node Spell check
@@ -2096,7 +2096,7 @@ code in lib/perl5db.pl
 @end example
 
 Doug Campbell also has some
-@uref{http://www.gnu.org/software/emacs/windows/ntemacs/discuss/perldb,
+@uref{https://www.gnu.org/software/emacs/windows/ntemacs/discuss/perldb,
 suggestions} for improving the interaction of perldb and Emacs.
 
 @c ------------------------------------------------------------
@@ -2272,8 +2272,8 @@ In Emacs, you can browse the manual using Info by typing @kbd{C-h r},
 and you can view the FAQ by typing @kbd{C-h C-f}. Other resources include:
 
 @itemize
-@item @uref{http://www.gnu.org/software/emacs/, The Emacs homepage}
-@item @uref{http://www.gnu.org/software/emacs/manual/, Other Emacs manuals}
+@item @uref{https://www.gnu.org/software/emacs/, The Emacs homepage}
+@item @uref{https://www.gnu.org/software/emacs/manual/, Other Emacs manuals}
 @item @uref{http://www.emacswiki.org/, Emacs Wiki}
 @end itemize
 
@@ -2283,10 +2283,10 @@ and you can view the FAQ by typing @kbd{C-h C-f}. Other resources include:
 @cindex help, mailing lists
 
 The official mailing list for Windows specific help and discussion is
-@url{http://lists.gnu.org/mailman/listinfo/help-emacs-windows,
+@url{https://lists.gnu.org/mailman/listinfo/help-emacs-windows,
 help-emacs-windows}.  See that link for information on how to subscribe
 or unsubscribe.  The
-@uref{http://lists.gnu.org/archive/html/help-emacs-windows/, list archives}
+@uref{https://lists.gnu.org/r/help-emacs-windows/, list archives}
 are available online.
 
 @c ------------------------------------------------------------

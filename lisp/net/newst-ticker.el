@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; ======================================================================
 
@@ -118,7 +118,7 @@ been added between the last two retrievals."
 
 (defcustom newsticker-hide-obsolete-items-in-echo-area
   t
-  "Decides whether to show obsolete items items in the ticker.
+  "Decides whether to show obsolete items in the ticker.
 If t the echo area will not show obsolete items.  See also
 `newsticker-hide-old-items-in-echo-area'."
   :type 'boolean

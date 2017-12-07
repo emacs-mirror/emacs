@@ -15,13 +15,13 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _REGEX_H
 #define _REGEX_H 1
 
 #if defined emacs && (defined _REGEX_RE_COMP || defined _LIBC)
-/* We’re not defining re_set_syntax and using a different prototype of
+/* We're not defining re_set_syntax and using a different prototype of
    re_compile_pattern when building Emacs so fail compilation early with
    a (somewhat helpful) error message when conflict is detected. */
 # error "_REGEX_RE_COMP nor _LIBC can be defined if emacs is defined."

@@ -225,10 +225,12 @@ Font-Lock mode automatically highlights certain textual units found in
 programs.  It is enabled globally by default, but you can disable it
 in individual buffers.  @xref{Faces}.
 
-@findex linum-mode
-@cindex Linum mode
+@findex display-line-numbers-mode
+@cindex display-line-numbers-mode
 @item
-Linum mode displays each line's line number in the window's left margin.
+Display Line Numbers mode is a convenience wrapper around
+@code{display-line-numbers}, setting it using the value of
+@code{display-line-numbers-type}.  @xref{Display Custom}.
 
 @item
 Outline minor mode provides similar facilities to the major mode

@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'seq)
 (eval-when-compile (require 'cl-lib))
 
 ;;; eieio-instance-inheritor
@@ -255,8 +256,11 @@ malicious code.
 Note: This function recurses when a slot of :type of some object is
 identified, and needing more object creation."
   (let* ((objclass (nth 0 inputlist))
-	 ;; (objname (nth 1 inputlist))
-	 (slots (nthcdr 2 inputlist))
+         ;; Earlier versions of `object-write' added a string name for
+         ;; the object, now obsolete.
+         (slots (nthcdr
+                 (if (stringp (nth 1 inputlist)) 2 1)
+                 inputlist))
 	 (createslots nil)
 	 (class
 	  (progn
@@ -308,14 +312,6 @@ Second, any text properties will be stripped from strings."
 		       (= (length proposed-value) 1))
 		  nil)
 
-		  ;; We have a slot with a single object that can be
-		  ;; saved here.  Recurse and evaluate that
-		  ;; sub-object.
-		 ((and classtype (class-p classtype)
-		       (child-of-class-p (car proposed-value) classtype))
-		  (eieio-persistent-convert-list-to-object
-		   proposed-value))
-
 		 ;; List of object constructors.
 		 ((and (eq (car proposed-value) 'list)
 		       ;; 2nd item is a list.
@@ -346,6 +342,16 @@ Second, any text properties will be stripped from strings."
 			    objlist))
 		    ;; return the list of objects ... reversed.
 		    (nreverse objlist)))
+		 ;; We have a slot with a single object that can be
+		 ;; saved here.  Recurse and evaluate that
+		 ;; sub-object.
+		 ((and classtype
+                       (seq-some
+                        (lambda (elt)
+                          (child-of-class-p (car proposed-value) elt))
+                        classtype))
+		  (eieio-persistent-convert-list-to-object
+		   proposed-value))
 		 (t
 		  proposed-value))))
 
@@ -402,13 +408,9 @@ If no class is referenced there, then return nil."
 	       type))
 
 	((eq (car-safe type) 'or)
-	 ;; If type is a list, and is an or, it is possibly something
-	 ;; like (or null myclass), so check for that.
-	 (let ((ans nil))
-	   (dolist (subtype (cdr type))
-	     (setq ans (eieio-persistent-slot-type-is-class-p
-			subtype)))
-	   ans))
+	 ;; If type is a list, and is an `or', return all valid class
+	 ;; types within the `or' statement.
+	 (seq-filter #'eieio-persistent-slot-type-is-class-p (cdr type)))
 
 	(t
 	 ;; No match, not a class.
@@ -465,7 +467,7 @@ instance."
 (cl-defmethod eieio-object-name-string ((obj eieio-named))
   "Return a string which is OBJ's name."
   (or (slot-value obj 'object-name)
-      (symbol-name (eieio-object-class obj))))
+      (cl-call-next-method)))
 
 (cl-defmethod eieio-object-set-name-string ((obj eieio-named) name)
   "Set the string which is OBJ's NAME."

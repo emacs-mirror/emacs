@@ -15,7 +15,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
@@ -200,7 +200,7 @@
                   '(error "Unrecognized entry in undo list \"bogus\""))))
         (buffer-string))))))
 
-;; http://debbugs.gnu.org/14824
+;; https://debbugs.gnu.org/14824
 (ert-deftest undo-test-buffer-modified ()
   "Test undoing marks buffer unmodified."
   (with-temp-buffer
@@ -326,7 +326,7 @@ undo-make-selective-list."
     (insert "This sentence corrupted?")
     (undo-boundary)
     ;; Same as recipe at
-    ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
+    ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
     (insert "aaa")
     (undo-boundary)
     (undo)

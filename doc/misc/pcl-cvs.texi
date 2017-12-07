@@ -1389,7 +1389,7 @@ the @url{http://lists.xemacs.org/mailman/listinfo/xemacs-beta,
 XEmacs mailing list}.
 
 If you have problems using PCL-CVS or other questions, send them to
-the @url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+the @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
 help-gnu-emacs mailing list}.  This is a good place to get help, as is
 the @url{http://lists.nongnu.org/mailman/listinfo/info-cvs, info-cvs list}.
 

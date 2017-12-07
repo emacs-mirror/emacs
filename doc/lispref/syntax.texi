@@ -751,7 +751,8 @@ position.  This function does that conveniently.
 
 @defun syntax-ppss &optional pos
 This function returns the parser state that the parser would reach at
-position @var{pos} starting from the beginning of the buffer.
+position @var{pos} starting from the beginning of the visible portion
+of the buffer.
 @iftex
 See the next section for
 @end iftex
@@ -762,11 +763,11 @@ for a description of the parser state.
 
 The return value is the same as if you call the low-level parsing
 function @code{parse-partial-sexp} to parse from the beginning of the
-buffer to @var{pos} (@pxref{Low-Level Parsing}).  However,
-@code{syntax-ppss} uses a cache to speed up the computation.  Due to
-this optimization, the second value (previous complete subexpression)
-and sixth value (minimum parenthesis depth) in the returned parser
-state are not meaningful.
+visible portion of the buffer to @var{pos} (@pxref{Low-Level
+Parsing}).  However, @code{syntax-ppss} uses caches to speed up the
+computation.  Due to this optimization, the second value (previous
+complete subexpression) and sixth value (minimum parenthesis depth) in
+the returned parser state are not meaningful.
 
 This function has a side effect: it adds a buffer-local entry to
 @code{before-change-functions} (@pxref{Change Hooks}) for

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -448,7 +448,7 @@
 	       ((Math-negp a) 1)
 	       ((Math-zerop a) 2)
 	       ((eq (car a) 'intv)
-		(cond 
+		(cond
                  ((math-known-posp (nth 2 a)) 4)
                  ((math-known-negp (nth 3 a)) 1)
                  ((Math-zerop (nth 2 a)) 6)
@@ -1436,12 +1436,12 @@
       (and (math-identity-matrix-p a t)
            (or (and (eq (car-safe b) 'calcFunc-idn)
                     (= (length b) 2)
-                    (list 'calcFunc-idn (math-mul 
+                    (list 'calcFunc-idn (math-mul
                                          (nth 1 (nth 1 a))
                                          (nth 1 b))
                           (1- (length a))))
                (and (math-known-scalarp b)
-                    (list 'calcFunc-idn (math-mul 
+                    (list 'calcFunc-idn (math-mul
                                          (nth 1 (nth 1 a)) b)
                           (1- (length a))))
                (and (math-known-matrixp b)
@@ -1449,11 +1449,11 @@
       (and (math-identity-matrix-p b t)
            (or (and (eq (car-safe a) 'calcFunc-idn)
                     (= (length a) 2)
-                    (list 'calcFunc-idn (math-mul (nth 1 a) 
+                    (list 'calcFunc-idn (math-mul (nth 1 a)
                                                   (nth 1 (nth 1 b)))
                           (1- (length b))))
                (and (math-known-scalarp a)
-                    (list 'calcFunc-idn (math-mul a (nth 1 (nth 1 b))) 
+                    (list 'calcFunc-idn (math-mul a (nth 1 (nth 1 b)))
                           (1- (length b))))
                (and (math-known-matrixp a)
                     (math-mul a (nth 1 (nth 1 b))))))
@@ -1717,7 +1717,7 @@
 
 (defun math-div-new-non-trig (ntr)
   (if math-div-non-trig
-      (setq math-div-non-trig 
+      (setq math-div-non-trig
             (list '* ntr math-div-non-trig))
     (setq math-div-non-trig ntr)))
 
@@ -1958,7 +1958,7 @@
 		       (not (equal a math-simplify-only)))
 		  (list '^ a b))
                  ((and (eq (car-safe a) '*)
-                       (or 
+                       (or
                         (and
                          (math-known-matrixp (nth 1 a))
                          (math-known-matrixp (nth 2 a)))
@@ -1970,7 +1970,7 @@
                   (if (and (= b -1)
                            (math-known-square-matrixp (nth 1 a))
                            (math-known-square-matrixp (nth 2 a)))
-                      (math-mul (math-pow-fancy (nth 2 a) -1) 
+                      (math-mul (math-pow-fancy (nth 2 a) -1)
                                 (math-pow-fancy (nth 1 a) -1))
                     (list '^ a b)))
 		 ((and (eq (car-safe a) '*)
@@ -2358,7 +2358,7 @@
 
 (defalias 'calcFunc-float 'math-float)
 
-;; The variable math-trunc-prec is local to math-trunc in calc-misc.el, 
+;; The variable math-trunc-prec is local to math-trunc in calc-misc.el,
 ;; but used by math-trunc-fancy which is called by math-trunc.
 (defvar math-trunc-prec)
 

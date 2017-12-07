@@ -19,12 +19,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is Emacs 26.  This
-;; package provides compatibility functions for Emacs 24 and Emacs 25.
+;; Tramp's main Emacs version for development is Emacs 27.  This
+;; package provides compatibility functions for Emacs 24, Emacs 25 and
+;; Emacs 26.
 
 ;;; Code:
 
@@ -49,33 +50,6 @@
   "Call FUNCTION if it exists.  Do not raise compiler warnings."
   `(when (functionp ,function)
      (with-no-warnings (funcall ,function ,@arguments))))
-
-;; We currently use "[" and "]" in the filename format for IPv6 hosts
-;; of GNU Emacs.  This means that Emacs wants to expand wildcards if
-;; `find-file-wildcards' is non-nil, and then barfs because no
-;; expansion could be found.  We detect this situation and do
-;; something really awful: we have `file-expand-wildcards' return the
-;; original filename if it can't expand anything.  Let's just hope
-;; that this doesn't break anything else.  It is not needed anymore
-;; since GNU Emacs 23.2.
-(unless (featurep 'files 'remote-wildcards)
-  (defadvice file-expand-wildcards
-      (around tramp-advice-file-expand-wildcards activate)
-    (let ((name (ad-get-arg 0)))
-      ;; If it's a Tramp file, look if wildcards need to be expanded
-      ;; at all.
-      (if (and
-	   (tramp-tramp-file-p name)
-	   (not (string-match "[[*?]" (file-remote-p name 'localname))))
-	  (setq ad-return-value (list name))
-	;; Otherwise, just run the original function.
-	ad-do-it)))
-  (add-hook
-   'tramp-unload-hook
-   (lambda ()
-     (ad-remove-advice
-      'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
-     (ad-activate 'file-expand-wildcards))))
 
 (defsubst tramp-compat-temporary-file-directory ()
   "Return name of directory for temporary files.
@@ -130,6 +104,10 @@ Add the extension of F, if existing."
   (apply
    'tramp-error vec-or-proc
    (if (fboundp 'user-error) 'user-error 'error) format args))
+
+;; `default-toplevel-value' has been declared in Emacs 24.4.
+(unless (fboundp 'default-toplevel-value)
+  (defalias 'default-toplevel-value 'symbol-value))
 
 ;; `file-attribute-*' are introduced in Emacs 25.1.
 
@@ -190,13 +168,22 @@ This is a floating point number if the size is too large for an integer."
 This is a string of ten letters or dashes as in ls -l."
     (nth 8 attributes)))
 
-;; `default-toplevel-value' has been declared in Emacs 24.4.
-(unless (fboundp 'default-toplevel-value)
-  (defalias 'default-toplevel-value 'symbol-value))
-
 ;; `format-message' is new in Emacs 25.1.
 (unless (fboundp 'format-message)
   (defalias 'format-message 'format))
+
+;; `directory-name-p' is new in Emacs 25.1.
+(if (fboundp 'directory-name-p)
+    (defalias 'tramp-compat-directory-name-p 'directory-name-p)
+  (defsubst tramp-compat-directory-name-p (name)
+    "Return non-nil if NAME ends with a directory separator character."
+    (let ((len (length name))
+          (lastc ?.))
+      (if (> len 0)
+          (setq lastc (aref name (1- len))))
+      (or (= lastc ?/)
+          (and (memq system-type '(windows-nt ms-dos))
+               (= lastc ?\\))))))
 
 ;; `file-missing' is introduced in Emacs 26.1.
 (defconst tramp-file-missing
@@ -248,11 +235,11 @@ If NAME is a remote file name, the local part of NAME is unquoted."
 	((eq tramp-syntax 'sep) 'separate)
 	(t tramp-syntax)))
 
-;; Older Emacsen keep incompatible autoloaded values of `tramp-syntax'.
-(eval-after-load 'tramp
-  '(unless
-       (memq tramp-syntax (tramp-compat-funcall (quote tramp-syntax-values)))
-     (tramp-change-syntax (tramp-compat-tramp-syntax))))
+;; `cl-struct-slot-info' has been introduced with Emacs 25.
+(defmacro tramp-compat-tramp-file-name-slots ()
+  (if (fboundp 'cl-struct-slot-info)
+      `(cdr (mapcar 'car (cl-struct-slot-info 'tramp-file-name)))
+    `(cdr (mapcar 'car (get 'tramp-file-name 'cl-struct-slots)))))
 
 (provide 'tramp-compat)
 

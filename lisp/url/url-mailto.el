@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,7 +102,7 @@
 	    (goto-char (point-min))
 	    (or (search-forward (concat "\n" mail-header-separator "\n") nil t)
 	    	(goto-char (point-max)))
-	    (insert (mapconcat 
+	    (insert (mapconcat
 		     #'(lambda (string)
 			 (replace-regexp-in-string "\r\n" "\n" string))
 		     (cdar args) "\n")))

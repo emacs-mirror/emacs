@@ -139,6 +139,13 @@ Variables}).  A @code{defconst} form serves to inform human readers
 that you do not intend to change the value of a variable, but Emacs
 does not raise an error if you actually change it.
 
+@cindex read-only variables
+A small number of additional symbols are made read-only for various
+practical reasons.  These include @code{enable-multibyte-characters},
+@code{most-positive-fixnum}, @code{most-negative-fixnum}, and a few
+others.  Any attempt to set or bind these also signals a
+@code{setting-constant} error.
+
 @node Local Variables
 @section Local Variables
 @cindex binding local variables
@@ -435,7 +442,9 @@ dynamically bound value; @pxref{Void Variables}), then @var{value} is
 evaluated and @var{symbol} is set to the result.  But if @var{symbol}
 is not void, @var{value} is not evaluated, and @var{symbol}'s value is
 left unchanged.  If @var{value} is omitted, the value of @var{symbol}
-is not changed in any case.
+is not changed in any case.  Using @code{defvar} with no value is one
+method of suppressing byte compilation warnings, see @ref{Compiler
+Errors}.
 
 If @var{symbol} has a buffer-local binding in the current buffer,
 @code{defvar} acts on the default value, which is buffer-independent,
@@ -574,6 +583,16 @@ The value is a whole shell command.
 
 @item @dots{}-switches
 The value specifies options for a command.
+
+@item @var{prefix}--@dots{}
+The variable is intended for internal use and is defined in the file
+@file{@var{prefix}.el}.  (Emacs code contributed before 2018 may
+follow other conventions, which are being phased out.)
+
+@item @dots{}-internal
+The variable is intended for internal use and is defined in C code.
+(Emacs code contributed before 2018 may follow other conventions,
+which are being phased out.)
 @end table
 
   When you define a variable, always consider whether you should mark
@@ -1007,11 +1026,11 @@ variables like @code{case-fold-search}:
 @subsection Lexical Binding
 
   Lexical binding was introduced to Emacs, as an optional feature, in
-version 24.1.  We expect its importance to increase in the future.
+version 24.1.  We expect its importance to increase with time.
 Lexical binding opens up many more opportunities for optimization, so
 programs using it are likely to run faster in future Emacs versions.
-Lexical binding is also more compatible with concurrency, which we
-want to add to Emacs in the future.
+Lexical binding is also more compatible with concurrency, which was
+added to Emacs in version 26.1.
 
   A lexically-bound variable has @dfn{lexical scope}, meaning that any
 reference to the variable must be located textually within the binding
@@ -1176,7 +1195,7 @@ variable.  The byte-compiler will also issue a warning if you use a
 special variable as a function argument.
 
   (To silence byte-compiler warnings about unused variables, just use
-a variable name that start with an underscore.  The byte-compiler
+a variable name that starts with an underscore.  The byte-compiler
 interprets this as an indication that this is a variable known not to
 be used.)
 
@@ -1343,6 +1362,9 @@ is not current either on entry to or exit from the @code{let}.  This is
 because @code{let} does not distinguish between different kinds of
 bindings; it knows only which variable the binding was made for.
 
+It is an error to make a constant or a read-only variable
+buffer-local.  @xref{Constant Variables}.
+
 If the variable is terminal-local (@pxref{Multiple Terminals}), this
 function signals an error.  Such variables cannot have buffer-local
 bindings as well.
@@ -1381,6 +1403,9 @@ Subsequently calling @code{makunbound} on @var{variable} will result
 in a void buffer-local value and leave the default value unaffected.
 
 The value returned is @var{variable}.
+
+It is an error to make a constant or a read-only variable
+buffer-local.  @xref{Constant Variables}.
 
 @strong{Warning:} Don't assume that you should use
 @code{make-variable-buffer-local} for user-option variables, simply
@@ -1894,7 +1919,12 @@ settings to any file in that directory or any of its subdirectories
 (optionally, you can exclude subdirectories; see below).
 If some of the subdirectories have their own @file{.dir-locals.el}
 files, Emacs uses the settings from the deepest file it finds starting
-from the file's directory and moving up the directory tree.  The file
+from the file's directory and moving up the directory tree.  This
+constant is also used to derive the name of a second dir-locals file
+@file{.dir-locals-2.el}.  If this second dir-locals file is present,
+then that is loaded instead of @file{.dir-locals.el}.  This is useful
+when @file{.dir-locals.el} is under version control in a shared
+repository and cannot be used for personal customizations.  The file
 specifies local variables as a specially formatted list; see
 @ref{Directory Variables, , Per-directory Local Variables, emacs, The
 GNU Emacs Manual}, for more details.

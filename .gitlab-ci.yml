@@ -13,7 +13,7 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+#  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # GNU Emacs support for the GitLab protocol for CI
 
@@ -24,11 +24,11 @@
 # Maintainer: tzz@lifelogs.com
 # URL: https://gitlab.com/emacs-ci/emacs
 
-image: debian:unstable
+image: debian:stretch
 
 before_script:
   - apt update -qq
-  - apt install -y -qq build-essential autoconf automake libncurses-dev gnutls-dev
+  - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libc-dev gcc make autoconf automake libncurses-dev gnutls-dev
 
 stages:
   - test
@@ -36,6 +36,6 @@ stages:
 test:
   stage: test
   script:
-    - ./autogen.sh
+    - ./autogen.sh autoconf
     - ./configure --without-makeinfo
     - make check

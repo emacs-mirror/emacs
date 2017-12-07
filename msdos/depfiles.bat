@@ -16,10 +16,10 @@ rem   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 rem   GNU General Public License for more details.
 
 rem   You should have received a copy of the GNU General Public License
-rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
+rem   along with GNU Emacs.  If not, see https://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
 
-echo %1 | sed -e "s,\(.*\)\.c,@if not exist deps\\\1.Po echo # dummy > deps\\\1.Po," > tdepfile.bat
+echo %1 | sed -e "s,\(.*\)\.c,@if not exist deps\\\1.d echo # dummy > deps\\\1.d," > tdepfile.bat
 call tdepfile
 del tdepfile.bat

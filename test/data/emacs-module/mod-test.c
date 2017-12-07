@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
 #include <stdio.h>
@@ -235,6 +235,27 @@ Fmod_test_invalid_load (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return invalid_stored_value;
 }
 
+/* An invalid finalizer: Finalizers are run during garbage collection,
+   where Lisp code can’t be executed.  -module-assertions tests for
+   this case.  */
+
+static emacs_env *current_env;
+
+static void
+invalid_finalizer (void *ptr)
+{
+  current_env->intern (current_env, "nil");
+}
+
+static emacs_value
+Fmod_test_invalid_finalizer (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                             void *data)
+{
+  current_env = env;
+  env->make_user_ptr (env, invalid_finalizer, NULL);
+  return env->funcall (env, env->intern (env, "garbage-collect"), 0, NULL);
+}
+
 
 /* Lisp utilities for easier readability (simple wrappers).  */
 
@@ -300,6 +321,8 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-vector-eq", Fmod_test_vector_eq, 2, 2, NULL, NULL);
   DEFUN ("mod-test-invalid-store", Fmod_test_invalid_store, 0, 0, NULL, NULL);
   DEFUN ("mod-test-invalid-load", Fmod_test_invalid_load, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-invalid-finalizer", Fmod_test_invalid_finalizer, 0, 0,
+         NULL, NULL);
 
 #undef DEFUN
 

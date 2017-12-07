@@ -622,6 +622,15 @@ Setting a breakpoint in the function 'x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
 
+Note that the -xrm option may have no effect when you make an Emacs
+process invoked with the -nw option a server and want to trace X
+protocol errors from subsequent invocations of emacsclient in a GUI
+frame.  In that case calling the initial Emacs via
+
+emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
+
+should give more reliable results.
+
 Some bugs related to the X protocol disappear when Emacs runs in a
 synchronous mode.  To track down those bugs, we suggest the following
 procedure:
@@ -668,7 +677,7 @@ procedure:
 ** If Emacs causes errors or memory leaks in your X server
 
 You can trace the traffic between Emacs and your X server with a tool
-like xmon, available at ftp://ftp.x.org/contrib/devel_tools/.
+like xmon.
 
 Xmon can be used to see exactly what Emacs sends when X protocol errors
 happen.  If Emacs causes the X server memory usage to increase you can
@@ -942,7 +951,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

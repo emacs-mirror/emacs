@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.3.2-pre
+;; Version: 2.3.3-pre
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -33,7 +33,7 @@
 ;; should be changed only there.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.3.2-pre"
+(defconst tramp-version "2.3.3-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -55,7 +55,7 @@
 ;; Check for Emacs version.
 (let ((x (if (>= emacs-major-version 24)
     "ok"
-  (format "Tramp 2.3.2-pre is not fit for %s"
+  (format "Tramp 2.3.3-pre is not fit for %s"
 	  (when (string-match "^.*$" (emacs-version))
 	    (match-string 0 (emacs-version)))))))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))
@@ -68,7 +68,9 @@
 	 ("2.1.20" . "23.3") ("2.1.21-pre" . "23.4")
 	 ("2.2.3-24.1" . "24.1") ("2.2.3-24.1" . "24.2") ("2.2.6-24.3" . "24.3")
 	 ("2.2.9-24.4" . "24.4") ("2.2.11-24.5" . "24.5")
-	 ("2.2.13.25.1" . "25.1") ("2.2.13.25.2" . "25.2")))
+	 ("2.2.13.25.1" . "25.1") ("2.2.13.25.2" . "25.2")
+	 ("2.2.13.25.2" . "25.3")
+	 ("2.3.3.26.1" . "26.1")))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

@@ -1101,13 +1101,10 @@ These examples show typical uses of @code{error}:
 error symbol @code{error}, and a list containing the string returned by
 @code{format-message}.
 
-The @code{text-quoting-style} variable controls what quotes are
-generated; @xref{Keys in Documentation}.  A call using a format like
-@t{"Missing `%s'"} with grave accents and apostrophes typically
-generates a message like @t{"Missing ‘foo’"} with matching curved
-quotes.  In contrast, a call using a format like @t{"Missing '%s'"}
-with only apostrophes typically generates a message like @t{"Missing
-’foo’"} with only closing curved quotes, an unusual style in English.
+Typically grave accent and apostrophe in the format translate to
+matching curved quotes, e.g., @t{"Missing `%s'"} might result in
+@t{"Missing ‘foo’"}.  @xref{Text Quoting Style}, for how to influence
+or inhibit this translation.
 
 @strong{Warning:} If you want to use your own string as an error message
 verbatim, don't just write @code{(error @var{string})}.  If @var{string}

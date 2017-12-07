@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -307,7 +307,11 @@ DIRS must contain directory names."
 (defun project-find-regexp (regexp)
   "Find all matches for REGEXP in the current project's roots.
 With \\[universal-argument] prefix, you can specify the directory
-to search in, and the file name pattern to search for."
+to search in, and the file name pattern to search for.  The
+pattern may use abbreviations defined in `grep-files-aliases',
+e.g. entering `ch' is equivalent to `*.[ch]'.  As whitespace
+triggers completion when entering a pattern, including it
+requires quoting, e.g. `\\[quoted-insert]<space>'."
   (interactive (list (project--read-regexp)))
   (let* ((pr (project-current t))
          (dirs (if current-prefix-arg

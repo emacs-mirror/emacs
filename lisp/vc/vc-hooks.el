@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -882,7 +882,7 @@ In the latter case, VC mode is deactivated for this buffer."
     (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
     (define-key map "G" 'vc-ignore)
-    (define-key map "h" 'vc-insert-headers)
+    (define-key map "h" 'vc-region-history)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
     (define-key map "L" 'vc-print-root-log)

@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Original author: Masanobu UMEDA <umerin(at)mse(dot)kyutech(dot)ac(dot)jp>
 ;; Parts of this file was taken from a modified version of the original
@@ -358,13 +358,15 @@ The version numbers are of the format (Major . Minor)."
 (defcustom prolog-indent-width 4
   "The indentation width used by the editing buffer."
   :group 'prolog-indentation
-  :type 'integer)
+  :type 'integer
+  :safe 'integerp)
 
 (defcustom prolog-left-indent-regexp "\\(;\\|\\*?->\\)"
   "Regexp for `prolog-electric-if-then-else-flag'."
   :version "24.1"
   :group 'prolog-indentation
-  :type 'regexp)
+  :type 'regexp
+  :safe 'stringp)
 
 (defcustom prolog-paren-indent-p nil
   "If non-nil, increase indentation for parenthesis expressions.
@@ -374,14 +376,16 @@ right (if this variable is non-nil) or in the same way as for compound
 terms (if this variable is nil, default)."
   :version "24.1"
   :group 'prolog-indentation
-  :type 'boolean)
+  :type 'boolean
+  :safe 'booleanp)
 
 (defcustom prolog-paren-indent 4
   "The indentation increase for parenthesis expressions.
 Only used in ( If -> Then ; Else) and ( Disj1 ; Disj2 ) style expressions."
   :version "24.1"
   :group 'prolog-indentation
-  :type 'integer)
+  :type 'integer
+  :safe 'integerp)
 
 (defcustom prolog-parse-mode 'beg-of-clause
   "The parse mode used (decides from which point parsing is done).

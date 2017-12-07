@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -569,9 +569,7 @@ While this input method is active, the variable
 	    (setq describe-current-input-method-function nil)
 	    (quail-hide-guidance)
 	    (remove-hook 'post-command-hook 'quail-show-guidance t)
-	    (run-hooks
-	     'quail-inactivate-hook ; for backward compatibility
-	     'quail-deactivate-hook))
+	    (run-hooks 'quail-deactivate-hook))
 	(kill-local-variable 'input-method-function))
     ;; Let's activate Quail input method.
     (if (null quail-current-package)
@@ -2515,7 +2513,7 @@ package to describe."
       (setq buffer-read-only nil)
       ;; Without this, a keyboard layout with R2L characters might be
       ;; displayed reversed, right to left.  See the thread starting at
-      ;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00062.html
+      ;; https://lists.gnu.org/r/emacs-devel/2012-03/msg00062.html
       ;; for a description of one such situation.
       (setq bidi-paragraph-direction 'left-to-right)
       (insert "Input method: " (quail-name)
@@ -3049,7 +3047,7 @@ of each directory."
     (while quail-dirs
       (setq dirname (car quail-dirs))
       (when dirname
-	(setq pkg-list (directory-files dirname 'full "\\.el$" 'nosort))
+	(setq pkg-list (directory-files dirname 'full "\\.el$"))
 	(while pkg-list
 	  (message "Checking %s ..." (car pkg-list))
 	  (with-temp-buffer

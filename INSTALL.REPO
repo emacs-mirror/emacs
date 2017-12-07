@@ -19,7 +19,7 @@ To use the autotools, run the following shell command to generate the
 'configure' script and some related files, and to set up your git
 configuration:
 
-  $ ./autogen.sh all
+  $ ./autogen.sh
 
 You can then configure your build as follows:
 
@@ -54,7 +54,7 @@ If CPU time is not an issue, 'make bootstrap' is a more thorough way
 to rebuild, avoiding spurious problems.
 
 Occasionally, there are changes that 'make bootstrap' won't be able to
-handle.  The most thorough cleaning can be achieved by 'git clean -fx'
+handle.  The most thorough cleaning can be achieved by 'git clean -fdx'
 which will leave you with only files from the git repository.  Here
 are some faster methods for a couple of particular error cases:
 
@@ -91,4 +91,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

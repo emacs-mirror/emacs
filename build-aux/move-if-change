@@ -2,7 +2,7 @@
 # Like mv $1 $2, but if the files are the same, just delete $1.
 # Status is zero if successful, nonzero otherwise.
 
-VERSION='2016-01-11 22:04'; # UTC
+VERSION='2017-09-13 06:45'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -21,7 +21,7 @@ VERSION='2016-01-11 22:04'; # UTC
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 usage="usage: $0 SOURCE DEST"
 
@@ -39,7 +39,7 @@ Report bugs to <bug-gnulib@gnu.org>."
 version=`expr "$VERSION" : '\([^ ]*\)'`
 version="move-if-change (gnulib) $version
 Copyright (C) 2011 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law."
 

@@ -120,7 +120,7 @@ Foundation, Inc.
 @iftex
 Published by the:@*
 
-GNU Press,               @hfill @uref{http://www.fsf.org/licensing/gnu-press/}@*
+GNU Press,               @hfill @uref{https://www.fsf.org/licensing/gnu-press/}@*
 a division of the               @hfill email: @email{sales@@fsf.org}@*
 Free Software Foundation, Inc.  @hfill Tel: +1 (617) 542-5942@*
 51 Franklin Street, Fifth Floor @hfill Fax: +1 (617) 542-2652@*
@@ -128,10 +128,10 @@ Boston, MA 02110-1301 USA
 @end iftex
 
 @ifnottex
-Printed copies available from @uref{http://shop.fsf.org/}. Published by:
+Printed copies available from @uref{https://shop.fsf.org/}. Published by:
 
 @example
-GNU Press,                        http://www.fsf.org/licensing/gnu-press/
+GNU Press,                        https://www.fsf.org/licensing/gnu-press/
 a division of the                 email: sales@@fsf.org
 Free Software Foundation, Inc.    Tel: +1 (617) 542-5942
 51 Franklin Street, Fifth Floor   Fax: +1 (617) 542-2652
@@ -208,7 +208,7 @@ supports it in developing GNU and promoting software freedom.''
 @ifset WWW_GNU_ORG
 @html
 <p>The homepage for GNU Emacs is at
-<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+<a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 To view this manual in other formats, click
 <a href="/software/emacs/manual/eintr.html">here</a>.
 @end html
@@ -831,7 +831,7 @@ An expert programmer who reviewed this text said to me:
 @i{I prefer to learn from reference manuals.  I ``dive into'' each
 paragraph, and ``come up for air'' between paragraphs.}
 
-@i{When I get to the end of a paragraph, I assume that that subject is
+@i{When I get to the end of a paragraph, I assume that subject is
 done, finished, that I know everything I need (with the
 possible exception of the case when the next paragraph starts talking
 about it in more detail).  I expect that a well written reference manual
@@ -12059,7 +12059,7 @@ For more information, see
 @ref{Indicating, , Indicating, texinfo, Texinfo Manual}, which goes to
 a Texinfo manual in the current directory.  Or, if you are on the
 Internet, see
-@uref{http://www.gnu.org/software/texinfo/manual/texinfo/}
+@uref{https://www.gnu.org/software/texinfo/manual/texinfo/}
 @end ifhtml
 @iftex
 ``Indicating Definitions, Commands, etc.''@: in @cite{Texinfo, The GNU
@@ -21658,8 +21658,8 @@ can ill afford to lose manuals this way.
 Free documentation, like free software, is a matter of freedom, not
 price.  The problem with these manuals was not that O'Reilly Associates
 charged a price for printed copies---that in itself is fine.  The Free
-Software Foundation @uref{http://shop.fsf.org, sells printed copies} of
-free @uref{http://www.gnu.org/doc/doc.html, GNU manuals}, too.
+Software Foundation @uref{https://shop.fsf.org, sells printed copies} of
+free @uref{https://www.gnu.org/doc/doc.html, GNU manuals}, too.
 But GNU manuals are available in source code form, while these manuals
 are available only on paper.  GNU manuals come with permission to copy
 and modify; the Perl manuals do not.  These restrictions are the
@@ -21738,7 +21738,7 @@ copylefted manuals to non-copylefted ones.
 @noindent
 Note: The Free Software Foundation maintains a page on its Web site
 that lists free books available from other publishers:@*
-@uref{http://www.gnu.org/doc/other-free-books.html}
+@uref{https://www.gnu.org/doc/other-free-books.html}
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

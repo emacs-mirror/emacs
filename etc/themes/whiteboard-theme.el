@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -83,6 +83,16 @@
    `(outline-4 ((,class (:foreground "RoyalBlue"))))
    `(outline-5 ((,class (:foreground "DeepSkyBlue"))))
    `(primary-selection ((,class (:background "blue3"))))
+   `(realgud-overlay-arrow1  ((,class (:foreground "DarkGreen"))))
+   `(realgud-overlay-arrow2  ((,class (:foreground "DarkOliveGreen"))))
+   `(realgud-overlay-arrow3  ((,class (:foreground "gray60"))))
+   `(realgud-bp-disabled-face      ((,class (:foreground "gray60"))))
+   `(realgud-bp-line-enabled-face  ((,class (:underline "red"))))
+   `(realgud-bp-line-disabled-face ((,class (:underline "gray60"))))
+   `(realgud-file-name             ((,class :foreground "DarkGreen")))
+   `(realgud-line-number           ((,class :foreground "blue3")))
+   `(realgud-backtrace-number      ((,class :foreground "blue3" :weight bold)))
+
    `(region ((,class (:background "SkyBlue1"))))
    `(show-paren-match-face ((,class (:background "dodgerblue1" :foreground "white"))))
    `(show-paren-mismatch-face ((,class (:background "red1" :foreground "white"))))

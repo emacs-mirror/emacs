@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -75,7 +75,7 @@ Point is moved to beginning of the buffer."
 
 (ert-deftest test-json-peek ()
   (json-tests--with-temp-buffer ""
-    (should (eq (json-peek) :json-eof)))
+    (should (zerop (json-peek))))
   (json-tests--with-temp-buffer "{ \"a\": 1 }"
     (should (equal (json-peek) ?{))))
 
@@ -164,6 +164,8 @@ Point is moved to beginning of the buffer."
     (should (equal (json-read-escaped-char) ?\"))))
 
 (ert-deftest test-json-read-string ()
+  (json-tests--with-temp-buffer "\"formfeed\f\""
+    (should-error (json-read-string) :type 'json-string-format))
   (json-tests--with-temp-buffer "\"foo \\\"bar\\\"\""
     (should (equal (json-read-string) "foo \"bar\"")))
   (json-tests--with-temp-buffer "\"abcαβγ\""

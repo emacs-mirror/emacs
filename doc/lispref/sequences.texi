@@ -155,7 +155,10 @@ This function generalizes @code{aref} (@pxref{Array Functions}) and
 @cindex copying sequences
 This function returns a copy of @var{seqr}, which should be either a
 sequence or a record.  The copy is the same type of object as the
-original, and it has the same elements in the same order.
+original, and it has the same elements in the same order.  However, if
+@var{seqr} is empty, like a string or a vector of zero length, the
+value returned by this function might not be a copy, but an empty
+object of the same type and identical to @var{seqr}.
 
 Storing a new element into the copy does not affect the original
 @var{seqr}, and vice versa.  However, the elements of the copy
@@ -850,7 +853,7 @@ it is a function of two arguments to use instead of the default @code{equal}.
 @end group
 @group
 (seq-uniq '(1 2 2.0 1.0) #'=)
-@result{} [3 4]
+@result{} [1 2]
 @end group
 @end example
 @end defun

@@ -231,9 +231,9 @@
 	Make it a stub in this case; otherwise the build might fail,
 	and this code hasn't been tested on such hosts anyway.
 	Problem reported by Nelson H. F. Beebe in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00021.html>
+	<https://lists.gnu.org/r/emacs-devel/2013-03/msg00021.html>
 	and analyzed by Jérémie Courrèges-Anglas in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00062.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-03/msg00062.html>.
 
 2013-03-06  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -332,7 +332,7 @@
 	because the locking mechanism was never reliable in that case).
 	This patch fixes this and other bugs discovered by a code
 	inspection that was prompted by
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00531.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-02/msg00531.html>.
 	Also, this patch switches to .#-FILE (not .#FILE) on MS-Windows,
 	to avoid interoperability problems between the MS-Windows and
 	non-MS-Windows implementations.  MS-Windows and non-MS-Windows
@@ -494,9 +494,9 @@
 	Fix regression introduced by July 10 filelock.c patch.
 	* filelock.c (fill_in_lock_file_name): Fix crash caused by the
 	2012-07-10 patch to this file.  Reported by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00533.html>
+	<https://lists.gnu.org/r/emacs-devel/2013-02/msg00533.html>
 	and diagnosed by Andreas Schwab in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00534.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-02/msg00534.html>.
 
 2013-02-22  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -678,7 +678,7 @@
 	Improve AIX port some more (Bug#13650).
 	With this, it should be as good as it was in 23.3, though it's
 	still pretty bad: the dumped emacs does not run.  See Mark Fleishman in
-	http://lists.gnu.org/archive/html/help-gnu-emacs/2011-04/msg00287.html
+	https://lists.gnu.org/r/help-gnu-emacs/2011-04/msg00287.html
 	* unexaix.c (start_of_text): Remove.
 	(_data, _text): Declare as char[], not int, as AIX manual suggests.
 	(bias, lnnoptr, text_scnptr, data_scnptr, load_scnptr)
@@ -1087,7 +1087,7 @@
 2013-01-28  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Remove obsolete redisplay code.  See the discussion at
-	http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00576.html.
+	https://lists.gnu.org/r/emacs-devel/2013-01/msg00576.html.
 	* dispnew.c (preemption_period, preemption_next_check): Remove.
 	(Vredisplay_preemption_period): Likewise.
 	(update_frame, update_single_window, update_window, update_frame_1):
@@ -1132,7 +1132,7 @@
 
 	Drop async_visible and async_iconified fields of struct frame.
 	This is possible because async input is gone; for details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00734.html.
+	https://lists.gnu.org/r/emacs-devel/2012-12/msg00734.html.
 	* frame.h (struct frame): Remove async_visible and async_iconified
 	members, convert garbaged to unsigned bitfield.  Adjust comments.
 	(FRAME_SAMPLE_VISIBILITY): Remove.  Adjust all users.
@@ -1152,7 +1152,7 @@
 2013-01-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* insdel.c (prepare_to_modify_buffer): Revert last change as suggested
-	in http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00555.html.
+	in https://lists.gnu.org/r/emacs-devel/2013-01/msg00555.html.
 
 2013-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1255,7 +1255,7 @@
 
 	* buffer.c (sort_overlays): Use SAFE_NALLOCA, to avoid segfault
 	when there are lots of overlays.
-	See http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00421.html
+	See https://lists.gnu.org/r/emacs-devel/2013-01/msg00421.html
 	for the details and a way to reproduce.
 
 2013-01-19  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1276,7 +1276,7 @@
 
 	Allow floating-point file offsets.
 	Problem reported by Vitalie Spinu in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00411.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-01/msg00411.html>.
 	* fileio.c (emacs_lseek): Remove.
 	(file_offset): New function.
 	(Finsert_file_contents, Fwrite_region): Use it.
@@ -1314,7 +1314,7 @@
 2013-01-18  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix crash when inserting data from non-regular files.
-	See http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00406.html
+	See https://lists.gnu.org/r/emacs-devel/2013-01/msg00406.html
 	for the error description produced by valgrind.
 	* fileio.c (read_non_regular): Rename to read_contents.
 	Free Lisp_Save_Value object used to pass parameters.
@@ -1331,7 +1331,7 @@
 	* fileio.c (Finsert_file_contents): Use open+fstat, not stat+open.
 	This avoids a race if the file is renamed between stat and open.
 	This race is not the problem originally noted in Bug#13149;
-	see <http://bugs.gnu.org/13149#73> and later messages in the thread.
+	see <https://bugs.gnu.org/13149#73> and later messages in the thread.
 
 2013-01-17  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -1642,7 +1642,7 @@
 
 	* w32.c (unsetenv): Set up the string passed to _putenv
 	correctly.
-	See http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00863.html
+	See https://lists.gnu.org/r/emacs-devel/2012-12/msg00863.html
 	for the bug this caused.
 
 2012-12-30  Paul Eggert  <eggert@cs.ucla.edu>
@@ -1757,7 +1757,7 @@
 
 	* window.c (window_body_cols): Subtract display margins from the
 	window body width on TTYs as well.  See
-	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-12/msg00317.html
+	https://lists.gnu.org/r/help-gnu-emacs/2012-12/msg00317.html
 	for the original report.
 
 2012-12-25  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -1954,7 +1954,7 @@
 
 	* sysdep.c (emacs_abort): Bump backtrace size to 40.
 	Companion to the 2012-09-30 patch.  Suggested by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00796.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00796.html>.
 
 2012-12-16  Romain Francoise  <romain@orebokech.com>
 
@@ -2787,7 +2787,7 @@
 
 	* emacs.c (main): Set the G_SLICE environment variable for all
 	Cygwin builds, not just GTK builds.  See
-	https://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00368.html.
+	https://lists.gnu.org/r/emacs-devel/2012-11/msg00368.html.
 
 2012-11-21  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2802,7 +2802,7 @@
 	dostounix_filename.  Prevents crashes down the road, because
 	dostounix_filename assumes it gets a unibyte string.
 	Reported by Michel de Ruiter <michel@sentient.nl>, see
-	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00017.html
+	https://lists.gnu.org/r/help-emacs-windows/2012-11/msg00017.html
 
 2012-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2983,7 +2983,7 @@
 	* eval.c (mark_backtrace) [BYTE_MARK_STACK]: Remove stray '*'.
 	This follows up on the 2012-09-29 patch that removed indirection
 	for the 'function' field.  Reported by Sergey Vinokurov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00263.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-11/msg00263.html>.
 
 2012-11-14  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3192,7 +3192,7 @@
 	* alloc.c (struct Lisp_Vectorlike_Free): Special type to represent
 	vectorlike object on the free list.  This is introduced to avoid
 	some (but not all) pointer casting and aliasing problems, see
-	http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00105.html.
+	https://lists.gnu.org/r/emacs-devel/2012-11/msg00105.html.
 	* .gdbinit (pvectype, pvecsize): New commands to examine vectorlike
 	objects.
 	(xvectype, xvecsize): Use them to examine Lisp_Object values.
@@ -3346,9 +3346,9 @@
 	Restore some duplicate definitions (Bug#12814).
 	This undoes part of the 2012-11-03 changes.  Some people build
 	with plain -g rather than with -g3, and they need the duplicate
-	definitions for .gdbinit to work; see <http://bugs.gnu.org/12814#26>.
+	definitions for .gdbinit to work; see <https://bugs.gnu.org/12814#26>.
 	* lisp.h (GCTYPEBITS, ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK):
-	Define as macros, as well as as enums or as constants.
+	Define as macros, as well as enums or constants.
 
 2012-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -3368,7 +3368,7 @@
 
 	* window.c (Fwindow_combination_limit): Revert to the only
 	required argument and adjust docstring as suggested in
-	http://lists.gnu.org/archive/html/emacs-diffs/2012-11/msg01082.html
+	https://lists.gnu.org/r/emacs-diffs/2012-11/msg01082.html
 	by Martin Rudalics <rudalics@gmx.at>.
 
 2012-11-06  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -3568,7 +3568,7 @@
 
 	* window.c (decode_next_window_args): Update window arg after
 	calling decode_live_window and so fix crash reported at
-	http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00035.html
+	https://lists.gnu.org/r/emacs-devel/2012-11/msg00035.html
 	by Juanma Barranquero <lekktu@gmail.com>.
 	(Fwindow_body_width, Fwindow_body_height): Simplify a bit.
 	* font.c (Ffont_at): Likewise.
@@ -3789,7 +3789,7 @@
 2012-10-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* puresize.h (BASE_PURESIZE): Bump the base value to 1700000.
-	See http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00593.html
+	See https://lists.gnu.org/r/emacs-devel/2012-10/msg00593.html
 	for the reasons.
 
 	* alloc.c (NSTATICS): Decrease to 0x800.
@@ -4603,7 +4603,7 @@
 
 	* xdisp.c (syms_of_xdisp): Default message-log-max to 1000, not 100.
 	Suggested by Juri Linkov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00821.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00821.html>.
 
 	Prefer plain 'static' to 'static inline' (Bug#12541).
 	With static functions, modern compilers inline pretty well by
@@ -4884,7 +4884,7 @@
 
 	* syssignal.h (PROFILER_CPU_SUPPORT): Don't define if PROFILING.
 	Suggested by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00811.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00811.html>.
 
 2012-09-30  Eli Zaretskii  <eliz@gnu.org>
 
@@ -4929,7 +4929,7 @@
 
 	* sysdep.c (handle_fatal_signal): Bump backtrace size to 40.
 	Suggested by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00796.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00796.html>.
 
 2012-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -5079,7 +5079,7 @@
 
 	* character.c (char_string, string_char): Remove calls to
 	MAYBE_UNIFY_CHAR.  See the discussion starting at
-	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00433.html
+	https://lists.gnu.org/r/emacs-devel/2012-09/msg00433.html
 	for the details.
 
 2012-09-25  Chong Yidong  <cyd@gnu.org>
@@ -5140,7 +5140,7 @@
 	(interruptible_wait_for_termination):
 	Move these decls from lisp.h to syswait.h, since they use pid_t.
 	Needed on FreeBSD; see Herbert J. Skuhra in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00571.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00571.html>.
 	* callproc.c: Include syswait.h.
 
 	gnutls.c, gtkutil.c: Use bool for boolean.
@@ -5205,7 +5205,7 @@
 
 	Do not use SA_NODEFER.
 	Problem reported by Dani Moncayo in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00557.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00557.html>.
 	* alloc.c (die):
 	* sysdep.c (emacs_abort): Do not reset signal handler.
 	* emacs.c (terminate_due_to_signal): Reset signal handler here.
@@ -5385,7 +5385,7 @@
 
 	* .gdbinit: Just stop at fatal_error_backtrace.
 	See Stefan Monnier's request in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00549.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00549.html>.
 	Remove no-longer-used query of system type.
 
 2012-09-22  Chong Yidong  <cyd@gnu.org>
@@ -5517,7 +5517,7 @@
 
 	* w32inevt.c (w32_console_read_socket): Return -1 on failure, not 0.
 	Ignore 'expected'.  See Eli Zaretskii in
-	<http://bugs.gnu.org/12471#8> (last line).
+	<https://bugs.gnu.org/12471#8> (last line).
 
 	* frame.c (read_integer): Remove.  All uses replaced by strtol/strtoul.
 	(XParseGeometry): Now static.  Substitute extremal values for
@@ -5571,7 +5571,7 @@
 	I found that SYNC_INPUT has race conditions and would be a real
 	pain to fix.  Since it's an undocumented and deprecated
 	configure-time option, now seems like a good time to remove it.
-	Also see <http://bugs.gnu.org/11080#16>.
+	Also see <https://bugs.gnu.org/11080#16>.
 	* alloc.c (_bytes_used, __malloc_extra_blocks, _malloc_internal)
 	(_free_internal) [!DOUG_LEA_MALLOC]: Remove decls.
 	(alloc_mutex) [!SYSTEM_MALLOC && !SYNC_INPUT && HAVE_PTHREAD]:
@@ -5743,7 +5743,7 @@
 	Better workaround for GNOME bug when --enable-gcc-warnings.
 	* emacsgtkfixed.c (G_STATIC_ASSERT): Remove, undoing last change.
 	Instead, disable -Wunused-local-typedefs.  See Dmitry Antipov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00335.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00335.html>.
 
 	Simplify SIGIO usage (Bug#12408).
 	The code that dealt with SIGIO was crufty and confusing, e.g., it
@@ -6040,7 +6040,7 @@
 	More signal-handler cleanup (Bug#12327).
 	* emacs.c (main): Convert three 'signal' calls to 'sigaction' calls.
 	Problem introduced when merging patches.  Noted by Eli Zaretskii in
-	<http://bugs.gnu.org/12327#67>.
+	<https://bugs.gnu.org/12327#67>.
 	* floatfns.c: Comment fix.
 	* lisp.h (force_auto_save_soon): Declare regardless of SIGDANGER.
 	SIGDANGER might not be in scope so "#ifdef SIGDANGER" is not right,
@@ -6860,7 +6860,7 @@
 	It was meant to be temporary and it often doesn't work,
 	because when IDX has side effects the behavior of IDX==IDX
 	is undefined.  See Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00762.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-08/msg00762.html>.
 
 2012-08-26  Barry O'Reilly  <gundaetiapo@gmail.com>
 
@@ -7314,7 +7314,7 @@
 	(set_char_table_contents): Rename from char_table_set_contents.
 	(set_sub_char_table_contents): Rename from sub_char_table_set_contents.
 	All uses changed.  See the end of
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00549.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-08/msg00549.html>.
 
 	* lisp.h (CSET): Remove (Bug#12215).
 	(set_char_table_ascii, set_char_table_defalt, set_char_table_parent)
@@ -8062,7 +8062,7 @@
 	* lisp.h (ASET) [ENABLE_CHECKING]: Pay attention to
 	ARRAY_MARK_FLAG when checking subscripts, because ASET is
 	not supposed to be invoked from the garbage collector.
-	See Andreas Schwab in <http://bugs.gnu.org/12118#25>.
+	See Andreas Schwab in <https://bugs.gnu.org/12118#25>.
 	(gc_aset): New function, which is like ASET but can be
 	used in the garbage collector.
 	(set_hash_key, set_hash_value, set_hash_next, set_hash_hash)
@@ -8170,7 +8170,7 @@
 	Use "ASET (a, i, v)" rather than "AREF (a, i) = v".
 	This how ASET and AREF are supposed to work, and makes
 	it easier to think about future improvements.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00026.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-08/msg00026.html>.
 	* charset.h (set_charset_attr): New function.
 	All lvalue-style uses of CHARSET_DECODER etc. changed to use it.
 	* lisp.h (ASET): Rewrite so as not to use AREF in an lvalue style.
@@ -8573,7 +8573,7 @@
 	Adjust GDB to reflect pvec_type changes (Bug#12036).
 	* .gdbinit (xvectype, xpr, xbacktrace): Adjust to reflect the
 	2012-07-04 changes to pseudovector representation.
-	Problem reported by Eli Zaretskii in <http://bugs.gnu.org/12036#30>.
+	Problem reported by Eli Zaretskii in <https://bugs.gnu.org/12036#30>.
 
 2012-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -8614,7 +8614,7 @@
 	(xgetint): Simplify expression.
 	* alloc.c (gdb_make_enums_visible): New constant.  This ports to
 	GCC 3.4.2 the export of symbols to GDB.  Problem reported by Eli
-	Zaretskii in <http://bugs.gnu.org/12036#13>.
+	Zaretskii in <https://bugs.gnu.org/12036#13>.
 	* lisp.h (PUBLISH_TO_GDB): Remove.  All uses removed.  No longer
 	needed now that we have gdb_make_enums_visible.
 	(enum CHECK_LISP_OBJECT_TYPE, enum Lisp_Bits, enum More_Lisp_Bits)
@@ -8664,7 +8664,7 @@
 	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG, VALMASK): Move these here from
 	emacs.c, as this is a more-suitable home.  Had this been done earlier
 	the fix for 12036 would have avoided some of the problems noted in
-	<http://bugs.gnu.org/12036#13> by Eli Zaretskii, as the scope problems
+	<https://bugs.gnu.org/12036#13> by Eli Zaretskii, as the scope problems
 	would have been more obvious.
 	* emacs.c: Do not include <verify.h>; no longer needed.
 	(gdb_CHECK_LISP_OBJECT_TYPE, gdb_DATA_SEG_BITS)
@@ -8794,7 +8794,7 @@
 	Swap buffer text indirection counters in Fbuffer_swap_text.
 	* buffer.c (Fbuffer_swap_text): Swap indirections too.
 	This avoids crash reported by Christoph Scholtes at
-	http://lists.gnu.org/archive/html/bug-gnu-emacs/2012-07/msg00785.html.
+	https://lists.gnu.org/r/bug-gnu-emacs/2012-07/msg00785.html.
 
 2012-07-22  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -8830,7 +8830,7 @@
 
 	* keyboard.c (keys_of_keyboard): Bind language-change to 'ignore'
 	in special-event-map.  See the discussion at
-	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00417.html
+	https://lists.gnu.org/r/emacs-devel/2012-06/msg00417.html
 	for the reasons.
 
 	* w32menu.c (add_menu_item): Cast to ULONG_PTR when assigning
@@ -8924,7 +8924,7 @@
 
 	Tweak the value returned from Fgarbage_collect again.
 	* alloc.c (Fgarbage_collect): New return value, as confirmed in
-	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00418.html.
+	https://lists.gnu.org/r/emacs-devel/2012-07/msg00418.html.
 	Adjust documentation.
 	(total_vector_bytes): Rename to total_vector_slots, adjust
 	accounting.
@@ -8962,7 +8962,7 @@
 	* intervals.c (merge_interval_right, merge_interval_left):
 	Do not zero out this interval if it is absorbed by its children,
 	as this interval's total length doesn't change in that case.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00403.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-07/msg00403.html>.
 
 2012-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -9009,7 +9009,7 @@
 
 	Return more descriptive data from Fgarbage_collect.
 	Suggested by Stefan Monnier in
-	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00369.html.
+	https://lists.gnu.org/r/emacs-devel/2012-07/msg00369.html.
 	* alloc.c (bounded_number): New function.
 	(total_buffers, total_vectors): New variable.
 	(total_string_size): Rename to total_string_bytes, adjust users.
@@ -9034,7 +9034,7 @@
 
 	Restore old code in allocate_string_data to avoid Faset breakage.
 	Reported by Julien Danjou <julien@danjou.info> in
-	http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00371.html.
+	https://lists.gnu.org/r/emacs-devel/2012-07/msg00371.html.
 	* alloc.c (allocate_string_data): Restore old code with minor
 	adjustments, fix comment to explain this subtle issue.
 
@@ -9392,7 +9392,7 @@
 
 	Fix typos that broke OS X build.
 	Reported by Randal L. Schwartz in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00225.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-07/msg00225.html>.
 	* nsterm.m (ns_timeout): Add missing local decl.
 	(ns_get_color): snprintf -> sprintf, to fix typo.
 
@@ -9768,7 +9768,7 @@
 2012-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* systime.h (EMACS_SUB_TIME): Clarify behavior with unsigned time_t.
-	See <http://bugs.gnu.org/11825#29>.
+	See <https://bugs.gnu.org/11825#29>.
 
 2012-07-08  Eli Zaretskii  <eliz@gnu.org>
 
@@ -10115,18 +10115,18 @@
 
 	* fileio.c (time_error_value): Check the right error number.
 	Problem reported by Troels Nielsen in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00095.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-07/msg00095.html>.
 
 2012-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* window.c (set_window_hscroll): Revert the 100000 hscroll limit.
 	This should be fixed in a better way; see Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00088.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-07/msg00088.html>.
 	(HSCROLL_MAX): Remove; this is now internal to set_window_hscroll.
 
 	* fileio.c (time_error_value): Rename from special_mtime.
 	The old name's problems were noted by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00087.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-07/msg00087.html>.
 
 	* emacs.c (gdb_pvec_type): Change it back to enum pvec_type.
 	This variable's comment says Emacs needs at least one GDB-visible
@@ -10710,7 +10710,7 @@
 	Use it to avoid bogus compiler warnings with obsolescent GCC versions.
 	This improves on the previous patch, which introduced a bug
 	when time_t is unsigned and as wide as intmax_t.
-	See <http://bugs.gnu.org/9000#51>.
+	See <https://bugs.gnu.org/9000#51>.
 
 2012-06-23  Eli Zaretskii  <eliz@gnu.org>
 
@@ -10995,7 +10995,7 @@
 	* bytecode.c (METER_CODE) [BYTE_CODE_METER]: Don't assume
 	!CHECK_LISP_OBJECT_TYPE && !USE_LSB_TAG.  Problem with
 	CHECK_LISP_OBJECT_TYPE reported by Dmitry Antipov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00282.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-06/msg00282.html>.
 	(METER_1, METER_2): Simplify.
 
 2012-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -11595,7 +11595,7 @@
 	* bidi.c (bidi_mirror_char): Don't possibly truncate the integer
 	before checking whether it's out of range.  Put the check inside
 	eassert.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00485.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-05/msg00485.html>.
 
 2012-05-27  Ken Brown  <kbrown@cornell.edu>
 
@@ -12700,7 +12700,7 @@
 
 	Untag more efficiently if USE_LSB_TAG.
 	This is based on a proposal by YAMAMOTO Mitsuharu in
-	<http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01876.html>.
+	<https://lists.gnu.org/r/emacs-devel/2008-01/msg01876.html>.
 	For an admittedly artificial (nth 8000 longlist) benchmark on
 	Fedora 15 x86-64, this yields a 25% CPU speedup.  Also, it shrinks
 	Emacs's overall text size by 1%.
@@ -12726,7 +12726,7 @@
 	stack for each reader_thread, instead of defaulting to 8MB
 	determined by the linker.  This avoids failures in creating
 	subprocesses on Windows 7, see the discussion in this thread:
-	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00119.html.
+	https://lists.gnu.org/r/emacs-devel/2012-03/msg00119.html.
 
 2012-05-07  Jérémy Compostella  <jeremy.compostella@gmail.com>
 
@@ -13118,13 +13118,13 @@
 	Remove one incorrect comment and fix another.
 
 	Fix minor ralloc.c problems found by static checking.
-	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
+	See https://lists.gnu.org/r/emacs-devel/2011-12/msg00720.html
 	* ralloc.c (ALIGNED, ROUND_TO_PAGE, HEAP_PTR_SIZE)
 	(r_alloc_size_in_use, r_alloc_freeze, r_alloc_thaw): Remove; unused.
 	(r_alloc_sbrk): Now static.
 
 	Improve ralloc.c interface checking.
-	See http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00720.html
+	See https://lists.gnu.org/r/emacs-devel/2011-12/msg00720.html
 	* buffer.c (ralloc_reset_variable, r_alloc, r_re_alloc)
 	(r_alloc_free) [REL_ALLOC]: Move decls from here ...
 	* lisp.h (r_alloc, r_alloc_free, r_re_alloc, r_alloc_reset_variable)
@@ -13335,7 +13335,7 @@
 	about subtle differences between FETCH_CHAR* and STRING_CHAR*
 	macros related to unification of CJK characters.  For the details,
 	see the discussion following the message here:
-	http://debbugs.gnu.org/cgi/bugreport.cgi?bug=11073#14.
+	https://debbugs.gnu.org/cgi/bugreport.cgi?bug=11073#14.
 
 2012-04-04  Chong Yidong  <cyd@gnu.org>
 
@@ -13539,7 +13539,7 @@
 
 	Generalize fix for crash due to non-contiguous EMACS_INT (Bug#10780).
 	Suggested by Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00692.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-02/msg00692.html>.
 	* alloc.c (widen_to_Lisp_Object): New static function.
 	(mark_memory): Also mark Lisp_Objects by fetching pointer words
 	and widening them to Lisp_Objects.  This would work even if
@@ -13593,7 +13593,7 @@
 	It's useless in that case, and it can cause problems on hosts
 	that allocate halves of EMACS_INT values separately.
 	Reported by Dan Horák.  Diagnosed by Andreas Schwab in
-	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=10780#30>.
+	<https://debbugs.gnu.org/cgi/bugreport.cgi?bug=10780#30>.
 	* mem-limits.h (EXCEEDS_LISP_PTR): Define to 0 on hosts where
 	UINTPTR_MAX >> VALBITS == 0.  This is required by the above change;
 	it avoids undefined behavior on hosts where shifting right by more
@@ -13619,7 +13619,7 @@
 2012-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (MAX_IMAGE_SIZE): Increase from 6.0 to 10.0; see
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00540.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-02/msg00540.html>.
 
 2012-02-15  Chong Yidong  <cyd@gnu.org>
 
@@ -14242,7 +14242,7 @@
 	Remove GCPRO-related macros that exist only to avoid shadowing locals.
 	* lisp.h (GCPRO1_VAR, GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR)
 	(GCPRO6_VAR, UNGCPRO_VAR): Remove.  See
-	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+	<https://lists.gnu.org/r/emacs-diffs/2011-11/msg00265.html>.
 	All uses changed to use GCPRO1 etc.
 	(GCPRO1, GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6, UNGCPRO):
 	Revert to old implementation (i.e., before 2011-03-11).
@@ -14278,7 +14278,7 @@
 2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Finsert_file_contents): Undo previous change; see
-	<http://lists.gnu.org/archive/html/emacs-diffs/2011-11/msg00265.html>.
+	<https://lists.gnu.org/r/emacs-diffs/2011-11/msg00265.html>.
 
 2011-11-26  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -14379,7 +14379,7 @@
 	Standardize on VIRT_ADDR_VARIES behavior (Bug#10042).
 	Otherwise, valgrind does not work on some platforms.
 	Problem reported by Andreas Schwab in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00081.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-11/msg00081.html>.
 	* puresize.h (pure, PURE_P): Always behave as if VIRT_ADDR_VARIES
 	is set, removing the need for VIRT_ADDRESS_VARIES.
 	(PURE_P): Use a more-efficient implementation that needs just one
@@ -14545,7 +14545,7 @@
 
 	Avoid some portability problems by eschewing 'extern inline' functions.
 	The trivial performance wins aren't worth the portability hassles; see
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>
+	<https://lists.gnu.org/r/emacs-devel/2011-11/msg00084.html>
 	et seq.
 	* dispextern.h (window_box, window_box_height, window_text_bottom_y)
 	(window_box_width, window_box_left, window_box_left_offset)
@@ -14625,7 +14625,7 @@
 	(window_box_right, window_box_right_offset): Declare extern.
 	Otherwise, these inline functions do not conform to C99 and
 	are miscompiled by Microsoft compilers.  Reported by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-11/msg00084.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-11/msg00084.html>.
 	* intervals.c (adjust_intervals_for_insertion)
 	(adjust_intervals_for_deletion): Now extern, because otherwise the
 	extern inline functions 'offset_intervals' couldn't refer to it.
@@ -14959,7 +14959,7 @@
 	This doesn't change this function's behavior.
 	(current-time-zone): Rewrite to use format_time_string.
 	This fixes the bug reported by Michael Schierl in
-	<http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00334.html>.
+	<https://lists.gnu.org/r/emacs-devel/2007-06/msg00334.html>.
 	Jason Rumney's 2007-06-07 change worked around this bug, but
 	didn't fix it.
 	* systime.h (tzname, timezone): Remove no-longer-used declarations.
@@ -15144,7 +15144,7 @@
 	* charset.c (charset_table_init): New static var.
 	(syms_of_charset): Use it instead of xmalloc.  This removes a
 	dependency on glibc malloc internals.  See Eli Zaretskii's comment in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-09/msg00815.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-09/msg00815.html>.
 	* lisp.h (XMALLOC_OVERRUN_CHECK_OVERHEAD, XMALLOC_OVERRUN_CHECK_SIZE):
 	Move back to alloc.c.
 	(XMALLOC_BASE_ALIGNMENT, COMMON_MULTIPLE, XMALLOC_HEADER_ALIGNMENT)
@@ -15433,7 +15433,7 @@
 	signed integers, not unsigned.  This is to be consistent with
 	outgoing selection data, which was modified to use signed integers
 	in as part of the fix to Bug#9196 in response to Jan D.'s comment
-	in <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9196#32> that X11
+	in <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=9196#32> that X11
 	expects long, not unsigned long.
 
 2011-09-14  Eli Zaretskii  <eliz@gnu.org>
@@ -15763,7 +15763,7 @@
 	(ccl_driver): Do not generate an out-of-range pointer.
 	(Fccl_execute_on_string): Remove unnecessary check for
 	integer overflow, noted by Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-08/msg00979.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-08/msg00979.html>.
 	Remove a FIXME that didn't need fixing.
 	Simplify the newly-introduced buffer reallocation code.
 
@@ -16712,11 +16712,11 @@
 	(bidi_dump_cached_states): Use ptrdiff_t, not int, to avoid overflow.
 	(bidi_cache_ensure_space): Also check that the bidi cache size
 	does not exceed that of the largest Lisp string or buffer.  See Eli
-	Zaretskii in <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#29>.
+	Zaretskii in <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#29>.
 
 	* alloc.c (__malloc_size_t): Remove.
 	All uses replaced by size_t.  See Andreas Schwab's note
-	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#8>.
+	<https://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#8>.
 
 	* image.c: Improve checking for integer overflow.
 	(check_image_size): Assume that f is nonnull, since
@@ -16749,7 +16749,7 @@
 
 	* dispnew.c (init_display): Use *_RANGE_OVERFLOW macros.
 	The plain *_OVERFLOW macros run afoul of GCC bug 49705
-	<http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49705>
+	<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=49705>
 	and therefore cause GCC to emit a bogus diagnostic in some cases.
 
 	* image.c: Integer signedness and overflow and related fixes.
@@ -16990,7 +16990,7 @@
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to OpenBSD.
-	See http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00688.html
+	See https://lists.gnu.org/r/emacs-devel/2011-07/msg00688.html
 	and the surrounding thread.
 	* minibuf.c (read_minibuf_noninteractive): Rewrite to use getchar
 	rather than fgets, and retry after EINTR.  Otherwise, 'emacs
@@ -19316,7 +19316,7 @@
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00914.html>
+	<https://lists.gnu.org/r/emacs-devel/2011-05/msg00914.html>
 	* alloc.c, fontset.c (INLINE): Remove.
 	* alloc.c, bidi.c, charset.c, coding.c, dispnew.c, fns.c, image.c:
 	* intervals.c, keyboard.c, process.c, syntax.c, textprop.c, w32term.c:
@@ -19396,7 +19396,7 @@
 	without this change, (md5 "truc") would evaluate to
 	45723a2aff78ff4fff7fff1114760e62 rather than the expected
 	45723a2af3788c4ff17f8d1114760e62.  Reported by Antoine Levitt in
-	https://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00883.html.
+	https://lists.gnu.org/r/emacs-devel/2011-05/msg00883.html.
 
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -19620,7 +19620,7 @@
 	* systime.h (Time): Define only if emacs is defined.
 	This is to allow ../lib-src/profile.c to be compiled on FreeBSD,
 	where the include path doesn't have X11/X.h by default.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00561.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-05/msg00561.html>.
 
 2011-05-20  Kenichi Handa  <handa@m17n.org>
 
@@ -19885,7 +19885,7 @@
 
 	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
 	Reported by Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-04/msg00919.html>.
 	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
 	Use SYMBOLP-guarded XSYMBOL, not XPNTR.
 
@@ -20276,7 +20276,7 @@
 
 	* intervals.h (struct interval): Use EMACS_INT for members
 	where EMACS_UINT might cause problems.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-04/msg00514.html>.
 	(CHECK_TOTAL_LENGTH): Remove cast to EMACS_INT; no longer needed.
 	* intervals.c (interval_deletion_adjustment): Now returns EMACS_INT.
 	All uses changed.
@@ -20741,7 +20741,7 @@
 	* sysdep.c (emacs_read): Remove unnecessary check vs MAX_RW_COUNT.
 
 	emacs_write: Accept and return EMACS_INT for sizes.
-	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html
+	See https://lists.gnu.org/r/emacs-devel/2011-04/msg00514.html
 	et seq.
 	* gnutls.c, gnutls.h (emacs_gnutls_read, emacs_gnutls_write):
 	Accept and return EMACS_INT.
@@ -20755,7 +20755,7 @@
 	* process.c (send_process): Adjust to the new signatures of
 	emacs_write and emacs_gnutls_write.  Do not attempt to store
 	a byte offset into an 'int'; it might overflow.
-	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00483.html
+	See https://lists.gnu.org/r/emacs-devel/2011-04/msg00483.html
 
 	* sound.c: Don't assume sizes fit in 'int'.
 	(struct sound_device.period_size, alsa_period_size):
@@ -21225,7 +21225,7 @@
 	* sysdep.c (emacs_read, emacs_write): Check for negative sizes
 	since callers should never pass a negative size.
 	Change the signature to match that of plain 'read' and 'write'; see
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00397.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-04/msg00397.html>.
 	* lisp.h: Update prototypes of emacs_write and emacs_read.
 
 2011-04-11  Eli Zaretskii  <eliz@gnu.org>
@@ -22049,7 +22049,7 @@
 	This also avoids a (bogus) GCC warning with gcc -Wstrict-overflow.
 
 	* scroll.c (do_scrolling): Work around GCC bug 48228.
-	See <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
+	See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
 
 	* frame.c (Fmodify_frame_parameters): Simplify loop counter.
 	This also avoids a warning with gcc -Wstrict-overflow.
@@ -22615,7 +22615,7 @@
 	1152921504606846976) returns the obviously-bogus value (-948597
 	62170) on my RHEL 5.5 x86-64 host.  With the patch, it correctly
 	reports time overflow.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-03/msg00470.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-03/msg00470.html>.
 	* deps.mk (editfns.o): Depend on ../lib/intprops.h.
 	* editfns.c: Include limits.h and intprops.h.
 	(TIME_T_MIN, TIME_T_MAX): New macros.
@@ -22951,4 +22951,4 @@ See ChangeLog.11 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

@@ -18,14 +18,9 @@
 #
 # Checklist to add a new gnulib module:
 #
-#  . If the module includes source files that need to be compiled, and
-#    does not appear in the am_libgnu_a_OBJECTS list, add the
-#    corresponding .o file names to the list that gets assigned to the
-#    gl_LIBOBJS variable.
-#
-#  . If a module appears in am_libgnu_a_OBJECTS that is not required
-#    for the MSDOS build, edit it out by adding an appropriate command
-#    to the set that edits the am_libgnu_a_OBJECTS block.
+#  . If a module appears in gnulib.mk.in that is not required for the
+#    MSDOS build, disable its building by setting the corresponding
+#    OMIT_GNULIB_MODULE_foo variable to true.
 #
 #  . If the module defines functions that need to replace DJGPP
 #    functions, edit the appropriate REPLACE_foo variables to 1:
@@ -38,22 +33,22 @@
 #    as above should be placed before that catchall rule (search for
 #    "REPLACE_" below).
 #
-#  . If the module is a header or adds headers, edit the corresponding
-#    variable to either an empty value or to the name of the header.
-#    Examples:
+#  . If the module generates a header from a .in.h file, edit the
+#    corresponding variable to either an empty value or to the name of
+#    the header.  Examples:
 #
 #       /^STDINT_H *=/s/@[^@\n]*@/stdint.h/  -- stdint.h is needed
 #       /^STDDEF_H *=/s/@[^@\n]*@//          -- stddef.h is not needed
 #
 #  . Some of the headers are generated conditionally, and the
-#    corresponding recipes are guarded by @GL_GENERATE_xxxx_H_TRUE@
-#    and @GL_GENERATE_xxxx_H_FALSE@.  Depending on whether DJGPP uses
-#    the corresponding header, these should be edited either to
-#    nothing (thus exposing the recipe) or to #, which comments the
-#    recipe away.  Example:
+#    corresponding recipes are guarded by
+#      ifneq (,$(GL_GENERATE_xxxx_H))
+#    Depending on whether DJGPP uses the corresponding header, these
+#    should be edited either to 1 (thus exposing the recipe) or
+#    to nothing, which makes Make bypass the recipe away.  Example:
 #
-#       s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
-#       s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+#       s/^@GL_GENERATE_STDBOOL_H@/1/
+#       s/^@GL_GENERATE_STDINT_H@//
 #
 #  . Also edit the NEXT_foo_H and NEXT_AS_FIRST_DIRECTIVE_foo_H
 #    variables as appropriately: to an empty value if the gnulib
@@ -67,7 +62,7 @@
 #
 #  . Note that some gnulib headers cannot be left unused: those for
 #    which there's no corresponding foo_H variable in
-#    msdos/autogen/Makefile.in (example: stdio.h).  For these the "not
+#    lib/Makefile.in (example: stdio.h).  For these the "not
 #    needed" path is not applicable.
 #
 #  . If the header is needed, edit all the variables it uses as
@@ -135,8 +130,6 @@
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^VPATH *=/s/@[^@\n]*@/./
 s/@PACKAGE@/emacs/
-/^am__cd *=/c\
-am__cd = cd
 /^@BUILDING_FOR_WINDOWSNT_TRUE@/s/@[^@\n]*@/#/
 /^@BUILDING_FOR_WINDOWSNT_FALSE@/s/@[^@\n]*@//
 /^ALLOCA *=/s/@[^@\n]*@//
@@ -145,6 +138,7 @@ am__cd = cd
 /^AR *=/s/@[^@\n]*@/ar/
 /^ARFLAGS *=/s/@[^@\n]*@/cru/
 /^AWK *=/s/@[^@\n]*@/gawk/
+/^AUTO_DEPEND *=/s/@AUTO_DEPEND@/yes/
 /^CANNOT_DUMP *=/s/@[^@\n]*@/no/
 /^CC *=/s/@[^@\n]*@/gcc -std=gnu99/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
@@ -159,6 +153,7 @@ am__cd = cd
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
 /^GNULIB_WARN_CFLAGS *=/s/@GNULIB_WARN_CFLAGS@//
+/^HYBRID_MALLOC *=/s/@HYBRID_MALLOC@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^DEFS *=/s/@[^@\n]*@//
@@ -191,6 +186,7 @@ am__cd = cd
 /^GNULIB_MKOSTEMP *=/s/@GNULIB_MKOSTEMP@/1/
 /^GNULIB_MKTIME *=/s/@GNULIB_MKTIME@/1/
 /^GNULIB_TIME_R *=/s/@GNULIB_TIME_R@/1/
+/^GNULIB_TIMEGM *=/s/@GNULIB_TIMEGM@/1/
 /^GNULIB_TIME_RZ *=/s/@GNULIB_TIME_RZ@/1/
 /^GNULIB_UNSETENV *=/s/@GNULIB_UNSETENV@/1/
 /^GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
@@ -250,6 +246,7 @@ am__cd = cd
 /^HAVE_SYS_PARAM_H *=/s/@HAVE_SYS_PARAM_H@/1/
 /^HAVE_SYS_TIME_H *=/s/@HAVE_SYS_TIME_H@/1/
 /^HAVE_SYS_TYPES_H *=/s/@HAVE_SYS_TYPES_H@/1/
+/^HAVE_TIMEGM *=/s/@HAVE_TIMEGM@/0/
 /^HAVE_TYPE_VOLATILE_SIG_ATOMIC_T *=/s/@HAVE_TYPE_VOLATILE_SIG_ATOMIC_T@/1/
 /^HAVE_UNISTD_H *=/s/@HAVE_UNISTD_H@/1/
 /^HAVE_UNSIGNED_LONG_LONG_INT *=/s/@HAVE_UNSIGNED_LONG_LONG_INT@/1/
@@ -273,6 +270,7 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
@@ -289,6 +287,7 @@ am__cd = cd
 /^NEXT_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
 /^NEXT_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
 /^NEXT_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
@@ -317,6 +316,8 @@ am__cd = cd
 /^DIRENT_H *=/s/@[^@\n]*@//
 /^ERRNO_H *=/s/@[^@\n]*@//
 /^EXECINFO_H *=/s/@[^@\n]*@/execinfo.h/
+/^GETOPT_CDEFS_H *=/s/@[^@\n]*@/getopt-cdefs.h/
+/^LIMITS_H *=/s/@[^@\n]*@/limits.h/
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
 /^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
@@ -330,6 +331,8 @@ am__cd = cd
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
 /^WINDOWS_64_BIT_OFF_T *=/s/@WINDOWS_64_BIT_OFF_T@/0/
 /^WINDOWS_64_BIT_ST_SIZE *=/s/@WINDOWS_64_BIT_ST_SIZE@/0/
+/^WINDOWS_STAT_INODES *=/s/@WINDOWS_STAT_INODES@/0/
+/^WINDOWS_STAT_TIMESPEC *=/s/@WINDOWS_STAT_TIMESPEC@/0/
 # Tailor lists of files to what we need
 /am__append_[1-9][0-9]* *=.*gettext\.h/s/@[^@\n]*@/\#/
 /am__append_2 *=.*verify\.h/s/@[^@\n]*@//
@@ -357,15 +360,18 @@ am__cd = cd
 /^top_builddir *=/s/@[^@\n]*@/../
 s/@PRAGMA_SYSTEM_HEADER@/\#pragma GCC system_header/
 s/@PRAGMA_COLUMNS@//
+/^SYSTEM_TYPE *=/s/@SYSTEM_TYPE@/msdos/
+/^ifneq (\$(SYSTEM_TYPE),windows-nt)/,/^endif/d
+/^DEPDIR *=/a\
+AUTO_DEPEND = yes
 #
 # Delete the recipes we don't want to get in our way.
-/^\$(srcdir)\/Makefile\.in:/,/^[ 	][ 	]*\$(AUTOMAKE)/d
-/^Makefile:/,/^[ 	][ 	]*esac/d
-/^\$(top_srcdir)\/configure:/,/^\$(am__aclocal_m4_deps):/d
-/^\$(top_builddir)\/config.status:/,/^$/d
+/^\.\.\/config.status:/,/^Makefile:/c\
+Makefile: $(srcdir)/Makefile.in
 #
 # Remove the dependencies on $(top_builddir)/config.status
-s/ $(top_builddir)\/config.status//
+s/ \.\.\/config.status//
+s/ \$(top_builddir)\/config.status//
 #
 # Fix the include-dependency lines
 s/^@AMDEP_TRUE@//
@@ -387,23 +393,53 @@ CONFIG_CLEAN_VPATH_FILES = xyzzy
 s/^	-*test -z.*|| rm/	 -rm/
 s/@echo /@djecho /
 #
-# Fix the recipes for header files
-s/^@GL_GENERATE_ALLOCA_H_TRUE@//
-s/^@GL_GENERATE_ALLOCA_H_FALSE@/\#/
-s/^@GL_GENERATE_BYTESWAP_H_TRUE@//
-s/^@GL_GENERATE_BYTESWAP_H_FALSE@/\#/
-s/^@GL_GENERATE_ERRNO_H_TRUE@/\#/
-s/^@GL_GENERATE_ERRNO_H_FALSE@//
-s/^@GL_GENERATE_EXECINFO_H_TRUE@//
-s/^@GL_GENERATE_EXECINFO_H_FALSE@/\#/
-s/^@GL_GENERATE_STDALIGN_H_TRUE@//
-s/^@GL_GENERATE_STDALIGN_H_FALSE@/\#/
-s/^@GL_GENERATE_STDDEF_H_TRUE@//
-s/^@GL_GENERATE_STDDEF_H_FALSE@/\#/
-s/^@GL_GENERATE_STDINT_H_TRUE@//
-s/^@GL_GENERATE_STDINT_H_FALSE@/\#/
-s/^@GL_GENERATE_STDALIGN_H_TRUE@//
-s/^@GL_GENERATE_STDALIGN_H_FALSE@/\#/
+# Determine which headers to generate
+s/= @GL_GENERATE_ALLOCA_H@/= 1/
+s/= @GL_GENERATE_BYTESWAP_H@/= 1/
+s/= @GL_GENERATE_EXECINFO_H@/= 1/
+s/= @GL_GENERATE_STDALIGN_H@/= 1/
+s/= @GL_GENERATE_STDDEF_H@/= 1/
+s/= @GL_GENERATE_STDINT_H@/= 1/
+s/= @GL_GENERATE_LIMITS_H@/= 1/
+s/= @GL_GENERATE_ERRNO_H@/= /
+s/= @GL_GENERATE_LIMITS_H@/= /
+#
+# Determine which modules to build and which to omit
+/^noinst_LIBRARIES /a\
+OMIT_GNULIB_MODULE_acl-permissions = true\
+OMIT_GNULIB_MODULE_allocator = true\
+OMIT_GNULIB_MODULE_at-internal = true\
+OMIT_GNULIB_MODULE_careadlinkat = true\
+OMIT_GNULIB_MODULE_cloexec = true\
+OMIT_GNULIB_MODULE_dirent = true\
+OMIT_GNULIB_MODULE_dirfd = true\
+OMIT_GNULIB_MODULE_dup2 = true\
+OMIT_GNULIB_MODULE_errno = true\
+OMIT_GNULIB_MODULE_euidaccess = true\
+OMIT_GNULIB_MODULE_faccessat = true\
+OMIT_GNULIB_MODULE_fcntl = true\
+OMIT_GNULIB_MODULE_fdopendir = true\
+OMIT_GNULIB_MODULE_fstatat = true\
+OMIT_GNULIB_MODULE_fsync = true\
+OMIT_GNULIB_MODULE_getdtablesize = true\
+OMIT_GNULIB_MODULE_getgroups = true\
+OMIT_GNULIB_MODULE_gettimeofday = true\
+OMIT_GNULIB_MODULE_group-member = true\
+OMIT_GNULIB_MODULE_inttypes-incomplete = true\
+OMIT_GNULIB_MODULE_localtime-buffer = true\
+OMIT_GNULIB_MODULE_lstat = true\
+OMIT_GNULIB_MODULE_open = true\
+OMIT_GNULIB_MODULE_pipe2 = true\
+OMIT_GNULIB_MODULE_pselect = true\
+OMIT_GNULIB_MODULE_putenv = true\
+OMIT_GNULIB_MODULE_qcopy-acl = true\
+OMIT_GNULIB_MODULE_readlink = true\
+OMIT_GNULIB_MODULE_readlinkat = true\
+OMIT_GNULIB_MODULE_strtoimax = true\
+OMIT_GNULIB_MODULE_strtoll = true\
+OMIT_GNULIB_MODULE_symlink = true\
+OMIT_GNULIB_MODULE_sys_select = true\
+OMIT_GNULIB_MODULE_sys_time = true
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@
@@ -416,6 +452,7 @@ warn-on-use.h: $(top_srcdir)/build-aux/snippet/warn-on-use.h\
 s/^	[ 	]*{ echo \(.*\); \\/	 djecho \1 > $@-t/
 s/^	[ 	]*{ echo \(.*\) && \\/	 djecho \1 > $@-t/
 s/^	[ 	]*cat \(.*\); \\/	 sed -e '' \1 >> $@-t/
+s/^          sed -e/	  sed -e/
 s/ \&\& \\ *$//
 s/\.in-h\;  *\\$/.in-h >> $@-t/
 /^	[ 	]*} /d

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -544,7 +544,7 @@
 	  (if (and (eq (car-safe nn) 'frac) (eq (nth 1 nn) 1) (not n))
 	      (unless (and (eq (car-safe math-simplify-expr) 'calcFunc-eq)
                            (eq (car-safe (nth 1 math-simplify-expr)) 'var)
-                           (not (math-expr-contains (nth 2 math-simplify-expr) 
+                           (not (math-expr-contains (nth 2 math-simplify-expr)
                                                     (nth 1 math-simplify-expr))))
 		(setcar (cdr math-simplify-expr)
                         (math-mul (nth 2 nn) (nth 1 math-simplify-expr)))

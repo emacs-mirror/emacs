@@ -92,7 +92,7 @@ arguments.)
 @itemx --visit=@var{file}
 @cindex visiting files, command-line argument
 @vindex inhibit-startup-buffer-menu
-Visit @var{file} using @code{find-file}.  @xref{Visiting}.
+Visit the specified @var{file}.  @xref{Visiting}.
 
 When Emacs starts up, it displays the startup buffer in one window,
 and the buffer visiting @var{file} in another window
@@ -111,12 +111,12 @@ Buffer Menu for this, change the variable
 
 @item +@var{linenum} @var{file}
 @opindex +@var{linenum}
-Visit @var{file} using @code{find-file}, then go to line number
-@var{linenum} in it.
+Visit the specified @var{file}, then go to line number @var{linenum}
+in it.
 
 @item +@var{linenum}:@var{columnnum} @var{file}
-Visit @var{file} using @code{find-file}, then go to line number
-@var{linenum} and put point at column number @var{columnnum}.
+Visit the specified @var{file}, then go to line number @var{linenum}
+and put point at column number @var{columnnum}.
 
 @item -l @var{file}
 @opindex -l
@@ -365,6 +365,14 @@ own@footnote{This option has no effect on MS-Windows.}.
 Enable the Emacs Lisp debugger for errors in the init file.
 @xref{Error Debugging,, Entering the Debugger on an Error, elisp, The
 GNU Emacs Lisp Reference Manual}.
+
+@item --module-assertions
+@opindex --module-assertions
+@cindex module verification
+Enable expensive correctness checks when dealing with dynamically
+loadable modules.  This is intended for module authors that wish to
+verify that their module conforms to the module API requirements.  The
+option makes Emacs abort if a module-related assertion triggers.
 @end table
 
 @node Command Example
@@ -458,7 +466,7 @@ variables to be set, but it uses their values if they are set.
 @item CDPATH
 @vindex CDPATH, environment variable
 Used by the @code{cd} command to search for the directory you specify,
-when you specify a relative directory name.
+when you specify a relative directory,
 @item DBUS_SESSION_BUS_ADDRESS
 @vindex DBUS_SESSION_BUS_ADDRESS, environment variable
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no

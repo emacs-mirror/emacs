@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -60,7 +60,7 @@ active, you must toggle the mode off and on again for this to take effect."
 
 (defcustom show-paren-priority 1000
   "Priority of paren highlighting overlays."
-  :type 'integer 
+  :type 'integer
   :version "21.1")
 
 (defcustom show-paren-ring-bell-on-mismatch nil
@@ -247,13 +247,21 @@ It is the default value of `show-paren-data-function'."
              (there-beg (nth 2 data))
              (there-end (nth 3 data))
              (mismatch (nth 4 data))
+             (highlight-expression
+              (or (eq show-paren-style 'expression)
+                  (and there-beg
+                       (eq show-paren-style 'mixed)
+                       (let ((closest (if (< there-beg here-beg)
+                                          (1- there-end) (1+ there-beg))))
+                         (not (pos-visible-in-window-p closest))))))
              (face
-              (if mismatch
-                  (progn
-                    (if show-paren-ring-bell-on-mismatch
-                        (beep))
-                    'show-paren-mismatch)
-                'show-paren-match)))
+              (cond
+               (mismatch
+                (if show-paren-ring-bell-on-mismatch
+                    (beep))
+                'show-paren-mismatch)
+               (highlight-expression 'show-paren-match-expression)
+               (t 'show-paren-match))))
         ;;
         ;; If matching backwards, highlight the closeparen
         ;; before point as well as its matching open.
@@ -276,11 +284,7 @@ It is the default value of `show-paren-data-function'."
         ;; If it's an unmatched paren, turn off any such highlighting.
         (if (not there-beg)
             (delete-overlay show-paren--overlay)
-          (if (or (eq show-paren-style 'expression)
-                  (and (eq show-paren-style 'mixed)
-                       (let ((closest (if (< there-beg here-beg)
-                                          (1- there-end) (1+ there-beg))))
-                         (not (pos-visible-in-window-p closest)))))
+          (if highlight-expression
               (move-overlay show-paren--overlay
 			    (if (< there-beg here-beg) here-end here-beg)
                             (if (< there-beg here-beg) there-beg there-end)

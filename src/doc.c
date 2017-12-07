@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -336,6 +336,8 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   fun = Findirect_function (function, Qnil);
+  if (NILP (fun))
+    xsignal1 (Qvoid_function, function);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
   if (SUBRP (fun))
@@ -470,7 +472,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 {
   /* Don't use indirect_function here, or defaliases will apply their
      docstrings to the base functions (Bug#2603).  */
-  Lisp_Object fun = SYMBOLP (obj) ? XSYMBOL (obj)->function : obj;
+  Lisp_Object fun = SYMBOLP (obj) ? XSYMBOL (obj)->u.s.function : obj;
 
   /* The type determines where the docstring is stored.  */
 
@@ -538,7 +540,7 @@ the same file name is found in the `doc-directory'.  */)
   char const *dirname;
   ptrdiff_t dirlen;
   /* Preloaded defcustoms using custom-initialize-delay are added to
-     this list, but kept unbound.  See http://debbugs.gnu.org/11565  */
+     this list, but kept unbound.  See https://debbugs.gnu.org/11565  */
   Lisp_Object delayed_init =
     find_symbol_value (intern ("custom-delayed-init-variables"));
 

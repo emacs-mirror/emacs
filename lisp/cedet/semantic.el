@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -389,10 +389,9 @@ the output buffer."
   (if clear (semantic-clear-toplevel-cache))
   (if (eq clear '-) (setq clear -1))
   (let* ((start (current-time))
-	 (out (semantic-fetch-tags))
-	 (end (current-time)))
+	 (out (semantic-fetch-tags)))
     (message "Retrieving tags took %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (when (or (null clear) (not (listp clear))
 	      (and (numberp clear) (< 0 clear)))
       (pop-to-buffer "*Parser Output*")

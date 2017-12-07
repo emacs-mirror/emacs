@@ -1,4 +1,4 @@
-;;; ob-plantuml.el --- org-babel functions for plantuml evaluation
+;;; ob-plantuml.el --- Babel Functions for Plantuml  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -46,35 +46,76 @@
   :version "24.1"
   :type 'string)
 
+(defun org-babel-variable-assignments:plantuml (params)
+  "Return a list of PlantUML statements assigning the block's variables.
+PARAMS is a property list of source block parameters, which may
+contain multiple entries for the key `:var'.  `:var' entries in PARAMS
+are expected to be scalar variables."
+  (mapcar
+   (lambda (pair)
+       (format "!define %s %s"
+	       (car pair)
+	       (replace-regexp-in-string "\"" "" (cdr pair))))
+   (org-babel--get-vars params)))
+
+(defun org-babel-plantuml-make-body (body params)
+  "Return PlantUML input string.
+BODY is the content of the source block and PARAMS is a property list
+of source block parameters.  This function relies on the
+`org-babel-expand-body:generic' function to extract `:var' entries
+from PARAMS and on the `org-babel-variable-assignments:plantuml'
+function to convert variables to PlantUML assignments."
+  (concat
+   "@startuml\n"
+   (org-babel-expand-body:generic
+    body params (org-babel-variable-assignments:plantuml params))
+   "\n@enduml"))
+
 (defun org-babel-execute:plantuml (body params)
   "Execute a block of plantuml code with org-babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	 (out-file (or (cdr (assoc :file params))
+  (let* ((out-file (or (cdr (assq :file params))
 		       (error "PlantUML requires a \":file\" header argument")))
-	 (cmdline (cdr (assoc :cmdline params)))
+	 (cmdline (cdr (assq :cmdline params)))
 	 (in-file (org-babel-temp-file "plantuml-"))
-	 (java (or (cdr (assoc :java params)) ""))
+	 (java (or (cdr (assq :java params)) ""))
+	 (full-body (org-babel-plantuml-make-body body params))
 	 (cmd (if (string= "" org-plantuml-jar-path)
 		  (error "`org-plantuml-jar-path' is not set")
 		(concat "java " java " -jar "
 			(shell-quote-argument
 			 (expand-file-name org-plantuml-jar-path))
+			(if (string= (file-name-extension out-file) "png")
+			    " -tpng" "")
 			(if (string= (file-name-extension out-file) "svg")
 			    " -tsvg" "")
 			(if (string= (file-name-extension out-file) "eps")
 			    " -teps" "")
+			(if (string= (file-name-extension out-file) "pdf")
+			    " -tpdf" "")
+			(if (string= (file-name-extension out-file) "vdx")
+			    " -tvdx" "")
+			(if (string= (file-name-extension out-file) "xmi")
+			    " -txmi" "")
+			(if (string= (file-name-extension out-file) "scxml")
+			    " -tscxml" "")
+			(if (string= (file-name-extension out-file) "html")
+			    " -thtml" "")
+			(if (string= (file-name-extension out-file) "txt")
+			    " -ttxt" "")
+			(if (string= (file-name-extension out-file) "utxt")
+			    " -utxt" "")
 			" -p " cmdline " < "
 			(org-babel-process-file-name in-file)
 			" > "
 			(org-babel-process-file-name out-file)))))
     (unless (file-exists-p org-plantuml-jar-path)
       (error "Could not find plantuml.jar at %s" org-plantuml-jar-path))
-    (with-temp-file in-file (insert (concat "@startuml\n" body "\n@enduml")))
+    (with-temp-file in-file (insert full-body))
     (message "%s" cmd) (org-babel-eval cmd "")
     nil)) ;; signal that output has already been written to file
 
-(defun org-babel-prep-session:plantuml (session params)
+(defun org-babel-prep-session:plantuml (_session _params)
   "Return an error because plantuml does not support sessions."
   (error "Plantuml does not support sessions"))
 

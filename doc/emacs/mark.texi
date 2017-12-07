@@ -367,7 +367,7 @@ of buffers that you have been in, and, for each buffer, a place where
 you set the mark.  The length of the global mark ring is controlled by
 @code{global-mark-ring-max}, and is 16 by default.
 
-@kindex C-x C-@key{SPC}
+@kindex C-x C-SPC
 @findex pop-global-mark
   The command @kbd{C-x C-@key{SPC}} (@code{pop-global-mark}) jumps to
 the buffer and position of the latest entry in the global ring.  It also
@@ -449,7 +449,7 @@ using @kbd{C-@key{SPC} C-@key{SPC}} or @kbd{C-u C-x C-x}.
 
 @table @kbd
 @item C-@key{SPC} C-@key{SPC}
-@kindex C-@key{SPC} C-@key{SPC}
+@kindex C-SPC C-SPC
 Set the mark at point (like plain @kbd{C-@key{SPC}}) and enable
 Transient Mark mode just once, until the mark is deactivated.  (This
 is not really a separate command; you are using the @kbd{C-@key{SPC}}

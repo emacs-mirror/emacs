@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* If you think about replacing this with some similar standard C function of
    the printf family (such as vsnprintf), please note that this function
@@ -503,7 +503,7 @@ esprintf (char *buf, char const *format, ...)
   return nbytes;
 }
 
-#if HAVE_MODULES || (defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT)
+#if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 
 /* Format to buffer *BUF of positive size *BUFSIZE, reallocating *BUF
    and updating *BUFSIZE if the buffer is too small, and otherwise

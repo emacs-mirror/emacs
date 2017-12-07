@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -452,14 +452,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	 the table clearer.  */
 #define LABEL(OP) [OP] = &&insn_ ## OP
 
-#if GNUC_PREREQ (4, 6, 0)
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Woverride-init"
-#elif defined __clang__
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Winitializer-overrides"
-#endif
-
       /* This is the dispatch table for the threaded interpreter.  */
       static const void *const targets[256] =
 	{
@@ -470,10 +462,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  BYTE_CODES
 #undef DEFINE
 	};
-
-#if GNUC_PREREQ (4, 6, 0) || defined __clang__
-# pragma GCC diagnostic pop
-#endif
 
 #endif
 
@@ -501,7 +489,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  {
 	    Lisp_Object v1 = vectorp[op], v2;
 	    if (!SYMBOLP (v1)
-		|| XSYMBOL (v1)->redirect != SYMBOL_PLAINVAL
+		|| XSYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
 		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
 	    PUSH (v2);
@@ -570,7 +558,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
-		&& !XSYMBOL (sym)->redirect
+		&& !XSYMBOL (sym)->u.s.redirect
 		&& !SYMBOL_TRAPPED_WRITE_P (sym))
 	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
 	    else
@@ -1358,10 +1346,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
-	  call3 (Qerror,
-		 build_string ("Invalid byte opcode: op=%s, ptr=%d"),
-		 make_number (op),
-		 make_number (pc - 1 - bytestr_data));
+	  error ("Invalid byte opcode: op=%d, ptr=%"pD"d",
+		 op, pc - 1 - bytestr_data);
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):

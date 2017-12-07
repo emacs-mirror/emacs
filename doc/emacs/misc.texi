@@ -661,7 +661,7 @@ available.
 (either in the @var{cmd} argument to one of the above commands, or in
 other contexts), Emacs searches for the program in the directories
 specified by the variable @code{exec-path}.  The value of this
-variable must be a list of directory names; the default value is
+variable must be a list of directories; the default value is
 initialized from the environment variable @env{PATH} when Emacs is
 started (@pxref{General Variables}).
 
@@ -741,6 +741,11 @@ option @code{async-shell-command-buffer} specifies what to do about
 this; e.g., whether to rename the pre-existing output buffer, or to
 use a different buffer for the new command.  Consult the variable's
 documentation for more possibilities.
+
+@vindex async-shell-command-display-buffer
+  If you want the output buffer for asynchronous shell commands to be
+displayed only when the command generates output, set
+@code{async-shell-command-display-buffer} to @code{nil}.
 
 @kindex M-|
 @findex shell-command-on-region
@@ -1816,8 +1821,10 @@ listed below:
 @table @samp
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
-Specify a command to run if @code{emacsclient} fails to contact Emacs.
+Specify a shell command to run if @code{emacsclient} fails to contact Emacs.
 This is useful when running @code{emacsclient} in a script.
+The command may include arguments, which may be quoted "like this".
+Currently, escaping of quotes is not supported.
 
 As a special exception, if @var{command} is the empty string, then
 @code{emacsclient} starts Emacs in daemon mode (as @command{emacs
@@ -2808,7 +2815,7 @@ Find @var{filename}, guessing a default from text around point
 @code{ffap-alternate-file}, analogous to @code{find-alternate-file}.
 @item C-x d @var{directory} @key{RET}
 @kindex C-x d @r{(FFAP)}
-Start Dired on @var{directory}, defaulting to the directory name at
+Start Dired on @var{directory}, defaulting to the directory at
 point (@code{dired-at-point}).
 @item C-x C-d
 @code{ffap-list-directory}, analogous to @code{list-directory}.

@@ -1,4 +1,4 @@
-# warnings.m4 serial 11
+# warnings.m4 serial 13
 dnl Copyright (C) 2008-2017 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -20,10 +20,12 @@ m4_ifdef([AS_VAR_APPEND],
 # -----------------------------------------------------------------
 # Check if the compiler supports OPTION when compiling PROGRAM.
 #
-# FIXME: gl_Warn must be used unquoted until we can assume Autoconf
-# 2.64 or newer.
+# The effects of this macro depend on the current language (_AC_LANG).
 AC_DEFUN([gl_COMPILER_OPTION_IF],
-[AS_VAR_PUSHDEF([gl_Warn], [gl_cv_warn_[]_AC_LANG_ABBREV[]_$1])dnl
+[
+dnl FIXME: gl_Warn must be used unquoted until we can assume Autoconf
+dnl 2.64 or newer.
+AS_VAR_PUSHDEF([gl_Warn], [gl_cv_warn_[]_AC_LANG_ABBREV[]_$1])dnl
 AS_VAR_PUSHDEF([gl_Flags], [_AC_LANG_PREFIX[]FLAGS])dnl
 AS_LITERAL_IF([$1],
   [m4_pushdef([gl_Positive], m4_bpatsubst([$1], [^-Wno-], [-W]))],
@@ -51,27 +53,52 @@ AS_VAR_POPDEF([gl_Warn])dnl
 # ------------------------------
 # Clang doesn't complain about unknown warning options unless one also
 # specifies -Wunknown-warning-option -Werror.  Detect this.
+#
+# The effects of this macro depend on the current language (_AC_LANG).
 AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS],
+[_AC_LANG_DISPATCH([$0], _AC_LANG, $@)])
+
+# Specialization for _AC_LANG = C. This macro can be AC_REQUIREd.
+# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
+m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C)],
+[
+  AC_LANG_PUSH([C])
+  gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL
+  AC_LANG_POP([C])
+])
+
+# Specialization for _AC_LANG = C++. This macro can be AC_REQUIREd.
+# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
+m4_defun([gl_UNKNOWN_WARNINGS_ARE_ERRORS(C++)],
+[
+  AC_LANG_PUSH([C++])
+  gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL
+  AC_LANG_POP([C++])
+])
+
+AC_DEFUN([gl_UNKNOWN_WARNINGS_ARE_ERRORS_IMPL],
 [gl_COMPILER_OPTION_IF([-Werror -Wunknown-warning-option],
    [gl_unknown_warnings_are_errors='-Wunknown-warning-option -Werror'],
    [gl_unknown_warnings_are_errors=])])
 
-# gl_WARN_ADD(OPTION, [VARIABLE = WARN_CFLAGS],
+# gl_WARN_ADD(OPTION, [VARIABLE = WARN_CFLAGS/WARN_CXXFLAGS],
 #             [PROGRAM = AC_LANG_PROGRAM()])
-# ---------------------------------------------
-# Adds parameter to WARN_CFLAGS if the compiler supports it when
-# compiling PROGRAM.  For example, gl_WARN_ADD([-Wparentheses]).
+# -----------------------------------------------------------
+# Adds parameter to WARN_CFLAGS/WARN_CXXFLAGS if the compiler supports it
+# when compiling PROGRAM.  For example, gl_WARN_ADD([-Wparentheses]).
 #
 # If VARIABLE is a variable name, AC_SUBST it.
+#
+# The effects of this macro depend on the current language (_AC_LANG).
 AC_DEFUN([gl_WARN_ADD],
-[AC_REQUIRE([gl_UNKNOWN_WARNINGS_ARE_ERRORS])
+[AC_REQUIRE([gl_UNKNOWN_WARNINGS_ARE_ERRORS(]_AC_LANG[)])
 gl_COMPILER_OPTION_IF([$1],
-  [gl_AS_VAR_APPEND(m4_if([$2], [], [[WARN_CFLAGS]], [[$2]]), [" $1"])],
+  [gl_AS_VAR_APPEND(m4_if([$2], [], [[WARN_]_AC_LANG_PREFIX[FLAGS]], [[$2]]), [" $1"])],
   [],
   [$3])
 m4_ifval([$2],
          [AS_LITERAL_IF([$2], [AC_SUBST([$2])])],
-         [AC_SUBST([WARN_CFLAGS])])dnl
+         [AC_SUBST([WARN_]_AC_LANG_PREFIX[FLAGS])])dnl
 ])
 
 # Local Variables:

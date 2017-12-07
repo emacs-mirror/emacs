@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -84,7 +84,7 @@ Currently under control of this var:
 (progn
   ;; Arrange for field access not to bother checking if the access is indeed
   ;; made to an eieio--class object.
-  (cl-declaim (optimize (safety 0)))
+  (eval-when-compile (cl-declaim (optimize (safety 0))))
 
 (cl-defstruct (eieio--class
                (:constructor nil)
@@ -103,8 +103,12 @@ Currently under control of this var:
   options ;; storage location of tagged class option
           ; Stored outright without modifications or stripping
   )
-  ;; Set it back to the default value.
-  (cl-declaim (optimize (safety 1))))
+  ;; Set it back to the default value.  NOTE: Using the default
+  ;; `safety' value does NOT give the default
+  ;; `byte-compile-delete-errors' value.  Therefore limit this (and
+  ;; the above `cl-declaim') to compile time so that we don't affect
+  ;; code which only loads this library.
+  (eval-when-compile (cl-declaim (optimize (safety 1)))))
 
 
 (eval-and-compile

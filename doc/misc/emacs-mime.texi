@@ -405,7 +405,7 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
 This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{gnus-article-html},
+renderers are selected by the symbols @code{shr}, @code{gnus-w3m},
 @code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
 information about emacs-w3m}, @code{links}, @code{lynx},
 @code{w3m-standalone} or @code{html2text}.  If @code{nil} use an

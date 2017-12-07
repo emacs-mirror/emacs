@@ -12,7 +12,7 @@ dnl A wrapper around AC_FUNC_GETGROUPS.
 m4_version_prereq([2.70], [] ,[
 
 # This is taken from the following Autoconf patch:
-# http://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commitdiff;h=7fbb553727ed7e0e689a17594b58559ecf3ea6e9
+# https://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commitdiff;h=7fbb553727ed7e0e689a17594b58559ecf3ea6e9
 AC_DEFUN([AC_FUNC_GETGROUPS],
 [
   AC_REQUIRE([AC_TYPE_GETGROUPS])dnl

@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Contributed by Morten Welinder */
 /* New display, keyboard, and mouse control by Kim F. Storm */
@@ -1791,7 +1791,7 @@ internal_terminal_init (void)
 	}
 
       Vinitial_window_system = Qpc;
-      Vwindow_system_version = make_number (26); /* RE Emacs version */
+      Vwindow_system_version = make_number (27); /* RE Emacs version */
       tty->terminal->type = output_msdos_raw;
 
       /* If Emacs was dumped on DOS/V machine, forget the stale VRAM
@@ -3943,6 +3943,8 @@ careadlinkat (int fd, char const *filename,
 int
 faccessat (int dirfd, const char * path, int mode, int flags)
 {
+  char fullname[MAXPATHLEN];
+
   /* We silently ignore FLAGS.  */
   flags = flags;
 
@@ -3950,9 +3952,22 @@ faccessat (int dirfd, const char * path, int mode, int flags)
       && !(IS_DIRECTORY_SEP (path[0])
 	   || IS_DEVICE_SEP (path[1])))
     {
-      errno = EBADF;
-      return -1;
+      char lastc = dir_pathname[strlen (dir_pathname) - 1];
+
+      if (strlen (dir_pathname) + strlen (path) + IS_DIRECTORY_SEP (lastc)
+	  >= MAXPATHLEN)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+
+      sprintf (fullname, "%s%s%s",
+	       dir_pathname, IS_DIRECTORY_SEP (lastc) ? "" : "/", path);
+      path = fullname;
     }
+
+  if ((mode & F_OK) != 0 && IS_DIRECTORY_SEP (path[strlen (path) - 1]))
+    mode |= D_OK;
 
   return access (path, mode);
 }

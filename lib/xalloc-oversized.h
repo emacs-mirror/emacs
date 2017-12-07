@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef XALLOC_OVERSIZED_H_
 #define XALLOC_OVERSIZED_H_
@@ -44,7 +44,7 @@ typedef size_t __xalloc_count_type;
 #if 7 <= __GNUC__
 # define xalloc_oversized(n, s) \
    __builtin_mul_overflow_p (n, s, (__xalloc_count_type) 1)
-#elif 5 <= __GNUC__ && !__STRICT_ANSI__
+#elif 5 <= __GNUC__ && !defined __ICC && !__STRICT_ANSI__
 # define xalloc_oversized(n, s) \
    (__builtin_constant_p (n) && __builtin_constant_p (s) \
     ? __xalloc_oversized (n, s) \

@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _LIBGETTEXT_H
 #define _LIBGETTEXT_H 1
@@ -185,7 +185,8 @@ npgettext_aux (const char *domain,
 #include <string.h>
 
 #if (((__GNUC__ >= 3 || __GNUG__ >= 2) && !defined __STRICT_ANSI__) \
-     /* || __STDC_VERSION__ >= 199901L */ )
+     /* || __STDC_VERSION__ == 199901L
+        || (__STDC_VERSION__ >= 201112L && !defined __STDC_NO_VLA__) */ )
 # define _LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS 1
 #else
 # define _LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS 0

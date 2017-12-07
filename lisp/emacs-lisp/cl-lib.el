@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -287,14 +287,6 @@ If true return the decimal value of digit CHAR in RADIX."
       (signal 'args-out-of-range (list 'radix radix '(2 36))))
   (let ((n (aref cl-digit-char-table char)))
     (and n (< n (or radix 10)) n)))
-
-(defun cl--random-time ()
-  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
-    (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
-    v))
-
-(defvar cl--random-state
-  (vector 'cl--random-state-tag -1 30 (cl--random-time)))
 
 (defconst cl-most-positive-float nil
   "The largest value that a Lisp float can hold.
@@ -639,7 +631,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
   (require 'cl-seq))
 
 (defun cl--old-struct-type-of (orig-fun object)
-  (or (and (vectorp object)
+  (or (and (vectorp object) (> (length object) 0)
            (let ((tag (aref object 0)))
              (when (and (symbolp tag)
                         (string-prefix-p "cl-struct-" (symbol-name tag)))

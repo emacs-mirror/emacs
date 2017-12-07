@@ -3958,7 +3958,7 @@
 
 2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* intervals.c (set_point_both): Fix mixup before before and after
+	* intervals.c (set_point_both): Fix mixup before and after
 	in variable names.
 
 	* editfns.c (Fline_beginning_position): Inhibit point-motion hooks
@@ -27927,4 +27927,4 @@ See ChangeLog.9 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

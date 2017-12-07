@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -591,25 +591,21 @@ Return the number of files that were found."
 If CONFIRM is non-nil, ask for confirmation before removing a file."
   (interactive "P")
   (require 'gnus-util)
-  (let* ((high2days (/ 65536.0 60 60 24));; convert high bits to days
-	 (low2days  (/ 1.0 65536.0))     ;; convert low bits to days
+  (let* ((now (current-time))
 	 (diff (if (natnump age) age 30));; fallback, if no valid AGE given
-	 currday files)
+	 files)
     (setq files (directory-files
 		 mail-source-directory t
 		 (concat "\\`"
-			 (regexp-quote mail-source-incoming-file-prefix)))
-	  currday (* (car (current-time)) high2days)
-	  currday (+ currday (* low2days (nth 1 (current-time)))))
+			 (regexp-quote mail-source-incoming-file-prefix))))
     (while files
       (let* ((ffile (car files))
 	     (bfile (replace-regexp-in-string "\\`.*/\\([^/]+\\)\\'" "\\1"
 					      ffile))
-	     (filetime (nth 5 (file-attributes ffile)))
-	     (fileday (* (car filetime) high2days))
-	     (fileday (+ fileday (* low2days (nth 1 filetime)))))
+	     (filetime (nth 5 (file-attributes ffile))))
 	(setq files (cdr files))
-	(when (and (> (- currday fileday) diff)
+	(when (and (> (time-to-number-of-days (time-subtract now filetime))
+		      diff)
 		   (if confirm
 		       (y-or-n-p
 			(format-message "\

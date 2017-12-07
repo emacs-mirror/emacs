@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -252,7 +252,8 @@ There should be no more than seven characters after the final `/'."
   "This routine will return the name of a new file."
   (make-temp-file jka-compr-temp-name-template))
 
-(defun jka-compr-write-region (start end file &optional append visit)
+(defun jka-compr-write-region (start end file &optional
+                                     append visit lockname mustbenew)
   (let* ((filename (expand-file-name file))
 	 (visit-file (if (stringp visit) (expand-file-name visit) filename))
 	 (info (jka-compr-get-compression-info visit-file))
@@ -334,7 +335,8 @@ There should be no more than seven characters after the final `/'."
 	      (jka-compr-run-real-handler 'write-region
 					  (list (point-min) (point-max)
 						filename
-						(and append can-append) 'dont))
+						(and append can-append) 'dont
+						lockname mustbenew))
 	      (erase-buffer)) )
 
 	  (delete-file temp-file)
@@ -365,7 +367,8 @@ There should be no more than seven characters after the final `/'."
 	  nil)
 
       (jka-compr-run-real-handler 'write-region
-				  (list start end filename append visit)))))
+				  (list start end filename append visit
+					lockname mustbenew)))))
 
 
 (defun jka-compr-insert-file-contents (file &optional visit beg end replace)

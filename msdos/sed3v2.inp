@@ -20,7 +20,7 @@
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
 /^libdir *=/s!=.*$!=/emacs/bin!
-/^srcdir=/s!srcdir=@srcdir@!srcdir := $(subst \\,/,$(shell command.com /c cd))!
+/^srcdir=/s!srcdir=@srcdir@!srcdir := $(CURDIR)!
 /^VPATH *=/s!=.*$!=.!
 /^BLESSMAIL_TARGET *=/s!@BLESSMAIL_TARGET@!need-blessmail!
 /^KRB4LIB *=/s/@[^@\n]*@//g
@@ -41,7 +41,6 @@
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
-/^UPDATE_MANIFEST *=/s/@UPDATE_MANIFEST@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
 /^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
 /^[Aa][Mm]_/s/@AM_V@/$(V)/
@@ -58,6 +57,3 @@
 /^GETOPT_H *=/s!@GETOPT_H@!getopt.h!
 /^GETOPTOBJS *=/s!@GETOPTOBJS@!getopt.o getopt1.o!
 /^INSTALLABLES/s/emacsclient[^ ]* *//
-/^UTILITIES *=/,/^$/{
-  s/movemail[^ ]* *//
-}

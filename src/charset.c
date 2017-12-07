@@ -24,22 +24,21 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
 #include <sys/types.h>
-#include <c-ctype.h>
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "buffer.h"
+#include "sysstdio.h"
 
 /*** GENERAL NOTES on CODED CHARACTER SETS (CHARSETS) ***
 
@@ -408,43 +407,49 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 
 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
-   paying attention to comment character '#'.  */
+   paying attention to comment character '#'.  LOOKAHEAD is the
+   lookahead byte if it is nonnegative.  Store into *TERMINATOR the
+   input byte after the number, or EOF if an end-of-file or input
+   error occurred.  Set *OVERFLOW if the number overflows.  */
 
 static unsigned
-read_hex (FILE *fp, bool *eof, bool *overflow)
+read_hex (FILE *fp, int lookahead, int *terminator, bool *overflow)
 {
-  int c;
-  unsigned n;
+  int c = lookahead < 0 ? getc_unlocked (fp) : lookahead;
 
-  while ((c = getc (fp)) != EOF)
+  while (true)
     {
       if (c == '#')
-	{
-	  while ((c = getc (fp)) != EOF && c != '\n');
-	}
+	do
+	  c = getc_unlocked (fp);
+	while (0 <= c && c != '\n');
       else if (c == '0')
 	{
-	  if ((c = getc (fp)) == EOF || c == 'x')
+	  c = getc_unlocked (fp);
+	  if (c < 0 || c == 'x')
 	    break;
 	}
+      if (c < 0)
+	break;
+      c = getc_unlocked (fp);
     }
-  if (c == EOF)
-    {
-      *eof = 1;
-      return 0;
-    }
-  n = 0;
-  while (c_isxdigit (c = getc (fp)))
-    {
-      if (INT_LEFT_SHIFT_OVERFLOW (n, 4))
-	*overflow = 1;
-      n = ((n << 4)
-	   | (c - ('0' <= c && c <= '9' ? '0'
-		   : 'A' <= c && c <= 'F' ? 'A' - 10
-		   : 'a' - 10)));
-    }
-  if (c != EOF)
-    ungetc (c, fp);
+
+  unsigned n = 0;
+  bool v = false;
+
+  if (0 <= c)
+    while (true)
+      {
+	c = getc_unlocked (fp);
+	int digit = char_hexdigit (c);
+	if (digit < 0)
+	  break;
+	v |= INT_LEFT_SHIFT_OVERFLOW (n, 4);
+	n = (n << 4) + digit;
+      }
+
+  *terminator = c;
+  *overflow |= v;
   return n;
 }
 
@@ -499,23 +504,26 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   memset (entries, 0, sizeof (struct charset_map_entries));
 
   n_entries = 0;
-  while (1)
+  int ch = -1;
+  while (true)
     {
-      unsigned from, to, c;
-      int idx;
-      bool eof = 0, overflow = 0;
-
-      from = read_hex (fp, &eof, &overflow);
-      if (eof)
+      bool overflow = false;
+      unsigned from = read_hex (fp, ch, &ch, &overflow), to;
+      if (ch < 0)
 	break;
-      if (getc (fp) == '-')
-	to = read_hex (fp, &eof, &overflow);
+      if (ch == '-')
+	{
+	  to = read_hex (fp, -1, &ch, &overflow);
+	  if (ch < 0)
+	    break;
+	}
       else
-	to = from;
-      if (eof)
-	break;
-      c = read_hex (fp, &eof, &overflow);
-      if (eof)
+	{
+	  to = from;
+	  ch = -1;
+	}
+      unsigned c = read_hex (fp, ch, &ch, &overflow);
+      if (ch < 0)
 	break;
 
       if (overflow)
@@ -530,7 +538,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
 	  memset (entries, 0, sizeof (struct charset_map_entries));
 	  n_entries = 0;
 	}
-      idx = n_entries;
+      int idx = n_entries;
       entries->entry[idx].from = from;
       entries->entry[idx].to = to;
       entries->entry[idx].c = c;

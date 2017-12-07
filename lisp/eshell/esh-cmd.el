@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1148,6 +1148,8 @@ be finished later after the completion of an asynchronous subprocess."
 
 ;; command invocation
 
+(declare-function help-fns-function-description-header "help-fns")
+
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
   (dolist (name (cons command names))
@@ -1164,25 +1166,17 @@ be finished later after the completion of an asynchronous subprocess."
 		(concat name " is an alias, defined as \""
 			(cadr alias) "\"")))
       (unless program
-	(setq program (eshell-search-path name))
-	(let* ((esym (eshell-find-alias-function name))
-	       (sym (or esym (intern-soft name))))
-	  (if (and (or esym (and sym (fboundp sym)))
-		   (or eshell-prefer-lisp-functions (not direct)))
-	      (let ((desc (let ((inhibit-redisplay t))
-			    (save-window-excursion
-			      (prog1
-				  (describe-function sym)
-				(message nil))))))
-		(setq desc (if desc (substring desc 0
-					       (1- (or (string-match "\n" desc)
-						       (length desc))))
-			     ;; This should not happen.
-			     (format "%s is defined, \
-but no documentation was found" name)))
-		(if (buffer-live-p (get-buffer "*Help*"))
-		    (kill-buffer "*Help*"))
-		(setq program (or desc name))))))
+        (setq program
+              (let* ((esym (eshell-find-alias-function name))
+                     (sym (or esym (intern-soft name))))
+                (if (and (or esym (and sym (fboundp sym)))
+                         (or eshell-prefer-lisp-functions (not direct)))
+                    (or (with-output-to-string
+                          (require 'help-fns)
+                          (princ (format "%s is " sym))
+                          (help-fns-function-description-header sym))
+                        name)
+                  (eshell-search-path name)))))
       (if (not program)
 	  (eshell-error (format "which: no %s in (%s)\n"
 				name (getenv "PATH")))

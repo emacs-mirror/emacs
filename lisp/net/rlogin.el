@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,7 +38,7 @@
 
 ;; FIXME?
 ;; Maybe this file should be obsolete.
-;; http://lists.gnu.org/archive/html/emacs-devel/2013-02/msg00517.html
+;; https://lists.gnu.org/r/emacs-devel/2013-02/msg00517.html
 ;; It only adds rlogin-directory-tracking-mode.  Is that useful?
 
 (require 'comint)

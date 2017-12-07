@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 #include <config.h>
 #include "filevercmp.h"
@@ -79,7 +79,7 @@ order (unsigned char c)
    specification can be found in the Debian Policy Manual in the
    section on the 'Version' control field.  This version of the code
    implements that from s5.6.12 of Debian Policy v3.8.0.1
-   http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version */
+   https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Version */
 static int _GL_ATTRIBUTE_PURE
 verrevcmp (const char *s1, size_t s1_len, const char *s2, size_t s2_len)
 {

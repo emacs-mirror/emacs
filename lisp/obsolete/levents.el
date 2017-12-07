@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -113,7 +113,7 @@ In actual Lucid Emacs, you MUST NOT use this event object after
 calling this function with it.  You will lose.  It is not necessary to
 call this function, as event objects are garbage- collected like all
 other objects; however, it may be more efficient to explicitly
-deallocate events when you are sure that that is safe.
+deallocate events when you are sure that this is safe.
 
 This emulation does not actually deallocate or reuse events
 except via garbage collection and `cons'."

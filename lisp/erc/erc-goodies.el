@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -147,7 +147,19 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
              (>= (point) erc-insert-marker))
     (deactivate-mark)
     (goto-char (erc-beg-of-input-line))
-    (forward-line -1)))
+    (forward-line -1)
+    ;; if `switch-to-buffer-preserve-window-point' is set,
+    ;; we cannot rely on point being saved, and must commit
+    ;; it to window-prev-buffers.
+    (when switch-to-buffer-preserve-window-point
+      (dolist (frame (frame-list))
+        (walk-window-tree
+         (lambda (window)
+           (let ((prev (assq (current-buffer)
+                             (window-prev-buffers window))))
+             (when prev
+	       (setf (nth 2 prev) (point-marker)))))
+         frame nil 'nominibuf)))))
 
 ;;; Distinguish non-commands
 (defvar erc-noncommands-list '(erc-cmd-ME

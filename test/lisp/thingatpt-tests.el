@@ -15,23 +15,23 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'ert)
 
 (defvar thing-at-point-test-data
-  '(("http://1.gnu.org" 1  url "http://1.gnu.org")
-    ("http://2.gnu.org" 6 url "http://2.gnu.org")
-    ("http://3.gnu.org" 19 url "http://3.gnu.org")
+  '(("https://1.gnu.org" 1  url "https://1.gnu.org")
+    ("https://2.gnu.org" 6 url "https://2.gnu.org")
+    ("https://3.gnu.org" 19 url "https://3.gnu.org")
     ("https://4.gnu.org" 1  url "https://4.gnu.org")
     ("A geo URI (geo:3.14159,-2.71828)." 12 url "geo:3.14159,-2.71828")
-    ("Visit http://5.gnu.org now." 5 url nil)
-    ("Visit http://6.gnu.org now." 7 url "http://6.gnu.org")
-    ("Visit http://7.gnu.org now." 22 url "http://7.gnu.org")
-    ("Visit http://8.gnu.org now." 22 url "http://8.gnu.org")
-    ("Visit http://9.gnu.org now." 24 url nil)
+    ("Visit https://5.gnu.org now." 5 url nil)
+    ("Visit https://6.gnu.org now." 7 url "https://6.gnu.org")
+    ("Visit https://7.gnu.org now." 22 url "https://7.gnu.org")
+    ("Visit https://8.gnu.org now." 22 url "https://8.gnu.org")
+    ("Visit https://9.gnu.org now." 25 url nil)
     ;; Invalid URIs
     ("<<<<" 2 url nil)
     ("<>" 1 url nil)
@@ -48,13 +48,13 @@
     ("Url: <url:foo://2.example.com>..." 30 url "foo://2.example.com")
     ("Url: <url:foo://www.gnu.org/a bc>..." 20 url "foo://www.gnu.org/a bc")
     ;; Hack used by thing-at-point: drop punctuation at end of URI.
-    ("Go to http://www.gnu.org, for details" 7 url "http://www.gnu.org")
-    ("Go to http://www.gnu.org." 24 url "http://www.gnu.org")
+    ("Go to https://www.gnu.org, for details" 7 url "https://www.gnu.org")
+    ("Go to https://www.gnu.org." 24 url "https://www.gnu.org")
     ;; Standard URI delimiters
-    ("Go to \"http://10.gnu.org\"." 8 url "http://10.gnu.org")
-    ("Go to \"http://11.gnu.org/\"." 26 url "http://11.gnu.org/")
-    ("Go to <http://12.gnu.org> now." 8 url "http://12.gnu.org")
-    ("Go to <http://13.gnu.org> now." 24 url "http://13.gnu.org")
+    ("Go to \"https://10.gnu.org\"." 8 url "https://10.gnu.org")
+    ("Go to \"https://11.gnu.org/\"." 26 url "https://11.gnu.org/")
+    ("Go to <https://12.gnu.org> now." 8 url "https://12.gnu.org")
+    ("Go to <https://13.gnu.org> now." 24 url "https://13.gnu.org")
     ;; Parenthesis handling (non-standard)
     ("http://example.com/a(b)c" 21 url "http://example.com/a(b)c")
     ("http://example.com/a(b)" 21 url "http://example.com/a(b)")
@@ -87,7 +87,7 @@ position to retrieve THING.")
 ;; These tests reflect the actual behavior of
 ;; `thing-at-point-bounds-of-list-at-point'.
 (ert-deftest thing-at-point-bug24627 ()
-  "Test for http://debbugs.gnu.org/24627 ."
+  "Test for https://debbugs.gnu.org/24627 ."
   (let ((string-result '(("(a \"b\" c)" . (a "b" c))
                          (";(a \"b\" c)")
                          ("(a \"b\" c\n)" . (a "b" c))

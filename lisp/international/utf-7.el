@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -79,7 +79,7 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 	 (esc (if imap ?& ?+))
 	 ;; These are characters which can be encoded asis.
 	 (skip-chars (if imap
-			 "\t\n\r\x20-\x25\x27-\x7e" ; rfc2060 
+			 "\t\n\r\x20-\x25\x27-\x7e" ; rfc2060
 		       ;; This includes the rfc2152 optional set.
 		       ;; Perhaps it shouldn't (like iconv).
 		       "\t\n\r -*,-[]-}"))

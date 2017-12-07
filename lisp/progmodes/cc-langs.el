@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -115,7 +115,7 @@
 
 ;; For Emacs < 22.2.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest _))))
 
 (eval-when-compile
   (let ((load-path
@@ -130,7 +130,7 @@
 
 
 ;; This file is not always loaded.  See note above.
-(cc-external-require (if (eq c--mapcan-status 'cl-mapcan) 'cl-lib 'cl))
+(cc-external-require (if (eq c--cl-library 'cl-lib) 'cl-lib 'cl))
 
 
 ;;; Setup for the `c-lang-defvar' system.
@@ -245,12 +245,12 @@ the evaluated constant value at compile time."
     (unless (listp (car-safe ops))
       (setq ops (list ops)))
     (cond ((eq opgroup-filter t)
-	   (setq opgroup-filter (lambda (opgroup) t)))
+	   (setq opgroup-filter (lambda (_opgroup) t)))
 	  ((not (functionp opgroup-filter))
 	   (setq opgroup-filter `(lambda (opgroup)
 				   (memq opgroup ',opgroup-filter)))))
     (cond ((eq op-filter t)
-	   (setq op-filter (lambda (op) t)))
+	   (setq op-filter (lambda (_op) t)))
 	  ((stringp op-filter)
 	   (setq op-filter `(lambda (op)
 			      (string-match ,op-filter op)))))
@@ -474,18 +474,19 @@ so that all identifiers are recognized as words.")
   ;; The value here may be a list of functions or a single function.
   t nil
   c++ '(c-extend-region-for-CPP
-;	c-before-after-change-extend-region-for-lambda-capture ; doesn't seem needed.
 	c-before-change-check-raw-strings
 	c-before-change-check-<>-operators
 	c-depropertize-CPP
-	c-before-after-change-digit-quote
 	c-invalidate-macro-cache
-	c-truncate-bs-cache)
+	c-truncate-bs-cache
+	c-parse-quotes-before-change)
   (c objc) '(c-extend-region-for-CPP
 	     c-depropertize-CPP
 	     c-invalidate-macro-cache
-	     c-truncate-bs-cache)
-  ;; java 'c-before-change-check-<>-operators
+	     c-truncate-bs-cache
+	     c-parse-quotes-before-change)
+  java 'c-parse-quotes-before-change
+       ;; 'c-before-change-check-<>-operators
   awk 'c-awk-record-region-clear-NL)
 (c-lang-defvar c-get-state-before-change-functions
 	       (let ((fs (c-lang-const c-get-state-before-change-functions)))
@@ -515,18 +516,19 @@ parameters \(point-min) and \(point-max).")
   t '(c-depropertize-new-text
       c-change-expand-fl-region)
   (c objc) '(c-depropertize-new-text
+	     c-parse-quotes-after-change
 	     c-extend-font-lock-region-for-macros
 	     c-neutralize-syntax-in-and-mark-CPP
 	     c-change-expand-fl-region)
   c++ '(c-depropertize-new-text
+	c-parse-quotes-after-change
 	c-extend-font-lock-region-for-macros
-;	c-before-after-change-extend-region-for-lambda-capture ; doesn't seem needed.
-	c-before-after-change-digit-quote
 	c-after-change-re-mark-raw-strings
 	c-neutralize-syntax-in-and-mark-CPP
 	c-restore-<>-properties
 	c-change-expand-fl-region)
   java '(c-depropertize-new-text
+	 c-parse-quotes-after-change
 	 c-restore-<>-properties
 	 c-change-expand-fl-region)
   awk '(c-depropertize-new-text
@@ -608,6 +610,12 @@ EOL terminated statements."
   t nil
   (c c++ objc) t)
 (c-lang-defvar c-has-bitfields (c-lang-const c-has-bitfields))
+
+(c-lang-defconst c-has-quoted-numbers
+  "Whether the language has numbers quoted like 4'294'967'295."
+  t nil
+  c++ t)
+(c-lang-defvar c-has-quoted-numbers (c-lang-const c-has-quoted-numbers))
 
 (c-lang-defconst c-modified-constant
   "Regexp that matches a “modified” constant literal such as \"L\\='a\\='\",
@@ -944,6 +952,11 @@ expression, or nil if there aren't any in the language."
 	   '("defined"))
   pike '("defined" "efun" "constant"))
 
+(c-lang-defconst c-cpp-expr-functions-key
+  ;; Matches a function in a cpp expression.
+  t (c-make-keywords-re t (c-lang-const c-cpp-expr-functions)))
+(c-lang-defvar c-cpp-expr-functions-key (c-lang-const c-cpp-expr-functions-key))
+
 (c-lang-defconst c-assignment-operators
   "List of all assignment operators."
   t    '("=" "*=" "/=" "%=" "+=" "-=" ">>=" "<<=" "&=" "^=" "|=")
@@ -1176,6 +1189,24 @@ This regexp is assumed to not match any non-operator identifier."
 (defvaralias 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix)
 (make-obsolete-variable 'c-opt-op-identitier-prefix 'c-opt-op-identifier-prefix
 			"CC Mode 5.31.4, 2006-04-14")
+
+(c-lang-defconst c-ambiguous-overloadable-or-identifier-prefixes
+  ;; A list of strings which can be either overloadable operators or
+  ;; identifier prefixes.
+  t (c--intersection
+     (c-filter-ops (c-lang-const c-identifier-ops)
+			     '(prefix)
+			     t)
+     (c-lang-const c-overloadable-operators)
+     :test 'string-equal))
+
+(c-lang-defconst c-ambiguous-overloadable-or-identifier-prefix-re
+  ;; A regexp matching strings which can be either overloadable operators
+  ;; or identifier prefixes.
+  t (c-make-keywords-re
+	t (c-lang-const c-ambiguous-overloadable-or-identifier-prefixes)))
+(c-lang-defvar c-ambiguous-overloadable-or-identifier-prefix-re
+  (c-lang-const c-ambiguous-overloadable-or-identifier-prefix-re))
 
 (c-lang-defconst c-other-op-syntax-tokens
   "List of the tokens made up of characters in the punctuation or
@@ -1865,6 +1896,17 @@ the type of that expression."
   t (c-make-keywords-re t (c-lang-const c-typeof-kwds)))
 (c-lang-defvar c-typeof-key (c-lang-const c-typeof-key))
 
+(c-lang-defconst c-template-typename-kwds
+  "Keywords which, within a template declaration, can introduce a
+declaration with a type as a default value.  This is used only in
+C++ Mode, e.g. \"<typename X = Y>\"."
+  t    nil
+  c++  '("class" "typename"))
+
+(c-lang-defconst c-template-typename-key
+  t (c-make-keywords-re t (c-lang-const c-template-typename-kwds)))
+(c-lang-defvar c-template-typename-key (c-lang-const c-template-typename-key))
+
 (c-lang-defconst c-type-prefix-kwds
   "Keywords where the following name - if any - is a type name, and
 where the keyword together with the symbol works as a type in
@@ -2257,6 +2299,18 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   t    nil
   c++  '("private" "protected" "public")
   objc '("@private" "@protected" "@public"))
+
+(c-lang-defconst c-protection-key
+  ;; A regexp match an element of `c-protection-kwds' cleanly.
+  t (c-make-keywords-re t (c-lang-const c-protection-kwds)))
+(c-lang-defvar c-protection-key (c-lang-const c-protection-key))
+
+(c-lang-defconst c-post-protection-token
+  "The token which (may) follow a protection keyword,
+e.g. the \":\" in C++ Mode's \"public:\".  nil if there is no such token."
+  t    nil
+  c++  ":")
+(c-lang-defvar c-post-protection-token (c-lang-const c-post-protection-token))
 
 (c-lang-defconst c-block-decls-with-vars
   "Keywords introducing declarations that can contain a block which
@@ -2844,14 +2898,7 @@ Note that Java specific rules are currently applied to tell this from
 			    left-assoc
 			    right-assoc
 			    right-assoc-sequence)
-			  t))
-
-	   (unambiguous-prefix-ops (c--set-difference nonkeyword-prefix-ops
-						      in-or-postfix-ops
-						      :test 'string-equal))
-	   (ambiguous-prefix-ops (c--intersection nonkeyword-prefix-ops
-						  in-or-postfix-ops
-						  :test 'string-equal)))
+			  t)))
 
       (concat
        "\\("

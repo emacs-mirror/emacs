@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -150,16 +150,13 @@ foreground and background colors, respectively."
   :version "24.4" ; default colors copied from `xterm-standard-colors'
   :group 'ansi-colors)
 
-(defconst ansi-color-regexp "\033\\[\\([0-9;]*m\\)"
-  "Regexp that matches SGR control sequences.")
-
-(defconst ansi-color-drop-regexp
-  "\033\\[\\([ABCDsuK]\\|[12][JK]\\|=[0-9]+[hI]\\|[0-9;]*[Hf]\\|\\?[0-9]+[hl]\\)"
-  "Regexp that matches ANSI control sequences to silently drop.")
+(defconst ansi-color-control-seq-regexp
+  ;; See ECMA 48, section 5.4 "Control Sequences".
+  "\e\\[[\x30-\x3F]*[\x20-\x2F]*[\x40-\x7E]"
+  "Regexp matching an ANSI control sequence.")
 
 (defconst ansi-color-parameter-regexp "\\([0-9]*\\)[m;]"
   "Regexp that matches SGR control sequence parameters.")
-
 
 ;; Convenience functions for comint modes (eg. shell-mode)
 
@@ -185,7 +182,7 @@ in shell buffers.  You set this variable by calling one of:
   :group 'ansi-colors
   :version "23.2")
 
-(defvar ansi-color-apply-face-function 'ansi-color-apply-overlay-face
+(defvar ansi-color-apply-face-function #'ansi-color-apply-overlay-face
   "Function for applying an Ansi Color face to text in a buffer.
 This function should accept three arguments: BEG, END, and FACE,
 and it should apply face FACE to the text between BEG and END.")
@@ -259,22 +256,20 @@ This function can be added to `comint-preoutput-filter-functions'."
         (setq string (concat (cadr ansi-color-context) string)
               ansi-color-context nil))
     ;; find the next escape sequence
-    (while (setq end (string-match ansi-color-regexp string start))
-      (setq result (concat result (substring string start end))
-            start (match-end 0)))
-    ;; eliminate unrecognized escape sequences
-    (while (string-match ansi-color-drop-regexp string)
-      (setq string
-            (replace-match "" nil nil string)))
+    (while (setq end (string-match ansi-color-control-seq-regexp string start))
+      (push (substring string start end) result)
+      (setq start (match-end 0)))
     ;; save context, add the remainder of the string to the result
     (let (fragment)
-      (if (string-match "\033" string start)
-	  (let ((pos (match-beginning 0)))
-	    (setq fragment (substring string pos)
-		  result (concat result (substring string start pos))))
-	(setq result (concat result (substring string start))))
+      (push (substring string start
+                       (if (string-match "\033" string start)
+                           (let ((pos (match-beginning 0)))
+                             (setq fragment (substring string pos))
+                             pos)
+                         nil))
+            result)
       (setq ansi-color-context (if fragment (list nil fragment))))
-    result))
+    (apply #'concat (nreverse result))))
 
 (defun ansi-color--find-face (codes)
   "Return the face corresponding to CODES."
@@ -306,35 +301,29 @@ Set `ansi-color-context' to nil if you don't want this.
 
 This function can be added to `comint-preoutput-filter-functions'."
   (let ((codes (car ansi-color-context))
-	(start 0) end escape-sequence result
-	colorized-substring)
+	(start 0) end result)
     ;; If context was saved and is a string, prepend it.
     (if (cadr ansi-color-context)
         (setq string (concat (cadr ansi-color-context) string)
               ansi-color-context nil))
     ;; Find the next escape sequence.
-    (while (setq end (string-match ansi-color-regexp string start))
-      (setq escape-sequence (match-string 1 string))
-      ;; Colorize the old block from start to end using old face.
-      (when codes
-	(put-text-property start end 'font-lock-face (ansi-color--find-face codes) string))
-      (setq colorized-substring (substring string start end)
-	    start (match-end 0))
-      ;; Eliminate unrecognized ANSI sequences.
-      (while (string-match ansi-color-drop-regexp colorized-substring)
-	(setq colorized-substring
-	      (replace-match "" nil nil colorized-substring)))
-      (push colorized-substring result)
-      ;; Create new face, by applying escape sequence parameters.
-      (setq codes (ansi-color-apply-sequence escape-sequence codes)))
+    (while (setq end (string-match ansi-color-control-seq-regexp string start))
+      (let ((esc-end (match-end 0)))
+        ;; Colorize the old block from start to end using old face.
+        (when codes
+          (put-text-property start end 'font-lock-face
+                             (ansi-color--find-face codes) string))
+        (push (substring string start end) result)
+        (setq start (match-end 0))
+        ;; If this is a color escape sequence,
+        (when (eq (aref string (1- esc-end)) ?m)
+          ;; create a new face from it.
+          (setq codes (ansi-color-apply-sequence
+                       (substring string end esc-end) codes)))))
     ;; if the rest of the string should have a face, put it there
     (when codes
       (put-text-property start (length string)
                          'font-lock-face (ansi-color--find-face codes) string))
-    ;; eliminate unrecognized escape sequences
-    (while (string-match ansi-color-drop-regexp string)
-      (setq string
-            (replace-match "" nil nil string)))
     ;; save context, add the remainder of the string to the result
     (let (fragment)
       (if (string-match "\033" string start)
@@ -367,13 +356,9 @@ it will override BEGIN, the start of the region.  Set
 	(start (or (cadr ansi-color-context-region) begin)))
     (save-excursion
       (goto-char start)
-      ;; Delete unrecognized escape sequences.
-      (while (re-search-forward ansi-color-drop-regexp end-marker t)
-        (replace-match ""))
-      (goto-char start)
-      ;; Delete SGR escape sequences.
-      (while (re-search-forward ansi-color-regexp end-marker t)
-        (replace-match ""))
+      ;; Delete escape sequences.
+      (while (re-search-forward ansi-color-control-seq-regexp end-marker t)
+        (delete-region (match-beginning 0) (match-end 0)))
       ;; save context, add the remainder of the string to the result
       (if (re-search-forward "\033" end-marker t)
 	  (setq ansi-color-context-region (list nil (match-beginning 0)))
@@ -400,28 +385,24 @@ this."
   (let ((codes (car ansi-color-context-region))
 	(start-marker (or (cadr ansi-color-context-region)
 			  (copy-marker begin)))
-	(end-marker (copy-marker end))
-	escape-sequence)
-    ;; First, eliminate unrecognized ANSI control sequences.
+	(end-marker (copy-marker end)))
     (save-excursion
       (goto-char start-marker)
-      (while (re-search-forward ansi-color-drop-regexp end-marker t)
-	(replace-match "")))
-    (save-excursion
-      (goto-char start-marker)
-      ;; Find the next SGR sequence.
-      (while (re-search-forward ansi-color-regexp end-marker t)
-	;; Colorize the old block from start to end using old face.
-	(funcall ansi-color-apply-face-function
-		 start-marker (match-beginning 0)
-		 (ansi-color--find-face codes))
-        ;; store escape sequence and new start position
-        (setq escape-sequence (match-string 1)
-	      start-marker (copy-marker (match-end 0)))
-	;; delete the escape sequence
-	(replace-match "")
-	;; Update the list of ansi codes.
-	(setq codes (ansi-color-apply-sequence escape-sequence codes)))
+      ;; Find the next escape sequence.
+      (while (re-search-forward ansi-color-control-seq-regexp end-marker t)
+        ;; Remove escape sequence.
+        (let ((esc-seq (delete-and-extract-region
+                        (match-beginning 0) (point))))
+          ;; Colorize the old block from start to end using old face.
+          (funcall ansi-color-apply-face-function
+                   (prog1 (marker-position start-marker)
+                     ;; Store new start position.
+                     (set-marker start-marker (point)))
+                   (match-beginning 0) (ansi-color--find-face codes))
+          ;; If this is a color sequence,
+          (when (eq (aref esc-seq (1- (length esc-seq))) ?m)
+            ;; update the list of ansi codes.
+            (setq codes (ansi-color-apply-sequence esc-seq codes)))))
       ;; search for the possible start of a new escape sequence
       (if (re-search-forward "\033" end-marker t)
 	  (progn
@@ -499,7 +480,9 @@ Emacs requires OBJECT to be a buffer."
     ;; In order to avoid this, we use the `insert-behind-hooks' overlay
     ;; property to make sure it works.
     (let ((overlay (make-overlay from to object)))
+      (overlay-put overlay 'evaporate t)
       (overlay-put overlay 'modification-hooks '(ansi-color-freeze-overlay))
+      (overlay-put overlay 'insert-behind-hooks '(ansi-color-freeze-overlay))
       overlay)))
 
 (defun ansi-color-freeze-overlay (overlay is-after begin end &optional len)

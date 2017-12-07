@@ -711,6 +711,12 @@ Similar to @code{mode-line} for a window's header line, which appears
 at the top of a window just as the mode line appears at the bottom.
 Most windows do not have a header line---only some special modes, such
 Info mode, create one.
+@item header-line-highlight
+@cindex header-line-highlight face
+Similar to @code{highlight} and @code{mode-line-highlight}, but used
+for mouse-sensitive portions of text on header lines.  This is a
+separate face because the @code{header-line} face might be customized
+in a way that does not interact well with @code{highlight}.
 @item vertical-border
 @cindex vertical-border face
 This face is used for the vertical divider between windows on text
@@ -1333,7 +1339,7 @@ characters in the buffer, which means that @samp{k} for 10^3, @samp{M}
 for 10^6, @samp{G} for 10^9, etc., are used to abbreviate.
 
 @cindex line number display
-@cindex display of line number
+@cindex display of current line number
 @findex line-number-mode
   The current line number of point appears in the mode line when Line
 Number mode is enabled.  Use the command @kbd{M-x line-number-mode} to
@@ -1542,11 +1548,20 @@ for details.
 @cindex curly quotes
 @cindex curved quotes
 @cindex homoglyph face
+
+Emacs tries to determine if the curved quotes @samp{‘} and @samp{’}
+can be displayed on the current display.  By default, if this seems to
+be so, then Emacs will translate the @acronym{ASCII} quotes (@samp{`}
+and @samp{'}), when they appear in messages and help texts, to these
+curved quotes.  You can influence or inhibit this translation by
+customizing the user option @code{text-quoting-style} (@pxref{Keys in
+Documentation,,, elisp, The Emacs Lisp Reference Manual}).
+
   If the curved quotes @samp{‘}, @samp{’}, @samp{“}, and @samp{”} are
 known to look just like @acronym{ASCII} characters, they are shown
-with the @code{homoglyph} face.  Curved quotes that cannot be
-displayed are shown as their @acronym{ASCII} approximations @samp{`},
-@samp{'}, and @samp{"} with the @code{homoglyph} face.
+with the @code{homoglyph} face.  Curved quotes that are known not to
+be displayable are shown as their @acronym{ASCII} approximations
+@samp{`}, @samp{'}, and @samp{"} with the @code{homoglyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor
@@ -1709,6 +1724,86 @@ variable @code{visual-line-fringe-indicators}.
 
   This section describes variables that control miscellaneous aspects
 of the appearance of the Emacs screen.  Beginning users can skip it.
+
+@vindex display-line-numbers
+@cindex number lines in a buffer
+@cindex display line numbers
+  If you want to have Emacs display line numbers for every line in the
+buffer, customize the buffer-local variable
+@code{display-line-numbers}; it is @code{nil} by default.  This
+variable can have several different values to support various modes of
+line-number display:
+
+@table @asis
+@item @code{t}
+Display (an absolute) line number before each non-continuation screen
+line that displays buffer text.  If the line is a continuation line,
+or if the entire screen line displays a display or an overlay string,
+that line will not be numbered.
+
+@item @code{relative}
+Display relative line numbers before non-continuation lines which show
+buffer text.  The line numbers are relative to the line showing point,
+so the numbers grow both up and down as lines become farther from the
+current line.
+
+@item @code{visual}
+This value causes Emacs to count lines visually: only lines actually
+shown on the display will be counted (disregarding any lines in
+invisible parts of text), and lines which wrap to consume more than
+one screen line will be numbered that many times.  The displayed
+numbers are relative, as with @code{relative} value above.  This is
+handy in modes that fold text, such as Outline mode (@pxref{Outline
+Mode}), and when you need to move by exact number of screen lines.
+
+@item anything else
+Any other non-@code{nil} value is treated as @code{t}.
+@end table
+
+@findex display-line-numbers-mode
+@findex global-display-line-numbers-mode
+@vindex display-line-numbers-type
+A convenient way of turning on display of line numbers is @w{@kbd{M-x
+display-line-numbers-mode @key{RET}}}.  This mode has a globalized
+variant, @code{global-display-line-numbers-mode}.  The user option
+@code{display-line-numbers-type} controls which sub-mode of
+line-number display, described above, will these modes activate.
+
+@vindex display-line-numbers-current-absolute
+When Emacs displays relative line numbers, you can control the number
+displayed before the current line, the line showing point.  By
+default, Emacs displays the absolute number of the current line there,
+even though all the other line numbers are relative.  If you customize
+the variable @code{display-line-numbers-current-absolute} to a
+@code{nil} value, the number displayed for the current line will be
+zero.  This is handy if you don't care about the number of the current
+line, and want to leave more horizontal space for text in large
+buffers.
+
+@vindex display-line-numbers-widen
+In a narrowed buffer (@pxref{Narrowing}) lines are normally numbered
+starting at the beginning of the narrowing.  However, if you customize
+the variable @code{display-line-numbers-widen} to a non-@code{nil}
+value, line numbers will disregard any narrowing and will start at the
+first character of the buffer.
+
+@vindex display-line-numbers-width-start
+@vindex display-line-numbers-grow-only
+@vindex display-line-numbers-width
+In selective display mode (@pxref{Selective Display}), and other modes
+that hide many lines from display (such as Outline and Org modes), you
+may wish to customize the variables
+@code{display-line-numbers-width-start} and
+@code{display-line-numbers-grow-only}, or set
+@code{display-line-numbers-width} to a large enough value, to avoid
+occasional miscalculations of space reserved for the line numbers.
+
+@cindex line-number face
+The line numbers are displayed in a special face @code{line-number}.
+The current line number is displayed in a different face,
+@code{line-number-current-line}, so you can make the current line's
+number have a distinct appearance, which will help locating the line
+showing point.
 
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts

@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -416,6 +416,19 @@ Every entry is a list (NAME ADDRESS).")
 (defconst tramp-hal-interface-device "org.freedesktop.Hal.Device"
   "The device interface of the HAL daemon.")
 
+;; "gvfs-<command>" utilities have been deprecated in GVFS 1.31.1.  We
+;; must use "gio <command>" tool instead.
+(defconst tramp-gvfs-gio-mapping
+  '(("gvfs-copy" . "copy")
+    ("gvfs-info" . "info")
+    ("gvfs-ls" . "list")
+    ("gvfs-mkdir" . "mkdir")
+    ("gvfs-monitor-file" . "monitor")
+    ("gvfs-move" . "move")
+    ("gvfs-rm" . "remove")
+    ("gvfs-trash" . "trash"))
+  "List of cons cells, mapping \"gvfs-<command>\" to \"gio <command>\".")
+
 (defconst tramp-gvfs-file-attributes
   '("name"
     "type"
@@ -448,12 +461,24 @@ Every entry is a list (NAME ADDRESS).")
 	  ":[[:blank:]]+\\(.*\\)$")
   "Regexp to parse GVFS file attributes with `gvfs-info'.")
 
+(defconst tramp-gvfs-file-system-attributes
+  '("filesystem::free"
+    "filesystem::size"
+    "filesystem::used")
+  "GVFS file system attributes.")
+
+(defconst tramp-gvfs-file-system-attributes-regexp
+  (concat "^[[:blank:]]*"
+	  (regexp-opt tramp-gvfs-file-system-attributes t)
+	  ":[[:blank:]]+\\(.*\\)$")
+  "Regexp to parse GVFS file system attributes with `gvfs-info'.")
+
 
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-gvfs-file-name-handler-alist
   '((access-file . ignore)
-    (add-name-to-file . tramp-gvfs-handle-copy-file)
+    (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     ;; `copy-directory' performed by default handler.
     (copy-file . tramp-gvfs-handle-copy-file)
@@ -492,9 +517,10 @@ Every entry is a list (NAME ADDRESS).")
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
-    (file-selinux-context . ignore)
+    (file-selinux-context . tramp-handle-file-selinux-context)
     (file-symlink-p . tramp-handle-file-symlink-p)
-    ;; `file-truename' performed by default handler.
+    (file-system-info . tramp-gvfs-handle-file-system-info)
+    (file-truename . tramp-handle-file-truename)
     (file-writable-p . tramp-gvfs-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `find-file-noselect' performed by default handler.
@@ -649,6 +675,11 @@ file names."
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
+  (if (file-directory-p filename)
+      (progn
+	(copy-directory filename newname keep-date t)
+	(when (eq op 'rename) (delete-directory filename 'recursive)))
+
     (let ((t1 (tramp-tramp-file-p filename))
 	  (t2 (tramp-tramp-file-p newname))
 	  (equal-remote (tramp-equal-remote filename newname))
@@ -658,8 +689,7 @@ file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
-	  (tramp-error
-	   v 'file-already-exists "File %s already exists" newname))
+	  (tramp-error v 'file-already-exists newname))
 
 	(if (or (and equal-remote
 		     (tramp-get-connection-property v "direct-copy-failed" nil))
@@ -713,7 +743,7 @@ file names."
 	  (when t2
 	    (with-parsed-tramp-file-name newname nil
 	      (tramp-flush-file-property v (file-name-directory localname))
-	      (tramp-flush-file-property v localname)))))))
+	      (tramp-flush-file-property v localname))))))))
 
 (defun tramp-gvfs-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -826,7 +856,7 @@ file names."
     (let ((last-coding-system-used last-coding-system-used)
 	  result)
       (with-parsed-tramp-file-name directory nil
-	(with-tramp-file-property v localname "directory-gvfs-attributes"
+	(with-tramp-file-property v localname "directory-attributes"
 	  (tramp-message v 5 "directory gvfs attributes: %s" localname)
 	  ;; Send command.
 	  (tramp-gvfs-send-command
@@ -861,23 +891,34 @@ file names."
 	      (forward-line)))
 	  result)))))
 
-(defun tramp-gvfs-get-root-attributes (filename)
-  "Return GVFS attributes association list of FILENAME."
+(defun tramp-gvfs-get-root-attributes (filename &optional file-system)
+  "Return GVFS attributes association list of FILENAME.
+If FILE-SYSTEM is non-nil, return file system attributes."
   (ignore-errors
     ;; Don't modify `last-coding-system-used' by accident.
     (let ((last-coding-system-used last-coding-system-used)
 	  result)
       (with-parsed-tramp-file-name filename nil
-	(with-tramp-file-property v localname "file-gvfs-attributes"
-	  (tramp-message v 5 "file gvfs attributes: %s" localname)
+	(with-tramp-file-property
+	    v localname
+	    (if file-system "file-system-attributes" "file-attributes")
+	  (tramp-message
+	   v 5 "file%s gvfs attributes: %s"
+	   (if file-system " system" "") localname)
 	  ;; Send command.
-	  (tramp-gvfs-send-command
-	   v "gvfs-info" (tramp-gvfs-url-file-name filename))
+	  (if file-system
+	      (tramp-gvfs-send-command
+	       v "gvfs-info" "--filesystem" (tramp-gvfs-url-file-name filename))
+	    (tramp-gvfs-send-command
+	     v "gvfs-info" (tramp-gvfs-url-file-name filename)))
 	  ;; Parse output.
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
 	    (while (re-search-forward
-		    tramp-gvfs-file-attributes-with-gvfs-info-regexp nil t)
+		    (if file-system
+			tramp-gvfs-file-system-attributes-regexp
+		      tramp-gvfs-file-attributes-with-gvfs-info-regexp)
+		    nil t)
 	      (push (cons (match-string 1) (match-string 2)) result))
 	    result))))))
 
@@ -951,7 +992,7 @@ file names."
 		    (tramp-file-mode-from-int (string-to-number n))
 		  (format
 		   "%s%s%s%s------"
-		   (if dirp "d" "-")
+		   (if dirp "d" (if res-symlink-target "l" "-"))
 		   (if (equal (cdr (assoc "access::can-read" attributes))
 			      "FALSE")
 		       "-" "r")
@@ -1015,11 +1056,11 @@ file names."
 (defun tramp-gvfs-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
+    (unless (file-exists-p filename)
+      (tramp-error
+       v tramp-file-missing
+       "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (unless (file-exists-p filename)
-	(tramp-error
-	 v tramp-file-missing
-	 "Cannot make local copy of non-existing file `%s'" filename))
       (copy-file filename tmpfile 'ok-if-already-exists 'keep-time)
       tmpfile)))
 
@@ -1055,9 +1096,12 @@ file names."
 	     ((memq 'change flags)
 	      '(created changed changes-done-hint moved deleted))
 	     ((memq 'attribute-change flags) '(attribute-changed))))
-	   (p (start-process
-	       "gvfs-monitor-file" (generate-new-buffer " *gvfs-monitor-file*")
-	       "gvfs-monitor-file" (tramp-gvfs-url-file-name file-name))))
+	   (p (apply
+	       'start-process
+	       "gvfs-monitor" (generate-new-buffer " *gvfs-monitor*")
+	       (if (tramp-gvfs-gio-tool-p v)
+		   `("gio" "monitor" ,(tramp-gvfs-url-file-name file-name)))
+	       `("gvfs-monitor-file" (tramp-gvfs-url-file-name file-name)))))
       (if (not (processp p))
 	  (tramp-error
 	   v 'file-notify-error "Monitoring not supported for `%s'" file-name)
@@ -1128,6 +1172,22 @@ file-notify events."
     (with-tramp-file-property v localname "file-readable-p"
       (tramp-check-cached-permissions v ?r))))
 
+(defun tramp-gvfs-handle-file-system-info (filename)
+  "Like `file-system-info' for Tramp files."
+  (setq filename (directory-file-name (expand-file-name filename)))
+  (with-parsed-tramp-file-name filename nil
+    ;; We don't use cached values.
+    (tramp-set-file-property v localname "file-system-attributes" 'undef)
+    (let* ((attr (tramp-gvfs-get-root-attributes filename 'file-system))
+	   (size (cdr (assoc "filesystem::size" attr)))
+	   (used (cdr (assoc "filesystem::used" attr)))
+	   (free (cdr (assoc "filesystem::free" attr))))
+      (when (and (stringp size) (stringp used) (stringp free))
+	(list (string-to-number (concat size "e0"))
+	      (- (string-to-number (concat size "e0"))
+		 (string-to-number (concat used "e0")))
+	      (string-to-number (concat free "e0")))))))
+
 (defun tramp-gvfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
@@ -1151,8 +1211,9 @@ file-notify events."
 	(when (and parents (not (file-directory-p ldir)))
 	  (make-directory ldir parents))
 	;; Just do it.
-	(unless (tramp-gvfs-send-command
-		 v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))
+	(unless (or (tramp-gvfs-send-command
+		     v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))
+		    (and parents (file-directory-p dir)))
 	  (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
 
 (defun tramp-gvfs-handle-rename-file
@@ -1172,12 +1233,16 @@ file-notify events."
      'rename-file (list filename newname ok-if-already-exists))))
 
 (defun tramp-gvfs-handle-write-region
-  (start end filename &optional append visit lockname confirm)
+  (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
+  (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (when (and confirm (file-exists-p filename))
-      (unless (y-or-n-p (format "File %s exists; overwrite anyway? " filename))
-	(tramp-error v 'file-error "File not overwritten")))
+    (when (and mustbenew (file-exists-p filename)
+	       (or (eq mustbenew 'excl)
+		   (not
+		    (y-or-n-p
+		     (format "File %s exists; overwrite anyway? " filename)))))
+      (tramp-error v 'file-already-exists filename))
 
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
       (when (and append (file-exists-p filename))
@@ -1186,10 +1251,7 @@ file-notify events."
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
       (tramp-run-real-handler
-       'write-region
-       (if confirm ; don't pass this arg unless defined for backward compat.
-	   (list start end tmpfile append 'no-message lockname confirm)
-	 (list start end tmpfile append 'no-message lockname)))
+       'write-region (list start end tmpfile append 'no-message lockname))
       (condition-case nil
 	  (rename-file tmpfile filename 'ok-if-already-exists)
 	(error
@@ -1230,7 +1292,8 @@ file-notify events."
 	    (when (and user domain)
 	      (setq user (concat domain ";" user)))
 	    (url-parse-make-urlobj
-	     method (and user (url-hexify-string user)) nil host
+	     method (and user (url-hexify-string user))
+	     nil (and host (url-hexify-string host))
 	     (if (stringp port) (string-to-number port) port)
 	     (and localname (url-hexify-string localname)) nil nil t))
 	(url-parse-make-urlobj
@@ -1745,10 +1808,16 @@ connection if a previous connection has died for some reason."
       (tramp-gvfs-get-remote-uid vec 'string)
       (tramp-gvfs-get-remote-gid vec 'string))))
 
+(defun tramp-gvfs-gio-tool-p (vec)
+  "Check, whether the gio tool is available."
+  (with-tramp-connection-property vec "gio-tool"
+    (zerop (tramp-call-process vec "gio" nil nil nil "version"))))
+
 (defun tramp-gvfs-send-command (vec command &rest args)
   "Send the COMMAND with its ARGS to connection VEC.
-COMMAND is usually a command from the gvfs-* utilities.
-`call-process' is applied, and it returns t if the return code is zero."
+COMMAND is a command from the gvfs-* utilities.  It is replaced
+by the corresponding gio tool call if available.  `call-process'
+is applied, and it returns t if the return code is zero."
   (let* ((locale (tramp-get-local-locale vec))
 	 (process-environment
 	  (append
@@ -1756,6 +1825,11 @@ COMMAND is usually a command from the gvfs-* utilities.
 	     ,(format "LANGUAGE=%s" locale)
 	     ,(format "LC_ALL=%s" locale))
 	   process-environment)))
+    (when (tramp-gvfs-gio-tool-p vec)
+      ;; Use gio tool.
+      (setq args (cons (cdr (assoc command tramp-gvfs-gio-mapping)) args)
+	    command "gio"))
+
     (with-current-buffer (tramp-get-connection-buffer vec)
       (tramp-gvfs-maybe-open-connection vec)
       (erase-buffer)

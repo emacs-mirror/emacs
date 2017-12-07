@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -65,17 +65,19 @@ This is useful for enabling human-readable format (-h), for example."
   "If non-nil, use `eshell-ls' to read directories in Dired.
 Changing this without using customize has no effect."
   :set (lambda (symbol value)
-	 (if value
-             (advice-add 'insert-directory :around
-                         #'eshell-ls--insert-directory)
-           (advice-remove 'insert-directory
-                          #'eshell-ls--insert-directory))
+	 (cond (value
+                (require 'dired)
+                (advice-add 'insert-directory :around
+                            #'eshell-ls--insert-directory)
+                (advice-add 'dired :around #'eshell-ls--dired))
+               (t
+                (advice-remove 'insert-directory
+                               #'eshell-ls--insert-directory)
+                (advice-remove 'dired #'eshell-ls--dired)))
          (set symbol value))
   :type 'boolean
   :require 'em-ls)
-(add-hook 'eshell-ls-unload-hook
-          (lambda () (advice-remove 'insert-directory
-                               #'eshell-ls--insert-directory)))
+(add-hook 'eshell-ls-unload-hook #'eshell-ls-unload-function)
 
 
 (defcustom eshell-ls-default-blocksize 1024
@@ -241,6 +243,9 @@ scope during the evaluation of TEST-SEXP."
 
 ;;; Functions:
 
+(declare-function eshell-extended-glob "em-glob" (glob))
+(defvar eshell-error-if-no-glob)
+
 (defun eshell-ls--insert-directory
   (orig-fun file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
@@ -273,11 +278,53 @@ instead."
                 (set 'font-lock-buffers
                      (delq (current-buffer)
                            (symbol-value 'font-lock-buffers)))))
-          (let ((insert-func 'insert)
-                (error-func 'insert)
-                (flush-func 'ignore)
-                eshell-ls-dired-initial-args)
-            (eshell-do-ls (append switches (list file)))))))))
+          (require 'em-glob)
+          (let* ((insert-func 'insert)
+                 (error-func 'insert)
+                 (flush-func 'ignore)
+                 (eshell-error-if-no-glob t)
+                 (target ; Expand the shell wildcards if any.
+                  (if (and (atom file)
+                           (string-match "[[?*]" file)
+                           (not (file-exists-p file)))
+                      (mapcar #'file-relative-name (eshell-extended-glob file))
+                    (file-relative-name file)))
+                 (switches
+                  (append eshell-ls-dired-initial-args
+                          (and (or (consp dired-directory) wildcard) (list "-d"))
+                          switches)))
+            (eshell-do-ls (nconc switches (list target)))))))))
+
+
+(declare-function eshell-extended-glob "em-glob" (glob))
+(declare-function dired-read-dir-and-switches "dired" (str))
+(declare-function dired-goto-next-file "dired" ())
+
+(defun eshell-ls--dired (orig-fun dir-or-list &optional switches)
+  (interactive (dired-read-dir-and-switches ""))
+  (require 'em-glob)
+  (if (consp dir-or-list)
+      (funcall orig-fun dir-or-list switches)
+    (let ((dir-wildcard (insert-directory-wildcard-in-dir-p
+                         (expand-file-name dir-or-list))))
+      (if (not dir-wildcard)
+          (funcall orig-fun dir-or-list switches)
+        (let* ((default-directory (car dir-wildcard))
+               (files (eshell-extended-glob (cdr dir-wildcard)))
+               (dir (car dir-wildcard)))
+          (if files
+              (let ((inhibit-read-only t)
+                    (buf
+                     (apply orig-fun
+                            (nconc (list dir) files)
+                            (and switches (list switches)))))
+                (with-current-buffer buf
+                  (save-excursion
+                    (goto-char (point-min))
+                    (dired-goto-next-file)
+                    (forward-line 0)
+                    (insert "  wildcard " (cdr dir-wildcard) "\n"))))
+            (user-error "No files matching regexp")))))))
 
 (defsubst eshell/ls (&rest args)
   "An alias version of `eshell-do-ls'."
@@ -908,6 +955,11 @@ to use, and each member of which is the width of that column
 				 (list 'font-lock-face face)
 				 (car file)))))
   (car file))
+
+(defun eshell-ls-unload-function ()
+  (advice-remove 'insert-directory #'eshell-ls--insert-directory)
+  (advice-remove 'dired #'eshell-ls--dired)
+  nil)
 
 (provide 'em-ls)
 

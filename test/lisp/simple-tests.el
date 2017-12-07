@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -188,7 +188,7 @@
 ;; From 24 Oct - 21 Nov 2015, `open-line' took a second argument
 ;; INTERACTIVE and ran `post-self-insert-hook' if the argument was
 ;; true.  This test tested that.  Currently, however, `open-line'
-;; does not run run `post-self-insert-hook' at all, so for now
+;; does not run `post-self-insert-hook' at all, so for now
 ;; this test just makes sure that it doesn't.
 (ert-deftest open-line-hook ()
   (let* ((x 0)
@@ -280,7 +280,7 @@
      (undo-auto--boundaries 'test))))
 
 ;; Test for a regression introduced by undo-auto--boundaries changes.
-;; https://lists.gnu.org/archive/html/emacs-devel/2015-11/msg01652.html
+;; https://lists.gnu.org/r/emacs-devel/2015-11/msg01652.html
 (defun undo-test-kill-c-a-then-undo ()
   (with-temp-buffer
     (switch-to-buffer (current-buffer))
@@ -447,6 +447,69 @@ See Bug#21722."
         (message nil)
         (call-interactively #'eval-expression)
         (should (equal (current-message) "66 (#o102, #x42, ?B)"))))))
+
+(ert-deftest line-number-at-pos-in-widen-buffer ()
+  (let ((target-line 3))
+    (with-temp-buffer
+      (insert "a\nb\nc\nd\n")
+      (goto-char (point-min))
+      (forward-line (1- target-line))
+      (should (equal (line-number-at-pos) target-line))
+      (should (equal (line-number-at-pos nil t) target-line)))))
+
+(ert-deftest line-number-at-pos-in-narrow-buffer ()
+  (let ((target-line 3))
+    (with-temp-buffer
+      (insert "a\nb\nc\nd\n")
+      (goto-char (point-min))
+      (forward-line (1- target-line))
+      (narrow-to-region (line-beginning-position) (line-end-position))
+      (should (equal (line-number-at-pos) 1))
+      (should (equal (line-number-at-pos nil t) target-line)))))
+
+(ert-deftest line-number-at-pos-keeps-restriction ()
+  (with-temp-buffer
+    (insert "a\nb\nc\nd\n")
+    (goto-char (point-min))
+    (forward-line 2)
+    (narrow-to-region (line-beginning-position) (line-end-position))
+    (should (equal (line-number-at-pos) 1))
+    (line-number-at-pos nil t)
+    (should (equal (line-number-at-pos) 1))))
+
+(ert-deftest line-number-at-pos-keeps-point ()
+  (let (pos)
+    (with-temp-buffer
+      (insert "a\nb\nc\nd\n")
+      (goto-char (point-min))
+      (forward-line 2)
+      (setq pos (point))
+      (line-number-at-pos)
+      (line-number-at-pos nil t)
+      (should (equal pos (point))))))
+
+(ert-deftest line-number-at-pos-when-passing-point ()
+  (let (pos)
+    (with-temp-buffer
+      (insert "a\nb\nc\nd\n")
+      (should (equal (line-number-at-pos 1) 1))
+      (should (equal (line-number-at-pos 3) 2))
+      (should (equal (line-number-at-pos 5) 3))
+      (should (equal (line-number-at-pos 7) 4)))))
+
+
+;;; Auto fill.
+
+(ert-deftest auto-fill-mode-no-break-before-length-of-fill-prefix ()
+  (with-temp-buffer
+    (setq-local fill-prefix "   ")
+    (set-fill-column 5)
+    ;; Shouldn't break after 'foo' (3 characters) when the next
+    ;; line is indented >= to that, that wouldn't result in shorter
+    ;; lines.
+    (insert "foo bar")
+    (do-auto-fill)
+    (should (string-equal (buffer-string) "foo bar"))))
 
 (provide 'simple-test)
 ;;; simple-test.el ends here

@@ -313,8 +313,8 @@ This makes it easier to find modules by name.
 appear in the version of ERC that is bundled with Emacs 22.  These
 extras files may be found at:
 
- o http://ftp.gnu.org/gnu/erc/erc-5.2-extras.tar.gz, or
- o http://ftp.gnu.org/gnu/erc/erc-5.2-extras.zip.
+ o https://ftp.gnu.org/gnu/erc/erc-5.2-extras.tar.gz, or
+ o https://ftp.gnu.org/gnu/erc/erc-5.2-extras.zip.
 
 ** Renamed files
 
@@ -1343,4 +1343,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

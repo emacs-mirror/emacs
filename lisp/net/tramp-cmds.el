@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -49,7 +49,7 @@ SYNTAX can be one of the symbols `default' (default),
      (unless (string-equal input "")
        (list (intern input)))))
   (when syntax
-    (custom-set-variables `(tramp-syntax ',syntax))))
+    (customize-set-variable 'tramp-syntax syntax)))
 
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."

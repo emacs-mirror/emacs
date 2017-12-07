@@ -712,7 +712,7 @@ before it.  An argument of zero, rather than doing nothing, transposes
 the balanced expressions ending at or after point and the mark.
 
 @kindex C-M-@@
-@kindex C-M-@key{SPC}
+@kindex C-M-SPC
 @findex mark-sexp
   To operate on balanced expressions with a command which acts on the
 region, type @kbd{C-M-@key{SPC}} (@code{mark-sexp}).  This sets the
@@ -1146,9 +1146,12 @@ comment or for aligning an existing comment.  It is set differently by
 various major modes.  The function is called with no arguments, but with
 point at the beginning of the comment, or at the end of a line if a new
 comment is to be inserted.  It should return the column in which the
-comment ought to start.  For example, in Lisp mode, the indent hook
-function bases its decision on how many semicolons begin an existing
-comment, and on the code in the preceding lines.
+comment ought to start.  For example, the default hook function bases
+its decision on how many comment characters begin an existing comment.
+
+Emacs also tries to align comments on adjacent lines.  To override
+this, the function may return a cons of two (possibly equal) integers
+to indicate an acceptable range of indentation.
 
 @node Documentation
 @section Documentation Lookup
@@ -1316,16 +1319,20 @@ count as blocks.
 @kindex S-mouse-2
 @table @kbd
 @item C-c @@ C-h
+@itemx C-c @@ C-d
 Hide the current block (@code{hs-hide-block}).
 @item C-c @@ C-s
 Show the current block (@code{hs-show-block}).
 @item C-c @@ C-c
+@itemx C-x @@ C-e
 Either hide or show the current block (@code{hs-toggle-hiding}).
 @item S-mouse-2
 Toggle hiding for the block you click on (@code{hs-mouse-toggle-hiding}).
 @item C-c @@ C-M-h
+@itemx C-c @@ C-t
 Hide all top-level blocks (@code{hs-hide-all}).
 @item C-c @@ C-M-s
+@itemx C-c @@ C-a
 Show all blocks in the buffer (@code{hs-show-all}).
 @item C-c @@ C-l
 Hide all blocks @var{n} levels below this block
@@ -1464,7 +1471,7 @@ Prompt for the name of a function defined in any file Emacs has
 parsed, and move point there (@code{semantic-complete-jump}).
 
 @item C-c , @key{SPC}
-@kindex C-c , @key{SPC}
+@kindex C-c , SPC
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a set
 of special key bindings for choosing a completion: @key{RET} accepts
@@ -1713,8 +1720,8 @@ preprocessor commands.
 @item C-c C-@key{DEL}
 @itemx C-c @key{DEL}
 @findex c-hungry-delete-backwards
-@kindex C-c C-@key{DEL} (C Mode)
-@kindex C-c @key{DEL} (C Mode)
+@kindex C-c C-DEL (C Mode)
+@kindex C-c DEL (C Mode)
 Delete the entire block of whitespace preceding point (@code{c-hungry-delete-backwards}).
 
 @item C-c C-d
@@ -1722,8 +1729,8 @@ Delete the entire block of whitespace preceding point (@code{c-hungry-delete-bac
 @itemx C-c @key{Delete}
 @findex c-hungry-delete-forward
 @kindex C-c C-d (C Mode)
-@kindex C-c C-@key{Delete} (C Mode)
-@kindex C-c @key{Delete} (C Mode)
+@kindex C-c C-Delete (C Mode)
+@kindex C-c Delete (C Mode)
 Delete the entire block of whitespace after point (@code{c-hungry-delete-forward}).
 @end table
 

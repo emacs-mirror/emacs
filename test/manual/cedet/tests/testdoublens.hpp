@@ -17,7 +17,7 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+// along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace Name1 {
   namespace Name2 {
@@ -34,7 +34,7 @@ namespace Name1 {
       void publishStuff(int a, int b);
 
       void sendStuff(int a, int b);
-    
+
       Mumble* pMumble;
     };
 
@@ -67,4 +67,3 @@ namespace a {
 
   } // namespace b
 } // namespace a
-

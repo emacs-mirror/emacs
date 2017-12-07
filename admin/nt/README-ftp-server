@@ -227,18 +227,18 @@ See the end of the file for license conditions.
   The Emacs on MS Windows FAQ is distributed with Emacs (info
   manual "efaq-w32"), and at
 
-	http://www.gnu.org/software/emacs/manual/efaq-w32.html
+	https://www.gnu.org/software/emacs/manual/efaq-w32.html
 
   In addition to the FAQ, there is a mailing list for discussing issues
   related to the Windows port of Emacs.  For information about the
   list, see this Web page:
 
-	http://lists.gnu.org/mailman/listinfo/help-emacs-windows
+	https://lists.gnu.org/mailman/listinfo/help-emacs-windows
 
   To ask questions on the mailing list, send email to
   help-emacs-windows@gnu.org.  (You don't need to subscribe for that.)
   To subscribe to the list or unsubscribe from it, fill the form you
-  find at http://mail.gnu.org/mailman/listinfo/help-emacs-windows as
+  find at https://mail.gnu.org/mailman/listinfo/help-emacs-windows as
   explained there.
 
   Another valuable source of information and help which should not be
@@ -274,4 +274,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
+along with GNU Emacs.  If not, see https://www.gnu.org/licenses/.

@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -72,8 +72,7 @@ match any of the group-specified splitting rules.  See
 ;;;###autoload
 (defun gnus-group-split-update (&optional catch-all)
   "Computes nnmail-split-fancy from group params and CATCH-ALL.
-It does this by calling by calling (gnus-group-split-fancy nil
-nil CATCH-ALL).
+It does this by calling (gnus-group-split-fancy nil nil CATCH-ALL).
 
 If CATCH-ALL is nil, `gnus-group-split-default-catch-all-group' is used
 instead.  This variable is set by `gnus-group-split-setup'."

@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -215,7 +215,7 @@ The function should take one argument, which is the text to filter."
 		 (const :tag "No filtering" nil)))
 
 
-;;;###autoload (autoload 'erc-log-mode "erc-log" nil t)
+;;;###autoload(autoload 'erc-log-mode "erc-log" nil t)
 (define-erc-module log nil
   "Automatically logs things you receive on IRC into files.
 Files are stored in `erc-log-channels-directory'; file name
@@ -455,6 +455,7 @@ You can save every individual message by putting this function on
 ;;; erc-log.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

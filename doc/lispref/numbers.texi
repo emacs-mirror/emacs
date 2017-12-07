@@ -1107,6 +1107,24 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @end example
 @end defun
 
+@cindex popcount
+@cindex Hamming weight
+@cindex counting set bits
+@defun logcount integer
+This function returns the @dfn{Hamming weight} of @var{integer}: the
+number of ones in the binary representation of @var{integer}.
+If @var{integer} is negative, it returns the number of zero bits in
+its two's complement binary representation.  The result is always
+nonnegative.
+
+@example
+(logcount 43)     ; 43 = #b101011
+     @result{} 4
+(logcount -43)    ; -43 = #b111...1010101
+     @result{} 3
+@end example
+@end defun
+
 @node Math Functions
 @section Standard Mathematical Functions
 @cindex transcendental functions

@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -125,10 +125,10 @@
 
   ;; Search postfix entries.
   (while (re-search-forward "^[#<>?]\\(\\(\\cH\\|ー\\)+\\) " nil t)
-    (let ((kana (match-string 1))
+    (let ((kana (match-string-no-properties 1))
 	  str candidates)
       (while (looking-at "/[#0-9 ]*\\([^/\n]*\\)/")
-	(setq str (match-string 1))
+        (setq str (match-string-no-properties 1))
 	(if (not (member str candidates))
 	    (setq candidates (cons str candidates)))
 	(goto-char (match-end 1)))
@@ -158,10 +158,10 @@
 	    "(skkdic-set-prefix\n"))
   (save-excursion
     (while (re-search-forward "^\\(\\(\\cH\\|ー\\)+\\)[<>?] " nil t)
-      (let ((kana (match-string 1))
+      (let ((kana (match-string-no-properties 1))
 	    str candidates)
 	(while (looking-at "/\\([^/\n]+\\)/")
-	  (setq str (match-string 1))
+          (setq str (match-string-no-properties 1))
 	  (if (not (member str candidates))
 	      (setq candidates (cons str candidates)))
 	  (goto-char (match-end 1)))
@@ -180,8 +180,8 @@
   (let (candidates)
     (goto-char from)
     (while (re-search-forward "/[^/ \n]+" to t)
-      (setq candidates (cons (buffer-substring (1+ (match-beginning 0))
-					       (match-end 0))
+      (setq candidates (cons (buffer-substring-no-properties
+                              (1+ (match-beginning 0)) (match-end 0))
 			     candidates)))
     candidates))
 
@@ -251,12 +251,16 @@
 ;; Return list of candidates which excludes some from CANDIDATES.
 ;; Excluded candidates can be derived from another entry.
 
+(defconst skkdic--japanese-category-set (make-category-set "j"))
+
 (defun skkdic-reduced-candidates (skkbuf kana candidates)
   (let (elt l)
     (while candidates
       (setq elt (car candidates))
       (if (or (= (length elt) 1)
-	      (and (string-match "^\\cj" elt)
+	      (and (bool-vector-subsetp
+                    skkdic--japanese-category-set
+                    (char-category-set (aref elt 0)))
 		   (not (skkdic-breakup-string skkbuf kana elt 0 (length elt)
 					       'first))))
 	  (setq l (cons elt l)))
@@ -267,24 +271,18 @@
 (defvar skkdic-okuri-nasi-entries-count 0)
 
 (defun skkdic-collect-okuri-nasi ()
-  (message "Collecting OKURI-NASI entries ...")
   (save-excursion
-    (let ((prev-ratio 0)
-	  ratio)
+    (let ((progress (make-progress-reporter "Collecting OKURI-NASI entries"
+                                            (point) (point-max)
+                                            nil 10)))
       (while (re-search-forward "^\\(\\(\\cH\\|ー\\)+\\) \\(/\\cj.*\\)/$"
 				nil t)
-	(let ((kana (match-string 1))
+        (let ((kana (match-string-no-properties 1))
 	      (candidates (skkdic-get-candidate-list (match-beginning 3)
 						     (match-end 3))))
 	  (setq skkdic-okuri-nasi-entries
-		(cons (cons kana candidates) skkdic-okuri-nasi-entries)
-		skkdic-okuri-nasi-entries-count
-		(1+ skkdic-okuri-nasi-entries-count))
-	  (setq ratio (floor (* (point) 100.0) (point-max)))
-	  (if (/= (/ prev-ratio 10) (/ ratio 10))
-	      (progn
-		(message "collected %2d%% ..." ratio)
-		(setq prev-ratio ratio)))
+		(cons (cons kana candidates) skkdic-okuri-nasi-entries))
+          (progress-reporter-update progress (point))
 	  (while candidates
 	    (let ((entry (lookup-nested-alist (car candidates)
 					      skkdic-word-list nil nil t)))
@@ -292,26 +290,24 @@
 		  (setcar entry (cons kana (car entry)))
 		(set-nested-alist (car candidates) (list kana)
 				  skkdic-word-list)))
-	    (setq candidates (cdr candidates))))))))
+            (setq candidates (cdr candidates)))))
+      (setq skkdic-okuri-nasi-entries-count (length skkdic-okuri-nasi-entries))
+      (progress-reporter-done progress))))
 
 (defun skkdic-convert-okuri-nasi (skkbuf buf)
-  (message "Processing OKURI-NASI entries ...")
   (with-current-buffer buf
     (insert ";; Setting okuri-nasi entries.\n"
 	    "(skkdic-set-okuri-nasi\n")
     (let ((l (nreverse skkdic-okuri-nasi-entries))
-	  (count 0)
-	  (prev-ratio 0)
-	  ratio)
+          (progress (make-progress-reporter "Processing OKURI-NASI entries"
+                                            0 skkdic-okuri-nasi-entries-count
+                                            nil 10))
+          (count 0))
       (while l
 	(let ((kana (car (car l)))
 	      (candidates (cdr (car l))))
-	  (setq ratio (floor (* count 100.0) skkdic-okuri-nasi-entries-count)
-		count (1+ count))
-	  (if (/= (/ prev-ratio 10) (/ ratio 10))
-	      (progn
-		(message "processed %2d%% ..." ratio)
-		(setq prev-ratio ratio)))
+          (setq count (1+ count))
+          (progress-reporter-update progress count)
 	  (if (setq candidates
 		    (skkdic-reduced-candidates skkbuf kana candidates))
 	      (progn
@@ -320,7 +316,8 @@
 		  (insert " " (car candidates))
 		  (setq candidates (cdr candidates)))
 		(insert "\"\n"))))
-	(setq l (cdr l))))
+	(setq l (cdr l)))
+      (progress-reporter-done progress))
     (insert ")\n\n")))
 
 (defun skkdic-convert (filename &optional dirname)
@@ -467,7 +464,7 @@ To get complete usage, invoke:
 	(i (match-end 0))
 	candidates)
     (while (string-match "[^ ]+" entry i)
-      (setq candidates (cons (match-string 0 entry) candidates))
+      (setq candidates (cons (match-string-no-properties 0 entry) candidates))
       (setq i (match-end 0)))
     (cons (skkdic-get-kana-compact-codes kana) candidates)))
 

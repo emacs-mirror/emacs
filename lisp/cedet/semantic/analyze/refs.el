@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -317,9 +317,8 @@ Only works for tags in the global namespace."
   (let* ((tag (semantic-current-tag))
 	 (start (current-time))
 	 (sac (semantic-analyze-tag-references tag))
-	 (end (current-time))
 	 )
-    (message "Analysis took %.2f seconds." (semantic-elapsed-time start end))
+    (message "Analysis took %.2f seconds." (semantic-elapsed-time start nil))
     (if sac
 	(progn
 	  (require 'eieio-datadebug)
@@ -348,7 +347,7 @@ Only works for tags in the global namespace."
 
     (push-mark)
     (semantic-go-to-tag target)
-    (switch-to-buffer (current-buffer))
+    (pop-to-buffer-same-window (current-buffer))
     (semantic-momentary-highlight-tag target))
   )
 

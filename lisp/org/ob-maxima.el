@@ -1,4 +1,4 @@
-;;; ob-maxima.el --- org-babel functions for maxima evaluation
+;;; ob-maxima.el --- Babel Functions for Maxima      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,11 +48,15 @@
 
 (defun org-babel-maxima-expand (body params)
   "Expand a block of Maxima code according to its header arguments."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
+  (let ((vars (org-babel--get-vars params))
+	(epilogue (cdr (assq :epilogue params)))
+	(prologue (cdr (assq :prologue params))))
     (mapconcat 'identity
 	       (list
+		;; Any code from the specified prologue at the start.
+		prologue
 		;; graphic output
-		(let ((graphic-file (org-babel-maxima-graphical-output-file params)))
+		(let ((graphic-file (ignore-errors (org-babel-graphical-output-file params))))
 		  (if graphic-file
 		      (format
 		       "set_plot_option ([gnuplot_term, png]); set_plot_option ([gnuplot_out_file, %S]);"
@@ -62,6 +66,8 @@
 		(mapconcat 'org-babel-maxima-var-to-maxima vars "\n")
 		;; body
 		body
+		;; Any code from the specified epilogue at the end.
+		epilogue
 		"gnuplot_close ()$")
 	       "\n")))
 
@@ -69,9 +75,9 @@
   "Execute a block of Maxima entries with org-babel.
 This function is called by `org-babel-execute-src-block'."
   (message "executing Maxima source code block")
-  (let ((result-params (split-string (or (cdr (assoc :results params)) "")))
+  (let ((result-params (split-string (or (cdr (assq :results params)) "")))
 	(result
-	 (let* ((cmdline (or (cdr (assoc :cmdline params)) ""))
+	 (let* ((cmdline (or (cdr (assq :cmdline params)) ""))
 		(in-file (org-babel-temp-file "maxima-" ".max"))
 		(cmd (format "%s --very-quiet -r 'batchload(%S)$' %s"
 			     org-babel-maxima-command in-file cmdline)))
@@ -89,7 +95,7 @@ This function is called by `org-babel-execute-src-block'."
                                           (= 0 (length line)))
                                 line))
                             (split-string raw "[\r\n]"))) "\n")))))
-    (if (org-babel-maxima-graphical-output-file params)
+    (if (ignore-errors (org-babel-graphical-output-file params))
 	nil
       (org-babel-result-cond result-params
 	result
@@ -98,7 +104,7 @@ This function is called by `org-babel-execute-src-block'."
 	  (org-babel-import-elisp-from-file tmp-file))))))
 
 
-(defun org-babel-prep-session:maxima (session params)
+(defun org-babel-prep-session:maxima (_session _params)
   (error "Maxima does not support sessions"))
 
 (defun org-babel-maxima-var-to-maxima (pair)
@@ -112,11 +118,6 @@ of the same value."
         (setq val (string-to-char val))))
     (format "%S: %s$" var
 	    (org-babel-maxima-elisp-to-maxima val))))
-
-(defun org-babel-maxima-graphical-output-file (params)
-  "Name of file to which maxima should send graphical output."
-  (and (member "graphics" (cdr (assq :result-params params)))
-       (cdr (assq :file params))))
 
 (defun org-babel-maxima-elisp-to-maxima (val)
   "Return a string of maxima code which evaluates to VAL."

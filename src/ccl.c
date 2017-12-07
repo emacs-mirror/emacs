@@ -21,7 +21,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -730,7 +730,7 @@ while (0)
 #endif
 
 /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
-   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
 #define ASCENDING_ORDER(lo, med, hi) (((lo) <= (med)) & ((med) <= (hi)))
 
 #define GET_CCL_RANGE(var, ccl_prog, ic, lo, hi)		\

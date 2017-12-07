@@ -222,7 +222,7 @@ If it is @code{t}, it selects the @file{*scratch*} buffer.
 @c called from two places.  If displaying a startup screen, they are
 @c called in command-line-1 before the startup screen is shown.
 @c inhibit-startup-hooks is then set and window-setup-hook set to nil.
-@c If not displaying a startup screen, they are are called in
+@c If not displaying a startup screen, they are called in
 @c normal-top-level.
 @c FIXME?  So it seems they can be called before or after the
 @c daemon/session restore step?
@@ -514,7 +514,7 @@ On MS-DOS, Emacs sets the @env{TERM} environment variable to @samp{internal}.
 @end defopt
 
 @defopt term-file-aliases
-This variable is an an association list mapping terminal types to
+This variable is an association list mapping terminal types to
 their aliases.  For example, an element of the form @code{("vt102"
 . "vt100")} means to treat a terminal of type @samp{vt102} like one of
 type @samp{vt100}.
@@ -1037,7 +1037,7 @@ value is @code{":"} for Unix and GNU systems, and @code{";"} for MS systems.
 @defun parse-colon-path path
 This function takes a search path string such as the value of
 the @env{PATH} environment variable, and splits it at the separators,
-returning a list of directory names.  @code{nil} in this list means
+returning a list of directories.  @code{nil} in this list means
 the current directory.  Although the function's name says
 ``colon'', it actually uses the value of @code{path-separator}.
 
@@ -1486,8 +1486,8 @@ This stands for the full name of the month.
 @item %c
 This is a synonym for @samp{%x %X}.
 @item %C
-This has a locale-specific meaning.  In the default locale (named C), it
-is equivalent to @samp{%A, %B %e, %Y}.
+This stands for the century, that is, the year divided by 100,
+truncated toward zero.
 @item %d
 This stands for the day of month, zero-padded.
 @item %D
@@ -1530,8 +1530,11 @@ This stands for the calendar quarter (1--4).
 This is a synonym for @samp{%I:%M:%S %p}.
 @item %R
 This is a synonym for @samp{%H:%M}.
+@item %s
+This stands for the integer number of seconds since the epoch.
 @item %S
-This stands for the seconds (00--59).
+This stands for the second (00--59, or 00--60 on platforms
+that support leap seconds).
 @item %t
 This stands for a tab character.
 @item %T
@@ -1561,22 +1564,31 @@ This stands for the year with century.
 @item %Z
 This stands for the time zone abbreviation (e.g., @samp{EST}).
 @item %z
-This stands for the time zone numerical offset (e.g., @samp{-0500}).
+This stands for the time zone numerical offset.  The @samp{z} can be
+preceded by one, two, or three colons; if plain @samp{%z} stands for
+@samp{-0500}, then @samp{%:z} stands for @samp{-05:00}, @samp{%::z}
+stands for @samp{-05:00:00}, and @samp{%:::z} is like @samp{%::z}
+except it suppresses trailing instances of @samp{:00} so it stands for
+@samp{-05} in the same example.
+@item %%
+This stands for a single @samp{%}.
 @end table
+
+One or more flag characters can appear immediately after the @samp{%}.
+@samp{0} pads with zeros, @samp{_} pads with blanks, @samp{-}
+suppresses padding, @samp{^} upper-cases letters, and @samp{#}
+reverses the case of letters.
 
 You can also specify the field width and type of padding for any of
 these @samp{%}-sequences.  This works as in @code{printf}: you write
-the field width as digits in the middle of a @samp{%}-sequences.  If you
-start the field width with @samp{0}, it means to pad with zeros.  If you
-start the field width with @samp{_}, it means to pad with spaces.
-
+the field width as digits in a @samp{%}-sequence, after any flags.
 For example, @samp{%S} specifies the number of seconds since the minute;
 @samp{%03S} means to pad this with zeros to 3 positions, @samp{%_3S} to
 pad with spaces to 3 positions.  Plain @samp{%3S} pads with zeros,
 because that is how @samp{%S} normally pads to two positions.
 
-The characters @samp{E} and @samp{O} act as modifiers when used between
-@samp{%} and one of the letters in the table above.  @samp{E} specifies
+The characters @samp{E} and @samp{O} act as modifiers when used after
+any flags and field widths in a @samp{%}-sequence.  @samp{E} specifies
 using the current locale's alternative version of the date and time.
 In a Japanese locale, for example, @code{%Ex} might yield a date format
 based on the Japanese Emperors' reigns.  @samp{E} is allowed in
@@ -1586,6 +1598,11 @@ based on the Japanese Emperors' reigns.  @samp{E} is allowed in
 @samp{O} means to use the current locale's alternative
 representation of numbers, instead of the ordinary decimal digits.  This
 is allowed with most letters, all the ones that output numbers.
+
+To help debug programs, unrecognized @samp{%}-sequences stand for
+themselves and are output as-is.  Programs should not rely on this
+behavior, as future versions of Emacs may recognize new
+@samp{%}-sequences as extensions.
 
 This function uses the C library function @code{strftime}
 (@pxref{Formatting Calendar Time,,, libc, The GNU C Library Reference
@@ -1885,8 +1902,8 @@ one of these functions; the arrival of the specified time will not
 cause anything special to happen.
 @end defun
 
-@findex timer-list
-The @code{timer-list} command lists all the currently active timers.
+@findex list-timers
+The @code{list-timers} command lists all the currently active timers.
 There's only one command available in the buffer displayed: @kbd{c}
 (@code{timer-list-cancel}) that will cancel the timer on the line
 under point.

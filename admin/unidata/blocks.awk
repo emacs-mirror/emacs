@@ -17,7 +17,7 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -32,7 +32,7 @@
 ## The Unicode blocks actually extend past some of these ranges with
 ## undefined codepoints.
 
-## For additional details, see <http://debbugs.gnu.org/20789#11>.
+## For additional details, see <https://debbugs.gnu.org/20789#11>.
 
 ## Things to do after installing a new version of Blocks.txt:
 ## Check the output against the old output.

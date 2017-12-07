@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -825,21 +825,18 @@ If COMP or STD is non-nil, put that in the units table instead."
        (forward-char -1))
      (insert ";;; Custom units stored by Calc on " (current-time-string) "\n")
      (if math-additional-units
-	 (progn
+	 (let (expr)
 	   (insert "(setq math-additional-units '(\n")
-	   (let ((list math-additional-units))
-	     (while list
-	       (insert "  (" (symbol-name (car (car list))) " "
-		       (if (nth 1 (car list))
-			   (if (stringp (nth 1 (car list)))
-			       (prin1-to-string (nth 1 (car list)))
-			     (prin1-to-string (math-format-flat-expr
-					       (nth 1 (car list)) 0)))
-			 "nil")
-		       " "
-		       (prin1-to-string (nth 2 (car list)))
-		       ")\n")
-	       (setq list (cdr list))))
+           (dolist (u math-additional-units)
+             (insert "  (" (symbol-name (car u)) " "
+                     (if (setq expr (nth 1 u))
+                         (if (stringp expr)
+                             (prin1-to-string expr)
+                           (prin1-to-string (math-format-flat-expr expr 0)))
+                       "nil")
+                     " "
+                     (prin1-to-string (nth 2 u))
+                     ")\n"))
 	   (insert "))\n"))
        (insert ";;; (no custom units defined)\n"))
      (insert ";;; End of custom units\n")
@@ -916,15 +913,13 @@ If COMP or STD is non-nil, put that in the units table instead."
 (defun math-find-base-units-rec (expr pow)
   (let ((u (math-check-unit-name expr)))
     (cond (u
-	   (let ((ulist (math-find-base-units u)))
-	     (while ulist
-	       (let ((p (* (cdr (car ulist)) pow))
-		     (old (assq (car (car ulist)) math-fbu-base)))
-		 (if old
-		     (setcdr old (+ (cdr old) p))
-		   (setq math-fbu-base
-                         (cons (cons (car (car ulist)) p) math-fbu-base))))
-	       (setq ulist (cdr ulist)))))
+           (dolist (x (math-find-base-units u))
+             (let ((p (* (cdr x) pow))
+                   (old (assq (car x) math-fbu-base)))
+               (if old
+                   (setcdr old (+ (cdr old) p))
+                 (setq math-fbu-base
+                       (cons (cons (car x) p) math-fbu-base))))))
 	  ((math-scalarp expr))
 	  ((and (eq (car expr) '^)
 		(integerp (nth 2 expr)))
@@ -1377,20 +1372,15 @@ If COMP or STD is non-nil, put that in the units table instead."
                (if (eq pow1 1)
                    (math-to-standard-units (list '/ n d) nil)
                  (list '^ (math-to-standard-units (list '/ n d) nil) pow1))
-	     (let (ud1)
-	       (setq un (nth 4 un)
-		     ud (nth 4 ud))
-	       (while un
-		 (setq ud1 ud)
-		 (while ud1
-		   (and (eq (car (car un)) (car (car ud1)))
-			(setq math-try-cancel-units
-			      (+ math-try-cancel-units
-				 (- (* (cdr (car un)) pow1)
-				    (* (cdr (car ud)) pow2)))))
-		   (setq ud1 (cdr ud1)))
-		 (setq un (cdr un)))
-	       nil))))))
+             (setq un (nth 4 un)
+                   ud (nth 4 ud))
+             (dolist (x un)
+               (dolist (y ud)
+                 (when (eq (car x) (car y))
+                   (setq math-try-cancel-units
+                         (+ math-try-cancel-units
+                            (- (* (cdr x) pow1)
+                               (* (cdr (car ud)) pow2))))))))))))
 
 (math-defsimplify ^
   (and math-simplifying-units
@@ -1578,9 +1568,8 @@ If COMP or STD is non-nil, put that in the units table instead."
             (insert "Calculator Units Table:\n\n")
             (insert "(All definitions are exact unless marked with an asterisk (*).)\n\n")
             (insert "Unit    Type  Definition                  Description\n\n")
-            (while uptr
-              (setq u (car uptr)
-                    name (nth 2 u))
+            (dolist (u uptr)
+              (setq name (nth 2 u))
               (when (eq (car u) 'm)
                 (setq std t))
               (setq shadowed (and std (assq (car u) math-additional-units)))
@@ -1618,8 +1607,7 @@ If COMP or STD is non-nil, put that in the units table instead."
                   (insert " (redefined above)")
                 (unless (nth 1 u)
                   (insert " (base unit)")))
-              (insert "\n")
-              (setq uptr (cdr uptr)))
+              (insert "\n"))
             (insert "\n\nUnit Prefix Table:\n\n")
             (setq uptr math-unit-prefixes)
             (while uptr

@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1346,50 +1346,56 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	     (generator (unidata-prop-generator proplist))
 	     (default-value (unidata-prop-default proplist))
 	     (val-list (unidata-prop-val-list proplist))
-	     (table (progn
-		      (message "Generating %S table..." prop)
-		      (funcall generator prop index default-value val-list)))
-	     (decoder (char-table-extra-slot table 1))
-	     (alist (and (functionp index)
-			 (funcall index)))
-	     (check #x400))
-	(dolist (e unidata-list)
-	  (let* ((char (car e))
-		 (val1
-		  (if alist (nth 1 (assoc char alist))
-		    (nth index e)))
-		 val2)
-	    (if (and (stringp val1) (= (length val1) 0))
-		(setq val1 nil))
-	    (unless (or (consp char)
-			(integerp decoder))
-	      (setq val2
-		    (cond ((functionp decoder)
-			   (funcall decoder char (aref table char) table))
-			  (t		; must be nil
-			   (aref table char))))
-	      (if val1
-		  (cond ((eq generator 'unidata-gen-table-symbol)
-			 (setq val1 (intern val1)))
-			((eq generator 'unidata-gen-table-integer)
-			 (setq val1 (string-to-number val1)))
-			((eq generator 'unidata-gen-table-character)
-			 (setq val1 (string-to-number val1 16)))
-			((eq generator 'unidata-gen-table-decomposition)
-			 (setq val1 (unidata-split-decomposition val1))))
-		(cond ((eq prop 'decomposition)
-		       (setq val1 (list char)))
-		      ((eq prop 'bracket-type)
-		       (setq val1 'n))))
-	      (when (>= char check)
-		(message "%S %04X" prop check)
-		(setq check (+ check #x400)))
-	      (or (equal val1 val2)
-		  ;; <control> characters get a 'name' property of nil
-		  (and (eq prop 'name) (string= val1 "<control>") (null val2))
-		  (insert (format "> %04X %S\n< %04X %S\n"
-				  char val1 char val2)))
-	      (sit-for 0))))))))
+	     (check #x400)
+	     table decoder alist)
+        ;; We compare values in unidata.txt with the ones returned by various
+        ;; generator functions.  However, SpecialCasing.txt is read directly by
+        ;; unidata-gen-table-special-casing--do-load and there is no other file
+        ;; to compare those values with.  This is why we’re skipping the check
+        ;; for special casing properties.
+        (unless (eq generator 'unidata-gen-table-special-casing)
+          (setq table (progn
+                        (message "Generating %S table..." prop)
+                        (funcall generator prop index default-value val-list))
+                decoder (char-table-extra-slot table 1))
+          (unless (integerp decoder)
+            (setq alist (and (functionp index) (funcall index)))
+            (dolist (e unidata-list)
+              (let ((char (car e)) val1 val2)
+                (unless (consp char)
+                  (setq val1 (if alist
+                                 (nth 1 (assoc char alist))
+                               (nth index e)))
+                  (and (stringp val1)
+                       (= (length val1) 0)
+                       (setq val1 nil))
+                  (if val1
+                      (cond ((eq generator 'unidata-gen-table-symbol)
+                             (setq val1 (intern val1)))
+                            ((eq generator 'unidata-gen-table-integer)
+                             (setq val1 (string-to-number val1)))
+                            ((eq generator 'unidata-gen-table-character)
+                             (setq val1 (string-to-number val1 16)))
+                            ((eq generator 'unidata-gen-table-decomposition)
+                             (setq val1 (unidata-split-decomposition val1))))
+                    (cond ((eq prop 'decomposition)
+                           (setq val1 (list char)))
+                          ((eq prop 'bracket-type)
+                           (setq val1 'n))))
+                  (setq val2 (aref table char))
+                  (when decoder
+                    (setq val2 (funcall decoder char val2 table)))
+                  (when (>= char check)
+                    (message "%S %04X" prop check)
+                    (setq check (+ check #x400)))
+                  (or (equal val1 val2)
+                      ;; <control> characters get a 'name' property of nil
+                      (and (eq prop 'name)
+                           (string= val1 "<control>")
+                           (null val2))
+                      (insert (format "> %04X %S\n< %04X %S\n"
+                                      char val1 char val2)))
+                  (sit-for 0))))))))))
 
 ;; The entry functions.  They generate files described in the header
 ;; comment of this file.

@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -133,7 +133,7 @@
 ;;   f90-indent-region    (can be called by calling indent-region)
 ;;   f90-indent-subprogram
 ;;   f90-break-line                 f90-join-lines
-;;   f90-fill-region
+;;   f90-fill-region                f90-fill-paragraph
 ;;   f90-insert-end
 ;;   f90-upcase-keywords            f90-upcase-region-keywords
 ;;   f90-downcase-keywords          f90-downcase-region-keywords
@@ -784,6 +784,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
         ["Indent Region" f90-indent-region :active mark-active]
         ["Fill Region" f90-fill-region :active mark-active
          :help "Fill long lines in the region"]
+        ["Fill Statement/Comment" fill-paragraph :active t]
         "--"
         ["Break Line at Point" f90-break-line :active t
          :help "Break the current line at point"]
@@ -909,6 +910,8 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 [ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
   "Regexp matching the definition of a derived type.")
 
+;; Maybe this should include "class default", but the constant is no
+;; longer used.
 (defconst f90-typeis-re
   "\\_<\\(class\\|type\\)[ \t]*is[ \t]*("
   "Regexp matching a CLASS/TYPE IS statement.")
@@ -955,10 +958,14 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    ;; Avoid F2003 "type is" in "select type",
    ;; and also variables of derived type "type (foo)".
    ;; "type, foo" must be a block (?).
+   ;; And a partial effort to avoid "class default".
    "\\(?:type\\|class\\)[ \t,]\\("
-   "[^i(!\n\"& \t]\\|"                 ; not-i(
+   "[^id(!\n\"& \t]\\|"                ; not-id(
    "i[^s!\n\"& \t]\\|"                 ; i not-s
-   "is\\(?:\\sw\\|\\s_\\)\\)\\|"
+   "d[^e!\n\"& \t]\\|"                 ; d not-e
+   "de[^f!\n\"& \t]\\|"                ; de not-f
+   "def[^a!\n\"& \t]\\|"               ; def not-a
+   "\\(?:is\\|default\\)\\(?:\\sw\\|\\s_\\)\\)\\|"
    ;; "abstract interface" is F2003; "submodule" is F2008.
    "program\\|\\(?:abstract[ \t]*\\)?interface\\|\\(?:sub\\)?module\\|"
    ;; "enum", but not "enumerator".
@@ -1179,6 +1186,7 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'normal-auto-fill-function) 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)           ; auto buffer local
+  (set (make-local-variable 'fill-paragraph-function) 'f90-fill-paragraph)
   (set (make-local-variable 'font-lock-defaults)
        '((f90-font-lock-keywords f90-font-lock-keywords-1
                                  f90-font-lock-keywords-2
@@ -1454,7 +1462,7 @@ if all else fails."
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
-\\(?:class\\|type\\)[ \t]*is\\|\
+\\(?:class\\|type\\)[ \t]*is\\|class[ \t]*default\\|\
 block\\|critical\\|enum\\|associate\\)\\_>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\_>")
@@ -1880,8 +1888,8 @@ after indenting."
     ;; FIXME This means f90-calculate-indent gives different answers
     ;; for comments and preprocessor lines to this function.
     ;; Better to make f90-calculate-indent return the correct answer?
-    (cond ((looking-at "!") (setq indent (f90-comment-indent)))
-          ((looking-at "#") (setq indent 0))
+    (cond ((= (following-char) ?!) (setq indent (f90-comment-indent)))
+          ((= (following-char) ?#) (setq indent 0))
           (t
            (and f90-smart-end (looking-at "end")
                 (f90-match-end))
@@ -2152,6 +2160,20 @@ Like `join-line', but handles F90 syntax."
     (if (featurep 'xemacs)
         (zmacs-deactivate-region)
       (deactivate-mark))))
+
+(defun f90-fill-paragraph (&optional justify)
+  "In a comment, fill it as a paragraph, else fill the current statement.
+For use as the value of `fill-paragraph-function'.
+Passes optional argument JUSTIFY to `fill-comment-paragraph'.
+Always returns non-nil (to prevent `fill-paragraph' being called)."
+  (interactive "*P")
+  (or (fill-comment-paragraph justify)
+      (save-excursion
+        (f90-next-statement)
+        (let ((end (if (bobp) (point) (1- (point)))))
+          (f90-previous-statement)
+          (f90-fill-region (point) end)))
+      t))
 
 (defconst f90-end-block-optional-name
   '("program" "module" "subroutine" "function" "type")

@@ -1,4 +1,4 @@
-;;; org-mhe.el --- Support for links to MH-E messages from within Org-mode
+;;; org-mhe.el --- Support for Links to MH-E Messages -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
@@ -19,13 +19,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 
-;; This file implements links to MH-E messages from within Org-mode.
-;; Org-mode loads this module by default - if this is not what you want,
+;; This file implements links to MH-E messages from within Org.
+;; Org mode loads this module by default - if this is not what you want,
 ;; configure the variable `org-modules'.
 
 ;;; Code:
@@ -74,34 +74,25 @@ supported by MH-E."
 (defvar mh-search-regexp-builder)
 
 ;; Install the link type
-(org-add-link-type "mhe" 'org-mhe-open)
-(add-hook 'org-store-link-functions 'org-mhe-store-link)
+(org-link-set-parameters "mhe" :follow #'org-mhe-open :store #'org-mhe-store-link)
 
 ;; Implementation
 (defun org-mhe-store-link ()
   "Store a link to an MH-E folder or message."
-  (when (or (equal major-mode 'mh-folder-mode)
-	    (equal major-mode 'mh-show-mode))
+  (when (or (eq major-mode 'mh-folder-mode)
+	    (eq major-mode 'mh-show-mode))
     (save-window-excursion
       (let* ((from (org-mhe-get-header "From:"))
 	     (to (org-mhe-get-header "To:"))
 	     (message-id (org-mhe-get-header "Message-Id:"))
 	     (subject (org-mhe-get-header "Subject:"))
 	     (date (org-mhe-get-header "Date:"))
-	     (date-ts (and date (format-time-string
-				 (org-time-stamp-format t) (date-to-time date))))
-	     (date-ts-ia (and date (format-time-string
-				    (org-time-stamp-format t t)
-				    (date-to-time date))))
 	     link desc)
-	(org-store-link-props :type "mh" :from from :to to
+	(org-store-link-props :type "mh" :from from :to to :date date
 			      :subject subject :message-id message-id)
-	(when date
-	  (org-add-link-props :date date :date-timestamp date-ts
-			      :date-timestamp-inactive date-ts-ia))
 	(setq desc (org-email-link-description))
 	(setq link (concat "mhe:" (org-mhe-get-message-real-folder) "#"
-			   (org-remove-angle-brackets message-id)))
+			   (org-unbracket-string "<" ">" message-id)))
 	(org-add-link-props :link link :description desc)
 	link))))
 
@@ -120,7 +111,7 @@ supported by MH-E."
 So if you use sequences, it will now work."
   (save-excursion
     (let* ((folder
-	    (if (equal major-mode 'mh-folder-mode)
+	    (if (eq major-mode 'mh-folder-mode)
 		mh-current-folder
 	      ;; Refer to the show buffer
 	      mh-show-folder-buffer))
@@ -132,7 +123,7 @@ So if you use sequences, it will now work."
       ;; mh-index-data is always nil in a show buffer.
       (if (and (boundp 'mh-index-folder)
 	       (string= mh-index-folder (substring folder 0 end-index)))
-	  (if (equal major-mode 'mh-show-mode)
+	  (if (eq major-mode 'mh-show-mode)
 	      (save-window-excursion
 		(let (pop-up-frames)
 		  (when (buffer-live-p (get-buffer folder))
@@ -158,7 +149,7 @@ So if you use sequences, it will now work."
   "Return the name of the current message folder.
 Be careful if you use sequences."
   (save-excursion
-    (if (equal major-mode 'mh-folder-mode)
+    (if (eq major-mode 'mh-folder-mode)
 	mh-current-folder
       ;; Refer to the show buffer
       mh-show-folder-buffer)))
@@ -167,7 +158,7 @@ Be careful if you use sequences."
   "Return the number of the current message.
 Be careful if you use sequences."
   (save-excursion
-    (if (equal major-mode 'mh-folder-mode)
+    (if (eq major-mode 'mh-folder-mode)
 	(mh-get-msg-num nil)
       ;; Refer to the show buffer
       (mh-show-buffer-message-number))))
@@ -182,12 +173,12 @@ you have a better idea of how to do this then please let us know."
 	 (header-field))
     (with-current-buffer buffer
       (mh-display-msg num folder)
-      (if (equal major-mode 'mh-folder-mode)
+      (if (eq major-mode 'mh-folder-mode)
 	  (mh-header-display)
 	(mh-show-header-display))
       (set-buffer buffer)
       (setq header-field (mh-get-header-field header))
-      (if (equal major-mode 'mh-folder-mode)
+      (if (eq major-mode 'mh-folder-mode)
 	  (mh-show)
 	(mh-show-show))
       (org-trim header-field))))
@@ -206,13 +197,13 @@ folders."
   (if (not article)
       (mh-visit-folder (mh-normalize-folder-name folder))
     (mh-search-choose)
-    (if (equal mh-searcher 'pick)
+    (if (eq mh-searcher 'pick)
 	(progn
 	  (setq article (org-add-angle-brackets article))
 	  (mh-search folder (list "--message-id" article))
 	  (when (and org-mhe-search-all-folders
 		     (not (org-mhe-get-message-real-folder)))
-	    (kill-current-buffer)
+	    (kill-buffer)
 	    (mh-search "+" (list "--message-id" article))))
       (if mh-search-regexp-builder
 	  (mh-search "+" (funcall mh-search-regexp-builder
@@ -220,7 +211,7 @@ folders."
 	(mh-search "+" article)))
     (if (org-mhe-get-message-real-folder)
 	(mh-show-msg 1)
-      (kill-current-buffer)
+      (kill-buffer)
       (error "Message not found"))))
 
 (provide 'org-mhe)

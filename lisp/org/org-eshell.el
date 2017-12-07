@@ -1,4 +1,4 @@
-;;; org-eshell.el - Support for links to working directories in eshell
+;;; org-eshell.el - Support for Links to Working Directories in Eshell -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,8 +27,9 @@
 (require 'eshell)
 (require 'esh-mode)
 
-(org-add-link-type "eshell" 'org-eshell-open)
-(add-hook 'org-store-link-functions 'org-eshell-store-link)
+(org-link-set-parameters "eshell"
+			 :follow #'org-eshell-open
+			 :store #'org-eshell-store-link)
 
 (defun org-eshell-open (link)
   "Switch to am eshell buffer and execute a command line.
@@ -43,7 +44,7 @@
          (eshell-buffer-name (car buffer-and-command))
          (command (cadr buffer-and-command)))
     (if (get-buffer eshell-buffer-name)
-	(org-pop-to-buffer-same-window eshell-buffer-name)
+	(pop-to-buffer-same-window eshell-buffer-name)
       (eshell))
     (goto-char (point-max))
     (eshell-kill-input)

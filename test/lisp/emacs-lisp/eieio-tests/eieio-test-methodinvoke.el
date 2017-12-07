@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -192,7 +192,7 @@
 (ert-deftest eieio-test-method-order-list-6 ()
   ;; FIXME repeated intermittent failures on hydra (bug#24503)
   ;; ((:STATIC C) (:STATIC C-base1) (:STATIC C-base2)) != ((:STATIC C))")
-  (skip-unless (not (getenv "NIX_STORE")))
+  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
   (let ((eieio-test-method-order-list nil)
 	(ans '(
 	       (:STATIC C)

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -40,7 +40,7 @@ Return first line of the output of (describe-function-1 FUNC)."
     (match-string-no-properties 1 string)))
 
 (ert-deftest help-fns-test-bug17410 ()
-  "Test for http://debbugs.gnu.org/17410 ."
+  "Test for https://debbugs.gnu.org/17410 ."
   (let ((regexp "autoloaded Lisp macro")
         (result (help-fns-tests--describe-function 'help-fns-test--macro)))
     (should (string-match regexp result))))
@@ -76,11 +76,16 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-bug23887 ()
-  "Test for http://debbugs.gnu.org/23887 ."
+  "Test for https://debbugs.gnu.org/23887 ."
   (let ((regexp "an alias for .re-search-forward. in .subr\.el")
         (result (help-fns-tests--describe-function 'search-forward-regexp)))
     (should (string-match regexp result))))
 
+(ert-deftest help-fns-test-dangling-alias ()
+  "Make sure we don't burp on bogus aliases."
+  (let ((f (make-symbol "bogus-alias")))
+    (define-obsolete-function-alias f 'help-fns-test--undefined-function "past")
+    (describe-symbol f)))
 
 ;;; Test describe-function over functions with funny names
 (defun abc\\\[universal-argument\]b\`c\'d\\e\"f (x)

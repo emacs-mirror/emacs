@@ -960,7 +960,7 @@ Emacs，請使用 C-z 。
 本快速指南的翻譯人員列表如下，如果您在閱讀本文之前，「完全」對 Emacs
 沒有概念，請告訴我們您的意見以作為本文後續的改進依據。翻譯也提供了一份
 《GNU Emacs 中文處理說明》在
-http://www.gnu.org/software/chinese/guide/emacs-chinese.zh.html 〈部份
+https://www.gnu.org/software/chinese/guide/emacs-chinese.zh.html 〈部份
 內容已經整理到本快速指南〉，也請您自行參閱。
 
 編輯器是電腦使用者最常接觸到的應用程式，因此不應該讓初學者感到過於困難，
@@ -972,7 +972,7 @@ http://www.gnu.org/software/chinese/guide/emacs-chinese.zh.html 〈部份
 issue here>」。
 
 如果您是 Emacs 老手，GNU Chinese Translators Team (GNU/CTT)
-<http://www.gnu.org/software/chinese/> 歡迎您的加入，我們現在正需要願
+<https://www.gnu.org/software/chinese/> 歡迎您的加入，我們現在正需要願
 意投入翻譯 Emacs 使用手冊的人員。
 
 本快速指南並沒有採用習慣上編輯器所使用的翻譯術語，一方面因為它的實際意

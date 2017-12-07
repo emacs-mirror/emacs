@@ -238,20 +238,19 @@ is one, to determine the file version, since it is often more reliable
 than the RCS master file.  To inhibit using the version header this
 way, change the variable @code{vc-consult-headers} to @code{nil}.
 
-@kindex C-x v h
 @findex vc-insert-headers
 @vindex vc-@var{backend}-header
-  To insert a suitable header string into the current buffer, type
-@kbd{C-x v h} (@code{vc-insert-headers}).  This command works only on
+  To insert a suitable header string into the current buffer, use the
+command @kbd{M-x vc-insert-headers}.  This command works only on
 Subversion, CVS, RCS, and SCCS@.  The variable
 @code{vc-@var{backend}-header} contains the list of keywords to insert
 into the version header; for instance, CVS uses @code{vc-cvs-header},
 whose default value is @code{'("\$Id\$")}.  (The extra backslashes
 prevent the string constant from being interpreted as a header, if the
 Emacs Lisp file defining it is maintained with version control.)  The
-@kbd{C-x v h} command inserts each keyword in the list on a new line
-at point, surrounded by tabs, and inside comment delimiters if
-necessary.
+@code{vc-insert-headers} command inserts each keyword in the list on a
+new line at point, surrounded by tabs, and inside comment delimiters
+if necessary.
 
 @vindex vc-static-header-alist
   The variable @code{vc-static-header-alist} specifies further strings
@@ -347,22 +346,9 @@ status by setting @code{vc-consult-headers} to @code{nil}.  VC then
 always uses the file permissions (if it is supposed to trust them), or
 else checks the master file.
 
-@vindex vc-mistrust-permissions
-  You can specify the criterion for whether to trust the file
-permissions by setting the variable @code{vc-mistrust-permissions}.
-Its value can be @code{t} (always mistrust the file permissions and
-check the master file), @code{nil} (always trust the file
-permissions), or a function of one argument which makes the decision.
-The argument is the directory name of the @file{RCS} subdirectory.  A
-non-@code{nil} value from the function says to mistrust the file
-permissions.  If you find that the file permissions of work files are
-changed erroneously, set @code{vc-mistrust-permissions} to @code{t}.
-Then VC always checks the master file to determine the file's status.
-
   VC determines the version control state of files under SCCS much as
 with RCS@.  It does not consider SCCS version headers, though.  Thus,
-the variable @code{vc-mistrust-permissions} affects SCCS use, but
-@code{vc-consult-headers} does not.
+the variable @code{vc-consult-headers} does not affect SCCS use.
 
 @node CVS Options
 @subsubsection Options specific for CVS

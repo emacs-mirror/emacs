@@ -43,7 +43,7 @@ file, where this release will store flags for nntp.  See a later entry
 for more information about nntp marks.  Note that downgrading isn't
 safe in general.
 
-@item Incompatibility when switching from Emacs 23 to Emacs 22 
+@item Incompatibility when switching from Emacs 23 to Emacs 22
 In Emacs 23, Gnus uses Emacs's new internal coding system @code{utf-8-emacs}
 for saving articles drafts and @file{~/.newsrc.eld}.  These files may not
 be read correctly in Emacs 22 and below.  If you want to use Gnus across
@@ -59,7 +59,7 @@ will shadow the latest one are detected.  You can then remove those
 shadows manually or remove them using @code{make
 remove-installed-shadows}.
 
-@item The installation directory name is allowed to have spaces and/or tabs.
+@item The installation directory's name is allowed to have spaces and/or tabs.
 @end itemize
 
 @item New packages and libraries within Gnus
@@ -143,7 +143,7 @@ with a WWW browser with @kbd{K H}.  @xref{MIME Commands}.
 @item International host names (@acronym{IDNA}) can now be decoded
 inside article bodies using @kbd{W i}
 (@code{gnus-summary-idna-message}).  This requires that GNU Libidn
-(@url{http://www.gnu.org/software/libidn/}) has been installed.
+(@url{https://www.gnu.org/software/libidn/}) has been installed.
 @c FIXME: Also mention @code{message-use-idna}?
 
 @item The non-@acronym{ASCII} group names handling has been much

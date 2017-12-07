@@ -273,6 +273,12 @@ distinct uninterned symbol whose name is also @samp{foo}.
 @end example
 @end defun
 
+@defun gensym &optional prefix
+This function returns a symbol using @code{make-symbol}, whose name is
+made by appending @code{gensym-counter} to @var{prefix}.  The prefix
+defaults to @code{"g"}.
+@end defun
+
 @defun intern name &optional obarray
 This function returns the interned symbol whose name is @var{name}.  If
 there is no such symbol in the obarray @var{obarray}, @code{intern}

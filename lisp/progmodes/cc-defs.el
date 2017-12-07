@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,19 +44,12 @@
     (load "cc-bytecomp" nil t)))
 
 (eval-and-compile
-  (defvar c--mapcan-status
-    (cond ((and (fboundp 'mapcan)
-		(subrp (symbol-function 'mapcan)))
-	   ;; XEmacs
-	   'mapcan)
-	  ((locate-file "cl-lib.elc" load-path)
-	   ;; Emacs >= 24.3
-	   'cl-mapcan)
-	  (t
-	   ;; Emacs <= 24.2
-	   nil))))
+  (defvar c--cl-library
+    (if (locate-library "cl-lib")
+	'cl-lib
+      'cl)))
 
-(cc-external-require (if (eq c--mapcan-status 'cl-mapcan) 'cl-lib 'cl))
+(cc-external-require c--cl-library)
 ; was (cc-external-require 'cl).  ACM 2005/11/29.
 ; Changed from (eval-when-compile (require 'cl)) back to
 ; cc-external-require, 2015-08-12.
@@ -182,9 +175,12 @@ This variant works around bugs in `eval-when-compile' in various
   ;; The motivation for this macro is to avoid the irritating message
   ;; "function `mapcan' from cl package called at runtime" produced by Emacs.
   (cond
-   ((eq c--mapcan-status 'mapcan)
+   ((and (fboundp 'mapcan)
+	 (subrp (symbol-function 'mapcan)))
+    ;; XEmacs and Emacs >= 26.
     `(mapcan ,fun ,liszt))
-   ((eq c--mapcan-status 'cl-mapcan)
+   ((eq c--cl-library 'cl-lib)
+    ;; Emacs >= 24.3, < 26.
     `(cl-mapcan ,fun ,liszt))
    (t
     ;; Emacs <= 24.2.  It would be nice to be able to distinguish between
@@ -193,13 +189,13 @@ This variant works around bugs in `eval-when-compile' in various
 
 (defmacro c--set-difference (liszt1 liszt2 &rest other-args)
   ;; Macro to smooth out the renaming of `set-difference' in Emacs 24.3.
-  (if (eq c--mapcan-status 'cl-mapcan)
+  (if (eq c--cl-library 'cl-lib)
       `(cl-set-difference ,liszt1 ,liszt2 ,@other-args)
     `(set-difference ,liszt1 ,liszt2 ,@other-args)))
 
 (defmacro c--intersection (liszt1 liszt2 &rest other-args)
   ;; Macro to smooth out the renaming of `intersection' in Emacs 24.3.
-  (if (eq c--mapcan-status 'cl-mapcan)
+  (if (eq c--cl-library 'cl-lib)
       `(cl-intersection ,liszt1 ,liszt2 ,@other-args)
     `(intersection ,liszt1 ,liszt2 ,@other-args)))
 
@@ -212,7 +208,7 @@ This variant works around bugs in `eval-when-compile' in various
 
   (defmacro c--delete-duplicates (cl-seq &rest cl-keys)
     ;; Macro to smooth out the renaming of `delete-duplicates' in Emacs 24.3.
-    (if (eq c--mapcan-status 'cl-mapcan)
+    (if (eq c--cl-library 'cl-lib)
 	`(cl-delete-duplicates ,cl-seq ,@cl-keys)
       `(delete-duplicates ,cl-seq ,@cl-keys))))
 
@@ -371,6 +367,8 @@ to it is returned.  This function does not modify the point or the mark."
 	  (t (error "Unknown buffer position requested: %s" position))))
        (point))))
 
+(defvar lookup-syntax-properties)       ;XEmacs.
+
 (eval-and-compile
   ;; Constant to decide at compilation time whether to use category
   ;; properties.  Currently (2010-03) they're available only on GNU Emacs.
@@ -418,6 +416,17 @@ to it is returned.  This function does not modify the point or the mark."
 	 (zmacs-deactivate-region))
     ;; Emacs.
     `(setq mark-active ,activate)))
+
+(defmacro c-set-keymap-parent (map parent)
+  (cond
+   ;; XEmacs
+   ((cc-bytecomp-fboundp 'set-keymap-parents)
+    `(set-keymap-parents ,map ,parent))
+   ;; Emacs
+   ((cc-bytecomp-fboundp 'set-keymap-parent)
+    `(set-keymap-parent ,map ,parent))
+   ;; incompatible
+   (t (error "CC Mode is incompatible with this version of Emacs"))))
 
 (defmacro c-delete-and-extract-region (start end)
   "Delete the text between START and END and return it."
@@ -1175,6 +1184,86 @@ been put there by c-put-char-property.  POINT remains unchanged."
 		      nil ,from ,to ,value nil -property-))
     ;; GNU Emacs
     `(c-clear-char-property-with-value-function ,from ,to ,property ,value)))
+
+(defmacro c-search-forward-char-property-with-value-on-char
+    (property value char &optional limit)
+  "Search forward for a text-property PROPERTY having value VALUE on a
+character with value CHAR.
+LIMIT bounds the search.  The value comparison is done with `equal'.
+PROPERTY must be a constant.
+
+Leave point just after the character, and set the match data on
+this character, and return point.  If the search fails, return
+nil; point is then left undefined."
+  `(let ((char-skip (concat "^" (char-to-string ,char)))
+	 (-limit- ,limit)
+	 (-value- ,value))
+     (while
+	 (and
+	  (progn (skip-chars-forward char-skip -limit-)
+		 (< (point) -limit-))
+	  (not (equal (c-get-char-property (point) ,property) -value-)))
+       (forward-char))
+     (when (< (point) -limit-)
+       (search-forward-regexp ".")	; to set the match-data.
+       (point))))
+
+(defun c-clear-char-property-with-value-on-char-function (from to property
+							       value char)
+  "Remove all text-properties PROPERTY with value VALUE on
+characters with value CHAR from the region [FROM, TO), as tested
+by `equal'.  These properties are assumed to be over individual
+characters, having been put there by c-put-char-property.  POINT
+remains unchanged."
+  (let ((place from)
+	)
+    (while			  ; loop round occurrences of (PROPERTY VALUE)
+	(progn
+	  (while	   ; loop round changes in PROPERTY till we find VALUE
+	      (and
+	       (< place to)
+	       (not (equal (get-text-property place property) value)))
+	    (setq place (c-next-single-property-change place property nil to)))
+	  (< place to))
+      (if (eq (char-after place) char)
+	  (remove-text-properties place (1+ place) (cons property nil)))
+      ;; Do we have to do anything with stickiness here?
+      (setq place (1+ place)))))
+
+(defmacro c-clear-char-property-with-value-on-char (from to property value char)
+  "Remove all text-properties PROPERTY with value VALUE on
+characters with value CHAR from the region [FROM, TO), as tested
+by `equal'.  These properties are assumed to be over individual
+characters, having been put there by c-put-char-property.  POINT
+remains unchanged."
+  (if c-use-extents
+      ;; XEmacs
+      `(let ((-property- ,property)
+	     (-char- ,char))
+	 (map-extents (lambda (ext val)
+			(if (and (equal (extent-property ext -property-) val)
+				 (eq (char-after
+				      (extent-start-position ext))
+				     -char-))
+			    (delete-extent ext)))
+		      nil ,from ,to ,value nil -property-))
+    ;; Gnu Emacs
+    `(c-clear-char-property-with-value-on-char-function ,from ,to ,property
+							,value ,char)))
+
+(defmacro c-put-char-properties-on-char (from to property value char)
+  ;; This needs to be a macro because `property' passed to
+  ;; `c-put-char-property' must be a constant.
+  "Put the text property PROPERTY with value VALUE on characters
+with value CHAR in the region [FROM to)."
+  `(let ((skip-string (concat "^" (list ,char)))
+	 (-to- ,to))
+     (save-excursion
+       (goto-char ,from)
+       (while (progn (skip-chars-forward skip-string -to-)
+		     (< (point) -to-))
+	   (c-put-char-property (point) ,property ,value)
+	   (forward-char)))))
 
 ;; Macros to put overlays (Emacs) or extents (XEmacs) on buffer text.
 ;; For our purposes, these are characterized by being possible to
@@ -1211,6 +1300,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 (def-edebug-spec cc-eval-when-compile (&rest def-form))
 (def-edebug-spec c-point t)
 (def-edebug-spec c-set-region-active t)
+(def-edebug-spec c-set-keymap-parent t)
 (def-edebug-spec c-safe t)
 (def-edebug-spec c-save-buffer-state let*)
 (def-edebug-spec c-tentative-buffer-changes t)
@@ -1232,6 +1322,8 @@ been put there by c-put-char-property.  POINT remains unchanged."
 (def-edebug-spec c-put-char-property t)
 (def-edebug-spec c-get-char-property t)
 (def-edebug-spec c-clear-char-property t)
+(def-edebug-spec c-clear-char-property-with-value-on-char t)
+(def-edebug-spec c-put-char-properties-on-char t)
 (def-edebug-spec c-clear-char-properties t)
 (def-edebug-spec c-put-overlay t)
 (def-edebug-spec c-delete-overlay t)
@@ -1776,8 +1868,6 @@ non-nil, a caret is prepended to invert the set."
 ;; Figure out what features this Emacs has
 
 (cc-bytecomp-defvar open-paren-in-column-0-is-defun-start)
-
-(defvar lookup-syntax-properties)       ;XEmacs.
 
 (defconst c-emacs-features
   (let (list)

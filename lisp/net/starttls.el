@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,7 +42,7 @@
 ;; it performs more verification of the certificates.
 
 ;; The GnuTLS support requires GnuTLS 0.9.90 (released 2003-10-08) or
-;; later, from <http://www.gnu.org/software/gnutls/>, or "starttls"
+;; later, from <https://www.gnu.org/software/gnutls/>, or "starttls"
 ;; from <ftp://ftp.opaopa.org/pub/elisp/>.
 
 ;; Usage is similar to `open-network-stream'.  For example:

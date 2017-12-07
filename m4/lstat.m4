@@ -1,4 +1,4 @@
-# serial 27
+# serial 30
 
 # Copyright (C) 1997-2001, 2003-2017 Free Software Foundation, Inc.
 #
@@ -10,14 +10,15 @@ dnl From Jim Meyering.
 
 AC_DEFUN([gl_FUNC_LSTAT],
 [
+  AC_REQUIRE([AC_CANONICAL_HOST])
   AC_REQUIRE([gl_SYS_STAT_H_DEFAULTS])
   dnl If lstat does not exist, the replacement <sys/stat.h> does
   dnl "#define lstat stat", and lstat.c is a no-op.
   AC_CHECK_FUNCS_ONCE([lstat])
   if test $ac_cv_func_lstat = yes; then
     AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
-    case "$gl_cv_func_lstat_dereferences_slashed_symlink" in
-      *no)
+    case $host_os,$gl_cv_func_lstat_dereferences_slashed_symlink in
+      solaris* | *no)
         REPLACE_LSTAT=1
         ;;
     esac
@@ -33,6 +34,7 @@ AC_DEFUN([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK],
 [
   dnl We don't use AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK any more, because it
   dnl is no longer maintained in Autoconf and because it invokes AC_LIBOBJ.
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CACHE_CHECK([whether lstat correctly handles trailing slash],
     [gl_cv_func_lstat_dereferences_slashed_symlink],
     [rm -f conftest.sym conftest.file
@@ -54,6 +56,9 @@ AC_DEFUN([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK],
           *-gnu*)
             # Guess yes on glibc systems.
             gl_cv_func_lstat_dereferences_slashed_symlink="guessing yes" ;;
+          mingw*)
+            # Guess no on native Windows.
+            gl_cv_func_lstat_dereferences_slashed_symlink="guessing no" ;;
           *)
             # If we don't know, assume the worst.
             gl_cv_func_lstat_dereferences_slashed_symlink="guessing no" ;;

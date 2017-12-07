@@ -26,9 +26,9 @@ are designed to make sure that everyone who has a copy of GNU Emacs
 change it.
 
 For information on how to get GNU software, see
-http://www.gnu.org/software/software.html.  Printed copies of GNU
+https://www.gnu.org/software/software.html.  Printed copies of GNU
 manuals, including the Emacs manual, are available from the FSF's
-online store at http://shop.fsf.org.
+online store at https://shop.fsf.org.
 
 Emacs has been run on GNU/Linux, FreeBSD, NetBSD, OpenBSD, and on many
 Unix systems, on a variety of types of CPU, as well as on MS-DOS,
@@ -41,7 +41,7 @@ License for full details, in the file 'COPYING' in this directory (see
 above)), and neither I nor the Free Software Foundation promises any
 kind of support or assistance to users.  The foundation keeps a list
 of people who are willing to offer support and assistance for hire.
-See http://www.gnu.org/help/gethelp.html.
+See https://www.gnu.org/help/gethelp.html.
 
 However, we plan to continue to improve GNU Emacs and keep it
 reliable, so please send us any complaints and suggestions you have.
@@ -93,4 +93,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

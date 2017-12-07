@@ -20,8 +20,8 @@ To only generate the cards for a specific language, use e.g.
 to install extra TeX packages for some languages.
 
 PDF and PS copies of these cards are also available at
-<http://www.gnu.org/software/emacs/refcards>.  The FSF online
-store <http://shop.fsf.org/> sometimes has printed copies for sale.
+<https://www.gnu.org/software/emacs/refcards>.  The FSF online
+store <https://shop.fsf.org/> sometimes has printed copies for sale.
 
 
 
@@ -50,4 +50,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

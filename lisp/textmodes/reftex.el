@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,13 +36,13 @@
 ;;
 ;; The documentation in various formats is also available at
 ;;
-;;     http://www.gnu.org/software/auctex/manual/reftex.index.html
+;;     https://www.gnu.org/software/auctex/manual/reftex.index.html
 ;;
 ;; RefTeX is bundled with Emacs and available as a plug-in package for
 ;; XEmacs 21.x.  If you need to install it yourself, you can find a
 ;; distribution at
 ;;
-;;    http://www.gnu.org/software/auctex/reftex.html
+;;    https://www.gnu.org/software/auctex/reftex.html
 ;;
 ;; RefTeX was written by Carsten Dominik <dominik@science.uva.nl> with
 ;; contributions from Stephen Eglen.  It is currently maintained by
@@ -1496,7 +1496,8 @@ When DIE is non-nil, throw an error if file not found."
   (and n (setq conf-variable (nth n conf-variable)))
   (or (eq conf-variable t)
       (and (stringp conf-variable)
-           (string-match (concat "[" conf-variable "]") typekey))))
+           (let ((case-fold-search nil))
+             (string-match (concat "[" conf-variable "]") typekey)))))
 
 (defun reftex-check-recursive-edit ()
   ;; Check if we are already in a recursive edit.  Abort with helpful
@@ -2368,7 +2369,7 @@ information about your RefTeX version and configuration."
 what in fact did happen.
 
 Check if the bug is reproducible with an up-to-date version of
-RefTeX available from http://www.gnu.org/software/auctex/.
+RefTeX available from https://www.gnu.org/software/auctex/.
 
 If the bug is triggered by a specific \(La)TeX file, you should try
 to produce a minimal sample file showing the problem and include it

@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -206,7 +206,7 @@
 (defun calcFunc-fdiv (a b)   ; [R I I] [Public]
   (cond
    ((Math-num-integerp a)
-    (cond 
+    (cond
      ((Math-num-integerp b)
       (if (Math-zerop b)
 	  (math-reject-arg a "*Division by zero")
@@ -217,7 +217,7 @@
 	(math-make-frac (math-mul (math-trunc a) (nth 2 b)) (nth 1 b))))
      (t (math-reject-arg b 'integerp))))
    ((eq (car-safe a) 'frac)
-    (cond 
+    (cond
      ((Math-num-integerp b)
       (if (Math-zerop b)
 	  (math-reject-arg a "*Division by zero")
@@ -227,7 +227,7 @@
 	  (math-reject-arg a "*Division by zero")
 	(math-make-frac (math-mul (nth 1 a) (nth 2 b)) (math-mul (nth 2 a) (nth 1 b)))))
      (t (math-reject-arg b 'integerp))))
-   (t 
+   (t
     (math-reject-arg a 'integerp))))
 
 (provide 'calc-frac)

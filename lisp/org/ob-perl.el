@@ -1,4 +1,4 @@
-;;; ob-perl.el --- org-babel functions for perl evaluation
+;;; ob-perl.el --- Babel Functions for Perl          -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,7 +28,6 @@
 
 ;;; Code:
 (require 'ob)
-(eval-when-compile (require 'cl))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("perl" . "pl"))
@@ -41,20 +40,20 @@
 (defun org-babel-execute:perl (body params)
   "Execute a block of Perl code with Babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((session (cdr (assoc :session params)))
-         (result-params (cdr (assoc :result-params params)))
-         (result-type (cdr (assoc :result-type params)))
+  (let* ((session (cdr (assq :session params)))
+         (result-params (cdr (assq :result-params params)))
+         (result-type (cdr (assq :result-type params)))
          (full-body (org-babel-expand-body:generic
 		     body params (org-babel-variable-assignments:perl params)))
 	 (session (org-babel-perl-initiate-session session)))
     (org-babel-reassemble-table
      (org-babel-perl-evaluate session full-body result-type result-params)
      (org-babel-pick-name
-      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+      (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
      (org-babel-pick-name
-      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
+      (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))
 
-(defun org-babel-prep-session:perl (session params)
+(defun org-babel-prep-session:perl (_session _params)
   "Prepare SESSION according to the header arguments in PARAMS."
   (error "Sessions are not supported for Perl"))
 
@@ -63,7 +62,7 @@ This function is called by `org-babel-execute-src-block'."
   (mapcar
    (lambda (pair)
      (org-babel-perl--var-to-perl (cdr pair) (car pair)))
-   (mapcar #'cdr (org-babel-get-header params :var))))
+   (org-babel--get-vars params)))
 
 ;; helper functions
 
@@ -76,7 +75,7 @@ This function is called by `org-babel-execute-src-block'."
 The elisp value, VAR, is converted to a string of perl source code
 specifying a var of the same value."
   (if varn
-      (let ((org-babel-perl--lvl 0) (lvar (listp var)) prefix)
+      (let ((org-babel-perl--lvl 0) (lvar (listp var)))
 	(concat "my $" (symbol-name varn) "=" (when lvar "\n")
 		(org-babel-perl--var-to-perl var)
 		";\n"))
@@ -92,7 +91,7 @@ specifying a var of the same value."
 
 (defvar org-babel-perl-buffers '(:default . nil))
 
-(defun org-babel-perl-initiate-session (&optional session params)
+(defun org-babel-perl-initiate-session (&optional _session _params)
   "Return nil because sessions are not supported by perl."
   nil)
 
@@ -127,8 +126,8 @@ specifying a var of the same value."
 
 (defun org-babel-perl-evaluate (session ibody &optional result-type result-params)
   "Pass BODY to the Perl process in SESSION.
-If RESULT-TYPE equals 'output then return a list of the outputs
-of the statements in BODY, if RESULT-TYPE equals 'value then
+If RESULT-TYPE equals `output' then return a list of the outputs
+of the statements in BODY, if RESULT-TYPE equals `value' then
 return the value of the last statement in BODY, as elisp."
   (when session (error "Sessions are not supported for Perl"))
   (let* ((body (concat org-babel-perl-preface ibody))
@@ -136,13 +135,13 @@ return the value of the last statement in BODY, as elisp."
 	 (tmp-babel-file (org-babel-process-file-name
 			  tmp-file 'noquote)))
     (let ((results
-           (case result-type
-             (output
+           (pcase result-type
+             (`output
               (with-temp-file tmp-file
                 (insert
                  (org-babel-eval org-babel-perl-command body))
                 (buffer-string)))
-             (value
+             (`value
               (org-babel-eval org-babel-perl-command
                               (format org-babel-perl-wrapper-method
                                       body tmp-babel-file))))))

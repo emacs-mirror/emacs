@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 In other words, you are welcome to use, share and improve this program.
@@ -58,9 +58,11 @@ what you give them.   Help stamp out software-hoarding!  */
 #include <sys/types.h>
 #include <unistd.h>
 
-#if !defined (__NetBSD__) && !defined (__OpenBSD__)
-#include <elf.h>
-#endif /* not __NetBSD__ and not __OpenBSD__ */
+#ifdef __QNX__
+# include <sys/elf.h>
+#elif !defined __NetBSD__ && !defined __OpenBSD__
+# include <elf.h>
+#endif
 #include <sys/mman.h>
 #if defined (_SYSTYPE_SYSV)
 #include <sys/elf_mips.h>
@@ -222,7 +224,6 @@ unexec (const char *new_name, const char *old_name)
 {
   int new_file, old_file;
   off_t new_file_size;
-  void *new_break;
 
   /* Pointers to the base of the image of the two files.  */
   caddr_t old_base, new_base;
@@ -326,11 +327,13 @@ unexec (const char *new_name, const char *old_name)
   if (old_bss_index == -1)
     fatal ("no bss section found");
 
+  void *no_break = (void *) (intptr_t) -1;
+  void *new_break = no_break;
 #ifdef HAVE_SBRK
   new_break = sbrk (0);
-#else
-  new_break = (byte *) old_bss_addr + old_bss_size;
 #endif
+  if (new_break == no_break)
+    new_break = (byte *) old_bss_addr + old_bss_size;
   new_bss_addr = (ElfW (Addr)) new_break;
   bss_size_growth = new_bss_addr - old_bss_addr;
   new_data2_size = bss_size_growth;
@@ -576,7 +579,17 @@ unexec (const char *new_name, const char *old_name)
     }
 
   /* This loop seeks out relocation sections for the data section, so
-     that it can undo relocations performed by the runtime loader.  */
+     that it can undo relocations performed by the runtime loader.
+
+     The following approach does not work on x86 platforms that use
+     the GNU Gold linker, which can generate .rel.dyn relocation
+     sections containing R_386_32 entries that the following code does
+     not grok.  Emacs works around this problem by avoiding C
+     constructs that generate such entries, which is horrible hack.
+
+     FIXME: Presumably more problems like this will crop up as linkers
+     get fancier.  We really need to stop assuming that Emacs can grok
+     arbitrary linker output.  See Bug#27248.  */
   for (n = new_file_h->e_shnum; 0 < --n; )
     {
       ElfW (Shdr) *rel_shdr = &NEW_SECTION_H (n);

@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -227,9 +227,12 @@
 	(modi #x11600)
 	(takri #x11680)
 	(warang-citi #x118A1)
+        (zanabazar-square #x11A00)
+        (soyombo #x11A50)
 	(pau-cin-hau #x11AC0)
         (bhaiksuki #x11C00)
         (marchen #x11C72)
+        (masaram-gondi #x11D00)
 	(cuneiform #x12000)
 	(cuneiform-numbers-and-punctuation #x12400)
 	(mro #x16A40)
@@ -237,6 +240,7 @@
 	(pahawh-hmong #x16B11)
         (tangut #x17000)
         (tangut-components #x18800)
+        (nushu #x1B170)
 	(duployan-shorthand #x1BC20)
 	(byzantine-musical-symbol #x1D000)
 	(musical-symbol #x1D100)

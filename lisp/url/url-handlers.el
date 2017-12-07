@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -341,7 +341,7 @@ if it had been inserted from a file named URL."
     (unless buffer (signal 'file-error (list url "No Data")))
     (with-current-buffer buffer
       ;; XXX: This is HTTP/S specific and should be moved to url-http
-      ;; instead.  See http://debbugs.gnu.org/17549.
+      ;; instead.  See https://debbugs.gnu.org/17549.
       (when (bound-and-true-p url-http-response-status)
         ;; Don't signal an error if VISIT is non-nil, because
         ;; 'insert-file-contents' doesn't.  This is required to
@@ -354,7 +354,7 @@ if it had been inserted from a file named URL."
                          (< url-http-response-status 300)))
           (let ((desc (nth 2 (assq url-http-response-status url-http-codes))))
             (kill-buffer buffer)
-            ;; Signal file-error per http://debbugs.gnu.org/16733.
+            ;; Signal file-error per https://debbugs.gnu.org/16733.
             (signal 'file-error (list url desc))))))
     (url-insert-buffer-contents buffer url visit beg end replace)))
 

@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -97,6 +97,16 @@ TEST_LOCALE = C
 # this by default since it gives nicer stacktraces.
 TEST_LOAD_EL ?= yes
 
+# Maximum length of lines in ert backtraces; nil for no limit.
+# (if empty, use the default ert-batch-backtrace-right-margin).
+TEST_BACKTRACE_LINE_LENGTH =
+
+ifeq (${TEST_BACKTRACE_LINE_LENGTH},)
+ert_opts =
+else
+ert_opts = --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
+endif
+
 ifeq (@HAVE_MODULES@, yes)
 MODULES_EMACSOPT := --module-assertions
 else
@@ -137,6 +147,13 @@ endif
 
 ## Save logs, and show logs for failed tests.
 WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
+ifdef EMACS_HYDRA_CI
+## On Hydra, always show logs for certain problematic tests.
+lisp/emacs-lisp/eieio-tests/eieio-tests.log \
+lisp/net/tramp-tests.log \
+lisp/url/url-tramp-test.log \
+: WRITE_LOG = 2>&1 | tee $@
+endif
 
 ifeq ($(TEST_LOAD_EL), yes)
 testloadfile = $*.el
@@ -144,10 +161,10 @@ else
 testloadfile = $*
 endif
 
-## Ignore any test errors so we can continue to test other files.
 %.log: %.elc
 	$(AM_V_at)${MKDIR_P} $(dir $@)
-	-$(AM_V_GEN)HOME=/nonexistent $(emacs) -l ert -l $(testloadfile) \
+	$(AM_V_GEN)HOME=/nonexistent $(emacs) \
+	  -l ert ${ert_opts} -l $(testloadfile) \
 	  --eval "(ert-run-tests-batch-and-exit ${SELECTOR_ACTUAL})" ${WRITE_LOG}
 
 ifeq (@HAVE_MODULES@, yes)
@@ -156,11 +173,11 @@ else
 maybe_exclude_module_tests := -name emacs-module-tests.el -prune -o
 endif
 
-ELFILES := $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
+ELFILES := $(sort $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
 		-path "${srcdir}/data" -prune -o \
 		-name "*resources" -prune -o \
 		${maybe_exclude_module_tests} \
-		-name "*.el" ! -name ".*" -print)
+		-name "*.el" ! -name ".*" -print))
 ## .log files may be in a different directory for out of source builds
 LOGFILES := $(patsubst %.el,%.log, \
 		$(patsubst $(srcdir)/%,%,$(ELFILES)))
@@ -178,12 +195,12 @@ TESTS := $(LOGFILES:.log=)
 define test_template
   ## A test FOO-tests depends on the source file with the similar
   ## name, unless FOO itself contains the string '-tests/'.
-  ## The similar name is FOO.c if FOO begins with 'src/', FOO.el
+  ## The similar name is FOO.c if FOO begins with '{lib-,}src/', FOO.el
   ## otherwise.  Although this heuristic does not identify all the
   ## dependencies, it is better than nothing.
   ifeq (,$(patsubst %-tests,,$(1))$(findstring -tests/,$(1)))
     $(1).log: $(patsubst %-tests,$(srcdir)/../%,$(1))$(if \
-					$(patsubst src/%,,$(1)),.el,.c)
+					$(patsubst src/%,,$(patsubst lib-src/%,,$(1))),.el,.c)
   endif
 
   ## Short aliases that always re-run the tests, with no logging.
@@ -220,7 +237,7 @@ endif
 ## the tests were arranged differently.
 .PHONY: check-no-automated-subdir
 check-no-automated-subdir:
-	test ! -d $(srcdir)/automated
+	${AM_V_at}test ! -d $(srcdir)/automated
 
 ## Rerun all default tests.
 check: mostlyclean check-no-automated-subdir
@@ -240,8 +257,11 @@ check-maybe: check-no-automated-subdir
 
 ## Run the tests.
 .PHONY: check-doit
-check-doit: ${LOGFILES}
-	@$(emacs) -l ert -f ert-summarize-tests-batch-and-exit $^
+## We can't put LOGFILES as prerequisites, because that would stop the
+## summarizing step from running when there is an error.
+check-doit:
+	-@${MAKE} -k  ${LOGFILES}
+	@$(emacs) -l ert -f ert-summarize-tests-batch-and-exit ${LOGFILES}
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 

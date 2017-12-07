@@ -66,6 +66,16 @@ div::before {
     );
 }
 
+/* Multi-line selector including both a pseudo-class and
+   parenthesis. */
+.form-group:not(.required) label,
+.birth-date .row > * {
+    &::after {
+        display: inline;
+        font-weight: normal;
+    }
+}
+
 @font-face {
     src: url("Sans-Regular.eot") format("eot"),
          url("Sans-Regular.woff") format("woff"),

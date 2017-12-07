@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -264,7 +264,9 @@ see the function `dirtrack-mode'."
   :group 'shell-directories)
 
 (defcustom explicit-shell-file-name nil
-  "If non-nil, is file name to use for explicitly requested inferior shell."
+  "If non-nil, is file name to use for explicitly requested inferior shell.
+When nil, such interactive shell sessions fallback to using either
+the shell specified in $ESHELL or in `shell-file-name'."
   :type '(choice (const :tag "None" nil) file)
   :group 'shell)
 

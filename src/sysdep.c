@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -36,6 +36,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sheap.h"
 #include "sysselect.h"
 #include "blockinput.h"
+
+#ifdef HAVE_LINUX_FS_H
+# include <linux/fs.h>
+# include <sys/syscall.h>
+#endif
+
+#ifdef CYGWIN
+# include <cygwin/fs.h>
+#endif
 
 #if defined DARWIN_OS || defined __FreeBSD__
 # include <sys/sysctl.h>
@@ -212,10 +221,29 @@ init_standard_fds (void)
 }
 
 /* Return the current working directory.  The result should be freed
-   with 'free'.  Return NULL on errors.  */
-char *
-emacs_get_current_dir_name (void)
+   with 'free'.  Return NULL (setting errno) on errors.  If the
+   current directory is unreachable, return either NULL or a string
+   beginning with '('.  */
+
+static char *
+get_current_dir_name_or_unreachable (void)
 {
+  /* Use malloc, not xmalloc, since this function can be called before
+     the xmalloc exception machinery is available.  */
+
+  char *pwd;
+
+  /* The maximum size of a directory name, including the terminating null.
+     Leave room so that the caller can append a trailing slash.  */
+  ptrdiff_t dirsize_max = min (PTRDIFF_MAX, SIZE_MAX) - 1;
+
+  /* The maximum size of a buffer for a file name, including the
+     terminating null.  This is bounded by MAXPATHLEN, if available.  */
+  ptrdiff_t bufsize_max = dirsize_max;
+#ifdef MAXPATHLEN
+  bufsize_max = min (bufsize_max, MAXPATHLEN);
+#endif
+
 # if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
 #  ifdef HYBRID_MALLOC
   bool use_libc = bss_sbrk_did_unexec;
@@ -223,55 +251,81 @@ emacs_get_current_dir_name (void)
   bool use_libc = true;
 #  endif
   if (use_libc)
-    return get_current_dir_name ();
+    {
+      /* For an unreachable directory, this returns a string that starts
+	 with "(unreachable)"; see Bug#27871.  */
+      pwd = get_current_dir_name ();
+      if (pwd)
+	{
+	  if (strlen (pwd) < dirsize_max)
+	    return pwd;
+	  free (pwd);
+	  errno = ERANGE;
+	}
+      return NULL;
+    }
 # endif
 
-  char *buf;
-  char *pwd = getenv ("PWD");
+  size_t pwdlen;
   struct stat dotstat, pwdstat;
+  pwd = getenv ("PWD");
+
   /* If PWD is accurate, use it instead of calling getcwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
   if (pwd
-      && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
+      && (pwdlen = strlen (pwd)) < bufsize_max
+      && IS_DIRECTORY_SEP (pwd[pwdlen && IS_DEVICE_SEP (pwd[1]) ? 2 : 0])
       && stat (pwd, &pwdstat) == 0
       && stat (".", &dotstat) == 0
       && dotstat.st_ino == pwdstat.st_ino
-      && dotstat.st_dev == pwdstat.st_dev
-#ifdef MAXPATHLEN
-      && strlen (pwd) < MAXPATHLEN
-#endif
-      )
+      && dotstat.st_dev == pwdstat.st_dev)
     {
-      buf = malloc (strlen (pwd) + 1);
+      char *buf = malloc (pwdlen + 1);
       if (!buf)
         return NULL;
-      strcpy (buf, pwd);
+      return memcpy (buf, pwd, pwdlen + 1);
     }
   else
     {
-      size_t buf_size = 1024;
-      buf = malloc (buf_size);
+      ptrdiff_t buf_size = min (bufsize_max, 1024);
+      char *buf = malloc (buf_size);
       if (!buf)
         return NULL;
       for (;;)
         {
           if (getcwd (buf, buf_size) == buf)
-            break;
-          if (errno != ERANGE)
+	    return buf;
+	  int getcwd_errno = errno;
+	  if (getcwd_errno != ERANGE || buf_size == bufsize_max)
             {
-              int tmp_errno = errno;
               free (buf);
-              errno = tmp_errno;
+	      errno = getcwd_errno;
               return NULL;
             }
-          buf_size *= 2;
+	  buf_size = buf_size <= bufsize_max / 2 ? 2 * buf_size : bufsize_max;
           buf = realloc (buf, buf_size);
           if (!buf)
             return NULL;
         }
     }
-  return buf;
+}
+
+/* Return the current working directory.  The result should be freed
+   with 'free'.  Return NULL (setting errno) on errors; an unreachable
+   directory (e.g., its name starts with '(') counts as an error.  */
+
+char *
+emacs_get_current_dir_name (void)
+{
+  char *dir = get_current_dir_name_or_unreachable ();
+  if (dir && *dir == '(')
+    {
+      free (dir);
+      errno = ENOENT;
+      return NULL;
+    }
+  return dir;
 }
 
 
@@ -454,7 +508,7 @@ child_setup_tty (int out)
   s.main.c_oflag |= OPOST;	/* Enable output postprocessing */
   s.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL on output */
 #ifdef NLDLY
-  /* http://lists.gnu.org/archive/html/emacs-devel/2008-05/msg00406.html
+  /* https://lists.gnu.org/r/emacs-devel/2008-05/msg00406.html
      Some versions of GNU Hurd do not have FFDLY?  */
 #ifdef FFDLY
   s.main.c_oflag &= ~(NLDLY|CRDLY|TABDLY|BSDLY|VTDLY|FFDLY);
@@ -777,6 +831,8 @@ unblock_child_signal (sigset_t const *oldset)
   pthread_sigmask (SIG_SETMASK, oldset, 0);
 }
 
+#endif	/* !MSDOS */
+
 /* Block SIGINT.  */
 void
 block_interrupt_signal (sigset_t *oldset)
@@ -794,7 +850,6 @@ restore_signal_mask (sigset_t const *oldset)
   pthread_sigmask (SIG_SETMASK, oldset, 0);
 }
 
-#endif	/* !MSDOS */
 
 /* Saving and restoring the process group of Emacs's terminal.  */
 
@@ -1408,7 +1463,7 @@ reset_sys_modes (struct tty_display_info *tty_out)
 {
   if (noninteractive)
     {
-      fflush (stdout);
+      fflush_unlocked (stdout);
       return;
     }
   if (!tty_out->term_initted)
@@ -1428,17 +1483,14 @@ reset_sys_modes (struct tty_display_info *tty_out)
     }
   else
     {			/* have to do it the hard way */
-      int i;
       tty_turn_off_insert (tty_out);
 
-      for (i = cursorX (tty_out); i < FrameCols (tty_out) - 1; i++)
-        {
-          fputc (' ', tty_out->output);
-        }
+      for (int i = cursorX (tty_out); i < FrameCols (tty_out) - 1; i++)
+	fputc_unlocked (' ', tty_out->output);
     }
 
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
-  fflush (tty_out->output);
+  fflush_unlocked (tty_out->output);
 
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
@@ -1775,7 +1827,7 @@ stack_overflow (siginfo_t *siginfo)
   /* The known top and bottom of the stack.  The actual stack may
      extend a bit beyond these boundaries.  */
   char *bot = stack_bottom;
-  char *top = near_C_stack_top ();
+  char *top = current_thread->stack_top;
 
   /* Log base 2 of the stack heuristic ratio.  This ratio is the size
      of the known stack divided by the size of the guard area past the
@@ -2050,7 +2102,7 @@ init_signals (bool dumping)
   thread_fatal_action.sa_flags = process_fatal_action.sa_flags;
 
   /* SIGINT may need special treatment on MS-Windows.  See
-     http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
+     https://lists.gnu.org/r/emacs-devel/2010-09/msg01062.html
      Please update the doc of kill-emacs, kill-emacs-hook, and
      NEWS if you change this.  */
 
@@ -2391,8 +2443,6 @@ emacs_open (const char *file, int oflags, int mode)
   oflags |= O_CLOEXEC;
   while ((fd = open (file, oflags, mode)) < 0 && errno == EINTR)
     maybe_quit ();
-  if (! O_CLOEXEC && 0 <= fd)
-    fcntl (fd, F_SETFD, FD_CLOEXEC);
   return fd;
 }
 
@@ -2434,13 +2484,7 @@ emacs_pipe (int fd[2])
 #ifdef MSDOS
   return pipe (fd);
 #else  /* !MSDOS */
-  int result = pipe2 (fd, O_BINARY | O_CLOEXEC);
-  if (! O_CLOEXEC && result == 0)
-    {
-      fcntl (fd[0], F_SETFD, FD_CLOEXEC);
-      fcntl (fd[1], F_SETFD, FD_CLOEXEC);
-    }
-  return result;
+  return pipe2 (fd, O_BINARY | O_CLOEXEC);
 #endif	/* !MSDOS */
 }
 
@@ -2681,6 +2725,29 @@ set_file_times (int fd, const char *filename,
   timespec[1] = mtime;
   return fdutimens (fd, filename, timespec);
 }
+
+/* Rename directory SRCFD's entry SRC to directory DSTFD's entry DST.
+   This is like renameat except that it fails if DST already exists,
+   or if this operation is not supported atomically.  Return 0 if
+   successful, -1 (setting errno) otherwise.  */
+int
+renameat_noreplace (int srcfd, char const *src, int dstfd, char const *dst)
+{
+#if defined SYS_renameat2 && defined RENAME_NOREPLACE
+  return syscall (SYS_renameat2, srcfd, src, dstfd, dst, RENAME_NOREPLACE);
+#elif defined CYGWIN && defined RENAME_NOREPLACE
+  return renameat2 (srcfd, src, dstfd, dst, RENAME_NOREPLACE);
+#elif defined RENAME_EXCL
+  return renameatx_np (srcfd, src, dstfd, dst, RENAME_EXCL);
+#else
+# ifdef WINDOWSNT
+  if (srcfd == AT_FDCWD && dstfd == AT_FDCWD)
+    return sys_rename_replace (src, dst, 0);
+# endif
+  errno = ENOSYS;
+  return -1;
+#endif
+}
 
 /* Like strsignal, except async-signal-safe, and this function typically
    returns a string in the C locale rather than the current locale.  */
@@ -2915,7 +2982,7 @@ list_system_processes (void)
      process.  */
   procdir = build_string ("/proc");
   match = build_string ("[0-9]+");
-  proclist = directory_files_internal (procdir, Qnil, match, Qt, 0, Qnil);
+  proclist = directory_files_internal (procdir, Qnil, match, Qt, false, Qnil);
 
   /* `proclist' gives process IDs as strings.  Destructively convert
      each string into a number.  */
@@ -3079,7 +3146,7 @@ procfs_ttyname (int rdev)
       char minor[25];	/* 2 32-bit numbers + dash */
       char *endp;
 
-      for (; !feof (fdev) && !ferror (fdev); name[0] = 0)
+      for (; !feof_unlocked (fdev) && !ferror_unlocked (fdev); name[0] = 0)
 	{
 	  if (fscanf (fdev, "%*s %s %u %s %*s\n", name, &major, minor) >= 3
 	      && major == MAJOR (rdev))
@@ -3129,7 +3196,7 @@ procfs_get_total_memory (void)
 	    break;
 
 	  case 0:
-	    while ((c = getc (fmem)) != EOF && c != '\n')
+	    while ((c = getc_unlocked (fmem)) != EOF && c != '\n')
 	      continue;
 	    done = c == EOF;
 	    break;

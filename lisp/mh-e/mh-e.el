@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -3035,12 +3035,12 @@ XEmacs. For more information, see URL
 `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.z'). Recent
 versions of XEmacs have internal support for \"X-Face:\" images. If
 your version of XEmacs does not, then you'll need both \"uncompface\"
-and the x-face package (see URL `ftp://ftp.jpl.org/pub/elisp/').
+and the x-face package (see URL `http://www.jpl.org/ftp/pub/elisp/').
 
 Finally, MH-E will display images referenced by the \"X-Image-URL:\"
 header field if neither the \"Face:\" nor the \"X-Face:\" fields are
 present. The display of the images requires \"wget\" (see URL
-`http://www.gnu.org/software/wget/wget.html'), \"fetch\", or \"curl\"
+`https://www.gnu.org/software/wget/wget.html'), \"fetch\", or \"curl\"
 to fetch the image and the \"convert\" program from the ImageMagick
 suite (see URL `http://www.imagemagick.org/'). Of the three header
 fields this is the most efficient in terms of network usage since the

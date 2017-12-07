@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -36,7 +36,7 @@
 ;; represented by the overlay itself, or text-properties, in which case
 ;; the button is represented by a marker or buffer-position pointing
 ;; somewhere in the button.  In the latter case, no markers into the
-;; buffer are retained, which is important for speed if there are are
+;; buffer are retained, which is important for speed if there are
 ;; extremely large numbers of buttons.  Note however that if there is
 ;; an existing face text-property at the site of the button, the
 ;; button face may not be visible.  Using overlays avoids this.
@@ -232,7 +232,7 @@ property instead of `action'; if the button has no `mouse-action',
 the value of `action' is used instead.
 
 The action can either be a marker or a function.  If it's a
-marker then goto it.  Otherwise it it is a function then it is
+marker then goto it.  Otherwise if it is a function then it is
 called with BUTTON as only argument.  BUTTON is either an
 overlay, a buffer position, or (for buttons in the mode-line or
 header-line) a string."

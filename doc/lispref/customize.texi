@@ -599,7 +599,7 @@ The value must be a file name for an existing file.  The widget
 provides completion.
 
 @item directory
-The value must be a directory name.  The widget provides completion.
+The value must be a directory.  The widget provides completion.
 
 @item hook
 The value must be a list of functions.  This customization type is

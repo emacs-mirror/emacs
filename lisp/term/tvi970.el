@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,7 +36,7 @@
                ;; ("\eOR"	[kp-f3])
                ;; ("\eOS"	[kp-f4])
 
-               ;; These might bre set by terminfo.
+               ;; These might be set by terminfo.
                ("\e[H"	[home])
                ("\e[Z"	[backtab])
                ("\e[i"	[print])
@@ -45,13 +45,13 @@
                ("\e[M"	[deleteline])
                ("\e[U"	[next]) ;; actually the `page' key
 
-               ;; These won't be set up by either
+               ;; These won't be set up by either.
                ("\eOm"	[kp-subtract])
                ("\eOl"	[kp-separator])
                ("\eOn"	[kp-decimal])
                ("\eOM"	[kp-enter])
 
-               ;; These won't be set up by either either
+               ;; These won't be set up by either.
                ("\e[K"	[key_eol])	;; Not an X keysym
                ("\e[J"	[key_eos])	;; Not an X keysym
                ("\e[2J"	[key_clear])	;; Not an X keysym
@@ -73,7 +73,7 @@
                ("\e5"	[S-send])              ;; Not an X keysym
                ))
       (define-key map (car key-binding) (nth 1 key-binding)))
-             
+
 
     ;; The numeric keypad keys.
     (dotimes (i 10)

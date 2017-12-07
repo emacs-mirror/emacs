@@ -1,6 +1,6 @@
 # Makefile for flymake tests
 
-CC_OPTS = -Wall
+CC_OPTS = -Wall -Wextra
 
 ## Recent gcc (e.g. 4.8.2 on RHEL7) can automatically colorize their output,
 ## which can confuse flymake.  Set GCC_COLORS to disable that.
@@ -8,6 +8,6 @@ CC_OPTS = -Wall
 ## normally use flymake, so it seems like just avoiding the issue
 ## in this test is fine.  Set flymake-log-level to 3 to investigate.
 check-syntax:
-	GCC_COLORS= $(CC) $(CC_OPTS) ${CHK_SOURCES}
+	GCC_COLORS= $(CC) $(CC_OPTS) ${CHK_SOURCES} || true
 
 # eof

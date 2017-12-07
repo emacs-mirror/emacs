@@ -1,4 +1,4 @@
-;;; ob-asymptote.el --- org-babel functions for asymptote evaluation
+;;; ob-asymptote.el --- Babel Functions for Asymptote -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,11 +43,6 @@
 
 ;;; Code:
 (require 'ob)
-(eval-when-compile (require 'cl))
-
-(declare-function orgtbl-to-generic "org-table"
-                  (table params &optional backend))
-(declare-function org-combine-plists "org" (&rest plists))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("asymptote" . "asy"))
@@ -59,13 +54,10 @@
 (defun org-babel-execute:asymptote (body params)
   "Execute a block of Asymptote code.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-         (out-file (cdr (assoc :file params)))
-         (format (or (and out-file
-                          (string-match ".+\\.\\(.+\\)" out-file)
-                          (match-string 1 out-file))
+  (let* ((out-file (cdr (assq :file params)))
+         (format (or (file-name-extension out-file)
                      "pdf"))
-         (cmdline (cdr (assoc :cmdline params)))
+         (cmdline (cdr (assq :cmdline params)))
          (in-file (org-babel-temp-file "asymptote-"))
          (cmd
 	  (concat "asy "
@@ -83,7 +75,7 @@ This function is called by `org-babel-execute-src-block'."
     (message cmd) (shell-command cmd)
     nil)) ;; signal that output has already been written to file
 
-(defun org-babel-prep-session:asymptote (session params)
+(defun org-babel-prep-session:asymptote (_session _params)
   "Return an error if the :session header argument is set.
 Asymptote does not support sessions"
   (error "Asymptote does not support sessions"))
@@ -91,7 +83,7 @@ Asymptote does not support sessions"
 (defun org-babel-variable-assignments:asymptote (params)
   "Return list of asymptote statements assigning the block's variables."
   (mapcar #'org-babel-asymptote-var-to-asymptote
-	  (mapcar #'cdr (org-babel-get-header params :var))))
+	  (org-babel--get-vars params)))
 
 (defun org-babel-asymptote-var-to-asymptote (pair)
   "Convert an elisp value into an Asymptote variable.
@@ -128,21 +120,17 @@ a variable of the same value."
 
 DATA is a list.  Return type as a symbol.
 
-The type is `string' if any element in DATA is
-a string.  Otherwise, it is either `real', if some elements are
-floats, or `int'."
-  (let* ((type 'int)
-	 find-type			; for byte-compiler
-	 (find-type
-	  (function
-	   (lambda (row)
-	     (catch 'exit
-	       (mapc (lambda (el)
-		       (cond ((listp el) (funcall find-type el))
-			     ((stringp el) (throw 'exit (setq type 'string)))
-			     ((floatp el) (setq type 'real))))
-		     row))))))
-    (funcall find-type data) type))
+The type is `string' if any element in DATA is a string.
+Otherwise, it is either `real', if some elements are floats, or
+`int'."
+  (letrec ((type 'int)
+	   (find-type
+	    (lambda (row)
+	      (dolist (e row type)
+		(cond ((listp e) (setq type (funcall find-type e)))
+		      ((stringp e) (throw 'exit 'string))
+		      ((floatp e) (setq type 'real)))))))
+    (catch 'exit (funcall find-type data)) type))
 
 (provide 'ob-asymptote)
 

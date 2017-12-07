@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Gerd Moellmann <gerd@gnu.org>.  Tested with Luigi's
    driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
@@ -293,6 +293,7 @@ static int do_play_sound (const char *, unsigned long);
 
 /* BEGIN: Common functions */
 
+#ifndef WINDOWSNT
 /* Like perror, but signals an error.  */
 
 static _Noreturn void
@@ -315,8 +316,6 @@ sound_perror (const char *msg)
     error ("%s", msg);
 }
 
-
-#ifndef WINDOWSNT
 /* Display a warning message.  */
 
 static void

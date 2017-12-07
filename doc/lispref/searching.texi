@@ -327,7 +327,7 @@ expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
 The matcher processes a @samp{*} construct by matching, immediately, as
 many repetitions as can be found.  Then it continues with the rest of
 the pattern.  If that fails, backtracking occurs, discarding some of the
-matches of the @samp{*}-modified construct in the hope that that will
+matches of the @samp{*}-modified construct in the hope that this will
 make it possible to match the rest of the pattern.  For example, in
 matching @samp{ca*ar} against the string @samp{caaar}, the @samp{a*}
 first tries to match all three @samp{a}s; but the rest of the pattern is
@@ -950,7 +950,7 @@ for Font Lock mode@footnote{Note that @code{regexp-opt} does not
 guarantee that its result is absolutely the most efficient form
 possible.  A hand-tuned regular expression can sometimes be slightly
 more efficient, but is almost never worth the effort.}.
-@c E.g., see http://debbugs.gnu.org/2816
+@c E.g., see https://debbugs.gnu.org/2816
 
 The optional argument @var{paren} can be any of the following:
 
@@ -1220,7 +1220,7 @@ previous character cannot be part of a match for @var{regexp}.  When
 the match is extended, its starting position is allowed to occur
 before @var{limit}.
 
-@c http://debbugs.gnu.org/5689
+@c https://debbugs.gnu.org/5689
 As a general recommendation, try to avoid using @code{looking-back}
 wherever possible, since it is slow.  For this reason, there are no
 plans to add a @code{looking-back-p} function.

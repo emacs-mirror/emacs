@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <windows.h>
@@ -544,6 +544,7 @@ w32font_text_extents (struct font *font, unsigned *code,
      information.  */
 
   /* Make array big enough to hold surrogates.  */
+  eassume (0 <= nglyphs);	/* pacify GCC warning on next line */
   wcode = alloca (nglyphs * sizeof (WORD) * 2);
   for (i = 0; i < nglyphs; i++)
     {
@@ -1627,7 +1628,7 @@ x_to_w32_charset (char * lpcs)
      Format of each entry is
        (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
   */
-  this_entry = Fassoc (build_string (charset), Vw32_charset_info_alist);
+  this_entry = Fassoc (build_string (charset), Vw32_charset_info_alist, Qnil);
 
   if (NILP (this_entry))
     {
@@ -2188,7 +2189,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
 
   /* Match a single subrange. SYM is set if bit N is set in subranges.  */
 #define SUBRANGE(n,sym) \
-  if (subranges[(n) / 32] & (1 << ((n) % 32))) \
+  if (subranges[(n) / 32] & (1U << ((n) % 32))) \
     supported = Fcons ((sym), supported)
 
   /* Match multiple subranges. SYM is set if any MASK bit is set in

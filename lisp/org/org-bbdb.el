@@ -1,4 +1,4 @@
-;;; org-bbdb.el --- Support for links to BBDB entries from within Org-mode
+;;; org-bbdb.el --- Support for links to BBDB entries -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
@@ -20,17 +20,17 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 
-;; This file implements links to BBDB database entries from within Org-mode.
-;; Org-mode loads this module by default - if this is not what you want,
+;; This file implements links to BBDB database entries from within Org.
+;; Org mode loads this module by default - if this is not what you want,
 ;; configure the variable `org-modules'.
 
 ;; It also implements an interface (based on Ivar Rummelhoff's
-;; bbdb-anniv.el) for those org-mode users, who do not use the diary
+;; bbdb-anniv.el) for those Org users, who do not use the diary
 ;; but who do want to include the anniversaries stored in the BBDB
 ;; into the org-agenda.  If you already include the `diary' into the
 ;; agenda, you might want to prefer to include the anniversaries in
@@ -94,8 +94,7 @@
 ;;; Code:
 
 (require 'org)
-(eval-when-compile
-  (require 'cl))
+(require 'cl-lib)
 
 ;; Declare external functions and variables
 
@@ -106,6 +105,7 @@
 (declare-function bbdb-name "ext:bbdb-com" (string elidep))
 (declare-function bbdb-completing-read-record "ext:bbdb-com"
 		  (prompt &optional omit-records))
+(declare-function bbdb-record-field "ext:bbdb" (record field))
 (declare-function bbdb-record-getprop "ext:bbdb" (record property))
 (declare-function bbdb-record-name "ext:bbdb" (record))
 (declare-function bbdb-records "ext:bbdb"
@@ -124,7 +124,7 @@
 (declare-function calendar-leap-year-p "calendar" (year))
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
-(org-no-warnings (defvar date)) ;; unprefixed, from calendar.el
+(with-no-warnings (defvar date)) ;; unprefixed, from calendar.el
 
 ;; Customization
 
@@ -137,6 +137,24 @@
   :type  'string
   :group 'org-bbdb-anniversaries
   :require 'bbdb)
+
+(defcustom org-bbdb-general-anniversary-description-after 7
+  "When to switch anniversary descriptions to a more general format.
+
+Anniversary descriptions include the point in time, when the
+anniversary appears.  This is, in its most general form, just the
+date of the anniversary.  Or more specific terms, like \"today\",
+\"tomorrow\" or \"in n days\" are used to describe the time span.
+
+If the anniversary happens in less than that number of days, the
+specific description is used.  Otherwise, the general one is
+used."
+  :group 'org-bbdb-anniversaries
+  :version "26.1"
+  :package-version '(Org . "9.1")
+  :type  'integer
+  :require 'bbdb
+  :safe #'integerp)
 
 (defcustom org-bbdb-anniversary-format-alist
   '(("birthday" .
@@ -194,10 +212,12 @@ date year)."
   :group 'org-bbdb-anniversaries
   :require 'bbdb)
 
-
 ;; Install the link type
-(org-add-link-type "bbdb" 'org-bbdb-open 'org-bbdb-export)
-(add-hook 'org-store-link-functions 'org-bbdb-store-link)
+(org-link-set-parameters "bbdb"
+			 :follow #'org-bbdb-open
+			 :export #'org-bbdb-export
+			 :complete #'org-bbdb-complete-link
+			 :store #'org-bbdb-store-link)
 
 ;; Implementation
 (defun org-bbdb-store-link ()
@@ -208,7 +228,7 @@ date year)."
            (name (bbdb-record-name rec))
 	   (company (if (fboundp 'bbdb-record-getprop)
                         (bbdb-record-getprop rec 'company)
-                      (car (bbdb-record-get-field rec 'organization))))
+                      (car (bbdb-record-field rec 'organization))))
 	   (link (concat "bbdb:" name)))
       (org-store-link-props :type "bbdb" :name name :company company
 			    :link link :description name)
@@ -230,10 +250,9 @@ italicized, in all other cases it is left unchanged."
 (defun org-bbdb-open (name)
   "Follow a BBDB link to NAME."
   (require 'bbdb-com)
-  (let ((inhibit-redisplay (not debug-on-error))
-	(bbdb-electric-p nil))
+  (let ((inhibit-redisplay (not debug-on-error)))
     (if (fboundp 'bbdb-name)
-        (org-bbdb-open-old name)
+	(org-bbdb-open-old name)
       (org-bbdb-open-new name))))
 
 (defun org-bbdb-open-old (name)
@@ -280,14 +299,11 @@ italicized, in all other cases it is left unchanged."
   "Convert YYYY-MM-DD to (month date year).
 Argument TIME-STR is the value retrieved from BBDB.  If YYYY- is omitted
 it will be considered unknown."
-  (multiple-value-bind (a b c) (values-list (org-split-string time-str "-"))
-    (if (eq c nil)
-        (list (string-to-number a)
-              (string-to-number b)
-              nil)
-      (list (string-to-number b)
-            (string-to-number c)
-            (string-to-number a)))))
+  (pcase (org-split-string time-str "-")
+    (`(,a ,b nil) (list (string-to-number a) (string-to-number b) nil))
+    (`(,a ,b ,c) (list (string-to-number b)
+		       (string-to-number c)
+		       (string-to-number a)))))
 
 (defun org-bbdb-anniv-split (str)
   "Split multiple entries in the BBDB anniversary field.
@@ -325,9 +341,9 @@ The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
 		       (bbdb-split "\n" annivs)))
         (while annivs
           (setq split (org-bbdb-anniv-split (pop annivs)))
-          (multiple-value-bind (m d y)
-              (values-list (funcall org-bbdb-extract-date-fun (car split)))
-            (setq tmp (gethash (list m d) org-bbdb-anniv-hash))
+	  (pcase-let ((`(,m ,d ,y) (funcall org-bbdb-extract-date-fun
+					    (car split))))
+	    (setq tmp (gethash (list m d) org-bbdb-anniv-hash))
             (puthash (list m d) (cons (list y
                                             (bbdb-record-name rec)
                                             (cadr split))
@@ -335,7 +351,7 @@ The anniversaries are assumed to be stored `org-bbdb-anniversary-field'."
                      org-bbdb-anniv-hash))))))
   (setq org-bbdb-updated-p nil))
 
-(defun org-bbdb-updated (rec)
+(defun org-bbdb-updated (_rec)
   "Record the fact that BBDB has been updated.
 This is used by Org to re-create the anniversary hash table."
   (setq org-bbdb-updated-p t))
@@ -396,6 +412,83 @@ This is used by Org to re-create the anniversary hash table."
               (setq text (list tmp)))))
         ))
     text))
+
+;;; Return list of anniversaries for today and the next n-1 (default: n=7) days.
+;;; This is meant to be used in an org file instead of org-bbdb-anniversaries:
+;;;
+;;; %%(org-bbdb-anniversaries-future)
+;;;
+;;; or
+;;;
+;;; %%(org-bbdb-anniversaries-future 3)
+;;;
+;;; to override the 7-day default.
+
+(defun org-bbdb-date-list (d n)
+  "Return a list of dates in (m d y) format from the given date D to n-1 days hence."
+  (let ((abs (calendar-absolute-from-gregorian d)))
+    (mapcar (lambda (i) (calendar-gregorian-from-absolute (+ abs i)))
+	    (number-sequence 0 (1- n)))))
+
+(defun org-bbdb-anniversary-description (agenda-date anniv-date)
+  "Return a string used to incorporate into an agenda anniversary entry.
+The calculation of the anniversary description string is based on
+the difference between the anniversary date, given as ANNIV-DATE,
+and the date on which the entry appears in the agenda, given as
+AGENDA-DATE.  This makes it possible to have different entries
+for the same event depending on if it occurs in the next few days
+or far away in the future."
+  (let ((delta (- (calendar-absolute-from-gregorian anniv-date)
+                  (calendar-absolute-from-gregorian agenda-date))))
+
+    (cond
+     ((= delta 0) " -- today\\&")
+     ((= delta 1) " -- tomorrow\\&")
+     ((< delta org-bbdb-general-anniversary-description-after) (format " -- in %d days\\&" delta))
+     ((pcase-let ((`(,month ,day ,year) anniv-date))
+	(format " -- %d-%02d-%02d\\&" year month day))))))
+
+
+(defun org-bbdb-anniversaries-future (&optional n)
+  "Return list of anniversaries for today and the next n-1 days (default n=7)."
+  (let ((n (or n 7)))
+    (when (<= n 0)
+      (error "The (optional) argument of `org-bbdb-anniversaries-future' \
+must be positive"))
+    (let (
+	  ;; List of relevant dates.
+	  (dates (org-bbdb-date-list date n))
+	  ;; Function to annotate text of each element of l with the
+	  ;; anniversary date d.
+	  (annotate-descriptions
+	   (lambda (agenda-date d l)
+	     (mapcar (lambda (x)
+		       ;; The assumption here is that x is a bbdb link
+		       ;; of the form [[bbdb:name][description]].
+		       ;; This function rather arbitrarily modifies
+		       ;; the description by adding the date to it in
+		       ;; a fixed format.
+		       (let ((desc (org-bbdb-anniversary-description
+				    agenda-date d)))
+			 (string-match "]]" x)
+			 (replace-match desc nil nil x)))
+		     l))))
+      ;; Map a function that generates anniversaries for each date
+      ;; over the dates and nconc the results into a single list. When
+      ;; it is no longer necessary to support older versions of Emacs,
+      ;; this can be done with a cl-mapcan; for now, we use the (apply
+      ;; #'nconc ...) method for compatibility.
+      (apply #'nconc
+	     (mapcar
+	      (lambda (d)
+		(let ((agenda-date date)
+		      (date d))
+		  ;; Rebind 'date' so that org-bbdb-anniversaries will
+		  ;; be fooled into giving us the list for the given
+		  ;; date and then annotate the descriptions for that
+		  ;; date.
+		  (funcall annotate-descriptions agenda-date d (org-bbdb-anniversaries))))
+	      dates)))))
 
 (defun org-bbdb-complete-link ()
   "Read a bbdb link with name completion."

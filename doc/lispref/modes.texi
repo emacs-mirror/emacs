@@ -1490,10 +1490,11 @@ alist @code{minor-mode-map-alist}.  @xref{Definition of minor-mode-map-alist}.
   One use of minor mode keymaps is to modify the behavior of certain
 self-inserting characters so that they do something else as well as
 self-insert.  (Another way to customize @code{self-insert-command} is
-through @code{post-self-insert-hook}.  Apart from this, the facilities
-for customizing @code{self-insert-command} are limited to special cases,
-designed for abbrevs and Auto Fill mode.  Do not try substituting your
-own definition of @code{self-insert-command} for the standard one.  The
+through @code{post-self-insert-hook}, see @ref{Commands for
+Insertion}.  Apart from this, the facilities for customizing
+@code{self-insert-command} are limited to special cases, designed for
+abbrevs and Auto Fill mode.  Do not try substituting your own
+definition of @code{self-insert-command} for the standard one.  The
 editor command loop handles this function specially.)
 
 Minor modes may bind commands to key sequences consisting of @kbd{C-c}
@@ -1737,7 +1738,9 @@ holds a @dfn{mode line construct}: a template that controls what is
 displayed on the buffer's mode line.  The value of
 @code{header-line-format} specifies the buffer's header line in the same
 way.  All windows for the same buffer use the same
-@code{mode-line-format} and @code{header-line-format}.
+@code{mode-line-format} and @code{header-line-format} unless a
+@code{mode-line-format} or @code{header-line-format} parameter has been
+specified for that window (@pxref{Window Parameters}).
 
   For efficiency, Emacs does not continuously recompute each window's
 mode line and header line.  It does so when circumstances appear to call

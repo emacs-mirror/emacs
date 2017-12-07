@@ -7,7 +7,7 @@ Bugs section of the Emacs manual for advice on
 You can read the Bugs section of the manual from inside Emacs.
 Start Emacs, and press
   C-h r       (to view the Emacs manual)
-  m Bugs RET  (to go to the section on Bugs) 
+  m Bugs RET  (to go to the section on Bugs)
 Or you can use the standalone Info program:
   info emacs
   m Bugs RET
@@ -15,7 +15,7 @@ Or you can use the standalone Info program:
 Emacs distribution.)
 
 Printed copies of the Emacs manual can be purchased from the Free
-Software Foundation's online store at <http://shop.fsf.org/>.
+Software Foundation's online store at <https://shop.fsf.org/>.
 
 If necessary, you can read the manual without an info program:
 

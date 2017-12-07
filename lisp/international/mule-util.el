@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -143,20 +143,43 @@ longer than KEYSEQ.
 See the documentation of `nested-alist-p' for more detail."
   (or (nested-alist-p alist)
       (error "Invalid argument %s" alist))
-  (let ((islist (listp keyseq))
-	(len (or len (length keyseq)))
-	(i 0)
-	key-elt slot)
-    (while (< i len)
-      (if (null (nested-alist-p alist))
-	  (error "Keyseq %s is too long for this nested alist" keyseq))
-      (setq key-elt (if islist (nth i keyseq) (aref keyseq i)))
-      (setq slot (assoc key-elt (cdr alist)))
-      (unless slot
-	(setq slot (cons key-elt (list t)))
-	(setcdr alist (cons slot (cdr alist))))
-      (setq alist (cdr slot))
-      (setq i (1+ i)))
+  (let ((len (or len (length keyseq)))
+	(i 0))
+    (cond
+     ((stringp keyseq)             ; We can use `assq' for characters.
+      (while (< i len)
+        (if (null (nested-alist-p alist))
+            (error "Keyseq %s is too long for this nested alist" keyseq))
+        (let* ((key-elt (aref keyseq i))
+               (slot (assq key-elt (cdr alist))))
+          (unless slot
+            (setq slot (list key-elt t))
+            (push slot (cdr alist)))
+          (setq alist (cdr slot)))
+        (setq i (1+ i))))
+     ((arrayp keyseq)
+      (while (< i len)
+        (if (null (nested-alist-p alist))
+            (error "Keyseq %s is too long for this nested alist" keyseq))
+        (let* ((key-elt (aref keyseq i))
+               (slot (assoc key-elt (cdr alist))))
+          (unless slot
+            (setq slot (list key-elt t))
+            (push slot (cdr alist)))
+          (setq alist (cdr slot)))
+        (setq i (1+ i))))
+     ((listp keyseq)
+      (while (< i len)
+        (if (null (nested-alist-p alist))
+            (error "Keyseq %s is too long for this nested alist" keyseq))
+        (let* ((key-elt (pop keyseq))
+               (slot (assoc key-elt (cdr alist))))
+          (unless slot
+            (setq slot (list key-elt t))
+            (push slot (cdr alist)))
+          (setq alist (cdr slot)))
+        (setq i (1+ i))))
+     (t (signal 'wrong-type-argument (list keyseq))))
     (setcar alist entry)
     (if branches
 	(setcdr (last alist) branches))))
@@ -179,15 +202,23 @@ Optional 5th argument NIL-FOR-TOO-LONG non-nil means return nil
       (setq len (length keyseq)))
   (let ((i (or start 0)))
     (if (catch 'lookup-nested-alist-tag
-	  (if (listp keyseq)
-	      (while (< i len)
-		(if (setq alist (cdr (assoc (nth i keyseq) (cdr alist))))
-		    (setq i (1+ i))
-		  (throw 'lookup-nested-alist-tag t))))
-	  (while (< i len)
-	    (if (setq alist (cdr (assoc (aref keyseq i) (cdr alist))))
-		(setq i (1+ i))
-	      (throw 'lookup-nested-alist-tag t))))
+          (cond ((stringp keyseq)  ; We can use `assq' for characters.
+                 (while (< i len)
+                   (if (setq alist (cdr (assq (aref keyseq i) (cdr alist))))
+                       (setq i (1+ i))
+                     (throw 'lookup-nested-alist-tag t))))
+                ((arrayp keyseq)
+                 (while (< i len)
+                   (if (setq alist (cdr (assoc (aref keyseq i) (cdr alist))))
+                       (setq i (1+ i))
+                     (throw 'lookup-nested-alist-tag t))))
+                ((listp keyseq)
+                 (setq keyseq (nthcdr i keyseq))
+                 (while (< i len)
+                   (if (setq alist (cdr (assoc (pop keyseq) (cdr alist))))
+                       (setq i (1+ i))
+                     (throw 'lookup-nested-alist-tag t))))
+                (t (signal 'wrong-type-argument (list keyseq)))))
 	;; KEYSEQ is too long.
 	(if nil-for-too-long nil i)
       alist)))

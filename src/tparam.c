@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
@@ -125,6 +125,7 @@ tparam1 (const char *string, char *outstring, int len,
 		goto onedigit;
 	      if (tem < 100)
 		goto twodigit;
+	      FALLTHROUGH;
 	    case '3':		/* %3 means output in decimal, 3 digits.  */
 	      if (tem > 999)
 		{
@@ -132,6 +133,7 @@ tparam1 (const char *string, char *outstring, int len,
 		  tem %= 1000;
 		}
 	      *op++ = tem / 100 + '0';
+	      FALLTHROUGH;
 	    case '2':		/* %2 means output in decimal, 2 digits.  */
 	    twodigit:
 	      tem %= 100;
@@ -140,10 +142,12 @@ tparam1 (const char *string, char *outstring, int len,
 	      *op++ = tem % 10 + '0';
 	      argp++;
 	      break;
+
             case 'p':           /* %pN means use param N for next subst.  */
 	      tem = fixed_argp[(*p++) - '1'];
 	      explicit_param_p = true;
 	      break;
+
 	    case 'C':
 	      /* For c-100: print quotient of value by 96, if nonzero,
 		 then do like %+.  */
@@ -152,8 +156,10 @@ tparam1 (const char *string, char *outstring, int len,
 		  *op++ = tem / 96;
 		  tem %= 96;
 		}
+	      FALLTHROUGH;
 	    case '+':		/* %+x means add character code of char x.  */
 	      tem += *p++;
+	      FALLTHROUGH;
 	    case '.':		/* %. means output as character.  */
 	      if (left)
 		{
@@ -173,6 +179,7 @@ tparam1 (const char *string, char *outstring, int len,
 		    }
 		}
 	      *op++ = tem ? tem : 0200;
+	      FALLTHROUGH;
 	    case 'f':		/* %f means discard next arg.  */
 	      argp++;
 	      break;

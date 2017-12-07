@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Corrections made by Ilya Zakharevich ilyaz@cpan.org
 
@@ -480,7 +480,7 @@ Font for POD headers."
 (defcustom cperl-highlight-variables-indiscriminately nil
   "Non-nil means perform additional highlighting on variables.
 Currently only changes how scalar variables are highlighted.
-Note that that variable is only read at initialization time for
+Note that the variable is only read at initialization time for
 the variable `cperl-font-lock-keywords-2', so changing it after you've
 entered CPerl mode the first time will have no effect."
   :type 'boolean
@@ -701,24 +701,7 @@ This way enabling/disabling of menu items is more correct."
 ;;; Short extra-docs.
 
 (defvar cperl-tips 'please-ignore-this-line
-  "Get maybe newer version of this package from
-  http://ilyaz.org/software/emacs
-Subdirectory `cperl-mode' may contain yet newer development releases and/or
-patches to related files.
-
-For best results apply to an older Emacs the patches from
-  ftp://ftp.math.ohio-state.edu/pub/users/ilya/cperl-mode/patches
-\(this upgrades syntax-parsing abilities of Emacsen v19.34 and
-v20.2 up to the level of Emacs v20.3 - a must for a good Perl
-mode.)  As of beginning of 2003, XEmacs may provide a similar ability.
-
-Get support packages choose-color.el (or font-lock-extra.el before
-19.30), imenu-go.el from the same place.  \(Look for other files there
-too... ;-).  Get a patch for imenu.el in 19.29.  Note that for 19.30 and
-later you should use choose-color.el *instead* of font-lock-extra.el
-\(and you will not get smart highlighting in C :-().
-
-Note that to enable Compile choices in the menu you need to install
+  "Note that to enable Compile choices in the menu you need to install
 mode-compile.el.
 
 If your Emacs does not default to `cperl-mode' on Perl files, and you
@@ -1913,7 +1896,9 @@ or as help on variables `cperl-tips', `cperl-problems',
   (if cperl-pod-here-scan
       (or cperl-syntaxify-by-font-lock
        (progn (or cperl-faces-init (cperl-init-faces-weak))
-	      (cperl-find-pods-heres)))))
+	      (cperl-find-pods-heres))))
+  ;; Setup Flymake
+  (add-hook 'flymake-diagnostic-functions 'perl-flymake nil t))
 
 ;; Fix for perldb - make default reasonable
 (defun cperl-db ()
@@ -2331,7 +2316,7 @@ to nil."
 						 nil t)))) ; Only one
 		     (progn
 		       (forward-word-strictly 1)
-		       (setq name (file-name-base)
+		       (setq name (file-name-base (buffer-file-name))
 			     p (point))
 		       (insert " NAME\n\n" name
 			       " - \n\n=head1 SYNOPSIS\n\n\n\n"
@@ -3734,7 +3719,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	   "\\(\\`\n?\\|^\n\\)="	; POD
 	   "\\|"
 	   ;; One extra () before this:
-	   "<<"				; HERE-DOC
+	   "<<~?"			; HERE-DOC
 	   "\\("			; 1 + 1
 	   ;; First variant "BLAH" or just ``.
 	   "[ \t]*"			; Yes, whitespace is allowed!
@@ -4000,7 +3985,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		  (setq b (point))
 		  ;; We do not search to max, since we may be called from
 		  ;; some hook of fontification, and max is random
-		  (or (and (re-search-forward (concat "^" qtag "$")
+		  (or (and (re-search-forward (concat "^[ \t]*" qtag "$")
 					      stop-point 'toend)
 			   ;;;(eq (following-char) ?\n) ; XXXX WHY???
 			   )

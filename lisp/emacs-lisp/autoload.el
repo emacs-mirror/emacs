@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -497,6 +497,7 @@ Return non-nil in the case where no autoloads were added at point."
 Standard prefixes won't be registered anyway.  I.e. if a file \"foo.el\" defines
 variables or functions that use \"foo-\" as prefix, that will not be registered.
 But all other prefixes will be included.")
+(put 'autoload-compute-prefixes 'safe #'booleanp)
 
 (defconst autoload-def-prefixes-max-entries 5
   "Target length of the list of definition prefixes per file.
@@ -761,6 +762,7 @@ FILE's modification time."
                                      "def-edebug-spec"
                                      ;; Hmm... this is getting ugly:
                                      "define-widget"
+                                     "define-erc-module"
                                      "define-erc-response-handler"
                                      "defun-rcirc-command"))))
                     (push (match-string 2) defs))
@@ -873,18 +875,24 @@ FILE's modification time."
 ;; For parallel builds, to stop another process reading a half-written file.
 (defun autoload--save-buffer ()
   "Save current buffer to its file, atomically."
-  ;; Copied from byte-compile-file.
+  ;; Similar to byte-compile-file.
   (let* ((version-control 'never)
-         (tempfile (make-temp-name buffer-file-name))
+         (tempfile (make-temp-file buffer-file-name))
+	 (default-modes (default-file-modes))
+	 (temp-modes (logand default-modes #o600))
+	 (desired-modes (logand default-modes
+				(or (file-modes buffer-file-name) #o666)))
          (kill-emacs-hook
           (cons (lambda () (ignore-errors (delete-file tempfile)))
                 kill-emacs-hook)))
+    (unless (= temp-modes desired-modes)
+      (set-file-modes tempfile desired-modes))
     (write-region (point-min) (point-max) tempfile nil 1)
     (backup-buffer)
-    (rename-file tempfile buffer-file-name t)
-    (set-buffer-modified-p nil)
-    (set-visited-file-modtime)
-    (or noninteractive (message "Wrote %s" buffer-file-name))))
+    (rename-file tempfile buffer-file-name t))
+  (set-buffer-modified-p nil)
+  (set-visited-file-modtime)
+  (or noninteractive (message "Wrote %s" buffer-file-name)))
 
 (defun autoload-save-buffers ()
   (while autoload-modified-buffers
@@ -892,7 +900,7 @@ FILE's modification time."
       (autoload--save-buffer))))
 
 ;; FIXME This command should be deprecated.
-;; See http://debbugs.gnu.org/22213#41
+;; See https://debbugs.gnu.org/22213#41
 ;;;###autoload
 (defun update-file-autoloads (file &optional save-after outfile)
   "Update the autoloads for FILE.
@@ -911,7 +919,7 @@ Return FILE if there was no autoload cookie in it, else nil."
   (let* ((generated-autoload-file (or outfile generated-autoload-file))
 	 (autoload-modified-buffers nil)
 	 ;; We need this only if the output file handles more than one input.
-	 ;; See http://debbugs.gnu.org/22213#38 and subsequent.
+	 ;; See https://debbugs.gnu.org/22213#38 and subsequent.
 	 (autoload-timestamps t)
          (no-autoloads (autoload-generate-file-autoloads file)))
     (if autoload-modified-buffers

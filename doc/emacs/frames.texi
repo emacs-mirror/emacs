@@ -575,7 +575,8 @@ font names in X resource files.
 If you are running Emacs on the GNOME desktop, you can tell Emacs to
 use the default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
-For this to work, Emacs must have been compiled with Gconf support.
+For this to work, Emacs must have been compiled with support for
+Gsettings (or the older Gconf).
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
@@ -835,8 +836,8 @@ associate the speedbar with a different frame, dismiss it and call
   The speedbar can operate in various modes.  Its default mode is
 @dfn{File Display} mode, which shows the files in the current
 directory of the selected window of the attached frame, one file per
-line.  Clicking on a file name visits that file in the selected window
-of the attached frame, and clicking on a directory name shows that
+line.  Clicking on a non-directory visits that file in the selected window
+of the attached frame, and clicking on a directory shows that
 directory in the speedbar (@pxref{Mouse References}).  Each line also
 has a box, @samp{[+]} or @samp{<+>}, that you can click on to
 @dfn{expand} the contents of that item.  Expanding a directory adds
@@ -1001,11 +1002,25 @@ when the entire buffer is visible.
   The visual appearance of the scroll bars is controlled by the
 @code{scroll-bar} face.
 
+@cindex vertical border
+  On graphical frames, vertical scroll bars implicitly serve to separate
+side-by-side windows visually.  When vertical scroll bars are disabled,
+Emacs by default separates such windows with the help of a one-pixel
+wide @dfn{vertical border}.  That border occupies the first pixel column
+of the window on the right and may thus overdraw the leftmost pixels of
+any glyph displayed there.  If these pixels convey important
+information, you can make them visible by enabling window dividers, see
+@ref{Window Dividers}.  To replicate the look of vertical borders, set
+the @code{right-divider-width} parameter of frames to one and have the
+@code{window-divider} face inherit from that of @code{vertical-border},
+@ref{Window Dividers,, Window Dividers, elisp, The Emacs Lisp Reference
+Manual}.
+
 @cindex Horizontal Scroll Bar
 @cindex Horizontal Scroll Bar mode
   On graphical displays with toolkit support, Emacs may also supply a
 @dfn{horizontal scroll bar} on the bottom of each window.  Clicking
-@kbd{mouse-1} on the that scroll bar's left and right buttons scrolls
+@kbd{mouse-1} on that scroll bar's left and right buttons scrolls
 the window horizontally by one column at a time.  Clicking @kbd{mouse-1}
 on the left or right of the scroll bar's inner box scrolls the window by
 four columns.  Dragging the inner box scrolls the window continuously.
@@ -1059,7 +1074,12 @@ window-divider-mode}.
 customize the options @code{window-divider-default-bottom-width} and
 @code{window-divider-default-right-width}.
 
-   For more details about window dividers see @ref{Window Dividers,,
+  When vertical scroll bars are disabled, dividers can be also useful to
+make the first pixel column of a window visible which would be otherwise
+covered by the vertical border used to separate side-by-side windows
+(@pxref{Scroll Bars}).
+
+For more details about window dividers see @ref{Window Dividers,,
 Window Dividers, elisp, The Emacs Lisp Reference Manual}.
 
 @node Drag and Drop

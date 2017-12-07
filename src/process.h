@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_PROCESS_H
 #define EMACS_PROCESS_H
@@ -41,7 +41,7 @@ enum { PROCESS_OPEN_FDS = 6 };
 
 struct Lisp_Process
   {
-    struct vectorlike_header header;
+    union vectorlike_header header;
 
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;

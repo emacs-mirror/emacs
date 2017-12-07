@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -258,9 +258,9 @@ This exercises `backtrace-frame', and indirectly `mapbacktrace'."
     (should (equal (mapbacktrace #'error unbound) nil)))
   ;; First frame is backtrace-related function
   (should (equal (backtrace-frame 0) '(t backtrace-frame 0)))
-  (should (equal (catch 'ret
-                   (mapbacktrace (lambda (&rest args) (throw 'ret args))))
-                 '(t mapbacktrace ((lambda (&rest args) (throw 'ret args))) nil)))
+  (let ((throw-args (lambda (&rest args) (throw 'ret args))))
+    (should (equal (catch 'ret (mapbacktrace throw-args))
+                   `(t mapbacktrace (,throw-args) nil))))
   ;; Past-end NFRAMES is silently ignored
   (should (equal (backtrace-frame most-positive-fixnum) nil)))
 
@@ -292,39 +292,20 @@ cf. Bug#25477."
   (should-error (eval '(dolist "foo") t)
                 :type 'wrong-type-argument))
 
-(require 'cl-generic)
-(cl-defgeneric subr-tests--generic (x))
-(cl-defmethod subr-tests--generic ((x string))
-  (message "%s is a string" x))
-(cl-defmethod subr-tests--generic ((x integer))
-  (message "%s is a number" x))
-(cl-defgeneric subr-tests--generic-without-methods (x y))
-(defvar subr-tests--this-file
-  (file-truename (or load-file-name buffer-file-name)))
-
-(ert-deftest subr-tests--method-files--finds-methods ()
-  "`method-files' returns a list of files and methods for a generic function."
-  (let ((retval (method-files 'subr-tests--generic)))
-    (should (equal (length retval) 2))
-    (mapc (lambda (x)
-            (should (equal (car x) subr-tests--this-file))
-            (should (equal (cadr x) 'subr-tests--generic)))
-          retval)
-    (should-not (equal (nth 0 retval) (nth 1 retval)))))
-
-(ert-deftest subr-tests--method-files--nonexistent-methods ()
-  "`method-files' returns nil if asked to find a method which doesn't exist."
-  (should-not (method-files 'subr-tests--undefined-generic))
-  (should-not (method-files 'subr-tests--generic-without-methods)))
-
 (ert-deftest subr-tests-bug22027 ()
-  "Test for http://debbugs.gnu.org/22027 ."
+  "Test for https://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)
     (cl-letf (((symbol-function 'read-string)
                (lambda (_prompt _init _hist def) def)))
       (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default "")))
       (should (string= default res)))))
 
+(ert-deftest subr-tests--gensym ()
+  "Test `gensym' behavior."
+  (should (equal (symbol-name (let ((gensym-counter 0)) (gensym)))
+                 "g0"))
+  (should (eq (string-to-char (symbol-name (gensym))) ?g))
+  (should (eq (string-to-char (symbol-name (gensym "X"))) ?X)))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

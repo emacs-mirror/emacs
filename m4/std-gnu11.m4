@@ -20,7 +20,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Written by David MacKenzie, with help from
 # Akim Demaille, Paul Eggert,
@@ -369,7 +369,7 @@ dnl		just the module.  Instead, define the (private) symbol
 dnl		_STDC_C99, which suppresses a bogus failure in <stdbool.h>.
 dnl		The resulting compiler passes the test case here, and that's
 dnl		good enough.  For more, please see the thread starting at:
-dnl            http://lists.gnu.org/archive/html/autoconf/2010-12/msg00059.html
+dnl            https://lists.gnu.org/r/autoconf/2010-12/msg00059.html
 dnl Tru64	-c99
 dnl with extended modes being tried first.
 [[-std=gnu99 -std=c99 -c99 -AC99 -D_STDC_C99= -qlanglvl=extc1x -qlanglvl=extc99]], [$1], [$2])[]dnl
@@ -458,7 +458,7 @@ dnl preferably extc11.
 # --------------
 # Do not use AU_ALIAS here and in AC_PROG_CC_C99 and AC_PROG_CC_STDC,
 # as that'd be incompatible with how Automake redefines AC_PROG_CC.  See
-# <http://lists.gnu.org/archive/html/autoconf/2012-10/msg00048.html>.
+# <https://lists.gnu.org/r/autoconf/2012-10/msg00048.html>.
 AU_DEFUN([AC_PROG_CC_C89],
   [AC_REQUIRE([AC_PROG_CC])],
   [$0 is obsolete; use AC_PROG_CC]

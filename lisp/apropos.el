@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -514,6 +514,19 @@ options only, i.e. behave like `apropos-user-option'."
   (let ((apropos-do-all (if do-not-all nil t)))
     (apropos-user-option pattern)))
 
+;;;###autoload
+(defun apropos-local-variable (pattern &optional buffer)
+  "Show buffer-local variables that match PATTERN.
+Optional arg BUFFER (default: current buffer) is the buffer to check.
+
+The output includes variables that are not yet set in BUFFER, but that
+will be buffer-local when set."
+  (interactive (list (apropos-read-pattern "buffer-local variable")))
+  (unless buffer (setq buffer  (current-buffer)))
+  (apropos-command pattern nil (lambda (symbol)
+                                 (and (local-variable-if-set-p symbol)
+                                      (get symbol 'variable-documentation)))))
+
 ;; For auld lang syne:
 ;;;###autoload
 (defalias 'command-apropos 'apropos-command)
@@ -795,6 +808,35 @@ Returns list of symbols and values found."
    (let ((apropos-multi-type do-all))
      (apropos-print nil "\n----------------\n")))
 
+;;;###autoload
+(defun apropos-local-value (pattern &optional buffer)
+  "Show buffer-local variables whose values match PATTERN.
+This is like `apropos-value', but only for buffer-local variables.
+Optional arg BUFFER (default: current buffer) is the buffer to check."
+  (interactive (list (apropos-read-pattern "value of buffer-local variable")))
+  (unless buffer (setq buffer  (current-buffer)))
+  (apropos-parse-pattern pattern)
+  (setq apropos-accumulator  ())
+  (let ((var             nil))
+    (mapatoms
+     (lambda (symb)
+       (unless (memq symb '(apropos-regexp apropos-pattern apropos-all-words-regexp
+                            apropos-words apropos-all-words apropos-accumulator symb var))
+         (setq var  (apropos-value-internal 'local-variable-if-set-p symb 'symbol-value)))
+       (when (and (fboundp 'apropos-false-hit-str)  (apropos-false-hit-str var))
+         (setq var nil))
+       (when var
+         (setq apropos-accumulator (cons (list symb (apropos-score-str var) nil var)
+                                         apropos-accumulator))))))
+  (let ((apropos-multi-type  nil))
+    (if (> emacs-major-version 20)
+        (apropos-print
+         nil "\n----------------\n"
+         (format "Buffer `%s' has the following local variables\nmatching %s`%s':"
+                 (buffer-name buffer)
+                 (if (consp pattern) "keywords " "")
+                 pattern))
+      (apropos-print nil "\n----------------\n"))))
 
 ;;;###autoload
 (defun apropos-documentation (pattern &optional do-all)

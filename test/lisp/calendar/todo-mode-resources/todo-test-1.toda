@@ -1,4 +1,4 @@
-(("testcat1" . [0 0 1 0]) ("testcat2" . [0 0 1 0]) ("testcat3" . [0 0 1 0]))
+(("testcat1" . [0 0 1 0]) ("testcat2" . [0 0 1 0]) ("testcat33" . [0 0 1 0]))
 --==-- testcat1
 
 ==--== DONE 
@@ -7,7 +7,7 @@
 
 ==--== DONE 
 [DONE May 28, 2017] [May 28, 2017] testcat2 item1
---==-- testcat3
+--==-- testcat33
 
 ==--== DONE 
-[DONE May 28, 2017] [May 28, 2017] testcat3 item1
+[DONE May 28, 2017] [May 28, 2017] testcat33 item1

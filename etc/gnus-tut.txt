@@ -42,7 +42,7 @@ heart's delight at <URL:http://www.ifi.uio.no/~larsi/larsi.html>.
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 From lars Thu Feb 23 23:20:38 1995
 From: larsi@ifi.uio.no (ding)

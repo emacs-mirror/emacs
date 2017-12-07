@@ -953,7 +953,7 @@ list, you can use @kbd{M-x semanticdb-find-test-translate-path}.
 @xref{Semanticdb search debugging commands}.
 
 If items should be loaded but aren't, or if you see some tables that
-have no tags in them, then you you may have an incorrectly-set search
+have no tags in them, then you may have an incorrectly-set search
 throttle (@pxref{Search Throttle}).  For example,
 
 @example

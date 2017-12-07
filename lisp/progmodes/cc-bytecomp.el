@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -86,6 +86,7 @@
 (defvar cc-bytecomp-environment-set nil)
 
 (defmacro cc-bytecomp-debug-msg (&rest args)
+  (ignore args)
   ;;`(message ,@args)
   )
 
@@ -252,7 +253,7 @@ perhaps a `cc-bytecomp-restore-environment' is forgotten somewhere"))
 	(cc-bytecomp-debug-msg
 	 "cc-bytecomp-restore-environment: Done"))))
 
-(defun cc-bytecomp-load (cc-part)
+(defun cc-bytecomp-load (_cc-part)
   ;; A dummy function which will immediately be overwritten by the
   ;; following at load time.  This should suppress the byte compiler
   ;; error that the function is "not known to be defined".

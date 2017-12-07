@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -55,7 +55,7 @@
 
 (defun ecomplete-add-item (type key text)
   (let ((elems (assq type ecomplete-database))
-	(now (string-to-number (format "%.0f" (float-time))))
+	(now (string-to-number (format-time-string "%s")))
 	entry)
     (unless elems
       (push (setq elems (list type)) ecomplete-database))

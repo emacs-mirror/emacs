@@ -1,0 +1,27 @@
+Language: Cpp
+BasedOnStyle: LLVM
+AlignEscapedNewlinesLeft: true
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+BreakBeforeBinaryOperators: All
+BreakBeforeBraces: GNU
+ColumnLimit: 80
+ContinuationIndentWidth: 2
+ForEachMacros: [FOR_EACH_TAIL, FOR_EACH_TAIL_SAFE]
+IncludeCategories:
+  - Regex: '^<config\.h>$'
+    Priority: -1
+  - Regex: '^<'
+    Priority: 1
+  - Regex: '^"lisp\.h"$'
+    Priority: 2
+  - Regex: '.*'
+    Priority: 3
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+PenaltyBreakBeforeFirstCallParameter: 2000
+SpaceAfterCStyleCast: true
+SpaceBeforeParens: Always
+
+# Local Variables:
+# mode: yaml
+# End:

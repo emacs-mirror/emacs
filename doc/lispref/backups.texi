@@ -129,7 +129,7 @@ its value.  Major modes should not set this variable---they should set
 
 @defopt backup-directory-alist
 This variable's value is an alist of filename patterns and backup
-directory names.  Each element looks like
+directories.  Each element looks like
 @smallexample
 (@var{regexp} . @var{directory})
 @end smallexample
@@ -145,7 +145,7 @@ truncates the resulting name.
 
 For the common case of all backups going into one directory, the alist
 should contain a single element pairing @samp{"."} with the appropriate
-directory name.
+directory.
 
 If this variable is @code{nil} (the default), or it fails to match a
 filename, the backup is made in the original file's directory.

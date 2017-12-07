@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -167,12 +167,32 @@ Each function is called with ARG=1."
     ["Export values" ses-export-tsv t]
     ["Export formulas" ses-export-tsf t]))
 
+(defconst ses-completion-keys '("\M-\C-i" "\C-i")
+  "List for keys that can be used for completion while editing.")
+
+(defvar ses--completion-table nil
+  "Set globally to what completion table to use depending on type
+  of completion (local printers, cells, etc.). We need to go
+  through a local variable to pass the SES buffer local variable
+  to completing function while the current buffer is the
+  minibuffer.")
+
+(defvar ses--list-orig-buffer nil
+  "Calling buffer for SES listing help. Used for listing local
+  printers or renamed cells.")
+
+
 (defconst ses-mode-edit-map
   (let ((keys '("\C-c\C-r"    ses-insert-range
 		"\C-c\C-s"    ses-insert-ses-range
 		[S-mouse-3]   ses-insert-range-click
 		[C-S-mouse-3] ses-insert-ses-range-click
-		"\M-\C-i"     lisp-complete-symbol)) ; FIXME obsolete
+                "\C-h\C-p"    ses-list-local-printers
+                "\C-h\C-n"    ses-list-named-cells
+		"\M-\C-i"     lisp-complete-symbol)) ; redefined
+                                                     ; dynamically in
+                                                     ; editing
+                                                     ; functions
 	(newmap (make-sparse-keymap)))
     (set-keymap-parent newmap minibuffer-local-map)
     (while keys
@@ -437,7 +457,7 @@ is nil if SYM is not a symbol that names a cell."
   (declare (debug t))
   `(let ((rc (and (symbolp ,sym) (get ,sym 'ses-cell))))
      (if (eq rc :ses-named)
-	 (gethash ,sym ses--named-cell-hashmap)
+	 (and ses--named-cell-hashmap (gethash ,sym ses--named-cell-hashmap))
        rc)))
 
 (defun ses-cell-p (cell)
@@ -868,27 +888,39 @@ means Emacs will crash if FORMULA contains a circular list."
 	  (oldref (ses-formula-references old))
 	  (newref (ses-formula-references formula))
 	  (inhibit-quit t)
+          not-a-cell-ref-list
 	  x xrow xcol)
       (cl-pushnew sym ses--deferred-recalc)
       ;;Delete old references from this cell.  Skip the ones that are also
       ;;in the new list.
       (dolist (ref oldref)
 	(unless (memq ref newref)
-	  (setq x    (ses-sym-rowcol ref)
-		xrow (car x)
-		xcol (cdr x))
-	  (ses-set-cell xrow xcol 'references
-			(delq sym (ses-cell-references xrow xcol)))))
+          ;; because we do not cancel edit when the user provides a
+          ;; false reference in it, then we need to check that ref
+          ;; points to a cell that is within the spreadsheet.
+	  (setq x    (ses-sym-rowcol ref))
+          (and x
+               (< (setq xrow (car x)) ses--numrows)
+               (< (setq xcol (cdr x)) ses--numcols)
+               (ses-set-cell xrow xcol 'references
+                            (delq sym (ses-cell-references xrow xcol))))))
       ;;Add new ones.  Skip ones left over from old list
       (dolist (ref newref)
-	(setq x    (ses-sym-rowcol ref)
-	      xrow (car x)
-	      xcol (cdr x)
-	      x    (ses-cell-references xrow xcol))
-	(or (memq sym x)
-	    (ses-set-cell xrow xcol 'references (cons sym x))))
+	(setq x    (ses-sym-rowcol ref))
+        ;;Do not trust the user, the reference may be outside the spreadsheet
+        (if (and
+             x
+             (<  (setq xrow (car x)) ses--numrows)
+             (<  (setq xcol (cdr x)) ses--numcols))
+          (progn
+            (setq x (ses-cell-references xrow xcol))
+            (or (memq sym x)
+                (ses-set-cell xrow xcol 'references (cons sym x))))
+          (cl-pushnew ref not-a-cell-ref-list)))
       (ses-formula-record formula)
-      (ses-set-cell row col 'formula formula))))
+      (ses-set-cell row col 'formula formula)
+      (and not-a-cell-ref-list
+           (error "Found in formula cells not in spreadsheet: %S" not-a-cell-ref-list)))))
 
 
 (defun ses-repair-cell-reference-all ()
@@ -1222,8 +1254,7 @@ preceding cell has spilled over."
 	 ((< len width)
 	  ;; Fill field to length with spaces.
 	  (setq len  (make-string (- width len) ?\s)
-		text (if (or (stringp value)
-			     (eq ses-call-printer-return t))
+		text (if (eq ses-call-printer-return t)
 			 (concat text len)
 		       (concat len text))))
 	 ((> len width)
@@ -1529,7 +1560,13 @@ by (ROWINCR,COLINCR)."
 	  ;;Relocate this variable, unless it is a named cell
           (if (eq (get sym 'ses-cell) :ses-named)
               sym
-            (ses-create-cell-symbol row col))
+            ;; otherwise, we create the relocated cell symbol because
+            ;; ses-cell-symbol gives the old symbols, however since
+            ;; renamed cell are not relocated we keep the relocated
+            ;; cell old symbol in this case.
+            (if (eq  (get (setq sym (ses-cell-symbol row col)) 'ses-cell) :ses-named)
+                sym
+              (ses-create-cell-symbol row col)))
 	;;Delete reference to a deleted cell
 	nil))))
 
@@ -1697,7 +1734,7 @@ to each symbol."
 		     (set (make-local-variable sym) nil)
 		     (put sym 'ses-cell (cons row col)))))) )))
     ;; Relocate the cell values.
-    (let (oldval myrow mycol xrow xcol)
+    (let (oldval myrow mycol xrow xcol sym)
       (cond
        ((and (<= rowincr 0) (<= colincr 0))
 	;; Deletion of rows and/or columns.
@@ -1707,16 +1744,16 @@ to each symbol."
 	  (dotimes (col (- ses--numcols mincol))
 	    (setq mycol  (+ col mincol)
 		  xrow   (- myrow rowincr)
-		  xcol   (- mycol colincr))
-	    (let ((sym (ses-cell-symbol myrow mycol)))
-	      ;; We don't need to relocate value for renamed cells, as they keep the same
-	      ;; symbol.
-	      (unless (eq (get sym 'ses-cell) :ses-named)
-		(ses-set-cell myrow mycol 'value
-			      (if (and (< xrow ses--numrows) (< xcol ses--numcols))
-				  (ses-cell-value xrow xcol)
-				;; Cell is off the end of the array.
-				(symbol-value (ses-create-cell-symbol xrow xcol))))))))
+		  xcol   (- mycol colincr)
+                  sym (ses-cell-symbol myrow mycol))
+	    ;; We don't need to relocate value for renamed cells, as they keep the same
+	    ;; symbol.
+	    (unless (eq (get sym 'ses-cell) :ses-named)
+	      (ses-set-cell myrow mycol 'value
+			    (if (and (< xrow ses--numrows) (< xcol ses--numcols))
+				(ses-cell-value xrow xcol)
+			      ;; Cell is off the end of the array.
+			      (symbol-value (ses-create-cell-symbol xrow xcol)))))))
 	(when ses--in-killing-named-cell-list
 	  (message "Unbinding killed named cell symbols...")
 	  (setq ses-start-time (float-time))
@@ -1736,13 +1773,17 @@ to each symbol."
 	    (dotimes (col (- ses--numcols mincol))
 	      (setq mycol (- distx col)
 		    xrow  (- myrow rowincr)
-		    xcol  (- mycol colincr))
-	      (if (or (< xrow minrow) (< xcol mincol))
-		  ;; Newly-inserted value.
-		  (setq oldval nil)
-		;; Transfer old value.
-		(setq oldval (ses-cell-value xrow xcol)))
-	      (ses-set-cell myrow mycol 'value oldval)))
+		    xcol  (- mycol colincr)
+                    sym (ses-cell-symbol myrow mycol))
+	      ;; We don't need to relocate value for renamed cells, as they keep the same
+	      ;; symbol.
+	      (unless (eq (get sym 'ses-cell) :ses-named)
+	        (if (or (< xrow minrow) (< xcol mincol))
+		    ;; Newly-inserted value.
+		    (setq oldval nil)
+		  ;; Transfer old value.
+		  (setq oldval (ses-cell-value xrow xcol)))
+	        (ses-set-cell myrow mycol 'value oldval))))
 	  t))  ; Make testcover happy by returning non-nil here.
        (t
 	(error "ROWINCR and COLINCR must have the same sign"))))
@@ -1862,7 +1903,7 @@ Does not execute cell formulas or print functions."
       (setq ses--numlocprn 0)
       (dotimes (_ numlocprn)
 	(let ((x      (read (current-buffer))))
-	  (or (and (looking-at-p "\n")
+	  (or (and (= (following-char) ?\n)
 		   (eq (car-safe x) 'ses-local-printer)
 		   (apply #'ses--local-printer (cdr x)))
 	      (error "local printer-def error"))
@@ -1872,7 +1913,7 @@ Does not execute cell formulas or print functions."
     (dotimes (col ses--numcols)
       (let* ((x      (read (current-buffer)))
 	     (sym  (car-safe (cdr-safe x))))
-	(or (and (looking-at-p "\n")
+	(or (and (= (following-char) ?\n)
 		 (eq (car-safe x) 'ses-cell)
 		 (ses-create-cell-variable sym row col))
 	    (error "Cell-def error"))
@@ -2337,7 +2378,8 @@ to are recalculated first."
   "Recalculate and reprint all cells."
   (interactive "*")
   (let ((startcell    (ses--cell-at-pos (point)))
-	(ses--curcell (cons 'A1 (ses-cell-symbol (1- ses--numrows)
+	(ses--curcell (cons (ses-cell-symbol 0 0)
+                            (ses-cell-symbol (1- ses--numrows)
 						 (1- ses--numcols)))))
     (ses-recalculate-cell ses--curcell)
     (ses-jump-safe startcell)))
@@ -2424,6 +2466,42 @@ to are recalculated first."
 ;;----------------------------------------------------------------------------
 ;; Input of cell formulas
 ;;----------------------------------------------------------------------------
+(defun ses-edit-cell-complete-symbol ()
+  (interactive)
+  (let ((completion-at-point-functions (cons 'ses--edit-cell-completion-at-point-function
+                                             completion-at-point-functions)))
+    (completion-at-point)))
+
+(defun ses--edit-cell-completion-at-point-function ()
+  (and
+   ses--completion-table
+   (let* ((bol (save-excursion (move-beginning-of-line nil) (point)))
+         start end collection
+         (prefix
+          (save-excursion
+            (setq end (point))
+            (backward-sexp)
+            (if (< (point) bol)
+                (progn
+                  (setq start bol)
+                  (buffer-substring start end))
+              (setq start (point))
+              (forward-sexp)
+              (if (>= (point) end)
+                  (progn
+                    (setq end (point))
+                    (buffer-substring start end))
+                nil))))
+         prefix-length)
+    (when (and prefix (null (string= prefix "")))
+      (setq prefix-length (length prefix))
+      (maphash (lambda (key val)
+                 (let ((key-name (symbol-name key)))
+                   (when (and (>= (length key-name) prefix-length)
+                              (string= prefix (substring key-name 0 prefix-length)))
+                     (push key-name collection))))
+               ses--completion-table)
+      (and collection (list start end collection))))))
 
 (defun ses-edit-cell (row col newval)
   "Display current cell contents in minibuffer, for editing.  Returns nil if
@@ -2445,6 +2523,10 @@ cell formula was unsafe and user declined confirmation."
        (if (stringp formula)
 	   ;; Position cursor inside close-quote.
 	   (setq initial (cons initial (length initial))))
+       (dolist (key ses-completion-keys)
+         (define-key ses-mode-edit-map key 'ses-edit-cell-complete-symbol))
+       ;; make it globally visible, so that it can be visible from the minibuffer.
+       (setq ses--completion-table ses--named-cell-hashmap)
        (list row col
 	     (read-from-minibuffer (format "Cell %s: " ses--curcell)
 				   initial
@@ -2539,6 +2621,40 @@ cells."
 ;;----------------------------------------------------------------------------
 ;; Input of cell-printer functions
 ;;----------------------------------------------------------------------------
+(defun ses-read-printer-complete-symbol ()
+  (interactive)
+  (let ((completion-at-point-functions (cons 'ses--read-printer-completion-at-point-function
+                                             completion-at-point-functions)))
+    (completion-at-point)))
+
+(defun ses--read-printer-completion-at-point-function ()
+  (let* ((bol (save-excursion (move-beginning-of-line nil) (point)))
+         start end collection
+         (prefix
+          (save-excursion
+            (setq end (point))
+            (backward-sexp)
+            (if (< (point) bol)
+                (progn
+                  (setq start bol)
+                  (buffer-substring start end))
+              (setq start (point))
+              (forward-sexp)
+              (if (>= (point) end)
+                  (progn
+                    (setq end (point))
+                    (buffer-substring start end))
+                nil))))
+         prefix-length)
+    (when prefix
+      (setq prefix-length (length prefix))
+      (maphash (lambda (key val)
+                 (let ((key-name (symbol-name key)))
+                   (when (and (>= (length key-name) prefix-length)
+                              (string= prefix (substring key-name 0 prefix-length)))
+                     (push key-name collection))))
+               ses--completion-table)
+      (and collection (list start end collection)))))
 
 (defun ses-read-printer (prompt default)
   "Common code for functions `ses-read-cell-printer', `ses-read-column-printer',
@@ -2551,6 +2667,10 @@ canceled."
     (setq prompt (format "%s (default %S): "
 			 (substring prompt 0 -2)
 			 default)))
+  (dolist (key ses-completion-keys)
+    (define-key ses-mode-edit-map key 'ses-read-printer-complete-symbol))
+  ;; make it globally visible, so that it can be visible from the minibuffer.
+  (setq ses--completion-table ses--local-printer-hashmap)
   (let ((new (read-from-minibuffer prompt
 				   nil ; Initial contents.
 				   ses-mode-edit-map
@@ -3259,6 +3379,78 @@ is non-nil.  Newlines and tabs in the export text are escaped."
     (setq result (apply #'concat (nreverse result)))
     (kill-new result)))
 
+;;----------------------------------------------------------------------------
+;; Interactive help on symbols
+;;----------------------------------------------------------------------------
+
+(defun ses-list-local-printers (&optional local-printer-hashmap)
+  "List local printers in a help buffer. Can be called either
+during editing a printer or a formula, or while in the SES
+buffer."
+  (interactive
+   (list (cond
+          ((derived-mode-p 'ses-mode) ses--local-printer-hashmap)
+          ((minibufferp) ses--completion-table)
+          ((derived-mode-p 'help-mode) nil)
+          (t (error "Not in a SES buffer")))))
+  (when local-printer-hashmap
+    (let ((ses--list-orig-buffer (or ses--list-orig-buffer (current-buffer))))
+      (help-setup-xref
+       (list (lambda (local-printer-hashmap buffer)
+               (let ((ses--list-orig-buffer
+                      (if (buffer-live-p buffer) buffer)))
+                 (ses-list-local-printers local-printer-hashmap)))
+             local-printer-hashmap ses--list-orig-buffer)
+       (called-interactively-p 'interactive))
+
+      (save-excursion
+        (with-help-window (help-buffer)
+          (if (= 0 (hash-table-count local-printer-hashmap))
+              (princ "No local printers defined.")
+            (princ "List of local printers definitions:\n")
+            (maphash (lambda (key val)
+                       (princ key)
+                       (princ " as ")
+                       (prin1 (ses--locprn-def val))
+                       (princ "\n"))
+                     local-printer-hashmap))
+          (with-current-buffer standard-output
+            (buffer-string)))))))
+
+(defun ses-list-named-cells (&optional named-cell-hashmap)
+  "List named cells in a help buffer. Can be called either
+during editing a printer or a formula, or while in the SES
+buffer."
+  (interactive
+   (list (cond
+          ((derived-mode-p 'ses-mode) ses--named-cell-hashmap)
+          ((minibufferp) ses--completion-table)
+          ((derived-mode-p 'help-mode) nil)
+          (t (error "Not in a SES buffer")))))
+  (when named-cell-hashmap
+    (let ((ses--list-orig-buffer (or ses--list-orig-buffer (current-buffer))))
+      (help-setup-xref
+       (list (lambda (named-cell-hashmap buffer)
+               (let ((ses--list-orig-buffer
+                      (if (buffer-live-p buffer) buffer)))
+                 (ses-list-named-cells named-cell-hashmap)))
+             named-cell-hashmap ses--list-orig-buffer)
+       (called-interactively-p 'interactive))
+
+      (save-excursion
+        (with-help-window (help-buffer)
+          (if (= 0 (hash-table-count named-cell-hashmap))
+              (princ "No cell was renamed.")
+            (princ "List of named cells definitions:\n")
+            (maphash (lambda (key val)
+                       (princ key)
+                       (princ " for ")
+                       (prin1 (ses-create-cell-symbol (car val) (cdr val)))
+                       (princ "\n"))
+                     named-cell-hashmap))
+          (with-current-buffer standard-output
+            (buffer-string)))))))
+
 
 ;;----------------------------------------------------------------------------
 ;; Other user commands
@@ -3441,8 +3633,12 @@ highlighted range in the spreadsheet."
 
 (defun ses-replace-name-in-formula (formula old-name new-name)
   (let ((new-formula formula))
-    (unless (and (consp formula)
-		 (eq (car-safe formula) 'quote))
+    (cond
+     ((eq (car-safe formula) 'quote))
+     ((symbolp formula)
+      (if (eq formula old-name)
+          (setq new-formula new-name)))
+     ((consp formula)
       (while formula
 	(let ((elt (car-safe formula)))
 	  (cond
@@ -3451,8 +3647,8 @@ highlighted range in the spreadsheet."
 	   ((and (symbolp elt)
 		 (eq (car-safe formula) old-name))
 	    (setcar formula new-name))))
-	(setq formula (cdr formula))))
-    new-formula))
+	(setq formula (cdr formula)))))
+  new-formula))
 
 (defun ses-rename-cell (new-name &optional cell)
   "Rename current cell."
@@ -3477,9 +3673,10 @@ highlighted range in the spreadsheet."
 	 (rowcol (ses-sym-rowcol sym))
 	 (row (car rowcol))
 	 (col (cdr rowcol))
-	 new-rowcol old-name)
+	 new-rowcol old-name old-value)
     (setq cell (or cell (ses-get-cell row col))
 	  old-name (ses-cell-symbol cell)
+          old-value (symbol-value old-name)
 	  new-rowcol (ses-decode-cell-symbol (symbol-name new-name)))
     ;; when ses-rename-cell is called interactively, then 'sym' is the
     ;; 'cursor-intangible' property of text at cursor position, while
@@ -3499,10 +3696,12 @@ highlighted range in the spreadsheet."
       (put new-name 'ses-cell :ses-named)
       (puthash new-name rowcol ses--named-cell-hashmap))
     (push `(ses-rename-cell ,old-name ,cell) buffer-undo-list)
+    (cl-pushnew rowcol ses--deferred-write :test #'equal)
     ;; Replace name by new name in formula of cells refering to renamed cell.
     (dolist (ref (ses-cell-references cell))
       (let* ((x (ses-sym-rowcol ref))
 	     (xcell  (ses-get-cell (car x) (cdr x))))
+        (cl-pushnew x ses--deferred-write :test #'equal)
 	(setf (ses-cell-formula xcell)
               (ses-replace-name-in-formula
                (ses-cell-formula xcell)
@@ -3513,11 +3712,14 @@ highlighted range in the spreadsheet."
     (dolist (ref (ses-formula-references (ses-cell-formula cell)))
       (let* ((x (ses-sym-rowcol ref))
 	     (xcell (ses-get-cell (car x) (cdr x))))
+        (cl-pushnew x ses--deferred-write :test #'equal)
 	(setf (ses-cell-references xcell)
               (cons new-name (delq old-name
                                    (ses-cell-references xcell))))))
     (set (make-local-variable new-name) (symbol-value sym))
     (setf (ses-cell--symbol cell) new-name)
+    ;; set new name to value
+    (set new-name old-value)
     ;; Unbind old name
     (if (eq (get old-name 'ses-cell) :ses-named)
         (ses--unbind-cell-name old-name)

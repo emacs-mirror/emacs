@@ -1,6 +1,6 @@
 GNU EMACS VERSIONING                                   -*- org -*-
 
-Ref: http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00872.html
+Ref: https://lists.gnu.org/r/emacs-devel/2014-09/msg00872.html
 
 Emacs version numbers have the form
 
@@ -27,4 +27,3 @@ unexpected last-minute problem occurs.
 The development version for a new major release has "minor" = 0.
 The development version for a new minor release has "minor" = that of
 the previous release.
-

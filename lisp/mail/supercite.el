@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; LCD Archive Entry
 ;; supercite|Barry A. Warsaw|supercite-help@python.org
@@ -713,7 +713,7 @@ the list should be unique."
 
 ;; regi functions
 
-;; http://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00691.html
+;; https://lists.gnu.org/r/emacs-devel/2009-02/msg00691.html
 ;; When rmail replies to a message with full headers visible, the "From "
 ;; line can be included.
 (defun sc-mail-check-from ()

@@ -33,6 +33,7 @@ Help, emacs, The GNU Emacs Manual}.
 * Documentation Basics::      Where doc strings are defined and stored.
 * Accessing Documentation::   How Lisp programs can access doc strings.
 * Keys in Documentation::     Substituting current key bindings.
+* Text Quoting Style::        Quotation marks in doc strings and messages.
 * Describing Characters::     Making printable descriptions of
                                 non-printing characters and key sequences.
 * Help Functions::            Subroutines used by Emacs help facilities.
@@ -336,6 +337,7 @@ specifies @var{mapvar}'s value as the keymap for any following
 (grave accent) stands for a left quote.
 This generates a left single quotation mark, an apostrophe, or a grave
 accent depending on the value of @code{text-quoting-style}.
+@xref{Text Quoting Style}.
 
 @item '
 (apostrophe) stands for a right quote.
@@ -351,25 +353,24 @@ and @samp{\=\=} puts @samp{\=} into the output.
 @strong{Please note:} Each @samp{\} must be doubled when written in a
 string in Emacs Lisp.
 
-@defvar text-quoting-style
+@defopt text-quoting-style
 @cindex curved quotes
 @cindex curly quotes
 The value of this variable is a symbol that specifies the style Emacs
-should use for single quotes in the wording of help and messages.
-If the variable's value is @code{curve}, the style is
-@t{‘like this’} with curved single quotes.  If the value is
-@code{straight}, the style is @t{'like this'} with straight
-apostrophes.  If the value is @code{grave},
-quotes are not translated and the style is @t{`like
-this'} with grave accent and apostrophe, the standard style
-before Emacs version 25.  The default value @code{nil}
-acts like @code{curve} if curved single quotes are displayable, and
-like @code{grave} otherwise.
+should use for single quotes in the wording of help and messages.  If
+the variable's value is @code{curve}, the style is @t{‘like this’}
+with curved single quotes.  If the value is @code{straight}, the style
+is @t{'like this'} with straight apostrophes.  If the value is
+@code{grave}, quotes are not translated and the style is @t{`like
+this'} with grave accent and apostrophe, the standard style before
+Emacs version 25.  The default value @code{nil} acts like @code{curve}
+if curved single quotes seem to be displayable, and like @code{grave}
+otherwise.
 
-This variable can be used by experts on platforms that have problems
-with curved quotes.  As it is not intended for casual use, it is not a
-user option.
-@end defvar
+This option is useful on platforms that have problems with curved
+quotes.  You can customize it freely according to your personal
+preference.
+@end defopt
 
 @defun substitute-command-keys string
 This function scans @var{string} for the above special sequences and
@@ -428,6 +429,53 @@ C-g             abort-recursive-edit
   There are other special conventions for the text in documentation
 strings---for instance, you can refer to functions, variables, and
 sections of this manual.  @xref{Documentation Tips}, for details.
+
+@node Text Quoting Style
+@section Text Quoting Style
+
+  Typically, grave accents and apostrophes are treated specially in
+documentation strings and diagnostic messages, and translate to matching
+single quotation marks (also called ``curved quotes'').  For example,
+the documentation string @t{"Alias for `foo'."} and the function call
+@code{(message "Alias for `foo'.")} both translate to @t{"Alias for
+‘foo’."}.  Less commonly, Emacs displays grave accents and apostrophes
+as themselves, or as apostrophes only (e.g., @t{"Alias for 'foo'."}).
+Documentation strings and message formats should be written so that
+they display well with any of these styles.  For example, the
+documentation string @t{"Alias for 'foo'."} is probably not what you
+want, as it can display as @t{"Alias for ’foo’."}, an unusual style in
+English.
+
+  Sometimes you may need to display a grave accent or apostrophe
+without translation, regardless of text quoting style.  In a
+documentation string, you can do this with escapes.  For example, in
+the documentation string @t{"\\=`(a ,(sin 0)) ==> (a 0.0)"} the grave
+accent is intended to denote Lisp code, so it is escaped and displays
+as itself regardless of quoting style.  In a call to @code{message} or
+@code{error}, you can avoid translation by using a format @t{"%s"}
+with an argument that is a call to @code{format}.  For example,
+@code{(message "%s" (format "`(a ,(sin %S)) ==> (a %S)" x (sin x)))}
+displays a message that starts with grave accent regardless of text
+quoting style.
+
+@defopt text-quoting-style
+@cindex curved quotes
+@cindex curly quotes
+The value of this user option is a symbol that specifies the style
+Emacs should use for single quotes in the wording of help and
+messages.  If the option's value is @code{curve}, the style is
+@t{‘like this’} with curved single quotes.  If the value is
+@code{straight}, the style is @t{'like this'} with straight
+apostrophes.  If the value is @code{grave}, quotes are not translated
+and the style is @t{`like this'} with grave accent and apostrophe, the
+standard style before Emacs version 25.  The default value @code{nil}
+acts like @code{curve} if curved single quotes seem to be displayable,
+and like @code{grave} otherwise.
+
+This option is useful on platforms that have problems with curved
+quotes.  You can customize it freely according to your personal
+preference.
+@end defopt
 
 @node Describing Characters
 @section Describing Characters for Help Messages

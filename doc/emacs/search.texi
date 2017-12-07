@@ -582,6 +582,8 @@ word search (@code{isearch-forward-word}).
 Search for @var{words}, using a forward nonincremental word search.
 @item M-s w C-r @key{RET} @var{words} @key{RET}
 Search backward for @var{words}, using a nonincremental word search.
+@item M-s M-w
+Search the Web for the text in region.
 @end table
 
 @kindex M-s w
@@ -617,12 +619,15 @@ toggling lax whitespace matching (@pxref{Lax Search, lax space
 matching}) has no effect on them.
 
 @kindex M-s M-w
-@findex eww-search-word
+@findex eww-search-words
 @vindex eww-search-prefix
-  Search the Web for the text in region.  This command performs an
-Internet search for the words in region using the search engine whose
-@acronym{URL} is specified by the variable @code{eww-search-prefix}.
-@xref{Basics, EWW, , eww, The Emacs Web Wowser Manual}.
+  To search the Web for the text in region, type @kbd{M-s M-w}.  This
+command performs an Internet search for the words in region using the
+search engine whose @acronym{URL} is specified by the variable
+@code{eww-search-prefix} (@pxref{Basics, EWW, , eww, The Emacs Web
+Wowser Manual}).  If the region is not active, or doesn't contain any
+words, this command prompts the user for a URL or keywords to search.
+
 
 @node Symbol Search
 @section Symbol Search
@@ -1609,6 +1614,14 @@ to go back to the position of the previous occurrence (or what used to
 be an occurrence), in case you changed it by mistake or want to
 reexamine it.
 
+@item u
+to undo the last replacement and go back to where that replacement was
+made.
+
+@item U
+to undo all the replacements and go back to where the first
+replacement was made.
+
 @item C-r
 to enter a recursive editing level, in case the occurrence needs to be
 edited rather than just replaced with @var{newstring}.  When you are
@@ -1680,15 +1693,10 @@ Aside from @code{multi-occur} and @code{multi-occur-in-matching-buffers},
 which always search the whole buffer, all operate on the text from point
 to the end of the buffer, or on the region if it is active.
 
-@findex list-matching-lines
-@findex occur
-@findex multi-occur
-@findex multi-occur-in-matching-buffers
-@findex how-many
-@findex flush-lines
-@findex keep-lines
-
 @table @kbd
+@findex multi-isearch-buffers
+@cindex isearch multiple buffers
+@cindex multiple-buffer isearch
 @item M-x multi-isearch-buffers
 Prompt for one or more buffer names, ending with @key{RET}; then,
 begin a multi-buffer incremental search in those buffers.  (If the
@@ -1697,10 +1705,14 @@ next specified buffer, and so forth.)  With a prefix argument, prompt
 for a regexp and begin a multi-buffer incremental search in buffers
 matching that regexp.
 
+@findex multi-isearch-buffers-regexp
 @item M-x multi-isearch-buffers-regexp
 This command is just like @code{multi-isearch-buffers}, except it
 performs an incremental regexp search.
 
+@findex multi-isearch-files
+@cindex isearch multiple files
+@cindex multiple-file isearch
 @item M-x multi-isearch-files
 Prompt for one or more file names, ending with @key{RET}; then,
 begin a multi-file incremental search in those files.  (If the
@@ -1709,6 +1721,7 @@ next specified file, and so forth.)  With a prefix argument, prompt
 for a regexp and begin a multi-file incremental search in files
 matching that regexp.
 
+@findex multi-isearch-files-regexp
 @item M-x multi-isearch-files-regexp
 This command is just like @code{multi-isearch-files}, except it
 performs an incremental regexp search.
@@ -1724,6 +1737,7 @@ a multi-file incremental search is activated automatically.
 @vindex list-matching-lines-jump-to-current-line
 @cindex list-matching-lines-current-line-face (face name)
 @kindex M-s o
+@findex occur
 @item M-x occur
 @itemx M-s o
 Prompt for a regexp, and display a list showing each line in the
@@ -1742,6 +1756,10 @@ at the first match after such line.
 You can also run @kbd{M-s o} when an incremental search is active;
 this uses the current search string.
 
+Note that matches for the regexp you type are extended to include
+complete lines, and a match that starts before the previous match ends
+is not considered a match.
+
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
 @kindex C-o @r{(Occur mode)}
@@ -1759,25 +1777,30 @@ mode, in which edits made to the entries are also applied to the text
 in the originating buffer.  Type @kbd{C-c C-c} to return to Occur
 mode.
 
+@findex list-matching-lines
 The command @kbd{M-x list-matching-lines} is a synonym for @kbd{M-x
 occur}.
 
+@findex multi-occur
 @item M-x multi-occur
 This command is just like @code{occur}, except it is able to search
 through multiple buffers.  It asks you to specify the buffer names one
 by one.
 
+@findex multi-occur-in-matching-buffers
 @item M-x multi-occur-in-matching-buffers
 This command is similar to @code{multi-occur}, except the buffers to
 search are specified by a regular expression that matches visited file
 names.  With a prefix argument, it uses the regular expression to
 match buffer names instead.
 
+@findex how-many
 @item M-x how-many
 Prompt for a regexp, and print the number of matches for it in the
 buffer after point.  If the region is active, this operates on the
 region instead.
 
+@findex flush-lines
 @item M-x flush-lines
 Prompt for a regexp, and delete each line that contains a match for
 it, operating on the text after point.  This command deletes the
@@ -1791,6 +1814,7 @@ lines.  It deletes the lines before starting to look for the next
 match; hence, it ignores a match starting on the same line at which
 another match ended.
 
+@findex keep-lines
 @item M-x keep-lines
 Prompt for a regexp, and delete each line that @emph{does not} contain
 a match for it, operating on the text after point.  If point is not at

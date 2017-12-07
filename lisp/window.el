@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -320,22 +320,34 @@ WINDOW can be any window."
 
 (defun window-normalize-buffer (buffer-or-name)
   "Return buffer specified by BUFFER-OR-NAME.
-BUFFER-OR-NAME must be either a buffer or a string naming a live
-buffer and defaults to the current buffer."
-  (cond
-   ((not buffer-or-name)
-    (current-buffer))
-   ((bufferp buffer-or-name)
-    (if (buffer-live-p buffer-or-name)
-	buffer-or-name
-      (error "Buffer %s is not a live buffer" buffer-or-name)))
-   ((get-buffer buffer-or-name))
-   (t
-    (error "No such buffer %s" buffer-or-name))))
+BUFFER-OR-NAME must be a live buffer, a string naming a live
+buffer or nil which means to return the current buffer.
+
+This function is commonly used to process the (usually optional)
+\"BUFFER-OR-NAME\" argument of window related functions where nil
+stands for the current buffer."
+  (let ((buffer
+         (cond
+          ((not buffer-or-name)
+           (current-buffer))
+          ((bufferp buffer-or-name)
+           buffer-or-name)
+          ((stringp buffer-or-name)
+           (get-buffer buffer-or-name))
+          (t
+           (error "No such buffer %s" buffer-or-name)))))
+    (if (buffer-live-p buffer)
+	buffer
+      (error "No such live buffer %s" buffer-or-name))))
 
 (defun window-normalize-frame (frame)
   "Return frame specified by FRAME.
-FRAME must be a live frame and defaults to the selected frame."
+FRAME must be a live frame or nil which means to return the
+selected frame.
+
+This function is commonly used to process the (usually optional)
+\"FRAME\" argument of window and frame related functions where
+nil stands for the selected frame."
   (if frame
       (if (frame-live-p frame)
 	  frame
@@ -343,11 +355,15 @@ FRAME must be a live frame and defaults to the selected frame."
     (selected-frame)))
 
 (defun window-normalize-window (window &optional live-only)
-  "Return the window specified by WINDOW.
+  "Return window specified by WINDOW.
 If WINDOW is nil, return the selected window.  Otherwise, if
 WINDOW is a live or an internal window, return WINDOW; if
 LIVE-ONLY is non-nil, return WINDOW for a live window only.
-Otherwise, signal an error."
+Otherwise, signal an error.
+
+This function is commonly used to process the (usually optional)
+\"WINDOW\" argument of window related functions where nil stands
+for the selected window."
   (cond
    ((null window)
     (selected-window))
@@ -999,7 +1015,7 @@ for displaying BUFFER, nil if no suitable window can be found.
 This function installs the `window-side' and `window-slot'
 parameters and makes them persistent.  It neither modifies ALIST
 nor installs any other window parameters unless they have been
-explicitly provided via a `window-parameter' entry in ALIST."
+explicitly provided via a `window-parameters' entry in ALIST."
   (let* ((side (or (cdr (assq 'side alist)) 'bottom))
          (slot (or (cdr (assq 'slot alist)) 0))
          (left-or-right (memq side '(left right)))
@@ -2567,7 +2583,7 @@ and no others."
 
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW is the currently active minibuffer window."
-  (eq window (active-minibuffer-window)))
+  (and (window-live-p window) (eq window (active-minibuffer-window))))
 
 (defun count-windows (&optional minibuf)
    "Return the number of live windows on the selected frame.
@@ -3703,7 +3719,7 @@ are one more than the actual value of these edges.  Note that if
 ABSOLUTE is non-nil, PIXELWISE is implicitly non-nil too."
   (let* ((window (window-normalize-window window body))
 	 (frame (window-frame window))
-	 (border-width (frame-border-width frame))
+	 (border-width (frame-internal-border-width frame))
 	 (char-width (frame-char-width frame))
 	 (char-height (frame-char-height frame))
 	 (left (if pixelwise
@@ -4096,17 +4112,17 @@ WINDOW must be a valid window and defaults to the selected one.
 Return nil.
 
 If the variable `ignore-window-parameters' is non-nil or the
-`delete-other-windows' parameter of WINDOW equals t, do not
-process any parameters of WINDOW.  Otherwise, if the
+`delete-other-windows' parameter of WINDOW equals t, do not pay
+attention to any other parameters of WINDOW.  Otherwise, if the
 `delete-other-windows' parameter of WINDOW specifies a function,
 call that function with WINDOW as its sole argument and return
 the value returned by that function.
 
-Otherwise, if WINDOW is part of an atomic window, call this
-function with the root of the atomic window as its argument.  If
-WINDOW is a non-side window, make WINDOW the only non-side window
-on the frame.  Side windows are not deleted.  If WINDOW is a side
-window signal an error."
+Else, if WINDOW is part of an atomic window, call this function
+with the root of the atomic window as its argument.  Signal an
+error if that root window is the root window of WINDOW's frame.
+Also signal an error if WINDOW is a side window.  Do not delete
+any window whose `no-delete-other-windows' parameter is non-nil."
   (interactive)
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
@@ -4137,28 +4153,28 @@ window signal an error."
 
       (cond
        ((or ignore-window-parameters
-            (not (window-with-parameter 'no-delete-other-window nil frame)))
+            (not (window-with-parameter 'no-delete-other-windows nil frame)))
         (setq main (frame-root-window frame)))
        ((catch 'tag
           (walk-window-tree
            (lambda (other)
              (when (or (and (window-parameter other 'window-side)
                             (not (window-parameter
-                                  other 'no-delete-other-window)))
+                                  other 'no-delete-other-windows)))
                        (and (not (window-parameter other 'window-side))
                             (window-parameter
-                             other 'no-delete-other-window)))
+                             other 'no-delete-other-windows)))
                (throw 'tag nil))))
           t)
         (setq main (window-main-window frame)))
        (t
-        ;; Delete other windows via `delete-window' because either a
-        ;; side window is or a non-side-window is not deletable.
+        ;; Delete windows via `delete-window' because we found either a
+        ;; deletable side window or a non-deletable non-side-window.
         (dolist (other (window-list frame))
           (when (and (window-live-p other)
                      (not (eq other window))
                      (not (window-parameter
-                           other 'no-delete-other-window))
+                           other 'no-delete-other-windows))
                      ;; When WINDOW and the other window are part of the
                      ;; same atomic window, don't delete the other.
                      (or (not atom-root)
@@ -4572,12 +4588,13 @@ The function is called with one argument - a frame.
 Functions affected by this option are those that bury a buffer
 shown in a separate frame like `quit-window' and `bury-buffer'."
   :type '(choice (const :tag "Iconify" iconify-frame)
+                 (const :tag "Make invisible" make-frame-invisible)
                  (const :tag "Delete" delete-frame)
                  (const :tag "Do nothing" ignore)
                  function)
   :group 'windows
   :group 'frames
-  :version "24.1")
+  :version "26.1")
 
 (defun window--delete (&optional window dedicated-only kill)
   "Delete WINDOW if possible.
@@ -4595,7 +4612,9 @@ if WINDOW gets deleted or its frame is auto-hidden."
 	  (cond
 	   (kill
 	    (delete-frame frame))
-	   ((functionp frame-auto-hide-function)
+           ((functionp (frame-parameter frame 'auto-hide-function))
+            (funcall (frame-parameter frame 'auto-hide-function)))
+           ((functionp frame-auto-hide-function)
 	    (funcall frame-auto-hide-function frame))))
 	'frame)
        (deletable
@@ -6446,8 +6465,9 @@ If this is an integer, `split-window-sensibly' may split a window
 vertically only if it has at least this many lines.  If this is
 nil, `split-window-sensibly' is not allowed to split a window
 vertically.  If, however, a window is the only window on its
-frame, `split-window-sensibly' may split it vertically
-disregarding the value of this variable."
+frame, or all the other ones are dedicated,
+`split-window-sensibly' may split it vertically disregarding the
+value of this variable."
   :type '(choice (const nil) (integer :tag "lines"))
   :version "23.1"
   :group 'windows)
@@ -6554,15 +6574,27 @@ split."
 	     ;; Split window horizontally.
 	     (with-selected-window window
 	       (split-window-right)))
-	(and (eq window (frame-root-window (window-frame window)))
-	     (not (window-minibuffer-p window))
-	     ;; If WINDOW is the only window on its frame and is not the
-	     ;; minibuffer window, try to split it vertically disregarding
-	     ;; the value of `split-height-threshold'.
-	     (let ((split-height-threshold 0))
-	       (when (window-splittable-p window)
-		 (with-selected-window window
-		   (split-window-below))))))))
+	(and
+         ;; If WINDOW is the only usable window on its frame (it is
+         ;; the only one or, not being the only one, all the other
+         ;; ones are dedicated) and is not the minibuffer window, try
+         ;; to split it vertically disregarding the value of
+         ;; `split-height-threshold'.
+         (let ((frame (window-frame window)))
+           (or
+            (eq window (frame-root-window frame))
+            (catch 'done
+              (walk-window-tree (lambda (w)
+                                  (unless (or (eq w window)
+                                              (window-dedicated-p w))
+                                    (throw 'done nil)))
+                                frame)
+              t)))
+	 (not (window-minibuffer-p window))
+	 (let ((split-height-threshold 0))
+	   (when (window-splittable-p window)
+	     (with-selected-window window
+	       (split-window-below))))))))
 
 (defun window--try-to-split-window (window &optional alist)
   "Try to split WINDOW.
@@ -6734,15 +6766,17 @@ live."
     window))
 
 (defun window--maybe-raise-frame (frame)
-  (let ((visible (frame-visible-p frame)))
-    (unless (or (not visible)
-		;; Assume the selected frame is already visible enough.
-		(eq frame (selected-frame))
-		;; Assume the frame from which we invoked the
-		;; minibuffer is visible.
-		(and (minibuffer-window-active-p (selected-window))
-		     (eq frame (window-frame (minibuffer-selected-window)))))
-      (raise-frame frame))))
+  (make-frame-visible frame)
+  (unless (or (frame-parameter frame 'no-focus-on-map)
+              ;; Don't raise frames that should not get focus.
+              (frame-parameter frame 'no-accept-focus)
+              ;; Assume the selected frame is already visible enough.
+	      (eq frame (selected-frame))
+	      ;; Assume the frame from which we invoked the
+	      ;; minibuffer is visible.
+	      (and (minibuffer-window-active-p (selected-window))
+		   (eq frame (window-frame (minibuffer-selected-window)))))
+    (raise-frame frame)))
 
 ;; FIXME: Not implemented.
 ;; FIXME: By the way, there could be more levels of dedication:
@@ -6762,6 +6796,7 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-pop-up-window)
 	   (const display-buffer-same-window)
 	   (const display-buffer-pop-up-frame)
+	   (const display-buffer-in-child-frame)
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
 	   (const display-buffer-in-previous-window)
@@ -6908,6 +6943,7 @@ Available action functions include:
  `display-buffer-same-window'
  `display-buffer-reuse-window'
  `display-buffer-pop-up-frame'
+ `display-buffer-in-child-frame'
  `display-buffer-pop-up-window'
  `display-buffer-in-previous-window'
  `display-buffer-use-some-window'
@@ -7185,9 +7221,9 @@ See `display-buffer' for the format of display actions."
        (let ((pars (special-display-p (buffer-name buffer))))
 	 (when pars
            (list (list #'display-buffer-reuse-window
-                       `(lambda (buffer _alist)
-                          (funcall special-display-function
-                                   buffer ',(if (listp pars) pars)))))))))
+                       (lambda (buffer _alist)
+                         (funcall special-display-function
+                                  buffer (if (listp pars) pars)))))))))
 
 (defun display-buffer-pop-up-frame (buffer alist)
   "Display BUFFER in a new frame.
@@ -7239,6 +7275,7 @@ raising the frame."
 				 (get-largest-window frame t) alist)
 				(window--try-to-split-window
 				 (get-lru-window frame t) alist))))
+
       (prog1 (window--display-buffer
 	      buffer window 'window alist display-buffer-mark-dedicated)
 	(unless (cdr (assq 'inhibit-switch-frame alist))
@@ -7258,6 +7295,47 @@ again with `display-buffer-pop-up-window'."
       (and pop-up-windows
 	   (display-buffer-pop-up-window buffer alist))))
 
+(defun display-buffer-in-child-frame (buffer alist)
+  "Display BUFFER in a child frame.
+By default, this either reuses a child frame of the selected
+frame or makes a new child frame of the selected frame.  If
+successful, return the window used; otherwise return nil.
+
+If ALIST has a non-nil 'child-frame-parameters' entry, the
+corresponding value is an alist of frame parameters to give the
+new frame.  A 'parent-frame' parameter specifying the selected
+frame is provided by default.  If the child frame should be or
+become the child of any other frame, a corresponding entry must
+be added to ALIST."
+  (let* ((parameters
+          (append
+           (cdr (assq 'child-frame-parameters alist))
+           `((parent-frame . ,(selected-frame)))))
+	 (parent (or (assq 'parent-frame parameters)
+                     (selected-frame)))
+         (share (assq 'share-child-frame parameters))
+         share1 frame window)
+    (with-current-buffer buffer
+      (when (frame-live-p parent)
+        (catch 'frame
+          (dolist (frame1 (frame-list))
+            (when (eq (frame-parent frame1) parent)
+              (setq share1 (assq 'share-child-frame
+                                 (frame-parameters frame1)))
+              (when (eq share share1)
+                (setq frame frame1)
+                (throw 'frame t))))))
+
+      (if frame
+          (setq window (frame-selected-window frame))
+        (setq frame (make-frame parameters))
+        (setq window (frame-selected-window frame))))
+
+    (prog1 (window--display-buffer
+	    buffer window 'frame alist display-buffer-mark-dedicated)
+      (unless (cdr (assq 'inhibit-switch-frame alist))
+	(window--maybe-raise-frame frame)))))
+
 (defun display-buffer-below-selected (buffer alist)
   "Try displaying BUFFER in a window below the selected window.
 If there is a window below the selected one and that window
@@ -7272,7 +7350,8 @@ below the selected one, use that window."
 	(and (not (frame-parameter nil 'unsplittable))
 	     (let ((split-height-threshold 0)
 		   split-width-threshold)
-	       (setq window (window--try-to-split-window (selected-window) alist)))
+	       (setq window (window--try-to-split-window
+                             (selected-window) alist)))
 	     (window--display-buffer
 	      buffer window 'window alist display-buffer-mark-dedicated))
 	(and (setq window (window-in-direction 'below))
@@ -7576,10 +7655,11 @@ another window.  In interactive use, if the selected window is
 strongly dedicated to its buffer, the value of the option
 `switch-to-buffer-in-dedicated-window' specifies how to proceed.
 
-If called interactively, read the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
+If called interactively, read the buffer name using `read-buffer'.
+The variable `confirm-nonexistent-file-or-buffer' determines
+whether to request confirmation before creating a new buffer.
+See `read-buffer' for features related to input and completion
+of buffer names.
 
 BUFFER-OR-NAME may be a buffer, a string (a buffer name), or nil.
 If BUFFER-OR-NAME is a string that does not identify an existing
@@ -7656,10 +7736,11 @@ Return the buffer switched to."
 BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
 nil.  Return the buffer switched to.
 
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
+If called interactively, read the buffer name using `read-buffer'.
+The variable `confirm-nonexistent-file-or-buffer' determines
+whether to request confirmation before creating a new buffer.
+See `read-buffer' for features related to input and completion
+of buffer names.
 
 If BUFFER-OR-NAME is a string and does not identify an existing
 buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
@@ -7680,10 +7761,11 @@ documentation for additional customization information."
 BUFFER-OR-NAME may be a buffer, a string (a buffer name), or
 nil.  Return the buffer switched to.
 
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
+If called interactively, read the buffer name using `read-buffer'.
+The variable `confirm-nonexistent-file-or-buffer' determines
+whether to request confirmation before creating a new buffer.
+See `read-buffer' for features related to input and completion
+of buffer names.
 
 If BUFFER-OR-NAME is a string and does not identify an existing
 buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
@@ -7885,10 +7967,12 @@ See also `fit-frame-to-buffer-margins'."
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
 
 (defun window--sanitize-margin (margin left right)
-  "Return MARGIN if it's a number between LEFT and RIGHT."
-  (when (and (numberp margin)
-	     (<= left (- right margin)) (<= margin right))
-    margin))
+  "Return MARGIN if it's a number between LEFT and RIGHT.
+Return 0 otherwise."
+  (if (and (numberp margin)
+           (<= left (- right margin)) (<= margin right))
+      margin
+    0))
 
 (declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
@@ -7906,190 +7990,197 @@ horizontally only.
 
 The new position and size of FRAME can be additionally determined
 by customizing the options `fit-frame-to-buffer-sizes' and
-`fit-frame-to-buffer-margins' or the corresponding parameters of
-FRAME."
+`fit-frame-to-buffer-margins' or setting the corresponding
+parameters of FRAME."
   (interactive)
-  (unless (and (fboundp 'x-display-pixel-height)
-	       ;; We need the respective sizes now.
-	       (fboundp 'display-monitor-attributes-list))
+  (unless (fboundp 'display-monitor-attributes-list)
     (user-error "Cannot resize frame in non-graphic Emacs"))
   (setq frame (window-normalize-frame frame))
   (when (window-live-p (frame-root-window frame))
-    (with-selected-window (frame-root-window frame)
-      (let* ((char-width (frame-char-width))
-	     (char-height (frame-char-height))
-	     (monitor-attributes (car (display-monitor-attributes-list
-				       (frame-parameter frame 'display))))
-	     (geometry (cdr (assq 'geometry monitor-attributes)))
-	     (display-width (- (nth 2 geometry) (nth 0 geometry)))
-	     (display-height (- (nth 3 geometry) (nth 1 geometry)))
-	     (workarea (cdr (assq 'workarea monitor-attributes)))
-	     ;; Handle margins.
-	     (margins (or (frame-parameter frame 'fit-frame-to-buffer-margins)
-			  fit-frame-to-buffer-margins))
-	     (left-margin (if (nth 0 margins)
-			      (or (window--sanitize-margin
-				   (nth 0 margins) 0 display-width)
-				  0)
-			    (nth 0 workarea)))
-	     (top-margin (if (nth 1 margins)
-			     (or (window--sanitize-margin
-				  (nth 1 margins) 0 display-height)
-				 0)
-			   (nth 1 workarea)))
-	     (workarea-width (nth 2 workarea))
-	     (right-margin (if (nth 2 margins)
-			       (- display-width
-				  (or (window--sanitize-margin
-				       (nth 2 margins) left-margin display-width)
-				      0))
-			     (nth 2 workarea)))
-	     (workarea-height (nth 3 workarea))
-	     (bottom-margin (if (nth 3 margins)
-				(- display-height
-				   (or (window--sanitize-margin
-					(nth 3 margins) top-margin display-height)
-				       0))
-			      (nth 3 workarea)))
-	     ;; The pixel width of FRAME (which does not include the
-	     ;; window manager's decorations).
-	     (frame-width (frame-pixel-width))
-	     ;; The pixel width of the body of FRAME's root window.
-	     (window-body-width (window-body-width nil t))
-	     ;; The difference in pixels between total and body width of
-	     ;; FRAME's window.
-	     (window-extra-width (- (window-pixel-width) window-body-width))
-	     ;; The difference in pixels between the frame's pixel width
-	     ;; and the window's body width.  This is the space we can't
-	     ;; use for fitting.
-	     (extra-width (- frame-width window-body-width))
-	     ;; The pixel position of FRAME's left border.  We usually
-	     ;; try to leave this alone.
-	     (left
-	      (let ((left (frame-parameter nil 'left)))
-		(if (consp left)
-		    (funcall (car left) (cadr left))
-		  left)))
-	     ;; The pixel height of FRAME (which does not include title
-	     ;; line, decorations, and sometimes neither the menu nor
-	     ;; the toolbar).
-	     (frame-height (frame-pixel-height))
-	     ;; The pixel height of FRAME's root window (we don't care
-	     ;; about the window's body height since the return value of
-	     ;; `window-text-pixel-size' includes header and mode line).
-	     (window-height (window-pixel-height))
-	     ;; The difference in pixels between the frame's pixel
-	     ;; height and the window's height.
-	     (extra-height (- frame-height window-height))
-	     ;; The pixel position of FRAME's top border.
-	     (top
-	      (let ((top (frame-parameter nil 'top)))
-		(if (consp top)
-		    (funcall (car top) (cadr top))
-		  top)))
-	     ;; Sanitize minimum and maximum sizes.
-	     (sizes (or (frame-parameter frame 'fit-frame-to-buffer-sizes)
-			fit-frame-to-buffer-sizes))
-	     (max-height
-	      (cond
-	       ((numberp (nth 0 sizes)) (* (nth 0 sizes) char-height))
-	       ((numberp max-height) (* max-height char-height))
-	       (t display-height)))
-	     (min-height
-	      (cond
-	       ((numberp (nth 1 sizes)) (* (nth 1 sizes) char-height))
-	       ((numberp min-height) (* min-height char-height))
-	       (t (* window-min-height char-height))))
-	     (max-width
-	      (cond
-	       ((numberp (nth 2 sizes))
-		(- (* (nth 2 sizes) char-width) window-extra-width))
-	       ((numberp max-width)
-		(- (* max-width char-width) window-extra-width))
-	       (t display-width)))
-	     (min-width
-	      (cond
-	       ((numberp (nth 3 sizes))
-		(- (* (nth 3 sizes) char-width) window-extra-width))
-	       ((numberp min-width)
-		(- (* min-width char-width) window-extra-width))
-	       (t (* window-min-width char-width))))
-	     ;; Note: Currently, for a new frame the sizes of the header
-	     ;; and mode line may be estimated incorrectly
-	     (value (window-text-pixel-size
-		     nil t t workarea-width workarea-height t))
-	     (width (+ (car value) (window-right-divider-width)))
-	     (height
-	      (+ (cdr value)
-		 (window-bottom-divider-width)
-		 (window-scroll-bar-height))))
-	;; Don't change height or width when the window's size is fixed
-	;; in either direction or ONLY forbids it.
-	(cond
-	 ((or (eq window-size-fixed 'width) (eq only 'vertically))
-	  (setq width nil))
-	 ((or (eq window-size-fixed 'height) (eq only 'horizontally))
-	  (setq height nil)))
-	;; Fit width to constraints.
-	(when width
-	  (unless frame-resize-pixelwise
-	    ;; Round to character sizes.
-	    (setq width (* (/ (+ width char-width -1) char-width)
-			   char-width)))
-	  ;; Fit to maximum and minimum widths.
-	  (setq width (max (min width max-width) min-width))
-	  ;; Add extra width.
-	  (setq width (+ width extra-width))
-	  ;; Preserve margins.
-	  (let ((right (+ left width)))
-	    (cond
-	     ((> right right-margin)
-	      ;; Move frame to left (we don't know its real width).
-	      (setq left (max left-margin (- left (- right right-margin)))))
-	     ((< left left-margin)
-	      ;; Move frame to right.
-	      (setq left left-margin)))))
-	;; Fit height to constraints.
-	(when height
-	  (unless frame-resize-pixelwise
-	    (setq height (* (/ (+ height char-height -1) char-height)
-			    char-height)))
-	  ;; Fit to maximum and minimum heights.
-	  (setq height (max (min height max-height) min-height))
-	  ;; Add extra height.
-	  (setq height (+ height extra-height))
-	  ;; Preserve margins.
-	  (let ((bottom (+ top height)))
-	    (cond
-	     ((> bottom bottom-margin)
-	      ;; Move frame up (we don't know its real height).
-	      (setq top (max top-margin (- top (- bottom bottom-margin)))))
-	     ((< top top-margin)
-	      ;; Move frame down.
-	      (setq top top-margin)))))
-	;; Apply changes.
-	(set-frame-position frame left top)
-	;; Clumsily try to translate our calculations to what
-	;; `set-frame-size' wants.
-	(when width
-	  (setq width (- (+ (frame-text-width) width)
-			 extra-width window-body-width)))
-	(when height
-	  (setq height (- (+ (frame-text-height) height)
-			  extra-height window-height)))
-	(set-frame-size
-	 frame
-	 (if width
-	     (if frame-resize-pixelwise
-		 width
-	       (/ width char-width))
-	   (frame-text-width))
-	 (if height
-	     (if frame-resize-pixelwise
-		 height
-	       (/ height char-height))
-	   (frame-text-height))
-	 frame-resize-pixelwise)))))
+    (let* ((char-width (frame-char-width frame))
+           (char-height (frame-char-height frame))
+           ;; WINDOW is FRAME's root window.
+           (window (frame-root-window frame))
+           (parent (frame-parent frame))
+           (monitor-attributes
+            (unless parent
+              (car (display-monitor-attributes-list
+                    (frame-parameter frame 'display)))))
+           ;; FRAME'S parent or display sizes.  Used in connection
+           ;; with margins.
+           (geometry
+            (unless parent
+              (cdr (assq 'geometry monitor-attributes))))
+           (parent-or-display-width
+            (if parent
+                (frame-native-width parent)
+              (- (nth 2 geometry) (nth 0 geometry))))
+           (parent-or-display-height
+            (if parent
+                (frame-native-height parent)
+              (- (nth 3 geometry) (nth 1 geometry))))
+           ;; FRAME'S parent or workarea sizes.  Used when no margins
+           ;; are specified.
+           (parent-or-workarea
+            (if parent
+                `(0 0 ,parent-or-display-width ,parent-or-display-height)
+              (cdr (assq 'workarea monitor-attributes))))
+           ;; The outer size of FRAME.  Needed to calculate the
+           ;; margins around the root window's body that have to
+           ;; remain untouched by fitting.
+           (outer-edges (frame-edges frame 'outer-edges))
+           (outer-width (if outer-edges
+                            (- (nth 2 outer-edges) (nth 0 outer-edges))
+                          ;; A poor guess.
+                          (frame-pixel-width frame)))
+           (outer-height (if outer-edges
+                             (- (nth 3 outer-edges) (nth 1 outer-edges))
+                           ;; Another poor guess.
+                           (frame-pixel-height frame)))
+           ;; The text size of FRAME.  Needed to specify FRAME's
+           ;; text size after the root window's body's new sizes have
+           ;; been calculated.
+           (text-width (frame-text-width frame))
+           (text-height (frame-text-height frame))
+           ;; WINDOW's body size.
+           (body-width (window-body-width window t))
+           (body-height (window-body-height window t))
+           ;; The difference between FRAME's outer size and WINDOW's
+           ;; body size.
+           (outer-minus-body-width (- outer-width body-width))
+           (outer-minus-body-height (- outer-height body-height))
+           ;; The difference between FRAME's text size and WINDOW's
+           ;; body size (these values "should" be positive).
+           (text-minus-body-width (- text-width body-width))
+           (text-minus-body-height (- text-height body-height))
+           ;; The current position of FRAME.
+           (position (frame-position frame))
+           (left (car position))
+           (top (cdr position))
+           ;; The margins specified for FRAME.  These represent pixel
+           ;; offsets from the left, top, right and bottom edge of the
+           ;; display or FRAME's parent's native rectangle and have to
+           ;; take care of the display's taskbar and other obstacles.
+           ;; If they are unspecified, constrain the resulting frame
+           ;; to its workarea or the parent frame's native rectangle.
+           (margins (or (frame-parameter frame 'fit-frame-to-buffer-margins)
+                        fit-frame-to-buffer-margins))
+           ;; Convert margins into pixel offsets from the left-top
+           ;; corner of FRAME's display or parent.
+           (left-margin (if (nth 0 margins)
+                            (window--sanitize-margin
+                             (nth 0 margins) 0 parent-or-display-width)
+                          (nth 0 parent-or-workarea)))
+           (top-margin (if (nth 1 margins)
+                           (window--sanitize-margin
+                            (nth 1 margins) 0 parent-or-display-height)
+                         (nth 1 parent-or-workarea)))
+           (right-margin (if (nth 2 margins)
+                             (- parent-or-display-width
+                                (window--sanitize-margin
+                                 (nth 2 margins) left-margin
+                                 parent-or-display-width))
+                           (nth 2 parent-or-workarea)))
+           (bottom-margin (if (nth 3 margins)
+                              (- parent-or-display-height
+                                 (window--sanitize-margin
+                                  (nth 3 margins) top-margin
+                                  parent-or-display-height))
+                            (nth 3 parent-or-workarea)))
+           ;; Minimum and maximum sizes specified for FRAME.
+           (sizes (or (frame-parameter frame 'fit-frame-to-buffer-sizes)
+                      fit-frame-to-buffer-sizes))
+           ;; Calculate the minimum and maximum pixel sizes of FRAME
+           ;; from the values provided by the MAX-HEIGHT, MIN-HEIGHT,
+           ;; MAX-WIDTH and MIN-WIDTH arguments or, if these are nil,
+           ;; from those provided by `fit-frame-to-buffer-sizes'.
+           (max-height
+            (min
+             (cond
+              ((numberp max-height) (* max-height char-height))
+              ((numberp (nth 0 sizes)) (* (nth 0 sizes) char-height))
+              (t parent-or-display-height))
+             ;; The following is the maximum height that fits into the
+             ;; top and bottom margins.
+             (max (- bottom-margin top-margin outer-minus-body-height))))
+           (min-height
+            (cond
+             ((numberp min-height) (* min-height char-height))
+             ((numberp (nth 1 sizes)) (* (nth 1 sizes) char-height))
+             (t (window-min-size window nil nil t))))
+           (max-width
+            (min
+             (cond
+              ((numberp max-width) (* max-width char-width))
+              ((numberp (nth 2 sizes)) (* (nth 2 sizes) char-width))
+              (t parent-or-display-width))
+             ;; The following is the maximum width that fits into the
+             ;; left and right margins.
+             (max (- right-margin left-margin outer-minus-body-width))))
+           (min-width
+            (cond
+             ((numberp min-width) (* min-width char-width))
+             ((numberp (nth 3 sizes)) (nth 3 sizes))
+             (t (window-min-size window t nil t))))
+           ;; Note: Currently, for a new frame the sizes of the header
+           ;; and mode line may be estimated incorrectly
+           (size
+            (window-text-pixel-size window t t max-width max-height))
+           (width (max (car size) min-width))
+           (height (max (cdr size) min-height)))
+      ;; Don't change height or width when the window's size is fixed
+      ;; in either direction or ONLY forbids it.
+      (cond
+       ((or (eq window-size-fixed 'width) (eq only 'vertically))
+        (setq width nil))
+       ((or (eq window-size-fixed 'height) (eq only 'horizontally))
+        (setq height nil)))
+      ;; Fit width to constraints.
+      (when width
+        (unless frame-resize-pixelwise
+          ;; Round to character sizes.
+          (setq width (* (/ (+ width char-width -1) char-width)
+                         char-width)))
+        ;; The new outer width (in pixels).
+        (setq outer-width (+ width outer-minus-body-width))
+        ;; Maybe move FRAME to preserve margins.
+        (let ((right (+ left outer-width)))
+          (cond
+           ((> right right-margin)
+            ;; Move frame to left.
+            (setq left (max left-margin (- left (- right right-margin)))))
+           ((< left left-margin)
+            ;; Move frame to right.
+            (setq left left-margin)))))
+      ;; Fit height to constraints.
+      (when height
+        (unless frame-resize-pixelwise
+          (setq height (* (/ (+ height char-height -1) char-height)
+                          char-height)))
+        ;; The new outer height.
+        (setq outer-height (+ height outer-minus-body-height))
+        ;; Preserve margins.
+        (let ((bottom (+ top outer-height)))
+          (cond
+           ((> bottom bottom-margin)
+            ;; Move frame up.
+            (setq top (max top-margin (- top (- bottom bottom-margin)))))
+           ((< top top-margin)
+            ;; Move frame down.
+            (setq top top-margin)))))
+      ;; Apply our changes.
+      (setq text-width
+            (if width
+                (+ width text-minus-body-width)
+              (frame-text-width frame)))
+      (setq text-height
+            (if height
+                (+ height text-minus-body-height)
+              (frame-text-height frame)))
+      (modify-frame-parameters
+       frame `((left . ,left) (top . ,top)
+               (width . (text-pixels . ,text-width))
+               (height . (text-pixels . ,text-height)))))))
 
 (defun fit-window-to-buffer (&optional window max-height min-height max-width min-width preserve-size)
   "Adjust size of WINDOW to display its buffer's contents exactly.
@@ -8286,6 +8377,168 @@ Return non-nil if the window was shrunk, nil otherwise."
   (when (and (window-combined-p window)
 	     (pos-visible-in-window-p (point-min) window))
     (fit-window-to-buffer window (window-total-height window))))
+
+(defun window-largest-empty-rectangle--maximums-1 (quad maximums)
+  "Support function for `window-largest-empty-rectangle'."
+  (cond
+   ((null maximums)
+    (list quad))
+   ((> (car quad) (caar maximums))
+    (cons quad maximums))
+   (t
+    (cons (car maximums)
+	  (window-largest-empty-rectangle--maximums-1 quad (cdr maximums))))))
+
+(defun window-largest-empty-rectangle--maximums (quad maximums count)
+  "Support function for `window-largest-empty-rectangle'."
+  (setq maximums (window-largest-empty-rectangle--maximums-1 quad maximums))
+  (if (> (length maximums) count)
+      (nbutlast maximums)
+    maximums))
+
+(defun window-largest-empty-rectangle--disjoint-maximums (maximums count)
+  "Support function for `window-largest-empty-rectangle'."
+  (setq maximums (sort maximums (lambda (x y) (> (car x) (car y)))))
+  (let ((new-length 0)
+	new-maximums)
+    (while (and maximums (< new-length count))
+      (let* ((maximum (car maximums))
+	     (at (nth 2 maximum))
+	     (to (nth 3 maximum)))
+	(catch 'drop
+	  (dolist (new-maximum new-maximums)
+	    (let ((new-at (nth 2 new-maximum))
+		  (new-to (nth 3 new-maximum)))
+	      (when (if (< at new-at) (> to new-at) (< at new-to))
+		;; Intersection -> drop.
+		(throw 'drop nil))))
+	  (setq new-maximums (cons maximum new-maximums))
+	  (setq new-length (1+ new-length)))
+	(setq maximums (cdr maximums))))
+
+    (nreverse new-maximums)))
+
+(defun window-largest-empty-rectangle (&optional window count min-width min-height positions left)
+  "Return dimensions of largest empty rectangle in WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value is a triple of the width and the start and end
+Y-coordinates of the largest rectangle that can be inscribed into
+the empty space (the space not displaying any text) of WINDOW's
+text area.  The return value is nil if the current glyph matrix
+of WINDOW is not up-to-date.
+
+Optional argument COUNT, if non-nil, specifies the maximum number
+of rectangles to return.  This means that the return value is a
+list of triples specifying rectangles with the largest rectangle
+first.  COUNT can be also a cons cell whose car specifies the
+number of rectangles to return and whose cdr, if non-nil, states
+that all rectangles returned must be disjoint.
+
+Note that the right edge of any rectangle returned by this
+function is the right edge of WINDOW (the left edge if its buffer
+displays RTL text).
+
+Optional arguments MIN-WIDTH and MIN-HEIGHT, if non-nil, specify
+the minimum width and height of any rectangle returned.
+
+Optional argument POSITIONS, if non-nil, is a cons cell whose car
+specifies the uppermost and whose cdr specifies the lowermost
+pixel position that must be covered by any rectangle returned.
+Note that positions are counted from the start of the text area
+of WINDOW.
+
+Optional argument LEFT, if non-nil, means to return values suitable for
+buffers displaying right to left text."
+  ;; Process lines as returned by ‘window-lines-pixel-dimensions’.
+  ;; STACK is a stack that contains rows that have to be processed yet.
+  (let* ((window (window-normalize-window window t))
+	 (disjoint (and (consp count) (cdr count)))
+	 (count (or (and (numberp count) count)
+		    (and (consp count) (numberp (car count)) (car count))))
+	 (rows (window-lines-pixel-dimensions window nil nil t t left))
+	 (rows-at 0)
+	 (max-size 0)
+	 row stack stack-at stack-to
+	 top top-width top-at top-to top-size
+	 max-width max-at max-to maximums)
+    ;; ROWS-AT is the position where the first element of ROWS starts.
+    ;; STACK-AT is the position where the first element of STACK starts.
+    (while rows
+      (setq row (car rows))
+      (if (or (not stack) (>= (car row) (caar stack)))
+	  (progn
+	    (unless stack
+	      (setq stack-at rows-at))
+	    (setq stack (cons row stack))
+	    ;; Set ROWS-AT to where the first element of ROWS ends
+	    ;; which, after popping ROW, makes it the start position of
+	    ;; the next ROW.
+	    (setq rows-at (cdr row))
+	    (setq rows (cdr rows)))
+	(setq top (car stack))
+	(setq stack (cdr stack))
+	(setq top-width (car top))
+	(setq top-at (if stack (cdar stack) stack-at))
+	(setq top-to (cdr top))
+	(setq top-size (* top-width (- top-to top-at)))
+	(unless (or (and min-width (< top-width min-width))
+		    (and min-height (< (- top-to top-at) min-height))
+		    (and positions
+			 (or (> top-at (car positions))
+			     (< top-to (cdr positions)))))
+	  (if count
+	      (if disjoint
+		  (setq maximums (cons (list top-size top-width top-at top-to)
+				       maximums))
+		(setq maximums (window-largest-empty-rectangle--maximums
+				(list top-size top-width top-at top-to)
+				maximums count)))
+	    (when (> top-size max-size)
+	      (setq max-size top-size)
+	      (setq max-width top-width)
+	      (setq max-at top-at)
+	      (setq max-to top-to))))
+	(if (and stack (> (caar stack) (car row)))
+	    ;; Have new top element of stack include old top.
+	    (setq stack (cons (cons (caar stack) (cdr top)) (cdr stack)))
+	  ;; Move rows-at backwards to top-at.
+	  (setq rows-at top-at))))
+
+    (when stack
+      ;; STACK-TO is the position where the stack ends.
+      (setq stack-to (cdar stack))
+      (while stack
+	(setq top (car stack))
+	(setq stack (cdr stack))
+	(setq top-width (car top))
+	(setq top-at (if stack (cdar stack) stack-at))
+	(setq top-size (* top-width (- stack-to top-at)))
+	(unless (or (and min-width (< top-width min-width))
+		    (and min-height (< (- stack-to top-at) min-height))
+		    (and positions
+			 (or (> top-at (car positions))
+			     (< stack-to (cdr positions)))))
+	  (if count
+	      (if disjoint
+		  (setq maximums (cons (list top-size top-width top-at stack-to)
+				       maximums))
+		(setq maximums (window-largest-empty-rectangle--maximums
+				(list top-size top-width top-at stack-to)
+				maximums count)))
+	    (when (> top-size max-size)
+	      (setq max-size top-size)
+	      (setq max-width top-width)
+	      (setq max-at top-at)
+	      (setq max-to stack-to))))))
+
+    (cond
+     (maximums
+      (if disjoint
+	  (window-largest-empty-rectangle--disjoint-maximums maximums count)
+	maximums))
+     ((> max-size 0)
+      (list max-width max-at max-to)))))
 
 (defun kill-buffer-and-window ()
   "Kill the current buffer and delete the selected window."
@@ -8441,7 +8694,7 @@ result is a list containing only the selected window."
 (make-variable-buffer-local 'move-to-window-group-line-function)
 (put 'move-to-window-group-line-function 'permanent-local t)
 (defun move-to-window-group-line (arg)
-  "Position point relative to the the current group of windows.
+  "Position point relative to the current group of windows.
 When a grouping mode (such as Follow Mode) is not active, this
 function is identical to `move-to-window-line'.
 

@@ -283,11 +283,11 @@ character @kbd{a}.
 ?Q @result{} 81     ?q @result{} 113
 @end example
 
-  You can use the same syntax for punctuation characters, but it is
-often a good idea to add a @samp{\} so that the Emacs commands for
-editing Lisp code don't get confused.  For example, @samp{?\(} is the
-way to write the open-paren character.  If the character is @samp{\},
-you @emph{must} use a second @samp{\} to quote it: @samp{?\\}.
+  You can use the same syntax for punctuation characters.  However, if
+the punctuation character has a special syntactic meaning in Lisp, you
+must quote it with a @samp{\}.  For example, @samp{?\(} is the way to
+write the open-paren character.  Likewise, if the character is
+@samp{\}, you must use a second @samp{\} to quote it: @samp{?\\}.
 
 @cindex whitespace
 @cindex bell character
@@ -336,18 +336,19 @@ escape character; this has nothing to do with the
 character @key{ESC}.  @samp{\s} is meant for use in character
 constants; in string constants, just write the space.
 
-  A backslash is allowed, and harmless, preceding any character without
-a special escape meaning; thus, @samp{?\+} is equivalent to @samp{?+}.
-There is no reason to add a backslash before most characters.  However,
-you should add a backslash before any of the characters
-@samp{()\|;'`"#.,} to avoid confusing the Emacs commands for editing
-Lisp code.  You can also add a backslash before whitespace characters such as
-space, tab, newline and formfeed.  However, it is cleaner to use one of
-the easily readable escape sequences, such as @samp{\t} or @samp{\s},
-instead of an actual whitespace character such as a tab or a space.
-(If you do write backslash followed by a space, you should write
-an extra space after the character constant to separate it from the
-following text.)
+  A backslash is allowed, and harmless, preceding any character
+without a special escape meaning; thus, @samp{?\+} is equivalent to
+@samp{?+}.  There is no reason to add a backslash before most
+characters.  However, you must add a backslash before any of the
+characters @samp{()[]\;"}, and you should add a backslash before any
+of the characters @samp{|'`#.,} to avoid confusing the Emacs commands
+for editing Lisp code.  You can also add a backslash before whitespace
+characters such as space, tab, newline and formfeed.  However, it is
+cleaner to use one of the easily readable escape sequences, such as
+@samp{\t} or @samp{\s}, instead of an actual whitespace character such
+as a tab or a space.  (If you do write backslash followed by a space,
+you should write an extra space after the character constant to
+separate it from the following text.)
 
 @node General Escape Syntax
 @subsubsection General Escape Syntax
@@ -1897,6 +1898,9 @@ with references to further information.
 @item bool-vector-p
 @xref{Bool-Vectors, bool-vector-p}.
 
+@item booleanp
+@xref{nil and t, booleanp}.
+
 @item bufferp
 @xref{Buffer Basics, bufferp}.
 
@@ -1966,17 +1970,14 @@ with references to further information.
 @item mutexp
 @xref{Mutexes, mutexp}.
 
-@item wholenump
-@xref{Predicates on Numbers, wholenump}.
-
 @item nlistp
 @xref{List-related Predicates, nlistp}.
 
-@item numberp
-@xref{Predicates on Numbers, numberp}.
-
 @item number-or-marker-p
 @xref{Predicates on Markers, number-or-marker-p}.
+
+@item numberp
+@xref{Predicates on Numbers, numberp}.
 
 @item overlayp
 @xref{Overlays, overlayp}.
@@ -1989,6 +1990,9 @@ with references to further information.
 
 @item sequencep
 @xref{Sequence Functions, sequencep}.
+
+@item string-or-null-p
+@xref{Predicates for Strings, string-or-null-p}.
 
 @item stringp
 @xref{Predicates for Strings, stringp}.
@@ -2008,6 +2012,9 @@ with references to further information.
 @item vectorp
 @xref{Vectors, vectorp}.
 
+@item wholenump
+@xref{Predicates on Numbers, wholenump}.
+
 @item window-configuration-p
 @xref{Window Configurations, window-configuration-p}.
 
@@ -2016,21 +2023,6 @@ with references to further information.
 
 @item windowp
 @xref{Basic Windows, windowp}.
-
-@item booleanp
-@xref{nil and t, booleanp}.
-
-@item string-or-null-p
-@xref{Predicates for Strings, string-or-null-p}.
-
-@item threadp
-@xref{Basic Thread Functions, threadp}.
-
-@item mutexp
-@xref{Mutexes, mutexp}.
-
-@item condition-variable-p
-@xref{Condition Variables, condition-variable-p}.
 @end table
 
   The most general way to check the type of an object is to call the

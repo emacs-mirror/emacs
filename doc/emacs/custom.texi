@@ -587,7 +587,7 @@ too.)
 
 @vindex custom-theme-load-path
   If you want Emacs to look for Custom themes in some other directory,
-add the directory name to the list variable
+add the directory to the list variable
 @code{custom-theme-load-path}.  Its default value is
 @code{(custom-theme-directory t)}; here, the symbol
 @code{custom-theme-directory} has the special meaning of the value of
@@ -1321,7 +1321,7 @@ Each alist entry consists of a variable name and the directory-local
 value to assign to that variable, when the specified major mode is
 enabled.  Instead of a mode name, you can specify @samp{nil}, which
 means that the alist applies to any mode; or you can specify a
-subdirectory name (a string), in which case the alist applies to all
+subdirectory (a string), in which case the alist applies to all
 files in that subdirectory.
 
   Here's an example of a @file{.dir-locals.el} file:
@@ -1356,7 +1356,7 @@ Variables}.
 @findex copy-file-locals-to-dir-locals
   Instead of editing the @file{.dir-locals.el} file by hand, you can
 use the command @kbd{M-x add-dir-local-variable}.  This prompts for a
-mode or subdirectory name, and for variable and value, and adds the
+mode or subdirectory, and for variable and value, and adds the
 entry defining the directory-local variable.  @kbd{M-x
 delete-dir-local-variable} deletes an entry.  @kbd{M-x
 copy-file-locals-to-dir-locals} copies the file-local variables in the
@@ -1701,7 +1701,7 @@ and mouse events:
 (global-set-key (kbd "C-c y") 'clipboard-yank)
 (global-set-key (kbd "C-M-q") 'query-replace)
 (global-set-key (kbd "<f5>") 'flyspell-mode)
-(global-set-key (kbd "C-<f5>") 'linum-mode)
+(global-set-key (kbd "C-<f5>") 'display-line-numbers-mode)
 (global-set-key (kbd "C-<right>") 'forward-sentence)
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
 @end example
@@ -1710,7 +1710,7 @@ and mouse events:
 specify the key sequence.  Using a string is simpler, but only works
 for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
 characters.  For example, here's how to bind @kbd{C-x M-l} to
-@code{make-symbolic-link} (@pxref{Misc File Ops}):
+@code{make-symbolic-link} (@pxref{Copying and Naming}):
 
 @example
 (global-set-key "\C-x\M-l" 'make-symbolic-link)

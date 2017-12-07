@@ -395,7 +395,7 @@ Completion, Prompt.
 The position of point, as an integer (@pxref{Point}).  No I/O.
 
 @item D
-A directory name.  The default is the current default directory of the
+A directory.  The default is the current default directory of the
 current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
@@ -1005,11 +1005,11 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 @cindex @code{display} property, and point display
 @cindex @code{composition} property, and point display
 
-  It is not easy to display a value of point in the middle of a
-sequence of text that has the @code{display}, @code{composition} or
-is invisible.  Therefore, after a command finishes and returns to the
-command loop, if point is within such a sequence, the command loop
-normally moves point to the edge of the sequence.
+  Emacs cannot display the cursor when point is in the middle of a
+sequence of text that has the @code{display} or @code{composition}
+property, or is invisible.  Therefore, after a command finishes and
+returns to the command loop, if point is within such a sequence, the
+command loop normally moves point to the edge of the sequence.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:

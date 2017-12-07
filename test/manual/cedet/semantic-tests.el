@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -178,9 +178,8 @@ Optional argument ARG specifies not to use color."
   "Test `semantic-idle-scheduler-work-parse-neighboring-files' and time it."
   (interactive)
   (let ((start (current-time))
-	(junk (semantic-idle-scheduler-work-parse-neighboring-files))
-	(end (current-time)))
-    (message "Work took %.2f seconds." (semantic-elapsed-time start end))))
+	(junk (semantic-idle-scheduler-work-parse-neighboring-files)))
+    (message "Work took %.2f seconds." (semantic-elapsed-time start nil))))
 
 ;;; From semantic-lex:
 
@@ -195,10 +194,9 @@ If universal argument ARG, then try the whole buffer."
 	 (result (semantic-lex
 		  (if arg (point-min) (point))
 		  (point-max)
-		  100))
-	 (end (current-time)))
+		  100)))
     (message "Elapsed Time: %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (pop-to-buffer "*Lexer Output*")
     (require 'pp)
     (erase-buffer)
@@ -278,7 +276,7 @@ tag that contains point, and return that."
       (when (interactive-p)
 	(message "Found %d occurrences of %s in %.2f seconds"
 		 Lcount (semantic-tag-name target)
-		 (semantic-elapsed-time start (current-time))))
+		 (semantic-elapsed-time start nil)))
       Lcount)))
 
 ;;; From bovine-gcc:

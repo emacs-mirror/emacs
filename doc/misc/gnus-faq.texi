@@ -167,8 +167,8 @@ package system might not be up to date (e.g., Gnus 5.9 bundled with Emacs
 21 is outdated).
 You can get the latest released version of Gnus from
 @uref{http://www.gnus.org/dist/gnus.tar.gz}
-or via anonymous FTP from
-@uref{ftp://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
+or from
+@uref{https://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
 
 @node FAQ 1-4
 @subsubheading Question 1.4
@@ -405,7 +405,7 @@ However, I'd discourage you from doing so, since the
 directory Emacs chooses will most certainly not be what
 you want, so let's do it the correct way.
 The first thing you've got to do is to
-create a suitable directory (no blanks in directory name
+create a suitable directory (no blanks in names
 please), e.g., c:\myhome. Then you must set the environment
 variable HOME to this directory.  To do this under Windows 9x
 or Me include the line
@@ -1522,7 +1522,7 @@ Gimp), open the image you want to include, cut out the
 relevant part, reduce color depth to 1 bit, resize to
 48*48 and save as bitmap. Now you should get the compface
 package from
-@uref{ftp://ftp.cs.indiana.edu:/pub/faces/, this site}.
+@uref{ftp://ftp.cs.indiana.edu/pub/faces/, this site}.
 and create the actual X-face by saying
 
 @example

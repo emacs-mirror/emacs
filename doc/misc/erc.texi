@@ -804,7 +804,7 @@ emacswiki.org page for ERC@.  Anyone may add tips, hints, etc.@: to it.
 
 @item
 You can ask questions about using ERC on the Emacs mailing list,
-@uref{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
+@uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
 
 @item
 You can visit the IRC Freenode channel @samp{#emacs}. Many of the
@@ -875,7 +875,7 @@ decided to include ERC in Emacs.
 ERC 5.1 was released.  It was subsequently included in Emacs 22.
 
 ERC became an official GNU project, and development moved to
-@uref{http://sv.gnu.org/projects/erc}.  We switched to using GNU Arch as
+@uref{https://sv.gnu.org/projects/erc}.  We switched to using GNU Arch as
 our revision control system.  Our mailing list address changed as well.
 
 @item 2007

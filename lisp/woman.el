@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1619,7 +1619,7 @@ decompress the file if appropriate.  See the documentation for the
 	      (setq woman-buffer-alist
 		    (cons (cons file-name bufname) woman-buffer-alist)
 		    woman-buffer-number 0)))))
-  (Man-build-section-alist)
+  (Man-build-section-list)
   (Man-build-references-alist)
   (goto-char (point-min)))
 
@@ -4261,22 +4261,11 @@ Delete line from point and eol unless LEAVE-EOL is non-nil."
       (if (> i 0) (setq woman-prevailing-indent i))))
   woman-prevailing-indent)
 
-(defmacro woman-push (value stack)
-  "Push VALUE onto STACK."
-  `(setq ,stack (cons ,value ,stack)))
-
-(defmacro woman-pop (variable stack)
-  "Pop into VARIABLE the value at the top of STACK.
-Allow for mismatched requests!"
-  `(if ,stack
-       (setq ,variable (car ,stack)
-	     ,stack (cdr ,stack))))
-
 (defun woman2-RS (to)
   ".RS i -- Start relative indent, move left margin in distance i.
 Set prevailing indent to 5 for nested indents.  Format paragraphs upto TO."
-  (woman-push woman-left-margin woman-RS-left-margin)
-  (woman-push woman-prevailing-indent woman-RS-prevailing-indent)
+  (push woman-left-margin woman-RS-left-margin)
+  (push woman-prevailing-indent woman-RS-prevailing-indent)
   (setq woman-left-margin (+ woman-left-margin
 			     (woman2-get-prevailing-indent))
 	woman-prevailing-indent woman-default-indent)
@@ -4285,8 +4274,10 @@ Set prevailing indent to 5 for nested indents.  Format paragraphs upto TO."
 (defun woman2-RE (to)
   ".RE -- End of relative indent.  Format paragraphs upto TO.
 Set prevailing indent to amount of starting .RS."
-  (woman-pop woman-left-margin woman-RS-left-margin)
-  (woman-pop woman-prevailing-indent woman-RS-prevailing-indent)
+  (when woman-RS-left-margin
+    (setq woman-left-margin (pop woman-RS-left-margin)))
+  (when woman-RS-prevailing-indent
+    (setq woman-prevailing-indent (pop woman-RS-prevailing-indent)))
   (woman-delete-line 1)			; ignore any arguments
   (woman2-format-paragraphs to woman-left-margin))
 

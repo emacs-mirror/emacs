@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -475,12 +475,12 @@ If MODE is not set, try to find mode automatically."
       (require 'font-lock)
       ;; I find font-lock a bit too verbose.
       (let ((font-lock-verbose nil)
-	    (font-lock-support-mode nil))
+	    (font-lock-support-mode nil)
+	    (enable-local-variables nil))
 	;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
 	;; Note: XEmacs people use `font-lock-mode-hook' to run those modes.
 	(set (make-local-variable 'font-lock-mode-hook) nil)
         (setq buffer-file-name (mm-handle-filename handle))
-        (set (make-local-variable 'enable-local-variables) nil)
 	(with-demoted-errors
 	  (if mode
 	      (save-window-excursion

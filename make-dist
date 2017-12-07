@@ -17,7 +17,7 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -240,7 +240,7 @@ if [ $check = yes ]; then
   bogosities=
   while read elc; do
       el=`echo $elc | sed 's/c$//'`
-      [ -e $el ] || continue
+      [ -r $el ] || continue
       [ $elc -nt $el ] || bogosities="$bogosities $elc"
   done < /tmp/elc
 
@@ -278,7 +278,7 @@ if [ $check = yes ]; then
       info=`sed -n 's/^@setfilename //p' $texi | sed 's|.*info/||'`
       [ x"${info}" != x"" ] || continue
       info=info/$info
-      [ -e $info ] || continue
+      [ -r $info ] || continue
       [ $info -nt $texi ] || bogosities="$bogosities $info"
   done < /tmp/el
 
@@ -292,7 +292,7 @@ if [ $check = yes ]; then
 
   ## This exits with non-zero status if any .info files need
   ## rebuilding.
-  if [ -e Makefile ]; then
+  if [ -r Makefile ]; then
       echo "Checking to see if info files are up-to-date..."
       make --question info || error=yes
   fi
@@ -300,7 +300,7 @@ if [ $check = yes ]; then
   ## Is this a release?
   case $version in
       [1-9][0-9].[0-9])
-          if [ -e ChangeLog ]; then
+          if [ -r ChangeLog ]; then
               if ! grep -q "Version $version released" ChangeLog; then
                   echo "No release notice in ChangeLog"
                   error=yes
@@ -359,10 +359,10 @@ echo "Creating top directory: '${tempdir}'"
 mkdir ${tempdir}
 
 if [ "$changelog" = yes ]; then
-  if test -e .git; then
+  if test -r .git; then
     ## When making a release or pretest the ChangeLog should already
     ## have been created and edited as needed.  Don't ignore it.
-    if test -e ChangeLog; then
+    if test -r ChangeLog; then
       echo "Using existing top-level ChangeLog"
     else
       echo "Making top-level ChangeLog"

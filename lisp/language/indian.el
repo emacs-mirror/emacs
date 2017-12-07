@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -116,7 +116,7 @@ South Indian Language Telugu is supported in this language environment."))
 	     (sample-text . "Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ")
 	     (documentation . "\
 Kannada language and script is supported in this language
-environment.")) 
+environment."))
  '("Indian"))
 
 (set-language-info-alist
@@ -140,7 +140,7 @@ South Indian language Malayalam is supported in this language environment."))
 (defconst devanagari-composable-pattern
   (let ((table
 	 '(("a" . "[\u0900-\u0902]")	; vowel modifier (above)
-	   ("A" . "\u0903")		; vowel modifier (post) 
+	   ("A" . "\u0903")		; vowel modifier (post)
 	   ("V" . "[\u0904-\u0914\u0960-\u0961\u0972]") ; independent vowel
 	   ("C" . "[\u0915-\u0939\u0958-\u095F\u0979-\u097F]") ; consonant
 	   ("R" . "\u0930")		; RA
@@ -347,7 +347,7 @@ South Indian language Malayalam is supported in this language environment."))
   (let ((table
 	 '(("A" . "[\u0D02-\u0D03]")	; SIGN ANUSVARA .. VISARGA
 	   ("V" . "[\u0D05-\u0D14\u0D60-\u0D61]") ; independent vowel
-	   ("C" . "[\u0D15-\u0D39]")		  ; consonant 
+	   ("C" . "[\u0D15-\u0D39]")		  ; consonant
 	   ("Y" . "[\u0D2F-\u0D30\u0D32\u0D35]")  ; YA, RA, LA, VA
 	   ("v" . "[\u0D3E-\u0D4C\u0D57\u0D62-\u0D63]")	; postbase matra
 	   ("H" . "\u0D4D")			  ; SIGN VIRAMA

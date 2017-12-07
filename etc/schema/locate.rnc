@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 default namespace this = "http://thaiopensource.com/ns/locating-rules/1.0"
 namespace local = ""
@@ -36,7 +36,7 @@ rule =
   | typeId
   # | typeIdBase
   | extensionRule
- 
+
 ## Group of rules. Useful with xml:base.
 group = element group { common, rule* }
 
@@ -212,6 +212,6 @@ extensionRule =
 
 anyElement = element * { attribute * { text }*, (text|anyElement)* }
 
-common = 
+common =
   # attribute xml:base { xsd:anyURI }?,
   attribute * - (xml:base|this:*|local:*) { text }*

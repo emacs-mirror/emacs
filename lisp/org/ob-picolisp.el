@@ -1,4 +1,4 @@
-;;; ob-picolisp.el --- org-babel functions for picolisp evaluation
+;;; ob-picolisp.el --- Babel Functions for Picolisp  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -55,7 +55,6 @@
 ;;; Code:
 (require 'ob)
 (require 'comint)
-(eval-when-compile (require 'cl))
 
 (declare-function run-picolisp "ext:inferior-picolisp" (cmd))
 (defvar org-babel-tangle-lang-exts) ;; Autoloaded
@@ -80,9 +79,9 @@
 
 (defun org-babel-expand-body:picolisp (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var)))
-        (result-params (cdr (assoc :result-params params)))
-        (print-level nil) (print-length nil))
+  (let ((vars (org-babel--get-vars params))
+        (print-level nil)
+	(print-length nil))
     (if (> (length vars) 0)
         (concat "(prog (let ("
                 (mapconcat
@@ -100,12 +99,11 @@
   (message "executing Picolisp source code block")
   (let* (
 	 ;; Name of the session or "none".
-	 (session-name (cdr (assoc :session params)))
+	 (session-name (cdr (assq :session params)))
 	 ;; Set the session if the session variable is non-nil.
 	 (session (org-babel-picolisp-initiate-session session-name))
 	 ;; Either OUTPUT or VALUE which should behave as described above.
-	 (result-type (cdr (assoc :result-type params)))
-	 (result-params (cdr (assoc :result-params params)))
+	 (result-params (cdr (assq :result-params params)))
 	 ;; Expand the body with `org-babel-expand-body:picolisp'.
 	 (full-body (org-babel-expand-body:picolisp body params))
          ;; Wrap body appropriately for the type of evaluation and results.

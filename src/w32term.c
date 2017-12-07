@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <signal.h>
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>	/* for O_RDWR */
 #endif
 #include <imm.h>
+#include <math.h>
 
 #include "coding.h"
 #include "frame.h"
@@ -161,10 +162,6 @@ int last_scroll_bar_drag_pos;
 
 /* Keyboard code page - may be changed by language-change events.  */
 int w32_keyboard_codepage;
-
-/* Incremented by w32_read_socket whenever it really tries to read
-   events.  */
-static int volatile input_signal_count;
 
 #ifdef CYGWIN
 int w32_message_fd = -1;
@@ -308,6 +305,22 @@ w32_restore_glyph_string_clip (struct glyph_string *s)
     }
 }
 
+static void
+x_get_scale_factor(struct w32_display_info *dpyinfo, int *scale_x, int *scale_y)
+{
+  const int base_res = 96;
+
+  *scale_x = *scale_y = 1;
+
+  if (dpyinfo)
+    {
+      if (dpyinfo->resx > base_res)
+	*scale_x = floor (dpyinfo->resx / base_res);
+      if (dpyinfo->resy > base_res)
+	*scale_y = floor (dpyinfo->resy / base_res);
+    }
+}
+
 /*
    Draw a wavy line under S. The wave fills wave_height pixels from y0.
 
@@ -322,7 +335,12 @@ w32_restore_glyph_string_clip (struct glyph_string *s)
 static void
 w32_draw_underwave (struct glyph_string *s, COLORREF color)
 {
-  int wave_height = 3, wave_length = 2;
+  struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
+
+  int scale_x, scale_y;
+  x_get_scale_factor (dpyinfo, &scale_x, &scale_y);
+
+  int wave_height = 3 * scale_y, wave_length = 2 * scale_x, thickness = scale_y;
   int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
   XRectangle wave_clip, string_clip, final_clip;
   RECT w32_final_clip, w32_string_clip;
@@ -331,7 +349,7 @@ w32_draw_underwave (struct glyph_string *s, COLORREF color)
   dx = wave_length;
   dy = wave_height - 1;
   x0 = s->x;
-  y0 = s->ybase - wave_height + 3;
+  y0 = s->ybase + wave_height / 2 - scale_y;
   width = s->width;
   xmax = x0 + width;
 
@@ -348,7 +366,7 @@ w32_draw_underwave (struct glyph_string *s, COLORREF color)
   if (!x_intersect_rectangles (&wave_clip, &string_clip, &final_clip))
     return;
 
-  hp = CreatePen (PS_SOLID, 0, color);
+  hp = CreatePen (PS_SOLID, thickness, color);
   oldhp = SelectObject (s->hdc, hp);
   CONVERT_FROM_XRECT (final_clip, w32_final_clip);
   w32_set_clip_rectangle (s->hdc, &w32_final_clip);
@@ -399,7 +417,7 @@ w32_draw_rectangle (HDC hdc, XGCValues *gc, int x, int y,
      is 1 pixel wider and higher than its arguments WIDTH and HEIGHT.
      This allows us to keep the code that calls this function similar
      to the corresponding code in xterm.c.  For the details, see
-     http://lists.gnu.org/archives/html/emacs-devel/2014-10/msg00546.html.  */
+     https://lists.gnu.org/r/emacs-devel/2014-10/msg00546.html.  */
   Rectangle (hdc, x, y, x + width + 1, y + height + 1);
 
   SelectObject (hdc, oldhb);
@@ -642,21 +660,25 @@ w32_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 			      ? face_last->foreground
 			      : FRAME_FOREGROUND_PIXEL (f));
 
-  if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
-    /* Vertical.  */
+  if ((y1 - y0 > x1 - x0) && (x1 - x0 >= 3))
+    /* A vertical divider, at least three pixels wide: Draw first and
+       last pixels differently.  */
     {
       w32_fill_area_abs (f, hdc, color_first, x0, y0, x0 + 1, y1);
       w32_fill_area_abs (f, hdc, color, x0 + 1, y0, x1 - 1, y1);
       w32_fill_area_abs (f, hdc, color_last, x1 - 1, y0, x1, y1);
     }
-  else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
-    /* Horizontal.  */
+  else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
+    /* A horizontal divider, at least three pixels high: Draw first and
+       last pixels differently.  */
     {
       w32_fill_area_abs (f, hdc, color_first, x0, y0, x1, y0 + 1);
       w32_fill_area_abs (f, hdc, color, x0, y0 + 1, x1, y1 - 1);
       w32_fill_area_abs (f, hdc, color_last, x0, y1 - 1, x1, y1);
     }
   else
+    /* In any other case do not draw the first and last pixels
+       differently.  */
     w32_fill_area_abs (f, hdc, color, x0, y0, x1, y1);
 
   release_frame_dc (f, hdc);
@@ -1623,6 +1645,7 @@ w32_setup_relief_color (struct frame *f, struct relief *relief, double factor,
   if (w32_alloc_lighter_color (f, &pixel, factor, delta))
     xgcv.foreground = relief->pixel = pixel;
 
+  xgcv.font = NULL;	/* avoid compiler warnings */
   if (relief->gc == 0)
     {
 #if 0 /* TODO: stipple */
@@ -3065,8 +3088,8 @@ parse_button (int message, int xbutton, int * pbutton, int * pup)
 static Lisp_Object
 construct_mouse_click (struct input_event *result, W32Msg *msg, struct frame *f)
 {
-  int button;
-  int up;
+  int button = 0;
+  int up = 0;
 
   parse_button (msg->msg.message, HIWORD (msg->msg.wParam),
 		&button, &up);
@@ -4324,6 +4347,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	    SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, TRUE);
 	  }
 	/* fall through */
+	FALLTHROUGH;
       default:
 	emacs_event->kind = NO_EVENT;
 	return FALSE;
@@ -4438,6 +4462,7 @@ w32_horizontal_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	    SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, TRUE);
 	  }
 	/* fall through */
+	FALLTHROUGH;
       default:
 	emacs_event->kind = NO_EVENT;
 	return FALSE;
@@ -4632,9 +4657,6 @@ w32_read_socket (struct terminal *terminal,
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   block_input ();
-
-  /* So people can tell when we have read the available input.  */
-  input_signal_count++;
 
   /* Process any incoming thread messages.  */
   drain_message_queue ();
@@ -4952,8 +4974,8 @@ w32_read_socket (struct terminal *terminal,
             /* If we decide we want to generate an event to be seen
                by the rest of Emacs, we put it here.  */
 	    bool tool_bar_p = 0;
-	    int button;
-	    int up;
+	    int button = 0;
+	    int up = 0;
 
 	    f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
 		 : x_window_to_frame (dpyinfo, msg.msg.hwnd));
@@ -5086,6 +5108,51 @@ w32_read_socket (struct terminal *terminal,
 	  }
 
 	case WM_WINDOWPOSCHANGED:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	  if (f)
+	    {
+	      RECT rect;
+	      int /* rows, columns, */ width, height, text_width, text_height;
+
+	      if (GetClientRect (msg.msg.hwnd, &rect)
+		  /* GetClientRect evidently returns (0, 0, 0, 0) if
+		     called on a minimized frame.  Such "dimensions"
+		     aren't useful anyway.  */
+		  && !(rect.bottom == 0
+		       && rect.top == 0
+		       && rect.left == 0
+		       && rect.right == 0))
+		{
+		  height = rect.bottom - rect.top;
+		  width = rect.right - rect.left;
+		  text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
+		  text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
+		  /* rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height); */
+		  /* columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width); */
+
+		  /* TODO: Clip size to the screen dimensions.  */
+
+		  /* Even if the number of character rows and columns
+		     has not changed, the font size may have changed,
+		     so we need to check the pixel dimensions as well.  */
+
+		  if (width != FRAME_PIXEL_WIDTH (f)
+		      || height != FRAME_PIXEL_HEIGHT (f)
+		      || text_width != FRAME_TEXT_WIDTH (f)
+		      || text_height != FRAME_TEXT_HEIGHT (f))
+		    {
+		      change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
+		      SET_FRAME_GARBAGED (f);
+		      cancel_mouse_face (f);
+		      f->win_gravity = NorthWestGravity;
+		    }
+		}
+	    }
+
+	  check_visibility = 1;
+	  break;
+
 	case WM_ACTIVATE:
 	case WM_ACTIVATEAPP:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
@@ -6052,7 +6119,7 @@ x_calc_absolute_position (struct frame *f)
   int display_top = 0;
   struct frame *p = FRAME_PARENT_FRAME (f);
 
-  if (flags & (XNegative | YNegative))
+  if (!p && flags & (XNegative | YNegative))
     {
       Lisp_Object list;
 
@@ -6065,7 +6132,7 @@ x_calc_absolute_position (struct frame *f)
 
           list = CDR(list);
 
-          geometry = Fassoc (Qgeometry, attributes);
+          geometry = Fassoc (Qgeometry, attributes, Qnil);
           if (!NILP (geometry))
             {
               monitor_left = Fnth (make_number (1), geometry);
@@ -6078,20 +6145,26 @@ x_calc_absolute_position (struct frame *f)
     }
 
   /* Treat negative positions as relative to the rightmost bottommost
-     position that fits on the screen.  */
+     position that fits on the screen or parent frame.
+
+     I see no need for subtracting 1 from the border widths - is there
+     any on the remaining platforms?  Here these subtractions did put
+     the last pixel line/column of a frame off-display when, for
+     example, a (set-frame-parameter nil 'left '(- 0)) specification was
+     used - martin 20017-05-05. */
   if (flags & XNegative)
     {
       if (p)
 	f->left_pos = (FRAME_PIXEL_WIDTH (p)
 		       - FRAME_PIXEL_WIDTH (f)
 		       + f->left_pos
-		       - (left_right_borders_width - 1));
+		       - left_right_borders_width);
       else
 	f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
 		       + display_left
 		       - FRAME_PIXEL_WIDTH (f)
 		       + f->left_pos
-		       - (left_right_borders_width - 1));
+		       - left_right_borders_width);
     }
 
   if (flags & YNegative)
@@ -6100,13 +6173,13 @@ x_calc_absolute_position (struct frame *f)
 	f->top_pos = (FRAME_PIXEL_HEIGHT (p)
 		      - FRAME_PIXEL_HEIGHT (f)
 		      + f->top_pos
-		      - (top_bottom_borders_height - 1));
+		      - top_bottom_borders_height);
       else
 	f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
 		      + display_top
 		      - FRAME_PIXEL_HEIGHT (f)
 		      + f->top_pos
-		      - (top_bottom_borders_height - 1));
+		      - top_bottom_borders_height);
     }
 
   /* The left_pos and top_pos are now relative to the top and left
@@ -6176,7 +6249,8 @@ w32fullscreen_hook (struct frame *f)
 
       if (FRAME_PREV_FSMODE (f) == FULLSCREEN_BOTH)
         {
-          SetWindowLong (hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+	  if (!FRAME_UNDECORATED (f))
+	    SetWindowLong (hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
 	  SetWindowPlacement (hwnd, &FRAME_NORMAL_PLACEMENT (f));
 	}
       else if (FRAME_PREV_FSMODE (f) == FULLSCREEN_HEIGHT
@@ -6202,7 +6276,8 @@ w32fullscreen_hook (struct frame *f)
 
 	  w32_fullscreen_rect (hwnd, f->want_fullscreen,
 			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
-          SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
+	  if (!FRAME_UNDECORATED (f))
+	    SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top,
                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
@@ -6536,7 +6611,8 @@ w32_frame_raise_lower (struct frame *f, bool raise_flag)
 
 /* Change of visibility.  */
 
-/* This tries to wait until the frame is really visible.
+/* This tries to wait until the frame is really visible, depending on
+   the value of Vx_visible_frame_timeout.
    However, if the window manager asks the user where to position
    the frame, this will return before the user finishes doing that.
    The frame will not actually be visible at that time,
@@ -6595,12 +6671,16 @@ x_make_frame_visible (struct frame *f)
 		      : SW_SHOWNORMAL);
     }
 
+  if (!FLOATP (Vx_wait_for_event_timeout))
+      return;
+
   /* Synchronize to ensure Emacs knows the frame is visible
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
-    int count;
+    double timeout = XFLOAT_DATA (Vx_wait_for_event_timeout);
+    double start_time = XFLOAT_DATA (Ffloat_time (Qnil));
 
     /* This must come after we set COUNT.  */
     unblock_input ();
@@ -6610,8 +6690,8 @@ x_make_frame_visible (struct frame *f)
     /* Wait until the frame is visible.  Process X events until a
        MapNotify event has been seen, or until we think we won't get a
        MapNotify at all..  */
-    for (count = input_signal_count + 10;
-	 input_signal_count < count && !FRAME_VISIBLE_P (f);)
+    while (timeout > (XFLOAT_DATA (Ffloat_time (Qnil)) - start_time) &&
+           !FRAME_VISIBLE_P (f))
       {
 	/* Force processing of queued events.  */
         /* TODO: x_sync equivalent?  */
@@ -7242,6 +7322,17 @@ syms_of_w32term (void)
   DEFSYM (Qmodified, "modified");
   DEFSYM (Qrenamed_from, "renamed-from");
   DEFSYM (Qrenamed_to, "renamed-to");
+
+  DEFVAR_LISP ("x-wait-for-event-timeout", Vx_wait_for_event_timeout,
+    doc: /* How long to wait for X events.
+
+Emacs will wait up to this many seconds to receive X events after
+making changes which affect the state of the graphical interface.
+Under some window managers this can take an indefinite amount of time,
+so it is important to limit the wait.
+
+If set to a non-float value, there will be no wait at all.  */);
+  Vx_wait_for_event_timeout = make_float (0.1);
 
   DEFVAR_INT ("w32-num-mouse-buttons",
 	      w32_num_mouse_buttons,

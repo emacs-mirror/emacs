@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -560,10 +560,12 @@ FILE is the file where FUNCTION was probably defined."
             (setq short rel))))
     short))
 
-;;;###autoload
-(defun describe-function-1 (function)
+(defun help-fns--analyze-function (function)
+  ;; FIXME: Document/explain the differences between FUNCTION,
+  ;; REAL-FUNCTION, DEF, and REAL-DEF.
+  "Return information about FUNCTION.
+Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
   (let* ((advised (and (symbolp function)
-		       (featurep 'nadvice)
 		       (advice--p (advice--symbol-function function))))
 	 ;; If the function is advised, use the symbol that has the
 	 ;; real definition, if that symbol is already set up.
@@ -594,22 +596,24 @@ FILE is the file where FUNCTION was probably defined."
                          (setq f (symbol-function f)))
                        f))
 		    ((subrp def) (intern (subr-name def)))
-		    (t def)))
-	 (sig-key (if (subrp def)
-                      (indirect-function real-def)
-                    real-def))
-	 (file-name (find-lisp-object-file-name function (if aliased 'defun
-                                                           def)))
-         (pt1 (with-current-buffer (help-buffer) (point)))
-	 (beg (if (and (or (byte-code-function-p def)
-			   (keymapp def)
-			   (memq (car-safe def) '(macro lambda closure)))
-		       (stringp file-name)
-		       (help-fns--autoloaded-p function file-name))
-		  (if (commandp def)
-		      "an interactive autoloaded "
-		    "an autoloaded ")
-		(if (commandp def) "an interactive " "a "))))
+                    (t def))))
+    (list real-function def aliased real-def)))
+
+(defun help-fns-function-description-header (function)
+  "Print a line describing FUNCTION to `standard-output'."
+  (pcase-let* ((`(,_real-function ,def ,aliased ,real-def)
+                (help-fns--analyze-function function))
+               (file-name (find-lisp-object-file-name function (if aliased 'defun
+                                                                 def)))
+               (beg (if (and (or (byte-code-function-p def)
+                                 (keymapp def)
+                                 (memq (car-safe def) '(macro lambda closure)))
+                             (stringp file-name)
+                             (help-fns--autoloaded-p function file-name))
+                        (if (commandp def)
+                            "an interactive autoloaded "
+                          "an autoloaded ")
+                      (if (commandp def) "an interactive " "a "))))
 
     ;; Print what kind of function-like object FUNCTION is.
     (princ (cond ((or (stringp def) (vectorp def))
@@ -676,34 +680,56 @@ FILE is the file where FUNCTION was probably defined."
 	    (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                 nil t)
 	    (help-xref-button 1 'help-function-def function file-name))))
-      (princ ".")
-      (with-current-buffer (help-buffer)
-	(fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
-				  (point)))
-      (terpri)(terpri)
+      (princ "."))))
 
-      (let ((doc-raw (documentation function t))
-            (key-bindings-buffer (current-buffer)))
+;;;###autoload
+(defun describe-function-1 (function)
+  (let ((pt1 (with-current-buffer (help-buffer) (point))))
+    (help-fns-function-description-header function)
+    (with-current-buffer (help-buffer)
+      (fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
+                                (point))))
+  (terpri)(terpri)
 
-	;; If the function is autoloaded, and its docstring has
-	;; key substitution constructs, load the library.
-	(and (autoloadp real-def) doc-raw
-	     help-enable-auto-load
-	     (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]" doc-raw)
-	     (autoload-do-load real-def))
+  (pcase-let* ((`(,real-function ,def ,_aliased ,real-def)
+                (help-fns--analyze-function function))
+               (doc-raw (condition-case nil
+                            ;; FIXME: Maybe `documentation' should return nil
+                            ;; for invalid functions i.s.o. signaling an error.
+                            (documentation function t)
+                          ;; E.g. an alias for a not yet defined function.
+                          ((invalid-function void-function) nil)))
+               (key-bindings-buffer (current-buffer)))
 
-        (help-fns--key-bindings function)
-        (with-current-buffer standard-output
-          (let ((doc (help-fns--signature function doc-raw sig-key
-                                          real-function key-bindings-buffer)))
-            (run-hook-with-args 'help-fns-describe-function-functions function)
-            (insert "\n"
-                    (or doc "Not documented."))
-            ;; Avoid asking the user annoying questions if she decides
-            ;; to save the help buffer, when her locale's codeset
-            ;; isn't UTF-8.
-            (unless (memq text-quoting-style '(straight grave))
-              (set-buffer-file-coding-system 'utf-8))))))))
+    ;; If the function is autoloaded, and its docstring has
+    ;; key substitution constructs, load the library.
+    (and (autoloadp real-def) doc-raw
+         help-enable-auto-load
+         (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]" doc-raw)
+         (autoload-do-load real-def))
+
+    (help-fns--key-bindings function)
+    (with-current-buffer standard-output
+      (let ((doc (condition-case nil
+                     ;; FIXME: Maybe `help-fns--signature' should return `doc'
+                     ;; for invalid functions i.s.o. signaling an error.
+                     (help-fns--signature
+                      function doc-raw
+                      (if (subrp def) (indirect-function real-def) real-def)
+                      real-function key-bindings-buffer)
+                   ;; E.g. an alias for a not yet defined function.
+                   ((invalid-function void-function) doc-raw))))
+        (run-hook-with-args 'help-fns-describe-function-functions function)
+        (insert "\n" (or doc "Not documented.")))
+      (when (or (function-get function 'pure)
+                (function-get function 'side-effect-free))
+        (insert "\nThis function does not change global state, "
+                "including the match data."))
+      ;; Avoid asking the user annoying questions if she decides
+      ;; to save the help buffer, when her locale's codeset
+      ;; isn't UTF-8.
+      (unless (memq text-quoting-style '(straight grave))
+        (set-buffer-file-coding-system 'utf-8)))))
 
 ;; Add defaults to `help-fns-describe-function-functions'.
 (add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
@@ -873,7 +899,10 @@ it is displayed along with the global value."
                                (not (equal origval :help-eval-error)))
 		      (princ "\nOriginal value was \n")
 		      (setq from (point))
-		      (pp origval)
+                      (cl-prin1 origval)
+                      (save-restriction
+                        (narrow-to-region from (point))
+                        (save-excursion (pp-buffer)))
 		      (if (< (point) (+ from 20))
 			  (delete-region (1- from) from)))))))
 	    (terpri)
@@ -899,7 +928,10 @@ it is displayed along with the global value."
 		      ;; probably print it raw once and check it's a
 		      ;; sensible size before prettyprinting.  -- fx
 		      (let ((from (point)))
-			(pp global-val)
+                        (cl-prin1 global-val)
+                        (save-restriction
+                          (narrow-to-region from (point))
+                          (save-excursion (pp-buffer)))
 			;; See previous comment for this function.
 			;; (help-xref-on-pp from (point))
 			(if (< (point) (+ from 20))
@@ -1260,14 +1292,14 @@ BUFFER should be a buffer or a buffer name."
   (insert-file-contents file)
   (let (notfirst)
     (while (search-forward "" nil 'move)
-      (if (looking-at "S")
+      (if (= (following-char) ?S)
           (delete-region (1- (point)) (line-end-position))
         (delete-char -1)
         (if notfirst
             (insert "\n.DE\n")
           (setq notfirst t))
         (insert "\n.SH ")
-        (insert (if (looking-at "F") "Function " "Variable "))
+        (insert (if (= (following-char) ?F) "Function " "Variable "))
         (delete-char 1)
         (forward-line 1)
         (insert ".DS L\n"))))
@@ -1293,7 +1325,7 @@ BUFFER should be a buffer or a buffer name."
         (forward-char 1))
       (goto-char (point-min))
       (while (search-forward "" nil t)
-        (unless (looking-at "S")
+        (when (/= (following-char) ?S)
           (setq type (char-after)
                 name (buffer-substring (1+ (point)) (line-end-position))
                 doc (buffer-substring (line-beginning-position 2)

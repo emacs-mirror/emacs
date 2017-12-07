@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -35,6 +35,7 @@
 ;; RFC 5155, "DNS Security (DNSSEC) Hashed Authenticated Denial of Existence"
 ;; RFC 6698, "The DNS-Based Authentication of Named Entities (DANE)
 ;;             Transport Layer Security (TLS) Protocol: TLSA"
+;; RFC 6844, "DNS Certification Authority Authorization (CAA) Resource Record"
 
 ;;; Release history:
 
@@ -62,7 +63,7 @@
 			   "A6" "DNAME" "SINK" "OPT" "APL" "DS" "SSHFP"
 			   "RRSIG" "NSEC" "DNSKEY" "UINFO" "UID" "GID"
 			   "UNSPEC" "TKEY" "TSIG" "IXFR" "AXFR" "MAILB"
-			   "MAILA" "TLSA" "NSEC3")
+			   "MAILA" "TLSA" "NSEC3" "CAA")
   "List of strings with known DNS types.")
 
 (defface dns-mode-control-entity '((t :inherit font-lock-keyword-face))

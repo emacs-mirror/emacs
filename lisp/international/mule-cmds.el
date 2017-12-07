@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -354,11 +354,12 @@ This also sets the following values:
 
   (if (eq system-type 'darwin)
       ;; The file-name coding system on Darwin systems is always utf-8.
-      (setq default-file-name-coding-system 'utf-8)
+      (setq default-file-name-coding-system 'utf-8-unix)
     (if (and (default-value 'enable-multibyte-characters)
 	     (or (not coding-system)
 		 (coding-system-get coding-system 'ascii-compatible-p)))
-	(setq default-file-name-coding-system coding-system)))
+	(setq default-file-name-coding-system
+	      (coding-system-change-eol-conversion coding-system 'unix))))
   (setq default-terminal-coding-system coding-system)
   ;; Prevent default-terminal-coding-system from converting ^M to ^J.
   (setq default-keyboard-coding-system
@@ -414,7 +415,7 @@ To prefer, for instance, utf-8, say the following:
 	      (coding-system-change-eol-conversion base eol-type)))
     (set-default-coding-systems base)
     (if (called-interactively-p 'interactive)
-	(or (eq base default-file-name-coding-system)
+	(or (eq base (coding-system-type default-file-name-coding-system))
 	    (message "The default value of `file-name-coding-system' was not changed because the specified coding system is not suitable for file names.")))))
 
 (defvar sort-coding-systems-predicate nil
@@ -1482,9 +1483,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
 		current-input-method-title nil)
 	  (funcall deactivate-current-input-method-function))
       (unwind-protect
-	  (run-hooks
-	   'input-method-inactivate-hook ; for backward compatibility
-	   'input-method-deactivate-hook)
+	  (run-hooks 'input-method-deactivate-hook)
 	(setq current-input-method nil)
 	(force-mode-line-update)))))
 
@@ -1799,9 +1798,9 @@ The default status is as follows:
 
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'iso-latin-1)
-  ;; On Darwin systems, this should be utf-8, but when this file is loaded
-  ;; utf-8 is not yet defined, so we set it in set-locale-environment instead.
-  (setq default-file-name-coding-system 'iso-latin-1)
+  ;; On Darwin systems, this should be utf-8-unix, but when this file is loaded
+  ;; that is not yet defined, so we set it in set-locale-environment instead.
+  (setq default-file-name-coding-system 'iso-latin-1-unix)
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
   ;; carefully by the user, or by the startup code, to deal with the
@@ -2724,7 +2723,7 @@ See also `locale-charset-language-names', `locale-language-names',
     (when (eq system-type 'darwin)
       ;; On Darwin, file names are always encoded in utf-8, no matter
       ;; the locale.
-      (setq default-file-name-coding-system 'utf-8)
+      (setq default-file-name-coding-system 'utf-8-unix)
       ;; macOS's Terminal.app by default uses utf-8 regardless of
       ;; the locale.
       (when (and (null window-system)
@@ -2924,10 +2923,10 @@ on encoding."
 (make-obsolete-variable 'nonascii-translation-table "do not use it." "23.1")
 
 (defvar ucs-names nil
-  "Alist of cached (CHAR-NAME . CHAR-CODE) pairs.")
+  "Hash table of cached CHAR-NAME keys to CHAR-CODE values.")
 
 (defun ucs-names ()
-  "Return alist of (CHAR-NAME . CHAR-CODE) pairs cached in `ucs-names'."
+  "Return table of CHAR-NAME keys and CHAR-CODE values cached in `ucs-names'."
   (or ucs-names
       (let ((ranges
 	     '((#x0000 . #x33FF)
@@ -2945,46 +2944,49 @@ on encoding."
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
 	       ;; (#x18B00 . #x1AFFF) unused
-	       (#x1B000 . #x1B0FF)
-	       ;; (#x1B100 . #x1BBFF) unused
+	       (#x1B000 . #x1B12F)
+               ;; (#x1B130 . #x1B16F) unused
+               (#x1B170 . #x1B2FF)
+	       ;; (#x1B300 . #x1BBFF) unused
                (#x1BC00 . #x1BCAF)
 	       ;; (#x1BCB0 . #x1CFFF) unused
 	       (#x1D000 . #x1FFFF)
 	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
 	    (gc-cons-threshold 10000000)
-	    names)
-	(dolist (range ranges)
-	  (let ((c (car range))
-		(end (cdr range)))
-	  (while (<= c end)
+	    (names (make-hash-table :size 42943 :test #'equal)))
+        (dolist (range ranges)
+          (let ((c (car range))
+	        (end (cdr range)))
+	    (while (<= c end)
 	      (let ((new-name (get-char-code-property c 'name))
 		    (old-name (get-char-code-property c 'old-name)))
-		;; In theory this code could end up pushing an "old-name" that
-		;; shadows a "new-name" but in practice every time an
-		;; `old-name' conflicts with a `new-name', the newer one has a
-		;; higher code, so it gets pushed later!
-		(if new-name (push (cons new-name c) names))
-		(if old-name (push (cons old-name c) names))
-		(setq c (1+ c))))))
-	;; Special case for "BELL" which is apparently the only char which
-	;; doesn't have a new name and whose old-name is shadowed by a newer
-	;; char with that name.
-	(setq ucs-names `(("BELL (BEL)" . 7) ,@names)))))
+	        ;; In theory this code could end up pushing an "old-name" that
+	        ;; shadows a "new-name" but in practice every time an
+	        ;; `old-name' conflicts with a `new-name', the newer one has a
+	        ;; higher code, so it gets pushed later!
+	        (if new-name (puthash new-name c names))
+	        (if old-name (puthash old-name c names))
+	        (setq c (1+ c))))))
+        ;; Special case for "BELL" which is apparently the only char which
+        ;; doesn't have a new name and whose old-name is shadowed by a newer
+        ;; char with that name.
+        (puthash "BELL (BEL)" ?\a names)
+        (setq ucs-names names))))
 
 (defun mule--ucs-names-annotation (name)
   ;; FIXME: It would be much better to add this annotation before rather than
   ;; after the char name, so the annotations are aligned.
   ;; FIXME: The default behavior of displaying annotations in italics
   ;; doesn't work well here.
-  (let ((char (assoc name ucs-names)))
-    (when char (format " (%c)" (cdr char)))))
+  (let ((char (gethash name ucs-names)))
+    (when char (format " (%c)" char))))
 
 (defun char-from-name (string &optional ignore-case)
   "Return a character as a number from its Unicode name STRING.
 If optional IGNORE-CASE is non-nil, ignore case in STRING.
 Return nil if STRING does not name a character."
-  (or (cdr (assoc-string string (ucs-names) ignore-case))
+  (or (gethash (if ignore-case (upcase string) string) (ucs-names))
       (let ((minus (string-match-p "-[0-9A-F]+\\'" string)))
         (when minus
           ;; Parse names like "VARIATION SELECTOR-17" and "CJK

@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -148,9 +148,9 @@ an up-to-date completion list."
                   (not (equal start idlwave-current-tags-completion-pos)))
 	      (idlwave-prepare-structure-tag-completion var))
           (setq idlwave-current-tags-completion-pos start)
-	  (setq idlwave-completion-help-info 
+	  (setq idlwave-completion-help-info
 		(list 'idlwave-complete-structure-tag-help))
-	  (idlwave-complete-in-buffer 'structtag 'structtag 
+	  (idlwave-complete-in-buffer 'structtag 'structtag
 				      idlwave-current-struct-tags nil
 				      "Select a structure tag" "structure tag")
 	  t) ; we did the completion: return t to skip other completions
@@ -169,7 +169,7 @@ an up-to-date completion list."
   (if (derived-mode-p 'idlwave-shell-mode)
       ;; OK, we are in the shell, do it dynamically
       (progn
-        (message "preparing shell tags") 
+        (message "preparing shell tags")
         ;; The following call puts the tags into `idlwave-current-struct-tags'
         (idlwave-complete-structure-tag-query-shell var)
         ;; initialize
@@ -191,7 +191,7 @@ an up-to-date completion list."
             ;; Find possible definitions of the structure.
             (while (idlwave-find-structure-definition var nil 'all)
               (let ((tags (idlwave-struct-tags)))
-                (when tags 
+                (when tags
                   ;; initialize
                   (setq idlwave-sint-structtags nil
                         idlwave-current-tags-buffer (current-buffer)

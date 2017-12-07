@@ -1511,12 +1511,12 @@ respects.  A property list behaves like an association list in which
 each key can occur only once.  @xref{Property Lists}, for a comparison
 of property lists and association lists.
 
-@defun assoc key alist
+@defun assoc key alist &optional testfn
 This function returns the first association for @var{key} in
 @var{alist}, comparing @var{key} against the alist elements using
-@code{equal} (@pxref{Equality Predicates}).  It returns @code{nil} if no
-association in @var{alist} has a @sc{car} @code{equal} to @var{key}.
-For example:
+@var{testfn} if non-nil, or @code{equal} if nil (@pxref{Equality
+Predicates}).  It returns @code{nil} if no association in @var{alist}
+has a @sc{car} equal to @var{key}.  For example:
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))
@@ -1561,11 +1561,11 @@ this as reverse @code{assoc}, finding the key for a given value.
 @defun assq key alist
 This function is like @code{assoc} in that it returns the first
 association for @var{key} in @var{alist}, but it makes the comparison
-using @code{eq} instead of @code{equal}.  @code{assq} returns @code{nil}
-if no association in @var{alist} has a @sc{car} @code{eq} to @var{key}.
-This function is used more often than @code{assoc}, since @code{eq} is
-faster than @code{equal} and most alists use symbols as keys.
-@xref{Equality Predicates}.
+using @code{eq}.  @code{assq} returns @code{nil} if no association in
+@var{alist} has a @sc{car} @code{eq} to @var{key}.  This function is
+used more often than @code{assoc}, since @code{eq} is faster than
+@code{equal} and most alists use symbols as keys.  @xref{Equality
+Predicates}.
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))
@@ -1589,16 +1589,20 @@ keys may not be symbols:
 @end smallexample
 @end defun
 
-@defun alist-get key alist &optional default remove
-This function is like @code{assq}, but instead of returning the entire
-association for @var{key} in @var{alist},
-@w{@code{(@var{key} . @var{value})}}, it returns just the @var{value}.
-If @var{key} is not found in @var{alist}, it returns @var{default}.
+@defun alist-get key alist &optional default remove testfn
+This function is similar to @code{assq}.  It finds the first
+association @w{@code{(@var{key} . @var{value})}} by comparing
+@var{key} with @var{alist} elements, and, if found, returns the
+@var{value} of that association.  If no association is found, the
+function returns @var{default}.  Comparison of @var{key} against
+@var{alist} elements uses the function specified by @var{testfn},
+defaulting to @code{eq}.
 
-This is a generalized variable (@pxref{Generalized Variables}) that
-can be used to change a value with @code{setf}.  When using it to set
-a value, optional argument @var{remove} non-@code{nil} means to remove
-@var{key} from @var{alist} if the new value is @code{eql} to @var{default}.
+This is a generalized variable (@pxref{Generalized Variables})
+that can be used to change a value with @code{setf}.  When
+using it to set a value, optional argument @var{remove} non-@code{nil}
+means to remove @var{key}'s association from @var{alist} if the new
+value is @code{eql} to @var{default}.
 @end defun
 
 @defun rassq value alist

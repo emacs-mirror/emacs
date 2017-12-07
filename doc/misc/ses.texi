@@ -292,7 +292,13 @@ Self-insert an expression.  The right-parenthesis is inserted for you
 (@code{ses-read-cell}).  To access another cell's value, just use its
 identifier in your expression.  Whenever the other cell is changed,
 this cell's formula will be reevaluated.  While typing in the
-expression, you can use @kbd{M-@key{TAB}} to complete symbol names.
+expression, you can use the following keys:
+@table @kbd
+@item M-@key{TAB}
+to complete symbol names, and
+@item  C-h C-n
+to list the named cells symbols in a help buffer.
+@end table
 
 @item ' @r{(apostrophe)}
 Enter a symbol (ses-read-symbol).  @acronym{SES} remembers all symbols that have
@@ -458,11 +464,22 @@ Enter the default printer for the spreadsheet
 (@code{ses-read-default-printer}).
 @end table
 
-The @code{ses-read-@var{xxx}-printer} commands have their own
-minibuffer history, which is preloaded with the set of all printers
-used in this spreadsheet, plus the standard printers (@pxref{Standard
-printer functions}) and the local printers (@pxref{Local printer
-functions}).
+The @code{ses-read-@var{xxx}-printer} allows the following commands during editing:
+
+@table @kbd
+@item @key{arrow-up}
+@itemx @key{arrow-down}
+To browse history: the @code{ses-read-@var{xxx}-printer} commands have
+their own minibuffer history, which is preloaded with the set of all
+printers used in this spreadsheet, plus the standard printers
+(@pxref{Standard printer functions}) and the local printers
+(@pxref{Local printer functions}).
+@item @key{TAB}
+To complete the local printer symbols, and
+@item C-h C-p
+To list the local printers in a help buffer.
+@end table
+
 
 @node Standard printer functions
 @subsection Standard printer functions
@@ -567,7 +584,7 @@ This example will:
 When the cell is empty (ie.@: when @code{val} is @code{nil}), print an
 empty string @code{""}
 @item
-When the cell value is a non negative number, format the the value in
+When the cell value is a non negative number, format the value in
 fixed-point notation with one decimal after point
 @item
 Otherwise, handle the value as erroneous by printing it as an

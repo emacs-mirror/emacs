@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -998,7 +998,7 @@ Argument PROMPT is the prompt to use when querying the user for a target."
   (project-add-file this file))
 
 (cl-defmethod project-add-file ((ot ede-target) _file)
-  "Add the current buffer into project project target OT.
+  "Add the current buffer into project target OT.
 Argument FILE is the file to add."
   (error "add-file not supported by %s" (eieio-object-name ot)))
 

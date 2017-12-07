@@ -1,4 +1,4 @@
-;;; org-rmail.el --- Support for links to Rmail messages from within Org-mode
+;;; org-rmail.el --- Support for Links to Rmail Messages -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 
@@ -19,14 +19,14 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 
-;; This file implements links to Rmail messages from within Org-mode.
-;; Org-mode loads this module by default - if this is not what you want,
-;; configure the variable `org-modules'.
+;; This file implements links to Rmail messages from within Org mode.
+;; Org mode loads this module by default - if this is not what you
+;; want, configure the variable `org-modules'.
 
 ;;; Code:
 
@@ -36,13 +36,14 @@
 (declare-function rmail-show-message  "rmail" (&optional n no-summary))
 (declare-function rmail-what-message  "rmail" (&optional pos))
 (declare-function rmail-toggle-header "rmail" (&optional arg))
+(declare-function rmail               "rmail" (&optional file-name-arg))
 (declare-function rmail-widen         "rmail" ())
 (defvar rmail-current-message)  ; From rmail.el
 (defvar rmail-header-style)     ; From rmail.el
+(defvar rmail-file-name)        ; From rmail.el
 
 ;; Install the link type
-(org-add-link-type "rmail" 'org-rmail-open)
-(add-hook 'org-store-link-functions 'org-rmail-store-link)
+(org-link-set-parameters "rmail" :follow #'org-rmail-open :store #'org-rmail-store-link)
 
 ;; Implementation
 (defun org-rmail-store-link ()
@@ -63,20 +64,11 @@
 	       (to (mail-fetch-field "to"))
 	       (subject (mail-fetch-field "subject"))
 	       (date (mail-fetch-field "date"))
-	       (date-ts (and date (format-time-string
-				   (org-time-stamp-format t)
-				   (date-to-time date))))
-	       (date-ts-ia (and date (format-time-string
-				      (org-time-stamp-format t t)
-				      (date-to-time date))))
 	       desc link)
 	  (org-store-link-props
-	   :type "rmail" :from from :to to
+	   :type "rmail" :from from :to to :date date
 	   :subject subject :message-id message-id)
-	  (when date
-	    (org-add-link-props :date date :date-timestamp date-ts
-				:date-timestamp-inactive date-ts-ia))
-	  (setq message-id (org-remove-angle-brackets message-id))
+	  (setq message-id (org-unbracket-string "<" ">" message-id))
 	  (setq desc (org-email-link-description))
 	  (setq link (concat "rmail:" folder "#" message-id))
 	  (org-add-link-props :link link :description desc)

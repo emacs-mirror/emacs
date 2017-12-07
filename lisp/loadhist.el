@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -162,6 +162,70 @@ documentation of `unload-feature' for details.")
           ;; mode, or proposed is not nil and not major-mode, and so we use it.
           (funcall (or proposed 'fundamental-mode)))))))
 
+(cl-defgeneric loadhist-unload-element (x)
+  "Unload an element from the `load-history'."
+  (message "Unexpected element %S in load-history" x))
+
+;; In `load-history', the definition of a previously autoloaded
+;; function is represented by 2 entries: (t . SYMBOL) comes before
+;; (defun . SYMBOL) and says we should restore SYMBOL's autoload when
+;; we undefine it.
+;; So we use this auxiliary variable to keep track of the last (t . SYMBOL)
+;; that occurred.
+(defvar loadhist--restore-autoload
+  "If non-nil, this is a symbol for which we should
+restore a previous autoload if possible.")
+
+(cl-defmethod loadhist-unload-element ((x (head t)))
+  (setq loadhist--restore-autoload (cdr x)))
+
+(defun loadhist--unload-function (x)
+  (let ((fun (cdr x)))
+    (when (fboundp fun)
+      (when (fboundp 'ad-unadvise)
+	(ad-unadvise fun))
+      (let ((aload (get fun 'autoload)))
+	(defalias fun
+          (if (and aload (eq fun loadhist--restore-autoload))
+	      (cons 'autoload aload)
+            nil)))))
+  (setq loadhist--restore-autoload nil))
+
+(cl-defmethod loadhist-unload-element ((x (head defun)))
+  (loadhist--unload-function x))
+(cl-defmethod loadhist-unload-element ((x (head autoload)))
+  (loadhist--unload-function x))
+
+(cl-defmethod loadhist-unload-element ((_ (head require))) nil)
+(cl-defmethod loadhist-unload-element ((_ (head defface))) nil)
+
+(cl-defmethod loadhist-unload-element ((x (head provide)))
+  ;; Remove any feature names that this file provided.
+  (setq features (delq (cdr x) features)))
+
+(cl-defmethod loadhist-unload-element ((x symbol))
+  ;; Kill local values as much as possible.
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (if (and (boundp x) (timerp (symbol-value x)))
+	  (cancel-timer (symbol-value x)))
+      (kill-local-variable x)))
+  (if (and (boundp x) (timerp (symbol-value x)))
+      (cancel-timer (symbol-value x)))
+  ;; Get rid of the default binding if we can.
+  (unless (local-variable-if-set-p x)
+    (makunbound x)))
+
+(cl-defmethod loadhist-unload-element ((x (head define-type)))
+  (let* ((name (cdr x)))
+    ;; Remove the struct.
+    (setf (cl--find-class name) nil)))
+
+(cl-defmethod loadhist-unload-element ((x (head define-symbol-props)))
+  (pcase-dolist (`(,symbol . ,props) (cdr x))
+    (dolist (prop props)
+      (put symbol prop nil))))
+
 ;;;###autoload
 (defun unload-feature (feature &optional force)
   "Unload the library that provided FEATURE.
@@ -200,9 +264,6 @@ something strange, such as redefining an Emacs function."
 	       (prin1-to-string dependents) file))))
   (let* ((unload-function-defs-list (feature-symbols feature))
          (file (pop unload-function-defs-list))
-	 ;; If non-nil, this is a symbol for which we should
-	 ;; restore a previous autoload if possible.
-	 restore-autoload
 	 (name (symbol-name feature))
          (unload-hook (intern-soft (concat name "-unload-hook")))
 	 (unload-func (intern-soft (concat name "-unload-function"))))
@@ -245,43 +306,7 @@ something strange, such as redefining an Emacs function."
       ;; Change major mode in all buffers using one defined in the feature being unloaded.
       (unload--set-major-mode)
 
-      (when (fboundp 'elp-restore-function) ; remove ELP stuff first
-	(dolist (elt unload-function-defs-list)
-	  (when (symbolp elt)
-	    (elp-restore-function elt))))
-
-      (dolist (x unload-function-defs-list)
-	(if (consp x)
-	    (pcase (car x)
-	      ;; Remove any feature names that this file provided.
-	      (`provide
-	       (setq features (delq (cdr x) features)))
-	      ((or `defun `autoload)
-	       (let ((fun (cdr x)))
-		 (when (fboundp fun)
-		   (when (fboundp 'ad-unadvise)
-		     (ad-unadvise fun))
-		   (let ((aload (get fun 'autoload)))
-		     (if (and aload (eq fun restore-autoload))
-			 (fset fun (cons 'autoload aload))
-		       (fmakunbound fun))))))
-	      ;; (t . SYMBOL) comes before (defun . SYMBOL)
-	      ;; and says we should restore SYMBOL's autoload
-	      ;; when we undefine it.
-	      (`t (setq restore-autoload (cdr x)))
-	      ((or `require `defface) nil)
-	      (_ (message "Unexpected element %s in load-history" x)))
-	  ;; Kill local values as much as possible.
-	  (dolist (buf (buffer-list))
-	    (with-current-buffer buf
-	      (if (and (boundp x) (timerp (symbol-value x)))
-		  (cancel-timer (symbol-value x)))
-	      (kill-local-variable x)))
-	  (if (and (boundp x) (timerp (symbol-value x)))
-	      (cancel-timer (symbol-value x)))
-	  ;; Get rid of the default binding if we can.
-	  (unless (local-variable-if-set-p x)
-	    (makunbound x))))
+      (mapc #'loadhist-unload-element unload-function-defs-list)
       ;; Delete the load-history element for this file.
       (setq load-history (delq (assoc file load-history) load-history))))
   ;; Don't return load-history, it is not useful.

@@ -19,7 +19,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -206,14 +206,11 @@ get_boot_time (void)
 					    WTMP_FILE, counter);
 	  if (! NILP (Ffile_exists_p (tempname)))
 	    {
-	      /* The utmp functions on mescaline.gnu.org accept only
-		 file names up to 8 characters long.  Choose a 2
-		 character long prefix, and call make_temp_file with
-		 second arg non-zero, so that it will add not more
-		 than 6 characters to the prefix.  */
-	      filename = Fexpand_file_name (build_string ("wt"),
-					    Vtemporary_file_directory);
-	      filename = make_temp_name (filename, 1);
+	      /* The utmp functions on older systems accept only file
+		 names up to 8 bytes long.  Choose a 2 byte prefix, so
+		 the 6-byte suffix does not make the name too long.  */
+	      filename = Fmake_temp_file_internal (build_string ("wt"), Qnil,
+						   empty_unibyte_string, Qnil);
 	      CALLN (Fcall_process, build_string ("gzip"), Qnil,
 		     list2 (QCfile, filename), Qnil,
 		     build_string ("-cd"), tempname);
@@ -339,6 +336,9 @@ rename_lock_file (char const *old, char const *new, bool force)
     {
       struct stat st;
 
+      int r = renameat_noreplace (AT_FDCWD, old, AT_FDCWD, new);
+      if (! (r < 0 && errno == ENOSYS))
+	return r;
       if (link (old, new) == 0)
 	return unlink (old) == 0 || errno == ENOENT ? 0 : -1;
       if (errno != ENOSYS && errno != LINKS_MIGHT_NOT_WORK)
@@ -403,8 +403,6 @@ create_lock_file (char *lfname, char *lock_info_str, bool force)
       else
 	{
 	  ptrdiff_t lock_info_len;
-	  if (! O_CLOEXEC)
-	    fcntl (fd, F_SETFD, FD_CLOEXEC);
 	  lock_info_len = strlen (lock_info_str);
 	  err = 0;
 	  if (emacs_write (fd, lock_info_str, lock_info_len) != lock_info_len

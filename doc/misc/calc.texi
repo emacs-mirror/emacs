@@ -35751,7 +35751,7 @@ to work on these, please send a message (using @kbd{M-x report-calc-bug})
 so any efforts can be coordinated.
 
 The latest version of Calc is available from Savannah, in the Emacs
-repository.  See @uref{http://savannah.gnu.org/projects/emacs}.
+repository.  See @uref{https://savannah.gnu.org/projects/emacs}.
 
 @c [summary]
 @node Summary, Key Index, Reporting Bugs, Top

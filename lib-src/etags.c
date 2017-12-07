@@ -44,7 +44,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* NB To comply with the above BSD license, copyright information is
@@ -111,6 +111,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # undef HAVE_NTGUI
 # undef  DOS_NT
 # define DOS_NT
+/* The WINDOWSNT build doesn't use Gnulib's fcntl.h.  */
 # define O_CLOEXEC O_NOINHERIT
 #endif /* WINDOWSNT */
 
@@ -123,6 +124,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #include <errno.h>
 #include <fcntl.h>
 #include <binary-io.h>
+#include <unlocked-io.h>
 #include <c-ctype.h>
 #include <c-strcase.h>
 
@@ -372,6 +374,7 @@ static void readline (linebuffer *, FILE *);
 static long readline_internal (linebuffer *, FILE *, char const *);
 static bool nocase_tail (const char *);
 static void get_tag (char *, char **);
+static void get_lispy_tag (char *);
 
 static void analyze_regex (char *);
 static void free_regexps (void);
@@ -459,6 +462,7 @@ static bool cplusplus;		/* .[hc] means C++, not C (undocumented) */
 static bool ignoreindent;	/* -I: ignore indentation in C */
 static int packages_only;	/* --packages-only: in Ada, only tag packages*/
 static int class_qualify;	/* -Q: produce class-qualified tags in C++/Java */
+static int debug;		/* --debug */
 
 /* STDIN is defined in LynxOS system headers */
 #ifdef STDIN
@@ -476,6 +480,7 @@ static struct option longopts[] =
   { "append",             no_argument,       NULL,               'a'   },
   { "packages-only",      no_argument,       &packages_only,     1     },
   { "c++",                no_argument,       NULL,               'C'   },
+  { "debug",              no_argument,       &debug,             1     },
   { "declarations",       no_argument,       &declarations,      1     },
   { "no-line-directive",  no_argument,       &no_line_directive, 1     },
   { "no-duplicates",      no_argument,       &no_duplicates,     1     },
@@ -1525,7 +1530,7 @@ process_file_name (char *file, language *lang)
   fdesc *fdp;
   compressor *compr;
   char *compressed_name, *uncompressed_name;
-  char *ext, *real_name, *tmp_name;
+  char *ext, *real_name UNINIT, *tmp_name UNINIT;
   int retval;
 
   canonicalize_filename (file);
@@ -1913,6 +1918,10 @@ make_tag (const char *name, 	/* tag name, or NULL if unnamed */
 {
   bool named = (name != NULL && namelen > 0);
   char *nname = NULL;
+
+  if (debug)
+    fprintf (stderr, "%s on %s:%d: %s\n",
+	     named ? name : "(unnamed)", curfdp->taggedfname, lno, linestart);
 
   if (!CTAGS && named)		/* maybe set named to false */
     /* Let's try to make an implicit tag name, that is, create an unnamed tag
@@ -4965,6 +4974,9 @@ Ruby_functions (FILE *inf)
 			memcpy (wr_name + name_len - 1, "=", 2);
 			pfnote (wr_name, true, lb.buffer, cp - lb.buffer + 1,
 				lineno, linecharno);
+			if (debug)
+			  fprintf (stderr, "%s on %s:%d: %s\n", wr_name,
+				   curfdp->taggedfname, lineno, lb.buffer);
 			continuation = false;
 		      }
 		    if (alias)
@@ -5346,7 +5358,7 @@ L_getit (void)
       /* Ok, then skip "(" before name in (defstruct (foo)) */
       dbp = skip_spaces (dbp);
   }
-  get_tag (dbp, NULL);
+  get_lispy_tag (dbp);
 }
 
 static void
@@ -5548,14 +5560,14 @@ Scheme_functions (FILE *inf)
       if (strneq (bp, "(def", 4) || strneq (bp, "(DEF", 4))
 	{
 	  bp = skip_non_spaces (bp+4);
-	  /* Skip over open parens and white space.  Don't continue past
-	     '\0'. */
-	  while (*bp && notinname (*bp))
+	  /* Skip over open parens and white space.
+	     Don't continue past '\0' or '='. */
+	  while (*bp && notinname (*bp) && *bp != '=')
 	    bp++;
-	  get_tag (bp, NULL);
+	  get_lispy_tag (bp);
 	}
       if (LOOKING_AT (bp, "(SET!") || LOOKING_AT (bp, "(set!"))
-	get_tag (bp, NULL);
+	get_lispy_tag (bp);
     }
 }
 
@@ -5591,7 +5603,7 @@ TeX_commands (FILE *inf)
   linebuffer *key;
 
   char TEX_esc = '\0';
-  char TEX_opgrp, TEX_clgrp;
+  char TEX_opgrp UNINIT, TEX_clgrp UNINIT;
 
   /* Initialize token table once from environment. */
   if (TEX_toktab == NULL)
@@ -6544,9 +6556,16 @@ regex_tag_multiline (void)
 	      else /* make a named tag */
 		name = substitute (buffer, rp->name, &rp->regs);
 	      if (rp->force_explicit_name)
-		/* Force explicit tag name, if a name is there. */
-		pfnote (name, true, buffer + linecharno,
-			charno - linecharno + 1, lineno, linecharno);
+		{
+		  /* Force explicit tag name, if a name is there. */
+		  pfnote (name, true, buffer + linecharno,
+			  charno - linecharno + 1, lineno, linecharno);
+
+		  if (debug)
+		    fprintf (stderr, "%s on %s:%d: %s\n",
+			     name ? name : "(unnamed)", curfdp->taggedfname,
+			     lineno, buffer + linecharno);
+		}
 	      else
 		make_tag (name, strlen (name), true, buffer + linecharno,
 			  charno - linecharno + 1, lineno, linecharno);
@@ -6588,6 +6607,22 @@ get_tag (register char *bp, char **namepp)
 
   if (namepp != NULL)
     *namepp = savenstr (bp, cp - bp);
+}
+
+/* Similar to get_tag, but include '=' as part of the tag. */
+static void
+get_lispy_tag (register char *bp)
+{
+  register char *cp = bp;
+
+  if (*bp != '\0')
+    {
+      /* Go till you get to white space or a syntactic break */
+      for (cp = bp + 1; !notinname (*cp) || *cp == '='; cp++)
+	continue;
+      make_tag (bp, cp - bp, true,
+		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+    }
 }
 
 /*
@@ -6851,8 +6886,14 @@ readline (linebuffer *lbp, FILE *stream)
 	      else /* make a named tag */
 		name = substitute (lbp->buffer, rp->name, &rp->regs);
 	      if (rp->force_explicit_name)
-		/* Force explicit tag name, if a name is there. */
-		pfnote (name, true, lbp->buffer, match, lineno, linecharno);
+		{
+		  /* Force explicit tag name, if a name is there. */
+		  pfnote (name, true, lbp->buffer, match, lineno, linecharno);
+		  if (debug)
+		    fprintf (stderr, "%s on %s:%d: %s\n",
+			     name ? name : "(unnamed)", curfdp->taggedfname,
+			     lineno, lbp->buffer);
+		}
 	      else
 		make_tag (name, strlen (name), true,
 			  lbp->buffer, match, lineno, linecharno);
@@ -7027,14 +7068,16 @@ etags_mktmp (void)
       errno = temp_errno;
       templt = NULL;
     }
-
 #if defined (DOS_NT)
-  /* The file name will be used in shell redirection, so it needs to have
-     DOS-style backslashes, or else the Windows shell will barf.  */
-  char *p;
-  for (p = templt; *p; p++)
-    if (*p == '/')
-      *p = '\\';
+  else
+    {
+      /* The file name will be used in shell redirection, so it needs to have
+	 DOS-style backslashes, or else the Windows shell will barf.  */
+      char *p;
+      for (p = templt; *p; p++)
+	if (*p == '/')
+	  *p = '\\';
+    }
 #endif
 
   return templt;

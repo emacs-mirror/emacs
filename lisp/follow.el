@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -416,6 +416,7 @@ This command runs the normal hook `follow-mode-hook'.
 
 Keys specific to Follow mode:
 \\{follow-mode-map}"
+  :lighter follow-mode-line-text
   :keymap follow-mode-map
   (if follow-mode
       (progn
@@ -1117,7 +1118,7 @@ Otherwise, return nil."
 ;;; Redisplay
 
 ;; Redraw all the windows on the screen, starting with the top window.
-;; The window used as as marker is WIN, or the selected window if WIN
+;; The window used as marker is WIN, or the selected window if WIN
 ;; is nil.  Start every window directly after the end of the previous
 ;; window, to make sure long lines are displayed correctly.
 

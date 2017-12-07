@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -98,7 +98,7 @@ Return the created buffer with program output."
 
 (defun cedet-idutils-lid-call (flags)
   "Call ID Utils lid with the list of FLAGS.
-Return the created buffer with with program output."
+Return the created buffer with program output."
   (let ((b (get-buffer-create "*CEDET lid*"))
 	(cd default-directory)
 	)

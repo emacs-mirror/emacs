@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Old BUGS:
    - [M-C-a] != [?\M-\C-a]
@@ -1292,7 +1292,7 @@ silly_event_symbol_error (Lisp_Object c)
   base = XCAR (parsed);
   name = Fsymbol_name (base);
   /* This alist includes elements such as ("RET" . "\\r").  */
-  assoc = Fassoc (name, exclude_keys);
+  assoc = Fassoc (name, exclude_keys, Qnil);
 
   if (! NILP (assoc))
     {

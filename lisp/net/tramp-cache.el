@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -136,7 +136,11 @@ Returns DEFAULT if not set."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
-	     (val (or (and (boundp var) (symbol-value var)) 0)))
+	     (val (or (bound-and-true-p var)
+		      (progn
+			(add-hook 'tramp-cache-unload-hook
+				  (lambda () (makunbound var)))
+			0))))
 	(set var (1+ val))))
     value))
 
@@ -156,7 +160,11 @@ Returns VALUE."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-set-count-" property)))
-	     (val (or (and (boundp var) (symbol-value var)) 0)))
+	     (val (or (bound-and-true-p var)
+		      (progn
+			(add-hook 'tramp-cache-unload-hook
+				  (lambda () (makunbound var)))
+			0))))
 	(set var (1+ val))))
     value))
 

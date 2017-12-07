@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -592,7 +592,7 @@
   ;; starts at a `while' token.
   (not (c-get-char-property (c-point 'eol) 'c-awk-NL-prop)))
 
-(defun c-awk-clear-NL-props (beg end)
+(defun c-awk-clear-NL-props (beg _end)
   ;; This function is run from before-change-hooks.  It clears the
   ;; c-awk-NL-prop text property from beg to the end of the buffer (The END
   ;; parameter is ignored).  This ensures that the indentation engine will
@@ -847,7 +847,7 @@
 ;; Just beyond logical line following the region which is about to be changed.
 ;; Set in c-awk-record-region-clear-NL and used in c-awk-after-change.
 
-(defun c-awk-record-region-clear-NL (beg end)
+(defun c-awk-record-region-clear-NL (_beg end)
 ;; This function is called exclusively from the before-change-functions hook.
 ;; It does two things: Finds the end of the (logical) line on which END lies,
 ;; and clears c-awk-NL-prop text properties from this point onwards.  BEG is

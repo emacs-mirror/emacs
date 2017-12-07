@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -142,7 +142,7 @@ function `string-to-number'."
 (defmacro eshell-condition-case (tag form &rest handlers)
   "If `eshell-handle-errors' is non-nil, this is `condition-case'.
 Otherwise, evaluates FORM with no error handling."
-  (declare (indent 2))
+  (declare (indent 2) (debug (sexp form &rest form)))
   (if eshell-handle-errors
       `(condition-case-unless-debug ,tag
 	   ,form

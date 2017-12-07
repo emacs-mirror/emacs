@@ -1,4 +1,4 @@
-;;; find-lisp.el --- emulation of find in Emacs Lisp
+;;; find-lisp.el --- emulation of find in Emacs Lisp  -*- lexical-binding: t -*-
 
 ;; Author: Peter Breton
 ;; Created: Fri Mar 26 1999
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;

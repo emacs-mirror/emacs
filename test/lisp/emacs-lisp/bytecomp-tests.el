@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -512,7 +512,9 @@ bytecompiled code, and their results compared.")
   `(let ((,file-name-var (make-temp-file "emacs")))
      (unwind-protect
          (progn ,@body)
-       (delete-file ,file-name-var))))
+       (delete-file ,file-name-var)
+       (let ((elc (concat ,file-name-var ".elc")))
+         (if (file-exists-p elc) (delete-file elc))))))
 
 (ert-deftest bytecomp-tests--unescaped-char-literals ()
   "Check that byte compiling warns about unescaped character
@@ -544,6 +546,34 @@ literals (Bug#20852)."
                        (list "!! The file uses old-style backquotes !!
 This functionality has been obsolete for more than 10 years already
 and will be removed soon.  See (elisp)Backquote in the manual.")))))))
+
+
+(ert-deftest bytecomp-tests-function-put ()
+  "Check `function-put' operates during compilation."
+  (should (boundp 'lread--old-style-backquotes))
+  (bytecomp-tests--with-temp-file source
+    (dolist (form '((function-put 'bytecomp-tests--foo 'foo 1)
+                    (function-put 'bytecomp-tests--foo 'bar 2)
+                    (defmacro bytecomp-tests--foobar ()
+                      `(cons ,(function-get 'bytecomp-tests--foo 'foo)
+                             ,(function-get 'bytecomp-tests--foo 'bar)))
+                    (defvar bytecomp-tests--foobar 1)
+                    (setq bytecomp-tests--foobar (bytecomp-tests--foobar))))
+      (print form (current-buffer)))
+    (write-region (point-min) (point-max) source nil 'silent)
+    (byte-compile-file source t)
+    (should (equal bytecomp-tests--foobar (cons 1 2)))))
+
+(ert-deftest bytecomp-tests--test-no-warnings-with-advice ()
+  (defun f ())
+  (define-advice f (:around (oldfun &rest args) test)
+    (apply oldfun args))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
+    (let ((inhibit-read-only t)) (erase-buffer)))
+  (test-byte-comp-compile-and-load t '(defun f ()))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
+    (goto-char (point-min))
+    (should-not (search-forward "Warning" nil t))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

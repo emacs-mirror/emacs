@@ -29,7 +29,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -461,7 +461,7 @@ and so on."
                        optimization - If on, preserve overlay highlighting
                        (cf ediff or goo-font-lock) as well as basic faces.\n
   body-text-only     : Emit only body-text. In concrete terms,
-                       1. Suppress calls to `hfy-page-header'and
+                       1. Suppress calls to `hfy-page-header' and
                           `hfy-page-footer'
                        2. Pretend that `div-wrapper' option above is
                           turned off
@@ -650,7 +650,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
       var even = false;
 
       // if arguments are provided to specify the colors
-      // of the even & odd rows, then use the them;
+      // of the even & odd rows, then use them;
       // otherwise use the following defaults:
       var evenColor = arguments[1] ? arguments[1] : \"#fff\";
       var oddColor  = arguments[2] ? arguments[2] : \"#ddd\";

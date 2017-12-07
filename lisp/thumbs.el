@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -523,23 +523,16 @@ Open another window."
   (interactive "FRename to file or directory: ")
   (let ((files (or thumbs-marked-list (list (thumbs-current-image))))
 	failures)
-    (if (and (not (file-directory-p newfile))
-	     thumbs-marked-list)
-	(if (file-exists-p newfile)
-	    (error "Renaming marked files to file name `%s'" newfile)
-	  (make-directory newfile t)))
+    (when thumbs-marked-list
+      (make-directory newfile t)
+      (setq newfile (file-name-as-directory newfile)))
     (if (yes-or-no-p (format "Really rename %d files? " (length files)))
 	(let ((thumbs-file-list (thumbs-file-alist))
 	      (inhibit-read-only t))
 	  (dolist (file files)
 	    (let (failure)
 	      (condition-case ()
-		  (if (file-directory-p newfile)
-		      (rename-file file
-				   (expand-file-name
-				    (file-name-nondirectory file)
-				    newfile))
-		    (rename-file file newfile))
+		  (rename-file file newfile)
 		(file-error (setq failure t)
 			    (push file failures)))
 	      (unless failure

@@ -32,7 +32,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Commentary:
@@ -17897,7 +17897,7 @@ references:
 
 [3] European Space Agency.
     \"VHDL Modelling Guidelines\".
-    ftp://ftp.estec.esa.nl/pub/vhdl/doc/ModelGuide.{pdf,ps}
+    https://amstel.estec.esa.int/tecedm/website/docs_generic/ModelGuide.pdf
 
 Use user options `vhdl-highlight-special-words' and `vhdl-special-syntax-alist'
 to visually support naming conventions.")

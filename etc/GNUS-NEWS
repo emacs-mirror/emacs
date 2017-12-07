@@ -102,7 +102,7 @@ are not reused when you select another article.  *Note Sticky Articles::.
 
 ** International host names (IDNA) can now be decoded inside article bodies
 using 'W i' ('gnus-summary-idna-message').  This requires that GNU Libidn
-(<http://www.gnu.org/software/libidn/>) has been installed.
+(<https://www.gnu.org/software/libidn/>) has been installed.
 
 ** The non-ASCII group names handling has been much improved.  The back ends
 that fully support non-ASCII group names are now 'nntp', 'nnml', and
@@ -307,7 +307,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -87,7 +87,7 @@ An existing calc stack is reused, otherwise a new one is created."
 			    '(* -100 (var cm var-cm)))))
 
 (ert-deftest test-calc-23889 ()
-  "Test for http://debbugs.gnu.org/23889 and 25652."
+  "Test for https://debbugs.gnu.org/23889 and 25652."
   (skip-unless (>= math-bignum-digit-length 9))
   (dolist (mode '(deg rad))
     (let ((calc-angle-mode mode))
@@ -135,5 +135,5 @@ An existing calc stack is reused, otherwise a new one is created."
 ;;; calc-tests.el ends here
 
 ;; Local Variables:
-;; bug-reference-url-format: "http://debbugs.gnu.org/%s"
+;; bug-reference-url-format: "https://debbugs.gnu.org/%s"
 ;; End:

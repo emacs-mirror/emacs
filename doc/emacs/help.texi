@@ -203,9 +203,10 @@ string}, which describes exactly what the command does.
 describes the command corresponding to @var{key}.
 
   @kbd{C-h c}, @kbd{C-h k} and @kbd{C-h K} work for any sort of key
-sequences, including function keys, menus, and mouse events.  For
-instance, after @kbd{C-h k} you can select a menu item from the menu
-bar, to view the documentation string of the command it runs.
+sequences, including function keys, menus, and mouse events (except
+that @kbd{C-h c} ignores mouse movement events).  For instance, after
+@kbd{C-h k} you can select a menu item from the menu bar, to view the
+documentation string of the command it runs.
 
 @kindex C-h w
 @findex where-is
@@ -319,11 +320,20 @@ search for non-customizable variables too.
 Search for variables.  With a prefix argument, search for
 customizable variables only.
 
+@item M-x apropos-local-variable
+@findex apropos-local-variable
+Search for buffer-local variables.
+
 @item M-x apropos-value
 @findex apropos-value
 Search for variables whose values match the specified pattern.  With a
 prefix argument, search also for functions with definitions matching
 the pattern, and Lisp symbols with properties matching the pattern.
+
+@item M-x apropos-local-value
+@findex apropos-local-value
+Search for buffer-local variables whose values match the specified
+pattern.
 
 @item C-h d
 @kindex C-h d
@@ -632,7 +642,7 @@ Display information about where to get external packages
 @item C-h C-f
 Display the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
 @item C-h g
-Visit a @uref{http://www.gnu.org} page with information about the GNU
+Visit a @uref{https://www.gnu.org} page with information about the GNU
 Project (@code{describe-gnu-project}).
 @item C-h C-m
 Display information about ordering printed copies of Emacs manuals

@@ -363,7 +363,7 @@ the home directory, as you would on GNU or Unix.  You can also set
 @env{HOME} variable in the environment before starting Emacs; its
 value will then override the above default behavior.
 
-  Emacs on MS-DOS handles the directory name @file{/dev} specially,
+  Emacs on MS-DOS handles the name @file{/dev} specially,
 because of a feature in the emulator libraries of DJGPP that pretends
 I/O devices have names in that directory.  We recommend that you avoid
 using an actual directory named @file{/dev} on any disk.

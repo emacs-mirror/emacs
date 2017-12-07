@@ -9,9 +9,9 @@
   subprocesses, windowing features (fonts, colors, scroll bars, multiple
   frames, etc.), and networking support.
 
-  Precompiled distributions are also available; ftp to
+  Precompiled distributions are also available; see:
 
-	ftp://ftp.gnu.org/gnu/emacs/windows/
+	https://ftp.gnu.org/gnu/emacs/windows/
 
   for the latest precompiled distributions.
 
@@ -86,18 +86,18 @@
 
   This appendix is also available (as part of the entire manual) at
 
-        http://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Microsoft-Windows
+        https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Microsoft-Windows
 
   In addition to the manual, there is a mailing list for discussing
   issues related to the Windows port of Emacs.  For information about
   the list, see this Web page:
 
-	http://mail.gnu.org/mailman/listinfo/help-emacs-windows
+	https://mail.gnu.org/mailman/listinfo/help-emacs-windows
 
   To ask questions on the mailing list, send email to
   help-emacs-windows@gnu.org.  (You don't need to subscribe for that.)
   To subscribe to the list or unsubscribe from it, fill the form you
-  find at http://mail.gnu.org/mailman/listinfo/help-emacs-windows as
+  find at https://mail.gnu.org/mailman/listinfo/help-emacs-windows as
   explained there.
 
   Another valuable source of information and help which should not be
@@ -140,4 +140,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

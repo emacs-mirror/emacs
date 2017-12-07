@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -687,7 +687,8 @@ PREFIX is the directory name of the directory against which these
 patterns are rooted.  We understand only a subset of PCRE syntax;
 if we don't understand a construct, we signal
 `vc-hg-unsupported-syntax'."
-  (cl-assert (string-match "^/\\(.*/\\)?$" prefix))
+  (cl-assert (and (file-name-absolute-p prefix)
+                  (directory-name-p prefix)))
   (let ((parts nil)
         (i 0)
         (anchored nil)
@@ -875,7 +876,8 @@ if we don't understand a construct, we signal
 (defun vc-hg--slurp-hgignore (repo)
   "Read hg ignore patterns from REPO.
 REPO must be the directory name of an hg repository."
-  (cl-assert (string-match "^/\\(.*/\\)?$" repo))
+  (cl-assert (and (file-name-absolute-p repo)
+                  (directory-name-p repo)))
   (let* ((hgignore (concat repo ".hgignore"))
          (vc-hg--hgignore-patterns nil)
          (vc-hg--hgignore-filenames nil))
@@ -930,7 +932,8 @@ FILENAME must be the file's true absolute name."
      (concat repo repo-relative-filename))))
 
 (defun vc-hg--read-repo-requirements (repo)
-  (cl-assert (string-match "^/\\(.*/\\)?$" repo))
+  (cl-assert (and (file-name-absolute-p repo)
+                  (directory-name-p repo)))
   (let* ((requires-filename (concat repo ".hg/requires")))
     (and (file-exists-p requires-filename)
          (with-temp-buffer
@@ -1001,7 +1004,8 @@ hg binary."
          ;; dirstate must exist
          (not (progn
                 (setf repo (expand-file-name repo))
-                (cl-assert (string-match "^/\\(.*/\\)?$" repo))
+                (cl-assert (and (file-name-absolute-p repo)
+                                (directory-name-p repo)))
                 (setf dirstate (concat repo ".hg/dirstate"))
                 (setf dirstate-attr (file-attributes dirstate))))
          ;; Repository must be in an understood format
@@ -1292,12 +1296,8 @@ REV is the revision to check out into WORKFILE."
   (vc-hg-command buffer 1 nil "outgoing" "-n" (unless (string= remote-location "")
 						remote-location)))
 
-(defvar vc-hg-error-regexp-alist nil
-  ;; 'hg pull' does not list modified files, so, for now, the only
-  ;; benefit of `vc-compilation-mode' is that one can get rid of
-  ;; *vc-hg* buffer with 'q' or 'z'.
-  ;; TODO: call 'hg incoming' before pull/merge to get the list of
-  ;;       modified files
+(defvar vc-hg-error-regexp-alist
+  '(("^M \\(.+\\)" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-hg* buffers.")
 
 (autoload 'vc-do-async-command "vc-dispatcher")
@@ -1305,9 +1305,10 @@ REV is the revision to check out into WORKFILE."
 (defvar compilation-directory)
 (defvar compilation-arguments)  ; defined in compile.el
 
-(defun vc-hg--pushpull (command prompt &optional obsolete)
+(defun vc-hg--pushpull (command prompt post-processing &optional obsolete)
   "Run COMMAND (a string; either push or pull) on the current Hg branch.
 If PROMPT is non-nil, prompt for the Hg command to run.
+POST-PROCESSING is a list of commands to execute after the command.
 If OBSOLETE is non-nil, behave like the old versions of the Hg push/pull
 commands, which only operated on marked files."
   (let (marked-list)
@@ -1323,18 +1324,14 @@ commands, which only operated on marked files."
       (let* ((root (vc-hg-root default-directory))
 	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
 	     (hg-program vc-hg-program)
-	     ;; Fixme: before updating the working copy to the latest
-	     ;; state, should check if it's visiting an old revision.
-	     (args (if (equal command "pull") '("-u"))))
+	     args)
 	;; If necessary, prompt for the exact command.
         ;; TODO if pushing, prompt if no default push location - cf bzr.
 	(when prompt
 	  (setq args (split-string
 		      (read-shell-command
                        (format "Hg %s command: " command)
-                       (format "%s %s%s" hg-program command
-                               (if (not args) ""
-                                 (concat " " (mapconcat 'identity args " "))))
+                       (format "%s %s" hg-program command)
                        'vc-hg-history)
 		      " " t))
 	  (setq hg-program (car  args)
@@ -1343,10 +1340,17 @@ commands, which only operated on marked files."
 	(apply 'vc-do-async-command buffer root hg-program command args)
         (with-current-buffer buffer
           (vc-run-delayed
+            (dolist (cmd post-processing)
+              (apply 'vc-do-command buffer nil hg-program nil cmd))
             (vc-compilation-mode 'hg)
             (setq-local compile-command
                         (concat hg-program " " command " "
-                                (if args (mapconcat 'identity args " ") "")))
+                                (mapconcat 'identity args " ")
+                                (mapconcat (lambda (args)
+                                             (concat " && " hg-program " "
+                                                     (mapconcat 'identity
+                                                                args " ")))
+                                           post-processing "")))
             (setq-local compilation-directory root)
             ;; Either set `compilation-buffer-name-function' locally to nil
             ;; or use `compilation-arguments' to set `name-function'.
@@ -1367,7 +1371,15 @@ specific Mercurial pull command.  The default is \"hg pull -u\",
 which fetches changesets from the default remote repository and
 then attempts to update the working directory."
   (interactive "P")
-  (vc-hg--pushpull "pull" prompt (called-interactively-p 'interactive)))
+  (vc-hg--pushpull "pull" prompt
+                   ;; Fixme: before updating the working copy to the latest
+                   ;; state, should check if it's visiting an old revision.
+                   ;; post-processing: list modified files and update
+                   ;; NB: this will not work with "pull = --rebase"
+                   ;;     or "pull = --update" in hgrc.
+                   '(("--pager" "no" "status" "--rev" "." "--rev" "tip")
+                     ("update"))
+                   (called-interactively-p 'interactive)))
 
 (defun vc-hg-push (prompt)
   "Push changes from the current Mercurial branch.
@@ -1377,7 +1389,7 @@ for the Hg command to run.
 If called interactively with a set of marked Log View buffers,
 call \"hg push -r REVS\" to push the specified revisions REVS."
   (interactive "P")
-  (vc-hg--pushpull "push" prompt (called-interactively-p 'interactive)))
+  (vc-hg--pushpull "push" prompt nil (called-interactively-p 'interactive)))
 
 (defun vc-hg-merge-branch ()
   "Merge incoming changes into the current working directory.

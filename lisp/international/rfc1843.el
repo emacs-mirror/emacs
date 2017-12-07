@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -54,9 +54,7 @@ HZ-encoded are decoded."
   "HZ+ decoding support if non-nil.
 HZ+ specification (also known as HZP) is to provide a standardized
 7-bit representation of mixed Big5, GB, and ASCII text for convenient
-e-mail transmission, news posting, etc.
-The document of HZ+ 0.78 specification can be found at
-ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
+e-mail transmission, news posting, etc."
   :type 'boolean
   :group 'mime)
 

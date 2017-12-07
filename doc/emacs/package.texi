@@ -182,7 +182,7 @@ variable @code{package-archives}, whose value is a list of package
 archives known to Emacs.  Each list element must have the form
 @code{(@var{id} . @var{location})}, where @var{id} is the name of a
 package archive and @var{location} is the @acronym{HTTP} address or
-directory name of the package archive.  You can alter this list if you
+name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 

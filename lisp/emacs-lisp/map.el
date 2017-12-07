@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: convenience, map, hash-table, alist, array
-;; Version: 1.1
+;; Version: 1.2
 ;; Package: map
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -73,7 +73,8 @@ KEYS can also be a list of (KEY VARNAME) pairs, in which case
 KEY is an unquoted form.
 
 MAP can be a list, hash-table or array."
-  (declare (indent 2) (debug t))
+  (declare (indent 2)
+           (debug ((&rest &or symbolp ([form symbolp])) form body)))
   `(pcase-let ((,(map--make-pcase-patterns keys) ,map))
      ,@body))
 
@@ -93,11 +94,13 @@ Returns the result of evaluating the form associated with MAP-VAR's type."
            ((arrayp ,map-var) ,(plist-get args :array))
            (t (error "Unsupported map: %s" ,map-var)))))
 
-(defun map-elt (map key &optional default)
+(defun map-elt (map key &optional default testfn)
   "Lookup KEY in MAP and return its associated value.
 If KEY is not found, return DEFAULT which defaults to nil.
 
-If MAP is a list, `eql' is used to lookup KEY.
+If MAP is a list, `eql' is used to lookup KEY.  Optional argument
+TESTFN, if non-nil, means use its function definition instead of
+`eql'.
 
 MAP can be a list, hash-table or array."
   (declare
@@ -106,30 +109,31 @@ MAP can be a list, hash-table or array."
       (gv-letplace (mgetter msetter) `(gv-delay-error ,map)
         (macroexp-let2* nil
             ;; Eval them once and for all in the right order.
-            ((key key) (default default))
+            ((key key) (default default) (testfn testfn))
           `(if (listp ,mgetter)
                ;; Special case the alist case, since it can't be handled by the
                ;; map--put function.
                ,(gv-get `(alist-get ,key (gv-synthetic-place
                                           ,mgetter ,msetter)
-                                    ,default)
+                                    ,default nil ,testfn)
                         do)
              ,(funcall do `(map-elt ,mgetter ,key ,default)
                        (lambda (v) `(map--put ,mgetter ,key ,v)))))))))
   (map--dispatch map
-    :list (alist-get key map default)
+    :list (alist-get key map default nil testfn)
     :hash-table (gethash key map default)
     :array (if (and (>= key 0) (< key (seq-length map)))
                (seq-elt map key)
              default)))
 
-(defmacro map-put (map key value)
+(defmacro map-put (map key value &optional testfn)
   "Associate KEY with VALUE in MAP and return VALUE.
 If KEY is already present in MAP, replace the associated value
 with VALUE.
+When MAP is a list, test equality with TESTFN if non-nil, otherwise use `eql'.
 
 MAP can be a list, hash-table or array."
-  `(setf (map-elt ,map ,key) ,value))
+  `(setf (map-elt ,map ,key nil ,testfn) ,value))
 
 (defun map-delete (map key)
   "Delete KEY from MAP and return MAP.

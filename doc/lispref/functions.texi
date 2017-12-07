@@ -544,6 +544,15 @@ variable; these two uses of a symbol are independent and do not
 conflict.  (This is not the case in some dialects of Lisp, like
 Scheme.)
 
+  By convention, if a function's symbol consists of two names
+separated by @samp{--}, the function is intended for internal use and
+the first part names the file defining the function.  For example, a
+function named @code{vc-git--rev-parse} is an internal function
+defined in @file{vc-git.el}.  Internal-use functions written in C have
+names ending in @samp{-internal}, e.g., @code{bury-buffer-internal}.
+Emacs code contributed before 2018 may follow other internal-use
+naming conventions, which are being phased out.
+
 @node Defining Functions
 @section Defining Functions
 @cindex defining a function
@@ -703,7 +712,7 @@ the backquote (@pxref{Backquote}), but quotes code and accepts only
 @end defmac
 
 @defmac inline-letevals (bindings@dots{}) body@dots{}
-This is is similar to @code{let} (@pxref{Local Variables}): it sets up
+This is similar to @code{let} (@pxref{Local Variables}): it sets up
 local variables as specified by @var{bindings}, and then evaluates
 @var{body} with those bindings in effect.  Each element of
 @var{bindings} should be either a symbol or a list of the form
@@ -921,11 +930,11 @@ the @code{call-interactively} function.  @xref{Interactive Call}.
   A @dfn{mapping function} applies a given function (@emph{not} a
 special form or macro) to each element of a list or other collection.
 Emacs Lisp has several such functions; this section describes
-@code{mapcar}, @code{mapc}, and @code{mapconcat}, which map over a
-list.  @xref{Definition of mapatoms}, for the function @code{mapatoms}
-which maps over the symbols in an obarray.  @xref{Definition of
-maphash}, for the function @code{maphash} which maps over key/value
-associations in a hash table.
+@code{mapcar}, @code{mapc}, @code{mapconcat}, and @code{mapcan}, which
+map over a list.  @xref{Definition of mapatoms}, for the function
+@code{mapatoms} which maps over the symbols in an obarray.
+@xref{Definition of maphash}, for the function @code{maphash} which
+maps over key/value associations in a hash table.
 
   These mapping functions do not allow char-tables because a char-table
 is a sparse array whose nominal range of indices is very large.  To map
@@ -973,6 +982,26 @@ Return the list of results."
 @group
 (mapcar* 'cons '(a b c) '(1 2 3 4))
      @result{} ((a . 1) (b . 2) (c . 3))
+@end group
+@end example
+@end defun
+
+@defun mapcan function sequence
+This function applies @var{function} to each element of
+@var{sequence}, like @code{mapcar}, but instead of collecting the
+results into a list, it returns a single list with all the elements of
+the results (which must be lists), by altering the results (using
+@code{nconc}; @pxref{Rearrangement}).  Like with @code{mapcar},
+@var{sequence} can be of any type except a char-table.
+
+@example
+@group
+;; @r{Contrast this:}
+(mapcar 'list '(a b c d))
+     @result{} ((a) (b) (c) (d))
+;; @r{with this:}
+(mapcan 'list '(a b c d))
+     @result{} (a b c d)
 @end group
 @end example
 @end defun
@@ -2000,8 +2029,8 @@ It is equivalent to the following:
 @end example
 @end defmac
 
-In addition, you can mark a certain a particular calling convention
-for a function as obsolete:
+In addition, you can mark a particular calling convention for a
+function as obsolete:
 
 @defun set-advertised-calling-convention function signature when
 This function specifies the argument list @var{signature} as the

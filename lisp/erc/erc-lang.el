@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -180,7 +180,7 @@ This is based on the technical contents of ISO 639:1988 (E/F)
 \"Code for the representation of names of languages\".
 
 Typed by Keld.Simonsen@dkuug.dk 1990-11-30
-   <ftp://dkuug.dk/i18n/ISO_639>
+   <ftp://std.dkuug.dk/i18n/iso_639>
 Minor corrections, 1992-09-08 by Keld Simonsen
 Sundanese corrected, 1992-11-11 by Keld Simonsen
 Telugu corrected, 1995-08-24 by Keld Simonsen

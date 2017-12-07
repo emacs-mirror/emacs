@@ -62,10 +62,10 @@ A missing
 is treated as column 1.
 This option applies only to the next file specified.
 .TP
-.B \-a, \-\-alternate-editor=EDITOR
-if the Emacs server is not running, run the specified editor instead.
+.B \-a, \-\-alternate-editor=COMMAND
+if the Emacs server is not running, run the specified shell command instead.
 This can also be specified via the ALTERNATE_EDITOR environment variable.
-If the value of EDITOR is the empty string, run "emacs \-\-daemon" to
+If the value of ALTERNATE_EDITOR is the empty string, run "emacs \-\-daemon" to
 start Emacs in daemon mode, and try to connect to it.
 .TP
 .B -c, \-\-create-frame

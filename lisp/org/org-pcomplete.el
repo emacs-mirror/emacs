@@ -1,4 +1,4 @@
-;;; org-pcomplete.el --- In-buffer completion code
+;;; org-pcomplete.el --- In-buffer Completion Code -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
 ;;
@@ -20,28 +20,24 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Code:
 
 ;;;; Require other packages
 
-(eval-when-compile
-  (require 'cl))
-
 (require 'org-macs)
 (require 'org-compat)
 (require 'pcomplete)
 
-(declare-function org-split-string "org" (string &optional separators))
-(declare-function org-make-org-heading-search-string "org"
-		  (&optional string))
+(declare-function org-make-org-heading-search-string "org" (&optional string))
 (declare-function org-get-buffer-tags "org" ())
 (declare-function org-get-tags "org" ())
 (declare-function org-buffer-property-keys "org"
-		  (&optional include-specials include-defaults include-columns))
-(declare-function org-entry-properties "org" (&optional pom which specific))
+		  (&optional specials defaults columns ignore-malformed))
+(declare-function org-entry-properties "org" (&optional pom which))
+(declare-function org-tag-alist-to-string "org" (alist &optional skip-key))
 
 ;;;; Customization variables
 
@@ -52,12 +48,13 @@
 
 (defvar org-drawer-regexp)
 (defvar org-property-re)
+(defvar org-current-tag-alist)
 
 (defun org-thing-at-point ()
   "Examine the thing at point and let the caller know what it is.
 The return value is a string naming the thing at point."
   (let ((beg1 (save-excursion
-		(skip-chars-backward (org-re "[:alnum:]-_@"))
+		(skip-chars-backward "[:alnum:]-_@")
 		(point)))
 	(beg (save-excursion
 	       (skip-chars-backward "a-zA-Z0-9-_:$")
@@ -93,8 +90,10 @@ The return value is a string naming the thing at point."
 	     (skip-chars-backward "[ \t\n]")
 	     ;; org-drawer-regexp matches a whole line but while
 	     ;; looking-back, we just ignore trailing whitespaces
-	     (or (org-looking-back (substring org-drawer-regexp 0 -1))
-		 (org-looking-back org-property-re))))
+	     (or (looking-back (substring org-drawer-regexp 0 -1)
+			       (line-beginning-position))
+		 (looking-back org-property-re
+			       (line-beginning-position)))))
       (cons "prop" nil))
      ((and (equal (char-before beg1) ?:)
 	   (not (equal (char-after (point-at-bol)) ?*)))
@@ -140,7 +139,6 @@ When completing for #+STARTUP, for example, this function returns
 		pcomplete-default-completion-function))))
 
 (defvar org-options-keywords)		 ; From org.el
-(defvar org-element-block-name-alist)	 ; From org-element.el
 (defvar org-element-affiliated-keywords) ; From org-element.el
 (declare-function org-get-export-keywords "org" ())
 (defun pcomplete/org-mode/file-option ()
@@ -153,16 +151,19 @@ When completing for #+STARTUP, for example, this function returns
 	    (mapcar (lambda (keyword) (concat keyword ": "))
 		    org-element-affiliated-keywords)
 	    (let (block-names)
-	      (dolist (block-info org-element-block-name-alist block-names)
-		(let ((name (car block-info)))
-		  (push (format "END_%s" name) block-names)
-		  (push (concat "BEGIN_"
-				name
-				;; Since language is compulsory in
-				;; source blocks, add a space.
-				(and (equal name "SRC") " "))
-			block-names)
-		  (push (format "ATTR_%s: " name) block-names))))
+	      (dolist (name
+		       '("CENTER" "COMMENT" "EXAMPLE" "EXPORT" "QUOTE" "SRC"
+			 "VERSE")
+		       block-names)
+		(push (format "END_%s" name) block-names)
+		(push (concat "BEGIN_"
+			      name
+			      ;; Since language is compulsory in
+			      ;; export blocks source blocks, add
+			      ;; a space.
+			      (and (member name '("EXPORT" "SRC")) " "))
+		      block-names)
+		(push (format "ATTR_%s: " name) block-names)))
 	    (mapcar (lambda (keyword) (concat keyword ": "))
 		    (org-get-export-keywords))))
    (substring pcomplete-stub 2)))
@@ -233,20 +234,10 @@ When completing for #+STARTUP, for example, this function returns
 		(setq opts (delete "showstars" opts)))))
 	    opts))))
 
-(defvar org-tag-alist)
 (defun pcomplete/org-mode/file-option/tags ()
   "Complete arguments for the #+TAGS file option."
   (pcomplete-here
-   (list
-    (mapconcat (lambda (x)
-		 (cond
-		  ((eq :startgroup (car x)) "{")
-		  ((eq :endgroup (car x)) "}")
-		  ((eq :grouptags (car x)) ":")
-		  ((eq :newline (car x)) "\\n")
-		  ((cdr x) (format "%s(%c)" (car x) (cdr x)))
-		  (t (car x))))
-	       org-tag-alist " "))))
+   (list (org-tag-alist-to-string org-current-tag-alist))))
 
 (defun pcomplete/org-mode/file-option/title ()
   "Complete arguments for the #+TITLE file option."
@@ -271,8 +262,8 @@ When completing for #+STARTUP, for example, this function returns
 	      "|:" "tags:" "tasks:" "<:" "todo:")
 	    ;; OPTION items from registered back-ends.
 	    (let (items)
-	      (dolist (backend (org-bound-and-true-p
-				org-export--registered-backends))
+	      (dolist (backend (bound-and-true-p
+				org-export-registered-backends))
 		(dolist (option (org-export-backend-options backend))
 		  (let ((item (nth 2 option)))
 		    (when item (push (concat item ":") items)))))
@@ -283,7 +274,7 @@ When completing for #+STARTUP, for example, this function returns
   (while (pcomplete-here
 	  (pcomplete-uniqify-list
 	   (mapcar (lambda (item) (format "%s:" (car item)))
-		   (org-bound-and-true-p org-html-infojs-opts-table))))))
+		   (bound-and-true-p org-html-infojs-opts-table))))))
 
 (defun pcomplete/org-mode/file-option/bind ()
   "Complete arguments for the #+BIND file option, which are variable names."
@@ -324,26 +315,24 @@ This needs more work, to handle headings with lots of spaces in them."
        (save-excursion
 	 (goto-char (point-min))
 	 (let (tbl)
-	   (while (re-search-forward org-todo-line-regexp nil t)
-	     (push (org-make-org-heading-search-string
-		    (match-string-no-properties 3))
-		   tbl))
+	   (let ((case-fold-search nil))
+	     (while (re-search-forward org-todo-line-regexp nil t)
+	       (push (org-make-org-heading-search-string
+		      (match-string-no-properties 3))
+		     tbl)))
 	   (pcomplete-uniqify-list tbl)))
        (substring pcomplete-stub 1))))
 
-(defvar org-tag-alist)
 (defun pcomplete/org-mode/tag ()
   "Complete a tag name.  Omit tags already set."
   (while (pcomplete-here
-	  (mapcar (lambda (x)
-		    (concat x ":"))
+	  (mapcar (lambda (x) (concat x ":"))
 		  (let ((lst (pcomplete-uniqify-list
-			      (or (remove
+			      (or (remq
 				   nil
-				   (mapcar (lambda (x)
-					     (and (stringp (car x)) (car x)))
-					   org-tag-alist))
-				  (mapcar 'car (org-get-buffer-tags))))))
+				   (mapcar (lambda (x) (org-string-nw-p (car x)))
+					   org-current-tag-alist))
+				  (mapcar #'car (org-get-buffer-tags))))))
 		    (dolist (tag (org-get-tags))
 		      (setq lst (delete tag lst)))
 		    lst))
@@ -357,30 +346,11 @@ This needs more work, to handle headings with lots of spaces in them."
 	     (concat x ": "))
 	   (let ((lst (pcomplete-uniqify-list
 		       (copy-sequence
-			(org-buffer-property-keys nil t t)))))
+			(org-buffer-property-keys nil t t t)))))
 	     (dolist (prop (org-entry-properties))
 	       (setq lst (delete (car prop) lst)))
 	     lst))
    (substring pcomplete-stub 1)))
-
-(defvar org-drawers)
-
-(defun pcomplete/org-mode/drawer ()
-  "Complete a drawer name."
-  (let ((spc (save-excursion
-	       (move-beginning-of-line 1)
-	       (looking-at "^\\([ \t]*\\):")
-	       (match-string 1)))
-	(cpllist (mapcar (lambda (x) (concat x ": ")) org-drawers)))
-    (pcomplete-here cpllist
-		    (substring pcomplete-stub 1)
-		    (unless (or (not (delq
-				      nil
-				      (mapcar (lambda(x)
-						(string-match (substring pcomplete-stub 1) x))
-					      cpllist)))
-				(looking-at "[ \t]*\n.*:END:"))
-		      (save-excursion (insert "\n" spc ":END:"))))))
 
 (defun pcomplete/org-mode/block-option/src ()
   "Complete the arguments of a begin_src block.

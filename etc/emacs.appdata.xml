@@ -25,9 +25,9 @@
   </ul>
  </description>
  <screenshots>
-  <screenshot type="default" width="632" height="354">http://www.gnu.org/software/emacs/images/appdata.png</screenshot>
+  <screenshot type="default" width="632" height="354">https://www.gnu.org/software/emacs/images/appdata.png</screenshot>
  </screenshots>
- <url type="homepage">http://www.gnu.org/software/emacs</url>
+ <url type="homepage">https://www.gnu.org/software/emacs</url>
  <updatecontact>emacs-devel_at_gnu.org</updatecontact>
  <project_group>GNU</project_group>
 </application>

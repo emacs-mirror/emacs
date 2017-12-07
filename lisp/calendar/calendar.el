@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -114,6 +114,37 @@
 ;;; Code:
 
 (load "cal-loaddefs" nil t)
+
+;; Calendar has historically relied heavily on dynamic scoping.
+;; Concretely, this manifests in the use of references to let-bound variables
+;; in Custom vars as well as code in diary files.
+;; `eval` is hence the core of the culprit.  It's used on:
+;; - calendar-date-display-form
+;; - calendar-time-display-form
+;; - calendar-chinese-time-zone
+;; - in cal-dst's there are various calls to `eval' but they seem not to refer
+;;   to let-bound variables, surprisingly.
+;; - calendar-date-echo-text
+;; - calendar-mode-line-format
+;; - cal-tex-daily-string
+;; - diary-date-forms
+;; - diary-remind-message
+;; - calendar-holidays
+;; - calendar-location-name
+;; - whatever is passed to calendar-string-spread
+;; - whatever is passed to calendar-insert-at-column
+;; - whatever is passed to diary-sexp-entry
+;; - whatever is passed to diary-remind
+
+(defmacro calendar-dlet* (binders &rest body)
+  "Like `let*' but using dynamic scoping."
+  (declare (indent 1) (debug let))
+  `(progn
+     (with-no-warnings                  ;Silence "lacks a prefix" warnings!
+       ,@(mapcar (lambda (binder)
+                   `(defvar ,(if (consp binder) (car binder) binder)))
+                 binders))
+     (let* ,binders ,@body)))
 
 ;; Avoid recursive load of calendar when loading cal-menu.  Yuck.
 (provide 'calendar)
@@ -835,7 +866,7 @@ For examples of three common styles, see `diary-american-date-forms',
                                    diary-american-date-forms)
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
-         (unless (equal value (eval symbol))
+         (unless (equal value (default-value symbol))
            (custom-set-default symbol value)
            (setq diary-font-lock-keywords (diary-font-lock-keywords))
            ;; Need to redraw not just to get new font-locking, but also

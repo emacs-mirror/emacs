@@ -393,7 +393,7 @@ recipients the same freedom that you enjoyed.
 
 @cindex GNU mailing lists
 The Emacs mailing lists are described at
-@uref{http://savannah.gnu.org/mail/?group=emacs, the Emacs Savannah
+@uref{https://savannah.gnu.org/mail/?group=emacs, the Emacs Savannah
 page}. Some of them are gatewayed to newsgroups.
 
 The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
@@ -421,8 +421,7 @@ posting bug reports to this newsgroup directly (@pxref{Reporting bugs}).
 The FSF has maintained archives of all of the GNU mailing lists for many
 years, although there may be some unintentional gaps in coverage.  The
 archive can be browsed over the web at
-@uref{http://lists.gnu.org/archive/html/, the GNU mail archive}.  Raw
-files can be downloaded from @uref{ftp://lists.gnu.org/}.
+@uref{https://lists.gnu.org/r/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
 @uref{http://groups.google.com/groups/dir?q=gnu&, Google}, also
@@ -458,13 +457,13 @@ RMS says:
 
 @quotation
 Sending bug reports to
-@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
 the help-gnu-emacs mailing list}
 (which has the effect of posting on @uref{news:gnu.emacs.help}) is
 undesirable because it takes the time of an unnecessarily large group
 of people, most of whom are just users and have no idea how to fix
 these problem.
-@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
 bug-gnu-emacs list} reaches a much smaller group of people who are
 more likely to know what to do and have expressed a wish to receive
 more messages about Emacs than the others.
@@ -506,12 +505,12 @@ unsubscribe.
 @cindex Free Software Foundation, contacting
 
 For up-to-date information, see
-@uref{http://www.fsf.org/about/contact.html, the FSF contact web-page}.
+@uref{https://www.fsf.org/about/contact.html, the FSF contact web-page}.
 You can send general correspondence to @email{info@@fsf.org}.
 
 @cindex Ordering GNU software
 For details on how to order items directly from the FSF, see the
-@uref{http://shop.fsf.org/, FSF on-line store}.
+@uref{https://shop.fsf.org/, FSF on-line store}.
 
 @c ------------------------------------------------------------
 @node Getting help
@@ -645,7 +644,7 @@ information.  To get a list of these commands, type @samp{?} after
 @cindex Emacs manual, obtaining a printed or HTML copy of
 
 You can order a printed copy of the Emacs manual from the FSF@.  For
-details see the @uref{http://shop.fsf.org/, FSF on-line store}.
+details see the @uref{https://shop.fsf.org/, FSF on-line store}.
 
 The full Texinfo source for the manual also comes in the @file{doc/emacs}
 directory of the Emacs distribution, if you're daring enough to try to
@@ -655,7 +654,7 @@ file}).
 If you absolutely have to print your own copy, and you don't have @TeX{},
 you can get a PostScript or PDF (or HTML) version from
 
-@uref{http://www.gnu.org/software/emacs/manual/}
+@uref{https://www.gnu.org/software/emacs/manual/}
 
 @xref{Learning how to do something}, for how to view the manual from Emacs.
 
@@ -675,12 +674,12 @@ in Info format (@pxref{Top, Emacs Lisp,, elisp, The
 Emacs Lisp Reference Manual}).
 
 You can also order a hardcopy of the manual from the FSF, for details
-see the @uref{http://shop.fsf.org/, FSF on-line store}.  (This manual is
+see the @uref{https://shop.fsf.org/, FSF on-line store}.  (This manual is
 not always in print.)
 
 An HTML version of the Emacs Lisp Reference Manual is available at
 
-@uref{http://www.gnu.org/software/emacs/elisp-manual/elisp.html}
+@uref{https://www.gnu.org/software/emacs/elisp-manual/elisp.html}
 
 @node Installing Texinfo documentation
 @section How do I install a piece of Texinfo documentation?
@@ -699,7 +698,7 @@ First, you must turn the Texinfo source files into Info files.  You may
 do this using the stand-alone @file{makeinfo} program, available as part
 of the Texinfo package at
 
-@uref{http://www.gnu.org/software/texinfo/}
+@uref{https://www.gnu.org/software/texinfo/}
 
 For information about the Texinfo format, read the Texinfo manual which
 comes with the Texinfo package.  This manual also comes installed in
@@ -893,7 +892,7 @@ Emacs news, a history of recent user-visible changes
 More GNU information, including back issues of the @cite{GNU's
 Bulletin}, are at
 
-@uref{http://www.gnu.org/bulletins/bulletins.html} and
+@uref{https://www.gnu.org/bulletins/bulletins.html} and
 
 @uref{http://www.cs.pdx.edu/~trent/gnu/gnu.html}
 
@@ -905,7 +904,7 @@ Bulletin}, are at
 @xref{Installing Emacs}, for some basic installation hints, and see
 @ref{Problems building Emacs}, if you have problems with the installation.
 
-@uref{http://www.fsf.org/resources/service/, The GNU Service directory}
+@uref{https://www.fsf.org/resources/service/, The GNU Service directory}
 lists companies and individuals willing to sell you help in installing
 or using Emacs and other GNU software.
 
@@ -983,7 +982,7 @@ version; three components indicate a development
 version (e.g., @samp{26.0.50} is what will eventually become @samp{26.1}).
 
 Emacs is under active development, hosted at
-@uref{http://savannah.gnu.org/projects/emacs/, Savannah}.
+@uref{https://savannah.gnu.org/projects/emacs/, Savannah}.
 Follow the instructions given there to clone the project repository.
 
 Because Emacs undergoes many changes before a release, the version
@@ -1433,7 +1432,7 @@ of files from Macintosh, Microsoft, and Unix platforms.
 In general, new Emacs users should not be provided with @file{.emacs}
 files, because this can cause confusing non-standard behavior.  Then
 they send questions to
-@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
 the help-gnu-emacs mailing list} asking why Emacs
 isn't behaving as documented.
 
@@ -2490,7 +2489,7 @@ following in your @file{.emacs}:
 If you're tired of seeing backup files whenever you do an @samp{ls} at
 the Unix shell, try GNU @code{ls} with the @samp{-B} option.  GNU
 @code{ls} is part of the GNU Fileutils package, available from
-@samp{ftp.gnu.org} and its mirrors (@pxref{Current GNU distributions}).
+@url{https://ftp.gnu.org} and its mirrors (@pxref{Current GNU distributions}).
 
 To disable or change the way backups are made,
 @pxref{Backup Names,,, emacs, The GNU Emacs Manual}.
@@ -3035,7 +3034,7 @@ Xt toolkit.
 
 @code{XFILESEARCHPATH} and @code{XUSERFILESEARCHPATH} should be a list
 of file names separated by colons.  @code{XAPPLRESDIR} should be a list
-of directory names separated by colons.
+of directories separated by colons.
 
 Emacs searches for X resources:
 
@@ -3127,7 +3126,7 @@ this behavior, type @kbd{$$} instead.
 Emacs has no way of knowing when the shell actually changes its
 directory.  This is an intrinsic limitation of Unix.  So it tries to
 guess by recognizing @samp{cd} commands.  If you type @kbd{cd} followed
-by a directory name with a variable reference (@kbd{cd $HOME/bin}) or
+by directory with a variable reference (@kbd{cd $HOME/bin}) or
 with a shell metacharacter (@kbd{cd ../lib*}), Emacs will fail to
 correctly guess the shell's new current directory.  A huge variety of
 fixes and enhancements to shell mode for this problem have been written
@@ -3293,11 +3292,11 @@ the source distribution.  In brief:
 
 @item
 First download the Emacs sources.  @xref{Current GNU distributions}, for
-a list of ftp sites that make them available.  On @file{ftp.gnu.org},
+a list of sites that make them available.  On @url{https://ftp.gnu.org},
 the main GNU distribution site, sources are available as
 
 @c Don't include VER in the file name, because pretests are not there.
-@uref{ftp://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
+@uref{https://ftp.gnu.org/pub/gnu/emacs/emacs-VERSION.tar.gz}
 
 (Replace @samp{VERSION} with the relevant version number, e.g., @samp{23.1}.)
 
@@ -3305,7 +3304,7 @@ the main GNU distribution site, sources are available as
 Next uncompress and extract the source files.  This requires
 the @code{gzip} and @code{tar} programs, which are standard utilities.
 If your system does not have them, these can also be downloaded from
-@file{ftp.gnu.org}.
+@url{https://ftp.gnu.org}.
 
 GNU @code{tar} can uncompress and extract in a single-step:
 
@@ -3383,7 +3382,7 @@ problem (@pxref{Reporting bugs}).
 @cindex Downloading Emacs
 
 Information on downloading Emacs is available at
-@uref{http://www.gnu.org/software/emacs/, the Emacs home-page}.
+@uref{https://www.gnu.org/software/emacs/, the Emacs home-page}.
 
 @xref{Installing Emacs}, for information on how to obtain and build the latest
 version of Emacs, and see @ref{Current GNU distributions}, for a list of
@@ -3426,7 +3425,7 @@ see @ref{Packages that do not come with Emacs}.
 
 The easiest way to add more features to your Emacs is to use the
 command @kbd{M-x list-packages}.  This contacts the
-@uref{http:///elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
+@uref{https:///elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
 server and fetches the list of additional packages that it offers.
 These are GNU packages that are available for use with Emacs, but are
 distributed separately from Emacs itself, for reasons of space, etc.
@@ -3464,13 +3463,17 @@ best way to find results.
 @section Spell-checkers
 @cindex Spell-checker
 @cindex Checking spelling
-@cindex Ispell
-@cindex Aspell
 @cindex Hunspell
+@cindex Aspell
+@cindex Ispell
+@cindex Enchant
 
 Various spell-checkers are compatible with Emacs, including:
 
 @table @b
+
+@item Hunspell
+@uref{http://hunspell.sourceforge.net/}
 
 @item GNU Aspell
 @uref{http://aspell.net/}
@@ -3478,8 +3481,8 @@ Various spell-checkers are compatible with Emacs, including:
 @item Ispell
 @uref{http://fmg-www.cs.ucla.edu/geoff/ispell.html}
 
-@item Hunspell
-@uref{http://hunspell.sourceforge.net/}
+@item Enchant
+@uref{https://abiword.github.io/enchant/}
 
 @end table
 
@@ -3494,11 +3497,11 @@ Various spell-checkers are compatible with Emacs, including:
 
 The most up-to-date official GNU software is normally kept at
 
-@uref{ftp://ftp.gnu.org/pub/gnu}
+@uref{https://ftp.gnu.org/pub/gnu}
 
 A list of sites mirroring @samp{ftp.gnu.org} can be found at
 
-@uref{http://www.gnu.org/order/ftp.html}
+@uref{https://www.gnu.org/prep/ftp}
 
 @node Difference between Emacs and XEmacs
 @section What is the difference between Emacs and XEmacs (formerly Lucid Emacs)?
@@ -3544,7 +3547,7 @@ binary typically has a size of about 130 kbytes, so this can be useful
 if you are in an extremely space-restricted environment.  More
 information is available from
 
-@uref{http://www.gnu.org/software/zile/}
+@uref{https://www.gnu.org/software/zile/}
 
 
 @node Emacs for MS-DOS
@@ -3562,10 +3565,10 @@ onwards, including Windows XP and Vista.
 The file @file{etc/PROBLEMS} contains some additional information
 regarding Emacs under MS-DOS.
 
-A pre-built binary distribution of the old Emacs 20 is available, as
+A pre-built binary distribution of the old Emacs 24 is available, as
 described at
 
-@uref{ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
+@uref{http://www.delorie.com/pub/djgpp/current/v2gnu/emacs.README}
 
 For a list of other MS-DOS implementations of Emacs (and Emacs
 look-alikes), consult the list of ``Emacs implementations and literature,''
@@ -4199,7 +4202,7 @@ Arabic, Farsi, and Hebrew, since version 24.1.
 
 First, download and install the BDF font files and any auxiliary
 packages they need.  The GNU Intlfonts distribution can be found on
-@uref{http://directory.fsf.org/localization/intlfonts.html, the GNU
+@uref{https://directory.fsf.org/localization/intlfonts.html, the GNU
 Software Directory Web site}.
 
 Next, if you are on X Window system, issue the following two commands

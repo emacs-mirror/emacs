@@ -27,7 +27,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -4889,7 +4889,7 @@ If optional argument STATE is positive, turn borders on."
      (select-window (posn-window (event-start last-input-event)))
      (list last-input-event
 	   (if (display-popup-menus-p)
-	       (x-popup-menu last-nonmenu-event artist-popup-menu-table)
+	       (x-popup-menu t artist-popup-menu-table)
 	     'no-popup-menus))))
 
   (if (eq op 'no-popup-menus)

@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* The arguments given to this program are all the C and Lisp source files
@@ -39,9 +39,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <binary-io.h>
+#include <intprops.h>
+#include <min-max.h>
+#include <unlocked-io.h>
 
 #ifdef WINDOWSNT
 /* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
@@ -49,10 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef fopen
 #include <direct.h>
 #endif /* WINDOWSNT */
-
-#include <binary-io.h>
-#include <intprops.h>
-#include <min-max.h>
 
 #ifdef DOS_NT
 /* Defined to be sys_chdir in ms-w32.h, but only #ifdef emacs, so this
@@ -592,7 +592,7 @@ struct global
 };
 
 /* Bit values for FLAGS field from the above.  Applied for DEFUNs only.  */
-enum { DEFUN_noreturn = 1, DEFUN_const = 2 };
+enum { DEFUN_noreturn = 1, DEFUN_const = 2, DEFUN_noinline = 4 };
 
 /* All the variable names we saw while scanning C sources in `-g'
    mode.  */
@@ -667,7 +667,7 @@ close_emacs_globals (ptrdiff_t num_symbols)
 	   "#ifndef DEFINE_SYMBOLS\n"
 	   "extern\n"
 	   "#endif\n"
-	   "struct Lisp_Symbol alignas (GCALIGNMENT) lispsym[%td];\n"),
+	   "struct Lisp_Symbol lispsym[%td];\n"),
 	  num_symbols);
 }
 
@@ -740,6 +740,8 @@ write_globals (void)
 	{
 	  if (globals[i].flags & DEFUN_noreturn)
 	    fputs ("_Noreturn ", stdout);
+	  if (globals[i].flags & DEFUN_noinline)
+	    fputs ("NO_INLINE ", stdout);
 
 	  printf ("EXFUN (%s, ", globals[i].name);
 	  if (globals[i].v.value == -1)
@@ -1060,7 +1062,8 @@ scan_c_stream (FILE *infile)
 		   attributes: attribute1 attribute2 ...)
 	       (Lisp_Object arg...)
 
-	     Now only 'noreturn' and 'const' attributes are used.  */
+	     Now only ’const’, ’noinline’ and 'noreturn' attributes
+	     are used.  */
 
 	  /* Advance to the end of docstring.  */
 	  c = getc (infile);
@@ -1106,6 +1109,8 @@ scan_c_stream (FILE *infile)
 		g->flags |= DEFUN_noreturn;
 	      if (strstr (input_buffer, "const"))
 		g->flags |= DEFUN_const;
+	      if (strstr (input_buffer, "noinline"))
+		g->flags |= DEFUN_noinline;
 	    }
 	  continue;
 	}

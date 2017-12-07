@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -559,13 +559,13 @@ FLOAT, if non-nil, means generate and return a float instead of an integer
     (if (zerop (logand   256 mode)) ?- ?r)
     (if (zerop (logand   128 mode)) ?- ?w)
     (if (zerop (logand    64 mode))
-	(if (zerop (logand  1024 mode)) ?- ?S)
-      (if (zerop (logand  1024 mode)) ?x ?s))
+	(if (zerop (logand  2048 mode)) ?- ?S)
+      (if (zerop (logand  2048 mode)) ?x ?s))
     (if (zerop (logand    32 mode)) ?- ?r)
     (if (zerop (logand    16 mode)) ?- ?w)
     (if (zerop (logand     8 mode))
-	(if (zerop (logand  2048 mode)) ?- ?S)
-      (if (zerop (logand  2048 mode)) ?x ?s))
+	(if (zerop (logand  1024 mode)) ?- ?S)
+      (if (zerop (logand  1024 mode)) ?x ?s))
     (if (zerop (logand     4 mode)) ?- ?r)
     (if (zerop (logand     2 mode)) ?- ?w)
     (if (zerop (logand     1 mode)) ?- ?x)))

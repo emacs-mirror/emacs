@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -277,7 +277,7 @@ Execute BODY in a location where a value can be placed."
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 
 (defsubst ede-pmake-varname (obj)
-  "Convert OBJ into a variable name name.
+  "Convert OBJ into a variable name.
 Change .  to _ in the variable name."
   (let ((name (oref obj name)))
     (while (string-match "\\." name)

@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -278,7 +278,7 @@ Otherwise, look for `movemail' in the directories in
 	  ;; rmail-insert-inbox-text before r1.439 fell back to using
 	  ;; (expand-file-name "movemail" exec-directory) and just
 	  ;; assuming it would work.
-	  ;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00087.html
+	  ;; https://lists.gnu.org/r/bug-gnu-emacs/2008-02/msg00087.html
 	  (let ((progname (expand-file-name
 			   (concat "movemail"
 				   (if (memq system-type '(ms-dos windows-nt))
@@ -534,7 +534,7 @@ still the current message in the Rmail buffer.")
 ;; It's not clear what it should do now, since there is nothing that
 ;; records when a message is shown for the first time (unseen is not
 ;; necessarily the same thing).
-;; See http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00013.html
+;; See https://lists.gnu.org/r/emacs-devel/2009-03/msg00013.html
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
 Called with region narrowed to the message, including headers,
@@ -2828,8 +2828,6 @@ The current mail message becomes the message displayed."
 		 (re-search-forward "mime-version: 1.0" nil t))
 	    (let ((rmail-buffer mbox-buf)
 		  (rmail-view-buffer view-buf))
-	      (setq showing-message t)
-	      (message "Showing message %d..." msg)
 	      (set (make-local-variable 'rmail-mime-decoded) t)
 	      (funcall rmail-show-mime-function))
 	  (setq body-start (search-forward "\n\n" nil t))

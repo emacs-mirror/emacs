@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -96,7 +96,7 @@ enum
    DIG digits.  For why the "+ 1" is needed, see "Binary to Decimal
    Conversion" in David Goldberg's paper "What Every Computer
    Scientist Should Know About Floating-Point Arithmetic"
-   <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html>.  */
+   <https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html>.  */
 # define _GL_FLOAT_PREC_BOUND(dig) \
    (INT_BITS_STRLEN_BOUND ((dig) * _GL_FLOAT_DIG_BITS_BOUND) + 1)
 

@@ -18,7 +18,7 @@ or for HTML.
 
 * You can buy nicely printed copies from the Free Software Foundation.
 Buying a manual from the Free Software Foundation helps support our GNU
-development work.  See <http://shop.fsf.org/>.
+development work.  See <https://shop.fsf.org/>.
 (At time of writing, this manual is out of print.)
 
 * The master file for formatting this manual for Tex is called 'elisp.texi'.
@@ -45,4 +45,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

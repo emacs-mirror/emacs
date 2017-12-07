@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,7 +32,7 @@
 (defconst math-bignum-logb-digit-size
   (logb math-bignum-digit-size)
   "The logb of the size of a bignum digit.
-This is the largest value of B such that 2^B is less than 
+This is the largest value of B such that 2^B is less than
 the size of a Calc bignum digit.")
 
 (defconst math-bignum-digit-power-of-two
@@ -171,7 +171,7 @@ the size of a Calc bignum digit.")
   (calc-wrapper
    (if (and (>= n 2) (<= n 36))
        (progn
-	 (calc-change-mode 
+	 (calc-change-mode
           (list 'calc-number-radix 'calc-twos-complement-mode)
           (list n (or arg (calc-is-option))) t)
 	 ;; also change global value so minibuffer sees it
@@ -424,7 +424,7 @@ the size of a Calc bignum digit.")
       (math-mul-bignum-digit (math-not-bignum (math-norm-bignum (car q))
 					       (- w math-bignum-logb-digit-size))
 			      math-bignum-digit-power-of-two
-			      (logxor (cdr q) 
+			      (logxor (cdr q)
                                       (1- math-bignum-digit-power-of-two))))))
 
 (defun calcFunc-lsh (a &optional n w)   ; [I I] [Public]
@@ -845,7 +845,7 @@ the size of a Calc bignum digit.")
           (setq num (concat (make-string (- digs len) ?0) num))))
     (when calc-group-digits
       (setq num (math-group-float num)))
-    (concat 
+    (concat
      (number-to-string calc-number-radix)
      "##"
      num)))

@@ -17,7 +17,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
@@ -294,6 +294,15 @@ failed or if there was a problem."
                   "the error signaled was a subtype of the expected type")))))
     ))
 
+(ert-deftest ert-test-should-error-argument ()
+  "Errors due to evaluating arguments should not break tests."
+  (should-error (identity (/ 1 0))))
+
+(ert-deftest ert-test-should-error-macroexpansion ()
+  "Errors due to expanding macros should not break tests."
+  (cl-macrolet ((test () (error "Foo")))
+    (should-error (test))))
+
 (ert-deftest ert-test-skip-unless ()
   ;; Don't skip.
   (let ((test (make-ert-test :body (lambda () (skip-unless t)))))
@@ -352,7 +361,7 @@ This macro is used to test if macroexpansion in `should' works."
   (let ((abc (ert-get-test 'ert-test-abc)))
     (should (equal (ert-test-tags abc) '(bar)))
     (should (equal (ert-test-documentation abc) "foo")))
-  (should (equal (symbol-file 'ert-test-deftest 'ert-deftest)
+  (should (equal (symbol-file 'ert-test-deftest 'ert--test)
                  (symbol-file 'ert-test--which-file 'defun)))
 
   (ert-deftest ert-test-def () :expected-result ':passed)
@@ -367,12 +376,8 @@ This macro is used to test if macroexpansion in `should' works."
          (test (make-ert-test :body test-body))
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
-    (with-temp-buffer
-      (ert--print-backtrace (ert-test-failed-backtrace result))
-      (goto-char (point-min))
-      (end-of-line)
-      (let ((first-line (buffer-substring-no-properties (point-min) (point))))
-        (should (equal first-line (format "  %S()" test-body)))))))
+    (should (eq (nth 1 (car (ert-test-failed-backtrace result)))
+                'signal))))
 
 (ert-deftest ert-test-messages ()
   :tags '(:causes-redisplay)

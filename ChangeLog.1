@@ -33,7 +33,7 @@
 
 	Fix 'commit-msg' to cite 'CONTRIBUTE'
 	As suggested in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-03/msg00947.html
+	https://lists.gnu.org/r/emacs-devel/2015-03/msg00947.html
 	Also, have the two files match better.
 	* CONTRIBUTE: Match what's in build-aux/git-hooks/commit-msg.
 	* build-aux/git-hooks/commit-msg: Mention 'CONTRIBUTE'.
@@ -145,7 +145,7 @@
 
 	* configure.ac (HAVE_W32): Abort with error message if
 	--without-toolkit-scroll-bars was specified.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00525.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00525.html
 	for the details.
 
 2015-01-27  Paul Eggert  <eggert@cs.ucla.edu>
@@ -156,7 +156,7 @@
 	configuration.  The downside is that patch applications won't be
 	checked, but that's better than autogen.sh failing.
 	Problem reported by Sam Steingold in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00898.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00898.html
 
 2015-01-26  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -184,7 +184,7 @@
 	Give up on -Wsuggest-attribute=const
 	The attribute doesn't help performance significantly, and the
 	warning seems to be more trouble than it's worth.  See the thread at:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00361.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00361.html
 	* configure.ac (WERROR_CFLAGS): Don't use -Wsuggest-attribute=const.
 
 2015-01-11  Paul Eggert  <eggert@cs.ucla.edu>
@@ -297,7 +297,7 @@
 2014-12-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port commit-msg to mawk.  Reported by Ted Zlatanov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg01093.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg01093.html
 	* build-aux/git-hooks/commit-msg (space, non_space, non_print):
 	New vars.  Use them as approximations to POSIX bracket expressions,
 	on implementations like mawk that do not support POSIX regexps.
@@ -313,7 +313,7 @@
 
 	Port commit-message checking to FreeBSD 9.
 	Reported by Jan Djärv in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg00704.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg00704.html
 	along with some other issues I noticed while testing with FreeBSD.
 	* build-aux/git-hooks/commit-msg: Prefer gawk if available.
 	Prefer en_US.UTF-8 to en_US.utf8, as it's more portable.
@@ -391,7 +391,7 @@
 
 	Add a.out to .gitignore.
 	Suggested by Lee Duhem in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg01665.html
+	https://lists.gnu.org/r/emacs-devel/2014-11/msg01665.html
 	* .gitignore: Add a.out.
 	Move *.log next to *.tmp, since it's generic.
 	Put *.exe before non-generics.
@@ -442,7 +442,7 @@
 	Restore 'Bug#' -> 'debbugs:' rewrite in log-edit-mode.
 	* .dir-locals.el (log-edit-mode): Restore the (log-edit-rewrite-fixes
 	"[ \n](bug#\\([0-9]+\\))" . "debbugs:\\1").  See Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg01187.html
+	https://lists.gnu.org/r/emacs-devel/2014-11/msg01187.html
 
 	Simplify and fix doc-related .gitignore files.
 	This fixes some unwanted 'git status' output after 'make docs'.
@@ -913,7 +913,7 @@
 
 	Omit redundant extern decls.
 	Most of this patch is from Dmitry Antipov, in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00263.html
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00263.html
 	* configure.ac (WERROR_CFLAGS): Add -Wredundant-decls.
 
 	Merge from gnulib, incorporating:
@@ -969,7 +969,7 @@
 
 	Rely on AC_CANONICAL_HOST to detect whether we're using mingw.
 	See the thread containing:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00206.html
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00206.html
 	* configure.ac (AC_CANONICAL_HOST): Invoke this as early as we
 	can, which is just after AM_INIT_AUTOMAKE.  Then check for mingw
 	just after that.
@@ -1045,7 +1045,7 @@
 2014-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.ac (pthread_sigmask): Look in LIB_PTHREAD too (Bug#17561).
-	Fixes configuration glitch found in <http://bugs.gnu.org/17561#59>.
+	Fixes configuration glitch found in <https://bugs.gnu.org/17561#59>.
 
 2014-05-29  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1517,7 +1517,7 @@
 
 	* configure.ac (LIBXML2_CFLAGS): Fix xcrun-related quoting problem.
 	Reported by YAMAMOTO Mitsuharu in:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00995.html
+	https://lists.gnu.org/r/emacs-devel/2013-12/msg00995.html
 
 2013-12-28  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -1529,7 +1529,7 @@
 	* configure.ac: Don't set MAKE unless 'make' doesn't work.
 	Set it only in the environment, not in the makefile.
 	Reported by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00969.html
+	https://lists.gnu.org/r/emacs-devel/2013-12/msg00969.html
 
 2013-12-27  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -1635,7 +1635,7 @@
 	Remove the option of using libcrypto.
 	This scorches the earth and waits for spring;
 	see Ted Zlatanov and Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00323.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-12/msg00323.html>.
 	* configure.ac (with_openssl_default, HAVE_LIB_CRYPTO): Remove.
 	Do not say whether Emacs is configured to use a crypto library,
 	since it's no longer an option.
@@ -1666,7 +1666,7 @@
 	On commonly used platform libcrypto uses architecture-specific
 	assembly code, which is significantly faster than the C code we
 	were using.  See Pádraig Brady's note in
-	<http://lists.gnu.org/archive/html/bug-gnulib/2013-12/msg00000.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2013-12/msg00000.html>.
 	Merge from gnulib, incorporating:
 	2013-12-07 md5, sha1, sha256, sha512: add gl_SET_CRYPTO_CHECK_DEFAULT
 	2013-12-07 md5, sha1, sha256, sha512: add 'auto', and set-default method
@@ -1987,7 +1987,7 @@
 	Work around performance bug on OS X 10.8 and earlier.
 	Perhaps Apple will fix this bug some day.
 	See the thread starting with Daniel Colascione's email in:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00343.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00343.html
 	* configure.ac (FORTIFY_SOUR): New verbatim section.
 
 2013-09-19  Paul Eggert  <eggert@cs.ucla.edu>
@@ -2003,9 +2003,9 @@
 
 	* configure.ac <srcdir> [MINGW32]: Make sure the value of 'srcdir'
 	is in the full /d/foo/bar form.  See the discussion in
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00210.html,
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00210.html,
 	and in particular
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00252.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00252.html
 	and its followups, for the details.
 
 2013-09-17  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -2617,7 +2617,7 @@
 	Merge from gnulib, incorporating:
 	2013-03-29 stdalign: port to stricter ISO C11
 	This helps to run 'configure' on MS-Windows; see Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00999.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-03/msg00999.html>.
 
 2013-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -2812,7 +2812,7 @@
 
 	Enable conservative stack scanning for all architectures.
 	Suggested by Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00183.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-01/msg00183.html>.
 	* configure.ac (GC_MARK_STACK): Remove.
 
 2013-01-11  Paul Eggert  <eggert@cs.ucla.edu>
@@ -3182,7 +3182,7 @@
 
 	Check more robustly for timer_settime.
 	This should fix an OS X build problem reported by Ivan Andrus in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00671.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00671.html>.
 	* configure.ac (gl_THREADLIB): Define to empty, since Emacs
 	does threads its own way.
 	* lib/gnulib.mk, m4/gnulib-comp.m4: Regenerate.
@@ -3196,7 +3196,7 @@
 
 	* Makefile.in (bootstrap): Simplify build procedure.
 	Suggested by Wolfgang Jenker in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00456.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00456.html>.
 
 	Merge from gnulib, incorporating:
 	2012-09-22 sockets, sys_stat: remove AC_C_INLINE in MSVC-only cases
@@ -3216,14 +3216,14 @@
 	* Makefile.in: Fix build error on FreeBSD.
 	($(MAKEFILE_NAME)): Pass MAKE='$(MAKE)' to config.status's env.
 	Suggested by Wolfgang Jenker in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00430.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00430.html>.
 	(MAKE_CONFIG_STATUS): Remove.  Remaining use expanded.
 	This undoes part of the 2012-09-10 patch.
 	(bootstrap): Run ./configure, rather than trying to run config.status
 	if it exists.  That builds src/epaths.h more reliably.
 	Run autogen/copy_autogen if autogen.sh fails,
 	to create 'configure'.  Reported by Andreas Schwab in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00438.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00438.html>.
 	* autogen.sh: Exit with status 1 when failing due to missing tools,
 	reverting the 2012-09-10 change to this file.
 	* autogen/copy_autogen: Fail if one of the subsidiary actions fail.
@@ -3360,7 +3360,7 @@
 
 	* configure.ac (WARN_CFLAGS): Omit -Wjump-misses-init.
 	It generates false alarms in doc.c, regex.c, xdisp.c.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00040.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00040.html>.
 
 	Merge from gnulib, incorporating:
 	2012-08-29 stdbool: be more compatible with mixed C/C++ compiles
@@ -3375,7 +3375,7 @@
 	* configure.ac (_FORTIFY_SOURCE): Define only when optimizing.
 	This ports to glibc 2.15 or later, when configured with
 	--enable-gcc-warnings.  See Eric Blake in
-	<http://lists.gnu.org/archive/html/bug-grep/2012-09/msg00000.html>.
+	<https://lists.gnu.org/r/bug-grep/2012-09/msg00000.html>.
 
 2012-09-01  Daniel Colascione  <dan.colascione@gmail.com>
 
@@ -3812,7 +3812,7 @@
 
 	Improve static checking when configured --with-ns.
 	See Samuel Bronson's remarks in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-07/msg00146.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-07/msg00146.html>.
 	* configure.in (WARN_CFLAGS): Omit -Wunreachable-code, as it's
 	a no-op with recent GCC and harmful in earlier ones.
 	Omit -Wsync-nand, as it's irrelevant to Emacs and provokes a
@@ -4072,7 +4072,7 @@
 
 	Remove --disable-maintainer-mode option from 'configure'.  (Bug#11555)
 	It is confusingly named and rarely useful.  See, for example,
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00089.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-12/msg00089.html>.
 	* INSTALL.BZR: Don't mention --disable-maintainer-mode.
 	* Makefile.in (MAINTAINER_MODE_FLAG): Remove; all uses removed.
 	* configure.in: Remove --disable-maintainer-mode.
@@ -4555,7 +4555,7 @@
 	Check pkg-config exit status when configuring (Bug#10626).
 	* configure.in (PKG_CHECK_MODULES): Do not assume that pkg-config
 	works; check its exit status.  Reported by Jordi Gutiérrez Hermoso in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00787.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-01/msg00787.html>.
 
 2012-04-07  Glenn Morris  <rgm@gnu.org>
 
@@ -4628,7 +4628,7 @@
 	* configure.in (HAVE_PTHREAD): Check for pthread_atfork if linking
 	to gmalloc.c.  This should prevent a MirBSD 10 build failure reported
 	by Nelson H. F. Beebe in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00065.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-12/msg00065.html>.
 
 2011-12-10  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -4775,7 +4775,7 @@
 
 	Merge from gnulib, improving some licensing wording.
 	This clarifies and fixes some licensing issues raised by Glenn Morris
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-09/msg00397.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-09/msg00397.html>.
 	It also merges the latest version of texinfo.tex and has some
 	MSVC-related changes that don't affect Emacs.
 	* Makefile.in (GNULIB_TOOL_FLAGS): Avoid msvc-inval, msvc-nothrow,
@@ -4944,7 +4944,7 @@
 	test, which runs afoul of Automake installations where, for example,
 	/usr/share/aclocal contains a copy of gl_THREADLIB.
 	Reported by Sven Joachim in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00529.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-07/msg00529.html>.
 	This is just a quick temporary fix, specific to Emacs; I'll work
 	with the other gnulib maintainers to get a more-permanent fix.
 
@@ -5556,7 +5556,7 @@
 	* arg-nonnull.h, c++defs.h, warn-on-use.h: Fix licenses.
 	Sync from gnulib, which has been patched to fix the problem
 	with the license notices.  Reported by Glenn Morris in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00403.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-02/msg00403.html>.
 
 2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5590,7 +5590,7 @@
 	gnulib: adjust to upstream _HEADERS change
 	* lib/Makefile.am (EXTRA_HEADERS, nodist_pkginclude_HEADERS):
 	New empty macros, to accommodate recent changes to gnulib.  See
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-02/msg00068.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-02/msg00068.html>.
 	* c++defs.h, lib/Makefile.in, lib/ftoastr.h, lib/getopt.in.h:
 	* lib/gnulib.mk, lib/ignore-value.h, lib/stdbool.in.h, lib/stddef.in.h:
 	* lib/time.in.h, lib/unistd.in.h:
@@ -5664,7 +5664,7 @@
 	* lib/mktime.c (long_int_is_wide_enough): Move this assertion to
 	the top level, to make it clearer that the assumption about
 	long_int width is being checked.  See
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00554.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-01/msg00554.html>.
 
 	2011-01-29  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -5673,7 +5673,7 @@
 	negative number, which the C Standard says has undefined behavior.
 	In practice this is not a problem, but might as well do it by the book.
 	Reported by Rich Felker and Eric Blake; see
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00493.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-01/msg00493.html>.
 	* m4/mktime.m4 (AC_FUNC_MKTIME): Likewise.
 	* lib/mktime.c (TYPE_MAXIMUM): Redo slightly to match the others.
 
@@ -5691,7 +5691,7 @@
 	mktime: fix some integer overflow issues and sidestep the rest
 
 	This was prompted by a bug report by Benjamin Lindner for MinGW
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00472.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-01/msg00472.html>.
 	His bug is due to signed integer overflow (0 - INT_MIN), and I
 	I scanned through mktime.c looking for other integer overflow
 	problems, fixing all the bugs I found.
@@ -5710,7 +5710,7 @@
 	no need to test for alternatives.  All uses removed.
 	(TYPE_MAXIMUM): Don't rely here on overflow behavior not defined by
 	the C standard.  Reported by Rich Felker in
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00488.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-01/msg00488.html>.
 	(twos_complement_arithmetic): Also check long_int and time_t.
 	(time_t_avg, time_t_add_ok, time_t_int_add_ok): New functions.
 	(guess_time_tm, ranged_convert, __mktime_internal): Use them.
@@ -5810,7 +5810,7 @@
 	aclocal.m4: put this file back into repository
 	This way, we don't have to assume that the maintainer has
 	the automake package installed.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00746.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-01/msg00746.html>.
 	* .bzrignore: Remove aclocal.m4, undoing the previous change.
 	* Makefile.in (top_maintainer_clean): Do not remove aclocal.m4,
 	undoing the previous change.
@@ -5837,7 +5837,7 @@
 
 	aclocal.m4: tweaks to regenerate more conveniently
 	This attempts to act better when the source is in a weird state.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00734.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-01/msg00734.html>.
 	* Makefile.in (am--refresh): Add aclocal.m4, configure, config.in.
 	* .bzrignore: Add aclocal.m4.
 
@@ -5848,12 +5848,12 @@
 	the most recent change here.
 	* aclocal.m4: Remove from bzr repository.  This file is
 	auto-generated and isn't needed to run 'configure'.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00698.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-01/msg00698.html>.
 
 2011-01-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor Makefile.in tweaks to build from gnulib better.
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00673.html>
+	<https://lists.gnu.org/r/emacs-devel/2011-01/msg00673.html>
 	* Makefile.in (sync-from-gnulib): Also run autoreconf -I m4.
 	(top_maintainer_clean): Don't remove aclocal.m4.
 
@@ -5881,7 +5881,7 @@
 
 	* Makefile.in (GNULIB_MODULES): Change ftoastr to dtoastr.
 	This avoids building ftoastr and ldtoastr, which aren't needed.  See
-	<http://lists.gnu.org/archive/html/bug-gnulib/2011-01/msg00199.html>.
+	<https://lists.gnu.org/r/bug-gnulib/2011-01/msg00199.html>.
 
 	* .bzrignore: Add .h files that are host-dependent.
 	Add lib/.deps/, lib/arg-nonnull.h, lib/c++defs.h, lib/getopt.h,
@@ -14715,4 +14715,4 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

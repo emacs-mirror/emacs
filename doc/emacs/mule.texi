@@ -1002,16 +1002,15 @@ its name at the prompt.)
 @vindex sendmail-coding-system
   When you send a mail message (@pxref{Sending Mail}),
 Emacs has four different ways to determine the coding system to use
-for encoding the message text.  It tries the buffer's own value of
+for encoding the message text.  It first tries the buffer's own value of
 @code{buffer-file-coding-system}, if that is non-@code{nil}.
 Otherwise, it uses the value of @code{sendmail-coding-system}, if that
-is non-@code{nil}.  The third way is to use the default coding system
-for new files, which is controlled by your choice of language
-@c i.e., default-sendmail-coding-system
-environment, if that is non-@code{nil}.  If all of these three values
-are @code{nil}, Emacs encodes outgoing mail using the Latin-1 coding
-system.
-@c FIXME?  Where does the Latin-1 default come in?
+is non-@code{nil}.  Thirdly, it uses the value of
+@code{default-sendmail-coding-system}.
+If all of these three values are @code{nil}, Emacs encodes outgoing
+mail using the default coding system for new files (i.e., the
+default value of @code{buffer-file-coding-system}), which is
+controlled by your choice of language environment.
 
 @node Text Coding
 @section Specifying a Coding System for File Text
@@ -1198,7 +1197,7 @@ names (@code{set-file-name-coding-system}).
 @end table
 
 @findex set-file-name-coding-system
-@kindex C-x @key{RET} F
+@kindex C-x RET F
 @cindex file names with non-@acronym{ASCII} characters
   The command @kbd{C-x @key{RET} F} (@code{set-file-name-coding-system})
 specifies a coding system to use for encoding file @emph{names}.  It
@@ -1356,7 +1355,7 @@ fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
 @c FIXME?  The doc of *standard*-fontset-spec says:
 @c "You have the biggest chance to display international characters
 @c with correct glyphs by using the *standard* fontset." (my emphasis)
-@c See http://lists.gnu.org/archive/html/emacs-devel/2012-04/msg00430.html
+@c See https://lists.gnu.org/r/emacs-devel/2012-04/msg00430.html
 The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
@@ -1774,15 +1773,15 @@ Chars}).
 @cindex bidirectional editing
 @cindex right-to-left text
 
-  Emacs supports editing text written in scripts, such as Arabic and
-Hebrew, whose natural ordering of horizontal text for display is from
-right to left.  However, digits and Latin text embedded in these
-scripts are still displayed left to right.  It is also not uncommon to
-have small portions of text in Arabic or Hebrew embedded in an otherwise
-Latin document; e.g., as comments and strings in a program source
-file.  For these reasons, text that uses these scripts is actually
-@dfn{bidirectional}: a mixture of runs of left-to-right and
-right-to-left characters.
+  Emacs supports editing text written in scripts, such as Arabic,
+Farsi, and Hebrew, whose natural ordering of horizontal text for
+display is from right to left.  However, digits and Latin text
+embedded in these scripts are still displayed left to right.  It is
+also not uncommon to have small portions of text in Arabic or Hebrew
+embedded in an otherwise Latin document; e.g., as comments and strings
+in a program source file.  For these reasons, text that uses these
+scripts is actually @dfn{bidirectional}: a mixture of runs of
+left-to-right and right-to-left characters.
 
   This section describes the facilities and options provided by Emacs
 for editing bidirectional text.
@@ -1795,8 +1794,12 @@ of the first character you read precedes that of the next character.
 Reordering of bidirectional text into the @dfn{visual} order happens
 at display time.  As result, character positions no longer increase
 monotonically with their positions on display.  Emacs implements the
-Unicode Bidirectional Algorithm described in the Unicode Standard
-Annex #9, for reordering of bidirectional text for display.
+Unicode Bidirectional Algorithm (UBA) described in the Unicode
+Standard Annex #9, for reordering of bidirectional text for display.
+It deviates from the UBA only in how continuation lines are displayed
+when text direction is opposite to the base paragraph direction,
+e.g. when a long line of English text appears in a right-to-left
+paragraph.
 
 @vindex bidi-display-reordering
   The buffer-local variable @code{bidi-display-reordering} controls
@@ -1807,15 +1810,21 @@ directionality when they are displayed.  The default value is
 
 @cindex base direction of paragraphs
 @cindex paragraph, base direction
+@vindex bidi-paragraph-start-re
+@vindex bidi-paragraph-separate-re
   Each paragraph of bidirectional text can have its own @dfn{base
-direction}, either right-to-left or left-to-right.  (Paragraph
-@c paragraph-separate etc have no influence on this?
-boundaries are empty lines, i.e., lines consisting entirely of
-whitespace characters.)  Text in left-to-right paragraphs begins on
-the screen at the left margin of the window and is truncated or
-continued when it reaches the right margin.  By contrast, text in
-right-to-left paragraphs is displayed starting at the right margin and
-is continued or truncated at the left margin.
+direction}, either right-to-left or left-to-right.  Text in
+left-to-right paragraphs begins on the screen at the left margin of
+the window and is truncated or continued when it reaches the right
+margin.  By contrast, text in right-to-left paragraphs is displayed
+starting at the right margin and is continued or truncated at the left
+margin.  By default, paragraph boundaries are empty lines, i.e., lines
+consisting entirely of whitespace characters.  To change that, you can
+customize the two variables @code{bidi-paragraph-start-re} and
+@code{bidi-paragraph-separate-re}, whose values should be regular
+expressions (strings); e.g., to have a single newline start a new
+paragraph, set both of these variables to @code{"^"}.  These two
+variables are buffer-local (@pxref{Locals}).
 
 @vindex bidi-paragraph-direction
   Emacs determines the base direction of each paragraph dynamically,

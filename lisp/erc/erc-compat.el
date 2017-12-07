@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,7 +29,7 @@
 
 (require 'format-spec)
 
-;;;###autoload (autoload 'erc-define-minor-mode "erc-compat")
+;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (defalias 'erc-define-minor-mode 'define-minor-mode)
 (put 'erc-define-minor-mode 'edebug-form-spec 'define-minor-mode)
 
@@ -161,6 +161,7 @@ If START or END is negative, it counts from the end."
 ;;; erc-compat.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -85,7 +85,7 @@ This mode is an extended emacs-lisp mode.
 (defun gnus-score-edit-insert-date ()
   "Insert date in numerical format."
   (interactive)
-  (princ (time-to-days (current-time)) (current-buffer)))
+  (princ (time-to-days nil) (current-buffer)))
 
 (defun gnus-score-pretty-print ()
   "Format the current score file."

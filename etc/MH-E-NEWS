@@ -380,7 +380,7 @@ gatewayed at gmane.org (closes SF #979308).
 If you want to see the release notes for the alpha and beta releases
 leading up this release, please see:
 
-  http://cvs.savannah.gnu.org/viewvc/emacs/emacs/etc/MH-E-NEWS?revision=1.25&view=markup
+  https://cvs.savannah.gnu.org/viewvc/emacs/emacs/etc/MH-E-NEWS?revision=1.25&view=markup
 
 
 
@@ -2363,7 +2363,7 @@ new customization variables `mh-show-use-xface-flag' and `mh-x-face-file'
 (closes SF #480770).
 
 MH-E depends on the external x-face package found in
-ftp://ftp.jpl.org/pub/elisp/ to do this. The `uncompface' binary is
+http://www.jpl.org/pub/elisp/ to do this. The `uncompface' binary is
 also required to be in the execute PATH. It can be obtained from:
 http://freshmeat.net/redir/compface/1439/url_tgz/compface-1.4.tar.gz.
 
@@ -3394,7 +3394,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

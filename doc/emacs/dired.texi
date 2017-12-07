@@ -61,16 +61,28 @@ you to operate on the listed files.  @xref{Directories}.
 @kindex C-x d
 @vindex dired-listing-switches
   To invoke Dired, type @kbd{C-x d} (@code{dired}).  This reads a
-directory name using the minibuffer, and opens a @dfn{Dired buffer}
+directory's name using the minibuffer, and opens a @dfn{Dired buffer}
 listing the files in that directory.  You can also supply a wildcard
 file name pattern as the minibuffer argument, in which case the Dired
-buffer lists all files matching that pattern.  The usual history and
-completion commands can be used in the minibuffer; in particular,
-@kbd{M-n} puts the name of the visited file (if any) in the minibuffer
-(@pxref{Minibuffer History}).
+buffer lists all files matching that pattern.  A wildcard may appear
+in the directory part as well.
+For instance,
+
+@example
+C-x d  ~/foo/*.el  @key{RET}
+C-x d  ~/foo/*/*.el  @key{RET}
+@end example
+
+The former lists all the files with extension @samp{.el} in directory
+@samp{foo}.  The latter lists the files with extension @samp{.el}
+in subdirectories 2 levels of depth below @samp{foo}.
+
+The usual history and completion commands can be used in the minibuffer;
+in particular, @kbd{M-n} puts the name of the visited file (if any) in
+the minibuffer (@pxref{Minibuffer History}).
 
   You can also invoke Dired by giving @kbd{C-x C-f} (@code{find-file})
-a directory name.
+a directory's name.
 
   The variable @code{dired-listing-switches} specifies the options to
 give to @command{ls} for listing the directory; this string
@@ -224,6 +236,14 @@ Dired cannot delete directories that are nonempty.  If the variable
 @code{dired-recursive-deletes} is non-@code{nil}, then Dired can
 delete nonempty directories including all their contents.  That can
 be somewhat risky.
+Even if you have set @code{dired-recursive-deletes} to @code{nil},
+you might want sometimes to delete recursively directories
+without being asked for confirmation for all of them.  This is handy
+when you have marked many directories for deletion and you are very
+sure that all of them can safely being deleted.  For every nonempty
+directory you are asked for confirmation; if you answer @code{all},
+then all the remaining directories will be deleted without more
+questions.
 
 @vindex delete-by-moving-to-trash
   If you change the variable @code{delete-by-moving-to-trash} to
@@ -627,6 +647,14 @@ Copy the specified files (@code{dired-do-copy}).  The argument @var{new}
 is the directory to copy into, or (if copying a single file) the new
 name.  This is like the shell command @code{cp}.
 
+@vindex dired-create-destination-dirs
+The option @code{dired-create-destination-dirs} controls whether Dired
+should create non-existent directories in the destination while
+copying/renaming files.  The default value @code{nil} means Dired
+never creates such missing directories;  the value @code{always},
+means Dired automatically creates them; the value @code{ask}
+means Dired asks you for confirmation before creating them.
+
 @vindex dired-copy-preserve-time
 If @code{dired-copy-preserve-time} is non-@code{nil}, then copying
 with this command preserves the modification time of the old file in
@@ -657,6 +685,9 @@ Rename the specified files (@code{dired-do-rename}).  If you rename a
 single file, the argument @var{new} is the new name of the file.  If
 you rename several files, the argument @var{new} is the directory into
 which to move the files (this is like the shell command @command{mv}).
+
+The option @code{dired-create-destination-dirs} controls whether Dired
+should create non-existent directories in @var{new}.
 
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
@@ -875,25 +906,31 @@ treat it specially.
 
 @item
 Otherwise, if the command string contains @samp{?} surrounded by
-whitespace, Emacs runs the shell command once @emph{for each file},
-substituting the current file name for @samp{?} each time.  You can
-use @samp{?} more than once in the command; the same file name
-replaces each occurrence.
+whitespace or @samp{`?`}, Emacs runs the shell command once
+@emph{for each file}, substituting the current file name for @samp{?}
+and @samp{`?`} each time.  You can use both @samp{?} or @samp{`?`} more
+than once in the command; the same file name replaces each occurrence.
+If you mix them with @samp{*} the command signals an error.
 
 @item
-If the command string contains neither @samp{*} nor @samp{?}, Emacs
-runs the shell command once for each file, adding the file name at the
+If the command string contains neither @samp{*} nor @samp{?} nor @samp{`?`},
+Emacs runs the shell command once for each file, adding the file name at the
 end.  For example, @kbd{! uudecode @key{RET}} runs @code{uudecode} on
 each file.
 @end itemize
 
-  To iterate over the file names in a more complicated fashion, use an
-explicit shell loop.  For example, here is how to uuencode each file,
-making the output file name by appending @samp{.uu} to the input file
-name:
+  To iterate over the file names in a more complicated fashion, you might
+prefer to use an explicit shell loop.  For example, here is how to uuencode
+each file, making the output file name by appending @samp{.uu} to the input
+file name:
 
 @example
 for file in * ; do uuencode "$file" "$file" >"$file".uu; done
+@end example
+
+The same example with @samp{`?`} notation:
+@example
+uuencode ? ? > `?`.uu
 @end example
 
   The @kbd{!} and @kbd{&} commands do not attempt to update the Dired
@@ -1109,7 +1146,7 @@ parent directory.
 @findex dired-next-dirline
 @kindex > @r{(Dired)}
 @item >
-Move down to the next directory-file line (@code{dired-prev-dirline}).
+Move down to the next directory-file line (@code{dired-next-dirline}).
 @end table
 
 @node Hiding Subdirectories
@@ -1407,7 +1444,7 @@ rotation is lossless, and uses an external utility called JpegTRAN.
 @kindex + @r{(Dired)}
 @findex dired-create-directory
   The command @kbd{+} (@code{dired-create-directory}) reads a
-directory name, and creates that directory.  It signals an error if
+directory's name, and creates that directory.  It signals an error if
 the directory already exists.
 
 @cindex searching multiple files via Dired

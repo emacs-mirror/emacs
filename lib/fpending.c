@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Jim Meyering. */
 
@@ -41,7 +41,7 @@ __fpending (FILE *fp)
   return fp->_ptr - fp->_buffer;
 #elif defined __minix                /* Minix */
   return fp_->_ptr - fp_->_buf;
-#elif defined _IOERR                 /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, MSVC, NonStop Kernel */
+#elif defined _IOERR                 /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, MSVC, NonStop Kernel, OpenVMS */
   return (fp_->_ptr ? fp_->_ptr - fp_->_base : 0);
 #elif defined __UCLIBC__             /* uClibc */
   return (fp->__modeflags & __FLAG_WRITING ? fp->__bufpos - fp->__bufstart : 0);
@@ -51,8 +51,6 @@ __fpending (FILE *fp)
   return fp->__bufp - fp->__buffer;
 #elif defined EPLAN9                 /* Plan9 */
   return fp->wp - fp->buf;
-#elif defined __VMS                  /* VMS */
-  return (*fp)->_ptr - (*fp)->_base;
 #else
 # error "Please port gnulib fpending.c to your platform!"
   return 1;

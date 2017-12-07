@@ -21,15 +21,23 @@ In the top-level directory, use:
 
 (On macOS, --with-ns is enabled by default.)
 
-This will compile all the files, but emacs will not be able to be run except
-in -nw (terminal) mode.
+Then run:
 
-In order to run Emacs.app, you must run:
+  make
+
+This will compile all the files.
+
+In order to run Emacs, you must run:
+
+  src/emacs
+
+In order to install Emacs, you must run:
 
   make install
 
 This will assemble the app in nextstep/Emacs.app (i.e., the --prefix
-argument has no effect in this case).
+argument has no effect in this case).  You can then move the Emacs.app
+bundle to a location of your choice.
 
 If you pass the --disable-ns-self-contained option to configure, the lisp
 files will be installed under whatever 'prefix' is set to (defaults to
@@ -57,4 +65,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

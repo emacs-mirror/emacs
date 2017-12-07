@@ -25,6 +25,7 @@ export FNCASE=y
 /^top_srcdir *=/s|@top_srcdir@|./..|
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^XARGS_LIMIT *=/s|@XARGS_LIMIT@||
+/^FIND_DELETE *=/s/@FIND_DELETE@/-delete/
 /^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
 /^[Aa][Mm]_/s/@AM_V@/$(V)/
 /^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/

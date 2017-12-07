@@ -1,4 +1,4 @@
-;;; ob-awk.el --- org-babel functions for awk evaluation
+;;; ob-awk.el --- Babel Functions for Awk            -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,17 +27,15 @@
 ;;
 ;; - :in-file takes a path to a file of data to be processed by awk
 ;;
-;; - :stdin takes an Org-mode data or code block reference, the value
-;;          of which will be passed to the awk process through STDIN
+;; - :stdin takes an Org data or code block reference, the value of
+;;          which will be passed to the awk process through STDIN
 
 ;;; Code:
 (require 'ob)
 (require 'org-compat)
-(eval-when-compile (require 'cl))
 
 (declare-function org-babel-ref-resolve "ob-ref" (ref))
-(declare-function orgtbl-to-generic "org-table"
-                  (table params &optional backend))
+(declare-function orgtbl-to-generic "org-table" (table params))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("awk" . "awk"))
@@ -45,34 +43,38 @@
 (defvar org-babel-awk-command "awk"
   "Name of the awk executable command.")
 
-(defun org-babel-expand-body:awk (body params)
+(defun org-babel-expand-body:awk (body _params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (dolist (pair (mapcar #'cdr (org-babel-get-header params :var)))
-    (setf body (replace-regexp-in-string
-                (regexp-quote (format "$%s" (car pair))) (cdr pair) body)))
   body)
 
 (defun org-babel-execute:awk (body params)
   "Execute a block of Awk code with org-babel.  This function is
 called by `org-babel-execute-src-block'"
   (message "executing Awk source code block")
-  (let* ((result-params (cdr (assoc :result-params params)))
-         (cmd-line (cdr (assoc :cmd-line params)))
-         (in-file (cdr (assoc :in-file params)))
+  (let* ((result-params (cdr (assq :result-params params)))
+         (cmd-line (cdr (assq :cmd-line params)))
+         (in-file (cdr (assq :in-file params)))
 	 (full-body (org-babel-expand-body:awk body params))
 	 (code-file (let ((file (org-babel-temp-file "awk-")))
                       (with-temp-file file (insert full-body)) file))
-	 (stdin (let ((stdin (cdr (assoc :stdin params))))
+	 (stdin (let ((stdin (cdr (assq :stdin params))))
 		   (when stdin
 		     (let ((tmp (org-babel-temp-file "awk-stdin-"))
 			   (res (org-babel-ref-resolve stdin)))
 		       (with-temp-file tmp
 			 (insert (org-babel-awk-var-to-awk res)))
 		       tmp))))
-         (cmd (mapconcat #'identity (remove nil (list org-babel-awk-command
-						      "-f" code-file
-						      cmd-line
-						      in-file))
+         (cmd (mapconcat #'identity
+			 (append
+			  (list org-babel-awk-command
+				"-f" code-file cmd-line)
+			  (mapcar (lambda (pair)
+				    (format "-v %s='%s'"
+					    (car pair)
+					    (org-babel-awk-var-to-awk
+					     (cdr pair))))
+				  (org-babel--get-vars params))
+			  (list in-file))
 			 " ")))
     (org-babel-reassemble-table
      (let ((results
@@ -88,9 +90,9 @@ called by `org-babel-execute-src-block'"
 	     (with-temp-file tmp (insert results))
 	     (org-babel-import-elisp-from-file tmp)))))
      (org-babel-pick-name
-      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+      (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
      (org-babel-pick-name
-      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
+      (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))
 
 (defun org-babel-awk-var-to-awk (var &optional sep)
   "Return a printed value of VAR suitable for parsing with awk."
@@ -101,11 +103,6 @@ called by `org-babel-execute-src-block'"
      ((listp var)
       (mapconcat echo-var var "\n"))
      (t (funcall echo-var var)))))
-
-(defun org-babel-awk-table-or-string (results)
-  "If the results look like a table, then convert them into an
-Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-script-escape results))
 
 (provide 'ob-awk)
 

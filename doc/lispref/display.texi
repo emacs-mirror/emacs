@@ -265,13 +265,10 @@ properties, it is displayed with the specified faces (@pxref{Faces}).
 The string is also added to the @file{*Messages*} buffer, but without
 text properties (@pxref{Logging Messages}).
 
-The @code{text-quoting-style} variable controls what quotes are
-generated; @xref{Keys in Documentation}.  A call using a format like
-@t{"Missing `%s'"} with grave accents and apostrophes typically
-generates a message like @t{"Missing ‘foo’"} with matching curved
-quotes.  In contrast, a call using a format like @t{"Missing '%s'"}
-with only apostrophes typically generates a message like @t{"Missing
-’foo’"} with only closing curved quotes, an unusual style in English.
+Typically grave accent and apostrophe in the format translate to
+matching curved quotes, e.g., @t{"Missing `%s'"} might result in
+@t{"Missing ‘foo’"}.  @xref{Text Quoting Style}, for how to influence
+or inhibit this translation.
 
 In batch mode, the message is printed to the standard error stream,
 followed by a newline.
@@ -810,7 +807,7 @@ mechanism can change the variable @code{delayed-warnings-hook}:
 
 @defvar delayed-warnings-hook
 This is a normal hook which is run by the Emacs command loop, after
-@code{post-command-hook}, in order to to process and display delayed
+@code{post-command-hook}, in order to process and display delayed
 warnings.
 
 Its default value is a list of two functions:
@@ -1974,10 +1971,96 @@ line, if present, in the return value.  If it is @code{t}, include the
 height of both, if present, in the return value.
 @end defun
 
+@code{window-text-pixel-size} treats the text displayed in a window as a
+whole and does not care about the size of individual lines.  The
+following function does.
+
+@defun window-lines-pixel-dimensions &optional window first last body inverse
+This function calculates the pixel dimensions of each line displayed in
+the specified @var{window}.  It does so by walking @var{window}'s
+current glyph matrix---a matrix storing the glyph (@pxref{Glyphs}) of
+each buffer character currently displayed in @var{window}.  If
+successful, it returns a list of cons pairs representing the x- and
+y-coordinates of the lower right corner of the last character of each
+line.  Coordinates are measured in pixels from an origin (0, 0) at the
+top-left corner of @var{window}.  @var{window} must be a live window and
+defaults to the selected one.
+
+If the optional argument @var{first} is an integer, it denotes the index
+(starting with 0) of the first line of @var{window}'s glyph matrix to be
+returned.  Note that if @var{window} has a header line, the line with
+index 0 is that header line.  If @var{first} is nil, the first line to
+be considered is determined by the value of the optional argument
+@var{body}: If @var{body} is non-@code{nil}, this means to start with
+the first line of @var{window}'s body, skipping any header line, if
+present.  Otherwise, this function will start with the first line of
+@var{window}'s glyph matrix, possibly the header line.
+
+If the optional argument @var{last} is an integer, it denotes the index
+of the last line of @var{window}'s glyph matrix that shall be returned.
+If @var{last} is nil, the last line to be considered is determined by
+the value of @var{body}: If @var{body} is non-@code{nil}, this means to
+use the last line of @var{window}'s body, omitting @var{window}'s mode
+line, if present.  Otherwise, this means to use the last line of
+@var{window} which may be the mode line.
+
+The optional argument @var{inverse}, if @code{nil}, means that the
+y-pixel value returned for any line specifies the distance in pixels
+from the left edge (body edge if @var{body} is non-@code{nil}) of
+@var{window} to the right edge of the last glyph of that line.
+@var{inverse} non-@code{nil} means that the y-pixel value returned for
+any line specifies the distance in pixels from the right edge of the
+last glyph of that line to the right edge (body edge if @var{body} is
+non-@code{nil}) of @var{window}.  This is useful for determining the
+amount of slack space at the end of each line.
+
+The optional argument @var{left}, if non-@code{nil} means to return the
+x- and y-coordinates of the lower left corner of the leftmost character
+on each line.  This is the value that should be used for windows that
+mostly display text from right to left.
+
+If @var{left} is non-@code{nil} and @var{inverse} is @code{nil}, this
+means that the y-pixel value returned for any line specifies the
+distance in pixels from the left edge of the last (leftmost) glyph of
+that line to the right edge (body edge if @var{body} is non-@code{nil})
+of @var{window}.  If @var{left} and @var{inverse} are both
+non-@code{nil}, the y-pixel value returned for any line specifies the
+distance in pixels from the left edge (body edge if @var{body} is
+non-@code{nil}) of @var{window} to the left edge of the last (leftmost)
+glyph of that line.
+
+This function returns @code{nil} if the current glyph matrix of
+@var{window} is not up-to-date which usually happens when Emacs is busy,
+for example, when processing a command.  The value should be retrievable
+though when this function is run from an idle timer with a delay of zero
+seconds.
+@end defun
+
 @defun line-pixel-height
 This function returns the height in pixels of the line at point in the
 selected window.  The value includes the line spacing of the line
 (@pxref{Line Height}).
+@end defun
+
+When a buffer is displayed with line numbers (@pxref{Display Custom,,,
+emacs, The GNU Emacs Manual}), it is sometimes useful to know the
+width taken for displaying the line numbers.  The following function
+is for Lisp programs which need this information for layout
+calculations.
+
+@defun line-number-display-width &optional pixelwise
+This function returns the width used for displaying the line numbers
+in the selected window.  If the optional argument @var{pixelwise} is
+the symbol @code{columns}, the return value is a float number of the
+frame's canonical columns; if @var{pixelwise} is @code{t} or any other
+non-@code{nil} value, the value is an integer and is measured in
+pixels.  If @var{pixelwise} is omitted or @code{nil}, the value is the
+integer number of columns of the font defined for the
+@code{line-number} face, and doesn't include the 2 columns used to pad
+the numbers on display.  If line numbers are not displayed in the
+selected window, the value is zero regardless of the value of
+@var{pixelwise}.  Use @code{with-selected-window} (@pxref{Selecting
+Windows}) if you need this information about another window.
 @end defun
 
 
@@ -2341,7 +2424,9 @@ the values of the @code{:family}, @code{:foundry}, @code{:width},
 The name of a face from which to inherit attributes, or a list of face
 names.  Attributes from inherited faces are merged into the face like
 an underlying face would be, with higher priority than underlying
-faces (@pxref{Displaying Faces}).  If a list of faces is used,
+faces (@pxref{Displaying Faces}).  If the face to inherit from is
+@code{unspecified}, it is treated the same as @code{nil}, since Emacs
+never merges @code{:inherit} attributes.  If a list of faces is used,
 attributes from faces earlier in the list override those from later
 faces.
 @end table
@@ -2800,6 +2885,16 @@ If the text lies within the mode line of the selected window, Emacs
 applies the @code{mode-line} face.  For the mode line of a
 non-selected window, Emacs applies the @code{mode-line-inactive} face.
 For a header line, Emacs applies the @code{header-line} face.
+
+@item
+If the text comes from an overlay string via @code{before-string} or
+@code{after-string} properties (@pxref{Overlay Properties}), or from a
+display string (@pxref{Other Display Specs}), and the string doesn't
+contain a @code{face} or @code{mouse-face} property, but the buffer
+text affected by the overlay/display property does define a face,
+Emacs applies the face attributes of the ``underlying'' buffer text.
+Note that this is so even if the overlay or display string is
+displayed in the display margins (@pxref{Display Margins}).
 
 @item
 If any given attribute has not been specified during the preceding
@@ -4402,6 +4497,17 @@ for the @code{display} property, only one of the values takes effect,
 following the rules of @code{get-char-property}.  @xref{Examining
 Properties}.
 
+@cindex display property, unsafe evaluation
+@cindex security, and display specifications
+  Some of the display specifications allow inclusion of Lisp forms,
+which are evaluated at display time.  This could be unsafe in certain
+situations, e.g., when the display specification was generated by some
+external program/agent.  Wrapping a display specification in a list
+that begins with the special symbol @code{disable-eval}, as in
+@w{@code{('disable-eval @var{spec})}}, will disable evaluation of any
+Lisp in @var{spec}, while still supporting all the other display
+property features.
+
   The rest of this section describes several kinds of
 display specifications and what they mean.
 
@@ -4543,7 +4649,7 @@ as an absolute number of pixels.
 
 @smallexample
 @group
-  @var{expr} ::= @var{num} | (@var{num}) | @var{unit} | @var{elem} | @var{pos} | @var{image} | @var{form}
+  @var{expr} ::= @var{num} | (@var{num}) | @var{unit} | @var{elem} | @var{pos} | @var{image} | @var{xwidget} | @var{form}
   @var{num}  ::= @var{integer} | @var{float} | @var{symbol}
   @var{unit} ::= in | mm | cm | width | height
 @end group
@@ -4559,22 +4665,34 @@ as an absolute number of pixels.
   The form @var{num} specifies a fraction of the default frame font
 height or width.  The form @code{(@var{num})} specifies an absolute
 number of pixels.  If @var{num} is a symbol, @var{symbol}, its
-buffer-local variable binding is used.
+buffer-local variable binding is used; that binding can be either a
+number or a cons cell of the forms shown above (including yet another
+cons cell whose @code{car} is a symbol that has a buffer-local
+binding).
 
   The @code{in}, @code{mm}, and @code{cm} units specify the number of
 pixels per inch, millimeter, and centimeter, respectively.  The
 @code{width} and @code{height} units correspond to the default width
-and height of the current face.  An image specification @code{image}
-corresponds to the width or height of the image.
+and height of the current face.  An image specification of the form
+@w{@code{(image . @var{props})}} (@pxref{Image Descriptors})
+corresponds to the width or height of the specified image.  Similarly,
+an xwidget specification of the form @w{@code{(xwidget . @var{props})}}
+stands for the width or height of the specified xwidget.
+@xref{Xwidgets}.
 
   The elements @code{left-fringe}, @code{right-fringe},
 @code{left-margin}, @code{right-margin}, @code{scroll-bar}, and
-@code{text} specify to the width of the corresponding area of the
-window.
+@code{text} specify the width of the corresponding area of the window.
+When the window displays line numbers (@pxref{Size of Displayed
+Text}), the width of the @code{text} area is decreased by the screen
+space taken by the line-number display.
 
   The @code{left}, @code{center}, and @code{right} positions can be
 used with @code{:align-to} to specify a position relative to the left
-edge, center, or right edge of the text area.
+edge, center, or right edge of the text area.  When the window
+displays line numbers, the @code{left} and the @code{center} positions
+are offset to account for the screen space taken by the line-number
+display.
 
   Any of the above window elements (except @code{text}) can also be
 used with @code{:align-to} to specify that the position is relative to
@@ -4590,13 +4708,15 @@ the left-margin, use
 
   If no specific base offset is set for alignment, it is always relative
 to the left edge of the text area.  For example, @samp{:align-to 0} in a
-header-line aligns with the first text column in the text area.
+header-line aligns with the first text column in the text area.  When
+the window displays line numbers, the text is considered to start where
+the space used for line-number display ends.
 
   A value of the form @code{(@var{num} . @var{expr})} stands for the
 product of the values of @var{num} and @var{expr}.  For example,
 @code{(2 . in)} specifies a width of 2 inches, while @code{(0.5 .
 @var{image})} specifies half the width (or height) of the specified
-image.
+@var{image} (which should be given by its image spec).
 
   The form @code{(+ @var{expr} ...)} adds up the value of the
 expressions.  The form @code{(- @var{expr} ...)} negates or subtracts
@@ -4742,6 +4862,13 @@ or an image descriptor.
 certain buffer text, without altering or preventing the display of
 that text, put a @code{before-string} property on the text and put the
 margin display specification on the contents of the before-string.
+
+  Note that if the string to be displayed in the margin doesn't
+specify a face, its face is determined using the same rules and
+priorities as it is for strings displayed in the text area
+(@pxref{Displaying Faces}).  If this results in undesirable
+``leaking'' of faces into the margin, make sure the string has an
+explicit face specified for it.
 
   Before the display margins can display anything, you must give
 them a nonzero width.  The usual way to do that is to set these
@@ -5223,6 +5350,17 @@ and if @code{:height} is set it will have precedence over
 wish.  @code{:max-width} and @code{:max-height} will always preserve
 the aspect ratio.
 
+If both @code{:width} and @code{:max-height} has been set (but
+@code{:height} has not been set), then @code{:max-height} will have
+precedence.  The same is the case for the opposite combination: The
+``max'' keyword has precedence.  That is, if you have a 200x100 image
+and specify that @code{:width} should be 400 and @code{:max-height}
+should be 150, you'll end up with an image that is 300x150: Preserving
+the aspect ratio and not exceeding the ``max'' setting.  This
+combination of parameters is a useful way of saying ``display this
+image as large as possible, but no larger than the available display
+area''.
+
 @item :scale @var{scale}
 This should be a number, where values higher than 1 means to increase
 the size, and lower means to decrease the size.  For instance, a value
@@ -5243,7 +5381,7 @@ hint to ImageMagick to help it detect the image type.
 Specifies a rotation angle in degrees.
 
 @item :index @var{frame}
-@c Doesn't work: http://debbugs.gnu.org/7978
+@c Doesn't work: https://debbugs.gnu.org/7978
 @xref{Multi-Frame Images}.
 @end table
 
@@ -5531,14 +5669,14 @@ This variable's value is a list of locations in which to search for
 image files.  If an element is a string or a variable symbol whose
 value is a string, the string is taken to be the name of a directory
 to search.  If an element is a variable symbol whose value is a list,
-that is taken to be a list of directory names to search.
+that is taken to be a list of directories to search.
 
 The default is to search in the @file{images} subdirectory of the
 directory specified by @code{data-directory}, then the directory
 specified by @code{data-directory}, and finally in the directories in
 @code{load-path}.  Subdirectories are not automatically included in
 the search, so if you put an image file in a subdirectory, you have to
-supply the subdirectory name explicitly.  For example, to find the
+supply the subdirectory explicitly.  For example, to find the
 image @file{images/foo/bar.xpm} within @code{data-directory}, you
 should specify the image as follows:
 
@@ -6929,7 +7067,7 @@ window display table nor a buffer display table defined, or when Emacs
 is outputting text to the standard output or error streams.  Although its
 default is typically @code{nil}, in an interactive session if the
 terminal cannot display curved quotes, its default maps curved quotes
-to ASCII approximations.  @xref{Keys in Documentation}.
+to ASCII approximations.  @xref{Text Quoting Style}.
 @end defvar
 
 The @file{disp-table} library defines several functions for changing
@@ -7297,7 +7435,11 @@ follows the Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}),
 which is described in Annex #9 of the Unicode standard
 (@url{http://www.unicode.org/reports/tr9/}).  Emacs provides a ``Full
 Bidirectionality'' class implementation of the @acronym{UBA},
-consistent with the requirements of the Unicode Standard v8.0.
+consistent with the requirements of the Unicode Standard v9.0.  Note,
+however, that the way Emacs displays continuation lines when text
+direction is opposite to the base paragraph direction deviates from
+the UBA, which requires to perform line wrapping before reordering
+text for display.
 
 @defvar bidi-display-reordering
 If the value of this buffer-local variable is non-@code{nil} (the
@@ -7358,6 +7500,35 @@ displayed beginning at the left margin of the window, and are
 truncated or continued when the text reaches the right margin.
 Right-to-left paragraphs are displayed beginning at the right margin,
 and are continued or truncated at the left margin.
+
+@cindex paragraph-start, and bidirectional display
+@cindex paragraph-separate, and bidirectional display
+  Where exactly paragraphs start and end, for the purpose of the Emacs
+@acronym{UBA} implementation, is determined by the following two
+buffer-local variables (note that @code{paragraph-start} and
+@code{paragraph-separate} have no influence on this).  By default both
+of these variables are @code{nil}, and paragraphs are bounded by empty
+lines, i.e., lines that consist entirely of zero or more whitespace
+characters followed by a newline.
+
+@defvar bidi-paragraph-start-re
+If non-@code{nil}, this variable's value should be a regular
+expression matching a line that starts or separates two paragraphs.
+The regular expression is always matched after a newline, so it is
+best to anchor it, i.e., begin it with a @code{"^"}.
+@end defvar
+
+@defvar bidi-paragraph-separate-re
+If non-@code{nil}, this variable's value should be a regular
+expression matching a line separates two paragraphs.  The regular
+expression is always matched after a newline, so it is best to anchor
+it, i.e., begin it with a @code{"^"}.
+@end defvar
+
+  If you modify any of these two variables, you should normally modify
+both, to make sure they describe paragraphs consistently.  For
+example, to have each new line start a new paragraph for
+bidi-reordering purposes, set both variables to @code{"^"}.
 
   By default, Emacs determines the base direction of each paragraph by
 looking at the text at its beginning.  The precise method of

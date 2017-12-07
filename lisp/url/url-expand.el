@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -60,7 +60,7 @@
   "Convert URL to a fully specified URL, and canonicalize it.
 Second arg DEFAULT is a URL to start with if URL is relative.
 If DEFAULT is nil or missing, the current buffer's URL is used.
-Path components that are `.' are removed, and 
+Path components that are `.' are removed, and
 path components followed by `..' are removed, along with the `..' itself."
   (if (and url (not (string-match "^#" url)))
       ;; Need to nuke newlines and spaces in the URL, or we open

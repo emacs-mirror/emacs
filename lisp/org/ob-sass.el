@@ -1,4 +1,4 @@
-;;; ob-sass.el --- org-babel functions for the sass css generation language
+;;; ob-sass.el --- Babel Functions for the Sass CSS generation language -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -45,10 +45,9 @@
 (defun org-babel-execute:sass (body params)
   "Execute a block of Sass code with Babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-         (file (cdr (assoc :file params)))
+  (let* ((file (cdr (assq :file params)))
          (out-file (or file (org-babel-temp-file "sass-out-")))
-         (cmdline (cdr (assoc :cmdline params)))
+         (cmdline (cdr (assq :cmdline params)))
          (in-file (org-babel-temp-file "sass-in-"))
          (cmd (concat "sass " (or cmdline "")
 		      " " (org-babel-process-file-name in-file)
@@ -60,7 +59,7 @@ This function is called by `org-babel-execute-src-block'."
 	nil ;; signal that output has already been written to file
       (with-temp-buffer (insert-file-contents out-file) (buffer-string)))))
 
-(defun org-babel-prep-session:sass (session params)
+(defun org-babel-prep-session:sass (_session _params)
   "Raise an error because sass does not support sessions."
   (error "Sass does not support sessions"))
 

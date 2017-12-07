@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1317,7 +1317,7 @@ used instead of `browse-url-new-window-flag'."
               (if (file-exists-p
                    (setq pidfile (format "/tmp/Mosaic.%d" pid)))
                   (delete-file pidfile))
-              ;; http://debbugs.gnu.org/17428.  Use O_EXCL.
+              ;; https://debbugs.gnu.org/17428.  Use O_EXCL.
               (write-region nil nil pidfile nil 'silent nil 'excl)))
 	  ;; Send signal SIGUSR to Mosaic
 	  (message "Signaling Mosaic...")

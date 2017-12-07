@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Author (of latin-post.el): TAKAHASHI Naoto <ntakahas@etl.go.jp>
 
@@ -1152,7 +1152,7 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 (quail-define-package
  "dutch" "Dutch" "NL" t
  "Dutch character mixfix input method.
-Caters for French and Turkish as well as Dutch.
+Caters for French and Dutch.
 
              |         | examples
  ------------+---------+----------
@@ -1163,8 +1163,6 @@ Caters for French and Turkish as well as Dutch.
   acute      |    \\='    | a\\=' -> á
   grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
-  Turkish    | various | i/ -> ı  s, -> ş  g^ -> ğ   I/ -> İ
-             |         |  S, -> Ş  G^ -> Ğ
  ------------+---------+----------
              | prefix  |
  ------------+---------+----------
@@ -1176,9 +1174,6 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 (quail-define-rules
  ("fl." ?ƒ) ;; LATIN SMALL LETTER F WITH HOOK (florin currency symbol)
  ("eur." ?€) ;; EURO SIGN
- ;; “The 25th letter of the Dutch alphabet.”
- ("ij" ?ĳ) ;; LATIN SMALL LIGATURE IJ
- ("IJ" ?Ĳ) ;; LATIN CAPITAL LIGATURE IJ
  ;; “Trema on the second letter of vowel pair.”  Yudit uses `:', not `"'.
  ("\"a" ?ä) ;; LATIN SMALL LETTER A WITH DIAERESIS
  ("\"e" ?ë) ;; LATIN SMALL LETTER E WITH DIAERESIS
@@ -1226,15 +1221,6 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("I^" ?Î) ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX
  ("O^" ?Ô) ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX
  ("U^" ?Û) ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
- ;; “Follow the example of the Dutch POSIX locale, using ISO-8859-9 to
- ;; cater to the many Turks in Dutch society.”  Perhaps German methods
- ;; should do so too.  Follow turkish-alt-postfix here.
- ("i/" ?ı) ;; LATIN SMALL LETTER I WITH NO DOT
- ("s," ?ş) ;; LATIN SMALL LETTER S WITH CEDILLA
- ("g^" ?ğ) ;; LATIN SMALL LETTER G WITH BREVE
- ("I/" ?İ) ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
- ("S," ?Ş) ;; LATIN CAPITAL LETTER S WITH CEDILLA
- ("G^" ?Ğ) ;; LATIN CAPITAL LETTER G WITH BREVE
  )
 
 ;; Originally from Yudit, discussed with Albertas Agejevas

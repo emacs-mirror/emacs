@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,7 +39,7 @@
 ;; reading your meeting schedule notices or other email boring to everyone
 ;; but you and (you hope) the recipient. See below (I left in the original
 ;; writeup when I made this conversion), or the emacs documentation at
-;; ftp://prep.ai.mit.edu/pub/gnu/emacs-manual*.
+;; https://www.gnu.org/software/emacs/manual/.
 
 ;; Bruce is a direct copy of spook, with the word "spook" replaced with
 ;; the word "bruce". Thanks to "esr", whoever he, she or it may be, this

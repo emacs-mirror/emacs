@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_MODULE_H
 #define EMACS_MODULE_H
@@ -80,7 +80,7 @@ enum emacs_funcall_exit
   emacs_funcall_exit_signal = 1,
 
   /* Function has exit using `throw'.  */
-  emacs_funcall_exit_throw = 2,
+  emacs_funcall_exit_throw = 2
 };
 
 struct emacs_env_25
@@ -97,6 +97,7 @@ struct emacs_env_26
 
 /* Every module should define a function as follows.  */
 extern int emacs_module_init (struct emacs_runtime *ert)
+  EMACS_NOEXCEPT
   EMACS_ATTRIBUTE_NONNULL(1);
 
 #ifdef __cplusplus

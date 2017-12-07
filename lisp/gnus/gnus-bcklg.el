@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -144,8 +144,8 @@
 	    (setq end
 		  (next-single-property-change
 		   (1+ beg) 'gnus-backlog (current-buffer) (point-max)))))
-	(with-current-buffer (or (current-buffer) buffer)
-	  (let ((buffer-read-only nil))
+	(with-current-buffer (or buffer (current-buffer))
+	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (insert-buffer-substring gnus-backlog-buffer beg end)))
 	t))))

@@ -2,7 +2,7 @@ Copyright (C) 2001-2017 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This directory tree holds version 26.0.50 of GNU Emacs, the extensible,
+This directory tree holds version 27.0.50 of GNU Emacs, the extensible,
 customizable, self-documenting real-time display editor.
 
 The file INSTALL in this directory says how to build and install GNU
@@ -28,8 +28,8 @@ See the "Bugs" section of the Emacs manual for more information on how
 to report bugs.  (The file 'BUGS' in this directory explains how you
 can find and read that section using the Info files that come with
 Emacs.)  For a list of mailing lists related to Emacs, see
-<http://savannah.gnu.org/mail/?group=emacs>.  For the complete
-list of GNU mailing lists, see <http://lists.gnu.org/>.
+<https://savannah.gnu.org/mail/?group=emacs>.  For the complete
+list of GNU mailing lists, see <https://lists.gnu.org/>.
 
 The 'etc' subdirectory contains several other files, named in capital
 letters, which you might consider looking at when installing GNU
@@ -45,7 +45,8 @@ The file 'configure.ac' is the input used by the autoconf program to
 construct the 'configure' script.
 
 The shell script 'autogen.sh' generates 'configure' and other files by
-running Autoconf, which in turn uses GNU m4.  If you want to use it,
+running Autoconf (which in turn uses GNU m4), and configures files in
+the .git subdirectory if you are using Git.  If you want to use it,
 you will need to install recent versions of these build tools.  This
 should be needed only if you edit files like 'configure.ac' that
 specify Emacs's autobuild procedure.
@@ -115,4 +116,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

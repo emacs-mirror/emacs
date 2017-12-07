@@ -15,25 +15,25 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
 
+#include <flexmember.h>
+#include <min-max.h>
+#include <unlocked-io.h>
+
 /* The SunOS compiler doesn't have SEEK_END.  */
 #ifndef SEEK_END
 #define SEEK_END 2
 #endif
-
-#include <flexmember.h>
-#include <min-max.h>
 
 /* Files are read in chunks of this number of bytes.  */
 

@@ -581,7 +581,7 @@ specify that @kbd{M-x quickurl} should insert @var{URL} if the word
 @var{key} is at point, for example:
 
 @example
-(("FSF"      "http://www.fsf.org/" "The Free Software Foundation")
+(("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
  ("emacs"  . "http://www.emacs.org/")
  ("hagbard"  "http://www.hagbard.demon.co.uk" "Hagbard's World"))
 @end example

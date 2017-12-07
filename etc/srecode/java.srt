@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 set mode "java-mode"
 set escape_start "{{"
@@ -162,8 +162,8 @@ template javadoc-class :indent :blank :time :user :tag
  * Created: {{DATE}}
  *
  * @author {{AUTHOR}}
- * @version 
- * @since 
+ * @version
+ * @since
  */
 ----
 

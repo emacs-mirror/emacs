@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -319,10 +319,12 @@ the list of old buffers.")
 (defvar auto-revert-tail-pos 0
   "Position of last known end of file.")
 
+(defun auto-revert-find-file-function ()
+  (setq-local auto-revert-tail-pos
+              (nth 7 (file-attributes buffer-file-name))))
+
 (add-hook 'find-file-hook
-	  (lambda ()
-	    (setq-local auto-revert-tail-pos
-                        (nth 7 (file-attributes buffer-file-name)))))
+	  #'auto-revert-find-file-function)
 
 (defvar auto-revert-notify-watch-descriptor-hash-list
   (make-hash-table :test 'equal)
@@ -340,6 +342,11 @@ default directory.")
 This has been reported by a file notification event.")
 
 ;; Functions:
+
+(defun auto-revert-remove-current-buffer ()
+  "Remove dead buffer from `auto-revert-buffer-list'."
+  (setq auto-revert-buffer-list
+        (delq (current-buffer) auto-revert-buffer-list)))
 
 ;;;###autoload
 (define-minor-mode auto-revert-mode
@@ -364,13 +371,10 @@ without being changed in the part that is already in the buffer."
         (push (current-buffer) auto-revert-buffer-list)
         (add-hook
          'kill-buffer-hook
-         (lambda ()
-           (setq auto-revert-buffer-list
-                 (delq (current-buffer) auto-revert-buffer-list)))
+         #'auto-revert-remove-current-buffer
          nil t))
     (when auto-revert-use-notify (auto-revert-notify-rm-watch))
-    (setq auto-revert-buffer-list
-	  (delq (current-buffer) auto-revert-buffer-list)))
+    (auto-revert-remove-current-buffer))
   (auto-revert-set-timer)
   (when auto-revert-mode
     (auto-revert-buffers)
@@ -786,24 +790,24 @@ the timer when no buffers need to be checked."
 		  (not (and auto-revert-stop-on-user-input
 			    (input-pending-p))))
 	(let ((buf (car bufs)))
-          (if (buffer-live-p buf)
-	      (with-current-buffer buf
-		;; Test if someone has turned off Auto-Revert Mode in a
-		;; non-standard way, for example by changing major mode.
-		(if (and (not auto-revert-mode)
-			 (not auto-revert-tail-mode)
-			 (memq buf auto-revert-buffer-list))
-		    (setq auto-revert-buffer-list
-			  (delq buf auto-revert-buffer-list)))
-		(when (auto-revert-active-p)
-		  ;; Enable file notification.
-		  (when (and auto-revert-use-notify
-			     (not auto-revert-notify-watch-descriptor))
-		    (auto-revert-notify-add-watch))
-		  (auto-revert-handler)))
-	    ;; Remove dead buffer from `auto-revert-buffer-list'.
-	    (setq auto-revert-buffer-list
-		  (delq buf auto-revert-buffer-list))))
+          (with-current-buffer buf
+            (if (buffer-live-p buf)
+                (progn
+                  ;; Test if someone has turned off Auto-Revert Mode
+                  ;; in a non-standard way, for example by changing
+                  ;; major mode.
+                  (if (and (not auto-revert-mode)
+                           (not auto-revert-tail-mode)
+                           (memq buf auto-revert-buffer-list))
+                      (auto-revert-remove-current-buffer))
+                  (when (auto-revert-active-p)
+                    ;; Enable file notification.
+                    (when (and auto-revert-use-notify
+                               (not auto-revert-notify-watch-descriptor))
+                      (auto-revert-notify-add-watch))
+                    (auto-revert-handler)))
+              ;; Remove dead buffer from `auto-revert-buffer-list'.
+              (auto-revert-remove-current-buffer))))
 	(setq bufs (cdr bufs)))
       (setq auto-revert-remaining-buffers bufs)
       ;; Check if we should cancel the timer.

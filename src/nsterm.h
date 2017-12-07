@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include "dispextern.h"
@@ -25,30 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 
 #ifdef HAVE_NS
-
-#ifdef NS_IMPL_COCOA
-#ifndef MAC_OS_X_VERSION_10_6
-#define MAC_OS_X_VERSION_10_6 1060
-#endif
-#ifndef MAC_OS_X_VERSION_10_7
-#define MAC_OS_X_VERSION_10_7 1070
-#endif
-#ifndef MAC_OS_X_VERSION_10_8
-#define MAC_OS_X_VERSION_10_8 1080
-#endif
-#ifndef MAC_OS_X_VERSION_10_9
-#define MAC_OS_X_VERSION_10_9 1090
-#endif
-#ifndef MAC_OS_X_VERSION_10_12
-#define MAC_OS_X_VERSION_10_12 101200
-#endif
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-#define HAVE_NATIVE_FS
-#endif
-
-#endif /* NS_IMPL_COCOA */
-
 #ifdef __OBJC__
 
 /* CGFloat on GNUstep may be 4 or 8 byte, but functions expect float* for some
@@ -471,7 +447,7 @@ typedef id instancetype;
 - (void) toggleFullScreen: (id) sender;
 - (BOOL) fsIsNative;
 - (BOOL) isFullscreen;
-#ifdef HAVE_NATIVE_FS
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 - (void) updateCollectionBehavior;
 #endif
 
@@ -668,6 +644,10 @@ typedef id instancetype;
               alpha:(unsigned char)a;
 - (void)setAlphaAtX: (int)x Y: (int)y to: (unsigned char)a;
 - (NSColor *)stippleMask;
+- (Lisp_Object)getMetadata;
+- (BOOL)setFrame: (unsigned int) index;
+- (void)setSizeFromSpec: (Lisp_Object) spec;
+- (instancetype)rotate: (double)rotation;
 @end
 
 
@@ -957,6 +937,14 @@ struct ns_output
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
   Cursor vertical_drag_cursor;
+  Cursor left_edge_cursor;
+  Cursor top_left_corner_cursor;
+  Cursor top_edge_cursor;
+  Cursor top_right_corner_cursor;
+  Cursor right_edge_cursor;
+  Cursor bottom_right_corner_cursor;
+  Cursor bottom_edge_cursor;
+  Cursor bottom_left_corner_cursor;
 
   /* NS-specific */
   Cursor current_pointer;
@@ -1224,9 +1212,19 @@ extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
                                    Lisp_Object old_value);
 extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
                            Lisp_Object old_value);
+#ifdef NS_IMPL_COCOA
+extern void ns_set_appearance (struct frame *f, Lisp_Object new_value,
+                               Lisp_Object old_value);
+extern void ns_set_transparent_titlebar (struct frame *f,
+                                         Lisp_Object new_value,
+                                         Lisp_Object old_value);
+#endif
 extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-		      fd_set *exceptfds, struct timespec const *timeout,
-		      sigset_t const *sigmask);
+		      fd_set *exceptfds, struct timespec *timeout,
+		      sigset_t *sigmask);
+#ifdef HAVE_PTHREAD
+extern void ns_run_loop_break (void);
+#endif
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 
@@ -1264,9 +1262,17 @@ extern char gnustep_base_version[];  /* version tracking */
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
 
+/* macOS 10.7 introduces some new constants. */
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_7)
+#define NSFullScreenWindowMask                      (1 << 14)
+#define NSWindowCollectionBehaviorFullScreenPrimary (1 << 7)
+#define NSApplicationPresentationFullScreen         (1 << 10)
+#define NSApplicationPresentationAutoHideToolbar    (1 << 11)
+#define NSAppKitVersionNumber10_7                   1138
+#endif /* !defined (MAC_OS_X_VERSION_10_7) */
+
 /* macOS 10.12 deprecates a bunch of constants. */
-#if !defined (NS_IMPL_COCOA) || \
-  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_12
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_12)
 #define NSEventModifierFlagCommand         NSCommandKeyMask
 #define NSEventModifierFlagControl         NSControlKeyMask
 #define NSEventModifierFlagHelp            NSHelpKeyMask
@@ -1292,6 +1298,7 @@ extern char gnustep_base_version[];  /* version tracking */
 #define NSEventTypeKeyUp                   NSKeyUp
 #define NSEventTypeFlagsChanged            NSFlagsChanged
 #define NSEventMaskAny                     NSAnyEventMask
+#define NSEventTypeSystemDefined           NSSystemDefined
 #define NSWindowStyleMaskBorderless        NSBorderlessWindowMask
 #define NSWindowStyleMaskClosable          NSClosableWindowMask
 #define NSWindowStyleMaskFullScreen        NSFullScreenWindowMask
@@ -1301,11 +1308,19 @@ extern char gnustep_base_version[];  /* version tracking */
 #define NSWindowStyleMaskUtilityWindow     NSUtilityWindowMask
 #define NSAlertStyleCritical               NSCriticalAlertStyle
 #define NSControlSizeRegular               NSRegularControlSize
+#define NSCompositingOperationCopy         NSCompositeCopy
 
 /* And adds NSWindowStyleMask. */
 #ifdef __OBJC__
 typedef NSUInteger NSWindowStyleMask;
 #endif
-#endif
 
+/* Window tabbing mode enums are new too. */
+enum NSWindowTabbingMode
+  {
+    NSWindowTabbingModeAutomatic,
+    NSWindowTabbingModePreferred,
+    NSWindowTabbingModeDisallowed
+  };
+#endif
 #endif	/* HAVE_NS */

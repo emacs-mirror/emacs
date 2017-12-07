@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /**
@@ -34,11 +34,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <intprops.h>
 #include <systime.h>
+#include <unlocked-io.h>
 
 static struct timespec TV1;
 static int watch_not_started = 1; /* flag */

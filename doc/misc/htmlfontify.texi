@@ -825,7 +825,7 @@ with a class of @code{t} is considered to match any class you specify.
 This matches Emacs's behavior when deciding on which face attributes to
 use, to the best of my understanding ).
 
-If @var{class} is @code{nil}, then you just get get whatever
+If @var{class} is @code{nil}, then you just get whatever
 @code{face-attr-construct} returns; i.e., the current specification in
 effect for @var{face}.
 
@@ -963,8 +963,9 @@ Is @ref{hfy-optimizations} member @var{symbol} set or not?
 @end lisp
 
 Return everything preceding the last @samp{/} from a relative filename,
-on the assumption that this will produce a relative directory name.  Hardly
-bombproof, but good enough in the context in which it is being used.
+on the assumption that this will produce the name of a relative
+directory.  Hardly bombproof, but good enough in the context in which
+it is being used.
 
 @item hfy-html-dekludge-buffer
 @findex hfy-html-dekludge-buffer

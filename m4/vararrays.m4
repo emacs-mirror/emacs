@@ -27,7 +27,7 @@ AC_DEFUN([AC_C_VARARRAYS],
 	     [[/* Test for VLA support.  This test is partly inspired
 		  from examples in the C standard.  Use at least two VLA
 		  functions to detect the GCC 3.4.3 bug described in:
-		  http://lists.gnu.org/archive/html/bug-gnulib/2014-08/msg00014.html
+		  https://lists.gnu.org/r/bug-gnulib/2014-08/msg00014.html
 		  */
 	       #ifdef __STDC_NO_VLA__
 		syntax error;

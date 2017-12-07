@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -228,7 +228,7 @@ printchar_to_stream (unsigned int ch, FILE *stream)
     {
       if (ASCII_CHAR_P (ch))
 	{
-	  putc (ch, stream);
+	  putc_unlocked (ch, stream);
 #ifdef WINDOWSNT
 	  /* Send the output to a debugger (nothing happens if there
 	     isn't one).  */
@@ -246,7 +246,7 @@ printchar_to_stream (unsigned int ch, FILE *stream)
 	  if (encode_p)
 	    encoded_ch = code_convert_string_norecord (encoded_ch,
 						       coding_system, true);
-	  fwrite (SSDATA (encoded_ch), 1, SBYTES (encoded_ch), stream);
+	  fwrite_unlocked (SSDATA (encoded_ch), 1, SBYTES (encoded_ch), stream);
 #ifdef WINDOWSNT
 	  if (print_output_debug_flag && stream == stderr)
 	    OutputDebugString (SSDATA (encoded_ch));
@@ -298,7 +298,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 	  if (DISP_TABLE_P (Vstandard_display_table))
 	    printchar_to_stream (ch, stdout);
 	  else
-	    fwrite (str, 1, len, stdout);
+	    fwrite_unlocked (str, 1, len, stdout);
 	  noninteractive_need_newline = 1;
 	}
       else
@@ -350,7 +350,7 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 	    }
 	}
       else
-	fwrite (ptr, 1, size_byte, stdout);
+	fwrite_unlocked (ptr, 1, size_byte, stdout);
 
       noninteractive_need_newline = 1;
     }
@@ -566,7 +566,7 @@ temp_output_buffer_setup (const char *bufname)
 
 static void print (Lisp_Object, Lisp_Object, bool);
 static void print_preprocess (Lisp_Object);
-static void print_preprocess_string (INTERVAL, Lisp_Object);
+static void print_preprocess_string (INTERVAL, void *);
 static void print_object (Lisp_Object, Lisp_Object, bool);
 
 DEFUN ("terpri", Fterpri, Sterpri, 0, 2, 0,
@@ -801,7 +801,7 @@ append to existing target file.  */)
 	report_file_error ("Cannot open debugging output stream", file);
     }
 
-  fflush (stderr);
+  fflush_unlocked (stderr);
   if (dup2 (fd, STDERR_FILENO) < 0)
     report_file_error ("dup2", file);
   if (fd != stderr_dup)
@@ -1214,7 +1214,7 @@ print_preprocess (Lisp_Object obj)
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
 	  traverse_intervals_noorder (string_intervals (obj),
-				      print_preprocess_string, Qnil);
+				      print_preprocess_string, NULL);
 	  break;
 
 	case Lisp_Cons:
@@ -1263,7 +1263,7 @@ Fills `print-number-table'.  */)
 }
 
 static void
-print_preprocess_string (INTERVAL interval, Lisp_Object arg)
+print_preprocess_string (INTERVAL interval, void *arg)
 {
   print_preprocess (interval->plist);
 }
@@ -1748,7 +1748,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
   char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
 		max (sizeof " . #" + INT_STRLEN_BOUND (printmax_t),
 		     40))];
-
+  current_thread->stack_top = buf;
   maybe_quit ();
 
   /* Detect circularities and truncate them.  */
@@ -1870,21 +1870,36 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		}
 	      else
 		{
+                  bool still_need_nonhex = false;
 		  /* If we just had a hex escape, and this character
 		     could be taken as part of it,
 		     output `\ ' to prevent that.  */
-		  if (need_nonhex && c_isxdigit (c))
-		    print_c_string ("\\ ", printcharfun);
-
-		  if (c == '\n' && print_escape_newlines
-		      ? (c = 'n', true)
-		      : c == '\f' && print_escape_newlines
-		      ? (c = 'f', true)
-		      : c == '\"' || c == '\\')
-		    printchar ('\\', printcharfun);
-
-		  printchar (c, printcharfun);
-		  need_nonhex = false;
+                  if (c_isxdigit (c))
+                    {
+                      if (need_nonhex)
+                        print_c_string ("\\ ", printcharfun);
+                      printchar (c, printcharfun);
+                    }
+                  else if (c == '\n' && print_escape_newlines
+                           ? (c = 'n', true)
+                           : c == '\f' && print_escape_newlines
+                           ? (c = 'f', true)
+                           : c == '\0' && print_escape_control_characters
+                           ? (c = '0', still_need_nonhex = true)
+                           : c == '\"' || c == '\\')
+                    {
+                      printchar ('\\', printcharfun);
+                      printchar (c, printcharfun);
+                    }
+                  else if (print_escape_control_characters && c_iscntrl (c))
+                    {
+                      char outbuf[1 + 3 + 1];
+                      int len = sprintf (outbuf, "\\%03o", c + 0u);
+                      strout (outbuf, len, len, printcharfun);
+                    }
+                  else
+                    printchar (c, printcharfun);
+		  need_nonhex = still_need_nonhex;
 		}
 	    }
 	  printchar ('\"', printcharfun);
@@ -2329,6 +2344,11 @@ A value of nil means no limit.  See also `eval-expression-print-level'.  */);
 Also print formfeeds as `\\f'.  */);
   print_escape_newlines = 0;
 
+  DEFVAR_BOOL ("print-escape-control-characters", print_escape_control_characters,
+	       doc: /* Non-nil means print control characters in strings as `\\OOO'.
+\(OOO is the octal representation of the character code.)*/);
+  print_escape_control_characters = 0;
+
   DEFVAR_BOOL ("print-escape-nonascii", print_escape_nonascii,
 	       doc: /* Non-nil means print unibyte non-ASCII chars in strings as \\OOO.
 \(OOO is the octal representation of the character code.)
@@ -2418,6 +2438,7 @@ priorities.  */);
   DEFSYM (Qprint_escape_newlines, "print-escape-newlines");
   DEFSYM (Qprint_escape_multibyte, "print-escape-multibyte");
   DEFSYM (Qprint_escape_nonascii, "print-escape-nonascii");
+  DEFSYM (Qprint_escape_control_characters, "print-escape-control-characters");
 
   print_prune_charset_plist = Qnil;
   staticpro (&print_prune_charset_plist);

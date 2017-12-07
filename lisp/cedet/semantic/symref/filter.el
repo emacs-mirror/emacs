@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -103,7 +103,7 @@ tag that contains point, and return that."
       (when (called-interactively-p 'interactive)
 	(message "Found %d occurrences of %s in %.2f seconds"
 		 Lcount (semantic-tag-name target)
-		 (semantic-elapsed-time start (current-time))))
+		 (semantic-elapsed-time start nil)))
       Lcount)))
 
 (defun semantic-symref-rename-local-variable ()

@@ -519,6 +519,10 @@ when exiting Emacs; if you wish to prevent Emacs from transferring
 data to the clipboard manager, change the variable
 @code{x-select-enable-clipboard-manager} to @code{nil}.
 
+  Since strings containing NUL bytes are usually truncated when passed
+through the clipboard, Emacs replaces such characters with ``\0''
+before transferring them to the system's clipboard.
+
 @vindex select-enable-primary
 @findex clipboard-kill-region
 @findex clipboard-kill-ring-save

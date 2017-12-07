@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Beware: while this file has tag `utf-8', before it's compiled, it gets
 ;; loaded as "raw-text", so non-ASCII chars won't work right during bootstrap.
@@ -78,8 +78,8 @@ If FORM does return, signal an error."
 
 (defmacro 1value (form)
   "Evaluate FORM, expecting a constant return value.
-This is the global do-nothing version.  There is also `testcover-1value'
-that complains if FORM ever does return differing values."
+If FORM returns differing values when running under Testcover,
+Testcover will raise an error."
   (declare (debug t))
   form)
 
@@ -110,8 +110,7 @@ BODY should be a list of Lisp expressions.
 
 \(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
   (declare (doc-string 2) (indent defun)
-           (debug (&define lambda-list
-                           [&optional stringp]
+           (debug (&define lambda-list lambda-doc
                            [&optional ("interactive" interactive)]
                            def-body)))
   ;; Note that this definition should not use backquotes; subr.el should not
@@ -121,6 +120,7 @@ BODY should be a list of Lisp expressions.
 (defmacro setq-local (var val)
   "Set variable VAR to value VAL in current buffer."
   ;; Can't use backquote here, it's too early in the bootstrap.
+  (declare (debug (symbolp form)))
   (list 'set (list 'make-local-variable (list 'quote var)) val))
 
 (defmacro defvar-local (var val &optional docstring)
@@ -278,6 +278,17 @@ without silencing all errors."
   `(condition-case nil (progn ,@body) (error nil)))
 
 ;;;; Basic Lisp functions.
+
+(defvar gensym-counter 0
+  "Number used to construct the name of the next symbol created by `gensym'.")
+
+(defun gensym (&optional prefix)
+  "Return a new uninterned symbol.
+The name is made by appending `gensym-counter' to PREFIX.
+PREFIX is a string, and defaults to \"g\"."
+  (let ((num (prog1 gensym-counter
+               (setq gensym-counter (1+ gensym-counter)))))
+    (make-symbol (format "%s%d" (or prefix "g") num))))
 
 (defun ignore (&rest _ignore)
   "Do nothing and return nil.
@@ -566,7 +577,7 @@ one is kept."
           (setq tail (cdr tail))))))
   list)
 
-;; See http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00204.html
+;; See https://lists.gnu.org/r/emacs-devel/2013-05/msg00204.html
 (defun delete-consecutive-dups (list &optional circular)
   "Destructively remove `equal' consecutive duplicates from LIST.
 First and last elements are considered consecutive if CIRCULAR is
@@ -724,15 +735,18 @@ Elements of ALIST that are not conses are ignored."
 	(setq tail tail-cdr))))
   alist)
 
-(defun alist-get (key alist &optional default remove)
-  "Return the value associated with KEY in ALIST, using `assq'.
+(defun alist-get (key alist &optional default remove testfn)
+  "Return the value associated with KEY in ALIST.
 If KEY is not found in ALIST, return DEFAULT.
+Use TESTFN to lookup in the alist if non-nil.  Otherwise, use `assq'.
 
 This is a generalized variable suitable for use with `setf'.
 When using it to set a value, optional argument REMOVE non-nil
 means to remove KEY from ALIST if the new value is `eql' to DEFAULT."
   (ignore remove) ;;Silence byte-compiler.
-  (let ((x (assq key alist)))
+  (let ((x (if (not testfn)
+               (assq key alist)
+             (assoc key alist testfn))))
     (if x (cdr x) default)))
 
 (defun remove (elt seq)
@@ -770,8 +784,9 @@ This is the same format used for saving keyboard macros (see
   "Beep to tell the user this binding is undefined."
   (interactive)
   (ding)
-  (message "%s is undefined" (key-description (this-single-command-keys)))
-  (setq defining-kbd-macro nil)
+  (if defining-kbd-macro
+      (error "%s is undefined" (key-description (this-single-command-keys)))
+    (message "%s is undefined" (key-description (this-single-command-keys))))
   (force-mode-line-update)
   ;; If this is a down-mouse event, don't reset prefix-arg;
   ;; pass it to the command run by the up event.
@@ -1255,6 +1270,11 @@ See `event-start' for a description of the value returned."
   "Return the multi-click count of EVENT, a click or drag event.
 The return value is a positive integer."
   (if (and (consp event) (integerp (nth 2 event))) (nth 2 event) 1))
+
+(defsubst event-line-count (event)
+  "Return the line count of EVENT, a mousewheel event.
+The return value is a positive integer."
+  (if (and (consp event) (integerp (nth 3 event))) (nth 3 event) 1))
 
 ;;;; Extracting fields of the positions in an event.
 
@@ -1459,10 +1479,6 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete-variable 'command-debug-status
                         "expect it to be removed in a future version." "25.2")
 
-;; Lisp manual only updated in 22.1.
-(define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
-  "before 19.34")
-
 (define-obsolete-variable-alias 'x-lost-selection-hooks
   'x-lost-selection-functions "22.1")
 (define-obsolete-variable-alias 'x-sent-selection-hooks
@@ -1473,6 +1489,8 @@ be a list of the form returned by `event-start' and `event-end'."
 ;; Other uses are possible, so this variable is not _really_ obsolete,
 ;; but Stefan insists to mark it so.
 (make-obsolete-variable 'translation-table-for-input nil "23.1")
+
+(make-obsolete-variable 'x-gtk-use-window-move nil "26.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
 
@@ -1785,7 +1803,8 @@ Return the new history list.
 If MAXELT is non-nil, it specifies the maximum length of the history.
 Otherwise, the maximum history length is the value of the `history-length'
 property on symbol HISTORY-VAR, if set, or the value of the `history-length'
-variable.
+variable.  The possible values of maximum length have the same meaning as
+the values of `history-length'.
 Remove duplicates of NEWELT if `history-delete-duplicates' is non-nil.
 If optional fourth arg KEEP-ALL is non-nil, add NEWELT to history even
 if it is empty or a duplicate."
@@ -1994,6 +2013,25 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 ;;   "Return the name of the file from which AUTOLOAD will be loaded.
 ;; \n\(fn AUTOLOAD)")
 
+(defun define-symbol-prop (symbol prop val)
+  "Define the property PROP of SYMBOL to be VAL.
+This is to `put' what `defalias' is to `fset'."
+  ;; Can't use `cl-pushnew' here (nor `push' on (cdr foo)).
+  ;; (cl-pushnew symbol (alist-get prop
+  ;;                               (alist-get 'define-symbol-props
+  ;;                                          current-load-list)))
+  (let ((sps (assq 'define-symbol-props current-load-list)))
+    (unless sps
+      (setq sps (list 'define-symbol-props))
+      (push sps current-load-list))
+    (let ((ps (assq prop sps)))
+      (unless ps
+        (setq ps (list prop))
+        (setcdr sps (cons ps (cdr sps))))
+      (unless (member symbol (cdr ps))
+        (setcdr ps (cons symbol (cdr ps))))))
+  (put symbol prop val))
+
 (defun symbol-file (symbol &optional type)
   "Return the name of the file that defined SYMBOL.
 The value is normally an absolute file name.  It can also be nil,
@@ -2003,47 +2041,30 @@ file name without extension.
 
 If TYPE is nil, then any kind of definition is acceptable.  If
 TYPE is `defun', `defvar', or `defface', that specifies function
-definition, variable definition, or face definition only."
+definition, variable definition, or face definition only.
+Otherwise TYPE is assumed to be a symbol property."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
       (nth 1 (symbol-function symbol))
-    (let ((files load-history)
-	  file match)
-      (while files
-	(if (if type
-		(if (eq type 'defvar)
-		    ;; Variables are present just as their names.
-		    (member symbol (cdr (car files)))
-		  ;; Other types are represented as (TYPE . NAME).
-		  (member (cons type symbol) (cdr (car files))))
-	      ;; We accept all types, so look for variable def
-	      ;; and then for any other kind.
-	      (or (member symbol (cdr (car files)))
-		  (and (setq match (rassq symbol (cdr (car files))))
-		       (not (eq 'require (car match))))))
-	    (setq file (car (car files)) files nil))
-	(setq files (cdr files)))
-      file)))
-
-(defun method-files (method)
-  "Return a list of files where METHOD is defined by `cl-defmethod'.
-The list will have entries of the form (FILE . (METHOD ...))
-where (METHOD ...) contains the qualifiers and specializers of
-the method and is a suitable argument for
-`find-function-search-for-symbol'.  Filenames are absolute."
-  (let ((files load-history)
-        result)
-    (while files
-      (let ((defs (cdr (car files))))
-        (while defs
-          (let ((def (car defs)))
-            (if (and (eq (car-safe def) 'cl-defmethod)
-                     (eq (cadr def) method))
-                (push (cons (car (car files)) (cdr def)) result)))
-          (setq defs (cdr defs))))
-      (setq files (cdr files)))
-    result))
+    (catch 'found
+      (pcase-dolist (`(,file . ,elems) load-history)
+	(when (if type
+		  (if (eq type 'defvar)
+		      ;; Variables are present just as their names.
+		      (member symbol elems)
+		    ;; Many other types are represented as (TYPE . NAME).
+		    (or (member (cons type symbol) elems)
+                        (memq symbol (alist-get type
+                                                (alist-get 'define-symbol-props
+                                                           elems)))))
+	        ;; We accept all types, so look for variable def
+	        ;; and then for any other kind.
+	        (or (member symbol elems)
+                    (let ((match (rassq symbol elems)))
+		      (and match
+		           (not (eq 'require (car match)))))))
+          (throw 'found file))))))
 
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
@@ -2405,7 +2426,7 @@ in milliseconds; this was useful when Emacs was built without
 floating point support."
   (declare (advertised-calling-convention (seconds &optional nodisp) "22.1"))
   ;; This used to be implemented in C until the following discussion:
-  ;; http://lists.gnu.org/archive/html/emacs-devel/2006-07/msg00401.html
+  ;; https://lists.gnu.org/r/emacs-devel/2006-07/msg00401.html
   ;; Then it was moved here using an implementation based on an idle timer,
   ;; which was then replaced by the use of read-event.
   (if (numberp nodisp)
@@ -2420,7 +2441,7 @@ floating point support."
     nil)
    ((or (<= seconds 0)
         ;; We are going to call read-event below, which will record
-        ;; the the next key as part of the macro, even if that key
+        ;; the next key as part of the macro, even if that key
         ;; invokes kmacro-end-macro, so if we are recording a macro,
         ;; the macro will recursively call itself.  In addition, when
         ;; that key is removed from unread-command-events, it will be
@@ -2444,7 +2465,7 @@ floating point support."
                   (read-event nil t seconds))))
       (or (null read)
 	  (progn
-            ;; https://lists.gnu.org/archive/html/emacs-devel/2006-10/msg00394.html
+            ;; https://lists.gnu.org/r/emacs-devel/2006-10/msg00394.html
             ;; We want `read' appear in the next command's this-command-event
             ;; but not in the current one.
             ;; By pushing (cons t read), we indicate that `read' has not
@@ -3077,7 +3098,7 @@ Do nothing if FACE is nil."
        (put-text-property start end 'face face)))
 
 ;; This removes `mouse-face' properties in *Help* buffer buttons:
-;; http://lists.gnu.org/archive/html/emacs-devel/2002-04/msg00648.html
+;; https://lists.gnu.org/r/emacs-devel/2002-04/msg00648.html
 (defun yank-handle-category-property (category start end)
   "Apply property category CATEGORY's properties between START and END."
   (when category
@@ -4192,7 +4213,7 @@ Used from `delayed-warnings-hook' (which see)."
     (setq delayed-warnings-list (nreverse collapsed))))
 
 ;; At present this is only used for Emacs internals.
-;; Ref http://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00085.html
+;; Ref https://lists.gnu.org/r/emacs-devel/2012-02/msg00085.html
 (defvar delayed-warnings-hook '(collapse-delayed-warnings
                                 display-delayed-warnings)
   "Normal hook run to process and display delayed warnings.
@@ -4513,7 +4534,8 @@ EVALD, FUNC, ARGS, FLAGS are as in `mapbacktrace'."
 (defun backtrace ()
   "Print a trace of Lisp function calls currently active.
 Output stream used is value of `standard-output'."
-  (let ((print-level (or print-level 8)))
+  (let ((print-level (or print-level 8))
+        (print-escape-control-characters t))
     (mapbacktrace #'backtrace--print-frame 'backtrace)))
 
 (defun backtrace-frames (&optional base)
@@ -4794,10 +4816,9 @@ CURRENT-VALUE and MIN-CHANGE do not have any effect if MIN-VALUE
 and/or MAX-VALUE are nil.
 
 Optional MIN-TIME specifies the minimum interval time between
-echo area updates (default is 0.2 seconds.)  If the function
-`float-time' is not present, time is not tracked at all.  If the
-OS is not capable of measuring fractions of seconds, this
-parameter is effectively rounded up."
+echo area updates (default is 0.2 seconds.)  If the OS is not
+capable of measuring fractions of seconds, this parameter is
+effectively rounded up."
   (when (string-match "[[:alnum:]]\\'" message)
     (setq message (concat message "...")))
   (unless min-time
@@ -4805,8 +4826,7 @@ parameter is effectively rounded up."
   (let ((reporter
 	 ;; Force a call to `message' now
 	 (cons (or min-value 0)
-	       (vector (if (and (fboundp 'float-time)
-				(>= min-time 0.02))
+	       (vector (if (>= min-time 0.02)
 			   (float-time) nil)
 		       min-value
 		       max-value
@@ -5203,7 +5223,7 @@ or \"gnus-article-toto-\".")
 
 ;; The following statement ought to be in print.c, but `provide' can't
 ;; be used there.
-;; http://lists.gnu.org/archive/html/emacs-devel/2009-08/msg00236.html
+;; https://lists.gnu.org/r/emacs-devel/2009-08/msg00236.html
 (when (hash-table-p (car (read-from-string
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))

@@ -614,7 +614,7 @@ be different.
 It is generally recommended to use `system-configuration' rather
 than `system-type'.
 
-See <http://www.gnu.org/gnu/linux-and-gnu.html> for more about this.
+See <https://www.gnu.org/gnu/linux-and-gnu.html> for more about this.
 
 ** The functions shell-command and dired-call-process
 now run file name handlers for default-directory, if it has them.
@@ -6533,7 +6533,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

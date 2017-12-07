@@ -94,6 +94,8 @@ s/ *@LIBXPM@//
 /^IMAGEMAGICK_CFLAGS *=/s/@IMAGEMAGICK_CFLAGS@//
 /^LIBXML2_LIBS *=/s/@LIBXML2_LIBS@//
 /^LIBXML2_CFLAGS *=/s/@LIBXML2_CFLAGS@//
+/^GETADDRINFO_A_LIBS *=/s/@GETADDRINFO_A_LIBS@//
+/^LIBLCMS2 *=/s/@LIBLCMS2@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^XWIDGETS_OBJ *=/s/@XWIDGETS_OBJ@//
 /^WEBKIT_LIBS *=/s/@WEBKIT_LIBS@//
@@ -102,16 +104,19 @@ s/ *@LIBXPM@//
 /^CAIRO_CFLAGS *=/s/@CAIRO_CFLAGS@//
 /^XFIXES_LIBS *=/s/@XFIXES_LIBS@//
 /^XFIXES_CFLAGS *=/s/@XFIXES_CFLAGS@//
+/^XDBE_LIBS *=/s/@XDBE_LIBS@//
+/^XDBE_CFLAGS *=/s/@XDBE_CFLAGS@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^WINDOW_SYSTEM_OBJ *=/s/@WINDOW_SYSTEM_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
 /^GNU_OBJC_CFLAGS*=/s/=.*$/=/
-/^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBMODULES *=/s/@LIBMODULES@//
 /^MODULES_OBJ *=/s/@MODULES_OBJ@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
+/^LIBSYSTEMD_LIBS *=/s/@LIBSYSTEMD_LIBS@//
+/^LIBSYSTEMD_CFLAGS *=/s/@LIBSYSTEMD_CFLAGS@//
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
 /^LIB_EXECINFO *=/s/@[^@\n]*@//g
@@ -133,6 +138,7 @@ s/ *@LIBXPM@//
 /^XRANDR_CFLAGS *=/s/@XRANDR_CFLAGS@//
 /^XINERAMA_LIBS *=/s/@XINERAMA_LIBS@//
 /^XINERAMA_CFLAGS *=/s/@XINERAMA_CFLAGS@//
+/^HYBRID_MALLOC *=/s/@HYBRID_MALLOC@//
 /^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/
 /^VMLIMIT_OBJ *=/s/@VMLIMIT_OBJ@/vm-limit.o/
 /^FIRSTFILE_OBJ *=/s/@FIRSTFILE_OBJ@//
@@ -140,9 +146,8 @@ s/ *@LIBXPM@//
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
 /^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexcoff.o/
+/^BUILD_DETAILS *=/s/@BUILD_DETAILS@//
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
-/^DEPFLAGS *=/s/@DEPFLAGS@//
-/^MKDEPDIR *=/s/@MKDEPDIR@//
 /^W32_OBJ *=/s/@W32_OBJ@//
 /^W32_LIBS *=/s/@W32_LIBS@//
 /^version *=/s/@[^@\n]*@//
@@ -172,20 +177,18 @@ lisp.mk: $(lispsource)/loadup.el\
 /^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-doc/s!>.*$!!
 /^\$(libsrc)\/make-docfile\$(EXEEXT): /i\
 	cd ../src
-/^\$(leimdir)\/leim-list.el: /s/bootstrap-emacs\$(EXEEXT)/b-emacs$(EXEEXT)/
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	 *ifneq (\$(PAXCTL_notdumped),)/,/^	 *endif/d
 /^	 *ifneq (\$(PAXCTL_dumped),)/,/^	 *endif/d
 /^	 *ln /s/ln /cp /
-/^	 *\$(SETFATTR_if_present) -n/d
 /^	fi/d
 /^	 *\$(RUN_TEMACS) /i\
 	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
-/-batch -l loadup/a\
+/-batch .* -l loadup/a\
 	stubify emacs\
 	stubedit emacs.exe minstack=3072k
 s/ @true *$/ @rem/
@@ -193,7 +196,6 @@ s/^	[^ 	]*move-if-change /	update /
 /^	[^ 	]*echo[ 	][ 	]*timestamp/s/echo /djecho /
 /^	.*djecho timestamp/a\
 	@rm -f globals.tmp
-/^	 *@\$(MKDEPDIR) *$/d
 /^	mv \.\/\.gdbinit/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
@@ -201,12 +203,7 @@ s/^	[^ 	]*move-if-change /	update /
 /^	@: /d
 /^	-\{0,1\} *ln /s/ln /cp /
 /^[ 	]touch /s/touch/djecho $@ >/
-s/@YMF_PASS_LDFLAGS@/flags/
-s/@PRE_EDIT_LDFLAGS@//
-s/@POST_EDIT_LDFLAGS@//
 s/bootstrap-emacs/b-emacs/
-s/bootstrap-temacs/b-temacs/
-s/bootstrap-doc/b-doc/
 /rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
 s/echo.*buildobj.lst/dj&/
 / --load loadup bootstrap/a\
@@ -222,25 +219,20 @@ s/echo.*buildobj.lst/dj&/
 }
 # Remove or replace dependencies we cannot have
 /^\.PRECIOUS: /s!\.\./config.status !!
-/^\.\.\/config.status: /d
+/^\.\.\/config.status: /,/^	/d
 /^Makefile: /s!\.\./config.status !!
-/^\$(top_srcdir)\/aclocal\.m4 /,/^doc\.o:/c\
-\
-doc.o: buildobj.h
 # Make the GCC command line fit one screen line
 /^[ 	][ 	]*\$(GNUSTEP_CFLAGS)/d
-/^[ 	][ 	]*\$(GCONF_CFLAGS)/d
 /^[ 	][ 	]*\$(LIBGNUTLS_CFLAGS)/d
-s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) \$(DEPFLAGS) //
+/^[ 	][ 	]*\$(LIBSYSTEMD_CFLAGS)/d
+/^[ 	][ 	]*\$(XRANDR_CFLAGS)/d
+/^[ 	][ 	]*\$(WEBKIT_CFLAGS)/d
+/^[ 	][ 	]*\$(SETTINGS_CFLAGS)/d
+s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) //
 s/ \$(C_SWITCH_X_SITE)//
 s/ \$(DBUS_CFLAGS)//
 s/ \$(PNG_CFLAGS) //
-s/ \$(XINERAMA_CFLAGS)//
-s/ \$(XFIXES_CFLAGS)//
-s/ \$(FREETYPE_CFLAGS)//
-s/ \$(FONTCONFIG_CFLAGS)//
 s| -I\$(srcdir)/\.\./lib||
 s| -I\$(top_srcdir)/lib||
-# Add our local inttypes.h to prerequisites where needed
-/^lread\.o:/s|lread\.c|& ../msdos/inttypes.h|
+s| -I\. -I\$(srcdir)| -I.|
 /^	 *test "X/d

@@ -13,7 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. -->
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
 <locatingRules xmlns="http://thaiopensource.com/ns/locating-rules/1.0">
   <transformURI fromPattern="*.xml" toPattern="*.rnc"/>
@@ -55,4 +55,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. -->
   <typeId id="XHTML" uri="xhtml.rnc"/>
   <typeId id="DocBook" uri="docbook.rnc"/>
   <typeId id="RDF" uri="rdfxml.rnc"/>
+
+  <documentElement prefix="office" typeId="OpenDocument"/>
+  <documentElement prefix="manifest" localName="manifest" typeId="OpenDocument Manifest"/>
+  <typeId id="OpenDocument" uri="od-schema-v1.2-os.rnc"/>
+  <typeId id="OpenDocument Manifest" uri="od-manifest-schema-v1.2-os.rnc"/>
+
 </locatingRules>

@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -588,6 +588,37 @@ region."
     (mark-defun)
     (should (= (point) before))
     (should (= (mark) after))))
+
+(ert-deftest lisp-fill-paragraph-colon ()
+  "Keywords below Emacs Lisp docstrings should not be filled (Bug#24622).
+Keywords inside docstrings should be filled (Bug#7751)."
+  (elisp-tests-with-temp-buffer
+      "
+\(defcustom custom value
+  \"First\n
+Second\n
+=!inside=Third line\"
+  =!keywords=:type 'sexp
+  :version \"26.1\"
+  :group 'lisp-tests)"
+    (goto-char inside)
+    (fill-paragraph)
+    (goto-char keywords)
+    (beginning-of-line)
+    (should (looking-at "  :type 'sexp\n  :version \"26.1\"\n  :")))
+  (elisp-tests-with-temp-buffer
+      "
+\(defun foo ()
+  \"Summary.
+=!inside=Testing keywords: :one :two :three\"
+  (body))" ; FIXME: Remove parens around body to test Bug#28937 once it's fixed
+    (goto-char inside)
+    (let ((emacs-lisp-docstring-fill-column 30))
+      (fill-paragraph))
+    (forward-line)
+    (should (looking-at ":three"))
+    (end-of-line)
+    (should-not (eq (preceding-char) ?\)))))
 
 (provide 'lisp-tests)
 ;;; lisp-tests.el ends here

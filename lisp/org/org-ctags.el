@@ -1,4 +1,4 @@
-;;; org-ctags.el - Integrate Emacs "tags" facility with org mode.
+;;; org-ctags.el - Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
 
@@ -20,26 +20,27 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;
 ;; Synopsis
 ;; ========
 ;;
-;; Allows org-mode to make use of the Emacs `etags' system.  Defines tag
-;; destinations in org-mode files as any text between <<double angled
-;; brackets>>. This allows the tags-generation program `exuberant ctags' to
-;; parse these files and create tag tables that record where these
-;; destinations are found.  Plain [[links]] in org mode files which do not have
-;; <<matching destinations>> within the same file will then be interpreted as
-;; links to these 'tagged' destinations, allowing seamless navigation between
-;; multiple org-mode files.  Topics can be created in any org mode file and
-;; will always be found by plain links from other files.  Other file types
-;; recognized by ctags (source code files, latex files, etc) will also be
-;; available as destinations for plain links, and similarly, org-mode links
-;; will be available as tags from source files.  Finally, the function
-;; `org-ctags-find-tag-interactive' lets you choose any known tag, using
-;; autocompletion, and quickly jump to it.
+;; Allows Org mode to make use of the Emacs `etags' system.  Defines
+;; tag destinations in Org files as any text between <<double angled
+;; brackets>>. This allows the tags-generation program `exuberant
+;; ctags' to parse these files and create tag tables that record where
+;; these destinations are found.  Plain [[links]] in org mode files
+;; which do not have <<matching destinations>> within the same file
+;; will then be interpreted as links to these 'tagged' destinations,
+;; allowing seamless navigation between multiple Org files.  Topics
+;; can be created in any org mode file and will always be found by
+;; plain links from other files.  Other file types recognized by ctags
+;; (source code files, latex files, etc) will also be available as
+;; destinations for plain links, and similarly, Org links will be
+;; available as tags from source files.  Finally, the function
+;; `org-ctags-find-tag-interactive' lets you choose any known tag,
+;; using autocompletion, and quickly jump to it.
 ;;
 ;; Installation
 ;; ============
@@ -110,8 +111,9 @@
 ;; Keeping the TAGS file up to date
 ;; ================================
 ;;
-;; Tags mode has no way of knowing that you have created new tags by typing in
-;; your org-mode buffer.  New tags make it into the TAGS file in 3 ways:
+;; Tags mode has no way of knowing that you have created new tags by
+;; typing in your Org buffer.  New tags make it into the TAGS file in
+;; 3 ways:
 ;;
 ;; 1. You re-run (org-ctags-create-tags "directory") to rebuild the file.
 ;; 2. You put the function `org-ctags-ask-rebuild-tags-file-then-find-tag' in
@@ -135,11 +137,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (require 'org)
-
-(declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
 
 (defgroup org-ctags nil
   "Options concerning use of ctags within org mode."
@@ -151,7 +149,7 @@
 
 (defvar org-ctags-tag-regexp "/<<([^>]+)>>/\\1/d,definition/"
   "Regexp expression used by ctags external program.
-The regexp matches tag destinations in org-mode files.
+The regexp matches tag destinations in Org files.
 Format is: /REGEXP/TAGNAME/FLAGS,TAGTYPE/
 See the ctags documentation for more information.")
 
@@ -210,8 +208,8 @@ The following patterns are replaced in the string:
 
 (defadvice visit-tags-table (after org-ctags-load-tag-list activate compile)
   (when (and org-ctags-enabled-p tags-file-name)
-    (set (make-local-variable 'org-ctags-tag-list)
-         (org-ctags-all-tags-in-current-tags-table))))
+    (setq-local org-ctags-tag-list
+		(org-ctags-all-tags-in-current-tags-table))))
 
 
 (defun org-ctags-enable ()
@@ -273,11 +271,6 @@ Return the list."
   (replace-regexp-in-string (regexp-quote search) replace string t t))
 
 
-(defun y-or-n-minibuffer (prompt)
-  (let ((use-dialog-box nil))
-    (y-or-n-p prompt)))
-
-
 ;;; Internal functions =======================================================
 
 
@@ -285,29 +278,28 @@ Return the list."
   "Visit or create a file called `NAME.org', and insert a new topic.
 The new topic will be titled NAME (or TITLE if supplied)."
   (interactive "sFile name: ")
-  (let ((filename (substitute-in-file-name (expand-file-name name))))
-    (condition-case v
-        (progn
-          (org-open-file name t)
-          (message "Opened file OK")
-          (goto-char (point-max))
-          (insert (org-ctags-string-search-and-replace
-                   "%t" (capitalize (or title name))
-                   org-ctags-new-topic-template))
-          (message "Inserted new file text OK")
-          (org-mode-restart))
-      (error (error "Error %S in org-ctags-open-file" v)))))
+  (condition-case v
+      (progn
+	(org-open-file name t)
+	(message "Opened file OK")
+	(goto-char (point-max))
+	(insert (org-ctags-string-search-and-replace
+		 "%t" (capitalize (or title name))
+		 org-ctags-new-topic-template))
+	(message "Inserted new file text OK")
+	(org-mode-restart))
+    (error (error "Error %S in org-ctags-open-file" v))))
 
 
 ;;;; Misc interoperability with etags system =================================
 
 
-(defadvice find-tag (before org-ctags-set-org-mark-before-finding-tag
-			    activate compile)
+(defadvice xref-find-definitions
+    (before org-ctags-set-org-mark-before-finding-tag activate compile)
   "Before trying to find a tag, save our current position on org mark ring."
   (save-excursion
-    (if (and (derived-mode-p 'org-mode) org-ctags-enabled-p)
-        (org-mark-ring-push))))
+    (when (and (derived-mode-p 'org-mode) org-ctags-enabled-p)
+      (org-mark-ring-push))))
 
 
 
@@ -359,7 +351,7 @@ visit the file and location where the tag is found."
         (old-pnt (point-marker))
         (old-mark (copy-marker (mark-marker))))
     (condition-case nil
-        (progn (find-tag name)
+        (progn (xref-find-definitions name)
                t)
       (error
        ;; only restore old location if find-tag raises error
@@ -386,7 +378,7 @@ the new file."
     (cond
      ((get-buffer (concat name ".org"))
       ;; Buffer is already open
-      (org-pop-to-buffer-same-window (get-buffer (concat name ".org"))))
+      (pop-to-buffer-same-window (get-buffer (concat name ".org"))))
      ((file-exists-p filename)
       ;; File exists but is not open --> open it
       (message "Opening existing org file `%S'..."
@@ -421,7 +413,6 @@ the heading a destination for the tag `NAME'."
   (insert (org-ctags-string-search-and-replace
            "%t" (capitalize name) org-ctags-new-topic-template))
   (backward-char 4)
-  (org-update-radio-target-regexp)
   (end-of-line)
   (forward-line 2)
   (when narrowp
@@ -464,10 +455,10 @@ Wrapper for org-ctags-rebuild-tags-file-then-find-tag."
     nil))
 
 
-(defun org-ctags-fail-silently (name)
+(defun org-ctags-fail-silently (_name)
   "This function is intended to be used in ORG-OPEN-LINK-FUNCTIONS.
-Put as the last function in the list if you want to prevent org's default
-behavior of free text search."
+Put as the last function in the list if you want to prevent Org's
+default behavior of free text search."
   t)
 
 
@@ -484,7 +475,7 @@ end up in one file, called TAGS, located in the directory.  This
 function may take several seconds to finish if the directory or
 its subdirectories contain large numbers of taggable files."
   (interactive)
-  (assert (buffer-file-name))
+  (cl-assert (buffer-file-name))
   (let ((dir-name (or directory-name
                       (file-name-directory (buffer-file-name))))
         (exitcode nil))
@@ -499,8 +490,8 @@ its subdirectories contain large numbers of taggable files."
                      (expand-file-name (concat dir-name "/*")))))
       (cond
        ((eql 0 exitcode)
-        (set (make-local-variable 'org-ctags-tag-list)
-             (org-ctags-all-tags-in-current-tags-table)))
+        (setq-local org-ctags-tag-list
+		    (org-ctags-all-tags-in-current-tags-table)))
        (t
         ;; This seems to behave differently on Linux, so just ignore
         ;; error codes for now
@@ -528,7 +519,7 @@ a new topic."
        ((member tag org-ctags-tag-list)
         ;; Existing tag
         (push tag org-ctags-find-tag-history)
-        (find-tag tag))
+        (xref-find-definitions tag))
        (t
         ;; New tag
         (run-hook-with-args-until-success

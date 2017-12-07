@@ -92,7 +92,7 @@
 
      SIZE must point to the total size of the buffer.  If BUFFER is
      NULL or if SIZE is not big enough, write the required buffer size
-     to SIZE and return false.
+     to SIZE and return true.
 
      Note that SIZE must include the last null byte (e.g. "abc" needs
      a buffer of size 4).

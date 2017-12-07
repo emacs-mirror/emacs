@@ -6,7 +6,6 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 29 Mar 1993
 ;; Keywords: files, hypermedia, matching, mouse, convenience
-;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
 
 ;; This file is part of GNU Emacs.
 
@@ -21,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -787,7 +786,7 @@ This uses `ffap-file-exists-string', which may try adding suffixes from
     ("\\`~/" . ffap-lcd)		; |~/misc/ffap.el.Z|
     ;; This used to have a blank, but ffap-string-at-point doesn't
     ;; handle blanks.
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01058.html
+    ;; https://lists.gnu.org/r/emacs-devel/2008-01/msg01058.html
     ("\\`[Rr][Ff][Cc][-#]?\\([0-9]+\\)"	; no $
      . ffap-rfc)			; "100% RFC2100 compliant"
     (dired-mode . ffap-dired)		; maybe in a subdirectory
@@ -1536,7 +1535,8 @@ If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
-and the functions `ffap-file-at-point' and `ffap-url-at-point'."
+`ffap-url-unwrap-local', `ffap-url-unwrap-remote', and the functions
+`ffap-file-at-point' and `ffap-url-at-point'."
   (interactive)
   (if (and (called-interactively-p 'interactive)
 	   (if ffap-require-prefix (not current-prefix-arg)

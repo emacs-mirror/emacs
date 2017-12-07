@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -59,7 +59,7 @@
 ;;         and then M-: (macroexpand-all '(my-test1 y)) RET)
 ;; There is still one downside shared with the defmacro and cl-defsubst
 ;; approach: when the function is inlined, the scoping rules (dynamic or
-;; lexical) will be inherited from the the call site.
+;; lexical) will be inherited from the call site.
 
 ;; Of course, since define-inline defines a compiler macro, you can also do
 ;; call-site optimizations, just like you can with `defmacro', but not with
@@ -218,7 +218,7 @@ After VARS is handled, BODY is evaluated in the new environment."
     `(let* ((,bsym ())
             (,listvar (mapcar (lambda (e)
                                 (if (macroexp-copyable-p e) e
-                                  (let ((v (make-symbol "v")))
+                                  (let ((v (gensym "v")))
                                     (push (list v e) ,bsym)
                                     v)))
                               ,listvar)))

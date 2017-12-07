@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <pwd.h>
 #include <malloc.h>
@@ -58,10 +58,6 @@ int fchown (int fd, unsigned uid, unsigned gid);
 #undef dup2
 #define dup2    _dup2
 #undef fopen
-#undef mkdir
-#define mkdir   _mkdir
-#undef open
-#define open    _open
 #undef pipe
 #define pipe    _pipe
 #undef read

@@ -16,14 +16,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define INLINE EXTERN_INLINE
 #include <config.h>
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <sys/file.h>
@@ -33,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define MAIN_PROGRAM
 #include "lisp.h"
+#include "sysstdio.h"
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
@@ -252,7 +252,7 @@ Initialization options:\n\
     "\
 Action options:\n\
 \n\
-FILE                    visit FILE using find-file\n\
+FILE                    visit FILE\n\
 +LINE                   go to line LINE in next FILE\n\
 +LINE:COLUMN            go to line LINE, column COLUMN, in next FILE\n\
 --directory, -L DIR     prepend DIR to load-path (with :DIR, append DIR)\n\
@@ -260,13 +260,13 @@ FILE                    visit FILE using find-file\n\
 --execute EXPR          evaluate Emacs Lisp expression EXPR\n\
 ",
     "\
---file FILE             visit FILE using find-file\n\
---find-file FILE        visit FILE using find-file\n\
+--file FILE             visit FILE\n\
+--find-file FILE        visit FILE\n\
 --funcall, -f FUNC      call Emacs Lisp function FUNC with no arguments\n\
 --insert FILE           insert contents of FILE into current buffer\n\
 --kill                  exit without asking for confirmation\n\
 --load, -l FILE         load Emacs Lisp FILE using the load function\n\
---visit FILE            visit FILE using find-file\n\
+--visit FILE            visit FILE\n\
 \n\
 ",
     "\
@@ -672,7 +672,10 @@ close_output_streams (void)
 int
 main (int argc, char **argv)
 {
-  char stack_bottom_variable;
+  /* Variable near the bottom of the stack, and aligned appropriately
+     for pointers.  */
+  void *stack_bottom_variable;
+
   bool do_initial_setlocale;
   bool dumping;
   int skip_args = 0;
@@ -688,7 +691,7 @@ main (int argc, char **argv)
   char *original_pwd = 0;
 
   /* Record (approximately) where the stack begins.  */
-  stack_bottom = &stack_bottom_variable;
+  stack_bottom = (char *) &stack_bottom_variable;
 
 #ifndef CANNOT_DUMP
   dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
@@ -885,7 +888,7 @@ main (int argc, char **argv)
     }
 #endif /* HAVE_SETRLIMIT and RLIMIT_STACK and not CYGWIN */
 
-  clearerr (stdin);
+  clearerr_unlocked (stdin);
 
   emacs_backtrace (-1);
 
@@ -983,7 +986,7 @@ main (int argc, char **argv)
       int i;
       printf ("Usage: %s [OPTION-OR-FILENAME]...\n", argv[0]);
       for (i = 0; i < ARRAYELTS (usage_message); i++)
-	fputs (usage_message[i], stdout);
+	fputs_unlocked (usage_message[i], stdout);
       exit (0);
     }
 
@@ -1539,8 +1542,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef HAVE_LIBXML2
       syms_of_xml ();
+
+#ifdef HAVE_LCMS2
+      syms_of_lcms2 ();
 #endif
 
 #ifdef HAVE_ZLIB
@@ -2197,7 +2202,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   }
 #endif
 
-  fflush (stdout);
+  fflush_unlocked (stdout);
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
 #if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC

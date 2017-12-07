@@ -135,7 +135,7 @@ set @code{debug-ignored-errors} to @code{nil}.
 @defopt eval-expression-debug-on-error
 If this variable has a non-@code{nil} value (the default), running the
 command @code{eval-expression} causes @code{debug-on-error} to be
-temporarily bound to to @code{t}.  @xref{Lisp Eval,, Evaluating
+temporarily bound to @code{t}.  @xref{Lisp Eval,, Evaluating
 Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}.
 
 If @code{eval-expression-debug-on-error} is @code{nil}, then the value

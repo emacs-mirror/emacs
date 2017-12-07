@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -102,7 +102,7 @@
     (char-fold--test-match-exactly "a1" "xx44" "99")
     (char-fold--test-match-exactly "a12" "77" "xx442" "992")
     ;; Support for this case is disabled.  See function definition or:
-    ;; https://lists.gnu.org/archive/html/emacs-devel/2015-11/msg02562.html
+    ;; https://lists.gnu.org/r/emacs-devel/2015-11/msg02562.html
     ;; (char-fold--test-match-exactly "a12" "xxyy")
     ))
 
@@ -117,16 +117,14 @@
                          (char-fold-to-regexp string)))
     (with-temp-buffer
       (save-excursion (insert string))
-      (let ((time (time-to-seconds (current-time))))
+      (let ((time (time-to-seconds)))
         ;; Our initial implementation of case-folding in char-folding
         ;; created a lot of redundant paths in the regexp. Because of
         ;; that, if a really long string "almost" matches, the regexp
         ;; engine took a long time to realize that it doesn't match.
         (should-not (char-fold-search-forward (concat string "c") nil 'noerror))
         ;; Ensure it took less than a second.
-        (should (< (- (time-to-seconds (current-time))
-                      time)
-                   1))))))
+        (should (< (- (time-to-seconds) time) 1))))))
 
 (provide 'char-fold-tests)
 ;;; char-fold-tests.el ends here

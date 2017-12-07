@@ -1,0 +1,11 @@
+Re "behavior" vs "behaviour", etc.
+
+- GNU Emacs originated in the US.
+
+- If there is a choice between US vs UK spelling for a word
+  for new text (code, docs), choose the US variant.
+
+- It's probably (IMHO --ttn, 2017-10-13) not a high priority to
+  change existing text; use your best judgement (ask if unsure).
+
+- http://lists.gnu.org/archive/html/emacs-devel/2005-06/msg00489.html

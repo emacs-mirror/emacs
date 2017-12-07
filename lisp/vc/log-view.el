@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -608,10 +608,16 @@ considered file(s)."
     (log-view-diff-common beg end t)))
 
 (defun log-view-diff-common (beg end &optional whole-changeset)
-  (let ((to (log-view-current-tag beg))
-        (fr (log-view-current-tag end)))
-    (when (string-equal fr to)
-      ;; TO and FR are the same, look at the previous revision.
+  (let* ((to (log-view-current-tag beg))
+         (fr-entry (log-view-current-entry end))
+         (fr (cadr fr-entry)))
+    ;; When TO and FR are the same, or when point is on a line after
+    ;; the last entry, look at the previous revision.
+    (when (or (string-equal fr to)
+              (>= (point)
+                  (save-excursion
+                    (goto-char (car fr-entry))
+                    (forward-line))))
       (setq fr (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
     (vc-diff-internal
      t (list log-view-vc-backend

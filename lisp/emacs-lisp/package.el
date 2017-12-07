@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -101,7 +101,7 @@
 ;; Michael Olson <mwolson@member.fsf.org>
 ;; Sebastian Tennant <sebyte@smolny.plus.com>
 ;; Stefan Monnier <monnier@iro.umontreal.ca>
-;; Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Phil Hagelberg <phil@hagelb.org>
 
 ;;; ToDo:
@@ -708,24 +708,26 @@ correspond to previously loaded files (those returned by
     (unless pkg-dir
       (error "Internal error: unable to find directory for `%s'"
              (package-desc-full-name pkg-desc)))
-    ;; Activate its dependencies recursively.
-    ;; FIXME: This doesn't check whether the activated version is the
-    ;; required version.
-    (when deps
-      (dolist (req (package-desc-reqs pkg-desc))
-        (unless (package-activate (car req))
-          (error "Unable to activate package `%s'.\nRequired package `%s-%s' is unavailable"
-                 name (car req) (package-version-join (cadr req))))))
-    (package--load-files-for-activation pkg-desc reload)
-    ;; Add info node.
-    (when (file-exists-p (expand-file-name "dir" pkg-dir))
-      ;; FIXME: not the friendliest, but simple.
-      (require 'info)
-      (info-initialize)
-      (push pkg-dir Info-directory-list))
-    (push name package-activated-list)
-    ;; Don't return nil.
-    t))
+    (catch 'exit
+      ;; Activate its dependencies recursively.
+      ;; FIXME: This doesn't check whether the activated version is the
+      ;; required version.
+      (when deps
+        (dolist (req (package-desc-reqs pkg-desc))
+          (unless (package-activate (car req))
+            (message "Unable to activate package `%s'.\nRequired package `%s-%s' is unavailable"
+                     name (car req) (package-version-join (cadr req)))
+            (throw 'exit nil))))
+      (package--load-files-for-activation pkg-desc reload)
+      ;; Add info node.
+      (when (file-exists-p (expand-file-name "dir" pkg-dir))
+        ;; FIXME: not the friendliest, but simple.
+        (require 'info)
+        (info-initialize)
+        (push pkg-dir Info-directory-list))
+      (push name package-activated-list)
+      ;; Don't return nil.
+      t)))
 
 (declare-function find-library-name "find-func" (library))
 
@@ -866,14 +868,14 @@ untar into a directory named DIR; otherwise, signal an error."
       ;; Activation has to be done before compilation, so that if we're
       ;; upgrading and macros have changed we load the new definitions
       ;; before compiling.
-      (package-activate-1 new-desc :reload :deps)
-      ;; FIXME: Compilation should be done as a separate, optional, step.
-      ;; E.g. for multi-package installs, we should first install all packages
-      ;; and then compile them.
-      (package--compile new-desc)
-      ;; After compilation, load again any files loaded by
-      ;; `activate-1', so that we use the byte-compiled definitions.
-      (package--load-files-for-activation new-desc :reload))
+      (when (package-activate-1 new-desc :reload :deps)
+        ;; FIXME: Compilation should be done as a separate, optional, step.
+        ;; E.g. for multi-package installs, we should first install all packages
+        ;; and then compile them.
+        (package--compile new-desc)
+        ;; After compilation, load again any files loaded by
+        ;; `activate-1', so that we use the byte-compiled definitions.
+        (package--load-files-for-activation new-desc :reload)))
     pkg-dir))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
@@ -959,17 +961,12 @@ This assumes that `pkg-desc' has already been activated with
 (defun package-read-from-string (str)
   "Read a Lisp expression from STR.
 Signal an error if the entire string was not used."
-  (let* ((read-data (read-from-string str))
-         (more-left
-          (condition-case nil
-              ;; The call to `ignore' suppresses a compiler warning.
-              (progn (ignore (read-from-string
-                              (substring str (cdr read-data))))
-                     t)
-            (end-of-file nil))))
-    (if more-left
-        (error "Can't read whole string")
-      (car read-data))))
+  (pcase-let ((`(,expr . ,offset) (read-from-string str)))
+    (condition-case ()
+        ;; The call to `ignore' suppresses a compiler warning.
+        (progn (ignore (read-from-string str offset))
+               (error "Can't read whole string"))
+      (end-of-file expr))))
 
 (defun package--prepare-dependencies (deps)
   "Turn DEPS into an acceptable list of dependencies.
@@ -1190,7 +1187,7 @@ errors signaled by ERROR-FORM or by BODY).
                                                  (let ((,b-sym (current-buffer)))
                                                    (require 'url-handlers)
                                                    (unless-error ,body
-                                                                 (when-let ((er (plist-get status :error)))
+                                                                 (when-let* ((er (plist-get status :error)))
                                                                    (error "Error retrieving: %s %S" ,url-sym er))
                                                                  (with-current-buffer ,b-sym
                                                                    (goto-char (point-min))
@@ -1463,7 +1460,11 @@ taken care of by `package-initialize'."
   (package-read-all-archive-contents)
   (unless no-activate
     (dolist (elt package-alist)
-      (package-activate (car elt))))
+      (condition-case err
+          (package-activate (car elt))
+        ;; Don't let failure of activation of a package arbitrarily stop
+        ;; activation of further packages.
+        (error (message "%s" (error-message-string err))))))
   (setq package--initialized t)
   ;; This uses `package--mapc' so it must be called after
   ;; `package--initialized' is t.
@@ -1764,8 +1765,8 @@ Only these packages will be in the return value an their cdrs are
 destructively set to nil in ONLY."
   (let ((out))
     (dolist (dep (package-desc-reqs package))
-      (when-let ((cell (assq (car dep) only))
-                 (dep-package (cdr-safe cell)))
+      (when-let* ((cell (assq (car dep) only))
+                  (dep-package (cdr-safe cell)))
         (setcdr cell nil)
         (setq out (append (package--sort-deps-in-alist dep-package only)
                           out))))
@@ -1784,7 +1785,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
     (dolist (cell alist out-list)
       ;; `package--sort-deps-in-alist' destructively changes alist, so
       ;; some cells might already be empty.  We check this here.
-      (when-let ((pkg-desc (cdr cell)))
+      (when-let* ((pkg-desc (cdr cell)))
         (setcdr cell nil)
         (setq out-list
               (append (package--sort-deps-in-alist pkg-desc alist)
@@ -1841,7 +1842,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
                ;; Update the old pkg-desc which will be shown on the description buffer.
                (setf (package-desc-signed pkg-desc) t)
                ;; Update the new (activated) pkg-desc as well.
-               (when-let ((pkg-descs (cdr (assq (package-desc-name pkg-desc) package-alist))))
+               (when-let* ((pkg-descs (cdr (assq (package-desc-name pkg-desc) package-alist))))
                  (setf (package-desc-signed (car pkg-descs)) t))))))))))
 
 (defun package-installed-p (package &optional min-version)
@@ -1964,12 +1965,12 @@ to install it but still mark it as selected."
     (unless (or dont-select (package--user-selected-p name))
       (package--save-selected-packages
        (cons name package-selected-packages)))
-    (if-let ((transaction
-              (if (package-desc-p pkg)
-                  (unless (package-installed-p pkg)
-                    (package-compute-transaction (list pkg)
-                                                 (package-desc-reqs pkg)))
-                (package-compute-transaction () (list (list pkg))))))
+    (if-let* ((transaction
+               (if (package-desc-p pkg)
+                   (unless (package-installed-p pkg)
+                     (package-compute-transaction (list pkg)
+                                                  (package-desc-reqs pkg)))
+                 (package-compute-transaction () (list (list pkg))))))
         (package-download-transaction transaction)
       (message "`%s' is already installed" name))))
 
@@ -2127,7 +2128,7 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
            (add-hook 'post-command-hook #'package-menu--post-refresh)
-           (delete-directory dir t t)
+           (delete-directory dir t)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
            (dolist (suffix '(".signed" "readme.txt"))
              (let* ((version (package-version-join (package-desc-version pkg-desc)))
@@ -2254,6 +2255,7 @@ Otherwise no newline is inserted."
          (archive (if desc (package-desc-archive desc)))
          (extras (and desc (package-desc-extras desc)))
          (homepage (cdr (assoc :url extras)))
+         (commit (cdr (assoc :commit extras)))
          (keywords (if desc (package-desc--keywords desc)))
          (built-in (eq pkg-dir 'builtin))
          (installable (and archive (not built-in)))
@@ -2326,6 +2328,8 @@ Otherwise no newline is inserted."
     (and version
          (package--print-help-section "Version"
            (package-version-join version)))
+    (when commit
+      (package--print-help-section "Commit" commit))
     (when desc
       (package--print-help-section "Summary"
         (package-desc-summary desc)))
@@ -2751,6 +2755,7 @@ KEYWORDS should be nil or a list of keywords."
               (push pkg info-list))))))
 
     ;; Print the result.
+    (tabulated-list-init-header)
     (setq tabulated-list-entries
           (mapcar #'package-menu--print-info-simple info-list))))
 
@@ -3274,7 +3279,7 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
           (package--update-selected-packages .install .delete)
           (package-menu--perform-transaction install-list delete-list)
           (when package-selected-packages
-            (if-let ((removable (package--removable-packages)))
+            (if-let* ((removable (package--removable-packages)))
                 (message "Package menu: Operation finished.  %d packages %s"
                   (length removable)
                   (substitute-command-keys
@@ -3346,7 +3351,7 @@ Store this list in `package-menu--new-package-list'."
 
 (defun package-menu--find-and-notify-upgrades ()
   "Notify the user of upgradable packages."
-  (when-let ((upgrades (package-menu--find-upgrades)))
+  (when-let* ((upgrades (package-menu--find-upgrades)))
     (message "%d package%s can be upgraded; type `%s' to mark %s for upgrading."
       (length upgrades)
       (if (= (length upgrades) 1) "" "s")
@@ -3387,7 +3392,9 @@ This function is called after `package-refresh-contents'."
   "Display a list of packages.
 This first fetches the updated list of packages before
 displaying, unless a prefix argument NO-FETCH is specified.
-The list is displayed in a buffer named `*Packages*'."
+The list is displayed in a buffer named `*Packages*', and
+includes the package's version, availability status, and a
+short description."
   (interactive "P")
   (require 'finder-inf nil t)
   ;; Initialize the package system if necessary.

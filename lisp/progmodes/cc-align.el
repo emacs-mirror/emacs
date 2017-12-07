@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -159,7 +159,7 @@ Works with: topmost-intro-cont."
       (c-safe-position (or containing-sexp (point)) c-state-cache)
       containing-sexp))))
 
-(defun c-lineup-arglist (langelem)
+(defun c-lineup-arglist (_langelem)
   "Line up the current argument line under the first argument.
 
 As a special case, if the indented line is inside a brace block
@@ -265,7 +265,7 @@ Works with: arglist-cont, arglist-cont-nonempty."
 	    (c-forward-syntactic-ws))
 	(c-lineup-argcont-scan other-match)))))
 
-(defun c-lineup-arglist-intro-after-paren (langelem)
+(defun c-lineup-arglist-intro-after-paren (_langelem)
   "Line up a line to just after the open paren of the surrounding paren
 or brace block.
 
@@ -483,7 +483,7 @@ Works with: func-decl-cont."
 	    (vector (+ (current-column) c-basic-offset)))
 	c-basic-offset))))
 
-(defun c-indent-one-line-block (langelem)
+(defun c-indent-one-line-block (_langelem)
   "Indent a one line block `c-basic-offset' extra.
 E.g.:
 
@@ -506,7 +506,7 @@ Work with: Almost all syntactic symbols, but most useful on *-open."
 	  c-basic-offset
 	nil))))
 
-(defun c-indent-multi-line-block (langelem)
+(defun c-indent-multi-line-block (_langelem)
   "Indent a multi line block `c-basic-offset' extra.
 E.g.:
 
@@ -642,7 +642,7 @@ Works with: The `c' syntactic symbol."
 		  (goto-char (c-langelem-pos langelem)))))
 	  (vector (current-column)))))))
 
-(defun c-lineup-comment (langelem)
+(defun c-lineup-comment (_langelem)
   "Line up a comment start according to `c-comment-only-line-offset'.
 If the comment is lined up with a comment starter on the previous
 line, that alignment is preserved.
@@ -667,7 +667,7 @@ Works with: comment-intro."
 	    -1000))			;jam it against the left side
        ))))
 
-(defun c-lineup-knr-region-comment (langelem)
+(defun c-lineup-knr-region-comment (_langelem)
   "Line up a comment in the \"K&R region\" with the declaration.
 That is the region between the function or class header and the
 beginning of the block.  E.g.:
@@ -836,7 +836,7 @@ arglist-cont-nonempty."
 
 	  (vector col))))))
 
-(defun c-lineup-string-cont (langelem)
+(defun c-lineup-string-cont (_langelem)
   "Line up a continued string under the one it continues.
 A continued string in this sense is where a string literal follows
 directly after another one.  E.g.:
@@ -861,7 +861,7 @@ arglist-cont-nonempty."
 	     (goto-char pos)
 	     (vector (current-column)))))))
 
-(defun c-lineup-template-args (langelem)
+(defun c-lineup-template-args (_langelem)
   "Line up template argument lines under the first argument.
 To allow this function to be used in a list expression, nil is
 returned if there's no template argument on the first line.
@@ -992,7 +992,7 @@ Works with: objc-method-args-cont."
 	    (+ curcol (- prev-col-column (current-column)))
 	  c-basic-offset)))))
 
-(defun c-lineup-inexpr-block (langelem)
+(defun c-lineup-inexpr-block (_langelem)
   "Line up the block for constructs that use a block inside an expression,
 e.g. anonymous classes in Java and lambda functions in Pike.  The body
 is aligned with the start of the header, e.g. with the \"new\" or
@@ -1020,7 +1020,7 @@ Works with: inlambda, inexpr-statement, inexpr-class."
 	(goto-char (cdr res))
 	(vector (current-column))))))
 
-(defun c-lineup-whitesmith-in-block (langelem)
+(defun c-lineup-whitesmith-in-block (_langelem)
   "Line up lines inside a block in Whitesmith style.
 It's done in a way that works both when the opening brace hangs and
 when it doesn't.  E.g.:
@@ -1084,7 +1084,7 @@ arglist-cont."
 	      (vector (+ (current-column) c-basic-offset))))
 	(vector 0)))))
 
-(defun c-lineup-cpp-define (langelem)
+(defun c-lineup-cpp-define (_langelem)
   "Line up macro continuation lines according to the indentation of
 the construct preceding the macro.  E.g.:
 
@@ -1231,9 +1231,9 @@ Works with: Any syntactic symbol which has an anchor position."
   (save-excursion
     (goto-char (c-langelem-pos langelem))
     (vector (current-column))))
-    
 
-(defun c-lineup-dont-change (langelem)
+
+(defun c-lineup-dont-change (_langelem)
   "Do not change the indentation of the current line.
 
 Works with: Any syntactic symbol."
@@ -1241,7 +1241,7 @@ Works with: Any syntactic symbol."
     (back-to-indentation)
     (vector (current-column))))
 
-(defun c-lineup-respect-col-0 (langelem)
+(defun c-lineup-respect-col-0 (_langelem)
   "If the current line starts at column 0, return [0].  Otherwise return nil.
 
 This can be used for comments (in conjunction with, say,
@@ -1254,7 +1254,7 @@ anchored there, but reindent other comments."
       nil)))
 
 
-(defun c-snug-do-while (syntax pos)
+(defun c-snug-do-while (syntax _pos)
   "Dynamically calculate brace hanginess for do-while statements.
 Using this function, `while' clauses that end a `do-while' block will
 remain on the same line as the brace that closes that block.
@@ -1272,7 +1272,7 @@ ACTION associated with `block-close' syntax."
 	  '(before)
 	'(before after)))))
 
-(defun c-snug-1line-defun-close (syntax pos)
+(defun c-snug-1line-defun-close (_syntax pos)
   "Determine the brace hanginess for an AWK defun-close.
 If the action/function being closed is a one-liner, keep it so.  Otherwise put
 the closing brace on its own line."

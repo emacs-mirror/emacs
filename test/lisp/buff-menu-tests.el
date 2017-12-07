@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,7 +26,7 @@
 (require 'ert)
 
 (ert-deftest buff-menu-24962 ()
-  "Test for http://debbugs.gnu.org/24962 ."
+  "Test for https://debbugs.gnu.org/24962 ."
   (let* ((file (make-temp-file "foo"))
          (buf (find-file file)))
     (unwind-protect

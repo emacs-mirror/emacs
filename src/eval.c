@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -29,6 +29,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "dispextern.h"
 #include "buffer.h"
+
+/* CACHEABLE is ordinarily nothing, except it is 'volatile' if
+   necessary to cajole GCC into not warning incorrectly that a
+   variable should be volatile.  */
+#if defined GCC_LINT || defined lint
+# define CACHEABLE volatile
+#else
+# define CACHEABLE /* empty */
+#endif
 
 /* Chain of condition and catch handlers currently in effect.  */
 
@@ -213,13 +222,6 @@ backtrace_next (union specbinding *pdl)
   return pdl;
 }
 
-/* Return a pointer to somewhere near the top of the C stack.  */
-void *
-near_C_stack_top (void)
-{
-  return backtrace_args (backtrace_top ());
-}
-
 void
 init_eval_once (void)
 {
@@ -361,10 +363,11 @@ usage: (or CONDITIONS...)  */)
 
   while (CONSP (args))
     {
-      val = eval_sub (XCAR (args));
+      Lisp_Object arg = XCAR (args);
+      args = XCDR (args);
+      val = eval_sub (arg);
       if (!NILP (val))
 	break;
-      args = XCDR (args);
     }
 
   return val;
@@ -381,10 +384,11 @@ usage: (and CONDITIONS...)  */)
 
   while (CONSP (args))
     {
-      val = eval_sub (XCAR (args));
+      Lisp_Object arg = XCAR (args);
+      args = XCDR (args);
+      val = eval_sub (arg);
       if (NILP (val))
 	break;
-      args = XCDR (args);
     }
 
   return val;
@@ -404,7 +408,7 @@ usage: (if COND THEN ELSE...)  */)
 
   if (!NILP (cond))
     return eval_sub (Fcar (XCDR (args)));
-  return Fprogn (XCDR (XCDR (args)));
+  return Fprogn (Fcdr (XCDR (args)));
 }
 
 DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
@@ -446,8 +450,9 @@ usage: (progn BODY...)  */)
 
   while (CONSP (body))
     {
-      val = eval_sub (XCAR (body));
+      Lisp_Object form = XCAR (body);
       body = XCDR (body);
+      val = eval_sub (form);
     }
 
   return val;
@@ -495,35 +500,26 @@ The return value of the `setq' form is the value of the last VAL.
 usage: (setq [SYM VAL]...)  */)
   (Lisp_Object args)
 {
-  Lisp_Object val, sym, lex_binding;
+  Lisp_Object val = args, tail = args;
 
-  val = args;
-  if (CONSP (args))
+  for (EMACS_INT nargs = 0; CONSP (tail); nargs += 2)
     {
-      Lisp_Object args_left = args;
-      Lisp_Object numargs = Flength (args);
-
-      if (XINT (numargs) & 1)
-        xsignal2 (Qwrong_number_of_arguments, Qsetq, numargs);
-
-      do
-	{
-	  val = eval_sub (Fcar (XCDR (args_left)));
-	  sym = XCAR (args_left);
-
-	  /* Like for eval_sub, we do not check declared_special here since
-	     it's been done when let-binding.  */
-	  if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
-	      && SYMBOLP (sym)
-	      && !NILP (lex_binding
-			= Fassq (sym, Vinternal_interpreter_environment)))
-	    XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
-	  else
-	    Fset (sym, val);	/* SYM is dynamically bound.  */
-
-	  args_left = Fcdr (XCDR (args_left));
-	}
-      while (CONSP (args_left));
+      Lisp_Object sym = XCAR (tail), lex_binding;
+      tail = XCDR (tail);
+      if (!CONSP (tail))
+	xsignal2 (Qwrong_number_of_arguments, Qsetq, make_number (nargs + 1));
+      Lisp_Object arg = XCAR (tail);
+      tail = XCDR (tail);
+      val = eval_sub (arg);
+      /* Like for eval_sub, we do not check declared_special here since
+	 it's been done when let-binding.  */
+      if (!NILP (Vinternal_interpreter_environment) /* Mere optimization!  */
+	  && SYMBOLP (sym)
+	  && !NILP (lex_binding
+		    = Fassq (sym, Vinternal_interpreter_environment)))
+	XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
+      else
+	Fset (sym, val);	/* SYM is dynamically bound.  */
     }
 
   return val;
@@ -542,7 +538,7 @@ of unexpected results when a quoted object is modified.
 usage: (quote ARG)  */)
   (Lisp_Object args)
 {
-  if (CONSP (XCDR (args)))
+  if (!NILP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qquote, Flength (args));
   return XCAR (args);
 }
@@ -556,7 +552,7 @@ usage: (function ARG)  */)
 {
   Lisp_Object quoted = XCAR (args);
 
-  if (CONSP (XCDR (args)))
+  if (!NILP (XCDR (args)))
     xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
 
   if (!NILP (Vinternal_interpreter_environment)
@@ -607,7 +603,7 @@ The return value is BASE-VARIABLE.  */)
 
   sym = XSYMBOL (new_alias);
 
-  switch (sym->redirect)
+  switch (sym->u.s.redirect)
     {
     case SYMBOL_FORWARDED:
       error ("Cannot make an internal variable an alias");
@@ -620,7 +616,7 @@ The return value is BASE-VARIABLE.  */)
       emacs_abort ();
     }
 
-  /* http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg00834.html
+  /* https://lists.gnu.org/r/emacs-devel/2008-04/msg00834.html
      If n_a is bound, but b_v is not, set the value of b_v to n_a,
      so that old-code that affects n_a before the aliasing is setup
      still works.  */
@@ -636,14 +632,14 @@ The return value is BASE-VARIABLE.  */)
 	error ("Don't know how to make a let-bound variable an alias");
   }
 
-  if (sym->trapped_write == SYMBOL_TRAPPED_WRITE)
+  if (sym->u.s.trapped_write == SYMBOL_TRAPPED_WRITE)
     notify_variable_watchers (new_alias, base_variable, Qdefvaralias, Qnil);
 
-  sym->declared_special = 1;
-  XSYMBOL (base_variable)->declared_special = 1;
-  sym->redirect = SYMBOL_VARALIAS;
+  sym->u.s.declared_special = true;
+  XSYMBOL (base_variable)->u.s.declared_special = true;
+  sym->u.s.redirect = SYMBOL_VARALIAS;
   SET_SYMBOL_ALIAS (sym, XSYMBOL (base_variable));
-  sym->trapped_write = XSYMBOL (base_variable)->trapped_write;
+  sym->u.s.trapped_write = XSYMBOL (base_variable)->u.s.trapped_write;
   LOADHIST_ATTACH (new_alias);
   /* Even if docstring is nil: remove old docstring.  */
   Fput (new_alias, Qvariable_documentation, docstring);
@@ -741,15 +737,15 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   sym = XCAR (args);
   tail = XCDR (args);
 
-  if (CONSP (tail))
+  if (!NILP (tail))
     {
-      if (CONSP (XCDR (tail)) && CONSP (XCDR (XCDR (tail))))
+      if (!NILP (XCDR (tail)) && !NILP (XCDR (XCDR (tail))))
 	error ("Too many arguments");
 
       tem = Fdefault_boundp (sym);
 
       /* Do it before evaluating the initial value, for self-references.  */
-      XSYMBOL (sym)->declared_special = 1;
+      XSYMBOL (sym)->u.s.declared_special = true;
 
       if (NILP (tem))
 	Fset_default (sym, eval_sub (XCAR (tail)));
@@ -773,7 +769,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       LOADHIST_ATTACH (sym);
     }
   else if (!NILP (Vinternal_interpreter_environment)
-	   && !XSYMBOL (sym)->declared_special)
+	   && !XSYMBOL (sym)->u.s.declared_special)
     /* A simple (defvar foo) with lexical scoping does "nothing" except
        declare that var to be dynamically scoped *locally* (i.e. within
        the current file or let-block).  */
@@ -810,20 +806,24 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   Lisp_Object sym, tem;
 
   sym = XCAR (args);
-  if (CONSP (Fcdr (XCDR (XCDR (args)))))
-    error ("Too many arguments");
+  Lisp_Object docstring = Qnil;
+  if (!NILP (XCDR (XCDR (args))))
+    {
+      if (!NILP (XCDR (XCDR (XCDR (args)))))
+	error ("Too many arguments");
+      docstring = XCAR (XCDR (XCDR (args)));
+    }
 
-  tem = eval_sub (Fcar (XCDR (args)));
+  tem = eval_sub (XCAR (XCDR (args)));
   if (!NILP (Vpurify_flag))
     tem = Fpurecopy (tem);
   Fset_default (sym, tem);
-  XSYMBOL (sym)->declared_special = 1;
-  tem = Fcar (XCDR (XCDR (args)));
-  if (!NILP (tem))
+  XSYMBOL (sym)->u.s.declared_special = true;
+  if (!NILP (docstring))
     {
       if (!NILP (Vpurify_flag))
-	tem = Fpurecopy (tem);
-      Fput (sym, Qvariable_documentation, tem);
+	docstring = Fpurecopy (docstring);
+      Fput (sym, Qvariable_documentation, docstring);
     }
   Fput (sym, Qrisky_local_variable, Qt);
   LOADHIST_ATTACH (sym);
@@ -837,7 +837,7 @@ DEFUN ("internal-make-var-non-special", Fmake_var_non_special,
      (Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  XSYMBOL (symbol)->declared_special = 0;
+  XSYMBOL (symbol)->u.s.declared_special = false;
   return Qnil;
 }
 
@@ -851,31 +851,33 @@ Each VALUEFORM can refer to the symbols already bound by this VARLIST.
 usage: (let* VARLIST BODY...)  */)
   (Lisp_Object args)
 {
-  Lisp_Object varlist, var, val, elt, lexenv;
+  Lisp_Object var, val, elt, lexenv;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   lexenv = Vinternal_interpreter_environment;
 
-  for (varlist = XCAR (args); CONSP (varlist); varlist = XCDR (varlist))
+  Lisp_Object varlist = XCAR (args);
+  while (CONSP (varlist))
     {
       maybe_quit ();
 
       elt = XCAR (varlist);
+      varlist = XCDR (varlist);
       if (SYMBOLP (elt))
 	{
 	  var = elt;
 	  val = Qnil;
 	}
-      else if (! NILP (Fcdr (Fcdr (elt))))
-	signal_error ("`let' bindings can have only one value-form", elt);
       else
 	{
 	  var = Fcar (elt);
-	  val = eval_sub (Fcar (Fcdr (elt)));
+	  if (! NILP (Fcdr (XCDR (elt))))
+	    signal_error ("`let' bindings can have only one value-form", elt);
+	  val = eval_sub (Fcar (XCDR (elt)));
 	}
 
       if (!NILP (lexenv) && SYMBOLP (var)
-	  && !XSYMBOL (var)->declared_special
+	  && !XSYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the interpreter's binding
 	   alist.  */
@@ -918,36 +920,40 @@ usage: (let VARLIST BODY...)  */)
   CHECK_LIST (varlist);
 
   /* Make space to hold the values to give the bound variables.  */
-  elt = Flength (varlist);
-  SAFE_ALLOCA_LISP (temps, XFASTINT (elt));
+  EMACS_INT varlist_len = XFASTINT (Flength (varlist));
+  SAFE_ALLOCA_LISP (temps, varlist_len);
+  ptrdiff_t nvars = varlist_len;
 
   /* Compute the values and store them in `temps'.  */
 
-  for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
+  for (argnum = 0; argnum < nvars && CONSP (varlist); argnum++)
     {
       maybe_quit ();
       elt = XCAR (varlist);
+      varlist = XCDR (varlist);
       if (SYMBOLP (elt))
-	temps [argnum++] = Qnil;
+	temps[argnum] = Qnil;
       else if (! NILP (Fcdr (Fcdr (elt))))
 	signal_error ("`let' bindings can have only one value-form", elt);
       else
-	temps [argnum++] = eval_sub (Fcar (Fcdr (elt)));
+	temps[argnum] = eval_sub (Fcar (Fcdr (elt)));
     }
+  nvars = argnum;
 
   lexenv = Vinternal_interpreter_environment;
 
   varlist = XCAR (args);
-  for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
+  for (argnum = 0; argnum < nvars && CONSP (varlist); argnum++)
     {
       Lisp_Object var;
 
       elt = XCAR (varlist);
+      varlist = XCDR (varlist);
       var = SYMBOLP (elt) ? elt : Fcar (elt);
-      tem = temps[argnum++];
+      tem = temps[argnum];
 
       if (!NILP (lexenv) && SYMBOLP (var)
-	  && !XSYMBOL (var)->declared_special
+	  && !XSYMBOL (var)->u.s.declared_special
 	  && NILP (Fmemq (var, Vinternal_interpreter_environment)))
 	/* Lexically bind VAR by adding it to the lexenv alist.  */
 	lexenv = Fcons (Fcons (var, tem), lexenv);
@@ -1016,7 +1022,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	  tem = Fassq (sym, environment);
 	  if (NILP (tem))
 	    {
-	      def = XSYMBOL (sym)->function;
+	      def = XSYMBOL (sym)->u.s.function;
 	      if (!NILP (def))
 		continue;
 	    }
@@ -1229,7 +1235,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 			      Lisp_Object handlers)
 {
   struct handler *oldhandlerlist = handlerlist;
-  ptrdiff_t clausenb = 0;
+  ptrdiff_t CACHEABLE clausenb = 0;
 
   CHECK_SYMBOL (var);
 
@@ -1422,7 +1428,7 @@ push_handler (Lisp_Object tag_ch_val, enum handlertype handlertype)
 struct handler *
 push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
 {
-  struct handler *c = handlerlist->nextfree;
+  struct handler *CACHEABLE c = handlerlist->nextfree;
   if (!c)
     {
       c = malloc (sizeof *c);
@@ -1926,8 +1932,8 @@ this does nothing and returns nil.  */)
   CHECK_STRING (file);
 
   /* If function is defined and not as an autoload, don't override.  */
-  if (!NILP (XSYMBOL (function)->function)
-      && !AUTOLOADP (XSYMBOL (function)->function))
+  if (!NILP (XSYMBOL (function)->u.s.function)
+      && !AUTOLOADP (XSYMBOL (function)->u.s.function))
     return Qnil;
 
   if (!NILP (Vpurify_flag) && EQ (docstring, make_number (0)))
@@ -1980,12 +1986,10 @@ it defines a macro.  */)
   if (!CONSP (fundef) || !EQ (Qautoload, XCAR (fundef)))
     return fundef;
 
-  if (EQ (macro_only, Qmacro))
-    {
-      Lisp_Object kind = Fnth (make_number (4), fundef);
-      if (! (EQ (kind, Qt) || EQ (kind, Qmacro)))
-	return fundef;
-    }
+  Lisp_Object kind = Fnth (make_number (4), fundef);
+  if (EQ (macro_only, Qmacro)
+      && !(EQ (kind, Qt) || EQ (kind, Qmacro)))
+    return fundef;
 
   /* This is to make sure that loadup.el gives a clear picture
      of what files are preloaded and when.  */
@@ -2008,15 +2012,18 @@ it defines a macro.  */)
      The value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
-  /* If `macro_only', assume this autoload to be a "best-effort",
+  /* If `macro_only' is set and fundef isn't a macro, assume this autoload to
+     be a "best-effort" (e.g. to try and find a compiler macro),
      so don't signal an error if autoloading fails.  */
-  Fload (Fcar (Fcdr (fundef)), macro_only, Qt, Qnil, Qt);
+  Lisp_Object ignore_errors
+    = (EQ (kind, Qt) || EQ (kind, Qmacro)) ? Qnil : macro_only;
+  Fload (Fcar (Fcdr (fundef)), ignore_errors, Qt, Qnil, Qt);
 
   /* Once loading finishes, don't undo it.  */
   Vautoload_queue = Qt;
   unbind_to (count, Qnil);
 
-  if (NILP (funname))
+  if (NILP (funname) || !NILP (ignore_errors))
     return Qnil;
   else
     {
@@ -2090,7 +2097,7 @@ record_in_backtrace (Lisp_Object function, Lisp_Object *args, ptrdiff_t nargs)
   specpdl_ptr->bt.kind = SPECPDL_BACKTRACE;
   specpdl_ptr->bt.debug_on_exit = false;
   specpdl_ptr->bt.function = function;
-  specpdl_ptr->bt.args = args;
+  current_thread->stack_top = specpdl_ptr->bt.args = args;
   specpdl_ptr->bt.nargs = nargs;
   grow_specpdl ();
 
@@ -2142,6 +2149,7 @@ eval_sub (Lisp_Object form)
 
   original_fun = XCAR (form);
   original_args = XCDR (form);
+  CHECK_LIST (original_args);
 
   /* This also protects them from gc.  */
   count = record_in_backtrace (original_fun, &original_args, UNEVALLED);
@@ -2157,7 +2165,7 @@ eval_sub (Lisp_Object form)
   fun = original_fun;
   if (!SYMBOLP (fun))
     fun = Ffunction (Fcons (fun, Qnil));
-  else if (!NILP (fun) && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+  else if (!NILP (fun) && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
@@ -2183,15 +2191,16 @@ eval_sub (Lisp_Object form)
 
 	  SAFE_ALLOCA_LISP (vals, XINT (numargs));
 
-	  while (!NILP (args_left))
+	  while (CONSP (args_left) && argnum < XINT (numargs))
 	    {
-	      vals[argnum++] = eval_sub (Fcar (args_left));
-	      args_left = Fcdr (args_left);
+	      Lisp_Object arg = XCAR (args_left);
+	      args_left = XCDR (args_left);
+	      vals[argnum++] = eval_sub (arg);
 	    }
 
-	  set_backtrace_args (specpdl + count, vals, XINT (numargs));
+	  set_backtrace_args (specpdl + count, vals, argnum);
 
-	  val = (XSUBR (fun)->function.aMANY) (XINT (numargs), vals);
+	  val = XSUBR (fun)->function.aMANY (argnum, vals);
 
 	  check_cons_list ();
 	  lisp_eval_depth--;
@@ -2339,7 +2348,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 
   /* Optimize for no indirection.  */
   if (SYMBOLP (fun) && !NILP (fun)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     {
       fun = indirect_function (fun);
       if (NILP (fun))
@@ -2661,8 +2670,19 @@ call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
   return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 }
 
+/* Call function fn with 8 arguments arg1, arg2, arg3, arg4, arg5,
+   arg6, arg7, arg8.  */
+/* ARGSUSED */
+Lisp_Object
+call8 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+       Lisp_Object arg4, Lisp_Object arg5, Lisp_Object arg6, Lisp_Object arg7,
+       Lisp_Object arg8)
+{
+  return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+}
+
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
-       doc: /* Non-nil if OBJECT is a function.  */)
+       doc: /* Return t if OBJECT is a function.  */)
      (Lisp_Object object)
 {
   if (FUNCTIONP (object))
@@ -2740,7 +2760,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   /* Optimize for no indirection.  */
   fun = original_fun;
   if (SYMBOLP (fun) && !NILP (fun)
-      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+      && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
@@ -3056,7 +3076,7 @@ function with `&rest' args, or `unevalled' for a special form.  */)
   function = original;
   if (SYMBOLP (function) && !NILP (function))
     {
-      function = XSYMBOL (function)->function;
+      function = XSYMBOL (function)->u.s.function;
       if (SYMBOLP (function))
 	function = indirect_function (function);
     }
@@ -3195,7 +3215,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
     if ((--p)->kind > SPECPDL_LET)
       {
 	struct Lisp_Symbol *let_bound_symbol = XSYMBOL (specpdl_symbol (p));
-	eassert (let_bound_symbol->redirect != SYMBOL_VARALIAS);
+	eassert (let_bound_symbol->u.s.redirect != SYMBOL_VARALIAS);
 	if (symbol == let_bound_symbol
 	    && EQ (specpdl_where (p), buf))
 	  return 1;
@@ -3208,10 +3228,10 @@ static void
 do_specbind (struct Lisp_Symbol *sym, union specbinding *bind,
              Lisp_Object value, enum Set_Internal_Bind bindflag)
 {
-  switch (sym->redirect)
+  switch (sym->u.s.redirect)
     {
     case SYMBOL_PLAINVAL:
-      if (!sym->trapped_write)
+      if (!sym->u.s.trapped_write)
 	SET_SYMBOL_VAL (sym, value);
       else
         set_internal (specpdl_symbol (bind), value, Qnil, bindflag);
@@ -3255,7 +3275,7 @@ specbind (Lisp_Object symbol, Lisp_Object value)
   sym = XSYMBOL (symbol);
 
  start:
-  switch (sym->redirect)
+  switch (sym->u.s.redirect)
     {
     case SYMBOL_VARALIAS:
       sym = indirect_variable (sym); XSETSYMBOL (symbol, sym); goto start;
@@ -3279,10 +3299,10 @@ specbind (Lisp_Object symbol, Lisp_Object value)
 	specpdl_ptr->let.where = Fcurrent_buffer ();
 	specpdl_ptr->let.saved_value = Qnil;
 
-	eassert (sym->redirect != SYMBOL_LOCALIZED
+	eassert (sym->u.s.redirect != SYMBOL_LOCALIZED
 		 || (EQ (SYMBOL_BLV (sym)->where, Fcurrent_buffer ())));
 
-	if (sym->redirect == SYMBOL_LOCALIZED)
+	if (sym->u.s.redirect == SYMBOL_LOCALIZED)
 	  {
 	    if (!blv_found (SYMBOL_BLV (sym)))
 	      specpdl_ptr->let.kind = SPECPDL_LET_DEFAULT;
@@ -3393,9 +3413,9 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
       { /* If variable has a trivial value (no forwarding), and isn't
 	   trapped, we can just set it.  */
 	Lisp_Object sym = specpdl_symbol (this_binding);
-	if (SYMBOLP (sym) && XSYMBOL (sym)->redirect == SYMBOL_PLAINVAL)
+	if (SYMBOLP (sym) && XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL)
 	  {
-	    if (XSYMBOL (sym)->trapped_write == SYMBOL_UNTRAPPED_WRITE)
+	    if (XSYMBOL (sym)->u.s.trapped_write == SYMBOL_UNTRAPPED_WRITE)
 	      SET_SYMBOL_VAL (XSYMBOL (sym), specpdl_old_value (this_binding));
 	    else
 	      set_internal (sym, specpdl_old_value (this_binding),
@@ -3527,7 +3547,7 @@ context where binding is lexical by default.  */)
   (Lisp_Object symbol)
 {
    CHECK_SYMBOL (symbol);
-   return XSYMBOL (symbol)->declared_special ? Qt : Qnil;
+   return XSYMBOL (symbol)->u.s.declared_special ? Qt : Qnil;
 }
 
 
@@ -3683,7 +3703,8 @@ backtrace_eval_unrewind (int distance)
 	       just set it.  No need to check for constant symbols here,
 	       since that was already done by specbind.  */
 	    Lisp_Object sym = specpdl_symbol (tmp);
-	    if (SYMBOLP (sym) && XSYMBOL (sym)->redirect == SYMBOL_PLAINVAL)
+	    if (SYMBOLP (sym)
+		&& XSYMBOL (sym)->u.s.redirect == SYMBOL_PLAINVAL)
 	      {
 		Lisp_Object old_value = specpdl_old_value (tmp);
 		set_specpdl_old_value (tmp, SYMBOL_VAL (XSYMBOL (sym)));

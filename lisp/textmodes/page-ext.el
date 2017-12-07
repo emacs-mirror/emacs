@@ -1,4 +1,4 @@
-;;; page-ext.el --- extended page handling commands
+;;; page-ext.el --- extended page handling commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1990-1991, 1993-1994, 2001-2017 Free Software
 ;; Foundation, Inc.
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -243,18 +243,15 @@
 
 (defcustom pages-directory-buffer-narrowing-p t
   "If non-nil, `pages-directory-goto' narrows pages buffer to entry."
-  :type 'boolean
-  :group 'pages)
+  :type 'boolean)
 
 (defcustom pages-directory-for-adding-page-narrowing-p t
   "If non-nil, `add-new-page' narrows page buffer to new entry."
-  :type 'boolean
-  :group 'pages)
+  :type 'boolean)
 
 (defcustom pages-directory-for-adding-new-page-before-current-page-p t
   "If non-nil, `add-new-page' inserts new page before current page."
-  :type 'boolean
-  :group 'pages)
+  :type 'boolean)
 
 
 ;;; Addresses related variables
@@ -262,23 +259,19 @@
 (defcustom pages-addresses-file-name "~/addresses"
   "Standard name for file of addresses. Entries separated by page-delimiter.
 Used by `pages-directory-for-addresses' function."
-  :type 'file
-  :group 'pages)
+  :type 'file)
 
 (defcustom pages-directory-for-addresses-goto-narrowing-p t
   "If non-nil, `pages-directory-goto' narrows addresses buffer to entry."
-  :type 'boolean
-  :group 'pages)
+  :type 'boolean)
 
 (defcustom pages-directory-for-addresses-buffer-keep-windows-p t
   "If nil, `pages-directory-for-addresses' deletes other windows."
-  :type 'boolean
-  :group 'pages)
+  :type 'boolean)
 
 (defcustom pages-directory-for-adding-addresses-narrowing-p t
   "If non-nil, `add-new-page' narrows addresses buffer to new entry."
-  :type 'boolean
-  :group 'pages)
+  :type 'boolean)
 
 
 ;;; Key bindings for page handling functions
@@ -415,9 +408,9 @@ Point is left in the body of page."
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 
-;;; This sort function handles ends of pages differently than
-;;; `sort-pages' and works better with lists of addresses and similar
-;;; files.
+  ;; This sort function handles ends of pages differently than
+  ;; `sort-pages' and works better with lists of addresses and similar
+  ;; files.
 
   (interactive "P\nr")
   (save-restriction
@@ -463,25 +456,27 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 \(This regular expression may be used to select only those pages that
 contain matches to the regexp.)")
 
-(defvar pages-buffer nil
+(defvar-local pages-buffer nil
   "The buffer for which the pages-directory function creates the directory.")
 
 (defvar pages-directory-prefix "*Directory for:"
   "Prefix of name of temporary buffer for pages-directory.")
 
-(defvar pages-pos-list nil
+(defvar-local pages-pos-list nil
   "List containing the positions of the pages in the pages-buffer.")
 
 (defvar pages-target-buffer)
 
+(define-obsolete-variable-alias 'pages-directory-map
+  'pages-directory-mode-map "26.1")
 (defvar pages-directory-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'pages-directory-goto)
+    (define-key map "\C-m" 'pages-directory-goto)
     (define-key map "\C-c\C-p\C-a" 'add-new-page)
-    (define-key map [mouse-2] 'pages-directory-goto-with-mouse)
+    (define-key map [mouse-2] 'pages-directory-goto)
     map)
   "Keymap for the pages-directory-buffer.")
-(defvaralias 'pages-directory-map 'pages-directory-mode-map)
 
 (defvar original-page-delimiter "^\f"
   "Default page delimiter.")
@@ -511,6 +506,9 @@ resets the page-delimiter to the original value."
 
 
 ;;; Pages directory main definitions
+
+(defvar pages-buffer-original-position)
+(defvar pages-buffer-original-page)
 
 (defun pages-directory
   (pages-list-all-headers-p count-lines-p &optional regexp)
@@ -573,7 +571,6 @@ directory for only the accessible portion of the buffer."
   (let ((pages-target-buffer (current-buffer))
         (pages-directory-buffer
 	 (concat pages-directory-prefix " " (buffer-name)))
-        (linenum 1)
         (pages-buffer-original-position (point))
         (pages-buffer-original-page 0))
 
@@ -583,6 +580,7 @@ directory for only the accessible portion of the buffer."
     (with-output-to-temp-buffer pages-directory-buffer
       (with-current-buffer standard-output
         (pages-directory-mode)
+        (setq buffer-read-only nil)
         (insert
          "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
         (setq pages-buffer pages-target-buffer)
@@ -631,6 +629,7 @@ directory for only the accessible portion of the buffer."
                 )))))
 
       (set-buffer standard-output)
+      (setq buffer-read-only t)
       ;; Put positions in increasing order to go with buffer.
       (setq pages-pos-list (nreverse pages-pos-list))
       (if (called-interactively-p 'interactive)
@@ -641,10 +640,6 @@ directory for only the accessible portion of the buffer."
     (forward-line (if (= 0 pages-buffer-original-page)
                       1
                     pages-buffer-original-page))))
-
-(defvar pages-buffer-original-position)
-(defvar pages-buffer-original-page)
-(defvar pages-buffer-original-page)
 
 (defun pages-copy-header-and-position (count-lines-p)
   "Copy page header and its position to the Pages Directory.
@@ -699,16 +694,13 @@ Used by `pages-directory' function."
 
 Move point to one of the lines in this buffer, then use \\[pages-directory-goto] to go
 to the same line in the pages buffer."
-  (make-local-variable 'pages-buffer)
-  (make-local-variable 'pages-pos-list)
   (make-local-variable 'pages-directory-buffer-narrowing-p))
 
-(defun pages-directory-goto ()
+(defun pages-directory-goto (&optional event)
   "Go to the corresponding line in the pages buffer."
-
-;;; This function is mostly a copy of `occur-mode-goto-occurrence'
-
-  (interactive)
+  ;; This function is mostly a copy of `occur-mode-goto-occurrence'
+  (interactive "@e")
+  (if event (mouse-set-point event))
   (if (or (not pages-buffer)
 	  (not (buffer-name pages-buffer)))
       (progn
@@ -722,18 +714,13 @@ to the same line in the pages buffer."
          (narrowing-p  pages-directory-buffer-narrowing-p))
     (pop-to-buffer pages-buffer)
     (widen)
-    (if end-of-directory-p
-        (goto-char (point-max))
-      (goto-char (marker-position pos)))
+    (goto-char (if end-of-directory-p
+                   (point-max)
+                 (marker-position pos)))
     (if narrowing-p (narrow-to-page))))
 
-(defun pages-directory-goto-with-mouse  (event)
-  "Go to the corresponding line under the mouse pointer in the pages buffer."
-  (interactive "e")
-  (with-current-buffer (window-buffer (posn-window (event-end event)))
-    (save-excursion
-      (goto-char (posn-point (event-end event)))
-      (pages-directory-goto))))
+(define-obsolete-function-alias 'pages-directory-goto-with-mouse
+  #'pages-directory-goto "26.1")
 
 ;;; The `pages-directory-for-addresses' function and ancillary code
 

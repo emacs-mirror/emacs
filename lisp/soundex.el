@@ -1,4 +1,4 @@
-;;; soundex.el --- implement Soundex algorithm
+;;; soundex.el --- implement Soundex algorithm -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-(defvar soundex-alist
+(defconst soundex-alist
   '((?B . "1") (?F . "1") (?P . "1") (?V . "1")
     (?C . "2") (?G . "2") (?J . "2") (?K . "2") (?Q . "2") (?S . "2")
     (?X . "2") (?Z . "2") (?D . "3") (?T . "3") (?L . "4") (?M . "5")
@@ -59,15 +59,6 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
     (if (> 4 (length key))
 	(substring (concat key "000") 0 4)
       key)))
-
-;(defvar soundex-test
-;  '("Euler" "Gauss" "Hilbert" "Knuth" "Lloyd" "Lukasiewicz"
-;    "Ellery" "Ghosh" "Heilbronn" "Kant" "Ladd" "Lissajous")
-;  "\n  Knuth's names to demonstrate the Soundex algorithm.")
-;
-;(mapcar 'soundex soundex-test)
-;("E460" "G200" "H416" "K530" "L300" "L222"
-; "E460" "G200" "H416" "K530" "L300" "L222")
 
 (provide 'soundex)
 

@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -81,7 +81,7 @@ emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
      additional case for an xwidget view.
 
      It would be nicer if the bse class method could be called first,
-     and the the xview modification only would remain here. It wasn't
+     and the xview modification only would remain here. It wasn't
      possible to solve it that way yet.  */
   EmacsFixedClass *klass;
   GtkWidgetClass *parent_class;

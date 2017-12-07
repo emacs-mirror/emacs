@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -172,14 +172,15 @@ The name is made by appending a number to PREFIX, default \"G\"."
 		 (setq cl--gensym-counter (1+ cl--gensym-counter))))))
     (make-symbol (format "%s%d" pfix num))))
 
+(defvar cl--gentemp-counter 0)
 ;;;###autoload
 (defun cl-gentemp (&optional prefix)
   "Generate a new interned symbol with a unique name.
-The name is made by appending a number to PREFIX, default \"G\"."
-  (let ((pfix (if (stringp prefix) prefix "G"))
+The name is made by appending a number to PREFIX, default \"T\"."
+  (let ((pfix (if (stringp prefix) prefix "T"))
 	name)
-    (while (intern-soft (setq name (format "%s%d" pfix cl--gensym-counter)))
-      (setq cl--gensym-counter (1+ cl--gensym-counter)))
+    (while (intern-soft (setq name (format "%s%d" pfix cl--gentemp-counter)))
+      (setq cl--gentemp-counter (1+ cl--gentemp-counter)))
     (intern name)))
 
 
@@ -189,23 +190,37 @@ The name is made by appending a number to PREFIX, default \"G\"."
   (&rest ("cl-declare" &rest sexp)))
 
 (def-edebug-spec cl-declarations-or-string
-  (&or stringp cl-declarations))
+  (&or lambda-doc cl-declarations))
 
 (def-edebug-spec cl-lambda-list
-  (([&rest arg]
+  (([&rest cl-lambda-arg]
     [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
-    [&optional ["&rest" arg]]
+    [&optional ["&rest" cl-lambda-arg]]
     [&optional ["&key" [cl-&key-arg &rest cl-&key-arg]
 		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
 		&or (symbolp &optional def-form) symbolp]]
-    )))
+    . [&or arg nil])))
 
 (def-edebug-spec cl-&optional-arg
-  (&or (arg &optional def-form arg) arg))
+  (&or (cl-lambda-arg &optional def-form arg) arg))
 
 (def-edebug-spec cl-&key-arg
-  (&or ([&or (symbolp arg) arg] &optional def-form arg) arg))
+  (&or ([&or (symbolp cl-lambda-arg) arg] &optional def-form arg) arg))
+
+(def-edebug-spec cl-lambda-arg
+  (&or arg cl-lambda-list1))
+
+(def-edebug-spec cl-lambda-list1
+  (([&optional ["&whole" arg]]  ;; only allowed at lower levels
+    [&rest cl-lambda-arg]
+    [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
+    [&optional ["&rest" cl-lambda-arg]]
+    [&optional ["&key" cl-&key-arg &rest cl-&key-arg
+                &optional "&allow-other-keys"]]
+    [&optional ["&aux" &rest
+                &or (symbolp &optional def-form) symbolp]]
+    . [&or arg nil])))
 
 (def-edebug-spec cl-type-spec sexp)
 
@@ -335,8 +350,8 @@ The full form of a Common Lisp function argument list is
     [&key (([KEYWORD] VAR) [INITFORM [SVAR]])... [&allow-other-keys]]
     [&aux (VAR [INITFORM])...])
 
-VAR maybe be replaced recursively with an argument list for
-destructing, `&whole' is supported within these sublists.  If
+VAR may be replaced recursively with an argument list for
+destructuring, `&whole' is supported within these sublists.  If
 SVAR, INITFORM, and KEYWORD are all omitted, then `(VAR)' may be
 written simply `VAR'.  See the Info node `(cl)Argument Lists' for
 more details.
@@ -429,8 +444,8 @@ The full form of a Common Lisp macro argument list is
     [&aux (VAR [INITFORM])...]
     [&environment VAR])
 
-VAR maybe be replaced recursively with an argument list for
-destructing, `&whole' is supported within these sublists.  If
+VAR may be replaced recursively with an argument list for
+destructuring, `&whole' is supported within these sublists.  If
 SVAR, INITFORM, and KEYWORD are all omitted, then `(VAR)' may be
 written simply `VAR'.  See the Info node `(cl)Argument Lists' for
 more details.
@@ -446,8 +461,8 @@ more details.
 
 (def-edebug-spec cl-lambda-expr
   (&define ("lambda" cl-lambda-list
-	    ;;cl-declarations-or-string
-	    ;;[&optional ("interactive" interactive)]
+	    cl-declarations-or-string
+	    [&optional ("interactive" interactive)]
 	    def-body)))
 
 ;; Redefine function-form to also match cl-function
@@ -540,7 +555,7 @@ its argument list allows full Common Lisp conventions."
     (if (memq '&environment args) (error "&environment used incorrectly"))
     (let ((restarg (memq '&rest args))
 	  (safety (if (cl--compiling-file) cl--optimize-safety 3))
-	  (keys nil)
+	  (keys t)
 	  (laterarg nil) (exactarg nil) minarg)
       (or num (setq num 0))
       (setq restarg (if (listp (cadr restarg))
@@ -595,6 +610,7 @@ its argument list allows full Common Lisp conventions."
                                 (+ ,num (length ,restarg)))))
                   cl--bind-forms)))
       (while (and (eq (car args) '&key) (pop args))
+        (unless (listp keys) (setq keys nil))
 	(while (and args (not (memq (car args) cl--lambda-list-keywords)))
 	  (let ((arg (pop args)))
 	    (or (consp arg) (setq arg (list arg)))
@@ -633,23 +649,32 @@ its argument list allows full Common Lisp conventions."
 					 `'(nil ,(cl--const-expr-val def))
 				       `(list nil ,def))))))))
 	      (push karg keys)))))
-      (setq keys (nreverse keys))
+      (when (consp keys) (setq keys (nreverse keys)))
       (or (and (eq (car args) '&allow-other-keys) (pop args))
-	  (null keys) (= safety 0)
-	  (let* ((var (make-symbol "--cl-keys--"))
-		 (allow '(:allow-other-keys))
-		 (check `(while ,var
-                           (cond
-                            ((memq (car ,var) ',(append keys allow))
-                             (setq ,var (cdr (cdr ,var))))
-                            ((car (cdr (memq (quote ,@allow) ,restarg)))
-                             (setq ,var nil))
-                            (t
-                             (error
-                              ,(format "Keyword argument %%s not one of %s"
-                                       keys)
-                              (car ,var)))))))
-	    (push `(let ((,var ,restarg)) ,check) cl--bind-forms)))
+	  (= safety 0)
+          (cond
+           ((eq keys t) nil)            ;No &keys at all
+           ((null keys)                 ;A &key but no actual keys specified.
+            (push `(when ,restarg
+                     (error ,(format "Keyword argument %%s not one of %s"
+                                     keys)
+                            (car ,restarg)))
+                  cl--bind-forms))
+           (t
+	    (let* ((var (make-symbol "--cl-keys--"))
+		   (allow '(:allow-other-keys))
+		   (check `(while ,var
+                             (cond
+                              ((memq (car ,var) ',(append keys allow))
+                               (setq ,var (cdr (cdr ,var))))
+                              ((car (cdr (memq (quote ,@allow) ,restarg)))
+                               (setq ,var nil))
+                              (t
+                               (error
+                                ,(format "Keyword argument %%s not one of %s"
+                                         keys)
+                                (car ,var)))))))
+	      (push `(let ((,var ,restarg)) ,check) cl--bind-forms)))))
       (cl--do-&aux args)
       nil)))
 
@@ -669,7 +694,7 @@ its argument list allows full Common Lisp conventions."
 (defmacro cl-destructuring-bind (args expr &rest body)
   "Bind the variables in ARGS to the result of EXPR and execute BODY."
   (declare (indent 2)
-           (debug (&define cl-macro-list def-form cl-declarations def-body)))
+           (debug (&define cl-macro-list1 def-form cl-declarations def-body)))
   (let* ((cl--bind-lets nil) (cl--bind-forms nil)
 	 (cl--bind-defs nil) (cl--bind-block 'cl-none) (cl--bind-enquote nil))
     (cl--do-arglist (or args '(&aux)) expr)
@@ -2073,60 +2098,65 @@ except that it additionally expands symbol macros."
                  (setq exp (cons 'setq args))
                  ;; Don't loop further.
                  nil)))
-            (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
-             ;; CL's symbol-macrolet treats re-bindings as candidates for
-             ;; expansion (turning the let into a letf if needed), contrary to
-             ;; Common-Lisp where such re-bindings hide the symbol-macro.
-             (let ((letf nil) (found nil) (nbs ()))
-               (dolist (binding bindings)
-                 (let* ((var (if (symbolp binding) binding (car binding)))
-                        (sm (assq var venv)))
-                   (push (if (not (cdr sm))
-                             binding
-                           (let ((nexp (cadr sm)))
-                             (setq found t)
-                             (unless (symbolp nexp) (setq letf t))
-                             (cons nexp (cdr-safe binding))))
-                         nbs)))
-               (when found
-                 (setq exp `(,(if letf
-                                  (if (eq (car exp) 'let) 'cl-letf 'cl-letf*)
-                                (car exp))
-                             ,(nreverse nbs)
-                             ,@body)))))
-            ;; FIXME: The behavior of CL made sense in a dynamically scoped
-            ;; language, but for lexical scoping, Common-Lisp's behavior might
-            ;; make more sense (and indeed, CL behaves like Common-Lisp w.r.t
-            ;; lexical-let), so maybe we should adjust the behavior based on
-            ;; the use of lexical-binding.
+            ;; CL's symbol-macrolet used to treat re-bindings as candidates for
+            ;; expansion (turning the let into a letf if needed), contrary to
+            ;; Common-Lisp where such re-bindings hide the symbol-macro.
+            ;; Not sure if there actually is code out there which depends
+            ;; on this behavior (haven't found any yet).
+            ;; Such code should explicitly use `cl-letf' instead, I think.
+            ;;
             ;; (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
-            ;;  (let ((nbs ()) (found nil))
+            ;;  (let ((letf nil) (found nil) (nbs ()))
             ;;    (dolist (binding bindings)
             ;;      (let* ((var (if (symbolp binding) binding (car binding)))
-            ;;             (name (symbol-name var))
-            ;;             (val (and found (consp binding) (eq 'let* (car exp))
-            ;;                       (list (macroexpand-all (cadr binding)
-            ;;                                              env)))))
-            ;;        (push (if (assq name env)
-            ;;                  ;; This binding should hide its symbol-macro,
-            ;;                  ;; but given the way macroexpand-all works, we
-            ;;                  ;; can't prevent application of `env' to the
-            ;;                  ;; sub-expressions, so we need to α-rename this
-            ;;                  ;; variable instead.
-            ;;                  (let ((nvar (make-symbol
-            ;;                               (copy-sequence name))))
-            ;;                    (setq found t)
-            ;;                    (push (list name nvar) env)
-            ;;                    (cons nvar (or val (cdr-safe binding))))
-            ;;                (if val (cons var val) binding))
+            ;;             (sm (assq var venv)))
+            ;;        (push (if (not (cdr sm))
+            ;;                  binding
+            ;;                (let ((nexp (cadr sm)))
+            ;;                  (setq found t)
+            ;;                  (unless (symbolp nexp) (setq letf t))
+            ;;                  (cons nexp (cdr-safe binding))))
             ;;              nbs)))
             ;;    (when found
-            ;;      (setq exp `(,(car exp)
+            ;;      (setq exp `(,(if letf
+            ;;                       (if (eq (car exp) 'let) 'cl-letf 'cl-letf*)
+            ;;                     (car exp))
             ;;                  ,(nreverse nbs)
-            ;;                  ,@(macroexp-unprogn
-            ;;                     (macroexpand-all (macroexp-progn body)
-            ;;                                      env)))))
-            ;;    nil))
+            ;;                  ,@body)))))
+            ;;
+            ;; We implement the Common-Lisp behavior, instead (see bug#26073):
+            ;; The behavior of CL made sense in a dynamically scoped
+            ;; language, but nowadays, lexical scoping semantics is more often
+            ;; expected.
+            (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
+             (let ((nbs ()) (found nil))
+               (dolist (binding bindings)
+                 (let* ((var (if (symbolp binding) binding (car binding)))
+                        (val (and found (consp binding) (eq 'let* (car exp))
+                                  (list (macroexpand-all (cadr binding)
+                                                         env)))))
+                   (push (if (assq var venv)
+                             ;; This binding should hide its symbol-macro,
+                             ;; but given the way macroexpand-all works
+                             ;; (i.e. the `env' we receive as input will be
+                             ;; (re)applied to the code we return), we can't
+                             ;; prevent application of `env' to the
+                             ;; sub-expressions, so we need to α-rename this
+                             ;; variable instead.
+                             (let ((nvar (make-symbol (symbol-name var))))
+                               (setq found t)
+                               (push (list var nvar) venv)
+                               (push (cons :cl-symbol-macros venv) env)
+                               (cons nvar (or val (cdr-safe binding))))
+                           (if val (cons var val) binding))
+                         nbs)))
+               (when found
+                 (setq exp `(,(car exp)
+                             ,(nreverse nbs)
+                             ,@(macroexp-unprogn
+                                (macroexpand-all (macroexp-progn body)
+                                                 env)))))
+               nil))
             )))
     exp))
 
@@ -2410,10 +2440,11 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
                          (pcase-let ((`(,vold ,_getter ,setter ,_vnew) x))
                            (funcall setter vold)))
                        binds))))
-    (let ((binding (car bindings)))
-      (gv-letplace (getter setter) (car binding)
+    (let* ((binding (car bindings))
+           (place (macroexpand (car binding) macroexpand-all-environment)))
+      (gv-letplace (getter setter) place
         (macroexp-let2 nil vnew (cadr binding)
-          (if (symbolp (car binding))
+          (if (symbolp place)
               ;; Special-case for simple variables.
               (cl--letf (cdr bindings)
                         (cons `(,getter ,(if (cdr binding) vnew getter))
@@ -2437,8 +2468,12 @@ As a special case, if `(PLACE)' is used instead of `(PLACE VALUE)',
 the PLACE is not modified before executing BODY.
 
 \(fn ((PLACE VALUE) ...) BODY...)"
-  (declare (indent 1) (debug ((&rest (gate gv-place &optional form)) body)))
-  (if (and (not (cdr bindings)) (cdar bindings) (symbolp (caar bindings)))
+  (declare (indent 1) (debug ((&rest [&or (symbolp form)
+                                          (gate gv-place &optional form)])
+                              body)))
+  (if (and (not (cdr bindings)) (cdar bindings) (symbolp (caar bindings))
+           (not (assq (caar bindings)
+                      (alist-get :cl-symbol-macros macroexpand-all-environment))))
       `(let ,bindings ,@body)
     (cl--letf bindings () () body)))
 
@@ -2503,8 +2538,9 @@ The function's arguments should be treated as immutable.
              ,(if (memq '&key args)
                   `(&whole cl-whole &cl-quote ,@args)
                 (cons '&cl-quote args))
+             ,(format "compiler-macro for inlining `%s'." name)
              (cl--defsubst-expand
-              ',argns '(cl-block ,name ,@body)
+              ',argns '(cl-block ,name ,@(cdr (macroexp-parse-body body)))
               ;; We used to pass `simple' as
               ;; (not (or unsafe (cl-expr-access-order pbody argns)))
               ;; But this is much too simplistic since it

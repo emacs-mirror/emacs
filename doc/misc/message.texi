@@ -925,7 +925,7 @@ invoke @kbd{M-x message-idna-to-ascii-rhs RET} in the message buffer
 to have the non-@acronym{ASCII} domain names encoded while you edit
 the message.
 
-Note that you must have @uref{http://www.gnu.org/software/libidn/, GNU
+Note that you must have @uref{https://www.gnu.org/software/libidn/, GNU
 Libidn} installed in order to use this functionality.
 
 @node Security

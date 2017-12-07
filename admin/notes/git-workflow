@@ -12,22 +12,22 @@ git config --global user.email "fchu@example.com"
 git config --global transfer.fsckObjects true
 
 (See the thread "Recommend these .gitconfig settings for git integrity."
-[https://lists.gnu.org/archive/html/emacs-devel/2016-01/threads.html#01802]
+[https://lists.gnu.org/r/emacs-devel/2016-01/threads.html#01802]
 for more details about why that last line is there.)
 
 Initial setup
 =============
 
 Then we want to clone the repository.  We normally want to have both
-the current master and the emacs-25 branch.
+the current master and the emacs-26 branch.
 
 mkdir ~/emacs
 cd ~/emacs
 git clone <membername>@git.sv.gnu.org:/srv/git/emacs.git master
 (cd master; git config push.default current)
-./master/admin/git-new-workdir master emacs-25
-cd emacs-25
-git checkout emacs-25
+./master/admin/git-new-workdir master emacs-26
+cd emacs-26
+git checkout emacs-26
 
 You now have both branches conveniently accessible, and you can do
 "git pull" in them once in a while to keep updated.
@@ -57,11 +57,11 @@ you commit your change locally and then send a patch file as a bug report
 as described in ../../CONTRIBUTE.
 
 
-Backporting to emacs-25
+Backporting to emacs-26
 =======================
 
 If you have applied a fix to the master, but then decide that it should
-be applied to the emacs-25 branch, too, then
+be applied to the emacs-26 branch, too, then
 
 cd ~/emacs/master
 git log
@@ -71,7 +71,7 @@ which will look like
 
 commit 958b768a6534ae6e77a8547a56fc31b46b63710b
 
-cd ~/emacs/emacs-25
+cd ~/emacs/emacs-26
 git cherry-pick -xe 958b768a6534ae6e77a8547a56fc31b46b63710b
 
 and add "Backport:" to the commit string.  Then
@@ -79,17 +79,17 @@ and add "Backport:" to the commit string.  Then
 git push
 
 
-Merging emacs-25 to the master
+Merging emacs-26 to the master
 ==============================
 
 It is recommended to use the file gitmerge.el in the admin directory
-for merging 'emacs-25' into 'master'.  It will take care of many
+for merging 'emacs-26' into 'master'.  It will take care of many
 things which would otherwise have to be done manually, like ignoring
 commits that should not land in master, fixing up ChangeLogs and
 automatically dealing with certain types of conflicts.  If you really
 want to, you can do the merge manually, but then you're on your own.
 If you still choose to do that, make absolutely sure that you *always*
-use the 'merge' command to transport commits from 'emacs-25' to
+use the 'merge' command to transport commits from 'emacs-26' to
 'master'.  *Never* use 'cherry-pick'!  If you don't know why, then you
 shouldn't manually do the merge in the first place; just use
 gitmerge.el instead.
@@ -102,11 +102,11 @@ up-to-date by doing a pull.  Then start Emacs with
   emacs -l admin/gitmerge.el -f gitmerge
 
 You'll be asked for the branch to merge, which will default to
-'origin/emacs-25', which you should accept.  Merging a local tracking
+'origin/emacs-26', which you should accept.  Merging a local tracking
 branch is discouraged, since it might not be up-to-date, or worse,
 contain commits from you which are not yet pushed upstream.
 
-You will now see the list of commits from 'emacs-25' which are not yet
+You will now see the list of commits from 'emacs-26' which are not yet
 merged to 'master'.  You might also see commits that are already
 marked for "skipping", which means that they will be merged with a
 different merge strategy ('ours'), which will effectively ignore the

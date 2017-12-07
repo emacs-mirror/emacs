@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,7 +42,7 @@
 (defun color-name-to-rgb (color &optional frame)
   "Convert COLOR string to a list of normalized RGB components.
 COLOR should be a color name (e.g. \"white\") or an RGB triplet
-string (e.g. \"#ff12ec\").
+string (e.g. \"#ffff1122eecc\").
 
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
@@ -68,7 +68,8 @@ or 2; use the latter if you need a 24-bit specification of a color."
 (defun color-complement (color-name)
   "Return the color that is the complement of COLOR-NAME.
 COLOR-NAME should be a string naming a color (e.g. \"white\"), or
-a string specifying a color's RGB components (e.g. \"#ff12ec\")."
+a string specifying a color's RGB
+components (e.g. \"#ffff1212ecec\")."
   (let ((color (color-name-to-rgb color-name)))
     (list (- 1.0 (nth 0 color))
           (- 1.0 (nth 1 color))
@@ -82,9 +83,10 @@ resulting list."
   (let* ((r (nth 0 start))
 	 (g (nth 1 start))
 	 (b (nth 2 start))
-	 (r-step (/ (- (nth 0 stop) r) (1+ step-number)))
-	 (g-step (/ (- (nth 1 stop) g) (1+ step-number)))
-	 (b-step (/ (- (nth 2 stop) b) (1+ step-number)))
+         (interval (float (1+ step-number)))
+	 (r-step (/ (- (nth 0 stop) r) interval))
+	 (g-step (/ (- (nth 1 stop) g) interval))
+	 (b-step (/ (- (nth 2 stop) b) interval))
 	 result)
     (dotimes (_ step-number)
       (push (list (setq r (+ r r-step))
@@ -177,7 +179,8 @@ each element is between 0.0 and 1.0, inclusive."
 		    ((= r max)      (- bc gc))
 		    ((= g max)      (+ 2.0 rc (- bc)))
 		    (t              (+ 4.0 gc (- rc))))
-		   6.0) 1.0)))
+		   6.0)
+                  1.0)))
 	(list h s l)))))
 
 (defun color-srgb-to-xyz (red green blue)
@@ -211,8 +214,17 @@ RED, GREEN and BLUE should be between 0.0 and 1.0, inclusive."
               (* 12.92 b)
             (- (* 1.055 (expt b (/ 2.4))) 0.055)))))
 
+(defconst color-d75-xyz '(0.9497 1.0 1.2264)
+  "D75 white point in CIE XYZ.")
+
 (defconst color-d65-xyz '(0.950455 1.0 1.088753)
   "D65 white point in CIE XYZ.")
+
+(defconst color-d55-xyz '(0.9568 1.0 0.9215)
+  "D55 white point in CIE XYZ.")
+
+(defconst color-d50-xyz '(0.9642 1.0 0.8249)
+  "D50 white point in CIE XYZ.")
 
 (defconst color-cie-ε (/ 216 24389.0))
 (defconst color-cie-κ (/ 24389 27.0))
@@ -267,6 +279,24 @@ conversion.  If omitted or nil, use `color-d65-xyz'."
 (defun color-lab-to-srgb (L a b)
   "Convert CIE L*a*b* to RGB."
   (apply 'color-xyz-to-srgb (color-lab-to-xyz L a b)))
+
+(defun color-xyz-to-xyy (X Y Z)
+  "Convert CIE XYZ to xyY."
+  (let ((d (float (+ X Y Z))))
+    (list (/ X d) (/ Y d) Y)))
+
+(defun color-xyy-to-xyz (x y Y)
+  "Convert CIE xyY to XYZ."
+  (let ((y (float y)))
+   (list (/ (* Y x) y) Y (/ (* Y (- 1 x y)) y))))
+
+(defun color-lab-to-lch (L a b)
+  "Convert CIE L*a*b* to L*C*h*"
+  (list L (sqrt (+ (* a a) (* b b))) (atan b a)))
+
+(defun color-lch-to-lab (L C h)
+  "Convert CIE L*a*b* to L*C*h*"
+  (list L (* C (cos h)) (* C (sin h))))
 
 (defun color-cie-de2000 (color1 color2 &optional kL kC kH)
   "Return the CIEDE2000 color distance between COLOR1 and COLOR2.

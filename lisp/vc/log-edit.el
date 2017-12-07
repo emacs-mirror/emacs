@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -623,7 +623,7 @@ Also saves its contents in the comment history and hides
       (setq buffer-read-only nil)
       (erase-buffer)
       (cvs-insert-strings files)
-      (setq buffer-read-only t)
+      (special-mode)
       (goto-char (point-min))
       (save-selected-window
 	(cvs-pop-to-buffer-same-frame buf)

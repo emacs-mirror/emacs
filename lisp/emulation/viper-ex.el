@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -401,13 +401,14 @@ reversed."
     (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
     (set-buffer viper-ex-work-buf)
     (skip-chars-forward " \t|")
-    (let ((case-fold-search t))
-      (cond ((looking-at "#")
+    (let ((case-fold-search t)
+          (char (following-char)))
+      (cond ((= char ?#)
 	     (setq ex-token-type 'command)
-	     (setq ex-token (char-to-string (following-char)))
+	     (setq ex-token (char-to-string char))
 	     (forward-char 1))
 	    ((looking-at "[a-z]") (viper-get-ex-com-subr))
-	    ((looking-at "\\.")
+	    ((= char ?.)
 	     (forward-char 1)
 	     (setq ex-token-type 'dot))
 	    ((looking-at "[0-9]")
@@ -419,13 +420,13 @@ reversed."
 			 (t 'abs-number)))
 	     (setq ex-token
 		   (string-to-number (buffer-substring (point) (mark t)))))
-	    ((looking-at "\\$")
+	    ((= char ?$)
 	     (forward-char 1)
 	     (setq ex-token-type 'end))
-	    ((looking-at "%")
+	    ((= char ?%)
 	     (forward-char 1)
 	     (setq ex-token-type 'whole))
-	    ((looking-at "+")
+	    ((= char ?+)
 	     (cond ((or (looking-at "+[-+]") (looking-at "+[\n|]"))
 		    (forward-char 1)
 		    (insert "1")
@@ -436,7 +437,7 @@ reversed."
 		    (setq ex-token-type 'plus))
 		   (t
 		    (error viper-BadAddress))))
-	    ((looking-at "-")
+	    ((= char ?-)
 	     (cond ((or (looking-at "-[-+]") (looking-at "-[\n|]"))
 		    (forward-char 1)
 		    (insert "1")
@@ -447,7 +448,7 @@ reversed."
 		    (setq ex-token-type 'minus))
 		   (t
 		    (error viper-BadAddress))))
-	    ((looking-at "/")
+	    ((= char ?/)
 	     (forward-char 1)
 	     (set-mark (point))
 	     (let ((cont t))
@@ -459,9 +460,9 @@ reversed."
 		     (setq cont nil))))
 	     (backward-char 1)
 	     (setq ex-token (buffer-substring (point) (mark t)))
-	     (if (looking-at "/") (forward-char 1))
+             (when (= (following-char) ?/) (forward-char 1))
 	     (setq ex-token-type 'search-forward))
-	    ((looking-at "\\?")
+	    ((= char ??)
 	     (forward-char 1)
 	     (set-mark (point))
 	     (let ((cont t))
@@ -472,27 +473,27 @@ reversed."
                                         (line-beginning-position 0)))
 		     (setq cont nil))
 		 (backward-char 1)
-		 (if (not (looking-at "\n")) (forward-char 1))))
+                 (when (/= (following-char) ?\n) (forward-char 1))))
 	     (setq ex-token-type 'search-backward)
 	     (setq ex-token (buffer-substring (1- (point)) (mark t))))
-	    ((looking-at ",")
+	    ((= char ?,)
 	     (forward-char 1)
 	     (setq ex-token-type 'comma))
-	    ((looking-at ";")
+	    ((= char ?\;)
 	     (forward-char 1)
 	     (setq ex-token-type 'semi-colon))
 	    ((looking-at "[!=><&~]")
 	     (setq ex-token-type 'command)
-	     (setq ex-token (char-to-string (following-char)))
+	     (setq ex-token (char-to-string char))
 	     (forward-char 1))
-	    ((looking-at "'")
+	    ((= char ?\')
 	     (setq ex-token-type 'goto-mark)
 	     (forward-char 1)
-	     (cond ((looking-at "'") (setq ex-token nil))
+	     (cond ((= (following-char) ?\') (setq ex-token nil))
 		   ((looking-at "[a-z]") (setq ex-token (following-char)))
 		   (t (error "%s" "Marks are ' and a-z")))
 	     (forward-char 1))
-	    ((looking-at "\n")
+	    ((= char ?\n)
 	     (setq ex-token-type 'end-mark)
 	     (setq ex-token "goto"))
 	    (t
@@ -687,9 +688,9 @@ reversed."
 			   (get-buffer-create viper-ex-work-buf-name))
 		     (set-buffer viper-ex-work-buf)
 		     (skip-chars-forward " \t")
-		     (cond ((looking-at "|")
+		     (cond ((= (following-char) ?|)
 			    (forward-char 1))
-			   ((looking-at "\n")
+			   ((= (following-char) ?\n)
 			    (setq cont nil))
 			   (t (error
 			       "`%s': %s" ex-token viper-SpuriousText)))
@@ -994,33 +995,31 @@ reversed."
       (with-current-buffer (setq viper-ex-work-buf
                                  (get-buffer-create viper-ex-work-buf-name))
 	(skip-chars-forward " \t")
-	(if (looking-at "!")
-	    (if (and (not (looking-back "[ \t]" (1- (point))))
-		     ;; read doesn't have a corresponding :r! form, so ! is
-		     ;; immediately interpreted as a shell command.
-		     (not (string= ex-token "read")))
-		(progn
-		  (setq ex-variant t)
-		  (forward-char 1)
-		  (skip-chars-forward " \t"))
-	      (setq ex-cmdfile t)
-	      (forward-char 1)
-	      (skip-chars-forward " \t")))
-	(if (looking-at ">>")
-	    (progn
-	      (setq ex-append t
-		    ex-variant t)
-	      (forward-char 2)
-	      (skip-chars-forward " \t")))
-	(if (looking-at "+")
-	    (progn
-	      (forward-char 1)
-	      (set-mark (point))
-	      (re-search-forward "[ \t\n]")
-	      (backward-char 1)
-	      (setq ex-offset (buffer-substring (point) (mark t)))
-	      (forward-char 1)
-	      (skip-chars-forward " \t")))
+        (when (= (following-char) ?!)
+          (if (and (not (memq (preceding-char) '(?\s ?\t)))
+                   ;; read doesn't have a corresponding :r! form, so ! is
+                   ;; immediately interpreted as a shell command.
+                   (not (string= ex-token "read")))
+              (progn
+                (setq ex-variant t)
+                (forward-char 1)
+                (skip-chars-forward " \t"))
+            (setq ex-cmdfile t)
+            (forward-char 1)
+            (skip-chars-forward " \t")))
+        (when (looking-at ">>")
+          (setq ex-append t
+                ex-variant t)
+          (forward-char 2)
+          (skip-chars-forward " \t"))
+        (when (= (following-char) ?+)
+          (forward-char 1)
+          (set-mark (point))
+          (re-search-forward "[ \t\n]")
+          (backward-char 1)
+          (setq ex-offset (buffer-substring (point) (mark t)))
+          (forward-char 1)
+          (skip-chars-forward " \t"))
 	;; this takes care of :r, :w, etc., when they get file names
 	;; from the history list
 	(if (member ex-token '("read" "write" "edit" "visual" "next"))
@@ -1602,7 +1601,7 @@ reversed."
   ;; skip "!", if it is q!.  In Viper q!, w!, etc., behave as q, w, etc.
   (with-current-buffer (setq viper-ex-work-buf
                              (get-buffer-create viper-ex-work-buf-name))
-    (if (looking-at "!") (forward-char 1)))
+    (when (= (following-char) ?!) (forward-char 1)))
   (if (< viper-expert-level 3)
       (save-buffers-kill-emacs)
     (kill-buffer (current-buffer))))
@@ -2321,9 +2320,5 @@ Type `mak ' (including the space) to run make with no args."
     (save-current-buffer
       (with-output-to-temp-buffer " *viper-info*"
 	(princ lines))))))
-
-
-
-
 
 ;;; viper-ex.el ends here

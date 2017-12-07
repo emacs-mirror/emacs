@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1108,7 +1108,7 @@ downloadable."
                 gnus-newsgroup-cached)
         (setq articles (gnus-sorted-ndifference
 			(gnus-sorted-ndifference
-			 (gnus-copy-sequence articles)
+			 (copy-tree articles)
 			 gnus-newsgroup-downloadable)
 			gnus-newsgroup-cached)))
 
@@ -1123,7 +1123,7 @@ downloadable."
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
           (let* ((dl gnus-newsgroup-downloadable)
-		 (processable (sort (gnus-copy-sequence gnus-newsgroup-processable) '<))
+		 (processable (sort (copy-tree gnus-newsgroup-processable) '<))
                  (gnus-newsgroup-downloadable processable))
 	    (gnus-agent-summary-fetch-group)
 
@@ -1513,7 +1513,7 @@ downloaded into the agent."
         (let* ((fetched-articles (list nil))
                (tail-fetched-articles fetched-articles)
                (dir (gnus-agent-group-pathname group))
-               (date (time-to-days (current-time)))
+               (date (time-to-days nil))
                (case-fold-search t)
                pos crosses
 	       (file-name-coding-system nnmail-pathname-coding-system))
@@ -2833,7 +2833,7 @@ The following commands are available:
   "Copy the current category."
   (interactive (list (gnus-category-name) (intern (read-string "New name: "))))
   (let ((info (assq category gnus-category-alist)))
-    (push (let ((newcat (gnus-copy-sequence info)))
+    (push (let ((newcat (copy-tree info)))
             (setf (gnus-agent-cat-name newcat) to)
             (setf (gnus-agent-cat-groups newcat) nil)
             newcat)
@@ -3089,7 +3089,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 	      (nov-entries-deleted 0)
 	      (info (gnus-get-info group))
 	      (alist gnus-agent-article-alist)
-	      (day (- (time-to-days (current-time))
+	      (day (- (time-to-days nil)
 		      (gnus-agent-find-parameter group 'agent-days-until-old)))
 	      (specials (if (and alist
 				 (not force))
@@ -3824,7 +3824,7 @@ has been fetched."
       ;; be expired later.
       (gnus-agent-load-alist group)
       (gnus-agent-save-alist group (list article)
-			     (time-to-days (current-time))))))
+			     (time-to-days nil)))))
 
 (defun gnus-agent-regenerate-group (group &optional reread)
   "Regenerate GROUP.

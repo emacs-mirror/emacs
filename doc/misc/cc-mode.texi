@@ -198,7 +198,7 @@ modify this GNU manual.''
 @insertcopying
 
 This manual was generated from cc-mode.texi, which is distributed with Emacs,
-or can be downloaded from @url{http://savannah.gnu.org/projects/emacs/}.
+or can be downloaded from @url{https://savannah.gnu.org/projects/emacs/}.
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1760,6 +1760,7 @@ file.  For commands that you can use to view the effect of your changes,
 see @ref{Indentation Commands} and @ref{Filling and Breaking}.
 
 For details of the @ccmode{} style system, see @ref{Styles}.
+
 @item @kbd{C-c :} (@code{c-scope-operator})
 @kindex C-c :
 @findex c-scope-operator
@@ -1767,6 +1768,18 @@ For details of the @ccmode{} style system, see @ref{Styles}.
 In C++, it is also sometimes desirable to insert the double-colon scope
 operator without performing the electric behavior of colon insertion.
 @kbd{C-c :} does just this.
+
+@item @kbd{C-c C-z} (@code{c-display-defun-name})
+@kindex C-c C-z
+@findex c-display-defun-name
+@findex display-defun-name (c-)
+Display the current function name, if any, in the minibuffer.
+Additionally, if a prefix argument is given, push the function name to
+the kill ring.  If there is no current function,
+@code{c-display-defun-name} does nothing.  In Emacs, you can use this
+command in the middle of an interactive search if you set the
+customizable option @code{isearch-allow-scroll} to non-@code{nil}.
+@xref{Not Exiting Isearch,,,emacs, GNU Emacs Manual}.
 
 @item @kbd{C-c C-\} (@code{c-backslash-region})
 @kindex C-c C-\
@@ -7396,7 +7409,7 @@ Emacs Lisp code that triggers the bug and include it in your report.
 
 @cindex bug report mailing list
 Reporting a bug using @code{c-submit-bug-report} files it in
-the GNU Bug Tracker at @url{http://debbugs.gnu.org}, then sends it on
+the GNU Bug Tracker at @url{https://debbugs.gnu.org}, then sends it on
 to @email{bug-cc-mode@@gnu.org}.  You can also send reports, other
 questions, and suggestions (kudos?@: @t{;-)} to that address.  It's a
 mailing list which you can join or browse an archive of; see the web site at

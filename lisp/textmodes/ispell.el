@@ -1,10 +1,8 @@
-;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2  -*- lexical-binding:t -*-
+;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1994-1995, 1997-2017 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
-;; Status          : Release with 3.1.12+ and 3.2.0+ ispell.
-;; Keywords: unix wp
 
 ;; This file is part of GNU Emacs.
 
@@ -19,25 +17,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; Note: version numbers and time stamp are not updated
-;;   when this file is edited for release with GNU Emacs.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; INSTRUCTIONS
 
-;;   This code contains a section of user-settable variables that you
-;; should inspect prior to installation.  Look past the end of the history
-;; list.  Set them up for your locale and the preferences of the majority
-;; of the users.  Otherwise the users may need to set a number of variables
-;; themselves.
-;;   You particularly may want to change the default dictionary for your
-;; country and language.
-;;   Most dictionary changes should be made in this file so all users can
-;; enjoy them.  Local or modified dictionaries are supported in your .emacs
-;; file.  Use the variable `ispell-local-dictionary-alist' to specify
+;;   Use the variable `ispell-local-dictionary-alist' to specify
 ;; your own dictionaries.
 
 ;;  Depending on the mail system you use, you may want to include these:
@@ -112,7 +98,7 @@
 ;;  Need a way to select between different character mappings without separate
 ;;    dictionary entries.
 ;;  Multi-byte characters if not defined by current dictionary may result in the
-;;    evil "misalignment error" in some versions of MULE Emacs.
+;;    evil "misalignment error" in some versions of Emacs.
 ;;  On some versions of Emacs, growing the minibuffer fails.
 ;;    see `ispell-help-in-bufferp'.
 ;;  Recursive edits (?C-r or ?R) inside a keyboard text replacement check (?r)
@@ -121,6 +107,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 (defvar mail-yank-prefix)
 
@@ -208,6 +195,10 @@ Must be greater than 1."
   :type 'integer
   :group 'ispell)
 
+;; XXX Add enchant to this list once enchant >= 2.1.0 is widespread.
+;; Before that, adding it is useless, as if it is found, it will just
+;; cause an error; and one of the other spelling engines below is
+;; almost certainly installed in any case, for enchant to use.
 (defcustom ispell-program-name
   (or (executable-find "aspell")
       (executable-find "ispell")
@@ -605,6 +596,8 @@ english.aff).  Aspell and Hunspell don't have this limitation.")
   "Non-nil if we can use Aspell extensions.")
 (defvar ispell-really-hunspell nil
   "Non-nil if we can use Hunspell extensions.")
+(defvar ispell-really-enchant nil
+  "Non-nil if we can use Enchant extensions.")
 (defvar ispell-encoding8-command nil
   "Command line option prefix to select encoding if supported, nil otherwise.
 If setting the encoding is supported by spellchecker and is selectable from
@@ -739,17 +732,26 @@ Otherwise returns the library directory name, if that is defined."
 		  (and (search-forward-regexp
 			"(but really Hunspell \\([0-9]+\\.[0-9\\.-]+\\)?)"
                         nil t)
+		       (match-string 1)))
+            (setq ispell-really-enchant
+		  (and (search-forward-regexp
+			"(but really Enchant \\([0-9]+\\.[0-9\\.-]+\\)?)"
+                        nil t)
 		       (match-string 1)))))
 
       (let* ((aspell8-minver   "0.60")
              (ispell-minver    "3.1.12")
              (hunspell8-minver "1.1.6")
+             (enchant-minver   "2.1.0")
              (minver (cond
                       ((not (version<= ispell-minver ispell-program-version))
                        ispell-minver)
                       ((and ispell-really-aspell
                             (not (version<= aspell8-minver ispell-really-aspell)))
-                       aspell8-minver))))
+                       aspell8-minver)
+                      ((and ispell-really-enchant
+                            (not (version<= enchant-minver ispell-really-enchant)))
+                       enchant-minver))))
 
         (if minver
 	    (error "%s release %s or greater is required"
@@ -1183,6 +1185,49 @@ dictionary from that list was found."
                     (list dict))
                   ispell-hunspell-dictionary-alist :test #'equal))))
 
+;; Make ispell.el work better with enchant.
+
+(defvar ispell-enchant-dictionary-alist nil
+  "An alist of parsed Enchant dicts and associated parameters.
+Internal use.")
+
+(defun ispell--call-enchant-lsmod (&rest args)
+  "Call enchant-lsmod with ARGS and return the output as string."
+  (with-output-to-string
+    (with-current-buffer
+        standard-output
+        (apply 'ispell-call-process
+               (concat ispell-program-name "-lsmod") nil t nil args))))
+
+(defun ispell--get-extra-word-characters (&optional lang)
+  "Get the extra word characters for LANG as a character class.
+If LANG is omitted, get the extra word characters for the default language."
+  (concat "[" (string-trim-right (apply 'ispell--call-enchant-lsmod
+                                        (append '("-word-chars") (if lang `(,lang))))) "]"))
+
+(defun ispell-find-enchant-dictionaries ()
+  "Find Enchant's dictionaries, and record in `ispell-enchant-dictionary-alist'."
+  (let* ((dictionaries
+	  (split-string
+	   (ispell--call-enchant-lsmod "-list-dicts" (buffer-string)) " ([^)]+)\n"))
+         (found
+          (mapcar #'(lambda (lang)
+                      `(,lang "[[:alpha:]]" "[^[:alpha:]]"
+                              ,(ispell--get-extra-word-characters) t nil nil utf-8))
+                  dictionaries)))
+    ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
+    ;; which have no element in FOUND at all.
+    (dolist (dict ispell-dictionary-base-alist)
+      (unless (assoc (car dict) found)
+	(setq found (nconc found (list dict)))))
+    (setq ispell-enchant-dictionary-alist found)
+    ;; Add a default entry
+    (let ((default-dict
+            `(nil "[[:alpha:]]" "[^[:alpha:]]"
+                  ,(ispell--get-extra-word-characters)
+                  t nil nil utf-8)))
+      (push default-dict ispell-enchant-dictionary-alist))))
+
 ;; Set params according to the selected spellchecker
 
 (defvar ispell-last-program-name nil
@@ -1208,7 +1253,7 @@ aspell is used along with Emacs).")
 		   (setq ispell-library-directory (ispell-check-version))
 		   t)
 	       (error nil))
-	     ispell-encoding8-command)
+	     (or ispell-encoding8-command ispell-really-enchant))
 	;; auto-detection will only be used if spellchecker is not
 	;; ispell and supports a way to set communication to UTF-8.
 	(if ispell-really-aspell
@@ -1216,11 +1261,14 @@ aspell is used along with Emacs).")
 		(ispell-find-aspell-dictionaries))
 	  (if ispell-really-hunspell
 	      (or ispell-hunspell-dictionary-alist
-		  (ispell-find-hunspell-dictionaries)))))
+		  (ispell-find-hunspell-dictionaries))
+            (if ispell-really-enchant
+                (or ispell-enchant-dictionary-alist
+                    (ispell-find-enchant-dictionaries))))))
 
     ;; Substitute ispell-dictionary-alist with the list of
     ;; dictionaries corresponding to the given spellchecker.
-    ;; If a recent aspell or hunspell, use the list of really
+    ;; With programs that support it, use the list of really
     ;; installed dictionaries and add to it elements of the original
     ;; list that are not present there. Allow distro info.
     (let ((found-dicts-alist
@@ -1229,17 +1277,19 @@ aspell is used along with Emacs).")
 		   ispell-aspell-dictionary-alist
 		 (if ispell-really-hunspell
 		     ispell-hunspell-dictionary-alist))
-	     nil))
+	     (if ispell-really-enchant
+                 ispell-enchant-dictionary-alist
+               nil)))
 	  (ispell-dictionary-base-alist ispell-dictionary-base-alist)
 	  ispell-base-dicts-override-alist ; Override only base-dicts-alist
 	  all-dicts-alist)
 
       ;; While ispell and aspell (through aliases) use the traditional
-      ;; dict naming originally expected by ispell.el, hunspell
-      ;; uses locale based names with no alias.  We need to map
+      ;; dict naming originally expected by ispell.el, hunspell & Enchant
+      ;; use locale-based names with no alias.  We need to map
       ;; standard names to locale based names to make default dict
-      ;; definitions available for hunspell.
-      (if ispell-really-hunspell
+      ;; definitions available to these programs.
+      (if (or ispell-really-hunspell ispell-really-enchant)
 	  (let (tmp-dicts-alist)
 	    (dolist (adict ispell-dictionary-base-alist)
 	      (let* ((dict-name (nth 0 adict))
@@ -1264,7 +1314,7 @@ aspell is used along with Emacs).")
 			(setq ispell-args
 			      (nconc ispell-args (list "-d" dict-equiv)))
 		      (message
-		       "ispell-set-spellchecker-params: Missing Hunspell equiv for \"%s\". Skipping."
+		       "ispell-set-spellchecker-params: Missing equivalent for \"%s\". Skipping."
 		       dict-name)
 		      (setq skip-dict t)))
 
@@ -1306,7 +1356,7 @@ aspell is used along with Emacs).")
                          (nth 4 adict)   ; many-otherchars-p
                          (nth 5 adict)   ; ispell-args
                          (nth 6 adict)   ; extended-character-mode
-                         (if ispell-encoding8-command
+                         (if (or ispell-encoding8-command ispell-really-enchant)
                              'utf-8
                            (nth 7 adict)))
                       adict)
@@ -1435,25 +1485,17 @@ used as key in `ispell-local-dictionary-alist' and `ispell-dictionary-alist'.")
   "The name of the current personal dictionary, or nil for the default.
 This is passed to the Ispell process using the `-p' switch.")
 
-(defun ispell-decode-string (str)
-  "Decodes multibyte character strings."
-  (decode-coding-string str (ispell-get-coding-system)))
-
 ;; Return a string decoded from Nth element of the current dictionary.
 (defun ispell-get-decoded-string (n)
   "Get the decoded string in slot N of the descriptor of the current dict."
   (let* ((slot (or
 		(assoc ispell-current-dictionary ispell-local-dictionary-alist)
 		(assoc ispell-current-dictionary ispell-dictionary-alist)
-		(error "No data for dictionary \"%s\", neither in `ispell-local-dictionary-alist' nor in `ispell-dictionary-alist'"
+		(error "No data for dictionary \"%s\" in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'"
 		       ispell-current-dictionary)))
-	 (str (nth n slot)))
-    (when (and (> (length str) 0)
-	       (not (multibyte-string-p str)))
-      (setq str (ispell-decode-string str))
-      (or (multibyte-string-p str)
-	  (setq str (string-to-multibyte str))))
-    str))
+         (str (nth n slot)))
+    (if (stringp str)
+        (decode-coding-string str (ispell-get-coding-system) t))))
 
 (defun ispell-get-casechars ()
   (ispell-get-decoded-string 1))
@@ -1742,9 +1784,10 @@ and pass it the output of the last Ispell invocation."
 	    (erase-buffer)))))))
 
 (defun ispell-send-replacement (misspelled replacement)
-  "Notify Aspell that MISSPELLED should be spelled REPLACEMENT.
-This allows improving the suggestion list based on actual misspellings."
-  (and ispell-really-aspell
+  "Notify spell checker that MISSPELLED should be spelled REPLACEMENT.
+This allows improving the suggestion list based on actual misspellings.
+Only works for Aspell and Enchant."
+  (and (or ispell-really-aspell ispell-really-enchant)
        (ispell-send-string (concat "$$ra " misspelled "," replacement "\n"))))
 
 
@@ -3460,17 +3503,9 @@ Returns the sum SHIFT due to changes in word replacements."
                       (setq ispell-filter recheck-region
                             recheck-region nil
                             replace replace-word)))))
+              (setq shift (+ shift (- (length replace) word-len)))))
 
-              (setq shift (+ shift (- (length replace) word-len)))
-
-              ;; Move line-start across word...
-              ;; new shift function does this now...
-              ;;(set-marker line-start (+ line-start
-              ;;			(- (length replace)
-              ;;			   (length (car poss)))))
-              ))
             (if (not ispell-quit)
-                ;; FIXME: remove redundancy with identical code above.
                 (let (message-log-max)
                   (message
                    "Continuing spelling check using %s with %s dictionary..."

@@ -1,4 +1,4 @@
-;;; ob-octave.el --- org-babel functions for octave and matlab evaluation
+;;; ob-octave.el --- Babel Functions for Octave and Matlab -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,10 +30,10 @@
 
 ;;; Code:
 (require 'ob)
-(eval-when-compile (require 'cl))
 
 (declare-function matlab-shell "ext:matlab-mode")
 (declare-function matlab-shell-run-region "ext:matlab-mode")
+(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-default-header-args:matlab '())
 (defvar org-babel-default-header-args:octave '())
@@ -74,33 +74,31 @@ end")
   (let* ((session
 	  (funcall (intern (format "org-babel-%s-initiate-session"
 				   (if matlabp "matlab" "octave")))
-		   (cdr (assoc :session params)) params))
-         (vars (mapcar #'cdr (org-babel-get-header params :var)))
-         (result-params (cdr (assoc :result-params params)))
-         (result-type (cdr (assoc :result-type params)))
-	 (out-file (cdr (assoc :file params)))
+		   (cdr (assq :session params)) params))
+         (result-type (cdr (assq :result-type params)))
 	 (full-body
 	  (org-babel-expand-body:generic
 	   body params (org-babel-variable-assignments:octave params)))
+	 (gfx-file (ignore-errors (org-babel-graphical-output-file params)))
 	 (result (org-babel-octave-evaluate
 		  session
-		  (if (org-babel-octave-graphical-output-file params)
+		  (if gfx-file
 		      (mapconcat 'identity
 				 (list
 				  "set (0, \"defaultfigurevisible\", \"off\");"
 				  full-body
-				  (format "print -dpng %s" (org-babel-octave-graphical-output-file params)))
+				  (format "print -dpng %s" gfx-file))
 				 "\n")
 		    full-body)
 		  result-type matlabp)))
-    (if (org-babel-octave-graphical-output-file params)
+    (if gfx-file
 	nil
       (org-babel-reassemble-table
        result
        (org-babel-pick-name
-	(cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+	(cdr (assq :colname-names params)) (cdr (assq :colnames params)))
        (org-babel-pick-name
-	(cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))))
+	(cdr (assq :rowname-names params)) (cdr (assq :rownames params)))))))
 
 (defun org-babel-prep-session:matlab (session params)
   "Prepare SESSION according to PARAMS."
@@ -113,7 +111,7 @@ end")
      (format "%s=%s;"
 	     (car pair)
 	     (org-babel-octave-var-to-octave (cdr pair))))
-   (mapcar #'cdr (org-babel-get-header params :var))))
+   (org-babel--get-vars params)))
 
 (defalias 'org-babel-variable-assignments:matlab
   'org-babel-variable-assignments:octave)
@@ -147,7 +145,7 @@ If there is not a current inferior-process-buffer in SESSION then
 create.  Return the initialized session."
   (org-babel-octave-initiate-session session params 'matlab))
 
-(defun org-babel-octave-initiate-session (&optional session params matlabp)
+(defun org-babel-octave-initiate-session (&optional session _params matlabp)
   "Create an octave inferior process buffer.
 If there is not a current inferior-process-buffer in SESSION then
 create.  Return the initialized session."
@@ -167,8 +165,8 @@ create.  Return the initialized session."
 (defun org-babel-octave-evaluate
   (session body result-type &optional matlabp)
   "Pass BODY to the octave process in SESSION.
-If RESULT-TYPE equals 'output then return the outputs of the
-statements in BODY, if RESULT-TYPE equals 'value then return the
+If RESULT-TYPE equals `output' then return the outputs of the
+statements in BODY, if RESULT-TYPE equals `value' then return the
 value of the last statement in BODY, as elisp."
   (if session
       (org-babel-octave-evaluate-session session body result-type matlabp)
@@ -179,9 +177,9 @@ value of the last statement in BODY, as elisp."
   (let ((cmd (if matlabp
 		 org-babel-matlab-shell-command
 	       org-babel-octave-shell-command)))
-    (case result-type
-      (output (org-babel-eval cmd body))
-      (value (let ((tmp-file (org-babel-temp-file "octave-")))
+    (pcase result-type
+      (`output (org-babel-eval cmd body))
+      (`value (let ((tmp-file (org-babel-temp-file "octave-")))
 	       (org-babel-eval
 		cmd
 		(format org-babel-octave-wrapper-method body
@@ -190,17 +188,17 @@ value of the last statement in BODY, as elisp."
 	       (org-babel-octave-import-elisp-from-file tmp-file))))))
 
 (defun org-babel-octave-evaluate-session
-  (session body result-type &optional matlabp)
+    (session body result-type &optional matlabp)
   "Evaluate BODY in SESSION."
   (let* ((tmp-file (org-babel-temp-file (if matlabp "matlab-" "octave-")))
 	 (wait-file (org-babel-temp-file "matlab-emacs-link-wait-signal-"))
 	 (full-body
-	  (case result-type
-	    (output
+	  (pcase result-type
+	    (`output
 	     (mapconcat
 	      #'org-babel-chomp
 	      (list body org-babel-octave-eoe-indicator) "\n"))
-	    (value
+	    (`value
 	     (if (and matlabp org-babel-matlab-with-emacs-link)
 		 (concat
 		  (format org-babel-matlab-emacs-link-wrapper-method
@@ -233,21 +231,20 @@ value of the last statement in BODY, as elisp."
 		       org-babel-octave-eoe-output)
 		     t full-body)
 		  (insert full-body) (comint-send-input nil t)))) results)
-    (case result-type
-      (value
+    (pcase result-type
+      (`value
        (org-babel-octave-import-elisp-from-file tmp-file))
-      (output
-       (progn
-	 (setq results
-	       (if matlabp
-		   (cdr (reverse (delq "" (mapcar
-					   #'org-babel-octave-read-string
-					   (mapcar #'org-babel-trim raw)))))
-		 (cdr (member org-babel-octave-eoe-output
-			      (reverse (mapcar
-					#'org-babel-octave-read-string
-					(mapcar #'org-babel-trim raw)))))))
-	 (mapconcat #'identity (reverse results) "\n"))))))
+      (`output
+       (setq results
+	     (if matlabp
+		 (cdr (reverse (delq "" (mapcar
+					 #'org-babel-strip-quotes
+					 (mapcar #'org-trim raw)))))
+	       (cdr (member org-babel-octave-eoe-output
+			    (reverse (mapcar
+				      #'org-babel-strip-quotes
+				      (mapcar #'org-trim raw)))))))
+       (mapconcat #'identity (reverse results) "\n")))))
 
 (defun org-babel-octave-import-elisp-from-file (file-name)
   "Import data from FILE-NAME.
@@ -261,17 +258,6 @@ This removes initial blank and comment lines and then calls
 	     (setq end (point-at-bol)))
 	  (delete-region beg end)))
     (org-babel-import-elisp-from-file temp-file '(16))))
-
-(defun org-babel-octave-read-string (string)
-  "Strip \\\"s from around octave string."
-  (if (string-match "^\"\\([^\000]+\\)\"$" string)
-      (match-string 1 string)
-    string))
-
-(defun org-babel-octave-graphical-output-file (params)
-  "Name of file to which maxima should send graphical output."
-  (and (member "graphics" (cdr (assq :result-params params)))
-       (cdr (assq :file params))))
 
 (provide 'ob-octave)
 

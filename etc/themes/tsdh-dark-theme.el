@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -118,6 +118,16 @@
  '(outline-6 ((t (:foreground "light salmon" :weight bold))))
  '(outline-7 ((t (:foreground "pale goldenrod" :weight bold))))
  '(outline-8 ((t (:foreground "OliveDrab1" :weight bold))))
+ '(realgud-overlay-arrow1        ((t (:foreground "medium spring green"))))
+ '(realgud-overlay-arrow2        ((t (:foreground "OliveDrab1"))))
+ '(realgud-overlay-arrow3        ((t (:foreground "light salmon"))))
+ '(realgud-bp-enabled-face       ((t (:inherit error))))
+ '(realgud-bp-disabled-face      ((t (:foreground "gray35"))))
+ '(realgud-bp-line-enabled-face  ((t (:foreground "light salmon"))))
+ '(realgud-bp-line-disabled-face ((t (:foreground "medium spring green"))))
+ '(realgud-file-name             ((t (:foreground "dark khaki"))))
+ '(realgud-line-number           ((t (:foreground "cyan3"))))
+ '(realgud-backtrace-number      ((t (:foreground "cyan3" :weight bold))))
  '(rcirc-my-nick ((t (:foreground "SpringGreen1" :weight bold))) t)
  '(rcirc-other-nick ((t (:foreground "dodger blue"))) t)
  '(rcirc-track-keyword ((t (:foreground "DodgerBlue" :weight bold))) t)

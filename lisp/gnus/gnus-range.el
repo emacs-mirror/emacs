@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,17 +38,9 @@ If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
   (while (cdr list)
     (setq list (cdr list)))
   (car list))
+(make-obsolete 'gnus-last-element "use `car' of `last' instead." "27.1")
 
-(defun gnus-copy-sequence (list)
-  "Do a complete, total copy of a list."
-  (let (out)
-    (while (consp list)
-      (if (consp (car list))
-	  (push (gnus-copy-sequence (pop list)) out)
-	(push (pop list) out)))
-    (if list
-	(nconc (nreverse out) list)
-      (nreverse out))))
+(define-obsolete-function-alias 'gnus-copy-sequence 'copy-tree "27.1")
 
 (defun gnus-set-difference (list1 list2)
   "Return a list of elements of LIST1 that do not appear in LIST2."
@@ -455,7 +447,7 @@ modified."
   (if (or (null range1) (null range2))
       range1
     (let (out r1 r2 r1_min r1_max r2_min r2_max
-	      (range2 (gnus-copy-sequence range2)))
+	      (range2 (copy-tree range2)))
       (setq range1 (if (listp (cdr range1)) range1 (list range1))
 	    range2 (sort (if (listp (cdr range2)) range2 (list range2))
 			 (lambda (e1 e2)

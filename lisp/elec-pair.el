@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,9 +28,9 @@
 ;;; Electric pairing.
 
 (defcustom electric-pair-pairs
-  '((?\" . ?\")
-    ((nth 0 electric-quote-chars) . (nth 1 electric-quote-chars))
-    ((nth 2 electric-quote-chars) . (nth 3 electric-quote-chars)))
+  `((?\" . ?\")
+    (,(nth 0 electric-quote-chars) . ,(nth 1 electric-quote-chars))
+    (,(nth 2 electric-quote-chars) . ,(nth 3 electric-quote-chars)))
   "Alist of pairs that should be used regardless of major mode.
 
 Pairs of delimiters in this list are a fallback in case they have
@@ -42,11 +42,10 @@ See also the variable `electric-pair-text-pairs'."
   :group 'electricity
   :type '(repeat (cons character character)))
 
-;;;###autoload
 (defcustom electric-pair-text-pairs
-  '((?\" . ?\" )
-    ((nth 0 electric-quote-chars) . (nth 1 electric-quote-chars))
-    ((nth 2 electric-quote-chars) . (nth 3 electric-quote-chars)))
+  `((?\" . ?\")
+    (,(nth 0 electric-quote-chars) . ,(nth 1 electric-quote-chars))
+    (,(nth 2 electric-quote-chars) . ,(nth 3 electric-quote-chars)))
   "Alist of pairs that should always be used in comments and strings.
 
 Pairs of delimiters in this list are a fallback in case they have

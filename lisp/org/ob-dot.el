@@ -1,4 +1,4 @@
-;;; ob-dot.el --- org-babel functions for dot evaluation
+;;; ob-dot.el --- Babel Functions for dot            -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -46,7 +46,7 @@
 
 (defun org-babel-expand-body:dot (body params)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (mapcar #'cdr (org-babel-get-header params :var))))
+  (let ((vars (org-babel--get-vars params)))
     (mapc
      (lambda (pair)
        (let ((name (symbol-name (car pair)))
@@ -55,19 +55,20 @@
 	       (replace-regexp-in-string
 		(concat "$" (regexp-quote name))
 		(if (stringp value) value (format "%S" value))
-		body))))
+		body
+		t
+		t))))
      vars)
     body))
 
 (defun org-babel-execute:dot (body params)
   "Execute a block of Dot code with org-babel.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((result-params (cdr (assoc :result-params params)))
-	 (out-file (cdr (or (assoc :file params)
+  (let* ((out-file (cdr (or (assq :file params)
 			    (error "You need to specify a :file parameter"))))
-	 (cmdline (or (cdr (assoc :cmdline params))
+	 (cmdline (or (cdr (assq :cmdline params))
 		      (format "-T%s" (file-name-extension out-file))))
-	 (cmd (or (cdr (assoc :cmd params)) "dot"))
+	 (cmd (or (cdr (assq :cmd params)) "dot"))
 	 (in-file (org-babel-temp-file "dot-")))
     (with-temp-file in-file
       (insert (org-babel-expand-body:dot body params)))
@@ -78,7 +79,7 @@ This function is called by `org-babel-execute-src-block'."
 	     " -o " (org-babel-process-file-name out-file)) "")
     nil)) ;; signal that output has already been written to file
 
-(defun org-babel-prep-session:dot (session params)
+(defun org-babel-prep-session:dot (_session _params)
   "Return an error because Dot does not support sessions."
   (error "Dot does not support sessions"))
 

@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 LC_ALL=C
 export LC_ALL
@@ -28,7 +28,7 @@ exec >&2
 # When doing a two-way merge, ignore problems that came from the other
 # side of the merge.
 head=HEAD
-if test -e "$GIT_DIR"/MERGE_HEAD; then
+if test -r "$GIT_DIR"/MERGE_HEAD; then
   merge_heads=`cat "$GIT_DIR"/MERGE_HEAD` || exit
   for merge_head in $merge_heads; do
     case $head in

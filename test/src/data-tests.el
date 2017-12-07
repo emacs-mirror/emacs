@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -101,7 +101,26 @@
   (should (= 3 (apply #'min '(3 8 3))))
   (should-error (min 9 8 'foo))
   (should-error (min (make-marker)))
-  (should (eql 1 (min (point-min-marker) 1))))
+  (should (eql 1 (min (point-min-marker) 1)))
+  (should (isnan (min 0.0e+NaN)))
+  (should (isnan (min 0.0e+NaN 1 2)))
+  (should (isnan (min 1.0 0.0e+NaN)))
+  (should (isnan (min 1.0 0.0e+NaN 1.1))))
+
+(defun data-tests-popcnt (byte)
+  "Calculate the Hamming weight of BYTE."
+  (if (< byte 0)
+      (setq byte (lognot byte)))
+  (setq byte (- byte (logand (lsh byte -1) #x55555555)))
+  (setq byte (+ (logand byte #x33333333) (logand (lsh byte -2) #x33333333)))
+  (lsh (* (logand (+ byte (lsh byte -4)) #x0f0f0f0f) #x01010101) -24))
+
+(ert-deftest data-tests-logcount ()
+  (should (cl-loop for n in (number-sequence -255 255)
+                   always (= (logcount n) (data-tests-popcnt n))))
+  ;; https://oeis.org/A000120
+  (should (= 11 (logcount 9727)))
+  (should (= 8 (logcount 9999))))
 
 ;; Bool vector tests.  Compactly represent bool vectors as hex
 ;; strings.

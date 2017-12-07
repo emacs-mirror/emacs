@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -40,6 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#endif	/* subprocesses */
+
 #ifdef HAVE_SETRLIMIT
 # include <sys/resource.h>
 
@@ -48,6 +50,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    which should be restored in child processes.  */
 static struct rlimit nofile_limit;
 #endif
+
+#ifdef subprocesses
 
 /* Are local (unix) sockets supported?  */
 #if defined (HAVE_SYS_UN_H)
@@ -142,7 +146,7 @@ extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 #endif
 
 /* Work around GCC 4.3.0 bug with strict overflow checking; see
-   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
    This bug appears to be fixed in GCC 5.1, so don't work around it there.  */
 #if GNUC_PREREQ (4, 3, 0) && ! GNUC_PREREQ (5, 1, 0)
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
@@ -951,7 +955,7 @@ DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
   if (PROCESSP (name))
     return name;
   CHECK_STRING (name);
-  return Fcdr (Fassoc (name, Vprocess_alist));
+  return Fcdr (Fassoc (name, Vprocess_alist, Qnil));
 }
 
 /* This is how commands for the user decode process arguments.  It
@@ -3830,8 +3834,7 @@ usage: (make-network-process &rest ARGS)  */)
   Lisp_Object proc;
   Lisp_Object contact;
   struct Lisp_Process *p;
-  const char *portstring;
-  ptrdiff_t portstringlen ATTRIBUTE_UNUSED;
+  const char *portstring UNINIT;
   char portbuf[INT_BUFSIZE_BOUND (EMACS_INT)];
 #ifdef HAVE_LOCAL_SOCKETS
   struct sockaddr_un address_un;
@@ -3978,6 +3981,8 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (!NILP (host))
     {
+      ptrdiff_t portstringlen ATTRIBUTE_UNUSED;
+
       /* SERVICE can either be a string or int.
 	 Convert to a C string for later use by getaddrinfo.  */
       if (EQ (service, Qt))
@@ -3996,37 +4001,38 @@ usage: (make-network-process &rest ARGS)  */)
 	  portstring = SSDATA (service);
 	  portstringlen = SBYTES (service);
 	}
-    }
 
 #ifdef HAVE_GETADDRINFO_A
-  if (!NILP (host) && !NILP (Fplist_get (contact, QCnowait)))
-    {
-      ptrdiff_t hostlen = SBYTES (host);
-      struct req
-      {
-	struct gaicb gaicb;
-	struct addrinfo hints;
-	char str[FLEXIBLE_ARRAY_MEMBER];
-      } *req = xmalloc (FLEXSIZEOF (struct req, str,
-				    hostlen + 1 + portstringlen + 1));
-      dns_request = &req->gaicb;
-      dns_request->ar_name = req->str;
-      dns_request->ar_service = req->str + hostlen + 1;
-      dns_request->ar_request = &req->hints;
-      dns_request->ar_result = NULL;
-      memset (&req->hints, 0, sizeof req->hints);
-      req->hints.ai_family = family;
-      req->hints.ai_socktype = socktype;
-      strcpy (req->str, SSDATA (host));
-      strcpy (req->str + hostlen + 1, portstring);
+      if (!NILP (Fplist_get (contact, QCnowait)))
+	{
+	  ptrdiff_t hostlen = SBYTES (host);
+	  struct req
+	  {
+	    struct gaicb gaicb;
+	    struct addrinfo hints;
+	    char str[FLEXIBLE_ARRAY_MEMBER];
+	  } *req = xmalloc (FLEXSIZEOF (struct req, str,
+					hostlen + 1 + portstringlen + 1));
+	  dns_request = &req->gaicb;
+	  dns_request->ar_name = req->str;
+	  dns_request->ar_service = req->str + hostlen + 1;
+	  dns_request->ar_request = &req->hints;
+	  dns_request->ar_result = NULL;
+	  memset (&req->hints, 0, sizeof req->hints);
+	  req->hints.ai_family = family;
+	  req->hints.ai_socktype = socktype;
+	  strcpy (req->str, SSDATA (host));
+	  strcpy (req->str + hostlen + 1, portstring);
 
-      int ret = getaddrinfo_a (GAI_NOWAIT, &dns_request, 1, NULL);
-      if (ret)
-	error ("%s/%s getaddrinfo_a error %d", SSDATA (host), portstring, ret);
+	  int ret = getaddrinfo_a (GAI_NOWAIT, &dns_request, 1, NULL);
+	  if (ret)
+	    error ("%s/%s getaddrinfo_a error %d",
+		   SSDATA (host), portstring, ret);
 
-      goto open_socket;
-    }
+	  goto open_socket;
+	}
 #endif /* HAVE_GETADDRINFO_A */
+    }
 
   /* If we have a host, use getaddrinfo to resolve both host and service.
      Otherwise, use getservbyname to lookup the service.  */
@@ -5371,14 +5377,13 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  nfds = xg_select (max_desc + 1,
 			    &Available, (check_write ? &Writeok : 0),
 			    NULL, &timeout, NULL);
+#elif defined HAVE_NS
+          /* And NS builds call thread_select in ns_select. */
+          nfds = ns_select (max_desc + 1,
+			    &Available, (check_write ? &Writeok : 0),
+			    NULL, &timeout, NULL);
 #else  /* !HAVE_GLIB */
-	  nfds = thread_select (
-# ifdef HAVE_NS
-				ns_select
-# else
-				pselect
-# endif
-				, max_desc + 1,
+	  nfds = thread_select (pselect, max_desc + 1,
 				&Available,
 				(check_write ? &Writeok : 0),
 				NULL, &timeout, NULL);
@@ -5622,16 +5627,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		}
 	      else if (nread == -1 && would_block (errno))
 		;
-#ifdef WINDOWSNT
-	      /* FIXME: Is this special case still needed?  */
-	      /* Note that we cannot distinguish between no input
-		 available now and a closed pipe.
-		 With luck, a closed pipe will be accompanied by
-		 subprocess termination and SIGCHLD.  */
-	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc)
-		       && !PIPECONN_P (proc))
-		;
-#endif
 #ifdef HAVE_PTYS
 	      /* On some OSs with ptys, when the process on one end of
 		 a pty exits, the other end gets an error reading with
@@ -6678,6 +6673,18 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
   unblock_child_signal (&oldset);
 }
 
+DEFUN ("internal-default-interrupt-process",
+       Finternal_default_interrupt_process,
+       Sinternal_default_interrupt_process, 0, 2, 0,
+       doc: /* Default function to interrupt process PROCESS.
+It shall be the last element in list `interrupt-process-functions'.
+See function `interrupt-process' for more details on usage.  */)
+  (Lisp_Object process, Lisp_Object current_group)
+{
+  process_send_signal (process, SIGINT, current_group, 0);
+  return process;
+}
+
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
        doc: /* Interrupt process PROCESS.
 PROCESS may be a process, a buffer, or the name of a process or buffer.
@@ -6689,11 +6696,14 @@ If the process is a shell, this means interrupt current subjob
 rather than the shell.
 
 If CURRENT-GROUP is `lambda', and if the shell owns the terminal,
-don't send the signal.  */)
+don't send the signal.
+
+This function calls the functions of `interrupt-process-functions' in
+the order of the list, until one of them returns non-`nil'.  */)
   (Lisp_Object process, Lisp_Object current_group)
 {
-  process_send_signal (process, SIGINT, current_group, 0);
-  return process;
+  return CALLN (Frun_hook_with_args_until_success, Qinterrupt_process_functions,
+		process, current_group);
 }
 
 DEFUN ("kill-process", Fkill_process, Skill_process, 0, 2, 0,
@@ -7088,6 +7098,10 @@ deliver_child_signal (int sig)
 static Lisp_Object
 exec_sentinel_error_handler (Lisp_Object error_val)
 {
+  /* Make sure error_val is a cons cell, as all the rest of error
+     handling expects that, and will barf otherwise.  */
+  if (!CONSP (error_val))
+    error_val = Fcons (Qerror, error_val);
   cmd_error_internal (error_val, "error in process sentinel: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
@@ -7437,6 +7451,13 @@ keyboard_bit_set (fd_set *mask)
 
 #else  /* not subprocesses */
 
+/* This is referenced in thread.c:run_thread (which is never actually
+   called, since threads are not enabled for this configuration.  */
+void
+update_processes_for_thread_death (Lisp_Object dying_thread)
+{
+}
+
 /* Defined in msdos.c.  */
 extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 		       struct timespec *, void *);
@@ -7678,7 +7699,7 @@ Lisp_Object
 remove_slash_colon (Lisp_Object name)
 {
   return
-    ((SBYTES (name) > 2 && SREF (name, 0) == '/' && SREF (name, 1) == ':')
+    (SREF (name, 0) == '/' && SREF (name, 1) == ':'
      ? make_specified_string (SSDATA (name) + 2, SCHARS (name) - 2,
 			      SBYTES (name) - 2, STRING_MULTIBYTE (name))
      : name);
@@ -8079,7 +8100,6 @@ syms_of_process (void)
   DEFSYM (Qreal, "real");
   DEFSYM (Qnetwork, "network");
   DEFSYM (Qserial, "serial");
-  DEFSYM (Qpipe, "pipe");
   DEFSYM (QCbuffer, ":buffer");
   DEFSYM (QChost, ":host");
   DEFSYM (QCservice, ":service");
@@ -8177,6 +8197,17 @@ non-nil value means that the delay is not reset on write.
 The variable takes effect when `start-process' is called.  */);
   Vprocess_adaptive_read_buffering = Qt;
 
+  DEFVAR_LISP ("interrupt-process-functions", Vinterrupt_process_functions,
+	       doc: /* List of functions to be called for `interrupt-process'.
+The arguments of the functions are the same as for `interrupt-process'.
+These functions are called in the order of the list, until one of them
+returns non-`nil'.  */);
+  Vinterrupt_process_functions = list1 (Qinternal_default_interrupt_process);
+
+  DEFSYM (Qinternal_default_interrupt_process,
+	  "internal-default-interrupt-process");
+  DEFSYM (Qinterrupt_process_functions, "interrupt-process-functions");
+
   defsubr (&Sprocessp);
   defsubr (&Sget_process);
   defsubr (&Sdelete_process);
@@ -8219,6 +8250,7 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Saccept_process_output);
   defsubr (&Sprocess_send_region);
   defsubr (&Sprocess_send_string);
+  defsubr (&Sinternal_default_interrupt_process);
   defsubr (&Sinterrupt_process);
   defsubr (&Skill_process);
   defsubr (&Squit_process);

@@ -486,6 +486,8 @@ build will run on Windows 9X and newer systems).
        Does Emacs use a gif library?                           yes
        Does Emacs use a png library?                           yes
        Does Emacs use -lrsvg-2?                                yes
+       Does Emacs use cairo?                                   no
+       Does Emacs use -llcms2?                                 yes
        Does Emacs use imagemagick?                             no
        Does Emacs support sound?                               no
        Does Emacs use -lgpm?                                   no
@@ -628,7 +630,7 @@ build will run on Windows 9X and newer systems).
   To support XPM images (required for color tool-bar icons), you will
   need the libXpm library.  It is available from the ezwinports site,
   http://sourceforge.net/projects/ezwinports/files/ and from
-  http://ftp.gnu.org/gnu/emacs/windows/.
+  https://ftp.gnu.org/gnu/emacs/windows/.
 
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
@@ -651,7 +653,7 @@ build will run on Windows 9X and newer systems).
   giflib, as it is much enhanced wrt previous versions.  You can find
   precompiled binaries and headers for giflib on the ezwinports site,
   http://sourceforge.net/projects/ezwinports/files/ and on
-  http://ftp.gnu.org/gnu/emacs/windows/.
+  https://ftp.gnu.org/gnu/emacs/windows/.
 
   Version 5.0.0 and later of giflib are binary incompatible with
   previous versions (the signatures of several functions have
@@ -692,7 +694,7 @@ build will run on Windows 9X and newer systems).
     because the compiler needs to see their header files when building
     Emacs.
 
-    http://ftp.gnu.org/gnu/emacs/windows/
+    https://ftp.gnu.org/gnu/emacs/windows/
 
     More fat ports, from the MSYS2 project.
 
@@ -753,7 +755,7 @@ build will run on Windows 9X and newer systems).
 
   You can get pre-built binaries (including any required DLL and the
   header files) at http://sourceforge.net/projects/ezwinports/files/
-  and on http://ftp.gnu.org/gnu/emacs/windows/.
+  and on https://ftp.gnu.org/gnu/emacs/windows/.
 
 * Optional libxml2 support
 
@@ -775,7 +777,7 @@ build will run on Windows 9X and newer systems).
   (including any required DLL and the header files) is here:
 
      http://sourceforge.net/projects/ezwinports/files/
-     http://ftp.gnu.org/gnu/emacs/windows/
+     https://ftp.gnu.org/gnu/emacs/windows/
 
   For runtime support of libxml2, you will also need to install the
   libiconv "development" tarball, because the libiconv headers need to
@@ -797,6 +799,13 @@ build will run on Windows 9X and newer systems).
   (This library is also a prerequisite for several image libraries, so
   you may already have it; look for zlib1.dll or libz-1.dll.)
 
+* Optional support for lcms2 library
+
+  Emacs can expose some capabilities of the Little CMS color
+  management engine to Lisp programs using the lcms2 library.
+  Prebuilt binaries of lcms2 DLL (for 32-bit builds of Emacs) are
+  available from the ezwinports site and from the MSYS2 project.
+
 
 This file is part of GNU Emacs.
 
@@ -811,4 +820,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

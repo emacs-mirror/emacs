@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -195,11 +195,10 @@ Return a cons cell:
   "Run a quick test for autodetecting on BUFFER."
   (interactive)
   (let ((start (current-time))
-	(ans (ede-detect-directory-for-project default-directory))
-	(end (current-time)))
+	(ans (ede-detect-directory-for-project default-directory)))
     (if ans
 	(message "Project found in %d sec @ %s of type %s"
-		 (float-time (time-subtract end start))
+		 (float-time (time-subtract nil start))
 		 (car ans)
 		 (eieio-object-name-string (cdr ans)))
       (message "No Project found.") )))

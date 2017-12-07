@@ -1,4 +1,4 @@
-;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp
+;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 1994, 2000-2017 Free Software Foundation, Inc.
 
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -59,6 +59,8 @@
 ;; robust sorting.
 
 ;;; Code:
+
+
 
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
@@ -245,11 +247,11 @@ to fail to line up, e.g. if month names are not all of the same length."
   "Format to display integer GIDs.")
 (defvar ls-lisp-gid-s-fmt " %s"
   "Format to display user group names.")
-(defvar ls-lisp-filesize-d-fmt "%d"
+(defvar ls-lisp-filesize-d-fmt " %d"
   "Format to display integer file sizes.")
-(defvar ls-lisp-filesize-f-fmt "%.0f"
+(defvar ls-lisp-filesize-f-fmt " %.0f"
   "Format to display float file sizes.")
-(defvar ls-lisp-filesize-b-fmt "%.0f"
+(defvar ls-lisp-filesize-b-fmt " %.0f"
   "Format to display file sizes in blocks (for the -s switch).")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -477,6 +479,34 @@ not contain `d', so that a full listing is expected."
 	(message "%s: doesn't exist or is inaccessible" file)
 	(ding) (sit-for 2)))))		; to show user the message!
 
+(declare-function dired-read-dir-and-switches "dired" (str))
+(declare-function dired-goto-next-file "dired" ())
+
+(defun ls-lisp--dired (orig-fun dir-or-list &optional switches)
+  (interactive (dired-read-dir-and-switches ""))
+  (if (consp dir-or-list)
+      (funcall orig-fun dir-or-list switches)
+    (let ((dir-wildcard (insert-directory-wildcard-in-dir-p
+                         (expand-file-name dir-or-list))))
+      (if (not dir-wildcard)
+          (funcall orig-fun dir-or-list switches)
+        (let* ((default-directory (car dir-wildcard))
+               (files (file-expand-wildcards (cdr dir-wildcard)))
+               (dir (car dir-wildcard)))
+          (if files
+              (let ((inhibit-read-only t)
+                    (buf
+                     (apply orig-fun (nconc (list dir) files) (and switches (list switches)))))
+                (with-current-buffer buf
+                  (save-excursion
+                    (goto-char (point-min))
+                    (dired-goto-next-file)
+                    (forward-line 0)
+                    (insert "  wildcard " (cdr dir-wildcard) "\n"))))
+            (user-error "No files matching regexp")))))))
+
+(advice-add 'dired :around #'ls-lisp--dired)
+
 (defun ls-lisp-sanitize (file-alist)
   "Sanitize the elements in FILE-ALIST.
 Fixes any elements in the alist for directory entries whose file
@@ -536,6 +566,8 @@ Responds to the window width as ls should but may not!"
 	  (setq result (cons (car list) result)))
       (setq list (cdr list)))
     result))
+
+(defvar w32-collate-ignore-punctuation) ; Declare for non-w32 builds.
 
 (defsubst ls-lisp-string-lessp (s1 s2)
   "Return t if string S1 should sort before string S2.
@@ -681,23 +713,26 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 (defun ls-lisp-classify-file (filename fattr)
   "Append a character to FILENAME indicating the file type.
 
+This function puts the `dired-filename' property on FILENAME, but
+not on the character indicator it appends.
 FATTR is the file attributes returned by `file-attributes' for the file.
 The file type indicators are `/' for directories, `@' for symbolic
 links, `|' for FIFOs, `=' for sockets, `*' for regular files that
 are executable, and nothing for other types of files."
   (let* ((type (car fattr))
 	 (modestr (nth 8 fattr))
-	 (typestr (substring modestr 0 1)))
+	 (typestr (substring modestr 0 1))
+         (file-name (propertize filename 'dired-filename t)))
     (cond
      (type
-      (concat filename (if (eq type t) "/" "@")))
+      (concat file-name (if (eq type t) "/" "@")))
      ((string-match "x" modestr)
-      (concat filename "*"))
+      (concat file-name "*"))
      ((string= "p" typestr)
-      (concat filename "|"))
+      (concat file-name "|"))
      ((string= "s" typestr)
-      (concat filename "="))
-     (t filename))))
+      (concat file-name "="))
+     (t file-name))))
 
 (defun ls-lisp-classify (filedata)
   "Append a character to file name in FILEDATA indicating the file type.
@@ -710,7 +745,6 @@ links, `|' for FIFOs, `=' for sockets, `*' for regular files that
 are executable, and nothing for other types of files."
   (let ((file-name (car filedata))
         (fattr (cdr filedata)))
-    (setq file-name (propertize file-name 'dired-filename t))
     (cons (ls-lisp-classify-file file-name fattr) fattr)))
 
 (defun ls-lisp-extension (filename)
@@ -809,7 +843,7 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 	    " "
 	    (ls-lisp-format-time file-attr time-index)
 	    " "
-	    (if (not (memq ?F switches)) ; ls-lisp-classify already did that
+	    (if (not (memq ?F switches)) ; ls-lisp-classify-file already did that
 		(propertize file-name 'dired-filename t)
 	      file-name)
 	    (if (stringp file-type)	; is a symbolic link
@@ -831,7 +865,7 @@ Use the same method as ls to decide whether to show time-of-day or year,
 depending on distance between file date and the current time.
 All ls time options, namely c, t and u, are handled."
   (let* ((time (nth (or time-index 5) file-attr)) ; default is last modtime
-	 (diff (- (float-time time) (float-time)))
+	 (diff (time-subtract time nil))
 	 ;; Consider a time to be recent if it is within the past six
 	 ;; months.  A Gregorian year has 365.2425 * 24 * 60 * 60 ==
 	 ;; 31556952 seconds on the average, and half of that is 15778476.
@@ -848,7 +882,8 @@ All ls time options, namely c, t and u, are handled."
 	  (if (member locale '("C" "POSIX"))
 	      (setq locale nil))
 	  (format-time-string
-	   (if (and (<= past-cutoff diff) (<= diff 0))
+	   (if (and (not (time-less-p diff past-cutoff))
+		    (not (time-less-p 0 diff)))
 	       (if (and locale (not ls-lisp-use-localized-time-format))
 		   "%m-%d %H:%M"
 		 (nth 0 ls-lisp-format-time-list))
@@ -865,6 +900,13 @@ All ls time options, namely c, t and u, are handled."
 		ls-lisp-filesize-d-fmt)
 	      file-size)
     (format " %6s" (file-size-human-readable file-size))))
+
+(defun ls-lisp-unload-function ()
+  "Unload ls-lisp library."
+  (advice-remove 'insert-directory #'ls-lisp--insert-directory)
+  (advice-remove 'dired #'ls-lisp--dired)
+  ;; Continue standard unloading.
+  nil)
 
 (provide 'ls-lisp)
 

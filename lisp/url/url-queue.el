@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -177,7 +177,7 @@ The variable `url-queue-timeout' sets a timeout."
   (with-current-buffer
       (if (and (bufferp (url-queue-buffer job))
 	       (buffer-live-p (url-queue-buffer job)))
-	  ;; Use the (partially filled) process buffer it it exists.
+	  ;; Use the (partially filled) process buffer if it exists.
 	  (url-queue-buffer job)
 	;; If not, just create a new buffer, which will probably be
 	;; killed again by the caller.

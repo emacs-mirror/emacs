@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Emacs 19 face widget ported by Fred Pierresteguy */
 
@@ -108,7 +108,7 @@ emacsFrameTranslations [] = "\
 
 static EmacsFrameClassRec emacsFrameClassRec = {
     { /* core fields */
-    /* superclass		*/	&widgetClassRec,
+    /* superclass		*/	0, /* filled in by emacsFrameClass */
     /* class_name		*/	(char *) "EmacsFrame",
     /* widget_size		*/	sizeof (EmacsFrameRec),
     /* class_initialize		*/	0,
@@ -146,7 +146,16 @@ static EmacsFrameClassRec emacsFrameClassRec = {
     }
 };
 
-WidgetClass emacsFrameClass = (WidgetClass) &emacsFrameClassRec;
+WidgetClass
+emacsFrameClass (void)
+{
+  /* Set the superclass here rather than relying on static
+     initialization, to work around an unexelf.c bug on x86 platforms
+     that use the GNU Gold linker (Bug#27248).  */
+  emacsFrameClassRec.core_class.superclass = &widgetClassRec;
+
+  return (WidgetClass) &emacsFrameClassRec;
+}
 
 static void
 get_default_char_pixel_size (EmacsFrame ew, int *pixel_width, int *pixel_height)

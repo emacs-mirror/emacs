@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -114,7 +114,7 @@ Root must be the root of an Emacs source tree."
   ;; configure.ac with sed, rather than duplicating the information.
   (set-version-in-file root "msdos/sed2v2.inp" version
 		       (rx (and bol "/^#undef " (1+ not-newline)
-				"define VERSION" (1+ space) "\""
+				"define PACKAGE_VERSION" (1+ space) "\""
 				(submatch (1+ (in "0-9."))))))
   ;; Major version only.
   (when (string-match "\\([0-9]\\{2,\\}\\)" version)
@@ -158,11 +158,17 @@ Documentation changes might not have been completed!"))))
         (re-search-forward "is about changes in Emacs version \\([0-9]+\\)")
         (replace-match (number-to-string newmajor) nil nil nil 1)
         (re-search-forward "^See files \\(NEWS\\)")
-        (replace-match (format "NEWS.%s, NEWS" oldmajor) nil nil nil 1)
-        (let ((start (line-beginning-position)))
-          (search-forward "in older Emacs versions")
-          (or (equal start (line-beginning-position))
-              (fill-region start (line-beginning-position 2))))
+        (unless (save-match-data
+                  (when (looking-at "\\(\\..*\\), \\(\\.\\.\\.\\|…\\)")
+                    (replace-match
+                     (format ".%s, NEWS.%s" oldmajor (1- oldmajor))
+                     nil nil nil 1)
+                    t))
+          (replace-match (format "NEWS.%s, NEWS" oldmajor) nil nil nil 1)
+          (let ((start (line-beginning-position)))
+            (search-forward "in older Emacs versions")
+            (or (equal start (line-beginning-position))
+                (fill-region start (line-beginning-position 2)))))
         (re-search-forward "^$")
         (forward-line -1)
         (let ((start (point)))
@@ -893,3 +899,7 @@ changes (in a non-trivial way).  This function does not check for that."
 (provide 'admin)
 
 ;;; admin.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

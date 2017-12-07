@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* X pop-up deck-of-cards menu facility for GNU Emacs.
  *
@@ -1271,6 +1271,11 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
                              /* Child of win.  */
                              &dummy_window);
+#ifdef HAVE_GTK3
+      /* Use window scaling factor to adjust position for hidpi screens. */
+      x /= xg_get_scale (f);
+      y /= xg_get_scale (f);
+#endif
       unblock_input ();
       popup_x_y.x = x;
       popup_x_y.y = y;

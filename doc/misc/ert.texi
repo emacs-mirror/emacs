@@ -3,6 +3,10 @@
 @setfilename ../../info/ert.info
 @settitle Emacs Lisp Regression Testing
 @include docstyle.texi
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex pg cp
+@syncodeindex ky cp
 @c %**end of header
 
 @dircategory Emacs misc features
@@ -59,6 +63,7 @@ traditional software development methods.
 * How to Debug Tests::          What to do if a test fails.
 * Extending ERT::               ERT is extensible in several ways.
 * Other Testing Concepts::      Features not in ERT.
+* Index::                       Concept, Function and Variable Index
 * GNU Free Documentation License::  The license for this documentation.
 
 @detailmenu
@@ -92,6 +97,10 @@ Other Testing Concepts
 * Mocks and Stubs::           Stubbing out code that is irrelevant to the test.
 * Fixtures and Test Suites::  How ERT differs from tools for other languages.
 
+Index
+
+* Index::                       Concept, Function and Variable Index
+
 Appendix
 
 * GNU Free Documentation License:: The license for this documentation.
@@ -102,6 +111,7 @@ Appendix
 
 @node Introduction
 @chapter Introduction
+@cindex introduction to ERT
 
 ERT allows you to define @emph{tests} in addition to functions,
 macros, variables, and the other usual Lisp constructs.  Tests are
@@ -169,6 +179,7 @@ Environment}.
 
 @node  How to Run Tests
 @chapter How to Run Tests
+@cindex how to run ert tests
 
 You can run tests either in the Emacs you are working in, or on the
 command line in a separate Emacs process in batch mode (i.e., with no
@@ -187,7 +198,10 @@ different Emacs versions.
 
 @node Running Tests Interactively
 @section Running Tests Interactively
+@cindex running tests interactively
+@cindex interactive testing
 
+@findex ert
 You can run the tests that are currently defined in your Emacs with
 the command @kbd{@kbd{M-x} ert @kbd{RET} t @kbd{RET}}.  (For an
 explanation of the @code{t} argument, @pxref{Test Selectors}.) ERT will pop
@@ -232,6 +246,7 @@ F list-test
                 (different-atoms c d))))
 @end example
 
+@cindex test results buffer
 At the top, there is a summary of the results: we ran all tests defined
 in the current Emacs (@code{Selector: t}), 31 of them passed, and 2
 failed unexpectedly.  @xref{Expected Failures}, for an explanation of
@@ -245,20 +260,29 @@ unexpected result.  In the example above, there are two failures, both
 due to failed @code{should} forms.  @xref{Understanding Explanations},
 for more details.
 
+@kindex TAB@r{, in ert results buffer}
+@kindex S-TAB@r{, in ert results buffer}
 In the ERT results buffer, @kbd{TAB} and @kbd{S-TAB} cycle between
 buttons.  Each name of a function or macro in this buffer is a button;
 moving point to it and typing @kbd{RET} jumps to its definition.
 
+@kindex r@r{, in ert results buffer}
+@kindex d@r{, in ert results buffer}
+@kindex .@r{, in ert results buffer}
+@kindex b@r{, in ert results buffer}
+@cindex backtrace of a failed test
 Pressing @kbd{r} re-runs the test near point on its own.  Pressing
 @kbd{d} re-runs it with the debugger enabled.  @kbd{.} jumps to the
 definition of the test near point (@kbd{RET} has the same effect if
 point is on the name of the test).  On a failed test, @kbd{b} shows
 the backtrace of the failure.
 
+@kindex l@r{, in ert results buffer}
 @kbd{l} shows the list of @code{should} forms executed in the test.
 If any messages were generated (with the Lisp function @code{message})
 in a test or any of the code that it invoked, @kbd{m} will show them.
 
+@kindex L@r{, in ert results buffer}
 By default, long expressions in the failure details are abbreviated
 using @code{print-length} and @code{print-level}.  Pressing @kbd{L}
 while point is on a test failure will increase the limits to show more
@@ -267,7 +291,11 @@ of the expression.
 
 @node Running Tests in Batch Mode
 @section Running Tests in Batch Mode
+@cindex running tests in batch mode
+@cindex batch-mode testing
 
+@findex ert-run-tests-batch
+@findex ert-run-tests-batch-and-exit
 ERT supports automated invocations from the command line or from
 scripts or makefiles.  There are two functions for this purpose,
 @code{ert-run-tests-batch} and @code{ert-run-tests-batch-and-exit}.
@@ -283,6 +311,7 @@ with a zero exit status if all tests passed, or nonzero if any tests
 failed or if anything else went wrong.  It will also print progress
 messages and error diagnostics to standard output.
 
+@findex ert-summarize-tests-batch-and-exit
 You can also redirect the above output to a log file, say
 @file{output.log}, and use the
 @code{ert-summarize-tests-batch-and-exit} function to produce a neat
@@ -292,6 +321,20 @@ summary as shown below:
 emacs -batch -l ert -f ert-summarize-tests-batch-and-exit output.log
 @end example
 
+@vindex ert-quiet
+By default, ERT in batch mode is quite verbose, printing a line with
+result after each test.  This gives you progress information: how many
+tests have been executed and how many there are.  However, in some
+cases this much output may be undesirable.  In this case, set
+@code{ert-quiet} variable to a non-nil value:
+
+@example
+emacs -batch -l ert -l my-tests.el \
+      --eval "(let ((ert-quiet t)) (ert-run-tests-batch-and-exit))"
+@end example
+
+In quiet mode ERT prints only unexpected results and summary.
+
 If ERT is not part of your Emacs distribution, you may need to use
 @code{-L /path/to/ert/} so that Emacs can find it.  You may need
 additional @code{-L} flags to ensure that @code{my-tests.el} and all the
@@ -300,6 +343,8 @@ files that it requires are on your @code{load-path}.
 
 @node Test Selectors
 @section Test Selectors
+@cindex test selector
+@cindex selecting tests
 
 Functions like @code{ert} accept a @emph{test selector}, a Lisp
 expression specifying a set of tests.  Test selector syntax is similar
@@ -314,17 +359,22 @@ to Common Lisp's type specifier syntax:
 @item A string is a regular expression that selects all tests with matching names.
 @item A test (i.e., an object of @code{ert-test} data type) selects that test.
 @item A symbol selects the test that the symbol names.
-@item @code{(member TESTS...)} selects the elements of TESTS, a list of
-tests or symbols naming tests.
-@item @code{(eql TEST)} selects TEST, a test or a symbol naming a test.
-@item @code{(and SELECTORS...)} selects the tests that match all SELECTORS.
-@item @code{(or SELECTORS...)} selects the tests that match any SELECTOR.
-@item @code{(not SELECTOR)} selects all tests that do not match SELECTOR.
-@item @code{(tag TAG)} selects all tests that have TAG on their tags list.
+@item @code{(member @var{tests}...)} selects the elements of
+@var{tests}, a list of tests or symbols naming tests.
+@item @code{(eql @var{test})} selects @var{test}, a test or a symbol
+naming a test.
+@item @code{(and @var{selectors}@dots{})} selects the tests that match
+all @var{selectors}.
+@item @code{(or @var{selectors}@dots{})} selects the tests that match
+any of the @var{selectors}.
+@item @code{(not @var{selector})} selects all tests that do not match
+@var{selector}.
+@item @code{(tag @var{tag})} selects all tests that have @var{tag} on
+their tags list.
 (Tags are optional labels you can apply to tests when you define them.)
-@item @code{(satisfies PREDICATE)} selects all tests that satisfy PREDICATE,
-a function that takes a test as argument and returns non-@code{nil} if
-it is selected.
+@item @code{(satisfies @var{predicate})} selects all tests that
+satisfy @var{predicate}, a function that takes a test as argument and
+returns non-@code{nil} if it is selected.
 @end itemize
 
 Selectors that are frequently useful when selecting tests to run
@@ -340,7 +390,9 @@ result in the last run, and tag-based selectors such as @code{(not
 
 @node How to Write Tests
 @chapter How to Write Tests
+@cindex how to write tests
 
+@findex ert-deftest
 ERT lets you define tests in the same way you define functions.  You
 can type @code{ert-deftest} forms in a buffer and evaluate them there
 with @code{eval-defun} or @code{compile-defun}, or you can save the
@@ -361,6 +413,7 @@ to find where a test was defined if the test was loaded from a file.
 @node The @code{should} Macro
 @section The @code{should} Macro
 
+@findex should@r{, ert macro}
 Test bodies can include arbitrary code; but to be useful, they need to
 check whether the code being tested (or @emph{code under test})
 does what it is supposed to do.  The macro @code{should} is similar to
@@ -396,6 +449,8 @@ test failed, it helps to know that the function @code{+} returned 3
 here.  ERT records the return value for any predicate called directly
 within @code{should}.
 
+@findex should-not@r{, ert macro}
+@findex should-error@r{, ert macro}
 In addition to @code{should}, ERT provides @code{should-not}, which
 checks that the predicate returns @code{nil}, and @code{should-error}, which
 checks that the form called within it signals an error.  An example
@@ -424,7 +479,10 @@ default.
 
 @node Expected Failures
 @section Expected Failures
+@cindex expected failures
+@cindex known bugs
 
+@vindex :expected-result
 Some bugs are complicated to fix, or not very important, and are left as
 @emph{known bugs}.  If there is a test case that triggers the bug and
 fails, ERT will alert you of this failure every time you run all
@@ -478,6 +536,9 @@ versions, specific architectures, etc.:
 @node Tests and Their Environment
 @section Tests and Their Environment
 
+@cindex skipping tests
+@cindex test preconditions
+@cindex preconditions of a test
 Sometimes, it doesn't make sense to run a test due to missing
 preconditions.  A required Emacs feature might not be compiled in, the
 function to be tested could call an external binary which might not be
@@ -491,6 +552,7 @@ available on the test machine, you name it.  In this case, the macro
   ...)
 @end lisp
 
+@cindex tests and their environment
 The outcome of running a test should not depend on the current state
 of the environment, and each test should leave its environment in the
 same state it found it in.  In particular, a test should not depend on
@@ -545,6 +607,8 @@ hook variables to @code{nil}.  This avoids the above problems.
 
 @node Useful Techniques
 @section Useful Techniques when Writing Tests
+@cindex useful techniques
+@cindex tips and tricks
 
 Testing simple functions that have no side effects and no dependencies
 on their environment is easy.  Such tests often look like this:
@@ -582,6 +646,8 @@ Here's a more complicated test:
                          "  signal(ert-test-failed (\"foo\"))")))))))
 @end lisp
 
+@findex make-ert-test
+@findex ert-equal-including-properties
 This test creates a test object using @code{make-ert-test} whose body
 will immediately signal failure.  It then runs that test and asserts
 that it fails.  Then, it creates a temporary buffer and invokes
@@ -639,6 +705,8 @@ a test failed.
 
 @node Understanding Explanations
 @section Understanding Explanations
+@cindex understanding explanations
+@cindex explanations, understanding
 
 Failed @code{should} forms are reported like this:
 
@@ -706,41 +774,55 @@ function registered.  @xref{Defining Explanation Functions}.
 
 @node Interactive Debugging
 @section Interactive Debugging
+@cindex interactive debugging
+@cindex debugging failed tests
 
 Debugging failed tests essentially works the same way as debugging any
 other problems with Lisp code.  Here are a few tricks specific to
 tests:
 
 @itemize
-@item Re-run the failed test a few times to see if it fails in the same way
+@cindex re-running a failed test
+@item
+Re-run the failed test a few times to see if it fails in the same way
 each time.  It's good to find out whether the behavior is
 deterministic before spending any time looking for a cause.  In the
 ERT results buffer, @kbd{r} re-runs the selected test.
 
-@item Use @kbd{.} to jump to the source code of the test to find out exactly
+@cindex jump to the test source code
+@item
+Use @kbd{.} to jump to the source code of the test to find out exactly
 what it does.  Perhaps the test is broken rather than the code
 under test.
 
-@item If the test contains a series of @code{should} forms and you can't
+@item
+If the test contains a series of @code{should} forms and you can't
 tell which one failed, use @kbd{l}, which shows you the list of all
 @code{should} forms executed during the test before it failed.
 
-@item Use @kbd{b} to view the backtrace.  You can also use @kbd{d} to re-run
+@cindex show backtrace of failed test
+@item
+Use @kbd{b} to view the backtrace.  You can also use @kbd{d} to re-run
 the test with debugging enabled, this will enter the debugger and show
 the backtrace as well; but the top few frames shown there will not be
 relevant to you since they are ERT's own debugger hook.  @kbd{b}
 strips them out, so it is more convenient.
 
-@item If the test or the code under testing prints messages using
+@item
+If the test or the code under testing prints messages using
 @code{message}, use @kbd{m} to see what messages it printed before it
 failed.  This can be useful to figure out how far it got.
 
-@item You can instrument tests for debugging the same way you instrument
+@cindex instrumenting test for Edebug
+@item
+You can instrument tests for debugging the same way you instrument
 @code{defun}s for debugging: go to the source code of the test and
 type @kbd{@kbd{C-u} @kbd{C-M-x}}.  Then, go back to the ERT buffer and
 re-run the test with @kbd{r} or @kbd{d}.
 
-@item If you have been editing and rearranging tests, it is possible that
+@cindex discard obsolete test results
+@item
+If you have been editing and rearranging tests, it is possible that
 ERT remembers an old test that you have since renamed or removed:
 renamings or removals of definitions in the source code leave around a
 stray definition under the old name in the running process (this is a
@@ -751,6 +833,7 @@ forget about the obsolete test.
 
 @node Extending ERT
 @chapter Extending ERT
+@cindex extending ert
 
 There are several ways to add functionality to ERT.
 
@@ -762,6 +845,7 @@ There are several ways to add functionality to ERT.
 
 @node Defining Explanation Functions
 @section Defining Explanation Functions
+@cindex defining explanation functions
 
 The explanation function for a predicate is a function that takes the
 same arguments as the predicate and returns an @emph{explanation}.
@@ -772,6 +856,7 @@ comprehensible printed representation.  If the return value of the
 predicate needs no explanation for a given list of arguments, the
 explanation function should return @code{nil}.
 
+@vindex ert-explainer@r{, property}
 To associate an explanation function with a predicate, add the
 property @code{ert-explainer} to the symbol that names the predicate.
 The value of the property should be the symbol that names the
@@ -780,6 +865,7 @@ explanation function.
 
 @node Low-Level Functions for Working with Tests
 @section Low-Level Functions for Working with Tests
+@cindex low-level functions
 
 Both @code{ert-run-tests-interactively} and @code{ert-run-tests-batch}
 are implemented on top of the lower-level test handling code in the
@@ -807,6 +893,7 @@ For information on mocks, stubs, fixtures, or test suites, see below.
 
 @node Mocks and Stubs
 @section Other Tools for Emacs Lisp
+@cindex mocks and stubs
 
 Stubbing out functions or using so-called @emph{mocks} can make it
 easier to write tests.  See
@@ -820,6 +907,7 @@ offers mocks for Emacs Lisp and can be used in conjunction with ERT.
 
 @node Fixtures and Test Suites
 @section Fixtures and Test Suites
+@cindex fixtures
 
 In many ways, ERT is similar to frameworks for other languages like
 SUnit or JUnit.  However, two features commonly found in such
@@ -876,6 +964,11 @@ Other uses include grouping tests by their expected execution time,
 e.g., to run quick tests during interactive development and slow tests less
 often.  This can be achieved with the @code{:tag} argument to
 @code{ert-deftest} and @code{tag} test selectors.
+
+@node Index
+@unnumbered Index
+
+@printindex cp
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

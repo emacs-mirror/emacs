@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -564,7 +564,7 @@
 	((Math-lessp '(float 8 0) (math-abs-approx x))
 	 (let* ((z (math-div '(float 8 0) x))
 		(y (math-sqr z))
-		(xx (math-add x 
+		(xx (math-add x
                               (math-read-number-simple "-0.785398164")))
 		(a1 (math-poly-eval y
                           (list
@@ -633,7 +633,7 @@
 	       (setq sc (cons (math-neg (cdr sc)) (car sc)))
 	     (if (math-negp x)
 		 (setq sc (cons (math-neg (car sc)) (math-neg (cdr sc))))))
-	   (math-mul (math-sqrt (math-div 
+	   (math-mul (math-sqrt (math-div
                                  (math-read-number-simple "0.636619722")
                                  x))
 		     (math-sub (math-mul (cdr sc) a1)
@@ -813,39 +813,39 @@
 
 (defvar math-bernoulli-b-cache
   (list
-   (list 'frac 
+   (list 'frac
          -174611
          (math-read-number-simple "802857662698291200000"))
-   (list 'frac 
-         43867 
+   (list 'frac
+         43867
          (math-read-number-simple "5109094217170944000"))
-   (list 'frac 
-         -3617 
+   (list 'frac
+         -3617
          (math-read-number-simple "10670622842880000"))
-   (list 'frac 
-         1 
+   (list 'frac
+         1
          (math-read-number-simple "74724249600"))
-   (list 'frac 
-         -691 
+   (list 'frac
+         -691
          (math-read-number-simple "1307674368000"))
-   (list 'frac 
-         1 
+   (list 'frac
+         1
          (math-read-number-simple "47900160"))
-   (list 'frac 
-         -1 
+   (list 'frac
+         -1
          (math-read-number-simple "1209600"))
-   (list 'frac 
-         1 
-         30240) 
-   (list 'frac 
-         -1 
+   (list 'frac
+         1
+         30240)
+   (list 'frac
+         -1
          720)
-   (list 'frac 
-         1 
-         12) 
+   (list 'frac
+         1
+         12)
    1 ))
 
-(defvar math-bernoulli-B-cache 
+(defvar math-bernoulli-B-cache
   '((frac -174611 330) (frac 43867 798)
     (frac -3617 510) (frac 7 6) (frac -691 2730)
     (frac 5 66) (frac -1 30) (frac 1 42)

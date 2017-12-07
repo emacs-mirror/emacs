@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -106,7 +106,7 @@ This is in addition to c-continued-statement-offset.")
     (if (eq (char-before) ?{)
 	(forward-char -1)
       (goto-char (cdr langelem)))
-    (let* ((curcol (save-excursion 
+    (let* ((curcol (save-excursion
 		     (goto-char (cdr langelem))
 		     (current-column)))
 	  (bocm-lossage
@@ -138,7 +138,7 @@ This is in addition to c-continued-statement-offset.")
 (defun cc-block-close-offset (langelem)
   (save-excursion
     (let* ((here (point))
-	   bracep 
+	   bracep
 	   (curcol (progn
 		     (goto-char (cdr langelem))
 		     (current-column)))
@@ -154,7 +154,7 @@ This is in addition to c-continued-statement-offset.")
 			   (current-column))))
       (- bocm-lossage curcol
 	 (if bracep 0 c-indent-level)))))
-      
+
 
 (defun cc-substatement-open-offset (langelem)
   (+ c-continued-statement-offset c-continued-brace-offset))

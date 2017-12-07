@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -67,8 +67,9 @@ re-?generate\\|bump version\\|from trunk\\|Auto-commit"
   '((t (:strike-through t)))
   "Face for skipped commits.")
 
-(defconst gitmerge-default-branch "origin/emacs-25"
-  "Default for branch that should be merged.")
+(defvar gitmerge-default-branch nil
+  "Default for branch that should be merged.
+If nil, the function `gitmerge-default-branch' guesses.")
 
 (defconst gitmerge-buffer "*gitmerge*"
   "Working buffer for gitmerge.")
@@ -102,6 +103,21 @@ re-?generate\\|bump version\\|from trunk\\|Auto-commit"
 
 (defvar gitmerge--commits nil)
 (defvar gitmerge--from nil)
+
+(defun gitmerge-emacs-version (&optional branch)
+  "Return the major version of Emacs, optionally in BRANCH."
+  (with-temp-buffer
+    (if (not branch)
+        (insert-file-contents "configure.ac")
+      (call-process "git" nil t nil "show" (format "%s:configure.ac" branch))
+      (goto-char (point-min)))
+    (re-search-forward "^AC_INIT([^,]+, \\([0-9]+\\)\\.")
+    (string-to-number (match-string 1))))
+
+(defun gitmerge-default-branch ()
+  "Default for branch that should be merged; eg \"origin/emacs-26\"."
+  (or gitmerge-default-branch
+      (format "origin/emacs-%s" (1- (gitmerge-emacs-version)))))
 
 (defun gitmerge-get-sha1 ()
   "Get SHA1 from commit at point."
@@ -291,23 +307,47 @@ Returns non-nil if conflicts remain."
             ;; (pop-to-buffer (current-buffer)) (debug 'before-resolve)
             ))
           ;; Try to resolve the conflicts.
-          (cond
-           ((member file '("configure" "lisp/ldefs-boot.el"
-                           "lisp/emacs-lisp/cl-loaddefs.el"))
-            ;; We are in the file's buffer, so names are relative.
-            (call-process "git" nil t nil "checkout" "--"
-                          (file-name-nondirectory file))
-            (revert-buffer nil 'noconfirm))
-           (t
-            (goto-char (point-max))
-            (while (re-search-backward smerge-begin-re nil t)
-              (save-excursion
-                (ignore-errors
-                  (smerge-match-conflict)
-                  (smerge-resolve))))
-            ;; (when (derived-mode-p 'change-log-mode)
-            ;;   (pop-to-buffer (current-buffer)) (debug 'after-resolve))
-            (save-buffer)))
+          (let (temp)
+            (cond
+             ((and (equal file "etc/NEWS")
+                   (ignore-errors
+                     (setq temp
+                           (format "NEWS.%s"
+                                   (gitmerge-emacs-version gitmerge--from))))
+                   (file-exists-p temp)
+                   (or noninteractive
+                       (y-or-n-p "Try to fix NEWS conflict? ")))
+              (let ((relfile (file-name-nondirectory file))
+                    (tempfile (make-temp-file "gitmerge")))
+                (unwind-protect
+                    (progn
+                      (call-process "git" nil `(:file ,tempfile) nil "diff"
+                                    (format ":1:%s" file)
+                                    (format ":3:%s" file))
+                      (call-process "git" nil t nil "reset" "--" relfile)
+                      (call-process "git" nil t nil "checkout" "--" relfile)
+                      (revert-buffer nil 'noconfirm)
+                      (call-process "patch" tempfile nil nil temp)
+                      (call-process "git" nil t nil "add" "--" temp))
+                  (delete-file tempfile))))
+             ;; Generated files.
+             ((member file '("lisp/ldefs-boot.el"))
+              ;; We are in the file's buffer, so names are relative.
+              (call-process "git" nil t nil "reset" "--"
+                            (file-name-nondirectory file))
+              (call-process "git" nil t nil "checkout" "--"
+                            (file-name-nondirectory file))
+              (revert-buffer nil 'noconfirm))
+             (t
+              (goto-char (point-max))
+              (while (re-search-backward smerge-begin-re nil t)
+                (save-excursion
+                  (ignore-errors
+                    (smerge-match-conflict)
+                    (smerge-resolve))))
+              ;; (when (derived-mode-p 'change-log-mode)
+              ;;   (pop-to-buffer (current-buffer)) (debug 'after-resolve))
+              (save-buffer))))
           (goto-char (point-min))
           (prog1 (re-search-forward smerge-begin-re nil t)
             (unless exists (kill-buffer))))))))
@@ -400,7 +440,7 @@ Throw an user-error if we cannot resolve automatically."
 		    "\n  - You can safely close this Emacs session and do this "
 		    "in a new one."
 		    "\n  - When running gitmerge again, remember that you must "
-		    "that from within the Emacs repo.\n")
+		    "do that from within the Emacs repo.\n")
 	    (pop-to-buffer (current-buffer)))
 	  (user-error "Resolve the conflicts manually"))))))
 
@@ -495,7 +535,7 @@ Branch FROM will be prepended to the list."
 	(if (gitmerge-maybe-resume)
 	    'resume
 	  (completing-read "Merge branch: " (gitmerge-get-all-branches)
-			   nil t gitmerge-default-branch))))))
+			   nil t (gitmerge-default-branch)))))))
   (let ((default-directory (vc-git-root default-directory)))
     (if (eq from 'resume)
 	(progn

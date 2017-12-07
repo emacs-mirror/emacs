@@ -1,4 +1,4 @@
-;;; cal-dst.el --- calendar functions for daylight saving rules
+;;; cal-dst.el --- calendar functions for daylight saving rules  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1996, 2001-2017 Free Software Foundation, Inc.
 
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -220,35 +220,36 @@ The result has the proper form for `calendar-daylight-savings-starts'."
                 '((calendar-gregorian-from-absolute
                    (calendar-persian-to-absolute `(7 1 ,(- year 621))))))))
          (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
-         (year (1+ y))
          new-rules)
-    ;; Scan through the next few years until only one rule remains.
-    (while (cdr candidate-rules)
-      (dolist (rule candidate-rules)
-        ;; The rule we return should give a Gregorian date, but here
-        ;; we require an absolute date.  The following is for efficiency.
-        (setq date (cond ((eq (car rule) 'calendar-nth-named-day)
-                          (eval (cons 'calendar-nth-named-absday (cdr rule))))
-                         ((eq (car rule) 'calendar-gregorian-from-absolute)
-                          (eval (cadr rule)))
-                         (t (calendar-absolute-from-gregorian (eval rule)))))
-        (or (equal (current-time-zone
-                    (calendar-time-from-absolute date prevday-sec))
-                   (current-time-zone
-                    (calendar-time-from-absolute (1+ date) prevday-sec)))
-            (setq new-rules (cons rule new-rules))))
-      ;; If no rules remain, just use the first candidate rule;
-      ;; it's wrong in general, but it's right for at least one year.
-      (setq candidate-rules (if new-rules (nreverse new-rules)
-                              (list (car candidate-rules)))
-            new-rules nil
-            year (1+ year)))
+    (calendar-dlet* ((year (1+ y)))
+      ;; Scan through the next few years until only one rule remains.
+      (while (cdr candidate-rules)
+        (dolist (rule candidate-rules)
+          ;; The rule we return should give a Gregorian date, but here
+          ;; we require an absolute date.  The following is for efficiency.
+          (setq date (cond ((eq (car rule) #'calendar-nth-named-day)
+                            (eval (cons #'calendar-nth-named-absday
+                                        (cdr rule))))
+                           ((eq (car rule) #'calendar-gregorian-from-absolute)
+                            (eval (cadr rule)))
+                           (t (calendar-absolute-from-gregorian (eval rule)))))
+          (or (equal (current-time-zone
+                      (calendar-time-from-absolute date prevday-sec))
+                     (current-time-zone
+                      (calendar-time-from-absolute (1+ date) prevday-sec)))
+              (setq new-rules (cons rule new-rules))))
+        ;; If no rules remain, just use the first candidate rule;
+        ;; it's wrong in general, but it's right for at least one year.
+        (setq candidate-rules (if new-rules (nreverse new-rules)
+                                (list (car candidate-rules)))
+              new-rules nil
+              year (1+ year))))
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from
 ;; the system timezone database. But cross-platform...?
 ;; See thread
-;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-11/msg00060.html
+;; https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html
 (defun calendar-dst-find-data (&optional time)
   "Find data on the first daylight saving time transitions after TIME.
 TIME defaults to `current-time'.  Return value is as described
@@ -405,8 +406,9 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
   (or (let ((expr (if calendar-dst-check-each-year-flag
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
-        (if expr (eval expr)))
-      ;; New US rules commencing 2007.  ftp://elsie.nci.nih.gov/pub/.
+        (calendar-dlet* ((year year))
+          (if expr (eval expr))))
+      ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 2 0 3 year))))
 
@@ -416,8 +418,9 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
   (or (let ((expr (if calendar-dst-check-each-year-flag
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
-        (if expr (eval expr)))
-      ;; New US rules commencing 2007.  ftp://elsie.nci.nih.gov/pub/.
+        (calendar-dlet* ((year year))
+          (if expr (eval expr))))
+      ;; New US rules commencing 2007.  https://www.iana.org/time-zones
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 1 0 11 year))))
 
@@ -425,25 +428,25 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
 (defun dst-in-effect (date)
   "True if on absolute DATE daylight saving time is in effect.
 Fractional part of DATE is local standard time of day."
-  (let* ((year (calendar-extract-year
-                (calendar-gregorian-from-absolute (floor date))))
-         (dst-starts-gregorian (eval calendar-daylight-savings-starts))
-         (dst-ends-gregorian (eval calendar-daylight-savings-ends))
-         (dst-starts (and dst-starts-gregorian
+  (calendar-dlet* ((year (calendar-extract-year
+                          (calendar-gregorian-from-absolute (floor date)))))
+    (let* ((dst-starts-gregorian (eval calendar-daylight-savings-starts))
+           (dst-ends-gregorian (eval calendar-daylight-savings-ends))
+           (dst-starts (and dst-starts-gregorian
+                            (+ (calendar-absolute-from-gregorian
+                                dst-starts-gregorian)
+                               (/ calendar-daylight-savings-starts-time
+                                  60.0 24.0))))
+           (dst-ends (and dst-ends-gregorian
                           (+ (calendar-absolute-from-gregorian
-                              dst-starts-gregorian)
-                             (/ calendar-daylight-savings-starts-time
-                                60.0 24.0))))
-         (dst-ends (and dst-ends-gregorian
-                        (+ (calendar-absolute-from-gregorian
-                            dst-ends-gregorian)
-                           (/ (- calendar-daylight-savings-ends-time
-                                 calendar-daylight-time-offset)
-                              60.0 24.0)))))
-    (and dst-starts dst-ends
-         (if (< dst-starts dst-ends)
-             (and (<= dst-starts date) (< date dst-ends))
-           (or (<= dst-starts date) (< date dst-ends))))))
+                              dst-ends-gregorian)
+                             (/ (- calendar-daylight-savings-ends-time
+                                   calendar-daylight-time-offset)
+                                60.0 24.0)))))
+      (and dst-starts dst-ends
+           (if (< dst-starts dst-ends)
+               (and (<= dst-starts date) (< date dst-ends))
+             (or (<= dst-starts date) (< date dst-ends)))))))
 
 ;; used by calc, lunar, solar.
 (defun dst-adjust-time (date time)

@@ -17,7 +17,7 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+// along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 //#include <cmath>
 // #include <stdio.h>
@@ -40,7 +40,7 @@ namespace animal {
 
     enum moose_enum {
       NAME1, NAME2, NAME3 };
-      
+
 
   protected:
 
@@ -50,7 +50,7 @@ namespace animal {
   private:
     int fFeet; // Usually 2 or 4.
     bool fIsPrivateBool;
-    
+
   }; // moose
 
   int two_prototypes();
@@ -188,4 +188,3 @@ namespace sneaky {
 };
 
 #endif
-

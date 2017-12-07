@@ -1363,7 +1363,7 @@ message itself is flagged as deleted.
   Mailing list messages that might offend or annoy some readers are sometimes
 encoded in a simple code called @dfn{rot13}---so named because it
 rotates the alphabet by 13 letters.  This code is not for secrecy, as it
-provides none; rather, it enables those who wish to to avoid
+provides none; rather, it enables those who wish to avoid
 seeing the real text of the message.  For example, a review of a film
 might use rot13 to hide important plot points.
 
@@ -1382,7 +1382,7 @@ Rmail attempts to locate the @command{movemail} program and determine its
 version.  There are two versions of the @command{movemail} program: the
 GNU Mailutils version (@pxref{movemail,,,mailutils,GNU mailutils}),
 and an Emacs-specific version that is built and installed unless Emacs
-was configured using the @option{--with-mailutils} option.
+was configured @option{--with-mailutils} in effect.
 The two @command{mailtool} versions support the same
 command line syntax and the same basic subset of options.  However, the
 Mailutils version offers additional features.

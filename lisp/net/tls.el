@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -106,7 +106,7 @@ successful negotiation."
 	  (repeat :inline t :tag "Other" (string)))
     (list :tag "List of commands"
 	  (repeat :tag "Command" (string))))
-  :version "25.3"                       ; remove s_client
+  :version "26.1"                       ; remove s_client
   :group 'tls)
 
 (defcustom tls-process-connection-type nil

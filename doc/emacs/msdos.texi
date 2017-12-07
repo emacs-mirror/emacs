@@ -580,7 +580,7 @@ pressed the @key{Shift} key while typing the non-character key.
 @vindex w32-enable-caps-lock
   If the variable @code{w32-enable-caps-lock} is set to a @code{nil}
 value, the @key{CapsLock} key produces the symbol @code{capslock}
-instead of the shifted version of they keys.  The default value is
+instead of the shifted version of typed keys.  The default value is
 @code{t}.
 
 @vindex w32-enable-num-lock

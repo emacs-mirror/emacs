@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,7 +34,7 @@
     (let ((print-circle t))
       (should (equal (cl-prin1-to-string `((x . ,x) (y . ,x)))
                      "((x . #1=#s(cl-print--test :a 1 :b 2)) (y . #1#))")))
-    (should (string-match "\\`#f(compiled-function (x) .*\n\n.*)\\'"
+    (should (string-match "\\`#f(compiled-function (x) \"[^\"]+\" [^\)]*)\\'"
                           (cl-prin1-to-string (symbol-function #'caar))))))
 
 (ert-deftest cl-print-tests-2 ()

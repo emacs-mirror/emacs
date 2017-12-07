@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -542,7 +542,7 @@ keybindings will not do anything useful."
 
 ;;; Module
 
-;;;###autoload (autoload 'erc-track-mode "erc-track" nil t)
+;;;###autoload(autoload 'erc-track-mode "erc-track" nil t)
 (define-erc-module track nil
   "This mode tracks ERC channel buffers with activity."
   ;; Enable:
@@ -974,6 +974,7 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 ;;; erc-track.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

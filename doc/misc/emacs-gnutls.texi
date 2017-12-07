@@ -94,7 +94,11 @@ There's one way to find out if GnuTLS is available, by calling
 Zaretskii) in the same directory as Emacs, you should be OK.
 
 @defun gnutls-available-p
-This function returns @code{t} if GnuTLS is available in this instance of Emacs.
+This function returns non-@code{nil} if GnuTLS is available in this
+instance of Emacs, @code{nil} otherwise.  If GnuTLS is available, the
+value is a list of GnuTLS capabilities supported by the installed
+GnuTLS library, which depends on the library version.  The meaning of
+the capabilities is documented in the doc string of this function.
 @end defun
 
 Oh, but sometimes things go wrong.  Budgets aren't balanced,
@@ -113,7 +117,7 @@ The @code{gnutls-algorithm-priority} variable sets the GnuTLS priority
 string.  This is global, not per host name (although
 @code{gnutls-negotiate} supports a priority string per connection so
 it could be done if needed).  The priority string syntax is in the
-@uref{http://www.gnu.org/software/gnutls/documentation.html, GnuTLS
+@uref{https://www.gnu.org/software/gnutls/documentation.html, GnuTLS
 documentation}.
 @end defvar
 

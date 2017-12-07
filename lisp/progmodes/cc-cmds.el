@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,6 +50,8 @@
 
 ;; Indentation / Display syntax functions
 (defvar c-fix-backslashes t)
+
+(defvar c-syntactic-context)
 
 (defun c-indent-line (&optional syntax quiet ignore-point-pos)
   "Indent the current line according to the syntactic context,
@@ -1635,7 +1637,6 @@ defun."
   (c-save-buffer-state
       (beginning-of-defun-function
        end-of-defun-function
-       (start (point))
        (paren-state (c-parse-state))
        (orig-point-min (point-min)) (orig-point-max (point-max))
        lim		    ; Position of { which has been widened to.
@@ -1759,7 +1760,6 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
   (c-save-buffer-state
       (beginning-of-defun-function
        end-of-defun-function
-       (start (point))
        (paren-state (c-parse-state))
        (orig-point-min (point-min)) (orig-point-max (point-max))
        lim
@@ -1821,7 +1821,6 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
   "Return the name of the current defun, or NIL if there isn't one.
 \"Defun\" here means a function, or other top level construct
 with a brace block."
-  (interactive)
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        where pos name-end case-fold-search)
@@ -1843,19 +1842,33 @@ with a brace block."
 	  (unless (eq where 'at-header)
 	    (c-backward-to-nth-BOF-{ 1 where)
 	    (c-beginning-of-decl-1))
+	  (when (looking-at c-typedef-key)
+	    (goto-char (match-end 0))
+	    (c-forward-syntactic-ws))
 
 	  ;; Pick out the defun name, according to the type of defun.
 	  (cond
 	   ;; struct, union, enum, or similar:
-	   ((and (looking-at c-type-prefix-key)
-		 (progn (c-forward-token-2 2) ; over "struct foo "
-			(or (eq (char-after) ?\{)
-			    (looking-at c-symbol-key)))) ; "struct foo bar ..."
-	    (save-match-data (c-forward-token-2))
-	    (when (eq (char-after) ?\{)
-	      (c-backward-token-2)
-	      (looking-at c-symbol-key))
-	    (match-string-no-properties 0))
+	   ((save-excursion
+	      (and
+	       (looking-at c-type-prefix-key)
+	       (consp (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil))
+	       (or (not (or (eq (char-after) ?{)
+			    (and c-recognize-knr-p
+				 (c-in-knr-argdecl))))
+		   (progn (c-backward-syntactic-ws)
+			  (not (eq (char-before) ?\)))))))
+	    (let ((key-pos (point)))
+	      (c-forward-over-token-and-ws) ; over "struct ".
+	      (cond
+	       ((looking-at c-symbol-key)	; "struct foo { ..."
+		(buffer-substring-no-properties key-pos (match-end 0)))
+	       ((eq (char-after) ?{)	; "struct { ... } foo"
+		(when (c-go-list-forward)
+		  (c-forward-syntactic-ws)
+		  (when (looking-at c-symbol-key) ; a bit bogus - there might
+						  ; be several identifiers.
+		    (match-string-no-properties 0)))))))
 
 	   ((looking-at "DEFUN\\s-*(") ;"DEFUN\\_>") think of XEmacs!
 	    ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
@@ -1892,15 +1905,24 @@ with a brace block."
 
 	   (t
 	    ;; Normal function or initializer.
-	    (when (c-syntactic-re-search-forward "[{(]" nil t)
-	      (backward-char)
+	    (when
+		(and
+		 (consp (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil))
+		 (or (eq (char-after) ?{)
+		     (and c-recognize-knr-p
+			  (c-in-knr-argdecl)))
+		 (progn
+		   (c-backward-syntactic-ws)
+		   (eq (char-before) ?\)))
+		 (c-go-list-backward))
 	      (c-backward-syntactic-ws)
 	      (when (eq (char-before) ?\=) ; struct foo bar = {0, 0} ;
 		(c-backward-token-2)
 		(c-backward-syntactic-ws))
 	      (setq name-end (point))
 	      (c-back-over-compound-identifier)
-	      (buffer-substring-no-properties (point) name-end)))))))))
+	      (and (looking-at c-symbol-start)
+		   (buffer-substring-no-properties (point) name-end))))))))))
 
 (defun c-declaration-limits (near)
   ;; Return a cons of the beginning and end positions of the current
@@ -1915,7 +1937,7 @@ with a brace block."
     (save-restriction
       (let ((start (point))
 	    (paren-state (c-parse-state))
-	    lim pos end-pos encl-decl-block where)
+	    lim pos end-pos where)
 	;; Narrow enclosing brace blocks out, as required by the values of
 	;; `c-defun-tactic', `near', and the position of point.
 	(when (eq c-defun-tactic 'go-outward)
@@ -2041,6 +2063,23 @@ with a brace block."
 	      (eq (char-after) ?\{)
 	      (cons (point-min) (point-max))))))))
 
+(defun c-display-defun-name (&optional arg)
+  "Display the name of the current CC mode defun and the position in it.
+With a prefix arg, push the name onto the kill ring too."
+  (interactive "P")
+  (save-restriction
+    (widen)
+    (c-save-buffer-state ((name (c-defun-name))
+			  (limits (c-declaration-limits t))
+			  (point-bol (c-point 'bol)))
+      (when name
+	(message "%s.  Line %s/%s." name
+		 (1+ (count-lines (car limits) point-bol))
+		 (count-lines (car limits) (cdr limits)))
+	(if arg (kill-new name))
+	(sit-for 3 t)))))
+(put 'c-display-defun-name 'isearch-scroll t)
+
 (defun c-mark-function ()
   "Put mark at end of the current top-level declaration or macro, point at beginning.
 If point is not inside any then the closest following one is
@@ -2085,7 +2124,6 @@ function does not require the declaration to contain a brace block."
 
 (defun c-cpp-define-name ()
   "Return the name of the current CPP macro, or NIL if we're not in one."
-  (interactive)
   (let (case-fold-search)
     (save-excursion
       (and c-opt-cpp-macro-define-start

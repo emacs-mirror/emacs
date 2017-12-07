@@ -98,7 +98,8 @@ related commands, use @dfn{permissive completion with confirmation} for
 minibuffer completion: if you type @key{RET} immediately after
 completing up to a nonexistent buffer name, Emacs prints
 @samp{[Confirm]} and you must type a second @key{RET} to submit that
-buffer name.  @xref{Completion Exit}, for details.
+buffer name.  @xref{Completion Exit}, for details.  For other
+completion options and features, see @ref{Completion Options}.
 
   If you specify a buffer that does not exist, @kbd{C-x b} creates a
 new, empty buffer that is not visiting any file, and selects it for
@@ -110,8 +111,8 @@ it, Emacs asks for the file name to use, and the buffer's major mode
 is re-established taking that file name into account (@pxref{Choosing
 Modes}).
 
-@kindex C-x @key{LEFT}
-@kindex C-x @key{RIGHT}
+@kindex C-x LEFT
+@kindex C-x RIGHT
 @findex next-buffer
 @findex previous-buffer
   For conveniently switching between a few buffers, use the commands
@@ -173,10 +174,15 @@ List the existing buffers (@code{list-buffers}).
 @cindex listing current buffers
 @kindex C-x C-b
 @findex list-buffers
-  To display a list of existing buffers, type @kbd{C-x C-b}.  Each
+  To display a list of existing buffers, type @kbd{C-x C-b}.  This
+pops up a buffer menu in a buffer named @file{*Buffer List*}.  Each
 line in the list shows one buffer's name, size, major mode and visited file.
 The buffers are listed in the order that they were current; the
-buffers that were current most recently come first.
+buffers that were current most recently come first.  This section
+describes how the list of buffers is displayed and how to interpret
+the various indications in the list; see @ref{Several Buffers}, for
+description of the special mode in the @file{*Buffer List*} buffer and
+the commands available there.
 
   @samp{.} in the first field of a line indicates that the buffer is
 current.  @samp{%} indicates a read-only buffer.  @samp{*} indicates
@@ -699,13 +705,20 @@ Customization}).
 @item M-x bs-show
 Make a list of buffers similarly to @kbd{M-x list-buffers} but
 customizable.
+@item M-x ibuffer
+Make a list of buffers and operate on them in Dired-like fashion.
 @end table
 
+@findex bs-customize
   @kbd{M-x bs-show} pops up a buffer list similar to the one normally
-displayed by @kbd{C-x C-b} but which you can customize.  If you prefer
+displayed by @kbd{C-x C-b}, but whose display you can customize in a
+more flexible fashion.  For example, you can specify the list of
+buffer attributes to show, the minimum and maximum width of buffer
+name column, a regexp for names of buffers that will never be shown
+and those which will always be shown, etc.  If you prefer
 this to the usual buffer list, you can bind this command to @kbd{C-x
 C-b}.  To customize this buffer list, use the @code{bs} Custom group
-(@pxref{Easy Customization}).
+(@pxref{Easy Customization}), or invoke @kbd{bs-customize}.
 
 @findex msb-mode
 @cindex mode, MSB
@@ -718,3 +731,8 @@ prefer.  It replaces the bindings of @code{mouse-buffer-menu},
 normally on @kbd{C-Down-mouse-1} and @kbd{C-@key{F10}}, and the menu
 bar buffer menu.  You can customize the menu in the @code{msb} Custom
 group.
+
+@findex ibuffer
+   IBuffer is a major mode for viewing a list of buffers and operating
+on them in a way analogous to that of Dired (@pxref{Dired}), including
+filtering, marking, sorting in various ways, and acting on buffers.

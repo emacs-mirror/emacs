@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -259,12 +259,33 @@ This definition is the heart of the calendar!")
 (defun cal-tex-preamble (&optional args)
   "Insert the LaTeX calendar preamble into `cal-tex-buffer'.
 Preamble includes initial definitions for various LaTeX commands.
-Optional string ARGS are included as options for the article document class."
+Optional string ARGS are included as options for the article
+document class with inclusion of default values \"12pt\" for
+size, and \"a4paper\" for paper unless size or paper are already
+specified in ARGS.  When ARGS is omitted, by default the option
+\"12pt,a4paper\" is passed. When ARGS has any other value, then
+no option is passed to the class.
+
+Insert the \"\\usepackage{geometry}\" directive when ARGS
+contains the \"landscape\" string."
   (set-buffer (generate-new-buffer cal-tex-buffer))
-  (insert (format "\\documentclass%s{article}\n"
-                  (if (stringp args)
-                      (format "[%s]" args)
-                    "")))
+  (save-match-data
+    (insert (format "\\documentclass%s{article}\n"
+                    (cond
+                     ((stringp args)
+                      ;; set default size
+                      (unless (string-match "\\(^\\|,\\) *[0-9]+pt *\\(,\\|$\\)" args)
+                        (setq args (concat args ",12pt")))
+                      ;; set default paper
+                      (unless (string-match "\\(^\\|,\\) *\\([ab][4-5]\\|le\\(tter\\|gal\\)\\|executive\\)paper *\\(,\\|$\\)" args)
+                        (setq args (concat args ",a4paper")))
+                      (when (string= (substring args 0 1) ",")
+                        (setq args (substring args 1)))
+                      (if (string= args "") "" (format "[%s]" args)))
+                     ((null args) "[12pt]")
+                     (t ""))))
+    (if (and (stringp args) (string-match "\\<landscape\\>" args))
+      (insert "\\usepackage{geometry}\n")))
   (if (stringp cal-tex-preamble-extra)
       (insert cal-tex-preamble-extra "\n"))
   ;; FIXME boxwidth and boxheight unused?
@@ -320,7 +341,7 @@ Optional EVENT indicates a buffer position to use instead of point."
 There are four rows of three months each, unless optional
 LANDSCAPE is non-nil, in which case the calendar is printed in
 landscape mode with three rows of four months each."
-  (cal-tex-insert-preamble 1 landscape "12pt")
+  (cal-tex-insert-preamble 1 (and landscape "landscape"))
   (if landscape
       (cal-tex-vspace "-.6cm")
     (cal-tex-vspace "-3.1cm"))
@@ -476,7 +497,7 @@ Optional EVENT indicates a buffer position to use instead of point."
          (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
          (holidays (if cal-tex-holidays (holiday-in-range d1 d2)))
          other-month other-year small-months-at-start)
-    (cal-tex-insert-preamble (cal-tex-number-weeks month year 1) t "12pt")
+    (cal-tex-insert-preamble (cal-tex-number-weeks month year 1) "landscape")
     (cal-tex-cmd cal-tex-cal-one-month)
     (dotimes (i n)
       (setq other-month month
@@ -515,7 +536,7 @@ Optional EVENT indicates a buffer position to use instead of point."
         (calendar-increment-month month year 1)
         (cal-tex-vspace "-2cm")
         (cal-tex-insert-preamble
-         (cal-tex-number-weeks month year 1) t "12pt" t))))
+         (cal-tex-number-weeks month year 1) "landscape" t))))
   (cal-tex-end-document)
   (run-hooks 'cal-tex-hook))
 
@@ -545,7 +566,7 @@ indicates a buffer position to use instead of point."
                       end-year))))
          (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
          (holidays (if cal-tex-holidays (holiday-in-range d1 d2))))
-    (cal-tex-insert-preamble (cal-tex-number-weeks month year n) nil "12pt")
+    (cal-tex-insert-preamble (cal-tex-number-weeks month year n))
     (if (> n 1)
         (cal-tex-cmd cal-tex-cal-multi-month)
       (cal-tex-cmd cal-tex-cal-one-month))
@@ -1615,24 +1636,27 @@ informative header, and run HOOK."
 \t\tM-x tex-buffer RET
 \t\tM-x tex-print  RET")))
 
-(defun cal-tex-insert-preamble (weeks landscape size &optional append)
+(defun cal-tex-insert-preamble (weeks &optional class-options append)
   "Initialize the output LaTeX calendar buffer, `cal-tex-buffer'.
 Select the output buffer, and insert the preamble for a calendar
-of WEEKS weeks.  Insert code for landscape mode if LANDSCAPE is
-non-nil.  Use point-size SIZE.  Optional argument APPEND, if
-non-nil, means add to end of buffer without erasing current contents."
-  (let ((width "18cm")
+of WEEKS weeks.  Pass string CLASS-OPTIONS as options for the
+article document class.  If it contains \"landscape\", use the
+geometry package to produce landscape format.  Optional argument
+APPEND, if non-nil, means add to end of buffer without erasing
+current contents."
+  (let ((landscape  (and class-options
+                         (string-match "\\<landscape\\>" class-options)))
+        (width "18cm")
         (height "24cm"))
     (when landscape
-      (setq width "24cm"
-            height "18cm"))
+      (let ((swap  width))
+       (setq width height height swap)))
     (unless append
-      (cal-tex-preamble size)
+      (cal-tex-preamble class-options)
       (if (not landscape)
           (progn
             (cal-tex-cmd "\\oddsidemargin -1.75cm")
             (cal-tex-cmd "\\def\\holidaymult" ".06"))
-        (cal-tex-cmd "\\special" "landscape")
         (cal-tex-cmd "\\textwidth 9.5in")
         (cal-tex-cmd "\\textheight 7in")
         (cal-tex-comment)

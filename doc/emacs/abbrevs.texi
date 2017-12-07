@@ -62,8 +62,8 @@ definition for the current major mode overrides a global definition.
 
   You can define abbrevs interactively during the editing session,
 irrespective of whether Abbrev mode is enabled.  You can also save
-lists of abbrev definitions in files, which you can the reload for use
-in later sessions.
+lists of abbrev definitions in files, which you can then reload for
+use in later sessions.
 
 @node Defining Abbrevs
 @section Defining Abbrevs

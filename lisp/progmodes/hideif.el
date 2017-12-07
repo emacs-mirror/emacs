@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1657,8 +1657,8 @@ first arg will be `hif-etc'."
 
 ;; The original version of hideif evaluates the macro early and store the
 ;; final values for the defined macro into the symbol database (aka
-;; `hide-ifdef-env'). The evaluation process is "strings -> tokens -> parsed
-;; tree -> [value]". (The square bracket refers to what's stored in in our
+;; `hide-ifdef-env').  The evaluation process is "strings -> tokens -> parsed
+;; tree -> [value]".  (The square bracket refers to what's stored in our
 ;; `hide-ifdef-env'.)
 ;;
 ;; This forbids the evaluation of an argumented macro since the parameters

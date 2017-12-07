@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -120,7 +120,7 @@ encode_current_directory (void)
   if (NILP (dir))
     dir = build_string ("~");
 
-  dir = expand_and_dir_to_file (dir, Qnil);
+  dir = expand_and_dir_to_file (dir);
 
   if (NILP (Ffile_accessible_directory_p (dir)))
     report_file_error ("Setting current directory",
@@ -634,7 +634,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #ifdef DARWIN_OS
       /* Work around a macOS bug, where SIGCHLD is apparently
 	 delivered to a vforked child instead of to its parent.  See:
-	 http://lists.gnu.org/archive/html/emacs-devel/2017-05/msg00342.html
+	 https://lists.gnu.org/r/emacs-devel/2017-05/msg00342.html
       */
       signal (SIGCHLD, SIG_DFL);
 #endif

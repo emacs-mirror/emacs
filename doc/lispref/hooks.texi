@@ -241,11 +241,6 @@ Redisplay}.
 @itemx window-scroll-functions
 @itemx window-size-change-functions
 @xref{Window Hooks}.
-
-@item window-text-change-functions
-@vindex window-text-change-functions
-Functions to call in redisplay when text in the window might change.
-
 @end table
 
 @ignore

@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -392,7 +392,7 @@ obeys predicates."
                                   (and (funcall pred1 x) (funcall pred2 x)))))
         ;; If completion failed and we're not applying pred1 strictly, try
         ;; again without pred1.
-        (and (not strict) pred1 pred2
+        (and (not strict) pred1
              (complete-with-action action table string pred2))))))
 
 (defun completion-table-in-turn (&rest tables)
@@ -746,7 +746,7 @@ If the current buffer is not a minibuffer, erase its entire contents."
 
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
-If the value is t the *Completion* buffer is displayed whenever completion
+If the value is t the *Completions* buffer is displayed whenever completion
 is requested but cannot be done.
 If the value is `lazy', the *Completions* buffer is only displayed after
 the second failed attempt to complete."
@@ -896,8 +896,15 @@ This overrides the defaults specified in `completion-category-defaults'."
   ;; than from completion-extra-properties) because it may apply only to some
   ;; part of the string (e.g. substitute-in-file-name).
   (let ((requote
-         (when (completion-metadata-get metadata 'completion--unquote-requote)
-           (cl-assert (functionp table))
+         (when (and
+                (completion-metadata-get metadata 'completion--unquote-requote)
+                ;; Sometimes a table's metadata is used on another
+                ;; table (typically that other table is just a list taken
+                ;; from the output of `all-completions' or something equivalent,
+                ;; for progressive refinement).  See bug#28898 and bug#16274.
+                ;; FIXME: Rather than do nothing, we should somehow call
+                ;; the original table, in that case!
+                (functionp table))
            (let ((new (funcall table string point 'completion--unquote)))
              (setq string (pop new))
              (setq table (pop new))
@@ -1312,7 +1319,7 @@ Repeated uses step through the possible completions."
 (defvar minibuffer-confirm-exit-commands
   '(completion-at-point minibuffer-complete
     minibuffer-complete-word PC-complete PC-complete-word)
-  "A list of commands which cause an immediately following
+  "List of commands which cause an immediately following
 `minibuffer-complete-and-exit' to ask for extra confirmation.")
 
 (defun minibuffer-complete-and-exit ()
@@ -2979,6 +2986,17 @@ or a symbol, see `completion-pcm--merge-completions'."
       (setq re (replace-match "" t t re 1)))
     re))
 
+(defun completion-pcm--pattern-point-idx (pattern)
+  "Return index of subgroup corresponding to `point' element of PATTERN.
+Return nil if there's no such element."
+  (let ((idx nil)
+        (i 0))
+    (dolist (x pattern)
+      (unless (stringp x)
+        (cl-incf i)
+        (if (eq x 'point) (setq idx i))))
+    idx))
+
 (defun completion-pcm--all-completions (prefix pattern table pred)
   "Find all completions for PATTERN in TABLE obeying PRED.
 PATTERN is as returned by `completion-pcm--string->pattern'."
@@ -3006,11 +3024,12 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
 	(let ((poss ()))
 	  (dolist (c compl)
 	    (when (string-match-p regex c) (push c poss)))
-	  poss)))))
+	  (nreverse poss))))))
 
 (defun completion-pcm--hilit-commonality (pattern completions)
   (when completions
-    (let* ((re (completion-pcm--pattern->regex pattern '(point)))
+    (let* ((re (completion-pcm--pattern->regex pattern 'group))
+           (point-idx (completion-pcm--pattern-point-idx pattern))
            (case-fold-search completion-ignore-case))
       (mapcar
        (lambda (str)
@@ -3018,8 +3037,16 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
          (setq str (copy-sequence str))
          (unless (string-match re str)
            (error "Internal error: %s does not match %s" re str))
-         (let ((pos (or (match-beginning 1) (match-end 0))))
-           (put-text-property 0 pos
+         (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
+                (md (match-data))
+                (start (pop md))
+                (end (pop md)))
+           (while md
+             (put-text-property start (pop md)
+                                'font-lock-face 'completions-common-part
+                                str)
+             (setq start (pop md)))
+           (put-text-property start end
                               'font-lock-face 'completions-common-part
                               str)
            (if (> (length str) pos)
@@ -3258,7 +3285,7 @@ the same set of elements."
                       "\\)\\'")))
       (dolist (f all)
         (unless (string-match-p re f) (push f try)))
-      (or try all))))
+      (or (nreverse try) all))))
 
 
 (defun completion-pcm--merge-try (pattern all prefix suffix)

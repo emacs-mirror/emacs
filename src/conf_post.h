@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Put the code here rather than in configure.ac using AH_BOTTOM.
    This way, the code does not get processed by autoheader.  For
@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
 
-#if defined DOS_NT && !defined DEFER_MS_W32_H
+#if defined WINDOWSNT && !defined DEFER_MS_W32_H
 # include <ms-w32.h>
 #endif
 
@@ -255,7 +255,27 @@ extern int emacs_setenv_TZ (char const *);
 #if GNUC_PREREQ (4, 4, 0) && defined __GLIBC_MINOR__
 # define PRINTF_ARCHETYPE __gnu_printf__
 #elif GNUC_PREREQ (4, 4, 0) && defined __MINGW32__
-# define PRINTF_ARCHETYPE __ms_printf__
+# ifdef MINGW_W64
+/* When __USE_MINGW_ANSI_STDIO is non-zero (as set by config.h),
+   MinGW64 replaces printf* with its own versions that are
+   __gnu_printf__ compatible, and emits warnings for MS native %I64d
+   format spec.  */
+#  if __USE_MINGW_ANSI_STDIO
+#   define PRINTF_ARCHETYPE __gnu_printf__
+#  else
+#   define PRINTF_ARCHETYPE __ms_printf__
+#  endif
+# else	/* mingw.org's MinGW */
+/* Starting from runtime v5.0.0, mingw.org's MinGW with GCC 6 and
+   later turns on __USE_MINGW_ANSI_STDIO by default, replaces printf*
+   with its own __mingw_printf__ version, which still recognizes
+   %I64d.  */
+#  if GNUC_PREREQ (6, 0, 0) && __MINGW32_MAJOR_VERSION >= 5
+#   define PRINTF_ARCHETYPE __mingw_printf__
+#  else  /* __MINGW32_MAJOR_VERSION < 5 */
+#   define PRINTF_ARCHETYPE __ms_printf__
+#  endif  /* __MINGW32_MAJOR_VERSION < 5 */
+# endif	 /* MinGW */
 #else
 # define PRINTF_ARCHETYPE __printf__
 #endif

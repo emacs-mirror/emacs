@@ -1,4 +1,4 @@
-;;; ob-ocaml.el --- org-babel functions for ocaml evaluation
+;;; ob-ocaml.el --- Babel Functions for Ocaml        -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,11 +37,11 @@
 ;;; Code:
 (require 'ob)
 (require 'comint)
-(eval-when-compile (require 'cl))
 
 (declare-function tuareg-run-caml "ext:tuareg" ())
 (declare-function tuareg-run-ocaml "ext:tuareg" ())
 (declare-function tuareg-interactive-send-input "ext:tuareg" ())
+(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("ocaml" . "ml"))
@@ -60,17 +60,17 @@
 
 (defun org-babel-execute:ocaml (body params)
   "Execute a block of Ocaml code with Babel."
-  (let* ((vars (mapcar #'cdr (org-babel-get-header params :var)))
-         (full-body (org-babel-expand-body:generic
+  (let* ((full-body (org-babel-expand-body:generic
 		     body params
 		     (org-babel-variable-assignments:ocaml params)))
          (session (org-babel-prep-session:ocaml
-		   (cdr (assoc :session params)) params))
+		   (cdr (assq :session params)) params))
          (raw (org-babel-comint-with-output
-		  (session org-babel-ocaml-eoe-output t full-body)
+		  (session org-babel-ocaml-eoe-output nil full-body)
 		(insert
 		 (concat
-		  (org-babel-chomp full-body)";;\n"org-babel-ocaml-eoe-indicator))
+		  (org-babel-chomp full-body) ";;\n"
+		  org-babel-ocaml-eoe-indicator))
 		(tuareg-interactive-send-input)))
 	 (clean
 	  (car (let ((re (regexp-quote org-babel-ocaml-eoe-output)) out)
@@ -79,23 +79,31 @@
 					 (progn (setq out nil) line)
 				       (when (string-match re line)
 					 (progn (setq out t) nil))))
-				   (mapcar #'org-babel-trim (reverse raw))))))))
-    (org-babel-reassemble-table
-     (let ((raw (org-babel-trim clean))
-	   (result-params (cdr (assoc :result-params params))))
+				   (mapcar #'org-trim (reverse raw)))))))
+	 (raw (org-trim clean))
+	 (result-params (cdr (assq :result-params params))))
+    (string-match
+     "\\(\\(.*\n\\)*\\)[^:\n]+ : \\([^=\n]+\\) =\\(\n\\| \\)\\(.+\\)$"
+     raw)
+    (let ((output (match-string 1 raw))
+	  (type (match-string 3 raw))
+	  (value (match-string 5 raw)))
+      (org-babel-reassemble-table
        (org-babel-result-cond result-params
-	 ;; strip type information from output unless verbatim is specified
-	 (if (and (not (member "verbatim" result-params))
-		  (string-match "= \\(.+\\)$" raw))
-	     (match-string 1 raw) raw)
-	 (org-babel-ocaml-parse-output raw)))
-     (org-babel-pick-name
-      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
-     (org-babel-pick-name
-      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
+	 (cond
+	  ((member "verbatim" result-params) raw)
+	  ((member "output" result-params) output)
+	  (t raw))
+	 (if (and value type)
+	     (org-babel-ocaml-parse-output value type)
+	   raw))
+       (org-babel-pick-name
+	(cdr (assq :colname-names params)) (cdr (assq :colnames params)))
+       (org-babel-pick-name
+	(cdr (assq :rowname-names params)) (cdr (assq :rownames params)))))))
 
 (defvar tuareg-interactive-buffer-name)
-(defun org-babel-prep-session:ocaml (session params)
+(defun org-babel-prep-session:ocaml (session _params)
   "Prepare SESSION according to the header arguments in PARAMS."
   (require 'tuareg)
   (let ((tuareg-interactive-buffer-name (if (and (not (string= session "none"))
@@ -113,7 +121,7 @@
   (mapcar
    (lambda (pair) (format "let %s = %s;;" (car pair)
 			  (org-babel-ocaml-elisp-to-ocaml (cdr pair))))
-   (mapcar #'cdr (org-babel-get-header params :var))))
+   (org-babel--get-vars params)))
 
 (defun org-babel-ocaml-elisp-to-ocaml (val)
   "Return a string of ocaml code which evaluates to VAL."
@@ -121,26 +129,29 @@
       (concat "[|" (mapconcat #'org-babel-ocaml-elisp-to-ocaml val "; ") "|]")
     (format "%S" val)))
 
-(defun org-babel-ocaml-parse-output (output)
-  "Parse OUTPUT.
-OUTPUT is string output from an ocaml process."
-  (let ((regexp "[^:]+ : %s = \\(.+\\)$"))
-    (cond
-     ((string-match (format regexp "string") output)
-      (org-babel-read (match-string 1 output)))
-     ((or (string-match (format regexp "int") output)
-          (string-match (format regexp "float") output))
-      (string-to-number (match-string 1 output)))
-     ((string-match (format regexp "list") output)
-      (org-babel-ocaml-read-list (match-string 1 output)))
-     ((string-match (format regexp "array") output)
-      (org-babel-ocaml-read-array (match-string 1 output)))
-     (t (message "don't recognize type of %s" output) output))))
+(defun org-babel-ocaml-parse-output (value type)
+  "Parse VALUE of type TYPE.
+VALUE and TYPE are string output from an ocaml process."
+  (cond
+   ((string= "string" type)
+    (org-babel-read value))
+   ((or (string= "int" type)
+	(string= "float" type))
+    (string-to-number value))
+   ((string-match "list" type)
+    (org-babel-ocaml-read-list value))
+   ((string-match "array" type)
+    (org-babel-ocaml-read-array value))
+   (t (message "don't recognize type %s" type) value)))
 
 (defun org-babel-ocaml-read-list (results)
   "Convert RESULTS into an elisp table or string.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
+  ;; XXX: This probably does not behave as expected when a semicolon
+  ;; is in a string in a list.  The same comment applies to
+  ;; `org-babel-ocaml-read-array' below (with even more failure
+  ;; modes).
   (org-babel-script-escape (replace-regexp-in-string ";" "," results)))
 
 (defun org-babel-ocaml-read-array (results)

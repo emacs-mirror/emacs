@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -84,11 +84,11 @@
          . 'bat-label-face)
         ("\\_<\\(defined\\|set\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
          (2 font-lock-variable-name-face))
-        ("%\\(\\(\\sw\\|\\s_\\)+\\)%"
+        ("%\\([^%~ \n]+\\)%?"
          (1 font-lock-variable-name-face))
-        ("!\\(\\(\\sw\\|\\s_\\)+\\)!"  ; delayed-expansion !variable!
+        ("!\\([^!%~ \n]+\\)!?"  ; delayed-expansion !variable!
          (1 font-lock-variable-name-face))
-        ("%%\\(?:~[adfnpstxz]*\\(?:\\$\\(\\(?:\\sw\\|\\s_\\)+\\):\\)?\\)?\\([]!#$&-:?-[_-{}~]\\)"
+        ("%%\\(?:~[adfnpstxz]*\\(?:\\$\\(\\(?:\\sw\\|\\s_\\|_\\)+\\):\\)?\\)?\\([]!#$&-:?-[_-{}~]\\)"
          (1 font-lock-variable-name-face nil t) ; PATH expansion
          (2 font-lock-variable-name-face)) ; iteration variable or positional parameter
         ("[ =][-/]+\\(\\w+\\)"

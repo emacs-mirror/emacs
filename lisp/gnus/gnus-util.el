@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -594,9 +594,6 @@ If N, return the Nth ancestor instead."
 	 (read-file-name "Copy file to: " default-directory)))
   (unless to
     (setq to (read-file-name "Copy file to: " default-directory)))
-  (when (file-directory-p to)
-    (setq to (concat (file-name-as-directory to)
-		     (file-name-nondirectory file))))
   (copy-file file to))
 
 (defvar gnus-work-buffer " *gnus work*")

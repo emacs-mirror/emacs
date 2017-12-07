@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -72,7 +72,7 @@ It is used for TCP/IP devices."
 (defconst tramp-adb-ls-toolbox-regexp
   (concat
    "^[[:space:]]*\\([-[:alpha:]]+\\)" 	; \1 permissions
-   "\\(?:[[:space:]][[:digit:]]+\\)?"	; links (Android 7/ToolBox)
+   "\\(?:[[:space:]]+[[:digit:]]+\\)?"	; links (Android 7/toybox)
    "[[:space:]]*\\([^[:space:]]+\\)"	; \2 username
    "[[:space:]]+\\([^[:space:]]+\\)"	; \3 group
    "[[:space:]]+\\([[:digit:]]+\\)"	; \4 size
@@ -97,7 +97,7 @@ It is used for TCP/IP devices."
 ;;;###tramp-autoload
 (defconst tramp-adb-file-name-handler-alist
   '((access-file . ignore)
-    (add-name-to-file . tramp-adb-handle-copy-file)
+    (add-name-to-file . tramp-handle-add-name-to-file)
     ;; `byte-compiler-base-file-name' performed by default handler.
     ;; `copy-directory' performed by default handler.
     (copy-file . tramp-adb-handle-copy-file)
@@ -137,8 +137,9 @@ It is used for TCP/IP devices."
     (file-readable-p . tramp-handle-file-exists-p)
     (file-regular-p . tramp-handle-file-regular-p)
     (file-remote-p . tramp-handle-file-remote-p)
-    (file-selinux-context . ignore)
+    (file-selinux-context . tramp-handle-file-selinux-context)
     (file-symlink-p . tramp-handle-file-symlink-p)
+    (file-system-info . tramp-adb-handle-file-system-info)
     (file-truename . tramp-adb-handle-file-truename)
     (file-writable-p . tramp-adb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
@@ -254,6 +255,30 @@ pass to the OPERATION."
   (eq (tramp-compat-file-attribute-type
        (file-attributes (file-truename filename)))
       t))
+
+(defun tramp-adb-handle-file-system-info (filename)
+  "Like `file-system-info' for Tramp files."
+  (ignore-errors
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
+      (tramp-message v 5 "file system info: %s" localname)
+      (tramp-adb-send-command
+       v (format "df -k %s" (tramp-shell-quote-argument localname)))
+      (with-current-buffer (tramp-get-connection-buffer v)
+	(goto-char (point-min))
+	(forward-line)
+	(when (looking-at
+	       (concat "[[:space:]]*[^[:space:]]+"
+		       "[[:space:]]+\\([[:digit:]]+\\)"
+		       "[[:space:]]+\\([[:digit:]]+\\)"
+		       "[[:space:]]+\\([[:digit:]]+\\)"))
+	  ;; The values are given as 1k numbers, so we must change
+	  ;; them to number of bytes.
+	  (list (* 1024 (string-to-number (concat (match-string 1) "e0")))
+		;; The second value is the used size.  We need the
+		;; free size.
+		(* 1024 (- (string-to-number (concat (match-string 1) "e0"))
+			   (string-to-number (concat (match-string 2) "e0"))))
+		(* 1024 (string-to-number (concat (match-string 3) "e0")))))))))
 
 ;; This is derived from `tramp-sh-handle-file-truename'.  Maybe the
 ;; code could be shared?
@@ -411,15 +436,17 @@ pass to the OPERATION."
 			    (tramp-adb-get-ls-command v)
 			    (tramp-shell-quote-argument localname)))
 	     ;; We insert also filename/. and filename/.., because "ls" doesn't.
-	     (narrow-to-region (point) (point))
-	     (tramp-adb-send-command
-	      v (format "%s -d -a -l %s %s"
-			(tramp-adb-get-ls-command v)
-			(tramp-shell-quote-argument
-			 (concat (file-name-as-directory localname) "."))
-			(tramp-shell-quote-argument
-			 (concat (file-name-as-directory localname) ".."))))
-	     (widen))
+	     ;; Looks like it does include them in toybox, since Android 6.
+	     (unless (re-search-backward "\\.$" nil t)
+	       (narrow-to-region (point-max) (point-max))
+	       (tramp-adb-send-command
+		v (format "%s -d -a -l %s %s"
+			  (tramp-adb-get-ls-command v)
+			  (tramp-shell-quote-argument
+			   (concat (file-name-as-directory localname) "."))
+			  (tramp-shell-quote-argument
+			   (concat (file-name-as-directory localname) ".."))))
+	       (widen)))
 	   (tramp-adb-sh-fix-ls-output)
 	   (let ((result (tramp-do-parse-file-attributes-with-ls
 			  v (or id-format 'integer))))
@@ -443,11 +470,12 @@ pass to the OPERATION."
   (with-tramp-connection-property vec "ls"
     (tramp-message vec 5 "Finding a suitable `ls' command")
     (cond
-     ;; Can't disable coloring explicitly for toybox ls command
-     ((tramp-adb-send-command-and-check vec "toybox") "ls")
+     ;; Can't disable coloring explicitly for toybox ls command.  We
+     ;; must force "ls" to print just one column.
+     ((tramp-adb-send-command-and-check vec "toybox") "env COLUMNS=1 ls")
      ;; On CyanogenMod based system BusyBox is used and "ls" output
-     ;; coloring is enabled by default.  So we try to disable it
-     ;; when possible.
+     ;; coloring is enabled by default.  So we try to disable it when
+     ;; possible.
      ((tramp-adb-send-command-and-check vec "ls --color=never -al /dev/null")
       "ls --color=never")
      (t "ls"))))
@@ -521,11 +549,12 @@ Emacs dired can't find files."
       (let ((par (expand-file-name ".." dir)))
 	(unless (file-directory-p par)
 	  (make-directory par parents))))
-    (tramp-adb-barf-unless-okay
-     v (format "mkdir %s" (tramp-shell-quote-argument localname))
-     "Couldn't make directory %s" dir)
     (tramp-flush-file-property v (file-name-directory localname))
-    (tramp-flush-directory-property v localname)))
+    (tramp-flush-directory-property v localname)
+    (unless (or (tramp-adb-send-command-and-check
+		 v (format "mkdir %s" (tramp-shell-quote-argument localname)))
+		(and parents (file-directory-p dir)))
+      (tramp-error v 'file-error "Couldn't make directory %s" dir))))
 
 (defun tramp-adb-handle-delete-directory (directory &optional recursive _trash)
   "Like `delete-directory' for Tramp files."
@@ -569,13 +598,17 @@ Emacs dired can't find files."
 		(file-name-as-directory f)
 	      f))
 	  (with-current-buffer (tramp-get-buffer v)
-	    (append
-	     '("." "..")
-	     (delq
-	      nil
-	      (mapcar
-	       (lambda (l) (and (not (string-match  "^[[:space:]]*$" l)) l))
-	       (split-string (buffer-string) "\n")))))))))))
+	    (delete-dups
+	     (append
+	      ;; In older Android versions, "." and ".." are not
+	      ;; included.  In newer versions (toybox, since Android
+	      ;; 6) they are.  We fix this by `delete-dups'.
+	      '("." "..")
+	      (delq
+	       nil
+	       (mapcar
+		(lambda (l) (and (not (string-match  "^[[:space:]]*$" l)) l))
+		(split-string (buffer-string) "\n"))))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
@@ -623,14 +656,17 @@ But handle the case, if the \"test\" command is not available."
 		       rw-path)))))))
 
 (defun tramp-adb-handle-write-region
-  (start end filename &optional append visit lockname confirm)
+  (start end filename &optional append visit lockname mustbenew)
   "Like `write-region' for Tramp files."
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
-    (when (and confirm (file-exists-p filename))
-      (unless (y-or-n-p (format "File %s exists; overwrite anyway? "
-				filename))
-	(tramp-error v 'file-error "File not overwritten")))
+    (when (and mustbenew (file-exists-p filename)
+	       (or (eq mustbenew 'excl)
+		   (not
+		    (y-or-n-p
+		     (format "File %s exists; overwrite anyway? " filename)))))
+      (tramp-error v 'file-already-exists filename))
+
     ;; We must also flush the cache of the directory, because
     ;; `file-attributes' reads the values from there.
     (tramp-flush-file-property v (file-name-directory localname))
@@ -643,8 +679,7 @@ But handle the case, if the \"test\" command is not available."
 	 tmpfile
 	 (logior (or (file-modes tmpfile) 0) (string-to-number "0600" 8))))
       (tramp-run-real-handler
-       'write-region
-       (list start end tmpfile append 'no-message lockname confirm))
+       'write-region (list start end tmpfile append 'no-message lockname))
       (with-tramp-progress-reporter
         v 3 (format-message
              "Moving tmp file `%s' to `%s'" tmpfile filename)
@@ -730,7 +765,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (signal (car err) (cdr err))))
 
 		;; Remote newname.
-		(when (file-directory-p newname)
+		(when (and (file-directory-p newname)
+			   (tramp-compat-directory-name-p newname))
 		  (setq newname
 			(expand-file-name
 			 (file-name-nondirectory filename) newname)))
@@ -766,38 +802,43 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
 
-  (let ((t1 (tramp-tramp-file-p filename))
-	(t2 (tramp-tramp-file-p newname)))
-    (with-parsed-tramp-file-name (if t1 filename newname) nil
-      (with-tramp-progress-reporter
-	  v 0 (format "Renaming %s to %s" filename newname)
+  (if (file-directory-p filename)
+      (progn
+	(copy-directory filename newname t t)
+	(delete-directory filename 'recursive))
 
-	(if (and t1 t2
-		 (tramp-equal-remote filename newname)
-		 (not (file-directory-p filename)))
-	    (let ((l1 (file-remote-p filename 'localname))
-		  (l2 (file-remote-p newname 'localname)))
-	      (when (and (not ok-if-already-exists)
-			 (file-exists-p newname))
-		(tramp-error v 'file-already-exists newname))
-	      ;; We must also flush the cache of the directory, because
-	      ;; `file-attributes' reads the values from there.
-	      (tramp-flush-file-property v (file-name-directory l1))
-	      (tramp-flush-file-property v l1)
-	      (tramp-flush-file-property v (file-name-directory l2))
-	      (tramp-flush-file-property v l2)
-	      ;; Short track.
-	      (tramp-adb-barf-unless-okay
-	       v (format
-		  "mv -f %s %s"
-		  (tramp-shell-quote-argument l1)
-		  (tramp-shell-quote-argument l2))
-	       "Error renaming %s to %s" filename newname))
+    (let ((t1 (tramp-tramp-file-p filename))
+	  (t2 (tramp-tramp-file-p newname)))
+      (with-parsed-tramp-file-name (if t1 filename newname) nil
+	(with-tramp-progress-reporter
+	    v 0 (format "Renaming %s to %s" filename newname)
 
-	  ;; Rename by copy.
-	  (copy-file
-	   filename newname ok-if-already-exists 'keep-time 'preserve-uid-gid)
-	  (delete-file filename))))))
+	  (if (and t1 t2
+		   (tramp-equal-remote filename newname)
+		   (not (file-directory-p filename)))
+	      (let ((l1 (file-remote-p filename 'localname))
+		    (l2 (file-remote-p newname 'localname)))
+		(when (and (not ok-if-already-exists)
+			   (file-exists-p newname))
+		  (tramp-error v 'file-already-exists newname))
+		;; We must also flush the cache of the directory, because
+		;; `file-attributes' reads the values from there.
+		(tramp-flush-file-property v (file-name-directory l1))
+		(tramp-flush-file-property v l1)
+		(tramp-flush-file-property v (file-name-directory l2))
+		(tramp-flush-file-property v l2)
+		;; Short track.
+		(tramp-adb-barf-unless-okay
+		 v (format
+		    "mv -f %s %s"
+		    (tramp-shell-quote-argument l1)
+		    (tramp-shell-quote-argument l2))
+		 "Error renaming %s to %s" filename newname))
+
+	    ;; Rename by copy.
+	    (copy-file
+	     filename newname ok-if-already-exists 'keep-time 'preserve-uid-gid)
+	    (delete-file filename)))))))
 
 (defun tramp-adb-handle-process-file
   (program &optional infile destination display &rest args)

@@ -15,7 +15,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
@@ -53,6 +53,13 @@
 	 (tramp-remote-shell         "/bin/sh")
 	 (tramp-remote-shell-args    ("-c"))
 	 (tramp-connection-timeout   10)))
+      (add-to-list
+       'tramp-default-host-alist
+       `("\\`mock\\'" nil ,(system-name)))
+      ;; Emacs' Makefile sets $HOME to a nonexistent value.  Needed in
+      ;; batch mode only, therefore.
+      (unless (and (null noninteractive) (file-directory-p "~/"))
+        (setenv "HOME" temporary-file-directory))
       (format "/mock::%s" temporary-file-directory)))
   "Temporary directory for Tramp tests.")
 
@@ -166,8 +173,8 @@ Return nil when any other file notification watch is still active."
       tramp-verbose 0
       tramp-message-show-message nil)
 
-;; This shall happen on hydra only.
-(when (getenv "NIX_STORE")
+;; This should happen on hydra only.
+(when (getenv "EMACS_HYDRA_CI")
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 ;; We do not want to try and fail `file-notify-add-watch'.
@@ -1313,8 +1320,8 @@ the file watch."
     ;; Cleanup.
     (file-notify--test-cleanup)))
 
-(file-notify--deftest-remote file-notify-test09-watched-file-in-watched-dir
-  "Check `file-notify-test09-watched-file-in-watched-dir' for remote files.")
+;(file-notify--deftest-remote file-notify-test09-watched-file-in-watched-dir
+;  "Check `file-notify-test09-watched-file-in-watched-dir' for remote files.")
 
 (ert-deftest file-notify-test10-sufficient-resources ()
   "Check that file notification does not use too many resources."

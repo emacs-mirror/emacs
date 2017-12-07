@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -530,11 +530,11 @@ Some tags such as includes have other reference features."
        ;; A tag
        ((semantic-tag-p result)
 	(semantic-go-to-tag result)
-	(switch-to-buffer (current-buffer))
+        (pop-to-buffer-same-window (current-buffer))
 	(semantic-momentary-highlight-tag result))
        ;; Buffers
        ((bufferp result)
-	(switch-to-buffer result)
+        (pop-to-buffer-same-window result)
 	(pulse-momentary-highlight-one-line (point)))
        ;; Files
        ((and (stringp result) (file-exists-p result))

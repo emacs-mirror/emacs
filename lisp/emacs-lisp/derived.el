@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -203,11 +203,13 @@ See Info node `(elisp)Derived Modes' for more details."
 		     parent child docstring syntax abbrev))
 
     `(progn
-       (defvar ,hook nil
-         ,(format "Hook run after entering %s mode.
+       (defvar ,hook nil)
+       (unless (get ',hook 'variable-documentation)
+         (put ',hook 'variable-documentation
+              ,(format "Hook run after entering %s mode.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-                  name))
+                       name)))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
        (with-no-warnings (defvar ,map (make-sparse-keymap)))

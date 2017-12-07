@@ -3,7 +3,7 @@
 For more details about release contents, see the NEWS* files.
 
 Most of the development history of GNU Emacs is available in its
-source code repository <http://savannah.gnu.org/git/?group=emacs>.
+source code repository <https://savannah.gnu.org/git/?group=emacs>.
 However, in the early days GNU Emacs was developed without using
 version control systems and was published via half-inch 9-track
 1600-bpi magnetic tape reels.  Although information about this early
@@ -211,6 +211,8 @@ GNU Emacs 25.1 (2016-09-16) emacs-25.1
 
 GNU Emacs 25.2 (2017-04-20) emacs-25.2
 
+GNU Emacs 25.3 (2017-09-11) emacs-25.3
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
@@ -226,4 +228,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

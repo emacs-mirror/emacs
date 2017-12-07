@@ -752,6 +752,7 @@ The optional argument @var{pixelwise} non-@code{nil} means to return the
 minimum size of @var{window} counted in pixels.
 @end defun
 
+
 @node Resizing Windows
 @section Resizing Windows
 @cindex window resizing
@@ -943,7 +944,8 @@ help of the two options listed next.
 @defopt fit-frame-to-buffer-margins
 This option can be used to specify margins around frames to be fit by
 @code{fit-frame-to-buffer}.  Such margins can be useful to avoid, for
-example, that such frames overlap the taskbar.
+example, that the resized frame overlaps the taskbar or parts of its
+parent frame.
 
 It specifies the numbers of pixels to be left free on the left, above,
 the right, and below a frame that shall be fit.  The default specifies
@@ -1083,7 +1085,7 @@ by that function is preserved.
 @end table
 
   @code{window-preserve-size} installs a window parameter (@pxref{Window
-Parameters}) called @code{preserved-size} which is consulted by the
+Parameters}) called @code{window-preserved-size} which is consulted by the
 window resizing functions.  This parameter will not prevent resizing the
 window when the window shows another buffer than the one when
 @code{window-preserve-size} was invoked or if its size has changed since
@@ -1317,8 +1319,8 @@ argument @var{window}, in lieu of the usual action of
 @code{delete-other-windows}.  @xref{Window Parameters}.
 
 Also, if @code{ignore-window-parameters} is @code{nil}, this function
-does not delete any window whose @code{no-delete-other-window} parameter
-is non-@code{nil}.
+does not delete any window whose @code{no-delete-other-windows}
+parameter is non-@code{nil}.
 @end deffn
 
 @deffn Command delete-windows-on &optional buffer-or-name frame
@@ -2484,6 +2486,25 @@ the function specified in @code{pop-up-frame-function}
 is added to the newly created frame's parameters.
 @end defun
 
+@defun display-buffer-in-child-frame buffer alist
+This function tries to display @var{buffer} in a child frame
+(@pxref{Child Frames}) of the selected frame, either reusing an existing
+child frame or by making a new one.  If @var{alist} has a non-@code{nil}
+@code{child-frame-parameters} entry, the corresponding value is an alist
+of frame parameters to give the new frame.  A @code{parent-frame}
+parameter specifying the selected frame is provided by default.  If the
+child frame should be or become the child of another frame, a
+corresponding entry must be added to @var{alist}.
+
+The appearance of child frames is largely dependent on the parameters
+provided via @var{alist}.  It is advisable to use at least ratios to
+specify the size (@pxref{Size Parameters}) and the position
+(@pxref{Position Parameters}) of the child frame and to add the
+@code{keep-ratio} in order to make sure that the child frame remains
+visible.  For other parameters that should be considered see @ref{Child
+Frames}.
+@end defun
+
 @defun display-buffer-use-some-frame buffer alist
 This function tries to display @var{buffer} by trying to find a
 frame that meets a predicate (by default any frame other than the
@@ -3124,12 +3145,17 @@ killed.
 The default is to call @code{iconify-frame} (@pxref{Visibility of
 Frames}).  Alternatively, you may specify either @code{delete-frame}
 (@pxref{Deleting Frames}) to remove the frame from its display,
-@code{ignore} to leave the frame unchanged, or any other function that
-can take a frame as its sole argument.
+@code{make-frame-invisible} to make the frame invisible, @code{ignore}
+to leave the frame unchanged, or any other function that can take a
+frame as its sole argument.
 
 Note that the function specified by this option is called only if the
 specified frame contains just one live window and there is at least one
 other frame on the same terminal.
+
+For a particular frame, the value specified here may be overridden by
+that frame's @code{auto-hide-function} frame parameter (@pxref{Frame
+Interaction Parameters}).
 @end defopt
 
 
@@ -3355,7 +3381,7 @@ producing the frame layout sketched above.
 @example
 @group
 (defvar parameters
-  '(window-parameters . ((no-other-window . t) (no-delete-other-window . t))))
+  '(window-parameters . ((no-other-window . t) (no-delete-other-windows . t))))
 
 (setq fit-window-to-buffer-horizontally t)
 (setq window-resize-pixelwise t)
@@ -3397,7 +3423,7 @@ retain their respective sizes when maximizing the frame, the variable
 are accessible via @kbd{C-x o} by installing the @code{no-other-window}
 parameter for each of these windows.  In addition, it makes sure that
 side windows are not deleted via @kbd{C-x 1} by installing the
-@code{no-delete-other-window} parameter for each of these windows.
+@code{no-delete-other-windows} parameter for each of these windows.
 
    Since @code{dired} buffers have no fixed names, we use a special
 function @code{dired-default-directory-on-left} in order to display a
@@ -4364,13 +4390,12 @@ is off the screen due to horizontal scrolling:
 @cindex coordinate, relative to frame
 @cindex window position
 
-This section describes functions that report the position of a window.
-Most of these functions report positions relative to an origin at the
-native position of the window's frame (@pxref{Frame Geometry}).  Some
-functions report positions relative to the origin of the display of the
-window's frame.  In any case, the origin has the coordinates (0, 0) and
-X and Y coordinates increase rightward and downward
-respectively.
+This section describes functions that report positions of and within a
+window.  Most of these functions report positions relative to an origin
+at the native position of the window's frame (@pxref{Frame Geometry}).
+Some functions report positions relative to the origin of the display of
+the window's frame.  In any case, the origin has the coordinates (0, 0)
+and X and Y coordinates increase rightward and downward respectively.
 
   For the following functions, X and Y coordinates are reported in
 integer character units, i.e., numbers of lines and columns
@@ -4606,6 +4631,49 @@ point in the selected window, it's sufficient to write:
    (car position) (cdr position)))
 @end group
 @end example
+@end defun
+
+The following function returns the largest rectangle that can be
+inscribed in a window without covering text displayed in that window.
+
+@defun window-largest-empty-rectangle &optional window count min-width min-height positions left
+This function calculates the dimensions of the largest empty rectangle
+that can be inscribed in the specified @var{window}'s text area.
+@var{window} must be a live window and defaults to the selected one.
+
+The return value is a triple of the width and the start and end
+y-coordinates of the largest rectangle that can be inscribed into the
+empty space (space not displaying any text) of the text area of
+@var{window}.  No x-coordinates are returned by this function---any such
+rectangle is assumed to end at the right edge of @var{window}'s text
+area.  If no empty space can be found, the return value is @code{nil}.
+
+The optional argument @var{count}, if non-@code{nil}, specifies a
+maximum number of rectangles to return.  This means that the return
+value is a list of triples specifying rectangles with the largest
+rectangle first.  @var{count} can be also a cons cell whose car
+specifies the number of rectangles to return and whose @sc{cdr}, if
+non-@code{nil}, states that all rectangles returned must be disjoint.
+
+The optional arguments @var{min-width} and @var{min-height}, if
+non-@code{nil}, specify the minimum width and height of any rectangle
+returned.
+
+The optional argument @var{positions}, if non-@code{nil}, is a cons cell
+whose @sc{car} specifies the uppermost and whose @sc{cdr} specifies the
+lowermost pixel position that must be covered by any rectangle returned.
+These positions measure from the start of the text area of @var{window}.
+
+The optional argument @var{left}, if non-@code{nil}, means to return
+values suitable for buffers displaying right to left text.  In that
+case, any rectangle returned is assumed to start at the left edge of
+@var{window}'s text area.
+
+Note that this function has to retrieve the dimensions of each line of
+@var{window}'s glyph matrix via @code{window-lines-pixel-dimensions}
+(@pxref{Size of Displayed Text}).  Hence, this function may also return
+@code{nil} when the current glyph matrix of @var{window} is not
+up-to-date.
 @end defun
 
 
@@ -4911,37 +4979,45 @@ windows when exiting that function.
 The following parameters are currently used by the window management
 code:
 
-@table @asis
-@item @code{delete-window}
+@table @code
+@item delete-window
+@vindex delete-window, a window parameter
 This parameter affects the execution of @code{delete-window}
 (@pxref{Deleting Windows}).
 
-@item @code{delete-other-windows}
+@item delete-other-windows
+@vindex delete-other-windows, a window parameter
 This parameter affects the execution of @code{delete-other-windows}
 (@pxref{Deleting Windows}).
 
-@item @code{no-delete-other-window}
+@item no-delete-other-windows
+@vindex no-delete-other-windows, a window parameter
 This parameter marks the window as not deletable by
 @code{delete-other-windows} (@pxref{Deleting Windows}).
 
-@item @code{split-window}
+@item split-window
+@vindex split-window, a window parameter
 This parameter affects the execution of @code{split-window}
 (@pxref{Splitting Windows}).
 
-@item @code{other-window}
+@item other-window
+@vindex other-window, a window parameter
 This parameter affects the execution of @code{other-window}
 (@pxref{Cyclic Window Ordering}).
 
-@item @code{no-other-window}
+@item no-other-window
+@vindex no-other-window, a window parameter
 This parameter marks the window as not selectable by @code{other-window}
 (@pxref{Cyclic Window Ordering}).
 
-@item @code{clone-of}
+@item clone-of
+@vindex clone-of, a window parameter
 This parameter specifies the window that this one has been cloned
 from.  It is installed by @code{window-state-get} (@pxref{Window
 Configurations}).
 
-@item @code{preserved-size}
+@item window-preserved-size
+@vindex window-preserved-size, a window parameter
 This parameter specifies a buffer, a direction where @code{nil} means
 vertical and @code{t} horizontal, and a size in pixels.  If this window
 displays the specified buffer and its size in the indicated direction
@@ -4950,7 +5026,8 @@ preserve the size of this window in the indicated direction.  This
 parameter is installed and updated by the function
 @code{window-preserve-size} (@pxref{Preserving Window Sizes}).
 
-@item @code{quit-restore}
+@item quit-restore
+@vindex quit-restore, a window parameter
 This parameter is installed by the buffer display functions
 (@pxref{Choosing Window}) and consulted by @code{quit-restore-window}
 (@pxref{Quitting Windows}).  It contains four elements:
@@ -4981,15 +5058,37 @@ only if it still shows that buffer.
 See the description of @code{quit-restore-window} in @ref{Quitting
 Windows} for details.
 
-@item @code{window-side} @code{window-slot}
+@item window-side window-slot
+@vindex window-side, a window parameter
+@vindex window-slot, a window parameter
 These parameters are used for implementing side windows (@pxref{Side
 Windows}).
 
-@item @code{window-atom}
+@item window-atom
+@vindex window-atom, a window parameter
 This parameter is used for implementing atomic windows, see @ref{Atomic
 Windows}.
 
-@item @code{min-margins}
+@item mode-line-format
+@vindex mode-line-format, a window parameter
+This parameter replaces the value of the buffer-local variable
+@code{mode-line-format} (@pxref{Mode Line Basics}) of this window's
+buffer whenever this window is displayed.  The symbol @code{none} means
+to suppress display of a mode line for this window.  Display and
+contents of the mode line on other windows showing this buffer are not
+affected.
+
+@item header-line-format
+@vindex header-line-format, a window parameter
+This parameter replaces the value of the buffer-local variable
+@code{header-line-format} (@pxref{Mode Line Basics}) of this window's
+buffer whenever this window is displayed.  The symbol @code{none} means
+to suppress display of a header line for this window.  Display and
+contents of the header line on other windows showing this buffer are not
+affected.
+
+@item min-margins
+@vindex min-margins, a window parameter
 The value of this parameter is a cons cell whose @sc{car} and @sc{cdr},
 if non-@code{nil}, specify the minimum values (in columns) for the left
 and right margin of this window.  When present, Emacs will use these
@@ -5028,7 +5127,10 @@ redisplaying a window with scrolling.  Displaying a different buffer in
 the window also runs these functions.
 
 This variable is not a normal hook, because each function is called with
-two arguments: the window, and its new display-start position.
+two arguments: the window, and its new display-start position.  At the
+time of the call, the display-start position of the window argument is
+already set to its new value, and the buffer to be displayed in the
+window is already set as the current buffer.
 
 These functions must take care when using @code{window-end}
 (@pxref{Window Start and End}); if you need an up-to-date value, you
@@ -5038,6 +5140,11 @@ must use the @var{update} argument to ensure you get it.
 is scrolled.  It's not designed for that, and such use probably won't
 work.
 @end defvar
+
+@defun run-window-scroll-functions &optional window
+This function calls @code{window-scroll-functions} for the specified
+@var{window}, which defaults to the selected window.
+@end defun
 
 @defvar window-size-change-functions
 This variable holds a list of functions to be called if the size of any
@@ -5068,16 +5175,21 @@ be called again.
 @defvar window-configuration-change-hook
 A normal hook that is run every time the window configuration of a frame
 changes.  Window configuration changes include splitting and deleting
-windows and the display of a different buffer in a window.  Resizing the
+windows, and the display of a different buffer in a window.  Resizing the
 frame or individual windows do not count as configuration changes.  Use
 @code{window-size-change-functions}, see above, when you want to track
 size changes that are not caused by the deletion or creation of windows.
 
-The buffer-local part of this hook is run once for each window on the
+The buffer-local value of this hook is run once for each window on the
 affected frame, with the relevant window selected and its buffer
-current.  The global part is run once for the modified frame, with that
-frame selected.
+current.  The global value of this hook is run once for the modified
+frame, with that frame selected.
 @end defvar
+
+@defun run-window-configuration-change-hook &optional frame
+This function runs @code{window-configuration-change-hook} for the
+specified @var{frame}, which defaults to the selected frame.
+@end defun
 
   In addition, you can use @code{jit-lock-register} to register a Font
 Lock fontification function, which will be called whenever parts of a

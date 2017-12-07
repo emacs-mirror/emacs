@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -602,7 +602,7 @@ non-nil in a repeated invocation of this function."
 	  (save-restriction
             ;; Don't be blindsided by narrowing that starts in the middle
             ;; of a jit-lock-defer-multiline.
-	    (widen) 
+	    (widen)
 	    (when (and (>= jit-lock-context-unfontify-pos (point-min))
 		       (< jit-lock-context-unfontify-pos (point-max)))
 	      ;; If we're in text that matches a complex multi-line

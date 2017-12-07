@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -591,6 +591,174 @@ baz\"\""
   "" "'" :expected-string "'" :expected-point 2
   :fixture-fn #'electric-quote-local-mode
   :bindings '((electric-quote-string . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-opening-single
+  "" "`" :expected-string "‘" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-closing-single
+  "" "'" :expected-string "’" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-opening-double
+  "‘" "-`" :expected-string "“" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-closing-double
+  "’" "-'" :expected-string "”" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-replace-double-disabled
+  "" "\"" :expected-string "\"" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-backtick
+  "" "`" :expected-string "`" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-bob-single
+  "" "'" :expected-string "‘" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-bob-double
+  "‘" "-'" :expected-string "“" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-replace-double-bob
+  "" "\"" :expected-string "“" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-replace-double . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-bol-single
+  "a\n" "--'" :expected-string "a\n‘" :expected-point 4
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-bol-double
+  "a\n‘" "---'" :expected-string "a\n“" :expected-point 4
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-replace-double-bol
+  "a\n" "--\"" :expected-string "a\n“" :expected-point 4
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-replace-double . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-after-space-single
+  " " "-'" :expected-string " ‘" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-after-space-double
+  " ‘" "--'" :expected-string " “" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-replace-double-after-space
+  " " "-\"" :expected-string " “" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-replace-double . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-after-letter-single
+  "a" "-'" :expected-string "a’" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-after-letter-double
+  "a’" "--'" :expected-string "a”" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-replace-double-after-letter
+  "a" "-\"" :expected-string "a”" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-replace-double . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-after-paren-single
+  "(" "-'" :expected-string "(‘" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-context-sensitive-after-paren-double
+  "(‘" "--'" :expected-string "(“" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-context-sensitive . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-replace-double-after-paren
+  "(" "-\"" :expected-string "(“" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn #'electric-quote-local-mode
+  :bindings '((electric-quote-replace-double . t))
+  :test-in-comments nil :test-in-strings nil)
+
+;; Simulate ‘markdown-mode’: it sets both ‘comment-start’ and
+;; ‘comment-use-syntax’, but derives from ‘text-mode’.
+(define-electric-pair-test electric-quote-markdown-in-text
+  "" "'" :expected-string "’" :expected-point 2
+  :modes '(text-mode)
+  :fixture-fn (lambda ()
+                (electric-quote-local-mode)
+                (add-hook 'electric-quote-inhibit-functions
+                          (lambda ()
+                            (save-excursion (search-backward "`" nil t)))
+                          nil :local))
+  :bindings '((comment-start . "<!--") (comment-use-syntax . t))
+  :test-in-comments nil :test-in-strings nil)
+
+(define-electric-pair-test electric-quote-markdown-in-code
+  "`a`" "-'" :expected-string "`'a`" :expected-point 3
+  :modes '(text-mode)
+  :fixture-fn (lambda ()
+                (electric-quote-local-mode)
+                (add-hook 'electric-quote-inhibit-functions
+                          (lambda ()
+                            (save-excursion (search-backward "`" nil t)))
+                          nil :local))
+  :bindings '((comment-start . "<!--") (comment-use-syntax . t))
   :test-in-comments nil :test-in-strings nil)
 
 (provide 'electric-tests)

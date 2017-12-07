@@ -5,7 +5,7 @@ Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
 
 Steps to take before starting on the first pretest in any release sequence:
 
-0.  The release branch (e.g. emacs-25) should already have been made
+0.  The release branch (e.g. emacs-26) should already have been made
     and you should use it for all that follows.  Diffs from this
     branch should be going to the emacs-diffs mailing list.
 
@@ -18,7 +18,7 @@ Steps to take before starting on the first pretest in any release sequence:
     when preparing the first pretest for a major Emacs release.)
     Commit cus-edit.el if changed.
 
-3.  Remove any old pretests from ftp://alpha.gnu.org/gnu/emacs/pretest.
+3.  Remove any old pretests from https://alpha.gnu.org/gnu/emacs/pretest.
     You can use 'gnupload --delete' (see below for more gnupload details).
 
 General steps (for each step, check for possible errors):
@@ -101,8 +101,8 @@ General steps (for each step, check for possible errors):
     Check the contents of the new tar with admin/diff-tar-files
     against the previous release (if this is the first pretest) or the
     previous pretest.  If you did not make the previous pretest
-    yourself, find it at <ftp://alpha.gnu.org/gnu/emacs/pretest>.
-    Releases are of course at <ftp://ftp.gnu.org/pub/gnu/emacs/>.
+    yourself, find it at <https://alpha.gnu.org/gnu/emacs/pretest>.
+    Releases are of course at <https://ftp.gnu.org/pub/gnu/emacs/>.
 
     If this is the first pretest of a major release, just comparing
     with the previous release may overlook many new files.  You can try
@@ -130,9 +130,9 @@ General steps (for each step, check for possible errors):
     Now you should upload the files to the GNU ftp server.  In order to
     do that, you must be registered as an Emacs maintainer and have your
     GPG key acknowledged by the ftp people.  For instructions, see
-    http://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html
+    https://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html
     The simplest method to upload is to use the gnulib
-    <http://www.gnu.org/s/gnulib/> script "build-aux/gnupload":
+    <https://www.gnu.org/s/gnulib/> script "build-aux/gnupload":
 
     For a pretest:
      gnupload [--user your@gpg.key.email] --to alpha.gnu.org:emacs/pretest \
@@ -161,11 +161,11 @@ General steps (for each step, check for possible errors):
     FILE.sig, FILE.directive.asc.
     For a release, place the files in the /incoming/ftp directory.
     For a pretest, place the files in /incoming/alpha instead, so that
-    they appear on ftp://alpha.gnu.org/.
+    they appear on https://alpha.gnu.org/.
 
 10. After five minutes, verify that the files are visible at
-    ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, or
-    ftp://ftp.gnu.org/gnu/emacs/ for a release.
+    https://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, or
+    https://ftp.gnu.org/gnu/emacs/ for a release.
 
     Download them and check the signatures.  Check they build.
 
@@ -177,6 +177,11 @@ General steps (for each step, check for possible errors):
     See the info-gnu-emacs mailing list archives for the form
     of past announcements.  The first pretest announcement, and the
     release announcement, should have more detail.
+    Use the emacs-devel topic 'emacs-announce'.  The best way to do
+    this is to add a header "Keywords: emacs-announce" to your mail.
+    (You can also put it in the Subject, but this is not as good
+    because replies that invariably are not announcements also get
+    sent out as if they were.)
 
 12. After a release, update the Emacs pages as below.
 
@@ -185,7 +190,7 @@ UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
 As soon as possible after a release, the Emacs web pages should be updated.
 Anyone with write access to the Emacs code repository can do this.
-For instructions, see <http://savannah.gnu.org/cvs/?group=emacs>.
+For instructions, see <https://savannah.gnu.org/cvs/?group=emacs>.
 Changes go live more or less as soon as they are committed.
 
 The pages to update are:
@@ -207,7 +212,7 @@ longer present.
 Tar up the generated html_node/emacs/ and elisp/ directories and update
 the files manual/elisp.html_node.tar.gz and emacs.html_node.tar.gz.
 
-Use M-x make-manuals-dist from from admin/admin.el to update the
+Use M-x make-manuals-dist from admin/admin.el to update the
 manual/texi/ tarfiles.
 
 Add compressed copies of the main info pages from the tarfile to manual/info/.
@@ -215,5 +220,5 @@ Add compressed copies of the main info pages from the tarfile to manual/info/.
 Update the refcards/pdf/ and ps/ directories, and also
 refcards/emacs-refcards.tar.gz (use make -C etc/refcards pdf ps dist).
 
-Browsing <http://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
+Browsing <https://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
 way to check for any files that still need updating.

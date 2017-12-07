@@ -1,4 +1,4 @@
-;;; url-history.el --- Global history tracking for URL package
+;;; url-history.el --- Global history tracking for URL package  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -106,7 +106,7 @@ to run the `url-history-setup-save-timer' function manually."
 
 (defun url-history-update-url (url time)
   (setq url-history-changed-since-last-save t)
-  (puthash (if (vectorp url) (url-recreate-url url) url) time
+  (puthash (if (url-p url) (url-recreate-url url) url) time
            url-history-hash-table))
 
 (autoload 'url-make-private-file "url-util")
@@ -157,6 +157,7 @@ user for what type to save as."
   (gethash url url-history-hash-table nil))
 
 (defun url-completion-function (string predicate function)
+  (declare (obsolete url-history-hash-table "26.1"))
   ;; Completion function to complete urls from the history.
   ;; This is obsolete since we can now pass the hash-table directly as a
   ;; completion table.
@@ -164,7 +165,7 @@ user for what type to save as."
   (cond
    ((eq function nil)
     (let ((list nil))
-      (maphash (lambda (key val) (push key list))
+      (maphash (lambda (key _) (push key list))
                url-history-hash-table)
       ;; Not sure why we bother reversing the list.  --Stef
       (try-completion string (nreverse list) predicate)))
@@ -172,7 +173,7 @@ user for what type to save as."
     (let ((stub (concat "\\`" (regexp-quote string)))
 	  (retval nil))
       (maphash
-       (lambda (url time)
+       (lambda (url _)
          (if (string-match stub url) (push url retval)))
        url-history-hash-table)
       retval))

@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -469,7 +469,7 @@ checksum before doing the check."
     (concat " " (substring str 4 16) (format-time-string " %Y" time))))
 
 (defun tar-grind-file-mode (mode)
-  "Construct a `-rw--r--r--' string indicating MODE.
+  "Construct a `rw-r--r--' string indicating MODE.
 MODE should be an integer which is a file mode value."
   (string
    (if (zerop (logand 256 mode)) ?- ?r)
@@ -1118,7 +1118,7 @@ for this to be permanent."
 	(save-excursion
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (if (looking-at "D")
+	    (if (= (following-char) ?D)
 		(progn (tar-expunge-internal)
 		       (setq n (1+ n)))
 		(forward-line 1)))

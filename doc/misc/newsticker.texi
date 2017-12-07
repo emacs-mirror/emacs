@@ -440,20 +440,18 @@ headlines.  Instead of reading headlines yourself you can tell
 Newsticker to do that for you.
 
 @vindex newsticker-new-item-functions
-In order to do so write a function which takes three arguments
+In order to do so write a function which takes two arguments
 
 @table @var
-@item FEED
+@item FEEDNAME
 the name of the corresponding news feed,
-@item TITLE
-the title of the headline,
-@item DESC
-the decoded description of the headline.
+@item ITEM
+the decoded headline.
 @end table
 
 and add it to @code{newsticker-new-item-functions}.  Each function
 contained in this list is called once for each new headline.
-Depending on the feed, the title and the description of a headline you
+Depending on the feed name and the contents of the new headline you
 can
 
 @itemize
@@ -463,7 +461,7 @@ descriptions (for which a function already exists, see
 @code{newsticker-download-images}),
 @item
 automatically save enclosed audio and video files (for which another
-function exists as well, see @code{newsticker-download-images}),
+function exists as well, see @code{newsticker-download-enclosures}),
 @item
 flash the screen while playing some sound,
 @item

@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,7 +44,7 @@ Group containing all things concerning pattern matching in ERC
 messages."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-match-mode "erc-match")
+;;;###autoload(autoload 'erc-match-mode "erc-match")
 (define-erc-module match nil
   "This mode checks whether messages match certain patterns.  If so,
 they are hidden or highlighted.  This is controlled via the variables
@@ -648,6 +648,7 @@ This function is meant to be called from `erc-text-matched-hook'."
 ;;; erc-match.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

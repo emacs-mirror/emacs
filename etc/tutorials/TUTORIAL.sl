@@ -1134,7 +1134,7 @@ Copyright © 1985, 1996, 1998, 2001-2017 Free Software Foundation, Inc.
   General Public License«.
 
   Kopijo »GNU General Public License« bi morali prejeti skupaj s paketom
-  GNU Emacs. Če je niste, je na voljo na <http://www.gnu.org/licenses/>.
+  GNU Emacs. Če je niste, je na voljo na <https://www.gnu.org/licenses/>.
 
 Prosimo, preberite datoteko COPYING in potem ponudite kopijo programa
 GNU Emacs svojim prijateljem. Pomagajte zatreti obstrukcionizem

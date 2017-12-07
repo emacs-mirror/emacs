@@ -212,7 +212,7 @@ emacs, GNU Emacs Manual}.  Unlike @code{find-file-literally}, finding
 a file as @samp{raw-text} doesn't disable format conversion,
 uncompression, or auto mode selection.
 
-@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@c See https://debbugs.gnu.org/11226 for lack of unibyte tooltip.
 @vindex enable-multibyte-characters
 The buffer-local variable @code{enable-multibyte-characters} is
 non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.

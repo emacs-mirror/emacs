@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -216,7 +216,7 @@ When called with a raw C-u prefix, rescan the document first."
   (or reftex-support-index
       (setq reftex-toc-include-index-entries nil))
 
-  ;; Ensure access to scanning info and rescan buffer if prefix are is '(4)
+  ;; Ensure access to scanning info and rescan buffer if prefix arg is '(4)
   (reftex-access-scan-info current-prefix-arg)
 
   (let* ((this-buf (current-buffer))

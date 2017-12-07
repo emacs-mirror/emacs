@@ -248,7 +248,7 @@ of 8k bytes, and small vectors are packed into blocks of 4k bytes).
 @cindex storage of vector-like Lisp objects
   Beyond the basic vector, a lot of objects like window, buffer, and
 frame are managed as if they were vectors.  The corresponding C data
-structures include the @code{struct vectorlike_header} field whose
+structures include the @code{union vectorlike_header} field whose
 @code{size} member contains the subtype enumerated by @code{enum pvec_type}
 and an information about how many @code{Lisp_Object} fields this structure
 contains and what the size of the rest data is.  This information is
@@ -1085,7 +1085,7 @@ Some of the fields of @code{struct buffer} are:
 
 @table @code
 @item header
-A header of type @code{struct vectorlike_header} is common to all
+A header of type @code{union vectorlike_header} is common to all
 vectorlike objects.
 
 @item own_text

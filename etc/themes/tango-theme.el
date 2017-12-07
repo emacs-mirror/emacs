@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary
 
@@ -124,6 +124,16 @@ Semantic, and Ansi-Color faces are included.")
    ;; Flyspell
    `(flyspell-duplicate ((,class (:underline ,orange-1))))
    `(flyspell-incorrect ((,class (:underline ,red-1))))
+   ;; Realgud
+   `(realgud-overlay-arrow1  ((,class (:foreground "dark green"))))
+   `(realgud-overlay-arrow2  ((,class (:foreground "#7a4c02"))))
+   `(realgud-overlay-arrow3  ((,class (:foreground ,orange-1))))
+   `(realgud-bp-disabled-face      ((,class (:foreground ,plum-1))))
+   `(realgud-bp-line-enabled-face  ((,class (:underline "red"))))
+   `(realgud-bp-line-disabled-face ((,class (:underline ,plum-1))))
+   `(realgud-file-name             ((,class :foreground "dark green")))
+   `(realgud-line-number           ((,class :foreground ,blue-3)))
+   `(realgud-backtrace-number      ((,class :foreground ,blue-3 :weight bold)))
    ;; Semantic faces
    `(semantic-decoration-on-includes ((,class (:underline  ,cham-4))))
    `(semantic-decoration-on-private-members-face

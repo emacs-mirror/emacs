@@ -7,7 +7,7 @@ This README file describes how to dump a bare precompiled version of
 GNU Emacs for Windows.  This barebin distribution supplements the
 standard distribution of Emacs, which you can download from:
 
-	ftp://ftp.gnu.org/gnu/emacs/
+	https://ftp.gnu.org/gnu/emacs/
 
 If you do not have the "bin" or "src" distribution, then you will need
 to download one of those before you can use this barebin version.
@@ -55,4 +55,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

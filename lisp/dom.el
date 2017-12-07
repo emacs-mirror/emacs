@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -162,7 +162,7 @@ ATTRIBUTE would typically be `class', `id' or the like."
 
 (defun dom-previous-sibling (dom node)
   "Return the previous sibling of NODE in DOM."
-  (when-let (parent (dom-parent dom node))
+  (when-let* ((parent (dom-parent dom node)))
     (let ((siblings (dom-children parent))
 	  (previous nil))
       (while siblings

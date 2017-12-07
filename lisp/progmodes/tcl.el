@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; BEFORE USE:
 ;;
@@ -353,8 +353,6 @@ information):
     Quotes all \"#\" characters that don't correspond to actual
     Tcl comments.  (Useful when editing code not originally created
     with this mode).
-  `tcl-auto-fill-mode'
-    Auto-filling of Tcl comments.
 
 Add functions to the hook with `add-hook':
 
@@ -1413,6 +1411,9 @@ Prefix argument means switch to the Tcl buffer afterwards."
 
 (defun tcl-auto-fill-mode (&optional arg)
   "Like `auto-fill-mode', but sets `comment-auto-fill-only-comments'."
+  (declare
+   (obsolete
+    "Use `auto-fill-mode' with `comment-auto-fill-only-comments'." "26.1"))
   (interactive "P")
   (auto-fill-mode arg)
   (if auto-fill-function

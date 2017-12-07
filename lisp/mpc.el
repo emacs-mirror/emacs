@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1029,12 +1029,12 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                      (let ((dir (file-name-directory (cdr (assq 'file info)))))
                        ;; (debug)
                        (push `(equal ',dir (file-name-directory (cdr (assq 'file info)))) pred)
-                       (if-let ((covers '(".folder.png" "cover.jpg" "folder.jpg"))
-                                (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
-                                                if (member (downcase file) covers)
-                                                return (concat dir file)))
-                                (file (with-demoted-errors "MPC: %s"
-                                        (mpc-file-local-copy cover))))
+                       (if-let* ((covers '(".folder.png" "cover.jpg" "folder.jpg"))
+                                 (cover (cl-loop for file in (directory-files (mpc-file-local-copy dir))
+                                                 if (member (downcase file) covers)
+                                                 return (concat dir file)))
+                                 (file (with-demoted-errors "MPC: %s"
+                                         (mpc-file-local-copy cover))))
                            (let (image)
                              (if (null size) (setq image (create-image file))
                                (let ((tempfile (make-temp-file "mpc" nil ".jpg")))
@@ -2403,10 +2403,38 @@ This is used so that they can be compared with `eq', which is needed for
   (interactive)
   (mpc-cmd-pause "0"))
 
+(defun mpc-read-seek (prompt)
+  "Read a seek time.
+Returns a string suitable for MPD \"seekcur\" protocol command."
+  (let* ((str (read-from-minibuffer prompt nil nil nil nil nil t))
+         (seconds "\\(?1:[[:digit:]]+\\(?:\\.[[:digit:]]*\\)?\\)")
+         (minsec (concat "\\(?2:[[:digit:]]+\\):" seconds "?"))
+         (hrminsec (concat "\\(?3:[[:digit:]]+\\):\\(?:" minsec "?\\|:\\)"))
+         time sign)
+    (setq str (string-trim str))
+    (when (memq (string-to-char str) '(?+ ?-))
+      (setq sign (string (string-to-char str)))
+      (setq str (substring str 1)))
+    (setq time
+          ;; `string-to-number' returns 0 on failure
+          (cond
+           ((string-match (concat "^" hrminsec "$") str)
+            (+ (* 3600 (string-to-number (match-string 3 str)))
+               (* 60 (string-to-number (or (match-string 2 str) "")))
+               (string-to-number (or (match-string 1 str) ""))))
+           ((string-match (concat "^" minsec "$") str)
+            (+ (* 60 (string-to-number (match-string 2 str)))
+               (string-to-number (match-string 1 str))))
+           ((string-match (concat "^" seconds "$") str)
+            (string-to-number (match-string 1 str)))
+           (t (user-error "Invalid time"))))
+    (setq time (number-to-string time))
+    (if (null sign) time (concat sign time))))
+
 (defun mpc-seek-current (pos)
   "Seek within current track."
   (interactive
-   (list (read-string "Position to go ([+-]seconds): ")))
+   (list (mpc-read-seek "Position to go ([+-][[H:]M:]seconds): ")))
   (mpc-cmd-seekcur pos))
 
 (defun mpc-toggle-play ()

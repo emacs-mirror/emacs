@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Avishai Yacobi suggested some menu rearrangements.
 
@@ -669,7 +669,8 @@ The selected font will be the default on both the existing and future frames."
   (let ((need-save nil))
     ;; These are set with menu-bar-make-mm-toggle, which does not
     ;; put on a customized-value property.
-    (dolist (elt '(line-number-mode column-number-mode size-indication-mode
+    (dolist (elt '(global-display-line-numbers-mode display-line-numbers-type
+		   line-number-mode column-number-mode size-indication-mode
 		   cua-mode show-paren-mode transient-mark-mode
 		   blink-cursor-mode display-time-mode display-battery-mode
 		   ;; These are set by other functions that don't set
@@ -1101,17 +1102,78 @@ The selected font will be the default on both the existing and future frames."
                     :button (:radio . (eq tool-bar-mode nil))))
       menu)))
 
+(defvar display-line-numbers-type)
+(defun menu-bar-display-line-numbers-mode (type)
+  (setq display-line-numbers-type type)
+  (if global-display-line-numbers-mode
+      (global-display-line-numbers-mode)
+    (display-line-numbers-mode)))
+
+(defvar menu-bar-showhide-line-numbers-menu
+  (let ((menu (make-sparse-keymap "Line Numbers")))
+
+    (bindings--define-key menu [visual]
+      `(menu-item "Visual Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode 'visual)
+                     (message "Visual line numbers enabled"))
+                  :help "Enable visual line numbers"
+                  :button (:radio . (eq display-line-numbers 'visual))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [relative]
+      `(menu-item "Relative Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode 'relative)
+                     (message "Relative line numbers enabled"))
+                  :help "Enable relative line numbers"
+                  :button (:radio . (eq display-line-numbers 'relative))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [absolute]
+      `(menu-item "Absolute Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode t)
+                     (setq display-line-numbers t)
+                     (message "Absolute line numbers enabled"))
+                  :help "Enable absolute line numbers"
+                  :button (:radio . (eq display-line-numbers t))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [none]
+      `(menu-item "No Line Numbers"
+                  ,(lambda ()
+                     (interactive)
+                     (menu-bar-display-line-numbers-mode nil)
+                     (message "Line numbers disabled"))
+                  :help "Disable line numbers"
+                  :button (:radio . (null display-line-numbers))
+                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+
+    (bindings--define-key menu [global]
+      (menu-bar-make-mm-toggle global-display-line-numbers-mode
+                               "Global Line Numbers Mode"
+                               "Set line numbers globally"))
+    menu))
+
 (defvar menu-bar-showhide-menu
   (let ((menu (make-sparse-keymap "Show/Hide")))
 
+    (bindings--define-key menu [display-line-numbers]
+      `(menu-item "Line Numbers for All Lines"
+		  ,menu-bar-showhide-line-numbers-menu))
+
     (bindings--define-key menu [column-number-mode]
       (menu-bar-make-mm-toggle column-number-mode
-                               "Column Numbers"
+                               "Column Numbers in Mode Line"
                                "Show the current column number in the mode line"))
 
     (bindings--define-key menu [line-number-mode]
       (menu-bar-make-mm-toggle line-number-mode
-                               "Line Numbers"
+                               "Line Numbers in Mode Line"
                                "Show the current line number in the mode line"))
 
     (bindings--define-key menu [size-indication-mode]

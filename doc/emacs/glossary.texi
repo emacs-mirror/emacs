@@ -405,6 +405,14 @@ A directory local variable is a local variable (q.v.@:) that applies
 to all the files within a certain directory.  @xref{Directory
 Variables}.
 
+@item Directory Name
+On GNU and other Unix-like systems, directory names are strings that
+end in @samp{/}.  For example, @file{/no-such-dir/} is a directory
+name whereas @file{/tmp} is not, even though @file{/tmp} names a file
+that happens to be a directory.  On MS-DOS the relationship is more
+complicated.  @xref{Directory Names,,, elisp, the Emacs Lisp Reference
+Manual}.
+
 @item Dired
 Dired is the Emacs facility that displays the contents of a file
 directory and allows you to ``edit the directory'', performing
@@ -586,7 +594,7 @@ GNU General Public License.  @xref{Copying}.
 @item Free Software Foundation
 The Free Software Foundation (FSF) is a charitable foundation
 dedicated to promoting the development of free software (q.v.).
-For more information, see @uref{http://fsf.org/, the FSF website}.
+For more information, see @uref{https://fsf.org/, the FSF website}.
 
 @item Fringe
 On a graphical display (q.v.), there's a narrow portion of the frame
@@ -642,7 +650,7 @@ GNU is a recursive acronym for GNU's Not Unix, and it refers to a
 Unix-compatible operating system which is free software (q.v.).
 @xref{Manifesto}.  GNU is normally used with Linux as the kernel since
 Linux works better than the GNU kernel.  For more information, see
-@uref{http://www.gnu.org/, the GNU website}.
+@uref{https://www.gnu.org/, the GNU website}.
 
 @item Graphic Character
 Graphic characters are those assigned pictorial images rather than
@@ -1197,7 +1205,7 @@ string or the next match for a specified regular expression.
 @xref{Search}.
 
 @item Search Path
-A search path is a list of directory names, to be used for searching for
+A search path is a list of directories, to be used for searching for
 files for certain purposes.  For example, the variable @code{load-path}
 holds a search path for finding Lisp library files.  @xref{Lisp Libraries}.
 

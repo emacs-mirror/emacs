@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -128,9 +128,10 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   "If t incremental search/query-replace can match hidden text.
 A nil value means don't match invisible text.
 When the value is `open', if the text matched is made invisible by
-an overlay having an `invisible' property and that overlay has a property
-`isearch-open-invisible', then incremental search will show the contents.
-\(This applies when using `outline.el' and `hideshow.el'.)
+an overlay having a non-nil `invisible' property, and that overlay
+has a non-nil property `isearch-open-invisible', then incremental
+search will show the hidden text.  (This applies when using `outline.el'
+and `hideshow.el'.)
 
 To temporarily change the value for an active incremental search,
 use \\<isearch-mode-map>\\[isearch-toggle-invisible].

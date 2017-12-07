@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -219,7 +219,7 @@ easy interactive way to set this from the Server buffer."
 Use old data if FORCE-OLDER is not nil."
   (let* ((contents (plist-get elem :contents))
          (date (or (plist-get elem :timestamp) "0"))
-         (now (gnus-cloud-timestamp (current-time)))
+         (now (gnus-cloud-timestamp nil))
          (newer (string-lessp date now))
          (group-info (gnus-get-info group)))
     (if (and contents
@@ -486,7 +486,7 @@ Otherwise, returns the Gnus Cloud data chunks."
              (gnus-method-to-server
               (gnus-find-method-for-group (gnus-info-group info))))
 
-        (push `(:type :newsrc-data :name ,(gnus-info-group info) :contents ,info :timestamp ,(gnus-cloud-timestamp (current-time)))
+        (push `(:type :newsrc-data :name ,(gnus-info-group info) :contents ,info :timestamp ,(gnus-cloud-timestamp nil))
               infos)))
     infos))
 

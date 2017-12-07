@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Eli Zaretskii <eliz@gnu.org>.
 
@@ -565,9 +565,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
    RTL characters in the offending line of text.  */
 /* Do we need to allow customization of this limit?  */
 #define BIDI_CACHE_MAX_ELTS_PER_SLOT 50000
-#if BIDI_CACHE_CHUNK >= BIDI_CACHE_MAX_ELTS_PER_SLOT
-# error BIDI_CACHE_CHUNK must be less than BIDI_CACHE_MAX_ELTS_PER_SLOT
-#endif
+verify (BIDI_CACHE_CHUNK < BIDI_CACHE_MAX_ELTS_PER_SLOT);
 static ptrdiff_t bidi_cache_max_elts = BIDI_CACHE_MAX_ELTS_PER_SLOT;
 static struct bidi_it *bidi_cache;
 static ptrdiff_t bidi_cache_size = 0;
@@ -1450,8 +1448,14 @@ bidi_at_paragraph_end (ptrdiff_t charpos, ptrdiff_t bytepos)
   Lisp_Object start_re;
   ptrdiff_t val;
 
-  sep_re = paragraph_separate_re;
-  start_re = paragraph_start_re;
+  if (STRINGP (BVAR (current_buffer, bidi_paragraph_separate_re)))
+    sep_re = BVAR (current_buffer, bidi_paragraph_separate_re);
+  else
+    sep_re = paragraph_separate_re;
+  if (STRINGP (BVAR (current_buffer, bidi_paragraph_start_re)))
+    start_re = BVAR (current_buffer, bidi_paragraph_start_re);
+  else
+    start_re = paragraph_start_re;
 
   val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
   if (val < 0)
@@ -1525,7 +1529,10 @@ bidi_paragraph_cache_on_off (void)
 static ptrdiff_t
 bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 {
-  Lisp_Object re = paragraph_start_re;
+  Lisp_Object re =
+    STRINGP (BVAR (current_buffer, bidi_paragraph_start_re))
+    ? BVAR (current_buffer, bidi_paragraph_start_re)
+    : paragraph_start_re;
   ptrdiff_t limit = ZV, limit_byte = ZV_BYTE;
   struct region_cache *bpc = bidi_paragraph_cache_on_off ();
   ptrdiff_t n = 0, oldpos = pos, next;
@@ -2468,9 +2475,11 @@ typedef struct bpa_stack_entry {
   unsigned flags : 2;
 } bpa_stack_entry;
 
-/* With MAX_ALLOCA of 16KB, this should allow at least 1K slots in the
+/* Allow for the two struct bidi_it objects too, since they can be big.
+   With MAX_ALLOCA of 16 KiB, this should allow at least 900 slots in the
    BPA stack, which should be more than enough for actual bidi text.  */
-#define MAX_BPA_STACK ((int)max (MAX_ALLOCA / sizeof (bpa_stack_entry), 1))
+enum { MAX_BPA_STACK = max (1, ((MAX_ALLOCA - 2 * sizeof (struct bidi_it))
+				/ sizeof (bpa_stack_entry))) };
 
 /* UAX#9 says to match opening brackets with the matching closing
    brackets or their canonical equivalents.  As of Unicode 8.0, there
@@ -2517,7 +2526,7 @@ typedef struct bpa_stack_entry {
 #define PUSH_BPA_STACK							\
   do {									\
     int ch;								\
-    if (bpa_sp < MAX_BPA_STACK - 1)					\
+    if (bpa_sp < MAX_BPA_STACK - 1 && bidi_cache_last_idx <= INT_MAX)	\
       {									\
 	bpa_sp++;							\
 	ch = CANONICAL_EQU (bidi_it->ch);				\
@@ -2563,7 +2572,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
       ptrdiff_t pairing_pos;
       int idx_at_entry = bidi_cache_idx;
 
-      eassert (MAX_BPA_STACK >= 100);
+      verify (MAX_BPA_STACK >= 100);
       bidi_copy_it (&saved_it, bidi_it);
       /* bidi_cache_iterator_state refuses to cache on backward scans,
 	 and bidi_cache_fetch_state doesn't bring scan_dir from the
@@ -3498,10 +3507,16 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	  if (sep_len >= 0)
 	    {
 	      bidi_it->new_paragraph = 1;
-	      /* Record the buffer position of the last character of the
-		 paragraph separator.  */
-	      bidi_it->separator_limit
-		= bidi_it->charpos + bidi_it->nchars + sep_len;
+	      /* Record the buffer position of the last character of
+		 the paragraph separator.  If the paragraph separator
+		 is an empty string (e.g., the regex is "^"), the
+		 newline that precedes the end of the paragraph is
+		 that last character.  */
+	      if (sep_len > 0)
+		bidi_it->separator_limit
+		  = bidi_it->charpos + bidi_it->nchars + sep_len;
+	      else
+		bidi_it->separator_limit = bidi_it->charpos;
 	    }
 	}
     }

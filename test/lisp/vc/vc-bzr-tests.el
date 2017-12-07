@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,7 +29,7 @@
 (require 'vc-dir)
 
 (ert-deftest vc-bzr-test-bug9726 ()
-  "Test for http://debbugs.gnu.org/9726 ."
+  "Test for https://debbugs.gnu.org/9726 ."
   (skip-unless (executable-find vc-bzr-program))
   ;; Bzr wants to access HOME, e.g. to write ~/.bzr.log.
   ;; This is a problem on hydra, where HOME is non-existent.
@@ -71,7 +71,7 @@
 
 ;; Not specific to bzr.
 (ert-deftest vc-bzr-test-bug9781 ()
-  "Test for http://debbugs.gnu.org/9781 ."
+  "Test for https://debbugs.gnu.org/9781 ."
   (skip-unless (executable-find vc-bzr-program))
   (let* ((homedir (make-temp-file "vc-bzr-test" t))
          (bzrdir (expand-file-name "bzr" homedir))
@@ -106,7 +106,7 @@
           (should (get-buffer "*vc-log*")))
       (delete-directory homedir t))))
 
-;; http://lists.gnu.org/archive/html/help-gnu-emacs/2012-04/msg00145.html
+;; https://lists.gnu.org/r/help-gnu-emacs/2012-04/msg00145.html
 (ert-deftest vc-bzr-test-faulty-bzr-autoloads ()
   "Test we can generate autoloads in a bzr directory when bzr is faulty."
   (skip-unless (executable-find vc-bzr-program))

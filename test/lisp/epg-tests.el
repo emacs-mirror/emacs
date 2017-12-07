@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,17 +30,8 @@
   (expand-file-name "data/epg" (getenv "EMACS_TEST_DIRECTORY"))
   "Directory containing epg test data.")
 
-(defconst epg-tests-program-alist-for-passphrase-callback
-  '((OpenPGP
-     nil
-     ("gpg" . "1.4.3"))))
-
-(defun epg-tests-find-usable-gpg-configuration (&optional require-passphrase)
-  (epg-find-configuration
-   'OpenPGP
-   'no-cache
-   (if require-passphrase
-       epg-tests-program-alist-for-passphrase-callback)))
+(defun epg-tests-find-usable-gpg-configuration (&optional _require-passphrase)
+  (epg-find-configuration 'OpenPGP 'no-cache))
 
 (defun epg-tests-passphrase-callback (_c _k _d)
   ;; Need to create a copy here, since the string will be wiped out

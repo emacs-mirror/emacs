@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -393,12 +393,12 @@ it does not already exist."
 
 (defvar describe-symbol-backends
   `((nil ,#'fboundp ,(lambda (s _b _f) (describe-function s)))
-    ("face" ,#'facep ,(lambda (s _b _f) (describe-face s)))
     (nil
      ,(lambda (symbol)
         (or (and (boundp symbol) (not (keywordp symbol)))
             (get symbol 'variable-documentation)))
-     ,#'describe-variable)))
+     ,#'describe-variable)
+    ("face" ,#'facep ,(lambda (s _b _f) (describe-face s)))))
 
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)

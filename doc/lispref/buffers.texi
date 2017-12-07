@@ -1089,12 +1089,15 @@ is not cleared by changing major modes.
 
 @defopt buffer-offer-save
 This variable, if non-@code{nil} in a particular buffer, tells
-@code{save-buffers-kill-emacs} and @code{save-some-buffers} (if the
-second optional argument to that function is @code{t}) to offer to
-save that buffer, just as they offer to save file-visiting buffers.
-@xref{Definition of save-some-buffers}.  The variable
-@code{buffer-offer-save} automatically becomes buffer-local when set
-for any reason.  @xref{Buffer-Local Variables}.
+@code{save-buffers-kill-emacs} to offer to save that buffer, just as
+it offers to save file-visiting buffers.  If @code{save-some-buffers}
+is called with the second optional argument set to @code{t}, it will
+also offer to save the buffer.  Lastly, if this variable is set to the
+symbol @code{always}, both @code{save-buffers-kill-emacs} and
+@code{save-some-buffers} will always offer to save.  @xref{Definition
+of save-some-buffers}.  The variable @code{buffer-offer-save}
+automatically becomes buffer-local when set for any reason.
+@xref{Buffer-Local Variables}.
 @end defopt
 
 @defvar buffer-save-without-query

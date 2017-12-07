@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
    Drew Bliss                   01-Oct-93
@@ -526,7 +526,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 			      help_echo_window, help_echo_object,
 			      help_echo_pos);
 	  }
-	/* We already called kbd_buffer_store_event, so indicate the
+	/* We already called kbd_buffer_store_event, so indicate to
 	   the caller it shouldn't.  */
 	return 0;
       }

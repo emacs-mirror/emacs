@@ -1,4 +1,4 @@
-;;; org-mouse.el --- Better mouse support for org-mode
+;;; org-mouse.el --- Better mouse support for Org -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
 
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -26,8 +26,8 @@
 ;;
 ;; http://orgmode.org
 ;;
-;; Org-mouse implements the following features:
-;; * following links with the left mouse button (in Emacs 22)
+;; Org mouse implements the following features:
+;; * following links with the left mouse button
 ;; * subtree expansion/collapse (org-cycle) with the left mouse button
 ;; * several context menus on the right mouse button:
 ;;    + general text
@@ -66,12 +66,12 @@
 
 ;; History:
 ;;
-;; Since version 5.10: Changes are listed in the general org-mode docs.
+;; Since version 5.10: Changes are listed in the general Org docs.
 ;;
-;; Version 5.09;; + Version number synchronization with Org-mode.
+;; Version 5.09;; + Version number synchronization with Org mode.
 ;;
 ;; Version 0.25
-;; + made compatible with org-mode 4.70 (thanks to Carsten for the patch)
+;; + made compatible with Org 4.70 (thanks to Carsten for the patch)
 ;;
 ;; Version 0.24
 ;; + minor changes to the table menu
@@ -81,7 +81,7 @@
 ;; + context menu support for org-agenda-undo & org-sort-entries
 ;;
 ;; Version 0.22
-;; + handles undo support for the agenda buffer (requires org-mode >=4.58)
+;; + handles undo support for the agenda buffer (requires Org >=4.58)
 ;;
 ;; Version 0.21
 ;; + selected text activates its context menu
@@ -105,7 +105,7 @@
 ;; + added support for checkboxes
 ;;
 ;; Version 0.15
-;; + org-mode now works with the Agenda buffer as well
+;; + Org now works with the Agenda buffer as well
 ;;
 ;; Version 0.14
 ;; + added a menu option that converts plain list items to outline items
@@ -125,7 +125,7 @@
 ;;
 ;; Version 0.10
 ;; + added a menu option to remove highlights
-;; + compatible with org-mode 4.21 now
+;; + compatible with Org 4.21 now
 ;;
 ;; Version 0.08:
 ;; + trees can be moved/promoted/demoted by dragging with the right
@@ -136,8 +136,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'org)
+(require 'cl-lib)
 
 (defvar org-agenda-allow-remote-undo)
 (defvar org-agenda-undo-list)
@@ -149,6 +149,8 @@
 (declare-function org-agenda-earlier "org-agenda" (arg))
 (declare-function org-agenda-later "org-agenda" (arg))
 
+(defvar org-mouse-main-buffer nil
+  "Active buffer for mouse operations.")
 (defvar org-mouse-plain-list-regexp "\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) "
   "Regular expression that matches a plain list.")
 (defvar org-mouse-direct t
@@ -191,15 +193,14 @@ Changing this variable requires a restart of Emacs to get activated."
   (interactive)
   (end-of-line)
   (skip-chars-backward "\t ")
-  (when (org-looking-back ":[A-Za-z]+:" (line-beginning-position))
+  (when (looking-back ":[A-Za-z]+:" (line-beginning-position))
     (skip-chars-backward ":A-Za-z")
     (skip-chars-backward "\t ")))
 
-(defvar org-mouse-context-menu-function nil
+(defvar-local org-mouse-context-menu-function nil
   "Function to create the context menu.
 The value of this variable is the function invoked by
 `org-mouse-context-menu' as the context menu.")
-(make-variable-buffer-local 'org-mouse-context-menu-function)
 
 (defun org-mouse-show-context-menu (event prefix)
   "Invoke the context menu.
@@ -215,13 +216,12 @@ this function is called.  Otherwise, the current major mode menu is used."
 	(when (not (org-mouse-mark-active))
 	  (goto-char (posn-point (event-start event)))
 	  (when (not (eolp)) (save-excursion (run-hooks 'post-command-hook)))
-	  (let ((redisplay-dont-pause t))
-	    (sit-for 0)))
+	  (sit-for 0))
 	(if (functionp org-mouse-context-menu-function)
 	    (funcall org-mouse-context-menu-function event)
 	  (if (fboundp 'mouse-menu-major-mode-map)
 	      (popup-menu (mouse-menu-major-mode-map) event prefix)
-	    (org-no-warnings ; don't warn about fallback, obsolete since 23.1
+	    (with-no-warnings ; don't warn about fallback, obsolete since 23.1
 	     (mouse-major-mode-menu event prefix)))))
     (setq this-command 'mouse-save-then-kill)
     (mouse-save-then-kill event)))
@@ -258,7 +258,7 @@ If the point is at the :beginning (`org-mouse-line-position') of the line,
 insert the new heading before the current line.  Otherwise, insert it
 after the current heading."
   (interactive)
-  (case (org-mouse-line-position)
+  (cl-case (org-mouse-line-position)
     (:beginning (beginning-of-line)
 		(org-insert-heading))
     (t (org-mouse-next-heading)
@@ -314,10 +314,10 @@ nor a function, elements of KEYWORDS are used directly."
   (just-one-space))
 
 (defvar org-mouse-rest)
-(defun org-mouse-replace-match-and-surround (newtext &optional fixedcase
-						     literal string subexp)
+(defun org-mouse-replace-match-and-surround
+    (_newtext &optional _fixedcase _literal _string subexp)
   "The same as `replace-match', but surrounds the replacement with spaces."
-  (apply 'replace-match org-mouse-rest)
+  (apply #'replace-match org-mouse-rest)
   (save-excursion
     (goto-char (match-beginning (or subexp 0)))
     (just-one-space)
@@ -391,8 +391,8 @@ DEFAULT is returned if no priority is given in the headline."
 (defun org-mouse-delete-timestamp ()
   "Deletes the current timestamp as well as the preceding keyword.
 SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
-  (when (or (org-at-date-range-p) (org-at-timestamp-p))
-    (replace-match "")			; delete the timestamp
+  (when (or (org-at-date-range-p) (org-at-timestamp-p 'lax))
+    (replace-match "")			;delete the timestamp
     (skip-chars-backward " :A-Z")
     (when (looking-at " *[A-Z][A-Z]+:")
       (replace-match ""))))
@@ -407,8 +407,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	  (> (match-end 0) point))))))
 
 (defun org-mouse-priority-list ()
-  (loop for priority from ?A to org-lowest-priority
-	collect (char-to-string priority)))
+  (cl-loop for priority from ?A to org-lowest-priority
+	   collect (char-to-string priority)))
 
 (defun org-mouse-todo-menu (state)
   "Create the menu with TODO keywords."
@@ -460,33 +460,33 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	 (insert " [ ] "))))
 
 (defun org-mouse-agenda-type (type)
-  (case type
-    ('tags "Tags: ")
-    ('todo "TODO: ")
-    ('tags-tree "Tags tree: ")
-    ('todo-tree "TODO tree: ")
-    ('occur-tree "Occur tree: ")
-    (t "Agenda command ???")))
+  (pcase type
+    (`tags "Tags: ")
+    (`todo "TODO: ")
+    (`tags-tree "Tags tree: ")
+    (`todo-tree "TODO tree: ")
+    (`occur-tree "Occur tree: ")
+    (_ "Agenda command ???")))
 
 (defun org-mouse-list-options-menu (alloptions &optional function)
   (let ((options (save-match-data
 		   (split-string (match-string-no-properties 1)))))
     (print options)
-    (loop for name in alloptions
-	  collect
-	  (vector name
-		  `(progn
-		     (replace-match
-		      (mapconcat 'identity
-				 (sort (if (member ',name ',options)
-					   (delete ',name ',options)
-					 (cons ',name ',options))
-				       'string-lessp)
-				 " ")
-		      nil nil nil 1)
-		     (when (functionp ',function) (funcall ',function)))
-		  :style 'toggle
-		  :selected (and (member name options) t)))))
+    (cl-loop for name in alloptions
+	     collect
+	     (vector name
+		     `(progn
+			(replace-match
+			 (mapconcat 'identity
+				    (sort (if (member ',name ',options)
+					      (delete ',name ',options)
+					    (cons ',name ',options))
+					  'string-lessp)
+				    " ")
+			 nil nil nil 1)
+			(when (functionp ',function) (funcall ',function)))
+		     :style 'toggle
+		     :selected (and (member name options) t)))))
 
 (defun org-mouse-clip-text (text maxlength)
   (if (> (length text) maxlength)
@@ -498,7 +498,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
    `("Main Menu"
      ["Show Overview" org-mouse-show-overview t]
      ["Show Headlines" org-mouse-show-headlines t]
-     ["Show All" show-all t]
+     ["Show All" outline-show-all t]
      ["Remove Highlights" org-remove-occur-highlights
       :visible org-occur-highlights]
      "--"
@@ -516,7 +516,6 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ["Check Phrase ..." org-occur]
      "--"
      ["Display Agenda" org-agenda-list t]
-     ["Display Timeline" org-timeline t]
      ["Display TODO List" org-todo-list t]
      ("Display Tags"
       ,@(org-mouse-keyword-menu
@@ -556,12 +555,12 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
   (let ((contextdata (assq context contextlist)))
     (when contextdata
       (save-excursion
-	(goto-char (second contextdata))
-	(re-search-forward ".*" (third contextdata))))))
+	(goto-char (nth 1 contextdata))
+	(re-search-forward ".*" (nth 2 contextdata))))))
 
 (defun org-mouse-for-each-item (funct)
-  ;; Functions called by `org-apply-on-list' need an argument
-  (let ((wrap-fun (lambda (c) (funcall funct))))
+  ;; Functions called by `org-apply-on-list' need an argument.
+  (let ((wrap-fun (lambda (_) (funcall funct))))
     (when (ignore-errors (goto-char (org-in-item-p)))
       (save-excursion (org-apply-on-list wrap-fun nil)))))
 
@@ -572,14 +571,14 @@ This means, between the beginning of line and the point."
     (skip-chars-backward " \t*") (bolp)))
 
 (defun org-mouse-insert-item (text)
-  (case (org-mouse-line-position)
-    (:beginning			; insert before
+  (cl-case (org-mouse-line-position)
+    (:beginning				; insert before
      (beginning-of-line)
      (looking-at "[ \t]*")
      (open-line 1)
-     (org-indent-to-column (- (match-end 0) (match-beginning 0)))
+     (indent-to-column (- (match-end 0) (match-beginning 0)))
      (insert "+ "))
-    (:middle			; insert after
+    (:middle				; insert after
      (end-of-line)
      (newline t)
      (indent-relative)
@@ -587,7 +586,7 @@ This means, between the beginning of line and the point."
     (:end				; insert text here
      (skip-chars-backward " \t")
      (kill-region (point) (point-at-eol))
-     (unless (org-looking-back org-mouse-punctuation)
+     (unless (looking-back org-mouse-punctuation (line-beginning-position))
        (insert (concat org-mouse-punctuation " ")))))
   (insert text)
   (beginning-of-line))
@@ -638,14 +637,15 @@ This means, between the beginning of line and the point."
 	    (progn (save-excursion (goto-char (region-beginning)) (insert "[["))
 		   (save-excursion (goto-char (region-end)) (insert "]]")))]
 	   ["Insert Link Here" (org-mouse-yank-link ',event)]))))
-     ((save-excursion (beginning-of-line) (looking-at "#\\+STARTUP: \\(.*\\)"))
+     ((save-excursion (beginning-of-line) (looking-at "[ \t]*#\\+STARTUP: \\(.*\\)"))
       (popup-menu
        `(nil
 	 ,@(org-mouse-list-options-menu (mapcar 'car org-startup-options)
 					'org-mode-restart))))
      ((or (eolp)
 	  (and (looking-at "\\(  \\|\t\\)\\(+:[0-9a-zA-Z_:]+\\)?\\(  \\|\t\\)+$")
-	       (org-looking-back "  \\|\t" (- (point) 2))))
+	       (looking-back "  \\|\t" (- (point) 2)
+			     (line-beginning-position))))
       (org-mouse-popup-global-menu))
      ((funcall get-context :checkbox)
       (popup-menu
@@ -714,7 +714,7 @@ This means, between the beginning of line and the point."
 	  (org-tags-sparse-tree nil ,(match-string 1))]
 	 "--"
 	 ,@(org-mouse-tag-menu))))
-     ((org-at-timestamp-p)
+     ((org-at-timestamp-p 'lax)
       (popup-menu
        '(nil
 	 ["Show Day" org-open-at-point t]
@@ -737,13 +737,13 @@ This means, between the beginning of line and the point."
 	 ["- 1 Month" (org-timestamp-change -1 'month)])))
      ((funcall get-context :table-special)
       (let ((mdata (match-data)))
-	(incf (car mdata) 2)
+	(cl-incf (car mdata) 2)
 	(store-match-data mdata))
       (message "match: %S" (match-string 0))
       (popup-menu `(nil ,@(org-mouse-keyword-replace-menu
 			   '(" " "!" "^" "_" "$" "#" "*" "'") 0
 			   (lambda (mark)
-			     (case (string-to-char mark)
+			     (cl-case (string-to-char mark)
 			       (?  "( ) Nothing Special")
 			       (?! "(!) Column Names")
 			       (?^ "(^) Field Names Above")
@@ -914,7 +914,7 @@ This means, between the beginning of line and the point."
 		   ((org-footnote-at-reference-p) nil)
 		   (t ad-do-it))))))
 
-(defun org-mouse-move-tree-start (event)
+(defun org-mouse-move-tree-start (_event)
   (interactive "e")
   (message "Same line: promote/demote, (***):move before, (text): make a child"))
 
@@ -993,7 +993,7 @@ This means, between the beginning of line and the point."
 (defvar org-mouse-cmd) ;dynamically scoped from `org-with-remote-undo'.
 
 (defun org-mouse-do-remotely (command)
-					;  (org-agenda-check-no-diary)
+  ;;  (org-agenda-check-no-diary)
   (when (get-text-property (point) 'org-marker)
     (let* ((anticol (- (point-at-eol) (point)))
 	   (marker (get-text-property (point) 'org-marker))
@@ -1031,7 +1031,7 @@ This means, between the beginning of line and the point."
 	      (org-agenda-change-all-lines newhead hdmarker 'fixface))))
 	t))))
 
-(defun org-mouse-agenda-context-menu (&optional event)
+(defun org-mouse-agenda-context-menu (&optional _event)
   (or (org-mouse-do-remotely 'org-mouse-context-menu)
       (popup-menu
        '("Agenda"
@@ -1043,21 +1043,21 @@ This means, between the beginning of line and the point."
 		     org-agenda-undo-list)]
 	 ["Rebuild Buffer" org-agenda-redo t]
 	 ["New Diary Entry"
-	  org-agenda-diary-entry (org-agenda-check-type nil 'agenda 'timeline) t]
+	  org-agenda-diary-entry (org-agenda-check-type nil 'agenda) t]
 	 "--"
 	 ["Goto Today" org-agenda-goto-today
-	  (org-agenda-check-type nil 'agenda 'timeline) t]
+	  (org-agenda-check-type nil 'agenda) t]
 	 ["Display Calendar" org-agenda-goto-calendar
-	  (org-agenda-check-type nil 'agenda 'timeline) t]
+	  (org-agenda-check-type nil 'agenda) t]
 	 ("Calendar Commands"
 	  ["Phases of the Moon" org-agenda-phases-of-moon
-	   (org-agenda-check-type nil 'agenda 'timeline)]
+	   (org-agenda-check-type nil 'agenda)]
 	  ["Sunrise/Sunset" org-agenda-sunrise-sunset
-	   (org-agenda-check-type nil 'agenda 'timeline)]
+	   (org-agenda-check-type nil 'agenda)]
 	  ["Holidays" org-agenda-holidays
-	   (org-agenda-check-type nil 'agenda 'timeline)]
+	   (org-agenda-check-type nil 'agenda)]
 	  ["Convert" org-agenda-convert-date
-	   (org-agenda-check-type nil 'agenda 'timeline)]
+	   (org-agenda-check-type nil 'agenda)]
 	  "--"
 	  ["Create iCalendar file" org-icalendar-combine-agenda-files t])
 	 "--"
@@ -1070,7 +1070,7 @@ This means, between the beginning of line and the point."
 	 "--"
 	 ["Show Logbook entries" org-agenda-log-mode
 	  :style toggle :selected org-agenda-show-log
-	  :active (org-agenda-check-type nil 'agenda 'timeline)]
+	  :active (org-agenda-check-type nil 'agenda)]
 	 ["Include Diary" org-agenda-toggle-diary
 	  :style toggle :selected org-agenda-include-diary
 	  :active (org-agenda-check-type nil 'agenda)]
@@ -1093,17 +1093,17 @@ This means, between the beginning of line and the point."
 					; (setq org-agenda-mode-hook nil)
 (defvar org-agenda-mode-map)
 (add-hook 'org-agenda-mode-hook
-	  #'(lambda ()
-	      (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
-	      (org-defkey org-agenda-mode-map [mouse-3] 'org-mouse-show-context-menu)
-	      (org-defkey org-agenda-mode-map [down-mouse-3] 'org-mouse-move-tree-start)
-	      (org-defkey org-agenda-mode-map [C-mouse-4] 'org-agenda-earlier)
-	      (org-defkey org-agenda-mode-map [C-mouse-5] 'org-agenda-later)
-	      (org-defkey org-agenda-mode-map [drag-mouse-3]
-			  #'(lambda (event) (interactive "e")
-			      (case (org-mouse-get-gesture event)
-				(:left (org-agenda-earlier 1))
-				(:right (org-agenda-later 1)))))))
+	  (lambda ()
+	    (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
+	    (org-defkey org-agenda-mode-map [mouse-3] 'org-mouse-show-context-menu)
+	    (org-defkey org-agenda-mode-map [down-mouse-3] 'org-mouse-move-tree-start)
+	    (org-defkey org-agenda-mode-map [C-mouse-4] 'org-agenda-earlier)
+	    (org-defkey org-agenda-mode-map [C-mouse-5] 'org-agenda-later)
+	    (org-defkey org-agenda-mode-map [drag-mouse-3]
+			(lambda (event) (interactive "e")
+			  (cl-case (org-mouse-get-gesture event)
+			    (:left (org-agenda-earlier 1))
+			    (:right (org-agenda-later 1)))))))
 
 (provide 'org-mouse)
 

@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -108,7 +108,7 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
      Andrysco M, Jhala R, Lerner S. Printing floating-point numbers:
      a faster, always correct method. ACM SIGPLAN notices - POPL '16.
      2016;51(1):555-67 <http://dx.doi.org/10.1145/2914770.2837654>; draft at
-     <http://cseweb.ucsd.edu/~lerner/papers/fp-printing-popl16.pdf>.  */
+     <https://cseweb.ucsd.edu/~lerner/papers/fp-printing-popl16.pdf>.  */
 
   PROMOTED_FLOAT promoted_x = x;
   char format[sizeof "%-+ 0*.*Lg"];

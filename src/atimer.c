@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -419,7 +419,7 @@ timerfd_callback (int fd, void *arg)
   else if (nbytes < 0)
     /* For some not yet known reason, we may get weird event and no
        data on timer descriptor.  This can break Gnus at least, see:
-       http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00503.html.  */
+       https://lists.gnu.org/r/emacs-devel/2014-07/msg00503.html.  */
     eassert (errno == EAGAIN);
   else
     /* I don't know what else can happen with this descriptor.  */

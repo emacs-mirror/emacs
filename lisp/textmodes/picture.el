@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -66,7 +66,7 @@
 (defvar picture-desired-column 0
   "Desired current column for Picture mode.
 When a cursor is on a wide-column character (e.g. Chinese,
-Japanese, Korean), this may may be different from `current-column'.")
+Japanese, Korean), this may be different from `current-column'.")
 
 
 (defun picture-update-desired-column (adjust-to-current)

@@ -15,12 +15,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <unistd.h>
 
 /* Include this before including <setjmp.h> to work around bugs with
@@ -41,6 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "dispextern.h"
 #include "blockinput.h"
+#include "sysstdio.h"
 #include "systime.h"
 #include <epaths.h>
 #include "coding.h"
@@ -2361,7 +2361,7 @@ slurp_file (int fd, ptrdiff_t *size)
 	     This can happen if the file grows as we read it.  */
 	  ptrdiff_t buflen = st.st_size;
 	  buf = xmalloc (buflen + 1);
-	  if (fread (buf, 1, buflen + 1, fp) == buflen)
+	  if (fread_unlocked (buf, 1, buflen + 1, fp) == buflen)
 	    *size = buflen;
 	  else
 	    {
@@ -2444,7 +2444,8 @@ static struct image_type xbm_type =
 enum xbm_token
 {
   XBM_TK_IDENT = 256,
-  XBM_TK_NUMBER
+  XBM_TK_NUMBER,
+  XBM_TK_OVERFLOW
 };
 
 
@@ -2573,7 +2574,7 @@ xbm_image_p (Lisp_Object object)
 static int
 xbm_scan (char **s, char *end, char *sval, int *ival)
 {
-  unsigned char c;
+  unsigned char c UNINIT;
 
  loop:
 
@@ -2586,6 +2587,7 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
   else if (c_isdigit (c))
     {
       int value = 0, digit;
+      bool overflow = false;
 
       if (c == '0' && *s < end)
 	{
@@ -2595,23 +2597,22 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 	      while (*s < end)
 		{
 		  c = *(*s)++;
-		  if (c_isdigit (c))
-		    digit = c - '0';
-		  else if (c >= 'a' && c <= 'f')
-		    digit = c - 'a' + 10;
-		  else if (c >= 'A' && c <= 'F')
-		    digit = c - 'A' + 10;
-		  else
+		  digit = char_hexdigit (c);
+		  if (digit < 0)
 		    break;
-		  value = 16 * value + digit;
+		  overflow |= INT_MULTIPLY_WRAPV (value, 16, &value);
+		  value += digit;
 		}
 	    }
-	  else if (c_isdigit (c))
+	  else if ('0' <= c && c <= '7')
 	    {
 	      value = c - '0';
 	      while (*s < end
-		     && (c = *(*s)++, c_isdigit (c)))
-		value = 8 * value + c - '0';
+		     && (c = *(*s)++, '0' <= c && c <= '7'))
+		{
+		  overflow |= INT_MULTIPLY_WRAPV (value, 8, &value);
+		  value += c - '0';
+		}
 	    }
 	}
       else
@@ -2619,13 +2620,16 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
 	  value = c - '0';
 	  while (*s < end
 		 && (c = *(*s)++, c_isdigit (c)))
-	    value = 10 * value + c - '0';
+	    {
+	      overflow |= INT_MULTIPLY_WRAPV (value, 10, &value);
+	      overflow |= INT_ADD_WRAPV (value, c - '0', &value);
+	    }
 	}
 
       if (*s < end)
 	*s = *s - 1;
       *ival = value;
-      return XBM_TK_NUMBER;
+      return overflow ? XBM_TK_OVERFLOW : XBM_TK_NUMBER;
     }
   else if (c_isalpha (c) || c == '_')
     {
@@ -4227,7 +4231,7 @@ xpm_load_image (struct frame *f,
       color_val = Qnil;
       if (!NILP (color_symbols) && !NILP (symbol_color))
 	{
-	  Lisp_Object specified_color = Fassoc (symbol_color, color_symbols);
+	  Lisp_Object specified_color = Fassoc (symbol_color, color_symbols, Qnil);
 
 	  if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
 	    {
@@ -5273,6 +5277,25 @@ pbm_scan_number (char **s, char *end)
   return val;
 }
 
+/* Scan an index from *S and return it.  It is a one-byte unsigned
+   index if !TWO_BYTE, and a two-byte big-endian unsigned index if
+   TWO_BYTE.  */
+
+static int
+pbm_scan_index (char **s, bool two_byte)
+{
+  char *p = *s;
+  unsigned char c0 = *p++;
+  int n = c0;
+  if (two_byte)
+    {
+      unsigned char c1 = *p++;
+      n = (n << 8) + c1;
+    }
+  *s = p;
+  return n;
+}
+
 
 /* Load PBM image IMG for use on frame F.  */
 
@@ -5495,7 +5518,8 @@ pbm_load (struct frame *f, struct image *img)
   else
     {
       int expected_size = height * width;
-      if (max_color_idx > 255)
+      bool two_byte = 255 < max_color_idx;
+      if (two_byte)
 	expected_size *= 2;
       if (type == PBM_COLOR)
 	expected_size *= 3;
@@ -5518,24 +5542,14 @@ pbm_load (struct frame *f, struct image *img)
 	    int r, g, b;
 
 	    if (type == PBM_GRAY && raw_p)
-	      {
-		r = g = b = *p++;
-		if (max_color_idx > 255)
-		  r = g = b = r * 256 + *p++;
-	      }
+	      r = g = b = pbm_scan_index (&p, two_byte);
 	    else if (type == PBM_GRAY)
 	      r = g = b = pbm_scan_number (&p, end);
 	    else if (raw_p)
 	      {
-		r = *p++;
-		if (max_color_idx > 255)
-		  r = r * 256 + *p++;
-		g = *p++;
-		if (max_color_idx > 255)
-		  g = g * 256 + *p++;
-		b = *p++;
-		if (max_color_idx > 255)
-		  b = b * 256 + *p++;
+		r = pbm_scan_index (&p, two_byte);
+		g = pbm_scan_index (&p, two_byte);
+		b = pbm_scan_index (&p, two_byte);
 	      }
 	    else
 	      {
@@ -5890,7 +5904,7 @@ png_read_from_file (png_structp png_ptr, png_bytep data, png_size_t length)
 {
   FILE *fp = png_get_io_ptr (png_ptr);
 
-  if (fread (data, 1, length, fp) < length)
+  if (fread_unlocked (data, 1, length, fp) < length)
     png_error (png_ptr, "Read error");
 }
 
@@ -5959,7 +5973,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	}
 
       /* Check PNG signature.  */
-      if (fread (sig, 1, sizeof sig, fp) != sizeof sig
+      if (fread_unlocked (sig, 1, sizeof sig, fp) != sizeof sig
 	  || png_sig_cmp (sig, 0, sizeof sig))
 	{
 	  fclose (fp);
@@ -6598,7 +6612,8 @@ our_stdio_fill_input_buffer (j_decompress_ptr cinfo)
     {
       ptrdiff_t bytes;
 
-      bytes = fread (src->buffer, 1, JPEG_STDIO_BUFFER_SIZE, src->file);
+      bytes = fread_unlocked (src->buffer, 1, JPEG_STDIO_BUFFER_SIZE,
+			      src->file);
       if (bytes > 0)
         src->mgr.bytes_in_buffer = bytes;
       else
@@ -7143,7 +7158,7 @@ tiff_size_of_memory (thandle_t data)
 
 /* GCC 3.x on x86 Windows targets has a bug that triggers an internal
    compiler error compiling tiff_handler, see Bugzilla bug #17406
-   (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=17406).  Declaring
+   (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=17406).  Declaring
    this function as external works around that problem.  */
 # if defined (__MINGW32__) && __GNUC__ == 3
 #  define MINGW_STATIC
@@ -7834,7 +7849,7 @@ gif_load (struct frame *f, struct image *img)
   init_color_table ();
 
 #ifndef USE_CAIRO
-  unsigned long bgcolor;
+  unsigned long bgcolor UNINIT;
   if (STRINGP (specified_bg))
     bgcolor = x_alloc_image_color (f, img, specified_bg,
 				   FRAME_BACKGROUND_PIXEL (f));
@@ -8081,83 +8096,76 @@ compute_image_size (size_t width, size_t height,
 		    int *d_width, int *d_height)
 {
   Lisp_Object value;
-  int desired_width, desired_height;
+  int desired_width = -1, desired_height = -1, max_width = -1, max_height = -1;
   double scale = 1;
 
   value = image_spec_value (spec, QCscale, NULL);
   if (NUMBERP (value))
     scale = XFLOATINT (value);
 
+  value = image_spec_value (spec, QCmax_width, NULL);
+  if (NATNUMP (value))
+    max_width = min (XFASTINT (value), INT_MAX);
+
+  value = image_spec_value (spec, QCmax_height, NULL);
+  if (NATNUMP (value))
+    max_height = min (XFASTINT (value), INT_MAX);
+
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  If either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
   value = image_spec_value (spec, QCwidth, NULL);
-  desired_width = NATNUMP (value) ?
-    min (XFASTINT (value) * scale, INT_MAX) : -1;
+  if (NATNUMP (value))
+    {
+      desired_width = min (XFASTINT (value) * scale, INT_MAX);
+      /* :width overrides :max-width. */
+      max_width = -1;
+    }
+
   value = image_spec_value (spec, QCheight, NULL);
-  desired_height = NATNUMP (value) ?
-    min (XFASTINT (value) * scale, INT_MAX) : -1;
+  if (NATNUMP (value))
+    {
+      desired_height = min (XFASTINT (value) * scale, INT_MAX);
+      /* :height overrides :max-height. */
+      max_height = -1;
+    }
+
+  /* If we have both width/height set explicitly, we skip past all the
+     aspect ratio-preserving computations below. */
+  if (desired_width != -1 && desired_height != -1)
+    goto out;
 
   width = width * scale;
   height = height * scale;
 
-  if (desired_width == -1)
-    {
-      value = image_spec_value (spec, QCmax_width, NULL);
-      if (NATNUMP (value))
-	{
-	  int max_width = min (XFASTINT (value), INT_MAX);
-	  if (max_width < width)
-	    {
-	      /* The image is wider than :max-width. */
-	      desired_width = max_width;
-	      if (desired_height == -1)
-		{
-		  desired_height = scale_image_size (desired_width,
-						     width, height);
-		  value = image_spec_value (spec, QCmax_height, NULL);
-		  if (NATNUMP (value))
-		    {
-		      int max_height = min (XFASTINT (value), INT_MAX);
-		      if (max_height < desired_height)
-			{
-			  desired_height = max_height;
-			  desired_width = scale_image_size (desired_height,
-							    height, width);
-			}
-		    }
-		}
-	    }
-	}
-    }
-
-  if (desired_height == -1)
-    {
-      value = image_spec_value (spec, QCmax_height, NULL);
-      if (NATNUMP (value))
-	{
-	  int max_height = min (XFASTINT (value), INT_MAX);
-	  if (max_height < height)
-	    desired_height = max_height;
-	}
-    }
-
-  if (desired_width != -1 && desired_height == -1)
-    /* w known, calculate h.  */
+  if (desired_width != -1)
+    /* Width known, calculate height. */
     desired_height = scale_image_size (desired_width, width, height);
-
-  if (desired_width == -1 && desired_height != -1)
-    /* h known, calculate w.  */
+  else if (desired_height != -1)
+    /* Height known, calculate width. */
     desired_width = scale_image_size (desired_height, height, width);
-
-  /* We have no width/height settings, so just apply the scale. */
-  if (desired_width == -1 && desired_height == -1)
+  else
     {
       desired_width = width;
       desired_height = height;
     }
 
+  if (max_width != -1 && desired_width > max_width)
+    {
+      /* The image is wider than :max-width. */
+      desired_width = max_width;
+      desired_height = scale_image_size (desired_width, width, height);
+    }
+
+  if (max_height != -1 && desired_height > max_height)
+    {
+      /* The image is higher than :max-height. */
+      desired_height = max_height;
+      desired_width = scale_image_size (desired_height, height, width);
+    }
+
+ out:
   *d_width = desired_width;
   *d_height = desired_height;
 }
@@ -8544,13 +8552,19 @@ imagemagick_load_image (struct frame *f, struct image *img,
   char hint_buffer[MaxTextExtent];
   char *filename_hint = NULL;
 
+  /* Initialize the ImageMagick environment.  */
+  static bool imagemagick_initialized;
+  if (!imagemagick_initialized)
+    {
+      imagemagick_initialized = true;
+      MagickWandGenesis ();
+    }
+
   /* Handle image index for image types who can contain more than one image.
      Interface :index is same as for GIF.  First we "ping" the image to see how
      many sub-images it contains.  Pinging is faster than loading the image to
      find out things about it.  */
 
-  /* Initialize the imagemagick environment.  */
-  MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   image_wand = NewMagickWand ();
@@ -8851,8 +8865,10 @@ imagemagick_load_image (struct frame *f, struct image *img,
   DestroyMagickWand (image_wand);
   if (bg_wand) DestroyPixelWand (bg_wand);
 
-  /* `MagickWandTerminus' terminates the imagemagick environment.  */
-  MagickWandTerminus ();
+  /* Do not call MagickWandTerminus, to work around ImageMagick bug 825.  See:
+     https://github.com/ImageMagick/ImageMagick/issues/825
+     Although this bug was introduced in ImageMagick 6.9.9-14 and
+     fixed in 6.9.9-18, it's simpler to work around it in all versions.  */
 
   return 1;
 
@@ -8860,7 +8876,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
   DestroyMagickWand (image_wand);
   if (bg_wand) DestroyPixelWand (bg_wand);
 
-  MagickWandTerminus ();
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec);
   return 0;
@@ -8920,7 +8935,7 @@ their descriptions (http://www.imagemagick.org/script/formats.php).
 You can also try the shell command: `identify -list format'.
 
 Note that ImageMagick recognizes many file-types that Emacs does not
-recognize as images, such as C.  See `imagemagick-types-enable'
+recognize as images, such as C.  See `imagemagick-enabled-types'
 and `imagemagick-types-inhibit'.  */)
   (void)
 {

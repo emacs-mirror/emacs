@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -657,10 +657,9 @@ If universal argument ARG, then try the whole buffer."
   (let* ((start (current-time))
 	 (result (semantic-lex
 		  (if arg (point-min) (point))
-		  (point-max)))
-	 (end (current-time)))
+		  (point-max))))
     (message "Elapsed Time: %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (pop-to-buffer "*Lexer Output*")
     (require 'pp)
     (erase-buffer)
@@ -810,7 +809,7 @@ analyzer which might mistake a number for as a symbol."
                     tmp-start (car semantic-lex-token-stream)))
 	   (setq tmp-start semantic-lex-end-point)
            (goto-char semantic-lex-end-point)
-	   ;;(when (> (semantic-elapsed-time starttime (current-time))
+	   ;;(when (> (semantic-elapsed-time starttime nil)
 	   ;;	    semantic-lex-timeout)
 	   ;;  (error "Timeout during lex at char %d" (point)))
 	   (semantic-throw-on-input 'lex)
