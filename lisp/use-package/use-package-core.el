@@ -1021,7 +1021,7 @@ meaning:
       use-package--hush-function)))
 
 (defun use-package-handler/:catch (name keyword arg rest state)
-  (let* ((context (cl-gensym "use-package--warning")))
+  (let* ((context (cl-gentemp "use-package--warning")))
     (cond
      ((not arg)
       (use-package-process-keywords name rest state))
