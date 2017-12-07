@@ -30,10 +30,6 @@
   parameter, but are now done as an extension to `rest`. Please see
   `use-package-handler/:bind` for a canonical example.
 
-- For extension authors, if you add a keyword to `use-package-keywords` whose
-  presence should indicate deferred loading, please also add it to
-  `use-package-deferring-keywords`.
-
 ### Other changes
 
 - Upgrade license to GPL 3.
@@ -153,6 +149,28 @@
   The binding of `C-h b` here will not occur until helm is loaded; and after
   it is loaded, `helm-descbinds` itself is not loaded until the user presses
   `C-h b`.
+
+- For extension authors, if you add a keyword to `use-package-keywords` whose
+  presence should indicate deferred loading, please also add it to
+  `use-package-deferring-keywords`. Note that this is a bit of a sledgehammer,
+  in that the mere presence of these keywords implies deferred loading. For a
+  more subtle approach, see the new `use-package-autoloads/<KEYWORD>` support
+  mentioned in the next bullet.
+
+- For extension authors, if you wish deferred loading to possibly occur,
+  create functions named `use-package-autoloads/<KEYWORD>` for each keyword
+  that you define, returning an alist of the form `(SYMBOL . TYPE)` of symbols
+  to be autoloaded. `SYMBOL` should be an interactive function, and `TYPE` the
+  smybol `command`, but this functionality may be extended in future. These
+  autoloads are established if deferred loading is to happen.
+
+- If you specify a lambda form rather than a function symbol in any of the
+  constructs that *might* introduce autoloads: `:bind`, `:bind*`,
+  `:interpreter`, `:mode`, `:magic`, `:magic-fallback`, and `:hook`: then
+  deferred loading will no longer be implied, since there's nothing to
+  associate an autoload with that could later load the module. In these cases,
+  it will be as if you'd specified `:demand t`, in order to ensure the lambda
+  form is able to execute in the context of the loaded package.
 
 - For extension authors, there is a new customization variable
   `use-package-merge-key-alist` that specifies how values passed to multiple

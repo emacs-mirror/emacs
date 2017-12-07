@@ -1001,30 +1001,30 @@
 
 (ert-deftest use-package-test/:hook-1 ()
   (let ((byte-compile-current-file t))
-    (should
-     (equal
-      (expand-minimally
-       (use-package foo
-         :bind (("C-a" . key))
-         :hook (hook . fun)))
-      '(progn
-         (eval-and-compile
-           (eval-when-compile
-             (with-demoted-errors
-                 "Cannot load foo: %S" nil
-                 (load "foo" nil t))))
-         (unless (fboundp 'fun)
-           (autoload #'fun "foo" nil t))
-         (eval-when-compile
-           (declare-function fun "foo"))
-         (unless (fboundp 'key)
-           (autoload #'key "foo" nil t))
-         (eval-when-compile
-           (declare-function key "foo"))
-         (ignore
-          (add-hook 'hook-hook #'fun))
-         (ignore
-          (bind-keys :package foo ("C-a" . key))))))))
+    (match-expansion
+     (use-package foo
+       :bind (("C-a" . key))
+       :hook (hook . fun))
+     `(progn
+        (eval-and-compile
+          (eval-when-compile
+            (with-demoted-errors
+                "Cannot load foo: %S" nil
+                (load "foo" nil t))))
+        (unless
+            (fboundp 'key)
+          (autoload #'key "foo" nil t))
+        (eval-when-compile
+          (declare-function key "foo"))
+        (unless
+            (fboundp 'fun)
+          (autoload #'fun "foo" nil t))
+        (eval-when-compile
+          (declare-function fun "foo"))
+        (ignore
+         (add-hook 'hook-hook #'fun))
+        (ignore
+         (bind-keys :package foo ("C-a" . key)))))))
 
 (ert-deftest use-package-test/:hook-2 ()
   (match-expansion
@@ -1078,6 +1078,37 @@
              'emacs-lisp-mode-hook
              #'(lambda nil
                  (bind-key "" erefactor-map emacs-lisp-mode-map)))))))))
+
+(ert-deftest use-package-test/:hook-6 ()
+  (match-expansion
+   (use-package erefactor
+     :load-path "foo"
+     :after elisp-mode
+     :hook (emacs-lisp-mode . function))
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path "/Users/johnw/.emacs.d/foo"))
+      (eval-after-load 'elisp-mode
+        '(progn
+           (unless (fboundp 'function)
+             (autoload #'function "erefactor" nil t))
+           (ignore
+            (add-hook 'emacs-lisp-mode-hook #'function)))))))
+
+(ert-deftest use-package-test/:hook-7 ()
+  (match-expansion
+   (use-package erefactor
+     :load-path "foo"
+     :after elisp-mode
+     :hook (emacs-lisp-mode . (lambda () (function))))
+   `(progn
+      (eval-and-compile
+        (add-to-list 'load-path "/Users/johnw/.emacs.d/foo"))
+      (eval-after-load 'elisp-mode
+        '(progn
+           (require 'erefactor nil nil)
+           (ignore
+            (add-hook 'emacs-lisp-mode-hook #'(lambda nil (function)))))))))
 
 (ert-deftest use-package-test-normalize/:custom ()
   (flet ((norm (&rest args)

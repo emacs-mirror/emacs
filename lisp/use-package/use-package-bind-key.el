@@ -114,20 +114,23 @@ deferred until the prefix key sequence is pressed."
 ;;;###autoload
 (defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
 
+;; jww (2017-12-07): This is too simplistic. It will fail to determine
+;; autoloads in this situation:
+;;   (use-package foo
+;;     :bind (:map foo-map (("C-a" . func))))
+;;;###autoload
+(defalias 'use-package-autoloads/:bind 'use-package-autoloads-mode)
+;;;###autoload
+(defalias 'use-package-autoloads/:bind* 'use-package-autoloads-mode)
+
 ;;;###autoload
 (defun use-package-handler/:bind
     (name keyword args rest state &optional bind-macro)
-  (let* ((result (use-package-normalize-commands args))
-         (nargs (car result))
-         (commands (cdr result)))
-    (use-package-concat
-     (use-package-process-keywords name
-       (use-package-sort-keywords
-        (use-package-plist-append rest :commands commands))
-       state)
-     `((ignore
-        (,(if bind-macro bind-macro 'bind-keys)
-         :package ,name ,@nargs))))))
+  (use-package-concat
+   (use-package-process-keywords name rest state)
+   `((ignore
+      (,(if bind-macro bind-macro 'bind-keys)
+       :package ,name ,@(use-package-normalize-commands args))))))
 
 (defun use-package-handler/:bind* (name keyword arg rest state)
   (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
