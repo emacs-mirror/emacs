@@ -1733,6 +1733,56 @@
             (when (symbol-value 'notmuch-command)
               (require 'notmuch nil nil))))))))
 
+(ert-deftest use-package-test/572 ()
+  (let ((use-package-always-defer t))
+    (match-expansion
+     (use-package auth-password-store
+       :after auth-source
+       :init
+       (setq auth-sources '(password-store)))
+     `(eval-after-load 'auth-source
+        '(setq auth-sources '(password-store))))))
+
+(ert-deftest use-package-test/575-1 ()
+  (match-expansion
+   (use-package helm
+     :defer t
+     :after (:any ido dired)
+     :config
+     (message "test. helm start"))
+   `(progn
+      (defvar ,_ nil)
+      (defvar ,_ nil)
+      (defvar ,_
+        #'(lambda nil
+            (if ,_ ,_
+              (setq ,_ t ,_
+                    (eval-after-load 'helm
+                      '(progn
+                         (message "test. helm start")
+                         t))))))
+      (eval-after-load 'ido
+        '(funcall ,_))
+      (eval-after-load 'dired
+        '(funcall ,_)))))
+
+(ert-deftest use-package-test/575-2 ()
+  (match-expansion
+   (use-package helm
+     :defer t
+     :bind ("C-c d" . helm-mini)
+     :config
+     (message "test. helm start"))
+   `(progn
+      (unless (fboundp 'helm-mini)
+        (autoload #'helm-mini "helm" nil t))
+      (eval-after-load 'helm
+        '(progn
+           (message "test. helm start")
+           t))
+      (ignore
+       (bind-keys :package helm ("C-c d" . helm-mini))))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"
