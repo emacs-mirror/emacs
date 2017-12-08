@@ -974,7 +974,7 @@ meaning:
 
 ;; Don't alias this to `ignore', as that will cause the resulting
 ;; function to be interactive.
-(defun use-package-normalize/:disabled (name keyword arg rest state))
+(defun use-package-normalize/:disabled (name keyword arg))
 
 (defun use-package-handler/:disabled (name keyword arg rest state)
   (use-package-process-keywords name rest state))
