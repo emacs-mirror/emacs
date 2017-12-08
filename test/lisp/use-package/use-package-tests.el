@@ -680,6 +680,24 @@
       (ignore
        (bind-keys :package foo ("C-c r" . browse-at-remote))))))
 
+(ert-deftest use-package-test/:bind-8 ()
+  (match-expansion
+   (use-package foo
+     :ensure
+     :bind (:map foo-map
+                 (("C-c r" . foo)
+                  ("C-c r" . bar))))
+   `(progn
+      (use-package-ensure-elpa 'foo '(t) 'nil)
+      (unless (fboundp 'foo)
+        (autoload #'foo "foo" nil t))
+      (unless (fboundp 'bar)
+        (autoload #'bar "foo" nil t))
+      (ignore
+       (bind-keys :package foo :map foo-map
+                  ("C-c r" . foo)
+                  ("C-c r" . bar))))))
+
 (ert-deftest use-package-test/:bind*-1 ()
   (match-expansion
    (use-package foo :bind* ("C-k" . key))
