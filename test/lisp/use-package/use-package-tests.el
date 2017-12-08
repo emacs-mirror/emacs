@@ -594,10 +594,9 @@
       (unless
           (fboundp 'key2)
         (autoload #'key2 "foo" nil t))
-      (ignore
-       (bind-keys :package foo
-                  ("C-k" . key1)
-                  ("C-u" . key2))))))
+      (bind-keys :package foo
+                 ("C-k" . key1)
+                 ("C-u" . key2)))))
 
 (ert-deftest use-package-test/:bind-2 ()
   (match-expansion
@@ -607,10 +606,9 @@
         (autoload #'key1 "foo" nil t))
       (unless (fboundp 'key2)
         (autoload #'key2 "foo" nil t))
-      (ignore
-       (bind-keys :package foo
-                  ("C-k" . key1)
-                  ("C-u" . key2))))))
+      (bind-keys :package foo
+                 ("C-k" . key1)
+                 ("C-u" . key2)))))
 
 (ert-deftest use-package-test/:bind-3 ()
   (match-expansion
@@ -622,17 +620,15 @@
       (unless
           (fboundp 'key2)
         (autoload #'key2 "foo" nil t))
-      (ignore
-       (bind-keys :package foo :map my-map
-                  ("C-k" . key1)
-                  ("C-u" . key2))))))
+      (bind-keys :package foo :map my-map
+                 ("C-k" . key1)
+                 ("C-u" . key2)))))
 
 (ert-deftest use-package-test/:bind-4 ()
   (should-error
    (match-expansion
     (use-package foo :bind :map my-map ("C-k" . key1) ("C-u" . key2))
-    `(ignore
-      (bind-keys :package foo)))))
+    `(bind-keys :package foo))))
 
 (ert-deftest use-package-test/:bind-5 ()
   (match-expansion
@@ -642,11 +638,10 @@
         (autoload #'key1 "foo" nil t))
       (unless (fboundp 'key2)
         (autoload #'key2 "foo" nil t))
-      (ignore
-       (bind-keys :package foo
-                  ("C-k" . key1)
-                  :map my-map
-                  ("C-u" . key2))))))
+      (bind-keys :package foo
+                 ("C-k" . key1)
+                 :map my-map
+                 ("C-u" . key2)))))
 
 (ert-deftest use-package-test/:bind-6 ()
   (match-expansion
@@ -662,11 +657,10 @@
         (autoload #'key2 "foo" nil t))
       (unless (fboundp 'key3)
         (autoload #'key3 "foo" nil t))
-      (ignore
-       (bind-keys :package foo
-                  ("C-k" . key1)
-                  :map my-map ("C-u" . key2)
-                  :map my-map2 ("C-u" . key3))))))
+      (bind-keys :package foo
+                 ("C-k" . key1)
+                 :map my-map ("C-u" . key2)
+                 :map my-map2 ("C-u" . key3)))))
 
 (ert-deftest use-package-test/:bind-7 ()
   (match-expansion
@@ -677,8 +671,7 @@
       (use-package-ensure-elpa 'foo '(t) 'nil)
       (unless (fboundp 'browse-at-remote)
         (autoload #'browse-at-remote "foo" nil t))
-      (ignore
-       (bind-keys :package foo ("C-c r" . browse-at-remote))))))
+      (bind-keys :package foo ("C-c r" . browse-at-remote)))))
 
 (ert-deftest use-package-test/:bind-8 ()
   (match-expansion
@@ -693,10 +686,9 @@
         (autoload #'foo "foo" nil t))
       (unless (fboundp 'bar)
         (autoload #'bar "foo" nil t))
-      (ignore
-       (bind-keys :package foo :map foo-map
-                  ("C-c r" . foo)
-                  ("C-c r" . bar))))))
+      (bind-keys :package foo :map foo-map
+                 ("C-c r" . foo)
+                 ("C-c r" . bar)))))
 
 (ert-deftest use-package-test/:bind*-1 ()
   (match-expansion
@@ -704,26 +696,23 @@
    `(progn
       (unless (fboundp 'key)
         (autoload #'key "foo" nil t))
-      (ignore
-       (bind-keys* :package foo ("C-k" . key))))))
+      (bind-keys* :package foo ("C-k" . key)))))
 
 (ert-deftest use-package-test/:bind-keymap-1 ()
   (match-expansion
    (use-package foo :bind-keymap ("C-k" . key))
-   `(ignore
-     (bind-key "C-k"
-               #'(lambda nil
-                   (interactive)
-                   (use-package-autoload-keymap 'key 'foo nil))))))
+   `(bind-key "C-k"
+              #'(lambda nil
+                  (interactive)
+                  (use-package-autoload-keymap 'key 'foo nil)))))
 
 (ert-deftest use-package-test/:bind-keymap*-1 ()
   (match-expansion
    (use-package foo :bind-keymap* ("C-k" . key))
-   `(ignore
-     (bind-key* "C-k"
-                #'(lambda ()
-                    (interactive)
-                    (use-package-autoload-keymap 'key 'foo t))))))
+   `(bind-key* "C-k"
+               #'(lambda ()
+                   (interactive)
+                   (use-package-autoload-keymap 'key 'foo t)))))
 
 (ert-deftest use-package-test/:interpreter-1 ()
   (match-expansion
@@ -731,8 +720,7 @@
    `(progn
       (unless (fboundp 'foo)
         (autoload #'foo "foo" nil t))
-      (ignore
-       (add-to-list 'interpreter-mode-alist '("interp" . foo))))))
+      (add-to-list 'interpreter-mode-alist '("interp" . foo)))))
 
 (ert-deftest use-package-test/:interpreter-2 ()
   (match-expansion
@@ -740,8 +728,7 @@
    `(progn
       (unless (fboundp 'fun)
         (autoload #'fun "foo" nil t))
-      (ignore
-       (add-to-list 'interpreter-mode-alist '("interp" . fun))))))
+      (add-to-list 'interpreter-mode-alist '("interp" . fun)))))
 
 (ert-deftest use-package-test-normalize/:mode ()
   (flet ((norm (&rest args)
@@ -764,8 +751,7 @@
    `(progn
       (unless (fboundp 'foo)
         (autoload #'foo "foo" nil t))
-      (ignore
-       (add-to-list 'auto-mode-alist '("interp" . foo))))))
+      (add-to-list 'auto-mode-alist '("interp" . foo)))))
 
 (ert-deftest use-package-test/:mode-2 ()
   (match-expansion
@@ -773,8 +759,7 @@
    `(progn
       (unless (fboundp 'fun)
         (autoload #'fun "foo" nil t))
-      (ignore
-       (add-to-list 'auto-mode-alist '("interp" . fun))))))
+      (add-to-list 'auto-mode-alist '("interp" . fun)))))
 
 (ert-deftest use-package-test/:magic-1 ()
   (match-expansion
@@ -782,8 +767,7 @@
    `(progn
       (unless (fboundp 'foo)
         (autoload #'foo "foo" nil t))
-      (ignore
-       (add-to-list 'magic-mode-alist '("interp" . foo))))))
+      (add-to-list 'magic-mode-alist '("interp" . foo)))))
 
 (ert-deftest use-package-test/:magic-2 ()
   (match-expansion
@@ -791,8 +775,7 @@
    `(progn
       (unless (fboundp 'fun)
         (autoload #'fun "foo" nil t))
-      (ignore
-       (add-to-list 'magic-mode-alist '("interp" . fun))))))
+      (add-to-list 'magic-mode-alist '("interp" . fun)))))
 
 (ert-deftest use-package-test/:magic-fallback-1 ()
   (match-expansion
@@ -800,8 +783,7 @@
    `(progn
       (unless (fboundp 'foo)
         (autoload #'foo "foo" nil t))
-      (ignore
-       (add-to-list 'magic-fallback-mode-alist '("interp" . foo))))))
+      (add-to-list 'magic-fallback-mode-alist '("interp" . foo)))))
 
 (ert-deftest use-package-test/:magic-fallback-2 ()
   (match-expansion
@@ -809,8 +791,7 @@
    `(progn
       (unless (fboundp 'fun)
         (autoload #'fun "foo" nil t))
-      (ignore
-       (add-to-list 'magic-fallback-mode-alist '("interp" . fun))))))
+      (add-to-list 'magic-fallback-mode-alist '("interp" . fun)))))
 
 (ert-deftest use-package-test/:commands-1 ()
   (match-expansion
@@ -1039,10 +1020,8 @@
           (autoload #'fun "foo" nil t))
         (eval-when-compile
           (declare-function fun "foo"))
-        (ignore
-         (add-hook 'hook-hook #'fun))
-        (ignore
-         (bind-keys :package foo ("C-a" . key)))))))
+        (add-hook 'hook-hook #'fun)
+        (bind-keys :package foo ("C-a" . key))))))
 
 (ert-deftest use-package-test/:hook-2 ()
   (match-expansion
@@ -1051,8 +1030,7 @@
    `(progn
       (unless (fboundp 'fun)
         (autoload #'fun "foo" nil t))
-      (ignore
-       (add-hook 'hook-hook #'fun)))))
+      (add-hook 'hook-hook #'fun))))
 
 (ert-deftest use-package-test/:hook-3 ()
   (let ((use-package-hook-name-suffix nil))
@@ -1062,8 +1040,7 @@
      `(progn
         (unless (fboundp 'fun)
           (autoload #'fun "foo" nil t))
-        (ignore
-         (add-hook 'hook #'fun))))))
+        (add-hook 'hook #'fun)))))
 
 (ert-deftest use-package-test/:hook-4 ()
   (let ((use-package-hook-name-suffix "-special"))
@@ -1073,8 +1050,7 @@
      `(progn
         (unless (fboundp 'fun)
           (autoload #'fun "foo" nil t))
-        (ignore
-         (add-hook 'hook-special #'fun))))))
+        (add-hook 'hook-special #'fun)))))
 
 (ert-deftest use-package-test/:hook-5 ()
   (match-expansion
@@ -1091,11 +1067,10 @@
       (eval-after-load 'elisp-mode
         '(progn
            (require 'erefactor nil nil)
-           (ignore
-            (add-hook
-             'emacs-lisp-mode-hook
-             #'(lambda nil
-                 (bind-key "" erefactor-map emacs-lisp-mode-map)))))))))
+           (add-hook
+            'emacs-lisp-mode-hook
+            #'(lambda nil
+                (bind-key "" erefactor-map emacs-lisp-mode-map))))))))
 
 (ert-deftest use-package-test/:hook-6 ()
   (match-expansion
@@ -1110,8 +1085,7 @@
         '(progn
            (unless (fboundp 'function)
              (autoload #'function "erefactor" nil t))
-           (ignore
-            (add-hook 'emacs-lisp-mode-hook #'function)))))))
+           (add-hook 'emacs-lisp-mode-hook #'function))))))
 
 (ert-deftest use-package-test/:hook-7 ()
   (match-expansion
@@ -1125,8 +1099,7 @@
       (eval-after-load 'elisp-mode
         '(progn
            (require 'erefactor nil nil)
-           (ignore
-            (add-hook 'emacs-lisp-mode-hook #'(lambda nil (function)))))))))
+           (add-hook 'emacs-lisp-mode-hook #'(lambda nil (function))))))))
 
 (ert-deftest use-package-test-normalize/:custom ()
   (flet ((norm (&rest args)
@@ -1182,8 +1155,7 @@
         #'(lambda (keyword err)
             (let ((msg (format "%s/%s: %s" 'foo keyword
                                (error-message-string err))))
-              (ignore
-               (display-warning 'use-package msg :error)))))
+              (display-warning 'use-package msg :error))))
       (condition-case-unless-debug err
           (require 'foo nil nil)
         (error
@@ -1433,10 +1405,9 @@
            (require 'counsel nil nil)
            (if (fboundp 'diminish)
                (diminish 'counsel-mode))
-           (ignore
-            (bind-keys :package counsel
-                       ("C-*" . counsel-org-agenda-headlines)
-                       ("M-x" . counsel-M-x))))))))
+           (bind-keys :package counsel
+                      ("C-*" . counsel-org-agenda-headlines)
+                      ("M-x" . counsel-M-x)))))))
 
 (ert-deftest use-package-test/:config-1 ()
   (match-expansion
@@ -1680,8 +1651,7 @@
         (autoload #'mu4e "mu4e" nil t))
       (eval-after-load 'mu4e
         '(progn (config) t))
-      (ignore
-       (bind-keys :package mu4e ("<f9>" . mu4e))))))
+      (bind-keys :package mu4e ("<f9>" . mu4e)))))
 
 (ert-deftest use-package-test/543 ()
   (match-expansion
@@ -1719,11 +1689,10 @@
       (unless
           (fboundp 'company-try-hard)
         (autoload #'company-try-hard "company-try-hard" nil t))
-      (ignore
-       (bind-keys :package company-try-hard
-                  ("C-c M-/" . company-try-hard)
-                  :map company-active-map
-                  ("C-c M-/" . company-try-hard))))))
+      (bind-keys :package company-try-hard
+                 ("C-c M-/" . company-try-hard)
+                 :map company-active-map
+                 ("C-c M-/" . company-try-hard)))))
 
 (ert-deftest use-package-test/558 ()
   (match-expansion
@@ -1798,8 +1767,7 @@
         '(progn
            (message "test. helm start")
            t))
-      (ignore
-       (bind-keys :package helm ("C-c d" . helm-mini))))))
+      (bind-keys :package helm ("C-c d" . helm-mini)))))
 
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion

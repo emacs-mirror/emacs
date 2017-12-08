@@ -414,10 +414,9 @@ The BODY is a list of forms, so `((foo))' if only `foo' is being called."
       (use-package-with-elapsed-timer
           (format "Loading package %s" name)
         `((if (not ,(use-package-load-name name t))
-              (ignore
-               (display-warning 'use-package
-                                (format "Cannot load %s" ',name)
-                                :error))
+              (display-warning 'use-package
+                               (format "Cannot load %s" ',name)
+                               :error)
             ,@body))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -906,14 +905,13 @@ If RECURSED is non-nil, recurse into sublists."
   "Handle keywords which add regexp/mode pairs to an alist."
   (use-package-concat
    (use-package-process-keywords name rest state)
-   `((ignore
-      ,@(mapcar
-         #'(lambda (thing)
-             `(add-to-list
-               ',alist
-               ',(cons (use-package-normalize-regex (car thing))
-                       (cdr thing))))
-         (use-package-normalize-commands args))))))
+   (mapcar
+    #'(lambda (thing)
+        `(add-to-list
+          ',alist
+          ',(cons (use-package-normalize-regex (car thing))
+                  (cdr thing))))
+    (use-package-normalize-commands args))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1101,7 +1099,7 @@ meaning:
                       (setq msg
                             (concat msg
                                     " (see the *use-package* buffer)"))))
-                (ignore (display-warning 'use-package msg :error)))))
+                (display-warning 'use-package msg :error))))
         ,@(let ((use-package--hush-function
                  (apply-partially #'use-package-hush context)))
             (funcall use-package--hush-function keyword
@@ -1175,21 +1173,20 @@ meaning:
   "Generate use-package custom keyword code."
   (use-package-concat
    (use-package-process-keywords name rest state)
-   `((ignore
-      ,@(cl-mapcan
-         #'(lambda (def)
-             (let ((syms (car def))
-                   (fun (cdr def)))
-               (when fun
-                 (mapcar
-                  #'(lambda (sym)
-                      `(add-hook
-                        (quote ,(intern
-                                 (concat (symbol-name sym)
-                                         use-package-hook-name-suffix)))
-                        (function ,fun)))
-                  (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
-         (use-package-normalize-commands args))))))
+   (cl-mapcan
+    #'(lambda (def)
+        (let ((syms (car def))
+              (fun (cdr def)))
+          (when fun
+            (mapcar
+             #'(lambda (sym)
+                 `(add-hook
+                   (quote ,(intern
+                            (concat (symbol-name sym)
+                                    use-package-hook-name-suffix)))
+                   (function ,fun)))
+             (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
+    (use-package-normalize-commands args))))
 
 ;;;; :commands
 
@@ -1494,11 +1491,10 @@ this file.  Usage:
         (condition-case-unless-debug err
             (use-package-core name args)
           (error
-           (ignore
-            (display-warning
-             'use-package
-             (format "Failed to parse package %s: %s"
-                     name (error-message-string err)) :error)))))
+           (display-warning
+            'use-package
+            (format "Failed to parse package %s: %s"
+                    name (error-message-string err)) :error))))
       (when use-package-compute-statistics
         `((use-package-statistics-gather :use-package ',name t)))))))
 

@@ -177,11 +177,10 @@ manually updated package."
                   (package-install package))
                 t)
             (error
-             (ignore
-              (display-warning 'use-package
-                               (format "Failed to install %s: %s"
-                                       name (error-message-string err))
-                               :error)))))))))
+             (display-warning 'use-package
+                              (format "Failed to install %s: %s"
+                                      name (error-message-string err))
+                              :error))))))))
 
 ;;;###autoload
 (defun use-package-handler/:ensure (name keyword ensure rest state)

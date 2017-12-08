@@ -128,9 +128,8 @@ deferred until the prefix key sequence is pressed."
     (name keyword args rest state &optional bind-macro)
   (use-package-concat
    (use-package-process-keywords name rest state)
-   `((ignore
-      (,(if bind-macro bind-macro 'bind-keys)
-       :package ,name ,@(use-package-normalize-commands args))))))
+   `((,(if bind-macro bind-macro 'bind-keys)
+      :package ,name ,@(use-package-normalize-commands args)))))
 
 (defun use-package-handler/:bind* (name keyword arg rest state)
   (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
@@ -144,21 +143,19 @@ deferred until the prefix key sequence is pressed."
 
 ;;;###autoload
 (defun use-package-handler/:bind-keymap
-    (name keyword arg rest state &optional override)
+    (name keyword args rest state &optional override)
   (use-package-concat
    (use-package-process-keywords name rest state)
-   `((ignore
-      ,@(mapcar
-         #'(lambda (binding)
-             `(,(if override
-                    'bind-key*
-                  'bind-key)
-               ,(car binding)
-               #'(lambda ()
-                   (interactive)
-                   (use-package-autoload-keymap
-                    ',(cdr binding) ',(use-package-as-symbol name)
-                    ,override)))) arg)))))
+   (mapcar
+    #'(lambda (binding)
+        `(,(if override 'bind-key* 'bind-key)
+          ,(car binding)
+          #'(lambda ()
+              (interactive)
+              (use-package-autoload-keymap
+               ',(cdr binding) ',(use-package-as-symbol name)
+               ,override))))
+    args)))
 
 ;;;###autoload
 (defun use-package-handler/:bind-keymap* (name keyword arg rest state)

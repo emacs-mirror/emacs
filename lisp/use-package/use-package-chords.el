@@ -39,9 +39,8 @@
              (use-package-sort-keywords
               (use-package-plist-maybe-put rest :defer t))
              (use-package-plist-append state :commands commands))
-           `((ignore
-              ,(macroexpand
-                `(bind-chords :package ,name ,@arg)))))))
+           `(,(macroexpand
+               `(bind-chords :package ,name ,@arg))))))
     (use-package-handler/:preface name keyword chord-binder rest state)))
 
 (add-to-list 'use-package-keywords :chords t)
