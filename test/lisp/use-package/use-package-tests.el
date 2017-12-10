@@ -1638,6 +1638,22 @@
         (bind-key "f" #'w3m-lnum-print-this-url w3m-y-prefix-map nil)
         (bind-key "t" #'w3m-print-this-url w3m-y-prefix-map nil)))))
 
+(ert-deftest use-package-test/482 ()
+  (match-expansion
+   (use-package simple
+     :bind-keymap ("C-t " . my/transpose-map)
+     :bind (:map my/transpose-map
+	         ("w" . transpose-words)))
+   `(progn
+      (unless (fboundp 'transpose-words)
+        (autoload #'transpose-words "simple" nil t))
+      (bind-key "C-t "
+                #'(lambda nil
+                    (interactive)
+                    (use-package-autoload-keymap 'my/transpose-map 'simple nil)))
+      (bind-keys :package simple :map my/transpose-map
+                 ("w" . transpose-words)))))
+
 (ert-deftest use-package-test/538 ()
   (match-expansion
    (use-package mu4e
