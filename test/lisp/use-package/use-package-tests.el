@@ -1769,6 +1769,21 @@
            t))
       (bind-keys :package helm ("C-c d" . helm-mini)))))
 
+(ert-deftest use-package-test/585 ()
+  (match-expansion
+   (use-package bug
+     :bind (:map bug-map ("C-a" . alpha))
+     :bind (("C-b" . beta)))
+   `(progn
+      (unless (fboundp 'alpha)
+        (autoload #'alpha "bug" nil t))
+      (unless (fboundp 'beta)
+        (autoload #'beta "bug" nil t))
+      (bind-keys :package bug :map bug-map
+                 ("C-a" . alpha))
+      (bind-keys :package bug
+                 ("C-b" . beta)))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"

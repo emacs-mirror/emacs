@@ -180,7 +180,8 @@ t according to whether defaulting should be attempted."
 (defcustom use-package-merge-key-alist
   '((:if    . (lambda (new old) `(and ,new ,old)))
     (:after . (lambda (new old) `(:all ,new ,old)))
-    (:defer . (lambda (new old) old)))
+    (:defer . (lambda (new old) old))
+    (:bind  . (lambda (new old) (append new (list :break) old))))
   "Alist of keys and the functions used to merge multiple values.
 For example, if the following form is provided:
 
@@ -471,6 +472,13 @@ This is in contrast to merely setting it to 0."
               (nconc zs (list x)))
           (nconc ys (list x)))))
     (cons (cdr ys) (cdr zs))))
+
+(defun use-package-split-list-at-keys (key lst)
+  (when lst
+    (let* ((xs (use-package-split-list (apply-partially #'eq key) lst))
+           (args (car xs))
+           (tail (cdr xs)))
+      (cons args (use-package-split-list-at-keys key (cdr tail))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

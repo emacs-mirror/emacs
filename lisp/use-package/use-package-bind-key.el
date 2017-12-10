@@ -128,8 +128,11 @@ deferred until the prefix key sequence is pressed."
     (name keyword args rest state &optional bind-macro)
   (use-package-concat
    (use-package-process-keywords name rest state)
-   `((,(if bind-macro bind-macro 'bind-keys)
-      :package ,name ,@(use-package-normalize-commands args)))))
+   `(,@(mapcar
+        #'(lambda (xs)
+            `(,(if bind-macro bind-macro 'bind-keys)
+              :package ,name ,@(use-package-normalize-commands xs)))
+        (use-package-split-list-at-keys :break args)))))
 
 (defun use-package-handler/:bind* (name keyword arg rest state)
   (use-package-handler/:bind name keyword arg rest state 'bind-keys*))
