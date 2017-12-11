@@ -474,11 +474,9 @@ This is in contrast to merely setting it to 0."
     (cons (cdr ys) (cdr zs))))
 
 (defun use-package-split-list-at-keys (key lst)
-  (when lst
-    (let* ((xs (use-package-split-list (apply-partially #'eq key) lst))
-           (args (car xs))
-           (tail (cdr xs)))
-      (cons args (use-package-split-list-at-keys key (cdr tail))))))
+  (and lst
+       (let ((xs (use-package-split-list (apply-partially #'eq key) lst)))
+         (cons (car xs) (use-package-split-list-at-keys key (cddr xs))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
