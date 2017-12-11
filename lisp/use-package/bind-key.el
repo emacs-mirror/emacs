@@ -219,14 +219,7 @@ Accepts keyword arguments:
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
-  ;; jww (2016-02-26): This is a hack; this whole function needs to be
-  ;; rewritten to normalize arguments the way that use-package.el does.
-  (if (and (eq (car args) :package)
-           (not (eq (car (cdr (cdr args))) :map))
-           (not keymap))
-      (setq args (cons :map (cons 'global-map args))))
-
-  (let ((map keymap)
+  (let (map
         doc
         prefix-map
         prefix
@@ -237,11 +230,14 @@ function symbol (unquoted)."
     ;; Process any initial keyword arguments
     (let ((cont t))
       (while (and cont args)
-        (if (cond ((eq :map (car args))
+        (if (cond ((and (eq :map (car args))
+                        (not prefix-map))
                    (setq map (cadr args)))
                   ((eq :prefix-docstring (car args))
                    (setq doc (cadr args)))
-                  ((eq :prefix-map (car args))
+                  ((and (eq :prefix-map (car args))
+                        (not (memq map '(global-map
+                                         override-global-map))))
                    (setq prefix-map (cadr args)))
                   ((eq :prefix (car args))
                    (setq prefix (cadr args)))
@@ -261,6 +257,8 @@ function symbol (unquoted)."
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
 
+    (unless map (setq map keymap))
+
     ;; Process key binding arguments
     (let (first next)
       (while args
@@ -275,12 +273,13 @@ function symbol (unquoted)."
 
       (cl-flet
           ((wrap (map bindings)
-                 (if (and map pkg (not (memq map '(global-map override-global-map))))
+                 (if (and map pkg (not (memq map '(global-map
+                                                   override-global-map))))
                      `((if (boundp ',map)
-                           (progn ,@bindings)
+                           ,(macroexp-progn bindings)
                          (eval-after-load
                              ,(if (symbolp pkg) `',pkg pkg)
-                           '(progn ,@bindings))))
+                           ',(macroexp-progn bindings))))
                    bindings)))
 
         (append

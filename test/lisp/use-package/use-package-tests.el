@@ -1638,7 +1638,7 @@
         (bind-key "f" #'w3m-lnum-print-this-url w3m-y-prefix-map nil)
         (bind-key "t" #'w3m-print-this-url w3m-y-prefix-map nil)))))
 
-(ert-deftest use-package-test/482 ()
+(ert-deftest use-package-test/482-1 ()
   (match-expansion
    (use-package simple
      :bind-keymap ("C-t " . my/transpose-map)
@@ -1653,6 +1653,32 @@
                     (use-package-autoload-keymap 'my/transpose-map 'simple nil)))
       (bind-keys :package simple :map my/transpose-map
                  ("w" . transpose-words)))))
+
+(ert-deftest use-package-test/482-2 ()
+  (match-expansion
+   (use-package simple
+     :bind (:prefix-map my/transpose-map
+                        :prefix "C-t"
+                        ("w" . transpose-words)))
+   `(progn
+      (unless (fboundp 'transpose-words)
+        (autoload #'transpose-words "simple" nil t))
+      (bind-keys :package simple
+                 :prefix-map my/transpose-map
+                 :prefix "C-t"
+                 ("w" . transpose-words)))))
+
+(ert-deftest use-package-test/482-3 ()
+  (match-expansion
+   (bind-keys :package simple
+              :prefix-map my/transpose-map
+              :prefix "C-t"
+              ("w" . transpose-words))
+   `(progn
+      (defvar my/transpose-map)
+      (define-prefix-command 'my/transpose-map)
+      (bind-key "C-t" 'my/transpose-map nil nil)
+      (bind-key "w" #'transpose-words my/transpose-map nil))))
 
 (ert-deftest use-package-test/538 ()
   (match-expansion
