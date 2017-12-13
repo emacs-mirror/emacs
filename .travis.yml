@@ -9,9 +9,11 @@ env:
 
 before_install:
   - git clone https://github.com/rejeep/evm.git $HOME/.evm
-  - export PATH=$HOME/.evm/bin:$PATH
+  - export PATH="$HOME/.evm/bin:$PATH"
+  - export PATH="$HOME/.cask/bin:$PATH"
   - evm config path /tmp
   - evm install $EVM_EMACS --use --skip
+  - curl -fsSkL https://raw.github.com/cask/cask/master/go | python
 
 matrix:
   fast_finish: true
