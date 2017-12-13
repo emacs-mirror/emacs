@@ -476,6 +476,24 @@ it."
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-enable-extended-define-key nil
+  "Advise `define-key' to make which-key aware of definitions of the form
+
+  \(define-key KEYMAP KEY '(\"DESCRIPTION\" . DEF))
+
+With the advice, this definition will have the side effect of
+creating a replacement in `which-key-replacement-alist' that
+replaces DEF with DESCRIPTION when the key sequence ends in
+KEY. Using a cons cell like this is a valid definition for
+`define-key'. All this does is to make which-key aware of it.
+
+Since many higher level keybinding functions use `define-key'
+internally, this will affect most if not all of those as well.
+
+This variable must be set before loading which-key."
+  :group 'which-key
+  :type 'boolean)
+
 ;; Hooks
 (defcustom which-key-init-buffer-hook '()
   "Hook run when which-key buffer is initialized."
@@ -889,6 +907,24 @@ If AT-ROOT is non-nil the binding is also placed at the root of MAP."
      (when (keymapp df)
        (which-key-define-key-recursively df key def t)))
    map))
+
+(defun which-key--process-define-key-args (keymap key def)
+  "When DEF takes the form (\"DESCRIPTION\". DEF), add an entry
+to `which-key-replacement-alist' so that this binding is replaced
+in which-key with DESCRIPTION. This function is meant to be used
+as :before advice for `define-key'."
+  (when (and (consp def)
+             (stringp (car def))
+             (symbolp (cdr def))
+             (cdr def))
+    (let ((key-desc (regexp-quote (key-description key))))
+      (push (cons (cons (format "%s\\'" key-desc)
+                        (format "\\`%s\\'" (symbol-name (cdr def))))
+                  (cons nil (car def)))
+            which-key-replacement-alist))))
+
+(when which-key-enable-extended-define-key
+  (advice-add #'define-key :before #'which-key--process-define-key-args))
 
 ;;; Functions for computing window sizes
 
