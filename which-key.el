@@ -915,11 +915,11 @@ in which-key with DESCRIPTION. This function is meant to be used
 as :before advice for `define-key'."
   (when (and (consp def)
              (stringp (car def))
-             (symbolp (cdr def))
-             (cdr def))
+             (symbolp (cdr def)))
     (let ((key-desc (regexp-quote (key-description key))))
       (push (cons (cons (format "%s\\'" key-desc)
-                        (format "\\`%s\\'" (symbol-name (cdr def))))
+                        (when (cdr def)
+                          (format "\\`%s\\'" (symbol-name (cdr def)))))
                   (cons nil (car def)))
             which-key-replacement-alist))))
 
