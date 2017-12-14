@@ -2,6 +2,12 @@
   [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]] [[https://travis-ci.org/justbur/emacs-which-key][file:https://travis-ci.org/justbur/emacs-which-key.svg?branch=master]]
   
 ** Recent Changes
+
+*** 2017-12-13: Added =which-key-enable-extended-define-key=
+    Allows for a concise syntax to specify replacement text using =define-key=
+    or alternatives that use =define-key= internally. See the docstring and
+    [[#custom-string-replacement-options][Custom String Replacement]].
+
 *** 2017-11-13: Added =which-key-show-major-mode=
     Shows active bindings in current major-mode map.
 ** Introduction
@@ -18,6 +24,7 @@
 ** Table of Contents                                                  :TOC_3:
 - [[#which-key][which-key]]
   - [[#recent-changes][Recent Changes]]
+    - [[#2017-12-13-added-which-key-enable-extended-define-key][2017-12-13: Added =which-key-enable-extended-define-key=]]
     - [[#2017-11-13-added-which-key-show-major-mode][2017-11-13: Added =which-key-show-major-mode=]]
   - [[#introduction][Introduction]]
   - [[#install][Install]]
@@ -221,6 +228,24 @@
     idea of behind each alist is that you specify a selection string in the
     =car= of each cons cell and the replacement string in the =cdr=.
     
+**** Automatic
+     A newer option is to set =which-key-enable-extended-define-key= which
+     advises =define-key= to allow which-key to pre-process its arguments. The
+     statement
+
+     #+BEGIN_SRC emacs-lisp
+     (define-key some-map "f" '("foo" . long-name-for-command-foo))
+     #+END_SRC
+
+     is valid in Emacs. Setting this variable makes which-key automatically
+     replace the corresponding command name with the text in the string. A nice
+     example is in naming prefixes. The following binds "b" to =nil= and names
+     the binding as a prefix.
+
+     #+BEGIN_SRC emacs-lisp
+     (define-key some-map "b" '("bar-prefix"))
+     #+END_SRC
+
 **** "Key-Based" replacement
      Using this method, the description of a key is replaced using a string that
      you provide. Here's an example
