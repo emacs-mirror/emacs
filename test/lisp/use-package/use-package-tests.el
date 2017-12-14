@@ -1762,7 +1762,7 @@
             (when (symbol-value 'notmuch-command)
               (require 'notmuch nil nil))))))))
 
-(ert-deftest use-package-test/572 ()
+(ert-deftest use-package-test/572-1 ()
   (let ((use-package-always-defer t))
     (match-expansion
      (use-package auth-password-store
@@ -1771,6 +1771,29 @@
        (setq auth-sources '(password-store)))
      `(eval-after-load 'auth-source
         '(setq auth-sources '(password-store))))))
+
+(ert-deftest use-package-test/572-2 ()
+  (let ((use-package-always-defer t))
+    (match-expansion
+     (use-package ivy-hydra :after ivy)
+     `nil)))
+
+(ert-deftest use-package-test/572-3 ()
+  (let ((use-package-always-defer t)
+        (use-package-defaults
+         (let ((defaults (copy-alist use-package-defaults)))
+           (setcdr (assq :defer defaults)
+                   '(use-package-always-defer
+                     (lambda (name args)
+                       (and use-package-always-defer
+                            (not (plist-member args :after))
+                            (not (plist-member args :defer))
+                            (not (plist-member args :demand))))))
+           defaults)))
+    (match-expansion
+     (use-package ivy-hydra :after ivy)
+     `(eval-after-load 'ivy
+        '(require 'ivy-hydra nil nil)))))
 
 (ert-deftest use-package-test/575-1 ()
   (match-expansion
