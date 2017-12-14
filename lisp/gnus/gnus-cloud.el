@@ -27,6 +27,7 @@
 (eval-when-compile (require 'cl))
 (require 'parse-time)
 (require 'nnimap)
+(require 'hex-util)
 
 (eval-when-compile (require 'epg)) ;; setf-method for `epg-context-armor'
 (autoload 'epg-make-context "epg")
@@ -55,7 +56,8 @@
   :type '(radio (const :tag "No encoding" nil)
                 (const :tag "Base64" base64)
                 (const :tag "Base64+gzip" base64-gzip)
-                (const :tag "EPG" epg)))
+                (const :tag "EPG" epg)
+                (const :tag "GnuTLS AEAD cipher" 'gnutls-aead-user))
 
 (defcustom gnus-cloud-interactive t
   "Whether Gnus Cloud changes should be confirmed."
@@ -63,6 +65,7 @@
   :type 'boolean)
 
 (defvar gnus-cloud-group-name "Emacs-Cloud")
+(defvar gnus-cloud-AEAD-auth "gnus-cloud auth")
 (defvar gnus-cloud-covered-servers nil)
 
 (defvar gnus-cloud-version 1)
@@ -109,6 +112,23 @@ easy interactive way to set this from the Server buffer."
     (gnus-cloud-encode-data)
     (buffer-string)))
 
+;; TODO: replace with s-pad-right please
+(defun gnus-cloud-pad-right (len padding s)
+  "If S is shorter than LEN, pad it with PADDING on the right."
+  (declare (pure t) (side-effect-free t))
+  (let ((extra (max 0 (- len (length s)))))
+    (concat s
+            (make-string extra (string-to-char padding)))))
+
+(defun gnus-cloud-pad-buffer-to-multiple (b blocksize)
+  "Pad buffer B to BLOCKSIZE numeric size and return it."
+  (let ((e (if (zerop (buffer-size b))
+              blocksize
+            (* blocksize (ceiling (buffer-size b) blocksize)))))
+    (goto-char (point-max))
+    (insert (make-string (- e (buffer-size b)) 0)))
+  b)
+
 (defun gnus-cloud-encode-data ()
   (cond
    ((eq gnus-cloud-storage-method 'base64-gzip)
@@ -133,6 +153,53 @@ easy interactive way to set this from the Server buffer."
                                       nil)))
         (delete-region (point-min) (point-max))
         (insert data))))
+   ((eq gnus-cloud-storage-method 'gnutls-aead-user)
+    ;; TODO: factor this out into an external library
+    (if (memq 'AEAD-ciphers (gnutls-available-p))
+        (let* ((input (current-buffer))
+               (auth gnus-cloud-AEAD-auth)
+               (ciphers (remove-if-not
+                         (lambda (c) (plist-get (cdr c) :cipher-aead-capable))
+                         (gnutls-ciphers)))
+               (cipher (completing-read "Select a GnuTLS AEAD cipher"
+                                        ciphers nil t))
+               (cipher (and cipher (assq (intern cipher) ciphers))))
+          (when cipher
+            (let* ((cname (car cipher))
+                   (cdata (cdr cipher))
+                   (keysize (plist-get cdata :cipher-keysize))
+                   (ivsize (plist-get cdata :cipher-ivsize))
+                   (iv (list 'iv-auto ivsize))
+                   (blocksize (plist-get cdata :cipher-blocksize))
+                   (passwd-prompt
+                    (format "Enter encryption key (max %s): " keysize))
+                   ;; TODO: add check function to read-passwd for min/max etc
+                   (key (read-passwd passwd-prompt)))
+              (if (and key (<= (length key) keysize))
+                  (let* ((key (gnus-cloud-pad-right keysize "\000" key))
+                         (payload-length (buffer-size input))
+                         (input (gnus-cloud-pad-buffer-to-multiple
+                                 input blocksize))
+                         (output (gnutls-symmetric-encrypt
+                                  cdata key iv input auth))
+                         (data (nth 0 output))
+                         (actual-iv (encode-hex-string (nth 1 output)))
+                         (ep (append cipher
+                                     (list
+                                      :payload-length payload-length
+                                      :data-length (length data)
+                                      :iv actual-iv))))
+                    (delete-region (point-min) (point-max))
+                    (insert data)
+                    (let* ((encoded-length (base64-encode-region
+                                            (point-min) (point-max)))
+                           (ep (append ep
+                                       (list :encoded-length encoded-length))))
+                      (goto-char (point-min))
+                      (insert (format "Gnus-Cloud-Encryption %S\n\n" ep))))
+                (error "Sorry, the encryption key was invalid"))
+              (clear-string key))))
+      (error "Sorry, the available GnuTLS ciphers do not include AEAD")))
 
    ((null gnus-cloud-storage-method)
     (gnus-message 5 "Leaving cloud data plaintext"))
@@ -156,6 +223,74 @@ easy interactive way to set this from the Server buffer."
                                               (point-max)))))
       (delete-region (point-min) (point-max))
       (insert data)))
+
+   ((eq gnus-cloud-storage-method 'gnutls-aead-user)
+    ;; TODO: factor this out into an external library
+    (if (memq 'AEAD-ciphers (gnutls-available-p))
+        (progn
+          (goto-char (point-min))
+          (if (looking-at "Gnus-Cloud-Encryption \\(.+\\)")
+              (let* ((input (current-buffer))
+                     (auth gnus-cloud-AEAD-auth)
+                     (encryption-parameter-string (match-string 1))
+                     (control (read encryption-parameter-string))
+                     (cipher (assq (car control) (gnutls-ciphers)))
+                     (cname (car cipher))
+                     (cdata (cdr cipher))
+                     (ep (cdr control))
+                     (payload-length (plist-get ep :payload-length))
+                     (decoded-length (plist-get ep :data-length))
+                     (encoded-length (plist-get ep :encoded-length))
+                     (proposed-iv (plist-get ep :iv))
+                     (iv (and (stringp proposed-iv)
+                              (decode-hex-string proposed-iv))))
+                (if (and cipher cname cdata ep iv
+                         (integerp payload-length)
+                         (integerp encoded-length)
+                         (integerp decoded-length))
+                    (let* ((cname (car cipher))
+                           (cdata (cdr cipher))
+                           (keysize (plist-get cdata :cipher-keysize))
+                           (blocksize (plist-get cdata :cipher-blocksize))
+                           (passwd-prompt
+                            (format "Enter decryption key (max %s): " keysize))
+                           ;; TODO: add check function to read-passwd for min/max etc
+                           (key (read-passwd passwd-prompt)))
+                      ;; Advance past the data header and delete it
+                      (forward-line 2)
+                      (delete-region (point-min) (point))
+                      ;; Delete any trailing data in the buffer
+                      (when (> (buffer-size) encoded-length)
+                        (delete-region (+ (point-min) encoded-length) (point-max)))
+
+                      (base64-decode-region (point-min) (point-max))
+                      (unless (equal (buffer-size) decoded-length)
+                        (error "Sorry, the encrypted data length %d != %d"
+                               (buffer-size) decoded-length))
+
+                      (if (and key (<= (length key) keysize))
+                          (let* ((key (gnus-cloud-pad-right keysize "\000" key))
+                                 (input (gnus-cloud-pad-buffer-to-multiple
+                                         input blocksize))
+                                 ;; TODO: fix docs to note this returns a list
+                                 (aead-output (gnutls-symmetric-decrypt
+                                               cdata key iv input auth))
+                                 (data (nth 0 aead-output)))
+                            ;; trim the data back to original length
+                            (when (> (length data) payload-length)
+                              (setq data (substring data 0 payload-length)))
+
+                            (unless (equal (length data) payload-length)
+                              (error "Sorry, the decrypted data length %d != %d"
+                                     (length data) payload-length))
+                            (delete-region (point-min) (point-max))
+                            (insert data))
+                        (error "Sorry, the decryption key was invalid"))
+                      (clear-string key))
+                  (error "Sorry, invalid decryption parameters %s"
+                         encryption-parameter-string)))
+            (error "Sorry, there was no valid Gnus-Cloud-Encryption header")))
+      (error "Sorry, the available GnuTLS ciphers do not include AEAD")))
 
    ((null gnus-cloud-storage-method)
     (gnus-message 5 "Reading cloud data as plaintext"))
