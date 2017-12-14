@@ -1849,6 +1849,19 @@
       (bind-keys :package bug
                  ("C-b" . beta)))))
 
+(ert-deftest use-package-test/589 ()
+  (let ((use-package-verbose t)
+        (use-package-expand-minimally t)
+        debug-on-error
+        warnings)
+    (flet ((display-warning (_ msg _) (push msg warnings)))
+      (progn
+        (macroexpand-1
+         '(use-package ediff :defer t (setq my-var t)))
+        (should (= (and (> (length warnings) 0)
+                        (string-match ":defer wants exactly one argument"
+                                      (car warnings))) 44))))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"
