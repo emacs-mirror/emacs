@@ -919,8 +919,9 @@ as :before advice for `define-key'."
                (symbolp (cdr def)))
       (let ((key-desc (regexp-quote (key-description key))))
         (push (cons (cons (format "%s\\'" key-desc)
-                          (when (cdr def)
-                            (format "\\`%s\\'" (symbol-name (cdr def)))))
+                          (format "\\`%s\\'" (if (cdr def)
+                                                 (symbol-name (cdr def))
+                                               "Prefix Command")))
                     (cons nil (car def)))
               which-key-replacement-alist)))))
 
