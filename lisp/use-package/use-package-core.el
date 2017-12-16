@@ -159,21 +159,30 @@ See also `use-package-defaults', which uses this value."
                     (not (plist-member args :defer))
                     (not (plist-member args :demand))))))
   "Default values for specified `use-package' keywords.
-Each entry in the alist is a list of three elements. The first
-element is the `use-package' keyword and the second is a form
-that can be evaluated to get the default value. The third element
-is a form that can be evaluated to determine whether or not to
-assign a default value; if it evaluates to nil, then the default
-value is not assigned even if the keyword is not present in the
-`use-package' form. This third element may also be a function, in
-which case it receives the name of the package (as a symbol) and
-a list of keywords (in normalized form). It should return nil or
-t according to whether defaulting should be attempted."
+Each entry in the alist is a list of three elements:
+The first element is the `use-package' keyword.
+
+The second is a form that can be evaluated to get the default
+value. It can also be a function that will receive the name of
+the use-package declaration and the keyword plist given to
+`use-package', in normalized form. The value it returns should
+also be in normalized form (which is sometimes *not* what one
+would normally write in a `use-package' declaration, so use
+caution).
+
+The third element is a form that can be evaluated to determine
+whether or not to assign a default value; if it evaluates to nil,
+then the default value is not assigned even if the keyword is not
+present in the `use-package' form. This third element may also be
+a function, in which case it receives the name of the package (as
+a symbol) and a list of keywords (in normalized form). It should
+return nil or non-nil depending on whether defaulting should be
+attempted."
   :type `(repeat
           (list (choice :tag "Keyword"
                         ,@(mapcar #'(lambda (k) (list 'const k))
                                   use-package-keywords))
-                (choice :tag "Default value" sexp)
+                (choice :tag "Default value" sexp function)
                 (choice :tag "Enable if non-nil" sexp function)))
   :group 'use-package)
 
@@ -564,7 +573,11 @@ extending any keys already present."
                   (funcall func name args)
                 (eval func)))
         (setq args (use-package-plist-maybe-put
-                    args (nth 0 spec) (eval (nth 1 spec))))))
+                    args (nth 0 spec)
+                    (let ((func (nth 1 spec)))
+                      (if (and func (functionp func))
+                          (funcall func name args)
+                        (eval func)))))))
 
     ;; Determine any autoloads implied by the keywords used.
     (let ((iargs args)

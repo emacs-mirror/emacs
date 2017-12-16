@@ -1862,6 +1862,18 @@
                         (string-match ":defer wants exactly one argument"
                                       (car warnings))) 44))))))
 
+(ert-deftest use-package-test/591 ()
+  (let ((use-package-defaults
+         (cons '(:if (lambda (name _) `(locate-library ,name)) t)
+               use-package-defaults)))
+    (match-expansion
+     (use-package nonexistent
+       :hook lisp-mode)
+     `(when (locate-library nonexistent)
+        (unless (fboundp 'nonexistent)
+          (autoload #'nonexistent "nonexistent" nil t))
+        (add-hook 'lisp-mode-hook #'nonexistent)))))
+
 (ert-deftest bind-key/:prefix-map ()
   (match-expansion
    (bind-keys :prefix "<f1>"
