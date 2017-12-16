@@ -972,6 +972,9 @@ meaning:
                      (float-time (gethash :preface-secs hash 0))
                      (float-time (gethash :use-package-secs hash 0))))))
      use-package-statistics)
+    (goto-char (point-min))
+    (orgtbl-mode)
+    (orgtbl-ctrl-c-ctrl-c nil)
     (display-buffer (current-buffer))))
 
 (defun use-package-statistics-gather (keyword name after)
