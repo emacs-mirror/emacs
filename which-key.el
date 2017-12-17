@@ -909,21 +909,14 @@ If AT-ROOT is non-nil the binding is also placed at the root of MAP."
    map))
 
 (defun which-key--process-define-key-args (keymap key def)
-  "When DEF takes the form (\"DESCRIPTION\". DEF), add an entry
-to `which-key-replacement-alist' so that this binding is replaced
-in which-key with DESCRIPTION. This function is meant to be used
-as :before advice for `define-key'."
+  "When DEF takes the form (\"DESCRIPTION\". DEF), make sure
+which-key uses \"DESCRIPTION\" for this binding. This function is
+meant to be used as :before advice for `define-key'."
   (with-demoted-errors "Which-key extended define-key error: %s"
     (when (and (consp def)
                (stringp (car def))
                (symbolp (cdr def)))
-      (let ((key-desc (regexp-quote (key-description key))))
-        (push (cons (cons (format "%s\\'" key-desc)
-                          (format "\\`%s\\'" (if (cdr def)
-                                                 (symbol-name (cdr def))
-                                               "Prefix Command")))
-                    (cons nil (car def)))
-              which-key-replacement-alist)))))
+      (define-key keymap (which-key--pseudo-key key) (car def)))))
 
 (when which-key-enable-extended-define-key
   (advice-add #'define-key :before #'which-key--process-define-key-args))
@@ -1341,6 +1334,15 @@ local bindings coming first. Within these categories order using
 (defsubst which-key--butlast-string (str)
   (mapconcat #'identity (butlast (split-string str)) " "))
 
+(defun which-key--pseudo-key (key &optional use-current-prefix)
+  "Replace the last key in the sequence KEY by a special symbol
+in order for which-key to allow looking up a description for the key."
+  (let* ((seq (listify-key-sequence key))
+         (final (intern (format "which-key-%s" (key-description (last seq))))))
+    (if use-current-prefix
+        (vconcat (which-key--current-key-list) (list final))
+      (vconcat (butlast seq) (list final)))))
+
 (defun which-key--get-replacements (key-binding &optional use-major-mode)
   (let ((alist (or (and use-major-mode
                         (cdr-safe
@@ -1369,27 +1371,31 @@ local bindings coming first. Within these categories order using
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
-  (let* ((mode-res (which-key--get-replacements key-binding t))
-         (all-repls (or mode-res
-                      (which-key--get-replacements key-binding))))
-    (dolist (repl all-repls key-binding)
-      (setq key-binding
-            (cond ((or (not (consp repl)) (null (cdr repl)))
-                   key-binding)
-                  ((functionp (cdr repl))
-                   (funcall (cdr repl) key-binding))
-                  ((consp (cdr repl))
-                   (cons
-                    (cond ((and (caar repl) (cadr repl))
-                           (replace-regexp-in-string
-                            (caar repl) (cadr repl) (car key-binding) t))
-                          ((cadr repl) (cadr repl))
-                          (t (car key-binding)))
-                    (cond ((and (cdar repl) (cddr repl))
-                           (replace-regexp-in-string
-                            (cdar repl) (cddr repl) (cdr key-binding) t))
-                          ((cddr repl) (cddr repl))
-                          (t (cdr key-binding))))))))))
+  (let ((menu-item-repl
+         (key-binding (which-key--pseudo-key (car key-binding) t))))
+    (if menu-item-repl
+        (cons (car key-binding) menu-item-repl)
+      (let* ((mode-res (which-key--get-replacements key-binding t))
+             (all-repls (or mode-res
+                            (which-key--get-replacements key-binding))))
+        (dolist (repl all-repls key-binding)
+          (setq key-binding
+                (cond ((or (not (consp repl)) (null (cdr repl)))
+                       key-binding)
+                      ((functionp (cdr repl))
+                       (funcall (cdr repl) key-binding))
+                      ((consp (cdr repl))
+                       (cons
+                        (cond ((and (caar repl) (cadr repl))
+                               (replace-regexp-in-string
+                                (caar repl) (cadr repl) (car key-binding) t))
+                              ((cadr repl) (cadr repl))
+                              (t (car key-binding)))
+                        (cond ((and (cdar repl) (cddr repl))
+                               (replace-regexp-in-string
+                                (cdar repl) (cddr repl) (cdr key-binding) t))
+                              ((cddr repl) (cddr repl))
+                              (t (cdr key-binding))))))))))))
 
 (defsubst which-key--current-key-list (&optional key-str)
   (append (listify-key-sequence which-key--current-prefix)
@@ -1600,7 +1606,8 @@ Requires `which-key-compute-remaps' to be non-nil"
         (ignore-keys-regexp
          (eval-when-compile
            (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
-                         "select-window" "switch-frame" "-state"))))
+                         "select-window" "switch-frame" "-state"
+                         "which-key-"))))
         (ignore-sections-regexp
          (eval-when-compile
            (regexp-opt '("Key translations" "Function key map translations"
