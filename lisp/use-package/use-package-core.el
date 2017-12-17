@@ -1510,10 +1510,11 @@ this file.  Usage:
         (condition-case-unless-debug err
             (use-package-core name args)
           (error
-           (display-warning
-            'use-package
-            (format "Failed to parse package %s: %s"
-                    name (error-message-string err)) :error))))
+           (ignore
+            (display-warning
+             'use-package
+             (format "Failed to parse package %s: %s"
+                     name (error-message-string err)) :error)))))
       (when use-package-compute-statistics
         `((use-package-statistics-gather :use-package ',name t)))))))
 
