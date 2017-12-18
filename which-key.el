@@ -916,7 +916,7 @@ meant to be used as :before advice for `define-key'."
     (when (and (consp def)
                (stringp (car def))
                (symbolp (cdr def)))
-      (define-key keymap (which-key--pseudo-key key) (car def)))))
+      (define-key keymap (which-key--pseudo-key key) `(which-key ,def)))))
 
 (when which-key-enable-extended-define-key
   (advice-add #'define-key :before #'which-key--process-define-key-args))
@@ -1358,14 +1358,28 @@ local bindings coming first. Within these categories order using
                 (throw 'res res)))))))
     (nreverse res)))
 
+(defun which-key--get-pseudo-binding (key-binding)
+  (let* ((pseudo-binding
+          (key-binding (which-key--pseudo-key (kbd (car key-binding)) t)))
+         (pseudo-binding (when pseudo-binding (cadr pseudo-binding)))
+         (pseudo-desc (when pseudo-binding (car pseudo-binding)))
+         (pseudo-def (when pseudo-binding (cdr pseudo-binding)))
+         (real-def (key-binding (kbd (car key-binding))))
+         ;; treat keymaps as if they're nil bindings. This creates the
+         ;; possibility that we rename the wrong binding but this seems
+         ;; unlikely.
+         (real-def (unless (keymapp real-def) real-def)))
+    (when (and pseudo-binding
+               (eq pseudo-def real-def))
+      (cons (car key-binding) pseudo-desc))))
+
 (defun which-key--maybe-replace (key-binding)
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
-  (let ((menu-item-repl
-         (key-binding (which-key--pseudo-key (car key-binding) t))))
-    (if menu-item-repl
-        (cons (car key-binding) menu-item-repl)
+  (let* ((pseudo-binding (which-key--get-pseudo-binding key-binding)))
+    (if pseudo-binding
+        pseudo-binding
       (let* ((mode-res (which-key--get-replacements key-binding t))
              (all-repls (or mode-res
                             (which-key--get-replacements key-binding))))
