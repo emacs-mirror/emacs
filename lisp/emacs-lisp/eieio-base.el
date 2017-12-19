@@ -349,7 +349,7 @@ Second, any text properties will be stripped from strings."
                        (seq-some
                         (lambda (elt)
                           (child-of-class-p (car proposed-value) elt))
-                        classtype))
+                        (if (listp classtype) classtype (list classtype))))
 		  (eieio-persistent-convert-list-to-object
 		   proposed-value))
 		 (t
