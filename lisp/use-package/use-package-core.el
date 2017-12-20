@@ -1351,7 +1351,7 @@ no keyword implies `:all'."
             (spec (nth 1 def)))
         (when (or (not face)
                   (not spec)
-                  (> (length arg) 2))
+                  (> (length def) 2))
           (use-package-error error-msg))))))
 
 (defun use-package-handler/:custom-face (name keyword args rest state)
