@@ -656,6 +656,26 @@ x_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
 }
 
 /**
+ * x_set_skip_taskbar:
+ *
+ * Set frame F's `skip-taskbar' parameter.  If non-nil, this should
+ * remove F's icon from the taskbar associated with the display of F's
+ * window-system window and inhibit switching to F's window via
+ * <Alt>-<TAB>.  If nil, lift these restrictions.
+ *
+ * Some window managers may not honor this parameter.
+ */
+static void
+x_set_skip_taskbar (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+  if (!EQ (new_value, old_value))
+    {
+      xg_set_skip_taskbar (f, new_value);
+      FRAME_SKIP_TASKBAR (f) = !NILP (new_value);
+    }
+}
+
+/**
  * x_set_override_redirect:
  *
  * Set frame F's `override_redirect' parameter which, if non-nil, hints
@@ -721,9 +741,9 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
   0, /* x_set_sticky */
   0, /* x_set_tool_bar_position */
   0, /* x_set_inhibit_double_buffering */
-  x_set_undecorated
+  x_set_undecorated,
   0, /* x_set_parent_frame, */
-  0, /* x_set_skip_taskbar */
+  x_set_skip_taskbar,
   x_set_no_focus_on_map,
   x_set_no_accept_focus,
   x_set_z_group,
