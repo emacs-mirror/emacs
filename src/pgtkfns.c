@@ -634,6 +634,28 @@ x_icon (struct frame *f, Lisp_Object parms)
 }
 
 /**
+ * x_set_undecorated:
+ *
+ * Set frame F's `undecorated' parameter.  If non-nil, F's window-system
+ * window is drawn without decorations, title, minimize/maximize boxes
+ * and external borders.  This usually means that the window cannot be
+ * dragged, resized, iconified, maximized or deleted with the mouse.  If
+ * nil, draw the frame with all the elements listed above unless these
+ * have been suspended via window manager settings.
+ *
+ * Some window managers may not honor this parameter.
+ */
+static void
+x_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
+{
+  if (!EQ (new_value, old_value))
+    {
+      FRAME_UNDECORATED (f) = NILP (new_value) ? false : true;
+      xg_set_undecorated (f, new_value);
+    }
+}
+
+/**
  * x_set_override_redirect:
  *
  * Set frame F's `override_redirect' parameter which, if non-nil, hints
@@ -699,7 +721,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
   0, /* x_set_sticky */
   0, /* x_set_tool_bar_position */
   0, /* x_set_inhibit_double_buffering */
-  0, /*x_set_undecorated */
+  x_set_undecorated
   0, /* x_set_parent_frame, */
   0, /* x_set_skip_taskbar */
   x_set_no_focus_on_map,
