@@ -2152,7 +2152,6 @@ current evil state. "
   (interactive)
   (let ((last-command-event (string-to-char key)))
     (digit-argument key))
-  (message "lce %s key %s pf %s" last-command-event key prefix-arg)
   (let ((current-prefix-arg prefix-arg))
     (which-key-reload-key-sequence)))
 
