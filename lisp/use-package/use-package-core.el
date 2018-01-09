@@ -983,7 +983,7 @@ meaning:
      use-package-statistics)
     (goto-char (point-min))
     (orgtbl-mode)
-    (orgtbl-ctrl-c-ctrl-c nil)
+    (org-table-align)
     (display-buffer (current-buffer))))
 
 (defun use-package-statistics-gather (keyword name after)
