@@ -197,25 +197,49 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
+  unsigned long fore_pixel, pixel;
+  struct pgtk_output *x = f->output_data.pgtk;
   Emacs_Color col;
 
-  block_input ();
-  if (pgtk_lisp_to_color (arg, &col))
+  if (!NILP (Vx_cursor_fore_pixel))
     {
-      store_frame_param (f, Qcursor_color, oldval);
-      unblock_input ();
-      error ("Unknown color");
+      if (pgtk_lisp_to_color(Vx_cursor_fore_pixel, &col))
+	signal_error ("Undefined color", Vx_cursor_fore_pixel);
+      fore_pixel = col.pixel;
+    }
+  else
+    fore_pixel = FRAME_BACKGROUND_PIXEL (f);
+
+  if (pgtk_lisp_to_color(arg, &col))
+    signal_error ("Undefined color", arg);
+  pixel = col.pixel;
+
+  /* Make sure that the cursor color differs from the background color.  */
+  if (pixel == FRAME_BACKGROUND_PIXEL (f))
+    {
+      pixel = x->mouse_color;
+      if (pixel == fore_pixel)
+	{
+	  fore_pixel = FRAME_BACKGROUND_PIXEL (f);
+	}
     }
 
-  FRAME_CURSOR_COLOR (f) = col.pixel;
+  x->cursor_foreground_color = fore_pixel;
+  x->cursor_color = pixel;
 
-  if (FRAME_VISIBLE_P (f))
+  if (FRAME_X_WINDOW (f) != 0)
     {
-      x_update_cursor (f, 0);
-      x_update_cursor (f, 1);
+      x->cursor_xgcv.background = x->cursor_color;
+      x->cursor_xgcv.foreground = fore_pixel;
+
+      if (FRAME_VISIBLE_P (f))
+	{
+	  x_update_cursor (f, false);
+	  x_update_cursor (f, true);
+	}
     }
+
   update_face_from_frame_parameter (f, Qcursor_color, arg);
-  unblock_input ();
 }
 
 
@@ -1029,11 +1053,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
     FRAME_FOREGROUND_PIXEL (f) = -1;
     FRAME_BACKGROUND_PIXEL (f) = -1;
     FRAME_X_OUTPUT(f)->cursor_color = -1;
+    FRAME_X_OUTPUT(f)->cursor_foreground_color = -1;
 #if 0
-    FRAME_X_OUTPUT(f)->cursor_foreground_pixel = -1;
     FRAME_X_OUTPUT(f)->border_pixel = -1;
-    FRAME_X_OUTPUT(f)->mouse_pixel = -1;
 #endif
+    FRAME_X_OUTPUT(f)->mouse_color = -1;
 
     black = build_string ("black");
     FRAME_FOREGROUND_PIXEL (f)
@@ -1042,14 +1066,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_X_OUTPUT(f)->cursor_color
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-#if 0
-    FRAME_X_OUTPUT(f)->cursor_foreground_pixel
+    FRAME_X_OUTPUT(f)->cursor_foreground_color
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+#if 0
     FRAME_X_OUTPUT(f)->border_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    FRAME_X_OUTPUT(f)->mouse_pixel
-      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
 #endif
+    FRAME_X_OUTPUT(f)->mouse_color
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
   }
 
   /* Specify the parent under which to make this X window.  */
@@ -2614,6 +2638,10 @@ syms_of_pgtkfns (void)
   DEFSYM (Qframe_title_format, "frame-title-format");
   DEFSYM (Qicon_title_format, "icon-title-format");
   DEFSYM (Qdark, "dark");
+
+  DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
+    doc: /* A string indicating the foreground color of the cursor box.  */);
+  Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("pgtk-icon-type-alist", Vpgtk_icon_type_alist,
                doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.

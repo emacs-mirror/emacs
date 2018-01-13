@@ -765,10 +765,8 @@ x_set_cursor_gc (struct glyph_string *s)
       if (xgcv.foreground == xgcv.background)
 	xgcv.foreground = s->face->foreground;
       PGTK_TRACE("x_set_cursor_gc: 4. %08lx, %08lx.", xgcv.background, xgcv.foreground);
-#if 0
       if (xgcv.foreground == xgcv.background)
-	xgcv.foreground = FRAME_X_OUTPUT(s->f)->cursor_foreground_pixel;
-#endif
+	xgcv.foreground = FRAME_X_OUTPUT(s->f)->cursor_foreground_color;
       if (xgcv.foreground == xgcv.background)
 	xgcv.foreground = s->face->foreground;
       PGTK_TRACE("x_set_cursor_gc: 5. %08lx, %08lx.", xgcv.background, xgcv.foreground);

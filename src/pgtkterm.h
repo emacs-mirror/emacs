@@ -226,7 +226,6 @@ struct pgtk_output
   void *view;
   void *miniimage;
 #endif
-  unsigned long cursor_color;
   unsigned long foreground_color;
   unsigned long background_color;
   void *toolbar;
@@ -268,6 +267,10 @@ struct pgtk_output
   /* If a fontset is specified for this frame instead of font, this
      value contains an ID of the fontset, else -1.  */
   int fontset; /* only used with font_backend */
+
+  unsigned long mouse_color;
+  unsigned long cursor_color;
+  unsigned long cursor_foreground_color;
 
   int icon_top;
   int icon_left;
