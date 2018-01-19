@@ -3871,7 +3871,7 @@ Otherwise display the beginning of entry."
 (defun bibtex-mark-entry ()
   "Put mark at beginning, point at end of current BibTeX entry."
   (interactive)
-  (push-mark (bibtex-beginning-of-entry))
+  (push-mark (bibtex-beginning-of-entry) :activate t)
   (bibtex-end-of-entry))
 
 (defun bibtex-count-entries (&optional count-string-entries)
