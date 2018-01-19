@@ -3221,9 +3221,12 @@ SPECPDL_INDEX (void)
    A call like (throw TAG VAL) searches for a catchtag whose `tag_or_ch'
    member is TAG, and then unbinds to it.  The `val' member is used to
    hold VAL while the stack is unwound; `val' is returned as the value
-   of the catch form.  If there is a handler of type CATCHER_ALL, it will
-   be treated as a handler for all invocations of `throw'; in this case
-   `val' will be set to (TAG . VAL).
+   of the catch form.
+
+   If there is a handler of type CATCHER_ALL, it will be treated as a
+   handler for all invocations of `throw' and `signal'.  For a throw,
+   `val' will be set to (throw TAG . VAL).  For a signal, `val' will
+   be set to (signal SYMBOL . DATA).
 
    All the other members are concerned with restoring the interpreter
    state.
