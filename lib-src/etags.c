@@ -7683,8 +7683,7 @@ find_filename_hash_slot (const char *filename)
 	  || streq (filename_hash_table[index], filename))
 	return &filename_hash_table[index];
 
-      /* Add 1 because, if VAL==0, we won't advance.  */
-      index = (index + val + 1) % filename_hash_size;
+      index = (index + 3) % filename_hash_size;
     }
 }
 
