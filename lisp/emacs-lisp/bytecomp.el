@@ -603,8 +603,12 @@ Each element is (INDEX . VALUE)")
 (byte-defop  48  0 byte-pophandler)
 (byte-defop  50 -1 byte-pushcatch)
 (byte-defop  49 -1 byte-pushconditioncase)
+;; New (in Emacs 27.1) bytecode for efficient handling of
+;; unwind-protect.
+(byte-defop  51  0 byte-pushunwindprotect)
+(byte-defop  52 -1 byte-endunwindprotect)
 
-;; unused: 51-55
+;; unused: 53-55
 
 (byte-defop  56 -1 byte-nth)
 (byte-defop  57  0 byte-symbolp)
@@ -781,7 +785,8 @@ the value maps to, if any.")
 (defconst byte-goto-ops '(byte-goto byte-goto-if-nil byte-goto-if-not-nil
 			  byte-goto-if-nil-else-pop
 			  byte-goto-if-not-nil-else-pop
-                          byte-pushcatch byte-pushconditioncase)
+                          byte-pushcatch byte-pushconditioncase
+                          byte-pushunwindprotect)
   "List of byte-codes whose offset is a pc.")
 
 (defconst byte-goto-always-pop-ops '(byte-goto-if-nil byte-goto-if-not-nil))
@@ -4459,18 +4464,33 @@ binding slots have been popped."
     (byte-compile-out 'byte-catch 0)))
 
 (defun byte-compile-unwind-protect (form)
-  (pcase (cddr form)
-    (`(:fun-body ,f)
-     (byte-compile-form
-      (if byte-compile--use-old-handlers `(list (list 'funcall ,f)) f)))
-    (handlers
-     (if byte-compile--use-old-handlers
-         (byte-compile-push-constant
-          (byte-compile-top-level-body handlers t))
-       (byte-compile-form `#'(lambda () ,@handlers)))))
-  (byte-compile-out 'byte-unwind-protect 0)
-  (byte-compile-form-do-effect (car (cdr form)))
-  (byte-compile-out 'byte-unbind 1))
+  (if (not byte-compile--use-old-handlers)
+      (let ((except-tag (byte-compile-make-tag)))
+        ;; If the goto is called, we'll have 2 extra items on the
+        ;; stack.
+        (byte-compile-goto 'byte-pushunwindprotect except-tag)
+        (byte-compile-form (cadr form) nil)
+        (byte-compile-out 'byte-pophandler)
+        ;; The value of the body is on the stack; now push a flag so
+        ;; that the coming endunwindprotect instruction knows what to
+        ;; do.
+        (byte-compile-push-constant nil)
+        ;; The unwind forms.
+        (byte-compile-out-tag except-tag)
+        (byte-compile-body (cddr form) t)
+        (byte-compile-out 'byte-endunwindprotect))
+    (pcase (cddr form)
+      (`(:fun-body ,f)
+       (byte-compile-form
+        (if byte-compile--use-old-handlers `(list (list 'funcall ,f)) f)))
+      (handlers
+       (if byte-compile--use-old-handlers
+           (byte-compile-push-constant
+            (byte-compile-top-level-body handlers t))
+         (byte-compile-form `#'(lambda () ,@handlers)))))
+    (byte-compile-out 'byte-unwind-protect 0)
+    (byte-compile-form-do-effect (car (cdr form)))
+    (byte-compile-out 'byte-unbind 1)))
 
 (defun byte-compile-condition-case (form)
   (if byte-compile--use-old-handlers
@@ -4810,11 +4830,19 @@ binding slots have been popped."
 
 (defun byte-compile-goto (opcode tag)
   (push (cons opcode tag) byte-compile-output)
-  (setcdr (cdr tag) (if (memq opcode byte-goto-always-pop-ops)
-			(1- byte-compile-depth)
-		      byte-compile-depth))
-  (setq byte-compile-depth (and (not (eq opcode 'byte-goto))
-				(1- byte-compile-depth))))
+  (setcdr (cdr tag)
+          (cond
+           ((memq opcode byte-goto-always-pop-ops)
+            (1- byte-compile-depth))
+           ((eq opcode 'byte-pushunwindprotect)
+            (+ 2 byte-compile-depth))
+           (t byte-compile-depth)))
+  (setq byte-compile-depth
+        (cond
+         ((eq opcode 'byte-goto) nil)
+         ((eq opcode 'byte-pushunwindprotect)
+          byte-compile-depth)
+	 (t (1- byte-compile-depth)))))
 
 (defun byte-compile-stack-adjustment (op operand)
   "Return the amount by which an operation adjusts the stack.

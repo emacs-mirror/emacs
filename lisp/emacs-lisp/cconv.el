@@ -87,7 +87,6 @@
 ;;   command-history).
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
-;; - new byte codes for unwind-protect so that closures aren't needed at all.
 ;; - a reference to a var that is known statically to always hold a constant
 ;;   should be turned into a byte-constant rather than a byte-stack-ref.
 ;;   Hmm... right, that's called constant propagation and could be done here,
@@ -487,7 +486,8 @@ places where they originally did not directly appear."
              handlers))))
 
     (`(,(and head (or (and `catch (guard byte-compile--use-old-handlers))
-                      `unwind-protect))
+                      (and `unwind-protect
+                           (guard byte-compile--use-old-handlers))))
        ,form . ,body)
      `(,head ,(cconv-convert form env extend)
         :fun-body ,(cconv--convert-function () body env form)))
@@ -728,9 +728,8 @@ and updates the data stored in ENV."
        (if var (cconv--analyze-use (cons (list var) (cdr varstruct))
                                    form "variable"))))
 
-    ;; FIXME: The bytecode for unwind-protect forces us to wrap the unwind.
     (`(,(or (and `catch (guard byte-compile--use-old-handlers))
-            `unwind-protect)
+            (and `unwind-protect (guard byte-compile--use-old-handlers)))
        ,form . ,body)
      (cconv-analyze-form form env)
      (cconv--analyze-function () body env form))

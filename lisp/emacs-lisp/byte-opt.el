@@ -1324,7 +1324,8 @@
                   (<= bytedecomp-op byte-goto-if-not-nil-else-pop))
              (memq bytedecomp-op (eval-when-compile
                                    (list byte-stack-set2 byte-pushcatch
-                                         byte-pushconditioncase))))
+                                         byte-pushconditioncase
+                                         byte-pushunwindprotect))))
 	 ;; Offset in next 2 bytes.
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
 	 (+ (aref bytes bytedecomp-ptr)

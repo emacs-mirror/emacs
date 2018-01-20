@@ -132,6 +132,8 @@ DEFINE (Bunbind7, 057)							\
 DEFINE (Bpophandler, 060)						\
 DEFINE (Bpushconditioncase, 061)					\
 DEFINE (Bpushcatch, 062)						\
+DEFINE (Bpushunwindprotect, 063)					\
+DEFINE (Bendunwindprotect, 064)						\
 									\
 DEFINE (Bnth, 070)							\
 DEFINE (Bsymbolp, 071)							\
@@ -770,6 +772,45 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    NEXT;
 	  }
 
+	CASE (Bpushunwindprotect): /* New in 27.1.  */
+	  {
+	    struct handler *c = push_handler (Qt, CATCHER_ALL);
+	    c->bytecode_dest = FETCH2;
+	    c->bytecode_top = top;
+
+	    if (sys_setjmp (c->jmp))
+	      {
+		struct handler *c = handlerlist;
+		top = c->bytecode_top;
+		op = c->bytecode_dest;
+		handlerlist = c->next;
+		/* Push the exception value, plus a flag indicating
+		   that re-throwing is necessary.  This will be used
+		   by Bendunwindprotect.  */
+		PUSH (c->val);
+		PUSH (Qt);
+		goto op_branch;
+	      }
+
+	    NEXT;
+	  }
+	CASE (Bendunwindprotect): /* New in 27.1.  */
+	  {
+	    Lisp_Object flag = POP;
+
+	    if (!NILP (flag))
+	      {
+		Lisp_Object err = POP;
+
+		if (EQ (XCAR (err), Qsignal))
+		  Fsignal (XCAR (XCDR (err)), XCDR (XCDR (err)));
+		else
+		  Fthrow (XCAR (XCDR (err)), XCDR (XCDR (err)));
+	      }
+
+	    NEXT;
+	  }
+
 	CASE (Bpushcatch):	/* New in 24.4.  */
 	  type = CATCHER;
 	  goto pushhandler;
@@ -798,7 +839,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  handlerlist = handlerlist->next;
 	  NEXT;
 
-	CASE (Bunwind_protect):	/* FIXME: avoid closure for lexbind.  */
+	CASE (Bunwind_protect):	/* Obsolete since 27.1.  */
 	  {
 	    Lisp_Object handler = POP;
 	    /* Support for a function here is new in 24.4.  */
