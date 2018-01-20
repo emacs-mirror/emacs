@@ -3035,7 +3035,6 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     emacs_abort ();
 
   i = optional = rest = 0;
-  bool previous_optional_or_rest = false;
   for (; CONSP (syms_left); syms_left = XCDR (syms_left))
     {
       maybe_quit ();
@@ -3046,17 +3045,15 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 
       if (EQ (next, Qand_rest))
         {
-          if (rest || previous_optional_or_rest)
+          if (rest)
             xsignal1 (Qinvalid_function, fun);
           rest = 1;
-          previous_optional_or_rest = true;
         }
       else if (EQ (next, Qand_optional))
         {
-          if (optional || rest || previous_optional_or_rest)
+          if (optional || rest)
             xsignal1 (Qinvalid_function, fun);
           optional = 1;
-          previous_optional_or_rest = true;
         }
       else
 	{
@@ -3080,11 +3077,10 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	  else
 	    /* Dynamically bind NEXT.  */
 	    specbind (next, arg);
-          previous_optional_or_rest = false;
 	}
     }
 
-  if (!NILP (syms_left) || previous_optional_or_rest)
+  if (!NILP (syms_left))
     xsignal1 (Qinvalid_function, fun);
   else if (i < nargs)
     xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));

@@ -380,6 +380,13 @@ backslash.  For example:
     (read "‘smart") => (invalid-read-syntax "strange quote" "‘")
     (read "\\‘smart") == (intern "‘smart")
 
++++
+** Omitting variables after '&optional' and '&rest' is now allowed.
+For example (defun foo (&optional)) is no longer an error.  This is
+sometimes convenient when writing macros.  See the ChangeLog entry
+titled "Allow `&rest' or `&optional' without following variable" for a
+full listing of which arglists are accepted across versions.
+
 ** Internal parsing commands now use syntax-ppss and disregard
 open-paren-in-column-0-is-defun-start.  This affects mostly things like
 forward-comment, scan-sexps, and forward-sexp when parsing backward.
