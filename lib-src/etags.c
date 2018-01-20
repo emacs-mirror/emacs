@@ -1666,20 +1666,20 @@ static void
 copy_entries_from_old_file (FILE *old_file, const char *old_filename, FILE *out_file)
 {
   linebuffer line;
+  bool keep_going = true;
 
   need_filebuf = false;
 
   linebuffer_init (&line);
-  while (true)
+
+  if (readline_internal (&line, old_file, old_filename) <= 0
+      || line.len < 1 || !strneq (line.buffer, "\f", 1))
+    goto error;
+
+  while (keep_going)
     {
       char *comma, *filename;
       bool should_copy;
-
-      if (readline_internal (&line, old_file, old_filename) <= 0)
-	break;
-
-      if (line.len < 1 || !strneq (line.buffer, "\f", 1))
-	goto error;
 
       if (readline_internal (&line, old_file, old_filename) <= 0)
 	goto error;
@@ -1702,13 +1702,19 @@ copy_entries_from_old_file (FILE *old_file, const char *old_filename, FILE *out_
       while (true)
 	{
 	  if (readline_internal (&line, old_file, old_filename) <= 0)
-	    break;
+	    {
+	      keep_going = false;
+	      break;
+	    }
 
 	  if (should_copy)
 	    {
 	      fwrite (line.buffer, line.len, 1, out_file);
 	      fputs ("\n", out_file);
 	    }
+
+	  if (line.len < 0 || strneq (line.buffer, "\f", 1))
+	    break;
 	}
     }
 
