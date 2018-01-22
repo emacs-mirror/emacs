@@ -1100,28 +1100,26 @@ convenient way to make a table of contents of the buffer."
     (save-restriction
       (narrow-to-region beg end)
       (goto-char (point-min))
-      (let ((buffer (current-buffer))
-	    start end)
-	(with-temp-buffer
-	  (with-current-buffer buffer
-	    ;; Boundary condition: starting on heading:
-	    (when (outline-on-heading-p)
-	      (outline-back-to-heading)
-	      (setq start (point)
-		    end (progn (outline-end-of-heading)
-			       (point)))
-	      (insert-buffer-substring buffer start end)
-	      (insert "\n\n")))
-	  (let ((temp-buffer (current-buffer)))
-	    (with-current-buffer buffer
-	      (while (outline-next-heading)
-		(unless (outline-invisible-p)
-		  (setq start (point)
-			end (progn (outline-end-of-heading) (point)))
-		  (with-current-buffer temp-buffer
-		    (insert-buffer-substring buffer start end)
-		    (insert "\n\n"))))))
-	  (kill-new (buffer-string)))))))
+      (let ((buffer (current-buffer)) start end)
+        (with-temp-buffer
+          (let ((temp-buffer (current-buffer)))
+            (with-current-buffer buffer
+              ;; Boundary condition: starting on heading:
+              (when (outline-on-heading-p)
+                (outline-back-to-heading)
+                (setq start (point)
+                      end (progn (outline-end-of-heading) (point)))
+                (with-current-buffer temp-buffer
+                  (insert-buffer-substring buffer start end)
+                  (insert "\n\n")))
+              (while (outline-next-heading)
+                (unless (outline-invisible-p)
+                  (setq start (point)
+                        end (progn (outline-end-of-heading) (point)))
+                  (with-current-buffer temp-buffer
+                    (insert-buffer-substring buffer start end)
+                    (insert "\n\n"))))))
+          (kill-new (buffer-string)))))))
 
 (provide 'outline)
 (provide 'noutline)
