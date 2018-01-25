@@ -21,6 +21,9 @@
 
 (require 'ert)
 (require 'nadvice)
+(require 'bytecomp) ; `byte-compiler-base-file-name'.
+(require 'dired) ; `dired-uncache'.
+(require 'filenotify) ; `file-notify-add-watch'.
 
 ;; Set to t if the local variable was set, `query' if the query was
 ;; triggered.
@@ -286,6 +289,14 @@ be $HOME."
          (progn ,@body)
        (delete-file ,name))))
 
+(defmacro files-tests--with-temp-dir (name &rest body)
+  (declare (indent 1))
+  (cl-check-type name symbol)
+  `(let ((,name (make-temp-file "emacs" t)))
+     (unwind-protect
+         (progn ,@body)
+       (delete-directory ,name t))))
+
 (ert-deftest files-tests--file-name-non-special--buffers ()
   "Check that Bug#25951 is fixed.
 We call `verify-visited-file-modtime' on a buffer visiting a file
@@ -326,6 +337,181 @@ be invoked with the right arguments."
        (should (equal actual-args
                       `((verify-visited-file-modtime ,buffer-visiting-file)
                         (verify-visited-file-modtime nil))))))))
+
+(ert-deftest files-file-name-non-special-notify-handlers ()
+  :expected-result :failed
+  (files-tests--with-temp-file tmpfile
+    (let* ((nospecial (concat "/:" tmpfile))
+           (watch (file-notify-add-watch nospecial '(change) #'ignore)))
+      (should (file-notify-valid-p watch))
+      (file-notify-rm-watch watch))))
+
+
+(ert-deftest files-file-name-non-special-handlers ()
+  (files-tests--with-temp-file tmpfile
+    (files-tests--with-temp-dir tmpdir
+      (let ((nospecial (concat "/:" tmpfile))
+            (nospecial-dir (concat "/:" tmpdir)))
+        (should (null (access-file nospecial "test")))
+        (let ((newname (concat nospecial "add-name")))
+          (add-name-to-file nospecial newname)
+          (should (file-exists-p newname)))
+        (should (equal (byte-compiler-base-file-name nospecial)
+                       (byte-compiler-base-file-name tmpfile)))
+        (let ((newname (concat (directory-file-name nospecial-dir)
+                               "copy-dir")))
+          (copy-directory nospecial-dir newname)
+          (should (file-directory-p newname))
+          (delete-directory newname)
+          (should-not (file-directory-p newname)))
+        (let ((newname (concat (directory-file-name nospecial)
+                               "copy-file")))
+          (copy-file nospecial newname)
+          (should (file-exists-p newname))
+          (delete-file newname)
+          (should-not (file-exists-p newname)))
+        (should (equal (diff-latest-backup-file nospecial)
+                       (diff-latest-backup-file tmpfile)))
+        (should (equal (directory-file-name nospecial-dir)
+                       (concat "/:" (directory-file-name tmpdir))))
+        (should (equal (directory-files nospecial-dir)
+                       (directory-files tmpdir)))
+        (should (equal (directory-files-and-attributes nospecial-dir)
+                       (directory-files-and-attributes tmpdir)))
+        (dired-compress-file (dired-compress-file nospecial))
+        (dired-uncache nospecial-dir)
+        (should (equal (expand-file-name nospecial)
+                       nospecial))
+        (should (file-accessible-directory-p nospecial-dir))
+        (should (equal (file-acl nospecial)
+                       (file-acl tmpfile)))
+        (should (equal (file-attributes nospecial)
+                       (file-attributes tmpfile)))
+        (should (equal (file-directory-p nospecial-dir)
+                       (file-directory-p tmpdir)))
+        (should (file-equal-p nospecial tmpfile))
+        (should (file-equal-p tmpfile nospecial))
+        (should-not (file-executable-p nospecial))
+        (should (file-exists-p nospecial))
+        (should (file-in-directory-p nospecial temporary-file-directory))
+        (should-not (file-in-directory-p nospecial nospecial-dir))
+        (should-not (file-in-directory-p tmpfile nospecial-dir))
+        (should-not (file-local-copy nospecial)) ; Already local.
+        (should (equal (file-modes nospecial)
+                       (file-modes tmpfile)))
+        (should (equal (file-name-all-completions nospecial nospecial-dir)
+                       (file-name-all-completions tmpfile tmpdir)))
+        (file-name-as-directory nospecial)
+        (should (equal (file-name-case-insensitive-p nospecial)
+                       (file-name-case-insensitive-p tmpfile)))
+        (should (equal (file-name-completion nospecial nospecial-dir)
+                       (file-name-completion tmpfile tmpdir)))
+        (should (equal (file-name-directory nospecial)
+                       (concat "/:" temporary-file-directory)))
+        (should (equal (file-name-nondirectory nospecial)
+                       (file-name-nondirectory tmpfile)))
+        (should (equal (file-name-sans-versions nospecial)
+                       nospecial))
+        (should-not (file-newer-than-file-p nospecial tmpfile))
+        (should (equal (file-ownership-preserved-p nospecial)
+                       (file-ownership-preserved-p tmpfile)))
+        (should (file-readable-p nospecial))
+        (should (file-regular-p nospecial))
+        (should-not (file-remote-p nospecial))
+        (should (equal (file-selinux-context nospecial)
+                       (file-selinux-context tmpfile)))
+        (should-not (file-symlink-p nospecial))
+        (file-truename nospecial)
+        (should (file-writable-p nospecial))
+        (should (equal (find-backup-file-name nospecial)
+                       (mapcar (lambda (f) (concat "/:" f))
+                               (find-backup-file-name tmpfile))))
+        (should-not (get-file-buffer nospecial))
+        (should (equal (with-temp-buffer
+                         (insert-directory nospecial-dir nil)
+                         (buffer-string))
+                       (with-temp-buffer
+                         (insert-directory tmpdir nil)
+                         (buffer-string))))
+        (with-temp-buffer
+          (insert-file-contents nospecial)
+          (should (zerop (buffer-size))))
+        (should (load nospecial))
+        (save-current-buffer
+          (should (equal (prog2 (set-buffer (find-file-noselect nospecial))
+                             (make-auto-save-file-name)
+                           (kill-buffer))
+                         (prog2 (set-buffer (find-file-noselect tmpfile))
+                             (make-auto-save-file-name)
+                           (kill-buffer)))))
+        (let ((default-directory nospecial-dir))
+          (make-directory "dir")
+          (should (file-directory-p "dir"))
+          (delete-directory "dir")
+          (make-directory-internal "dir")
+          (should (file-directory-p "dir"))
+          (delete-directory "dir")
+          (let ((near-tmpfile (make-nearby-temp-file "file")))
+            (should (file-exists-p near-tmpfile))
+            (delete-file near-tmpfile)))
+        (let* ((linkname (expand-file-name "link" tmpdir))
+               (may-symlink (ignore-errors (make-symbolic-link tmpfile linkname)
+                                           t)))
+          (when may-symlink
+            (should (file-symlink-p linkname))
+            (delete-file linkname)
+            (let ((linkname (expand-file-name "link" nospecial-dir)))
+              (make-symbolic-link tmpfile linkname)
+              (should (file-symlink-p linkname))
+              (delete-file linkname))))
+        ;; `files-tests--file-name-non-special--subprocess' already
+        ;; tests `process-file'.
+        (rename-file nospecial (concat nospecial "x"))
+        (rename-file (concat nospecial "x") nospecial)
+        (rename-file tmpfile (concat nospecial "x"))
+        (rename-file (concat nospecial "x") nospecial)
+        (rename-file nospecial (concat tmpfile "x"))
+        (rename-file (concat nospecial "x") nospecial)
+        (set-file-acl nospecial (file-acl nospecial))
+        (set-file-modes nospecial (file-modes nospecial))
+        (set-file-selinux-context nospecial (file-selinux-context nospecial))
+        (set-file-times nospecial)
+        ;; `files-tests--file-name-non-special--buffers' already tests
+        ;; `verify-visited-file-modtime'.
+        (with-temp-buffer
+          (write-region nil nil nospecial nil :visit))
+        (save-current-buffer
+          (set-buffer (find-file-noselect nospecial))
+          (set-visited-file-modtime)
+          (kill-buffer))
+        (with-temp-buffer
+          (let ((default-directory nospecial-dir))
+            (shell-command (concat (shell-quote-argument
+                                    (concat invocation-directory invocation-name))
+                                   " --version")
+                           (current-buffer))
+            (goto-char (point-min))
+            (should (search-forward emacs-version nil t))))
+        (with-temp-buffer
+          (let ((default-directory nospecial-dir))
+            (let ((proc (start-file-process
+                         "emacs" (current-buffer)
+                         (concat invocation-directory invocation-name)
+                         "--version")))
+              (accept-process-output proc)
+              (goto-char (point-min))
+              (should (search-forward emacs-version nil t))
+              (kill-process proc)
+              (accept-process-output proc ))))
+        (let ((process-environment (cons "FOO=foo" process-environment)))
+          ;; The "/:" prevents substitution.
+          (equal (substitute-in-file-name nospecial) nospecial))
+        (let ((default-directory nospecial-dir))
+          (equal (temporary-file-directory) temporary-file-directory))
+        (equal (unhandled-file-name-directory nospecial-dir)
+               (file-name-as-directory tmpdir))
+        (should (equal (vc-registered nospecial)
+                       (vc-registered tmpfile)))))))
 
 (ert-deftest files-tests--insert-directory-wildcard-in-dir-p ()
   (let ((alist (list (cons "/home/user/*/.txt" (cons "/home/user/" "*/.txt"))
