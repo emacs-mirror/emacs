@@ -282,7 +282,7 @@ be $HOME."
          (advice-remove #',symbol ,function)))))
 
 (defmacro files-tests--with-temp-file (name &rest body)
-  (declare (indent 1))
+  (declare (indent 1) (debug (symbolp body)))
   (cl-check-type name symbol)
   `(let ((,name (make-temp-file "emacs")))
      (unwind-protect
@@ -290,7 +290,7 @@ be $HOME."
        (delete-file ,name))))
 
 (defmacro files-tests--with-temp-dir (name &rest body)
-  (declare (indent 1))
+  (declare (indent 1) (debug (symbolp body)))
   (cl-check-type name symbol)
   `(let ((,name (make-temp-file "emacs" t)))
      (unwind-protect
