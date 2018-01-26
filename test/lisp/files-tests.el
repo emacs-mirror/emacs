@@ -339,13 +339,11 @@ be invoked with the right arguments."
                         (verify-visited-file-modtime nil))))))))
 
 (ert-deftest files-file-name-non-special-notify-handlers ()
-  :expected-result :failed
   (files-tests--with-temp-file tmpfile
     (let* ((nospecial (concat "/:" tmpfile))
            (watch (file-notify-add-watch nospecial '(change) #'ignore)))
       (should (file-notify-valid-p watch))
       (file-notify-rm-watch watch))))
-
 
 (ert-deftest files-file-name-non-special-handlers ()
   (files-tests--with-temp-file tmpfile
