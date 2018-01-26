@@ -7026,6 +7026,7 @@ only these files will be asked to be saved."
 			    (file-name-completion 0 1)
 			    (file-name-all-completions 0 1)
                             (file-equal-p 0 1)
+                            (file-newer-than-file-p 0 1)
 			    (write-region 2 5)
 			    (rename-file 0 1)
 			    (copy-file 0 1)
