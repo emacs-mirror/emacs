@@ -125,7 +125,7 @@ deferred until the prefix key sequence is pressed."
 
 ;;;###autoload
 (defun use-package-handler/:bind
-    (name keyword args rest state &optional bind-macro)
+    (name _keyword args rest state &optional bind-macro)
   (use-package-concat
    (use-package-process-keywords name rest state)
    `(,@(mapcar
@@ -146,7 +146,7 @@ deferred until the prefix key sequence is pressed."
 
 ;;;###autoload
 (defun use-package-handler/:bind-keymap
-    (name keyword args rest state &optional override)
+    (name _keyword args rest state &optional override)
   (use-package-concat
    (use-package-process-keywords name rest state)
    (mapcar

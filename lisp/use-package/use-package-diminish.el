@@ -62,7 +62,7 @@
     (apply-partially #'use-package-normalize-diminish name) t))
 
 ;;;###autoload
-(defun use-package-handler/:diminish (name keyword arg rest state)
+(defun use-package-handler/:diminish (name _keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      (mapcar #'(lambda (var)

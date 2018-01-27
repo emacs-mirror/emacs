@@ -76,15 +76,15 @@ The default value uses package.el to install the package."
 
 ;;;; :pin
 
-(defun use-package-normalize/:pin (name keyword args)
+(defun use-package-normalize/:pin (_name keyword args)
   (use-package-only-one (symbol-name keyword) args
-    #'(lambda (label arg)
-        (cond
-         ((stringp arg) arg)
-         ((use-package-non-nil-symbolp arg) (symbol-name arg))
-         (t
-          (use-package-error
-           ":pin wants an archive name (a string)"))))))
+    (lambda (_label arg)
+      (cond
+       ((stringp arg) arg)
+       ((use-package-non-nil-symbolp arg) (symbol-name arg))
+       (t
+        (use-package-error
+         ":pin wants an archive name (a string)"))))))
 
 (eval-when-compile
   (defvar package-pinned-packages)
@@ -116,7 +116,7 @@ manually updated package."
     (unless (bound-and-true-p package--initialized)
       (package-initialize t))))
 
-(defun use-package-handler/:pin (name keyword archive-name rest state)
+(defun use-package-handler/:pin (name _keyword archive-name rest state)
   (let ((body (use-package-process-keywords name rest state))
         (pin-form (if archive-name
                       `(use-package-pin-package ',(use-package-as-symbol name)
@@ -133,26 +133,26 @@ manually updated package."
 (defvar package-archive-contents)
 
 ;;;###autoload
-(defun use-package-normalize/:ensure (name keyword args)
+(defun use-package-normalize/:ensure (_name keyword args)
   (if (null args)
       (list t)
     (use-package-only-one (symbol-name keyword) args
-      #'(lambda (label arg)
-          (cond
-           ((symbolp arg)
-            (list arg))
-           ((and (listp arg) (= 3 (length arg))
-                 (symbolp (nth 0 arg))
-                 (eq :pin (nth 1 arg))
-                 (or (stringp (nth 2 arg))
-                     (symbolp (nth 2 arg))))
-            (list (cons (nth 0 arg) (nth 2 arg))))
-           (t
-            (use-package-error
-             (concat ":ensure wants an optional package name "
-                     "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
+      (lambda (_label arg)
+        (cond
+         ((symbolp arg)
+          (list arg))
+         ((and (listp arg) (= 3 (length arg))
+               (symbolp (nth 0 arg))
+               (eq :pin (nth 1 arg))
+               (or (stringp (nth 2 arg))
+                   (symbolp (nth 2 arg))))
+          (list (cons (nth 0 arg) (nth 2 arg))))
+         (t
+          (use-package-error
+           (concat ":ensure wants an optional package name "
+                   "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
-(defun use-package-ensure-elpa (name args state &optional no-refresh)
+(defun use-package-ensure-elpa (name args _state &optional _no-refresh)
   (dolist (ensure args)
     (let ((package
            (or (and (eq ensure t) (use-package-as-symbol name))
@@ -183,7 +183,7 @@ manually updated package."
                               :error))))))))
 
 ;;;###autoload
-(defun use-package-handler/:ensure (name keyword ensure rest state)
+(defun use-package-handler/:ensure (name _keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state)))
     ;; We want to avoid installing packages when the `use-package' macro is
     ;; being macro-expanded by elisp completion (see `lisp--local-variables'),
