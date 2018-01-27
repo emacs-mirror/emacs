@@ -1,4 +1,4 @@
-;;; use-package-ensure.el --- Support for the :ensure and :pin keywords
+;;; use-package-ensure.el --- Support for the :ensure and :pin keywords  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -76,9 +76,9 @@ The default value uses package.el to install the package."
 
 ;;;; :pin
 
-(defun use-package-normalize/:pin (name keyword args)
+(defun use-package-normalize/:pin (_name keyword args)
   (use-package-only-one (symbol-name keyword) args
-    #'(lambda (label arg)
+    #'(lambda (_label arg)
         (cond
          ((stringp arg) arg)
          ((use-package-non-nil-symbolp arg) (symbol-name arg))
@@ -116,7 +116,7 @@ manually updated package."
     (unless (bound-and-true-p package--initialized)
       (package-initialize t))))
 
-(defun use-package-handler/:pin (name keyword archive-name rest state)
+(defun use-package-handler/:pin (name _keyword archive-name rest state)
   (let ((body (use-package-process-keywords name rest state))
         (pin-form (if archive-name
                       `(use-package-pin-package ',(use-package-as-symbol name)
@@ -133,11 +133,11 @@ manually updated package."
 (defvar package-archive-contents)
 
 ;;;###autoload
-(defun use-package-normalize/:ensure (name keyword args)
+(defun use-package-normalize/:ensure (_name keyword args)
   (if (null args)
       (list t)
     (use-package-only-one (symbol-name keyword) args
-      #'(lambda (label arg)
+      #'(lambda (_label arg)
           (cond
            ((symbolp arg)
             (list arg))
@@ -152,7 +152,7 @@ manually updated package."
              (concat ":ensure wants an optional package name "
                      "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
-(defun use-package-ensure-elpa (name args state &optional no-refresh)
+(defun use-package-ensure-elpa (name args _state &optional _no-refresh)
   (dolist (ensure args)
     (let ((package
            (or (and (eq ensure t) (use-package-as-symbol name))
@@ -183,7 +183,7 @@ manually updated package."
                               :error))))))))
 
 ;;;###autoload
-(defun use-package-handler/:ensure (name keyword ensure rest state)
+(defun use-package-handler/:ensure (name _keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state)))
     ;; We want to avoid installing packages when the `use-package' macro is
     ;; being macro-expanded by elisp completion (see `lisp--local-variables'),
