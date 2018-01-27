@@ -1,4 +1,4 @@
-;;; use-package-ensure-system-package.el --- auto install system packages
+;;; use-package-ensure-system-package.el --- auto install system packages  -*- lexical: t; -*-
 
 ;; Copyright (C) 2017 Justin Talbott
 
