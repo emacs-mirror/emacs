@@ -23,20 +23,20 @@
 (require 'system-packages nil t)
 
 (eval-when-compile
-  (defvar system-packages-packagemanager)
+  (defvar system-packages-package-manager)
   (defvar system-packages-supported-package-managers)
-  (defvar system-packages-usesudo))
+  (defvar system-packages-use-sudo))
 
 (defun use-package-ensure-system-package-install-command (pack)
-  "Return the default install command for `pack'."
+  "Return the default install command for PACK."
   (let ((command
-         (cdr (assoc 'install (cdr (assoc system-packages-packagemanager
+         (cdr (assoc 'install (cdr (assoc system-packages-package-manager
                                           system-packages-supported-package-managers))))))
     (unless command
-      (error (format "%S not supported in %S" 'install system-packages-packagemanager)))
+      (error (format "%S not supported in %S" 'install system-packages-package-manager)))
     (unless (listp command)
       (setq command (list command)))
-    (when system-packages-usesudo
+    (when system-packages-use-sudo
       (setq command (mapcar (lambda (part) (concat "sudo " part)) command)))
     (setq command (mapconcat 'identity command " && "))
     (mapconcat 'identity (list command pack) " ")))
