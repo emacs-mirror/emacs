@@ -1,4 +1,4 @@
-;;; use-package-diminish.el --- Support for the :diminish keyword  -*- lexical-binding: t; -*-
+;;; use-package-diminish.el --- Support for the :diminish keyword
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -76,5 +76,10 @@
 (add-to-list 'use-package-keywords :diminish t)
 
 (provide 'use-package-diminish)
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; lexical-binding: t
+;; End:
 
 ;;; use-package-diminish.el ends here

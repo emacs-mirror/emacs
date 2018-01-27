@@ -1,4 +1,4 @@
-;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords  -*- lexical-binding: t; -*-
+;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -165,5 +165,10 @@ deferred until the prefix key sequence is pressed."
   (use-package-handler/:bind-keymap name keyword arg rest state t))
 
 (provide 'use-package-bind-key)
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; lexical-binding: t
+;; End:
 
 ;;; use-package-bind-key.el ends here

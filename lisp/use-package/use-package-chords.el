@@ -1,4 +1,4 @@
-;;; use-package-chords.el --- key-chord keyword for use-package  -*- lexical-binding: t; -*-
+;;; use-package-chords.el --- key-chord keyword for use-package
 
 ;; Copyright (C) 2015-2017 Justin Talbott
 
@@ -46,5 +46,10 @@
 (add-to-list 'use-package-keywords :chords t)
 
 (provide 'use-package-chords)
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; lexical-binding: t
+;; End:
 
 ;;; use-package-chords.el ends here

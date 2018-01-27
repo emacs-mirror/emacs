@@ -1,4 +1,4 @@
-;;; use-package-ensure.el --- Support for the :ensure and :pin keywords  -*- lexical-binding: t; -*-
+;;; use-package-ensure.el --- Support for the :ensure and :pin keywords
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -210,5 +210,10 @@ manually updated package."
 (add-to-list 'use-package-keywords :pin)
 
 (provide 'use-package-ensure)
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; lexical-binding: t
+;; End:
 
 ;;; use-package-ensure.el ends here

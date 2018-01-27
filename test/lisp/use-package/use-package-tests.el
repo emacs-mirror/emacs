@@ -1,4 +1,4 @@
-;;; use-package-tests.el --- Tests for use-package.el  -*- lexical-binding: t; -*-
+;;; use-package-tests.el --- Tests for use-package.el
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -1885,6 +1885,7 @@
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
+;; lexical-binding: t
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:
