@@ -78,13 +78,13 @@ The default value uses package.el to install the package."
 
 (defun use-package-normalize/:pin (_name keyword args)
   (use-package-only-one (symbol-name keyword) args
-    (lambda (_label arg)
-      (cond
-       ((stringp arg) arg)
-       ((use-package-non-nil-symbolp arg) (symbol-name arg))
-       (t
-        (use-package-error
-         ":pin wants an archive name (a string)"))))))
+    #'(lambda (_label arg)
+        (cond
+         ((stringp arg) arg)
+         ((use-package-non-nil-symbolp arg) (symbol-name arg))
+         (t
+          (use-package-error
+           ":pin wants an archive name (a string)"))))))
 
 (eval-when-compile
   (defvar package-pinned-packages)
@@ -137,20 +137,20 @@ manually updated package."
   (if (null args)
       (list t)
     (use-package-only-one (symbol-name keyword) args
-      (lambda (_label arg)
-        (cond
-         ((symbolp arg)
-          (list arg))
-         ((and (listp arg) (= 3 (length arg))
-               (symbolp (nth 0 arg))
-               (eq :pin (nth 1 arg))
-               (or (stringp (nth 2 arg))
-                   (symbolp (nth 2 arg))))
-          (list (cons (nth 0 arg) (nth 2 arg))))
-         (t
-          (use-package-error
-           (concat ":ensure wants an optional package name "
-                   "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
+      #'(lambda (_label arg)
+          (cond
+           ((symbolp arg)
+            (list arg))
+           ((and (listp arg) (= 3 (length arg))
+                 (symbolp (nth 0 arg))
+                 (eq :pin (nth 1 arg))
+                 (or (stringp (nth 2 arg))
+                     (symbolp (nth 2 arg))))
+            (list (cons (nth 0 arg) (nth 2 arg))))
+           (t
+            (use-package-error
+             (concat ":ensure wants an optional package name "
+                     "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
 (defun use-package-ensure-elpa (name args _state &optional _no-refresh)
   (dolist (ensure args)
