@@ -1,4 +1,4 @@
-;;; use-package-ensure.el --- Support for the :ensure and :pin keywords
+;;; use-package-ensure.el --- Support for the :ensure and :pin keywords  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 

@@ -1,4 +1,4 @@
-;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords
+;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
