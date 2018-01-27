@@ -1,4 +1,4 @@
-;;; use-package-jump.el --- Attempt to jump to a use-package declaration  -*- lexical-binding: t; -*-
+;;; use-package-jump.el --- Attempt to jump to a use-package declaration
 
 ;; Copyright (C) 2012-2017 John Wiegley
 

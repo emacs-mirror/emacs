@@ -1,4 +1,4 @@
-;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords  -*- lexical-binding: t; -*-
+;;; use-package-bind-key.el --- Support for the :bind/:bind-keymap keywords
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -125,7 +125,7 @@ deferred until the prefix key sequence is pressed."
 
 ;;;###autoload
 (defun use-package-handler/:bind
-    (name _keyword args rest state &optional bind-macro)
+    (name keyword args rest state &optional bind-macro)
   (use-package-concat
    (use-package-process-keywords name rest state)
    `(,@(mapcar
@@ -146,7 +146,7 @@ deferred until the prefix key sequence is pressed."
 
 ;;;###autoload
 (defun use-package-handler/:bind-keymap
-    (name _keyword args rest state &optional override)
+    (name keyword args rest state &optional override)
   (use-package-concat
    (use-package-process-keywords name rest state)
    (mapcar

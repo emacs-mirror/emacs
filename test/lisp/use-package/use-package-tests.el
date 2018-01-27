@@ -1,4 +1,4 @@
-;;; use-package-tests.el --- Tests for use-package.el  -*- lexical-binding: t; -*-
+;;; use-package-tests.el --- Tests for use-package.el
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as

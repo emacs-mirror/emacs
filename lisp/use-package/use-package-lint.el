@@ -1,4 +1,4 @@
-;;; use-package-lint.el --- Attempt to find errors in use-package declarations  -*- lexical-binding: t; -*-
+;;; use-package-lint.el --- Attempt to find errors in use-package declarations
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
