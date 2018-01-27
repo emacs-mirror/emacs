@@ -1,4 +1,4 @@
-;;; use-package-jump.el --- Attempt to jump to a use-package declaration
+;;; use-package-jump.el --- Attempt to jump to a use-package declaration  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -75,10 +75,5 @@ instead."
           (beginning-of-line))))))
 
 (provide 'use-package-jump)
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; lexical-binding: t
-;; End:
 
 ;;; use-package-jump.el ends here

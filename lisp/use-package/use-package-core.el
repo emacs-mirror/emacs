@@ -1,4 +1,4 @@
-;;; use-package-core.el --- A configuration macro for simplifying your .emacs
+;;; use-package-core.el --- A configuration macro for simplifying your .emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -550,7 +550,7 @@ extending any keys already present."
            (nreverse
             (sort plist-grouped
                   #'(lambda (l r) (< (use-package-keyword-index (car l))
-                                     (use-package-keyword-index (car r)))))))
+                                (use-package-keyword-index (car r)))))))
         (setq result (cons (car x) (cons (cdr x) result))))
       result)))
 
@@ -754,7 +754,7 @@ no more than once."
     `((defvar ,loaded nil)
       (defvar ,result nil)
       (defvar ,next #'(lambda () (if ,loaded ,result
-                                   (setq ,loaded t ,result ,arg))))
+                              (setq ,loaded t ,result ,arg))))
       ,@(funcall f `((funcall ,next))))))
 
 (defsubst use-package-normalize-value (_label arg)
@@ -1536,7 +1536,6 @@ this file.  Usage:
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; lexical-binding: t
 ;; End:
 
 ;;; use-package-core.el ends here

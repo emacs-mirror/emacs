@@ -1,4 +1,4 @@
-;;; use-package-lint.el --- Attempt to find errors in use-package declarations
+;;; use-package-lint.el --- Attempt to find errors in use-package declarations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -80,10 +80,5 @@ with the specified `:load-path' the module cannot be found."
               (cadr decl) (cddr decl)))))))))
 
 (provide 'use-package-lint)
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; lexical-binding: t
-;; End:
 
 ;;; use-package-lint.el ends here
