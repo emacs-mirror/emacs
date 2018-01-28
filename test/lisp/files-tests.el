@@ -343,7 +343,8 @@ be invoked with the right arguments."
     (let* ((nospecial (concat "/:" tmpfile))
            (watch (file-notify-add-watch nospecial '(change) #'ignore)))
       (should (file-notify-valid-p watch))
-      (file-notify-rm-watch watch))))
+      (file-notify-rm-watch watch)
+      (should-not (file-notify-valid-p watch)))))
 
 (ert-deftest files-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
@@ -366,7 +367,8 @@ be invoked with the right arguments."
         (should (null (access-file nospecial "test")))
         (let ((newname (concat nospecial "add-name")))
           (add-name-to-file nospecial newname)
-          (should (file-exists-p newname)))
+          (should (file-exists-p newname))
+          (delete-file newname))
         (should (equal (byte-compiler-base-file-name nospecial)
                        (byte-compiler-base-file-name tmpfile)))
         (let ((newname (concat (directory-file-name nospecial-dir)
