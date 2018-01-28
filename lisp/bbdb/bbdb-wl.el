@@ -29,10 +29,12 @@
 (defvar wl-summary-mode-map)
 (defvar wl-draft-mode-map)
 (defvar wl-summary-buffer-elmo-folder)
-(declare-function wl-summary-message-number "wl-summary")
-(declare-function elmo-message-entity "elmo-msgdb")
-(declare-function elmo-message-entity-field "elmo-msgdb")
+(eval-and-compile
+  (autoload 'wl-summary-message-number "wl-summary")
+  (autoload 'elmo-message-entity "elmo-msgdb")
+  (autoload 'elmo-message-entity-field "elmo-msgdb"))
 
+;;;###autoload
 (defun bbdb/wl-header (header)
   (elmo-message-entity-field
    (elmo-message-entity wl-summary-buffer-elmo-folder

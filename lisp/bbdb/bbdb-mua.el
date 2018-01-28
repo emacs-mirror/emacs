@@ -37,29 +37,30 @@
 (require 'bbdb)
 (require 'bbdb-com)
 
-(declare-function gnus-fetch-original-field "gnus-utils")
-(declare-function gnus-summary-select-article "gnus-sum")
-(defvar gnus-article-buffer)
+(eval-and-compile
+  (autoload 'gnus-fetch-original-field "gnus-utils")
+  (autoload 'gnus-summary-select-article "gnus-sum")
+  (defvar gnus-article-buffer)
 
-(declare-function bbdb/vm-header "bbdb-vm")
-(declare-function vm-follow-summary-cursor "vm-motion")
-(declare-function vm-select-folder-buffer "vm-macro")
-(declare-function vm-check-for-killed-summary "vm-misc")
-(declare-function vm-error-if-folder-empty "vm-misc")
+  (autoload 'bbdb/vm-header "bbdb-vm")
+  (autoload 'vm-follow-summary-cursor "vm-motion")
+  (autoload 'vm-select-folder-buffer "vm-macro")
+  (autoload 'vm-check-for-killed-summary "vm-misc")
+  (autoload 'vm-error-if-folder-empty "vm-misc")
 
-(declare-function bbdb/rmail-header "bbdb-rmail")
-(defvar rmail-buffer)
+  (autoload 'bbdb/rmail-header "bbdb-rmail")
+  (defvar rmail-buffer)
 
-(declare-function bbdb/mh-header "bbdb-mhe")
-(declare-function mh-show "mh-show")
-(defvar mh-show-buffer)
+  (autoload 'bbdb/mh-header "bbdb-mhe")
+  (autoload 'mh-show "mh-show")
+  (defvar mh-show-buffer)
 
-(defvar mu4e~view-buffer-name)
+  (defvar mu4e~view-buffer-name)
 
-(declare-function bbdb/wl-header "bbdb-wl")
+  (autoload 'bbdb/wl-header "bbdb-wl")
 
-(declare-function message-field-value "message")
-(declare-function mail-decode-encoded-word-string "mail-parse")
+  (autoload 'message-field-value "message")
+  (autoload 'mail-decode-encoded-word-string "mail-parse"))
 
 (defconst bbdb-mua-mode-alist
   '((vm vm-mode vm-virtual-mode vm-summary-mode vm-presentation-mode)

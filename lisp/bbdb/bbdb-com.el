@@ -26,8 +26,9 @@
 (require 'bbdb)
 (require 'mailabbrev)
 
-(declare-function build-mail-aliases "mailalias")
-(declare-function browse-url-url-at-point "browse-url")
+(eval-and-compile
+  (autoload 'build-mail-aliases "mailalias")
+  (autoload 'browse-url-url-at-point "browse-url"))
 
 (require 'crm)
 (defvar bbdb-crm-local-completion-map

@@ -241,7 +241,15 @@ The remainder are lists LIST that should have one of these forms:
  (epilog STRING)
 
   The string STRING is inserted at the end of the buffer."
-  :group 'bbdb-utilities-tex)
+  :group 'bbdb-utilities-TeX
+  :type '(repeat (cons (symbol :tag "rule")
+                       (repeat
+                        (choice (cons :tag "demand" (const demand) sexp)
+                                (list :tag "prolog" (const prolog) string)
+                                (cons :tag "record" (const record) sexp)
+                                (list :tag "separator" (const separator) string)
+                                (list :tag "epilog" (const epilog) string)
+                                (cons :tag "options" (const options) sexp))))))
 
 (defcustom bbdb-tex-rule-default 'multi-line
   "Default rule for BBDB tex.
@@ -289,25 +297,14 @@ The elements EDIT of `bbdb-address-format-list' are ignored."
 (defcustom bbdb-tex-address-layout 2
   "Address layout according to `bbdb-tex-address-format-list'.
 2 is multi-line layout, 3 is one-line layout."
-  :group 'bbdb-utilities-tex)
+  :group 'bbdb-utilities-TeX
+  :type '(choice (const :tag "multi-line" 2)
+                 (const :tag "one-line" 3)))
 
 (defcustom bbdb-tex-file "~/bbdb.tex"
   "Default file name for TeXing BBDB."
   :group 'bbdb-utilities-tex
   :type 'file)
-
-(defcustom bbdb-tex-path
-  (let ((d (if load-file-name
-               (expand-file-name "tex/" (file-name-directory load-file-name))
-             (let ((f (locate-file "tex/bbdb.sty" load-path)))
-               (if f (file-name-directory f))))))
-    (if d (list d)))
-  "List of directories with the BBDB TeX files.
-If this is t assume that these files reside in directories
-that are part of the regular TeX search path"
-  :group 'bbdb-utilities-tex
-  :type '(choice (const :tag "Files in TeX path" t)
-                 (repeat (directory :tag "Directory"))))
 
 ;;; Internal variables
 

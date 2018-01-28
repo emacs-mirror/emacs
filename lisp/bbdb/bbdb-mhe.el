@@ -33,6 +33,7 @@
 
 ;; A simplified `mail-fetch-field'.  We could use instead (like rmail):
 ;; (mail-header (intern-soft (downcase header)) (mail-header-extract))
+;;;###autoload
 (defun bbdb/mh-header (header)
   "Find and return the value of HEADER in the current buffer.
 Returns the empty string if HEADER is not in the message."

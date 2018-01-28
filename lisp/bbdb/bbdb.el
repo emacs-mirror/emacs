@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010-2017  Free Software Foundation, Inc.
 
-;; Version: 0
+;; Version: 3.2
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of the Insidious Big Brother Database (aka BBDB),
@@ -37,6 +37,7 @@
 ;;; Code:
 
 (require 'timezone)
+(require 'bbdb-site)
 
 ;; When running BBDB, we have (require 'bbdb-autoloads)
 (declare-function widget-group-match "wid-edit")
@@ -4632,17 +4633,19 @@ If NOISY is non-nil as in interactive calls issue status messages."
   "Return string describing the version of BBDB.
 With prefix ARG, insert string at point."
   (interactive (list (or (and current-prefix-arg 1) t)))
-  (let* ((source (find-function-noselect 'bbdb-version))
-         (version
-          (when source
-            (with-current-buffer (car source)
-              (prog1
-                  (save-excursion
-                    (goto-char (point-min))
-                    (when (re-search-forward "^;;+ *Version: \\(.*\\)" nil t)
-                      (match-string-no-properties 1)))
-                (unless (get-buffer-window nil t)
-                  (kill-buffer (current-buffer)))))))
+  (let* ((version
+          (if (string-match "\\`[ \t\n]*[1-9]" bbdb-version)
+              bbdb-version
+            (let ((source (find-function-noselect 'bbdb-version)))
+              (if source
+                  (with-current-buffer (car source)
+                    (prog1 (save-excursion
+                             (goto-char (point-min))
+                             (when (re-search-forward
+                                    "^;;+ *Version: \\(.*\\)" nil t)
+                               (match-string-no-properties 1)))
+                      (unless (get-buffer-window nil t)
+                        (kill-buffer (current-buffer)))))))))
          (version-string (format "BBDB version %s" (or version "<unknown>"))))
     (cond ((numberp arg) (insert (message version-string)))
           ((eq t arg) (message version-string))

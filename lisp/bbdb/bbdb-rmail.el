@@ -30,19 +30,14 @@
 (require 'rmailsum)
 (require 'mailheader)
 
-(defun bbdb/rmail-new-flag ()
-  "Returns t if the current message in buffer BUF is new."
-  (rmail-message-labels-p rmail-current-message ", ?\\(unseen\\),"))
-
+;;;###autoload
 (defun bbdb/rmail-header (header)
   "Pull HEADER out of Rmail header."
   (with-current-buffer rmail-buffer
-    (if (fboundp 'rmail-get-header)  ; Emacs 23
-        (rmail-get-header header)
-      (save-restriction
-        (with-no-warnings (rmail-narrow-to-non-pruned-header))
-        (mail-header (intern-soft (downcase header))
-                     (mail-header-extract))))))
+    (save-restriction
+      (with-no-warnings (rmail-narrow-to-non-pruned-header))
+      (mail-header (intern-soft (downcase header))
+                   (mail-header-extract)))))
 
 ;;;###autoload
 (defun bbdb-insinuate-rmail ()
