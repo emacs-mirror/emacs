@@ -261,14 +261,22 @@ be $HOME."
                          (concat "/:/:" subdir)))))
       (delete-directory dir 'recursive))))
 
+(ert-deftest files-tests-file-name-non-special-quote-unquote ()
+  (let (;; Just in case it is quoted, who knows.
+        (temporary-file-directory (file-name-unquote temporary-file-directory)))
+    (should-not (file-name-quoted-p temporary-file-directory))
+    (should (file-name-quoted-p (file-name-quote temporary-file-directory)))
+    (should (equal temporary-file-directory
+                   (file-name-unquote
+                    (file-name-quote temporary-file-directory))))))
+
 (ert-deftest files-tests--file-name-non-special--subprocess ()
   "Check that Bug#25949 is fixed."
   (skip-unless (executable-find "true"))
-  (let ((defdir (if (memq system-type '(ms-dos windows-nt)) "/:c:/" "/:/")))
-    (should (eq (let ((default-directory defdir)) (process-file "true")) 0))
-    (should (processp (let ((default-directory defdir))
-                        (start-file-process "foo" nil "true"))))
-    (should (eq (let ((default-directory defdir)) (shell-command "true")) 0))))
+  (let ((default-directory (file-name-quote temporary-file-directory)))
+    (should (zerop (process-file "true")))
+    (should (processp (start-file-process "foo" nil "true")))
+    (should (zerop (shell-command "true")))))
 
 (defmacro files-tests--with-advice (symbol where function &rest body)
   (declare (indent 3))
@@ -303,8 +311,10 @@ be invoked with the right arguments."
      (let* ((buffer-visiting-file (current-buffer))
             (actual-args ())
             (log (lambda (&rest args) (push args actual-args))))
-       (insert-file-contents (concat "/:" temp-file-name) :visit)
+       (insert-file-contents (file-name-quote temp-file-name) :visit)
        (should (stringp buffer-file-name))
+       (should (file-name-quoted-p buffer-file-name))
+       ;; The following is not true for remote files.
        (should (string-prefix-p "/:" buffer-file-name))
        (should (consp (visited-file-modtime)))
        (should (equal (find-file-name-handler buffer-file-name
@@ -337,7 +347,7 @@ be invoked with the right arguments."
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
   `(let* ((,name (make-temp-file "files-tests" ,dir-flag))
-          (,non-special-name (concat "/:" ,name)))
+          (,non-special-name (file-name-quote ,name)))
      (unwind-protect
          (progn ,@body)
        (when (file-exists-p ,name)
@@ -394,7 +404,7 @@ be invoked with the right arguments."
 (ert-deftest files-tests-file-name-non-special-directory-file-name ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (should (equal (directory-file-name nospecial-dir)
-                   (concat "/:" (directory-file-name tmpdir))))))
+                   (file-name-quote (directory-file-name tmpdir))))))
 
 (ert-deftest files-tests-file-name-non-special-directory-files ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
@@ -457,7 +467,7 @@ be invoked with the right arguments."
 
 (ert-deftest files-tests-file-name-non-special-file-in-directory-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (let ((nospecial-tempdir (concat "/:" temporary-file-directory)))
+    (let ((nospecial-tempdir (file-name-quote temporary-file-directory)))
       (should (file-in-directory-p nospecial temporary-file-directory))
       (should (file-in-directory-p tmpfile nospecial-tempdir))
       (should (file-in-directory-p nospecial nospecial-tempdir)))))
@@ -472,7 +482,7 @@ be invoked with the right arguments."
 
 (ert-deftest files-tests-file-name-non-special-file-name-all-completions ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (let ((nospecial-tempdir (concat "/:" temporary-file-directory))
+    (let ((nospecial-tempdir (file-name-quote temporary-file-directory))
           (tmpdir temporary-file-directory))
       (should (equal (file-name-all-completions nospecial nospecial-tempdir)
                      (file-name-all-completions tmpfile tmpdir)))
@@ -484,7 +494,7 @@ be invoked with the right arguments."
 (ert-deftest files-tests-file-name-non-special-file-name-as-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (should (equal (file-name-as-directory nospecial-dir)
-                   (concat "/:" (file-name-as-directory tmpdir))))))
+                   (file-name-quote (file-name-as-directory tmpdir))))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-case-insensitive-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -493,7 +503,7 @@ be invoked with the right arguments."
 
 (ert-deftest files-tests-file-name-non-special-file-name-completion ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (let ((nospecial-tempdir (concat "/:" temporary-file-directory))
+    (let ((nospecial-tempdir (file-name-quote temporary-file-directory))
           (tmpdir temporary-file-directory))
       (should (equal (file-name-completion nospecial nospecial-tempdir)
                      (file-name-completion tmpfile tmpdir)))
@@ -505,7 +515,7 @@ be invoked with the right arguments."
 (ert-deftest files-tests-file-name-non-special-file-name-directory ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (equal (file-name-directory nospecial)
-                   (concat "/:" temporary-file-directory)))))
+                   (file-name-quote temporary-file-directory)))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-nondirectory ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -566,7 +576,7 @@ be invoked with the right arguments."
 (ert-deftest files-tests-file-name-non-special-find-backup-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (equal (find-backup-file-name nospecial)
-                   (mapcar (lambda (f) (concat "/:" f))
+                   (mapcar 'file-name-quote
                            (find-backup-file-name tmpfile))))))
 
 (ert-deftest files-tests-file-name-non-special-get-file-buffer ()
@@ -617,7 +627,7 @@ be invoked with the right arguments."
       (delete-directory "dir"))))
 
 (ert-deftest files-tests-file-name-non-special-make-nearby-temp-file ()
-  (let* ((default-directory (concat "/:" temporary-file-directory))
+  (let* ((default-directory (file-name-quote temporary-file-directory))
          (near-tmpfile (make-nearby-temp-file "file")))
     (should (file-exists-p near-tmpfile))
     (delete-file near-tmpfile)))
