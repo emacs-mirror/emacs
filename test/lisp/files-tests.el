@@ -348,16 +348,14 @@ be invoked with the right arguments."
 
 (ert-deftest files-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
-  ;; them, which causes this to fail on `windows-nt' systems.  This
-  ;; test does seem to pass on GNU/Linux systems, but it's not clear
-  ;; why since the "/:" quoted file names also have ":" in them.  Just
-  ;; skip for now.
-  (ert-skip "FIXME: dired-compress-file unreliable for names containing `:'." )
-  (files-tests--with-temp-file tmpfile
-    (let* ((nospecial (concat "/:" tmpfile))
-           (compressed (dired-compress-file nospecial)))
+  ;; them, which causes this to fail on `windows-nt' systems.
+  (when (string-match-p ":" (expand-file-name temporary-file-directory))
+    (ert-skip "FIXME: `dired-compress-file' unreliable when filenames contain `:'."))
+  (files-tests--with-temp-non-special (tmpfile nospecial)
+    (let ((compressed (dired-compress-file nospecial)))
       (when compressed
-        (should (equal nospecial (dired-compress-file compressed)))))))
+        ;; FIXME: Should it return a still-quoted name?
+        (should (file-equal-p nospecial (dired-compress-file compressed)))))))
 
 (ert-deftest files-file-name-non-special-handlers ()
   (files-tests--with-temp-file tmpfile
