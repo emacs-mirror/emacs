@@ -703,8 +703,7 @@ be invoked with the right arguments."
           (accept-process-output proc)
           (goto-char (point-min))
           (should (search-forward emacs-version nil t))
-          (kill-process proc)
-          (accept-process-output proc ))))))
+          (set-process-query-on-exit-flag proc nil))))))
 
 (ert-deftest files-tests-file-name-non-special-substitute-in-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
