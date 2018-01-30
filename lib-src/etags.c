@@ -1721,14 +1721,14 @@ copy_entries_from_old_file (FILE *old_file, const char *old_filename, FILE *out_
 	      break;
 	    }
 
+	  if (line.len < 0 || strneq (line.buffer, "\f", 1))
+	    break;
+
 	  if (should_copy)
 	    {
 	      fwrite (line.buffer, line.len, 1, out_file);
 	      fputs ("\n", out_file);
 	    }
-
-	  if (line.len < 0 || strneq (line.buffer, "\f", 1))
-	    break;
 	}
     }
 
