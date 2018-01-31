@@ -215,6 +215,15 @@ only the first match is used to perform replacements from
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-show-docstrings nil
+  "If non-nil, show each command's docstring next to the command
+in the which-key buffer. This will only display the docstring up
+to the first line break. You probably also want to adjust
+`which-key-max-description-length' at the same time if you use
+this feature."
+  :group 'which-key
+  :type 'boolean)
+
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
 commands. If the element is a string, assume it is a regexp
@@ -1584,14 +1593,24 @@ alists. Returns a list (key separator description)."
              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
-             (key-binding (which-key--maybe-replace (cons keys orig-desc))))
+             (key-binding (which-key--maybe-replace (cons keys orig-desc)))
+             (final-desc (which-key--propertize-description
+                          (cdr key-binding) group local hl-face orig-desc)))
+        (when (and which-key-show-docstrings
+                   (commandp (intern orig-desc))
+                   (documentation (intern orig-desc)))
+          (setq final-desc
+                (format "%s %s"
+                        final-desc
+                        (car
+                         (split-string
+                          (documentation (intern orig-desc)) "\n")))))
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
                   (which-key--extract-key (car key-binding)))
                  sep-w-face
-                 (which-key--propertize-description
-                  (cdr key-binding) group local hl-face orig-desc))
+                 final-desc)
            new-list))))
     (nreverse new-list)))
 
