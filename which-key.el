@@ -1515,10 +1515,12 @@ If KEY contains any \"special keys\" defined in
 
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
-  (if (and which-key-max-description-length
-           (> (length desc) which-key-max-description-length))
-      (concat (substring desc 0 which-key-max-description-length) "..")
-    desc))
+  (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
+         (dots (propertize ".." 'face last-face)))
+    (if (and which-key-max-description-length
+             (> (length desc) which-key-max-description-length))
+        (concat (substring desc 0 which-key-max-description-length) dots)
+      desc)))
 
 (defun which-key--highlight-face (description)
   "Return the highlight face for DESCRIPTION if it has one."
@@ -1549,8 +1551,7 @@ ORIGINAL-DESCRIPTION is the description given by
   (let* ((desc description)
          (desc (if (string-match-p "^group:" desc)
                    (substring desc 6) desc))
-         (desc (if group (concat which-key-prefix-prefix desc) desc))
-         (desc (which-key--truncate-description desc)))
+         (desc (if group (concat which-key-prefix-prefix desc) desc)))
     (make-text-button desc nil
       'face (cond (hl-face hl-face)
                   (group 'which-key-group-description-face)
@@ -1623,8 +1624,9 @@ alists. Returns a list (key separator description)."
              (hl-face (which-key--highlight-face orig-desc))
              (key-binding (which-key--maybe-replace (cons keys orig-desc)))
              (final-desc (which-key--propertize-description
-                          (cdr key-binding) group local hl-face orig-desc)))
-        (setq final-desc (which-key--maybe-add-docstring final-desc orig-desc))
+                          (cdr key-binding) group local hl-face orig-desc))
+             (final-desc (which-key--maybe-add-docstring final-desc orig-desc))
+             (final-desc (which-key--truncate-description final-desc)))
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
