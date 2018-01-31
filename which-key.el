@@ -1632,9 +1632,11 @@ alists. Returns a list (key separator description)."
              (hl-face (which-key--highlight-face orig-desc))
              (key-binding (which-key--maybe-replace (cons keys orig-desc)))
              (final-desc (which-key--propertize-description
-                          (cdr key-binding) group local hl-face orig-desc))
-             (final-desc (which-key--maybe-add-docstring final-desc orig-desc))
-             (final-desc (which-key--truncate-description final-desc)))
+                          (cdr key-binding) group local hl-face orig-desc)))
+        (when final-desc
+          (setq final-desc
+                (which-key--truncate-description
+                 (which-key--maybe-add-docstring final-desc orig-desc))))
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
