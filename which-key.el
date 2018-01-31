@@ -218,11 +218,15 @@ only the first match is used to perform replacements from
 (defcustom which-key-show-docstrings nil
   "If non-nil, show each command's docstring next to the command
 in the which-key buffer. This will only display the docstring up
-to the first line break. You probably also want to adjust
-`which-key-max-description-length' at the same time if you use
-this feature."
+to the first line break. If you set this variable to the symbol
+docstring-only, then the command's name with be omitted. You
+probably also want to adjust `which-key-max-description-length'
+at the same time if you use this feature."
   :group 'which-key
-  :type 'boolean)
+  :type '(radio
+          (const :tag "Do not show docstrings" nil)
+          (const :tag "Add docstring to command names" t)
+          (const :tag "Replace command name with docstring" docstring-only)))
 
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
@@ -564,6 +568,11 @@ and it matches a string in `which-key-highlighted-command-list'."
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)"
+  :group 'which-key-faces)
+
+(defface which-key-docstring-face
+  '((t . (:inherit which-key-note-face)))
+  "Face for docstrings"
   :group 'which-key-faces)
 
 ;;;; Custom popup
@@ -1574,6 +1583,25 @@ ORIGINAL-DESCRIPTION is the description given by
           (match-string 1 key-str)
         (car (last (split-string key-str " ")))))))
 
+(defun which-key--maybe-add-docstring (current original)
+  "Maybe concat a docstring to CURRENT and return result.
+Specifically, do this if ORIGINAL is a command with a docstring
+and `which-key-show-docstrings' is non-nil. If
+`which-key-show-docstrings' is the symbol docstring-only, just
+return the docstring."
+  (let* ((orig-sym (intern original))
+         (doc (when (commandp orig-sym)
+                (documentation orig-sym)))
+         (docstring (when doc
+                      (propertize (car (split-string doc "\n"))
+                                  'face 'which-key-docstring-face))))
+    (cond ((not (and which-key-show-docstrings docstring))
+           current)
+          ((eq which-key-show-docstrings 'docstring-only)
+           docstring)
+          (t
+           (format "%s %s" current docstring)))))
+
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
@@ -1596,15 +1624,7 @@ alists. Returns a list (key separator description)."
              (key-binding (which-key--maybe-replace (cons keys orig-desc)))
              (final-desc (which-key--propertize-description
                           (cdr key-binding) group local hl-face orig-desc)))
-        (when (and which-key-show-docstrings
-                   (commandp (intern orig-desc))
-                   (documentation (intern orig-desc)))
-          (setq final-desc
-                (format "%s %s"
-                        final-desc
-                        (car
-                         (split-string
-                          (documentation (intern orig-desc)) "\n")))))
+        (setq final-desc (which-key--maybe-add-docstring final-desc orig-desc))
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
