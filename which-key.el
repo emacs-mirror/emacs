@@ -1553,33 +1553,35 @@ removing a \"group:\" prefix.
 
 ORIGINAL-DESCRIPTION is the description given by
 `describe-buffer-bindings'."
-  (let* ((desc description)
-         (desc (if (string-match-p "^group:" desc)
-                   (substring desc 6) desc))
-         (desc (if group (concat which-key-prefix-prefix desc) desc)))
-    (make-text-button desc nil
-      'face (cond (hl-face hl-face)
-                  (group 'which-key-group-description-face)
-                  (local 'which-key-local-map-description-face)
-                  (t 'which-key-command-description-face))
-      'help-echo (cond
-                  ((and original-description
-                        (fboundp (intern original-description))
-                        (documentation (intern original-description))
-                        ;; tooltip-mode doesn't exist in emacs-nox
-                        (boundp 'tooltip-mode) tooltip-mode)
-                   (documentation (intern original-description)))
-                  ((and original-description
-                        (fboundp (intern original-description))
-                        (documentation (intern original-description))
-                        (let* ((doc (documentation
-                                     (intern original-description)))
-                               (str (replace-regexp-in-string "\n" " " doc))
-                               (max (floor (* (frame-width) 0.8))))
-                          (if (> (length str) max)
-                              (concat (substring str 0 max) "...")
-                            str))))))
-    desc))
+  (when description
+    (let* ((desc description)
+           (desc (if (string-match-p "^group:" desc)
+                     (substring desc 6) desc))
+           (desc (if group (concat which-key-prefix-prefix desc) desc)))
+      (make-text-button
+       desc nil
+       'face (cond (hl-face hl-face)
+                   (group 'which-key-group-description-face)
+                   (local 'which-key-local-map-description-face)
+                   (t 'which-key-command-description-face))
+       'help-echo (cond
+                   ((and original-description
+                         (fboundp (intern original-description))
+                         (documentation (intern original-description))
+                         ;; tooltip-mode doesn't exist in emacs-nox
+                         (boundp 'tooltip-mode) tooltip-mode)
+                    (documentation (intern original-description)))
+                   ((and original-description
+                         (fboundp (intern original-description))
+                         (documentation (intern original-description))
+                         (let* ((doc (documentation
+                                      (intern original-description)))
+                                (str (replace-regexp-in-string "\n" " " doc))
+                                (max (floor (* (frame-width) 0.8))))
+                           (if (> (length str) max)
+                               (concat (substring str 0 max) "...")
+                             str))))))
+      desc)))
 
 (defun which-key--extract-key (key-str)
   "Pull the last key (or key range) out of KEY-STR."
