@@ -1492,12 +1492,17 @@ no title exists."
      which-key--current-show-keymap-name)
     (t "")))
 
+(defun which-key--propertize (string &rest properties)
+  "Version of `propertize' that checks type of STRING."
+  (when (stringp string)
+    (apply #'propertize string properties)))
+
 (defun which-key--propertize-key (key)
   "Add a face to KEY.
 If KEY contains any \"special keys\" defined in
 `which-key-special-keys' then truncate and add the corresponding
 `which-key-special-key-face'."
-  (let ((key-w-face (propertize key 'face 'which-key-key-face))
+  (let ((key-w-face (which-key--propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
                         (mapconcat 'identity which-key-special-keys
                                    "\\|") "\\)"))
@@ -1507,7 +1512,7 @@ If KEY contains any \"special keys\" defined in
                (string-match regexp key))
           (let ((beg (match-beginning 0)) (end (match-end 0)))
             (concat (substring key-w-face 0 beg)
-                    (propertize (substring key-w-face beg (1+ beg))
+                    (which-key--propertize (substring key-w-face beg (1+ beg))
                                 'face 'which-key-special-key-face)
                     (substring key-w-face end
                                (which-key--string-width key-w-face))))
@@ -1516,7 +1521,7 @@ If KEY contains any \"special keys\" defined in
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
-         (dots (propertize ".." 'face last-face)))
+         (dots (which-key--propertize ".." 'face last-face)))
     (if (and which-key-max-description-length
              (> (length desc) which-key-max-description-length))
         (concat (substring desc 0 which-key-max-description-length) dots)
@@ -1594,8 +1599,8 @@ return the docstring."
          (doc (when (commandp orig-sym)
                 (documentation orig-sym)))
          (docstring (when doc
-                      (propertize (car (split-string doc "\n"))
-                                  'face 'which-key-docstring-face))))
+                      (which-key--propertize (car (split-string doc "\n"))
+                                             'face 'which-key-docstring-face))))
     (cond ((not (and which-key-show-docstrings docstring))
            current)
           ((eq which-key-show-docstrings 'docstring-only)
@@ -1608,7 +1613,8 @@ return the docstring."
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
   (let ((sep-w-face
-         (propertize which-key-separator 'face 'which-key-separator-face))
+         (which-key--propertize which-key-separator
+                                'face 'which-key-separator-face))
         (local-map (current-local-map))
         new-list)
     (dolist (key-binding unformatted)
@@ -1911,8 +1917,8 @@ is the width of the live window."
                (or which-key--using-show-operator-keymap
                    (not (and which-key-allow-evil-operators
                              (bound-and-true-p evil-this-operator)))))
-      (propertize (format "[%s paging/help]" key)
-                  'face 'which-key-note-face))))
+      (which-key--propertize (format "[%s paging/help]" key)
+                             'face 'which-key-note-face))))
 
 (eval-and-compile
   (if (fboundp 'universal-argument--description)
@@ -1947,7 +1953,7 @@ including prefix arguments."
     (if (or (eq which-key-show-prefix 'echo) dont-prop-keys)
         (concat str dash)
       (concat (which-key--propertize-key str)
-              (propertize dash 'face 'which-key-key-face)))))
+              (which-key--propertize dash 'face 'which-key-key-face)))))
 
 (defun which-key--get-popup-map ()
   "Generate transient-map for use in the top level binding display."
@@ -1971,17 +1977,17 @@ and a page count."
          (nxt-pg-hint (which-key--next-page-hint prefix-keys))
          ;; not used in left case
          (status-line
-          (concat (propertize (which-key--maybe-get-prefix-title
-                               (which-key--current-key-string))
-                              'face 'which-key-note-face)
+          (concat (which-key--propertize (which-key--maybe-get-prefix-title
+                                          (which-key--current-key-string))
+                                         'face 'which-key-note-face)
                   (when (< 1 n-pages)
-                    (propertize (format " (%s of %s)"
-                                        (1+ page-n) n-pages)
-                                'face 'which-key-note-face)))))
+                    (which-key--propertize (format " (%s of %s)"
+                                                   (1+ page-n) n-pages)
+                                           'face 'which-key-note-face)))))
     (pcase which-key-show-prefix
       (`left
-       (let* ((page-cnt (propertize (format "%s/%s" (1+ page-n) n-pages)
-                                    'face 'which-key-separator-face))
+       (let* ((page-cnt (which-key--propertize (format "%s/%s" (1+ page-n) n-pages)
+                                               'face 'which-key-separator-face))
               (first-col-width (+ 2 (max (which-key--string-width full-prefix)
                                          (which-key--string-width page-cnt))))
               (prefix (format (concat "%-" (int-to-string first-col-width) "s")
@@ -2207,13 +2213,13 @@ prefix) if `which-key-use-C-h-commands' is non nil."
     (let* ((prefix-keys (key-description which-key--current-prefix))
            (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
            (prompt (concat (when (string-equal prefix-keys "")
-                             (propertize
+                             (which-key--propertize
                               (concat " "
                                       (or which-key--current-show-keymap-name
                                           "Top-level bindings"))
                               'face 'which-key-note-face))
                            full-prefix
-                           (propertize
+                           (which-key--propertize
                             (substitute-command-keys
                              (concat
                               " \\<which-key-C-h-map>"
