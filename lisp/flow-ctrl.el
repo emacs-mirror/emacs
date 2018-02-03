@@ -1,6 +1,6 @@
 ;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control
 
-;; Copyright (C) 1990-1991, 1994, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1990-1991, 1994, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Kevin Gallagher
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

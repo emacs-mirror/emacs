@@ -1,0 +1,92 @@
+Distribution Build Scripts for Windows
+======================================
+
+The scripts are used to build the binary distribution zip files for windows.
+
+File System Organization
+------------------------
+
+
+They are relatively strict about the file system organization. In
+general, they should work across several more than just the version of
+Emacs they come with, as the dependencies of Emacs change relatively slowly.
+
+The file system needs to be organized like so:
+
+~/emacs-build/git
+
+Contains a checkout of the Emacs git repository, organized according
+to branches, with git worktree
+
+~/emacs-build/git/emacs-$branch
+
+A branch of the git repository containing the current release
+branch. This has to be created by hand.
+
+~/emacs-build/git/emacs-$version
+
+A branch of the git repository containing the last release. The
+build-zips.sh file will create this for you.
+
+~/emacs-build/deps
+
+A location for the dependencies. This needs to contain two zip files
+with the dependencies. build-dep-zips.py will create these files for you.
+
+~/emacs-build/deps/libXpm/i686
+~/emacs-build/deps/libXpm/x86_64
+
+Contain libXpm-noX4.dll. This file is used to load images for the
+splash screen, menu items and so on. Emacs runs without it, but looks
+horrible. The x86_64 comes from msys2, while the i686 comes from
+ezwinports because it itself has no dependencies. These have to be
+placed manually (but probably never need updating).
+
+
+~/emacs-build/build/$version/i686
+~/emacs-build/build/$version/x86_64
+
+We build Emacs out-of-source here. This directory is created by
+build-zips.sh. This directory can be freely deleted after zips have
+been created
+
+
+~/emacs-build/install/$version/i686
+~/emacs-build/install/$version/x86_64
+
+We install Emacs here. This directory is created by build-zips.sh.
+This directory can and *should* be deleted after zips have been
+created.
+
+~/emacs-upload
+
+Zips are created and moved here from where they can be, well,
+uploaded.
+
+
+
+Build Process
+-------------
+
+For each major version:
+
+The dependencies files need to be created. This can be around the time
+of the pre-tests, then used for all releases of that version, to
+ensure the maximum stability.
+
+To do this:
+
+Update msys to the latest version with `pacman -Syu`.
+
+Then run build-dep-zips.py, in this directory. Three zips will be
+created, containing the 64bit and 32bit dependencies, as well as the
+source for these.
+
+For emacs release or pre-test version:
+
+Run `build-zips.sh -g` in the release branch. This will create a worktree
+with the tag of the last version.
+
+Then run `build-zips.sh` in this worktree. Eventually, four new zip
+files will be created in ~/emacs-upload from where they can be signed
+and uploaded with `gnupload`.

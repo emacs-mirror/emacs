@@ -1,6 +1,6 @@
-;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp
+;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Albert Krewinkel <tarleb@moltkeplatz.de>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -75,7 +75,7 @@
     (require 'password-cache)
   (require 'password))
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'sasl)
 (require 'starttls)
 (autoload 'sasl-find-mechanism "sasl")
@@ -182,7 +182,7 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
       (generate-new-buffer (format " *sieve %s:%s*"
                                    sieve-manage-server
                                    sieve-manage-port))
-    (mapc 'make-local-variable sieve-manage-local-variables)
+    (mapc #'make-local-variable sieve-manage-local-variables)
     (mm-enable-multibyte)
     (buffer-disable-undo)
     (current-buffer)))
@@ -206,19 +206,19 @@ Return the buffer associated with the connection."
   (with-current-buffer buffer
     (sieve-manage-erase)
     (setq sieve-manage-state 'initial)
-    (destructuring-bind (proc . props)
-        (open-network-stream
-         "SIEVE" buffer server port
-         :type stream
-         :capability-command "CAPABILITY\r\n"
-         :end-of-command "^\\(OK\\|NO\\).*\n"
-         :success "^OK.*\n"
-         :return-list t
-         :starttls-function
-         (lambda (capabilities)
-	   (when (and (not sieve-manage-ignore-starttls)
-		      (string-match "\\bSTARTTLS\\b" capabilities))
-	     "STARTTLS\r\n")))
+    (pcase-let ((`(,proc . ,props)
+                 (open-network-stream
+                  "SIEVE" buffer server port
+                  :type stream
+                  :capability-command "CAPABILITY\r\n"
+                  :end-of-command "^\\(OK\\|NO\\).*\n"
+                  :success "^OK.*\n"
+                  :return-list t
+                  :starttls-function
+                  (lambda (capabilities)
+	            (when (and (not sieve-manage-ignore-starttls)
+		               (string-match "\\bSTARTTLS\\b" capabilities))
+	              "STARTTLS\r\n")))))
       (setq sieve-manage-process proc)
       (setq sieve-manage-capability
             (sieve-manage-parse-capability (plist-get props :capabilities)))
@@ -250,7 +250,7 @@ Return the buffer associated with the connection."
             ;; somehow.
             `(lambda (prompt) ,(copy-sequence user-password)))
            (step (sasl-next-step client nil))
-           (tag (sieve-manage-send
+           (_tag (sieve-manage-send
                  (concat
                   "AUTHENTICATE \""
                   mech
@@ -373,11 +373,11 @@ to work in."
       ;; Choose authenticator
       (when (and (null sieve-manage-auth)
                  (not (eq sieve-manage-state 'auth)))
-        (dolist (auth sieve-manage-authenticators)
+        (cl-dolist (auth sieve-manage-authenticators)
           (when (funcall (nth 1 (assq auth sieve-manage-authenticator-alist))
                        buffer)
             (setq sieve-manage-auth auth)
-            (return)))
+            (cl-return)))
         (unless sieve-manage-auth
           (error "Couldn't figure out authenticator for server")))
       (sieve-manage-erase)

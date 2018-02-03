@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -344,9 +344,7 @@ Use `\\[viper-set-expert-level]' to change this.")
 	     (quail-delete-overlays))
 	 (setq describe-current-input-method-function nil)
 	 (setq current-input-method nil)
-	 (run-hooks
-	  'input-method-inactivate-hook ; for backward compatibility
-	  'input-method-deactivate-hook)
+	 (run-hooks 'input-method-deactivate-hook)
 	 (force-mode-line-update))
 	))
 (defun viper-activate-input-method ()

@@ -1,6 +1,6 @@
 ;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,7 +102,7 @@ This is typically the filename.")
 ;;;; Commonly needed location classes are defined here:
 
 ;; FIXME: might be useful to have an optional "hint" i.e. a string to
-;; search for in case the line number is sightly out of date.
+;; search for in case the line number is slightly out of date.
 (defclass xref-file-location (xref-location)
   ((file :type string :initarg :file)
    (line :type fixnum :initarg :line :reader xref-location-line)
@@ -254,8 +254,7 @@ find a search tool; by default, this uses \"find | grep\" in the
       (project-external-roots pr)))))
 
 (cl-defgeneric xref-backend-apropos (backend pattern)
-  "Find all symbols that match PATTERN.
-PATTERN is a regexp")
+  "Find all symbols that match regexp PATTERN.")
 
 (cl-defgeneric xref-backend-identifier-at-point (_backend)
   "Return the relevant identifier at point.
@@ -449,30 +448,66 @@ If SELECT is non-nil, select the target window."
        (when xref-w
          (set-window-dedicated-p xref-w xref-w-dedicated)))))
 
-(defun xref--show-pos-in-buf (pos buf select)
-  (let ((xref-buf (current-buffer))
-        win)
+(defvar-local xref--original-window-intent nil
+  "Original window-switching intent before xref buffer creation.")
+
+(defvar-local xref--original-window nil
+  "The original window this xref buffer was created from.")
+
+(defun xref--show-pos-in-buf (pos buf)
+  "Goto and display position POS of buffer BUF in a window.
+Honor `xref--original-window-intent', run `xref-after-jump-hook'
+and finally return the window."
+  (let* ((xref-buf (current-buffer))
+         (pop-up-frames
+          (or (eq xref--original-window-intent 'frame)
+              pop-up-frames))
+         (action
+          (cond ((memq
+                  xref--original-window-intent
+                  '(window frame))
+                 t)
+                ((and
+                  (window-live-p xref--original-window)
+                  (or (not (window-dedicated-p xref--original-window))
+                      (eq (window-buffer xref--original-window) buf)))
+                 `(,(lambda (buf _alist)
+                      (set-window-buffer xref--original-window buf)
+                      xref--original-window))))))
     (with-selected-window
-        (xref--with-dedicated-window
-         (display-buffer buf))
+        (with-selected-window
+            ;; Just before `display-buffer', place ourselves in the
+            ;; original window to suggest preserving it. Of course, if
+            ;; user has deleted the original window, all bets are off,
+            ;; just use the selected one.
+            (or (and (window-live-p xref--original-window)
+                     xref--original-window)
+                (selected-window))
+          (display-buffer buf action))
       (xref--goto-char pos)
       (run-hooks 'xref-after-jump-hook)
       (let ((buf (current-buffer)))
-        (setq win (selected-window))
         (with-current-buffer xref-buf
-          (setq-local other-window-scroll-buffer buf))))
-    (when select
-      (select-window win))))
+          (setq-local other-window-scroll-buffer buf)))
+      (selected-window))))
 
 (defun xref--show-location (location &optional select)
+  "Help `xref-show-xref' and `xref-goto-xref' do their job.
+Go to LOCATION and if SELECT is non-nil select its window.  If
+SELECT is `quit', also quit the *xref* window."
   (condition-case err
       (let* ((marker (xref-location-marker location))
-             (buf (marker-buffer marker)))
-        (xref--show-pos-in-buf marker buf select))
+             (buf (marker-buffer marker))
+             (xref-buffer (current-buffer)))
+        (cond (select
+               (if (eq select 'quit) (quit-window nil nil))
+               (with-current-buffer xref-buffer
+                 (select-window (xref--show-pos-in-buf marker buf))))
+              (t
+               (save-selected-window
+                 (xref--with-dedicated-window
+                  (xref--show-pos-in-buf marker buf))))))
     (user-error (message (error-message-string err)))))
-
-(defvar-local xref--window nil
-  "The original window this xref buffer was created from.")
 
 (defun xref-show-location-at-point ()
   "Display the source of xref at point in the appropriate window, if any."
@@ -480,12 +515,7 @@ If SELECT is non-nil, select the target window."
   (let* ((xref (xref--item-at-point))
          (xref--current-item xref))
     (when xref
-      ;; Try to avoid the window the current xref buffer was
-      ;; originally created from.
-      (if (window-live-p xref--window)
-          (with-selected-window xref--window
-            (xref--show-location (xref-item-location xref)))
-        (xref--show-location (xref-item-location xref))))))
+      (xref--show-location (xref-item-location xref)))))
 
 (defun xref-next-line ()
   "Move to the next xref and display its source in the appropriate window."
@@ -504,12 +534,19 @@ If SELECT is non-nil, select the target window."
     (back-to-indentation)
     (get-text-property (point) 'xref-item)))
 
-(defun xref-goto-xref ()
-  "Jump to the xref on the current line and select its window."
+(defun xref-goto-xref (&optional quit)
+  "Jump to the xref on the current line and select its window.
+Non-interactively, non-nil QUIT means to first quit the *xref*
+buffer."
   (interactive)
   (let ((xref (or (xref--item-at-point)
                   (user-error "No reference at point"))))
-    (xref--show-location (xref-item-location xref) t)))
+    (xref--show-location (xref-item-location xref) (if quit 'quit t))))
+
+(defun xref-quit-and-goto-xref ()
+  "Quit *xref* buffer, then jump to xref on current line."
+  (interactive)
+  (xref-goto-xref t))
 
 (defun xref-query-replace-in-results (from to)
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
@@ -633,6 +670,7 @@ references displayed in the current *xref* buffer."
     (define-key map (kbd "p") #'xref-prev-line)
     (define-key map (kbd "r") #'xref-query-replace-in-results)
     (define-key map (kbd "RET") #'xref-goto-xref)
+    (define-key map (kbd "TAB")  #'xref-quit-and-goto-xref)
     (define-key map (kbd "C-o") #'xref-show-location-at-point)
     ;; suggested by Johan Claesson "to further reduce finger movement":
     (define-key map (kbd ".") #'xref-next-line)
@@ -727,7 +765,8 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
         (xref--xref-buffer-mode)
         (pop-to-buffer (current-buffer))
         (goto-char (point-min))
-        (setq xref--window (assoc-default 'window alist))
+        (setq xref--original-window (assoc-default 'window alist)
+              xref--original-window-intent (assoc-default 'display-action alist))
         (current-buffer)))))
 
 
@@ -754,7 +793,8 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
    (t
     (xref-push-marker-stack)
     (funcall xref-show-xrefs-function xrefs
-             `((window . ,(selected-window)))))))
+             `((window . ,(selected-window))
+               (display-action . ,display-action))))))
 
 (defun xref--prompt-p (command)
   (or (eq xref-prompt-for-identifier t)
@@ -917,27 +957,38 @@ IGNORES is a list of glob patterns."
   (grep-compute-defaults)
   (defvar grep-find-template)
   (defvar grep-highlight-matches)
-  (let* ((grep-find-template (replace-regexp-in-string "<C>" "<C> -E"
-                                                       grep-find-template t t))
-         (grep-highlight-matches nil)
-         (command (xref--rgrep-command (xref--regexp-to-extended regexp)
-                                       files
-                                       (expand-file-name dir)
-                                       ignores))
-         (buf (get-buffer-create " *xref-grep*"))
-         (grep-re (caar grep-regexp-alist))
-         hits)
+  (pcase-let*
+      ((grep-find-template (replace-regexp-in-string "<C>" "<C> -E"
+                                                     grep-find-template t t))
+       (grep-highlight-matches nil)
+       ;; TODO: Sanitize the regexp to remove Emacs-specific terms,
+       ;; so that Grep can search for the "relaxed" version.  Can we
+       ;; do that reliably enough, without creating false negatives?
+       (command (xref--rgrep-command (xref--regexp-to-extended regexp)
+                                     files
+                                     (expand-file-name dir)
+                                     ignores))
+       (def default-directory)
+       (buf (get-buffer-create " *xref-grep*"))
+       (`(,grep-re ,file-group ,line-group . ,_) (car grep-regexp-alist))
+       (status nil)
+       (hits nil))
     (with-current-buffer buf
       (erase-buffer)
-      (call-process-shell-command command nil t)
-      ;; FIXME: What to do when the call fails?
-      ;; "find: ‘foo’: No such file or directory\n"
-      ;; The problem is, find-grep can exit with a nonzero code even
-      ;; when there are some matches in the output.
+      (setq default-directory def)
+      (setq status
+            (call-process-shell-command command nil t))
       (goto-char (point-min))
+      ;; Can't use the exit status: Grep exits with 1 to mean "no
+      ;; matches found".  Find exits with 1 if any of the invocations
+      ;; exit with non-zero. "No matches" and "Grep program not found"
+      ;; are all the same to it.
+      (when (and (/= (point-min) (point-max))
+                 (not (looking-at grep-re)))
+        (user-error "Search failed with status %d: %s" status (buffer-string)))
       (while (re-search-forward grep-re nil t)
-        (push (list (string-to-number (match-string 2))
-                    (match-string 1)
+        (push (list (string-to-number (match-string line-group))
+                    (match-string file-group)
                     (buffer-substring-no-properties (point) (line-end-position)))
               hits)))
     (xref--convert-hits (nreverse hits) regexp)))
@@ -1004,6 +1055,17 @@ directory, used as the root of the ignore globs."
                (match-string 1 str)))))
    str t t))
 
+(defun xref--regexp-syntax-dependent-p (str)
+  "Return non-nil when STR depends on the buffer's syntax.
+Such as the current syntax table and the applied syntax properties."
+  (let ((case-fold-search nil))
+    (string-match-p (rx
+                     (or string-start (not (in ?\\)))
+                     (0+ (= 2 ?\\))
+                     ?\\
+                     (in ?b ?B ?< ?> ?w ?W ?_ ?s ?S))
+                    str)))
+
 (defvar xref--last-visiting-buffer nil)
 (defvar xref--temp-buffer-file-name nil)
 
@@ -1017,7 +1079,8 @@ directory, used as the root of the ignore globs."
 
 (defun xref--collect-matches (hit regexp tmp-buffer)
   (pcase-let* ((`(,line ,file ,text) hit)
-               (buf (xref--find-buffer-visiting file)))
+               (buf (xref--find-buffer-visiting file))
+               (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (if buf
         (with-current-buffer buf
           (save-excursion
@@ -1025,12 +1088,14 @@ directory, used as the root of the ignore globs."
             (forward-line (1- line))
             (xref--collect-matches-1 regexp file line
                                      (line-beginning-position)
-                                     (line-end-position))))
+                                     (line-end-position)
+                                     syntax-needed)))
       ;; Using the temporary buffer is both a performance and a buffer
       ;; management optimization.
       (with-current-buffer tmp-buffer
         (erase-buffer)
-        (unless (equal file xref--temp-buffer-file-name)
+        (when (and syntax-needed
+                   (not (equal file xref--temp-buffer-file-name)))
           (insert-file-contents file nil 0 200)
           ;; Can't (setq-local delay-mode-hooks t) because of
           ;; bug#23272, but the performance penalty seems minimal.
@@ -1046,11 +1111,13 @@ directory, used as the root of the ignore globs."
         (goto-char (point-min))
         (xref--collect-matches-1 regexp file line
                                  (point)
-                                 (point-max))))))
+                                 (point-max)
+                                 syntax-needed)))))
 
-(defun xref--collect-matches-1 (regexp file line line-beg line-end)
+(defun xref--collect-matches-1 (regexp file line line-beg line-end syntax-needed)
   (let (matches)
-    (syntax-propertize line-end)
+    (when syntax-needed
+      (syntax-propertize line-end))
     ;; FIXME: This results in several lines with the same
     ;; summary. Solve with composite pattern?
     (while (and

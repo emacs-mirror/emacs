@@ -5,7 +5,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -49,7 +49,7 @@ packages, and web browsers.
 Speedbar displays a narrow frame in which a tree view is shown.  This
 tree view defaults to containing a list of files and directories.  Files
 can be ``expanded'' to list tags inside. Directories can be expanded to
-list the files within itself.  Each file or tag can be jumped to
+list the files within them.  Each file or tag can be jumped to
 immediately.
 
 Speedbar expands upon ``explorer'' windows by maintaining context with the

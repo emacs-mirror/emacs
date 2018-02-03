@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -290,10 +290,7 @@ If no one is selected, symmetric encryption will be performed.  "
     (if (or (eq visit t)
 	    (eq visit nil)
 	    (stringp visit))
-	(message "Wrote `%s' (%d characters)" buffer-file-name
-                 (cond ((null start) (buffer-size))
-                       ((stringp start) (length start))
-                       (t (- end start)))))))
+	(message "Wrote %s" buffer-file-name))))
 (put 'write-region 'epa-file 'epa-file-write-region)
 
 (defun epa-file-select-keys ()

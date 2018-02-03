@@ -1,6 +1,6 @@
 ;;; erc-ezbounce.el ---  Handle EZBounce bouncer commands
 
-;; Copyright (C) 2002, 2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -175,3 +175,7 @@ in the alist is nil, prompt for the appropriate values."
 (provide 'erc-ezbounce)
 
 ;;; erc-ezbounce.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
+;; End:

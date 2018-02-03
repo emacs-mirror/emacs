@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.    -*- coding: utf-8 -*-
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
-   Copyright (C) 1985, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* If you think about replacing this with some similar standard C function of
    the printf family (such as vsnprintf), please note that this function
@@ -352,6 +352,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	    case 'S':
 	      string[-1] = 's';
+	      FALLTHROUGH;
 	    case 's':
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
@@ -437,7 +438,9 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	      }
 
 	    case '%':
-	      fmt--;    /* Drop thru and this % will be treated as normal */
+	      /* Treat this '%' as normal.  */
+	      fmt0 = fmt - 1;
+	      break;
 	    }
 	}
 
@@ -500,7 +503,7 @@ esprintf (char *buf, char const *format, ...)
   return nbytes;
 }
 
-#if HAVE_MODULES || (defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT)
+#if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 
 /* Format to buffer *BUF of positive size *BUFSIZE, reallocating *BUF
    and updating *BUFSIZE if the buffer is too small, and otherwise

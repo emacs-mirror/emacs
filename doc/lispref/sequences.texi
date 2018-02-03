@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Sequences Arrays Vectors
@@ -155,7 +155,10 @@ This function generalizes @code{aref} (@pxref{Array Functions}) and
 @cindex copying sequences
 This function returns a copy of @var{seqr}, which should be either a
 sequence or a record.  The copy is the same type of object as the
-original, and it has the same elements in the same order.
+original, and it has the same elements in the same order.  However, if
+@var{seqr} is empty, like a string or a vector of zero length, the
+value returned by this function might not be a copy, but an empty
+object of the same type and identical to @var{seqr}.
 
 Storing a new element into the copy does not affect the original
 @var{seqr}, and vice versa.  However, the elements of the copy
@@ -422,6 +425,7 @@ useful example of @code{sort}.
 
 @cindex sequence functions in seq
 @cindex seq library
+@cindex sequences, generalized
   The @file{seq.el} library provides the following additional sequence
 manipulation macros and functions, prefixed with @code{seq-}.  To use
 them, you must first load the @file{seq} library.
@@ -792,6 +796,33 @@ it is a function of two arguments to use instead of the default @code{equal}.
 
 @end defun
 
+@defun seq-set-equal-p sequence1 sequence2 &optional testfn
+This function checks whether @var{sequence1} and @var{sequence2}
+contain the same elements, regardless of the order. If the optional
+argument @var{testfn} is non-@code{nil}, it is a function of two
+arguments to use instead of the default @code{equal}.
+
+@example
+@group
+(seq-set-equal-p '(a b c) '(c b a))
+@result{} t
+@end group
+@group
+(seq-set-equal-p '(a b c) '(c b))
+@result{} nil
+@end group
+@group
+(seq-set-equal-p '("a" "b" "c") '("c" "b" "a"))
+@result{} t
+@end group
+@group
+(seq-set-equal-p '("a" "b" "c") '("c" "b" "a") #'eq)
+@result{} nil
+@end group
+@end example
+
+@end defun
+
 @defun seq-position sequence elt &optional function
   This function returns the index of the first element in
 @var{sequence} that is equal to @var{elt}.  If the optional argument
@@ -823,12 +854,13 @@ it is a function of two arguments to use instead of the default @code{equal}.
 @end group
 @group
 (seq-uniq '(1 2 2.0 1.0) #'=)
-@result{} [3 4]
+@result{} [1 2]
 @end group
 @end example
 @end defun
 
 @defun seq-subseq sequence start &optional end
+@cindex sub-sequence
   This function returns a subset of @var{sequence} from @var{start}
 to @var{end}, both integers (@var{end} defaults to the last element).
 If @var{start} or @var{end} is negative, it counts from the end of
@@ -896,6 +928,8 @@ contain less elements than @var{n}.  @var{n} must be an integer.  If
 @end defun
 
 @defun seq-intersection sequence1 sequence2 &optional function
+@cindex sequences, intersection of
+@cindex intersection of sequences
   This function returns a list of the elements that appear both in
 @var{sequence1} and @var{sequence2}.  If the optional argument
 @var{function} is non-@code{nil}, it is a function of two arguments to
@@ -942,6 +976,10 @@ of @var{sequence}.  Keys are compared using @code{equal}.
 @end defun
 
 @defun seq-into sequence type
+@cindex convert sequence to another type
+@cindex list to vector
+@cindex vector to list
+@cindex string to vector
   This function converts the sequence @var{sequence} into a sequence
 of type @var{type}.  @var{type} can be one of the following symbols:
 @code{vector}, @code{string} or @code{list}.
@@ -963,6 +1001,8 @@ of type @var{type}.  @var{type} can be one of the following symbols:
 @end defun
 
 @defun seq-min sequence
+@cindex minimum value of sequence
+@cindex sequence minimum
   This function returns the smallest element of @var{sequence}.  The
 elements of @var{sequence} must be numbers or markers
 (@pxref{Markers}).
@@ -980,6 +1020,8 @@ elements of @var{sequence} must be numbers or markers
 @end defun
 
 @defun seq-max sequence
+@cindex maximum value of sequence
+@cindex sequence maximum
   This function returns the largest element of @var{sequence}.  The
 elements of @var{sequence} must be numbers or markers.
 
@@ -997,6 +1039,7 @@ elements of @var{sequence} must be numbers or markers.
 
 @defmac seq-doseq (var sequence) body@dots{}
 @cindex sequence iteration
+@cindex iteration over vector or string
   This macro is like @code{dolist} (@pxref{Iteration, dolist}), except
 that @var{sequence} can be a list, vector or string.  This is
 primarily useful for side-effects.
@@ -1255,9 +1298,9 @@ not evaluate or even examine the elements of the vector.
 @example
 @group
 (setq avector [1 two '(three) "four" [five]])
-     @result{} [1 two (quote (three)) "four" [five]]
+     @result{} [1 two '(three) "four" [five]]
 (eval avector)
-     @result{} [1 two (quote (three)) "four" [five]]
+     @result{} [1 two '(three) "four" [five]]
 (eq avector (eval avector))
      @result{} t
 @end group
@@ -1347,9 +1390,9 @@ list with the same elements:
 @example
 @group
 (setq avector [1 two (quote (three)) "four" [five]])
-     @result{} [1 two (quote (three)) "four" [five]]
+     @result{} [1 two '(three) "four" [five]]
 (append avector nil)
-     @result{} (1 two (quote (three)) "four" [five])
+     @result{} (1 two '(three) "four" [five])
 @end group
 @end example
 
@@ -1591,7 +1634,7 @@ argument @var{b} is given, the result of this operation is stored into
 @end defun
 
 @defun bool-vector-subsetp a b
-Return @code{t} if every @code{t} value in @var{a} is also t in
+Return @code{t} if every @code{t} value in @var{a} is also @code{t} in
 @var{b}, @code{nil} otherwise.  All arguments should be bool vectors of the
 same length.
 @end defun

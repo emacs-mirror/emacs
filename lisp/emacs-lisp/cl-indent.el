@@ -1,6 +1,6 @@
-;;; cl-indent.el --- enhanced lisp-indent mode
+;;; cl-indent.el --- Enhanced lisp-indent mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -35,7 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup lisp-indent nil
   "Indentation in Lisp."
@@ -166,7 +166,7 @@ is set to `defun'.")
 	(forward-char 1)
 	(forward-sexp 2)
 	(backward-sexp 1)
-	(looking-at "\\sw"))
+	(looking-at "\\(:\\|\\sw\\)"))
     (error t)))
 
 (defun lisp-indent-find-method (symbol &optional no-compat)
@@ -187,13 +187,13 @@ the standard lisp indent package."
     (when (and (eq lisp-indent-backquote-substitution-mode 'corrected))
       (save-excursion
         (goto-char (elt state 1))
-        (incf loop-indentation
-              (cond ((eq (char-before) ?,) -1)
-                    ((and (eq (char-before) ?@)
-                          (progn (backward-char)
-                                 (eq (char-before) ?,)))
-                     -2)
-                    (t 0)))))
+        (cl-incf loop-indentation
+                 (cond ((eq (char-before) ?,) -1)
+                       ((and (eq (char-before) ?@)
+                             (progn (backward-char)
+                                    (eq (char-before) ?,)))
+                        -2)
+                       (t 0)))))
 
     (goto-char indent-point)
     (beginning-of-line)
@@ -315,7 +315,6 @@ instead."
 	  ;; If non-nil, this is an indentation to use
 	  ;; if nothing else specifies it more firmly.
 	  tentative-calculated
-	  (last-point indent-point)
           ;; the position of the open-paren of the innermost containing list
           (containing-form-start (elt state 1))
           ;; the column of the above
@@ -410,9 +409,9 @@ instead."
                      ;; ",(...)" or ",@(...)"
                      (when (eq lisp-indent-backquote-substitution-mode
                                'corrected)
-                       (incf sexp-column -1)
+                       (cl-incf sexp-column -1)
                        (when (eq (char-after (1- containing-sexp)) ?\@)
-                         (incf sexp-column -1)))
+                         (cl-incf sexp-column -1)))
                      (cond (lisp-indent-backquote-substitution-mode
                             (setf tentative-calculated normal-indent)
                             (setq depth lisp-indent-maximum-backtracking)
@@ -465,7 +464,6 @@ instead."
 			  function method path state indent-point
 			  sexp-column normal-indent)))))
           (goto-char containing-sexp)
-          (setq last-point containing-sexp)
           (unless calculated
 	    (condition-case ()
 		(progn (backward-up-list 1)
@@ -473,6 +471,9 @@ instead."
 	      (error (setq depth lisp-indent-maximum-backtracking))))))
       (or calculated tentative-calculated))))
 
+
+;; Dynamically bound in common-lisp-indent-call-method.
+(defvar lisp-indent-error-function)
 
 (defun common-lisp-indent-call-method (function method path state indent-point
 				       sexp-column normal-indent)
@@ -483,9 +484,6 @@ instead."
 		 sexp-column normal-indent)
       (lisp-indent-259 method path state indent-point
 		       sexp-column normal-indent))))
-
-;; Dynamically bound in common-lisp-indent-call-method.
-(defvar lisp-indent-error-function)
 
 (defun lisp-indent-report-bad-format (m)
   (error "%s has a badly-formed %s property: %s"
@@ -717,7 +715,7 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
 		(forward-sexp 2)
 		(skip-chars-forward " \t\n")
 		(while (looking-at "\\sw\\|\\s_")
-		  (incf nqual)
+		  (cl-incf nqual)
 		  (forward-sexp)
 		  (skip-chars-forward " \t\n"))
 		(> nqual 0)))
@@ -726,7 +724,7 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
    path state indent-point sexp-column normal-indent))
 
 
-(defun lisp-indent-function-lambda-hack (path state indent-point
+(defun lisp-indent-function-lambda-hack (path _state _indent-point
                                          sexp-column normal-indent)
   ;; indent (function (lambda () <newline> <body-forms>)) kludgily.
   (if (or (cdr path) ; wtf?

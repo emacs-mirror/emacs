@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -437,22 +437,38 @@ as an integer unless JUNK-ALLOWED is non-nil."
 
 ;; Random numbers.
 
+(defun cl--random-time ()
+  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
+    (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
+    v))
+
+;;;###autoload (autoload 'cl-random-state-p "cl-extra")
+(cl-defstruct (cl--random-state
+               (:copier nil)
+               (:predicate cl-random-state-p)
+               (:constructor nil)
+               (:constructor cl--make-random-state (vec)))
+  (i -1) (j 30) vec)
+
+(defvar cl--random-state (cl--make-random-state (cl--random-time)))
+
 ;;;###autoload
 (defun cl-random (lim &optional state)
   "Return a random nonnegative number less than LIM, an integer or float.
 Optional second arg STATE is a random-state object."
   (or state (setq state cl--random-state))
   ;; Inspired by "ran3" from Numerical Recipes.  Additive congruential method.
-  (let ((vec (aref state 3)))
+  (let ((vec (cl--random-state-vec state)))
     (if (integerp vec)
 	(let ((i 0) (j (- 1357335 (abs (% vec 1357333)))) (k 1))
-	  (aset state 3 (setq vec (make-vector 55 nil)))
+	  (setf (cl--random-state-vec state)
+                (setq vec (make-vector 55 nil)))
 	  (aset vec 0 j)
 	  (while (> (setq i (% (+ i 21) 55)) 0)
 	    (aset vec i (setq j (prog1 k (setq k (- j k))))))
 	  (while (< (setq i (1+ i)) 200) (cl-random 2 state))))
-    (let* ((i (aset state 1 (% (1+ (aref state 1)) 55)))
-	   (j (aset state 2 (% (1+ (aref state 2)) 55)))
+    (let* ((i (cl-callf (lambda (x) (% (1+ x) 55)) (cl--random-state-i state)))
+	   (j (cl-callf (lambda (x) (% (1+ x) 55)) (cl--random-state-j state)))
 	   (n (logand 8388607 (aset vec i (- (aref vec i) (aref vec j))))))
       (if (integerp lim)
 	  (if (<= lim 512) (% n lim)
@@ -466,17 +482,10 @@ Optional second arg STATE is a random-state object."
 (defun cl-make-random-state (&optional state)
   "Return a copy of random-state STATE, or of the internal state if omitted.
 If STATE is t, return a new state object seeded from the time of day."
-  (cond ((null state) (cl-make-random-state cl--random-state))
-	((vectorp state) (copy-tree state t))
-	((integerp state) (vector 'cl--random-state-tag -1 30 state))
-	(t (cl-make-random-state (cl--random-time)))))
-
-;;;###autoload
-(defun cl-random-state-p (object)
-  "Return t if OBJECT is a random-state object."
-  (and (vectorp object) (= (length object) 4)
-       (eq (aref object 0) 'cl--random-state-tag)))
-
+  (unless state (setq state cl--random-state))
+  (if (cl-random-state-p state)
+      (copy-tree state t)
+    (cl--make-random-state (if (integerp state) state (cl--random-time)))))
 
 ;; Implementation limits.
 

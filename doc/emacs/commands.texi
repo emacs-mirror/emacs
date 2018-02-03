@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -21,8 +21,6 @@ input.
 @cindex keyboard input
 @cindex character set (keyboard)
 @cindex @acronym{ASCII}
-@cindex C-
-@cindex Control
 
   GNU Emacs is primarily designed for use with the keyboard.  While it
 is possible to use the mouse to issue editing commands through the
@@ -50,7 +48,7 @@ are certain characters found on non-English keyboards
 labeled @key{Alt})@footnote{We refer to @key{Alt} as @key{META} for
 historical reasons.}.  For example, @kbd{Control-a} is entered by
 holding down the @key{Ctrl} key while pressing @kbd{a}; we will refer
-to this as @kbd{C-a} for short.  Similarly @kbd{@key{META}-a}, or @kbd{M-a}
+to this as @kbd{C-a} for short.  Similarly, @kbd{@key{META}-a}, or @kbd{M-a}
 for short, is entered by holding down the @key{Alt} key and pressing
 @kbd{a}.  Modifier keys can also be applied to non-alphanumerical
 characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{LEFT}}.
@@ -163,8 +161,8 @@ is bound to @code{next-line}.  If you rebind @kbd{C-n} to the command
 
   In this manual, we will often speak of keys like @kbd{C-n} as
 commands, even though strictly speaking the key is bound to a command.
-Usually we state the name of the command which really does the work in
-parentheses after mentioning the key that runs it.  For example, we
+Usually, we state the name of the command which really does the work
+in parentheses after mentioning the key that runs it.  For example, we
 will say that ``The command @kbd{C-n} (@code{next-line}) moves point
 vertically down'', meaning that the command @code{next-line} moves
 vertically down, and the key @kbd{C-n} is normally bound to it.

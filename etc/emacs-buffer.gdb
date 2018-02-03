@@ -1,6 +1,6 @@
 # emacs-buffer.gdb --- gdb macros for recovering buffers from emacs coredumps
 
-# Copyright (C) 2005-2017 Free Software Foundation, Inc.
+# Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
 # Author: Noah Friedman <friedman@splode.com>
 # Created: 2005-04-28
@@ -18,7 +18,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # Commentary:
 
@@ -81,7 +81,7 @@ set $yfile_buffers_only = 0
 
 define ygetptr
   set $ptr = $arg0
-  set $ptr = (CHECK_LISP_OBJECT_TYPE ? $ptr.i : $ptr) & VALMASK
+  set $ptr = (EMACS_INT) (CHECK_LISP_OBJECT_TYPE ? $ptr.i : $ptr) & VALMASK
 end
 
 # Get the value of Qnil for comparison.  Needed when
@@ -103,14 +103,12 @@ define ybuffer-list
   ygetptr $alist
   set $alist = $ptr
   while $alist != $qnil
-    set $this  = ((struct Lisp_Cons *) $ptr)->car
-    set $alist = ((struct Lisp_Cons *) $ptr)->u.cdr
-    ygetptr $alist
-    set $alist = $ptr
+    set $this  = ((struct Lisp_Cons *) $ptr)->u.s.car
+    set $alist = ((struct Lisp_Cons *) $ptr)->u.s.u.cdr
 
     # Vbuffer_alist elts are pairs of the form (name . buffer)
     ygetptr $this
-    set $buf  = ((struct Lisp_Cons *) $ptr)->u.cdr
+    set $buf  = ((struct Lisp_Cons *) $ptr)->u.s.u.cdr
     ygetptr $buf
     set $buf = (struct buffer *) $ptr
 
@@ -118,17 +116,17 @@ define ybuffer-list
     set $fname = $ptr
     if ! ($files_only && $fname == $qnil)
       ygetptr $buf->name_
-      set $name = ((struct Lisp_String *) $ptr)->data
+      set $name = ((struct Lisp_String *) $ptr)->u.s.data
       set $modp = ($buf->text->modiff > $buf->text->save_modiff) ? '*' : ' '
 
       ygetptr $buf->mode_name_
-      set $mode = ((struct Lisp_String *) $ptr)->data
+      set $mode = ((struct Lisp_String *) $ptr)->u.s.data
 
       if $fname != $qnil
         ygetptr $buf->filename_
         printf "%2d %c  %9d %-20s %-10s %s\n", \
                $i, $modp, ($buf->text->z_byte - 1), $name, $mode, \
-               ((struct Lisp_String *) $fname)->data
+               ((struct Lisp_String *) $fname)->u.s.data
       else
         printf "%2d %c  %9d %-20s %-10s\n", \
                $i, $modp, ($buf->text->z_byte - 1), $name, $mode
@@ -136,6 +134,8 @@ define ybuffer-list
     end
 
     set $i++
+    ygetptr $alist
+    set $alist = $ptr
   end
 end
 document ybuffer-list
@@ -161,18 +161,18 @@ define yset-buffer
   ygetptr $alist
   set $alist = $ptr
   while ($alist != $qnil && $i > 0)
-    set $alist = ((struct Lisp_Cons *) $ptr)->u.cdr
+    set $alist = ((struct Lisp_Cons *) $ptr)->u.s.u.cdr
     ygetptr $alist
     set $alist = $ptr
     set $i--
   end
 
   # Get car of alist; this is a pair (name . buffer)
-  set $this = ((struct Lisp_Cons *) $alist)->car
+  set $this = ((struct Lisp_Cons *) $alist)->u.s.car
 
   # Get the buffer object
   ygetptr $this
-  set $this = ((struct Lisp_Cons *) $ptr)->u.cdr
+  set $this = ((struct Lisp_Cons *) $ptr)->u.s.u.cdr
 
   ygetptr $this
   set $ycurrent_buffer = (struct buffer *) $ptr
@@ -206,7 +206,7 @@ end
 define yget-current-buffer-name
   set $this = $ycurrent_buffer->name_
   ygetptr $this
-  set $ycurrent_buffer_name = ((struct Lisp_String *) $ptr)->data
+  set $ycurrent_buffer_name = ((struct Lisp_String *) $ptr)->u.s.data
 end
 document yget-current-buffer-name
   Set $ycurrent_buffer_name to the name of the currently selected buffer.

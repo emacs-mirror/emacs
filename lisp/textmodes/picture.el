@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -66,7 +66,7 @@
 (defvar picture-desired-column 0
   "Desired current column for Picture mode.
 When a cursor is on a wide-column character (e.g. Chinese,
-Japanese, Korean), this may may be different from `current-column'.")
+Japanese, Korean), this may be different from `current-column'.")
 
 
 (defun picture-update-desired-column (adjust-to-current)
@@ -338,8 +338,9 @@ always moves to the beginning of a line."
         (newline lines-left))))
 
 (defun picture-open-line (arg)
-  "Insert an empty line after the current line.
-With positive argument insert that many lines."
+  "Insert ARG empty lines after the current line.
+ARG must be positive.
+Interactively, ARG is the numeric argument, and defaults to 1."
   (interactive "p")
   (save-excursion
    (end-of-line)
@@ -788,8 +789,9 @@ they are not by default assigned to keys."
 
 (defun picture-mode-exit (&optional nostrip)
   "Undo `picture-mode' and return to previous major mode.
-With no argument, strip whitespace from end of every line in Picture buffer;
-  otherwise, just return to previous mode.
+With NOSTRIP omitted or nil, strip whitespace from end of every line
+  in Picture buffer; otherwise, just return to previous mode.
+Interactively, NOSTRIP is the prefix argument, and defaults to nil.
 Runs `picture-mode-exit-hook' at the end."
   (interactive "P")
   (if (not (eq major-mode 'picture-mode))

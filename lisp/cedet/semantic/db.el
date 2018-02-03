@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -595,7 +595,7 @@ This will call `semantic-fetch-tags' if that file is in memory."
 	(kill-buffer buff))))))
 
 (cl-defmethod semanticdb-needs-refresh-p ((obj semanticdb-table))
-  "Return non-nil of OBJ's tag list is out of date.
+  "Return non-nil if OBJ's tag list is out of date.
 The file associated with OBJ does not need to be in a buffer."
   (let* ((ff (semanticdb-full-filename obj))
 	 (buff (semanticdb-in-buffer-p obj))

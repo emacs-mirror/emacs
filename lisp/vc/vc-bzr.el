@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -98,7 +98,9 @@ If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
 (defcustom vc-bzr-status-switches
   (ignore-errors
     (with-temp-buffer
-      (call-process vc-bzr-program nil t nil "help" "status")
+      (let ((process-environment (cons (format "BZR_LOG=%s" null-device)
+                                       process-environment)))
+        (call-process vc-bzr-program nil t nil "help" "status"))
       (if (search-backward "--no-classify" nil t)
           "--no-classify")))
   "String or list of strings specifying switches for bzr status under VC.

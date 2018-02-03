@@ -1209,7 +1209,7 @@ z pomocą Ryszarda Kubiaka i Janusza S. Bienia <jsbien@mail.uw.edu.pl>.
 Ta wersja samouczka, podobnie jak GNU Emacs, jest chroniona prawem
 autorskim, ale wolno ją kopiować pod następującymi warunkami:
 
-Copyright (C) 1985, 1994, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
 
 Zezwala się na wykonywanie lub rozpowszechnianie
 wiernych kopii tego dokumentu w otrzymanej formie, na dowolnym

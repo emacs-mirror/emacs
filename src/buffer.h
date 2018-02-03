@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2017 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_BUFFER_H
 #define EMACS_BUFFER_H
@@ -412,6 +412,15 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
    ? BUF_FETCH_MULTIBYTE_CHAR ((buf), (pos))    \
    : BUF_FETCH_BYTE ((buf), (pos)))
 
+/* Return character at byte position POS in buffer BUF.  If BUF is
+   unibyte and the character is not ASCII, make the returning
+   character multibyte.  */
+
+#define BUF_FETCH_CHAR_AS_MULTIBYTE(buf, pos)           \
+  (! NILP (BVAR ((buf), enable_multibyte_characters))   \
+   ? BUF_FETCH_MULTIBYTE_CHAR ((buf), (pos))            \
+   : UNIBYTE_TO_CHAR (BUF_FETCH_BYTE ((buf), (pos))))
+
 /* Return the byte at byte position N in buffer BUF.   */
 
 #define BUF_FETCH_BYTE(buf, n) \
@@ -495,7 +504,7 @@ struct buffer_text
 
 struct buffer
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* The name of this buffer.  */
   Lisp_Object name_;
@@ -601,6 +610,12 @@ struct buffer
      paragraphs of the buffer.  Nil means determine paragraph
      direction dynamically for each paragraph.  */
   Lisp_Object bidi_paragraph_direction_;
+
+  /* If non-nil, a regular expression for bidi paragraph separator.  */
+  Lisp_Object bidi_paragraph_separate_re_;
+
+  /* If non-nil, a regular expression for bidi paragraph start.  */
+  Lisp_Object bidi_paragraph_start_re_;
 
   /* Non-nil means do selective display;
      see doc string in syms_of_buffer (buffer.c) for details.  */
@@ -932,6 +947,16 @@ INLINE void
 bset_display_count (struct buffer *b, Lisp_Object val)
 {
   b->display_count_ = val;
+}
+INLINE void
+bset_left_margin_cols (struct buffer *b, Lisp_Object val)
+{
+  b->left_margin_cols_ = val;
+}
+INLINE void
+bset_right_margin_cols (struct buffer *b, Lisp_Object val)
+{
+  b->right_margin_cols_ = val;
 }
 INLINE void
 bset_display_time (struct buffer *b, Lisp_Object val)

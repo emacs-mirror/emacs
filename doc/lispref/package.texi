@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2017 Free Software Foundation, Inc.
+@c Copyright (C) 2010-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -54,7 +54,8 @@ prefix used in the program (@pxref{Coding Conventions}).
 @item Version
 A version number, in a form that the function @code{version-to-list}
 understands (e.g., @samp{11.86}).  Each release of a package should be
-accompanied by an increase in the version number.
+accompanied by an increase in the version number so that it will be
+recognized as an upgrade by users querying the package archive.
 
 @item Brief description
 This is shown when the package is listed in the Package Menu.  It
@@ -71,8 +72,9 @@ once it is installed.
 A list of other packages (possibly including minimal acceptable
 version numbers) on which this package depends.  The list may be
 empty, meaning this package has no dependencies.  Otherwise,
-installing this package also automatically installs its dependencies;
-if any dependency cannot be found, the package cannot be installed.
+installing this package also automatically installs its dependencies,
+recursively; if any dependency cannot be found, the package cannot be
+installed.
 @end table
 
 @cindex content directory, package
@@ -212,8 +214,8 @@ subdirectories of the content directory.
   One of the files in the content directory must be named
 @file{@var{name}-pkg.el}.  It must contain a single Lisp form,
 consisting of a call to the function @code{define-package}, described
-below.  This defines the package's version, brief description, and
-requirements.
+below.  This defines the package's attributes: version, brief
+description, and requirements.
 
   For example, if we distribute version 1.3 of the superfrobnicator as
 a multi-file package, the tar file would be
@@ -273,7 +275,7 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
   Via the Package Menu, users may download packages from @dfn{package
 archives}.  Such archives are specified by the variable
 @code{package-archives}, whose default value contains a single entry:
-the archive hosted by the GNU project at @url{http://elpa.gnu.org}.  This
+the archive hosted by the GNU project at @url{https://elpa.gnu.org}.  This
 section describes how to set up and maintain a package archive.
 
 @cindex base location, package archive

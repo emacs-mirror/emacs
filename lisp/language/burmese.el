@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -56,4 +56,3 @@
 		 (vector "." 0 'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1000 . #x107F) elt)
   (set-char-table-range composition-function-table '(#xAA60 . #xAA7B) elt))
-

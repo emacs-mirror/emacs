@@ -1,6 +1,6 @@
 ;;; calc-undo.el --- undo functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -75,7 +75,7 @@
 	   (let ((v (intern (nth 1 action))))
 	     (calc-record-undo (list 'store (nth 1 action)
 				     (and (boundp v) (symbol-value v))))
-	     (if (y-or-n-p (format "Un-store variable %s? " 
+	     (if (y-or-n-p (format "Un-store variable %s? "
                                    (calc-var-name (nth 1 action))))
 		 (progn
 		   (if (nth 2 action)

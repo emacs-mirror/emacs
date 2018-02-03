@@ -1,6 +1,6 @@
 # test.make --- Semantic unit test for Make -*- makefile -*-
 
-# Copyright (C) 2001-2002, 2010-2017 Free Software Foundation, Inc.
+# Copyright (C) 2001-2002, 2010-2018 Free Software Foundation, Inc.
 
 # Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 top=
 ede_FILES=Project.ede Makefile
@@ -42,7 +42,7 @@ all: example semantic Languages tools senator semantic.info
 test ${B}: foo bar
 	@echo ${A}
 
-example: 
+example:
 	@
 
 init: $(init_LISP)

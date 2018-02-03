@@ -1,0 +1,41 @@
+# Copyright (C) 2017-2018 Free Software Foundation, Inc.
+#
+#  This file is part of GNU Emacs.
+#
+#  GNU Emacs is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  GNU Emacs is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+# GNU Emacs support for the GitLab protocol for CI
+
+# The presence of this file does not imply any FSF/GNU endorsement of
+# any particular service that uses that protocol.  Also, it is intended for
+# evaluation purposes, thus possibly temporary.
+
+# Maintainer: tzz@lifelogs.com
+# URL: https://gitlab.com/emacs-ci/emacs
+
+image: debian:stretch
+
+before_script:
+  - apt update -qq
+  - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libc-dev gcc make autoconf automake libncurses-dev gnutls-dev
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+    - ./autogen.sh autoconf
+    - ./configure --without-makeinfo
+    - make check

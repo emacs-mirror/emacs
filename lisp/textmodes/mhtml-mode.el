@@ -1,6 +1,6 @@
 ;;; mhtml-mode.el --- HTML editing mode that handles CSS and JS -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; Keywords: wp, hypermedia, comm, languages
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -75,11 +75,11 @@ code();
 
 (defconst mhtml--crucial-variable-prefix
   (regexp-opt '("comment-" "uncomment-" "electric-indent-"
-                "smie-" "forward-sexp-function"))
+                "smie-" "forward-sexp-function" "completion-" "major-mode"))
   "Regexp matching the prefix of \"crucial\" buffer-locals we want to capture.")
 
 (defconst mhtml--variable-prefix
-  (regexp-opt '("font-lock-" "indent-line-function" "major-mode"))
+  (regexp-opt '("font-lock-" "indent-line-function"))
   "Regexp matching the prefix of buffer-locals we want to capture.")
 
 (defun mhtml--construct-submode (mode &rest args)
@@ -149,7 +149,12 @@ code();
 
 (defun mhtml--submode-lighter ()
   "Mode-line lighter indicating the current submode."
-  (let ((submode (get-text-property (point) 'mhtml-submode)))
+  ;; The end of the buffer has no text properties, so in this case
+  ;; back up one character, if possible.
+  (let* ((where (if (and (eobp) (not (bobp)))
+                    (1- (point))
+                  (point)))
+         (submode (get-text-property where 'mhtml-submode)))
     (if submode
         (mhtml--submode-name submode)
       "")))
@@ -193,6 +198,12 @@ smallest."
                   (get-text-property orig-end 'mhtml-submode))
         (cl-decf font-lock-end)))
 
+    ;; Also handle the multiline property -- but handle it here, and
+    ;; not via font-lock-extend-region-functions, to avoid the
+    ;; situation where the two extension functions disagree.
+    ;; See bug#29159.
+    (font-lock-extend-region-multiline)
+
     (or (/= font-lock-beg orig-beg)
         (/= font-lock-end orig-end))))
 
@@ -232,8 +243,8 @@ smallest."
       (cons 'jit-lock-bounds (cons new-beg new-end)))))
 
 (defvar-local mhtml--last-submode nil
-  "Record the last visited submode, so the cursor-sensor function
-can function properly.")
+  "Record the last visited submode.
+This is used by `mhtml--pre-command'.")
 
 (defvar-local mhtml--stashed-crucial-variables nil
   "Alist of stashed values of the crucial variables.")
@@ -283,14 +294,14 @@ can function properly.")
   (remove-list-of-text-properties start end
                                   '(syntax-table local-map mhtml-submode))
   (goto-char start)
-  (when (and
-         ;; Don't search in a comment or string
-         (not (syntax-ppss-context (syntax-ppss)))
-         ;; Be sure to look back one character, because START won't
-         ;; yet have been propertized.
-         (not (bobp)))
-    (when-let ((submode (get-text-property (1- (point)) 'mhtml-submode)))
-      (mhtml--syntax-propertize-submode submode end)))
+  ;; Be sure to look back one character, because START won't yet have
+  ;; been propertized.
+  (unless (bobp)
+    (let ((submode (get-text-property (1- (point)) 'mhtml-submode)))
+      (if submode
+          (mhtml--syntax-propertize-submode submode end)
+        ;; No submode, so do what sgml-mode does.
+        (sgml-syntax-propertize-inside end))))
   (funcall
    (syntax-propertize-rules
     ("<style.*?>"
@@ -330,9 +341,7 @@ can function properly.")
              ((eq mhtml-tag-relative-indent 'ignore)
               (setq base-indent 0)))
             (narrow-to-region region-start (point-max))
-            (let ((prog-indentation-context (list base-indent
-                                                  (cons (point-min) nil)
-                                                  nil)))
+            (let ((prog-indentation-context (list base-indent)))
               (mhtml--with-locals submode
                 ;; indent-line-function was rebound by
                 ;; mhtml--with-locals.
@@ -354,15 +363,12 @@ can function properly.")
 Code inside a <script> element is indented using the rules from
 `js-mode'; and code inside a <style> element is indented using
 the rules from `css-mode'."
-  (cursor-sensor-mode)
   (setq-local indent-line-function #'mhtml-indent-line)
-  (setq-local parse-sexp-lookup-properties t)
   (setq-local syntax-propertize-function #'mhtml-syntax-propertize)
   (setq-local font-lock-fontify-region-function
               #'mhtml--submode-fontify-region)
   (setq-local font-lock-extend-region-functions
-              '(mhtml--extend-font-lock-region
-                font-lock-extend-region-multiline))
+              '(mhtml--extend-font-lock-region))
 
   ;; Attach this to both pre- and post- hooks just in case it ever
   ;; changes a key binding that might be accessed from the menu bar.

@@ -1202,7 +1202,7 @@ Cette version du didacticiel, comme GNU Emacs, est placée sous
 droit d'auteur, et vous pouvez en distribuer des copies sous certaines
 conditions :
 
-Copyright (C) 1985, 1996, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 2001-2018 Free Software Foundation, Inc.
 
    Chacun peut créer ou distribuer des copies de ce document tel qu'il
    l'a reçu, sur n'importe quel support, pourvu que la note de

@@ -2,7 +2,7 @@
    Coded by Manabu Higashida, 1991.
    Modified by Morten Welinder, 1993-1994.
 
-Copyright (C) 1991, 1994-1995, 1997, 1999, 2001-2017 Free Software
+Copyright (C) 1991, 1994-1995, 1997, 1999, 2001-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define DOS_COUNTRY_INFO 34	/* no of bytes returned by dos int 38h */
 extern unsigned char dos_country_info[DOS_COUNTRY_INFO];

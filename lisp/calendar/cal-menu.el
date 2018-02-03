@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994-1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -100,7 +100,7 @@
         ;; Show 11 years--5 before, 5 after year of middle month.
         ;; We used to use :suffix rather than :label and bumped into
         ;; an easymenu bug:
-        ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01813.html
+        ;; https://lists.gnu.org/r/emacs-devel/2007-11/msg01813.html
         ;; The bug has since been fixed.
         (dotimes (i 11)
           (push (vector (format "hol-year-%d" i)

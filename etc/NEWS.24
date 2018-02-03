@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2010-2017 Free Software Foundation, Inc.
+Copyright (C) 2010-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -2542,7 +2542,7 @@ automatically select it.
 
 ** An Emacs Lisp package manager is now included.
 This is a convenient way to download and install additional packages,
-from a package repository at http://elpa.gnu.org.
+from a package repository at https://elpa.gnu.org.
 
 *** M-x list-packages shows a list of packages, which can be
 selected for installation.
@@ -3853,7 +3853,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

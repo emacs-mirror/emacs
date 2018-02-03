@@ -1,6 +1,6 @@
-;;; shr-color.el --- Simple HTML Renderer color management
+;;; shr-color.el --- Simple HTML Renderer color management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: html
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,7 +27,7 @@
 ;;; Code:
 
 (require 'color)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup shr-color nil
   "Simple HTML Renderer colors"
@@ -209,8 +209,8 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
 
 (defun shr-color-hue-to-rgb (x y h)
   "Convert X Y H to RGB value."
-  (when (< h 0) (incf h))
-  (when (> h 1) (decf h))
+  (when (< h 0) (cl-incf h))
+  (when (> h 1) (cl-decf h))
   (cond ((< h (/ 6.0)) (+ x (* (- y x) h 6)))
         ((< h 0.5) y)
         ((< h (/ 2.0 3.0)) (+ x (* (- y x) (- (/ 2.0 3.0) h) 6)))
@@ -258,8 +258,7 @@ Like rgb() or hsl()."
       (let ((h (/ (string-to-number (match-string-no-properties 1 color)) 360.0))
             (s (/ (string-to-number (match-string-no-properties 2 color)) 100.0))
             (l (/ (string-to-number (match-string-no-properties 3 color)) 100.0)))
-        (destructuring-bind (r g b)
-            (shr-color-hsl-to-rgb-fractions h s l)
+        (pcase-let ((`(,r ,g ,b) (shr-color-hsl-to-rgb-fractions h s l)))
           (color-rgb-to-hex r g b 2))))
      ;; Color names
      ((cdr (assoc-string color shr-color-html-colors-alist t)))

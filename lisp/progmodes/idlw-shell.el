@@ -1,6 +1,6 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -4172,8 +4172,8 @@ Otherwise, just expand the file name."
 	  ([(control ?t)]   ?t   idlwave-shell-toggle-toolbar)
 	  ([(control up)]   up   idlwave-shell-stack-up)
 	  ([(control down)] down idlwave-shell-stack-down)
-	  ([(        ?[)]   ?[   idlwave-shell-goto-previous-bp t t)
-	  ([(        ?])]   ?]   idlwave-shell-goto-next-bp t t)
+	  ([(        ?\[)]  ?\[  idlwave-shell-goto-previous-bp t t)
+	  ([(        ?\])]  ?\]  idlwave-shell-goto-next-bp t t)
 	  ([(control ?f)]   ?f   idlwave-shell-window)))
        (mod (and (listp idlwave-shell-debug-modifiers)
 		 idlwave-shell-debug-modifiers))

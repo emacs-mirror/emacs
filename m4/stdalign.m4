@@ -1,6 +1,6 @@
 # Check for stdalign.h that conforms to C11.
 
-dnl Copyright 2011-2017 Free Software Foundation, Inc.
+dnl Copyright 2011-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -18,7 +18,7 @@ AC_DEFUN([gl_STDALIGN_H],
 
             /* Test that alignof yields a result consistent with offsetof.
                This catches GCC bug 52023
-               <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
+               <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
             #ifdef __cplusplus
                template <class t> struct alignof_helper { char a; t b; };
             # define ao(type) offsetof (alignof_helper<type>, b)

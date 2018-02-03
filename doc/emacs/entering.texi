@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -18,10 +18,11 @@
 @cindex starting Emacs
 
   The usual way to invoke Emacs is with the shell command
-@command{emacs}.  From a terminal window running in the X Window
-System, you can run Emacs in the background with @command{emacs &};
-this way, Emacs won't tie up the terminal window, so you can use it to
-run other shell commands.
+@command{emacs}.  From a terminal window running a Unix shell on a GUI
+terminal, you can run Emacs in the background with @kbd{emacs &}; this
+way, Emacs won't tie up the terminal window, so you can use it to run
+other shell commands.  (For comparable methods of starting Emacs on
+MS-Windows, see @ref{Windows Startup}.)
 
 @cindex startup screen
   When Emacs starts up, the initial frame displays a special buffer

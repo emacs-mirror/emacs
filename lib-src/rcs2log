@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-# Copyright (C) 1992-1998, 2001-2017 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2001-2018 Free Software Foundation, Inc.
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
@@ -17,10 +17,10 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-Copyright='Copyright (C) 2017 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2018 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
@@ -45,7 +45,7 @@ Each entry looks something like this:
 
 	* rcs2log (Help): Clarify wording of the usage message.
 	Problem reported by Alan Mackenzie in
-	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2004-04/msg00188.html>.
+	<https://mail.gnu.org/archive/html/bug-gnu-emacs/2004-04/msg00188.html>.
 
 ChangeLog entries contain the current date, full name, email address
 including hostname, the name of the affected file, and commentary.

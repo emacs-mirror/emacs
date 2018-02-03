@@ -1,6 +1,6 @@
-;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*-coding: utf-8;-*-
+;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Jon K Hellan <hellan@acm.org>
 ;; Maintainer: bugs@gnus.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -64,7 +64,6 @@
 ;;; Code:
 
 (require 'base64)
-(eval-when-compile (require 'cl))
 (require 'mm-util)
 
 (defconst utf7-direct-encoding-chars " -%'-*,-[]-}"
@@ -140,8 +139,7 @@ Use IMAP modification if FOR-IMAP is non-nil."
 (defun utf7-decode-internal (&optional for-imap)
   "Decode UTF-7 text in (temporary) buffer.
 Use IMAP modification if FOR-IMAP is non-nil."
-  (let ((start (point-min))
-	(end (point-max)))
+  (let ((start (point-min)))
     (goto-char start)
     (let* ((esc-pattern (concat "^" (char-to-string (if for-imap ?& ?+))))
 	   (base64-chars (concat "A-Za-z0-9+"

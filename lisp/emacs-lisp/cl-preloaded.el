@@ -1,6 +1,6 @@
 ;;; cl-preloaded.el --- Preloaded part of the CL library  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,6 +50,39 @@
         (apply #'error string (append sargs args))
       (signal 'cl-assertion-failed `(,form ,@sargs)))))
 
+(defconst cl--typeof-types
+  ;; Hand made from the source code of `type-of'.
+  '((integer number number-or-marker atom)
+    (symbol atom) (string array sequence atom)
+    (cons list sequence)
+    ;; Markers aren't `numberp', yet they are accepted wherever integers are
+    ;; accepted, pretty much.
+    (marker number-or-marker atom)
+    (overlay atom) (float number atom) (window-configuration atom)
+    (process atom) (window atom) (subr atom) (compiled-function function atom)
+    (module-function function atom)
+    (buffer atom) (char-table array sequence atom)
+    (bool-vector array sequence atom)
+    (frame atom) (hash-table atom) (terminal atom)
+    (thread atom) (mutex atom) (condvar atom)
+    (font-spec atom) (font-entity atom) (font-object atom)
+    (vector array sequence atom)
+    (user-ptr atom)
+    ;; Plus, really hand made:
+    (null symbol list sequence atom))
+  "Alist of supertypes.
+Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
+the symbols returned by `type-of', and SUPERTYPES is the list of its
+supertypes from the most specific to least specific.")
+
+(defconst cl--all-builtin-types
+  (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
+
+(defun cl--struct-name-p (name)
+  "Return t if NAME is a valid structure name for `cl-defstruct'."
+  (and name (symbolp name) (not (keywordp name))
+       (not (memq name cl--all-builtin-types))))
+
 ;; When we load this (compiled) file during pre-loading, the cl--struct-class
 ;; code below will need to access the `cl-struct' info, since it's considered
 ;; already as its parent (because `cl-struct' was defined while the file was
@@ -61,7 +94,7 @@
 (fset 'cl--make-slot-desc
       ;; To break circularity, we pre-define the slot constructor by hand.
       ;; It's redefined a bit further down as part of the cl-defstruct of
-      ;; cl--slot-descriptor.
+      ;; cl-slot-descriptor.
       ;; BEWARE: Obviously, it's important to keep the two in sync!
       (lambda (name &optional initform type props)
         (record 'cl-slot-descriptor
@@ -110,6 +143,7 @@
 ;;;###autoload
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print)
+  (cl-check-type name cl--struct-name)
   (unless type
     ;; Legacy defstruct, using tagged vectors.  Enable backward compatibility.
     (cl-old-struct-compat-mode 1))
@@ -194,7 +228,7 @@
   (name nil :type symbol)               ;The type name.
   (docstring nil :type string)
   (parents nil :type (list-of cl--class)) ;The included struct.
-  (slots nil :type (vector cl--slot-descriptor))
+  (slots nil :type (vector cl-slot-descriptor))
   (index-table nil :type hash-table)
   (tag nil :type symbol) ;Placed in cl-tag-slot.  Holds the struct-class object.
   (type nil :type (memq (vector list)))

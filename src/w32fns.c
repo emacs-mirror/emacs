@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2017 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Added by Kevin Gallo */
 
@@ -467,7 +467,7 @@ if the entry is new.  */)
   block_input ();
 
   /* replace existing entry in w32-color-map or add new entry. */
-  entry = Fassoc (name, Vw32_color_map);
+  entry = Fassoc (name, Vw32_color_map, Qnil);
   if (NILP (entry))
     {
       entry = Fcons (name, rgb);
@@ -1677,6 +1677,12 @@ x_clear_under_internal_border (struct frame *f)
 }
 
 
+/**
+ * x_set_internal_border_width:
+ *
+ * Set width of frame F's internal border to ARG pixels.  ARG < 0 is
+ * treated like ARG = 0.
+ */
 void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
@@ -1700,44 +1706,59 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
 }
 
 
+/**
+ * x_set_menu_bar_lines:
+ *
+ * Set number of lines of frame F's menu bar to VALUE.  An integer
+ * greater zero specifies 1 line and turns the menu bar on if it was off
+ * before.  Any other value specifies 0 lines and turns the menu bar off
+ * if it was on before.
+ */
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  int nlines;
-
   /* Right now, menu bars don't work properly in minibuf-only frames;
      most of the commands try to apply themselves to the minibuffer
-     frame itself, and get an error because you can't switch buffers
-     in or split the minibuffer window.  */
-  if (FRAME_MINIBUF_ONLY_P (f) || FRAME_PARENT_FRAME (f))
-    return;
-
-  if (INTEGERP (value))
-    nlines = XINT (value);
-  else
-    nlines = 0;
-
-  FRAME_MENU_BAR_LINES (f) = 0;
-  FRAME_MENU_BAR_HEIGHT (f) = 0;
-  if (nlines)
-    FRAME_EXTERNAL_MENU_BAR (f) = 1;
-  else
+     frame itself, and get an error because you can't switch buffers in
+     or split the minibuffer window.  Child frames don't like menu bars
+     either.  */
+  if (!FRAME_MINIBUF_ONLY_P (f) && !FRAME_PARENT_FRAME (f))
     {
-      if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
-	free_frame_menubar (f);
-      FRAME_EXTERNAL_MENU_BAR (f) = 0;
+      boolean old = FRAME_EXTERNAL_MENU_BAR (f);
+      boolean new = (INTEGERP (value) && XINT (value) > 0) ? true : false;
 
-      /* Adjust the frame size so that the client (text) dimensions
-	 remain the same.  This depends on FRAME_EXTERNAL_MENU_BAR being
-	 set correctly.  Note that we resize twice: The first time upon
-	 a request from the window manager who wants to keep the height
-	 of the outer rectangle (including decorations) unchanged, and a
-	 second time because we want to keep the height of the inner
-	 rectangle (without the decorations unchanged).  */
-      adjust_frame_size (f, -1, -1, 2, true, Qmenu_bar_lines);
+      FRAME_MENU_BAR_LINES (f) = 0;
+      FRAME_MENU_BAR_HEIGHT (f) = 0;
 
-      /* Not sure whether this is needed.  */
-      x_clear_under_internal_border (f);
+      if (old != new)
+	{
+	  FRAME_EXTERNAL_MENU_BAR (f) = new;
+
+	  if (!old)
+	    /* Make menu bar when there was none.  Emacs 25 waited until
+	       the next redisplay for this to take effect.  */
+	    set_frame_menubar (f, false, true);
+	  else
+	    {
+	      /* Remove menu bar.  */
+	      free_frame_menubar (f);
+
+	      /* Adjust the frame size so that the client (text) dimensions
+		 remain the same.  Note that we resize twice: The first time
+		 upon a request from the window manager who wants to keep
+		 the height of the outer rectangle (including decorations)
+		 unchanged, and a second time because we want to keep the
+		 height of the inner rectangle (without the decorations
+		 unchanged).  */
+	      adjust_frame_size (f, -1, -1, 2, false, Qmenu_bar_lines);
+	    }
+
+	  if (FRAME_W32_WINDOW (f))
+	    x_clear_under_internal_border (f);
+
+	  /* Don't store anything but 1 or 0 in the parameter.  */
+	  store_frame_param (f, Qmenu_bar_lines, make_number (new ? 1 : 0));
+	}
     }
 }
 
@@ -1820,7 +1841,7 @@ x_change_tool_bar_height (struct frame *f, int height)
      here.  */
   adjust_frame_glyphs (f);
   SET_FRAME_GARBAGED (f);
-  if (FRAME_X_WINDOW (f))
+  if (FRAME_W32_WINDOW (f))
     x_clear_under_internal_border (f);
 }
 
@@ -4392,8 +4413,8 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  TranslateMessage (&windows_msg);
 	  goto dflt;
 	}
-
       /* Fall through */
+      FALLTHROUGH;
 
     case WM_SYSCHAR:
     case WM_CHAR:
@@ -4656,6 +4677,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (w32_pass_extra_mouse_buttons_to_system)
 	goto dflt;
       /* else fall through and process them.  */
+      FALLTHROUGH;
     case WM_MBUTTONDOWN:
     case WM_MBUTTONUP:
     handle_plain_button:
@@ -4761,6 +4783,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  track_mouse_event_fn (&tme);
 	  track_mouse_window = hwnd;
 	}
+      FALLTHROUGH;
     case WM_HSCROLL:
     case WM_VSCROLL:
       if (w32_mouse_move_interval <= 0
@@ -4802,6 +4825,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (w32_pass_multimedia_buttons_to_system)
 	goto dflt;
       /* Otherwise, pass to lisp, the same way we do with mousehwheel.  */
+      FALLTHROUGH;
 
       /* FIXME!!!  This is never reached so what's the purpose?  If the
 	 non-zero return remark below is right we're doing it wrong all
@@ -5064,6 +5088,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSELEAVE:
       /* No longer tracking mouse.  */
       track_mouse_window = NULL;
+      FALLTHROUGH;
 
     case WM_ACTIVATEAPP:
     case WM_ACTIVATE:
@@ -5104,6 +5129,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	      menu_free_timer = 0;
 	    }
 	}
+      FALLTHROUGH;
     case WM_MOVE:
     case WM_SIZE:
     command:
@@ -5142,6 +5168,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
          fails (see bug#25875).  But if it fails, we want to find out
          about it, so let's leave 1000 for now.  */
       sleep (1000);
+      FALLTHROUGH;
 
     case WM_WINDOWPOSCHANGING:
       /* Don't restrict the sizing of any kind of frames.  If the window
@@ -5820,7 +5847,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
      that are needed to determine window geometry.  */
   x_default_font_parameter (f, parameters);
 
-  x_default_parameter (f, parameters, Qborder_width, make_number (2),
+  /* Default BorderWidth to 0 to match other platforms.  */
+  x_default_parameter (f, parameters, Qborder_width, make_number (0),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* We recognize either internalBorderWidth or internalBorder
@@ -5835,7 +5863,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	parameters = Fcons (Fcons (Qinternal_border_width, value),
 			    parameters);
     }
-  /* Default internalBorderWidth to 0 on Windows to match other programs.  */
+
   x_default_parameter (f, parameters, Qinternal_border_width, make_number (0),
 		       "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
   x_default_parameter (f, parameters, Qright_divider_width, make_number (0),
@@ -5867,6 +5895,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parameters, Qno_focus_on_map, Qnil,
 		       NULL, NULL, RES_TYPE_BOOLEAN);
   x_default_parameter (f, parameters, Qno_accept_focus, Qnil,
+		       NULL, NULL, RES_TYPE_BOOLEAN);
+  x_default_parameter (f, parameters, Qno_special_glyphs, Qnil,
 		       NULL, NULL, RES_TYPE_BOOLEAN);
 
   /* Process alpha here (Bug#16619).  On XP this fails with child
@@ -5936,6 +5966,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
   f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
   f->output_data.w32->vertical_drag_cursor = w32_load_cursor (IDC_SIZENS);
+  f->output_data.w32->left_edge_cursor = w32_load_cursor (IDC_SIZEWE);
+  f->output_data.w32->top_left_corner_cursor = w32_load_cursor (IDC_SIZENWSE);
+  f->output_data.w32->top_edge_cursor = w32_load_cursor (IDC_SIZENS);
+  f->output_data.w32->top_right_corner_cursor = w32_load_cursor (IDC_SIZENESW);
+  f->output_data.w32->right_edge_cursor = w32_load_cursor (IDC_SIZEWE);
+  f->output_data.w32->bottom_right_corner_cursor = w32_load_cursor (IDC_SIZENWSE);
+  f->output_data.w32->bottom_edge_cursor = w32_load_cursor (IDC_SIZENS);
+  f->output_data.w32->bottom_left_corner_cursor = w32_load_cursor (IDC_SIZENESW);
 
   f->output_data.w32->current_cursor = f->output_data.w32->nontext_cursor;
 
@@ -6385,7 +6423,7 @@ w32_display_monitor_attributes_list (void)
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_W32_P (f) && !EQ (frame, tip_frame))
+      if (FRAME_W32_P (f) && !FRAME_TOOLTIP_P (f))
 	{
 	  HMONITOR monitor =
 	    monitor_from_window_fn (FRAME_W32_WINDOW (f),
@@ -6472,7 +6510,7 @@ w32_display_monitor_attributes_list_fallback (struct w32_display_info *dpyinfo)
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_W32_P (f) && !EQ (frame, tip_frame))
+      if (FRAME_W32_P (f) && !FRAME_TOOLTIP_P (f))
 	frames = Fcons (frame, frames);
     }
   attributes = Fcons (Fcons (Qframes, frames), attributes);
@@ -6878,20 +6916,25 @@ no value of TYPE (always string in the MS Windows case).  */)
 static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, int, int, int *, int *);
 
-/* The frame of a currently visible tooltip.  */
-
+/* The frame of the currently visible tooltip.  */
 Lisp_Object tip_frame;
 
-/* If non-nil, a timer started that hides the last tooltip when it
-   fires.  */
-
-Lisp_Object tip_timer;
+/* The window-system window corresponding to the frame of the
+   currently visible tooltip.  */
 Window tip_window;
 
-/* If non-nil, a vector of 3 elements containing the last args
-   with which x-show-tip was called.  See there.  */
+/* A timer that hides or deletes the currently visible tooltip when it
+   fires.  */
+Lisp_Object tip_timer;
 
-Lisp_Object last_show_tip_args;
+/* STRING argument of last `x-show-tip' call.  */
+Lisp_Object tip_last_string;
+
+/* FRAME argument of last `x-show-tip' call.  */
+Lisp_Object tip_last_frame;
+
+/* PARMS argument of last `x-show-tip' call.  */
+Lisp_Object tip_last_parms;
 
 
 static void
@@ -6964,6 +7007,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
 
   FRAME_FONTSET (f)  = -1;
   fset_icon_name (f, Qnil);
+  f->tooltip = true;
 
 #ifdef GLYPH_DEBUG
   image_cache_refcount =
@@ -7028,6 +7072,8 @@ x_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qno_special_glyphs, Qt,
+		       NULL, NULL, RES_TYPE_BOOLEAN);
 
   /* Init faces before x_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -7138,7 +7184,7 @@ compute_tip_xy (struct frame *f,
 		int width, int height, int *root_x, int *root_y)
 {
   Lisp_Object left, top, right, bottom;
-  int min_x, min_y, max_x, max_y;
+  int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
 
   /* User-specified position?  */
   left = Fcdr (Fassq (Qleft, parms));
@@ -7221,7 +7267,17 @@ compute_tip_xy (struct frame *f,
     *root_x = min_x;
 }
 
-/* Hide tooltip.  Delete its frame if DELETE is true.  */
+/**
+ * x_hide_tip:
+ *
+ * Hide currently visible tooltip and cancel its timer.
+ *
+ * This will try to make tooltip_frame invisible (if DELETE is false)
+ * or delete tooltip_frame (if DELETE is true).
+ *
+ * Return Qt if the tooltip was either deleted or made invisible, Qnil
+ * otherwise.
+ */
 static Lisp_Object
 x_hide_tip (bool delete)
 {
@@ -7246,15 +7302,20 @@ x_hide_tip (bool delete)
 
       if (FRAMEP (tip_frame))
 	{
-	  if (delete)
+	  if (FRAME_LIVE_P (XFRAME (tip_frame)))
 	    {
-	      delete_frame (tip_frame, Qnil);
-	      tip_frame = Qnil;
+	      if (delete)
+		{
+		  delete_frame (tip_frame, Qnil);
+		  tip_frame = Qnil;
+		}
+	      else
+		x_make_frame_invisible (XFRAME (tip_frame));
+
+	      was_open = Qt;
 	    }
 	  else
-	    x_make_frame_invisible (XFRAME (tip_frame));
-
-	  was_open = Qt;
+	    tip_frame = Qnil;
 	}
       else
 	tip_frame = Qnil;
@@ -7294,7 +7355,8 @@ with offset DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
-  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
+  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms,
+   Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   struct frame *tip_f;
   struct window *w;
@@ -7305,7 +7367,7 @@ Text larger than the specified size is clipped.  */)
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count_1;
-  Lisp_Object window, size;
+  Lisp_Object window, size, tip_buf;
   AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
@@ -7327,19 +7389,12 @@ Text larger than the specified size is clipped.  */)
   else
     CHECK_NUMBER (dy);
 
-  if (NILP (last_show_tip_args))
-    last_show_tip_args = Fmake_vector (make_number (3), Qnil);
-
   if (FRAMEP (tip_frame) && FRAME_LIVE_P (XFRAME (tip_frame)))
     {
-      Lisp_Object last_string = AREF (last_show_tip_args, 0);
-      Lisp_Object last_frame = AREF (last_show_tip_args, 1);
-      Lisp_Object last_parms = AREF (last_show_tip_args, 2);
-
       if (FRAME_VISIBLE_P (XFRAME (tip_frame))
-	  && EQ (frame, last_frame)
-	  && !NILP (Fequal_including_properties (last_string, string))
-	  && !NILP (Fequal (last_parms, parms)))
+	  && EQ (frame, tip_last_frame)
+	  && !NILP (Fequal_including_properties (string, tip_last_string))
+	  && !NILP (Fequal (parms, tip_last_parms)))
 	{
 	  /* Only DX and DY have changed.  */
 	  tip_f = XFRAME (tip_frame);
@@ -7373,14 +7428,14 @@ Text larger than the specified size is clipped.  */)
 
 	  goto start_timer;
 	}
-      else if (tooltip_reuse_hidden_frame && EQ (frame, last_frame))
+      else if (tooltip_reuse_hidden_frame && EQ (frame, tip_last_frame))
 	{
 	  bool delete = false;
 	  Lisp_Object tail, elt, parm, last;
 
 	  /* Check if every parameter in PARMS has the same value in
-	     last_parms.  This may destruct last_parms which, however,
-	     will be recreated below.  */
+	     tip_last_parms.  This may destruct tip_last_parms
+	     which, however, will be recreated below.  */
 	  for (tail = parms; CONSP (tail); tail = XCDR (tail))
 	    {
 	      elt = XCAR (tail);
@@ -7390,7 +7445,7 @@ Text larger than the specified size is clipped.  */)
 	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop)
 		  && !EQ (parm, Qright) && !EQ (parm, Qbottom))
 		{
-		  last = Fassq (parm, last_parms);
+		  last = Fassq (parm, tip_last_parms);
 		  if (NILP (Fequal (Fcdr (elt), Fcdr (last))))
 		    {
 		      /* We lost, delete the old tooltip.  */
@@ -7398,15 +7453,17 @@ Text larger than the specified size is clipped.  */)
 		      break;
 		    }
 		  else
-		    last_parms = call2 (Qassq_delete_all, parm, last_parms);
+		    tip_last_parms =
+		      call2 (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
-		last_parms = call2 (Qassq_delete_all, parm, last_parms);
+		tip_last_parms =
+		  call2 (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
-	  /* Now check if there's a parameter left in last_parms with a
+	  /* Now check if there's a parameter left in tip_last_parms with a
 	     non-nil value.  */
-	  for (tail = last_parms; CONSP (tail); tail = XCDR (tail))
+	  for (tail = tip_last_parms; CONSP (tail); tail = XCDR (tail))
 	    {
 	      elt = XCAR (tail);
 	      parm = Fcar (elt);
@@ -7427,9 +7484,9 @@ Text larger than the specified size is clipped.  */)
   else
     x_hide_tip (true);
 
-  ASET (last_show_tip_args, 0, string);
-  ASET (last_show_tip_args, 1, frame);
-  ASET (last_show_tip_args, 2, parms);
+  tip_last_frame = frame;
+  tip_last_string = string;
+  tip_last_parms = parms;
 
   /* Block input until the tip has been fully drawn, to avoid crashes
      when drawing tips in menus.  */
@@ -7445,7 +7502,8 @@ Text larger than the specified size is clipped.  */)
       if (NILP (Fassq (Qborder_width, parms)))
 	parms = Fcons (Fcons (Qborder_width, make_number (1)), parms);
       if (NILP (Fassq (Qborder_color, parms)))
-	parms = Fcons (Fcons (Qborder_color, build_string ("lightyellow")), parms);
+	parms = Fcons (Fcons (Qborder_color, build_string ("lightyellow")),
+		       parms);
       if (NILP (Fassq (Qbackground_color, parms)))
 	parms = Fcons (Fcons (Qbackground_color, build_string ("lightyellow")),
 		       parms);
@@ -7463,7 +7521,12 @@ Text larger than the specified size is clipped.  */)
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
-  set_window_buffer (window, Fget_buffer_create (tip), false, false);
+  tip_buf = Fget_buffer_create (tip);
+  /* We will mark the tip window a "pseudo-window" below, and such
+     windows cannot have display margins.  */
+  bset_left_margin_cols (XBUFFER (tip_buf), make_number (0));
+  bset_right_margin_cols (XBUFFER (tip_buf), make_number (0));
+  set_window_buffer (window, tip_buf, false, false);
   w = XWINDOW (window);
   w->pseudo_window_p = true;
 
@@ -7756,7 +7819,7 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
   OPENFILENAMEA * file_details_a = &new_file_details_a.details;
   int use_unicode = w32_unicode_filenames;
   wchar_t *prompt_w;
-  char *prompt_a;
+  char *prompt_a UNINIT;
   int len;
   char fname_ret[MAX_UTF8_PATH];
 #endif /* NTGUI_UNICODE */
@@ -8484,8 +8547,8 @@ w32_parse_and_hook_hot_key (Lisp_Object key, int hook)
 {
   /* Copied from Fdefine_key and store_in_keymap.  */
   register Lisp_Object c;
-  int vk_code;
-  int lisp_modifiers;
+  int vk_code = 0;
+  int lisp_modifiers = 0;
   int w32_modifiers;
   Lisp_Object res = Qnil;
   char* vkname;
@@ -8929,32 +8992,46 @@ menu bar or tool bar of FRAME.  */)
   if (EQ (type, Qouter_edges))
     {
       RECT rectangle;
+      BOOL success = false;
 
       block_input ();
       /* Outer frame rectangle, including outer borders and title bar. */
-      GetWindowRect (FRAME_W32_WINDOW (f), &rectangle);
+      success = GetWindowRect (FRAME_W32_WINDOW (f), &rectangle);
       unblock_input ();
 
-      return list4 (make_number (rectangle.left),
-		    make_number (rectangle.top),
-		    make_number (rectangle.right),
-		    make_number (rectangle.bottom));
+      if (success)
+	return list4 (make_number (rectangle.left),
+		      make_number (rectangle.top),
+		      make_number (rectangle.right),
+		      make_number (rectangle.bottom));
+      else
+	return Qnil;
     }
   else
     {
       RECT rectangle;
       POINT pt;
       int left, top, right, bottom;
+      BOOL success;
 
       block_input ();
       /* Inner frame rectangle, excluding borders and title bar.  */
-      GetClientRect (FRAME_W32_WINDOW (f), &rectangle);
+      success = GetClientRect (FRAME_W32_WINDOW (f), &rectangle);
       /* Get top-left corner of native rectangle in screen
 	 coordinates.  */
+      if (!success)
+	{
+	  unblock_input ();
+	  return Qnil;
+	}
+
       pt.x = 0;
       pt.y = 0;
-      ClientToScreen (FRAME_W32_WINDOW (f), &pt);
+      success = ClientToScreen (FRAME_W32_WINDOW (f), &pt);
       unblock_input ();
+
+      if (!success)
+	return Qnil;
 
       left = pt.x;
       top = pt.y;
@@ -9153,115 +9230,6 @@ The coordinates X and Y are interpreted in pixels relative to a position
   return Qnil;
 }
 
-DEFUN ("w32-battery-status", Fw32_battery_status, Sw32_battery_status, 0, 0, 0,
-       doc: /* Get power status information from Windows system.
-
-The following %-sequences are provided:
-%L AC line status (verbose)
-%B Battery status (verbose)
-%b Battery status, empty means high, `-' means low,
-   `!' means critical, and `+' means charging
-%p Battery load percentage
-%s Remaining time (to charge or discharge) in seconds
-%m Remaining time (to charge or discharge) in minutes
-%h Remaining time (to charge or discharge) in hours
-%t Remaining time (to charge or discharge) in the form `h:min'  */)
-  (void)
-{
-  Lisp_Object status = Qnil;
-
-  SYSTEM_POWER_STATUS system_status;
-  if (GetSystemPowerStatus (&system_status))
-    {
-      Lisp_Object line_status, battery_status, battery_status_symbol;
-      Lisp_Object load_percentage, seconds, minutes, hours, remain;
-
-      long seconds_left = (long) system_status.BatteryLifeTime;
-
-      if (system_status.ACLineStatus == 0)
-	line_status = build_string ("off-line");
-      else if (system_status.ACLineStatus == 1)
-	line_status = build_string ("on-line");
-      else
-	line_status = build_string ("N/A");
-
-      if (system_status.BatteryFlag & 128)
-	{
-	  battery_status = build_string ("N/A");
-	  battery_status_symbol = empty_unibyte_string;
-	}
-      else if (system_status.BatteryFlag & 8)
-	{
-	  battery_status = build_string ("charging");
-	  battery_status_symbol = build_string ("+");
-	  if (system_status.BatteryFullLifeTime != -1L)
-	    seconds_left = system_status.BatteryFullLifeTime - seconds_left;
-	}
-      else if (system_status.BatteryFlag & 4)
-	{
-	  battery_status = build_string ("critical");
-	  battery_status_symbol = build_string ("!");
-	}
-      else if (system_status.BatteryFlag & 2)
-	{
-	  battery_status = build_string ("low");
-	  battery_status_symbol = build_string ("-");
-	}
-      else if (system_status.BatteryFlag & 1)
-	{
-	  battery_status = build_string ("high");
-	  battery_status_symbol = empty_unibyte_string;
-	}
-      else
-	{
-	  battery_status = build_string ("medium");
-	  battery_status_symbol = empty_unibyte_string;
-	}
-
-      if (system_status.BatteryLifePercent > 100)
-	load_percentage = build_string ("N/A");
-      else
-	{
-	  char buffer[16];
-	  snprintf (buffer, 16, "%d", system_status.BatteryLifePercent);
-	  load_percentage = build_string (buffer);
-	}
-
-      if (seconds_left < 0)
-	seconds = minutes = hours = remain = build_string ("N/A");
-      else
-	{
-	  long m;
-	  double h;
-	  char buffer[16];
-	  snprintf (buffer, 16, "%ld", seconds_left);
-	  seconds = build_string (buffer);
-
-	  m = seconds_left / 60;
-	  snprintf (buffer, 16, "%ld", m);
-	  minutes = build_string (buffer);
-
-	  h = seconds_left / 3600.0;
-	  snprintf (buffer, 16, "%3.1f", h);
-	  hours = build_string (buffer);
-
-	  snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
-	  remain = build_string (buffer);
-	}
-
-      status = listn (CONSTYPE_HEAP, 8,
-		      Fcons (make_number ('L'), line_status),
-		      Fcons (make_number ('B'), battery_status),
-		      Fcons (make_number ('b'), battery_status_symbol),
-		      Fcons (make_number ('p'), load_percentage),
-		      Fcons (make_number ('s'), seconds),
-		      Fcons (make_number ('m'), minutes),
-		      Fcons (make_number ('h'), hours),
-		      Fcons (make_number ('t'), remain));
-    }
-  return status;
-}
-
 
 #ifdef WINDOWSNT
 typedef BOOL (WINAPI *GetDiskFreeSpaceExW_Proc)
@@ -9282,6 +9250,17 @@ If the underlying system call fails, value is nil.  */)
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
   encoded = ENCODE_FILE (filename);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  Lisp_Object handler = Ffind_file_name_handler (encoded, Qfile_system_info);
+  if (!NILP (handler))
+    {
+      value = call2 (handler, Qfile_system_info, encoded);
+      if (CONSP (value) || NILP (value))
+	return value;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
 
   value = Qnil;
 
@@ -10309,6 +10288,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_no_accept_focus,
   x_set_z_group,
   0, /* x_set_override_redirect */
+  x_set_no_special_glyphs,
 };
 
 void
@@ -10351,6 +10331,8 @@ syms_of_w32fns (void)
   DEFSYM (Qlibxml2, "libxml2");
   DEFSYM (Qserif, "serif");
   DEFSYM (Qzlib, "zlib");
+  DEFSYM (Qlcms2, "lcms2");
+  DEFSYM (Qjson, "json");
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
@@ -10660,6 +10642,11 @@ default value t means to add the width of one canonical character of the
 tip frame.  */);
   Vw32_tooltip_extra_pixels = Qt;
 
+  DEFVAR_BOOL ("w32-disable-abort-dialog",
+	       w32_disable_abort_dialog,
+	       doc: /* Non-nil means don't display the abort dialog when aborting.  */);
+  w32_disable_abort_dialog = 0;
+
 #if 0 /* TODO: Port to W32 */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
@@ -10707,7 +10694,6 @@ tip frame.  */);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_window_exists_p);
-  defsubr (&Sw32_battery_status);
   defsubr (&Sw32__menu_bar_in_use);
 #if defined WINDOWSNT && !defined HAVE_DBUS
   defsubr (&Sw32_notification_notify);
@@ -10726,9 +10712,12 @@ tip frame.  */);
   staticpro (&tip_timer);
   tip_frame = Qnil;
   staticpro (&tip_frame);
-
-  last_show_tip_args = Qnil;
-  staticpro (&last_show_tip_args);
+  tip_last_frame = Qnil;
+  staticpro (&tip_last_frame);
+  tip_last_string = Qnil;
+  staticpro (&tip_last_string);
+  tip_last_parms = Qnil;
+  staticpro (&tip_last_parms);
 
   defsubr (&Sx_file_dialog);
 #ifdef WINDOWSNT
@@ -10854,6 +10843,9 @@ w32_backtrace (void **buffer, int limit)
 void
 emacs_abort (void)
 {
+  if (w32_disable_abort_dialog)
+    abort ();
+
   int button;
   button = MessageBox (NULL,
 		       "A fatal error has occurred!\n\n"

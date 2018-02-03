@@ -1,6 +1,6 @@
 ;;; svg.el --- SVG image creation functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: image
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -107,8 +107,8 @@ X/Y denote the center of the ellipse."
    svg
    (dom-node 'line
 	     `((x1 . ,x1)
-	       (x2 . ,y1)
-	       (y1 . ,x2)
+	       (x2 . ,x2)
+	       (y1 . ,y1)
 	       (y2 . ,y2)
 	       ,@(svg--arguments svg args)))))
 
@@ -157,7 +157,27 @@ otherwise.  IMAGE-TYPE should be a MIME image type, like
    (dom-node
     'text
     `(,@(svg--arguments svg args))
-    text)))
+    (svg--encode-text text))))
+
+(defun svg--encode-text (text)
+  ;; Apparently the SVG renderer needs to have all non-ASCII
+  ;; characters encoded, and only certain special characters.
+  (with-temp-buffer
+    (insert text)
+    (dolist (substitution '(("&" . "&amp;")
+			    ("<" . "&lt;")
+			    (">" . "&gt;")))
+      (goto-char (point-min))
+      (while (search-forward (car substitution) nil t)
+	(replace-match (cdr substitution) t t nil)))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((char (following-char)))
+        (if (< char 128)
+            (forward-char 1)
+          (delete-char 1)
+          (insert "&#" (format "%d" char) ";"))))
+    (buffer-string)))
 
 (defun svg--append (svg node)
   (let ((old (and (dom-attr node 'id)
@@ -264,10 +284,10 @@ If the SVG is later changed, the image will also be updated."
 
 (defun svg-remove (svg id)
   "Remove the element identified by ID from SVG."
-  (when-let ((node (car (dom-by-id
-                         svg
-                         (concat "\\`" (regexp-quote id)
-                                 "\\'")))))
+  (when-let* ((node (car (dom-by-id
+                          svg
+                          (concat "\\`" (regexp-quote id)
+                                  "\\'")))))
     (dom-remove-node svg node)))
 
 (provide 'svg)

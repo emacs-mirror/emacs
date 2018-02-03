@@ -1,6 +1,6 @@
 ;;; icon.el --- mode for editing Icon code
 
-;; Copyright (C) 1989, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -459,9 +459,9 @@ Returns nil if line starts inside a string, t if in a comment."
 (defun mark-icon-function ()
   "Put mark at end of Icon function, point at beginning."
   (interactive)
-  (push-mark (point))
+  (push-mark)
   (end-of-icon-defun)
-  (push-mark (point))
+  (push-mark)
   (beginning-of-line 0)
   (beginning-of-icon-defun))
 

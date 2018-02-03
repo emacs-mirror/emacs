@@ -25,12 +25,13 @@ PSSRC=$(addprefix ./ps-src/,rfc1245.ps)
 PROLSRC=$(addprefix ./prol-src/,ordsets.prolog natded.prolog)
 PYTSRC=$(addprefix ./pyt-src/,server.py)
 RBSRC=$(addprefix ./ruby-src/,test.rb test1.ru)
+SCMSRC=$(addprefix ./scm-src/,test.scm)
 TEXSRC=$(addprefix ./tex-src/,testenv.tex gzip.texi texinfo.tex nonewline.tex)
 YSRC=$(addprefix ./y-src/,parse.y parse.c atest.y cccp.c cccp.y)
 SRCS=${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
      ${FORTHSRC} ${GOSRC} ${HTMLSRC} ${JAVASRC} ${LUASRC} ${MAKESRC}\
      ${OBJCSRC} ${OBJCPPSRC} ${PASSRC} ${PHPSRC} ${PERLSRC} ${PSSRC}\
-     ${PROLSRC} ${PYTSRC} ${RBSRC} ${TEXSRC} ${YSRC}
+     ${PROLSRC} ${PYTSRC} ${RBSRC} ${SCMSRC} ${TEXSRC} ${YSRC}
 NONSRCS=./f-src/entry.strange ./erl-src/lists.erl ./cp-src/clheir.hpp.gz
 
 ETAGS_PROG=../../../lib-src/etags

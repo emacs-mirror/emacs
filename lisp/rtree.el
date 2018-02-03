@@ -1,6 +1,6 @@
-;;; rtree.el --- functions for manipulating range trees
+;;; rtree.el --- functions for manipulating range trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,9 +42,6 @@
 ;; created, and can be rebalanced when deemed necessary.
 
 ;;; Code:
-
-(eval-when-compile
-  (require 'cl))
 
 (defmacro rtree-make-node ()
   `(list (list nil) nil))
@@ -85,7 +82,7 @@
   range)
 
 (define-obsolete-function-alias 'rtree-normalise-range
-  'rtree-normalize-range "25.1")
+  #'rtree-normalize-range "25.1")
 
 (defun rtree-make (range)
   "Make an rtree from RANGE."

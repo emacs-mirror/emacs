@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*-texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
 @set VERSION 0.3
@@ -6,13 +6,15 @@
 @settitle GNU Flymake @value{VERSION}
 @include docstyle.texi
 @syncodeindex pg cp
+@syncodeindex vr cp
+@syncodeindex fn cp
 @comment %**end of header
 
 @copying
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -35,7 +37,7 @@ modify this GNU manual.''
 @titlepage
 @title GNU Flymake
 @subtitle for version @value{VERSION}, @value{UPDATED}
-@author Pavel Kobiakov(@email{pk_at_work@@yahoo.com})
+@author Pavel Kobiakov(@email{pk_at_work@@yahoo.com}) and João Távora.
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -50,290 +52,185 @@ modify this GNU manual.''
 @end ifnottex
 
 @menu
-* Overview of Flymake::
-* Installing Flymake::
 * Using Flymake::
-* Configuring Flymake::
-* Flymake Implementation::
+* Extending Flymake::
+* The legacy Proc backend::
 * GNU Free Documentation License::
 * Index::
 @end menu
 
-@node Overview of Flymake
-@chapter Overview
-@cindex Overview of Flymake
+@node Using Flymake
+@chapter Using Flymake
+@cindex overview of flymake
+@cindex using flymake
 
-Flymake is a universal on-the-fly syntax checker implemented as an
-Emacs minor mode.  Flymake runs the pre-configured syntax check tool
-(compiler for C++ files, @code{perl} for perl files, etc.)@: in the
-background, passing it a temporary copy of the current buffer, and
-parses the output for known error/warning message patterns.  Flymake
-then highlights erroneous lines (i.e., lines for which at least one
-error or warning has been reported by the syntax check tool), and
-displays an overall buffer status in the mode line.  Status information
-displayed by Flymake contains total number of errors and warnings
-reported for the buffer during the last syntax check.
+Flymake is a universal on-the-fly buffer checker implemented as an
+Emacs minor mode.  To use Flymake, you must first activate
+@code{flymake-mode} by using the command @kbd{flymake-mode}.
 
-@code{flymake-goto-next-error} and @code{flymake-goto-prev-error}
-functions allow for easy navigation to the next/previous erroneous
-line, respectively.
+When enabled, Flymake collects information about problems in the
+buffer, called @dfn{diagnostics}, from one or more different sources,
+or @dfn{backends}, and then visually annotates the buffer by
+highlighting problematic buffer regions with a special face.
 
-Calling @code{flymake-display-err-menu-for-current-line} will popup a
-menu containing error messages reported by the syntax check tool for
-the current line.  Errors/warnings belonging to another file, such as a
-@code{.h} header file included by a @code{.c} file, are shown in the
-current buffer as belonging to the first line.  Menu items for such
-messages also contain a filename and a line number.  Selecting such a
-menu item will automatically open the file and jump to the line with
-error.
+It also displays an overall buffer status in the mode line containing
+totals for different types of diagnostics.
 
 Syntax check is done ``on-the-fly''.  It is started whenever
 
 @itemize @bullet
-@item buffer is loaded
-@item a newline character is added to the buffer
-@item some changes were made to the buffer more than @code{0.5} seconds ago (the
-delay is configurable).
+@item
+@code{flymake-mode} is started, unless
+@code{flymake-start-on-flymake-mode} is nil;
+
+@item
+a newline character is added to the buffer, unless
+@code{flymake-start-syntax-check-on-newline} is nil;
+
+@item
+some changes were made to the buffer more than @code{0.5} seconds ago
+(the delay is configurable in @code{flymake-no-changes-timeout}).
 @end itemize
 
+Syntax check can also be started manually by typing the @kbd{M-x
+flymake-start @key{RET}} command.
+
+@code{flymake-goto-next-error} and @code{flymake-goto-prev-error} are
+commands that allow easy navigation to the next/previous erroneous
+line, respectively.  If might be a good idea to map them to @kbd{M-n}
+and @kbd{M-p} in @code{flymake-mode}, by adding to your init file:
+
+@lisp
+(define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+(define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
+@end lisp
+
 Flymake is a universal syntax checker in the sense that it's easily
-extended to support new syntax check tools and error message
-patterns.  @xref{Configuring Flymake}.
+extended to support new backends (@pxref{Extending Flymake}).
 
-@node Installing Flymake
-@chapter Installing
-@cindex Installing Flymake
+Historically, Flymake used to accept diagnostics from a single
+backend, albeit a reasonably flexible one.
 
-
-Flymake is packaged in a single file, @code{flymake.el}.
-
-To install/update Flymake, place @code{flymake.el} to a directory
-somewhere on Emacs load path.  You might also want to byte-compile
-@code{flymake.el} to improve performance.
-
-Also, place the following line in the @code{.emacs} file.
-
-@lisp
-(require 'flymake)
-@end lisp
-
-You might also map the most frequently used Flymake functions, such as
-@code{flymake-goto-next-error}, to some keyboard shortcuts:
-
-@lisp
-(global-set-key [f3] 'flymake-display-err-menu-for-current-line)
-(global-set-key [f4] 'flymake-goto-next-error)
-@end lisp
-
-@node Using Flymake
-@chapter Using Flymake
-@cindex Using Flymake
+This backend isn't (yet) obsolete, and so is still available as a
+fallback and active by default (@pxref{The legacy Proc backend}).  It works by
+selecting a syntax check tool from a preconfigured list (compiler for
+C@t{++} files, @command{perl} for Perl files, etc.), and executing it in the
+background, passing it a temporary file which is a copy of the current
+buffer, and parsing the output for known error/warning message
+patterns.
 
 @menu
-* Flymake mode::
-* Running the syntax check::
-* Navigating to error lines::
-* Viewing error messages::
 * Syntax check statuses::
-* Troubleshooting::
+* Backend exceptions::
+* Customizable variables::
 @end menu
-
-@node Flymake mode
-@section Flymake mode
-@cindex flymake-mode
-
-Flymake is an Emacs minor mode.  To use Flymake, you
-must first activate @code{flymake-mode} by using the
-@code{flymake-mode} function.
-
-Instead of manually activating @code{flymake-mode}, you can configure
-Flymake to automatically enable @code{flymake-mode} upon opening any
-file for which syntax check is possible.  To do so, place the following
-line in @code{.emacs}:
-
-@lisp
-(add-hook 'find-file-hook 'flymake-find-file-hook)
-@end lisp
-
-@node Running the syntax check
-@section Running the syntax check
-@cindex Manually starting the syntax check
-
-When @code{flymake-mode} is active, syntax check is started
-automatically on any of the three conditions mentioned above.  Syntax
-check can also be started manually by using the
-@code{flymake-start-syntax-check-for-current-buffer} function.  This
-can be used, for example, when changes were made to some other buffer
-affecting the current buffer.
-
-@node Navigating to error lines
-@section Navigating to error lines
-@cindex Navigating to error lines
-
-After syntax check is completed, lines for which at least one error or
-warning has been reported are highlighted, and total number of errors
-and warning is shown in the mode line.  Use the following functions to
-navigate the highlighted lines.
-
-@multitable @columnfractions 0.25 0.75
-
-@item @code{flymake-goto-next-error}
-@tab Moves point to the next erroneous line, if any.
-
-@item @code{flymake-goto-prev-error}
-@tab Moves point to the previous erroneous line.
-
-@end multitable
-
-These functions treat erroneous lines as a linked list.  Therefore,
-@code{flymake-goto-next-error} will go to the first erroneous line
-when invoked in the end of the buffer.
-
-@node Viewing error messages
-@section Viewing error messages
-@cindex Viewing error messages
-
-To view error messages belonging to the current line, use the
-@code{flymake-display-err-menu-for-current-line} function.  If there's
-at least one error or warning reported for the current line, this
-function will display a popup menu with error/warning texts.
-Selecting the menu item whose error belongs to another file brings
-forward that file with the help of the
-@code{flymake-goto-file-and-line} function.
 
 @node Syntax check statuses
 @section Syntax check statuses
 @cindex Syntax check statuses
 
-After syntax check is finished, its status is displayed in the mode line.
-The following statuses are defined.
+When enabled, Flymake displays its status in the mode line, which
+provides a visual summary of diagnostic collection.  It may also hint
+at certain exceptional situations encountered when communicating with
+backends.
+
+The following statuses are defined:
 
 @multitable @columnfractions 0.25 0.75
-@item Flymake* or Flymake:E/W*
-@tab  Flymake is currently running.  For the second case, E/W contains the
-error and warning count for the previous run.
+@item [@var{nerrors} @var{nwarnings} ...]
+@tab Normal operation. @var{nerrors} and @var{nwarnings} are, respectively,
+the total number of errors and warnings found during the last buffer
+check, for all backends. They may be followed by other totals for
+other types of diagnostics (@pxref{Flymake error types}).
 
-@item Flymake
-@tab  Syntax check is not running.  Usually this means syntax check was
-successfully passed (no errors, no warnings).  Other possibilities are:
-syntax check was killed as a result of executing
-@code{flymake-compile}, or syntax check cannot start as compilation
-is currently in progress.
+@item @code{Wait}
+@tab  Some Flymake backends haven't reported since the last time they
+where questioned.  It is reasonable to assume that this is a temporary
+delay and Flymake will resume normal operation soon.
 
-@item Flymake:E/W
-@tab  Number of errors/warnings found by the syntax check process.
+@item @code{!}
+@tab All the configured Flymake backends have disabled themselves: Flymake
+cannot annotate the buffer and action from the user is needed to
+investigate and remedy the situation (@pxref{Backend exceptions}).
 
-@item Flymake:!
-@tab  Flymake was unable to find master file for the current buffer.
+@item @code{?}
+@tab There are no applicable Flymake backends for this buffer, thus Flymake
+cannot annotate it.  To fix this, a user may look to extending Flymake
+and add a new backend (@pxref{Extending Flymake}).
+
 @end multitable
 
-The following errors cause a warning message and switch flymake mode
-OFF for the buffer.
+@node Backend exceptions
+@section Backend exceptions
+@cindex backend exceptions
 
-@multitable @columnfractions 0.25 0.75
-@item CFGERR
-@tab  Syntax check process returned nonzero exit code, but no
-errors/warnings were reported.  This indicates a possible configuration
-error (for example, no suitable error message patterns for the
-syntax check tool).
+@cindex disabled backends
+@cindex backends, disabled
+Some backends may take longer than others to respond or complete, and
+some may decide to @emph{disable} themselves if they are not suitable
+for the current buffer or encounter some unavoidable problem.  A
+disabled backend is not tried again for future checks of the current
+buffer.
 
-@item NOMASTER
-@tab  Flymake was unable to find master file for the current buffer.
+@findex flymake-reporting-backends
+@findex flymake-running-backends
+@findex flymake-disabled-backends
+The commands @code{flymake-reporting-backends},
+@code{flymake-running-backends} and @code{flymake-disabled-backends}
+show the backends currently used and those which are disabled.
 
-@item NOMK
-@tab  Flymake was unable to find a suitable buildfile for the current buffer.
+@cindex reset disabled backends
+Toggling @code{flymake-mode} off and on again, or invoking
+@code{flymake-start} with a prefix argument is one way to reset the
+disabled backend list, so that they will be tried again in the next check.
 
-@item PROCERR
-@tab  Flymake was unable to launch a syntax check process.
-@end multitable
+@cindex logging
+@cindex flymake logging
+Flymake also uses a simple logging facility for indicating important
+points in the control flow.  The logging facility sends logging
+messages to the @file{*Flymake log*} buffer.  The information logged
+can be used for resolving various problems related to Flymake.  For
+convenience, a shortcut to this buffer can be found in Flymake's menu,
+accessible from the top menu bar or just left of the status indicator.
 
-
-@node Troubleshooting
-@section Troubleshooting
-@cindex Logging
-@cindex Troubleshooting
-
-Flymake uses a simple logging facility for indicating important points
-in the control flow.  The logging facility sends logging messages to
-the @file{*Messages*} buffer.  The information logged can be used for
-resolving various problems related to Flymake.
-
-Logging output is controlled by the @code{flymake-log-level}
-variable.  @code{3} is the  most verbose level, and @code{-1} switches
-logging off.
-
-@node Configuring Flymake
-@chapter Configuring and Extending Flymake
-@cindex Configuring and Extending Flymake
-
-@menu
-* Customizable variables::
-* Adding support for a new syntax check tool::
-@end menu
-
-Flymake was designed to be easily extended for supporting new syntax
-check tools and error message patterns.
+@vindex warning-minimum-log-level
+@vindex warning-minimum-level
+Logging output is controlled by the Emacs @code{warning-minimum-log-level}
+and @code{warning-minimum-level} variables.
 
 @node Customizable variables
 @section Customizable variables
-@cindex Customizable variables
+@cindex customizable variables
+@cindex variables for customizing flymake
 
-This section summarizes variables used for Flymake
-configuration.
+This section summarizes customization variables used for the
+configuration of the Flymake user interface.
 
-@table @code
-@item flymake-log-level
-Controls logging output, see @ref{Troubleshooting}.
-
-@item flymake-allowed-file-name-masks
-A list of @code{(filename-regexp, init-function, cleanup-function
-getfname-function)} for configuring syntax check tools.  @xref{Adding
-support for a new syntax check tool}.
-
-@ignore
-@item flymake-buildfile-dirs
-A list of directories (relative paths) for searching a
-buildfile.  @xref{Locating the buildfile}.
-@end ignore
-
-@item flymake-master-file-dirs
-A list of directories for searching a master file.  @xref{Locating a
-master file}.
-
-@item flymake-get-project-include-dirs-function
-A function used for obtaining a list of project include dirs (C/C++
-specific).  @xref{Getting the include directories}.
-
-@item flymake-master-file-count-limit
-@itemx flymake-check-file-limit
-Used when looking for a master file.  @xref{Locating a master file}.
-
-@item flymake-err-line-patterns
-Patterns for error/warning messages in the form @code{(regexp file-idx
-line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
-
-@item flymake-warning-predicate
-Predicate to classify error text as warning. @xref{Parsing the output}.
-
-@item flymake-compilation-prevents-syntax-check
-A flag indicating whether compilation and syntax check of the same
-file cannot be run simultaneously.
-
+@vtable @code
 @item flymake-no-changes-timeout
 If any changes are made to the buffer, syntax check is automatically
-started after @code{flymake-no-changes-timeout} seconds.
+started after this many seconds, unless the user makes another change,
+which resets the timer.
 
 @item flymake-start-syntax-check-on-newline
-A boolean flag indicating whether to start syntax check after a
-newline character is added to the buffer.
+A boolean flag indicating whether to start syntax check immediately
+after a newline character is inserted into the buffer.
 
-@item flymake-errline
-A custom face for highlighting lines for which at least one error has
-been reported.
+@item flymake-start-on-flymake-mode
+A boolean flag indicating whether to start syntax check immediately
+after enabling @code{flymake-mode}.
 
-@item flymake-warnline
-A custom face for highlighting lines for which at least one warning
-and no errors have been reported.
+@item flymake-error
+A custom face for highlighting regions for which an error has been
+reported.
+
+@item flymake-warning
+A custom face for highlighting regions for which a warning has been
+reported.
+
+@item flymake-note
+A custom face for highlighting regions for which a note has been
+reported.
 
 @item flymake-error-bitmap
 A bitmap used in the fringe to mark lines for which an error has
@@ -346,11 +243,495 @@ been reported.
 @item flymake-fringe-indicator-position
 Which fringe (if any) should show the warning/error bitmaps.
 
-@end table
+@item flymake-wrap-around
+If non-nil, moving to errors with @code{flymake-goto-next-error} and
+@code{flymake-goto-prev-error} wraps around buffer boundaries.
+@end vtable
+
+@node Extending Flymake
+@chapter Extending Flymake
+@cindex extending flymake
+
+Flymake can primarily be extended in one of two ways:
+
+@enumerate
+@item
+By changing the look and feel of the annotations produced by the
+different backends.
+
+@item
+By adding a new buffer-checking backend.
+@end enumerate
+
+The following sections discuss each approach in detail.
+
+@menu
+* Flymake error types::
+* Backend functions::
+@end menu
+
+@node Flymake error types
+@section Customizing Flymake error types
+@cindex customizing error types
+@cindex error types, customization
+
+@vindex flymake-diagnostic-types-alist
+The variable @code{flymake-diagnostic-types-alist} is looked up by
+Flymake every time an annotation for a diagnostic is created in the
+buffer.  Specifically, this variable holds a table of correspondence
+between symbols designating diagnostic types and an additional
+sub-table of properties pertaining to each diagnostic type.
+
+Both tables are laid out in association list (@pxref{Association
+Lists,,, elisp, The Emacs Lisp Reference Manual}) format, and thus can
+be conveniently accessed with the functions of the @code{assoc}
+family.
+
+You can use any symbol-value association in the properties sub-table,
+but some symbols have special meaning as to where and how Flymake
+presents the diagnostic:
+
+@itemize
+
+@item
+@cindex bitmap of diagnostic
+@code{bitmap}, an image displayed in the fringe according to
+@code{flymake-fringe-indicator-position}.  The value actually follows
+the syntax of @code{flymake-error-bitmap} (@pxref{Customizable
+variables}).  It is overridden by any @code{before-string} overlay
+property.
+
+@item
+@cindex severity of diagnostic
+@code{severity} is a non-negative integer specifying the diagnostic's
+severity.  The higher the value, the more serious is the error.  If
+the overlay property @code{priority} is not specified, @code{severity}
+is used to set it and help sort overlapping overlays.
+
+@item
+Every property pertaining to overlays (@pxref{Overlay Properties,,,
+elisp, The Emacs Lisp Reference Manual}), except @code{category} and
+@code{evaporate}.  These properties are used to affect the appearance
+of Flymake annotations.
+
+As an example, here's how to make errors (diagnostics of the type
+@code{:error}) stand out even more prominently in the buffer, by
+raising the characters using a @code{display} overlay property.
+
+@example
+(push '(display . (raise 1.2))
+      (cdr (assoc :error flymake-diagnostic-types-alist)))
+@end example
+
+@item
+@vindex flymake-category
+@code{flymake-category} is a symbol whose property list is considered
+the default for missing values of any other properties.
+@end itemize
+
+@cindex predefined diagnostic types
+@vindex flymake-error
+@vindex flymake-warning
+@vindex flymake-note
+Three default diagnostic types, @code{:error}, @code{:warning} and
+@code{:note} are predefined in
+@code{flymake-diagnostic-types-alist}.  By default each lists a single
+@code{flymake-category} property whose value is, respectively, the
+symbols @code{flymake-error}, @code{flymake-warning} and
+@code{flymake-note}.
+
+These category symbols' plists is where the values of customizable
+variables and faces such as @code{flymake-error-bitmap} are found.
+Thus, if you change their plists, Flymake may stop honoring these
+user customizations.
+
+The @code{flymake-category} special property is also especially useful
+for backends which create diagnostics objects with non-default
+types that differ from an existing type by only a few properties
+(@pxref{Flymake utility functions}).
+
+As an example, consider configuring a new diagnostic type
+@code{:low-priority-note} that behaves much like the @code{:note}
+priority but without an overlay face.
+
+@example
+(add-to-list
+ 'flymake-diagnostic-types-alist
+ `(:low-priority-note . ((face . nil)
+                         (flymake-category . flymake-note))))
+@end example
+
+@vindex flymake-diagnostics
+@vindex flymake-diagnostic-backend
+@vindex flymake-diagnostic-buffer
+@vindex flymake-diagnostic-text
+@vindex flymake-diagnostic-beg
+@vindex flymake-diagnostic-end
+As you might have guessed, Flymake's annotations are implemented as
+overlays (@pxref{Overlays,,, elisp, The Emacs Lisp Reference Manual}).
+Along with the properties that you specify for the specific type of
+diagnostic, Flymake adds the property @code{flymake-diagnostic} to
+these overlays, and sets it to the object that the backend created
+with @code{flymake-make-diagnostic}.
+
+Since overlays also support arbitrary keymaps, you can use this along
+with the functions @code{flymake-diagnostics} and
+@code{flymake-diagnostic-text} (@pxref{Flymake utility functions}) to
+create interactive annotations, such as in the following example of
+binding a @code{mouse-3} event (middle mouse button click) to an
+Internet search for the text of a @code{:warning} or @code{:error}.
+
+@example
+(defun my-search-for-message (event)
+  (interactive "e")
+  (let* ((diags (flymake-diagnostics (posn-point (event-start event))))
+         (topmost-diag (car diags)))
+    (eww-browse-url
+       (concat
+        "https://duckduckgo.com/?q="
+        (replace-regexp-in-string " "
+                                  "+"
+                                  (flymake-diagnostic-text topmost-diag)))
+       t)))
+
+(dolist (type '(:warning :error))
+  (let ((a (assoc type flymake-diagnostic-types-alist)))
+    (setf (cdr a)
+          (append `((mouse-face . highlight)
+                    (keymap . ,(let ((map (make-sparse-keymap)))
+                                 (define-key map [mouse-2]
+                                   'my-search-for-message)
+                                 map)))
+                  (cdr a)))))
+@end example
+
+@node Backend functions
+@section Backend functions
+@cindex backend functions
+
+@vindex flymake-diagnostic-functions
+Flymake backends are Lisp functions placed in the special hook
+@code{flymake-diagnostic-functions}.
+
+A backend's responsibility is to diagnose the contents of a buffer for
+problems, registering the problem's positions, type, and summary
+description.  This information is collected in the form of diagnostic
+objects created by the function @code{flymake-make-diagnostic}
+(@pxref{Flymake utility functions}), and
+then handed over to Flymake, which proceeds to annotate the
+buffer.
+
+A request for a buffer check, and the subsequent delivery of
+diagnostics, are two key events of the interaction between Flymake
+and backend.  Each such event corresponds to a well-defined function
+calling convention: one for calls made by Flymake into the backend via
+the backend function, the other in the reverse direction via a
+callback.  To be usable, backends must adhere to both.
+
+Backend functions must accept an arbitrary number of arguments:
+
+@itemize
+@item
+the first argument is always @var{report-fn}, a callback function
+detailed below;
+
+@item
+the remaining arguments are keyword-value pairs of the
+form @w{@code{(@var{:key} @var{value} @var{:key2} @var{value2}...)}}.  Currently,
+Flymake provides no such arguments, but backend functions must be
+prepared to accept (and possibly ignore) any number of them.
+@end itemize
+
+Whenever Flymake or the user decide to re-check the buffer, backend
+functions are called as detailed above, and are expected to initiate
+this check, but aren't in any way required to complete it before
+exiting: if the computation involved is expensive, as
+is often the case with large buffers, that slower task should be
+scheduled for the future using asynchronous sub-processes
+(@pxref{Asynchronous Processes,,, elisp, The Emacs Lisp reference
+manual}) or other asynchronous mechanisms.
+
+In any case, backend functions are expected to return quickly or
+signal an error, in which case the backend is disabled
+(@pxref{Backend exceptions}).
+
+If the function returns, Flymake considers the backend to be
+@dfn{running}.  If it has not done so already, the backend is expected
+to call the function @var{report-fn} passed to it, at which point
+Flymake considers the backend to be @dfn{reporting}.  Backends call
+@var{report-fn} by passing it a single argument @var{report-action}
+followed by an optional list of keyword-value pairs of the form
+@w{@code{(@var{:report-key} @var{value} @var{:report-key2} @var{value2}...)}}.
+
+Currently accepted values for @var{report-action} are:
+
+@itemize
+@item
+A (possibly empty) list of diagnostic objects created by
+@code{flymake-make-diagnostic}, causing Flymake to annotate the
+buffer with this information.
+
+A backend may call @var{report-fn} repeatedly in this manner, but only
+until Flymake considers that the most recently requested buffer check
+is now obsolete, because, say, buffer contents have changed in the
+meantime.  The backend is only given notice of this via a renewed call
+to the backend function.  Thus, to prevent making obsolete reports and
+wasting resources, backend functions should first cancel any ongoing
+processing from previous calls.
+
+@item
+The symbol @code{:panic}, signaling that the backend has encountered
+an exceptional situation and should be disabled.
+@end itemize
+
+Currently accepted @var{report-key} arguments are:
+
+@itemize
+@item
+@code{:explanation}, whose value should give user-readable
+details of the situation encountered, if any.
+
+@item
+@code{:force}, whose value should be a boolean suggesting
+that Flymake consider the report even if it was somehow
+unexpected.
+@end itemize
+
+@menu
+* Flymake utility functions::
+* An annotated example backend::
+@end menu
+
+@node Flymake utility functions
+@subsection Flymake utility functions
+@cindex utility functions
+
+@cindex create diagnostic object
+Before delivering them to Flymake, backends create diagnostic objects
+by calling the function @code{flymake-make-diagnostic}.
+
+@deffn Function flymake-make-diagnostic buffer beg end type text
+Make a Flymake diagnostic for @var{buffer}'s region from @var{beg} to
+@var{end}.  @var{type} is a key to
+@code{flymake-diagnostic-types-alist} and @var{text} is a description
+of the problem detected in this region.
+@end deffn
+
+@cindex access diagnostic object
+These objects' properties can be accessed with the functions
+@code{flymake-diagnostic-backend}, @code{flymake-diagnostic-buffer},
+@code{flymake-diagnostic-text}, @code{flymake-diagnostic-beg},
+@code{flymake-diagnostic-end} and @code{flymake-diagnostic-type}.
+
+Additionally, the function @code{flymake-diagnostics} will collect
+such objects in the region you specify.
+
+@cindex collect diagnostic objects
+@deffn Function flymake-diagnostics beg end
+Get a list of Flymake diagnostics in the region determined by
+@var{beg} and @var{end}.  If neither @var{beg} or @var{end} is
+supplied, use the whole buffer, otherwise if @var{beg} is
+non-@code{nil} and @var{end} is @code{nil}, consider only diagnostics
+at @var{beg}.
+@end deffn
+
+@cindex buffer position from line and column number
+It is often the case with external syntax tools that a diagnostic's
+position is reported in terms of a line number, and sometimes a column
+number.  To convert this information into a buffer position, backends
+can use the following function:
+
+@deffn Function flymake-diag-region buffer line &optional col
+Compute @var{buffer}'s region (@var{beg} .  @var{end}) corresponding
+to @var{line} and @var{col}.  If @var{col} is @code{nil}, return a
+region just for @var{line}.  Return @code{nil} if the region is
+invalid.
+@end deffn
+
+@cindex add a log message
+For troubleshooting purposes, backends may record arbitrary
+exceptional or erroneous situations into the Flymake log
+buffer (@pxref{Backend exceptions}):
+
+@deffn Macro flymake-log level msg &optional args
+Log, at level @var{level}, the message @var{msg} formatted with
+@var{args}.  @var{level} is passed to @code{display-warning}
+(@pxref{Warning Basics,,, elisp, The Emacs Lisp reference Manual}), which is
+used to display the warning in Flymake's log buffer.
+@end deffn
+
+@node An annotated example backend
+@subsection An annotated example backend
+@cindex example of backend
+@cindex backend, annotated example
+
+This section presents an annotated example of a complete working
+Flymake backend.  The example illustrates the process of writing a
+backend as outlined above.
+
+The backend in question is used for checking Ruby source files.  It
+uses asynchronous sub-processes (@pxref{Asynchronous Processes,,, elisp,
+The Emacs Lisp Reference Manual}), a common technique for performing
+parallel processing in Emacs.
+
+The following code needs lexical binding (@pxref{Using Lexical
+Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
+
+@example
+;;; ruby-flymake.el --- A ruby Flymake backend  -*- lexical-binding: t; -*-
+(defvar-local ruby--flymake-proc nil)
+
+(defun ruby-flymake (report-fn &rest _args)
+  ;; Not having a ruby interpreter is a serious problem which should cause
+  ;; the backend to disable itself, so an @code{error} is signaled.
+  ;;
+  (unless (executable-find
+           "ruby") (error "Cannot find a suitable ruby"))
+  ;; If a live process launched in an earlier check was found, that
+  ;; process is killed.  When that process's sentinel eventually runs,
+  ;; it will notice its obsoletion, since it have since reset
+  ;; `ruby-flymake-proc' to a different value
+  ;;
+  (when (process-live-p ruby--flymake-proc)
+    (kill-process ruby--flymake-proc))
+
+  ;; Save the current buffer, the narrowing restriction, remove any
+  ;; narrowing restriction.
+  ;;
+  (let ((source (current-buffer)))
+    (save-restriction
+      (widen)
+      ;; Reset the `ruby--flymake-proc' process to a new process
+      ;; calling the ruby tool.
+      ;;
+      (setq
+       ruby--flymake-proc
+       (make-process
+        :name "ruby-flymake" :noquery t :connection-type 'pipe
+        ;; Make output go to a temporary buffer.
+        ;;
+        :buffer (generate-new-buffer " *ruby-flymake*")
+        :command '("ruby" "-w" "-c")
+        :sentinel
+        (lambda (proc _event)
+          ;; Check that the process has indeed exited, as it might
+          ;; be simply suspended.
+          ;;
+          (when (eq 'exit (process-status proc))
+            (unwind-protect
+                ;; Only proceed if `proc' is the same as
+                ;; `ruby--flymake-proc', which indicates that
+                ;; `proc' is not an obsolete process.
+                ;;
+                (if (with-current-buffer source (eq proc ruby--flymake-proc))
+                    (with-current-buffer (process-buffer proc)
+                      (goto-char (point-min))
+                      ;; Parse the output buffer for diagnostic's
+                      ;; messages and locations, collect them in a list
+                      ;; of objects, and call `report-fn'.
+                      ;;
+                      (cl-loop
+                       while (search-forward-regexp
+                              "^\\(?:.*.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
+                              nil t)
+                       for msg = (match-string 2)
+                       for (beg . end) = (flymake-diag-region
+                                          source
+                                          (string-to-number (match-string 1)))
+                       for type = (if (string-match "^warning" msg)
+                                      :warning
+                                    :error)
+                       collect (flymake-make-diagnostic source
+                                                        beg
+                                                        end
+                                                        type
+                                                        msg)
+                       into diags
+                       finally (funcall report-fn diags)))
+                  (flymake-log :warning "Canceling obsolete check %s"
+                               proc))
+              ;; Cleanup the temporary buffer used to hold the
+              ;; check's output.
+              ;;
+              (kill-buffer (process-buffer proc)))))))
+      ;; Send the buffer contents to the process's stdin, followed by
+      ;; an EOF.
+      ;;
+      (process-send-region ruby--flymake-proc (point-min) (point-max))
+      (process-send-eof ruby--flymake-proc))))
+
+(defun ruby-setup-flymake-backend ()
+  (add-hook 'flymake-diagnostic-functions 'ruby-flymake nil t))
+
+(add-hook 'ruby-mode-hook 'ruby-setup-flymake-backend)
+@end example
+
+@node The legacy Proc backend
+@chapter The legacy ``Proc'' backend
+@cindex legacy proc backend
+
+@menu
+* Proc customization variables::
+* Adding support for a new syntax check tool::
+* Implementation overview::
+* Making a temporary copy::
+* Locating a master file::
+* Getting the include directories::
+* Locating the buildfile::
+* Starting the syntax check process::
+* Parsing the output::
+* Interaction with other modes::
+@end menu
+
+@findex flymake-proc-legacy-backend
+The backend @code{flymake-proc-legacy-backend} was originally designed
+to be extended for supporting new syntax check tools and error message
+patterns.  It is also controlled by its own set of customization variables
+
+@node Proc customization variables
+@section Customization variables for the Proc backend
+@cindex proc backend customization variables
+
+@vtable @code
+@item flymake-proc-allowed-file-name-masks
+A list of @code{(filename-regexp, init-function, cleanup-function
+getfname-function)} for configuring syntax check tools.  @xref{Adding
+support for a new syntax check tool}.
+
+@item flymake-proc-master-file-dirs
+A list of directories for searching a master file.  @xref{Locating a
+master file}.
+
+@item flymake-proc-get-project-include-dirs-function
+A function used for obtaining a list of project include dirs (C/C++
+specific).  @xref{Getting the include directories}.
+
+@item flymake-proc-master-file-count-limit
+@itemx flymake-proc-check-file-limit
+Used when looking for a master file.  @xref{Locating a master file}.
+
+@item flymake-proc-err-line-patterns
+Patterns for error/warning messages in the form @code{(regexp file-idx
+line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
+
+@item flymake-proc-diagnostic-type-pred
+A function to classify a diagnostic text as particular type of
+error.  Should be a function taking an error text and returning one of
+the symbols indexing @code{flymake-diagnostic-types-alist}.  If non-nil
+is returned but there is no such symbol in that table, a warning is
+assumed.  If nil is returned, an error is assumed.  Can also be a
+regular expression that should match only warnings.  This variable
+replaces the old @code{flymake-warning-re} and
+@code{flymake-warning-predicate}.
+
+@item flymake-proc-compilation-prevents-syntax-check
+A flag indicating whether compilation and syntax check of the same
+file cannot be run simultaneously.  @xref{Interaction with other modes}.
+@end vtable
 
 @node Adding support for a new syntax check tool
 @section Adding support for a new syntax check tool
-@cindex Adding support for a new syntax check tool
+@cindex adding support for a new syntax check tool
 
 @menu
 * Example---Configuring a tool called directly::
@@ -358,7 +739,7 @@ Which fringe (if any) should show the warning/error bitmaps.
 @end menu
 
 Syntax check tools are configured using the
-@code{flymake-allowed-file-name-masks} list.  Each item of this list
+@code{flymake-proc-allowed-file-name-masks} list.  Each item of this list
 has the following format:
 
 @lisp
@@ -369,15 +750,15 @@ has the following format:
 @item filename-regexp
 This field is used as a key for locating init/cleanup/getfname
 functions for the buffer.  Items in
-@code{flymake-allowed-file-name-masks} are searched sequentially.  The
-first item with @code{filename-regexp} matching buffer filename is
+@code{flymake-proc-allowed-file-name-masks} are searched sequentially.
+The first item with @code{filename-regexp} matching buffer filename is
 selected.  If no match is found, @code{flymake-mode} is switched off.
 
 @item init-function
 @code{init-function} is required to initialize the syntax check,
 usually by creating a temporary copy of the buffer contents.  The
 function must return @code{(list cmd-name arg-list)}.  If
-@code{init-function} returns null, syntax check is aborted, by
+@code{init-function} returns null, syntax check is aborted, but
 @code{flymake-mode} is not switched off.
 
 @item cleanup-function
@@ -390,90 +771,89 @@ This function is used for translating filenames reported by the syntax
 check tool into ``real'' filenames.  Filenames reported by the tool
 will be different from the real ones, as actually the tool works with
 the temporary copy.  In most cases, the default implementation
-provided by Flymake, @code{flymake-get-real-file-name}, can be used as
-@code{getfname-function}.
-
+provided by Flymake, @code{flymake-proc-get-real-file-name}, can be
+used as @code{getfname-function}.
 @end table
 
-To add support for a new syntax check tool, write corresponding
-@code{init-function}, and, optionally @code{cleanup-function} and
+To add support for a new syntax check tool, write the corresponding
+@code{init-function} and, optionally, @code{cleanup-function} and
 @code{getfname-function}.  If the format of error messages reported by
 the new tool is not yet supported by Flymake, add a new entry to
-the @code{flymake-err-line-patterns} list.
+the @code{flymake-proc-err-line-patterns} list.
 
 The following sections contain some examples of configuring Flymake
 support for various syntax check tools.
 
 @node Example---Configuring a tool called directly
 @subsection Example---Configuring a tool called directly
-@cindex Adding support for perl
+@cindex adding support for perl
 
-In this example, we will add support for @code{perl} as a syntax check
-tool.  @code{perl} supports the @code{-c} option which does syntax
+In this example, we will add support for @command{perl} as a syntax check
+tool.  @command{perl} supports the @option{-c} option which does syntax
 checking.
 
 First, we write the @code{init-function}:
 
 @lisp
-(defun flymake-perl-init ()
-  (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                     'flymake-create-temp-inplace))
+(defun flymake-proc-perl-init ()
+  (let* ((temp-file (flymake-proc-init-create-temp-buffer-copy
+                     'flymake-proc-create-temp-inplace))
          (local-file (file-relative-name
                       temp-file
                       (file-name-directory buffer-file-name))))
     (list "perl" (list "-wc " local-file))))
 @end lisp
 
-@code{flymake-perl-init} creates a temporary copy of the buffer
+@code{flymake-proc-perl-init} creates a temporary copy of the buffer
 contents with the help of
-@code{flymake-init-create-temp-buffer-copy}, and builds an appropriate
+@code{flymake-proc-init-create-temp-buffer-copy}, and builds an appropriate
 command line.
 
 Next, we add a new entry to the
-@code{flymake-allowed-file-name-masks}:
+@code{flymake-proc-allowed-file-name-masks}:
 
 @lisp
-(setq flymake-allowed-file-name-masks
+(setq flymake-proc-allowed-file-name-masks
       (cons '(".+\\.pl$"
-              flymake-perl-init
-              flymake-simple-cleanup
-              flymake-get-real-file-name)
-            flymake-allowed-file-name-masks))
+              flymake-proc-perl-init
+              flymake-proc-simple-cleanup
+              flymake-proc-get-real-file-name)
+            flymake-proc-allowed-file-name-masks))
 @end lisp
 
 Note that we use standard @code{cleanup-function} and
 @code{getfname-function}.
 
-Finally, we add an entry to @code{flymake-err-line-patterns}:
+Finally, we add an entry to @code{flymake-proc-err-line-patterns}:
 
 @lisp
-(setq flymake-err-line-patterns
+(setq flymake-proc-err-line-patterns
       (cons '("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]"
               2 3 nil 1)
-            flymake-err-line-patterns))
+            flymake-proc-err-line-patterns))
 @end lisp
 
 @node Example---Configuring a tool called via make
 @subsection Example---Configuring a tool called via make
-@cindex Adding support for C (gcc+make)
+@cindex adding support for C (gcc+make)
 
 In this example we will add support for C files syntax checked by
 @command{gcc} called via @command{make}.
 
 We're not required to write any new functions, as Flymake already has
 functions for @command{make}.  We just add a new entry to the
-@code{flymake-allowed-file-name-masks}:
+@code{flymake-proc-allowed-file-name-masks}:
 
 @lisp
-(setq flymake-allowed-file-name-masks
+(setq flymake-proc-allowed-file-name-masks
       (cons '(".+\\.c$"
-              flymake-simple-make-init
-              flymake-simple-cleanup
-              flymake-get-real-file-name)
-            flymake-allowed-file-name-masks))
+              flymake-proc-simple-make-init
+              flymake-proc-simple-cleanup
+              flymake-proc-get-real-file-name)
+            flymake-proc-allowed-file-name-masks))
 @end lisp
 
-@code{flymake-simple-make-init} builds the following @command{make}
+@code{flymake-proc-simple-make-init} builds the following @command{make}
 command line:
 
 @lisp
@@ -485,14 +865,15 @@ command line:
             "check-syntax"))
 @end lisp
 
-@code{base-dir} is a directory containing @code{Makefile}, see @ref{Locating the buildfile}.
+@code{base-dir} is a directory containing the @file{Makefile}, see
+@ref{Locating the buildfile}.
 
-Thus, @code{Makefile} must contain the @code{check-syntax} target.  In
+Thus, @file{Makefile} must contain the @code{check-syntax} target.  In
 our case this target might look like this:
 
 @verbatim
 check-syntax:
-	gcc -o /dev/null -S ${CHK_SOURCES}
+	gcc -o /dev/null -S ${CHK_SOURCES} || true
 @end verbatim
 
 @noindent
@@ -504,42 +885,25 @@ Automake variable @code{COMPILE}:
 
 @verbatim
 check-syntax:
-	$(COMPILE) -o /dev/null -S ${CHK_SOURCES}
+	$(COMPILE) -o /dev/null -S ${CHK_SOURCES} || true
 @end verbatim
 
-@node Flymake Implementation
-@chapter Flymake Implementation
-@cindex Implementation details
+@node Implementation overview
+@section Implementation overview
+@cindex syntax check models
+@cindex master file
 
-@menu
-* Determining whether syntax check is possible::
-* Making a temporary copy::
-* Locating a master file::
-* Getting the include directories::
-* Locating the buildfile::
-* Starting the syntax check process::
-* Parsing the output::
-* Highlighting erroneous lines::
-* Interaction with other modes::
-@end menu
-
-Syntax check is started by calling @code{flymake-start-syntax-check-for-current-buffer}.
-Flymake first determines whether it is able to do syntax
-check.  It then saves a copy of the buffer in a temporary file in the
-buffer's directory (or in the system temp directory, for java
-files), creates a syntax check command and launches a process with
-this command.  The output is parsed using a list of error message patterns,
-and error information (file name, line number, type and text) is
-saved.  After the process has finished, Flymake highlights erroneous
-lines in the buffer using the accumulated error information.
-
-@node Determining whether syntax check is possible
-@section Determining whether syntax check is possible
-@cindex Syntax check models
-@cindex Master file
+@code{flymake-proc-legacy-backend} saves a copy of the buffer in a
+temporary file in the buffer's directory (or in the system temporary
+directory, for Java files), creates a syntax check command and
+launches a process with this command.  The output is parsed using a
+list of error message patterns, and error information (file name, line
+number, type and text) is saved.  After the process has finished,
+Flymake highlights erroneous lines in the buffer using the accumulated
+error information.
 
 Syntax check is considered possible if there's an entry in
-@code{flymake-allowed-file-name-masks} matching buffer's filename and
+@code{flymake-proc-allowed-file-name-masks} matching buffer's filename and
 its @code{init-function} returns non-@code{nil} value.
 
 Two syntax check modes are distinguished:
@@ -549,31 +913,30 @@ Two syntax check modes are distinguished:
 @item
 Buffer can be syntax checked in a standalone fashion, that is, the
 file (its temporary copy, in fact) can be passed over to the compiler to
-do the syntax check.  Examples are C/C++ (.c, .cpp) and Java (.java)
-sources.
+do the syntax check.  Examples are C/C@t{++} sources (@file{.c},
+@file{.cpp}) and Java (@file{.java}).
 
 @item
 Buffer can be syntax checked, but additional file, called master file,
 is required to perform this operation.  A master file is a file that
 includes the current file, so that running a syntax check tool on it
-will also check syntax in the current file.  Examples are C/C++ (.h,
-.hpp) headers.
+will also check syntax in the current file.  Examples are C/C@t{++}
+headers (@file{.h}, @file{.hpp}).
 
 @end enumerate
 
 These modes are handled inside init/cleanup/getfname functions, see
 @ref{Adding support for a new syntax check tool}.
 
-Flymake contains implementations of all functionality required to
-support different syntax check modes described above (making temporary
-copies, finding master files, etc.), as well as some tool-specific
-(routines for Make, Ant, etc.)@: code.
+The Proc backend contains implementations of all functionality
+required to support different syntax check modes described above
+(making temporary copies, finding master files, etc.), as well as some
+tool-specific (routines for Make, Ant, etc.)@: code.
 
 
 @node Making a temporary copy
 @section Making a temporary copy
-@cindex Temporary copy of the buffer
-@cindex Master file
+@cindex temporary copy of the buffer
 
 After the possibility of the syntax check has been determined, a
 temporary copy of the current buffer is made so that the most recent
@@ -585,9 +948,10 @@ Things get trickier, however, when master file is involved, as it
 requires to
 
 @itemize @bullet
-@item locate a master file
-@item patch it to include the current file using its new (temporary)
-name.
+@item
+locate a master file
+@item
+patch it to include the current file using its new (temporary) name.
 @end itemize
 
 Locating a master file is discussed in the following section.
@@ -603,46 +967,49 @@ the syntax check tool.
 
 @node Locating a master file
 @section Locating a master file
-@cindex Master file
+@cindex locating a master file
+@cindex master file, locating
 
 Master file is located in two steps.
 
 First, a list of possible master files is built.  A simple name
-matching is used to find the files.  For a C++ header @code{file.h},
-Flymake searches for all @code{.cpp} files in the directories whose relative paths are
-stored in a customizable variable @code{flymake-master-file-dirs}, which
-usually contains something like @code{("." "./src")}.  No more than
-@code{flymake-master-file-count-limit} entries is added to the master file
-list.  The list is then sorted to move files with names @code{file.cpp} to
-the top.
+matching is used to find the files.  For a C++ header @file{file.h},
+the Proc backend searches for all @file{.cpp} files in the directories
+whose relative paths are stored in a customizable variable
+@code{flymake-proc-master-file-dirs}, which usually contains something
+like @code{("." "./src")}.  No more than
+@code{flymake-proc-master-file-count-limit} entries is added to the
+master file list.  The list is then sorted to move files with names
+@file{file.cpp} to the top.
 
 Next, each master file in a list is checked to contain the appropriate
-include directives.  No more than @code{flymake-check-file-limit} of each
+include directives.  No more than @code{flymake-proc-check-file-limit} of each
 file are parsed.
 
-For @code{file.h}, the include directives to look for are
+For @file{file.h}, the include directives to look for are
 @code{#include "file.h"}, @code{#include "../file.h"}, etc.  Each
 include is checked against a list of include directories
 (see @ref{Getting the include directories}) to be sure it points to the
-correct @code{file.h}.
+correct @file{file.h}.
 
 First matching master file found stops the search.  The master file is then
 patched and saved to disk.  In case no master file is found, syntax check is
-aborted, and corresponding status (!) is reported in the mode line.
+aborted, and corresponding status (@samp{!}) is reported in the mode line.
+@xref{Syntax check statuses}.
 
 @node Getting the include directories
 @section Getting the include directories
-@cindex Include directories (C/C++ specific)
+@cindex include directories (C/C++ specific)
 
 Two sets of include directories are distinguished: system include directories
 and project include directories.  The former is just the contents of the
 @code{INCLUDE} environment variable.  The latter is not so easy to obtain,
 and the way it can be obtained can vary greatly for different projects.
 Therefore, a customizable variable
-@code{flymake-get-project-include-dirs-function} is used to provide the
+@code{flymake-proc-get-project-include-dirs-function} is used to provide the
 way to implement the desired behavior.
 
-The default implementation, @code{flymake-get-project-include-dirs-imp},
+The default implementation, @code{flymake-proc-get-project-include-dirs-imp},
 uses a @command{make} call.  This requires a correct base directory, that is, a
 directory containing a correct @file{Makefile}, to be determined.
 
@@ -652,123 +1019,98 @@ of every syntax check attempt.
 
 @node Locating the buildfile
 @section Locating the buildfile
-@cindex Locating the buildfile
+@cindex locating the buildfile
 @cindex buildfile, locating
 @cindex Makefile, locating
 
-Flymake can be configured to use different tools for performing syntax
-checks.  For example, it can use direct compiler call to syntax check a perl
-script or a call to @command{make} for a more complicated case of a
-@code{C/C++} source.  The general idea is that simple files, like perl
-scripts and html pages, can be checked by directly invoking a
-corresponding tool.  Files that are usually more complex and generally
-used as part of larger projects, might require non-trivial options to
-be passed to the syntax check tool, like include directories for
-C++.  The latter files are syntax checked using some build tool, like
-Make or Ant.
+The Proc backend can be configured to use different tools for
+performing syntax checks.  For example, it can use direct compiler
+call to syntax check a perl script or a call to @command{make} for a
+more complicated case of a C/C@t{++} source.  The general idea is
+that simple files, like Perl scripts and @acronym{HTML} pages, can be checked by
+directly invoking a corresponding tool.  Files that are usually more
+complex and generally used as part of larger projects, might require
+non-trivial options to be passed to the syntax check tool, like
+include directories for C@t{++}.  The latter files are syntax checked
+using some build tool, like Make or Ant.
 
 All Make configuration data is usually stored in a file called
-@code{Makefile}.  To allow for future extensions, flymake uses a notion of
-buildfile to reference the 'project configuration' file.
+@file{Makefile}.  To allow for future extensions, Flymake uses a notion of
+buildfile to reference the @dfn{project configuration} file.
 
-Special function, @code{flymake-find-buildfile} is provided for locating buildfiles.
+@findex flymake-proc-find-buildfile
+Special function, @code{flymake-proc-find-buildfile} is provided for locating buildfiles.
 Searching for a buildfile is done in a manner similar to that of searching
 for possible master files.
 @ignore
 A customizable variable
-@code{flymake-buildfile-dirs} holds a list of relative paths to the
+@code{flymake-proc-buildfile-dirs} holds a list of relative paths to the
 buildfile.  They are checked sequentially until a buildfile is found.
 @end ignore
-In case there's no build file, syntax check is aborted.
+In case there's no build file, the syntax check is aborted.
 
 Buildfile values are also cached.
 
 @node Starting the syntax check process
 @section Starting the syntax check process
-@cindex Syntax check process
+@cindex syntax check process, legacy proc backend
 
-The command line (command name and the list of arguments) for launching a process is returned by the
-initialization function.  Flymake then just calls @code{start-process}
-to start an asynchronous process and configures a process filter and
-sentinel, which are used for processing the output of the syntax check
-tool.  When exiting Emacs, running Flymake processes will be killed
-without prompting the user.
+The command line (command name and the list of arguments) for
+launching a process is returned by the initialization function.  The
+Proc backend then just starts an asynchronous process and configures a
+process filter and sentinel, which are used for processing the output
+of the syntax check tool.  When exiting Emacs, running processes will
+be killed without prompting the user.
 
 @node Parsing the output
 @section Parsing the output
-@cindex Parsing the output
+@cindex parsing the output, legacy proc backend
 
 The output generated by the syntax check tool is parsed in the process
 filter/sentinel using the error message patterns stored in the
-@code{flymake-err-line-patterns} variable.  This variable contains a
-list of items of the form @code{(regexp file-idx line-idx
-err-text-idx)}, used to determine whether a particular line is an
+@code{flymake-proc-err-line-patterns} variable.  This variable contains a
+list of items of the form @w{@code{(regexp file-idx line-idx
+err-text-idx)}}, used to determine whether a particular line is an
 error message and extract file name, line number and error text,
 respectively.  Error type (error/warning) is also guessed by matching
-error text with the '@code{^[wW]arning}' pattern.  Anything that was not
+error text with the @samp{^[wW]arning} pattern.  Anything that was not
 classified as a warning is considered an error.  Type is then used to
 sort error menu items, which shows error messages first.
 
-Flymake is also able to interpret error message patterns missing err-text-idx
-information.  This is done by merely taking the rest of the matched line
-(@code{(substring line (match-end 0))}) as error text.  This trick allows
-making use of a huge collection of error message line patterns from
-@code{compile.el}.  All these error patterns are appended to
-the end of @code{flymake-err-line-patterns}.
+The Proc backend is also able to interpret error message patterns
+missing err-text-idx information.  This is done by merely taking the
+rest of the matched line (@code{(substring line (match-end 0))}) as
+error text.  This trick allows making use of a huge collection of
+error message line patterns from @file{compile.el}.  All these error
+patterns are appended to the end of
+@code{flymake-proc-err-line-patterns}.
 
 The error information obtained is saved in a buffer local
 variable.  The buffer for which the process output belongs is
 determined from the process-id@w{}->@w{}buffer mapping updated
 after every process launch/exit.
 
-@node Highlighting erroneous lines
-@section Highlighting erroneous lines
-@cindex Erroneous lines, faces
-
-Highlighting is implemented with overlays and happens in the process
-sentinel, after calling the cleanup function.  Two customizable faces
-are used: @code{flymake-errline} and
-@code{flymake-warnline}.  Errors belonging outside the current
-buffer are considered to belong to line 1 of the current buffer.
-
-@c This manual does not use vindex.
-@c @vindex flymake-fringe-indicator-position
-@c @vindex flymake-error-bitmap
-@c @vindex flymake-warning-bitmap
-If the option @code{flymake-fringe-indicator-position} is non-@code{nil},
-errors and warnings are also highlighted in the left or right fringe,
-using the bitmaps specified by @code{flymake-error-bitmap}
-and @code{flymake-warning-bitmap}.
-
 @node Interaction with other modes
 @section Interaction with other modes
-@cindex Interaction with other modes
-@cindex Interaction with compile mode
+@cindex interaction with other modes, legacy proc backend
+@cindex interaction with compile mode, legacy proc backend
 
-The only mode flymake currently knows about is @code{compile}.
+The only mode the Proc backend currently knows about is
+@code{compile}.
 
-Flymake can be configured to not start syntax check if it thinks the
-compilation is in progress.  The check is made by the
-@code{flymake-compilation-is-running}, which tests the
+The Proc backend can be configured to not start syntax check if it
+thinks the compilation is in progress, by testing the
 @code{compilation-in-progress} variable.  The reason why this might be
 useful is saving CPU time in case both syntax check and compilation
 are very CPU intensive.  The original reason for adding this feature,
 though, was working around a locking problem with MS Visual C++
-compiler.
+compiler.  The variable in question is
+@code{flymake-proc-compilation-prevents-syntax-check}.
 
-Flymake also provides an alternative command for starting compilation,
-@code{flymake-compile}:
-
-@lisp
-(defun flymake-compile ()
-  "Kill all flymake syntax checks then start compilation."
-  (interactive)
-  (flymake-stop-all-syntax-checks)
-  (call-interactively 'compile))
-@end lisp
-
-It just kills all the active syntax check processes before calling
-@code{compile}.
+@findex flymake-proc-compile
+The Proc backend also provides an alternative command for starting
+compilation, @code{flymake-proc-compile}.  It just kills all the active
+syntax check processes before calling @code{compile}.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

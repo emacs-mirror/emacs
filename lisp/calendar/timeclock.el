@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -656,9 +656,9 @@ that variable's documentation."
     (setq timeclock-mode-string
           (propertize
            (format " %c%s%c "
-                   (if last-in ?< ?[)
+                   (if last-in ?< ?\[)
  		   (timeclock-seconds-to-string remainder nil t)
-		   (if last-in ?> ?]))
+		   (if last-in ?> ?\]))
            'help-echo "timeclock: time remaining"))))
 
 (put 'timeclock-mode-string 'risky-local-variable t)

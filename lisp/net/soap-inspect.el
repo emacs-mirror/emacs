@@ -1,6 +1,6 @@
 ;;; soap-inspect.el --- Interactive WSDL inspector    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: October 2010
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -37,8 +37,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
+(require 'cl-lib)
 (require 'soap-client)
 
 ;;; sample-value
@@ -53,13 +52,13 @@ will be called."
   (let ((sample-value (get (aref type 0) 'soap-sample-value)))
     (if sample-value
         (funcall sample-value type)
-        (error "Cannot provide sample value for type %s" (aref type 0)))))
+      (error "Cannot provide sample value for type %s" (aref type 0)))))
 
 (defun soap-sample-value-for-xs-basic-type (type)
   "Provide a sample value for TYPE, an xs-basic-type.
 This is a specialization of `soap-sample-value' for xs-basic-type
 objects."
-  (case (soap-xs-basic-type-kind type)
+  (cl-case (soap-xs-basic-type-kind type)
     (string "a string")
     (anyURI "an URI")
     (QName "a QName")
@@ -77,7 +76,7 @@ objects."
   (if (soap-xs-element-name element)
       (cons (intern (soap-xs-element-name element))
             (soap-sample-value (soap-xs-element-type element)))
-      (soap-sample-value (soap-xs-element-type element))))
+    (soap-sample-value (soap-xs-element-type element))))
 
 (defun soap-sample-value-for-xs-attribute (attribute)
   "Provide a sample value for ATTRIBUTE, a WSDL attribute.
@@ -119,20 +118,20 @@ This is a specialization of `soap-sample-value' for
     ((soap-xs-simple-type-pattern type)
      (format "a string matching %s" (soap-xs-simple-type-pattern type)))
     ((soap-xs-simple-type-length-range type)
-     (destructuring-bind (low . high) (soap-xs-simple-type-length-range type)
+     (cl-destructuring-bind (low . high) (soap-xs-simple-type-length-range type)
        (cond
-         ((and low high)
-          (format "a string between %d and %d chars long" low high))
-         (low (format "a string at least %d chars long" low))
-         (high (format "a string at most %d chars long" high))
-         (t (format "a string OOPS")))))
+        ((and low high)
+         (format "a string between %d and %d chars long" low high))
+        (low (format "a string at least %d chars long" low))
+        (high (format "a string at most %d chars long" high))
+        (t (format "a string OOPS")))))
     ((soap-xs-simple-type-integer-range type)
-     (destructuring-bind (min . max) (soap-xs-simple-type-integer-range type)
+     (cl-destructuring-bind (min . max) (soap-xs-simple-type-integer-range type)
        (cond
-         ((and min max) (+ min (random (- max min))))
-         (min (+ min (random 10)))
-         (max (random max))
-         (t (random 100)))))
+        ((and min max) (+ min (random (- max min))))
+        (min (+ min (random 10)))
+        (max (random max))
+        (t (random 100)))))
     ((consp (soap-xs-simple-type-base type)) ; an union of values
      (let ((base (soap-xs-simple-type-base type)))
        (soap-sample-value (nth (random (length base)) base))))
@@ -146,7 +145,7 @@ This is a specialization of `soap-sample-value' for
   (append
    (mapcar 'soap-sample-value-for-xs-attribute
            (soap-xs-type-attributes type))
-   (case (soap-xs-complex-type-indicator type)
+   (cl-case (soap-xs-complex-type-indicator type)
      (array
       (let* ((element-type (soap-xs-complex-type-base type))
              (sample1 (soap-sample-value element-type))
@@ -251,24 +250,24 @@ entire WSDL can be inspected."
 
 
 (define-button-type 'soap-client-describe-link
-    'face 'link
-    'help-echo "mouse-2, RET: describe item"
-    'follow-link t
-    'action (lambda (button)
-              (let ((item (button-get button 'item)))
-                (soap-inspect item)))
-    'skip t)
+  'face 'link
+  'help-echo "mouse-2, RET: describe item"
+  'follow-link t
+  'action (lambda (button)
+            (let ((item (button-get button 'item)))
+              (soap-inspect item)))
+  'skip t)
 
 (define-button-type 'soap-client-describe-back-link
-    'face 'link
-    'help-echo "mouse-2, RET: browse the previous item"
-    'follow-link t
-    'action (lambda (_button)
-              (let ((item (pop soap-inspect-previous-items)))
-                (when item
-                  (setq soap-inspect-current-item nil)
-                  (soap-inspect item))))
-    'skip t)
+  'face 'link
+  'help-echo "mouse-2, RET: browse the previous item"
+  'follow-link t
+  'action (lambda (_button)
+            (let ((item (pop soap-inspect-previous-items)))
+              (when item
+                (setq soap-inspect-current-item nil)
+                (soap-inspect item))))
+  'skip t)
 
 (defun soap-insert-describe-button (element)
   "Insert a button to inspect ELEMENT when pressed."
@@ -297,8 +296,8 @@ entire WSDL can be inspected."
   (pp (soap-sample-value element) (current-buffer)))
 
 (defun soap-inspect-xs-attribute (attribute)
-  "Insert information about ATTRIBUTE, a soap-xs-attribute, in
-the current buffer."
+  "Insert information about ATTRIBUTE in the current buffer.
+ATTRIBUTE is a soap-xs-attribute."
   (insert "Attribute: " (soap-element-fq-name attribute))
   (insert "\nType: ")
   (soap-insert-describe-button (soap-xs-attribute-type attribute))
@@ -306,8 +305,8 @@ the current buffer."
   (pp (soap-sample-value attribute) (current-buffer)))
 
 (defun soap-inspect-xs-attribute-group (attribute-group)
-  "Insert information about ATTRIBUTE-GROUP, a
-soap-xs-attribute-group, in the current buffer."
+  "Insert information about ATTRIBUTE-GROUP in the current buffer.
+ATTRIBUTE is a soap-xs-attribute-group."
   (insert "Attribute group: " (soap-element-fq-name attribute-group))
   (insert "\nSample values:\n")
   (pp (soap-sample-value attribute-group) (current-buffer)))
@@ -323,7 +322,7 @@ soap-xs-attribute-group, in the current buffer."
             (insert ", ")
             (setq first-time nil))
           (soap-insert-describe-button b)))
-      (soap-insert-describe-button (soap-xs-simple-type-base type)))
+    (soap-insert-describe-button (soap-xs-simple-type-base type)))
   (insert "\nAttributes: ")
   (dolist (attribute (soap-xs-simple-type-attributes type))
     (let ((name (or (soap-xs-attribute-name attribute) "*inline*"))
@@ -359,7 +358,7 @@ soap-xs-attribute-group, in the current buffer."
 TYPE is a `soap-xs-complex-type'"
   (insert "Complex type: " (soap-element-fq-name type))
   (insert "\nKind: ")
-  (case (soap-xs-complex-type-indicator type)
+  (cl-case (soap-xs-complex-type-indicator type)
     ((sequence all)
      (insert "a sequence ")
      (when (soap-xs-complex-type-base type)
@@ -394,10 +393,10 @@ TYPE is a `soap-xs-complex-type'"
            (insert
             (make-string
              (- type-width (length (soap-element-fq-name type))) ?\ ))
-         (when (soap-xs-element-multiple? element)
-           (insert " multiple"))
-         (when (soap-xs-element-optional? element)
-           (insert " optional"))))))
+           (when (soap-xs-element-multiple? element)
+             (insert " multiple"))
+           (when (soap-xs-element-optional? element)
+             (insert " optional"))))))
     (choice
      (insert "a choice ")
      (when (soap-xs-complex-type-base type)
@@ -449,11 +448,11 @@ TYPE is a `soap-xs-complex-type'"
   "Insert information about PORT-TYPE into the current buffer."
   (insert "Port-type name: " (soap-element-fq-name port-type) "\n")
   (insert "Operations:\n")
-  (loop for o being the hash-values of
-       (soap-namespace-elements (soap-port-type-operations port-type))
-       do (progn
-            (insert "\t")
-            (soap-insert-describe-button (car o)))))
+  (cl-loop for o being the hash-values of
+           (soap-namespace-elements (soap-port-type-operations port-type))
+           do (progn
+                (insert "\t")
+                (soap-insert-describe-button (car o)))))
 
 (defun soap-inspect-binding (binding)
   "Insert information about BINDING into the current buffer."
@@ -461,13 +460,13 @@ TYPE is a `soap-xs-complex-type'"
   (insert "\n")
   (insert "Bound operations:\n")
   (let* ((ophash (soap-binding-operations binding))
-         (operations (loop for o being the hash-keys of ophash
-                        collect o))
+         (operations (cl-loop for o being the hash-keys of ophash
+                              collect o))
          op-name-width)
 
     (setq operations (sort operations 'string<))
 
-    (setq op-name-width (loop for o in operations maximizing (length o)))
+    (setq op-name-width (cl-loop for o in operations maximizing (length o)))
 
     (dolist (op operations)
       (let* ((bound-op (gethash op ophash))

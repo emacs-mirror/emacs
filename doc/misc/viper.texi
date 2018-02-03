@@ -8,7 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

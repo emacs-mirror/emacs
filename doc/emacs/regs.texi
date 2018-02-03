@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -9,13 +9,16 @@
   Emacs @dfn{registers} are compartments where you can save text,
 rectangles, positions, and other things for later use.  Once you save
 text or a rectangle in a register, you can copy it into the buffer
-once, or many times; once you save a position in a register, you can
-jump back to that position once, or many times.
+once or many times; once you save a position in a register, you can
+jump back to that position once or many times.
 
   Each register has a name that consists of a single character, which
 we will denote by @var{r}; @var{r} can be a letter (such as @samp{a})
 or a number (such as @samp{1}); case matters, so register @samp{a} is
-not the same as register @samp{A}.
+not the same as register @samp{A}.  You can also set a register in
+non-alphanumeric characters, for instance @samp{*} or @samp{C-d}.
+Note, it's not possible to set a register in @samp{C-g} or @samp{ESC},
+because these keys are reserved to terminate interactive commands.
 
 @findex view-register
   A register can store a position, a piece of text, a rectangle, a
@@ -103,7 +106,6 @@ Insert text from register @var{r} (@code{insert-register}).
 @item M-x append-to-register @key{RET} @var{r}
 Append region to text in register @var{r}.
 
-@kindex C-x r +
 When register @var{r} contains text, you can use @kbd{C-x r +}
 (@code{increment-register}) to append to that register.  Note that
 command @kbd{C-x r +} behaves differently if @var{r} contains a
@@ -299,15 +301,12 @@ Set the bookmark named @var{bookmark} at point (@code{bookmark-set}).
 Like @kbd{C-x r m}, but don't overwrite an existing bookmark.
 
 @item C-x r b @var{bookmark} @key{RET}
-@findex bookmark-jump
 Jump to the bookmark named @var{bookmark} (@code{bookmark-jump}).
 
 @item C-x r l
-@findex list-bookmarks
 List all bookmarks (@code{list-bookmarks}).
 
 @item M-x bookmark-save
-@findex bookmark-save
 Save all the current bookmark values in the default bookmark file.
 @end table
 
@@ -329,12 +328,14 @@ like @kbd{C-x r m}, but it signals an error if the specified bookmark
 already exists, instead of overwriting it.
 
 @kindex C-x r l
+@findex list-bookmarks
   To display a list of all your bookmarks in a separate buffer, type
 @kbd{C-x r l} (@code{list-bookmarks}).  If you switch to that buffer,
 you can use it to edit your bookmark definitions or annotate the
 bookmarks.  Type @kbd{C-h m} in the bookmark buffer for more
 information about its special editing commands.
 
+@findex bookmark-save
   When you kill Emacs, Emacs saves your bookmarks, if
 you have changed any bookmark values.  You can also save the bookmarks
 at any time with the @kbd{M-x bookmark-save} command.  Bookmarks are

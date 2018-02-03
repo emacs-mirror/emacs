@@ -1,6 +1,6 @@
 ;;; print-tests.el --- tests for src/print.c         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -57,6 +57,10 @@
     (should (string= (with-current-buffer (marker-buffer standard-output)
                        (buffer-string))
                      "--------\n"))))
+
+(ert-deftest print-read-roundtrip ()
+  (let ((sym '\’bar))
+    (should (eq (read (prin1-to-string sym)) sym))))
 
 (provide 'print-tests)
 ;;; print-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; assoc.el --- insert/delete functions on association lists  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords: extensions
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

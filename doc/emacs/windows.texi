@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -174,9 +174,9 @@ After the rightmost and bottommost window, it goes back to the one at
 the upper left corner.  A numeric argument means to move several steps
 in the cyclic order of windows.  A negative argument moves around the
 cycle in the opposite order.  When the minibuffer is active, the
-minibuffer is the last window in the cycle; you can switch from the
-minibuffer window to one of the other windows, and later switch back and
-finish supplying the minibuffer argument that is requested.
+minibuffer window is the last window in the cycle; you can switch from
+the minibuffer window to one of the other windows, and later switch
+back and finish supplying the minibuffer argument that is requested.
 @xref{Minibuffer Edit}.
 
 @kindex C-M-v
@@ -205,10 +205,9 @@ new window created by splitting the selected window.  @xref{Window
 Choice}, for how Emacs picks or creates the window to use.
 
 @table @kbd
-@findex switch-to-buffer-other-window
 @item C-x 4 b @var{bufname} @key{RET}
 Select buffer @var{bufname} in another window
-(@code{switch-to-buffer-other-window}).
+(@code{switch-to-buffer-other-window}).  @xref{Select Buffer}.
 
 @findex display-buffer @r{(command)}
 @item C-x 4 C-o @var{bufname} @key{RET}
@@ -217,12 +216,10 @@ Display buffer @var{bufname} in some window, without trying to select
 it (@code{display-buffer}).  @xref{Displaying Buffers}, for details
 about how the window is chosen.
 
-@findex find-file-other-window
 @item C-x 4 f @var{filename} @key{RET}
 Visit file @var{filename} and select its buffer in another window
 (@code{find-file-other-window}).  @xref{Visiting}.
 
-@findex dired-other-window
 @item C-x 4 d @var{directory} @key{RET}
 Select a Dired buffer for directory @var{directory} in another window
 (@code{dired-other-window}).  @xref{Dired}.

@@ -1,6 +1,6 @@
 ;;; regex-tests.el --- tests for regex.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -27,13 +27,13 @@
   "Path to regex-resources directory next to the \"regex-tests.el\" file.")
 
 (ert-deftest regex-word-cc-fallback-test ()
-  "Test that ‘[[:cc:]]*x’ matches ‘x’ (bug#24020).
+  "Test that \"[[:cc:]]*x\" matches \"x\" (bug#24020).
 
 Test that a regex of the form \"[[:cc:]]*x\" where CC is
 a character class which matches a multibyte character X, matches
 string \"x\".
 
-For example, ‘[[:word:]]*\u2620’ regex (note: \u2620 is a word
+For example, \"[[:word:]]*\u2620\" regex (note: \u2620 is a word
 character) must match a string \"\u2420\"."
   (dolist (class '("[[:word:]]" "\\sw"))
     (dolist (repeat '("*" "+"))
@@ -424,7 +424,7 @@ differences in behavior.")
   (let (failures
         basic icase notbol noteol)
     (regex-tests-generic-line
-     ?; "BOOST.tests" regex-tests-BOOST-whitelist
+     ?\; "BOOST.tests" regex-tests-BOOST-whitelist
      (if (save-excursion (re-search-forward "^-" nil t))
          (setq basic   (save-excursion (re-search-forward "REG_BASIC" nil t))
                icase   (save-excursion (re-search-forward "REG_ICASE" nil t))
@@ -676,5 +676,11 @@ This evaluates the PTESTS test cases from glibc."
   "Tests of the regular expression engine.
 This evaluates the TESTS test cases from glibc."
   (should-not (regex-tests-TESTS)))
+
+(ert-deftest regex-repeat-limit ()
+  "Test the #xFFFF repeat limit."
+  (should (string-match "\\`x\\{65535\\}" (make-string 65535 ?x)))
+  (should-not (string-match "\\`x\\{65535\\}" (make-string 65534 ?x)))
+  (should-error (string-match "\\`x\\{65536\\}" "X") :type 'invalid-regexp))
 
 ;;; regex-tests.el ends here

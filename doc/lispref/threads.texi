@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2012-2017 Free Software Foundation, Inc.
+@c Copyright (C) 2012-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Threads
 @chapter Threads

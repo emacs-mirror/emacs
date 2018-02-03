@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2017 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <limits.h>
@@ -96,7 +96,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <acl.h>
 #include <allocator.h>
 #include <careadlinkat.h>
+#include <fsusage.h>
 #include <stat-time.h>
+#include <tempname.h>
 
 #include <binary-io.h>
 
@@ -123,7 +125,7 @@ static mode_t auto_save_mode_bits;
 static bool auto_save_error_occurred;
 
 /* If VALID_TIMESTAMP_FILE_SYSTEM, then TIMESTAMP_FILE_SYSTEM is the device
-   number of a file system where time stamps were observed to to work.  */
+   number of a file system where time stamps were observed to work.  */
 static bool valid_timestamp_file_system;
 static dev_t timestamp_file_system;
 
@@ -267,9 +269,9 @@ Otherwise, return nil.
 A file name is handled if one of the regular expressions in
 `file-name-handler-alist' matches it.
 
-If OPERATION equals `inhibit-file-name-operation', then we ignore
+If OPERATION equals `inhibit-file-name-operation', then ignore
 any handlers that are members of `inhibit-file-name-handlers',
-but we still do run any other handlers.  This lets handlers
+but still do run any other handlers.  This lets handlers
 use the standard functions without calling themselves recursively.  */)
   (Lisp_Object filename, Lisp_Object operation)
 {
@@ -565,15 +567,16 @@ is already present.  */)
 static ptrdiff_t
 directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
 {
-  /* Process as Unix format: just remove any final slash.
-     But leave "/" and "//" unchanged.  */
-  while (srclen > 1
+  /* In Unix-like systems, just remove any final slashes.  However, if
+     they are all slashes, leave "/" and "//" alone, and treat "///"
+     and longer as if they were "/".  */
+  if (! (srclen == 2 && IS_DIRECTORY_SEP (src[0])))
+    while (srclen > 1
 #ifdef DOS_NT
-	 && !IS_ANY_SEP (src[srclen - 2])
+	   && !(srclen > 2 && IS_DEVICE_SEP (src[srclen - 2]))
 #endif
-	 && IS_DIRECTORY_SEP (src[srclen - 1])
-	 && ! (srclen == 2 && IS_DIRECTORY_SEP (src[0])))
-    srclen--;
+	   && IS_DIRECTORY_SEP (src[srclen - 1]))
+      srclen--;
 
   memcpy (dst, src, srclen);
   dst[srclen] = 0;
@@ -581,6 +584,30 @@ directory_file_name (char *dst, char *src, ptrdiff_t srclen, bool multibyte)
   dostounix_filename (dst);
 #endif
   return srclen;
+}
+
+DEFUN ("directory-name-p", Fdirectory_name_p, Sdirectory_name_p, 1, 1, 0,
+       doc: /* Return non-nil if NAME ends with a directory separator character.  */)
+  (Lisp_Object name)
+{
+  CHECK_STRING (name);
+  ptrdiff_t namelen = SBYTES (name);
+  unsigned char c = namelen ? SREF (name, namelen - 1) : 0;
+  return IS_DIRECTORY_SEP (c) ? Qt : Qnil;
+}
+
+/* Return the expansion of NEWNAME, except that if NEWNAME is a
+   directory name then return the expansion of FILE's basename under
+   NEWNAME.  This resembles how 'cp FILE NEWNAME' works, except that
+   it requires NEWNAME to be a directory name (typically, by ending in
+   "/").  */
+
+static Lisp_Object
+expand_cp_target (Lisp_Object file, Lisp_Object newname)
+{
+  return (!NILP (Fdirectory_name_p (newname))
+	  ? Fexpand_file_name (Ffile_name_nondirectory (file), newname)
+	  : Fexpand_file_name (newname, Qnil));
 }
 
 DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
@@ -623,148 +650,80 @@ In Unix-syntax, this function just removes the final slash.  */)
   return val;
 }
 
-static const char make_temp_name_tbl[64] =
+DEFUN ("make-temp-file-internal", Fmake_temp_file_internal,
+       Smake_temp_file_internal, 4, 4, 0,
+       doc: /* Generate a new file whose name starts with PREFIX, a string.
+Return the name of the generated file.  If DIR-FLAG is zero, do not
+create the file, just its name.  Otherwise, if DIR-FLAG is non-nil,
+create an empty directory.  The file name should end in SUFFIX.
+Do not expand PREFIX; a non-absolute PREFIX is relative to the Emacs
+working directory.  If TEXT is a string, insert it into the newly
+created file.
+
+Signal an error if the file could not be created.
+
+This function does not grok magic file names.  */)
+  (Lisp_Object prefix, Lisp_Object dir_flag, Lisp_Object suffix,
+   Lisp_Object text)
 {
-  'A','B','C','D','E','F','G','H',
-  'I','J','K','L','M','N','O','P',
-  'Q','R','S','T','U','V','W','X',
-  'Y','Z','a','b','c','d','e','f',
-  'g','h','i','j','k','l','m','n',
-  'o','p','q','r','s','t','u','v',
-  'w','x','y','z','0','1','2','3',
-  '4','5','6','7','8','9','-','_'
-};
-
-static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
-
-/* Value is a temporary file name starting with PREFIX, a string.
-
-   The Emacs process number forms part of the result, so there is
-   no danger of generating a name being used by another process.
-   In addition, this function makes an attempt to choose a name
-   which has no existing file.  To make this work, PREFIX should be
-   an absolute file name.
-
-   BASE64_P means add the pid as 3 characters in base64
-   encoding.  In this case, 6 characters will be added to PREFIX to
-   form the file name.  Otherwise, if Emacs is running on a system
-   with long file names, add the pid as a decimal number.
-
-   This function signals an error if no unique file name could be
-   generated.  */
-
-Lisp_Object
-make_temp_name (Lisp_Object prefix, bool base64_p)
-{
-  Lisp_Object val, encoded_prefix;
-  ptrdiff_t len;
-  printmax_t pid;
-  char *p, *data;
-  char pidbuf[INT_BUFSIZE_BOUND (printmax_t)];
-  int pidlen;
-
   CHECK_STRING (prefix);
-
-  /* VAL is created by adding 6 characters to PREFIX.  The first
-     three are the PID of this process, in base 64, and the second
-     three are incremented if the file already exists.  This ensures
-     262144 unique file names per PID per PREFIX.  */
-
-  pid = getpid ();
-
-  if (base64_p)
+  CHECK_STRING (suffix);
+  Lisp_Object encoded_prefix = ENCODE_FILE (prefix);
+  Lisp_Object encoded_suffix = ENCODE_FILE (suffix);
+  ptrdiff_t prefix_len = SBYTES (encoded_prefix);
+  ptrdiff_t suffix_len = SBYTES (encoded_suffix);
+  if (INT_MAX < suffix_len)
+    args_out_of_range (prefix, suffix);
+  int nX = 6;
+  Lisp_Object val = make_uninit_string (prefix_len + nX + suffix_len);
+  char *data = SSDATA (val);
+  memcpy (data, SSDATA (encoded_prefix), prefix_len);
+  memset (data + prefix_len, 'X', nX);
+  memcpy (data + prefix_len + nX, SSDATA (encoded_suffix), suffix_len);
+  int kind = (NILP (dir_flag) ? GT_FILE
+	      : EQ (dir_flag, make_number (0)) ? GT_NOCREATE
+	      : GT_DIR);
+  int fd = gen_tempname (data, suffix_len, O_BINARY | O_CLOEXEC, kind);
+  bool failed = fd < 0;
+  if (!failed)
     {
-      pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidlen = 3;
+      ptrdiff_t count = SPECPDL_INDEX ();
+      record_unwind_protect_int (close_file_unwind, fd);
+      val = DECODE_FILE (val);
+      if (STRINGP (text) && SBYTES (text) != 0)
+	write_region (text, Qnil, val, Qnil, Qnil, Qnil, Qnil, fd);
+      failed = NILP (dir_flag) && emacs_close (fd) != 0;
+      /* Discard the unwind protect.  */
+      specpdl_ptr = specpdl + count;
     }
-  else
+  if (failed)
     {
-#ifdef HAVE_LONG_FILE_NAMES
-      pidlen = sprintf (pidbuf, "%"pMd, pid);
-#else
-      pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidbuf[2] = make_temp_name_tbl[pid & 63], pid >>= 6;
-      pidlen = 3;
-#endif
-    }
-
-  encoded_prefix = ENCODE_FILE (prefix);
-  len = SBYTES (encoded_prefix);
-  val = make_uninit_string (len + 3 + pidlen);
-  data = SSDATA (val);
-  memcpy (data, SSDATA (encoded_prefix), len);
-  p = data + len;
-
-  memcpy (p, pidbuf, pidlen);
-  p += pidlen;
-
-  /* Here we try to minimize useless stat'ing when this function is
-     invoked many times successively with the same PREFIX.  We achieve
-     this by initializing count to a random value, and incrementing it
-     afterwards.
-
-     We don't want make-temp-name to be called while dumping,
-     because then make_temp_name_count_initialized_p would get set
-     and then make_temp_name_count would not be set when Emacs starts.  */
-
-  if (!make_temp_name_count_initialized_p)
-    {
-      make_temp_name_count = time (NULL);
-      make_temp_name_count_initialized_p = 1;
-    }
-
-  while (1)
-    {
-      unsigned num = make_temp_name_count;
-
-      p[0] = make_temp_name_tbl[num & 63], num >>= 6;
-      p[1] = make_temp_name_tbl[num & 63], num >>= 6;
-      p[2] = make_temp_name_tbl[num & 63], num >>= 6;
-
-      /* Poor man's congruential RN generator.  Replace with
-         ++make_temp_name_count for debugging.  */
-      make_temp_name_count += 25229;
-      make_temp_name_count %= 225307;
-
-      if (!check_existing (data))
+      static char const kind_message[][32] =
 	{
-	  /* We want to return only if errno is ENOENT.  */
-	  if (errno == ENOENT)
-	    return DECODE_FILE (val);
-	  else
-	    /* The error here is dubious, but there is little else we
-	       can do.  The alternatives are to return nil, which is
-	       as bad as (and in many cases worse than) throwing the
-	       error, or to ignore the error, which will likely result
-	       in looping through 225307 stat's, which is not only
-	       dog-slow, but also useless since eventually nil would
-	       have to be returned anyway.  */
-	    report_file_error ("Cannot create temporary name for prefix",
-			       prefix);
-	  /* not reached */
-	}
+	  [GT_FILE] = "Creating file with prefix",
+	  [GT_DIR] = "Creating directory with prefix",
+	  [GT_NOCREATE] = "Creating file name with prefix"
+	};
+      report_file_error (kind_message[kind], prefix);
     }
+  return val;
 }
 
 
 DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
        doc: /* Generate temporary file name (string) starting with PREFIX (a string).
-The Emacs process number forms part of the result, so there is no
-danger of generating a name being used by another Emacs process
-\(so long as only a single host can access the containing directory...).
 
 This function tries to choose a name that has no existing file.
-For this to work, PREFIX should be an absolute file name.
+For this to work, PREFIX should be an absolute file name, and PREFIX
+and the returned string should both be non-magic.
 
-There is a race condition between calling `make-temp-name' and creating the
-file, which opens all kinds of security holes.  For that reason, you should
-normally use `make-temp-file' instead.  */)
+There is a race condition between calling `make-temp-name' and
+later creating the file, which opens all kinds of security holes.
+For that reason, you should normally use `make-temp-file' instead.  */)
   (Lisp_Object prefix)
 {
-  return make_temp_name (prefix, 0);
+  return Fmake_temp_file_internal (prefix, make_number (0),
+				   empty_unibyte_string, Qnil);
 }
 
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
@@ -790,7 +749,9 @@ For technical reasons, this function can return correct but
 non-intuitive results for the root directory; for instance,
 \(expand-file-name ".." "/") returns "/..".  For this reason, use
 \(directory-file-name (file-name-directory dirname)) to traverse a
-filesystem tree, not (expand-file-name ".."  dirname).  */)
+filesystem tree, not (expand-file-name ".." dirname).  Note: make
+sure DIRNAME in this example doesn't end in a slash, unless it's
+the root directory.  */)
   (Lisp_Object name, Lisp_Object default_directory)
 {
   /* These point to SDATA and need to be careful with string-relocation
@@ -1793,11 +1754,9 @@ those `/' is discarded.  */)
    (directory-file-name (expand-file-name FOO)).  */
 
 Lisp_Object
-expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
+expand_and_dir_to_file (Lisp_Object filename)
 {
-  register Lisp_Object absname;
-
-  absname = Fexpand_file_name (filename, defdir);
+  Lisp_Object absname = Fexpand_file_name (filename, Qnil);
 
   /* Remove final slash, if any (unless this is the root dir).
      stat behaves differently depending!  */
@@ -1867,15 +1826,17 @@ clone_file (int dest, int source)
 DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 6,
        "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
-If NEWNAME names a directory, copy FILE there.
+If NEWNAME is a directory name, copy FILE to a like-named file under
+NEWNAME.  For NEWNAME to be recognized as a directory name, it should
+end in a slash.
 
 This function always sets the file modes of the output file to match
 the input file.
 
 The optional third argument OK-IF-ALREADY-EXISTS specifies what to do
-if file NEWNAME already exists.  If OK-IF-ALREADY-EXISTS is nil, we
+if file NEWNAME already exists.  If OK-IF-ALREADY-EXISTS is nil,
 signal a `file-already-exists' error without overwriting.  If
-OK-IF-ALREADY-EXISTS is a number, we request confirmation from the user
+OK-IF-ALREADY-EXISTS is an integer, request confirmation from the user
 about overwriting; this is what happens in interactive use with M-x.
 Any other value for OK-IF-ALREADY-EXISTS means to overwrite the
 existing file.
@@ -1885,8 +1846,8 @@ last-modified time as the old one.  (This works on only some systems.)
 
 A prefix arg makes KEEP-TIME non-nil.
 
-If PRESERVE-UID-GID is non-nil, we try to transfer the
-uid and gid of FILE to NEWNAME.
+If PRESERVE-UID-GID is non-nil, try to transfer the uid and gid of
+FILE to NEWNAME.
 
 If PRESERVE-PERMISSIONS is non-nil, copy permissions of FILE to NEWNAME;
 this includes the file modes, along with ACL entries and SELinux
@@ -1913,16 +1874,8 @@ permissions.  */)
   struct stat st;
 #endif
 
-  encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file);
-  CHECK_STRING (newname);
-
-  if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
-  else
-    newname = Fexpand_file_name (newname, Qnil);
-
   file = Fexpand_file_name (file, Qnil);
+  newname = expand_cp_target (file, newname);
 
   /* If the input file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2095,7 +2048,7 @@ permissions.  */)
     {
       /* Set the modified context back to the file.  */
       bool fail = fsetfilecon (ofd, con) != 0;
-      /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
+      /* See https://debbugs.gnu.org/11245 for ENOTSUP.  */
       if (fail && errno != ENOTSUP)
 	report_file_error ("Doing fsetfilecon", newname);
 
@@ -2153,11 +2106,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 
   dir = SSDATA (encoded_dir);
 
-#ifdef WINDOWSNT
-  if (mkdir (dir) != 0)
-#else
   if (mkdir (dir, 0777 & ~auto_saving_dir_umask) != 0)
-#endif
     report_file_error ("Creating directory", directory);
 
   return Qnil;
@@ -2216,7 +2165,7 @@ With a prefix argument, TRASH is nil.  */)
 
   encoded_file = ENCODE_FILE (filename);
 
-  if (unlink (SSDATA (encoded_file)) < 0)
+  if (unlink (SSDATA (encoded_file)) != 0 && errno != ENOENT)
     report_file_error ("Removing old name", filename);
   return Qnil;
 }
@@ -2256,60 +2205,20 @@ static bool
 file_name_case_insensitive_p (const char *filename)
 {
   /* Use pathconf with _PC_CASE_INSENSITIVE or _PC_CASE_SENSITIVE if
-     those flags are available.  As of this writing (2016-11-14),
+     those flags are available.  As of this writing (2017-05-20),
      Cygwin is the only platform known to support the former (starting
-     with Cygwin-2.6.1), and Mac OS X is the only platform known to
-     support the latter.
-
-     There have been reports that pathconf with _PC_CASE_SENSITIVE
-     does not work reliably on Mac OS X.  If you have a problem,
-     please recompile Emacs with -D DARWIN_OS_CASE_SENSITIVE_FIXME=1 or
-     -D DARWIN_OS_CASE_SENSITIVE_FIXME=2, and file a bug report saying
-     whether this fixed your problem.  */
+     with Cygwin-2.6.1), and macOS is the only platform known to
+     support the latter.  */
 
 #ifdef _PC_CASE_INSENSITIVE
   int res = pathconf (filename, _PC_CASE_INSENSITIVE);
   if (res >= 0)
     return res > 0;
-#elif defined _PC_CASE_SENSITIVE && !defined DARWIN_OS_CASE_SENSITIVE_FIXME
+#elif defined _PC_CASE_SENSITIVE
   int res = pathconf (filename, _PC_CASE_SENSITIVE);
   if (res >= 0)
     return res == 0;
 #endif
-
-#ifdef DARWIN_OS
-# ifndef DARWIN_OS_CASE_SENSITIVE_FIXME
-  int DARWIN_OS_CASE_SENSITIVE_FIXME = 0;
-# endif
-
-  if (DARWIN_OS_CASE_SENSITIVE_FIXME == 1)
-    {
-      /* This is based on developer.apple.com's getattrlist man page.  */
-      struct attrlist alist = {.volattr = ATTR_VOL_CAPABILITIES};
-      vol_capabilities_attr_t vcaps;
-      if (getattrlist (filename, &alist, &vcaps, sizeof vcaps, 0) == 0)
-	{
-	  if (vcaps.valid[VOL_CAPABILITIES_FORMAT] & VOL_CAP_FMT_CASE_SENSITIVE)
-	    return ! (vcaps.capabilities[VOL_CAPABILITIES_FORMAT]
-		      & VOL_CAP_FMT_CASE_SENSITIVE);
-	}
-    }
-  else if (DARWIN_OS_CASE_SENSITIVE_FIXME == 2)
-    {
-      /* The following is based on
-	 http://lists.apple.com/archives/darwin-dev/2007/Apr/msg00010.html.  */
-      struct attrlist alist;
-      unsigned char buffer[sizeof (vol_capabilities_attr_t) + sizeof (size_t)];
-
-      memset (&alist, 0, sizeof (alist));
-      alist.volattr = ATTR_VOL_CAPABILITIES;
-      if (getattrlist (filename, &alist, buffer, sizeof (buffer), 0)
-	  || !(alist.volattr & ATTR_VOL_CAPABILITIES))
-	return 0;
-      vol_capabilities_attr_t *vcaps = buffer;
-      return !(vcaps->capabilities[0] & VOL_CAP_FMT_CASE_SENSITIVE);
-    }
-#endif	/* DARWIN_OS */
 
 #if defined CYGWIN || defined DOS_NT
   return true;
@@ -2343,33 +2252,37 @@ DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
        "fRename file: \nGRename %s to file: \np",
        doc: /* Rename FILE as NEWNAME.  Both args must be strings.
 If file has names other than FILE, it continues to have those names.
-Signals a `file-already-exists' error if a file NEWNAME already exists
+If NEWNAME is a directory name, rename FILE to a like-named file under
+NEWNAME.  For NEWNAME to be recognized as a directory name, it should
+end in a slash.
+
+Signal a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
-A number as third arg means request confirmation if NEWNAME already exists.
+An integer third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.  */)
   (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
-  Lisp_Object encoded_file, encoded_newname, symlink_target;
+  Lisp_Object encoded_file, encoded_newname;
 
-  symlink_target = encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file);
-  CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
 
-  if ((!NILP (Ffile_directory_p (newname)))
-      /* If the filesystem is case-insensitive and the file names are
-	 identical but for the case, don't attempt to move directory
-	 to itself.  */
-      && (NILP (Ffile_name_case_insensitive_p (file))
-	  || NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname)))))
+  /* If the filesystem is case-insensitive and the file names are
+     identical but for case, treat it as a change-case request, and do
+     not worry whether NEWNAME exists or whether it is a directory, as
+     it is already another name for FILE.  */
+  bool case_only_rename = false;
+#if defined CYGWIN || defined DOS_NT
+  if (!NILP (Ffile_name_case_insensitive_p (file)))
     {
-      Lisp_Object fname = (NILP (Ffile_directory_p (file))
-			   ? file : Fdirectory_file_name (file));
-      newname = Fexpand_file_name (Ffile_name_nondirectory (fname), newname);
+      newname = Fexpand_file_name (newname, Qnil);
+      case_only_rename = !NILP (Fstring_equal (Fdowncase (file),
+					       Fdowncase (newname)));
     }
-  else
-    newname = Fexpand_file_name (newname, Qnil);
+#endif
+
+  if (!case_only_rename)
+    newname = expand_cp_target (Fdirectory_file_name (file), newname);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2383,70 +2296,95 @@ This is what happens in interactive use with M-x.  */)
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
 
-  /* If the filesystem is case-insensitive and the file names are
-     identical but for the case, don't ask for confirmation: they
-     simply want to change the letter-case of the file name.  */
-  if ((!(file_name_case_insensitive_p (SSDATA (encoded_file)))
-       || NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname))))
-      && ((NILP (ok_if_already_exists) || INTEGERP (ok_if_already_exists))))
-    barf_or_query_if_file_exists (newname, false, "rename to it",
-				  INTEGERP (ok_if_already_exists), false);
-  if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
+  bool plain_rename = (case_only_rename
+		       || (!NILP (ok_if_already_exists)
+			   && !INTEGERP (ok_if_already_exists)));
+  int rename_errno UNINIT;
+  if (!plain_rename)
     {
-      int rename_errno = errno;
-      if (rename_errno == EXDEV)
+      if (renameat_noreplace (AT_FDCWD, SSDATA (encoded_file),
+			      AT_FDCWD, SSDATA (encoded_newname))
+	  == 0)
+	return Qnil;
+
+      rename_errno = errno;
+      switch (rename_errno)
 	{
-          ptrdiff_t count;
-          symlink_target = Ffile_symlink_p (file);
-          if (! NILP (symlink_target))
-            Fmake_symbolic_link (symlink_target, newname,
-                                 NILP (ok_if_already_exists) ? Qnil : Qt);
-	  else if (!NILP (Ffile_directory_p (file)))
-	    call4 (Qcopy_directory, file, newname, Qt, Qnil);
-	  else
-	    /* We have already prompted if it was an integer, so don't
-	       have copy-file prompt again.  */
-	    Fcopy_file (file, newname,
-			NILP (ok_if_already_exists) ? Qnil : Qt,
-			Qt, Qt, Qt);
-
-	  count = SPECPDL_INDEX ();
-	  specbind (Qdelete_by_moving_to_trash, Qnil);
-
-	  if (!NILP (Ffile_directory_p (file)) && NILP (symlink_target))
-	    call2 (Qdelete_directory, file, Qt);
-	  else
-	    Fdelete_file (file, Qnil);
-	  unbind_to (count, Qnil);
+	case EEXIST: case EINVAL: case ENOSYS:
+#if ENOSYS != ENOTSUP
+	case ENOTSUP:
+#endif
+	  barf_or_query_if_file_exists (newname, rename_errno == EEXIST,
+					"rename to it",
+					INTEGERP (ok_if_already_exists),
+					false);
+	  plain_rename = true;
+	  break;
 	}
-      else
-	report_file_errno ("Renaming", list2 (file, newname), rename_errno);
     }
 
-  return Qnil;
+  if (plain_rename)
+    {
+      if (rename (SSDATA (encoded_file), SSDATA (encoded_newname)) == 0)
+	return Qnil;
+      rename_errno = errno;
+      /* Don't prompt again.  */
+      ok_if_already_exists = Qt;
+    }
+  else if (!NILP (ok_if_already_exists))
+    ok_if_already_exists = Qt;
+
+  if (rename_errno != EXDEV)
+    report_file_errno ("Renaming", list2 (file, newname), rename_errno);
+
+  struct stat file_st;
+  bool dirp = !NILP (Fdirectory_name_p (file));
+  if (!dirp)
+    {
+      if (lstat (SSDATA (encoded_file), &file_st) != 0)
+	report_file_error ("Renaming", list2 (file, newname));
+      dirp = S_ISDIR (file_st.st_mode) != 0;
+    }
+  if (dirp)
+    call4 (Qcopy_directory, file, newname, Qt, Qnil);
+  else
+    {
+      Lisp_Object symlink_target
+	= (S_ISLNK (file_st.st_mode)
+	   ? emacs_readlinkat (AT_FDCWD, SSDATA (encoded_file))
+	   : Qnil);
+      if (!NILP (symlink_target))
+	Fmake_symbolic_link (symlink_target, newname, ok_if_already_exists);
+      else
+	Fcopy_file (file, newname, ok_if_already_exists, Qt, Qt, Qt);
+    }
+
+  ptrdiff_t count = SPECPDL_INDEX ();
+  specbind (Qdelete_by_moving_to_trash, Qnil);
+  if (dirp)
+    call2 (Qdelete_directory, file, Qt);
+  else
+    Fdelete_file (file, Qnil);
+  return unbind_to (count, Qnil);
 }
 
 DEFUN ("add-name-to-file", Fadd_name_to_file, Sadd_name_to_file, 2, 3,
        "fAdd name to file: \nGName to add to %s: \np",
        doc: /* Give FILE additional name NEWNAME.  Both args must be strings.
-Signals a `file-already-exists' error if a file NEWNAME already exists
+If NEWNAME is a directory name, give FILE a like-named new name under
+NEWNAME.
+
+Signal a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
-A number as third arg means request confirmation if NEWNAME already exists.
+An integer third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.  */)
   (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
   Lisp_Object encoded_file, encoded_newname;
 
-  encoded_file = encoded_newname = Qnil;
-  CHECK_STRING (file);
-  CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
-
-  if (!NILP (Ffile_directory_p (newname)))
-    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
-  else
-    newname = Fexpand_file_name (newname, Qnil);
+  newname = expand_cp_target (file, newname);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2465,54 +2403,48 @@ This is what happens in interactive use with M-x.  */)
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
 
-  if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, false, "make it a new name",
-				  INTEGERP (ok_if_already_exists), false);
+  if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) == 0)
+    return Qnil;
 
-  unlink (SSDATA (newname));
-  if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) < 0)
+  if (errno == EEXIST)
     {
-      int link_errno = errno;
-      report_file_errno ("Adding new name", list2 (file, newname), link_errno);
+      if (NILP (ok_if_already_exists)
+	  || INTEGERP (ok_if_already_exists))
+	barf_or_query_if_file_exists (newname, true, "make it a new name",
+				      INTEGERP (ok_if_already_exists), false);
+      unlink (SSDATA (newname));
+      if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) == 0)
+	return Qnil;
     }
 
-  return Qnil;
+  report_file_error ("Adding new name", list2 (file, newname));
 }
 
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
-       doc: /* Make a symbolic link to TARGET, named LINKNAME.
-Both args must be strings.
-Signals a `file-already-exists' error if a file LINKNAME already exists
+       doc: /* Make a symbolic link to TARGET, named NEWNAME.
+If NEWNAME is a directory name, make a like-named symbolic link under
+NEWNAME.
+
+Signal a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
-A number as third arg means request confirmation if LINKNAME already exists.
+An integer third arg means request confirmation if NEWNAME already
+exists, and expand leading "~" or strip leading "/:" in TARGET.
 This happens for interactive use with M-x.  */)
   (Lisp_Object target, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
   Lisp_Object encoded_target, encoded_linkname;
 
-  encoded_target = encoded_linkname = Qnil;
   CHECK_STRING (target);
-  CHECK_STRING (linkname);
-  /* If the link target has a ~, we must expand it to get
-     a truly valid file name.  Otherwise, do not expand;
-     we want to permit links to relative file names.  */
-  if (SREF (target, 0) == '~')
-    target = Fexpand_file_name (target, Qnil);
-
-  if (!NILP (Ffile_directory_p (linkname)))
-    linkname = Fexpand_file_name (Ffile_name_nondirectory (target), linkname);
-  else
-    linkname = Fexpand_file_name (linkname, Qnil);
-
-  /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (target, Qmake_symbolic_link);
-  if (!NILP (handler))
-    return call4 (handler, Qmake_symbolic_link, target,
-		  linkname, ok_if_already_exists);
+  if (INTEGERP (ok_if_already_exists))
+    {
+      if (SREF (target, 0) == '~')
+	target = Fexpand_file_name (target, Qnil);
+      else if (SREF (target, 0) == '/' && SREF (target, 1) == ':')
+	target = Fsubstring_no_properties (target, make_number (2), Qnil);
+    }
+  linkname = expand_cp_target (target, linkname);
 
   /* If the new link name has special constructs in it,
      call the corresponding file handler.  */
@@ -2524,38 +2456,32 @@ This happens for interactive use with M-x.  */)
   encoded_target = ENCODE_FILE (target);
   encoded_linkname = ENCODE_FILE (linkname);
 
-  if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (linkname, false, "make it a link",
-				  INTEGERP (ok_if_already_exists), false);
-  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) < 0)
-    {
-      /* If we didn't complain already, silently delete existing file.  */
-      int symlink_errno;
-      if (errno == EEXIST)
-	{
-	  unlink (SSDATA (encoded_linkname));
-	  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname))
-	      >= 0)
-	    return Qnil;
-	}
-      if (errno == ENOSYS)
-	xsignal1 (Qfile_error,
-		  build_string ("Symbolic links are not supported"));
+  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) == 0)
+    return Qnil;
 
-      symlink_errno = errno;
-      report_file_errno ("Making symbolic link", list2 (target, linkname),
-			 symlink_errno);
+  if (errno == ENOSYS)
+    xsignal1 (Qfile_error,
+	      build_string ("Symbolic links are not supported"));
+
+  if (errno == EEXIST)
+    {
+      if (NILP (ok_if_already_exists)
+	  || INTEGERP (ok_if_already_exists))
+	barf_or_query_if_file_exists (linkname, true, "make it a link",
+				      INTEGERP (ok_if_already_exists), false);
+      unlink (SSDATA (encoded_linkname));
+      if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) == 0)
+	return Qnil;
     }
 
-  return Qnil;
+  report_file_error ("Making symbolic link", list2 (target, linkname));
 }
 
 
 DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
        1, 1, 0,
-       doc: /* Return t if file FILENAME specifies an absolute file name.
-On Unix, this is a name starting with a `/' or a `~'.  */)
+       doc: /* Return t if FILENAME is an absolute file name or starts with `~'.
+On Unix, absolute file names start with `/'.  */)
   (Lisp_Object filename)
 {
   CHECK_STRING (filename);
@@ -2717,11 +2643,6 @@ emacs_readlinkat (int fd, char const *filename)
     return Qnil;
 
   val = build_unibyte_string (buf);
-  if (buf[0] == '/' && strchr (buf, ':'))
-    {
-      AUTO_STRING (slash_colon, "/:");
-      val = concat2 (slash_colon, val);
-    }
   if (buf != readlink_buf)
     xfree (buf);
   val = DECODE_FILE (val);
@@ -2758,14 +2679,11 @@ Symbolic links to directories count as directories.
 See `file-symlink-p' to distinguish symlinks.  */)
   (Lisp_Object filename)
 {
-  Lisp_Object absname;
-  Lisp_Object handler;
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
+  Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_directory_p);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_directory_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, absname);
 
@@ -2889,15 +2807,12 @@ Symbolic links to regular files count as regular files.
 See `file-symlink-p' to distinguish symlinks.  */)
   (Lisp_Object filename)
 {
-  register Lisp_Object absname;
   struct stat st;
-  Lisp_Object handler;
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
+  Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_regular_p);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_regular_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_regular_p, absname);
 
@@ -2935,21 +2850,13 @@ Return (nil nil nil nil) if the file is nonexistent or inaccessible,
 or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
   (Lisp_Object filename)
 {
-  Lisp_Object absname;
   Lisp_Object user = Qnil, role = Qnil, type = Qnil, range = Qnil;
-
-  Lisp_Object handler;
-#if HAVE_LIBSELINUX
-  security_context_t con;
-  int conlength;
-  context_t context;
-#endif
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
+  Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_selinux_context);
+  Lisp_Object handler = Ffind_file_name_handler (absname,
+						 Qfile_selinux_context);
   if (!NILP (handler))
     return call2 (handler, Qfile_selinux_context, absname);
 
@@ -2958,10 +2865,11 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
 #if HAVE_LIBSELINUX
   if (is_selinux_enabled ())
     {
-      conlength = lgetfilecon (SSDATA (absname), &con);
+      security_context_t con;
+      int conlength = lgetfilecon (SSDATA (absname), &con);
       if (conlength > 0)
 	{
-	  context = context_new (con);
+	  context_t context = context_new (con);
 	  if (context_user_get (context))
 	    user = build_string (context_user_get (context));
 	  if (context_role_get (context))
@@ -3048,7 +2956,7 @@ or if Emacs was not compiled with SELinux support.  */)
 	  fail = (lsetfilecon (SSDATA (encoded_absname),
 			       context_str (parsed_con))
 		  != 0);
-          /* See http://debbugs.gnu.org/11245 for ENOTSUP.  */
+          /* See https://debbugs.gnu.org/11245 for ENOTSUP.  */
 	  if (fail && errno != ENOTSUP)
 	    report_file_error ("Doing lsetfilecon", absname);
 
@@ -3072,35 +2980,28 @@ Return nil if file does not exist or is not accessible, or if Emacs
 was unable to determine the ACL entries.  */)
   (Lisp_Object filename)
 {
-#if USE_ACL
-  Lisp_Object absname;
-  Lisp_Object handler;
-# ifdef HAVE_ACL_SET_FILE
-  acl_t acl;
-  Lisp_Object acl_string;
-  char *str;
-#  ifndef HAVE_ACL_TYPE_EXTENDED
-  acl_type_t ACL_TYPE_EXTENDED = ACL_TYPE_ACCESS;
-#  endif
-# endif
+  Lisp_Object acl_string = Qnil;
 
-  absname = expand_and_dir_to_file (filename,
-				    BVAR (current_buffer, directory));
+#if USE_ACL
+  Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_acl);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_acl);
   if (!NILP (handler))
     return call2 (handler, Qfile_acl, absname);
 
 # ifdef HAVE_ACL_SET_FILE
   absname = ENCODE_FILE (absname);
 
-  acl = acl_get_file (SSDATA (absname), ACL_TYPE_EXTENDED);
+#  ifndef HAVE_ACL_TYPE_EXTENDED
+  acl_type_t ACL_TYPE_EXTENDED = ACL_TYPE_ACCESS;
+#  endif
+  acl_t acl = acl_get_file (SSDATA (absname), ACL_TYPE_EXTENDED);
   if (acl == NULL)
     return Qnil;
 
-  str = acl_to_text (acl, NULL);
+  char *str = acl_to_text (acl, NULL);
   if (str == NULL)
     {
       acl_free (acl);
@@ -3110,12 +3011,10 @@ was unable to determine the ACL entries.  */)
   acl_string = build_string (str);
   acl_free (str);
   acl_free (acl);
-
-  return acl_string;
 # endif
 #endif
 
-  return Qnil;
+  return acl_string;
 }
 
 DEFUN ("set-file-acl", Fset_file_acl, Sset_file_acl,
@@ -3153,7 +3052,8 @@ support.  */)
       acl = acl_from_text (SSDATA (acl_string));
       if (acl == NULL)
 	{
-	  report_file_error ("Converting ACL", absname);
+	  if (acl_errno_valid (errno))
+	    report_file_error ("Converting ACL", absname);
 	  return Qnil;
 	}
 
@@ -3179,15 +3079,12 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 Return nil, if file does not exist or is not accessible.  */)
   (Lisp_Object filename)
 {
-  Lisp_Object absname;
   struct stat st;
-  Lisp_Object handler;
-
-  absname = expand_and_dir_to_file (filename, BVAR (current_buffer, directory));
+  Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname, Qfile_modes);
+  Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_modes);
   if (!NILP (handler))
     return call2 (handler, Qfile_modes, absname);
 
@@ -3232,7 +3129,15 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
 DEFUN ("set-default-file-modes", Fset_default_file_modes, Sset_default_file_modes, 1, 1, 0,
        doc: /* Set the file permission bits for newly created files.
 The argument MODE should be an integer; only the low 9 bits are used.
-This setting is inherited by subprocesses.  */)
+On Posix hosts, this setting is inherited by subprocesses.
+
+This function works by setting the Emacs's file mode creation mask.
+Each bit that is set in the mask means that the corresponding bit
+in the permissions of newly created files will be disabled.
+
+Note that when `write-region' creates a file, it resets the
+execute bit, even if the mask set by this function allows that bit
+by having the corresponding bit in the mask reset.  */)
   (Lisp_Object mode)
 {
   mode_t oldrealmask, oldumask, newumask;
@@ -3314,20 +3219,18 @@ If FILE1 does not exist, the answer is nil;
 otherwise, if FILE2 does not exist, the answer is t.  */)
   (Lisp_Object file1, Lisp_Object file2)
 {
-  Lisp_Object absname1, absname2;
   struct stat st1, st2;
-  Lisp_Object handler;
 
   CHECK_STRING (file1);
   CHECK_STRING (file2);
 
-  absname1 = Qnil;
-  absname1 = expand_and_dir_to_file (file1, BVAR (current_buffer, directory));
-  absname2 = expand_and_dir_to_file (file2, BVAR (current_buffer, directory));
+  Lisp_Object absname1 = expand_and_dir_to_file (file1);
+  Lisp_Object absname2 = expand_and_dir_to_file (file2);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (absname1, Qfile_newer_than_file_p);
+  Lisp_Object handler = Ffind_file_name_handler (absname1,
+						 Qfile_newer_than_file_p);
   if (NILP (handler))
     handler = Ffind_file_name_handler (absname2, Qfile_newer_than_file_p);
   if (!NILP (handler))
@@ -3346,11 +3249,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
 	  ? Qt : Qnil);
 }
 
-#ifndef READ_BUF_SIZE
-#define READ_BUF_SIZE (64 << 10)
-#endif
-/* Some buffer offsets are stored in 'int' variables.  */
-verify (READ_BUF_SIZE <= INT_MAX);
+enum { READ_BUF_SIZE = MAX_ALLOCA };
 
 /* This function is called after Lisp functions to decide a coding
    system are called, or when they cause an error.  Before they are
@@ -4875,8 +4774,8 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   if (!NILP (handler))
     {
       Lisp_Object val;
-      val = call6 (handler, Qwrite_region, start, end,
-		   filename, append, visit);
+      val = call8 (handler, Qwrite_region, start, end,
+		   filename, append, visit, lockname, mustbenew);
 
       if (visiting)
 	{
@@ -5150,16 +5049,13 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     }
 
   if (!auto_saving && !noninteractive)
-    {
-      AUTO_STRING (format, NUMBERP (append)
-                   ? "Updated `%s' (%d characters)"
-                   : ! NILP (append)
-                   ? "Added to `%s' (%d characters)"
-                   : "Wrote `%s' (%d characters)");
-      EMACS_INT nchars = (STRINGP (start) ? SCHARS (start)
-			  : XINT (end) - XINT (start));
-      CALLN (Fmessage, format, visit_file, make_number (nchars));
-    }
+    message_with_string ((NUMBERP (append)
+			  ? "Updated %s"
+			  : ! NILP (append)
+			  ? "Added to %s"
+			  : "Wrote %s"),
+			 visit_file, 1);
+
   return Qnil;
 }
 
@@ -5603,7 +5499,7 @@ and are changed since last auto-saved.
 Auto-saving writes the buffer into a file
 so that your editing is not lost if the system crashes.
 This file is not the file you visited; that changes only when you save.
-Normally we run the normal hook `auto-save-hook' before saving.
+Normally, run the normal hook `auto-save-hook' before saving.
 
 A non-nil NO-MESSAGE argument means do not print any message if successful.
 A non-nil CURRENT-ONLY argument means save only current buffer.  */)
@@ -5690,14 +5586,12 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  {
 	    block_input ();
 	    if (!NILP (BVAR (b, filename)))
-	      {
-		fwrite (SDATA (BVAR (b, filename)), 1,
-			SBYTES (BVAR (b, filename)), stream);
-	      }
-	    putc ('\n', stream);
-	    fwrite (SDATA (BVAR (b, auto_save_file_name)), 1,
-		    SBYTES (BVAR (b, auto_save_file_name)), stream);
-	    putc ('\n', stream);
+	      fwrite_unlocked (SDATA (BVAR (b, filename)), 1,
+			       SBYTES (BVAR (b, filename)), stream);
+	    putc_unlocked ('\n', stream);
+	    fwrite_unlocked (SDATA (BVAR (b, auto_save_file_name)), 1,
+			     SBYTES (BVAR (b, auto_save_file_name)), stream);
+	    putc_unlocked ('\n', stream);
 	    unblock_input ();
 	  }
 
@@ -5888,10 +5782,56 @@ effect except for flushing STREAM's data.  */)
 
   binmode = NILP (mode) ? O_TEXT : O_BINARY;
   if (fp != stdin)
-    fflush (fp);
+    fflush_unlocked (fp);
 
   return (set_binary_mode (fileno (fp), binmode) == O_BINARY) ? Qt : Qnil;
 }
+
+#ifndef DOS_NT
+
+/* Yield a Lisp float as close as possible to BLOCKSIZE * BLOCKS, with
+   the result negated if NEGATE.  */
+static Lisp_Object
+blocks_to_bytes (uintmax_t blocksize, uintmax_t blocks, bool negate)
+{
+  /* On typical platforms the following code is accurate to 53 bits,
+     which is close enough.  BLOCKSIZE is invariably a power of 2, so
+     converting it to double does not lose information.  */
+  double bs = blocksize;
+  return make_float (negate ? -bs * -blocks : bs * blocks);
+}
+
+DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
+       doc: /* Return storage information about the file system FILENAME is on.
+Value is a list of numbers (TOTAL FREE AVAIL), where TOTAL is the total
+storage of the file system, FREE is the free storage, and AVAIL is the
+storage available to a non-superuser.  All 3 numbers are in bytes.
+If the underlying system call fails, value is nil.  */)
+  (Lisp_Object filename)
+{
+  Lisp_Object encoded = ENCODE_FILE (Fexpand_file_name (filename, Qnil));
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  Lisp_Object handler = Ffind_file_name_handler (encoded, Qfile_system_info);
+  if (!NILP (handler))
+    {
+      Lisp_Object result = call2 (handler, Qfile_system_info, encoded);
+      if (CONSP (result) || NILP (result))
+	return result;
+      error ("Invalid handler in `file-name-handler-alist'");
+    }
+
+  struct fs_usage u;
+  if (get_fs_usage (SSDATA (encoded), NULL, &u) != 0)
+    return Qnil;
+  return list3 (blocks_to_bytes (u.fsu_blocksize, u.fsu_blocks, false),
+		blocks_to_bytes (u.fsu_blocksize, u.fsu_bfree, false),
+		blocks_to_bytes (u.fsu_blocksize, u.fsu_bavail,
+				 u.fsu_bavail_top_bit_set));
+}
+
+#endif /* !DOS_NT */
 
 void
 init_fileio (void)
@@ -5963,6 +5903,7 @@ syms_of_fileio (void)
   DEFSYM (Qwrite_region, "write-region");
   DEFSYM (Qverify_visited_file_modtime, "verify-visited-file-modtime");
   DEFSYM (Qset_visited_file_modtime, "set-visited-file-modtime");
+  DEFSYM (Qfile_system_info, "file-system-info");
 
   /* The symbol bound to coding-system-for-read when
      insert-file-contents is called for recovering a file.  This is not
@@ -6139,7 +6080,7 @@ This applies only to the operation `inhibit-file-name-operation'.  */);
   Vinhibit_file_name_operation = Qnil;
 
   DEFVAR_LISP ("auto-save-list-file-name", Vauto_save_list_file_name,
-	       doc: /* File name in which we write a list of all auto save file names.
+	       doc: /* File name in which to write a list of all auto save file names.
 This variable is initialized automatically from `auto-save-list-file-prefix'
 shortly after Emacs reads your init file, if you have not yet given it
 a non-nil value.  */);
@@ -6194,7 +6135,9 @@ This includes interactive calls to `delete-file' and
   defsubr (&Sfile_name_nondirectory);
   defsubr (&Sunhandled_file_name_directory);
   defsubr (&Sfile_name_as_directory);
+  defsubr (&Sdirectory_name_p);
   defsubr (&Sdirectory_file_name);
+  defsubr (&Smake_temp_file_internal);
   defsubr (&Smake_temp_name);
   defsubr (&Sexpand_file_name);
   defsubr (&Ssubstitute_in_file_name);
@@ -6240,6 +6183,10 @@ This includes interactive calls to `delete-file' and
   defsubr (&Snext_read_file_uses_dialog_p);
 
   defsubr (&Sset_binary_mode);
+
+#ifndef DOS_NT
+  defsubr (&Sfile_system_info);
+#endif
 
 #ifdef HAVE_SYNC
   defsubr (&Sunix_sync);

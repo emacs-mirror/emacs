@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2017 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_FRAME_H
 #define EMACS_FRAME_H
@@ -52,13 +52,34 @@ enum z_group
   z_group_below,
   z_group_above_suspended,
 };
+
+enum internal_border_part
+  {
+   INTERNAL_BORDER_NONE,
+   INTERNAL_BORDER_LEFT_EDGE,
+   INTERNAL_BORDER_TOP_LEFT_CORNER,
+   INTERNAL_BORDER_TOP_EDGE,
+   INTERNAL_BORDER_TOP_RIGHT_CORNER,
+   INTERNAL_BORDER_RIGHT_EDGE,
+   INTERNAL_BORDER_BOTTOM_RIGHT_CORNER,
+   INTERNAL_BORDER_BOTTOM_EDGE,
+   INTERNAL_BORDER_BOTTOM_LEFT_CORNER,
+  };
+
+#ifdef NS_IMPL_COCOA
+enum ns_appearance_type
+  {
+   ns_appearance_aqua,
+   ns_appearance_vibrant_dark
+  };
+#endif
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* The structure representing a frame.  */
 
 struct frame
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */
@@ -321,6 +342,9 @@ struct frame
   ENUM_BF (output_method) output_method : 3;
 
 #ifdef HAVE_WINDOW_SYSTEM
+  /* True if this frame is a tooltip frame.  */
+  bool_bf tooltip : 1;
+
   /* See FULLSCREEN_ enum on top.  */
   ENUM_BF (fullscreen_type) want_fullscreen : 4;
 
@@ -330,9 +354,7 @@ struct frame
 
   /* Nonzero if we should actually display horizontal scroll bars on this frame.  */
   bool_bf horizontal_scroll_bars : 1;
-#endif /* HAVE_WINDOW_SYSTEM */
 
-#if defined (HAVE_WINDOW_SYSTEM)
   /* True if this is an undecorated frame.  */
   bool_bf undecorated : 1;
 
@@ -354,7 +376,11 @@ struct frame
 
   /* The z-group this frame's window belongs to. */
   ENUM_BF (z_group) z_group : 2;
-#endif /* HAVE_WINDOW_SYSTEM and not HAVE_NS */
+
+  /* Non-zero if display of truncation and continuation glyphs outside
+     the fringes is suppressed.  */
+  bool_bf no_special_glyphs : 1;
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* Whether new_height and new_width shall be interpreted
      in pixels.  */
@@ -422,7 +448,7 @@ struct frame
 
   /* New text height and width for pending size change.  0 if no change
      pending.  These values represent pixels or canonical character units
-     according to the value of new_pixelwise and correlate to the the
+     according to the value of new_pixelwise and correlate to the
      text width/height of the frame.  */
   int new_width, new_height;
 
@@ -546,6 +572,12 @@ struct frame
   /* All display backends seem to need these two pixel values.  */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
+
+#ifdef NS_IMPL_COCOA
+  /* NSAppearance theme used on this frame.  */
+  enum ns_appearance_type ns_appearance;
+  bool_bf ns_transparent_titlebar;
+#endif
 };
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
@@ -824,7 +856,7 @@ default_pixels_per_inch_y (void)
 #ifdef USE_GTK
 #define FRAME_TOOL_BAR_POSITION(f) (f)->tool_bar_position
 #else
-#define FRAME_TOOL_BAR_POSITION(f) ((void) f, Qtop)
+#define FRAME_TOOL_BAR_POSITION(f) ((void) (f), Qtop)
 #endif
 
 /* Number of lines of frame F used for the tool-bar.  */
@@ -908,16 +940,17 @@ default_pixels_per_inch_y (void)
   ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
 #else /* not HAVE_WINDOW_SYSTEM */
 /* If there is no window system, there are no scroll bars.  */
-#define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((void) f, vertical_scroll_bar_none)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) f, 0)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) f, 0)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) f, 0)
+#define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) \
+  ((void) (f), vertical_scroll_bar_none)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) (f), 0)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) (f), 0)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) (f), 0)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #if defined (HAVE_WINDOW_SYSTEM)
 #define FRAME_UNDECORATED(f) ((f)->undecorated)
 #ifdef HAVE_NTGUI
-#define FRAME_OVERRIDE_REDIRECT(f) ((void) f, 0)
+#define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
 #else
 #define FRAME_OVERRIDE_REDIRECT(f) ((f)->override_redirect)
 #endif
@@ -928,23 +961,31 @@ default_pixels_per_inch_y (void)
 #define FRAME_SKIP_TASKBAR(f) ((f)->skip_taskbar)
 #define FRAME_NO_FOCUS_ON_MAP(f) ((f)->no_focus_on_map)
 #define FRAME_NO_ACCEPT_FOCUS(f) ((f)->no_accept_focus)
+#define FRAME_NO_SPECIAL_GLYPHS(f) ((f)->no_special_glyphs)
 #define FRAME_Z_GROUP(f) ((f)->z_group)
 #define FRAME_Z_GROUP_NONE(f) ((f)->z_group == z_group_none)
 #define FRAME_Z_GROUP_ABOVE(f) ((f)->z_group == z_group_above)
 #define FRAME_Z_GROUP_ABOVE_SUSPENDED(f)	\
   ((f)->z_group == z_group_above_suspended)
 #define FRAME_Z_GROUP_BELOW(f) ((f)->z_group == z_group_below)
+#define FRAME_TOOLTIP_P(f) ((f)->tooltip)
+#ifdef NS_IMPL_COCOA
+#define FRAME_NS_APPEARANCE(f) ((f)->ns_appearance)
+#define FRAME_NS_TRANSPARENT_TITLEBAR(f) ((f)->ns_transparent_titlebar)
+#endif
 #else /* not HAVE_WINDOW_SYSTEM */
-#define FRAME_UNDECORATED(f) ((void) f, 0)
-#define FRAME_OVERRIDE_REDIRECT(f) ((void) f, 0)
-#define FRAME_PARENT_FRAME(f) ((void) f, NULL)
-#define FRAME_SKIP_TASKBAR(f) ((void) f, 0)
-#define FRAME_NO_FOCUS_ON_MAP(f) ((void) f, 0)
-#define FRAME_NO_ACCEPT_FOCUS(f) ((void) f, 0)
-#define FRAME_Z_GROUP(f) ((void) f, z_group_none)
-#define FRAME_Z_GROUP_NONE(f) ((void) f, true)
-#define FRAME_Z_GROUP_ABOVE(f) ((void) f, false)
-#define FRAME_Z_GROUP_BELOW(f) ((void) f, false)
+#define FRAME_UNDECORATED(f) ((void) (f), 0)
+#define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
+#define FRAME_PARENT_FRAME(f) ((void) (f), NULL)
+#define FRAME_SKIP_TASKBAR(f) ((void) (f), 0)
+#define FRAME_NO_FOCUS_ON_MAP(f) ((void) (f), 0)
+#define FRAME_NO_ACCEPT_FOCUS(f) ((void) (f), 0)
+#define FRAME_NO_SPECIAL_GLYPHS(f) ((void) (f), 0)
+#define FRAME_Z_GROUP(f) ((void) (f), z_group_none)
+#define FRAME_Z_GROUP_NONE(f) ((void) (f), true)
+#define FRAME_Z_GROUP_ABOVE(f) ((void) (f), false)
+#define FRAME_Z_GROUP_BELOW(f) ((void) (f), false)
+#define FRAME_TOOLTIP_P(f) ((void) f, false)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Whether horizontal scroll bars are currently enabled for frame F.  */
@@ -952,7 +993,7 @@ default_pixels_per_inch_y (void)
 #define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) \
   ((f)->horizontal_scroll_bars)
 #else
-#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) f, 0)
+#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) (f), 0)
 #endif
 
 /* Width that a scroll bar in frame F should have, if there is one.
@@ -1111,8 +1152,7 @@ default_pixels_per_inch_y (void)
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
    `for' loop which iterates over the elements of Vframe_list.  The
    loop will set FRAME_VAR, a Lisp_Object, to each frame in
-   Vframe_list in succession and execute the statement.  Vframe_list
-   should be nonempty, so the body is executed at least once.  LIST_VAR
+   Vframe_list in succession and execute the statement.  LIST_VAR
    should be a Lisp_Object too; it is used to iterate through the
    Vframe_list.  Note that this macro walks over child frames and
    the tooltip frame as well.
@@ -1122,7 +1162,7 @@ default_pixels_per_inch_y (void)
    something which executes the statement once.  */
 
 #define FOR_EACH_FRAME(list_var, frame_var)	\
-  for ((list_var) = (eassume (CONSP (Vframe_list)), Vframe_list); \
+  for ((list_var) = Vframe_list;		\
        (CONSP (list_var)			\
 	&& (frame_var = XCAR (list_var), true)); \
        list_var = XCDR (list_var))
@@ -1288,19 +1328,20 @@ FRAME_TOTAL_FRINGE_WIDTH (struct frame *f)
   return FRAME_LEFT_FRINGE_WIDTH (f) + FRAME_RIGHT_FRINGE_WIDTH (f);
 }
 
-/* Pixel-width of internal border lines */
+/* Pixel-width of internal border lines.  */
 INLINE int
 FRAME_INTERNAL_BORDER_WIDTH (struct frame *f)
 {
   return frame_dimension (f->internal_border_width);
 }
 
-/* Pixel-size of window divider lines */
+/* Pixel-size of window divider lines.  */
 INLINE int
 FRAME_RIGHT_DIVIDER_WIDTH (struct frame *f)
 {
   return frame_dimension (f->right_divider_width);
 }
+
 INLINE int
 FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 {
@@ -1498,6 +1539,7 @@ extern void x_set_scroll_bar_height (struct frame *, Lisp_Object, Lisp_Object);
 extern long x_figure_window_size (struct frame *, Lisp_Object, bool, int *, int *);
 
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);
 
@@ -1521,6 +1563,7 @@ extern void x_real_positions (struct frame *, int *, int *);
 extern void free_frame_menubar (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 extern bool frame_ancestor_p (struct frame *af, struct frame *df);
+extern enum internal_border_part frame_internal_border_part (struct frame *f, int x, int y);
 
 #if defined HAVE_X_WINDOWS
 extern void x_wm_set_icon_position (struct frame *, int, int);

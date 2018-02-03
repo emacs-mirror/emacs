@@ -2,7 +2,7 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993-2017 Free Software Foundation, Inc.
+   Copyright (C) 1993-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* TODO:
    - structure the opcode space into opcode+flag.
@@ -306,9 +306,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 /* In Emacs, these are only used for single-byte characters.  */
 # define ISDIGIT(c) ((c) >= '0' && (c) <= '9')
 # define ISCNTRL(c) ((c) < ' ')
-# define ISXDIGIT(c) (((c) >= '0' && (c) <= '9')		\
-		     || ((c) >= 'a' && (c) <= 'f')	\
-		     || ((c) >= 'A' && (c) <= 'F'))
+# define ISXDIGIT(c) (0 <= char_hexdigit (c))
 
 /* The rest must handle multibyte characters.  */
 
@@ -521,13 +519,7 @@ ptrdiff_t emacs_re_safe_alloca = MAX_ALLOCA;
 #endif
 
 /* Type of source-pattern and string chars.  */
-#ifdef _MSC_VER
-typedef unsigned char re_char;
-typedef const re_char const_re_char;
-#else
 typedef const unsigned char re_char;
-typedef re_char const_re_char;
-#endif
 
 typedef char boolean;
 
@@ -1202,7 +1194,8 @@ static const char *re_error_msgid[] =
     gettext_noop ("Premature end of regular expression"), /* REG_EEND */
     gettext_noop ("Regular expression too big"), /* REG_ESIZE */
     gettext_noop ("Unmatched ) or \\)"), /* REG_ERPAREN */
-    gettext_noop ("Range striding over charsets") /* REG_ERANGEX  */
+    gettext_noop ("Range striding over charsets"), /* REG_ERANGEX  */
+    gettext_noop ("Invalid content of \\{\\}, repetitions too big") /* REG_ESIZEBR  */
   };
 
 /* Whether to allocate memory during matching.  */
@@ -1923,7 +1916,7 @@ struct range_table_work_area
 	    if (num < 0)						\
 	      num = 0;							\
 	    if (RE_DUP_MAX / 10 - (RE_DUP_MAX % 10 < c - '0') < num)	\
-	      FREE_STACK_RETURN (REG_BADBR);				\
+	      FREE_STACK_RETURN (REG_ESIZEBR);				\
 	    num = num * 10 + c - '0';					\
 	    if (p == pend)						\
 	      FREE_STACK_RETURN (REG_EBRACE);				\
@@ -1944,7 +1937,7 @@ struct range_table_work_area
    returned.  If name is not a valid character class name zero, or RECC_ERROR,
    is returned.
 
-   Otherwise, if *strp doesn’t begin with "[:name:]", -1 is returned.
+   Otherwise, if *strp doesn't begin with "[:name:]", -1 is returned.
 
    The function can be used on ASCII and multibyte (UTF-8-encoded) strings.
  */
@@ -1956,8 +1949,8 @@ re_wctype_parse (const unsigned char **strp, unsigned limit)
   if (limit < 4 || beg[0] != '[' || beg[1] != ':')
     return -1;
 
-  beg += 2;  /* skip opening ‘[:’ */
-  limit -= 3;  /* opening ‘[:’ and half of closing ‘:]’; --limit handles rest */
+  beg += 2;  /* skip opening "[:" */
+  limit -= 3;  /* opening "[:" and half of closing ":]"; --limit handles rest */
   for (it = beg; it[0] != ':' || it[1] != ']'; ++it)
     if (!--limit)
       return -1;
@@ -1987,7 +1980,7 @@ re_wctype_parse (const unsigned char **strp, unsigned limit)
            2 [:cntrl:]
            1 [:ff:]
 
-     If you update this list, consider also updating chain of or’ed conditions
+     If you update this list, consider also updating chain of or'ed conditions
      in execute_charset function.
    */
 
@@ -2405,7 +2398,7 @@ do {									\
   } while (0)
 
 static reg_errcode_t
-regex_compile (const_re_char *pattern, size_t size,
+regex_compile (re_char *pattern, size_t size,
 #ifdef emacs
 # define syntax RE_SYNTAX_EMACS
 	       bool posix_backtracking,
@@ -2636,8 +2629,9 @@ regex_compile (const_re_char *pattern, size_t size,
 	  if ((syntax & RE_BK_PLUS_QM)
 	      || (syntax & RE_LIMITED_OPS))
 	    goto normal_char;
-	handle_plus:
+	  FALLTHROUGH;
 	case '*':
+	handle_plus:
 	  /* If there is no previous pattern...  */
 	  if (!laststart)
 	    {
@@ -3086,6 +3080,7 @@ regex_compile (const_re_char *pattern, size_t size,
 				   with non-0. */
 				if (regnum == 0)
 				  FREE_STACK_RETURN (REG_BADPAT);
+				FALLTHROUGH;
 			      case '1': case '2': case '3': case '4':
 			      case '5': case '6': case '7': case '8': case '9':
 				regnum = 10*regnum + (c - '0'); break;
@@ -3728,7 +3723,7 @@ insert_op2 (re_opcode_t op, unsigned char *loc, int arg1, int arg2, unsigned cha
    least one character before the ^.  */
 
 static boolean
-at_begline_loc_p (const_re_char *pattern, const_re_char *p, reg_syntax_t syntax)
+at_begline_loc_p (re_char *pattern, re_char *p, reg_syntax_t syntax)
 {
   re_char *prev = p - 2;
   boolean odd_backslashes;
@@ -3769,7 +3764,7 @@ at_begline_loc_p (const_re_char *pattern, const_re_char *p, reg_syntax_t syntax)
    at least one character after the $, i.e., `P < PEND'.  */
 
 static boolean
-at_endline_loc_p (const_re_char *p, const_re_char *pend, reg_syntax_t syntax)
+at_endline_loc_p (re_char *p, re_char *pend, reg_syntax_t syntax)
 {
   re_char *next = p;
   boolean next_backslash = *next == '\\';
@@ -3813,7 +3808,7 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
    Return -1 if fastmap was not updated accurately.  */
 
 static int
-analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
+analyze_first (re_char *p, re_char *pend, char *fastmap,
 	       const int multibyte)
 {
   int j, k;
@@ -3905,8 +3900,7 @@ analyze_first (const_re_char *p, const_re_char *pend, char *fastmap,
 		 j < (1 << BYTEWIDTH); j++)
 	      fastmap[j] = 1;
 	  }
-
-	  /* Fallthrough */
+	  FALLTHROUGH;
 	case charset:
 	  if (!fastmap) break;
 	  not = (re_opcode_t) *(p - 1) == charset_not;
@@ -4556,7 +4550,7 @@ static int bcmp_translate (re_char *s1, re_char *s2,
 /* If the operation is a match against one or more chars,
    return a pointer to the next operation, else return NULL.  */
 static re_char *
-skip_one_char (const_re_char *p)
+skip_one_char (re_char *p)
 {
   switch (*p++)
     {
@@ -4598,7 +4592,7 @@ skip_one_char (const_re_char *p)
 
 /* Jump over non-matching operations.  */
 static re_char *
-skip_noops (const_re_char *p, const_re_char *pend)
+skip_noops (re_char *p, re_char *pend)
 {
   int mcnt;
   while (p < pend)
@@ -4629,7 +4623,7 @@ skip_noops (const_re_char *p, const_re_char *pend)
    character (i.e. without any translations).  UNIBYTE denotes whether c is
    unibyte or multibyte character. */
 static bool
-execute_charset (const_re_char **pp, unsigned c, unsigned corig, bool unibyte)
+execute_charset (re_char **pp, unsigned c, unsigned corig, bool unibyte)
 {
   re_char *p = *pp, *rtp = NULL;
   bool not = (re_opcode_t) *p == charset_not;
@@ -4693,8 +4687,8 @@ execute_charset (const_re_char **pp, unsigned c, unsigned corig, bool unibyte)
 
 /* Non-zero if "p1 matches something" implies "p2 fails".  */
 static int
-mutually_exclusive_p (struct re_pattern_buffer *bufp, const_re_char *p1,
-		      const_re_char *p2)
+mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
+		      re_char *p2)
 {
   re_opcode_t op2;
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
@@ -4932,8 +4926,8 @@ WEAK_ALIAS (__re_match_2, re_match_2)
 /* This is a separate function so that we can force an alloca cleanup
    afterwards.  */
 static regoff_t
-re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
-		     size_t size1, const_re_char *string2, size_t size2,
+re_match_2_internal (struct re_pattern_buffer *bufp, re_char *string1,
+		     size_t size1, re_char *string2, size_t size2,
 		     ssize_t pos, struct re_registers *regs, ssize_t stop)
 {
   /* General temporaries.  */
@@ -6182,8 +6176,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 	    case on_failure_jump_nastyloop:
 	      assert ((re_opcode_t)pat[-2] == no_op);
 	      PUSH_FAILURE_POINT (pat - 2, str);
-	      /* Fallthrough */
-
+	      FALLTHROUGH;
 	    case on_failure_jump_loop:
 	    case on_failure_jump:
 	    case succeed_n:
@@ -6224,10 +6217,10 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
    bytes; nonzero otherwise.  */
 
 static int
-bcmp_translate (const_re_char *s1, const_re_char *s2, register ssize_t len,
+bcmp_translate (re_char *s1, re_char *s2, ssize_t len,
 		RE_TRANSLATE_TYPE translate, const int target_multibyte)
 {
-  register re_char *p1 = s1, *p2 = s2;
+  re_char *p1 = s1, *p2 = s2;
   re_char *p1_end = s1 + len;
   re_char *p2_end = s2 + len;
 

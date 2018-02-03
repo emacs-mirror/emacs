@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -21,7 +21,8 @@ documentation about indenting in programming modes.
   The simplest way to perform indentation is the @key{TAB} key.  In
 most major modes, this runs the command @code{indent-for-tab-command}.
 (In C and related modes, @key{TAB} runs the command
-@code{c-indent-line-or-region}, which behaves similarly).
+@code{c-indent-line-or-region}, which behaves similarly, @pxref{C
+Indent}).
 
 @table @key
 @item TAB
@@ -200,7 +201,6 @@ are always displayed as empty spaces extending to the next
 @node Just Spaces
 @section Tabs vs.@: Spaces
 
-@vindex tab-width
   Normally, indentation commands insert (or remove) an optimal mix of
 space characters and tab characters to align to the desired column.
 Tab characters are displayed as a stretch of empty space extending to

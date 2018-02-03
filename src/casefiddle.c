@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2017 Free Software Foundation,
+Copyright (C) 1985, 1994, 1997-1999, 2001-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -133,9 +133,9 @@ case_character_impl (struct casing_str_buf *buf,
           struct Lisp_String *str = XSTRING (prop);
           if (STRING_BYTES (str) <= sizeof buf->data)
 	    {
-	      buf->len_chars = str->size;
+	      buf->len_chars = str->u.s.size;
 	      buf->len_bytes = STRING_BYTES (str);
-	      memcpy (buf->data, str->data, buf->len_bytes);
+	      memcpy (buf->data, str->u.s.data, buf->len_bytes);
 	      return 1;
 	    }
         }

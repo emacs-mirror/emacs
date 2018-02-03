@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2017 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1040,13 +1040,9 @@ With non-nil ARG, uncomments the region."
 Any other key combination is executed normally."
   (interactive "*")
   (insert last-command-event)
-  (let* ((event (if (fboundp 'next-command-event) ; XEmacs
-                    (next-command-event)
-                  (read-event)))
-         (char (if (fboundp 'event-to-character)
-                   (event-to-character event) event)))
+  (let ((event (read-event)))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (or (eq char ??) (eq char help-char)
+    (if (and abbrev-mode (or (eq event ??) (eq event help-char)
                              (memq event help-event-list)))
         (fortran-abbrev-help)
       (push event unread-command-events))))

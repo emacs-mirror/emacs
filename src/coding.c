@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, etc).
-   Copyright (C) 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -21,7 +21,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*** TABLE OF CONTENTS ***
 
@@ -1514,13 +1514,6 @@ encode_coding_utf_8 (struct coding_system *coding)
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
    Return true if a text is encoded in one of UTF-16 based coding systems.  */
-
-#define UTF_16_HIGH_SURROGATE_P(val) \
-  (((val) & 0xFC00) == 0xD800)
-
-#define UTF_16_LOW_SURROGATE_P(val) \
-  (((val) & 0xFC00) == 0xDC00)
-
 
 static bool
 detect_coding_utf_16 (struct coding_system *coding,
@@ -3611,7 +3604,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	      || CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS)
 	    goto invalid_code;
 	  /* This is a graphic character, we fall down ... */
-
+	  FALLTHROUGH;
 	case ISO_graphic_plane_1:
 	  if (charset_id_1 < 0)
 	    goto invalid_code;
@@ -3646,6 +3639,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	case ISO_single_shift_2_7:
 	  if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS))
 	    goto invalid_code;
+	  FALLTHROUGH;
 	case ISO_single_shift_2:
 	  if (! (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SINGLE_SHIFT))
 	    goto invalid_code;
@@ -3797,6 +3791,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 		{
 		case ']':	/* end of the current direction */
 		  coding->mode &= ~CODING_MODE_DIRECTION;
+		  break;
 
 		case '0':	/* end of the current direction */
 		case '1':	/* start of left-to-right direction */
@@ -6358,6 +6353,27 @@ check_utf_8 (struct coding_system *coding)
 }
 
 
+/* Return whether STRING is a valid UTF-8 string.  STRING must be a
+   unibyte string.  */
+
+bool
+utf8_string_p (Lisp_Object string)
+{
+  eassert (!STRING_MULTIBYTE (string));
+  struct coding_system coding;
+  setup_coding_system (Qutf_8_unix, &coding);
+  /* We initialize only the fields that check_utf_8 accesses.  */
+  coding.head_ascii = -1;
+  coding.src_pos = 0;
+  coding.src_pos_byte = 0;
+  coding.src_chars = SCHARS (string);
+  coding.src_bytes = SBYTES (string);
+  coding.src_object = string;
+  coding.eol_seen = EOL_SEEN_NONE;
+  return check_utf_8 (&coding) != -1;
+}
+
+
 /* Detect how end-of-line of a text of length SRC_BYTES pointed by
    SOURCE is encoded.  If CATEGORY is one of
    coding_category_utf_16_XXXX, assume that CR and LF are encoded by
@@ -7421,10 +7437,23 @@ decode_coding (struct coding_system *coding)
 
 	  while (nbytes-- > 0)
 	    {
-	      int c = *src++;
+	      int c;
 
-	      if (c & 0x80)
-		c = BYTE8_TO_CHAR (c);
+	      /* Copy raw bytes in their 2-byte forms from multibyte
+		 text as single characters.  */
+	      if (coding->src_multibyte
+		  && CHAR_BYTE8_HEAD_P (*src) && nbytes > 0)
+		{
+		  c = STRING_CHAR_ADVANCE (src);
+		  nbytes--;
+		}
+	      else
+		{
+		  c = *src++;
+
+		  if (c & 0x80)
+		    c = BYTE8_TO_CHAR (c);
+		}
 	      coding->charbuf[coding->charbuf_used++] = c;
 	    }
 	  produce_chars (coding, Qnil, 1);
@@ -10234,7 +10263,7 @@ usage: (define-coding-system-internal ...)  */)
       ASET (attrs, coding_attr_ccl_encoder, val);
 
       val = args[coding_arg_ccl_valids];
-      valids = Fmake_string (make_number (256), make_number (0));
+      valids = Fmake_string (make_number (256), make_number (0), Qnil);
       for (tail = val; CONSP (tail); tail = XCDR (tail))
 	{
 	  int from, to;
@@ -10537,7 +10566,7 @@ usage: (define-coding-system-internal ...)  */)
 	  ASET (this_spec, 2, this_eol_type);
 	  Fputhash (this_name, this_spec, Vcoding_system_hash_table);
 	  Vcoding_system_list = Fcons (this_name, Vcoding_system_list);
-	  val = Fassoc (Fsymbol_name (this_name), Vcoding_system_alist);
+	  val = Fassoc (Fsymbol_name (this_name), Vcoding_system_alist, Qnil);
 	  if (NILP (val))
 	    Vcoding_system_alist
 	      = Fcons (Fcons (Fsymbol_name (this_name), Qnil),
@@ -10552,7 +10581,7 @@ usage: (define-coding-system-internal ...)  */)
 
   Fputhash (name, spec_vec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (name, Vcoding_system_list);
-  val = Fassoc (Fsymbol_name (name), Vcoding_system_alist);
+  val = Fassoc (Fsymbol_name (name), Vcoding_system_alist, Qnil);
   if (NILP (val))
     Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (name), Qnil),
 				  Vcoding_system_alist);
@@ -10660,7 +10689,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
   Vcoding_system_list = Fcons (alias, Vcoding_system_list);
-  val = Fassoc (Fsymbol_name (alias), Vcoding_system_alist);
+  val = Fassoc (Fsymbol_name (alias), Vcoding_system_alist, Qnil);
   if (NILP (val))
     Vcoding_system_alist = Fcons (Fcons (Fsymbol_name (alias), Qnil),
 				  Vcoding_system_alist);
@@ -10844,6 +10873,7 @@ syms_of_coding (void)
   DEFSYM (Qiso_2022, "iso-2022");
 
   DEFSYM (Qutf_8, "utf-8");
+  DEFSYM (Qutf_8_unix, "utf-8-unix");
   DEFSYM (Qutf_8_emacs, "utf-8-emacs");
 
 #if defined (WINDOWSNT) || defined (CYGWIN)

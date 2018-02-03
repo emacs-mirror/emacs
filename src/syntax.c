@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2017 Free
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2018 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -605,6 +605,26 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
       && MODIFF == find_start_modiff)
     return find_start_value;
 
+  if (!NILP (Vcomment_use_syntax_ppss))
+    {
+      EMACS_INT modiffs = CHARS_MODIFF;
+      Lisp_Object ppss = call1 (Qsyntax_ppss, make_number (pos));
+      if (modiffs != CHARS_MODIFF)
+	error ("syntax-ppss modified the buffer!");
+      TEMP_SET_PT_BOTH (opoint, opoint_byte);
+      Lisp_Object boc = Fnth (make_number (8), ppss);
+      if (NUMBERP (boc))
+        {
+          find_start_value = XINT (boc);
+          find_start_value_byte = CHAR_TO_BYTE (find_start_value);
+        }
+      else
+        {
+          find_start_value = pos;
+          find_start_value_byte = pos_byte;
+        }
+      goto found;
+    }
   if (!open_paren_in_column_0_is_defun_start)
     {
       find_start_value = BEGV;
@@ -810,6 +830,7 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	case Sstring_fence:
 	case Scomment_fence:
 	  c = (code == Sstring_fence ? ST_STRING_STYLE : ST_COMMENT_STYLE);
+	  FALLTHROUGH;
 	case Sstring:
 	  /* Track parity of quotes.  */
 	  if (string_style == -1)
@@ -873,6 +894,7 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	case Sopen:
 	  /* Assume a defun-start point is outside of strings.  */
 	  if (open_paren_in_column_0_is_defun_start
+              && NILP (Vcomment_use_syntax_ppss)
 	      && (from == stop
 		  || (temp_byte = dec_bytepos (from_byte),
 		      FETCH_CHAR (temp_byte) == '\n')))
@@ -1086,7 +1108,12 @@ DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
 For example, if CHARACTER is a word constituent, the
 character `w' (119) is returned.
 The characters that correspond to various syntax codes
-are listed in the documentation of `modify-syntax-entry'.  */)
+are listed in the documentation of `modify-syntax-entry'.
+
+If you're trying to determine the syntax of characters in the buffer,
+this is probably the wrong function to use, because it can't take
+`syntax-table' text properties into account.  Consider using
+`syntax-after' instead.  */)
   (Lisp_Object character)
 {
   int char_int;
@@ -2690,6 +2717,7 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		goto lose;
 	      INC_BOTH (from, from_byte);
 	      /* Treat following character as a word constituent.  */
+	      FALLTHROUGH;
 	    case Sword:
 	    case Ssymbol:
 	      if (depth || !sexpflag) break;
@@ -2721,7 +2749,7 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 
 	    case Scomment_fence:
 	      comstyle = ST_COMMENT_STYLE;
-	      /* FALLTHROUGH */
+	      FALLTHROUGH;
 	    case Scomment:
 	      if (!parse_sexp_ignore_comments) break;
 	      UPDATE_SYNTAX_TABLE_FORWARD (from);
@@ -2753,7 +2781,7 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		  goto close1;
 		}
 	      mathexit = 1;
-
+	      FALLTHROUGH;
 	    case Sopen:
 	      if (!++depth) goto done;
 	      break;
@@ -2909,7 +2937,7 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		  goto open2;
 		}
 	      mathexit = 1;
-
+	      FALLTHROUGH;
 	    case Sclose:
 	      if (!++depth) goto done2;
 	      break;
@@ -3687,6 +3715,11 @@ void
 syms_of_syntax (void)
 {
   DEFSYM (Qsyntax_table_p, "syntax-table-p");
+  DEFSYM (Qsyntax_ppss, "syntax-ppss");
+  DEFVAR_LISP ("comment-use-syntax-ppss",
+	       Vcomment_use_syntax_ppss,
+	       doc: /* Non-nil means `forward-comment' can use `syntax-ppss' internally.  */);
+  Vcomment_use_syntax_ppss = Qt;
 
   staticpro (&Vsyntax_code_object);
 

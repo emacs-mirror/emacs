@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ### update_autogen - update some auto-generated files in the Emacs tree
 
-## Copyright (C) 2011-2017 Free Software Foundation, Inc.
+## Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -18,7 +18,7 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -47,14 +47,7 @@ cd $PD
 cd ../
 [ -d admin ] || die "Could not locate admin directory"
 
-if [ -d .bzr ]; then
-    vcs=bzr
-elif [ -e .git ]; then
-    vcs=git
-else
-    die "Cannot determine vcs"
-fi
-
+[ -d .git ] || die "No .git directory"
 
 usage ()
 {
@@ -157,10 +150,7 @@ OPTIND=1
 ## Run status on inputs, list modified files on stdout.
 status ()
 {
-    local statflag="-S"
-    [ "$vcs" = "git" ] && statflag="-s"
-
-    $vcs status $statflag "$@" >| $tempfile || die "$vcs status error for $@"
+    git status -s "$@" >| $tempfile || die "git status error for $@"
 
     local stat file modified
 
@@ -234,11 +224,11 @@ commit ()
 
     echo "Committing..."
 
-    $vcs commit -m "; Auto-commit of $type files." "$@" || return $?
+    git commit -m "; Auto-commit of $type files." "$@" || return $?
 
-    [ "$vcs" = "git" ] && {
-        $vcs push || return $?
-    }
+    ## In case someone else pushed something while we were working.
+    git pull --rebase || return $?
+    git push || return $?
 
     echo "Committed files: $@"
 }                               # function commit

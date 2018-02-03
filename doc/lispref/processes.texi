@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -300,8 +300,11 @@ system, much like text written into a file.  @xref{Coding Systems}.
 @defun call-process program &optional infile destination display &rest args
 This function calls @var{program} and waits for it to finish.
 
-The current working directory of the subprocess is
-@code{default-directory}.
+The current working directory of the subprocess is set to the current
+buffer's value of @code{default-directory} if that is local (as
+determined by @code{unhandled-file-name-directory}), or "~" otherwise.
+If you want to run a process in a remote directory use
+@code{process-file}.
 
 The standard input for the new process comes from file @var{infile} if
 @var{infile} is not @code{nil}, and from the null device otherwise.
@@ -683,6 +686,12 @@ created with @code{make-pipe-process}, described below.
 
 The original argument list, modified with the actual connection
 information, is available via the @code{process-contact} function.
+
+The current working directory of the subprocess is set to the current
+buffer's value of @code{default-directory} if that is local (as
+determined by `unhandled-file-name-directory'), or "~" otherwise.  If
+you want to run a process in a remote directory use
+@code{start-file-process}.
 @end defun
 
 @defun make-pipe-process &rest args
@@ -1341,6 +1350,22 @@ The @var{process} argument can be a system process @acronym{ID} (an
 integer); that allows you to send signals to processes that are not
 children of Emacs.  @xref{System Processes}.
 @end deffn
+
+Sometimes, it is necessary to send a signal to a non-local
+asynchronous process.  This is possible by writing an own
+@code{interrupt-process} implementation.  This function must be added
+then to @code{interrupt-process-functions}.
+
+@defvar interrupt-process-functions
+This variable is a list of functions to be called for
+@code{interrupt-process}.  The arguments of the functions are the same
+as for @code{interrupt-process}.  These functions are called in the
+order of the list, until one of them returns non-@code{nil}.  The
+default function, which shall always be the last in this list, is
+@code{internal-default-interrupt-process}.
+
+This is the mechanism, how Tramp implements @code{interrupt-process}.
+@end defvar
 
 @node Output from Processes
 @section Receiving Output from Processes
@@ -2306,7 +2331,7 @@ server is stopped; a non-@code{nil} value means yes.
 Emacs can create encrypted network connections, using either built-in
 or external support.  The built-in support uses the GnuTLS
 Transport Layer Security Library; see
-@uref{http://www.gnu.org/software/gnutls/, the GnuTLS project page}.
+@uref{https://www.gnu.org/software/gnutls/, the GnuTLS project page}.
 If your Emacs was compiled with GnuTLS support, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.  For
 more details, @pxref{Top,, Overview, emacs-gnutls, The Emacs-GnuTLS manual}.
@@ -2687,8 +2712,7 @@ Initialize the process filter to @var{filter}.
 
 @item :filter-multibyte @var{multibyte}
 If @var{multibyte} is non-@code{nil}, strings given to the process
-filter are multibyte, otherwise they are unibyte.  The default is the
-default value of @code{enable-multibyte-characters}.
+filter are multibyte, otherwise they are unibyte.  The default is @code{t}.
 
 @item :sentinel @var{sentinel}
 Initialize the process sentinel to @var{sentinel}.

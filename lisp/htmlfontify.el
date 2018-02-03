@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2003, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2018 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -29,7 +29,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -370,8 +370,8 @@ commands in `hfy-etags-cmd-alist'."
         (when (eq (call-process hfy-etags-bin nil t nil "--version") 0)
           (goto-char (point-min))
           (cond
-           ((looking-at-p "exube") "exuberant ctags")
-           ((looking-at-p "GNU E") "emacs etags")))
+           ((search-forward "exube" nil t) "exuberant ctags")
+           ((search-forward "GNU E" nil t) "emacs etags")))
       ;; Return nil if the etags binary isn't executable (Bug#25468).
       (file-error nil))))
 
@@ -426,7 +426,7 @@ Some valid class specification elements are:\n
   (type       lucid)
 Multiple values for a tag may be combined, to indicate that any one or more
 of these values in the specification key constitutes a match, eg:\n
-((class color grayscale) (type tty)) would match any of:\n
+\((class color grayscale) (type tty)) would match any of:\n
   ((class color))
   ((class grayscale))
   ((class color grayscale))
@@ -461,7 +461,7 @@ and so on."
                        optimization - If on, preserve overlay highlighting
                        (cf ediff or goo-font-lock) as well as basic faces.\n
   body-text-only     : Emit only body-text. In concrete terms,
-                       1. Suppress calls to `hfy-page-header'and
+                       1. Suppress calls to `hfy-page-header' and
                           `hfy-page-footer'
                        2. Pretend that `div-wrapper' option above is
                           turned off
@@ -650,7 +650,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
       var even = false;
 
       // if arguments are provided to specify the colors
-      // of the even & odd rows, then use the them;
+      // of the even & odd rows, then use them;
       // otherwise use the following defaults:
       var evenColor = arguments[1] ? arguments[1] : \"#fff\";
       var oddColor  = arguments[2] ? arguments[2] : \"#ddd\";

@@ -1,6 +1,6 @@
 ;;; replace-tests.el --- tests for replace.el.
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Author: Juri Linkov <juri@jurta.org>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -54,7 +54,7 @@ fx
       6:fx
 ")
     ;; * Test multi-line matches, this is the first test from
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2005-06/msg01008.html
+    ;; https://lists.gnu.org/r/emacs-devel/2005-06/msg01008.html
     ;; where numbers are replaced with letters.
     ("a\na" 0 "\
 a
@@ -70,7 +70,7 @@ a
        :a
 ")
     ;; * Test multi-line matches, this is the second test from
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2005-06/msg01008.html
+    ;; https://lists.gnu.org/r/emacs-devel/2005-06/msg01008.html
     ;; where numbers are replaced with letters.
     ("a\nb" 0 "\
 a
@@ -357,5 +357,27 @@ Each element has the format:
 
 (dotimes (i (length replace-occur-tests))
   (replace-occur-test-create i))
+
+(defun replace-tests--query-replace-undo (&optional comma)
+  (with-temp-buffer
+    (insert "111")
+    (goto-char 1)
+    (let ((count 0))
+      ;; Don't wait for user input.
+      (cl-letf (((symbol-function 'read-event)
+                 (lambda (&rest args)
+                   (cl-incf count)
+                   (let ((val (pcase count
+                                ('2 (if comma ?, ?\s)) ; replace and: ',' no move; '\s' go next
+                                ('3 ?u) ; undo
+                                ('4 ?q) ; exit
+                                (_ ?\s)))) ; replace current and go next
+                     val))))
+        (perform-replace "1" "2" t nil nil)))
+    (buffer-string)))
+
+(ert-deftest query-replace--undo ()
+  (should (string= "211" (replace-tests--query-replace-undo)))
+  (should (string= "211" (replace-tests--query-replace-undo 'comma))))
 
 ;;; replace-tests.el ends here

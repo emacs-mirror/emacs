@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1249,6 +1249,9 @@ The return value of this function is the retrieval buffer."
 	 (nsm-noninteractive (or url-request-noninteractive
 				 (and (boundp 'url-http-noninteractive)
 				      url-http-noninteractive)))
+         ;; The following binding is needed in url-open-stream, which
+         ;; is called from url-http-find-free-connection.
+         (url-current-object url)
          (connection (url-http-find-free-connection (url-host url)
                                                     (url-port url)
                                                     gateway-method))
@@ -1381,7 +1384,7 @@ The return value of this function is the retrieval buffer."
                (error "error: %s" e)))
           (error "error: gnutls support needed!")))
        (t
-        (message "error response: %d" url-http-response-status)
+        (url-http-debug "error response: %d" url-http-response-status)
         (url-http-activate-callback))))))
 
 (defun url-http-async-sentinel (proc why)

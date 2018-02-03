@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -726,7 +726,9 @@ This is done after all necessary filtering has been done."
 		  (setq obeg (+ obeg nchars)))
 	      (if (<= (point) oend)
 		  (setq oend (+ oend nchars)))
-	      (insert-before-markers string)
+              ;; Let the ansi-color overlay hooks run.
+              (let ((inhibit-modification-hooks nil))
+                (insert-before-markers string))
 	      (if (= (window-start) (point))
 		  (set-window-start (selected-window)
 				    (- (point) nchars)))

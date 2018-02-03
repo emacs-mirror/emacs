@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -52,7 +52,27 @@ set this variable to \"normal:-dhe-rsa\"."
                  string))
 
 (defcustom gnutls-verify-error nil
-  "If non-nil, this should be a list of checks per hostname regex or t."
+  "If non-nil, this should be t or a list of checks per hostname regex.
+If nil, the default, failures in certificate verification will be
+logged (subject to `gnutls-log-level'), but the connection will be
+allowed to proceed.
+If the value is a list, it should have the form
+
+   ((HOST-REGEX FLAGS...) (HOST-REGEX FLAGS...) ...)
+
+where each HOST-REGEX is a regular expression to be matched
+against the hostname, and FLAGS is either t or a list of
+one or more verification flags.  The supported flags and the
+corresponding conditions to be tested are:
+
+  :trustfiles -- certificate must be issued by a trusted authority.
+  :hostname   -- hostname must match presented certificate's host name.
+  t           -- all of the above conditions are tested.
+
+If the condition test fails, an error will be signaled.
+
+If the value of this variable is t, every connection will be subjected
+to all of the tests described above."
   :group 'gnutls
   :version "24.4"
   :type '(choice
@@ -72,6 +92,7 @@ set this variable to \"normal:-dhe-rsa\"."
     "/etc/ssl/ca-bundle.pem"                 ; Suse
     "/usr/ssl/certs/ca-bundle.crt"           ; Cygwin
     "/usr/local/share/certs/ca-root-nss.crt" ; FreeBSD
+    "/etc/ssl/cert.pem"                      ; macOS
     )
   "List of CA bundle location filenames or a function returning said list.
 The files may be in PEM or DER format, as per the GnuTLS documentation.
@@ -196,7 +217,7 @@ For the meaning of the rest of the parameters, see `gnutls-boot-parameters'."
 
 TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
 HOSTNAME is the remote hostname.  It must be a valid string.
-PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
+PRIORITY-STRING is as per the GnuTLS docs, default is based on \"NORMAL\".
 TRUSTFILES is a list of CA bundles.  It defaults to `gnutls-trustfiles'.
 CRLFILES is a list of CRL files.
 KEYLIST is an alist of (client key file, client cert file) pairs.
@@ -240,33 +261,37 @@ here's a recent version of the list.
 
 It must be omitted, a number, or nil; if omitted or nil it
 defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
-  (let ((trustfiles (or trustfiles (gnutls-trustfiles)))
-        (priority-string (or priority-string
-                             (cond
-                              ((eq type 'gnutls-anon)
-                               "NORMAL:+ANON-DH:!ARCFOUR-128")
-                              ((eq type 'gnutls-x509pki)
-                               (if gnutls-algorithm-priority
-                                   (upcase gnutls-algorithm-priority)
-                                 "NORMAL")))))
-        (verify-error (or verify-error
-                          ;; this uses the value of `gnutls-verify-error'
-                          (cond
-                           ;; if t, pass it on
-                           ((eq gnutls-verify-error t)
-                            t)
-                           ;; if a list, look for hostname matches
-                           ((listp gnutls-verify-error)
-                            (apply 'append
-                                   (mapcar
-                                    (lambda (check)
-                                      (when (string-match (nth 0 check)
-                                                          hostname)
-                                        (nth 1 check)))
-                                    gnutls-verify-error)))
-                           ;; else it's nil
-                           (t nil))))
-        (min-prime-bits (or min-prime-bits gnutls-min-prime-bits)))
+  (let* ((trustfiles (or trustfiles (gnutls-trustfiles)))
+         (maybe-dumbfw (if (memq 'ClientHello\ Padding (gnutls-available-p))
+                           ":%DUMBFW"
+                         ""))
+         (priority-string (or priority-string
+                              (cond
+                               ((eq type 'gnutls-anon)
+                                (concat "NORMAL:+ANON-DH:!ARCFOUR-128"
+                                        maybe-dumbfw))
+                               ((eq type 'gnutls-x509pki)
+                                (if gnutls-algorithm-priority
+                                    (upcase gnutls-algorithm-priority)
+                                  (concat "NORMAL" maybe-dumbfw))))))
+         (verify-error (or verify-error
+                           ;; this uses the value of `gnutls-verify-error'
+                           (cond
+                            ;; if t, pass it on
+                            ((eq gnutls-verify-error t)
+                             t)
+                            ;; if a list, look for hostname matches
+                            ((listp gnutls-verify-error)
+                             (apply 'append
+                                    (mapcar
+                                     (lambda (check)
+                                       (when (string-match (nth 0 check)
+                                                           hostname)
+                                         (nth 1 check)))
+                                     gnutls-verify-error)))
+                            ;; else it's nil
+                            (t nil))))
+         (min-prime-bits (or min-prime-bits gnutls-min-prime-bits)))
 
     (when verify-hostname-error
       (push :hostname verify-error))

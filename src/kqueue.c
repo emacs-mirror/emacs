@@ -1,6 +1,6 @@
 /* Filesystem notifications support with kqueue API.
 
-Copyright (C) 2015-2017 Free Software Foundation, Inc.
+Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
-#include <sys/file.h>
+#include <fcntl.h>
 #include "lisp.h"
 #include "keyboard.h"
 #include "process.h"
@@ -42,7 +42,7 @@ static Lisp_Object watch_list;
 
 /* Generate a list from the directory_files_internal output.
    Items are (INODE FILE-NAME LAST-MOD LAST-STATUS-MOD SIZE).  */
-Lisp_Object
+static Lisp_Object
 kqueue_directory_listing (Lisp_Object directory_files)
 {
   Lisp_Object dl, result = Qnil;
@@ -130,7 +130,7 @@ kqueue_compare_dir_list (Lisp_Object watch_object)
     return;
   }
   new_directory_files =
-    directory_files_internal (dir, Qnil, Qnil, Qnil, 1, Qnil);
+    directory_files_internal (dir, Qnil, Qnil, Qnil, true, Qnil);
   new_dl = kqueue_directory_listing (new_directory_files);
 
   /* Parse through the old list.  */
@@ -453,7 +453,7 @@ only when the upper directory of the renamed file is watched.  */)
   if (NILP (Ffile_directory_p (file)))
     watch_object = list4 (watch_descriptor, file, flags, callback);
   else {
-    dir_list = directory_files_internal (file, Qnil, Qnil, Qnil, 1, Qnil);
+    dir_list = directory_files_internal (file, Qnil, Qnil, Qnil, true, Qnil);
     watch_object = list5 (watch_descriptor, file, flags, callback, dir_list);
   }
   watch_list = Fcons (watch_object, watch_list);

@@ -1,6 +1,6 @@
 ;;; mh-tool-bar.el --- MH-E tool bar support
 
-;; Copyright (C) 2002-2003, 2005-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

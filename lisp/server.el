@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2017 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -525,30 +525,38 @@ Creates the directory if necessary and makes sure:
     ;; Check that it's safe for use.
     (let* ((uid (nth 2 attrs))
 	   (w32 (eq system-type 'windows-nt))
-	   (safe (cond
-		  ((not (eq t (car attrs))) nil)  ; is a dir?
-		  ((and w32 (zerop uid))	  ; on FAT32?
-		   (display-warning
-		    'server
-		    (format-message "\
+           (unsafe (cond
+                    ((not (eq t (car attrs)))
+                     (if (null attrs) "its attributes can't be checked"
+                       (format "it is a %s"
+                               (if (stringp (car attrs))
+                                   "symlink" "file"))))
+                    ((and w32 (zerop uid)) ; on FAT32?
+                     (display-warning
+                      'server
+                      (format-message "\
 Using `%s' to store Emacs-server authentication files.
 Directories on FAT32 filesystems are NOT secure against tampering.
 See variable `server-auth-dir' for details."
-			    (file-name-as-directory dir))
-		    :warning)
-		   t)
-		  ((and (/= uid (user-uid))	  ; is the dir ours?
-			(or (not w32)
-			    ;; Files created on Windows by Administrator
-			    ;; (RID=500) have the Administrators (RID=544)
-			    ;; group recorded as the owner.
-			    (/= uid 544) (/= (user-uid) 500)))
-		   nil)
-		  (w32 t)			  ; on NTFS?
-		  (t				  ; else, check permissions
-		   (zerop (logand ?\077 (file-modes dir)))))))
-      (unless safe
-	(error "The directory `%s' is unsafe" dir)))))
+                                      (file-name-as-directory dir))
+                      :warning)
+                     nil)
+                    ((and (/= uid (user-uid)) ; is the dir ours?
+                          (or (not w32)
+                              ;; Files created on Windows by Administrator
+                              ;; (RID=500) have the Administrators (RID=544)
+                              ;; group recorded as the owner.
+                              (/= uid 544) (/= (user-uid) 500)))
+                     (format "it is not owned by you (owner = %s (%d))"
+                             (user-full-name uid) uid))
+                    (w32 nil)           ; on NTFS?
+                    ((/= 0 (logand ?\077 (file-modes dir)))
+                     (format "it is accessible by others (%03o)"
+                             (file-modes dir)))
+                    (t nil))))
+      (when unsafe
+        (error "`%s' is not a safe directory because %s"
+               (expand-file-name dir) unsafe)))))
 
 (defun server-generate-key ()
   "Generate and return a random authentication key.
@@ -1053,9 +1061,8 @@ The following commands are accepted by the client:
           ;; supported any more.
           (cl-assert (eq (match-end 0) (length string)))
 	  (let ((request (substring string 0 (match-beginning 0)))
-		(coding-system (and (default-value 'enable-multibyte-characters)
-				    (or file-name-coding-system
-					default-file-name-coding-system)))
+		(coding-system (or file-name-coding-system
+				   default-file-name-coding-system))
 		nowait     ; t if emacsclient does not want to wait for us.
 		frame      ; Frame opened for the client (if any).
 		display    ; Open frame on this display.

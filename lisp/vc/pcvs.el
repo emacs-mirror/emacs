@@ -1,17 +1,17 @@
 ;;; pcvs.el --- a front-end to CVS  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
 
-;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
-;;	(Per Cederqvist) ceder@lysator.liu.se
-;;	(Greg A. Woods) woods@weird.com
-;;	(Jim Blandy) jimb@cyclic.com
-;;	(Karl Fogel) kfogel@floss.red-bean.com
-;;	(Jim Kingdon) kingdon@cyclic.com
-;;	(Stefan Monnier) monnier@cs.yale.edu
-;;	(Greg Klanderman) greg@alphatech.com
-;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
-;; Maintainer: (Stefan Monnier) monnier@gnu.org
+;; Author: The PCL-CVS Trust <pcl-cvs@cyclic.com>
+;;	Per Cederqvist <ceder@lysator.liu.se>
+;;	Greg A. Woods <woods@weird.com>
+;;	Jim Blandy <jimb@cyclic.com>
+;;	Karl Fogel <kfogel@floss.red-bean.com>
+;;	Jim Kingdon <kingdon@cyclic.com>
+;;	Stefan Monnier <monnier@cs.yale.edu>
+;;	Greg Klanderman <greg@alphatech.com>
+;;	Jari Aalto <jari.aalto@poboxes.com>
+;; Maintainer: Stefan Monnier <monnier@gnu.org>
 ;; Keywords: CVS, vc, release management
 
 ;; This file is part of GNU Emacs.
@@ -27,7 +27,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

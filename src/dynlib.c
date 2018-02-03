@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2017 Free Software Foundation, Inc.
+Copyright 2015-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* Assume modules are enabled on modern systems...  *Yes*, the
@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "dynlib.h"
+
+#include <stddef.h>
 
 #ifdef WINDOWSNT
 
@@ -120,15 +122,13 @@ dynlib_sym (dynlib_handle_ptr h, const char *sym)
   return (void *)sym_addr;
 }
 
-bool
+void
 dynlib_addr (void *addr, const char **fname, const char **symname)
 {
   static char dll_filename[MAX_UTF8_PATH];
-  static char addr_str[22];
   static GetModuleHandleExA_Proc s_pfn_Get_Module_HandleExA = NULL;
   char *dll_fn = NULL;
   HMODULE hm_kernel32 = NULL;
-  bool result = false;
   HMODULE hm_dll = NULL;
   wchar_t mfn_w[MAX_PATH];
   char mfn_a[MAX_PATH];
@@ -206,23 +206,19 @@ dynlib_addr (void *addr, const char **fname, const char **symname)
 	    dynlib_last_err = GetLastError ();
 	}
       if (dll_fn)
-	{
-	  dostounix_filename (dll_fn);
-	  /* We cannot easily produce the function name, since
-	     typically all of the module functions will be unexported,
-	     and probably even static, which means the symbols can be
-	     obtained only if we link against libbfd (and the DLL can
-	     be stripped anyway).  So we just show the address and the
-	     file name; they can use that with addr2line or GDB to
-	     recover the symbolic name.  */
-	  sprintf (addr_str, "at 0x%x", (DWORD_PTR)addr);
-	  *symname = addr_str;
-	  result = true;
-	}
+        dostounix_filename (dll_fn);
     }
 
   *fname = dll_fn;
-  return result;
+
+  /* We cannot easily produce the function name, since typically all
+     of the module functions will be unexported, and probably even
+     static, which means the symbols can be obtained only if we link
+     against libbfd (and the DLL can be stripped anyway).  So we just
+     show the address and the file name (see print_vectorlike in
+     print.c); they can use that with addr2line or GDB to recover the
+     symbolic name.  */
+  *symname = NULL;
 }
 
 const char *
@@ -283,19 +279,19 @@ dynlib_sym (dynlib_handle_ptr h, const char *sym)
   return dlsym (h, sym);
 }
 
-bool
+void
 dynlib_addr (void *ptr, const char **path, const char **sym)
 {
+  *path = NULL;
+  *sym = NULL;
 #ifdef HAVE_DLADDR
   Dl_info info;
   if (dladdr (ptr, &info) && info.dli_fname && info.dli_sname)
     {
       *path = info.dli_fname;
       *sym = info.dli_sname;
-      return true;
     }
 #endif
-  return false;
 }
 
 const char *

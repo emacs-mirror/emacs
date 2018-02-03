@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -56,6 +56,7 @@ versions of a source file, storing information such as the creation
 time of each version, who made it, and a description of what was
 changed.
 
+@cindex VC
   The Emacs version control interface is called @dfn{VC}@.  VC
 commands work with several different version control systems;
 currently, it supports Bazaar, CVS, Git, Mercurial, Monotone, RCS,
@@ -111,7 +112,7 @@ control operations.
 
   Some uncommon or intricate version control operations, such as
 altering repository settings, are not supported in VC@.  You should
-perform such tasks outside Emacs, e.g., via the command line.
+perform such tasks outside VC, e.g., via the command line.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -129,7 +130,7 @@ you want to use.
 @end menu
 
 @node Why Version Control?
-@subsubsection Understanding the problems it addresses
+@subsubsection Understanding the Problems it Addresses
 
   Version control systems provide you with three important
 capabilities:
@@ -146,10 +147,10 @@ detected and resolved.
 
 @item
 @dfn{History}: the ability to attach historical data to your data,
-such as explanatory comments about the intention behind each change to
-it.  Even for a programmer working solo, change histories are an
-important aid to memory; for a multi-person project, they are a
-vitally important form of communication among developers.
+such as explanatory comments about the intention behind each change.
+Even for a programmer working solo, change histories are an important
+aid to memory; for a multi-person project, they are a vitally
+important form of communication among developers.
 @end itemize
 
 @node Version Control Systems
@@ -271,7 +272,7 @@ or changeset-based; and centralized or decentralized.  VC handles all
 these modes of operation, but it cannot hide the differences.
 
 @node VCS Merging
-@subsubsection Merge-based vs lock-based Version Control
+@subsubsection Merge-based vs Lock-based Version Control
 
   A version control system typically has some mechanism to coordinate
 between users who want to change the same file.  There are two ways to
@@ -1049,13 +1050,14 @@ increase the number of revisions shown in an existing
 entries} or @samp{Show unlimited entries} buttons at the end of the
 buffer.  However, RCS, SCCS, and CVS do not support this feature.
 
+@kindex C-x v h
 @findex vc-region-history
 A useful variant of examining changes is provided by the command
-@kbd{vc-region-history}, which shows a @file{*VC-history*} buffer with
-the history of changes to the region of the current file between point
-and the mark (@pxref{Mark}).  The history of changes includes the
-commit log messages and also the changes themselves in the Diff
-format.
+@kbd{vc-region-history} (by default bound to @kbd{C-x v h}), which shows
+a @file{*VC-history*} buffer with the history of changes to the region
+of the current file between point and the mark (@pxref{Mark}).  The
+history of changes includes the commit log messages and also the
+changes themselves in the Diff format.
 
 Invoke this command after marking the region of the current file in
 whose changes you are interested.  In the @file{*VC-history*} buffer
@@ -1124,7 +1126,7 @@ it is used to specify multi-file VC filesets for commands like
 @kindex C-x v d
 @findex vc-dir
   To use the VC Directory buffer, type @kbd{C-x v d} (@code{vc-dir}).
-This reads a directory name using the minibuffer, and switches to a VC
+This reads a directory's name using the minibuffer, and switches to a VC
 Directory buffer for that directory.  By default, the buffer is named
 @file{*vc-dir*}.  Its contents are described
 @iftex
@@ -1204,12 +1206,9 @@ file.  RCS and SCCS show the name of the user locking a file as its
 status.
 
 @ifnottex
-@vindex vc-stay-local
-@vindex vc-cvs-stay-local
-  On CVS and Subversion, the @code{vc-dir} command normally contacts
-the repository, which may be on a remote machine, to check for
-updates.  If you change the variable @code{vc-stay-local} or
-@code{vc-cvs-stay-local} (for CVS) to @code{nil} (@pxref{CVS
+  On CVS, the @code{vc-dir} command normally contacts the repository,
+which may be on a remote machine, to check for updates.  If you change
+the variable @code{vc-cvs-stay-local} to @code{nil} (@pxref{CVS
 Options}), then Emacs avoids contacting a remote repository when
 generating the VC Directory buffer (it will still contact it when
 necessary, e.g., when doing a commit).  This may be desirable if you
@@ -1819,17 +1818,21 @@ Go back to where you previously invoked @kbd{M-.} and friends
 
 @kindex M-.
 @findex xref-find-definitions
+@vindex xref-prompt-for-identifier
   @kbd{M-.}@: (@code{xref-find-definitions}) shows the definitions of
 the identifier at point.  With a prefix argument, or if there's no
-identifier at point, it prompts for the identifier.  If the
-identifier has only one definition, the command jumps to it.  If the
-identifier has more than one possible definition (e.g., in an
-object-oriented language, or if there's a function and a variable by
-the same name), the command shows the candidate definitions in a
-@file{*xref*} buffer, together with the files in which these
-definitions are found.  Selecting one of these candidates by typing
-@kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer showing
-the corresponding definition.
+identifier at point, it prompts for the identifier.  (If you want it
+to always prompt, customize @code{xref-prompt-for-identifier} to
+@code{t}.)
+
+If the specified identifier has only one definition, the command jumps
+to it.  If the identifier has more than one possible definition (e.g.,
+in an object-oriented language, or if there's a function and a
+variable by the same name), the command shows the candidate
+definitions in a @file{*xref*} buffer, together with the files in
+which these definitions are found.  Selecting one of these candidates
+by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
+showing the corresponding definition.
 
   When entering the identifier argument to @kbd{M-.}, the usual
 minibuffer completion commands can be used (@pxref{Completion}), with
@@ -1881,8 +1884,7 @@ the special XREF mode:
 @table @kbd
 @item @key{RET}
 @itemx mouse-2
-Display the reference on the current line and bury the @file{*xref*}
-buffer.
+Display the reference on the current line.
 @item n
 @itemx .
 @findex xref-next-line
@@ -1897,7 +1899,10 @@ Move to the previous reference and display it in the other window
 @findex xref-show-location-at-point
 Display the reference on the current line in the other window
 (@code{xref-show-location-at-point}).
-@findex xref-query-replace-in-results
+@item @key{TAB}
+@findex xref-quit-and-goto-xref
+Display the reference on the current line and bury the @file{*xref*}
+buffer (@code{xref-quit-and-goto-xref}).
 @item r @var{pattern} @key{RET} @var{replacement} @key{RET}
 Perform interactive query-replace on references that match
 @var{pattern} (@code{xref-query-replace-in-results}), replacing
@@ -1913,8 +1918,8 @@ without displaying the references.
 
 @node Identifier Search
 @subsubsection Searching and Replacing with Identifiers
-@cindex search and replace in multiple files
-@cindex multiple-file search and replace
+@cindex search and replace in multiple source files
+@cindex multiple source file search and replace
 
   The commands in this section perform various search and replace
 operations either on identifiers themselves or on files that reference
@@ -1952,7 +1957,7 @@ query-replace-regexp}.  It then performs the specified replacement in
 the names of the matching identifiers in all the places in all the
 files where these identifiers are referenced.  This is useful when you
 rename your identifiers as part of refactoring.  This command should
-be invoked in the @file{*xref*} buffer generated by @code{M-?}.
+be invoked in the @file{*xref*} buffer generated by @kbd{M-?}.
 
 @findex tags-search
   @kbd{M-x tags-search} reads a regexp using the minibuffer, then
@@ -2023,7 +2028,6 @@ Display a list of the identifiers defined in the program file
 Visit files recorded in the selected tags table.
 @end table
 
-@cindex completion (symbol names)
   In most programming language modes, you can type @kbd{C-M-i} or
 @kbd{M-@key{TAB}} (@code{completion-at-point}) to complete the symbol
 at point.  Some modes provide specialized completion for this command
@@ -2136,10 +2140,13 @@ to function definitions by giving the @samp{--declarations} option to
 @item
 In C++ code, in addition to all the tag constructs of C code, member
 functions are also recognized; member variables are also recognized,
-unless you use the @samp{--no-members} option.  Tags for variables and
-functions in classes are named @samp{@var{class}::@var{variable}} and
-@samp{@var{class}::@var{function}}.  @code{operator} definitions have
-tag names like @samp{operator+}.
+unless you use the @samp{--no-members} option.  @code{operator}
+definitions have tag names like @samp{operator+}.  If you specify the
+@samp{--class-qualify} option, tags for variables and functions in
+classes are named @samp{@var{class}::@var{variable}} and
+@samp{@var{class}::@var{function}}.  By default, class methods and
+members are not class-qualified, which allows to identify their names in
+the sources more accurately.
 
 @item
 In Java code, tags include all the constructs recognized in C++, plus
@@ -2318,7 +2325,9 @@ The @command{etags} program reads the specified files, and writes a tags
 table named @file{TAGS} in the current working directory.  You can
 optionally specify a different file name for the tags table by using the
 @samp{--output=@var{file}} option; specifying @file{-} as a file name
-prints the tags table to standard output.
+prints the tags table to standard output.  You can also append the
+newly created tags table to an existing file by using the @samp{--append}
+option.
 
   If the specified files don't exist, @command{etags} looks for
 compressed versions of them and uncompresses them to read them.  Under
@@ -2375,15 +2384,25 @@ input, by typing a dash in place of the file names, like this:
 find . -name "*.[chCH]" -print | etags -
 @end smallexample
 
-  @command{etags} recognizes the language used in an input file based
-on its file name and contents.  You can specify the language
-explicitly with the @samp{--language=@var{name}} option.  You can
-intermix these options with file names; each one applies to the file
-names that follow it.  Specify @samp{--language=auto} to tell
-@command{etags} to resume guessing the language from the file names
-and file contents.  Specify @samp{--language=none} to turn off
-language-specific processing entirely; then @command{etags} recognizes
-tags by regexp matching alone (@pxref{Etags Regexps}).
+  @command{etags} recognizes the language used in an input file based on
+its file name and contents.  It first tries to match the file's name and
+extension to the ones commonly used with certain languages.  Some
+languages have interpreters with known names (e.g., @command{perl} for
+Perl or @command{pl} for Prolog), so @command{etags} next looks for an
+interpreter specification of the form @samp{#!@var{interp}} on the first
+line of an input file, and matches that against known interpreters.  If
+none of that works, or if you want to override the automatic detection of
+the language, you can specify the language explicitly with the
+@samp{--language=@var{name}} option.  You can intermix these options with
+file names; each one applies to the file names that follow it.  Specify
+@samp{--language=auto} to tell @command{etags} to resume guessing the
+language from the file names and file contents.  Specify
+@samp{--language=none} to turn off language-specific processing entirely;
+then @command{etags} recognizes tags by regexp matching alone
+(@pxref{Etags Regexps}).  This comes in handy when an input file uses a
+language not yet supported by @command{etags}, and you want to avoid
+having @command{etags} fall back on Fortran and C as the default
+languages.
 
   The option @samp{--parse-stdin=@var{file}} is mostly useful when
 calling @command{etags} from programs.  It can be used (only once) in
@@ -2429,8 +2448,11 @@ needed to recognize what you want to tag.  If the syntax requires you
 to write @var{tagregexp} so it matches more characters beyond the tag
 itself, you should add a @var{nameregexp}, to pick out just the tag.
 This will enable Emacs to find tags more accurately and to do
-completion on tag names more reliably.  You can find some examples
-below.
+completion on tag names more reliably.  In @var{nameregexp}, it is
+frequently convenient to use ``back references'' (@pxref{Regexp
+Backslash}) to parenthesized groupings @w{@samp{\( @dots{} \)}} in
+@var{tagregexp}.  For example, @samp{\1} refers to the first such
+parenthesized grouping.  You can find some examples of this below.
 
   The @var{modifiers} are a sequence of zero or more characters that
 modify the way @command{etags} does the matching.  A regexp with no
@@ -2478,7 +2500,7 @@ following example tags the @code{DEFVAR} macros in the Emacs source
 files, for the C language only:
 
 @smallexample
---regex='@{c@}/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/'
+--regex='@{c@}/[ \t]*DEFVAR_[A-Z_ \t(]+"\([^"]+\)"/\1/'
 @end smallexample
 
 @noindent

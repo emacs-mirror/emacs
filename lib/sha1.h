@@ -1,6 +1,6 @@
 /* Declarations of functions and data types used for SHA1 sum
    library functions.
-   Copyright (C) 2000-2001, 2003, 2005-2006, 2008-2017 Free Software
+   Copyright (C) 2000-2001, 2003, 2005-2006, 2008-2018 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify it
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef SHA1_H
 # define SHA1_H 1
@@ -98,3 +98,10 @@ extern int sha1_stream (FILE *stream, void *resblock);
 # endif
 
 #endif
+
+/*
+ * Hey Emacs!
+ * Local Variables:
+ * coding: utf-8
+ * End:
+ */

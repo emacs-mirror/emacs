@@ -1,6 +1,6 @@
 ;;; eieio-compat.el --- Compatibility with Older EIEIO versions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -105,10 +105,10 @@ Summary:
   (declare (doc-string 3) (obsolete cl-defmethod "25.1")
            (debug
             (&define                    ; this means we are defining something
-             [&or name ("setf" :name setf name)]
+             [&or name ("setf" name :name setf)]
              ;; ^^ This is the methods symbol
              [ &optional symbolp ]                ; this is key :before etc
-             list                                 ; arguments
+             cl-generic-method-args               ; arguments
              [ &optional stringp ]                ; documentation string
              def-body                             ; part to be debugged
              )))
@@ -165,7 +165,8 @@ Summary:
   (if (memq method '(no-next-method no-applicable-method))
       (symbol-function method)
     (let ((generic (cl-generic-ensure-function method)))
-      (symbol-function (cl--generic-name generic)))))
+      (or (symbol-function (cl--generic-name generic))
+          (cl--generic-make-function generic)))))
 
 ;;;###autoload
 (defun eieio--defmethod (method kind argclass code)

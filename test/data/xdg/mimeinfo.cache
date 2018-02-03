@@ -1,0 +1,4 @@
+[MIME Cache]
+x-test/foo=c.desktop;d.desktop
+x-test/bar=a.desktop;c.desktop
+x-test/baz=b.desktop;d.desktop

@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -606,38 +606,28 @@ be \"related\" or \"alternate\"."
 				   (intern (downcase charset))))))
 	  (if (and (not raw)
 		   (member (car (split-string type "/")) '("text" "message")))
-	      ;; We have a text-like MIME part, so we need to do
-	      ;; charset encoding.
 	      (progn
 		(with-temp-buffer
-		  (set-buffer-multibyte nil)
-		  ;; First insert the data into the buffer.
-		  (if  (and filename
-			    (not (equal (cdr (assq 'nofile cont)) "yes")))
-		      (mm-insert-file-contents filename)
-		    (insert
-		     (with-temp-buffer
-		       (cond
-			((cdr (assq 'buffer cont))
-			 (insert-buffer-substring (cdr (assq 'buffer cont))))
-			((eq 'mml (car cont))
-			 (insert (cdr (assq 'contents cont))))
-			(t
-			 (insert (cdr (assq 'contents cont)))
-			 ;; Remove quotes from quoted tags.
-			 (goto-char (point-min))
-			 (while (re-search-forward
-				 "<#!+/?\\(part\\|multipart\\|external\\|mml\\|secure\\)"
-				 nil t)
-			   (delete-region (+ (match-beginning 0) 2)
-					  (+ (match-beginning 0) 3)))))
-		       (setq charset
-			     (mm-coding-system-to-mime-charset
-			      (detect-coding-region
-			       (point-min) (point-max) t)))
-		       (encode-coding-region (point-min) (point-max)
-					     charset)
-		       (buffer-string))))
+		  (cond
+		   ((cdr (assq 'buffer cont))
+		    (insert-buffer-substring (cdr (assq 'buffer cont))))
+		   ((and filename
+			 (not (equal (cdr (assq 'nofile cont)) "yes")))
+		    (let ((coding-system-for-read coding))
+		      (mm-insert-file-contents filename)))
+		   ((eq 'mml (car cont))
+		    (insert (cdr (assq 'contents cont))))
+		   (t
+		    (save-restriction
+		      (narrow-to-region (point) (point))
+		      (insert (cdr (assq 'contents cont)))
+		      ;; Remove quotes from quoted tags.
+		      (goto-char (point-min))
+		      (while (re-search-forward
+			      "<#!+/?\\(part\\|multipart\\|external\\|mml\\|secure\\)"
+			      nil t)
+			(delete-region (+ (match-beginning 0) 2)
+				       (+ (match-beginning 0) 3))))))
 		  (cond
 		   ((eq (car cont) 'mml)
 		    (let ((mml-boundary (mml-compute-boundary cont))
@@ -665,7 +655,7 @@ be \"related\" or \"alternate\"."
 		    ;; actually are hard newlines in the text.
 		    (let (use-hard-newlines)
 		      (when (and mml-enable-flowed
-                                 (string= type "text/plain")
+				 (string= type "text/plain")
 				 (not (string= (cdr (assq 'sign cont)) "pgp"))
 				 (or (null (assq 'format cont))
 				     (string= (cdr (assq 'format cont))
@@ -678,14 +668,13 @@ be \"related\" or \"alternate\"."
 			;; insert a "; format=flowed" string unless the
 			;; user has already specified it.
 			(setq flowed (null (assq 'format cont)))))
-		    (unless charset
-		      (setq charset
-			    ;; Prefer `utf-8' for text/calendar parts.
-			    (if (string= type "text/calendar")
-				'utf-8
-			      (mm-coding-system-to-mime-charset
-			       (detect-coding-region
-				(point-min) (point-max) t)))))
+		    ;; Prefer `utf-8' for text/calendar parts.
+		    (if (or charset
+			    (not (string= type "text/calendar")))
+			(setq charset (mm-encode-body charset))
+		      (let ((mm-coding-system-priorities
+			     (cons 'utf-8 mm-coding-system-priorities)))
+			(setq charset (mm-encode-body))))
 		    (setq encoding (mm-body-encoding
 				    charset (cdr (assq 'encoding cont))))))
 		  (setq coded (buffer-string)))
@@ -696,26 +685,33 @@ be \"related\" or \"alternate\"."
 	      (set-buffer-multibyte nil)
 	      (cond
 	       ((cdr (assq 'buffer cont))
-		(insert (string-as-unibyte
-			 (with-current-buffer (cdr (assq 'buffer cont))
-			   (buffer-string)))))
+		;; multibyte string that inserted to a unibyte buffer
+		;; will be converted to the unibyte version safely.
+		(insert (with-current-buffer (cdr (assq 'buffer cont))
+			  (buffer-string))))
 	       ((and filename
 		     (not (equal (cdr (assq 'nofile cont)) "yes")))
 		(let ((coding-system-for-read mm-binary-coding-system))
-		  (mm-insert-file-contents filename nil nil nil nil t)))
+		  (mm-insert-file-contents filename nil nil nil nil t))
+		(unless charset
+		  (setq charset (mm-coding-system-to-mime-charset
+				 (mm-find-buffer-file-coding-system
+				  filename)))))
 	       (t
 		(let ((contents (cdr (assq 'contents cont))))
-		  (if (multibyte-string-p contents)
+		  (if (if (featurep 'xemacs)
+			  (string-match "[^\000-\377]" contents)
+			(multibyte-string-p contents))
 		      (progn
-			(mm-enable-multibyte)
+			(set-buffer-multibyte t)
 			(insert contents)
 			(unless raw
 			  (setq charset	(mm-encode-body charset))))
 		    (insert contents)))))
 	      (if (setq encoding (cdr (assq 'encoding cont)))
 		  (setq encoding (intern (downcase encoding))))
-	      (setq encoding (mm-encode-buffer type encoding)
-		    coded (string-as-multibyte (buffer-string))))
+	      (setq encoding (mm-encode-buffer type encoding))
+	      (setq coded (decode-coding-string (buffer-string) 'us-ascii)))
 	    (mml-insert-mime-headers cont type charset encoding nil)
 	    (insert "\n" coded))))
        ((eq (car cont) 'external)

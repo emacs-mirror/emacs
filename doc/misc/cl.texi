@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -317,7 +317,7 @@ This is analogous to the @code{defsubst} form;
 @code{cl-defsubst} uses a different method (compiler macros) which
 works in all versions of Emacs, and also generates somewhat more
 @c For some examples,
-@c see http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00009.html
+@c see https://lists.gnu.org/r/emacs-devel/2012-11/msg00009.html
 efficient inline expansions.  In particular, @code{cl-defsubst}
 arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.
@@ -1207,7 +1207,7 @@ must have a well-defined value outside the @code{cl-letf} body.
 There is essentially only one exception to this, which is @var{place}
 a plain variable with a specified @var{value} (such as @code{(a 17)}
 in the above example).
-@c See http://debbugs.gnu.org/12758
+@c See https://debbugs.gnu.org/12758
 @c Some or all of this was true for cl.el, but not for cl-lib.el.
 @ignore
 The only exceptions are plain variables and calls to
@@ -1389,7 +1389,7 @@ treated like a @code{cl-letf} or @code{cl-letf*}.  This differs from true
 Common Lisp, where the rules of lexical scoping cause a @code{let}
 binding to shadow a @code{symbol-macrolet} binding.  In this package,
 such shadowing does not occur, even when @code{lexical-binding} is
-@c See http://debbugs.gnu.org/12119
+@c See https://debbugs.gnu.org/12119
 @code{t}.  (This behavior predates the addition of lexical binding to
 Emacs Lisp, and may change in future to respect @code{lexical-binding}.)
 At present in this package, only @code{lexical-let} and
@@ -1976,18 +1976,6 @@ This clause iterates @var{var} over all the cons cells of @var{list}.
         @result{} ((1 2 3 4) (2 3 4) (3 4) (4))
 @end example
 
-With @code{by}, there is no real reason that the @code{on} expression
-must be a list.  For example:
-
-@example
-(cl-loop for x on first-animal by 'next-animal collect x)
-@end example
-
-@noindent
-where @code{(next-animal x)} takes an ``animal'' @var{x} and returns
-the next in the (assumed) sequence of animals, or @code{nil} if
-@var{x} was the last animal in the sequence.
-
 @item for @var{var} in-ref @var{list} by @var{function}
 This is like a regular @code{in} clause, but @var{var} becomes
 a @code{setf}-able ``reference'' onto the elements of the list
@@ -2252,8 +2240,8 @@ were non-@code{nil}, the loop returns @code{t}:
 
 @example
 (if (cl-loop for size in size-list always (> size 10))
-    (some-big-sizes)
-  (no-big-sizes))
+    (only-big-sizes)
+  (some-small-sizes))
 @end example
 
 @item never @var{condition}
@@ -3338,7 +3326,7 @@ the first sequence.  This function is more general than the Emacs
 primitive @code{mapc}.  (Note that this function is called
 @code{cl-mapc} even in @file{cl.el}, rather than @code{mapc*} as you
 might expect.)
-@c http://debbugs.gnu.org/6575
+@c https://debbugs.gnu.org/6575
 @end defun
 
 @defun cl-mapl function list &rest more-lists
@@ -4407,7 +4395,7 @@ is expanded at compile-time to the Lisp form
 @end example
 
 @noindent
-which is the most efficient ways of doing this operation
+which is the most efficient way of doing this operation
 in Lisp.  Thus, there is no performance penalty for using the more
 readable @code{cl-incf} form in your compiled code.
 

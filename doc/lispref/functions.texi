@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Functions
@@ -544,6 +544,15 @@ variable; these two uses of a symbol are independent and do not
 conflict.  (This is not the case in some dialects of Lisp, like
 Scheme.)
 
+  By convention, if a function's symbol consists of two names
+separated by @samp{--}, the function is intended for internal use and
+the first part names the file defining the function.  For example, a
+function named @code{vc-git--rev-parse} is an internal function
+defined in @file{vc-git.el}.  Internal-use functions written in C have
+names ending in @samp{-internal}, e.g., @code{bury-buffer-internal}.
+Emacs code contributed before 2018 may follow other internal-use
+naming conventions, which are being phased out.
+
 @node Defining Functions
 @section Defining Functions
 @cindex defining a function
@@ -703,7 +712,7 @@ the backquote (@pxref{Backquote}), but quotes code and accepts only
 @end defmac
 
 @defmac inline-letevals (bindings@dots{}) body@dots{}
-This is is similar to @code{let} (@pxref{Local Variables}): it sets up
+This is similar to @code{let} (@pxref{Local Variables}): it sets up
 local variables as specified by @var{bindings}, and then evaluates
 @var{body} with those bindings in effect.  Each element of
 @var{bindings} should be either a symbol or a list of the form
@@ -921,11 +930,11 @@ the @code{call-interactively} function.  @xref{Interactive Call}.
   A @dfn{mapping function} applies a given function (@emph{not} a
 special form or macro) to each element of a list or other collection.
 Emacs Lisp has several such functions; this section describes
-@code{mapcar}, @code{mapc}, and @code{mapconcat}, which map over a
-list.  @xref{Definition of mapatoms}, for the function @code{mapatoms}
-which maps over the symbols in an obarray.  @xref{Definition of
-maphash}, for the function @code{maphash} which maps over key/value
-associations in a hash table.
+@code{mapcar}, @code{mapc}, @code{mapconcat}, and @code{mapcan}, which
+map over a list.  @xref{Definition of mapatoms}, for the function
+@code{mapatoms} which maps over the symbols in an obarray.
+@xref{Definition of maphash}, for the function @code{maphash} which
+maps over key/value associations in a hash table.
 
   These mapping functions do not allow char-tables because a char-table
 is a sparse array whose nominal range of indices is very large.  To map
@@ -973,6 +982,26 @@ Return the list of results."
 @group
 (mapcar* 'cons '(a b c) '(1 2 3 4))
      @result{} ((a . 1) (b . 2) (c . 3))
+@end group
+@end example
+@end defun
+
+@defun mapcan function sequence
+This function applies @var{function} to each element of
+@var{sequence}, like @code{mapcar}, but instead of collecting the
+results into a list, it returns a single list with all the elements of
+the results (which must be lists), by altering the results (using
+@code{nconc}; @pxref{Rearrangement}).  Like with @code{mapcar},
+@var{sequence} can be of any type except a char-table.
+
+@example
+@group
+;; @r{Contrast this:}
+(mapcar 'list '(a b c d))
+     @result{} ((a) (b) (c) (d))
+;; @r{with this:}
+(mapcan 'list '(a b c d))
+     @result{} (a b c d)
 @end group
 @end example
 @end defun
@@ -1196,7 +1225,7 @@ This form defines a method like @code{cl-defmethod} does.
 @end table
 @end defmac
 
-@defmac cl-defmethod name [qualifier] arguments &rest [docstring] body
+@defmac cl-defmethod name [qualifier] arguments [&context (expr spec)@dots{}] &rest [docstring] body
 This macro defines a particular implementation for the generic
 function called @var{name}.  The implementation code is given by
 @var{body}.  If present, @var{docstring} is the documentation string
@@ -1217,21 +1246,26 @@ This specializer requires the argument be @code{eql} to the given
 @item (head @var{object})
 The argument must be a cons cell whose @code{car} is @code{eql} to
 @var{object}.
-@item @var{struct-tag}
-The argument must be an instance of a class named @var{struct-tag}
+@item @var{struct-type}
+The argument must be an instance of a class named @var{struct-type}
 defined with @code{cl-defstruct} (@pxref{Structures,,, cl, Common Lisp
-Extensions for GNU Emacs Lisp}), or of one of its parent classes.
+Extensions for GNU Emacs Lisp}), or of one of its child classes.
 @end table
 
-Alternatively, the argument specializer can be of the form
-@code{&context (@var{expr} @var{spec})}, in which case the value of
-@var{expr} must be compatible with the specializer provided by
-@var{spec}; @var{spec} can be any of the forms described above.  In
-other words, this form of specializer uses the value of @var{expr}
-instead of arguments for the decision whether the method is
-applicable.  For example, @code{&context (overwrite-mode (eql t))}
-will make the method compatible only when @code{overwrite-mode} is
-turned on.
+Method definitions can make use of a new argument-list keyword,
+@code{&context}, which introduces extra specializers that test the
+environment at the time the method is run.  This keyword should appear
+after the list of required arguments, but before any @code{&rest} or
+@code{&optional} keywords.  The @code{&context} specializers look much
+like regular argument specializers---(@var{expr} @var{spec})---except
+that @var{expr} is an expression to be evaluated in the current
+context, and the @var{spec} is a value to compare against.  For
+example, @code{&context (overwrite-mode (eql t))} will make the method
+applicable only when @code{overwrite-mode} is turned on.  The
+@code{&context} keyword can be followed by any number of context
+specializers.  Because the context specializers are not part of the
+generic function's argument signature, they may be omitted in methods
+that don't require them.
 
 The type specializer, @code{(@var{arg} @var{type})}, can specify one
 of the @dfn{system types} in the following list.  When a parent type
@@ -1719,8 +1753,8 @@ code) obey the advice and other calls (from C code) do not.
 @defmac define-advice symbol (where lambda-list &optional name depth) &rest body
 This macro defines a piece of advice and adds it to the function named
 @var{symbol}.  The advice is an anonymous function if @var{name} is
-nil or a function named @code{symbol@@name}.  See @code{advice-add}
-for explanation of other arguments.
+@code{nil} or a function named @code{symbol@@name}.  See
+@code{advice-add} for explanation of other arguments.
 @end defmac
 
 @defun advice-add symbol where function &optional props
@@ -2000,8 +2034,8 @@ It is equivalent to the following:
 @end example
 @end defmac
 
-In addition, you can mark a certain a particular calling convention
-for a function as obsolete:
+In addition, you can mark a particular calling convention for a
+function as obsolete:
 
 @defun set-advertised-calling-convention function signature when
 This function specifies the argument list @var{signature} as the
@@ -2064,7 +2098,7 @@ to verify that using @code{defun} actually has performance problems.
   After an inline function is defined, its inline expansion can be
 performed later on in the same file, just like macros.
 
-  It's possible to use @code{defsubst} to define a macro to expand
+  It's possible to use @code{defmacro} to define a macro to expand
 into the same code that an inline function would execute
 (@pxref{Macros}).  But the macro would be limited to direct use in
 expressions---a macro cannot be called with @code{apply},

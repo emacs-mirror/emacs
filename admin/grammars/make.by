@@ -1,6 +1,6 @@
 ;;; make.by -- BY notation for Makefiles.
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;;         David Ponce <david@dponce.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 %package semantic-make-by
 %provide semantic/bovine/make-by
@@ -54,15 +54,20 @@
 
 %%
 
+;; Escape the ,@ below because the reader doesn't correctly detect
+;; old-style backquotes for this case.  The backslashes can be removed
+;; once old-style backquotes are completely gone (probably in
+;; Emacs 28).
+
 Makefile : bol newline (nil)
 	 | bol variable
-	   ( ,@$2 )
+	   ( \,@$2 )
 	 | bol rule
-	   ( ,@$2 )
+	   ( \,@$2 )
 	 | bol conditional
-	   ( ,@$2 )
+	   ( \,@$2 )
 	 | bol include
-	   ( ,@$2 )
+	   ( \,@$2 )
 	 | whitespace ( nil )
 	 | newline ( nil )
 	 ;
@@ -125,16 +130,16 @@ colons: COLON COLON ()
       ;
 
 element-list: elements newline
-	      ( ,@$1 )
+	      ( \,@$1 )
 	    ;
 
 elements: element some-whitespace elements
-	  ( ,@$1 ,@$3 )
+	  ( \,@$1 ,@$3 )
 	| element
-	  ( ,@$1 )
+	  ( \,@$1 )
 	| ;;EMPTY
 	;
-  
+
 element: sub-element element
 	 ( (concat (car ,$1) (car ,$2)) )
        | ;;EMPTY

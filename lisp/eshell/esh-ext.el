@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,7 +39,9 @@
   (require 'cl-lib)
   (require 'esh-io)
   (require 'esh-cmd))
+(require 'esh-arg)
 (require 'esh-opt)
+(require 'esh-proc)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -299,11 +301,13 @@ line of the form #!<interp>."
       (let ((fullname (if (file-name-directory file) file
 			(eshell-search-path file)))
 	    (suffixes eshell-binary-suffixes))
-	(if (and fullname
-		 (not (file-remote-p fullname))
-		 (file-remote-p default-directory))
-	    (setq fullname (expand-file-name
-			    (concat "./" fullname) default-directory)))
+	(when (and fullname
+                   (not (file-remote-p fullname))
+                   (file-remote-p default-directory))
+          (setq fullname
+                (if (file-name-absolute-p fullname)
+                    (concat (file-remote-p default-directory) fullname)
+                  (expand-file-name fullname default-directory))))
 	(if (and fullname (not (or eshell-force-execution
 				   (file-executable-p fullname))))
 	    (while suffixes

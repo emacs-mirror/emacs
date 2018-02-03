@@ -1,6 +1,6 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
 
-;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -134,7 +134,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
 
   (interactive)
 
-  ;; Ensure access to scanning info and rescan buffer if prefix are is '(4).
+  ;; Ensure access to scanning info and rescan buffer if prefix arg is '(4).
   (reftex-access-scan-info current-prefix-arg)
 
   ;; Find out what kind of environment this is and abort if necessary.
@@ -314,7 +314,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
               (save-match-data
                 (cond
                  ((equal letter "f")
-                  (file-name-base))
+                  (file-name-base (buffer-file-name)))
                  ((equal letter "F")
                   (let ((masterdir (file-name-directory (reftex-TeX-master-file)))
                         (file (file-name-sans-extension (buffer-file-name))))

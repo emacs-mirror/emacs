@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -58,8 +58,8 @@ compile}.  This reads a shell command line using the minibuffer, and
 then executes the command by running a shell as a subprocess (or
 @dfn{inferior process}) of Emacs.  The output is inserted in a buffer
 named @file{*compilation*}.  The current buffer's default directory is
-used as the working directory for the execution of the command;
-normally, therefore, compilation takes place in this directory.
+used as the working directory for the execution of the command, so by
+default compilation takes place in that directory.
 
 @vindex compile-command
   The default compilation command is @samp{make -k}, which is usually
@@ -89,6 +89,10 @@ the buffer.  When point is at the end, new compilation output is
 inserted above point, which remains at the end.  Otherwise, point
 remains fixed while compilation output is added at the end of the
 buffer.
+
+  While compilation proceeds, the mode line is updated to show the
+number of errors, warnings, and informational messages that have been
+seen so far.
 
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
@@ -205,14 +209,13 @@ through errors in the opposite direction.
 act on the errors or matches listed in @file{*compilation*} and
 @file{*grep*} buffers; they also know how to iterate through error or
 match lists produced by other commands, such as @kbd{M-x occur}
-(@pxref{Other Repeating Search}).  If you are already in a buffer
-containing error messages or matches, those are the ones that are
-iterated through; otherwise, Emacs looks for a buffer containing error
-messages or matches amongst the windows of the selected frame, then
-for one that @code{next-error} or @code{previous-error} previously
-iterated through, and finally amongst all other buffers.  If the
-buffer chosen for iterating through is not currently displayed in a
-window, it will be displayed.
+(@pxref{Other Repeating Search}).  If the current buffer contains
+error messages or matches, these commands will iterate through them;
+otherwise, Emacs looks for a buffer containing error messages or
+matches amongst the windows of the selected frame, then for any buffer
+that @code{next-error} or @code{previous-error} previously visited,
+and finally all other buffers.  Any buffer these commands iterate
+through that is not currently displayed in a window will be displayed.
 
 @vindex compilation-skip-threshold
   By default, the @code{next-error} and @code{previous-error} commands
@@ -298,6 +301,11 @@ And here's how to do it in csh:
 @example
 if ($?prompt) set prompt = @dots{}
 @end example
+
+@vindex TERM, environment variable, in compilation mode
+  If you want to customize the value of the @env{TERM} environment
+variable passed to the compilation subshell, customize the variable
+@code{comint-terminfo-terminal} (@pxref{Shell Options}).
 
   Emacs does not expect a compiler process to launch asynchronous
 subprocesses; if it does, and they keep running after the main
@@ -385,10 +393,11 @@ match will be highlighted, instead of the entire source line.
   The @command{grep} commands will offer to save buffers before
 running.  This is controlled by the @code{grep-save-buffers} variable.
 The possible values are either @code{nil} (don't save), @code{ask}
-(ask before saving), a function which will be used as a predicate (and
-is called with the file name as the parameter and should return
-non-nil if the buffer is to be saved), and any other non-@code{nil}
-value means that all buffers should be saved without asking.
+(ask before saving), or a function which will be used as a predicate
+(and is called with the file name as the parameter and should return
+non-@code{nil} if the buffer is to be saved).  Any other
+non-@code{nil} value means that all buffers should be saved without
+asking.
 
 @findex grep-find
 @findex find-grep
@@ -906,10 +915,18 @@ layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
 between the many windows layout and a simple layout with just the GUD
 interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 
+  If you have an elaborate window setup, and don't want
+@code{gdb-many-windows} to disrupt that, it is better to invoke
+@kbd{M-x gdb} in a separate frame to begin with, then the arrangement
+of windows on your original frame will not be affected.  A separate
+frame for GDB sessions can come in especially handy if you work on a
+text-mode terminal, where the screen estate for windows could be at a
+premium.
+
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
-want by typing @code{M-x gdb-display-@var{buffertype}-buffer} or
-@code{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype}
+want by typing @kbd{M-x gdb-display-@var{buffertype}-buffer} or
+@kbd{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype}
 is the relevant buffer type, such as @samp{breakpoints}.  You can do
 the same with the menu bar, with the @samp{GDB-Windows} and
 @samp{GDB-Frames} sub-menus of the @samp{GUD} menu.
@@ -1385,7 +1402,7 @@ Loading,,, elisp, the Emacs Lisp Reference Manual}.
 
 @vindex load-path
   The Emacs Lisp load path is specified by the variable
-@code{load-path}.  Its value should be a list of directory names
+@code{load-path}.  Its value should be a list of directories
 (strings).  These directories are searched, in the specified order, by
 the @kbd{M-x load-library} command, the lower-level @code{load}
 function, and other Emacs functions that find Emacs Lisp libraries.  A
@@ -1485,7 +1502,9 @@ expression.)
 Emacs Lisp expression preceding point in the buffer, and displays the
 value in the echo area.  When the result of an evaluation is an
 integer, it is displayed together with the value in other formats
-(octal, hexadecimal, and character).
+(octal, hexadecimal, and character if
+@code{eval-expression-print-maximum-character}, described below,
+allows it).
 
   If @kbd{M-:} or @kbd{C-x C-e} is given a prefix argument, it inserts
 the value into the current buffer at point, rather than displaying it
@@ -1493,8 +1512,10 @@ in the echo area.  If the prefix argument is zero, any integer output
 is inserted together with its value in other formats (octal,
 hexadecimal, and character).  Such a prefix argument also prevents
 abbreviation of the output according to the variables
-@code{eval-expression-print-level} and @code{eval-expression-print-length}
-(see below).
+@code{eval-expression-print-level} and
+@code{eval-expression-print-length} (see below).  Similarly, a prefix
+argument of @code{-1} overrides the effect of
+@code{eval-expression-print-length}.
 
 @kindex C-M-x @r{(Emacs Lisp mode)}
 @findex eval-defun
@@ -1524,6 +1545,7 @@ eval-buffer} is similar but evaluates the entire buffer.
 
 @vindex eval-expression-print-level
 @vindex eval-expression-print-length
+@vindex eval-expression-print-maximum-character
 @vindex eval-expression-debug-on-error
   The options @code{eval-expression-print-level} and
 @code{eval-expression-print-length} control the maximum depth and
@@ -1533,6 +1555,8 @@ before abbreviating them.  Supplying a zero prefix argument to
 printed in full.  @code{eval-expression-debug-on-error} controls
 whether evaluation errors invoke the debugger when these commands are
 used; its default is @code{t}.
+@code{eval-expression-print-maximum-character} prevents integers which
+are larger than it from being displayed as characters.
 
 @node Lisp Interaction
 @section Lisp Interaction Buffers

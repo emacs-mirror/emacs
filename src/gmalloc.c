@@ -1,5 +1,5 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2017 Free
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2018 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -39,6 +39,8 @@ License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef emacs
 # include "lisp.h"
 #endif
+
+#include "ptr-bounds.h"
 
 #ifdef HAVE_MALLOC_H
 # if GNUC_PREREQ (4, 2, 0)
@@ -77,11 +79,6 @@ extern void *(*__morecore) (ptrdiff_t);
 #ifdef HYBRID_MALLOC
 # include "sheap.h"
 # define DUMPED bss_sbrk_did_unexec
-static bool
-ALLOCATED_BEFORE_DUMPING (char *p)
-{
-  return bss_sbrk_buffer <= p && p < bss_sbrk_buffer + STATIC_HEAP_SIZE;
-}
 #endif
 
 #ifdef	__cplusplus
@@ -133,8 +130,13 @@ typedef union
     /* Heap information for a busy block.  */
     struct
       {
-	/* Zero for a large (multiblock) object, or positive giving the
-	   logarithm to the base two of the fragment size.  */
+	/* Zero for a block that is not one of ours (typically,
+	   allocated by system malloc), positive for the log base 2 of
+	   the fragment size of a fragmented block, -1 for the first
+	   block of a multiblock object, and unspecified for later
+	   blocks of that object.  Type-0 blocks can be present
+	   because the system malloc can be invoked by library
+	   functions in an undumped Emacs.  */
 	int type;
 	union
 	  {
@@ -144,8 +146,7 @@ typedef union
 		size_t first; /* First free fragment of the block.  */
 	      } frag;
 	    /* For a large object, in its first block, this has the number
-	       of blocks in the object.  In the other blocks, this has a
-	       negative number which says how far back the first block is.  */
+	       of blocks in the object.  */
 	    ptrdiff_t size;
 	  } info;
       } busy;
@@ -166,7 +167,7 @@ extern char *_heapbase;
 extern malloc_info *_heapinfo;
 
 /* Address to block number and vice versa.  */
-#define BLOCK(A)	(((char *) (A) - _heapbase) / BLOCKSIZE + 1)
+#define BLOCK(A)	((size_t) ((char *) (A) - _heapbase) / BLOCKSIZE + 1)
 #define ADDRESS(B)	((void *) (((B) - 1) * BLOCKSIZE + _heapbase))
 
 /* Current search index for the heap table.  */
@@ -202,7 +203,8 @@ extern size_t _bytes_free;
 
 /* Internal versions of `malloc', `realloc', and `free'
    used when these functions need to call each other.
-   They are the same but don't call the hooks.  */
+   They are the same but don't call the hooks
+   and don't bound the resulting pointers.  */
 extern void *_malloc_internal (size_t);
 extern void *_realloc_internal (void *, size_t);
 extern void _free_internal (void *);
@@ -309,7 +311,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -491,11 +493,8 @@ register_heapinfo (void)
   ++_chunks_used;
 
   /* Describe the heapinfo block itself in the heapinfo.  */
-  _heapinfo[block].busy.type = 0;
+  _heapinfo[block].busy.type = -1;
   _heapinfo[block].busy.info.size = blocks;
-  /* Leave back-pointers for malloc_find_address.  */
-  while (--blocks > 0)
-    _heapinfo[block + blocks].busy.info.size = -blocks;
 }
 
 #ifdef USE_PTHREAD
@@ -562,7 +561,7 @@ malloc_initialize_1 (void)
   _heapinfo[0].free.size = 0;
   _heapinfo[0].free.next = _heapinfo[0].free.prev = 0;
   _heapindex = 0;
-  _heapbase = (char *) _heapinfo;
+  _heapbase = (char *) ptr_bounds_init (_heapinfo);
   _heaplimit = BLOCK (_heapbase + heapsize * sizeof (malloc_info));
 
   register_heapinfo ();
@@ -608,7 +607,7 @@ morecore_nolock (size_t size)
   PROTECT_MALLOC_STATE (0);
 
   /* Check if we need to grow the info table.  */
-  if ((size_t) BLOCK ((char *) result + size) > heapsize)
+  if (heapsize < BLOCK ((char *) result + size))
     {
       /* Calculate the new _heapinfo table size.  We do not account for the
 	 added blocks in the table itself, as we hope to place them in
@@ -617,7 +616,7 @@ morecore_nolock (size_t size)
       newsize = heapsize;
       do
 	newsize *= 2;
-      while ((size_t) BLOCK ((char *) result + size) > newsize);
+      while (newsize < BLOCK ((char *) result + size));
 
       /* We must not reuse existing core for the new info table when called
 	 from realloc in the case of growing a large block, because the
@@ -665,8 +664,7 @@ morecore_nolock (size_t size)
 
  	  /* Is it big enough to record status for its own space?
  	     If so, we win.  */
- 	  if ((size_t) BLOCK ((char *) newinfo
-			      + newsize * sizeof (malloc_info))
+	  if (BLOCK ((char *) newinfo + newsize * sizeof (malloc_info))
  	      < newsize)
  	    break;
 
@@ -883,17 +881,11 @@ _malloc_internal_nolock (size_t size)
 	  --_chunks_free;
 	}
 
-      _heapinfo[block].busy.type = 0;
+      _heapinfo[block].busy.type = -1;
       _heapinfo[block].busy.info.size = blocks;
       ++_chunks_used;
       _bytes_used += blocks * BLOCKSIZE;
       _bytes_free -= blocks * BLOCKSIZE;
-
-      /* Mark all the blocks of the object just allocated except for the
-	 first with a negative number so you can find the first block by
-	 adding that adjustment.  */
-      while (--blocks > 0)
-	_heapinfo[block + blocks].busy.info.size = -blocks;
     }
 
   PROTECT_MALLOC_STATE (1);
@@ -930,7 +922,8 @@ malloc (size_t size)
      among multiple threads.  We just leave it for compatibility with
      glibc malloc (i.e., assignments to gmalloc_hook) for now.  */
   hook = gmalloc_hook;
-  return (hook != NULL ? *hook : _malloc_internal) (size);
+  void *result = (hook ? hook : _malloc_internal) (size);
+  return ptr_bounds_clip (result, size);
 }
 
 #if !(defined (_LIBC) || defined (HYBRID_MALLOC))
@@ -976,7 +969,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1008,6 +1001,7 @@ _free_internal_nolock (void *ptr)
 
   if (ptr == NULL)
     return;
+  ptr = ptr_bounds_init (ptr);
 
   PROTECT_MALLOC_STATE (0);
 
@@ -1026,7 +1020,7 @@ _free_internal_nolock (void *ptr)
   type = _heapinfo[block].busy.type;
   switch (type)
     {
-    case 0:
+    case -1:
       /* Get as many statistics as early as we can.  */
       --_chunks_used;
       _bytes_used -= _heapinfo[block].busy.info.size * BLOCKSIZE;
@@ -1187,7 +1181,7 @@ _free_internal_nolock (void *ptr)
 	  prev->prev->next = next;
 	  if (next != NULL)
 	    next->prev = prev->prev;
-	  _heapinfo[block].busy.type = 0;
+	  _heapinfo[block].busy.type = -1;
 	  _heapinfo[block].busy.info.size = 1;
 
 	  /* Keep the statistics accurate.  */
@@ -1286,7 +1280,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1319,6 +1313,7 @@ _realloc_internal_nolock (void *ptr, size_t size)
   else if (ptr == NULL)
     return _malloc_internal_nolock (size);
 
+  ptr = ptr_bounds_init (ptr);
   block = BLOCK (ptr);
 
   PROTECT_MALLOC_STATE (0);
@@ -1326,7 +1321,7 @@ _realloc_internal_nolock (void *ptr, size_t size)
   type = _heapinfo[block].busy.type;
   switch (type)
     {
-    case 0:
+    case -1:
       /* Maybe reallocate a large block to a small fragment.  */
       if (size <= BLOCKSIZE / 2)
 	{
@@ -1346,7 +1341,7 @@ _realloc_internal_nolock (void *ptr, size_t size)
 	{
 	  /* The new size is smaller; return
 	     excess memory to the free list. */
-	  _heapinfo[block + blocks].busy.type = 0;
+	  _heapinfo[block + blocks].busy.type = -1;
 	  _heapinfo[block + blocks].busy.info.size
 	    = _heapinfo[block].busy.info.size - blocks;
 	  _heapinfo[block].busy.info.size = blocks;
@@ -1441,7 +1436,8 @@ realloc (void *ptr, size_t size)
     return NULL;
 
   hook = grealloc_hook;
-  return (hook != NULL ? *hook : _realloc_internal) (ptr, size);
+  void *result = (hook ? hook : _realloc_internal) (ptr, size);
+  return ptr_bounds_clip (result, size);
 }
 /* Copyright (C) 1991, 1992, 1994 Free Software Foundation, Inc.
 
@@ -1456,7 +1452,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1494,7 +1490,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the GNU C Library.  If not, see <http://www.gnu.org/licenses/>.  */
+along with the GNU C Library.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* uClibc defines __GNU_LIBRARY__, but it is not completely
    compatible.  */
@@ -1513,17 +1509,18 @@ extern void *__sbrk (ptrdiff_t increment);
 static void *
 gdefault_morecore (ptrdiff_t increment)
 {
-  void *result;
 #ifdef HYBRID_MALLOC
   if (!DUMPED)
     {
       return bss_sbrk (increment);
     }
 #endif
-  result = (void *) __sbrk (increment);
-  if (result == (void *) -1)
-    return NULL;
-  return result;
+#ifdef HAVE_SBRK
+  void *result = (void *) __sbrk (increment);
+  if (result != (void *) -1)
+    return result;
+#endif
+  return NULL;
 }
 
 void *(*__morecore) (ptrdiff_t) = gdefault_morecore;
@@ -1541,7 +1538,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.  */
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.  */
 
 void *
 aligned_alloc (size_t alignment, size_t size)
@@ -1614,6 +1611,7 @@ aligned_alloc (size_t alignment, size_t size)
 	{
 	  l->exact = result;
 	  result = l->aligned = (char *) result + adj;
+	  result = ptr_bounds_clip (result, size);
 	}
       UNLOCK_ALIGNED_BLOCKS ();
       if (l == NULL)
@@ -1673,7 +1671,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
@@ -1721,6 +1719,20 @@ extern void *aligned_alloc (size_t alignment, size_t size);
 extern int posix_memalign (void **memptr, size_t alignment, size_t size);
 #endif
 
+/* Assuming PTR was allocated via the hybrid malloc, return true if
+   PTR was allocated via gmalloc, not the system malloc.  Also, return
+   true if _heaplimit is zero; this can happen temporarily when
+   gmalloc calls itself for internal use, and in that case PTR is
+   already known to be allocated via gmalloc.  */
+
+static bool
+allocated_via_gmalloc (void *ptr)
+{
+  size_t block = BLOCK (ptr);
+  size_t blockmax = _heaplimit - 1;
+  return block <= blockmax && _heapinfo[block].busy.type != 0;
+}
+
 /* See the comments near the beginning of this file for explanations
    of the following functions. */
 
@@ -1743,13 +1755,10 @@ hybrid_calloc (size_t nmemb, size_t size)
 void
 hybrid_free (void *ptr)
 {
-  if (!DUMPED)
+  if (allocated_via_gmalloc (ptr))
     gfree (ptr);
-  else if (!ALLOCATED_BEFORE_DUMPING (ptr))
+  else
     free (ptr);
-  /* Otherwise the dumped emacs is trying to free something allocated
-     before dumping; do nothing.  */
-  return;
 }
 
 #if defined HAVE_ALIGNED_ALLOC || defined HAVE_POSIX_MEMALIGN
@@ -1775,19 +1784,20 @@ hybrid_realloc (void *ptr, size_t size)
   int type;
   size_t block, oldsize;
 
+  if (!ptr)
+    return hybrid_malloc (size);
+  if (!allocated_via_gmalloc (ptr))
+    return realloc (ptr, size);
   if (!DUMPED)
     return grealloc (ptr, size);
-  if (!ALLOCATED_BEFORE_DUMPING (ptr))
-    return realloc (ptr, size);
 
   /* The dumped emacs is trying to realloc storage allocated before
-   dumping.  We just malloc new space and copy the data.  */
-  if (size == 0 || ptr == NULL)
-    return malloc (size);
-  block = ((char *) ptr - _heapbase) / BLOCKSIZE + 1;
+     dumping via gmalloc.  Allocate new space and copy the data.  Do
+     not bother with gfree (ptr), as that would just waste time.  */
+  block = BLOCK (ptr);
   type = _heapinfo[block].busy.type;
   oldsize =
-    type == 0 ? _heapinfo[block].busy.info.size * BLOCKSIZE
+    type < 0 ? _heapinfo[block].busy.info.size * BLOCKSIZE
     : (size_t) 1 << type;
   result = malloc (size);
   if (result)
@@ -1846,7 +1856,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public
-License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */

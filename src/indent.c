@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2017 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -813,7 +813,7 @@ DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
 Optional second argument MINIMUM says always do at least MINIMUM spaces
 even if that goes past COLUMN; by default, MINIMUM is zero.
 
-The return value is COLUMN.  */)
+The return value is the column where the insertion ends.  */)
   (Lisp_Object column, Lisp_Object minimum)
 {
   EMACS_INT mincol;
@@ -925,6 +925,7 @@ position_indentation (ptrdiff_t pos_byte)
 	case 0240:
 	  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    return column;
+	  FALLTHROUGH;
 	case ' ':
 	  column++;
 	  break;
@@ -1946,6 +1947,79 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 			 -1, hscroll, 0, w);
 }
 
+/* Return the width taken by line-number display in window W.  */
+static void
+line_number_display_width (struct window *w, int *width, int *pixel_width)
+{
+  if (NILP (Vdisplay_line_numbers))
+    {
+      *width = 0;
+      *pixel_width = 0;
+    }
+  else
+    {
+      struct it it;
+      struct text_pos startpos;
+      bool saved_restriction = false;
+      ptrdiff_t count = SPECPDL_INDEX ();
+      SET_TEXT_POS_FROM_MARKER (startpos, w->start);
+      void *itdata = bidi_shelve_cache ();
+      /* We want to start from window's start point, but it could be
+	 outside the accessible region, in which case we widen the
+	 buffer temporarily.  It could even be beyond the buffer's end
+	 (Org mode's display of source code snippets is known to cause
+	 that), in which case we just punt and start from point instead.  */
+      if (startpos.charpos > Z)
+	SET_TEXT_POS (startpos, PT, PT_BYTE);
+      if (startpos.charpos < BEGV || startpos.charpos > ZV)
+	{
+	  record_unwind_protect (save_restriction_restore,
+				 save_restriction_save ());
+	  Fwiden ();
+	  saved_restriction = true;
+	}
+      start_display (&it, w, startpos);
+      /* The call to move_it_by_lines below will not generate a line
+	 number if the first line shown in the window is hscrolled
+	 such that all of its display elements are out of view.  So we
+	 pretend the hscroll doesn't exist.  */
+      it.first_visible_x = 0;
+      move_it_by_lines (&it, 1);
+      *width = it.lnum_width;
+      *pixel_width = it.lnum_pixel_width;
+      if (saved_restriction)
+	unbind_to (count, Qnil);
+      bidi_unshelve_cache (itdata, 0);
+    }
+}
+
+DEFUN ("line-number-display-width", Fline_number_display_width,
+       Sline_number_display_width, 0, 1, 0,
+       doc: /* Return the width used for displaying line numbers in the selected window.
+If optional argument PIXELWISE is the symbol `columns', return the width
+in units of the frame's canonical character width.  In this case, the
+value is a float.
+If optional argument PIXELWISE is t or any other non-nil value, return
+the width as an integer number of pixels.
+Otherwise return the value as an integer number of columns of the face
+used to display line numbers, `line-number'.  Note that in the latter
+case, the value doesn't include the 2 columns used for padding the
+numbers on display.  */)
+  (Lisp_Object pixelwise)
+{
+  int width, pixel_width;
+  struct window *w = XWINDOW (selected_window);
+  line_number_display_width (XWINDOW (selected_window), &width, &pixel_width);
+  if (EQ (pixelwise, Qcolumns))
+    {
+      struct frame *f = XFRAME (w->frame);
+      return make_float ((double) pixel_width / FRAME_COLUMN_WIDTH (f));
+    }
+  else if (!NILP (pixelwise))
+    return make_number (pixel_width);
+  return make_number (width);
+}
+
 /* In window W (derived from WINDOW), return x coordinate for column
    COL (derived from COLUMN).  */
 static int
@@ -2067,9 +2141,19 @@ whether or not it is currently displayed in some window.  */)
 	  start_x = window_column_x (w, window, start_col, cur_col);
 	}
 
-      itdata = bidi_shelve_cache ();
+      /* When displaying line numbers, we need to prime IT's
+	 lnum_width with the value calculated at window's start, since
+	 that's what normal window redisplay does.  Otherwise C-n/C-p
+	 will sometimes err by one column.  */
+      int lnum_width = 0;
+      int lnum_pixel_width = 0;
+      if (!NILP (Vdisplay_line_numbers)
+	  && !EQ (Vdisplay_line_numbers, Qvisual))
+	line_number_display_width (w, &lnum_width, &lnum_pixel_width);
       SET_TEXT_POS (pt, PT, PT_BYTE);
+      itdata = bidi_shelve_cache ();
       start_display (&it, w, pt);
+      it.lnum_width = lnum_width;
       first_x = it.first_visible_x;
       it_start = IT_CHARPOS (it);
 
@@ -2167,10 +2251,10 @@ whether or not it is currently displayed in some window.  */)
 		 screen lines we need to backtrack.  */
 	      it_overshoot_count = it.vpos;
 	    }
-	  /* We will overshoot if lines are truncated and point lies
+	  /* We might overshoot if lines are truncated and point lies
 	     beyond the right margin of the window.  */
 	  if (it.line_wrap == TRUNCATE && it.current_x >= it.last_visible_x
-	      && it_overshoot_count == 0)
+	      && it_overshoot_count == 0 && it.vpos > 0)
 	    it_overshoot_count = 1;
 	  if (it_overshoot_count > 0)
 	    move_it_by_lines (&it, -it_overshoot_count);
@@ -2246,6 +2330,12 @@ whether or not it is currently displayed in some window.  */)
 	 an addition to the hscroll amount.  */
       if (lcols_given)
 	{
+	  /* If we are displaying line numbers, we could cross the
+	     line where the width of the line-number display changes,
+	     in which case we need to fix up the pixel coordinate
+	     accordingly.  */
+	  if (lnum_pixel_width > 0)
+	    to_x += it.lnum_pixel_width - lnum_pixel_width;
 	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 	  /* If we find ourselves in the middle of an overlay string
 	     which includes a newline after current string position,
@@ -2287,10 +2377,13 @@ syms_of_indent (void)
 	       doc: /* Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
+  DEFSYM (Qcolumns, "columns");
+
   defsubr (&Scurrent_indentation);
   defsubr (&Sindent_to);
   defsubr (&Scurrent_column);
   defsubr (&Smove_to_column);
+  defsubr (&Sline_number_display_width);
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }

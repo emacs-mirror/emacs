@@ -1,6 +1,6 @@
 ;;; mh-letter.el --- MH-Letter mode
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -59,17 +59,6 @@
     (reply-to . mh-alias-letter-expand-alias)
     (to . mh-alias-letter-expand-alias))
   "Alist of header fields and completion functions to use.")
-
-(defvar mh-yank-hooks nil
-  "Obsolete hook for modifying a citation just inserted in the mail buffer.
-
-Each hook function can find the citation between point and mark.
-And each hook function should leave point and mark around the
-citation text as modified.
-
-This is a normal hook, misnamed for historical reasons.
-It is obsolete and is only used if `mail-citation-hook' is nil.")
-(mh-make-obsolete-variable 'mh-yank-hooks 'mail-citation-hook "19.34")
 
 
 
@@ -972,8 +961,6 @@ Otherwise, simply insert MH-INS-STRING before each line."
          (sc-cite-original))
         (mail-citation-hook
          (run-hooks 'mail-citation-hook))
-        (mh-yank-hooks                  ;old hook name
-         (run-hooks 'mh-yank-hooks))
         (t
          (or (bolp) (forward-line 1))
          (while (< (point) (point-max))

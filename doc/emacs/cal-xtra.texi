@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.  -*- coding: utf-8 -*-
-@c Copyright (C) 2004-2017 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -495,6 +495,7 @@ must absolutely not match more than a portion of the first word of the
 diary entry.  For example, the default value of
 @code{diary-european-date-forms} is:
 
+@c backup line is a fraction too wide in PDF, but it looks ok.
 @example
 ((day "/" month "[^/0-9]")
  (day "/" month "/" year "[^0-9]")
@@ -790,7 +791,7 @@ For example, an anniversary diary entry can insert
 the number of years since the anniversary date into the text of the
 diary entry.  Thus the @samp{%d} in this diary entry:
 
-@findex diary-anniversary
+@findex diary-anniversary@r{, and sexp diary entries}
 @smallexample
 %%(diary-anniversary 10 31 1948) Arthur's birthday (%d years old)
 @end smallexample
@@ -820,7 +821,7 @@ Arthur's 42nd birthday
   Similarly, cyclic diary entries can interpolate the number of repetitions
 that have occurred:
 
-@findex diary-cyclic
+@findex diary-cyclic@r{, and sexp diary entries}
 @smallexample
 %%(diary-cyclic 50 1 1 2012) Renew medication (%d%s time)
 @end smallexample
@@ -868,7 +869,7 @@ Rake leaves
 @noindent
 on October 22, November 22, and December 22 of every year.
 
-@findex diary-float
+@findex diary-float@r{, and sexp diary entries}
   The function @code{diary-float} allows you to describe diary entries
 that apply to dates like the third Friday of November, or the last
 Tuesday in April.  The parameters are the @var{month}, @var{dayname},
@@ -1005,7 +1006,7 @@ diary entries:
 @findex diary-hebrew-sabbath-candles
 @cindex omer count
 @findex diary-hebrew-omer
-@cindex yahrzeits
+@cindex yahrzeits, and sexp diary entries
 @findex diary-hebrew-yahrzeit
 @findex diary-hebrew-birthday
 @table @code

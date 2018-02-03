@@ -202,6 +202,7 @@ ${CHECKOBJS}	make-src/Makefile	/^${CHECKOBJS}: CFLAGS=-g3 -DNULLFREECHECK=0$/
 =\relax	tex-src/texinfo.tex	/^\\let\\subsubsection=\\relax$/
 =\relax	tex-src/texinfo.tex	/^\\let\\appendix=\\relax$/
 =\smartitalic	tex-src/texinfo.tex	/^\\let\\cite=\\smartitalic$/
+=starts-with-equals!	scm-src/test.scm	/^(define =starts-with-equals! #t)$/
 >	tex-src/texinfo.tex	/^\\def>{{\\tt \\gtr}}$/
 >field1	forth-src/test-forth.fth	/^   9   field   >field1$/
 >field2	forth-src/test-forth.fth	/^   5   field   >field2$/
@@ -2750,6 +2751,7 @@ current-idle-time	c-src/emacs/src/keyboard.c	/^DEFUN ("current-idle-time", Fcurr
 current-input-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("current-input-mode", Fcurrent_input_mode, /
 current_kboard	c-src/emacs/src/keyboard.c	85
 current_lb_is_new	c-src/etags.c	2926
+curry-test	scm-src/test.scm	/^(define (((((curry-test a) b) c) d) e)$/
 cursor_position	cp-src/screen.cpp	/^void cursor_position(void)$/
 cursor_x	cp-src/screen.cpp	15
 cursor_y	cp-src/screen.cpp	15
@@ -3037,6 +3039,7 @@ foo	ruby-src/test1.ru	/^    attr_reader :foo$/
 foo!	ruby-src/test1.ru	/^    def foo!$/
 foo1	ruby-src/test1.ru	/^    attr_reader(:foo1, :bar1, # comment$/
 foo2	ruby-src/test1.ru	/^    alias_method ( :foo2, #cmmt$/
+foo==bar	el-src/TAGTEST.EL	/^(defun foo==bar () (message "hi"))  ; Bug#5624$/
 foobar	c-src/c.c	/^int foobar() {;}$/
 foobar	c.c	/^extern void foobar (void) __attribute__ ((section /
 foobar2	c-src/h.h	20
@@ -3161,6 +3164,9 @@ header	c-src/emacs/src/lisp.h	1672
 header	c-src/emacs/src/lisp.h	1826
 header_size	c-src/emacs/src/lisp.h	1471
 heapsize	c-src/emacs/src/gmalloc.c	361
+hello	scm-src/test.scm	/^(define hello "Hello, Emacs!")$/
+hello	scm-src/test.scm	/^(set! hello "Hello, world!")$/
+hello-world	scm-src/test.scm	/^(define (hello-world)$/
 help	c-src/etags.c	193
 helpPanel	objcpp-src/SimpleCalc.M	/^- helpPanel:sender$/
 help_char_p	c-src/emacs/src/keyboard.c	/^help_char_p (Lisp_Object c)$/
@@ -4317,10 +4323,12 @@ test	erl-src/gs_dialog.erl	/^test() ->$/
 test	go-src/test1.go	/^func test(p plus) {$/
 test	make-src/Makefile	/^test:$/
 test	php-src/ptest.php	/^test $/
+test-begin	scm-src/test.scm	/^(define-syntax test-begin$/
 test.me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 test.me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
+there-is-a-=-in-the-middle!	scm-src/test.scm	/^(define (there-is-a-=-in-the-middle!) #t)$/
 this	c-src/a/b/b.c	1
 this-command-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("this-command-keys", Fthis_command_keys, St/
 this-command-keys-vector	c-src/emacs/src/keyboard.c	/^DEFUN ("this-command-keys-vector", Fthis_command_k/

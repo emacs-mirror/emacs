@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -326,12 +326,13 @@ Return argument is of the form (\"HOLDER\" \"YEAR1\" ... \"YEARN\")"
 	  (start (point))
 	  (end (line-end-position)))
       ;; Cope with multi-line copyright `lines'.  Assume the second
-      ;; line is indented (with the same commenting style).
+      ;; line is indented at least as much as the original, with the
+      ;; same commenting style.
       (save-excursion
 	(beginning-of-line 2)
-	(let ((str (concat (match-string-no-properties 1) "[ \t]+")))
+	(let ((str (match-string-no-properties 1)))
 	  (beginning-of-line)
-	  (while (looking-at str)
+	  (while (and (looking-at str) (not (looking-at lm-copyright-prefix)))
 	    (setq end (line-end-position))
 	    (beginning-of-line 2))))
       ;; Make a single line and parse that.

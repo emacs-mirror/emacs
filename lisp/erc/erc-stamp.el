@@ -1,6 +1,6 @@
 ;;; erc-stamp.el --- Timestamping for ERC messages
 
-;; Copyright (C) 2002-2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -158,7 +158,7 @@ from entering them and instead jump over them."
   "ERC timestamp face."
   :group 'erc-faces)
 
-;;;###autoload (autoload 'erc-timestamp-mode "erc-stamp" nil t)
+;;;###autoload(autoload 'erc-timestamp-mode "erc-stamp" nil t)
 (define-erc-module stamp timestamp
   "This mode timestamps messages in the channel buffers."
   ((add-hook 'erc-mode-hook #'erc-munge-invisibility-spec)
@@ -417,7 +417,7 @@ enabled when the message was inserted."
 ;;; erc-stamp.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

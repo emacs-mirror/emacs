@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -814,7 +814,7 @@ This variable is set by `nnmaildir-request-article'.")
 	(when (or isnew nattr)
 	  (dolist (file  (funcall ls ndir nil "\\`[^.]" 'nosort))
 	    (setq x (concat ndir file))
-	    (and (time-less-p (nth 5 (file-attributes x)) (current-time))
+	    (and (time-less-p (nth 5 (file-attributes x)) nil)
 		 (rename-file x (concat cdir (nnmaildir--ensure-suffix file)))))
 	  (setf (nnmaildir--grp-new group) nattr))
 	(setq cattr (nth 5 (file-attributes cdir)))
@@ -915,7 +915,7 @@ This variable is set by `nnmaildir-request-article'.")
 	    (setq dirs (funcall srv-ls srv-dir nil "\\`[^.]" 'nosort)
 		  dirs (if (zerop (length target-prefix))
 			   dirs
-			 (gnus-remove-if
+			 (seq-remove
 			  (lambda (dir)
 			    (and (>= (length dir) (length target-prefix))
 				 (string= (substring dir 0

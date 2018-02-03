@@ -1,6 +1,6 @@
 ;;; files-x.el --- extended file handling commands
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -643,7 +643,7 @@ whose elements are of the form (VAR . VALUE).
 
 When a connection to a remote server is opened, the server's
 connection profiles are found.  A server may be assigned a
-connection profile using `connection-local-set-profile'.  Then
+connection profile using `connection-local-set-profiles'.  Then
 variables are set in the server's process buffer according to the
 VARIABLES list of the connection profile.  The list is processed
 in order."

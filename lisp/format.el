@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (C) 1994-1995, 1997, 1999, 2001-2017 Free Software
+;; Copyright (C) 1994-1995, 1997, 1999, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -84,7 +84,7 @@
 	   iso-sgml2iso iso-iso2sgml t nil)
     (rot13 ,(purecopy "rot13")
 	   nil
-	   ,(purecopy "tr a-mn-z n-za-m") ,(purecopy "tr a-mn-z n-za-m") t nil)
+	   rot13-region rot13-region t nil)
     (duden ,(purecopy "Duden Ersatzdarstellung")
 	   nil
 	   ,(purecopy "diac") iso-iso2duden t nil)

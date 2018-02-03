@@ -1,6 +1,6 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 
-;; Copyright (C) 1994-1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -252,8 +252,9 @@ Blind aliases or users from /etc/passwd are not expanded."
    (t
     (mh-alias-ali alias))))
 
-(mh-require 'crm nil t)                 ; completing-read-multiple
-(mh-require 'multi-prompt nil t)
+(eval-and-compile
+  (mh-require 'crm nil t)                 ; completing-read-multiple
+  (mh-require 'multi-prompt nil t))
 
 ;;;###mh-autoload
 (defun mh-read-address (prompt)

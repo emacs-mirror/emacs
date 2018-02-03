@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -94,7 +94,7 @@ the @code{byte-compile} function.  You can compile a whole file with
 recorded in a buffer called @file{*Compile-Log*}, which uses
 Compilation mode.  @xref{Compilation Mode,,,emacs, The GNU Emacs
 Manual}.  However, if the variable @code{byte-compile-debug} is
-non-nil, error message will be signaled as Lisp errors instead
+non-@code{nil}, error messages will be signaled as Lisp errors instead
 (@pxref{Errors}).
 
 @cindex macro compilation
@@ -434,6 +434,7 @@ to what @code{eval-when-compile} does.
 @node Compiler Errors
 @section Compiler Errors
 @cindex compiler errors
+@cindex byte-compiler errors
 
   Error and warning messages from byte compilation are printed in a
 buffer named @file{*Compile-Log*}.  These messages include file names
@@ -450,6 +451,10 @@ compiled, and point shows how far the byte compiler was able to read;
 the cause of the error might be nearby.  @xref{Syntax Errors}, for
 some tips for locating syntax errors.
 
+@cindex byte-compiler warnings
+@cindex free variable, byte-compiler warning
+@cindex reference to free variable, compilation warning
+@cindex function not known to be defined, compilation warning
   A common type of warning issued by the byte compiler is for
 functions and variables that were used but not defined.  Such warnings
 report the line number for the end of the file, not the locations
@@ -490,12 +495,13 @@ The reference to @var{variable} must be in the @var{then-form} of the
 
 @item
 You can tell the compiler that a function is defined using
-@code{declare-function}. @xref{Declaring Functions}.
+@code{declare-function}.  @xref{Declaring Functions}.
 
 @item
 Likewise, you can tell the compiler that a variable is defined using
 @code{defvar} with no initial value.  (Note that this marks the
-variable as special.)  @xref{Defining Variables}.
+variable as special, i.e.@: dynamically bound.)  @xref{Defining
+Variables}.
 @end itemize
 
   You can also suppress any and all compiler warnings within a certain
@@ -517,6 +523,11 @@ one you intend to suppress.
   Byte compiler warnings can be controlled more precisely by setting
 the variable @code{byte-compile-warnings}.  See its documentation
 string for details.
+
+@vindex byte-compile-error-on-warn
+  Sometimes you may wish the byte-compiler warnings to be reported
+using @code{error}.  If so, set @code{byte-compile-error-on-warn} to a
+non-@code{nil} value.
 
 @node Byte-Code Objects
 @section Byte-Code Function Objects

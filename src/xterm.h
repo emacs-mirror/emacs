@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2017 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef XTERM_H
 #define XTERM_H
@@ -48,12 +48,6 @@ typedef Widget xt_or_gtk_widget;
 #ifdef USE_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
-
-/* Some definitions to reduce conditionals.  */
-typedef GtkWidget *xt_or_gtk_widget;
-#undef XSync
-#define XSync(d, b) do { gdk_window_process_all_updates (); \
-                         XSync (d, b);  } while (false)
 #endif /* USE_GTK */
 
 /* True iff GTK's version is at least I.J.K.  */
@@ -68,6 +62,19 @@ typedef GtkWidget *xt_or_gtk_widget;
 #  define GTK_CHECK_VERSION(i, j, k) false
 # endif
 #endif
+
+#ifdef USE_GTK
+/* Some definitions to reduce conditionals.  */
+typedef GtkWidget *xt_or_gtk_widget;
+#undef XSync
+/* gdk_window_process_all_updates is deprecated in GDK 3.22.  */
+#if GTK_CHECK_VERSION (3, 22, 0)
+#define XSync(d, b) do { XSync ((d), (b)); } while (false)
+#else
+#define XSync(d, b) do { gdk_window_process_all_updates (); \
+                         XSync (d, b);  } while (false)
+#endif
+#endif /* USE_GTK */
 
 /* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
 #if GTK_CHECK_VERSION (2, 14, 0)
@@ -496,6 +503,8 @@ extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
 
+extern Window tip_window;
+
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
    the information that is specific to X windows.  */
@@ -637,6 +646,14 @@ struct x_output
   Cursor horizontal_drag_cursor;
   Cursor vertical_drag_cursor;
   Cursor current_cursor;
+  Cursor left_edge_cursor;
+  Cursor top_left_corner_cursor;
+  Cursor top_edge_cursor;
+  Cursor top_right_corner_cursor;
+  Cursor right_edge_cursor;
+  Cursor bottom_right_corner_cursor;
+  Cursor bottom_edge_cursor;
+  Cursor bottom_left_corner_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display an hourglass cursor.  */
@@ -872,7 +889,7 @@ extern void x_mark_frame_dirty (struct frame *f);
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;

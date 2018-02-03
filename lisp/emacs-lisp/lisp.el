@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -339,12 +339,18 @@ is called as a function to find the defun's beginning."
 
    ((or defun-prompt-regexp open-paren-in-column-0-is-defun-start)
     (and (< arg 0) (not (eobp)) (forward-char 1))
-    (and (re-search-backward (if defun-prompt-regexp
-				 (concat (if open-paren-in-column-0-is-defun-start
-					     "^\\s(\\|" "")
-					 "\\(?:" defun-prompt-regexp "\\)\\s(")
-			       "^\\s(")
-			     nil 'move arg)
+    (and (let (found)
+           (while
+               (and (setq found
+                          (re-search-backward
+                           (if defun-prompt-regexp
+			       (concat (if open-paren-in-column-0-is-defun-start
+					   "^\\s(\\|" "")
+				       "\\(?:" defun-prompt-regexp "\\)\\s(")
+			     "^\\s(")
+			                      nil 'move arg))
+                    (nth 8 (syntax-ppss))))
+           found)
 	 (progn (goto-char (1- (match-end 0)))
                 t)))
 
@@ -397,6 +403,40 @@ is called as a function to find the defun's beginning."
 	    (error
 	     (goto-char (if arg-+ve floor ceiling))
 	     nil))))))))
+
+(defun beginning-of-defun--in-emptyish-line-p ()
+  "Return non-nil if the point is in an \"emptyish\" line.
+This means a line that consists entirely of comments and/or
+whitespace."
+;; See https://lists.gnu.org/r/help-gnu-emacs/2016-08/msg00141.html
+  (save-excursion
+    (forward-line 0)
+    (let ((ppss (syntax-ppss)))
+      (and (null (nth 3 ppss))
+           (< (line-end-position)
+              (progn (when (nth 4 ppss)
+                       (goto-char (nth 8 ppss)))
+                     (forward-comment (point-max))
+                     (point)))))))
+
+(defun beginning-of-defun-comments (&optional arg)
+  "Move to the beginning of ARGth defun, including comments."
+  (interactive "^p")
+  (unless arg (setq arg 1))
+  (beginning-of-defun arg)
+  (let (first-line-p)
+    (while (let ((ppss (progn (setq first-line-p (= (forward-line -1) -1))
+                              (syntax-ppss (line-end-position)))))
+             (while (and (nth 4 ppss) ; If eol is in a line-spanning comment,
+                         (< (nth 8 ppss) (line-beginning-position)))
+               (goto-char (nth 8 ppss)) ; skip to comment start.
+               (setq ppss (syntax-ppss (line-end-position))))
+             (and (not first-line-p)
+                  (progn (skip-syntax-backward
+                          "-" (line-beginning-position))
+                         (not (bolp))) ; Check for blank line.
+                  (beginning-of-defun--in-emptyish-line-p)))) ; Check for non-comment text.
+    (forward-line (if first-line-p 0 1))))
 
 (defvar end-of-defun-function
   (lambda () (forward-sexp 1))
@@ -478,48 +518,72 @@ is called as a function to find the defun's end."
         (funcall end-of-defun-function)
 	(funcall skip)))))
 
-(defun mark-defun (&optional allow-extend)
+(defun mark-defun (&optional arg)
   "Put mark at end of this defun, point at beginning.
 The defun marked is the one that contains point or follows point.
+With positive ARG, mark this and that many next defuns; with negative
+ARG, change the direction of marking.
 
-Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active,
-it marks the next defun after the ones already marked."
+If the mark is active, it marks the next or previous defun(s) after
+the one(s) already marked."
   (interactive "p")
-  (cond ((and allow-extend
-	      (or (and (eq last-command this-command) (mark t))
-		  (and transient-mark-mode mark-active)))
-	 (set-mark
-	  (save-excursion
-	    (goto-char (mark))
-	    (end-of-defun)
-	    (point))))
-	(t
-	 (let ((opoint (point))
-	       beg end)
-	   (push-mark opoint)
-	   ;; Try first in this order for the sake of languages with nested
-	   ;; functions where several can end at the same place as with
-	   ;; the offside rule, e.g. Python.
-	   (beginning-of-defun)
-	   (setq beg (point))
-	   (end-of-defun)
-	   (setq end (point))
-	   (while (looking-at "^\n")
-	     (forward-line 1))
-	   (if (> (point) opoint)
-	       (progn
-		 ;; We got the right defun.
-		 (push-mark beg nil t)
-		 (goto-char end)
-		 (exchange-point-and-mark))
-	     ;; beginning-of-defun moved back one defun
-	     ;; so we got the wrong one.
-	     (goto-char opoint)
-	     (end-of-defun)
-	     (push-mark (point) nil t)
-	     (beginning-of-defun))
-	   (re-search-backward "^\n" (- (point) 1) t)))))
+  (setq arg (or arg 1))
+  ;; There is no `mark-defun-back' function - see
+  ;; https://lists.gnu.org/r/bug-gnu-emacs/2016-11/msg00079.html
+  ;; for explanation
+  (when (eq last-command 'mark-defun-back)
+    (setq arg (- arg)))
+  (when (< arg 0)
+    (setq this-command 'mark-defun-back))
+  (cond ((use-region-p)
+         (if (>= arg 0)
+             (set-mark
+              (save-excursion
+                (goto-char (mark))
+                ;; change the dotimes below to (end-of-defun arg) once bug #24427 is fixed
+                (dotimes (_ignore arg)
+                  (end-of-defun))
+                (point)))
+           (beginning-of-defun-comments (- arg))))
+        (t
+         (let ((opoint (point))
+               beg end)
+           (push-mark opoint)
+           ;; Try first in this order for the sake of languages with nested
+           ;; functions where several can end at the same place as with the
+           ;; offside rule, e.g. Python.
+           (beginning-of-defun-comments)
+           (setq beg (point))
+           (end-of-defun)
+           (setq end (point))
+           (when (or (and (<= (point) opoint)
+                          (> arg 0))
+                     (= beg (point-min))) ; we were before the first defun!
+             ;; beginning-of-defun moved back one defun so we got the wrong
+             ;; one.  If ARG < 0, however, we actually want to go back.
+             (goto-char opoint)
+             (end-of-defun)
+             (setq end (point))
+             (beginning-of-defun-comments)
+             (setq beg (point)))
+           (goto-char beg)
+           (cond ((> arg 0)
+                  ;; change the dotimes below to (end-of-defun arg) once bug #24427 is fixed
+                  (dotimes (_ignore arg)
+                    (end-of-defun))
+                  (setq end (point))
+                  (push-mark end nil t)
+                  (goto-char beg))
+                 (t
+                  (goto-char beg)
+                  (unless (= arg -1)    ; beginning-of-defun behaves
+                                        ; strange with zero arg - see
+                                        ; https://lists.gnu.org/r/bug-gnu-emacs/2017-02/msg00196.html
+                    (beginning-of-defun (1- (- arg))))
+                  (push-mark end nil t))))))
+  (skip-chars-backward "[:space:]\n")
+  (unless (bobp)
+    (forward-line 1)))
 
 (defvar narrow-to-defun-include-comments nil
   "If non-nil, `narrow-to-defun' will also show comments preceding the defun.")

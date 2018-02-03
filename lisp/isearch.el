@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -128,9 +128,10 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   "If t incremental search/query-replace can match hidden text.
 A nil value means don't match invisible text.
 When the value is `open', if the text matched is made invisible by
-an overlay having an `invisible' property and that overlay has a property
-`isearch-open-invisible', then incremental search will show the contents.
-\(This applies when using `outline.el' and `hideshow.el'.)
+an overlay having a non-nil `invisible' property, and that overlay
+has a non-nil property `isearch-open-invisible', then incremental
+search will show the hidden text.  (This applies when using `outline.el'
+and `hideshow.el'.)
 
 To temporarily change the value for an active incremental search,
 use \\<isearch-mode-map>\\[isearch-toggle-invisible].
@@ -1232,6 +1233,8 @@ If this is set inside code wrapped by the macro
 (define-obsolete-variable-alias 'isearch-new-word
   'isearch-new-regexp-function "25.1")
 
+(defvar isearch-suspended nil)
+
 (defmacro with-isearch-suspended (&rest body)
   "Exit Isearch mode, run BODY, and reinvoke the pending search.
 You can update the global isearch variables by setting new values to
@@ -1298,6 +1301,8 @@ You can update the global isearch variables by setting new values to
 	       isearch-original-minibuffer-message-timeout)
 	      old-point old-other-end)
 
+          (setq isearch-suspended t)
+
 	  ;; Actually terminate isearching until editing is done.
 	  ;; This is so that the user can do anything without failure,
 	  ;; like switch buffers and start another isearch, and return.
@@ -1311,6 +1316,8 @@ You can update the global isearch variables by setting new values to
 
 	  (unwind-protect
 	      (progn ,@body)
+
+            (setq isearch-suspended nil)
 
 	    ;; Always resume isearching by restarting it.
 	    (isearch-mode isearch-forward
@@ -1373,6 +1380,7 @@ You can update the global isearch variables by setting new values to
 		  (message "")))))
 
     (quit  ; handle abort-recursive-edit
+     (setq isearch-suspended nil)
      (isearch-abort)  ;; outside of let to restore outside global values
      )))
 
@@ -2036,9 +2044,9 @@ For a click in the echo area, invoke `isearch-yank-x-selection'.
 Otherwise invoke whatever the calling mouse-2 command sequence
 is bound to outside of Isearch."
   (interactive "e")
-  (let* ((w (posn-window (event-start click)))
-	 (overriding-terminal-local-map nil)
-	 (binding (key-binding (this-command-keys-vector) t)))
+  (let ((w (posn-window (event-start click)))
+        (binding (let ((overriding-terminal-local-map nil))
+                   (key-binding (this-command-keys-vector) t))))
     (if (and (window-minibuffer-p w)
 	     (not (minibuffer-window-active-p w))) ; in echo area
 	(isearch-yank-x-selection)
@@ -2850,7 +2858,7 @@ Optional third argument, if t, means if fail just return nil (no error).
      (setq isearch-error (car (cdr lossage)))
      (cond
       ((string-match
-	"\\`Premature \\|\\`Unmatched \\|\\`Invalid "
+	"\\`Premature \\|\\`Unmatched "
 	isearch-error)
        (setq isearch-error "incomplete input"))
       ((and (not isearch-regexp)

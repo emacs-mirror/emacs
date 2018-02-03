@@ -1,6 +1,6 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2017 Free Software
+;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -141,14 +141,14 @@ If this contains a %s, that will be replaced by the matching rule."
      "
 .\\\" You may distribute this file under the terms of the GNU Free
 .\\\" Documentation License.
-.TH " (file-name-base)
+.TH " (file-name-base (buffer-file-name))
      " " (file-name-extension (buffer-file-name))
      " " (format-time-string "%Y-%m-%d ")
      "\n.SH NAME\n"
-     (file-name-base)
+     (file-name-base (buffer-file-name))
      " \\- " str
      "\n.SH SYNOPSIS
-.B " (file-name-base)
+.B " (file-name-base (buffer-file-name))
      "\n"
      _
      "
@@ -200,7 +200,7 @@ If this contains a %s, that will be replaced by the matching rule."
 \;; GNU General Public License for more details.
 
 \;; You should have received a copy of the GNU General Public License
-\;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 \;;; Commentary:
 
@@ -211,7 +211,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
 
 \(provide '"
-       (file-name-base)
+       (file-name-base (buffer-file-name))
        ")
 \;;; " (file-name-nondirectory (buffer-file-name)) " ends here\n")
     (("\\.texi\\(nfo\\)?\\'" . "Texinfo file skeleton")
@@ -219,7 +219,7 @@ If this contains a %s, that will be replaced by the matching rule."
      "\\input texinfo   @c -*-texinfo-*-
 @c %**start of header
 @setfilename "
-     (file-name-base) ".info\n"
+     (file-name-base (buffer-file-name)) ".info\n"
       "@settitle " str "
 @c %**end of header
 @copying\n"
@@ -237,7 +237,7 @@ A copy of the license is included in the section entitled ``GNU
 Free Documentation License''.
 
 A copy of the license is also available from the Free Software
-Foundation Web site at @url{http://www.gnu.org/licenses/fdl.html}.
+Foundation Web site at @url{https://www.gnu.org/licenses/fdl.html}.
 
 @end quotation
 
@@ -284,7 +284,7 @@ The document was typeset with
 * GNU Free Documentation License::  License for copying this manual.
 @end menu
 
-@c Get fdl.texi from http://www.gnu.org/licenses/fdl.html
+@c Get fdl.texi from https://www.gnu.org/licenses/fdl.html
 @include fdl.texi
 
 @node Index

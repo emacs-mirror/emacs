@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -54,10 +54,14 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Transposition::    Swapping two portions of a buffer.
+* Replacing::        Replacing the text of one buffer with the text
+                       of another buffer.
 * Decompression::    Dealing with compressed data.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
+* GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
 * Parsing HTML/XML:: Parsing HTML and XML.
+* Parsing JSON::     Parsing and generating JSON values.
 * Atomic Changes::   Installing several buffer changes atomically.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
@@ -522,9 +526,17 @@ responsible for calling @code{blink-paren-function} when the inserted
 character has close parenthesis syntax (@pxref{Blinking}).
 
 @vindex post-self-insert-hook
+@vindex self-insert-uses-region-functions
 The final thing this command does is to run the hook
 @code{post-self-insert-hook}.  You could use this to automatically
-reindent text as it is typed, for example.
+reindent text as it is typed, for example.  If any function on this
+hook needs to act on the region (@pxref{The Region}), it should make
+sure Delete Selection mode (@pxref{Using Region, Delete Selection, ,
+emacs, The GNU Emacs Manual}) doesn't delete the region before
+@code{post-self-insert-hook} functions are invoked.  The way to do so
+is to add a function that returns @code{nil} to
+@code{self-insert-uses-region-functions}, a special hook that tells
+Delete Selection mode it should not delete the region.
 
 Do not try substituting your own definition of
 @code{self-insert-command} for the standard one.  The editor command
@@ -1883,10 +1895,10 @@ prefix or @code{nil}, meaning it has failed to determine a prefix.
 @cindex filling, automatic
 @cindex Auto Fill mode
 
-@c FIXME: I don't think any of the variables below is a/an normal/abnormal hook.
-  Auto Fill mode is a minor mode that fills lines automatically as text
-is inserted.  This section describes the hook used by Auto Fill mode.
-For a description of functions that you can call explicitly to fill and
+Auto Fill mode is a minor mode that fills lines automatically as text is
+inserted.  @xref{Auto Fill,,, emacs, The GNU Emacs Manual}.  This
+section describes some variables used by Auto Fill mode.  For a
+description of functions that you can call explicitly to fill and
 justify existing text, see @ref{Filling}.
 
   Auto Fill mode also enables the functions that change the margins and
@@ -1895,11 +1907,11 @@ justification style to refill portions of the text.  @xref{Margins}.
 @defvar auto-fill-function
 The value of this buffer-local variable should be a function (of no
 arguments) to be called after self-inserting a character from the table
-@code{auto-fill-chars}.  It may be @code{nil}, in which case nothing
-special is done in that case.
+@code{auto-fill-chars}, see below.  It may be @code{nil}, in which case
+nothing special is done in that case.
 
-The value of @code{auto-fill-function} is @code{do-auto-fill} when
-Auto-Fill mode is enabled.  That is a function whose sole purpose is to
+The value of @code{auto-fill-function} is @code{do-auto-fill} when Auto
+Fill mode is enabled.  That is a function whose sole purpose is to
 implement the usual strategy for breaking a line.
 @end defvar
 
@@ -1915,6 +1927,14 @@ A char table of characters which invoke @code{auto-fill-function} when
 self-inserted---space and newline in most language environments.  They
 have an entry @code{t} in the table.
 @end defvar
+
+@defopt comment-auto-fill-only-comments
+This variable, if non-@code{nil}, means to fill lines automatically
+within comments only.  More precisely, this means that if a comment
+syntax was defined for the current buffer, then self-inserting a
+character outside of a comment will not call @code{auto-fill-function}.
+@end defopt
+
 
 @node Sorting
 @section Sorting Text
@@ -2377,57 +2397,31 @@ text at point (@pxref{Completion in Buffers}).
 syntax belongs to a different major mode.  Examples include
 @dfn{literate programming} source files that combine documentation and
 snippets of source code, Yacc/Bison programs that include snippets of
-plain C code, etc.  To correctly indent the embedded chunks, the major
+Python or JS code, etc.  To correctly indent the embedded chunks, the primary
 mode needs to delegate the indentation to another mode's indentation
-engine (e.g., call @code{c-indent-defun} for C code or
+engine (e.g., call @code{js-indent-line} for JS code or
 @code{python-indent-line} for Python), while providing it with some
-context to guide the indentation.  The following facilities support
-such multi-mode indentation.
+context to guide the indentation.  Major modes, for their part, should
+avoid calling @code{widen} in their indentation code and obey
+@code{prog-first-column}.
 
 @defvar prog-indentation-context
 This variable, when non-@code{nil}, holds the indentation context for
 the sub-mode's indentation engine provided by the superior major mode.
-The value should be a list of the form @code{(@var{first-column}
-@w{(@var{start} . @var{end})} @code{prev-chunk})}.  The members of the
-list have the following meaning:
+The value should be a list of the form @code{(@var{first-column} . @var{rest}}.
+The members of the list have the following meaning:
 
 @table @var
 @item first-column
 The column to be used for top-level constructs.  This replaces the
 default value of the top-level column used by the sub-mode, usually
 zero.
-@item start
-@itemx end
-The region of the code chunk to be indented by the sub-mode.  The
-value of @var{end} can be @code{nil}, which stands for the value of
-@code{point-max}.
-@item prev-chunk
-If this is non-@code{nil}, it should provide the sub-mode's
-indentation engine with a virtual context of the code chunk.  Valid
-values include:
-
-@itemize @minus
-@item
-A string whose contents is the text the sub-mode's indentation engine
-should consider to precede the code chunk.  The sub-mode's indentation
-engine can add text properties to that string, to be reused in
-repeated calls with the same string, thus using it as a cache.  An
-example where this is useful is code chunks that need to be indented
-as function bodies, but lack the function's preamble---the string
-could then include that missing preamble.
-@item
-A function.  It is expected to be called with the start position of
-the current chunk, and should return a cons cell
-@w{@code{(@var{prev-start} . @var{prev-end})}} that specifies the
-region of the previous code chunk, or @code{nil} if there is no previous
-chunk.  This is useful in literate-programming sources, where code is
-split into chunks, and correct indentation needs to access previous
-chunks.
-@end itemize
+@item rest
+This value is currently unused.
 @end table
 @end defvar
 
-The following convenience functions should be used by major mode's
+The following convenience function should be used by major mode's
 indentation engine in support of invocations as sub-modes of another
 major mode.
 
@@ -2436,16 +2430,6 @@ Call this function instead of using a literal value (usually, zero) of
 the column number for indenting top-level program constructs.  The
 function's value is the column number to use for top-level constructs.
 When no superior mode is in effect, this function returns zero.
-@end defun
-
-@defun prog-widen
-Call this function instead of @code{widen} to remove any restrictions
-imposed by the mode's indentation engine and restore the restrictions
-recorded in @code{prog-indentation-context}.  This prevents the
-indentation engine of a sub-mode from inadvertently operating on text
-outside of the chunk it was supposed to indent, and preserves the
-restriction imposed by the superior mode.  When no superior mode is in
-effect, this function just calls @code{widen}.
 @end defun
 
 
@@ -4235,6 +4219,7 @@ A marker represents a buffer position to jump to.
 A string is text saved in the register.
 
 @item a rectangle
+@cindex rectangle, as contents of a register
 A rectangle is represented by a list of strings.
 
 @item @code{(@var{window-configuration} @var{position})}
@@ -4325,6 +4310,28 @@ two characters in their new position.  However, if @var{leave-markers}
 is non-@code{nil}, @code{transpose-regions} does not do this---it leaves
 all markers unrelocated.
 @end defun
+
+@node Replacing
+@section Replacing Buffer Text
+
+  You can use the following function to replace the text of one buffer
+with the text of another buffer:
+
+@deffn Command replace-buffer-contents source
+This function replaces the accessible portion of the current buffer
+with the accessible portion of the buffer @var{source}.  @var{source}
+may either be a buffer object or the name of a buffer.  When
+@code{replace-buffer-contents} succeeds, the text of the accessible
+portion of the current buffer will be equal to the text of the
+accessible portion of the @var{source} buffer.  This function attempts
+to keep point, markers, text properties, and overlays in the current
+buffer intact.  One potential case where this behavior is useful is
+external code formatting programs: they typically write the
+reformatted text into a temporary buffer or file, and using
+@code{delete-region} and @code{insert-buffer-substring} would destroy
+these properties.  However, the latter combination is typically
+faster.  @xref{Deletion}, and @ref{Insertion}.
+@end deffn
 
 @node Decompression
 @section Dealing With Compressed Data
@@ -4436,6 +4443,11 @@ similar theoretical weakness also exists in SHA-1.  Therefore, for
 security-related applications you should use the other hash types,
 such as SHA-2.
 
+@defun secure-hash-algorithms
+This function returns a list of symbols representing algorithms that
+@code{secure-hash} can use.
+@end defun
+
 @defun secure-hash algorithm object &optional start end binary
 This function returns a hash for @var{object}.  The argument
 @var{algorithm} is a symbol stating which hash to compute: one of
@@ -4494,12 +4506,213 @@ It should be somewhat more efficient on larger buffers than
 @c according to what we find useful.
 @end defun
 
+@node GnuTLS Cryptography
+@section GnuTLS Cryptography
+@cindex MD5 checksum
+@cindex SHA hash
+@cindex hash, cryptographic
+@cindex cryptographic hash
+@cindex AEAD cipher
+@cindex cipher, AEAD
+@cindex symmetric cipher
+@cindex cipher, symmetric
+
+  If compiled with GnuTLS, Emacs offers built-in cryptographic
+support.  Following the GnuTLS API terminology, the available tools
+are digests, MACs, symmetric ciphers, and AEAD ciphers.
+
+The terms used herein, such as IV (Initialization Vector), require
+some familiarity with cryptography and will not be defined in detail.
+Please consult @uref{https://www.gnutls.org/} for specific
+documentation which may help you understand the terminology and
+structure of the GnuTLS library.
+
+@menu
+* Format of GnuTLS Cryptography Inputs::
+* GnuTLS Cryptographic Functions::
+@end menu
+
+@node Format of GnuTLS Cryptography Inputs
+@subsection Format of GnuTLS Cryptography Inputs
+@cindex format of gnutls cryptography inputs
+@cindex gnutls cryptography inputs format
+
+  The inputs to GnuTLS cryptographic functions can be specified in
+several ways, both as primitive Emacs Lisp types or as lists.
+
+The list form is currently similar to how @code{md5} and
+@code{secure-hash} operate.
+
+@table @code
+@item @var{buffer}
+Simply passing a buffer as input means the whole buffer should be used.
+
+@item @var{string}
+A string as input will be used directly.  It may be modified by the
+function (unlike most other Emacs Lisp functions) to reduce the chance
+of exposing sensitive data after the function does its work.
+
+@item (@var{buffer-or-string} @var{start} @var{end} @var{coding-system} @var{noerror})
+This specifies a buffer or a string as described above, but an
+optional range can be specified with @var{start} and @var{end}.
+
+In addition an optional @var{coding-system} can be specified if needed.
+
+The last optional item, @var{noerror}, overrides the normal error when
+the text can't be encoded using the specified or chosen coding system.
+When @var{noerror} is non-@code{nil}, this function silently uses
+@code{raw-text} coding instead.
+
+@item (@code{iv-auto} @var{length})
+This will generate an IV (Initialization Vector) of the specified
+length using the GnuTLS @code{GNUTLS_RND_NONCE} generator and pass it
+to the function.  This ensures that the IV is unpredictable and
+unlikely to be reused in the same session.  The actual value of the IV
+is returned by the function as described below.
+
+@end table
+
+@node GnuTLS Cryptographic Functions
+@subsection GnuTLS Cryptographic Functions
+@cindex gnutls cryptographic functions
+
+@defun gnutls-digests
+This function returns the alist of the GnuTLS digest algorithms.
+
+Each entry has a key which represents the algorithm, followed by a
+plist with internal details about the algorithm.  The plist will have
+@code{:type gnutls-digest-algorithm} and also will have the key
+@code{:digest-algorithm-length 64} to indicate the size, in bytes, of
+the resulting digest.
+
+There is a name parallel between GnuTLS MAC and digest algorithms but
+they are separate things internally and should not be mixed.
+@end defun
+
+@defun gnutls-hash-digest digest-method input
+The @var{digest-method} can be the whole plist from
+@code{gnutls-digests}, or just the symbol key, or a string with the
+name of that symbol.
+
+The @var{input} can be specified as a buffer or string or in other
+ways (@pxref{Format of GnuTLS Cryptography Inputs}).
+
+This function returns @code{nil} on error, and signals a Lisp error if
+the @var{digest-method} or @var{input} are invalid.  On success, it
+returns a list of a binary string (the output) and the IV used.
+@end defun
+
+@defun gnutls-macs
+This function returns the alist of the GnuTLS MAC algorithms.
+
+Each entry has a key which represents the algorithm, followed by a
+plist with internal details about the algorithm.  The plist will have
+@code{:type gnutls-mac-algorithm} and also will have the keys
+@code{:mac-algorithm-length} @code{:mac-algorithm-keysize}
+@code{:mac-algorithm-noncesize} to indicate the size, in bytes, of the
+resulting hash, the key, and the nonce respectively.
+
+The nonce is currently unused and only some MACs support it.
+
+There is a name parallel between GnuTLS MAC and digest algorithms but
+they are separate things internally and should not be mixed.
+@end defun
+
+@defun gnutls-hash-mac hash-method key input
+The @var{hash-method} can be the whole plist from
+@code{gnutls-macs}, or just the symbol key, or a string with the
+name of that symbol.
+
+The @var{key} can be specified as a buffer or string or in other ways
+(@pxref{Format of GnuTLS Cryptography Inputs}).  The @var{key} will be
+wiped after use if it's a string.
+
+The @var{input} can be specified as a buffer or string or in other
+ways (@pxref{Format of GnuTLS Cryptography Inputs}).
+
+This function returns @code{nil} on error, and signals a Lisp error if
+the @var{hash-method} or @var{key} or @var{input} are invalid.
+
+On success, it returns a list of a binary string (the output) and the
+IV used.
+@end defun
+
+@defun gnutls-ciphers
+This function returns the alist of the GnuTLS ciphers.
+
+Each entry has a key which represents the cipher, followed by a plist
+with internal details about the algorithm.  The plist will have
+@code{:type gnutls-symmetric-cipher} and also will have the keys
+@code{:cipher-aead-capable} set to @code{nil} or @code{t} to indicate
+AEAD capability; and @code{:cipher-tagsize} @code{:cipher-blocksize}
+@code{:cipher-keysize} @code{:cipher-ivsize} to indicate the size, in
+bytes, of the tag, block size of the resulting data, the key, and the
+IV respectively.
+@end defun
+
+@defun gnutls-symmetric-encrypt cipher key iv input &optional aead_auth
+The @var{cipher} can be the whole plist from
+@code{gnutls-ciphers}, or just the symbol key, or a string with the
+name of that symbol.
+
+The @var{key} can be specified as a buffer or string or in other ways
+(@pxref{Format of GnuTLS Cryptography Inputs}).  The @var{key} will be
+wiped after use if it's a string.
+
+The @var{iv} and @var{input} and the optional @var{aead_auth} can be
+specified as a buffer or string or in other ways (@pxref{Format of
+GnuTLS Cryptography Inputs}).
+
+@var{aead_auth} is only checked with AEAD ciphers, that is, ciphers whose
+plist has @code{:cipher-aead-capable t}.  Otherwise it's ignored.
+
+This function returns @code{nil} on error, and signals a Lisp error if
+the @var{cipher} or @var{key}, @var{iv}, or @var{input} are invalid,
+or if @var{aead_auth} was specified with an AEAD cipher and was
+invalid.
+
+On success, it returns a list of a binary string (the output) and the
+IV used.
+@end defun
+
+@defun gnutls-symmetric-decrypt cipher key iv input &optional aead_auth
+The @var{cipher} can be the whole plist from
+@code{gnutls-ciphers}, or just the symbol key, or a string with the
+name of that symbol.
+
+The @var{key} can be specified as a buffer or string or in other ways
+(@pxref{Format of GnuTLS Cryptography Inputs}).  The @var{key} will be
+wiped after use if it's a string.
+
+The @var{iv} and @var{input} and the optional @var{aead_auth} can be
+specified as a buffer or string or in other ways (@pxref{Format of
+GnuTLS Cryptography Inputs}).
+
+@var{aead_auth} is only checked with AEAD ciphers, that is, ciphers whose
+plist has @code{:cipher-aead-capable t}.  Otherwise it's ignored.
+
+This function returns @code{nil} on decryption error, and signals a
+Lisp error if the @var{cipher} or @var{key}, @var{iv}, or @var{input}
+are invalid, or if @var{aead_auth} was specified with an AEAD cipher
+and was invalid.
+
+On success, it returns a list of a binary string (the output) and the
+IV used.
+@end defun
+
 @node Parsing HTML/XML
 @section Parsing HTML and XML
 @cindex parsing html
 
-When Emacs is compiled with libxml2 support, the following functions
-are available to parse HTML or XML text into Lisp object trees.
+  Emacs can be compiled with built-in libxml2 support.
+
+@defun libxml-available-p
+This function returns non-@code{nil} if built-in libxml2 support is
+available in this Emacs session.
+@end defun
+
+When libxml2 support is available, the following functions can be used
+to parse HTML or XML text into Lisp object trees.
 
 @defun libxml-parse-html-region start end &optional base-url discard-comments
 This function parses the text between @var{start} and @var{end} as
@@ -4566,9 +4779,9 @@ about syntax).
 @cindex DOM
 @cindex Document Object Model
 
-The @acronym{DOM} returned by @code{libxml-parse-html-region} (and the
-other @acronym{XML} parsing functions) is a tree structure where each
-node has a node name (called a @dfn{tag}), and optional key/value
+  The @acronym{DOM} returned by @code{libxml-parse-html-region} (and
+the other @acronym{XML} parsing functions) is a tree structure where
+each node has a node name (called a @dfn{tag}), and optional key/value
 @dfn{attribute} list, and then a list of @dfn{child nodes}.  The child
 nodes are either strings or @acronym{DOM} objects.
 
@@ -4602,7 +4815,7 @@ would be:
 
 @lisp
 (dom-attr img 'href)
-=> "http://fsf.org/logo.png"
+=> "https://fsf.org/logo.png"
 @end lisp
 
 @item dom-children @var{node}
@@ -4684,6 +4897,98 @@ Utility functions:
 Pretty-print @var{dom} at point.  If @var{remove-empty}, don't print
 textual nodes that just contain white-space.
 @end table
+
+
+@node Parsing JSON
+@section Parsing and generating JSON values
+@cindex JSON
+
+  When Emacs is compiled with JSON support, it provides a couple of
+functions to convert between Lisp objects and JSON values.  Any JSON
+value can be converted to a Lisp object, but not vice versa.
+Specifically:
+
+@itemize
+
+@item
+JSON has a couple of keywords: @code{null}, @code{false}, and
+@code{true}.  These are represented in Lisp using the keywords
+@code{:null}, @code{:false}, and @code{t}, respectively.
+
+@item
+JSON only has floating-point numbers.  They can represent both Lisp
+integers and Lisp floating-point numbers.
+
+@item
+JSON strings are always Unicode strings.  Lisp strings can contain
+non-Unicode characters.
+
+@item
+JSON has only one sequence type, the array.  JSON arrays are
+represented using Lisp vectors.
+
+@item
+JSON has only one map type, the object.  JSON objects are represented
+using Lisp hashtables or alists.  When an alist contains several
+elements with the same key, Emacs uses only the first element for
+serialization, in accordance with the behavior of @code{assq}.
+
+@end itemize
+
+@noindent
+Note that @code{nil} is a valid alist and represents the empty JSON
+object, @code{@{@}}, not @code{null}, @code{false}, or an empty array,
+all of which are different JSON values.
+
+  If some Lisp object can't be represented in JSON, the serialization
+functions will signal an error of type @code{wrong-type-argument}.
+The parsing functions will signal the following errors:
+
+@table @code
+
+@item json-end-of-file
+    Signaled when encountering a premature end of the input text.
+
+@item json-trailing-content
+    Signaled when encountering unexpected input after the first JSON
+    object parsed.
+
+@item json-parse-error
+    Signaled when encountering invalid JSON syntax.
+
+@end table
+
+  Only top-level values (arrays and objects) can be serialized to
+JSON.  The subobjects within these top-level values can be of any
+type.  Likewise, the parsing functions will only return vectors,
+hashtables, and alists.
+
+  The parsing functions accept keyword arguments.  Currently only one
+keyword argument, @code{:object-type}, is recognized; its value can be
+either @code{hash-table} to parse JSON objects as hashtables with
+string keys (the default) or @code{alist} to parse them as alists.
+
+@defun json-serialize object
+This function returns a new Lisp string which contains the JSON
+representation of @var{object}.
+@end defun
+
+@defun json-insert object
+This function inserts the JSON representation of @var{object} into the
+current buffer before point.
+@end defun
+
+@defun json-parse-string string &key (object-type @code{hash-table})
+This function parses the JSON value in @var{string}, which must be a
+Lisp string.
+@end defun
+
+@defun json-parse-buffer &key (object-type @code{hash-table})
+This function reads the next JSON value from the current buffer,
+starting at point.  It moves point to the position immediately after
+the value if a value could be read and converted to Lisp; otherwise it
+doesn't move point.
+@end defun
 
 
 @node Atomic Changes
@@ -4818,14 +5123,21 @@ these functions, and neither do certain internal buffer changes, such
 as changes in buffers created by Emacs internally for certain jobs,
 that should not be visible to Lisp programs.
 
-  Do @emph{not} expect the before-change hooks and the after-change
-hooks be called in balanced pairs around each buffer change.  Also
-don't expect the before-change hooks to be called for every chunk of
-text Emacs is about to delete.  These hooks are provided on the
-assumption that Lisp programs will use either before- or the
-after-change hooks, but not both, and the boundaries of the region
-where the changes happen might include more than just the actual
-changed text, or even lump together several changes done piecemeal.
+The vast majority of buffer changing primitives will call
+@code{before-change-functions} and @code{after-change-functions} in
+balanced pairs, once for each change, where the arguments to these
+hooks exactly delimit the change being made.  Yet, hook functions
+should not rely on this always being the case, because some complex
+primitives call @code{before-change-functions} once before making
+changes, and then call @code{after-change-functions} zero or more
+times, depending on how many individual changes the primitive is
+making.  When that happens, the arguments to
+@code{before-change-functions} will enclose a region in which the
+individual changes are made, but won't necessarily be the minimal such
+region, and the arguments to each successive call of
+@code{after-change-functions} will then delimit the part of text being
+changed exactly.  In general, we advise to use either before- or the
+after-change hooks, but not both.
 
 @defmac combine-after-change-calls body@dots{}
 The macro executes @var{body} normally, but arranges to call the

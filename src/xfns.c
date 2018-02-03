@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2017 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -215,8 +215,9 @@ x_real_pos_and_offsets (struct frame *f,
   int win_x = 0, win_y = 0, outer_x = 0, outer_y = 0;
   int real_x = 0, real_y = 0;
   bool had_errors = false;
-  Window win = (FRAME_PARENT_FRAME (f)
-		? FRAME_X_WINDOW (FRAME_PARENT_FRAME (f))
+  struct frame *parent_frame = FRAME_PARENT_FRAME (f);
+  Window win = (parent_frame
+		? FRAME_X_WINDOW (parent_frame)
 		: f->output_data.x->parent_desc);
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   long max_len = 400;
@@ -355,8 +356,8 @@ x_real_pos_and_offsets (struct frame *f,
 	outer_geom_cookie = xcb_get_geometry (xcb_conn,
 					      FRAME_OUTER_WINDOW (f));
 
-      if ((dpyinfo->root_window == f->output_data.x->parent_desc)
-	  && !FRAME_PARENT_FRAME (f))
+      if (!parent_frame
+	  && dpyinfo->root_window == f->output_data.x->parent_desc)
 	/* Try _NET_FRAME_EXTENTS if our parent is the root window.  */
 	prop_cookie = xcb_get_property (xcb_conn, 0, win,
 					dpyinfo->Xatom_net_frame_extents,
@@ -470,8 +471,7 @@ x_real_pos_and_offsets (struct frame *f,
 #endif
     }
 
-  if ((dpyinfo->root_window == f->output_data.x->parent_desc)
-      && !FRAME_PARENT_FRAME (f))
+  if (!parent_frame && dpyinfo->root_window == f->output_data.x->parent_desc)
     {
       /* Try _NET_FRAME_EXTENTS if our parent is the root window.  */
 #ifdef USE_XCB
@@ -1120,6 +1120,14 @@ enum mouse_cursor {
   mouse_cursor_hand,
   mouse_cursor_horizontal_drag,
   mouse_cursor_vertical_drag,
+  mouse_cursor_left_edge,
+  mouse_cursor_top_left_corner,
+  mouse_cursor_top_edge,
+  mouse_cursor_top_right_corner,
+  mouse_cursor_right_edge,
+  mouse_cursor_bottom_right_corner,
+  mouse_cursor_bottom_edge,
+  mouse_cursor_bottom_left_corner,
   mouse_cursor_max
 };
 
@@ -1139,13 +1147,21 @@ struct mouse_cursor_types {
 
 /* This array must stay in sync with enum mouse_cursor above!  */
 static const struct mouse_cursor_types mouse_cursor_types[] = {
-  { "text",      &Vx_pointer_shape,                XC_xterm             },
-  { "nontext",   &Vx_nontext_pointer_shape,        XC_left_ptr          },
-  { "hourglass", &Vx_hourglass_pointer_shape,      XC_watch             },
-  { "modeline",  &Vx_mode_pointer_shape,           XC_xterm             },
-  { NULL,        &Vx_sensitive_text_pointer_shape, XC_hand2             },
-  { NULL,        &Vx_window_horizontal_drag_shape, XC_sb_h_double_arrow },
-  { NULL,        &Vx_window_vertical_drag_shape,   XC_sb_v_double_arrow },
+  { "text",      &Vx_pointer_shape,                    XC_xterm               },
+  { "nontext",   &Vx_nontext_pointer_shape,            XC_left_ptr            },
+  { "hourglass", &Vx_hourglass_pointer_shape,          XC_watch               },
+  { "modeline",  &Vx_mode_pointer_shape,               XC_xterm               },
+  { NULL,        &Vx_sensitive_text_pointer_shape,     XC_hand2               },
+  { NULL,        &Vx_window_horizontal_drag_shape,     XC_sb_h_double_arrow   },
+  { NULL,        &Vx_window_vertical_drag_shape,       XC_sb_v_double_arrow   },
+  { NULL,        &Vx_window_left_edge_shape,           XC_left_side           },
+  { NULL,        &Vx_window_top_left_corner_shape,     XC_top_left_corner     },
+  { NULL,        &Vx_window_top_edge_shape,            XC_top_side            },
+  { NULL,        &Vx_window_top_right_corner_shape,    XC_top_right_corner    },
+  { NULL,        &Vx_window_right_edge_shape,          XC_right_side          },
+  { NULL,        &Vx_window_bottom_right_corner_shape, XC_bottom_right_corner },
+  { NULL,        &Vx_window_bottom_edge_shape,         XC_bottom_side         },
+  { NULL,        &Vx_window_bottom_left_corner_shape,  XC_bottom_left_corner  },
 };
 
 struct mouse_cursor_data {
@@ -1296,6 +1312,14 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   INSTALL_CURSOR (hand_cursor, hand);
   INSTALL_CURSOR (horizontal_drag_cursor, horizontal_drag);
   INSTALL_CURSOR (vertical_drag_cursor, vertical_drag);
+  INSTALL_CURSOR (left_edge_cursor, left_edge);
+  INSTALL_CURSOR (top_left_corner_cursor, top_left_corner);
+  INSTALL_CURSOR (top_edge_cursor, top_edge);
+  INSTALL_CURSOR (top_right_corner_cursor, top_right_corner);
+  INSTALL_CURSOR (right_edge_cursor, right_edge);
+  INSTALL_CURSOR (bottom_right_corner_cursor, bottom_right_corner);
+  INSTALL_CURSOR (bottom_edge_cursor, bottom_edge);
+  INSTALL_CURSOR (bottom_left_corner_cursor, bottom_left_corner);
 
 #undef INSTALL_CURSOR
 
@@ -2038,7 +2062,7 @@ x_set_scroll_bar_default_width (struct frame *f)
   int unit = FRAME_COLUMN_WIDTH (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  int minw = xg_get_default_scrollbar_width ();
+  int minw = xg_get_default_scrollbar_width (f);
 #else
   int minw = 16;
 #endif
@@ -2059,7 +2083,7 @@ x_set_scroll_bar_default_height (struct frame *f)
   int height = FRAME_LINE_HEIGHT (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  int min_height = xg_get_default_scrollbar_height ();
+  int min_height = xg_get_default_scrollbar_height (f);
 #else
   int min_height = 16;
 #endif
@@ -2875,7 +2899,7 @@ x_window (struct frame *f, long window_prompting)
   XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
   XtSetArg (al[ac], XtNborderWidth, 0); ac++;
-  frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass, pane_widget,
+  frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass (), pane_widget,
 				 al, ac);
 
   f->output_data.x->edit_widget = frame_widget;
@@ -3814,6 +3838,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qno_special_glyphs, Qnil,
+		       NULL, NULL, RES_TYPE_BOOLEAN);
 
   x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_foreground,
 					"scrollBarForeground",
@@ -4586,8 +4612,9 @@ x_make_monitor_attribute_list (struct MonitorInfo *monitors,
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_X_P (f) && FRAME_DISPLAY_INFO (f) == dpyinfo
-	  && !EQ (frame, tip_frame))
+      if (FRAME_X_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
 	{
 	  int i = x_get_monitor_for_frame (f, monitors, n_monitors);
 	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
@@ -4858,7 +4885,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #ifdef USE_GTK
   double mm_width_per_pixel, mm_height_per_pixel;
   GdkDisplay *gdpy;
+#if ! GTK_CHECK_VERSION (3, 22, 0)
   GdkScreen *gscreen;
+#endif
   gint primary_monitor = 0, n_monitors, i;
   Lisp_Object monitor_frames, rest, frame;
   static const char *source = "Gdk";
@@ -4870,11 +4899,15 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
   gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+#if GTK_CHECK_VERSION (3, 22, 0)
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+#else
   gscreen = gdk_display_get_default_screen (gdpy);
 #if GTK_CHECK_VERSION (2, 20, 0)
   primary_monitor = gdk_screen_get_primary_monitor (gscreen);
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
+#endif
   monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
   monitors = xzalloc (n_monitors * sizeof *monitors);
 
@@ -4882,12 +4915,20 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
     {
       struct frame *f = XFRAME (frame);
 
-      if (FRAME_X_P (f) && FRAME_DISPLAY_INFO (f) == dpyinfo
-	  && !EQ (frame, tip_frame))
+      if (FRAME_X_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
 	{
 	  GdkWindow *gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
 
+#if GTK_CHECK_VERSION (3, 22, 0)
+          for (i = 0; i < n_monitors; i++)
+            if (gdk_display_get_monitor_at_window (gdpy, gwin)
+                == gdk_display_get_monitor (gdpy, i))
+              break;
+#else
 	  i = gdk_screen_get_monitor_at_window (gscreen, gwin);
+#endif
 	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
@@ -4897,10 +4938,21 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       gint width_mm = -1, height_mm = -1;
       GdkRectangle rec, work;
       struct MonitorInfo *mi = &monitors[i];
+      int scale = 1;
 
+#if GTK_CHECK_VERSION (3, 22, 0)
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      if (gdk_monitor_is_primary (monitor))
+        primary_monitor = i;
+      gdk_monitor_get_geometry (monitor, &rec);
+#else
       gdk_screen_get_monitor_geometry (gscreen, i, &rec);
+#endif
 
-#if GTK_CHECK_VERSION (2, 14, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
+      width_mm = gdk_monitor_get_width_mm (monitor);
+      height_mm = gdk_monitor_get_height_mm (monitor);
+#elif GTK_CHECK_VERSION (2, 14, 0)
       width_mm = gdk_screen_get_monitor_width_mm (gscreen, i);
       height_mm = gdk_screen_get_monitor_height_mm (gscreen, i);
 #endif
@@ -4909,7 +4961,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       if (height_mm < 0)
 	height_mm = rec.height * mm_height_per_pixel + 0.5;
 
-#if GTK_CHECK_VERSION (3, 4, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
+      gdk_monitor_get_workarea (monitor, &work);
+#elif GTK_CHECK_VERSION (3, 4, 0)
       gdk_screen_get_monitor_workarea (gscreen, i, &work);
 #else
       /* Emulate the behavior of GTK+ 3.4.  */
@@ -4930,6 +4984,16 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       }
 #endif
 
+      /* GTK returns scaled sizes for the workareas.  */
+#if GTK_CHECK_VERSION (3, 22, 0)
+      scale = gdk_monitor_get_scale_factor (monitor);
+#elif GTK_CHECK_VERSION (3, 10, 0)
+      scale = gdk_screen_get_monitor_scale_factor (gscreen, i);
+#endif
+      rec.width *= scale;
+      rec.height *= scale;
+      work.width *= scale;
+      work.height *= scale;
 
       mi->geom.x = rec.x;
       mi->geom.y = rec.y;
@@ -4942,7 +5006,9 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       mi->mm_width = width_mm;
       mi->mm_height = height_mm;
 
-#if GTK_CHECK_VERSION (2, 14, 0)
+#if GTK_CHECK_VERSION (3, 22, 0)
+      mi->name = g_strdup (gdk_monitor_get_model (monitor));
+#elif GTK_CHECK_VERSION (2, 14, 0)
       mi->name = gdk_screen_get_monitor_plug_name (gscreen, i);
 #endif
     }
@@ -5286,7 +5352,7 @@ Frames are listed from topmost (first) to bottommost (last).  */)
 static void
 x_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
 {
-#ifdef USE_GTK
+#if defined (USE_GTK) && GTK_CHECK_VERSION (2, 18, 0)
   block_input ();
   xg_frame_restack (f1, f2, above_flag);
   unblock_input ();
@@ -5995,22 +6061,27 @@ Otherwise, the return value is a vector with the following fields:
  ***********************************************************************/
 
 static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
-                            Lisp_Object, int, int, int *, int *);
+			    Lisp_Object, int, int, int *, int *);
 
-/* The frame of a currently visible tooltip.  */
+/* The frame of the currently visible tooltip.  */
+static Lisp_Object tip_frame;
 
-Lisp_Object tip_frame;
-
-/* If non-nil, a timer started that hides the last tooltip when it
-   fires.  */
-
-static Lisp_Object tip_timer;
+/* The window-system window corresponding to the frame of the
+   currently visible tooltip.  */
 Window tip_window;
 
-/* If non-nil, a vector of 3 elements containing the last args
-   with which x-show-tip was called.  See there.  */
+/* A timer that hides or deletes the currently visible tooltip when it
+   fires.  */
+static Lisp_Object tip_timer;
 
-static Lisp_Object last_show_tip_args;
+/* STRING argument of last `x-show-tip' call.  */
+static Lisp_Object tip_last_string;
+
+/* FRAME argument of last `x-show-tip' call.  */
+static Lisp_Object tip_last_frame;
+
+/* PARMS argument of last `x-show-tip' call.  */
+static Lisp_Object tip_last_parms;
 
 
 static void
@@ -6084,6 +6155,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
   f->output_data.x->white_relief.pixel = -1;
   f->output_data.x->black_relief.pixel = -1;
 
+  f->tooltip = true;
   fset_icon_name (f, Qnil);
   FRAME_DISPLAY_INFO (f) = dpyinfo;
   f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
@@ -6196,6 +6268,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
+  x_default_parameter (f, parms, Qno_special_glyphs, Qnil,
+		       NULL, NULL, RES_TYPE_BOOLEAN);
 
   /* Init faces before x_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -6273,7 +6347,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
     }
 
   /* FIXME - can this be done in a similar way to normal frames?
-     http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
+     https://lists.gnu.org/r/emacs-devel/2007-10/msg00641.html */
 
   /* Set the `display-type' frame parameter before setting up faces. */
   {
@@ -6346,7 +6420,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
    the display in *ROOT_X, and *ROOT_Y.  */
 
 static void
-compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object dy, int width, int height, int *root_x, int *root_y)
+compute_tip_xy (struct frame *f,
+		Lisp_Object parms, Lisp_Object dx, Lisp_Object dy,
+		int width, int height, int *root_x, int *root_y)
 {
   Lisp_Object left, top, right, bottom;
   int win_x, win_y;
@@ -6443,7 +6519,19 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
 }
 
 
-/* Hide tooltip.  Delete its frame if DELETE is true.  */
+/**
+ * x_hide_tip:
+ *
+ * Hide currently visible tooltip and cancel its timer.
+ *
+ * If GTK+ system tooltips are used, this will try to hide the tooltip
+ * referenced by the x_output structure of tooltip_last_frame.  For
+ * Emacs tooltips this will try to make tooltip_frame invisible (if
+ * DELETE is false) or delete tooltip_frame (if DELETE is true).
+ *
+ * Return Qt if the tooltip was either deleted or made invisible, Qnil
+ * otherwise.
+ */
 static Lisp_Object
 x_hide_tip (bool delete)
 {
@@ -6453,9 +6541,73 @@ x_hide_tip (bool delete)
       tip_timer = Qnil;
     }
 
+#ifdef USE_GTK
+  /* The GTK+ system tooltip window can be found via the x_output
+     structure of tip_last_frame, if it still exists.  */
+  if (x_gtk_use_system_tooltips && NILP (tip_last_frame))
+    return Qnil;
+  else if (!x_gtk_use_system_tooltips
+	   && (NILP (tip_frame)
+	       || (!delete
+		   && FRAMEP (tip_frame)
+		   && FRAME_LIVE_P (XFRAME (tip_frame))
+		   && !FRAME_VISIBLE_P (XFRAME (tip_frame)))))
+    return Qnil;
+  else
+    {
+      ptrdiff_t count;
+      Lisp_Object was_open = Qnil;
 
+      count = SPECPDL_INDEX ();
+      specbind (Qinhibit_redisplay, Qt);
+      specbind (Qinhibit_quit, Qt);
+
+      if (x_gtk_use_system_tooltips)
+	{
+	  /* The GTK+ system tooltip window is stored in the x_output
+	     structure of tip_last_frame.  */
+	  struct frame *f = XFRAME (tip_last_frame);
+
+	  if (FRAME_LIVE_P (f))
+	    {
+	      if (xg_hide_tooltip (f))
+		was_open = Qt;
+	    }
+	  else
+	    tip_last_frame = Qnil;
+	}
+      else
+	{
+	  if (FRAMEP (tip_frame))
+	    {
+	      struct frame *f = XFRAME (tip_frame);
+
+	      if (FRAME_LIVE_P (f))
+		{
+		  if (delete)
+		    {
+		      delete_frame (tip_frame, Qnil);
+		      tip_frame = Qnil;
+		    }
+		  else
+		    x_make_frame_invisible (f);
+
+		  was_open = Qt;
+		}
+	      else
+		tip_frame = Qnil;
+	    }
+	  else
+	    tip_frame = Qnil;
+	}
+
+      return unbind_to (count, was_open);
+    }
+#else /* not USE_GTK */
   if (NILP (tip_frame)
-      || (!delete && FRAMEP (tip_frame)
+      || (!delete
+	  && FRAMEP (tip_frame)
+	  && FRAME_LIVE_P (XFRAME (tip_frame))
 	  && !FRAME_VISIBLE_P (XFRAME (tip_frame))))
     return Qnil;
   else
@@ -6467,60 +6619,56 @@ x_hide_tip (bool delete)
       specbind (Qinhibit_redisplay, Qt);
       specbind (Qinhibit_quit, Qt);
 
-#ifdef USE_GTK
-      {
-	/* When using system tooltip, tip_frame is the Emacs frame on
-	   which the tip is shown.  */
-	struct frame *f = XFRAME (tip_frame);
-
-	if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
-	  {
-	    tip_frame = Qnil;
-	    was_open = Qt;
-	  }
-      }
-#endif
-
       if (FRAMEP (tip_frame))
 	{
-	  if (delete)
-	    {
-	      delete_frame (tip_frame, Qnil);
-	      tip_frame = Qnil;
-	    }
-	  else
-	    x_make_frame_invisible (XFRAME (tip_frame));
+	  struct frame *f = XFRAME (tip_frame);
 
-	  was_open = Qt;
+	  if (FRAME_LIVE_P (f))
+	    {
+	      if (delete)
+		{
+		  delete_frame (tip_frame, Qnil);
+		  tip_frame = Qnil;
+		}
+	      else
+		x_make_frame_invisible (XFRAME (tip_frame));
 
 #ifdef USE_LUCID
-	  /* Bloodcurdling hack alert: The Lucid menu bar widget's
-	     redisplay procedure is not called when a tip frame over
-	     menu items is unmapped.  Redisplay the menu manually...  */
-	  {
-	    Widget w;
-	    struct frame *f = SELECTED_FRAME ();
-	    if (FRAME_X_P (f) && FRAME_LIVE_P (f))
+	      /* Bloodcurdling hack alert: The Lucid menu bar widget's
+		 redisplay procedure is not called when a tip frame over
+		 menu items is unmapped.  Redisplay the menu manually...  */
 	      {
-		w = f->output_data.x->menubar_widget;
+		Widget w;
+		struct frame *f = SELECTED_FRAME ();
 
-		if (!DoesSaveUnders (FRAME_DISPLAY_INFO (f)->screen)
-		    && w != NULL)
+		if (FRAME_X_P (f) && FRAME_LIVE_P (f))
 		  {
-		    block_input ();
-		    xlwmenu_redisplay (w);
-		    unblock_input ();
+		    w = f->output_data.x->menubar_widget;
+
+		    if (!DoesSaveUnders (FRAME_DISPLAY_INFO (f)->screen)
+			&& w != NULL)
+		      {
+			block_input ();
+			xlwmenu_redisplay (w);
+			unblock_input ();
+		      }
 		  }
 	      }
-	  }
 #endif /* USE_LUCID */
+
+	      was_open = Qt;
+	    }
+	  else
+	    tip_frame = Qnil;
 	}
       else
 	tip_frame = Qnil;
 
       return unbind_to (count, was_open);
     }
+#endif /* USE_GTK */
 }
+
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* Show STRING in a "tooltip" window on frame FRAME.
@@ -6552,7 +6700,8 @@ with offset DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
-  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
+  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms,
+   Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   struct frame *f, *tip_f;
   struct window *w;
@@ -6563,7 +6712,7 @@ Text larger than the specified size is clipped.  */)
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t count_1;
-  Lisp_Object window, size;
+  Lisp_Object window, size, tip_buf;
   AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
@@ -6602,36 +6751,27 @@ Text larger than the specified size is clipped.  */)
         {
 	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
           xg_show_tooltip (f, root_x, root_y);
-          /* This is used in Fx_hide_tip.  */
-          XSETFRAME (tip_frame, f);
+	  tip_last_frame = frame;
         }
+
       unblock_input ();
       if (ok) goto start_timer;
     }
 #endif /* USE_GTK */
 
-  if (NILP (last_show_tip_args))
-    last_show_tip_args = Fmake_vector (make_number (3), Qnil);
-
   if (FRAMEP (tip_frame) && FRAME_LIVE_P (XFRAME (tip_frame)))
     {
-      Lisp_Object last_string = AREF (last_show_tip_args, 0);
-      Lisp_Object last_frame = AREF (last_show_tip_args, 1);
-      Lisp_Object last_parms = AREF (last_show_tip_args, 2);
-
       if (FRAME_VISIBLE_P (XFRAME (tip_frame))
-	  && EQ (frame, last_frame)
-	  && !NILP (Fequal_including_properties (last_string, string))
-	  && !NILP (Fequal (last_parms, parms)))
+	  && EQ (frame, tip_last_frame)
+	  && !NILP (Fequal_including_properties (tip_last_string, string))
+	  && !NILP (Fequal (tip_last_parms, parms)))
 	{
 	  /* Only DX and DY have changed.  */
 	  tip_f = XFRAME (tip_frame);
 	  if (!NILP (tip_timer))
 	    {
-	      Lisp_Object timer = tip_timer;
-
+	      call1 (Qcancel_timer, tip_timer);
 	      tip_timer = Qnil;
-	      call1 (Qcancel_timer, timer);
 	    }
 
 	  block_input ();
@@ -6643,15 +6783,14 @@ Text larger than the specified size is clipped.  */)
 
 	  goto start_timer;
 	}
-      else if (tooltip_reuse_hidden_frame && EQ (frame, last_frame))
+      else if (tooltip_reuse_hidden_frame && EQ (frame, tip_last_frame))
 	{
 	  bool delete = false;
 	  Lisp_Object tail, elt, parm, last;
 
 	  /* Check if every parameter in PARMS has the same value in
-	     last_parms unless it should be ignored by means of
-	     Vtooltip_reuse_hidden_frame_parameters.  This may destruct
-	     last_parms which, however, will be recreated below.  */
+	     tip_last_parms.  This may destruct tip_last_parms which,
+	     however, will be recreated below.  */
 	  for (tail = parms; CONSP (tail); tail = XCDR (tail))
 	    {
 	      elt = XCAR (tail);
@@ -6661,7 +6800,7 @@ Text larger than the specified size is clipped.  */)
 	      if (!EQ (parm, Qleft) && !EQ (parm, Qtop)
 		  && !EQ (parm, Qright) && !EQ (parm, Qbottom))
 		{
-		  last = Fassq (parm, last_parms);
+		  last = Fassq (parm, tip_last_parms);
 		  if (NILP (Fequal (Fcdr (elt), Fcdr (last))))
 		    {
 		      /* We lost, delete the old tooltip.  */
@@ -6669,17 +6808,18 @@ Text larger than the specified size is clipped.  */)
 		      break;
 		    }
 		  else
-		    last_parms = call2 (Qassq_delete_all, parm, last_parms);
+		    tip_last_parms =
+		      call2 (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
-		last_parms = call2 (Qassq_delete_all, parm, last_parms);
+		tip_last_parms =
+		  call2 (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
-	  /* Now check if every parameter in what is left of last_parms
-	     with a non-nil value has an association in PARMS unless it
-	     should be ignored by means of
-	     Vtooltip_reuse_hidden_frame_parameters.  */
-	  for (tail = last_parms; CONSP (tail); tail = XCDR (tail))
+	  /* Now check if every parameter in what is left of
+	     tip_last_parms with a non-nil value has an association in
+	     PARMS.  */
+	  for (tail = tip_last_parms; CONSP (tail); tail = XCDR (tail))
 	    {
 	      elt = XCAR (tail);
 	      parm = Fcar (elt);
@@ -6700,9 +6840,9 @@ Text larger than the specified size is clipped.  */)
   else
     x_hide_tip (true);
 
-  ASET (last_show_tip_args, 0, string);
-  ASET (last_show_tip_args, 1, frame);
-  ASET (last_show_tip_args, 2, parms);
+  tip_last_frame = frame;
+  tip_last_string = string;
+  tip_last_parms = parms;
 
   if (!FRAMEP (tip_frame) || !FRAME_LIVE_P (XFRAME (tip_frame)))
     {
@@ -6728,7 +6868,12 @@ Text larger than the specified size is clipped.  */)
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
-  set_window_buffer (window, Fget_buffer_create (tip), false, false);
+  tip_buf = Fget_buffer_create (tip);
+  /* We will mark the tip window a "pseudo-window" below, and such
+     windows cannot have display margins.  */
+  bset_left_margin_cols (XBUFFER (tip_buf), make_number (0));
+  bset_right_margin_cols (XBUFFER (tip_buf), make_number (0));
+  set_window_buffer (window, tip_buf, false, false);
   w = XWINDOW (window);
   w->pseudo_window_p = true;
 
@@ -7486,6 +7631,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_no_accept_focus,
   x_set_z_group,
   x_set_override_redirect,
+  x_set_no_special_glyphs,
 };
 
 void
@@ -7563,6 +7709,62 @@ or when you set the mouse color.  */);
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_window_vertical_drag_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-left-edge-cursor",
+	       Vx_window_left_edge_shape,
+  doc: /* Pointer shape indicating a left x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_left_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-left-corner-cursor",
+	       Vx_window_top_left_corner_shape,
+  doc: /* Pointer shape indicating a top left x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_top_left_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-edge-cursor",
+	       Vx_window_top_edge_shape,
+  doc: /* Pointer shape indicating a top x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_top_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-top-right-corner-cursor",
+	       Vx_window_top_right_corner_shape,
+  doc: /* Pointer shape indicating a top right x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_top_right_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-right-edge-cursor",
+	       Vx_window_right_edge_shape,
+  doc: /* Pointer shape indicating a right x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_right_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-right-corner-cursor",
+	       Vx_window_bottom_right_corner_shape,
+  doc: /* Pointer shape indicating a bottom right x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_bottom_right_corner_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-edge-cursor",
+	       Vx_window_bottom_edge_shape,
+  doc: /* Pointer shape indicating a bottom x-window edge can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_bottom_edge_shape = Qnil;
+
+  DEFVAR_LISP ("x-window-bottom-left-corner-cursor",
+	       Vx_window_bottom_left_corner_shape,
+  doc: /* Pointer shape indicating a bottom left x-window corner can be dragged.
+This variable takes effect when you create a new frame
+or when you set the mouse color.  */);
+  Vx_window_bottom_left_corner_shape = Qnil;
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
     doc: /* A string indicating the foreground color of the cursor box.  */);
@@ -7701,7 +7903,6 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
   defsubr (&Sx_backspace_delete_keys_p);
-
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
   defsubr (&Sx_double_buffered_p);
@@ -7709,9 +7910,12 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   staticpro (&tip_timer);
   tip_frame = Qnil;
   staticpro (&tip_frame);
-
-  last_show_tip_args = Qnil;
-  staticpro (&last_show_tip_args);
+  tip_last_frame = Qnil;
+  staticpro (&tip_last_frame);
+  tip_last_string = Qnil;
+  staticpro (&tip_last_string);
+  tip_last_parms = Qnil;
+  staticpro (&tip_last_parms);
 
   defsubr (&Sx_uses_old_gtk_dialog);
 #if defined (USE_MOTIF) || defined (USE_GTK)

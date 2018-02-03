@@ -15,7 +15,7 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

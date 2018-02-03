@@ -1,6 +1,6 @@
 ;;; lisp-mode-tests.el --- Test Lisp editing commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -21,10 +21,7 @@
 (require 'cl-lib)
 (require 'lisp-mode)
 
-(ert-deftest indent-sexp ()
-  "Test basics of \\[indent-sexp]."
-  (with-temp-buffer
-    (insert "\
+(defconst lisp-mode-tests--correctly-indented-sexp "\
 \(a
  (prog1
      (prog1
@@ -42,9 +39,14 @@ noindent\" 3
   2)                                    ; comment
  ;; comment
  b)")
+
+(ert-deftest indent-sexp ()
+  "Test basics of \\[indent-sexp]."
+  (with-temp-buffer
+    (insert lisp-mode-tests--correctly-indented-sexp)
     (goto-char (point-min))
     (let ((indent-tabs-mode nil)
-          (correct (buffer-string)))
+          (correct lisp-mode-tests--correctly-indented-sexp))
       (dolist (mode '(fundamental-mode emacs-lisp-mode))
         (funcall mode)
         (indent-sexp)
@@ -96,6 +98,132 @@ noindent\" 3
       (search-backward ";")
       (indent-sexp)
       (should (equal (buffer-string) correct)))))
+
+(ert-deftest indent-sexp-stop ()
+  "Make sure `indent-sexp' stops at the end of the sexp."
+  ;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26878.
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(a ()\n)")
+    (let ((original (buffer-string)))
+      (search-backward "a ")
+      (goto-char (match-end 0))
+      (indent-sexp)
+      ;; The final paren should not be indented, because the sexp
+      ;; we're indenting ends on the previous line.
+      (should (equal (buffer-string) original)))))
+
+(ert-deftest lisp-indent-region ()
+  "Test basics of `lisp-indent-region'."
+  (with-temp-buffer
+    (insert lisp-mode-tests--correctly-indented-sexp)
+    (goto-char (point-min))
+    (let ((indent-tabs-mode nil)
+          (correct lisp-mode-tests--correctly-indented-sexp))
+      (emacs-lisp-mode)
+      (indent-region (point-min) (point-max))
+      ;; Don't mess up correctly indented code.
+      (should (string= (buffer-string) correct))
+      ;; Correctly add indentation.
+      (save-excursion
+        (while (not (eobp))
+          (delete-horizontal-space)
+          (forward-line)))
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) correct))
+      ;; Correctly remove indentation.
+      (save-excursion
+        (let ((n 0))
+          (while (not (eobp))
+            (unless (looking-at "noindent\\|^[[:blank:]]*$")
+              (insert (make-string n ?\s)))
+            (cl-incf n)
+            (forward-line))))
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) correct)))))
+
+
+(ert-deftest lisp-indent-region-defun-with-docstring ()
+  "Test Bug#26619."
+  (with-temp-buffer
+    (insert "\
+\(defun test ()
+  \"This is a test.
+Test indentation in emacs-lisp-mode\"
+  (message \"Hi!\"))")
+    (let ((indent-tabs-mode nil)
+          (correct (buffer-string)))
+      (emacs-lisp-mode)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) correct)))))
+
+(ert-deftest lisp-indent-region-open-paren ()
+  (with-temp-buffer
+    (insert "\
+\(with-eval-after-load 'foo
+  (setq bar `(
+              baz)))")
+    (let ((indent-tabs-mode nil)
+          (correct (buffer-string)))
+      (emacs-lisp-mode)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) correct)))))
+
+(ert-deftest lisp-indent-region-in-sexp ()
+  (with-temp-buffer
+    (insert "\
+\(when t
+  (when t
+    (list 1 2 3)
+    'etc)
+  (quote etc)
+  (quote etc))")
+    (let ((indent-tabs-mode nil)
+          (correct (buffer-string)))
+      (emacs-lisp-mode)
+      (search-backward "1")
+      (indent-region (point) (point-max))
+      (should (equal (buffer-string) correct)))))
+
+(ert-deftest lisp-indent-region-after-string-literal ()
+  (with-temp-buffer
+    (insert "\
+\(user-error \"Unexpected initialization file: `%s'
+Expected initialization file: `%s'\"
+            (abbreviate-file-name user-init-file)
+            (abbreviate-file-name this-init-file))")
+    (let ((indent-tabs-mode nil)
+          (correct (buffer-string)))
+      (emacs-lisp-mode)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) correct)))))
+
+(ert-deftest lisp-comment-indent-1 ()
+  (with-temp-buffer
+    (insert "\
+\(let (                                  ;sf
+      (x 3))
+  4)")
+    (let ((indent-tabs-mode nil)
+          (correct (buffer-string)))
+      (emacs-lisp-mode)
+      (goto-char (point-min))
+      (comment-indent)
+      (should (equal (buffer-string) correct)))))
+
+(ert-deftest lisp-comment-indent-2 ()
+  (with-temp-buffer
+    (insert "\
+\(let (;;sf
+      (x 3))
+  4)")
+    (let ((indent-tabs-mode nil)
+          (correct (buffer-string)))
+      (emacs-lisp-mode)
+      (goto-char (point-min))
+      (comment-indent)
+      (should (equal (buffer-string) correct)))))
+
 
 (provide 'lisp-mode-tests)
 ;;; lisp-mode-tests.el ends here

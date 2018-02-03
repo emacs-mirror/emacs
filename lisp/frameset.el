@@ -1,6 +1,6 @@
 ;;; frameset.el --- save and restore frame and window setup -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Keywords: convenience
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -230,11 +230,10 @@ Properties can be set with
 ;; filtering functions) is copied to FILTERED as is.  Keyword values :save,
 ;; :restore and :never tell the function to copy CURRENT to FILTERED in the
 ;; respective situations, that is, when saving, restoring, or never at all.
-;; Values :save and :restore are not used in this package, because usually if
-;; you don't want to save a parameter, you don't want to restore it either.
-;; But they can be useful, for example, if you already have a saved frameset
-;; created with some intent, and want to reuse it for a different objective
-;; where the expected parameter list has different requirements.
+;; Values :save and :restore can be useful, for example, if you already
+;; have a saved frameset created with some intent, and want to reuse it for
+;; a different objective where the expected parameter list has different
+;; requirements.
 ;;
 ;; Finally, the value can also be a filtering function, or a filtering
 ;; function plus some arguments.  The function is called for each matching
@@ -290,6 +289,11 @@ Properties can be set with
 ;;   automatically set to t, and then `name' no longer changes dynamically.
 ;;   So, in general, not saving `name' is the right thing to do, though
 ;;   surely there are applications that will want to override this filter.
+;;
+;; - `frameset--text-pixel-height', `frameset--text-pixel-width': These are used to
+;;   save the pixel width and height of a frame. They are necessary
+;;   during restore, but should not be set on the actual frame after
+;;   restoring, so `:save' is used to ensure they are only saved.
 ;;
 ;; - `font', `fullscreen', `height' and `width': These parameters suffer
 ;;   from the fact that they are badly mangled when going through a
@@ -442,28 +446,34 @@ DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 ;;;###autoload
 (defvar frameset-persistent-filter-alist
   (nconc
-   '((background-color   . frameset-filter-sanitize-color)
-     (buffer-list        . :never)
-     (buffer-predicate   . :never)
-     (buried-buffer-list . :never)
-     (delete-before      . :never)
-     (font               . frameset-filter-shelve-param)
-     (foreground-color   . frameset-filter-sanitize-color)
-     (fullscreen         . frameset-filter-shelve-param)
-     (GUI:font           . frameset-filter-unshelve-param)
-     (GUI:fullscreen     . frameset-filter-unshelve-param)
-     (GUI:height         . frameset-filter-unshelve-param)
-     (GUI:width          . frameset-filter-unshelve-param)
-     (height             . frameset-filter-shelve-param)
-     (outer-window-id    . :never)
-     (parent-frame       . :never)
-     (parent-id          . :never)
-     (mouse-wheel-frame  . :never)
-     (tty                . frameset-filter-tty-to-GUI)
-     (tty-type           . frameset-filter-tty-to-GUI)
-     (width              . frameset-filter-shelve-param)
-     (window-id          . :never)
-     (window-system      . :never))
+   '((background-color            . frameset-filter-sanitize-color)
+     (buffer-list                 . :never)
+     (buffer-predicate            . :never)
+     (buried-buffer-list          . :never)
+     ;; Don't save the 'client' parameter to avoid that a subsequent
+     ;; `save-buffers-kill-terminal' in a non-client session barks at
+     ;; the user (Bug#29067).
+     (client                      . :never)
+     (delete-before               . :never)
+     (font                        . frameset-filter-font-param)
+     (foreground-color            . frameset-filter-sanitize-color)
+     (frameset--text-pixel-height . :save)
+     (frameset--text-pixel-width  . :save)
+     (fullscreen                  . frameset-filter-shelve-param)
+     (GUI:font                    . frameset-filter-unshelve-param)
+     (GUI:fullscreen              . frameset-filter-unshelve-param)
+     (GUI:height                  . frameset-filter-unshelve-param)
+     (GUI:width                   . frameset-filter-unshelve-param)
+     (height                      . frameset-filter-shelve-param)
+     (outer-window-id             . :never)
+     (parent-frame                . :never)
+     (parent-id                   . :never)
+     (mouse-wheel-frame           . :never)
+     (tty                         . frameset-filter-tty-to-GUI)
+     (tty-type                    . frameset-filter-tty-to-GUI)
+     (width                       . frameset-filter-shelve-param)
+     (window-id                   . :never)
+     (window-system               . :never))
    frameset-session-filter-alist)
   "Parameters to filter for persistent framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
@@ -631,6 +641,17 @@ see `frameset-filter-alist'."
 	  (setcdr found val)
 	  nil))))
 
+(defun frameset-filter-font-param (current filtered parameters saving
+                                           &optional prefix)
+  "When switching from a tty frame to a GUI frame, remove the FONT param.
+
+When switching from a GUI frame to a tty frame, behave
+as `frameset-filter-shelve-param' does."
+  (or saving
+      (if (frameset-switch-to-tty-p parameters)
+          (frameset-filter-shelve-param current filtered parameters saving
+                                        prefix))))
+
 (defun frameset-filter-iconified (_current _filtered parameters saving)
   "Remove CURRENT when saving an iconified frame.
 This is used for positional parameters `left' and `top', which are
@@ -730,6 +751,8 @@ The relationships recorded for each frame are
 - `delete-before' via `frameset--delete-before'
 - `parent-frame' via `frameset--parent-frame'
 - `mouse-wheel-frame' via `frameset--mouse-wheel-frame'
+- `text-pixel-width' via `frameset--text-pixel-width'
+- `text-pixel-height' via `frameset--text-pixel-height'
 
 Internal use only."
   ;; Record frames with their own minibuffer
@@ -776,7 +799,23 @@ Internal use only."
              'frameset--mini
              (cons nil
                    (and mb-frame
-                        (frameset-frame-id mb-frame))))))))))
+                        (frameset-frame-id mb-frame)))))))))
+  ;; Now store text-pixel width and height if it differs from the calculated
+  ;; width and height and the frame is not fullscreen.
+  (dolist (frame frame-list)
+    (unless (frame-parameter frame 'fullscreen)
+      (unless (eq (* (frame-parameter frame 'width)
+                     (frame-char-width frame))
+                  (frame-text-width frame))
+        (set-frame-parameter
+         frame 'frameset--text-pixel-width
+         (frame-text-width frame)))
+      (unless (eq (* (frame-parameter frame 'height)
+                     (frame-char-height frame))
+                  (frame-text-height frame))
+        (set-frame-parameter
+         frame 'frameset--text-pixel-height
+         (frame-text-height frame))))))
 
 ;;;###autoload
 (cl-defun frameset-save (frame-list
@@ -987,6 +1026,14 @@ Internal use only."
 	 (display (cdr (assq 'display filtered-cfg))) ;; post-filtering
 	 alt-cfg frame)
 
+    ;; Use text-pixels for height and width, if available.
+    (let ((text-pixel-width (cdr (assq 'frameset--text-pixel-width parameters)))
+          (text-pixel-height (cdr (assq 'frameset--text-pixel-height parameters))))
+      (when text-pixel-width
+        (setf (alist-get 'width filtered-cfg) (cons 'text-pixels text-pixel-width)))
+      (when text-pixel-height
+        (setf (alist-get 'height filtered-cfg) (cons 'text-pixels text-pixel-height))))
+
     (when fullscreen
       ;; Currently Emacs has the limitation that it does not record the size
       ;; and position of a frame before maximizing it, so we cannot save &
@@ -1023,6 +1070,12 @@ Internal use only."
 					 (cons '(visibility)
 					       (frameset--initial-params filtered-cfg))))
       (puthash frame :created frameset--action-map))
+
+    ;; Remove `border-width' from the list of parameters.  If it has not
+    ;; been assigned via `make-frame-on-display', any attempt to assign
+    ;; it now via `modify-frame-parameters' may result in an error on X
+    ;; (Bug#28873).
+    (setq filtered-cfg (assq-delete-all 'border-width filtered-cfg))
 
     ;; Try to assign parent-frame right here - it will improve things
     ;; for minibuffer-less child frames.

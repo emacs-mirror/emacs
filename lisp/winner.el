@@ -1,6 +1,6 @@
 ;;; winner.el --- Restore old window configurations
 
-;; Copyright (C) 1997-1998, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -304,12 +304,15 @@ You may want to include buffer names such as *Help*, *Apropos*,
           (push win xwins)))            ; delete this window
 
       ;; Restore marks
-      (save-current-buffer
-	(cl-loop for buf in buffers
-                 for entry = (cadr (assq buf winner-point-alist))
-                 do (progn (set-buffer buf)
-                           (set-mark (car entry))
-                           (setf (winner-active-region) (cdr entry)))))
+      ;; `winner-undo' shouldn't update the selection (Bug#28631) when
+      ;; select-enable-primary is non-nil.
+      (unless select-enable-primary
+        (save-current-buffer
+	  (cl-loop for buf in buffers
+                   for entry = (cadr (assq buf winner-point-alist))
+                   do (progn (set-buffer buf)
+                             (set-mark (car entry))
+                             (setf (winner-active-region) (cdr entry))))))
       ;; Delete windows, whose buffers are dead or boring.
       ;; Return t if this is still a possible configuration.
       (or (null xwins)
@@ -350,7 +353,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
   "Toggle Winner mode on or off.
 With a prefix argument ARG, enable Winner mode if ARG is
 positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is ‘toggle’.
+the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 
 Winner mode is a global minor mode that records the changes in
 the window configuration (i.e. how the frames are partitioned

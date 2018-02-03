@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2017 Free Software Foundation, Inc.
+Copyright (C) 2006-2018 Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <float.h>
@@ -306,18 +306,20 @@ font_pixel_size (struct frame *f, Lisp_Object spec)
     return XINT (size);
   if (NILP (size))
     return 0;
-  eassert (FLOATP (size));
-  point_size = XFLOAT_DATA (size);
-  val = AREF (spec, FONT_DPI_INDEX);
-  if (INTEGERP (val))
-    dpi = XINT (val);
-  else
-    dpi = FRAME_RES_Y (f);
-  pixel_size = POINT_TO_PIXEL (point_size, dpi);
-  return pixel_size;
-#else
-  return 1;
+  if (FRAME_WINDOW_P (f))
+    {
+      eassert (FLOATP (size));
+      point_size = XFLOAT_DATA (size);
+      val = AREF (spec, FONT_DPI_INDEX);
+      if (INTEGERP (val))
+	dpi = XINT (val);
+      else
+	dpi = FRAME_RES_Y (f);
+      pixel_size = POINT_TO_PIXEL (point_size, dpi);
+      return pixel_size;
+    }
 #endif
+  return 1;
 }
 
 
@@ -1891,7 +1893,7 @@ otf_tag_symbol (OTF_Tag tag)
 static OTF *
 otf_open (Lisp_Object file)
 {
-  Lisp_Object val = Fassoc (file, otf_list);
+  Lisp_Object val = Fassoc (file, otf_list, Qnil);
   OTF *otf;
 
   if (! NILP (val))
@@ -3792,19 +3794,26 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
   int c;
   Lisp_Object font_object = Qnil;
 
-  if (NILP (string))
+  if (!face)
     {
-      if (! face)
-	{
-	  int face_id;
+      struct frame *f = XFRAME (w->frame);
+      int face_id;
 
-	  face_id = face_at_buffer_position (w, pos, &ignore,
-					     *limit, false, -1);
-	  face = FACE_FROM_ID (XFRAME (w->frame), face_id);
+      if (NILP (string))
+	  face_id = face_at_buffer_position (w, pos, &ignore, *limit,
+					     false, -1);
+      else
+	{
+	  face_id =
+	    NILP (Vface_remapping_alist)
+	    ? DEFAULT_FACE_ID
+	    : lookup_basic_face (f, DEFAULT_FACE_ID);
+
+	  face_id = face_at_string_position (w, string, pos, 0, &ignore,
+					     face_id, false);
 	}
+      face = FACE_FROM_ID (f, face_id);
     }
-  else
-    eassert (face);
 
   while (pos < *limit)
     {
@@ -5046,10 +5055,10 @@ DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
        doc: /* Return information about a font named NAME on frame FRAME.
 If FRAME is omitted or nil, use the selected frame.
 
-The returned value is a vector:
+The returned value is a vector of 14 elements:
   [ OPENED-NAME FULL-NAME SIZE HEIGHT BASELINE-OFFSET RELATIVE-COMPOSE
     DEFAULT-ASCENT MAX-WIDTH ASCENT DESCENT SPACE-WIDTH AVERAGE-WIDTH
-    CAPABILITY ]
+    FILENAME CAPABILITY ]
 where
   OPENED-NAME is the name used for opening the font,
   FULL-NAME is the full name of the font,
@@ -5059,12 +5068,12 @@ where
   RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
     how to compose characters,
   MAX-WIDTH is the maximum advance width of the font,
-  ASCENT, DESCENT, SPACE-WIDTH, AVERAGE-WIDTH are metrics of the font
-    in pixels,
+  ASCENT, DESCENT, SPACE-WIDTH, and AVERAGE-WIDTH are metrics of
+    the font in pixels,
   FILENAME is the font file name, a string (or nil if the font backend
     doesn't provide a file name).
   CAPABILITY is a list whose first element is a symbol representing the
-    font format, one of x, opentype, truetype, type1, pcf, or bdf.
+    font format, one of `x', `opentype', `truetype', `type1', `pcf', or `bdf'.
     The remaining elements describe the details of the font capabilities,
     as follows:
 
@@ -5419,19 +5428,22 @@ gets the repertory information by an opened font and ENCODING.  */);
 	       doc: /*  Vector of valid font weight values.
 Each element has the form:
     [NUMERIC-VALUE SYMBOLIC-NAME ALIAS-NAME ...]
-NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symbols. */);
+NUMERIC-VALUE is an integer, and SYMBOLIC-NAME and ALIAS-NAME are symbols.
+This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_weight_table = BUILD_STYLE_TABLE (weight_table);
   make_symbol_constant (intern_c_string ("font-weight-table"));
 
   DEFVAR_LISP_NOPRO ("font-slant-table", Vfont_slant_table,
 	       doc: /*  Vector of font slant symbols vs the corresponding numeric values.
-See `font-weight-table' for the format of the vector. */);
+See `font-weight-table' for the format of the vector.
+This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_slant_table = BUILD_STYLE_TABLE (slant_table);
   make_symbol_constant (intern_c_string ("font-slant-table"));
 
   DEFVAR_LISP_NOPRO ("font-width-table", Vfont_width_table,
 	       doc: /*  Alist of font width symbols vs the corresponding numeric values.
-See `font-weight-table' for the format of the vector. */);
+See `font-weight-table' for the format of the vector.
+This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_width_table = BUILD_STYLE_TABLE (width_table);
   make_symbol_constant (intern_c_string ("font-width-table"));
 

@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1998, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,6 +41,9 @@
 ;;
 ;;   beginning-op	Function to call to skip to the beginning of a "thing".
 ;;   end-op		Function to call to skip to the end of a "thing".
+;;
+;; For simple things, defined as sequences of specific kinds of characters,
+;; use macro define-thing-chars.
 ;;
 ;; Reliance on existing operators means that many `things' can be accessed
 ;; without further code:  eg.
@@ -237,21 +240,28 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (put 'defun 'end-op       'end-of-defun)
 (put 'defun 'forward-op   'end-of-defun)
 
+;; Things defined by sets of characters
+
+(defmacro define-thing-chars (thing chars)
+  "Define THING as a sequence of CHARS.
+E.g.:
+\(define-thing-chars twitter-screen-name \"[:alnum:]_\")"
+  `(progn
+     (put ',thing 'end-op
+          (lambda ()
+            (re-search-forward (concat "\\=[" ,chars "]*") nil t)))
+     (put ',thing 'beginning-op
+          (lambda ()
+            (if (re-search-backward (concat "[^" ,chars "]") nil t)
+	        (forward-char)
+	      (goto-char (point-min)))))))
+
 ;;  Filenames
 
 (defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
 
-(put 'filename 'end-op
-     (lambda ()
-       (re-search-forward (concat "\\=[" thing-at-point-file-name-chars "]*")
-			  nil t)))
-(put 'filename 'beginning-op
-     (lambda ()
-       (if (re-search-backward (concat "[^" thing-at-point-file-name-chars "]")
-			       nil t)
-	   (forward-char)
-	 (goto-char (point-min)))))
+(define-thing-chars filename thing-at-point-file-name-chars)
 
 ;;  URIs
 
@@ -380,13 +390,15 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
 	     (save-restriction
 	       (narrow-to-region (1- url-beg) (min end (point-max)))
 	       (setq paren-end (ignore-errors
-				 (scan-lists (1- url-beg) 1 0))))
+                                 ;; Make the scan work inside comments.
+                                 (let ((parse-sexp-ignore-comments nil))
+                                   (scan-lists (1- url-beg) 1 0)))))
 	     (not (blink-matching-check-mismatch (1- url-beg) paren-end))
 	     (setq end (1- paren-end)))
 	;; Ensure PT is actually within BOUNDARY. Check the following
 	;; example with point on the beginning of the line:
 	;;
-	;; 3,1406710489,http://gnu.org,0,"0"
+	;; 3,1406710489,https://gnu.org,0,"0"
 	(and (<= url-beg pt end) (cons url-beg end))))))
 
 (put 'url 'thing-at-point 'thing-at-point-url-at-point)

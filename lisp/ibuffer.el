@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -522,6 +522,7 @@ directory, like `default-directory'."
     (define-key map (kbd "/ m") 'ibuffer-filter-by-used-mode)
     (define-key map (kbd "/ M") 'ibuffer-filter-by-derived-mode)
     (define-key map (kbd "/ n") 'ibuffer-filter-by-name)
+    (define-key map (kbd "/ E") 'ibuffer-filter-by-process)
     (define-key map (kbd "/ *") 'ibuffer-filter-by-starred-name)
     (define-key map (kbd "/ f") 'ibuffer-filter-by-filename)
     (define-key map (kbd "/ b") 'ibuffer-filter-by-basename)

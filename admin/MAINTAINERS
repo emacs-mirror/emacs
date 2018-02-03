@@ -62,6 +62,7 @@ Michael Albinus
             lisp/url/url-tramp.el
             doc/misc/tramp*.texi
             test/lisp/net/tramp-tests.el
+            test/lisp/url/url-tramp-tests.el
 
         D-Bus
 	    src/dbusbind.c

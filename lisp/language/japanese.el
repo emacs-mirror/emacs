@@ -1,6 +1,6 @@
 ;;; japanese.el --- support for Japanese -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -185,7 +185,7 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
   "Shift_JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS-2004)"
   :coding-type 'shift-jis
   :mnemonic ?S
-  :charset-list '(ascii katakana-jisx0201 
+  :charset-list '(ascii katakana-jisx0201
                         japanese-jisx0213.2004-1 japanese-jisx0213-2))
 
 (define-coding-system-alias 'shift_jis-2004 'japanese-shift-jis-2004)
@@ -197,15 +197,15 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201
-		       japanese-jisx0213.2004-1 japanese-jisx0213-1 
+		       japanese-jisx0213.2004-1 japanese-jisx0213-1
 		       japanese-jisx0213-2 japanese-jisx0208-1978)
 	      (coding-system iso-2022-jp japanese-iso-8bit
 			     japanese-shift-jis japanese-iso-7bit-1978-irv
                              iso-2022-jp-2004 japanese-shift-jis-2004
                              euc-jis-2004)
 	      (coding-priority iso-2022-jp japanese-iso-8bit
-			       japanese-shift-jis 
-                               iso-2022-jp-2004 euc-jis-2004 
+			       japanese-shift-jis
+                               iso-2022-jp-2004 euc-jis-2004
                                japanese-shift-jis-2004
                                iso-2022-jp-2)
 	      (input-method . "japanese")

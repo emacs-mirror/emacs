@@ -1,6 +1,6 @@
 ;;; ruler-mode.el --- display a ruler in the header line
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -304,7 +304,15 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
 
 (defsubst ruler-mode-window-col (n)
   "Return a column number relative to the selected window.
-N is a column number relative to selected frame."
+N is a column number relative to selected frame.
+If required, account for screen estate taken by `display-line-numbers'."
+  (if display-line-numbers
+      ;; FIXME: ruler-mode relies on N being an integer, so if the
+      ;; 'line-number' face is customized to use a font that is larger
+      ;; or smaller than that of the default face, the alignment might
+      ;; be off by up to half a column, unless the font width is an
+      ;; integral multiple or divisor of the default face's font.
+      (setq n (- n (round (line-number-display-width 'columns)))))
   (- n
      (or (car (window-margins)) 0)
      (fringe-columns 'left)
@@ -360,6 +368,20 @@ START-EVENT is the mouse click event."
 That is `fill-column', `comment-column', `goal-column', or nil when
 nothing is dragged.")
 
+(defun ruler-mode-text-scaled-width (width)
+  "Compute scaled text width according to current font scaling.
+Convert a width of char units into a text-scaled char width units,
+Ex. `window-hscroll'."
+  (/ (* width (frame-char-width)) (default-font-width)))
+
+(defun ruler-mode-text-scaled-window-hscroll ()
+  "Text scaled `window-hscroll'."
+  (ruler-mode-text-scaled-width (window-hscroll)))
+
+(defun ruler-mode-text-scaled-window-width ()
+  "Text scaled `window-width'."
+  (ruler-mode-text-scaled-width (window-width)))
+
 (defun ruler-mode-mouse-grab-any-column (start-event)
   "Drag a column symbol on the ruler.
 Start dragging on mouse down event START-EVENT, and update the column
@@ -372,9 +394,9 @@ dragging.  See also the variable `ruler-mode-dragged-symbol'."
     (save-selected-window
       (select-window (posn-window start))
       (setq col  (ruler-mode-window-col (car (posn-col-row start)))
-            newc (+ col (window-hscroll)))
+            newc (+ col (ruler-mode-text-scaled-window-hscroll)))
       (and
-       (>= col 0) (< col (window-width))
+       (>= col 0) (< col (ruler-mode-text-scaled-window-width))
        (cond
 
         ;; Handle the fill column.
@@ -457,8 +479,8 @@ Called on each mouse motion event START-EVENT."
     (save-selected-window
       (select-window (posn-window start))
       (setq col  (ruler-mode-window-col (car (posn-col-row end)))
-            newc (+ col (window-hscroll)))
-      (when (and (>= col 0) (< col (window-width)))
+            newc (+ col (ruler-mode-text-scaled-window-hscroll)))
+      (when (and (>= col 0) (< col (ruler-mode-text-scaled-window-width)))
         (set ruler-mode-dragged-symbol newc)))))
 
 (defun ruler-mode-mouse-add-tab-stop (start-event)
@@ -473,8 +495,8 @@ START-EVENT is the mouse click event."
         (save-selected-window
           (select-window (posn-window start))
           (setq col (ruler-mode-window-col (car (posn-col-row start)))
-                ts  (+ col (window-hscroll)))
-          (and (>= col 0) (< col (window-width))
+                ts  (+ col (ruler-mode-text-scaled-window-hscroll)))
+          (and (>= col 0) (< col (ruler-mode-text-scaled-window-width))
                (not (member ts tab-stop-list))
                (progn
                  (message "Tab stop set to %d" ts)
@@ -494,8 +516,8 @@ START-EVENT is the mouse click event."
         (save-selected-window
           (select-window (posn-window start))
           (setq col (ruler-mode-window-col (car (posn-col-row start)))
-                ts  (+ col (window-hscroll)))
-          (and (>= col 0) (< col (window-width))
+                ts  (+ col (ruler-mode-text-scaled-window-hscroll)))
+          (and (>= col 0) (< col (ruler-mode-text-scaled-window-width))
                (member ts tab-stop-list)
                (progn
                  (message "Tab stop at %d deleted" ts)
@@ -648,11 +670,16 @@ Optional argument PROPS specifies other text properties to apply."
 
 (defun ruler-mode-ruler ()
   "Compute and return a header line ruler."
-  (let* ((w (window-width))
+  (let* ((w (ruler-mode-text-scaled-window-width))
          (m (window-margins))
          (f (window-fringes))
-         (i 0)
-         (j (window-hscroll))
+         (i (if display-line-numbers
+                ;; FIXME: ruler-mode relies on I being an integer, so
+                ;; the column numbers might be slightly off if the
+                ;; line-number face is customized.
+                (round (line-number-display-width 'columns))
+              0))
+         (j (ruler-mode-text-scaled-window-hscroll))
          ;; Setup the scrollbar, fringes, and margins areas.
          (lf (ruler-mode-space
               'left-fringe
@@ -682,8 +709,18 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Create an "clean" ruler.
          (ruler
           (propertize
-           (string-to-multibyte
-	    (make-string w ruler-mode-basic-graduation-char))
+           ;; Make the part of header-line corresponding to the
+           ;; line-number display be blank, not filled with
+           ;; ruler-mode-basic-graduation-char.
+           (if display-line-numbers
+               (let* ((lndw (round (line-number-display-width 'columns)))
+                      ;; We need a multibyte string here so we could
+                      ;; later use aset to insert multibyte characters
+                      ;; into that string.
+                      (s (make-string lndw ?\s t)))
+                 (concat s (make-string (- w lndw)
+                                        ruler-mode-basic-graduation-char t)))
+             (make-string w ruler-mode-basic-graduation-char t))
            'face 'ruler-mode-default
            'local-map ruler-mode-map
            'help-echo (cond

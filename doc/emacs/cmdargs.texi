@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -92,7 +92,7 @@ arguments.)
 @itemx --visit=@var{file}
 @cindex visiting files, command-line argument
 @vindex inhibit-startup-buffer-menu
-Visit @var{file} using @code{find-file}.  @xref{Visiting}.
+Visit the specified @var{file}.  @xref{Visiting}.
 
 When Emacs starts up, it displays the startup buffer in one window,
 and the buffer visiting @var{file} in another window
@@ -111,12 +111,12 @@ Buffer Menu for this, change the variable
 
 @item +@var{linenum} @var{file}
 @opindex +@var{linenum}
-Visit @var{file} using @code{find-file}, then go to line number
-@var{linenum} in it.
+Visit the specified @var{file}, then go to line number @var{linenum}
+in it.
 
 @item +@var{linenum}:@var{columnnum} @var{file}
-Visit @var{file} using @code{find-file}, then go to line number
-@var{linenum} and put point at column number @var{columnnum}.
+Visit the specified @var{file}, then go to line number @var{linenum}
+and put point at column number @var{columnnum}.
 
 @item -l @var{file}
 @opindex -l
@@ -310,13 +310,12 @@ option does this too, but other options like @samp{-q} do not.
 
 @item --no-site-lisp
 @opindex --no-site-lisp
-@cindex @file{site-start.el} file, not loading
+@cindex @file{site-lisp} files, not loading
 Do not include the @file{site-lisp} directories in @code{load-path}
 (@pxref{Init File}).  The @samp{-Q} option does this too.
 
 @item --no-splash
 @opindex --no-splash
-@vindex inhibit-startup-screen
 @cindex splash screen
 @cindex startup message
 Do not display a startup screen.  You can also achieve this effect by
@@ -336,16 +335,16 @@ setting @code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
 @opindex -daemon
 @itemx --daemon[=@var{name}]
 @opindex --daemon
-@itemx --old-daemon[=@var{name}]
-@itemx --new-daemon[=@var{name}]
+@itemx --bg-daemon[=@var{name}]
+@itemx --fg-daemon[=@var{name}]
 Start Emacs as a daemon---after Emacs starts up, it starts the Emacs
 server without opening any frames.
 (Optionally, you can specify an explicit @var{name} for the server.)
 You can then use the @command{emacsclient} command to connect to Emacs
 for editing.  @xref{Emacs Server}, for information about using Emacs
-as a daemon.  An ``old-style'' daemon disconnects from the terminal
+as a daemon.  A ``background'' daemon disconnects from the terminal
 and runs in the background (@samp{--daemon} is an alias for
-@samp{--old-daemon}).
+@samp{--bg-daemon}).
 
 @item --no-desktop
 @opindex --no-desktop
@@ -365,6 +364,14 @@ own@footnote{This option has no effect on MS-Windows.}.
 Enable the Emacs Lisp debugger for errors in the init file.
 @xref{Error Debugging,, Entering the Debugger on an Error, elisp, The
 GNU Emacs Lisp Reference Manual}.
+
+@item --module-assertions
+@opindex --module-assertions
+@cindex module verification
+Enable expensive correctness checks when dealing with dynamically
+loadable modules.  This is intended for module authors that wish to
+verify that their module conforms to the module API requirements.  The
+option makes Emacs abort if a module-related assertion triggers.
 @end table
 
 @node Command Example
@@ -458,7 +465,7 @@ variables to be set, but it uses their values if they are set.
 @item CDPATH
 @vindex CDPATH, environment variable
 Used by the @code{cd} command to search for the directory you specify,
-when you specify a relative directory name.
+when you specify a relative directory,
 @item DBUS_SESSION_BUS_ADDRESS
 @vindex DBUS_SESSION_BUS_ADDRESS, environment variable
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no
@@ -470,11 +477,11 @@ bus as well as autolaunching the D-Bus session bus if not running yet.
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the variable @code{data-directory}.
 @item EMACSDOC
-#vindex EMACSDOC, environment variable
+@vindex EMACSDOC, environment variable
 Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
-#vindex EMACSLOADPATH, environment variable
+@vindex EMACSLOADPATH, environment variable
 A colon-separated list of directories@footnote{Here and below,
 whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the

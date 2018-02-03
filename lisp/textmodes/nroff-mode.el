@@ -1,6 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2017 Free Software
+;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -195,7 +195,7 @@ Puts a full-stop before comments on a line by themselves."
 			      9) 8)))))) ; add 9 to ensure at least two blanks
       (goto-char pt))))
 
-;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01869.html
+;; https://lists.gnu.org/r/emacs-devel/2007-10/msg01869.html
 (defun nroff-insert-comment-function ()
   "Function for `comment-insert-comment-function' in `nroff-mode'."
   (indent-to (nroff-comment-indent))

@@ -1,6 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2017 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -450,13 +450,10 @@ This function also performs URI normalization, e.g. converting
 the scheme to lowercase if it is uppercase.  Apart from
 normalization, if URL is already URI-encoded, this function
 should return it unchanged."
-  (if (multibyte-string-p url)
-      (setq url (encode-coding-string url 'utf-8)))
   (let* ((obj  (url-generic-parse-url url))
 	 (user (url-user obj))
 	 (pass (url-password obj))
-	 (host (url-host obj))
-	 (path-and-query (url-path-and-query obj))
+         (path-and-query (url-path-and-query obj))
 	 (path  (car path-and-query))
 	 (query (cdr path-and-query))
 	 (frag (url-target obj)))
@@ -464,12 +461,6 @@ should return it unchanged."
 	(setf (url-user obj) (url-hexify-string user)))
     (if pass
 	(setf (url-password obj) (url-hexify-string pass)))
-    ;; No special encoding for IPv6 literals.
-    (and host
-	 (not (string-match "\\`\\[.*\\]\\'" host))
-	 (setf (url-host obj)
-               (decode-coding-string (url-host obj) 'utf-8)))
-
     (if path
 	(setq path (url-hexify-string path url-path-allowed-chars)))
     (if query
@@ -574,7 +565,7 @@ Has a preference for looking backward when not directly on a symbol."
 	      (skip-chars-forward url-get-url-filename-chars))
 	  (setq start (point)))
 	(setq url (buffer-substring-no-properties start (point))))
-      (if (and url (string-match "^(.*)\\.?$" url))
+      (if (and url (string-match "^(\\(.*\\))\\.?$" url))
 	  (setq url (match-string 1 url)))
       (if (and url (string-match "^URL:" url))
 	  (setq url (substring url 4 nil)))

@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1247,7 +1247,7 @@
 	 hash-table-p
 	 identity ignore integerp integer-or-marker-p interactive-p
 	 invocation-directory invocation-name
-	 keymapp
+	 keymapp keywordp
 	 line-beginning-position line-end-position list listp
 	 make-marker mark mark-marker markerp max-char
 	 memory-limit minibuffer-window
@@ -1281,7 +1281,10 @@
 ;; errors to compile time.
 
 (let ((pure-fns
-       '(concat symbol-name regexp-opt regexp-quote string-to-syntax)))
+       '(concat symbol-name regexp-opt regexp-quote string-to-syntax
+         string-to-char
+         ash lsh logb lognot logior logxor
+         ceiling floor)))
   (while pure-fns
     (put (car pure-fns) 'pure t)
     (setq pure-fns (cdr pure-fns)))

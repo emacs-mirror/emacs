@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -986,7 +986,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       current-prefix-arg))
   (custom-load-symbol variable)
   (custom-push-theme 'theme-value variable 'user 'set (custom-quote value))
-  (funcall (or (get variable 'custom-set) 'set-default) variable value)
+  (funcall (or (get variable 'custom-set) #'set-default) variable value)
   (put variable 'customized-value (list (custom-quote value)))
   (cond ((string= comment "")
  	 (put variable 'variable-comment nil)
@@ -1159,7 +1159,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "24.5"
+(defvar customize-changed-options-previous-release "25.3"
   "Version for `customize-changed-options' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -2431,6 +2431,18 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 ;;; The `custom-variable' Widget.
 
+(defface custom-variable-obsolete
+  '((((class color) (background dark))
+     :foreground "light blue")
+    (((min-colors 88) (class color) (background light))
+     :foreground "blue1")
+    (((class color) (background light))
+     :foreground "blue")
+    (t :slant italic))
+  "Face used for obsolete variables."
+  :version "27.1"
+  :group 'custom-faces)
+
 (defface custom-variable-tag
   `((((class color) (background dark))
      :foreground "light blue" :weight bold)
@@ -2456,8 +2468,9 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 (defun custom-variable-documentation (variable)
   "Return documentation of VARIABLE for use in Custom buffer.
 Normally just return the docstring.  But if VARIABLE automatically
-becomes buffer local when set, append a message to that effect."
-  (format "%s%s" (documentation-property variable 'variable-documentation t)
+becomes buffer local when set, append a message to that effect.
+Also append any obsolescence information."
+  (format "%s%s%s" (documentation-property variable 'variable-documentation t)
 	  (if (and (local-variable-if-set-p variable)
 		   (or (not (local-variable-p variable))
 		       (with-temp-buffer
@@ -2465,7 +2478,21 @@ becomes buffer local when set, append a message to that effect."
 	      "\n
 This variable automatically becomes buffer-local when set outside Custom.
 However, setting it through Custom sets the default value."
-	    "")))
+	    "")
+	  ;; This duplicates some code from describe-variable.
+	  ;; TODO extract to separate utility function?
+	  (let* ((obsolete (get variable 'byte-obsolete-variable))
+		 (use (car obsolete)))
+	    (if obsolete
+		(concat "\n
+This variable is obsolete"
+			(if (nth 2 obsolete)
+			    (format " since %s" (nth 2 obsolete)))
+			(cond ((stringp use) (concat ";\n" use))
+			      (use (format-message ";\nuse `%s' instead."
+						   (car obsolete)))
+			      (t ".")))
+	      ""))))
 
 (define-widget 'custom-variable 'custom
   "A widget for displaying a Custom variable.
@@ -2518,7 +2545,10 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  (copy-sequence type)
 		(list type))))
     (when options
-      (widget-put tmp :options options))
+      ;; This used to use widget-put, but with strict plists that
+      ;; fails when type is an even-length list, eg (repeat character).
+      ;; Passing our result through widget-convert makes it a valid widget.
+      (setcdr tmp (append (list :options options) (cdr tmp))))
     tmp))
 
 (defun custom-variable-value-create (widget)
@@ -2546,7 +2576,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 	 (state (or (widget-get widget :custom-state)
 		    (if (memq (custom-variable-state symbol value)
 			      (widget-get widget :hidden-states))
-			'hidden))))
+			'hidden)))
+	 (obsolete (get symbol 'byte-obsolete-variable)))
 
     ;; If we don't know the state, see if we need to edit it in lisp form.
     (unless state
@@ -2578,7 +2609,9 @@ try matching its doc string against `custom-guess-doc-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'item
 		  :format "%{%t%} "
-		  :sample-face 'custom-variable-tag
+		  :sample-face (if obsolete
+				   'custom-variable-obsolete
+				 'custom-variable-tag)
 		  :tag tag
 		  :parent widget)
 		 buttons))
@@ -2636,7 +2669,9 @@ try matching its doc string against `custom-guess-doc-alist'."
 		    :help-echo "Change value of this option."
 		    :mouse-down-action 'custom-tag-mouse-down-action
 		    :button-face 'custom-variable-button
-		    :sample-face 'custom-variable-tag
+		    :sample-face (if obsolete
+				     'custom-variable-obsolete
+				   'custom-variable-tag)
 		    tag)
 		   buttons)
 	     (push (widget-create-child-and-convert
@@ -2796,7 +2831,7 @@ If STATE is nil, the value is computed by `custom-variable-state'."
     ;; init-file-user rather than user-init-file.  This is in case
     ;; cus-edit is loaded by something in site-start.el, because
     ;; user-init-file is not set at that stage.
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00310.html
+    ;; https://lists.gnu.org/r/emacs-devel/2007-10/msg00310.html
     ,@(when (or custom-file init-file-user)
 	'(("Save for Future Sessions" custom-variable-save
 	   (lambda (widget)
@@ -3319,6 +3354,23 @@ Only match frames that support the specified face attributes.")
   :group 'custom-buffer
   :version "20.3")
 
+(defun custom-face-documentation (face)
+  "Return documentation of FACE for use in Custom buffer."
+  (format "%s%s" (face-documentation face)
+          ;; This duplicates some code from describe-face.
+          ;; TODO extract to separate utility function?
+          ;; In practice this does not get used, because M-x customize-face
+          ;; follows aliases.
+          (let ((alias (get face 'face-alias))
+                (obsolete (get face 'obsolete-face)))
+            (if (and alias obsolete)
+                (format "\nThis face is obsolete%s; use `%s' instead.\n"
+                        (if (stringp obsolete)
+                            (format " since %s" obsolete)
+                          "")
+                        alias)
+              ""))))
+
 (define-widget 'custom-face 'custom
   "Widget for customizing a face.
 The following properties have special meanings for this widget:
@@ -3342,7 +3394,7 @@ The following properties have special meanings for this widget:
   of the widget, instead of the current face spec."
   :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
-  :documentation-property #'face-doc-string
+  :documentation-property #'custom-face-documentation
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
@@ -4773,6 +4825,8 @@ If several parents are listed, go to the first of them."
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))
 
+(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
+
 (defcustom Custom-mode-hook nil
   "Hook called when entering Custom mode."
   :type 'hook
@@ -4801,7 +4855,6 @@ If several parents are listed, go to the first of them."
     (setq-local widget-link-suffix ""))
   (setq show-trailing-whitespace nil))
 
-(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
 (define-derived-mode Custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 

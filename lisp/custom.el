@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2018 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -306,7 +306,8 @@ The following common keywords are also meaningful.
         VALUE should be a list with the form (PACKAGE . VERSION)
         specifying that the variable was first introduced, or its
         default value was changed, in PACKAGE version VERSION.  This
-        keyword takes priority over :version.  The PACKAGE and VERSION
+        keyword takes priority over :version.  For packages which
+        are bundled with Emacs releases, the PACKAGE and VERSION
         must appear in the alist `customize-package-emacs-version-alist'.
         Since PACKAGE must be unique and the user might see it in an
         error message, a good choice is the official name of the

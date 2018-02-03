@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -988,8 +988,9 @@ function is called with no arguments, prior to running each command,
 while @var{keymap} is active; it should return non-@code{nil} if
 @var{keymap} should stay active.
 
-The optional argument @var{on-exit}, if non-nil, specifies a function
-that is called, with no arguments, after @var{keymap} is deactivated.
+The optional argument @var{on-exit}, if non-@code{nil}, specifies a
+function that is called, with no arguments, after @var{keymap} is
+deactivated.
 
 This function works by adding and removing @var{keymap} from the
 variable @code{overriding-terminal-local-map}, which takes precedence

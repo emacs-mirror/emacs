@@ -1,5 +1,5 @@
-# putenv.m4 serial 20
-dnl Copyright (C) 2002-2017 Free Software Foundation, Inc.
+# putenv.m4 serial 22
+dnl Copyright (C) 2002-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -34,10 +34,12 @@ AC_DEFUN([gl_FUNC_PUTENV],
              gl_cv_func_svid_putenv=no,
              dnl When crosscompiling, assume putenv is broken.
              [case "$host_os" in
-                        # Guess yes on glibc systems.
-                *-gnu*) gl_cv_func_svid_putenv="guessing yes" ;;
-                        # If we don't know, assume the worst.
-                *)      gl_cv_func_svid_putenv="guessing no" ;;
+                               # Guess yes on glibc systems.
+                *-gnu* | gnu*) gl_cv_func_svid_putenv="guessing yes" ;;
+                               # Guess no on native Windows.
+                mingw*)        gl_cv_func_svid_putenv="guessing no" ;;
+                               # If we don't know, assume the worst.
+                *)             gl_cv_func_svid_putenv="guessing no" ;;
               esac
              ])
    ])

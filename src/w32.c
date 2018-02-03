@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2017 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
    Geoff Voelker (voelker@cs.washington.edu)                         7-29-94
@@ -74,7 +74,6 @@ char *sys_ctime (const time_t *);
 int sys_chdir (const char *);
 int sys_creat (const char *, int);
 FILE *sys_fopen (const char *, const char *);
-int sys_mkdir (const char *);
 int sys_open (const char *, int, int);
 int sys_rename (char const *, char const *);
 int sys_rmdir (const char *);
@@ -83,6 +82,10 @@ int sys_dup2 (int, int);
 int sys_read (int, char *, unsigned int);
 int sys_write (int, const void *, unsigned int);
 struct tm *sys_localtime (const time_t *);
+/* MinGW64 system headers include string.h too early, causing the
+   compiler to emit a warning about sys_strerror having no
+   prototype.  */
+char *sys_strerror (int);
 
 #ifdef HAVE_MODULES
 extern void dynlib_reset_last_error (void);
@@ -1499,7 +1502,7 @@ w32_valid_pointer_p (void *p, int size)
 
    . Turning on w32-unicode-filename on Windows 9X (if it at all
      works) requires UNICOWS.DLL, which is thus a requirement even in
-     non-GUI sessions, something the we previously avoided.  */
+     non-GUI sessions, something that we previously avoided.  */
 
 
 
@@ -2978,31 +2981,6 @@ emacs_root_dir (void)
   return root_dir;
 }
 
-#include <sys/timeb.h>
-
-/* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
-int
-gettimeofday (struct timeval *__restrict tv, struct timezone *__restrict tz)
-{
-  struct _timeb tb;
-  _ftime (&tb);
-
-  tv->tv_sec = tb.time;
-  tv->tv_usec = tb.millitm * 1000L;
-  /* Implementation note: _ftime sometimes doesn't update the dstflag
-     according to the new timezone when the system timezone is
-     changed.  We could fix that by using GetSystemTime and
-     GetTimeZoneInformation, but that doesn't seem necessary, since
-     Emacs always calls gettimeofday with the 2nd argument NULL (see
-     current_emacs_time).  */
-  if (tz)
-    {
-      tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
-      tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
-    }
-  return 0;
-}
-
 /* Emulate fdutimens.  */
 
 /* Set the access and modification time stamps of FD (a.k.a. FILE) to be
@@ -3405,6 +3383,7 @@ map_w32_filename (const char * name, const char ** pPath)
 	      if ( ! left )
 		str[-1] = c;		/* replace last character of part */
 	      /* FALLTHRU */
+	      FALLTHROUGH;
 	    default:
 	      if ( left && 'A' <= c && c <= 'Z' )
 	        {
@@ -3913,14 +3892,31 @@ int
 faccessat (int dirfd, const char * path, int mode, int flags)
 {
   DWORD attributes;
+  char fullname[MAX_UTF8_PATH];
 
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     and its actual file name is stored in dir_pathname by opendir.
+     This is good enough for the current usage in Emacs, but is fragile.  */
   if (dirfd != AT_FDCWD
       && !(IS_DIRECTORY_SEP (path[0])
 	   || IS_DEVICE_SEP (path[1])))
     {
-      errno = EBADF;
-      return -1;
+      char lastc = dir_pathname[strlen (dir_pathname) - 1];
+
+      if (_snprintf (fullname, sizeof fullname, "%s%s%s",
+		     dir_pathname, IS_DIRECTORY_SEP (lastc) ? "" : "/", path)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      path = fullname;
     }
+
+  /* When dired.c calls us with F_OK and a trailing slash, it actually
+     wants to know whether PATH is a directory.  */
+  if (IS_DIRECTORY_SEP (path[strlen (path) - 1]) && mode == F_OK)
+    mode |= D_OK;
 
   /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
      newer versions blow up when passed D_OK.  */
@@ -3967,6 +3963,7 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 	      goto check_attrs;
 	    }
 	  /* FALLTHROUGH */
+	  FALLTHROUGH;
 	case ERROR_FILE_NOT_FOUND:
 	case ERROR_BAD_NETPATH:
 	  errno = ENOENT;
@@ -4369,7 +4366,7 @@ sys_link (const char * old, const char * new)
 }
 
 int
-sys_mkdir (const char * path)
+sys_mkdir (const char * path, mode_t mode)
 {
   path = map_w32_filename (path, NULL);
 
@@ -4420,61 +4417,6 @@ sys_open (const char * path, int oflag, int mode)
     }
 
   return res;
-}
-
-/* Implementation of mkostemp for MS-Windows, to avoid race conditions
-   when using mktemp.
-
-   Standard algorithm for generating a temporary file name seems to be
-   use pid or tid with a letter on the front (in place of the 6 X's)
-   and cycle through the letters to find a unique name.  We extend
-   that to allow any reasonable character as the first of the 6 X's,
-   so that the number of simultaneously used temporary files will be
-   greater.  */
-
-int
-mkostemp (char * template, int flags)
-{
-  char * p;
-  int i, fd = -1;
-  unsigned uid = GetCurrentThreadId ();
-  int save_errno = errno;
-  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
-
-  errno = EINVAL;
-  if (template == NULL)
-    return -1;
-
-  p = template + strlen (template);
-  i = 5;
-  /* replace up to the last 5 X's with uid in decimal */
-  while (--p >= template && p[0] == 'X' && --i >= 0)
-    {
-      p[0] = '0' + uid % 10;
-      uid /= 10;
-    }
-
-  if (i < 0 && p[0] == 'X')
-    {
-      i = 0;
-      do
-	{
-	  p[0] = first_char[i];
-	  if ((fd = sys_open (template,
-			      flags | _O_CREAT | _O_EXCL | _O_RDWR,
-			      S_IRUSR | S_IWUSR)) >= 0
-	      || errno != EEXIST)
-	    {
-	      if (fd >= 0)
-		errno = save_errno;
-	      return fd;
-	    }
-	}
-      while (++i < sizeof (first_char));
-    }
-
-  /* Template is badly formed or else we can't generate a unique name.  */
-  return -1;
 }
 
 int
@@ -4568,29 +4510,48 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
       filename_to_utf16 (temp, temp_w);
       filename_to_utf16 (newname, newname_w);
       result = _wrename (temp_w, newname_w);
-      if (result < 0 && force)
+      if (result < 0)
 	{
 	  DWORD w32err = GetLastError ();
 
 	  if (errno == EACCES
 	      && newname_dev != oldname_dev)
 	    {
+	      DWORD attributes;
 	      /* The implementation of `rename' on Windows does not return
 		 errno = EXDEV when you are moving a directory to a
 		 different storage device (ex. logical disk).  It returns
 		 EACCES instead.  So here we handle such situations and
 		 return EXDEV.  */
-	      DWORD attributes;
-
 	      if ((attributes = GetFileAttributesW (temp_w)) != -1
 		  && (attributes & FILE_ATTRIBUTE_DIRECTORY))
 		errno = EXDEV;
 	    }
-	  else if (errno == EEXIST)
+	  else if (errno == EEXIST && force)
 	    {
+	      DWORD attributes_old;
+	      DWORD attributes_new;
+
 	      if (_wchmod (newname_w, 0666) != 0)
 		return result;
-	      if (_wunlink (newname_w) != 0)
+	      attributes_old = GetFileAttributesW (temp_w);
+	      attributes_new = GetFileAttributesW (newname_w);
+	      if (attributes_old != -1 && attributes_new != -1
+		  && ((attributes_old & FILE_ATTRIBUTE_DIRECTORY)
+		      != (attributes_new & FILE_ATTRIBUTE_DIRECTORY)))
+		{
+		  if ((attributes_old & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		    errno = ENOTDIR;
+		  else
+		    errno = EISDIR;
+		  return -1;
+		}
+	      if ((attributes_new & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		{
+		  if (_wrmdir (newname_w) != 0)
+		    return result;
+		}
+	      else if (_wunlink (newname_w) != 0)
 		return result;
 	      result = _wrename (temp_w, newname_w);
 	    }
@@ -4612,7 +4573,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	filename_to_ansi (temp, temp_a);
       filename_to_ansi (newname, newname_a);
       result = rename (temp_a, newname_a);
-      if (result < 0 && force)
+      if (result < 0)
 	{
 	  DWORD w32err = GetLastError ();
 
@@ -4620,16 +4581,35 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 	      && newname_dev != oldname_dev)
 	    {
 	      DWORD attributes;
-
 	      if ((attributes = GetFileAttributesA (temp_a)) != -1
 		  && (attributes & FILE_ATTRIBUTE_DIRECTORY))
 		errno = EXDEV;
 	    }
-	  else if (errno == EEXIST)
+	  else if (errno == EEXIST && force)
 	    {
+	      DWORD attributes_old;
+	      DWORD attributes_new;
+
 	      if (_chmod (newname_a, 0666) != 0)
 		return result;
-	      if (_unlink (newname_a) != 0)
+	      attributes_old = GetFileAttributesA (temp_a);
+	      attributes_new = GetFileAttributesA (newname_a);
+	      if (attributes_old != -1 && attributes_new != -1
+		  && ((attributes_old & FILE_ATTRIBUTE_DIRECTORY)
+		      != (attributes_new & FILE_ATTRIBUTE_DIRECTORY)))
+		{
+		  if ((attributes_old & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		    errno = ENOTDIR;
+		  else
+		    errno = EISDIR;
+		  return -1;
+		}
+	      if ((attributes_new & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		{
+		  if (_rmdir (newname_a) != 0)
+		    return result;
+		}
+	      else if (_unlink (newname_a) != 0)
 		return result;
 	      result = rename (temp_a, newname_a);
 	    }

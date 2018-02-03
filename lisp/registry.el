@@ -1,6 +1,6 @@
 ;;; registry.el --- Track and remember data items by various fields
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -358,11 +358,12 @@ return LIMIT such candidates.  If SORTFUNC is provided, sort
 entries first and return candidates from beginning of list."
   (let* ((precious (oref db precious))
 	 (precious-p (lambda (entry-key)
-		       (cdr (memq (car entry-key) precious))))
+		       (cdr (memq (car-safe entry-key) precious))))
 	 (data (oref db data))
 	 (candidates (cl-loop for k being the hash-keys of data
 			      using (hash-values v)
-			      when (cl-notany precious-p v)
+			      when (and (listp v)
+                                        (cl-notany precious-p v))
 			      collect (cons k v))))
     ;; We want the full entries for sorting, but should only return a
     ;; list of entry keys.

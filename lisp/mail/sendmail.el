@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs
 
-;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2017 Free Software
+;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -242,15 +242,6 @@ If this is nil, use indentation, as specified by `mail-indentation-spaces'."
 Used by `mail-yank-original' via `mail-indent-citation'."
   :type 'integer
   :group 'sendmail)
-
-(defvar mail-yank-hooks nil
-  "Obsolete hook for modifying a citation just inserted in the mail buffer.
-Each hook function can find the citation between (point) and (mark t).
-And each hook function should leave point and mark around the citation
-text as modified.
-This is a normal hook, misnamed for historical reasons.
-It is obsolete and mail agents should no longer use it.")
-(make-obsolete-variable 'mail-yank-hooks 'mail-citation-hook "19.34")
 
 ;;;###autoload
 (defcustom mail-citation-hook nil
@@ -616,7 +607,7 @@ This also saves the value of `send-mail-function' via Customize."
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
   ;; (kill-local-variable 'enable-multibyte-characters)
-  (set-buffer-multibyte (default-value 'enable-multibyte-characters))
+  (set-buffer-multibyte t)
   (if current-input-method
       (deactivate-input-method))
 
@@ -1677,7 +1668,7 @@ and don't delete any header fields."
 	      ;; Call yank function, and set the mark if it doesn't.
 	      (apply (car original) (cdr original))
 	      (if (eq omark (mark t))
-		  (push-mark (point))))
+		  (push-mark)))
 	  ;; If the original message is in another window in the same
 	  ;; frame, delete that window to save space.
 	  (delete-windows-on original t)
@@ -1718,8 +1709,6 @@ and don't delete any header fields."
 			       (rfc822-goto-eoh)
 			       (point))))))
 		     (run-hooks 'mail-citation-hook)))
-		  (mail-yank-hooks
-		   (run-hooks 'mail-yank-hooks))
 		  (t
 		   (mail-indent-citation)))))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
@@ -1788,9 +1777,7 @@ and don't delete any header fields."
 			     (rfc822-goto-eoh)
 			     (point))))))
 		   (run-hooks 'mail-citation-hook))
-	       (if mail-yank-hooks
-		   (run-hooks 'mail-yank-hooks)
-		 (mail-indent-citation))))))))
+	       (mail-indent-citation)))))))
 
 (defun mail-split-line ()
   "Split current line, moving portion beyond point vertically down.

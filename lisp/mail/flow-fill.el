@@ -1,6 +1,6 @@
-;;; flow-fill.el --- interpret RFC2646 "flowed" text
+;;; flow-fill.el --- interpret RFC2646 "flowed" text  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -49,7 +49,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 
 (defcustom fill-flowed-display-column 'fill-column
   "Column beyond which format=flowed lines are wrapped, when displayed.

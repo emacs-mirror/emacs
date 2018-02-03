@@ -1,6 +1,6 @@
 ;;; nnrss.el --- interfacing with RSS
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: RSS
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -625,7 +625,7 @@ which RSS 2.0 allows."
 ;;; Snarf functions
 (defun nnrss-make-hash-index (item)
   (gnus-message 9 "nnrss: Making hash index of %s" (gnus-prin1-to-string item))
-  (setq item (gnus-remove-if
+  (setq item (seq-remove
 	      (lambda (field)
 		(when (listp field)
 		  (memq (car field) nnrss-ignore-article-fields)))

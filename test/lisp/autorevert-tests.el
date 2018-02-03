@@ -1,6 +1,6 @@
 ;;; auto-revert-tests.el --- Tests of auto-revert
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -15,7 +15,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
@@ -161,7 +161,7 @@ This expects `auto-revert--messages' to be bound by
   :tags '(:expensive-test)
 
   (let ((tmpfile (make-temp-file "auto-revert-test"))
-        buf)
+        buf desc)
     (unwind-protect
 	(progn
           (write-region "any text" nil tmpfile nil 'no-message)
@@ -174,6 +174,7 @@ This expects `auto-revert--messages' to be bound by
             (sleep-for 1)
             (auto-revert-mode 1)
             (should auto-revert-mode)
+            (setq desc auto-revert-notify-watch-descriptor)
 
             ;; Remove file while reverting.  We simulate this by
             ;; modifying `before-revert-hook'.
@@ -192,7 +193,7 @@ This expects `auto-revert--messages' to be bound by
             (should (string-match "any text" (buffer-string)))
             ;; With w32notify, the 'stopped' events are not sent.
             (or (eq file-notify--library 'w32notify)
-                (should-not auto-revert-use-notify))
+                (should-not auto-revert-notify-watch-descriptor))
 
             ;; Once the file has been recreated, the buffer shall be
             ;; reverted.
@@ -203,6 +204,11 @@ This expects `auto-revert--messages' to be bound by
               (auto-revert--wait-for-revert buf))
             ;; Check, that the buffer has been reverted.
             (should (string-match "another text" (buffer-string)))
+            ;; When file notification is used, it must be reenabled
+            ;; after recreation of the file.  We cannot expect that
+            ;; the descriptor is the same, so we just check the
+            ;; existence.
+            (should (eq (null desc) (null auto-revert-notify-watch-descriptor)))
 
             ;; An empty file shall still be reverted.
             (ert-with-message-capture auto-revert--messages

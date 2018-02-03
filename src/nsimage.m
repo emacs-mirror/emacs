@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2017 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 Originally by Carl Edman
@@ -76,8 +76,19 @@ ns_load_image (struct frame *f, struct image *img,
 {
   EmacsImage *eImg = nil;
   NSSize size;
+  Lisp_Object lisp_index, lisp_rotation;
+  unsigned int index;
+  double rotation;
 
   NSTRACE ("ns_load_image");
+
+  eassert (valid_image_p (img->spec));
+
+  lisp_index = Fplist_get (XCDR (img->spec), QCindex);
+  index = INTEGERP (lisp_index) ? XFASTINT (lisp_index) : 0;
+
+  lisp_rotation = Fplist_get (XCDR (img->spec), QCrotation);
+  rotation = NUMBERP (lisp_rotation) ? XFLOATINT (lisp_rotation) : 0;
 
   if (STRINGP (spec_file))
     {
@@ -99,12 +110,31 @@ ns_load_image (struct frame *f, struct image *img,
       return 0;
     }
 
+  if (![eImg setFrame: index])
+    {
+      add_to_log ("Unable to set index %d for image %s",
+                  make_number (index), img->spec);
+      return 0;
+    }
+
+  img->lisp_data = [eImg getMetadata];
+
+  if (rotation != 0)
+    {
+      EmacsImage *temp = [eImg rotate:rotation];
+      [eImg release];
+      eImg = temp;
+    }
+
+  [eImg setSizeFromSpec:XCDR (img->spec)];
+
   size = [eImg size];
   img->width = size.width;
   img->height = size.height;
 
   /* 4) set img->pixmap = emacsimage */
   img->pixmap = eImg;
+
   return 1;
 }
 
@@ -152,7 +182,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
 @implementation EmacsImage
 
-+ allocInitFromFile: (Lisp_Object)file
++ (instancetype)allocInitFromFile: (Lisp_Object)file
 {
   NSImageRep *imgRep;
   Lisp_Object found;
@@ -197,7 +227,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
 /* Create image from monochrome bitmap. If both FG and BG are 0
    (black), set the background to white and make it transparent. */
-- initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
+- (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
            fg: (unsigned long)fg bg: (unsigned long)bg
 {
   unsigned char *planes[5];
@@ -269,7 +299,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 /* Set color for a bitmap image.  */
-- setXBMColor: (NSColor *)color
+- (instancetype)setXBMColor: (NSColor *)color
 {
   NSSize s = [self size];
   unsigned char *planes[5];
@@ -309,7 +339,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 
-- initForXPMWithDepth: (int)depth width: (int)width height: (int)height
+- (instancetype)initForXPMWithDepth: (int)depth width: (int)width height: (int)height
 {
   NSSize s = {width, height};
   int i;
@@ -386,7 +416,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
 - (void) setPixelAtX: (int)x Y: (int)y toRed: (unsigned char)r
                green: (unsigned char)g blue: (unsigned char)b
-               alpha:(unsigned char)a;
+               alpha:(unsigned char)a
 {
   if (bmRep == nil)
     return;
@@ -433,6 +463,163 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   if (stippleMask == nil)
       stippleMask = [[NSColor colorWithPatternImage: self] retain];
   return stippleMask;
+}
+
+/* Find the first NSBitmapImageRep which has multiple frames. */
+- (NSBitmapImageRep *)getAnimatedBitmapImageRep
+{
+  for (NSImageRep * r in [self representations])
+    {
+      if ([r isKindOfClass:[NSBitmapImageRep class]])
+        {
+          NSBitmapImageRep * bm = (NSBitmapImageRep *)r;
+          if ([[bm valueForProperty:NSImageFrameCount] intValue] > 0)
+            return bm;
+        }
+    }
+  return nil;
+}
+
+/* If the image has multiple frames, get a count of them and the
+   animation delay, if available. */
+- (Lisp_Object)getMetadata
+{
+  Lisp_Object metadata = Qnil;
+
+  NSBitmapImageRep * bm = [self getAnimatedBitmapImageRep];
+
+  if (bm != nil)
+    {
+      int frames = [[bm valueForProperty:NSImageFrameCount] intValue];
+      float delay = [[bm valueForProperty:NSImageCurrentFrameDuration]
+                      floatValue];
+
+      if (frames > 1)
+        metadata = Fcons (Qcount, Fcons (make_number (frames), metadata));
+      if (delay > 0)
+        metadata = Fcons (Qdelay, Fcons (make_float (delay), metadata));
+    }
+  return metadata;
+}
+
+/* Attempt to set the animation frame to be displayed. */
+- (BOOL)setFrame: (unsigned int) index
+{
+  NSBitmapImageRep * bm = [self getAnimatedBitmapImageRep];
+
+  if (bm != nil)
+    {
+      int frames = [[bm valueForProperty:NSImageFrameCount] intValue];
+
+      /* If index is invalid, give up. */
+      if (index < 0 || index > frames)
+        return NO;
+
+      [bm setProperty: NSImageCurrentFrame
+            withValue: [NSNumber numberWithUnsignedInt:index]];
+    }
+
+  /* Setting the frame has succeeded, or the image doesn't have
+     multiple frames. */
+  return YES;
+}
+
+- (void)setSizeFromSpec: (Lisp_Object) spec
+{
+  NSSize size = [self size];
+  Lisp_Object value;
+  double scale = 1, aspect = size.width / size.height;
+  double width = -1, height = -1, max_width = -1, max_height = -1;
+
+  value = Fplist_get (spec, QCscale);
+  if (NUMBERP (value))
+    scale = XFLOATINT (value) ;
+
+  value = Fplist_get (spec, QCmax_width);
+  if (NUMBERP (value))
+    max_width = XFLOATINT (value);
+
+  value = Fplist_get (spec, QCmax_height);
+  if (NUMBERP (value))
+    max_height = XFLOATINT (value);
+
+  value = Fplist_get (spec, QCwidth);
+  if (NUMBERP (value))
+    {
+      width = XFLOATINT (value) * scale;
+      /* :width overrides :max-width. */
+      max_width = -1;
+    }
+
+  value = Fplist_get (spec, QCheight);
+  if (NUMBERP (value))
+    {
+      height = XFLOATINT (value) * scale;
+      /* :height overrides :max-height. */
+      max_height = -1;
+    }
+
+  if (width <= 0 && height <= 0)
+    {
+      width = size.width * scale;
+      height = size.height * scale;
+    }
+  else if (width > 0 && height <= 0)
+      height = width / aspect;
+  else if (height > 0 && width <= 0)
+      width = height * aspect;
+
+  if (max_width > 0 && width > max_width)
+    {
+      width = max_width;
+      height = max_width / aspect;
+    }
+
+  if (max_height > 0 && height > max_height)
+    {
+      height = max_height;
+      width = max_height * aspect;
+    }
+
+  [self setSize:NSMakeSize(width, height)];
+}
+
+- (instancetype)rotate: (double)rotation
+{
+  EmacsImage *new_image;
+  NSPoint new_origin;
+  NSSize new_size, size = [self size];
+  NSRect rect = { NSZeroPoint, [self size] };
+
+  /* Create a bezier path of the outline of the image and do the
+   * rotation on it.  */
+  NSBezierPath *bounds_path = [NSBezierPath bezierPathWithRect:rect];
+  NSAffineTransform *transform = [NSAffineTransform transform];
+  [transform rotateByDegrees: rotation * -1];
+  [bounds_path transformUsingAffineTransform:transform];
+
+  /* Now we can find out how large the rotated image needs to be.  */
+  new_size = [bounds_path bounds].size;
+  new_image = [[EmacsImage alloc] initWithSize:new_size];
+
+  new_origin = NSMakePoint((new_size.width - size.width)/2,
+                           (new_size.height - size.height)/2);
+
+  [new_image lockFocus];
+
+  /* Create the final transform.  */
+  transform = [NSAffineTransform transform];
+  [transform translateXBy:new_size.width/2 yBy:new_size.height/2];
+  [transform rotateByDegrees: rotation * -1];
+  [transform translateXBy:-new_size.width/2 yBy:-new_size.height/2];
+
+  [transform concat];
+  [self drawAtPoint:new_origin fromRect:NSZeroRect
+          operation:NSCompositingOperationCopy fraction:1];
+
+  [new_image unlockFocus];
+
+  return new_image;
 }
 
 @end

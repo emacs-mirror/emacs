@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_CHARACTER_H
 #define EMACS_CHARACTER_H
@@ -682,6 +682,8 @@ extern bool graphicp (int);
 extern bool printablep (int);
 extern bool blankp (int);
 
+extern bool confusable_symbol_character_p (int ch);
+
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR (XVECTOR (Vtranslation_table_vector)->contents[(id)]))
@@ -698,6 +700,24 @@ char_table_translate (Lisp_Object obj, int ch)
   eassert (CHAR_TABLE_P (obj));
   obj = CHAR_TABLE_REF (obj, ch);
   return CHARACTERP (obj) ? XINT (obj) : ch;
+}
+
+#if defined __GNUC__ && !defined __STRICT_ANSI__
+# define HEXDIGIT_CONST const
+# define HEXDIGIT_IS_CONST true
+#else
+# define HEXDIGIT_CONST
+# define HEXDIGIT_IS_CONST false
+#endif
+extern signed char HEXDIGIT_CONST hexdigit[];
+
+/* If C is a hexadecimal digit ('0'-'9', 'a'-'f', 'A'-'F'), return its
+   value (0-15).  Otherwise return -1.  */
+
+INLINE int
+char_hexdigit (int c)
+{
+  return 0 <= c && c <= UCHAR_MAX ? hexdigit[c] : -1;
 }
 
 INLINE_HEADER_END

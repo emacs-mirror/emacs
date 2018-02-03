@@ -1,6 +1,6 @@
 ;;; register.el --- register commands for Emacs      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1993-1994, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1994, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,9 +39,7 @@
   (registerv (:constructor nil)
 	     (:constructor registerv--make (&optional data print-func
 						      jump-func insert-func))
-	     (:copier nil)
-	     (:type vector)
-	     :named)
+	     (:copier nil))
   (data        nil :read-only t)
   (print-func  nil :read-only t)
   (jump-func   nil :read-only t)
@@ -59,6 +57,7 @@ this sentence:
 JUMP-FUNC if provided, controls how `jump-to-register' jumps to the register.
 INSERT-FUNC if provided, controls how `insert-register' insert the register.
 They both receive DATA as argument."
+  (declare (obsolete "Use your own type with methods on register-val-(insert|describe|jump-to)" "27.1"))
   (registerv--make data print-func jump-func insert-func))
 
 (defvar register-alist nil
@@ -164,6 +163,10 @@ display such a window regardless."
 		       help-chars)
 	    (unless (get-buffer-window buffer)
 	      (register-preview buffer 'show-empty)))
+          (when (or (eq ?\C-g last-input-event)
+                    (eq 'escape last-input-event)
+                    (eq ?\C-\[ last-input-event))
+            (keyboard-quit))
 	  (if (characterp last-input-event) last-input-event
 	    (error "Non-character input-event")))
       (and (timerp timer) (cancel-timer timer))
@@ -178,8 +181,11 @@ Use \\[jump-to-register] to go to that location or restore that configuration.
 Argument is a character, naming the register.
 
 Interactively, reads the register using `register-read-with-preview'."
-  (interactive (list (register-read-with-preview "Point to register: ")
-		     current-prefix-arg))
+  (interactive (list (register-read-with-preview
+                      (if current-prefix-arg
+                          "Frame configuration to register: "
+                        "Point to register: "))
+                     current-prefix-arg))
   ;; Turn the marker into a file-ref if the buffer is killed.
   (add-hook 'kill-buffer-hook 'register-swap-out nil t)
   (set-register register
@@ -238,36 +244,44 @@ Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Jump to register: ")
 		     current-prefix-arg))
   (let ((val (get-register register)))
-    (cond
-     ((registerv-p val)
-      (cl-assert (registerv-jump-func val) nil
-              "Don't know how to jump to register %s"
-              (single-key-description register))
-      (funcall (registerv-jump-func val) (registerv-data val)))
-     ((and (consp val) (frame-configuration-p (car val)))
-      (set-frame-configuration (car val) (not delete))
-      (goto-char (cadr val)))
-     ((and (consp val) (window-configuration-p (car val)))
-      (set-window-configuration (car val))
-      (goto-char (cadr val)))
-     ((markerp val)
-      (or (marker-buffer val)
-	  (user-error "That register's buffer no longer exists"))
-      (switch-to-buffer (marker-buffer val))
-      (unless (or (= (point) (marker-position val))
-                  (eq last-command 'jump-to-register))
-        (push-mark))
-      (goto-char val))
-     ((and (consp val) (eq (car val) 'file))
-      (find-file (cdr val)))
-     ((and (consp val) (eq (car val) 'file-query))
-      (or (find-buffer-visiting (nth 1 val))
-	  (y-or-n-p (format "Visit file %s again? " (nth 1 val)))
-	  (user-error "Register access aborted"))
-      (find-file (nth 1 val))
-      (goto-char (nth 2 val)))
-     (t
-      (user-error "Register doesn't contain a buffer position or configuration")))))
+    (register-val-jump-to val delete)))
+
+(cl-defgeneric register-val-jump-to (_val _arg)
+  "Execute the \"jump\" operation of VAL.
+ARG is the value of the prefix argument or nil."
+  (user-error "Register doesn't contain a buffer position or configuration"))
+
+(cl-defmethod register-val-jump-to ((val registerv) _arg)
+  (cl-assert (registerv-jump-func val) nil
+             "Don't know how to jump to register value %S" val)
+  (funcall (registerv-jump-func val) (registerv-data val)))
+
+(cl-defmethod register-val-jump-to ((val marker) _arg)
+  (or (marker-buffer val)
+      (user-error "That register's buffer no longer exists"))
+  (switch-to-buffer (marker-buffer val))
+  (unless (or (= (point) (marker-position val))
+              (eq last-command 'jump-to-register))
+    (push-mark))
+  (goto-char val))
+
+(cl-defmethod register-val-jump-to ((val cons) delete)
+  (cond
+   ((frame-configuration-p (car val))
+    (set-frame-configuration (car val) (not delete))
+    (goto-char (cadr val)))
+   ((window-configuration-p (car val))
+    (set-window-configuration (car val))
+    (goto-char (cadr val)))
+   ((eq (car val) 'file)
+    (find-file (cdr val)))
+   ((eq (car val) 'file-query)
+    (or (find-buffer-visiting (nth 1 val))
+	(y-or-n-p (format "Visit file %s again? " (nth 1 val)))
+	(user-error "Register access aborted"))
+    (find-file (nth 1 val))
+    (goto-char (nth 2 val)))
+   (t (cl-call-next-method val delete))))
 
 (defun register-swap-out ()
   "Turn markers into file-query references when a buffer is killed."
@@ -349,79 +363,84 @@ Interactively, reads the register using `register-read-with-preview'."
   (princ (single-key-description register))
   (princ " contains ")
   (let ((val (get-register register)))
+    (register-val-describe val verbose)))
+
+(cl-defgeneric register-val-describe (val verbose)
+  "Print description of register value VAL to `standard-output'."
+  (princ "Garbage:\n")
+  (if verbose (prin1 val)))
+
+(cl-defmethod register-val-describe ((val registerv) _verbose)
+  (if (registerv-print-func val)
+      (funcall (registerv-print-func val) (registerv-data val))
+    (princ "[UNPRINTABLE CONTENTS].")))
+
+(cl-defmethod register-val-describe ((val number) _verbose)
+  (princ val))
+
+(cl-defmethod register-val-describe ((val marker) _verbose)
+  (let ((buf (marker-buffer val)))
+    (if (null buf)
+	(princ "a marker in no buffer")
+      (princ "a buffer position:\n    buffer ")
+      (princ (buffer-name buf))
+      (princ ", position ")
+      (princ (marker-position val)))))
+
+(cl-defmethod register-val-describe ((val cons) verbose)
+  (cond
+   ((window-configuration-p (car val))
+    (princ "a window configuration."))
+
+   ((frame-configuration-p (car val))
+    (princ "a frame configuration."))
+
+   ((eq (car val) 'file)
+    (princ "the file ")
+    (prin1 (cdr val))
+    (princ "."))
+
+   ((eq (car val) 'file-query)
+    (princ "a file-query reference:\n    file ")
+    (prin1 (car (cdr val)))
+    (princ ",\n    position ")
+    (princ (car (cdr (cdr val))))
+    (princ "."))
+
+   (t
+    (if verbose
+	(progn
+	  (princ "the rectangle:\n")
+	  (while val
+	    (princ "    ")
+	    (princ (car val))
+	    (terpri)
+	    (setq val (cdr val))))
+      (princ "a rectangle starting with ")
+      (princ (car val))))))
+
+(cl-defmethod register-val-describe ((val string) verbose)
+  (setq val (copy-sequence val))
+  (if (eq yank-excluded-properties t)
+      (set-text-properties 0 (length val) nil val)
+    (remove-list-of-text-properties 0 (length val)
+				    yank-excluded-properties val))
+  (if verbose
+      (progn
+	(princ "the text:\n")
+	(princ val))
     (cond
-     ((registerv-p val)
-      (if (registerv-print-func val)
-          (funcall (registerv-print-func val) (registerv-data val))
-        (princ "[UNPRINTABLE CONTENTS].")))
-
-     ((numberp val)
-      (princ val))
-
-     ((markerp val)
-      (let ((buf (marker-buffer val)))
-	(if (null buf)
-	    (princ "a marker in no buffer")
-	  (princ "a buffer position:\n    buffer ")
-	  (princ (buffer-name buf))
-	  (princ ", position ")
-	  (princ (marker-position val)))))
-
-     ((and (consp val) (window-configuration-p (car val)))
-      (princ "a window configuration."))
-
-     ((and (consp val) (frame-configuration-p (car val)))
-      (princ "a frame configuration."))
-
-     ((and (consp val) (eq (car val) 'file))
-      (princ "the file ")
-      (prin1 (cdr val))
-      (princ "."))
-
-     ((and (consp val) (eq (car val) 'file-query))
-      (princ "a file-query reference:\n    file ")
-      (prin1 (car (cdr val)))
-      (princ ",\n    position ")
-      (princ (car (cdr (cdr val))))
-      (princ "."))
-
-     ((consp val)
-      (if verbose
-	  (progn
-	    (princ "the rectangle:\n")
-	    (while val
-	      (princ "    ")
-	      (princ (car val))
-	      (terpri)
-	      (setq val (cdr val))))
-	(princ "a rectangle starting with ")
-	(princ (car val))))
-
-     ((stringp val)
-      (setq val (copy-sequence val))
-      (if (eq yank-excluded-properties t)
-	  (set-text-properties 0 (length val) nil val)
-	(remove-list-of-text-properties 0 (length val)
-					yank-excluded-properties val))
-      (if verbose
-	  (progn
-	    (princ "the text:\n")
-	    (princ val))
-	(cond
-	 ;; Extract first N characters starting with first non-whitespace.
-	 ((string-match (format "[^ \t\n].\\{,%d\\}"
-				;; Deduct 6 for the spaces inserted below.
-				(min 20 (max 0 (- (window-width) 6))))
-			val)
-	  (princ "text starting with\n    ")
-	  (princ (match-string 0 val)))
-	 ((string-match "^[ \t\n]+$" val)
-	  (princ "whitespace"))
-	 (t
-	  (princ "the empty string")))))
+     ;; Extract first N characters starting with first non-whitespace.
+     ((string-match (format "[^ \t\n].\\{,%d\\}"
+			    ;; Deduct 6 for the spaces inserted below.
+			    (min 20 (max 0 (- (window-width) 6))))
+		    val)
+      (princ "text starting with\n    ")
+      (princ (match-string 0 val)))
+     ((string-match "^[ \t\n]+$" val)
+      (princ "whitespace"))
      (t
-      (princ "Garbage:\n")
-      (if verbose (prin1 val))))))
+      (princ "the empty string")))))
 
 (defun insert-register (register &optional arg)
   "Insert contents of register REGISTER.  (REGISTER is a character.)
@@ -437,23 +456,31 @@ Interactively, reads the register using `register-read-with-preview'."
 		       (not current-prefix-arg))))
   (push-mark)
   (let ((val (get-register register)))
-    (cond
-     ((registerv-p val)
-      (cl-assert (registerv-insert-func val) nil
-              "Don't know how to insert register %s"
-              (single-key-description register))
-      (funcall (registerv-insert-func val) (registerv-data val)))
-     ((consp val)
-      (insert-rectangle val))
-     ((stringp val)
-      (insert-for-yank val))
-     ((numberp val)
-      (princ val (current-buffer)))
-     ((and (markerp val) (marker-position val))
-      (princ (marker-position val) (current-buffer)))
-     (t
-      (user-error "Register does not contain text"))))
+    (register-val-insert val))
   (if (not arg) (exchange-point-and-mark)))
+
+(cl-defgeneric register-val-insert (_val)
+  "Insert register value VAL."
+  (user-error "Register does not contain text"))
+
+(cl-defmethod register-val-insert ((val registerv))
+  (cl-assert (registerv-insert-func val) nil
+             "Don't know how to insert register value %S" val)
+  (funcall (registerv-insert-func val) (registerv-data val)))
+
+(cl-defmethod register-val-insert ((val cons))
+  (insert-rectangle val))
+
+(cl-defmethod register-val-insert ((val string))
+  (insert-for-yank val))
+
+(cl-defmethod register-val-insert ((val number))
+  (princ val (current-buffer)))
+
+(cl-defmethod register-val-insert ((val marker))
+  (if (marker-position val)
+      (princ (marker-position val) (current-buffer))
+    (cl-call-next-method val)))
 
 (defun copy-to-register (register start end &optional delete-flag region)
   "Copy region into register REGISTER.

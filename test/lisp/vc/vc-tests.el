@@ -1,6 +1,6 @@
 ;;; vc-tests.el --- Tests of different backends of vc.el
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -15,7 +15,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
@@ -115,7 +115,7 @@
 
 (defvar vc-test--cleanup-hook nil
   "Functions for cleanup at the end of an ert test.
-Don't set it globally, the functions shall be let-bound.")
+Don't set it globally, the functions should be let-bound.")
 
 (defun vc-test--revision-granularity-function (backend)
   "Run the `vc-revision-granularity' backend function."
@@ -181,7 +181,13 @@ For backends which dont support it, it is emulated."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
+	(process-environment process-environment)
+	tempdir
 	vc-test--cleanup-hook)
+    (when (eq backend 'Bzr)
+      (setq tempdir (make-temp-file "vc-test--create-repo" t)
+	    process-environment (cons (format "BZR_HOME=%s" tempdir)
+				      process-environment)))
 
     (unwind-protect
 	(progn
@@ -201,7 +207,9 @@ For backends which dont support it, it is emulated."
 	  (should (eq (vc-responsible-backend default-directory) backend)))
 
       ;; Save exit.
-      (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
+      (ignore-errors
+        (if tempdir (delete-directory tempdir t))
+        (run-hooks 'vc-test--cleanup-hook)))))
 
 ;; FIXME: Why isn't there `vc-unregister'?
 (defun vc-test--unregister-function (backend file)
@@ -231,8 +239,13 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
+	(process-environment process-environment)
+	tempdir
 	vc-test--cleanup-hook)
-
+    (when (eq backend 'Bzr)
+      (setq tempdir (make-temp-file "vc-test--register" t)
+	    process-environment (cons (format "BZR_HOME=%s" tempdir)
+				      process-environment)))
     (unwind-protect
 	(progn
 	  ;; Cleanup.
@@ -292,12 +305,14 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (should-not (vc-backend tmp-name2))
               (should-not (vc-registered tmp-name2)))
 
-            ;; The files shall still exist.
+            ;; The files should still exist.
 	    (should (file-exists-p tmp-name1))
 	    (should (file-exists-p tmp-name2))))
 
       ;; Save exit.
-      (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
+      (ignore-errors
+        (if tempdir (delete-directory tempdir t))
+        (run-hooks 'vc-test--cleanup-hook)))))
 
 (defun vc-test--state (backend)
   "Check the different states of a file."
@@ -307,8 +322,13 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
+	(process-environment process-environment)
+	tempdir
 	vc-test--cleanup-hook)
-
+    (when (eq backend 'Bzr)
+      (setq tempdir (make-temp-file "vc-test--state" t)
+	    process-environment (cons (format "BZR_HOME=%s" tempdir)
+				      process-environment)))
     (unwind-protect
 	(progn
 	  ;; Cleanup.
@@ -329,8 +349,10 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	    ;; Write a new file.  Check state.
 	    (write-region "foo" nil tmp-name nil 'nomessage)
 
-            (message "vc-state3 %s" (vc-state tmp-name))
-	    (should (null (vc-state tmp-name)))
+            ;; nil: Mtn
+            ;; unregistered: Bzr CVS Git Hg SVN RCS
+            (message "vc-state3 %s %s" backend (vc-state tmp-name backend))
+	    (should (memq (vc-state tmp-name backend) '(nil unregistered)))
 
 	    ;; Register a file.  Check state.
 	    (vc-register
@@ -348,13 +370,16 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                      'vc-test--unregister-function backend tmp-name)
                     'vc-not-supported)
                 (message "vc-state5 unsupported")
-              ;; nil: Bzr Git Hg RCS
+              ;; unregistered: Bzr Git RCS Hg
               ;; unsupported: CVS Mtn SCCS SRC SVN
-              (message "vc-state5 %s" (vc-state tmp-name))
-              (should (null (vc-state tmp-name))))))
+              (message "vc-state5 %s %s" backend (vc-state tmp-name backend))
+              (should (memq (vc-state tmp-name backend)
+                            '(nil unregistered))))))
 
       ;; Save exit.
-      (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
+      (ignore-errors
+	(if tempdir (delete-directory tempdir t))
+	(run-hooks 'vc-test--cleanup-hook)))))
 
 (defun vc-test--working-revision (backend)
   "Check the working revision of a repository."
@@ -364,7 +389,13 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
+	(process-environment process-environment)
+	tempdir
 	vc-test--cleanup-hook)
+    (when (eq backend 'Bzr)
+      (setq tempdir (make-temp-file "vc-test--working-revision" t)
+	    process-environment (cons (format "BZR_HOME=%s" tempdir)
+				      process-environment)))
 
     (unwind-protect
 	(progn
@@ -425,7 +456,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (should-not (vc-working-revision tmp-name)))))
 
       ;; Save exit.
-      (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
+      (ignore-errors
+        (if tempdir (delete-directory tempdir t))
+        (run-hooks 'vc-test--cleanup-hook)))))
 
 (defun vc-test--checkout-model (backend)
   "Check the checkout model of a repository."
@@ -435,7 +468,13 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
+	(process-environment process-environment)
+	tempdir
 	vc-test--cleanup-hook)
+    (when (eq backend 'Bzr)
+      (setq tempdir (make-temp-file "vc-test--checkout-model" t)
+	    process-environment (cons (format "BZR_HOME=%s" tempdir)
+				      process-environment)))
 
     (unwind-protect
 	(progn
@@ -502,7 +541,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                             '(announce implicit locking))))))
 
       ;; Save exit.
-      (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
+      (ignore-errors
+        (if tempdir (delete-directory tempdir t))
+        (run-hooks 'vc-test--cleanup-hook)))))
 
 ;; Create the test cases.
 

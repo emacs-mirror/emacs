@@ -1,6 +1,6 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -229,7 +229,7 @@ program."
 			  "/dev/null")))
             ;; Remove file junk (Bug#26084).
             (while (re-search-backward
-                    (concat "^" diff-file-junk-re) mark1-end t)
+                    (concat "^\\(?:" diff-file-junk-re "\\)") mark1-end t)
                 (move-marker mark2 (match-beginning 0)))
 	    (goto-char mark2-end)
 	    (if filenames

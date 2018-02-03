@@ -1,6 +1,6 @@
-;;; rfc2231.el --- Functions for decoding rfc2231 headers
+;;; rfc2231.el --- Functions for decoding rfc2231 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -16,13 +16,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'ietf-drums)
 (require 'rfc2047)
 (autoload 'mm-encode-body "mm-bodies")
@@ -181,7 +180,7 @@ must never cause a Lisp error."
 	;; Now collect and concatenate continuation parameters.
 	(let ((cparams nil)
 	      elem)
-	  (loop for (attribute value part encoded)
+	  (cl-loop for (attribute value part encoded)
 		in (sort parameters (lambda (e1 e2)
 				      (< (or (caddr e1) 0)
 					 (or (caddr e2) 0))))
@@ -234,7 +233,7 @@ These look like:
 	(decode-coding-string (buffer-string) coding-system)))))
 
 (defun rfc2231-encode-string (param value)
-  "Return and PARAM=VALUE string encoded according to RFC2231.
+  "Return a PARAM=VALUE string encoded according to RFC2231.
 Use `mml-insert-parameter' or `mml-insert-parameter-string' to insert
 the result of this function."
   (let ((control (ietf-drums-token-to-list ietf-drums-no-ws-ctl-token))
@@ -291,7 +290,7 @@ the result of this function."
 	    (insert param "*=")
 	  (while (not (eobp))
 	    (insert (if (>= num 0) " " "")
-		    param "*" (format "%d" (incf num)) "*=")
+		    param "*" (format "%d" (cl-incf num)) "*=")
 	    (forward-line 1))))
        (spacep
 	(goto-char (point-min))

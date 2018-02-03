@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
@@ -1104,6 +1104,24 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 ;;  5  =  @r{0000...000101} (30 bits total)
 ;; @r{becomes}
 ;; -6  =  @r{1111...111010} (30 bits total)
+@end example
+@end defun
+
+@cindex popcount
+@cindex Hamming weight
+@cindex counting set bits
+@defun logcount integer
+This function returns the @dfn{Hamming weight} of @var{integer}: the
+number of ones in the binary representation of @var{integer}.
+If @var{integer} is negative, it returns the number of zero bits in
+its two's complement binary representation.  The result is always
+nonnegative.
+
+@example
+(logcount 43)     ; 43 = #b101011
+     @result{} 4
+(logcount -43)    ; -43 = #b111...1010101
+     @result{} 3
 @end example
 @end defun
 

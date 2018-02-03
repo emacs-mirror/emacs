@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -21,7 +21,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -730,7 +730,7 @@ while (0)
 #endif
 
 /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
-   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
 #define ASCENDING_ORDER(lo, med, hi) (((lo) <= (med)) & ((med) <= (hi)))
 
 #define GET_CCL_RANGE(var, ccl_prog, ic, lo, hi)		\
@@ -1000,7 +1000,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_ReadBranch:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
 	  CCL_READ_CHAR (reg[rrr]);
-	  /* fall through ... */
+	  FALLTHROUGH;
 	case CCL_Branch:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
 	{
 	  int ioff = 0 <= reg[rrr] && reg[rrr] < field1 ? reg[rrr] : field1;
@@ -1174,6 +1174,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_ReadJumpCondExprConst: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  CCL_READ_CHAR (reg[rrr]);
+	  FALLTHROUGH;
 	case CCL_JumpCondExprConst: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
 	  jump_address = ic + ADDR;
@@ -1184,6 +1185,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_ReadJumpCondExprReg: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  CCL_READ_CHAR (reg[rrr]);
+	  FALLTHROUGH;
 	case CCL_JumpCondExprReg:
 	  i = reg[rrr];
 	  jump_address = ic + ADDR;

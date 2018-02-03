@@ -1,6 +1,6 @@
 /* pselect - synchronous I/O multiplexing
 
-   Copyright 2011-2017 Free Software Foundation, Inc.
+   Copyright 2011-2018 Free Software Foundation, Inc.
 
    This file is part of gnulib.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* written by Paul Eggert */
 

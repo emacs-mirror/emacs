@@ -1,5 +1,5 @@
 /* Simple client interface to DDE servers.
-   Copyright (C) 1998, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <windows.h>
 #include <ddeml.h>

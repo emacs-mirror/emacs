@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2017 Free Software Foundation, Inc.
+# Copyright 2009-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # Currently we assume only Git 1.7.1 (April 2010) or later, so this
@@ -34,11 +34,10 @@ InfoPlist.strings
 Makefile
 makefile
 !etc/refcards/Makefile
-!modules/mod-test/Makefile
 !test/lisp/progmodes/flymake-resources/Makefile
-!test/manual/indent/Makefile
 !test/manual/etags/Makefile
 !test/manual/etags/make-src/Makefile
+!test/manual/indent/Makefile
 /*.cache
 /confdefs.h
 /config.status
@@ -47,6 +46,7 @@ makefile
 lib/gnulib.mk
 src/config.h
 src/epaths.h
+src/emacs-module.h
 
 # C-level sources built by 'make'.
 lib/alloca.h
@@ -111,7 +111,6 @@ lisp/mh-e/mh-autoloads.el
 lisp/subdirs.el
 
 # Dependencies.
-.deps/
 deps/
 
 # Logs and temporaries.
@@ -132,21 +131,21 @@ src/gl-stamp
 *.o
 *.res
 *.so
-[0-9]*.core
 core
 core.*[0-9]
 gmon.out
 oo/
 oo-spd/
 src/*.map
+vgcore.*[0-9]
 
 # Tests.
-test/indent/*.new
 test/manual/biditest.txt
 test/manual/etags/srclist
 test/manual/etags/regexfile
 test/manual/etags/ETAGS
 test/manual/etags/CTAGS
+test/manual/indent/*.new
 
 # ctags, etags.
 TAGS
@@ -244,6 +243,7 @@ gnustmp*
 # Version control and locks.
 *.orig
 *.rej
+*.swp
 *~
 .#*
 \#*\#

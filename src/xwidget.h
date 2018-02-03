@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2017 Free Software Foundation, Inc.
+Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef XWIDGET_H_INCLUDED
 #define XWIDGET_H_INCLUDED
@@ -33,7 +33,7 @@ struct window;
 
 struct xwidget
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* Auxiliary data.  */
   Lisp_Object plist;
@@ -62,7 +62,7 @@ struct xwidget
 
 struct xwidget_view
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
   Lisp_Object model;
   Lisp_Object w;
 

@@ -30,7 +30,7 @@ the directory structure of the source tree; so tests for files in the
 
 Tests should normally reside in a file with ~-tests.el~ added to the
 base-name of the tested source file; hence ~ert.el~ is tested in
-~ert-tests.el~, and ~pcase.el~ is tested in ~pcase-tests.el~.  As n
+~ert-tests.el~, and ~pcase.el~ is tested in ~pcase-tests.el~.  As an
 exception, tests for a single feature may be placed into multiple
 files of any name which are themselves placed in a directory named
 after the feature with ~-tests~ appended, such as
@@ -55,5 +55,5 @@ located in the same directory as the feature.  Hence, the lisp file
 directory called ~test/lisp/progmodes/flymake-resources~.
 
 No guidance is given for the organization of resource files inside the
-~-resource~ directory; files can be organized at the author's
+~-resources~ directory; files can be organized at the author's
 discretion.

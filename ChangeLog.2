@@ -1,3 +1,220 @@
+2017-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* etc/NEWS: Document the vulnerability and its resolution.
+	Include a workaround.  Suggested by Charles A. Roelli
+	<charles@aurox.ch>.
+
+	* lisp/gnus/mm-view.el (mm-inline-text): Disable decoding of
+	"enriched" and "richtext" MIME objects.  Suggested by Lars
+	Ingebrigtsen <larsi@gnus.org>.
+
+	* lisp/textmodes/enriched.el (enriched-decode-display-prop):
+	Don't produce 'display' properties.  (Bug#28350)
+
+
+2017-04-20  Nicolas Petton  <nicolas@petton.fr>
+
+	* Version 25.2 released.
+
+2017-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a typo in indexing the user manual
+
+	* doc/emacs/cmdargs.texi (General Variables): Fix a horrible typo.
+
+2017-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/menu-bar.el (kill-this-buffer): Doc fix.  (Bug#26466)
+
+2017-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Document 'line-pixel-height'
+
+	* doc/lispref/display.texi (Size of Displayed Text): Document
+	line-pixel-height.  Suggested by Tak Kunihiro
+	<tkk@misasa.okayama-u.ac.jp>.  (Bug#26379)
+
+2017-04-07  Hong Xu  <hong@topbug.net>
+
+	* src/search.c (Fre_search_forward, Fre_search_backward): Improve doc (Bug#25193).
+
+2017-04-07  Noam Postavsky  <npostavs@gmail.com>
+
+	Mention that processes start in default-directory (Bug#18515)
+
+	* doc/lispref/processes.texi (Synchronous Processes):
+	(Asynchronous Processes):
+	* lisp/subr.el (start-process):
+	* src/callproc.c (call-process): Mention that the subprocess starts in
+	`default-directory' when local, suggest `start-file-process' and
+	`process-file' otherwise.
+
+2017-04-07  Noam Postavsky  <npostavs@gmail.com>
+
+	* src/xdisp.c (vmessage, message): Clarify commentary.
+
+2017-04-02  Glenn Morris  <rgm@gnu.org>
+
+	Belated fixes for admin.el's M-x make-manuals-dist
+
+	* admin/admin.el (make-manuals-dist-output-variables): Additions.
+	(make-manuals-dist--1): Also copy docstyle.texi.
+
+2017-03-31  Tino Calancha  <tino.calancha@gmail.com>
+
+	default-directory: Remark that it must be a directory name
+
+	* src/buffer.c (default-directory): Update docstring (Bug#26272).
+
+2017-03-31  Tino Calancha  <tino.calancha@gmail.com>
+
+	Delete confuse statement in manual
+
+	* doc/misc/cl.texi (For Clauses): Delete confuse statement
+	and its example (Bug#23550).
+
+2017-03-31  Noam Postavsky  <npostavs@gmail.com>
+
+	Improve packaging documentation
+
+	* doc/lispref/package.texi (Packaging Basics):
+	* doc/lispref/tips.texi (Library Headers): Clarify some header
+	formats, relation between file headers and package
+	attributes (Bug#13281).
+
+2017-03-27  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	Expand manual section on quitting windows
+
+	* doc/lispref/windows.texi (Quitting Windows): Provide more
+	  information about the elements of the quit-restore window parameter,
+	  and how they affect the behavior of quit-restore-window.
+
+2017-03-26  Noam Postavsky  <npostavs@gmail.com>
+
+	Fix docstring of dabbrev-abbrev-char-regexp
+
+	* lisp/dabbrev.el (dabbrev-abbrev-char-regexp): Using a value of nil
+	is equivalent to "\\sw\\|\\s_", and has no special behavior.  If the
+	previous character doesn't match, we search backwards for one that
+	does, not throw an error.  Replace Lisp example with C based one to
+	make it clear that "symbol" means a sequence of word and symbol
+	constituent characters, not a Lisp symbol (Bug#358).
+
+2017-03-26  Johan Claesson  <johanclaesson@bredband.net>  (tiny change)
+
+	* doc/misc/cl.texi (Iteration Clauses): Clarify example (Bug#19515).
+
+2017-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	;* doc/misc/info.texi (Choose menu subtopic): Improve indexing.  (Bug#26236)
+
+2017-03-21  Noam Postavsky  <npostavs@gmail.com>
+
+	Narrow scope of modification hook renabling in org-src fontification
+
+	Modification hooks should be enabled while modifying text in the
+	org-src temp buffer, but in 2017-01-29 "Call modification hooks in
+	org-src fontify buffers" the hooks were enabled also for modifications
+	to the original org buffer.  This causes fontification errors when
+	combined with certain packages, as reported in
+	https://lists.gnu.org/r/emacs-orgmode/2017-03/msg00420.html.
+
+	* lisp/org/org-src.el (org-src-font-lock-fontify-block): Reduce scope
+	of inhibit-modification-hooks let-binding.
+
+2017-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of interactive "r".
+
+	* doc/lispref/commands.texi (Interactive Codes): Mention that mark
+	must be set for "r" to work.
+
+2017-03-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	Fix bug: Range-check integer ‘alpha’ frame parm value
+
+	Typo introduced 2013-04-01, "Prefer < to >
+	in range checks such as 0 <= i && i < N".
+
+	* src/frame.c (x_set_alpha): Use ‘ialpha’, not ‘alpha’.
+
+2017-03-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etc/PROBLEMS: Say that HP-UX cc doesn't work.
+
+2017-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix duplicate wording in Emacs manual
+
+	* doc/emacs/programs.texi (Which Function): Delete duplicate
+	wording.  (Bug#26098)
+
+2017-03-14  Hong Xu  <hong@topbug.net>
+
+	* lisp/paren.el (show-paren--default, show-paren-function): Add docstring.
+
+2017-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix wording in Emacs manual
+
+	* doc/emacs/text.texi (Paragraphs): Fix a garbled sentence.
+	(Bug#26086)
+
+2017-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Document how to customize input methods
+
+	* doc/emacs/mule.texi (Input Methods): Document how to customize
+	input methods.
+
+2017-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/net/eww.el (eww-reload): Doc fix.  (Bug#25981)
+
+2017-03-06  Noam Postavsky  <npostavs@gmail.com>
+
+	Fix warning message about native completion (Bug#25984)
+
+	* lisp/progmodes/python.el (python-shell-completion-native-turn-on-maybe):
+	The relevant variable is `python-shell-completion-native-enable'.
+
+2017-03-04  Eli Zaretskii  <eliz@gnu.org>
+
+	Clarify documentation of 'raise' and 'height' display specs
+
+	* doc/lispref/display.texi (Other Display Specs): Clarify the
+	effect of 'height' display spec on the following 'raise'.
+	(Bug#25824)
+
+2017-03-04  Eli Zaretskii  <eliz@gnu.org>
+
+	Mention problems with GPaste in PROBLEMS
+
+	* etc/PROBLEMS (GPaste): Mention the problem in yanking caused by
+	GPaste, and its solution.  (Bug#25902)
+
+2017-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix doc strings in info.el
+
+	* lisp/info.el (Info-selection-hook, Info-mode-hook)
+	(Info-edit-mode-hook): Doc fixes.  (Bug#25794)
+
+2017-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix doc string of 'posn-at-point'
+
+	* src/keyboard.c (Fposn_at_point): Clarify the doc string.
+	(Bug#25796)
+
+2017-02-24  Tino Calancha  <tino.calancha@gmail.com>
+
+	Documentation fix in elisp reference manual
+
+	* doc/lispref/macros.texi (Defining Macros): Drop redundant mention
+	on 'declare' forms (Bug#25846).
+
 2017-02-18  Noam Postavsky  <npostavs@gmail.com>
 
 	* lisp/woman.el (woman): Fix docstring prefix arg description.
@@ -559,7 +776,7 @@
 	* lisp/emacs-lisp/easy-mmode.el (define-minor-mode): Fix docstring
 
 	so that it matches the actual implementation.
-	See https://lists.gnu.org/archive/html/help-gnu-emacs/2016-04/msg00071.html
+	See https://lists.gnu.org/r/help-gnu-emacs/2016-04/msg00071.html
 
 2016-12-07  Noam Postavsky  <npostavs@gmail.com>
 
@@ -1291,7 +1508,7 @@
 
 	This should make ralloc-related bugs less likely on GNU/Linux
 	systems with bleeding-edge glibc.  See the email thread containing:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-10/msg00801.html
+	https://lists.gnu.org/r/emacs-devel/2016-10/msg00801.html
 	Do not merge to master.
 	* configure.ac (REL_ALLOC): Default to 'no' on all platforms, not
 	merely on platforms with Doug Lea malloc.  Although bleeding-edge
@@ -1829,7 +2046,7 @@
 
 	See this thread for discussion:
 
-	  https://lists.gnu.org/archive/html/emacs-devel/2016-09/threads.html#00329
+	  https://lists.gnu.org/r/emacs-devel/2016-09/threads.html#00329
 	  From: Karl Fogel
 	  To: Emacs Devel
 	  Subject: Question about intended behavior of 'insert-for-yank-1'.
@@ -2164,7 +2381,7 @@
 	parameters restored by desktop.el take precedence over the
 	customizations in the init file, and explain how to countermand
 	that.  For the details of the issue, see
-	http://lists.gnu.org/archive/html/emacs-devel/2016-09/msg00318.html.
+	https://lists.gnu.org/r/emacs-devel/2016-09/msg00318.html.
 
 2016-09-15  Nicolas Petton  <nicolas@petton.fr>
 
@@ -2207,7 +2424,7 @@
 
 	* lisp/url/url-http.el (url-http-create-request): Make sure the
 	cookie headers are a unibyte string.  For the details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2016-09/msg00202.html.
+	https://lists.gnu.org/r/emacs-devel/2016-09/msg00202.html.
 
 2016-09-08  Martin Rudalics  <rudalics@gmx.at>
 
@@ -2728,9 +2945,9 @@
 	* src/indent.c (Fvertical_motion): Don't return uninitialized
 	value in non-interactive session.  This fixes random errors in
 	batch mode, see
-	http://lists.gnu.org/archive/html/emacs-devel/2016-06/msg00609.html
+	https://lists.gnu.org/r/emacs-devel/2016-06/msg00609.html
 	and
-	http://lists.gnu.org/archive/html/emacs-devel/2016-07/msg00500.html
+	https://lists.gnu.org/r/emacs-devel/2016-07/msg00500.html
 	for the details.
 
 2016-07-10  Andreas Schwab  <schwab@linux-m68k.org>
@@ -3070,7 +3287,7 @@
 
 	* src/xfns.c (x_get_monitor_attributes_xrandr): Use #if, not #ifdef.
 	This ports to systems that predate xrandr 1.3. See Christian Lynbech in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-06/msg00198.html
+	https://lists.gnu.org/r/emacs-devel/2016-06/msg00198.html
 
 	(cherry picked from commit dce99f222f1ca33265cd56ddb157817be1dc078e)
 
@@ -3088,7 +3305,7 @@
 	* lisp/calendar/todo-mode.el (todo-read-category): Use
 	set-keymap-parent instead of copy-keymap, and default (as
 	previously) to the global binding (for rationale, see
-	http://lists.gnu.org/archive/html/emacs-devel/2016-06/msg00217.html).
+	https://lists.gnu.org/r/emacs-devel/2016-06/msg00217.html).
 
 2016-06-14  Stephen Berman  <stephen.berman@gmx.net>
 
@@ -3672,7 +3889,7 @@
 
 	* lisp/replace.el (replace-char-fold): Rename from replace-character-fold.
 	* test/automated/char-fold-tests.el: Rename from character-fold-tests.el.
-	http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg00529.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg00529.html
 
 2016-05-17  Nicolas Petton  <nicolas@petton.fr>
 
@@ -4198,7 +4415,7 @@
 
 2016-05-01  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Document mode mode line variables
+	Document mode line variables
 
 	* doc/lispref/modes.texi (Mode Line Variables): Document
 	`mode-line-front-space, `mode-line-misc-info',
@@ -4437,7 +4654,7 @@
 	Fill the doc string of font-lock-keywords
 
 	* lisp/font-lock.el (font-lock-keywords): Fill the lines and
-	reorganise some explanations (bug#21427).
+	reorganize some explanations (bug#21427).
 
 	(cherry picked from commit c05716d3a26ea7518b89eacfccaf70c9d0731df7)
 
@@ -4591,7 +4808,7 @@
 	Link from (emacs)Exiting to (lisp)Killing Emacs
 
 	* doc/emacs/entering.texi (Exiting): Link to the lispref
-	manual for further customisations (bug#15445).
+	manual for further customizations (bug#15445).
 
 	(cherry picked from commit bc5f27aa099cdde02ca66e71501b89300685ab28)
 
@@ -4830,7 +5047,7 @@
 	* lisp/faces.el (variable-pitch) [w32]: Name a variable-pitch font
 	explicitly, to avoid Emacs picking up a bold-italic variant on
 	some MS-Windows systems.  See this thread for details:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-04/msg00746.html.
+	https://lists.gnu.org/r/emacs-devel/2016-04/msg00746.html.
 
 2016-04-29  Alan Mackenzie  <acm@muc.de>
 
@@ -5244,8 +5461,8 @@
 	buffer text was overwritten with binary nulls, because
 	mmap_realloc copied only part of buffer text when extending it.
 	See
-	http://lists.gnu.org/archive/html/emacs-devel/2016-04/msg00325.html
-	and http://debbugs.gnu.org/cgi/bugreport.cgi?bug=23223#55 for two
+	https://lists.gnu.org/r/emacs-devel/2016-04/msg00325.html
+	and https://debbugs.gnu.org/cgi/bugreport.cgi?bug=23223#55 for two
 	examples of the related problems.
 
 2016-04-14  Michael Albinus  <michael.albinus@gmx.de>
@@ -5279,7 +5496,7 @@
 	* lisp/cedet/semantic/symref/grep.el
 	(semantic-symref-filepattern-alist):
 	Add entry for lisp-interaction-mode
-	(http://debbugs.gnu.org/cgi/bugreport.cgi?bug=23223#47)
+	(https://debbugs.gnu.org/cgi/bugreport.cgi?bug=23223#47)
 
 2016-04-12  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -5489,7 +5706,7 @@
 	fixing most of Bug#20202.  The only part of the change that is
 	still reverted is the change to M-x term, where compatibility with
 	current Bash constrains us from moving too quickly (Bug#20484).
-	Problem reported by Phillip Lord in: http://bugs.gnu.org/20484#108
+	Problem reported by Phillip Lord in: https://bugs.gnu.org/20484#108
 	* etc/NEWS: Document this.
 	* lisp/comint.el (comint-exec-1):
 	* lisp/net/tramp-sh.el (tramp-remote-process-environment):
@@ -5779,10 +5996,6 @@
 	* lisp/progmodes/cc-engine.el (c-record-parse-state-state): Terminate stale
 	markers.
 
-2016-03-30  Alan Mackenzie  <acm@muc.de>
-
-	Merge branch 'emacs-25' of /home/acm/emacs/emacs.git/emacs-25 into emacs-25
-
 2016-03-29  Xue Fuqiao  <xfq.free@gmail.com>
 
 	* doc/lispref/text.texi (Columns): Remove a nonexistent reference.
@@ -5818,7 +6031,7 @@
 
 	* lisp/progmodes/prog-mode.el: (prog-indentation-context)
 	(prog-first-column, prog-widen): Remove, as discussed in
-	http://lists.gnu.org/archive/html/emacs-devel/2016-03/msg01425.html.
+	https://lists.gnu.org/r/emacs-devel/2016-03/msg01425.html.
 
 	* doc/lispref/text.texi (Mode-Specific Indent): Remove references
 	to them.
@@ -6449,7 +6662,7 @@
 
 	* etc/NEWS, nextstep/README: Prefer curved quotes in the
 	recently-changed text documentation.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-03/msg00860.html
+	https://lists.gnu.org/r/emacs-devel/2016-03/msg00860.html
 
 2016-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -7067,7 +7280,7 @@
 
 	* lisp/progmodes/xref.el (xref--xref-buffer-mode):
 	Uncomment the next-error-function integration
-	(http://debbugs.gnu.org/cgi/bugreport.cgi?bug=20489#110).
+	(https://debbugs.gnu.org/cgi/bugreport.cgi?bug=20489#110).
 
 2016-02-29  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -7075,10 +7288,6 @@
 
 	* doc/emacs/maintaining.texi (Identifier Search)
 	(Looking Up Identifiers): Remove the word "valid" (bug#22692).
-
-2016-02-28  Michael Albinus  <michael.albinus@gmx.de>
-
-	Merge branch 'emacs-25' of git.sv.gnu.org:/srv/git/emacs into emacs-25
 
 2016-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -7314,11 +7523,11 @@
 
 2016-02-23  Jan Tatarik  <jan.tatarik@gmail.com>
 
-	Don't bug out on localised dates in gnus-icalendar
+	Don't bug out on localized dates in gnus-icalendar
 
 	* lisp/gnus/gnus-icalendar.el
 	(gnus-icalendar-event:org-timestamp): Don't bug out on
-	localised dates.
+	localized dates.
 
 2016-02-23  Drew Adams  <drew.adams@oracle.com>
 
@@ -7385,7 +7594,7 @@
 
 	* lisp/progmodes/ruby-mode.el (ruby-mode-syntax-table): Change the
 	syntax classes of $, : and @ to "prefix character"
-	(http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00272.html).
+	(https://lists.gnu.org/r/emacs-devel/2016-01/msg00272.html).
 	(ruby-syntax-propertize): Undo that specifically for colons
 	followed by an opening paren or bracket.
 	(ruby-font-lock-keyword-beg-re): Include colon character.
@@ -7481,7 +7690,7 @@
 	(xref-show-location-at-point): Make an effort to avoid the
 	original window when showing the location.
 	(xref-goto-xref): Don't quit the xref window (bug#20487 and
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01133.html).
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg01133.html).
 	(xref--query-replace-1): Use xref--with-dedicated-window as well.
 	(xref--next-error-function): Call xref--show-location instead of
 	xref--pop-to-location.
@@ -7636,7 +7845,7 @@
 
 2016-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Allow customising the article mode cursor behavior
+	Allow customizing the article mode cursor behavior
 
 	* doc/misc/gnus.texi (HTML): Mention gnus-article-show-cursor.
 
@@ -8326,7 +8535,7 @@
 	Port to FreeBSD 11-CURRENT i386
 
 	Problem reported by Herbert J. Skuhra in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-02/msg00354.html
+	https://lists.gnu.org/r/emacs-devel/2016-02/msg00354.html
 	Instead of trying
 	* src/alloc.c (lmalloc, lrealloc, laligned): New functions.
 	(xmalloc, xzalloc, xrealloc, lisp_malloc): Use them.
@@ -8372,7 +8581,7 @@
 	Fix test for dladdr
 
 	Problem reported by Andreas Schwab in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-02/msg00327.html
+	https://lists.gnu.org/r/emacs-devel/2016-02/msg00327.html
 	* configure.ac (dladdr): Link with LIBMODULES when checking for
 	this function.
 
@@ -8536,10 +8745,6 @@
 	* lisp/erc/erc.el (erc-mode): Set completion-ignore-case so
 	that we get case-insensitive completion.
 	(erc-completion-at-point): Remove.
-
-2016-02-05  Eli Zaretskii  <eliz@gnu.org>
-
-	Merge branch 'emacs-25' of git.savannah.gnu.org:/srv/git/emacs into emacs-25
 
 2016-02-05  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -8715,7 +8920,7 @@
 	Remove 'def X' from the example
 
 	* test/etags/ruby-src/test1.ru (A::B): Remove 'def X'
-	(http://lists.gnu.org/archive/html/emacs-devel/2016-02/msg00167.html).
+	(https://lists.gnu.org/r/emacs-devel/2016-02/msg00167.html).
 	* test/etags/CTAGS.good:
 	* test/etags/ETAGS.good_1:
 	* test/etags/ETAGS.good_2:
@@ -9067,7 +9272,7 @@
 	my edits today to http://www.emacswiki.org/emacs/GitForEmacsDevs and
 	to emacswiki.org/emacs/GitQuickStartForEmacsDevs.  See also the thread
 	"Recommend these .gitconfig settings for git integrity." at
-	https://lists.gnu.org/archive/html/emacs-devel/2016-01/threads.html#01802.
+	https://lists.gnu.org/r/emacs-devel/2016-01/threads.html#01802.
 
 2016-02-01  Martin Rudalics  <rudalics@gmx.at>
 
@@ -9149,7 +9354,7 @@
 	autogen.sh now arranges for git to check hashes
 
 	Suggested by Karl Fogel in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01802.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg01802.html
 	* autogen.sh: Do "git config transfer.fsckObjects true".
 
 2016-01-31  Paul Eggert  <eggert@cs.ucla.edu>
@@ -9441,7 +9646,7 @@
 	(project-find-file-in): Use it.
 	(project-file-completion-table): Move the default
 	implementation inside the cl-defgeneric form.
-	(http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01720.html)
+	(https://lists.gnu.org/r/emacs-devel/2016-01/msg01720.html)
 
 2016-01-30  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -9490,7 +9695,7 @@
 	Correct a whole bunch of bugs coming with renamed cell relocation.
 
 	This is the same change as commit on master branch. See
-	http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=badcd38aa86ed7973f2be2743c405710973a0bdd
+	https://git.savannah.gnu.org/cgit/emacs.git/commit/?id=badcd38aa86ed7973f2be2743c405710973a0bdd
 
 	* lisp/ses.el (ses-localvars): rename variable
 	`ses--renamed-cell-symb-list' into `ses--in-killing-named-cell-list'
@@ -9572,8 +9777,8 @@
 	* doc/lispref/control.texi (Pattern matching case statement):
 	Improve the documentation of 'pcase' per comments.  See two
 	discussion threads on emacs-devel@gnu.org for the details:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01335.html
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01336.html.
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg01335.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg01336.html.
 
 2016-01-29  Glenn Morris  <rgm@gnu.org>
 
@@ -9842,7 +10047,7 @@
 
 	Port "$@" to OpenIndiana ksh93
 
-	In http://lists.gnu.org/archive/html/bug-autoconf/2015-12/msg00000.html
+	In https://lists.gnu.org/r/bug-autoconf/2015-12/msg00000.html
 	Pavel Raiskup reports that ${1+"$@"} runs afoul of a bug in /bin/sh
 	(derived from ksh 93t+ 2010-03-05).  ${1+"$@"} works around an ancient
 	bug in long-dead shells, so remove the workaround.
@@ -9956,15 +10161,7 @@
 	alternative, such as "This allow you to do something", "This allows
 	something to be done" or "This allows the doing of something".
 
-2016-01-24  l3thal  <kwhite@gnu.org>
-
-	Merge branch 'emacs-25' of git.sv.gnu.org:/srv/git/emacs into emacs-25
-
 2016-01-24  Kelvin White  <kwhite@gnu.org>
-
-	Add NEWS entry for asynchronous reconnect in ERC
-
-2016-01-24  l3thal  <kwhite@gnu.org>
 
 	Add NEWS entry for asynchronous reconnect in ERC
 
@@ -10000,7 +10197,7 @@
 
 	* lisp/progmodes/xref.el(xref-query-replace):
 	Rename to xref-query-replace-in-results.
-	(http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01240.html)
+	(https://lists.gnu.org/r/emacs-devel/2016-01/msg01240.html)
 
 	* lisp/progmodes/xref.el (xref--xref-buffer-mode-map):
 	* lisp/dired-aux.el (dired-do-find-regexp-and-replace):
@@ -10023,7 +10220,7 @@
 
 	* lisp/progmodes/xref.el (xref--xref-buffer-mode):
 	Comment out next-error-function integration
-	(http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01286.html).
+	(https://lists.gnu.org/r/emacs-devel/2016-01/msg01286.html).
 
 2016-01-23  John Wiegley  <johnw@newartisans.com>
 
@@ -10092,7 +10289,7 @@
 	Pacify --enable-gcc-warnings --with-cairo
 
 	Problem reported by Alexander Kuleshov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01289.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg01289.html
 	* src/gtkutil.c (xg_get_page_setup):
 	Use switch rather than if-then-else.
 	* src/image.c (COLOR_TABLE_SUPPORT):
@@ -10332,7 +10529,7 @@
 	No need to configure gobject-introspection
 
 	It wasn’t needed for the recently-installed xwidget_mvp code; see:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg01154.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg01154.html
 	* configure.ac (DOES_XWIDGETS_USE_GIR, GIR_REQUIRED, GIR_MODULES):
 	(HAVE_GIR):
 	* src/Makefile.in (GIR_LIBS, GIR_CFLAGS):
@@ -10614,7 +10811,7 @@
 
 	* lisp/dired-aux.el (dired-do-find-regexp)
 	(dired-do-find-regexp-and-replace): New commands.
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00864.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00864.html
 
 	* lisp/dired.el (dired-mode-map): Change bindings for `A' and
 	`Q' to the new commands.
@@ -10637,7 +10834,7 @@
 	* doc/emacs/maintaining.texi (Xref, Find Identifiers)
 	(Looking Up Identifiers, Identifier Search, List Identifiers):
 	Adjudicate comments by Dmitry Gutov <dgutov@yandex.ru>.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00650.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00650.html
 	for the details.
 
 2016-01-18  Eli Zaretskii  <eliz@gnu.org>
@@ -10812,7 +11009,7 @@
 	Use it instead of the literal MB_ERR_INVALID_CHARS.
 	(maybe_load_unicows_dll): Initialize multiByteToWideCharFlags as
 	appropriate for the underlying OS version.  For details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00835.html.
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00835.html.
 	* src/w32.h: Declare multiByteToWideCharFlags.
 	* src/w32fns.c (Fx_file_dialog, Fw32_shell_execute)
 	(add_tray_notification): Use multiByteToWideCharFlags instead of
@@ -10828,7 +11025,7 @@
 
 	* etc/PROBLEMS (MS-Windows): Mention the problem with Shell32.dll
 	on Windows NT4.  For the details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00835.html.
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00835.html.
 
 2016-01-16  Jussi Lahdenniemi  <jussi@aprikoodi.fi>  (tiny change)
 
@@ -10838,7 +11035,7 @@
 	special functions on Windows 9X.  Refuse to dump Emacs on Windows 9X.
 	(malloc_after_dump_9x, realloc_after_dump_9x)
 	(free_after_dump_9x): New functions.  (Bug#22379)  See also
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00852.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00852.html
 	for more details about the original problem.
 
 	* nt/inc/ms-w32.h (malloc_after_dump_9x, realloc_after_dump_9x)
@@ -10859,10 +11056,6 @@
 	* lisp/progmodes/hideif.el (hif-evaluate-macro)
 	(hide-ifdef-undef, show-ifdef-block): Don't use '(interactive "r")'
 	in commands that should only act on the region if it's active.
-
-2016-01-15  Phillip Lord  <phillip.lord@russet.org.uk>
-
-	Merge branch 'emacs-25' of git.sv.gnu.org:/srv/git/emacs into emacs-25
 
 2016-01-15  Phillip Lord  <phillip.lord@russet.org.uk>
 
@@ -10987,7 +11180,7 @@
 	Un-obsolete tags-loop-continue
 
 	* lisp/progmodes/etags.el (tags-loop-continue): Un-obsolete.
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00682.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00682.html
 
 2016-01-13  Eli Zaretskii  <eliz@gnu.org>
 
@@ -11209,7 +11402,7 @@
 	(vc-hg-annotate-extract-revision-at-line-with-filename)
 	(vc-hg-annotate-extract-revision-at-line-with-both):
 	Don't refer to source-directory.
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00755.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00755.html
 
 2016-01-11  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -11276,7 +11469,7 @@
 
 	This use of 'noexcept' runs afoul of the C++11 standard.
 	Problem reported by Philipp Stephani in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00706.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00706.html
 	* src/emacs-module.c (emacs_finalizer_function):
 	Move this typedef here ...
 	* src/emacs-module.h: ... from here, and use only the C
@@ -11440,7 +11633,7 @@
 	Fix (error ...) error
 
 	Problem reported by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00561.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00561.html
 	* lisp/vc/add-log.el (change-log-goto-source): Fix typos
 	introduced in my Aug 28 change, where I got confused by the
 	two meanings of (error ...).
@@ -11591,7 +11784,7 @@
 	* src/xdisp.c (message_to_stderr): If coding-system-for-write has
 	a non-nil value, use it to encode output in preference to
 	locale-coding-system.  See the discussions in
-	http://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00048.html
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00048.html
 	for the details.
 
 	* doc/lispref/os.texi (Terminal Output): Document how to send
@@ -11605,7 +11798,7 @@
 	* doc/misc/efaq.texi (Packages that do not come with Emacs):
 	Update the URI of MELPA and marmalade-repo.  Reported by CHENG Gao
 	<chenggao@royau.me> in
-	https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00390.html.
+	https://lists.gnu.org/r/emacs-devel/2016-01/msg00390.html.
 
 2016-01-06  Maksim Golubev  <maksim.golubev72@gmail.com>  (tiny change)
 
@@ -11701,10 +11894,6 @@
 	to allow modification by before-change functions.
 	(c-after-change): Amend c-new-END here, rather than initializing it and
 	c-new-BEG.
-
-2016-01-04  Michael Albinus  <michael.albinus@gmx.de>
-
-	Merge branch 'emacs-25' of git.sv.gnu.org:/srv/git/emacs into emacs-25
 
 2016-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -12230,7 +12419,7 @@
 	* lisp/mail/emacsbug.el (report-emacs-bug): Future-proof the
 	recent "built on" change to deterministic builds where
 	emacs-build-system will be nil.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg01369.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg01369.html
 
 2015-12-29  Jose A. Ortega Ruiz  <jao@gnu.org>  (tiny change)
 
@@ -12430,7 +12619,7 @@
 	* lisp/startup.el (initial-scratch-message):
 	Reword to avoid apostrophes, and to make it shorter.
 	See the thread starting in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg01241.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg01241.html
 
 2015-12-26  Leo Liu  <sdl.web@gmail.com>
 
@@ -13254,7 +13443,7 @@
 	commands for interactive Python and Guile interpreters.
 	(gdb-send): Recognize various ways of exiting from Python and
 	Guile interpreters and returning to GDB.  For details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg00693.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg00693.html
 	and http://stackoverflow.com/questions/31514741.
 
 2015-12-16  Paul Eggert  <eggert@cs.ucla.edu>
@@ -13263,7 +13452,7 @@
 
 	C11 threads are not needed for Emacs now, and their use is causing
 	hassles on FreeBSD 10.x.  Problem reported by Ashish SHUKLA in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg00648.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg00648.html
 	* configure.ac: Do not check for C11 threads. Remove unnecessary
 	fiddling with CPPFLAGS when configuring pthreads.
 	* src/emacs-module.c (main_thread, check_main_thread)
@@ -13376,7 +13565,7 @@
 	to window primitives (e.g. window-start) with a GROUP argument by calls to
 	new functions (e.g. window-group-start).
 
-	* lisp/ispell.el (ispell-command-loop): Replace call to
+	* lisp/textmodes/ispell.el (ispell-command-loop): Replace call to
 	pos-visible-in-window-p with pos-visible-in-window-group-p.
 
 	* lisp/window.el (window-group-start, window-group-end)
@@ -13390,10 +13579,6 @@
 2015-12-14  Vitorio Miguel  <vdrbandeiras@gmail.com>  (tiny change)
 
 	* etc/tutorials/TUTORIAL.pt_BR: Fix a typo.  (Bug#22165)
-
-2015-12-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Merge branch 'emacs-25' of git.savannah.gnu.org:/srv/git/emacs into emacs-25
 
 2015-12-13  Tassilo Horn  <tsdh@gnu.org>
 
@@ -13428,7 +13613,7 @@
 	Fix performance regression with gcc -O0
 
 	This fixes the smaller performance hit that I noted in:
-	https://lists.gnu.org/archive/html/emacs-devel/2015-12/msg00357.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg00357.html
 	* src/alloc.c (macro_XPNTR_OR_SYMBOL_OFFSET, macro_XPNTR):
 	* src/puresize.h (puresize_h_PURE_P)
 	(puresize_h_CHECK_IMPURE):
@@ -13806,7 +13991,7 @@
 	* src/lisp.h (XSYMBOL): Remove eassert incorrectly added in
 	previous change.  It breaks on MS-Windows --with-wide-int.
 	Problem reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg00275.html
+	https://lists.gnu.org/r/emacs-devel/2015-12/msg00275.html
 
 2015-12-06  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -13999,18 +14184,12 @@
 	(ifconfig-program-options): Check the actual program in use.
 	(arp-program): Check sbin directories.
 
-2015-12-04  (tiny change) Arash Esbati  <esbati@gmx.de>  (tiny change)
+2015-12-04  Arash Esbati  <esbati@gmx.de>  (tiny change)
 
 	Fix wrong-type-argument integer-or-marker-p nil error
 
 	* lisp/textmodes/reftex-auc.el (reftex-what-index-tag):
 	Fix (wrong-type-argument integer-or-marker-p nil) error (bug#22077).
-
-2015-12-04  Alan Mackenzie  <acm@muc.de>
-
-	Merge branch 'scratch/follow' of /home/acm/emacs/emacs.git/emacs-25 into scratch/follow
-
-	Merge necessitated by a rebase operation.
 
 2015-12-04  Alan Mackenzie  <acm@muc.de>
 
@@ -14247,7 +14426,7 @@
 
 	* lisp/progmodes/xref.el (xref-backend-functions):
 	Use APPEND when adding the default element
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-12/msg00061.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-12/msg00061.html).
 
 2015-12-01  Eli Zaretskii  <eliz@gnu.org>
 
@@ -14739,7 +14918,7 @@
 	Matches".  Improve wording.  Fix lost extra whitespace.
 	(Search Customizations): Improve wording.  (Bug#22036)
 	See also comments in
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg02376.html.
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg02376.html.
 
 	* lisp/replace.el (query-replace, query-replace-regexp)
 	(query-replace-regexp-eval, replace-string, replace-regexp):
@@ -14809,10 +14988,6 @@
 	(isearch-new-regexp-function): Define variable.
 	(isearch-new-word): Define as an obsolete alias. (Bug#22018)
 
-2015-11-27  Eli Zaretskii  <eliz@gnu.org>
-
-	Merge branch 'emacs-25' of git.savannah.gnu.org:/srv/git/emacs into emacs-25
-
 2015-11-27  Lee Bochicchio  <lboc.home@gmail.com>
 
 	* test/automated/abbrev-tests.el: Define more tests
@@ -14846,7 +15021,7 @@
 	(module_non_local_exit_signal_1, module_non_local_exit_throw_1):
 	Do nothing and return with failure indication immediately, if some
 	previous module call signaled an error or wants to throw.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg02133.html
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg02133.html
 	for the relevant discussions.
 
 2015-11-27  Eli Zaretskii  <eliz@gnu.org>
@@ -14895,10 +15070,6 @@
 	* src/insdel.c (prepare_to_modify_buffer_1): Mention in commentary
 	that this function runs Lisp.  Suggested by Richard Stallman
 	<rms@gnu.org>.
-
-2015-11-26  Phillip Lord  <phillip.lord@russet.org.uk>
-
-	Merge branch 'emacs-25' of git.sv.gnu.org:/srv/git/emacs into emacs-25
 
 2015-11-26  Phillip Lord  <phillip.lord@russet.org.uk>
 
@@ -15044,7 +15215,7 @@
 
 	* src/emacs-module.c (module_format_fun_env):
 	exprintf doesn’t support %p, so use %x.  Reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg02122.html
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg02122.html
 
 2015-11-25  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -15053,7 +15224,7 @@
 	* lisp/help-fns.el (describe-variable): Quote the
 	variable’s value if it is a symbol other than t or nil.
 	See: T.V Raman in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg02147.html
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg02147.html
 
 2015-11-25  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -15156,10 +15327,6 @@
 	zero.
 	(dynlib_addr) [WINDOWSNT]: Non-trivial implementation to report
 	the full file name of the module for a given address.
-
-2015-11-24  Alan Mackenzie  <acm@muc.de>
-
-	Merge branch 'emacs-25' of git.sv.gnu.org:/srv/git/emacs into emacs-25
 
 2015-11-24  Alan Mackenzie  <acm@muc.de>
 
@@ -15336,10 +15503,6 @@
 	make_multibyte_string.
 	(module_copy_string_contents): Encode before reading the byte
 	size.  Return false if and only if an error occurred.
-
-2015-11-23  Eli Zaretskii  <eliz@gnu.org>
-
-	Merge branch 'emacs-25' of git.savannah.gnu.org:/srv/git/emacs into emacs-25
 
 2015-11-23  Shakthi Kannan  <shakthimaan@gmail.com>
 
@@ -15538,7 +15701,7 @@
 
 	Although the patch does fix Bug#21688 and prevents a core dump,
 	it also makes the message-mode-propertize test fail; see:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg01667.html
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg01667.html
 	Perhaps someone else can come up with a better fix some day.
 	* src/syntax.c (update_syntax_table_forward):
 	Propertize even when truncated.
@@ -15839,7 +16002,7 @@
 	  Message-ID: \
 	    <CAAdUY-KN06pvCMy5bt3+Buk3yeKjf6n9iB2FaSTTOPpCqPwyhA@mail.gmail.com>
 
-	  https://lists.gnu.org/archive/html/emacs-devel/2015-11/msg01707.html
+	  https://lists.gnu.org/r/emacs-devel/2015-11/msg01707.html
 
 2015-11-20  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -16109,7 +16272,7 @@
 	Be more systematic about quoting symbols `like-this' rather than
 	`like-this or 'like-this' in docstrings.  This follows up Artur
 	Malabarba's email in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg01647.html
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg01647.html
 
 2015-11-18  Peder O. Klingenberg  <peder@klingenberg.no>
 
@@ -16169,7 +16332,7 @@
 	Fix docstring quoting problems with ‘ '’
 
 	Problem reported by Artur Malabarba in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg01513.html
+	https://lists.gnu.org/r/emacs-devel/2015-11/msg01513.html
 	Most of these fixes are to documentation; many involve fixing
 	longstanding quoting glitches that are independent of the
 	recent substitute-command-keys changes.  The changes to code are:
@@ -16392,7 +16555,7 @@
 	* lisp/faces.el (faces--attribute-at-point): Fix an issue
 
 	Previous code would signal an error when the face at point was
-	a manually built list of attributes such as '(:foregroud "white").
+	a manually built list of attributes such as '(:foreground "white").
 
 	* test/automated/faces-tests.el (faces--test-color-at-point): Add a test
 
@@ -16518,10 +16681,6 @@
 
 2015-11-14  Dmitry Gutov  <dgutov@yandex.ru>
 
-	Merge branch 'master' into emacs-25
-
-2015-11-14  Dmitry Gutov  <dgutov@yandex.ru>
-
 	Use generic dispatch for xref backends
 
 	* lisp/progmodes/xref.el (xref-backend-functions):
@@ -16611,15 +16770,9 @@
 	(xref-query-replace): Ditto.  And check that the search results
 	are up-to-date.
 
-2015-11-13  John Wiegley  <johnw@newartisans.com>
+2015-11-13  Kelvin White  <kwhite@gnu.org>
 
-	Merge remote-tracking branch 'origin/master' into emacs-25
-
-2015-11-13  l3thal  <kwhite@gnu.org>
-
-	Merge branch 'erc-async-reconnect' into emacs-25
-
-	Reconnect asynchronously.
+	Reconnect asynchronously in erc.
 
 2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -16639,10 +16792,6 @@
 	reallocating buffers; this simplifies the code.  Do not trust
 	mflt_run to leave the output areas unchanged on failure, as
 	this isn’t part of its interface spec.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Merge branch 'emacs-25' of git.savannah.gnu.org:/srv/git/emacs into emacs-25
 
 2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -17213,7 +17362,7 @@
 	  Date: Wed, 28 Oct 2015 18:45:29 -0700
 	  Message-ID: <m2y4emqwg6.fsf@newartisans.com>
 
-	  https://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02372.html
+	  https://lists.gnu.org/r/emacs-devel/2015-10/msg02372.html
 
 2015-11-10  David Reitter  <david.reitter@gmail.com>
 
@@ -17433,7 +17582,7 @@
 
 2015-11-09  Michael Sperber  <mike@xemacs.org>
 
-	* lisp/gnus-sum.el (gnus-summary-backend-map): Bind B-backspace to
+	* lisp/gnus/gnus-sum.el (gnus-summary-backend-map): Bind B-backspace to
 	`gnus-summary-delete-article` in a way that also works on XEmacs.
 
 2015-11-08  Simen Heggestøyl  <simenheg@gmail.com>
@@ -17629,7 +17778,7 @@
 
 	* lisp/progmodes/project.el (project-library-roots):
 	Remove directories inside the project roots from the result.
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg00536.html)
+	(https://lists.gnu.org/r/emacs-devel/2015-11/msg00536.html)
 
 2015-11-08  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -17841,7 +17990,7 @@
 
 	Avoid division by zero crash observed by Yuan MEI
 
-	See http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg00194.html.
+	See https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html.
 
 	* src/dispnew.c (required_matrix_height, required_matrix_width):
 	Avoid division by zero.
@@ -18175,7 +18324,7 @@
 
 	* etc/PROBLEMS: Describe the problem with pinning Emacs to taskbar
 	on Windows 10.  For the details, see the discussion starting at
-	http://lists.gnu.org/archive/html/help-emacs-windows/2015-09/msg00000.html.
+	https://lists.gnu.org/r/help-emacs-windows/2015-09/msg00000.html.
 
 2015-10-30  Artur Malabarba  <bruce.connor.am@gmail.com>
 
@@ -18241,7 +18390,7 @@
 
 	* lisp/ielm.el (ielm-indent-line): Use non-nil arg of comint-bol
 	to go to the beginning of text line instead of command line.
-	http://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02360.html
+	https://lists.gnu.org/r/emacs-devel/2015-10/msg02360.html
 
 2015-10-29  Eli Zaretskii  <eliz@gnu.org>
 
@@ -18372,7 +18521,7 @@
 
 	* src/fileio.c (unhandled-file-name-directory): Default to calling
 	`file-name-as-directory'
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02294.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-10/msg02294.html).
 
 2015-10-28  Artur Malabarba  <bruce.connor.am@gmail.com>
 
@@ -18535,7 +18684,7 @@
 	* lisp/vc/vc-hg.el (vc-hg-log-format): Pipe commit description
 	through 'tabindent'.
 	(vc-hg-log-view-mode): Set tab-width to 2 locally.
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02259.html)
+	(https://lists.gnu.org/r/emacs-devel/2015-10/msg02259.html)
 
 2015-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -18603,7 +18752,7 @@
 
 	* lisp/vc/vc-hg.el (vc-hg-log-format): New variable.
 	(vc-hg-print-log, vc-hg-expanded-log-entry): Use it.
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02191.html)
+	(https://lists.gnu.org/r/emacs-devel/2015-10/msg02191.html)
 
 2015-10-27  Nicolas Petton  <nicolas@petton.fr>
 
@@ -19895,7 +20044,7 @@
 	(/ N) now returns the reciprocal of N
 
 	This is more compatible with Common Lisp and XEmacs (Bug#21690).  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-10/msg01053.html
+	https://lists.gnu.org/r/emacs-devel/2015-10/msg01053.html
 	* lisp/color.el (color-hue-to-rgb, color-hsl-to-rgb)
 	(color-xyz-to-srgb, color-xyz-to-lab):
 	* lisp/emacs-lisp/cl-extra.el (cl-float-limits):
@@ -19948,7 +20097,7 @@
 	Add an entry for the default directory compression (to *.tar.g).
 	(dired-compress-file): Update.
 
-	See https://lists.gnu.org/archive/html/emacs-devel/2015-10/msg00949.html.
+	See https://lists.gnu.org/r/emacs-devel/2015-10/msg00949.html.
 
 2015-10-20  Michael Sperber  <mike@xemacs.org>
 
@@ -21303,7 +21452,7 @@
 	Fix a few problems with directed quotes
 
 	This is in response to a problem report by Kaushal Modi in:
-	http://bugs.gnu.org/21588#25
+	https://bugs.gnu.org/21588#25
 	* lisp/cedet/mode-local.el (describe-mode-local-overload):
 	* lisp/emacs-lisp/bytecomp.el (byte-compile-fix-header):
 	* lisp/info-xref.el (info-xref-check-all-custom):
@@ -21490,7 +21639,7 @@
 
 	* src/window.c (Fpos_visible_in_window_p): Clarify the meaning of
 	t for POS.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg01040.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg01040.html
 	for the original report.
 
 	* doc/lispref/windows.texi (Window Start and End): Clarify the
@@ -21991,7 +22140,7 @@
 	Improve git diff hunk headers for .el, .texi
 
 	Problem reported by Alan Mackenzie in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00826.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00826.html
 	* .gitattributes (*.el, *.texi): New patterns.
 	* autogen.sh: Configure diff.elisp.xfuncname and
 	diff.texinfo.xfuncname if using Git.
@@ -22266,7 +22415,7 @@
 	a revision to checkin.
 	* lisp/vc/vc.el (vc-next-action): Allow to optionally specify the
 	revision when checking in files.
-	See http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00688.html
+	See https://lists.gnu.org/r/emacs-devel/2015-09/msg00688.html
 	for the details.
 
 2015-09-18  Wilson Snyder  <wsnyder@wsnyder.org>
@@ -22451,7 +22600,7 @@
 	winner no longer holds on to dead frames
 	* lisp/winner.el (winner-change-fun): Cull dead frames.
 	This prevents a potentially massive memory leak.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00619.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00619.html
 
 2015-09-16  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -22886,7 +23035,7 @@
 
 	Port Unicode char detection to FreeBSD+svgalib
 	Problem reported by Ashish SHUKLA in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00531.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00531.html
 	* configure.ac: Check for struct unipair.unicode instead of for
 	<linux/kd.h>, since that’s more specific to what the code
 	actually needs.
@@ -23021,7 +23170,7 @@
 
 	Revert some stray curved quotes I missed earlier
 	Problem reported by David Kastrup in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00440.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00440.html
 	* lisp/international/mule-cmds.el (leim-list-header):
 	Use format-message with an ASCII-only format.
 
@@ -23051,12 +23200,12 @@
 
 	Add patch-sending instructions to git-workflow
 	From a suggestion by Mitchel Humpherys in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00421.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00421.html
 	* admin/notes/git-workflow (Sending patches): New section.
 
 	Port to GIFLIB 5.0.6 and later
 	Problem reported by Mitchel Humpherys in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00420.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00420.html
 	* src/image.c (HAVE_GIFERRORSTRING) [HAVE_GIF]: New macro.
 	(GifErrorString, init_gif_functions) [HAVE_GIF && WINDOWSNT]:
 	(gif_load) [HAVE_GIF]: Use it.
@@ -23074,7 +23223,7 @@
 
 	Refix movemail GCC pacification
 	Problem reported by Ken Brown in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00406.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00406.html
 	* lib-src/movemail.c (main): Fix previous change.
 
 2015-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -23133,7 +23282,7 @@
 	Define internal-char-font even if --without-x
 	The function is used now even in non-graphical environments.
 	Problem reported by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00401.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00401.html
 	* src/font.c (Finternal_char_font): Move here ...
 	* src/fontset.c (Finternal_char_font): ... from here.
 
@@ -23175,7 +23324,7 @@
 	Also, undo the recent change that caused text-quoting-style to
 	affect quote display on terminals, so that the two features are
 	independent.  See Alan Mackenzie in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00244.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00244.html
 	Finally, add a style parameter to startup--setup-quote-display,
 	so that this function can also be invoked after startup, with
 	different styles depending on user preference at the time.
@@ -23725,7 +23874,7 @@
 	* lisp/thingatpt.el (thing-at-point): Only call 'length' on
 	sequences.  (Bug#21391)
 
-2015-09-05  Philip  <pipcet@gmail.com>  (tiny change)
+2015-09-05  Pip Cet  <pipcet@gmail.com>  (tiny change)
 
 	Fix segfaults due to using a stale face ID
 	* src/xdisp.c (forget_escape_and_glyphless_faces): New function.
@@ -23845,7 +23994,7 @@
 
 	Follow text-quoting-style in display table init
 	This attempts to fix a problem reported by Alan Mackenzie in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00112.html
+	https://lists.gnu.org/r/emacs-devel/2015-09/msg00112.html
 	* doc/lispref/display.texi (Active Display Table):
 	Mention how text-quoting-style affects it.
 	* doc/lispref/help.texi (Keys in Documentation):
@@ -24213,7 +24362,7 @@
 	Make ‘text-quoting-style’ a plain defvar
 	It doesn’t need customization, as it’s likely useful only by experts.
 	Suggested by Stefan Monnier in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg01020.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg01020.html
 	* lisp/cus-start.el: Remove doc.c section for builtin customized vars.
 
 	Quoting fixes in lisp/textmodes
@@ -24496,7 +24645,7 @@
 
 	Assume GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 	This removes the need for GCPRO1 etc.  Suggested by Stefan Monnier in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00918.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00918.html
 	* doc/lispref/internals.texi (Writing Emacs Primitives):
 	* etc/NEWS:
 	Document the change.
@@ -24673,7 +24822,7 @@
 	That way, the caller doesn’t have to use curved quotes to
 	get diagnostics that match the text-quoting-style preferences.
 	Suggested by Dmitry Gutov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00893.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00893.html
 	This means we no longer need %qs, so remove that format.
 	While we’re at it, fix an unlikely bug and lessen the pressure
 	on the garbage collector by processing the string once rather
@@ -24830,7 +24979,7 @@
 	This is simpler and easier to explain, and should encourage better
 	typography.  Do this in Electric Quote mode and when translating
 	quotes in docstrings.  Inspired by a suggestion by Dmitry Gutov in:
-	https://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00806.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00806.html
 	* doc/emacs/text.texi (Quotation Marks):
 	* doc/lispref/help.texi (Keys in Documentation):
 	* etc/NEWS:
@@ -24980,8 +25129,8 @@
 	and using the new function instead of ‘format’ only in contexts
 	where this seems appropriate.
 	Problem reported by Dmitry Gutov and Andreas Schwab in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00826.html
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00827.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00826.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00827.html
 	* doc/lispref/commands.texi (Using Interactive):
 	* doc/lispref/control.texi (Signaling Errors, Signaling Errors):
 	* doc/lispref/display.texi (Displaying Messages, Progress):
@@ -26073,7 +26222,7 @@
 	When run with --batch, check that curved quotes are compatible with
 	the system locale before outputting them in diagnostics.
 	Problem reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00594.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00594.html
 	* lisp/startup.el (command-line): Set internal--text-quoting-flag
 	after the standard display table is initialized.
 	* src/doc.c (default_to_grave_quoting_style): New function.
@@ -26505,7 +26654,7 @@
 	Introduce new macros to cover Emacs's new names in cl-lib.el
 	This also eliminates `mapcan' warnings in XEmacs.
 	* lisp/progmodes/cc-defs.el (c--mapcan-status): New variable to
-	characterise [X]Emacs versions.
+	characterize [X]Emacs versions.
 	(top-level): Require either 'cl or 'cl-lib, depending on
 	c--mapcan-status.
 	Change this back to cc-external-require from an eval-when-compile
@@ -26664,7 +26813,7 @@
 	unread-command-events and unread-post-input-method-events are
 	always recorded by record_char.  Reported by David Kastrup
 	<dak@gnu.org>, see
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00193.html.
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00193.html.
 
 2015-08-10  Samer Masterson  <samer@samertm.com>
 
@@ -26720,7 +26869,7 @@
 	ChangeLog.2 ignores remote-tracking merges
 	* build-aux/gitlog-to-emacslog: Ignore commit logs matching
 	"Merge remote-tracking branch '.*'" too.  See Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00384.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00384.html
 
 2015-08-09  Nicolas Richard  <youngfrog@members.fsf.org>
 
@@ -26843,7 +26992,7 @@
 	both cases.  This has been regularized.  Error signaling behavior
 	has been explicitly added to the doc string.
 
-	* lisp/cl-extra.el (cl-subseq): Defers to (seq-subseq) and is
+	* lisp/emacs-lisp/cl-extra.el (cl-subseq): Defers to (seq-subseq) and is
 	therefore also impacted by this change.  Update the doc string
 	to reflect this.
 
@@ -26947,7 +27096,7 @@
 
 	Preserve window point in xref-find-definitions-other-window
 	Fix the problem reported by Ingo Logmar in
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00152.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00152.html
 	* lisp/progmodes/xref.el (xref--goto-char): Extract from
 	xref--goto-location.
 	(xref--pop-to-location): Use it.  Replace xref--goto-location with
@@ -27033,9 +27182,9 @@
 	Rename help-quote-translation to text-quoting-style,
 	and use symbols rather than characters as values.
 	This follows suggestions along these lines by Alan Mackenzie in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-06/msg00343.html
+	https://lists.gnu.org/r/emacs-devel/2015-06/msg00343.html
 	and by Drew Adams in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00048.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00048.html
 	* doc/lispref/help.texi (Keys in Documentation)
 	* etc/NEWS:
 	* lisp/cus-start.el (standard):
@@ -27065,7 +27214,7 @@
 
 	Also mention "curly quotes"
 	See Drew Adams's email in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg00040.html
+	https://lists.gnu.org/r/emacs-devel/2015-08/msg00040.html
 	* doc/lispref/help.texi (Keys in Documentation):
 	Add index entry "curly quotes".
 	* etc/NEWS: Use the phrase "curly quotes" too.
@@ -27335,7 +27484,7 @@
 	Don't worry about $ac_cv_header_sys_resource_h and
 	$ac_cv_func_getrlimit, as they're no longer needed for this.
 	Problem reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-07/msg00443.html
+	https://lists.gnu.org/r/emacs-devel/2015-07/msg00443.html
 
 2015-07-28  Andy Moreton  <andrewjmoreton@gmail.com>  (tiny change)
 
@@ -27717,7 +27866,7 @@
 	(xref-pulse-momentarily): Rename from xref--maybe-pulse.
 	(xref--pop-to-location, xref--display-position)
 	(xref-pop-marker-stack): Use the new hooks, as requested in
-	http://lists.gnu.org/archive/html/emacs-devel/2015-07/msg00213.html
+	https://lists.gnu.org/r/emacs-devel/2015-07/msg00213.html
 
 2015-07-19  Bozhidar Batsov  <bozhidar@batsov.com>
 
@@ -27804,7 +27953,7 @@
 
 	Fix hang with large yanks This should fix the bug fixed by Mike
 	Crowe's patch in:
-	https://lists.gnu.org/archive/html/emacs-devel/2015-07/msg00106.html
+	https://lists.gnu.org/r/emacs-devel/2015-07/msg00106.html
 	A problem in this area has been reported by several users; see
 	Bug#16737, Bug#17101, Bug#17026, Bug#17172, Bug#19320, Bug#20283.
 	This fix differs from Mike Crowe's patch in that it should avoid a
@@ -28522,7 +28671,7 @@
 	* src/frame.c (x_set_font): If font_spec_from_name returns nil,
 	don't barf; instead, request a new fontset to be generated.  This
 	avoids unnecessarily rejecting fonts named against XLFD rules.  See
-	http://lists.gnu.org/archive/html/help-emacs-windows/2015-06/msg00001.html,
+	https://lists.gnu.org/r/help-emacs-windows/2015-06/msg00001.html,
 	for the description of the original problem.
 	* lisp/faces.el (set-face-attribute): Don't be fooled too easily
 	by a hyphen in a font's name.
@@ -28696,7 +28845,7 @@
 	* src/font.c (font_load_for_lface): If the font-spec didn't match
 	any available fonts, try again without interpreting trailing "-NN"
 	as the font size.  For the description of the original problem, see
-	http://lists.gnu.org/archive/html/help-emacs-windows/2015-06/msg00001.html
+	https://lists.gnu.org/r/help-emacs-windows/2015-06/msg00001.html
 
 	.gdbinit followup to changes in !USE_LSB_TAG
 	* src/.gdbinit (xgetsym): Don't left-shift $ptr even under
@@ -28704,7 +28853,7 @@
 
 2015-06-29  Wolfgang Jenkner  <wjenkner@inode.at>
 
-	* lisp/calc-store.el (calc-insert-permanent-variable): Heed case.
+	* lisp/calc/calc-store.el (calc-insert-permanent-variable): Heed case.
 	Otherwise `s p' of f and F will stomp on each other's value.
 	(Bug#20916)
 
@@ -28786,7 +28935,7 @@
 	Improve docstring for macroexp-let2
 	* lisp/emacs-lisp/macroexp.el (macroexp-let2):
 	Improve as per suggestion by RMS in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-06/msg00621.html
+	https://lists.gnu.org/r/emacs-devel/2015-06/msg00621.html
 	Also, rename args to match new doc string.
 
 2015-06-27  Eli Zaretskii  <eliz@gnu.org>
@@ -28876,7 +29025,7 @@
 	* lisp/term/w32console.el (terminal-init-w32console):
 	* src/doc.c (Fsubstitute_command_keys, Vhelp_quote_translation):
 	If ‘ is not displayable, transliterate it to `, not to '.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-06/msg00542.html
+	https://lists.gnu.org/r/emacs-devel/2015-06/msg00542.html
 
 	Fix C99 incompatibilities in Cairo code
 	* src/image.c (xpm_load) [USE_CAIRO]:
@@ -29662,7 +29811,7 @@
 	* lisp/emacs-lisp/derived.el (derived-mode-make-docstring):
 	Nest regexp-quote inside format, not the reverse.
 	Problem reported by Artur Malabarba in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-06/msg00206.html
+	https://lists.gnu.org/r/emacs-devel/2015-06/msg00206.html
 
 2015-06-15  Eli Zaretskii  <eliz@gnu.org>
 
@@ -30694,7 +30843,7 @@
 	use CRLF (or CR!) termination for lines.
 
 	Update .gitattributes to match current sources
-	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00879.html
+	https://lists.gnu.org/r/emacs-devel/2015-05/msg00879.html
 	* .gitattributes: Accommodate tests that insist on DOS format.
 	Remove test/automated/data/decompress/foo-gzipped.
 	Add etc/e/eterm-color.
@@ -30719,7 +30868,7 @@
 	Use list for the tags completion table, not obarray
 	* lisp/progmodes/etags.el (etags-tags-completion-table): Return a
 	list instead of an obarray
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00876.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-05/msg00876.html).
 	(tags-completion-table): Combine those lists.
 	(tags-completion-table): Update the docstring.
 
@@ -31586,7 +31735,7 @@
 	* lisp/emacs-lisp/package.el (package-menu-execute):
 	Remove reference to remove-dups.
 
-2015-05-21  kwhite  <kwhite@gnu.org>
+2015-05-21  Kelvin White  <kwhite@gnu.org>
 
 	* lisp/erc/erc.el: Hide network/channel messages.
 	(erc-network-hide-list, erc-channel-hide-list): New lists to define
@@ -31634,7 +31783,7 @@
 
 	Revert doc string changes to f90.el
 	Problem reported by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00596.html
+	https://lists.gnu.org/r/emacs-devel/2015-05/msg00596.html
 	* lisp/progmodes/f90.el (f90-mode, f90-abbrev-start):
 	Revert recent changes to doc strings, as it's intended that they
 	use grave accent, not quote.
@@ -31720,7 +31869,7 @@
 	Prefer "this" to “this” in doc strings
 	This mostly just straightens quotes introduced in my previous patch.
 	Suggested by Dmitry Gutov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00565.html
+	https://lists.gnu.org/r/emacs-devel/2015-05/msg00565.html
 	* lisp/faces.el, lisp/gnus/gnus-group.el, lisp/ldefs-boot.el:
 	* lisp/mail/supercite.el, lisp/net/tramp.el, lisp/recentf.el:
 	* lisp/textmodes/artist.el, lisp/textmodes/rst.el:
@@ -31830,8 +31979,8 @@
 	New command icomplete-force-complete-and-exit
 	* lisp/icomplete.el (icomplete-force-complete-and-exit):
 	New command
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00461.html)
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00516.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-05/msg00461.html)
+	(https://lists.gnu.org/r/emacs-devel/2015-05/msg00516.html).
 	(icomplete-minibuffer-map): Bind C-j to it.
 	(icomplete-forward-completions, icomplete-backward-completions):
 	Mention the new command in the docstring.
@@ -31882,10 +32031,10 @@
 
 2015-05-18  Dmitry Gutov  <dgutov@yandex.ru>
 
-	Add a test case for Maven warning ouput
+	Add a test case for Maven warning output
 	* test/automated/compile-tests.el
 	(compile-tests--test-regexps-data): Add a case for Maven warning
-	ouput.
+	output.
 	(compile--test-error-line): Check the compilation message type, if
 	it's specified in the test data.
 
@@ -31979,19 +32128,13 @@
 	eshell: Introduce new buffer syntax
 	The new buffer syntax '#<buffer-name>' is equivalent to '#<buffer
 	buffer-name>'.  Remove `eshell-buffer-shorthand', as it is no longer
-	needed (Bug#19319).
+	needed (Bug#19391).
 	* lisp/eshell/esh-io.el (eshell-buffer-shorthand): Remove.
 	(eshell-get-target): Remove shorthand-specific code.
 	* lisp/eshell/esh-arg.el (eshell-parse-special-reference): Parse
 	'#<buffer-name>'.
 
-2015-05-17  Jan D  <jan.h.d@swipnet.se>
-
-	Merge branch 'master' into cairo
-
 2015-04-26  Jan D  <jan.h.d@swipnet.se>
-
-	Merge branch 'master' into cairo
 
 	Add PBM support for cairo
 	* src/image.c (xcolor_to_argb32): New function.
@@ -32013,7 +32156,7 @@
 	(xpm_load): Call the above functions.  Handle XPM without mask
 	when USE_CAIRO.
 	(png_load_body): Handle USE_CAIRO case.
-	(png_load): Remove USE_CAIRO specific fuction, modify png_load_body
+	(png_load): Remove USE_CAIRO specific function, modify png_load_body
 	instead.
 	(jpeg_load_body): Call create_cairo_image_surface.
 	(gif_load, svg_load_image): Handle specified background, call
@@ -32058,10 +32201,6 @@
 	Tool tips for menus did not show any text.
 	* src/xterm.c (x_update_begin): Don't create any surface for non-visible
 	tip frames, the geometry may be wrong.
-
-	Merge branch 'master' into cairo, fixes tooltips not shown.
-
-	Merge branch 'master' into cairo
 
 	Add CAIRO_CFLAGS to lwlib/Makefile.in
 	* Makefile.in (CAIRO_CFLAGS): Add.
@@ -32668,7 +32807,7 @@
 	Fix tagging of symbols in C enumerations
 	* lib-src/etags.c (consider_token): Don't tag symbols in
 	expressions that assign values to enum constants.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00291.html
+	https://lists.gnu.org/r/emacs-devel/2015-05/msg00291.html
 	for details.
 	(C_entries): Reset fvdef to fvnone after processing a preprocessor
 	conditional and after a comma outside of parentheses.
@@ -32827,7 +32966,7 @@
 	Remove tag-symbol-match-p from etags-xref-find-definitions-tag-order
 	* lisp/progmodes/etags.el (etags-xref-find-definitions-tag-order):
 	Remove tag-symbol-match-p from the default value
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00292.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-05/msg00292.html).
 
 	Declare find-tag obsolete
 	* lisp/progmodes/etags.el (find-tag): Declare obsolete in favor of
@@ -33023,7 +33162,7 @@
 
 	* lisp/cedet/pulse.el (pulse-momentary-unhighlight): Only cancel
 	timer when it is non-nil
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00223.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-05/msg00223.html).
 
 2015-05-06  Glenn Morris  <rgm@gnu.org>
 
@@ -33123,7 +33262,7 @@
 	* lisp/cedet/pulse.el (pulse-momentary-stop-time): New variable.
 	(pulse-momentary-highlight-overlay): Set up the timer instead of
 	calling `pulse'
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/).
+	(https://lists.gnu.org/r/emacs-devel/2015-05/).
 	(pulse-tick): New function.
 	(pulse-momentary-unhighlight): Cut off the stop time.
 	(pulse-delay): Update the docstring WRT to not using sit-for.
@@ -33316,7 +33455,7 @@
 	(pulse-momentary-highlight-region): Add autoload cookie.
 	* lisp/progmodes/xref.el (xref--maybe-pulse): Don't highlight the
 	indentation, or the newline, if the line's non-empty
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00118.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-05/msg00118.html).
 
 2015-05-04  Daniel Colascione  <dancol@dancol.org>
 
@@ -33683,7 +33822,7 @@
 	* lisp/progmodes/xref.el (xref--xref-buffer-mode):
 	Set `next-error-function' and `next-error-last-buffer'.
 	(xref--next-error-function): New function.
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg01311.html)
+	(https://lists.gnu.org/r/emacs-devel/2015-04/msg01311.html)
 
 2015-04-29  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
@@ -33957,7 +34096,7 @@
 	Introduce xref-prompt-for-identifier
 	* lisp/progmodes/xref.el (xref-prompt-for-identifier): New option.
 	(xref--read-identifier): Use it
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg01205.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-04/msg01205.html).
 
 2015-04-26  João Távora  <joaotavora@gmail.com>
 
@@ -33974,7 +34113,7 @@
 	Pass `id' to `completing-read' as def instead of initial input
 	* lisp/progmodes/xref.el (xref--read-identifier): Pass `id' to
 	`completing-read' as the default value instead of initial input
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg01182.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-04/msg01182.html).
 
 2015-04-25  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -34585,7 +34724,7 @@
 
 	Standardize names of ChangeLog history files
 	Suggested by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00678.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00678.html
 	* Makefile.in (install-man): Don't treat ChangeLog.1 as a man page.
 	* doc/man/ChangeLog.1: Rename back from doc/man/ChangeLog.01.
 	* lisp/erc/ChangeLog.1: New file, containing the old contents of ...
@@ -34598,7 +34737,7 @@
 	This more clearly distingiushes pre-April-7 ChangeLog entries (which
 	are for top-level files only) from post-April-7 entries (which are
 	about files at all levels.  Problem reported by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00678.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00678.html
 	* ChangeLog.1: Move post-April-7 entries from here ...
 	* ChangeLog.2: ... to this new file.
 	* Makefile.in (CHANGELOG_HISTORY_INDEX_MAX): Bump to 2.
@@ -34992,7 +35131,7 @@
 	* doc/man/ChangeLog.01: Rename from doc/man/ChangeLog.1.
 	That way, 'make install' won't think it's a man page.
 	Reported by Ashish SHUKLA in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00656.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00656.html
 
 	Improve 'make change-history' prereq tests
 	* Makefile.in (gen_origin): Fix to match what's in the master branch.
@@ -35181,7 +35320,7 @@
 
 	Port commit-msg to MSYS Bash+Gawk
 	See Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00610.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00610.html
 	* build-aux/git-hooks/commit-msg (cent_sign_utf8_format)
 	(cent_sign, print_at_sign, at_sign): Revert previous change.
 	(print_at_sign): Prepend "BEGIN".
@@ -35191,7 +35330,7 @@
 	* build-aux/git-hooks/commit-msg (cent_sign):
 	Just use UTF-8 here rather than ASCII + printf, as the latter fails
 	on a broken MS-Windows shell.  Reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00592.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00592.html
 
 2015-04-11  Chris Zheng  <chriszheng99@gmail.com>  (tiny change)
 
@@ -35226,7 +35365,7 @@
 	Add a FIXME comment.
 	(log-edit-changelog-entries): Extract from
 	`log-edit-changelog-entries', handle FILE being a directory
-	(http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00555.html).
+	(https://lists.gnu.org/r/emacs-devel/2015-04/msg00555.html).
 
 2015-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -35238,19 +35377,19 @@
 	* build-aux/git-hooks/commit-msg:
 	Ignore every line after a scissors line, such as a line generated
 	by 'git commit -v'.  Problem reported by Johan Bockgård in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00580.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00580.html
 
 	port commit-msg to Gawk 3.0.4 (1999)
 	* build-aux/git-hooks/commit-msg (cent_sign_utf8_format, cent_sign)
 	(print_at_sign, at_sign): New vars.  Use them to avoid problems
 	Eli Zaretskii encountered with Gawk 3.0.4 (1999) on MSYS.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00566.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00566.html
 
 	Have commit-msg report commit failure
 	* build-aux/git-hooks/commit-msg: If the commit is aborted,
 	say so.  Simplify by doing this at the end.  Problem reported
 	by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00566.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00566.html
 
 2015-04-10  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
 
@@ -35324,7 +35463,7 @@
 	vmotion, for the same reason.  Fix the clipping of the argument
 	value to support scroll-margin in all cases and avoid unwarranted
 	recentering.  Reported by Milan Stanojević <milanst@gmail.com> in
-	http://lists.gnu.org/archive/html/help-gnu-emacs/2015-04/msg00092.html,
+	https://lists.gnu.org/r/help-gnu-emacs/2015-04/msg00092.html,
 	which see.
 
 2015-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -35415,7 +35554,7 @@
 	for copyright notice prototype, so that we get a proper "coding:"
 	cookie.  Use 'mv -i' to avoid unconditionally overwriting an
 	existing ChangeLog.  Problems reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-04/msg00504.html
+	https://lists.gnu.org/r/emacs-devel/2015-04/msg00504.html
 
 	Merge from gnulib
 	* build-aux/gitlog-to-changelog: Update from gnulib, incorporating:
@@ -35641,14 +35780,14 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit ec4226d81074751c105264a3a3383c48d0a05e41 (inclusive).
+commit 3a34412caae002accd0fc7a7fc0b718c2f34159b (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2015-2017 Free Software Foundation, Inc.
+  Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -35663,4 +35802,4 @@ See ChangeLog.1 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2017 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2018 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # Note that this file is edited by msdos/sed1v2.inp for MSDOS.  That
@@ -48,7 +48,6 @@ lispsource = $(top_srcdir)/lisp
 lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
-leimdir = ${lispsource}/leim
 oldXMenudir = ../oldXMenu
 lwlibdir = ../lwlib
 
@@ -171,7 +170,7 @@ NOTIFY_LIBS = @NOTIFY_LIBS@
 
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
-## terminfo.o if TERMINFO, else tparam.o.
+## terminfo.o if TERMINFO, else (on MS-DOS only: termcap.o +) tparam.o.
 TERMCAP_OBJ=@TERMCAP_OBJ@
 
 LIBXMU=@LIBXMU@
@@ -235,6 +234,8 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
 GETADDRINFO_A_LIBS = @GETADDRINFO_A_LIBS@
 
+LIBLCMS2 = @LIBLCMS2@
+
 LIBZ = @LIBZ@
 
 ## system-specific libs for dynamic modules, else empty
@@ -276,11 +277,12 @@ NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Used only for GNUstep.
 GNU_OBJC_CFLAGS=$(patsubst -specs=%-hardened-cc1,,@GNU_OBJC_CFLAGS@)
 ## w32fns.o w32menu.c w32reg.o fringe.o fontset.o w32font.o w32term.o
-## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
-## empty.
+## w32xfns.o w32select.o image.o w32uniscribe.o w32cygwinx.o if HAVE_W32,
+## w32cygwinx.o if CYGWIN but not HAVE_W32, else empty.
 W32_OBJ=@W32_OBJ@
-## -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32 lusp10 -lcomctl32
-## --lwinspool if HAVE_W32, else empty.
+## -lkernel32 -luser32 -lusp10 -lgdi32 -lole32 -lcomdlg32 -lcomctl32
+## -lwinspool if HAVE_W32,
+## -lkernel32 if CYGWIN but not HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
 
 ## emacs.res if HAVE_W32
@@ -310,6 +312,10 @@ LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
 
 LIBSYSTEMD_LIBS = @LIBSYSTEMD_LIBS@
 LIBSYSTEMD_CFLAGS = @LIBSYSTEMD_CFLAGS@
+
+JSON_LIBS = @JSON_LIBS@
+JSON_CFLAGS = @JSON_CFLAGS@
+JSON_OBJ = @JSON_OBJ@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
 
@@ -362,7 +368,7 @@ EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   $(WEBKIT_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
-  $(LIBSYSTEMD_CFLAGS) \
+  $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
   $(WERROR_CFLAGS)
 ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
@@ -390,13 +396,13 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
+	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
 	thread.o systhread.o \
 	$(if $(HYBRID_MALLOC),sheap.o) \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -407,7 +413,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o \
-  w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
+  w32.o w32console.o w32cygwinx.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o
@@ -491,11 +497,9 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) \
-   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS)
-
-$(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	$(MAKE) -C ../leim all EMACS="$(bootstrap_exe)"
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LIBLCMS2) \
+   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
+   $(JSON_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether these files
 ## are up-to-date.  Although since charprop depends on bootstrap-emacs,
@@ -531,7 +535,7 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
 emacs$(EXEEXT): temacs$(EXEEXT) \
-                lisp.mk $(etc)/DOC $(lisp) $(leimdir)/leim-list.el \
+                lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
@@ -643,13 +647,13 @@ mostlyclean:
 	rm -f globals.h gl-stamp
 	rm -f *.res *.tmp
 clean: mostlyclean
-	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
+	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
 ## but not things like config.status or TAGS.
 bootstrap-clean: clean
-	rm -f epaths.h config.h config.stamp
+	rm -f emacs-module.h epaths.h config.h config.stamp
 	if test -f ./.gdbinit; then \
 	  mv ./.gdbinit ./.gdbinit.save; \
 	  if test -f "$(srcdir)/.gdbinit"; then rm -f ./.gdbinit.save; \
@@ -663,7 +667,7 @@ distclean: bootstrap-clean
 maintainer-clean: distclean
 	rm -f TAGS
 versionclean:
-	-rm -f emacs$(EXEEXT) emacs-*.*.*$(EXEEXT) ../etc/DOC*
+	-rm -f emacs$(EXEEXT) emacs-*.*.*[0-9]$(EXEEXT) ../etc/DOC*
 extraclean: distclean
 	-rm -f *~ \#*
 

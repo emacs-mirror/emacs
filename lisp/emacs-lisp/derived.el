@@ -1,7 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993-1994, 1999, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1999, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -203,11 +203,13 @@ See Info node `(elisp)Derived Modes' for more details."
 		     parent child docstring syntax abbrev))
 
     `(progn
-       (defvar ,hook nil
-         ,(format "Hook run after entering %s mode.
+       (defvar ,hook nil)
+       (unless (get ',hook 'variable-documentation)
+         (put ',hook 'variable-documentation
+              ,(format "Hook run after entering %s mode.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-                  name))
+                       name)))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
        (with-no-warnings (defvar ,map (make-sparse-keymap)))
@@ -279,12 +281,10 @@ No problems result if this variable is not bound.
 					; Splice in the body (if any).
 	  ,@body
 	  )
-	 ;; Run the hooks, if any.
-         (run-mode-hooks ',hook)
-         ,@(when after-hook
-             `((if delay-mode-hooks
-                   (push ',after-hook delayed-after-hook-forms)
-                 ,after-hook)))))))
+	 ,@(when after-hook
+	     `((push (lambda () ,after-hook) delayed-after-hook-functions)))
+	 ;; Run the hooks (and delayed-after-hook-functions), if any.
+	 (run-mode-hooks ',hook)))))
 
 ;; PUBLIC: find the ultimate class of a derived mode.
 

@@ -19,7 +19,6 @@ __DJGPP_MINOR__ Minor version number of the DJGPP library; used only in msdos.c 
 DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
 WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW or MinGW-w64 ports of GCC.
-_MSC_VER	Compiling the W32 port with the Microsoft C compiler.
 MINGW_W64	Compiling the W32 port with the MinGW-w64 port of GCC.
 DARWIN_OS	Compiling on macOS or pure Darwin (and using s/darwin.h).
 SOLARIS2
@@ -103,7 +102,6 @@ HAVE_ALARM
 HAVE_ALLOCA
 HAVE_ALLOCA_H
 HAVE_ALSA
-HAVE_ATTRIBUTE_ALIGNED
 HAVE_BDFFONT
 HAVE_BOXES
 HAVE_C99_STRTOLD
@@ -205,7 +203,6 @@ HAVE_LIBXML2
 HAVE_LIBXMU
 HAVE_LOCALTIME_R
 HAVE_LOCAL_SOCKETS
-HAVE_LONG_FILE_NAMES
 HAVE_LONG_LONG_INT
 HAVE_LRAND48
 HAVE_LSTAT

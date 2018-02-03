@@ -10,7 +10,7 @@
 @copying
 This file describes EasyPG Assistant @value{VERSION}.
 
-Copyright @copyright{} 2007--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -455,7 +455,7 @@ GnuPG 2.1 uses a fixed address for the Unix domain socket used to
 communicate with gpg-agent.  The @code{GPG_AGENT_INFO} environment
 variable, which is used by GnuPG 2.0 and 1.4, is ignored.  That means,
 if your system has both GnuPG 2.1 and 1.4, the gpg command from GnuPG
-1.4 is not able to use gpg-agent provided by 2.1 (at least out of box).q
+1.4 is not able to use gpg-agent provided by 2.1 (at least out of box).
 
 @item
 GnuPG 2.1 (2.1.5 or later) has a mechanism to direct the Pinentry
@@ -474,7 +474,9 @@ graphical prompt.
 
 Typing passphrases is a troublesome task if you frequently open and
 close the same file.  GnuPG and EasyPG Assistant provide mechanisms to
-remember your passphrases.  However, the configuration is a bit
+remember your passphrases for a limited time.  Using these, you only
+need to re-enter the passphrase occasionally.
+However, the configuration is a bit
 confusing since it depends on your GnuPG installation@xref{GnuPG
 version compatibility}, encryption method (symmetric or public key),
 and whether or not you want to use gpg-agent.  Here are some

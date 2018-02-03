@@ -1,5 +1,5 @@
 /* Getopt for GNU.
-   Copyright (C) 1987-2017 Free Software Foundation, Inc.
+   Copyright (C) 1987-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _LIBC
 # include <config.h>
@@ -45,7 +45,8 @@
 # define _(msgid) gettext (msgid)
 /* When used standalone, flockfile and funlockfile might not be
    available.  */
-# ifndef _POSIX_THREAD_SAFE_FUNCTIONS
+# if (!defined _POSIX_THREAD_SAFE_FUNCTIONS \
+      || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
 #  define flockfile(fp) /* nop */
 #  define funlockfile(fp) /* nop */
 # endif

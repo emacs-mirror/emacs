@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -104,7 +104,6 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color))
      :foreground "yellow"))
   "Face for the base code.")
-(define-obsolete-face-alias 'smerge-base-face 'smerge-base "22.1")
 (defvar smerge-base-face 'smerge-base)
 
 (defface smerge-markers
@@ -113,7 +112,6 @@ Used in `smerge-diff-base-upper' and related functions."
     (((background dark))
      (:background "grey30")))
   "Face for the conflict markers.")
-(define-obsolete-face-alias 'smerge-markers-face 'smerge-markers "22.1")
 (defvar smerge-markers-face 'smerge-markers)
 
 (defface smerge-refined-changed
@@ -725,7 +723,7 @@ this keeps \"UUU\"."
   (let ((i 3))
     (while (or (not (match-end i))
 	       (< (point) (match-beginning i))
-	       (>= (point) (match-end i)))
+	       (> (point) (match-end i)))
       (cl-decf i))
     i))
 
@@ -911,7 +909,7 @@ Point is moved to the end of the conflict."
 
 ;;; Refined change highlighting
 
-(defvar smerge-refine-forward-function 'smerge-refine-forward
+(defvar smerge-refine-forward-function #'smerge--refine-forward
   "Function used to determine an \"atomic\" element.
 You can set it to `forward-char' to get char-level granularity.
 Its behavior has mainly two restrictions:
@@ -919,7 +917,7 @@ Its behavior has mainly two restrictions:
   after the newline.
   This only matters if `smerge-refine-ignore-whitespace' is nil.
 - it needs to be unaffected by changes performed by the `preproc' argument
-  to `smerge-refine-subst'.
+  to `smerge-refine-regions'.
   This only matters if `smerge-refine-weight-hack' is nil.")
 
 (defvar smerge-refine-ignore-whitespace t
@@ -938,15 +936,15 @@ It has the following disadvantages:
 - cannot use `diff -w' because the weighting causes added spaces in a line
   to be represented as added copies of some line, so `diff -w' can't do the
   right thing any more.
-- may in degenerate cases take a 1KB input region and turn it into a 1MB
-  file to pass to diff.")
+- Is a bit more costly (may in degenerate cases use temp files that are 10x
+  larger than the refined regions).")
 
-(defun smerge-refine-forward (n)
+(defun smerge--refine-forward (n)
   (let ((case-fold-search nil)
         (re "[[:upper:]]?[[:lower:]]+\\|[[:upper:]]+\\|[[:digit:]]+\\|.\\|\n"))
     (when (and smerge-refine-ignore-whitespace
                ;; smerge-refine-weight-hack causes additional spaces to
-               ;; appear as additional lines as well, so even if diff ignore
+               ;; appear as additional lines as well, so even if diff ignores
                ;; whitespace changes, it'll report added/removed lines :-(
                (not smerge-refine-weight-hack))
       (setq re (concat "[ \t]*\\(?:" re "\\)")))
@@ -954,7 +952,9 @@ It has the following disadvantages:
       (unless (looking-at re) (error "Smerge refine internal error"))
       (goto-char (match-end 0)))))
 
-(defun smerge-refine-chopup-region (beg end file &optional preproc)
+(defvar smerge--refine-long-words)
+
+(defun smerge--refine-chopup-region (beg end file &optional preproc)
   "Chopup the region into small elements, one per line.
 Save the result into FILE.
 If non-nil, PREPROC is called with no argument in a buffer that contains
@@ -966,44 +966,73 @@ chars to try and eliminate some spurious differences."
   ;; there aren't any, so the resulting "change" didn't make much sense.
   ;; You can still get this behavior by setting
   ;; `smerge-refine-forward-function' to `forward-char'.
-  (let ((buf (current-buffer)))
-    (with-temp-buffer
-      (insert-buffer-substring buf beg end)
-      (when preproc (goto-char (point-min)) (funcall preproc))
-      (when smerge-refine-ignore-whitespace
-        ;; It doesn't make much of a difference for diff-fine-highlight
-        ;; because we still have the _/+/</>/! prefix anyway.  Can still be
-        ;; useful in other circumstances.
-        (subst-char-in-region (point-min) (point-max) ?\n ?\s))
-      (goto-char (point-min))
-      (while (not (eobp))
+  (with-temp-buffer
+    (insert-buffer-substring (marker-buffer beg) beg end)
+    (when preproc (goto-char (point-min)) (funcall preproc))
+    (when smerge-refine-ignore-whitespace
+      ;; It doesn't make much of a difference for diff-fine-highlight
+      ;; because we still have the _/+/</>/! prefix anyway.  Can still be
+      ;; useful in other circumstances.
+      (subst-char-in-region (point-min) (point-max) ?\n ?\s))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (cl-assert (bolp))
+      (let ((start (point)))
         (funcall smerge-refine-forward-function 1)
-        (let ((s (if (prog2 (forward-char -1) (bolp) (forward-char 1))
-                     nil
-                   (buffer-substring (line-beginning-position) (point)))))
-          ;; We add \n after each char except after \n, so we get
-          ;; one line per text char, where each line contains
-          ;; just one char, except for \n chars which are
+        (let ((len (- (point) start)))
+          (cl-assert (>= len 1))
+          ;; We add \n after each chunk except after \n, so we get
+          ;; one line per text chunk, where each line contains
+          ;; just one chunk, except for \n chars which are
           ;; represented by the empty line.
-          (unless (eq (char-before) ?\n) (insert ?\n))
-          ;; HACK ALERT!!
-          (if smerge-refine-weight-hack
-              (dotimes (_i (1- (length s))) (insert s "\n")))))
-      (unless (bolp) (error "Smerge refine internal error"))
-      (let ((coding-system-for-write 'emacs-mule))
-        (write-region (point-min) (point-max) file nil 'nomessage)))))
+          (unless (bolp) (insert ?\n))
+          (when (and smerge-refine-weight-hack (> len 1))
+            (let ((s (buffer-substring-no-properties start (point))))
+              ;; The weight-hack inserts N copies of words of size N,
+              ;; so it naturally suffers from an O(N²) blow up.
+              ;; To circumvent this, we map each long word
+              ;; to a shorter (but still unique) replacement.
+              ;; Another option would be to change smerge--refine-forward
+              ;; so it chops up long words into smaller ones.
+              (when (> len 8)
+                (let ((short (gethash s smerge--refine-long-words)))
+                  (unless short
+                    ;; To avoid accidental conflicts with ≤8 words,
+                    ;; we make sure the replacement is >8 chars.  Overall,
+                    ;; this should bound the blowup factor to ~10x,
+                    ;; tho if those chars end up encoded as multiple bytes
+                    ;; each, it could probably still reach ~30x in
+                    ;; pathological cases.
+                    (setq short
+                          (concat (substring s 0 7)
+                                  " "
+                                  (string
+                                   (+ ?0
+                                      (hash-table-count
+                                       smerge--refine-long-words)))
+                                  "\n"))
+                    (puthash s short smerge--refine-long-words))
+                  (delete-region start (point))
+                  (insert short)
+                  (setq s short)))
+              (dotimes (_i (1- len)) (insert s)))))))
+    (unless (bolp) (error "Smerge refine internal error"))
+    (let ((coding-system-for-write 'utf-8-emacs-unix))
+      (write-region (point-min) (point-max) file nil 'nomessage))))
 
-(defun smerge-refine-highlight-change (buf beg match-num1 match-num2 props)
-  (with-current-buffer buf
+(defun smerge--refine-highlight-change (beg match-num1 match-num2 props)
+  ;; TODO: Add a property pointing to the corresponding text in the
+  ;; other region.
+  (with-current-buffer (marker-buffer beg)
     (goto-char beg)
     (let* ((startline (- (string-to-number match-num1) 1))
            (beg (progn (funcall (if smerge-refine-weight-hack
-                                    'forward-char
+                                    #'forward-char
                                   smerge-refine-forward-function)
                                 startline)
                        (point)))
            (end (progn (funcall (if smerge-refine-weight-hack
-                                    'forward-char
+                                    #'forward-char
                                   smerge-refine-forward-function)
                           (if match-num2
                               (- (string-to-number match-num2)
@@ -1023,7 +1052,8 @@ chars to try and eliminate some spurious differences."
           (dolist (x props) (overlay-put ol (car x) (cdr x)))
           ol)))))
 
-(defun smerge-refine-subst (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
+;;;###autoload
+(defun smerge-refine-regions (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
   "Show fine differences in the two regions BEG1..END1 and BEG2..END2.
 PROPS-C is an alist of properties to put (via overlays) on the changes.
 PROPS-R is an alist of properties to put on removed characters.
@@ -1037,19 +1067,24 @@ PROPS-A on added characters, and PROPS-R on removed characters.
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of a region, just before preparing it to for `diff'.  It can be
 used to replace chars to try and eliminate some spurious differences."
-  (let* ((buf (current-buffer))
-         (pos (point))
+  (let* ((pos (point))
          deactivate-mark         ; The code does not modify any visible buffer.
          (file1 (make-temp-file "diff1"))
-         (file2 (make-temp-file "diff2")))
+         (file2 (make-temp-file "diff2"))
+         (smerge--refine-long-words
+          (if smerge-refine-weight-hack (make-hash-table :test #'equal))))
+    (unless (markerp beg1) (setq beg1 (copy-marker beg1)))
+    (unless (markerp beg2) (setq beg2 (copy-marker beg2)))
     ;; Chop up regions into smaller elements and save into files.
-    (smerge-refine-chopup-region beg1 end1 file1 preproc)
-    (smerge-refine-chopup-region beg2 end2 file2 preproc)
+    (smerge--refine-chopup-region beg1 end1 file1 preproc)
+    (smerge--refine-chopup-region beg2 end2 file2 preproc)
 
     ;; Call diff on those files.
     (unwind-protect
         (with-temp-buffer
-          (let ((coding-system-for-read 'emacs-mule))
+          ;; Allow decoding the EOL format, as on MS-Windows the Diff
+          ;; utility might produce CR-LF EOLs.
+          (let ((coding-system-for-read 'utf-8-emacs))
             (call-process diff-command nil t nil
                           (if (and smerge-refine-ignore-whitespace
                                    (not smerge-refine-weight-hack))
@@ -1059,7 +1094,7 @@ used to replace chars to try and eliminate some spurious differences."
                               ;; also and more importantly because otherwise it
                               ;; may happen that diff doesn't behave like
                               ;; smerge-refine-weight-hack expects it to.
-                              ;; See http://thread.gmane.org/gmane.emacs.devel/82685.
+                              ;; See https://lists.gnu.org/r/emacs-devel/2007-11/msg00401.html
                               "-awd" "-ad")
                           file1 file2))
           ;; Process diff's output.
@@ -1077,16 +1112,16 @@ used to replace chars to try and eliminate some spurious differences."
                     (m5 (match-string 5)))
                 (when (memq op '(?d ?c))
                   (setq last1
-                        (smerge-refine-highlight-change
-			 buf beg1 m1 m2
+                        (smerge--refine-highlight-change
+			 beg1 m1 m2
 			 ;; Try to use props-c only for changed chars,
 			 ;; fallback to props-r for changed/removed chars,
 			 ;; but if props-r is nil then fallback to props-c.
 			 (or (and (eq op '?c) props-c) props-r props-c))))
                 (when (memq op '(?a ?c))
                   (setq last2
-                        (smerge-refine-highlight-change
-			 buf beg2 m4 m5
+                        (smerge--refine-highlight-change
+			 beg2 m4 m5
 			 ;; Same logic as for removed chars above.
 			 (or (and (eq op '?c) props-c) props-a props-c)))))
               (forward-line 1)                            ;Skip hunk header.
@@ -1110,6 +1145,8 @@ used to replace chars to try and eliminate some spurious differences."
       (goto-char pos)
       (delete-file file1)
       (delete-file file2))))
+(define-obsolete-function-alias 'smerge-refine-subst
+  #'smerge-refine-regions "26.1")
 
 (defun smerge-refine (&optional part)
   "Highlight the words of the conflict that are different.
@@ -1151,15 +1188,15 @@ repeating the command will highlight other two parts."
       (put-text-property (match-beginning 0) (1+ (match-beginning 0))
                          'smerge-refine-part
                          (cons (buffer-chars-modified-tick) part)))
-    (smerge-refine-subst (match-beginning n1) (match-end n1)
+    (smerge-refine-regions (match-beginning n1) (match-end n1)
                          (match-beginning n2)  (match-end n2)
                          (if smerge-use-changed-face
-			     '((smerge . refine) (face . smerge-refined-change)))
+			     '((smerge . refine) (font-lock-face . smerge-refined-change)))
 			 nil
 			 (unless smerge-use-changed-face
-			   '((smerge . refine) (face . smerge-refined-removed)))
+			   '((smerge . refine) (font-lock-face . smerge-refined-removed)))
 			 (unless smerge-use-changed-face
-			   '((smerge . refine) (face . smerge-refined-added))))))
+			   '((smerge . refine) (font-lock-face . smerge-refined-added))))))
 
 (defun smerge-swap ()
   "Swap the \"Upper\" and the \"Lower\" chunks.

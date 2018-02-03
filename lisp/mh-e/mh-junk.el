@@ -1,6 +1,6 @@
 ;;; mh-junk.el --- MH-E interface to anti-spam measures
 
-;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>,
 ;;         Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -169,7 +169,7 @@ classified as spam (see the option `mh-junk-program')."
 
 
 
-;; Spamassassin Interface
+;; SpamAssassin Interface
 
 (defvar mh-spamassassin-executable (executable-find "spamassassin"))
 (defvar mh-sa-learn-executable (executable-find "sa-learn"))

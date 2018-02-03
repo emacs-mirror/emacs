@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.  -*- coding: utf-8 -*-
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
@@ -119,7 +119,7 @@ moves to the same day in the previous week.
 @kindex C-x ] @r{(Calendar mode)}
 @findex calendar-forward-year
 @kindex C-x [ @r{(Calendar mode)}
-@findex calendar-forward-year
+@findex calendar-backward-year
   The commands for motion by months and years work like those for
 weeks, but move a larger distance.  The month commands @kbd{M-@}} and
 @kbd{M-@{} move forward or backward by an entire month.  The year
@@ -369,7 +369,7 @@ various page elements, header styles) via a stylesheet @file{cal.css} in
 the directory containing the HTML files (see the value of the variable
 @code{cal-html-css-default} for relevant style settings).
 
-@kindex t @r{(Calendar mode)}
+@kindex H @r{(Calendar mode)}
 @table @kbd
 @item H m
 Generate a one-month calendar (@code{cal-html-cursor-month}).
@@ -441,7 +441,7 @@ argument, which specifies how many days, weeks, months or years to print
   If the variable @code{cal-tex-holidays} is non-@code{nil} (the default),
 then the printed calendars show the holidays in @code{calendar-holidays}.
 If the variable @code{cal-tex-diary} is non-@code{nil} (the default is
-@code{nil}), diary entries are included also (in monthly, filofax, and
+@code{nil}), diary entries are included also (in monthly, Filofax, and
 iso-week calendars only).  If the variable @code{cal-tex-rules} is
 non-@code{nil} (the default is @code{nil}), the calendar displays ruled
 pages in styles that have sufficient room.  Consult the documentation of
@@ -725,7 +725,7 @@ cycle, and to install a 10-day week in a rationalization measure similar to
 the metric system.  The French government officially abandoned this
 calendar at the end of 1805.
 
-@cindex Mayan calendar
+@cindex Mayan calendars
   The Maya of Central America used three separate, overlapping calendar
 systems, the @emph{long count}, the @emph{tzolkin}, and the @emph{haab}.
 Emacs knows about all three of these calendars.  Experts dispute the
@@ -847,7 +847,6 @@ other than Mayan; for the Mayan calendar, see the following section.
 
 @kindex g @var{char} @r{(Calendar mode)}
 @findex calendar-iso-goto-date
-@findex calendar-iso-goto-week
 @findex calendar-julian-goto-date
 @findex calendar-astro-goto-day-number
 @findex calendar-bahai-goto-date

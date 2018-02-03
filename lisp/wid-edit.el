@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t; lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Wishlist items (from widget.texi):
 
@@ -832,7 +832,7 @@ button end points."
 
 ;; This alias exists only so that one can choose in doc-strings (e.g.
 ;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
-;; http://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00480.html
+;; https://lists.gnu.org/r/emacs-devel/2008-11/msg00480.html
 (define-obsolete-function-alias 'advertised-widget-backward
   'widget-backward "23.2")
 
@@ -3694,15 +3694,17 @@ example:
 (defun widget-color--choose-action (widget &optional _event)
   (list-colors-display
    nil nil
-   `(lambda (color)
-      (when (buffer-live-p ,(current-buffer))
-	(widget-value-set ',(widget-get widget :parent) color)
-	(let* ((buf (get-buffer "*Colors*"))
-	       (win (get-buffer-window buf 0)))
-	  (if win
-	      (quit-window nil win)
-	    (bury-buffer buf)))
-	(pop-to-buffer ,(current-buffer))))))
+   (let ((cbuf (current-buffer))
+         (wp (widget-get widget :parent)))
+     (lambda (color)
+       (when (buffer-live-p cbuf)
+	 (widget-value-set wp color)
+	 (let* ((buf (get-buffer "*Colors*"))
+	        (win (get-buffer-window buf 0)))
+	   (if win
+	       (quit-window nil win)
+	     (bury-buffer buf)))
+	 (pop-to-buffer cbuf))))))
 
 (defun widget-color-sample-face-get (widget)
   (let* ((value (condition-case nil

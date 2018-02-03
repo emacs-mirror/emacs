@@ -1,6 +1,6 @@
 ;;; viper-cmd.el --- Vi command support for Viper  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -90,7 +90,7 @@
 
 (defconst viper-movement-commands '(?b ?B ?e ?E ?f ?F ?G ?h ?j ?k ?l
 				     ?H ?M ?L ?n ?t ?T ?w ?W ?$ ?%
-				     ?^ ?( ?) ?- ?+ ?| ?{ ?} ?[ ?] ?' ?`
+				     ?^ ?\( ?\) ?- ?+ ?| ?{ ?} ?\[ ?\] ?' ?`
 				     ?\; ?, ?0 ?? ?/ ?\  ?\C-m
 				     space return
 				     delete backspace
@@ -4346,7 +4346,7 @@ and regexp replace."
 (defun viper-mark-beginning-of-buffer ()
   "Mark beginning of buffer."
   (interactive)
-  (push-mark (point))
+  (push-mark)
   (goto-char (point-min))
   (exchange-point-and-mark)
   (message "Mark set at the beginning of buffer"))
@@ -4354,7 +4354,7 @@ and regexp replace."
 (defun viper-mark-end-of-buffer ()
   "Mark end of buffer."
   (interactive)
-  (push-mark (point))
+  (push-mark)
   (goto-char (point-max))
   (exchange-point-and-mark)
   (message "Mark set at the end of buffer"))

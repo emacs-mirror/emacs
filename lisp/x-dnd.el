@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -264,9 +264,8 @@ STRING is the uri-list as a string.  The URIs are separated by \\r\\n."
 WINDOW is the window where the drop happened.
 STRING is the file names as a string, separated by nulls."
   (let ((uri-list (split-string string "[\0\r\n]" t))
-	(coding (and (default-value 'enable-multibyte-characters)
-		     (or file-name-coding-system
-			 default-file-name-coding-system)))
+	(coding (or file-name-coding-system
+		    default-file-name-coding-system))
 	retval)
     (dolist (bf uri-list)
       ;; If one URL is handled, treat as if the whole drop succeeded.

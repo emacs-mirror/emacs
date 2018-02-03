@@ -10,7 +10,7 @@
 @copying
 This file documents VHDL Mode, an Emacs mode for editing VHDL code.
 
-Copyright @copyright{} 1995--2008, 2010, 2012, 2015--2017 Free Software
+Copyright @copyright{} 1995--2008, 2010, 2012, 2015--2018 Free Software
 Foundation, Inc.
 
 @quotation

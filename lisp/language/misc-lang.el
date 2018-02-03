@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -75,12 +75,71 @@ and Italian.")))
 	    (sample-text . "Persian	فارسی")
 	    (documentation . "Bidirectional editing is supported.")))
 
+(defcustom arabic-shaper-ZWNJ-handling nil
+  "How to handle ZWMJ in Arabic text rendering.
+This variable controls the way to handle a glyph for ZWNJ
+returned by the underling shaping engine.
+
+The default value is nil, which means that the ZWNJ glyph is
+displayed as is.
+
+If the value is `absorb', ZWNJ is absorbed into the previous
+grapheme cluster, and not displayed.
+
+If the value is `as-space', the glyph is displayed by a
+thin (i.e. 1-dot width) space."
+  :group 'mule
+  :version "26.1"
+  :type '(choice
+          (const :tag "default" nil)
+          (const :tag "as space" as-space)
+          (const :tag "absorb" absorb))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (clear-composition-cache)))
+
+;; Record error in arabic-change-gstring.
+(defvar arabic-shape-log nil)
+
+(defun arabic-shape-gstring (gstring)
+  (setq gstring (font-shape-gstring gstring))
+  (condition-case err
+      (when arabic-shaper-ZWNJ-handling
+        (let ((font (lgstring-font gstring))
+              (i 1)
+              (len (lgstring-glyph-len gstring))
+              (modified nil))
+          (while (< i len)
+            (let ((glyph (lgstring-glyph gstring i)))
+              (when (eq (lglyph-char glyph) #x200c)
+                (cond
+                 ((eq arabic-shaper-ZWNJ-handling 'as-space)
+                  (if (> (- (lglyph-rbearing glyph) (lglyph-lbearing glyph)) 0)
+                      (let ((space-glyph (aref (font-get-glyphs font 0 1 " ") 0)))
+                        (when space-glyph
+                          (lglyph-set-code glyph (aref space-glyph 3))
+                          (lglyph-set-width glyph (aref space-glyph 4)))))
+                  (lglyph-set-adjustment glyph 0 0 1)
+                  (setq modified t))
+                 ((eq arabic-shaper-ZWNJ-handling 'absorb)
+                  (let ((prev (lgstring-glyph gstring (1- i))))
+                    (lglyph-set-from-to prev (lglyph-from prev) (lglyph-to glyph))
+                    (setq gstring (lgstring-remove-glyph gstring i))
+                    (setq len (1- len)))
+                  (setq modified t)))))
+            (setq i (1+ i)))
+          (if modified
+              (lgstring-set-id gstring nil))))
+    (error (push err arabic-shape-log)))
+  gstring)
+
 (set-char-table-range
  composition-function-table
  '(#x600 . #x74F)
- (list (vector "[\u0600-\u074F\u200C\u200D]+" 0 'font-shape-gstring)
-       (vector "[\u200C\u200D][\u0600-\u074F\u200C\u200D]+"
-               1 'font-shape-gstring)))
+ (list (vector "[\u0600-\u074F\u200C\u200D]+" 0
+               'arabic-shape-gstring)
+       (vector "[\u200C\u200D][\u0600-\u074F\u200C\u200D]+" 1
+               'arabic-shape-gstring)))
 
 (provide 'misc-lang)
 

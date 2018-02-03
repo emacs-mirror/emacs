@@ -1,5 +1,5 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary
 
@@ -212,7 +212,8 @@ symmetric encryption will be used."
     (with-current-buffer buffer
       (erase-buffer)
       (condition-case nil
-	  (insert-file-contents-literally file)
+          (let ((coding-system-for-read 'raw-text))
+            (insert-file-contents file))
 	(error))
       (setq buffer-file-name (file-truename file))
       (set-buffer-modified-p nil)
@@ -520,7 +521,7 @@ If no one is selected, symmetric encryption will be performed.  "
       t)))
 
 (defun plstore-mode-original ()
-  "Show the original form of the this buffer."
+  "Show the original form of this buffer."
   (interactive)
   (when plstore-encoded
     (if (and (buffer-modified-p)
@@ -532,7 +533,7 @@ If no one is selected, symmetric encryption will be performed.  "
     (setq plstore-encoded nil)))
 
 (defun plstore-mode-decoded ()
-  "Show the decoded form of the this buffer."
+  "Show the decoded form of this buffer."
   (interactive)
   (unless plstore-encoded
     (if (and (buffer-modified-p)

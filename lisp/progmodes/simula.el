@@ -1,6 +1,6 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

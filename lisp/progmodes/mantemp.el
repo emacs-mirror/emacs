@@ -1,6 +1,6 @@
 ;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output
 
-;; Copyright (C) 1996, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Tom Houlder <thoulder@icor.fr>
 ;; Created: 10 Dec 1996
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

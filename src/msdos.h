@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,12 +14,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_MSDOS_H
 #define EMACS_MSDOS_H
 
 #include <dpmi.h>
+
+#include "termhooks.h"		/* struct terminal */
 
 int dos_ttraw (struct tty_display_info *);
 int dos_ttcooked (void);
@@ -67,6 +69,7 @@ void syms_of_win16select (void);
 
 /* Constants.  */
 #define EINPROGRESS 112
+#define ENOTSUP     ENOSYS
 /* Gnulib sets O_CLOEXEC to O_NOINHERIT, which gets in the way when we
    need to redirect standard handles for subprocesses using temporary
    files created by mkostemp, see callproc.c.  */

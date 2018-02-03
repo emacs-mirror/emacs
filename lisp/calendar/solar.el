@@ -1,6 +1,6 @@
-;;; solar.el --- calendar functions for solar events
+;;; solar.el --- calendar functions for solar events  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2017 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -552,12 +552,14 @@ degrees to find out if polar regions have 24 hours of sun or only night."
   "Printable form for decimal fraction TIME in TIME-ZONE.
 Format used is given by `calendar-time-display-form'."
   (let* ((time (round (* 60 time)))
-         (24-hours (/ time 60))
+         (24-hours (/ time 60)))
+    (calendar-dlet*
+        ((time-zone time-zone)
          (minutes (format "%02d" (% time 60)))
          (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))
          (am-pm (if (>= 24-hours 12) "pm" "am"))
          (24-hours (format "%02d" 24-hours)))
-    (mapconcat 'eval calendar-time-display-form "")))
+      (mapconcat #'eval calendar-time-display-form ""))))
 
 (defun solar-daylight (time)
   "Printable form for TIME expressed in hours."
@@ -661,10 +663,10 @@ Optional NOLOCATION non-nil means do not print the location."
     (format
      "%s, %s%s (%s hrs daylight)"
      (if (car l)
-         (concat "Sunrise " (apply 'solar-time-string (car l)))
+         (concat "Sunrise " (apply #'solar-time-string (car l)))
        "No sunrise")
      (if (cadr l)
-         (concat "sunset " (apply 'solar-time-string (cadr l)))
+         (concat "sunset " (apply #'solar-time-string (cadr l)))
        "no sunset")
      (if nolocation ""
        (format " at %s" (eval calendar-location-name)))
@@ -749,7 +751,7 @@ The values of `calendar-daylight-savings-starts',
           (+ 4.9353929
              (* 62833.1961680 U)
              (* 0.0000001
-                (apply '+
+                (apply #'+
                        (mapcar (lambda (x)
                                  (* (car x)
                                     (sin (mod
@@ -889,13 +891,12 @@ Accurate to a few seconds."
         (insert (format "%s %2d: " (calendar-month-name month t) (1+ i))
                 (solar-sunrise-sunset-string date t) "\n")))))
 
-(defvar date)
-
-;; To be called from diary-list-sexp-entries, where DATE is bound.
 ;;;###diary-autoload
 (defun diary-sunrise-sunset ()
   "Local time of sunrise and sunset as a diary entry.
 Accurate to a few seconds."
+  ;; To be called from diary-list-sexp-entries, where DATE is bound.
+  (with-no-warnings (defvar date))
   (or (and calendar-latitude calendar-longitude calendar-time-zone)
       (solar-setup))
   (solar-sunrise-sunset-string date))
@@ -938,7 +939,7 @@ Accurate to within a minute between 1951 and 2050."
          (W (- (* 35999.373 T) 2.47))
          (Delta-lambda (+ 1 (* 0.0334 (solar-cosine-degrees W))
                           (* 0.0007 (solar-cosine-degrees (* 2 W)))))
-         (S (apply '+ (mapcar (lambda(x)
+         (S (apply #'+ (mapcar (lambda(x)
                                 (* (car x) (solar-cosine-degrees
                                             (+ (* (nth 2 x) T) (cadr x)))))
                               solar-seasons-data)))

@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Noah Friedman
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -376,7 +376,7 @@ problems."
        (if (and type-break-time-last-break
                 (< (setq diff (type-break-time-difference
                                type-break-time-last-break
-                               (current-time)))
+                               nil))
                    type-break-interval))
            ;; Use the file's value.
            (progn
@@ -563,7 +563,7 @@ as per the function `type-break-schedule'."
         (cond
          (good-interval
           (let ((break-secs (type-break-time-difference
-                             start-time (current-time))))
+                             start-time nil)))
             (cond
              ((>= break-secs good-interval)
               (setq continue nil))
@@ -624,7 +624,7 @@ INTERVAL is the full length of an interval (defaults to TIME)."
                type-break-time-warning-intervals))
 
     (or time
-        (setq time (type-break-time-difference (current-time)
+        (setq time (type-break-time-difference nil
                                                type-break-time-next-break)))
 
     (while (and type-break-current-time-warning-interval
@@ -685,7 +685,7 @@ keystroke threshold has been exceeded."
     (and type-break-good-rest-interval
          (progn
            (and (> (type-break-time-difference
-                    type-break-time-last-command (current-time))
+                    type-break-time-last-command nil)
                    type-break-good-rest-interval)
                 (progn
                   (type-break-keystroke-reset)

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2017 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Errors
@@ -172,8 +172,11 @@ The message is @samp{Search failed}.  @xref{Searching and Matching}.
 
 @item setting-constant
 The message is @samp{Attempt to set a constant symbol}.  This happens
-when attempting to assign values to @code{nil}, @code{t}, and keyword
-symbols.  @xref{Constant Variables}.
+when attempting to assign values to @code{nil}, @code{t},
+@code{most-positive-fixnum}, @code{most-negative-fixnum}, and keyword
+symbols.  It also happens when attempting to assign values to
+@code{enable-multibyte-characters} and some other symbols whose direct
+assignment is not allowed for some reason.  @xref{Constant Variables}.
 
 @c simple.el
 @item text-read-only

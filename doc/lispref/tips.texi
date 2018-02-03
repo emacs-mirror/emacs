@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -17,14 +17,15 @@ should follow.
 @findex checkdoc
 @findex checkdoc-current-buffer
 @findex checkdoc-file
-  You can automatically check some of the conventions described below by
-running the command @kbd{M-x checkdoc RET} when visiting a Lisp file.
-It cannot check all of the conventions, and not all the warnings it
-gives necessarily correspond to problems, but it is worth examining them
-all.  Alternatively, use the command @kbd{M-x checkdoc-current-buffer RET}
-to check the conventions in the current buffer, or @code{checkdoc-file}
-when you want to check a file in batch mode, e.g., with a command run by
-@kbd{@w{M-x compile RET}}.
+  You can automatically check some of the conventions described below
+by running the command @kbd{M-x checkdoc @key{RET}} when visiting a
+Lisp file.  It cannot check all of the conventions, and not all the
+warnings it gives necessarily correspond to problems, but it is worth
+examining them all.  Alternatively, use the command @kbd{M-x
+checkdoc-current-buffer @key{RET}} to check the conventions in the
+current buffer, or @code{checkdoc-file} when you want to check a file
+in batch mode, e.g., with a command run by @kbd{@w{M-x compile
+@key{RET}}}.
 
 @menu
 * Coding Conventions::        Conventions for clean and robust programs.
@@ -68,10 +69,13 @@ costs.}.  Use two hyphens to separate prefix and name if the symbol is
 not meant to be used by other packages.
 
 Occasionally, for a command name intended for users to use, it is more
-convenient if some words come before the package's name prefix.  And
-constructs that define functions, variables, etc., work better if they
-start with @samp{defun} or @samp{defvar}, so put the name prefix later
-on in the name.
+convenient if some words come before the package's name prefix.  For
+example, it is our convention to have commands that list objects named
+as @samp{list-@var{something}}, e.g., a package called @samp{frob}
+could have a command @samp{list-frobs}, when its other global symbols
+begin with @samp{frob-}.  Also, constructs that define functions,
+variables, etc., work better if they start with @samp{defun} or
+@samp{defvar}, so put the name prefix later on in the name.
 
 This recommendation applies even to names for traditional Lisp
 primitives that are not primitives in Emacs Lisp---such as
@@ -531,9 +535,17 @@ that you know @emph{will} be defined, use a @code{declare-function}
 statement (@pxref{Declaring Functions}).
 
 @item
-If you use many functions and variables from a certain file, you can
-add a @code{require} for that package to avoid compilation warnings
-for them.  For instance,
+If you use many functions, macros, and variables from a certain file,
+you can add a @code{require} (@pxref{Named Features, require}) for
+that package to avoid compilation warnings for them, like this:
+
+@example
+(require 'foo)
+@end example
+
+@noindent
+If you need only macros from some file, you can require it only at
+compile time (@pxref{Eval During Compile}).  For instance,
 
 @example
 (eval-when-compile
@@ -741,7 +753,7 @@ preceded by @samp{URL}.  For example,
 
 @smallexample
 The home page for the GNU project has more information (see URL
-`http://www.gnu.org/').
+`https://www.gnu.org/').
 @end smallexample
 
 @item
@@ -930,7 +942,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2017 Your Name
+;; Copyright (C) 2010-2018 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
@@ -944,7 +956,7 @@ explains these conventions, starting with an example:
 
 ;; This file is free software@dots{}
 @dots{}
-;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this file.  If not, see <https://www.gnu.org/licenses/>.
 @end group
 @end smallexample
 
@@ -966,7 +978,7 @@ might need to list them instead.  Do not say that the copyright holder
 is the Free Software Foundation (or that the file is part of GNU
 Emacs) unless your file has been accepted into the Emacs distribution.
 For more information on the form of copyright and license notices, see
-@uref{http://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
+@uref{https://www.gnu.org/licenses/gpl-howto.html, the guide on the GNU
 website}.
 
   After the copyright notice come several @dfn{header comment} lines,
@@ -1017,7 +1029,7 @@ but only the main one.
 @findex checkdoc-package-keywords
 This line lists keywords for the @code{finder-by-keyword} help command.
 Please use that command to see a list of the meaningful keywords.  The
-command @kbd{M-x checkdoc-package-keywords RET} will find and display
+command @kbd{M-x checkdoc-package-keywords @key{RET}} will find and display
 any keywords that are not in @code{finder-known-keywords}.  If you set
 the variable @code{checkdoc-package-keywords-flag} non-@code{nil},
 checkdoc commands will include the keyword verification in its checks.
@@ -1046,12 +1058,15 @@ package manager both at download time (to ensure that a complete set
 of packages is downloaded) and at activation time (to ensure that a
 package is only activated if all its dependencies have been).
 
-Its format is a list of lists.  The @code{car} of each sub-list is the
-name of a package, as a symbol.  The @code{cadr} of each sub-list is
-the minimum acceptable version number, as a string.  For instance:
+Its format is a list of lists on a single line.  The @code{car} of
+each sub-list is the name of a package, as a symbol.  The @code{cadr}
+of each sub-list is the minimum acceptable version number, as a string
+that can be parse by @code{version-to-list}.  An entry that lacks a
+version (i.e., an entry which is just a symbol, or a sub-list of one
+element) is equivalent to entry with version "0".  For instance:
 
 @smallexample
-;; Package-Requires: ((gnus "1.0") (bubbles "2.7.2"))
+;; Package-Requires: ((gnus "1.0") (bubbles "2.7.2") cl-lib (seq))
 @end smallexample
 
 The package code automatically defines a package named @samp{emacs}

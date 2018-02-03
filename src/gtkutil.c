@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2017 Free Software Foundation, Inc.
+Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -204,6 +204,31 @@ xg_display_open (char *display_name, Display **dpy)
   *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
 }
 
+/* Scaling/HiDPI functions. */
+static int
+xg_get_gdk_scale (void)
+{
+  const char *sscale = getenv ("GDK_SCALE");
+
+  if (sscale)
+    {
+      long scale = atol (sscale);
+      if (0 < scale)
+	return min (scale, INT_MAX);
+    }
+
+  return 1;
+}
+
+int
+xg_get_scale (struct frame *f)
+{
+#if GTK_CHECK_VERSION (3, 10, 0)
+  if (FRAME_GTK_WIDGET (f))
+    return gtk_widget_get_scale_factor (FRAME_GTK_WIDGET (f));
+#endif
+  return xg_get_gdk_scale ();
+}
 
 /* Close display DPY.  */
 
@@ -552,12 +577,24 @@ xg_check_special_colors (struct frame *f,
     if (get_fg)
       gtk_style_context_get_color (gsty, state, &col);
     else
-      gtk_style_context_get_background_color (gsty, state, &col);
+      {
+        GdkRGBA *c;
+        /* FIXME: Retrieving the background color is deprecated in
+           GTK+ 3.16.  New versions of GTK+ don't use the concept of a
+           single background color any more, so we shouldn't query for
+           it.  */
+        gtk_style_context_get (gsty, state,
+                               GTK_STYLE_PROPERTY_BACKGROUND_COLOR, &c,
+                               NULL);
+        col = *c;
+        gdk_rgba_free (c);
+      }
 
-    sprintf (buf, "rgb:%04x/%04x/%04x",
-             (unsigned) (col.red * 65535),
-             (unsigned) (col.green * 65535),
-             (unsigned) (col.blue * 65535));
+    unsigned short
+      r = col.red * 65535,
+      g = col.green * 65535,
+      b = col.blue * 65535;
+    sprintf (buf, "rgb:%04x/%04x/%04x", r, g, b);
     success_p = x_parse_color (f, buf, color) != 0;
 #else
     GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
@@ -650,6 +687,7 @@ qttip_cb (GtkWidget  *widget,
       g_signal_connect (x->ttip_lbl, "hierarchy-changed",
                         G_CALLBACK (hierarchy_ch_cb), f);
     }
+
   return FALSE;
 }
 
@@ -676,7 +714,8 @@ xg_prepare_tooltip (struct frame *f,
   GtkRequisition req;
   Lisp_Object encoded_string;
 
-  if (!x->ttip_lbl) return 0;
+  if (!x->ttip_lbl)
+    return FALSE;
 
   block_input ();
   encoded_string = ENCODE_UTF_8 (string);
@@ -708,7 +747,7 @@ xg_prepare_tooltip (struct frame *f,
 
   unblock_input ();
 
-  return 1;
+  return TRUE;
 #endif /* USE_GTK_TOOLTIP */
 }
 
@@ -723,25 +762,26 @@ xg_show_tooltip (struct frame *f, int root_x, int root_y)
   if (x->ttip_window)
     {
       block_input ();
-      gtk_window_move (x->ttip_window, root_x, root_y);
+      gtk_window_move (x->ttip_window, root_x / xg_get_scale (f),
+		       root_y / xg_get_scale (f));
       gtk_widget_show_all (GTK_WIDGET (x->ttip_window));
       unblock_input ();
     }
 #endif
 }
 
+
 /* Hide tooltip if shown.  Do nothing if not shown.
    Return true if tip was hidden, false if not (i.e. not using
    system tooltips).  */
-
 bool
 xg_hide_tooltip (struct frame *f)
 {
-  bool ret = 0;
 #ifdef USE_GTK_TOOLTIP
   if (f->output_data.x->ttip_window)
     {
       GtkWindow *win = f->output_data.x->ttip_window;
+
       block_input ();
       gtk_widget_hide (GTK_WIDGET (win));
 
@@ -754,10 +794,10 @@ xg_hide_tooltip (struct frame *f)
         }
       unblock_input ();
 
-      ret = 1;
+      return TRUE;
     }
 #endif
-  return ret;
+  return FALSE;
 }
 
 
@@ -765,6 +805,7 @@ xg_hide_tooltip (struct frame *f)
     General functions for creating widgets, resizing, events, e.t.c.
  ***********************************************************************/
 
+#if ! GTK_CHECK_VERSION (3, 22, 0)
 static void
 my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
 		const gchar *msg, gpointer user_data)
@@ -772,6 +813,7 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
   if (!strstr (msg, "visible children"))
     fprintf (stderr, "XX %s-WARNING **: %s\n", log_domain, msg);
 }
+#endif
 
 /* Make a geometry string and pass that to GTK.  It seems this is the
    only way to get geometry position right if the user explicitly
@@ -783,8 +825,11 @@ xg_set_geometry (struct frame *f)
 {
   if (f->size_hint_flags & (USPosition | PPosition))
     {
+      int scale = xg_get_scale (f);
+#if ! GTK_CHECK_VERSION (3, 22, 0)
       if (x_gtk_use_window_move)
 	{
+#endif
 	  /* Handle negative positions without consulting
 	     gtk_window_parse_geometry (Bug#25851).  The position will
 	     be off by scrollbar width + window manager decorations.  */
@@ -796,17 +841,20 @@ xg_set_geometry (struct frame *f)
 	    f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
 			  - FRAME_PIXEL_HEIGHT (f) + f->top_pos);
 
+	  /* GTK works in scaled pixels, so convert from X pixels.  */
 	  gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   f->left_pos, f->top_pos);
+			   f->left_pos / scale, f->top_pos / scale);
 
 	  /* Reset size hint flags.  */
 	  f->size_hint_flags &= ~ (XNegative | YNegative);
+# if ! GTK_CHECK_VERSION (3, 22, 0)
 	}
       else
 	{
-	  int left = f->left_pos;
+          /* GTK works in scaled pixels, so convert from X pixels.  */
+	  int left = f->left_pos / scale;
 	  int xneg = f->size_hint_flags & XNegative;
-	  int top = f->top_pos;
+	  int top = f->top_pos / scale;
 	  int yneg = f->size_hint_flags & YNegative;
 	  char geom_str[sizeof "=x--" + 4 * INT_STRLEN_BOUND (int)];
 	  guint id;
@@ -832,22 +880,8 @@ xg_set_geometry (struct frame *f)
 
 	  g_log_remove_handler ("Gtk", id);
 	}
+#endif
     }
-}
-
-static int
-xg_get_gdk_scale (void)
-{
-  const char *sscale = getenv ("GDK_SCALE");
-
-  if (sscale)
-    {
-      long scale = atol (sscale);
-      if (0 < scale)
-	return min (scale, INT_MAX);
-    }
-
-  return 1;
 }
 
 /* Function to handle resize of our frame.  As we have a Gtk+ tool bar
@@ -911,12 +945,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   /* Do this before resize, as we don't know yet if we will be resized.  */
   x_clear_under_internal_border (f);
 
-  if (FRAME_VISIBLE_P (f))
-    {
-      int scale = xg_get_gdk_scale ();
-      totalheight /= scale;
-      totalwidth /= scale;
-    }
+  totalheight /= xg_get_scale (f);
+  totalwidth /= xg_get_scale (f);
 
   x_wm_set_size_hint (f, 0, 0);
 
@@ -1036,16 +1066,23 @@ static void
 xg_set_widget_bg (struct frame *f, GtkWidget *w, unsigned long pixel)
 {
 #ifdef HAVE_GTK3
-  GdkRGBA bg;
   XColor xbg;
   xbg.pixel = pixel;
   if (XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &xbg))
     {
-      bg.red = (double)xbg.red/65535.0;
-      bg.green = (double)xbg.green/65535.0;
-      bg.blue = (double)xbg.blue/65535.0;
-      bg.alpha = 1.0;
-      gtk_widget_override_background_color (w, GTK_STATE_FLAG_NORMAL, &bg);
+      const char format[] = "* { background-color: #%02x%02x%02x; }";
+      /* The format is always longer than the resulting string.  */
+      char buffer[sizeof format];
+      int n = snprintf(buffer, sizeof buffer, format,
+                       xbg.red >> 8, xbg.green >> 8, xbg.blue >> 8);
+      eassert (n > 0);
+      eassert (n < sizeof buffer);
+      GtkCssProvider *provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_data (provider, buffer, -1, NULL);
+      gtk_style_context_add_provider (gtk_widget_get_style_context(w),
+                                      GTK_STYLE_PROVIDER (provider),
+                                      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+      g_clear_object (&provider);
     }
 #else
   GdkColor bg;
@@ -1203,12 +1240,17 @@ xg_create_frame_widgets (struct frame *f)
      with regular X drawing primitives, so from a GTK/GDK point of
      view, the widget is totally blank.  When an expose comes, this
      will make the widget blank, and then Emacs redraws it.  This flickers
-     a lot, so we turn off double buffering.  */
+     a lot, so we turn off double buffering.
+     FIXME: gtk_widget_set_double_buffered is deprecated and might stop
+     working in the future.  We need to migrate away from combining
+     X and GTK+ drawing to a pure GTK+ build.  */
   gtk_widget_set_double_buffered (wfixed, FALSE);
 
+#if ! GTK_CHECK_VERSION (3, 22, 0)
   gtk_window_set_wmclass (GTK_WINDOW (wtop),
                           SSDATA (Vx_resource_name),
                           SSDATA (Vx_resource_class));
+#endif
 
   /* Add callback to do nothing on WM_DELETE_WINDOW.  The default in
      GTK is to destroy the widget.  We want Emacs to do that instead.  */
@@ -1342,11 +1384,11 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
   int min_rows = 0, min_cols = 0;
   int win_gravity = f->win_gravity;
   Lisp_Object fs_state, frame;
-  int scale = xg_get_gdk_scale ();
+  int scale = xg_get_scale (f);
 
   /* Don't set size hints during initialization; that apparently leads
      to a race condition.  See the thread at
-     http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html  */
+     https://lists.gnu.org/r/emacs-devel/2008-10/msg00033.html  */
   if (NILP (Vafter_init_time)
       || !FRAME_GTK_OUTER_WIDGET (f)
       || FRAME_PARENT_FRAME (f))
@@ -1502,6 +1544,7 @@ xg_set_undecorated (struct frame *f, Lisp_Object undecorated)
 void
 xg_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
 {
+#if GTK_CHECK_VERSION (2, 18, 0)
   block_input ();
   if (FRAME_GTK_OUTER_WIDGET (f1) && FRAME_GTK_OUTER_WIDGET (f2))
     {
@@ -1516,6 +1559,7 @@ xg_frame_restack (struct frame *f1, struct frame *f2, bool above_flag)
       x_sync (f1);
     }
   unblock_input ();
+#endif
 }
 
 
@@ -3656,16 +3700,16 @@ update_theme_scrollbar_height (void)
 }
 
 int
-xg_get_default_scrollbar_width (void)
+xg_get_default_scrollbar_width (struct frame *f)
 {
-  return scroll_bar_width_for_theme * xg_get_gdk_scale ();
+  return scroll_bar_width_for_theme * xg_get_scale (f);
 }
 
 int
-xg_get_default_scrollbar_height (void)
+xg_get_default_scrollbar_height (struct frame *f)
 {
   /* Apparently there's no default height for themes.  */
-  return scroll_bar_width_for_theme * xg_get_gdk_scale ();
+  return scroll_bar_width_for_theme * xg_get_scale (f);
 }
 
 /* Return the scrollbar id for X Window WID on display DPY.
@@ -3855,13 +3899,12 @@ xg_update_scrollbar_pos (struct frame *f,
       GtkWidget *wfixed = f->output_data.x->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
       gint msl;
-      int scale = xg_get_gdk_scale ();
-      bool hidden;
+      int scale = xg_get_scale (f);
 
       top /= scale;
       left /= scale;
       height /= scale;
-      left -= (scale - 1) * ((width / scale) >> 1);
+      width /= scale;
 
       /* Clear out old position.  */
       int oldx = -1, oldy = -1, oldw, oldh;
@@ -3875,13 +3918,13 @@ xg_update_scrollbar_pos (struct frame *f,
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
       gtk_widget_style_get (wscroll, "min-slider-length", &msl, NULL);
-      if (msl > height)
+      bool hidden = height < msl;
+      if (hidden)
         {
           /* No room.  Hide scroll bar as some themes output a warning if
              the height is less than the min size.  */
           gtk_widget_hide (wparent);
           gtk_widget_hide (wscroll);
-	  hidden = true;
         }
       else
         {
@@ -3937,6 +3980,12 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
       GtkWidget *wfixed = f->output_data.x->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
       gint msl;
+      int scale = xg_get_scale (f);
+
+      top /= scale;
+      left /= scale;
+      height /= scale;
+      width /= scale;
 
       /* Clear out old position.  */
       int oldx = -1, oldy = -1, oldw, oldh;
@@ -4070,8 +4119,10 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 
         if (int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
           gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
+#if ! GTK_CHECK_VERSION (3, 18, 0)
         else if (changed)
           gtk_adjustment_changed (adj);
+#endif
 
         xg_ignore_gtk_scrollbar = 0;
 
@@ -4108,7 +4159,9 @@ xg_set_toolkit_horizontal_scroll_bar_thumb (struct scroll_bar *bar,
       gtk_adjustment_configure (adj, (gdouble) value, (gdouble) lower,
 				(gdouble) upper, (gdouble) step_increment,
 				(gdouble) page_increment, (gdouble) pagesize);
+#if ! GTK_CHECK_VERSION (3, 18, 0)
       gtk_adjustment_changed (adj);
+#endif
       unblock_input ();
     }
 }
@@ -4129,8 +4182,13 @@ xg_event_is_for_scrollbar (struct frame *f, const XEvent *event)
       GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
       GdkWindow *gwin;
 #ifdef HAVE_GTK3
+#if GTK_CHECK_VERSION (3, 20, 0)
+      GdkDevice *gdev
+        = gdk_seat_get_pointer (gdk_display_get_default_seat (gdpy));
+#else
       GdkDevice *gdev = gdk_device_manager_get_client_pointer
         (gdk_display_get_device_manager (gdpy));
+#endif
       gwin = gdk_device_get_window_at_position (gdev, NULL, NULL);
 #else
       gwin = gdk_display_get_window_at_pointer (gdpy, NULL, NULL);
@@ -4603,7 +4661,11 @@ xg_make_tool_item (struct frame *f,
   if (wimage && text_image)
     gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
 
+#if GTK_CHECK_VERSION (3, 20, 0)
+  gtk_widget_set_focus_on_click (wb, FALSE);
+#else
   gtk_button_set_focus_on_click (GTK_BUTTON (wb), FALSE);
+#endif
   gtk_button_set_relief (GTK_BUTTON (wb), GTK_RELIEF_NONE);
   gtk_container_add (GTK_CONTAINER (wb), vb);
   gtk_container_add (GTK_CONTAINER (weventbox), wb);
@@ -5220,6 +5282,7 @@ xg_initialize (void)
 
   settings = gtk_settings_get_for_screen (gdk_display_get_default_screen
                                           (gdk_display_get_default ()));
+#if ! GTK_CHECK_VERSION (3, 10, 0)
   /* Remove F10 as a menu accelerator, it does not mix well with Emacs key
      bindings.  It doesn't seem to be any way to remove properties,
      so we set it to "" which in means "no key".  */
@@ -5227,13 +5290,18 @@ xg_initialize (void)
                                     "gtk-menu-bar-accel",
                                     "",
                                     EMACS_CLASS);
+#endif
 
   /* Make GTK text input widgets use Emacs style keybindings.  This is
      Emacs after all.  */
+#if GTK_CHECK_VERSION (3, 16, 0)
+  g_object_set (settings, "gtk-key-theme-name", "Emacs", NULL);
+#else
   gtk_settings_set_string_property (settings,
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);
+#endif
 
   /* Make dialogs close on C-g.  Since file dialog inherits from
      dialog, this works for them also.  */

@@ -1,5 +1,5 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993-1995, 2000-2017 Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 2000-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Define the structure that the wait system call stores.
    On many systems, there is a structure defined for this.
@@ -56,7 +56,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Defined in sysdep.c.  */
-extern void wait_for_termination (pid_t, int *, bool);
+extern bool wait_for_termination (pid_t, int *, bool);
 extern pid_t child_status_changed (pid_t, int *, int);
 
 #endif /* EMACS_SYSWAIT_H */

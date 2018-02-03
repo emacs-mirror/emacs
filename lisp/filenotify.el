@@ -1,6 +1,6 @@
 ;;; filenotify.el --- watch files for changes on disk  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary
 
@@ -71,7 +71,7 @@ struct.")
   "Remove DESCRIPTOR from `file-notify-descriptors'.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'.
 If it is registered in `file-notify-descriptors', a stopped event is sent."
-  (when-let (watch (gethash descriptor file-notify-descriptors))
+  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     ;; Send `stopped' event.
     (unwind-protect
         (funcall
@@ -106,12 +106,12 @@ It is a form ((DESCRIPTOR ACTION FILE [FILE1-OR-COOKIE]) CALLBACK).")
 (defun file-notify--event-watched-file (event)
   "Return file or directory being watched.
 Could be different from the directory watched by the backend library."
-  (when-let (watch (gethash (car event) file-notify-descriptors))
+  (when-let* ((watch (gethash (car event) file-notify-descriptors)))
     (file-notify--watch-absolute-filename watch)))
 
 (defun file-notify--event-file-name (event)
   "Return file name of file notification event, or nil."
-  (when-let (watch (gethash (car event) file-notify-descriptors))
+  (when-let* ((watch (gethash (car event) file-notify-descriptors)))
     (directory-file-name
      (expand-file-name
       (or  (and (stringp (nth 2 event)) (nth 2 event)) "")
@@ -121,7 +121,7 @@ Could be different from the directory watched by the backend library."
 (defun file-notify--event-file1-name (event)
   "Return second file name of file notification event, or nil.
 This is available in case a file has been moved."
-  (when-let (watch (gethash (car event) file-notify-descriptors))
+  (when-let* ((watch (gethash (car event) file-notify-descriptors)))
     (and (stringp (nth 3 event))
          (directory-file-name
           (expand-file-name
@@ -188,8 +188,8 @@ EVENT is the cadr of the event in `file-notify-handle-event'
                  ((memq action '(attrib link)) 'attribute-changed)
                  ((memq action '(create added)) 'created)
                  ((memq action '(modify modified write)) 'changed)
-                 ((memq action
-                        '(delete delete-self move-self removed)) 'deleted)
+                 ((memq action '(delete delete-self move-self removed))
+		  'deleted)
                  ;; Make the event pending.
                  ((memq action '(moved-from renamed-from))
                   (setq file-notify--pending-event
@@ -307,12 +307,12 @@ FILE is the name of the file whose event is being reported."
   (unless (functionp callback)
     (signal 'wrong-type-argument `(,callback)))
 
-  (let* ((handler (find-file-name-handler file 'file-notify-add-watch))
-	 (dir (directory-file-name
-	       (if (file-directory-p file)
-		   file
-		 (file-name-directory file))))
-         desc func l-flags)
+  (let ((handler (find-file-name-handler file 'file-notify-add-watch))
+	(dir (directory-file-name
+	      (if (file-directory-p file)
+		  file
+		(file-name-directory file))))
+        desc func l-flags)
 
     (unless (file-directory-p dir)
       (signal 'file-notify-error `("Directory does not exist" ,dir)))
@@ -363,6 +363,10 @@ FILE is the name of the file whose event is being reported."
                   func (if (eq file-notify--library 'kqueue) file dir)
                   l-flags 'file-notify-callback)))
 
+    ;; We do not want to enter quoted file names into the hash.
+    (setq file (file-name-unquote file)
+          dir  (file-name-unquote dir))
+
     ;; Modify `file-notify-descriptors'.
     (let ((watch (file-notify--watch-make
                   dir
@@ -375,7 +379,7 @@ FILE is the name of the file whose event is being reported."
 (defun file-notify-rm-watch (descriptor)
   "Remove an existing watch specified by its DESCRIPTOR.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'."
-  (when-let (watch (gethash descriptor file-notify-descriptors))
+  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     (let ((handler (find-file-name-handler
                     (file-notify--watch-directory watch)
                     'file-notify-rm-watch)))
@@ -399,7 +403,7 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
 (defun file-notify-valid-p (descriptor)
   "Check a watch specified by its DESCRIPTOR.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'."
-  (when-let (watch (gethash descriptor file-notify-descriptors))
+  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     (let ((handler (find-file-name-handler
                     (file-notify--watch-directory watch)
                     'file-notify-valid-p)))

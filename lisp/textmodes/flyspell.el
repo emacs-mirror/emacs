@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -231,7 +231,7 @@ Ispell's ultimate default dictionary."
   "Non-nil means check even inside TeX math environment.
 TeX math environments are discovered by `texmathp', implemented
 inside AUCTeX package.  That package may be found at
-URL `http://www.gnu.org/software/auctex/'"
+URL `https://www.gnu.org/software/auctex/'"
   :group 'flyspell
   :type 'boolean)
 
@@ -447,7 +447,9 @@ like <img alt=\"Some thing.\">."
 ;;*    The minor mode declaration.                                      */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-mouse-map
-  (make-sparse-keymap)
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'flyspell-correct-word)
+    map)
   "Keymap for Flyspell to put on erroneous words.")
 
 (defvar flyspell-mode-map
@@ -1759,6 +1761,9 @@ for the overlay."
     (overlay-put overlay 'flyspell-overlay t)
     (overlay-put overlay 'evaporate t)
     (overlay-put overlay 'help-echo "mouse-2: correct word at point")
+    ;; If misspelled text has a 'keymap' property, let that remain in
+    ;; effect for the bindings that flyspell-mouse-map doesn't override.
+    (set-keymap-parent flyspell-mouse-map (get-char-property beg 'keymap))
     (overlay-put overlay 'keymap flyspell-mouse-map)
     (when (eq face 'flyspell-incorrect)
       (and (stringp flyspell-before-incorrect-word-string)

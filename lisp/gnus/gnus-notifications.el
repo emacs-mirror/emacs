@@ -1,6 +1,6 @@
 ;; gnus-notifications.el -- Send notification on new message in Gnus
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -154,7 +154,7 @@ This is typically a function to add in
   (dolist (entry gnus-newsrc-alist)
     (let ((group (car entry)))
       ;; Check that the group level is less than
-      ;; `gnus-notifications-minimum-level' and the the group has unread
+      ;; `gnus-notifications-minimum-level' and the group has unread
       ;; messages.
       (when (and (<= (gnus-group-level group) gnus-notifications-minimum-level)
                  (let ((unread (gnus-group-unread group)))

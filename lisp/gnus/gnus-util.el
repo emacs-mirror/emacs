@@ -1,6 +1,6 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -594,9 +594,6 @@ If N, return the Nth ancestor instead."
 	 (read-file-name "Copy file to: " default-directory)))
   (unless to
     (setq to (read-file-name "Copy file to: " default-directory)))
-  (when (file-directory-p to)
-    (setq to (concat (file-name-as-directory to)
-		     (file-name-nondirectory file))))
   (copy-file file to))
 
 (defvar gnus-work-buffer " *gnus work*")
@@ -1120,41 +1117,9 @@ ARG is passed to the first function."
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
-(defun gnus-remove-if (predicate sequence &optional hash-table-p)
-  "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
-SEQUENCE should be a list, a vector, or a string.  Returns always a list.
-If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
-  (let (out)
-    (if hash-table-p
-	(mapatoms (lambda (symbol)
-		    (unless (funcall predicate symbol)
-		      (push symbol out)))
-		  sequence)
-      (unless (listp sequence)
-	(setq sequence (append sequence nil)))
-      (while sequence
-	(unless (funcall predicate (car sequence))
-	  (push (car sequence) out))
-	(setq sequence (cdr sequence))))
-    (nreverse out)))
+(define-obsolete-function-alias 'gnus-remove-if 'seq-remove "27.1")
 
-(defun gnus-remove-if-not (predicate sequence &optional hash-table-p)
-  "Return a copy of SEQUENCE with all items not satisfying PREDICATE removed.
-SEQUENCE should be a list, a vector, or a string.  Returns always a list.
-If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
-  (let (out)
-    (if hash-table-p
-	(mapatoms (lambda (symbol)
-		    (when (funcall predicate symbol)
-		      (push symbol out)))
-		  sequence)
-      (unless (listp sequence)
-	(setq sequence (append sequence nil)))
-      (while sequence
-	(when (funcall predicate (car sequence))
-	  (push (car sequence) out))
-	(setq sequence (cdr sequence))))
-    (nreverse out)))
+(define-obsolete-function-alias 'gnus-remove-if-not 'seq-filter "27.1")
 
 (defun gnus-grep-in-list (word list)
   "Find if a WORD matches any regular expression in the given LIST."

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail
@@ -396,7 +396,6 @@ messages for later sending.  See the commentary section in the file
 @file{feedmail.el} for details.
 @end table
 
-@vindex sendmail-coding-system
   When you send a message containing non-@acronym{ASCII} characters,
 they need to be encoded with a coding system (@pxref{Coding Systems}).
 Usually the coding system is specified automatically by your chosen
@@ -405,7 +404,7 @@ explicitly specify the coding system for outgoing mail by setting the
 variable @code{sendmail-coding-system} (@pxref{Recognize Coding}).  If
 the coding system thus determined does not handle the characters in a
 particular message, Emacs asks you to select the coding system to use,
-showing a list of possible coding systems.
+showing a list of possible coding systems.  @xref{Output Coding}.
 
 @node Header Editing
 @subsection Mail Header Editing
@@ -677,8 +676,8 @@ such as MIME support.  Another available mode is MH-E
 
 @vindex mail-user-agent
   You can choose any of these @dfn{mail user agents} as your preferred
-method for editing and sending mail.  The commands @code{C-x m},
-@code{C-x 4 m} and @code{C-x 5 m} use whichever agent you have
+method for editing and sending mail.  The commands @kbd{C-x m},
+@kbd{C-x 4 m} and @kbd{C-x 5 m} use whichever agent you have
 specified; so do various other parts of Emacs that send mail, such as
 the bug reporter (@pxref{Bugs}).  To specify a mail user agent,
 customize the variable @code{mail-user-agent}.  Currently, legitimate

@@ -2,4 +2,4 @@
 \def\versionemacs{@majorversion@}           % major version of emacs
 %% This one should not be automatically updated;
 %% M-x set-copyright in admin.el handles it.
-\def\year{2017}                             % latest copyright year
+\def\year{2018}                             % latest copyright year

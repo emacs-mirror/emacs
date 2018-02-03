@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lists
@@ -1141,7 +1141,7 @@ each time you run it!  Here is what happens:
 
 @group
 (symbol-function 'add-foo)
-     @result{} (lambda (x) (nconc (quote (foo)) x))
+     @result{} (lambda (x) (nconc '(foo) x))
 @end group
 
 @group
@@ -1159,7 +1159,7 @@ each time you run it!  Here is what happens:
 
 @group
 (symbol-function 'add-foo)
-     @result{} (lambda (x) (nconc (quote (foo 1 2 3 4) x)))
+     @result{} (lambda (x) (nconc '(foo 1 2 3 4) x))
 @end group
 @end smallexample
 @end defun
@@ -1511,12 +1511,13 @@ respects.  A property list behaves like an association list in which
 each key can occur only once.  @xref{Property Lists}, for a comparison
 of property lists and association lists.
 
-@defun assoc key alist
+@defun assoc key alist &optional testfn
 This function returns the first association for @var{key} in
 @var{alist}, comparing @var{key} against the alist elements using
-@code{equal} (@pxref{Equality Predicates}).  It returns @code{nil} if no
-association in @var{alist} has a @sc{car} @code{equal} to @var{key}.
-For example:
+@var{testfn} if it is non-@code{nil} and @code{equal} otherwise
+(@pxref{Equality Predicates}).  It returns @code{nil} if no
+association in @var{alist} has a @sc{car} equal to @var{key}.  For
+example:
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))
@@ -1561,11 +1562,11 @@ this as reverse @code{assoc}, finding the key for a given value.
 @defun assq key alist
 This function is like @code{assoc} in that it returns the first
 association for @var{key} in @var{alist}, but it makes the comparison
-using @code{eq} instead of @code{equal}.  @code{assq} returns @code{nil}
-if no association in @var{alist} has a @sc{car} @code{eq} to @var{key}.
-This function is used more often than @code{assoc}, since @code{eq} is
-faster than @code{equal} and most alists use symbols as keys.
-@xref{Equality Predicates}.
+using @code{eq}.  @code{assq} returns @code{nil} if no association in
+@var{alist} has a @sc{car} @code{eq} to @var{key}.  This function is
+used more often than @code{assoc}, since @code{eq} is faster than
+@code{equal} and most alists use symbols as keys.  @xref{Equality
+Predicates}.
 
 @smallexample
 (setq trees '((pine . cones) (oak . acorns) (maple . seeds)))
@@ -1589,16 +1590,20 @@ keys may not be symbols:
 @end smallexample
 @end defun
 
-@defun alist-get key alist &optional default remove
-This function is like @code{assq}, but instead of returning the entire
-association for @var{key} in @var{alist},
-@w{@code{(@var{key} . @var{value})}}, it returns just the @var{value}.
-If @var{key} is not found in @var{alist}, it returns @var{default}.
+@defun alist-get key alist &optional default remove testfn
+This function is similar to @code{assq}.  It finds the first
+association @w{@code{(@var{key} . @var{value})}} by comparing
+@var{key} with @var{alist} elements, and, if found, returns the
+@var{value} of that association.  If no association is found, the
+function returns @var{default}.  Comparison of @var{key} against
+@var{alist} elements uses the function specified by @var{testfn},
+defaulting to @code{eq}.
 
-This is a generalized variable (@pxref{Generalized Variables}) that
-can be used to change a value with @code{setf}.  When using it to set
-a value, optional argument @var{remove} non-@code{nil} means to remove
-@var{key} from @var{alist} if the new value is @code{eql} to @var{default}.
+This is a generalized variable (@pxref{Generalized Variables})
+that can be used to change a value with @code{setf}.  When
+using it to set a value, optional argument @var{remove} non-@code{nil}
+means to remove @var{key}'s association from @var{alist} if the new
+value is @code{eql} to @var{default}.
 @end defun
 
 @defun rassq value alist
@@ -1726,6 +1731,14 @@ than looking at the saved value of @var{alist}.
 alist
      @result{} ((foo 1) (bar 2) (lose 4))
 @end example
+@end defun
+
+@defun assoc-delete-all key alist &optional test
+This function is like @code{assq-delete-all} except that it accepts
+an optional argument @var{test}, a predicate function to compare the
+keys in @var{alist}. If omitted or @code{nil}, @var{test} defaults to
+@code{equal}.  As @code{assq-delete-all}, this function often modifies
+the original list structure of @var{alist}.
 @end defun
 
 @defun rassq-delete-all value alist

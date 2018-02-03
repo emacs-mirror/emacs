@@ -1,6 +1,6 @@
 /* euidaccess -- check if effective user id can access file
 
-   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2017 Free
+   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2018 Free
    Software Foundation, Inc.
 
    This file is part of the GNU C Library.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by David MacKenzie and Torbjorn Granlund.
    Adapted for GNU C library by Roland McGrath.  */

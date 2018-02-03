@@ -297,8 +297,8 @@
 	to avoid gnulib replacement of 'struct timeval' and the resulting
 	compilation of lib/gettimeofday.c with incompatible version of
 	gettimeofday.  Related discussions on emacs-devel:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00286.html
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00361.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00286.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00361.html
 
 2013-08-31  Glenn Morris  <rgm@gnu.org>
 
@@ -373,7 +373,7 @@
 
 	* inc/sys/time.h (gettimeofday): Use '__restrict' instead of
 	'restrict', which is a C99 extension.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00588.html
+	https://lists.gnu.org/r/emacs-devel/2013-05/msg00588.html
 	and the following discussion for the problem this caused in the
 	old nt/configure.bat build.
 
@@ -524,10 +524,10 @@
 
 	Fix more incompatibilities between MinGW.org and MinGW64 headers
 	reported by Óscar Fuentes in
-	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00733.html
-	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00699.html
+	https://lists.gnu.org/r/emacs-devel/2013-03/msg00733.html
+	https://lists.gnu.org/r/emacs-devel/2013-03/msg00699.html
 	and in
-	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00707.html.
+	https://lists.gnu.org/r/emacs-devel/2013-03/msg00707.html.
 	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS) [_W64]: Define to 1.
 	For MinGW64, include sys/types.h and time.h.
 	(_WIN32_WINNT) [!_W64]: Don't define for MinGW64.
@@ -548,7 +548,7 @@
 
 	Fix incompatibilities between MinGW.org and MinGW64 headers
 	reported by Óscar Fuentes in
-	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00611.html.
+	https://lists.gnu.org/r/emacs-devel/2013-03/msg00611.html.
 	* inc/ms-w32.h (struct timespec): Don't define if
 	_TIMESPEC_DEFINED is already defined.
 	(sigset_t) [!_POSIX]: Typedef for MinGW64.
@@ -724,7 +724,7 @@
 2012-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs: Use !if, not !ifdef.  For the details, see
-	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00027.html
+	https://lists.gnu.org/r/help-emacs-windows/2012-11/msg00027.html
 
 	* inc/stdint.h (INTPTR_MIN)
 	(PTRDIFF_MIN) [!__GNUC__]: Define for MSVC.
@@ -1184,7 +1184,7 @@
 	(dist): Depend on it.
 	(install-shortcuts): Depend on install-addpm instead of copying
 	addpm.exe as part of the recipe.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00171.html
+	https://lists.gnu.org/r/emacs-devel/2012-06/msg00171.html
 	for the related problem and discussions.
 
 2012-06-11  Glenn Morris  <rgm@gnu.org>
@@ -3548,7 +3548,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-  Copyright (C) 1995-1999, 2001-2017 Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -3563,4 +3563,4 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

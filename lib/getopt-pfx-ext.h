@@ -1,22 +1,22 @@
 /* getopt (GNU extensions) gnulib wrapper header.
-   Copyright (C) 1989-2017 Free Software Foundation, Inc.
+   Copyright (C) 1989-2018 Free Software Foundation, Inc.
    This file is part of gnulib.
    Unlike most of the getopt implementation, it is NOT shared
    with the GNU C Library.
 
-   gnulib is free software; you can redistribute it and/or modify it
+   This file is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as
    published by the Free Software Foundation; either version 3 of
    the License, or (at your option) any later version.
 
-   gnulib is distributed in the hope that it will be useful, but
+   This file is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    General Public License for more details.
 
    You should have received a copy of the GNU General Public
    License along with gnulib; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _GETOPT_PFX_EXT_H
 #define _GETOPT_PFX_EXT_H 1
@@ -40,9 +40,16 @@
 # undef getopt_long
 # undef getopt_long_only
 # undef option
+# undef _getopt_internal
 # define getopt_long __GETOPT_ID (getopt_long)
 # define getopt_long_only __GETOPT_ID (getopt_long_only)
 # define option __GETOPT_ID (option)
+# define _getopt_internal __GETOPT_ID (getopt_internal)
+
+/* The system's getopt.h may have already included getopt-ext.h to
+   declare the unprefixed identifiers.  Undef _GETOPT_EXT_H so that
+   getopt-ext.h declares them with prefixes.  */
+# undef _GETOPT_EXT_H
 #endif
 
 /* Standalone applications get correct prototypes for getopt_long and

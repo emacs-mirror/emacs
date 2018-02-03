@@ -1,6 +1,6 @@
 ;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -370,7 +370,7 @@ Menu items are appended to the common grammar menu.")
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.")
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.")
 
 (defvar wisent-make-parsers--python-license
   ";; It is derived in part from the Python grammar, used under the

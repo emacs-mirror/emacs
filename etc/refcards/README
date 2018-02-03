@@ -1,4 +1,4 @@
-Copyright (C) 2013-2017 Free Software Foundation, Inc.
+Copyright (C) 2013-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -20,8 +20,8 @@ To only generate the cards for a specific language, use e.g.
 to install extra TeX packages for some languages.
 
 PDF and PS copies of these cards are also available at
-<http://www.gnu.org/software/emacs/refcards>.  The FSF online
-store <http://shop.fsf.org/> sometimes has printed copies for sale.
+<https://www.gnu.org/software/emacs/refcards>.  The FSF online
+store <https://shop.fsf.org/> sometimes has printed copies for sale.
 
 
 
@@ -32,7 +32,7 @@ it is reproduced here for convenience.
 
 File: gnus-logo.eps, gnus-logo.pdf
   Author: Luis Fernandes <elf@ee.ryerson.ca>
-  Copyright (C) 2001-2017 Free Software Foundation, Inc.
+  Copyright (C) 2001-2018 Free Software Foundation, Inc.
   License: GNU General Public License version 3 or later (see COPYING)
 
 
@@ -50,4 +50,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

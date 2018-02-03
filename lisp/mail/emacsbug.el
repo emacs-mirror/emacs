@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2017 Free Software
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -116,6 +116,71 @@ This requires either the macOS \"open\" command, or the freedesktop
 			   (concat "mailto:" to)))
 	(error "Subject, To or body not found")))))
 
+(defun report-emacs-bug--os-description ()
+  "Return a string describing the operating system, or nil."
+  (cond ((eq system-type 'darwin)
+         (let (os)
+           (with-temp-buffer
+             (when (eq 0 (ignore-errors
+                           (call-process "sw_vers" nil '(t nil) nil)))
+               (dolist (s '("ProductName" "ProductVersion"))
+                 (goto-char (point-min))
+                 (if (re-search-forward (format "^%s\\s-*:\\s-+\\(.*\\)$" s)
+                                        nil t)
+                     (setq os (concat os " " (match-string 1)))))))
+           os))
+        ;; TODO include other branches here.
+        ;; MS Windows: systeminfo ?
+        ;; Cygwin, *BSD, etc: ?
+        (t
+         (or (let ((file "/etc/os-release"))
+               (and (file-readable-p file)
+                    (with-temp-buffer
+                      (insert-file-contents file)
+                      (if (re-search-forward
+                           "^\\sw*PRETTY_NAME=\"?\\(.+?\\)\"?$" nil t)
+                          (match-string 1)
+                        (let (os)
+                          (when (re-search-forward
+                                 "^\\sw*NAME=\"?\\(.+?\\)\"?$" nil t)
+                            (setq os (match-string 1))
+                            (if (re-search-forward
+                                 "^\\sw*VERSION=\"?\\(.+?\\)\"?$" nil t)
+                                (setq os (concat os " " (match-string 1))))
+                            os))))))
+             (with-temp-buffer
+               (when (eq 0 (ignore-errors
+                             (call-process "lsb_release" nil '(t nil)
+                                           nil "-d")))
+                 (goto-char (point-min))
+                 (if (looking-at "^\\sw+:\\s-+")
+                     (goto-char (match-end 0)))
+                 (buffer-substring (point) (line-end-position))))
+             (let ((file "/etc/lsb-release"))
+               (and (file-readable-p file)
+                    (with-temp-buffer
+                      (insert-file-contents file)
+                      (if (re-search-forward
+                           "^\\sw*DISTRIB_DESCRIPTION=\"?\\(.*release.*?\\)\"?$" nil t)
+                          (match-string 1)))))
+             (catch 'found
+               (dolist (f (append (file-expand-wildcards "/etc/*-release")
+                                  '("/etc/debian_version")))
+                 (and (not (member (file-name-nondirectory f)
+                                   '("lsb-release" "os-release")))
+                      (file-readable-p f)
+                      (with-temp-buffer
+                        (insert-file-contents f)
+                        (if (not (zerop (buffer-size)))
+                            (throw 'found
+                                   (format "%s%s"
+                                           (if (equal (file-name-nondirectory f)
+                                                      "debian_version")
+                                               "Debian " "")
+                                           (buffer-substring
+                                            (line-beginning-position)
+                                            (line-end-position)))))))))))))
+
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")
 (autoload 'message-make-address "message")
@@ -179,7 +244,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
+		   (browse-url "https://lists.gnu.org/r/bug-gnu-emacs/"))
 	 'follow-link t)
 	(insert " mailing list\nand the GNU bug tracker at ")
 	(insert-text-button
@@ -187,7 +252,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "http://debbugs.gnu.org/"))
+		   (browse-url "https://debbugs.gnu.org/"))
 	 'follow-link t)
 
 	(insert ".  Please check that
@@ -232,13 +297,9 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
-    (let ((lsb (with-temp-buffer
-		 (if (eq 0 (ignore-errors
-			     (call-process "lsb_release" nil '(t nil)
-					   nil "-d")))
-		     (buffer-string)))))
-      (if (stringp lsb)
-	  (insert "System " lsb "\n")))
+    (let ((os (ignore-errors (report-emacs-bug--os-description))))
+      (if (stringp os)
+          (insert "System Description: " os "\n\n")))
     (let ((message-buf (get-buffer "*Messages*")))
       (if message-buf
 	  (let (beg-pos
@@ -267,11 +328,6 @@ usually do not have translators for other languages.\n\n")))
        "LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
-    ;; Only ~ 0.2% of people from a sample of 3200 changed this from
-    ;; the default, t.
-    (or (default-value 'enable-multibyte-characters)
-	(insert (format "  default enable-multibyte-characters: %s\n"
-			(default-value 'enable-multibyte-characters))))
     (insert "\n")
     (insert (format "Major mode: %s\n"
 		    (format-mode-line

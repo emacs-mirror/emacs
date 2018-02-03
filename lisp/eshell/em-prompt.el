@@ -1,6 +1,6 @@
 ;;; em-prompt.el --- command prompts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -80,7 +80,6 @@ re-entered for it to take effect."
 For highlighting other kinds of strings -- similar to shell mode's
 behavior -- simply use an output filer which changes text properties."
   :group 'eshell-prompt)
-(define-obsolete-face-alias 'eshell-prompt-face 'eshell-prompt "22.1")
 
 (defcustom eshell-before-prompt-hook nil
   "A list of functions to call before outputting the prompt."
@@ -117,6 +116,8 @@ arriving, or after."
 
 (defun eshell-emit-prompt ()
   "Emit a prompt if eshell is being used interactively."
+  (when (boundp 'ansi-color-context-region)
+    (setq ansi-color-context-region nil))
   (run-hooks 'eshell-before-prompt-hook)
   (if (not eshell-prompt-function)
       (set-marker eshell-last-output-end (point))
@@ -159,14 +160,25 @@ If N is negative, find the previous or Nth previous match."
   "Move to end of Nth next prompt in the buffer.
 See `eshell-prompt-regexp'."
   (interactive "p")
-  (forward-paragraph n)
+  (if eshell-highlight-prompt
+      (progn
+        (while (< n 0)
+          (while (and (re-search-backward eshell-prompt-regexp nil t)
+                      (not (get-text-property (match-beginning 0) 'read-only))))
+          (setq n (1+ n)))
+        (while (> n 0)
+          (while (and (re-search-forward eshell-prompt-regexp nil t)
+                      (not (get-text-property (match-beginning 0) 'read-only))))
+          (setq n (1- n))))
+    (re-search-forward eshell-prompt-regexp nil t n))
   (eshell-skip-prompt))
 
 (defun eshell-previous-prompt (n)
   "Move to end of Nth previous prompt in the buffer.
 See `eshell-prompt-regexp'."
   (interactive "p")
-  (eshell-next-prompt (- (1+ n))))
+  (beginning-of-line)            ; Don't count prompt on current line.
+  (eshell-next-prompt (- n)))
 
 (defun eshell-skip-prompt ()
   "Skip past the text matching regexp `eshell-prompt-regexp'.

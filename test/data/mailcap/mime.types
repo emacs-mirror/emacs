@@ -1,0 +1,5 @@
+# this is a comment
+
+audio/ogg			opus
+audio/flac			flac
+audio/x-wav			wav

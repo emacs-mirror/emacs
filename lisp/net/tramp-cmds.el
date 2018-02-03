@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
 (defvar reporter-eval-buffer)
 (defvar reporter-prompt-for-summary-p)
 
-;;;###autoload
+;;;###tramp-autoload
 (defun tramp-change-syntax (&optional syntax)
   "Change Tramp syntax.
 SYNTAX can be one of the symbols `default' (default),
@@ -49,7 +49,7 @@ SYNTAX can be one of the symbols `default' (default),
      (unless (string-equal input "")
        (list (intern input)))))
   (when syntax
-    (custom-set-variables `(tramp-syntax ',syntax))))
+    (customize-set-variable 'tramp-syntax syntax)))
 
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
@@ -80,14 +80,7 @@ When called interactively, a Tramp connection has to be selected."
    ;; Return nil when there is no Tramp connection.
    (list
     (let ((connections
-	   (mapcar
-	    (lambda (x)
-	      (tramp-make-tramp-file-name
-	       (tramp-file-name-method x)
-	       (tramp-file-name-user x)
-	       (tramp-file-name-host x)
-	       (tramp-file-name-localname x)))
-	    (tramp-list-connections)))
+	   (mapcar 'tramp-make-tramp-file-name (tramp-list-connections)))
 	  name)
 
       (when connections
@@ -111,13 +104,13 @@ When called interactively, a Tramp connection has to be selected."
     (when keep-password (setq tramp-current-connection nil))
 
     ;; Flush file cache.
-    (tramp-flush-directory-property vec "")
+    (tramp-flush-directory-properties vec "")
 
     ;; Flush connection cache.
     (when (processp (tramp-get-connection-process vec))
-      (tramp-flush-connection-property (tramp-get-connection-process vec))
+      (tramp-flush-connection-properties (tramp-get-connection-process vec))
       (delete-process (tramp-get-connection-process vec)))
-    (tramp-flush-connection-property vec)
+    (tramp-flush-connection-properties vec)
 
     ;; Remove buffers.
     (dolist
@@ -149,6 +142,9 @@ This includes password cache, file cache, connection cache, buffers."
 
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
+
+  ;; Cleanup local copies of archives.
+  (tramp-archive-cleanup-hash)
 
   ;; Remove buffers.
   (dolist (name (tramp-list-tramp-buffers))
@@ -247,10 +243,9 @@ buffer in your bug report.
 	;; Pretty print the cache.
 	(set varsym (read (format "(%s)" (tramp-cache-print val))))
       ;; There are non-7bit characters to be masked.
-      (when (and (boundp 'mm-7bit-chars)
-		 (stringp val)
+      (when (and (stringp val)
 		 (string-match
-		  (concat "[^" (symbol-value 'mm-7bit-chars) "]") val))
+		  (concat "[^" (bound-and-true-p mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
 	  (set
 	   varsym
@@ -327,8 +322,7 @@ buffer in your bug report.
   ;; Append buffers only when we are in message mode.
   (when (and
 	 (eq major-mode 'message-mode)
-	 (boundp 'mml-mode)
-	 (symbol-value 'mml-mode))
+	 (bound-and-true-p mml-mode))
 
     (let ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
 	  (buffer-list (tramp-list-tramp-buffers))

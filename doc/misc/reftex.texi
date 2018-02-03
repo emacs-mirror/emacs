@@ -31,8 +31,8 @@ Con@TeX{}t
 @include emacsver.texi
 
 @set VERSION @value{EMACSVER}
-@set AUCTEXSITE @uref{http://www.gnu.org/software/auctex/,@AUCTeX{} web site}
-@set MAINTAINERSITE @uref{http://www.gnu.org/software/auctex/reftex.html,@RefTeX{} web page}
+@set AUCTEXSITE @uref{https://www.gnu.org/software/auctex/,@AUCTeX{} web site}
+@set MAINTAINERSITE @uref{https://www.gnu.org/software/auctex/reftex.html,@RefTeX{} web page}
 @set MAINTAINERCONTACT @uref{mailto:auctex-devel@@gnu.org,contact the maintainers}
 @set MAINTAINER the @AUCTeX{} project
 @set SUPPORTADDRESS @AUCTeX{} user mailing list (@email{auctex@@gnu.org})
@@ -46,7 +46,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

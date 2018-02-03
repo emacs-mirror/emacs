@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -22,18 +22,18 @@ are also often useful for editing programs.
 the file contains ordinary text, use Text mode, which customizes Emacs
 in small ways for the syntactic conventions of text.  Outline mode
 provides special commands for operating on text with an outline
-structure.  Org mode extends Outline mode and turn Emacs into a
-full-fledged organizer: you can manage TODO lists, store notes and
-publish them in many formats.
+structure.  @xref{Outline Mode}.
 
-@iftex
-@xref{Outline Mode}.
-@end iftex
+  Org mode extends Outline mode and turns Emacs into a full-fledged
+organizer: you can manage TODO lists, store notes and publish them in
+many formats.
+@ifinfo
+@xref{Top, The Org Manual,,org, The Org Manual}.
+@end ifinfo
+@ifnotinfo
+See the Org Info manual, which is distributed with Emacs.
+@end ifnotinfo
 
-@cindex nXML mode
-@cindex mode, XML
-@cindex mode, nXML
-@findex nxml-mode
   Emacs has other major modes for text which contains embedded
 commands, such as @TeX{} and @LaTeX{} (@pxref{TeX Mode}); HTML and
 SGML (@pxref{HTML Mode}); XML
@@ -101,7 +101,7 @@ Kill up to the end of a word (@code{kill-word}).
 @item M-@key{DEL}
 Kill back to the beginning of a word (@code{backward-kill-word}).
 @item M-@@
-Mark the end of the next word (@code{mark-word}).
+Set mark at the end of the next word (@code{mark-word}).
 @item M-t
 Transpose two words or drag a word across others
 (@code{transpose-words}).
@@ -156,7 +156,6 @@ the words do not move.  For example, @w{@samp{FOO, BAR}} transposes into
 more on transposition.
 
 @kindex M-@@
-@findex mark-word
   To operate on words with an operation which acts on the region, use
 the command @kbd{M-@@} (@code{mark-word}).  This command sets the mark
 where @kbd{M-f} would move to.  @xref{Marking Objects}, for more
@@ -275,8 +274,9 @@ Put point and mark around this or next paragraph (@code{mark-paragraph}).
 @findex backward-paragraph
 @findex forward-paragraph
   @kbd{M-@{} (@code{backward-paragraph}) moves to the beginning of the
-current or previous paragraph (see below for the definition of a
-paragraph).  @kbd{M-@}} (@code{forward-paragraph}) moves to the end of
+current or previous paragraph, depending on where point is when the
+command is invoked (see below for the definition of a paragraph).
+@kbd{M-@}} (@code{forward-paragraph}) similarly moves to the end of
 the current or next paragraph.  If there is a blank line before the
 paragraph, @kbd{M-@{} moves to the blank line.
 
@@ -323,6 +323,12 @@ that start a new paragraph and are contained in it must match only
 @code{paragraph-start}, not @code{paragraph-separate}.  For example,
 in Fundamental mode, @code{paragraph-start} is @w{@code{"\f\\|[
 \t]*$"}}, and @code{paragraph-separate} is @w{@code{"[ \t\f]*$"}}.
+
+  Note that @code{paragraph-start} and @code{paragraph-separate} are
+matched against the text at the left margin, which is not necessarily
+the beginning of the line, so these regexps should not use @samp{^} as
+an anchor, to ensure that the paragraph functions will work equally
+within a region of text indented by a margin setting.
 
 @node Pages
 @section Pages
@@ -376,12 +382,13 @@ at the end).
   @kbd{C-x C-p C-w} is a handy way to kill a page to move it
 elsewhere.  If you move to another page delimiter with @kbd{C-x [} and
 @kbd{C-x ]}, then yank the killed page, all the pages will be properly
-delimited once again.  The reason @kbd{C-x C-p} includes only the
-following page delimiter in the region is to ensure that.
+delimited once again.  Making sure this works as expected is the
+reason @kbd{C-x C-p} includes only the following page delimiter in the
+region.
 
   A numeric argument to @kbd{C-x C-p} specifies which page to go to,
-relative to the current one.  Zero means the current page, one
-the next page, and @minus{}1 the previous one.
+relative to the current one.  Zero means the current page, one means
+the next page, and @minus{}1 means the previous one.
 
 @kindex C-x l
 @findex count-lines-page
@@ -414,22 +421,31 @@ beginning of a line.
 @cindex curved quotes
 @cindex guillemets
 @findex electric-quote-mode
+@c The funny quoting below is to make the printed version look
+@c correct.  FIXME.
   One common way to quote is the typewriter convention, which quotes
 using straight apostrophes @t{'like this'} or double-quotes @t{"like
 this"}.  Another common way is the curved quote convention, which uses
-left and right single or double quotation marks @t{‘like this’} or
-@t{“like this”}.  In text files, typewriter quotes are simple and
+left and right single or double quotation marks `@t{like this}' or
+``@t{like this}''@footnote{
+The curved single quote characters are U+2018 LEFT SINGLE QUOTATION
+MARK and U+2018 RIGHT SINGLE QUOTATION MARK; the curved double quotes
+are U+201C LEFT DOUBLE QUOTATION MARK and U+201D RIGHT DOUBLE
+QUOTATION MARK.  On text terminals which cannot display these
+characters, the Info reader might show them as the typewriter ASCII
+quote characters.
+}.  In text files, typewriter quotes are simple and
 portable; curved quotes are less ambiguous and typically look nicer.
 
 @vindex electric-quote-chars
   Electric Quote mode makes it easier to type curved quotes.  As you
-type characters it optionally converts @t{`} to @t{‘}, @t{'} to @t{’},
-@t{``} to @t{“}, and @t{''} to @t{”}.  It's possible to change the
+type characters it optionally converts @t{`} to ‘, @t{'} to ',
+@t{``} to ``, and @t{''} to ''.  It's possible to change the
 default quotes listed above, by customizing the variable
 @code{electric-quote-chars}, a list of four characters, where the
 items correspond to the left single quote, the right single quote, the
 left double quote and the right double quote, respectively, whose
-default value is @code{'(?‘ ?’ ?“ ?”)}.
+default value is @code{'(?@r{`} ?@r{'} ?@r{``} ?@r{''})}.
 
 @vindex electric-quote-paragraph
 @vindex electric-quote-comment
@@ -443,13 +459,21 @@ non-@code{nil}, and in programming-language strings if
 @code{nil} for @code{electric-quote-string} and @code{t} for the other
 variables.
 
-  Electric Quote mode is disabled by default.  To toggle it, type
-@kbd{M-x electric-quote-mode}.  To toggle it in a single buffer, use
-@kbd{M-x electric-quote-local-mode}.  To suppress it for a single use,
+@vindex electric-quote-replace-double
+  You can also set the option @code{electric-quote-replace-double} to
+a non-@code{nil} value.  Then, typing @t{"} insert an appropriate
+curved double quote depending on context: @t{“} at the beginning of
+the buffer or after a line break, whitespace, opening parenthesis, or
+quote character, and @t{”} otherwise.
+
+  Electric Quote mode is disabled by default.  To toggle it in a
+single buffer, use @kbd{M-x electric-quote-local-mode}.
+To toggle it globally, type
+@kbd{M-x electric-quote-mode}.  To suppress it for a single use,
 type @kbd{C-q `} or @kbd{C-q '} instead of @kbd{`} or @kbd{'}.  To
 insert a curved quote even when Electric Quote is disabled or
 inactive, you can type @kbd{C-x 8 [} for @t{‘}, @kbd{C-x 8 ]} for
-@t{’}, @kbd{C-x 8 @{} for @t{“}, and @kbd{C-x 8 @}} for @t{”}.
+@t{’}, @kbd{C-x 8 @{} for ``, and @kbd{C-x 8 @}} for ''.
 @xref{Inserting Text}.  Note that the value of
 @code{electric-quote-chars} does not affect these keybindings, they
 are not keybindings of @code{electric-quote-mode} but bound in
@@ -478,8 +502,8 @@ text.
 @cindex mode, Auto Fill
 
   @dfn{Auto Fill} mode is a buffer-local minor mode (@pxref{Minor
-Modes}) in which lines are broken automatically when they become too
-wide.  Breaking happens only when you type a @key{SPC} or @key{RET}.
+Modes}) in which lines are broken automatically at spaces when the
+line becomes too wide.
 
 @table @kbd
 @item M-x auto-fill-mode
@@ -491,14 +515,12 @@ In Auto Fill mode, break lines when appropriate.
 
 @findex auto-fill-mode
   The mode command @kbd{M-x auto-fill-mode} toggles Auto Fill mode in
-the current buffer.  With a positive numeric argument, it enables Auto
-Fill mode, and with a negative argument it disables it.  If
-@code{auto-fill-mode} is called from Lisp with an omitted or
-@code{nil} argument, it enables Auto Fill mode.  To enable Auto Fill
-mode automatically in certain major modes, add @code{auto-fill-mode}
-to the mode hooks (@pxref{Major Modes}).  When Auto Fill mode is
-enabled, the mode indicator @samp{Fill} appears in the mode line
-(@pxref{Mode Line}).
+the current buffer.  Like any other minor mode, with a positive
+numeric argument, it enables Auto Fill mode, and with a negative
+argument it disables it.  To enable Auto Fill mode automatically in
+certain major modes, add @code{auto-fill-mode} to the mode hooks
+(@pxref{Major Modes}).  When Auto Fill mode is enabled, the mode
+indicator @samp{Fill} appears in the mode line (@pxref{Mode Line}).
 
   Auto Fill mode breaks lines automatically at spaces whenever they
 get longer than the desired width.  This line breaking occurs only
@@ -616,8 +638,11 @@ line.  If a function returns a non-@code{nil} value, Emacs will not
 break the line there.  Functions you can use there include:
 @code{fill-single-word-nobreak-p} (don't break after the first word of
 a sentence or before the last); @code{fill-single-char-nobreak-p}
-(don't break after a one-letter word); and @code{fill-french-nobreak-p}
-(don't break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
+(don't break after a one-letter word preceded by a whitespace
+character); @code{fill-french-nobreak-p} (don't break after @samp{(}
+or before @samp{)}, @samp{:} or @samp{?}); and
+@code{fill-polish-nobreak-p} (don't break after a one letter word,
+even if preceded by a non-whitespace character).
 
 @node Fill Prefix
 @subsection The Fill Prefix
@@ -1036,42 +1061,36 @@ forward to heading lines.
 
 @table @kbd
 @item C-c C-n
+@findex outline-next-visible-heading
+@kindex C-c C-n @r{(Outline mode)}
 Move point to the next visible heading line
 (@code{outline-next-visible-heading}).
 @item C-c C-p
+@findex outline-previous-visible-heading
+@kindex C-c C-p @r{(Outline mode)}
 Move point to the previous visible heading line
 (@code{outline-previous-visible-heading}).
 @item C-c C-f
+@findex outline-forward-same-level
+@kindex C-c C-f @r{(Outline mode)}
 Move point to the next visible heading line at the same level
 as the one point is on (@code{outline-forward-same-level}).
 @item C-c C-b
+@findex outline-backward-same-level
+@kindex C-c C-b @r{(Outline mode)}
 Move point to the previous visible heading line at the same level
 (@code{outline-backward-same-level}).
 @item C-c C-u
+@findex outline-up-heading
+@kindex C-c C-u @r{(Outline mode)}
 Move point up to a lower-level (more inclusive) visible heading line
 (@code{outline-up-heading}).
 @end table
 
-@findex outline-next-visible-heading
-@findex outline-previous-visible-heading
-@kindex C-c C-n @r{(Outline mode)}
-@kindex C-c C-p @r{(Outline mode)}
-  @kbd{C-c C-n} (@code{outline-next-visible-heading}) moves down to
-the next heading line.  @kbd{C-c C-p}
-(@code{outline-previous-visible-heading}) moves similarly backward.
-Both accept numeric arguments as repeat counts.
-
-@findex outline-up-heading
-@findex outline-forward-same-level
-@findex outline-backward-same-level
-@kindex C-c C-f @r{(Outline mode)}
-@kindex C-c C-b @r{(Outline mode)}
-@kindex C-c C-u @r{(Outline mode)}
-  @kbd{C-c C-f} (@code{outline-forward-same-level}) and @kbd{C-c C-b}
-(@code{outline-backward-same-level}) move from one heading line to
-another visible heading at the same depth in the outline.  @kbd{C-c
-C-u} (@code{outline-up-heading}) moves backward to another heading
-that is less deeply nested.
+  All of the above commands accept numeric arguments as repeat counts.
+For example, @kbd{C-c C-f}, when given an argument, moves forward that
+many visible heading lines on the same level, and @kbd{C-c C-u} with
+an argument moves out of that many nested levels.
 
 @node Outline Visibility
 @subsection Outline Visibility Commands
@@ -1329,8 +1348,8 @@ automatically by putting the following in your init file:
 @section Org Mode
 @cindex organizer
 @cindex planner
-@findex Org mode
-@findex mode, Org
+@cindex Org mode
+@cindex mode, Org
 
 @findex org-mode
   Org mode is a variant of Outline mode for using Emacs as an
@@ -1429,7 +1448,7 @@ org-agenda}.  This command prompts for what you want to see: a list of
 things to do this week, a list of TODO items with specific keywords,
 etc.
 @ifnottex
-@xref{Agenda Views,,,org, The Org Manual}, for details.
+@xref{Agenda views,,,org, The Org Manual}, for details.
 @end ifnottex
 
 @node Org Authoring
@@ -1725,9 +1744,9 @@ C-p} (@code{tex-print}) to print a hardcopy of the output file.
 @vindex tex-directory
   By default, @kbd{C-c C-b} runs @TeX{} in the current directory.  The
 output of @TeX{} also goes in this directory.  To run @TeX{} in a
-different directory, change the variable @code{tex-directory} to the
-desired directory name.  If your environment variable @env{TEXINPUTS}
-contains relative directory names, or if your files contains
+different directory, change the variable @code{tex-directory} to
+the desired directory.  If your environment variable @env{TEXINPUTS}
+contains relative names, or if your files contains
 @samp{\input} commands with relative file names, then
 @code{tex-directory} @emph{must} be @code{"."} or you will get the
 wrong results.  Otherwise, it is safe to specify some other directory,
@@ -1994,6 +2013,7 @@ used as a cheap preview (@code{sgml-tags-invisible}).
 
 @cindex nXML mode
 @cindex mode, nXML
+@cindex mode, XML
 @findex nxml-mode
 @cindex XML schema
   The major mode for editing XML documents is called nXML mode.  This
@@ -2398,6 +2418,23 @@ these special properties from the text in the region.
 
   The @code{invisible} and @code{intangible} properties are not saved.
 
+@vindex enriched-allow-eval-in-display-props
+@cindex security, when displaying enriched text
+  Enriched mode also supports saving and restoring @code{display}
+properties (@pxref{Display Property,,,elisp, the Emacs Lisp Reference
+Manual}), which affect how text is displayed on the screen, and also
+allow displaying images and strings that come from sources other than
+buffer text.  The @code{display} properties also support execution of
+arbitrary Lisp forms as part of processing the property for display,
+thus providing a means to dynamically tailor the display to some
+conditions that can only be known at display time.  Since execution of
+arbitrary Lisp opens Emacs to potential attacks, especially when the
+source of enriched text is outside of Emacs or even outside of your
+system (e.g., if it was received in an email message), such execution
+is by default disabled in Enriched mode.  You can enable it by
+customizing the variable @code{enriched-allow-eval-in-display-props}
+to a non-@code{nil} value.
+
 @node Text Based Tables
 @section Editing Text-based Tables
 @cindex table mode
@@ -2790,9 +2827,14 @@ high, the table is 67 characters wide and 16 lines high with 2 columns
 and 3 rows, and a total of 5 cells.
 
 @findex table-insert-sequence
-  @kbd{M-x table-insert-sequence} inserts a string into each cell.
-Each string is a part of a sequence i.e., a series of increasing
-integer numbers.
+  @kbd{M-x table-insert-sequence} traverses the cells of a table
+inserting a sequence of text strings into each cell as it goes.  It
+asks for the base string of the sequence, and then produces the
+sequence by ``incrementing'' the base string, either numerically (if
+the base string ends in numerical characters) or in the
+@acronym{ASCII} order.  In addition to the base string, the command
+prompts for the number of elements in the sequence, the increment, the
+cell interval, and the justification of the text in each cell.
 
 @cindex table for HTML and LaTeX
 @findex table-generate-source

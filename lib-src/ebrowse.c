@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2017 Free Software Foundation, Inc.
+Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,25 +15,25 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
 
+#include <flexmember.h>
+#include <min-max.h>
+#include <unlocked-io.h>
+
 /* The SunOS compiler doesn't have SEEK_END.  */
 #ifndef SEEK_END
 #define SEEK_END 2
 #endif
-
-#include <flexmember.h>
-#include <min-max.h>
 
 /* Files are read in chunks of this number of bytes.  */
 
@@ -3059,8 +3059,7 @@ class_definition (struct sym *containing, int tag, int flags, int nested)
                  MATCH until we see something like `;' or `{'.  */
               while (!LOOKING_AT3 (';', YYEOF, '{'))
                 MATCH ();
-	      done = 1;
-
+	      FALLTHROUGH;
             case '{':
               done = 1;
 	      break;
@@ -3184,7 +3183,7 @@ declaration (int flags)
 	      free (id);
 	      return;
 	    }
-
+	  FALLTHROUGH;
         case '=':
           /* Assumed to be the start of an initialization in this
 	     context.  */

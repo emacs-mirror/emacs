@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Screen
@@ -18,7 +18,7 @@ frames if you wish (@pxref{Frames}).
   Each frame consists of several distinct regions.  At the top of the
 frame is a @dfn{menu bar}, which allows you to access commands via a
 series of menus.  On a graphical display, directly below the menu bar
-is a @dfn{tool bar}, a row of icons that perform editing commands if
+is a @dfn{tool bar}, a row of icons that perform editing commands when
 you click on them.  At the very bottom of the frame is an @dfn{echo
 area}, where informative messages are displayed and where you enter
 information when Emacs asks for it.
@@ -149,7 +149,6 @@ message line is added at the end.
   @xref{Display Custom}, for options that control how Emacs uses the
 echo area.
 
-@cindex minibuffer
   The echo area is also used to display the @dfn{minibuffer}, a
 special window where you can input arguments to commands, such as the
 name of a file to be edited.  When the minibuffer is in use, the text
@@ -229,8 +228,8 @@ modified, it shows two stars (@samp{**}).  For a read-only buffer, it
 shows @samp{%*} if the buffer is modified, and @samp{%%} otherwise.
 
   The character after @var{ch} is normally a dash (@samp{-}).
-However, if the default-directory for the current buffer is on a
-remote machine (@pxref{File Names}), @samp{@@} is displayed instead.
+However, if @code{default-directory} (@pxref{File Names}) for the
+current buffer is on a remote machine, @samp{@@} is displayed instead.
 
   @var{fr} gives the selected frame name (@pxref{Frames}).  It appears
 only on text terminals.  The initial frame's name is @samp{F1}.
@@ -280,7 +279,10 @@ the mode line of every window.  @xref{Recursive Edit}.
   You can change the appearance of the mode line as well as the format
 of its contents.  @xref{Optional Mode Line}.  In addition, the mode
 line is mouse-sensitive; clicking on different parts of the mode line
-performs various commands.  @xref{Mode Line Mouse}.
+performs various commands.  @xref{Mode Line Mouse}.  Also, hovering
+the mouse pointer above mouse-sensitive portions of the mode line
+shows tooltips (@pxref{Tooltips}) with information about commands you
+can invoke by clicking on the mode line.
 
 @node Menu Bar
 @section The Menu Bar
@@ -297,22 +299,23 @@ at the end of a menu item means that the command will prompt you for
 further input before it actually does anything.
 
   Some of the commands in the menu bar have ordinary key bindings as
-well; if so, a key binding is shown in parentheses after the item
-itself.  To view the full command name and documentation for a menu
-item, type @kbd{C-h k}, and then select the menu bar with the mouse in
-the usual way (@pxref{Key Help}).
+well; if so, a key binding is shown after the item itself.  To view
+the full command name and documentation for a menu item, type
+@kbd{C-h k}, and then select the menu bar with the mouse in the usual
+way (@pxref{Key Help}).
 
 @kindex F10
 @findex menu-bar-open
 @cindex menu bar access using keyboard
   Instead of using the mouse, you can also invoke the first menu bar
 item by pressing @key{F10} (to run the command @code{menu-bar-open}).
-You can then navigate the menus with the arrow keys.  To activate a
-selected menu item, press @key{RET}; to cancel menu navigation, press
-@kbd{C-g} or @kbd{@key{ESC} @key{ESC} @key{ESC}}.  (However, note that
-when Emacs was built with a GUI toolkit, the menus are drawn and
-controlled by the toolkit, and the key sequences to cancel menu
-navigation might be different from the above description.)
+You can then navigate the menus with the arrow keys or with @kbd{C-b},
+@kbd{C-f} (left/right), @kbd{C-p}, and @kbd{C-n} (up/down).  To
+activate a selected menu item, press @key{RET}; to cancel menu
+navigation, press @kbd{C-g} or @kbd{@key{ESC} @key{ESC} @key{ESC}}.
+(However, note that when Emacs was built with a GUI toolkit, the menus
+are drawn and controlled by the toolkit, and the key sequences to
+cancel menu navigation might be different from the above description.)
 
 @kindex M-`
 @findex tmm-menubar

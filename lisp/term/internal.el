@@ -1,6 +1,6 @@
 ;;; internal.el --- support for PC internal terminal
 
-;; Copyright (C) 1993-1994, 1998-1999, 2001-2017 Free Software
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -595,8 +595,7 @@ list.  You can (and should) also run it if and when the value of
     (set-selection-coding-system coding-dos)
     (IT-setup-unicode-display coding-unix)
     (prefer-coding-system coding-dos)
-    (and (default-value 'enable-multibyte-characters)
-	 (setq unibyte-display-via-language-environment t))
+    (setq unibyte-display-via-language-environment t)
     ;; Some codepages have sporadic support for Latin-1, Greek, and
     ;; symbol glyphs, which don't belong to their native character
     ;; set.  It's a nuisance to have all those glyphs here, for all

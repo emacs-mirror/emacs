@@ -1,6 +1,6 @@
 ;;; mh-search  ---  MH-Search mode
 
-;; Copyright (C) 1993, 1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1416,7 +1416,7 @@ being the list of messages originally from that folder."
     (when cur-msg (mh-goto-msg cur-msg t t))
     (set-buffer-modified-p old-buffer-modified-flag)))
 
-(mh-require 'which-func nil t)
+(eval-and-compile (mh-require 'which-func nil t))
 
 ;; Shush compiler.
 (defvar which-func-mode)                ; < Emacs 22, XEmacs
@@ -1517,8 +1517,8 @@ construct the base name."
     (setq string (mh-replace-string "-lbrace" " "))
     (setq string (mh-replace-string "-rbrace" " "))
     (setq string (mh-replace-string "-search" " "))
-    (subst-char-in-region (point-min) (point-max) ?( ?  t)
-    (subst-char-in-region (point-min) (point-max) ?) ?  t)
+    (subst-char-in-region (point-min) (point-max) ?\( ?  t)
+    (subst-char-in-region (point-min) (point-max) ?\) ?  t)
     (subst-char-in-region (point-min) (point-max) ?- ?  t)
     (goto-char (point-min))
     (while (and (not (eobp)) (memq (char-after) '(?  ?\t ?\n ?\r ?_)))

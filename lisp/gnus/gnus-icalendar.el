@@ -1,6 +1,6 @@
 ;;; gnus-icalendar.el --- reply to iCalendar meeting requests
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; Author: Jan Tatarik <Jan.Tatarik@gmail.com>
 ;; Keywords: mail, icalendar, org
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -169,7 +169,7 @@
 
 (defun gnus-icalendar-event--get-attendee-names (ical)
   (let* ((event (car (icalendar--all-events ical)))
-         (attendee-props (gnus-remove-if-not
+         (attendee-props (seq-filter
                           (lambda (p) (eq (car p) 'ATTENDEE))
                           (caddr event))))
 
@@ -180,7 +180,7 @@
 	  (or (plist-get (cadr prop) 'CN)
 	      (replace-regexp-in-string "^.*MAILTO:" "" (caddr prop))))
 	 (attendees-by-type (type)
-			    (gnus-remove-if-not
+			    (seq-filter
 			     (lambda (p) (string= (attendee-role p) type))
 			     attendee-props))
 	 (attendee-names-by-type

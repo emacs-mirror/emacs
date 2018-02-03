@@ -1,7 +1,7 @@
 # acl.m4 - check for access control list (ACL) primitives
 # serial 22
 
-# Copyright (C) 2002, 2004-2017 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2004-2018 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.

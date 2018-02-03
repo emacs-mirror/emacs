@@ -1,6 +1,6 @@
-;;; ange-ftp.el --- transparent FTP support for GNU Emacs
+;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1996, 1998, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1989-1996, 1998, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -530,33 +530,8 @@
 ;;     to fix its files hashtable.  A cookie to anyone who can think of a
 ;;     fast, sure-fire way to recognize ULTRIX over ftp.
 
-;; If you find any bugs or problems with this package, PLEASE either e-mail
-;; the above author, or send a message to the ange-ftp-lovers mailing list
-;; below.  Ideas and constructive comments are especially welcome.
-
-;; ange-ftp-lovers:
-;;
-;; ange-ftp has its own mailing list modestly called ange-ftp-lovers.  All
-;; users of ange-ftp are welcome to subscribe (see below) and to discuss
-;; aspects of ange-ftp.  New versions of ange-ftp are posted periodically to
-;; the mailing list.
-
-;; To [un]subscribe to ange-ftp-lovers, or to report mailer problems with the
-;; list, please mail one of the following addresses:
-;;
-;;     ange-ftp-lovers-request@hplb.hpl.hp.com
-;;
-;; Please don't forget the -request part.
-;;
-;; For mail to be posted directly to ange-ftp-lovers, send to one of the
-;; following addresses:
-;;
-;;     ange-ftp-lovers@hplb.hpl.hp.com
-;;
-;; Alternatively, there is a mailing list that only gets announcements of new
-;; ange-ftp releases.  This is called ange-ftp-lovers-announce, and can be
-;; subscribed to by e-mailing to the -request address as above.  Please make
-;; it clear in the request which mailing list you wish to join.
+;; If you find any bugs or problems with this package, PLEASE report a
+;; bug to the Emacs maintainers via M-x report-emacs-bug.
 
 ;; -----------------------------------------------------------
 ;; Technical information on this package:
@@ -714,10 +689,17 @@ parenthesized expressions in REGEXP for the components (in that order)."
 ;; authentication methods (typically) at connection establishment. Non
 ;; security-aware FTP servers should respond to this with a 500 code,
 ;; which we ignore.
+
+;; Further messages are needed to support ftp-ssl.
 (defcustom ange-ftp-skip-msgs
   (concat "^200 \\(PORT\\|Port\\) \\|^331 \\|^150 \\|^350 \\|^[0-9]+ bytes \\|"
 	  "^Connected \\|^$\\|^Remote system\\|^Using\\|^ \\|Password:\\|"
 	  "^Data connection \\|"
+          "^200 PBSZ\\|" "^200 Protection set to Private\\|"
+          "^234 AUTH TLS successful\\|"
+          "^SSL not available\\|"
+	  "^\\[SSL Cipher .+\\]\\|"
+	  "^\\[Encrypted data transfer\\.\\]\\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
           "^500 This security scheme is not implemented\\|"
@@ -727,7 +709,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT\\|^500 .*EPSV")
   "Regular expression matching FTP messages that can be ignored."
   :group 'ange-ftp
-  :version "24.4"			; add EPSV
+  :version "26.1"
   :type 'regexp)
 
 (defcustom ange-ftp-fatal-msgs
@@ -1186,7 +1168,7 @@ only return the directory part of FILE."
   (ange-ftp-parse-netrc)
   (catch 'found-one
     (maphash
-     (lambda (host val)
+     (lambda (host _val)
        (if (ange-ftp-lookup-passwd host user) (throw 'found-one host)))
      ange-ftp-user-hashtable)
     (save-match-data
@@ -1417,14 +1399,14 @@ only return the directory part of FILE."
   (save-match-data
     (let (res)
       (maphash
-       (lambda (key value)
+       (lambda (key _value)
 	 (if (string-match "\\`[^/]*\\(/\\).*\\'" key)
 	     (let ((host (substring key 0 (match-beginning 1)))
 		   (user (substring key (match-end 1))))
 	       (push (concat user "@" host ":") res))))
        ange-ftp-passwd-hashtable)
       (maphash
-       (lambda (host user) (push (concat host ":") res))
+       (lambda (host _user) (push (concat host ":") res))
        ange-ftp-user-hashtable)
       (or res (list nil)))))
 
@@ -1702,7 +1684,7 @@ good, skip, fatal, or unknown."
 				ange-ftp-process-result
 				ange-ftp-process-result-line)))))))
 
-(defun ange-ftp-process-sentinel (proc str)
+(defun ange-ftp-process-sentinel (proc _str)
   "When FTP process changes state, nuke all file-entries in cache."
   (let ((name (process-name proc)))
     (when (string-match "\\*ftp \\([^@]+\\)@\\([^*]+\\)\\*" name)
@@ -1751,7 +1733,7 @@ good, skip, fatal, or unknown."
 (defvar ange-ftp-gwp-running t)
 (defvar ange-ftp-gwp-status nil)
 
-(defun ange-ftp-gwp-sentinel (proc str)
+(defun ange-ftp-gwp-sentinel (_proc _str)
   (setq ange-ftp-gwp-running nil))
 
 (defun ange-ftp-gwp-filter (proc str)
@@ -1891,7 +1873,7 @@ been queued with no result.  CONT will still be called, however."
   (interactive "sHost:  ")
   (if ange-ftp-nslookup-program
       (let ((default-directory
-	      (if (file-accessible-directory-p default-directory)
+	      (if (ange-ftp-real-file-accessible-directory-p default-directory)
 		  default-directory
 		exec-directory))
 	    ;; It would be nice to make process-connection-type nil,
@@ -1934,7 +1916,7 @@ on the gateway machine to do the FTP instead."
 	 ;; default-directory.
 	 (file-name-handler-alist)
 	 (default-directory
-	   (if (file-accessible-directory-p default-directory)
+	   (if (ange-ftp-real-file-accessible-directory-p default-directory)
 	       default-directory
 	     exec-directory))
 	 proc)
@@ -3223,8 +3205,12 @@ system TYPE.")
 (defun ange-ftp-binary-file (file)
   (string-match-p ange-ftp-binary-file-name-regexp file))
 
-(defun ange-ftp-write-region (start end filename &optional append visit)
+(defun ange-ftp-write-region
+    (start end filename &optional append visit _lockname mustbenew)
   (setq filename (expand-file-name filename))
+  (when mustbenew
+    (ange-ftp-barf-or-query-if-file-exists
+     filename "overwrite" (not (eq mustbenew 'excl))))
   (let ((parsed (ange-ftp-ftp-name filename)))
     (if parsed
 	(let* ((host (nth 0 parsed))
@@ -3284,10 +3270,7 @@ system TYPE.")
 		(set-buffer-modified-p nil)))
 	  ;; ensure `last-coding-system-used' has an appropriate value
 	  (setq last-coding-system-used coding-system-used)
-	  (ange-ftp-message "Wrote `%s' (%d characters)" abbr
-                            (cond ((null start) (buffer-size))
-                                  ((stringp start) (length start))
-                                  (t (- end start))))
+	  (ange-ftp-message "Wrote %s" abbr)
 	  (ange-ftp-add-file-entry filename))
       (ange-ftp-real-write-region start end filename append visit))))
 
@@ -3421,6 +3404,10 @@ system TYPE.")
 	  file-ent))
     (ange-ftp-real-file-directory-p name)))
 
+(defun ange-ftp-file-accessible-directory-p (name)
+  (and (file-directory-p name)
+       (file-readable-p name)))
+
 (defun ange-ftp-directory-files (directory &optional full match
 					   &rest v19-args)
   (setq directory (expand-file-name directory))
@@ -3458,9 +3445,9 @@ system TYPE.")
 	(let ((part (ange-ftp-get-file-part file))
 	      (files (ange-ftp-get-files (file-name-directory file))))
 	  (if (ange-ftp-hash-entry-exists-p part files)
-	      (let ((host (nth 0 parsed))
-		    (user (nth 1 parsed))
-		    (name (nth 2 parsed))
+	      (let (;; (host (nth 0 parsed))
+		    ;; (user (nth 1 parsed))
+		    ;; (name (nth 2 parsed))
 		    (dirp (gethash part files))
 		    (inode (gethash file ange-ftp-inodes-hashtable)))
 		(unless inode
@@ -3496,7 +3483,7 @@ system TYPE.")
               (f2-mt (nth 5 (file-attributes f2))))
           (cond ((null f1-mt) nil)
                 ((null f2-mt) t)
-                (t (> (float-time f1-mt) (float-time f2-mt)))))
+		(t (time-less-p f2-mt f1-mt))))
       (ange-ftp-real-file-newer-than-file-p f1 f2))))
 
 (defun ange-ftp-file-writable-p (file)
@@ -3578,7 +3565,7 @@ Value is (0 0) if the modification time cannot be determined."
         (let ((file-mdtm (ange-ftp-file-modtime name))
               (buf-mdtm (with-current-buffer buf (visited-file-modtime))))
           (or (zerop (car file-mdtm))
-              (<= (float-time file-mdtm) (float-time buf-mdtm))))
+	      (not (time-less-p buf-mdtm file-mdtm))))
       (ange-ftp-real-verify-visited-file-modtime buf))))
 
 (defun ange-ftp-file-size (file &optional ascii-mode)
@@ -3846,7 +3833,7 @@ so return the size on the remote host exactly. See RFC 3659."
     (ange-ftp-call-cont cont result line)))
 
 (defun ange-ftp-copy-file (filename newname &optional ok-if-already-exists
-				    keep-date preserve-uid-gid
+				    keep-date _preserve-uid-gid
 				    _preserve-selinux-context)
   (interactive "fCopy file: \nFCopy %s to file: \np")
   (ange-ftp-copy-file-internal filename
@@ -3870,12 +3857,12 @@ E.g.,
   (unless okay-p (error "%s: %s" 'ange-ftp-copy-files-async line))
   (if files
       (let* ((ff (car files))
-             (from-file    (nth 0 ff))
-             (to-file      (nth 1 ff))
-             (ok-if-exists (nth 2 ff))
-             (keep-date    (nth 3 ff)))
+             (from-file            (nth 0 ff))
+             (to-file              (nth 1 ff))
+             (ok-if-already-exists (nth 2 ff))
+             (keep-date            (nth 3 ff)))
         (ange-ftp-copy-file-internal
-         from-file to-file ok-if-exists keep-date
+         from-file to-file ok-if-already-exists keep-date
          (and verbose-p (format "%s --> %s" from-file to-file))
          (list 'ange-ftp-copy-files-async verbose-p (cdr files))
          t))
@@ -4128,15 +4115,15 @@ directory, so that Emacs will know its current contents."
 	    (ange-ftp-add-file-entry dir t))
 	(ange-ftp-real-make-directory dir)))))
 
-(defun ange-ftp-delete-directory (dir &optional recursive)
+(defun ange-ftp-delete-directory (dir &optional recursive trash)
   (if (file-directory-p dir)
       (let ((parsed (ange-ftp-ftp-name dir)))
 	(if recursive
 	    (mapc
 	     (lambda (file)
 	       (if (file-directory-p file)
-		   (ange-ftp-delete-directory file recursive)
-		 (delete-file file)))
+		   (ange-ftp-delete-directory file recursive trash)
+		 (delete-file file trash)))
 	     ;; We do not want to delete "." and "..".
 	     (directory-files
 	      dir 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
@@ -4170,7 +4157,7 @@ directory, so that Emacs will know its current contents."
 					  dir
 					  (cdr result))))
 	      (ange-ftp-delete-file-entry dir t))
-	  (ange-ftp-real-delete-directory dir recursive)))
+	  (ange-ftp-real-delete-directory dir recursive trash)))
     (error "Not a directory: %s" dir)))
 
 ;; Make a local copy of FILE and return its name.
@@ -4402,6 +4389,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'directory-files-and-attributes 'ange-ftp
      'ange-ftp-directory-files-and-attributes)
 (put 'file-directory-p 'ange-ftp 'ange-ftp-file-directory-p)
+(put 'file-accessible-directory-p 'ange-ftp
+     'ange-ftp-file-accessible-directory-p)
 (put 'file-writable-p 'ange-ftp 'ange-ftp-file-writable-p)
 (put 'file-readable-p 'ange-ftp 'ange-ftp-file-readable-p)
 (put 'file-executable-p 'ange-ftp 'ange-ftp-file-executable-p)
@@ -4486,6 +4475,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (ange-ftp-run-real-handler 'directory-files-and-attributes args))
 (defun ange-ftp-real-file-directory-p (&rest args)
   (ange-ftp-run-real-handler 'file-directory-p args))
+(defun ange-ftp-real-file-accessible-directory-p (&rest args)
+  (ange-ftp-run-real-handler 'file-accessible-directory-p args))
 (defun ange-ftp-real-file-writable-p (&rest args)
   (ange-ftp-run-real-handler 'file-writable-p args))
 (defun ange-ftp-real-file-readable-p (&rest args)
@@ -5216,7 +5207,7 @@ Other orders of $ and _ seem to all work just fine.")
 				      ";\\([0-9]+\\)$"))
 		      (version 0))
 		  (maphash
-		   (lambda (name val)
+		   (lambda (name _val)
 		     (and (string-match regexp name)
 			  (setq version
 				(max version

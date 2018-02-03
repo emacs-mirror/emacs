@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2017 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # Force loading of symbols, enough to give us VALBITS etc.
 set $dummy = main + 8
@@ -49,7 +49,7 @@ define xgetptr
   else
     set $bugfix = $arg0
   end
-  set $ptr = $bugfix & VALMASK
+  set $ptr = (EMACS_INT) $bugfix & VALMASK
 end
 
 define xgetint
@@ -58,7 +58,7 @@ define xgetint
   else
     set $bugfix = $arg0
   end
-  set $int = $bugfix << (USE_LSB_TAG ? 0 : INTTYPEBITS) >> INTTYPEBITS
+  set $int = (EMACS_INT) $bugfix << (USE_LSB_TAG ? 0 : INTTYPEBITS) >> INTTYPEBITS
 end
 
 define xgettype
@@ -67,7 +67,7 @@ define xgettype
   else
     set $bugfix = $arg0
   end
-  set $type = (enum Lisp_Type) (USE_LSB_TAG ? $bugfix & (1 << GCTYPEBITS) - 1 : (EMACS_UINT) $bugfix >> VALBITS)
+  set $type = (enum Lisp_Type) (USE_LSB_TAG ? (EMACS_INT) $bugfix & (1 << GCTYPEBITS) - 1 : (EMACS_UINT) $bugfix >> VALBITS)
 end
 
 define xgetsym
@@ -78,7 +78,7 @@ end
 # Access the name of a symbol
 define xsymname
   xgetsym $arg0
-  set $symname = $ptr->name
+  set $symname = $ptr->u.s.name
 end
 
 # Set up something to print out s-expressions.
@@ -352,7 +352,7 @@ end
 
 define pcursorx
   set $cp = $arg0
-  printf "y=%d x=%d vpos=%d hpos=%d", $cp->y, $cp->x, $cp->vpos, $cp->hpos
+  printf "y=%d x=%d vpos=%d hpos=%d", $cp.y, $cp.x, $cp.vpos, $cp.hpos
 end
 document pcursorx
 Pretty print a window cursor.
@@ -369,28 +369,26 @@ end
 
 define pwinx
   set $w = $arg0
-  if ($w->mini_p != Qnil)
+  if ($w->mini != 0)
     printf "Mini "
   end
-  printf "Window %d ", $int
-  xgetptr $w->buffer
+  printf "Window %d ", $w->sequence_number
+  xgetptr $w->contents
   set $tem = (struct buffer *) $ptr
   xgetptr $tem->name_
-  printf "%s", ((struct Lisp_String *) $ptr)->data
+  printf "%s", ((struct Lisp_String *) $ptr)->u.s.data
   printf "\n"
   xgetptr $w->start
   set $tem = (struct Lisp_Marker *) $ptr
   printf "start=%d end:", $tem->charpos
-  if ($w->window_end_valid != Qnil)
-    xgetint $w->window_end_pos
-    printf "pos=%d", $int
-    xgetint $w->window_end_vpos
-    printf " vpos=%d", $int
+  if ($w->window_end_valid != 0)
+    printf "pos=%d", $w->window_end_pos
+    printf " vpos=%d", $w->window_end_vpos
   else
     printf "invalid"
   end
   printf " vscroll=%d", $w->vscroll
-  if ($w->force_start != Qnil)
+  if ($w->force_start != 0)
     printf " FORCE_START"
   end
   if ($w->must_be_updated_p)
@@ -504,7 +502,7 @@ define pgx
   xgettype ($g.object)
   if ($type == Lisp_String)
     xgetptr $g.object
-    printf " str=0x%x[%d]", ((struct Lisp_String *)$ptr)->data, $g.charpos
+    printf " str=0x%x[%d]", ((struct Lisp_String *)$ptr)->u.s.data, $g.charpos
   else
     printf " pos=%d", $g.charpos
   end
@@ -896,7 +894,7 @@ define xbuffer
   xgetptr $
   print (struct buffer *) $ptr
   xgetptr $->name_
-  output ((struct Lisp_String *) $ptr)->data
+  output ((struct Lisp_String *) $ptr)->u.s.data
   echo \n
 end
 document xbuffer
@@ -935,7 +933,7 @@ end
 define xcar
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->car : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.s.car : 0)
 end
 document xcar
 Assume that $ is an Emacs Lisp pair and print its car.
@@ -944,7 +942,7 @@ end
 define xcdr
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.s.u.cdr : 0)
 end
 document xcdr
 Assume that $ is an Emacs Lisp pair and print its cdr.
@@ -957,9 +955,9 @@ define xlist
   set $nil = $ptr
   set $i = 0
   while $cons != $nil && $i < 10
-    p/x $cons->car
+    p/x $cons->u.s.car
     xpr
-    xgetptr $cons->u.cdr
+    xgetptr $cons->u.s.u.cdr
     set $cons = (struct Lisp_Cons *) $ptr
     set $i = $i + 1
     printf "---\n"
@@ -1072,13 +1070,13 @@ Print $ as a lisp object of any type.
 end
 
 define xprintstr
-  set $data = (char *) $arg0->data
-  set $strsize = ($arg0->size_byte < 0) ? ($arg0->size & ~ARRAY_MARK_FLAG) : $arg0->size_byte
+  set $data = (char *) $arg0->u.s.data
+  set $strsize = ($arg0->u.s.size_byte < 0) ? ($arg0->u.s.size & ~ARRAY_MARK_FLAG) : $arg0->u.s.size_byte
   # GDB doesn't like zero repetition counts
   if $strsize == 0
     output ""
   else
-    output ($arg0->size > 1000) ? 0 : ($data[0])@($strsize)
+    output ($arg0->u.s.size > 1000) ? 0 : ($data[0])@($strsize)
   end
 end
 
@@ -1255,7 +1253,7 @@ commands
   xsymname globals.f_Vinitial_window_system
   xgetptr $symname
   set $tem = (struct Lisp_String *) $ptr
-  set $tem = (char *) $tem->data
+  set $tem = (char *) $tem->u.s.data
   # If we are running in synchronous mode, we want a chance to look
   # around before Emacs exits.  Perhaps we should put the break
   # somewhere else instead...
@@ -1264,3 +1262,118 @@ commands
   end
   continue
 end
+
+
+# Put the Python code at the end of .gdbinit so that if GDB does not
+# support Python, GDB will do all the above initializations before
+# reporting an error.
+
+python
+
+# Omit pretty-printing in older (pre-7.3) GDBs that lack it.
+if hasattr(gdb, 'printing'):
+
+  class Emacs_Pretty_Printers (gdb.printing.RegexpCollectionPrettyPrinter):
+    """A collection of pretty-printers.  This is like GDB's
+       RegexpCollectionPrettyPrinter except when printing Lisp_Object."""
+    def __call__ (self, val):
+      """Look up the pretty-printer for the provided value."""
+      type = val.type.unqualified ()
+      typename = type.tag or type.name
+      basic_type = gdb.types.get_basic_type (type)
+      basic_typename = basic_type.tag or basic_type.name
+      for printer in self.subprinters:
+        if (printer.enabled
+            and ((printer.regexp == '^Lisp_Object$'
+                  and typename == 'Lisp_Object')
+                 or (basic_typename
+                     and printer.compiled_re.search (basic_typename)))):
+          return printer.gen_printer (val)
+      return None
+
+  class Lisp_Object_Printer:
+    "A printer for Lisp_Object values."
+    def __init__ (self, val):
+      self.val = val
+
+    def to_string (self):
+      "Yield a string that can be fed back into GDB."
+
+      # This implementation should work regardless of C compiler, and
+      # it should not attempt to run any code in the inferior.
+
+      # If the macros EMACS_INT_WIDTH and USE_LSB_TAG are not in the
+      # symbol table, guess reasonable defaults.
+      sym = gdb.lookup_symbol ("EMACS_INT_WIDTH")[0]
+      if sym:
+        EMACS_INT_WIDTH = int (sym.value ())
+      else:
+        sym = gdb.lookup_symbol ("EMACS_INT")[0]
+        EMACS_INT_WIDTH = 8 * sym.type.sizeof
+      sym = gdb.lookup_symbol ("USE_LSB_TAG")[0]
+      if sym:
+        USE_LSB_TAG = int (sym.value ())
+      else:
+        USE_LSB_TAG = 1
+
+      GCTYPEBITS = 3
+      VALBITS = EMACS_INT_WIDTH - GCTYPEBITS
+      Lisp_Int0 = 2
+      Lisp_Int1 = 6 if USE_LSB_TAG else 3
+
+      val = self.val
+      basic_type = gdb.types.get_basic_type (val.type)
+
+      # Unpack VAL from its containing structure, if necessary.
+      if (basic_type.code == gdb.TYPE_CODE_STRUCT
+          and gdb.types.has_field (basic_type, "i")):
+        val = val["i"]
+
+      # Convert VAL to a Python integer.  Convert by hand, as this is
+      # simpler and works regardless of whether VAL is a pointer or
+      # integer.  Also, val.cast (gdb.lookup.type ("EMACS_UINT"))
+      # would have problems with GDB 7.12.1; see
+      # <http://patchwork.sourceware.org/patch/11557/>.
+      ival = int (val)
+
+      # For nil, yield "XIL(0)", which is easier to read than "XIL(0x0)".
+      if not ival:
+        return "XIL(0)"
+
+      # Extract the integer representation of the value and its Lisp type.
+      itype = ival >> (0 if USE_LSB_TAG else VALBITS)
+      itype = itype & ((1 << GCTYPEBITS) - 1)
+
+      # For a Lisp integer N, yield "make_number(N)".
+      if itype == Lisp_Int0 or itype == Lisp_Int1:
+        if USE_LSB_TAG:
+          ival = ival >> (GCTYPEBITS - 1)
+        elif (ival >> VALBITS) & 1:
+          ival = ival | (-1 << VALBITS)
+        else:
+          ival = ival & ((1 << VALBITS) - 1)
+        return "make_number(%d)" % ival
+
+      # For non-integers other than nil yield "XIL(N)", where N is a C integer.
+      # This helps humans distinguish Lisp_Object values from ordinary
+      # integers even when Lisp_Object is an integer.
+      # Perhaps some day the pretty-printing could be fancier.
+      # Prefer the unsigned representation to negative values, converting
+      # by hand as val.cast does not work in GDB 7.12.1 as noted above.
+      if ival < 0:
+        ival = ival + (1 << EMACS_INT_WIDTH)
+      return "XIL(0x%x)" % ival
+
+  def build_pretty_printer ():
+    pp = Emacs_Pretty_Printers ("Emacs")
+    pp.add_printer ('Lisp_Object', '^Lisp_Object$', Lisp_Object_Printer)
+    return pp
+
+  gdb.printing.register_pretty_printer (gdb.current_objfile (),
+                                        build_pretty_printer (), True)
+end
+
+# GDB mishandles indentation with leading tabs when feeding it to Python.
+# Local Variables:
+# indent-tabs-mode: nil
+# End:

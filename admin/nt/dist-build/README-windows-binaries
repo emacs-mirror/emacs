@@ -1,0 +1,45 @@
+Windows Binaries
+================
+
+Currently, we provide four different binary packages for Emacs, which
+are:
+
+emacs-$VERSION-x86_64.zip
+
+Contains a 64-bit build of Emacs with dependencies. Mostly, this is
+the best one to install.
+
+emacs-$VERSION-x86_64-no-deps.zip
+
+Contains a 64-bit build of Emacs without any dependencies. This may be
+useful if you wish to install where the dependencies are already
+available, or if you want the small possible Emacs.
+
+emacs-$VERSION-i686.zip
+
+Contains a 32-bit build of Emacs with dependencies. This is useful for
+running on a 32-bit machine.
+
+emacs-$VERSION-i686-no-deps.zip
+
+Contains a 32-bit build of Emacs without dependencies
+
+In addition, we provide the following files which will not be useful
+for most end-users.
+
+emacs-27-x86_64-deps.zip
+
+The dependencies. Unzipping this file on top of
+emacs-$VERSION-x86_64-no-deps.zip should result in the same install as
+emacs-$VERSION-x86_64.zip.
+
+emacs-27-i686-deps.zip
+
+The 32-bit version of the dependencies.
+
+emacs-27-deps-mingw-w64-src.zip
+
+The source for the dependencies. Source for Emacs itself is available
+in the main distribution tarball. These dependencies were produced
+from an updated msys2 at the point of the first pre-test. It is not
+intended that these will be updated after that point.

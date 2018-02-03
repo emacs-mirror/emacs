@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -33,6 +33,7 @@ on file directories.
 * Directories::         Creating, deleting, and listing file directories.
 * Comparing Files::     Finding where two files differ.
 * Diff Mode::           Mode for editing file differences.
+* Copying and Naming::  Copying, naming and renaming files.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
@@ -62,9 +63,11 @@ completing up to a nonexistent file name, Emacs prints
 @samp{[Confirm]} and you must type a second @key{RET} to confirm.
 @xref{Completion Exit}, for details.
 
-@cindex default directory
+Minibuffer history commands offer some special features for reading
+file names, see @ref{Minibuffer History}.
+
+@cindex default directory, of a buffer
 @vindex default-directory
-@vindex insert-default-directory
   Each buffer has a @dfn{default directory}, stored in the
 buffer-local variable @code{default-directory}.  Whenever Emacs reads
 a file name using the minibuffer, it usually inserts the default
@@ -83,7 +86,7 @@ buffer that is not visiting a file, via a command like @kbd{C-x b},
 its default directory is usually copied from the buffer that was
 current at the time (@pxref{Select Buffer}).  You can use the command
 @kbd{M-x pwd} to see the value of @code{default-directory} in the
-current buffer.  The command @kbd{M-x cd} prompts for a directory
+current buffer.  The command @kbd{M-x cd} prompts for a directory's
 name, and sets the buffer's @code{default-directory} to that directory
 (doing this does not change the buffer's file name, if any).
 
@@ -478,7 +481,6 @@ by simultaneous editing and requires your immediate attention.
 @subsection Backup Files
 @cindex backup file
 @vindex make-backup-files
-@vindex vc-make-backup-files
 
   On most operating systems, rewriting a file automatically destroys all
 record of what the file used to contain.  Thus, saving a file from Emacs
@@ -736,7 +738,7 @@ survive a crash even if @code{fsync} works properly.
   The @code{write-region-inhibit-fsync} variable controls whether
 Emacs invokes @code{fsync} after saving a file.  The variable's
 default value is @code{nil} when Emacs is interactive, and @code{t}
-when Emacs runs in batch mode.
+when Emacs runs in batch mode (@pxref{Initial Options, batch mode}).
 
   Emacs never uses @code{fsync} when writing auto-save files, as these
 files might lose data anyway.
@@ -822,6 +824,25 @@ diff-buffer-with-file} command.  @xref{Comparing Files}.
 @cindex file shadows
 @findex shadow-initialize
 
+  You can arrange to keep identical @dfn{shadow} copies of certain
+files in more than one place---possibly on different machines.  To do
+this, first you must set up a @dfn{shadow file group}, which is a set
+of identically-named files shared between a list of sites.  The file
+group is permanent and applies to further Emacs sessions as well as
+the current one.  Once the group is set up, every time you exit Emacs,
+it will copy the file you edited to the other files in its group.  You
+can also do the copying without exiting Emacs, by typing @w{@kbd{M-x
+shadow-copy-files}}.
+
+@cindex shadow cluster
+A @dfn{shadow cluster} is a group of hosts that share directories, so
+that copying to or from one of them is sufficient to update the file
+on all of them.  Each shadow cluster has a name, and specifies the
+network address of a primary host (the one we copy files to), and a
+regular expression that matches the host names of all the other hosts
+in the cluster.  You can define a shadow cluster with @w{@kbd{M-x
+shadow-define-cluster}}.
+
 @table @kbd
 @item M-x shadow-initialize
 Set up file shadowing.
@@ -837,32 +858,15 @@ Copy all pending shadow files.
 Cancel the instruction to shadow some files.
 @end table
 
-You can arrange to keep identical @dfn{shadow} copies of certain files
-in more than one place---possibly on different machines.  To do this,
-first you must set up a @dfn{shadow file group}, which is a set of
-identically-named files shared between a list of sites.  The file
-group is permanent and applies to further Emacs sessions as well as
-the current one.  Once the group is set up, every time you exit Emacs,
-it will copy the file you edited to the other files in its group.  You
-can also do the copying without exiting Emacs, by typing @kbd{M-x
-shadow-copy-files}.
-
-To set up a shadow file group, use @kbd{M-x
-shadow-define-literal-group} or @kbd{M-x shadow-define-regexp-group}.
-See their documentation strings for further information.
+To set up a shadow file group, use @w{@kbd{M-x
+shadow-define-literal-group}} or @w{@kbd{M-x
+shadow-define-regexp-group}}.  See their documentation strings for
+further information.
 
 Before copying a file to its shadows, Emacs asks for confirmation.
 You can answer ``no'' to bypass copying of this file, this time.  If
 you want to cancel the shadowing permanently for a certain file, use
-@kbd{M-x shadow-cancel} to eliminate or change the shadow file group.
-
-A @dfn{shadow cluster} is a group of hosts that share directories, so
-that copying to or from one of them is sufficient to update the file
-on all of them.  Each shadow cluster has a name, and specifies the
-network address of a primary host (the one we copy files to), and a
-regular expression that matches the host names of all the other hosts
-in the cluster.  You can define a shadow cluster with @kbd{M-x
-shadow-define-cluster}.
+@w{@kbd{M-x shadow-cancel}} to eliminate or change the shadow file group.
 
 @node Time Stamps
 @subsection Updating Time Stamps Automatically
@@ -935,10 +939,10 @@ revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
 
-@cindex Global Auto-Revert mode
-@cindex mode, Global Auto-Revert
-@cindex Auto-Revert mode
-@cindex mode, Auto-Revert
+@cindex Global Auto Revert mode
+@cindex mode, Global Auto Revert
+@cindex Auto Revert mode
+@cindex mode, Auto Revert
 @findex global-auto-revert-mode
 @findex auto-revert-mode
 @findex auto-revert-tail-mode
@@ -1040,14 +1044,23 @@ useful if it contains the deleted text.  To reenable auto-saving after
 this happens, save the buffer with @kbd{C-x C-s}, or use @kbd{C-u 1 M-x
 auto-save-mode}.
 
-@vindex auto-save-visited-file-name
+@vindex auto-save-visited-mode
   If you want auto-saving to be done in the visited file rather than
-in a separate auto-save file, set the variable
-@code{auto-save-visited-file-name} to a non-@code{nil} value.  In this
-mode, auto-saving is very similar to explicit saving.  However,
-differences still exist, in particular for modes which modify the
-buffer-saving process in non-trivial ways via various hooks
-(@pxref{Saving Buffers,,, elisp, The Emacs Lisp Reference Manual}).
+in a separate auto-save file, enable the global minor mode
+@code{auto-save-visited-mode}.  In this mode, auto-saving is identical
+to explicit saving.  Note that this mode is orthogonal to the
+@code{auto-save} mode described above; you can enable both at the same
+time.  However, if @code{auto-save} mode is active in some buffer and
+the obsolete @code{auto-save-visited-file-name} variable is set to a
+non-@code{nil} value, that buffer won't be affected by
+@code{auto-save-visited-mode}.
+
+  You can use the variable @code{auto-save-visited-interval} to
+customize the interval between auto-save operations in
+@code{auto-save-visited-mode}; by default it's five seconds.
+@code{auto-save-interval} and @code{auto-save-timeout} have no effect
+on @code{auto-save-visited-mode}.  @xref{Auto Save Control}, for
+details on these variables.
 
 @vindex delete-auto-save-files
   A buffer's auto-save file is deleted when you save the buffer in its
@@ -1090,6 +1103,12 @@ Auto-saving during idle periods accomplishes two things: first, it
 makes sure all your work is saved if you go away from the terminal for
 a while; second, it may avoid some auto-saving while you are actually
 typing.
+
+@vindex auto-save-visited-interval
+  When @code{auto-save-visited-mode} is enabled, Emacs will auto-save
+file-visiting buffers after five seconds of idle time.  You can
+customize the variable @code{auto-save-visited-interval} to change the
+idle time interval.
 
   Emacs also does auto-saving whenever it gets a fatal error.  This
 includes killing the Emacs job with a shell command such as @samp{kill
@@ -1263,15 +1282,10 @@ default), and @code{list-directory-verbose-switches} is a string
 giving the switches to use in a verbose listing (@code{"-l"} by
 default).
 
-@vindex directory-free-space-program
-@vindex directory-free-space-args
   In verbose directory listings, Emacs adds information about the
-amount of free space on the disk that contains the directory.  To do
-this, it runs the program specified by
-@code{directory-free-space-program} with arguments
-@code{directory-free-space-args}.
+amount of free space on the disk that contains the directory.
 
-  The command @kbd{M-x delete-directory} prompts for a directory name
+  The command @kbd{M-x delete-directory} prompts for a directory's name
 using the minibuffer, and deletes the directory if it is empty.  If
 the directory is not empty, you will be asked whether you want to
 delete it recursively.  On systems that have a ``Trash'' (or ``Recycle
@@ -1530,6 +1544,76 @@ decide whether to save the changes (the list of modified files is
 displayed in the echo area).  With a prefix argument, it tries to
 modify the original source files rather than the patched source files.
 
+@node Copying and Naming
+@section Copying, Naming and Renaming Files
+
+  Emacs has several commands for copying, naming, and renaming files.
+All of them read two file names @var{old} and @var{new} using the
+minibuffer, and then copy or adjust a file's name accordingly; they do
+not accept wildcard file names.
+
+In all these commands, if the argument @var{new} is just a directory
+name, the real new name is in that directory, with the same
+non-directory component as @var{old}.  For example, the command
+@w{@kbd{M-x rename-file @key{RET} ~/foo @key{RET} /tmp/ @key{RET}}}
+renames @file{~/foo} to @file{/tmp/foo}.  On GNU and other POSIX-like
+systems, directory names end in @samp{/}.  @xref{Directory Names,,,
+elisp, the Emacs Lisp Reference Manual}.
+
+All these commands ask for confirmation when the new file name already
+exists.
+
+@findex copy-file
+@cindex copying files
+  @kbd{M-x copy-file} copies the contents of the file @var{old} to the
+file @var{new}.
+
+@findex copy-directory
+  @kbd{M-x copy-directory} copies directories, similar to the
+@command{cp -r} shell command.  If @var{new} is a directory name, it
+creates a copy of the @var{old} directory and puts it in @var{new}.
+Otherwise it copies all the contents of @var{old} into a new directory
+named @var{new}.
+
+@cindex renaming files
+@findex rename-file
+  @kbd{M-x rename-file} renames file @var{old} as @var{new}.  If the
+file name @var{new} already exists, you must confirm with @kbd{yes} or
+renaming is not done; this is because renaming causes the old meaning
+of the name @var{new} to be lost.  If @var{old} and @var{new} are on
+different file systems, the file @var{old} is copied and deleted.
+
+@ifnottex
+  If a file is under version control (@pxref{Version Control}), you
+should rename it using @w{@kbd{M-x vc-rename-file}} instead of
+@w{@kbd{M-x rename-file}}.  @xref{VC Delete/Rename}.
+@end ifnottex
+
+@findex add-name-to-file
+@cindex hard links (creation)
+  @kbd{M-x add-name-to-file} adds an additional name to an existing
+file without removing the old name.  The new name is created as a hard
+link to the existing file.  The new name must belong on the same file
+system that the file is on.  On MS-Windows, this command works only if
+the file resides in an NTFS file system.  On MS-DOS, and some remote
+system types, it works by copying the file.
+
+@findex make-symbolic-link
+@cindex symbolic links (creation)
+  @kbd{M-x make-symbolic-link} creates a symbolic link named
+@var{new}, which points at @var{target}.  The effect is that future
+attempts to open file @var{new} will refer to whatever file is named
+@var{target} at the time the opening is done, or will get an error if
+the name @var{target} is nonexistent at that time.  This command does
+not expand the argument @var{target}, so that it allows you to specify
+a relative name as the target of the link.  However, this command
+does expand leading @samp{~} in @var{target} so that you can easily
+specify home directories, and strips leading @samp{/:} so that you can
+specify relative names beginning with literal @samp{~} or @samp{/:}.
+@xref{Quoted File Names}.  On MS-Windows, this command works only on
+MS Windows Vista and later.  When @var{new} is remote,
+it works depending on the system type.
+
 @node Misc File Ops
 @section Miscellaneous File Operations
 
@@ -1566,62 +1650,6 @@ should delete it using @kbd{M-x vc-delete-file} instead of @kbd{M-x
 delete-file}.  @xref{VC Delete/Rename}.
 @end ifnottex
 
-@findex copy-file
-@cindex copying files
-  @kbd{M-x copy-file} copies the contents of the file @var{old} to the
-file @var{new}.
-
-@findex copy-directory
-  @kbd{M-x copy-directory} copies directories, similar to the
-@command{cp -r} shell command.  It prompts for a directory @var{old}
-and a destination @var{new}.  If @var{new} is an existing directory,
-it creates a copy of the @var{old} directory and puts it in @var{new}.
-If @var{new} is not an existing directory, it copies all the contents
-of @var{old} into a new directory named @var{new}.
-
-@cindex renaming files
-@findex rename-file
-  @kbd{M-x rename-file} reads two file names @var{old} and @var{new}
-using the minibuffer, then renames file @var{old} as @var{new}.  If
-the file name @var{new} already exists, you must confirm with
-@kbd{yes} or renaming is not done; this is because renaming causes the
-old meaning of the name @var{new} to be lost.  If @var{old} and
-@var{new} are on different file systems, the file @var{old} is copied
-and deleted.  If the argument @var{new} is just a directory name, the
-real new name is in that directory, with the same non-directory
-component as @var{old}.  For example, @kbd{M-x rename-file @key{RET}
-~/foo @key{RET} /tmp @key{RET}} renames @file{~/foo} to
-@file{/tmp/foo}.  The same rule applies to all the remaining commands
-in this section.  All of them ask for confirmation when the new file
-name already exists, too.
-
-@ifnottex
-  If a file is under version control (@pxref{Version Control}), you
-should rename it using @kbd{M-x vc-rename-file} instead of @kbd{M-x
-rename-file}.  @xref{VC Delete/Rename}.
-@end ifnottex
-
-@findex add-name-to-file
-@cindex hard links (creation)
-  @kbd{M-x add-name-to-file} adds an additional name to an existing
-file without removing its old name.  The new name is created as a
-hard link to the existing file.  The new name must belong on the
-same file system that the file is on.  On MS-Windows, this command
-works only if the file resides in an NTFS file system.  On MS-DOS, it
-works by copying the file.
-
-@findex make-symbolic-link
-@cindex symbolic links (creation)
-  @kbd{M-x make-symbolic-link} reads two file names @var{target} and
-@var{linkname}, then creates a symbolic link named @var{linkname},
-which points at @var{target}.  The effect is that future attempts to
-open file @var{linkname} will refer to whatever file is named
-@var{target} at the time the opening is done, or will get an error if
-the name @var{target} is nonexistent at that time.  This command does
-not expand the argument @var{target}, so that it allows you to specify
-a relative name as the target of the link.  On MS-Windows, this
-command works only on MS Windows Vista and later.
-
 @kindex C-x i
 @findex insert-file
   @kbd{M-x insert-file} (also @kbd{C-x i}) inserts a copy of the
@@ -1641,11 +1669,9 @@ similar to the @kbd{M-x find-file-literally} command
   @kbd{M-x write-region} is the inverse of @kbd{M-x insert-file}; it
 copies the contents of the region into the specified file.  @kbd{M-x
 append-to-file} adds the text of the region to the end of the
-specified file.  @xref{Accumulating Text}.  When called interactively,
-these commands will print a message in the echo area giving the name
-of the file affected as well as the number of characters which were
-added.  The variable @code{write-region-inhibit-fsync} applies to
-these commands, as well as saving files; see @ref{Customize Save}.
+specified file.  @xref{Accumulating Text}.  The variable
+@code{write-region-inhibit-fsync} applies to these commands, as well
+as saving files; see @ref{Customize Save}.
 
 @findex set-file-modes
 @cindex file modes
@@ -1734,13 +1760,6 @@ requires the appropriate uncompression program.
 
 @cindex Archive mode
 @cindex mode, archive
-@cindex @code{arc}
-@cindex @code{jar}
-@cindex @code{rar}
-@cindex @code{zip}
-@cindex @code{lzh}
-@cindex @code{zoo}
-@cindex @code{7z}
 @pindex arc
 @pindex jar
 @pindex zip
@@ -1789,10 +1808,9 @@ syntax:
 
 @noindent
 To carry out this request, Emacs uses a remote-login program such as
-@command{ftp}, @command{ssh}, @command{rlogin}, or @command{telnet}.
+@command{ssh}.
 You must always specify in the file name which method to use---for
-example, @file{/ftp:@var{user}@@@var{host}:@var{filename}} uses FTP,
-whereas @file{/ssh:@var{user}@@@var{host}:@var{filename}} uses
+example, @file{/ssh:@var{user}@@@var{host}:@var{filename}} uses
 @command{ssh}.  When you specify the pseudo method @var{-} in the file
 name, Emacs chooses the method as follows:
 
@@ -1945,7 +1963,7 @@ them all.
 @item M-x file-cache-add-directory-list @key{RET} @var{variable} @key{RET}
 Add each file name in each directory listed in @var{variable} to the
 file name cache.  @var{variable} should be a Lisp variable whose value
-is a list of directory names, like @code{load-path}.
+is a list of directories, like @code{load-path}.
 @item M-x file-cache-clear-cache @key{RET}
 Clear the cache; that is, remove all file names from it.
 @end table
@@ -2041,7 +2059,7 @@ but Emacs should not).  To disable ImageMagick entirely, change
 @code{imagemagick-types-inhibit} to @code{t}.
 
 @findex thumbs-mode
-@findex mode, thumbs
+@cindex mode, Thumbs
   The Image-Dired package can also be used to view images as
 thumbnails.  @xref{Image-Dired}.
 
@@ -2056,7 +2074,7 @@ as a @dfn{fileset}.  This lets you perform certain operations, such as
 visiting, @code{query-replace}, and shell commands on all the files at
 once.  To make use of filesets, you must first add the expression
 @code{(filesets-init)} to your init file (@pxref{Init File}).  This
-adds a @samp{Filesets} menu to the menu bar.
+adds a @samp{Filesets} sub-menu to the menu bar's @samp{File} menu.
 
 @findex filesets-add-buffer
 @findex filesets-remove-buffer

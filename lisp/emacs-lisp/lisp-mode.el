@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -164,6 +164,9 @@
 (put 'defalias 'doc-string-elt 3)
 (put 'defvaralias 'doc-string-elt 3)
 (put 'define-category 'doc-string-elt 2)
+;; CL
+(put 'defconstant 'doc-string-elt 3)
+(put 'defparameter 'doc-string-elt 3)
 
 (defvar lisp-doc-string-elt-property 'doc-string-elt
   "The symbol property that holds the docstring position info.")
@@ -458,11 +461,6 @@ This will generate compile-time constants from BINDINGS."
                        (throw 'found t)))))))
            (1 'font-lock-regexp-grouping-backslash prepend)
            (3 'font-lock-regexp-grouping-construct prepend))
-         ;; This is too general -- rms.
-         ;; A user complained that he has functions whose names start with `do'
-         ;; and that they get the wrong color.
-         ;; ;; CL `with-' and `do-' constructs
-         ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
          (lisp--match-hidden-arg
           (0 '(face font-lock-warning-face
                help-echo "Hidden behind deeper element; move to another line?")))
@@ -488,6 +486,11 @@ This will generate compile-time constants from BINDINGS."
          (,(concat "[`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)"
                    lisp-mode-symbol-regexp "\\)['’]")
           (1 font-lock-constant-face prepend))
+         ;; Uninterned symbols, e.g., (defpackage #:my-package ...)
+         ;; must come before keywords below to have effect
+         (,(concat "\\(#:\\)\\(" lisp-mode-symbol-regexp "\\)")
+           (1 font-lock-comment-delimiter-face)
+           (2 font-lock-doc-face))
          ;; Constant values.
          (,(concat "\\_<:" lisp-mode-symbol-regexp "\\_>")
           (0 font-lock-builtin-face))
@@ -497,8 +500,10 @@ This will generate compile-time constants from BINDINGS."
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
          ;; and that they get the wrong color.
-         ;; ;; CL `with-' and `do-' constructs
-         ;;("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+         ;; That user has violated the http://www.cliki.net/Naming+conventions:
+         ;; CL (but not EL!) `with-' (context) and `do-' (iteration)
+         (,(concat "(\\(\\(do-\\|with-\\)" lisp-mode-symbol-regexp "\\)")
+           (1 font-lock-keyword-face))
          (lisp--match-hidden-arg
           (0 '(face font-lock-warning-face
                help-echo "Hidden behind deeper element; move to another line?")))
@@ -573,6 +578,13 @@ Lisp font lock syntactic face function."
               font-lock-string-face))))
     font-lock-comment-face))
 
+(defun lisp-adaptive-fill ()
+  "Return fill prefix found at point.
+Value for `adaptive-fill-function'."
+  ;; Adaptive fill mode gets the fill wrong for a one-line paragraph made of
+  ;; a single docstring.  Let's fix it here.
+  (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") ""))
+
 (defun lisp-mode-variables (&optional lisp-syntax keywords-case-insensitive
                                       elisp)
   "Common initialization routine for lisp modes.
@@ -584,10 +596,7 @@ font-lock keywords will not be case sensitive."
     (set-syntax-table lisp-mode-syntax-table))
   (setq-local paragraph-ignore-fill-prefix t)
   (setq-local fill-paragraph-function 'lisp-fill-paragraph)
-  ;; Adaptive fill mode gets the fill wrong for a one-line paragraph made of
-  ;; a single docstring.  Let's fix it here.
-  (setq-local adaptive-fill-function
-	      (lambda () (if (looking-at "\\s-+\"[^\n\"]+\"\\s-*$") "")))
+  (setq-local adaptive-fill-function #'lisp-adaptive-fill)
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
@@ -595,6 +604,7 @@ font-lock keywords will not be case sensitive."
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
   (setq-local indent-line-function 'lisp-indent-line)
   (setq-local indent-region-function 'lisp-indent-region)
+  (setq-local comment-indent-function #'lisp-comment-indent)
   (setq-local outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
   (setq-local outline-level 'lisp-outline-level)
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
@@ -728,9 +738,17 @@ or to switch back to an existing one."
 
 (autoload 'lisp-eval-defun "inf-lisp" nil t)
 
-;; May still be used by some external Lisp-mode variant.
-(define-obsolete-function-alias 'lisp-comment-indent
-    'comment-indent-default "22.1")
+(defun lisp-comment-indent ()
+  "Like `comment-indent-default', but don't put space after open paren."
+  (or (when (looking-at "\\s<\\s<")
+        (let ((pt (point)))
+          (skip-syntax-backward " ")
+          (if (eq (preceding-char) ?\()
+              (cons (current-column) (current-column))
+            (goto-char pt)
+            nil)))
+      (comment-indent-default)))
+
 (define-obsolete-function-alias 'lisp-mode-auto-fill 'do-auto-fill "23.1")
 
 (defcustom lisp-indent-offset nil
@@ -751,49 +769,107 @@ function is `common-lisp-indent-function'."
 
 (defun lisp-ppss (&optional pos)
   "Return Parse-Partial-Sexp State at POS, defaulting to point.
-Like to `syntax-ppss' but includes the character address of the
-last complete sexp in the innermost containing list at position
+Like `syntax-ppss' but includes the character address of the last
+complete sexp in the innermost containing list at position
 2 (counting from 0).  This is important for lisp indentation."
   (unless pos (setq pos (point)))
   (let ((pss (syntax-ppss pos)))
     (if (nth 9 pss)
-        (parse-partial-sexp (car (last (nth 9 pss))) pos)
+        (let ((sexp-start (car (last (nth 9 pss)))))
+          (parse-partial-sexp sexp-start pos nil nil (syntax-ppss sexp-start)))
       pss)))
+
+(cl-defstruct (lisp-indent-state
+               (:constructor nil)
+               (:constructor lisp-indent-initial-state
+                             (&aux (ppss (lisp-ppss))
+                                   (ppss-point (point))
+                                   (stack (make-list (1+ (car ppss)) nil)))))
+  stack ;; Cached indentation, per depth.
+  ppss
+  ppss-point)
+
+(defun lisp-indent-calc-next (state)
+  "Move to next line and return calculated indent for it.
+STATE is updated by side effect, the first state should be
+created by `lisp-indent-initial-state'.  This function may move
+by more than one line to cross a string literal."
+  (pcase-let* (((cl-struct lisp-indent-state
+                           (stack indent-stack) ppss ppss-point)
+                state)
+               (indent-depth (car ppss)) ; Corresponding to indent-stack.
+               (depth indent-depth))
+    ;; Parse this line so we can learn the state to indent the
+    ;; next line.
+    (while (let ((last-sexp (nth 2 ppss)))
+             (setq ppss (parse-partial-sexp
+                         ppss-point (progn (end-of-line) (point))
+                         nil nil ppss))
+             ;; Preserve last sexp of state (position 2) for
+             ;; `calculate-lisp-indent', if we're at the same depth.
+             (if (and (not (nth 2 ppss)) (= depth (car ppss)))
+                 (setf (nth 2 ppss) last-sexp)
+               (setq last-sexp (nth 2 ppss)))
+             (setq depth (car ppss))
+             ;; Skip over newlines within strings.
+             (nth 3 ppss))
+      (let ((string-start (nth 8 ppss)))
+        (setq ppss (parse-partial-sexp (point) (point-max)
+                                       nil nil ppss 'syntax-table))
+        (setf (nth 2 ppss) string-start) ; Finished a complete string.
+        (setq depth (car ppss)))
+      (setq ppss-point (point)))
+    (setq ppss-point (point))
+    (let* ((depth-delta (- depth indent-depth)))
+      (cond ((< depth-delta 0)
+             (setq indent-stack (nthcdr (- depth-delta) indent-stack)))
+            ((> depth-delta 0)
+             (setq indent-stack (nconc (make-list depth-delta nil)
+                                       indent-stack)))))
+    (prog1
+        (let (indent)
+          (cond ((= (forward-line 1) 1) nil)
+                ((car indent-stack))
+                ((integerp (setq indent (calculate-lisp-indent ppss)))
+                 (setf (car indent-stack) indent))
+                ((consp indent)       ; (COLUMN CONTAINING-SEXP-START)
+                 (car indent))
+                ;; This only happens if we're in a string.
+                (t (error "This shouldn't happen"))))
+      (setf (lisp-indent-state-stack state) indent-stack)
+      (setf (lisp-indent-state-ppss-point state) ppss-point)
+      (setf (lisp-indent-state-ppss state) ppss))))
 
 (defun lisp-indent-region (start end)
   "Indent region as Lisp code, efficiently."
   (save-excursion
     (setq end (copy-marker end))
     (goto-char start)
+    (beginning-of-line)
     ;; The default `indent-region-line-by-line' doesn't hold a running
     ;; parse state, which forces each indent call to reparse from the
     ;; beginning.  That has O(n^2) complexity.
-    (let* ((parse-state (lisp-ppss start))
-           (last-syntax-point start)
+    (let* ((parse-state (lisp-indent-initial-state))
            (pr (unless (minibufferp)
                  (make-progress-reporter "Indenting region..." (point) end))))
-      (while (< (point) end)
-        (unless (and (bolp) (eolp))
-          (lisp-indent-line parse-state))
-        (forward-line 1)
-        (let ((last-sexp (nth 2 parse-state)))
-          (setq parse-state (parse-partial-sexp last-syntax-point (point)
-                                                nil nil parse-state))
-          ;; It's important to preserve last sexp location for
-          ;; `calculate-lisp-indent'.
-          (unless (nth 2 parse-state)
-            (setf (nth 2 parse-state) last-sexp))
-          (setq last-syntax-point (point)))
-        (and pr (progress-reporter-update pr (point))))
+      (let ((ppss (lisp-indent-state-ppss parse-state)))
+        (unless (or (and (bolp) (eolp)) (nth 3 ppss))
+          (lisp-indent-line (calculate-lisp-indent ppss))))
+      (let ((indent nil))
+        (while (progn (setq indent (lisp-indent-calc-next parse-state))
+                      (< (point) end))
+          (unless (or (and (bolp) (eolp)) (not indent))
+            (lisp-indent-line indent))
+          (and pr (progress-reporter-update pr (point)))))
       (and pr (progress-reporter-done pr))
       (move-marker end nil))))
 
-(defun lisp-indent-line (&optional parse-state)
+(defun lisp-indent-line (&optional indent)
   "Indent current line as Lisp code."
   (interactive)
   (let ((pos (- (point-max) (point)))
         (indent (progn (beginning-of-line)
-                       (calculate-lisp-indent (or parse-state (lisp-ppss))))))
+                       (or indent (calculate-lisp-indent (lisp-ppss))))))
     (skip-chars-forward " \t")
     (if (or (null indent) (looking-at "\\s<\\s<\\s<"))
 	;; Don't alter indentation of a ;;; comment line
@@ -1113,16 +1189,7 @@ Lisp function does not specify a special indentation."
 If optional arg ENDPOS is given, indent each line, stopping when
 ENDPOS is encountered."
   (interactive)
-  (let* ((indent-stack (list nil))
-         ;; Use `syntax-ppss' to get initial state so we don't get
-         ;; confused by starting inside a string.  We don't use
-         ;; `syntax-ppss' in the loop, because this is measurably
-         ;; slower when we're called on a long list.
-         (state (syntax-ppss))
-         (init-depth (car state))
-         (next-depth init-depth)
-         (last-depth init-depth)
-         (last-syntax-point (point)))
+  (let* ((parse-state (lisp-indent-initial-state)))
     ;; We need a marker because we modify the buffer
     ;; text preceding endpos.
     (setq endpos (copy-marker
@@ -1131,65 +1198,24 @@ ENDPOS is encountered."
                     ;; after point.
                     (save-excursion (forward-sexp 1) (point)))))
     (save-excursion
-      (while (< (point) endpos)
-        ;; Parse this line so we can learn the state to indent the
-        ;; next line.  Preserve element 2 of the state (last sexp) for
-        ;; `calculate-lisp-indent'.
-        (let ((last-sexp (nth 2 state)))
-          (while (progn
-                   (setq state (parse-partial-sexp
-                                last-syntax-point (progn (end-of-line) (point))
-                                nil nil state))
-                   (setq last-sexp (or (nth 2 state) last-sexp))
-                   ;; Skip over newlines within strings.
-                   (nth 3 state))
-            (setq state (parse-partial-sexp (point) (point-max)
-                                            nil nil state 'syntax-table))
-            (setq last-sexp (or (nth 2 state) last-sexp))
-            (setq last-syntax-point (point)))
-          (setf (nth 2 state) last-sexp))
-        (setq next-depth (car state))
-        ;; If the line contains a comment indent it now with
-        ;; `indent-for-comment'.
-        (when (nth 4 state)
-          (indent-for-comment)
-          (end-of-line))
-        (setq last-syntax-point (point))
-        (when (< next-depth init-depth)
-          (setq indent-stack (nconc indent-stack
-                                    (make-list (- init-depth next-depth) nil))
-                last-depth (- last-depth next-depth)
-                next-depth init-depth))
-        ;; Now indent the next line according to what we learned from
-        ;; parsing the previous one.
-        (forward-line 1)
-        (when (< (point) endpos)
-          (let ((depth-delta (- next-depth last-depth)))
-            (cond ((< depth-delta 0)
-                   (setq indent-stack (nthcdr (- depth-delta) indent-stack)))
-                  ((> depth-delta 0)
-                   (setq indent-stack (nconc (make-list depth-delta nil)
-                                             indent-stack))))
-            (setq last-depth next-depth))
-          ;; But not if the line is blank, or just a comment (we
-          ;; already called `indent-for-comment' above).
-          (skip-chars-forward " \t")
-          (unless (or (eolp) (eq (char-syntax (char-after)) ?<))
-            (indent-line-to
-             (or (car indent-stack)
-                 ;; The state here is actually to the end of the
-                 ;; previous line, but that's fine for our purposes.
-                 ;; And parsing over the newline would only destroy
-                 ;; element 2 (last sexp position).
-                 (let ((val (calculate-lisp-indent state)))
-                   (cond ((integerp val)
-                          (setf (car indent-stack) val))
-                         ((consp val) ; (COLUMN CONTAINING-SEXP-START)
-                          (car val))
-                         ;; `calculate-lisp-indent' only returns nil
-                         ;; when we're in a string, but this won't
-                         ;; happen because we skip strings above.
-                         (t (error "This shouldn't happen!"))))))))))
+      (while (let ((indent (lisp-indent-calc-next parse-state))
+                   (ppss (lisp-indent-state-ppss parse-state)))
+               ;; If the line contains a comment indent it now with
+               ;; `indent-for-comment'.
+               (when (and (nth 4 ppss) (<= (nth 8 ppss) endpos))
+                 (save-excursion
+                   (goto-char (lisp-indent-state-ppss-point parse-state))
+                   (indent-for-comment)
+                   (setf (lisp-indent-state-ppss-point parse-state)
+                         (line-end-position))))
+               (when (< (point) endpos)
+                 ;; Indent the next line, unless it's blank, or just a
+                 ;; comment (we will `indent-for-comment' the latter).
+                 (skip-chars-forward " \t")
+                 (unless (or (eolp) (not indent)
+                             (eq (char-syntax (char-after)) ?<))
+                   (indent-line-to indent))
+                 t))))
     (move-marker endpos nil)))
 
 (defun indent-pp-sexp (&optional arg)
@@ -1243,7 +1269,8 @@ and initial semicolons."
       ;; case).  The `;' and `:' stop the paragraph being filled at following
       ;; comment lines and at keywords (e.g., in `defcustom').  Left parens are
       ;; escaped to keep font-locking, filling, & paren matching in the source
-      ;; file happy.
+      ;; file happy.  The `:' must be preceded by whitespace so that keywords
+      ;; inside of the docstring don't start new paragraphs (Bug#7751).
       ;;
       ;; `paragraph-separate': A clever regexp distinguishes the first line of
       ;; a docstring and identifies it as a paragraph separator, so that it
@@ -1256,13 +1283,7 @@ and initial semicolons."
       ;; `emacs-lisp-docstring-fill-column' if that value is an integer.
       (let ((paragraph-start
              (concat paragraph-start
-                     (format "\\|\\s-*\\([(;%s\"]\\|`(\\|#'(\\)"
-                             ;; If we're inside a string (like the doc
-                             ;; string), don't consider a colon to be
-                             ;; a paragraph-start character.
-                             (if (nth 3 (syntax-ppss))
-                                 ""
-                               ":"))))
+                     "\\|\\s-*\\([(;\"]\\|\\s-:\\|`(\\|#'(\\)"))
 	    (paragraph-separate
 	     (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
             (fill-column (if (and (integerp emacs-lisp-docstring-fill-column)

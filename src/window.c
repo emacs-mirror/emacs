@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985-1987, 1993-1998, 2000-2017 Free Software
+   Copyright (C) 1985-1987, 1993-1998, 2000-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -1208,13 +1208,13 @@ coordinates_in_window (register struct window *w, int x, int y)
 		     - WINDOW_BOTTOM_DIVIDER_WIDTH (w))))
     return ON_HORIZONTAL_SCROLL_BAR;
   /* On the mode or header line?   */
-  else if ((WINDOW_WANTS_MODELINE_P (w)
+  else if ((window_wants_mode_line (w)
 	    && y >= (bottom_y
 		     - CURRENT_MODE_LINE_HEIGHT (w)
 		     - WINDOW_BOTTOM_DIVIDER_WIDTH (w))
 	    && y <= bottom_y - WINDOW_BOTTOM_DIVIDER_WIDTH (w)
 	    && (part = ON_MODE_LINE))
-	   || (WINDOW_WANTS_HEADER_LINE_P (w)
+	   || (window_wants_header_line (w)
 	       && y < top_y + CURRENT_HEADER_LINE_HEIGHT (w)
 	       && (part = ON_HEADER_LINE)))
     {
@@ -1851,7 +1851,7 @@ Return nil if window display is not up-to-date.  In that case, use
 
   if (EQ (line, Qheader_line))
     {
-      if (!WINDOW_WANTS_HEADER_LINE_P (w))
+      if (!window_wants_header_line (w))
 	return Qnil;
       row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
       return row->enabled_p ? list4i (row->height, 0, 0, 0) : Qnil;
@@ -1896,6 +1896,129 @@ Return nil if window display is not up-to-date.  In that case, use
  found_row:
   crop = max (0, (row->y + row->height) - max_y);
   return list4i (row->height + min (0, row->y) - crop, i, row->y, crop);
+}
+
+DEFUN ("window-lines-pixel-dimensions", Fwindow_lines_pixel_dimensions, Swindow_lines_pixel_dimensions, 0, 6, 0,
+       doc: /* Return pixel dimensions of WINDOW's lines.
+The return value is a list of the x- and y-coordinates of the lower
+right corner of the last character of each line.  Return nil if the
+current glyph matrix of WINDOW is not up-to-date.
+
+Optional argument WINDOW specifies the window whose lines' dimensions
+shall be returned.  Nil or omitted means to return the dimensions for
+the selected window.
+
+FIRST, if non-nil, specifies the index of the first line whose
+dimensions shall be returned.  If FIRST is nil and BODY is non-nil,
+start with the first text line of WINDOW.  Otherwise, start with the
+first line of WINDOW.
+
+LAST, if non-nil, specifies the last line whose dimensions shall be
+returned.  If LAST is nil and BODY is non-nil, the last line is the last
+line of the body (text area) of WINDOW.  Otherwise, last is the last
+line of WINDOW.
+
+INVERSE, if nil, means that the y-pixel value returned for a specific
+line specifies the distance in pixels from the left edge (body edge if
+BODY is non-nil) of WINDOW to the right edge of the last glyph of that
+line.  INVERSE non-nil means that the y-pixel value returned for a
+specific line specifies the distance in pixels from the right edge of
+the last glyph of that line to the right edge (body edge if BODY is
+non-nil) of WINDOW.
+
+LEFT non-nil means to return the x- and y-coordinates of the lower left
+corner of the leftmost character on each line.  This is the value that
+should be used for buffers that mostly display text from right to left.
+
+If LEFT is non-nil and INVERSE is nil, this means that the y-pixel value
+returned for a specific line specifies the distance in pixels from the
+left edge of the last (leftmost) glyph of that line to the right edge
+(body edge if BODY is non-nil) of WINDOW.  If LEFT and INVERSE are both
+non-nil, the y-pixel value returned for a specific line specifies the
+distance in pixels from the left edge (body edge if BODY is non-nil) of
+WINDOW to the left edge of the last (leftmost) glyph of that line.
+
+Normally, the value of this function is not available while Emacs is
+busy, for example, when processing a command.  It should be retrievable
+though when run from an idle timer with a delay of zero seconds.  */)
+  (Lisp_Object window, Lisp_Object first, Lisp_Object last, Lisp_Object body, Lisp_Object inverse, Lisp_Object left)
+{
+  struct window *w = decode_live_window (window);
+  struct buffer *b;
+  struct glyph_row *row, *end_row;
+  int max_y = NILP (body) ? WINDOW_PIXEL_HEIGHT (w) : window_text_bottom_y (w);
+  Lisp_Object rows = Qnil;
+  int window_width = NILP (body) ? w->pixel_width : window_body_width (w, true);
+  int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+  int subtract = NILP (body) ? 0 : header_line_height;
+  bool invert = !NILP (inverse);
+  bool left_flag = !NILP (left);
+
+  if (noninteractive || w->pseudo_window_p)
+    return Qnil;
+
+  CHECK_BUFFER (w->contents);
+  b = XBUFFER (w->contents);
+
+  /* Fail if current matrix is not up-to-date.  */
+  if (!w->window_end_valid
+      || windows_or_buffers_changed
+      || b->clip_changed
+      || b->prevent_redisplay_optimizations_p
+      || window_outdated (w))
+    return Qnil;
+
+  if (NILP (first))
+    row = (NILP (body)
+	   ? MATRIX_ROW (w->current_matrix, 0)
+	   : MATRIX_FIRST_TEXT_ROW (w->current_matrix));
+  else if (NUMBERP (first))
+    {
+      CHECK_RANGED_INTEGER (first, 0, w->current_matrix->nrows);
+      row = MATRIX_ROW (w->current_matrix, XINT (first));
+    }
+  else
+    error ("Invalid specification of first line");
+
+  if (NILP (last))
+
+    end_row = (NILP (body)
+	       ? MATRIX_ROW (w->current_matrix, w->current_matrix->nrows)
+	       : MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w));
+  else if (NUMBERP (last))
+    {
+      CHECK_RANGED_INTEGER (last, 0, w->current_matrix->nrows);
+      end_row = MATRIX_ROW (w->current_matrix, XINT (last));
+    }
+  else
+    error ("Invalid specification of last line");
+
+  while (row <= end_row && row->enabled_p
+	 && row->y + row->height < max_y)
+    {
+
+      if (left_flag)
+	{
+	  struct glyph *glyph = row->glyphs[TEXT_AREA];
+
+	  rows = Fcons (Fcons (make_number
+			       (invert
+				? glyph->pixel_width
+				: window_width - glyph->pixel_width),
+			       make_number (row->y + row->height - subtract)),
+			rows);
+	}
+      else
+	rows = Fcons (Fcons (make_number
+			     (invert
+			      ? window_width - row->pixel_width
+			      : row->pixel_width),
+			     make_number (row->y + row->height - subtract)),
+		      rows);
+      row++;
+    }
+
+  return Fnreverse (rows);
 }
 
 DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
@@ -2003,16 +2126,24 @@ return value is a list of elements of the form (PARAMETER . VALUE).  */)
   return Fcopy_alist (decode_valid_window (window)->window_parameters);
 }
 
+Lisp_Object
+window_parameter (struct window *w, Lisp_Object parameter)
+{
+  Lisp_Object result = Fassq (parameter, w->window_parameters);
+
+  return CDR_SAFE (result);
+}
+
+
 DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
        2, 2, 0,
        doc:  /* Return WINDOW's value for PARAMETER.
 WINDOW can be any window and defaults to the selected one.  */)
   (Lisp_Object window, Lisp_Object parameter)
 {
-  Lisp_Object result;
+  struct window *w = decode_any_window (window);
 
-  result = Fassq (parameter, decode_any_window (window)->window_parameters);
-  return CDR_SAFE (result);
+  return window_parameter (w, parameter);
 }
 
 DEFUN ("set-window-parameter", Fset_window_parameter,
@@ -3342,7 +3473,7 @@ run_window_size_change_functions (Lisp_Object frame)
 /* Make WINDOW display BUFFER.  RUN_HOOKS_P means it's allowed
    to run hooks.  See make_frame for a case where it's not allowed.
    KEEP_MARGINS_P means that the current margins, fringes, and
-   scroll-bar settings of the window are not reset from the buffer's
+   scroll bar settings of the window are not reset from the buffer's
    local settings.  */
 
 void
@@ -3602,8 +3733,8 @@ make_parent_window (Lisp_Object window, bool horflag)
 
   o = XWINDOW (window);
   p = allocate_window ();
-  memcpy ((char *) p + sizeof (struct vectorlike_header),
-	  (char *) o + sizeof (struct vectorlike_header),
+  memcpy ((char *) p + sizeof (union vectorlike_header),
+	  (char *) o + sizeof (union vectorlike_header),
 	  word_size * VECSIZE (struct window));
   /* P's buffer slot may change from nil to a buffer...  */
   adjust_window_count (p, 1);
@@ -4740,6 +4871,69 @@ mark_window_cursors_off (struct window *w)
 }
 
 
+/**
+ * window_wants_mode_line:
+ *
+ * Return 1 if window W wants a mode line and is high enough to
+ * accommodate it, 0 otherwise.
+ *
+ * W wants a mode line if it's a leaf window and neither a minibuffer
+ * nor a pseudo window.  Moreover, its 'window-mode-line-format'
+ * parameter must not be 'none' and either that parameter or W's
+ * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
+ * be higher than its frame's canonical character height.
+ */
+bool
+window_wants_mode_line (struct window *w)
+{
+  Lisp_Object window_mode_line_format =
+    window_parameter (w, Qmode_line_format);
+
+  return ((WINDOW_LEAF_P (w)
+	   && !MINI_WINDOW_P (w)
+	   && !WINDOW_PSEUDO_P (w)
+	   && !EQ (window_mode_line_format, Qnone)
+	   && (!NILP (window_mode_line_format)
+	       || !NILP (BVAR (XBUFFER (WINDOW_BUFFER (w)), mode_line_format)))
+	   && WINDOW_PIXEL_HEIGHT (w) > WINDOW_FRAME_LINE_HEIGHT (w))
+	  ? 1
+	  : 0);
+}
+
+
+/**
+ * window_wants_header_line:
+ *
+ * Return 1 if window W wants a header line and is high enough to
+ * accommodate it, 0 otherwise.
+ *
+ * W wants a header line if it's a leaf window and neither a minibuffer
+ * nor a pseudo window.  Moreover, its 'window-mode-line-format'
+ * parameter must not be 'none' and either that parameter or W's
+ * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
+ * be higher than its frame's canonical character height and be able to
+ * accommodate a mode line too if necessary (the mode line prevails).
+ */
+bool
+window_wants_header_line (struct window *w)
+{
+  Lisp_Object window_header_line_format =
+    window_parameter (w, Qheader_line_format);
+
+  return ((WINDOW_LEAF_P (w)
+	   && !MINI_WINDOW_P (w)
+	   && !WINDOW_PSEUDO_P (w)
+	   && !EQ (window_header_line_format, Qnone)
+	   && (!NILP (window_header_line_format)
+	       || !NILP (BVAR (XBUFFER (WINDOW_BUFFER (w)), header_line_format)))
+	   && (WINDOW_PIXEL_HEIGHT (w)
+	       > (window_wants_mode_line (w)
+		  ? 2 * WINDOW_FRAME_LINE_HEIGHT (w)
+		  : WINDOW_FRAME_LINE_HEIGHT (w))))
+	  ? 1
+	  : 0);
+}
+
 /* Return number of lines of text (not counting mode lines) in W.  */
 
 int
@@ -4753,10 +4947,10 @@ window_internal_height (struct window *w)
 	  || WINDOWP (w->contents)
 	  || !NILP (w->next)
 	  || !NILP (w->prev)
-	  || WINDOW_WANTS_MODELINE_P (w))
+	  || window_wants_mode_line (w))
 	--ht;
 
-      if (WINDOW_WANTS_HEADER_LINE_P (w))
+      if (window_wants_header_line (w))
 	--ht;
     }
 
@@ -5141,6 +5335,11 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 		break;
 	    }
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+	  /* Fix up the Y position to preserve, if it is inside the
+	     scroll margin at the window top.  */
+	  if (window_scroll_pixel_based_preserve_y >= 0
+	      && window_scroll_pixel_based_preserve_y < this_scroll_margin)
+	    window_scroll_pixel_based_preserve_y = this_scroll_margin;
 	}
     }
   else if (n < 0)
@@ -5156,6 +5355,9 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
       /* We moved the window start towards BEGV, so PT may be now
 	 in the scroll margin at the bottom.  */
       move_it_to (&it, PT, -1,
+		  /* We subtract WINDOW_HEADER_LINE_HEIGHT because
+		     it.y is relative to the bottom of the header
+		     line, see above.  */
 		  (it.last_visible_y - WINDOW_HEADER_LINE_HEIGHT (w)
                    - partial_line_height (&it) - this_scroll_margin - 1),
 		  -1,
@@ -5193,11 +5395,15 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 
       /* See if point is on a partially visible line at the end.  */
       if (it.what == IT_EOB)
-	partial_p = it.current_y + it.ascent + it.descent > it.last_visible_y;
+	partial_p =
+	  it.current_y + it.ascent + it.descent
+	  > it.last_visible_y - this_scroll_margin - WINDOW_HEADER_LINE_HEIGHT (w);
       else
 	{
 	  move_it_by_lines (&it, 1);
-	  partial_p = it.current_y > it.last_visible_y;
+	  partial_p =
+	    it.current_y
+	    > it.last_visible_y - this_scroll_margin - WINDOW_HEADER_LINE_HEIGHT (w);
 	}
 
       if (charpos == PT && !partial_p
@@ -5216,7 +5422,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	    goal_y = this_scroll_margin;
 	  SET_TEXT_POS_FROM_MARKER (start, w->start);
 	  start_display (&it, w, start);
-	  /* It would be wrong to subtract CURRENT_HEADER_LINE_HEIGHT
+	  /* It would be wrong to subtract WINDOW_HEADER_LINE_HEIGHT
 	     here because we called start_display again and did not
 	     alter it.current_y this time.  */
 	  move_it_to (&it, -1, window_scroll_pixel_based_preserve_x,
@@ -5633,8 +5839,8 @@ by this function.  This happens in an interactive call.  */)
 }
 
 DEFUN ("minibuffer-selected-window", Fminibuffer_selected_window, Sminibuffer_selected_window, 0, 0, 0,
-       doc: /* Return the window which was selected when entering the minibuffer.
-Returns nil, if selected window is not a minibuffer window.  */)
+       doc: /* Return window selected just before minibuffer window was selected.
+Return nil if the selected window is not a minibuffer window.  */)
   (void)
 {
   if (minibuf_level > 0
@@ -6033,7 +6239,7 @@ from the top of the window.  */)
 
 struct save_window_data
   {
-    struct vectorlike_header header;
+    union vectorlike_header header;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object f_current_buffer;
@@ -6061,7 +6267,7 @@ struct save_window_data
 /* This is saved as a Lisp_Vector.  */
 struct saved_window
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   Lisp_Object window, buffer, start, pointm, old_pointm;
   Lisp_Object pixel_left, pixel_top, pixel_height, pixel_width;
@@ -6462,7 +6668,7 @@ the return value is nil.  Otherwise the value is t.  */)
 
 	   We have to do this in order to capture the following
 	   scenario: Suppose our frame contains two live windows W1 and
-	   W2 and ‘set-window-configuration’ replaces them by two
+	   W2 and 'set-window-configuration' replaces them by two
 	   windows W3 and W4 that were dead the last time
 	   run_window_size_change_functions was run.  If W3 and W4 have
 	   the same values for their old and new pixel sizes but these
@@ -7045,16 +7251,18 @@ DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
 WINDOW must be a live window and defaults to the selected one.
 
 Second parameter WIDTH specifies the pixel width for the vertical scroll
-bar.  If WIDTH is nil, use the scroll-bar width of WINDOW's frame.
+bar.  If WIDTH is nil, use the scroll bar width of WINDOW's frame.
 Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
-bar: left, right, or nil.  If VERTICAL-TYPE is t, this means use the
-frame's scroll-bar type.
+bar: left, right, nil or t where nil means to not display a vertical
+scroll bar on WINDOW and t means to use WINDOW frame's vertical scroll
+bar type.
 
 Fourth parameter HEIGHT specifies the pixel height for the horizontal
-scroll bar.  If HEIGHT is nil, use the scroll-bar height of WINDOW's
+scroll bar.  If HEIGHT is nil, use the scroll bar height of WINDOW's
 frame.  Fifth parameter HORIZONTAL-TYPE specifies the type of the
-horizontal scroll bar: nil, bottom, or t.  If HORIZONTAL-TYPE is t, this
-means to use the frame's horizontal scroll-bar type.
+horizontal scroll bar: bottom, nil, or t where nil means to not display
+a horizontal scroll bar on WINDOW and t means to use WINDOW frame's
+horizontal scroll bar type.
 
 Return t if scroll bars were actually changed and nil otherwise.  */)
   (Lisp_Object window, Lisp_Object width, Lisp_Object vertical_type,
@@ -7352,6 +7560,8 @@ syms_of_window (void)
   DEFSYM (Qfloor, "floor");
   DEFSYM (Qceiling, "ceiling");
   DEFSYM (Qmark_for_redisplay, "mark-for-redisplay");
+  DEFSYM (Qmode_line_format, "mode-line-format");
+  DEFSYM (Qheader_line_format, "header-line-format");
 
   staticpro (&Vwindow_list);
 
@@ -7414,8 +7624,8 @@ on their symbols to be controlled by this variable.  */);
   DEFVAR_LISP ("window-configuration-change-hook",
 	       Vwindow_configuration_change_hook,
 	       doc: /* Functions to call when window configuration changes.
-The buffer-local part is run once per window, with the relevant window
-selected; while the global part is run only once for the modified frame,
+The buffer-local value is run once per window, with the relevant window
+selected; while the global value is run only once for the modified frame,
 with the relevant frame selected.  */);
   Vwindow_configuration_change_hook = Qnil;
 
@@ -7468,9 +7678,14 @@ nil means splitting a window will create a new parent window only if the
     `window-height' or `window-width' entry in the alist used by
     `display-buffer'.  Otherwise, this value is handled like nil.
 
+`temp-buffer-resize' means that splitting a window for displaying a
+    temporary buffer via `with-temp-buffer-window' makes a new parent
+    window only if `temp-buffer-resize-mode' is enabled.  Otherwise,
+    this value is handled like nil.
+
 `temp-buffer' means that splitting a window for displaying a temporary
-    buffer always makes a new parent window.  Otherwise, this value is
-    handled like nil.
+    buffer via `with-temp-buffer-window' always makes a new parent
+    window.  Otherwise, this value is handled like nil.
 
 `display-buffer' means that splitting a window for displaying a buffer
     always makes a new parent window.  Since temporary buffers are
@@ -7483,7 +7698,8 @@ t means that splitting a window always creates a new parent window.  If
     tree and every window but the frame's root window has exactly one
     sibling.
 
-Other values are reserved for future use.  */);
+The default value is `window-size'.  Other values are reserved for
+future use.  */);
   Vwindow_combination_limit = Qwindow_size;
 
   DEFVAR_LISP ("window-persistent-parameters", Vwindow_persistent_parameters,
@@ -7595,6 +7811,7 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Sset_window_point);
   defsubr (&Sset_window_start);
   defsubr (&Swindow_dedicated_p);
+  defsubr (&Swindow_lines_pixel_dimensions);
   defsubr (&Sset_window_dedicated_p);
   defsubr (&Swindow_display_table);
   defsubr (&Sset_window_display_table);

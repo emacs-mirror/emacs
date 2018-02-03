@@ -1,4 +1,4 @@
-;; Copyright (C) 2017  Free Software Foundation, Inc
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; Author: Dima Kogan <dima@secretsauce.net>
 ;; Maintainer: emacs-devel@gnu.org
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -89,7 +89,7 @@ index 8858f0d..86e8ea5 100644
  wrongheadedness
 -xylophonists
  youthfulness
--- 
+--
 2.11.0
 
 ")
@@ -186,7 +186,7 @@ youthfulness
               (diff-apply-hunk)
               (diff-apply-hunk)
               (diff-apply-hunk))
-            
+
             (should (equal (with-current-buffer buf (buffer-string))
                            fil_after))
             (should (equal (with-current-buffer buf2 (buffer-string))

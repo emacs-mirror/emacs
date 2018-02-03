@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -30,7 +30,7 @@
 	     (sample-text . "Sinhala (සිංහල)	ආයුබෝවන්")
 	     (documentation . t)))
 
-(set-char-table-range 
+(set-char-table-range
  composition-function-table
  '(#xD80 . #xDFF)
  (list (vector

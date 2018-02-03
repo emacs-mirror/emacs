@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -693,9 +693,11 @@ with completion and history."
   "Highlight REGEXP with face FACE."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
-  (let ((pattern (list regexp (list 0 (list 'quote face) 'prepend))))
+  (let ((pattern (list regexp (list 0 (list 'quote face) 'prepend)))
+        (no-matches t))
     ;; Refuse to highlight a text that is already highlighted.
-    (unless (assoc regexp hi-lock-interactive-patterns)
+    (if (assoc regexp hi-lock-interactive-patterns)
+        (add-to-list 'hi-lock--unused-faces (face-name face))
       (push pattern hi-lock-interactive-patterns)
       (if (and font-lock-mode (font-lock-specified-p major-mode))
 	  (progn
@@ -712,11 +714,16 @@ with completion and history."
           (save-excursion
             (goto-char search-start)
             (while (re-search-forward regexp search-end t)
+              (when no-matches (setq no-matches nil))
               (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
                 (overlay-put overlay 'hi-lock-overlay t)
                 (overlay-put overlay 'hi-lock-overlay-regexp regexp)
                 (overlay-put overlay 'face face))
-              (goto-char (match-end 0)))))))))
+              (goto-char (match-end 0)))
+            (when no-matches
+              (add-to-list 'hi-lock--unused-faces (face-name face))
+              (setq hi-lock-interactive-patterns
+                    (cdr hi-lock-interactive-patterns)))))))))
 
 (defun hi-lock-set-file-patterns (patterns)
   "Replace file patterns list with PATTERNS and refontify."

@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -18,12 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'ert)
 (require 'xref)
+(eval-when-compile (require 'cl-lib))
 
 ;;; Completion
 
@@ -113,6 +114,127 @@
     (let ((comps (elisp--test-completions)))
       (should (member "backup-buffer" comps))
       (should-not (member "backup-inhibited" comps)))))
+
+;;; eval-last-sexp
+
+(ert-deftest eval-last-sexp-print-format-sym ()
+  (with-temp-buffer
+    (let ((current-prefix-arg '(4)))
+      (erase-buffer) (insert "t")
+      (call-interactively #'eval-last-sexp)
+      (should (equal (buffer-string) "tt")))))
+
+(ert-deftest eval-last-sexp-print-format-sym-echo ()
+  ;; We can only check the echo area when running interactive.
+  (skip-unless (not noninteractive))
+  (with-temp-buffer
+    (let ((current-prefix-arg nil))
+      (erase-buffer) (insert "t") (message nil)
+      (call-interactively #'eval-last-sexp)
+      (should (equal (current-message) "t")))))
+
+(ert-deftest eval-last-sexp-print-format-small-int ()
+  (with-temp-buffer
+    (let ((current-prefix-arg '(4)))
+      (erase-buffer) (insert "?A")
+      (call-interactively #'eval-last-sexp)
+      (should (equal (buffer-string) "?A65")))
+    (let ((current-prefix-arg 0))
+      (erase-buffer) (insert "?A")
+      (call-interactively #'eval-last-sexp)
+      (should (equal (buffer-string) "?A65 (#o101, #x41, ?A)")))))
+
+(ert-deftest eval-last-sexp-print-format-small-int-echo ()
+  (skip-unless (not noninteractive))
+  (with-temp-buffer
+    (let ((current-prefix-arg nil))
+      (erase-buffer) (insert "?A") (message nil)
+      (call-interactively #'eval-last-sexp)
+      (should (equal (current-message) "65 (#o101, #x41, ?A)")))))
+
+(ert-deftest eval-last-sexp-print-format-large-int ()
+  (with-temp-buffer
+    (let ((eval-expression-print-maximum-character ?A))
+      (let ((current-prefix-arg '(4)))
+        (erase-buffer) (insert "?B")
+        (call-interactively #'eval-last-sexp)
+        (should (equal (buffer-string) "?B66")))
+      (let ((current-prefix-arg 0))
+        (erase-buffer) (insert "?B")
+        (call-interactively #'eval-last-sexp)
+        (should (equal (buffer-string) "?B66 (#o102, #x42)")))
+      (let ((current-prefix-arg -1))
+        (erase-buffer) (insert "?B")
+        (call-interactively #'eval-last-sexp)
+        (should (equal (buffer-string) "?B66 (#o102, #x42, ?B)"))))))
+
+(ert-deftest eval-last-sexp-print-format-large-int-echo ()
+  (skip-unless (not noninteractive))
+  (with-temp-buffer
+    (let ((eval-expression-print-maximum-character ?A))
+      (let ((current-prefix-arg nil))
+        (erase-buffer) (insert "?B") (message nil)
+        (call-interactively #'eval-last-sexp)
+        (should (equal (current-message) "66 (#o102, #x42)")))
+      (let ((current-prefix-arg '-))
+        (erase-buffer) (insert "?B") (message nil)
+        (call-interactively #'eval-last-sexp)
+        (should (equal (current-message) "66 (#o102, #x42, ?B)"))))))
+
+;;; eldoc
+
+(defun elisp-mode-tests--face-propertized-string (string)
+  "Return substring of STRING with a non-nil `face' property."
+  (let* ((start (next-single-property-change 0 'face string))
+         (end (and start (next-single-property-change start 'face string))))
+    (and end
+         (substring string start end))))
+
+(ert-deftest elisp--highlight-function-argument-indexed ()
+  (dotimes (i 3)
+    (should
+     (equal (elisp-mode-tests--face-propertized-string
+             (elisp--highlight-function-argument 'foo "(A B C)" (1+ i) "foo: "))
+            (propertize (nth i '("A" "B" "C"))
+                        'face 'eldoc-highlight-function-argument)))))
+
+(ert-deftest elisp--highlight-function-argument-keyed-1 ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(foo prompt bar :b 2)")
+    (goto-char (1+ (point-min)))
+    (cl-flet ((bold-arg (i)
+               (elisp-mode-tests--face-propertized-string
+                (elisp--highlight-function-argument
+                 'foo "(PROMPT LST &key A B C)" i "foo: "))))
+      (should-not (bold-arg 0))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 1) "PROMPT"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 2) "LST"))
+      ;; Both `:b' and `2' should highlight the `B' arg.
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 3) "B"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 4) "B")))))
+
+(ert-deftest elisp--highlight-function-argument-keyed-2 ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(foo :b :a 1)")
+    (goto-char (1+ (point-min)))
+    (cl-flet ((bold-arg (i)
+               (elisp-mode-tests--face-propertized-string
+                (elisp--highlight-function-argument
+                 'foo "(X &key A B C)" i "foo: "))))
+      (should-not (bold-arg 0))
+      ;; The `:b' specifies positional arg `X'.
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 1) "X"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 2) "A"))
+      (progn (forward-sexp) (forward-char))
+      (should (equal (bold-arg 3) "A")))))
 
 ;;; xref
 
@@ -224,7 +346,10 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; `load-path' has the correct case, so this causes the expected test
 ;; values to have the wrong case). This is handled in
 ;; `xref-elisp-test-run'.
-(defconst emacs-test-dir (downcase (file-name-directory (or load-file-name (buffer-file-name)))))
+(defconst emacs-test-dir
+  (downcase
+   (file-truename (file-name-directory
+		   (or load-file-name (buffer-file-name))))))
 
 
 ;; alphabetical by test name

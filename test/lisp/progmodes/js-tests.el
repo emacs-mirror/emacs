@@ -1,6 +1,6 @@
 ;;; js-tests.el --- Test suite for js-mode
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -59,6 +59,25 @@
                    "/**
  * Load the inspector's shared head.js for use by tests that need to
  * open the something or other"))))
+
+(ert-deftest js-mode-fill-comment-bug ()
+  (with-temp-buffer
+    (insert "/**
+ * javadoc stuff here
+ *
+ * what
+ */
+function f( ) {
+    // comment-auto-fill-only-comments is a variable defined in ‘newcomment.el’. comment comment")
+    (js-mode)
+    (setq-local comment-auto-fill-only-comments t)
+    (setq-local fill-column 75)
+    (auto-fill-mode 1)
+    (funcall auto-fill-function)
+    (beginning-of-line)
+    ;; Filling should have inserted the correct comment start.
+    (should (equal (buffer-substring (point) (+ 7 (point)))
+                   "    // "))))
 
 (ert-deftest js-mode-regexp-syntax ()
   (with-temp-buffer

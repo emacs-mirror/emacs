@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -21,7 +21,7 @@ answers), at the emacs-devel@gnu.org mailing list.
 For more information about getting involved, see the CONTRIBUTE file.
 
 As well as the issues listed here, there are bug reports at
-<http://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for
+<https://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for
 beginners to work on, but unfortunately we are not very good at using
 this tag.  Bugs tagged "help" are ones where assistance is required,
 but may be difficult to fix.  Bugs with severity "important" or higher
@@ -95,17 +95,17 @@ make it.
 
 ** Move idlwave to elpa.gnu.org.
 Need to sync up the Emacs and external versions.
-See <http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00008.html>
+See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
 
 ** Move Org mode to elpa.gnu.org.
-See <http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00300.html>
-<http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00257.html>
+See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
+<https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
 
 ** Move verilog-mode to elpa.gnu.org.
-See <http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg01180.html>
+See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 ** Move vhdl-mode to elpa.gnu.org.
-See <http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg01180.html>
+See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 * Simple tasks. These don't require much Emacs knowledge, they are
 suitable for anyone from beginners to experts.
@@ -157,7 +157,7 @@ for users to customize.
 
 ** revert-buffer should eliminate overlays and the mark.
    For related problems consult the thread starting with
-   http://lists.gnu.org/archive/html/emacs-devel/2005-11/msg01346.html
+   https://lists.gnu.org/r/emacs-devel/2005-11/msg01346.html
 
 ** erase-buffer should perhaps disregard read-only properties of text.
 
@@ -185,7 +185,7 @@ for users to customize.
 
 ** Define recompute-arg and recompute-arg-if for fix_command to use.
   See rms message of 11 Dec 05 in
-  http://lists.gnu.org/archive/html/emacs-pretest-bug/2005-12/msg00165.html,
+  https://lists.gnu.org/r/emacs-pretest-bug/2005-12/msg00165.html,
   and the rest of that discussion.
 
 ** In Emacs Info, examples of using Customize should be clickable
@@ -202,10 +202,10 @@ for users to customize.
 ** make back_comment use syntax-ppss or equivalent.
 
 ** Consider improving src/sysdep.c's search for a fqdn.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
+https://lists.gnu.org/r/emacs-devel/2007-04/msg00782.html
 
 ** Find a proper fix for rcirc multiline nick adding.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
+https://lists.gnu.org/r/emacs-devel/2007-04/msg00684.html
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
@@ -228,12 +228,12 @@ like make-backup-file-name-function for non-numeric backup files.
 dired buffers and DTRT WRT 'auto-revert-mode'.
 
 ** Check uses of prin1 for error-handling.
-http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
+https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features:
 
 ** "Emacs as word processor"
-http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00515.html
+https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
     rms writes:
     25 years ago I hoped we would extend Emacs to do WYSIWYG word
     processing.  That is why we added text properties and variable
@@ -311,15 +311,15 @@ never really made it work for this.
 Perspectives also need to interact with the tabs.
 
 ** FFI (foreign function interface)
-See eg http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00246.html
+See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
 One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
 
 ** Replace unexec with a more portable form of dumping
-See eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01034.html
-       http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00452.html
+See eg https://lists.gnu.org/r/emacs-devel/2014-01/msg01034.html
+       https://lists.gnu.org/r/emacs-devel/2014-06/msg00452.html
 
 One way is to provide portable undumping using mmap (per gerd design).
 
@@ -345,7 +345,7 @@ scroll bars are extensible.
 ** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
   http://latex2rtf.sourceforge.net/.]  This task seems to be addressed
-  by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
+  by https://savannah.nongnu.org/projects/emacs-rtf/, which is still in
   very early stages.
 
   Another place to look is the Wikipedia article at
@@ -399,8 +399,8 @@ familiar with GNUstep and Objective C.
 ** A more modern printing interface.  One that pops up a dialog that lets
 you choose printer, page style, etc.
 Integration with the Gtk print dialog is apparently difficult.  See eg:
-http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00501.html
-http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00034.html
+https://lists.gnu.org/r/emacs-devel/2009-03/msg00501.html
+https://lists.gnu.org/r/emacs-devel/2009-04/msg00034.html
 
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
@@ -499,7 +499,7 @@ from the emacsclient process.
 
 ** Get some major packages installed: W3 (development version needs
   significant work), PSGML, _possibly_ ECB.
-  http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01493.html
+  https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html
   Check the assignments file for other packages which might go in and
   have been missed.
 
@@ -645,17 +645,17 @@ from the emacsclient process.
 
 ** Possibly make 'list-holidays' eval items in the calendar-holidays variable.
    See thread
-   <http://lists.gnu.org/archive/html/emacs-devel/2006-02/msg01034.html>.
+   <https://lists.gnu.org/r/emacs-devel/2006-02/msg01034.html>.
    [rgm@gnu.org will look at this after 22.1]
 
 ** Possibly make cal-dst use the system timezone database directly.
    See thread
-   <http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-11/msg00060.html>
+   <https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html>
 
 ** Possibly add a "close" button to the modeline.
    The idea is to add an "X" of some kind, that when clicked deletes
    the window associated with that modeline.
-   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02416.html
+   https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
 
 * Things to be done for specific packages or features
 
@@ -805,8 +805,8 @@ One could envision asymmetrical variants as well, however, this is
 inappropriate for the default setting.
 
 See the discussion on emacs-devel:
-https://lists.gnu.org/archive/html/emacs-devel/2015-12/msg01575.html
-https://lists.gnu.org/archive/html/emacs-devel/2016-01/msg00008.html
+https://lists.gnu.org/r/emacs-devel/2015-12/msg01575.html
+https://lists.gnu.org/r/emacs-devel/2016-01/msg00008.html
 
 *** Internal development features
 
@@ -824,7 +824,7 @@ of unique features.
 **** Existing packages
 
 Note that there is a generic UI test named frame-test.el, see
-http://debbugs.gnu.org/21415#284 .
+https://debbugs.gnu.org/21415#284 .
 The NS interface passes this, with the exception of two toolbar-related errors.
 
 **** Anders frame test
@@ -872,9 +872,9 @@ of the two patches, Emacs responds that s-9 was pressed.
 More investigation is needed to fix this problem.
 
 Links:
-- http://debbugs.gnu.org/19977
-- http://debbugs.gnu.org/21330
-- http://debbugs.gnu.org/21551
+- https://debbugs.gnu.org/19977
+- https://debbugs.gnu.org/21330
+- https://debbugs.gnu.org/21551
 
 **** Toggling the toolbar in fullheight or maximized modes
 
@@ -1492,7 +1492,7 @@ presence of multi-file documents.
    or just an extension of buff-menu.el.
 
 ** Replace linum.el with nlinum.el
-   http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00379.html
+   https://lists.gnu.org/r/emacs-devel/2013-08/msg00379.html
 
 ** Merge sendmail.el and messages.el.
    Probably not a complete merge, but at least arrange for messages.el to be
@@ -1507,7 +1507,7 @@ presence of multi-file documents.
 
 ** Rewrite make-docfile to be clean and maintainable.
    It might be better to replace it with Lisp, using the byte compiler.
-   http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00037.html
+   https://lists.gnu.org/r/emacs-devel/2012-06/msg00037.html
 
 ** Add an inferior-comint-minor-mode to capture the common set of operations
    offered by major modes that offer an associated inferior
@@ -1523,7 +1523,7 @@ presence of multi-file documents.
 * Wishlist items:
 
 ** Maybe replace etags.c with a Lisp implementation.
-http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00354.html
+https://lists.gnu.org/r/emacs-devel/2012-06/msg00354.html
 
 ** Maybe replace lib-src/rcs2log with a Lisp implementation.
 It wouldn't have to be a complete replacement, just enough
@@ -1550,7 +1550,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Local Variables:
 ;; coding: utf-8

@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2017 Free Software
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,7 +38,7 @@
 
 (if (not (fboundp 'msdos-remember-default-colors))
     (error "%s: Loading pc-win.el but not compiled for MS-DOS"
-	   (invocation-name)))
+	   invocation-name))
 
 (declare-function msdos-remember-default-colors "msdos.c")
 (declare-function w16-set-clipboard-data "w16select.c")
@@ -189,18 +189,115 @@ the WIDTH times as wide as FACE on FRAME."
   (if (or (null width) (and (numberp width) (= width 1)))
       (list "ms-dos")
     (list "no-such-font")))
-(defun x-display-pixel-width (&optional frame) (frame-width frame))
-(defun x-display-pixel-height (&optional frame) (frame-height frame))
-(defun x-display-planes (&optional _frame) 4) ;bg switched to 16 colors as well
-(defun x-display-color-cells (&optional _frame) 16)
-(defun x-server-max-request-size (&optional _frame) 1000000) ; ???
-(defun x-server-vendor (&optional _frame) t "GNU")
-(defun x-server-version (&optional _frame) '(1 0 0))
-(defun x-display-screens (&optional _frame) 1)
-(defun x-display-mm-height (&optional _frame) 245) ; Guess the size of my
-(defun x-display-mm-width (&optional _frame) 322)  ; monitor, EZ...
-(defun x-display-backing-store (&optional _frame) 'not-useful)
-(defun x-display-visual-class (&optional _frame) 'static-color)
+(defun x-display-pixel-width (&optional frame)
+  "Return the width in pixels of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the pixel width for all
+physical monitors associated with DISPLAY.  To get information for
+each physical monitor, use `display-monitor-attributes-list'."
+  (frame-width frame))
+(defun x-display-pixel-height (&optional frame)
+  "Return the height in pixels of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the pixel height for all
+physical monitors associated with DISPLAY.  To get information for
+each physical monitor, use `display-monitor-attributes-list'."
+  (frame-height frame))
+(defun x-display-planes (&optional _frame)
+  "Return the number of bitplanes of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  4) ;bg switched to 16 colors as well
+(defun x-display-color-cells (&optional _frame)
+  "Return the number of color cells of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  16)
+(defun x-server-max-request-size (&optional _frame)
+  "Return the maximum request size of the server of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  1000000) ; ???
+(defun x-server-vendor (&optional _frame)
+  "Return the \"vendor ID\" string of the GUI software on TERMINAL.
+
+\(Labeling every distributor as a \"vendor\" embodies the false assumption
+that operating systems cannot be developed and distributed noncommercially.)
+
+For GNU and Unix systems, this queries the X server software; for
+MS-Windows, this queries the OS.
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  "GNU")
+(defun x-server-version (&optional _frame)
+  "Return the version numbers of the GUI software on TERMINAL.
+The value is a list of three integers specifying the version of the GUI
+software in use.
+
+For GNU and Unix system, the first 2 numbers are the version of the X
+Protocol used on TERMINAL and the 3rd number is the distributor-specific
+release number.  For MS-Windows, the 3 numbers report the version and
+the build number of the OS.
+
+See also the function `x-server-vendor'.
+
+The optional argument TERMINAL specifies which display to ask about.
+TERMINAL should be a terminal object, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  '(1 0 0))
+(defun x-display-screens (&optional _frame)
+  "Return the number of screens on the server of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  1)
+(defun x-display-mm-height (&optional _frame)
+  "Return the height in millimeters of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the height in millimeters for
+all physical monitors associated with DISPLAY.  To get information
+for each physical monitor, use `display-monitor-attributes-list'."
+  245) ; Guess the size of my...
+(defun x-display-mm-width (&optional _frame)
+  "Return the width in millimeters of DISPLAY.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display.
+
+On \"multi-monitor\" setups this refers to the width in millimeters for
+all physical monitors associated with TERMINAL.  To get information
+for each physical monitor, use `display-monitor-attributes-list'."
+  322)  ; ...monitor, EZ...
+(defun x-display-backing-store (&optional _frame)
+  "Return an indication of whether DISPLAY does backing store.
+The value may be `always', `when-mapped', or `not-useful'.
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  'not-useful)
+(defun x-display-visual-class (&optional _frame)
+  "Return the visual class of DISPLAY.
+The value is one of the symbols `static-gray', `gray-scale',
+`static-color', `pseudo-color', `true-color', or `direct-color'.
+
+The optional argument DISPLAY specifies which display to ask about.
+DISPLAY should be either a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display."
+  'static-color)
 (fset 'x-display-save-under 'ignore)
 (fset 'x-get-resource 'ignore)
 

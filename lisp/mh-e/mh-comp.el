@@ -1,6 +1,6 @@
 ;;; mh-comp.el --- MH-E functions for composing and sending messages
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

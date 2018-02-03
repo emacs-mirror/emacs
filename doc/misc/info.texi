@@ -15,7 +15,7 @@
 This file describes how to use Info, the menu-driven GNU
 documentation system.
 
-Copyright @copyright{} 1989, 1992, 1996--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1992, 1996--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1108,6 +1108,7 @@ other file with @kbd{g(@var{filename})*@key{RET}}.
 @kindex 1 @r{through} 9 @r{(Info mode)}
 @findex Info-nth-menu-item
 @cindex select @var{n}'th menu item
+@cindex menu items, select by their numbers
   If you begrudge each character of type-in which your system requires,
 you might like to use the commands @kbd{1}, @kbd{2}, @kbd{3}, @kbd{4},
 @dots{}, @kbd{9}.  They are short for the @kbd{m} command together
@@ -1116,6 +1117,11 @@ in the current node's menu; @kbd{2} goes through the second item, etc.
 In the stand-alone reader, @kbd{0} goes through the last menu item;
 this is so you need not count how many entries are there.
 
+@cindex 3rd menu item
+@cindex third menu item
+@cindex 6th menu item
+@cindex sixth menu item
+@cindex star @samp{*} before menu item
   If your display supports multiple fonts, colors or underlining, and
 you are using Emacs's Info mode to read Info files, the third, sixth
 and ninth menu items have a @samp{*} that stands out, either in color

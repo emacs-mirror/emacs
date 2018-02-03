@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -268,9 +268,10 @@ Whichever character you type to run this command is inserted.
 The numeric prefix argument N says how many times to repeat the insertion.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
-After insertion, the value of `auto-fill-function' is called if the
-`auto-fill-chars' table has a non-nil value for the inserted character.
-At the end, it runs `post-self-insert-hook'.  */)
+After insertion, `internal-auto-fill' is called if
+`auto-fill-function' is non-nil and if the `auto-fill-chars' table has
+a non-nil value for the inserted character.  At the end, it runs
+`post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
   CHECK_NUMBER (n);
@@ -420,11 +421,11 @@ internal_self_insert (int c, EMACS_INT n)
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
       if (SYMBOLP (sym) && ! NILP (sym)
-	  && ! NILP (XSYMBOL (sym)->function)
-	  && SYMBOLP (XSYMBOL (sym)->function))
+	  && ! NILP (XSYMBOL (sym)->u.s.function)
+	  && SYMBOLP (XSYMBOL (sym)->u.s.function))
 	{
 	  Lisp_Object prop;
-	  prop = Fget (XSYMBOL (sym)->function, intern ("no-self-insert"));
+	  prop = Fget (XSYMBOL (sym)->u.s.function, intern ("no-self-insert"));
 	  if (! NILP (prop))
 	    return 1;
 	}
@@ -438,12 +439,13 @@ internal_self_insert (int c, EMACS_INT n)
       int mc = ((NILP (BVAR (current_buffer, enable_multibyte_characters))
 		 && SINGLE_BYTE_CHAR_P (c))
 		? UNIBYTE_TO_CHAR (c) : c);
-      Lisp_Object string = Fmake_string (make_number (n), make_number (mc));
+      Lisp_Object string = Fmake_string (make_number (n), make_number (mc),
+					 Qnil);
 
       if (spaces_to_insert)
 	{
 	  tem = Fmake_string (make_number (spaces_to_insert),
-			      make_number (' '));
+			      make_number (' '), Qnil);
 	  string = concat2 (string, tem);
 	}
 
@@ -475,7 +477,7 @@ internal_self_insert (int c, EMACS_INT n)
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      auto_fill_result = call0 (BVAR (current_buffer, auto_fill_function));
+      auto_fill_result = call0 (Qinternal_auto_fill);
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
@@ -494,6 +496,8 @@ internal_self_insert (int c, EMACS_INT n)
 void
 syms_of_cmds (void)
 {
+  DEFSYM (Qinternal_auto_fill, "internal-auto-fill");
+
   DEFSYM (Qundo_auto_amalgamate, "undo-auto-amalgamate");
   DEFSYM (Qundo_auto__this_command_amalgamating,
           "undo-auto--this-command-amalgamating");

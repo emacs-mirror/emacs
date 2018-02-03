@@ -1,6 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -366,9 +366,6 @@ Only meaningful if you enable `spam-use-blackholes'."
     (t :inverse-video t))
   "Face for spam-marked articles."
   :group 'spam)
-;; backward-compatibility alias
-(put 'spam-face 'face-alias 'spam)
-(put 'spam-face 'obsolete-face "22.1")
 
 (defcustom spam-face 'spam
   "Face for spam-marked articles."
@@ -628,7 +625,7 @@ order for SpamAssassin to recognize the new registered spam."
   :group 'spam-spamassassin)
 
 (defcustom spam-sa-learn-unregister-switch "--forget"
-  "The switch that sa-learn uses to unregister messages messages."
+  "The switch that sa-learn uses to unregister messages."
   :type 'string
   :group 'spam-spamassassin)
 

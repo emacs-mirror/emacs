@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1956,7 +1956,7 @@ E.g. provided via a file-local call to `smie-config-local'.")
 (defvar smie-config--modefuns nil)
 
 (defun smie-config--setter (var value)
-  (setq-default var value)
+  (set-default var value)
   (let ((old-modefuns smie-config--modefuns))
     (setq smie-config--modefuns nil)
     (pcase-dolist (`(,mode . ,rules) value)
@@ -1982,7 +1982,7 @@ value with which to replace it."
   ;; FIXME improve value-type.
   :type '(choice (const nil)
                  (alist :key-type symbol))
-  :initialize 'custom-initialize-default
+  :initialize 'custom-initialize-set
   :set #'smie-config--setter)
 
 (defun smie-config-local (rules)

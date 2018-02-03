@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros
@@ -159,7 +159,8 @@ the most recent macro, type @kbd{C-x e}
 defining a macro, the macro is terminated and executed immediately.
 Immediately after typing @kbd{C-x e}, you can type @key{e} repeatedly
 to immediately repeat the macro one or more times.  You can also give
-@kbd{C-x e} a repeat argument, just like @key{F4}.
+@kbd{C-x e} a repeat argument, just like @key{F4} (when it is used to
+execute a macro).
 
   @kbd{C-x )} can be given a repeat count as an argument.  This means
 to repeat the macro right after defining it.  The macro definition
@@ -453,7 +454,7 @@ M-x insert-kbd-macro @key{RET} @var{macroname} @key{RET}
 
 @noindent
 This inserts some Lisp code that, when executed later, will define the
-same macro with the same definition it has now.  (You need not
+same macro with the same definition it has now.  (You don't need to
 understand Lisp code to do this, because @code{insert-kbd-macro} writes
 the Lisp code for you.)  Then save the file.  You can load the file
 later with @code{load-file} (@pxref{Lisp Libraries}).  If the file you

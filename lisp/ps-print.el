@@ -1,13 +1,13 @@
 ;;; ps-print.el --- print text from the buffer as PostScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2018 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
-;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
@@ -20,7 +20,7 @@ Emacs without changes to the version number.  When reporting bugs, please also
 report the version of Emacs, if any, that ps-print was distributed with.
 
 Please send all bug fixes and enhancements to
-	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl@ig.com.br>.")
+	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ Please send all bug fixes and enhancements to
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1216,7 +1216,7 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
-;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;
 ;;    2007-10-27
 ;;	 `ps-fg-validate-p', `ps-fg-list'
@@ -1274,7 +1274,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    `ps-print-region-function'
 ;;
-;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;
 ;;    1999-03-01
 ;;	 PostScript tumble and setpagedevice.
@@ -1287,7 +1287,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    Multi-byte buffer handling.
 ;;
-;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;
 ;;    1998-03-06
 ;;	 Skip invisible text.

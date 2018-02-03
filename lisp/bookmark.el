@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -229,7 +229,7 @@ functions have a binding in this keymap.")
 
 ;;; Core variables and data structures:
 (defvar bookmark-alist ()
-  "Association list of bookmarks and their records.
+  "Association list of bookmark names and their parameters.
 Bookmark functions update the value automatically.
 You probably do NOT want to change the value yourself.
 
@@ -254,7 +254,7 @@ or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
   (annotation . ANNOTATION)
 
  FILENAME names the bookmarked file.
- POS is the bookmarked buffer position (position in the file).
+ POS is the bookmarked buffer position.
  STR-AFTER-POS is buffer text that immediately follows POS.
  STR-BEFORE-POS is buffer text that immediately precedes POS.
  ANNOTATION is a string that describes the bookmark.
@@ -262,7 +262,7 @@ or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
    `bookmark-automatically-show-annotations'.
  HANDLER is a function that provides the bookmark-jump behavior for a
  specific kind of bookmark.  This is the case for Info bookmarks,
- for instance.  HANDLER must accept a bookmark as argument.")
+ for instance.  HANDLER must accept a bookmark as its single argument.")
 
 (defvar bookmarks-already-loaded nil
   "Non-nil if and only if bookmarks have been loaded from `bookmark-default-file'.")

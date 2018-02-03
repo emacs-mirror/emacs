@@ -1,14 +1,14 @@
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-		Emacs version 25.1.50 for MS-Windows
+		Emacs version 27.0.50 for MS-Windows
 
   This README file describes how to set up and run a precompiled
   distribution of the latest version of GNU Emacs for MS-Windows.  You
   can find the precompiled distribution on the ftp.gnu.org server and
   its mirrors:
 
-       ftp://ftp.gnu.org/gnu/emacs/windows/
+       https://ftp.gnu.org/gnu/emacs/windows/
 
   This server contains other distributions, including the full Emacs
   source distribution, as well as older releases of Emacs for Windows.
@@ -275,12 +275,12 @@ See the end of the file for license conditions.
 
   This appendix is also available (as part of the entire manual) at
 
-        http://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Microsoft-Windows
+        https://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Microsoft-Windows
 
   In addition to the manual, there is a mailing list for help with
   Emacs here:
 
-       http://lists.gnu.org/mailman/listinfo/help-gnu-emacs
+       https://lists.gnu.org/mailman/listinfo/help-gnu-emacs
 
   To ask questions on this mailing list, send email to
   help-gnu-emacs@gnu.org.
@@ -288,7 +288,7 @@ See the end of the file for license conditions.
   A mailing list for issues specifically related to the MS-Windows port
   of Emacs is here:
 
-	http://lists.gnu.org/mailman/listinfo/help-emacs-windows
+	https://lists.gnu.org/mailman/listinfo/help-emacs-windows
 
   To ask questions on this mailing list, send email to
   help-emacs-windows@gnu.org.
@@ -325,4 +325,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

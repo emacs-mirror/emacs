@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -57,7 +57,6 @@
 ;; (rx (and line-start (0+ (in "a-z"))))
 ;;
 ;; "\n[^ \t]"
-;; (rx (and "\n" (not blank))), or
 ;; (rx (and "\n" (not (any " \t"))))
 ;;
 ;; "\\*\\*\\* EOOH \\*\\*\\*\n"
@@ -74,9 +73,9 @@
 ;; "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
 ;; (rx (and line-start
 ;;          "content-transfer-encoding:"
-;;          (+ (? ?\n)) blank
+;;          (+ (? ?\n)) (any " \t")
 ;;	    "quoted-printable"
-;;	    (+ (? ?\n)) blank))
+;;	    (+ (? ?\n)) (any " \t"))
 ;;
 ;; (concat "^\\(?:" something-else "\\)")
 ;; (rx (and line-start (eval something-else))), statically or
@@ -962,7 +961,11 @@ CHAR
      matches 0 through 9, a through f and A through F.
 
 `blank'
-     matches space and tab only.
+     matches horizontal whitespace, as defined by Annex C of the
+     Unicode Technical Standard #18.  In particular, it matches
+     spaces, tabs, and other characters whose Unicode
+     `general-category' property indicates they are spacing
+     separators.
 
 `graphic', `graph'
      matches graphic characters--everything except whitespace, ASCII
@@ -1169,6 +1172,62 @@ enclosed in `(and ...)'.
 	 (rx-to-string `(and ,@regexps) t))
 	(t
 	 (rx-to-string (car regexps) t))))
+
+
+(pcase-defmacro rx (&rest regexps)
+  "Build a `pcase' pattern matching `rx' regexps.
+The REGEXPS are interpreted as by `rx'.  The pattern matches if
+the regular expression so constructed matches the object, as if
+by `string-match'.
+
+In addition to the usual `rx' constructs, REGEXPS can contain the
+following constructs:
+
+  (let VAR FORM...)  creates a new explicitly numbered submatch
+                     that matches FORM and binds the match to
+                     VAR.
+  (backref VAR)      creates a backreference to the submatch
+                     introduced by a previous (let VAR ...)
+                     construct.
+
+The VARs are associated with explicitly numbered submatches
+starting from 1.  Multiple occurrences of the same VAR refer to
+the same submatch.
+
+If a case matches, the match data is modified as usual so you can
+use it in the case body, but you still have to pass the correct
+string as argument to `match-string'."
+  (let* ((vars ())
+         (rx-constituents
+          `((let
+             ,(lambda (form)
+                (rx-check form)
+                (let ((var (cadr form)))
+                  (cl-check-type var symbol)
+                  (let ((i (or (cl-position var vars :test #'eq)
+                               (prog1 (length vars)
+                                 (setq vars `(,@vars ,var))))))
+                    (rx-form `(submatch-n ,(1+ i) ,@(cddr form))))))
+             1 nil)
+            (backref
+             ,(lambda (form)
+                (rx-check form)
+                (rx-backref
+                 `(backref ,(let ((var (cadr form)))
+                              (if (integerp var) var
+                                (1+ (cl-position var vars :test #'eq)))))))
+             1 1
+             ,(lambda (var)
+                (cond ((integerp var) (rx-check-backref var))
+                      ((memq var vars) t)
+                      (t (error "rx `backref' variable must be one of %s: %s"
+                                vars var)))))
+            ,@rx-constituents))
+         (regexp (rx-to-string `(seq ,@regexps) :no-group)))
+    `(and (pred (string-match ,regexp))
+          ,@(cl-loop for i from 1
+                     for var in vars
+                     collect `(app (match-string ,i) ,var)))))
 
 ;; ;; sregex.el replacement
 

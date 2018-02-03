@@ -1,6 +1,6 @@
 ;;; calcalg2.el --- more algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2354,7 +2354,7 @@
 
 ;; The variables math-solve-lhs, math-solve-rhs and math-try-solve-sign
 ;; are local to math-try-solve-for,  but are used by math-try-solve-prod.
-;; (math-solve-lhs and math-solve-rhs are is also local to
+;; (math-solve-lhs and math-solve-rhs are also local to
 ;; math-decompose-poly, but used by math-solve-poly-funny-powers.)
 (defvar math-solve-lhs)
 (defvar math-solve-rhs)

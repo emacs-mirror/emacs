@@ -1105,7 +1105,7 @@ Dired позволяет вам отображать список файлов �
 (copyrighted) и приходит с ограничениями распространения копий со
 следующими соглашениями:
 
-Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

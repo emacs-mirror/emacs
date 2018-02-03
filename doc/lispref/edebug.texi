@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1992-1994, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
@@ -209,16 +209,26 @@ session, it runs the hook @code{edebug-setup-hook}, then sets it to
 @code{nil}.  You can use this to load Edebug specifications
 associated with a package you are using, but only when you use Edebug.
 
+@cindex edebug, failure to instrument
+  If Edebug detects a syntax error while instrumenting, it leaves point
+at the erroneous code and signals an @code{invalid-read-syntax} error.
+@c FIXME?  I can't see that it "leaves point at the erroneous code".
+Example:
+
+@example
+@error{} Invalid read syntax: "Expected lambda expression"
+@end example
+
+  One potential reason for such a failure to instrument is that some
+macro definitions are not yet known to Emacs.  To work around this,
+load the file which defines the function you are about to instrument.
+
 @findex eval-expression @r{(Edebug)}
   To remove instrumentation from a definition, simply re-evaluate its
 definition in a way that does not instrument.  There are two ways of
 evaluating forms that never instrument them: from a file with
 @code{load}, and from the minibuffer with @code{eval-expression}
 (@kbd{M-:}).
-
-  If Edebug detects a syntax error while instrumenting, it leaves point
-at the erroneous code and signals an @code{invalid-read-syntax} error.
-@c FIXME?  I can't see that it "leaves point at the erroneous code".
 
   @xref{Edebug Eval}, for other evaluation functions available
 inside of Edebug.
@@ -244,7 +254,7 @@ least for a certain distance.
 @item S
 Stop: don't execute any more of the program, but wait for more
 Edebug commands (@code{edebug-stop}).
-@c FIXME Does not work. http://debbugs.gnu.org/9764
+@c FIXME Does not work. https://debbugs.gnu.org/9764
 
 @item @key{SPC}
 Step: stop at the next stop point encountered (@code{edebug-step-mode}).
@@ -1139,14 +1149,17 @@ definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
 the @code{declare} form.
 
-@c See, e.g., http://debbugs.gnu.org/10577
+@c See, e.g., https://debbugs.gnu.org/10577
 @c FIXME  Maybe there should be an Edebug option to get it to
 @c automatically load the entire source file containing the function
 @c being instrumented.  That would avoid this.
   Take care to ensure that the specifications are known to Edebug when
-you instrument code.  If you are instrumenting a function from a file
-that uses @code{eval-when-compile} to require another file containing
-macro definitions, you may need to explicitly load that file.
+you instrument code.  If you are instrumenting a function which uses a
+macro defined in another file, you may first need to either evaluate
+the @code{require} forms in the file containing your function, or
+explicitly load the file containing the macro.  If the definition of a
+macro is wrapped by @code{eval-when-compile}, you may need to evaluate
+it.
 
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
@@ -1231,13 +1244,17 @@ A single unevaluated Lisp object, which is not instrumented.
 @c an "expression" is not necessarily intended for evaluation.
 
 @item form
-A single evaluated expression, which is instrumented.
+A single evaluated expression, which is instrumented.  If your macro
+wraps the expression with @code{lambda} before it is evaluated, use
+@code{def-form} instead.  See @code{def-form} below.
 
 @item place
 A generalized variable.  @xref{Generalized Variables}.
 
 @item body
-Short for @code{&rest form}.  See @code{&rest} below.
+Short for @code{&rest form}.  See @code{&rest} below.  If your macro
+wraps its body of code with @code{lambda} before it is evaluated, use
+@code{def-body} instead.  See @code{def-body} below.
 
 @item function-form
 A function form: either a quoted function symbol, a quoted lambda
@@ -1292,11 +1309,16 @@ succeeds.
 
 @item &define
 @c @kindex &define @r{(Edebug)}
-Indicates that the specification is for a defining form.  The defining
-form itself is not instrumented (that is, Edebug does not stop before and
-after the defining form), but forms inside it typically will be
-instrumented.  The @code{&define} keyword should be the first element in
-a list specification.
+
+Indicates that the specification is for a defining form.  Edebug's
+definition of a defining form is a form containing one or more code
+forms which are saved and executed later, after the execution of the
+defining form.
+
+The defining form itself is not instrumented (that is, Edebug does not
+stop before and after the defining form), but forms inside it
+typically will be instrumented.  The @code{&define} keyword should be
+the first element in a list specification.
 
 @item nil
 This is successful when there are no more arguments to match at the
@@ -1689,4 +1711,34 @@ mode is trace or continue.  @xref{Edebug Execution Modes}.
 Whether or not to pause for @code{edebug-sit-for-seconds} on reaching
 a breakpoint.  Set to @code{nil} to prevent the pause, non-@code{nil}
 to allow it.
+@end defopt
+
+@defopt edebug-behavior-alist
+By default, this alist contains one entry with the key @code{edebug}
+and a list of three functions, which are the default implementations
+of the functions inserted in instrumented code: @code{edebug-enter},
+@code{edebug-before} and @code{edebug-after}.  To change Edebug's
+behavior globally, modify the default entry.
+
+Edebug's behavior may also be changed on a per-definition basis by
+adding an entry to this alist, with a key of your choice and three
+functions.  Then set the @code{edebug-behavior} symbol property of an
+instrumented definition to the key of the new entry, and Edebug will
+call the new functions in place of its own for that definition.
+@end defopt
+
+@defopt edebug-new-definition-function
+A function run by Edebug after it wraps the body of a definition
+or closure.  After Edebug has initialized its own data, this function
+is called with one argument, the symbol associated with the
+definition, which may be the actual symbol defined or one generated by
+Edebug.  This function may be used to set the @code{edebug-behavior}
+symbol property of each definition instrumented by Edebug.
+@end defopt
+
+@defopt edebug-after-instrumentation-function
+To inspect or modify Edebug's instrumentation before it is used, set
+this variable to a function which takes one argument, an instrumented
+top-level form, and returns either the same or a replacement form,
+which Edebug will then use as the final result of instrumentation.
 @end defopt

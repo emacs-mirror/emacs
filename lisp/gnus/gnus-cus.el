@@ -1,6 +1,6 @@
 ;;; gnus-cus.el --- customization commands for Gnus
 
-;; Copyright (C) 1996, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -406,7 +406,7 @@ category."))
       ;; every duplicate ends up being displayed.  So, rather than
       ;; display them, remove them from the list.
 
-      (let ((tmp (setq values (gnus-copy-sequence values)))
+      (let ((tmp (setq values (copy-tree values)))
 	    elem)
 	(while (cdr tmp)
 	  (while (setq elem (assq (caar tmp) (cdr tmp)))
@@ -454,7 +454,7 @@ Set variables local to the group you are entering.
 If you want to turn threading off in `news.answers', you could put
 `(gnus-show-threads nil)' in the group parameters of that group.
 `gnus-show-threads' will be made into a local variable in the summary
-buffer you enter, and the form nil will be `eval'ed there.
+buffer you enter, and the form nil will be `eval'uated there.
 
 This can also be used as a group-specific hook function, if you'd
 like.  If you want to hear a beep when you enter a group, you could
@@ -535,7 +535,7 @@ These files will not be loaded, even though they would normally be so,
 for some reason or other.")
 
     (eval (sexp :tag "Eval" :value nil) "\
-The value of this entry will be `eval'el.
+The value of this entry will be `eval'uated.
 This element will be ignored when handling global score files.")
 
     (read-only (boolean :tag "Read-only" :value t) "\

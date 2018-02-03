@@ -1,5 +1,5 @@
 /* Primitives for word-abbrev mode.
-   Copyright (C) 1985-1986, 1993, 1996, 1998, 2016-2017 Free Software
+   Copyright (C) 1985-1986, 1993, 1996, 1998, 2016-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
@@ -7,7 +7,6 @@
 @cindex Package
 @cindex Emacs Lisp package archive
 @cindex Package archive
-@cindex Emacs Lisp package
 
 Emacs includes a facility that lets you easily download and install
 @dfn{packages} that implement additional features.  Each package is a
@@ -18,7 +17,6 @@ as an Info manual.
 with a list of all packages.  You can install or uninstall packages
 via this buffer.  @xref{Package Menu}.
 
-@findex describe-package
   The command @kbd{C-h P} (@code{describe-package}) prompts for the
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
@@ -182,7 +180,7 @@ variable @code{package-archives}, whose value is a list of package
 archives known to Emacs.  Each list element must have the form
 @code{(@var{id} . @var{location})}, where @var{id} is the name of a
 package archive and @var{location} is the @acronym{HTTP} address or
-directory name of the package archive.  You can alter this list if you
+name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 

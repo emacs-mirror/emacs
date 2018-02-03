@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -223,6 +223,14 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (visible-bell display boolean)
 	     (no-redraw-on-reenter display boolean)
 
+             ;; doc.c
+             (text-quoting-style display
+                                 (choice
+                                  (const :tag "Prefer \\=‘curved\\=’ quotes, if possible" nil)
+                                  (const :tag "\\=‘Curved\\=’ quotes" curved)
+                                  (const :tag "\\='Straight\\=' quotes" straight)
+                                  (const :tag "\\=`Grave\\=' quotes (no translation)" grave)))
+
              ;; dosfns.c
 	     (dos-display-scancodes display boolean)
 	     (dos-hyper-key keyboard integer)
@@ -319,6 +327,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "Always" t)
 					    (repeat (symbol :tag "Parameter")))
 					   "25.1")
+	     (iconify-child-frame frames
+				  (choice
+				   (const :tag "Do nothing" nil)
+                                   (const :tag "Iconify top level frame instead" iconify-top-level)
+                                   (const :tag "Make frame invisible instead" make-invisible)
+                                   (const :tag "Iconify" t))
+				  "26.1")
 	     (tooltip-reuse-hidden-frame tooltip boolean "26.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
@@ -498,14 +513,16 @@ since it could result in memory overflow and make Emacs crash."
 	     (window-combination-limit
 	      windows (choice
 		       (const :tag "Never (nil)" :value nil)
-		       (const :tag "For Temp Buffer Resize mode (temp-buffer-resize)"
+		       (const :tag "If requested via buffer display alist (window-size)"
+                              :value window-size)
+		       (const :tag "With Temp Buffer Resize mode (temp-buffer-resize)"
 			      :value temp-buffer-resize)
 		       (const :tag "For temporary buffers (temp-buffer)"
 			      :value temp-buffer)
 		       (const :tag "For buffer display (display-buffer)"
 			      :value display-buffer)
 		       (other :tag "Always (t)" :value t))
-	      "24.3")
+	      "26.1")
 	     (fast-but-imprecise-scrolling scrolling boolean "25.1")
 	     (window-resize-pixelwise windows boolean "24.4")
 	     ;; xdisp.c
@@ -554,7 +571,15 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Text-image-horiz" :value text-image-horiz)
 		      (const :tag "System default" :value nil)) "24.1")
              (tool-bar-max-label-size frames integer "24.1")
-	     (auto-hscroll-mode scrolling boolean "21.1")
+	     (auto-hscroll-mode scrolling
+                                (choice
+                                 (const :tag "Don't scroll automatically"
+                                        :value nil)
+                                 (const :tag "Scroll the entire window"
+                                        :value t)
+                                 (const :tag "Scroll only the current line"
+                                        :value current-line))
+                                "26.1")
 	     (void-text-area-pointer cursor
 				     (choice
 				      (const :tag "Standard (text pointer)" :value nil)
@@ -573,6 +598,39 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Fit (t)" :value t)
 		       (const :tag "Grow only" :value grow-only))
 	      "25.1")
+	     (display-raw-bytes-as-hex display boolean "26.1")
+             (display-line-numbers display-line-numbers
+                                   (choice
+                                    (const :tag "Off (nil)" :value nil)
+                                    (const :tag "Absolute line numbers"
+                                           :value t)
+                                    (const :tag "Relative line numbers"
+                                           :value relative)
+                                    (const :tag "Visually relative line numbers"
+                                           :value visual))
+                                   "26.1")
+             (display-line-numbers-width display-line-numbers
+                                 (choice
+                                  (const :tag "Dynamically computed"
+                                         :value nil)
+                                  (integer :menu-tag "Fixed number of columns"
+                                           :value 2
+                                           :format "%v"))
+                                 "26.1")
+             (display-line-numbers-current-absolute display-line-numbers
+                                 (choice
+                                  (const :tag "Display actual number of current line"
+                                         :value t)
+                                  (const :tag "Display zero as number of current line"
+                                         :value nil))
+                                 "26.1")
+             (display-line-numbers-widen display-line-numbers
+                                 (choice
+                                  (const :tag "Disregard narrowing when calculating line numbers"
+                                         :value t)
+                                  (const :tag "Count lines from beginning of narrowed region"
+                                         :value nil))
+                                 "26.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
@@ -647,13 +705,15 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'risky-local-variable (cadr prop)))
       (if (setq prop (memq :set rest))
 	  (put symbol 'custom-set (cadr prop)))
-      ;; Note this is the _only_ initialize property we handle.
-      (if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
-          ;; These vars are defined early and should hence be initialized
-          ;; early, even if this file happens to be loaded late.  so add them
-          ;; to the end of custom-delayed-init-variables.  Otherwise,
-          ;; auto-save-file-name-transforms will appear in M-x customize-rogue.
-	  (add-to-list 'custom-delayed-init-variables symbol 'append))
+      ;; Don't re-add to custom-delayed-init-variables post-startup.
+      (unless after-init-time
+	;; Note this is the _only_ initialize property we handle.
+	(if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
+	    ;; These vars are defined early and should hence be initialized
+	    ;; early, even if this file happens to be loaded late.  so add them
+	    ;; to the end of custom-delayed-init-variables.  Otherwise,
+	    ;; auto-save-file-name-transforms will appear in customize-rogue.
+	    (add-to-list 'custom-delayed-init-variables symbol 'append)))
       ;; If this is NOT while dumping Emacs, set up the rest of the
       ;; customization info.  This is the stuff that is not needed
       ;; until someone does M-x customize etc.

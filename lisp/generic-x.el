@@ -1,6 +1,6 @@
 ;;; generic-x.el --- A collection of generic modes
 
-;; Copyright (C) 1997-1998, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -1610,7 +1610,6 @@ like an INI file.  You can add this hook to `find-file-hook'."
     (t (:weight bold)))
   "Font Lock mode face used to highlight TABs."
   :group 'generic-x)
-(define-obsolete-face-alias 'show-tabs-tab-face 'show-tabs-tab "22.1")
 
 (defface show-tabs-space
   '((((class grayscale) (background light)) (:background "DimGray"   :weight bold))
@@ -1620,7 +1619,6 @@ like an INI file.  You can add this hook to `find-file-hook'."
     (t (:weight bold)))
   "Font Lock mode face used to highlight spaces."
   :group 'generic-x)
-(define-obsolete-face-alias 'show-tabs-space-face 'show-tabs-space "22.1")
 
 (define-generic-mode show-tabs-generic-mode
   nil ;; no comment char

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -312,6 +312,11 @@ The major mode command should set the variable @code{mode-name} to the
 ``pretty'' name of the mode, usually a string (but see @ref{Mode Line
 Data}, for other possible forms).  The name of the mode appears
 in the mode line.
+
+@item
+Calling the major mode command twice in direct succession should not
+fail and should do the same thing as calling the command only once.
+In other words, the major mode command should be idempotent.
 
 @item
 @cindex functions in modes
@@ -1412,6 +1417,10 @@ a minor mode in a mode hook is a little uglier:
 @noindent
 However, this is not very commonly done.
 
+  Enabling or disabling a minor mode twice in direct succession should
+not fail and should do the same thing as enabling or disabling it only
+once.  In other words, the minor mode command should be idempotent.
+
 @item
 Add an element to @code{minor-mode-alist} for each minor mode
 (@pxref{Definition of minor-mode-alist}), if you want to indicate the
@@ -1490,10 +1499,11 @@ alist @code{minor-mode-map-alist}.  @xref{Definition of minor-mode-map-alist}.
   One use of minor mode keymaps is to modify the behavior of certain
 self-inserting characters so that they do something else as well as
 self-insert.  (Another way to customize @code{self-insert-command} is
-through @code{post-self-insert-hook}.  Apart from this, the facilities
-for customizing @code{self-insert-command} are limited to special cases,
-designed for abbrevs and Auto Fill mode.  Do not try substituting your
-own definition of @code{self-insert-command} for the standard one.  The
+through @code{post-self-insert-hook}, see @ref{Commands for
+Insertion}.  Apart from this, the facilities for customizing
+@code{self-insert-command} are limited to special cases, designed for
+abbrevs and Auto Fill mode.  Do not try substituting your own
+definition of @code{self-insert-command} for the standard one.  The
 editor command loop handles this function specially.)
 
 Minor modes may bind commands to key sequences consisting of @kbd{C-c}
@@ -1737,7 +1747,9 @@ holds a @dfn{mode line construct}: a template that controls what is
 displayed on the buffer's mode line.  The value of
 @code{header-line-format} specifies the buffer's header line in the same
 way.  All windows for the same buffer use the same
-@code{mode-line-format} and @code{header-line-format}.
+@code{mode-line-format} and @code{header-line-format} unless a
+@code{mode-line-format} or @code{header-line-format} parameter has been
+specified for that window (@pxref{Window Parameters}).
 
   For efficiency, Emacs does not continuously recompute each window's
 mode line and header line.  It does so when circumstances appear to call
@@ -1972,6 +1984,14 @@ displays the buffer percentage and, optionally, the buffer size, the
 line number and the column number.
 @end defvar
 
+@defopt mode-line-percent-position
+This option is used in @code{mode-line-position}.  Its value specifies
+both the buffer percentage to display (one of @code{nil}, @code{"%o"},
+@code{"%p"}, @code{"%P"} or @code{"%q"}, @pxref{%-Constructs}) and a
+width to space-fill or truncate to.  You are recommended to set this
+option with the @code{customize-variable} facility.
+@end defopt
+
 @defvar vc-mode
 The variable @code{vc-mode}, buffer-local in each buffer, records
 whether the buffer's visited file is maintained with version control,
@@ -2111,7 +2131,12 @@ The current buffer name, obtained with the @code{buffer-name} function.
 @xref{Buffer Names}.
 
 @item %c
-The current column number of point.
+The current column number of point, counting from zero starting at the
+left margin of the window.
+
+@item %C
+The current column number of point, counting from one starting at the
+left margin of the window.
 
 @item %e
 When Emacs is nearly out of memory for Lisp objects, a brief message
@@ -2142,6 +2167,12 @@ of the buffer.
 @samp{Narrow} when narrowing is in effect; nothing otherwise (see
 @code{narrow-to-region} in @ref{Narrowing}).
 
+@item %o
+The degree of @dfn{travel} of the window through (the visible portion
+of) the buffer, i.e. the size of the text above the top of the window
+expressed as a percentage of all the text outside the window, or
+@samp{Top}, @samp{Bottom} or @samp{All}.
+
 @item %p
 The percentage of the buffer text above the @strong{top} of window, or
 @samp{Top}, @samp{Bottom} or @samp{All}.  Note that the default mode
@@ -2152,6 +2183,10 @@ The percentage of the buffer text that is above the @strong{bottom} of
 the window (which includes the text visible in the window, as well as
 the text above the top), plus @samp{Top} if the top of the buffer is
 visible on screen; or @samp{Bottom} or @samp{All}.
+
+@item %q
+The percentages of text above both the @strong{top} and the
+@strong{bottom} of the window, separated by @samp{-}, or @samp{All}.
 
 @item %s
 The status of the subprocess belonging to the current buffer, obtained with
@@ -3510,10 +3545,11 @@ provided grammar is precise enough, @code{transpose-sexps} can correctly
 transpose the two arguments of a @code{+} operator, taking into account
 the precedence rules of the language.
 
-Calling @code{smie-setup} is also sufficient to make TAB indentation work in
-the expected way, extends @code{blink-matching-paren} to apply to
-elements like @code{begin...end}, and provides some commands that you
-can bind in the major mode keymap.
+Calling @code{smie-setup} is also sufficient to make @key{TAB}
+indentation work in the expected way, extends
+@code{blink-matching-paren} to apply to elements like
+@code{begin...end}, and provides some commands that you can bind in
+the major mode keymap.
 
 @deffn Command smie-close-block
 This command closes the most recently opened (and not yet closed) block.

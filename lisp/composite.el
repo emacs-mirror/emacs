@@ -1,6 +1,6 @@
 ;;; composite.el --- support character composition
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -337,8 +337,9 @@ When Automatic Composition mode is on, this function also finds a
 chunk of text that is automatically composed.  If such a chunk is
 found closer to POS than the position that has `composition'
 property, the value is a list of FROM, TO, and a glyph-string
-that specifies how the chunk is to be composed.  See the function
-`composition-get-gstring' for the format of the glyph-string."
+that specifies how the chunk is to be composed; DETAIL-P is
+ignored in this case.  See the function `composition-get-gstring'
+for the format of the glyph-string."
   (let ((result (find-composition-internal pos limit string detail-p)))
     (if (and detail-p (> (length result) 3) (nth 2 result) (not (nth 3 result)))
 	;; This is a valid rule-base composition.
@@ -442,8 +443,10 @@ after a sequence of character events."
 (defsubst lglyph-set-adjustment (glyph &optional xoff yoff wadjust)
   (aset glyph 9 (vector (or xoff 0) (or yoff 0) (or wadjust 0))))
 
+;; Return the shallow Copy of GLYPH.
 (defsubst lglyph-copy (glyph) (copy-sequence glyph))
 
+;; Insert GLYPH at the index IDX of GSTRING.
 (defun lgstring-insert-glyph (gstring idx glyph)
   (let ((nglyphs (lgstring-glyph-len gstring))
 	(i idx))
@@ -458,6 +461,18 @@ after a sequence of character events."
       (setq i (1- i)))
     (lgstring-set-glyph gstring i glyph)
     gstring))
+
+;; Remove glyph at IDX from GSTRING.
+(defun lgstring-remove-glyph (gstring idx)
+  (setq gstring (copy-sequence gstring))
+  (lgstring-set-id gstring nil)
+  (let ((len (length gstring)))
+    (setq idx (+ idx 3))
+    (while (< idx len)
+      (aset gstring (1- idx) (aref gstring idx))
+      (setq idx (1+ idx)))
+    (aset gstring (1- len) nil))
+  gstring)
 
 (defun compose-glyph-string (gstring from to)
   (let ((glyph (lgstring-glyph gstring from))

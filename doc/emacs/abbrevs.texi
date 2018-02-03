@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Abbrevs
@@ -62,8 +62,8 @@ definition for the current major mode overrides a global definition.
 
   You can define abbrevs interactively during the editing session,
 irrespective of whether Abbrev mode is enabled.  You can also save
-lists of abbrev definitions in files, which you can the reload for use
-in later sessions.
+lists of abbrev definitions in files, which you can then reload for
+use in later sessions.
 
 @node Defining Abbrevs
 @section Defining Abbrevs
@@ -315,7 +315,8 @@ batch mode.  @xref{Initial Options}, for a description of batch mode.)
 any of them, whenever it offers to save all files (for @kbd{C-x s} or
 @kbd{C-x C-c}).  It saves them in the file specified by
 @code{abbrev-file-name}.  This feature can be inhibited by setting the
-variable @code{save-abbrevs} to @code{nil}.
+variable @code{save-abbrevs} to @code{nil}; setting it to
+@code{silently} will save the abbrevs automatically without asking.
 
 @findex insert-abbrevs
 @findex define-abbrevs
@@ -417,12 +418,11 @@ match in case.  If the value is @code{case-fold-search} (the default),
 then the variable @code{case-fold-search} controls whether to ignore
 case while searching for expansions (@pxref{Lax Search}).
 
-@vindex dabbrev-case-replace
   Normally, dynamic abbrev expansion preserves the case pattern
 @emph{of the dynamic abbrev you are expanding}, by converting the
 expansion to that case pattern.
 
-@vindex dabbrev-case-fold-search
+@vindex dabbrev-case-replace
   The variable @code{dabbrev-case-replace} controls whether to
 preserve the case pattern of the dynamic abbrev.  If it is @code{t},
 the dynamic abbrev's case pattern is preserved in most cases; if it is

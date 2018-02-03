@@ -1,5 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1999, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
    Tim Fleehart (apollo@online.com)		1-17-92
@@ -333,7 +333,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 					   coding->produced, cursor_coords,
 					   &r))
 	    {
-	      printf ("Failed writing console attributes: %d\n",
+	      printf ("Failed writing console attributes: %lu\n",
 		      GetLastError ());
 	      fflush (stdout);
 	    }
@@ -343,7 +343,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 					    coding->produced, cursor_coords,
 					    &r))
 	    {
-	      printf ("Failed writing console characters: %d\n",
+	      printf ("Failed writing console characters: %lu\n",
 		      GetLastError ());
 	      fflush (stdout);
 	    }

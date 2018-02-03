@@ -1,6 +1,6 @@
 ;;; undo-tests.el --- Tests of primitive-undo
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 ;; Author: Aaron S. Hawley <aaron.s.hawley@gmail.com>
 
@@ -15,7 +15,7 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
@@ -200,7 +200,7 @@
                   '(error "Unrecognized entry in undo list \"bogus\""))))
         (buffer-string))))))
 
-;; http://debbugs.gnu.org/14824
+;; https://debbugs.gnu.org/14824
 (ert-deftest undo-test-buffer-modified ()
   "Test undoing marks buffer unmodified."
   (with-temp-buffer
@@ -326,7 +326,7 @@ undo-make-selective-list."
     (insert "This sentence corrupted?")
     (undo-boundary)
     ;; Same as recipe at
-    ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
+    ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=16411
     (insert "aaa")
     (undo-boundary)
     (undo)
@@ -443,6 +443,28 @@ Demonstrates bug 16818."
   (if interactive
       (ert-run-tests-interactively "^undo-")
     (ert-run-tests-batch "^undo-")))
+
+(ert-deftest undo-test-skip-invalidated-markers ()
+  "Test marker adjustment when the marker points nowhere.
+Demonstrates bug 25599."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert ";; aaaaaaaaa
+;; bbbbbbbb")
+    (let ((overlay-modified
+           (lambda (ov after-p _beg _end &optional length)
+             (unless after-p
+               (when (overlay-buffer ov)
+                 (delete-overlay ov))))))
+      (save-excursion
+        (goto-char (point-min))
+        (let ((ov (make-overlay (line-beginning-position 2)
+                                (line-end-position 2))))
+          (overlay-put ov 'insert-in-front-hooks
+                       (list overlay-modified)))))
+    (kill-region (point-min) (line-beginning-position 2))
+    (undo-boundary)
+    (undo)))
 
 (provide 'undo-tests)
 ;;; undo-tests.el ends here

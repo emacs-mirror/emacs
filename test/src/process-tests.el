@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -161,6 +161,25 @@
                                 (start-process "" nil path)
                               (error nil))))
     (should (equal path samepath))))
+
+(ert-deftest make-process/noquery-stderr ()
+  "Checks that Bug#30031 is fixed."
+  (skip-unless (executable-find "sleep"))
+  (with-temp-buffer
+    (let* ((previous-processes (process-list))
+           (process (make-process :name "sleep"
+                                  :command '("sleep" "1h")
+                                  :noquery t
+                                  :connection-type 'pipe
+                                  :stderr (current-buffer))))
+      (unwind-protect
+          (let ((new-processes (cl-set-difference (process-list)
+                                                  previous-processes
+                                                  :test #'eq)))
+            (should new-processes)
+            (dolist (process new-processes)
+              (should-not (process-query-on-exit-flag process))))
+        (kill-process process)))))
 
 (provide 'process-tests)
 ;; process-tests.el ends here.

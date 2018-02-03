@@ -8,7 +8,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 2004--2005, 2007--2017 Free Software
+Copyright @copyright{} 2004--2005, 2007--2018 Free Software
 Foundation, Inc.
 
 @quotation

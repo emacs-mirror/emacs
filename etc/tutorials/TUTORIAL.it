@@ -15,9 +15,11 @@ le seguenti abbreviazioni:
 	  <ESC> per indicare il tasto ESC.
 
 Nota importante: per chiudere una sessione di lavoro di Emacs usa C-x
-C-c (due caratteri).  Per annullare un comando inserito parzialmente
-usa C-g.  I caratteri “>>” posti al margine sinistro indicano le
-direttive per provare a usare un comando.  Per esempio:
+C-c (due caratteri).
+Per annullare un comando inserito parzialmente usa C-g.
+Per terminare l'esercitazione, usa C-x k quindi <Invio> al prompt.
+I caratteri “>>” posti al margine sinistro indicano le direttive per
+provare a usare un comando.  Per esempio:
 <<Blank lines inserted here by startup of help-with-tutorial>>
 [Spaziatura inserita a scopo didattico.  Il testo continua sotto]
 >> Adesso premi C-v (vedi schermata successiva) per spostarti alla
@@ -1201,7 +1203,7 @@ distribuito con il permesso di farne copie a determinate condizioni:
    indicativo, restando comunque inteso il fatto che è quella
    originale a fare fede.
 
-Copyright (C) 2003-2017 Free Software Foundation, Inc.
+Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
    È permesso a chiunque copiare e distribuire attraverso ogni mezzo
    copie fedeli di questo documento così come viene ricevuto, a

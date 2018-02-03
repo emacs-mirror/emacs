@@ -1,6 +1,6 @@
-;;; ido.el --- interactively do things with buffers and files
+;;; ido.el --- interactively do things with buffers and files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -443,7 +443,7 @@ Possible values:
 `other-window'	  Show new file in another window (same frame)
 `display'	  Display file in another window without selecting to it
 `other-frame'	  Show new file in another frame
-`maybe-frame'	  If a file is visible in another frame, prompt to ask if you
+`maybe-frame'	  If a file is visible in another frame, prompt to ask if
 		  you want to see the file in the same window of the current
   		  frame or in the other frame
 `raise-frame'     If a file is visible in another frame, raise that
@@ -497,7 +497,7 @@ as first char even if `ido-enable-prefix' is nil."
   :type 'boolean
   :group 'ido)
 
-;; See http://debbugs.gnu.org/2042 for more info.
+;; See https://debbugs.gnu.org/2042 for more info.
 (defcustom ido-buffer-disable-smart-matches t
   "Non-nil means not to re-order matches for buffer switching.
 By default, Ido arranges matches in the following order:
@@ -1582,19 +1582,11 @@ positive, and disable it otherwise.  If called from Lisp,
 enable the mode if ARG is omitted or nil."
   :global t
   :group 'ido
-  (when (get 'ido-everywhere 'file)
-    (setq read-file-name-function (car (get 'ido-everywhere 'file)))
-    (put 'ido-everywhere 'file nil))
-  (when (get 'ido-everywhere 'buffer)
-    (setq read-buffer-function (car (get 'ido-everywhere 'buffer)))
-    (put 'ido-everywhere 'buffer nil))
+  (remove-function read-file-name-function #'ido-read-file-name)
+  (remove-function read-buffer-function #'ido-read-buffer)
   (when ido-everywhere
-    (when (memq ido-mode '(both file))
-      (put 'ido-everywhere 'file (cons read-file-name-function nil))
-      (setq read-file-name-function #'ido-read-file-name))
-    (when (memq ido-mode '(both buffer))
-      (put 'ido-everywhere 'buffer (cons read-buffer-function nil))
-      (setq read-buffer-function #'ido-read-buffer))))
+    (add-function :override read-file-name-function #'ido-read-file-name)
+    (add-function :override read-buffer-function #'ido-read-buffer)))
 
 (defvar ido-minor-mode-map-entry nil)
 
@@ -3686,7 +3678,7 @@ in this list."
 		    ido-temp-list)))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
-		(lambda (x) (if (string-equal (substring x 0 1) ".") x))
+		(lambda (x) (if (string-match "\\`\\." x) x))
 		ido-temp-list)))
     (if (and default (member default ido-temp-list))
 	(if (or ido-rotate-temp ido-rotate-file-list-default)
@@ -3810,9 +3802,10 @@ frame, rather than all frames, regardless of value of `ido-all-frames'."
          (lambda (item)
            (let ((name (ido-name item)))
 	     (if (and (or non-prefix-dot
-			  (if (= (aref ido-text 0) ?.)
-			      (= (aref name 0) ?.)
-			    (/= (aref name 0) ?.)))
+                          (and (> (length name) 0)
+                               (if (= (aref ido-text 0) ?.)
+                                   (= (aref name 0) ?.)
+                                 (/= (aref name 0) ?.))))
 		      (string-match re name))
 		 (cond
 		  ((and (eq ido-cur-item 'buffer)
@@ -4309,7 +4302,7 @@ For details of keybindings, see `ido-find-file'."
 
 ;;;###autoload
 (defun ido-find-alternate-file ()
-  "Switch to another file and show it in another window.
+  "Find another file, select its buffer, kill previous buffer.
 The file name is selected interactively by typing a substring.
 For details of keybindings, see `ido-find-file'."
   (interactive)
@@ -4708,7 +4701,7 @@ Modified from `icomplete-completions'."
     (if (and ido-use-faces comps)
 	(let* ((fn (ido-name (car comps)))
 	       (ln (length fn)))
-	  (setq first (format "%s" fn))
+	  (setq first (copy-sequence fn))
 	  (put-text-property 0 ln 'face
 			     (if (= (length comps) 1)
                                  (if ido-incomplete-regexp
@@ -4842,7 +4835,7 @@ Modified from `icomplete-completions'."
 (put 'dired 'ido 'dir)
 (put 'dired-other-window 'ido 'dir)
 (put 'dired-other-frame 'ido 'dir)
-;; See http://debbugs.gnu.org/11954 for reasons.
+;; See https://debbugs.gnu.org/11954 for reasons.
 (put 'dired-do-copy 'ido 'ignore)
 (put 'dired-do-rename 'ido 'ignore)
 

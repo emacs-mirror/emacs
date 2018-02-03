@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985-1988, 1993, 2000-2017 Free Software Foundation,
+   Copyright (C) 1985-1988, 1993, 2000-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
+#include "ptr-bounds.h"
 #include "syntax.h"
 #include "window.h"
 
@@ -363,13 +364,15 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   unsigned char quitcounter = 1;
   EMACS_INT stack_items = XFASTINT (maxdepth) + 1;
   USE_SAFE_ALLOCA;
-  Lisp_Object *stack_base;
-  SAFE_ALLOCA_LISP_EXTRA (stack_base, stack_items, bytestr_length);
-  Lisp_Object *stack_lim = stack_base + stack_items;
+  void *alloc;
+  SAFE_ALLOCA_LISP_EXTRA (alloc, stack_items, bytestr_length);
+  ptrdiff_t item_bytes = stack_items * word_size;
+  Lisp_Object *stack_base = ptr_bounds_clip (alloc, item_bytes);
   Lisp_Object *top = stack_base;
-  memcpy (stack_lim, SDATA (bytestr), bytestr_length);
-  void *void_stack_lim = stack_lim;
-  unsigned char const *bytestr_data = void_stack_lim;
+  Lisp_Object *stack_lim = stack_base + stack_items;
+  unsigned char *bytestr_data = alloc;
+  bytestr_data = ptr_bounds_clip (bytestr_data + item_bytes, bytestr_length);
+  memcpy (bytestr_data, SDATA (bytestr), bytestr_length);
   unsigned char const *pc = bytestr_data;
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -452,14 +455,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	 the table clearer.  */
 #define LABEL(OP) [OP] = &&insn_ ## OP
 
-#if GNUC_PREREQ (4, 6, 0)
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Woverride-init"
-#elif defined __clang__
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Winitializer-overrides"
-#endif
-
       /* This is the dispatch table for the threaded interpreter.  */
       static const void *const targets[256] =
 	{
@@ -470,10 +465,6 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  BYTE_CODES
 #undef DEFINE
 	};
-
-#if GNUC_PREREQ (4, 6, 0) || defined __clang__
-# pragma GCC diagnostic pop
-#endif
 
 #endif
 
@@ -501,7 +492,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  {
 	    Lisp_Object v1 = vectorp[op], v2;
 	    if (!SYMBOLP (v1)
-		|| XSYMBOL (v1)->redirect != SYMBOL_PLAINVAL
+		|| XSYMBOL (v1)->u.s.redirect != SYMBOL_PLAINVAL
 		|| (v2 = SYMBOL_VAL (XSYMBOL (v1)), EQ (v2, Qunbound)))
 	      v2 = Fsymbol_value (v1);
 	    PUSH (v2);
@@ -570,7 +561,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    /* Inline the most common case.  */
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
-		&& !XSYMBOL (sym)->redirect
+		&& !XSYMBOL (sym)->u.s.redirect
 		&& !SYMBOL_TRAPPED_WRITE_P (sym))
 	      SET_SYMBOL_VAL (XSYMBOL (sym), val);
 	    else
@@ -1358,10 +1349,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
-	  call3 (Qerror,
-		 build_string ("Invalid byte opcode: op=%s, ptr=%d"),
-		 make_number (op),
-		 make_number (pc - 1 - bytestr_data));
+	  error ("Invalid byte opcode: op=%d, ptr=%"pD"d",
+		 op, pc - 1 - bytestr_data);
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):

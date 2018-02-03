@@ -9,7 +9,7 @@
 @copying
 This manual is for Remember Mode, version 2.0
 
-Copyright @copyright{} 2001, 2004--2005, 2007--2017
+Copyright @copyright{} 2001, 2004--2005, 2007--2018
 Free Software Foundation, Inc.
 
 @quotation

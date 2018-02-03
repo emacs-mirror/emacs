@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -159,7 +159,7 @@ Cover art by Etienne Suvasa.
 @ifset WWW_GNU_ORG
 @html
 <p>The homepage for GNU Emacs is at
-<a href="/software/emacs/">http://www.gnu.org/software/emacs/</a>.<br>
+<a href="/software/emacs/">https://www.gnu.org/software/emacs/</a>.<br>
 For information on using Emacs, refer to the
 <a href="/software/emacs/manual/emacs.html">Emacs Manual</a>.<br>
 To view this manual in other formats, click
@@ -230,7 +230,7 @@ To view this manual in other formats, click
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 24.
+* Antinews::                Info for users downgrading to Emacs 25.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -455,6 +455,7 @@ Evaluation
                               the program).
 * Backquote::               Easier construction of list structure.
 * Eval::                    How to invoke the Lisp interpreter explicitly.
+* Deferred Eval::           Deferred and lazy evaluation of forms.
 
 Kinds of Forms
 
@@ -940,6 +941,7 @@ Documentation
 * Documentation Basics::    Where doc strings are defined and stored.
 * Accessing Documentation:: How Lisp programs can access doc strings.
 * Keys in Documentation::   Substituting current key bindings.
+* Text Quoting Style::      Quotation marks in doc strings and messages.
 * Describing Characters::   Making printable descriptions of
                               non-printing characters and key sequences.
 * Help Functions::          Subroutines used by Emacs help facilities.
@@ -1130,6 +1132,8 @@ Window Frame Parameters
 * Buffer Parameters::       Which buffers have been or should be shown.
 * Frame Interaction Parameters::  Parameters for interacting with other
                               frames.
+* Mouse Dragging Parameters::  Parameters for resizing and moving
+                              frames with the mouse.
 * Management Parameters::   Communicating with the window manager.
 * Cursor Parameters::       Controlling the cursor appearance.
 * Font and Color Parameters:: Fonts and colors for the frame text.
@@ -1194,6 +1198,7 @@ Text
 * Decompression::           Dealing with compressed data.
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
+* GnuTLS Cryptography::     Cryptographic algorithms imported from GnuTLS.
 * Parsing HTML/XML::        Parsing HTML and XML.
 * Atomic Changes::          Installing several buffer changes atomically.
 * Change Hooks::            Supplying functions to be run when text is changed.

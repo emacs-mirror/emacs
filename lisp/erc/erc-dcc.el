@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2017 Free Software
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -56,7 +56,7 @@
 (require 'erc)
 (eval-when-compile (require 'pcomplete))
 
-;;;###autoload (autoload 'erc-dcc-mode "erc-dcc")
+;;;###autoload(autoload 'erc-dcc-mode "erc-dcc")
 (define-erc-module dcc nil
   "Provide Direct Client-to-Client support for ERC."
   ((add-hook 'erc-server-401-functions 'erc-dcc-no-such-nick))
@@ -649,9 +649,10 @@ that subcommand."
           "\"\\(\\(.*?\\(\\\\\"\\)?\\)+?\\)\"\\|\\([^ ]+\\)"
           "\\) \\([0-9]+\\) \\([0-9]+\\) *\\([0-9]*\\)"))
 
-(defsubst erc-dcc-unquote-filename (filename)
-  (erc-replace-regexp-in-string "\\\\\\\\" "\\"
-                                (erc-replace-regexp-in-string "\\\\\"" "\"" filename t t) t t))
+(define-inline erc-dcc-unquote-filename (filename)
+  (inline-quote
+   (erc-replace-regexp-in-string "\\\\\\\\" "\\"
+                                 (erc-replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t)))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -780,8 +781,8 @@ unconfirmed."
   :group 'erc-dcc
   :type '(choice (const nil) integer))
 
-(defsubst erc-dcc-get-parent (proc)
-  (plist-get (erc-dcc-member :peer proc) :parent))
+(define-inline erc-dcc-get-parent (proc)
+  (inline-quote (plist-get (erc-dcc-member :peer ,proc) :parent)))
 
 (defun erc-dcc-send-block (proc)
   "Send one block of data.
@@ -1257,5 +1258,6 @@ other client."
 ;;; erc-dcc.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:

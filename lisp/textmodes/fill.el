@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2017 Free
+;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2018 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,10 +50,11 @@ A value of nil means that any change in indentation starts a new paragraph."
 (put 'colon-double-space 'safe-local-variable 'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
-  "Non-nil means that use a space to separate words of different kind.
-This will be done with a word in the end of a line and a word in the
-beginning of the next line when concatenating them for filling those
-lines.  Whether to use a space is up to how the words are categorized."
+  "Non-nil means to use a space to separate words of a different kind.
+This will be done with a word in the end of a line and a word in
+the beginning of the next line when concatenating them for
+filling those lines.  Whether to use a space depends on how the
+words are categorized."
   :type 'boolean
   :group 'fill
   :version "26.1")
@@ -128,10 +129,11 @@ if it would act as a paragraph-starter on the second line."
   :type 'regexp
   :group 'fill)
 
-(defcustom adaptive-fill-function nil
-  "Function to call to choose a fill prefix for a paragraph, or nil.
-A nil value means the function has not determined the fill prefix."
-  :type '(choice (const nil) function)
+(defcustom adaptive-fill-function #'ignore
+  "Function to call to choose a fill prefix for a paragraph.
+A nil return value means the function has not determined the fill prefix."
+  :version "27.1"
+  :type 'function
   :group 'fill)
 
 (defvar fill-indent-according-to-mode nil ;Screws up CC-mode's filling tricks.
@@ -337,6 +339,18 @@ places."
 	      ;; Don't cut right after a single-letter word.
 	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))
+
+(defun fill-polish-nobreak-p ()
+  "Return nil if Polish style allows breaking the line at point.
+This function may be used in the `fill-nobreak-predicate' hook.
+It is almost the same as `fill-single-char-nobreak-p', with the
+exception that it does not require the one-letter word to be
+preceded by a space.  This blocks line-breaking in cases like
+\"(a jednak)\"."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (backward-char 2)
+    (looking-at "[^[:alpha:]]\\cl")))
 
 (defun fill-single-char-nobreak-p ()
   "Return non-nil if a one-letter word is before point.

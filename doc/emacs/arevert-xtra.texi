@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2017 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -47,7 +47,13 @@ explained in the corresponding sections.
 @subsection Auto Reverting the Buffer Menu
 
 If auto-reverting of non-file buffers is enabled, the Buffer Menu
-(@pxref{Several Buffers}) automatically reverts every
+@iftex
+(@pxref{Several Buffers,,, emacs, the Emacs Manual})
+@end iftex
+@ifnottex
+(@pxref{Several Buffers})
+@end ifnottex
+automatically reverts every
 @code{auto-revert-interval} seconds, whether there is a need for it or
 not.  (It would probably take longer to check whether there is a need
 than to actually revert.)

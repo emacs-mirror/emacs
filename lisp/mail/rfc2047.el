@@ -1,6 +1,6 @@
-;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
+;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,8 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (defvar message-posting-charset)
 
 (require 'mm-util)
@@ -155,7 +154,7 @@ This is either `base64' or `quoted-printable'."
       (goto-char (point-min))
       (skip-chars-forward "\x20-\x7f\r\n\t" limit)
       (while (< (point) limit)
-	(incf n8bit)
+	(cl-incf n8bit)
 	(forward-char 1)
 	(skip-chars-forward "\x20-\x7f\r\n\t" limit))
       (if (or (< (* 6 n8bit) (- limit (point-min)))
@@ -291,8 +290,7 @@ Should be called narrowed to the head of the message."
 		(let ((rfc2047-encoding-type 'mime))
 		  (rfc2047-encode-region (point) (point-max))))
 	       ((eq method 'default)
-		(if (and (default-value 'enable-multibyte-characters)
-			 mail-parse-charset)
+		(if mail-parse-charset
 		    (encode-coding-region (point) (point-max)
 					  mail-parse-charset)))
 	       ;; We get this when CC'ing messages to newsgroups with
@@ -306,18 +304,17 @@ Should be called narrowed to the head of the message."
 	       ;; in accordance with changes elsewhere.
 	       ((null method)
 		(rfc2047-encode-region (point) (point-max)))
-;;;	       ((null method)
-;;;		(if (or (message-options-get
-;;;			 'rfc2047-encode-message-header-encode-any)
-;;;			(message-options-set
-;;;			 'rfc2047-encode-message-header-encode-any
-;;;			 (y-or-n-p
-;;;			  "Some texts are not encoded. Encode anyway?")))
-;;;		    (rfc2047-encode-region (point-min) (point-max))
-;;;		  (error "Cannot send unencoded text")))
+	       ;; ((null method)
+	       ;;  (if (or (message-options-get
+	       ;;  	 'rfc2047-encode-message-header-encode-any)
+	       ;;  	(message-options-set
+	       ;;  	 'rfc2047-encode-message-header-encode-any
+	       ;;  	 (y-or-n-p
+	       ;;  	  "Some texts are not encoded. Encode anyway?")))
+	       ;;      (rfc2047-encode-region (point-min) (point-max))
+	       ;;    (error "Cannot send unencoded text")))
 	       ((mm-coding-system-p method)
-		(when (default-value 'enable-multibyte-characters)
-		  (encode-coding-region (point) (point-max) method)))
+		(encode-coding-region (point) (point-max) method))
 	       ;; Hm.
 	       (t)))
 	    (goto-char (point-max))))))))
@@ -851,7 +848,7 @@ Point moves to the end of the region."
     (buffer-string)))
 
 (defun rfc2047-encode-parameter (param value)
-  "Return and PARAM=VALUE string encoded in the RFC2047-like style.
+  "Return a PARAM=VALUE string encoded in the RFC2047-like style.
 This is a substitution for the `rfc2231-encode-string' function, that
 is the standard but many mailers don't support it."
   (let ((rfc2047-encoding-type 'mime)
@@ -931,11 +928,10 @@ only be used for decoding, not for encoding."
   "Decode successive encoded-words in WORDS and return a decoded string.
 Each element of WORDS looks like (CHARSET ENCODING ENCODED-TEXT
 ENCODED-WORD)."
-  (let (word charset cs encoding text rest)
-    (while words
-      (setq word (pop words))
+  (let (cs text rest)
+    (dolist (word words)
       (if (and (setq cs (rfc2047-charset-to-coding-system
-			 (setq charset (car word)) t))
+			 (car word) t))
 	       (condition-case code
 		   (cond ((char-equal ?B (nth 1 word))
 			  (setq text (base64-decode-string
@@ -954,7 +950,10 @@ ENCODED-WORD)."
 	    (push (cons cs text) rest))
 	;; Don't decode encoded-word.
 	(push (cons nil (nth 3 word)) rest)))
+    (setq words nil)
     (while rest
+      ;; FIXME: This looks O(N²).  Can we make it more efficient
+      ;; with something like mapconcat?
       (setq words (concat
 		   (or (and (setq cs (caar rest))
 			    (condition-case code
@@ -1140,7 +1139,9 @@ other than `\"' and `\\' in quoted strings."
 	    ;; string is purely ASCII
 	    string
 	  (decode-coding-string string mail-parse-charset))
-      (string-to-multibyte string))))
+      (if (multibyte-string-p string)
+          string
+        (decode-coding-string string 'us-ascii)))))
 
 (defun rfc2047-decode-address-string (string)
   "Decode MIME-encoded STRING and return the result.
@@ -1157,7 +1158,7 @@ strings are stripped."
       string
     (when (string-match "=+$" string)
       (setq string (substring string 0 (match-beginning 0))))
-    (case (mod (length string) 4)
+    (pcase (mod (length string) 4)
       (0 string)
       (1 string) ;; Error, don't pad it.
       (2 (concat string "=="))

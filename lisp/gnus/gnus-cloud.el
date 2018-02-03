@@ -1,6 +1,6 @@
 ;;; gnus-cloud.el --- storing and retrieving data via IMAP
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail
@@ -18,9 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; The name gnus-cloud parodizes but otherwise has little to do with
+;; "cloud computing", a misleading term normally best avoided.  See:
+;; https://www.gnu.org/philosophy/words-to-avoid.html#CloudComputing
 
 ;;; Code:
 
@@ -51,6 +55,7 @@
 
 (defcustom gnus-cloud-storage-method (if (featurep 'epg) 'epg 'base64-gzip)
   "Storage method for cloud data, defaults to EPG if that's available."
+  :version "26.1"
   :group 'gnus-cloud
   :type '(radio (const :tag "No encoding" nil)
                 (const :tag "Base64" base64)
@@ -59,6 +64,7 @@
 
 (defcustom gnus-cloud-interactive t
   "Whether Gnus Cloud changes should be confirmed."
+  :version "26.1"
   :group 'gnus-cloud
   :type 'boolean)
 
@@ -70,7 +76,7 @@
 
 (defcustom gnus-cloud-method nil
   "The IMAP select method used to store the cloud data.
-See also `gnus-server-toggle-cloud-method-server' for an
+See also `gnus-server-set-cloud-method-server' for an
 easy interactive way to set this from the Server buffer."
   :group 'gnus-cloud
   :type '(radio (const :tag "Not set" nil)
@@ -219,7 +225,7 @@ easy interactive way to set this from the Server buffer."
 Use old data if FORCE-OLDER is not nil."
   (let* ((contents (plist-get elem :contents))
          (date (or (plist-get elem :timestamp) "0"))
-         (now (gnus-cloud-timestamp (current-time)))
+         (now (gnus-cloud-timestamp nil))
          (newer (string-lessp date now))
          (group-info (gnus-get-info group)))
     (if (and contents
@@ -486,7 +492,7 @@ Otherwise, returns the Gnus Cloud data chunks."
              (gnus-method-to-server
               (gnus-find-method-for-group (gnus-info-group info))))
 
-        (push `(:type :newsrc-data :name ,(gnus-info-group info) :contents ,info :timestamp ,(gnus-cloud-timestamp (current-time)))
+        (push `(:type :newsrc-data :name ,(gnus-info-group info) :contents ,info :timestamp ,(gnus-cloud-timestamp nil))
               infos)))
     infos))
 

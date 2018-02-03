@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2017 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -16,14 +16,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define INLINE EXTERN_INLINE
 #include <config.h>
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <sys/file.h>
@@ -33,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define MAIN_PROGRAM
 #include "lisp.h"
+#include "sysstdio.h"
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
@@ -83,6 +83,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "charset.h"
 #include "composite.h"
 #include "dispextern.h"
+#include "ptr-bounds.h"
 #include "regex.h"
 #include "sheap.h"
 #include "syntax.h"
@@ -135,10 +136,6 @@ bool initialized;
 static
 # endif
 bool might_dump;
-#endif
-
-#if defined DARWIN_OS && !defined CANNOT_DUMP
-extern void unexec_init_emacs_zone (void);
 #endif
 
 /* If true, Emacs should not attempt to use a window-specific code,
@@ -223,11 +220,16 @@ Initialization options:\n\
     "\
 --batch                     do not do interactive display; implies -q\n\
 --chdir DIR                 change to directory DIR\n\
---daemon, --old-daemon[=NAME] start a (named) server in the background\n\
---new-daemon[=NAME]         start a (named) server in the foreground\n\
+--daemon, --bg-daemon[=NAME] start a (named) server in the background\n\
+--fg-daemon[=NAME]          start a (named) server in the foreground\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
 ",
+#ifdef HAVE_MODULES
+    "\
+--module-assertions         assert behavior of dynamic modules\n\
+",
+#endif
     "\
 --no-build-details          do not add build details such as time stamps\n\
 --no-desktop                do not load a saved desktop\n\
@@ -251,7 +253,7 @@ Initialization options:\n\
     "\
 Action options:\n\
 \n\
-FILE                    visit FILE using find-file\n\
+FILE                    visit FILE\n\
 +LINE                   go to line LINE in next FILE\n\
 +LINE:COLUMN            go to line LINE, column COLUMN, in next FILE\n\
 --directory, -L DIR     prepend DIR to load-path (with :DIR, append DIR)\n\
@@ -259,13 +261,13 @@ FILE                    visit FILE using find-file\n\
 --execute EXPR          evaluate Emacs Lisp expression EXPR\n\
 ",
     "\
---file FILE             visit FILE using find-file\n\
---find-file FILE        visit FILE using find-file\n\
+--file FILE             visit FILE\n\
+--find-file FILE        visit FILE\n\
 --funcall, -f FUNC      call Emacs Lisp function FUNC with no arguments\n\
 --insert FILE           insert contents of FILE into current buffer\n\
 --kill                  exit without asking for confirmation\n\
 --load, -l FILE         load Emacs Lisp FILE using the load function\n\
---visit FILE            visit FILE using find-file\n\
+--visit FILE            visit FILE\n\
 \n\
 ",
     "\
@@ -467,6 +469,9 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
 
   if (!NILP (Vinvocation_directory))
     {
+      if (NILP (Vpurify_flag) && !NILP (Ffboundp (Qfile_truename)))
+        Vinvocation_directory = call1 (Qfile_truename, Vinvocation_directory);
+
       dir = Vinvocation_directory;
 #ifdef WINDOWSNT
       /* If we are running from the build directory, set DIR to the
@@ -657,15 +662,21 @@ close_output_streams (void)
       _exit (EXIT_FAILURE);
     }
 
-   if (close_stream (stderr) != 0)
-     _exit (EXIT_FAILURE);
+  /* Do not close stderr if addresses are being sanitized, as the
+     sanitizer might report to stderr after this function is
+     invoked.  */
+  if (!ADDRESS_SANITIZER && close_stream (stderr) != 0)
+    _exit (EXIT_FAILURE);
 }
 
 /* ARGSUSED */
 int
 main (int argc, char **argv)
 {
-  char stack_bottom_variable;
+  /* Variable near the bottom of the stack, and aligned appropriately
+     for pointers.  */
+  void *stack_bottom_variable;
+
   bool do_initial_setlocale;
   bool dumping;
   int skip_args = 0;
@@ -681,7 +692,7 @@ main (int argc, char **argv)
   char *original_pwd = 0;
 
   /* Record (approximately) where the stack begins.  */
-  stack_bottom = &stack_bottom_variable;
+  stack_bottom = (char *) &stack_bottom_variable;
 
 #ifndef CANNOT_DUMP
   dumping = !initialized && (strcmp (argv[argc - 1], "dump") == 0
@@ -878,7 +889,7 @@ main (int argc, char **argv)
     }
 #endif /* HAVE_SETRLIMIT and RLIMIT_STACK and not CYGWIN */
 
-  clearerr (stdin);
+  clearerr_unlocked (stdin);
 
   emacs_backtrace (-1);
 
@@ -976,7 +987,7 @@ main (int argc, char **argv)
       int i;
       printf ("Usage: %s [OPTION-OR-FILENAME]...\n", argv[0]);
       for (i = 0; i < ARRAYELTS (usage_message); i++)
-	fputs (usage_message[i], stdout);
+	fputs_unlocked (usage_message[i], stdout);
       exit (0);
     }
 
@@ -992,15 +1003,15 @@ main (int argc, char **argv)
 
   int sockfd = -1;
 
-  if (argmatch (argv, argc, "-new-daemon", "--new-daemon", 10, NULL, &skip_args)
-      || argmatch (argv, argc, "-new-daemon", "--new-daemon", 10, &dname_arg, &skip_args))
+  if (argmatch (argv, argc, "-fg-daemon", "--fg-daemon", 10, NULL, &skip_args)
+      || argmatch (argv, argc, "-fg-daemon", "--fg-daemon", 10, &dname_arg, &skip_args))
     {
       daemon_type = 1;           /* foreground */
     }
   else if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
       || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg, &skip_args)
-      || argmatch (argv, argc, "-old-daemon", "--old-daemon", 10, NULL, &skip_args)
-      || argmatch (argv, argc, "-old-daemon", "--old-daemon", 10, &dname_arg, &skip_args))
+      || argmatch (argv, argc, "-bg-daemon", "--bg-daemon", 10, NULL, &skip_args)
+      || argmatch (argv, argc, "-bg-daemon", "--bg-daemon", 10, &dname_arg, &skip_args))
     {
       daemon_type = 2;          /* background */
     }
@@ -1115,7 +1126,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
                 char fdStr[80];
                 int fdStrlen =
                   snprintf (fdStr, sizeof fdStr,
-                            "--old-daemon=\n%d,%d\n%s", daemon_pipe[0],
+                            "--bg-daemon=\n%d,%d\n%s", daemon_pipe[0],
                             daemon_pipe[1], dname_arg ? dname_arg : "");
 
                 if (! (0 <= fdStrlen && fdStrlen < sizeof fdStr))
@@ -1252,6 +1263,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   running_asynch_code = 0;
   init_random ();
 
+#if defined HAVE_JSON && !defined WINDOWSNT
+  init_json ();
+#endif
+
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
@@ -1260,6 +1275,18 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   build_details = ! argmatch (argv, argc, "-no-build-details",
 			      "--no-build-details", 7, NULL, &skip_args);
+
+#ifdef HAVE_MODULES
+  bool module_assertions
+    = argmatch (argv, argc, "-module-assertions", "--module-assertions", 15,
+                NULL, &skip_args);
+  if (dumping && module_assertions)
+    {
+      fputs ("Module assertions are not supported during dumping\n", stderr);
+      exit (1);
+    }
+  init_module_assertions (module_assertions);
+#endif
 
 #ifdef HAVE_NS
   ns_pool = ns_alloc_autorelease_pool ();
@@ -1520,8 +1547,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef HAVE_LIBXML2
       syms_of_xml ();
+
+#ifdef HAVE_LCMS2
+      syms_of_lcms2 ();
 #endif
 
 #ifdef HAVE_ZLIB
@@ -1536,6 +1565,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_w32menu ();
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
+
+#if defined HAVE_NTGUI || defined CYGWIN
+      syms_of_w32cygwinx ();
+#endif
 
 #if defined WINDOWSNT || defined HAVE_NTGUI
       syms_of_w32select ();
@@ -1583,6 +1616,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
       syms_of_threads ();
       syms_of_profiler ();
+
+#ifdef HAVE_JSON
+      syms_of_json ();
+#endif
 
       keys_of_casefiddle ();
       keys_of_cmds ();
@@ -1712,12 +1749,15 @@ static const struct standard_args standard_args[] =
   { "-batch", "--batch", 100, 0 },
   { "-script", "--script", 100, 1 },
   { "-daemon", "--daemon", 99, 0 },
-  { "-old-daemon", "--old-daemon", 99, 0 },
-  { "-new-daemon", "--new-daemon", 99, 0 },
+  { "-bg-daemon", "--bg-daemon", 99, 0 },
+  { "-fg-daemon", "--fg-daemon", 99, 0 },
   { "-help", "--help", 90, 0 },
   { "-nl", "--no-loadup", 70, 0 },
   { "-nsl", "--no-site-lisp", 65, 0 },
   { "-no-build-details", "--no-build-details", 63, 0 },
+#ifdef HAVE_MODULES
+  { "-module-assertions", "--module-assertions", 62, 0 },
+#endif
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
@@ -1984,7 +2024,10 @@ all of which are called before Emacs is actually killed.  */
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   waiting_for_input = 0;
-  run_hook (Qkill_emacs_hook);
+  if (noninteractive)
+    safe_run_hooks (Qkill_emacs_hook);
+  else
+    run_hook (Qkill_emacs_hook);
 
 #ifdef HAVE_X_WINDOWS
   /* Transfer any clipboards we own to the clipboard manager.  */
@@ -2175,7 +2218,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   }
 #endif
 
-  fflush (stdout);
+  fflush_unlocked (stdout);
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
 #if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC

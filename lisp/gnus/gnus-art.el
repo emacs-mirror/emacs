@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -527,7 +527,7 @@ each invocation of the saving commands."
   "If non-nil, show the cursor in the Article buffer even when not selected."
   :version "25.1"
   :group 'gnus-article
-  :type 'bool)
+  :type 'boolean)
 
 (defcustom gnus-saved-headers gnus-visible-headers
   "Headers to keep if `gnus-save-all-headers' is nil.
@@ -761,9 +761,6 @@ Obsolete; use the face `gnus-signature' for customizations instead."
   "Face used for highlighting a signature in the article buffer."
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
-;; backward-compatibility alias
-(put 'gnus-signature-face 'face-alias 'gnus-signature)
-(put 'gnus-signature-face 'obsolete-face "22.1")
 
 (defface gnus-header-from
   '((((class color)
@@ -777,9 +774,6 @@ Obsolete; use the face `gnus-signature' for customizations instead."
   "Face used for displaying from headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
-;; backward-compatibility alias
-(put 'gnus-header-from-face 'face-alias 'gnus-header-from)
-(put 'gnus-header-from-face 'obsolete-face "22.1")
 
 (defface gnus-header-subject
   '((((class color)
@@ -793,9 +787,6 @@ Obsolete; use the face `gnus-signature' for customizations instead."
   "Face used for displaying subject headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
-;; backward-compatibility alias
-(put 'gnus-header-subject-face 'face-alias 'gnus-header-subject)
-(put 'gnus-header-subject-face 'obsolete-face "22.1")
 
 (defface gnus-header-newsgroups
   '((((class color)
@@ -811,9 +802,6 @@ In the default setup this face is only used for crossposted
 articles."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
-;; backward-compatibility alias
-(put 'gnus-header-newsgroups-face 'face-alias 'gnus-header-newsgroups)
-(put 'gnus-header-newsgroups-face 'obsolete-face "22.1")
 
 (defface gnus-header-name
   '((((class color)
@@ -827,9 +815,6 @@ articles."
   "Face used for displaying header names."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
-;; backward-compatibility alias
-(put 'gnus-header-name-face 'face-alias 'gnus-header-name)
-(put 'gnus-header-name-face 'obsolete-face "22.1")
 
 (defface gnus-header-content
   '((((class color)
@@ -842,9 +827,6 @@ articles."
      (:italic t)))  "Face used for displaying header content."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
-;; backward-compatibility alias
-(put 'gnus-header-content-face 'face-alias 'gnus-header-content)
-(put 'gnus-header-content-face 'obsolete-face "22.1")
 
 (defcustom gnus-header-face-alist
   '(("From" nil gnus-header-from)
@@ -3430,13 +3412,20 @@ possible values."
 	  (progn
 	    (goto-char date-position)
 	    (setq date (get-text-property (point) 'original-date))
+	    (beginning-of-line)
 	    (when (looking-at "[^:]+:[\t ]*")
 	      (setq bface (get-text-property (match-beginning 0) 'face)
 		    eface (get-text-property (match-end 0) 'face)))
-	    (delete-region (point)
-			   (progn
-			     (gnus-article-forward-header)
-			     (point)))
+	    (goto-char date-position)
+	    (delete-region
+	     (or (and (bolp) date-position)
+		 ;; There might be space(s) added for line unfolding.
+		 (and (get-text-property date-position 'gnus-date-type)
+		      (< (skip-chars-backward "\t ") 0)
+		      (text-property-any (point) date-position
+					 'gnus-date-type nil))
+		 date-position)
+	     (progn (gnus-article-forward-header) (point)))
 	    (article-transform-date date type bface eface))
 	(save-restriction
 	  (widen)
@@ -3455,9 +3444,14 @@ possible values."
 	      (when (looking-at "[^:]+:[\t ]*")
 		(setq bface (get-text-property (match-beginning 0) 'face)
 		      eface (get-text-property (match-end 0) 'face)))
-	      (delete-region pos (or (text-property-any pos (point-max)
-							'gnus-date-type nil)
-				     (point-max))))
+	      ;; Note: a feature like `gnus-treat-unfold-headers' breaks
+	      ;; the continuity of text props of a multi-line Date header,
+	      ;; that a user-defined date format might create, by adding
+	      ;; spaces.  So, don't rely on gnus-date-type or original-date
+	      ;; text prop in case of searching for the header boundary.
+	      (delete-region pos (progn
+				   (gnus-article-forward-header)
+				   (point))))
 	    (unless date ;; the 1st time
 	      (goto-char (point-min))
 	      (while (re-search-forward "^Date:[\t ]*" nil t)
@@ -3477,32 +3471,48 @@ possible values."
 	    (widen)))))))
 
 (defun article-transform-date (date type bface eface)
-  (dolist (this-type (cond
-		      ((null type)
-		       (list 'ut))
-		      ((atom type)
-		       (list type))
-		      (t
-		       type)))
-    (goto-char
-     (prog1
-	 (point)
-       (add-text-properties
-	(point)
-	(progn
-	  (insert (article-make-date-line date (or this-type 'ut)) "\n")
-	  (point))
-	(list 'original-date date 'gnus-date-type this-type))))
-    ;; Do highlighting.
-    (when (looking-at
-	   "\\([^:]+:\\)[\t ]*\\(\\(?:[^\t\n ]+[\t ]+\\)*[^\t\n ]+\\)?")
-      (put-text-property (match-beginning 1) (match-end 1) 'face bface)
+  (let (begin date-line)
+    (dolist (this-type (cond ((null type)
+			      (list 'ut))
+			     ((atom type)
+			      (list type))
+			     (t
+			      type)))
+      (setq begin (point)
+	    date-line (article-make-date-line date (or this-type 'ut)))
+      (if (and (eq this-type 'user-defined) (bolp)
+	       ;; Test if this is not a continuation.
+	       (not (get-text-property
+		     (prog2 (end-of-line 0) (point) (goto-char begin))
+		     'gnus-date-type)))
+	  (progn
+	    (string-match "\\`\\([^\t\n :]+:\\)?[\t ]*" date-line)
+	    (if (match-beginning 1)
+		(insert date-line "\n")
+	      ;; This user-defined date seems to intend to be a continuation
+	      ;; line of a multi-line Date header like this:
+	      ;;   Date: Thu, Jan  1 00:00:00 1970 +0000
+	      ;;    (47 years, 5 months, 20 days ago)
+	      (insert "Date: " (substring date-line (match-end 0)) "\n")))
+	(insert date-line "\n"))
+      (add-text-properties begin (point) (list 'original-date date
+					       'gnus-date-type this-type))
+      (goto-char begin)
+      ;; Do highlighting.
+      (beginning-of-line)
+      (looking-at
+       "\\([^\n:]+:\\)?[\t ]*\\(\\(?:[^\t\n ]+[\t ]+\\)*[^\t\n ]+\\)?")
+      (when (and bface (match-beginning 1))
+	(put-text-property (match-beginning 1) (match-end 1) 'face bface))
       (when (match-beginning 2)
-	(put-text-property (match-beginning 2) (match-end 2) 'face eface))
-      (while (and (zerop (forward-line 1))
-		  (looking-at "[\t ]+\\(\\(?:[^\t\n ]+[\t ]+\\)*[^\t\n ]+\\)?"))
-	(when (match-beginning 1)
-	  (put-text-property (match-beginning 1) (match-end 1) 'face eface))))))
+	(when eface
+	  (put-text-property (match-beginning 2) (match-end 2) 'face eface))
+	(while (and (zerop (forward-line 1))
+		    (looking-at
+		     "[\t ]+\\(\\(?:[^\t\n ]+[\t ]+\\)*[^\t\n ]+\\)?"))
+	  (when (and eface (match-beginning 1))
+	    (put-text-property (match-beginning 1) (match-end 1)
+			       'face eface)))))))
 
 (defun article-make-date-line (date type)
   "Return a DATE line of TYPE."
@@ -3600,8 +3610,7 @@ possible values."
 (defun article-lapsed-string (time &optional max-segments)
   ;; If the date is seriously mangled, the timezone functions are
   ;; liable to bug out, so we ignore all errors.
-  (let* ((now (current-time))
-	 (real-time (time-subtract now time))
+  (let* ((real-time (time-subtract nil time))
 	 (real-sec (and real-time
 			(+ (* (float (car real-time)) 65536)
 			   (cadr real-time))))
@@ -3735,7 +3744,7 @@ is to run."
   "Convert the current article date to the user-defined format.
 This format is defined by the `gnus-article-time-format' variable."
   (interactive (list t))
-  (article-date-ut 'user highlight))
+  (article-date-ut 'user-defined highlight))
 
 (defun article-date-iso8601 (&optional highlight)
   "Convert the current article date to ISO8601."
@@ -4216,7 +4225,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (defun article-verify-x-pgp-sig ()
   "Verify X-PGP-Sig."
-  ;; <ftp://ftp.isc.org/pub/pgpcontrol/FORMAT>
+  ;; <https://ftp.isc.org/pub/pgpcontrol/FORMAT>
   (interactive)
   (if (gnus-buffer-live-p gnus-original-article-buffer)
       (let ((sig (with-current-buffer gnus-original-article-buffer
@@ -5030,11 +5039,14 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
       (gnus-article-edit-done))
     (gnus-configure-windows 'article)
     (sit-for 0)
-    (when (and current-id (integerp gnus-auto-select-part))
-      (gnus-article-jump-to-part
-       (min (max (+ current-id gnus-auto-select-part) 1)
-	    (with-current-buffer gnus-article-buffer
-	      (length gnus-article-mime-handle-alist)))))))
+    (let ((handles (with-current-buffer gnus-article-buffer
+		     gnus-article-mime-handle-alist)))
+      ;; `handles' will be nil if there is the only one part
+      ;; in the article and is deleted.
+      (when (and handles current-id (integerp gnus-auto-select-part))
+	(gnus-article-jump-to-part
+	 (min (max (+ current-id gnus-auto-select-part) 1)
+	      (length handles)))))))
 
 (defun gnus-mime-replace-part (file)
   "Replace MIME part under point with an external body."
@@ -5189,7 +5201,7 @@ available media-types."
 	    (gnus-completing-read
 	     "View as MIME type"
 	     (if pred
-		 (gnus-remove-if-not pred (mailcap-mime-types))
+		 (seq-filter pred (mailcap-mime-types))
 	       (mailcap-mime-types))
 	     nil nil nil
 	     (car default)))))
@@ -6311,8 +6323,9 @@ Provided for backwards compatibility."
       ;; in each element are in the increasing order.
       (dolist (handle (reverse gnus-article-mime-handle-alist))
 	(if (stringp (cadr handle))
-	    (setq flat (nconc flat (gnus-article-mime-handles
-				    (cddr handle) (list (car handle)) flat)))
+	    (when (cddr handle)
+	      (setq flat (nconc flat (gnus-article-mime-handles
+				      (cddr handle) (list (car handle)) flat))))
 	  (delq (rassq (cdr handle) flat) flat)
 	  (setq flat (nconc flat (list (cons (list (car handle))
 					     (cdr handle)))))))
@@ -6335,7 +6348,7 @@ buttons to be added to the header are only the ones that aren't inlined
 in the body.  Use `gnus-header-face-alist' to highlight buttons."
   (interactive (list t))
   (gnus-with-article-buffer
-    (let ((case-fold-search t) buttons handle type st)
+    (let ((case-fold-search t) buttons st)
       (save-excursion
 	(save-restriction
 	  (widen)
@@ -6356,22 +6369,7 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 	    ;; Find buttons.
 	    (setq buttons nil)
 	    (dolist (button (gnus-article-mime-handles))
-	      (setq handle (cdr button)
-		    type (mm-handle-media-type handle))
-	      (when (or (and (if (gnus-buffer-live-p gnus-summary-buffer)
-				 (with-current-buffer gnus-summary-buffer
-				   gnus-inhibit-images)
-			       gnus-inhibit-images)
-			     (string-match "\\`image/" type))
-			(mm-inline-override-p handle)
-			(and (mm-handle-disposition handle)
-			     (not (equal (car (mm-handle-disposition handle))
-					 "inline"))
-			     (not (mm-attachment-override-p handle)))
-			(not (mm-automatic-display-p handle))
-			(not (or (and (mm-inlinable-p handle)
-				      (mm-inlined-p handle))
-				 (mm-automatic-external-display-p type))))
+	      (unless (mm-handle-undisplayer (cdr button))
 		(push button buttons)))
 	    (when buttons
 	      ;; Add header buttons.
@@ -6382,8 +6380,7 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 	      (dolist (button (nreverse buttons))
 		(setq st (point))
 		(insert " ")
-		(mm-handle-set-undisplayer (setq handle (cdr button)) nil)
-		(gnus-insert-mime-button handle (car button))
+		(gnus-insert-mime-button (cdr button) (car button))
 		(skip-chars-backward "\t\n ")
 		(delete-region (point) (point-max))
 		(when (> (current-column) (window-width))
@@ -6672,7 +6669,7 @@ not have a face in `gnus-article-boring-faces'."
   (interactive "P")
   (gnus-article-check-buffer)
   (let ((nosaves
-	 '("q" "Q"  "c" "r" "\C-c\C-f" "m"  "a" "f"
+	 '("q" "Q"  "c" "r" "\C-c\C-f" "m"  "a" "f" "WDD" "WDW"
 	   "Zc" "ZC" "ZE" "ZQ" "ZZ" "Zn" "ZR" "ZG" "ZN" "ZP"
 	   "=" "^" "\M-^" "|"))
 	(nosave-but-article
@@ -6696,8 +6693,7 @@ not have a face in `gnus-article-boring-faces'."
 	  (member keys nosave-but-article)
 	  (member keys nosave-in-article))
       (let (func)
-	(save-window-excursion
-	  (pop-to-buffer gnus-article-current-summary)
+	(with-current-buffer gnus-article-current-summary
 	  ;; We disable the pick minor mode commands.
 	  (let (gnus-pick-mode)
 	    (setq func (key-binding keys t))))
@@ -6968,6 +6964,7 @@ If given a prefix, show the hidden text instead."
 	(save-excursion
 	  (erase-buffer)
 	  (gnus-kill-all-overlays)
+	  (setq bidi-paragraph-direction nil)
 	  (setq group (or group gnus-newsgroup-name))
 
 	  ;; Using `gnus-request-article' directly will insert the article into
@@ -7075,6 +7072,7 @@ If given a prefix, show the hidden text instead."
 	      (while (not result)
 		(erase-buffer)
 		(gnus-kill-all-overlays)
+		(setq bidi-paragraph-direction nil)
 		(let ((gnus-newsgroup-name group))
 		  (gnus-check-group-server))
 		(cond

@@ -7,7 +7,7 @@
 # By default, this script uses the local-time calendar year.
 # Set the UPDATE_COPYRIGHT_YEAR environment variable to override the default.
 
-# Copyright 2013-2017 Free Software Foundation, Inc.
+# Copyright 2013-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # written by Paul Eggert
 

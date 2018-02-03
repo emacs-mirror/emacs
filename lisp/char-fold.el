@@ -1,6 +1,6 @@
 ;;; char-fold.el --- match unicode to similar ASCII -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: matching
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -196,7 +196,7 @@ from which to start."
 ;;; If N suffixes match, we "branch" out into N+1 executions for the
 ;;; length of the longest match.  This means "fix" will match "ﬁx" but
 ;;; not "fⅸ", but it's necessary to keep the regexp size from scaling
-;;; exponentially.  See https://lists.gnu.org/archive/html/emacs-devel/2015-11/msg02562.html
+;;; exponentially.  See https://lists.gnu.org/r/emacs-devel/2015-11/msg02562.html
                        (let ((subs (substring string (1+ i) (+ i 1 max-length))))
                          ;; `i' is still going to inc by 1 below.
                          (setq i (+ i max-length))

@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -505,6 +505,69 @@ bytecompiled code, and their results compared.")
   "Test the Emacs byte compiler lexbind handling."
   (dolist (pat bytecomp-lexbind-tests)
     (should (bytecomp-lexbind-check-1 pat))))
+
+(defmacro bytecomp-tests--with-temp-file (file-name-var &rest body)
+  (declare (indent 1))
+  (cl-check-type file-name-var symbol)
+  `(let ((,file-name-var (make-temp-file "emacs")))
+     (unwind-protect
+         (progn ,@body)
+       (delete-file ,file-name-var)
+       (let ((elc (concat ,file-name-var ".elc")))
+         (if (file-exists-p elc) (delete-file elc))))))
+
+(ert-deftest bytecomp-tests--unescaped-char-literals ()
+  "Check that byte compiling warns about unescaped character
+literals (Bug#20852)."
+  (should (boundp 'lread--unescaped-character-literals))
+  (bytecomp-tests--with-temp-file source
+    (write-region "(list ?) ?( ?; ?\" ?[ ?])" nil source)
+    (bytecomp-tests--with-temp-file destination
+      (let* ((byte-compile-dest-file-function (lambda (_) destination))
+            (byte-compile-error-on-warn t)
+            (byte-compile-debug t)
+            (err (should-error (byte-compile-file source))))
+        (should (equal (cdr err)
+                       (list (concat "unescaped character literals "
+                                     "`?\"', `?(', `?)', `?;', `?[', `?]' "
+                                     "detected!"))))))))
+
+(ert-deftest bytecomp-tests--old-style-backquotes ()
+  "Check that byte compiling warns about old-style backquotes."
+  (bytecomp-tests--with-temp-file source
+    (write-region "(` (a b))" nil source)
+    (bytecomp-tests--with-temp-file destination
+      (let* ((byte-compile-dest-file-function (lambda (_) destination))
+             (byte-compile-debug t)
+             (err (should-error (byte-compile-file source))))
+        (should (equal (cdr err) '("Old-style backquotes detected!")))))))
+
+
+(ert-deftest bytecomp-tests-function-put ()
+  "Check `function-put' operates during compilation."
+  (bytecomp-tests--with-temp-file source
+    (dolist (form '((function-put 'bytecomp-tests--foo 'foo 1)
+                    (function-put 'bytecomp-tests--foo 'bar 2)
+                    (defmacro bytecomp-tests--foobar ()
+                      `(cons ,(function-get 'bytecomp-tests--foo 'foo)
+                             ,(function-get 'bytecomp-tests--foo 'bar)))
+                    (defvar bytecomp-tests--foobar 1)
+                    (setq bytecomp-tests--foobar (bytecomp-tests--foobar))))
+      (print form (current-buffer)))
+    (write-region (point-min) (point-max) source nil 'silent)
+    (byte-compile-file source t)
+    (should (equal bytecomp-tests--foobar (cons 1 2)))))
+
+(ert-deftest bytecomp-tests--test-no-warnings-with-advice ()
+  (defun f ())
+  (define-advice f (:around (oldfun &rest args) test)
+    (apply oldfun args))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
+    (let ((inhibit-read-only t)) (erase-buffer)))
+  (test-byte-comp-compile-and-load t '(defun f ()))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
+    (goto-char (point-min))
+    (should-not (search-forward "Warning" nil t))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

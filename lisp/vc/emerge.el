@@ -3171,11 +3171,9 @@ See also `auto-save-file-name-p'."
       (setq limit (1+ (match-end 0)))))
   s)
 
-;; Metacharacters that have to be protected from the shell when executing
-;; a diff/diff3 command.
 (defcustom emerge-metachars nil
-  "Obsolete, emerge now uses `shell-quote-argument'."
-  :type 'regexp
+  "No longer used.  Emerge now uses `shell-quote-argument'."
+  :type '(choice (const nil) regexp)
   :group 'emerge)
 (make-obsolete-variable 'emerge-metachars nil "26.1")
 

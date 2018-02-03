@@ -1,6 +1,6 @@
 ;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
 
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -40,7 +40,7 @@
 ;; Items are listed alphabetically (except for mh-require which is
 ;; needed sooner it would normally appear).
 
-(require 'mh-acros)
+(eval-when-compile (require 'mh-acros))
 
 (mh-do-in-gnu-emacs
   (defalias 'mh-require 'require))
@@ -316,15 +316,14 @@ XEmacs does not have `test-completion'. This function returns nil
 on that system." nil)
 
 ;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
-(if (not (boundp 'url-unreserved-chars))
-    (defconst mh-url-unreserved-chars
-      '(
-        ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
-        ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
-        ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-        ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
-      "A list of characters that are _NOT_ reserved in the URL spec.
-This is taken from RFC 2396."))
+(defconst mh-url-unreserved-chars
+  '(
+    ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
+       ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
+       ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
+       ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
+  "A list of characters that are _NOT_ reserved in the URL spec.
+This is taken from RFC 2396.")
 
 (defun-mh mh-url-hexify-string url-hexify-string (str)
   "Escape characters in a string.
@@ -374,7 +373,6 @@ XEmacs."
 (provide 'mh-compat)
 
 ;; Local Variables:
-;; no-byte-compile: t
 ;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:

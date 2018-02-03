@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2017 Free Software
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -15,14 +15,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* New redisplay, TTY faces by Gerd Moellmann <gerd@gnu.org>.  */
 
 #include <config.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/file.h>
 #include <sys/time.h>
@@ -45,6 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "blockinput.h"
 #include "syssignal.h"
+#include "sysstdio.h"
 #ifdef MSDOS
 #include "msdos.h"
 static int been_here = -1;
@@ -146,7 +146,7 @@ tty_ring_bell (struct frame *f)
       OUTPUT (tty, (tty->TS_visible_bell && visible_bell
                     ? tty->TS_visible_bell
                     : tty->TS_bell));
-      fflush (tty->output);
+      fflush_unlocked (tty->output);
     }
 }
 
@@ -155,21 +155,26 @@ tty_ring_bell (struct frame *f)
 static void
 tty_send_additional_strings (struct terminal *terminal, Lisp_Object sym)
 {
-  Lisp_Object lisp_terminal;
-  Lisp_Object extra_codes;
+  /* Use only accessors like CDR_SAFE and assq_no_quit to avoid any
+     form of quitting or signaling an error, since this function can
+     run as part of the "emergency escape" procedure invoked in the
+     middle of GC, where quitting means crashing (Bug#17406).  */
+  if (! terminal->name)
+    return;
   struct tty_display_info *tty = terminal->display_info.tty;
 
-  XSETTERMINAL (lisp_terminal, terminal);
-  for (extra_codes = Fterminal_parameter (lisp_terminal, sym);
+  for (Lisp_Object extra_codes
+	 = CDR_SAFE (assq_no_quit (sym, terminal->param_alist));
        CONSP (extra_codes);
        extra_codes = XCDR (extra_codes))
     {
       Lisp_Object string = XCAR (extra_codes);
       if (STRINGP (string))
         {
-          fwrite (SDATA (string), 1, SBYTES (string), tty->output);
+	  fwrite_unlocked (SDATA (string), 1, SBYTES (string), tty->output);
           if (tty->termscript)
-            fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+	    fwrite_unlocked (SDATA (string), 1, SBYTES (string),
+			     tty->termscript);
         }
     }
 }
@@ -197,7 +202,7 @@ tty_set_terminal_modes (struct terminal *terminal)
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);
       tty_send_additional_strings (terminal, Qtty_mode_set_strings);
-      fflush (tty->output);
+      fflush_unlocked (tty->output);
     }
 }
 
@@ -220,7 +225,7 @@ tty_reset_terminal_modes (struct terminal *terminal)
       /* Output raw CR so kernel can track the cursor hpos.  */
       current_tty = tty;
       cmputc ('\r');
-      fflush (tty->output);
+      fflush_unlocked (tty->output);
     }
 }
 
@@ -235,7 +240,7 @@ tty_update_end (struct frame *f)
     tty_show_cursor (tty);
   tty_turn_off_insert (tty);
   tty_background_highlight (tty);
-  fflush (tty->output);
+  fflush_unlocked (tty->output);
 }
 
 /* The implementation of set_terminal_window for termcap frames. */
@@ -497,8 +502,8 @@ tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
       for (i = curX (tty); i < first_unused_hpos; i++)
 	{
 	  if (tty->termscript)
-	    fputc (' ', tty->termscript);
-	  fputc (' ', tty->output);
+	    fputc_unlocked (' ', tty->termscript);
+	  fputc_unlocked (' ', tty->output);
 	}
       cmplus (tty, first_unused_hpos - curX (tty));
     }
@@ -771,11 +776,11 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       if (coding->produced > 0)
 	{
 	  block_input ();
-	  fwrite (conversion_buffer, 1, coding->produced, tty->output);
-	  if (ferror (tty->output))
-	    clearerr (tty->output);
+	  fwrite_unlocked (conversion_buffer, 1, coding->produced, tty->output);
+	  clearerr_unlocked (tty->output);
 	  if (tty->termscript)
-	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
+	    fwrite_unlocked (conversion_buffer, 1, coding->produced,
+			     tty->termscript);
 	  unblock_input ();
 	}
       string += n;
@@ -832,11 +837,11 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
   if (coding->produced > 0)
     {
       block_input ();
-      fwrite (conversion_buffer, 1, coding->produced, tty->output);
-      if (ferror (tty->output))
-	clearerr (tty->output);
+      fwrite_unlocked (conversion_buffer, 1, coding->produced, tty->output);
+      clearerr_unlocked (tty->output);
       if (tty->termscript)
-	fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
+	fwrite_unlocked (conversion_buffer, 1, coding->produced,
+			 tty->termscript);
       unblock_input ();
     }
 
@@ -918,11 +923,11 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
       if (coding->produced > 0)
 	{
 	  block_input ();
-	  fwrite (conversion_buffer, 1, coding->produced, tty->output);
-	  if (ferror (tty->output))
-	    clearerr (tty->output);
+	  fwrite_unlocked (conversion_buffer, 1, coding->produced, tty->output);
+	  clearerr_unlocked (tty->output);
 	  if (tty->termscript)
-	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
+	    fwrite_unlocked (conversion_buffer, 1, coding->produced,
+			     tty->termscript);
 	  unblock_input ();
 	}
 
@@ -1209,6 +1214,7 @@ struct fkey_table {
   const char *cap, *name;
 };
 
+#ifndef DOS_NT
   /* Termcap capability names that correspond directly to X keysyms.
      Some of these (marked "terminfo") aren't supplied by old-style
      (Berkeley) termcap entries.  They're listed in X keysym order;
@@ -1312,7 +1318,6 @@ static const struct fkey_table keys[] =
   {"!3", "S-undo"}       /*shifted undo key*/
   };
 
-#ifndef DOS_NT
 static char **term_get_fkeys_address;
 static KBOARD *term_get_fkeys_kboard;
 static Lisp_Object term_get_fkeys_1 (void);
@@ -1584,10 +1589,16 @@ produce_glyphs (struct it *it)
     {
       int absolute_x = (it->current_x
 			+ it->continuation_lines_width);
+      int x0 = absolute_x;
+      /* Adjust for line numbers.  */
+      if (!NILP (Vdisplay_line_numbers))
+	absolute_x -= it->lnum_pixel_width;
       int next_tab_x
 	= (((1 + absolute_x + it->tab_width - 1)
 	    / it->tab_width)
 	   * it->tab_width);
+      if (!NILP (Vdisplay_line_numbers))
+	next_tab_x += it->lnum_pixel_width;
       int nspaces;
 
       /* If part of the TAB has been displayed on the previous line
@@ -1595,7 +1606,7 @@ produce_glyphs (struct it *it)
 	 been incremented already by the part that fitted on the
 	 continued line.  So, we will get the right number of spaces
 	 here.  */
-      nspaces = next_tab_x - absolute_x;
+      nspaces = next_tab_x - x0;
 
       if (it->glyph_row)
 	{
@@ -2046,7 +2057,7 @@ TERMINAL does not refer to a text terminal.  */)
 
 /* Declare here rather than in the function, as in the rest of Emacs,
    to work around an HPUX compiler bug (?). See
-   http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00410.html  */
+   https://lists.gnu.org/r/emacs-devel/2007-08/msg00410.html  */
 static int default_max_colors;
 static int default_no_color_video;
 static char *default_orig_pair;
@@ -3327,7 +3338,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 	 which calls tty_show_cursor.  Re-hide it, so it doesn't show
 	 through the menus.  */
       tty_hide_cursor (tty);
-      fflush (tty->output);
+      fflush_unlocked (tty->output);
     }
 
   sf->mouse_moved = 0;
@@ -3335,7 +3346,7 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   while (statecount--)
     free_saved_screen (state[statecount].screen_behind);
   tty_show_cursor (tty);	/* Turn cursor back on.  */
-  fflush (tty->output);
+  fflush_unlocked (tty->output);
 
 /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even

@@ -1,0 +1,5 @@
+# this is a comment
+[Desktop Entry]
+Name=Test
+[Another Section]
+Exec=frobnicate

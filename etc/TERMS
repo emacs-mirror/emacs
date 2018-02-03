@@ -1,4 +1,4 @@
-Copyright (C) 1999, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
 See the end of the file for copying permissions.
 
 This file describes what you must or might want to do to termcap entries
@@ -245,4 +245,4 @@ COPYING PERMISSIONS:
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.

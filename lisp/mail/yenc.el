@@ -1,6 +1,6 @@
-;;; yenc.el --- elisp native yenc decoder
+;;; yenc.el --- elisp native yenc decoder  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Jesper Harder <harder@ifa.au.dk>
 ;; Keywords: yenc news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defconst yenc-begin-line
   "^=ybegin.*$")
@@ -97,14 +97,14 @@
 		  (cond ((or (eq char ?\r)
 			     (eq char ?\n)))
 			((eq char ?=)
-			 (setq char (char-after (incf first)))
+			 (setq char (char-after (cl-incf first)))
 			 (with-current-buffer work-buffer
 			   (insert-char (mod (- char 106) 256) 1)))
 			(t
 			 (with-current-buffer work-buffer
 			   ;;(insert-char (mod (- char 42) 256) 1)
 			   (insert-char (aref yenc-decoding-vector char) 1))))
-		  (incf first))
+		  (cl-incf first))
 		(setq bytes (buffer-size work-buffer))
 		(unless (and (= (cdr (assq 'size header-alist)) bytes)
 			     (= (cdr (assq 'size footer-alist)) bytes))

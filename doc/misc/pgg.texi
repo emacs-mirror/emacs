@@ -12,7 +12,7 @@
 This file describes PGG @value{VERSION}, an Emacs interface to various
 PGP implementations.
 
-Copyright @copyright{} 2001, 2003--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2003--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

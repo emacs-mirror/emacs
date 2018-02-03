@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2017 Free Software Foundation, Inc.
+Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -675,8 +675,8 @@ apply_xft_settings (struct x_display_info *dpyinfo,
 	 of unrelated settings that override users' font customizations,
 	 among others.  Compare:
 
-	 http://lists.gnu.org/archive/html/emacs-devel/2016-05/msg00557.html
-	 http://lists.gnu.org/archive/html/bug-gnu-emacs/2016-12/msg00820.html
+	 https://lists.gnu.org/r/emacs-devel/2016-05/msg00557.html
+	 https://lists.gnu.org/r/bug-gnu-emacs/2016-12/msg00820.html
 
 	 As soon as the dynamic-settings code has been tested and
 	 verified, this Emacs 25.2 workaround should be removed.  */

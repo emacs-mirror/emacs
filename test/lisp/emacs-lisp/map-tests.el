@@ -1,6 +1,6 @@
 ;;; map-tests.el --- Tests for map.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,7 +36,7 @@ Each map is built from the following alist data:
 Evaluate BODY for each created map.
 
 \(fn (var map) body)"
-  (declare (indent 1) (debug t))
+  (declare (indent 1) (debug (symbolp body)))
   (let ((alist (make-symbol "alist"))
         (vec (make-symbol "vec"))
         (ht (make-symbol "ht")))
@@ -62,6 +62,13 @@ Evaluate BODY for each created map.
 (ert-deftest test-map-elt-default ()
   (with-maps-do map
     (should (= 5 (map-elt map 7 5)))))
+
+(ert-deftest test-map-elt-testfn ()
+  (let ((map (list (cons "a" 1) (cons "b" 2)))
+        ;; Make sure to use a non-eq "a", even when compiled.
+        (noneq-key (string ?a)))
+    (should-not (map-elt map noneq-key))
+    (should (map-elt map noneq-key nil 'equal))))
 
 (ert-deftest test-map-elt-with-nil-value ()
   (should (null (map-elt '((a . 1)
@@ -93,6 +100,15 @@ Evaluate BODY for each created map.
     (map-put alist 2 'b)
     (should (eq (map-elt alist 2)
                 'b))))
+
+(ert-deftest test-map-put-testfn-alist ()
+  (let ((alist (list (cons "a" 1) (cons "b" 2)))
+        ;; Make sure to use a non-eq "a", even when compiled.
+        (noneq-key (string ?a)))
+    (map-put alist noneq-key 3 'equal)
+    (should-not (cddr alist))
+    (map-put alist noneq-key 9)
+    (should (cddr alist))))
 
 (ert-deftest test-map-put-return-value ()
   (let ((ht (make-hash-table)))

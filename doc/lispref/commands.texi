@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -395,7 +395,7 @@ Completion, Prompt.
 The position of point, as an integer (@pxref{Point}).  No I/O.
 
 @item D
-A directory name.  The default is the current default directory of the
+A directory.  The default is the current default directory of the
 current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
@@ -748,7 +748,7 @@ part of the prompt.
 @group
 (execute-extended-command 3)
 ---------- Buffer: Minibuffer ----------
-3 M-x forward-word RET
+3 M-x forward-word @key{RET}
 ---------- Buffer: Minibuffer ----------
      @result{} t
 @end group
@@ -1005,11 +1005,11 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 @cindex @code{display} property, and point display
 @cindex @code{composition} property, and point display
 
-  It is not easy to display a value of point in the middle of a
-sequence of text that has the @code{display}, @code{composition} or
-is invisible.  Therefore, after a command finishes and returns to the
-command loop, if point is within such a sequence, the command loop
-normally moves point to the edge of the sequence.
+  Emacs cannot display the cursor when point is in the middle of a
+sequence of text that has the @code{display} or @code{composition}
+property, or is invisible.  Therefore, after a command finishes and
+returns to the command loop, if point is within such a sequence, the
+command loop normally moves point to the edge of the sequence.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:
@@ -2634,9 +2634,9 @@ The return value is the matching value from @var{choices}.
 @lisp
 (read-multiple-choice
  "Continue connecting?"
- '((?a "always" "Accept this certificate this session and for all future sessions.")
-   (?s "session only" "Accept this certificate this session only.")
-   (?n "no" "Refuse to use this certificate, and close the connection.")))
+ '((?a "always" "Accept certificate for this and future sessions.")
+   (?s "session only" "Accept certificate this session only.")
+   (?n "no" "Refuse to use certificate, close connection.")))
 @end lisp
 
 The @code{read-multiple-choice-face} face is used to highlight the

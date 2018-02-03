@@ -1,6 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -117,7 +117,7 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
      ,(concat
        "^\\<"                                 ; line MUST start with word char
        ;; \n added to prevent overflow in regexp matcher.
-       ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-02/msg00021.html
+       ;; https://lists.gnu.org/r/emacs-pretest-bug/2007-02/msg00021.html
        "[^()\n]*"                             ; no parentheses before
        "[^" c-alnum "_:<>~]"                  ; match any non-identifier char
        "\\([" c-alpha "_][" c-alnum "_:<>~]*\\)" ; match function name

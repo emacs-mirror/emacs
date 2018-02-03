@@ -4,7 +4,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994-1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -242,11 +242,11 @@ the preceding slash.  The star represents all the subdirectories except
 
 (defcustom cc-other-file-alist
   '(("\\.cc\\'"  (".hh" ".h"))
-    ("\\.hh\\'"  (".cc" ".C"))
+    ("\\.hh\\'"  (".cc" ".C" ".CC" ".cxx" ".cpp" ".c++"))
 
     ("\\.c\\'"   (".h"))
     ("\\.m\\'"   (".h"))
-    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".m"))
+    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".c++" ".m"))
 
     ("\\.C\\'"   (".H"  ".hh" ".h"))
     ("\\.H\\'"   (".C"  ".CC"))

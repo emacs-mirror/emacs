@@ -1,6 +1,6 @@
 ;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files
 
-;; Copyright (C) 2000-2001, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS master zone file SOA comm
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -35,6 +35,7 @@
 ;; RFC 5155, "DNS Security (DNSSEC) Hashed Authenticated Denial of Existence"
 ;; RFC 6698, "The DNS-Based Authentication of Named Entities (DANE)
 ;;             Transport Layer Security (TLS) Protocol: TLSA"
+;; RFC 6844, "DNS Certification Authority Authorization (CAA) Resource Record"
 
 ;;; Release history:
 
@@ -48,6 +49,9 @@
   "DNS master file mode configuration."
   :group 'data)
 
+(defconst dns-mode-control-entities '("INCLUDE" "ORIGIN" "TTL")
+  "Lists of strings with known DNS control entities.")
+
 (defconst dns-mode-classes '("IN" "CS" "CH" "HS")
   "List of strings with known DNS classes.")
 
@@ -59,30 +63,62 @@
 			   "A6" "DNAME" "SINK" "OPT" "APL" "DS" "SSHFP"
 			   "RRSIG" "NSEC" "DNSKEY" "UINFO" "UID" "GID"
 			   "UNSPEC" "TKEY" "TSIG" "IXFR" "AXFR" "MAILB"
-			   "MAILA" "TLSA" "NSEC3")
+			   "MAILA" "TLSA" "NSEC3" "CAA")
   "List of strings with known DNS types.")
 
-;; Font lock.
+(defface dns-mode-control-entity '((t :inherit font-lock-keyword-face))
+  "Face used for DNS control entities, e.g. $ORIGIN."
+  :version "26.1"
+  :group 'dns-mode)
 
-(defvar dns-mode-control-entity-face 'font-lock-keyword-face
+(defface dns-mode-bad-control-entity '((t :inherit font-lock-warning-face))
+  "Face used for non-standard DNS control entities, e.g. $FOO."
+  :version "26.1"
+  :group 'dns-mode)
+
+(defface dns-mode-type '((t :inherit font-lock-type-face))
+  "Face used for DNS types, e.g., SOA."
+  :version "26.1"
+  :group 'dns-mode)
+
+(defface dns-mode-class '((t :inherit font-lock-constant-face))
+  "Face used for DNS classes, e.g., IN."
+  :version "26.1"
+  :group 'dns-mode)
+
+(defvar dns-mode-control-entity-face ''dns-mode-control-entity
   "Name of face used for control entities, e.g. $ORIGIN.")
+(make-obsolete-variable 'dns-mode-control-entity-face
+			"customize the face `dns-mode-control-entity' instead."
+			"26.1" 'set)
 
-(defvar dns-mode-bad-control-entity-face 'font-lock-warning-face
+(defvar dns-mode-bad-control-entity-face ''dns-mode-bad-control-entity
   "Name of face used for non-standard control entities, e.g. $FOO.")
+(make-obsolete-variable
+ 'dns-mode-bad-control-entity-face
+ "customize the face `dns-mode-bad-control-entity' instead."
+ "26.1" 'set)
 
-(defvar dns-mode-type-face 'font-lock-type-face
+(defvar dns-mode-type-face ''dns-mode-type
   "Name of face used for DNS types, e.g., SOA.")
+(make-obsolete-variable 'dns-mode-type-face
+			"customize the face `dns-mode-type' instead."
+			"26.1" 'set)
 
-(defvar dns-mode-class-face 'font-lock-constant-face
+(defvar dns-mode-class-face ''dns-mode-class
   "Name of face used for DNS classes, e.g., IN.")
+(make-obsolete-variable 'dns-mode-class
+			"customize the face `dns-mode-class' instead."
+			"26.1" 'set)
 
 (defcustom dns-mode-font-lock-keywords
-  `(("^$ORIGIN" 0 ,dns-mode-control-entity-face)
-    ("^$INCLUDE" 0 ,dns-mode-control-entity-face)
+  `((,(concat "^$" (regexp-opt dns-mode-control-entities))
+     0 ,dns-mode-control-entity-face)
     ("^$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
     (,(regexp-opt dns-mode-classes) 0 ,dns-mode-class-face)
     (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
+  :version "26.1"
   :type 'sexp
   :group 'dns-mode)
 
@@ -112,6 +148,7 @@ manually with \\[dns-mode-soa-increment-serial]."
 (defvar dns-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-s" 'dns-mode-soa-increment-serial)
+    (define-key map "\C-c\C-e" 'dns-mode-ipv6-to-nibbles)
     map)
   "Keymap for DNS master file mode.")
 
@@ -123,7 +160,8 @@ manually with \\[dns-mode-soa-increment-serial]."
 (easy-menu-define dns-mode-menu dns-mode-map
   "DNS Menu."
   '("DNS"
-    ["Increment SOA serial" dns-mode-soa-increment-serial t]))
+    ["Increment SOA serial" dns-mode-soa-increment-serial t]
+    ["Convert IPv6 address to nibbles" dns-mode-ipv6-to-nibbles t]))
 
 ;; Mode.
 
@@ -218,6 +256,100 @@ This function is run from `before-save-hook'."
     (progn (dns-mode-soa-increment-serial)
 	   ;; We return nil in case this is used in write-contents-functions.
 	   nil)))
+
+(defun dns-mode-ipv6-to-nibbles (&optional negate-prefix)
+  "Convert an IPv6 address around or before point.
+Replace the address by its ip6.arpa-representation for use in
+reverse zone files, placing the original address in the kill ring.
+
+The address can be: a complete address (no prefix designator);
+with a normal prefix designator (e.g. /48), in which case only
+the required number of nibbles are output; or with a negative
+prefix designator (e.g. /-112), in which case only the part of
+the address *not* covered by the absolute value of the prefix
+length is output, as a relative address (without \".ip6.arpa.\" at
+the end).  This is useful when $ORIGIN is specified in the zone file.
+
+Optional prefix argument NEGATE-PREFIX negates the value of the
+detected prefix length.
+
+Examples:
+
+2001:db8::12  =>
+2.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
+
+2001:db8::12/32  =>
+8.b.d.0.1.0.0.2.ip6.arpa.
+
+2001:db8::12/-32  =>
+2.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0
+
+::42/112 (with prefix argument) =>
+2.4.0.0"
+  (interactive "P")
+  (skip-syntax-backward " ")
+  (skip-syntax-backward "w_.")
+  (re-search-forward "\\([[:xdigit:]:]+\\)\\(/-?[0-9]\\{2,3\\}\\)?")
+  (kill-new (match-string 0))
+  (let ((address (match-string 1))
+        (prefix-length (match-string 2)))
+    (when prefix-length
+      (setq prefix-length (string-to-number (substring prefix-length 1)))
+      (if negate-prefix
+          (setq prefix-length (- prefix-length))))
+    (replace-match
+     (save-match-data
+       (dns-mode-reverse-and-expand-ipv6 address prefix-length)))))
+
+(defun dns-mode-reverse-and-expand-ipv6 (address &optional prefix-length)
+  "Convert an IPv6 address to (parts of) an ip6.arpa nibble format.
+ADDRESS is an IPv6 address in the usual colon-separated
+format, without a prefix designator at the end.
+
+Optional PREFIX-LENGTH is a number whose absolute value is the
+length in bits of the network part of the address.  If nil,
+return an absolute address representing the full IPv6 address.
+If positive, return an absolute address representing the network
+prefix indicated.  If negative, return a relative address
+representing the host parts of the address with respect to the
+indicated network prefix.
+
+See `dns-mode-ipv6-to-nibbles' for examples."
+  (let* ((chunks (split-string address ":"))
+         (prefix-length-nibbles (if prefix-length
+                                    (ceiling (abs prefix-length) 4)
+                                  32))
+         (filler-chunks (- 8 (length (remove "" chunks))))
+         (expanded-address
+          (apply #'concat
+                 (cl-loop with filler-done = nil
+                          for chunk in chunks
+                          if (and (not filler-done)
+                                  (string= "" chunk))
+                          append (prog1
+                                     (cl-loop repeat filler-chunks
+                                              collect "0000")
+                                   (setq filler-done t))
+                          else
+                          if (not (string= "" chunk))
+                          collect (format "%04x"
+                                          (string-to-number chunk 16)))))
+         (rev-address-nibbles
+          (nreverse (if (and prefix-length
+                             (cl-minusp prefix-length))
+                        (substring expanded-address prefix-length-nibbles)
+                      (substring expanded-address 0 prefix-length-nibbles)))))
+    (with-temp-buffer
+      (cl-loop for char across rev-address-nibbles
+               do
+               (insert char)
+               (insert "."))
+      (if (and prefix-length
+               (cl-minusp prefix-length))
+          (delete-char -1)
+        (insert "ip6.arpa."))
+      (insert " ")
+      (buffer-string))))
 
 (provide 'dns-mode)
 

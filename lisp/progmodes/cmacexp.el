@@ -1,6 +1,6 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Francesco Potortì <pot@gnu.org>
@@ -27,7 +27,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

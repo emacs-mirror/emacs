@@ -1,6 +1,6 @@
 ;;; gnus-cache.el --- cache interface for Gnus
 
-;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -735,7 +735,7 @@ If LOW, update the lower bound instead."
       ;; `gnus-cache-unified-group-names' needless.
       (gnus-sethash (or (cdr (assoc group gnus-cache-unified-group-names))
 			group)
-		    (cons (car nums) (gnus-last-element nums))
+		    (cons (car nums) (car (last nums)))
 		    gnus-cache-active-hashtb))
     ;; Go through all the other files.
     (dolist (file alphs)

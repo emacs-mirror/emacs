@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -285,9 +285,13 @@ The return value is undefined.
           def))))
 
 
-;; Redefined in byte-optimize.el.
-;; This is not documented--it's not clear that we should promote it.
-(fset 'inline 'progn)
+;; Redefined in byte-opt.el.
+;; This was undocumented and unused for decades.
+(defalias 'inline 'progn
+  "Like `progn', but when compiled inline top-level function calls in body.
+You don't need this.  (See bytecomp.el commentary for more details.)
+
+\(fn BODY...)")
 
 ;;; Interface to inline functions.
 
@@ -318,6 +322,7 @@ The return value is undefined.
 
 (defmacro defsubst (name arglist &rest body)
   "Define an inline function.  The syntax is just like that of `defun'.
+
 \(fn NAME ARGLIST &optional DOCSTRING DECL &rest BODY)"
   (declare (debug defun) (doc-string 3))
   (or (memq (get name 'byte-optimizer)

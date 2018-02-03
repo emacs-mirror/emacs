@@ -157,7 +157,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -198,7 +198,7 @@ modify this GNU manual.''
 @insertcopying
 
 This manual was generated from cc-mode.texi, which is distributed with Emacs,
-or can be downloaded from @url{http://savannah.gnu.org/projects/emacs/}.
+or can be downloaded from @url{https://savannah.gnu.org/projects/emacs/}.
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -812,6 +812,10 @@ often (in seconds) progress messages are to be displayed.
 @cindex comments (insertion of)
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+When the commands in this section add comment delimiters, they use
+either line comments or block comments depending on the setting of the
+comment style (@pxref{Minor Modes}).
+
 @table @asis
 @item @kbd{C-c C-c} (@code{comment-region})
 @kindex C-c C-c
@@ -1133,6 +1137,9 @@ line break.
 find useful while writing new code or editing old code:
 
 @table @asis
+@item comment style
+This specifies whether comment commands (such as @kbd{M-;}) insert
+block comments or line comments.
 @item electric mode
 When this is enabled, certain visible characters cause reformatting as
 they are typed.  This is normally helpful, but can be a nuisance when
@@ -1168,20 +1175,32 @@ and @ref{Indentation Engine Basics}.
 You can toggle each of these minor modes on and off, and you can
 configure @ccmode{} so that it starts up with your favorite
 combination of them (@pxref{Sample Init File}).  By default, when
-you initialize a buffer, electric mode and syntactic-indentation mode
-are enabled but the other three modes are disabled.
+you initialize a buffer, the comment style is set to the default for
+the major mode, electric mode and syntactic-indentation mode are
+enabled, but the other three modes are disabled.
 
-@ccmode{} displays the current state of the first four of these minor
-modes on the modeline by appending letters to the major mode's name,
-one letter for each enabled minor mode: @samp{l} for electric mode,
-@samp{a} for auto-newline mode, @samp{h} for hungry delete mode, and
-@samp{w} for subword mode.  If all these modes were enabled, you'd see
-@samp{C/lahw}@footnote{The @samp{C} would be replaced with the name of
-the language in question for the other languages @ccmode{} supports.}.
+@ccmode{} displays the current state of the first five of these minor
+modes on the mode line by appending characters to the major mode's
+name: @samp{/} or @samp{*} to indicate the comment style (respectively
+line or block), and one letter for each of the other minor modes which
+is enabled - @samp{l} for electric mode, @samp{a} for auto-newline
+mode, @samp{h} for hungry delete mode, and @samp{w} for subword mode.
+If the comment style was block and all the other modes were enabled,
+you'd see @samp{C/*lahw}@footnote{The @samp{C} would be replaced with
+the name of the language in question for the other languages @ccmode{}
+supports.}.
 
 Here are the commands to toggle these modes:
 
 @table @asis
+@item @kbd{C-c C-k} (@code{c-toggle-comment-style})
+@kindex C-c C-k
+@findex c-toggle-comment-style
+@findex toggle-comment-style (c-)
+Toggle the comment style between line style and block style.  In modes
+(such as AWK Mode) which only have one of these styles, this function
+does nothing.
+
 @item @kbd{C-c C-l} (@code{c-toggle-electric-state})
 @kindex C-c C-l
 @findex c-toggle-electric-state
@@ -1218,10 +1237,12 @@ Toggle syntactic-indentation mode.
 @end table
 
 Common to all the toggle functions above is that if they are called
-programmatically, they take an optional numerical argument.  A
-positive value will turn on the minor mode (or both of them in the
-case of @code{c-toggle-auto-hungry-state}) and a negative value will
-turn it (or them) off.
+programmatically, they take an optional numerical argument.  For
+@code{c-toggle-comment style}, a positive value will select block
+comments, a negative value will select line comments.  For the other
+functions, a positive value will turn on the minor mode (or both of
+them in the case of @code{c-toggle-auto-hungry-state}) and a negative
+value will turn it (or them) off.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1739,6 +1760,7 @@ file.  For commands that you can use to view the effect of your changes,
 see @ref{Indentation Commands} and @ref{Filling and Breaking}.
 
 For details of the @ccmode{} style system, see @ref{Styles}.
+
 @item @kbd{C-c :} (@code{c-scope-operator})
 @kindex C-c :
 @findex c-scope-operator
@@ -1746,6 +1768,18 @@ For details of the @ccmode{} style system, see @ref{Styles}.
 In C++, it is also sometimes desirable to insert the double-colon scope
 operator without performing the electric behavior of colon insertion.
 @kbd{C-c :} does just this.
+
+@item @kbd{C-c C-z} (@code{c-display-defun-name})
+@kindex C-c C-z
+@findex c-display-defun-name
+@findex display-defun-name (c-)
+Display the current function name, if any, in the minibuffer.
+Additionally, if a prefix argument is given, push the function name to
+the kill ring.  If there is no current function,
+@code{c-display-defun-name} does nothing.  In Emacs, you can use this
+command in the middle of an interactive search if you set the
+customizable option @code{isearch-allow-scroll} to non-@code{nil}.
+@xref{Not Exiting Isearch,,,emacs, GNU Emacs Manual}.
 
 @item @kbd{C-c C-\} (@code{c-backslash-region})
 @kindex C-c C-\
@@ -5600,15 +5634,15 @@ Works with:
 @end ifinfo
 
 @macro sssTBasicOffset
-<--> @i{c-basic-offset}@c
+<--> @i{c-basic-offset}
 @end macro
 
 @macro sssTsssTBasicOffset
-<--><--> @i{c-basic-offset}@c
+<--><--> @i{c-basic-offset}
 @end macro
 
 @macro hereFn{func}
-<- @i{\func\}@c
+<- @i{\func\}
 @end macro
 
 @c The TeX backend seems to insert extra spaces around the argument. :P
@@ -7232,6 +7266,22 @@ too, add this to your @code{c-initialization-hook}:
 @xref{Getting Started}.  This was a very common question.
 
 @item
+@emph{How do I get block comments in my C++ files?}
+
+Interactively, change the comment style with @kbd{C-c C-k}.
+@xref{Minor Modes}.
+
+To configure this setting, say, for files within the gdb project, you
+could amend your C++ Mode hook like this:
+
+@example
+(defun my-c++-mode-hook ()
+  (if (string-match "/gdb/" (buffer-file-name))
+      (c-toggle-comment-style 1)))
+(add-hook 'c++-mode-hook 'my-c++-mode-hook)
+@end example
+
+@item
 @emph{How do I stop my C++ lambda expressions being indented way over
 to the right?}
 
@@ -7359,7 +7409,7 @@ Emacs Lisp code that triggers the bug and include it in your report.
 
 @cindex bug report mailing list
 Reporting a bug using @code{c-submit-bug-report} files it in
-the GNU Bug Tracker at @url{http://debbugs.gnu.org}, then sends it on
+the GNU Bug Tracker at @url{https://debbugs.gnu.org}, then sends it on
 to @email{bug-cc-mode@@gnu.org}.  You can also send reports, other
 questions, and suggestions (kudos?@: @t{;-)} to that address.  It's a
 mailing list which you can join or browse an archive of; see the web site at

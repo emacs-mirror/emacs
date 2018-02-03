@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1992-1996, 1998, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -157,7 +157,8 @@ Used to gray out relevant toolbar icons.")
                                 (gdb-show-run-p)))
     ([stop]	menu-item "Stop" gud-stop-subjob
 		  :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
-			       (gdb-show-stop-p)))
+			       (and (eq gud-minor-mode 'gdbmi)
+                                    (gdb-show-stop-p))))
     ([until]	menu-item "Continue to selection" gud-until
                   :enable (not gud-running)
 		  :visible (and (memq gud-minor-mode '(gdbmi gdb perldb))
@@ -1604,7 +1605,7 @@ and source-file directory for your debugger."
 ;; Last group is for return value, e.g. "> test.py(2)foo()->None"
 ;; Either file or function name may be omitted: "> <string>(0)?()"
 (defvar gud-pdb-marker-regexp
-  "^> \\([-a-zA-Z0-9_/.:\\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|<module>\\)()\\(->[^\n\r]*\\)?[\n\r]")
+  "^> \\([-a-zA-Z0-9_/.:@ \\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|<module>\\)()\\(->[^\n\r]*\\)?[\n\r]")
 
 (defvar gud-pdb-marker-regexp-file-group 1)
 (defvar gud-pdb-marker-regexp-line-group 2)
@@ -1829,7 +1830,7 @@ and source-file directory for your debugger."
 ;;
 ;; Type M-n to step over the current line and M-s to step into it.  That,
 ;; along with the JDB 'help' command should get you started.  The 'quit'
-;; JDB command will get out out of the debugger.  There is some truly
+;; JDB command will get out of the debugger.  There is some truly
 ;; pathetic JDB documentation available at:
 ;;
 ;;     http://java.sun.com/products/jdk/1.1/debugging/
@@ -3118,10 +3119,10 @@ Link exprs of the form:
       (setq span-start (char-after (- span-start 1)))
       (setq span-end (char-after span-end))
       (cond
-       ((= span-start ?)) t)
-      ((= span-start ?]) t)
-     ((= span-end ?() t)
-      ((= span-end ?[) t)
+       ((= span-start ?\)) t)
+      ((= span-start ?\]) t)
+     ((= span-end ?\() t)
+      ((= span-end ?\[) t)
        (t nil)))
      (t nil))))
 

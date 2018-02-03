@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2012-2017 Free Software Foundation, Inc.
+# Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 # Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -19,7 +19,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 SHELL = @SHELL@
 
@@ -32,6 +32,9 @@ top_builddir = @top_builddir@
 EMACS = ${top_builddir}/src/emacs
 unidir = ${top_srcdir}/lisp/international
 emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
+
+lparen = (
+unifiles = $(addprefix ${unidir}/,$(sort $(shell sed -n 's/^[ \t][ \t]*${lparen}"\(uni-[^"]*\)"$$/\1/p' ${srcdir}/unidata-gen.el)))
 
 # 'make' verbosity.
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
@@ -51,9 +54,10 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
-.PHONY: all unifiles
+.PHONY: all
 
-all: ${top_srcdir}/src/macuvs.h unifiles ${unidir}/charscript.el
+all: ${top_srcdir}/src/macuvs.h ${unifiles} ${unidir}/charscript.el \
+  ${unidir}/charprop.el
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -71,30 +75,21 @@ unidata.txt: ${srcdir}/UnicodeData.txt
 	$(AM_V_GEN)sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' \
 	  < $< > $@
 
-PHONY_EXTRAS =
-.PHONY: $(PHONY_EXTRAS)
+## charprop doesn't actually depend on unifiles, but for now at least
+## pretend that it does since other Makefiles assume that if charprop
+## is up-to-date, the unifiles are too.
+${unidir}/charprop.el: ${unifiles} ${srcdir}/unidata-gen.el | ${srcdir}/unidata-gen.elc
+	$(AM_V_at)[ ! -f $@ ] || chmod +w $@
+	$(AM_V_GEN)${emacs} -L ${srcdir} -l unidata-gen \
+	  -f unidata-gen-charprop $@
 
-${unidir}/charprop.el: ${srcdir}/unidata-gen.el \
+${unifiles}: ${srcdir}/unidata-gen.el \
   ${srcdir}/UnicodeData.txt ${srcdir}/BidiMirroring.txt \
   ${srcdir}/BidiBrackets.txt | \
   ${srcdir}/unidata-gen.elc unidata.txt
-  ifneq (,$(wildcard $@))
-	$(AM_V_at)cd $(unidir) && \
-	for f in charprop.el `sed -n 's/^;; FILE: //p' < charprop.el`; do \
-	  [ ! -f $$f ] || [ -w $$f ] || chmod +w $$f || exit; \
-	done
-  endif
-	$(AM_V_GEN)${emacs} -L ${srcdir} -l unidata-gen -f unidata-gen-files \
-	  ${srcdir} "${unidir}"
-
-## Check for deleted uni- files, and if any such, force a rebuild.
-## Perhaps a more elegant way would be for the previous rule
-## to generate a Makefile fragment explicitly listing the uni- files,
-## which this file could include.  If no fragment, rebuild everything.
-unifiles: ${unidir}/charprop.el
-	$(AM_V_at)for f in `sed -n 's/^;; FILE: //p' < $<`; do \
-	  [ -f $(unidir)/$$f ] || exec $(MAKE) PHONY_EXTRAS=$< $<; \
-	done
+	$(AM_V_at)[ ! -f $@ ] || chmod +w $@
+	$(AM_V_GEN)${emacs} -L ${srcdir} -l unidata-gen \
+	  -f unidata-gen-file $@ ${srcdir}
 
 
 .PHONY: charscript.el
@@ -123,7 +118,4 @@ maintainer-clean: distclean
 ## Cf leim/ja-dic (which is much slower).
 extraclean:
 	rm -f ${top_srcdir}/src/macuvs.h ${unidir}/charscript.el*
-  ifneq (,$(wildcard $(unidir)/charprop.el))
-	cd $(unidir) && \
-	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el` charprop.el
-  endif
+	rm -f ${unifiles} ${unidir}/charprop.el

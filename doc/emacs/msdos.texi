@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
@@ -129,7 +129,7 @@ window.  @xref{emacsclient Options}.
 @cindex text and binary files on MS-DOS/MS-Windows
 
   GNU Emacs uses newline characters to separate text lines.  This is the
-convention used on GNU, Unix, and other Posix-compliant systems.
+convention used on GNU, Unix, and other POSIX-compliant systems.
 
 @cindex end-of-line conversion on MS-DOS/MS-Windows
   By contrast, MS-DOS and MS-Windows normally use carriage-return linefeed,
@@ -580,7 +580,7 @@ pressed the @key{Shift} key while typing the non-character key.
 @vindex w32-enable-caps-lock
   If the variable @code{w32-enable-caps-lock} is set to a @code{nil}
 value, the @key{CapsLock} key produces the symbol @code{capslock}
-instead of the shifted version of they keys.  The default value is
+instead of the shifted version of typed keys.  The default value is
 @code{t}.
 
 @vindex w32-enable-num-lock
@@ -770,7 +770,7 @@ more details.
   Printing commands, such as @code{lpr-buffer} (@pxref{Printing}) and
 @code{ps-print-buffer} (@pxref{PostScript}) work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
-Posix-style @code{lpr} program is unavailable.  The same Emacs
+POSIX-style @code{lpr} program is unavailable.  The same Emacs
 variables control printing on all systems, but in some cases they have
 different default values on MS-DOS and MS-Windows.
 

@@ -2,7 +2,7 @@
 
 # Module helper script.
 
-# Copyright 2015-2017 Free Software Foundation, Inc.
+# Copyright 2015-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import string
@@ -45,31 +45,31 @@ def cmd_test(args):
 
     failed = []
     for m in mods:
-        print '[*] %s: ------- start -------' % m
-        print '[*] %s: running make' % m
+        print('[*] %s: ------- start -------' % m)
+        print('[*] %s: running make' % m)
         r = sp.call(make_cmd, cwd=m)
         if r != 0:
-            print '[E] %s: make failed' % m
+            print('[E] %s: make failed' % m)
             failed += [m]
             continue
 
-        print '[*] %s: running test' % m
+        print('[*] %s: running test' % m)
         testpath = os.path.join(m, 'test.el')
         if os.path.isfile(testpath):
             emacs_cmd = [EMACS, '-batch', '-L', '.', '-l', 'ert',
                          '-l', testpath, '-f', 'ert-run-tests-batch-and-exit']
-            print ' '.join(emacs_cmd)
+            print(' '.join(emacs_cmd))
             r = sp.call(emacs_cmd)
             if r != 0:
-                print '[E] %s: test failed' % m
+                print('[E] %s: test failed' % m)
                 failed += [m]
                 continue
         else:
-            print '[W] %s: no test to run' % m
+            print('[W] %s: no test to run' % m)
 
-    print '\n[*] %d/%d MODULES OK' % (len(mods)-len(failed), len(mods))
+    print('\n[*] %d/%d MODULES OK' % (len(mods)-len(failed), len(mods)))
     for m in failed:
-        print '\tfailed: %s' % m
+        print('\tfailed: %s' % m)
 
 def to_lisp_sym(sym):
     sym = re.sub('[_ ]', '-', sym)
@@ -81,7 +81,7 @@ def to_c_sym(sym):
 
 def cmd_init(args):
     if os.path.exists(args.module):
-        print "%s: file/dir '%s' already exists" % (__file__, args.module)
+        print("%s: file/dir '%s' already exists" % (__file__, args.module))
         return
 
     os.mkdir(args.module)
@@ -98,10 +98,10 @@ def cmd_init(args):
         if isinstance(path, string.Template):
             path = path.substitute(template_vars)
         path = os.path.join(args.module, path)
-        print "writing %s..." % path
+        print("writing %s..." % path)
         with open(path, "w+") as f:
             f.write(t.substitute(template_vars))
-    print "done! you can run %s test %s" % (__file__, args.module)
+    print("done! you can run %s test %s" % (__file__, args.module))
 
 
 def main():

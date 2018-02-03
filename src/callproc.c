@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2017 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -120,7 +120,7 @@ encode_current_directory (void)
   if (NILP (dir))
     dir = build_string ("~");
 
-  dir = expand_and_dir_to_file (dir, Qnil);
+  dir = expand_and_dir_to_file (dir);
 
   if (NILP (Ffile_accessible_directory_p (dir)))
     report_file_error ("Setting current directory",
@@ -202,10 +202,11 @@ call_process_cleanup (Lisp_Object buffer)
       message1 ("Waiting for process to die...(type C-g again to kill it instantly)");
 
       /* This will quit on C-g.  */
-      wait_for_termination (synch_process_pid, 0, 1);
-
+      bool wait_ok = wait_for_termination (synch_process_pid, NULL, true);
       synch_process_pid = 0;
-      message1 ("Waiting for process to die...done");
+      message1 (wait_ok
+		? "Waiting for process to die...done"
+		: "Waiting for process to die...internal error");
     }
 #endif	/* !MSDOS */
 }
@@ -241,6 +242,10 @@ If DESTINATION is 0, `call-process' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
+
+The process runs in `default-directory' if that is local (as
+determined by `unhandled-file-name-directory'), or "~" otherwise.  If
+you want to run a process in a remote directory use `process-file'.
 
 usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -626,6 +631,14 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
   if (pid == 0)
     {
+#ifdef DARWIN_OS
+      /* Work around a macOS bug, where SIGCHLD is apparently
+	 delivered to a vforked child instead of to its parent.  See:
+	 https://lists.gnu.org/r/emacs-devel/2017-05/msg00342.html
+      */
+      signal (SIGCHLD, SIG_DFL);
+#endif
+
       unblock_child_signal (&oldset);
 
 #ifdef DARWIN_OS
@@ -862,9 +875,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	       make_number (total_read));
     }
 
+  bool wait_ok = true;
 #ifndef MSDOS
   /* Wait for it to terminate, unless it already has.  */
-  wait_for_termination (pid, &status, fd0 < 0);
+  wait_ok = wait_for_termination (pid, &status, fd0 < 0);
 #endif
 
   /* Don't kill any children that the subprocess may have left behind
@@ -873,6 +887,9 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
   SAFE_FREE ();
   unbind_to (count, Qnil);
+
+  if (!wait_ok)
+    return build_unibyte_string ("internal error");
 
   if (WIFSIGNALED (status))
     {

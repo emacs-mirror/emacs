@@ -1,6 +1,6 @@
 ;;; fns-tests.el --- tests for src/fns.c
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,14 +15,13 @@
 ;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see `http://www.gnu.org/licenses/'.
+;; along with this program.  If not, see `https://www.gnu.org/licenses/'.
 
 ;;; Commentary:
 
 ;;; Code:
 
 (require 'cl-lib)
-(eval-when-compile (require 'cl))
 
 (ert-deftest fns-tests-reverse ()
   (should-error (reverse))
@@ -155,7 +154,7 @@
 	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))
 
 (ert-deftest fns-tests-collate-sort ()
-  ;; See https://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02505.html.
+  ;; See https://lists.gnu.org/r/emacs-devel/2015-10/msg02505.html.
   :expected-result (if (eq system-type 'cygwin) :failed :passed)
   (skip-unless (fns-tests--collate-enabled-p))
 
@@ -374,6 +373,12 @@
     (should-error (assoc 3 d1) :type 'wrong-type-argument)
     (should-error (assoc 3 d2) :type 'wrong-type-argument)))
 
+(ert-deftest test-assoc-testfn ()
+  (let ((alist '(("a" . 1) ("b" . 2))))
+    (should-not (assoc "a" alist #'ignore))
+    (should (eq (assoc "b" alist #'string-equal) (cadr alist)))
+    (should-not (assoc "b" alist #'eq))))
+
 (ert-deftest test-cycle-rassq ()
   (let ((c1 (cyc1 '(0 . 1)))
         (c2 (cyc2 '(0 . 1) '(0 . 2)))
@@ -541,5 +546,33 @@
 (ert-deftest test-cycle-nconc ()
   (should-error (nconc (cyc1 1) 'tail) :type 'circular-list)
   (should-error (nconc (cyc2 1 2) 'tail) :type 'circular-list))
+
+(ert-deftest plist-get/odd-number-of-elements ()
+  "Test that `plist-get' doesn't signal an error on degenerate plists."
+  (should-not (plist-get '(:foo 1 :bar) :bar)))
+
+(ert-deftest lax-plist-get/odd-number-of-elements ()
+  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
+  (should (equal (should-error (lax-plist-get '(:foo 1 :bar) :bar)
+                               :type 'wrong-type-argument)
+                 '(wrong-type-argument plistp (:foo 1 :bar)))))
+
+(ert-deftest plist-put/odd-number-of-elements ()
+  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
+  (should (equal (should-error (plist-put '(:foo 1 :bar) :zot 2)
+                               :type 'wrong-type-argument)
+                 '(wrong-type-argument plistp (:foo 1 :bar)))))
+
+(ert-deftest lax-plist-put/odd-number-of-elements ()
+  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
+  (should (equal (should-error (lax-plist-put '(:foo 1 :bar) :zot 2)
+                               :type 'wrong-type-argument)
+                 '(wrong-type-argument plistp (:foo 1 :bar)))))
+
+(ert-deftest plist-member/improper-list ()
+  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
+  (should (equal (should-error (plist-member '(:foo 1 . :bar) :qux)
+                               :type 'wrong-type-argument)
+                 '(wrong-type-argument plistp (:foo 1 . :bar)))))
 
 (provide 'fns-tests)

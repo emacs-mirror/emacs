@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1997-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
@@ -599,7 +599,7 @@ The value must be a file name for an existing file.  The widget
 provides completion.
 
 @item directory
-The value must be a directory name.  The widget provides completion.
+The value must be a directory.  The widget provides completion.
 
 @item hook
 The value must be a list of functions.  This customization type is
@@ -1432,7 +1432,9 @@ where the list entries have the same meanings as in
 would be evaluated when loading the theme, but that is bad form.
 To protect against loading themes containing malicious code, Emacs
 displays the source file and asks for confirmation from the user
-before loading any non-built-in theme for the first time.
+before loading any non-built-in theme for the first time.  As
+such, themes are not ordinarily byte-compiled, and source files
+always take precedence when Emacs is looking for a theme to load.
 
   The following functions are useful for programmatically enabling and
 disabling themes:

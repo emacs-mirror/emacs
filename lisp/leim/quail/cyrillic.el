@@ -1,6 +1,6 @@
 ;;; cyrillic.el --- Quail package for inputting Cyrillic characters
 
-;; Copyright (C) 1997-1998, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -235,8 +235,8 @@
  ("^" ?:)
  ("&" ??)
  ("*" ?*)
- ("(" ?()
- (")" ?))
+ ("(" ?\()
+ (")" ?\))
  ("_" ?_)
  ("+" ?+)
  ("~" ?Ё)
@@ -789,8 +789,8 @@ Sorry, but `ghe with upturn' is not included in ISO 8859-5."
  ("^" ?:)
  ("&" ??)
  ("*" ?*)
- ("(" ?()
- (")" ?))
+ ("(" ?\()
+ (")" ?\))
  ("_" ?_)
  ("+" ?+)
  ("~" ?')
@@ -830,6 +830,120 @@ Sorry, but `ghe with upturn' is not included in ISO 8859-5."
  ("\\" ?ґ)
  ("|" ?Ґ))
 ;;
+
+(quail-define-package
+ "uzbek-cyrillic" "Ўзбекча" "Ўзб" nil
+ "ЙЦУКЕН Uzbek computer layout"
+ nil t t t t nil nil nil nil nil t)
+
+;; Ё 1! 2" 3№ 4; 5% 6: 7? 8* 9( 0) Ғ  Ҳ
+;;    Й  Ц  У  К  Е  Н  Г  Ш  Ў  З  Х  Ъ  \|
+;;     Ф  Қ  В  А  П  Р  О  Л  Д  Ж  Э
+;;      Я  Ч  С  М  И  Т  Ь  Б  Ю  .,
+
+(quail-define-rules
+ ("`" ?ё)
+ ("1" ?1)
+ ("2" ?2)
+ ("3" ?3)
+ ("4" ?4)
+ ("5" ?5)
+ ("6" ?6)
+ ("7" ?7)
+ ("8" ?8)
+ ("9" ?9)
+ ("0" ?0)
+ ("-" ?ғ)
+ ("=" ?ҳ)
+
+ ("q" ?й)
+ ("w" ?ц)
+ ("e" ?у)
+ ("r" ?к)
+ ("t" ?е)
+ ("y" ?н)
+ ("u" ?г)
+ ("i" ?ш)
+ ("o" ?ў)
+ ("p" ?з)
+ ("[" ?х)
+ ("]" ?ъ)
+ ("\\" ?\\)
+
+ ("a" ?ф)
+ ("s" ?қ)
+ ("d" ?в)
+ ("f" ?а)
+ ("g" ?п)
+ ("h" ?р)
+ ("j" ?о)
+ ("k" ?л)
+ ("l" ?д)
+ (";" ?ж)
+ ("'" ?э)
+
+ ("z" ?я)
+ ("x" ?ч)
+ ("c" ?с)
+ ("v" ?м)
+ ("b" ?и)
+ ("n" ?т)
+ ("m" ?ь)
+ ("," ?б)
+ ("." ?ю)
+ ("/" ?.)
+
+ ("~" ?Ё)
+ ("!" ?!)
+ ("@" ?\")
+ ("#" ?№)
+ ("$" ?\;)
+ ("%" ?%)
+ ("^" ?:)
+ ("&" ??)
+ ("*" ?*)
+ ("(" ?\()
+ (")" ?\))
+ ("_" ?Ғ)
+ ("+" ?Ҳ)
+
+ ("Q" ?Й)
+ ("W" ?Ц)
+ ("E" ?У)
+ ("R" ?К)
+ ("T" ?Е)
+ ("Y" ?Н)
+ ("U" ?Г)
+ ("I" ?Ш)
+ ("O" ?Ў)
+ ("P" ?З)
+ ("{" ?Х)
+ ("}" ?Ъ)
+ ("|" ?|)
+
+ ("A" ?Ф)
+ ("S" ?Қ)
+ ("D" ?В)
+ ("F" ?А)
+ ("G" ?П)
+ ("H" ?Р)
+ ("J" ?О)
+ ("K" ?Л)
+ ("L" ?Д)
+ (":" ?Ж)
+ ("\"" ?Э)
+
+ ("Z" ?Я)
+ ("X" ?Ч)
+ ("C" ?С)
+ ("V" ?М)
+ ("B" ?И)
+ ("N" ?Т)
+ ("M" ?Ь)
+ ("<" ?Б)
+ (">" ?Ю)
+ ("?" ?,))
+
 
 ;; Alexander Mikhailian says this is of limited use.  It has been
 ;; popular among emigrants or foreigners who have to type in Cyrillic

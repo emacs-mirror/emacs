@@ -1,6 +1,6 @@
 ;;; nnir.el --- Search mail with various search engines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -95,7 +95,7 @@
 ;; also be correct, see the documentation for `nnir-namazu-remove-prefix'
 ;; above.
 ;;
-;; It is particularly important not to pass any any switches to namazu
+;; It is particularly important not to pass any switches to namazu
 ;; that will change the output format.  Good switches to use include
 ;; `--sort', `--ascending', `--early' and `--late'.  Refer to the Namazu
 ;; documentation for further information on valid switches.

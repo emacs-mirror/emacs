@@ -1,6 +1,6 @@
 # Attributes of Emacs files in the Git repository.
 
-# Copyright 2015-2017 Free Software Foundation, Inc.
+# Copyright 2015-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # A few files use CRLF endings, even on non-Microsoft platforms.
 # Do not warn about trailing whitespace with these files.
@@ -24,10 +24,12 @@ admin/charsets/mapfiles/PTCP154 whitespace=cr-at-eol
 leim/MISC-DIC/cangjie-table.b5 whitespace=cr-at-eol
 leim/MISC-DIC/cangjie-table.cns whitespace=cr-at-eol
 leim/MISC-DIC/pinyin.map whitespace=cr-at-eol
-nt/nmake.defs whitespace=cr-at-eol
-test/etags/c-src/dostorture.c whitespace=cr-at-eol
-test/etags/cp-src/c.C whitespace=cr-at-eol
-test/etags/html-src/algrthms.html whitespace=cr-at-eol
+test/manual/etags/c-src/dostorture.c whitespace=cr-at-eol
+test/manual/etags/cp-src/c.C whitespace=cr-at-eol
+test/manual/etags/html-src/algrthms.html whitespace=cr-at-eol
+
+# The todo-mode file format includes trailing whitespace.
+*.tod[aorty] -whitespace=blank-at-eol
 
 # The upstream maintainer does not want to remove trailing whitespace.
 doc/misc/texinfo.tex -whitespace=blank-at-eol
@@ -47,23 +49,23 @@ doc/misc/texinfo.tex -whitespace=blank-at-eol
 etc/e/eterm-color binary
 
 # Git's builtin diff hunk header styles.
-*.ada diff=ada
-*.[ch] diff=cpp
+*.ad[abs] diff=ada
+*.[Cch] diff=cpp
 *.cc diff=cpp
-*.cpp diff=cpp
+*.[ch]pp diff=cpp
 *.hh diff=cpp
 *.for diff=fortran
 *.html diff=html
 *.shtml diff=html
 *.xml diff=html
 *.java diff=java
-*.m diff=objc
+*.[HMm] diff=objc
+*.pas diff=pascal
 *.perl diff=perl
 *.pl diff=perl
 *.php diff=php
 *.py diff=python
 *.rb diff=ruby
-*.ruby diff=ruby
 *.tex diff=tex
 
 # Hooks for non-default diff hunk headers; see autogen.sh.
@@ -73,7 +75,7 @@ etc/e/eterm-color binary
 *.mk diff=make
 *[Mm]akefile diff=make
 Makefile.in diff=make
-*.sh diff=shell
+*[-.]sh diff=shell
 *.texi diff=texinfo
 #
 # Diff hunk header special-case file names.
@@ -86,6 +88,8 @@ admin/merge-pkg-config diff=shell
 admin/quick-install-emacs diff=shell
 admin/update-copyright diff=shell
 admin/update_autogen diff=shell
+build-aux/config.guess diff=shell
+build-aux/config.sub diff=shell
 build-aux/git-hooks/commit-msg diff=shell
 build-aux/git-hooks/pre-commit diff=shell
 build-aux/gitlog-to-emacslog diff=shell

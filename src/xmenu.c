@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2017 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* X pop-up deck-of-cards menu facility for GNU Emacs.
  *
@@ -1160,9 +1160,37 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 {
   struct next_popup_x_y *data = user_data;
   GtkRequisition req;
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (data->f);
-  int disp_width = x_display_pixel_width (dpyinfo);
-  int disp_height = x_display_pixel_height (dpyinfo);
+  int max_x = -1;
+  int max_y = -1;
+
+  Lisp_Object frame, workarea;
+
+  XSETFRAME (frame, data->f);
+
+  /* TODO: Get the monitor workarea directly without calculating other
+     items in x-display-monitor-attributes-list. */
+  workarea = call3 (Qframe_monitor_workarea,
+                    Qnil,
+                    make_number (data->x),
+                    make_number (data->y));
+
+  if (CONSP (workarea))
+    {
+      int min_x, min_y;
+
+      min_x = XINT (XCAR (workarea));
+      min_y = XINT (Fnth (make_number (1), workarea));
+      max_x = min_x + XINT (Fnth (make_number (2), workarea));
+      max_y = min_y + XINT (Fnth (make_number (3), workarea));
+    }
+
+  if (max_x < 0 || max_y < 0)
+    {
+      struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (data->f);
+
+      max_x = x_display_pixel_width (dpyinfo);
+      max_y = x_display_pixel_height (dpyinfo);
+    }
 
   *x = data->x;
   *y = data->y;
@@ -1170,10 +1198,10 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
   /* Check if there is room for the menu.  If not, adjust x/y so that
      the menu is fully visible.  */
   gtk_widget_get_preferred_size (GTK_WIDGET (menu), NULL, &req);
-  if (data->x + req.width > disp_width)
-    *x -= data->x + req.width - disp_width;
-  if (data->y + req.height > disp_height)
-    *y -= data->y + req.height - disp_height;
+  if (data->x + req.width > max_x)
+    *x -= data->x + req.width - max_x;
+  if (data->y + req.height > max_y)
+    *y -= data->y + req.height - max_y;
 }
 
 static void
@@ -1243,6 +1271,11 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
                              /* Child of win.  */
                              &dummy_window);
+#ifdef HAVE_GTK3
+      /* Use window scaling factor to adjust position for hidpi screens. */
+      x /= xg_get_scale (f);
+      y /= xg_get_scale (f);
+#endif
       unblock_input ();
       popup_x_y.x = x;
       popup_x_y.y = y;
@@ -2360,6 +2393,10 @@ syms_of_xmenu (void)
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
   defsubr (&Smenu_or_popup_active_p);
+
+#ifdef USE_GTK
+  DEFSYM (Qframe_monitor_workarea, "frame-monitor-workarea");
+#endif
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
   defsubr (&Sx_menu_bar_open_internal);

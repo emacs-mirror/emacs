@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -10,24 +10,9 @@
 @cindex multibyte characters
 @cindex encoding of characters
 
-@cindex Arabic
-@cindex Bengali
-@cindex Chinese
-@cindex Cyrillic
 @cindex Han
 @cindex Hindi
-@cindex Ethiopic
-@cindex Georgian
-@cindex Greek
 @cindex Hangul
-@cindex Hebrew
-@cindex Hindi
-@cindex IPA
-@cindex Japanese
-@cindex Korean
-@cindex Latin
-@cindex Thai
-@cindex Vietnamese
   Emacs supports a wide variety of international character sets,
 including European and Vietnamese variants of the Latin alphabet, as
 well as Arabic scripts, Brahmic scripts (for languages such as
@@ -139,7 +124,7 @@ can insert characters that your keyboard does not support, using
 @kbd{C-x 8 @key{RET}} (@code{insert-char}).  @xref{Inserting Text}.
 Shorthands are available for some common characters; for example, you
 can insert a left single quotation mark @t{‘} by typing @kbd{C-x 8
-[}, or in Electric Quote mode often by simply typing @kbd{`}.
+[}, or in Electric Quote mode, usually by simply typing @kbd{`}.
 @xref{Quotation Marks}.  Emacs also supports
 various @dfn{input methods}, typically one for each script or
 language, which make it easier to type characters in the script.
@@ -149,8 +134,8 @@ language, which make it easier to type characters in the script.
   The prefix key @kbd{C-x @key{RET}} is used for commands that pertain
 to multibyte characters, coding systems, and input methods.
 
-@kindex C-x =
-@findex what-cursor-position
+@kindex C-x =@r{, and international characters}
+@findex what-cursor-position@r{, and international characters}
   The command @kbd{C-x =} (@code{what-cursor-position}) shows
 information about the character at point.  In addition to the
 character position, which was described in @ref{Position Info}, this
@@ -277,7 +262,7 @@ Supported language environments include:
 @c To work around, we group the language environments together, so
 @c that the blank that separates them triggers refill.
 @quotation
-@cindex ASCII
+@cindex ASCII (language environment)
 @cindex Arabic
 ASCII, Arabic,
 @cindex Belarusian
@@ -394,7 +379,7 @@ least---the way Emacs decodes non-@acronym{ASCII} characters sent by your keyboa
   If you modify the @env{LC_ALL}, @env{LC_CTYPE}, or @env{LANG}
 environment variables while running Emacs (by using @kbd{M-x setenv}),
 you may want to invoke the @code{set-locale-environment}
-function afterwards to readjust the language environment from the new
+command afterwards to readjust the language environment from the new
 locale.
 
 @vindex locale-preferred-coding-systems
@@ -492,7 +477,7 @@ display the next row or the previous row.
 
     Type @kbd{C-f} and @kbd{C-b} to move forward and backward among
 the alternatives in the current row.  As you do this, Emacs highlights
-the current alternative with a special color; type @code{C-@key{SPC}}
+the current alternative with a special color; type @kbd{C-@key{SPC}}
 to select the current alternative and use it as input.  The
 alternatives in the row are also numbered; the number appears before
 the alternative.  Typing a number selects the associated alternative
@@ -523,11 +508,10 @@ entering the separate letter and accent.  For example, @kbd{o ^ ^} gives
 you the two characters @samp{o^}.  Another way is to type another letter
 after the @kbd{o}---something that won't combine with that---and
 immediately delete it.  For example, you could type @kbd{o o @key{DEL}
-^} to get separate @samp{o} and @samp{^}.
-
-  Another method, more general but not quite as easy to type, is to use
-@kbd{C-\ C-\} between two characters to stop them from combining.  This
-is the command @kbd{C-\} (@code{toggle-input-method}) used twice.
+^} to get separate @samp{o} and @samp{^}.  Another method, more
+general but not quite as easy to type, is to use @kbd{C-\ C-\} between
+two characters to stop them from combining.  This is the command
+@kbd{C-\} (@code{toggle-input-method}) used twice.
 @ifnottex
 @xref{Select Input Method}.
 @end ifnottex
@@ -1002,16 +986,15 @@ its name at the prompt.)
 @vindex sendmail-coding-system
   When you send a mail message (@pxref{Sending Mail}),
 Emacs has four different ways to determine the coding system to use
-for encoding the message text.  It tries the buffer's own value of
+for encoding the message text.  It first tries the buffer's own value of
 @code{buffer-file-coding-system}, if that is non-@code{nil}.
 Otherwise, it uses the value of @code{sendmail-coding-system}, if that
-is non-@code{nil}.  The third way is to use the default coding system
-for new files, which is controlled by your choice of language
-@c i.e., default-sendmail-coding-system
-environment, if that is non-@code{nil}.  If all of these three values
-are @code{nil}, Emacs encodes outgoing mail using the Latin-1 coding
-system.
-@c FIXME?  Where does the Latin-1 default come in?
+is non-@code{nil}.  Thirdly, it uses the value of
+@code{default-sendmail-coding-system}.
+If all of these three values are @code{nil}, Emacs encodes outgoing
+mail using the default coding system for new files (i.e., the
+default value of @code{buffer-file-coding-system}), which is
+controlled by your choice of language environment.
 
 @node Text Coding
 @section Specifying a Coding System for File Text
@@ -1198,7 +1181,7 @@ names (@code{set-file-name-coding-system}).
 @end table
 
 @findex set-file-name-coding-system
-@kindex C-x @key{RET} F
+@kindex C-x RET F
 @cindex file names with non-@acronym{ASCII} characters
   The command @kbd{C-x @key{RET} F} (@code{set-file-name-coding-system})
 specifies a coding system to use for encoding file @emph{names}.  It
@@ -1224,13 +1207,13 @@ using the internal Emacs representation.
 @cindex file-name encoding, MS-Windows
 @vindex w32-unicode-filenames
   When Emacs runs on MS-Windows versions that are descendants of the
-NT family (Windows 2000, XP, Vista, Windows 7, and Windows 8), the
-value of @code{file-name-coding-system} is largely ignored, as Emacs
-by default uses APIs that allow passing Unicode file names directly.
-By contrast, on Windows 9X, file names are encoded using
-@code{file-name-coding-system}, which should be set to the codepage
-(@pxref{Coding Systems, codepage}) pertinent for the current system
-locale.  The value of the variable @code{w32-unicode-filenames}
+NT family (Windows 2000, XP, Vista, Windows 7, and all the later
+versions), the value of @code{file-name-coding-system} is largely
+ignored, as Emacs by default uses APIs that allow passing Unicode file
+names directly.  By contrast, on Windows 9X, file names are encoded
+using @code{file-name-coding-system}, which should be set to the
+codepage (@pxref{Coding Systems, codepage}) pertinent for the current
+system locale.  The value of the variable @code{w32-unicode-filenames}
 controls whether Emacs uses the Unicode APIs when it calls OS
 functions that accept file names.  This variable is set by the startup
 code to @code{nil} on Windows 9X, and to @code{t} on newer versions of
@@ -1356,7 +1339,7 @@ fontset}, the @dfn{startup fontset} and the @dfn{default fontset}.
 @c FIXME?  The doc of *standard*-fontset-spec says:
 @c "You have the biggest chance to display international characters
 @c with correct glyphs by using the *standard* fontset." (my emphasis)
-@c See http://lists.gnu.org/archive/html/emacs-devel/2012-04/msg00430.html
+@c See https://lists.gnu.org/r/emacs-devel/2012-04/msg00430.html
 The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
@@ -1393,7 +1376,7 @@ hex code or thin space or an empty box instead.  (@xref{Text Display, ,
 glyphless characters}, for details.)
 
 @node Defining Fontsets
-@section Defining fontsets
+@section Defining Fontsets
 
 @vindex standard-fontset-spec
 @vindex w32-standard-fontset-spec
@@ -1424,8 +1407,8 @@ created automatically.  Their names have @samp{bold} instead of
 @acronym{ASCII} font that you specify with the @samp{Font} resource or
 the @samp{-fn} argument, or the default font that Emacs found when it
 started.  This is the @dfn{startup fontset} and its name is
-@code{fontset-startup}.  It does this by replacing the
-@var{charset_registry} field with @samp{fontset}, and replacing
+@code{fontset-startup}.  Emacs generates this fontset by replacing the
+@var{charset_registry} field with @samp{fontset}, and replacing the
 @var{charset_encoding} field with @samp{startup}, then using the
 resulting string to specify a fontset.
 
@@ -1471,14 +1454,15 @@ The resource value should have this form:
 @end smallexample
 
 @noindent
-@var{fontpattern} should have the form of a standard X font name (see
-the previous fontset-startup example), except
-for the last two fields.  They should have the form
-@samp{fontset-@var{alias}}.
+where @var{fontpattern} should have the form of a standard X font name
+(see the previous fontset-startup example), except for the last two
+fields.  They should have the form @samp{fontset-@var{alias}}.
 
-  The fontset has two names, one long and one short.  The long name is
-@var{fontpattern}.  The short name is @samp{fontset-@var{alias}}.  You
-can refer to the fontset by either name.
+  Each fontset has two names, one long and one short.  The long name
+is  @var{fontpattern}.  The short name is @samp{fontset-@var{alias}},
+the last 2 fields of the long name (e.g., @samp{fontset-startup} for
+the  fontset automatically created at startup).  You can refer to the
+fontset by either name.
 
   The construct @samp{@var{charset}:@var{font}} specifies which font to
 use (in this fontset) for one particular character set.  Here,
@@ -1494,7 +1478,7 @@ that describe the character set.  For the @acronym{ASCII} character font,
   In addition, when several consecutive fields are wildcards, Emacs
 collapses them into a single wildcard.  This is to prevent use of
 auto-scaled fonts.  Fonts made by scaling larger fonts are not usable
-for editing, and scaling a smaller font is not also useful, because it is
+for editing, and scaling a smaller font is also not useful, because it is
 better to use the smaller font in its own size, which is what Emacs
 does.
 
@@ -1563,7 +1547,7 @@ used.  Some examples are:
 (set-fontset-font "fontset-default" 'iso-8859-3
                   "Liberation Mono")
 
-;; Prefer a big5 font for han characters
+;; Prefer a big5 font for han characters.
 (set-fontset-font "fontset-default"
                   'han (font-spec :registry "big5")
                   nil 'prepend)
@@ -1586,9 +1570,9 @@ used.  Some examples are:
 unpleasant results for characters for which they are used, and you may
 wish to instruct Emacs to completely ignore them while searching for a
 suitable font required to display a character.  You can do that by
-adding the offending fonts to the value of @code{face-ignored-fonts}
-variable, which is a list.  Here's an example to put in your
-@file{~/.emacs}:
+adding the offending fonts to the value of the variable
+@code{face-ignored-fonts}, which is a list.  Here's an example to put
+in your @file{~/.emacs}:
 
 @example
 (add-to-list 'face-ignored-fonts "Some Bad Font")
@@ -1674,26 +1658,26 @@ characters:
 @cindex 8-bit input
 @item
 You can use an input method for the selected language environment.
-@xref{Input Methods}.  When you use an input method in a unibyte buffer,
-the non-@acronym{ASCII} character you specify with it is converted to unibyte.
+@xref{Input Methods}.  When you use an input method in a unibyte
+buffer, the non-@acronym{ASCII} character you specify with it is
+converted to unibyte.
 
 @item
 If your keyboard can generate character codes 128 (decimal) and up,
-representing non-@acronym{ASCII} characters, you can type those character codes
-directly.
+representing non-@acronym{ASCII} characters, you can type those
+character codes directly.
 
 On a graphical display, you should not need to do anything special to
 use these keys; they should simply work.  On a text terminal, you
-should use the command @code{M-x set-keyboard-coding-system} or customize the
-variable @code{keyboard-coding-system} to specify which coding system
-your keyboard uses (@pxref{Terminal Coding}).  Enabling this feature
-will probably require you to use @key{ESC} to type Meta characters;
-however, on a console terminal or in @code{xterm}, you can arrange for
-Meta to be converted to @key{ESC} and still be able type 8-bit
-characters present directly on the keyboard or using @key{Compose} or
-@key{AltGr} keys.  @xref{User Input}.
+should use the command @kbd{M-x set-keyboard-coding-system} or
+customize the variable @code{keyboard-coding-system} to specify which
+coding system your keyboard uses (@pxref{Terminal Coding}).  Enabling
+this feature will probably require you to use @key{ESC} to type Meta
+characters; however, on a console terminal or a terminal emulator such
+as @code{xterm}, you can arrange for Meta to be converted to @key{ESC}
+and still be able to type 8-bit characters present directly on the
+keyboard or using @key{Compose} or @key{AltGr} keys.  @xref{User Input}.
 
-@kindex C-x 8
 @cindex @code{iso-transl} library
 @cindex compose character
 @cindex dead character
@@ -1774,15 +1758,15 @@ Chars}).
 @cindex bidirectional editing
 @cindex right-to-left text
 
-  Emacs supports editing text written in scripts, such as Arabic and
-Hebrew, whose natural ordering of horizontal text for display is from
-right to left.  However, digits and Latin text embedded in these
-scripts are still displayed left to right.  It is also not uncommon to
-have small portions of text in Arabic or Hebrew embedded in an otherwise
-Latin document; e.g., as comments and strings in a program source
-file.  For these reasons, text that uses these scripts is actually
-@dfn{bidirectional}: a mixture of runs of left-to-right and
-right-to-left characters.
+  Emacs supports editing text written in scripts, such as Arabic,
+Farsi, and Hebrew, whose natural ordering of horizontal text for
+display is from right to left.  However, digits and Latin text
+embedded in these scripts are still displayed left to right.  It is
+also not uncommon to have small portions of text in Arabic or Hebrew
+embedded in an otherwise Latin document; e.g., as comments and strings
+in a program source file.  For these reasons, text that uses these
+scripts is actually @dfn{bidirectional}: a mixture of runs of
+left-to-right and right-to-left characters.
 
   This section describes the facilities and options provided by Emacs
 for editing bidirectional text.
@@ -1793,10 +1777,14 @@ for editing bidirectional text.
 @dfn{logical} (or @dfn{reading}) order: the buffer or string position
 of the first character you read precedes that of the next character.
 Reordering of bidirectional text into the @dfn{visual} order happens
-at display time.  As result, character positions no longer increase
+at display time.  As a result, character positions no longer increase
 monotonically with their positions on display.  Emacs implements the
-Unicode Bidirectional Algorithm described in the Unicode Standard
-Annex #9, for reordering of bidirectional text for display.
+Unicode Bidirectional Algorithm (UBA) described in the Unicode
+Standard Annex #9, for reordering of bidirectional text for display.
+It deviates from the UBA only in how continuation lines are displayed
+when text direction is opposite to the base paragraph direction,
+e.g., when a long line of English text appears in a right-to-left
+paragraph.
 
 @vindex bidi-display-reordering
   The buffer-local variable @code{bidi-display-reordering} controls
@@ -1807,15 +1795,21 @@ directionality when they are displayed.  The default value is
 
 @cindex base direction of paragraphs
 @cindex paragraph, base direction
+@vindex bidi-paragraph-start-re
+@vindex bidi-paragraph-separate-re
   Each paragraph of bidirectional text can have its own @dfn{base
-direction}, either right-to-left or left-to-right.  (Paragraph
-@c paragraph-separate etc have no influence on this?
-boundaries are empty lines, i.e., lines consisting entirely of
-whitespace characters.)  Text in left-to-right paragraphs begins on
-the screen at the left margin of the window and is truncated or
-continued when it reaches the right margin.  By contrast, text in
-right-to-left paragraphs is displayed starting at the right margin and
-is continued or truncated at the left margin.
+direction}, either right-to-left or left-to-right.  Text in
+left-to-right paragraphs begins on the screen at the left margin of
+the window and is truncated or continued when it reaches the right
+margin.  By contrast, text in right-to-left paragraphs is displayed
+starting at the right margin and is continued or truncated at the left
+margin.  By default, paragraph boundaries are empty lines, i.e., lines
+consisting entirely of whitespace characters.  To change that, you can
+customize the two variables @code{bidi-paragraph-start-re} and
+@code{bidi-paragraph-separate-re}, whose values should be regular
+expressions (strings); e.g., to have a single newline start a new
+paragraph, set both of these variables to @code{"^"}.  These two
+variables are buffer-local (@pxref{Locals}).
 
 @vindex bidi-paragraph-direction
   Emacs determines the base direction of each paragraph dynamically,
@@ -1841,12 +1835,13 @@ thin blank characters; on text terminals they display as blanks.
 
   Because characters are reordered for display, Emacs commands that
 operate in the logical order or on stretches of buffer positions may
-produce unusual effects.  For example, @kbd{C-f} and @kbd{C-b}
-commands move point in the logical order, so the cursor will sometimes
-jump when point traverses reordered bidirectional text.  Similarly, a
-highlighted region covering a contiguous range of character positions
-may look discontinuous if the region spans reordered text.  This is
-normal and similar to the behavior of other programs that support
-bidirectional text.  If you set @code{visual-order-cursor-movement} to
-a non-@code{nil} value, cursor motion by the arrow keys follows the
-visual order on screen (@pxref{Moving Point, visual-order movement}).
+produce unusual effects.  For example, the commands @kbd{C-f} and
+@kbd{C-b} move point in the logical order, so the cursor will
+sometimes jump when point traverses reordered bidirectional text.
+Similarly, a highlighted region covering a contiguous range of
+character positions may look discontinuous if the region spans
+reordered text.  This is normal and similar to the behavior of other
+programs that support bidirectional text.  If you set
+@code{visual-order-cursor-movement} to a non-@code{nil} value, cursor
+motion by the arrow keys follows the visual order on screen
+(@pxref{Moving Point, visual-order movement}).

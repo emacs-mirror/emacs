@@ -1,5 +1,5 @@
 ;;; screen.el --- terminal initialization for screen and tmux  -*- lexical-binding: t -*-
-;; Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
 
 (require 'term/xterm)
 

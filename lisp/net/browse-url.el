@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -713,8 +713,7 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
   (let ((coding (if (equal system-type 'windows-nt)
 		    ;; W32 pretends that file names are UTF-8 encoded.
 		    'utf-8
-		  (and (default-value 'enable-multibyte-characters)
-		       (or file-name-coding-system
+		  (and (or file-name-coding-system
 			   default-file-name-coding-system)))))
     (if coding (setq file (encode-coding-string file coding))))
   (setq file (browse-url-url-encode-chars file "[*\"()',=;?% ]"))
@@ -1317,7 +1316,7 @@ used instead of `browse-url-new-window-flag'."
               (if (file-exists-p
                    (setq pidfile (format "/tmp/Mosaic.%d" pid)))
                   (delete-file pidfile))
-              ;; http://debbugs.gnu.org/17428.  Use O_EXCL.
+              ;; https://debbugs.gnu.org/17428.  Use O_EXCL.
               (write-region nil nil pidfile nil 'silent nil 'excl)))
 	  ;; Send signal SIGUSR to Mosaic
 	  (message "Signaling Mosaic...")

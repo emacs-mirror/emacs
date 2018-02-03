@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -563,6 +563,8 @@ For example, to retrieve the second element of a user's record in
 
 (defun eshell-index-value (value index)
   "Reference VALUE using the given INDEX."
+  (when (and (stringp index) (get-text-property 0 'number index))
+    (setq index (string-to-number index)))
   (if (stringp index)
       (cdr (assoc index value))
     (cond

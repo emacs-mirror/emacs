@@ -1,6 +1,6 @@
 { GPC demo program for the CRT unit.
 
-Copyright (C) 1999-2006, 2013-2017 Free Software Foundation, Inc.
+Copyright (C) 1999-2006, 2013-2018 Free Software Foundation, Inc.
 
 Author: Frank Heckenbach <frank@pascal.gnu.de>
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 As a special exception, if you incorporate even large parts of the
 code of this demo program into another program with substantially

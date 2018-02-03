@@ -1,6 +1,6 @@
 ;;; generator-tests.el --- Testing generators -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords:
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -282,3 +282,13 @@ identical output.
 (ert-deftest cps-test-declarations-preserved ()
   (should (equal (documentation 'generator-with-docstring) "Documentation!"))
   (should (equal (get 'generator-with-docstring 'lisp-indent-function) 5)))
+
+(ert-deftest cps-iter-lambda-with-dynamic-binding ()
+  "`iter-lambda' with dynamic binding produces correct result (bug#25965)."
+  (should (= 1
+             (iter-next
+              (funcall (iter-lambda ()
+                         (let* ((fill-column 10) ;;any special variable will do
+                                (i 0)
+                                (j (setq i (1+ i))))
+                           (iter-yield i))))))))

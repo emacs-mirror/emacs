@@ -1,6 +1,6 @@
 /* Inotify support for Emacs
 
-Copyright (C) 2012-2017 Free Software Foundation, Inc.
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -41,7 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef IN_ONLYDIR
 # define IN_ONLYDIR 0
 #endif
-#define INOTIFY_DEFAULT_MASK (IN_ALL_EVENTS | IN_EXCL_UNLINK)
 
 /* File handle for inotify.  */
 static int inotifyfd = -1;
@@ -58,7 +57,6 @@ static int inotifyfd = -1;
    IN_EXCL_UNLINK
    IN_MASK_ADD
    IN_ONESHOT
-   IN_ONLYDIR
 
    Each element of this list is of the form (DESCRIPTOR . WATCHES)
    where no two DESCRIPTOR values are the same.  DESCRIPTOR represents
@@ -145,6 +143,8 @@ symbol_to_inotifymask (Lisp_Object symb)
 
   else if (EQ (symb, Qdont_follow))
     return IN_DONT_FOLLOW;
+  else if (EQ (symb, Qonlydir))
+    return IN_ONLYDIR;
 
   else if (EQ (symb, Qt) || EQ (symb, Qall_events))
     return IN_ALL_EVENTS;
@@ -198,16 +198,15 @@ inotifyevent_to_event (Lisp_Object watch, struct inotify_event const *ev)
 }
 
 /* Add a new watch to watch-descriptor WD watching FILENAME and using
-   CALLBACK.  Returns a cons (DESCRIPTOR . ID) uniquely identifying the
-   new watch.  */
+   IMASK and CALLBACK.  Return a cons (DESCRIPTOR . ID) uniquely
+   identifying the new watch.  */
 static Lisp_Object
 add_watch (int wd, Lisp_Object filename,
-	   Lisp_Object aspect, Lisp_Object callback)
+	   uint32_t imask, Lisp_Object callback)
 {
   Lisp_Object descriptor = INTEGER_TO_CONS (wd);
   Lisp_Object tail = assoc_no_quit (descriptor, watch_list);
   Lisp_Object watch, watch_id;
-  uint32_t imask = aspect_to_inotifymask (aspect);
   Lisp_Object mask = INTEGER_TO_CONS (imask);
 
   EMACS_INT id = 0;
@@ -381,9 +380,11 @@ all-events or t
 move
 close
 
-The following symbols can also be added to a list of aspects:
+ASPECT can also contain the following symbols, which control whether
+the watch descriptor will be created:
 
 dont-follow
+onlydir
 
 Watching a directory is not recursive.  CALLBACK is passed a single argument
 EVENT which contains an event structure of the format
@@ -409,22 +410,18 @@ See inotify(7) and inotify_add_watch(2) for further information.  The
 inotify fd is managed internally and there is no corresponding
 inotify_init.  Use `inotify-rm-watch' to remove a watch.
 
-Also note, that the following inotify bit-masks can not be used, due
-to the fact that descriptors are shared across different callers.
+The following inotify bit-masks cannot be used because descriptors are
+shared across different callers.
 
 IN_EXCL_UNLINK
 IN_MASK_ADD
-IN_ONESHOT
-IN_ONLYDIR  */)
+IN_ONESHOT  */)
      (Lisp_Object filename, Lisp_Object aspect, Lisp_Object callback)
 {
   Lisp_Object encoded_file_name;
-  bool dont_follow = (CONSP (aspect)
-		      ? ! NILP (Fmemq (Qdont_follow, aspect))
-		      : EQ (Qdont_follow, aspect));
   int wd = -1;
-  uint32_t mask = (INOTIFY_DEFAULT_MASK
-                   | (dont_follow ? IN_DONT_FOLLOW : 0));
+  uint32_t imask = aspect_to_inotifymask (aspect);
+  uint32_t mask = imask | IN_MASK_ADD | IN_EXCL_UNLINK;
 
   CHECK_STRING (filename);
 
@@ -442,7 +439,7 @@ IN_ONLYDIR  */)
   if (wd < 0)
     report_file_notify_error ("Could not add watch for file", filename);
 
-  return add_watch (wd, filename, aspect, callback);
+  return add_watch (wd, filename, imask, callback);
 }
 
 static bool
@@ -534,6 +531,7 @@ syms_of_inotify (void)
   DEFSYM (Qclose, "close");		/* IN_CLOSE */
 
   DEFSYM (Qdont_follow, "dont-follow");	/* IN_DONT_FOLLOW */
+  DEFSYM (Qonlydir, "onlydir");		/* IN_ONLYDIR */
 
   DEFSYM (Qignored, "ignored");		/* IN_IGNORED */
   DEFSYM (Qisdir, "isdir");		/* IN_ISDIR */

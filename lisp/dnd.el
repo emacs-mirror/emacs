@@ -1,6 +1,6 @@
 ;;; dnd.el --- drag and drop support
 
-;; Copyright (C) 2005-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -144,7 +144,7 @@ Return nil if URI is not a local file."
        str))
    uri t t))
 
-;; http://lists.gnu.org/archive/html/emacs-devel/2006-05/msg01060.html
+;; https://lists.gnu.org/r/emacs-devel/2006-05/msg01060.html
 (defun dnd-get-local-file-name (uri &optional must-exist)
   "Return file name converted from file:/// or file: syntax.
 URI is the uri for the file.  If MUST-EXIST is given and non-nil,

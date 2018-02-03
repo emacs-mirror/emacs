@@ -1015,7 +1015,7 @@ tutoriálem napsaným Stuartem Cracraftem pro původní Emacs.
 Tato verze tutoriálu je, podobně jako GNU Emacs, chráněna copyrightem a
 je šířena se svolením distribuovat kopie za jistých podmínek:
 
-Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation, Inc.
 
    Každému je zaručeno právo vytvářet a distribuovat přesné kopie tohoto
    dokumentu tak, jak jej obdržel, na jakémkoliv médiu, s tím, že bude

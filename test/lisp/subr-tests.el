@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -19,15 +19,15 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;
 
 ;;; Code:
-
 (require 'ert)
+(eval-when-compile (require 'cl-lib))
 
 (ert-deftest let-when-compile ()
   ;; good case
@@ -257,9 +257,9 @@ This exercises `backtrace-frame', and indirectly `mapbacktrace'."
     (should (equal (mapbacktrace #'error unbound) nil)))
   ;; First frame is backtrace-related function
   (should (equal (backtrace-frame 0) '(t backtrace-frame 0)))
-  (should (equal (catch 'ret
-                   (mapbacktrace (lambda (&rest args) (throw 'ret args))))
-                 '(t mapbacktrace ((lambda (&rest args) (throw 'ret args))) nil)))
+  (let ((throw-args (lambda (&rest args) (throw 'ret args))))
+    (should (equal (catch 'ret (mapbacktrace throw-args))
+                   `(t mapbacktrace (,throw-args) nil))))
   ;; Past-end NFRAMES is silently ignored
   (should (equal (backtrace-frame most-positive-fixnum) nil)))
 
@@ -290,6 +290,40 @@ cf. Bug#25477."
                 :type 'wrong-number-of-arguments)
   (should-error (eval '(dolist "foo") t)
                 :type 'wrong-type-argument))
+
+(ert-deftest subr-tests-bug22027 ()
+  "Test for https://debbugs.gnu.org/22027 ."
+  (let ((default "foo") res)
+    (cl-letf (((symbol-function 'read-string)
+               (lambda (_prompt _init _hist def) def)))
+      (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default "")))
+      (should (string= default res)))))
+
+(ert-deftest subr-tests--gensym ()
+  "Test `gensym' behavior."
+  (should (equal (symbol-name (let ((gensym-counter 0)) (gensym)))
+                 "g0"))
+  (should (eq (string-to-char (symbol-name (gensym))) ?g))
+  (should (eq (string-to-char (symbol-name (gensym "X"))) ?X)))
+
+(ert-deftest subr-tests--assq-delete-all ()
+  "Test `assq-delete-all' behavior."
+  (cl-flet ((new-list-fn
+             ()
+             (list (cons 'a 1) (cons 'b 2) (cons 'c 3) 'd (cons "foo" "bar"))))
+    (should (equal (cdr (new-list-fn)) (assq-delete-all 'a (new-list-fn))))
+    (should (equal (new-list-fn) (assq-delete-all 'd (new-list-fn))))
+    (should (equal (new-list-fn) (assq-delete-all "foo" (new-list-fn))))))
+
+(ert-deftest subr-tests--assoc-delete-all ()
+  "Test `assoc-delete-all' behavior."
+  (cl-flet ((new-list-fn
+             ()
+             (list (cons 'a 1) (cons 'b 2) (cons 'c 3) 'd (cons "foo" "bar"))))
+    (should (equal (cdr (new-list-fn)) (assoc-delete-all 'a (new-list-fn))))
+    (should (equal (new-list-fn) (assoc-delete-all 'd (new-list-fn))))
+    (should (equal (butlast (new-list-fn))
+                   (assoc-delete-all "foo" (new-list-fn))))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

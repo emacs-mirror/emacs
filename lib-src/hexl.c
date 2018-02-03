@@ -1,5 +1,5 @@
 /* Convert files for Emacs Hexl mode.
-   Copyright (C) 1989, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
 
 Author: Keith Gabryelski (according to authors.el)
 
@@ -16,17 +16,17 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <binary-io.h>
+#include <unlocked-io.h>
 
 static char *progname;
 

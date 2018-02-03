@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. */
+   along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /*
   Geoff Voelker (voelker@cs.washington.edu)                          7-29-94
@@ -116,9 +116,9 @@ typedef struct _RTL_HEAP_PARAMETERS {
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
 #if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (21*1024*1024)
+# define DUMPED_HEAP_SIZE (22*1024*1024)
 #else
-# define DUMPED_HEAP_SIZE (12*1024*1024)
+# define DUMPED_HEAP_SIZE (13*1024*1024)
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
@@ -228,7 +228,9 @@ init_heap (void)
 {
   if (using_dynamic_heap)
     {
+#ifndef MINGW_W64
       unsigned long enable_lfh = 2;
+#endif
 
       /* After dumping, use a new private heap.  We explicitly enable
          the low fragmentation heap (LFH) here, for the sake of pre

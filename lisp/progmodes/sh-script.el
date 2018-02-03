@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -419,44 +419,6 @@ name symbol."
 (define-abbrev-table 'sh-mode-abbrev-table ())
 
 
-;; I turned off this feature because it doesn't permit typing commands
-;; in the usual way without help.
-;;(defvar sh-abbrevs
-;;  '((csh sh-abbrevs shell
-;;	 "switch" 'sh-case
-;;	 "getopts" 'sh-while-getopts)
-
-;;    (es sh-abbrevs shell
-;;	"function" 'sh-function)
-
-;;    (ksh88 sh-abbrevs sh
-;;	   "select" 'sh-select)
-
-;;    (rc sh-abbrevs shell
-;;	"case" 'sh-case
-;;	"function" 'sh-function)
-
-;;    (sh sh-abbrevs shell
-;;	"case" 'sh-case
-;;	"function" 'sh-function
-;;	"until" 'sh-until
-;;	"getopts" 'sh-while-getopts)
-
-;;    ;; The next entry is only used for defining the others
-;;    (shell "for" sh-for
-;;	   "loop" sh-indexed-loop
-;;	   "if" sh-if
-;;	   "tmpfile" sh-tmp-file
-;;	   "while" sh-while)
-
-;;    (zsh sh-abbrevs ksh88
-;;	 "repeat" 'sh-repeat))
-;;  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
-;;;Due to the internal workings of abbrev tables, the shell name symbol is
-;;;actually defined as the table for the like of \\[edit-abbrevs].")
-
-
-
 (defun sh-mode-syntax-table (table &rest list)
   "Copy TABLE and set syntax for successive CHARs according to strings S."
   (setq table (copy-syntax-table table))
@@ -492,7 +454,10 @@ name symbol."
 This is buffer-local in every such buffer.")
 
 (defvar sh-mode-syntax-table-input
-  '((sh . nil))
+  `((sh . nil)
+    ;; Treat ' as punctuation rather than a string delimiter, as RPM
+    ;; files often contain prose with apostrophes.
+    (rpm . (,sh-mode-syntax-table ?\' ".")))
   "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
 (defvar sh-mode-map
@@ -599,8 +564,8 @@ This is buffer-local in every such buffer.")
     map)
   "Keymap used in Shell-Script mode.")
 
-(defvar sh-skeleton-pair-default-alist '((?( _ ?)) (?\))
-				      (?[ ?\s _ ?\s ?]) (?\])
+(defvar sh-skeleton-pair-default-alist '((?\( _ ?\)) (?\))
+				      (?\[ ?\s _ ?\s ?\]) (?\])
 				      (?{ _ ?}) (?\}))
   "Value to use for `skeleton-pair-default-alist' in Shell-Script mode.")
 
@@ -628,11 +593,7 @@ sign.  See `sh-feature'."
 			       (sexp :format "Evaluate: %v"))))
   :group 'sh-script)
 
-
-(defcustom sh-indentation 4
-  "The width for further indentation in Shell-Script mode."
-  :type 'integer
-  :group 'sh-script)
+(define-obsolete-variable-alias 'sh-indentation 'sh-basic-offset "26.1")
 (put 'sh-indentation 'safe-local-variable 'integerp)
 
 (defcustom sh-remember-variable-min 3
@@ -744,9 +705,7 @@ removed when closing the here document."
     ;; The next entry is only used for defining the others
     (shell "cd" "echo" "eval" "set" "shift" "umask" "unset" "wait")
 
-    (wksh sh-append ksh88
-          ;; FIXME: This looks too much like a regexp.  --Stef
-	  "Xt[A-Z][A-Za-z]*")
+    (wksh sh-append ksh88)
 
     (zsh sh-append ksh88
 	 "autoload" "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
@@ -1175,7 +1134,7 @@ subshells can nest."
    (syntax-propertize-rules
     (sh-here-doc-open-re
      (2 (sh-font-lock-open-heredoc
-         (match-beginning 0) (match-string 1) (match-beginning 2))))
+         (1+ (match-beginning 0)) (match-string 1) (match-beginning 2))))
     ("\\s|" (0 (prog1 nil (sh-syntax-propertize-here-doc end))))
     ;; A `#' begins a comment when it is unquoted and at the
     ;; beginning of a word.  In the shell, words are separated by
@@ -1654,7 +1613,7 @@ with your script for an edit-interpret-debug cycle."
   (setq-local skeleton-pair-alist '((?` _ ?`)))
   (setq-local skeleton-pair-filter-function 'sh-quoted-p)
   (setq-local skeleton-further-elements
-	      '((< '(- (min sh-indentation (current-column))))))
+	      '((< '(- (min sh-basic-offset (current-column))))))
   (setq-local skeleton-filter-function 'sh-feature)
   (setq-local skeleton-newline-indent-rigidly t)
   (setq-local defun-prompt-regexp
@@ -1680,6 +1639,7 @@ with your script for an edit-interpret-debug cycle."
          ((string-match "[.]sh\\>"     buffer-file-name) "sh")
          ((string-match "[.]bash\\>"   buffer-file-name) "bash")
          ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
+         ((string-match "[.]mkshrc\\>" buffer-file-name) "mksh")
          ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
          ((string-match "[.]zsh\\(rc\\|env\\)?\\>" buffer-file-name) "zsh")
 	 ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
@@ -2048,7 +2008,7 @@ May return nil if the line should not be treated as continued."
       (forward-line -1)
       (if (sh-smie--looking-back-at-continuation-p)
           (current-indentation)
-        (+ (current-indentation) sh-indentation))))
+        (+ (current-indentation) sh-basic-offset))))
    (t
     ;; Just make sure a line-continuation is indented deeper.
     (save-excursion
@@ -2069,13 +2029,13 @@ May return nil if the line should not be treated as continued."
                        ;; check the line before that one.
                        (> ci indent))
                       (t ;Previous line is the beginning of the continued line.
-                       (setq indent (min (+ ci sh-indentation) max))
+                       (setq indent (min (+ ci sh-basic-offset) max))
                        nil)))))
           indent))))))
 
 (defun sh-smie-sh-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) sh-indentation)
+    (`(:elem . basic) sh-basic-offset)
     (`(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
                              (sh-var-value 'sh-indent-for-case-label)))
     (`(:before . ,(or `"(" `"{" `"[" "while" "if" "for" "case"))
@@ -2284,8 +2244,8 @@ Point should be before the newline."
 
 (defun sh-smie-rc-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) sh-indentation)
-    ;; (`(:after . "case") (or sh-indentation smie-indent-basic))
+    (`(:elem . basic) sh-basic-offset)
+    ;; (`(:after . "case") (or sh-basic-offset smie-indent-basic))
     (`(:after . ";")
      (if (smie-rule-parent-p "case")
          (smie-rule-parent (sh-var-value 'sh-indent-after-case))))
@@ -2432,7 +2392,6 @@ whose value is the shell name (don't quote it)."
                       (funcall mksym "rules")
                       :forward-token  (funcall mksym "forward-token")
                       :backward-token (funcall mksym "backward-token")))
-        (setq-local parse-sexp-lookup-properties t)
         (unless sh-use-smie
           (setq-local sh-kw-alist (sh-feature sh-kw))
           (let ((regexp (sh-feature sh-kws-for-done)))
@@ -2508,39 +2467,6 @@ the value thus obtained, and the result is used instead."
 
 
 
-;; I commented this out because nobody calls it -- rms.
-;;(defun sh-abbrevs (ancestor &rest list)
-;;  "If it isn't, define the current shell as abbrev table and fill that.
-;;Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
-;;table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
-;;according to the remaining arguments NAMEi EXPANSIONi ...
-;;EXPANSION may be either a string or a skeleton command."
-;;  (or (if (boundp sh-shell)
-;;	  (symbol-value sh-shell))
-;;      (progn
-;;	(if (listp ancestor)
-;;	    (nconc list ancestor))
-;;	(define-abbrev-table sh-shell ())
-;;	(if (vectorp ancestor)
-;;	    (mapatoms (lambda (atom)
-;;			(or (eq atom 0)
-;;			    (define-abbrev (symbol-value sh-shell)
-;;			      (symbol-name atom)
-;;			      (symbol-value atom)
-;;			      (symbol-function atom))))
-;;		      ancestor))
-;;	(while list
-;;	  (define-abbrev (symbol-value sh-shell)
-;;	    (car list)
-;;	    (if (stringp (car (cdr list)))
-;;		(car (cdr list))
-;;	      "")
-;;	    (if (symbolp (car (cdr list)))
-;;		(car (cdr list))))
-;;	  (setq list (cdr (cdr list)))))
-;;      (symbol-value sh-shell)))
-
-
 (defun sh-append (ancestor &rest list)
   "Return list composed of first argument (a list) physically appended to rest."
   (nconc list ancestor))
@@ -2559,7 +2485,7 @@ the value thus obtained, and the result is used instead."
 
 (defun sh-basic-indent-line ()
   "Indent a line for Sh mode (shell script mode).
-Indent as far as preceding non-empty line, then by steps of `sh-indentation'.
+Indent as far as preceding non-empty line, then by steps of `sh-basic-offset'.
 Lines containing only comments are considered empty."
   (interactive)
   (let ((previous (save-excursion
@@ -2583,9 +2509,9 @@ Lines containing only comments are considered empty."
 		     (delete-region (point)
 				    (progn (beginning-of-line) (point)))
 		     (if (eolp)
-			 (max previous (* (1+ (/ current sh-indentation))
-					  sh-indentation))
-		       (* (1+ (/ current sh-indentation)) sh-indentation))))))
+			 (max previous (* (1+ (/ current sh-basic-offset))
+					  sh-basic-offset))
+		       (* (1+ (/ current sh-basic-offset)) sh-basic-offset))))))
     (if (< (current-column) (current-indentation))
 	(skip-chars-forward " \t"))))
 
@@ -3449,7 +3375,7 @@ If INFO is supplied it is used, else it is calculated from current line."
     (if msg (message "%s" msg) (message nil))))
 
 (defun sh-show-indent (arg)
-  "Show the how the current line would be indented.
+  "Show how the current line would be indented.
 This tells you which variable, if any, controls the indentation of
 this line.
 If optional arg ARG is non-null (called interactively with a prefix),
@@ -3663,6 +3589,10 @@ so that `occur-next' and `occur-prev' will work."
 (defun sh-learn-buffer-indent (&optional arg)
   "Learn how to indent the buffer the way it currently is.
 
+If `sh-use-smie' is non-nil, call `smie-config-guess'.
+Otherwise, run the sh-script specific indent learning command, as
+described below.
+
 Output in buffer \"*indent*\" shows any lines which have conflicting
 values of a variable, and the final value of all variables learned.
 When called interactively, pop to this buffer automatically if
@@ -3679,8 +3609,7 @@ to the value of variable `sh-learn-basic-offset'.
 
 Abnormal hook `sh-learned-buffer-hook' if non-nil is called when the
 function completes.  The function is abnormal because it is called
-with an alist of variables learned.  This feature may be changed or
-removed in the future.
+with an alist of variables learned.
 
 This command can often take a long time to run."
   (interactive "P")
@@ -3878,7 +3807,6 @@ This command can often take a long time to run."
                            " has"   "s have")
                        (if (zerop num-diffs)
                            "." ":"))))))
-        ;; Are abnormal hooks considered bad form?
         (run-hook-with-args 'sh-learned-buffer-hook learned-var-list)
         (and (called-interactively-p 'any)
              (or sh-popup-occur-buffer (> num-diffs 0))

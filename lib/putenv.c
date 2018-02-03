@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1994, 1997-1998, 2000, 2003-2017 Free Software
+/* Copyright (C) 1991, 1994, 1997-1998, 2000, 2003-2018 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with the GNU C
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 

@@ -1,6 +1,6 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -471,6 +471,7 @@ PROPERTY set."
 ;;; Lexical Analyzer framework settings
 ;;
 
+;; FIXME change to non-obsolete default.
 (defvar semantic-lex-analyzer 'semantic-flex
   "The lexical analyzer used for a given buffer.
 See `semantic-lex' for documentation.
@@ -657,10 +658,9 @@ If universal argument ARG, then try the whole buffer."
   (let* ((start (current-time))
 	 (result (semantic-lex
 		  (if arg (point-min) (point))
-		  (point-max)))
-	 (end (current-time)))
+		  (point-max))))
     (message "Elapsed Time: %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (pop-to-buffer "*Lexer Output*")
     (require 'pp)
     (erase-buffer)
@@ -810,7 +810,7 @@ analyzer which might mistake a number for as a symbol."
                     tmp-start (car semantic-lex-token-stream)))
 	   (setq tmp-start semantic-lex-end-point)
            (goto-char semantic-lex-end-point)
-	   ;;(when (> (semantic-elapsed-time starttime (current-time))
+	   ;;(when (> (semantic-elapsed-time starttime nil)
 	   ;;	    semantic-lex-timeout)
 	   ;;  (error "Timeout during lex at char %d" (point)))
 	   (semantic-throw-on-input 'lex)
@@ -1857,7 +1857,7 @@ end of the return token will be larger than END.  To truly restrict
 scanning, use `narrow-to-region'.
 The last argument, LENGTH specifies that `semantic-flex' should only
 return LENGTH tokens."
-  (message "`semantic-flex' is an obsolete function.  Use `define-lex' to create lexers.")
+  (declare (obsolete define-lex "23.2"))
   (if (not semantic-flex-keywords-obarray)
       (setq semantic-flex-keywords-obarray [ nil ]))
   (let ((ts nil)

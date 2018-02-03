@@ -1,6 +1,6 @@
 ;;; htmlfontify-tests.el --- Test suite. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 (require 'ert)
@@ -36,7 +36,7 @@ available (Bug#25468)."
   (should (equal (let ((process-environment
                         (cons "SHELL=/does/not/exist" process-environment)))
                    (call-process
-                    (expand-file-name (invocation-name) (invocation-directory))
+                    (expand-file-name invocation-name invocation-directory)
                     nil nil nil
                     "--quick" "--batch"
                     (concat "--load=" (locate-library "htmlfontify"))))

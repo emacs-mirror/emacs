@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998-1999, 2001-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -212,7 +212,7 @@ emacs, GNU Emacs Manual}.  Unlike @code{find-file-literally}, finding
 a file as @samp{raw-text} doesn't disable format conversion,
 uncompression, or auto mode selection.
 
-@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@c See https://debbugs.gnu.org/11226 for lack of unibyte tooltip.
 @vindex enable-multibyte-characters
 The buffer-local variable @code{enable-multibyte-characters} is
 non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
@@ -1112,7 +1112,9 @@ represented in the internal Emacs encoding (@pxref{Text
 Representations}).  This is like @code{raw-text} in that no code
 conversion happens, but different in that the result is multibyte
 data.  The name @code{emacs-internal} is an alias for
-@code{utf-8-emacs}.
+@code{utf-8-emacs-unix} (so it forces no conversion of end-of-line,
+unlike @code{utf-8-emacs}, which can decode all 3 kinds of
+end-of-line conventions).
 
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
@@ -1774,7 +1776,7 @@ affect it.
 Binding @code{coding-system-for-write} to a non-@code{nil} value
 prevents output primitives from calling the function specified by
 @code{select-safe-coding-system-function} (@pxref{User-Chosen Coding
-Systems}).  This is because @kbd{C-x RET c}
+Systems}).  This is because @kbd{C-x @key{RET} c}
 (@code{universal-coding-system-argument}) works by binding
 @code{coding-system-for-write}, and Emacs should obey user selection.
 If a Lisp program binds @code{coding-system-for-write} to a value that

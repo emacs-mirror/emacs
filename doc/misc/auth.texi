@@ -11,7 +11,7 @@
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -61,6 +61,7 @@ It is a way for multiple applications to share a single configuration
 * Help for users::
 * Multiple GMail accounts with Gnus::
 * Secret Service API::
+* The Unix password store::
 * Help for developers::
 * GnuPG and EasyPG Assistant Configuration::
 * GNU Free Documentation License::  The license for this documentation.
@@ -85,8 +86,9 @@ password (known as the secret).
 
 Similarly, the auth-source library supports multiple storage backend,
 currently either the classic ``netrc'' backend, examples of which you
-can see later in this document, or the Secret Service API@.  This is
-done with EIEIO-based backends and you can write your own if you want.
+can see later in this document, JSON files, the Secret Service API, and pass, the
+standard unix password manager.  This is done with EIEIO-based
+backends and you can write your own if you want.
 
 @node Help for users
 @chapter Help for users
@@ -150,9 +152,9 @@ auth-source library is not loaded for some other reason.
 @defvar auth-sources
 
 The @code{auth-sources} variable tells the auth-source library where
-your netrc files or Secret Service API collection items live for a
-particular host and protocol.  While you can get fancy, the default
-and simplest configuration is:
+your netrc files, Secret Service API collection items, or your
+password store live for a particular host and protocol.  While you can
+get fancy, the default and simplest configuration is:
 
 @lisp
 ;;; old default: required :host and :port, not needed anymore
@@ -164,6 +166,12 @@ and simplest configuration is:
 ;;; use the Secrets API @var{Login} collection
 ;;; (@pxref{Secret Service API})
 (setq auth-sources '("secrets:Login"))
+;;; use pass (@file{~/.password-store})
+;;; (@pxref{The Unix password store})
+(setq auth-sources '(password-store))
+;;; JSON data in format [@{ "machine": "SERVER",
+;;; "login": "USER", "password": "PASSWORD" @}...]
+(setq auth-sources '("~/.authinfo.json.gpg"))
 @end lisp
 
 By adding multiple entries to @code{auth-sources} with a particular
@@ -229,6 +237,16 @@ Note that the port denotes the Tramp connection method.  When you
 don't use a port entry, you match any Tramp method, as explained
 earlier.  Since Tramp has about 88 connection methods, this may be
 necessary if you have an unusual (see earlier comment on those) setup.
+
+The netrc format is directly translated into JSON, if you are into
+that sort of thing. Just point to a JSON file with entries like this:
+
+@example
+[
+ @{ "machine": "yourmachine.com", "port": "http",
+    "login": "testuser", "password": "testpass" @}
+]
+@end example
 
 @node Multiple GMail accounts with Gnus
 @chapter Multiple GMail accounts with Gnus
@@ -402,6 +420,34 @@ then fall back to @file{~/.authinfo.gpg}.
                      "~/.authinfo.gpg"))
 @end example
 
+@node The Unix password store
+@chapter The Unix password store
+
+@uref{http://www.passwordstore.org,,The standard unix password
+manager} (or just @code{pass}) stores your passwords in
+@code{gpg}-protected files following the Unix philosophy.
+
+Emacs integration of @code{pass} follows the first approach suggested
+by the pass project itself for data organization to find data. This
+means that the filename of the file containing the password for a user
+on a particular host must contain the host name.  The file itself must
+contain the password on the first line, as well as a @code{username}
+field containing the username on a subsequent line. A @code{port}
+field can be used to differentiate the authentication data for several
+services with the same username on the same host.
+
+Users of @code{pass} may also be interested in functionality provided
+by other Emacs packages dealing with pass:
+
+@itemize
+@item
+@uref{https://git.zx2c4.com/password-store/tree/contrib/emacs/password-store.el,,password-store}: library wrapping @code{pass};
+@item
+@uref{https://github.com/NicolasPetton/pass,,pass}: major mode to manipulate the store and edit entries;
+@item
+@uref{https://github.com/jabranham/helm-pass,,helm-pass}: helm interface for pass.
+@end itemize
+
 @node Help for developers
 @chapter Help for developers
 
@@ -517,14 +563,14 @@ or EasyPG Assistant
 
 To quick start, here are some questions:
 
-@enumerate
+@itemize
 @item
 Do you use GnuPG version 2 instead of GnuPG version 1?
 @item
 Do you use symmetric encryption rather than public key encryption?
 @item
 Do you want to use gpg-agent?
-@end enumerate
+@end itemize
 
 Here are configurations depending on your answers:
 

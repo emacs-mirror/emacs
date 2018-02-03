@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -227,9 +227,12 @@
 	(modi #x11600)
 	(takri #x11680)
 	(warang-citi #x118A1)
+        (zanabazar-square #x11A00)
+        (soyombo #x11A50)
 	(pau-cin-hau #x11AC0)
         (bhaiksuki #x11C00)
         (marchen #x11C72)
+        (masaram-gondi #x11D00)
 	(cuneiform #x12000)
 	(cuneiform-numbers-and-punctuation #x12400)
 	(mro #x16A40)
@@ -237,6 +240,7 @@
 	(pahawh-hmong #x16B11)
         (tangut #x17000)
         (tangut-components #x18800)
+        (nushu #x1B170)
 	(duployan-shorthand #x1BC20)
 	(byzantine-musical-symbol #x1D000)
 	(musical-symbol #x1D100)
@@ -1143,10 +1147,14 @@ given from DEFAULT-SPEC."
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.
 A valid fontset name should conform to XLFD (X Logical Font Description)
-with \"fontset\" in `<CHARSET_REGISTRY>' field."
-  (and (string-match xlfd-tight-regexp fontset)
-       (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
-		"fontset")))
+with \"fontset-SOMETHING\" in `<CHARSET_REGISTRY>' field.
+A fontset alias name recorded in `fontset-alias-alist' is also a valid
+fontset name."
+  (or (and (string-match xlfd-tight-regexp fontset)
+           (let ((registry
+                  (match-string (1+ xlfd-regexp-registry-subnum) fontset)))
+             (= 0 (string-match "\\`fontset-" registry))))
+      (consp (rassoc fontset fontset-alias-alist))))
 
 (declare-function fontset-list "fontset.c" ())
 

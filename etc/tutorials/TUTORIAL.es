@@ -1204,7 +1204,7 @@ Por favor, en caso de duda, solo es válido el original en inglés de la
 siguiente nota de derechos de reproducción (que puede encontrar en el
 archivo TUTORIAL).
 
-Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation, Inc.
 
    Se permite a cualquiera hacer o distribuir copias literales de este
    documento como se recibe, en cualquier medio, siempre que la nota

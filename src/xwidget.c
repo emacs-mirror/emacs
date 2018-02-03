@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2017 Free Software Foundation, Inc.
+Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -389,11 +389,10 @@ webkit_javascript_finished_cb (GObject      *webview,
     /* Register an xwidget event here, which then runs the callback.
        This ensures that the callback runs in sync with the Emacs
        event loop.  */
-    /* FIXME: This might lead to disaster if LISP_CALLBACK’s object
+    /* FIXME: This might lead to disaster if LISP_CALLBACK's object
        was garbage collected before now.  See the FIXME in
        Fxwidget_webkit_execute_script.  */
-    store_xwidget_js_callback_event (xw, XIL ((intptr_t) lisp_callback),
-                                     lisp_value);
+    store_xwidget_js_callback_event (xw, XPL (lisp_callback), lisp_value);
 }
 
 
@@ -585,22 +584,20 @@ x_draw_xwidget_glyph_string (struct glyph_string *s)
      xwidget on screen.  Moving and clipping is done here.  Also view
      initialization.  */
   struct xwidget *xww = s->xwidget;
-  struct xwidget_view *xv;
+  struct xwidget_view *xv = xwidget_view_lookup (xww, s->w);
   int clip_right;
   int clip_bottom;
   int clip_top;
   int clip_left;
 
-  /* FIXME: The result of this call is discarded.
-     What if the lookup fails?  */
-  xwidget_view_lookup (xww, s->w);
-
   int x = s->x;
   int y = s->y + (s->height / 2) - (xww->height / 2);
 
   /* Do initialization here in the display loop because there is no
-     other time to know things like window placement etc.  */
-  xv = xwidget_init_view (xww, s, x, y);
+     other time to know things like window placement etc.  Do not
+     create a new view if we have found one that is usable.  */
+  if (!xv)
+    xv = xwidget_init_view (xww, s, x, y);
 
   int text_area_x, text_area_y, text_area_width, text_area_height;
 
@@ -725,7 +722,7 @@ argument procedure FUN.*/)
   /* FIXME: This hack might lead to disaster if FUN is garbage
      collected before store_xwidget_js_callback_event makes it visible
      to Lisp again.  See the FIXME in webkit_javascript_finished_cb.  */
-  gpointer callback_arg = (gpointer) (intptr_t) XLI (fun);
+  gpointer callback_arg = XLP (fun);
 
   /* JavaScript execution happens asynchronously.  If an elisp
      callback function is provided we pass it to the C callback

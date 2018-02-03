@@ -1,6 +1,6 @@
 ;;; image-size-tests.el -- tests for image scaling
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; To test: Load the file and eval (image-size-tests).
 ;; A non-erroring result is a success.
@@ -25,8 +25,8 @@
 (defmacro im-should (image width height &rest props)
   `(let ((im (im-image ,image ,@props)))
      (unless (im-compare im ,width ,height)
-       (error "%s didn't succeed; size is %s"
-              ',props (image-size im t)))))
+       (error "%s %s didn't succeed; size is %s"
+              ',image ',props (image-size im t)))))
 
 (defun im-image (type &rest props)
   (let ((image-scaling-factor 1))

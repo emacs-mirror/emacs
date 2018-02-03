@@ -1,4 +1,4 @@
-Copyright (C) 2007-2017 Free Software Foundation, Inc.
+Copyright (C) 2007-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -86,7 +86,7 @@ in a README file in each directory with images. (Legal advice says
 that we need not add notices to each image file individually, if they
 allow for that.). It is recommended to use the word "convert" to
 describe the automatic process of changing an image from one format to
-another (http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00618.html).
+another (https://lists.gnu.org/r/emacs-devel/2007-02/msg00618.html).
 
 
 When installing a file with an "unusual" license (after checking first
@@ -159,7 +159,7 @@ etc/future-bug
 
 etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
-<http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00324.html>
+<https://lists.gnu.org/r/emacs-devel/2007-02/msg00324.html>
 
 etc/FTP, ORDERS
   - trivial (at time of writing), no license needed
@@ -214,7 +214,7 @@ lib-src/etags.c
   from a legal point of view.
 
 lisp/cedet/semantic/imenu.el
-  - See http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg00410.html
+  - See https://lists.gnu.org/r/emacs-devel/2010-03/msg00410.html
    in which Eric Ludlam established that the remaining contributions
    from authors other than himself were negligible.
 
@@ -223,7 +223,7 @@ lisp/play/tetris.el
   (2007/1) there is no problem with our use of the name "tetris" or
   the concept.
   rms: "My understanding is that game rules as such are not copyrightable."
-  <http://lists.gnu.org/archive/html/emacs-devel/2007-01/msg00960.html>
+  <https://lists.gnu.org/r/emacs-devel/2007-01/msg00960.html>
   rms: Legal advice is that we are ok and need not worry about this.
 
 
@@ -307,8 +307,8 @@ doc/*/*.texi - All manuals should be under GFDL (but see below), and
 should include a copy of it, so that they can be distributed
 separately. faq.texi has a different license, for some reason no-one
 can remember.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00583.html
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00618.html
+https://lists.gnu.org/r/emacs-devel/2007-04/msg00583.html
+https://lists.gnu.org/r/emacs-devel/2007-04/msg00618.html
 
 doc/misc/mh-e.texi is dual-licensed (GPL and GFDL) per agreement with
 FSF (reconfirmed by rms Aug 25 2008).  Discussion with
@@ -397,7 +397,7 @@ lisp/term/README
   Accordingly, FSF copyright was added.
 
 src/unexhp9k800.c
-  http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00138.html
+  https://lists.gnu.org/r/emacs-devel/2007-02/msg00138.html
   - briefly removed due to legal uncertainly Jan-Mar 2007. The
   relevant assignment is under "hp9k800" in copyright.list. File was
   written by John V. Morris at HP, and disclaimed by the author and
@@ -406,10 +406,10 @@ src/unexhp9k800.c
 
 lisp/progmodes/python.el
 Dave Love alerted us to a potential legal problem:
-http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00459.html
+https://lists.gnu.org/r/emacs-pretest-bug/2007-04/msg00459.html
 
 On consultation with a lawyer, we found there was no problem:
-http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00466.html
+https://lists.gnu.org/r/emacs-devel/2007-05/msg00466.html
 
 
 ** Issues that are "fixed" for the release of Emacs 22, but we may
@@ -511,7 +511,7 @@ etc/TUTORIAL* (translations)
   rms: "We can leave the TUTORIAL translations alone until their
   maintainers update them."
   Can adapt short license text from end of GPL translations at:
-  http://www.gnu.org/licenses/translations.html
+  https://www.gnu.org/licenses/translations.html
   Only a few sentences around the license notice need changing from
   previous version.
 Done: TUTORIAL.eo
@@ -527,7 +527,7 @@ None known.
 The EMACS_22_BASE branch was changed to GPLv3 (or later) 2007/07/25.
 
 Some notes:
-(see http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg01431.html)
+(see https://lists.gnu.org/r/emacs-devel/2007-07/msg01431.html)
 
 1. There are some files in the Emacs tree which are not part of Emacs (eg
 those included from Gnulib). These are all copyright FSF and (at time
@@ -594,4 +594,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

@@ -61,7 +61,7 @@ The following options are of general interest:
 Edit
 .IR file .
 .TP
-.BI \-\-file " file\fR,\fP " \-\-find-file " file\fR,\fP " \-\-visit " file"
+.BI \-\-file= "file\fR,\fP " \-\-find-file= "file\fR,\fP " \-\-visit= "file"
 The same as specifying
 .I file
 directly as an argument.
@@ -79,7 +79,7 @@ Go to the specified
 and
 .IR column .
 .TP
-.BI \-\-chdir " directory"
+.BI \-\-chdir= "directory"
 Change to
 .IR directory .
 .TP
@@ -112,12 +112,12 @@ Lisp debugger during the processing of the user init file
 .BR ~/.emacs .
 This is useful for debugging problems in the init file.
 .TP
-.BI \-u " user\fR,\fP " \-\-user " user"
+.BI \-u " user\fR,\fP " \-\-user= "user"
 Load
 .IR user 's
 init file.
 .TP
-.BI \-t " file\fR,\fP " \-\-terminal " file"
+.BI \-t " file\fR,\fP " \-\-terminal= "file"
 Use specified
 .I file
 as the terminal instead of using stdin/stdout.
@@ -144,15 +144,15 @@ The following options are Lisp-oriented
 (these options are processed in the order encountered):
 .RS
 .TP 8
-.BI \-f " function\fR,\fP " \-\-funcall " function"
+.BI \-f " function\fR,\fP " \-\-funcall= "function"
 Execute the lisp function
 .IR function .
 .TP
-.BI \-l " file\fR,\fP " \-\-load " file"
+.BI \-l " file\fR,\fP " \-\-load= "file"
 Load the lisp code in the file
 .IR file .
 .TP
-.BI \-\-eval " expr\fR,\fP " \-\-execute " expr"
+.BI \-\-eval= "expr\fR,\fP " \-\-execute= "expr"
 Evaluate the Lisp expression
 .IR expr .
 .RE
@@ -168,12 +168,12 @@ The editor will send messages to stderr.
 You must use \-l and \-f options to specify files to execute
 and functions to call.
 .TP
-.BI \-\-script " file"
+.BI \-\-script= "file"
 Run
 .I file
 as an Emacs Lisp script.
 .TP
-.BI \-\-insert " file"
+.BI \-\-insert= "file"
 Insert contents of
 .I file
 into the current buffer.
@@ -183,7 +183,7 @@ Exit
 .I Emacs
 while in batch mode.
 .TP
-.BI \-L " dir\fR,\fP " \-\-directory " dir"
+.BI \-L " dir\fR,\fP " \-\-directory= "dir"
 Add
 .I dir
 to the list of directories
@@ -206,13 +206,13 @@ process so that you can continue using your original window.
 can be started with the following X switches:
 .RS
 .TP 8
-.BI \-\-name " name"
+.BI \-\-name= "name"
 Specify the name which should be assigned to the initial
 .I Emacs
 window.
 This controls looking up X resources as well as the window title.
 .TP
-.BI \-T " name\fR,\fP " \-\-title " name"
+.BI \-T " name\fR,\fP " \-\-title= "name"
 Specify the title for the initial X window.
 .TP
 .BR \-r ", " \-rv ", " \-\-reverse\-video
@@ -220,7 +220,7 @@ Display the
 .I Emacs
 window in reverse video.
 .TP
-.BI \-fn " font\fR,\fP " \-\-font " font"
+.BI \-fn " font\fR,\fP " \-\-font= "font"
 Set the
 .I Emacs
 window's font to that specified by
@@ -247,7 +247,7 @@ for more information.
 When you specify a font, be sure to put a space between the
 switch and the font name.
 .TP
-.BI \-\-xrm " resources"
+.BI \-\-xrm= "resources"
 Set additional X resources.
 .TP
 .BI "\-\-color\fR,\fP \-\-color=" mode
@@ -256,20 +256,20 @@ Override color mode for character terminals;
 defaults to "auto", and can also be "never", "auto", "always",
 or a mode name like "ansi8".
 .TP
-.BI \-bw " pixels\fR,\fP " \-\-border\-width " pixels"
+.BI \-bw " pixels\fR,\fP " \-\-border\-width= "pixels"
 Set the
 .I Emacs
 window's border width to the number of pixels specified by
 .IR pixels .
 Defaults to one pixel on each side of the window.
 .TP
-.BI \-ib " pixels\fR,\fP " \-\-internal\-border " pixels"
+.BI \-ib " pixels\fR,\fP " \-\-internal\-border= "pixels"
 Set the window's internal border width to the number of pixels specified
 by
 .IR pixels .
 Defaults to one pixel of padding on each side of the window.
 .TP
-.BI \-g " geometry\fR,\fP " \-\-geometry " geometry"
+.BI \-g " geometry\fR,\fP " \-\-geometry= "geometry"
 Set the
 .I Emacs
 window's width, height, and position as specified.
@@ -282,7 +282,7 @@ See the Emacs manual, section "Options for Window Size and Position",
 for information on how window sizes interact
 with selecting or deselecting the tool bar and menu bar.
 .TP
-.BI \-lsp " pixels\fR,\fP " \-\-line\-spacing " pixels"
+.BI \-lsp " pixels\fR,\fP " \-\-line\-spacing= "pixels"
 Additional space to put between lines.
 .TP
 .BR \-vb ", " \-\-vertical\-scroll\-bars
@@ -300,26 +300,26 @@ Make the first frame as wide as the screen.
 .BR \-mm ", " \-\-maximized
 Maximize the first frame, like "\-fw \-fh".
 .TP
-.BI \-fg " color\fR,\fP " \-\-foreground\-color " color"
+.BI \-fg " color\fR,\fP " \-\-foreground\-color= "color"
 On color displays, set the color of the text.
 
 Use the command
 .I M\-x list\-colors\-display
 for a list of valid color names.
 .TP
-.BI \-bg " color\fR,\fP " \-\-background\-color " color"
+.BI \-bg " color\fR,\fP " \-\-background\-color= "color"
 On color displays, set the color of the window's background.
 .TP
-.BI \-bd " color\fR,\fP " \-\-border\-color " color"
+.BI \-bd " color\fR,\fP " \-\-border\-color= "color"
 On color displays, set the color of the window's border.
 .TP
-.BI \-cr " color\fR,\fP " \-\-cursor\-color " color"
+.BI \-cr " color\fR,\fP " \-\-cursor\-color= "color"
 On color displays, set the color of the window's text cursor.
 .TP
-.BI \-ms " color\fR,\fP " \-\-mouse\-color " color"
+.BI \-ms " color\fR,\fP " \-\-mouse\-color= "color"
 On color displays, set the color of the window's mouse cursor.
 .TP
-.BI \-d " displayname\fR,\fP " \-\-display " displayname"
+.BI \-d " displayname\fR,\fP " \-\-display= "displayname"
 Create the
 .I Emacs
 window on the display specified by
@@ -337,7 +337,7 @@ in iconified state.
 .BR \-nbc ", " \-\-no\-blinking\-cursor
 Disable blinking cursor.
 .TP
-.BI \-\-parent-id " xid"
+.BI \-\-parent-id= "xid"
 Set parent window.
 .TP
 .BR \-nw ", " \-\-no\-window\-system
@@ -546,7 +546,7 @@ is the number of color planes.
 .SH MANUALS
 You can order printed copies of the GNU Emacs Manual from the Free
 Software Foundation, which develops GNU software.
-See the online store at <http://shop.fsf.org/>.
+See the online store at <https://shop.fsf.org/>.
 .br
 Your local administrator might also have copies available.
 As with all software and publications from FSF, everyone is permitted
@@ -597,10 +597,10 @@ Do not expect a personal answer to a bug report.
 The purpose of reporting bugs is to get them fixed for everyone
 in the next release, if possible.
 For personal assistance, consult the service directory at
-<http://www.fsf.org/resources/service/> for a list of people who offer it.
+<https://www.fsf.org/resources/service/> for a list of people who offer it.
 
 Please do not send anything but bug reports to this mailing list.
-For other Emacs lists, see <http://savannah.gnu.org/mail/?group=emacs>.
+For other Emacs lists, see <https://savannah.gnu.org/mail/?group=emacs>.
 .
 .
 .SH UNRESTRICTIONS
@@ -650,10 +650,7 @@ For detailed credits and acknowledgments, see the GNU Emacs manual.
 .
 .
 .SH COPYING
-Copyright
-.if t \(co
-.if n (C)
-1995, 1999-2017 Free Software Foundation, Inc.
+Copyright 1995, 1999-2018 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are

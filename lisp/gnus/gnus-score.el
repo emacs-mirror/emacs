@@ -1,6 +1,6 @@
 ;;; gnus-score.el --- scoring code for Gnus
 
-;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,7 +43,7 @@ for each score file or each score file directory.  Gnus will decide
 by itself what score files are applicable to which group.
 
 Say you want to use the single score file
-\"/ftp.gnus.org@ftp:/pub/larsi/ding/score/soc.motss.SCORE\" and all
+\"/ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE\" and all
 score files in the \"/ftp.some-where:/pub/score\" directory.
 
  (setq gnus-global-score-files
@@ -921,7 +921,7 @@ EXTRA is the possible non-standard header."
   (interactive (list (gnus-completing-read "Header"
                                            (mapcar
                                             'car
-                                            (gnus-remove-if-not
+                                            (seq-filter
                                              (lambda (x) (fboundp (nth 2 x)))
                                              gnus-header-index))
                                            t)
@@ -1078,11 +1078,11 @@ EXTRA is the possible non-standard header."
   "Return the score of the current article.
   With prefix ARG, return the total score of the current (sub)thread."
   (interactive "P")
-  (gnus-message 1 "%s" (if arg
-			   (gnus-thread-total-score
-			    (gnus-id-to-thread
-			     (mail-header-id (gnus-summary-article-header))))
-			   (gnus-summary-article-score))))
+  (message "%s" (if arg
+		    (gnus-thread-total-score
+		     (gnus-id-to-thread
+		      (mail-header-id (gnus-summary-article-header))))
+		  (gnus-summary-article-score))))
 
 (defun gnus-score-change-score-file (file)
   "Change current score alist."
@@ -1238,7 +1238,7 @@ If FORMAT, also format the current score file."
 		 (or (not decay)
 		     (gnus-decay-scores alist decay)))
 	(gnus-score-set 'touched '(t) alist)
-	(gnus-score-set 'decay (list (time-to-days (current-time))) alist))
+	(gnus-score-set 'decay (list (time-to-days nil)) alist))
       ;; We do not respect eval and files atoms from global score
       ;; files.
       (when (and files (not global))
@@ -2318,7 +2318,7 @@ score in `gnus-newsgroup-scored' by SCORE."
     (when (or (not (listp gnus-newsgroup-adaptive))
 	      (memq 'line gnus-newsgroup-adaptive))
       (save-excursion
-	(let* ((malist (gnus-copy-sequence gnus-adaptive-score-alist))
+	(let* ((malist (copy-tree gnus-adaptive-score-alist))
 	       (alist malist)
 	       (date (current-time-string))
 	       (data gnus-newsgroup-data)
@@ -2731,8 +2731,10 @@ GROUP using BNews sys file syntax."
 	(insert (car sfiles))
 	(goto-char (point-min))
 	;; First remove the suffix itself.
-	(when (re-search-forward (concat "." score-regexp) nil t)
-	  (replace-match "" t t)
+	(when (re-search-forward score-regexp nil t)
+          (unless (= (match-end 0) (match-beginning 0)) ; non-empty suffix
+            (replace-match "" t t)
+            (delete-char -1))   ; remove the "." before the suffix
 	  (goto-char (point-min))
 	  (if (looking-at (regexp-quote kill-dir))
 	      ;; If the file name was just "SCORE", `klen' is one character
@@ -2961,8 +2963,8 @@ The list is determined from the variable `gnus-score-file-alist'."
        (expand-file-name suffix gnus-kill-files-directory))
       ((gnus-use-long-file-name 'not-score)
        ;; Append ".SCORE" to newsgroup name.
-       (expand-file-name (concat (gnus-newsgroup-savable-name newsgroup)
-				 "." suffix)
+       (expand-file-name (let ((name (gnus-newsgroup-savable-name newsgroup)))
+                           (if (string= "" suffix) name (concat name "." suffix)))
 			 gnus-kill-files-directory))
       (t
        ;; Place "SCORE" under the hierarchical directory.
@@ -3060,7 +3062,7 @@ If ADAPT, return the home adaptive file instead."
 
 (defun gnus-decay-scores (alist day)
   "Decay non-permanent scores in ALIST."
-  (let ((times (- (time-to-days (current-time)) day))
+  (let ((times (- (time-to-days nil) day))
 	kill entry updated score n)
     (unless (zerop times)		;Done decays today already?
       (while (setq entry (pop alist))

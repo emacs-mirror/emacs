@@ -10,7 +10,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2601,7 +2601,7 @@ Enter a buffer where you can edit the group info
 @findex gnus-group-make-directory-group
 @cindex nndir
 Make a directory group (@pxref{Directory Groups}).  You will be prompted
-for a directory name (@code{gnus-group-make-directory-group}).
+for the directory's name (@code{gnus-group-make-directory-group}).
 
 @item G h
 @kindex G h (Group)
@@ -4340,10 +4340,10 @@ does not necessarily need to be the same value that is determined by
 @code{gnus-group-name-charset-group-alist}.
 
 If @code{default-file-name-coding-system} or this variable is
-initialized by default to @code{iso-latin-1} for example, although you
+initialized by default to @code{iso-latin-1-unix} for example, although you
 want to subscribe to the groups spelled in Chinese, that is the most
 typical case where you have to customize
-@code{nnmail-pathname-coding-system}.  The @code{utf-8} coding system is
+@code{nnmail-pathname-coding-system}.  The @code{utf-8-unix} coding system is
 a good candidate for it.  Otherwise, you may change the locale in your
 system so that @code{default-file-name-coding-system} or this variable
 may be initialized to an appropriate value.
@@ -7759,7 +7759,9 @@ processing of the article is done before it is saved).  For a different
 approach (uudecoding, unsharing) you should use @code{gnus-uu}
 (@pxref{Decoding Articles}).
 
-For the commands listed here, the target is a file.  If you want to
+For the commands listed here, the target is a file.
+A directory name (ending in @samp{/}) causes the target
+to be a file under that directory.  If you want to
 save to a group, see the @kbd{B c} (@code{gnus-summary-copy-article})
 command (@pxref{Mail Group Commands}).
 
@@ -8968,7 +8970,7 @@ Decode IDNA encoded domain names in the current articles.  IDNA
 encoded domain names looks like @samp{xn--bar}.  If a string remain
 unencoded after running invoking this, it is likely an invalid IDNA
 string (@samp{xn--bar} is invalid).  You must have GNU Libidn
-(@url{http://www.gnu.org/software/libidn/}) installed for this command
+(@url{https://www.gnu.org/software/libidn/}) installed for this command
 to work.
 
 @item W t
@@ -9184,7 +9186,7 @@ Verify a signed control message
 hierarchy maintainer.  You need to add the @acronym{PGP} public key of
 the maintainer to your keyring to verify the
 message.@footnote{@acronym{PGP} keys for many hierarchies are
-available at @uref{ftp://ftp.isc.org/pub/pgpcontrol/README.html}}
+available at @uref{https://ftp.isc.org/pub/pgpcontrol/README.html}}
 
 @item W s
 @kindex W s (Summary)
@@ -10974,7 +10976,7 @@ Pull all ticked articles (for the current group) into the summary buffer
 @kindex A D (Summary)
 @findex gnus-summary-enter-digest-group
 If the current article is a collection of other articles (for instance,
-a digest), you might use this command to enter a group based on the that
+a digest), you might use this command to enter a group based on that
 article (@code{gnus-summary-enter-digest-group}).  Gnus will try to
 guess what article type is currently displayed unless you give a prefix
 to this command, which forces a ``digest'' interpretation.  Basically,
@@ -12318,7 +12320,7 @@ This variable controls whether Gnus performs IDNA decoding of
 internationalized domain names inside @samp{From}, @samp{To} and
 @samp{Cc} headers.  @xref{IDNA, ,IDNA,message, The Message Manual},
 for how to compose such messages.  This requires
-@uref{http://www.gnu.org/software/libidn/, GNU Libidn}, and this
+@uref{https://www.gnu.org/software/libidn/, GNU Libidn}, and this
 variable is only enabled if you have installed it.
 
 @vindex gnus-inhibit-images
@@ -13214,6 +13216,11 @@ Also @pxref{Formatting Variables}.
 @subsection Server Commands
 @cindex server commands
 
+The following keybinding are available in the server buffer.  Be aware
+that some of the commands will only work on servers that you've added
+through this interface (with @kbd{a}), not with servers you've defined
+in your init files.
+
 @table @kbd
 
 @item v
@@ -13858,7 +13865,7 @@ The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{http://www.gnu.org/software/gnutls/, GnuTLS}
+this you must have @uref{https://www.gnu.org/software/gnutls/, GnuTLS}
 installed.  You then define a server as follows:
 
 @lisp
@@ -18485,7 +18492,7 @@ something along the lines of the following:
 (defun my-article-old-p ()
   "Say whether an article is old."
   (< (time-to-days (date-to-time (mail-header-date gnus-headers)))
-     (- (time-to-days (current-time)) gnus-agent-expire-days)))
+     (- (time-to-days nil) gnus-agent-expire-days)))
 @end lisp
 
 with the predicate then defined as:
@@ -21384,7 +21391,7 @@ correct group name @samp{mail.misc}.
 
 Extra switches may be passed to the namazu search command by setting the
 variable @code{nnir-namazu-additional-switches}.  It is particularly
-important not to pass any any switches to namazu that will change the
+important not to pass any switches to namazu that will change the
 output format.  Good switches to use include @option{--sort},
 @option{--ascending}, @option{--early} and @option{--late}.
 Refer to the Namazu documentation for further
@@ -26195,7 +26202,10 @@ marks, so you have to do it locally.
 
 The Gnus Cloud package stores the marks, plus any files you choose, on
 an IMAP server in a special folder. It's like a
-DropTorrentSyncBoxOakTree(TM).
+DropTorrentSyncBoxOakTree(TM).@footnote{The name ``Gnus Cloud''
+parodizes but otherwise has little to do with ``cloud computing'', a
+@url{https://www.gnu.org/philosophy/words-to-avoid.html#CloudComputing,
+misleading term normally best avoided}.}
 
 @menu
 * Gnus Cloud Setup::

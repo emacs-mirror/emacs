@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -107,7 +107,7 @@ deletes backward treating each tab as if it were the equivalent number
 of spaces, so that you can delete one column of indentation without
 worrying whether the whitespace consists of spaces or tabs.
 
-@cindex mode hook
+@cindex mode hook, and major modes
 @vindex c-mode-hook
 @vindex lisp-mode-hook
 @vindex emacs-lisp-mode-hook
@@ -248,11 +248,15 @@ the same as @kbd{C-M-a} with a positive argument.
 (@code{mark-defun}), which sets the mark at the end of the current
 defun and puts point at its beginning.  @xref{Marking Objects}.  This
 is the easiest way to get ready to kill the defun in order to move it
-to a different place in the file.  If you use the command while point
-is between defuns, it uses the following defun.  If you use the
-command while the mark is already active, it sets the mark but does
-not move point; furthermore, each successive use of @kbd{C-M-h}
-extends the end of the region to include one more defun.
+to a different place in the file.  If the defun is directly preceded
+by comments (with no intervening blank lines), they are marked, too.
+If you use the command while point is between defuns, it uses the
+following defun.  If you use the command while the mark is already
+active, it extends the end of the region to include one more defun.
+With a prefix argument, it marks that many defuns or extends the
+region by the appropriate number of defuns.  With negative prefix
+argument it marks defuns in the opposite direction and also changes
+the direction of selecting for subsequent uses of @code{mark-defun}.
 
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
@@ -371,9 +375,7 @@ Insert a newline, then adjust indentation of following line
 @end table
 
 @kindex TAB @r{(programming modes)}
-@findex c-indent-command
 @findex indent-line-function
-@findex indent-for-tab-command
   The basic indentation command is @key{TAB}
 (@code{indent-for-tab-command}), which was documented in
 @ref{Indentation}.  In programming language modes, @key{TAB} indents
@@ -707,9 +709,7 @@ argument moves the previous balanced expression backwards across those
 before it.  An argument of zero, rather than doing nothing, transposes
 the balanced expressions ending at or after point and the mark.
 
-@kindex C-M-@@
-@kindex C-M-@key{SPC}
-@findex mark-sexp
+@kindex C-M-SPC
   To operate on balanced expressions with a command which acts on the
 region, type @kbd{C-M-@key{SPC}} (@code{mark-sexp}).  This sets the
 mark where @kbd{C-M-f} would move to.  While the mark is active, each
@@ -1142,9 +1142,12 @@ comment or for aligning an existing comment.  It is set differently by
 various major modes.  The function is called with no arguments, but with
 point at the beginning of the comment, or at the end of a line if a new
 comment is to be inserted.  It should return the column in which the
-comment ought to start.  For example, in Lisp mode, the indent hook
-function bases its decision on how many semicolons begin an existing
-comment, and on the code in the preceding lines.
+comment ought to start.  For example, the default hook function bases
+its decision on how many comment characters begin an existing comment.
+
+Emacs also tries to align comments on adjacent lines.  To override
+this, the function may return a cons of two (possibly equal) integers
+to indicate an acceptable range of indentation.
 
 @node Documentation
 @section Documentation Lookup
@@ -1162,9 +1165,7 @@ use in your program.
 @node Info Lookup
 @subsection Info Documentation Lookup
 
-@findex info-lookup-symbol
 @findex info-lookup-file
-@kindex C-h S
   For major modes that apply to languages which have documentation in
 Info, you can use @kbd{C-h S} (@code{info-lookup-symbol}) to view the
 Info documentation for a symbol used in the program.  You specify the
@@ -1302,7 +1303,6 @@ count as blocks.
 @findex hs-show-block
 @findex hs-show-region
 @findex hs-hide-level
-@findex hs-minor-mode
 @kindex C-c @@ C-h
 @kindex C-c @@ C-s
 @kindex C-c @@ C-M-h
@@ -1312,16 +1312,20 @@ count as blocks.
 @kindex S-mouse-2
 @table @kbd
 @item C-c @@ C-h
+@itemx C-c @@ C-d
 Hide the current block (@code{hs-hide-block}).
 @item C-c @@ C-s
 Show the current block (@code{hs-show-block}).
 @item C-c @@ C-c
+@itemx C-x @@ C-e
 Either hide or show the current block (@code{hs-toggle-hiding}).
 @item S-mouse-2
 Toggle hiding for the block you click on (@code{hs-mouse-toggle-hiding}).
 @item C-c @@ C-M-h
+@itemx C-c @@ C-t
 Hide all top-level blocks (@code{hs-hide-all}).
 @item C-c @@ C-M-s
+@itemx C-c @@ C-a
 Show all blocks in the buffer (@code{hs-show-all}).
 @item C-c @@ C-l
 Hide all blocks @var{n} levels below this block
@@ -1363,7 +1367,7 @@ for switching graphical windows, so you should type @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead.
 
 @cindex tags-based completion
-@findex completion-at-point
+@findex completion-at-point@r{, in programming language modes}
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
   In most programming language modes, @kbd{C-M-i} (or
@@ -1395,7 +1399,7 @@ using case distinctions.)  Emacs has various features to make it easier
 to deal with such symbols.
 
 @cindex Glasses mode
-@findex mode, Glasses
+@cindex mode, Glasses
   Glasses mode is a buffer-local minor mode that makes it easier to read
 such symbols, by altering how they are displayed.  By default, it
 displays extra underscores between each lower-case letter and the
@@ -1460,7 +1464,7 @@ Prompt for the name of a function defined in any file Emacs has
 parsed, and move point there (@code{semantic-complete-jump}).
 
 @item C-c , @key{SPC}
-@kindex C-c , @key{SPC}
+@kindex C-c , SPC
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a set
 of special key bindings for choosing a completion: @key{RET} accepts
@@ -1709,8 +1713,8 @@ preprocessor commands.
 @item C-c C-@key{DEL}
 @itemx C-c @key{DEL}
 @findex c-hungry-delete-backwards
-@kindex C-c C-@key{DEL} (C Mode)
-@kindex C-c @key{DEL} (C Mode)
+@kindex C-c C-DEL (C Mode)
+@kindex C-c DEL (C Mode)
 Delete the entire block of whitespace preceding point (@code{c-hungry-delete-backwards}).
 
 @item C-c C-d
@@ -1718,8 +1722,8 @@ Delete the entire block of whitespace preceding point (@code{c-hungry-delete-bac
 @itemx C-c @key{Delete}
 @findex c-hungry-delete-forward
 @kindex C-c C-d (C Mode)
-@kindex C-c C-@key{Delete} (C Mode)
-@kindex C-c @key{Delete} (C Mode)
+@kindex C-c C-Delete (C Mode)
+@kindex C-c Delete (C Mode)
 Delete the entire block of whitespace after point (@code{c-hungry-delete-forward}).
 @end table
 

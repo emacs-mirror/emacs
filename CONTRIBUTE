@@ -1,7 +1,7 @@
 * How developers contribute to GNU Emacs
 
 Here is how software developers can contribute to Emacs.  (Non-developers: see
-http://www.gnu.org/software/emacs/manual/html_node/emacs/Contributing.html
+https://www.gnu.org/software/emacs/manual/html_node/emacs/Contributing.html
 or run the shell command 'info "(emacs)Contributing"'.)
 
 ** The Emacs repository
@@ -26,20 +26,101 @@ admin/notes/git-workflow.
 
 ** Getting involved with development
 
-You can subscribe to the emacs-devel@gnu.org mailing list, paying
-attention to postings with subject lines containing "emacs-announce",
-as these discuss important events like feature freezes.  See
-http://lists.gnu.org/mailman/listinfo/emacs-devel for mailing list
+Discussion about Emacs development takes place on emacs-devel@gnu.org.
+You can subscribe to the emacs-devel@gnu.org mailing list.
+If you want to get only the important mails (for things like
+feature freezes), choose to receive only the 'emacs-announce' topic
+(although so far this feature has not been well or consistently used).
+See https://lists.gnu.org/mailman/listinfo/emacs-devel for mailing list
 instructions and archives.  You can develop and commit changes in your
 own copy of the repository, and discuss proposed changes on the
 mailing list.  Frequent contributors to Emacs can request write access
 there.
 
-** Committing changes by others
+Bug reports and fixes, feature requests and patches/implementations
+should be sent to bug-gnu-emacs@gnu.org, the bug/feature list.  This
+is coupled to the https://debbugs.gnu.org tracker.  It is best to use
+the command 'M-x report-emacs-bug RET' to report issues to the tracker
+(described below).  Be prepared to receive comments and requests for
+changes in your patches, following your submission.
 
-If committing changes written by someone else, commit in their name,
-not yours.  You can use 'git commit --author="AUTHOR"' to specify a
-change's author.
+The Savannah info page https://savannah.gnu.org/mail/?group=emacs
+describes how to subscribe to the mailing lists, or see the list
+archives.
+
+To email a patch you can use a shell command like 'git format-patch -1'
+to create a file, and then attach the file to your email.  This nicely
+packages the patch's commit message and changes.  To send just one
+such patch without additional remarks, you can use a command like
+'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+
+** Issue tracker (a.k.a. "bug tracker")
+
+The Emacs issue tracker at https://debbugs.gnu.org lets you view bug
+reports and search the database for bugs matching several criteria.
+Messages posted to the bug-gnu-emacs@gnu.org mailing list, mentioned
+above, are recorded by the tracker with the corresponding bugs/issues.
+
+GNU ELPA has a 'debbugs' package that allows accessing the tracker
+database from Emacs.
+
+Bugs needs regular attention.  A large backlog of bugs is
+disheartening to the developers, and a culture of ignoring bugs is
+harmful to users, who expect software that works.  Bugs have to be
+regularly looked at and acted upon.  Not all bugs are critical, but at
+the least, each bug needs to be regularly re-reviewed to make sure it
+is still reproducible.
+
+The process of going through old or new bugs and acting on them is
+called bug triage.  This process is described in the file
+admin/notes/bug-triage.
+
+** Documenting your changes
+
+Any change that matters to end-users should have an entry in etc/NEWS.
+
+Doc-strings should be updated together with the code.
+
+Think about whether your change requires updating the manuals.  If you
+know it does not, mark the NEWS entry with "---".  If you know
+that *all* the necessary documentation updates have been made as part
+of your changes or those by others, mark the entry with "+++".
+Otherwise do not mark it.
+
+If your change requires updating the manuals to document new
+functions/commands/variables/faces, then use the proper Texinfo
+command to index them; for instance, use @vindex for variables and
+@findex for functions/commands.  For the full list of predefine indices, see
+https://www.gnu.org/software/texinfo/manual/texinfo/html_node/Predefined-Indices.html
+or run the shell command 'info "(texinfo)Predefined Indices"'.
+
+We prefer American English both in doc strings and in the manuals.
+That includes both spelling (e.g., "behavior", not "behaviour") and
+the convention of leaving 2 spaces between sentences.
+
+For more specific tips on Emacs's doc style, see
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
+Use 'checkdoc' to check for documentation errors before submitting a patch.
+
+** Testing your changes
+
+Please test your changes before committing them or sending them to the
+list.  If possible, add a new test along with any bug fix or new
+functionality you commit (of course, some changes cannot be easily
+tested).
+
+Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See
+https://www.gnu.org/software/emacs/manual/html_node/ert/
+or run 'info "(ert)"' for more information on writing and running
+tests.
+
+If your test lasts longer than some few seconds, mark it in its
+'ert-deftest' definition with ":tags '(:expensive-test)".
+
+To run tests on the entire Emacs tree, run "make check" from the
+top-level directory.  Most tests are in the directory "test/".  From
+the "test/" directory, run "make <filename>" to run the tests for
+<filename>.el(c).  See "test/README" for more information.
 
 ** Commit messages
 
@@ -95,6 +176,9 @@ them right the first time, so here are guidelines for formatting them:
   bug number NNNNN in the debbugs database.  This string is often
   parenthesized, as in "(Bug#19003)".
 
+- When citing URLs, prefer https: to http: when either will do.  In
+  particular, gnu.org and fsf.org URLs should start with "https:".
+
 - Commit messages should contain only printable UTF-8 characters.
 
 - Commit messages should not contain the "Signed-off-by:" lines that
@@ -109,7 +193,7 @@ them right the first time, so here are guidelines for formatting them:
   between the summary line and the file entries.
 
 - Emacs generally follows the GNU coding standards for ChangeLogs: see
-  http://www.gnu.org/prep/standards/html_node/Change-Logs.html
+  https://www.gnu.org/prep/standards/html_node/Change-Logs.html
   or run 'info "(standards)Change Logs"'.  One exception is that
   commits still sometimes quote `like-this' (as the standards used to
   recommend) rather than 'like-this' or ‘like this’ (as they do now),
@@ -119,8 +203,10 @@ them right the first time, so here are guidelines for formatting them:
   to ChangeLog entries: they must be in English, and be complete
   sentences starting with a capital and ending with a period (except
   the summary line should not end in a period).  See
-  http://www.gnu.org/prep/standards/html_node/Comments.html
-  or run 'info "(standards)Comments"'.
+  https://www.gnu.org/prep/standards/html_node/Comments.html
+  or run 'info "(standards)Comments"'.  American English is preferred
+  in Emacs; that includes spelling and leaving 2 blanks between
+  sentences.
 
   They are preserved indefinitely, and have a reasonable chance of
   being read in the future, so it's better that they have good
@@ -131,9 +217,12 @@ them right the first time, so here are guidelines for formatting them:
 
 - Preferred form for several entries with the same content:
 
-	* lisp/help.el (view-lossage):
-	* lisp/kmacro.el (kmacro-edit-lossage):
-	* lisp/edmacro.el (edit-kbd-macro): Fix docstring, lossage is now 300.
+	* lisp/menu-bar.el (clipboard-yank, clipboard-kill-ring-save)
+	(clipboard-kill-region):
+	* lisp/eshell/esh-io.el (eshell-virtual-targets)
+	(eshell-clipboard-append):
+	Replace option gui-select-enable-clipboard with
+	select-enable-clipboard; renamed October 2014.  (Bug#25145)
 
   (Rather than anything involving "ditto" and suchlike.)
 
@@ -156,7 +245,7 @@ them right the first time, so here are guidelines for formatting them:
 ** Generating ChangeLog entries
 
 - You can use Emacs functions to write ChangeLog entries; see
-  http://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html
+  https://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html
   or run 'info "(emacs)Change Log Commands"'.
 
 - If you use Emacs VC, one way to format ChangeLog entries is to create
@@ -172,6 +261,12 @@ them right the first time, so here are guidelines for formatting them:
   ChangeLog to .git/c/ChangeLog.  Edit this ChangeLog via its symlink
   with Emacs commands like 'C-x 4 a', and commit the change using the
   shell command 'vc-dwim --commit'.  Type 'vc-dwim --help' for more.
+
+** Committing changes by others
+
+If committing changes written by someone else, commit in their name,
+not yours.  You can use 'git commit --author="AUTHOR"' to specify a
+change's author.
 
 ** Branches
 
@@ -209,88 +304,11 @@ reasons.  These should be marked by including something like "Do not
 merge to master" or anything that matches gitmerge-skip-regexp (see
 admin/gitmerge.el) in the commit message.
 
-** Other process information
+** GNU ELPA
 
-** Emacs Mailing lists.
-
-Discussion about Emacs development takes place on emacs-devel@gnu.org.
-
-Bug reports and fixes, feature requests and implementations should be
-sent to bug-gnu-emacs@gnu.org, the bug/feature list.  This is coupled
-to the http://debbugs.gnu.org tracker.
-
-The Savannah info page http://savannah.gnu.org/mail/?group=emacs
-describes how to subscribe to the mailing lists, or see the list
-archives.
-
-To email a patch you can use a shell command like 'git format-patch -1'
-to create a file, and then attach the file to your email.  This nicely
-packages the patch's commit message and changes.  To send just one
-such patch without additional remarks, you can use a command like
-'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
-
-** Issue tracker (a.k.a. "bug tracker")
-
-The Emacs issue tracker at http://debbugs.gnu.org lets you view bug
-reports and search the database for bugs matching several criteria.
-Messages posted to the bug-gnu-emacs@gnu.org mailing list, mentioned
-above, are recorded by the tracker with the corresponding bugs/issues.
-
-GNU ELPA has a 'debbugs' package that allows accessing the tracker
-database from Emacs.
-
-Bugs needs regular attention.  A large backlog of bugs is
-disheartening to the developers, and a culture of ignoring bugs is
-harmful to users, who expect software that works.  Bugs have to be
-regularly looked at and acted upon.  Not all bugs are critical, but at
-the least, each bug needs to be regularly re-reviewed to make sure it
-is still reproducible.
-
-The process of going through old or new bugs and acting on them is
-called bug triage.  This process is described in the file
-admin/notes/bug-triage.
-
-** Documenting your changes
-
-Any change that matters to end-users should have an entry in etc/NEWS.
-
-Doc-strings should be updated together with the code.
-
-Think about whether your change requires updating the manuals.  If you
-know it does not, mark the NEWS entry with "---".  If you know
-that *all* the necessary documentation updates have been made, mark
-the entry with "+++".  Otherwise do not mark it.
-
-If your change requires updating the manuals to document new
-functions/commands/variables/faces, then use the proper Texinfo
-command to index them; for instance, use @vindex for variables and
-@findex for functions/commands.  For the full list of predefine indices, see
-http://www.gnu.org/software/texinfo/manual/texinfo/html_node/Predefined-Indices.html
-or run the shell command 'info "(texinfo)Predefined Indices"'.
-
-For more specific tips on Emacs's doc style, see
-http://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
-Use 'checkdoc' to check for documentation errors before submitting a patch.
-
-** Testing your changes
-
-Please test your changes before committing them or sending them to the
-list.  If possible, add a new test along with any bug fix or new
-functionality you commit (of course, some changes cannot be easily
-tested).
-
-Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See
-http://www.gnu.org/software/emacs/manual/html_node/ert/
-or run 'info "(ert)"' for for more information on writing and running
-tests.
-
-If your test lasts longer than some few seconds, mark it in its
-'ert-deftest' definition with ":tags '(:expensive-test)".
-
-To run tests on the entire Emacs tree, run "make check" from the
-top-level directory.  Most tests are in the directory "test/".  From
-the "test/" directory, run "make <filename>" to run the tests for
-<filename>.el(c).  See "test/README" for more information.
+This repository does not contain the Emacs Lisp package archive
+(elpa.gnu.org).  See admin/notes/elpa for how to access the GNU ELPA
+repository.
 
 ** Understanding Emacs internals
 
@@ -298,8 +316,8 @@ The best way to understand Emacs internals is to read the code.  Some
 source files, such as xdisp.c, have extensive comments describing the
 design and implementation.  The following resources may also help:
 
-http://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html
-http://www.gnu.org/software/emacs/manual/html_node/elisp/GNU-Emacs-Internals.html
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html
+https://www.gnu.org/software/emacs/manual/html_node/elisp/GNU-Emacs-Internals.html
 
 or run 'info "(elisp)Tips"' or 'info "(elisp)GNU Emacs Internals"'.
 
@@ -358,7 +376,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Local variables:
 mode: outline

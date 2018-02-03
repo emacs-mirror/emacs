@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Symbols
@@ -271,6 +271,12 @@ distinct uninterned symbol whose name is also @samp{foo}.
 (eq sym 'foo)
      @result{} nil
 @end example
+@end defun
+
+@defun gensym &optional prefix
+This function returns a symbol using @code{make-symbol}, whose name is
+made by appending @code{gensym-counter} to @var{prefix}.  The prefix
+defaults to @code{"g"}.
 @end defun
 
 @defun intern name &optional obarray

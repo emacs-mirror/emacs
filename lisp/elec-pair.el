@@ -1,6 +1,6 @@
 ;;; elec-pair.el --- Automatic parenthesis pairing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 
@@ -17,20 +17,21 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
 (require 'electric)
+(eval-when-compile (require 'cl-lib))
 
 ;;; Electric pairing.
 
 (defcustom electric-pair-pairs
-  '((?\" . ?\")
-    ((nth 0 electric-quote-chars) . (nth 1 electric-quote-chars))
-    ((nth 2 electric-quote-chars) . (nth 3 electric-quote-chars)))
+  `((?\" . ?\")
+    (,(nth 0 electric-quote-chars) . ,(nth 1 electric-quote-chars))
+    (,(nth 2 electric-quote-chars) . ,(nth 3 electric-quote-chars)))
   "Alist of pairs that should be used regardless of major mode.
 
 Pairs of delimiters in this list are a fallback in case they have
@@ -42,11 +43,10 @@ See also the variable `electric-pair-text-pairs'."
   :group 'electricity
   :type '(repeat (cons character character)))
 
-;;;###autoload
 (defcustom electric-pair-text-pairs
-  '((?\" . ?\" )
-    ((nth 0 electric-quote-chars) . (nth 1 electric-quote-chars))
-    ((nth 2 electric-quote-chars) . (nth 3 electric-quote-chars)))
+  `((?\" . ?\")
+    (,(nth 0 electric-quote-chars) . ,(nth 1 electric-quote-chars))
+    (,(nth 2 electric-quote-chars) . ,(nth 3 electric-quote-chars)))
   "Alist of pairs that should always be used in comments and strings.
 
 Pairs of delimiters in this list are a fallback in case they have
@@ -223,6 +223,22 @@ inside a comment or string."
 	(electric-pair-mode nil))
     (self-insert-command 1)))
 
+(cl-defmacro electric-pair--with-uncached-syntax ((table &optional start) &rest body)
+  "Like `with-syntax-table', but flush the syntax-ppss cache afterwards.
+Use this instead of (with-syntax-table TABLE BODY) when BODY
+contains code which may update the syntax-ppss cache.  This
+includes calling `parse-partial-sexp' and any sexp-based movement
+functions when `parse-sexp-lookup-properties' is non-nil.  The
+cache is flushed from position START, defaulting to point."
+  (declare (debug ((form &optional form) body)) (indent 1))
+  (let ((start-var (make-symbol "start")))
+    `(let ((syntax-propertize-function nil)
+           (,start-var ,(or start '(point))))
+       (unwind-protect
+           (with-syntax-table ,table
+             ,@body)
+         (syntax-ppss-flush-cache ,start-var)))))
+
 (defun electric-pair--syntax-ppss (&optional pos where)
   "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
 
@@ -241,7 +257,8 @@ when to fallback to `parse-partial-sexp'."
                               (skip-syntax-forward " >!")
                               (point)))))
     (if s-or-c-start
-        (with-syntax-table electric-pair-text-syntax-table
+        (electric-pair--with-uncached-syntax (electric-pair-text-syntax-table
+                                              s-or-c-start)
           (parse-partial-sexp s-or-c-start pos))
       ;; HACK! cc-mode apparently has some `syntax-ppss' bugs
       (if (memq major-mode '(c-mode c++ mode))
@@ -294,7 +311,8 @@ If point is not enclosed by any lists, return ((t) . (t))."
                         (cond ((< direction 0)
                                (condition-case nil
                                    (eq (char-after pos)
-                                       (with-syntax-table table
+                                       (electric-pair--with-uncached-syntax
+                                           (table)
                                          (matching-paren
                                           (char-before
                                            (scan-sexps (point) 1)))))
@@ -324,7 +342,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
     (save-excursion
       (while (not outermost)
         (condition-case err
-            (with-syntax-table table
+            (electric-pair--with-uncached-syntax (table)
               (scan-sexps (point) (if (> direction 0)
                                       (point-max)
                                     (- (point-max))))

@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Wheel mouse support
 
-;; Copyright (C) 1998, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 ;; Package: emacs
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -232,6 +232,7 @@ non-Windows systems."
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
       ;; So by adding things up we get a squaring up (1, 3, 6, 10, 15, ...).
       (setq amt (* amt (event-click-count event))))
+    (when (numberp amt) (setq amt (* amt (event-line-count event))))
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
 	  (cond ((eq button mouse-wheel-down-event)

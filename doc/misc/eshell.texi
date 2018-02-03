@@ -10,7 +10,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -142,24 +142,6 @@ Any tool you use often deserves the time spent learning to master it.
 looks like: But don't let it fool you; once you know what's going on,
 it's easier than it looks: @code{ls -lt **/*.doc(Lk+50aM+5)}.}
 
-@section What Eshell is not
-@cindex Eshell, what it is not
-@cindex what Eshell is not
-@cindex what isn't Eshell?
-
-Eshell is @emph{not} a replacement for system shells such as
-@command{bash} or @command{zsh}.  Use Eshell when you want to move
-text between Emacs and external processes; if you only want to pipe
-output from one external process to another (and then another, and so
-on), use a system shell, because Emacs's IO system is buffer oriented,
-not stream oriented, and is very inefficient at such tasks.  If you
-want to write shell scripts in Eshell, don't; either write an elisp
-library or use a system shell.
-
-Some things Eshell just doesn't do well.  It fills the niche between
-IELM and your system shell, where the peculiar use-cases lie, and it
-is less than ideal outside that niche.
-
 @menu
 * Contributors to Eshell::      People who have helped out!
 @end menu
@@ -257,7 +239,6 @@ especially for file names with special characters like pipe
 (@code{|}), which could be part of remote file names.
 
 @node Built-ins
-
 @section Built-in commands
 Several commands are built-in in Eshell.  In order to call the
 external variant of a built-in command @code{foo}, you could call
@@ -276,7 +257,7 @@ alias, @ref{Aliases}.  Example:
 
 @example
 ~ $ which sudo
-eshell/sudo is a compiled Lisp function in `em-unix.el'
+eshell/sudo is a compiled Lisp function in `em-tramp.el'.
 ~ $ alias sudo '*sudo $*'
 ~ $ which sudo
 sudo is an alias, defined as "*sudo $*"
@@ -437,6 +418,9 @@ Lisp functions, based on successful completion).
 
 @end table
 
+@ref{Aliases} for the built-in variables @samp{$*}, @samp{$1},
+@samp{$2}, @dots{}, in alias definitions.
+
 @node Variables
 @section Variables
 Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
@@ -447,14 +431,23 @@ would in an Elisp program.  Eshell provides a command version of
 @node Aliases
 @section Aliases
 
+@vindex $*
 Aliases are commands that expand to a longer input line.  For example,
 @command{ll} is a common alias for @code{ls -l}, and would be defined
-with the command invocation @samp{alias ll ls -l}; with this defined,
+with the command invocation @kbd{alias ll 'ls -l $*'}; with this defined,
 running @samp{ll foo} in Eshell will actually run @samp{ls -l foo}.
 Aliases defined (or deleted) by the @command{alias} command are
 automatically written to the file named by @code{eshell-aliases-file},
 which you can also edit directly (although you will have to manually
 reload it).
+
+@vindex $1, $2, @dots{}
+Note that unlike aliases in Bash, arguments must be handled
+explicitly.  Typically the alias definition would end in @samp{$*} to
+pass all arguments along.  More selective use of arguments via
+@samp{$1}, @samp{$2}, etc., is also possible.  For example,
+@kbd{alias mcd 'mkdir $1 && cd $1'} would cause @kbd{mcd foo} to
+create and switch to a directory called @samp{foo}.
 
 @node History
 @section History

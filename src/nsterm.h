@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2017 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include "dispextern.h"
@@ -25,30 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 
 #ifdef HAVE_NS
-
-#ifdef NS_IMPL_COCOA
-#ifndef MAC_OS_X_VERSION_10_6
-#define MAC_OS_X_VERSION_10_6 1060
-#endif
-#ifndef MAC_OS_X_VERSION_10_7
-#define MAC_OS_X_VERSION_10_7 1070
-#endif
-#ifndef MAC_OS_X_VERSION_10_8
-#define MAC_OS_X_VERSION_10_8 1080
-#endif
-#ifndef MAC_OS_X_VERSION_10_9
-#define MAC_OS_X_VERSION_10_9 1090
-#endif
-#ifndef MAC_OS_X_VERSION_10_12
-#define MAC_OS_X_VERSION_10_12 101200
-#endif
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-#define HAVE_NATIVE_FS
-#endif
-
-#endif /* NS_IMPL_COCOA */
-
 #ifdef __OBJC__
 
 /* CGFloat on GNUstep may be 4 or 8 byte, but functions expect float* for some
@@ -356,6 +332,12 @@ char const * nstrace_fullscreen_type_name (int);
 #endif
 
 
+/* If the compiler doesn't support instancetype, map it to id. */
+#ifndef NATIVE_OBJC_INSTANCETYPE
+typedef id instancetype;
+#endif
+
+
 /* ==========================================================================
 
    NSColor, EmacsColor category.
@@ -444,16 +426,16 @@ char const * nstrace_fullscreen_type_name (int);
    }
 
 /* AppKit-side interface */
-- menuDown: (id)sender;
-- toolbarClicked: (id)item;
-- toggleToolbar: (id)sender;
+- (instancetype)menuDown: (id)sender;
+- (instancetype)toolbarClicked: (id)item;
+- (instancetype)toggleToolbar: (id)sender;
 - (void)keyDown: (NSEvent *)theEvent;
 - (void)mouseDown: (NSEvent *)theEvent;
 - (void)mouseUp: (NSEvent *)theEvent;
-- setMiniwindowImage: (BOOL)setMini;
+- (instancetype)setMiniwindowImage: (BOOL)setMini;
 
 /* Emacs-side interface */
-- initFrameFromEmacs: (struct frame *) f;
+- (instancetype) initFrameFromEmacs: (struct frame *) f;
 - (void) createToolbar: (struct frame *)f;
 - (void) setRows: (int) r andColumns: (int) c;
 - (void) setWindowClosing: (BOOL)closing;
@@ -465,7 +447,7 @@ char const * nstrace_fullscreen_type_name (int);
 - (void) toggleFullScreen: (id) sender;
 - (BOOL) fsIsNative;
 - (BOOL) isFullscreen;
-#ifdef HAVE_NATIVE_FS
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
 - (void) updateCollectionBehavior;
 #endif
 
@@ -513,7 +495,7 @@ char const * nstrace_fullscreen_type_name (int);
   unsigned long keyEquivModMask;
 }
 
-- initWithTitle: (NSString *)title frame: (struct frame *)f;
+- (instancetype)initWithTitle: (NSString *)title frame: (struct frame *)f;
 - (void)setFrame: (struct frame *)f;
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
 - (NSString *)parseKeyEquiv: (const char *)key;
@@ -547,7 +529,7 @@ char const * nstrace_fullscreen_type_name (int);
      NSArray *prevIdentifiers;
      unsigned long enablement, prevEnablement;
    }
-- initForView: (EmacsView *)view withIdentifier: (NSString *)identifier;
+- (instancetype) initForView: (EmacsView *)view withIdentifier: (NSString *)identifier;
 - (void) clearActive;
 - (void) clearAll;
 - (BOOL) changed;
@@ -582,7 +564,7 @@ char const * nstrace_fullscreen_type_name (int);
    Lisp_Object dialog_return;
    Lisp_Object *button_values;
    }
-- initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
+- (instancetype)initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
 - (void)process_dialog: (Lisp_Object)list;
 - (void)addButton: (char *)str value: (int)tag row: (int)row;
 - (void)addString: (char *)str row: (int)row;
@@ -601,8 +583,10 @@ char const * nstrace_fullscreen_type_name (int);
     NSTextField *textField;
     NSTimer *timer;
   }
-- init;
+- (instancetype) init;
 - (void) setText: (char *)text;
+- (void) setBackgroundColor: (NSColor *)col;
+- (void) setForegroundColor: (NSColor *)col;
 - (void) showAtX: (int)x Y: (int)y for: (int)seconds;
 - (void) hide;
 - (BOOL) isActive;
@@ -649,12 +633,12 @@ char const * nstrace_fullscreen_type_name (int);
   NSColor *stippleMask;
   unsigned long xbm_fg;
 }
-+ allocInitFromFile: (Lisp_Object)file;
++ (instancetype)allocInitFromFile: (Lisp_Object)file;
 - (void)dealloc;
-- initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
+- (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
                   fg: (unsigned long)fg bg: (unsigned long)bg;
-- setXBMColor: (NSColor *)color;
-- initForXPMWithDepth: (int)depth width: (int)width height: (int)height;
+- (instancetype)setXBMColor: (NSColor *)color;
+- (instancetype)initForXPMWithDepth: (int)depth width: (int)width height: (int)height;
 - (void)setPixmapData;
 - (unsigned long)getPixelAtX: (int)x Y: (int)y;
 - (void)setPixelAtX: (int)x Y: (int)y toRed: (unsigned char)r
@@ -662,6 +646,10 @@ char const * nstrace_fullscreen_type_name (int);
               alpha:(unsigned char)a;
 - (void)setAlphaAtX: (int)x Y: (int)y to: (unsigned char)a;
 - (NSColor *)stippleMask;
+- (Lisp_Object)getMetadata;
+- (BOOL)setFrame: (unsigned int) index;
+- (void)setSizeFromSpec: (Lisp_Object) spec;
+- (instancetype)rotate: (double)rotation;
 @end
 
 
@@ -693,16 +681,16 @@ char const * nstrace_fullscreen_type_name (int);
    int em_whole;
    }
 
-- initFrame: (NSRect )r window: (Lisp_Object)win;
+- (instancetype) initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
 
-- setPosition: (int) position portion: (int) portion whole: (int) whole;
+- (instancetype) setPosition: (int) position portion: (int) portion whole: (int) whole;
 - (int) checkSamePosition: (int)position portion: (int)portion
                     whole: (int)whole;
 - (void) sendScrollEventAtLoc: (float)loc fromEvent: (NSEvent *)e;
-- repeatScroll: (NSTimer *)sender;
-- condemn;
-- reprieve;
+- (instancetype)repeatScroll: (NSTimer *)sender;
+- (instancetype)condemn;
+- (instancetype)reprieve;
 - (bool)judge;
 + (CGFloat)scrollerWidth;
 @end
@@ -725,7 +713,7 @@ char const * nstrace_fullscreen_type_name (int);
   unsigned long maxChar, maxGlyph;
   long i, len;
 }
-- initWithCapacity: (unsigned long) c;
+- (instancetype)initWithCapacity: (unsigned long) c;
 - (void) setString: (NSString *)str font: (NSFont *)font;
 @end
 #endif	/* NS_IMPL_COCOA */
@@ -951,6 +939,14 @@ struct ns_output
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
   Cursor vertical_drag_cursor;
+  Cursor left_edge_cursor;
+  Cursor top_left_corner_cursor;
+  Cursor top_edge_cursor;
+  Cursor top_right_corner_cursor;
+  Cursor right_edge_cursor;
+  Cursor bottom_right_corner_cursor;
+  Cursor bottom_edge_cursor;
+  Cursor bottom_left_corner_cursor;
 
   /* NS-specific */
   Cursor current_pointer;
@@ -1081,13 +1077,13 @@ struct x_output
    window or, if there is no parent window, the screen. */
 #define NS_PARENT_WINDOW_LEFT_POS(f)                                    \
   (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? [[FRAME_NS_VIEW (f) window] parentWindow].frame.origin.x : 0)
+   ? [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.origin.x : 0)
 #define NS_PARENT_WINDOW_TOP_POS(f)                                     \
   (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? ([[FRAME_NS_VIEW (f) window] parentWindow].frame.origin.y          \
-      + [[FRAME_NS_VIEW (f) window] parentWindow].frame.size.height     \
+   ? ([FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.origin.y    \
+      + [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window].frame.size.height \
       - FRAME_NS_TITLEBAR_HEIGHT (FRAME_PARENT_FRAME (f)))              \
-   : [[[FRAME_NS_VIEW (f) window] screen] frame].size.height)
+   : [[[NSScreen screens] objectAtIndex: 0] frame].size.height)
 
 #define FRAME_NS_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
 
@@ -1212,13 +1208,25 @@ extern void x_set_undecorated (struct frame *f, Lisp_Object new_value,
                                Lisp_Object old_value);
 extern void x_set_parent_frame (struct frame *f, Lisp_Object new_value,
                                 Lisp_Object old_value);
+extern void x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
+                                   Lisp_Object old_value);
 extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
                                    Lisp_Object old_value);
 extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
                            Lisp_Object old_value);
+#ifdef NS_IMPL_COCOA
+extern void ns_set_appearance (struct frame *f, Lisp_Object new_value,
+                               Lisp_Object old_value);
+extern void ns_set_transparent_titlebar (struct frame *f,
+                                         Lisp_Object new_value,
+                                         Lisp_Object old_value);
+#endif
 extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
-		      fd_set *exceptfds, struct timespec const *timeout,
-		      sigset_t const *sigmask);
+		      fd_set *exceptfds, struct timespec *timeout,
+		      sigset_t *sigmask);
+#ifdef HAVE_PTHREAD
+extern void ns_run_loop_break (void);
+#endif
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 
@@ -1256,9 +1264,17 @@ extern char gnustep_base_version[];  /* version tracking */
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
 
+/* macOS 10.7 introduces some new constants. */
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_7)
+#define NSFullScreenWindowMask                      (1 << 14)
+#define NSWindowCollectionBehaviorFullScreenPrimary (1 << 7)
+#define NSApplicationPresentationFullScreen         (1 << 10)
+#define NSApplicationPresentationAutoHideToolbar    (1 << 11)
+#define NSAppKitVersionNumber10_7                   1138
+#endif /* !defined (MAC_OS_X_VERSION_10_7) */
+
 /* macOS 10.12 deprecates a bunch of constants. */
-#if !defined (NS_IMPL_COCOA) || \
-  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_12
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_12)
 #define NSEventModifierFlagCommand         NSCommandKeyMask
 #define NSEventModifierFlagControl         NSControlKeyMask
 #define NSEventModifierFlagHelp            NSHelpKeyMask
@@ -1284,14 +1300,34 @@ extern char gnustep_base_version[];  /* version tracking */
 #define NSEventTypeKeyUp                   NSKeyUp
 #define NSEventTypeFlagsChanged            NSFlagsChanged
 #define NSEventMaskAny                     NSAnyEventMask
+#define NSEventTypeSystemDefined           NSSystemDefined
 #define NSWindowStyleMaskBorderless        NSBorderlessWindowMask
 #define NSWindowStyleMaskClosable          NSClosableWindowMask
 #define NSWindowStyleMaskFullScreen        NSFullScreenWindowMask
 #define NSWindowStyleMaskMiniaturizable    NSMiniaturizableWindowMask
 #define NSWindowStyleMaskResizable         NSResizableWindowMask
 #define NSWindowStyleMaskTitled            NSTitledWindowMask
+#define NSWindowStyleMaskUtilityWindow     NSUtilityWindowMask
 #define NSAlertStyleCritical               NSCriticalAlertStyle
 #define NSControlSizeRegular               NSRegularControlSize
+#define NSCompositingOperationCopy         NSCompositeCopy
+
+/* And adds NSWindowStyleMask. */
+#ifdef __OBJC__
+typedef NSUInteger NSWindowStyleMask;
 #endif
 
+/* Window tabbing mode enums are new too. */
+enum NSWindowTabbingMode
+  {
+    NSWindowTabbingModeAutomatic,
+    NSWindowTabbingModePreferred,
+    NSWindowTabbingModeDisallowed
+  };
+#endif /* !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_12)  */
+
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_13)
+/* Deprecated in macOS 10.13.  */
+#define NSPasteboardNameGeneral NSGeneralPboard
+#endif
 #endif	/* HAVE_NS */

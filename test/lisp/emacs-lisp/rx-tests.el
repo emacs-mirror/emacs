@@ -1,6 +1,6 @@
 ;;; rx-tests.el --- test for rx.el functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,6 +32,16 @@
            (apply #'string (nconc (number-sequence ?\] ?\{)
                                   (number-sequence ?< ?\])
                                   (number-sequence ?- ?:))))))
+
+(ert-deftest rx-pcase ()
+  (should (equal (pcase "a 1 2 3 1 1 b"
+                   ((rx (let u (+ digit)) space
+                        (let v (+ digit)) space
+                        (let v (+ digit)) space
+                        (backref u) space
+                        (backref 1))
+                    (list u v)))
+                 '("1" "3"))))
 
 (provide 'rx-tests)
 ;; rx-tests.el ends here.

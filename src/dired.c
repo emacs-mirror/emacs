@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985-1986, 1993-1994, 1999-2017 Free Software
+   Copyright (C) 1985-1986, 1993-1994, 1999-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -51,7 +51,8 @@ extern int is_slow_fs (const char *);
 #endif
 
 static ptrdiff_t scmp (const char *, const char *, ptrdiff_t);
-static Lisp_Object file_attributes (int, char const *, Lisp_Object);
+static Lisp_Object file_attributes (int, char const *, Lisp_Object,
+				    Lisp_Object, Lisp_Object);
 
 /* Return the number of bytes in DP's name.  */
 static ptrdiff_t
@@ -61,6 +62,21 @@ dirent_namelen (struct dirent *dp)
   return _D_EXACT_NAMLEN (dp);
 #else
   return strlen (dp->d_name);
+#endif
+}
+
+#ifndef HAVE_STRUCT_DIRENT_D_TYPE
+enum { DT_UNKNOWN, DT_DIR, DT_LNK };
+#endif
+
+/* Return the file type of DP.  */
+static int
+dirent_type (struct dirent *dp)
+{
+#ifdef HAVE_STRUCT_DIRENT_D_TYPE
+  return dp->d_type;
+#else
+  return DT_UNKNOWN;
 #endif
 }
 
@@ -146,7 +162,7 @@ read_dirent (DIR *dir, Lisp_Object dirname)
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.
    If not ATTRS, return a list of directory filenames;
    if ATTRS, return a list of directory filenames and their attributes.
-   In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
+   In the latter case, pass ID_FORMAT to file_attributes.  */
 
 Lisp_Object
 directory_files_internal (Lisp_Object directory, Lisp_Object full,
@@ -210,7 +226,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   if (attrs)
     {
       /* Do this only once to avoid doing it (in w32.c:stat) for each
-	 file in the directory, when we call Ffile_attributes below.  */
+	 file in the directory, when we call file_attributes below.  */
       record_unwind_protect (directory_files_internal_w32_unwind,
 			     Vw32_get_true_file_attributes);
       w32_save = Vw32_get_true_file_attributes;
@@ -289,7 +305,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	  if (attrs)
 	    {
 	      Lisp_Object fileattrs
-		= file_attributes (fd, dp->d_name, id_format);
+		= file_attributes (fd, dp->d_name, directory, name, id_format);
 	      list = Fcons (Fcons (finalname, fileattrs), list);
 	    }
 	  else
@@ -336,7 +352,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     return call5 (handler, Qdirectory_files, directory,
                   full, match, nosort);
 
-  return directory_files_internal (directory, full, match, nosort, 0, Qnil);
+  return directory_files_internal (directory, full, match, nosort, false, Qnil);
 }
 
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
@@ -364,7 +380,8 @@ which see.  */)
     return call6 (handler, Qdirectory_files_and_attributes,
                   directory, full, match, nosort, id_format);
 
-  return directory_files_internal (directory, full, match, nosort, 1, id_format);
+  return directory_files_internal (directory, full, match, nosort,
+				   true, id_format);
 }
 
 
@@ -434,7 +451,7 @@ is matched against file and directory names relative to DIRECTORY.  */)
   return file_name_completion (file, directory, 1, Qnil);
 }
 
-static int file_name_completion_stat (int, struct dirent *, struct stat *);
+static bool file_name_completion_dirp (int, struct dirent *, ptrdiff_t);
 
 static Lisp_Object
 file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
@@ -448,7 +465,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
   Lisp_Object bestmatch, tem, elt, name;
   Lisp_Object encoded_file;
   Lisp_Object encoded_dir;
-  struct stat st;
   bool directoryp;
   /* If not INCLUDEALL, exclude files in completion-ignored-extensions as
      well as "." and "..".  Until shown otherwise, assume we can't exclude
@@ -512,10 +528,21 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	      >= 0))
 	continue;
 
-      if (file_name_completion_stat (fd, dp, &st) < 0)
-	continue;
+      switch (dirent_type (dp))
+	{
+	case DT_DIR:
+	  directoryp = true;
+	  break;
 
-      directoryp = S_ISDIR (st.st_mode) != 0;
+	case DT_LNK: case DT_UNKNOWN:
+	  directoryp = file_name_completion_dirp (fd, dp, len);
+	  break;
+
+	default:
+	  directoryp = false;
+	  break;
+	}
+
       tem = Qnil;
       /* If all_flag is set, always include all.
 	 It would not actually be helpful to the user to ignore any possible
@@ -781,32 +808,18 @@ scmp (const char *s1, const char *s2, ptrdiff_t len)
     return len - l;
 }
 
-static int
-file_name_completion_stat (int fd, struct dirent *dp, struct stat *st_addr)
+/* Return true if in the directory FD the directory entry DP, whose
+   string length is LEN, is that of a subdirectory that can be searched.  */
+static bool
+file_name_completion_dirp (int fd, struct dirent *dp, ptrdiff_t len)
 {
-  int value;
-
-#ifdef MSDOS
-  /* Some fields of struct stat are *very* expensive to compute on MS-DOS,
-     but aren't required here.  Avoid computing the following fields:
-     st_inode, st_size and st_nlink for directories, and the execute bits
-     in st_mode for non-directory files with non-standard extensions.  */
-
-  unsigned short save_djstat_flags = _djstat_flags;
-
-  _djstat_flags = _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
-#endif /* MSDOS */
-
-  /* We want to return success if a link points to a nonexistent file,
-     but we want to return the status for what the link points to,
-     in case it is a directory.  */
-  value = fstatat (fd, dp->d_name, st_addr, AT_SYMLINK_NOFOLLOW);
-  if (value == 0 && S_ISLNK (st_addr->st_mode))
-    fstatat (fd, dp->d_name, st_addr, 0);
-#ifdef MSDOS
-  _djstat_flags = save_djstat_flags;
-#endif /* MSDOS */
-  return value;
+  USE_SAFE_ALLOCA;
+  char *subdir_name = SAFE_ALLOCA (len + 2);
+  memcpy (subdir_name, dp->d_name, len);
+  strcpy (subdir_name + len, "/");
+  bool dirp = faccessat (fd, subdir_name, F_OK, AT_EACCESS) == 0;
+  SAFE_FREE ();
+  return dirp;
 }
 
 static char *
@@ -912,14 +925,17 @@ so last access time will always be midnight of that day.  */)
     }
 
   encoded = ENCODE_FILE (filename);
-  return file_attributes (AT_FDCWD, SSDATA (encoded), id_format);
+  return file_attributes (AT_FDCWD, SSDATA (encoded), Qnil, filename,
+			  id_format);
 }
 
 static Lisp_Object
-file_attributes (int fd, char const *name, Lisp_Object id_format)
+file_attributes (int fd, char const *name,
+		 Lisp_Object dirname, Lisp_Object filename,
+		 Lisp_Object id_format)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
   struct stat s;
-  int lstat_result;
 
   /* An array to hold the mode string generated by filemodestring,
      including its terminating space and null byte.  */
@@ -927,22 +943,67 @@ file_attributes (int fd, char const *name, Lisp_Object id_format)
 
   char *uname = NULL, *gname = NULL;
 
-#ifdef WINDOWSNT
-  /* We usually don't request accurate owner and group info, because
-     it can be very expensive on Windows to get that, and most callers
-     of 'lstat' don't need that.  But here we do want that information
-     to be accurate.  */
-  w32_stat_get_owner_group = 1;
+  int err = EINVAL;
+
+#ifdef O_PATH
+  int namefd = openat (fd, name, O_PATH | O_CLOEXEC | O_NOFOLLOW);
+  if (namefd < 0)
+    err = errno;
+  else
+    {
+      record_unwind_protect_int (close_file_unwind, namefd);
+      if (fstat (namefd, &s) != 0)
+	{
+	  err = errno;
+	  /* The Linux kernel before version 3.6 does not support
+	     fstat on O_PATH file descriptors.  Handle this error like
+	     missing support for O_PATH.  */
+	  if (err == EBADF)
+	    err = EINVAL;
+	}
+      else
+	{
+	  err = 0;
+	  fd = namefd;
+	  name = "";
+	}
+    }
 #endif
 
-  lstat_result = fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW);
-
+  if (err == EINVAL)
+    {
 #ifdef WINDOWSNT
-  w32_stat_get_owner_group = 0;
+      /* We usually don't request accurate owner and group info,
+	 because it can be expensive on Windows to get that, and most
+	 callers of 'lstat' don't need that.  But here we do want that
+	 information to be accurate.  */
+      w32_stat_get_owner_group = 1;
 #endif
+      if (fstatat (fd, name, &s, AT_SYMLINK_NOFOLLOW) == 0)
+	err = 0;
+#ifdef WINDOWSNT
+      w32_stat_get_owner_group = 0;
+#endif
+    }
 
-  if (lstat_result < 0)
-    return Qnil;
+  if (err != 0)
+    return unbind_to (count, Qnil);
+
+  Lisp_Object file_type;
+  if (S_ISLNK (s.st_mode))
+    {
+      /* On systems lacking O_PATH support there is a race if the
+	 symlink is replaced between the call to fstatat and the call
+	 to emacs_readlinkat.  Detect this race unless the replacement
+	 is also a symlink.  */
+      file_type = emacs_readlinkat (fd, name);
+      if (NILP (file_type))
+	return unbind_to (count, Qnil);
+    }
+  else
+    file_type = S_ISDIR (s.st_mode) ? Qt : Qnil;
+
+  unbind_to (count, Qnil);
 
   if (!(NILP (id_format) || EQ (id_format, Qinteger)))
     {
@@ -953,8 +1014,7 @@ file_attributes (int fd, char const *name, Lisp_Object id_format)
   filemodestring (&s, modes);
 
   return CALLN (Flist,
-		(S_ISLNK (s.st_mode) ? emacs_readlinkat (fd, name)
-		 : S_ISDIR (s.st_mode) ? Qt : Qnil),
+		file_type,
 		make_number (s.st_nlink),
 		(uname
 		 ? DECODE_SYSTEM (build_unibyte_string (uname))

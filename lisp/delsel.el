@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1997-1998, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1998, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -70,14 +70,16 @@ Value must be the register (key) to use.")
 ;;;###autoload
 (define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
-With a prefix argument ARG, enable Delete Selection mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
+Interactively, with a prefix argument, enable
+Delete Selection mode if the prefix argument is positive,
+and disable it otherwise.  If called from Lisp, toggle
+the mode if ARG is `toggle', disable the mode if ARG is
+a non-positive integer, and enable the mode otherwise
+\(including if ARG is omitted or nil or a positive integer).
 
 When Delete Selection mode is enabled, typed text replaces the selection
 if the selection is active.  Otherwise, typed text is just inserted at
-point regardless of any selection.  Also, commands that normally delete
-just one character will delete the entire selection instead.
+point regardless of any selection.
 
 See `delete-selection-helper' and `delete-selection-pre-hook' for
 information on adapting behavior of commands in Delete Selection mode."
@@ -253,12 +255,18 @@ See `delete-selection-helper'."
                                   (get this-command 'delete-selection)))))
 
 (defun delete-selection-uses-region-p ()
-  "Return t when the current command will be using the region
-rather than having `delete-selection' delete it, nil otherwise.
+  "Return t when `delete-selection-mode' should not delete the region.
+
+The `self-insert-command' could be the current command or may be
+called by the current command.  If this function returns nil,
+then `delete-selection' is allowed to delete the region.
 
 This function is intended for use as the value of the
 `delete-selection' property of a command, and shouldn't be used
-for anything else."
+for anything else.  In particular, `self-insert-command' has this
+function as its `delete-selection' property, so that \"electric\"
+self-insert commands that act on the region could adapt themselves
+to `delete-selection-mode'."
   (not (run-hook-with-args-until-success
         'self-insert-uses-region-functions)))
 

@@ -1,6 +1,6 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -728,7 +728,9 @@ in Calc algebraic input.")
 						 math-exp-str (1- math-exp-pos))
 				   (1- math-exp-pos))))))
 	     (or (and (memq calc-language calc-lang-c-type-hex)
-		      (string-match "0[xX][0-9a-fA-F]+" math-exp-str math-exp-pos))
+		      (eq (string-match "0[xX][0-9a-fA-F]+" math-exp-str
+                                        math-exp-pos)
+                          math-exp-pos))
 		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-zA-Zα-ωΑ-Ω:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?"
                                math-exp-str math-exp-pos))
 	     (setq math-exp-token 'number

@@ -1,5 +1,5 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006-2017 Free Software Foundation, Inc.
+   Copyright (C) 2006-2018 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -505,7 +505,8 @@ xfont_list (struct frame *f, Lisp_Object spec)
       Lisp_Object alter;
 
       if ((alter = Fassoc (SYMBOL_NAME (registry),
-			   Vface_alternative_font_registry_alist),
+			   Vface_alternative_font_registry_alist,
+			   Qnil),
 	   CONSP (alter)))
 	{
 	  /* Pointer to REGISTRY-ENCODING field.  */
@@ -876,7 +877,7 @@ xfont_close (struct font *font)
      the logically different X connection after the previous display
      connection was closed.  That's why we also check whether font's
      ID matches the one recorded in x_display_info for this display.
-     See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16069.  */
+     See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=16069.  */
   if (xfi->xfont
       && ((xdi = x_display_info_for_display (xfi->display))
 	  && xfi->x_display_id == xdi->x_id))

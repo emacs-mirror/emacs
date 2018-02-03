@@ -1,6 +1,6 @@
 ;;; sun.el --- keybinding for standard default sunterm keys
 
-;; Copyright (C) 1987, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Keywords: terminals
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -118,14 +118,6 @@
     (define-key map "D" [left])  ; R10
     map))
 
-;; Since .emacs gets loaded before this file, a hook is supplied
-;; for you to put your own bindings in.
-
-(defvar sun-raw-prefix-hooks nil
-  "List of forms to evaluate after setting `sun-raw-prefix'.")
-;; Obsolete since 21.1, but tty-setup-hook only exists since 24.4.
-(make-obsolete-variable 'sun-raw-prefix-hooks 'tty-setup-hook "21.1")
-
 
 
 (defun terminal-init-sun ()
@@ -147,16 +139,7 @@
   (global-set-key [f3]	'scroll-down-in-place)
   (global-set-key [f4]	'scroll-up-in-place)
   (global-set-key [f6]	'shrink-window)
-  (global-set-key [f7]	'enlarge-window)
-
-  (when sun-raw-prefix-hooks
-    (message "sun-raw-prefix-hooks is obsolete!  Use %s instead!"
-	     (or (car-safe (get 'sun-raw-prefix-hooks 'byte-obsolete-variable))
-		 "emacs-startup-hook"))
-    (let ((hooks sun-raw-prefix-hooks))
-      (while hooks
-	(eval (car hooks))
-	(setq hooks (cdr hooks))))))
+  (global-set-key [f7]	'enlarge-window))
 
 (provide 'term/sun)
 

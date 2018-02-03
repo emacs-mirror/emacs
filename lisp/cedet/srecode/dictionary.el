@@ -1,6 +1,6 @@
 ;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -612,10 +612,9 @@ STATE is the current compiler state."
 			  (srecode-get-mode-table modesym))
 		   (error "No table found for mode %S" modesym)))
 	 (dict (srecode-create-dictionary (current-buffer)))
-	 (end (current-time))
 	 )
     (message "Creating a dictionary took %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (data-debug-new-buffer "*SRECODE ADEBUG*")
     (data-debug-insert-object-slots dict "*")))
 

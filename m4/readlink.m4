@@ -1,5 +1,5 @@
-# readlink.m4 serial 12
-dnl Copyright (C) 2003, 2007, 2009-2017 Free Software Foundation, Inc.
+# readlink.m4 serial 13
+dnl Copyright (C) 2003, 2007, 2009-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -34,10 +34,10 @@ AC_DEFUN([gl_FUNC_READLINK],
       return readlink ("conftest.lnk2/", buf, sizeof buf) != -1;]])],
          [gl_cv_func_readlink_works=yes], [gl_cv_func_readlink_works=no],
          [case "$host_os" in
-                    # Guess yes on glibc systems.
-            *-gnu*) gl_cv_func_readlink_works="guessing yes" ;;
-                    # If we don't know, assume the worst.
-            *)      gl_cv_func_readlink_works="guessing no" ;;
+                           # Guess yes on glibc systems.
+            *-gnu* | gnu*) gl_cv_func_readlink_works="guessing yes" ;;
+                           # If we don't know, assume the worst.
+            *)             gl_cv_func_readlink_works="guessing no" ;;
           esac
          ])
       rm -f conftest.link conftest.lnk2])

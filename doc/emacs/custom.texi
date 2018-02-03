@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -127,7 +127,7 @@ brings up the customization buffer for that group.
 @kindex S-TAB @r{(customization buffer)}
 @findex widget-forward
 @findex widget-backward
-  In the customizable buffer, you can type @key{TAB}
+  In the customization buffer, you can type @key{TAB}
 (@code{widget-forward}) to move forward to the next button or editable
 field.  @kbd{S-@key{TAB}} (@code{widget-backward}) moves back to the
 previous button or editable field.
@@ -587,7 +587,7 @@ too.)
 
 @vindex custom-theme-load-path
   If you want Emacs to look for Custom themes in some other directory,
-add the directory name to the list variable
+add the directory to the list variable
 @code{custom-theme-load-path}.  Its default value is
 @code{(custom-theme-directory t)}; here, the symbol
 @code{custom-theme-directory} has the special meaning of the value of
@@ -679,7 +679,7 @@ edit the variable values or face attributes in the same way as in a
 normal customization buffer.  To remove a face or variable from the
 theme, uncheck the checkbox next to its name.
 
-@vindex custom-theme-directory
+@vindex custom-theme-directory@r{, saving theme files}
   After specifying the Custom theme's faces and variables, type
 @kbd{C-x C-s} (@code{custom-theme-write}) or use the buffer's
 @samp{[Save Theme]} button.  This saves the theme file, named
@@ -915,7 +915,7 @@ customize the indentation of C code:
 @end example
 
 @cindex Prog mode
-@cindex program editing
+@cindex modes for editing programs
   Major mode hooks also apply to other major modes @dfn{derived} from
 the original mode (@pxref{Derived Modes,,, elisp, The Emacs Lisp
 Reference Manual}).  For instance, HTML mode is derived from Text mode
@@ -1321,7 +1321,7 @@ Each alist entry consists of a variable name and the directory-local
 value to assign to that variable, when the specified major mode is
 enabled.  Instead of a mode name, you can specify @samp{nil}, which
 means that the alist applies to any mode; or you can specify a
-subdirectory name (a string), in which case the alist applies to all
+subdirectory (a string), in which case the alist applies to all
 files in that subdirectory.
 
   Here's an example of a @file{.dir-locals.el} file:
@@ -1356,7 +1356,7 @@ Variables}.
 @findex copy-file-locals-to-dir-locals
   Instead of editing the @file{.dir-locals.el} file by hand, you can
 use the command @kbd{M-x add-dir-local-variable}.  This prompts for a
-mode or subdirectory name, and for variable and value, and adds the
+mode or subdirectory, and for variable and value, and adds the
 entry defining the directory-local variable.  @kbd{M-x
 delete-dir-local-variable} deletes an entry.  @kbd{M-x
 copy-file-locals-to-dir-locals} copies the file-local variables in the
@@ -1701,7 +1701,7 @@ and mouse events:
 (global-set-key (kbd "C-c y") 'clipboard-yank)
 (global-set-key (kbd "C-M-q") 'query-replace)
 (global-set-key (kbd "<f5>") 'flyspell-mode)
-(global-set-key (kbd "C-<f5>") 'linum-mode)
+(global-set-key (kbd "C-<f5>") 'display-line-numbers-mode)
 (global-set-key (kbd "C-<right>") 'forward-sentence)
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
 @end example
@@ -1710,7 +1710,7 @@ and mouse events:
 specify the key sequence.  Using a string is simpler, but only works
 for @acronym{ASCII} characters and Meta-modified @acronym{ASCII}
 characters.  For example, here's how to bind @kbd{C-x M-l} to
-@code{make-symbolic-link} (@pxref{Misc File Ops}):
+@code{make-symbolic-link} (@pxref{Copying and Naming}):
 
 @example
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
@@ -1775,7 +1775,7 @@ and @kbd{C-c p} in Texinfo mode:
 
 @node Modifier Keys
 @subsection Modifier Keys
-@cindex modifier keys
+@cindex modifier keys, and key rebinding
 
   The default key bindings in Emacs are set up so that modified
 alphabetical characters are case-insensitive.  In other words,
@@ -1915,7 +1915,7 @@ because the terminal sends the same character in both cases.
 @cindex click events
 @cindex drag events
 @cindex down events
-@cindex button down events
+@cindex button-down events
 
   Emacs uses Lisp symbols to designate mouse buttons, too.  The ordinary
 mouse events in Emacs are @dfn{click} events; these happen when you
@@ -2285,7 +2285,7 @@ buffer's local value, which is probably not what you want to do in an
 init file.
 
 @item
-@vindex user-mail-address
+@vindex user-mail-address@r{, in init file}
 Specify your own email address, if Emacs can't figure it out correctly.
 
 @example

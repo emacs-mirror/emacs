@@ -115,12 +115,12 @@ Redirect /software/emacs/manual/html_mono/automake.html /software/automake/manua
 Redirect /software/emacs/manual/html_node/automake/ /software/automake/manual/html_node/
 
 Another tool you can use to check links is gnu.org's linc.py:
-http://www.gnu.org/server/source/
+https://www.gnu.org/server/source/
 
 You run this with something like:
 
 cd /path/to/cvs/emacs-www
-linc.py -o /path/to/output-dir --url http://www.gnu.org/software/emacs/ .
+linc.py -o /path/to/output-dir --url https://www.gnu.org/software/emacs/ .
 
 Be warned that it is really, really slow (as in, can take ~ a full day
 to check the manual/ directory).  It is probably best to run it on a

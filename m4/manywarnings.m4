@@ -1,5 +1,5 @@
-# manywarnings.m4 serial 8
-dnl Copyright (C) 2008-2017 Free Software Foundation, Inc.
+# manywarnings.m4 serial 13
+dnl Copyright (C) 2008-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -33,8 +33,17 @@ AC_DEFUN([gl_MANYWARN_COMPLEMENT],
 # Add all documented GCC warning parameters to variable VARIABLE.
 # Note that you need to test them using gl_WARN_ADD if you want to
 # make sure your gcc understands it.
+#
+# The effects of this macro depend on the current language (_AC_LANG).
 AC_DEFUN([gl_MANYWARN_ALL_GCC],
+[_AC_LANG_DISPATCH([$0], _AC_LANG, $@)])
+
+# Specialization for _AC_LANG = C.
+# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
+m4_defun([gl_MANYWARN_ALL_GCC(C)],
 [
+  AC_LANG_PUSH([C])
+
   dnl First, check for some issues that only occur when combining multiple
   dnl gcc warning categories.
   AC_REQUIRE([AC_PROG_CC])
@@ -97,14 +106,13 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
   # To compare this list to your installed GCC's, run this Bash command:
   #
   # comm -3 \
-  #  <(sed -n 's/^  *\(-[^ ]*\) .*/\1/p' manywarnings.m4 | sort) \
+  #  <(sed -n 's/^  *\(-[^ 0-9][^ ]*\) .*/\1/p' manywarnings.m4 | sort) \
   #  <(gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort |
-  #      grep -v -x -f <(
+  #      grep -v -x -F -f <(
   #         awk '/^[^#]/ {print $1}' ../build-aux/gcc-warning.spec))
 
   gl_manywarn_set=
-  for gl_manywarn_item in \
-    -fno-common \
+  for gl_manywarn_item in -fno-common \
     -W \
     -Wabi \
     -Waddress \
@@ -113,6 +121,8 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wattributes \
     -Wbad-function-cast \
     -Wbool-compare \
+    -Wbool-operation \
+    -Wbuiltin-declaration-mismatch \
     -Wbuiltin-macro-redefined \
     -Wcast-align \
     -Wchar-subscripts \
@@ -122,6 +132,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wcomments \
     -Wcoverage-mismatch \
     -Wcpp \
+    -Wdangling-else \
     -Wdate-time \
     -Wdeprecated \
     -Wdeprecated-declarations \
@@ -131,10 +142,13 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wdiscarded-qualifiers \
     -Wdiv-by-zero \
     -Wdouble-promotion \
+    -Wduplicated-branches \
     -Wduplicated-cond \
+    -Wduplicate-decl-specifier \
     -Wempty-body \
     -Wendif-labels \
     -Wenum-compare \
+    -Wexpansion-to-defined \
     -Wextra \
     -Wformat-contains-nul \
     -Wformat-extra-args \
@@ -155,6 +169,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Winit-self \
     -Winline \
     -Wint-conversion \
+    -Wint-in-bool-context \
     -Wint-to-pointer-cast \
     -Winvalid-memory-model \
     -Winvalid-pch \
@@ -163,6 +178,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wlogical-op \
     -Wmain \
     -Wmaybe-uninitialized \
+    -Wmemset-elt-size \
     -Wmemset-transposed-args \
     -Wmisleading-indentation \
     -Wmissing-braces \
@@ -188,9 +204,12 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wpacked-bitfield-compat \
     -Wparentheses \
     -Wpointer-arith \
+    -Wpointer-compare \
     -Wpointer-sign \
     -Wpointer-to-int-cast \
     -Wpragmas \
+    -Wpsabi \
+    -Wrestrict \
     -Wreturn-local-addr \
     -Wreturn-type \
     -Wscalar-storage-order \
@@ -214,6 +233,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wswitch \
     -Wswitch-bool \
     -Wswitch-default \
+    -Wswitch-unreachable \
     -Wsync-nand \
     -Wsystem-headers \
     -Wtautological-compare \
@@ -247,10 +267,34 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
 
   # gcc --help=warnings outputs an unusual form for these options; list
   # them here so that the above 'comm' command doesn't report a false match.
+  # Would prefer "min (PTRDIFF_MAX, SIZE_MAX)", but it must be a literal.
+  # Also, AC_COMPUTE_INT requires it to fit in a long; it is 2**63 on
+  # the only platforms where it does not fit in a long, so make that
+  # a special case.
+  AC_MSG_CHECKING([max safe object size])
+  AC_COMPUTE_INT([gl_alloc_max],
+    [LONG_MAX < (PTRDIFF_MAX < (size_t) -1 ? PTRDIFF_MAX : (size_t) -1)
+     ? -1
+     : PTRDIFF_MAX < (size_t) -1 ? (long) PTRDIFF_MAX : (long) (size_t) -1],
+    [[#include <limits.h>
+      #include <stddef.h>
+      #include <stdint.h>
+    ]],
+    [gl_alloc_max=2147483647])
+  case $gl_alloc_max in
+    -1) gl_alloc_max=9223372036854775807;;
+  esac
+  AC_MSG_RESULT([$gl_alloc_max])
+  gl_manywarn_set="$gl_manywarn_set -Walloc-size-larger-than=$gl_alloc_max"
   gl_manywarn_set="$gl_manywarn_set -Warray-bounds=2"
+  gl_manywarn_set="$gl_manywarn_set -Wformat-overflow=2"
+  gl_manywarn_set="$gl_manywarn_set -Wformat-truncation=2"
+  gl_manywarn_set="$gl_manywarn_set -Wimplicit-fallthrough=5"
   gl_manywarn_set="$gl_manywarn_set -Wnormalized=nfc"
   gl_manywarn_set="$gl_manywarn_set -Wshift-overflow=2"
+  gl_manywarn_set="$gl_manywarn_set -Wstringop-overflow=2"
   gl_manywarn_set="$gl_manywarn_set -Wunused-const-variable=2"
+  gl_manywarn_set="$gl_manywarn_set -Wvla-larger-than=4031"
 
   # These are needed for older GCC versions.
   if test -n "$GCC"; then
@@ -273,4 +317,13 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
   fi
 
   $1=$gl_manywarn_set
+
+  AC_LANG_POP([C])
+])
+
+# Specialization for _AC_LANG = C++.
+# Use of m4_defun rather than AC_DEFUN works around a bug in autoconf < 2.63b.
+m4_defun([gl_MANYWARN_ALL_GCC(C++)],
+[
+  gl_MANYWARN_ALL_GCC_CXX_IMPL([$1])
 ])

@@ -1,9 +1,9 @@
 ;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
-;; Maintainer: Andre Spiegel <spiegel@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -176,6 +176,8 @@ For a description of possible values, see `vc-check-master-templates'."
 		   (not (eq state 'up-to-date)))
 	  (push (list frel state) result))))
     (funcall update-function result)))
+
+(defun vc-rcs-dir-extra-headers (&rest _ignore))
 
 (defun vc-rcs-working-revision (file)
   "RCS-specific version of `vc-working-revision'."
@@ -849,7 +851,7 @@ and CVS."
 
 ;; You might think that this should be distributed with RCS, but
 ;; apparently not.  CVS sometimes provides a version of it.
-;; http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00288.html
+;; https://lists.gnu.org/r/emacs-devel/2014-05/msg00288.html
 (defvar vc-rcs-rcs2log-program
   (let (exe)
     (cond ((file-executable-p

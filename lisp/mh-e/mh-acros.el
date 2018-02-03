@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- macros used in MH-E
 
-;; Copyright (C) 2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -90,10 +90,9 @@ loads \"cl\" appropriately."
   "Create function NAME.
 If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
-  (let ((defined-p (fboundp function)))
-    (if defined-p
-        `(defalias ',name ',function)
-      `(defun ,name ,arg-list ,@body))))
+  `(if (fboundp ',function)
+       (defalias ',name ',function)
+     (defun ,name ,arg-list ,@body)))
 (put 'defun-mh 'lisp-indent-function 'defun)
 (put 'defun-mh 'doc-string-elt 4)
 

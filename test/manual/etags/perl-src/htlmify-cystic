@@ -1,4 +1,4 @@
-#! /uns/bin/perl -w
+#! /un/bin/env perl
 
 # htmlify-cystic-l-faq:  turn text version of cystic-l faq into html
 # run like this:   htmlify-cystic-l-faq < cystic-l-faq-all

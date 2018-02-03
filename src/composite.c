@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -20,7 +20,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -686,6 +686,20 @@ composition_gstring_from_id (ptrdiff_t id)
   return HASH_VALUE (h, id);
 }
 
+DEFUN ("clear-composition-cache", Fclear_composition_cache,
+       Sclear_composition_cache, 0, 0, 0,
+       doc: /* Internal use only.
+Clear composition cache.  */)
+  (void)
+{
+  Lisp_Object args[] = {QCtest, Qequal, QCsize, make_number (311)};
+  gstring_hash_table = CALLMANY (Fmake_hash_table, args);
+  /* Fixme: We call Fclear_face_cache to force complete re-building of
+     display glyphs.  But, it may be better to call this function from
+     Fclear_face_cache instead.  */
+  return Fclear_face_cache (Qt);
+}
+
 bool
 composition_gstring_p (Lisp_Object gstring)
 {
@@ -867,7 +881,6 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
 	       Lisp_Object string)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct frame *f = XFRAME (win->frame);
   Lisp_Object pos = make_number (charpos);
   ptrdiff_t to;
   ptrdiff_t pt = PT, pt_byte = PT_BYTE;
@@ -893,6 +906,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   to = limit = charpos + len;
   font_object = win->frame;
 #ifdef HAVE_WINDOW_SYSTEM
+  struct frame *f = XFRAME (font_object);
   if (FRAME_WINDOW_P (f))
     {
       font_object = font_range (charpos, bytepos, &to, win, face, string);
@@ -1982,4 +1996,5 @@ See also the documentation of `auto-composition-mode'.  */);
   defsubr (&Scompose_string_internal);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
+  defsubr (&Sclear_composition_cache);
 }

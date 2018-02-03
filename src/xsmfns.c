@@ -1,7 +1,7 @@
 /* Session management module for systems which understand the X Session
    management protocol.
 
-Copyright (C) 2002-2017 Free Software Foundation, Inc.
+Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -401,12 +401,14 @@ x_session_initialize (struct x_display_info *dpyinfo)
   ptrdiff_t name_len = 0;
 
   /* libSM seems to crash if pwd is missing - see bug#18851.  */
-  if (! emacs_get_current_dir_name ())
+  char *pwd = emacs_get_current_dir_name ();
+  if (!pwd)
     {
       fprintf (stderr, "Disabling session management due to pwd error: %s\n",
                emacs_strerror (errno));
       return;
     }
+  xfree (pwd);
 
   ice_fd = -1;
   doing_interact = false;

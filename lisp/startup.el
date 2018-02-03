@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2017 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -513,7 +513,7 @@ It is the default value of the variable `top-level'."
         (let ((default-directory dir))
           (load (expand-file-name "subdirs.el") t t t))
         ;; Do not scan standard directories that won't contain a leim-list.el.
-        ;; http://lists.gnu.org/archive/html/emacs-devel/2009-10/msg00502.html
+        ;; https://lists.gnu.org/r/emacs-devel/2009-10/msg00502.html
         ;; (Except the preloaded one in lisp/leim.)
         (or (string-prefix-p lispdir dir)
             (let ((default-directory dir))
@@ -781,7 +781,7 @@ to prepare for opening the first frame (e.g. open a connection to an X server)."
                                argval
                              (let ((case-fold-search t)
                                    i)
-                               (setq argval (invocation-name))
+                               (setq argval (copy-sequence invocation-name))
 
                                ;; Change any . or * characters in name to
                                ;; hyphens, so as to emulate behavior on X.
@@ -1090,11 +1090,12 @@ please check its value")
 
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
-  (mapc 'custom-reevaluate-setting
-        ;; Initialize them in the same order they were loaded, in case there
-        ;; are dependencies between them.
-        (prog1 (nreverse custom-delayed-init-variables)
-          (setq custom-delayed-init-variables nil)))
+  (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
+    (mapc 'custom-reevaluate-setting
+          ;; Initialize them in the same order they were loaded, in case there
+          ;; are dependencies between them.
+          (prog1 (nreverse custom-delayed-init-variables)
+            (setq custom-delayed-init-variables nil))))
 
   (normal-erase-is-backspace-setup-frame)
 
@@ -1158,8 +1159,7 @@ please check its value")
     (let (debug-on-error-from-init-file
 	  debug-on-error-should-be-set
 	  (debug-on-error-initial
-	   (if (eq init-file-debug t) 'startup init-file-debug))
-	  (orig-enable-multibyte (default-value 'enable-multibyte-characters)))
+	   (if (eq init-file-debug t) 'startup init-file-debug)))
       (let ((debug-on-error debug-on-error-initial)
 	    ;; This function actually reads the init files.
 	    (inner
@@ -1274,23 +1274,7 @@ the `--debug-init' option to view a complete error backtrace."
 	    (setq debug-on-error-should-be-set t
 		  debug-on-error-from-init-file debug-on-error)))
       (if debug-on-error-should-be-set
-	  (setq debug-on-error debug-on-error-from-init-file))
-      (unless (or (default-value 'enable-multibyte-characters)
-		  (eq orig-enable-multibyte (default-value
-					      'enable-multibyte-characters)))
-	;; Init file changed to unibyte.  Reset existing multibyte
-	;; buffers (probably *scratch*, *Messages*, *Minibuf-0*).
-	;; Arguably this should only be done if they're free of
-	;; multibyte characters.
-	(mapc (lambda (buffer)
-		(with-current-buffer buffer
-		  (if enable-multibyte-characters
-		      (set-buffer-multibyte nil))))
-	      (buffer-list))
-	;; Also re-set the language environment in case it was
-	;; originally done before unibyte was set and is sensitive to
-	;; unibyte (display table, terminal coding system &c).
-	(set-language-environment current-language-environment)))
+	  (setq debug-on-error debug-on-error-from-init-file)))
 
     ;; Do this here in case the init file sets mail-host-address.
     (and mail-host-address
@@ -1371,7 +1355,7 @@ the `--debug-init' option to view a complete error backtrace."
   ;; trying to load gnus could load the wrong file.
   ;; OK, it would not matter if .emacs.d were at the end of load-path.
   ;; but for the sake of simplicity, we discourage it full-stop.
-  ;; Ref eg http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00056.html
+  ;; Ref eg https://lists.gnu.org/r/emacs-devel/2012-03/msg00056.html
   ;;
   ;; A bad element could come from user-emacs-file, the command line,
   ;; or EMACSLOADPATH, so we basically always have to check.
@@ -1432,6 +1416,7 @@ settings will be marked as \"CHANGED outside of Customize\"."
   (let ((no-vals  '("no" "off" "false" "0"))
 	(settings '(("menuBar" "MenuBar" menu-bar-mode nil)
 		    ("toolBar" "ToolBar" tool-bar-mode nil)
+		    ("scrollBar" "ScrollBar" scroll-bar-mode nil)
 		    ("cursorBlink" "CursorBlink" no-blinking-cursor t))))
     (dolist (x settings)
       (if (member (x-get-resource (nth 0 x) (nth 1 x)) no-vals)
@@ -1462,18 +1447,18 @@ If this is nil, no message will be displayed."
   `((:face (variable-pitch font-lock-comment-face)
      "Welcome to "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
-	    "Browse http://www.gnu.org/software/emacs/")
+	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    "Browse https://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
             `("GNU/Linux"
-              ,(lambda (_button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
-	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
+              ,(lambda (_button) (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
           `("GNU" ,(lambda (_button)
-		     (browse-url "http://www.gnu.org/gnu/thegnuproject.html"))
-	    "Browse http://www.gnu.org/gnu/thegnuproject.html")))
+		     (browse-url "https://www.gnu.org/gnu/thegnuproject.html"))
+	    "Browse https://www.gnu.org/gnu/thegnuproject.html")))
      " operating system.\n\n"
      :face variable-pitch
      :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))
@@ -1505,8 +1490,8 @@ If this is nil, no message will be displayed."
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "http://www.gnu.org/software/emacs/tour/"))
-	    "Browse http://www.gnu.org/software/emacs/tour/")
+               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features at gnu.org\n"
      :link ("View Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
      "\tView the Emacs manual using Info\n"
@@ -1528,16 +1513,16 @@ Each element in the list should be a list of strings or pairs
   `((:face (variable-pitch font-lock-comment-face)
      "This is "
      :link ("GNU Emacs"
-	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
-	    "Browse http://www.gnu.org/software/emacs/")
+	    ,(lambda (_button) (browse-url "https://www.gnu.org/software/emacs/"))
+	    "Browse https://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      ,(lambda ()
        (if (eq system-type 'gnu/linux)
 	   `("GNU/Linux"
 	     ,(lambda (_button)
-                (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
-	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
+                (browse-url "https://www.gnu.org/gnu/linux-and-gnu.html"))
+	     "Browse https://www.gnu.org/gnu/linux-and-gnu.html")
 	 `("GNU" ,(lambda (_button) (describe-gnu-project))
 	   "Display info on the GNU project.")))
      " operating system.\n"
@@ -1596,8 +1581,8 @@ Each element in the list should be a list of strings or pairs
      "\n"
      :link ("Emacs Guided Tour"
 	    ,(lambda (_button)
-               (browse-url "http://www.gnu.org/software/emacs/tour/"))
-	    "Browse http://www.gnu.org/software/emacs/tour/")
+               (browse-url "https://www.gnu.org/software/emacs/tour/"))
+	    "Browse https://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of Emacs features at gnu.org"))
   "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
@@ -1705,8 +1690,8 @@ a face or button specification."
 	;; Insert the image with a help-echo and a link.
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
-		     'help-echo "mouse-2, RET: Browse http://www.gnu.org/"
-		     'action (lambda (_button) (browse-url "http://www.gnu.org/"))
+		     'help-echo "mouse-2, RET: Browse https://www.gnu.org/"
+		     'action (lambda (_button) (browse-url "https://www.gnu.org/"))
 		     'follow-link t)
 	(insert "\n\n")))))
 

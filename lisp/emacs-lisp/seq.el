@@ -1,10 +1,10 @@
 ;;; seq.el --- Sequence manipulation functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.19
+;; Version: 2.20
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -354,6 +354,12 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
               (when (funcall (or testfn #'equal) elt e)
                 e))
             sequence))
+
+(cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
+  "Return non-nil if SEQUENCE1 and SEQUENCE2 contain the same elements, regardless of order.
+Equality is defined by TESTFN if non-nil or by `equal' if nil."
+  (and (seq-every-p (lambda (item1) (seq-contains sequence2 item1 testfn)) sequence1)
+       (seq-every-p (lambda (item2) (seq-contains sequence1 item2 testfn)) sequence2)))
 
 (cl-defgeneric seq-position (sequence elt &optional testfn)
   "Return the index of the first element in SEQUENCE that is equal to ELT.

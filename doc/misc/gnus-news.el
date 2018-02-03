@@ -1,5 +1,5 @@
 ;;; gnus-news.el --- a hack to create GNUS-NEWS from texinfo source
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Reiner Steib  <Reiner.Steib@gmx.de>
 ;; Keywords: tools
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,7 +26,7 @@
 (defvar gnus-news-header-disclaimer
 "GNUS NEWS -- history of user-visible changes.
 
-Copyright (C) 1999-2017 Free Software Foundation, Inc.
+Copyright (C) 1999-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Gnus bug reports to bugs@gnus.org.
@@ -51,7 +51,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 \nLocal variables:\nmode: outline
 paragraph-separate: \"[ 	]*$\"\nend:\n")

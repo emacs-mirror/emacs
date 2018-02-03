@@ -95,7 +95,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29128,7 +29128,7 @@ the X window system or MS-Windows, Calc will configure GNUPLOT for you
 automatically.  If you have GNUPLOT 3.0 or later and you are using a
 Unix or GNU system without X, Calc will configure GNUPLOT to display
 graphs using simple character graphics that will work on any
-Posix-compatible terminal.
+POSIX-compatible terminal.
 
 @menu
 * Basic Graphics::
@@ -35751,7 +35751,7 @@ to work on these, please send a message (using @kbd{M-x report-calc-bug})
 so any efforts can be coordinated.
 
 The latest version of Calc is available from Savannah, in the Emacs
-repository.  See @uref{http://savannah.gnu.org/projects/emacs}.
+repository.  See @uref{https://savannah.gnu.org/projects/emacs}.
 
 @c [summary]
 @node Summary, Key Index, Reporting Bugs, Top

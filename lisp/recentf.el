@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1304,7 +1304,9 @@ Read data from the file specified by `recentf-save-file'.
 When `recentf-initialize-file-name-history' is non-nil, initialize an
 empty `file-name-history' with the recent list."
   (interactive)
-  (let ((file (expand-file-name recentf-save-file)))
+  (let ((file (expand-file-name recentf-save-file))
+        ;; We do not want Tramp asking for passwords.
+        (non-essential t))
     (when (file-readable-p file)
       (load-file file)
       (and recentf-initialize-file-name-history

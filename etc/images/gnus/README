@@ -7,7 +7,7 @@ COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
 Files: important.xpm, unimportant.xpm
 Author: Simon Josefsson <simon@josefsson.org>
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 Files: catchup.pbm catchup.xpm cu-exit.pbm cu-exit.xpm
   describe-group.pbm describe-group.xpm exit-gnus.pbm exit-gnus.xpm
@@ -21,11 +21,11 @@ Files: catchup.pbm catchup.xpm cu-exit.pbm cu-exit.xpm
   unsubscribe.pbm unsubscribe.xpm uu-decode.pbm uu-decode.xpm
   uu-post.pbm uu-post.xpm
 Author: Luis Fernandes <elf@ee.ryerson.ca>
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 Files: gnus.png, gnus.svg
   Author: Francesc Rocher <rocher@member.fsf.org>
-  Copyright (C) 2008-2017 Free Software Foundation, Inc.
+  Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 
 * The following icons are from GNOME 2.x. They are not part of Emacs,

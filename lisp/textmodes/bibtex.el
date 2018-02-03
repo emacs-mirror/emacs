@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1999, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2932,7 +2932,7 @@ for parsing BibTeX keys.  If parsing fails, try to set this variable to nil."
               (if verbose
                   (bibtex-progress-message 'done))
               ;; successful operation --> return `bibtex-reference-keys'
-              (setq bibtex-reference-keys ref-keys)))))))
+              (setq bibtex-reference-keys (nreverse ref-keys))))))))
 
 (defun bibtex-parse-strings (&optional add abortable)
   "Set `bibtex-strings' to the string definitions in the whole buffer.
@@ -4925,23 +4925,26 @@ If mark is active reformat entries in region, if not in whole buffer."
           (cond (read-options
                  (if use-previous-options
                      bibtex-reformat-previous-options
-                   (setq bibtex-reformat-previous-options
-                         (delq nil
-                               (mapcar (lambda (option)
-                                         (if (y-or-n-p (car option)) (cdr option)))
-                                       `(("Realign entries (recommended)? " . realign)
-                                         ("Remove empty optional and alternative fields? " . opts-or-alts)
-                                         ("Remove delimiters around pure numerical fields? " . numerical-fields)
-                                         (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
-                                                   " comma at end of entry? ") . last-comma)
-                                         ("Replace double page dashes by single ones? " . page-dashes)
-                                         ("Delete whitespace at the beginning and end of fields? " . whitespace)
-                                         ("Inherit booktitle? " . inherit-booktitle)
-                                         ("Force delimiters? " . delimiters)
-                                         ("Unify case of entry types and field names? " . unify-case)
-                                         ("Enclose parts of field entries by braces? " . braces)
-                                         ("Replace parts of field entries by string constants? " . strings)
-                                         ("Sort fields? " . sort-fields)))))))
+                   (let (answers)
+                     (map-y-or-n-p
+                      #'car
+                      (lambda (option)
+                        (push (cdr option) answers))
+                      `(("Realign entries (recommended)? " . realign)
+                        ("Remove empty optional and alternative fields? " . opts-or-alts)
+                        ("Remove delimiters around pure numerical fields? " . numerical-fields)
+                        (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
+                                  " comma at end of entry? ") . last-comma)
+                        ("Replace double page dashes by single ones? " . page-dashes)
+                        ("Delete whitespace at the beginning and end of fields? " . whitespace)
+                        ("Inherit booktitle? " . inherit-booktitle)
+                        ("Force delimiters? " . delimiters)
+                        ("Unify case of entry types and field names? " . unify-case)
+                        ("Enclose parts of field entries by braces? " . braces)
+                        ("Replace parts of field entries by string constants? " . strings)
+                        ("Sort fields? " . sort-fields))
+                      '("formatting action" "formatting actions" "perform"))
+                     (setq bibtex-reformat-previous-options (nreverse answers)))))
                 ;; Do not include required-fields because `bibtex-reformat'
                 ;; cannot handle the error messages of `bibtex-format-entry'.
                 ;; Use `bibtex-validate' to check for required fields.

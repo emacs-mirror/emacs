@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -559,13 +559,13 @@ FLOAT, if non-nil, means generate and return a float instead of an integer
     (if (zerop (logand   256 mode)) ?- ?r)
     (if (zerop (logand   128 mode)) ?- ?w)
     (if (zerop (logand    64 mode))
-	(if (zerop (logand  1024 mode)) ?- ?S)
-      (if (zerop (logand  1024 mode)) ?x ?s))
+	(if (zerop (logand  2048 mode)) ?- ?S)
+      (if (zerop (logand  2048 mode)) ?x ?s))
     (if (zerop (logand    32 mode)) ?- ?r)
     (if (zerop (logand    16 mode)) ?- ?w)
     (if (zerop (logand     8 mode))
-	(if (zerop (logand  2048 mode)) ?- ?S)
-      (if (zerop (logand  2048 mode)) ?x ?s))
+	(if (zerop (logand  1024 mode)) ?- ?S)
+      (if (zerop (logand  1024 mode)) ?x ?s))
     (if (zerop (logand     4 mode)) ?- ?r)
     (if (zerop (logand     2 mode)) ?- ?w)
     (if (zerop (logand     1 mode)) ?- ?x)))
@@ -748,8 +748,7 @@ archive.
 	    (or file-name-coding-system
 		default-file-name-coding-system
 		locale-coding-system))
-      (if (default-value 'enable-multibyte-characters)
-	  (set-buffer-multibyte 'to))
+      (set-buffer-multibyte 'to)
       (archive-summarize nil)
       (setq buffer-read-only t)
       (when (and archive-visit-single-files
@@ -807,7 +806,7 @@ is visible (and the real data of the buffer is hidden).
 Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
-  (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+  (let ((create-lockfiles nil) ; avoid changing dir mtime by lock_file
 	(inhibit-read-only t))
     (setq archive-proper-file-start (copy-marker (point-min) t))
     (set (make-local-variable 'change-major-mode-hook) 'archive-desummarize)
@@ -1064,7 +1063,9 @@ using `make-temp-file', and the generated name is returned."
 		      ;; We read an archive member by no-conversion at
 		      ;; first, then decode appropriately by calling
 		      ;; archive-set-buffer-as-visiting-file later.
-		      (coding-system-for-read 'no-conversion))
+		      (coding-system-for-read 'no-conversion)
+		      ;; Avoid changing dir mtime by lock_file
+		      (create-lockfiles nil))
 		  (condition-case err
 		      (if (fboundp extractor)
 			  (funcall extractor archive ename)
@@ -2043,13 +2044,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (if copy (delete-file copy))
       (goto-char (point-min))
       (re-search-forward "^\\(\s+=+\s?+\\)+\n")
-      (while (looking-at (concat "^\s+[0-9.]+\s+-+\s+"   ; Flags
-                                 "\\([0-9-]+\\)\s+"      ; Size
-                                 "\\([0-9.%]+\\)\s+"     ; Ratio
-                                 "\\([0-9a-zA-Z]+\\)\s+" ; Mode
-                                 "\\([0-9-]+\\)\s+"      ; Date
-                                 "\\([0-9:]+\\)\s+"      ; Time
-                                 "\\(.*\\)\n"            ; Name
+      (while (looking-at (concat "^\s+[0-9.]+\s+D?-+\s+"   ; Flags
+                                 "\\([0-9-]+\\)\s+"        ; Size
+                                 "\\([-0-9.%]+\\|-+\\)\s+" ; Ratio
+                                 "\\([0-9a-zA-Z]+\\)\s+"   ; Mode
+                                 "\\([0-9-]+\\)\s+"        ; Date
+                                 "\\([0-9:]+\\)\s+"        ; Time
+                                 "\\(.*\\)\n"              ; Name
                                  ))
         (goto-char (match-end 0))
         (let ((name (match-string 6))

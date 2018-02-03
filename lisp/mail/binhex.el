@@ -1,6 +1,6 @@
-;;; binhex.el --- decode BinHex-encoded text
+;;; binhex.el --- decode BinHex-encoded text  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: binhex news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,8 +28,6 @@
 ;; Lisp implementation if not.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (eval-and-compile
   (defalias 'binhex-char-int
@@ -193,7 +191,7 @@ input and write the converted data to its standard output."
 (defvar binhex-last-char)
 (defvar binhex-repeat)
 
-(defun binhex-push-char (char &optional count ignored buffer)
+(defun binhex-push-char (char &optional ignored buffer)
   (cond
    (binhex-repeat
     (if (eq char 0)
@@ -241,10 +239,10 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 		      counter (1+ counter)
 		      inputpos (1+ inputpos))
 		(cond ((= counter 4)
-		       (binhex-push-char (lsh bits -16) 1 nil work-buffer)
-		       (binhex-push-char (logand (lsh bits -8) 255) 1 nil
+		       (binhex-push-char (lsh bits -16) nil work-buffer)
+		       (binhex-push-char (logand (lsh bits -8) 255) nil
 					 work-buffer)
-		       (binhex-push-char (logand bits 255) 1 nil
+		       (binhex-push-char (logand bits 255) nil
 					 work-buffer)
 		       (setq bits 0 counter 0))
 		      (t (setq bits (lsh bits 6)))))
@@ -263,12 +261,12 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	      (setq tmp (and tmp (not (eq inputpos end)))))
 	    (cond
 	     ((= counter 3)
-	      (binhex-push-char (logand (lsh bits -16) 255) 1 nil
+	      (binhex-push-char (logand (lsh bits -16) 255) nil
 				work-buffer)
-	      (binhex-push-char (logand (lsh bits -8) 255) 1 nil
+	      (binhex-push-char (logand (lsh bits -8) 255) nil
 				work-buffer))
 	     ((= counter 2)
-	      (binhex-push-char (logand (lsh bits -10) 255) 1 nil
+	      (binhex-push-char (logand (lsh bits -10) 255) nil
 				work-buffer))))
 	  (if header-only nil
 	    (binhex-verify-crc work-buffer
@@ -287,7 +285,7 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 (defun binhex-decode-region-external (start end)
   "Binhex decode region between START and END using external decoder."
   (interactive "r")
-  (let ((cbuf (current-buffer)) firstline work-buffer status
+  (let ((cbuf (current-buffer)) firstline work-buffer
 	(file-name (expand-file-name
 		    (concat (binhex-decode-region-internal start end t)
 			    ".data")

@@ -1,6 +1,6 @@
 ;;; elisp-mode.el --- Emacs Lisp mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -231,16 +231,21 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (defvar project-vc-external-roots-function)
   (lisp-mode-variables nil nil 'elisp)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
-  (setq-local electric-pair-text-pairs
-              (append '((?\` . ?\') (?‘ . ?’)) electric-pair-text-pairs))
-  (setq-local electric-quote-string t)
+  (unless noninteractive
+    (require 'elec-pair)
+    (defvar electric-pair-text-pairs)
+    (setq-local electric-pair-text-pairs
+                (append '((?\` . ?\') (?‘ . ?’)) electric-pair-text-pairs))
+    (setq-local electric-quote-string t))
   (setq imenu-case-fold-search nil)
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'elisp-eldoc-documentation-function)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
-            #'elisp-completion-at-point nil 'local))
+            #'elisp-completion-at-point nil 'local)
+  (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
+  (add-hook 'flymake-diagnostic-functions #'elisp-flymake-byte-compile nil t))
 
 ;; Font-locking support.
 
@@ -302,6 +307,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
           (setq sexp (ignore-errors (butlast sexp)))))
     res))
 
+(defvar warning-minimum-log-level)
+
 (defun elisp--local-variables ()
   "Return a list of locally let-bound variables at point."
   (save-excursion
@@ -323,7 +330,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
                                      (error form))))
              (sexp
               (unwind-protect
-                  (progn
+                  (let ((warning-minimum-log-level :emergency))
                     (advice-add 'macroexpand :around macroexpand-advice)
                     (macroexpand-all sexp))
                 (advice-remove 'macroexpand macroexpand-advice)))
@@ -807,7 +814,7 @@ non-nil result supercedes the xrefs produced by
   (apply #'nconc
          (let (lst)
            (dolist (sym (apropos-internal regexp))
-            (push (elisp--xref-find-definitions sym) lst))
+             (push (elisp--xref-find-definitions sym) lst))
            (nreverse lst))))
 
 (defvar elisp--xref-identifier-completion-table
@@ -894,10 +901,11 @@ Semicolons start comments.
 ;;; Emacs Lisp Byte-Code mode
 
 (eval-and-compile
-  (defconst emacs-list-byte-code-comment-re
+  (defconst emacs-lisp-byte-code-comment-re
     (concat "\\(#\\)@\\([0-9]+\\) "
             ;; Make sure it's a docstring and not a lazy-loaded byte-code.
-            "\\(?:[^(]\\|([^\"]\\)")))
+            "\\(?:[^(]\\|([^\"]\\)")
+    "Regular expression matching a dynamic doc string comment."))
 
 (defun elisp--byte-code-comment (end &optional _point)
   "Try to syntactically mark the #@NNN ....^_ docstrings in byte-code files."
@@ -906,7 +914,7 @@ Semicolons start comments.
                (eq (char-after (nth 8 ppss)) ?#))
       (let* ((n (save-excursion
                   (goto-char (nth 8 ppss))
-                  (when (looking-at emacs-list-byte-code-comment-re)
+                  (when (looking-at emacs-lisp-byte-code-comment-re)
                     (string-to-number (match-string 2)))))
              ;; `maxdiff' tries to make sure the loop below terminates.
              (maxdiff n))
@@ -932,7 +940,7 @@ Semicolons start comments.
   (elisp--byte-code-comment end (point))
   (funcall
    (syntax-propertize-rules
-    (emacs-list-byte-code-comment-re
+    (emacs-lisp-byte-code-comment-re
      (1 (prog1 "< b" (elisp--byte-code-comment end (point))))))
    start end))
 
@@ -1106,7 +1114,7 @@ If CHAR is not a character, return nil."
           ;; interactive call would use it.
           ;; FIXME: Is it really the right place for this?
           (when (eq (car-safe expr) 'interactive)
-	       (setq expr
+	    (setq expr
                   `(call-interactively
                     (lambda (&rest args) ,expr args))))
 	  expr)))))
@@ -1119,29 +1127,29 @@ current buffer.  If EVAL-LAST-SEXP-ARG-INTERNAL is `0', print
 output with no limit on the length and level of lists, and
 include additional formats for integers \(octal, hexadecimal, and
 character)."
-  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
+  (pcase-let*
+      ((`(,insert-value ,no-truncate ,char-print-limit)
+        (eval-expression-get-print-arguments eval-last-sexp-arg-internal)))
     ;; Setup the lexical environment if lexical-binding is enabled.
     (elisp--eval-last-sexp-print-value
      (eval (eval-sexp-add-defvars (elisp--preceding-sexp)) lexical-binding)
-     eval-last-sexp-arg-internal)))
+     (if insert-value (current-buffer) t) no-truncate char-print-limit)))
 
-(defun elisp--eval-last-sexp-print-value (value &optional eval-last-sexp-arg-internal)
-  (let ((unabbreviated (let ((print-length nil) (print-level nil))
-			 (prin1-to-string value)))
-	(print-length (and (not (zerop (prefix-numeric-value
-					eval-last-sexp-arg-internal)))
-			   eval-expression-print-length))
-	(print-level (and (not (zerop (prefix-numeric-value
-				       eval-last-sexp-arg-internal)))
-			  eval-expression-print-level))
-	(beg (point))
-	end)
+(defun elisp--eval-last-sexp-print-value
+    (value output &optional no-truncate char-print-limit)
+  (let* ((unabbreviated (let ((print-length nil) (print-level nil))
+                          (prin1-to-string value)))
+         (eval-expression-print-maximum-character char-print-limit)
+         (print-length (unless no-truncate eval-expression-print-length))
+         (print-level  (unless no-truncate eval-expression-print-level))
+         (beg (point))
+         end)
     (prog1
-	(prin1 value)
-      (let ((str (eval-expression-print-format value)))
-	(if str (princ str)))
+	(prin1 value output)
+      (let ((str (and char-print-limit (eval-expression-print-format value))))
+	(if str (princ str output)))
       (setq end (point))
-      (when (and (bufferp standard-output)
+      (when (and (bufferp output)
 		 (or (not (null print-length))
 		     (not (null print-level)))
 		 (not (string= unabbreviated
@@ -1171,19 +1179,22 @@ POS specifies the starting position where EXP was found and defaults to point."
             (and (not (special-variable-p var))
                  (save-excursion
                    (zerop (car (syntax-ppss (match-beginning 0)))))
-              (push var vars))))
+                 (push var vars))))
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in the echo area.
-Interactively, with prefix argument, print output into current buffer.
+Interactively, with a non `-' prefix argument, print output into
+current buffer.
 
-Normally, this function truncates long output according to the value
-of the variables `eval-expression-print-length' and
+Normally, this function truncates long output according to the
+value of the variables `eval-expression-print-length' and
 `eval-expression-print-level'.  With a prefix argument of zero,
 however, there is no such truncation.  Such a prefix argument
 also causes integers to be printed in several additional formats
-\(octal, hexadecimal, and character).
+\(octal, hexadecimal, and character when the prefix argument is
+-1 or the integer is `eval-expression-print-maximum-character' or
+less).
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
@@ -1369,11 +1380,11 @@ or elsewhere, return a 1-line docstring."
 				(condition-case nil (documentation sym t)
 				  (invalid-function nil))
 				sym))
-		     (car doc))
+		     (substitute-command-keys (car doc)))
 		    (t (help-function-arglist sym)))))
              ;; Stringify, and store before highlighting, downcasing, etc.
 	     (elisp--last-data-store sym (elisp-function-argstring args)
-                                    'function))))))
+                                     'function))))))
     ;; Highlight, truncate.
     (if argstring
 	(elisp--highlight-function-argument
@@ -1391,13 +1402,14 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   ;; FIXME: This should probably work on the list representation of `args'
   ;; rather than its string representation.
   ;; FIXME: This function is much too long, we need to split it up!
-  (let ((start          nil)
-	(end            0)
-	(argument-face  'eldoc-highlight-function-argument)
-        (args-lst (mapcar (lambda (x)
-                            (replace-regexp-in-string
-                             "\\`[(]\\|[)]\\'" "" x))
-                          (split-string args))))
+  (let* ((start          nil)
+         (end            0)
+         (argument-face  'eldoc-highlight-function-argument)
+         (args-lst (mapcar (lambda (x)
+                             (replace-regexp-in-string
+                              "\\`[(]\\|[)]\\'" "" x))
+                           (split-string args)))
+         (args-lst-ak (cdr (member "&key" args-lst))))
     ;; Find the current argument in the argument string.  We need to
     ;; handle `&rest' and informal `...' properly.
     ;;
@@ -1409,12 +1421,12 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
     ;; When `&key' is used finding position based on `index'
     ;; would be wrong, so find the arg at point and determine
     ;; position in ARGS based on this current arg.
-    (when (string-match "&key" args)
+    (when (and args-lst-ak
+               (>= index (- (length args-lst) (length args-lst-ak))))
       (let* (case-fold-search
              key-have-value
              (sym-name (symbol-name sym))
-             (cur-w (current-word))
-             (args-lst-ak (cdr (member "&key" args-lst)))
+             (cur-w (current-word t))
              (limit (save-excursion
                       (when (re-search-backward sym-name nil t)
                         (match-end 0))))
@@ -1422,7 +1434,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
                         (substring cur-w 1)
                       (save-excursion
                         (let (split)
-                          (when (re-search-backward ":\\([^()\n]*\\)" limit t)
+                          (when (re-search-backward ":\\([^ ()\n]*\\)" limit t)
                             (setq split (split-string (match-string 1) " " t))
                             (prog1 (car split)
                               (when (cdr split)
@@ -1434,7 +1446,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
                                  args-lst-ak
                                  (not (member (upcase cur-a) args-lst-ak))
                                  (upcase (car (last args-lst-ak))))))
-        (unless (string= cur-w sym-name)
+        (unless (or (null cur-w) (string= cur-w sym-name))
           ;; The last keyword have already a value
           ;; i.e :foo a b and cursor is at b.
           ;; If signature have also `&rest'
@@ -1580,6 +1592,160 @@ ARGLIST is either a string, or a list of strings or symbols."
     (if (and str (string-match "\\`([^ )]+ ?" str))
         (replace-match "(" t t str)
       str)))
+
+;;; Flymake support
+
+;; Don't require checkdoc, but forward declare these checkdoc special
+;; variables. Autoloading them on `checkdoc-current-buffer' is too
+;; late, they won't be bound dynamically.
+(defvar checkdoc-create-error-function)
+(defvar checkdoc-autofix-flag)
+(defvar checkdoc-generate-compile-warnings-flag)
+(defvar checkdoc-diagnostic-buffer)
+
+;;;###autoload
+(defun elisp-flymake-checkdoc (report-fn &rest _args)
+  "A Flymake backend for `checkdoc'.
+Calls REPORT-FN directly."
+  (let (collected)
+    (let* ((checkdoc-create-error-function
+            (lambda (text start end &optional unfixable)
+              (push (list text start end unfixable) collected)
+              nil))
+           (checkdoc-autofix-flag nil)
+           (checkdoc-generate-compile-warnings-flag nil)
+           (checkdoc-diagnostic-buffer
+            (generate-new-buffer " *checkdoc-temp*")))
+      (unwind-protect
+          (save-excursion
+            ;; checkdoc-current-buffer can error if there are
+            ;; unbalanced parens, for example, but this shouldn't
+            ;; disable the backend (bug#29176).
+            (ignore-errors
+              (checkdoc-current-buffer t)))
+        (kill-buffer checkdoc-diagnostic-buffer)))
+    (funcall report-fn
+             (cl-loop for (text start end _unfixable) in
+                      collected
+                      collect
+                      (flymake-make-diagnostic
+                       (current-buffer)
+                       start end :note text)))
+    collected))
+
+(defun elisp-flymake--byte-compile-done (report-fn
+                                         source-buffer
+                                         output-buffer)
+  (with-current-buffer
+      source-buffer
+    (save-excursion
+      (save-restriction
+        (widen)
+        (funcall
+         report-fn
+         (cl-loop with data =
+                  (with-current-buffer output-buffer
+                    (goto-char (point-min))
+                    (search-forward ":elisp-flymake-output-start")
+                    (read (point-marker)))
+                  for (string pos _fill level) in data
+                  do (goto-char pos)
+                  for beg = (if (< (point) (point-max))
+                                (point)
+                              (line-beginning-position))
+                  for end = (min
+                             (line-end-position)
+                             (or (cdr
+                                  (bounds-of-thing-at-point 'sexp))
+                                 (point-max)))
+                  collect (flymake-make-diagnostic
+                           (current-buffer)
+                           (if (= beg end) (1- beg) beg)
+                           end
+                           level
+                           string)))))))
+
+(defvar-local elisp-flymake--byte-compile-process nil
+  "Buffer-local process started for byte-compiling the buffer.")
+
+;;;###autoload
+(defun elisp-flymake-byte-compile (report-fn &rest _args)
+  "A Flymake backend for elisp byte compilation.
+Spawn an Emacs process that byte-compiles a file representing the
+current buffer state and calls REPORT-FN when done."
+  (when elisp-flymake--byte-compile-process
+    (when (process-live-p elisp-flymake--byte-compile-process)
+      (kill-process elisp-flymake--byte-compile-process)))
+  (let ((temp-file (make-temp-file "elisp-flymake-byte-compile"))
+        (source-buffer (current-buffer)))
+    (save-restriction
+      (widen)
+      (write-region (point-min) (point-max) temp-file nil 'nomessage))
+    (let* ((output-buffer (generate-new-buffer " *elisp-flymake-byte-compile*")))
+      (setq
+       elisp-flymake--byte-compile-process
+       (make-process
+        :name "elisp-flymake-byte-compile"
+        :buffer output-buffer
+        :command (list (expand-file-name invocation-name invocation-directory)
+                       "-Q"
+                       "--batch"
+                       ;; "--eval" "(setq load-prefer-newer t)" ; for testing
+                       "-L" default-directory
+                       "-f" "elisp-flymake--batch-compile-for-flymake"
+                       temp-file)
+        :connection-type 'pipe
+        :sentinel
+        (lambda (proc _event)
+          (when (eq (process-status proc) 'exit)
+            (unwind-protect
+                (cond
+                 ((not (and (buffer-live-p source-buffer)
+                            (eq proc (with-current-buffer source-buffer
+                                       elisp-flymake--byte-compile-process))))
+                  (flymake-log :warning
+                               "byte-compile process %s obsolete" proc))
+                 ((zerop (process-exit-status proc))
+                  (elisp-flymake--byte-compile-done report-fn
+                                                    source-buffer
+                                                    output-buffer))
+                 (t
+                  (funcall report-fn
+                           :panic
+                           :explanation
+                           (format "byte-compile process %s died" proc))))
+              (ignore-errors (delete-file temp-file))
+              (kill-buffer output-buffer))))))
+      :stderr null-device
+      :noquery t)))
+
+(defun elisp-flymake--batch-compile-for-flymake (&optional file)
+  "Helper for `elisp-flymake-byte-compile'.
+Runs in a batch-mode Emacs.  Interactively use variable
+`buffer-file-name' for FILE."
+  (interactive (list buffer-file-name))
+  (let* ((file (or file
+                   (car command-line-args-left)))
+         (dummy-elc-file)
+         (byte-compile-log-buffer
+          (generate-new-buffer " *dummy-byte-compile-log-buffer*"))
+         (byte-compile-dest-file-function
+          (lambda (source)
+            (setq dummy-elc-file (make-temp-file (file-name-nondirectory source)))))
+         (collected)
+         (byte-compile-log-warning-function
+          (lambda (string &optional position fill level)
+            (push (list string position fill level)
+                  collected)
+            t)))
+    (unwind-protect
+        (byte-compile-file file)
+      (ignore-errors
+        (delete-file dummy-elc-file)
+        (kill-buffer byte-compile-log-buffer)))
+    (prin1 :elisp-flymake-output-start)
+    (terpri)
+    (pp collected)))
 
 (provide 'elisp-mode)
 ;;; elisp-mode.el ends here

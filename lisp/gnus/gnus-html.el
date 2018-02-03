@@ -1,6 +1,6 @@
 ;;; gnus-html.el --- Render HTML in a buffer.
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html, web
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -99,11 +99,7 @@ fit these criteria."
          (not (file-exists-p (url-cache-create-filename url))))
         (t (let ((cache-time (url-is-cached url)))
              (if cache-time
-                 (time-less-p
-                  (time-add
-                   cache-time
-                   ttl)
-                  (current-time))
+                 (time-less-p (time-add cache-time ttl) nil)
                t)))))
 
 ;;;###autoload

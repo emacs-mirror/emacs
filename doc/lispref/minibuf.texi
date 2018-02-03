@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -57,17 +57,18 @@ including @code{beginning-of-line}, @code{forward-word},
 @code{forward-sentence}, and @code{forward-paragraph}, stop at the
 boundary between the prompt and the actual text.
 
-@c See http://debbugs.gnu.org/11276
+@c See https://debbugs.gnu.org/11276
   The minibuffer's window is normally a single line; it grows
-automatically if the contents require more space.  Whilst it is
-active, you can explicitly resize it temporarily with the window
-sizing commands; it reverts to its normal size when the minibuffer is
-exited.  When the minibuffer is not active, you can resize it
-permanently by using the window sizing commands in the frame's other
-window, or dragging the mode line with the mouse.  (Due to details of
-the current implementation, for this to work @code{resize-mini-windows}
-must be @code{nil}.)  If the frame contains just a minibuffer, you can
-change the minibuffer's size by changing the frame's size.
+automatically if the contents require more space.  Whilst the minibuffer
+is active, you can explicitly resize its window temporarily with the
+window sizing commands; the window reverts to its normal size when the
+minibuffer is exited.  When the minibuffer is not active, you can resize
+its window permanently by using the window sizing commands in the
+frame's other window, or dragging the mode line with the mouse.  (Due to
+details of the current implementation, for this to work
+@code{resize-mini-windows} must be @code{nil}.)  If the frame contains
+just a minibuffer window, you can change its size by changing the
+frame's size.
 
   Use of the minibuffer reads input events, and that alters the values
 of variables such as @code{this-command} and @code{last-command}
@@ -1439,7 +1440,7 @@ platform-dependent.  Here, we simply document the behavior when using
 the minibuffer.
 
 @code{read-file-name} does not automatically expand the returned file
-name.  You must call @code{expand-file-name} yourself if an absolute
+name.  You can call @code{expand-file-name} yourself if an absolute
 file name is required.
 
 The optional argument @var{require-match} has the same meaning as in
@@ -2256,43 +2257,48 @@ contents of the minibuffer before the point.
 These functions access and select minibuffer windows, test whether they
 are active and control how they get resized.
 
-@defun active-minibuffer-window
-This function returns the currently active minibuffer window, or
-@code{nil} if there is none.
-@end defun
-
 @defun minibuffer-window &optional frame
 @anchor{Definition of minibuffer-window}
 This function returns the minibuffer window used for frame @var{frame}.
-If @var{frame} is @code{nil}, that stands for the current frame.  Note
-that the minibuffer window used by a frame need not be part of that
+If @var{frame} is @code{nil}, that stands for the selected frame.
+
+Note that the minibuffer window used by a frame need not be part of that
 frame---a frame that has no minibuffer of its own necessarily uses some
-other frame's minibuffer window.
+other frame's minibuffer window.  The minibuffer window of a
+minibuffer-less frame can be changed by setting that frame's
+@code{minibuffer} frame parameter (@pxref{Buffer Parameters}).
 @end defun
 
 @defun set-minibuffer-window window
 This function specifies @var{window} as the minibuffer window to use.
 This affects where the minibuffer is displayed if you put text in it
-without invoking the usual minibuffer commands.  It has no effect on
-the usual minibuffer input functions because they all start by
-choosing the minibuffer window according to the current frame.
+without invoking the usual minibuffer commands.  It has no effect on the
+usual minibuffer input functions because they all start by choosing the
+minibuffer window according to the selected frame.
 @end defun
 
 @c Emacs 19 feature
 @defun window-minibuffer-p &optional window
 This function returns non-@code{nil} if @var{window} is a minibuffer
-window.
-@var{window} defaults to the selected window.
+window.  @var{window} defaults to the selected window.
 @end defun
 
-It is not correct to determine whether a given window is a minibuffer by
-comparing it with the result of @code{(minibuffer-window)}, because
-there can be more than one minibuffer window if there is more than one
-frame.
+The following function returns the window showing the currently active
+minibuffer.
+
+@defun active-minibuffer-window
+This function returns the window of the currently active minibuffer, or
+@code{nil} if there is no active minibuffer.
+@end defun
+
+It is not sufficient to determine whether a given window shows the
+currently active minibuffer by comparing it with the result of
+@code{(minibuffer-window)}, because there can be more than one
+minibuffer window if there is more than one frame.
 
 @defun minibuffer-window-active-p window
-This function returns non-@code{nil} if @var{window} is the currently
-active minibuffer window.
+This function returns non-@code{nil} if @var{window} shows the currently
+active minibuffer.
 @end defun
 
 The following two options control whether minibuffer windows are resized
@@ -2374,14 +2380,14 @@ returns zero.
 
 @defopt enable-recursive-minibuffers
 If this variable is non-@code{nil}, you can invoke commands (such as
-@code{find-file}) that use minibuffers even while the minibuffer window
-is active.  Such invocation produces a recursive editing level for a new
+@code{find-file}) that use minibuffers even while the minibuffer is
+active.  Such invocation produces a recursive editing level for a new
 minibuffer.  The outer-level minibuffer is invisible while you are
 editing the inner one.
 
-If this variable is @code{nil}, you cannot invoke minibuffer
-commands when the minibuffer window is active, not even if you switch to
-another window to do it.
+If this variable is @code{nil}, you cannot invoke minibuffer commands
+when the minibuffer is active, not even if you switch to another window
+to do it.
 @end defopt
 
 @c Emacs 19 feature
@@ -2407,6 +2413,19 @@ This is a normal hook that is run whenever the minibuffer is entered.
 @xref{Hooks}.
 @end defvar
 
+@defmac minibuffer-with-setup-hook function &rest body
+This macro executes @var{body} after arranging for the specified
+@var{function} to be called via @code{minibuffer-setup-hook}.  By
+default, @var{function} is called before the other functions in the
+@code{minibuffer-setup-hook} list, but if @var{function} is of the
+form @w{@code{(:append @var{func})}}, @var{func} will be called
+@emph{after} the other hook functions.
+
+The @var{body} forms should not use the minibuffer more than once.  If
+the minibuffer is re-entered recursively, @var{function} will only be
+called once, for the outermost use of the minibuffer.
+@end defmac
+
 @defvar minibuffer-exit-hook
 This is a normal hook that is run whenever the minibuffer is exited.
 @xref{Hooks}.
@@ -2426,9 +2445,9 @@ minibuffer, it scrolls this window.
 @end defvar
 
 @defun minibuffer-selected-window
-This function returns the window that was selected when the
-minibuffer was entered.  If selected window is not a minibuffer
-window, it returns @code{nil}.
+This function returns the window that was selected just before the
+minibuffer window was selected.  If the selected window is not a
+minibuffer window, it returns @code{nil}.
 @end defun
 
 @defopt max-mini-window-height

@@ -1,11 +1,10 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2017 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 2017-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Records
 @chapter Records
-@cindex record
+@cindex records
 
   The purpose of records is to allow programmers to create objects
 with new types that are not built into Emacs.  They are used as the
@@ -27,6 +26,13 @@ type descriptor, the symbol naming its type will be returned;
   The printed representation of records is @samp{#s} followed by a
 list specifying the contents.  The first list element must be the
 record type.  The following elements are the record slots.
+
+  To avoid conflicts with other type names, Lisp programs that define
+new types of records should normally use the naming conventions of the
+package where these record types are introduced for the names of the
+types.  Note that the names of the types which could possibly conflict
+might not be known at the time the package defining a record type is
+loaded; they could be loaded at some future point in time.
 
   A record is considered a constant for evaluation: the result of
 evaluating it is the same record.  This does not evaluate or even

@@ -1,6 +1,6 @@
 ;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -171,7 +171,11 @@ A header-line does not scroll with the rest of the buffer."
 ;; defvar and explicitly give it a standard-value property, and
 ;; call custom-initialize-delay on it.
 ;; The progn forces the autoloader to include the whole thing, not
-;; just an abbreviated version.
+;; just an abbreviated version.  The value is initialized at startup
+;; time, when command-line calls custom-reevaluate-setting on all
+;; the defcustoms in custom-delayed-init-variables.  This is
+;; somewhat sub-optimal, as ideally this should be done when Info
+;; mode is first invoked.
 ;;;###autoload
 (progn
 (defcustom Info-default-directory-list
@@ -436,22 +440,33 @@ Each element has the form (INFO-FILE INDEX-NODE-NAMES-LIST).")
 
 (defvar Info-virtual-files nil
   "List of definitions of virtual Info files.
-Each element of the list has the format (FILENAME (OPERATION . HANDLER) ...)
-where FILENAME is a regexp that matches a class of virtual Info file names.
-It should be carefully chosen to not cause file name clashes with
-existing file names.  OPERATION is one of the following operation
-symbols `find-file', `find-node', `toc-nodes' that define what HANDLER
-function to call instead of calling the default corresponding function
-to override it.")
+Each element of the list has the form (FILENAME (OPERATION . HANDLER) EXTRA)
+where FILENAME is a regexp that matches a class of virtual Info file names,
+it should be carefully chosen to not cause file name clashes with
+existing file names;
+OPERATION is one of the symbols `find-file', `find-node', `toc-nodes';
+and HANDLER is a function to call when OPERATION is invoked on a
+virtual Info file.
+EXTRA, if present, is one or more cons cells specifying extra
+attributes important to some applications which use this data.
+For example, desktop saving and desktop restoring use the `slow'
+attribute to avoid restoration of nodes that could be expensive
+to compute.")
 
 (defvar Info-virtual-nodes nil
   "List of definitions of virtual Info nodes.
-Each element of the list has the format (NODENAME (OPERATION . HANDLER) ...)
-where NODENAME is a regexp that matches a class of virtual Info node names.
-It should be carefully chosen to not cause node name clashes with
-existing node names.  OPERATION is one of the following operation
-symbols `find-node' that define what HANDLER function to call instead
-of calling the default corresponding function to override it.")
+Each element of the list has the form (NODENAME (OPERATION . HANDLER) EXTRA)
+where NODENAME is a regexp that matches a class of virtual Info node names,
+it should be carefully chosen to not cause node name clashes with
+existing node names;
+OPERATION is the symbol `find-node';
+and HANDLER is a function to call when OPERATION is invoked on a
+virtual Info node.
+EXTRA, if present, is one or more cons cells specifying extra
+attributes important to some applications which use this data.
+For example, desktop saving and desktop restoring use the `slow'
+attribute to avoid restoration of nodes that could be expensive
+to compute.")
 
 (defvar-local Info-current-node-virtual nil
   "Non-nil if the current Info node is virtual.")
@@ -634,7 +649,7 @@ Do the right thing if the file has been compressed or zipped."
 	   (attribs-new (and (stringp fullname) (file-attributes fullname)))
 	   (modtime-new (and attribs-new (nth 5 attribs-new))))
       (when (and modtime-old modtime-new
-		 (> (float-time modtime-new) (float-time modtime-old)))
+		 (time-less-p modtime-old modtime-new))
 	(setq Info-index-nodes (remove (assoc (or Info-current-file filename)
 					      Info-index-nodes)
 				       Info-index-nodes))
@@ -1332,7 +1347,7 @@ is non-nil)."
 		       ;; Shouldn't really happen, but sometimes does,
 		       ;; eg on Debian systems with buggy packages;
 		       ;; so may as well try it.
-		       ;; http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00005.html
+		       ;; https://lists.gnu.org/r/emacs-devel/2012-03/msg00005.html
 		       (progn (setq file (expand-file-name "dir.gz" truename))
 			      (file-attributes file)))))
 		(setq dirs-done
@@ -4008,7 +4023,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "h" 'Info-help)
     ;; This is for compatibility with standalone info (>~ version 5.2).
     ;; Though for some time, standalone info had H and h reversed.
-    ;; See <http://debbugs.gnu.org/16455>.
+    ;; See <https://debbugs.gnu.org/16455>.
     (define-key map "H" 'describe-mode)
     (define-key map "i" 'Info-index)
     (define-key map "I" 'Info-virtual-index)
@@ -4650,7 +4665,7 @@ first line or header line, and for breadcrumb links.")
             (if (string-equal (downcase tag) "node")
                 (put-text-property nbeg nend 'font-lock-face 'info-header-node)
               (put-text-property nbeg nend 'font-lock-face 'info-header-xref)
-              (put-text-property tbeg nend 'mouse-face 'highlight)
+              (put-text-property tbeg nend 'mouse-face 'header-line-highlight)
               (put-text-property tbeg nend
                                  'help-echo
                                  (concat "mouse-2: Go to node "

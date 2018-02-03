@@ -1,6 +1,6 @@
 ;;; calc-tests.el --- tests for calc                 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: maint
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -86,9 +86,54 @@ An existing calc stack is reused, otherwise a new one is created."
 					       (math-read-expr "1m") "cm")
 			    '(* -100 (var cm var-cm)))))
 
+(ert-deftest test-calc-23889 ()
+  "Test for https://debbugs.gnu.org/23889 and 25652."
+  (skip-unless (>= math-bignum-digit-length 9))
+  (dolist (mode '(deg rad))
+    (let ((calc-angle-mode mode))
+      ;; If user inputs angle units, then should ignore `calc-angle-mode'.
+      (should (string= "5253"
+                       (substring
+                        (number-to-string
+                         (nth 1
+                              (math-simplify-units
+                               '(calcFunc-cos (* 45 (var rad var-rad))))))
+                        0 4)))
+      (should (string= "7071"
+                       (substring
+                        (number-to-string
+                         (nth 1
+                              (math-simplify-units
+                               '(calcFunc-cos (* 45 (var deg var-deg))))))
+                        0 4)))
+      (should (string= "8939"
+                       (substring
+                        (number-to-string
+                         (nth 1
+                              (math-simplify-units
+                               '(+ (calcFunc-sin (* 90 (var rad var-rad)))
+                                   (calcFunc-cos (* 90 (var deg var-deg)))))))
+                        0 4)))
+      (should (string= "5519"
+                       (substring
+                        (number-to-string
+                         (nth 1
+                              (math-simplify-units
+                               '(+ (calcFunc-sin (* 90 (var deg var-deg)))
+                                   (calcFunc-cos (* 90 (var rad var-rad)))))))
+                        0 4)))
+      ;; If user doesn't input units, then must use `calc-angle-mode'.
+      (should (string= (if (eq calc-angle-mode 'deg)
+                           "9998"
+                         "5403")
+                       (substring
+                        (number-to-string
+                         (nth 1 (calcFunc-cos 1)))
+                        0 4))))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 
 ;; Local Variables:
-;; bug-reference-url-format: "http://debbugs.gnu.org/%s"
+;; bug-reference-url-format: "https://debbugs.gnu.org/%s"
 ;; End:

@@ -6,7 +6,7 @@ Files: hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png
        hicolor/scalable/mimetypes/emacs-document.svg
 
 Author: Nicolas Petton <nicolas@petton.fr>
-Copyright (C) 2015-2017 Free Software Foundation, Inc.
+Copyright (C) 2015-2018 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
 Files: hicolor/16x16/apps/emacs23.png hicolor/24x24/apps/emacs23.png
@@ -14,7 +14,7 @@ Files: hicolor/16x16/apps/emacs23.png hicolor/24x24/apps/emacs23.png
        hicolor/128x128/apps/emacs23.png hicolor/scalable/apps/emacs23.svg
 
 Author: Kentaro Ohkouchi <nanasess@fsm.ne.jp>
-Copyright (C) 2007-2017 Free Software Foundation, Inc.
+Copyright (C) 2007-2018 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
 
@@ -22,7 +22,7 @@ Files: hicolor/16x16/apps/emacs22.png hicolor/24x24/apps/emacs22.png
        hicolor/32x32/apps/emacs22.png hicolor/48x48/apps/emacs22.png
 
 Author: Andrew Zhilin <andrew_zhilin@yahoo.com>
-Copyright (C) 2005-2017 Free Software Foundation, Inc.
+Copyright (C) 2005-2018 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
 
 Files: allout-widgets-dark-bg/closed.png
@@ -71,5 +71,5 @@ Files: allout-widgets-dark-bg/closed.png
        allout-widgets-light-bg/through-descender.xpm
 
 Author: Ken Manheimer <ken.manheimer@gmail.com>
-Copyright (C) 2011-2017 Free Software Foundation, Inc.
+Copyright (C) 2011-2018 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)

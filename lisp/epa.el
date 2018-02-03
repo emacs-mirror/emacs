@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -40,6 +40,7 @@
 If t, replace the original text without any confirmation.
 If nil, don't replace the original text and show the result in a new buffer.
 If neither t nor nil, ask user for confirmation."
+  :version "26.1"
   :type '(choice (const :tag "Never" nil)
 		 (const :tag "Ask the user" ask)
 		 (const :tag "Always" t))
@@ -55,12 +56,15 @@ If neither t nor nil, ask user for confirmation."
   :type 'integer
   :group 'epa)
 
+;; In the doc string below, we say "symbol `error'" to avoid producing
+;; a hyperlink for `error' the function.
 (defcustom epa-pinentry-mode nil
   "The pinentry mode.
 
 GnuPG 2.1 or later has an option to control the behavior of
-Pinentry invocation.  Possible modes are: `ask', `cancel',
-`error', and `loopback'.  See the GnuPG manual for the meanings.
+Pinentry invocation.  The value should be the symbol `error',
+`ask', `cancel', or `loopback'.  See the GnuPG manual for the
+meanings.
 
 In epa commands, a particularly useful mode is `loopback', which
 redirects all Pinentry queries to the caller, so Emacs can query
@@ -561,7 +565,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 				      (epg-sub-key-creation-time (car pointer)))
 		(error "????-??-??"))
 	      (if (epg-sub-key-expiration-time (car pointer))
-		  (format (if (time-less-p (current-time)
+		  (format (if (time-less-p nil
 					   (epg-sub-key-expiration-time
 					    (car pointer)))
 			      "\n\tExpires: %s"

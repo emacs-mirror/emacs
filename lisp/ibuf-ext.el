@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -375,7 +375,7 @@ format. See `ibuffer-update-saved-filters-format' and
     (let ((fixed (ibuffer-update-saved-filters-format ibuffer-saved-filters)))
       (prog1
           (setq ibuffer-saved-filters (cdr fixed))
-        (when-let (old-format-detected (car fixed))
+        (when-let* ((old-format-detected (car fixed)))
           (let ((warning-series t)
                 (updated-form
                  (with-output-to-string
@@ -1033,8 +1033,11 @@ group definitions by setting `ibuffer-filter-groups' to nil."
       (ibuffer-jump-to-buffer (buffer-name buf)))))
 
 (defun ibuffer-push-filter (filter-specification)
-  "Add FILTER-SPECIFICATION to `ibuffer-filtering-qualifiers'."
-  (push filter-specification ibuffer-filtering-qualifiers))
+  "Add FILTER-SPECIFICATION to `ibuffer-filtering-qualifiers'.
+If FILTER-SPECIFICATION is already in the list then return nil.  Otherwise,
+return the updated list."
+  (unless (member filter-specification ibuffer-filtering-qualifiers)
+    (push filter-specification ibuffer-filtering-qualifiers)))
 
 ;;;###autoload
 (defun ibuffer-decompose-filter ()
@@ -1282,6 +1285,12 @@ currently used by buffers."
   (:description "buffer name"
    :reader (read-from-minibuffer "Filter by name (regexp): "))
   (string-match qualifier (buffer-name buf)))
+
+;;;###autoload (autoload 'ibuffer-filter-by-process "ibuf-ext")
+(define-ibuffer-filter process
+    "Limit current view to buffers running a process."
+  (:description "process")
+  (get-buffer-process buf))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-starred-name "ibuf-ext")
 (define-ibuffer-filter starred-name

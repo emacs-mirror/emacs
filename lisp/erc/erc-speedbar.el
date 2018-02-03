@@ -1,6 +1,6 @@
 ;;; erc-speedbar.el --- Speedbar support for ERC
 
-;; Copyright (C) 2001-2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Contributor: Eric M. Ludlam <eric@siege-engine.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -361,6 +361,7 @@ The INDENT level is ignored."
 ;;; erc-speedbar.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

@@ -1,6 +1,6 @@
 ;;; gnus-tests.el --- Wrapper for the Gnus tests
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,8 +26,6 @@
 
 ;;; Code:
 ;; registry.el is required by gnus-registry.el but this way we're explicit.
-(eval-when-compile (require 'cl))
-
 (require 'registry)
 (require 'gnus-registry)
 

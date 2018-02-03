@@ -1,6 +1,6 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2017 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -142,7 +142,10 @@ are not abstract."
 	      (find-lisp-object-file-name ctr def)))
       (when location
 	(insert (substitute-command-keys " in `"))
-	(help-insert-xref-button
+	;; The `cl-type-definition' button type can't be autoloaded
+	;; due to circularity during bootstrap (Bug#28899).
+        (require 'cl-extra)
+        (help-insert-xref-button
 	 (help-fns-short-filename location)
 	 'cl-type-definition ctr location 'define-type)
 	(insert (substitute-command-keys "'")))

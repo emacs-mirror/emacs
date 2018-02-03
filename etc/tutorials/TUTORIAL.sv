@@ -12,17 +12,24 @@ ALT eller EDIT). Vi använder här följande förkortningar:
 
 Viktigt: För att avsluta Emacs trycker du C-x C-c (två tecken).
 För att avsluta kommandon som inte skrivits in fullt, tryck C-g.
+För att avsluta användarhandledningen, tryck C-x k och sedan <Return>
+vid prompten.
 Tecknen ">>" i vänstermarginalen anger att du kan prova ett
 kommando. Till exempel:
 <<Tomma rader sätts in runt nästa rad när help-with-tutorial aktiveras>>
 [Tomma rader av pedagogiska skäl. Texten fortsätter nedanför.]
->> Tryck C-v (View next screen) för att hoppa till nästa skärmbild.
+>> Tryck C-v (View next screen) för att rulla nedåt i handledningen.
         Prova nu. Håll ned kontrolltangenten och tryck v. Gör så i
-        fortsättningen när du är färdig med en skärmbild.
+        fortsättningen när du når slutet av en skärmbild.
 
-Notera att det är ett överlapp på två rader när du byter från
-skärmbild till skärmbild. Detta är för att behålla sammanhanget när du
-bläddrar framåt i filen.
+Notera att det är ett överlapp på två rader när du rullar en hel sida.
+Detta är för att behålla sammanhanget när du bläddrar framåt i texten.
+
+Det här är en kopia av Emacs användarhandledning, som anpassats något
+för dig. Längre fram kommer vi att instruera dig att prova olika
+kommandon som ändrar i texten. Var inte orolig om du ändrar texten
+innan vi säger till dig att göra det. Det kallas för att redigera och
+det är det som Emacs är till för.
 
 Det första du behöver veta är hur du manövrerar från plats till plats
 i texten. Du har redan lärt dig hur du flyttar en skärmbild framåt,
@@ -32,6 +39,7 @@ META-, EDIT- eller ALT-tangent.)
 
 >> Prova att trycka M-v och C-v några gånger.
 
+Det är OK att rulla texten på andra sätt om du vet hur.
 
 * SAMMANFATTNING
 ----------------
@@ -234,6 +242,7 @@ texten.
 Om din mus har ett rullningshjul kan även den användas för att rulla
 texten.
 
+
 * OM EMACS SLUTAR SVARA
 -----------------------
 
@@ -290,8 +299,6 @@ tas bort.
 
 >> Slå C-x 1 och se hur dokumentationsfönstret nu försvinner.
 
-Kommandot skiljer sig lite från andra kommandon du har lärt dig
-eftersom det består av två tecken. Det startar med tecknet KONTROLL-x.
 Det finns många kommandon som startar med KONTROLL-x och många av dem
 har med filer, skärmbilder och liknande saker att göra. Dessa
 kommandon är två, tre eller fyra tecken långa.
@@ -341,6 +348,19 @@ skärmbredd, så kommer den att visas med ett fortsättningstecken.
    Detta kommer att klistra ihop raden med raden över.
 
 >> Tryck <Return> för att sätta in radbrytningen du tog bort.
+
+<Return>-tangenten är speciell. Genom att trycka på den kan mer göras
+än att bara sätta in en ny rad. Beroende på texten runt om kring kan
+blanktecken matas in så att när du börjar skriva på den nya raden är
+den indragen som raden ovanför. Vi kallar detta beteende (när ett
+tryck på en tangent leder till mer än att det aktuella tecknet matas
+in) "elektriskt".
+
+>> Här är ett exempel på när <Return> är elektrisk.
+   Tryck <Return> vid slutet på denna rad.
+
+Du bör se att efter att den nya raden satts in, sätter Emacs in
+blanktecken så att markören flyttas fram under "T" i "Tryck".
 
 Tänk på att de flesta Emacs-kommandon kan ta numeriska argument. Detta
 gäller också texttecken. Genom att repetera ett texttecken kommer det
@@ -405,13 +425,11 @@ raderar så många rader OCH innehållet i dem. Detta är alltså inte bara
 en repetition av kommandot. C-u 2 C-k raderar två rader samt de tomma
 raderna, medan C-k två gånger inte kommer att göra det.
 
-Att sätta in borttagen text kallas att "återhämta" den (yanking).
-(Tänk på det som att du rycker, eller drar, tillbaka någon text som
-tagits bort.) Du kan antingen hämta tillbaka borttagen text till samma
-plats som där den blev borttagen, eller så kan du sätta in den på en
-annan plats i texten du redigerar eller till och med i en helt annan
-fil. Du kan också hämta tillbaka samma text flera gånger så att du får
-flera kopior av den. Några andra textredigerare kallar "ta bort" och
+Du kan antingen hämta tillbaka borttagen text till samma plats som där
+den blev borttagen, eller så kan du sätta in den på en annan plats i
+texten du redigerar eller till och med i en helt annan fil. Du kan
+också hämta tillbaka samma text flera gånger så att du får flera
+kopior av den. Några andra textredigerare kallar "ta bort" och
 "återhämta" att "klippa ut" respektive "klistra in" (Se ordlistan i
 Emacs-manualen)
 
@@ -499,7 +517,7 @@ med när du sparar filen kommer Emacs att behålla originalet under ett
 nytt namn, som backup, ifall du senare ångrar alltihop.
 
 Om du tittar nästan längst ner på skärmbilden så kommer du se en rad
-som börjar med minustecken, och som startar med "--:-- TUTORIAL.sv"
+som börjar med minustecken, och som startar med "-:--- TUTORIAL.sv"
 eller något snarlikt. Denna del av skärmbilden visar normalt namnet på
 filen du besöker. Just nu besöker du din personlig kopia av
 vägledningen till Emacs, vilken heter "TUTORIAL.sv". Vilken fil du än
@@ -592,8 +610,7 @@ Mestadels är buffertens namn densamma som filens namn (utan
 katalogdel.) Det är dock inte alltid så. Bufferlistan du skapar med
 C-x C-b visar alltid namnen på varje buffert.
 
-All text du ser i ett Emacsfönster är alltid del av någon buffert. En
-del buffertar är inte knutna till någon fil, till exempel bufferten
+En del buffertar är inte knutna till någon fil, till exempel bufferten
 "*Buffer List*". Det är den buffert som innehåller buffertlistan som
 skapades med C-x C-b. Bufferten "*Messages*" motsvarar inte heller
 någon fil. Den innehåller de meddelanden som visas på den nedersta
@@ -685,9 +702,9 @@ avsluta bägge argumenten med <Return>.
 >> Flytta markören till den blanka raden två rader under denna rad.
    Skriv M-x repl s<Return>förändrad<Return>ändrad<Return>.
 
-   Lägg märke till hur den här raden har blivit förändrad. Du har
-   ersatt ordet f-ö-r-ä-n-d-r-a-d med "ändrad" på alla platser där
-   ordet förekom, från markören och nedåt.
+   Lägg märke till hur den här raden har blivit uppdaterad. Du har
+   ersatt ordet "förändrad" med "ändrad" på alla platser där ordet
+   förekom, från markören och nedåt.
 
 
 * SPARAUTOMATIK
@@ -703,8 +720,8 @@ sätt kommer Emacs radera autosparfilen.
 
 Om maskinen kraschar kan du återfå dina automatiskt sparade ändringar
 genom att finna filen på vanlig sätt (filen du redigerade, inte
-autosparfilen) och skriva M-x recover-file<Return>. När Emacs vill ha
-bekräftelse svarar du yes<Return> för att återställa filen.
+autosparfilen) och skriva M-x recover-this-file <Return>. När Emacs
+vill ha bekräftelse svarar du yes<Return> för att återställa filen.
 
 
 * EKOOMRÅDE
@@ -722,7 +739,7 @@ skärmbilden.
 Raden precis över ekoområdet kallas "lägesrad" (mode line). Den ser
 ungefär ut så här:
 
---:**  TUTORIAL       63% L749    (Fundamental)-----------------------
+ -:**-  TUTORIAL       63% L749    (Fundamental)
 
 Raden innehåller information om Emacs och texten du redigerar.
 
@@ -774,6 +791,7 @@ annorlunda.
 För att få fram dokumentationen för det läge du är i nu kan du skriva
 C-h m.
 
+>> Flytta markören till raden efter denna rad.
 >> Använd C-l C-l för att få denna rad överst på skärmbilden.
 >> Skriv C-h m och se hur Text-läget skiljer sig från
    Fundamental-läget.
@@ -902,10 +920,11 @@ ordlista över Emacs-termer.
    gjorde när du lämnade det.
 
 Du kan fortsätta att använda C-x o för att byta mellan de två
-fönstren. Det valda fönstret, där de flesta redigeringarna äger rum, är
-det med den tydligaste markören, som blinkar när du inte skriver. De
-andra fönstren har sin egen markörposition. Om du kör Emacs under ett
-fönstersystem, ritas dessa markörer som en tom ruta som inte blinkar..
+fönstren. Det "valda fönstret", där de flesta redigeringarna äger rum,
+är det med den tydligaste markören, som blinkar när du inte skriver.
+De andra fönstren har sin egen markörposition. Om du kör Emacs under
+ett fönstersystem, ritas dessa markörer som en tom ruta som inte
+blinkar.
 
 Kommandot C-M-v är bra när du redigerar text i ett fönster och
 använder det andra fönstret för referenser. Utan att lämna det valda
@@ -944,6 +963,7 @@ filer:
 >> Skriv C-x o för att gå tillbaka till det övre fönstret och C-x
    1 för att bli kvitt det nedre igen.
 
+
 * MULTIPLA RAMAR
 ----------------
 
@@ -953,19 +973,20 @@ etc. Det som Emacs kallar för ram kallar de flesta andra program för
 fönster. Flera grafiska ramar kan visas på skärmen samtidigt. På en
 textterminal kan bara en ram visas åt gången.
 
->> Skriv M-x make-frame <Return>.
+>> Skriv C-x 5 2.
    En ny ram visas på din skärm.
 
 Du kan göra allt du gjorde i den första ramen i den här nya ramen. Det
 finns inget speciellt med den första ramen.
 
->> Skriv M-x delete-frame <Return>.
-   Ta bort den valda ramen.
+>> Skriv C-x 5 0.
+   Detta tar bort den valda ramen.
 
 Du kan också ta bort ramen genom den vanliga metod som tillhandahålls
 av fönstersystemet (ofta klickar man på knappen med symbolen "X" i
 något av de övre hörnen.) Om den sista ramen tas bort på det här
 sättet så avlutas Emacs.
+
 
 * REKURSIVA REDIGERINGSNIVÅER
 -----------------------------
@@ -990,13 +1011,13 @@ under rekursiv redigering.
 * MER HJÄLP
 -----------
 
-I denna vägledning har vi försökt inkludera precis så mycket
-information att du kan börja använda Emacs. Det finns så många
-möjligheter i Emacs att det skulle vara omöjligt att förklara alla
-här. Men du VILL säkert lära dig mer om Emacs eftersom den har många
-goda egenskaper. Emacs tillhandahåller kommandon för att läsa all
-dokumentation. Dessa hjälpkommandon startas med teckenkombinationen
-C-h.
+I denna vägledning har vi försökt få med precis så mycket information
+att du kan börja använda Emacs. Det finns så många möjligheter i Emacs
+att det skulle vara omöjligt att förklara alla här. Men du vill säkert
+lära dig mer om Emacs eftersom den har många goda egenskaper. Emacs
+tillhandahåller kommandon för att läsa all dokumentation. Dessa
+hjälpkommandon startas med tecknet KONTROLL-h, som kallas för
+hjälptecknet.
 
 För att använda hjälpen skriver du C-h följt av ett tecken för den
 hjälp du behöver. Om du verkligen är helt villrådig kan du trycka C-h
@@ -1020,8 +1041,9 @@ Detta ger dig namnet på funktionen. Eftersom funktionerna har
 beskrivande namn kan de också fungera som en enkel dokumentation,
 tillräckligt för att påminna dig om kommandon du redan lärt dig.
 
-Flerteckenskommandon, så som C-x C-s och (om du inte har META, EDIT
-eller ALT tangenten) <ESC> v, är också tillåtna efter C-h c.
+Flerteckenskommandon, så som C-x C-s och <ESC>v (i stället för M-v, om
+du inte har META, EDIT eller ALT tangenten) är också tillåtna efter
+C-h c.
 
 För att få mer information om ett kommando kan du använda C-h k
 istället för C-h c.
@@ -1045,18 +1067,18 @@ Ett liknande kommando, C-h v, visar dokumentationen för de variabler
 som du kan ändra värde på för att anpassa Emacs beteende. Du måste
 ange namnet på variabeln när Emacs frågar efter den.
 
-   C-h a        Kommando-apropå (Command Apropos). Skriv in ett
+   C-h a	Kommando-apropå (Command Apropos). Skriv in ett
 		nyckelord och Emacs listar all kommandon vars namn
-		innehåller det nyckelordet. Alla dessa
-                kommandon kan aktiveras med META-x. För några
-                kommandon listas också de kombinationer bestående av
-                en eller två tecken som kör det kommandot.
+		innehåller det nyckelordet. Alla dessa kommandon kan
+		aktiveras med META-x. För några kommandon listas också
+		en sekvens av en eller flera tecken som kör det
+		kommandot.
 
->> Skriv C-h a file<Return>.
+>> Skriv C-h a file <Return>.
 
 Detta visar i ett annat fönster en lista över alla M-x kommandon där
-"file" förekommer i kommandonamnet. Du kommer se teckenkommandon som
-C-x C-f listade bredvid motsvarande kommandonamn, t.ex. find-file.
+"file" förekommer i namnet. Du kommer se teckenkommandon som C-x C-f
+listade bredvid motsvarande kommandonamn, t.ex. find-file.
 
 >> Tryck C-M-v för att rulla texten i hjälpfönstret. Gör det några
    gånger.
@@ -1068,7 +1090,7 @@ C-x C-f listade bredvid motsvarande kommandonamn, t.ex. find-file.
                 där du kan läsa hjälpen för de paket som är
                 installerade i ditt system. Slå m emacs <Return> för
                 att läsa Emacs-manualen. Om du aldrig tidigare har
-                använt dig av Info, skriv ? och Emacs tar dig på en
+                använt dig av Info, skriv h och Emacs tar dig på en
                 guidad tur över Infolägets (Info-mode) möjligheter.
                 När du väl har tagit dig igenom den här
                 användarhandledningen så är det direktmanualen som är
@@ -1079,7 +1101,7 @@ C-x C-f listade bredvid motsvarande kommandonamn, t.ex. find-file.
 ----------------
 
 Du kan lära dig mer om Emacs genom att läsa dess manual, antingen i
-bokform eller on-line i Info (använd Hjälp-menyn eller skriv F10 h r).
+bokform eller on-line i Info (använd Hjälp-menyn eller skriv C-h r).
 Två finesser som du kan komma att gilla speciellt är komplettering
 (completion), som spar tangenttryckningar, och dired, som förenklar
 filhantering.
@@ -1096,6 +1118,7 @@ operera på olika sätt på filerna. Dired finns beskrivet i Info i
 Emacs-manualen i noden "Dired".
 
 Manualen beskriver även många andra Emacs funktioner.
+
 
 * SLUTORD
 ---------
@@ -1117,7 +1140,7 @@ Lidell översatte den till Svenska.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1132,7 +1155,7 @@ This file is part of GNU Emacs.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Please read the file COPYING and then do give copies of GNU Emacs to
 your friends.  Help stamp out software obstructionism ("ownership") by

@@ -1,6 +1,6 @@
-;;; ietf-drums.el --- Functions for parsing RFC822bis headers
+;;; ietf-drums.el --- Functions for parsing RFC822bis headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar ietf-drums-no-ws-ctl-token "\001-\010\013\014\016-\037\177"
   "US-ASCII control characters excluding CR, LF and white space.")
@@ -78,10 +78,10 @@ backslash and doublequote.")
 (defun ietf-drums-token-to-list (token)
   "Translate TOKEN into a list of characters."
   (let ((i 0)
-	b e c out range)
+	b c out range)
     (while (< i (length token))
       (setq c (aref token i))
-      (incf i)
+      (cl-incf i)
       (cond
        ((eq c ?-)
 	(if b
@@ -90,7 +90,7 @@ backslash and doublequote.")
        (range
 	(while (<= b c)
 	  (push (make-char 'ascii b) out)
-	  (incf b))
+	  (cl-incf b))
 	(setq range nil))
        ((= i (length token))
 	(push (make-char 'ascii c) out))
@@ -115,7 +115,7 @@ backslash and doublequote.")
 	(setq c (char-after))
 	(cond
 	 ((eq c ?\")
-	  (condition-case err
+	  (condition-case nil
 	      (forward-sexp 1)
 	    (error (goto-char (point-max)))))
 	 ((eq c ?\()

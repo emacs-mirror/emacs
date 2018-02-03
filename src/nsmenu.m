@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and macOS Cocoa menu and toolbar module.
-   Copyright (C) 2007-2017 Free Software Foundation, Inc.
+   Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 By Adrian Robert, based on code from original nsmenu.m (Carl Edman,
@@ -493,7 +493,7 @@ x_activate_menubar (struct frame *f)
 @implementation EmacsMenu
 
 /* override designated initializer */
-- initWithTitle: (NSString *)title
+- (instancetype)initWithTitle: (NSString *)title
 {
   frame = 0;
   if ((self = [super initWithTitle: title]))
@@ -503,7 +503,7 @@ x_activate_menubar (struct frame *f)
 
 
 /* used for top-level */
-- initWithTitle: (NSString *)title frame: (struct frame *)f
+- (instancetype)initWithTitle: (NSString *)title frame: (struct frame *)f
 {
   [self initWithTitle: title];
   frame = f;
@@ -532,9 +532,14 @@ x_activate_menubar (struct frame *f)
 {
   ++trackingMenu;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
   // On 10.6 we get repeated calls, only the one for NSSystemDefined is "real".
-  if ([[NSApp currentEvent] type] != NSSystemDefined) return;
+  if (
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+      NSAppKitVersionNumber < NSAppKitVersionNumber10_7 &&
+#endif
+      [[NSApp currentEvent] type] != NSEventTypeSystemDefined)
+    return;
 #endif
 
   /* When dragging from one menu to another, we get willOpen followed by didClose,
@@ -638,14 +643,23 @@ x_activate_menubar (struct frame *f)
 
       keyEq = [self parseKeyEquiv: wv->key];
 #ifdef NS_IMPL_COCOA
-      /* macOS just ignores modifier strings longer than one character */
+      /* macOS mangles modifier strings longer than one character.  */
       if (keyEquivModMask == 0)
-        title = [title stringByAppendingFormat: @" (%@)", keyEq];
+        {
+          title = [title stringByAppendingFormat: @" (%@)", keyEq];
+          item = [self addItemWithTitle: (NSString *)title
+                                 action: @selector (menuDown:)
+                          keyEquivalent: @""];
+        }
+      else
+        {
 #endif
-
-      item = [self addItemWithTitle: (NSString *)title
-                             action: @selector (menuDown:)
-                      keyEquivalent: keyEq];
+          item = [self addItemWithTitle: (NSString *)title
+                                 action: @selector (menuDown:)
+                          keyEquivalent: keyEq];
+#ifdef NS_IMPL_COCOA
+        }
+#endif
       [item setKeyEquivalentModifierMask: keyEquivModMask];
 
       [item setEnabled: wv->enabled];
@@ -750,7 +764,7 @@ x_activate_menubar (struct frame *f)
                          modifierFlags: 0
                              timestamp: [e timestamp]
                           windowNumber: [[view window] windowNumber]
-                               context: [e context]
+                               context: nil
                            eventNumber: 0/*[e eventNumber] */
                             clickCount: 1
                               pressure: 0];
@@ -1146,7 +1160,7 @@ update_frame_tool_bar (struct frame *f)
 
 @implementation EmacsToolbar
 
-- initForView: (EmacsView *)view withIdentifier: (NSString *)identifier
+- (instancetype)initForView: (EmacsView *)view withIdentifier: (NSString *)identifier
 {
   NSTRACE ("[EmacsToolbar initForView: withIdentifier:]");
 
@@ -1302,7 +1316,7 @@ update_frame_tool_bar (struct frame *f)
    display. */
 @implementation EmacsTooltip
 
-- init
+- (instancetype)init
 {
   NSColor *col = [NSColor colorWithCalibratedRed: 1.0 green: 1.0
                                             blue: 0.792 alpha: 0.95];
@@ -1357,6 +1371,16 @@ update_frame_tool_bar (struct frame *f)
   r.size.width = tooltipDims.width;
   r.size.height = tooltipDims.height;
   [textField setFrame: r];
+}
+
+- (void) setBackgroundColor: (NSColor *)col
+{
+  [textField setBackgroundColor: col];
+}
+
+- (void) setForegroundColor: (NSColor *)col
+{
+  [textField setTextColor: col];
 }
 
 - (void) showAtX: (int)x Y: (int)y for: (int)seconds
@@ -1493,7 +1517,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 #define TEXTHEIGHT	20.0
 #define MINCELLWIDTH	90.0
 
-- initWithContentRect: (NSRect)contentRect styleMask: (NSUInteger)aStyle
+- (instancetype)initWithContentRect: (NSRect)contentRect styleMask: (NSWindowStyleMask)aStyle
               backing: (NSBackingStoreType)backingType defer: (BOOL)flag
 {
   NSSize spacing = {SPACER, SPACER};
@@ -1517,7 +1541,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   [img autorelease];
   [imgView autorelease];
 
-  aStyle = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSUtilityWindowMask;
+  aStyle = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskUtilityWindow;
   flag = YES;
   rows = 0;
   cols = 1;
@@ -1697,7 +1721,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 }
 
 
-- initFromContents: (Lisp_Object)contents isQuestion: (BOOL)isQ
+- (instancetype)initFromContents: (Lisp_Object)contents isQuestion: (BOOL)isQ
 {
   Lisp_Object head;
   [super init];

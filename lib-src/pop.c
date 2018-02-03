@@ -1,6 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
 
-Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2017 Free Software
+Copyright (C) 1991, 1993, 1996-1997, 1999, 2001-2018 Free Software
 Foundation, Inc.
 
 Author: Jonathan Kamens <jik@security.ov.com>
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>

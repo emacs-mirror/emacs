@@ -48,7 +48,7 @@
 
 	Avoid some core dumps in X session management
 	Derived from a bug report by Nicolas Richard in:
-	http://bugs.gnu.org/20191#20
+	https://bugs.gnu.org/20191#20
 	* xsmfns.c (smc_save_yourself_CB): Don't dump core if
 	invocation-name is not a string.  Initialize user-login-name if it
 	is not already initialized, and don't dump core if it is not a
@@ -60,14 +60,14 @@
 
 	Port user-login-name initialization to Qnil == 0
 	Derived from a bug report by Nicolas Richard in:
-	http://bugs.gnu.org/20191#20
+	https://bugs.gnu.org/20191#20
 	* editfns.c (Fuser_login_name, Fuser_real_login_name)
 	(syms_of_editfns): Don't rely on all-bits-zero being an Elisp integer,
 	as this is no longer true now that Qnil == 0.
 
 	Assume !BROKEN_NON_BLOCKING_CONNECT
 	From a suggestion by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-03/msg00824.html
+	https://lists.gnu.org/r/emacs-devel/2015-03/msg00824.html
 	* process.c (NON_BLOCKING_CONNECT): Simplify by assuming that
 	BROKEN_NON_BLOCKING_CONNECT is not defined.
 	(SELECT_CAN_DO_WRITE_MASK): Remove, and assume it's now true.
@@ -77,12 +77,12 @@
 	* lread.c (substitute_object_recurse): For sub-char-tables, start
 	the recursive SUBSTITUTE loop from index of 2, to skip the
 	non-Lisp members of the sub-char-table.  See the discussion at
-	http://lists.gnu.org/archive/html/emacs-devel/2015-03/msg00520.html
+	https://lists.gnu.org/r/emacs-devel/2015-03/msg00520.html
 	for the details.
 
 	Support non-blocking connect on MS-Windows.
 	Based on ideas from Kim F. Storm <storm@cua.dk>, see
-	http://lists.gnu.org/archive/html/emacs-devel/2006-12/msg00873.html.
+	https://lists.gnu.org/r/emacs-devel/2006-12/msg00873.html.
 
 	* w32proc.c (reader_thread): If the FILE_CONNECT flag is set, call
 	'_sys_wait_connect'.  If it returns STATUS_CONNECT_FAILED, exit
@@ -1107,7 +1107,7 @@
 
 	Isolate NIL_IS_ZERO-assuming code better
 	Suggested by Stefan Monnier in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00588.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00588.html
 	* alloc.c (allocate_pseudovector):
 	Use memclear, not memsetnil, to remove a 'verify'.
 	* callint.c (Fcall_interactively):
@@ -1121,7 +1121,7 @@
 
 	Undo port to hypothetical nonzero Qnil case
 	This mostly undoes the previous change in this area.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00570.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00570.html
 	* alloc.c (allocate_pseudovector):
 	* callint.c (Fcall_interactively):
 	* dispnew.c (realloc_glyph_pool):
@@ -1326,7 +1326,7 @@
 	Don't say Fnext_read_file_uses_dialog_p is const
 	It's const only if a windowing system is not used; don't say it's
 	const otherwise.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00310.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00310.html
 	* fileio.c (next_read_file_uses_dialog_p): Remove.
 	Move guts back to ...
 	(Fnext_read_file_uses_dialog_p): ... here.
@@ -1415,13 +1415,13 @@
 	* fileio.c (next_read_file_uses_dialog_p): New workaround ...
 	(Fnext_read_file_uses_dialog_p): ... called from here to avoid
 	ATTRIBUTE_CONST dependency from #ifdefs.  For details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00289.html.
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00289.html.
 
 2015-01-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to 32-bit MingGW --with-wide-int
 	Problem reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00265.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00265.html
 	* lisp.h (struct Lisp_Sub_Char_Table): Check that offset matches
 	what we think it is, rather than checking only its alignment (and
 	doing so incorrectly on MinGW).
@@ -1623,12 +1623,12 @@
 	Port Qnil==0 XUNTAG to clang
 	clang has undefined behavior if the program subtracts an integer
 	from (char *) 0.  Problem reported by YAMAMOTO Mitsuharu in:
-	http://lists.gnu.org/archive/html/emacs-devel/2015-01/msg00132.html
+	https://lists.gnu.org/r/emacs-devel/2015-01/msg00132.html
 	* lisp.h (lisp_h_XUNTAG) [USE_LSB_TAG]:
 	(XUNTAG) [!USE_LSB_TAG]: Port to clang 3.5.0.
 
 	Port GFileMonitor * hack to Qnil==0 platforms
-	Reported by Glenn Morris in: http://bugs.gnu.org/15880#112
+	Reported by Glenn Morris in: https://bugs.gnu.org/15880#112
 	* gfilenotify.c (monitor_to_lisp, lisp_to_monitor): New functions.
 	(dir_monitor_callback, Fgfile_add_watch, Fgfile_rm_watch): Use them.
 
@@ -1842,7 +1842,7 @@
 	Instead of using gnutls_global_set_mem_functions, check every call
 	to a GnuTLS function that might return an indication of memory
 	exhaustion.  Suggested by Dmitry Antipov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg02056.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg02056.html
 	* gnutls.c (gnutls_global_set_mem_functions) [WINDOWSNT]: Remove.
 	(init_gnutls_functions): Do not load gnutls_global_set_mem_functions.
 	(fn_gnutls_global_set_mem_functions) [!WINDOWSNT]: Remove.
@@ -2369,7 +2369,7 @@
 
 	Improve clarity of USE_LSB_TAG definition.
 	Reported by Lee Duhem.  Suggested by Andreas Schwab in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg02222.html
+	https://lists.gnu.org/r/emacs-devel/2014-11/msg02222.html
 	* lisp.h (USE_LSB_TAG): Define in terms of the (simpler)
 	VAL_MAX / 2 rather than in terms of the (more complicated)
 	EMACS_INT_MAX >> GCTYPEBITS, and adjust commentary to match.
@@ -3043,7 +3043,7 @@
 	* xterm.c (x_draw_hollow_cursor): Fix display of hollow cursor on
 	1-pixel R2L characters.
 	Reported by Dmitry Antipov <dmantipov@yandex.ru>, see
-	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00518.html.
+	https://lists.gnu.org/r/emacs-devel/2014-10/msg00518.html.
 
 2014-10-16  Eli Zaretskii  <eliz@gnu.org>
 
@@ -3284,7 +3284,7 @@
 	<https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63495>,
 	and more generally should fix a portability problem in Emacs.
 	Reported by Stefan Monnier in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00261.html
+	https://lists.gnu.org/r/emacs-devel/2014-10/msg00261.html
 
 2014-10-08  Leo Liu  <sdl.web@gmail.com>
 
@@ -3334,7 +3334,7 @@
 	* keyboard.c (Qleft, Qright): Remove duplicate definitions (Bug#9927).
 	These were already defined in buffer.c, and the duplicate
 	definitions cause problems on platforms like 'gcc -fno-common'.
-	Reported by Peter Dyballa in: http://bugs.gnu.org/9927#137
+	Reported by Peter Dyballa in: https://bugs.gnu.org/9927#137
 
 2014-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -3475,7 +3475,7 @@
 	(my_create_window): Move the calculation of the coordinates of the
 	frame's top-left edge here.  Pass them to the input thread via the
 	second parameter of the WM_EMACS_CREATEWINDOW message.
-	See http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00892.html
+	See https://lists.gnu.org/r/emacs-devel/2014-09/msg00892.html
 	for the details.
 
 2014-09-30  Eli Zaretskii  <eliz@gnu.org>
@@ -3508,7 +3508,7 @@
 
 	* alloc.c: Remove now-unnecessary check.
 	Suggested by Dmitry Antipov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00891.html
+	https://lists.gnu.org/r/emacs-devel/2014-09/msg00891.html
 
 	* xterm.c (x_term_init): Allocate temps on stack, not on heap.
 
@@ -3650,7 +3650,7 @@
 
 	Fix local_cons etc. to not exhaust the stack when in a loop.
 	Problem reported in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00696.html
+	https://lists.gnu.org/r/emacs-devel/2014-09/msg00696.html
 	* buffer.c (Fother_buffer, other_buffer_safely, init_buffer):
 	* charset.c (load_charset_map_from_file, Ffind_charset_region)
 	(Ffind_charset_string):
@@ -3800,7 +3800,7 @@
 
 	Fix SAFE_ALLOCA to not exhaust the stack when in a loop.
 	Reported by Dmitry Antipov in thread leading to:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00713.html
+	https://lists.gnu.org/r/emacs-devel/2014-09/msg00713.html
 	This patch fixes only SAFE_ALLOCA, SAFE_NALLOCA, and SAFE_ALLOCA_LISP;
 	the experimental local_* macros enabled by USE_LOCAL_ALLOCATORS
 	remain unfixed.
@@ -4133,7 +4133,7 @@
 
 	Simplify lisp.h by removing the __COUNTER__ business.
 	Reported by Dmitry Antipov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00220.html
+	https://lists.gnu.org/r/emacs-devel/2014-09/msg00220.html
 	* lisp.h (make_local_vector, make_local_string)
 	(build_local_string): Simplify by not bothering with __COUNTER__.
 	The __COUNTER__ business wasn't working properly, and was needed
@@ -4164,7 +4164,7 @@
 	These can generate a constant with the correct value but the wrong
 	width, which doesn't work as a printf argument.  All uses removed.
 	Reported by Dmitry Antipov in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00213.html
+	https://lists.gnu.org/r/emacs-devel/2014-09/msg00213.html
 	(ENUMABLE): Remove; no longer needed.
 	(ARRAY_MARK_FLAG_val, PSEUDOVECTOR_FLAG_val, VALMASK_val):
 	Remove; no longer needed because of the above change.
@@ -4275,7 +4275,7 @@
 
 	Use SAFE_ALLOCA etc. to avoid unbounded stack allocation (Bug#18410).
 	This follows up on the recent thread in emacs-devel on alloca; see:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-09/msg00042.html
+	https://lists.gnu.org/r/emacs-devel/2014-09/msg00042.html
 	This patch also cleans up alloca-related glitches noted while
 	examining the code looking for unbounded alloca.
 	* alloc.c (listn):
@@ -4492,7 +4492,7 @@
 	it's an unsigned data type).  This can happen in R2L hscrolled
 	glyph rows, and caused us to draw the cursor glyph on the fringe.
 	For the details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00543.html.
+	https://lists.gnu.org/r/emacs-devel/2014-08/msg00543.html.
 
 2014-08-31  Ken Brown  <kbrown@cornell.edu>
 
@@ -4654,7 +4654,7 @@
 	immediately following the newline on the previous line.
 	Avoids setting the ends_at_zv_p flag on screen lines that are not at or
 	beyond ZV, which causes infloop in redisplay.  For the details, see
-	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00368.html.
+	https://lists.gnu.org/r/emacs-devel/2014-08/msg00368.html.
 
 	* dispnew.c (buffer_posn_from_coords): Fix mirroring of X
 	coordinate for hscrolled R2L screen lines.  (Bug#18277)
@@ -4697,7 +4697,7 @@
 	(init_sigsegv): Adjust accordingly.
 	* keyboard.c (Vtop_level_message): Rename to
 	Vinternal__top_level_message, as suggested by Stefan Monnier in
-	http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00493.html
+	https://lists.gnu.org/r/emacs-devel/2014-08/msg00493.html
 	All related users changed.
 
 2014-08-26  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -4854,7 +4854,7 @@
 	(Fset_window_new_total, Fset_window_new_normal)
 	(Fwindow_resize_apply): Fix doc-strings (see Bug#18112).
 	See also:
-	http://lists.gnu.org/archive/html/bug-gnu-emacs/2014-08/msg00287.html
+	https://lists.gnu.org/r/bug-gnu-emacs/2014-08/msg00287.html
 
 2014-08-11  Eli Zaretskii  <eliz@gnu.org>
 
@@ -4943,7 +4943,7 @@
 
 	* keyboard.c (safe_run_hooks): Follow the convenient style to bind
 	inhibit-quit to t and pass 2 args to safe_run_hook_funcall.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00077.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-08/msg00077.html>.
 	(safe_run_hook_funcall): Adjust accordingly.
 
 2014-08-04  Martin Rudalics  <rudalics@gmx.at>
@@ -5027,7 +5027,7 @@
 2014-08-01  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix display of R2L lines when the last character fits only partially.
-	See http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00476.html
+	See https://lists.gnu.org/r/emacs-devel/2014-07/msg00476.html
 	for the details.
 	* xdisp.c (extend_face_to_end_of_line): If the last glyph of an
 	R2L row is visible only partially, give the row a negative x
@@ -5090,7 +5090,7 @@
 
 	* xrdb.c (x_load_resources) [USE_MOTIF]: Although not strictly
 	necessary, put horizontal scroll bar resources as well.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00430.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-07/msg00430.html>.
 	* xterm.c (x_sync_with_move): Really wait 0.5s, not 0.0005s.
 
 2014-07-29  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -5148,7 +5148,7 @@
 	(adjust_frame_size): Always declare prototype.
 
 	Fix Gnus-related issues reported by David Kastrup <dak@gnu.org> in
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00370.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-07/msg00370.html>.
 	* atimer.c (timerfd_callback): Always read expiration data.
 	Add comment.
 	(turn_on_atimers) [HAVE_TIMERFD]: Disarm timerfd timer.
@@ -5597,7 +5597,7 @@
 2014-07-24  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	Fix error reported by Angelo Graziosi <angelo.graziosi@alice.it> in
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00274.html>
+	<https://lists.gnu.org/r/emacs-devel/2014-07/msg00274.html>
 	and complete previous change.
 	* frame.c (adjust_frame_height): New function.
 	(Fset_frame_height, Fset_frame_size): Use it.
@@ -5607,7 +5607,7 @@
 
 	* frame.c (Fset_frame_height): Take frame top margin into account.
 	Incorrect behavior was reported by Martin Rudalics <rudalics@gmx.at> in
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00258.html>
+	<https://lists.gnu.org/r/emacs-devel/2014-07/msg00258.html>
 
 2014-07-22  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -6223,7 +6223,7 @@
 	* fns.c (validate_subarray): Add prototype.
 	(Fcompare_substring): Use validate_subarray to check ranges.
 	Adjust comment to mention that the semantics was changed.  Also see
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00447.html.
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00447.html.
 
 2014-06-24  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -6320,7 +6320,7 @@
 
 	Omit redundant extern decls.
 	Most of this patch is from Dmitry Antipov, in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00263.html
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00263.html
 	* commands.h (update_mode_lines):
 	* frame.h (Qbackground_color, Qforeground_color)
 	(x_set_menu_bar_lines):
@@ -6372,7 +6372,7 @@
 
 	* Makefile.in (ns-app): Fix typo that broke build on OS X.
 	Reported by David Caldwell in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00251.html
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00251.html
 
 2014-06-16  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -6654,7 +6654,7 @@
 
 	* emacs.c: Include "sysselect.h", to define its inline functions.
 	Reported by Glenn Morris in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00077.html
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00077.html
 
 	Do not require libXt-devel when building with gtk.
 	* gtkutil.h, menu.h: Include lwlib-widget.h, not lwlib-h, to avoid
@@ -7080,7 +7080,7 @@
 	(Fgarbage_collect): Calculate the end address of the stack portion
 	that needs to be examined by mark_stack, and pass that address to
 	garbage_collect_1, which will pass it to mark_stack.
-	See http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00270.html
+	See https://lists.gnu.org/r/emacs-devel/2014-05/msg00270.html
 	for more details about the underlying problems.  In particular,
 	this avoids dumping Emacs with the large hash-table whose value is
 	held in purify-flag for most of the time loadup.el runs.
@@ -7298,7 +7298,7 @@
 	* term.c (tty_menu_display): Move the cursor to the active menu item.
 	(tty_menu_activate): Return the cursor to the active menu item
 	after displaying the menu and after displaying help-echo.
-	See http://lists.gnu.org/archive/html/emacs-devel/2014-04/msg00402.html
+	See https://lists.gnu.org/r/emacs-devel/2014-04/msg00402.html
 	for the details of why this is needed by screen readers and
 	Braille displays.
 
@@ -8628,7 +8628,7 @@
 	* terminal.c (initial_free_frame_resources): New function.
 	(init_initial_terminal): Install new hook to free face cache
 	on initial frame and avoid memory leak.  For details, see
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01974.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-01/msg01974.html>.
 	* xfaces.c (free_frame_faces): Adjust comment.
 
 2014-01-26  Paul Eggert  <eggert@cs.ucla.edu>
@@ -8689,7 +8689,7 @@
 	* xdisp.c (reseat_1, Fcurrent_bidi_paragraph_direction):
 	Avoid undefined behavior by initializing display property bit of a
 	string processed by the bidirectional iterator.  For details, see
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01920.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-01/msg01920.html>.
 
 2014-01-23  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -8732,7 +8732,7 @@
 
 	Avoid undefined behavior by initializing buffer redisplay bit.
 	Reported by Dmitry Antipov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01756.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-01/msg01756.html>.
 	* buffer.c (Fget_buffer_create): Initialize redisplay bit.
 
 	Revert some of the CANNOT_DUMP fix (Bug#16494).
@@ -8780,7 +8780,7 @@
 
 	Fix MinGW64 porting problem with _setjmp.
 	Reported by Eli Zaretskii in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01297.html
+	https://lists.gnu.org/r/emacs-devel/2014-01/msg01297.html
 	* image.c (FAST_SETJMP, FAST_LONGJMP): New macros, replacing
 	the old _setjmp and _longjmp.  All uses changed.
 
@@ -9756,7 +9756,7 @@
 
 	* xterm.c (x_make_frame_visible): Restore hack which is needed when
 	input polling is used.  This is still meaningful for Cygwin, see
-	http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00351.html.
+	https://lists.gnu.org/r/emacs-devel/2013-12/msg00351.html.
 	* keyboard.c (poll_for_input_1, input_polling_used):
 	Define unconditionally.
 	* dispextern.h (FACE_SUITABLE_FOR_CHAR_P): Remove unused macro.
@@ -10573,7 +10573,7 @@
 
 	Fix some dependency problems that cause unnecessary recompiles.
 	Reported by RMS in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00421.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-11/msg00421.html>.
 	* Makefile.in (OLDXMENU_TARGET, OLDXMENU, OLDXMENU_DEPS)
 	(really-lwlib, really-oldXMenu, stamp-oldxmenu)
 	(../src/$(OLDXMENU), $(OLDXMENU)): Remove.
@@ -10584,7 +10584,7 @@
 	Fix recently introduced bool vector overrun.
 	This was due to an optimization that went awry.
 	Reported by Glenn Morris in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00622.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-11/msg00622.html>.
 	* alloc.c (make_uninit_bool_vector): Don't allocate a dummy word
 	for empty vectors, undoing the 2013-11-18 change.
 	* data.c (bool_vector_binop_driver): Rely on this.
@@ -10635,7 +10635,7 @@
 
 	Always allocate at least one bits_word per bool vector.
 	See Daniel Colascione in:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00518.html
+	https://lists.gnu.org/r/emacs-devel/2013-11/msg00518.html
 	* alloc.c (make_uninit_bool_vector): Always allocate at least one word.
 	* data.c (bool_vector_binop_driver): Rely on this.  Tune.
 	* lisp.h (struct Lisp_Bool_vector): Document this.
@@ -10672,7 +10672,7 @@
 
 	* data.c: Work around bogus GCC diagnostic about shift count.
 	Reported by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00489.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-11/msg00489.html>.
 	(pre_value): New function.
 	(count_trailing_zero_bits): Use it.
 
@@ -11049,7 +11049,7 @@
 	* buffer.c (init_buffer): Don't store default-directory of
 	*scratch* in multibyte form.  The original problem which led to
 	that is described in
-	http://lists.gnu.org/archive/html/emacs-pretest-bug/2004-11/msg00532.html,
+	https://lists.gnu.org/r/emacs-pretest-bug/2004-11/msg00532.html,
 	but it was solved long ago.  (Bug#15260)
 
 2013-11-04  Paul Eggert  <eggert@cs.ucla.edu>
@@ -11293,7 +11293,7 @@
 	the same font object.
 
 	Perform font-specific cleanup when font object is swept by GC.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00740.html.
+	https://lists.gnu.org/r/emacs-devel/2013-10/msg00740.html.
 	* alloc.c (cleanup_vector): New function.
 	(sweep_vector): Call it for each reclaimed vector object.
 	* font.h (struct font): Adjust comment.
@@ -11347,7 +11347,7 @@
 	* keyboard.c (make_lispy_event): Remove GPM-specific code that
 	handles mouse clicks.  Instead, let GPM use the same code as all
 	the other mice use.  See the discussion starting at
-	http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00521.html
+	https://lists.gnu.org/r/emacs-devel/2013-10/msg00521.html
 	for the details of the problem with the menu bar this fixes.
 
 2013-10-18  Dmitry Antipov  <dmantipov@yandex.ru>
@@ -11722,7 +11722,7 @@
 	flavors of 'eassert', one for where 'assume' is far more likely
 	to help or to hurt; but that can be done later.
 	Reported by Dmitry Antipov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00276.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-10/msg00276.html>.
 	Also, don't include <verify.h>; no longer needed.
 
 2013-10-09  Glenn Morris  <rgm@gnu.org>
@@ -11891,7 +11891,7 @@
 
 	Do not allocate huge temporary memory areas and objects while encoding
 	for file I/O, thus reducing an enormous memory usage for large buffers.
-	See http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00180.html.
+	See https://lists.gnu.org/r/emacs-devel/2013-10/msg00180.html.
 	* coding.h (struct coding_system): New member raw_destination.
 	* coding.c (setup_coding_system): Initialize it to zero.
 	(encode_coding_object): If raw_destination is set, do not create
@@ -12132,14 +12132,14 @@
 
 	* dispnew.c (clear_glyph_row, copy_row_except_pointers): Use enums
 	instead of ints, as it's the usual style for offsetof constants.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00478.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00478.html
 
 	* data.c (POPCOUNT_STATIC_INLINE): New macro, as a hack for popcount.
 	This is ugly, but it should fix the performance problem for older
 	GCC versions in the short run.  I'll look into integrating the
 	Gnulib module for popcount, as a better fix.
 	See the thread starting in:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00474.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00474.html
 	(popcount_size_t_generic) [NEED_GENERIC_POPCOUNT]:
 	(popcount_size_t_msc) [USE_MSC_POPCOUNT]:
 	(popcount_size_t_gcc) [USE_GCC_POPCOUNT]:
@@ -12331,7 +12331,7 @@
 	which must have the same definition in all modules, because the
 	defining code might be shared across modules, depending on the
 	implementation.  Symptoms reported by Martin Rudalics in:
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00414.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00414.html
 	* regex.c, syntax.c (SYNTAX_ENTRY_VIA_PROPERTY): Remove.
 	(SYNTAX, SYNTAX_ENTRY, SYNTAX_WITH_FLAGS): New macros,
 	overriding the corresponding functions in syntax.h.
@@ -14498,7 +14498,7 @@
 	* w32uniscribe.c (uniscribe_list, uniscribe_match)
 	(uniscribe_list_family): Adjust to match font API change.
 	MS-Windows breakage reported by Juanma Barranquero <lekktu@gmail.com>
-	at http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00006.html.
+	at https://lists.gnu.org/r/emacs-devel/2013-08/msg00006.html.
 
 2013-08-01  Dmitry Antipov  <dmantipov@yandex.ru>
 
@@ -14691,7 +14691,7 @@
 	* eval.c (Fprogn): Do not check that BODY is a proper list.
 	This undoes the previous change.  The check slows down the
 	interpreter, and is not needed to prevent a crash.  See
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00693.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-07/msg00693.html>.
 
 2013-07-23  Glenn Morris  <rgm@gnu.org>
 
@@ -15206,7 +15206,7 @@
 
 	* deps.mk (sysdep.o): Remove dependency on ../lib/ignore-value.h.
 	Reported by Herbert J. Skuhra in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00455.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-07/msg00455.html>.
 
 	Don't lose top specpdl entry when memory is exhausted.
 	* eval.c (grow_specpdl): Increment specpdl top by 1 and check for
@@ -15642,7 +15642,7 @@
 	Try again to fix FreeBSD bug re multithreaded memory alloc (Bug#14569).
 	* emacs.c (main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
 	Do not clear _malloc_thread_enabled_p, undoing the previous change,
-	which did not work (see <http://bugs.gnu.org/14569#307>).
+	which did not work (see <https://bugs.gnu.org/14569#307>).
 	(main): Do not invoke malloc_enable_thread if (! CANNOT_DUMP
 	&& (!noninteractive || initialized)).  This attempts to thread
 	the needle between the Scylla of FreeBSD and the Charybdis of Cygwin.
@@ -15657,7 +15657,7 @@
 	Try to fix FreeBSD bug re multithreaded memory allocation (Bug#14569).
 	* emacs.c (main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
 	Clear _malloc_thread_enabled_p at startup.  Reported by Ashish SHUKLA in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-07/msg00088.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-07/msg00088.html>.
 
 2013-07-02  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -15714,7 +15714,7 @@
 	* emacs.c (malloc_enable_thread): Hoist extern decl to top level.
 	(main) [HAVE_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
 	Invoke malloc_enable_thread even when not interactive.
-	Reported by Ken Brown in <http://bugs.gnu.org/14569#275>.
+	Reported by Ken Brown in <https://bugs.gnu.org/14569#275>.
 	* process.c (init_process_emacs) [CYGWIN]: Tickle glib even
 	in this case, since the underlying bug has now been fixed.
 
@@ -16084,7 +16084,7 @@
 2013-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Move functions from lisp.h to individual modules when possible.
-	From a suggestion by Andreas Schwab in <http://bugs.gnu.org/11935#68>.
+	From a suggestion by Andreas Schwab in <https://bugs.gnu.org/11935#68>.
 	* alloc.c (XFLOAT_INIT, set_symbol_name):
 	* buffer.c (CHECK_OVERLAY):
 	* chartab.c (CHECK_CHAR_TABLE, set_char_table_ascii)
@@ -16344,7 +16344,7 @@
 
 	A few porting etc. fixes for the new file monitor code.
 	See the thread containing
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00109.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-06/msg00109.html>.
 	* gfilenotify.c (dir_monitor_callback, Fgfile_add_watch)
 	(Fgfile_rm_watch): Don't assume EMACS_INT is the same width as a pointer.
 	(dir_monitor_callback, Fgfile_rm_watch):
@@ -16581,7 +16581,7 @@
 	(characterIndexForPoint:): Adjust return type depending on GNUstep
 	version.
 	(mouseDown:): delta is CGFloat.
-	(updateFrameSize): Remove unised variable f.
+	(updateFrameSize): Remove unused variable f.
 	(initFrameFromEmacs): Move toggleButton inside NS_IMPL_COCOA.
 	Cast float to EmacsCGFloat.
 	(windowWillUseStandardFrame:defaultFrame:): Set maximized_height
@@ -16593,7 +16593,7 @@
 	(setPosition:portion:whole:): por is CGFloat.
 	(getMouseMotionPart:window:x:y:): Add F suffix to float.
 	(mouseDown:): Use CGFloat.
-	(mouseDragged:): Remove unised variable edge.
+	(mouseDragged:): Remove unused variable edge.
 	(EmacsDocument): Implement for NS_IMPL_GNUSTEP.
 
 	* nsterm.h (EmacsCGFloat): Typedef for OSX and GNUstep when the size
@@ -17194,7 +17194,7 @@
 	more than one line when there's an overlay string with a display
 	property at end of line.
 	Reported by Karl Chen <Karl.Chen@quarl.org> in
-	http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00362.html.
+	https://lists.gnu.org/r/emacs-devel/2013-04/msg00362.html.
 
 2013-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -17504,7 +17504,7 @@
 	* casetab.c (init_casetab_once): Don't abuse the ascii eqv table for
 	the upcase table.
 
-2013-03-27  rzl24ozi  <rzl24ozi@gmail.com>  (tiny changes)
+2013-03-27  rzl24ozi  <rzl24ozi@gmail.com>  (tiny change)
 
 	* image.c [WINDOWSNT]: Fix calls to DEF_IMGLIB_FN for SVG function.
 
@@ -17905,7 +17905,7 @@ See ChangeLog.12 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2017 Free Software Foundation, Inc.
+  Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -17920,4 +17920,4 @@ See ChangeLog.12 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

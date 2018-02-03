@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002-2003, 2005-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -525,7 +525,7 @@ font-lock is done highlighting.")
                         (cons (current-buffer) nil)))))
 
 ;; Register mh-folder-mode as supporting which-function-mode...
-(mh-require 'which-func nil t)
+(eval-and-compile (mh-require 'which-func nil t))
 (when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 

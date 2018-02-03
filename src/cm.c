@@ -1,5 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2018 Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -15,14 +15,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <stdio.h>
 
 #include "lisp.h"
 #include "cm.h"
+#include "sysstdio.h"
 #include "termchar.h"
 #include "tparam.h"
 
@@ -45,8 +45,8 @@ int
 cmputc (int c)
 {
   if (current_tty->termscript)
-    putc (c & 0177, current_tty->termscript);
-  putc (c & 0177, current_tty->output);
+    putc_unlocked (c & 0177, current_tty->termscript);
+  putc_unlocked (c & 0177, current_tty->output);
   return c;
 }
 
@@ -117,11 +117,11 @@ cmcheckmagic (struct tty_display_info *tty)
       if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
 	emacs_abort ();
       if (tty->termscript)
-	putc ('\r', tty->termscript);
-      putc ('\r', tty->output);
+	putc_unlocked ('\r', tty->termscript);
+      putc_unlocked ('\r', tty->output);
       if (tty->termscript)
-	putc ('\n', tty->termscript);
-      putc ('\n', tty->output);
+	putc_unlocked ('\n', tty->termscript);
+      putc_unlocked ('\n', tty->output);
       curX (tty) = 0;
       curY (tty)++;
     }

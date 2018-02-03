@@ -7854,7 +7854,7 @@
 	* net/xesam.el (xesam-kill-buffer-function): Wrap code by
 	`ignore-errors' (the function must succeed always).
 
-2008-08-28  Edward O'Connor  <hober0@gmail.com>
+2008-08-28  Theresa O'Connor  <hober0@gmail.com>
 
 	* json.el (json-read-number): New arg.  Handle explicitly signed
 	numbers.
@@ -19656,7 +19656,7 @@
 
 	* time.el: Fix compiler warning.
 
-2008-02-21  Edward O'Connor  <ted@oconnor.cx>
+2008-02-21  Theresa O'Connor  <ted@oconnor.cx>
 
 	* json.el: New file (JavaScript Object Notation parser / generator).
 
@@ -20547,7 +20547,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008-2017 Free Software Foundation, Inc.
+    Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -20562,4 +20562,4 @@ See ChangeLog.13 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

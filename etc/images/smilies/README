@@ -3,5 +3,5 @@ Files: blink.pbm blink.xpm braindamaged.xpm cry.xpm dead.xpm evil.xpm
        sad.xpm smile.pbm smile.xpm wry.pbm wry.xpm
 Authors: Reiner Steib, Simon Josefsson, Kai Grossjohann, Alex
          Schroeder, Oliver Scholz, Per Abrahamsen, Kim F. Storm.
-Copyright (C) 1999-2017 Free Software Foundation, Inc.
+Copyright (C) 1999-2018 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)

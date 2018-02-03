@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2017 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2018 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1095,7 +1095,7 @@ file were isearch was started."
     ;; If there are no files that match the default pattern ChangeLog.[0-9],
     ;; return the current buffer to force isearch wrapping to its beginning.
     ;; If file is nil, multi-isearch-search-fun will signal "end of multi".
-    (if (file-exists-p file)
+    (if (and file (file-exists-p file))
 	(find-file-noselect file)
       (current-buffer))))
 

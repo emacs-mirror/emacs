@@ -7,5 +7,5 @@ Files: bits.xpm bitsbang.xpm box-minus.xpm box-plus.xpm
        tag-gt.xpm tag-minus.xpm tag-plus.xpm tag-type.xpm tag-v.xpm
        tag.xpm unlock.xpm
 Author: Eric M. Ludlam
-Copyright (C) 1999-2017 Free Software Foundation, Inc.
+Copyright (C) 1999-2018 Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)

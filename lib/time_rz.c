@@ -1,6 +1,6 @@
 /* Time zone functions such as tzalloc and localtime_rz
 
-   Copyright 2015-2017 Free Software Foundation, Inc.
+   Copyright 2015-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -27,6 +27,7 @@
 #include <time.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -35,15 +36,15 @@
 #include "flexmember.h"
 #include "time-internal.h"
 
-#if !HAVE_TZSET
-static void tzset (void) { }
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
 #endif
 
 /* The approximate size to use for small allocation requests.  This is
    the largest "small" request for the GNU C library malloc.  */
 enum { DEFAULT_MXFAST = 64 * sizeof (size_t) / 4 };
 
-/* Minimum size of the ABBRS member of struct abbr.  ABBRS is larger
+/* Minimum size of the ABBRS member of struct tm_zone.  ABBRS is larger
    only in the unlikely case where an abbreviation longer than this is
    used.  */
 enum { ABBR_SIZE_MIN = DEFAULT_MXFAST - offsetof (struct tm_zone, abbrs) };
@@ -150,7 +151,13 @@ save_abbr (timezone_t tz, struct tm *tm)
           if (! (*zone_copy || (zone_copy == tz->abbrs && tz->tz_is_set)))
             {
               size_t zone_size = strlen (zone) + 1;
-              if (zone_size < tz->abbrs + ABBR_SIZE_MIN - zone_copy)
+              size_t zone_used = zone_copy - tz->abbrs;
+              if (SIZE_MAX - zone_used < zone_size)
+                {
+                  errno = ENOMEM;
+                  return false;
+                }
+              if (zone_used + zone_size < ABBR_SIZE_MIN)
                 extend_abbrs (zone_copy, zone, zone_size);
               else
                 {

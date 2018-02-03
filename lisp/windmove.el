@@ -1,6 +1,6 @@
 ;;; windmove.el --- directional window-selection routines
 ;;
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;; --------------------------------------------------------------------
 
@@ -425,7 +425,7 @@ supplied, if ARG is greater or smaller than zero, respectively."
 	 top-left
 	 ;; Don't care whether window is horizontally scrolled -
 	 ;; `posn-at-point' handles that already.  See also:
-	 ;; http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00638.html
+	 ;; https://lists.gnu.org/r/emacs-devel/2012-01/msg00638.html
 	 (posn-col-row
 	  (posn-at-point (window-point window) window))))))))
 
@@ -543,16 +543,18 @@ If no window is at the desired location, an error is signaled."
 ;; probably want to use different bindings in that case.
 
 ;;;###autoload
-(defun windmove-default-keybindings (&optional modifier)
+(defun windmove-default-keybindings (&optional modifiers)
   "Set up keybindings for `windmove'.
-Keybindings are of the form MODIFIER-{left,right,up,down}.
-Default MODIFIER is `shift'."
+Keybindings are of the form MODIFIERS-{left,right,up,down},
+where MODIFIERS is either a list of modifiers or a single modifier.
+Default value of MODIFIERS is `shift'."
   (interactive)
-  (unless modifier (setq modifier 'shift))
-  (global-set-key (vector (list modifier 'left))  'windmove-left)
-  (global-set-key (vector (list modifier 'right)) 'windmove-right)
-  (global-set-key (vector (list modifier 'up))    'windmove-up)
-  (global-set-key (vector (list modifier 'down))  'windmove-down))
+  (unless modifiers (setq modifiers 'shift))
+  (unless (listp modifiers) (setq modifiers (list modifiers)))
+  (global-set-key (vector (append modifiers '(left)))  'windmove-left)
+  (global-set-key (vector (append modifiers '(right))) 'windmove-right)
+  (global-set-key (vector (append modifiers '(up)))    'windmove-up)
+  (global-set-key (vector (append modifiers '(down)))  'windmove-down))
 
 
 (provide 'windmove)

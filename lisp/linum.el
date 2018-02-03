@@ -1,6 +1,6 @@
 ;;; linum.el --- display line numbers in the left margin -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Markus Triska <markus.triska@gmx.at>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -112,7 +112,16 @@ Linum mode is a buffer-local minor mode."
 (define-globalized-minor-mode global-linum-mode linum-mode linum-on)
 
 (defun linum-on ()
-  (unless (minibufferp)
+  (unless (or (minibufferp)
+              ;; Turning linum-mode in the daemon's initial frame
+              ;; could significantly slow down startup, if the buffer
+              ;; in which this is done is large, because Emacs thinks
+              ;; the "window" spans the entire buffer then.  This
+              ;; could happen when restoring session via desktop.el,
+              ;; if some large buffer was under linum-mode when
+              ;; desktop was saved.  So we disable linum-mode for
+              ;; non-client frames in a daemon session.
+              (and (daemonp) (null (frame-parameter nil 'client))))
     (linum-mode 1)))
 
 (defun linum-delete-overlays ()

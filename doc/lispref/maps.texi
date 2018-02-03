@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2017 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Keymaps
@@ -51,7 +51,7 @@ A sparse keymap for subcommands of the prefix @kbd{C-x r}.@*
 @xref{Registers,,, emacs, The GNU Emacs Manual}.
 
 @item esc-map
-A full keymap for @kbd{ESC} (or @kbd{Meta}) commands.
+A full keymap for @key{ESC} (or @key{Meta}) commands.
 
 @item facemenu-keymap
 A sparse keymap used for the @kbd{M-o} prefix key.

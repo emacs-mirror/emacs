@@ -1,6 +1,6 @@
 ;;; semantic/imenu.el --- Use Semantic as an imenu tag generator
 
-;; Copyright (C) 2000-2005, 2007-2008, 2010-2017 Free Software
+;; Copyright (C) 2000-2005, 2007-2008, 2010-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -488,7 +488,7 @@ Clears all imenu menus that may be depending on the database."
 ;;; Which function support
 ;;
 ;; The which-function library will display the current function in the
-;; mode line.  It tries do do this through imenu.  With a semantic parsed
+;; mode line.  It tries to do this through imenu.  With a semantic parsed
 ;; buffer, there is a much more efficient way of doing this.
 ;; Advise `which-function' so that we optionally use semantic tags
 ;; instead, and get better stuff.

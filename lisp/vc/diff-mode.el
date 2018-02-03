@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff vc
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -432,7 +432,7 @@ and the face `diff-added' for added lines.")
   "If non-nil, empty lines are valid in unified diffs.
 Some versions of diff replace all-blank context lines in unified format with
 empty lines.  This makes the format less robust, but is tolerated.
-See http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html")
+See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
 
 (defconst diff-hunk-header-re
   (concat "^\\(?:" diff-hunk-header-re-unified ".*\\|\\*\\{15\\}.*\n\\*\\*\\* .+ \\*\\*\\*\\*\\|[0-9]+\\(,[0-9]+\\)?[acd][0-9]+\\(,[0-9]+\\)?\\)$"))
@@ -875,51 +875,53 @@ PREFIX is only used internally: don't use it."
     (set (make-local-variable 'diff-remembered-defdir) default-directory)
     (set (make-local-variable 'diff-remembered-files-alist) nil))
   (save-excursion
-    (unless (looking-at diff-file-header-re)
-      (or (ignore-errors (diff-beginning-of-file))
-	  (re-search-forward diff-file-header-re nil t)))
-    (let ((fs (diff-hunk-file-names old)))
-      (if prefix (setq fs (mapcar (lambda (f) (concat prefix f)) fs)))
-      (or
-       ;; use any previously used preference
-       (cdr (assoc fs diff-remembered-files-alist))
-       ;; try to be clever and use previous choices as an inspiration
-       (cl-dolist (rf diff-remembered-files-alist)
-	 (let ((newfile (diff-merge-strings (caar rf) (car fs) (cdr rf))))
-	   (if (and newfile (file-exists-p newfile)) (cl-return newfile))))
-       ;; look for each file in turn.  If none found, try again but
-       ;; ignoring the first level of directory, ...
-       (cl-do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
-                (file nil nil))
-	   ((or (null files)
-		(setq file (cl-do* ((files files (cdr files))
-                                    (file (car files) (car files)))
-			       ;; Use file-regular-p to avoid
-			       ;; /dev/null, directories, etc.
-			       ((or (null file) (file-regular-p file))
-				file))))
-	    file))
-       ;; <foo>.rej patches implicitly apply to <foo>
-       (and (string-match "\\.rej\\'" (or buffer-file-name ""))
-	    (let ((file (substring buffer-file-name 0 (match-beginning 0))))
-	      (when (file-exists-p file) file)))
-       ;; If we haven't found the file, maybe it's because we haven't paid
-       ;; attention to the PCL-CVS hint.
-       (and (not prefix)
-	    (boundp 'cvs-pcl-cvs-dirchange-re)
-	    (save-excursion
-	      (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
-	    (diff-find-file-name old noprompt (match-string 1)))
-       ;; if all else fails, ask the user
-       (unless noprompt
-         (let ((file (expand-file-name (or (car fs) ""))))
-	   (setq file
-		 (read-file-name (format "Use file %s: " file)
-				 (file-name-directory file) file t
-				 (file-name-nondirectory file)))
-           (set (make-local-variable 'diff-remembered-files-alist)
-                (cons (cons fs file) diff-remembered-files-alist))
-           file))))))
+    (save-restriction
+      (widen)
+      (unless (looking-at diff-file-header-re)
+        (or (ignore-errors (diff-beginning-of-file))
+	    (re-search-forward diff-file-header-re nil t)))
+      (let ((fs (diff-hunk-file-names old)))
+        (if prefix (setq fs (mapcar (lambda (f) (concat prefix f)) fs)))
+        (or
+         ;; use any previously used preference
+         (cdr (assoc fs diff-remembered-files-alist))
+         ;; try to be clever and use previous choices as an inspiration
+         (cl-dolist (rf diff-remembered-files-alist)
+	   (let ((newfile (diff-merge-strings (caar rf) (car fs) (cdr rf))))
+	     (if (and newfile (file-exists-p newfile)) (cl-return newfile))))
+         ;; look for each file in turn.  If none found, try again but
+         ;; ignoring the first level of directory, ...
+         (cl-do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
+                  (file nil nil))
+	     ((or (null files)
+		  (setq file (cl-do* ((files files (cdr files))
+                                      (file (car files) (car files)))
+			         ;; Use file-regular-p to avoid
+			         ;; /dev/null, directories, etc.
+			         ((or (null file) (file-regular-p file))
+				  file))))
+	      file))
+         ;; <foo>.rej patches implicitly apply to <foo>
+         (and (string-match "\\.rej\\'" (or buffer-file-name ""))
+	      (let ((file (substring buffer-file-name 0 (match-beginning 0))))
+	        (when (file-exists-p file) file)))
+         ;; If we haven't found the file, maybe it's because we haven't paid
+         ;; attention to the PCL-CVS hint.
+         (and (not prefix)
+	      (boundp 'cvs-pcl-cvs-dirchange-re)
+	      (save-excursion
+	        (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
+	      (diff-find-file-name old noprompt (match-string 1)))
+         ;; if all else fails, ask the user
+         (unless noprompt
+           (let ((file (expand-file-name (or (car fs) ""))))
+	     (setq file
+		   (read-file-name (format "Use file %s: " file)
+				   (file-name-directory file) file t
+				   (file-name-nondirectory file)))
+             (set (make-local-variable 'diff-remembered-files-alist)
+                  (cons (cons fs file) diff-remembered-files-alist))
+             file)))))))
 
 
 (defun diff-ediff-patch ()
@@ -2003,9 +2005,6 @@ For use in `add-log-current-defun-function'."
     (replace-match (cdr (assq (char-before) '((?+ . "-") (?> . "<"))))))
   )
 
-(declare-function smerge-refine-subst "smerge-mode"
-                  (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a))
-
 (defun diff--forward-while-leading-char (char bound)
   "Move point until reaching a line not starting with CHAR.
 Return new point, if it was moved."
@@ -2047,13 +2046,13 @@ Return new point, if it was moved."
                           (diff--forward-while-leading-char ?+ end)
                           (progn (diff--forward-while-leading-char ?\\ end)
                                  (setq end-add (point))))
-                 (smerge-refine-subst beg-del beg-add beg-add end-add
+                 (smerge-refine-regions beg-del beg-add beg-add end-add
                                       nil 'diff-refine-preproc props-r props-a)))))
           (`context
            (let* ((middle (save-excursion (re-search-forward "^---")))
                   (other middle))
              (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
-               (smerge-refine-subst (match-beginning 0) (match-end 0)
+               (smerge-refine-regions (match-beginning 0) (match-end 0)
                                     (save-excursion
                                       (goto-char other)
                                       (re-search-forward "^\\(?:!.*\n\\)+" end)
@@ -2068,7 +2067,7 @@ Return new point, if it was moved."
            (let ((beg1 (1+ (point))))
              (when (re-search-forward "^---.*\n" end t)
                ;; It's a combined add&remove, so there's something to do.
-               (smerge-refine-subst beg1 (match-beginning 0)
+               (smerge-refine-regions beg1 (match-beginning 0)
                                     (match-end 0) end
                                     nil 'diff-refine-preproc props-r props-a)))))))))
 

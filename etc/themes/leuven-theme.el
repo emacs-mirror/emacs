@@ -1,10 +1,10 @@
 ;;; leuven-theme.el --- Awesome Emacs color theme on white background
 
-;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
 ;; URL: https://github.com/fniessen/emacs-leuven-theme
-;; Version: 20140929.1232
+;; Version: 20170912.2328
 ;; Keywords: color theme
 
 ;; This file is part of GNU Emacs.
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -461,7 +461,7 @@ Semantic, and Ansi-Color faces are included -- and much more...")
    `(info-xref ((,class (:underline t :foreground "#006DAF")))) ; unvisited cross-references
    `(info-xref-visited ((,class (:underline t :foreground "magenta4")))) ; previously visited cross-references
    `(light-symbol-face ((,class (:background "#FFFFA0"))))
-   `(linum ((,class (:foreground "#9A9A9A" :background "#EDEDED"))))
+   `(linum ((,class (:inherit (default shadow) :foreground "#9A9A9A" :background "#EDEDED"))))
    `(log-view-file ((,class (:foreground "#0000CC" :background "#EAF2F5"))))
    `(lui-button-face ((,class ,link)))
    `(lui-highlight-face ((,class (:box '(:line-width 1 :color "#CC0000") :foreground "#CC0000" :background "#FFFF88")))) ; my nickname
@@ -600,6 +600,15 @@ Semantic, and Ansi-Color faces are included -- and much more...")
    `(rainbow-delimiters-depth-9-face ((,class (:foreground "#887070"))))
    `(rainbow-delimiters-mismatched-face ((,class ,paren-unmatched)))
    `(rainbow-delimiters-unmatched-face ((,class ,paren-unmatched)))
+   `(realgud-overlay-arrow1  ((,class (:foreground "#005522"))))
+   `(realgud-overlay-arrow2  ((,class (:foreground "#c18401"))))
+   `(realgud-overlay-arrow3  ((,class (:foreground "#909183"))))
+   `(realgud-bp-disabled-face      ((,class (:foreground "#909183"))))
+   `(realgud-bp-line-enabled-face  ((,class (:underline "red"))))
+   `(realgud-bp-line-disabled-face ((,class (:underline "#909183"))))
+   `(realgud-file-name             ((,class :foreground "#005522")))
+   `(realgud-line-number           ((,class :foreground "#A535AE")))
+   `(realgud-backtrace-number      ((,class :foreground "#A535AE" :weight bold)))
    `(recover-this-file ((,class (:weight bold :background "#FF3F3F"))))
    `(rng-error ((,class (:weight bold :foreground "red" :background "#FBE3E4"))))
    `(sh-heredoc ((,class (:foreground "blue" :background "#EEF5FE"))))

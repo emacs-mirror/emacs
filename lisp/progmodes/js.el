@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary
 
@@ -472,6 +472,12 @@ The value must not be negative."
 (defcustom js-flat-functions nil
   "Treat nested functions as top-level functions in `js-mode'.
 This applies to function movement, marking, and so on."
+  :type 'boolean
+  :group 'js)
+
+(defcustom js-indent-align-list-continuation t
+  "Align continuation of non-empty ([{ lines in `js-mode'."
+  :version "26.1"
   :type 'boolean
   :group 'js)
 
@@ -1829,10 +1835,15 @@ This performs fontification according to `js--class-styles'."
   (save-excursion
     (back-to-indentation)
     (if (js--looking-at-operator-p)
-        (or (not (memq (char-after) '(?- ?+)))
-            (progn
-              (forward-comment (- (point)))
-              (not (memq (char-before) '(?, ?\[ ?\()))))
+        (if (eq (char-after) ?/)
+            (prog1
+                (not (nth 3 (syntax-ppss (1+ (point)))))
+              (forward-char -1))
+          (or
+           (not (memq (char-after) '(?- ?+)))
+           (progn
+             (forward-comment (- (point)))
+             (not (memq (char-before) '(?, ?\[ ?\())))))
       (and (js--find-newline-backward)
            (progn
              (skip-chars-backward " \t")
@@ -1967,8 +1978,12 @@ statement spanning multiple lines; otherwise, return nil."
     (save-excursion
       (back-to-indentation)
       (when (not (looking-at js--declaration-keyword-re))
-        (when (looking-at js--indent-operator-re)
-          (goto-char (match-end 0)))
+        (let ((pt (point)))
+          (when (looking-at js--indent-operator-re)
+            (goto-char (match-end 0)))
+          ;; The "operator" is probably a regexp literal opener.
+          (when (nth 3 (syntax-ppss))
+            (goto-char pt)))
         (while (and (not at-opening-bracket)
                     (not (bobp))
                     (let ((pos (point)))
@@ -2092,7 +2107,8 @@ indentation is aligned to that column."
                  (switch-keyword-p (looking-at "default\\_>\\|case\\_>[^:]"))
                  (continued-expr-p (js--continued-expression-p)))
              (goto-char (nth 1 parse-status)) ; go to the opening char
-             (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
+             (if (or (not js-indent-align-list-continuation)
+                     (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)"))
                  (progn ; nothing following the opening paren/bracket
                    (skip-syntax-backward " ")
                    (when (eq (char-before) ?\)) (backward-list))
@@ -2373,6 +2389,10 @@ i.e., customize JSX element indentation with `sgml-basic-offset',
   (let ((js--filling-paragraph t)
         (fill-paragraph-function #'c-fill-paragraph))
     (c-fill-paragraph justify)))
+
+(defun js-do-auto-fill ()
+  (let ((js--filling-paragraph t))
+    (c-do-auto-fill)))
 
 ;;; Type database and Imenu
 
@@ -3850,13 +3870,13 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   (setq-local prettify-symbols-alist js--prettify-symbols-alist)
 
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local parse-sexp-lookup-properties t)
   (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
 
   ;; Comments
   (setq-local comment-start "// ")
   (setq-local comment-end "")
   (setq-local fill-paragraph-function #'js-c-fill-paragraph)
+  (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
   ;; Parse cache
   (add-hook 'before-change-functions #'js--flush-caches t t)

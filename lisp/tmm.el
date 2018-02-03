@@ -1,6 +1,6 @@
 ;;; tmm.el --- text mode access to menu-bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1996, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -247,7 +247,7 @@ Its value should be an event that has a binding in MENU."
                        ;; candidates in the order they are shown on
                        ;; the menu bar.  So pass completing-read the
                        ;; reversed copy of the list.
-                       (completing-read
+                       (completing-read-default
                         (concat gl-str
                                 " (up/down to change, PgUp to menu): ")
                         (tmm--completion-table (reverse tmm-km-list)) nil t nil

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
@@ -33,13 +33,13 @@ killing many different types of syntactic units.
 @cindex cutting text
 @cindex deletion
   Most commands which erase text from the buffer save it in the kill
-ring.  These are known as @dfn{kill} commands, and their names
-normally contain the word @samp{kill} (e.g., @code{kill-line}).  The
-kill ring stores several recent kills, not just the last one, so
-killing is a very safe operation: you don't have to worry much about
-losing text that you previously killed.  The kill ring is shared by
-all buffers, so text that is killed in one buffer can be yanked into
-another buffer.
+ring (@pxref{Kill Ring}).  These are known as @dfn{kill} commands, and
+their names normally contain the word @samp{kill} (e.g.,
+@code{kill-line}).  The kill ring stores several recent kills, not
+just the last one, so killing is a very safe operation: you don't have
+to worry much about losing text that you previously killed.  The kill
+ring is shared by all buffers, so text that is killed in one buffer
+can be yanked into another buffer.
 
   When you use @kbd{C-/} (@code{undo}) to undo a kill command
 (@pxref{Undo}), that brings the killed text back into the buffer, but
@@ -170,7 +170,7 @@ up to the end of the line; if point was originally at the beginning of
 the line, this leaves the line blank.
 
   Spaces and tabs at the end of the line are ignored when deciding
-which case applies.  As long as point is after the last visible
+which case applies.  As long as point is after the last non-whitespace
 character in the line, you can be sure that @kbd{C-k} will kill the
 newline.  To kill an entire non-blank line, go to the beginning and
 type @kbd{C-k} twice.
@@ -200,8 +200,6 @@ key sequence @kbd{C-S-backspace}.
 
 @node Other Kill Commands
 @subsection Other Kill Commands
-@findex kill-region
-@kindex C-w
 
 @table @kbd
 @item C-w
@@ -415,10 +413,10 @@ This is a line @point{}of sample text.
 @noindent
 with point shown by @point{}.  If you type @kbd{M-d M-@key{DEL} M-d
 M-@key{DEL}}, killing alternately forward and backward, you end up with
-@samp{a line of sample} as one entry in the kill ring, and @samp{This
-is@ @ text.} in the buffer.  (Note the double space between @samp{is}
-and @samp{text}, which you can clean up with @kbd{M-@key{SPC}} or
-@kbd{M-q}.)
+@samp{a line of sample} as one entry in the kill ring, and
+@w{@samp{This is@ @ text.}} in the buffer.  (Note the double space
+between @samp{is} and @samp{text}, which you can clean up with
+@kbd{M-@key{SPC}} or @kbd{M-q}.)
 
   Another way to kill the same text is to move back two words with
 @kbd{M-b M-b}, then kill all four words forward with @kbd{C-u M-d}.
@@ -518,6 +516,10 @@ so that it is not lost.  In some circumstances, this may cause a delay
 when exiting Emacs; if you wish to prevent Emacs from transferring
 data to the clipboard manager, change the variable
 @code{x-select-enable-clipboard-manager} to @code{nil}.
+
+  Since strings containing NUL bytes are usually truncated when passed
+through the clipboard, Emacs replaces such characters with ``\0''
+before transferring them to the system's clipboard.
 
 @vindex select-enable-primary
 @findex clipboard-kill-region
@@ -907,8 +909,8 @@ any direction.  Normal text you type is inserted to the left or right
 of each line in the rectangle (on the same side as the cursor).
 
   You can use this rectangle support without activating CUA by calling the
-@code{cua-rectangle-mark-mode} command.  But see also the standard
-@code{rectangle-mark-mode}.  @xref{Rectangles}.
+@code{cua-rectangle-mark-mode} command.  There's also the standard command
+@code{rectangle-mark-mode}, see @ref{Rectangles}.
 
   With CUA you can easily copy text and rectangles into and out of
 registers by providing a one-digit numeric prefix to the kill, copy,

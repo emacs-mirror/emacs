@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -384,7 +384,7 @@ nonempty, then flushes the buffer."
                 (set-match-data ielm-match-data)
                 (save-excursion
                   (with-temp-buffer
-                    (condition-case err
+                    (condition-case-unless-debug err
                         (unwind-protect
                             ;; The next let form creates default
                             ;; bindings for *, ** and ***.  But
@@ -436,15 +436,26 @@ nonempty, then flushes the buffer."
 
       (goto-char pmark)
       (unless error-type
-        (condition-case nil
+        (condition-case err
             ;; Self-referential objects cause loops in the printer, so
             ;; trap quits here. May as well do errors, too
             (unless for-effect
-              (setq output (concat output (pp-to-string result)
-				   (let ((str (eval-expression-print-format result)))
-				     (if str (propertize str 'font-lock-face 'shadow))))))
-          (error (setq error-type "IELM Error")
-                 (setq result "Error during pretty-printing (bug in pp)"))
+              (let* ((ielmbuf (current-buffer))
+                     (aux (let ((str (eval-expression-print-format result)))
+			    (if str (propertize str 'font-lock-face 'shadow)))))
+                (setq output (with-temp-buffer
+                               (let ((tmpbuf (current-buffer)))
+                                 ;; Use print settings (e.g. print-circle,
+                                 ;; print-gensym, etc...) from the
+                                 ;; right buffer!
+                                 (with-current-buffer ielmbuf
+                                   (cl-prin1 result tmpbuf))
+                                 (pp-buffer)
+                                 (concat (buffer-string) aux))))))
+          (error
+           (setq error-type "IELM Error")
+           (setq result (format "Error during pretty-printing (bug in pp): %S"
+                                err)))
           (quit  (setq error-type "IELM Error")
                  (setq result "Quit during pretty-printing"))))
       (if error-type
@@ -516,9 +527,6 @@ causes output to be directed to the ielm buffer.
 `standard-output' is restored after evaluation unless explicitly
 set to a different value during evaluation.  You can use (princ
 VALUE) or (pp VALUE) to write to the ielm buffer.
-
-Expressions evaluated by IELM are not subject to `debug-on-quit' or
-`debug-on-error'.
 
 The behavior of IELM may be customized with the following variables:
 * To stop beeping on error, set `ielm-noisy' to nil.

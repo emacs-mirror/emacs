@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,7 +32,6 @@
 
 ;; Pacify byte-compiler.
 (eval-when-compile
-  (require 'cl)
   (require 'custom))
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
@@ -122,10 +121,10 @@ pass to the OPERATION."
     (or (boundp 'ange-ftp-name-format)
 	(let (file-name-handler-alist) (require 'ange-ftp)))
     (let ((ange-ftp-name-format
-	   (list (nth 0 (tramp-file-name-structure))
-		 (nth 3 (tramp-file-name-structure))
-		 (nth 2 (tramp-file-name-structure))
-		 (nth 4 (tramp-file-name-structure))))
+	   (list (nth 0 tramp-file-name-structure)
+		 (nth 3 tramp-file-name-structure)
+		 (nth 2 tramp-file-name-structure)
+		 (nth 4 tramp-file-name-structure)))
 	  ;; ange-ftp uses `ange-ftp-ftp-name-arg' and `ange-ftp-ftp-name-res'
 	  ;; for optimization in `ange-ftp-ftp-name'. If Tramp wasn't active,
 	  ;; there could be incorrect values from previous calls in case the
@@ -145,7 +144,7 @@ pass to the OPERATION."
        ((memq operation '(file-directory-p file-exists-p))
 	(if (apply 'ange-ftp-hook-function operation args)
 	    (let ((v (tramp-dissect-file-name (car args) t)))
-	      (aset v 0 tramp-ftp-method)
+	      (setf (tramp-file-name-method v) tramp-ftp-method)
 	      (tramp-set-connection-property v "started" t))
 	  nil))
 

@@ -1,6 +1,6 @@
 ;;; dom-tests.el --- Tests for dom.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,7 +26,10 @@
 
 (require 'dom)
 (require 'ert)
-(eval-when-compile (require 'subr-x))
+
+;; `defsubst's are not inlined inside `ert-deftest' (see Bug#24402),
+;; therefore we can't use `eval-when-compile' here.
+(require 'subr-x)
 
 (defun dom-tests--tree ()
   "Return a DOM tree for testing."

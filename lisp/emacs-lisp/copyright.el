@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991-1995, 1998, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1991-1995, 1998, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -186,9 +186,10 @@ skips to the end of all the years."
 		   (substring copyright-current-year -2))
     (if (or noquery
 	    (save-window-excursion
-	      (switch-to-buffer (current-buffer))
-	      ;; Fixes some point-moving oddness (bug#2209).
+              ;; switch-to-buffer might move point when
+              ;; switch-to-buffer-preserve-window-point is non-nil.
 	      (save-excursion
+                (switch-to-buffer (current-buffer))
 		(y-or-n-p (if replace
 			      (concat "Replace copyright year(s) by "
 				      copyright-current-year "? ")

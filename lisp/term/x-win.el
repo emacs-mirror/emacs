@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -69,7 +69,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (if (not (fboundp 'x-create-frame))
-    (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
+    (error "%s: Loading x-win.el but not compiled for X" invocation-name))
 
 (require 'term/common-win)
 (require 'frame)
@@ -93,7 +93,7 @@
 ;; Handle the --parent-id option.
 (defun x-handle-parent-id (switch)
   (or (consp x-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+      (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq initial-frame-alist (cons
                              (cons 'parent-id
                                    (string-to-number (car x-invocation-args)))
@@ -104,7 +104,7 @@
 ;; to give us back our session id we had on the previous run.
 (defun x-handle-smid (switch)
   (or (consp x-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+      (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-session-previous-id (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
 
@@ -1182,7 +1182,7 @@ as returned by `x-server-vendor'."
 This returns an error if any Emacs frames are X frames."
   ;; Don't allow suspending if any of the frames are X frames.
   (if (memq 'x (mapcar #'window-system (frame-list)))
-      (error "Cannot suspend Emacs while running under X")))
+      (error "Cannot suspend Emacs while an X GUI frame exists")))
 
 (defvar x-initialized nil
   "Non-nil if the X window system has been initialized.")
@@ -1205,7 +1205,7 @@ This returns an error if any Emacs frames are X frames."
   ;; Make sure we have a valid resource name.
   (or (stringp x-resource-name)
       (let (i)
-	(setq x-resource-name (invocation-name))
+	(setq x-resource-name (copy-sequence invocation-name))
 
 	;; Change any . or * characters in x-resource-name to hyphens,
 	;; so as not to choke when we use it in X resource queries.
@@ -1287,7 +1287,7 @@ This returns an error if any Emacs frames are X frames."
 
   ;; During initialization, we defer sending size hints to the window
   ;; manager, because that can induce a race condition:
-  ;; http://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00033.html
+  ;; https://lists.gnu.org/r/emacs-devel/2008-10/msg00033.html
   ;; Send the size hints once initialization is done.
   (add-hook 'after-init-hook 'x-wm-set-size-hint)
 

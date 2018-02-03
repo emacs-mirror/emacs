@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2017 Free Software Foundation,
+   Copyright (C) 1985-1987, 1993, 2001-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_KEYBOARD_H
 #define EMACS_KEYBOARD_H
@@ -65,7 +65,7 @@ INLINE_HEADER_BEGIN
    as soon as a complete key arrives from some KBOARD or other,
    Emacs starts executing that key's binding.  It switches to the
    single-kboard state for the execution of that command,
-   so that that command can get input only from its own KBOARD.
+   so that the command can get input only from its own KBOARD.
 
    While in the single-kboard state, read_char can consider input only
    from the current KBOARD.  If events come from other KBOARDs, they
@@ -438,6 +438,7 @@ extern unsigned int timers_run;
 extern bool menu_separator_name_p (const char *);
 extern bool parse_menu_item (Lisp_Object, int);
 
+extern void init_raw_keybuf_count (void);
 extern KBOARD *allocate_kboard (Lisp_Object);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);

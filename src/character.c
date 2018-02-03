@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -20,7 +20,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* At first, see the document in `character.h' to understand the code
    in this file.  */
@@ -1050,9 +1050,52 @@ blankp (int c)
   return XINT (category) == UNICODE_CATEGORY_Zs; /* separator, space */
 }
 
+
+/* Return true for characters that would read as symbol characters,
+   but graphically may be confused with some kind of punctuation.  We
+   require an escaping backslash, when such characters begin a
+   symbol.  */
+bool
+confusable_symbol_character_p (int ch)
+{
+  switch (ch)
+    {
+    case 0x2018: /* LEFT SINGLE QUOTATION MARK */
+    case 0x2019: /* RIGHT SINGLE QUOTATION MARK */
+    case 0x201B: /* SINGLE HIGH-REVERSED-9 QUOTATION MARK */
+    case 0x201C: /* LEFT DOUBLE QUOTATION MARK */
+    case 0x201D: /* RIGHT DOUBLE QUOTATION MARK */
+    case 0x201F: /* DOUBLE HIGH-REVERSED-9 QUOTATION MARK */
+    case 0x301E: /* DOUBLE PRIME QUOTATION MARK */
+    case 0xFF02: /* FULLWIDTH QUOTATION MARK */
+    case 0xFF07: /* FULLWIDTH APOSTROPHE */
+      return true;
+
+    default:
+      return false;
+    }
+}
+
+signed char HEXDIGIT_CONST hexdigit[UCHAR_MAX + 1] =
+  {
+#if HEXDIGIT_IS_CONST
+    [0 ... UCHAR_MAX] = -1,
+#endif
+    ['0'] = 0, ['1'] = 1, ['2'] = 2, ['3'] = 3, ['4'] = 4,
+    ['5'] = 5, ['6'] = 6, ['7'] = 7, ['8'] = 8, ['9'] = 9,
+    ['A'] = 10, ['B'] = 11, ['C'] = 12, ['D'] = 13, ['E'] = 14, ['F'] = 15,
+    ['a'] = 10, ['b'] = 11, ['c'] = 12, ['d'] = 13, ['e'] = 14, ['f'] = 15
+  };
+
 void
 syms_of_character (void)
 {
+#if !HEXDIGIT_IS_CONST
+  /* Set the non-hex digit values to -1.  */
+  for (int i = 0; i <= UCHAR_MAX; i++)
+    hexdigit[i] -= i != '0' && !hexdigit[i];
+#endif
+
   DEFSYM (Qcharacterp, "characterp");
   DEFSYM (Qauto_fill_chars, "auto-fill-chars");
 

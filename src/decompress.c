@@ -1,5 +1,5 @@
 /* Interface to zlib.
-   Copyright (C) 2013-2017 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "buffer.h"
+#include "composite.h"
 
 #include <verify.h>
 
@@ -66,7 +67,7 @@ init_zlib_functions (void)
 
 struct decompress_unwind_data
 {
-  ptrdiff_t old_point, start, nbytes;
+  ptrdiff_t old_point, orig, start, nbytes;
   z_stream *stream;
 };
 
@@ -76,10 +77,19 @@ unwind_decompress (void *ddata)
   struct decompress_unwind_data *data = ddata;
   inflateEnd (data->stream);
 
-  /* Delete any uncompressed data already inserted on error.  */
+  /* Delete any uncompressed data already inserted on error, but
+     without calling the change hooks.  */
   if (data->start)
-    del_range (data->start, data->start + data->nbytes);
-
+    {
+      del_range_2 (data->start, data->start, /* byte, char offsets the same */
+                   data->start + data->nbytes, data->start + data->nbytes,
+                   0);
+      update_compositions (data->start, data->start, CHECK_HEAD);
+      /* "Balance" the before-change-functions call, which would
+         otherwise be left "hanging". */
+      signal_after_change (data->orig, data->start - data->orig,
+                           data->start - data->orig);
+    }
   /* Put point where it was, or if the buffer has shrunk because the
      compressed data is bigger than the uncompressed, at
      point-max.  */
@@ -141,6 +151,10 @@ This function can be called only in unibyte buffers.  */)
      the same.  */
   istart = XINT (start);
   iend = XINT (end);
+
+  /* Do the following before manipulating the gap. */
+  modify_text (istart, iend);
+
   move_gap_both (iend, iend);
 
   stream.zalloc = Z_NULL;
@@ -154,6 +168,7 @@ This function can be called only in unibyte buffers.  */)
   if (inflateInit2 (&stream, MAX_WBITS + 32) != Z_OK)
     return Qnil;
 
+  unwind_data.orig = istart;
   unwind_data.start = iend;
   unwind_data.stream = &stream;
   unwind_data.old_point = PT;
@@ -196,7 +211,11 @@ This function can be called only in unibyte buffers.  */)
   unwind_data.start = 0;
 
   /* Delete the compressed data.  */
-  del_range (istart, iend);
+  del_range_2 (istart, istart, /* byte and char offsets are the same. */
+               iend, iend, 0);
+
+  signal_after_change (istart, iend - istart, unwind_data.nbytes);
+  update_compositions (istart, istart, CHECK_HEAD);
 
   return unbind_to (count, Qt);
 }

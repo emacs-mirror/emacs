@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -23,7 +23,7 @@
 ;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -80,7 +80,7 @@
 
 ;; Using the "console" subcommand to start IPython in server-client
 ;; mode is known to fail intermittently due a bug on IPython itself
-;; (see URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18052#27').
+;; (see URL `https://debbugs.gnu.org/cgi/bugreport.cgi?bug=18052#27').
 ;; There seems to be a race condition in the IPython server (A.K.A
 ;; kernel) when code is sent while it is still initializing, sometimes
 ;; causing the shell to get stalled.  With that said, if an IPython
@@ -91,13 +91,13 @@
 ;; is as follows (of course you need to modify the paths according to
 ;; your system):
 
-;; (setq python-shell-interpreter "C:\\Python27\\python.exe"
+;; (setq python-shell-interpreter "C:/Python27/python.exe"
 ;;       python-shell-interpreter-args
-;;       "-i C:\\Python27\\Scripts\\ipython-script.py")
+;;       "-i C:/Python27/Scripts/ipython-script.py")
 
 ;; Missing or delayed output used to happen due to differences between
 ;; Operating Systems' pipe buffering (e.g. CPython 3.3.4 in Windows 7.
-;; See URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=17304').  To
+;; See URL `https://debbugs.gnu.org/cgi/bugreport.cgi?bug=17304').  To
 ;; avoid this, the `python-shell-unbuffered' defaults to non-nil and
 ;; controls whether `python-shell-calculate-process-environment'
 ;; should set the "PYTHONUNBUFFERED" environment variable on startup:
@@ -273,7 +273,7 @@
 (autoload 'help-function-arglist "help-fns")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.pyw?\\'")  'python-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.py[iw]?\\'") 'python-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist (cons (purecopy "python[0-9.]*") 'python-mode))
 
@@ -286,10 +286,6 @@
 
 ;;; 24.x Compat
 
-
-(unless (fboundp 'prog-widen)
-  (defun prog-widen ()
-    (widen)))
 
 (unless (fboundp 'prog-first-column)
   (defun prog-first-column ()
@@ -640,10 +636,14 @@ The type returned can be `comment', `string' or `paren'."
    ((python-rx string-delimiter)
     (0 (ignore (python-syntax-stringify))))))
 
-(defconst python--prettify-symbols-alist
+(defvar python-prettify-symbols-alist
   '(("lambda"  . ?λ)
     ("and" . ?∧)
-    ("or" . ?∨)))
+    ("or" . ?∨))
+  "Value for `prettify-symbols-alist' in `python-mode'.")
+
+(define-obsolete-variable-alias 'python--prettify-symbols-alist
+  'python-prettify-symbols-alist "26.1")
 
 (defsubst python-syntax-count-quotes (quote-char &optional point limit)
   "Count number of quotes around point (max is 3).
@@ -721,11 +721,17 @@ It makes underscores and dots word constituent chars.")
 
 ;;; Indentation
 
+(define-obsolete-variable-alias
+  'python-indent 'python-indent-offset "24.3")
+
 (defcustom python-indent-offset 4
   "Default indentation offset for Python."
   :group 'python
   :type 'integer
   :safe 'integerp)
+
+(define-obsolete-variable-alias
+  'python-guess-indent 'python-indent-guess-indent-offset "24.3")
 
 (defcustom python-indent-guess-indent-offset t
   "Non-nil tells Python mode to guess `python-indent-offset' value."
@@ -746,11 +752,11 @@ It makes underscores and dots word constituent chars.")
   :type '(repeat symbol)
   :group 'python)
 
-(define-obsolete-variable-alias
-  'python-indent 'python-indent-offset "24.3")
-
-(define-obsolete-variable-alias
-  'python-guess-indent 'python-indent-guess-indent-offset "24.3")
+(defcustom python-indent-def-block-scale 2
+  "Multiplier applied to indentation inside multi-line def blocks."
+  :version "26.1"
+  :type 'integer
+  :safe 'natnump)
 
 (defvar python-indent-current-level 0
   "Deprecated var available for compatibility.")
@@ -781,7 +787,7 @@ work on `python-indent-calculate-indentation' instead."
   (interactive)
   (save-excursion
     (save-restriction
-      (prog-widen)
+      (widen)
       (goto-char (point-min))
       (let ((block-end))
         (while (and (not block-end)
@@ -879,8 +885,6 @@ keyword
 :at-dedenter-block-start
  - Point is on a line starting a dedenter block.
  - START is the position where the dedenter block starts."
-  (save-restriction
-    (prog-widen)
     (let ((ppss (save-excursion
                   (beginning-of-line)
                   (syntax-ppss))))
@@ -1018,7 +1022,7 @@ keyword
                       (looking-at (python-rx block-ender)))
                     :after-block-end)
                    (t :after-line))
-             (point)))))))))
+             (point))))))))
 
 (defun python-indent--calculate-indentation ()
   "Internal implementation of `python-indent-calculate-indentation'.
@@ -1026,8 +1030,6 @@ May return an integer for the maximum possible indentation at
 current context or a list of integers.  The latter case is only
 happening for :at-dedenter-block-start context since the
 possibilities can be narrowed to specific indentation points."
-  (save-restriction
-    (prog-widen)
     (save-excursion
       (pcase (python-indent-context)
         (`(:no-indent . ,_) (prog-first-column)) ; usually 0
@@ -1048,13 +1050,13 @@ possibilities can be narrowed to specific indentation points."
            (max line-indentation base-indent)))
         (`(,(or :after-block-start
                 :after-backslash-first-line
+                :after-backslash-assignment-continuation
                 :inside-paren-newline-start) . ,start)
          ;; Add one indentation level.
          (goto-char start)
          (+ (current-indentation) python-indent-offset))
         (`(,(or :inside-paren
                 :after-backslash-block-continuation
-                :after-backslash-assignment-continuation
                 :after-backslash-dotted-continuation) . ,start)
          ;; Use the column given by the context.
          (goto-char start)
@@ -1075,9 +1077,9 @@ possibilities can be narrowed to specific indentation points."
                          (current-indentation)))
                      opening-block-start-points))))
         (`(,(or :inside-paren-newline-start-from-block) . ,start)
-         ;; Add two indentation levels to make the suite stand out.
          (goto-char start)
-         (+ (current-indentation) (* python-indent-offset 2)))))))
+         (+ (current-indentation)
+            (* python-indent-offset python-indent-def-block-scale))))))
 
 (defun python-indent--calculate-levels (indentation)
   "Calculate levels list given INDENTATION.
@@ -1253,7 +1255,11 @@ This function is intended to be added to `post-self-insert-hook.'
 If a line renders a paren alone, after adding a char before it,
 the line will be re-indented automatically if needed."
   (when (and electric-indent-mode
-             (eq (char-before) last-command-event))
+             (eq (char-before) last-command-event)
+             (not (python-syntax-context 'string))
+             (save-excursion
+               (beginning-of-line)
+               (not (python-syntax-context 'string (syntax-ppss)))))
     (cond
      ;; Electric indent inside parens
      ((and
@@ -2034,6 +2040,9 @@ executed through tramp connections."
   :type '(repeat string)
   :group 'python)
 
+(define-obsolete-variable-alias
+  'python-shell-virtualenv-path 'python-shell-virtualenv-root "25.1")
+
 (defcustom python-shell-virtualenv-root nil
   "Path to virtualenv root.
 This variable, when set to a string, makes the environment to be
@@ -2041,9 +2050,6 @@ modified such that shells are started within the specified
 virtualenv."
   :type '(choice (const nil) string)
   :group 'python)
-
-(define-obsolete-variable-alias
-  'python-shell-virtualenv-path 'python-shell-virtualenv-root "25.1")
 
 (defcustom python-shell-setup-codes nil
   "List of code run by `python-shell-send-setup-codes'."
@@ -2109,20 +2115,25 @@ remote host, the returned value is intended for
 (defun python-shell-calculate-exec-path ()
   "Calculate `exec-path'.
 Prepends `python-shell-exec-path' and adds the binary directory
-for virtualenv if `python-shell-virtualenv-root' is set.  If
-`default-directory' points to a remote host, the returned value
-appends `python-shell-remote-exec-path' instead of `exec-path'."
+for virtualenv if `python-shell-virtualenv-root' is set - this
+will use the python interpreter from inside the virtualenv when
+starting the shell.  If `default-directory' points to a remote host,
+the returned value appends `python-shell-remote-exec-path' instead
+of `exec-path'."
   (let ((new-path (copy-sequence
                    (if (file-remote-p default-directory)
                        python-shell-remote-exec-path
-                     exec-path))))
+                     exec-path)))
+
+        ;; Windows and POSIX systems use different venv directory structures
+        (virtualenv-bin-dir (if (eq system-type 'windows-nt) "Scripts" "bin")))
     (python-shell--add-to-path-with-priority
      new-path python-shell-exec-path)
     (if (not python-shell-virtualenv-root)
         new-path
       (python-shell--add-to-path-with-priority
        new-path
-       (list (expand-file-name "bin" python-shell-virtualenv-root)))
+       (list (expand-file-name virtualenv-bin-dir python-shell-virtualenv-root)))
       new-path)))
 
 (defun python-shell-tramp-refresh-remote-path (vec paths)
@@ -2212,6 +2223,11 @@ machine then modifies `tramp-remote-process-environment' and
 Do not set this variable directly, instead use
 `python-shell-prompt-set-calculated-regexps'.")
 
+(defvar python-shell--block-prompt nil
+  "Input block prompt for inferior python shell.
+Do not set this variable directly, instead use
+`python-shell-prompt-set-calculated-regexps'.")
+
 (defvar python-shell--prompt-calculated-output-regexp nil
   "Calculated output prompt regexp for inferior python shell.
 Do not set this variable directly, instead use
@@ -2245,7 +2261,11 @@ detection and just returns nil."
                 ;; `condition-case' and displaying the error message to
                 ;; the user in the no-prompts warning.
                 (ignore-errors
-                  (let ((code-file (python-shell--save-temp-file code)))
+                  (let ((code-file
+                         ;; Python 2.x on Windows does not handle
+                         ;; carriage returns in unbuffered mode.
+                         (let ((inhibit-eol-conversion (getenv "PYTHONUNBUFFERED")))
+                           (python-shell--save-temp-file code))))
                     ;; Use `process-file' as it is remote-host friendly.
                     (process-file
                      interpreter
@@ -2362,6 +2382,7 @@ and `python-shell-output-prompt-regexp' using the values from
         (dolist (prompt (butlast detected-prompts))
           (setq prompt (regexp-quote prompt))
           (cl-pushnew prompt input-prompts :test #'string=))
+        (setq python-shell--block-prompt (nth 1 detected-prompts))
         (cl-pushnew (regexp-quote
                      (car (last detected-prompts)))
                     output-prompts :test #'string=))
@@ -2428,7 +2449,7 @@ the `buffer-name'."
 Optional argument TIMEOUT is the timeout argument to
 `accept-process-output' calls.  Optional argument REGEXP
 overrides the regexp to match the end of output, defaults to
-`comint-prompt-regexp.'.  Returns non-nil when output was
+`comint-prompt-regexp'.  Returns non-nil when output was
 properly captured.
 
 This utility is useful in situations where the output may be
@@ -2446,7 +2467,7 @@ banner and the initial prompt are received separately."
           (throw 'found t))))))
 
 (defun python-shell-comint-end-of-output-p (output)
-  "Return non-nil if OUTPUT is ends with input prompt."
+  "Return non-nil if OUTPUT ends with input prompt."
   (string-match
    ;; XXX: It seems on macOS an extra carriage return is attached
    ;; at the end of output, this handles that too.
@@ -2651,10 +2672,9 @@ With argument MSG show activation/deactivation message."
   "Hook run upon first (non-pdb) shell prompt detection.
 This is the place for shell setup functions that need to wait for
 output.  Since the first prompt is ensured, this helps the
-current process to not hang waiting for output by safeguarding
-interactive actions can be performed.  This is useful to safely
-attach setup code for long-running processes that eventually
-provide a shell."
+current process to not hang while waiting.  This is useful to
+safely attach setup code for long-running processes that
+eventually provide a shell."
   :version "25.1"
   :type 'hook
   :group 'python)
@@ -2722,6 +2742,7 @@ variable.
   (set (make-local-variable 'python-shell-interpreter-args)
        (or python-shell--interpreter-args python-shell-interpreter-args))
   (set (make-local-variable 'python-shell--prompt-calculated-input-regexp) nil)
+  (set (make-local-variable 'python-shell--block-prompt) nil)
   (set (make-local-variable 'python-shell--prompt-calculated-output-regexp) nil)
   (python-shell-prompt-set-calculated-regexps)
   (setq comint-prompt-regexp python-shell--prompt-calculated-input-regexp)
@@ -2731,7 +2752,8 @@ variable.
        '(ansi-color-process-output
          python-shell-comint-watch-for-first-prompt-output-filter
          python-pdbtrack-comint-output-filter-function
-         python-comint-postoutput-scroll-to-bottom))
+         python-comint-postoutput-scroll-to-bottom
+         comint-watch-for-password-prompt))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-shell-compilation-regexp-alist)
   (add-hook 'completion-at-point-functions
@@ -3265,14 +3287,6 @@ def __PYTHON_EL_get_completions(text):
   :type 'string
   :group 'python)
 
-(defcustom python-shell-completion-string-code
-  "';'.join(__PYTHON_EL_get_completions('''%s'''))"
-  "Python code used to get a string of completions separated by semicolons.
-The string passed to the function is the current python name or
-the full statement in the case of imports."
-  :type 'string
-  :group 'python)
-
 (define-obsolete-variable-alias
   'python-shell-completion-module-string-code
   'python-shell-completion-string-code
@@ -3285,11 +3299,20 @@ the full statement in the case of imports."
   "25.1"
   "Completion string code must work for (i)pdb.")
 
+(defcustom python-shell-completion-string-code
+  "';'.join(__PYTHON_EL_get_completions('''%s'''))"
+  "Python code used to get a string of completions separated by semicolons.
+The string passed to the function is the current python name or
+the full statement in the case of imports."
+  :type 'string
+  :group 'python)
+
 (defcustom python-shell-completion-native-disabled-interpreters
   ;; PyPy's readline cannot handle some escape sequences yet.  Native
   ;; completion was found to be non-functional for IPython (see
-  ;; Bug#25067).
-  (list "pypy" "ipython")
+  ;; Bug#25067).  Native completion doesn't work on w32 (Bug#28580).
+  (if (eq system-type 'windows-nt) '("")
+    '("pypy" "ipython"))
   "List of disabled interpreters.
 When a match is found, native completion is disabled."
   :version "25.1"
@@ -3430,6 +3453,8 @@ def __PYTHON_EL_native_completion_setup():
                 instance.rlcomplete = new_completer
 
         if readline.__doc__ and 'libedit' in readline.__doc__:
+            raise Exception('''libedit based readline is known not to work,
+      see etc/PROBLEMS under \"In Inferior Python mode, input is echoed\".''')
             readline.parse_and_bind('bind ^I rl_complete')
         else:
             readline.parse_and_bind('tab: complete')
@@ -3438,7 +3463,9 @@ def __PYTHON_EL_native_completion_setup():
 
         print ('python.el: native completion setup loaded')
     except:
-        print ('python.el: native completion setup failed')
+        import sys
+        print ('python.el: native completion setup failed, %s: %s'
+               % sys.exc_info()[:2])
 
 __PYTHON_EL_native_completion_setup()" process)
       (when (and
@@ -3627,7 +3654,14 @@ using that one instead of current buffer's process."
                        ;; Also, since pdb interaction is single-line
                        ;; based, this is enough.
                        (string-match-p python-shell-prompt-pdb-regexp prompt))
-                   #'python-shell-completion-get-completions)
+                   (if (or (equal python-shell--block-prompt prompt)
+                           (string-match-p
+                            python-shell-prompt-block-regexp prompt))
+                       ;; The non-native completion mechanism sends
+                       ;; newlines to the interpreter, so we can't use
+                       ;; it during a multiline statement (Bug#28051).
+                       #'ignore
+                     #'python-shell-completion-get-completions))
                   (t #'python-shell-completion-native-get-completions)))))
     (list start end
           (completion-table-dynamic
@@ -4004,6 +4038,9 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 
 ;;; Skeletons
 
+(define-obsolete-variable-alias
+  'python-use-skeletons 'python-skeleton-autoinsert "24.3")
+
 (defcustom python-skeleton-autoinsert nil
   "Non-nil means template skeletons will be automagically inserted.
 This happens when pressing \"if<SPACE>\", for example, to prompt for
@@ -4011,9 +4048,6 @@ the if condition."
   :type 'boolean
   :group 'python
   :safe 'booleanp)
-
-(define-obsolete-variable-alias
-  'python-use-skeletons 'python-skeleton-autoinsert "24.3")
 
 (defvar python-skeleton-available '()
   "Internal list of available skeletons.")
@@ -4252,8 +4286,10 @@ See `python-check-command' for the default."
         import inspect
         try:
             str_type = basestring
+            argspec_function = inspect.getargspec
         except NameError:
             str_type = str
+            argspec_function = inspect.getfullargspec
         if isinstance(obj, str_type):
             obj = eval(obj, globals())
         doc = inspect.getdoc(obj)
@@ -4266,9 +4302,7 @@ See `python-check-command' for the default."
                 target = obj
                 objtype = 'def'
             if target:
-                args = inspect.formatargspec(
-                    *inspect.getargspec(target)
-                )
+                args = inspect.formatargspec(*argspec_function(target))
                 name = obj.__name__
                 doc = '{objtype} {name}{args}'.format(
                     objtype=objtype, name=name, args=args
@@ -4557,7 +4591,7 @@ Optional argument INCLUDE-TYPE indicates to include the type of the defun.
 This function can be used as the value of `add-log-current-defun-function'
 since it returns nil if point is not inside a defun."
   (save-restriction
-    (prog-widen)
+    (widen)
     (save-excursion
       (end-of-line 1)
       (let ((names)
@@ -4755,12 +4789,10 @@ likely an invalid python file."
   "Message the first line of the block the current statement closes."
   (let ((point (python-info-dedenter-opening-block-position)))
     (when point
-      (save-restriction
-        (prog-widen)
         (message "Closes %s" (save-excursion
                                (goto-char point)
                                (buffer-substring
-                                (point) (line-end-position))))))))
+                                (point) (line-end-position)))))))
 
 (defun python-info-dedenter-statement-p ()
   "Return point if current statement is a dedenter.
@@ -4776,8 +4808,6 @@ statement."
   "Return non-nil if current line ends with backslash.
 With optional argument LINE-NUMBER, check that line instead."
   (save-excursion
-    (save-restriction
-      (prog-widen)
       (when line-number
         (python-util-goto-line line-number))
       (while (and (not (eobp))
@@ -4786,14 +4816,12 @@ With optional argument LINE-NUMBER, check that line instead."
                   (not (equal (char-before (point)) ?\\)))
         (forward-line 1))
       (when (equal (char-before) ?\\)
-        (point-marker)))))
+        (point-marker))))
 
 (defun python-info-beginning-of-backslash (&optional line-number)
-  "Return the point where the backslashed line start.
+  "Return the point where the backslashed line starts.
 Optional argument LINE-NUMBER forces the line number to check against."
   (save-excursion
-    (save-restriction
-      (prog-widen)
       (when line-number
         (python-util-goto-line line-number))
       (when (python-info-line-ends-backslash-p)
@@ -4802,15 +4830,13 @@ Optional argument LINE-NUMBER forces the line number to check against."
                  (python-syntax-context 'paren))
           (forward-line -1))
         (back-to-indentation)
-        (point-marker)))))
+        (point-marker))))
 
 (defun python-info-continuation-line-p ()
   "Check if current line is continuation of another.
 When current line is continuation of another return the point
 where the continued line ends."
   (save-excursion
-    (save-restriction
-      (prog-widen)
       (let* ((context-type (progn
                              (back-to-indentation)
                              (python-syntax-context-type)))
@@ -4836,7 +4862,7 @@ where the continued line ends."
                (python-util-forward-comment -1)
                (when (and (equal (1- line-start) (line-number-at-pos))
                           (python-info-line-ends-backslash-p))
-                 (point-marker))))))))
+                 (point-marker)))))))
 
 (defun python-info-block-continuation-line-p ()
   "Return non-nil if current line is a continuation of a block."
@@ -5114,6 +5140,141 @@ returned as is."
   (ignore-errors (string-match regexp "") t))
 
 
+;;; Flymake integration
+
+(defgroup python-flymake nil
+  "Integration between Python and Flymake."
+  :group 'python
+  :link '(custom-group-link :tag "Flymake" flymake)
+  :version "26.1")
+
+(defcustom python-flymake-command '("pyflakes")
+  "The external tool that will be used to perform the syntax check.
+This is a non empty list of strings, the checker tool possibly followed by
+required arguments.  Once launched it will receive the Python source to be
+checked as its standard input.
+To use `flake8' you would set this to (\"flake8\" \"-\")."
+  :version "26.1"
+  :group 'python-flymake
+  :type '(repeat string))
+
+;; The default regexp accomodates for older pyflakes, which did not
+;; report the column number, and at the same time it's compatible with
+;; flake8 output, although it may be redefined to explicitly match the
+;; TYPE
+(defcustom python-flymake-command-output-pattern
+  (list
+   "^\\(?:<?stdin>?\\):\\(?1:[0-9]+\\):\\(?:\\(?2:[0-9]+\\):\\)? \\(?3:.*\\)$"
+   1 2 nil 3)
+  "Specify how to parse the output of `python-flymake-command'.
+The value has the form (REGEXP LINE COLUMN TYPE MESSAGE): if
+REGEXP matches, the LINE'th subexpression gives the line number,
+the COLUMN'th subexpression gives the column number on that line,
+the TYPE'th subexpression gives the type of the message and the
+MESSAGE'th gives the message text itself.
+
+If COLUMN or TYPE are nil or that index didn't match, that
+information is not present on the matched line and a default will
+be used."
+  :version "26.1"
+  :group 'python-flymake
+  :type '(list regexp
+               (integer :tag "Line's index")
+               (choice
+                (const :tag "No column" nil)
+                (integer :tag "Column's index"))
+               (choice
+                (const :tag "No type" nil)
+                (integer :tag "Type's index"))
+               (integer :tag "Message's index")))
+
+(defcustom python-flymake-msg-alist
+  '(("\\(^redefinition\\|.*unused.*\\|used$\\)" . :warning))
+  "Alist used to associate messages to their types.
+Each element should be a cons-cell (REGEXP . TYPE), where TYPE must be
+one defined in the variable `flymake-diagnostic-types-alist'.
+For example, when using `flake8' a possible configuration could be:
+
+  ((\"\\(^redefinition\\|.*unused.*\\|used$\\)\" . :warning)
+   (\"^E999\" . :error)
+   (\"^[EW][0-9]+\" . :note))
+
+By default messages are considered errors."
+  :version "26.1"
+  :group 'python-flymake
+  :type `(alist :key-type (regexp)
+                :value-type (symbol)))
+
+(defvar-local python--flymake-proc nil)
+
+(defun python--flymake-parse-output (source proc report-fn)
+  "Collect diagnostics parsing checker tool's output line by line."
+  (let ((rx (nth 0 python-flymake-command-output-pattern))
+        (lineidx (nth 1 python-flymake-command-output-pattern))
+        (colidx (nth 2 python-flymake-command-output-pattern))
+        (typeidx (nth 3 python-flymake-command-output-pattern))
+        (msgidx (nth 4 python-flymake-command-output-pattern)))
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-min))
+      (cl-loop
+       while (search-forward-regexp rx nil t)
+       for msg = (match-string msgidx)
+       for (beg . end) = (flymake-diag-region
+                          source
+                          (string-to-number
+                           (match-string lineidx))
+                          (and colidx
+                               (match-string colidx)
+                               (string-to-number
+                                (match-string colidx))))
+       for type = (or (and typeidx
+                           (match-string typeidx)
+                           (assoc-default
+                            (match-string typeidx)
+                            python-flymake-msg-alist
+                            #'string-match))
+                      (assoc-default msg
+                                     python-flymake-msg-alist
+                                     #'string-match)
+                      :error)
+       collect (flymake-make-diagnostic
+                source beg end type msg)
+       into diags
+       finally (funcall report-fn diags)))))
+
+(defun python-flymake (report-fn &rest _args)
+  "Flymake backend for Python.
+This backend uses `python-flymake-command' (which see) to launch a process
+that is passed the current buffer's content via stdin.
+REPORT-FN is Flymake's callback function."
+  (unless (executable-find (car python-flymake-command))
+    (error "Cannot find a suitable checker"))
+
+  (when (process-live-p python--flymake-proc)
+    (kill-process python--flymake-proc))
+
+  (let ((source (current-buffer)))
+    (save-restriction
+      (widen)
+      (setq python--flymake-proc
+            (make-process
+             :name "python-flymake"
+             :noquery t
+             :connection-type 'pipe
+             :buffer (generate-new-buffer " *python-flymake*")
+             :command python-flymake-command
+             :sentinel
+             (lambda (proc _event)
+               (when (eq 'exit (process-status proc))
+                 (unwind-protect
+                     (when (with-current-buffer source
+                             (eq proc python--flymake-proc))
+                       (python--flymake-parse-output source proc report-fn))
+                   (kill-buffer (process-buffer proc)))))))
+      (process-send-region python--flymake-proc (point-min) (point-max))
+      (process-send-eof python--flymake-proc))))
+
+
 (defun python-electric-pair-string-delimiter ()
   (when (and electric-pair-mode
              (memq last-command-event '(?\" ?\'))
@@ -5227,7 +5388,9 @@ returned as is."
   (make-local-variable 'python-shell-internal-buffer)
 
   (when python-indent-guess-indent-offset
-    (python-indent-guess-indent-offset)))
+    (python-indent-guess-indent-offset))
+
+  (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
 
 (provide 'python)

@@ -1,6 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2017 Free Software Foundation,
+Copyright (C) 1988, 1993-1994, 1999, 2001-2018 Free Software Foundation,
 Inc.
 
 Author: Wolfgang Rupprecht (according to ack.texi)
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* C89 requires only the following math.h functions, and Emacs omits

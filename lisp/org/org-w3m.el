@@ -1,6 +1,6 @@
-;;; org-w3m.el --- Support from copy and paste from w3m to Org-mode
+;;; org-w3m.el --- Support from Copy and Paste From w3m -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -19,15 +19,15 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 
 ;; This file implements copying HTML content from a w3m buffer and
-;; transforming the text on the fly so that it can be pasted into
-;; an org-mode buffer with hot links.  It will also work for regions
-;; in gnus buffers that have been washed with w3m.
+;; transforming the text on the fly so that it can be pasted into an
+;; Org buffer with hot links.  It will also work for regions in gnus
+;; buffers that have been washed with w3m.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -35,7 +35,7 @@
 
 ;; Richard Riley <rileyrgdev at googlemail dot com>
 ;;
-;;      The idea of transforming the HTML content with org-mode style is
+;;      The idea of transforming the HTML content with Org syntax is
 ;;      proposed by Richard, I'm just coding it.
 ;;
 
@@ -46,7 +46,7 @@
 (defvar w3m-current-url)
 (defvar w3m-current-title)
 
-(add-hook 'org-store-link-functions 'org-w3m-store-link)
+(org-link-set-parameters "w3m" :store #'org-w3m-store-link)
 (defun org-w3m-store-link ()
   "Store a link to a w3m buffer."
   (when (eq major-mode 'w3m-mode)
@@ -57,10 +57,10 @@
      :description (or w3m-current-title w3m-current-url))))
 
 (defun org-w3m-copy-for-org-mode ()
-  "Copy current buffer content or active region with `org-mode' style links.
+  "Copy current buffer content or active region with Org style links.
 This will encode `link-title' and `link-location' with
 `org-make-link-string', and insert the transformed test into the kill ring,
-so that it can be yanked into an Org-mode buffer with links working correctly."
+so that it can be yanked into an Org  buffer with links working correctly."
   (interactive)
   (let* ((regionp (org-region-active-p))
          (transform-start (point-min))
@@ -94,7 +94,7 @@ so that it can be yanked into an Org-mode buffer with links working correctly."
               ;; get link title at current point.
               (setq link-title (buffer-substring (point)
                                                  (org-w3m-get-anchor-end)))
-              ;; concat `org-mode' style url to `return-content'.
+              ;; concat Org style url to `return-content'.
               (setq return-content (concat return-content
                                            (org-make-link-string
                                             link-location link-title))))
@@ -107,7 +107,7 @@ so that it can be yanked into an Org-mode buffer with links working correctly."
                 (concat return-content
                         (buffer-substring (point) transform-end))))
       (org-kill-new return-content)
-      (message "Transforming links...done, use C-y to insert text into Org-mode file")
+      (message "Transforming links...done, use C-y to insert text into Org file")
       (message "Copy with link transformation complete."))))
 
 (defun org-w3m-get-anchor-start ()

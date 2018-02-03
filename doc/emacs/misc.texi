@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -21,7 +21,7 @@ hyperlinks, and various diversions and amusements.
 @end ifnottex
 
 @node Gnus
-@section Gnus
+@section Email and Usenet News with Gnus
 @cindex Gnus
 @cindex Usenet news
 @cindex newsreader
@@ -151,12 +151,12 @@ List all subscribed and unsubscribed groups, but not killed or zombie
 groups.
 
 @kindex A k @r{(Gnus Group mode)}
-@findex gnus-group-list-all-groups
+@findex gnus-group-list-killed
 @item A k
 List killed groups.
 
 @kindex A z @r{(Gnus Group mode)}
-@findex gnus-group-list-all-groups
+@findex gnus-group-list-zombies
 @item A z
 List zombie groups.
 
@@ -183,13 +183,11 @@ Move point to the previous group containing unread articles.
 
 @kindex n @r{(Gnus Group mode)}
 @findex gnus-group-next-unread-group
-@findex gnus-summary-next-unread-article
 @item n
 Move point to the next unread group.
 
 @kindex p @r{(Gnus Group mode)}
 @findex gnus-group-prev-unread-group
-@findex gnus-summary-prev-unread-article
 @item p
 Move point to the previous unread group.
 
@@ -206,7 +204,7 @@ Update your Gnus settings, and quit Gnus.
 
 @table @kbd
 @kindex SPC @r{(Gnus Summary mode)}
-@findex gnus-group-read-group
+@findex gnus-summary-next-page
 @item @key{SPC}
 If there is no article selected, select the article on the current
 line and display its article buffer.  Otherwise, try scrolling the
@@ -222,13 +220,11 @@ Thus, you can read through all articles by repeatedly typing
 Scroll the text of the article backwards.
 
 @kindex n @r{(Gnus Summary mode)}
-@findex gnus-group-next-unread-group
 @findex gnus-summary-next-unread-article
 @item n
 Select the next unread article.
 
 @kindex p @r{(Gnus Summary mode)}
-@findex gnus-group-prev-unread-group
 @findex gnus-summary-prev-unread-article
 @item p
 Select the previous unread article.
@@ -413,7 +409,6 @@ is needed.  For OpenDocument and Microsoft Office documents, the
 @code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
-@findex doc-view-toggle-display
 @cindex doc-view-minor-mode
   When you visit a document file that can be displayed with DocView
 mode, Emacs automatically uses DocView mode @footnote{The needed
@@ -439,8 +434,8 @@ by typing @kbd{C-c C-c} you switch to the fallback mode.  With another
 also be displayed from within DocView mode by typing @kbd{C-c C-t}
 (@code{doc-view-open-text}).
 
-  You can explicitly enable DocView mode with the command @code{M-x
-doc-view-mode}.  You can toggle DocView minor mode with @code{M-x
+  You can explicitly enable DocView mode with the command @kbd{M-x
+doc-view-mode}.  You can toggle DocView minor mode with @kbd{M-x
 doc-view-minor-mode}.
 
   When DocView mode starts, it displays a welcome screen and begins
@@ -581,7 +576,7 @@ including its entire margins.
   For efficiency, DocView caches the images produced by @command{gs}.
 The name of this directory is given by the variable
 @code{doc-view-cache-directory}.  You can clear the cache directory by
-typing @code{M-x doc-view-clear-cache}.
+typing @kbd{M-x doc-view-clear-cache}.
 
 @findex doc-view-kill-proc
 @findex doc-view-kill-proc-and-buffer
@@ -591,40 +586,6 @@ associated with the current buffer, type @kbd{K}
 (@code{doc-view-kill-proc}).  The command @kbd{k}
 (@code{doc-view-kill-proc-and-buffer}) kills the converter process and
 the DocView buffer.
-
-@node EWW
-@section Web Browsing with EWW
-
-@findex eww
-@findex eww-open-file
-  @dfn{EWW}, the Emacs Web Wowser, is a web browser package for Emacs.
-It allows browsing URLs within an Emacs buffer.  The command @kbd{M-x
-eww} will open a URL or search the web.  You can open a file
-using the command @kbd{M-x eww-open-file}.  You can use EWW as the
-web browser for @code{browse-url}, @pxref{Browse-URL}.  For full
-details, @pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
-
-@node Embedded WebKit Widgets
-@section Embedded WebKit Widgets
-@cindex xwidget
-@cindex webkit widgets
-@cindex embedded widgets
-
-@findex xwidget-webkit-browse-url
-@findex xwidget-webkit-mode
-@cindex Xwidget-WebKit mode
-  If Emacs was compiled with the appropriate support packages, it is
-able to show browser widgets in its buffers.  The command @kbd{M-x
-xwidget-webkit-browse-url} asks for a URL to display in the browser
-widget.  The URL normally defaults to the URL at or before point, but
-if there is an active region (@pxref{Mark}), the default URL comes
-from the region instead, after removing any whitespace from it.  The
-command then creates a new buffer with the embedded browser showing
-the specified URL.  The buffer is put in the Xwidget-WebKit mode
-(similar to Image mode, @pxref{File Conveniences}), which provides
-one-key commands for scrolling the widget, changing its size, and
-reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
-bindings.
 
 @node Shell
 @section Running Shell Commands from Emacs
@@ -661,7 +622,7 @@ available.
 (either in the @var{cmd} argument to one of the above commands, or in
 other contexts), Emacs searches for the program in the directories
 specified by the variable @code{exec-path}.  The value of this
-variable must be a list of directory names; the default value is
+variable must be a list of directories; the default value is
 initialized from the environment variable @env{PATH} when Emacs is
 started (@pxref{General Variables}).
 
@@ -741,6 +702,11 @@ option @code{async-shell-command-buffer} specifies what to do about
 this; e.g., whether to rename the pre-existing output buffer, or to
 use a different buffer for the new command.  Consult the variable's
 documentation for more possibilities.
+
+@vindex async-shell-command-display-buffer
+  If you want the output buffer for asynchronous shell commands to be
+displayed only when the command generates output, set
+@code{async-shell-command-display-buffer} to @code{nil}.
 
 @kindex M-|
 @findex shell-command-on-region
@@ -870,7 +836,7 @@ in the shell buffer to submit the current line as input.
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
-@findex completion-at-point
+@findex completion-at-point@r{, in Shell Mode}
 @cindex shell completion
 Complete the command name or file name before point in the shell
 buffer (@code{completion-at-point}).  This uses the usual Emacs
@@ -1391,6 +1357,16 @@ directory stack if they are not already on it
 (@code{shell-pushd-dunique}).  The values you choose should match the
 underlying shell, of course.
 
+@vindex comint-terminfo-terminal
+@vindex TERM, environment variable, in sub-shell
+Comint mode sets the @env{TERM} environment variable to a safe default
+value, but this value disables some useful features.  For example,
+color is disabled in applications that use @env{TERM} to determine if
+color is supported.  Therefore, Emacs provides an option
+@code{comint-terminfo-terminal}, which you can set to a terminal that
+is present in your system's terminfo database, in order to take
+advantage of advanced features of that terminal.
+
 @node Terminal emulator
 @subsection Emacs Terminal Emulator
 @findex term
@@ -1661,9 +1637,67 @@ expression @code{(+ 1 2)} on the @samp{foo} server, and returns
 signaled.)  Currently, this feature is mainly useful for developers.
 
 @menu
+* TCP Emacs server::     Listening to a TCP socket.
 * Invoking emacsclient:: Connecting to the Emacs server.
 * emacsclient Options::  Emacs client startup options.
 @end menu
+
+@node TCP Emacs server
+@subsection TCP Emacs server
+@cindex TCP Emacs server
+
+@vindex server-use-tcp
+  An Emacs server usually listens to connections on a local Unix
+domain socket.  Some operating systems, such as MS-Windows, do not
+support local sockets; in that case, the server uses TCP sockets
+instead.  In some cases it is useful to have the server listen on a
+TCP socket even if local sockets are supported, e.g., if you need to
+contact the Emacs server from a remote machine.  You can set
+@code{server-use-tcp} to non-@code{nil} to have Emacs listen on a TCP
+socket instead of a local socket.  This is the default if your OS does
+not support local sockets.
+
+@vindex server-host
+@vindex server-port
+  If the Emacs server is set to use TCP, it will by default listen to
+a random port on the localhost interface.  This can be changed to
+another interface and/or a fixed port using the variables
+@code{server-host} and @code{server-port}.
+
+@vindex server-auth-key
+  A TCP socket is not subject to file system permissions.  To retain
+some control over which users can talk to an Emacs server over TCP
+sockets, the @command{emacsclient} program must send an authorization
+key to the server.  This key is normally randomly generated by the
+Emacs server.  This is the recommended mode of operation.
+
+@findex server-generate-key
+  If needed, you can set the authorization key to a static value by
+setting the @code{server-auth-key} variable.  The key must consist of
+64 ASCII printable characters except for space (this means characters
+from @samp{!} to @samp{~}, or from decimal code 33 to 126).  You can
+use @kbd{M-x server-generate-key} to get a random key.
+
+@vindex server-auth-dir
+@cindex server file
+  When you start a TCP Emacs server, Emacs creates a @dfn{server file}
+containing the TCP information to be used by @command{emacsclient} to
+connect to the server.  The variable @code{server-auth-dir} specifies
+the directory containing the server file; by default, this is
+@file{~/.emacs.d/server/}.  In the absence of a local socket with file
+permissions, the permissions of this directory determine which users
+can have their @command{emacsclient} processes talk to the Emacs
+server.
+
+@vindex EMACS_SERVER_FILE@r{, environment variable}
+  To tell @command{emacsclient} to connect to the server over TCP with
+a specific server file, use the @samp{-f} or @samp{--server-file}
+option, or set the @env{EMACS_SERVER_FILE} environment variable
+(@pxref{emacsclient Options}).  If @code{server-auth-dir} is set to a
+non-standard value, @command{emacsclient} needs an absolute file name
+to the server file, as the default @code{server-auth-dir} is
+hard-coded in @command{emacsclient} to be used as the directory for
+resolving relative filenames.
 
 @node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
@@ -1677,7 +1711,9 @@ graphical frame, or one in a text terminal (@pxref{Frames}).  You
 can then select that frame to begin editing.
 
   If there is no Emacs server, the @command{emacsclient} program halts
-with an error message.  If the Emacs process has no existing
+with an error message (you can prevent this from happening by using
+the @samp{--alternate-editor=""} option to @command{emacsclient},
+@pxref{emacsclient Options}).  If the Emacs process has no existing
 frame---which can happen if it was started as a daemon (@pxref{Emacs
 Server})---then Emacs opens a frame on the terminal in which you
 called @command{emacsclient}.
@@ -1693,7 +1729,7 @@ different virtual terminals, and switch to the Emacs server's virtual
 terminal after calling @command{emacsclient}; or (ii) call
 @command{emacsclient} from within the Emacs server itself, using Shell
 mode (@pxref{Interactive Shell}) or Term mode (@pxref{Term Mode});
-@code{emacsclient} blocks only the subshell under Emacs, and you can
+@command{emacsclient} blocks only the subshell under Emacs, and you can
 still use Emacs to edit the file.
 
 @kindex C-x #
@@ -1758,11 +1794,13 @@ listed below:
 @table @samp
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
-Specify a command to run if @code{emacsclient} fails to contact Emacs.
-This is useful when running @code{emacsclient} in a script.
+Specify a shell command to run if @command{emacsclient} fails to
+contact Emacs.  This is useful when running @code{emacsclient} in a
+script.  The command may include arguments, which may be quoted "like
+this".  Currently, escaping of quotes is not supported.
 
 As a special exception, if @var{command} is the empty string, then
-@code{emacsclient} starts Emacs in daemon mode (as @command{emacs
+@command{emacsclient} starts Emacs in daemon mode (as @samp{emacs
 --daemon}) and then tries connecting again.
 
 @cindex @env{ALTERNATE_EDITOR} environment variable
@@ -1810,25 +1848,18 @@ evaluate, @emph{not} as a list of files to visit.
 
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
-@cindex @env{EMACS_SERVER_FILE} environment variable
-Specify a @dfn{server file} for connecting to an Emacs server via TCP.
+Specify a server file (@pxref{TCP Emacs server}) for connecting to an
+Emacs server via TCP.  Alternatively, you can set the
+@env{EMACS_SERVER_FILE} environment variable to point to the server
+file.
 
-An Emacs server usually uses a
-local socket to listen for connections.  Some operating systems,
-such as Microsoft Windows, do not support local sockets; in that case,
-the server communicates with @command{emacsclient} via TCP.
-
-@vindex server-auth-dir
-@cindex server file
-@vindex server-port
-When you start a TCP Emacs server, Emacs creates a @dfn{server file}
-containing the TCP information to be used by @command{emacsclient} to
-connect to the server.  The variable @code{server-auth-dir} specifies
-the directory containing the server file; by default, this is
-@file{~/.emacs.d/server/}.  To tell @command{emacsclient} to connect
-to the server over TCP with a specific server file, use the @samp{-f}
-or @samp{--server-file} option, or set the @env{EMACS_SERVER_FILE}
-environment variable.
+An Emacs server usually uses a local socket to listen for connections,
+but also supports connections over TCP.  To connect to a TCP Emacs
+server, @command{emacsclient} needs to read a @dfn{server file}
+containing the connection details of the Emacs server.  The name of
+this file is specified with this option, either as a file name
+relative to @file{~/.emacs.d/server} or as an absolute file name.
+@xref{TCP Emacs server}.
 
 @item -n
 @itemx --no-wait
@@ -1872,6 +1903,37 @@ On MS-Windows, @samp{-t} behaves just like @samp{-c} if the Emacs
 server is using the graphical display, but if the Emacs server is
 running on a text terminal, it creates a new frame in the current text
 terminal.
+
+@item -T @var{tramp-prefix}
+@itemx --tramp-prefix=@var{tramp-prefix}
+Set the prefix to add to filenames for Emacs to locate files on remote
+machines using TRAMP (@pxref{Top, The Tramp Manual,, tramp, The Tramp
+Manual}).  This is mostly useful in combination with using the Emacs
+server over TCP (@pxref{TCP Emacs server}).  By ssh-forwarding the
+listening port and making the @var{server-file} available on a remote
+machine, programs on the remote machine can use @command{emacsclient}
+as the value for the @env{EDITOR} and similar environment variables,
+but instead of talking to an Emacs server on the remote machine, the
+files will be visited in the local Emacs session using TRAMP.
+
+@vindex EMACSCLIENT_TRAMP@r{, environment variable}
+Setting the environment variable @env{EMACSCLIENT_TRAMP} has the same
+effect as using the @samp{-T} option.  If both are specified, the
+command-line option takes precedence.
+
+For example, assume two hosts, @samp{local} and @samp{remote}, and
+that the local Emacs listens on tcp port 12345.  Assume further that
+@file{/home} is on a shared file system, so that the server file
+@file{~/.emacs.d/server/server} is readable on both hosts.
+
+@example
+local$ ssh -R12345:localhost:12345 remote
+remote$ export EDITOR="emacsclient \
+        --server-file=server \
+        --tramp=/ssh:remote:"
+remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
+@end example
+
 @end table
 
   The new graphical or text terminal frames created by the @samp{-c}
@@ -2608,16 +2670,52 @@ key bindings.
 
 
 @node Hyperlinking
-@section Hyperlinking and Navigation Features
+@section Hyperlinking and Web Navigation Features
 
   The following subsections describe convenience features for handling
 URLs and other types of links occurring in Emacs buffer text.
 
 @menu
+* EWW::                         A web browser in Emacs.
+* Embedded WebKit Widgets::     Embedding browser widgets in Emacs buffers.
 * Browse-URL::                  Following URLs.
 * Goto Address mode::           Activating URLs.
 * FFAP::                        Finding files etc. at point.
 @end menu
+
+@node EWW
+@subsection Web Browsing with EWW
+
+@findex eww
+@findex eww-open-file
+  @dfn{EWW}, the Emacs Web Wowser, is a web browser package for Emacs.
+It allows browsing URLs within an Emacs buffer.  The command @kbd{M-x
+eww} will open a URL or search the web.  You can open a file
+using the command @kbd{M-x eww-open-file}.  You can use EWW as the
+web browser for @code{browse-url}, @pxref{Browse-URL}.  For full
+details, @pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
+
+@node Embedded WebKit Widgets
+@subsection Embedded WebKit Widgets
+@cindex xwidget
+@cindex webkit widgets
+@cindex embedded widgets
+
+@findex xwidget-webkit-browse-url
+@findex xwidget-webkit-mode
+@cindex Xwidget-WebKit mode
+  If Emacs was compiled with the appropriate support packages, it is
+able to show browser widgets in its buffers.  The command @kbd{M-x
+xwidget-webkit-browse-url} asks for a URL to display in the browser
+widget.  The URL normally defaults to the URL at or before point, but
+if there is an active region (@pxref{Mark}), the default URL comes
+from the region instead, after removing any whitespace from it.  The
+command then creates a new buffer with the embedded browser showing
+the specified URL.  The buffer is put in the Xwidget-WebKit mode
+(similar to Image mode, @pxref{File Conveniences}), which provides
+one-key commands for scrolling the widget, changing its size, and
+reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
+bindings.
 
 @node Browse-URL
 @subsection  Following URLs
@@ -2726,7 +2824,7 @@ Find @var{filename}, guessing a default from text around point
 @code{ffap-alternate-file}, analogous to @code{find-alternate-file}.
 @item C-x d @var{directory} @key{RET}
 @kindex C-x d @r{(FFAP)}
-Start Dired on @var{directory}, defaulting to the directory name at
+Start Dired on @var{directory}, defaulting to the directory at
 point (@code{dired-at-point}).
 @item C-x C-d
 @code{ffap-list-directory}, analogous to @code{list-directory}.
@@ -2759,7 +2857,7 @@ find the one you select (@code{ffap-menu}).
 @end table
 
 @node Amusements
-@section Other Amusements
+@section Games and Other Amusements
 @cindex boredom
 
 @findex animate-birthday-present

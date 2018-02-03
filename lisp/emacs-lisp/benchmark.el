@@ -1,6 +1,6 @@
 ;;; benchmark.el --- support for benchmarking code  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Love  <fx@gnu.org>
 ;; Keywords: lisp, extensions
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,13 +34,11 @@
 (defmacro benchmark-elapse (&rest forms)
   "Return the time in seconds elapsed for execution of FORMS."
   (declare (indent 0) (debug t))
-  (let ((t1 (make-symbol "t1"))
-	(t2 (make-symbol "t2")))
-    `(let (,t1 ,t2)
+  (let ((t1 (make-symbol "t1")))
+    `(let (,t1)
        (setq ,t1 (current-time))
        ,@forms
-       (setq ,t2 (current-time))
-       (float-time (time-subtract ,t2 ,t1)))))
+       (float-time (time-subtract nil ,t1)))))
 
 ;;;###autoload
 (defmacro benchmark-run (&optional repetitions &rest forms)

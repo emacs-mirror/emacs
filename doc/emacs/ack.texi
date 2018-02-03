@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1994-1997, 1999-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1994-1997, 1999-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @node Acknowledgments
@@ -209,8 +209,8 @@ for Korean Hanja.
 
 @item
 Andrew Choi and Yamamoto Mitsuharu wrote the Carbon support, used
-prior to Emacs 23 for Mac OS@.  Yamamoto Mitsuharu continued to
-contribute to Mac OS support in the newer Nextstep port; and also
+prior to Emacs 23 for macOS@.  Yamamoto Mitsuharu continued to
+contribute to macOS support in the newer Nextstep port; and also
 improved support for multi-monitor displays.
 
 @item
@@ -236,7 +236,7 @@ Andrew Cohen wrote @file{spam-wash.el}, to decode and clean email before
 it is analyzed for spam.
 
 @item
-Edward O'Connor wrote @file{json.el}, a file for parsing and
+Theresa O'Connor wrote @file{json.el}, a file for parsing and
 generating JSON files.
 
 @item
@@ -285,7 +285,7 @@ Borgman, Baoqiu Cui, Dan Davison, Christian Egli, Eric S. Fraga, Daniel German, 
 Jackson, Martyn Jago, Thorsten Jolitz, Jambunathan K, Tokuya Kameshima, Sergey Litvinov, David Maus, Ross Patterson, Juan Pechiar, Sebastian Rose, Eric Schulte,
 Paul Sexton, Ulf Stegemann, Andy Stewart, Christopher Suckling, David O'Toole, John Wiegley, Zhang Weize,
 Piotr Zieliński, and others also wrote various Org mode components.
-For more information, @pxref{History and Acknowledgments,,, org, The Org Manual}.
+For more information, @pxref{History and acknowledgments,,, org, The Org Manual}.
 
 @item
 Scott Draves wrote @file{tq.el}, help functions for maintaining
@@ -1418,8 +1418,8 @@ zone out in front of Emacs.
 Eli Zaretskii made many standard Emacs features work on MS-DOS and
 Microsoft Windows.  He also wrote @file{tty-colors.el}, which
 implements transparent mapping of X colors to tty colors; and
-@file{rxvt.el}.  He implemented support for bidirectional text,
-and also menus on text-mode terminals.
+@file{rxvt.el}.  He implemented support for bidirectional text, menus
+on text-mode terminals, and built-in display of line numbers.
 
 @item
 Jamie Zawinski wrote much of the support for faces and X selections.

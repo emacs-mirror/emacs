@@ -1,5 +1,5 @@
 ;;; tmux.el --- terminal initialization for tmux  -*- lexical-binding: t -*-
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 (require 'term/xterm)
 

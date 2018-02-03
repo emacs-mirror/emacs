@@ -1,6 +1,6 @@
 ;;; kmacro-tests.el --- Tests for kmacro.el       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -248,7 +248,7 @@ cause the current test to fail."
   (kmacro-tests-simulate-command '(kmacro-set-counter 1))
   (kmacro-tests-should-insert "1"
     (kmacro-tests-simulate-command '(kmacro-insert-counter nil)))
-  ;; Using universal arg to to set counter should reset to starting value.
+  ;; Using universal arg to set counter should reset to starting value.
   (kmacro-tests-simulate-command '(kmacro-set-counter (4)) '(4))
   (kmacro-tests-should-insert "5"
     (kmacro-tests-simulate-command '(kmacro-insert-counter nil))))
@@ -312,7 +312,6 @@ cause the current test to fail."
 (kmacro-tests-deftest kmacro-tests-end-and-call-macro-mouse ()
   "Commands to end and call macro work under various conditions.
 This is a regression test for Bug#24992."
-  (:expected-result :failed)
   (cl-letf (((symbol-function #'mouse-set-point) #'ignore))
     ;; First, try it with no macro to record.
     (setq kmacro-tests-macros '(""))
@@ -818,7 +817,6 @@ This is a regression for item 7 in Bug#24991."
 
 (kmacro-tests-deftest kmacro-tests-step-edit-cleans-up-hook ()
   "Step-editing properly cleans up `post-command-hook.' (Bug #18708)"
-  (:expected-result :failed)
   (let (post-command-hook)
     (setq-local post-command-hook '(t))
     (kmacro-tests-run-step-edit "x"

@@ -79,7 +79,6 @@ ac_cv_func_getaddrinfo=yes
 # Implemented as an inline function in ws2tcpip.h
 ac_cv_func_gai_strerror=yes
 # Implemented in w32.c
-ac_cv_func_mkostemp=yes
 ac_cv_func_readlink=yes
 ac_cv_func_symlink=yes
 # Avoid run-time tests of readlink and symlink, which will fail

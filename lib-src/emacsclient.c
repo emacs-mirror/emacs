@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2017 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -73,7 +73,6 @@ char *w32_getenv (const char *);
 
 #include <stdarg.h>
 #include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
@@ -83,6 +82,8 @@ char *w32_getenv (const char *);
 #include <sys/stat.h>
 #include <signal.h>
 #include <errno.h>
+
+#include <unlocked-io.h>
 
 #ifndef VERSION
 #define VERSION "unspecified"
@@ -108,6 +109,9 @@ char *w32_getenv (const char *);
 
 /* Name used to invoke this program.  */
 const char *progname;
+
+/* The first argument to main.  */
+int main_argc;
 
 /* The second argument to main.  */
 char **main_argv;
@@ -149,6 +153,9 @@ const char *socket_name = NULL;
 /* If non-NULL, the filename of the authentication file.  */
 const char *server_file = NULL;
 
+/* If non-NULL, the tramp prefix emacs must use to find the files.  */
+const char *tramp_prefix = NULL;
+
 /* PID of the Emacs server process.  */
 int emacs_pid = 0;
 
@@ -178,6 +185,7 @@ struct option longopts[] =
   { "server-file",	required_argument, NULL, 'f' },
   { "display",	required_argument, NULL, 'd' },
   { "parent-id", required_argument, NULL, 'p' },
+  { "tramp",	required_argument, NULL, 'T' },
   { 0, 0, 0, 0 }
 };
 
@@ -196,6 +204,35 @@ xmalloc (size_t size)
   return result;
 }
 
+/* Like realloc but get fatal error if memory is exhausted.  */
+
+static void *
+xrealloc (void *ptr, size_t size)
+{
+  void *result = realloc (ptr, size);
+  if (result == NULL)
+    {
+      perror ("realloc");
+      exit (EXIT_FAILURE);
+    }
+  return result;
+}
+
+/* Like strdup but get a fatal error if memory is exhausted. */
+char *xstrdup (const char *);
+
+char *
+xstrdup (const char *s)
+{
+  char *result = strdup (s);
+  if (result == NULL)
+    {
+      perror ("strdup");
+      exit (EXIT_FAILURE);
+    }
+  return result;
+}
+
 /* From sysdep.c */
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
 
@@ -204,7 +241,7 @@ char *get_current_dir_name (void);
 /* Return the current working directory.  Returns NULL on errors.
    Any other returned value must be freed with free.  This is used
    only when get_current_dir_name is not defined on the system.  */
-char*
+char *
 get_current_dir_name (void)
 {
   char *buf;
@@ -258,21 +295,6 @@ get_current_dir_name (void)
 #endif
 
 #ifdef WINDOWSNT
-
-/* Like strdup but get a fatal error if memory is exhausted. */
-char *xstrdup (const char *);
-
-char *
-xstrdup (const char *s)
-{
-  char *result = strdup (s);
-  if (result == NULL)
-    {
-      perror ("strdup");
-      exit (EXIT_FAILURE);
-    }
-  return result;
-}
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
@@ -468,14 +490,15 @@ static void
 decode_options (int argc, char **argv)
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
+  tramp_prefix = egetenv ("EMACSCLIENT_TRAMP");
 
   while (1)
     {
       int opt = getopt_long_only (argc, argv,
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
-			     "VHnequa:s:f:d:F:tc",
+			     "VHnequa:s:f:d:F:tcT:",
 #else
-			     "VHnequa:f:d:F:tc",
+			     "VHnequa:f:d:F:tcT:",
 #endif
 			     longopts, 0);
 
@@ -552,6 +575,10 @@ decode_options (int argc, char **argv)
 
         case 'F':
           frame_parameters = optarg;
+          break;
+
+        case 'T':
+          tramp_prefix = optarg;
           break;
 
 	default:
@@ -654,13 +681,16 @@ The following OPTIONS are accepted:\n\
 			Editor to fallback to if the server is not running\n"
 "			If EDITOR is the empty string, start Emacs in daemon\n\
 			mode and try connecting again\n"
+"-T PREFIX, --tramp=PREFIX\n\
+                        PREFIX to prepend to filenames sent by emacsclient\n\
+                        for locating files remotely via Tramp\n"
 "\n\
 Report bugs with M-x report-emacs-bug.\n");
   exit (EXIT_SUCCESS);
 }
 
 /* Try to run a different command, or --if no alternate editor is
-   defined-- exit with an errorcode.
+   defined-- exit with an error code.
    Uses argv, but gets it from the global variable main_argv.  */
 
 static _Noreturn void
@@ -668,9 +698,38 @@ fail (void)
 {
   if (alternate_editor)
     {
-      int i = optind - 1;
+      size_t extra_args_size = (main_argc - optind + 1) * sizeof (char *);
+      size_t new_argv_size = extra_args_size;
+      char **new_argv = NULL;
+      char *s = xstrdup (alternate_editor);
+      unsigned toks = 0;
 
-      execvp (alternate_editor, main_argv + i);
+      /* Unpack alternate_editor's space-separated tokens into new_argv.  */
+      for (char *tok = s; tok != NULL && *tok != '\0';)
+        {
+          /* Allocate new token.  */
+          ++toks;
+          new_argv = xrealloc (new_argv, new_argv_size + toks * sizeof (char *));
+
+          /* Skip leading delimiters, and set separator, skipping any
+             opening quote.  */
+          size_t skip = strspn (tok, " \"");
+          tok += skip;
+          char sep = (skip > 0 && tok[-1] == '"') ? '"' : ' ';
+
+          /* Record start of token.  */
+          new_argv[toks - 1] = tok;
+
+          /* Find end of token and overwrite it with NUL.  */
+          tok = strchr (tok, sep);
+          if (tok != NULL)
+            *tok++ = '\0';
+        }
+
+      /* Append main_argv arguments to new_argv.  */
+      memcpy (&new_argv[toks], main_argv + optind, extra_args_size);
+
+      execvp (*new_argv, new_argv);
       message (true, "%s: error executing alternate editor \"%s\"\n",
 	       progname, alternate_editor);
     }
@@ -683,6 +742,7 @@ fail (void)
 int
 main (int argc, char **argv)
 {
+  main_argc = argc;
   main_argv = argv;
   progname = argv[0];
   message (true, "%s: Sorry, the Emacs server is supported only\n"
@@ -1616,6 +1676,7 @@ main (int argc, char **argv)
   int start_daemon_if_needed;
   int exit_status = EXIT_SUCCESS;
 
+  main_argc = argc;
   main_argv = argv;
   progname = argv[0];
 
@@ -1687,7 +1748,10 @@ main (int argc, char **argv)
         }
     }
   send_to_emacs (emacs_socket, "-dir ");
+  if (tramp_prefix)
+    quote_argument (emacs_socket, tramp_prefix);
   quote_argument (emacs_socket, cwd);
+  free (cwd);
   send_to_emacs (emacs_socket, "/");
   send_to_emacs (emacs_socket, " ");
 
@@ -1791,6 +1855,8 @@ main (int argc, char **argv)
 #endif
 
           send_to_emacs (emacs_socket, "-file ");
+	  if (tramp_prefix && file_name_absolute_p (argv[i]))
+	    quote_argument (emacs_socket, tramp_prefix);
           quote_argument (emacs_socket, argv[i]);
           send_to_emacs (emacs_socket, " ");
         }

@@ -1,6 +1,6 @@
 ;;; last-chance.el --- dangling deterrence     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,18 +20,18 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; Late 2016.  In a recent build, the date in a ChangeLog file
-;; is not fontified.  Turns out the face ‘change-log-date-face’
+;; is not fontified.  Turns out the face `change-log-date-face'
 ;; was declared obsolete since 22.1 and removed 2016-06-23.
 ;; (compile "git show c430f7e23fc2c22f251ace4254e37dea1452dfc3")
 ;;
-;; This library provides a command ‘last-chance’, which is a small
+;; This library provides a command `last-chance', which is a small
 ;; combination of "git grep" and some regexp filtering.  For example,
-;; if point is on the symbol ‘change-log-date-face’ in the form:
+;; if point is on the symbol `change-log-date-face' in the form:
 ;;
 ;;  (define-obsolete-face-alias 'change-log-date-face ...)
 ;;
@@ -39,7 +39,7 @@
 ;;
 ;;  M-x last-chance RET
 ;;
-;; will show you any references to ‘change-log-date-face’ in the
+;; will show you any references to `change-log-date-face' in the
 ;; *.el files in a new buffer (in Grep mode).  Hopefully you see
 ;; only the obsolete declaration and can proceed w/ its removal.
 ;; If not, please DTRT and refrain from the removal until those
@@ -59,17 +59,17 @@ This should include -n, -H, -F.")
 (defvar last-chance-uninteresting-regexps
   '("ChangeLog[.0-9]*:"
     "NEWS[-.0-9]*:"
-    ;; Add more ‘flush-lines’ args here.
+    ;; Add more `flush-lines' args here.
     )
   "List of regexps that match uninteresting \"git grep\" hits.")
 
 (defvar-local last-chance-symbol nil
-  "Symbol set by ‘last-chance’ for ‘last-chance-cleanup’ to DTRT.")
+  "Symbol set by `last-chance' for `last-chance-cleanup' to DTRT.")
 
 (defun last-chance-cleanup (buffer status)
   "Filter lines in BUFFER; append STATUS and count of removed lines.
-If BUFFER does not seem to be one created by ‘last-chance’, do nothing.
-This function is intended to be added to ‘compilation-finish-functions’."
+If BUFFER does not seem to be one created by `last-chance', do nothing.
+This function is intended to be added to `compilation-finish-functions'."
   (let ((name (buffer-local-value 'last-chance-symbol buffer))
         bef aft)
     (when name
@@ -90,10 +90,10 @@ This function is intended to be added to ‘compilation-finish-functions’."
 
 (defun last-chance (symbol)
   "Grep the repo for SYMBOL, filtering the hits.
-This uses ‘last-chance-grep-command’ to do the grep and the
-regexps in ‘last-chance-uninteresting-regexps’ to filter the hits.
-Grepping is recursive starting under the dir that ‘vc-root-dir’
-finds (or the default directory if ‘vc-root-dir’ finds nothing).
+This uses `last-chance-grep-command' to do the grep and the
+regexps in `last-chance-uninteresting-regexps' to filter the hits.
+Grepping is recursive starting under the dir that `vc-root-dir'
+finds (or the default directory if `vc-root-dir' finds nothing).
 Output goes to the *grep* buffer.
 
 Interactively, Emacs queries for a symbol,

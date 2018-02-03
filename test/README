@@ -1,4 +1,4 @@
-Copyright (C) 2008-2017 Free Software Foundation, Inc.
+Copyright (C) 2008-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains files intended to test various aspects of
@@ -44,6 +44,12 @@ If your test file contains the tests "test-foo", "test2-foo" and
 "test-foo-remote", and you want to run only the former two tests, you
 could use a selector regexp: "make <filename> SELECTOR='\"foo$$\"'".
 
+Note that although the test files are always compiled (unless they set
+no-byte-compile), the source files will be run by default, to give
+nicer backtraces.  To run the compiled version of a test use
+
+    make TEST_LOAD_EL=no ...
+
 
 (Also, see etc/compilation.txt for compilation mode font lock tests.)
 
@@ -61,4 +67,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

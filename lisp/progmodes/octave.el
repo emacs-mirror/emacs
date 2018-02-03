@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
 (defgroup octave nil
   "Editing Octave code."
   :link '(custom-manual "(octave-mode)Top")
-  :link '(url-link "http://www.gnu.org/s/octave")
+  :link '(url-link "https://www.gnu.org/s/octave")
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
@@ -612,7 +612,7 @@ Key bindings:
 
 (defcustom inferior-octave-prompt
   ;; For Octave >= 3.8, default is always 'octave', see
-  ;; http://hg.savannah.gnu.org/hgweb/octave/rev/708173343c50
+  ;; https://hg.savannah.gnu.org/hgweb/octave/rev/708173343c50
   "\\(?:^octave\\(?:.bin\\|.exe\\)?\\(?:-[.0-9]+\\)?\\(?::[0-9]+\\)?\\|^debug\\|^\\)>+ "
   "Regexp to match prompts for the inferior Octave process."
   :type 'regexp)
@@ -839,7 +839,7 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-send-list-and-digest
      (list "more off;\n"
            (unless (equal inferior-octave-output-string ">> ")
-             ;; See http://hg.savannah.gnu.org/hgweb/octave/rev/708173343c50
+             ;; See https://hg.savannah.gnu.org/hgweb/octave/rev/708173343c50
              "PS1 ('octave> ');\n")
            (when (and inferior-octave-startup-file
                       (file-exists-p inferior-octave-startup-file))
@@ -867,7 +867,7 @@ startup file, `~/.emacs-octave'."
 
 (defun inferior-octave-completion-at-point ()
   "Return the data to complete the Octave symbol at point."
-  ;; http://debbugs.gnu.org/14300
+  ;; https://debbugs.gnu.org/14300
   (unless (string-match-p "/" (or (comint--match-partial-filename) ""))
     (let ((beg (save-excursion
                  (skip-syntax-backward "w_" (comint-line-beginning-position))
@@ -1497,7 +1497,7 @@ current buffer file unless called with a prefix arg \\[universal-argument]."
         (string (buffer-substring-no-properties beg end))
         line)
     (with-current-buffer inferior-octave-buffer
-      ;; http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00095.html
+      ;; https://lists.gnu.org/r/emacs-devel/2013-10/msg00095.html
       (compilation-forget-errors)
       (setq inferior-octave-output-list nil)
       (while (not (string-equal string ""))

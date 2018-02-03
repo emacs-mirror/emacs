@@ -1,6 +1,6 @@
 ;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Igor Kuzmin <kzuminig@iro.umontreal.ca>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -449,8 +449,11 @@ places where they originally did not directly appear."
 					;defconst, defvar
     (`(,(and sym (or `defconst `defvar)) ,definedsymbol . ,forms)
      `(,sym ,definedsymbol
-            . ,(mapcar (lambda (form) (cconv-convert form env extend))
-                       forms)))
+            . ,(when (consp forms)
+                 (cons (cconv-convert (car forms) env extend)
+                       ;; The rest (i.e. docstring, of any) is not evaluated,
+                       ;; and may be an invalid expression (e.g. ($# . 678)).
+                       (cdr forms)))))
 
 					;condition-case
     ((and `(condition-case ,var ,protected-form . ,handlers)

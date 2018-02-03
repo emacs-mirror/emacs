@@ -1,6 +1,6 @@
 ;;; hfy-cmap.el --- Fallback colour name -> rgb mapping for `htmlfontify'
 
-;; Copyright (C) 2002-2003, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2018 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

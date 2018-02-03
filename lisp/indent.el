@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -69,6 +69,8 @@ variable is `indent-relative' or `indent-relative-maybe', handle
 it specially (since those functions are used for tabbing); in
 that case, indent by aligning to the previous non-blank line."
   (interactive)
+  (save-restriction
+    (widen)
   (syntax-propertize (line-end-position))
   (if (memq indent-line-function
 	    '(indent-relative indent-relative-maybe))
@@ -84,7 +86,7 @@ that case, indent by aligning to the previous non-blank line."
 	    (indent-line-to column)
 	  (save-excursion (indent-line-to column))))
     ;; The normal case.
-    (funcall indent-line-function)))
+    (funcall indent-line-function))))
 
 (defun indent--default-inside-comment ()
   (unless (or (> (current-column) (current-indentation))
@@ -140,11 +142,11 @@ prefix argument is ignored."
 	  (old-indent (current-indentation)))
 
       ;; Indent the line.
-      (or (not (eq (funcall indent-line-function) 'noindent))
+      (or (not (eq (indent--funcall-widened indent-line-function) 'noindent))
           (indent--default-inside-comment)
           (when (or (<= (current-column) (current-indentation))
                     (not (eq tab-always-indent 'complete)))
-            (funcall (default-value 'indent-line-function))))
+            (indent--funcall-widened (default-value 'indent-line-function))))
 
       (cond
        ;; If the text was already indented right, try completion.
@@ -165,6 +167,11 @@ prefix argument is ignored."
             (when (and (not (zerop indentation-change))
                        (< (point) end-marker))
               (indent-rigidly (point) end-marker indentation-change))))))))))
+
+(defun indent--funcall-widened (func)
+  (save-restriction
+    (widen)
+    (funcall func)))
 
 (defun insert-tab (&optional arg)
   (let ((count (prefix-numeric-value arg)))
@@ -285,7 +292,7 @@ indentation by specifying a large negative ARG."
   "Indent current line to COLUMN.
 This function removes or adds spaces and tabs at beginning of line
 only if necessary.  It leaves point at end of indentation."
-  (backward-to-indentation 0)
+  (back-to-indentation)
   (let ((cur-col (current-column)))
     (cond ((< cur-col column)
 	   (if (>= (- column (* (/ cur-col tab-width) tab-width)) tab-width)
@@ -538,7 +545,9 @@ column to indent to; if it is nil, use one of the three methods above."
 	  (forward-line 1)))))
    ;; Use indent-region-function is available.
    (indent-region-function
-    (funcall indent-region-function start end))
+    (save-restriction
+      (widen)
+      (funcall indent-region-function start end)))
    ;; Else, use a default implementation that calls indent-line-function on
    ;; each line.
    (t (indent-region-line-by-line start end)))

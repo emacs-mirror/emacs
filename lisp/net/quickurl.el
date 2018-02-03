@@ -1,6 +1,6 @@
 ;;; quickurl.el --- insert a URL based on text at point in buffer
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -39,7 +39,7 @@
 ;; where <Lookup> is a string that acts as the keyword lookup and <URL> is
 ;; the URL associated with it. An example might be:
 ;;
-;;    ("GNU" . "http://www.gnu.org/")
+;;    ("GNU" . "https://www.gnu.org/")
 ;;
 ;; A list entry looks like:
 ;;
@@ -50,12 +50,12 @@
 ;; used when presenting a list of URLS using `quickurl-list'. An example
 ;; might be:
 ;;
-;;    ("FSF" "http://www.fsf.org/" "The Free Software Foundation")
+;;    ("FSF" "https://www.fsf.org/" "The Free Software Foundation")
 ;;
 ;; Given the above, your quickurl file might look like:
 ;;
-;; (("GNU"    . "http://www.gnu.org/")
-;;  ("FSF"      "http://www.fsf.org/" "The Free Software Foundation")
+;; (("GNU"    . "https://www.gnu.org/")
+;;  ("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
 ;;  ("emacs"  . "http://www.emacs.org/")
 ;;  ("davep"    "http://www.davep.org/" "Dave's homepage"))
 ;;

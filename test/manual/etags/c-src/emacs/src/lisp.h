@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2017 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
@@ -510,7 +510,7 @@ enum Lisp_Fwd_Type
 
 /* If you want to define a new Lisp data type, here are some
    instructions.  See the thread at
-   http://lists.gnu.org/archive/html/emacs-devel/2012-10/msg00561.html
+   https://lists.gnu.org/r/emacs-devel/2012-10/msg00561.html
    for more info.
 
    First, there are already a couple of Lisp types that can be used if

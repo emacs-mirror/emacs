@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2017 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ struct buffer *all_buffers;
    Setting the default value also goes through the alist of buffers
    and stores into each buffer that does not say it has a local value.  */
 
-struct buffer alignas (GCALIGNMENT) buffer_defaults;
+struct buffer buffer_defaults;
 
 /* This structure marks which slots in a buffer have corresponding
    default values in buffer_defaults.
@@ -84,7 +84,7 @@ struct buffer buffer_local_flags;
 /* This structure holds the names of symbols whose values may be
    buffer-local.  It is indexed and accessed in the same way as the above.  */
 
-struct buffer alignas (GCALIGNMENT) buffer_local_symbols;
+struct buffer buffer_local_symbols;
 
 /* Return the symbol of the per-buffer variable at offset OFFSET in
    the buffer structure.  */
@@ -171,6 +171,16 @@ static void
 bset_bidi_display_reordering (struct buffer *b, Lisp_Object val)
 {
   b->bidi_display_reordering_ = val;
+}
+static void
+bset_bidi_paragraph_start_re (struct buffer *b, Lisp_Object val)
+{
+  b->bidi_paragraph_start_re_ = val;
+}
+static void
+bset_bidi_paragraph_separate_re (struct buffer *b, Lisp_Object val)
+{
+  b->bidi_paragraph_separate_re_ = val;
 }
 static void
 bset_buffer_file_coding_system (struct buffer *b, Lisp_Object val)
@@ -376,9 +386,9 @@ Value is nil if OBJECT is not a buffer or if it has been killed.  */)
 }
 
 DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 1, 0,
-       doc: /* Return a list of all existing live buffers.
-If the optional arg FRAME is a frame, we return the buffer list in the
-proper order for that frame: the buffers show in FRAME come first,
+       doc: /* Return a list of all live buffers.
+If the optional arg FRAME is a frame, return the buffer list in the
+proper order for that frame: the buffers shown in FRAME come first,
 followed by the rest of the buffers.  */)
   (Lisp_Object frame)
 {
@@ -1011,7 +1021,8 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
                           newlist = Fcons (elt, newlist);
                       }
                   newlist = Fnreverse (newlist);
-                  if (XSYMBOL (local_var)->trapped_write == SYMBOL_TRAPPED_WRITE)
+                  if (XSYMBOL (local_var)->u.s.trapped_write
+		      == SYMBOL_TRAPPED_WRITE)
                     notify_variable_watchers (local_var, newlist,
                                               Qmakunbound, Fcurrent_buffer ());
                   XSETCDR (XCAR (tmp), newlist);
@@ -1024,7 +1035,7 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
           else
             XSETCDR (last, XCDR (tmp));
 
-          if (XSYMBOL (local_var)->trapped_write == SYMBOL_TRAPPED_WRITE)
+          if (XSYMBOL (local_var)->u.s.trapped_write == SYMBOL_TRAPPED_WRITE)
             notify_variable_watchers (local_var, Qnil,
                                       Qmakunbound, Fcurrent_buffer ());
         }
@@ -1067,16 +1078,20 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
 
   CHECK_STRING (name);
 
-  if (!NILP (Fstring_equal (name, ignore)) || NILP (Fget_buffer (name)))
+  if ((!NILP (ignore) && !NILP (Fstring_equal (name, ignore)))
+      || NILP (Fget_buffer (name)))
     return name;
 
   if (SREF (name, 0) != ' ') /* See bug#1229.  */
     genbase = name;
   else
     {
-      /* Note fileio.c:make_temp_name does random differently.  */
       char number[sizeof "-999999"];
-      int i = XFASTINT (Frandom (make_number (999999)));
+
+      /* Use XINT instead of XFASTINT to work around GCC bug 80776.  */
+      int i = XINT (Frandom (make_number (1000000)));
+      eassume (0 <= i && i < 1000000);
+
       AUTO_STRING_WITH_LEN (lnumber, number, sprintf (number, "-%d", i));
       genbase = concat2 (name, lnumber);
       if (NILP (Fget_buffer (genbase)))
@@ -1156,7 +1171,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
   sym = XSYMBOL (variable);
 
  start:
-  switch (sym->redirect)
+  switch (sym->u.s.redirect)
     {
     case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
     case SYMBOL_PLAINVAL: result = SYMBOL_VAL (sym); break;
@@ -1164,7 +1179,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
       { /* Look in local_var_alist.  */
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETSYMBOL (variable, sym); /* Update In case of aliasing.  */
-	result = Fassoc (variable, BVAR (buf, local_var_alist));
+	result = Fassoc (variable, BVAR (buf, local_var_alist), Qnil);
 	if (!NILP (result))
 	  {
 	    if (blv->fwd)
@@ -1305,7 +1320,12 @@ menu bar menus and the frame title.  */)
 DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
        1, 1, 0,
        doc: /* Mark current buffer as modified or unmodified according to FLAG.
-A non-nil FLAG means mark the buffer modified.  */)
+A non-nil FLAG means mark the buffer modified.
+In addition, this function unconditionally forces redisplay of the
+mode lines of the windows that display the current buffer, and also
+locks or unlocks the file visited by the buffer, depending on whether
+the function's argument is non-nil, but only if both `buffer-file-name'
+and `buffer-file-truename' are non-nil.  */)
   (Lisp_Object flag)
 {
   Frestore_buffer_modified_p (flag);
@@ -1326,12 +1346,14 @@ A non-nil FLAG means mark the buffer modified.  */)
 
 DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        Srestore_buffer_modified_p, 1, 1, 0,
-       doc: /* Like `set-buffer-modified-p', with a difference concerning redisplay.
+       doc: /* Like `set-buffer-modified-p', but doesn't redisplay buffer's mode line.
+This function also locks and unlocks the file visited by the buffer,
+if both `buffer-file-truename' and `buffer-file-name' are non-nil.
+
 It is not ensured that mode lines will be updated to show the modified
 state of the current buffer.  Use with care.  */)
   (Lisp_Object flag)
 {
-  Lisp_Object fn;
 
   /* If buffer becoming modified, lock the file.
      If buffer becoming unmodified, unlock the file.  */
@@ -1340,15 +1362,18 @@ state of the current buffer.  Use with care.  */)
     ? current_buffer->base_buffer
     : current_buffer;
 
-  fn = BVAR (b, file_truename);
-  /* Test buffer-file-name so that binding it to nil is effective.  */
-  if (!NILP (fn) && ! NILP (BVAR (b, filename)))
+  if (!inhibit_modification_hooks)
     {
-      bool already = SAVE_MODIFF < MODIFF;
-      if (!already && !NILP (flag))
-	lock_file (fn);
-      else if (already && NILP (flag))
-	unlock_file (fn);
+      Lisp_Object fn = BVAR (b, file_truename);
+      /* Test buffer-file-name so that binding it to nil is effective.  */
+      if (!NILP (fn) && ! NILP (BVAR (b, filename)))
+        {
+          bool already = SAVE_MODIFF < MODIFF;
+          if (!already && !NILP (flag))
+	    lock_file (fn);
+          else if (already && NILP (flag))
+	    unlock_file (fn);
+        }
     }
 
   /* Here we have a problem.  SAVE_MODIFF is used here to encode
@@ -2086,7 +2111,7 @@ void set_buffer_internal_2 (register struct buffer *b)
 	{
 	  Lisp_Object var = XCAR (XCAR (tail));
 	  struct Lisp_Symbol *sym = XSYMBOL (var);
-	  if (sym->redirect == SYMBOL_LOCALIZED /* Just to be sure.  */
+	  if (sym->u.s.redirect == SYMBOL_LOCALIZED /* Just to be sure.  */
 	      && SYMBOL_BLV (sym)->fwd)
 	    /* Just reference the variable
 	       to cause it to become set for this buffer.  */
@@ -2322,6 +2347,8 @@ results, see Info node `(elisp)Swapping Text'.  */)
   swapfield_ (enable_multibyte_characters, Lisp_Object);
   swapfield_ (bidi_display_reordering, Lisp_Object);
   swapfield_ (bidi_paragraph_direction, Lisp_Object);
+  swapfield_ (bidi_paragraph_separate_re, Lisp_Object);
+  swapfield_ (bidi_paragraph_start_re, Lisp_Object);
   /* FIXME: Not sure what we should do with these *_marker fields.
      Hopefully they're just nil anyway.  */
   swapfield_ (pt_marker, Lisp_Object);
@@ -2740,7 +2767,7 @@ swap_out_buffer_local_variables (struct buffer *b)
   for (alist = oalist; CONSP (alist); alist = XCDR (alist))
     {
       Lisp_Object sym = XCAR (XCAR (alist));
-      eassert (XSYMBOL (sym)->redirect == SYMBOL_LOCALIZED);
+      eassert (XSYMBOL (sym)->u.s.redirect == SYMBOL_LOCALIZED);
       /* Need not do anything if some other buffer's binding is
 	 now cached.  */
       if (EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
@@ -3054,6 +3081,33 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
   return i < n;
 }
 
+/* Return the value of the 'display-line-numbers-disable' property at
+   EOB, if there's an overlay at ZV with a non-nil value of that property.  */
+Lisp_Object
+disable_line_numbers_overlay_at_eob (void)
+{
+  ptrdiff_t n, i, size;
+  Lisp_Object *v, tem = Qnil;
+  Lisp_Object vbuf[10];
+  USE_SAFE_ALLOCA;
+
+  size = ARRAYELTS (vbuf);
+  v = vbuf;
+  n = overlays_in (ZV, ZV, 0, &v, &size, NULL, NULL);
+  if (n > size)
+    {
+      SAFE_NALLOCA (v, 1, n);
+      overlays_in (ZV, ZV, 0, &v, &n, NULL, NULL);
+    }
+
+  for (i = 0; i < n; ++i)
+    if ((tem = Foverlay_get (v[i], Qdisplay_line_numbers_disable),
+	 !NILP (tem)))
+      break;
+
+  SAFE_FREE ();
+  return tem;
+}
 
 
 /* Fast function to just test if we're at an overlay boundary.  */
@@ -3577,8 +3631,8 @@ void
 fix_start_end_in_overlays (register ptrdiff_t start, register ptrdiff_t end)
 {
   Lisp_Object overlay;
-  struct Lisp_Overlay *before_list;
-  struct Lisp_Overlay *after_list;
+  struct Lisp_Overlay *before_list UNINIT;
+  struct Lisp_Overlay *after_list UNINIT;
   /* These are either nil, indicating that before_list or after_list
      should be assigned, or the cons cell the cdr of which should be
      assigned.  */
@@ -3725,7 +3779,7 @@ fix_overlays_before (struct buffer *bp, ptrdiff_t prev, ptrdiff_t pos)
   /* If parent is nil, replace overlays_before; otherwise, parent->next.  */
   struct Lisp_Overlay *tail = bp->overlays_before, *parent = NULL, *right_pair;
   Lisp_Object tem;
-  ptrdiff_t end;
+  ptrdiff_t end UNINIT;
 
   /* After the insertion, the several overlays may be in incorrect
      order.  The possibility is that, in the list `overlays_before',
@@ -4139,6 +4193,12 @@ If SORTED is non-nil, then sort them by decreasing priority.  */)
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
+
+  /* The doc string says the list should be in decreasing order of
+     priority, so we reverse the list, because sort_overlays sorts in
+     the increasing order of priority.  */
+  if (!NILP (sorted))
+    result = Fnreverse (result);
 
   xfree (overlay_vec);
   return result;
@@ -5033,6 +5093,8 @@ init_buffer_once (void)
 {
   int idx;
 
+  /* Items flagged permanent get an explicit permanent-local property
+     added in bindings.el, for clarity.  */
   memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
   /* 0 means not a lisp var, -1 means always local, else mask.  */
@@ -5082,7 +5144,9 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, selective_display_ellipses), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, tab_width), idx); ++idx;
-  XSETFASTINT (BVAR (&buffer_local_flags, truncate_lines), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, truncate_lines), idx);
+  /* Make this one a permanent local.  */
+  buffer_permanent_local_flags[idx++] = 1;
   XSETFASTINT (BVAR (&buffer_local_flags, word_wrap), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, ctl_arrow), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, fill_column), idx); ++idx;
@@ -5094,6 +5158,8 @@ init_buffer_once (void)
   XSETFASTINT (BVAR (&buffer_local_flags, category_table), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, bidi_display_reordering), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, bidi_paragraph_direction), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, bidi_paragraph_separate_re), idx); ++idx;
+  XSETFASTINT (BVAR (&buffer_local_flags, bidi_paragraph_start_re), idx); ++idx;
   XSETFASTINT (BVAR (&buffer_local_flags, buffer_file_coding_system), idx);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags[idx++] = 1;
@@ -5175,6 +5241,8 @@ init_buffer_once (void)
   bset_ctl_arrow (&buffer_defaults, Qt);
   bset_bidi_display_reordering (&buffer_defaults, Qt);
   bset_bidi_paragraph_direction (&buffer_defaults, Qnil);
+  bset_bidi_paragraph_start_re (&buffer_defaults, Qnil);
+  bset_bidi_paragraph_separate_re (&buffer_defaults, Qnil);
   bset_cursor_type (&buffer_defaults, Qt);
   bset_extra_line_spacing (&buffer_defaults, Qnil);
   bset_cursor_in_non_selected_windows (&buffer_defaults, Qt);
@@ -5374,8 +5442,8 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   bo_fwd->type = Lisp_Fwd_Buffer_Obj;
   bo_fwd->offset = offset;
   bo_fwd->predicate = predicate;
-  sym->declared_special = 1;
-  sym->redirect = SYMBOL_FORWARDED;
+  sym->u.s.declared_special = true;
+  sym->u.s.redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (sym, (union Lisp_Fwd *) bo_fwd);
   XSETSYMBOL (PER_BUFFER_SYMBOL (offset), sym);
 
@@ -5486,8 +5554,11 @@ A string is printed verbatim in the mode line except for %-constructs:
 	For a modified read-only buffer, %* gives % and %+ gives *.
   %s -- print process status.   %l -- print the current line number.
   %c -- print the current column number (this makes editing slower).
+        Columns are numbered starting from the left margin, and the
+        leftmost column is displayed as zero.
         To make the column number update correctly in all cases,
 	`column-number-mode' must be non-nil.
+  %C -- Like %c, but the leftmost column is displayed as one.
   %i -- print the size of the buffer.
   %I -- like %i, but use k, M, G, etc., to abbreviate.
   %p -- print percent of buffer above top of window, or Top, Bot or All.
@@ -5561,6 +5632,8 @@ file I/O and the behavior of various editing commands.
 
 This variable is buffer-local but you cannot set it directly;
 use the function `set-buffer-multibyte' to change a buffer's representation.
+To prevent any attempts to set it or make it buffer-local, Emacs will
+signal an error in those cases.
 See also Info node `(elisp)Text Representations'.  */);
   make_symbol_constant (intern_c_string ("enable-multibyte-characters"));
 
@@ -5585,6 +5658,49 @@ This variable is never applied to a way of decoding a file while reading it.  */
   DEFVAR_PER_BUFFER ("bidi-display-reordering",
 		     &BVAR (current_buffer, bidi_display_reordering), Qnil,
 		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.  */);
+
+  DEFVAR_PER_BUFFER ("bidi-paragraph-start-re",
+		     &BVAR (current_buffer, bidi_paragraph_start_re), Qnil,
+		     doc: /* If non-nil, a regexp matching a line that starts OR separates paragraphs.
+
+The value of nil means to use empty lines as lines that start and
+separate paragraphs.
+
+When Emacs displays bidirectional text, it by default computes
+the base paragraph direction separately for each paragraph.
+Setting this variable changes the places where paragraph base
+direction is recomputed.
+
+The regexp is always matched after a newline, so it is best to
+anchor it by beginning it with a "^".
+
+If you change the value of this variable, be sure to change
+the value of `bidi-paragraph-separate-re' accordingly.  For
+example, to have a single newline behave as a paragraph separator,
+set both these variables to "^".
+
+See also `bidi-paragraph-direction'.  */);
+
+  DEFVAR_PER_BUFFER ("bidi-paragraph-separate-re",
+		     &BVAR (current_buffer, bidi_paragraph_separate_re), Qnil,
+		     doc: /* If non-nil, a regexp matching a line that separates paragraphs.
+
+The value of nil means to use empty lines as paragraph separators.
+
+When Emacs displays bidirectional text, it by default computes
+the base paragraph direction separately for each paragraph.
+Setting this variable changes the places where paragraph base
+direction is recomputed.
+
+The regexp is always matched after a newline, so it is best to
+anchor it by beginning it with a "^".
+
+If you change the value of this variable, be sure to change
+the value of `bidi-paragraph-start-re' accordingly.  For
+example, to have a single newline behave as a paragraph separator,
+set both these variables to "^".
+
+See also `bidi-paragraph-direction'.  */);
 
   DEFVAR_PER_BUFFER ("bidi-paragraph-direction",
 		     &BVAR (current_buffer, bidi_paragraph_direction), Qnil,
@@ -5621,7 +5737,7 @@ word-wrapping, you might want to reduce the value of
 in narrower windows.
 
 Instead of setting this variable directly, most users should use
-Visual Line mode .  Visual Line mode, when enabled, sets `word-wrap'
+Visual Line mode.  Visual Line mode, when enabled, sets `word-wrap'
 to t, and additionally redefines simple editing commands to act on
 visual lines rather than logical lines.  See the documentation of
 `visual-line-mode'.  */);
@@ -5629,7 +5745,9 @@ visual lines rather than logical lines.  See the documentation of
   DEFVAR_PER_BUFFER ("default-directory", &BVAR (current_buffer, directory),
 		     Qstringp,
 		     doc: /* Name of default directory of current buffer.
-To interactively change the default directory, use command `cd'.  */);
+It should be a directory name (as opposed to a directory file-name).
+On GNU and Unix systems, directory names end in a slash `/'.
+To interactively change the default directory, use command `cd'. */);
 
   DEFVAR_PER_BUFFER ("auto-fill-function", &BVAR (current_buffer, auto_fill_function),
 		     Qnil,
@@ -5957,7 +6075,7 @@ and is the visited file's modification time, as of that time.  If the
 modification time of the most recent save is different, this entry is
 obsolete.
 
-An entry (t . 0) means means the buffer was previously unmodified but
+An entry (t . 0) means the buffer was previously unmodified but
 its time stamp was unknown because it was not associated with a file.
 An entry (t . -1) is similar, except that it means the buffer's visited
 file did not exist.
