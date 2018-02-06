@@ -511,7 +511,8 @@ This is in contrast to merely setting it to 0."
   "Given a pseudo-plist, normalize it to a regular plist.
 The normalized key/value pairs from input are added to PLIST,
 extending any keys already present."
-  (when input
+  (if (null input)
+      plist
     (let* ((keyword (car input))
            (xs (use-package-split-list #'keywordp (cdr input)))
            (args (car xs))
