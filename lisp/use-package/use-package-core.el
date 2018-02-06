@@ -112,6 +112,13 @@ otherwise requested."
   :type '(repeat symbol)
   :group 'use-package)
 
+(defcustom use-package-ignore-unknown-keywords nil
+  "If non-nil, issue warning instead of error when unknown
+keyword is encountered. The unknown keyword and its associated
+arguments will be ignored in the `use-package' expansion."
+  :type 'boolean
+  :group 'use-package)
+
 (defcustom use-package-verbose nil
   "Whether to report about loading and configuration details.
 If you customize this, then you should require the `use-package'
@@ -513,7 +520,8 @@ extending any keys already present."
             (intern-soft (concat "use-package-normalize/"
                                  (symbol-name keyword))))
            (arg (and (functionp normalizer)
-                     (funcall normalizer name keyword args))))
+                     (funcall normalizer name keyword args)))
+           (error-string (format "Unrecognized keyword: %s" keyword)))
       (if (memq keyword use-package-keywords)
           (progn
             (setq plist (use-package-normalize-plist
@@ -523,7 +531,12 @@ extending any keys already present."
                            (funcall merge-function keyword arg
                                     (plist-get plist keyword))
                          arg)))
-        (use-package-error (format "Unrecognized keyword: %s" keyword))))))
+        (if use-package-ignore-unknown-keywords
+            (progn
+              (display-warning 'use-package error-string)
+              (use-package-normalize-plist
+               name tail plist merge-function))
+          (use-package-error error-string))))))
 
 (defun use-package-unalias-keywords (name args)
   (setq args (cl-nsubstitute :if :when args))
