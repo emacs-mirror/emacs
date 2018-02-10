@@ -500,7 +500,8 @@ You can tell the compiler that a function is defined using
 @item
 Likewise, you can tell the compiler that a variable is defined using
 @code{defvar} with no initial value.  (Note that this marks the
-variable as special, i.e.@: dynamically bound.)  @xref{Defining
+variable as special, i.e.@: dynamically bound, but only within the
+current lexical scope, or file if at top-level.)  @xref{Defining
 Variables}.
 @end itemize
 

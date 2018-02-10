@@ -443,9 +443,13 @@ dynamically bound value; @pxref{Void Variables}), then @var{value} is
 evaluated and @var{symbol} is set to the result.  But if @var{symbol}
 is not void, @var{value} is not evaluated, and @var{symbol}'s value is
 left unchanged.  If @var{value} is omitted, the value of @var{symbol}
-is not changed in any case.  Using @code{defvar} with no value is one
-method of suppressing byte compilation warnings, see @ref{Compiler
-Errors}.
+is not changed in any case.
+
+Note that specifying a value, even @code{nil}, marks the variable as
+special permanently.  Whereas if @var{value} is omitted then the
+variable is only marked special locally (i.e.@: within the current
+lexical scope, or file if at the top-level).  This can be useful for
+suppressing byte compilation warnings, see @ref{Compiler Errors}.
 
 If @var{symbol} has a buffer-local binding in the current buffer,
 @code{defvar} acts on the default value, which is buffer-independent,
@@ -489,6 +493,9 @@ it a documentation string:
 
 The @code{defvar} form returns @var{symbol}, but it is normally used
 at top level in a file where its value does not matter.
+
+For a more elaborate example of using @code{defvar} without a value,
+see @ref{Local defvar example}.
 @end defspec
 
 @cindex constant variables
@@ -1164,6 +1171,32 @@ variables}.  Every variable that has been defined with @code{defvar},
 @code{defcustom} or @code{defconst} is a special variable
 (@pxref{Defining Variables}).  All other variables are subject to
 lexical binding.
+
+@anchor{Local defvar example}
+Using @code{defvar} without a value, it is possible to bind a variable
+dynamically just in one file, or in just one part of a file while
+still binding it lexically elsewhere.  For example:
+
+@example
+@group
+(let (_)
+  (defvar x)      ; @r{Let-bindings of @code{x} will be dynamic within this let.}
+  (let ((x -99))  ; @r{This is a dynamic binding of @code{x}.}
+    (defun get-dynamic-x ()
+      x)))
+
+(let ((x 'lexical)) ; @r{This is a lexical binding of @code{x}.}
+  (defun get-lexical-x ()
+    x))
+
+(let (_)
+  (defvar x)
+  (let ((x 'dynamic))
+    (list (get-lexical-x)
+          (get-dynamic-x))))
+    @result{} (lexical dynamic)
+@end group
+@end example
 
 @defun special-variable-p symbol
 This function returns non-@code{nil} if @var{symbol} is a special
