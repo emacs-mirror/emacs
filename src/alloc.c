@@ -3027,6 +3027,12 @@ cleanup_vector (struct Lisp_Vector *vector)
       if (uptr->finalizer)
 	uptr->finalizer (uptr->p);
     }
+  else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))
+    {
+      ATTRIBUTE_MAY_ALIAS struct Lisp_Module_Function *function
+        = (struct Lisp_Module_Function *) vector;
+      module_finalize_function (function);
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */

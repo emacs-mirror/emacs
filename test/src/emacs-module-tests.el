@@ -402,4 +402,12 @@ See Bug#36226."
         (load so nil nil :nosuffix :must-suffix)
       (delete-file so))))
 
+(ert-deftest module/function-finalizer ()
+  (mod-test-make-function-with-finalizer)
+  (let* ((previous-calls (mod-test-function-finalizer-calls))
+         (expected-calls (copy-sequence previous-calls)))
+    (cl-incf (car expected-calls))
+    (garbage-collect)
+    (should (equal (mod-test-function-finalizer-calls) expected-calls))))
+
 ;;; emacs-module-tests.el ends here

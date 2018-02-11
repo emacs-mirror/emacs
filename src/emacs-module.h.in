@@ -90,8 +90,8 @@ typedef emacs_value (*emacs_function) (emacs_env *env, ptrdiff_t nargs,
                                        void *data)
   EMACS_NOEXCEPT EMACS_ATTRIBUTE_NONNULL (1);
 
-/* Function prototype for module user-pointer finalizers.  These must
-   not throw C++ exceptions.  */
+/* Function prototype for module user-pointer and function finalizers.
+   These must not throw C++ exceptions.  */
 typedef void (*emacs_finalizer) (void *data) EMACS_NOEXCEPT;
 
 /* Possible Emacs function call outcomes.  */

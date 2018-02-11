@@ -327,6 +327,12 @@ static bool module_assertions = false;
   MODULE_HANDLE_NONLOCAL_EXIT (error_retval)
 
 static void
+CHECK_MODULE_FUNCTION (Lisp_Object obj)
+{
+  CHECK_TYPE (MODULE_FUNCTIONP (obj), Qmodule_function_p, obj);
+}
+
+static void
 CHECK_USER_PTR (Lisp_Object obj)
 {
   CHECK_TYPE (USER_PTRP (obj), Quser_ptrp, obj);
@@ -478,6 +484,7 @@ struct Lisp_Module_Function
   ptrdiff_t min_arity, max_arity;
   emacs_function subr;
   void *data;
+  emacs_finalizer finalizer;
 } GCALIGNED_STRUCT;
 
 static struct Lisp_Module_Function *
@@ -511,6 +518,7 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
   function->max_arity = max_arity;
   function->subr = func;
   function->data = data;
+  function->finalizer = NULL;
 
   if (docstring)
     function->documentation = build_string_from_utf8 (docstring);
@@ -520,6 +528,32 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
   eassert (MODULE_FUNCTIONP (result));
 
   return lisp_to_value (env, result);
+}
+
+static emacs_finalizer
+module_get_function_finalizer (emacs_env *env, emacs_value arg)
+{
+  MODULE_FUNCTION_BEGIN (NULL);
+  Lisp_Object lisp = value_to_lisp (arg);
+  CHECK_MODULE_FUNCTION (lisp);
+  return XMODULE_FUNCTION (lisp)->finalizer;
+}
+
+static void
+module_set_function_finalizer (emacs_env *env, emacs_value arg,
+                               emacs_finalizer fin)
+{
+  MODULE_FUNCTION_BEGIN ();
+  Lisp_Object lisp = value_to_lisp (arg);
+  CHECK_MODULE_FUNCTION (lisp);
+  XMODULE_FUNCTION (lisp)->finalizer = fin;
+}
+
+void
+module_finalize_function (const struct Lisp_Module_Function *func)
+{
+  if (func->finalizer != NULL)
+    func->finalizer (func->data);
 }
 
 static emacs_value
@@ -1329,6 +1363,8 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_time = module_make_time;
   env->extract_big_integer = module_extract_big_integer;
   env->make_big_integer = module_make_big_integer;
+  env->get_function_finalizer = module_get_function_finalizer;
+  env->set_function_finalizer = module_set_function_finalizer;
   Vmodule_environments = Fcons (make_mint_ptr (env), Vmodule_environments);
   return env;
 }

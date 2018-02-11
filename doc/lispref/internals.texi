@@ -1447,6 +1447,54 @@ The Lisp package which goes with your module could then load the
 module using the @code{load} primitive (@pxref{Dynamic Modules}) when
 the package is loaded into Emacs.
 
+@anchor{Module Function Finalizers}
+If you want to run some code when a module function object (i.e., an
+object returned by @code{make_function}) is garbage-collected, you can
+install a @dfn{function finalizer}.  Function finalizers are available
+since Emacs 28.  For example, if you have passed some heap-allocated
+structure to the @var{data} argument of @code{make_function}, you can
+use the finalizer to deallocate the structure.  @xref{Basic
+Allocation,,,libc}, and @pxref{Freeing after Malloc,,,libc}.  The
+finalizer function has the following signature:
+
+@example
+void finalizer (void *@var{data})
+@end example
+
+Here, @var{data} receives the value passed to @var{data} when calling
+@code{make_function}.  Note that the finalizer can't interact with
+Emacs in any way.
+
+Directly after calling @code{make_function}, the newly-created
+function doesn't have a finalizer.  Use @code{set_function_finalizer}
+to add one, if desired.
+
+@deftypefun void emacs_finalizer (void *@var{ptr})
+The header @file{emacs-module.h} provides the type
+@code{emacs_finalizer} as a type alias for an Emacs finalizer
+function.
+@end deftypefun
+
+@deftypefun emacs_finalizer get_function_finalizer (emacs_env *@var{env}, emacs_value @var{arg})
+This function, which is available since Emacs 28, returns the function
+finalizer associated with the module function represented by
+@var{arg}.  @var{arg} must refer to a module function, that is, an
+object returned by @code{make_function}.  If no finalizer is
+associated with the function, @code{NULL} is returned.
+@end deftypefun
+
+@deftypefun void set_function_finalizer (emacs_env *@var{env}, emacs_value @var{arg}, emacs_finalizer @var{fin})
+This function, which is available since Emacs 28, sets the function
+finalizer associated with the module function represented by @var{arg}
+to @var{fin}.  @var{arg} must refer to a module function, that is, an
+object returned by @code{make_function}.  @var{fin} can either be
+@code{NULL} to clear @var{arg}'s function finalizer, or a pointer to a
+function to be called when the object represented by @var{arg} is
+garbage-collected.  At most one function finalizer can be set per
+function; if @var{arg} already has a finalizer, it is replaced by
+@var{fin}.
+@end deftypefun
+
 @node Module Values
 @subsection Conversion Between Lisp and Module Values
 @cindex module values, conversion
@@ -1865,11 +1913,8 @@ represented by @var{arg} to be @var{fin}.  If @var{fin} is a
 finalizer.
 @end deftypefn
 
-@deftypefun void emacs_finalizer (void *@var{ptr})
-The header @file{emacs-module.h} provides the type
-@code{emacs_finalizer} as a type alias for an Emacs finalizer
-function.
-@end deftypefun
+Note that the @code{emacs_finalizer} type works for both user pointer
+an module function finalizers.  @xref{Module Function Finalizers}.
 
 @node Module Misc
 @subsection Miscellaneous Convenience Functions for Modules

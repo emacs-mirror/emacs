@@ -49,6 +49,11 @@ applies, and please also update docstrings as needed.
 'emacs_function' and 'emacs_finalizer' for module functions and
 finalizers, respectively.
 
+** Module functions can now install an optional finalizer that is
+called when the function object is garbage-collected.  Use
+'set_function_finalizer' to set the finalizer and
+'get_function_finalizer' to retrieve it.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
