@@ -3806,6 +3806,9 @@ extern Lisp_Object zero_vector;
 extern EMACS_INT consing_since_gc;
 extern EMACS_INT gc_relative_threshold;
 extern EMACS_INT memory_full_cons_threshold;
+#ifdef HAVE_PDUMPER
+extern int number_finalizers_run;
+#endif
 #ifdef ENABLE_CHECKING
 extern Lisp_Object Vdead;
 #endif

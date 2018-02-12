@@ -240,6 +240,12 @@ EMACS_INT gc_relative_threshold;
 
 EMACS_INT memory_full_cons_threshold;
 
+#ifdef HAVE_PDUMPER
+/* Number of finalizers run: used to loop over GC until we stop
+   generating garbage.  */
+int number_finalizers_run;
+#endif
+
 /* True during GC.  */
 
 bool gc_in_progress;
@@ -4052,6 +4058,9 @@ static void
 run_finalizer_function (Lisp_Object function)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
+#ifdef HAVE_PDUMPER
+  ++number_finalizers_run;
+#endif
 
   specbind (Qinhibit_quit, Qt);
   internal_condition_case_1 (call0, function, Qt, run_finalizer_handler);

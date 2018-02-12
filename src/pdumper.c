@@ -26,6 +26,32 @@
 #include "pdumper.h"
 #include "window.h"
 
+
+/*
+  TODO:
+
+  - Make sure global finalizer list makes it across the dump.
+
+  - Respect dump_object_contents.
+
+  - Two-pass dumping: first assemble object list, then write all.
+
+  - Don't emit relocations that happen to set Emacs memory locations
+    to values they will already have.
+
+  - Check at dump time that relocations are properly aligned.
+
+  - Nullify frame_and_buffer_state.
+
+  - Preferred base address for relocation-free non-PIC startup.
+
+  - Compressed dump support.
+
+  - Automate detection of struct layout changes.
+
+*/
+
+
 #ifdef HAVE_PDUMPER
 
 #ifdef __GNUC__
@@ -421,6 +447,10 @@ struct dump_context
 
   Lisp_Object old_purify_flag;
   Lisp_Object old_post_gc_hook;
+
+#ifdef REL_ALLOC
+  bool blocked_ralloc;
+#endif
 
   /* File descriptor for dumpfile; < 0 if closed.  */
   int fd;
@@ -3332,15 +3362,13 @@ dump_user_remembered_data_cold (struct dump_context *ctx)
 static void
 dump_unwind_cleanup (void *data)
 {
-  // XXX: omit relocations that duplicate BSS?
-  // XXX: prevent ralloc moving
-  // XXX: dumb mode for GC ( finalizers?)
-  // XXX: make sure finalizers stick
-  // XXX: check that calling thread is main thread
-  // XXX: check relocation alignment.
   struct dump_context *ctx = data;
   if (ctx->fd >= 0)
     emacs_close (ctx->fd);
+#ifdef REL_ALLOC
+  if (ctx->blocked_ralloc)
+    r_alloc_inhibit_buffer_relocation (0);
+#endif
   Vpurify_flag = ctx->old_purify_flag;
   unblock_input ();
 }
@@ -3629,6 +3657,15 @@ types.  */)
            "dumper.  Dumping with the portable dumper may produce "
            "unexpected results.");
 
+  if (!main_thread_p (current_thread))
+    error ("Function can be called only on main thread");
+
+  /* Clear out any detritus in memory.  */
+  do {
+    number_finalizers_run = 0;
+    Fgarbage_collect ();
+  } while (number_finalizers_run);
+
   ptrdiff_t count = SPECPDL_INDEX ();
 
   /* Bind `command-line-processed' to nil before dumping,
@@ -3677,6 +3714,11 @@ types.  */)
 
   record_unwind_protect_ptr (dump_unwind_cleanup, ctx);
   block_input ();
+
+#ifdef REL_ALLOC
+  r_alloc_inhibit_buffer_relocation (1);
+  ctx->blocked_ralloc = true;
+#endif
 
   ctx->old_purify_flag = Vpurify_flag;
   Vpurify_flag = Qnil;
@@ -3824,9 +3866,6 @@ types.  */)
 
   return unbind_to (count, Qnil);
 
-  // XXX: nullify frame_and_buffer_state
-
-  // XXX: preferred base address
 
 }
 
