@@ -82,8 +82,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # define GC_CHECK_MARKED_OBJECTS 1
 #endif
 
-// #define GC_CHECK_MARKED_OBJECTS 1 // XXX
-
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
    memory.  Can do this only if using gmalloc.c and if not checking
    marked objects.  */
