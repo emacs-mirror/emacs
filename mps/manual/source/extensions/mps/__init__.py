@@ -6,17 +6,40 @@ See <http://sphinx-doc.org/extensions.html>
 from collections import defaultdict
 from inspect import isabstract, isclass
 import re
-from . import designs
+import warnings
 
 from docutils import nodes, transforms
+from docutils.parsers.rst import Directive
+from docutils.parsers.rst.directives.admonitions import BaseAdmonition
 from sphinx import addnodes
 from sphinx.directives.other import VersionChange
 from sphinx.domains import Domain
 from sphinx.roles import XRefRole
-from sphinx.util.compat import Directive, make_admonition
 from sphinx.util.nodes import set_source_info, process_index_entry
-from sphinx.locale import versionlabels
-versionlabels['deprecatedstarting'] = 'Deprecated starting with version %s'
+from sphinx.locale import admonitionlabels, versionlabels
+
+from . import designs
+
+versionlabels['deprecatedstarting'] = "Deprecated starting with version %s"
+admonitionlabels.update(
+    aka="Also known as",
+    bibref="Related publication",
+    bibrefs="Related publications",
+    deprecated="Deprecated",
+    historical="Historical note",
+    link="Related link",
+    links="Related links",
+    note="Note",
+    notes="Notes",
+    opposite="Opposite term",
+    opposites="Opposite terms",
+    relevance="Relevance to memory management",
+    see="See",
+    similar="Similar term",
+    similars="Similar terms",
+    specific="In the MPS",
+    topics="Topic",
+    topicss="Topics"),
 
 class MpsDomain(Domain):
     label = 'MPS'
@@ -25,12 +48,15 @@ class MpsDomain(Domain):
 class MpsDirective(Directive):
     @classmethod
     def add_to_app(cls, app):
-        if hasattr(cls, 'name'): name = cls.name
-        elif hasattr(cls, 'nodecls'): name = cls.nodecls.__name__
-        else: return
-        if hasattr(cls, 'nodecls') and hasattr(cls, 'visit'):
-            app.add_node(cls.nodecls, html = cls.visit, latex = cls.visit,
-                         text = cls.visit, man = cls.visit)
+        if hasattr(cls, 'name'):
+            name = cls.name
+        elif hasattr(cls, 'node_class') and cls.node_class is not None:
+            name = cls.node_class.__name__
+        else:
+            return
+        if hasattr(cls, 'node_class') and hasattr(cls, 'visit'):
+            app.add_node(cls.node_class, html=cls.visit, latex=cls.visit,
+                         text=cls.visit, man=cls.visit)
         if hasattr(cls, 'domain'):
             app.add_directive_to_domain(cls.domain, name, cls)
         else:
@@ -82,143 +108,110 @@ def mps_ref_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
     return [refnode], []
 
 class Admonition(nodes.Admonition, nodes.Element):
-    pass
+    plural = False
 
 def visit_admonition_node(self, node):
-    self.visit_admonition(node)
+    name = type(node).__name__ + ('s' if node.plural else '')
+    self.visit_admonition(node, name=name)
 
 def depart_admonition_node(self, node):
     self.depart_admonition(node)
 
-class AdmonitionDirective(MpsDirective):
-    label = 'Admonition'
+class AdmonitionDirective(MpsDirective, BaseAdmonition):
     has_content = True
     visit = visit_admonition_node, depart_admonition_node
-
-    @classmethod
-    def add_to_app(cls, app):
-        if not hasattr(cls, 'nodecls'): return
-        super(AdmonitionDirective, cls).add_to_app(app)
-
-    def run(self):
-        ad = make_admonition(self.nodecls, self.name, [self.label],
-                             self.options, self.content, self.lineno,
-                             self.content_offset, self.block_text,
-                             self.state, self.state_machine)
-        return ad
 
 class PluralDirective(AdmonitionDirective):
     def run(self):
         ad = super(PluralDirective, self).run()
-        refs = sum(1 for node in ad[0][1]
-                   if isinstance(node, addnodes.pending_xref)
-                   or isinstance(node, nodes.Referential))
+        refs = sum(1 for node in ad[0][0]
+                   if isinstance(node, (addnodes.pending_xref,
+                                        nodes.Referential)))
         if refs > 1:
-            assert(isinstance(ad[0][0], nodes.title))
-            ad[0][0][0] = nodes.Text(self.plural)
+            ad[0].plural = True
         return ad
 
 class aka(Admonition):
     pass
 
 class AkaDirective(AdmonitionDirective):
-    nodecls = aka
-    label = 'Also known as'
+    node_class = aka
 
 class bibref(Admonition):
     pass
 
 class BibrefDirective(PluralDirective):
-    nodecls = bibref
-    label = 'Related publication'
-    plural = 'Related publications'
+    node_class = bibref
 
 class deprecated(Admonition):
     pass
 
 class DeprecatedDirective(AdmonitionDirective):
-    nodecls = deprecated
-    label = 'Deprecated'
+    node_class = deprecated
 
 class historical(Admonition):
     pass
 
 class HistoricalDirective(AdmonitionDirective):
-    nodecls = historical
-    label = 'Historical note'
+    node_class = historical
 
 class link(Admonition):
     pass
 
 class LinkDirective(PluralDirective):
-    nodecls = link
-    label = 'Related link'
-    plural = 'Related links'
+    node_class = link
 
 class note(Admonition):
     pass
 
 class NoteDirective(AdmonitionDirective):
-    nodecls = note
-    label = 'Note'
-    plural = 'Notes'
+    node_class = note
 
     def run(self):
         ad = super(NoteDirective, self).run()
-        assert(isinstance(ad[0][0], nodes.title))
-        if len(ad[0]) == 1: return ad
-        if (isinstance(ad[0][1], nodes.enumerated_list)
-            and sum(1 for _ in ad[0][1].traverse(nodes.list_item)) > 1
-            or isinstance(ad[0][1], nodes.footnote)
+        if (isinstance(ad[0][0], nodes.enumerated_list)
+            and sum(1 for _ in ad[0][0].traverse(nodes.list_item)) > 1
+            or isinstance(ad[0][0], nodes.footnote)
             and sum(1 for _ in ad[0].traverse(nodes.footnote)) > 1):
-            ad[0][0][0] = nodes.Text(self.plural)
+            ad[0].plural = True
         return ad
 
 class opposite(Admonition):
     pass
 
 class OppositeDirective(PluralDirective):
-    nodecls = opposite
-    label = 'Opposite term'
-    plural = 'Opposite terms'
+    node_class = opposite
 
 class relevance(Admonition):
     pass
 
 class RelevanceDirective(AdmonitionDirective):
-    nodecls = relevance
-    label = 'Relevance to memory management'
+    node_class = relevance
 
 class see(Admonition):
     pass
 
 class SeeDirective(AdmonitionDirective):
-    nodecls = see
-    label = 'See'
+    node_class = see
 
 class similar(Admonition):
     pass
 
 class SimilarDirective(PluralDirective):
-    nodecls = similar
-    label = 'Similar term'
-    plural = 'Similar terms'
+    node_class = similar
 
 class specific(Admonition):
     pass
 
 class SpecificDirective(AdmonitionDirective):
     domain = 'mps'
-    nodecls = specific
-    label = 'In the MPS'
+    node_class = specific
 
 class topics(Admonition):
     pass
 
 class TopicsDirective(PluralDirective):
-    nodecls = topics
-    label = 'Topic'
-    plural = 'Topics'
+    node_class = topics
 
 class GlossaryTransform(transforms.Transform):
     """
@@ -328,8 +321,6 @@ class GlossaryTransform(transforms.Transform):
                 for doc, line in cls.xref_ids[i]:
                     print('{}:{}: WARNING: cross-reference to {}.'
                           .format(doc, line, i))
-
-        
 
 def setup(app):
     designs.convert_updated(app)
