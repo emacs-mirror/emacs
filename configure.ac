@@ -3646,11 +3646,7 @@ elif test "${with_png}" != no; then
   if test "$opsys" = mingw32; then
     AC_CHECK_HEADER([png.h], [HAVE_PNG=yes])
   elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
-   EMACS_CHECK_MODULES([PNG], [libpng >= 1.0.0])
-   if test $HAVE_PNG = no; then
-    # Test old way in case pkg-config doesn't have it (older machines).
-    AC_MSG_CHECKING([for libpng not configured by pkg-config])
-
+    AC_MSG_CHECKING([for png])
     png_cflags=`(libpng-config --cflags) 2>&AS_MESSAGE_LOG_FD` &&
     png_ldflags=`(libpng-config --ldflags) 2>&AS_MESSAGE_LOG_FD` || {
       # libpng-config does not work; configure by hand.
@@ -3683,7 +3679,6 @@ elif test "${with_png}" != no; then
     CFLAGS=$SAVE_CFLAGS
     LIBS=$SAVE_LIBS
     AC_MSG_RESULT([$HAVE_PNG])
-   fi
   fi
 fi
 if test $HAVE_PNG = yes; then
