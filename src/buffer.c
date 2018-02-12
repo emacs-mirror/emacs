@@ -5227,8 +5227,6 @@ init_buffer_once (void)
 
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
-  /* TODO: XXX: we no longer call mark_buffer on buffer_defaults, so
-     this work should be unnecessary.  */
   reset_buffer (&buffer_defaults);
   eassert (NILP (BVAR (&buffer_defaults, name)));
   reset_buffer_local_variables (&buffer_defaults, 1);
