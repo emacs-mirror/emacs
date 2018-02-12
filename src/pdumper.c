@@ -153,9 +153,9 @@ dump_get_page_size (void)
 enum dump_reloc_type
   {
     /* dump_ptr = dump_ptr + emacs_basis() */
-    RELOC_DUMP_TO_EMACS_RAW_PTR,
+    RELOC_DUMP_TO_EMACS_PTR_RAW,
     /* dump_ptr = dump_ptr + dump_base */
-    RELOC_DUMP_TO_DUMP_RAW_PTR,
+    RELOC_DUMP_TO_DUMP_PTR_RAW,
     /* dump_lv = make_lisp_ptr (
          dump_lv + dump_base,
          type - RELOC_DUMP_TO_DUMP_LV)
@@ -914,7 +914,7 @@ dump_queue_enqueue (struct dump_queue *dump_queue,
   Lisp_Object weights = Fgethash (object, dump_queue->link_weights, Qnil);
   Lisp_Object orig_weights = weights;
   // N.B. want to find the last item of a given weight in each queue
-  // due to prepend use.  XXX
+  // due to prepend use.
   bool use_single_queues = true;
   if (NILP (weights))
     {
@@ -1328,12 +1328,12 @@ dump_remember_cold_op (struct dump_context *ctx,
    value at DUMP_OFFSET in the dump file should contain a number
    relative to emacs_basis().  */
 static void
-dump_reloc_dump_to_emacs_raw_ptr (struct dump_context *ctx,
+dump_reloc_dump_to_emacs_ptr_raw (struct dump_context *ctx,
                                   dump_off dump_offset)
 {
   if (ctx->flags.dump_object_contents)
     dump_push (&ctx->dump_relocs,
-               list2 (dump_off_to_lisp (RELOC_DUMP_TO_EMACS_RAW_PTR),
+               list2 (dump_off_to_lisp (RELOC_DUMP_TO_EMACS_PTR_RAW),
                       dump_off_to_lisp (dump_offset)));
 }
 
@@ -1378,12 +1378,12 @@ dump_reloc_dump_to_dump_lv (struct dump_context *ctx,
    value at DUMP_OFFSET in the dump file should contain the offset of
    the target object relative to the start of the dump.  */
 static void
-dump_reloc_dump_to_dump_raw_ptr (struct dump_context *ctx,
+dump_reloc_dump_to_dump_ptr_raw (struct dump_context *ctx,
                                  dump_off dump_offset)
 {
   if (ctx->flags.dump_object_contents)
     dump_push (&ctx->dump_relocs,
-               list2 (dump_off_to_lisp (RELOC_DUMP_TO_DUMP_RAW_PTR),
+               list2 (dump_off_to_lisp (RELOC_DUMP_TO_DUMP_PTR_RAW),
                       dump_off_to_lisp (dump_offset)));
 }
 
@@ -1684,7 +1684,7 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
                          void *out,
                          const void *in_start,
                          const void *in_field,
-                         /* opt */ const enum Lisp_Type *raw_ptr_type,
+                         /* opt */ const enum Lisp_Type *ptr_raw_type,
                          struct link_weight weight)
 {
   eassert (ctx->obj_offset > 0);
@@ -1692,7 +1692,7 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
   Lisp_Object value;
   dump_off relpos = field_relpos (in_start, in_field);
   void *out_field = (char *) out + relpos;
-  if (raw_ptr_type == NULL)
+  if (ptr_raw_type == NULL)
     {
       memcpy (&value, in_field, sizeof (value));
       if (dump_object_self_representing_p (value))
@@ -1707,7 +1707,7 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
       cpyptr (&ptrval, in_field);
       if (ptrval == NULL)
         return; /* Nothing to do.  */
-      switch (*raw_ptr_type)
+      switch (*ptr_raw_type)
         {
         case Lisp_Symbol:
           value = make_lisp_symbol (ptrval);
@@ -1717,14 +1717,14 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
         case Lisp_Vectorlike:
         case Lisp_Cons:
         case Lisp_Float:
-          value = make_lisp_ptr (ptrval, *raw_ptr_type);
+          value = make_lisp_ptr (ptrval, *ptr_raw_type);
           break;
         default:
           emacs_abort ();
         }
     }
 
-  bool is_raw_ptr = (raw_ptr_type != NULL);
+  bool is_ptr_raw = (ptr_raw_type != NULL);
 
   /* Now value is the Lisp_Object to which we want to point whether or
      not the field is a raw pointer (in which case we just synthesized
@@ -1741,8 +1741,8 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
          the value and a relocation directly instead of indirecting
          through a fixup.  */
       out_value = target_offset;
-      if (is_raw_ptr)
-        dump_reloc_dump_to_dump_raw_ptr (ctx, out_field_offset);
+      if (is_ptr_raw)
+        dump_reloc_dump_to_dump_ptr_raw (ctx, out_field_offset);
       else
         dump_reloc_dump_to_dump_lv (ctx, out_field_offset, XTYPE (value));
     }
@@ -1755,7 +1755,7 @@ dump_field_lv_or_rawptr (struct dump_context *ctx,
       dump_remember_fixup_lv (ctx,
                               out_field_offset,
                               value,
-                              ( is_raw_ptr
+                              ( is_ptr_raw
                                 ? LV_FIXUP_RAW_POINTER
                                 : LV_FIXUP_LISP_OBJECT ));
       dump_enqueue_object (ctx, value, weight);
@@ -1832,7 +1832,7 @@ dump_field_ptr_to_dump_offset (struct dump_context *ctx,
     return;
 
   dump_off relpos = field_relpos (in_start, in_field);
-  dump_reloc_dump_to_dump_raw_ptr (ctx, ctx->obj_offset + relpos);
+  dump_reloc_dump_to_dump_ptr_raw (ctx, ctx->obj_offset + relpos);
   intptr_t outval = target_dump_offset;
   memcpy ((char*) out + relpos, &outval, sizeof (outval));
 }
@@ -1861,7 +1861,7 @@ dump_field_emacs_ptr (struct dump_context *ctx,
   ptrdiff_t rel_emacs_ptr = abs_emacs_ptr - (intptr_t) emacs_basis ();
   dump_off relpos = field_relpos (in_start, in_field);
   cpyptr ((char*) out + relpos, &rel_emacs_ptr);
-  dump_reloc_dump_to_emacs_raw_ptr (ctx, ctx->obj_offset + relpos);
+  dump_reloc_dump_to_emacs_ptr_raw (ctx, ctx->obj_offset + relpos);
 }
 
 static dump_off
@@ -3203,7 +3203,7 @@ dump_cold_data (struct dump_context *ctx)
 }
 
 static void
-read_raw_ptr_and_lv (const void *mem,
+read_ptr_raw_and_lv (const void *mem,
                      enum Lisp_Type type,
                      void **out_ptr,
                      Lisp_Object *out_lv)
@@ -3243,7 +3243,7 @@ dump_user_remembered_data_hot (struct dump_context *ctx)
           enum Lisp_Type type = -sz;
           void *value;
           Lisp_Object lv;
-          read_raw_ptr_and_lv (mem, type, &value, &lv);
+          read_ptr_raw_and_lv (mem, type, &value, &lv);
           if (value != NULL)
             {
               DUMP_SET_REFERRER (ctx, dump_ptr_referrer ("user data", mem));
@@ -3284,7 +3284,7 @@ dump_user_remembered_data_cold (struct dump_context *ctx)
           void *value;
           Lisp_Object lv;
           enum Lisp_Type type = -sz;
-          read_raw_ptr_and_lv (mem, type, &value, &lv);
+          read_ptr_raw_and_lv (mem, type, &value, &lv);
           if (value == NULL)
             /* We can't just ignore NULL: the variable might have
                transitioned from non-NULL to NULL, and we want to
@@ -3300,7 +3300,7 @@ dump_user_remembered_data_cold (struct dump_context *ctx)
                      ...
                      foo = XSYMBOL(Qt);
                      ...
-                     pdumper_remember_lv_raw_ptr (&foo, Lisp_Symbol);
+                     pdumper_remember_lv_ptr_raw (&foo, Lisp_Symbol);
 
                      Built-in symbols like Qt aren't in the dump!
                      They're actually in Emacs proper.  We need a
@@ -3336,7 +3336,6 @@ dump_unwind_cleanup (void *data)
   // XXX: prevent ralloc moving
   // XXX: dumb mode for GC ( finalizers?)
   // XXX: make sure finalizers stick
-  // XXX: don't dump main thread
   // XXX: check that calling thread is main thread
   // XXX: check relocation alignment.
   struct dump_context *ctx = data;
@@ -3371,7 +3370,7 @@ dump_do_fixup (struct dump_context *ctx, Lisp_Object fixup)
           if (type == DUMP_FIXUP_LISP_OBJECT)
             dump_reloc_dump_to_emacs_lv (ctx, ctx->offset, XTYPE (arg));
           else
-            dump_reloc_dump_to_emacs_raw_ptr (ctx, ctx->offset);
+            dump_reloc_dump_to_emacs_ptr_raw (ctx, ctx->offset);
         }
       else if (dump_builtin_symbol_p (arg))
         {
@@ -3387,7 +3386,7 @@ dump_do_fixup (struct dump_context *ctx, Lisp_Object fixup)
           else
             {
               dump_value = emacs_offset (XSYMBOL (arg));
-              dump_reloc_dump_to_emacs_raw_ptr (ctx, ctx->offset);
+              dump_reloc_dump_to_emacs_ptr_raw (ctx, ctx->offset);
             }
         }
       else
@@ -3399,7 +3398,7 @@ dump_do_fixup (struct dump_context *ctx, Lisp_Object fixup)
           if (type == DUMP_FIXUP_LISP_OBJECT)
             dump_reloc_dump_to_dump_lv (ctx, ctx->offset, XTYPE (arg));
           else
-            dump_reloc_dump_to_dump_raw_ptr (ctx, ctx->offset);
+            dump_reloc_dump_to_dump_ptr_raw (ctx, ctx->offset);
         }
       break;
     case DUMP_FIXUP_PTR_DUMP_RAW:
@@ -3407,7 +3406,7 @@ dump_do_fixup (struct dump_context *ctx, Lisp_Object fixup)
          object.  It knows the exact location it wants, so just
          believe it.  */
       dump_value = dump_off_from_lisp (arg);
-      dump_reloc_dump_to_dump_raw_ptr (ctx, ctx->offset);
+      dump_reloc_dump_to_dump_ptr_raw (ctx, ctx->offset);
       break;
     default:
       emacs_abort ();
@@ -3883,7 +3882,7 @@ pdumper_remember_scalar_impl (void *mem, ptrdiff_t nbytes)
 }
 
 void
-pdumper_remember_lv_raw_ptr_impl (void* ptr, enum Lisp_Type type)
+pdumper_remember_lv_ptr_raw_impl (void* ptr, enum Lisp_Type type)
 {
   pdumper_remember_user_data_1 (ptr, -type);
 }
@@ -4698,8 +4697,8 @@ dump_reloc_size (const struct dump_reloc reloc)
 {
   if (sizeof (Lisp_Object) == sizeof (void*))
     return sizeof (Lisp_Object);
-  if (reloc.type == RELOC_DUMP_TO_EMACS_RAW_PTR ||
-      reloc.type == RELOC_DUMP_TO_DUMP_RAW_PTR)
+  if (reloc.type == RELOC_DUMP_TO_EMACS_PTR_RAW ||
+      reloc.type == RELOC_DUMP_TO_DUMP_PTR_RAW)
     return sizeof (void*);
   return sizeof (Lisp_Object);
 }
@@ -4751,7 +4750,7 @@ dump_do_dump_relocation (
 
   switch (reloc.type)
     {
-    case RELOC_DUMP_TO_EMACS_RAW_PTR:
+    case RELOC_DUMP_TO_EMACS_PTR_RAW:
       {
         uintptr_t value = dump_read_word_from_dump (dump_base, reloc_offset);
         eassert (dump_reloc_size (reloc) == sizeof (value));
@@ -4759,7 +4758,7 @@ dump_do_dump_relocation (
         dump_write_word_to_dump (dump_base, reloc_offset, value);
         break;
       }
-    case RELOC_DUMP_TO_DUMP_RAW_PTR:
+    case RELOC_DUMP_TO_DUMP_PTR_RAW:
       {
         uintptr_t value = dump_read_word_from_dump (dump_base, reloc_offset);
         eassert (dump_reloc_size (reloc) == sizeof (value));
@@ -4775,8 +4774,6 @@ dump_do_dump_relocation (
         break;
       }
     }
-
-  // XXX: raw_ptr or ptr_raw. Pick one.
 }
 
 static void

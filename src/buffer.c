@@ -5320,9 +5320,9 @@ init_buffer_once (void)
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;
-  pdumper_remember_lv_raw_ptr (&current_buffer, Lisp_Vectorlike);
+  pdumper_remember_lv_ptr_raw (&current_buffer, Lisp_Vectorlike);
   all_buffers = 0;
-  pdumper_remember_lv_raw_ptr (&all_buffers, Lisp_Vectorlike);
+  pdumper_remember_lv_ptr_raw (&all_buffers, Lisp_Vectorlike);
 
   QSFundamental = build_pure_c_string ("Fundamental");
 

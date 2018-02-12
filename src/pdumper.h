@@ -65,7 +65,7 @@ pdumper_remember_scalar (void *data, ptrdiff_t nbytes)
 #endif
 }
 
-extern void pdumper_remember_lv_raw_ptr_impl (
+extern void pdumper_remember_lv_ptr_raw_impl (
   void *ptr, enum Lisp_Type type);
 
 /* Remember the pointer at *PTR.  *PTR must be null or point to a Lisp
@@ -73,10 +73,10 @@ extern void pdumper_remember_lv_raw_ptr_impl (
    points.  */
 INLINE
 void
-pdumper_remember_lv_raw_ptr (void* ptr, enum Lisp_Type type)
+pdumper_remember_lv_ptr_raw (void* ptr, enum Lisp_Type type)
 {
 #ifdef HAVE_PDUMPER
-  pdumper_remember_lv_raw_ptr_impl (ptr, type);
+  pdumper_remember_lv_ptr_raw_impl (ptr, type);
 #else
   (void) ptr;
   (void) type;
