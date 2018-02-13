@@ -481,7 +481,7 @@ x_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSTRACE ("x_implicitly_set_name");
 
-  if (! NILP (ns_use_proxy_icon))
+  if (ns_use_proxy_icon)
     ns_set_represented_filename (f);
 
   ns_set_name (f, arg, 0);
@@ -3238,7 +3238,7 @@ be used as the image of the icon representing the frame.  */);
   DEFVAR_BOOL ("ns-use-proxy-icon", ns_use_proxy_icon,
                doc: /* When non-nil display a proxy icon in the titlebar.
 Default is t.  */);
-  ns_use_proxy_icon = Qt;
+  ns_use_proxy_icon = true;
 
   defsubr (&Sns_read_file_name);
   defsubr (&Sns_get_resource);

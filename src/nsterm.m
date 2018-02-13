@@ -472,7 +472,6 @@ static void ns_judge_scroll_bars (struct frame *f);
 void
 ns_set_represented_filename (struct frame *f)
 {
-  NSView *view;
   Lisp_Object filename, encoded_filename;
   Lisp_Object buf = XWINDOW (f->selected_window)->contents;
   NSAutoreleasePool *pool;
