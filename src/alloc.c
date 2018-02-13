@@ -561,6 +561,7 @@ XFLOAT_INIT (Lisp_Object f, double n)
   XFLOAT (f)->u.data = n;
 }
 
+#ifdef DOUG_LEA_MALLOC
 static bool
 pointers_fit_in_lispobj_p (void)
 {
@@ -577,6 +578,7 @@ mmap_lisp_allowed_p (void)
      regions.  */
   return pointers_fit_in_lispobj_p () && !will_dump_with_unexec_p ();
 }
+#endif
 
 /* Head of a circularly-linked list of extant finalizers. */
 struct Lisp_Finalizer finalizers;

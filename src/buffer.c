@@ -5351,7 +5351,7 @@ init_buffer (void)
   ptrdiff_t len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
-  if (dumped_with_unexec)
+  if (dumped_with_unexec_p ())
     {
       struct buffer *b;
 

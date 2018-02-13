@@ -619,7 +619,7 @@ $(libsrc)/make-fingerprint$(EXEEXT): $(libsrc)/make-fingerprint.c $(lib)/libgnu.
 	$(MAKE) -C $(libsrc) make-fingerprint$(EXEEXT)
 
 fingerprint.c: temacs.in$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT)
-	$(libsrc)/make-fingerprint$(EXEEXT) temacs.in$(EEXIST) > fingerprint.c
+	$(libsrc)/make-fingerprint$(EXEEXT) temacs.in$(EXEEXT) > fingerprint.c
 
 ## We have to create $(etc) here because init_cmdargs tests its
 ## existence when setting Vinstallation_directory (FIXME?).

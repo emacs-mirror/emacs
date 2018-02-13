@@ -662,9 +662,9 @@ close_output_streams (void)
 
 ATTRIBUTE_UNUSED
 static bool
-string_starts_with_p(const char* string, const char* prefix)
+string_starts_with_p (const char* string, const char* prefix)
 {
-    return strncmp(string, prefix, strlen(prefix)) == 0;
+    return strncmp (string, prefix, strlen (prefix)) == 0;
 }
 
 #ifdef HAVE_PDUMPER
@@ -833,8 +833,21 @@ main (int argc, char **argv)
   /* Figure out where we are.  Fancy filesystem functions aren't
      available at this point, so use pure text manipulation.  */
   const char *argv0_base = strrchr (argv[0], DIRECTORY_SEP);
+#ifdef WINDOWSNT
+  /* Consider backslashes and the .exe extension.  */
+  const char *argv0_alt = strrchr (argv[0], '\\');
+
+  if (argv0_alt > argv0_base)
+    argv0_base = argv0_alt;
+  argv0_base = argv0_base ? argv0_base + 1 : argv[0];
+  bool is_temacs =
+    c_strncasecmp ("temacs", argv0_base, 6) == 0
+    && strlen (argv0_base) >= 4
+    && c_strcasecmp (argv0_base + strlen (argv0_base) - 4, ".exe") == 0;
+#else
   argv0_base = argv0_base ? argv0_base + 1 : argv[0];
   bool is_temacs = strcmp ("temacs", argv0_base) == 0;
+#endif
   const char *loaded_dump = NULL;
 
   const char *dump_mode = NULL;
@@ -1353,7 +1366,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      that causes an infinite recursive loop with FreeBSD.  See
      Bug#14569.  The part of this bug involving Cygwin is no longer
      relevant, now that Cygwin defines HYBRID_MALLOC.  */
-  if (!noninteractive || !will_dump)
+  if (!noninteractive || !will_dump_p ())
     malloc_enable_thread ();
 #endif
 
@@ -1444,7 +1457,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   bool module_assertions
     = argmatch (argv, argc, "-module-assertions", "--module-assertions", 15,
                 NULL, &skip_args);
-  if (dumping && module_assertions)
+  if (will_dump_p () && module_assertions)
     {
       fputs ("Module assertions are not supported during dumping\n", stderr);
       exit (1);
@@ -1595,7 +1608,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      variables from the parent process without modifications from
      Emacs.  */
   init_environment (argv);
-  init_ntproc (will_dump); /* must precede init_editfns.  */
+  init_ntproc (will_dump_p ()); /* must precede init_editfns.  */
 #endif
 
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4

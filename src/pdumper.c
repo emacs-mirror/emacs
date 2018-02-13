@@ -79,6 +79,10 @@
 #  define MAP_POPULATE 0
 # endif
 #elif defined (WINDOWSNT)
+  /* Use a float infinity, to avoid compiler warnings in comparing vs
+     candidates' score.  */
+# undef INFINITY
+# define INFINITY __builtin_inff ()
 # include <windows.h>
 # define VM_SUPPORTED VM_MS_WINDOWS
 #else
@@ -3031,7 +3035,7 @@ dump_charset_table (struct dump_context *ctx)
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
   dump_emacs_reloc_immediate_int (
     ctx, &charset_table_used, charset_table_used);
-  dump_emacs_reloc_immediate_emacs_int (
+  dump_emacs_reloc_immediate_ptrdiff_t (
     ctx, &charset_table_size, charset_table_used);
   return offset;
 }
@@ -4090,10 +4094,13 @@ dump_map_file_w32 (
   HANDLE file;
 
   uint64_t full_offset = offset;
-  uint32_t size_high = (uint32_t) (full_offset >> 32);
-  uint32_t size_low = (uint32_t) full_offset;
+  uint32_t offset_high = (uint32_t) (full_offset >> 32);
+  uint32_t offset_low = (uint32_t) (full_offset & 0xffffffff);
 
-  file = (HANDLE) __get_osfhandle (fd);
+  int error;
+  DWORD map_access;
+
+  file = (HANDLE) _get_osfhandle (fd);
   if (file == INVALID_HANDLE_VALUE)
     goto out;
 
@@ -4109,8 +4116,6 @@ dump_map_file_w32 (
       errno = EINVAL;
       goto out;
     }
-
-  DWORD map_access;
 
   switch (protection)
     {
@@ -4132,7 +4137,7 @@ dump_map_file_w32 (
                          size,
                          base);
 
-  int error = GetLastError ();
+  error = GetLastError ();
   if (ret == NULL)
     errno = (error == ERROR_INVALID_ADDRESS ? EBUSY : EPERM);
  out:
@@ -4422,11 +4427,15 @@ dump_mmap_contiguous_vm (
   if (resv)
     dump_anonymous_release (resv, total_size);
   if (!ret)
-    for (int i = 0; i < nr_maps; ++i)
-      if (VM_SUPPORTED == VM_MS_WINDOWS)
-        dump_mmap_reset (&maps[i]);
-      else
-        dump_mmap_release (&maps[i]);
+    {
+      for (int i = 0; i < nr_maps; ++i)
+	{
+	  if (VM_SUPPORTED == VM_MS_WINDOWS)
+	    dump_mmap_reset (&maps[i]);
+	  else
+	    dump_mmap_release (&maps[i]);
+	}
+    }
   return ret;
 }
 

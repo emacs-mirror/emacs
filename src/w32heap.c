@@ -223,9 +223,16 @@ typedef enum _HEAP_INFORMATION_CLASS {
 typedef WINBASEAPI BOOL (WINAPI * HeapSetInformation_Proc)(HANDLE,HEAP_INFORMATION_CLASS,PVOID,SIZE_T);
 #endif
 
+#ifdef HAVE_PDUMPER
+BOOL using_dynamic_heap = FALSE;
+#endif
+
 void
 init_heap (void)
 {
+#ifdef HAVE_PDUMPER
+  using_dynamic_heap = TRUE;
+#endif
   if (using_dynamic_heap)
     {
 #ifndef MINGW_W64

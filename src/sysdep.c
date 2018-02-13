@@ -1900,7 +1900,7 @@ init_sigsegv (void)
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
 
-static bool
+bool
 init_sigsegv (void)
 {
   return 0;
