@@ -4256,26 +4256,18 @@ struct dump_memory_map {
 static void
 dump_discard_mem (void *mem, size_t size)
 {
-  if (VM_SUPPORTED == VM_MS_WINDOWS)
-    {
 #if VM_SUPPORTED == VM_MS_WINDOWS
       /* Discard COWed pages.  */
       (void) VirtualFree (mem, size, MEM_DECOMMIT);
       /* Release the commit charge for the mapping.  */
       (void) VirtualProtect (mem, size, PAGE_NOACCESS, NULL);
-#endif
-    }
-  else if (VM_SUPPORTED == VM_POSIX)
-    {
-#ifdef HAVE_POSIX_MADVISE
+#elif VM_SUPPORTED == VM_POSIX
+# ifdef HAVE_POSIX_MADVISE
       /* Discard COWed pages.  */
       (void) posix_madvise (mem, size, POSIX_MADV_DONTNEED);
-#endif
-      /* Release the commit charge for the mapping.  */
+# endif
       (void) mprotect (mem, size, PROT_NONE);
-    }
-  else
-    /* Do nothing */;
+#endif
 }
 
 static void
