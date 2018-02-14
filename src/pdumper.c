@@ -4251,6 +4251,40 @@ struct dump_memory_map {
   void *private;
 };
 
+/* Mark the pages as unneeded, potentially zeroing them, without
+   releasing the address space reservation.  */
+static void
+dump_discard_mem (void *mem, size_t size)
+{
+  if (VM_SUPPORTED == VM_MS_WINDOWS)
+    {
+#if VM_SUPPORTED == VM_MS_WINDOWS
+      /* Discard COWed pages.  */
+      (void) VirtualFree (mem, size, MEM_DECOMMIT);
+      /* Release the commit charge for the mapping.  */
+      (void) VirtualProtect (mem, size, PAGE_NOACCESS, NULL);
+#endif
+    }
+  else if (VM_SUPPORTED == VM_POSIX)
+    {
+#ifdef HAVE_POSIX_MADVISE
+      /* Discard COWed pages.  */
+      (void) posix_madvise (mem, size, POSIX_MADV_DONTNEED);
+#endif
+      /* Release the commit charge for the mapping.  */
+      (void) mprotect (mem, size, PROT_NONE);
+    }
+  else
+    /* Do nothing */;
+}
+
+static void
+dump_mmap_discard_contents (struct dump_memory_map *map)
+{
+  if (map->mapping)
+    dump_discard_mem (map->mapping, map->spec.size);
+}
+
 static void
 dump_mmap_reset (struct dump_memory_map *map)
 {
@@ -5027,7 +5061,7 @@ pdumper_load (const char *dump_filename)
   dump_do_all_dump_relocations (header, dump_base);
   dump_do_all_emacs_relocations (header, dump_base);
 
-  dump_mmap_release (&sections[DS_DISCARDABLE]);
+  dump_mmap_discard_contents (&sections[DS_DISCARDABLE]);
   for (int i = 0; i < ARRAYELTS (sections); ++i)
     dump_mmap_reset (&sections[i]);
 

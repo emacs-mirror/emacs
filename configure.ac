@@ -4071,6 +4071,9 @@ dnl No need to check for posix_memalign if aligned_alloc works.
 AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
 AC_CHECK_DECLS([aligned_alloc], [], [], [[#include <stdlib.h>]])
 
+# Dump loading
+AC_CHECK_FUNCS([posix_madvise])
+
 dnl Cannot use AC_CHECK_FUNCS
 AC_CACHE_CHECK([for __builtin_frame_address],
   [emacs_cv_func___builtin_frame_address],
