@@ -4266,6 +4266,7 @@ dump_discard_mem (void *mem, size_t size)
       /* Discard COWed pages.  */
       (void) posix_madvise (mem, size, POSIX_MADV_DONTNEED);
 # endif
+      /* Release the commit charge for the mapping.  */
       (void) mprotect (mem, size, PROT_NONE);
 #endif
 }
