@@ -479,8 +479,10 @@ lost after dumping")))
       (condition-case ()
           (delete-file output)
         (file-error nil))
+      ;; On MS-Windows, the current directory is not necessarily the
+      ;; same as invocation-directory.
       (if (member dump-mode '("pdump" "pbootstrap"))
-          (dump-emacs-portable output)
+          (dump-emacs-portable (expand-file-name output invocation-directory))
         (dump-emacs output "temacs")
         (message "%d pure bytes used" pure-bytes-used)
         ;; Recompute NAME now, so that it isn't set when we dump.

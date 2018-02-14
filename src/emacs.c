@@ -739,6 +739,9 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
   char **argv = *inout_argv;
   const char *suffix = ".pdmp";
   enum pdumper_load_result result;
+#ifdef WINDOWSNT
+  size_t argv0_len;
+#endif
 
   /* Look for an explicitly-specified dump file.  */
 
@@ -768,6 +771,13 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
      should have the same basename.  */
 
   dump_file = alloca (strlen (argv[0]) + strlen (suffix) + 1);
+#ifdef WINDOWSNT
+  /* Remove the .exe extension if present.  */
+  argv0_len = strlen (argv[0]);
+  if (argv0_len >= 4 && c_strcasecmp (argv[0] + argv0_len - 4, ".exe") == 0)
+    sprintf (dump_file, "%.*s%s", argv0_len - 4, argv[0], suffix);
+  else
+#endif
   sprintf (dump_file, "%s%s", argv[0], suffix);
 
   result = pdumper_load (dump_file);
@@ -782,6 +792,8 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
      "emacs" in "emacs.pdmp" so that the Emacs binary still works
      if the user copies and renames it.  */
   argv0_base = "emacs";
+  /* FIXME: On MS-Windows, PATH_EXEC starts with a literal
+     "%emacs_dir%", so it will never work without some tweaking.  */
   dump_file = alloca (strlen (PATH_EXEC)
                       + 1
                       + strlen (argv0_base)
@@ -799,12 +811,6 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
            return dump_file ? strdup (dump_file) : NULL;
 }
 #endif /* HAVE_PDUMPER */
-
-static double
-timeval_to_double (struct timeval tv)
-{
-  return tv.tv_sec + tv.tv_usec / 1e6;
-}
 
 /* ARGSUSED */
 int
@@ -850,6 +856,23 @@ main (int argc, char **argv)
 #endif
   const char *loaded_dump = NULL;
 
+#if defined WINDOWSNT || defined HAVE_NTGUI
+  /* Set global variables used to detect Windows version.  Do this as
+     early as possible.  (unexw32.c calls this function as well, but
+     the additional call here is harmless.) */
+  cache_system_info ();
+#ifdef WINDOWSNT
+  /* On Windows 9X, we have to load UNICOWS.DLL as early as possible,
+     to have non-stub implementations of APIs we need to convert file
+     names between UTF-8 and the system's ANSI codepage.  */
+  maybe_load_unicows_dll ();
+  /* Initialize the codepage for file names, needed to decode
+     non-ASCII file names during startup.  */
+  w32_init_file_name_codepage ();
+#endif
+  w32_init_main_thread ();
+#endif
+
   const char *dump_mode = NULL;
   if (!initialized && is_temacs)
     {
@@ -882,8 +905,10 @@ main (int argc, char **argv)
       loaded_dump = load_dump (&argc, &argv, argv0_base);
       struct timeval end ;
       gettimeofday (&end, NULL);
-      fprintf (stderr, "load_dump completed in %g milliseconds\n",
-               1000.0 * (timeval_to_double (end) - timeval_to_double (start)));
+      double tdif =
+	1000.0 * (end.tv_sec - start.tv_sec)
+	+ (end.tv_usec - start.tv_usec) / 1.0e3;
+      fprintf (stderr, "load_dump completed in %g milliseconds\n", tdif);
 #endif
     }
 
@@ -914,23 +939,6 @@ main (int argc, char **argv)
       char *heap_start = my_heap_start ();
       heap_bss_diff = heap_start - max (my_endbss, my_endbss_static);
     }
-#endif
-
-#if defined WINDOWSNT || defined HAVE_NTGUI
-  /* Set global variables used to detect Windows version.  Do this as
-     early as possible.  (unexw32.c calls this function as well, but
-     the additional call here is harmless.) */
-  cache_system_info ();
-#ifdef WINDOWSNT
-  /* On Windows 9X, we have to load UNICOWS.DLL as early as possible,
-     to have non-stub implementations of APIs we need to convert file
-     names between UTF-8 and the system's ANSI codepage.  */
-  maybe_load_unicows_dll ();
-  /* Initialize the codepage for file names, needed to decode
-     non-ASCII file names during startup.  */
-  w32_init_file_name_codepage ();
-#endif
-  w32_init_main_thread ();
 #endif
 
 #ifdef RUN_TIME_REMAP
