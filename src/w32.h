@@ -185,6 +185,8 @@ extern MultiByteToWideChar_Proc pMultiByteToWideChar;
 extern WideCharToMultiByte_Proc pWideCharToMultiByte;
 extern DWORD multiByteToWideCharFlags;
 
+extern const char *w32_relocate (const char *);
+
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);

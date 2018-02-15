@@ -790,17 +790,23 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
 
   /* Finally, look for "emacs.pdmp" in PATH_EXEC.  We hardcode
      "emacs" in "emacs.pdmp" so that the Emacs binary still works
-     if the user copies and renames it.  */
+     if the user copies and renames it.
+
+     FIXME: this doesn't work with emacs-XX.YY.ZZ.pdmp versioned files.  */
   argv0_base = "emacs";
-  /* FIXME: On MS-Windows, PATH_EXEC starts with a literal
+  const char *path_exec = PATH_EXEC;
+#ifdef WINDOWSNT
+  /* On MS-Windows, PATH_EXEC normally starts with a literal
      "%emacs_dir%", so it will never work without some tweaking.  */
-  dump_file = alloca (strlen (PATH_EXEC)
+  path_exec = w32_relocate (path_exec);
+#endif
+  dump_file = alloca (strlen (path_exec)
                       + 1
                       + strlen (argv0_base)
                       + strlen (suffix)
                       + 1);
   sprintf (dump_file, "%s%c%s%s",
-           PATH_EXEC, DIRECTORY_SEP, argv0_base, suffix);
+           path_exec, DIRECTORY_SEP, argv0_base, suffix);
   result = pdumper_load (dump_file);
   if (result != PDUMPER_LOAD_SUCCESS)
     dump_file = NULL;
@@ -908,7 +914,8 @@ main (int argc, char **argv)
       double tdif =
 	1000.0 * (end.tv_sec - start.tv_sec)
 	+ (end.tv_usec - start.tv_usec) / 1.0e3;
-      fprintf (stderr, "load_dump completed in %g milliseconds\n", tdif);
+      fprintf (stderr, "load_dump %s %g milliseconds\n",
+	       loaded_dump ? "completed in" : "failed after", tdif);
 #endif
     }
 

@@ -9646,6 +9646,40 @@ maybe_load_unicows_dll (void)
     }
 }
 
+/* Relocate a directory specified by epaths.h, using the location of
+   our binary as an anchor.  Note: this runs early during startup, so
+   we cannot rely on the usual file-related facilities, and in
+   particular the argument is assumed to be a unibyte string in system
+   codepage encoding.  */
+const char *
+w32_relocate (const char *epath_dir)
+{
+  if (strncmp (epath_dir, "%emacs_dir%/", 12) == 0)
+    {
+      static char relocated_dir[MAX_PATH];
+
+      /* Replace "%emacs_dir%" with the parent of the directory where
+	 our binary lives.  Note that init_environment was not yet
+	 called, so we cannot rely on emacs_dir being set in the
+	 environment.  */
+      if (GetModuleFileNameA (NULL, relocated_dir, MAX_PATH))
+	{
+	  char *p = _mbsrchr (relocated_dir, '\\');
+
+	  if (p)
+	    {
+	      *p = '\0';
+	      if ((p = _mbsrchr (relocated_dir, '\\')) != NULL)
+		{
+		  strcpy (p, epath_dir + 11);
+		  epath_dir = relocated_dir;
+		}
+	    }
+	}
+    }
+  return epath_dir;
+}
+
 /*
 	globals_of_w32 is used to initialize those global variables that
 	must always be initialized on startup even when the global variable

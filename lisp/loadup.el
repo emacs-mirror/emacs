@@ -380,8 +380,11 @@ lost after dumping")))
 
 ;; Determine which build number to use
 ;; based on the executables that now exist.
-(if (and (equal (last command-line-args) '("dump"))
-         (fboundp 'dump-emacs)
+(if (and (or
+          (and (equal (last command-line-args) '("dump"))
+               (fboundp 'dump-emacs))
+          (and (equal (last command-line-args) '("pdump"))
+               (fboundp 'dump-emacs-portable)))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
 	   (exelen (if (eq system-type 'windows-nt) -4))
@@ -392,15 +395,17 @@ lost after dumping")))
 				 (substring name (length base) exelen))))
 			     files)))
       (setq emacs-repository-version (condition-case nil (emacs-repository-get-version)
-                              (error nil)))
+                                       (error nil)))
       ;; A constant, so we shouldn't change it with `setq'.
       (defconst emacs-build-number
 	(if versions (1+ (apply 'max versions)) 1))))
 
 
 (message "Finding pointers to doc strings...")
-(if (and (fboundp 'dump-emacs)
-         (equal (last command-line-args) '("dump")))
+(if (and (or (and (fboundp 'dump-emacs)
+                  (equal (last command-line-args) '("dump")))
+             (and (fboundp 'dump-emacs-portable)
+                  (equal (last command-line-args) '("pdump")))))
     (Snarf-documentation "DOC")
   (condition-case nil
       (Snarf-documentation "DOC")
@@ -484,25 +489,32 @@ lost after dumping")))
       (if (member dump-mode '("pdump" "pbootstrap"))
           (dump-emacs-portable (expand-file-name output invocation-directory))
         (dump-emacs output "temacs")
-        (message "%d pure bytes used" pure-bytes-used)
-        ;; Recompute NAME now, so that it isn't set when we dump.
-        (if (not (or (eq system-type 'ms-dos)
-                     ;; Don't bother adding another name if we're just
-                     ;; building bootstrap-emacs.
-                     (equal dump-mode "bootstrap")))
-            (let ((name (concat "emacs-" emacs-version))
-                  (exe (if (eq system-type 'windows-nt) ".exe" "")))
-              (while (string-match "[^-+_.a-zA-Z0-9]+" name)
-                (setq name (concat (downcase (substring name 0 (match-beginning 0)))
-                                   "-"
-                                   (substring name (match-end 0)))))
-              (setq name (concat name exe))
-              (message "Adding name %s" name)
-              ;; When this runs on Windows, invocation-directory is not
-              ;; necessarily the current directory.
-              (add-name-to-file (expand-file-name (concat "emacs" exe)
+        (message "%d pure bytes used" pure-bytes-used))
+      ;; Recompute NAME now, so that it isn't set when we dump.
+      (if (not (or (eq system-type 'ms-dos)
+                   ;; Don't bother adding another name if we're just
+                   ;; building bootstrap-emacs.
+                   (member dump-mode '("pbootstrap" "bootstrap"))))
+          (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
+                (exe (if (eq system-type 'windows-nt) ".exe" "")))
+            (while (string-match "[^-+_.a-zA-Z0-9]+" name)
+              (setq name (concat (downcase (substring name 0 (match-beginning 0)))
+                                 "-"
+                                 (substring name (match-end 0)))))
+            (message "Adding name %s" (concat name exe))
+            ;; When this runs on Windows, invocation-directory is not
+            ;; necessarily the current directory.
+            (add-name-to-file (expand-file-name (concat "emacs" exe)
+                                                invocation-directory)
+                              (expand-file-name (concat name exe)
+                                                invocation-directory)
+                              t)
+            (when (equal dump-mode "pdump")
+              (message "Adding name %s" (concat name ".pdmp"))
+              (add-name-to-file (expand-file-name "emacs.pdmp"
                                                   invocation-directory)
-                                (expand-file-name name invocation-directory)
+                                (expand-file-name (concat name ".pdmp")
+                                                  invocation-directory)
                                 t))))
       (kill-emacs)))
 

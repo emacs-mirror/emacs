@@ -543,8 +543,8 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
                 lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
 ifeq ($(DUMPING),pdumper)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup pdump
 	cp -f temacs$(EXEEXT) $@
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup pdump
 else ifeq ($(DUMPING),unexec)
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
 ifneq ($(PAXCTL_dumped),)
