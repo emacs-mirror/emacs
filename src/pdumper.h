@@ -157,6 +157,25 @@ pdumper_object_p (const void *obj)
 #endif
 }
 
+extern bool pdumper_cold_object_p_impl (const void *obj);
+
+/* Return whether the OBJ is in the cold section of the dump.
+   Only bool-vectors and floats should end up there.
+   pdumper_object_p() and pdumper_object_p_precise() must have
+   returned true for OBJ before calling this function.  */
+INLINE _GL_ATTRIBUTE_CONST
+bool
+pdumper_cold_object_p (const void *obj)
+{
+#ifdef HAVE_PDUMPER
+  return pdumper_cold_object_p_impl (obj);
+#else
+  (void) obj;
+  return false;
+#endif
+}
+
+
 extern enum Lisp_Type pdumper_find_object_type_impl (const void *obj);
 
 /* Return the type of the dumped object that starts at OBJ.  It is a
@@ -174,8 +193,6 @@ pdumper_find_object_type (const void *obj)
 #endif
 }
 
-extern bool pdumper_object_p_precise_impl (const void *obj);
-
 /* Return whether OBJ points exactly to the start of some object in
    the loaded dump image.  It is a programming error to call this
    routine for an OBJ for which pdumper_object_p would return
@@ -185,7 +202,7 @@ bool
 pdumper_object_p_precise (const void *obj)
 {
 #ifdef HAVE_PDUMPER
-  return pdumper_object_p_precise_impl (obj);
+  return pdumper_find_object_type (obj) != PDUMPER_NO_OBJECT;
 #else
   (void) obj;
   emacs_abort ();

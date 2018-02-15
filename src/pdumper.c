@@ -422,6 +422,11 @@ struct dump_flags
      referents normally, but dump an object itself separately,
      later.  */
   bool_bf dump_object_contents : 1;
+  /* Record object starts. We turn this flag off when writing to the
+     discardable section so that we don't trick conservative GC into
+     thinking we have objects there.  Ignored (we never record object
+     starts) if dump_object_contents is false.  */
+  bool_bf dump_object_starts : 1;
   /* Pack objects tighter than GC memory alignment would normally
      require.  Useful for objects copied into the Emacs image instead
      of used directly from the loaded dump.
@@ -2146,6 +2151,7 @@ dump_misc_any (struct dump_context *ctx, struct Lisp_Misc_Any *misc_any)
 static dump_off
 dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 {
+  eassert (ctx->header.cold_start);
   struct Lisp_Float out;
   dump_object_start (ctx, GCALIGNMENT, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, lfloat, u.data);
@@ -2907,9 +2913,10 @@ dump_object_1 (struct dump_context *ctx, Lisp_Object object)
         {
           eassert (offset % (1<<DUMP_RELOC_ALIGNMENT_BITS) == 0);
           dump_remember_object (ctx, object, offset);
-          dump_push (&ctx->object_starts,
-                     list2 (dump_off_to_lisp (XTYPE (object)),
-                            dump_off_to_lisp (offset)));
+          if (ctx->flags.dump_object_starts)
+            dump_push (&ctx->object_starts,
+                       list2 (dump_off_to_lisp (XTYPE (object)),
+                              dump_off_to_lisp (offset)));
         }
     }
 
@@ -3704,6 +3711,7 @@ types.  */)
      circumstances below, we temporarily change this default
      behavior.  */
   ctx->flags.dump_object_contents = true;
+  ctx->flags.dump_object_starts = true;
 
   /* We want to consolidate certain object types that we know are very likely
      to be modified.  */
@@ -3800,12 +3808,18 @@ types.  */)
      This section consists of objects that need to be memcpy()ed into
      the Emacs data section instead of just used directly.  */
   ctx->header.discardable_start = ctx->offset;
+  ctx->flags.dump_object_starts = false;
+
   dump_copied_objects (ctx);
   eassert (dump_queue_empty_p (&ctx->dump_queue));
   eassert (NILP (ctx->copied_queue));
   dump_off discardable_end = ctx->offset;
   dump_align_output (ctx, dump_get_page_size ());
   ctx->header.cold_start = ctx->offset;
+
+  /* Resume recording object starts, since the cold section will stick
+     around.  */
+  ctx->flags.dump_object_starts = true;
 
   /* Start the cold section.  This section contains bytes that should
      never change and so can be direct-mapped from the dump without
@@ -4689,9 +4703,13 @@ dump_loaded_p (void)
 }
 
 bool
-pdumper_object_p_precise_impl (const void *obj)
+pdumper_cold_object_p_impl (const void *obj)
 {
-  return pdumper_find_object_type (obj) != PDUMPER_NO_OBJECT;
+  eassert (pdumper_object_p (obj));
+  eassert (pdumper_object_p_precise (obj));
+  dump_off offset = ptrdiff_t_to_dump_off (
+    (intptr_t) obj - dump_public.start);
+  return offset >= dump_private.header.cold_start;
 }
 
 enum Lisp_Type
@@ -4715,6 +4733,7 @@ pdumper_marked_p_impl (const void *obj)
   eassert (pdumper_object_p (obj));
   ptrdiff_t offset = (intptr_t) obj - dump_public.start;
   eassert (offset % GCALIGNMENT == 0);
+  eassert (offset < dump_private.header.cold_start);
   eassert (offset < dump_private.header.discardable_start);
   ptrdiff_t bitno = offset / GCALIGNMENT;
   return dump_bitset_bit_set_p (&dump_private.mark_bits, bitno);
@@ -4726,6 +4745,7 @@ pdumper_set_marked_impl (const void *obj)
   eassert (pdumper_object_p (obj));
   ptrdiff_t offset = (intptr_t) obj - dump_public.start;
   eassert (offset % GCALIGNMENT == 0);
+  eassert (offset < dump_private.header.cold_start);
   eassert (offset < dump_private.header.discardable_start);
   ptrdiff_t bitno = offset / GCALIGNMENT;
   dump_bitset_set_bit (&dump_private.mark_bits, bitno);

@@ -4120,13 +4120,13 @@ vector_marked_p (const struct Lisp_Vector *v)
 {
   if (pdumper_object_p (v))
     {
-      /* TODO: look into using a range test against
-         hot_discardable_start instead of loading the pvec header.
-         We'll have already loaded the dump header cache line, after
-         all.  */
-      enum pvec_type pvectype = PSEUDOVECTOR_TYPE (v);
-      if (pvectype == PVEC_BOOL_VECTOR)
-        return true;
+      /* Look at cold_start first so that we don't have to fault in
+         the vector header just to tell that it's a bool vector.  */
+      if (pdumper_cold_object_p (v))
+        {
+          eassert (PSEUDOVECTOR_TYPE (v) == PVEC_BOOL_VECTOR);
+          return true;
+        }
       return pdumper_marked_p (v);
     }
   return XVECTOR_MARKED_P (v);
@@ -5014,7 +5014,10 @@ mark_maybe_object (Lisp_Object obj)
      definitely _don't_ have an object.  */
   if (pdumper_object_p (po))
     {
-      if (pdumper_object_p_precise (po))
+      /* Don't use pdumper_object_p_precise here! It doesn't check the
+         tag bits. OBJ here might be complete garbage, so we need to
+         verify both the pointer and the tag.  */
+      if (XTYPE (obj) == pdumper_find_object_type (po))
         mark_object (obj);
       return;
     }
@@ -6968,11 +6971,14 @@ mark_object (Lisp_Object arg)
 	    mark_char_table (ptr, (enum pvec_type) pvectype);
 	    break;
 
-	  case PVEC_BOOL_VECTOR:
-            /* Do not mark bool vectors in a dump image: these objects
-               are "cold" and don't have mark bits.  */
-            if (!pdumper_object_p (ptr))
-              set_vector_marked (ptr);
+          case PVEC_BOOL_VECTOR:
+            /* bool vectors in a dump are permanently "marked", since
+               they're in the old section and don't have mark bits.
+               If we're looking at a dumped bool vector, we should
+               have aborted above when we called vector_marked_p(), so
+               we should never get here.  */
+            eassert (!pdumper_object_p (ptr));
+            set_vector_marked (ptr);
 	    break;
 
 	  case PVEC_SUBR:
@@ -7097,8 +7103,9 @@ mark_object (Lisp_Object arg)
       CHECK_ALLOCATED_AND_LIVE (live_float_p);
       /* Do not mark floats stored in a dump image: these floats are
          "cold" and do not have mark bits.  */
-      if (!pdumper_object_p (XFLOAT (obj)) &&
-          !XFLOAT_MARKED_P (XFLOAT (obj)))
+      if (pdumper_object_p (XFLOAT (obj)))
+        eassert (pdumper_cold_object_p (XFLOAT (obj)));
+      else if (!XFLOAT_MARKED_P (XFLOAT (obj)))
         XFLOAT_MARK (XFLOAT (obj));
       break;
 
