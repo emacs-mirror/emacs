@@ -6066,7 +6066,7 @@ init_display (void)
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  if (!inhibit_window_system && !will_dump)
+  if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qns;
       Vwindow_system_version = make_number (10);

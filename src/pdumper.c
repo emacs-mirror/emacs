@@ -2901,7 +2901,7 @@ dump_object_1 (struct dump_context *ctx, Lisp_Object object)
           offset = dump_float (ctx, XFLOAT (object));
           break;
         case_Lisp_Int:
-          eassert (!"should not be dumping int: is self-representing");
+          eassert (("should not be dumping int: is self-representing", 0));
         default:
           emacs_abort ();
         }
@@ -3214,7 +3214,7 @@ dump_cold_data (struct dump_context *ctx)
   while (!NILP (cold_queue))
     {
       Lisp_Object item = dump_pop (&cold_queue);
-      enum cold_op op = XFASTINT (XCAR (item));
+      enum cold_op op = (enum cold_op) XFASTINT (XCAR (item));
       Lisp_Object data = XCDR (item);
       switch (op)
         {
@@ -3387,7 +3387,8 @@ dump_unwind_cleanup (void *data)
 static void
 dump_do_fixup (struct dump_context *ctx, Lisp_Object fixup)
 {
-  enum dump_fixup_type type = XFASTINT (XCAR (fixup));
+  enum dump_fixup_type type =
+    (enum dump_fixup_type) XFASTINT (XCAR (fixup));
   fixup = XCDR (fixup);
   dump_off dump_fixup_offset = dump_off_from_lisp (XCAR (fixup));
   fixup = XCDR (fixup);
@@ -3475,7 +3476,9 @@ dump_emit_dump_reloc (struct dump_context *ctx, Lisp_Object lreloc)
 {
   struct dump_reloc reloc;
   dump_object_start (ctx, 1, &reloc, sizeof (reloc));
-  dump_reloc_set_type (&reloc, XFASTINT (dump_pop (&lreloc)));
+  dump_reloc_set_type (
+    &reloc,
+    (enum dump_reloc_type) XFASTINT (dump_pop (&lreloc)));
   eassert (reloc.type <= RELOC_DUMP_TO_EMACS_LV + Lisp_Float);
   dump_reloc_set_offset (&reloc, dump_off_from_lisp (dump_pop (&lreloc)));
   if (dump_reloc_get_offset (reloc) < ctx->header.discardable_start)
@@ -4723,7 +4726,7 @@ pdumper_find_object_type_impl (const void *obj)
   const struct dump_reloc *reloc =
     dump_find_relocation (&dump_private.header.object_starts, offset);
   return (reloc != NULL && dump_reloc_get_offset (*reloc) == offset)
-    ? reloc->type
+    ? (enum Lisp_Type) reloc->type
     : PDUMPER_NO_OBJECT;
 }
 
@@ -5004,7 +5007,7 @@ pdumper_load (const char *dump_filename)
     goto out;
 
   err = PDUMPER_LOAD_BAD_FILE_TYPE;
-  if (memcmp (header->magic, dump_magic, sizeof (dump_magic) != 0))
+  if (memcmp (header->magic, dump_magic, sizeof (dump_magic)) != 0)
     goto out;
 
   err = PDUMPER_LOAD_VERSION_MISMATCH;
