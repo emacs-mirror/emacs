@@ -4959,7 +4959,7 @@ pdumper_load (const char *dump_filename)
   enum pdumper_load_result err = PDUMPER_LOAD_ERROR;
 
   int dump_fd = -1;
-  off_t dump_size;
+  intptr_t dump_size;
   struct stat stat;
   intptr_t dump_base;
   int dump_page_size;
@@ -4992,9 +4992,9 @@ pdumper_load (const char *dump_filename)
     goto out;
 
   err = PDUMPER_LOAD_BAD_FILE_TYPE;
-  if (stat.st_size > (size_t) MAX_OFF_T)
+  if (stat.st_size > INTPTR_MAX)
     goto out;
-  dump_size = (off_t) stat.st_size;
+  dump_size = (intptr_t) stat.st_size;
 
   err = PDUMPER_LOAD_BAD_FILE_TYPE;
   if (dump_size < sizeof (*header))
