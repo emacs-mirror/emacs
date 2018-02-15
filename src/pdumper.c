@@ -2402,9 +2402,17 @@ dump_vectorlike_generic (
   if (size & PSEUDOVECTOR_FLAG)
     {
       /* Assert that the pseudovector contains only Lisp values ---
-         but see the PVEC_SUB_CHAR_TABLE special case below.  */
-      eassert (((size & PSEUDOVECTOR_REST_MASK)
-                >> PSEUDOVECTOR_REST_BITS) == 0);
+         but see the PVEC_SUB_CHAR_TABLE special case below.  We allow
+         one extra word of non-lisp data when Lisp_Object is shorter
+         than GCALIGN (e.g., on 32-bit builds) to account for
+         GCALIGN-enforcing struct padding.  We can't distinguish
+         between padding and some undumpable data member this way, but
+         we'll count on sizeof(Lisp_Object) >= GCALIGN builds to catch
+         this class of problem.
+         */
+      eassert (
+        ((size & PSEUDOVECTOR_REST_MASK) >> PSEUDOVECTOR_REST_BITS)
+        <= (sizeof (Lisp_Object) < GCALIGNMENT) ? 1 : 0);
       size &= PSEUDOVECTOR_SIZE_MASK;
     }
 
@@ -2436,6 +2444,11 @@ dump_vectorlike_generic (
       skip = 0;
     }
 
+  /* dump_object_start isn't what records conservative-GC object
+     starts --- dump_object_1 does --- so the hack below of using
+     dump_object_start for each vector word doesn't cause GC problems
+     at runtime.  */
+
   dump_off prefix_size = ctx->offset - prefix_start_offset;
   eassert (prefix_size > 0);
   dump_off skip_start = ptrdiff_t_to_dump_off (
@@ -2451,6 +2464,9 @@ dump_vectorlike_generic (
       dump_field_lv (ctx, &out, vslot, vslot, WEIGHT_STRONG);
       dump_object_finish (ctx, &out, sizeof (out));
     }
+
+  if (sizeof (Lisp_Object) < GCALIGNMENT)
+    dump_write_zero (ctx, GCALIGNMENT - (ctx->offset % GCALIGNMENT));
 
   return offset;
 }
