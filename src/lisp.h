@@ -3568,9 +3568,9 @@ extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
    itself, or a cons of two or three integers, or if all else fails a float.
    I should not have side effects.  */
 #define INTEGER_TO_CONS(i)					    \
-  (! FIXNUM_OVERFLOW_P (i)					    \
-   ? make_number (i)						    \
-   : EXPR_SIGNED (i) ? intbig_to_lisp (i) : uintbig_to_lisp (i))
+  (! FIXNUM_OVERFLOW_P ((i))					    \
+   ? make_number ((EMACS_INT) (i))                                      \
+   : EXPR_SIGNED ((i)) ? intbig_to_lisp ((i)) : uintbig_to_lisp ((i)))
 extern Lisp_Object intbig_to_lisp (intmax_t);
 extern Lisp_Object uintbig_to_lisp (uintmax_t);
 
