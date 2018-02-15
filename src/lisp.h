@@ -3147,7 +3147,11 @@ CHECK_NUMBER_CDR (Lisp_Object x)
    the portable dumper, try to bunch all the subr structures together
    for more efficient dump loading.  */
 #ifdef CANNOT_DUMP
-# define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION (".subrs")
+# ifdef DARWIN_OS
+#  define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION ("__DATA,subrs")
+# else
+#  define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION (".subrs")
+# endif
 #else
 # define SUBR_SECTION_ATTRIBUTE
 #endif
