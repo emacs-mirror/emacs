@@ -732,8 +732,11 @@ dump_error_to_string (enum pdumper_load_result result)
     }
 }
 
-static const char *
-load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
+static enum pdumper_load_result
+load_dump (int *inout_argc,
+           char ***inout_argv,
+           const char *argv0_base,
+           const char** out_dump_file)
 {
   int argc = *inout_argc;
   char **argv = *inout_argv;
@@ -754,7 +757,7 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
     fatal ("cannot load dump file into unexeced Emacs");
 
   if (initialized)
-    return NULL;
+    abort ();
 
   result = PDUMPER_NOT_LOADED;
   if (dump_file)
@@ -812,9 +815,10 @@ load_dump (int *inout_argc, char ***inout_argv, const char *argv0_base)
     dump_file = NULL;
 
  out:
+  *out_dump_file = dump_file ? strdup (dump_file) : NULL;
   *inout_argc = argc;
   *inout_argv = argv;
-           return dump_file ? strdup (dump_file) : NULL;
+  return result;
 }
 #endif /* HAVE_PDUMPER */
 
@@ -908,14 +912,17 @@ main (int argc, char **argv)
 #ifdef HAVE_PDUMPER
       struct timeval start;
       gettimeofday (&start, NULL);
-      loaded_dump = load_dump (&argc, &argv, argv0_base);
-      struct timeval end ;
+      const char *loaded_dump = NULL;
+      enum pdumper_load_result result =
+        load_dump (&argc, &argv, argv0_base, &loaded_dump);
+      struct timeval end;
       gettimeofday (&end, NULL);
       double tdif =
 	1000.0 * (end.tv_sec - start.tv_sec)
 	+ (end.tv_usec - start.tv_usec) / 1.0e3;
-      fprintf (stderr, "load_dump %s %g milliseconds\n",
-	       loaded_dump ? "completed in" : "failed after", tdif);
+      fprintf (stderr, "load_dump %s %g milliseconds: result=%d\n",
+	       loaded_dump ? "completed in" : "failed after",
+               tdif, (int) result);
 #endif
     }
 
