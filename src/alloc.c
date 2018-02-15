@@ -374,32 +374,32 @@ extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
 /* Forward declare mark accessor functions: they're used all over the
    place.  */
 
-INLINE static bool vector_marked_p (const struct Lisp_Vector *v);
-INLINE static void set_vector_marked (struct Lisp_Vector *v);
+inline static bool vector_marked_p (const struct Lisp_Vector *v);
+inline static void set_vector_marked (struct Lisp_Vector *v);
 
-INLINE static bool vectorlike_marked_p (const union vectorlike_header *v);
-INLINE static void set_vectorlike_marked (union vectorlike_header *v);
+inline static bool vectorlike_marked_p (const union vectorlike_header *v);
+inline static void set_vectorlike_marked (union vectorlike_header *v);
 
-INLINE static bool cons_marked_p (const struct Lisp_Cons *c);
-INLINE static void set_cons_marked (struct Lisp_Cons *c);
+inline static bool cons_marked_p (const struct Lisp_Cons *c);
+inline static void set_cons_marked (struct Lisp_Cons *c);
 
-INLINE static bool string_marked_p (const struct Lisp_String *s);
-INLINE static void set_string_marked (struct Lisp_String *s);
+inline static bool string_marked_p (const struct Lisp_String *s);
+inline static void set_string_marked (struct Lisp_String *s);
 
-INLINE static bool symbol_marked_p (const struct Lisp_Symbol *s);
-INLINE static void set_symbol_marked (struct Lisp_Symbol *s);
+inline static bool symbol_marked_p (const struct Lisp_Symbol *s);
+inline static void set_symbol_marked (struct Lisp_Symbol *s);
 
-INLINE static bool misc_any_marked_p (const struct Lisp_Misc_Any *m);
-INLINE static void set_misc_any_marked (struct Lisp_Misc_Any *m);
+inline static bool misc_any_marked_p (const struct Lisp_Misc_Any *m);
+inline static void set_misc_any_marked (struct Lisp_Misc_Any *m);
 
-INLINE static bool marker_marked_p (const struct Lisp_Marker *m);
-INLINE static void set_marker_marked (struct Lisp_Marker *m);
+inline static bool marker_marked_p (const struct Lisp_Marker *m);
+inline static void set_marker_marked (struct Lisp_Marker *m);
 
-INLINE static bool overlay_marked_p (const struct Lisp_Overlay *m);
-INLINE static void set_overlay_marked (struct Lisp_Overlay *m);
+inline static bool overlay_marked_p (const struct Lisp_Overlay *m);
+inline static void set_overlay_marked (struct Lisp_Overlay *m);
 
-INLINE static bool interval_marked_p (INTERVAL i);
-INLINE static void set_interval_marked (INTERVAL i);
+inline static bool interval_marked_p (INTERVAL i);
+inline static void set_interval_marked (INTERVAL i);
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track of
    what memory allocated via lisp_malloc and lisp_align_malloc is intended

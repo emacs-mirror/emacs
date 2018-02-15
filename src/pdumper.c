@@ -4852,7 +4852,7 @@ dump_make_lv_from_reloc (
 }
 
 /* Actually apply a dump relocation.  */
-static INLINE void
+static inline void
 dump_do_dump_relocation (
   const intptr_t dump_base,
   const struct dump_reloc reloc)
