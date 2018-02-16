@@ -115,11 +115,6 @@ verify (sizeof (off_t) == sizeof (int32_t) ||
         sizeof (off_t) == sizeof (int64_t));
 verify (CHAR_BIT == 8);
 
-#ifndef MAX_OFF_T
-# define MAX_OFF_T ((sizeof (off_t) == sizeof (int32_t)) ?      \
-                    INT32_MAX : INT64_MAX)
-#endif
-
 #define DIVIDE_ROUND_UP(x, y) (((x) + (y) - 1) / (y))
 
 static const char dump_magic[16] = {
@@ -2823,7 +2818,7 @@ dump_vectorlike (struct dump_context *ctx, const struct Lisp_Vector *v)
       if ((v->header.size & PSEUDOVECTOR_SIZE_MASK) != FONT_SPEC_MAX &&
           (v->header.size & PSEUDOVECTOR_SIZE_MASK) != FONT_ENTITY_MAX)
         error_unsupported_dump_object(ctx, lv, "font");
-      /* Fall through */
+      FALLTHROUGH;
     case PVEC_NORMAL_VECTOR:
     case PVEC_COMPILED:
     case PVEC_CHAR_TABLE:
@@ -2917,7 +2912,7 @@ dump_object_1 (struct dump_context *ctx, Lisp_Object object)
           offset = dump_float (ctx, XFLOAT (object));
           break;
         case_Lisp_Int:
-          eassert (("should not be dumping int: is self-representing", 0));
+          eassert ("should not be dumping int: is self-representing" && 0);
         default:
           emacs_abort ();
         }
