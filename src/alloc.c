@@ -378,7 +378,6 @@ inline static bool vector_marked_p (const struct Lisp_Vector *v);
 inline static void set_vector_marked (struct Lisp_Vector *v);
 
 inline static bool vectorlike_marked_p (const union vectorlike_header *v);
-inline static void set_vectorlike_marked (union vectorlike_header *v);
 
 inline static bool cons_marked_p (const struct Lisp_Cons *c);
 inline static void set_cons_marked (struct Lisp_Cons *c);
@@ -393,7 +392,6 @@ inline static bool misc_any_marked_p (const struct Lisp_Misc_Any *m);
 inline static void set_misc_any_marked (struct Lisp_Misc_Any *m);
 
 inline static bool marker_marked_p (const struct Lisp_Marker *m);
-inline static void set_marker_marked (struct Lisp_Marker *m);
 
 inline static bool overlay_marked_p (const struct Lisp_Overlay *m);
 inline static void set_overlay_marked (struct Lisp_Overlay *m);
@@ -4150,12 +4148,6 @@ vectorlike_marked_p (const union vectorlike_header *header)
   return vector_marked_p ((const struct Lisp_Vector *) header);
 }
 
-static void
-set_vectorlike_marked (union vectorlike_header *header)
-{
-  set_vector_marked ((struct Lisp_Vector *) header);
-}
-
 static bool
 cons_marked_p (const struct Lisp_Cons *c)
 {
@@ -4228,12 +4220,6 @@ static bool
 marker_marked_p (const struct Lisp_Marker *m)
 {
   return misc_any_marked_p ((struct Lisp_Misc_Any *) m);
-}
-
-static void
-set_marker_marked (struct Lisp_Marker *m)
-{
-  set_misc_any_marked ((struct Lisp_Misc_Any *) m);
 }
 
 static bool
