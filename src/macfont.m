@@ -1646,7 +1646,7 @@ static int macfont_variation_glyphs (struct font *, int c,
                                      unsigned variations[256]);
 static void macfont_filter_properties (Lisp_Object, Lisp_Object);
 
-static struct font_driver const macfont_driver =
+static struct font_driver macfont_driver =
   {
   .type = LISPSYM_INITIALLY (Qmac_ct),
   .get_cache = macfont_get_cache,
@@ -4033,6 +4033,8 @@ mac_register_font_driver (struct frame *f)
 }
 
 
+
+static void syms_of_macfont_for_pdumper (void);
 
 void
 syms_of_macfont (void)
