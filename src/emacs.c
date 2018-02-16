@@ -748,6 +748,7 @@ load_dump (int *inout_argc,
 
   /* Look for an explicitly-specified dump file.  */
 
+  const char *path_exec = PATH_EXEC;
   char *dump_file = find_and_remove_dump_file_argument (&argc, &argv);
   if (initialized && dump_file)
     /* TODO: maybe more thoroughly scrub process environment in order
@@ -797,7 +798,6 @@ load_dump (int *inout_argc,
 
      FIXME: this doesn't work with emacs-XX.YY.ZZ.pdmp versioned files.  */
   argv0_base = "emacs";
-  const char *path_exec = PATH_EXEC;
 #ifdef WINDOWSNT
   /* On MS-Windows, PATH_EXEC normally starts with a literal
      "%emacs_dir%", so it will never work without some tweaking.  */
