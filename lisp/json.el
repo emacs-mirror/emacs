@@ -685,7 +685,7 @@ become JSON objects."
       (push (list c 'json-read-number) table))
     (pcase-dolist (`(,c . ,rest) table)
       (push `((eq ,char ,c) (,@rest)) res))
-    `(cond ,@res (t (signal 'json-readtable-error ,char)))))
+    `(cond ,@res (t (signal 'json-readtable-error (list ,char))))))
 
 (defun json-read ()
   "Parse and return the JSON object following point.
