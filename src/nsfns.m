@@ -3196,12 +3196,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
    ========================================================================== */
 
-static void
-syms_of_nsfns_1 (void)
-{
-
-}
-
 void
 syms_of_nsfns (void)
 {
