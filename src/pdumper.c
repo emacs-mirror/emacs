@@ -33,8 +33,6 @@
 
   - Make sure global finalizer list makes it across the dump.
 
-  - Respect dump_object_contents.
-
   - Two-pass dumping: first assemble object list, then write all.
 
   - Don't emit relocations that happen to set Emacs memory locations
