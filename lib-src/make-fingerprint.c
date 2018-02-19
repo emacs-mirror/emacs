@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <sysstdio.h>
 #include <sha256.h>
+#include <getopt.h>
 
 #ifdef WINDOWSNT
 /* Defined to be sys_fopen in ms-w32.h, but only #ifdef emacs, so this
@@ -43,10 +44,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 int
 main (int argc, char **argv)
 {
+  int c;
+  bool raw = false;
+  while (0 <= (c = getopt (argc, argv, "rh")))
+    {
+      switch (c)
+        {
+        case 'r':
+          raw = true;
+          break;
+        case 'h':
+          printf ("make-fingerprint [-r] FILES...: compute a hash\n");
+        default:
+          return 1;
+        }
+    }
+
   struct sha256_ctx ctx;
   sha256_init_ctx (&ctx);
 
-  for (int i = 1; i < argc; ++i)
+  for (int i = optind; i < argc; ++i)
     {
       FILE *f = fopen (argv[i], "r" FOPEN_BINARY);
       if (!f)
@@ -73,12 +90,21 @@ main (int argc, char **argv)
 
   uint8_t digest[32];
   sha256_finish_ctx (&ctx, digest);
-  printf ("#include \"fingerprint.h\"\n");
-  printf ("\n");
-  printf ("const uint8_t fingerprint[32] = { ");
-  for (int i = 0; i < 32; ++i)
-    printf ("%s0x%02X", i ? ", " : "", digest[i]);
-  printf (" };\n");
+
+  if (raw)
+    {
+      for (int i = 0; i < 32; ++i)
+        printf ("%02X", digest[i]);
+    }
+  else
+    {
+      printf ("#include \"fingerprint.h\"\n");
+      printf ("\n");
+      printf ("const uint8_t fingerprint[32] = { ");
+      for (int i = 0; i < 32; ++i)
+        printf ("%s0x%02X", i ? ", " : "", digest[i]);
+      printf (" };\n");
+    }
 
   return EXIT_SUCCESS;
 }

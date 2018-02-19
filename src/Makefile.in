@@ -410,6 +410,12 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
+dmpstruct_headers=lisp.h buffer.h intervals.h charset.h
+pdumper.o: dmpstruct.h
+dmpstruct.h: dmpstruct.awk
+dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)
+	POSIXLY_CORRECT=1 awk -f dmpstruct.awk $(dmpstruct_headers) > $@
+
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
 ## Some of them have no DOC entries, but it does no harm to have them
@@ -663,7 +669,7 @@ ns-app: emacs$(EXEEXT)
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core *.core \#* *.o
-	rm -f temacs.in$(EXEEXT) fingerprint.c
+	rm -f temacs.in$(EXEEXT) fingerprint.c dmpstruct.h
 	rm -f emacs.pdmp
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)

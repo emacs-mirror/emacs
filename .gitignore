@@ -186,6 +186,7 @@ src/emacs-[0-9]*
 src/temacs
 src/temacs.in
 src/fingerprint.c
+src/dmpstruct.h
 src/*.pdmp
 
 # Character-set info.
