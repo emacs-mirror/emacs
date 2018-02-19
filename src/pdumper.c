@@ -3483,7 +3483,6 @@ dump_unwind_cleanup (void *data)
     r_alloc_inhibit_buffer_relocation (0);
 #endif
   Vpurify_flag = ctx->old_purify_flag;
-  unblock_input ();
 }
 
 static void
@@ -3987,9 +3986,8 @@ types.  */)
            number_hot_relocations,
            number_discardable_relocations);
 
+  unblock_input ();
   return unbind_to (count, Qnil);
-
-
 }
 
 DEFUN ("dump-emacs-portable--sort-predicate",
