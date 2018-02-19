@@ -4885,7 +4885,7 @@ dump_read_all (int fd, void *buf, size_t bytes_to_read)
   while (bytes_read < bytes_to_read)
     {
       /* Some platforms accept only int-sized values to read.  */
-      unsigned chunk_to_read = UINT_MAX;
+      unsigned chunk_to_read = INT_MAX;
       if (bytes_to_read - bytes_read < chunk_to_read)
         chunk_to_read = (unsigned)(bytes_to_read - bytes_read);
       ssize_t chunk =
