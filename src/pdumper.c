@@ -172,7 +172,7 @@ ptrdiff_t_to_dump_off (ptrdiff_t value)
 static int
 dump_get_page_size (void)
 {
-#ifdef WINDOWSNT
+#if defined (WINDOWSNT) || defined (CYGWIN)
   return 64 * 1024;  /* Worst-case allocation granularity.  */
 #else
   return getpagesize ();
@@ -4502,6 +4502,16 @@ dump_mmap_release_vm (struct dump_memory_map *map)
 }
 
 static bool
+needs_mmap_retry_p (void)
+{
+#if defined (CYGWIN) || VM_SUPPORTED == VM_MS_WINDOWS
+  return true;
+#else
+  return false;
+#endif
+}
+
+static bool
 dump_mmap_contiguous_vm (
   struct dump_memory_map *maps,
   int nr_maps,
@@ -4510,12 +4520,13 @@ dump_mmap_contiguous_vm (
   bool ret = false;
   void *resv = NULL;
   bool retry = false;
+  const bool need_retry = needs_mmap_retry_p ();
 
   do
     {
       if (retry)
         {
-          eassert (VM_SUPPORTED == VM_MS_WINDOWS);
+          eassert (need_retry);
           retry = false;
           for (int i = 0; i < nr_maps; ++i)
             dump_mmap_release (&maps[i]);
@@ -4530,7 +4541,7 @@ dump_mmap_contiguous_vm (
 
       char *mem = resv;
 
-      if (VM_SUPPORTED == VM_MS_WINDOWS)
+      if (need_retry)
         {
           /* Windows lacks atomic mapping replace; need to release the
              reservation so we can allocate within it.  Will retry the
@@ -4555,9 +4566,13 @@ dump_mmap_contiguous_vm (
             map->mapping = dump_map_file (
               mem, spec.fd, spec.offset, spec.size, spec.protection);
           mem += spec.size;
-          if (VM_SUPPORTED == VM_MS_WINDOWS &&
+          if (need_retry &&
               map->mapping == NULL &&
-              errno == EBUSY)
+              (errno == EBUSY
+#ifdef CYGWIN
+               || errno == EINVAL
+#endif
+               ))
             {
               retry = true;
               continue;
@@ -4578,7 +4593,7 @@ dump_mmap_contiguous_vm (
     {
       for (int i = 0; i < nr_maps; ++i)
 	{
-	  if (VM_SUPPORTED == VM_MS_WINDOWS)
+	  if (need_retry)
 	    dump_mmap_reset (&maps[i]);
 	  else
 	    dump_mmap_release (&maps[i]);
