@@ -564,7 +564,7 @@ define pgi
 end
 document pgi
 Pretty print glyph structure glyph[I].
-Takes one argument, a integer I.
+Takes one argument, an integer I.
 end
 
 define pgn

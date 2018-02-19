@@ -694,11 +694,12 @@ Otherwise, renaming is the default choice.
 
   When a file is managed with a version control system (@pxref{Version
 Control}), Emacs does not normally make backups in the usual way for
-that file.  But check-in and check-out are similar in some ways to
-making backups.  One unfortunate similarity is that these operations
-typically break hard links, disconnecting the file name you visited from
-any alternate names for the same file.  This has nothing to do with
-Emacs---the version control system does it.
+that file.  But @dfn{committing} (a.k.a.@: @dfn{checking in},
+@pxref{VCS Concepts}) new versions of files is similar in some ways
+to making backups.  One unfortunate similarity is that these
+operations typically break hard links, disconnecting the file name you
+visited from any alternate names for the same file.  This has nothing
+to do with Emacs---the version control system does it.
 
 @node Customize Save
 @subsection Customizing Saving of Files

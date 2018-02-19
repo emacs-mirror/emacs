@@ -8242,7 +8242,7 @@ Meant for use on `completion-at-point-functions'."
 	  (start (save-excursion
                    (skip-chars-backward "^, \t\n")
                    (point))))
-      `(,start ,end ,(apply-partially #'ecomplete-completion-table 'mail)))))
+      `(,start ,end ,(ecomplete-completion-table 'mail)))))
 
 ;; To send pre-formatted letters like the example below, you can use
 ;; `message-send-form-letter':

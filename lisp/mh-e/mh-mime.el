@@ -1242,7 +1242,7 @@ MESSAGE number."
                             "message/rfc822"
                             (if (string= "" description) nil description)
                             "inline"))
-          (t (error "The message number, %s, is not a integer" msg)))))
+          (t (error "The message number, %s, is not an integer" msg)))))
 
 (defun mh-mh-forward-message (&optional description folder messages)
   "Add tag to forward a message.

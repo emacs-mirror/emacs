@@ -95,6 +95,22 @@ if requested by environment variables such as @env{LANG}.
 @item
 It does some basic parsing of the command-line arguments.
 
+@item
+It loads your early init file (@pxref{Early Init File,,, emacs, The
+GNU Emacs Manual}).  This is not done if the options @samp{-q},
+@samp{-Q}, or @samp{--batch} were specified.  If the @samp{-u} option
+was specified, Emacs looks for the init file in that user's home
+directory instead.
+
+@item
+It calls the function @code{package-initialize} to activate any
+optional Emacs Lisp package that has been installed.  @xref{Packaging
+Basics}.  However, Emacs doesn't initialize packages when
+@code{package-enable-at-startup} is @code{nil} or when it's started
+with one of the options @samp{-q}, @samp{-Q}, or @samp{--batch}.  To
+initialize packages in the latter case, @code{package-initialize}
+should be called explicitly (e.g., via the @samp{--funcall} option).
+
 @vindex initial-window-system@r{, and startup}
 @vindex window-system-initialization-alist
 @item
@@ -153,15 +169,6 @@ It loads your abbrevs from the file specified by
 @code{abbrev-file-name}, if that file exists and can be read
 (@pxref{Abbrev Files, abbrev-file-name}).  This is not done if the
 option @samp{--batch} was specified.
-
-@item
-It calls the function @code{package-initialize} to activate any
-optional Emacs Lisp package that has been installed.  @xref{Packaging
-Basics}.  However, Emacs doesn't initialize packages when
-@code{package-enable-at-startup} is @code{nil} or when it's started
-with one of the options @samp{-q}, @samp{-Q}, or @samp{--batch}.  To
-initialize packages in the latter case, @code{package-initialize}
-should be called explicitly (e.g., via the @samp{--funcall} option).
 
 @vindex after-init-time
 @item
@@ -361,6 +368,7 @@ Equivalent to @samp{-q --no-site-file --no-splash}.
 @cindex init file
 @cindex @file{.emacs}
 @cindex @file{init.el}
+@cindex @file{early-init.el}
 
   When you start Emacs, it normally attempts to load your @dfn{init
 file}.  This is either a file named @file{.emacs} or @file{.emacs.el}
@@ -383,6 +391,19 @@ systems) variable, to find your home directory and thus your init
 file; this way, even if you have su'd, Emacs still loads your own init
 file.  If those environment variables are absent, though, Emacs uses
 your user-id to find your home directory.
+
+@cindex early init file
+  Emacs also attempts to load a second init file, called the
+@dfn{early init file}, if it exists.  This is a file named
+@file{early-init.el} in your @file{~/.emacs.d} directory.  The
+difference between the early init file and the regular init file is
+that the early init file is loaded much earlier during the startup
+process, so you can use it to customize some things that are
+initialized before loading the regular init file.  For example, you
+can customize the process of initializing the package system, by
+setting variables such as @var{package-load-list} or
+@var{package-enable-at-startup}.  @xref{Package Installation,,,
+emacs,The GNU Emacs Manual}.
 
 @cindex default init file
   An Emacs installation may have a @dfn{default init file}, which is a

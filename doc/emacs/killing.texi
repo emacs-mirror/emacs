@@ -675,7 +675,7 @@ use to alter a buffer, then point is always at the end.
 
   @kbd{M-x prepend-to-buffer} is just like @code{append-to-buffer}
 except that point in the other buffer is left before the copied text, so
-successive prependings add text in reverse order.  @kbd{M-x
+successive uses of this command add text in reverse order.  @kbd{M-x
 copy-to-buffer} is similar, except that any existing text in the other
 buffer is deleted, so the buffer is left containing just the text newly
 copied into it.

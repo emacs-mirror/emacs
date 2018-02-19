@@ -2981,7 +2981,7 @@ optional argument @var{append} is non-@code{nil}, @var{face} is
 appended to the end of the list instead.  Note that in a face list,
 the first occurring value for each attribute takes precedence.
 
-For example, the following code would assign a italicized green face
+For example, the following code would assign an italicized green face
 to the text between @var{start} and @var{end}:
 
 @example

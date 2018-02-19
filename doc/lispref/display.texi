@@ -6966,14 +6966,16 @@ means to use the default for that slot, as stated below.
 @table @asis
 @item 0
 The glyph for the end of a truncated screen line (the default for this
-is @samp{$}).  @xref{Glyphs}.  On graphical terminals, Emacs uses
-arrows in the fringes to indicate truncation, so the display table has
-no effect.
+is @samp{$}).  @xref{Glyphs}.  On graphical terminals, Emacs by
+default uses arrows in the fringes to indicate truncation, so the
+display table has no effect, unless you disable the fringes
+(@pxref{Fringes,, Window Fringes, emacs, the Gnu Emacs Manual}).
 
 @item 1
 The glyph for the end of a continued line (the default is @samp{\}).
-On graphical terminals, Emacs uses curved arrows in the fringes to
-indicate continuation, so the display table has no effect.
+On graphical terminals, Emacs by default uses curved arrows in the
+fringes to indicate continuation, so the display table has no effect,
+unless you disable the fringes.
 
 @item 2
 The glyph for indicating a character displayed as an octal character
@@ -6988,9 +6990,12 @@ default is @samp{...}).  @xref{Selective Display}.
 
 @item 5
 The glyph used to draw the border between side-by-side windows (the
-default is @samp{|}).  @xref{Splitting Windows}.  This takes effect only
-when there are no scroll bars; if scroll bars are supported and in use,
-a scroll bar separates the two windows.
+default is @samp{|}).  @xref{Splitting Windows}.  This currently has
+effect only on text terminals; on graphical terminals, if vertical
+scroll bars are supported and in use, a scroll bar separates the two
+windows, and if there are no vertical scroll bars and no dividers
+(@pxref{Window Dividers}), Emacs uses a thin line to indicate the
+border.
 @end table
 
   For example, here is how to construct a display table that mimics

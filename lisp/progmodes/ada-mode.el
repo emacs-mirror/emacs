@@ -2479,7 +2479,7 @@ and the offset."
 	    (forward-word-strictly -1))
 
 	  ;; If there is a parameter list, and we have a function declaration
-	  ;; or a access to subprogram declaration
+	  ;; or access to subprogram declaration
 	  (let ((num-back 1))
 	    (if (and (= (following-char) ?\()
 		     (save-excursion

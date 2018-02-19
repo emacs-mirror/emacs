@@ -783,10 +783,8 @@ frame's parameter list, like this:
 ** Underlines appear at the wrong position.
 
 This is caused by fonts having a wrong UNDERLINE_POSITION property.
-Examples are the 7x13 font on XFree86 prior to version 4.1, or the jmk
-neep font from the Debian xfonts-jmk package prior to version 3.0.17.
-To circumvent this problem, set x-use-underline-position-properties
-to nil in your '.emacs'.
+To avoid this problem (seen in some very old X releases and font packages),
+set x-use-underline-position-properties to nil.
 
 To see what is the value of UNDERLINE_POSITION defined by the font,
 type 'xlsfonts -lll FONT' and look at the font's UNDERLINE_POSITION property.

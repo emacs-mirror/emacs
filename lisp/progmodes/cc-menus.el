@@ -360,7 +360,7 @@ Example:
       (setq char (aref method p)
 	    p (1+ p))
       (cond
-       ;; Is CHAR part of a objc token?
+       ;; Is CHAR part of an objc token?
        ((and (not inargvar)   ; Ignore if CHAR is part of an argument variable.
 	     (eq 0 betweenparen) ; Ignore if CHAR is in parentheses.
 	     (or (and (<= ?a char) (<= char ?z))

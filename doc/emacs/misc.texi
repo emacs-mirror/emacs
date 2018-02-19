@@ -2434,6 +2434,11 @@ To disable this, set @code{desktop-restore-frames} to @code{nil}.
 (See that variable's documentation for some related options
 that you can customize to fine-tune this behavior.)
 
+@vindex desktop-files-not-to-save
+Information about buffers visiting remote files is not saved by
+default.  Customize the variable @code{desktop-files-not-to-save} to
+change this.
+
 @vindex frameset-filter-alist
    When the desktop restores the frame and window configuration, it
 uses the recorded values of frame parameters, disregarding any
@@ -2485,7 +2490,7 @@ since it bypasses the init file, where @code{desktop-save-mode} is
 usually turned on.
 
 @vindex desktop-restore-eager
-  By default, all the buffers in the desktop are restored at one go.
+  By default, all the buffers in the desktop are restored in one go.
 However, this may be slow if there are a lot of buffers in the
 desktop.  You can specify the maximum number of buffers to restore
 immediately with the variable @code{desktop-restore-eager}; the
@@ -2503,6 +2508,35 @@ expression matching the names of buffers not to kill.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
+
+@vindex desktop-auto-save-timeout
+  While Emacs runs with @code{desktop-save-mode} turned on, it by
+default auto-saves the desktop whenever any of it changes.  The
+variable @code{desktop-auto-save-timeout} determines how frequently
+Emacs checks for modifications to your desktop.
+
+@vindex desktop-load-locked-desktop
+  The file in which Emacs saves the desktop is locked while the
+session runs, to avoid inadvertently overwriting it from another Emacs
+session.  That lock is normally removed when Emacs exits, but if Emacs
+or your system crashes, the lock stays, and when you restart Emacs, it
+will by default ask you whether to use the locked desktop file.  You
+can avoid the question by customizing the variable
+@code{desktop-load-locked-desktop} to either @code{nil}, which means
+never load the desktop in this case, or @code{t}, which means load the
+desktop without asking.
+
+@cindex desktop restore in daemon mode
+  When Emacs starts in daemon mode, it cannot ask you any questions,
+so if it finds the desktop file locked, it will not load it, unless
+@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
+the desktop in daemon mode is somewhat problematic for other reasons:
+e.g., the daemon cannot use GUI features, so parameters such as frame
+position, size, and decorations cannot be restored.  For that reason,
+you may wish to delay restoring the desktop in daemon mode until the
+first client connects, by calling @code{desktop-read} in a hook
+function that you add to @code{after-make-frame-functions}
+(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit
 @section Recursive Editing Levels

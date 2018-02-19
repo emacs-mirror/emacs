@@ -1132,7 +1132,9 @@ character)."
         (eval-expression-get-print-arguments eval-last-sexp-arg-internal)))
     ;; Setup the lexical environment if lexical-binding is enabled.
     (elisp--eval-last-sexp-print-value
-     (eval (eval-sexp-add-defvars (elisp--preceding-sexp)) lexical-binding)
+     (eval (macroexpand-all
+            (eval-sexp-add-defvars (elisp--preceding-sexp)))
+           lexical-binding)
      (if insert-value (current-buffer) t) no-truncate char-print-limit)))
 
 (defun elisp--eval-last-sexp-print-value
@@ -1165,7 +1167,6 @@ character)."
 (defun eval-sexp-add-defvars (exp &optional pos)
   "Prepend EXP with all the `defvar's that precede it in the buffer.
 POS specifies the starting position where EXP was found and defaults to point."
-  (setq exp (macroexpand-all exp))      ;Eager macro-expansion.
   (if (not lexical-binding)
       exp
     (save-excursion

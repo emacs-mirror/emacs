@@ -67,7 +67,7 @@ For mode authors, use
 `defcustom-mode-local-semantic-dependency-system-include-path'
 to create a mode-specific variable to control this.
 
-When searching for a file associated with a name found in an tag of
+When searching for a file associated with a name found in a tag of
 class include, this path will be inspected for includes of type
 `system'.  Some include tags are agnostic to this setting and will
 check both the project and system directories.")

@@ -1795,6 +1795,9 @@ The default status is as follows:
   (setq default-sendmail-coding-system 'iso-latin-1)
   ;; On Darwin systems, this should be utf-8-unix, but when this file is loaded
   ;; that is not yet defined, so we set it in set-locale-environment instead.
+  ;; [Actually, it seems to work fine to use utf-8-unix here, and not just
+  ;; on Darwin.  The previous comment seems to be outdated?
+  ;; See patch at https://debbugs.gnu.org/15803 ]
   (setq default-file-name-coding-system 'iso-latin-1-unix)
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set

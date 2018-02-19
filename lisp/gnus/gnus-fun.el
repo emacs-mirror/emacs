@@ -66,7 +66,7 @@
 (defcustom gnus-convert-image-to-x-face-command
   "convert -scale 48x48! %s xbm:- | xbm2xface.pl"
   "Command for converting an image to an X-Face.
-The command must take a image filename (use \"%s\") as input.
+The command must take an image filename (use \"%s\") as input.
 The output must be the X-Face header data on stdout."
   :version "22.1"
   :group 'gnus-fun

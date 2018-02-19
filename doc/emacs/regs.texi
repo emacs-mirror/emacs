@@ -18,7 +18,7 @@ or a number (such as @samp{1}); case matters, so register @samp{a} is
 not the same as register @samp{A}.  You can also set a register in
 non-alphanumeric characters, for instance @samp{*} or @samp{C-d}.
 Note, it's not possible to set a register in @samp{C-g} or @samp{ESC},
-because these keys are reserved to terminate interactive commands.
+because these keys are reserved for quitting (@pxref{Quitting}).
 
 @findex view-register
   A register can store a position, a piece of text, a rectangle, a

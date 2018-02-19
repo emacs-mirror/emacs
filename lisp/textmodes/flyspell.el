@@ -1732,7 +1732,7 @@ FLYSPELL-BUFFER."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-properties-at-p ...                                     */
 ;;*    -------------------------------------------------------------    */
-;;*    Is there an highlight properties at position pos?                */
+;;*    Is there a highlight property at position pos?                   */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-properties-at-p (pos)
   "Return t if there is a text property at POS, not counting `local-map'.
@@ -1917,7 +1917,10 @@ before point that's highlighted as misspelled."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-auto-correct-word ()
   "Correct the current word.
-This command proposes various successive corrections for the current word."
+This command proposes various successive corrections for the
+current word.  If invoked repeatedly on the same position, it
+cycles through the possible corrections of the word at or near
+that position."
   (interactive)
   ;; If we are not in the construct where flyspell should be active,
   ;; invoke the original binding of M-TAB, if that was recorded.

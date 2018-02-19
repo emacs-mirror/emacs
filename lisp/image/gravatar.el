@@ -60,11 +60,11 @@
   "Base URL for getting gravatars.")
 
 (defun gravatar-hash (mail-address)
-  "Create an hash from MAIL-ADDRESS."
+  "Create a hash from MAIL-ADDRESS."
   (md5 (downcase mail-address)))
 
 (defun gravatar-build-url (mail-address)
-  "Return an URL to retrieve MAIL-ADDRESS gravatar."
+  "Return a URL to retrieve MAIL-ADDRESS gravatar."
   (format "%s/%s?d=404&r=%s&s=%d"
           gravatar-base-url
           (gravatar-hash mail-address)

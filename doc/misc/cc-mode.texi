@@ -2408,7 +2408,7 @@ could achieve this with code like this in your @file{.emacs}:
 @end group
 @end example
 
-In a programming team, a hook is a also a good place for each member
+In a programming team, a hook is also a good place for each member
 to put his own personal preferences.  For example, you might be the
 only person in your team who likes Auto-newline minor mode.  You could
 have it enabled by default by placing the following in your

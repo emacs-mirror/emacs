@@ -295,6 +295,11 @@ The information is logged to `byte-compile-log-buffer'."
   "If true, the byte-compiler reports warnings with `error'."
   :group 'bytecomp
   :type 'boolean)
+;; This needs to be autoloaded because it needs to be available to
+;; Emacs before the byte compiler is loaded, otherwise Emacs will not
+;; know that this variable is marked as safe until it is too late.
+;; (See https://lists.gnu.org/archive/html/emacs-devel/2018-01/msg00261.html )
+;;;###autoload(put 'byte-compile-error-on-warn 'safe-local-variable 'booleanp)
 
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved

@@ -1835,7 +1835,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 			       (eval keywords)))))
 
 (defun font-lock-value-in-major-mode (values)
-  "If VALUES is an list, use `major-mode' as a key and return the `assq' value.
+  "If VALUES is a list, use `major-mode' as a key and return the `assq' value.
 VALUES should then be an alist on the form ((MAJOR-MODE . VALUE) ...) where
 MAJOR-MODE may be t.
 If VALUES isn't a list, return VALUES."

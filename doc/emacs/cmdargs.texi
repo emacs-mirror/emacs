@@ -1104,15 +1104,14 @@ border is 2.
 @node Title X
 @appendixsec Frame Titles
 
-  An Emacs frame may or may not have a specified title.  The frame
-title, if specified, appears in window decorations and icons as the
-name of the frame.  If an Emacs frame has no specified title, the
-default title has the form @samp{@var{invocation-name}@@@var{machine}}
-(if there is only one frame) or the selected window's buffer name (if
-there is more than one frame).
+  Each Emacs frame always has a title, which appears in window
+decorations and icons as the name of the frame.  The default title is
+of the form @samp{@var{invocation-name}@@@var{machine}} (if there is
+only one frame) or shows the selected window's buffer name (if there
+is more than one frame).
 
-  You can specify a title for the initial Emacs frame with a command
-line option:
+  You can specify a non-default title for the initial Emacs frame with
+a command line option:
 
 @table @samp
 @item -T @var{title}

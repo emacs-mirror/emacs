@@ -441,7 +441,7 @@ machine news.yourprovider.net login YourUserName password YourPassword
 @noindent
 .
 Make sure that the file isn't readable to others if you
-work on a OS which is capable of doing so.  (Under Unix
+work on an OS which is capable of doing so.  (Under Unix
 say
 @example
 chmod 600 ~/.authinfo
@@ -1449,7 +1449,7 @@ all those email addresses?
 
 @subsubheading Answer
 
-There's an very basic solution for this, mail aliases.
+There's a very basic solution for this, mail aliases.
 You can store your mail addresses in a ~/.mailrc file using a simple
 alias syntax:
 
@@ -2012,7 +2012,7 @@ server by typing @samp{J a}.  If you
 make a mistake, or change your mind, you can undo this
 action by typing @samp{J r}.  When
 you're done, type 'q' to return to the group buffer.
-Now the next time you enter a group on a agentized
+Now the next time you enter a group on an agentized
 server, the headers will be stored on disk and read from
 there the next time you enter the group.
 
@@ -2293,7 +2293,7 @@ When the term Emacs is used in this FAQ, it means either GNU
 Emacs or XEmacs.
 
 @item Message
-In this FAQ message means a either a mail or a posting to a
+In this FAQ message means either a mail or a posting to a
 Usenet Newsgroup or to some other fancy back end, no matter
 of which kind it is.
 

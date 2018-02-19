@@ -1431,16 +1431,11 @@ If successful, set `package-archive-contents'."
 ;; available on disk.
 (defvar package--initialized nil)
 
-(defvar package--init-file-ensured nil
-  "Whether we know the init file has package-initialize.")
-
 ;;;###autoload
 (defun package-initialize (&optional no-activate)
   "Load Emacs Lisp packages, and activate them.
 The variable `package-load-list' controls which packages to load.
 If optional arg NO-ACTIVATE is non-nil, don't activate packages.
-If `user-init-file' does not mention `(package-initialize)', add
-it to the file.
 If called as part of loading `user-init-file', set
 `package-enable-at-startup' to nil, to prevent accidentally
 loading packages twice.
@@ -1449,13 +1444,7 @@ individual packages after calling `package-initialize' -- this is
 taken care of by `package-initialize'."
   (interactive)
   (setq package-alist nil)
-  (if after-init-time
-      (package--ensure-init-file)
-    ;; If `package-initialize' is before we finished loading the init
-    ;; file, it's obvious we don't need to ensure-init.
-    (setq package--init-file-ensured t
-          ;; And likely we don't need to run it again after init.
-          package-enable-at-startup nil))
+  (setq package-enable-at-startup nil)
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
   (unless no-activate
@@ -1761,7 +1750,7 @@ with PKG-DESC entry removed."
   "Return a list of dependencies for PACKAGE sorted by dependency.
 PACKAGE is included as the first element of the returned list.
 ONLY is an alist associating package names to package objects.
-Only these packages will be in the return value an their cdrs are
+Only these packages will be in the return value and their cdrs are
 destructively set to nil in ONLY."
   (let ((out))
     (dolist (dep (package-desc-reqs package))
@@ -1871,64 +1860,6 @@ This function assumes that all package requirements in
 PACKAGES are satisfied, i.e. that PACKAGES is computed
 using `package-compute-transaction'."
   (mapc #'package-install-from-archive packages))
-
-(defun package--ensure-init-file ()
-  "Ensure that the user's init file has `package-initialize'.
-`package-initialize' doesn't have to be called, as long as it is
-present somewhere in the file, even as a comment.  If it is not,
-add a call to it along with some explanatory comments."
-  ;; Don't mess with the init-file from "emacs -Q".
-  (when (and (stringp user-init-file)
-             (not package--init-file-ensured)
-             (file-readable-p user-init-file)
-             (file-writable-p user-init-file))
-    (let* ((buffer (find-buffer-visiting user-init-file))
-           buffer-name
-           (contains-init
-            (if buffer
-                (with-current-buffer buffer
-                  (save-excursion
-                    (save-restriction
-                      (widen)
-                      (goto-char (point-min))
-                      (re-search-forward "(package-initialize\\_>" nil 'noerror))))
-              ;; Don't visit the file if we don't have to.
-              (with-temp-buffer
-                (insert-file-contents user-init-file)
-                (goto-char (point-min))
-                (re-search-forward "(package-initialize\\_>" nil 'noerror)))))
-      (unless contains-init
-        (with-current-buffer (or buffer
-                                 (let ((delay-mode-hooks t)
-                                       (find-file-visit-truename t))
-                                   (find-file-noselect user-init-file)))
-          (when buffer
-            (setq buffer-name (buffer-file-name))
-            (set-visited-file-name (file-chase-links user-init-file)))
-          (save-excursion
-            (save-restriction
-              (widen)
-              (goto-char (point-min))
-              (while (and (looking-at-p "[[:blank:]]*\\(;\\|$\\)")
-                          (not (eobp)))
-                (forward-line 1))
-              (insert
-               "\n"
-               ";; Added by Package.el.  This must come before configurations of\n"
-               ";; installed packages.  Don't delete this line.  If you don't want it,\n"
-               ";; just comment it out by adding a semicolon to the start of the line.\n"
-               ";; You may delete these explanatory comments.\n"
-               "(package-initialize)\n")
-              (unless (looking-at-p "$")
-                (insert "\n"))
-              (let ((file-precious-flag t))
-                (save-buffer))
-              (if buffer
-                  (progn
-                    (set-visited-file-name buffer-name)
-                    (set-buffer-modified-p nil))
-                (kill-buffer (current-buffer)))))))))
-  (setq package--init-file-ensured t))
 
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)

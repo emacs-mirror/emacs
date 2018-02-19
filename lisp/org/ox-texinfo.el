@@ -958,7 +958,7 @@ holding contextual information."
 
 (defun org-texinfo-format-inlinetask-default-function
   (todo _todo-type priority title tags contents)
-  "Default format function for a inlinetasks.
+  "Default format function for inlinetasks.
 See `org-texinfo-format-inlinetask-function' for details."
   (let ((full-title
 	 (concat (when todo (format "@strong{%s} " todo))

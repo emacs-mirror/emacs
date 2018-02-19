@@ -600,8 +600,7 @@ allow document of a given class (irrespective of its source
 format) to be converted to any of the export formats associated
 with that class.
 
-See default setting of this variable for an typical
-configuration."
+See default setting of this variable for a typical configuration."
   :group 'org-export-odt
   :version "24.1"
   :type
@@ -1938,7 +1937,7 @@ holding contextual information."
 
 (defun org-odt-format-inlinetask-default-function
   (todo todo-type priority name tags contents)
-  "Default format function for a inlinetasks.
+  "Default format function for inlinetasks.
 See `org-odt-format-inlinetask-function' for details."
   (format "\n<text:p text:style-name=\"%s\">%s</text:p>"
 	  "Text_20_body"

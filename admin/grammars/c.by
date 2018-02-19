@@ -917,8 +917,8 @@ variablearg-opt-name
     ( ,$1 )
   | semantic-list arg-list
     ( (car ( EXPAND $1 function-pointer )) $2)
- ;; Klaus Berndl: This allows variableargs without a arg-name being
- ;; parsed correct even if there several pointers (*)
+ ;; Klaus Berndl: This allows variableargs without an arg-name being
+ ;; parsed correctly even if there several pointers (*)
   | opt-stars
     ( "" ,$1 nil nil nil )
   ;

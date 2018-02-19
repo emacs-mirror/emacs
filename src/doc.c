@@ -532,7 +532,6 @@ the same file name is found in the `doc-directory'.  */)
   EMACS_INT pos;
   Lisp_Object sym;
   char *p, *name;
-  bool skip_file = 0;
   ptrdiff_t count;
   char const *dirname;
   ptrdiff_t dirlen;
@@ -601,34 +600,24 @@ the same file name is found in the `doc-directory'.  */)
 	{
 	  end = strchr (p, '\n');
 
-          /* See if this is a file name, and if it is a file in build-files.  */
-          if (p[1] == 'S')
-            {
-              skip_file = 0;
-              if (end - p > 4 && end[-2] == '.'
-                  && (end[-1] == 'o' || end[-1] == 'c'))
-                {
-                  ptrdiff_t len = end - p - 2;
-                  char *fromfile = SAFE_ALLOCA (len + 1);
-                  memcpy (fromfile, &p[2], len);
-                  fromfile[len] = 0;
-                  if (fromfile[len-1] == 'c')
-                    fromfile[len-1] = 'o';
+	  /* We used to skip files not in build_files, so that when a
+	     function was defined several times in different files
+	     (typically, once in xterm, once in w32term, ...), we only
+	     paid attention to the relevant one.
 
-                  skip_file = NILP (Fmember (build_string (fromfile),
-                                             Vbuild_files));
-                }
-            }
+	     But this meant the doc had to be kept and updated in
+	     multiple files.  Nowadays we keep the doc only in eg xterm.
+	     The (f)boundp checks below ensure we don't report
+	     docs for eg w32-specific items on X.
+	  */
 
 	  sym = oblookup (Vobarray, p + 2,
 			  multibyte_chars_in_text ((unsigned char *) p + 2,
 						   end - p - 2),
 			  end - p - 2);
-	  /* Check skip_file so that when a function is defined several
-	     times in different files (typically, once in xterm, once in
-	     w32term, ...), we only pay attention to the one that
-	     matters.  */
-	  if (! skip_file && SYMBOLP (sym))
+          /* Ignore docs that start with SKIP.  These mark
+             placeholders where the real doc is elsewhere.  */
+	  if (SYMBOLP (sym))
 	    {
 	      /* Attach a docstring to a variable?  */
 	      if (p[1] == 'V')
@@ -636,8 +625,9 @@ the same file name is found in the `doc-directory'.  */)
 		  /* Install file-position as variable-documentation property
 		     and make it negative for a user-variable
 		     (doc starts with a `*').  */
-                  if (!NILP (Fboundp (sym))
+                  if ((!NILP (Fboundp (sym))
                       || !NILP (Fmemq (sym, delayed_init)))
+                      && strncmp (end, "\nSKIP", 5))
                     Fput (sym, Qvariable_documentation,
                           make_number ((pos + end + 1 - buf)
                                        * (end[1] == '*' ? -1 : 1)));
@@ -646,7 +636,7 @@ the same file name is found in the `doc-directory'.  */)
 	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
                 {
-                  if (!NILP (Ffboundp (sym)))
+                  if (!NILP (Ffboundp (sym)) && strncmp (end, "\nSKIP", 5))
                     store_function_docstring (sym, pos + end + 1 - buf);
                 }
 	      else if (p[1] == 'S')

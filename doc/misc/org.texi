@@ -890,9 +890,7 @@ Elisp libraries.  You can install Org with @kbd{M-x package-install RET org}.
 been visited, i.e., where no Org built-in function have been loaded.
 Otherwise autoload Org functions will mess up the installation.
 
-Then, to make sure your Org configuration is taken into account, initialize
-the package system with @code{(package-initialize)} in your Emacs init file
-before setting any Org option.  If you want to use Org's package repository,
+If you want to use Org's package repository,
 check out the @uref{http://orgmode.org/elpa.html, Org ELPA page}.
 
 @subsubheading Downloading Org as an archive
@@ -12991,7 +12989,7 @@ of these examples works:
 
 @subsubheading Embedding clickable images
 For clickable images, provide a link whose description is another link to an
-image file.  For example, to embed a image @file{org-mode-unicorn.png} which
+image file.  For example, to embed an image @file{org-mode-unicorn.png} which
 when clicked jumps to @uref{http://Orgmode.org} website, do the following
 
 @example

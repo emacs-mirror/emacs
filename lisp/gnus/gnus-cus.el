@@ -365,7 +365,7 @@ category."))
     (unless (or group topic)
       (error "No group on current line"))
     (when (and group topic)
-      (error "Both a group an topic on current line"))
+      (error "Both a group and topic on current line"))
     (unless (or topic (setq info (gnus-get-info group)))
       (error "Killed group; can't be edited"))
     ;; Ready.

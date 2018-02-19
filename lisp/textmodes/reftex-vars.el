@@ -1405,7 +1405,7 @@ the text, so that the text has to be repeated outside the index macro.
 Needed for `reftex-index-selection-or-word' and for indexing from the
 phrase buffer.
 
-The final entry may also be a symbol if this entry has a association
+The final entry may also be a symbol if this entry has an association
 in the variable `reftex-index-macros-builtin' to specify the main
 indexing package you are using.  Valid values are currently
 default         The LaTeX default - unnecessary to specify this one

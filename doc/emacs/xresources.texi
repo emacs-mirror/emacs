@@ -512,7 +512,7 @@ those are governed by normal X resources (@pxref{Resources}).
 
   The following sections describe how to customize GTK+ resources for
 Emacs.  For details about GTK+ resources, see the GTK+ API document at
-@uref{http://developer.gnome.org/gtk2/stable/gtk2-Resource-Files.html}.
+@uref{https://developer.gnome.org/gtk2/stable/gtk2-Resource-Files.html}.
 
   In GTK+ version 3, GTK+ resources have been replaced by a completely
 different system.  The appearance of GTK+ widgets is now determined by
@@ -522,7 +522,7 @@ style settings (where @var{theme} is the name of the current GTK+
 theme).  Therefore, the description of GTK+ resources in this section
 does not apply to GTK+ 3.  For details about the GTK+ 3 styling
 system, see
-@uref{http://developer.gnome.org/gtk3/3.0/GtkCssProvider.html}.
+@uref{https://developer.gnome.org/gtk3/3.0/GtkCssProvider.html}.
 
 @menu
 * GTK Resource Basics::   Basic usage of GTK+ resources.

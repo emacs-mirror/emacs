@@ -60,8 +60,8 @@ changed.
   The Emacs version control interface is called @dfn{VC}@.  VC
 commands work with several different version control systems;
 currently, it supports Bazaar, CVS, Git, Mercurial, Monotone, RCS,
-SCCS/CSSC, and Subversion.  Of these, the GNU project distributes CVS,
-RCS, and Bazaar.
+SRC, SCCS/CSSC, and Subversion.  Of these, the GNU project distributes
+CVS, RCS, and Bazaar.
 
   VC is enabled automatically whenever you visit a file governed by a
 version control system.  To disable VC entirely, set the customizable
@@ -80,9 +80,7 @@ current buffer, use the command @code{vc-refresh-state}.  This command
 is useful when you perform version control commands outside Emacs
 (e.g., from the shell prompt), or if you put the buffer's file under a
 different version control system, or remove it from version control
-entirely.  A companion command @code{vc-state-refresh} does the same,
-but does not consider switching the version control system or removal
-from VC.
+entirely.
 
 @menu
 * Introduction to VC::  How version control works in general.
@@ -185,12 +183,12 @@ everything you can do with RCS can be done through VC.
 
 @cindex CVS
 @item
-CVS is the free version control system that was, until recently (circa
-2008), used by the majority of free software projects.  Nowadays, it
-is slowly being superseded by newer systems.  CVS allows concurrent
-multi-user development either locally or over the network.  Unlike
-newer systems, it lacks support for atomic commits and file
-moving/renaming.  VC supports all basic editing operations under CVS.
+CVS is the free version control system that was, until circa 2008,
+used by the majority of free software projects.  Since then, it has
+been superseded by newer systems.  CVS allows concurrent multi-user
+development either locally or over the network.  Unlike newer systems,
+it lacks support for atomic commits and file moving/renaming.  VC
+supports all basic editing operations under CVS.
 
 @cindex SVN
 @cindex Subversion
@@ -322,13 +320,14 @@ possible.
 @subsubsection Changeset-based vs File-based Version Control
 
 @cindex file-based version control
-  On SCCS, RCS, CVS, and other early version control systems, version
-control operations are @dfn{file-based}: each file has its own comment
-and revision history separate from that of all other files.  Newer
-systems, beginning with Subversion, are @dfn{changeset-based}: a
-commit may include changes to several files, and the entire set of
-changes is handled as a unit.  Any comment associated with the change
-does not belong to a single file, but to the changeset itself.
+  On SCCS, RCS, CVS, and other early version control systems (and also
+in SRC), version control operations are @dfn{file-based}: each file
+has its own comment and revision history separate from that of all
+other files.  Newer systems, beginning with Subversion, are
+@dfn{changeset-based}: a commit may include changes to several files,
+and the entire set of changes is handled as a unit.  Any comment
+associated with the change does not belong to a single file, but to
+the changeset itself.
 
 @cindex changeset-based version control
   Changeset-based version control is more flexible and powerful than
@@ -344,7 +343,7 @@ all of it.
 @cindex distributed version control
   Early version control systems were designed around a
 @dfn{centralized} model in which each project has only one repository
-used by all developers.  SCCS, RCS, CVS, and Subversion share this
+used by all developers.  SCCS, RCS, CVS, Subversion, and SRC share this
 kind of model.  One of its drawbacks is that the repository is a choke
 point for reliability and efficiency.
 
@@ -526,7 +525,7 @@ desired log entry for the new revision, followed by @kbd{C-c C-c} to
 commit.  @xref{Log Buffer}.
 
 If committing to a shared repository, the commit may fail if the
-repository that has been changed since your last update.  In that
+repository has been changed since your last update.  In that
 case, you must perform an update before trying again.  On a
 decentralized version control system, use @kbd{C-x v +}
 (@pxref{Pulling / Pushing}) or @kbd{C-x v m} (@pxref{Merging}).
@@ -609,7 +608,7 @@ if the fileset can be managed by more than one version control system,
 and Emacs fails to detect the correct one.
 
 @item
-Otherwise, if using CVS or RCS, you can specify a revision ID.
+Otherwise, if using CVS, RCS or SRC, you can specify a revision ID.
 
 If the fileset is modified (or locked), this makes Emacs commit with
 that revision ID@.  You can create a new branch by supplying an
@@ -660,11 +659,10 @@ Author: J. R. Hacker <jrh@@example.com>
 
 @noindent
 Apart from the @samp{Author} header, Emacs recognizes the headers
-@samp{Date} (a manually-specified commit time) and @samp{Fixes} (a
-reference to a bug fixed by the change).  Not all version control
-systems recognize all headers: Bazaar recognizes all three headers,
-while Git, Mercurial, and Monotone recognize only @samp{Author} and
-@samp{Date}.  If you specify a header for a system that does not
+@samp{Summary} (a one-line summary of the changeset), @samp{Date} (a
+manually-specified commit time), and @samp{Fixes} (a reference to a
+bug fixed by the change).  Not all version control systems recognize
+all headers.  If you specify a header for a system that does not
 support it, the header is treated as part of the log entry.
 
 @kindex C-c C-f @r{(Log Edit mode)}
@@ -969,9 +967,9 @@ file listed on the current line.
 @findex log-view-toggle-entry-display
   @kbd{C-x v L} (@code{vc-print-root-log}) displays a
 @file{*vc-change-log*} buffer showing the history of the entire
-version-controlled directory tree (RCS, SCCS, and CVS do not support
-this feature).  With a prefix argument, the command prompts for the
-maximum number of revisions to display.
+version-controlled directory tree (RCS, SCCS, CVS, and SRC do not
+support this feature).  With a prefix argument, the command prompts
+for the maximum number of revisions to display.
 
   The @kbd{C-x v L} history is shown in a compact form, usually
 showing only the first line of each log entry.  However, you can type
@@ -1048,7 +1046,7 @@ if you set the value to zero, that removes the limit.  You can also
 increase the number of revisions shown in an existing
 @file{*vc-change-log*} buffer by clicking on the @samp{Show 2X
 entries} or @samp{Show unlimited entries} buttons at the end of the
-buffer.  However, RCS, SCCS, and CVS do not support this feature.
+buffer.  However, RCS, SCCS, CVS, and SRC do not support this feature.
 
 @kindex C-x v h
 @findex vc-region-history
@@ -1189,7 +1187,7 @@ but is not yet committed, while @file{temp.txt} is not under version
 control (@pxref{Registering}).
 
 The @samp{*} characters next to the entries for @file{README} and
-@file{src/main.c} indicate that the user has marked out these files as
+@file{src/main.c} indicate that the user has marked these files as
 the current VC fileset
 @iftex
 (see below).
@@ -1280,7 +1278,7 @@ point is on a directory entry, unmark all files in that directory tree
 files and directories.
 
 @item x
-Hide files with @samp{up-to-date} status
+Hide files with @samp{up-to-date} or @samp{ignored} status
 (@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
 whose state is that of the item at point.
 @end table
@@ -1352,7 +1350,7 @@ Switch to a branch (@code{vc-retrieve-tag}).  @xref{Switching Branches}.
 context menu invoked by @kbd{mouse-2}.  Furthermore, some VC backends
 use the menu to provide extra backend-specific commands.  For example,
 Git and Bazaar allow you to manipulate @dfn{stashes} and @dfn{shelves}
-(where are a way to temporarily put aside uncommitted changes, and
+(which are a way to temporarily put aside uncommitted changes, and
 bring them back at a later time).
 
 @node Branches
@@ -1517,7 +1515,7 @@ is shown in a separate buffer.
 prompts for a branch ID, or a pair of revision IDs (@pxref{Switching
 Branches}); then it finds the changes from that branch, or the changes
 between the two revisions you specified, and merges those changes into
-the current VC fileset.  If you just type @key{RET}, Emacs simply
+the current VC fileset.  If you just type @kbd{@key{RET}}, Emacs simply
 merges any changes that were made on the same branch since you checked
 the file out.
 
@@ -2203,7 +2201,7 @@ In Ada, the same name can be used for different kinds of entity
 (e.g., for a procedure and for a function).  Also, for things like
 packages, procedures and functions, there is the spec (i.e., the
 interface) and the body (i.e., the implementation).  To make it
-easier to pick the definition you want, Ada tag name have suffixes
+easier to pick the definition you want, Ada tag names have suffixes
 indicating the type of entity:
 
 @table @samp

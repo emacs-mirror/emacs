@@ -318,7 +318,7 @@ predicates which report frame's specific UI-related capabilities.  */)
 /* Placeholder used by temacs -nw before window.el is loaded.  */
 DEFUN ("frame-windows-min-size", Fframe_windows_min_size,
        Sframe_windows_min_size, 4, 4, 0,
-       doc: /* */
+       doc: /* SKIP: real doc in window.el.  */
        attributes: const)
      (Lisp_Object frame, Lisp_Object horizontal,
       Lisp_Object ignore, Lisp_Object pixelwise)
@@ -343,7 +343,9 @@ DEFUN ("frame-windows-min-size", Fframe_windows_min_size,
  * of `window-min-height' (`window-min-width' if HORIZONTAL is non-nil).
  * With IGNORE non-nil the values of these variables are ignored.
  *
- * In either case, never return a value less than 1.
+ * In either case, never return a value less than 1.  For TTY frames,
+ * additionally limit the minimum frame height to a value large enough
+ * to support the menu bar, the mode line, and the echo area.
  */
 static int
 frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
@@ -351,6 +353,7 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
 {
   struct frame *f = XFRAME (frame);
   Lisp_Object par_size;
+  int retval;
 
   if ((!NILP (horizontal)
        && NUMBERP (par_size = get_frame_param (f, Qmin_width)))
@@ -363,15 +366,27 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
       if (min_size < 1)
 	min_size = 1;
 
-      return (NILP (pixelwise)
-	      ? min_size
-	      : min_size * (NILP (horizontal)
-			    ? FRAME_LINE_HEIGHT (f)
-			    : FRAME_COLUMN_WIDTH (f)));
+      retval = (NILP (pixelwise)
+		? min_size
+		: min_size * (NILP (horizontal)
+			      ? FRAME_LINE_HEIGHT (f)
+			      : FRAME_COLUMN_WIDTH (f)));
     }
   else
-    return XINT (call4 (Qframe_windows_min_size, frame, horizontal,
-		      ignore, pixelwise));
+    retval = XINT (call4 (Qframe_windows_min_size, frame, horizontal,
+			  ignore, pixelwise));
+  /* Don't allow too small height of text-mode frames, or else cm.c
+     might abort in cmcheckmagic.  */
+  if ((FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f)) && NILP (horizontal))
+    {
+      int min_height = (FRAME_MENU_BAR_LINES (f)
+			+ FRAME_WANTS_MODELINE_P (f)
+			+ 2);	/* one text line and one echo-area line */
+      if (retval < min_height)
+	retval = min_height;
+    }
+
+  return retval;
 }
 
 

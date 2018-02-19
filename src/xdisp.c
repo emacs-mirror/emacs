@@ -10982,10 +10982,18 @@ setup_echo_area_for_printing (bool multibyte_p)
 	}
       TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
-      /* Set up the buffer for the multibyteness we need.  */
-      if (multibyte_p
-	  != !NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	Fset_buffer_multibyte (multibyte_p ? Qt : Qnil);
+      /* Set up the buffer for the multibyteness we need.  We always
+	 set it to be multibyte, except when
+	 unibyte-display-via-language-environment is non-nil and the
+	 buffer from which we are called is unibyte, because in that
+	 case unibyte characters should not be displayed as octal
+	 escapes.  */
+      if (unibyte_display_via_language_environment
+	  && !multibyte_p
+	  && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	Fset_buffer_multibyte (Qnil);
+      else if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	Fset_buffer_multibyte (Qt);
 
       /* Raise the frame containing the echo area.  */
       if (minibuffer_auto_raise)
@@ -11431,10 +11439,17 @@ set_message_1 (ptrdiff_t a1, Lisp_Object string)
 {
   eassert (STRINGP (string));
 
-  /* Change multibyteness of the echo buffer appropriately.  */
-  if (message_enable_multibyte
-      != !NILP (BVAR (current_buffer, enable_multibyte_characters)))
-    Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
+  /* Change multibyteness of the echo buffer appropriately.  We always
+     set it to be multibyte, except when
+     unibyte-display-via-language-environment is non-nil and the
+     string to display is unibyte, because in that case unibyte
+     characters should not be displayed as octal escapes.  */
+  if (!message_enable_multibyte
+      && unibyte_display_via_language_environment
+      && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
+    Fset_buffer_multibyte (Qnil);
+  else if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+    Fset_buffer_multibyte (Qt);
 
   bset_truncate_lines (current_buffer, message_truncate_lines ? Qt : Qnil);
   if (!NILP (BVAR (current_buffer, bidi_display_reordering)))
@@ -32484,7 +32499,7 @@ or `nobreak-hyphen' face respectively.
 U+00A0 (no-break space), U+00AD (soft hyphen), U+2010 (hyphen), and
 U+2011 (non-breaking hyphen) are affected.
 
-Any other non-nil value means to display these characters as a escape
+Any other non-nil value means to display these characters as an escape
 glyph followed by an ordinary space or hyphen.
 
 A value of nil means no special handling of these characters.  */);

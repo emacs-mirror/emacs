@@ -758,6 +758,13 @@ names in the documentation string from the ones used in the C code.
 @samp{usage:} is required if the function has an unlimited number of
 arguments.
 
+Some primitives have multiple definitions, one per platform (e.g.,
+@code{x-create-frame}).  In such cases, rather than writing the
+same documentation string in each definition, only one definition has
+the actual documentation.  The others have placeholders beginning with
+@samp{SKIP}, which are ignored by the function that parses the
+@file{DOC} file.
+
 All the usual rules for documentation strings in Lisp code
 (@pxref{Documentation Tips}) apply to C code documentation strings
 too.

@@ -2,6 +2,8 @@
 
 Copyright (C) 1996-1997, 2001-2018 Free Software Foundation, Inc.
 
+Author: Dale P. Smith <dpsm@en.com>
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
@@ -22,7 +24,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    "old" (character-mode) application access to Dynamic Data Exchange,
    menus, and the Windows clipboard.  */
 
-/* Written by Dale P. Smith <dpsm@en.com>  */
 /* Adapted to DJGPP by Eli Zaretskii <eliz@gnu.org>  */
 
 #ifdef MSDOS
@@ -678,43 +679,11 @@ syms_of_win16select (void)
   defsubr (&Sw16_selection_exists_p);
 
   DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
-	       doc: /* Coding system for communicating with other programs.
-
-For MS-Windows and MS-DOS:
-When sending or receiving text via selection and clipboard, the text
-is encoded or decoded by this coding system.  The default value is
-the current system default encoding on 9x/Me, `utf-16le-dos'
-\(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
-
-For X Windows:
-When sending text via selection and clipboard, if the target
-data-type matches with the type of this coding system, it is used
-for encoding the text.  Otherwise (including the case that this
-variable is nil), a proper coding system is used as below:
-
-data-type	coding system
----------	-------------
-UTF8_STRING	utf-8
-COMPOUND_TEXT	compound-text-with-extensions
-STRING		iso-latin-1
-C_STRING	no-conversion
-
-When receiving text, if this coding system is non-nil, it is used
-for decoding regardless of the data-type.  If this is nil, a
-proper coding system is used according to the data-type as above.
-
-See also the documentation of the variable `x-select-request-type' how
-to control which data-type to request for receiving text.
-
-The default value is nil.  */);
+	       doc: /* SKIP: real doc in select.el.  */);
   Vselection_coding_system = intern ("iso-latin-1-dos");
 
   DEFVAR_LISP ("next-selection-coding-system", Vnext_selection_coding_system,
-	       doc: /* Coding system for the next communication with other programs.
-Usually, `selection-coding-system' is used for communicating with
-other programs (X Windows clients or MS Windows programs).  But, if this
-variable is set, it is used for the next communication only.
-After the communication, this variable is set to nil.  */);
+	       doc: /* SKIP: real doc in select.el.  */);
   Vnext_selection_coding_system = Qnil;
 
   DEFSYM (QCLIPBOARD, "CLIPBOARD");

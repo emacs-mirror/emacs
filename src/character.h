@@ -695,7 +695,7 @@ INLINE int
 char_table_translate (Lisp_Object obj, int ch)
 {
   /* This internal function is expected to be called with valid arguments,
-     so there is a eassert instead of CHECK_xxx for the sake of speed.  */
+     so there is an eassert instead of CHECK_xxx for the sake of speed.  */
   eassert (CHAR_VALID_P (ch));
   eassert (CHAR_TABLE_P (obj));
   obj = CHAR_TABLE_REF (obj, ch);

@@ -667,7 +667,7 @@ reason.
 
 @defun ask-user-about-supersession-threat filename
 This function is used to ask a user how to proceed after an attempt to
-modify an buffer visiting file @var{filename} when the file is newer
+modify a buffer visiting file @var{filename} when the file is newer
 than the buffer text.  Emacs detects this because the modification
 time of the file on disk is newer than the last save-time and its contents
 have changed.

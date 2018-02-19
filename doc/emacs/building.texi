@@ -90,9 +90,9 @@ inserted above point, which remains at the end.  Otherwise, point
 remains fixed while compilation output is added at the end of the
 buffer.
 
-  While compilation proceeds, the mode line is updated to show the
-number of errors, warnings, and informational messages that have been
-seen so far.
+  While compilation proceeds, the mode line shows the number of
+errors, warnings, and informational messages emitted by the compiler
+so far.
 
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
@@ -384,15 +384,15 @@ grep -nH -e foo *.el | grep bar | grep toto
 can find the corresponding lines in the original files using @w{@kbd{C-x
 `}}, @key{RET}, and so forth, just like compilation errors.
 
-  As with compilation commands (@pxref{Compilation}), while the grep
-command runs, the mode line is updated to show the number of matches
-that have been seen so far.
-
   Some grep programs accept a @samp{--color} option to output special
 markers around matches for the purpose of highlighting.  You can make
 use of this feature by setting @code{grep-highlight-matches} to
 @code{t}.  When displaying a match in the source buffer, the exact
 match will be highlighted, instead of the entire source line.
+
+  As with compilation commands (@pxref{Compilation}), while the grep
+command runs, the mode line shows the running number of matches found
+and highlighted so far.
 
   The @command{grep} commands will offer to save buffers before
 running.  This is controlled by the @code{grep-save-buffers} variable.
@@ -649,7 +649,7 @@ Set a breakpoint on the source line that point is on.
 buffer, sets a debugger breakpoint on the current source line.  This
 command is available only after starting GUD@.  If you call it in a
 buffer that is not associated with any debugger subprocess, it signals
-a error.
+an error.
 
 @kindex C-x C-a @r{(GUD)}
   The following commands are available both in the GUD interaction
@@ -1096,9 +1096,9 @@ display the corresponding buffer in a new frame.
   When you create a buffer showing information about some specific
 thread, it becomes bound to that thread and keeps showing actual
 information while you debug your program.  The mode indicator for each
-GDB buffer shows the number of thread it is showing information about.
-The thread number is also included in the buffer name of bound
-buffers.
+GDB buffer shows the number of the thread whose information that
+buffer displays.  The thread number is also included in the name of
+each bound buffer.
 
   Further commands are available in the GDB Threads buffer which
 depend on the mode of GDB that is used for controlling execution of
@@ -1410,12 +1410,13 @@ Loading,,, elisp, the Emacs Lisp Reference Manual}.
 @code{load-path}.  Its value should be a list of directories
 (strings).  These directories are searched, in the specified order, by
 the @kbd{M-x load-library} command, the lower-level @code{load}
-function, and other Emacs functions that find Emacs Lisp libraries.  A
-list entry in @code{load-path} can also have the special value
+function, and other Emacs functions that find Emacs Lisp libraries.
+An entry in @code{load-path} can also have the special value
 @code{nil}, which stands for the current default directory, but it is
-almost always a bad idea to use this.  (If you find yourself wishing
-that @code{nil} were in the list, most likely what you really want is
-to use @kbd{M-x load-file}.)
+almost always a bad idea to use this, because its meaning will depend
+on the buffer that is current when @code{load-path} is used by Emacs.
+(If you find yourself wishing that @code{nil} were in the list, most
+likely what you really want is to use @kbd{M-x load-file}.)
 
   The default value of @code{load-path} is a list of directories where
 the Lisp code for Emacs itself is stored.  If you have libraries of
@@ -1448,7 +1449,7 @@ buffer).  To disable this feature, change the variable
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
   By default, Emacs refuses to load compiled Lisp files which were
-compiled with XEmacs, a modified versions of Emacs---they can cause
+compiled with XEmacs, a modified version of Emacs---they can cause
 Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 @code{t} if you want to try loading them.
 

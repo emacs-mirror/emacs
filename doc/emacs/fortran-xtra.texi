@@ -158,11 +158,14 @@ the required columns.
 @item C-M-j
 Break the current line at point and set up a continuation line
 (@code{fortran-split-line}).
+
 @item M-^
 Join this line to the previous line (@code{fortran-join-line}).
+
 @item C-M-q
 Indent all the lines of the subprogram that point is in
 (@code{fortran-indent-subprogram}).
+
 @item M-q
 Fill a comment block or statement (using @code{fortran-fill-paragraph}
 or @code{fortran-fill-statement}).
@@ -185,7 +188,7 @@ lines.
 @kindex M-^ @r{(Fortran mode)}
 @kindex C-c C-d @r{(Fortran mode)}
 @findex fortran-join-line
-  @kbd{M-^} or @kbd{C-c C-d} runs the command @code{fortran-join-line},
+  @kbd{M-^} or @kbd{C-c C-d} run the command @code{fortran-join-line},
 which joins a continuation line back to the previous line, roughly as
 the inverse of @code{fortran-split-line}.  The point must be on a
 continuation line when this command is invoked.
@@ -203,7 +206,9 @@ point is in.  This removes any excess statement continuations.
 If the first non-space character on a line is in column 5, then that
 line is a continuation of the previous line.  We call this @dfn{fixed
 form}.  (In GNU Emacs we always count columns from 0; but note that
-the Fortran standard counts from 1.)  The variable
+the Fortran standard counts from 1.  You can customize the variable
+@code{column-number-indicator-zero-based} to make the column display
+Fortran-like; @pxref{Optional Mode Line}.)  The variable
 @code{fortran-continuation-string} specifies what character to put in
 column 5.  A line that starts with a tab character followed by any digit
 except @samp{0} is also a continuation line.  We call this style of
@@ -229,10 +234,10 @@ accordingly.
   If the text on a line starts with the Fortran continuation marker
 @samp{$}, or if it begins with any non-whitespace character in column
 5, Fortran mode treats it as a continuation line.  When you indent a
-continuation line with @key{TAB}, it converts the line to the current
-continuation style.  When you split a Fortran statement with
-@kbd{C-M-j}, the continuation marker on the newline is created according
-to the continuation style.
+continuation line with @kbd{@key{TAB}}, it converts the line to the
+current continuation style.  When you split a Fortran statement with
+@kbd{C-M-j}, the continuation marker on the newline is created
+according to the continuation style.
 
   The setting of continuation style affects several other aspects of
 editing in Fortran mode.  In fixed form mode, the minimum column
@@ -247,7 +252,9 @@ column 8 must consist of one tab character.
 
   If a number is the first non-whitespace in the line, Fortran
 indentation assumes it is a line number and moves it to columns 0
-through 4.  (Columns always count from 0 in Emacs.)
+through 4.  (Columns always count from 0 in Emacs, but setting
+@code{column-number-indicator-zero-based} to @code{nil} can change
+that, @pxref{Optional Mode Line}.)
 
 @vindex fortran-line-number-indent
   Line numbers of four digits or less are normally indented one space.
@@ -320,7 +327,7 @@ Extra indentation within each level of @samp{structure}, @samp{union},
 Extra indentation for bodies of continuation lines (default 5).
 
 @item fortran-check-all-num-for-matching-do
-In Fortran 77, a numbered @samp{do} statement is ended by any statement
+In Fortran 77, a numbered @samp{do} statement is terminated by any statement
 with a matching line number.  It is common (but not compulsory) to use a
 @samp{continue} statement for this purpose.  If this variable has a
 non-@code{nil} value, indenting any numbered statement must check for a
@@ -330,7 +337,7 @@ then you can speed up indentation by setting this variable to
 @code{nil} (the default).
 
 @item fortran-blink-matching-if
-If this is @code{t}, indenting an @samp{endif} (or @samp{enddo}
+If this is @code{t}, indenting an @samp{endif} (or @samp{enddo})
 statement moves the cursor momentarily to the matching @samp{if} (or
 @samp{do}) statement to show where it is.  The default is @code{nil}.
 
@@ -386,7 +393,7 @@ Fortran mode as in other modes.
 
   When a new comment must be inserted, if the current line is blank, a
 full-line comment is inserted.  On a non-blank line, a nonstandard @samp{!}
-comment is inserted if you have said you want to use them.  Otherwise a
+comment is inserted if you have said you want to use them.  Otherwise, a
 full-line comment is inserted on a new line before the current line.
 
   Nonstandard @samp{!} comments are aligned like comments in other
@@ -434,7 +441,7 @@ distinctive font-locking.
 
   The normal Emacs comment command @kbd{C-x ;} (@code{comment-set-column})
 has not been redefined.  If you use @samp{!} comments, this command
-can be used with them.  Otherwise it is useless in Fortran mode.
+can be used with them.  Otherwise, it is useless in Fortran mode.
 
 @kindex C-c ; @r{(Fortran mode)}
 @findex fortran-comment-region
@@ -457,9 +464,9 @@ minor mode that automatically splits statements as you insert them
 when they become too wide.  Splitting a statement involves making
 continuation lines using @code{fortran-continuation-string}
 (@pxref{ForIndent Cont}).  This splitting happens when you type
-@key{SPC}, @key{RET}, or @key{TAB}, and also in the Fortran
-indentation commands.  You activate Auto Fill in Fortran mode in the
-normal way.
+@kbd{@key{SPC}}, @kbd{@key{RET}}, or @kbd{@key{TAB}}, and also in the
+Fortran indentation commands.  You activate Auto Fill in Fortran mode
+in the normal way.
 @iftex
 @xref{Auto Fill,,, emacs, the Emacs Manual}.
 @end iftex
@@ -501,15 +508,18 @@ will confuse font-lock.)
 @item C-c C-r
 Display a column ruler momentarily above the current line
 (@code{fortran-column-ruler}).
+
 @item C-c C-w
 Split the current window horizontally temporarily so that it is
 @code{fortran-line-length} columns wide
 (@code{fortran-window-create-momentarily}).  This may help you avoid
 making lines longer than the limit imposed by your Fortran compiler.
+
 @item C-u C-c C-w
 Split the current window horizontally so that it is
 @code{fortran-line-length} columns wide (@code{fortran-window-create}).
 You can then continue editing.
+
 @item M-x fortran-strip-sequence-nos
 Delete all text in column @code{fortran-line-length} and beyond.
 @end table
@@ -523,7 +533,9 @@ Fortran programs.  Square brackets show the limits of the columns for line
 numbers, and curly brackets show the limits of the columns for the
 statement body.  Column numbers appear above them.
 
-  Note that the column numbers count from zero, as always in GNU Emacs.
+  Note that the column numbers count from zero, as always in GNU Emacs
+(but customizing @code{column-number-indicator-zero-based} can change
+column display to match that of Fortran; @pxref{Optional Mode Line}).
 As a result, the numbers may be one less than those you are familiar
 with; but the positions they indicate in the line are standard for
 Fortran.

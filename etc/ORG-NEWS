@@ -148,7 +148,7 @@ directories in published site-maps.
 **** Scheme: support for tables
 **** Scheme: new variable: ~org-babel-scheme-null-to~
 
-This new custom option allows to use a empty list or null symbol to
+This new custom option allows you to use an empty list or null symbol to
 format the table output, initially assigned to ~hlines~.
 
 **** Scheme: new header ~:prologue~

@@ -443,7 +443,7 @@ search all folders."
            (setq redo-flag t))
           ((mh-folder-exists-p new-folder)
            ;; Folder exists but we don't have it open. That means they are
-           ;; stale results from a old flists search. Clear it out.
+           ;; stale results from an old flists search. Clear it out.
            (mh-exec-cmd-quiet nil "rmf" new-folder)))
     (setq message (mh-search "+" mh-flists-results-folder
                              redo-flag window-config)
@@ -1583,7 +1583,7 @@ If the folder returned doesn't exist then it is created."
     chosen-name))
 
 (defun mh-index-folder-search-regexp (folder)
-  "If FOLDER was created by a index search, return the search regexp.
+  "If FOLDER was created by an index search, return the search regexp.
 Return nil if FOLDER doesn't exist or the .mhe_index file is
 garbled."
   (ignore-errors
@@ -1912,7 +1912,7 @@ origin-index) map is updated too."
 
 (defun mh-index-update-single-msg (msg checksum origin-map)
   "Update various maps for one message.
-MSG is a index folder message, CHECKSUM its MD5 hash and
+MSG is an index folder message, CHECKSUM its MD5 hash and
 ORIGIN-MAP, if non-nil, a hash table containing which maps each
 message in the index folder to the folder and message that it was
 copied from. The function updates the hash tables

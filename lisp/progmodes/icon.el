@@ -90,7 +90,7 @@
   :group 'icon)
 
 (defcustom icon-brace-imaginary-offset 0
-  "Imagined indentation of a Icon open brace that actually follows a statement."
+  "Imagined indentation of an Icon open brace that actually follows a statement."
   :type 'integer
   :group 'icon)
 

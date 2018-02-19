@@ -862,7 +862,7 @@ If the optional argument @var{pixelwise} is non-@code{nil},
 A positive @var{delta} moves the edge downwards or to the right; a
 negative @var{delta} moves it upwards or to the left.  If the edge
 cannot be moved as far as specified by @var{delta}, this function
-moves it as far as possible but does not signal a error.
+moves it as far as possible but does not signal an error.
 
 This function tries to resize windows adjacent to the edge that is
 moved.  If this is not possible for some reason (e.g., if that adjacent

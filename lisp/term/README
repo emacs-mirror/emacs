@@ -60,7 +60,7 @@ they'll frustrate you after you've forgotten about them.
    For another, the X keysyms provide a standard set of names that Emacs knows
 about.  It tries to bind many of them to useful things at startup, before your
 .emacs is read (so you can override them).  In some ways, the X keysym standard
-is a admittedly poor one; it's incomplete, and not well matched to the set of
+is an admittedly poor one; it's incomplete, and not well matched to the set of
 'virtual keys' that UNIX terminfo(3) provides.  But, trust us, the alternatives
 were worse.
 

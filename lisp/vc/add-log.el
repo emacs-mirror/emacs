@@ -1163,7 +1163,7 @@ Has a preference of looking backwards."
   (goto-char (match-end 0)))
 
 (defun change-log-get-method-definition ()
-"For Objective C, return the method name if we are in a method."
+  "For Objective C, return the method name if we are in a method."
   (let ((change-log-get-method-definition-md "["))
     (save-excursion
       (if (re-search-backward "^@implementation\\s-*\\([A-Za-z_]*\\)" nil t)

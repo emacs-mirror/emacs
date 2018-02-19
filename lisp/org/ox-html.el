@@ -2697,7 +2697,7 @@ holding contextual information."
 
 (defun org-html-format-inlinetask-default-function
   (todo todo-type priority text tags contents info)
-  "Default format function for a inlinetasks.
+  "Default format function for inlinetasks.
 See `org-html-format-inlinetask-function' for details."
   (format "<div class=\"inlinetask\">\n<b>%s</b>%s\n%s</div>"
 	  (org-html-format-headline-default-function

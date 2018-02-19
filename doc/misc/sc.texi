@@ -1340,7 +1340,7 @@ currently part of Supercite, but contributions are welcome!
 
 Regi works by interpreting frames with the function
 @code{regi-interpret}.  A frame is a list of arbitrary size where each
-element is a entry of the following form:
+element is an entry of the following form:
 
 @example
 (@var{pred} @var{func} [@var{negate-p} [@var{case-fold-search}]])
@@ -1709,7 +1709,7 @@ of information from the info alist.
 @item @code{sc-mail-field-query} (@kbd{C-c C-p f})
 Allows you to interactively view, modify, add, and delete info alist
 key-value pairs.  With no argument, you are prompted (with completion)
-for a info key.  The value associated with that key is displayed in the
+for an info key.  The value associated with that key is displayed in the
 minibuffer.  With an argument, this command will first ask if you want
 to view, modify, add, or delete an info key.  Viewing is identical to
 running the command with no arguments.

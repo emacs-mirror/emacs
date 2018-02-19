@@ -1694,7 +1694,7 @@ when you type the corresponding one.
 @node TeX Print
 @subsection @TeX{} Printing Commands
 
-  You can invoke @TeX{} as an subprocess of Emacs, supplying either
+  You can invoke @TeX{} as a subprocess of Emacs, supplying either
 the entire contents of the buffer or just part of it (e.g., one
 chapter of a larger document).
 
@@ -1746,7 +1746,7 @@ C-p} (@code{tex-print}) to print a hardcopy of the output file.
 output of @TeX{} also goes in this directory.  To run @TeX{} in a
 different directory, change the variable @code{tex-directory} to
 the desired directory.  If your environment variable @env{TEXINPUTS}
-contains relative names, or if your files contains
+contains relative names, or if your files contain
 @samp{\input} commands with relative file names, then
 @code{tex-directory} @emph{must} be @code{"."} or you will get the
 wrong results.  Otherwise, it is safe to specify some other directory,
@@ -2017,7 +2017,7 @@ used as a cheap preview (@code{sgml-tags-invisible}).
 @findex nxml-mode
 @cindex XML schema
   The major mode for editing XML documents is called nXML mode.  This
-is a powerful major mode that can recognize many existing XML schema
+is a powerful major mode that can recognize many existing XML schemas
 and use them to provide completion of XML elements via
 @kbd{M-@key{TAB}}, as well as on-the-fly XML
 validation with error highlighting.  To enable nXML mode in an
@@ -2290,7 +2290,7 @@ Prompt for a color, and apply it as a background color.
 @end table
 
 @noindent
-These command are also available via the Text Properties menu.
+These commands are also available via the Text Properties menu.
 
   A self-inserting character normally inherits the face properties
 (and most other text properties) from the preceding character in the

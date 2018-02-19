@@ -415,13 +415,13 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 
 
 (define-skeleton ada-entry-family-prompt-discriminant
-  "Insert a entry specification, prompting for the entry name."
+  "Insert an entry specification, prompting for the entry name."
   "[discriminant name]: "
   str)
 
 
 (define-skeleton ada-entry-family
-  "Insert a entry specification, prompting for the entry name."
+  "Insert an entry specification, prompting for the entry name."
   "[entry name]: "
   "entry " str
   " (" (ada-entry-family-prompt-discriminant) ")"

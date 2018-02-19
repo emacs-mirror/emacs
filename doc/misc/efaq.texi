@@ -753,7 +753,7 @@ privileges, you have several options:
 Info files don't actually need to be installed before being used.
 You can use a prefix argument for the @code{info} command and specify
 the name of the Info file in the minibuffer.  This goes to the node
-named @samp{Top} in that file.  For example, to view a Info file named
+named @samp{Top} in that file.  For example, to view an Info file named
 @file{@var{info-file}} in your home directory, you can type this:
 
 @example
@@ -1490,6 +1490,7 @@ exhibits all the colors Emacs knows about on the current display.
 
 Syntax highlighting is on by default since version 22.1.
 
+@cindex direct color in terminals
 Emacs 26.1 and later support direct color mode in terminals.  If Emacs
 finds Terminfo capabilities @samp{setb24} and @samp{setf24}, 24-bit
 direct color mode is used.  The capability strings are expected to
@@ -1504,14 +1505,17 @@ $ cat terminfo-custom.src
 
 xterm-emacs|xterm with 24-bit direct color mode for Emacs,
   use=xterm-256color,
-  setb24=\E[48\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%dm,
-  setf24=\E[38\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%dm,
+  setb24=\E[48\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&\
+     %d\:%p1%@{255@}%&%dm,
+  setf24=\E[38\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&\
+     %d\:%p1%@{255@}%&%dm,
 
 $ tic -x -o ~/.terminfo terminfo-custom.src
 
 $ TERM=xterm-emacs emacs -nw
 @end example
 
+@cindex 24-bit direct color mode
 Emacs 27.1 and later support Terminfo capability @samp{RGB} for
 detecting 24-bit direct color mode.  Multiple standard terminal
 definitions support this capability.
@@ -1519,10 +1523,27 @@ definitions support this capability.
 @example
 $ TERM=xterm-direct infocmp | grep seta[bf]
 
-  setab=\E[%?%p1%@{8@}%<%t4%p1%d%e48\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%d%;m,
-  setaf=\E[%?%p1%@{8@}%<%t3%p1%d%e38\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%d%;m,
+  setab=\E[%?%p1%@{8@}%<%t4%p1%d%e48\:2\:\:%p1%@{65536@}%/\
+     %d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%d%;m,
+  setaf=\E[%?%p1%@{8@}%<%t3%p1%d%e38\:2\:\:%p1%@{65536@}%/\
+     %d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%d%;m,
 
 $ TERM=xterm-direct emacs -nw
+@end example
+
+If your terminal is incompatible with XTerm, you may have to use
+another @env{TERM} definition.  Any terminal whose name includes
+@samp{direct} should be a candidate.  The @command{toe} command can be
+used to find out which of these are installed on your system:
+
+@example
+$ toe | grep '\-direct'
+
+konsole-direct  konsole with direct-color indexing
+vte-direct      vte with direct-color indexing
+st-direct       st with direct-color indexing
+xterm-direct2   xterm with direct-color indexing (old)
+xterm-direct    xterm with direct-color indexing
 @end example
 
 Terminals with @samp{RGB} capability treat pixels #000001 - #000007 as
@@ -3398,7 +3419,7 @@ version of Emacs, and see @ref{Current GNU distributions}, for a list of
 archive sites that make GNU software available.
 
 @node Finding a package with particular functionality
-@section How do I find a Emacs Lisp package that does XXX?
+@section How do I find an Emacs Lisp package that does XXX?
 @cindex Package, finding
 @cindex Finding an Emacs Lisp package
 @cindex Functionality, finding a particular package

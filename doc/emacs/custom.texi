@@ -2167,6 +2167,7 @@ Manual}.
 * Terminal Init::       Each terminal type can have an init file.
 * Find Init::           How Emacs finds the init file.
 * Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
+* Early Init File::     Another init file, which is read early on.
 @end menu
 
 @node Init Syntax
@@ -2568,10 +2569,19 @@ instance:
 @noindent
 Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 
-  @strong{Warning:} if you change the keyboard encoding, or change
-between multibyte and unibyte mode, or anything that would alter which
-code @kbd{C-q} would insert for that character, this key binding may
-stop working.  It is therefore advisable to use one and only one
-coding system, for your init file as well as the files you edit.  For
-example, don't mix the @samp{latin-1} and @samp{latin-9} coding
-systems.
+@node Early Init File
+@subsection The Early Init File
+@cindex early init file
+
+  Most customizations for Emacs can be put in the normal init file,
+@file{.emacs} or @file{~/.emacs.d/init.el}.  However, it is sometimes
+desirable to have customizations that take effect during Emacs startup
+earlier than the normal init file is processed.  Such customizations
+can be put in the early init file, @file{~/.emacs.d/early-init.el}.
+This file is loaded before the package system is initialized, so in it
+you can customize variables that affect the initialization process,
+such as @code{package-enable-at-startup} and @code{package-load-list}.
+@xref{Package Installation}.
+
+  For more information on the early init file, @pxref{Early Init
+File,,, elisp, The Emacs Lisp Reference Manual}.

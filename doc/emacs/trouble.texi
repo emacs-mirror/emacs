@@ -1322,7 +1322,7 @@ the Emacs Lisp Reference Manual
 @url{https://www.gnu.org/software/emacs}
 
 @item
-@url{http://www.emacswiki.org/}
+@url{https://www.emacswiki.org/}
 @end itemize
 
 @menu

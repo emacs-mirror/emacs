@@ -622,7 +622,7 @@ that requires a literal mode spec at compile time."
   ;; buffer local value has its own alist structure.
   (setq c-offsets-alist (copy-alist c-offsets-alist))
 
-  ;; setup the comment indent variable in a Emacs version portable way
+  ;; setup the comment indent variable in an Emacs version portable way
   (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
   ;; What sort of comments are default for M-;?
   (setq c-block-comment-flag c-block-comment-is-default)

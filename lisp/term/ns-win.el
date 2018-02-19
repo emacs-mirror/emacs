@@ -437,14 +437,7 @@ Lines are highlighted according to `ns-input-line'."
 ;;;; File handling.
 
 (defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
-"Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
-selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.
-
-This function is only defined on NS, MS Windows, and X Windows with the
-Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
-Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories."
+"SKIP: real doc in xfns.c."
   (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
 (defun ns-open-file-using-panel ()

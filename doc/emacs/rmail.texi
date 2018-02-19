@@ -1585,7 +1585,7 @@ use it, add the @samp{--tls} flag to @code{rmail-movemail-flags}.
   If your incoming mail is stored on a local machine in a format other
 than Unix mailbox, you will need the Mailutils @command{movemail} to
 retrieve it.  @xref{Movemail}, for the detailed description of
-@command{movemail} versions.  For example, to access mail from a inbox in
+@command{movemail} versions.  For example, to access mail from an inbox in
 @code{maildir} format located in @file{/var/spool/mail/in}, you would
 include the following in the Rmail inbox list:
 

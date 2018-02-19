@@ -292,3 +292,13 @@ identical output.
                                 (i 0)
                                 (j (setq i (1+ i))))
                            (iter-yield i))))))))
+
+(ert-deftest iter-lambda-variable-shadowing ()
+  "`iter-lambda' forms which have local variable shadowing (Bug#26073)."
+  (should (equal (iter-next
+                  (funcall (iter-lambda ()
+                             (let ((it 1))
+                               (iter-yield (funcall
+                                            (lambda (it) (- it))
+                                            (1+ it)))))))
+                 -2)))

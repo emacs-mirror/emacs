@@ -70,7 +70,7 @@ For changes in Emacs 23.1 and later, see the main Emacs NEWS file.
 
 * Version 2.02d:
 
-** Fixed a minor installation problem with a Emacs 19.29 byte-compiler bug.
+** Fixed a minor installation problem with an Emacs 19.29 byte-compiler bug.
 
 ** Removed archaic "macedit" package (superseded by "edmacro").
 

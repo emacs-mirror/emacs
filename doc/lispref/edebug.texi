@@ -898,7 +898,7 @@ lines inserted.
 
 @cindex coverage testing (Edebug)
 @cindex frequency counts
-@cindex performance analysis
+@cindex performance analysis (Edebug)
   Edebug provides rudimentary coverage testing and display of execution
 frequency.
 

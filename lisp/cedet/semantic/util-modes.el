@@ -782,7 +782,7 @@ If there is no function, disable the header line."
 		  (goto-char (semantic-tag-start tag))
 		  ;; Klaus Berndl <klaus.berndl@sdm.de>:
 		  ;; goto the tag name; this is especially needed for languages
-		  ;; like c++ where a often used style is like:
+		  ;; like c++ where an often used style is like:
 		  ;;     void
 		  ;;     ClassX::methodM(arg1...)
 		  ;;     {

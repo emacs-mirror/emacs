@@ -1630,7 +1630,7 @@ TEXT-ID marks a unique position within a block.  It is set to
 value of `point' at the current buffer position.
 
 TEXT-BEGINS-BLOCK-P is a boolean and is non-nil if the current
-span also begins a invisible portion of text.
+span also begins an invisible portion of text.
 
 An implementation can use TEXT-BLOCK, TEXT-ID,
 TEXT-BEGINS-BLOCK-P to implement fold/unfold-on-mouse-click like

@@ -1394,7 +1394,7 @@ the default behavior."
 ;;;###autoload
 (defun org-clock-in-last (&optional arg)
   "Clock in the last closed clocked item.
-When already clocking in, send an warning.
+When already clocking in, send a warning.
 With a universal prefix argument, select the task you want to
 clock in from the last clocked in tasks.
 With two universal prefix arguments, start clocking using the

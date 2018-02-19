@@ -891,7 +891,7 @@ PREFIX is only used internally: don't use it."
 	     (if (and newfile (file-exists-p newfile)) (cl-return newfile))))
          ;; look for each file in turn.  If none found, try again but
          ;; ignoring the first level of directory, ...
-         (cl-do* ((files fs (delq nil (mapcar 'diff-filename-drop-dir files)))
+         (cl-do* ((files fs (delq nil (mapcar #'diff-filename-drop-dir files)))
                   (file nil nil))
 	     ((or (null files)
 		  (setq file (cl-do* ((files files (cdr files))
@@ -1387,12 +1387,12 @@ a diff with \\[diff-reverse-direction].
   ;;   (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
-  (set (make-local-variable 'next-error-function) 'diff-next-error)
+  (set (make-local-variable 'next-error-function) #'diff-next-error)
 
   (set (make-local-variable 'beginning-of-defun-function)
-       'diff-beginning-of-file-and-junk)
+       #'diff-beginning-of-file-and-junk)
   (set (make-local-variable 'end-of-defun-function)
-       'diff-end-of-file)
+       #'diff-end-of-file)
 
   (diff-setup-whitespace)
 
@@ -1400,10 +1400,10 @@ a diff with \\[diff-reverse-direction].
       (setq buffer-read-only t))
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
-      (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)
+      (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
     (make-local-variable 'diff-unhandled-changes)
-    (add-hook 'after-change-functions 'diff-after-change-function nil t)
-    (add-hook 'post-command-hook 'diff-post-command-hook nil t))
+    (add-hook 'after-change-functions #'diff-after-change-function nil t)
+    (add-hook 'post-command-hook #'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
   (let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
     (add-to-list 'minor-mode-overriding-map-alist ro-bind)
@@ -1415,7 +1415,7 @@ a diff with \\[diff-reverse-direction].
 	      nil t))
   ;; add-log support
   (set (make-local-variable 'add-log-current-defun-function)
-       'diff-current-defun)
+       #'diff-current-defun)
   (set (make-local-variable 'add-log-buffer-file-name-function)
        (lambda () (diff-find-file-name nil 'noprompt)))
   (unless (buffer-file-name)
@@ -1433,10 +1433,10 @@ the mode if ARG is omitted or nil.
   ;; FIXME: setup font-lock
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
-      (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)
+      (add-hook 'write-contents-functions #'diff-write-contents-hooks nil t)
     (make-local-variable 'diff-unhandled-changes)
-    (add-hook 'after-change-functions 'diff-after-change-function nil t)
-    (add-hook 'post-command-hook 'diff-post-command-hook nil t)))
+    (add-hook 'after-change-functions #'diff-after-change-function nil t)
+    (add-hook 'post-command-hook #'diff-post-command-hook nil t)))
 
 ;;; Handy hook functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1468,7 +1468,7 @@ modified lines of the diff."
 
 (defun diff-delete-empty-files ()
   "Arrange for empty diff files to be removed."
-  (add-hook 'after-save-hook 'diff-delete-if-empty nil t))
+  (add-hook 'after-save-hook #'diff-delete-if-empty nil t))
 
 (defun diff-make-unified ()
   "Turn context diffs into unified diffs if applicable."
@@ -1693,7 +1693,7 @@ If TEXT isn't found, nil is returned."
 Whitespace differences are ignored."
   (let* ((orig (point))
 	 (re (concat "^[ \t\n]*"
-		     (mapconcat 'regexp-quote (split-string text) "[ \t\n]+")
+		     (mapconcat #'regexp-quote (split-string text) "[ \t\n]+")
 		     "[ \t\n]*\n"))
 	 (forw (and (re-search-forward re nil t)
 		    (cons (match-beginning 0) (match-end 0))))
@@ -2047,7 +2047,7 @@ Return new point, if it was moved."
                           (progn (diff--forward-while-leading-char ?\\ end)
                                  (setq end-add (point))))
                  (smerge-refine-regions beg-del beg-add beg-add end-add
-                                      nil 'diff-refine-preproc props-r props-a)))))
+                                        nil #'diff-refine-preproc props-r props-a)))))
           (`context
            (let* ((middle (save-excursion (re-search-forward "^---")))
                   (other middle))
@@ -2060,7 +2060,7 @@ Return new point, if it was moved."
                                       (match-beginning 0))
                                     other
                                     (if diff-use-changed-face props-c)
-                                    'diff-refine-preproc
+                                    #'diff-refine-preproc
                                     (unless diff-use-changed-face props-r)
                                     (unless diff-use-changed-face props-a)))))
           (_ ;; Normal diffs.
@@ -2069,7 +2069,7 @@ Return new point, if it was moved."
                ;; It's a combined add&remove, so there's something to do.
                (smerge-refine-regions beg1 (match-beginning 0)
                                     (match-end 0) end
-                                    nil 'diff-refine-preproc props-r props-a)))))))))
+                                    nil #'diff-refine-preproc props-r props-a)))))))))
 
 (defun diff-undo (&optional arg)
   "Perform `undo', ignoring the buffer's read-only status."
@@ -2174,6 +2174,54 @@ fixed, visit it in a buffer."
 					     "`%s'" (buffer-name buf)))
 			      modified-buffers ", "))
 	(message "No trailing whitespace to delete.")))))
+
+;;; Support for converting a diff to diff3 markers via `wiggle'.
+
+;; Wiggle can be found at http://neil.brown.name/wiggle/ or in your nearest
+;; Debian repository.
+
+(defun diff-wiggle ()
+  "Use `wiggle' to apply the whole current file diff by hook or by crook.
+When a hunk can't cleanly be applied, it gets turned into a diff3-style
+conflict."
+  (interactive)
+  (let* ((bounds (diff-bounds-of-file))
+         (file (diff-find-file-name))
+         (tmpbuf (current-buffer))
+         (filebuf (find-buffer-visiting file))
+         (patchfile (make-temp-file
+                     (expand-file-name "wiggle" (file-name-directory file))
+                     nil ".diff"))
+         (errfile (make-temp-file
+                     (expand-file-name "wiggle" (file-name-directory file))
+                     nil ".error")))
+    (unwind-protect
+        (with-temp-buffer
+          (set-buffer (prog1 tmpbuf (setq tmpbuf (current-buffer))))
+          (when (buffer-modified-p filebuf)
+            (save-some-buffers nil (lambda () (eq (current-buffer) filebuf)))
+            (if (buffer-modified-p filebuf) (error "Abort!")))
+          (write-region (car bounds) (cadr bounds) patchfile nil 'silent)
+          (let ((exitcode
+                 (call-process "wiggle" nil (list tmpbuf errfile) nil
+                               file patchfile)))
+            (if (not (memq exitcode '(0 1)))
+                (message "diff-wiggle error: %s"
+                         (with-current-buffer tmpbuf
+                           (goto-char (point-min))
+                           (insert-file-contents errfile)
+                           (buffer-string)))
+              (with-current-buffer tmpbuf
+                (write-region nil nil file nil 'silent)
+                (with-current-buffer filebuf
+                  (revert-buffer t t t)
+                  (save-excursion
+                    (goto-char (point-min))
+                    (if (re-search-forward "^<<<<<<<" nil t)
+                        (smerge-mode 1)))
+                  (pop-to-buffer filebuf))))))
+      (delete-file patchfile)
+      (delete-file errfile))))
 
 ;; provide the package
 (provide 'diff-mode)

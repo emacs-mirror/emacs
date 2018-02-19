@@ -410,7 +410,7 @@ or else nil to insert it at the beginning.
 
 DELETED's elements are elements of OLD-HEADERS.
 CHANGED's elements have the form (OLD . NEW)
-where OLD is a element of OLD-HEADERS and NEW is an element of NEW-HEADERS."
+where OLD is an element of OLD-HEADERS and NEW is an element of NEW-HEADERS."
 
   (let ((reverse-new (reverse new-headers))
 	inserted deleted changed)

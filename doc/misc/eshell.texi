@@ -1022,7 +1022,7 @@ So that the user can enter @samp{info chmod}, for example.
 
 @item Create a mode @code{eshell-browse}
 
-It would treat the Eshell buffer as a outline.  Collapsing the outline
+It would treat the Eshell buffer as an outline.  Collapsing the outline
 hides all of the output text.  Collapsing again would show only the
 first command run in each directory
 

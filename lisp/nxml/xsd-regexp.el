@@ -208,7 +208,7 @@ Signal an error if it is not."
 	 (nreverse (xsdre-compile-regexp re nil))))
 
 (defun xsdre-compile-regexp (re accum)
-  "Return a Emacs regular expression for the symbolic regexp RE.
+  "Return an Emacs regular expression for the symbolic regexp RE.
 Returns a list of strings whose head is the regexp for RE
 and whose tail is ACCUM."
   (cond ((not (consp re))
@@ -271,7 +271,7 @@ and whose tail is ACCUM."
 	(t (xsdre-compile-char-class re accum))))
 
 (defun xsdre-compile-char-class (cc accum)
-  "Return a Emacs regular expression for the symbolic character class CC.
+  "Return an Emacs regular expression for the symbolic character class CC.
 Returns a list of strings whose head is the regexp for CC
 and whose tail is ACCUM."
   (cons (if (integerp cc)
@@ -450,7 +450,7 @@ LOWER ::= UNICODE
 UPPER ::= UNICODE
 SYMBOLIC-CHAR-CLASS ::= SYMBOL
 
-where UNICODE is a integer specifying a Unicode code-point and
+where UNICODE is an integer specifying a Unicode code-point and
 SYMBOLIC-CHAR-CLASS is a symbol which has either a `xsdre-char-class'
 property whose value is a CHAR-CLASS, or a `xsdre-ranges' property
 whose value is a range-list."

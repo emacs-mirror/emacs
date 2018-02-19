@@ -642,7 +642,7 @@ Display information about where to get external packages
 @item C-h C-f
 Display the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
 @item C-h g
-Visit a @uref{https://www.gnu.org} page with information about the GNU
+Visit the @uref{https://www.gnu.org, page} with information about the GNU
 Project (@code{describe-gnu-project}).
 @item C-h C-m
 Display information about ordering printed copies of Emacs manuals

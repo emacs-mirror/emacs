@@ -24,7 +24,7 @@
 ;; Emacs Lisp specific handlers.  To use these handlers in your
 ;; template, add the :name part to your template argument list.
 ;;
-;; Error if not in a Emacs Lisp mode
+;; Error if not in an Emacs Lisp mode
 
 ;;; Code:
 

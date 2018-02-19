@@ -113,8 +113,9 @@ Prompt for a file name, delete the file from the working tree, and
 schedule the deletion for committing.
 
 @item M-x vc-rename-file
-Prompt for two file names, @var{var} and @var{old}, rename them in the
-working tree, and schedule the renaming for committing.
+Prompt for two file names, @var{old} and @var{new}, rename them in the
+working tree, and schedule the renaming for committing.  The @var{old}
+file defaults to the current buffer's file name if it is under VC.
 @end table
 
 @findex vc-delete-file
@@ -268,7 +269,7 @@ with the file's version control type.
 @vindex vc-handled-backends
   The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
-SVN SCCS Bzr Git Hg Mtn Arch)}, so it contains all the version systems
+SVN SCCS SRC Bzr Git Hg Mtn)}, so it contains all the version systems
 that are currently supported.  If you want VC to ignore one or more of
 these systems, exclude its name from the list.  To disable VC
 entirely, set this variable to @code{nil}.

@@ -248,13 +248,13 @@ this to move point to the beginning of the region, scrolling the
 display backward if necessary.
 
 @item Double-Drag-mouse-1
-Select the text you drag across, in the form of whole words.
+Select the text you drag across, in units of whole words.
 
 @item Triple-mouse-1
 Select the line you click on.
 
 @item Triple-Drag-mouse-1
-Select the text you drag across, in the form of whole lines.
+Select the text you drag across, in units of whole lines.
 @end table
 
 @node Mouse References
@@ -312,7 +312,7 @@ button.
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
 
-  Several mouse clicks with the @key{CTRL} and @key{SHIFT} modifiers
+  Several mouse clicks with the @key{Ctrl} and @key{SHIFT} modifiers
 bring up menus.
 
 @table @kbd
@@ -409,10 +409,11 @@ boundary to the left or right.
   The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}.  Whereas
 each @kbd{C-x 4} command pops up a buffer in a different window in the
 selected frame (@pxref{Pop Up Window}), the @kbd{C-x 5} commands use a
-different frame.  If an existing visible or iconified (a.k.a.@: ``minimized'')
-frame already displays the requested buffer, that frame is raised and
-deiconified (``un-minimized''); otherwise, a new frame is created on
-the current display terminal.
+different frame.  If an existing visible or iconified (a.k.a.@:
+``minimized'', @pxref{Visibility of Frames,,, elisp, The Emacs Lisp
+Reference Manual}) frame already displays the requested buffer, that
+frame is raised and deiconified (``un-minimized''); otherwise, a new
+frame is created on the current display terminal.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:
@@ -642,7 +643,7 @@ Monospace-12:weight=bold:slant=italic
 
 For a more detailed description of Fontconfig patterns, see the
 Fontconfig manual, which is distributed with Fontconfig and available
-online at @url{http://fontconfig.org/fontconfig-user.html}.
+online at @url{https://fontconfig.org/fontconfig-user.html}.
 
 @cindex GTK font pattern
   The second way to specify a font is to use a @dfn{GTK font pattern}.
@@ -954,7 +955,8 @@ toolkits allow you to customize the scroll bars to not have those
 buttons).  Clicking @kbd{mouse-1} above or below the scroll bar's
 inner box scrolls the window by nearly the entire height of the
 window, like @kbd{M-v} and @kbd{C-v} respectively (@pxref{Moving
-Point}).  Dragging the inner box scrolls continuously.
+Point}).  (This, too, can behave differently with some toolkits.)
+Dragging the inner box scrolls continuously.
 
   If Emacs is compiled on the X Window System without X toolkit
 support, the scroll bar behaves differently.  Clicking @kbd{mouse-1}

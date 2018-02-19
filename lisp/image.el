@@ -977,7 +977,7 @@ default is 20%."
 
 (defun image--get-imagemagick-and-warn ()
   (unless (or (fboundp 'imagemagick-types) (featurep 'ns))
-    (error "Can't rescale images without ImageMagick support"))
+    (error "Cannot rescale images without ImageMagick support"))
   (let ((image (image--get-image)))
     (image-flush image)
     (when (fboundp 'imagemagick-types)

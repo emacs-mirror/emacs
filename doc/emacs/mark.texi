@@ -260,7 +260,7 @@ change the variable @code{use-empty-active-region} to @code{t}.
 
 @vindex delete-active-region
   As described in @ref{Erasing}, the @key{DEL}
-(@code{backward-delete-char}) and @key{delete}
+(@code{backward-delete-char}) and @key{Delete}
 (@code{delete-forward-char}) commands also act this way.  If the mark
 is active, they delete the text in the region.  (As an exception, if
 you supply a numeric argument @var{n}, where @var{n} is not one, these

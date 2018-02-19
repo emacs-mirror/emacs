@@ -641,7 +641,7 @@ list of a symbol.")
 
 (defun edebug-form-data-symbol ()
   "Return the edebug data symbol of the form where point is in.
-If point is not inside a edebuggable form, cause error."
+If point is not inside an edebuggable form, signal an error."
   (or (edebug--form-data-name (edebug-get-form-data-entry (point)))
       (error "Not inside instrumented form")))
 

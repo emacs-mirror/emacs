@@ -443,7 +443,7 @@ A group name is decoded according to
 decoded again according to `nnmail-pathname-coding-system',
 `file-name-coding-system', or `default-file-name-coding-system'.
 
-It is used when asking for a original group name from a cache
+It is used when asking for an original group name from a cache
 directory name, in which non-ASCII characters might have been unified
 into the ones of a certain charset particularly if the `utf-8' coding
 system for example was used.")

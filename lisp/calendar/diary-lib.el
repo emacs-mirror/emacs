@@ -2049,7 +2049,8 @@ calendar."
         (when (setq diary-entry (eval sexp))
           ;; Discard any mark portion from diary-anniversary, etc.
           (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
-          (mapconcat #'eval diary-remind-message ""))))
+          (calendar-dlet* ((days days))
+            (mapconcat #'eval diary-remind-message "")))))
      ;; Diary entry may apply to one of a list of days before date.
      ((and (listp days) days)
       (or (diary-remind sexp (car days) marking)

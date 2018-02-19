@@ -1163,6 +1163,7 @@ The Emacs Initialization File
 * Terminal Init::       Each terminal type can have an init file.
 * Find Init::           How Emacs finds the init file.
 * Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
+* Early Init File::     Another init file, which is read early on.
 
 Dealing with Emacs Trouble
 

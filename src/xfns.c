@@ -4125,7 +4125,7 @@ x_focus_frame (struct frame *f, bool noactivate)
 
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
-       doc: /* Internal function called by `color-defined-p', which see.
+       doc: /* Internal function called by `color-defined-p'.
 \(Note that the Nextstep version of this function ignores FRAME.)  */)
   (Lisp_Object color, Lisp_Object frame)
 {
@@ -4141,7 +4141,8 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 }
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
-       doc: /* Internal function called by `color-values', which see.  */)
+       doc: /* Internal function called by `color-values'.
+\(Note that the Nextstep version of this function ignores FRAME.)  */)
   (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
@@ -4156,7 +4157,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 }
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
-       doc: /* Internal function called by `display-color-p', which see.  */)
+       doc: /* Internal function called by `display-color-p'.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4212,6 +4213,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)
 
 On \"multi-monitor\" setups this refers to the pixel width for all
 physical monitors associated with TERMINAL.  To get information for
@@ -4229,6 +4231,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)
 
 On \"multi-monitor\" setups this refers to the pixel height for all
 physical monitors associated with TERMINAL.  To get information for
@@ -4245,7 +4248,8 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        doc: /* Return the number of bitplanes of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4258,7 +4262,8 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        doc: /* Return the number of color cells of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4282,7 +4287,10 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        doc: /* Return the maximum request size of the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On MS Windows, this function just returns 1.
+On Nextstep, this function just returns nil.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4297,8 +4305,8 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 
-For GNU and Unix systems, this queries the X server software; for
-MS-Windows, this queries the OS.
+For GNU and Unix systems, this queries the X server software.
+For MS Windows and Nextstep the result is hard-coded.
 
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -4318,8 +4326,9 @@ software in use.
 
 For GNU and Unix system, the first 2 numbers are the version of the X
 Protocol used on TERMINAL and the 3rd number is the distributor-specific
-release number.  For MS-Windows, the 3 numbers report the version and
-the build number of the OS.
+release number.  For MS Windows, the 3 numbers report the OS major and
+minor version and build number.  For Nextstep, the first 2 numbers are
+hard-coded and the 3rd represents the OS version.
 
 See also the function `x-server-vendor'.
 
@@ -4339,7 +4348,12 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
        doc: /* Return the number of screens on the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On MS Windows, this function just returns 1.
+On Nextstep, "screen" is in X terminology, not that of Nextstep.
+For the number of physical monitors, use `(length
+\(display-monitor-attributes-list TERMINAL))' instead.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4352,6 +4366,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)
 
 On \"multi-monitor\" setups this refers to the height in millimeters for
 all physical monitors associated with TERMINAL.  To get information
@@ -4368,6 +4383,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)
 
 On \"multi-monitor\" setups this refers to the width in millimeters for
 all physical monitors associated with TERMINAL.  To get information
@@ -4382,10 +4398,13 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
        doc: /* Return an indication of whether X display TERMINAL does backing store.
-The value may be `always', `when-mapped', or `not-useful'.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+The value may be `always', `when-mapped', or `not-useful'.
+On Nextstep, the value may be `buffered', `retained', or `non-retained'.
+On MS Windows, this returns nothing useful.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4417,10 +4436,12 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
        doc: /* Return the visual class of the X display TERMINAL.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
+\(On MS Windows, the second and last result above are not possible.)
 
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+\(On MS Windows, this function does not accept terminal objects.)  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -4458,7 +4479,9 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
        doc: /* Return t if the X display TERMINAL supports the save-under feature.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
+If omitted or nil, that stands for the selected frame's display.
+
+On MS Windows, this just returns nil.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -5652,8 +5675,8 @@ DEFUN ("x-close-connection", Fx_close_connection,
        Sx_close_connection, 1, 1, 0,
        doc: /* Close the connection to TERMINAL's X server.
 For TERMINAL, specify a terminal object, a frame or a display name (a
-string).  If TERMINAL is nil, that stands for the selected frame's
-terminal.  */)
+string).  If TERMINAL is nil, that stands for the selected frame's terminal.
+\(On MS Windows, this function does not accept terminal objects.)  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -5925,8 +5948,6 @@ If SOURCE is non-nil, get the property on that window instead of from
 FRAME.  The number 0 denotes the root window.
 If DELETE-P is non-nil, delete the property after retrieving it.
 If VECTOR-RET-P is non-nil, don't return a string but a vector of values.
-
-On MS Windows, this function accepts but ignores those optional arguments.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
@@ -7039,18 +7060,7 @@ clean_up_file_dialog (void *arg)
 
 
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
-       doc: /* Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
-selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.
-
-This function is only defined on NS, MS Windows, and X Windows with the
-Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
-Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.
-On Windows 7 and later, the file selection dialog "remembers" the last
-directory where the user selected a file, and will open that directory
-instead of DIR on subsequent invocations of this function with the same
-value of DIR as in previous invocations; this is standard Windows behavior.  */)
+       doc: /* SKIP: real doc in USE_GTK definition in xfns.c.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename,
    Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
@@ -7219,10 +7229,10 @@ or directory must exist.
 This function is only defined on NS, MS Windows, and X Windows with the
 Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.
-On Windows 7 and later, the file selection dialog "remembers" the last
+On MS Windows 7 and later, the file selection dialog "remembers" the last
 directory where the user selected a file, and will open that directory
 instead of DIR on subsequent invocations of this function with the same
-value of DIR as in previous invocations; this is standard Windows behavior.  */)
+value of DIR as in previous invocations; this is standard MS Windows behavior.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   struct frame *f = SELECTED_FRAME ();
@@ -7797,9 +7807,9 @@ unless you set it to something else.  */);
 	       Vx_pixel_size_width_font_regexp,
     doc: /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.
 
-Since Emacs gets width of a font matching with this regexp from
-PIXEL_SIZE field of the name, font finding mechanism gets faster for
-such a font.  This is especially effective for such large fonts as
+Since Emacs gets the width of a font matching this regexp from the
+PIXEL_SIZE field of the name, the font-finding mechanism gets faster for
+such a font.  This is especially effective for large fonts such as
 Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 

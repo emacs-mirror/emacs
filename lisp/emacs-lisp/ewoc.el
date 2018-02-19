@@ -411,7 +411,7 @@ If the EWOC is empty, nil is returned."
      ((>= pos (ewoc--node-start-marker (ewoc--node-nth dll -2)))
       (ewoc--node-nth dll -2))
 
-     ;; We now know that pos is within a elem.
+     ;; We now know that pos is within an elem.
      (t
       ;; Make an educated guess about which of the three known
       ;; node'es (the first, the last, or GUESS) is nearest.

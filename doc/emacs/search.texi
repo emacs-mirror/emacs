@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
@@ -902,7 +903,8 @@ starting and ending characters with a @samp{-} between them.  Thus,
 @samp{[a-z]} matches any lower-case @acronym{ASCII} letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
 which matches any lower-case @acronym{ASCII} letter or @samp{$}, @samp{%} or
-period.
+period.  As another example, @samp{[α-ωί]} matches all lower-case
+Greek letters.
 
 You can also include certain special @dfn{character classes} in a
 character set.  A @samp{[:} and balancing @samp{:]} enclose a
@@ -1114,7 +1116,8 @@ matches the empty string, but only at the beginning of a symbol.
 A symbol is a sequence of one or more symbol-constituent characters.
 A symbol-constituent character is a character whose syntax is either
 @samp{w} or @samp{_}.  @samp{\_<} matches at the beginning of the
-buffer only if a symbol-constituent character follows.
+buffer only if a symbol-constituent character follows.  As with words,
+the syntax table determines which characters are symbol-constituent.
 
 @item \_>
 matches the empty string, but only at the end of a symbol.  @samp{\_>}
@@ -1214,7 +1217,7 @@ search string matches exactly one space.
   Searches in Emacs by default ignore the case of the text they are
 searching through, if you specify the search string in lower case.
 Thus, if you specify searching for @samp{foo}, then @samp{Foo} and
-@samp{foo} also match.  Regexps, and in particular character sets,
+@samp{fOO} also match.  Regexps, and in particular character sets,
 behave likewise: @samp{[ab]} matches @samp{a} or @samp{A} or @samp{b}
 or @samp{B}.  This feature is known as @dfn{case folding}, and it is
 supported in both incremental and non-incremental search modes.
@@ -1226,9 +1229,9 @@ case-sensitive.  Thus, searching for @samp{Foo} does not find
 as well as to literal string search.  The effect ceases if you delete
 the upper-case letter from the search string.  The variable
 @code{search-upper-case} controls this: if it is non-@code{nil} (the
-default), an upper-case character in the search string make the search
-case-sensitive; setting it to @code{nil} disables this effect of
-upper-case characters.
+default), an upper-case character in the search string makes the
+search case-sensitive; setting it to @code{nil} disables this effect
+of upper-case characters.
 
 @vindex case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
@@ -1349,7 +1352,7 @@ activating the mark; use @kbd{C-u C-@key{SPC}} to move back there.
 surrounded by word boundaries.
 
   @xref{Replacement and Lax Matches}, for details about
-case-sensitivity in replace commands.
+case-sensitivity and character folding in replace commands.
 
 @node Regexp Replace
 @subsection Regexp Replacement
@@ -1411,13 +1414,14 @@ symbol name goes with the symbol name, so the value replaces them
 both.
 
   Inside such an expression, you can use some special sequences.
-@samp{\&} and @samp{\@var{n}} refer here, as usual, to the entire
-match as a string, and to a submatch as a string.  @var{n} may be
-multiple digits, and the value of @samp{\@var{n}} is @code{nil} if
-subexpression @var{n} did not match.  You can also use @samp{\#&} and
-@samp{\#@var{n}} to refer to those matches as numbers (this is valid
-when the match or submatch has the form of a numeral).  @samp{\#} here
-too stands for the number of already-completed replacements.
+@samp{\&} and @samp{\@var{d}} refer here, as usual, to the entire
+match as a string, and to a submatch as a string.  @var{d} may be
+multiple digits, and the value of @samp{\@var{d}} is @code{nil} if the
+@var{d}'th parenthesized grouping did not match.  You can also use
+@samp{\#&} and @samp{\#@var{d}} to refer to those matches as numbers
+(this is valid when the match or submatch has the form of a numeral).
+@samp{\#} here too stands for the number of already-completed
+replacements.
 
   Repeating our example to exchange @samp{x} and @samp{y}, we can thus
 do it also this way:

@@ -465,7 +465,7 @@ bottom of the selected frame, regardless of the number of windows
 already shown on that frame.
 
   If you prefer Emacs to display a temporary buffer in a different
-fashion, we recommend to customize the variable
+fashion, we recommend customizing the variable
 @code{display-buffer-alist} (@pxref{Choosing Window,,Choosing a Window
 for Display, elisp, The Emacs Lisp Reference Manual}).  For example,
 to display @file{*Completions*} by splitting a window as described in

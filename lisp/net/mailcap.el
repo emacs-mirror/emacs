@@ -92,7 +92,7 @@ replaced with the file.
 MIME-TYPE is a regular expression being matched against the
 actual MIME type.  It is implicitly surrounded with ^ and $.
 
-TEST is an lisp form which is evaluated in order to test if the
+TEST is a lisp form which is evaluated in order to test if the
 entry should be chosen.  The `test' entry is optional.
 
 When selecting a viewer for a given MIME type, the first viewer
@@ -555,7 +555,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 (defun mailcap-mailcap-entry-passes-test (info)
   "Replace the test clause of INFO itself with a boolean for some cases.
 This function supports only `test -n $DISPLAY' and `test -z $DISPLAY',
-replaces them with t or nil.  As for others or if INFO has a interactive
+replaces them with t or nil.  As for others or if INFO has an interactive
 spec (needsterm, needsterminal, or needsx11) but DISPLAY is not set,
 the test clause will be unchanged."
   (let ((test (assq 'test info))	; The test clause

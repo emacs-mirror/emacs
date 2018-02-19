@@ -578,10 +578,11 @@ command will look in the buffer without revisiting the file, so the results
 might be inconsistent with the file on disk if its contents have changed
 since it was last visited.  If you don't want this, you may wish to
 revert the files you have visited in your buffers, or to turn on
-the @code{auto-revert} mode in those buffers, before invoking this
-command.  @xref{Reverting}.  If you prefer that this command always revisit
-the file, without having to revert the file or enable @code{auto-revert}
-mode, you might want to set @code{dired-always-read-filesystem} to non-@code{nil}.
+@code{auto-revert} mode in those buffers, before invoking this
+command.  @xref{Reverting}.  If you prefer that this command should always
+revisit the file, without you having to revert the file or enable
+@code{auto-revert} mode, you might want to set
+@code{dired-always-read-filesystem} to non-@code{nil}.
 
 @item C-/
 @itemx C-x u
@@ -1184,7 +1185,7 @@ without having to remove the Dired marks on files in those
 subdirectories.
 
 @xref{Subdirectories in Dired}, for how to insert a subdirectory
-listing, and @pxref{Dired Updating} for how delete it.
+listing, and see @ref{Dired Updating}, for how to delete it.
 
 @node Dired Updating
 @section Updating the Dired Buffer

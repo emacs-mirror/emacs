@@ -34,8 +34,8 @@ Support}), but we hope to improve it in the future.
 @node Mac / GNUstep Basics
 @section Basic Emacs usage under macOS and GNUstep
 
-  By default, the @key{alt} and @key{option} keys are the same as
-@key{Meta}.  The Mac @key{Cmd} key is the same as @key{Super}, and
+  By default, the @key{Alt} and @key{Option} keys are the same as
+@key{META}.  The Mac @key{Cmd} key is the same as @key{Super}, and
 Emacs provides a set of key bindings using this modifier key that mimic
 other Mac / GNUstep applications (@pxref{Mac / GNUstep Events}).  You
 can change these bindings in the usual way (@pxref{Key Bindings}).
@@ -43,7 +43,7 @@ can change these bindings in the usual way (@pxref{Key Bindings}).
 @vindex ns-alternate-modifier
 @vindex ns-right-alternate-modifier
   The variable @code{ns-right-alternate-modifier} controls the
-behavior of the right @key{alt} and @key{option} keys.  These keys
+behavior of the right @key{Alt} and @key{Option} keys.  These keys
 behave like the left-hand keys if the value is @code{left} (the
 default).  A value of @code{control}, @code{meta}, @code{alt},
 @code{super}, or @code{hyper} makes them behave like the corresponding

@@ -84,7 +84,7 @@ a running command and for emergency escape
 @vindex dos-super-key
 @vindex dos-hyper-key
   The PC keyboard maps use the left @key{Alt} key as the @key{META} key.
-You have two choices for emulating the @key{SUPER} and @key{HYPER} keys:
+You have two choices for emulating the @key{SUPER} and @key{Hyper} keys:
 choose either the right @key{Ctrl} key or the right @key{Alt} key by
 setting the variables @code{dos-hyper-key} and @code{dos-super-key} to 1
 or 2 respectively.  If neither @code{dos-super-key} nor

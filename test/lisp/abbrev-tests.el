@@ -38,6 +38,12 @@
   (abbrev-table-put ert-test-abbrevs :ert-test "ert-test-value")
   ert-test-abbrevs)
 
+(defun setup-test-abbrev-table-with-props ()
+  (defvar ert-test-abbrevs nil)
+  (define-abbrev-table 'ert-test-abbrevs '(("fb" "fooBar" nil :case-fixed t)))
+  (abbrev-table-put ert-test-abbrevs :ert-test "ert-test-value")
+  ert-test-abbrevs)
+
 (ert-deftest abbrev-table-p-test ()
   (should-not (abbrev-table-p 42))
   (should-not (abbrev-table-p "aoeu"))
@@ -228,6 +234,17 @@
     (should (abbrev-table-empty-p ert-test-abbrevs))
     (read-abbrev-file temp-test-file)
     (should (equal "abbrev-ert-test" (abbrev-expansion "a-e-t" ert-test-abbrevs)))
+    (delete-file temp-test-file)))
+
+(ert-deftest read-write-abbrev-file-test-with-props ()
+  "Test reading and writing abbrevs from file"
+  (let ((temp-test-file (make-temp-file "ert-abbrev-test"))
+        (ert-test-abbrevs (setup-test-abbrev-table-with-props)))
+    (write-abbrev-file temp-test-file)
+    (clear-abbrev-table ert-test-abbrevs)
+    (should (abbrev-table-empty-p ert-test-abbrevs))
+    (read-abbrev-file temp-test-file)
+    (should (equal "fooBar" (abbrev-expansion "fb" ert-test-abbrevs)))
     (delete-file temp-test-file)))
 
 (ert-deftest abbrev-edit-save-to-file-test ()

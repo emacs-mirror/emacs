@@ -1714,7 +1714,13 @@ t for all Emacs integers N.
 ---
 ** Calls that accept floating-point integers (for use on hosts with
 limited integer range) now signal an error if arguments are not
-integral.  For example '(decode-char 'ascii 0.5)' now signals an error.
+integral.  For example '(decode-char 'ascii 0.5)' now signals an
+error.
+
+---
+** Functions 'string-trim-left', 'string-trim-right' and 'string-trim'
+now accept optional arguments which specify the regexp of a substring
+to trim.
 
 +++
 ** The new function 'char-from-name' converts a Unicode name string

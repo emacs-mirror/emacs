@@ -11799,7 +11799,7 @@ Uses recursion."
 @end group
 @end smallexample
 
-What happens when we call this function with a argument of 7?
+What happens when we call this function with an argument of 7?
 
 The first instance of the @code{triangle-recursively} function adds
 the number 7 to the value returned by a second instance of
@@ -20821,7 +20821,7 @@ The function @code{1+} which adds one to its argument, is executed on
 
 Contrast this with @code{apply}, which applies its first argument to
 all the remaining.
-(@xref{Readying a Graph, , Readying a Graph}, for a explanation of
+(@xref{Readying a Graph, , Readying a Graph}, for an explanation of
 @code{apply}.)
 
 @need 1250

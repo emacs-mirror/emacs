@@ -823,7 +823,7 @@
                     '("FreeMono" . "iso10646-1") nil 'prepend)
 
   ;; Since standard-fontset-spec on X uses fixed-medium font, which
-  ;; gets mapped to a iso8859-1 variant, we would like to prefer its
+  ;; gets mapped to an iso8859-1 variant, we would like to prefer its
   ;; iso10646-1 variant for symbols, where the coverage is known to be
   ;; good.
   (dolist (symbol-subgroup

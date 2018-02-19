@@ -202,7 +202,7 @@ For the meaning of the rest of the parameters, see `gnutls-boot-parameters'."
      "boot: %s" params)
 
     (when (gnutls-errorp ret)
-      ;; This is a error from the underlying C code.
+      ;; This is an error from the underlying C code.
       (signal 'gnutls-error (list process ret)))
 
     process))

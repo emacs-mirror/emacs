@@ -624,7 +624,7 @@ MIME-TYPE specifies a MIME type and parameters, which defaults to the
 value of `mm-uu-text-plain-type'."
   (let ((case-fold-search t)
 	(mm-uu-text-plain-type (or mime-type mm-uu-text-plain-type))
-	text-start start-point end-point file-name result entry func)
+	text-start start-point end-point file-name result mm-uu-entry func)
     (save-excursion
       (goto-char (point-min))
       (cond
@@ -637,26 +637,26 @@ value of `mm-uu-text-plain-type'."
       (setq text-start (point))
       (while (re-search-forward mm-uu-beginning-regexp nil t)
 	(setq start-point (match-beginning 0)
-	      entry nil)
+	      mm-uu-entry nil)
 	(let ((alist mm-uu-type-alist)
 	      (beginning-regexp (match-string 0)))
-	  (while (not entry)
+	  (while (not mm-uu-entry)
 	    (if (string-match (mm-uu-beginning-regexp (car alist))
 			      beginning-regexp)
-		(setq entry (car alist))
+		(setq mm-uu-entry (car alist))
 	      (pop alist))))
-	(if (setq func (mm-uu-function-1 entry))
+	(if (setq func (mm-uu-function-1 mm-uu-entry))
 	    (funcall func))
 	(forward-line);; in case of failure
-	(when (and (not (mm-uu-configure-p (mm-uu-type entry) 'disabled))
-		   (let ((end-regexp (mm-uu-end-regexp entry)))
+	(when (and (not (mm-uu-configure-p (mm-uu-type mm-uu-entry) 'disabled))
+		   (let ((end-regexp (mm-uu-end-regexp mm-uu-entry)))
 		     (if (not end-regexp)
 			 (or (setq end-point (point-max)) t)
 		       (prog1
 			   (re-search-forward end-regexp nil t)
 			 (forward-line)
 			 (setq end-point (point)))))
-		   (or (not (setq func (mm-uu-function-2 entry)))
+		   (or (not (setq func (mm-uu-function-2 mm-uu-entry)))
 		       (funcall func)))
 	  (if (and (> start-point text-start)
 		   (progn
@@ -675,7 +675,7 @@ value of `mm-uu-text-plain-type'."
 		mm-uu-text-plain-type)
 	       result))
 	  (push
-	   (funcall (mm-uu-function-extract entry))
+	   (funcall (mm-uu-function-extract mm-uu-entry))
 	   result)
 	  (goto-char (setq text-start end-point))))
       (when result

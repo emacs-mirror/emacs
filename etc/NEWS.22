@@ -4895,7 +4895,7 @@ described above and specifies the total height of the line, causing a
 varying number of pixels to be inserted after the line to make it line
 exactly that many pixels high.
 
-If the `line-spacing' property value is an positive integer, the value
+If the `line-spacing' property value is a positive integer, the value
 is used as additional pixels to insert after the display line; this
 overrides the default frame `line-spacing' and any buffer local value of
 the `line-spacing' variable.

@@ -1025,78 +1025,78 @@ If DRAW-HOW is `artist-do-poly':
 
 (defsubst artist-go-get-keyword (info-variant-part)
   "Retrieve the keyword component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 0))
 
 (defsubst artist-go-get-symbol (info-variant-part)
   "Retrieve the symbol component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 1))
 
 (defsubst artist-go-get-mode-line (info-variant-part)
   "Retrieve the mode line component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 2))
 
 (defsubst artist-go-get-arrow-pred (info-variant-part)
   "Retrieve the arrow predicate component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 3))
 
 (defsubst artist-go-get-arrow-set-fn (info-variant-part)
   "Retrieve the arrow set component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 4))
 
 (defsubst artist-go-get-init-fn (info-variant-part)
   "Retrieve the init function component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 5))
 
 (defsubst artist-go-get-prep-fill-fn (info-variant-part)
   "Retrieve the fill preparation function component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 6))
 
 (defsubst artist-go-get-exit-fn (info-variant-part)
   "Retrieve the exit component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 7))
 
 (defsubst artist-go-get-draw-how (info-variant-part)
   "Retrieve the draw how component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 8))
 
 (defsubst artist-go-get-draw-fn (info-variant-part)
   "Retrieve the draw function component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part."
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part."
   (elt info-variant-part 9))
 
 (defsubst artist-go-get-undraw-fn (info-variant-part)
   "Retrieve the undraw function component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part.
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
 component is other than `artist-do-continously' or 1."
   (elt (elt info-variant-part 10) 0))
 
 (defsubst artist-go-get-interval-fn (info-variant-part)
   "Retrieve the interval function component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part.
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
 component is `artist-do-continously'."
   (elt (elt info-variant-part 10) 0))
 
 (defsubst artist-go-get-fill-pred (info-variant-part)
   "Retrieve the fill predicate component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part.
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
 component is other than `artist-do-continously' or 1."
   (elt (elt info-variant-part 10) 1))
 
 (defsubst artist-go-get-fill-fn (info-variant-part)
   "Retrieve the fill function component from an INFO-VARIANT-PART.
-An INFO-VARIANT-PART is the shifted or unshifted info from a info-part.
+An INFO-VARIANT-PART is the shifted or unshifted info from an info-part.
 This interval function component is available only if the `draw-how'
 component is other than `artist-do-continously' or 1."
   (elt (elt info-variant-part 10) 2))
