@@ -3002,6 +3002,7 @@ dump_object_1 (struct dump_context *ctx, Lisp_Object object)
           break;
         case_Lisp_Int:
           eassert ("should not be dumping int: is self-representing" && 0);
+          abort ();
         default:
           emacs_abort ();
         }
