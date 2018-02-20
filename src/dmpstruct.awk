@@ -10,10 +10,10 @@ BEGIN {
   struct_name = $2
   close (tmpfile)
 }
-/^(enum|struct|union) [a-zA-Z0-9_]+([\t ]|\/\*.*\*\/)*$/, /^(|  )};$/ {
+/^(enum|struct|union) [a-zA-Z0-9_]+([\t ]|\/\*.*\*\/)*$/, /^(  )?};$/ {
   print $0 > tmpfile
 }
-/^(|  )};$/ {
+/^(  )?};$/ {
   if (struct_name != "") {
     fflush (tmpfile)
     cmd = "../lib-src/make-fingerprint -r " tmpfile
