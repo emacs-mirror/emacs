@@ -2546,10 +2546,11 @@ dump_object_start_pseudovector (
 {
   const struct Lisp_Vector *in = (const struct Lisp_Vector *) in_hdr;
   struct Lisp_Vector *out = (struct Lisp_Vector *) out_hdr;
+  ptrdiff_t vec_size = vector_nbytes ((struct Lisp_Vector *) in);
+  eassert (vec_size >= out_size);
+  eassert (vec_size - out_size <= sizeof (EMACS_INT));
 
-  eassert (vector_nbytes ((struct Lisp_Vector *) in) == out_size);
-
-  dump_object_start (ctx, GCALIGNMENT, out, out_size);
+  dump_object_start (ctx, GCALIGNMENT, out, (dump_off) vec_size);
   DUMP_FIELD_COPY (out, in, header);
   ptrdiff_t size = in->header.size;
   eassert (size & PSEUDOVECTOR_FLAG);
