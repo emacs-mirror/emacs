@@ -55,6 +55,7 @@ main (int argc, char **argv)
           break;
         case 'h':
           printf ("make-fingerprint [-r] FILES...: compute a hash\n");
+          return 0;
         default:
           return 1;
         }
