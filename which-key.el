@@ -654,6 +654,11 @@ used.")
 (defvar which-key--previous-frame-size nil)
 (defvar which-key--prefix-title-alist nil)
 (defvar which-key--debug nil)
+(defvar which-key--ignore-keys-regexp
+  (eval-when-compile
+    (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
+                  "select-window" "switch-frame" "-state"
+                  "which-key-"))))
 
 (make-obsolete-variable 'which-key-prefix-name-alist nil "2016-10-05")
 (make-obsolete-variable 'which-key-prefix-title-alist nil "2016-10-05")
@@ -1677,11 +1682,6 @@ Requires `which-key-compute-remaps' to be non-nil"
         (buffer (current-buffer))
         (ignore-bindings '("self-insert-command" "ignore"
                            "ignore-event" "company-ignore"))
-        (ignore-keys-regexp
-         (eval-when-compile
-           (regexp-opt '("mouse-" "wheel-" "remap" "drag-" "scroll-bar"
-                         "select-window" "switch-frame" "-state"
-                         "which-key-"))))
         (ignore-sections-regexp
          (eval-when-compile
            (regexp-opt '("Key translations" "Function key map translations"
@@ -1719,7 +1719,7 @@ Requires `which-key-compute-remaps' to be non-nil"
                 (save-match-data
                   (cond
                    ((member binding ignore-bindings))
-                   ((string-match-p ignore-keys-regexp key))
+                   ((string-match-p which-key--ignore-keys-regexp key))
                    ((and which-key--current-prefix
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$"
                                                key-str-qt) key))
@@ -2276,10 +2276,7 @@ Only if no keys fit fallback to LOC2."
         (which-key--show-page page-n)
         loc2))))
 
-(defun which-key-show-keymap ()
-  "Show the top-level bindings in KEYMAP using which-key. KEYMAP
-is selected interactively from all available keymaps."
-  (interactive)
+(defun which-key-show-keymap-1 (&optional all)
   (let ((keymap-sym (intern
                      (completing-read
                       "Keymap: " obarray
@@ -2290,7 +2287,14 @@ is selected interactively from all available keymaps."
                                          (make-sparse-keymap)))))
                       t nil 'which-key-keymap-history))))
     (which-key--show-keymap (symbol-name keymap-sym)
-                            (symbol-value keymap-sym))))
+                            (symbol-value keymap-sym)
+                            nil all)))
+
+(defun which-key-show-keymap ()
+  "Show the top-level bindings in KEYMAP using which-key. KEYMAP
+is selected interactively from all available keymaps."
+  (interactive)
+  (which-key-show-keymap-1))
 
 (defun which-key-show-minor-mode-keymap ()
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
