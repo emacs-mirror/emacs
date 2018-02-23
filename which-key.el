@@ -1615,7 +1615,7 @@ return the docstring."
           (t
            (format "%s %s" current docstring)))))
 
-(defun which-key--format-and-replace (unformatted)
+(defun which-key--format-and-replace (unformatted &optional preserve-full-key)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
@@ -1645,24 +1645,34 @@ alists. Returns a list (key separator description)."
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
-                  (which-key--extract-key (car key-binding)))
+                  (if preserve-full-key
+                      (car key-binding)
+                    (which-key--extract-key (car key-binding))))
                  sep-w-face
                  final-desc)
            new-list))))
     (nreverse new-list)))
 
-(defun which-key--get-keymap-bindings (keymap)
+(defun which-key--get-keymap-bindings (keymap &optional all prefix)
   "Retrieve top-level bindings from KEYMAP."
   (let (bindings)
     (map-keymap
      (lambda (ev def)
-       (cl-pushnew
-        (cons (key-description (list ev))
-              (cond ((keymapp def) "Prefix Command")
-                    ((symbolp def) (copy-sequence (symbol-name def)))
-                    ((eq 'lambda (car-safe def)) "lambda")
-                    (t (format "%s" def))))
-        bindings :test (lambda (a b) (string= (car a) (car b)))))
+       (let ((key (if prefix
+                      (concat prefix " " (key-description (list ev)))
+                    (key-description (list ev)))))
+         (unless (string-match-p which-key--ignore-keys-regexp key)
+           (if (and all (keymapp def))
+               (setq bindings
+                     (append bindings (which-key--get-keymap-bindings def t key)))
+             (cl-pushnew
+              (cons key
+                    (cond
+                     ((keymapp def) "Prefix Command")
+                     ((symbolp def) (copy-sequence (symbol-name def)))
+                     ((eq 'lambda (car-safe def)) "lambda")
+                     (t (format "%s" def))))
+              bindings :test (lambda (a b) (string= (car a) (car b))))))))
      keymap)
     bindings))
 
@@ -1748,7 +1758,7 @@ Requires `which-key-compute-remaps' to be non-nil"
           (forward-line))
         (nreverse bindings)))))
 
-(defun which-key--get-formatted-key-bindings (&optional bindings filter)
+(defun which-key--get-formatted-key-bindings (&optional bindings filter preserve-full-key)
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
   (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
@@ -1757,7 +1767,7 @@ BUFFER that follow the key sequence KEY-SEQ."
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
-    (which-key--format-and-replace unformatted)))
+    (which-key--format-and-replace unformatted preserve-full-key)))
 
 ;;; Functions for laying out which-key buffer pages
 
@@ -2296,6 +2306,12 @@ is selected interactively from all available keymaps."
   (interactive)
   (which-key-show-keymap-1))
 
+(defun which-key-show-full-keymap ()
+  "Show all bindings in KEYMAP using which-key. KEYMAP is
+selected interactively from all available keymaps."
+  (interactive)
+  (which-key-show-keymap-1 t))
+
 (defun which-key-show-minor-mode-keymap ()
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively by mode in `minor-mode-map-alist'."
@@ -2314,14 +2330,15 @@ is selected interactively by mode in `minor-mode-map-alist'."
     (which-key--show-keymap (symbol-name mode-sym)
                             (cdr (assq mode-sym minor-mode-map-alist)))))
 
-(defun which-key--show-keymap (keymap-name keymap &optional prior-args)
+(defun which-key--show-keymap (keymap-name keymap &optional prior-args all)
   (setq which-key--current-prefix nil
         which-key--current-show-keymap-name keymap-name
         which-key--using-show-keymap t)
   (when prior-args (push prior-args which-key--prior-show-keymap-args))
   (when (keymapp keymap)
     (let ((formatted-keys (which-key--get-formatted-key-bindings
-                           (which-key--get-keymap-bindings keymap))))
+                           (which-key--get-keymap-bindings keymap all)
+                           nil all)))
       (cond ((= (length formatted-keys) 0)
              (message "which-key: Keymap empty"))
             ((listp which-key-side-window-location)
