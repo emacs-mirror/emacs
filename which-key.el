@@ -2300,18 +2300,21 @@ Only if no keys fit fallback to LOC2."
                             (symbol-value keymap-sym)
                             nil all)))
 
+;;;###autoload
 (defun which-key-show-keymap ()
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively from all available keymaps."
   (interactive)
   (which-key-show-keymap-1))
 
+;;;###autoload
 (defun which-key-show-full-keymap ()
   "Show all bindings in KEYMAP using which-key. KEYMAP is
 selected interactively from all available keymaps."
   (interactive)
   (which-key-show-keymap-1 t))
 
+;;;###autoload
 (defun which-key-show-minor-mode-keymap ()
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively by mode in `minor-mode-map-alist'."
