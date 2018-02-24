@@ -1656,7 +1656,7 @@ alists. Returns a list (key separator description)."
 (defun which-key--get-keymap-bindings (keymap &optional all prefix)
   "Retrieve top-level bindings from KEYMAP.
 If ALL is non-nil, get all bindings, not just the top-level
-one. PREFIX is for internal use and should not be used."
+ones. PREFIX is for internal use and should not be used."
   (let (bindings)
     (map-keymap
      (lambda (ev def)
