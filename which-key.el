@@ -1658,15 +1658,14 @@ alists. Returns a list (key separator description)."
   (let (bindings)
     (map-keymap
      (lambda (ev def)
-       (let ((key (if prefix
-                      (concat prefix " " (key-description (list ev)))
-                    (key-description (list ev)))))
-         (unless (string-match-p which-key--ignore-keys-regexp key)
+       (let* ((key (append prefix (list ev)))
+              (key-desc (key-description key)))
+         (unless (string-match-p which-key--ignore-keys-regexp key-desc)
            (if (and all (keymapp def))
                (setq bindings
                      (append bindings (which-key--get-keymap-bindings def t key)))
              (cl-pushnew
-              (cons key
+              (cons key-desc
                     (cond
                      ((keymapp def) "Prefix Command")
                      ((symbolp def) (copy-sequence (symbol-name def)))
