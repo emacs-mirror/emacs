@@ -1654,7 +1654,9 @@ alists. Returns a list (key separator description)."
     (nreverse new-list)))
 
 (defun which-key--get-keymap-bindings (keymap &optional all prefix)
-  "Retrieve top-level bindings from KEYMAP."
+  "Retrieve top-level bindings from KEYMAP.
+If ALL is non-nil, get all bindings, not just the top-level
+one. PREFIX is for internal use and should not be used."
   (let (bindings)
     (map-keymap
      (lambda (ev def)
@@ -1663,7 +1665,8 @@ alists. Returns a list (key separator description)."
          (unless (string-match-p which-key--ignore-keys-regexp key-desc)
            (if (and all (keymapp def))
                (setq bindings
-                     (append bindings (which-key--get-keymap-bindings def t key)))
+                     (append bindings
+                             (which-key--get-keymap-bindings def t key)))
              (cl-pushnew
               (cons key-desc
                     (cond
