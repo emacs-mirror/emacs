@@ -109,7 +109,7 @@ group, which contains several other groups (@samp{Editing},
 listed here, only one line of documentation each.
 
   The @dfn{state} of the group indicates whether setting in that group
-has been edited, set or saved.  @xref{Changing a Variable}.
+has been edited, set, or saved.  @xref{Changing a Variable}.
 
 @cindex editable fields (customization buffer)
 @cindex buttons (customization buffer)
@@ -168,7 +168,7 @@ search field, except that it reads the search term(s) using the
 minibuffer.  @xref{Specific Customization}.
 
   @kbd{M-x customize-browse} is another way to browse the available
-settings.  This command creates a special customization buffer which
+settings.  This command creates a special customization buffer, which
 shows only the names of groups and settings, in a structured layout.
 You can show the contents of a group, in the same buffer, by invoking
 the @samp{[+]} button next to the group name.  When the group contents
@@ -580,7 +580,7 @@ directory specified by the variable @code{custom-theme-directory}
 (which defaults to @file{~/.emacs.d/}), and a directory named
 @file{etc/themes} in your Emacs installation (see the variable
 @code{data-directory}).  The latter contains several Custom themes
-which are distributed with Emacs, which customize Emacs's faces to fit
+distributed with Emacs that customize Emacs's faces to fit
 various color schemes.  (Note, however, that Custom themes need not be
 restricted to this purpose; they can be used to customize variables
 too.)
@@ -663,7 +663,7 @@ to insert some common Emacs faces into the theme (a convenience, since
 Custom themes are often used to customize faces).  If you answer no,
 the theme will initially contain no settings.
 
-  Near the top of the @file{*Custom Theme*} buffer are editable fields
+  Near the top of the @file{*Custom Theme*} buffer, there are editable fields
 where you can enter the theme's name and description.  The name can be
 anything except @samp{user}.  The description is the one that will be
 shown when you invoke @kbd{M-x describe-theme} for the theme.  Its
@@ -1427,7 +1427,7 @@ of lower-case letters and hyphens.
 
   A @dfn{key sequence} (@dfn{key}, for short) is a sequence of
 @dfn{input events} that have a meaning as a unit.  Input events
-include characters, function keys and mouse buttons---all the inputs
+include characters, function keys, and mouse buttons---all the inputs
 that you can send to the computer.  A key sequence gets its meaning
 from its @dfn{binding}, which says what command it runs.
 
@@ -1460,7 +1460,7 @@ can even mix mouse events with keyboard events, such as
 @kbd{S-down-mouse-1}.
 
   On text terminals, typing a function key actually sends the computer
-a sequence of characters; the precise details of the sequence depends
+a sequence of characters; the precise details of the sequence depend
 on the function key and on the terminal type.  (Often the sequence
 starts with @kbd{@key{ESC} [}.)  If Emacs understands your terminal
 type properly, it automatically handles such sequences as single input
@@ -1484,7 +1484,7 @@ the same, but it provides a command name for the prefix key that can be
 used as a description of what the prefix key is for.  Thus, the binding
 of @kbd{C-x} is the symbol @code{Control-X-prefix}, whose function
 definition is the keymap for @kbd{C-x} commands.  The definitions of
-@kbd{C-c}, @kbd{C-x}, @kbd{C-h} and @key{ESC} as prefix keys appear in
+@kbd{C-c}, @kbd{C-x}, @kbd{C-h}, and @key{ESC} as prefix keys appear in
 the global map, so these prefix keys are always available.
 
   Aside from ordinary prefix keys, there is a fictitious ``prefix key''
@@ -1669,6 +1669,8 @@ command is less work to invoke when you really want to.
 @node Init Rebinding
 @subsection Rebinding Keys in Your Init File
 @cindex rebinding major mode keys
+@cindex key rebinding, permanent
+@cindex rebinding keys, permanently
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
 
@@ -1795,7 +1797,7 @@ could make @kbd{M-a} and @kbd{M-A} run different commands.
 
   Although only the @key{Control} and @key{META} modifier keys are
 commonly used, Emacs supports three other modifier keys.  These are
-called @key{Super}, @key{Hyper} and @key{Alt}.  Few terminals provide
+called @key{Super}, @key{Hyper}, and @key{Alt}.  Few terminals provide
 ways to use these modifiers; the key labeled @key{Alt} on most
 keyboards usually issues the @key{META} modifier, not @key{Alt}.  The
 standard key bindings in Emacs do not include any characters with
@@ -1856,7 +1858,7 @@ key.
   @xref{Init Rebinding}, for examples of binding function keys.
 
 @cindex keypad
-  Many keyboards have a numeric keypad on the right hand side.
+  Many keyboards have a numeric keypad on the right-hand side.
 The numeric keys in the keypad double up as cursor motion keys,
 toggled by a key labeled @samp{Num Lock}.  By default, Emacs
 translates these keys to the corresponding keys on the main keyboard.
@@ -1882,7 +1884,7 @@ prefix arguments.
 @node Named ASCII Chars
 @subsection Named @acronym{ASCII} Control Characters
 
-  @key{TAB}, @key{RET}, @key{BS}, @key{LFD}, @key{ESC} and @key{DEL}
+  @key{TAB}, @key{RET}, @key{BS}, @key{LFD}, @key{ESC}, and @key{DEL}
 started out as names for certain @acronym{ASCII} control characters,
 used so often that they have special keys of their own.  For instance,
 @key{TAB} was another name for @kbd{C-i}.  Later, users found it
@@ -1999,7 +2001,7 @@ units of 1/8 of a character cell on text-mode terminals; the default is
 
   The symbols for mouse events also indicate the status of the modifier
 keys, with the usual prefixes @samp{C-}, @samp{M-}, @samp{H-},
-@samp{s-}, @samp{A-} and @samp{S-}.  These always precede @samp{double-}
+@samp{s-}, @samp{A-}, and @samp{S-}.  These always precede @samp{double-}
 or @samp{triple-}, which always precede @samp{drag-} or @samp{down-}.
 
   A frame includes areas that don't show text from the buffer, such as
@@ -2099,8 +2101,6 @@ as a function from Lisp programs.
 @cindex .emacs file
 @cindex ~/.emacs file
 @cindex Emacs initialization file
-@cindex key rebinding, permanent
-@cindex rebinding keys, permanently
 @cindex startup (init file)
 
   When Emacs is started, it normally tries to load a Lisp program from
@@ -2311,7 +2311,7 @@ name.
 
 @need 1500
 @item
-Set up defaults for the Latin-1 character set
+Set up defaults for the Latin-1 character set,
 which supports most of the languages of Western Europe.
 
 @example

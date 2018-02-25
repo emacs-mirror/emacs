@@ -2271,8 +2271,8 @@ function chain of symbols.  */)
 /* Extract and set vector and string elements.  */
 
 DEFUN ("aref", Faref, Saref, 2, 2, 0,
-       doc: /* Return the element of ARG at index IDX.
-ARG may be a vector, a string, a char-table, a bool-vector, a record,
+       doc: /* Return the element of ARRAY at index IDX.
+ARRAY may be a vector, a string, a char-table, a bool-vector, a record,
 or a byte-code object.  IDX starts at 0.  */)
   (register Lisp_Object array, Lisp_Object idx)
 {

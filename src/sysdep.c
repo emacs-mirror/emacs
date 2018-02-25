@@ -2577,6 +2577,14 @@ emacs_intr_read (int fd, void *buf, ptrdiff_t nbyte, bool interruptible)
 
   /* There is no need to check against MAX_RW_COUNT, since no caller ever
      passes a size that large to emacs_read.  */
+#ifdef WINDOWSNT
+  /* On MS-Windows, 'read's last argument is declared as 'unsigned
+     int', and the return value's type (see 'sys_read') is 'int'.
+     This might cause trouble, especially in 64-bit builds, if the
+     above comment ever becomes incorrect.  The following assertion
+     should make us more future-proof.  */
+  eassert (nbyte <= INT_MAX);
+#endif
   do
     {
       if (interruptible)

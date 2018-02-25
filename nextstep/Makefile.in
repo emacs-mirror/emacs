@@ -76,7 +76,7 @@ links: ../src/emacs${EXEEXT}
 	for d in $(shell cd ${srcdir}/${ns_appsrc}; find . -type d); do ${MKDIR_P} ${ns_appdir}/$$d; done
 	for f in $(shell cd ${srcdir}/${ns_appsrc}; find . -type f); do ln -s $(shell cd ${srcdir}; pwd -P)/${ns_appsrc}/$$f ${ns_appdir}/$$f; done
 	for d in $(shell cd ${ns_appsrc}; find . -type d); do ${MKDIR_P} ${ns_appdir}/$$d; done
-	for f in $(shell cd ${ns_appsrc}; find . -type f); do ln -s $(shell cd ${ns_appsrc}; pwd -P)/$$f ${ns_appdir}/$$f; done
+	for f in $(shell cd ${ns_appsrc}; find . -type f); do rm -f ${ns_appdir}/$$f; ln -s $(shell cd ${ns_appsrc}; pwd -P)/$$f ${ns_appdir}/$$f; done
 	ln -s $(top_srcdir_abs)/lisp ${ns_appdir}/Contents/Resources
 	ln -s $(top_srcdir_abs)/info ${ns_appdir}/Contents/Resources
 	${MKDIR_P} ${ns_appbindir}

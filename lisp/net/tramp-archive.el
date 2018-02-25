@@ -68,6 +68,7 @@
 ;; * ".tar", "tbz", "tgz", "tlz", "txz" - (Compressed) tape archives
 ;; * ".warc" - Web archives
 ;; * ".xar" - macOS XAR archives
+;; * ".xpi" - XPInstall Mozilla addons
 ;; * ".xps" - Open XML Paper Specification (OpenXPS) documents
 ;; * ".zip", ".ZIP" - ZIP archives
 
@@ -146,6 +147,7 @@
     "tar" "tbz" "tgz" "tlz" "txz" ;; (Compressed) tape archives.
     "warc" ;; Web archives.
     "xar" ;; macOS XAR archives.  Not in libarchive testsuite.
+    "xpi" ;; XPInstall Mozilla addons.  Not in libarchive testsuite.
     "xps" ;; Open XML Paper Specification (OpenXPS) documents.
     "zip" "ZIP") ;; ZIP archives.
   "List of suffixes which indicate a file archive.

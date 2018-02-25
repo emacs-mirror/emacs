@@ -72,18 +72,24 @@ use in later sessions.
 @item C-x a g
 Define an abbrev, using one or more words before point as its expansion
 (@code{add-global-abbrev}).
+
 @item C-x a l
 Similar, but define an abbrev specific to the current major mode
 (@code{add-mode-abbrev}).
+
 @item C-x a i g
 Define a word in the buffer as an abbrev (@code{inverse-add-global-abbrev}).
+
 @item C-x a i l
 Define a word in the buffer as a mode-specific abbrev
 (@code{inverse-add-mode-abbrev}).
+
 @item M-x define-global-abbrev @key{RET} @var{abbrev} @key{RET} @var{exp} @key{RET}
 Define @var{abbrev} as an abbrev expanding into @var{exp}.
+
 @item M-x define-mode-abbrev @key{RET} @var{abbrev} @key{RET} @var{exp} @key{RET}
 Define @var{abbrev} as a mode-specific abbrev expanding into @var{exp}.
+
 @item M-x kill-all-abbrevs
 Discard all abbrev definitions, leaving a blank slate.
 @end table
@@ -160,10 +166,16 @@ to @samp{FIND OUTER OTTER}.
 @item M-'
 Separate a prefix from a following abbrev to be expanded
 (@code{abbrev-prefix-mark}).
+
 @item C-x a e
 @findex expand-abbrev
 Expand the abbrev before point (@code{expand-abbrev}).
 This is effective even when Abbrev mode is not enabled.
+
+@item M-x unexpand-abbrev
+@findex unexpand-abbrev
+Undo the expansion of the last expanded abbrev.
+
 @item M-x expand-region-abbrevs
 Expand some or all abbrevs found in the region.
 @end table
@@ -188,7 +200,6 @@ its expansion, you can accomplish this by inserting the following
 punctuation with @kbd{C-q}.  Thus, @kbd{foo C-q ,} leaves @samp{foo,} in
 the buffer, not expanding it.
 
-@findex unexpand-abbrev
   If you expand an abbrev by mistake, you can undo the expansion by
 typing @kbd{C-/} (@code{undo}).  @xref{Undo}.  This undoes the
 insertion of the abbrev expansion and brings back the abbrev text.  If
@@ -219,6 +230,7 @@ Reference Manual}.
 @item M-x list-abbrevs
 Display a list of all abbrev definitions.  With a numeric argument, list
 only local abbrevs.
+
 @item M-x edit-abbrevs
 Edit a list of abbrevs; you can add, alter or remove definitions.
 @end table
@@ -278,10 +290,13 @@ sessions.
 @table @kbd
 @item M-x write-abbrev-file @key{RET} @var{file} @key{RET}
 Write a file @var{file} describing all defined abbrevs.
+
 @item M-x read-abbrev-file @key{RET} @var{file} @key{RET}
 Read the file @var{file} and define abbrevs as specified therein.
+
 @item M-x define-abbrevs
 Define abbrevs from definitions in current buffer.
+
 @item M-x insert-abbrevs
 Insert all abbrevs and their expansions into current buffer.
 @end table

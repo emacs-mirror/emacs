@@ -2245,12 +2245,12 @@ Some older versions of Cygwin's @command{ssh} work with the
 @option{sshx} access method.  Consult Cygwin's FAQ at
 @uref{https://cygwin.com/faq/} for details.
 
-@cindex cygwin and fakecygpty
-@cindex fakecygpty and cygwin
+@cindex cygwin and @command{fakecygpty}
+@cindex @command{fakecygpty} and cygwin
 
 On @uref{https://www.emacswiki.org/emacs/SshWithNTEmacs, the Emacs
-Wiki} it is explained how to use the helper program @code{fakecygpty}
-to fix this problem.
+Wiki} it is explained how to use the helper program
+@command{fakecygpty} to fix this problem.
 
 @cindex method @option{scpx} with cygwin
 @cindex @option{scpx} method with cygwin
@@ -2264,7 +2264,7 @@ for a host named @code{c}.
 A workaround: write a wrapper script for @option{scp} to convert
 Windows file names to Cygwin file names.
 
-@cindex cygwin and ssh-agent
+@cindex cygwin and @command{ssh-agent}
 @cindex @env{SSH_AUTH_SOCK} and emacs on ms windows
 
 When using the @command{ssh-agent} on MS Windows for password-less
@@ -3094,6 +3094,11 @@ Web archives
 macOS XAR archives
 @cindex @file{xar} file archive suffix
 @cindex file archive suffix @file{xar}
+
+@item @samp{.xpi} ---
+XPInstall Mozilla addons
+@cindex @file{xpi} file archive suffix
+@cindex file archive suffix @file{xpi}
 
 @item @samp{.xps} ---
 Open XML Paper Specification (OpenXPS) documents

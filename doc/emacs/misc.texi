@@ -2475,7 +2475,7 @@ seconds, if that is non-@code{nil} and non-zero.
   If you turn on @code{desktop-save-mode} in your init file, then when
 Emacs starts, it looks for a saved desktop in the current directory.
 (More precisely, it looks in the directories specified by
-@var{desktop-path}, and uses the first desktop it finds.)
+@code{desktop-path}, and uses the first desktop it finds.)
 Thus, you can have separate saved desktops in different directories,
 and the starting directory determines which one Emacs reloads.  You
 can save the current desktop and reload one saved in another directory

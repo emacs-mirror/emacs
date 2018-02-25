@@ -778,12 +778,12 @@ lines).
 
   You can use a numeric argument before a self-inserting character to
 insert multiple copies of it.  This is straightforward when the
-character is not a digit; for example, @kbd{C-u 6 4 a} inserts 64
+character is not a digit; for example, @w{@kbd{C-u 6 4 a}} inserts 64
 copies of the character @samp{a}.  But this does not work for
-inserting digits; @kbd{C-u 6 4 1} specifies an argument of 641.  You
-can separate the argument from the digit to insert with another
-@kbd{C-u}; for example, @kbd{C-u 6 4 C-u 1} does insert 64 copies of
-the character @samp{1}.
+inserting digits; @w{@kbd{C-u 6 4 1}} specifies an argument of 641.
+You can separate the argument from the digit to insert with another
+@kbd{C-u}; for example, @w{@kbd{C-u 6 4 C-u 1}} does insert 64 copies
+of the character @samp{1}.
 
   Some commands care whether there is an argument, but ignore its
 value.  For example, the command @kbd{M-q} (@code{fill-paragraph})
@@ -822,7 +822,7 @@ invoking the command.
 @cindex repeating a command
 
   Many simple commands, such as those invoked with a single key or
-with @kbd{M-x @var{command-name} @key{RET}}, can be repeated by
+with @w{@kbd{M-x @var{command-name} @key{RET}}}, can be repeated by
 invoking them with a numeric argument that serves as a repeat count
 (@pxref{Arguments}).  However, if the command you want to repeat
 prompts for input, or uses a numeric argument in another way, that

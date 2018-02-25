@@ -1611,7 +1611,7 @@ To change this, customize @code{change-log-directory-files}.
 
 @vindex add-log-keep-changes-together
   When the variable @code{add-log-keep-changes-together} is
-non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
+non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file,
 rather than starting a new item.
 
 You can combine multiple changes of the same nature.  If you don't
@@ -1827,7 +1827,7 @@ If the specified identifier has only one definition, the command jumps
 to it.  If the identifier has more than one possible definition (e.g.,
 in an object-oriented language, or if there's a function and a
 variable by the same name), the command shows the candidate
-definitions in a @file{*xref*} buffer, together with the files in
+definitions in the @file{*xref*} buffer, together with the files in
 which these definitions are found.  Selecting one of these candidates
 by typing @kbd{@key{RET}} or clicking @kbd{mouse-2} will pop a buffer
 showing the corresponding definition.
@@ -1883,28 +1883,34 @@ the special XREF mode:
 @item @key{RET}
 @itemx mouse-2
 Display the reference on the current line.
+
 @item n
 @itemx .
 @findex xref-next-line
 Move to the next reference and display it in the other window
 (@code{xref-next-line}).
+
 @item p
 @itemx ,
 @findex xref-prev-line
 Move to the previous reference and display it in the other window
 (@code{xref-prev-line}).
+
 @item C-o
 @findex xref-show-location-at-point
 Display the reference on the current line in the other window
 (@code{xref-show-location-at-point}).
+
 @item @key{TAB}
 @findex xref-quit-and-goto-xref
 Display the reference on the current line and bury the @file{*xref*}
 buffer (@code{xref-quit-and-goto-xref}).
+
 @item r @var{pattern} @key{RET} @var{replacement} @key{RET}
 Perform interactive query-replace on references that match
 @var{pattern} (@code{xref-query-replace-in-results}), replacing
 the match with @var{replacement}.  @xref{Identifier Search}.
+
 @findex xref-quit
 @item q
 Quit the window showing the @file{*xref*} buffer (@code{xref-quit}).
@@ -1926,14 +1932,18 @@ them.
 @table @kbd
 @item M-?
 Find all the references for the identifier at point.
+
 @item M-x xref-query-replace-in-results @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Interactively replace @var{regexp} with @var{replacement} in the names
 of all the identifiers shown in the @file{*xref*} buffer.
+
 @item M-x tags-search @key{RET} @var{regexp} @key{RET}
 Search for @var{regexp} through the files in the selected tags
 table.
+
 @item M-x tags-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Perform a @code{query-replace-regexp} on each file in the selected tags table.
+
 @item M-x tags-loop-continue
 Restart one of the last 2 commands above, from the current location of point.
 @end table
@@ -1943,7 +1953,7 @@ Restart one of the last 2 commands above, from the current location of point.
   @kbd{M-?} finds all the references for the identifier at point.  If
 there's no identifier at point, or when invoked with a prefix
 argument, the command prompts for the identifier, with completion.  It
-then presents a @file{*xref*} buffer with all the references to the
+then presents the @file{*xref*} buffer with all the references to the
 identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see
 @ref{Xref Commands}.
@@ -1967,7 +1977,7 @@ available (@pxref{Tags Tables}).
 
 @findex tags-loop-continue
   Having found one match with @code{tags-search}, you probably want to
-find all the rest.  Type @kbd{M-x tags-loop-continue} to resume the
+find all the rest.  @kbd{M-x tags-loop-continue} resumes the
 @code{tags-search}, finding one more match.  This searches the rest of
 the current buffer, followed by the remaining files of the tags table.
 
@@ -2017,11 +2027,14 @@ Searching}.
 @itemx M-@key{TAB}
 Perform completion on the text around point, possibly using the
 selected tags table if one is loaded (@code{completion-at-point}).
+
 @item M-x xref-find-apropos @key{RET} @var{regexp} @key{RET}
 Display a list of all known identifiers matching @var{regexp}.
+
 @item M-x list-tags @key{RET} @var{file} @key{RET}
 Display a list of the identifiers defined in the program file
 @var{file}.
+
 @item M-x next-file
 Visit files recorded in the selected tags table.
 @end table
@@ -2435,11 +2448,12 @@ matches at the beginning of a line.  If you want to allow indented
 tags, use a regexp that matches initial whitespace; start it with
 @samp{[ \t]*}.
 
-  In these regular expressions, @samp{\} quotes the next character, and
-all the GCC character escape sequences are supported (@samp{\a} for
-bell, @samp{\b} for back space, @samp{\d} for delete, @samp{\e} for
-escape, @samp{\f} for formfeed, @samp{\n} for newline, @samp{\r} for
-carriage return, @samp{\t} for tab, and @samp{\v} for vertical tab).
+  In these regular expressions, @samp{\} quotes the next character,
+and all the C character escape sequences are supported: @samp{\a} for
+bell, @samp{\b} for back space, @samp{\e} for escape, @samp{\f} for
+formfeed, @samp{\n} for newline, @samp{\r} for carriage return,
+@samp{\t} for tab, and @samp{\v} for vertical tab.  In addition,
+@samp{\d} stands for the @code{DEL} character.
 
   Ideally, @var{tagregexp} should not match more characters than are
 needed to recognize what you want to tag.  If the syntax requires you
@@ -2607,13 +2621,13 @@ current list, it is used @emph{as well as} the others.
 @example
 @group
 (setq tags-table-list
-      '("~/emacs" "/usr/local/lib/emacs/src"))
+      '("~/.emacs.d" "/usr/local/lib/emacs/src"))
 @end group
 @end example
 
 @noindent
 This tells the tags commands to look at the @file{TAGS} files in your
-@file{~/emacs} directory and in the @file{/usr/local/lib/emacs/src}
+@file{~/.emacs.d} directory and in the @file{/usr/local/lib/emacs/src}
 directory.  The order depends on which file you are in and which tags
 table mentions that file.
 
