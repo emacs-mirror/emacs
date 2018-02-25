@@ -2600,6 +2600,7 @@ hash_table_contents (Lisp_Object table)
 static void
 check_hash_table_rehash (Lisp_Object table_orig)
 {
+  hash_rehash_if_needed (XHASH_TABLE (table_orig));
   Lisp_Object table_rehashed = Fcopy_hash_table (table_orig);
   eassert (XHASH_TABLE (table_rehashed)->count >= 0);
   XHASH_TABLE (table_rehashed)->count *= -1;
