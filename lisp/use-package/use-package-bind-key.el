@@ -87,12 +87,14 @@ deferred until the prefix key sequence is pressed."
          ;;   :prefix STRING
          ;;   :filter SEXP
          ;;   :menu-name STRING
+         ;;   :package SYMBOL
          ((or (and (eq x :map) (symbolp (cadr arg)))
               (and (eq x :prefix) (stringp (cadr arg)))
               (and (eq x :prefix-map) (symbolp (cadr arg)))
               (and (eq x :prefix-docstring) (stringp (cadr arg)))
               (eq x :filter)
-              (and (eq x :menu-name) (stringp (cadr arg))))
+              (and (eq x :menu-name) (stringp (cadr arg)))
+              (and (eq x :package) (symbolp (cadr arg))))
           (setq args* (nconc args* (list x (cadr arg))))
           (setq arg (cddr arg)))
          ((listp x)
