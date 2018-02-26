@@ -311,23 +311,86 @@ this option's value should be 'yes', 'no', 'alsa', 'oss', or 'bsd-ossaudio'.])
   ],
   [with_sound=$with_features])
 
-OPTION_DEFAULT_ON([pdumper], [don't compile with portable dumper support])
-if test "$with_pdumper" = "yes"; then
-    AC_DEFINE(HAVE_PDUMPER, 1, [Define to build with portable dumper support])
-fi
+AC_ARG_WITH([pdumper],
+  AS_HELP_STRING(
+    [--with-pdumper=VALUE],
+    [enable pdumper support unconditionally
+      ('yes', 'no', or 'auto': default 'auto')]),
+    [ case "${withval}" in
+        yes|no|auto) val=$withval ;;
+        *) AC_MSG_ERROR(
+           ['--with-pdumper=$withval' is invalid;
+this option's value should be 'yes' or 'no'.]) ;;
+      esac
+      with_pdumper=$val
+    ],
+    [with_pdumper=auto])
+
+AC_ARG_WITH([unexec],
+  AS_HELP_STRING(
+    [--with-unexec=VALUE],
+    [enable unexec support unconditionally
+      ('yes', 'no', or 'auto': default 'auto')]),
+    [ case "${withval}" in
+        yes|no|auto) val=$withval ;;
+        *) AC_MSG_ERROR(
+           ['--with-unexec=$withval' is invalid;
+this option's value should be 'yes' or 'no'.]) ;;
+      esac
+      with_unexec=$val
+    ],
+    [with_unexec=auto])
 
 AC_ARG_WITH([dumping],[AS_HELP_STRING([--with-dumping=VALUE],
     [kind of dumping to use for initial Emacs build
-(VALUE one of: pdumper, unexec, no; default pdumper)])],
+(VALUE one of: pdumper, unexec, none; default pdumper)])],
     [ case "${withval}" in
-        pdumper|unexec|no) val=$withval ;;
+        pdumper|unexec|none) val=$withval ;;
         *) AC_MSG_ERROR(['--with-dumping=$withval is invalid;
-this option's value should be 'pdumper', 'unexec', or 'no'.])
+this option's value should be 'pdumper', 'unexec', or 'none'.])
         ;;
       esac
       with_dumping=$val
     ],
     [with_dumping=pdumper])
+
+if test "$with_pdumper" = "auto"; then
+  if test "$with_dumping" = "pdumper"; then
+    with_pdumper=yes
+  else
+    with_pdumper=no
+  fi
+fi
+
+if test "$with_unexec" = "auto"; then
+  if test "$with_dumping" = "unexec"; then
+    with_unexec=yes
+  else
+    with_unexec=no
+  fi
+fi
+
+if test "$with_dumping" = "pdumper" && test "$with_pdumper" = "no"; then
+  AC_MSG_ERROR(['--with-dumping=pdumper' requires pdumper support])
+fi
+
+if test "$with_dumping" = "unexec" && test "$with_unexec" = "no"; then
+  AC_MSG_ERROR(['--with-dumping=unexec' requires unexec support])
+fi
+
+if test "$with_pdumper" = "yes"; then
+    AC_DEFINE(HAVE_PDUMPER, 1, [Define to build with portable dumper support])
+fi
+
+if test "$with_unexec" = "yes"; then
+  CANNOT_DUMP=no
+else
+  CANNOT_DUMP=yes
+fi
+
+DUMPING=$with_dumping
+AC_SUBST(DUMPING)
+AC_SUBST(CANNOT_DUMP)
 
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
@@ -1226,30 +1289,9 @@ AC_PATH_PROG(GZIP_PROG, gzip)
 test $with_compress_install != yes && test -n "$GZIP_PROG" && \
    GZIP_PROG=" # $GZIP_PROG # (disabled by configure --without-compress-install)"
 
-if test -n "$CANNOT_DUMP" && test "$with_dumping" = "unexec"; then
-  with_dumping=no
-fi
-
 if test "$with_dumping" = "unexec" && test "$opsys" = "nacl"; then
   AC_MSG_ERROR([nacl is not compatible with --with-dumping=unexec])
 fi
-
-if test "$with_dumping" != "unexec"; then
-  CANNOT_DUMP=yes
-fi
-
-if test -n "$CANNOT_DUMP"; then
-  if test "$with_dumping" = "unexec"; then
-    AC_MSG_ERROR([CANNOT_DUMP is incompatible with --with-dumping=unexec])
-  fi
-  CANNOT_DUMP=yes
-else
-  CANNOT_DUMP=no
-fi
-
-DUMPING=$with_dumping
-AC_SUBST(DUMPING)
-AC_SUBST(CANNOT_DUMP)
 
 AC_CACHE_CHECK([for 'find' args to delete a file],
   [emacs_cv_find_delete],
@@ -1419,7 +1461,7 @@ AC_CACHE_CHECK([whether addresses are sanitized],
      [emacs_cv_sanitize_address=no])])
 
 if test "$CANNOT_DUMP" = "yes"; then
-  AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
+  AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs should not support unexec.])
 elif test "$emacs_cv_sanitize_address" = yes; then
   AC_MSG_WARN([[Addresses are sanitized; suggest CANNOT_DUMP=yes]])
 fi
@@ -5511,6 +5553,8 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}
   Does Emacs support Xwidgets (requires gtk3)?            ${HAVE_XWIDGETS}
   Does Emacs have threading support in lisp?              ${threads_enabled}
+  Does Emacs support the portable dumper?                 ${with_pdumper}
+  Does Emacs support legacy unexec dumping?               ${with_unexec}
   Which dumping strategy does Emacs use?                  ${with_dumping}
 "])
 

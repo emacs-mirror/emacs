@@ -190,9 +190,6 @@ alloc_unexec_pre (void)
   if (!malloc_state_ptr)
     fatal ("malloc_get_state: %s", strerror (errno));
 # endif
-# ifdef HYBRID_MALLOC
-  bss_sbrk_did_unexec = true;
-# endif
 }
 
 void
@@ -200,9 +197,6 @@ alloc_unexec_post (void)
 {
 # ifdef DOUG_LEA_MALLOC
   free (malloc_state_ptr);
-# endif
-# ifdef HYBRID_MALLOC
-  bss_sbrk_did_unexec = false;
 # endif
 }
 #endif

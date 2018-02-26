@@ -553,9 +553,9 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
                 $(lispsource)/international/charprop.el ${charsets}
 ifeq ($(DUMPING),pdumper)
 	cp -f temacs$(EXEEXT) $@
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup pdump
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump
 else ifeq ($(DUMPING),unexec)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
 ifneq ($(PAXCTL_dumped),)
 	      $(PAXCTL_dumped) $@
 endif
@@ -779,9 +779,9 @@ bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp): temacs$(EXEEXT)
 ifeq ($(DUMPING),pdumper)
 	rm -f $(bootstrap_pdmp)
 	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup pbootstrap
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap
 else ifeq ($(DUMPING),unexec)
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=bootstrap
   ifneq ($(PAXCTL_dumped),)
 	$(PAXCTL_dumped) emacs$(EXEEXT)
   endif

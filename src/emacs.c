@@ -642,6 +642,43 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
     }
 }
 
+static bool
+string_starts_with_p (const char* string, const char* prefix)
+{
+    return strncmp (string, prefix, strlen (prefix)) == 0;
+}
+
+/* Return the value of GNU-style long argument ARGUMENT if given on
+   command line. ARGUMENT must begin with "-". If ARGUMENT is not
+   given, return NULL.  */
+static char *
+find_argument (const char *argument, int argc, char **argv)
+{
+  char *found = NULL;
+  int i;
+
+  eassert (argument[0] == '-');
+
+  for (i = 1; i < argc; ++i)
+    if (string_starts_with_p (argv[i], argument) &&
+        ((argv[i] + strlen (argument))[0] == '=' ||
+         (argv[i] + strlen (argument))[0] == '\0'))
+      {
+        int j = i;
+        found = argv[j++] + strlen (argument);
+        if (*found == '=')
+          ++found;
+        else if (i < argc)
+          found = argv[j++];
+        else
+          fatal ("no argument given for %s", argument);
+        break;
+      }
+    else if (strcmp (argv[i], "--") == 0)
+      break;
+  return found;
+}
+
 /* Close standard output and standard error, reporting any write
    errors as best we can.  This is intended for use with atexit.  */
 static void
@@ -660,55 +697,7 @@ close_output_streams (void)
     _exit (EXIT_FAILURE);
 }
 
-ATTRIBUTE_UNUSED
-static bool
-string_starts_with_p (const char* string, const char* prefix)
-{
-    return strncmp (string, prefix, strlen (prefix)) == 0;
-}
-
 #ifdef HAVE_PDUMPER
-
-#define DUMP_FILE_ARGUMENT "--dump-file"
-
-static char *
-find_and_remove_dump_file_argument (int *inout_argc, char ***inout_argv)
-{
-  int argc = *inout_argc;
-  char **argv = *inout_argv;
-  char *found = NULL;
-  int i;
-
-  for (i = 1; i < argc; ++i)
-    if (string_starts_with_p (argv[i], DUMP_FILE_ARGUMENT) &&
-        ((argv[i] + strlen (DUMP_FILE_ARGUMENT))[0] == '=' ||
-         (argv[i] + strlen (DUMP_FILE_ARGUMENT))[0] == '\0'))
-      {
-        int j = i;
-        found = argv[j++] + strlen (DUMP_FILE_ARGUMENT);
-        if (*found == '=')
-          ++found;
-        else if (i < argc)
-          found = argv[j++];
-        else
-          {
-            fprintf (stderr, "%s: no argument given for %s\n",
-                       argv[0], DUMP_FILE_ARGUMENT);
-            exit (1);
-          }
-
-        memmove (&argv[i], &argv[j], sizeof (*argv) * (argc - j));
-        argc -= (j - i);
-        argv[argc] = NULL;
-        break;
-      }
-    else if (strcmp (argv[i], "--") == 0)
-      break;
-
-  *inout_argc = argc;
-  *inout_argv = argv;
-  return found;
-}
 
 static const char *
 dump_error_to_string (enum pdumper_load_result result)
@@ -732,33 +721,27 @@ dump_error_to_string (enum pdumper_load_result result)
     }
 }
 
+#define PDUMP_FILE_ARG "--dump-file"
+
 static enum pdumper_load_result
-load_dump (int *inout_argc,
-           char ***inout_argv,
-           const char *argv0_base,
-           const char** out_dump_file)
+load_pdump (int argc, char **argv, const char** out_dump_file)
 {
-  int argc = *inout_argc;
-  char **argv = *inout_argv;
-  const char *suffix = ".pdmp";
+  const char *const suffix = ".pdmp";
+  const char *const argv0_base = "emacs";
   enum pdumper_load_result result;
 #ifdef WINDOWSNT
   size_t argv0_len;
 #endif
 
+  /* TODO: maybe more thoroughly scrub process environment in order to
+     make this use case possible?  Right now, we assume that things we
+     don't touch are zero-initialized, and in an unexeced Emacs, this
+     assumption doesn't hold.  */
+  eassert (!initialized);
+
   /* Look for an explicitly-specified dump file.  */
-
   const char *path_exec = PATH_EXEC;
-  char *dump_file = find_and_remove_dump_file_argument (&argc, &argv);
-  if (initialized && dump_file)
-    /* TODO: maybe more thoroughly scrub process environment in order
-       to make this use case possible?  Right now, we assume that
-       things we don't touch are zero-initialized, and in an unexeced
-       Emacs, this assumption doesn't hold.  */
-    fatal ("cannot load dump file into unexeced Emacs");
-
-  if (initialized)
-    abort ();
+  char *dump_file = find_argument (PDUMP_FILE_ARG, argc, argv);
 
   result = PDUMPER_NOT_LOADED;
   if (dump_file)
@@ -797,7 +780,6 @@ load_dump (int *inout_argc,
      if the user copies and renames it.
 
      FIXME: this doesn't work with emacs-XX.YY.ZZ.pdmp versioned files.  */
-  argv0_base = "emacs";
 #ifdef WINDOWSNT
   /* On MS-Windows, PATH_EXEC normally starts with a literal
      "%emacs_dir%", so it will never work without some tweaking.  */
@@ -816,8 +798,6 @@ load_dump (int *inout_argc,
 
  out:
   *out_dump_file = dump_file ? strdup (dump_file) : NULL;
-  *inout_argc = argc;
-  *inout_argv = argv;
   return result;
 }
 #endif /* HAVE_PDUMPER */
@@ -846,25 +826,64 @@ main (int argc, char **argv)
   /* Record (approximately) where the stack begins.  */
   stack_bottom = (char *) &stack_bottom_variable;
 
-  /* Figure out where we are.  Fancy filesystem functions aren't
-     available at this point, so use pure text manipulation.  */
-  const char *argv0_base = strrchr (argv[0], DIRECTORY_SEP);
-#ifdef WINDOWSNT
-  /* Consider backslashes and the .exe extension.  */
-  const char *argv0_alt = strrchr (argv[0], '\\');
-
-  if (argv0_alt > argv0_base)
-    argv0_base = argv0_alt;
-  argv0_base = argv0_base ? argv0_base + 1 : argv[0];
-  bool is_temacs =
-    c_strncasecmp ("temacs", argv0_base, 6) == 0
-    && strlen (argv0_base) >= 4
-    && c_strcasecmp (argv0_base + strlen (argv0_base) - 4, ".exe") == 0;
-#else
-  argv0_base = argv0_base ? argv0_base + 1 : argv[0];
-  bool is_temacs = strcmp ("temacs", argv0_base) == 0;
-#endif
+  const char *dump_mode = NULL;
   const char *loaded_dump = NULL;
+  const char *temacs = find_argument ("--temacs", argc, argv);
+#ifdef HAVE_PDUMPER
+  bool attempt_load_pdump = false;
+#endif
+
+  /* Look for this argument first, before any heap allocation, so we
+     can set heap flags properly if we're going to unexec.  */
+  if (!initialized && temacs)
+    {
+#ifndef CANNOT_DUMP
+      if (strcmp (temacs, "dump") == 0 ||
+          strcmp (temacs, "bootstrap") == 0)
+        gflags.will_dump_with_unexec_ = true;
+#endif
+#ifdef HAVE_PDUMPER
+      if (strcmp (temacs, "pdump") == 0 ||
+          strcmp (temacs, "pbootstrap") == 0)
+        gflags.will_dump_with_pdumper_ = true;
+#endif
+#if defined (HAVE_PDUMPER) || !defined (CANNOT_DUMP)
+      if (strcmp (temacs, "bootstrap") == 0 ||
+          strcmp (temacs, "pbootstrap") == 0)
+        gflags.will_bootstrap_ = true;
+      gflags.will_dump_ =
+        will_dump_with_pdumper_p () ||
+        will_dump_with_unexec_p ();
+      if (will_dump_p ())
+        dump_mode = temacs;
+#endif
+      if (!dump_mode)
+        fatal ("Invalid temacs mode '%s'", temacs);
+    }
+  else if (temacs)
+    {
+      fatal ("--temacs not supported for unexeced emacs");
+    }
+  else if (initialized)
+    {
+#ifdef HAVE_PDUMPER
+      if (find_argument (PDUMP_FILE_ARG, argc, argv))
+        fatal ("%s not supported in unexeced emacs", PDUMP_FILE_ARG);
+#endif
+    }
+  else
+    {
+      eassert (!initialized);
+      eassert (!temacs);
+#ifdef PDUMP_FILE_ARG
+      attempt_load_pdump = true;
+#endif
+    }
+
+#ifndef CANNOT_DUMP
+  if (!will_dump_with_unexec_p ())
+    gflags.will_not_unexec_ = true;
+#endif
 
 #if defined WINDOWSNT || defined HAVE_NTGUI
   /* Set global variables used to detect Windows version.  Do this as
@@ -883,48 +902,24 @@ main (int argc, char **argv)
   w32_init_main_thread ();
 #endif
 
-  const char *dump_mode = NULL;
-  if (!initialized && is_temacs)
-    {
-#ifndef CANNOT_DUMP
-      if (strcmp (argv[argc - 1], "dump") == 0 ||
-          strcmp (argv[argc - 1], "bootstrap") == 0)
-        gflags.will_dump_with_unexec_ = true;
-#endif
 #ifdef HAVE_PDUMPER
-      if (strcmp (argv[argc - 1], "pdump") == 0 ||
-          strcmp (argv[argc - 1], "pbootstrap") == 0)
-        gflags.will_dump_with_pdumper_ = true;
-#endif
-#if defined (HAVE_PDUMPER) || !defined (CANNOT_DUMP)
-      if (strcmp (argv[argc - 1], "bootstrap") == 0 ||
-          strcmp (argv[argc - 1], "pbootstrap") == 0)
-        gflags.will_bootstrap_ = true;
-      gflags.will_dump_ =
-        will_dump_with_pdumper_p () ||
-        will_dump_with_unexec_p ();
-      if (will_dump_p ())
-        dump_mode = argv[argc - 1];
-#endif
-    }
-  else if (!is_temacs)
+  if (attempt_load_pdump)
     {
-#ifdef HAVE_PDUMPER
       struct timeval start;
       gettimeofday (&start, NULL);
-      const char *loaded_dump = NULL;
-      enum pdumper_load_result result =
-        load_dump (&argc, &argv, argv0_base, &loaded_dump);
+      enum pdumper_load_result result = load_pdump (argc, argv, &loaded_dump);
       struct timeval end;
       gettimeofday (&end, NULL);
       double tdif =
-	1000.0 * (end.tv_sec - start.tv_sec)
-	+ (end.tv_usec - start.tv_usec) / 1.0e3;
-      fprintf (stderr, "load_dump %s %g milliseconds: result=%d\n",
-	       loaded_dump ? "completed in" : "failed after",
-               tdif, (int) result);
-#endif
+        1000.0 * (end.tv_sec - start.tv_sec)
+        + (end.tv_usec - start.tv_usec) / 1.0e3;
+      fprintf (stderr, "load_dump %s %g milliseconds%s%s\n",
+               loaded_dump ? "completed in" : "failed after",
+               tdif,
+               loaded_dump ? "" : ": ",
+               dump_error_to_string (result));
     }
+#endif
 
   /* True if address randomization interferes with memory allocation.  */
 # ifdef __PPC64__
@@ -1923,7 +1918,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (dump_mode)
     Vdump_mode = build_string (dump_mode);
   if (loaded_dump)
-    Vdump_file_name = build_string (loaded_dump); // XXX: filesystem decode
+    Vdump_file_name = build_string (loaded_dump); // XXX: decode
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
@@ -2372,6 +2367,9 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (dumped_with_unexec_p ())
     error ("Emacs can be dumped using unexec only once");
 
+  if (definitely_will_not_unexec_p ())
+    error ("This Emacs instance was not started in temacs mode");
+
 #if defined GNU_LINUX && !defined CANNOT_DUMP
 
   /* Warn if the gap between BSS end and heap start is larger than this.  */
@@ -2790,7 +2788,6 @@ Don't rely on it for testing whether a feature you want to use is available.  */
 
   DEFVAR_BOOL ("noninteractive", noninteractive1,
                doc: /* Non-nil means Emacs is running without interactive terminal.  */);
-
 
   DEFVAR_LISP ("dump-file-name", Vdump_file_name,
                doc: /* Name of the dump file used to start this Emacs process.  */);

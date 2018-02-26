@@ -27,5 +27,4 @@ enum { STATIC_HEAP_SIZE = sizeof (Lisp_Object) << 22 };
 
 extern char bss_sbrk_buffer[STATIC_HEAP_SIZE];
 extern char *max_bss_sbrk_ptr;
-extern bool bss_sbrk_did_unexec;
 extern void *bss_sbrk (ptrdiff_t);

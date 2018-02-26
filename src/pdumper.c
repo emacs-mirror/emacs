@@ -3572,7 +3572,7 @@ dump_check_dump_off (struct dump_context *ctx, dump_off dump_offset)
 static void
 dump_check_emacs_off (dump_off emacs_off)
 {
-  eassert (labs (emacs_off) <= 30*1024*1024);
+  eassert (labs (emacs_off) <= 60*1024*1024);
 }
 
 static void

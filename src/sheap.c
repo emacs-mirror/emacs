@@ -31,7 +31,6 @@ static int debug_sheap;
 
 char bss_sbrk_buffer[STATIC_HEAP_SIZE];
 char *max_bss_sbrk_ptr;
-bool bss_sbrk_did_unexec;
 
 void *
 bss_sbrk (ptrdiff_t request_size)

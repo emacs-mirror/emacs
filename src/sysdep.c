@@ -250,7 +250,7 @@ get_current_dir_name_or_unreachable (void)
 
 # if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
 #  ifdef HYBRID_MALLOC
-  bool use_libc = bss_sbrk_did_unexec;
+  bool use_libc = will_dump_with_unexec_p ();
 #  else
   bool use_libc = true;
 #  endif

@@ -26,8 +26,8 @@
 
 ;; This is loaded into a bare Emacs to make a dumpable one.
 
-;; Emacs injects the variable `dump-mode' to tell us how to dump.  We unintern
-;; it before allowing user code to run.
+;; Emacs injects the variable `dump-mode' to tell us how to dump.
+;; We unintern it before allowing user code to run.
 
 ;; If you add a file to be loaded here, keep the following points in mind:
 
@@ -381,9 +381,9 @@ lost after dumping")))
 ;; Determine which build number to use
 ;; based on the executables that now exist.
 (if (and (or
-          (and (equal (last command-line-args) '("dump"))
+          (and (equal dump-mode "dump")
                (fboundp 'dump-emacs))
-          (and (equal (last command-line-args) '("pdump"))
+          (and (equal dump-mode "pdump")
                (fboundp 'dump-emacs-portable)))
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
@@ -403,9 +403,9 @@ lost after dumping")))
 
 (message "Finding pointers to doc strings...")
 (if (and (or (and (fboundp 'dump-emacs)
-                  (equal (last command-line-args) '("dump")))
+                  (equal dump-mode "dump"))
              (and (fboundp 'dump-emacs-portable)
-                  (equal (last command-line-args) '("pdump")))))
+                  (equal dump-mode "pdump"))))
     (Snarf-documentation "DOC")
   (condition-case nil
       (Snarf-documentation "DOC")

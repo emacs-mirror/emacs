@@ -647,6 +647,8 @@ extern struct gflags {
   /* Set in an Emacs process that has been restored from an unexec
      dump.  */
   bool dumped_with_unexec_ : 1;
+  /* We promise not to unexec: useful for hybrid malloc.  */
+  bool will_not_unexec_ : 1;
 #endif
 } gflags;
 
@@ -707,6 +709,19 @@ dumped_with_unexec_p (void)
   return false;
 #else
   return gflags.dumped_with_unexec_;
+#endif
+}
+
+/* This function is the opposite of will_dump_with_unexec_p(), except
+   that it returns false before main runs.  It's important to use
+   gmalloc for any pre-main allocations if we're going to unexec.  */
+INLINE bool
+definitely_will_not_unexec_p (void)
+{
+#ifdef CANNOT_DUMP
+  return true;
+#else
+  return gflags.will_not_unexec_;
 #endif
 }
 
