@@ -2289,38 +2289,38 @@ Only if no keys fit fallback to LOC2."
         (which-key--show-page page-n)
         loc2))))
 
-(defun which-key-show-keymap-1 (&optional all)
-  (let ((keymap-sym (intern
-                     (completing-read
-                      "Keymap: " obarray
-                      (lambda (m)
-                        (and (boundp m)
-                             (keymapp (symbol-value m))
-                             (not (equal (symbol-value m)
-                                         (make-sparse-keymap)))))
-                      t
-                      (let ((sym (symbol-at-point)))
-                        (and (boundp sym)
-                             (keymapp (symbol-value sym))
-                             (symbol-name sym)))
-                      'which-key-keymap-history))))
-    (which-key--show-keymap (symbol-name keymap-sym)
-                            (symbol-value keymap-sym)
-                            nil all)))
+(defun which-key--read-keymap ()
+  "Read keymap symbol from minibuffer."
+  (intern
+   (completing-read "Keymap: " obarray
+                    (lambda (m)
+                      (and (boundp m)
+                           (keymapp (symbol-value m))
+                           (not (equal (symbol-value m)
+                                       (make-sparse-keymap)))))
+                    t
+                    (let ((sym (symbol-at-point)))
+                      (and (boundp sym)
+                           (keymapp (symbol-value sym))
+                           (symbol-name sym)))
+                    'which-key-keymap-history)))
 
 ;;;###autoload
-(defun which-key-show-keymap ()
+(defun which-key-show-keymap (keymap)
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively from all available keymaps."
-  (interactive)
-  (which-key-show-keymap-1))
+  (interactive (list (which-key--read-keymap)))
+  (which-key--show-keymap (symbol-name keymap)
+                          (symbol-value keymap)))
 
 ;;;###autoload
-(defun which-key-show-full-keymap ()
+(defun which-key-show-full-keymap (keymap)
   "Show all bindings in KEYMAP using which-key. KEYMAP is
 selected interactively from all available keymaps."
-  (interactive)
-  (which-key-show-keymap-1 t))
+  (interactive (list (which-key--read-keymap)))
+  (which-key--show-keymap (symbol-name keymap)
+                          (symbol-value keymap)
+                          nil t))
 
 ;;;###autoload
 (defun which-key-show-minor-mode-keymap ()
