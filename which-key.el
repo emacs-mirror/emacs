@@ -418,6 +418,8 @@ prefixes in `which-key-paging-prefixes'"
   (let ((map (make-sparse-keymap)))
     (dolist (bind '(("\C-a" . which-key-abort)
                     ("a" . which-key-abort)
+                    ("\C-d" . which-key-toggle-docstrings)
+                    ("d" . which-key-toggle-docstrings)
                     ("\C-h" . which-key-show-standard-help)
                     ("h" . which-key-show-standard-help)
                     ("\C-n" . which-key-show-next-page-cycle)
@@ -2228,6 +2230,14 @@ current evil state. "
   (let ((current-prefix-arg prefix-arg))
     (which-key-reload-key-sequence)))
 
+(defun which-key-toggle-docstrings (&optional _)
+  "Toggle the display of docstrings."
+  (interactive)
+  (unless (eq which-key-show-docstrings 'docstring-only)
+    (setq which-key-show-docstrings (null which-key-show-docstrings)))
+  (which-key-reload-key-sequence)
+  (which-key--create-buffer-and-show which-key--current-prefix))
+
 ;;;###autoload
 (defun which-key-C-h-dispatch ()
   "Dispatch C-h commands by looking up key in
@@ -2255,6 +2265,8 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                               which-key-separator "previous-page,"
                               " \\[which-key-undo-key]"
                               which-key-separator "undo-key,"
+                              " \\[which-key-toggle-docstrings]"
+                              which-key-separator "toggle-docstrings,"
                               " \\[which-key-show-standard-help]"
                               which-key-separator "help,"
                               " \\[which-key-abort]"
