@@ -5977,12 +5977,24 @@ pass nil for VARIABLE.  */)
 			    Initialization
 ***********************************************************************/
 
+static void
+init_faces_initial (void)
+{
+  /* For the initial frame, we don't have any way of knowing what
+     are the foreground and background colors of the terminal.  */
+  struct frame *sf = SELECTED_FRAME ();
+
+  FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
+  FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
+  call0 (intern ("tty-set-up-initial-frame-faces"));
+}
+
 /* Initialization done when Emacs fork is started, before doing stty.
    Determine terminal type and set terminal_driver.  Then invoke its
    decoding routine to set up variables in the terminal package.  */
 
-void
-init_display (void)
+static void
+init_display_interactive (void)
 {
   char *terminal_type;
 
@@ -6156,17 +6168,20 @@ init_display (void)
 
   /* Set up faces of the initial terminal frame.  */
   if (!noninteractive && NILP (Vinitial_window_system))
-    {
-      /* For the initial frame, we don't have any way of knowing what
-	 are the foreground and background colors of the terminal.  */
-      struct frame *sf = SELECTED_FRAME ();
-
-      FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
-      FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
-      call0 (intern ("tty-set-up-initial-frame-faces"));
-    }
+    init_faces_initial ();
 }
 
+void
+init_display (void)
+{
+  if (noninteractive)
+    {
+      if (dumped_with_pdumper_p ())
+        init_faces_initial ();
+    }
+  else
+    init_display_interactive ();
+}
 
 
 /***********************************************************************

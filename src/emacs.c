@@ -1858,8 +1858,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_process_emacs (sockfd);
 
   init_keyboard ();	/* This too must precede init_sys_modes.  */
-  if (!noninteractive)
-    init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
+  init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
 #if HAVE_W32NOTIFY
   else
     init_crit ();	/* w32notify.c needs this in batch mode.  */
