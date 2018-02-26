@@ -2298,7 +2298,12 @@ Only if no keys fit fallback to LOC2."
                              (keymapp (symbol-value m))
                              (not (equal (symbol-value m)
                                          (make-sparse-keymap)))))
-                      t nil 'which-key-keymap-history))))
+                      t
+                      (let ((sym (symbol-at-point)))
+                        (and (boundp sym)
+                             (keymapp (symbol-value sym))
+                             (symbol-name sym)))
+                      'which-key-keymap-history))))
     (which-key--show-keymap (symbol-name keymap-sym)
                             (symbol-value keymap-sym)
                             nil all)))
