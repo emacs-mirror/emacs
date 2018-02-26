@@ -411,14 +411,6 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
-dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
-	$(srcdir)/intervals.h $(srcdir)/charset.h
-pdumper.o: dmpstruct.h
-dmpstruct.h: $(srcdir)/dmpstruct.awk
-dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)
-	POSIXLY_CORRECT=1 awk -f $(srcdir)/dmpstruct.awk \
-		$(dmpstruct_headers) > $@
-
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
 ## Some of them have no DOC entries, but it does no harm to have them
@@ -458,6 +450,14 @@ ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 # Must be first, before dep inclusion!
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
+
+dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
+	$(srcdir)/intervals.h $(srcdir)/charset.h
+pdumper.o: dmpstruct.h
+dmpstruct.h: $(srcdir)/dmpstruct.awk
+dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)
+	POSIXLY_CORRECT=1 awk -f $(srcdir)/dmpstruct.awk \
+		$(dmpstruct_headers) > $@
 
 AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps
