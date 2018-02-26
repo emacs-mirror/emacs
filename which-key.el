@@ -1761,16 +1761,25 @@ Requires `which-key-compute-remaps' to be non-nil"
           (forward-line))
         (nreverse bindings)))))
 
-(defun which-key--get-formatted-key-bindings (&optional bindings filter preserve-full-key)
-  "Uses `describe-buffer-bindings' to collect the key bindings in
-BUFFER that follow the key sequence KEY-SEQ."
-  (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
+(defun which-key--get-bindings (&optional keymap filter recursive)
+  "Collect key bindings.
+If KEYMAP is nil, collect from current buffer using the current
+key sequence as a prefix. Otherwise, collect from KEYMAP. FILTER
+is a function to use to filter the bindings. If RECURSIVE is
+non-nil, then bindings are collected recursively for all prefixes."
+  (let* ((unformatted
+          (cond ((keymapp keymap)
+                 (which-key--get-keymap-bindings keymap recursive))
+                (keymap
+                 (error "%s is not a keymap" keymap))
+                (t
+                 (which-key--get-current-bindings)))))
     (when filter
       (setq unformatted (cl-remove-if-not filter unformatted)))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
-    (which-key--format-and-replace unformatted preserve-full-key)))
+    (which-key--format-and-replace unformatted recursive)))
 
 ;;; Functions for laying out which-key buffer pages
 
@@ -2342,37 +2351,29 @@ is selected interactively by mode in `minor-mode-map-alist'."
                             (cdr (assq mode-sym minor-mode-map-alist)))))
 
 (defun which-key--show-keymap (keymap-name keymap &optional prior-args all)
-  (let (unformatted-keys formatted-keys)
-    (setq which-key--current-prefix nil
-          which-key--current-show-keymap-name keymap-name
-          which-key--using-show-keymap t)
-    (when prior-args (push prior-args which-key--prior-show-keymap-args))
-    (if (and (keymapp keymap)
-             (setq unformatted-keys (which-key--get-keymap-bindings keymap all))
-             ;; need this in two steps otherwise
-             ;; `which-key--get-formatted-key-bindings' will look for global
-             ;; keys if second argument is nil
-             (setq formatted-keys (which-key--get-formatted-key-bindings
-                                   unformatted-keys nil all))
-             (> (length formatted-keys) 0))
-        (progn
-          (cond ((listp which-key-side-window-location)
-                 (setq which-key--last-try-2-loc
-                       (apply #'which-key--try-2-side-windows
-                              formatted-keys 0 which-key-side-window-location)))
-                (t (setq which-key--pages-plist
-                         (which-key--create-pages formatted-keys))
-                   (which-key--show-page 0)))
-          (let* ((key (key-description (list (read-key))))
-                 (next-def (lookup-key keymap (kbd key))))
-            (cond ((and which-key-use-C-h-commands (string= "C-h" key))
-                   (which-key-C-h-dispatch))
-                  ((keymapp next-def)
-                   (which-key--hide-popup-ignore-command)
-                   (which-key--show-keymap (concat keymap-name " " key) next-def
-                                           (cons keymap-name keymap)))
-                  (t (which-key--hide-popup)))))
-      (message "which-key: No bindings found in %s" keymap-name))))
+  (setq which-key--current-prefix nil
+        which-key--current-show-keymap-name keymap-name
+        which-key--using-show-keymap t)
+  (when prior-args (push prior-args which-key--prior-show-keymap-args))
+  (let ((bindings (which-key--get-bindings keymap nil all)))
+    (if (= (length bindings) 0)
+        (message "which-key: No bindings found in %s" keymap-name)
+      (cond ((listp which-key-side-window-location)
+             (setq which-key--last-try-2-loc
+                   (apply #'which-key--try-2-side-windows
+                          bindings 0 which-key-side-window-location)))
+            (t (setq which-key--pages-plist
+                     (which-key--create-pages bindings))
+               (which-key--show-page 0)))
+      (let* ((key (key-description (list (read-key))))
+             (next-def (lookup-key keymap (kbd key))))
+        (cond ((and which-key-use-C-h-commands (string= "C-h" key))
+               (which-key-C-h-dispatch))
+              ((keymapp next-def)
+               (which-key--hide-popup-ignore-command)
+               (which-key--show-keymap (concat keymap-name " " key) next-def
+                                       (cons keymap-name keymap)))
+              (t (which-key--hide-popup)))))))
 
 (defun which-key--evil-operator-filter (binding)
   (let ((def (intern (cdr binding))))
@@ -2390,9 +2391,8 @@ is selected interactively by mode in `minor-mode-map-alist'."
             which-key--current-show-keymap-name "evil operator/motion keys"
             which-key--using-show-operator-keymap t)
       (when (keymapp keymap)
-        (let ((formatted-keys (which-key--get-formatted-key-bindings
-                               (which-key--get-keymap-bindings keymap)
-                               #'which-key--evil-operator-filter)))
+        (let ((formatted-keys
+               (which-key--get-bindings keymap #'which-key--evil-operator-filter)))
           (cond ((= (length formatted-keys) 0)
                  (message "which-key: Keymap empty"))
                 ((listp which-key-side-window-location)
@@ -2421,10 +2421,7 @@ Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
   (let ((start-time (when which-key--debug (current-time)))
-        (formatted-keys (which-key--get-formatted-key-bindings
-                         (when from-keymap
-                           (which-key--get-keymap-bindings from-keymap))
-                         filter))
+        (formatted-keys (which-key--get-bindings from-keymap filter))
         (prefix-keys (key-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys))
