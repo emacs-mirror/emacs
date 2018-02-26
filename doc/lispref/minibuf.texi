@@ -1916,7 +1916,7 @@ may internally call functions in @code{completion-at-point-functions}
 many times, but care about the value of @var{collection} for only some
 of these calls.  By supplying a function for @var{collection}, Emacs
 can defer generating completions until necessary.  You can use
-@var{completion-table-dynamic} to create a wrapper function:
+@code{completion-table-dynamic} to create a wrapper function:
 
 @smallexample
 ;; Avoid this pattern.

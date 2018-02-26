@@ -595,8 +595,8 @@ typing @kbd{C-h}, @kbd{?}, or @key{F1}
 few prefix keys for which not all of these keys work---those that
 provide their own bindings for that key.  One of these prefix keys
 is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
-which marks a defun.  However, @kbd{@key{ESC} @key{F1}} and
-@kbd{@key{ESC} ?} work fine.)
+which marks a defun.  However, @w{@kbd{@key{ESC} @key{F1}}} and
+@w{@kbd{@key{ESC} ?}} work fine.)
 
 @node Help Files
 @section Help Files

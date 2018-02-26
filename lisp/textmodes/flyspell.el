@@ -1309,7 +1309,7 @@ that may be included as part of a word (see `ispell-dictionary-alist').
 
 This finds the word to spell-check by searching for CASECHARS defined
 in `ispell-dictionary-alist' for the current dictionary.  Thus, the
-word could be far away of point if point is inside whitespace or
+word could be far away from point if point is inside whitespace or
 punctuation characters, or in text that belongs to a different
 language."
   (let* ((flyspell-casechars (flyspell-get-casechars))

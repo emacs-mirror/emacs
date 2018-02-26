@@ -1716,7 +1716,7 @@ function definition, and vice versa.
 @unnumberedsubsec @code{fill-column}, an Example Variable
 @end ifnottex
 
-@findex fill-column, @r{an example variable}
+@findex fill-column@r{, an example variable}
 @cindex Example variable, @code{fill-column}
 @cindex Variable, example of, @code{fill-column}
 The variable @code{fill-column} illustrates a symbol with a value
@@ -3839,7 +3839,7 @@ message @samp{5 is greater than 4!} will be printed.
 @noindent
 (The function @code{>} tests whether its first argument is greater than
 its second argument and returns true if it is.)
-@findex > (greater than)
+@findex > @r{(greater than)}
 
 Of course, in actual use, the test in an @code{if} expression will not
 be fixed for all time as it is by the expression @code{(> 5 4)}.
@@ -4552,7 +4552,7 @@ buffers.  Later, we will study other functions.
 @node Finding More
 @section Finding More Information
 
-@findex describe-function, @r{introduced}
+@findex describe-function@r{, introduced}
 @cindex Find function documentation
 In this walk-through, I will describe each new function as we come to
 it, sometimes in detail and sometimes briefly.  If you are interested,
@@ -5564,7 +5564,7 @@ outline of the function:
 
 @node insert-buffer interactive
 @subsection The Interactive Expression in @code{insert-buffer}
-@findex interactive, @r{example use of}
+@findex interactive@r{, example use of}
 
 In @code{insert-buffer}, the argument to the @code{interactive}
 declaration has two parts, an asterisk, @samp{*}, and @samp{bInsert
@@ -5881,8 +5881,8 @@ find and use again and again.
 
 @node New insert-buffer
 @subsection New Body for @code{insert-buffer}
-@findex insert-buffer, new version body
-@findex new version body for insert-buffer
+@findex insert-buffer@r{, new version body}
+@cindex new version body for insert-buffer
 
 The body in the GNU Emacs 22 version is more confusing than the original.
 
@@ -6734,8 +6734,8 @@ Or can you write the function without them?
 
 @node car cdr & cons
 @chapter @code{car}, @code{cdr}, @code{cons}: Fundamental Functions
-@findex car, @r{introduced}
-@findex cdr, @r{introduced}
+@findex car@r{, introduced}
+@findex cdr@r{, introduced}
 
 In Lisp, @code{car}, @code{cdr}, and @code{cons} are fundamental
 functions.  The @code{cons} function is used to construct lists, and
@@ -6900,7 +6900,7 @@ Emacs Lisp Reference Manual}.)
 
 @node cons
 @section @code{cons}
-@findex cons, @r{introduced}
+@findex cons@r{, introduced}
 
 The @code{cons} function constructs lists; it is the inverse of
 @code{car} and @code{cdr}.  For example, @code{cons} can be used to make
@@ -8715,7 +8715,7 @@ example-list
 @noindent
 Now, we can add a new element on to this list by evaluating the
 following expression:
-@findex push, @r{example}
+@findex push@r{, example}
 
 @smallexample
 (push "a third clause" example-list)
@@ -8762,13 +8762,13 @@ element of the kill ring---this means that since the @sc{cdr} of the
 next to last element is the last element of the kill ring, it will set
 the last element of the kill ring.
 
-@findex nthcdr, @r{example}
+@findex nthcdr@r{, example}
 The @code{nthcdr} function works by repeatedly taking the @sc{cdr} of a
 list---it takes the @sc{cdr} of the @sc{cdr} of the @sc{cdr}
 @dots{}  It does this @var{N} times and returns the results.
 (@xref{nthcdr, , @code{nthcdr}}.)
 
-@findex setcdr, @r{example}
+@findex setcdr@r{, example}
 Thus, if we had a four element list that was supposed to be three
 elements long, we could set the @sc{cdr} of the next to last element
 to @code{nil}, and thereby shorten the list.  (If you set the last
@@ -17177,8 +17177,8 @@ file, as I intended, I accidentally set the width for filled text,
 almost always to a width I did not want.  Since I hardly ever reset my
 default width, I simply unbound the key.
 
-@findex list-buffers, @r{rebound}
-@findex buffer-menu, @r{bound to key}
+@findex list-buffers@r{, rebound}
+@findex buffer-menu@r{, bound to key}
 @need 1250
 The following rebinds an existing key:
 

@@ -1163,7 +1163,7 @@ your initials. (Unless, of course, your initials happen to be @emph{mh}!)
 @cindex customizing MH-E
 @cindex setting options
 @findex customize-option
-@vindex mh-lpr-command-format, example
+@vindex mh-lpr-command-format@r{, example}
 
 Many string or integer options are easy to modify using @kbd{M-x
 customize-option}. For example, to modify the option that controls
@@ -1181,7 +1181,7 @@ Sessions}. To read more about @code{mh-lpr-command-format}, see
 @cindex option, turning on and off
 @cindex t
 @findex customize-option
-@vindex mh-bury-show-buffer-flag, example
+@vindex mh-bury-show-buffer-flag@r{, example}
 
 Options can also hold boolean values. In Emacs Lisp, the boolean
 values are @code{nil}, which means false, and @code{t}, which means
@@ -1196,7 +1196,7 @@ the @samp{Erase Customization} menu item to reset the option to the
 default, which places the MH-Show buffer at the bottom of the buffer
 stack.
 
-@vindex mh-mhl-format-file, example
+@vindex mh-mhl-format-file@r{, example}
 
 The text usually says to turn on an option by setting it to a
 @emph{non-@code{nil}} value, because sometimes values other than
@@ -1520,9 +1520,9 @@ after running @kbd{M-x mh-rmail} the first time or when you've changed
 the message numbers from outside of MH-E.
 
 @findex mh-execute-commands
-@findex mh-rescan-folder, example
-@findex mh-show, example
-@vindex mh-inc-folder-hook, example
+@findex mh-rescan-folder@r{, example}
+@findex mh-show@r{, example}
+@vindex mh-inc-folder-hook@r{, example}
 
 @smalllisp
 @group
@@ -3175,7 +3175,7 @@ code to @file{~/.emacs}.
 @filbreak
 @end iftex
 
-@findex mh-rmail, example
+@findex mh-rmail@r{, example}
 
 @smalllisp
 @group
@@ -3490,7 +3490,7 @@ The hook @code{mh-folder-mode-hook} is called when visiting a new
 folder in MH-Folder mode. This could be used to set your own key
 bindings, for example:
 
-@vindex mh-folder-mode-hook, example
+@vindex mh-folder-mode-hook@r{, example}
 
 @smalllisp
 @group
@@ -3810,9 +3810,9 @@ again.
 @findex mh-execute-commands
 @kindex q
 @vindex mh-before-quit-hook
-@vindex mh-before-quit-hook, example
+@vindex mh-before-quit-hook@r{, example}
 @vindex mh-quit-hook
-@vindex mh-quit-hook, example
+@vindex mh-quit-hook@r{, example}
 
 The two hooks @code{mh-before-quit-hook} and @code{mh-quit-hook} are
 called by @kbd{q}. The former one is called before the quit occurs, so
@@ -4099,7 +4099,7 @@ may have a complicated @file{components} file and need to tell MH-E
 where the cursor should go. Here's an example of how you would use
 this hook.
 
-@findex mh-insert-signature, example
+@findex mh-insert-signature@r{, example}
 
 @smalllisp
 @group
@@ -8478,7 +8478,7 @@ message according to MH; it also uses that column for notations.
 
 @vindex mh-adaptive-cmd-note-flag
 @vindex mh-scan-format-file
-@vindex mh-scan-format-file, example
+@vindex mh-scan-format-file@r{, example}
 
 The first thing you have to do is tell MH-E to use this file.
 Customize @code{mh-scan-format-file} and set its value to @samp{Use
@@ -8488,7 +8488,7 @@ Default scan Format}. If you didn't get already turn off
 Next, tell MH-E what a valid scan line looks like so that you can at
 least display the output of scan in your MH-Folder buffer.
 
-@vindex mh-scan-valid-regexp, example
+@vindex mh-scan-valid-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-valid-regexp "[0-9]+[+D^ ]$")
@@ -8499,8 +8499,8 @@ message, you need to tell MH-E how to access the message number. You
 should also see why MH-E requires that you include a message number in
 the first place.
 
-@vindex mh-scan-msg-number-regexp, example
-@vindex mh-scan-msg-search-regexp, example
+@vindex mh-scan-msg-number-regexp@r{, example}
+@vindex mh-scan-msg-search-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-msg-number-regexp "^.* \\([0-9]+\\)[+D^ ]$")
@@ -8509,7 +8509,7 @@ the first place.
 
 In order to get the next and previous commands working, add this.
 
-@vindex mh-scan-good-msg-regexp, example
+@vindex mh-scan-good-msg-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-good-msg-regexp "^.* \\([0-9]+\\)[+D^ ]$")
@@ -8519,8 +8519,8 @@ Note that the current message isn't marked with a @samp{+} when moving
 between the next and previous messages. Here is the code required to
 get this working.
 
-@vindex set-mh-cmd-note, example
-@vindex mh-scan-cur-msg-number-regexp, example
+@vindex set-mh-cmd-note@r{, example}
+@vindex mh-scan-cur-msg-number-regexp@r{, example}
 
 @smalllisp
 (set-mh-cmd-note 76)
@@ -8529,8 +8529,8 @@ get this working.
 
 Finally, add the following to delete and refile messages.
 
-@vindex mh-scan-deleted-msg-regexp, example
-@vindex mh-scan-refiled-msg-regexp, example
+@vindex mh-scan-deleted-msg-regexp@r{, example}
+@vindex mh-scan-refiled-msg-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-deleted-msg-regexp "^.* \\([0-9]+\\)D$")

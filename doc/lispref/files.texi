@@ -1894,8 +1894,7 @@ all.
 This function sets the access and modification times of @var{filename}
 to @var{time}.  The return value is @code{t} if the times are successfully
 set, otherwise it is @code{nil}.  @var{time} defaults to the current
-time and must be in the format returned by @code{current-time}
-(@pxref{Time of Day}).
+time and must be a time value (@pxref{Time of Day}).
 @end defun
 
 @defun set-file-extended-attributes filename attribute-alist

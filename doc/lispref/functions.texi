@@ -1634,7 +1634,7 @@ anonymous function.
 This specifies how to order the advice, should several pieces of
 advice be present.  By default, the depth is 0.  A depth of 100
 indicates that this piece of advice should be kept as deep as
-possible, whereas a depth of -100 indicates that it should stay as the
+possible, whereas a depth of @minus{}100 indicates that it should stay as the
 outermost piece.  When two pieces of advice specify the same depth,
 the most recently added one will be outermost.
 

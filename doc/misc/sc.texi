@@ -274,7 +274,7 @@ Notice here that my inclusion of Jane's inclusion of John's original
 message did not result in a line cited with @samp{Jane>John>}.
 
 @vindex sc-nested-citation-p
-@vindex nested-citation-p (sc-)
+@vindex nested-citation-p @r{(sc-)}
 Supercite supports both styles of citation, and the variable
 @code{sc-nested-citation-p} controls which style it will use when
 citing previously uncited text.  When this variable is @code{nil} (the
@@ -292,7 +292,7 @@ directly user definable.  The elements are concatenated together, in
 this order:
 
 @cindex citation leader
-@vindex citation-leader (sc-)
+@vindex citation-leader @r{(sc-)}
 @vindex sc-citation-leader
 @enumerate
 @item
@@ -309,7 +309,7 @@ headers, though you may be asked to confirm Supercite's choice.
 
 @cindex citation delimiter
 @vindex sc-citation-delimiter
-@vindex citation-delimiter (sc-)
+@vindex citation-delimiter @r{(sc-)}
 @item
 The @dfn{citation delimiter}.  This string, contained in the variable
 @code{sc-citation-delimiter} visually separates the citation from the
@@ -317,7 +317,7 @@ text of the line.  This variable has a default value of @code{">"} and
 for best results, the string should consist of only a single character.
 
 @cindex citation separator
-@vindex citation-separator (sc-)
+@vindex citation-separator @r{(sc-)}
 @vindex sc-citation-separator
 @item
 The @dfn{citation separator}.  The citation separator is contained in
@@ -348,15 +348,15 @@ Recognition of cited lines is controlled by variables analogous to
 those that make up the citation string as mentioned previously.
 
 @vindex sc-citation-leader-regexp
-@vindex citation-leader-regexp (sc-)
+@vindex citation-leader-regexp @r{(sc-)}
 @vindex sc-citation-delimiter-regexp
-@vindex citation-delimiter-regexp (sc-)
+@vindex citation-delimiter-regexp @r{(sc-)}
 @vindex sc-citation-separator-regexp
-@vindex citation-separator-regexp (sc-)
+@vindex citation-separator-regexp @r{(sc-)}
 @vindex sc-citation-root-regexp
-@vindex citation-root-regexp (sc-)
+@vindex citation-root-regexp @r{(sc-)}
 @vindex sc-citation-nonnested-root-regexp
-@vindex citation-nonnested-root-regexp (sc-)
+@vindex citation-nonnested-root-regexp @r{(sc-)}
 
 The variable @code{sc-citation-leader-regexp} describes how citation
 leaders can look, by default it matches any number of spaces or tabs.
@@ -388,7 +388,7 @@ change @code{sc-citation-root-regexp} you should always also change
 @cindex Info Alist
 @cindex information extracted from mail fields
 @findex sc-mail-field
-@findex mail-field (sc-)
+@findex mail-field @r{(sc-)}
 
 @dfn{Mail header information keys} are nuggets of information that
 Supercite extracts from the various mail headers of the original
@@ -409,7 +409,7 @@ Subject:@: Better get out your asbestos suit
 @end example
 
 @vindex sc-mumble
-@vindex mumble (sc-)
+@vindex mumble @r{(sc-)}
 @noindent
 then, the following lisp constructs return:
 
@@ -513,7 +513,7 @@ header.
 
 @cindex header rewrite functions
 @vindex sc-rewrite-header-list
-@vindex rewrite-header-list (sc-)
+@vindex rewrite-header-list @r{(sc-)}
 There are a number of built-in @dfn{header rewrite functions} supplied
 by Supercite, but you can write your own custom header rewrite
 functions (perhaps using the built-in ones as examples).  The variable
@@ -523,7 +523,7 @@ reference header, and when displaying @dfn{electric references}.
 @xref{Electric References}.
 
 @vindex sc-preferred-header-style
-@vindex preferred-header-style (sc-)
+@vindex preferred-header-style @r{(sc-)}
 When Supercite is initially run on a reply buffer (via
 @code{sc-cite-original}), it will automatically call one of these
 functions.  The one it uses is defined in the variable
@@ -544,7 +544,7 @@ below, @var{date} and @var{from} correspond to the values of the
 @samp{Date:@:} and @samp{From:@:} mail headers respectively.
 
 @vindex sc-reference-tag-string
-@vindex reference-tag-string (sc-)
+@vindex reference-tag-string @r{(sc-)}
 Also, the string @code{">>>>>"} below is really the value of the
 variable @code{sc-reference-tag-string}.  This variable is used in all
 built-in header rewrite functions, and you can customize its value to
@@ -559,7 +559,7 @@ problem either in your MUA or in Supercite's installation).
 
 @table @code
 @findex sc-no-header
-@findex no-header (sc-)
+@findex no-header @r{(sc-)}
 @item sc-no-header
 This function produces no header.  It should be used instead of
 @code{nil} to produce a blank header.  This header can possibly
@@ -567,38 +567,38 @@ contain a blank line after the @code{mail-header-separator} line.
 
 @item sc-no-blank-line-or-header
 @findex sc-no-blank-line-or-header
-@findex no-blank-line-or-header (sc-)
+@findex no-blank-line-or-header @r{(sc-)}
 This function is similar to @code{sc-no-header} except that any blank
 line after the @code{mail-header-separator} line will be removed.
 
 @item sc-header-on-said
 @findex sc-header-on-said
-@findex header-on-said (sc-)
+@findex header-on-said @r{(sc-)}
 @code{>>>>> On @var{date}, @var{from} said:}
 
 @item sc-header-inarticle-writes
 @findex sc-header-inarticle-writes
-@findex header-inarticle-writes (sc-)
+@findex header-inarticle-writes @r{(sc-)}
 @code{>>>>> In article @var{message-id}, @var{from} writes:}
 
 @item sc-header-regarding-adds
 @findex sc-header-regarding-adds
-@findex header-regarding-adds (sc-)
+@findex header-regarding-adds @r{(sc-)}
 @code{>>>>> Regarding @var{subject}; @var{from} adds:}
 
 @item sc-header-attributed-writes
 @findex sc-header-attributed-writes
-@findex header-attributed-writes (sc-)
+@findex header-attributed-writes @r{(sc-)}
 @code{>>>>> "@var{sc-attribution}" == @var{sc-author} <@var{sc-reply-address}> writes:}
 
 @item sc-header-author-writes
 @findex sc-header-author-writes
-@findex header-author-writes (sc-)
+@findex header-author-writes @r{(sc-)}
 @code{>>>>> @var{sc-author} writes:}
 
 @item sc-header-verbose
 @findex sc-header-verbose
-@findex header-verbose (sc-)
+@findex header-verbose @r{(sc-)}
 @code{>>>>> On @var{date},}@*
 @code{>>>>> @var{sc-author}}@*
 @code{>>>>> from the organization of @var{organization}}@*
@@ -624,7 +624,7 @@ not. Supercite provides an optional @dfn{electric reference} mode
 which you can drop into to give you this functionality.
 
 @vindex sc-electric-references-p
-@vindex electric-references-p (sc-)
+@vindex electric-references-p @r{(sc-)}
 If the variable @code{sc-electric-references-p} is non-@code{nil},
 Supercite will bring up an electric reference mode buffer and place you
 into a recursive edit.  The electric reference buffer is read-only, so
@@ -644,10 +644,10 @@ The following commands are available while in electric reference mode
 @table @asis
 @item @code{sc-eref-next} (@kbd{n})
 @findex sc-eref-next
-@findex eref-next (sc-)
+@findex eref-next @r{(sc-)}
 @kindex n
 @vindex sc-electric-circular-p
-@vindex electric-circular-p (sc-)
+@vindex electric-circular-p @r{(sc-)}
 Displays the next reference header in the electric reference buffer.  If
 the variable @code{sc-electric-circular-p} is non-@code{nil}, invoking
 @code{sc-eref-next} while viewing the last reference header in the list
@@ -655,7 +655,7 @@ will wrap around to the first header.
 
 @item @code{sc-eref-prev} (@kbd{p})
 @findex sc-eref-prev
-@findex eref-prev (sc-)
+@findex eref-prev @r{(sc-)}
 @kindex p
 Displays the previous reference header in the electric reference buffer.
 If the variable @code{sc-electric-circular-p} is non-@code{nil},
@@ -663,7 +663,7 @@ invoking @code{sc-eref-prev} will wrap around to the last header.
 
 @item @code{sc-eref-goto} (@kbd{g})
 @findex sc-eref-goto
-@findex eref-goto (sc-)
+@findex eref-goto @r{(sc-)}
 @kindex g
 Goes to a specified reference header.  The index (into the
 @code{sc-rewrite-header-list}) can be specified as a numeric argument to
@@ -672,14 +672,14 @@ minibuffer.
 
 @item @code{sc-eref-jump} (@kbd{j})
 @findex sc-eref-jump
-@findex eref-jump (sc-)
+@findex eref-jump @r{(sc-)}
 @kindex j
 Display the preferred reference header, i.e., the one indexed by the current
 value of @code{sc-preferred-header-style}.
 
 @item @code{sc-eref-setn} (@kbd{s})
 @findex sc-eref-setn
-@findex eref-setn (sc-)
+@findex eref-setn @r{(sc-)}
 @kindex s
 Set the preferred reference header (i.e.,
 @code{sc-preferred-header-style}) to the currently displayed header.
@@ -689,19 +689,19 @@ Set the preferred reference header (i.e.,
 @kindex C-j
 @kindex q
 @findex sc-eref-exit
-@findex eref-exit (sc-)
+@findex eref-exit @r{(sc-)}
 Exit from electric reference mode and insert the current header into the
 reply buffer.
 
 @item @code{sc-eref-abort} (@kbd{q}, @kbd{x})
 @findex sc-eref-abort
-@findex eref-abort (sc-)
+@findex eref-abort @r{(sc-)}
 @kindex x
 Exit from electric reference mode without inserting the current header.
 @end table
 
 @vindex sc-electric-mode-hook
-@vindex electric-mode-hook (sc-)
+@vindex electric-mode-hook @r{(sc-)}
 @noindent
 Supercite will execute the hook @code{sc-electric-mode-hook} before
 entering electric reference mode.
@@ -747,7 +747,7 @@ interface specifications, or if you are writing or maintaining an MUA,
 @cindex autoload
 @cindex .emacs file
 @findex sc-cite-original
-@findex cite-original (sc-)
+@findex cite-original @r{(sc-)}
 The first thing that everyone should do, regardless of the MUA you are
 using is to set up Emacs so it will load Supercite at the appropriate
 time.  This happens automatically if Supercite is distributed with your
@@ -789,7 +789,7 @@ message from an MUA.
 @node  Reply Buffer Initialization
 @section Reply Buffer Initialization
 @findex sc-cite-original
-@findex cite-original (sc-)
+@findex cite-original @r{(sc-)}
 
 Executing @code{sc-cite-original} performs the following steps as it
 initializes the reply buffer:
@@ -797,7 +797,7 @@ initializes the reply buffer:
 @enumerate
 @item
 @vindex sc-pre-hook
-@vindex pre-hook (sc-)
+@vindex pre-hook @r{(sc-)}
 @emph{Runs @code{sc-pre-hook}.}
 This hook variable is run before @code{sc-cite-original} does any other
 work.  You could conceivably use this hook to set certain Supercite
@@ -808,7 +808,7 @@ an article).
 @item
 @emph{Inserts Supercite's keymap.}
 @vindex sc-mode-map-prefix
-@vindex mode-map-prefix (sc-)
+@vindex mode-map-prefix @r{(sc-)}
 @kindex C-c C-p
 @cindex keymap prefix
 Supercite provides a number of commands for performing post-yank
@@ -842,9 +842,9 @@ affect alternative citing styles.
 @item
 @emph{Processes the mail headers.}
 @vindex sc-confirm-always-p
-@vindex confirm-always-p (sc-)
+@vindex confirm-always-p @r{(sc-)}
 @vindex sc-mail-warn-if-non-rfc822-p
-@vindex mail-warn-if-non-rfc822-p (sc-)
+@vindex mail-warn-if-non-rfc822-p @r{(sc-)}
 All previously retrieved info key-value pairs are deleted from the info
 alist, then the mail headers in the body of the yanked message are
 scanned.  Info key-value pairs are created for each header found.  Also,
@@ -857,8 +857,8 @@ transport agent) along the way.
 
 @vindex sc-nuke-mail-headers
 @vindex sc-nuke-mail-header-list
-@vindex nuke-mail-headers (sc-)
-@vindex nuke-mail-header-list (sc-)
+@vindex nuke-mail-headers @r{(sc-)}
+@vindex nuke-mail-header-list @r{(sc-)}
 Once the info keys have been extracted from the mail headers, the
 headers are nuked from the reply buffer.  You can control exactly which
 headers are removed or kept, but by default, all headers are removed.
@@ -881,7 +881,7 @@ The line is matched against the regexp using @code{looking-at} rooted at
 the beginning of the line.
 
 @vindex sc-blank-lines-after-headers
-@vindex blank-lines-after-headers (sc-)
+@vindex blank-lines-after-headers @r{(sc-)}
 If the variable @code{sc-blank-lines-after-headers} is non-@code{nil},
 it contains the number of blank lines remaining in the buffer after mail
 headers are nuked.  By default, only one blank line is left in the buffer.
@@ -895,7 +895,7 @@ original message.  @xref{Selecting an Attribution}, for details.
 @item
 @emph{Cites the message body.}
 @vindex sc-cite-region-limit
-@vindex cite-region-limit (sc-)b
+@vindex cite-region-limit @r{(sc-)}
 After the selection of the attribution and citation strings, Supercite
 cites the original message by inserting the citation string prefix in
 front of every uncited line.  You may not want Supercite to
@@ -918,7 +918,7 @@ automatically.  Use this if you always want to be able to edit and cite
 the message manually.
 
 @vindex sc-cite-blank-lines-p
-@vindex cite-blank-lines-p (sc-)
+@vindex cite-blank-lines-p @r{(sc-)}
 The variable @code{sc-cite-blank-lines-p} controls whether blank lines
 in the original message should be cited or not.  If this variable is
 non-@code{nil}, blank lines will be cited just like non-blank lines.
@@ -936,7 +936,7 @@ recognize those styles you see often.
 @item
 @emph{Runs @code{sc-post-hook}.}
 @vindex sc-post-hook
-@vindex post-hook (sc-)
+@vindex post-hook @r{(sc-)}
 This variable is very similar to @code{sc-pre-hook}, except that it runs
 after @code{sc-cite-original} is finished.  This hook is provided mostly
 for completeness and backward compatibility.  Perhaps it could be used to
@@ -947,11 +947,11 @@ reset certain variables set in @code{sc-pre-hook}.
 @section Filling Cited Text
 @cindex filling paragraphs
 @vindex sc-auto-fill-region-p
-@vindex auto-fill-region-p (sc-)
+@vindex auto-fill-region-p @r{(sc-)}
 @cindex filladapt
 @cindex gin-mode
 @findex sc-setup-filladapt
-@findex setup-filladapt (sc-)
+@findex setup-filladapt @r{(sc-)}
 
 Supercite will automatically fill newly cited text from the original
 message unless the variable @code{sc-auto-fill-region-p} has a
@@ -971,7 +971,7 @@ makes @dfn{filladapt} a little more Supercite savvy than its default
 setup.
 
 @vindex sc-fixup-whitespace-p
-@vindex fixup-whitespace-p (sc-)
+@vindex fixup-whitespace-p @r{(sc-)}
 Also, Supercite will collapse leading whitespace between the citation
 string and the text on a line when the variable
 @code{sc-fixup-whitespace-p} is non-@code{nil}.  The default value for
@@ -1025,7 +1025,7 @@ fill cited text.
 @chapter Selecting an Attribution
 @cindex attribution list
 @vindex sc-preferred-attribution-list
-@vindex preferred-attribution-list (sc-)
+@vindex preferred-attribution-list @r{(sc-)}
 
 As you know, the attribution string is the part of the author's name
 that will be used to composed a non-nested citation string.  Supercite
@@ -1080,7 +1080,7 @@ recite paragraphs in the reply.
 
 @item "sc-consult"
 @vindex sc-attrib-selection-list
-@vindex attrib-selection-list (sc-)
+@vindex attrib-selection-list @r{(sc-)}
 consults the customizable list @code{sc-attrib-selection-list} which can
 be used to select special attributions based on the value of any info
 key.  See below for details.
@@ -1114,7 +1114,7 @@ suggested that if you change the order of the keys in this list, that
 @code{"sc-lastchoice"}.  This latter is the default.
 
 @vindex sc-attrib-selection-list
-@vindex attrib-selection-list (sc-)
+@vindex attrib-selection-list @r{(sc-)}
 The value @code{"sc-consult"} in @code{sc-preferred-attribution-list}
 has a special meaning during attribution selection.  When Supercite
 encounters this preference, it begins processing a customizable list of
@@ -1131,7 +1131,7 @@ Each element in this list contains lists of the following form:
 
 @noindent
 @findex sc-mail-field
-@findex mail-field (sc-)
+@findex mail-field @r{(sc-)}
 where @var{infokey} is a key for @code{sc-mail-field} and @var{regexp}
 is a regular expression to match against the @var{infokey}'s value.  If
 @var{regexp} matches the @var{infokey}'s value, the @var{attribution} is
@@ -1148,9 +1148,9 @@ to cite your friend's message with the appropriate attribution.
 @node  Anonymous Attributions
 @section Anonymous Attributions
 @vindex sc-default-author-name
-@vindex default-author-name (sc-)
+@vindex default-author-name @r{(sc-)}
 @vindex sc-default-attribution
-@vindex default-attribution (sc-)
+@vindex default-attribution @r{(sc-)}
 
 When the author's name cannot be found in the @samp{From:@:} mail
 header, a fallback author name and attribution string must be supplied.
@@ -1163,7 +1163,7 @@ author name or attribution is a sign that something is set up
 incorrectly.
 
 @vindex sc-use-only-preference-p
-@vindex use-only-preference-p (sc-)
+@vindex use-only-preference-p @r{(sc-)}
 Also, if the preferred attribution, which you specified in your
 @code{sc-preferred-attribution-list} variable cannot be found, a
 secondary method can be employed to find a valid attribution string.  The
@@ -1199,7 +1199,7 @@ attribution alist.
 @end enumerate
 
 @vindex sc-confirm-always-p
-@vindex confirm-always-p (sc-)
+@vindex confirm-always-p @r{(sc-)}
 Once the attribution string has been automatically selected, a number of
 things can happen.  If the variable @code{sc-confirm-always-p} is
 non-@code{nil}, you are queried for confirmation of the chosen
@@ -1210,15 +1210,15 @@ you enter becomes the value associated with the @code{"sc-lastchoice"}
 key in the attribution alist.
 
 @vindex sc-downcase-p
-@vindex downcase-p (sc-)
+@vindex downcase-p @r{(sc-)}
 Once an attribution string has been selected, Supercite will force the
 string to lower case if the variable @code{sc-downcase-p} is
 non-@code{nil}.
 
 @vindex sc-attribs-preselect-hook
-@vindex attribs-preselect-hook (sc-)
+@vindex attribs-preselect-hook @r{(sc-)}
 @vindex sc-attribs-postselect-hook
-@vindex attribs-postselect-hook (sc-)
+@vindex attribs-postselect-hook @r{(sc-)}
 
 Two hook variables provide even greater control of the attribution
 selection process.  The hook @code{sc-attribs-preselect-hook} is run
@@ -1245,7 +1245,7 @@ formats in use.  If you encounter a @samp{From:@:} field that Supercite
 cannot parse, please report this bug using @kbd{M-x report-emacs-bug}.
 
 @vindex sc-titlecue-regexp
-@vindex titlecue-regexp (sc-)
+@vindex titlecue-regexp @r{(sc-)}
 There are a number of Supercite variables that control how author names
 are extracted from the @samp{From:@:} header.  Some headers may contain a
 descriptive title as in:
@@ -1263,7 +1263,7 @@ This variable has the default value of @code{"\\\\s +-+\\\\s +"}.  Any
 text after this regexp is encountered is ignored as noise.
 
 @vindex sc-name-filter-alist
-@vindex name-filter-alist (sc-)
+@vindex name-filter-alist @r{(sc-)}
 Some @samp{From:@:} headers may contain extra titles in the name fields
 not separated by a title cue, but which are nonetheless not part of the
 author's name proper.  Examples include the titles ``Dr.'', ``Mr.'',
@@ -1497,7 +1497,7 @@ is not found from the alist, then the appropriate default frame is used.
 @node  Post-yank Formatting Commands
 @chapter Post-yank Formatting Commands
 @vindex sc-mode-map-prefix
-@vindex mode-map-prefix (sc-)
+@vindex mode-map-prefix @r{(sc-)}
 @kindex C-c C-p
 
 Once the original message has been yanked into the reply buffer, and
@@ -1540,10 +1540,10 @@ Here is the list of Supercite citing commands:
 
 @table @asis
 @findex sc-cite-region
-@findex cite-region (sc-)
+@findex cite-region @r{(sc-)}
 @kindex C-c C-p c
 @vindex sc-pre-cite-hook
-@vindex pre-cite-hook (sc-)
+@vindex pre-cite-hook @r{(sc-)}
 @vindex sc-confirm-always-p
 @vindex confirm-always-p
 @kindex C-u
@@ -1558,7 +1558,7 @@ attribution string for a single manual citing.
 @xref{Configuring the Citation Engine}.
 
 @findex sc-uncite-region
-@findex uncite-region (sc-)
+@findex uncite-region @r{(sc-)}
 @kindex C-c C-p u
 @item @code{sc-uncite-region} (@kbd{C-c C-p u})
 This command removes any citation strings from the beginning of each
@@ -1569,7 +1569,7 @@ cited line in the region by interpreting the selected frame from
 @xref{Configuring the Citation Engine}.
 
 @findex sc-recite-region
-@findex recite-region (sc-)
+@findex recite-region @r{(sc-)}
 @kindex C-c C-p r
 @item @code{sc-recite-region} (@kbd{C-c C-p r})
 This command recites each line the region by interpreting the selected
@@ -1579,7 +1579,7 @@ frame from @code{sc-recite-frame-alist}, or the default reciting frame
 @xref{Configuring the Citation Engine}.
 
 @vindex sc-confirm-always-p
-@vindex confirm-always-p (sc-)
+@vindex confirm-always-p @r{(sc-)}
 Supercite will always ask you to confirm the attribution when reciting a
 region, regardless of the value of @code{sc-confirm-always-p}.
 @end table
@@ -1591,11 +1591,11 @@ These two functions insert various strings into the reply buffer.
 
 @table @asis
 @findex sc-insert-reference
-@findex insert-reference (sc-)
+@findex insert-reference @r{(sc-)}
 @kindex C-c C-p w
 @item @code{sc-insert-reference} (@kbd{C-c C-p w})
 @vindex sc-preferred-header-style
-@vindex preferred-header-style (sc-)
+@vindex preferred-header-style @r{(sc-)}
 Inserts a reference header into the reply buffer at @samp{point}.  With
 no arguments, the header indexed by @code{sc-preferred-header-style} is
 inserted.  An optional numeric argument is the index into
@@ -1606,7 +1606,7 @@ With just the universal argument (@kbd{C-u}), electric reference mode is
 entered, regardless of the value of @code{sc-electric-references-p}.
 
 @findex sc-insert-citation
-@findex insert-citation (sc-)
+@findex insert-citation @r{(sc-)}
 @kindex C-c C-p i
 @item @code{sc-insert-citation} (@kbd{C-c C-p i})
 Inserts the current citation string at the beginning of the line that
@@ -1704,7 +1704,7 @@ of information from the info alist.
 @table @asis
 @kindex C-c C-p f
 @findex sc-mail-field-query
-@findex mail-field-query (sc-)
+@findex mail-field-query @r{(sc-)}
 @kindex C-c C-p f
 @item @code{sc-mail-field-query} (@kbd{C-c C-p f})
 Allows you to interactively view, modify, add, and delete info alist
@@ -1732,7 +1732,7 @@ will override any old value.  It will not replace it though; if you
 subsequently delete the key-value pair, the old value will reappear.
 
 @findex sc-mail-process-headers
-@findex mail-process-headers (sc-)
+@findex mail-process-headers @r{(sc-)}
 @kindex C-c C-p g
 @item @code{sc-mail-process-headers} (@kbd{C-c C-p g})
 This command lets you re-initialize Supercite's info alist from any set
@@ -1749,7 +1749,7 @@ old information is lost.
 
 @table @asis
 @findex sc-open-line
-@findex open-line (sc-)
+@findex open-line @r{(sc-)}
 @findex open-line
 @kindex C-c C-p o
 @item @code{sc-open-line} (@kbd{C-c C-p o})

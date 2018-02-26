@@ -915,7 +915,7 @@ You want Scoring. Scoring means, that you define rules
 which assign each message an integer value. Depending on
 the value the message is highlighted in summary buffer (if
 it's high, say +2000) or automatically marked read (if the
-value is low, say -800) or some other action happens.
+value is low, say @minus{}800) or some other action happens.
 
 There are basically three ways of setting up rules which assign
 the scoring-value to messages. The first and easiest way is to set

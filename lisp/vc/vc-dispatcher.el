@@ -290,16 +290,16 @@ case, and the process object in the asynchronous case."
   (let* ((files
 	  (mapcar (lambda (f) (file-relative-name (expand-file-name f)))
 		  (if (listp file-or-list) file-or-list (list file-or-list))))
+	 ;; Keep entire commands in *Messages* but avoid resizing the
+	 ;; echo area.  Messages in this function are formatted in
+	 ;; a such way that the important parts are at the beginning,
+	 ;; due to potential truncation of long messages.
+	 (message-truncate-lines t)
 	 (full-command
-	  ;; What we're doing here is preparing a version of the command
-	  ;; for display in a debug-progress message.  If it's fewer than
-	  ;; 20 characters display the entire command (without trailing
-	  ;; newline).  Otherwise display the first 20 followed by an ellipsis.
 	  (concat (if (string= (substring command -1) "\n")
 		      (substring command 0 -1)
 		    command)
-		  " "
-		  (vc-delistify (mapcar (lambda (s) (if (> (length s) 20) (concat (substring s 0 2) "...")  s)) flags))
+		  " " (vc-delistify flags)
 		  " " (vc-delistify files))))
     (save-current-buffer
       (unless (or (eq buffer t)
@@ -324,7 +324,7 @@ case, and the process object in the asynchronous case."
 		       (apply 'start-file-process command (current-buffer)
                               command squeezed))))
 		(when vc-command-messages
-		  (message "Running %s in background..." full-command))
+		  (message "Running in background: %s" full-command))
                 ;; Get rid of the default message insertion, in case we don't
                 ;; set a sentinel explicitly.
 		(set-process-sentinel proc #'ignore)
@@ -332,10 +332,11 @@ case, and the process object in the asynchronous case."
 		(setq status proc)
 		(when vc-command-messages
 		  (vc-run-delayed
-		   (message "Running %s in background... done" full-command))))
+		    (let ((message-truncate-lines t))
+		      (message "Done in background: %s" full-command)))))
 	    ;; Run synchronously
 	    (when vc-command-messages
-	      (message "Running %s in foreground..." full-command))
+	      (message "Running in foreground: %s" full-command))
 	    (let ((buffer-undo-list t))
 	      (setq status (apply 'process-file command nil t nil squeezed)))
 	    (when (and (not (eq t okstatus))
@@ -345,13 +346,14 @@ case, and the process object in the asynchronous case."
                 (pop-to-buffer (current-buffer))
                 (goto-char (point-min))
                 (shrink-window-if-larger-than-buffer))
-	      (error "Running %s...FAILED (%s)" full-command
-		     (if (integerp status) (format "status %d" status) status)))
+	      (error "Failed (%s): %s"
+		     (if (integerp status) (format "status %d" status) status)
+		     full-command))
 	    (when vc-command-messages
-	      (message "Running %s...OK = %d" full-command status))))
+	      (message "Done (status=%d): %s" status full-command))))
 	(vc-run-delayed
-	 (run-hook-with-args 'vc-post-command-functions
-                             command file-or-list flags))
+	  (run-hook-with-args 'vc-post-command-functions
+			      command file-or-list flags))
 	status))))
 
 (defun vc-do-async-command (buffer root command &rest args)

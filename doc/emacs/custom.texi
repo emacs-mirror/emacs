@@ -83,7 +83,7 @@ top-level @code{Emacs} group.  It looks like this, in part:
 @c @page
 @smallexample
 @group
-For help, see [Easy Customization] in the [Emacs manual].
+For help using this buffer, see [Easy Customization] in the [Emacs manual].
 
 ________________________________________ [ Search ]
 
@@ -95,10 +95,10 @@ Emacs group: Customization of the One True Editor.
       [State]: visible group members are all at standard values.
       See also [Manual].
 
-[Editing] : Basic text editing facilities.
-[Convenience] : Convenience features for faster editing.
+[Editing]      Basic text editing facilities.
+[Convenience]  Convenience features for faster editing.
 
-@var{more second-level groups}
+@var{...more second-level groups...}
 @end group
 @end smallexample
 
@@ -119,7 +119,7 @@ has been edited, set, or saved.  @xref{Changing a Variable}.
 the customization buffer is an editable field for searching for
 settings (@pxref{Browsing Custom}).  There are also @dfn{buttons} and
 @dfn{links}, which you can activate by either clicking with the mouse,
-or moving point there and typing @key{RET}.  For example, the group
+or moving point there and typing @kbd{@key{RET}}.  For example, the group
 names like @samp{[Editing]} are links; activating one of these links
 brings up the customization buffer for that group.
 
@@ -127,7 +127,7 @@ brings up the customization buffer for that group.
 @kindex S-TAB @r{(customization buffer)}
 @findex widget-forward
 @findex widget-backward
-  In the customization buffer, you can type @key{TAB}
+  In the customization buffer, you can type @kbd{@key{TAB}}
 (@code{widget-forward}) to move forward to the next button or editable
 field.  @kbd{S-@key{TAB}} (@code{widget-backward}) moves back to the
 previous button or editable field.
@@ -146,16 +146,16 @@ settings that you want to customize.
 
   If you are interested in customizing a particular setting or
 customization group, you can go straight there with the commands
-@kbd{M-x customize-option}, @kbd{M-x customize-face}, or @kbd{M-x
-customize-group}.  @xref{Specific Customization}.
+@kbd{M-x customize-option}, @kbd{M-x customize-face}, or @w{@kbd{M-x
+customize-group}}.  @xref{Specific Customization}.
 
 @vindex custom-search-field
   If you don't know exactly what groups or settings you want to
 customize, you can search for them using the editable search field at
 the top of each customization buffer.  Here, you can type in a search
 term---either one or more words separated by spaces, or a regular
-expression (@pxref{Regexps}).  Then type @key{RET} in the field, or
-activate the @samp{Search} button next to it, to switch to a
+expression (@pxref{Regexps}).  Then type @kbd{@key{RET}} in the field,
+or activate the @samp{Search} button next to it, to switch to a
 customization buffer containing groups and settings that match those
 terms.  Note, however, that this feature only finds groups and
 settings that are loaded in the current Emacs session.
@@ -252,11 +252,11 @@ names, and Emacs command names, you can perform completion with
 @kbd{M-@key{TAB}} or @kbd{@key{ESC} @key{TAB}}.  This behaves much
 like minibuffer completion (@pxref{Completion}).
 
-  Typing @key{RET} on an editable value field moves point forward to
-the next field or button, like @key{TAB}.  You can thus type @key{RET}
-when you are finished editing a field, to move on to the next button
-or field.  To insert a newline within an editable field, use @kbd{C-o}
-or @kbd{C-q C-j}.
+  Typing @kbd{@key{RET}} on an editable value field moves point
+forward to the next field or button, like @kbd{@key{TAB}}.  You can
+thus type @kbd{@key{RET}} when you are finished editing a field, to
+move on to the next button or field.  To insert a newline within an
+editable field, use @kbd{C-o} or @kbd{C-q C-j}.
 
   For some variables, there is only a fixed set of legitimate values,
 and you are not allowed to edit the value directly.  Instead, a
@@ -306,9 +306,10 @@ operation.  There are actually four reset operations:
 If you have modified but not yet set the variable, this restores the
 text in the customization buffer to match the actual value.
 
-@item Reset to Saved
-This restores the value of the variable to the last saved value,
-and updates the text accordingly.
+@item Revert This Session's Customizations
+This restores the value of the variable to the last saved value, if
+there was one.  Otherwise it restores the standard value.  It updates
+the text accordingly.
 
 @item Erase Customization
 This sets the variable to its standard value.  Any saved value that
@@ -329,15 +330,17 @@ customization.  Use the @samp{Add Comment} item from the
   Near the top of the customization buffer are two lines of buttons:
 
 @smallexample
- [Set for Current Session] [Save for Future Sessions]
- [Undo Edits] [Reset to Saved] [Erase Customization]   [Exit]
+ Operate on all settings in this buffer:
+ [Revert...] [Apply] [Apply and Save]
 @end smallexample
 
 @noindent
-Each of the first five buttons performs the stated operation---set,
-save, reset, etc.---on all the settings in the buffer that could
-meaningfully be affected.  They do not operate on settings that are
-hidden, nor on subgroups that are hidden or not visible in the buffer.
+The @samp{[Revert...]} button drops a menu with the first 3 reset
+operations described above.  The @samp{[Apply]} button applies the
+settings for the current session.  The @samp{[Apply and Save]} button
+applies the settings and saves them for future sessions; this button
+does not appear if Emacs was started with the @option{-q} or
+@option{-Q} option (@pxref{Initial Options}).
 
 @kindex C-c C-c @r{(customization buffer)}
 @kindex C-x C-c @r{(customization buffer)}
@@ -360,8 +363,8 @@ kill the customization buffer instead, change the variable
   In the customization buffer, you can @dfn{save} a customization
 setting by choosing the @samp{Save for Future Sessions} choice from
 its @samp{[State]} button.  The @kbd{C-x C-s} (@code{Custom-save})
-command, or the @samp{[Save for Future Sessions]} button at the top of
-the customization buffer, saves all applicable settings in the buffer.
+command, or the @samp{[Apply and Save]} button at the top of the
+customization buffer, saves all applicable settings in the buffer.
 
   Saving works by writing code to a file, usually your initialization
 file (@pxref{Init File}).  Future Emacs sessions automatically read
@@ -427,7 +430,8 @@ both variables and faces.
 
   For example, in programming language modes, source code comments are
 shown with @code{font-lock-comment-face} (@pxref{Font Lock}).  In a
-customization buffer, that face appears like this:
+customization buffer, that face appears like this, after you click on
+the @samp{[Show All Attributes]} link:
 
 @smallexample
 [Hide] Font Lock Comment Face:[sample]
@@ -469,7 +473,7 @@ Any unspecified attribute is taken from the special face named
 have an explicitly-assigned face; furthermore, its background color
 attribute serves as the background color of the frame.
 
-  The @samp{Hide Unused Attributes} button, at the end of the
+  The @samp{[Hide Unused Attributes]} button, at the end of the
 attribute list, hides the unspecified attributes of the face.  When
 attributes are being hidden, the button changes to @samp{[Show All
 Attributes]}, which reveals the entire attribute list.  The
@@ -482,8 +486,8 @@ usual ways.
   Foreground and background colors can be specified using either color
 names or RGB triplets (@pxref{Colors}).  You can also use the
 @samp{[Choose]} button to switch to a list of color names; select a
-color with @key{RET} in that buffer to put the color name in the value
-field.
+color with @kbd{@key{RET}} in that buffer to put the color name in the
+value field.
 
   Setting, saving and resetting a face work like the same operations for
 variables (@pxref{Changing a Variable}).
@@ -501,19 +505,29 @@ menu you get from invoking @samp{[State]}.
 @item M-x customize-option @key{RET} @var{option} @key{RET}
 @itemx M-x customize-variable @key{RET} @var{option} @key{RET}
 Set up a customization buffer for just one user option, @var{option}.
+
 @item M-x customize-face @key{RET} @var{face} @key{RET}
 Set up a customization buffer for just one face, @var{face}.
+
 @item M-x customize-group @key{RET} @var{group} @key{RET}
 Set up a customization buffer for just one group, @var{group}.
+
 @item M-x customize-apropos @key{RET} @var{regexp} @key{RET}
 Set up a customization buffer for all the settings and groups that
 match @var{regexp}.
+
 @item M-x customize-changed @key{RET} @var{version} @key{RET}
 Set up a customization buffer with all the settings and groups
 whose meaning has changed since Emacs version @var{version}.
+
+@item M-x customize-changed-options @key{RET} @var{version} @key{RET}
+Set up a customization buffer with all the options whose meaning or
+default values have changed since Emacs version @var{version}.
+
 @item M-x customize-saved
 Set up a customization buffer containing all settings that you
 have saved with customization buffers.
+
 @item M-x customize-unsaved
 Set up a customization buffer containing all settings that you have
 set but not saved.
@@ -759,6 +773,7 @@ expects (@pxref{Examining}).
 @item C-h v @var{var} @key{RET}
 Display the value and documentation of variable @var{var}
 (@code{describe-variable}).
+
 @item M-x set-variable @key{RET} @var{var} @key{RET} @var{value} @key{RET}
 Change the value of variable @var{var} to @var{value}.
 @end table
@@ -951,8 +966,10 @@ be run as well.
 @table @kbd
 @item M-x make-local-variable @key{RET} @var{var} @key{RET}
 Make variable @var{var} have a local value in the current buffer.
+
 @item M-x kill-local-variable @key{RET} @var{var} @key{RET}
 Make variable @var{var} use its global value in the current buffer.
+
 @item M-x make-variable-buffer-local @key{RET} @var{var} @key{RET}
 Mark variable @var{var} so that setting it will make it local to the
 buffer that is current at that time.
@@ -1200,7 +1217,7 @@ keyword with a Lisp expression that runs the mode command
 list enables Eldoc mode (@pxref{Lisp Doc}) by calling
 @code{eldoc-mode} with no argument (calling it with an argument of 1
 would do the same), and disables Font Lock mode (@pxref{Font Lock}) by
-calling @code{font-lock-mode} with an argument of -1.
+calling @code{font-lock-mode} with an argument of @minus{}1.
 
 @example
 ;; Local Variables:
@@ -1399,6 +1416,14 @@ as Dired buffers (@pxref{Dired}).
 commands, and @dfn{keymaps}, which record key bindings.  It also
 explains how to customize key bindings, which is done by editing your
 init file (@pxref{Init Rebinding}).
+
+  Since most modes define their own key bindings, activating a mode
+might override your custom key bindings.  A small number of keys are
+reserved for user-defined bindings, and should not be used by modes,
+so key bindings using those keys are safer in this regard.  The
+reserved key sequences are those consisting of @kbd{C-c} followed by a
+letter (either upper or lower case), and function keys @key{F5}
+through @key{F9} without modifiers (@pxref{Modifier Keys}).
 
 @menu
 * Keymaps::             Generalities.  The global keymap.
@@ -2583,5 +2608,5 @@ you can customize variables that affect the initialization process,
 such as @code{package-enable-at-startup} and @code{package-load-list}.
 @xref{Package Installation}.
 
-  For more information on the early init file, @pxref{Early Init
-File,,, elisp, The Emacs Lisp Reference Manual}.
+  For more information on the early init file, @pxref{Init File,,,
+elisp, The Emacs Lisp Reference Manual}.

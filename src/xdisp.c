@@ -31377,10 +31377,12 @@ note_mouse_highlight (struct frame *f, int x, int y)
       /* Check mouse-face highlighting.  */
       if (! same_region
 	  /* If there exists an overlay with mouse-face overlapping
-	     the one we are currently highlighting, we have to
-	     check if we enter the overlapping overlay, and then
-	     highlight only that.  */
-	  || (OVERLAYP (hlinfo->mouse_face_overlay)
+	     the one we are currently highlighting, we have to check
+	     if we enter the overlapping overlay, and then highlight
+	     only that.  Skip the check when mouse-face highlighting
+	     is currently hidden to avoid Bug#30519.  */
+	  || (!hlinfo->mouse_face_hidden
+	      && OVERLAYP (hlinfo->mouse_face_overlay)
 	      && mouse_face_overlay_overlaps (hlinfo->mouse_face_overlay)))
 	{
 	  /* Find the highest priority overlay with a mouse-face.  */

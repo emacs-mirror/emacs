@@ -229,6 +229,13 @@ character or word at point to the search string.  This is an easy way
 to search for another occurrence of the text at point.  (The decision
 of whether to copy a character or a word is heuristic.)
 
+@kindex C-M-w @r{(Incremental search)}
+@findex isearch-yank-symbol-or-char
+  @kbd{C-M-w} (@code{isearch-yank-symbol-or-char}) appends the next
+character or symbol at point to the search string.  This is an easy way
+to search for another occurrence of the symbol at point.  (The decision
+of whether to copy a character or a symbol is heuristic.)
+
 @kindex M-s C-e @r{(Incremental search)}
 @findex isearch-yank-line
   Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
@@ -250,11 +257,11 @@ appended text with an earlier kill, similar to the usual @kbd{M-y}
 in the echo area appends the current X selection (@pxref{Primary
 Selection}) to the search string (@code{isearch-yank-x-selection}).
 
-@kindex C-M-w @r{(Incremental search)}
+@kindex C-M-d @r{(Incremental search)}
 @kindex C-M-y @r{(Incremental search)}
 @findex isearch-del-char
 @findex isearch-yank-char
-  @kbd{C-M-w} (@code{isearch-del-char}) deletes the last character
+  @kbd{C-M-d} (@code{isearch-del-char}) deletes the last character
 from the search string, and @kbd{C-M-y} (@code{isearch-yank-char})
 appends the character after point to the search string.  An
 alternative method to add the character after point is to enter the

@@ -779,7 +779,7 @@ the dribble file.
 @item
 @findex open-termscript
 @cindex termscript file
-@vindex TERM, environment variable, and display bugs
+@vindex TERM@r{, environment variable, and display bugs}
 For possible display bugs, the terminal type (the value of environment
 variable @env{TERM}), the complete termcap entry for the terminal from
 @file{/etc/termcap} (since that file is not identical on all machines),

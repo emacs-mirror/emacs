@@ -1848,8 +1848,11 @@ it may improve the legibility of underlined text for certain fonts.
 area.)  The variable @code{x-underline-at-descent-line} determines how
 to draw underlined text.  The default is @code{nil}, which means to
 draw it at the baseline level of the font; if you change it to
-@code{nil}, Emacs draws the underline at the same height as the font's
-descent line.
+@code{t}, Emacs draws the underline at the same height as the font's
+descent line.  (If non-default line spacing was specified for the
+underlined text, see @ref{Line Height,,, elisp, The Emacs Lisp
+Reference Manual}, Emacs draws the underline below the additional
+spacing.)
 
 @vindex overline-margin
   The variable @code{overline-margin} specifies the vertical position

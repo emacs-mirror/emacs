@@ -709,7 +709,8 @@ This is an internal function used by Auto-Revert Mode."
     ;; `preserve-modes' avoids changing the (minor) modes.  But we do
     ;; want to reset the mode for VC, so we do it manually.
     (when (or revert auto-revert-check-vc-info)
-      (vc-refresh-state))))
+      (let ((revert-buffer-in-progress-p t))
+        (vc-refresh-state)))))
 
 (defun auto-revert-tail-handler (size)
   (let ((modified (buffer-modified-p))

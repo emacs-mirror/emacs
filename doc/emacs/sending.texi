@@ -70,7 +70,7 @@ or using some other method.  @xref{Mail Sending}, for details.
 
 @example
 To: subotai@@example.org
-CC: mongol.soldier@@example.net, rms@@gnu.org
+Cc: mongol.soldier@@example.net, rms@@gnu.org
 Subject: Re: What is best in life?
 From: conan@@example.org
 --text follows this line--
@@ -152,23 +152,23 @@ more than one address, use commas to separate them.
 @item Subject
 The subject of the message.
 
-@item CC
+@item Cc
 Additional mailing address(es) to send the message to.  This is like
 @samp{To}, except that these readers should not regard the message as
 directed at them.
 
-@item BCC
+@item Bcc
 Additional mailing address(es) to send the message to, which should
-not appear in the header of the message actually sent.  @samp{BCC} stands
+not appear in the header of the message actually sent.  @samp{Bcc} stands
 for @dfn{blind carbon copies}.
 
-@item FCC
+@item Fcc
 The name of a file, to which a copy of the sent message should be
 appended.  Emacs writes the message in mbox format, unless the file is
 in Babyl format (used by Rmail before Emacs 23), in which case Emacs
 writes in Babyl format.  If an Rmail buffer is visiting the file,
 Emacs updates it accordingly.  To specify more than one file, use
-several @samp{FCC} fields, with one file name in each field.
+several @samp{Fcc} fields, with one file name in each field.
 
 @item Reply-to
 An address to which replies should be sent, instead of @samp{From}.
@@ -180,7 +180,7 @@ This field takes precedence over @samp{Reply-to}.  It is used because
 some mailing lists set the @samp{Reply-to} field for their own
 purposes (a somewhat controversial practice).
 
-@item Mail-followup-to
+@item Mail-Followup-To
 One of more address(es) to use as default recipient(s) for follow-up
 messages.  This is typically used when you reply to a message from a
 mailing list that you are subscribed to, and want replies to go to the
@@ -198,7 +198,7 @@ this is normally filled in automatically for you.
 @end table
 
 @noindent
-The @samp{To}, @samp{CC}, and @samp{BCC} fields can appear any number
+The @samp{To}, @samp{Cc}, and @samp{Bcc} fields can appear any number
 of times, and each such header field can contain multiple addresses,
 separated by commas.  This way, you can specify any number of places
 to send the message.  These fields can also have continuation lines:
@@ -221,11 +221,11 @@ To: foo@@example.net, this@@example.net,
 buffer by setting the variable @code{mail-default-headers} to a
 string.  Then @kbd{C-x m} inserts this string into the message
 headers.  For example, here is how to add a @samp{Reply-to} and
-@samp{FCC} header to each message:
+@samp{Fcc} header to each message:
 
 @smallexample
 (setq mail-default-headers
-      "Reply-to: foo@@example.com\nFCC: ~/Mail/sent")
+      "Reply-to: foo@@example.com\nFcc: ~/Mail/sent")
 @end smallexample
 
 @noindent
@@ -245,7 +245,7 @@ aliases are defined in the file @file{~/.mailrc}.  You can specify a
 different file name to use, by setting the variable
 @code{mail-personal-alias-file}.
 
-  To define an alias in @file{.mailrc}, write a line like this:
+  To define an alias in @file{~/.mailrc}, write a line like this:
 
 @example
 alias @var{nick} @var{fulladdresses}
@@ -276,7 +276,7 @@ of the address, such as the person's full name.  Emacs puts them in if
 they are needed.  For instance, it inserts the above address as
 @samp{"John Q. Smith" <none@@example.com>}.
 
-  Emacs also recognizes include commands in @file{.mailrc}.  They
+  Emacs also recognizes include commands in @file{~/.mailrc}.  They
 look like this:
 
 @example
@@ -284,7 +284,7 @@ source @var{filename}
 @end example
 
 @noindent
-The @file{.mailrc} file is not unique to Emacs; many other
+The @file{~/.mailrc} file is not unique to Emacs; many other
 mail-reading programs use it for mail aliases, and it can contain
 various other commands.  However, Emacs ignores everything except
 alias definitions and include commands.
@@ -293,7 +293,7 @@ alias definitions and include commands.
   Mail aliases expand as abbrevs---that is to say, as soon as you type
 a word-separator character after an alias (@pxref{Abbrevs}).  This
 expansion takes place only within the @samp{To}, @samp{From},
-@samp{CC}, @samp{BCC}, and @samp{Reply-to} header fields (plus their
+@samp{Cc}, @samp{Bcc}, and @samp{Reply-to} header fields (plus their
 @samp{Resent-} variants); it does not take place in other header
 fields, such as @samp{Subject}.
 
@@ -418,16 +418,16 @@ Move to the @samp{To} header (@code{message-goto-to}).
 @item C-c C-f C-s
 Move to the @samp{Subject} header (@code{message-goto-subject}).
 @item C-c C-f C-c
-Move to the @samp{CC} header (@code{message-goto-cc}).
+Move to the @samp{Cc} header (@code{message-goto-cc}).
 @item C-c C-f C-b
-Move to the @samp{BCC} header (@code{message-goto-bcc}).
+Move to the @samp{Bcc} header (@code{message-goto-bcc}).
 @item C-c C-f C-r
-Move to the @samp{Reply-To} header (@code{message-goto-reply-to}).
+Move to the @samp{Reply-to} header (@code{message-goto-reply-to}).
 @item C-c C-f C-f
 Move to the @samp{Mail-Followup-To} header field
 (@code{message-goto-followup-to}).
 @item C-c C-f C-w
-Add a new @samp{FCC} header field, with file-name completion
+Add a new @samp{Fcc} header field, with file-name completion
 (@code{message-goto-fcc}).
 @item C-c C-b
 Move to the start of the message body (@code{message-goto-body}).
@@ -463,7 +463,7 @@ the body.
 @findex message-tab
 @kindex TAB @r{(Message mode)}
   While editing a header field that contains addresses, such as
-@samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete an address by
+@samp{To:}, @samp{Cc:} and @samp{Bcc:}, you can complete an address by
 typing @key{TAB} (@code{message-tab}).  This attempts to insert the
 full name corresponding to the address based on a couple of methods,
 including EUDC, a library that recognizes a number of directory server
@@ -534,9 +534,9 @@ and for the attachment's @dfn{content type}, @dfn{description}, and
 automatically; just type @key{RET} to accept the default.  The
 description is a single line of text that the recipient will see next
 to the attachment; you may also choose to leave this empty.  The
-disposition is either @samp{inline} (the default), which means the
-recipient will see a link to the attachment within the message body,
-or @samp{attachment}, which means the link will be separate from the
+disposition is either @samp{inline}, which means the recipient will
+see a link to the attachment within the message body, or
+@samp{attachment}, which means the link will be separate from the
 body.
 
 @findex mail-add-attachment

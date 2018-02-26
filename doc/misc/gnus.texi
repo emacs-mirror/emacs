@@ -15179,7 +15179,7 @@ All new mail files will get this file mode.  The default is @code{#o600}.
 @item mail-source-movemail-program
 @vindex mail-source-movemail-program
 If non-@code{nil}, name of program for fetching new mail.  If
-@code{nil}, @code{movemail} in @var{exec-directory}.
+@code{nil}, @code{movemail} in @code{exec-directory}.
 
 @end table
 
@@ -20281,13 +20281,13 @@ will be applied to each article.
 
 To take @code{gnus-del-mark} as an example---this alist says that all
 articles that have that mark (i.e., are marked with @samp{e}) will have a
-score entry added to lower based on the @code{From} header by -4, and
-lowered by @code{Subject} by -1.  Change this to fit your prejudices.
+score entry added to lower based on the @code{From} header by @minus{}4, and
+lowered by @code{Subject} by @minus{}1.  Change this to fit your prejudices.
 
 If you have marked 10 articles with the same subject with
 @code{gnus-del-mark}, the rule for that mark will be applied ten times.
-That means that that subject will get a score of ten times -1, which
-should be, unless I'm much mistaken, -10.
+That means that that subject will get a score of ten times @minus{}1, which
+should be, unless I'm much mistaken, @minus{}10.
 
 If you have auto-expirable (mail) groups (@pxref{Expiring Mail}), all
 the read articles will be marked with the @samp{E} mark.  This'll
@@ -20302,7 +20302,7 @@ on the @code{References} header using the @code{Message-ID} of the
 current article, thereby matching the following thread.
 
 If you use this scheme, you should set the score file atom @code{mark}
-to something small---like -300, perhaps, to avoid having small random
+to something small---like @minus{}300, perhaps, to avoid having small random
 changes result in articles getting marked as read.
 
 After using adaptive scoring for a week or so, Gnus should start to
@@ -21078,7 +21078,7 @@ and `gnus-score-decay-scale'."
 
 @enumerate
 @item
-Scores between -3 and 3 will be set to 0 when this function is called.
+Scores between @minus{}3 and 3 will be set to 0 when this function is called.
 
 @item
 Scores with magnitudes between 3 and 60 will be shrunk by 3.

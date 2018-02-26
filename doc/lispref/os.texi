@@ -1322,7 +1322,7 @@ or rounding errors occur.
 @section Time Zone Rules
 @cindex time zone rules
 
-@vindex TZ, environment variable
+@vindex TZ@r{, environment variable}
 The default time zone is determined by the @env{TZ} environment
 variable.  @xref{System Environment}.  For example, you can tell Emacs
 to default to Universal Time with @code{(setenv "TZ" "UTC0")}.  If
@@ -1478,7 +1478,8 @@ on others, years as early as 1901 do work.
 @cindex formatting time values
 
   These functions convert time values to text in a string, and vice versa.
-Time values are lists of two to four integers (@pxref{Time of Day}).
+Time values include @code{nil}, numbers, and lists of two to four
+integers (@pxref{Time of Day}).
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the

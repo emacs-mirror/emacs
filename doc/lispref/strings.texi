@@ -927,7 +927,7 @@ floating-point number.
 @item %g
 Replace the specification with notation for a floating-point number,
 using either exponential notation or decimal-point notation.  The
-exponential notation is used if the exponent would be less than -4 or
+exponential notation is used if the exponent would be less than @minus{}4 or
 greater than or equal to the precision (default: 6).  By default,
 trailing zeros are removed from the fractional portion of the result
 and a decimal-point character appears only if it is followed by a

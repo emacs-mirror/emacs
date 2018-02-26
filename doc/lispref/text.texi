@@ -1638,7 +1638,7 @@ This function returns the proper justification style to use for filling
 the text around point.
 
 This returns the value of the @code{justification} text property at
-point, or the variable @var{default-justification} if there is no such
+point, or the variable @code{default-justification} if there is no such
 text property.  However, it returns @code{nil} rather than @code{none}
 to mean ``don't justify''.
 @end defun

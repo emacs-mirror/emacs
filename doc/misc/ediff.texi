@@ -345,7 +345,7 @@ file name will be appended to that directory.  In addition, if the variable
 @code{ediff-use-last-dir} is not @code{nil}, Ediff will offer
 previously entered directories as defaults (which will be maintained
 separately for each type of file, A, B, or C).
-@vindex @code{ediff-use-last-dir}
+@vindex ediff-use-last-dir
 
 All the above functions use the POSIX @code{diff} or @code{diff3} programs
 to find differences between two files.  They process the @code{diff} output
@@ -1924,7 +1924,7 @@ versions only permit @option{-b}, which (usually) assumes the
 extension @file{.orig}.  Yet others force you to use
 @option{-z@var{extension}}.
 
-Both @code{ediff-backup-extension} and @var{ediff-backup-specs} must
+Both @code{ediff-backup-extension} and @code{ediff-backup-specs} must
 be properly set.  If your patch program takes the option @option{-b},
 but not @option{-b @var{extension}}, the variable
 @code{ediff-backup-extension} must still be set so Ediff will know
@@ -2304,7 +2304,7 @@ version control, Ediff first tries to check the file out.
 If @code{t}, all variant buffers are made read-only at Ediff startup.
 
 @item ediff-keep-variants
-@vindex @code{ediff-keep-variants}
+@vindex ediff-keep-variants
 The default is @code{t}, meaning that the buffers being compared or merged will
 be preserved when Ediff quits.  Setting this to @code{nil} causes Ediff to
 offer the user a chance to delete these buffers (if they are not modified).
@@ -2323,14 +2323,14 @@ Using @code{ediff-cleanup-hook}, one can make Ediff delete the variants
 unconditionally (e.g., by making @code{ediff-janitor} into one of these hooks).
 
 @item ediff-keep-tmp-versions
-@vindex @code{ediff-keep-tmp-versions}
+@vindex ediff-keep-tmp-versions
 Default is @code{nil}. If @code{t}, the versions of the files being
 compared or merged using operations such as @code{ediff-revision} or
 @code{ediff-merge-revisions} are not deleted on exit. The normal action is
 to clean up and delete these version files.
 
 @item ediff-grab-mouse
-@vindex @code{ediff-grab-mouse}
+@vindex ediff-grab-mouse
 Default is @code{t}.  Normally, Ediff grabs mouse and puts it in its
 control frame.  This is useful since the user can be sure that when he
 needs to type an Ediff command the focus will be in an appropriate Ediff's

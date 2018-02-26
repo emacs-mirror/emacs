@@ -1359,7 +1359,7 @@ directory stack if they are not already on it
 underlying shell, of course.
 
 @vindex comint-terminfo-terminal
-@vindex TERM, environment variable, in sub-shell
+@vindex TERM@r{, environment variable, in sub-shell}
 Comint mode sets the @env{TERM} environment variable to a safe default
 value, but this value disables some useful features.  For example,
 color is disabled in applications that use @env{TERM} to determine if

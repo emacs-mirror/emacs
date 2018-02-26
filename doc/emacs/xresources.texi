@@ -216,6 +216,14 @@ Width of the internal frame border, in pixels.
 @cindex line spacing
 Additional space between lines, in pixels.
 
+@ifnottex
+@item @code{menuBackground} (class @code{Background})
+@cindex background for menus
+The background color of the menus in non-toolkit versions of Emacs.
+(For toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
+Resources}, and see @ref{GTK resources}.)
+@end ifnottex
+
 @item @code{menuBar} (class @code{MenuBar})
 @cindex menu bar (X resource)
 If the value of this resource is @samp{off} or @samp{false} or
@@ -229,6 +237,14 @@ will use a separate minibuffer frame instead.
 @item @code{paneFont} (class @code{Font})
 @cindex font for menus
 Font name for menu pane titles, in non-toolkit versions of Emacs.
+(For toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
+Resources}, and see @ref{GTK resources}.)
+
+@item @code{paneForeground} (class @code{Foreground})
+@cindex foreground for menus
+Foreground color for menu pane titles, in non-toolkit versions of
+Emacs.  (For toolkit versions, see @ref{Lucid Resources}, also see
+@ref{Motif Resources}, and see @ref{GTK resources}.)
 @end ifnottex
 
 @item @code{pointerColor} (class @code{Foreground})
@@ -266,7 +282,12 @@ compiled with GTK+ support.
 @item @code{selectionFont} (class @code{SelectionFont})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
 toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
-Resources}.)
+Resources}, and see @ref{GTK resources}.)
+
+@item @code{selectionForeground} (class @code{SelectionForeground})
+Foreground color for pop-up menu items, in non-toolkit versions of
+Emacs.  (For toolkit versions, see @ref{Lucid Resources}, also see
+@ref{Motif Resources}, and see @ref{GTK resources}.)
 
 @item @code{selectionTimeout} (class @code{SelectionTimeout})
 Number of milliseconds to wait for a selection reply.

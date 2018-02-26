@@ -576,7 +576,7 @@ for the latest information on Emacs version and package compatibility
 (@pxref{Updating CC Mode}).
 
 @deffn Command c-version
-@findex version (c-)
+@findex version @r{(c-)}
 You can find out what version of @ccmode{} you are using by visiting a C
 file and entering @kbd{M-x c-version RET}.  You should see this message in
 the echo area:
@@ -673,7 +673,7 @@ These commands indent code:
 @item @kbd{@key{TAB}} (@code{c-indent-command})
 @kindex TAB
 @findex c-indent-command
-@findex indent-command (c-)
+@findex indent-command @r{(c-)}
 This command indents the current line.  That is all you need to know
 about it for normal use.
 
@@ -693,7 +693,7 @@ that begins at the line's left margin.
 @item
 When it's @code{nil}, the command indents the line by an extra
 @code{c-basic-offset} columns.  A prefix argument acts as a
-multiplier.  A bare prefix (@kbd{C-u @key{TAB}}) is equivalent to -1,
+multiplier.  A bare prefix (@kbd{C-u @key{TAB}}) is equivalent to @minus{}1,
 removing @code{c-basic-offset} columns from the indentation.
 @end itemize
 
@@ -707,7 +707,7 @@ you want only spaces.  @xref{Just Spaces,,,@emacsman{},
 @emacsmantitle{}}.
 
 @defopt c-tab-always-indent
-@vindex tab-always-indent (c-)
+@vindex tab-always-indent @r{(c-)}
 @cindex literal
 This variable modifies how @key{TAB} operates.
 @itemize @bullet
@@ -726,7 +726,7 @@ is within a string or comment, some whitespace is inserted.
 @end defopt
 
 @defopt c-insert-tab-function
-@vindex insert-tab-function (c-)
+@vindex insert-tab-function @r{(c-)}
 @findex tab-to-tab-stop
 When ``some whitespace'' is inserted as described above, what actually
 happens is that the function stored in @code{c-insert-tab-function} is
@@ -756,7 +756,7 @@ very useful in this case.
 @item @kbd{C-M-q} (@code{c-indent-exp})
 @kindex C-M-q
 @findex c-indent-exp
-@findex indent-exp (c-)
+@findex indent-exp @r{(c-)}
 Indents an entire balanced brace or parenthesis expression.  Note that
 point must be on the opening brace or parenthesis of the expression
 you want to indent.
@@ -764,7 +764,7 @@ you want to indent.
 @item @kbd{C-c C-q} (@code{c-indent-defun})
 @kindex C-c C-q
 @findex c-indent-defun
-@findex indent-defun (c-)
+@findex indent-defun @r{(c-)}
 Indents the entire top-level function, class or macro definition
 encompassing point.  It leaves point unchanged.  This function can't be
 used to reindent a nested brace construct, such as a nested class or
@@ -782,7 +782,7 @@ and mark must delineate the region you want to indent.
 @item @kbd{C-M-h} (@code{c-mark-function})
 @kindex C-M-h
 @findex c-mark-function
-@findex mark-function (c-)
+@findex mark-function @r{(c-)}
 While not strictly an indentation command, this is useful for marking
 the current top-level function or class definition as the current
 region.  As with @code{c-indent-defun}, this command operates on
@@ -798,7 +798,7 @@ indentation, otherwise only spaces are used.
 @end defopt
 
 @defopt c-progress-interval
-@vindex progress-interval (c-)
+@vindex progress-interval @r{(c-)}
 When indenting large regions of code, this variable controls how often a
 progress message is displayed.  Set this variable to @code{nil} to
 inhibit the progress messages, or set it to an integer which is how
@@ -845,7 +845,7 @@ together with any whitespace before it.  This is a standard Emacs
 command, but @ccmode{} enhances it a bit with two variables:
 
 @defopt c-indent-comment-alist
-@vindex indent-comment-alist (c-)
+@vindex indent-comment-alist @r{(c-)}
 @vindex comment-column
 This style variable allows you to vary the column that @kbd{M-;} puts
 the comment at, depending on what sort of code is on the line, and
@@ -860,7 +860,7 @@ variable (use @kbd{C-h v c-indent-comment-alist}).
 @end defopt
 
 @defopt c-indent-comments-syntactically-p
-@vindex indent-comments-syntactically-p (c-)
+@vindex indent-comments-syntactically-p @r{(c-)}
 Normally, when this style variable is @code{nil}, @kbd{M-;} will
 indent comment-only lines according to @code{c-indent-comment-alist},
 just as it does with lines where other code precede the comments.
@@ -889,7 +889,7 @@ lines.
 @findex c-beginning-of-defun
 @findex c-end-of-defun
 @vindex c-defun-tactic
-@vindex defun-tactic (c-)
+@vindex defun-tactic @r{(c-)}
 
 Move to the beginning or end of the current or next function.  Other
 constructs (such as a structs or classes) which have a brace block
@@ -923,9 +923,9 @@ must be in column zero.  See @ref{Defuns,,,@emacsman{},
 @kindex C-M-a (AWK Mode)
 @kindex C-M-e (AWK Mode)
 @findex c-awk-beginning-of-defun
-@findex awk-beginning-of-defun (c-)
+@findex awk-beginning-of-defun @r{(c-)}
 @findex c-awk-end-of-defun
-@findex awk-end-of-defun (c-)
+@findex awk-end-of-defun @r{(c-)}
 Move to the beginning or end of the current or next AWK defun.  These
 commands can take prefix-arguments, their functionality being entirely
 equivalent to @code{beginning-of-defun} and @code{end-of-defun}.
@@ -941,8 +941,8 @@ modes, is neither necessary nor helpful in AWK mode.
 @kindex M-e
 @findex c-beginning-of-statement
 @findex c-end-of-statement
-@findex beginning-of-statement (c-)
-@findex end-of-statement (c-)
+@findex beginning-of-statement @r{(c-)}
+@findex end-of-statement @r{(c-)}
 Move to the beginning or end of the innermost C statement.  If point
 is already there, move to the next beginning or end of a statement,
 even if that means moving into a block.  (Use @kbd{C-M-b} or
@@ -961,7 +961,7 @@ strings.
 @item @kbd{C-c C-u} (@code{c-up-conditional})
 @kindex C-c C-u
 @findex c-up-conditional
-@findex up-conditional (c-)
+@findex up-conditional @r{(c-)}
 Move back to the containing preprocessor conditional, leaving the mark
 behind.  A prefix argument acts as a repeat count.  With a negative
 argument, move forward to the end of the containing preprocessor
@@ -976,13 +976,13 @@ preprocessor statements.
 
 @item @kbd{M-x c-up-conditional-with-else}
 @findex c-up-conditional-with-else
-@findex up-conditional-with-else (c-)
+@findex up-conditional-with-else @r{(c-)}
 A variety of @code{c-up-conditional} that also stops at @samp{#else}
 lines.  Normally those lines are ignored.
 
 @item @kbd{M-x c-down-conditional}
 @findex c-down-conditional
-@findex down-conditional (c-)
+@findex down-conditional @r{(c-)}
 Move forward into the next nested preprocessor conditional, leaving
 the mark behind.  A prefix argument acts as a repeat count.  With a
 negative argument, move backward into the previous nested preprocessor
@@ -993,7 +993,7 @@ function stops at them when going forward, but not when going backward.
 
 @item @kbd{M-x c-down-conditional-with-else}
 @findex c-down-conditional-with-else
-@findex down-conditional-with-else (c-)
+@findex down-conditional-with-else @r{(c-)}
 A variety of @code{c-down-conditional} that also stops at @samp{#else}
 lines.  Normally those lines are ignored.
 
@@ -1003,8 +1003,8 @@ lines.  Normally those lines are ignored.
 @kindex C-c C-n
 @findex c-backward-conditional
 @findex c-forward-conditional
-@findex backward-conditional (c-)
-@findex forward-conditional (c-)
+@findex backward-conditional @r{(c-)}
+@findex forward-conditional @r{(c-)}
 Move backward or forward across a preprocessor conditional, leaving
 the mark behind.  A prefix argument acts as a repeat count.  With a
 negative argument, move in the opposite direction.
@@ -1016,8 +1016,8 @@ preprocessor statements.
 @itemx @kbd{M-x c-forward-into-nomenclature}
 @findex c-backward-into-nomenclature
 @findex c-forward-into-nomenclature
-@findex backward-into-nomenclature (c-)
-@findex forward-into-nomenclature (c-)
+@findex backward-into-nomenclature @r{(c-)}
+@findex forward-into-nomenclature @r{(c-)}
 A popular programming style, especially for object-oriented languages
 such as C++ is to write symbols in a mixed case format, where the
 first letter of each word is capitalized, and not separated by
@@ -1070,7 +1070,7 @@ and @pxref{Customizing Indentation})}.
 @item @kbd{M-q} (@code{c-fill-paragraph})
 @kindex M-q
 @findex c-fill-paragraph
-@findex fill-paragraph (c-)
+@findex fill-paragraph @r{(c-)}
 @cindex Javadoc markup
 @cindex Pike autodoc markup
 This command fills multiline string literals and both block
@@ -1090,7 +1090,7 @@ buffers.
 @item @kbd{M-j} (@code{c-indent-new-comment-line})
 @kindex M-j
 @findex c-indent-new-comment-line
-@findex indent-new-comment-line (c-)
+@findex indent-new-comment-line @r{(c-)}
 This breaks the current line at point and indents the new line.  If
 point was in a comment, the new line gets the proper comment line
 prefix.  If point was inside a macro, a backslash is inserted before
@@ -1099,7 +1099,7 @@ the line break.  It is the replacement for
 
 @item @kbd{M-x c-context-line-break}
 @findex c-context-line-break
-@findex context-line-break (c-)
+@findex context-line-break @r{(c-)}
 Insert a line break suitable to the context: If the point is inside a
 comment, the new line gets the suitable indentation and comment line
 prefix like @code{c-indent-new-comment-line}.  In normal code it's
@@ -1118,7 +1118,7 @@ this function.  @xref{Sample Init File}.
 
 @item @kbd{M-x c-context-open-line}
 @findex c-context-open-line
-@findex context-open-line (c-)
+@findex context-open-line @r{(c-)}
 This is to @kbd{C-o} (@kbd{M-x open-line}) as
 @code{c-context-line-break} is to @kbd{RET}.  I.e., it works just like
 @code{c-context-line-break} but leaves the point before the inserted
@@ -1196,7 +1196,7 @@ Here are the commands to toggle these modes:
 @item @kbd{C-c C-k} (@code{c-toggle-comment-style})
 @kindex C-c C-k
 @findex c-toggle-comment-style
-@findex toggle-comment-style (c-)
+@findex toggle-comment-style @r{(c-)}
 Toggle the comment style between line style and block style.  In modes
 (such as AWK Mode) which only have one of these styles, this function
 does nothing.
@@ -1204,25 +1204,25 @@ does nothing.
 @item @kbd{C-c C-l} (@code{c-toggle-electric-state})
 @kindex C-c C-l
 @findex c-toggle-electric-state
-@findex toggle-electric-state (c-)
+@findex toggle-electric-state @r{(c-)}
 Toggle electric minor mode.  When the command turns the mode off, it
 also suppresses auto-newline mode.
 
 @item @kbd{C-c C-a} (@code{c-toggle-auto-newline})
 @kindex C-c C-a
 @findex c-toggle-auto-newline
-@findex toggle-auto-newline (c-)
+@findex toggle-auto-newline @r{(c-)}
 Toggle auto-newline minor mode.  When the command turns the mode on,
 it also enables electric minor mode.
 
 @item @kbd{M-x c-toggle-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command was bound to @kbd{C-c C-d}.}
 @findex c-toggle-hungry-state
-@findex toggle-hungry-state (c-)
+@findex toggle-hungry-state @r{(c-)}
 Toggle hungry-delete minor mode.
 
 @item @kbd{M-x c-toggle-auto-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command was bound to @kbd{C-c C-t}.}
 @findex c-toggle-auto-hungry-state
-@findex toggle-auto-hungry-state (c-)
+@findex toggle-auto-hungry-state @r{(c-)}
 Toggle both auto-newline and hungry delete minor modes.
 
 @item @kbd{C-c C-w} (@code{M-x subword-mode})
@@ -1232,7 +1232,7 @@ Toggle subword mode.
 
 @item @kbd{M-x c-toggle-syntactic-indentation}
 @findex c-toggle-syntactic-indentation
-@findex toggle-syntactic-indentation (c-)
+@findex toggle-syntactic-indentation @r{(c-)}
 Toggle syntactic-indentation mode.
 @end table
 
@@ -1276,9 +1276,9 @@ These keys and keywords are:
 @item #
 @kindex #
 @findex c-electric-pound
-@findex electric-pound (c-)
+@findex electric-pound @r{(c-)}
 @vindex c-electric-pound-behavior
-@vindex electric-pound-behavior (c-)
+@vindex electric-pound-behavior @r{(c-)}
 Pound (bound to @code{c-electric-pound}) is electric when typed as the
 first non-whitespace character on a line and not within a macro
 definition.  In this case, the variable @code{c-electric-pound-behavior}
@@ -1298,9 +1298,9 @@ character.
 @itemx /
 @kindex /
 @findex c-electric-star
-@findex electric-star (c-)
+@findex electric-star @r{(c-)}
 @findex c-electric-slash
-@findex electric-slash (c-)
+@findex electric-slash @r{(c-)}
 A star (bound to @code{c-electric-star}) or a slash
 (@code{c-electric-slash}) causes reindentation when you type it as the
 second component of a C style block comment opener (@samp{/*}) or a
@@ -1321,7 +1321,7 @@ electric.
 @itemx >
 @kindex >
 @findex c-electric-lt-gt
-@findex electric-lt-gt (c-)
+@findex electric-lt-gt @r{(c-)}
 A less-than or greater-than sign (bound to @code{c-electric-lt-gt}) is
 electric in two circumstances: when it is an angle bracket in a C++
 @samp{template} declaration (and similar constructs in other
@@ -1335,7 +1335,7 @@ electric.
 @itemx )
 @kindex )
 @findex c-electric-paren
-@findex electric-paren (c-)
+@findex electric-paren @r{(c-)}
 The normal parenthesis characters @samp{(} and @samp{)} (bound to
 @code{c-electric-paren}) reindent the current line.  This is useful
 for getting the closing parenthesis of an argument list aligned
@@ -1352,7 +1352,7 @@ get these actions.  @xref{Clean-ups}.
 @itemx @}
 @kindex @}
 @findex c-electric-brace
-@findex electric-brace (c-)
+@findex electric-brace @r{(c-)}
 Typing a brace (bound to @code{c-electric-brace}) reindents the
 current line.  Also, one or more newlines might be inserted if
 auto-newline minor mode is enabled.  @xref{Auto-newlines}.
@@ -1363,7 +1363,7 @@ inserted by auto-newline mode in certain circumstances.
 @item :
 @kindex :
 @findex c-electric-colon
-@findex electric-colon (c-)
+@findex electric-colon @r{(c-)}
 Typing a colon (bound to @code{c-electric-colon}) reindents the
 current line.  Additionally, one or more newlines might be inserted if
 auto-newline minor mode is enabled.  @xref{Auto-newlines}.  If you
@@ -1380,7 +1380,7 @@ avoiding all these spurious reindentations, newlines, and clean-ups.
 @itemx ,
 @kindex ,
 @findex c-electric-semi&comma
-@findex electric-semi&comma (c-)
+@findex electric-semi&comma @r{(c-)}
 Typing a semicolon or comma (bound to @code{c-electric-semi&comma})
 reindents the current line.  Also, a newline might be inserted if
 auto-newline minor mode is enabled.  @xref{Auto-newlines}.
@@ -1391,7 +1391,7 @@ when you type a semicolon or comma just after it.  @xref{Clean-ups}.
 @end table
 
 @deffn Command c-electric-continued-statement
-@findex electric-continued-statement (c-)
+@findex electric-continued-statement @r{(c-)}
 
 Certain keywords are electric, causing reindentation when they are
 preceded only by whitespace on the line.  The keywords are those that
@@ -1520,7 +1520,7 @@ deletion.
 @item @kbd{@key{DEL}} (@code{c-electric-backspace})
 @kindex DEL
 @findex c-electric-backspace
-@findex electric-backspace (c-)
+@findex electric-backspace @r{(c-)}
 This command is run by default when you hit the @kbd{DEL} key.  When
 hungry delete mode is enabled, it deletes any amount of whitespace in
 the backwards direction.  Otherwise, or when used with a prefix
@@ -1531,7 +1531,7 @@ passing it the prefix argument, if any.)
 
 @item @code{c-backspace-function}
 @vindex c-backspace-function
-@vindex backspace-function (c-)
+@vindex backspace-function @r{(c-)}
 @findex backward-delete-char-untabify
 Hook that gets called by @code{c-electric-backspace} when it doesn't
 do an ``electric'' deletion of the preceding whitespace.  The default
@@ -1542,7 +1542,7 @@ deletes a single character.
 @item @kbd{C-d} (@code{c-electric-delete-forward})
 @kindex C-d
 @findex c-electric-delete-forward
-@findex electric-delete-forward (c-)
+@findex electric-delete-forward @r{(c-)}
 This function, which is bound to @kbd{C-d} by default, works just like
 @code{c-electric-backspace} but in the forward direction.  When it
 doesn't do an ``electric'' deletion of the following whitespace, it
@@ -1552,7 +1552,7 @@ argument.)
 
 @item @code{c-delete-function}
 @vindex c-delete-function
-@vindex delete-function (c-)
+@vindex delete-function @r{(c-)}
 @findex delete-char
 Hook that gets called by @code{c-electric-delete-forward} when it
 doesn't do an ``electric'' deletion of the following whitespace.  The
@@ -1572,7 +1572,7 @@ rather than using the minor mode toggling.
 @kindex C-c C-DEL
 @kindex C-c DEL
 @findex c-hungry-delete-backwards
-@findex hungry-delete-backwards (c-)
+@findex hungry-delete-backwards @r{(c-)}
 Delete any amount of whitespace in the backwards direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
 to both @kbd{C-c C-@key{DEL}} and @kbd{C-c @key{DEL}}, since the more
@@ -1584,7 +1584,7 @@ a character terminal.
 @kindex C-c C-<DELETE>
 @kindex C-c <DELETE>
 @findex c-hungry-delete-forward
-@findex hungry-delete-forward (c-)
+@findex hungry-delete-forward @r{(c-)}
 Delete any amount of whitespace in the forward direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
 to both @kbd{C-c C-@key{DELETE}} and @kbd{C-c @key{DELETE}} for the
@@ -1601,9 +1601,9 @@ known as @key{Backspace} and @key{Delete}.  The default bindings to
 those two keys depends on the flavor of (X)Emacs you are using.
 
 @findex c-electric-delete
-@findex electric-delete (c-)
+@findex electric-delete @r{(c-)}
 @findex c-hungry-delete
-@findex hungry-delete (c-)
+@findex hungry-delete @r{(c-)}
 @vindex delete-key-deletes-forward
 In XEmacs 20.3 and beyond, the @key{Backspace} key is bound to
 @code{c-electric-backspace} and the @key{Delete} key is bound to
@@ -1678,23 +1678,23 @@ editing commands with variants that recognize subwords in a
 nomenclature and treat them as separate words:
 
 @findex c-forward-subword
-@findex forward-subword (c-)
+@findex forward-subword @r{(c-)}
 @findex c-backward-subword
-@findex backward-subword (c-)
+@findex backward-subword @r{(c-)}
 @findex c-mark-subword
-@findex mark-subword (c-)
+@findex mark-subword @r{(c-)}
 @findex c-kill-subword
-@findex kill-subword (c-)
+@findex kill-subword @r{(c-)}
 @findex c-backward-kill-subword
-@findex backward-kill-subword (c-)
+@findex backward-kill-subword @r{(c-)}
 @findex c-transpose-subwords
-@findex transpose-subwords (c-)
+@findex transpose-subwords @r{(c-)}
 @findex c-capitalize-subword
-@findex capitalize-subword (c-)
+@findex capitalize-subword @r{(c-)}
 @findex c-upcase-subword
-@findex upcase-subword (c-)
+@findex upcase-subword @r{(c-)}
 @findex c-downcase-subword
-@findex downcase-subword (c-)
+@findex downcase-subword @r{(c-)}
 @multitable @columnfractions .20 .40 .40
 @c This could be converted to @headitem when we require Texinfo 4.7
 @iftex
@@ -1744,7 +1744,7 @@ Here are the various other commands that didn't fit anywhere else:
 @item @kbd{C-c .} (@code{c-set-style})
 @kindex C-c .
 @findex c-set-style
-@findex set-style (c-)
+@findex set-style @r{(c-)}
 Switch to the specified style in the current buffer.  Use like this:
 
 @example
@@ -1764,7 +1764,7 @@ For details of the @ccmode{} style system, see @ref{Styles}.
 @item @kbd{C-c :} (@code{c-scope-operator})
 @kindex C-c :
 @findex c-scope-operator
-@findex scope-operator (c-)
+@findex scope-operator @r{(c-)}
 In C++, it is also sometimes desirable to insert the double-colon scope
 operator without performing the electric behavior of colon insertion.
 @kbd{C-c :} does just this.
@@ -1772,7 +1772,7 @@ operator without performing the electric behavior of colon insertion.
 @item @kbd{C-c C-z} (@code{c-display-defun-name})
 @kindex C-c C-z
 @findex c-display-defun-name
-@findex display-defun-name (c-)
+@findex display-defun-name @r{(c-)}
 Display the current function name, if any, in the minibuffer.
 Additionally, if a prefix argument is given, push the function name to
 the kill ring.  If there is no current function,
@@ -1784,7 +1784,7 @@ customizable option @code{isearch-allow-scroll} to non-@code{nil}.
 @item @kbd{C-c C-\} (@code{c-backslash-region})
 @kindex C-c C-\
 @findex c-backslash-region
-@findex backslash-region (c-)
+@findex backslash-region @r{(c-)}
 This function inserts and aligns or deletes end-of-line backslashes in
 the current region.  These are typically used in multi-line macros.
 
@@ -1814,7 +1814,7 @@ with the trailing backslashes.
 @item @kbd{C-c C-e} (@code{c-macro-expand})
 @kindex C-c C-e
 @findex c-macro-expand
-@findex macro-expand (c-)
+@findex macro-expand @r{(c-)}
 This command expands C, C++, Objective C or Pike macros in the region,
 using an appropriate external preprocessor program.  Normally it
 displays its output in a temporary buffer, but if you give it a prefix
@@ -2046,7 +2046,7 @@ or @code{font-lock-reference-face}, for lack of a closer equivalent.
 @item
 @vindex font-lock-warning-face
 @vindex c-invalid-face
-@vindex invalid-face (c-)
+@vindex invalid-face @r{(c-)}
 Some kinds of syntactic errors are fontified with
 @code{font-lock-warning-face} in Emacs.  In older XEmacs versions
 there's no corresponding standard face, so there a special
@@ -2071,7 +2071,7 @@ specially structured comments, e.g., the standard Javadoc tool in Java.
 the special markup inside them.
 
 @defopt c-doc-comment-style
-@vindex doc-comment-style (c-)
+@vindex doc-comment-style @r{(c-)}
 This is a style variable that specifies which documentation comment
 style to recognize, e.g., @code{javadoc} for Javadoc comments.
 
@@ -2096,7 +2096,7 @@ to do @kbd{M-x java-mode} (or whatever mode you're currently using) to
 reinitialize.
 
 @findex c-setup-doc-comment-style
-@findex setup-doc-comment-style (c-)
+@findex setup-doc-comment-style @r{(c-)}
 Note also that when @ccmode{} starts up, the other variables are
 modified before the mode hooks are run.  If you change this variable in
 a mode hook, you'll have to call @code{c-setup-doc-comment-style}
@@ -2163,7 +2163,7 @@ foo& bar
 @code{c-asymmetry-fontification-flag}.
 
 @defvar c-asymmetry-fontification-flag
-@vindex asymmetry-fontification-flag (c-)
+@vindex asymmetry-fontification-flag @r{(c-)}
 When @code{c-asymmetry-fontification-flag} is non-nil (which it is by
 default), code like the above, with white space either before or after
 the operator, but not both, is fontified as a declaration.  When the
@@ -2461,14 +2461,14 @@ hook.  Thus, any style settings done in these hooks will override
 those set by @code{c-default-style}.
 
 @defvar c-initialization-hook
-@vindex initialization-hook (c-)
+@vindex initialization-hook @r{(c-)}
 Hook run only once per Emacs session, when @ccmode{} is initialized.
 This is a good place to change key bindings (or add new ones) in any
 of the @ccmode{} key maps.  @xref{Sample Init File}.
 @end defvar
 
 @defvar c-mode-common-hook
-@vindex mode-common-hook (c-)
+@vindex mode-common-hook @r{(c-)}
 Common hook across all languages.  It's run immediately before the
 language specific hook.
 @end defvar
@@ -2528,7 +2528,7 @@ initialized.
 
 @item
 @vindex c-old-style-variable-behavior
-@vindex old-style-variable-behavior (c-)
+@vindex old-style-variable-behavior @r{(c-)}
 The default global binding of any style variable (with two exceptions
 - see below) is the special symbol @code{set-from-style}.  When the
 style system initializes a buffer-local copy of a style variable for a
@@ -2724,7 +2724,7 @@ To set a buffer's style interactively, use the command @kbd{C-c .}
 list, @ref{File Styles}.
 
 @defopt c-default-style
-@vindex default-style (c-)
+@vindex default-style @r{(c-)}
 This variable specifies which style to install by default in new
 buffers.  It takes either a style name string, or an association list
 of major mode symbols to style names:
@@ -2757,7 +2757,7 @@ The standard value of @code{c-default-style} is @w{@code{((java-mode
 @end defopt
 
 @defvar c-indentation-style
-@vindex indentation-style (c-)
+@vindex indentation-style @r{(c-)}
 This variable always contains the buffer's current style name, as a
 string.
 @end defvar
@@ -2827,7 +2827,7 @@ should never modify this variable directly.  Instead, @ccmode{}
 provides the function @code{c-add-style} for this purpose.
 
 @defun c-add-style stylename description &optional set-p
-@findex add-style (c-)
+@findex add-style @r{(c-)}
 Add or update a style called @var{stylename}, a string.
 @var{description} is the new style definition in the form described
 above.  If @var{stylename} already exists in @code{c-style-alist} then
@@ -2845,7 +2845,7 @@ style can be added and automatically set.  @xref{Sample Init File}.
 @end defun
 
 @defvar c-style-alist
-@vindex style-alist (c-)
+@vindex style-alist @r{(c-)}
 This is the variable that holds the definitions for the styles.  It
 should not be changed directly; use @code{c-add-style} instead.
 @end defvar
@@ -2881,9 +2881,9 @@ You can then set the guessed style in any @ccmode{} buffer with
 @findex c-guess-no-install
 @findex c-guess-buffer-no-install
 @findex c-guess-region-no-install
-@findex guess-no-install (c-)
-@findex guess-buffer-no-install (c-)
-@findex guess-region-no-install (c-)
+@findex guess-no-install @r{(c-)}
+@findex guess-buffer-no-install @r{(c-)}
+@findex guess-region-no-install @r{(c-)}
 These commands analyze a part of the current buffer and guess the
 style from it.
 
@@ -2904,9 +2904,9 @@ guesses before forming the guessed style.
 @findex c-guess
 @findex c-guess-buffer
 @findex c-guess-region
-@findex guess (c-)
-@findex guess-buffer (c-)
-@findex guess-region (c-)
+@findex guess @r{(c-)}
+@findex guess-buffer @r{(c-)}
+@findex guess-region @r{(c-)}
 These commands analyze a part of the current buffer, guess the style
 from it, then install the guessed style on the buffer.  The guessed
 style is given a name based on the buffer's absolute file name, and
@@ -2922,14 +2922,14 @@ guesses before forming the guessed style.
 @end table
 
 @defopt c-guess-region-max
-@vindex guess-region-max (c-)
+@vindex guess-region-max @r{(c-)}
 This variable, default 50000, is the size in bytes of the buffer
 portion examined by c-guess and c-guess-no-install.  If set to
 @code{nil}, the entire buffer is examined.
 @end defopt
 
 @defopt c-guess-offset-threshold
-@vindex guess-offset-threshold (c-)
+@vindex guess-offset-threshold @r{(c-)}
 This variable, default 10, is the maximum offset, either outwards or
 inwards, which will be taken into account by the analysis process.
 Any offset bigger than this will be ignored.  For no limit, set this
@@ -2939,7 +2939,7 @@ variable to a large number.
 @table @asis
 @item  @kbd{M-x c-guess-install}
 @findex c-guess-install
-@findex guess-install (c-)
+@findex guess-install @r{(c-)}
 
 Set the current buffer's style to the guessed style.  This prompts you
 to enter an optional new style name to give to the guessed style.  By
@@ -2948,7 +2948,7 @@ can then use this style like any other.
 
 @item  @kbd{M-x c-guess-view}
 @findex c-guess-view
-@findex guess-view (c-)
+@findex guess-view @r{(c-)}
 Display the most recently guessed style in a temporary buffer.  This
 display is in the form of a @code{c-add-style} form (@pxref{Adding
 Styles}) which can be easily copied to your @file{.emacs}.  You will
@@ -2994,14 +2994,14 @@ Don't use them anywhere else!  These allow you to customize the style
 on a per-file basis:
 
 @defvar c-file-style
-@vindex file-style (c-)
+@vindex file-style @r{(c-)}
 Set this variable to a style name string in the Local Variables list.
 From now on, when you visit the file, @ccmode{} will automatically set
 the file's style to this one using @code{c-set-style}.
 @end defvar
 
 @defvar c-file-offsets
-@vindex file-offsets (c-)
+@vindex file-offsets @r{(c-)}
 Set this variable (in the Local Variables list) to an association list
 of the same format as @code{c-offsets-alist}.  From now on, when you
 visit the file, @ccmode{} will automatically institute these offsets
@@ -3034,7 +3034,7 @@ this by hooking in on the different line breaking functions and tuning
 relevant variables as necessary.
 
 @vindex c-comment-prefix-regexp
-@vindex comment-prefix-regexp (c-)
+@vindex comment-prefix-regexp @r{(c-)}
 @cindex comment line prefix
 @vindex comment-start
 @vindex comment-end
@@ -3055,7 +3055,7 @@ variables@footnote{@code{comment-start}, @code{comment-end},
 according to the language syntax and the comment line prefix.
 
 @defopt c-comment-prefix-regexp
-@vindex comment-prefix-regexp (c-)
+@vindex comment-prefix-regexp @r{(c-)}
 This style variable contains the regexp used to recognize the
 @dfn{comment line prefix}, which is the line decoration that starts
 every line in a comment.  The variable is either the comment line
@@ -3092,7 +3092,7 @@ this variable, please make sure it still matches the comment starter
 block comments.
 
 @findex c-setup-paragraph-variables
-@findex setup-paragraph-variables (c-)
+@findex setup-paragraph-variables @r{(c-)}
 Also note that since @ccmode{} uses the value of
 @code{c-comment-prefix-regexp} to set up several other variables at
 mode initialization, there won't be any effect if you just change it
@@ -3128,7 +3128,7 @@ margins of the texts kept intact:
 @end example
 
 @findex c-setup-filladapt
-@findex setup-filladapt (c-)
+@findex setup-filladapt @r{(c-)}
 @findex filladapt-mode
 @vindex filladapt-mode
 @cindex Filladapt mode
@@ -3153,9 +3153,9 @@ something like this in your @file{.emacs}:
 @end example
 
 @defopt c-block-comment-prefix
-@vindex block-comment-prefix (c-)
+@vindex block-comment-prefix @r{(c-)}
 @vindex c-comment-continuation-stars
-@vindex comment-continuation-stars (c-)
+@vindex comment-continuation-stars @r{(c-)}
 Normally the comment line prefix inserted for a new line inside a
 comment is deduced from other lines in it.  However there's one
 situation when there's no hint about what the prefix should look like,
@@ -3193,7 +3193,7 @@ most common comment styles, see @ref{Line-Up Functions}.
 @end defopt
 
 @defopt c-ignore-auto-fill
-@vindex ignore-auto-fill (c-)
+@vindex ignore-auto-fill @r{(c-)}
 When auto fill mode is enabled, @ccmode{} can selectively ignore it
 depending on the context the line break would occur in, e.g., to never
 break a line automatically inside a string literal.  This variable
@@ -3346,7 +3346,7 @@ newline both before and after the brace.  In place of a
 is useful when the auto newlines depend on the code around the brace.
 
 @defopt c-hanging-braces-alist
-@vindex hanging-braces-alist (c-)
+@vindex hanging-braces-alist @r{(c-)}
 
 This variable is an association list which maps syntactic symbols to
 lists of places to insert a newline.  @xref{Association
@@ -3454,7 +3454,7 @@ themselves.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @vindex c-hanging-braces-alist
-@vindex hanging-braces-alist (c-)
+@vindex hanging-braces-alist @r{(c-)}
 @cindex action functions
 Syntactic symbols aren't the only place where you can customize
 @ccmode{} with the lisp equivalent of callback functions.  Remember
@@ -3475,7 +3475,7 @@ some combination of @code{before} and @code{after}, including neither
 of them (i.e., @code{nil}).
 
 @defvar c-syntactic-context
-@vindex syntactic-context (c-)
+@vindex syntactic-context @r{(c-)}
 During the call to the indentation or brace hanging @var{action}
 function, this variable is bound to the full syntactic analysis list.
 This might be, for example, @samp{((block-close 73))}.  Don't ever
@@ -3528,7 +3528,7 @@ associate the @code{block-close} symbol with the @var{action} function
 @end example
 
 @findex c-snug-do-while
-@findex snug-do-while (c-)
+@findex snug-do-while @r{(c-)}
 This function simply looks to see if the brace closes a ``do-while''
 clause and if so, returns the list @samp{(before)} indicating
 that a newline should be inserted before the brace, but not after it.
@@ -3544,7 +3544,7 @@ that the brace appears on a line by itself.
 
 @cindex customization, colon hanging
 @vindex c-hanging-colons-alist
-@vindex hanging-colons-alist (c-)
+@vindex hanging-colons-alist @r{(c-)}
 
 Using a mechanism similar to brace hanging (@pxref{Hanging Braces}),
 colons can also be made to hang using the style variable
@@ -3556,7 +3556,7 @@ syntactic symbol in the alist, no newlines are inserted around the
 newly typed colon.
 
 @defopt c-hanging-colons-alist
-@vindex hanging-colons-alist (c-)
+@vindex hanging-colons-alist @r{(c-)}
 
 @table @asis
 @item The Key: the syntactic symbol
@@ -3589,7 +3589,7 @@ them are controlled by a different mechanism, called @dfn{clean-ups} in
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @defopt c-hanging-semi&comma-criteria
-@vindex hanging-semi&comma-criteria (c-)
+@vindex hanging-semi&comma-criteria @r{(c-)}
 This style variable takes a list of functions; these get called when
 you type a semicolon or comma.  The functions are called in order
 without arguments.  When these functions are entered, point is just
@@ -3624,7 +3624,7 @@ semicolons, apart from those separating @code{for}-clause statements.
 @end defopt
 
 @defun c-semi&comma-no-newlines-before-nonblanks
-@findex semi&comma-no-newlines-before-nonblanks (c-)
+@findex semi&comma-no-newlines-before-nonblanks @r{(c-)}
 This is an example of a criteria function, provided by @ccmode{}.  It
 prevents newlines from being inserted after semicolons when there is a
 non-blank following line.  Otherwise, it makes no determination.  To
@@ -3644,9 +3644,9 @@ use, add this function to the front of the
 @end defun
 
 @defun c-semi&comma-inside-parenlist
-@findex semi&comma-inside-parenlist (c-)
+@findex semi&comma-inside-parenlist @r{(c-)}
 @defunx c-semi&comma-no-newlines-for-oneline-inliners
-@findex semi&comma-no-newlines-for-oneline-inliners (c-)
+@findex semi&comma-no-newlines-for-oneline-inliners @r{(c-)}
 The function @code{c-semi&comma-inside-parenlist} is what prevents
 newlines from being inserted inside the parenthesis list of @code{for}
 statements.  In addition to
@@ -3687,7 +3687,7 @@ of the construct, and (apart from @code{comment-close-slash}) when the
 construct does not occur within a literal (@pxref{Auto-newlines}).
 
 @defopt c-cleanup-list
-@vindex cleanup-list (c-)
+@vindex cleanup-list @r{(c-)}
 @cindex literal
 
 You configure @ccmode{}'s clean-ups by setting the style variable
@@ -3870,7 +3870,7 @@ BEGIN @{FS = "\t"@} # use <TAB> as a field separator
 @end example
 
 @defopt c-max-one-liner-length
-@vindex max-one-liner-length (c-)
+@vindex max-one-liner-length @r{(c-)}
 The maximum length of the resulting line for which the clean-up
 @code{one-liner-defun} will be triggered.  This length is that of the entire
 line, including any leading whitespace and any trailing comment.  Its
@@ -3953,7 +3953,7 @@ it by setting @code{c-syntactic-indentation} to @code{nil}.  (To set
 the variable interactively, @ref{Minor Modes}).
 
 @defopt c-syntactic-indentation
-@vindex syntactic-indentation (c-)
+@vindex syntactic-indentation @r{(c-)}
 When this is non-@code{nil} (which it is by default), the indentation
 of code is done according to its syntactic structure.  When it's
 @code{nil}, every line is just indented to the same level as the
@@ -3988,7 +3988,7 @@ Line-up functions (@pxref{Custom Line-Up}) or in functions on
 @code{c-special-indent-hook} (@pxref{Other Indentation}).
 
 @defun c-guess-basic-syntax
-@findex guess-basic-syntax (c-)
+@findex guess-basic-syntax @r{(c-)}
 Determine the syntactic context of the current line.
 @end defun
 
@@ -4042,7 +4042,7 @@ report what the syntactic analysis is for the current line:
 @item @kbd{C-c C-s} (@code{c-show-syntactic-information})
 @kindex C-c C-s
 @findex c-show-syntactic-information
-@findex show-syntactic-information (c-)
+@findex show-syntactic-information @r{(c-)}
 This command calculates the syntactic analysis of the current line and
 displays it in the minibuffer.  The command also highlights the anchor
 position(s).
@@ -4138,7 +4138,7 @@ anchor position.
 
 @cindex syntactic symbols, brief list
 @vindex c-offsets-alist
-@vindex offsets-alist (c-)
+@vindex offsets-alist @r{(c-)}
 This section is a complete list of the syntactic symbols which appear
 in the @code{c-offsets-alist} style variable, along with brief
 descriptions.  The previous section (@pxref{Syntactic Analysis})
@@ -5284,7 +5284,7 @@ The simplest and most used kind of ``offset'' setting in
 @code{c-basic-offset}:
 
 @defopt c-basic-offset
-@vindex basic-offset (c-)
+@vindex basic-offset @r{(c-)}
 This style variable holds the basic offset between indentation levels.
 It's factory default is 4, but all the built-in styles set it
 themselves, to some value between 2 (for @code{gnu} style) and 8 (for
@@ -5322,7 +5322,7 @@ indentation.  Details of how to set it up, and its relationship to
 @ccmode{}'s style system are given in @ref{Style Variables}.
 
 @defopt c-offsets-alist
-@vindex offsets-alist (c-)
+@vindex offsets-alist @r{(c-)}
 This is an alist which associates an offset with each syntactic
 symbol.  This @dfn{offset} is a rule specifying how to indent a line
 whose syntactic context matches the symbol.  @xref{Syntactic
@@ -5355,7 +5355,7 @@ of these kinds of offsets:
 @end defopt
 
 @deffn Command c-set-offset (@kbd{C-c C-o})
-@findex set-offset (c-)
+@findex set-offset @r{(c-)}
 @kindex C-c C-o
 This command changes the entry for a syntactic symbol in the current
 binding of @code{c-offsets-alist}, or it inserts a new entry if there
@@ -5470,7 +5470,7 @@ will be combined according to the method @code{first}.
 @end table
 
 @vindex c-strict-syntax-p
-@vindex strict-syntax-p (c-)
+@vindex strict-syntax-p @r{(c-)}
 If an offset specification evaluates to @code{nil}, then a relative
 offset of 0 (zero) is used@footnote{There is however a variable
 @code{c-strict-syntax-p} that when set to non-@code{nil} will cause an
@@ -5575,7 +5575,7 @@ adjustments.
 
 @c Move this bit to "Styles" (2005/10/7)
 @deffn Command c-set-offset symbol offset
-@findex set-offset (c-)
+@findex set-offset @r{(c-)}
 @kindex C-c C-o
 This is the command bound to @kbd{C-c C-o}.  It provides a convenient
 way to set offsets on @code{c-offsets-alist} both interactively (see
@@ -5671,7 +5671,7 @@ The line-up functions here calculate the indentation for braces,
 parentheses and statements within brace blocks.
 
 @defun c-lineup-close-paren
-@findex lineup-close-paren (c-)
+@findex lineup-close-paren @r{(c-)}
 Line up the closing paren under its corresponding open paren if the
 open paren is followed by code.  If the open paren ends its line, no
 indentation is added.  E.g.:
@@ -5707,7 +5707,7 @@ open parenthesis of the argument list, the indentation is
 
 @anchor{c-lineup-arglist-close-under-paren}
 @defun c-lineup-arglist-close-under-paren
-@findex lineup-arglist-close-under-paren (c-)
+@findex lineup-arglist-close-under-paren @r{(c-)}
 Set your @code{arglist-close} syntactic symbol to this line-up function
 so that parentheses that close argument lists will line up under the
 parenthesis that opened the argument list.  It can also be used with
@@ -5727,7 +5727,7 @@ discussion of this ``DWIM'' measure.
 @comment ------------------------------------------------------------
 
 @defun c-indent-one-line-block
-@findex indent-one-line-block (c-)
+@findex indent-one-line-block @r{(c-)}
 Indent a one line block @code{c-basic-offset} extra.  E.g.:
 
 @example
@@ -5761,7 +5761,7 @@ which makes the function usable in list expressions.
 @comment ------------------------------------------------------------
 
 @defun c-indent-multi-line-block
-@findex indent-multi-line-block (c-)
+@findex indent-multi-line-block @r{(c-)}
 Indent a multiline block @code{c-basic-offset} extra.  E.g.:
 
 @example
@@ -5797,7 +5797,7 @@ block, which makes the function usable in list expressions.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-runin-statements
-@findex lineup-runin-statements (c-)
+@findex lineup-runin-statements @r{(c-)}
 Line up statements for coding standards which place the first statement
 in a block on the same line as the block opening brace@footnote{Run-in
 style doesn't really work too well.  You might need to write your own
@@ -5822,7 +5822,7 @@ expressions.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-inexpr-block
-@findex lineup-inexpr-block (c-)
+@findex lineup-inexpr-block @r{(c-)}
 This can be used with the in-expression block symbols to indent the
 whole block to the column where the construct is started.  E.g., for Java
 anonymous classes, this lines up the class under the @samp{new} keyword,
@@ -5837,7 +5837,7 @@ construct.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-after-whitesmith-blocks
-@findex lineup-after-whitesmith-blocks (c-)
+@findex lineup-after-whitesmith-blocks @r{(c-)}
 Compensate for Whitesmith style indentation of blocks.  Due to the way
 @ccmode{} calculates anchor positions for normal lines inside blocks,
 this function is necessary for those lines to get correct Whitesmith
@@ -5882,7 +5882,7 @@ indents relative to the surrounding block just like
 @comment ------------------------------------------------------------
 
 @defun c-lineup-whitesmith-in-block
-@findex lineup-whitesmith-in-block (c-)
+@findex lineup-whitesmith-in-block @r{(c-)}
 Line up lines inside a block in Whitesmith style.  It's done in a way
 that works both when the opening brace hangs and when it doesn't.  E.g.:
 
@@ -5932,7 +5932,7 @@ for indenting a close parenthesis, is also useful for the lines
 contained within parentheses.
 
 @defun c-lineup-arglist
-@findex lineup-arglist (c-)
+@findex lineup-arglist @r{(c-)}
 Line up the current argument line under the first argument.
 
 As a special case, if an argument on the same line as the open
@@ -5960,7 +5960,7 @@ indent such cases this way.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-arglist-intro-after-paren
-@findex lineup-arglist-intro-after-paren (c-)
+@findex lineup-arglist-intro-after-paren @r{(c-)}
 Line up a line to just after the open paren of the surrounding paren or
 brace block.
 
@@ -5972,7 +5972,7 @@ brace block.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-multi-inher
-@findex lineup-multi-inher (c-)
+@findex lineup-multi-inher @r{(c-)}
 Line up the classes in C++ multiple inheritance clauses and member
 initializers under each other.  E.g.:
 
@@ -6012,7 +6012,7 @@ Foo::Foo (int a, int b)
 @comment ------------------------------------------------------------
 
 @defun c-lineup-java-inher
-@findex lineup-java-inher (c-)
+@findex lineup-java-inher @r{(c-)}
 Line up Java implements and extends declarations.  If class names
 follow on the same line as the @samp{implements}/@samp{extends}
 keyword, they are lined up under each other.  Otherwise, they are
@@ -6045,7 +6045,7 @@ class Foo
 @comment ------------------------------------------------------------
 
 @defun c-lineup-java-throws
-@findex lineup-java-throws (c-)
+@findex lineup-java-throws @r{(c-)}
 Line up Java throws declarations.  If exception names follow on the
 same line as the throws keyword, they are lined up under each other.
 Otherwise, they are indented by adding @code{c-basic-offset} to the
@@ -6079,7 +6079,7 @@ int foo() throws Cyphr,
 @comment ------------------------------------------------------------
 
 @defun c-lineup-template-args
-@findex lineup-template-args (c-)
+@findex lineup-template-args @r{(c-)}
 Line up the arguments of a template argument list under each other, but
 only in the case where the first argument is on the same line as the
 opening @samp{<}.
@@ -6093,7 +6093,7 @@ returned if there's no template argument on the first line.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-ObjC-method-call
-@findex lineup-ObjC-method-call (c-)
+@findex lineup-ObjC-method-call @r{(c-)}
 For Objective-C code, line up selector args as Emacs Lisp mode does
 with function args: go to the position right after the message receiver,
 and if you are at the end of the line, indent the current line
@@ -6107,7 +6107,7 @@ lineup the current line with it.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-ObjC-method-args
-@findex lineup-ObjC-method-args (c-)
+@findex lineup-ObjC-method-args @r{(c-)}
 For Objective-C code, line up the colons that separate args.  The colon
 on the current line is aligned with the one on the first line.
 
@@ -6117,7 +6117,7 @@ on the current line is aligned with the one on the first line.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-ObjC-method-args-2
-@findex lineup-ObjC-method-args-2 (c-)
+@findex lineup-ObjC-method-args-2 @r{(c-)}
 Similar to @code{c-lineup-ObjC-method-args} but lines up the colon on
 the current line with the colon on the previous line.
 
@@ -6135,7 +6135,7 @@ start with an operator, by lining it up with something on the previous
 line.
 
 @defun c-lineup-argcont
-@findex lineup-argcont (c-)
+@findex lineup-argcont @r{(c-)}
 Line up a continued argument.  E.g.:
 
 @example
@@ -6158,7 +6158,7 @@ expressions for the operands.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-arglist-operators
-@findex lineup-arglist-operators (c-)
+@findex lineup-arglist-operators @r{(c-)}
 Line up lines starting with an infix operator under the open paren.
 Return @code{nil} on lines that don't start with an operator, to leave
 those cases to other line-up functions.  Example:
@@ -6192,7 +6192,7 @@ suggestion to get a consistent style):
 @comment ------------------------------------------------------------
 
 @defun c-lineup-assignments
-@findex lineup-assignments (c-)
+@findex lineup-assignments @r{(c-)}
 Line up the current line after the assignment operator on the first line
 in the statement.  If there isn't any, return @code{nil} to allow stacking with
 other line-up functions.  If the current line contains an assignment
@@ -6206,7 +6206,7 @@ operator too, try to align it with the first one.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-math
-@findex lineup-math (c-)
+@findex lineup-math @r{(c-)}
 Like @code{c-lineup-assignments} but indent with @code{c-basic-offset}
 if no assignment operator was found on the first line.  I.e., this
 function is the same as specifying a list @code{(c-lineup-assignments
@@ -6219,7 +6219,7 @@ function is the same as specifying a list @code{(c-lineup-assignments
 @comment ------------------------------------------------------------
 
 @defun c-lineup-cascaded-calls
-@findex lineup-cascaded-calls (c-)
+@findex lineup-cascaded-calls @r{(c-)}
 Line up ``cascaded calls'' under each other.  If the line begins with
 @code{->} or @code{.} and the preceding line ends with one or more
 function calls preceded by the same token, then the arrow is lined up
@@ -6243,7 +6243,7 @@ expressions.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-streamop
-@findex lineup-streamop (c-)
+@findex lineup-streamop @r{(c-)}
 Line up C++ stream operators (i.e., @samp{<<} and @samp{>>}).
 
 @workswith @code{stream-op}.
@@ -6252,7 +6252,7 @@ Line up C++ stream operators (i.e., @samp{<<} and @samp{>>}).
 @comment ------------------------------------------------------------
 
 @defun c-lineup-string-cont
-@findex lineup-string-cont (c-)
+@findex lineup-string-cont @r{(c-)}
 Line up a continued string under the one it continues.  A continued
 string in this sense is where a string literal follows directly after
 another one.  E.g.:
@@ -6282,7 +6282,7 @@ The lineup functions here calculate the indentation for several types
 of comment structure.
 
 @defun c-lineup-C-comments
-@findex lineup-C-comments (c-)
+@findex lineup-C-comments @r{(c-)}
 Line up C block comment continuation lines.  Various heuristics are used
 to handle most of the common comment styles.  Some examples:
 
@@ -6334,13 +6334,13 @@ line inside a comment.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-comment
-@findex lineup-comment (c-)
+@findex lineup-comment @r{(c-)}
 Line up a comment-only line according to the style variable
 @code{c-comment-only-line-offset}.  If the comment is lined up with a
 comment starter on the previous line, that alignment is preserved.
 
 @defopt c-comment-only-line-offset
-@vindex comment-only-line-offset (c-)
+@vindex comment-only-line-offset @r{(c-)}
 This style variable specifies the extra offset for the line.  It can
 contain an integer or a cons cell of the form
 
@@ -6361,7 +6361,7 @@ is equivalent to @code{(@r{@var{value}} . -1000)}.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-knr-region-comment
-@findex lineup-knr-region-comment (c-)
+@findex lineup-knr-region-comment @r{(c-)}
 Line up a comment in the ``K&R region'' with the declaration.  That is
 the region between the function or class header and the beginning of the
 block.  E.g.:
@@ -6392,7 +6392,7 @@ The line-up functions here are the odds and ends which didn't fit into
 any earlier category.
 
 @defun c-lineup-dont-change
-@findex lineup-dont-change (c-)
+@findex lineup-dont-change @r{(c-)}
 This lineup function makes the line stay at whatever indentation it
 already has; think of it as an identity function for lineups.
 
@@ -6413,7 +6413,7 @@ disregarded.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-cpp-define
-@findex lineup-cpp-define (c-)
+@findex lineup-cpp-define @r{(c-)}
 Line up macro continuation lines according to the indentation of the
 construct preceding the macro.  E.g.:
 
@@ -6502,7 +6502,7 @@ described above.
 @comment ------------------------------------------------------------
 
 @defun c-lineup-gcc-asm-reg
-@findex lineup-gcc-asm-reg (c-)
+@findex lineup-gcc-asm-reg @r{(c-)}
 Line up a gcc asm register under one on a previous line.
 
 @example
@@ -6534,7 +6534,7 @@ arglist lineups, e.g.:
 @comment ------------------------------------------------------------
 
 @defun c-lineup-topmost-intro-cont
-@findex lineup-topmost-intro-cont (c-)
+@findex lineup-topmost-intro-cont @r{(c-)}
 Line up declaration continuation lines zero or one indentation
 step@footnote{This function is mainly provided to mimic the behavior of
 CC Mode 5.28 and earlier where this case wasn't handled consistently so
@@ -6644,9 +6644,9 @@ your setup for this by using the access functions
 (@code{c-langelem-sym}, etc.)@: described below.
 
 @vindex c-syntactic-element
-@vindex syntactic-element (c-)
+@vindex syntactic-element @r{(c-)}
 @vindex c-syntactic-context
-@vindex syntactic-context (c-)
+@vindex syntactic-context @r{(c-)}
 Some syntactic symbols, e.g., @code{arglist-cont-nonempty}, have more
 info in the syntactic element: typically other positions that can be
 interesting besides the anchor position.  That info can't be accessed
@@ -6664,24 +6664,24 @@ used in the line-up function argument and the new list form used in
 @code{c-syntactic-element} and everywhere else.  The functions are:
 
 @defun c-langelem-sym langelem
-@findex langelem-sym (c-)
+@findex langelem-sym @r{(c-)}
 Return the syntactic symbol in @var{langelem}.
 @end defun
 
 @defun c-langelem-pos langelem
-@findex langelem-pos (c-)
+@findex langelem-pos @r{(c-)}
 Return the anchor position in @var{langelem}, or @code{nil} if there is none.
 @end defun
 
 @defun c-langelem-col langelem &optional preserve-point
-@findex langelem-col (c-)
+@findex langelem-col @r{(c-)}
 Return the column of the anchor position in @var{langelem}.  Also move
 the point to that position unless @var{preserve-point} is
 non-@code{nil}.
 @end defun
 
 @defun c-langelem-2nd-pos langelem
-@findex langelem-2nd-pos (c-)
+@findex langelem-2nd-pos @r{(c-)}
 Return the secondary position in @var{langelem}, or @code{nil} if there
 is none.
 
@@ -6712,20 +6712,20 @@ see @xref{Macros with ;}.
 Here are the remaining odds and ends regarding indentation:
 
 @defopt c-label-minimum-indentation
-@vindex label-minimum-indentation (c-)
+@vindex label-minimum-indentation @r{(c-)}
 In @samp{gnu} style (@pxref{Built-in Styles}), a minimum indentation is
 imposed on lines inside code blocks.  This minimum indentation is
 controlled by this style variable.  The default value is 1.
 
 @findex c-gnu-impose-minimum
-@findex gnu-impose-minimum (c-)
+@findex gnu-impose-minimum @r{(c-)}
 It's the function @code{c-gnu-impose-minimum} that enforces this minimum
 indentation.  It must be present on @code{c-special-indent-hook} to
 work.
 @end defopt
 
 @defopt c-special-indent-hook
-@vindex special-indent-hook (c-)
+@vindex special-indent-hook @r{(c-)}
 This style variable is a standard hook variable that is called after
 every line is indented by @ccmode{}.  It is called only if
 @code{c-syntactic-indentation} is non-@code{nil} (which it is by
@@ -6772,7 +6772,7 @@ each other as though they were code.  You can suppress this behavior
 by setting the following user option:
 
 @defopt c-syntactic-indentation-in-macros
-@vindex syntactic-indentation-in-macros (c-)
+@vindex syntactic-indentation-in-macros @r{(c-)}
 Enable syntactic analysis inside macros, which is the default.  If this
 is @code{nil}, all lines inside macro definitions are analyzed as
 @code{cpp-macro-cont}.
@@ -6808,9 +6808,9 @@ backslashes in macros neat and tidy.  Their precise action is
 customized with these variables:
 
 @defopt c-backslash-column
-@vindex backslash-column (c-)
+@vindex backslash-column @r{(c-)}
 @defoptx c-backslash-max-column
-@vindex backslash-max-column (c-)
+@vindex backslash-max-column @r{(c-)}
 These variables control the alignment columns for line continuation
 backslashes in multiline macros.  They are used by the functions that
 automatically insert or align such backslashes,
@@ -6831,7 +6831,7 @@ the automatic alignment of backslashes, use
 @end defopt
 
 @defopt c-auto-align-backslashes
-@vindex auto-align-backslashes (c-)
+@vindex auto-align-backslashes @r{(c-)}
 Align automatically inserted line continuation backslashes if
 non-@code{nil}.  When line continuation backslashes are inserted
 automatically for line breaks in multiline macros, e.g., by
@@ -6862,7 +6862,7 @@ You can prevent these by specifying which macros have semicolons.  It
 doesn't matter whether or not such a macro has a parameter list:
 
 @defopt c-macro-names-with-semicolon
-@vindex macro-names-with-semicolon (c-)
+@vindex macro-names-with-semicolon @r{(c-)}
 This buffer-local variable specifies which macros have semicolons.
 After setting its value, you need to call
 @code{c-make-macro-with-semi-re} for it to take effect.  It should be
@@ -6894,7 +6894,7 @@ example:
 @end defopt
 
 @defun c-make-macro-with-semi-re
-@findex make-macro-with-semi-re (c-)
+@findex make-macro-with-semi-re @r{(c-)}
 Call this (non-interactive) function, which sets internal variables,
 each time you change the value of @code{c-macro-names-with-semicolon}
 after the major mode function has run.  It takes no arguments, and its
@@ -6921,7 +6921,7 @@ can prevent this confusion by specifying the identifiers which
 constitute noise macros.
 
 @defopt c-noise-macro-names
-@vindex noise-macro-names (c-)
+@vindex noise-macro-names @r{(c-)}
 This variable is a list of names of noise macros which never have
 parenthesized arguments.  Each element is a string, and must be a
 valid identifier.  An element in @code{c-noise-macro-names} must not
@@ -6930,7 +6930,7 @@ treated as whitespace by @ccmode{}.
 @end defopt
 
 @defopt c-noise-macro-with-parens-names
-@vindex noise-macro-with-parens-names (c-)
+@vindex noise-macro-with-parens-names @r{(c-)}
 This variable is a list of names of noise macros which optionally have
 arguments in parentheses.  Each element of the list is a string, and
 must be a valid identifier.  An element in
@@ -6949,7 +6949,7 @@ but doing so is OK.
 @end defopt
 
 @defun c-make-noise-macro-regexps
-@findex make-noise-macro-regexps (c-)
+@findex make-noise-macro-regexps @r{(c-)}
 Call this (non-interactive) function, which sets internal variables,
 on changing the value of @code{c-noise-macro-names} or
 @code{c-noise-macro-with-parens-names} after the major mode's function
@@ -6966,7 +6966,7 @@ after the mode hooks have run.
 The stuff that didn't fit in anywhere else is documented here.
 
 @defopt c-require-final-newline
-@vindex require-final-newline (c-)
+@vindex require-final-newline @r{(c-)}
 Controls whether a final newline is enforced when the file is saved.
 The value is an association list that for each language mode specifies
 the value to give to @code{require-final-newline} (@pxref{Saving
@@ -6980,7 +6980,7 @@ These are C, C++ and Objective-C.
 @end defopt
 
 @defopt c-echo-syntactic-information-p
-@vindex echo-syntactic-information-p (c-)
+@vindex echo-syntactic-information-p @r{(c-)}
 If non-@code{nil}, the syntactic analysis for the current line is shown
 in the echo area when it's indented (unless
 @code{c-syntactic-indentation} is @code{nil}).  That's useful when
@@ -6989,7 +6989,7 @@ want.
 @end defopt
 
 @defopt c-report-syntactic-errors
-@vindex report-syntactic-errors (c-)
+@vindex report-syntactic-errors @r{(c-)}
 If non-@code{nil}, certain syntactic errors are reported with a ding and
 a message, for example when an @code{else} is indented for which there
 is no corresponding @code{if}.
@@ -7106,7 +7106,7 @@ except perhaps when you've just moved a long way inside the file.
 
 @findex defun-prompt-regexp
 @vindex c-Java-defun-prompt-regexp
-@vindex Java-defun-prompt-regexp (c-)
+@vindex Java-defun-prompt-regexp @r{(c-)}
 A special note about @code{defun-prompt-regexp} in Java mode: The common
 style is to hang the opening braces of functions and classes on the
 right side of the line, and that doesn't work well with the Emacs
@@ -7132,7 +7132,7 @@ typically gives good performance even when the code doesn't fit the
 Emacs approach to finding the defun starts.
 
 @vindex c-enable-xemacs-performance-kludge-p
-@vindex enable-xemacs-performance-kludge-p (c-)
+@vindex enable-xemacs-performance-kludge-p @r{(c-)}
 XEmacs users can set the variable
 @code{c-enable-xemacs-performance-kludge-p} to non-@code{nil}.  This
 tells @ccmode{} to use XEmacs-specific built-in functions which, in some
@@ -7390,7 +7390,7 @@ compatibility, etc.@: are all available on the web site:
 
 @kindex C-c C-b
 @findex c-submit-bug-report
-@findex submit-bug-report (c-)
+@findex submit-bug-report @r{(c-)}
 To report bugs, use the @kbd{C-c C-b} (bound to
 @code{c-submit-bug-report}) command.  This provides vital information
 we need to reproduce your problem.  Make sure you include a concise,

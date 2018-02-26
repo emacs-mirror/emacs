@@ -363,7 +363,7 @@ Similarly, when you save the buffer to a @file{foo.gpg} file,
 encrypted data is written.
 
 The file name pattern for encrypted files can be controlled by
-@var{epa-file-name-regexp}.
+@code{epa-file-name-regexp}.
 
 @defvar epa-file-name-regexp
 Regexp which matches filenames treated as encrypted.
@@ -392,7 +392,7 @@ public key encryption.
 @end deffn
 
 You can also change the default behavior with the variable
-@var{epa-file-select-keys}.
+@code{epa-file-select-keys}.
 
 @defvar epa-file-select-keys
 Control whether or not to pop up the key selection dialog.

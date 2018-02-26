@@ -125,8 +125,8 @@ The buffer is left in Command History mode."
   'command-history-mode-map "24.1")
 (defvar command-history-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map lisp-mode-shared-map)
-    (suppress-keymap map)
+    (set-keymap-parent map (make-composed-keymap lisp-mode-shared-map
+                                                 special-mode-map))
     (define-key map "x" 'command-history-repeat)
     (define-key map "\n" 'next-line)
     (define-key map "\r" 'next-line)
@@ -134,19 +134,22 @@ The buffer is left in Command History mode."
     map)
   "Keymap for `command-history-mode'.")
 
-(define-derived-mode command-history-mode fundamental-mode "Command History"
+(define-derived-mode command-history-mode special-mode "Command History"
   "Major mode for listing and repeating recent commands.
 
 Keybindings:
 \\{command-history-mode-map}"
   (lisp-mode-variables nil)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (setq buffer-read-only t))
+  (set (make-local-variable 'revert-buffer-function) 'command-history-revert)
+  (set-syntax-table emacs-lisp-mode-syntax-table))
 
 (defcustom command-history-hook nil
   "If non-nil, its value is called on entry to `command-history-mode'."
   :type 'hook
   :group 'chistory)
+
+(defun command-history-revert (_ignore-auto _noconfirm)
+  (list-command-history))
 
 (defun command-history-repeat ()
   "Repeat the command shown on the current line.

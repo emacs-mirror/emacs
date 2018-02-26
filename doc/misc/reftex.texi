@@ -1732,8 +1732,8 @@ seems inconvenient to you.@footnote{You could, e.g., bind
 @cindex LaTeX packages, @code{varioref}
 @cindex @code{fancyref}, LaTeX package
 @cindex LaTeX packages, @code{fancyref}
-@vindex reftex-vref-is-default (deprecated)
-@vindex reftex-fref-is-default (deprecated)
+@vindex reftex-vref-is-default @r{(deprecated)}
+@vindex reftex-fref-is-default @r{(deprecated)}
 In former versions of @RefTeX{} only support for @code{varioref} and
 @code{fancyref} was included.  @code{varioref} is a @LaTeX{} package to
 create cross-references with page information.  @code{fancyref} is a
@@ -3295,11 +3295,11 @@ The following list describes the individual parts of the interface.
 @itemize @bullet
 @item
 @findex reftex-label
-@vindex LaTeX-label-function, @r{AUCTeX}
+@vindex LaTeX-label-function@r{, AUCTeX}
 @kindex C-c C-e
 @kindex C-c C-s
-@findex LaTeX-section, @r{AUCTeX}
-@findex TeX-insert-macro, @r{AUCTeX}
+@findex LaTeX-section@r{, AUCTeX}
+@findex TeX-insert-macro@r{, AUCTeX}
 @b{@AUCTeX{} calls @code{reftex-label} to insert labels}@*
 When a new section is created with @kbd{C-c C-s}, or a new environment
 is inserted with @kbd{C-c C-e}, @AUCTeX{} normally prompts for a label to
@@ -3327,14 +3327,14 @@ have to rescan the buffer in order to see it.
 
 @item
 @findex reftex-arg-label
-@findex TeX-arg-label, @r{AUCTeX function}
+@findex TeX-arg-label@r{, AUCTeX function}
 @findex reftex-arg-ref
-@findex TeX-arg-ref, @r{AUCTeX function}
+@findex TeX-arg-ref@r{, AUCTeX function}
 @findex reftex-arg-cite
-@findex TeX-arg-cite, @r{AUCTeX function}
+@findex TeX-arg-cite@r{, AUCTeX function}
 @findex reftex-arg-index
-@findex TeX-arg-index, @r{AUCTeX function}
-@findex TeX-insert-macro, @r{AUCTeX function}
+@findex TeX-arg-index@r{, AUCTeX function}
+@findex TeX-insert-macro@r{, AUCTeX function}
 @kindex C-c @key{RET}
 @b{@RefTeX{} supplies macro arguments}@* When you insert a macro
 interactively with @kbd{C-c @key{RET}}, @AUCTeX{} normally prompts for
@@ -3357,7 +3357,7 @@ Labels}).
 @node Style Files
 @subsection Style Files
 @cindex Style files, AUCTeX
-@findex TeX-add-style-hook, @r{AUCTeX}
+@findex TeX-add-style-hook@r{, AUCTeX}
 Style files are Emacs Lisp files which are evaluated by @AUCTeX{} in
 association with the @code{\documentclass} and @code{\usepackage}
 commands of a document (@pxref{Style Files,,,auctex}). Support for
@@ -3396,7 +3396,7 @@ style file of @AUCTeX{} for example contains the following:
 @end lisp
 
 @noindent
-@findex LaTeX-add-environments, @r{AUCTeX}
+@findex LaTeX-add-environments@r{, AUCTeX}
 while a package @code{myprop} defining a @code{proposition} environment
 with @code{\newtheorem} might use
 

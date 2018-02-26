@@ -1331,13 +1331,13 @@ default.
 
 @node Customizing Faces
 @section Customizing Faces
-@vindex cvs-header (face)
-@vindex cvs-filename (face)
-@vindex cvs-unknown (face)
-@vindex cvs-handled (face)
-@vindex cvs-need-action (face)
-@vindex cvs-marked (face)
-@vindex cvs-msg (face)
+@vindex cvs-header @r{(face)}
+@vindex cvs-filename @r{(face)}
+@vindex cvs-unknown @r{(face)}
+@vindex cvs-handled @r{(face)}
+@vindex cvs-need-action @r{(face)}
+@vindex cvs-marked @r{(face)}
+@vindex cvs-msg @r{(face)}
 
 PCL-CVS adds a few extra features, including menus, mouse bindings, and
 fontification of the @file{*cvs*} buffer.  The faces defined for

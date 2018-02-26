@@ -1507,7 +1507,8 @@ to the main diary file, if these are different files.
 @end ifnottex
 
 
-@findex icalendar-export-file, icalendar-export-region
+@findex icalendar-export-file
+@findex icalendar-export-region
   Use @code{icalendar-export-file} to interactively export an entire
 Emacs diary file to iCalendar format.  To export only a part of a diary
 file, mark the relevant area, and call @code{icalendar-export-region}.

@@ -7,7 +7,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 6
+#serial 7
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -92,6 +92,9 @@ else
 fi
 AC_CHECK_DECL([getloadavg], [], [HAVE_DECL_GETLOADAVG=0],
   [[#if HAVE_SYS_LOADAVG_H
+    /* OpenIndiana has a bug: <sys/time.h> must be included before
+       <sys/loadavg.h>.  */
+    # include <sys/time.h>
     # include <sys/loadavg.h>
     #endif
     #include <stdlib.h>]])

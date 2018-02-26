@@ -102,8 +102,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc)
-  (require 'vc-dir)
-  (require 'grep))
+  (require 'vc-dir))
 
 (defgroup vc-git nil
   "VC Git backend."
@@ -869,6 +868,8 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
 
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
+(defvar compilation-directory)
+(defvar compilation-arguments)
 
 (defun vc-git--pushpull (command prompt extra-args)
   "Run COMMAND (a string; either push or pull) on the current Git branch.
@@ -1411,6 +1412,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 (declare-function grep-read-files "grep" (regexp))
 (declare-function grep-expand-template "grep"
                  (template &optional regexp files dir excl))
+(defvar compilation-environment)
 
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)
@@ -1569,7 +1571,14 @@ The difference to vc-do-command is that this function always invokes
          (or coding-system-for-read vc-git-log-output-coding-system))
 	(coding-system-for-write
          (or coding-system-for-write vc-git-commits-coding-system))
-        (process-environment (cons "GIT_DIR" process-environment)))
+        (process-environment
+         (append
+          `("GIT_DIR"
+            ;; Avoid repository locking during background operations
+            ;; (bug#21559).
+            ,@(when revert-buffer-in-progress-p
+                '("GIT_OPTIONAL_LOCKS=0")))
+          process-environment)))
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
 	   ;; https://debbugs.gnu.org/16897
 	   (unless (and (not (cdr-safe file-or-list))

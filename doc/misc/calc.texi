@@ -14242,7 +14242,7 @@ format in @TeX{} mode and in
 @samp{\begin@{pmatrix@} a & b \\ c & d \end@{pmatrix@}} format in
 @LaTeX{} mode; you may need to edit this afterwards to change to your
 preferred matrix form.  If you invoke @kbd{d T} or @kbd{d L} with an
-argument of 2 or -2, then matrices will be displayed in two-dimensional
+argument of 2 or @minus{}2, then matrices will be displayed in two-dimensional
 form, such as
 
 @example

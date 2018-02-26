@@ -302,7 +302,7 @@ And here's how to do it in csh:
 if ($?prompt) set prompt = @dots{}
 @end example
 
-@vindex TERM, environment variable, in compilation mode
+@vindex TERM@r{, environment variable, in compilation mode}
   If you want to customize the value of the @env{TERM} environment
 variable passed to the compilation subshell, customize the variable
 @code{comint-terminfo-terminal} (@pxref{Shell Options}).
@@ -433,6 +433,15 @@ the variable @code{grep-files-aliases}.
 @code{grep-find-ignored-directories} are automatically skipped by
 @kbd{M-x rgrep}.  The default value includes the data directories used
 by various version control systems.
+
+@vindex grep-find-hide
+  By default, the shell commands constructed for @code{lgrep},
+@code{rgrep}, and @code{zgrep} are abbreviated for display by
+concealing the part that contains a long list of files and directories
+to ignore.  You can reveal the concealed part by clicking on the
+button with ellipsis, which represents them.  To disable this
+abbreviation of the shell commands, customize the option
+@code{grep-find-hide} to a @code{nil} value.
 
 @node Flymake
 @section Finding Syntax Errors On The Fly

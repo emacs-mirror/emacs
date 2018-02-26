@@ -5014,43 +5014,43 @@ code:
 
 @table @code
 @item delete-window
-@vindex delete-window, a window parameter
+@vindex delete-window@r{, a window parameter}
 This parameter affects the execution of @code{delete-window}
 (@pxref{Deleting Windows}).
 
 @item delete-other-windows
-@vindex delete-other-windows, a window parameter
+@vindex delete-other-windows@r{, a window parameter}
 This parameter affects the execution of @code{delete-other-windows}
 (@pxref{Deleting Windows}).
 
 @item no-delete-other-windows
-@vindex no-delete-other-windows, a window parameter
+@vindex no-delete-other-windows@r{, a window parameter}
 This parameter marks the window as not deletable by
 @code{delete-other-windows} (@pxref{Deleting Windows}).
 
 @item split-window
-@vindex split-window, a window parameter
+@vindex split-window@r{, a window parameter}
 This parameter affects the execution of @code{split-window}
 (@pxref{Splitting Windows}).
 
 @item other-window
-@vindex other-window, a window parameter
+@vindex other-window@r{, a window parameter}
 This parameter affects the execution of @code{other-window}
 (@pxref{Cyclic Window Ordering}).
 
 @item no-other-window
-@vindex no-other-window, a window parameter
+@vindex no-other-window@r{, a window parameter}
 This parameter marks the window as not selectable by @code{other-window}
 (@pxref{Cyclic Window Ordering}).
 
 @item clone-of
-@vindex clone-of, a window parameter
+@vindex clone-of@r{, a window parameter}
 This parameter specifies the window that this one has been cloned
 from.  It is installed by @code{window-state-get} (@pxref{Window
 Configurations}).
 
 @item window-preserved-size
-@vindex window-preserved-size, a window parameter
+@vindex window-preserved-size@r{, a window parameter}
 This parameter specifies a buffer, a direction where @code{nil} means
 vertical and @code{t} horizontal, and a size in pixels.  If this window
 displays the specified buffer and its size in the indicated direction
@@ -5060,7 +5060,7 @@ parameter is installed and updated by the function
 @code{window-preserve-size} (@pxref{Preserving Window Sizes}).
 
 @item quit-restore
-@vindex quit-restore, a window parameter
+@vindex quit-restore@r{, a window parameter}
 This parameter is installed by the buffer display functions
 (@pxref{Choosing Window}) and consulted by @code{quit-restore-window}
 (@pxref{Quitting Windows}).  It contains four elements:
@@ -5092,18 +5092,18 @@ See the description of @code{quit-restore-window} in @ref{Quitting
 Windows} for details.
 
 @item window-side window-slot
-@vindex window-side, a window parameter
-@vindex window-slot, a window parameter
+@vindex window-side@r{, a window parameter}
+@vindex window-slot@r{, a window parameter}
 These parameters are used for implementing side windows (@pxref{Side
 Windows}).
 
 @item window-atom
-@vindex window-atom, a window parameter
+@vindex window-atom@r{, a window parameter}
 This parameter is used for implementing atomic windows, see @ref{Atomic
 Windows}.
 
 @item mode-line-format
-@vindex mode-line-format, a window parameter
+@vindex mode-line-format@r{, a window parameter}
 This parameter replaces the value of the buffer-local variable
 @code{mode-line-format} (@pxref{Mode Line Basics}) of this window's
 buffer whenever this window is displayed.  The symbol @code{none} means
@@ -5112,7 +5112,7 @@ contents of the mode line on other windows showing this buffer are not
 affected.
 
 @item header-line-format
-@vindex header-line-format, a window parameter
+@vindex header-line-format@r{, a window parameter}
 This parameter replaces the value of the buffer-local variable
 @code{header-line-format} (@pxref{Mode Line Basics}) of this window's
 buffer whenever this window is displayed.  The symbol @code{none} means
@@ -5121,7 +5121,7 @@ contents of the header line on other windows showing this buffer are not
 affected.
 
 @item min-margins
-@vindex min-margins, a window parameter
+@vindex min-margins@r{, a window parameter}
 The value of this parameter is a cons cell whose @sc{car} and @sc{cdr},
 if non-@code{nil}, specify the minimum values (in columns) for the left
 and right margin of this window.  When present, Emacs will use these

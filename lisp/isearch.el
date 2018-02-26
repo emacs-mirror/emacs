@@ -480,7 +480,8 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map [?\S-\ ] 'isearch-printing-char)
 
     (define-key map    "\C-w" 'isearch-yank-word-or-char)
-    (define-key map "\M-\C-w" 'isearch-del-char)
+    (define-key map "\M-\C-w" 'isearch-yank-symbol-or-char)
+    (define-key map "\M-\C-d" 'isearch-del-char)
     (define-key map "\M-\C-y" 'isearch-yank-char)
     (define-key map    "\C-y" 'isearch-yank-kill)
     (define-key map "\M-s\C-e" 'isearch-yank-line)
@@ -2089,21 +2090,25 @@ If optional ARG is non-nil, pull in the next ARG characters."
   (interactive "p")
   (isearch-yank-internal (lambda () (forward-char arg) (point))))
 
-(declare-function subword-forward "subword" (&optional arg))
-(defun isearch-yank-word-or-char ()
-  "Pull next character, subword or word from buffer into search string.
-Subword is used when `subword-mode' is activated. "
-  (interactive)
+(defun isearch--yank-char-or-syntax (syntax-list fn)
   (isearch-yank-internal
    (lambda ()
-     (if (or (= (char-syntax (or (char-after) 0)) ?w)
-             (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
-	 (if (or (and (boundp 'subword-mode) subword-mode)
-		 (and (boundp 'superword-mode) superword-mode))
-	     (subword-forward 1)
-	   (forward-word 1))
+     (if (or (memq (char-syntax (or (char-after) 0)) syntax-list)
+             (memq (char-syntax (or (char-after (1+ (point))) 0))
+                   syntax-list))
+	 (funcall fn 1)
        (forward-char 1))
      (point))))
+
+(defun isearch-yank-word-or-char ()
+  "Pull next character or word from buffer into search string."
+  (interactive)
+  (isearch--yank-char-or-syntax '(?w) 'forward-word))
+
+(defun isearch-yank-symbol-or-char ()
+  "Pull next character or symbol from buffer into search string."
+  (interactive)
+  (isearch--yank-char-or-syntax '(?w ?_) 'forward-symbol))
 
 (defun isearch-yank-word (&optional arg)
   "Pull next word from buffer into search string.

@@ -158,7 +158,7 @@ display a list of all Edebug commands.
 into it, to invoke Edebug at the proper places.
 
 @kindex C-M-x
-@findex eval-defun (Edebug)
+@findex eval-defun @r{(Edebug)}
   When you invoke command @kbd{C-M-x} (@code{eval-defun}) with a
 prefix argument on a function definition, it instruments the
 definition before evaluating it.  (This does not modify the source

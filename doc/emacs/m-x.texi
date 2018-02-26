@@ -82,8 +82,8 @@ setting of @code{suggest-key-bindings} affects these hints as well.
 
   In this manual, when we speak of running a command by name, we often
 omit the @key{RET} that terminates the name.  Thus we might say
-@kbd{M-x auto-fill-mode} rather than @kbd{M-x auto-fill-mode
-@key{RET}}.  We mention the @key{RET} only for emphasis, such as when
+@kbd{M-x auto-fill-mode} rather than @w{@kbd{M-x auto-fill-mode
+@key{RET}}}.  We mention the @key{RET} only for emphasis, such as when
 the command is followed by arguments.
 
 @findex execute-extended-command

@@ -121,6 +121,7 @@ If non-nil, the value is passed directly to `recenter'."
 A buffer becomes most recent when its compilation, grep, or
 similar mode is started, or when it is used with \\[next-error]
 or \\[compile-goto-error].")
+(make-variable-buffer-local 'next-error-last-buffer)
 
 (defvar next-error-function nil
   "Function to use to find the next error in the current buffer.
@@ -169,6 +170,31 @@ rejected, and the function returns nil."
 	   (and extra-test-inclusive
 		(funcall extra-test-inclusive))))))
 
+(defcustom next-error-find-buffer-function nil
+  "Function called to find a `next-error' capable buffer."
+  :type '(choice (const :tag "Single next-error capable buffer on selected frame"
+                        next-error-buffer-on-selected-frame)
+                 (const :tag "No default" nil)
+                 (function :tag "Other function"))
+  :group 'next-error
+  :version "27.1")
+
+(defun next-error-buffer-on-selected-frame (&optional avoid-current
+                                                      extra-test-inclusive
+                                                      extra-test-exclusive)
+  "Return a single visible next-error buffer on the selected frame."
+  (let ((window-buffers
+         (delete-dups
+          (delq nil (mapcar (lambda (w)
+                              (if (next-error-buffer-p
+				   (window-buffer w)
+                                   avoid-current
+                                   extra-test-inclusive extra-test-exclusive)
+                                  (window-buffer w)))
+                            (window-list))))))
+    (if (eq (length window-buffers) 1)
+        (car window-buffers))))
+
 (defun next-error-find-buffer (&optional avoid-current
 					 extra-test-inclusive
 					 extra-test-exclusive)
@@ -185,18 +211,11 @@ The function EXTRA-TEST-EXCLUSIVE, if non-nil, is called in each buffer
 that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (or
-   ;; 1. If one window on the selected frame displays such buffer, return it.
-   (let ((window-buffers
-          (delete-dups
-           (delq nil (mapcar (lambda (w)
-                               (if (next-error-buffer-p
-				    (window-buffer w)
-                                    avoid-current
-                                    extra-test-inclusive extra-test-exclusive)
-                                   (window-buffer w)))
-                             (window-list))))))
-     (if (eq (length window-buffers) 1)
-         (car window-buffers)))
+   ;; 1. If a customizable function returns a buffer, use it.
+   (when next-error-find-buffer-function
+     (funcall next-error-find-buffer-function avoid-current
+                                              extra-test-inclusive
+                                              extra-test-exclusive))
    ;; 2. If next-error-last-buffer is an acceptable buffer, use that.
    (if (and next-error-last-buffer
             (next-error-buffer-p next-error-last-buffer avoid-current
@@ -261,11 +280,20 @@ To control which errors are matched, customize the variable
     (when buffer
       ;; We know here that next-error-function is a valid symbol we can funcall
       (with-current-buffer buffer
+        ;; Allow next-error to be used from the next-error capable buffer.
+        (setq next-error-last-buffer buffer)
         (funcall next-error-function (prefix-numeric-value arg) reset)
         ;; Override possible change of next-error-last-buffer in next-error-function
         (setq next-error-last-buffer buffer)
+        (setq-default next-error-last-buffer buffer)
         (when next-error-recenter
           (recenter next-error-recenter))
+        (message "%s error from %s"
+                 (cond (reset                             "First")
+                       ((eq (prefix-numeric-value arg) 0) "Current")
+                       ((< (prefix-numeric-value arg) 0)  "Previous")
+                       (t                                 "Next"))
+                 next-error-last-buffer)
         (run-hooks 'next-error-hook)))))
 
 (defun next-error-internal ()
@@ -273,12 +301,25 @@ To control which errors are matched, customize the variable
   (let ((buffer (current-buffer)))
     ;; We know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer buffer
+      ;; Allow next-error to be used from the next-error capable buffer.
+      (setq next-error-last-buffer buffer)
       (funcall next-error-function 0 nil)
       ;; Override possible change of next-error-last-buffer in next-error-function
       (setq next-error-last-buffer buffer)
+      (setq-default next-error-last-buffer buffer)
       (when next-error-recenter
         (recenter next-error-recenter))
+      (message "Current error from %s" next-error-last-buffer)
       (run-hooks 'next-error-hook))))
+
+(defun next-error-select-buffer (buffer)
+  "Select a `next-error' capable buffer and set it as the last used."
+  (interactive
+   (list (get-buffer
+          (read-buffer "Select next-error buffer: " nil nil
+                       (lambda (b) (next-error-buffer-p (cdr b)))))))
+  (setq next-error-last-buffer buffer)
+  (setq-default next-error-last-buffer buffer))
 
 (defalias 'goto-next-locus 'next-error)
 (defalias 'next-match 'next-error)

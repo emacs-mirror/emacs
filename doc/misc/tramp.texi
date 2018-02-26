@@ -820,7 +820,7 @@ External methods save on the overhead of encoding and decoding of
 inline methods.
 
 Since external methods have the overhead of opening a new channel,
-files smaller than @var{tramp-copy-size-limit} still use inline
+files smaller than @code{tramp-copy-size-limit} still use inline
 methods.
 
 @table @asis
@@ -1219,7 +1219,7 @@ Start by using an inline method.
 External methods might be more efficient for large files, but most
 @value{tramp} users edit small files more often than large files.
 
-Enable compression, @var{tramp-inline-compress-start-size}, for a
+Enable compression, @code{tramp-inline-compress-start-size}, for a
 performance boost for large files.
 
 Since @command{ssh} has become the most common method of remote host

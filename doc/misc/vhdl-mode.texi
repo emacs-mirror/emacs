@@ -147,7 +147,7 @@ your personal coding style.
 @cindex   Syntactic Analysis
 
 @vindex vhdl-offsets-alist
-@vindex offsets-alist (vhdl-)
+@vindex offsets-alist @r{(vhdl-)}
 @cindex relative buffer position
 @cindex syntactic symbol
 @cindex syntactic component
@@ -186,7 +186,7 @@ in this and future examples don't actually appear in the buffer.}:
 
 @kindex C-c C-x
 @findex vhdl-show-syntactic-information
-@findex show-syntactic-information (vhdl-)
+@findex show-syntactic-information @r{(vhdl-)}
 We can use the command @kbd{C-c C-x}
 (@code{vhdl-show-syntactic-information}) to simply report what the
 syntactic analysis is for the current line.  Running this command on
@@ -241,7 +241,7 @@ components.  Also notice that the first component,
 @cindex   Indentation Calculation
 
 @vindex vhdl-offsets-alist
-@vindex offsets-alist (vhdl-)
+@vindex offsets-alist @r{(vhdl-)}
 Indentation for the current line is calculated using the syntactic
 component list derived in step 1 above (see @ref{Syntactic
 Analysis}).  Each component contributes to the final total indentation
@@ -301,7 +301,7 @@ indentation, it's helpful to understand the general indentation model
 being used.
 
 @vindex vhdl-echo-syntactic-information-p
-@vindex echo-syntactic-information-p (vhdl-)
+@vindex echo-syntactic-information-p @r{(vhdl-)}
 @cindex TAB
 To help you configure VHDL Mode, you can set the variable
 @code{vhdl-echo-syntactic-information-p} to non-@code{nil} so that the
@@ -428,7 +428,7 @@ line.  Hitting @kbd{C-c C-x} on line 3 yields:
 @end example
 
 @findex vhdl-set-offset
-@findex set-offset (vhdl-)
+@findex set-offset @r{(vhdl-)}
 @kindex C-c O
 @noindent
 So we know that to change the offset of the first signal assignment, we need to
@@ -447,7 +447,7 @@ basic indent with the syntactic symbol @code{statement-block-intro} in
 the @code{vhdl-offsets-alist} variable.
 
 @findex vhdl-indent-defun
-@findex indent-defun (vhdl-)
+@findex indent-defun @r{(vhdl-)}
 To check your changes quickly, just enter @kbd{M-x vhdl-indent-defun} to
 reindent the entire function.  The example should now look like:
 @example
@@ -546,7 +546,7 @@ already built-in.  These include:
 @end itemize
 
 @findex vhdl-set-style
-@findex set-style (vhdl-)
+@findex set-style @r{(vhdl-)}
 If you'd like to experiment with these built-in styles you can simply
 type @kbd{M-x vhdl-set-style RET} in a VHDL Mode buffer.
 
@@ -583,9 +583,9 @@ files.  You would add this:
 @cindex   Adding Styles
 
 @vindex vhdl-style-alist
-@vindex style-alist (vhdl-)
+@vindex style-alist @r{(vhdl-)}
 @findex vhdl-add-style
-@findex add-style (vhdl-)
+@findex add-style @r{(vhdl-)}
 If none of the built-in styles is appropriate, you'll probably want to
 add a new style definition.  Styles are kept in the @code{vhdl-style-alist}
 variable, but you probably won't want to modify this variable directly.
@@ -615,9 +615,9 @@ block.  VHDL Mode provides two variables that make it easier for
 you to customize your style on a per-file basis.
 
 @vindex vhdl-file-style
-@vindex file-style (vhdl-)
+@vindex file-style @r{(vhdl-)}
 @vindex vhdl-file-offsets
-@vindex file-offsets (vhdl-)
+@vindex file-offsets @r{(vhdl-)}
 
 The variable @code{vhdl-file-style} can be set to a style name string as
 described in @ref{Built-in Styles}.  When the file is visited,
@@ -625,9 +625,9 @@ VHDL Mode will automatically set the file's style to this style
 using @code{vhdl-set-style}.
 
 @vindex vhdl-offsets-alist
-@vindex offsets-alist (vhdl-)
+@vindex offsets-alist @r{(vhdl-)}
 @findex vhdl-set-offset
-@findex set-offset (vhdl-)
+@findex set-offset @r{(vhdl-)}
 Another variable, @code{vhdl-file-offsets}, takes an association list
 similar to what is allowed in @code{vhdl-offsets-alist}.  When the file is
 visited, VHDL Mode will automatically institute these offsets using
@@ -642,9 +642,9 @@ before file offset settings (i.e., @code{vhdl-file-offsets}).
 @cindex   Advanced Customizations
 
 @vindex vhdl-style-alist
-@vindex style-alist (vhdl-)
+@vindex style-alist @r{(vhdl-)}
 @vindex vhdl-basic-offset
-@vindex basic-offset (vhdl-)
+@vindex basic-offset @r{(vhdl-)}
 For most users, VHDL Mode will support their coding styles with
 very little need for customizations.  Usually, one of the standard
 styles defined in @code{vhdl-style-alist} will do the trick.  Sometimes,
@@ -743,7 +743,7 @@ don't want that value added into the final total twice.
 
 @cindex statement-cont syntactic symbol
 @findex vhdl-lineup-statement-cont
-@findex lineup-statement-cont (vhdl-)
+@findex lineup-statement-cont @r{(vhdl-)}
 Now, to associate the function @code{vhdl-lineup-statement-cont} with the
 @code{statement-cont} syntactic symbol, we can add something like the
 following to our @code{vhdl-mode-hook}:
@@ -765,7 +765,7 @@ vhdl-indent-defun}):
 @end example
 
 @vindex vhdl-offsets-alist
-@vindex offsets-alist (vhdl-)
+@vindex offsets-alist @r{(vhdl-)}
 Custom indentation functions can be as simple or as complex as you like,
 and any syntactic symbol that appears in @code{vhdl-offsets-alist} can have
 a custom indentation function associated with it.  Note however that
@@ -777,7 +777,7 @@ VHDL Mode.
 @cindex   Other Special Indentations
 
 @vindex vhdl-special-indent-hook
-@vindex special-indent-hook (vhdl-)
+@vindex special-indent-hook @r{(vhdl-)}
 One other variable is available for you to customize VHDL Mode:
 @code{vhdl-special-indent-hook}.  This is a standard hook variable that
 is called after every line is indented by VHDL Mode.  You can use
@@ -956,7 +956,7 @@ The index menu does not work on my XEmacs installation (don't know why).
 
 @kindex C-c C-b
 @findex vhdl-submit-bug-report
-@findex submit-bug-report (vhdl-)
+@findex submit-bug-report @r{(vhdl-)}
 @cindex beta testers mailing list
 @cindex announcement mailing list
 To report bugs, use the @kbd{C-c C-b} (@code{vhdl-submit-bug-report})

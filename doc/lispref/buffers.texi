@@ -647,7 +647,7 @@ visiting a file or if the time has been explicitly cleared by
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
-If the buffer is not visiting a file, this function returns -1.
+If the buffer is not visiting a file, this function returns @minus{}1.
 @end defun
 
 @defun set-visited-file-modtime &optional time
@@ -656,7 +656,8 @@ of the visited file, to the value specified by @var{time} if @var{time}
 is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
-If @var{time} is neither @code{nil} nor zero, it should have the form
+If @var{time} is neither @code{nil} nor an integer flag returned
+by @code{visited-file-modtime}, it should have the form
 @code{(@var{high} @var{low} @var{microsec} @var{picosec})},
 the format used by @code{current-time} (@pxref{Time of Day}).
 
