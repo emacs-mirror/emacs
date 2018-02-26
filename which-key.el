@@ -1673,6 +1673,7 @@ ones. PREFIX is for internal use and should not be used."
                      ((keymapp def) "Prefix Command")
                      ((symbolp def) (copy-sequence (symbol-name def)))
                      ((eq 'lambda (car-safe def)) "lambda")
+                     ((eq 'menu-item (car-safe def)) "menu-item")
                      (t (format "%s" def))))
               bindings :test (lambda (a b) (string= (car a) (car b))))))))
      keymap)
