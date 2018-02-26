@@ -5145,9 +5145,18 @@ pdumper_load (const char *dump_filename)
                      sizeof (*header)) < sizeof (*header))
     goto out;
 
-  err = PDUMPER_LOAD_BAD_FILE_TYPE;
   if (memcmp (header->magic, dump_magic, sizeof (dump_magic)) != 0)
-    goto out;
+    {
+      if (header->magic[0] == '!' &&
+          ((header->magic[0] = dump_magic[0]),
+           memcmp (header->magic, dump_magic, sizeof (dump_magic)) == 0))
+        {
+          err = PDUMPER_LOAD_FAILED_DUMP;
+          goto out;
+        }
+      err = PDUMPER_LOAD_BAD_FILE_TYPE;
+      goto out;
+    }
 
   err = PDUMPER_LOAD_VERSION_MISMATCH;
   verify (sizeof (header->fingerprint) == sizeof (fingerprint));

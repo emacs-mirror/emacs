@@ -714,6 +714,8 @@ dump_error_to_string (enum pdumper_load_result result)
       return "could not open file";
     case PDUMPER_LOAD_BAD_FILE_TYPE:
       return "not a dump file";
+    case PDUMPER_LOAD_FAILED_DUMP:
+      return "dump file is result of failed dump attempt";
     case PDUMPER_LOAD_VERSION_MISMATCH:
       return "not built for this Emacs executable";
     default:
