@@ -25,6 +25,7 @@
 #include "lisp.h"
 #include "pdumper.h"
 #include "window.h"
+#include "systime.h"
 
 #include "dmpstruct.h"
 
@@ -4722,6 +4723,10 @@ struct pdumper_loaded_dump_private
   struct dump_header header;
   /* Mark bits for objects in the dump; used during GC.  */
   struct dump_bitset mark_bits;
+  /* Time taken to load the dump.  */
+  double load_time;
+  /* Dump file name.  */
+  char *dump_filename;
 };
 
 struct pdumper_loaded_dump dump_public;
@@ -5071,6 +5076,15 @@ enum dump_section
    NUMBER_DUMP_SECTIONS,
   };
 
+/* Subtract two timespecs, yielding a difference in milliseconds. */
+static double
+subtract_timespec (struct timespec minuend, struct timespec subtrahend)
+{
+  return
+    1000.0 * (double)(minuend.tv_sec - subtrahend.tv_sec)
+    + (double)(minuend.tv_nsec - subtrahend.tv_nsec) / 1.0e6;
+}
+
 /* Load a dump from DUMP_FILENAME.  Return an error code.
 
    N.B. We run very early in initialization, so we can't use lisp,
@@ -5094,6 +5108,9 @@ pdumper_load (const char *dump_filename)
   struct dump_header header_buf;
   struct dump_header *header = &header_buf;
   struct dump_memory_map sections[NUMBER_DUMP_SECTIONS];
+
+  const struct timespec start_time = current_timespec ();
+  char *dump_filename_copy = NULL;
 
   memset (&header_buf, 0, sizeof (header_buf));
   memset (&sections, 0, sizeof (sections));
@@ -5140,6 +5157,11 @@ pdumper_load (const char *dump_filename)
       dump_fingerprint ("found fingerprint", header->fingerprint);
       goto out;
     }
+
+  err = PDUMPER_LOAD_OOM;
+  dump_filename_copy = strdup (dump_filename);
+  if (!dump_filename_copy)
+    goto out;
 
   err = PDUMPER_LOAD_OOM;
 
@@ -5209,6 +5231,11 @@ pdumper_load (const char *dump_filename)
     dump_hooks[i] ();
   initialized = true;
 
+  dump_private.load_time = subtract_timespec (
+    current_timespec (), start_time);
+  dump_private.dump_filename = dump_filename_copy;
+  dump_filename_copy = NULL;
+
  out:
   for (int i = 0; i < ARRAYELTS (sections); ++i)
     dump_mmap_release (&sections[i]);
@@ -5216,19 +5243,27 @@ pdumper_load (const char *dump_filename)
     dump_bitset_destroy (&mark_bits);
   if (dump_fd >= 0)
     emacs_close (dump_fd);
+  free (dump_filename_copy);
   return err;
 }
 
 DEFUN ("pdumper-stats",
        Fpdumper_stats, Spdumper_stats,
        0, 0, 0,
-       doc: /* Return statistics about the portable dumper.  */)
+       doc: /* Return an alist of statistics about dump file that
+               started this Emacs, if any.  Nil if this Emacs was not
+               started using a portable dumper dump file.*/)
      (void)
 {
-  Lisp_Object stats = Qnil;
-  if (dumped_with_pdumper_p ())
-    dump_push (&stats, Fcons (Qdumped_with_pdumper, Qt));
-  return Fnreverse (stats);
+  if (!dumped_with_pdumper_p ())
+    return Qnil;
+
+  return CALLN (
+    Flist,
+    Fcons (Qdumped_with_pdumper, Qt),
+    Fcons (Qload_time, make_float (dump_private.load_time)),
+    Fcons (Qdump_file_name,
+           build_unibyte_string (dump_private.dump_filename)));
 }
 
 #endif /* HAVE_PDUMPER */
@@ -5247,6 +5282,8 @@ syms_of_pdumper (void)
   DEFSYM (Qdump_emacs_portable__sort_predicate_copied,
           "dump-emacs-portable--sort-predicate-copied");
   DEFSYM (Qdumped_with_pdumper, "dumped-with-pdumper");
+  DEFSYM (Qload_time, "load-time");
+  DEFSYM (Qdump_file_name, "dump-file-name");
   defsubr (&Spdumper_stats);
 #endif /* HAVE_PDUMPER */
 }

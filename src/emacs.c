@@ -724,7 +724,7 @@ dump_error_to_string (enum pdumper_load_result result)
 #define PDUMP_FILE_ARG "--dump-file"
 
 static enum pdumper_load_result
-load_pdump (int argc, char **argv, const char** out_dump_file)
+load_pdump (int argc, char **argv)
 {
   const char *const suffix = ".pdmp";
   const char *const argv0_base = "emacs";
@@ -797,7 +797,6 @@ load_pdump (int argc, char **argv, const char** out_dump_file)
     dump_file = NULL;
 
  out:
-  *out_dump_file = dump_file ? strdup (dump_file) : NULL;
   return result;
 }
 #endif /* HAVE_PDUMPER */
@@ -827,7 +826,6 @@ main (int argc, char **argv)
   stack_bottom = (char *) &stack_bottom_variable;
 
   const char *dump_mode = NULL;
-  const char *loaded_dump = NULL;
   const char *temacs = find_argument ("--temacs", argc, argv);
 #ifdef HAVE_PDUMPER
   bool attempt_load_pdump = false;
@@ -904,21 +902,7 @@ main (int argc, char **argv)
 
 #ifdef HAVE_PDUMPER
   if (attempt_load_pdump)
-    {
-      struct timeval start;
-      gettimeofday (&start, NULL);
-      enum pdumper_load_result result = load_pdump (argc, argv, &loaded_dump);
-      struct timeval end;
-      gettimeofday (&end, NULL);
-      double tdif =
-        1000.0 * (end.tv_sec - start.tv_sec)
-        + (end.tv_usec - start.tv_usec) / 1.0e3;
-      fprintf (stderr, "load_dump %s %g milliseconds%s%s\n",
-               loaded_dump ? "completed in" : "failed after",
-               tdif,
-               loaded_dump ? "" : ": ",
-               dump_error_to_string (result));
-    }
+    load_pdump (argc, argv);
 #endif
 
   /* True if address randomization interferes with memory allocation.  */
@@ -1916,8 +1900,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   if (dump_mode)
     Vdump_mode = build_string (dump_mode);
-  if (loaded_dump)
-    Vdump_file_name = build_string (loaded_dump); // XXX: decode
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
@@ -2787,9 +2769,6 @@ Don't rely on it for testing whether a feature you want to use is available.  */
 
   DEFVAR_BOOL ("noninteractive", noninteractive1,
                doc: /* Non-nil means Emacs is running without interactive terminal.  */);
-
-  DEFVAR_LISP ("dump-file-name", Vdump_file_name,
-               doc: /* Name of the dump file used to start this Emacs process.  */);
 
   DEFVAR_LISP ("kill-emacs-hook", Vkill_emacs_hook,
 	       doc: /* Hook run when `kill-emacs' is called.
