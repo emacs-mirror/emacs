@@ -2337,32 +2337,37 @@ is selected interactively by mode in `minor-mode-map-alist'."
                             (cdr (assq mode-sym minor-mode-map-alist)))))
 
 (defun which-key--show-keymap (keymap-name keymap &optional prior-args all)
-  (setq which-key--current-prefix nil
-        which-key--current-show-keymap-name keymap-name
-        which-key--using-show-keymap t)
-  (when prior-args (push prior-args which-key--prior-show-keymap-args))
-  (when (keymapp keymap)
-    (let ((formatted-keys (which-key--get-formatted-key-bindings
-                           (which-key--get-keymap-bindings keymap all)
-                           nil all)))
-      (cond ((= (length formatted-keys) 0)
-             (message "which-key: Keymap empty"))
-            ((listp which-key-side-window-location)
-             (setq which-key--last-try-2-loc
-                   (apply #'which-key--try-2-side-windows
-                          formatted-keys 0 which-key-side-window-location)))
-            (t (setq which-key--pages-plist
-                     (which-key--create-pages formatted-keys))
-               (which-key--show-page 0)))))
-  (let* ((key (key-description (list (read-key))))
-         (next-def (lookup-key keymap (kbd key))))
-    (cond ((and which-key-use-C-h-commands (string= "C-h" key))
-           (which-key-C-h-dispatch))
-          ((keymapp next-def)
-           (which-key--hide-popup-ignore-command)
-           (which-key--show-keymap (concat keymap-name " " key) next-def
-                                   (cons keymap-name keymap)))
-          (t (which-key--hide-popup)))))
+  (let (unformatted-keys formatted-keys)
+    (setq which-key--current-prefix nil
+          which-key--current-show-keymap-name keymap-name
+          which-key--using-show-keymap t)
+    (when prior-args (push prior-args which-key--prior-show-keymap-args))
+    (if (and (keymapp keymap)
+             (setq unformatted-keys (which-key--get-keymap-bindings keymap all))
+             ;; need this in two steps otherwise
+             ;; `which-key--get-formatted-key-bindings' will look for global
+             ;; keys if second argument is nil
+             (setq formatted-keys (which-key--get-formatted-key-bindings
+                                   unformatted-keys nil all))
+             (> (length formatted-keys) 0))
+        (progn
+          (cond ((listp which-key-side-window-location)
+                 (setq which-key--last-try-2-loc
+                       (apply #'which-key--try-2-side-windows
+                              formatted-keys 0 which-key-side-window-location)))
+                (t (setq which-key--pages-plist
+                         (which-key--create-pages formatted-keys))
+                   (which-key--show-page 0)))
+          (let* ((key (key-description (list (read-key))))
+                 (next-def (lookup-key keymap (kbd key))))
+            (cond ((and which-key-use-C-h-commands (string= "C-h" key))
+                   (which-key-C-h-dispatch))
+                  ((keymapp next-def)
+                   (which-key--hide-popup-ignore-command)
+                   (which-key--show-keymap (concat keymap-name " " key) next-def
+                                           (cons keymap-name keymap)))
+                  (t (which-key--hide-popup)))))
+      (message "which-key: No bindings found in %s" keymap-name))))
 
 (defun which-key--evil-operator-filter (binding)
   (let ((def (intern (cdr binding))))
