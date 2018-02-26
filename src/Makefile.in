@@ -355,8 +355,10 @@ am__v_at_1 =
 bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
 ifeq ($(DUMPING),pdumper)
 bootstrap_pdmp := bootstrap-emacs.pdmp # Keep in sync with loadup.el
+pdmp := emacs.pdmp
 else
 bootstrap_pdmp :=
+pdmp :=
 endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
@@ -448,7 +450,7 @@ FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
-all: emacs$(EXEEXT) $(OTHER_FILES)
+all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
 .PHONY: all
 
 dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
@@ -521,7 +523,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
 ## and emacs (which recreates bootstrap-emacs) depends on charprop,
 ## in practice this rule was always run anyway.
 $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
-  bootstrap-emacs$(EXEEXT) FORCE
+  bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp) FORCE
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
 
 ## We require charprop.el to exist before ucs-normalize.el is
@@ -552,18 +554,21 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 emacs$(EXEEXT): temacs$(EXEEXT) \
                 lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
-ifeq ($(DUMPING),pdumper)
-	cp -f temacs$(EXEEXT) $@
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump
-else ifeq ($(DUMPING),unexec)
+ifeq ($(DUMPING),unexec)
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
-ifneq ($(PAXCTL_dumped),)
-	      $(PAXCTL_dumped) $@
-endif
-else
-	cp -f temacs$(EXEEXT) $@
-endif
+  ifneq ($(PAXCTL_dumped),)
+	      $(PAXCTL_dumped) emacs$(EXEEXT)
+  endif
 	cp -f $@ bootstrap-emacs$(EXEEXT)
+else
+	cp -f temacs$(EXEEXT) emacs$(EXEEXT)
+endif
+
+ifeq ($(DUMPING),pdumper)
+$(pdmp): emacs$(EXEEXT)
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump
+	cp -f $@ $(bootstrap_pdmp)
+endif
 
 ## We run make-docfile twice because the command line may get too long
 ## on some systems.  Unfortunately, no-one has any idea
@@ -665,7 +670,7 @@ emacs.res: FORCE
 	$(MAKE) -C ../nt ../src/emacs.res
 
 .PHONY: ns-app
-ns-app: emacs$(EXEEXT)
+ns-app: emacs$(EXEEXT) $(pdmp)
 	$(MAKE) -C ../nextstep all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
@@ -761,7 +766,7 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## but now that we require GNU make, we can simply specify
 ## bootstrap-emacs$(EXEEXT) as an order-only prerequisite.
 
-%.elc: %.el | bootstrap-emacs$(EXEEXT)
+%.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) -C ../lisp EMACS="$(bootstrap_exe)" THEFILE=$< $<c
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
@@ -769,26 +774,32 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## If empty it is ignored; the parent makefile can set it to some other value.
 VCSWITNESS =
 
-$(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
+$(lispsource)/loaddefs.el: $(VCSWITNESS) | \
+		bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
 
-bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp): temacs$(EXEEXT)
+bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
-ifeq ($(DUMPING),pdumper)
-	rm -f $(bootstrap_pdmp)
-	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap
-else ifeq ($(DUMPING),unexec)
+ifeq ($(DUMPING),unexec)
 	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=bootstrap
   ifneq ($(PAXCTL_dumped),)
 	$(PAXCTL_dumped) emacs$(EXEEXT)
   endif
 	mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
-else
-	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
-endif
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+else
+	@: In the pdumper case, make compile-first after the dump
+	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
+endif
+
+ifeq ($(DUMPING),pdumper)
+$(bootstrap_pdmp): bootstrap-emacs$(EXEEXT)
+	rm -f $@
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap
+	@: Compile some files earlier to speed up further compilation.
+	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+endif
