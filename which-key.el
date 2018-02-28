@@ -639,6 +639,9 @@ Used when `which-key-popup-type' is frame.")
 (defvar which-key--last-try-2-loc nil
   "Internal: Last location of side-window when two locations
 used.")
+(defvar which-key--automatic-display nil
+  "Internal: Non-nil if popup was triggered with automatic
+update.")
 (defvar which-key--multiple-locations nil)
 (defvar which-key--using-top-level nil)
 (defvar which-key--using-show-keymap nil)
@@ -1061,6 +1064,7 @@ total height."
   "This function is called to hide the which-key buffer."
   (unless (member real-this-command which-key--paging-functions)
     (setq which-key--current-prefix nil
+          which-key--automatic-display nil
           which-key--using-top-level nil
           which-key--using-show-keymap nil
           which-key--using-show-operator-keymap nil
@@ -2534,6 +2538,7 @@ Finally, show the buffer."
                                        (key-description prefix-keys)
                                        (length prefix-keys))))
                           (sit-for delay-time)))
+             (setq which-key--automatic-display t)
              (which-key--create-buffer-and-show prefix-keys)
              (when (and which-key-idle-secondary-delay
                         (not which-key--secondary-timer-active))
@@ -2550,9 +2555,7 @@ Finally, show the buffer."
                 (eq evil-state 'operator)
                 (not which-key--using-show-operator-keymap))
            (which-key--show-evil-operator-keymap))
-          ((and (not which-key--using-top-level)
-                (not which-key--using-show-operator-keymap)
-                (not which-key--using-show-keymap))
+          (which-key--automatic-display
            (which-key--hide-popup)))))
 
 ;;; Timers
