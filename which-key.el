@@ -1944,7 +1944,8 @@ is the width of the live window."
     (setq result
           (which-key--create-pages-1
            keys avl-lines avl-width min-lines vertical))
-    (when (> (which-key--pages-num-pages result) 0)
+    (when (and result
+               (> (which-key--pages-num-pages result) 0))
       (setf (which-key--pages-prefix result) prefix-keys)
       (setf (which-key--pages-prefix-title result)
             (or prefix-title
