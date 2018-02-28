@@ -1711,9 +1711,9 @@ Requires `which-key-compute-remaps' to be non-nil"
         (copy-sequence (symbol-name remap))
       binding)))
 
-(defun which-key--get-current-bindings ()
+(defun which-key--get-current-bindings (&optional prefix)
   "Generate a list of current active bindings."
-  (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
+  (let ((key-str-qt (regexp-quote (key-description prefix)))
         (buffer (current-buffer))
         (ignore-bindings '("self-insert-command" "ignore"
                            "ignore-event" "company-ignore"))
@@ -1724,7 +1724,7 @@ Requires `which-key-compute-remaps' to be non-nil"
     (with-temp-buffer
       (setq-local indent-tabs-mode t)
       (setq-local tab-width 8)
-      (describe-buffer-bindings buffer which-key--current-prefix)
+      (describe-buffer-bindings buffer prefix)
       (goto-char (point-min))
       (let ((header-p (not (= (char-after) ?\f)))
             bindings header)
@@ -1739,8 +1739,7 @@ Requires `which-key-compute-remaps' to be non-nil"
            ((= (char-after) ?\f)
             (setq header-p t))
            ((looking-at "^[ \t]*$"))
-           ((or (not (string-match-p ignore-sections-regexp header))
-                which-key--current-prefix)
+           ((or (not (string-match-p ignore-sections-regexp header)) prefix)
             (let ((binding-start (save-excursion
                                    (and (re-search-forward "\t+" nil t)
                                         (match-end 0))))
@@ -1755,14 +1754,14 @@ Requires `which-key-compute-remaps' to be non-nil"
                   (cond
                    ((member binding ignore-bindings))
                    ((string-match-p which-key--ignore-keys-regexp key))
-                   ((and which-key--current-prefix
+                   ((and prefix
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$"
                                                key-str-qt) key))
                     (unless (assoc-string (match-string 1 key) bindings)
                       (push (cons (match-string 1 key)
                                   (which-key--compute-binding binding))
                             bindings)))
-                   ((and which-key--current-prefix
+                   ((and prefix
                          (string-match
                           (format
                            "^%s[ \t]\\([^ \t]+\\) \\.\\. %s[ \t]\\([^ \t]+\\)[ \t]+$"
@@ -1783,7 +1782,7 @@ Requires `which-key-compute-remaps' to be non-nil"
           (forward-line))
         (nreverse bindings)))))
 
-(defun which-key--get-bindings (&optional keymap filter recursive)
+(defun which-key--get-bindings (&optional prefix keymap filter recursive)
   "Collect key bindings.
 If KEYMAP is nil, collect from current buffer using the current
 key sequence as a prefix. Otherwise, collect from KEYMAP. FILTER
@@ -1795,7 +1794,7 @@ non-nil, then bindings are collected recursively for all prefixes."
                 (keymap
                  (error "%s is not a keymap" keymap))
                 (t
-                 (which-key--get-current-bindings)))))
+                 (which-key--get-current-bindings prefix)))))
     (when filter
       (setq unformatted (cl-remove-if-not filter unformatted)))
     (when which-key-sort-order
@@ -2388,7 +2387,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
 (defun which-key--show-keymap (keymap-name keymap &optional prior-args all)
   (setq which-key--current-prefix nil)
   (when prior-args (push prior-args which-key--prior-show-keymap-args))
-  (let ((bindings (which-key--get-bindings keymap nil all)))
+  (let ((bindings (which-key--get-bindings nil keymap nil all)))
     (if (= (length bindings) 0)
         (message "which-key: No bindings found in %s" keymap-name)
       (cond ((listp which-key-side-window-location)
@@ -2423,7 +2422,8 @@ is selected interactively by mode in `minor-mode-map-alist'."
       (setq which-key--current-prefix nil)
       (when (keymapp keymap)
         (let ((formatted-keys
-               (which-key--get-bindings keymap #'which-key--evil-operator-filter)))
+               (which-key--get-bindings
+                nil keymap #'which-key--evil-operator-filter)))
           (cond ((= (length formatted-keys) 0)
                  (message "which-key: Keymap empty"))
                 ((listp which-key-side-window-location)
@@ -2454,7 +2454,8 @@ Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
   (let ((start-time (when which-key--debug (current-time)))
-        (formatted-keys (which-key--get-bindings from-keymap filter))
+        (formatted-keys (which-key--get-bindings
+                         prefix-keys from-keymap filter))
         (prefix-keys (key-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys))
