@@ -2246,7 +2246,8 @@ current evil state. "
           (key-lst
            (which-key-reload-key-sequence key-lst)
            (which-key--create-buffer-and-show (apply #'vector key-lst)))
-          (t (which-key-show-top-level)))))
+          (t (setq which-key--automatic-display nil)
+             (which-key-show-top-level)))))
 (defalias 'which-key-undo 'which-key-undo-key)
 
 (defun which-key-abort (&optional _)
