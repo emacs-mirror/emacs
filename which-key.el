@@ -1418,9 +1418,9 @@ local bindings coming first. Within these categories order using
                 (throw 'res res)))))))
     (nreverse res)))
 
-(defun which-key--get-pseudo-binding (key-binding)
+(defun which-key--get-pseudo-binding (key-binding &optional prefix)
   (let* ((pseudo-binding
-          (key-binding (which-key--pseudo-key (kbd (car key-binding)) t)))
+          (key-binding (which-key--pseudo-key (kbd (car key-binding)) prefix)))
          (pseudo-binding (when pseudo-binding (cadr pseudo-binding)))
          (pseudo-desc (when pseudo-binding (car pseudo-binding)))
          (pseudo-def (when pseudo-binding (cdr pseudo-binding)))
@@ -1433,11 +1433,11 @@ local bindings coming first. Within these categories order using
                (eq pseudo-def real-def))
       (cons (car key-binding) pseudo-desc))))
 
-(defun which-key--maybe-replace (key-binding)
+(defun which-key--maybe-replace (key-binding &optional prefix)
   "Use `which-key--replacement-alist' to maybe replace KEY-BINDING.
 KEY-BINDING is a cons cell of the form \(KEY . BINDING\) each of
 which are strings. KEY is of the form produced by `key-binding'."
-  (let* ((pseudo-binding (which-key--get-pseudo-binding key-binding)))
+  (let* ((pseudo-binding (which-key--get-pseudo-binding key-binding prefix)))
     (if pseudo-binding
         pseudo-binding
       (let* ((mode-res (which-key--get-replacements key-binding t))
@@ -1487,13 +1487,13 @@ which are strings. KEY is of the form produced by `key-binding'."
         map (kbd (which-key--current-key-string (car keydesc))))
        (intern (cdr keydesc)))))
 
-(defun which-key--pseudo-key (key &optional use-current-prefix)
+(defun which-key--pseudo-key (key &optional prefix)
   "Replace the last key in the sequence KEY by a special symbol
 in order for which-key to allow looking up a description for the key."
   (let* ((seq (listify-key-sequence key))
          (final (intern (format "which-key-%s" (key-description (last seq))))))
-    (if use-current-prefix
-        (vconcat (which-key--current-key-list) (list final))
+    (if prefix
+        (vconcat prefix (list final))
       (vconcat (butlast seq) (list final)))))
 
 (defun which-key--maybe-get-prefix-title (keys)
@@ -1640,7 +1640,7 @@ return the docstring."
           (t
            (format "%s %s" current docstring)))))
 
-(defun which-key--format-and-replace (unformatted &optional preserve-full-key)
+(defun which-key--format-and-replace (unformatted &optional prefix preserve-full-key)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
@@ -1654,13 +1654,13 @@ alists. Returns a list (key separator description)."
              (orig-desc (cdr key-binding))
              (group (which-key--group-p orig-desc))
              ;; At top-level prefix is nil
-             (keys (if (which-key--current-prefix)
-                       (concat (which-key--current-key-string) " " key)
+             (keys (if prefix
+                       (concat (key-description prefix) " " key)
                      key))
              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
-             (key-binding (which-key--maybe-replace (cons keys orig-desc)))
+             (key-binding (which-key--maybe-replace (cons keys orig-desc) prefix))
              (final-desc (which-key--propertize-description
                           (cdr key-binding) group local hl-face orig-desc)))
         (when final-desc
@@ -1810,7 +1810,7 @@ non-nil, then bindings are collected recursively for all prefixes."
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted which-key-sort-order)))
-    (which-key--format-and-replace unformatted recursive)))
+    (which-key--format-and-replace unformatted prefix recursive)))
 
 ;;; Functions for laying out which-key buffer pages
 
@@ -1957,7 +1957,7 @@ is the width of the live window."
       (setf (which-key--pages-prefix-title result)
             (or prefix-title
                 (which-key--maybe-get-prefix-title
-                 (which-key--current-key-string))))
+                 (key-description prefix-keys))))
       result)))
 
 (defun which-key--lighter-status ()
@@ -2110,7 +2110,7 @@ and a page count."
   "Show current page. N changes the current page to the Nth page
 relative to the current one."
   (which-key--init-buffer) ;; in case it was killed
-  (let ((prefix-keys (key-description (which-key--current-prefix)))
+  (let ((prefix-keys (which-key--current-key-string))
         golden-ratio-mode)
     (if (null which-key--pages-obj)
         (message "%s- which-key can't show keys: There is not \
@@ -2280,7 +2280,7 @@ prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
   (if (not (which-key--popup-showing-p))
       (which-key-show-standard-help)
-    (let* ((prefix-keys (key-description (which-key--current-prefix)))
+    (let* ((prefix-keys (which-key--current-key-string))
            (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
            (prompt (concat (when (string-equal prefix-keys "")
                              (which-key--propertize
