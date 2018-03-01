@@ -2026,7 +2026,7 @@ including prefix arguments."
 
 (defun which-key--get-popup-map ()
   "Generate transient-map for use in the top level binding display."
-  (unless (which-key--current-prefix)
+  (unless which-key--automatic-display
     (let ((map (make-sparse-keymap)))
       (define-key map (kbd which-key-paging-key) #'which-key-C-h-dispatch)
       (when which-key-use-C-h-commands
@@ -2485,14 +2485,12 @@ Finally, show the buffer."
       (message "On prefix \"%s\" which-key took %.0f ms." prefix-desc
                (* 1000 (float-time (time-since start-time)))))))
 
-(defun which-key--update ()
-  "Function run by timer to possibly trigger
-`which-key--create-buffer-and-show'."
-  (let ((prefix-keys (this-single-command-keys))
-        delay-time)
-    (when (and (equal prefix-keys [key-chord])
+(defun which-key--this-command-keys ()
+  "Version of `this-single-command-keys' corrected for key-chords and god-mode."
+  (let ((this-command-keys (this-single-command-keys)))
+    (when (and (equal this-command-keys [key-chord])
                (bound-and-true-p key-chord-mode))
-      (setq prefix-keys
+      (setq this-command-keys
             (condition-case nil
                 (let ((rkeys (recent-keys)))
                   (vector 'key-chord
@@ -2509,8 +2507,15 @@ Finally, show the buffer."
     (when (and which-key--god-mode-support-enabled
                (bound-and-true-p god-local-mode)
                (eq this-command 'god-mode-self-insert))
-      (setq prefix-keys (when which-key--god-mode-key-string
+      (setq this-command-keys (when which-key--god-mode-key-string
                           (kbd which-key--god-mode-key-string))))
+    this-command-keys))
+
+(defun which-key--update ()
+  "Function run by timer to possibly trigger
+`which-key--create-buffer-and-show'."
+  (let ((prefix-keys (which-key--this-command-keys))
+        delay-time)
     (cond ((and (> (length prefix-keys) 0)
                 (or (keymapp (key-binding prefix-keys))
                     ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
@@ -2590,7 +2595,7 @@ Finally, show the buffer."
                                         which-key--paging-functions))
                            (and (< 0 (length (this-single-command-keys)))
                                 (not (equal (which-key--current-prefix)
-                                            (this-single-command-keys)))))
+                                            (which-key--this-command-keys)))))
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
 
