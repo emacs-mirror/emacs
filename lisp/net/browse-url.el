@@ -1242,18 +1242,14 @@ used instead of `browse-url-new-window-flag'."
 (defvar url-handler-regexp)
 
 ;;;###autoload
-(defun browse-url-emacs (url &optional _new-window)
+(defun browse-url-emacs (url &optional same-window)
   "Ask Emacs to load URL into a buffer and show it in another window."
   (interactive (browse-url-interactive-arg "URL: "))
   (require 'url-handlers)
   (let ((file-name-handler-alist
          (cons (cons url-handler-regexp 'url-file-handler)
                file-name-handler-alist)))
-    ;; Ignore `new-window': with all other browsers the URL is always shown
-    ;; in another window than the current Emacs one since it's shown in
-    ;; another application's window.
-    ;; (if new-window (find-file-other-window url) (find-file url))
-    (find-file-other-window url)))
+    (if same-window (find-file url) (find-file-other-window url))))
 
 ;;;###autoload
 (defun browse-url-gnome-moz (url &optional new-window)
