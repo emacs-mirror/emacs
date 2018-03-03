@@ -2607,9 +2607,13 @@ desirable to have customizations that take effect during Emacs startup
 earlier than the normal init file is processed.  Such customizations
 can be put in the early init file, @file{~/.emacs.d/early-init.el}.
 This file is loaded before the package system is initialized, so in it
-you can customize variables that affect the initialization process,
-such as @code{package-enable-at-startup} and @code{package-load-list}.
-@xref{Package Installation}.
+you can customize variables that affect the package initialization
+process, such as @code{package-enable-at-startup},
+@code{package-load-list}, and @code{package-user-dir}.  Note that
+variables like @code{package-archives} which only affect the
+installation of new packages, and not the process of making
+already-installed packages available, may be customized in the regular
+init file.  @xref{Package Installation}.
 
   For more information on the early init file, @pxref{Init File,,,
 elisp, The Emacs Lisp Reference Manual}.
