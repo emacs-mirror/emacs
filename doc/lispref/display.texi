@@ -3292,7 +3292,7 @@ nominal heights and widths would suggest.
 @defun x-list-fonts name &optional reference-face frame maximum width
 This function returns a list of available font names that match
 @var{name}.  @var{name} should be a string containing a font name in
-either the Fontconfig, GTK, or XLFD format (@pxref{Fonts,,, emacs, The
+either the Fontconfig, GTK+, or XLFD format (@pxref{Fonts,,, emacs, The
 GNU Emacs Manual}).  Within an XLFD string, wildcard characters may be
 used: the @samp{*} character matches any substring, and the @samp{?}
 character matches any single character.  Case is ignored when matching
@@ -3550,7 +3550,7 @@ specifications are as follows:
 
 @table @code
 @item :name
-The font name (a string), in either XLFD, Fontconfig, or GTK format.
+The font name (a string), in either XLFD, Fontconfig, or GTK+ format.
 @xref{Fonts,,, emacs, The GNU Emacs Manual}.
 
 @item :family
@@ -5993,7 +5993,7 @@ debugging.
 @cindex embedded widgets
 @cindex webkit browser widget
 
-  Emacs is able to display native widgets, such as GTK WebKit widgets,
+  Emacs is able to display native widgets, such as GTK+ WebKit widgets,
 in Emacs buffers when it was built with the necessary support
 libraries and is running on a graphical terminal.  To test whether
 Emacs supports display of embedded widgets, check that the

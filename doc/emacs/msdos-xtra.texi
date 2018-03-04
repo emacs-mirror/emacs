@@ -412,7 +412,7 @@ will print the region while converting it to the codepage 850 encoding.
 
 @node MS-DOS and MULE
 @subsection International Support on MS-DOS
-@cindex international support @r{(MS-DOS)}
+@cindex international support (MS-DOS)
 
   Emacs on MS-DOS supports the same international character sets as it
 does on GNU, Unix and other platforms
@@ -471,7 +471,7 @@ codepage built into the display hardware.)  You can specify a different
 codepage for Emacs to use by setting the variable @code{dos-codepage} in
 your init file.
 
-@cindex language environment, automatic selection on @r{MS-DOS}
+@cindex language environment, automatic selection on MS-DOS
   Multibyte Emacs supports only certain DOS codepages: those which can
 display Far-Eastern scripts, like the Japanese codepage 932, and those
 that encode a single ISO 8859 character set.
@@ -494,7 +494,7 @@ codes.  For example, the letter @samp{@,{c}} (@samp{c} with cedilla) has
 code 231 in the standard Latin-1 character set, but the corresponding
 DOS codepage 850 uses code 135 for this glyph.}
 
-@cindex mode line @r{(MS-DOS)}
+@cindex mode line (MS-DOS)
   All the @code{cp@var{nnn}} coding systems use the letter @samp{D}
 (for ``DOS'') as their mode-line mnemonic.  Since both the terminal
 coding system and the default coding system for file I/O are set to

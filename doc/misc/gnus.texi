@@ -959,7 +959,6 @@ Emacs for Heathens
 If you haven't used Emacs much before using Gnus, read @ref{Emacs for
 Heathens} first.
 
-@kindex M-x gnus
 @findex gnus
 If your system administrator has set things up properly, starting Gnus
 and reading news is extremely easy---you just type @kbd{M-x gnus} in
@@ -969,7 +968,6 @@ minimal setup for posting should also customize the variables
 @code{user-full-name} and @code{user-mail-address}.
 
 @findex gnus-other-frame
-@kindex M-x gnus-other-frame
 If you want to start Gnus in a different frame, you can use the command
 @kbd{M-x gnus-other-frame} instead.
 
@@ -1000,7 +998,7 @@ terminology section (@pxref{Terminology}).
 First of all, you should know that there is a special buffer called
 @file{*Server*} that lists all the servers Gnus knows about.  You can
 press @kbd{^} from the Group buffer to see it.  In the Server buffer,
-you can press @kbd{RET} on a defined server to see all the groups it
+you can press @kbd{@key{RET}} on a defined server to see all the groups it
 serves (subscribed or not!).  You can also add or delete servers, edit
 a foreign server's definition, agentize or de-agentize a server, and
 do many other neat things.  @xref{Server Buffer}.
@@ -1043,7 +1041,7 @@ If that fails as well, Gnus will try to use the machine running Emacs
 as an @acronym{NNTP} server.  That's a long shot, though.
 
 @findex gnus-group-browse-foreign-server
-@kindex B (Group)
+@kindex B @r{(Group)}
 However, if you use one @acronym{NNTP} server regularly and are just
 interested in a couple of groups from a different server, you would be
 better served by using the @kbd{B} command in the group buffer.  It will
@@ -1087,7 +1085,6 @@ groups, you'll find it difficult to actually do anything in the group
 buffer.  But, hey, that's your problem.  Blllrph!
 
 @findex gnus-no-server
-@kindex M-x gnus-no-server
 @c @head
 If you know that the server is definitely down, or you just want to read
 your mail without bothering with the server at all, you can use the
@@ -1354,13 +1351,11 @@ you have read is by keeping track of article numbers.  So when you
 change @code{gnus-select-method}, your @file{.newsrc} file becomes
 worthless.
 
-@kindex M-x gnus-group-clear-data-on-native-groups
 @findex gnus-group-clear-data-on-native-groups
 You can use the @kbd{M-x gnus-group-clear-data-on-native-groups}
 command to clear out all data that you have on your native groups.
 Use with caution.
 
-@kindex M-x gnus-group-clear-data
 @findex gnus-group-clear-data
 Clear the data from the current group only---nix out marks and the
 list of read articles (@code{gnus-group-clear-data}).
@@ -1704,7 +1699,7 @@ long as Gnus is active.
 @end menu
 
 You can customize the Group Mode tool bar, see @kbd{M-x
-customize-apropos RET gnus-group-tool-bar}.  This feature is only
+customize-apropos @key{RET} gnus-group-tool-bar}.  This feature is only
 available in Emacs.
 
 The tool bar icons are now (de)activated correctly depending on the
@@ -1989,37 +1984,37 @@ expected, hopefully.
 @table @kbd
 
 @item n
-@kindex n (Group)
+@kindex n @r{(Group)}
 @findex gnus-group-next-unread-group
 Go to the next group that has unread articles
 (@code{gnus-group-next-unread-group}).
 
 @item p
-@itemx DEL
-@kindex DEL (Group)
-@kindex p (Group)
+@itemx @key{DEL}
+@kindex DEL @r{(Group)}
+@kindex p @r{(Group)}
 @findex gnus-group-prev-unread-group
 Go to the previous group that has unread articles
 (@code{gnus-group-prev-unread-group}).
 
 @item N
-@kindex N (Group)
+@kindex N @r{(Group)}
 @findex gnus-group-next-group
 Go to the next group (@code{gnus-group-next-group}).
 
 @item P
-@kindex P (Group)
+@kindex P @r{(Group)}
 @findex gnus-group-prev-group
 Go to the previous group (@code{gnus-group-prev-group}).
 
 @item M-n
-@kindex M-n (Group)
+@kindex M-n @r{(Group)}
 @findex gnus-group-next-unread-group-same-level
 Go to the next unread group on the same (or lower) level
 (@code{gnus-group-next-unread-group-same-level}).
 
 @item M-p
-@kindex M-p (Group)
+@kindex M-p @r{(Group)}
 @findex gnus-group-prev-unread-group-same-level
 Go to the previous unread group on the same (or lower) level
 (@code{gnus-group-prev-unread-group-same-level}).
@@ -2030,20 +2025,20 @@ Three commands for jumping to groups:
 @table @kbd
 
 @item j
-@kindex j (Group)
+@kindex j @r{(Group)}
 @findex gnus-group-jump-to-group
 Jump to a group (and make it visible if it isn't already)
 (@code{gnus-group-jump-to-group}).  Killed groups can be jumped to, just
 like living groups.
 
 @item ,
-@kindex , (Group)
+@kindex , @r{(Group)}
 @findex gnus-group-best-unread-group
 Jump to the unread group with the lowest level
 (@code{gnus-group-best-unread-group}).
 
 @item .
-@kindex . (Group)
+@kindex . @r{(Group)}
 @findex gnus-group-first-unread-group
 Jump to the first group with unread articles
 (@code{gnus-group-first-unread-group}).
@@ -2067,8 +2062,8 @@ Otherwise, the point is set to the group just exited.  The default is
 
 @table @kbd
 
-@item SPACE
-@kindex SPACE (Group)
+@item @key{SPC}
+@kindex SPC @r{(Group)}
 @findex gnus-group-read-group
 Select the current group, switch to the summary buffer and display the
 first unread article (@code{gnus-group-read-group}).  If there are no
@@ -2079,16 +2074,16 @@ determines the number of articles Gnus will fetch.  If @var{n} is
 positive, Gnus fetches the @var{n} newest articles, if @var{n} is
 negative, Gnus fetches the @code{abs(@var{n})} oldest articles.
 
-Thus, @kbd{SPC} enters the group normally, @kbd{C-u SPC} offers old
-articles, @kbd{C-u 4 2 SPC} fetches the 42 newest articles, and @kbd{C-u
-- 4 2 SPC} fetches the 42 oldest ones.
+Thus, @kbd{@key{SPC}} enters the group normally, @kbd{C-u @key{SPC}}
+offers old articles, @kbd{C-u 4 2 @key{SPC}} fetches the 42 newest
+articles, and @kbd{C-u - 4 2 @key{SPC}} fetches the 42 oldest ones.
 
 When you are in the group (in the Summary buffer), you can type
 @kbd{M-g} to fetch new articles, or @kbd{C-u M-g} to also show the old
 ones.
 
-@item RET
-@kindex RET (Group)
+@item @key{RET}
+@kindex RET @r{(Group)}
 @findex gnus-group-select-group
 Select the current group and switch to the summary buffer
 (@code{gnus-group-select-group}).  Takes the same arguments as
@@ -2096,27 +2091,27 @@ Select the current group and switch to the summary buffer
 does not display the first unread article automatically upon group
 entry.
 
-@item M-RET
-@kindex M-RET (Group)
+@item M-@key{RET}
+@kindex M-RET @r{(Group)}
 @findex gnus-group-quick-select-group
 This does the same as the command above, but tries to do it with the
 minimum amount of fuzz (@code{gnus-group-quick-select-group}).  No
 scoring/killing will be performed, there will be no highlights and no
 expunging.  This might be useful if you're in a real hurry and have to
 enter some humongous group.  If you give a 0 prefix to this command
-(i.e., @kbd{0 M-RET}), Gnus won't even generate the summary buffer,
+(i.e., @kbd{0 M-@key{RET}}), Gnus won't even generate the summary buffer,
 which is useful if you want to toggle threading before generating the
 summary buffer (@pxref{Summary Generation Commands}).
 
-@item M-SPACE
-@kindex M-SPACE (Group)
+@item M-@key{SPC}
+@kindex M-SPC @r{(Group)}
 @findex gnus-group-visible-select-group
-This is yet one more command that does the same as the @kbd{RET}
+This is yet one more command that does the same as the @kbd{@key{RET}}
 command, but this one does it without expunging and hiding dormants
 (@code{gnus-group-visible-select-group}).
 
-@item C-M-RET
-@kindex C-M-RET (Group)
+@item C-M-@key{RET}
+@kindex C-M-RET @r{(Group)}
 @findex gnus-group-select-group-ephemerally
 Finally, this command selects the current group ephemerally without
 doing any processing of its contents
@@ -2164,7 +2159,7 @@ means Gnus never ignores old articles.
 @vindex gnus-auto-select-first
 @vindex gnus-auto-select-subject
 If @code{gnus-auto-select-first} is non-@code{nil}, select an article
-automatically when entering a group with the @kbd{SPACE} command.
+automatically when entering a group with the @kbd{@key{SPC}} command.
 Which article this is controlled by the
 @code{gnus-auto-select-subject} variable.  Valid values for this
 variable are:
@@ -2207,15 +2202,15 @@ selected.
 The following commands allow for managing your subscriptions in the
 Group buffer.  If you want to subscribe to many groups, it's probably
 more convenient to go to the @ref{Server Buffer}, and choose the
-server there using @kbd{RET} or @kbd{SPC}.  Then you'll have the
+server there using @kbd{@key{RET}} or @kbd{@key{SPC}}.  Then you'll have the
 commands listed in @ref{Browse Foreign Server} at hand.
 
 @table @kbd
 
 @item S t
 @itemx u
-@kindex S t (Group)
-@kindex u (Group)
+@kindex S t @r{(Group)}
+@kindex u @r{(Group)}
 @findex gnus-group-unsubscribe-current-group
 @c @icon{gnus-group-unsubscribe}
 Toggle subscription to the current group
@@ -2223,8 +2218,8 @@ Toggle subscription to the current group
 
 @item S s
 @itemx U
-@kindex S s (Group)
-@kindex U (Group)
+@kindex S s @r{(Group)}
+@kindex U @r{(Group)}
 @findex gnus-group-unsubscribe-group
 Prompt for a group to subscribe, and then subscribe it.  If it was
 subscribed already, unsubscribe it instead
@@ -2232,21 +2227,21 @@ subscribed already, unsubscribe it instead
 
 @item S k
 @itemx C-k
-@kindex S k (Group)
-@kindex C-k (Group)
+@kindex S k @r{(Group)}
+@kindex C-k @r{(Group)}
 @findex gnus-group-kill-group
 @c @icon{gnus-group-kill-group}
 Kill the current group (@code{gnus-group-kill-group}).
 
 @item S y
 @itemx C-y
-@kindex S y (Group)
-@kindex C-y (Group)
+@kindex S y @r{(Group)}
+@kindex C-y @r{(Group)}
 @findex gnus-group-yank-group
 Yank the last killed group (@code{gnus-group-yank-group}).
 
 @item C-x C-t
-@kindex C-x C-t (Group)
+@kindex C-x C-t @r{(Group)}
 @findex gnus-group-transpose-groups
 Transpose two groups (@code{gnus-group-transpose-groups}).  This isn't
 really a subscription command, but you can use it instead of a
@@ -2254,18 +2249,18 @@ kill-and-yank sequence sometimes.
 
 @item S w
 @itemx C-w
-@kindex S w (Group)
-@kindex C-w (Group)
+@kindex S w @r{(Group)}
+@kindex C-w @r{(Group)}
 @findex gnus-group-kill-region
 Kill all groups in the region (@code{gnus-group-kill-region}).
 
 @item S z
-@kindex S z (Group)
+@kindex S z @r{(Group)}
 @findex gnus-group-kill-all-zombies
 Kill all zombie groups (@code{gnus-group-kill-all-zombies}).
 
 @item S C-k
-@kindex S C-k (Group)
+@kindex S C-k @r{(Group)}
 @findex gnus-group-kill-level
 Kill all groups on a certain level (@code{gnus-group-kill-level}).
 These groups can't be yanked back after killing, so this command should
@@ -2286,7 +2281,7 @@ Also @pxref{Group Levels}.
 @table @kbd
 
 @item c
-@kindex c (Group)
+@kindex c @r{(Group)}
 @findex gnus-group-catchup-current
 @vindex gnus-group-catchup-group-hook
 @c @icon{gnus-group-catchup-current}
@@ -2296,19 +2291,18 @@ Mark all unticked articles in this group as read
 the group buffer.
 
 @item C
-@kindex C (Group)
+@kindex C @r{(Group)}
 @findex gnus-group-catchup-current-all
 Mark all articles in this group, even the ticked ones, as read
 (@code{gnus-group-catchup-current-all}).
 
 @item M-c
-@kindex M-c (Group)
+@kindex M-c @r{(Group)}
 @findex gnus-group-clear-data
 Clear the data from the current group---nix out marks and the list of
 read articles (@code{gnus-group-clear-data}).
 
 @item M-x gnus-group-clear-data-on-native-groups
-@kindex M-x gnus-group-clear-data-on-native-groups
 @findex gnus-group-clear-data-on-native-groups
 If you have switched from one @acronym{NNTP} server to another, all your marks
 and read ranges have become worthless.  You can use this command to
@@ -2334,7 +2328,7 @@ Remember:  The higher the level of the group, the less important it is.
 @table @kbd
 
 @item S l
-@kindex S l (Group)
+@kindex S l @r{(Group)}
 @findex gnus-group-set-current-level
 Set the level of the current group.  If a numeric prefix is given, the
 next @var{n} groups will have their levels set.  The user will be
@@ -2478,37 +2472,37 @@ with the process mark and then execute the command.
 @table @kbd
 
 @item #
-@kindex # (Group)
+@kindex # @r{(Group)}
 @itemx M m
-@kindex M m (Group)
+@kindex M m @r{(Group)}
 @findex gnus-group-mark-group
 Set the mark on the current group (@code{gnus-group-mark-group}).
 
 @item M-#
-@kindex M-# (Group)
+@kindex M-# @r{(Group)}
 @itemx M u
-@kindex M u (Group)
+@kindex M u @r{(Group)}
 @findex gnus-group-unmark-group
 Remove the mark from the current group
 (@code{gnus-group-unmark-group}).
 
 @item M U
-@kindex M U (Group)
+@kindex M U @r{(Group)}
 @findex gnus-group-unmark-all-groups
 Remove the mark from all groups (@code{gnus-group-unmark-all-groups}).
 
 @item M w
-@kindex M w (Group)
+@kindex M w @r{(Group)}
 @findex gnus-group-mark-region
 Mark all groups between point and mark (@code{gnus-group-mark-region}).
 
 @item M b
-@kindex M b (Group)
+@kindex M b @r{(Group)}
 @findex gnus-group-mark-buffer
 Mark all groups in the buffer (@code{gnus-group-mark-buffer}).
 
 @item M r
-@kindex M r (Group)
+@kindex M r @r{(Group)}
 @findex gnus-group-mark-regexp
 Mark all groups that match some regular expression
 (@code{gnus-group-mark-regexp}).
@@ -2549,7 +2543,7 @@ variable @code{gnus-parameters}, @xref{Group Parameters}.
 @table @kbd
 
 @item G m
-@kindex G m (Group)
+@kindex G m @r{(Group)}
 @findex gnus-group-make-group
 @cindex making groups
 Make a new group (@code{gnus-group-make-group}).  Gnus will prompt you
@@ -2557,13 +2551,13 @@ for a name, a method and possibly an @dfn{address}.  For an easier way
 to subscribe to @acronym{NNTP} groups (@pxref{Browse Foreign Server}).
 
 @item G M
-@kindex G M (Group)
+@kindex G M @r{(Group)}
 @findex gnus-group-read-ephemeral-group
 Make an ephemeral group (@code{gnus-group-read-ephemeral-group}).  Gnus
 will prompt you for a name, a method and an @dfn{address}.
 
 @item G r
-@kindex G r (Group)
+@kindex G r @r{(Group)}
 @findex gnus-group-rename-group
 @cindex renaming groups
 Rename the current group to something else
@@ -2572,45 +2566,45 @@ groups---mail groups mostly.  This command might very well be quite slow
 on some back ends.
 
 @item G c
-@kindex G c (Group)
+@kindex G c @r{(Group)}
 @cindex customizing
 @findex gnus-group-customize
 Customize the group parameters (@code{gnus-group-customize}).
 
 @item G e
-@kindex G e (Group)
+@kindex G e @r{(Group)}
 @findex gnus-group-edit-group-method
 @cindex renaming groups
 Enter a buffer where you can edit the select method of the current
 group (@code{gnus-group-edit-group-method}).
 
 @item G p
-@kindex G p (Group)
+@kindex G p @r{(Group)}
 @findex gnus-group-edit-group-parameters
 Enter a buffer where you can edit the group parameters
 (@code{gnus-group-edit-group-parameters}).
 
 @item G E
-@kindex G E (Group)
+@kindex G E @r{(Group)}
 @findex gnus-group-edit-group
 Enter a buffer where you can edit the group info
 (@code{gnus-group-edit-group}).
 
 @item G d
-@kindex G d (Group)
+@kindex G d @r{(Group)}
 @findex gnus-group-make-directory-group
 @cindex nndir
 Make a directory group (@pxref{Directory Groups}).  You will be prompted
 for the directory's name (@code{gnus-group-make-directory-group}).
 
 @item G h
-@kindex G h (Group)
+@kindex G h @r{(Group)}
 @cindex help group
 @findex gnus-group-make-help-group
 Make the Gnus help group (@code{gnus-group-make-help-group}).
 
 @item G D
-@kindex G D (Group)
+@kindex G D @r{(Group)}
 @findex gnus-group-enter-directory
 @cindex nneething
 Read an arbitrary directory as if it were a newsgroup with the
@@ -2618,7 +2612,7 @@ Read an arbitrary directory as if it were a newsgroup with the
 @xref{Anything Groups}.
 
 @item G f
-@kindex G f (Group)
+@kindex G f @r{(Group)}
 @findex gnus-group-make-doc-group
 @cindex ClariNet Briefs
 @cindex nndoc
@@ -2634,14 +2628,14 @@ you run this command without a prefix, Gnus will guess at the file
 type.  @xref{Document Groups}.
 
 @item G u
-@kindex G u (Group)
+@kindex G u @r{(Group)}
 @vindex gnus-useful-groups
 @findex gnus-group-make-useful-group
 Create one of the groups mentioned in @code{gnus-useful-groups}
 (@code{gnus-group-make-useful-group}).
 
 @item G w
-@kindex G w (Group)
+@kindex G w @r{(Group)}
 @findex gnus-group-make-web-group
 @cindex Google
 @cindex nnweb
@@ -2658,14 +2652,14 @@ to a particular group by using a match string like
 @samp{shaving group:alt.sysadmin.recovery}.
 
 @item G R
-@kindex G R (Group)
+@kindex G R @r{(Group)}
 @findex gnus-group-make-rss-group
 Make a group based on an @acronym{RSS} feed
 (@code{gnus-group-make-rss-group}).  You will be prompted for an URL@.
 @xref{RSS}.
 
-@item G DEL
-@kindex G DEL (Group)
+@item G @key{DEL}
+@kindex G DEL @r{(Group)}
 @findex gnus-group-delete-group
 This function will delete the current group
 (@code{gnus-group-delete-group}).  If given a prefix, this function will
@@ -2675,13 +2669,13 @@ absolutely sure of what you are doing.  This command can't be used on
 read-only groups (like @code{nntp} groups), though.
 
 @item G V
-@kindex G V (Group)
+@kindex G V @r{(Group)}
 @findex gnus-group-make-empty-virtual
 Make a new, fresh, empty @code{nnvirtual} group
 (@code{gnus-group-make-empty-virtual}).  @xref{Virtual Groups}.
 
 @item G v
-@kindex G v (Group)
+@kindex G v @r{(Group)}
 @findex gnus-group-add-to-virtual
 Add the current group to an @code{nnvirtual} group
 (@code{gnus-group-add-to-virtual}).  Uses the process/prefix convention.
@@ -3260,8 +3254,8 @@ These commands all list various slices of the groups available.
 
 @item l
 @itemx A s
-@kindex A s (Group)
-@kindex l (Group)
+@kindex A s @r{(Group)}
+@kindex l @r{(Group)}
 @findex gnus-group-list-groups
 List all groups that have unread articles
 (@code{gnus-group-list-groups}).  If the numeric prefix is used, this
@@ -3272,8 +3266,8 @@ groups).
 
 @item L
 @itemx A u
-@kindex A u (Group)
-@kindex L (Group)
+@kindex A u @r{(Group)}
+@kindex L @r{(Group)}
 @findex gnus-group-list-all-groups
 List all groups, whether they have unread articles or not
 (@code{gnus-group-list-all-groups}).  If the numeric prefix is used,
@@ -3282,14 +3276,14 @@ it lists groups of level seven or lower (i.e., just subscribed and
 unsubscribed groups).
 
 @item A l
-@kindex A l (Group)
+@kindex A l @r{(Group)}
 @findex gnus-group-list-level
 List all unread groups on a specific level
 (@code{gnus-group-list-level}).  If given a prefix, also list the groups
 with no unread articles.
 
 @item A k
-@kindex A k (Group)
+@kindex A k @r{(Group)}
 @findex gnus-group-list-killed
 List all killed groups (@code{gnus-group-list-killed}).  If given a
 prefix argument, really list all groups that are available, but aren't
@@ -3297,23 +3291,23 @@ currently (un)subscribed.  This could entail reading the active file
 from the server.
 
 @item A z
-@kindex A z (Group)
+@kindex A z @r{(Group)}
 @findex gnus-group-list-zombies
 List all zombie groups (@code{gnus-group-list-zombies}).
 
 @item A m
-@kindex A m (Group)
+@kindex A m @r{(Group)}
 @findex gnus-group-list-matching
 List all unread, subscribed groups with names that match a regexp
 (@code{gnus-group-list-matching}).
 
 @item A M
-@kindex A M (Group)
+@kindex A M @r{(Group)}
 @findex gnus-group-list-all-matching
 List groups that match a regexp (@code{gnus-group-list-all-matching}).
 
 @item A A
-@kindex A A (Group)
+@kindex A A @r{(Group)}
 @findex gnus-group-list-active
 List absolutely all groups in the active file(s) of the
 server(s) you are connected to (@code{gnus-group-list-active}).  This
@@ -3324,34 +3318,34 @@ don't exist (yet)---these will be listed as if they were killed groups.
 Take the output with some grains of salt.
 
 @item A a
-@kindex A a (Group)
+@kindex A a @r{(Group)}
 @findex gnus-group-apropos
 List all groups that have names that match a regexp
 (@code{gnus-group-apropos}).
 
 @item A d
-@kindex A d (Group)
+@kindex A d @r{(Group)}
 @findex gnus-group-description-apropos
 List all groups that have names or descriptions that match a regexp
 (@code{gnus-group-description-apropos}).
 
 @item A c
-@kindex A c (Group)
+@kindex A c @r{(Group)}
 @findex gnus-group-list-cached
 List all groups with cached articles (@code{gnus-group-list-cached}).
 
 @item A ?
-@kindex A ? (Group)
+@kindex A ? @r{(Group)}
 @findex gnus-group-list-dormant
 List all groups with dormant articles (@code{gnus-group-list-dormant}).
 
 @item A !
-@kindex A ! (Group)
+@kindex A ! @r{(Group)}
 @findex gnus-group-list-ticked
 List all groups with ticked articles (@code{gnus-group-list-ticked}).
 
 @item A /
-@kindex A / (Group)
+@kindex A / @r{(Group)}
 @findex gnus-group-list-limit
 Further limit groups within the current selection
 (@code{gnus-group-list-limit}).  If you've first limited to groups
@@ -3361,12 +3355,12 @@ giving you the groups that have both dormant articles and cached
 articles.
 
 @item A f
-@kindex A f (Group)
+@kindex A f @r{(Group)}
 @findex gnus-group-list-flush
 Flush groups from the current selection (@code{gnus-group-list-flush}).
 
 @item A p
-@kindex A p (Group)
+@kindex A p @r{(Group)}
 @findex gnus-group-list-plus
 List groups plus the current selection (@code{gnus-group-list-plus}).
 
@@ -3390,7 +3384,7 @@ groups.  It is @code{t} by default.
 @section Sorting Groups
 @cindex sorting groups
 
-@kindex C-c C-s (Group)
+@kindex C-c C-s @r{(Group)}
 @findex gnus-group-sort-groups
 @vindex gnus-group-sort-function
 The @kbd{C-c C-s} (@code{gnus-group-sort-groups}) command sorts the
@@ -3446,43 +3440,43 @@ some sorting criteria:
 
 @table @kbd
 @item G S a
-@kindex G S a (Group)
+@kindex G S a @r{(Group)}
 @findex gnus-group-sort-groups-by-alphabet
 Sort the group buffer alphabetically by group name
 (@code{gnus-group-sort-groups-by-alphabet}).
 
 @item G S u
-@kindex G S u (Group)
+@kindex G S u @r{(Group)}
 @findex gnus-group-sort-groups-by-unread
 Sort the group buffer by the number of unread articles
 (@code{gnus-group-sort-groups-by-unread}).
 
 @item G S l
-@kindex G S l (Group)
+@kindex G S l @r{(Group)}
 @findex gnus-group-sort-groups-by-level
 Sort the group buffer by group level
 (@code{gnus-group-sort-groups-by-level}).
 
 @item G S v
-@kindex G S v (Group)
+@kindex G S v @r{(Group)}
 @findex gnus-group-sort-groups-by-score
 Sort the group buffer by group score
 (@code{gnus-group-sort-groups-by-score}).  @xref{Group Score}.
 
 @item G S r
-@kindex G S r (Group)
+@kindex G S r @r{(Group)}
 @findex gnus-group-sort-groups-by-rank
 Sort the group buffer by group rank
 (@code{gnus-group-sort-groups-by-rank}).  @xref{Group Score}.
 
 @item G S m
-@kindex G S m (Group)
+@kindex G S m @r{(Group)}
 @findex gnus-group-sort-groups-by-method
 Sort the group buffer alphabetically by back end name@*
 (@code{gnus-group-sort-groups-by-method}).
 
 @item G S n
-@kindex G S n (Group)
+@kindex G S n @r{(Group)}
 @findex gnus-group-sort-groups-by-real-name
 Sort the group buffer alphabetically by real (unprefixed) group name
 (@code{gnus-group-sort-groups-by-real-name}).
@@ -3499,49 +3493,49 @@ You can also sort a subset of the groups:
 
 @table @kbd
 @item G P a
-@kindex G P a (Group)
+@kindex G P a @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-alphabet
 Sort the groups alphabetically by group name
 (@code{gnus-group-sort-selected-groups-by-alphabet}).
 
 @item G P u
-@kindex G P u (Group)
+@kindex G P u @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-unread
 Sort the groups by the number of unread articles
 (@code{gnus-group-sort-selected-groups-by-unread}).
 
 @item G P l
-@kindex G P l (Group)
+@kindex G P l @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-level
 Sort the groups by group level
 (@code{gnus-group-sort-selected-groups-by-level}).
 
 @item G P v
-@kindex G P v (Group)
+@kindex G P v @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-score
 Sort the groups by group score
 (@code{gnus-group-sort-selected-groups-by-score}).  @xref{Group Score}.
 
 @item G P r
-@kindex G P r (Group)
+@kindex G P r @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-rank
 Sort the groups by group rank
 (@code{gnus-group-sort-selected-groups-by-rank}).  @xref{Group Score}.
 
 @item G P m
-@kindex G P m (Group)
+@kindex G P m @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-method
 Sort the groups alphabetically by back end name@*
 (@code{gnus-group-sort-selected-groups-by-method}).
 
 @item G P n
-@kindex G P n (Group)
+@kindex G P n @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-real-name
 Sort the groups alphabetically by real (unprefixed) group name
 (@code{gnus-group-sort-selected-groups-by-real-name}).
 
 @item G P s
-@kindex G P s (Group)
+@kindex G P s @r{(Group)}
 @findex gnus-group-sort-selected-groups
 Sort the groups according to @code{gnus-group-sort-function}.
 
@@ -3557,13 +3551,13 @@ move groups around.
 
 @table @kbd
 @item b
-@kindex b (Group)
+@kindex b @r{(Group)}
 @findex gnus-group-check-bogus-groups
 Find bogus groups and delete them
 (@code{gnus-group-check-bogus-groups}).
 
 @item F
-@kindex F (Group)
+@kindex F @r{(Group)}
 @findex gnus-group-find-new-groups
 Find new groups and process them (@code{gnus-group-find-new-groups}).
 With 1 @kbd{C-u}, use the @code{ask-server} method to query the server
@@ -3572,7 +3566,7 @@ to query the server for new groups, and subscribe the new groups as
 zombies.
 
 @item C-c C-x
-@kindex C-c C-x (Group)
+@kindex C-c C-x @r{(Group)}
 @findex gnus-group-expire-articles
 @cindex expiring mail
 Run all expirable articles in the current group through the expiry
@@ -3581,7 +3575,7 @@ all expirable articles in the group that have been around for a while.
 (@pxref{Expiring Mail}).
 
 @item C-c C-M-x
-@kindex C-c C-M-x (Group)
+@kindex C-c C-M-x @r{(Group)}
 @findex gnus-group-expire-all-groups
 @cindex expiring mail
 Run all expirable articles in all groups through the expiry process
@@ -3597,7 +3591,7 @@ Run all expirable articles in all groups through the expiry process
 
 @table @kbd
 @item B
-@kindex B (Group)
+@kindex B @r{(Group)}
 @findex gnus-group-browse-foreign-server
 You will be queried for a select method and a server name.  Gnus will
 then attempt to contact this server and let you browse the groups there
@@ -3613,28 +3607,28 @@ Here's a list of keystrokes available in the browse mode:
 
 @table @kbd
 @item n
-@kindex n (Browse)
+@kindex n @r{(Browse)}
 @findex gnus-group-next-group
 Go to the next group (@code{gnus-group-next-group}).
 
 @item p
-@kindex p (Browse)
+@kindex p @r{(Browse)}
 @findex gnus-group-prev-group
 Go to the previous group (@code{gnus-group-prev-group}).
 
-@item SPACE
-@kindex SPACE (Browse)
+@item @key{SPC}
+@kindex SPC @r{(Browse)}
 @findex gnus-browse-read-group
 Enter the current group and display the first article
 (@code{gnus-browse-read-group}).
 
-@item RET
-@kindex RET (Browse)
+@item @key{RET}
+@kindex RET @r{(Browse)}
 @findex gnus-browse-select-group
 Enter the current group (@code{gnus-browse-select-group}).
 
 @item u
-@kindex u (Browse)
+@kindex u @r{(Browse)}
 @findex gnus-browse-unsubscribe-current-group
 @vindex gnus-browse-subscribe-newsgroup-method
 Unsubscribe to the current group, or, as will be the case here,
@@ -3645,24 +3639,24 @@ using the variable @code{gnus-browse-subscribe-newsgroup-method}.  See
 
 @item l
 @itemx q
-@kindex q (Browse)
-@kindex l (Browse)
+@kindex q @r{(Browse)}
+@kindex l @r{(Browse)}
 @findex gnus-browse-exit
 Exit browse mode (@code{gnus-browse-exit}).
 
 @item d
-@kindex d (Browse)
+@kindex d @r{(Browse)}
 @findex gnus-browse-describe-group
 Describe the current group (@code{gnus-browse-describe-group}).
 
 @item ?
-@kindex ? (Browse)
+@kindex ? @r{(Browse)}
 @findex gnus-browse-describe-briefly
 Describe browse mode briefly (well, there's not much to describe, is
 there) (@code{gnus-browse-describe-briefly}).
 
-@item DEL
-@kindex DEL (Browse)
+@item @key{DEL}
+@kindex DEL @r{(Browse)}
 @findex gnus-browse-delete-group
 This function will delete the current group
 (@code{gnus-browse-delete-group}).  If given a prefix, this function
@@ -3680,20 +3674,20 @@ Yes, Gnus is ex(c)iting.
 
 @table @kbd
 @item z
-@kindex z (Group)
+@kindex z @r{(Group)}
 @findex gnus-group-suspend
 Suspend Gnus (@code{gnus-group-suspend}).  This doesn't really exit Gnus,
 but it kills all buffers except the Group buffer.  I'm not sure why this
 is a gain, but then who am I to judge?
 
 @item q
-@kindex q (Group)
+@kindex q @r{(Group)}
 @findex gnus-group-exit
 @c @icon{gnus-group-exit}
 Quit Gnus (@code{gnus-group-exit}).
 
 @item Q
-@kindex Q (Group)
+@kindex Q @r{(Group)}
 @findex gnus-group-quit
 Quit Gnus without saving the @file{.newsrc} files (@code{gnus-group-quit}).
 The dribble file will be saved, though (@pxref{Auto Save}).
@@ -3752,7 +3746,7 @@ Gnus
 @end example
 
 @findex gnus-topic-mode
-@kindex t (Group)
+@kindex t @r{(Group)}
 To get this @emph{fab} functionality you simply turn on (ooh!) the
 @code{gnus-topic} minor mode---type @kbd{t} in the group buffer.  (This
 is a toggling command.)
@@ -3801,22 +3795,22 @@ the way you like.
 @table @kbd
 
 @item T n
-@kindex T n (Topic)
+@kindex T n @r{(Topic)}
 @findex gnus-topic-create-topic
 Prompt for a new topic name and create it
 (@code{gnus-topic-create-topic}).
 
-@item T TAB
-@itemx TAB
-@kindex T TAB (Topic)
-@kindex TAB (Topic)
+@item T @key{TAB}
+@itemx @key{TAB}
+@kindex T TAB @r{(Topic)}
+@kindex TAB @r{(Topic)}
 @findex gnus-topic-indent
 ``Indent'' the current topic so that it becomes a sub-topic of the
 previous topic (@code{gnus-topic-indent}).  If given a prefix,
 ``un-indent'' the topic instead.
 
-@item M-TAB
-@kindex M-TAB (Topic)
+@item M-@key{TAB}
+@kindex M-TAB @r{(Topic)}
 @findex gnus-topic-unindent
 ``Un-indent'' the current topic so that it becomes a sub-topic of the
 parent of its current parent (@code{gnus-topic-unindent}).
@@ -3831,13 +3825,13 @@ kill and yank rather than cut and paste.
 @table @kbd
 
 @item C-k
-@kindex C-k (Topic)
+@kindex C-k @r{(Topic)}
 @findex gnus-topic-kill-group
 Kill a group or topic (@code{gnus-topic-kill-group}).  All groups in the
 topic will be removed along with the topic.
 
 @item C-y
-@kindex C-y (Topic)
+@kindex C-y @r{(Topic)}
 @findex gnus-topic-yank-group
 Yank the previously killed group or topic
 (@code{gnus-topic-yank-group}).  Note that all topics will be yanked
@@ -3860,10 +3854,10 @@ key.
 
 @table @kbd
 
-@item RET
-@kindex RET (Topic)
+@item @key{RET}
+@kindex RET @r{(Topic)}
 @findex gnus-topic-select-group
-@itemx SPACE
+@itemx @key{SPC}
 Either select a group or fold a topic (@code{gnus-topic-select-group}).
 When you perform this command on a group, you'll enter the group, as
 usual.  When done on a topic line, the topic will be folded (if it was
@@ -3878,38 +3872,38 @@ Now for a list of other commands, in no particular order.
 @table @kbd
 
 @item T m
-@kindex T m (Topic)
+@kindex T m @r{(Topic)}
 @findex gnus-topic-move-group
 Move the current group to some other topic
 (@code{gnus-topic-move-group}).  This command uses the process/prefix
 convention (@pxref{Process/Prefix}).
 
 @item T j
-@kindex T j (Topic)
+@kindex T j @r{(Topic)}
 @findex gnus-topic-jump-to-topic
 Go to a topic (@code{gnus-topic-jump-to-topic}).
 
 @item T c
-@kindex T c (Topic)
+@kindex T c @r{(Topic)}
 @findex gnus-topic-copy-group
 Copy the current group to some other topic
 (@code{gnus-topic-copy-group}).  This command uses the process/prefix
 convention (@pxref{Process/Prefix}).
 
 @item T h
-@kindex T h (Topic)
+@kindex T h @r{(Topic)}
 @findex gnus-topic-hide-topic
 Hide the current topic (@code{gnus-topic-hide-topic}).  If given
 a prefix, hide the topic permanently.
 
 @item T s
-@kindex T s (Topic)
+@kindex T s @r{(Topic)}
 @findex gnus-topic-show-topic
 Show the current topic (@code{gnus-topic-show-topic}).  If given
 a prefix, show the topic permanently.
 
 @item T D
-@kindex T D (Topic)
+@kindex T D @r{(Topic)}
 @findex gnus-topic-remove-group
 Remove a group from the current topic (@code{gnus-topic-remove-group}).
 This command is mainly useful if you have the same group in several
@@ -3923,39 +3917,39 @@ This command uses the process/prefix convention
 (@pxref{Process/Prefix}).
 
 @item T M
-@kindex T M (Topic)
+@kindex T M @r{(Topic)}
 @findex gnus-topic-move-matching
 Move all groups that match some regular expression to a topic
 (@code{gnus-topic-move-matching}).
 
 @item T C
-@kindex T C (Topic)
+@kindex T C @r{(Topic)}
 @findex gnus-topic-copy-matching
 Copy all groups that match some regular expression to a topic
 (@code{gnus-topic-copy-matching}).
 
 @item T H
-@kindex T H (Topic)
+@kindex T H @r{(Topic)}
 @findex gnus-topic-toggle-display-empty-topics
 Toggle hiding empty topics
 (@code{gnus-topic-toggle-display-empty-topics}).
 
 @item T #
-@kindex T # (Topic)
+@kindex T # @r{(Topic)}
 @findex gnus-topic-mark-topic
 Mark all groups in the current topic with the process mark
 (@code{gnus-topic-mark-topic}).  This command works recursively on
 sub-topics unless given a prefix.
 
 @item T M-#
-@kindex T M-# (Topic)
+@kindex T M-# @r{(Topic)}
 @findex gnus-topic-unmark-topic
 Remove the process mark from all groups in the current topic
 (@code{gnus-topic-unmark-topic}).  This command works recursively on
 sub-topics unless given a prefix.
 
 @item C-c C-x
-@kindex C-c C-x (Topic)
+@kindex C-c C-x @r{(Topic)}
 @findex gnus-topic-expire-articles
 @cindex expiring mail
 Run all expirable articles in the current group or topic through the
@@ -3963,33 +3957,33 @@ expiry process (if any)
 (@code{gnus-topic-expire-articles}).  (@pxref{Expiring Mail}).
 
 @item T r
-@kindex T r (Topic)
+@kindex T r @r{(Topic)}
 @findex gnus-topic-rename
 Rename a topic (@code{gnus-topic-rename}).
 
-@item T DEL
-@kindex T DEL (Topic)
+@item T @key{DEL}
+@kindex T DEL @r{(Topic)}
 @findex gnus-topic-delete
 Delete an empty topic (@code{gnus-topic-delete}).
 
 @item A T
-@kindex A T (Topic)
+@kindex A T @r{(Topic)}
 @findex gnus-topic-list-active
 List all groups that Gnus knows about in a topics-ified way
 (@code{gnus-topic-list-active}).
 
 @item T M-n
-@kindex T M-n (Topic)
+@kindex T M-n @r{(Topic)}
 @findex gnus-topic-goto-next-topic
 Go to the next topic (@code{gnus-topic-goto-next-topic}).
 
 @item T M-p
-@kindex T M-p (Topic)
+@kindex T M-p @r{(Topic)}
 @findex gnus-topic-goto-previous-topic
 Go to the previous topic (@code{gnus-topic-goto-previous-topic}).
 
 @item G p
-@kindex G p (Topic)
+@kindex G p @r{(Topic)}
 @findex gnus-topic-edit-parameters
 @cindex group parameters
 @cindex topic parameters
@@ -4052,49 +4046,49 @@ commands:
 
 @table @kbd
 @item T S a
-@kindex T S a (Topic)
+@kindex T S a @r{(Topic)}
 @findex gnus-topic-sort-groups-by-alphabet
 Sort the current topic alphabetically by group name
 (@code{gnus-topic-sort-groups-by-alphabet}).
 
 @item T S u
-@kindex T S u (Topic)
+@kindex T S u @r{(Topic)}
 @findex gnus-topic-sort-groups-by-unread
 Sort the current topic by the number of unread articles
 (@code{gnus-topic-sort-groups-by-unread}).
 
 @item T S l
-@kindex T S l (Topic)
+@kindex T S l @r{(Topic)}
 @findex gnus-topic-sort-groups-by-level
 Sort the current topic by group level
 (@code{gnus-topic-sort-groups-by-level}).
 
 @item T S v
-@kindex T S v (Topic)
+@kindex T S v @r{(Topic)}
 @findex gnus-topic-sort-groups-by-score
 Sort the current topic by group score
 (@code{gnus-topic-sort-groups-by-score}).  @xref{Group Score}.
 
 @item T S r
-@kindex T S r (Topic)
+@kindex T S r @r{(Topic)}
 @findex gnus-topic-sort-groups-by-rank
 Sort the current topic by group rank
 (@code{gnus-topic-sort-groups-by-rank}).  @xref{Group Score}.
 
 @item T S m
-@kindex T S m (Topic)
+@kindex T S m @r{(Topic)}
 @findex gnus-topic-sort-groups-by-method
 Sort the current topic alphabetically by back end name
 (@code{gnus-topic-sort-groups-by-method}).
 
 @item T S e
-@kindex T S e (Topic)
+@kindex T S e @r{(Topic)}
 @findex gnus-topic-sort-groups-by-server
 Sort the current topic alphabetically by server name
 (@code{gnus-topic-sort-groups-by-server}).
 
 @item T S s
-@kindex T S s (Topic)
+@kindex T S s @r{(Topic)}
 @findex gnus-topic-sort-groups
 Sort the current topic according to the function(s) given by the
 @code{gnus-group-sort-function} variable
@@ -4369,7 +4363,7 @@ header will be displayed incorrectly in the article buffer.
 @table @kbd
 
 @item v
-@kindex v (Group)
+@kindex v @r{(Group)}
 @cindex keys, reserved for users (Group)
 The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.  For example:
@@ -4385,13 +4379,13 @@ On keys reserved for users in Emacs and on keybindings in general
 @xref{Keymaps, Keymaps, , emacs, The Emacs Editor}.
 
 @item ^
-@kindex ^ (Group)
+@kindex ^ @r{(Group)}
 @findex gnus-group-enter-server-mode
 Enter the server buffer (@code{gnus-group-enter-server-mode}).
 @xref{Server Buffer}.
 
 @item a
-@kindex a (Group)
+@kindex a @r{(Group)}
 @findex gnus-group-post-news
 Start composing a message (a news by default)
 (@code{gnus-group-post-news}).  If given a prefix, post to the group
@@ -4401,7 +4395,7 @@ article might be a mail instead of a news, if a mail group is specified
 with the prefix argument.  @xref{Composing Messages}.
 
 @item m
-@kindex m (Group)
+@kindex m @r{(Group)}
 @findex gnus-group-mail
 Mail a message somewhere (@code{gnus-group-mail}).  If given a prefix,
 use the posting style of the group under the point.  If the prefix is 1,
@@ -4409,7 +4403,7 @@ prompt for a group name to find the posting style.
 @xref{Composing Messages}.
 
 @item i
-@kindex i (Group)
+@kindex i @r{(Group)}
 @findex gnus-group-news
 Start composing a news (@code{gnus-group-news}).  If given a prefix,
 post to the group under the point.  If the prefix is 1, prompt
@@ -4422,7 +4416,7 @@ in question.  The corresponding back end must have a request-post method
 for this to work though.
 
 @item G z
-@kindex G z (Group)
+@kindex G z @r{(Group)}
 @findex gnus-group-compact-group
 
 Compact the group under point (@code{gnus-group-compact-group}).
@@ -4467,7 +4461,7 @@ whether they are empty or not.
 @table @kbd
 
 @item g
-@kindex g (Group)
+@kindex g @r{(Group)}
 @findex gnus-group-get-new-news
 @c @icon{gnus-group-get-new-news}
 Check the server(s) for new articles.  If the numerical prefix is used,
@@ -4477,7 +4471,7 @@ command will force a total re-reading of the active file(s) from the
 back end(s).
 
 @item M-g
-@kindex M-g (Group)
+@kindex M-g @r{(Group)}
 @findex gnus-group-get-new-news-this-group
 @vindex gnus-goto-next-group-when-activating
 @c @icon{gnus-group-get-new-news-this-group}
@@ -4489,11 +4483,11 @@ to move point to the next group or not.  It is @code{t} by default.
 @findex gnus-activate-all-groups
 @cindex activating groups
 @item C-c M-g
-@kindex C-c M-g (Group)
+@kindex C-c M-g @r{(Group)}
 Activate absolutely all groups (@code{gnus-activate-all-groups}).
 
 @item R
-@kindex R (Group)
+@kindex R @r{(Group)}
 @cindex restarting
 @findex gnus-group-restart
 Restart Gnus (@code{gnus-group-restart}).  This saves the @file{.newsrc}
@@ -4521,8 +4515,8 @@ news.
 @item H d
 @itemx C-c C-d
 @c @icon{gnus-group-describe-group}
-@kindex H d (Group)
-@kindex C-c C-d (Group)
+@kindex H d @r{(Group)}
+@kindex C-c C-d @r{(Group)}
 @cindex describing groups
 @cindex group description
 @findex gnus-group-describe-group
@@ -4530,26 +4524,26 @@ Describe the current group (@code{gnus-group-describe-group}).  If given
 a prefix, force Gnus to re-read the description from the server.
 
 @item M-d
-@kindex M-d (Group)
+@kindex M-d @r{(Group)}
 @findex gnus-group-describe-all-groups
 Describe all groups (@code{gnus-group-describe-all-groups}).  If given a
 prefix, force Gnus to re-read the description file from the server.
 
 @item H v
 @itemx V
-@kindex V (Group)
-@kindex H v (Group)
+@kindex V @r{(Group)}
+@kindex H v @r{(Group)}
 @cindex version
 @findex gnus-version
 Display current Gnus version numbers (@code{gnus-version}).
 
 @item ?
-@kindex ? (Group)
+@kindex ? @r{(Group)}
 @findex gnus-group-describe-briefly
 Give a very short help message (@code{gnus-group-describe-briefly}).
 
 @item C-c C-i
-@kindex C-c C-i (Group)
+@kindex C-c C-i @r{(Group)}
 @cindex info
 @cindex manual
 @findex gnus-info-find-node
@@ -4623,7 +4617,7 @@ either.
 @table @kbd
 
 @item r
-@kindex r (Group)
+@kindex r @r{(Group)}
 @findex gnus-group-read-init-file
 @vindex gnus-init-file
 @cindex reading init file
@@ -4631,7 +4625,7 @@ Re-read the init file (@code{gnus-init-file}, which defaults to
 @file{~/.gnus.el}) (@code{gnus-group-read-init-file}).
 
 @item s
-@kindex s (Group)
+@kindex s @r{(Group)}
 @findex gnus-group-save-newsrc
 @cindex saving .newsrc
 Save the @file{.newsrc.eld} file (and @file{.newsrc} if wanted)
@@ -4639,7 +4633,7 @@ Save the @file{.newsrc.eld} file (and @file{.newsrc} if wanted)
 file(s) whether Gnus thinks it is necessary or not.
 
 @c @item Z
-@c @kindex Z (Group)
+@c @kindex Z @r{(Group)}
 @c @findex gnus-group-clear-dribble
 @c Clear the dribble buffer (@code{gnus-group-clear-dribble}).
 
@@ -4689,7 +4683,7 @@ if address "sender" "owner-ding@@hpc.uh.edu" @{
 @table @kbd
 
 @item D g
-@kindex D g (Group)
+@kindex D g @r{(Group)}
 @findex gnus-sieve-generate
 @vindex gnus-sieve-file
 @cindex generating sieve script
@@ -4697,7 +4691,7 @@ Regenerate a Sieve script from the @code{sieve} group parameters and
 put you into the @code{gnus-sieve-file} without saving it.
 
 @item D u
-@kindex D u (Group)
+@kindex D u @r{(Group)}
 @findex gnus-sieve-update
 @vindex gnus-sieve-file
 @cindex updating sieve script
@@ -4721,10 +4715,10 @@ group buffer (@pxref{Selecting a Group}).
 You can have as many summary buffers open as you wish.
 
 You can customize the Summary Mode tool bar, see @kbd{M-x
-customize-apropos RET gnus-summary-tool-bar}.  This feature is only
+customize-apropos @key{RET} gnus-summary-tool-bar}.  This feature is only
 available in Emacs.
 
-@kindex v (Summary)
+@kindex v @r{(Summary)}
 @cindex keys, reserved for users (Summary)
 The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.  For example:
@@ -5204,22 +5198,22 @@ None of these commands select articles.
 @table @kbd
 @item G M-n
 @itemx M-n
-@kindex M-n (Summary)
-@kindex G M-n (Summary)
+@kindex M-n @r{(Summary)}
+@kindex G M-n @r{(Summary)}
 @findex gnus-summary-next-unread-subject
 Go to the next summary line of an unread article
 (@code{gnus-summary-next-unread-subject}).
 
 @item G M-p
 @itemx M-p
-@kindex M-p (Summary)
-@kindex G M-p (Summary)
+@kindex M-p @r{(Summary)}
+@kindex G M-p @r{(Summary)}
 @findex gnus-summary-prev-unread-subject
 Go to the previous summary line of an unread article
 (@code{gnus-summary-prev-unread-subject}).
 
 @item G g
-@kindex G g (Summary)
+@kindex G g @r{(Summary)}
 @findex gnus-summary-goto-subject
 Ask for an article number and then go to the summary line of that article
 without displaying the article (@code{gnus-summary-goto-subject}).
@@ -5281,7 +5275,7 @@ the given number of lines from the top.
 @item gnus-summary-stop-at-end-of-message
 @vindex gnus-summary-stop-at-end-of-message
 If non-@code{nil}, don't go to the next article when hitting
-@kbd{SPC}, and you're at the end of the article.
+@kbd{@key{SPC}}, and you're at the end of the article.
 
 @end table
 
@@ -5306,69 +5300,69 @@ If you want to fetch new articles or redisplay the group, see
 @ref{Exiting the Summary Buffer}.
 
 @table @kbd
-@item SPACE
-@kindex SPACE (Summary)
+@item @key{SPC}
+@kindex SPC @r{(Summary)}
 @findex gnus-summary-next-page
 Select the current article, or, if that one's read already, the next
 unread article (@code{gnus-summary-next-page}).
 
-If you have an article window open already and you press @kbd{SPACE}
+If you have an article window open already and you press @kbd{@key{SPC}}
 again, the article will be scrolled.  This lets you conveniently
-@kbd{SPACE} through an entire newsgroup.  @xref{Paging the Article}.
+@kbd{@key{SPC}} through an entire newsgroup.  @xref{Paging the Article}.
 
 @item G n
 @itemx n
-@kindex n (Summary)
-@kindex G n (Summary)
+@kindex n @r{(Summary)}
+@kindex G n @r{(Summary)}
 @findex gnus-summary-next-unread-article
 @c @icon{gnus-summary-next-unread}
 Go to next unread article (@code{gnus-summary-next-unread-article}).
 
 @item G p
 @itemx p
-@kindex p (Summary)
+@kindex p @r{(Summary)}
 @findex gnus-summary-prev-unread-article
 @c @icon{gnus-summary-prev-unread}
 Go to previous unread article (@code{gnus-summary-prev-unread-article}).
 
 @item G N
 @itemx N
-@kindex N (Summary)
-@kindex G N (Summary)
+@kindex N @r{(Summary)}
+@kindex G N @r{(Summary)}
 @findex gnus-summary-next-article
 Go to the next article (@code{gnus-summary-next-article}).
 
 @item G P
 @itemx P
-@kindex P (Summary)
-@kindex G P (Summary)
+@kindex P @r{(Summary)}
+@kindex G P @r{(Summary)}
 @findex gnus-summary-prev-article
 Go to the previous article (@code{gnus-summary-prev-article}).
 
 @item G C-n
-@kindex G C-n (Summary)
+@kindex G C-n @r{(Summary)}
 @findex gnus-summary-next-same-subject
 Go to the next article with the same subject
 (@code{gnus-summary-next-same-subject}).
 
 @item G C-p
-@kindex G C-p (Summary)
+@kindex G C-p @r{(Summary)}
 @findex gnus-summary-prev-same-subject
 Go to the previous article with the same subject
 (@code{gnus-summary-prev-same-subject}).
 
 @item G f
 @itemx .
-@kindex G f  (Summary)
-@kindex .  (Summary)
+@kindex G f  @r{(Summary)}
+@kindex .  @r{(Summary)}
 @findex gnus-summary-first-unread-article
 Go to the first unread article
 (@code{gnus-summary-first-unread-article}).
 
 @item G b
 @itemx ,
-@kindex G b (Summary)
-@kindex , (Summary)
+@kindex G b @r{(Summary)}
+@kindex , @r{(Summary)}
 @findex gnus-summary-best-unread-article
 Go to the unread article with the highest score
 (@code{gnus-summary-best-unread-article}).  If given a prefix argument,
@@ -5376,13 +5370,13 @@ go to the first unread article that has a score over the default score.
 
 @item G l
 @itemx l
-@kindex l (Summary)
-@kindex G l (Summary)
+@kindex l @r{(Summary)}
+@kindex G l @r{(Summary)}
 @findex gnus-summary-goto-last-article
 Go to the previous article read (@code{gnus-summary-goto-last-article}).
 
 @item G o
-@kindex G o (Summary)
+@kindex G o @r{(Summary)}
 @findex gnus-summary-pop-article
 @cindex history
 @cindex article history
@@ -5395,8 +5389,8 @@ For a somewhat related issue (if you use these commands a lot),
 
 @item G j
 @itemx j
-@kindex j (Summary)
-@kindex G j (Summary)
+@kindex j @r{(Summary)}
+@kindex G j @r{(Summary)}
 @findex gnus-summary-goto-article
 Ask for an article number or @code{Message-ID}, and then go to that
 article (@code{gnus-summary-goto-article}).
@@ -5448,10 +5442,10 @@ instead.  It will leave marks like @code{gnus-low-score-mark},
 
 @table @kbd
 
-@item SPACE
-@kindex SPACE (Summary)
+@item @key{SPC}
+@kindex SPC @r{(Summary)}
 @findex gnus-summary-next-page
-Pressing @kbd{SPACE} will scroll the current article forward one page,
+Pressing @kbd{@key{SPC}} will scroll the current article forward one page,
 or, if you have come to the end of the current article, will choose the
 next article (@code{gnus-summary-next-page}).
 
@@ -5464,27 +5458,27 @@ what is considered uninteresting with
 @code{gnus-article-boring-faces}.  You can manually view the article's
 pages, no matter how boring, using @kbd{C-M-v}.
 
-@item DEL
-@kindex DEL (Summary)
+@item @key{DEL}
+@kindex DEL @r{(Summary)}
 @findex gnus-summary-prev-page
 Scroll the current article back one page (@code{gnus-summary-prev-page}).
 
-@item RET
-@kindex RET (Summary)
+@item @key{RET}
+@kindex RET @r{(Summary)}
 @findex gnus-summary-scroll-up
 Scroll the current article one line forward
 (@code{gnus-summary-scroll-up}).
 
-@item M-RET
-@kindex M-RET (Summary)
+@item M-@key{RET}
+@kindex M-RET @r{(Summary)}
 @findex gnus-summary-scroll-down
 Scroll the current article one line backward
 (@code{gnus-summary-scroll-down}).
 
 @item A g
 @itemx g
-@kindex A g (Summary)
-@kindex g (Summary)
+@kindex A g @r{(Summary)}
+@kindex g @r{(Summary)}
 @findex gnus-summary-show-article
 @vindex gnus-summary-show-article-charset-alist
 (Re)fetch the current article (@code{gnus-summary-show-article}).  If
@@ -5495,7 +5489,7 @@ treatment functions.
 
 @cindex charset, view article with different charset
 If given a numerical prefix, you can do semi-manual charset stuff.
-@kbd{C-u 0 g cn-gb-2312 RET} will decode the message as if it were
+@kbd{C-u 0 g cn-gb-2312 @key{RET}} will decode the message as if it were
 encoded in the @code{cn-gb-2312} charset.  If you have
 
 @lisp
@@ -5508,29 +5502,29 @@ then you can say @kbd{C-u 1 g} to get the same effect.
 
 @item A <
 @itemx <
-@kindex < (Summary)
-@kindex A < (Summary)
+@kindex < @r{(Summary)}
+@kindex A < @r{(Summary)}
 @findex gnus-summary-beginning-of-article
 Scroll to the beginning of the article
 (@code{gnus-summary-beginning-of-article}).
 
 @item A >
 @itemx >
-@kindex > (Summary)
-@kindex A > (Summary)
+@kindex > @r{(Summary)}
+@kindex A > @r{(Summary)}
 @findex gnus-summary-end-of-article
 Scroll to the end of the article (@code{gnus-summary-end-of-article}).
 
 @item A s
 @itemx s
-@kindex A s (Summary)
-@kindex s (Summary)
+@kindex A s @r{(Summary)}
+@kindex s @r{(Summary)}
 @findex gnus-summary-isearch-article
 Perform an isearch in the article buffer
 (@code{gnus-summary-isearch-article}).
 
 @item h
-@kindex h (Summary)
+@kindex h @r{(Summary)}
 @findex gnus-summary-select-article-buffer
 Select the article buffer (@code{gnus-summary-select-article-buffer}).
 
@@ -5559,8 +5553,8 @@ Commands for composing a mail message:
 
 @item S r
 @itemx r
-@kindex S r (Summary)
-@kindex r (Summary)
+@kindex S r @r{(Summary)}
+@kindex r @r{(Summary)}
 @findex gnus-summary-reply
 @c @icon{gnus-summary-mail-reply}
 @c @icon{gnus-summary-reply}
@@ -5569,8 +5563,8 @@ Mail a reply to the author of the current article
 
 @item S R
 @itemx R
-@kindex R (Summary)
-@kindex S R (Summary)
+@kindex R @r{(Summary)}
+@kindex S R @r{(Summary)}
 @findex gnus-summary-reply-with-original
 @c @icon{gnus-summary-reply-with-original}
 Mail a reply to the author of the current article and include the
@@ -5578,7 +5572,7 @@ original message (@code{gnus-summary-reply-with-original}).  This
 command uses the process/prefix convention.
 
 @item S w
-@kindex S w (Summary)
+@kindex S w @r{(Summary)}
 @findex gnus-summary-wide-reply
 Mail a wide reply to the author of the current article
 (@code{gnus-summary-wide-reply}).  A @dfn{wide reply} is a reply that
@@ -5587,7 +5581,7 @@ goes out to all people listed in the @code{To}, @code{From} (or
 present, that's used instead.
 
 @item S W
-@kindex S W (Summary)
+@kindex S W @r{(Summary)}
 @findex gnus-summary-wide-reply-with-original
 Mail a wide reply to the current article and include the original
 message (@code{gnus-summary-wide-reply-with-original}).  This command uses
@@ -5595,14 +5589,14 @@ the process/prefix convention, but only uses the headers from the
 first article to determine the recipients.
 
 @item S L
-@kindex S L (Summary)
+@kindex S L @r{(Summary)}
 @findex gnus-summary-reply-to-list-with-original
 When replying to a message from a mailing list, send a reply to that
 message to the mailing list, and include the original message
 (@code{gnus-summary-reply-to-list-with-original}).
 
 @item S v
-@kindex S v (Summary)
+@kindex S v @r{(Summary)}
 @findex gnus-summary-very-wide-reply
 Mail a very wide reply to the author of the current article
 (@code{gnus-summary-wide-reply}).  A @dfn{very wide reply} is a reply
@@ -5611,14 +5605,14 @@ that goes out to all people listed in the @code{To}, @code{From} (or
 articles.  This command uses the process/prefix convention.
 
 @item S V
-@kindex S V (Summary)
+@kindex S V @r{(Summary)}
 @findex gnus-summary-very-wide-reply-with-original
 Mail a very wide reply to the author of the current article and include the
 original message (@code{gnus-summary-very-wide-reply-with-original}).  This
 command uses the process/prefix convention.
 
 @item S B r
-@kindex S B r (Summary)
+@kindex S B r @r{(Summary)}
 @findex gnus-summary-reply-broken-reply-to
 Mail a reply to the author of the current article but ignore the
 @code{Reply-To} field (@code{gnus-summary-reply-broken-reply-to}).
@@ -5628,7 +5622,7 @@ the @code{broken-reply-to} group parameter instead, so things will work
 correctly.  @xref{Group Parameters}.
 
 @item S B R
-@kindex S B R (Summary)
+@kindex S B R @r{(Summary)}
 @findex gnus-summary-reply-broken-reply-to-with-original
 Mail a reply to the author of the current article and include the
 original message but ignore the @code{Reply-To} field
@@ -5636,8 +5630,8 @@ original message but ignore the @code{Reply-To} field
 
 @item S o m
 @itemx C-c C-f
-@kindex S o m (Summary)
-@kindex C-c C-f (Summary)
+@kindex S o m @r{(Summary)}
+@kindex C-c C-f @r{(Summary)}
 @findex gnus-summary-mail-forward
 @c @icon{gnus-summary-mail-forward}
 Forward the current article to some other person
@@ -5654,8 +5648,8 @@ section.
 
 @item S m
 @itemx m
-@kindex m (Summary)
-@kindex S m (Summary)
+@kindex m @r{(Summary)}
+@kindex S m @r{(Summary)}
 @findex gnus-summary-mail-other-window
 @c @icon{gnus-summary-mail-originate}
 Prepare a mail (@code{gnus-summary-mail-other-window}).  By default, use
@@ -5663,7 +5657,7 @@ the posting style of the current group.  If given a prefix, disable that.
 If the prefix is 1, prompt for a group name to find the posting style.
 
 @item S i
-@kindex S i (Summary)
+@kindex S i @r{(Summary)}
 @findex gnus-summary-news-other-window
 Prepare a news (@code{gnus-summary-news-other-window}).  By default,
 post to the current group.  If given a prefix, disable that.  If the
@@ -5676,7 +5670,7 @@ in question.  The corresponding back end must have a request-post method
 for this to work though.
 
 @item S D b
-@kindex S D b (Summary)
+@kindex S D b @r{(Summary)}
 @findex gnus-summary-resend-bounced-mail
 @cindex bouncing mail
 If you have sent a mail, but the mail was bounced back to you for some
@@ -5689,7 +5683,7 @@ that mail and display it for easy perusal of its headers.  This might
 very well fail, though.
 
 @item S D r
-@kindex S D r (Summary)
+@kindex S D r @r{(Summary)}
 @findex gnus-summary-resend-message
 Not to be confused with the previous command,
 @code{gnus-summary-resend-message} will prompt you for an address to
@@ -5710,21 +5704,21 @@ This command understands the process/prefix convention
 (@pxref{Process/Prefix}).
 
 @item S D e
-@kindex S D e (Summary)
+@kindex S D e @r{(Summary)}
 @findex gnus-summary-resend-message-edit
 
 Like the previous command, but will allow you to edit the message as
 if it were a new message before resending.
 
 @item S O m
-@kindex S O m (Summary)
+@kindex S O m @r{(Summary)}
 @findex gnus-uu-digest-mail-forward
 Digest the current series (@pxref{Decoding Articles}) and forward the
 result using mail (@code{gnus-uu-digest-mail-forward}).  This command
 uses the process/prefix convention (@pxref{Process/Prefix}).
 
 @item S M-c
-@kindex S M-c (Summary)
+@kindex S M-c @r{(Summary)}
 @findex gnus-summary-mail-crosspost-complaint
 @cindex crossposting
 @cindex excessive crossposting
@@ -5754,8 +5748,8 @@ Commands for posting a news article:
 @table @kbd
 @item S p
 @itemx a
-@kindex a (Summary)
-@kindex S p (Summary)
+@kindex a @r{(Summary)}
+@kindex S p @r{(Summary)}
 @findex gnus-summary-post-news
 @c @icon{gnus-summary-post-news}
 Prepare for posting an article (@code{gnus-summary-post-news}).  By
@@ -5764,16 +5758,16 @@ If the prefix is 1, prompt for another group instead.
 
 @item S f
 @itemx f
-@kindex f (Summary)
-@kindex S f (Summary)
+@kindex f @r{(Summary)}
+@kindex S f @r{(Summary)}
 @findex gnus-summary-followup
 @c @icon{gnus-summary-followup}
 Post a followup to the current article (@code{gnus-summary-followup}).
 
 @item S F
 @itemx F
-@kindex S F (Summary)
-@kindex F (Summary)
+@kindex S F @r{(Summary)}
+@kindex F @r{(Summary)}
 @c @icon{gnus-summary-followup-with-original}
 @findex gnus-summary-followup-with-original
 Post a followup to the current article and include the original message
@@ -5781,13 +5775,13 @@ Post a followup to the current article and include the original message
 process/prefix convention.
 
 @item S n
-@kindex S n (Summary)
+@kindex S n @r{(Summary)}
 @findex gnus-summary-followup-to-mail
 Post a followup to the current article via news, even if you got the
 message through mail (@code{gnus-summary-followup-to-mail}).
 
 @item S N
-@kindex S N (Summary)
+@kindex S N @r{(Summary)}
 @findex gnus-summary-followup-to-mail-with-original
 Post a followup to the current article via news, even if you got the
 message through mail and include the original message
@@ -5795,7 +5789,7 @@ message through mail and include the original message
 the process/prefix convention.
 
 @item S o p
-@kindex S o p (Summary)
+@kindex S o p @r{(Summary)}
 @findex gnus-summary-post-forward
 Forward the current article to a newsgroup
 (@code{gnus-summary-post-forward}).
@@ -5810,7 +5804,7 @@ but use the flipped value of (@code{message-forward-as-mime}).  By
 default, the message is decoded and forwarded as an rfc822 @acronym{MIME} section.
 
 @item S O p
-@kindex S O p (Summary)
+@kindex S O p @r{(Summary)}
 @findex gnus-uu-digest-post-forward
 @cindex digests
 @cindex making digests
@@ -5819,7 +5813,7 @@ Digest the current series and forward the result to a newsgroup
 process/prefix convention.
 
 @item S u
-@kindex S u (Summary)
+@kindex S u @r{(Summary)}
 @findex gnus-uu-post-news
 @c @icon{gnus-uu-post-news}
 Uuencode a file, split it into parts, and post it as a series
@@ -5835,7 +5829,7 @@ Manual}, for more information.
 
 @table @kbd
 @item S y
-@kindex S y (Summary)
+@kindex S y @r{(Summary)}
 @findex gnus-summary-yank-message
 Yank the current article into an already existing Message composition
 buffer (@code{gnus-summary-yank-message}).  This command prompts for
@@ -5856,7 +5850,7 @@ really, really wish you hadn't posted that?
 Well, you can't cancel mail, but you can cancel posts.
 
 @findex gnus-summary-cancel-article
-@kindex C (Summary)
+@kindex C @r{(Summary)}
 @c @icon{gnus-summary-cancel-article}
 Find the article you wish to cancel (you can only cancel your own
 articles, so don't try any funny stuff).  Then press @kbd{C} or @kbd{S
@@ -5881,7 +5875,7 @@ corrections, you can post a @dfn{superseding} article that will replace
 your original article.
 
 @findex gnus-summary-supersede-article
-@kindex S (Summary)
+@kindex S @r{(Summary)}
 Go to the original article and press @kbd{S s}
 (@code{gnus-summary-supersede-article}).  You will be put in a buffer
 where you can edit the article all you want before sending it off the
@@ -6064,7 +6058,7 @@ followups, you can use the @kbd{/ D} command (@pxref{Limiting}).
 Otherwise (except for the visibility issue), they are just like ticked
 messages.
 
-@item SPACE
+@item @key{SPC}
 @vindex gnus-unread-mark
 Marked as unread (@code{gnus-unread-mark}).
 
@@ -6248,8 +6242,8 @@ All the marking commands understand the numeric prefix.
 @table @kbd
 @item M c
 @itemx M-u
-@kindex M c (Summary)
-@kindex M-u (Summary)
+@kindex M c @r{(Summary)}
+@kindex M-u @r{(Summary)}
 @findex gnus-summary-clear-mark-forward
 @cindex mark as unread
 Clear all readedness-marks from the current article
@@ -6258,38 +6252,38 @@ article as unread.
 
 @item M t
 @itemx !
-@kindex ! (Summary)
-@kindex M t (Summary)
+@kindex ! @r{(Summary)}
+@kindex M t @r{(Summary)}
 @findex gnus-summary-tick-article-forward
 Tick the current article (@code{gnus-summary-tick-article-forward}).
 @xref{Article Caching}.
 
 @item M ?
 @itemx ?
-@kindex ? (Summary)
-@kindex M ? (Summary)
+@kindex ? @r{(Summary)}
+@kindex M ? @r{(Summary)}
 @findex gnus-summary-mark-as-dormant
 Mark the current article as dormant
 (@code{gnus-summary-mark-as-dormant}).  @xref{Article Caching}.
 
 @item M d
 @itemx d
-@kindex M d (Summary)
-@kindex d (Summary)
+@kindex M d @r{(Summary)}
+@kindex d @r{(Summary)}
 @findex gnus-summary-mark-as-read-forward
 Mark the current article as read
 (@code{gnus-summary-mark-as-read-forward}).
 
 @item D
-@kindex D (Summary)
+@kindex D @r{(Summary)}
 @findex gnus-summary-mark-as-read-backward
 Mark the current article as read and move point to the previous line
 (@code{gnus-summary-mark-as-read-backward}).
 
 @item M k
 @itemx k
-@kindex k (Summary)
-@kindex M k (Summary)
+@kindex k @r{(Summary)}
+@kindex M k @r{(Summary)}
 @findex gnus-summary-kill-same-subject-and-select
 Mark all articles that have the same subject as the current one as read,
 and then select the next unread article
@@ -6297,82 +6291,82 @@ and then select the next unread article
 
 @item M K
 @itemx C-k
-@kindex M K (Summary)
-@kindex C-k (Summary)
+@kindex M K @r{(Summary)}
+@kindex C-k @r{(Summary)}
 @findex gnus-summary-kill-same-subject
 Mark all articles that have the same subject as the current one as read
 (@code{gnus-summary-kill-same-subject}).
 
 @item M C
-@kindex M C (Summary)
+@kindex M C @r{(Summary)}
 @findex gnus-summary-catchup
 @c @icon{gnus-summary-catchup}
 Mark all unread articles as read (@code{gnus-summary-catchup}).
 
 @item M C-c
-@kindex M C-c (Summary)
+@kindex M C-c @r{(Summary)}
 @findex gnus-summary-catchup-all
 Mark all articles in the group as read---even the ticked and dormant
 articles (@code{gnus-summary-catchup-all}).
 
 @item M H
-@kindex M H (Summary)
+@kindex M H @r{(Summary)}
 @findex gnus-summary-catchup-to-here
 Catchup the current group to point (before the point)
 (@code{gnus-summary-catchup-to-here}).
 
 @item M h
-@kindex M h (Summary)
+@kindex M h @r{(Summary)}
 @findex gnus-summary-catchup-from-here
 Catchup the current group from point (after the point)
 (@code{gnus-summary-catchup-from-here}).
 
 @item C-w
-@kindex C-w (Summary)
+@kindex C-w @r{(Summary)}
 @findex gnus-summary-mark-region-as-read
 Mark all articles between point and mark as read
 (@code{gnus-summary-mark-region-as-read}).
 
 @item M V k
-@kindex M V k (Summary)
+@kindex M V k @r{(Summary)}
 @findex gnus-summary-kill-below
 Kill all articles with scores below the default score (or below the
 numeric prefix) (@code{gnus-summary-kill-below}).
 
 @item M e
 @itemx E
-@kindex M e (Summary)
-@kindex E (Summary)
+@kindex M e @r{(Summary)}
+@kindex E @r{(Summary)}
 @findex gnus-summary-mark-as-expirable
 Mark the current article as expirable
 (@code{gnus-summary-mark-as-expirable}).
 
 @item M b
-@kindex M b (Summary)
+@kindex M b @r{(Summary)}
 @findex gnus-summary-set-bookmark
 Set a bookmark in the current article
 (@code{gnus-summary-set-bookmark}).
 
 @item M B
-@kindex M B (Summary)
+@kindex M B @r{(Summary)}
 @findex gnus-summary-remove-bookmark
 Remove the bookmark from the current article
 (@code{gnus-summary-remove-bookmark}).
 
 @item M V c
-@kindex M V c (Summary)
+@kindex M V c @r{(Summary)}
 @findex gnus-summary-clear-above
 Clear all marks from articles with scores over the default score (or
 over the numeric prefix) (@code{gnus-summary-clear-above}).
 
 @item M V u
-@kindex M V u (Summary)
+@kindex M V u @r{(Summary)}
 @findex gnus-summary-tick-above
 Tick all articles with scores over the default score (or over the
 numeric prefix) (@code{gnus-summary-tick-above}).
 
 @item M V m
-@kindex M V m (Summary)
+@kindex M V m @r{(Summary)}
 @findex gnus-summary-mark-above
 Prompt for a mark, and mark all articles with scores over the default
 score (or over the numeric prefix) with this mark
@@ -6385,7 +6379,7 @@ be taken after setting a mark.  If non-@code{nil}, point will move to
 the next/previous unread article.  If @code{nil}, point will just move
 one line up or down.  As a special case, if this variable is
 @code{never}, all the marking commands as well as other commands (like
-@kbd{SPACE}) will move to the next article, whether it is unread or not.
+@kbd{@key{SPC}}) will move to the next article, whether it is unread or not.
 The default is @code{t}.
 
 
@@ -6445,8 +6439,8 @@ articles into the cache.  For more information,
 
 @item M P p
 @itemx #
-@kindex # (Summary)
-@kindex M P p (Summary)
+@kindex # @r{(Summary)}
+@kindex M P p @r{(Summary)}
 @findex gnus-summary-mark-as-processable
 Mark the current article with the process mark
 (@code{gnus-summary-mark-as-processable}).
@@ -6454,99 +6448,99 @@ Mark the current article with the process mark
 
 @item M P u
 @itemx M-#
-@kindex M P u (Summary)
-@kindex M-# (Summary)
+@kindex M P u @r{(Summary)}
+@kindex M-# @r{(Summary)}
 Remove the process mark, if any, from the current article
 (@code{gnus-summary-unmark-as-processable}).
 
 @item M P U
-@kindex M P U (Summary)
+@kindex M P U @r{(Summary)}
 @findex gnus-summary-unmark-all-processable
 Remove the process mark from all articles
 (@code{gnus-summary-unmark-all-processable}).
 
 @item M P i
-@kindex M P i (Summary)
+@kindex M P i @r{(Summary)}
 @findex gnus-uu-invert-processable
 Invert the list of process marked articles
 (@code{gnus-uu-invert-processable}).
 
 @item M P R
-@kindex M P R (Summary)
+@kindex M P R @r{(Summary)}
 @findex gnus-uu-mark-by-regexp
 Mark articles that have a @code{Subject} header that matches a regular
 expression (@code{gnus-uu-mark-by-regexp}).
 
 @item M P G
-@kindex M P G (Summary)
+@kindex M P G @r{(Summary)}
 @findex gnus-uu-unmark-by-regexp
 Unmark articles that have a @code{Subject} header that matches a regular
 expression (@code{gnus-uu-unmark-by-regexp}).
 
 @item M P r
-@kindex M P r (Summary)
+@kindex M P r @r{(Summary)}
 @findex gnus-uu-mark-region
 Mark articles in region (@code{gnus-uu-mark-region}).
 
 @item M P g
-@kindex M P g (Summary)
+@kindex M P g @r{(Summary)}
 @findex gnus-uu-unmark-region
 Unmark articles in region (@code{gnus-uu-unmark-region}).
 
 @item M P t
-@kindex M P t (Summary)
+@kindex M P t @r{(Summary)}
 @findex gnus-uu-mark-thread
 Mark all articles in the current (sub)thread
 (@code{gnus-uu-mark-thread}).
 
 @item M P T
-@kindex M P T (Summary)
+@kindex M P T @r{(Summary)}
 @findex gnus-uu-unmark-thread
 Unmark all articles in the current (sub)thread
 (@code{gnus-uu-unmark-thread}).
 
 @item M P v
-@kindex M P v (Summary)
+@kindex M P v @r{(Summary)}
 @findex gnus-uu-mark-over
 Mark all articles that have a score above the prefix argument
 (@code{gnus-uu-mark-over}).
 
 @item M P s
-@kindex M P s (Summary)
+@kindex M P s @r{(Summary)}
 @findex gnus-uu-mark-series
 Mark all articles in the current series (@code{gnus-uu-mark-series}).
 
 @item M P S
-@kindex M P S (Summary)
+@kindex M P S @r{(Summary)}
 @findex gnus-uu-mark-sparse
 Mark all series that have already had some articles marked
 (@code{gnus-uu-mark-sparse}).
 
 @item M P a
-@kindex M P a (Summary)
+@kindex M P a @r{(Summary)}
 @findex gnus-uu-mark-all
 Mark all articles in series order (@code{gnus-uu-mark-all}).
 
 @item M P b
-@kindex M P b (Summary)
+@kindex M P b @r{(Summary)}
 @findex gnus-uu-mark-buffer
 Mark all articles in the buffer in the order they appear
 (@code{gnus-uu-mark-buffer}).
 
 @item M P k
-@kindex M P k (Summary)
+@kindex M P k @r{(Summary)}
 @findex gnus-summary-kill-process-mark
 Push the current process mark set onto the stack and unmark all articles
 (@code{gnus-summary-kill-process-mark}).
 
 @item M P y
-@kindex M P y (Summary)
+@kindex M P y @r{(Summary)}
 @findex gnus-summary-yank-process-mark
 Pop the previous process mark set from the stack and restore it
 (@code{gnus-summary-yank-process-mark}).
 
 @item M P w
-@kindex M P w (Summary)
+@kindex M P w @r{(Summary)}
 @findex gnus-summary-save-process-mark
 Push the current process mark set onto the stack
 (@code{gnus-summary-save-process-mark}).
@@ -6574,42 +6568,42 @@ articles.
 
 @item / /
 @itemx / s
-@kindex / / (Summary)
+@kindex / / @r{(Summary)}
 @findex gnus-summary-limit-to-subject
 Limit the summary buffer to articles that match some subject
 (@code{gnus-summary-limit-to-subject}).  If given a prefix, exclude
 matching articles.
 
 @item / a
-@kindex / a (Summary)
+@kindex / a @r{(Summary)}
 @findex gnus-summary-limit-to-author
 Limit the summary buffer to articles that match some author
 (@code{gnus-summary-limit-to-author}).  If given a prefix, exclude
 matching articles.
 
 @item / R
-@kindex / R (Summary)
+@kindex / R @r{(Summary)}
 @findex gnus-summary-limit-to-recipient
 Limit the summary buffer to articles that match some recipient
 (@code{gnus-summary-limit-to-recipient}).  If given a prefix, exclude
 matching articles.
 
 @item / A
-@kindex / A (Summary)
+@kindex / A @r{(Summary)}
 @findex gnus-summary-limit-to-address
 Limit the summary buffer to articles in which contents of From, To or Cc
 header match a given address (@code{gnus-summary-limit-to-address}).  If
 given a prefix, exclude matching articles.
 
 @item / S
-@kindex / S (Summary)
+@kindex / S @r{(Summary)}
 @findex gnus-summary-limit-to-singletons
 Limit the summary buffer to articles that aren't part of any displayed
 threads (@code{gnus-summary-limit-to-singletons}).  If given a prefix,
 limit to articles that are part of displayed threads.
 
 @item / x
-@kindex / x (Summary)
+@kindex / x @r{(Summary)}
 @findex gnus-summary-limit-to-extra
 Limit the summary buffer to articles that match one of the ``extra''
 headers (@pxref{To From Newsgroups})
@@ -6618,8 +6612,8 @@ matching articles.
 
 @item / u
 @itemx x
-@kindex / u (Summary)
-@kindex x (Summary)
+@kindex / u @r{(Summary)}
+@kindex x @r{(Summary)}
 @findex gnus-summary-limit-to-unread
 Limit the summary buffer to articles not marked as read
 (@code{gnus-summary-limit-to-unread}).  If given a prefix, limit the
@@ -6627,46 +6621,46 @@ buffer to articles strictly unread.  This means that ticked and
 dormant articles will also be excluded.
 
 @item / m
-@kindex / m (Summary)
+@kindex / m @r{(Summary)}
 @findex gnus-summary-limit-to-marks
 Ask for a mark and then limit to all articles that have been marked
 with that mark (@code{gnus-summary-limit-to-marks}).
 
 @item / t
-@kindex / t (Summary)
+@kindex / t @r{(Summary)}
 @findex gnus-summary-limit-to-age
 Ask for a number and then limit the summary buffer to articles older than (or equal to) that number of days
 (@code{gnus-summary-limit-to-age}).  If given a prefix, limit to
 articles younger than that number of days.
 
 @item / n
-@kindex / n (Summary)
+@kindex / n @r{(Summary)}
 @findex gnus-summary-limit-to-articles
 With prefix @samp{n}, limit the summary buffer to the next @samp{n}
 articles.  If not given a prefix, use the process marked articles
 instead.  (@code{gnus-summary-limit-to-articles}).
 
 @item / w
-@kindex / w (Summary)
+@kindex / w @r{(Summary)}
 @findex gnus-summary-pop-limit
 Pop the previous limit off the stack and restore it
 (@code{gnus-summary-pop-limit}).  If given a prefix, pop all limits off
 the stack.
 
 @item / .
-@kindex / . (Summary)
+@kindex / . @r{(Summary)}
 @findex gnus-summary-limit-to-unseen
 Limit the summary buffer to the unseen articles
 (@code{gnus-summary-limit-to-unseen}).
 
 @item / v
-@kindex / v (Summary)
+@kindex / v @r{(Summary)}
 @findex gnus-summary-limit-to-score
 Limit the summary buffer to articles that have a score at or above some
 score (@code{gnus-summary-limit-to-score}).
 
 @item / p
-@kindex / p (Summary)
+@kindex / p @r{(Summary)}
 @findex gnus-summary-limit-to-display-predicate
 Limit the summary buffer to articles that satisfy the @code{display}
 group parameter predicate
@@ -6674,7 +6668,7 @@ group parameter predicate
 Parameters}, for more on this predicate.
 
 @item / r
-@kindex / r (Summary)
+@kindex / r @r{(Summary)}
 @findex gnus-summary-limit-to-replied
 Limit the summary buffer to replied articles
 (@code{gnus-summary-limit-to-replied}).  If given a prefix, exclude
@@ -6682,55 +6676,55 @@ replied articles.
 
 @item / E
 @itemx M S
-@kindex M S (Summary)
-@kindex / E (Summary)
+@kindex M S @r{(Summary)}
+@kindex / E @r{(Summary)}
 @findex gnus-summary-limit-include-expunged
 Include all expunged articles in the limit
 (@code{gnus-summary-limit-include-expunged}).
 
 @item / D
-@kindex / D (Summary)
+@kindex / D @r{(Summary)}
 @findex gnus-summary-limit-include-dormant
 Include all dormant articles in the limit
 (@code{gnus-summary-limit-include-dormant}).
 
 @item / *
-@kindex / * (Summary)
+@kindex / * @r{(Summary)}
 @findex gnus-summary-limit-include-cached
 Include all cached articles in the limit
 (@code{gnus-summary-limit-include-cached}).
 
 @item / d
-@kindex / d (Summary)
+@kindex / d @r{(Summary)}
 @findex gnus-summary-limit-exclude-dormant
 Exclude all dormant articles from the limit
 (@code{gnus-summary-limit-exclude-dormant}).
 
 @item / M
-@kindex / M (Summary)
+@kindex / M @r{(Summary)}
 @findex gnus-summary-limit-exclude-marks
 Exclude all marked articles (@code{gnus-summary-limit-exclude-marks}).
 
 @item / T
-@kindex / T (Summary)
+@kindex / T @r{(Summary)}
 @findex gnus-summary-limit-include-thread
 Include all the articles in the current thread in the limit.
 
 @item / c
-@kindex / c (Summary)
+@kindex / c @r{(Summary)}
 @findex gnus-summary-limit-exclude-childless-dormant
 Exclude all dormant articles that have no children from the limit@*
 (@code{gnus-summary-limit-exclude-childless-dormant}).
 
 @item / C
-@kindex / C (Summary)
+@kindex / C @r{(Summary)}
 @findex gnus-summary-limit-mark-excluded-as-read
 Mark all excluded unread articles as read
 (@code{gnus-summary-limit-mark-excluded-as-read}).  If given a prefix,
 also mark excluded ticked and dormant articles as read.
 
 @item / b
-@kindex / b (Summary)
+@kindex / b @r{(Summary)}
 @findex gnus-summary-limit-to-bodies
 Limit the summary buffer to articles that have bodies that match a
 certain regexp (@code{gnus-summary-limit-to-bodies}).  If given a
@@ -6738,7 +6732,7 @@ prefix, reverse the limit.  This command is quite slow since it
 requires selecting each article to find the matches.
 
 @item / h
-@kindex / h (Summary)
+@kindex / h @r{(Summary)}
 @findex gnus-summary-limit-to-headers
 Like the previous command, only limit to headers instead
 (@code{gnus-summary-limit-to-headers}).
@@ -6751,13 +6745,13 @@ prefix as well.
 
 @table @kbd
 @item / N
-@kindex / N (Summary)
+@kindex / N @r{(Summary)}
 @findex gnus-summary-insert-new-articles
 Insert all new articles in the summary buffer.  It scans for new emails
 if @var{back-end}@code{-get-new-mail} is non-@code{nil}.
 
 @item / o
-@kindex / o (Summary)
+@kindex / o @r{(Summary)}
 @findex gnus-summary-insert-old-articles
 Insert all old articles in the summary buffer.  If given a numbered
 prefix, fetch this number of articles.
@@ -7043,7 +7037,7 @@ visible effects, but is useful if you use the @kbd{A T} command a lot
 
 The server has to support @acronym{NOV} for any of this to work.
 
-@cindex Gmane, gnus-fetch-old-headers
+@cindex Gmane, @code{gnus-fetch-old-headers}
 This feature can seriously impact performance it ignores all locally
 cached header entries.  Setting it to @code{t} for groups for a server
 that doesn't expire articles (such as news.gmane.org), leads to very
@@ -7197,8 +7191,8 @@ meaningful.  Here's one example:
 
 @item T k
 @itemx C-M-k
-@kindex T k (Summary)
-@kindex C-M-k (Summary)
+@kindex T k @r{(Summary)}
+@kindex C-M-k @r{(Summary)}
 @findex gnus-summary-kill-thread
 Mark all articles in the current (sub-)thread as read
 (@code{gnus-summary-kill-thread}).  If the prefix argument is positive,
@@ -7207,71 +7201,71 @@ articles instead.
 
 @item T l
 @itemx C-M-l
-@kindex T l (Summary)
-@kindex C-M-l (Summary)
+@kindex T l @r{(Summary)}
+@kindex C-M-l @r{(Summary)}
 @findex gnus-summary-lower-thread
 Lower the score of the current (sub-)thread
 (@code{gnus-summary-lower-thread}).
 
 @item T i
-@kindex T i (Summary)
+@kindex T i @r{(Summary)}
 @findex gnus-summary-raise-thread
 Increase the score of the current (sub-)thread
 (@code{gnus-summary-raise-thread}).
 
 @item T #
-@kindex T # (Summary)
+@kindex T # @r{(Summary)}
 @findex gnus-uu-mark-thread
 Set the process mark on the current (sub-)thread
 (@code{gnus-uu-mark-thread}).
 
 @item T M-#
-@kindex T M-# (Summary)
+@kindex T M-# @r{(Summary)}
 @findex gnus-uu-unmark-thread
 Remove the process mark from the current (sub-)thread
 (@code{gnus-uu-unmark-thread}).
 
 @item T T
-@kindex T T (Summary)
+@kindex T T @r{(Summary)}
 @findex gnus-summary-toggle-threads
 Toggle threading (@code{gnus-summary-toggle-threads}).
 
 @item T s
-@kindex T s (Summary)
+@kindex T s @r{(Summary)}
 @findex gnus-summary-show-thread
 Expose the (sub-)thread hidden under the current article, if any@*
 (@code{gnus-summary-show-thread}).
 
 @item T h
-@kindex T h (Summary)
+@kindex T h @r{(Summary)}
 @findex gnus-summary-hide-thread
 Hide the current (sub-)thread (@code{gnus-summary-hide-thread}).
 
 @item T S
-@kindex T S (Summary)
+@kindex T S @r{(Summary)}
 @findex gnus-summary-show-all-threads
 Expose all hidden threads (@code{gnus-summary-show-all-threads}).
 
 @item T H
-@kindex T H (Summary)
+@kindex T H @r{(Summary)}
 @findex gnus-summary-hide-all-threads
 Hide all threads (@code{gnus-summary-hide-all-threads}).
 
 @item T t
-@kindex T t (Summary)
+@kindex T t @r{(Summary)}
 @findex gnus-summary-rethread-current
 Re-thread the current article's thread
 (@code{gnus-summary-rethread-current}).  This works even when the
 summary buffer is otherwise unthreaded.
 
 @item T ^
-@kindex T ^ (Summary)
+@kindex T ^ @r{(Summary)}
 @findex gnus-summary-reparent-thread
 Make the current article the child of the marked (or previous) article
 (@code{gnus-summary-reparent-thread}).
 
 @item T M-^
-@kindex T M-^ (Summary)
+@kindex T M-^ @r{(Summary)}
 @findex gnus-summary-reparent-children
 Make the current article the parent of the marked articles
 (@code{gnus-summary-reparent-children}).
@@ -7284,35 +7278,35 @@ understand the numeric prefix.
 @table @kbd
 
 @item T n
-@kindex T n (Summary)
+@kindex T n @r{(Summary)}
 @itemx C-M-f
-@kindex C-M-n (Summary)
-@itemx M-down
-@kindex M-down (Summary)
+@kindex C-M-n @r{(Summary)}
+@itemx M-@key{DOWN}
+@kindex M-DOWN @r{(Summary)}
 @findex gnus-summary-next-thread
 Go to the next thread (@code{gnus-summary-next-thread}).
 
 @item T p
-@kindex T p (Summary)
+@kindex T p @r{(Summary)}
 @itemx C-M-b
-@kindex C-M-p (Summary)
-@itemx M-up
-@kindex M-up (Summary)
+@kindex C-M-p @r{(Summary)}
+@itemx M-@key{UP}
+@kindex M-UP @r{(Summary)}
 @findex gnus-summary-prev-thread
 Go to the previous thread (@code{gnus-summary-prev-thread}).
 
 @item T d
-@kindex T d (Summary)
+@kindex T d @r{(Summary)}
 @findex gnus-summary-down-thread
 Descend the thread (@code{gnus-summary-down-thread}).
 
 @item T u
-@kindex T u (Summary)
+@kindex T u @r{(Summary)}
 @findex gnus-summary-up-thread
 Ascend the thread (@code{gnus-summary-up-thread}).
 
 @item T o
-@kindex T o (Summary)
+@kindex T o @r{(Summary)}
 @findex gnus-summary-top-thread
 Go to the top of the thread (@code{gnus-summary-top-thread}).
 @end table
@@ -7654,12 +7648,12 @@ you use two explicit commands for managing persistent articles:
 @table @kbd
 
 @item *
-@kindex * (Summary)
+@kindex * @r{(Summary)}
 @findex gnus-cache-enter-article
 Make the current article persistent (@code{gnus-cache-enter-article}).
 
 @item M-*
-@kindex M-* (Summary)
+@kindex M-* @r{(Summary)}
 @findex gnus-cache-remove-article
 Remove the current article from the persistent articles
 (@code{gnus-cache-remove-article}).  This will normally delete the
@@ -7697,7 +7691,7 @@ select another article.  You can make an article sticky with:
 
 @table @kbd
 @item A S
-@kindex A S (Summary)
+@kindex A S @r{(Summary)}
 @findex gnus-sticky-article
 Make the current article sticky.  If a prefix arg is given, ask for a
 name for this sticky article buffer.
@@ -7707,12 +7701,12 @@ To close a sticky article buffer you can use these commands:
 
 @table @kbd
 @item q
-@kindex q (Article)
+@kindex q @r{@r{(Article)}}
 @findex bury-buffer
 Puts this sticky article buffer at the end of the list of all buffers.
 
 @item k
-@kindex k (Article)
+@kindex k @r{(Article)}
 @findex gnus-kill-sticky-article-buffer
 Kills this sticky article buffer.
 @end table
@@ -7778,61 +7772,61 @@ deleted before saving.
 
 @item O o
 @itemx o
-@kindex O o (Summary)
-@kindex o (Summary)
+@kindex O o @r{(Summary)}
+@kindex o @r{(Summary)}
 @findex gnus-summary-save-article
 @c @icon{gnus-summary-save-article}
 Save the current article using the default article saver
 (@code{gnus-summary-save-article}).
 
 @item O m
-@kindex O m (Summary)
+@kindex O m @r{(Summary)}
 @findex gnus-summary-save-article-mail
 Save the current article in a Unix mail box (mbox) file
 (@code{gnus-summary-save-article-mail}).
 
 @item O r
-@kindex O r (Summary)
+@kindex O r @r{(Summary)}
 @findex gnus-summary-save-article-rmail
 Save the current article in Rmail format
 (@code{gnus-summary-save-article-rmail}).  This is mbox since Emacs 23,
 Babyl in older versions.
 
 @item O f
-@kindex O f (Summary)
+@kindex O f @r{(Summary)}
 @findex gnus-summary-save-article-file
 @c @icon{gnus-summary-save-article-file}
 Save the current article in plain file format
 (@code{gnus-summary-save-article-file}).
 
 @item O F
-@kindex O F (Summary)
+@kindex O F @r{(Summary)}
 @findex gnus-summary-write-article-file
 Write the current article in plain file format, overwriting any previous
 file contents (@code{gnus-summary-write-article-file}).
 
 @item O b
-@kindex O b (Summary)
+@kindex O b @r{(Summary)}
 @findex gnus-summary-save-article-body-file
 Save the current article body in plain file format
 (@code{gnus-summary-save-article-body-file}).
 
 @item O h
-@kindex O h (Summary)
+@kindex O h @r{(Summary)}
 @findex gnus-summary-save-article-folder
 Save the current article in mh folder format
 (@code{gnus-summary-save-article-folder}).
 
 @item O v
-@kindex O v (Summary)
+@kindex O v @r{(Summary)}
 @findex gnus-summary-save-article-vm
 Save the current article in a VM folder
 (@code{gnus-summary-save-article-vm}).
 
 @item O p
 @itemx |
-@kindex O p (Summary)
-@kindex | (Summary)
+@kindex O p @r{(Summary)}
+@kindex | @r{(Summary)}
 @findex gnus-summary-pipe-output
 @vindex gnus-summary-pipe-output-default-command
 Save the current article in a pipe.  Uhm, like, what I mean is---Pipe
@@ -7845,7 +7839,7 @@ to a string containing the default command and options (default
 @code{nil}).
 
 @item O P
-@kindex O P (Summary)
+@kindex O P @r{(Summary)}
 @findex gnus-summary-muttprint
 @vindex gnus-summary-muttprint-program
 Save the current article into muttprint.  That is, print it using the
@@ -8152,24 +8146,24 @@ commands, and you have to mark the articles manually with @kbd{#}.
 @table @kbd
 
 @item X u
-@kindex X u (Summary)
+@kindex X u @r{(Summary)}
 @findex gnus-uu-decode-uu
 @c @icon{gnus-uu-decode-uu}
 Uudecodes the current series (@code{gnus-uu-decode-uu}).
 
 @item X U
-@kindex X U (Summary)
+@kindex X U @r{(Summary)}
 @findex gnus-uu-decode-uu-and-save
 Uudecodes and saves the current series
 (@code{gnus-uu-decode-uu-and-save}).
 
 @item X v u
-@kindex X v u (Summary)
+@kindex X v u @r{(Summary)}
 @findex gnus-uu-decode-uu-view
 Uudecodes and views the current series (@code{gnus-uu-decode-uu-view}).
 
 @item X v U
-@kindex X v U (Summary)
+@kindex X v U @r{(Summary)}
 @findex gnus-uu-decode-uu-and-save-view
 Uudecodes, views and saves the current series
 (@code{gnus-uu-decode-uu-and-save-view}).
@@ -8210,22 +8204,22 @@ some commands to deal with these:
 @table @kbd
 
 @item X s
-@kindex X s (Summary)
+@kindex X s @r{(Summary)}
 @findex gnus-uu-decode-unshar
 Unshars the current series (@code{gnus-uu-decode-unshar}).
 
 @item X S
-@kindex X S (Summary)
+@kindex X S @r{(Summary)}
 @findex gnus-uu-decode-unshar-and-save
 Unshars and saves the current series (@code{gnus-uu-decode-unshar-and-save}).
 
 @item X v s
-@kindex X v s (Summary)
+@kindex X v s @r{(Summary)}
 @findex gnus-uu-decode-unshar-view
 Unshars and views the current series (@code{gnus-uu-decode-unshar-view}).
 
 @item X v S
-@kindex X v S (Summary)
+@kindex X v S @r{(Summary)}
 @findex gnus-uu-decode-unshar-and-save-view
 Unshars, views and saves the current series
 (@code{gnus-uu-decode-unshar-and-save-view}).
@@ -8239,24 +8233,24 @@ Unshars, views and saves the current series
 @table @kbd
 
 @item X p
-@kindex X p (Summary)
+@kindex X p @r{(Summary)}
 @findex gnus-uu-decode-postscript
 Unpack the current PostScript series (@code{gnus-uu-decode-postscript}).
 
 @item X P
-@kindex X P (Summary)
+@kindex X P @r{(Summary)}
 @findex gnus-uu-decode-postscript-and-save
 Unpack and save the current PostScript series
 (@code{gnus-uu-decode-postscript-and-save}).
 
 @item X v p
-@kindex X v p (Summary)
+@kindex X v p @r{(Summary)}
 @findex gnus-uu-decode-postscript-view
 View the current PostScript series
 (@code{gnus-uu-decode-postscript-view}).
 
 @item X v P
-@kindex X v P (Summary)
+@kindex X v P @r{(Summary)}
 @findex gnus-uu-decode-postscript-and-save-view
 View and save the current PostScript series
 (@code{gnus-uu-decode-postscript-and-save-view}).
@@ -8268,19 +8262,19 @@ View and save the current PostScript series
 
 @table @kbd
 @item X o
-@kindex X o (Summary)
+@kindex X o @r{(Summary)}
 @findex gnus-uu-decode-save
 Save the current series
 (@code{gnus-uu-decode-save}).
 
 @item X b
-@kindex X b (Summary)
+@kindex X b @r{(Summary)}
 @findex gnus-uu-decode-binhex
 Unbinhex the current series (@code{gnus-uu-decode-binhex}).  This
 doesn't really work yet.
 
 @item X Y
-@kindex X Y (Summary)
+@kindex X Y @r{(Summary)}
 @findex gnus-uu-decode-yenc
 yEnc-decode the current series and save it (@code{gnus-uu-decode-yenc}).
 @end table
@@ -8554,7 +8548,7 @@ you want it to look like technicolor fruit salad.
 @table @kbd
 
 @item W H a
-@kindex W H a (Summary)
+@kindex W H a @r{(Summary)}
 @findex gnus-article-highlight
 @findex gnus-article-maybe-highlight
 Do much highlighting of the current article
@@ -8562,7 +8556,7 @@ Do much highlighting of the current article
 text, the signature, and adds buttons to the body and the head.
 
 @item W H h
-@kindex W H h (Summary)
+@kindex W H h @r{(Summary)}
 @findex gnus-article-highlight-headers
 @vindex gnus-header-face-alist
 Highlight the headers (@code{gnus-article-highlight-headers}).  The
@@ -8576,7 +8570,7 @@ the header value.  The first match made will be used.  Note that
 @var{regexp} shouldn't have @samp{^} prepended---Gnus will add one.
 
 @item W H c
-@kindex W H c (Summary)
+@kindex W H c @r{(Summary)}
 @findex gnus-article-highlight-citation
 Highlight cited text (@code{gnus-article-highlight-citation}).
 
@@ -8637,7 +8631,7 @@ is @code{t}.
 
 
 @item W H s
-@kindex W H s (Summary)
+@kindex W H s @r{(Summary)}
 @vindex gnus-signature-separator
 @vindex gnus-signature-face
 @findex gnus-article-highlight-signature
@@ -8658,7 +8652,7 @@ default.
 @cindex article emphasis
 
 @findex gnus-article-emphasize
-@kindex W e (Summary)
+@kindex W e @r{(Summary)}
 People commonly add emphasis to words in news articles by writing things
 like @samp{_this_} or @samp{*this*} or @samp{/this/}.  Gnus can make
 this look nicer by running the article through the @kbd{W e}
@@ -8729,32 +8723,32 @@ too much cruft in most articles.
 @table @kbd
 
 @item W W a
-@kindex W W a (Summary)
+@kindex W W a @r{(Summary)}
 @findex gnus-article-hide
 Do quite a lot of hiding on the article buffer
 (@kbd{gnus-article-hide}).  In particular, this function will hide
 headers, @acronym{PGP}, cited text and the signature.
 
 @item W W h
-@kindex W W h (Summary)
+@kindex W W h @r{(Summary)}
 @findex gnus-article-hide-headers
 Hide headers (@code{gnus-article-hide-headers}).  @xref{Hiding
 Headers}.
 
 @item W W b
-@kindex W W b (Summary)
+@kindex W W b @r{(Summary)}
 @findex gnus-article-hide-boring-headers
 Hide headers that aren't particularly interesting
 (@code{gnus-article-hide-boring-headers}).  @xref{Hiding Headers}.
 
 @item W W s
-@kindex W W s (Summary)
+@kindex W W s @r{(Summary)}
 @findex gnus-article-hide-signature
 Hide signature (@code{gnus-article-hide-signature}).  @xref{Article
 Signature}.
 
 @item W W l
-@kindex W W l (Summary)
+@kindex W W l @r{(Summary)}
 @findex gnus-article-hide-list-identifiers
 @vindex gnus-list-identifiers
 Strip list identifiers specified in @code{gnus-list-identifiers}.  These
@@ -8773,13 +8767,13 @@ subject.  This can also be a list of regular expressions.
 @end table
 
 @item W W P
-@kindex W W P (Summary)
+@kindex W W P @r{(Summary)}
 @findex gnus-article-hide-pem
 Hide @acronym{PEM} (privacy enhanced messages) cruft
 (@code{gnus-article-hide-pem}).
 
 @item W W B
-@kindex W W B (Summary)
+@kindex W W B @r{(Summary)}
 @findex gnus-article-strip-banner
 @vindex gnus-article-banner-alist
 @vindex gnus-article-address-banner-alist
@@ -8833,7 +8827,7 @@ sends, you can use the following element to remove them:
 @end table
 
 @item W W c
-@kindex W W c (Summary)
+@kindex W W c @r{(Summary)}
 @findex gnus-article-hide-citation
 Hide citation (@code{gnus-article-hide-citation}).  Some variables for
 customizing the hiding:
@@ -8869,7 +8863,7 @@ and bottom of the text, respectively, to remain visible.
 @end table
 
 @item W W C-c
-@kindex W W C-c (Summary)
+@kindex W W C-c @r{(Summary)}
 @findex gnus-article-hide-citation-maybe
 
 Hide citation (@code{gnus-article-hide-citation-maybe}) depending on the
@@ -8888,7 +8882,7 @@ is hidden.
 @end table
 
 @item W W C
-@kindex W W C (Summary)
+@kindex W W C @r{(Summary)}
 @findex gnus-article-hide-citation-in-followups
 Hide cited text in articles that aren't roots
 (@code{gnus-article-hide-citation-in-followups}).  This isn't very
@@ -8938,14 +8932,14 @@ interactive Washing functions but with all default treatments
 (@pxref{Customizing Articles}).
 
 @item W l
-@kindex W l (Summary)
+@kindex W l @r{(Summary)}
 @findex gnus-summary-stop-page-breaking
 Remove page breaks from the current article
 (@code{gnus-summary-stop-page-breaking}).  @xref{Misc Article}, for page
 delimiters.
 
 @item W r
-@kindex W r (Summary)
+@kindex W r @r{(Summary)}
 @findex gnus-summary-caesar-message
 @c @icon{gnus-summary-caesar-message}
 Do a Caesar rotate (rot13) on the article buffer
@@ -8959,12 +8953,12 @@ positions in the alphabet, e.g., @samp{B} (letter #2) -> @samp{O} (letter
 is rumored to have employed this form of, uh, somewhat weak encryption.
 
 @item W m
-@kindex W m (Summary)
+@kindex W m @r{(Summary)}
 @findex gnus-summary-morse-message
 Morse decode the article buffer (@code{gnus-summary-morse-message}).
 
 @item W i
-@kindex W i (Summary)
+@kindex W i @r{(Summary)}
 @findex gnus-summary-idna-message
 Decode IDNA encoded domain names in the current articles.  IDNA
 encoded domain names looks like @samp{xn--bar}.  If a string remain
@@ -8975,25 +8969,25 @@ to work.
 
 @item W t
 @item t
-@kindex W t (Summary)
-@kindex t (Summary)
+@kindex W t @r{(Summary)}
+@kindex t @r{(Summary)}
 @findex gnus-summary-toggle-header
 Toggle whether to display all headers in the article buffer
 (@code{gnus-summary-toggle-header}).
 
 @item W v
-@kindex W v (Summary)
+@kindex W v @r{(Summary)}
 @findex gnus-summary-verbose-headers
 Toggle whether to display all headers in the article buffer permanently
 (@code{gnus-summary-verbose-headers}).
 
 @item W o
-@kindex W o (Summary)
+@kindex W o @r{(Summary)}
 @findex gnus-article-treat-overstrike
 Treat overstrike (@code{gnus-article-treat-overstrike}).
 
 @item W d
-@kindex W d (Summary)
+@kindex W d @r{(Summary)}
 @findex gnus-article-treat-dumbquotes
 @vindex gnus-article-dumbquotes-map
 @cindex Smartquotes
@@ -9011,7 +9005,7 @@ like @code{\222} or @code{\264} where you're expecting some kind of
 apostrophe or quotation mark, then try this wash.
 
 @item W U
-@kindex W U (Summary)
+@kindex W U @r{(Summary)}
 @findex gnus-article-treat-non-ascii
 @cindex Unicode
 @cindex Non-@acronym{ASCII}
@@ -9022,7 +9016,7 @@ and doesn't show accented characters, ``advanced'' punctuation, and the
 like.  For instance, @samp{»} is translated into @samp{>>}, and so on.
 
 @item W Y f
-@kindex W Y f (Summary)
+@kindex W Y f @r{(Summary)}
 @findex gnus-article-outlook-deuglify-article
 @cindex Outlook Express
 Full deuglify of broken Outlook (Express) articles: Treat dumbquotes,
@@ -9030,7 +9024,7 @@ unwrap lines, repair attribution and rearrange citation.
 (@code{gnus-article-outlook-deuglify-article}).
 
 @item W Y u
-@kindex W Y u (Summary)
+@kindex W Y u @r{(Summary)}
 @findex gnus-article-outlook-unwrap-lines
 @vindex gnus-outlook-deuglify-unwrap-min
 @vindex gnus-outlook-deuglify-unwrap-max
@@ -9042,19 +9036,19 @@ maximum length of an unwrapped citation line.
 (@code{gnus-article-outlook-unwrap-lines}).
 
 @item W Y a
-@kindex W Y a (Summary)
+@kindex W Y a @r{(Summary)}
 @findex gnus-article-outlook-repair-attribution
 Repair a broken attribution line.@*
 (@code{gnus-article-outlook-repair-attribution}).
 
 @item W Y c
-@kindex W Y c (Summary)
+@kindex W Y c @r{(Summary)}
 @findex gnus-article-outlook-rearrange-citation
 Repair broken citations by rearranging the text.
 (@code{gnus-article-outlook-rearrange-citation}).
 
 @item W w
-@kindex W w (Summary)
+@kindex W w @r{(Summary)}
 @findex gnus-article-fill-cited-article
 Do word wrap (@code{gnus-article-fill-cited-article}).
 
@@ -9062,18 +9056,18 @@ You can give the command a numerical prefix to specify the width to use
 when filling.
 
 @item W Q
-@kindex W Q (Summary)
+@kindex W Q @r{(Summary)}
 @findex gnus-article-fill-long-lines
 Fill long lines (@code{gnus-article-fill-long-lines}).
 
 @item W C
-@kindex W C (Summary)
+@kindex W C @r{(Summary)}
 @findex gnus-article-capitalize-sentences
 Capitalize the first word in each sentence
 (@code{gnus-article-capitalize-sentences}).
 
 @item W c
-@kindex W c (Summary)
+@kindex W c @r{(Summary)}
 @findex gnus-article-remove-cr
 Translate CRLF pairs (i.e., @samp{^M}s on the end of the lines) into LF
 (this takes care of DOS line endings), and then translate any remaining
@@ -9081,7 +9075,7 @@ CRs into LF (this takes care of Mac line endings)
 (@code{gnus-article-remove-cr}).
 
 @item W q
-@kindex W q (Summary)
+@kindex W q @r{(Summary)}
 @findex gnus-article-de-quoted-unreadable
 Treat quoted-printable (@code{gnus-article-de-quoted-unreadable}).
 Quoted-Printable is one common @acronym{MIME} encoding employed when
@@ -9093,7 +9087,7 @@ done automatically by Gnus if the message in question has a
 has been done.  If a prefix is given, a charset will be asked for.
 
 @item W 6
-@kindex W 6 (Summary)
+@kindex W 6 @r{(Summary)}
 @findex gnus-article-de-base64-unreadable
 Treat base64 (@code{gnus-article-de-base64-unreadable}).  Base64 is
 one common @acronym{MIME} encoding employed when sending
@@ -9103,14 +9097,14 @@ usually done automatically by Gnus if the message in question has a
 has been done.  If a prefix is given, a charset will be asked for.
 
 @item W Z
-@kindex W Z (Summary)
+@kindex W Z @r{(Summary)}
 @findex gnus-article-decode-HZ
 Treat HZ or HZP (@code{gnus-article-decode-HZ}).  HZ (or HZP) is one
 common encoding employed when sending Chinese articles.  It typically
 makes strings look like @samp{~@{<:Ky2;S@{#,NpJ)l6HK!#~@}}.
 
 @item W A
-@kindex W A (Summary)
+@kindex W A @r{(Summary)}
 @findex gnus-article-treat-ansi-sequences
 @cindex @acronym{ANSI} control sequences
 Translate @acronym{ANSI} SGR control sequences into overlays or
@@ -9118,7 +9112,7 @@ extents (@code{gnus-article-treat-ansi-sequences}).  @acronym{ANSI}
 sequences are used in some Chinese hierarchies for highlighting.
 
 @item W u
-@kindex W u (Summary)
+@kindex W u @r{(Summary)}
 @findex gnus-article-unsplit-urls
 Remove newlines from within URLs.  Some mailers insert newlines into
 outgoing email messages to keep lines short.  This reformatting can
@@ -9126,7 +9120,7 @@ split long URLs onto multiple lines.  Repair those URLs by removing
 the newlines (@code{gnus-article-unsplit-urls}).
 
 @item W h
-@kindex W h (Summary)
+@kindex W h @r{(Summary)}
 @findex gnus-article-wash-html
 Treat @acronym{HTML} (@code{gnus-article-wash-html}).  Note that this is
 usually done automatically by Gnus if the message in question has a
@@ -9166,19 +9160,19 @@ Use html2text---a simple @acronym{HTML} converter included with Gnus.
 @end table
 
 @item W b
-@kindex W b (Summary)
+@kindex W b @r{(Summary)}
 @findex gnus-article-add-buttons
 Add clickable buttons to the article (@code{gnus-article-add-buttons}).
 @xref{Article Buttons}.
 
 @item W B
-@kindex W B (Summary)
+@kindex W B @r{(Summary)}
 @findex gnus-article-add-buttons-to-head
 Add clickable buttons to the article headers
 (@code{gnus-article-add-buttons-to-head}).
 
 @item W p
-@kindex W p (Summary)
+@kindex W p @r{(Summary)}
 @findex gnus-article-verify-x-pgp-sig
 Verify a signed control message
 (@code{gnus-article-verify-x-pgp-sig}).  Control messages such as
@@ -9189,57 +9183,57 @@ message.@footnote{@acronym{PGP} keys for many hierarchies are
 available at @uref{https://ftp.isc.org/pub/pgpcontrol/README.html}}
 
 @item W s
-@kindex W s (Summary)
+@kindex W s @r{(Summary)}
 @findex gnus-summary-force-verify-and-decrypt
 Verify a signed (@acronym{PGP}, @acronym{PGP/MIME} or
 @acronym{S/MIME}) message
 (@code{gnus-summary-force-verify-and-decrypt}). @xref{Security}.
 
 @item W a
-@kindex W a (Summary)
+@kindex W a @r{(Summary)}
 @findex gnus-article-strip-headers-in-body
 Strip headers like the @code{X-No-Archive} header from the beginning of
 article bodies (@code{gnus-article-strip-headers-in-body}).
 
 @item W E l
-@kindex W E l (Summary)
+@kindex W E l @r{(Summary)}
 @findex gnus-article-strip-leading-blank-lines
 Remove all blank lines from the beginning of the article
 (@code{gnus-article-strip-leading-blank-lines}).
 
 @item W E m
-@kindex W E m (Summary)
+@kindex W E m @r{(Summary)}
 @findex gnus-article-strip-multiple-blank-lines
 Replace all blank lines with empty lines and then all multiple empty
 lines with a single empty line.
 (@code{gnus-article-strip-multiple-blank-lines}).
 
 @item W E t
-@kindex W E t (Summary)
+@kindex W E t @r{(Summary)}
 @findex gnus-article-remove-trailing-blank-lines
 Remove all blank lines at the end of the article
 (@code{gnus-article-remove-trailing-blank-lines}).
 
 @item W E a
-@kindex W E a (Summary)
+@kindex W E a @r{(Summary)}
 @findex gnus-article-strip-blank-lines
 Do all the three commands above
 (@code{gnus-article-strip-blank-lines}).
 
 @item W E A
-@kindex W E A (Summary)
+@kindex W E A @r{(Summary)}
 @findex gnus-article-strip-all-blank-lines
 Remove all blank lines
 (@code{gnus-article-strip-all-blank-lines}).
 
 @item W E s
-@kindex W E s (Summary)
+@kindex W E s @r{(Summary)}
 @findex gnus-article-strip-leading-space
 Remove all white space from the beginning of all lines of the article
 body (@code{gnus-article-strip-leading-space}).
 
 @item W E e
-@kindex W E e (Summary)
+@kindex W E e @r{(Summary)}
 @findex gnus-article-strip-trailing-space
 Remove all white space from the end of all lines of the article
 body (@code{gnus-article-strip-trailing-space}).
@@ -9257,24 +9251,24 @@ These commands perform various transformations of article header.
 @table @kbd
 
 @item W G u
-@kindex W G u (Summary)
+@kindex W G u @r{(Summary)}
 @findex gnus-article-treat-unfold-headers
 Unfold folded header lines (@code{gnus-article-treat-unfold-headers}).
 
 @item W G n
-@kindex W G n (Summary)
+@kindex W G n @r{(Summary)}
 @findex gnus-article-treat-fold-newsgroups
 Fold the @code{Newsgroups} and @code{Followup-To} headers
 (@code{gnus-article-treat-fold-newsgroups}).
 
 @item W G f
-@kindex W G f (Summary)
+@kindex W G f @r{(Summary)}
 @findex gnus-article-treat-fold-headers
 Fold all the message headers
 (@code{gnus-article-treat-fold-headers}).
 
 @item W E w
-@kindex W E w (Summary)
+@kindex W E w @r{(Summary)}
 @findex gnus-article-remove-leading-whitespace
 Remove excessive whitespace from all headers
 (@code{gnus-article-remove-leading-whitespace}).
@@ -9288,7 +9282,7 @@ Remove excessive whitespace from all headers
 
 People often include references to other stuff in articles, and it would
 be nice if Gnus could just fetch whatever it is that people talk about
-with the minimum of fuzz when you hit @kbd{RET} or use the middle mouse
+with the minimum of fuzz when you hit @kbd{@key{RET}} or use the middle mouse
 button on these references.
 
 @vindex gnus-button-man-handler
@@ -9494,31 +9488,31 @@ when the article was sent.
 @table @kbd
 
 @item W T u
-@kindex W T u (Summary)
+@kindex W T u @r{(Summary)}
 @findex gnus-article-date-ut
 Display the date in UT (aka. GMT, aka ZULU)
 (@code{gnus-article-date-ut}).
 
 @item W T i
-@kindex W T i (Summary)
+@kindex W T i @r{(Summary)}
 @findex gnus-article-date-iso8601
 @cindex ISO 8601
 Display the date in international format, aka. ISO 8601
 (@code{gnus-article-date-iso8601}).
 
 @item W T l
-@kindex W T l (Summary)
+@kindex W T l @r{(Summary)}
 @findex gnus-article-date-local
 Display the date in the local timezone (@code{gnus-article-date-local}).
 
 @item W T p
-@kindex W T p (Summary)
+@kindex W T p @r{(Summary)}
 @findex gnus-article-date-english
 Display the date in a format that's easily pronounceable in English
 (@code{gnus-article-date-english}).
 
 @item W T s
-@kindex W T s (Summary)
+@kindex W T s @r{(Summary)}
 @vindex gnus-article-time-format
 @findex gnus-article-date-user
 @findex format-time-string
@@ -9529,7 +9523,7 @@ to @code{format-time-string}.  See the documentation of that variable
 for a list of possible format specs.
 
 @item W T e
-@kindex W T e (Summary)
+@kindex W T e @r{(Summary)}
 @findex gnus-article-date-lapsed
 @findex gnus-start-date-timer
 @findex gnus-stop-date-timer
@@ -9545,7 +9539,7 @@ To make this line updated continually, set the
 seconds (the default is @code{nil}).
 
 @item W T o
-@kindex W T o (Summary)
+@kindex W T o @r{(Summary)}
 @findex gnus-article-date-original
 Display the original date (@code{gnus-article-date-original}).  This can
 be useful if you normally use some other conversion function and are
@@ -9589,58 +9583,58 @@ they'll be removed.
 
 @table @kbd
 @item W D x
-@kindex W D x (Summary)
+@kindex W D x @r{(Summary)}
 @findex gnus-article-display-x-face
 Display an @code{X-Face} in the @code{From} header.
 (@code{gnus-article-display-x-face}).
 
 @item W D d
-@kindex W D d (Summary)
+@kindex W D d @r{(Summary)}
 @findex gnus-article-display-face
 Display a @code{Face} in the @code{From} header.
 (@code{gnus-article-display-face}).
 
 @item W D s
-@kindex W D s (Summary)
+@kindex W D s @r{(Summary)}
 @findex gnus-treat-smiley
 Display smileys (@code{gnus-treat-smiley}).
 
 @item W D f
-@kindex W D f (Summary)
+@kindex W D f @r{(Summary)}
 @findex gnus-treat-from-picon
 Piconify the @code{From} header (@code{gnus-treat-from-picon}).
 
 @item W D m
-@kindex W D m (Summary)
+@kindex W D m @r{(Summary)}
 @findex gnus-treat-mail-picon
 Piconify all mail headers (i.e., @code{Cc}, @code{To})
 (@code{gnus-treat-mail-picon}).
 
 @item W D n
-@kindex W D n (Summary)
+@kindex W D n @r{(Summary)}
 @findex gnus-treat-newsgroups-picon
 Piconify all news headers (i.e., @code{Newsgroups} and
 @code{Followup-To}) (@code{gnus-treat-newsgroups-picon}).
 
 @item W D g
-@kindex W D g (Summary)
+@kindex W D g @r{(Summary)}
 @findex gnus-treat-from-gravatar
 Gravatarify the @code{From} header (@code{gnus-treat-from-gravatar}).
 
 @item W D h
-@kindex W D h (Summary)
+@kindex W D h @r{(Summary)}
 @findex gnus-treat-mail-gravatar
 Gravatarify all mail headers (i.e., @code{Cc}, @code{To})
 (@code{gnus-treat-from-gravatar}).
 
 @item W D D
-@kindex W D D (Summary)
+@kindex W D D @r{(Summary)}
 @findex gnus-article-remove-images
 Remove all images from the article buffer
 (@code{gnus-article-remove-images}).
 
 @item W D W
-@kindex W D W (Summary)
+@kindex W D W @r{(Summary)}
 @findex gnus-html-show-images
 If you're reading an @acronym{HTML} article rendered with
 @code{gnus-article-html}, then you can insert any blocked images in
@@ -9718,7 +9712,7 @@ signature after all.
 
 @table @kbd
 @item A t
-@kindex A t (Summary)
+@kindex A t @r{(Summary)}
 @findex gnus-article-babel
 Translate the article from one language to another
 (@code{gnus-article-babel}).
@@ -9738,43 +9732,43 @@ instance, @kbd{3 K v} means ``view the third @acronym{MIME} part''.
 @table @kbd
 @item b
 @itemx K v
-@kindex b (Summary)
-@kindex K v (Summary)
+@kindex b @r{(Summary)}
+@kindex K v @r{(Summary)}
 View the @acronym{MIME} part.
 
 @item K o
-@kindex K o (Summary)
+@kindex K o @r{(Summary)}
 Save the @acronym{MIME} part.
 
 @item K O
-@kindex K O (Summary)
+@kindex K O @r{(Summary)}
 Prompt for a file name, then save the @acronym{MIME} part and strip it
 from the article.  The stripped @acronym{MIME} object will be referred
 via the message/external-body @acronym{MIME} type.
 
 @item K r
-@kindex K r (Summary)
+@kindex K r @r{(Summary)}
 Replace the @acronym{MIME} part with an external body.
 
 @item K d
-@kindex K d (Summary)
+@kindex K d @r{(Summary)}
 Delete the @acronym{MIME} part and add some information about the
 removed part.
 
 @item K c
-@kindex K c (Summary)
+@kindex K c @r{(Summary)}
 Copy the @acronym{MIME} part.
 
 @item K e
-@kindex K e (Summary)
+@kindex K e @r{(Summary)}
 View the @acronym{MIME} part externally.
 
 @item K i
-@kindex K i (Summary)
+@kindex K i @r{(Summary)}
 View the @acronym{MIME} part internally.
 
 @item K |
-@kindex K | (Summary)
+@kindex K | @r{(Summary)}
 Pipe the @acronym{MIME} part to an external command.
 @end table
 
@@ -9783,7 +9777,7 @@ the same manner:
 
 @table @kbd
 @item K H
-@kindex K H (Summary)
+@kindex K H @r{(Summary)}
 @findex gnus-article-browse-html-article
 View @samp{text/html} parts of the current article with a WWW browser.
 Inline images embedded in a message using the @code{cid} scheme, as they
@@ -9805,13 +9799,13 @@ including images if any to the browser, and deletes them when exiting
 the group (if you want).
 
 @item K b
-@kindex K b (Summary)
+@kindex K b @r{(Summary)}
 Make all the @acronym{MIME} parts have buttons in front of them.  This is
 mostly useful if you wish to save (or perform other actions) on inlined
 parts.
 
 @item W M h
-@kindex W M h (Summary)
+@kindex W M h @r{(Summary)}
 @findex gnus-mime-buttonize-attachments-in-header
 @vindex gnus-mime-display-attachment-buttons-in-header
 Display @acronym{MIME} part buttons in the end of the header of an
@@ -9824,7 +9818,7 @@ The default is @code{t}.  To change the appearance of buttons, customize
 @code{gnus-header-face-alist}.
 
 @item K m
-@kindex K m (Summary)
+@kindex K m @r{(Summary)}
 @findex gnus-summary-repair-multipart
 Some multipart messages are transmitted with missing or faulty headers.
 This command will attempt to ``repair'' these messages so that they can
@@ -9832,26 +9826,26 @@ be viewed in a more pleasant manner
 (@code{gnus-summary-repair-multipart}).
 
 @item X m
-@kindex X m (Summary)
+@kindex X m @r{(Summary)}
 @findex gnus-summary-save-parts
 Save all parts matching a @acronym{MIME} type to a directory
 (@code{gnus-summary-save-parts}).  Understands the process/prefix
 convention (@pxref{Process/Prefix}).
 
 @item M-t
-@kindex M-t (Summary)
+@kindex M-t @r{(Summary)}
 @findex gnus-summary-toggle-display-buttonized
 Toggle the buttonized display of the article buffer
 (@code{gnus-summary-toggle-display-buttonized}).
 
 @item W M w
-@kindex W M w (Summary)
+@kindex W M w @r{(Summary)}
 @findex gnus-article-decode-mime-words
 Decode RFC 2047-encoded words in the article headers
 (@code{gnus-article-decode-mime-words}).
 
 @item W M c
-@kindex W M c (Summary)
+@kindex W M c @r{(Summary)}
 @findex gnus-article-decode-charset
 Decode encoded article bodies as well as charsets
 (@code{gnus-article-decode-charset}).
@@ -9864,7 +9858,7 @@ include @acronym{MIME} headers), you can set the @code{charset} group/topic
 parameter to the required charset (@pxref{Group Parameters}).
 
 @item W M v
-@kindex W M v (Summary)
+@kindex W M v @r{(Summary)}
 @findex gnus-mime-view-all-parts
 View all the @acronym{MIME} parts in the current article
 (@code{gnus-mime-view-all-parts}).
@@ -10123,7 +10117,7 @@ something like
 @item A P
 @cindex PostScript
 @cindex printing
-@kindex A P (Summary)
+@kindex A P @r{(Summary)}
 @vindex gnus-ps-print-hook
 @findex gnus-summary-print-article
 Generate and print a PostScript image of the article buffer
@@ -10154,68 +10148,68 @@ can't really see why you'd want that.
 @table @kbd
 
 @item C-c C-s C-n
-@kindex C-c C-s C-n (Summary)
+@kindex C-c C-s C-n @r{(Summary)}
 @findex gnus-summary-sort-by-number
 Sort by article number (@code{gnus-summary-sort-by-number}).
 
 @item C-c C-s C-m C-n
-@kindex C-c C-s C-n (Summary)
+@kindex C-c C-s C-n @r{(Summary)}
 @findex gnus-summary-sort-by-most-recent-number
 Sort by most recent article number
 (@code{gnus-summary-sort-by-most-recent-number}).
 
 @item C-c C-s C-a
-@kindex C-c C-s C-a (Summary)
+@kindex C-c C-s C-a @r{(Summary)}
 @findex gnus-summary-sort-by-author
 Sort by author (@code{gnus-summary-sort-by-author}).
 
 @item C-c C-s C-t
-@kindex C-c C-s C-t (Summary)
+@kindex C-c C-s C-t @r{(Summary)}
 @findex gnus-summary-sort-by-recipient
 Sort by recipient (@code{gnus-summary-sort-by-recipient}).
 
 @item C-c C-s C-s
-@kindex C-c C-s C-s (Summary)
+@kindex C-c C-s C-s @r{(Summary)}
 @findex gnus-summary-sort-by-subject
 Sort by subject (@code{gnus-summary-sort-by-subject}).
 
 @item C-c C-s C-d
-@kindex C-c C-s C-d (Summary)
+@kindex C-c C-s C-d @r{(Summary)}
 @findex gnus-summary-sort-by-date
 Sort by date (@code{gnus-summary-sort-by-date}).
 
 @item C-c C-s C-m C-d
-@kindex C-c C-s C-m C-d (Summary)
+@kindex C-c C-s C-m C-d @r{(Summary)}
 @findex gnus-summary-sort-by-most-recent-date
 Sort by most recent date (@code{gnus-summary-sort-by-most-recent-date}).
 
 @item C-c C-s C-l
-@kindex C-c C-s C-l (Summary)
+@kindex C-c C-s C-l @r{(Summary)}
 @findex gnus-summary-sort-by-lines
 Sort by lines (@code{gnus-summary-sort-by-lines}).
 
 @item C-c C-s C-c
-@kindex C-c C-s C-c (Summary)
+@kindex C-c C-s C-c @r{(Summary)}
 @findex gnus-summary-sort-by-chars
 Sort by article length (@code{gnus-summary-sort-by-chars}).
 
 @item C-c C-s C-m C-m
-@kindex C-c C-s C-m C-m (Summary)
+@kindex C-c C-s C-m C-m @r{(Summary)}
 @findex gnus-summary-sort-by-marks
 Sort by article ``readedness'' marks (@code{gnus-summary-sort-by-marks}).
 
 @item C-c C-s C-i
-@kindex C-c C-s C-i (Summary)
+@kindex C-c C-s C-i @r{(Summary)}
 @findex gnus-summary-sort-by-score
 Sort by score (@code{gnus-summary-sort-by-score}).
 
 @item C-c C-s C-r
-@kindex C-c C-s C-r (Summary)
+@kindex C-c C-s C-r @r{(Summary)}
 @findex gnus-summary-sort-by-random
 Randomize (@code{gnus-summary-sort-by-random}).
 
 @item C-c C-s C-o
-@kindex C-c C-s C-o (Summary)
+@kindex C-c C-s C-o @r{(Summary)}
 @findex gnus-summary-sort-by-original
 Sort using the default sorting method
 (@code{gnus-summary-sort-by-original}).
@@ -10238,7 +10232,7 @@ If a prefix argument if given, the sort order is reversed.
 
 @table @kbd
 @item ^
-@kindex ^ (Summary)
+@kindex ^ @r{(Summary)}
 @findex gnus-summary-refer-parent-article
 If you'd like to read the parent of the current article, and it is not
 displayed in the summary buffer, you might still be able to.  That is,
@@ -10258,13 +10252,13 @@ article.
 
 @item A R (Summary)
 @findex gnus-summary-refer-references
-@kindex A R (Summary)
+@kindex A R @r{(Summary)}
 Fetch all articles mentioned in the @code{References} header of the
 article (@code{gnus-summary-refer-references}).
 
 @item A T (Summary)
 @findex gnus-summary-refer-thread
-@kindex A T (Summary)
+@kindex A T @r{(Summary)}
 Display the full thread where the current article appears
 (@code{gnus-summary-refer-thread}).  This command has to fetch all the
 headers in the current group to work, so it usually takes a while.  If
@@ -10282,7 +10276,7 @@ by giving the @kbd{A T} command a numerical prefix.
 
 @item M-^ (Summary)
 @findex gnus-summary-refer-article
-@kindex M-^ (Summary)
+@kindex M-^ @r{(Summary)}
 @cindex Message-ID
 @cindex fetching by Message-ID
 You can also ask Gnus for an arbitrary article, no matter what group it
@@ -10352,7 +10346,6 @@ buffer the articles she wants to read.  Then she starts reading the
 articles with just an article buffer displayed.
 
 @findex gnus-pick-mode
-@kindex M-x gnus-pick-mode
 Gnus provides a summary buffer minor mode that allows
 this---@code{gnus-pick-mode}.  This basically means that a few process
 mark commands become one-keystroke commands to allow easy marking, and
@@ -10362,7 +10355,7 @@ Here are the available keystrokes when using pick mode:
 
 @table @kbd
 @item .
-@kindex . (Pick)
+@kindex . @r{(Pick)}
 @findex gnus-pick-article-or-thread
 Pick the article or thread on the current line
 (@code{gnus-pick-article-or-thread}).  If the variable
@@ -10372,14 +10365,14 @@ it selects just the article.  If given a numerical prefix, go to that
 thread or article and pick it.  (The line number is normally displayed
 at the beginning of the summary pick lines.)
 
-@item SPACE
-@kindex SPACE (Pick)
+@item @key{SPC}
+@kindex SPC @r{(Pick)}
 @findex gnus-pick-next-page
 Scroll the summary buffer up one page (@code{gnus-pick-next-page}).  If
 at the end of the buffer, start reading the picked articles.
 
 @item u
-@kindex u (Pick)
+@kindex u @r{(Pick)}
 @findex gnus-pick-unmark-article-or-thread.
 Unpick the thread or article
 (@code{gnus-pick-unmark-article-or-thread}).  If the variable
@@ -10388,8 +10381,8 @@ thread if used at the first article of the thread.  Otherwise it unpicks
 just the article.  You can give this key a numerical prefix to unpick
 the thread or article at that line.
 
-@item RET
-@kindex RET (Pick)
+@item @key{RET}
+@kindex RET @r{(Pick)}
 @findex gnus-pick-start-reading
 @vindex gnus-pick-display-summary
 Start reading the picked articles (@code{gnus-pick-start-reading}).  If
@@ -10431,14 +10424,13 @@ Variables}).  It accepts the same format specs that
 @cindex binary groups
 
 @findex gnus-binary-mode
-@kindex M-x gnus-binary-mode
 If you spend much time in binary groups, you may grow tired of hitting
-@kbd{X u}, @kbd{n}, @kbd{RET} all the time.  @kbd{M-x gnus-binary-mode}
+@kbd{X u}, @kbd{n}, @kbd{@key{RET}} all the time.  @kbd{M-x gnus-binary-mode}
 is a minor mode for summary buffers that makes all ordinary Gnus article
 selection functions uudecode series of articles and display the result
 instead of just displaying the articles the normal way.
 
-@kindex g (Binary)
+@kindex g @r{(Binary)}
 @findex gnus-binary-show-article
 The only way, in fact, to see the actual articles is the @kbd{g}
 command, when you have turned on this mode
@@ -10614,7 +10606,7 @@ process/prefix convention (@pxref{Process/Prefix}).
 @table @kbd
 
 @item B e
-@kindex B e (Summary)
+@kindex B e @r{(Summary)}
 @findex gnus-summary-expire-articles
 @cindex expiring mail
 Run all expirable articles in the current group through the expiry
@@ -10623,7 +10615,7 @@ expirable articles in the group that have been around for a while.
 (@pxref{Expiring Mail}).
 
 @item B C-M-e
-@kindex B C-M-e (Summary)
+@kindex B C-M-e @r{(Summary)}
 @findex gnus-summary-expire-articles-now
 @cindex expiring mail
 Delete all the expirable articles in the group
@@ -10631,8 +10623,8 @@ Delete all the expirable articles in the group
 articles eligible for expiry in the current group will
 disappear forever into that big @file{/dev/null} in the sky.
 
-@item B DEL
-@kindex B DEL (Summary)
+@item B @key{DEL}
+@kindex B DEL @r{(Summary)}
 @cindex deleting mail
 @findex gnus-summary-delete-article
 @c @icon{gnus-summary-mail-delete}
@@ -10641,7 +10633,7 @@ disk forever and ever, never to return again.'' Use with caution.
 (@code{gnus-summary-delete-article}).
 
 @item B m
-@kindex B m (Summary)
+@kindex B m @r{(Summary)}
 @cindex move mail
 @findex gnus-summary-move-article
 @vindex gnus-preserve-marks
@@ -10650,7 +10642,7 @@ Move the article from one mail group to another
 @code{gnus-preserve-marks} is non-@code{nil} (which is the default).
 
 @item B c
-@kindex B c (Summary)
+@kindex B c @r{(Summary)}
 @cindex copy mail
 @findex gnus-summary-copy-article
 @c @icon{gnus-summary-mail-copy}
@@ -10659,7 +10651,7 @@ Copy the article from one group (mail group or not) to a mail group
 @code{gnus-preserve-marks} is non-@code{nil} (which is the default).
 
 @item B B
-@kindex B B (Summary)
+@kindex B B @r{(Summary)}
 @cindex crosspost mail
 @findex gnus-summary-crosspost-article
 Crosspost the current article to some other group
@@ -10668,21 +10660,21 @@ the article in the other group, and the Xref headers of the article will
 be properly updated.
 
 @item B i
-@kindex B i (Summary)
+@kindex B i @r{(Summary)}
 @findex gnus-summary-import-article
 Import an arbitrary file into the current mail newsgroup
 (@code{gnus-summary-import-article}).  You will be prompted for a file
 name, a @code{From} header and a @code{Subject} header.
 
 @item B I
-@kindex B I (Summary)
+@kindex B I @r{(Summary)}
 @findex gnus-summary-create-article
 Create an empty article in the current mail newsgroups
 (@code{gnus-summary-create-article}).  You will be prompted for a
 @code{From} header and a @code{Subject} header.
 
 @item B r
-@kindex B r (Summary)
+@kindex B r @r{(Summary)}
 @findex gnus-summary-respool-article
 @vindex gnus-summary-respool-default-method
 Respool the mail article (@code{gnus-summary-respool-article}).
@@ -10694,10 +10686,10 @@ Marks will be preserved if @code{gnus-preserve-marks} is non-@code{nil}
 
 @item B w
 @itemx e
-@kindex B w (Summary)
-@kindex e (Summary)
+@kindex B w @r{(Summary)}
+@kindex e @r{(Summary)}
 @findex gnus-summary-edit-article
-@kindex C-c C-c (Article)
+@kindex C-c C-c @r{(Article)}
 @findex gnus-summary-edit-article-done
 Edit the current article (@code{gnus-summary-edit-article}).  To finish
 editing and make the changes permanent, type @kbd{C-c C-c}
@@ -10705,20 +10697,20 @@ editing and make the changes permanent, type @kbd{C-c C-c}
 @kbd{C-c C-c} command, Gnus won't re-highlight the article.
 
 @item B q
-@kindex B q (Summary)
+@kindex B q @r{(Summary)}
 @findex gnus-summary-respool-query
 If you want to re-spool an article, you might be curious as to what group
 the article will end up in before you do the re-spooling.  This command
 will tell you (@code{gnus-summary-respool-query}).
 
 @item B t
-@kindex B t (Summary)
+@kindex B t @r{(Summary)}
 @findex gnus-summary-respool-trace
 Similarly, this command will display all fancy splitting patterns used
 when respooling, if any (@code{gnus-summary-respool-trace}).
 
 @item B p
-@kindex B p (Summary)
+@kindex B p @r{(Summary)}
 @findex gnus-summary-article-posted-p
 Some people have a tendency to send you ``courtesy'' copies when they
 follow up to articles you have posted.  These usually have a
@@ -10732,7 +10724,7 @@ propagation is much faster than news propagation, and the news copy may
 just not have arrived yet.
 
 @item K E
-@kindex K E (Summary)
+@kindex K E @r{(Summary)}
 @findex gnus-article-encrypt-body
 @vindex gnus-article-encrypt-protocol
 Encrypt the body of an article (@code{gnus-article-encrypt-body}).
@@ -10867,20 +10859,20 @@ Also @pxref{Group Parameters}.
 @table @kbd
 
 @item H d
-@kindex H d (Summary)
+@kindex H d @r{(Summary)}
 @findex gnus-summary-describe-group
 Give a brief description of the current group
 (@code{gnus-summary-describe-group}).  If given a prefix, force
 rereading the description from the server.
 
 @item H h
-@kindex H h (Summary)
+@kindex H h @r{(Summary)}
 @findex gnus-summary-describe-briefly
 Give an extremely brief description of the most important summary
 keystrokes (@code{gnus-summary-describe-briefly}).
 
 @item H i
-@kindex H i (Summary)
+@kindex H i @r{(Summary)}
 @findex gnus-info-find-node
 Go to the Gnus info node (@code{gnus-info-find-node}).
 @end table
@@ -10892,31 +10884,31 @@ Go to the Gnus info node (@code{gnus-info-find-node}).
 @table @kbd
 
 @item M-s
-@kindex M-s (Summary)
+@kindex M-s @r{(Summary)}
 @findex gnus-summary-search-article-forward
 Search through all subsequent (raw) articles for a regexp
 (@code{gnus-summary-search-article-forward}).
 
 @item M-r
-@kindex M-r (Summary)
+@kindex M-r @r{(Summary)}
 @findex gnus-summary-search-article-backward
 Search through all previous (raw) articles for a regexp
 (@code{gnus-summary-search-article-backward}).
 
 @item M-S
-@kindex M-S (Summary)
+@kindex M-S @r{(Summary)}
 @findex gnus-summary-repeat-search-article-forward
 Repeat the previous search forwards
 (@code{gnus-summary-repeat-search-article-forward}).
 
 @item M-R
-@kindex M-R (Summary)
+@kindex M-R @r{(Summary)}
 @findex gnus-summary-repeat-search-article-backward
 Repeat the previous search backwards
 (@code{gnus-summary-repeat-search-article-backward}).
 
 @item &
-@kindex & (Summary)
+@kindex & @r{(Summary)}
 @findex gnus-summary-execute-command
 This command will prompt you for a header, a regular expression to match
 on this field, and a command to be executed if the match is made
@@ -10924,11 +10916,12 @@ on this field, and a command to be executed if the match is made
 string, the match is done on the entire article.  If given a prefix,
 search backward instead.
 
-For instance, @kbd{& RET some.*string RET #} will put the process mark on
-all articles that have heads or bodies that match @samp{some.*string}.
+For instance, @kbd{& @key{RET} some.*string @key{RET} #} will put the
+process mark on all articles that have heads or bodies that match
+@samp{some.*string}.
 
 @item M-&
-@kindex M-& (Summary)
+@kindex M-& @r{(Summary)}
 @findex gnus-summary-universal-argument
 Perform any operation on all articles that have been marked with
 the process mark (@code{gnus-summary-universal-argument}).
@@ -10940,24 +10933,24 @@ the process mark (@code{gnus-summary-universal-argument}).
 @table @kbd
 
 @item Y g
-@kindex Y g (Summary)
+@kindex Y g @r{(Summary)}
 @findex gnus-summary-prepare
 Regenerate the current summary buffer (@code{gnus-summary-prepare}).
 
 @item Y c
-@kindex Y c (Summary)
+@kindex Y c @r{(Summary)}
 @findex gnus-summary-insert-cached-articles
 Pull all cached articles (for the current group) into the summary buffer
 (@code{gnus-summary-insert-cached-articles}).
 
 @item Y d
-@kindex Y d (Summary)
+@kindex Y d @r{(Summary)}
 @findex gnus-summary-insert-dormant-articles
 Pull all dormant articles (for the current group) into the summary buffer
 (@code{gnus-summary-insert-dormant-articles}).
 
 @item Y t
-@kindex Y t (Summary)
+@kindex Y t @r{(Summary)}
 @findex gnus-summary-insert-ticked-articles
 Pull all ticked articles (for the current group) into the summary buffer
 (@code{gnus-summary-insert-ticked-articles}).
@@ -10972,8 +10965,8 @@ Pull all ticked articles (for the current group) into the summary buffer
 
 @item A D
 @itemx C-d
-@kindex C-d (Summary)
-@kindex A D (Summary)
+@kindex C-d @r{(Summary)}
+@kindex A D @r{(Summary)}
 @findex gnus-summary-enter-digest-group
 If the current article is a collection of other articles (for instance,
 a digest), you might use this command to enter a group based on that
@@ -11007,7 +11000,7 @@ If it has any other value or there is no next (unread) article, the
 article selected before entering to the digest group will appear.
 
 @item C-M-d
-@kindex C-M-d (Summary)
+@kindex C-M-d @r{(Summary)}
 @findex gnus-summary-read-document
 This command is very similar to the one above, but lets you gather
 several documents into one biiig group
@@ -11018,7 +11011,7 @@ command understands the process/prefix convention
 (@pxref{Process/Prefix}).
 
 @item C-t
-@kindex C-t (Summary)
+@kindex C-t @r{(Summary)}
 @findex gnus-summary-toggle-truncation
 Toggle truncation of summary lines
 (@code{gnus-summary-toggle-truncation}).  This will probably confuse the
@@ -11026,19 +11019,19 @@ line centering function in the summary buffer, so it's not a good idea
 to have truncation switched off while reading articles.
 
 @item =
-@kindex = (Summary)
+@kindex = @r{(Summary)}
 @findex gnus-summary-expand-window
 Expand the summary buffer window (@code{gnus-summary-expand-window}).
 If given a prefix, force an @code{article} window configuration.
 
 @item C-M-e
-@kindex C-M-e (Summary)
+@kindex C-M-e @r{(Summary)}
 @findex gnus-summary-edit-parameters
 Edit the group parameters (@pxref{Group Parameters}) of the current
 group (@code{gnus-summary-edit-parameters}).
 
 @item C-M-a
-@kindex C-M-a (Summary)
+@kindex C-M-a @r{(Summary)}
 @findex gnus-summary-customize-parameters
 Customize the group parameters (@pxref{Group Parameters}) of the current
 group (@code{gnus-summary-customize-parameters}).
@@ -11059,9 +11052,9 @@ group and return you to the group buffer.
 @item Z Z
 @itemx Z Q
 @itemx q
-@kindex Z Z (Summary)
-@kindex Z Q (Summary)
-@kindex q (Summary)
+@kindex Z Z @r{(Summary)}
+@kindex Z Q @r{(Summary)}
+@kindex q @r{(Summary)}
 @findex gnus-summary-exit
 @vindex gnus-summary-exit-hook
 @vindex gnus-summary-prepare-exit-hook
@@ -11077,43 +11070,43 @@ group mode having no more (unread) groups.
 
 @item Z E
 @itemx Q
-@kindex Z E (Summary)
-@kindex Q (Summary)
+@kindex Z E @r{(Summary)}
+@kindex Q @r{(Summary)}
 @findex gnus-summary-exit-no-update
 Exit the current group without updating any information on the group
 (@code{gnus-summary-exit-no-update}).
 
 @item Z c
 @itemx c
-@kindex Z c (Summary)
-@kindex c (Summary)
+@kindex Z c @r{(Summary)}
+@kindex c @r{(Summary)}
 @findex gnus-summary-catchup-and-exit
 @c @icon{gnus-summary-catchup-and-exit}
 Mark all unticked articles in the group as read and then exit
 (@code{gnus-summary-catchup-and-exit}).
 
 @item Z C
-@kindex Z C (Summary)
+@kindex Z C @r{(Summary)}
 @findex gnus-summary-catchup-all-and-exit
 Mark all articles, even the ticked ones, as read and then exit
 (@code{gnus-summary-catchup-all-and-exit}).
 
 @item Z n
-@kindex Z n (Summary)
+@kindex Z n @r{(Summary)}
 @findex gnus-summary-catchup-and-goto-next-group
 Mark all articles as read and go to the next group
 (@code{gnus-summary-catchup-and-goto-next-group}).
 
 @item Z p
-@kindex Z p (Summary)
+@kindex Z p @r{(Summary)}
 @findex gnus-summary-catchup-and-goto-prev-group
 Mark all articles as read and go to the previous group
 (@code{gnus-summary-catchup-and-goto-prev-group}).
 
 @item Z R
 @itemx C-x C-s
-@kindex Z R (Summary)
-@kindex C-x C-s (Summary)
+@kindex Z R @r{(Summary)}
+@kindex C-x C-s @r{(Summary)}
 @findex gnus-summary-reselect-current-group
 Exit this group, and then enter it again
 (@code{gnus-summary-reselect-current-group}).  If given a prefix, select
@@ -11121,8 +11114,8 @@ all articles, both read and unread.
 
 @item Z G
 @itemx M-g
-@kindex Z G (Summary)
-@kindex M-g (Summary)
+@kindex Z G @r{(Summary)}
+@kindex M-g @r{(Summary)}
 @findex gnus-summary-rescan-group
 @c @icon{gnus-summary-mail-get}
 Exit the group, check for new articles in the group, and select the
@@ -11130,19 +11123,19 @@ group (@code{gnus-summary-rescan-group}).  If given a prefix, select all
 articles, both read and unread.
 
 @item Z N
-@kindex Z N (Summary)
+@kindex Z N @r{(Summary)}
 @findex gnus-summary-next-group
 Exit the group and go to the next group
 (@code{gnus-summary-next-group}).
 
 @item Z P
-@kindex Z P (Summary)
+@kindex Z P @r{(Summary)}
 @findex gnus-summary-prev-group
 Exit the group and go to the previous group
 (@code{gnus-summary-prev-group}).
 
 @item Z s
-@kindex Z s (Summary)
+@kindex Z s @r{(Summary)}
 @findex gnus-summary-save-newsrc
 Save the current number of read/marked articles in the dribble buffer
 and then save the dribble buffer (@code{gnus-summary-save-newsrc}).  If
@@ -11413,7 +11406,7 @@ encrypted messages up can be found in the message manual
 @cindex mailing list
 @cindex RFC 2396
 
-@kindex A M (summary)
+@kindex A M @r{(Summary)}
 @findex gnus-mailing-list-insinuate
 Gnus understands some mailing list fields of RFC 2369.  To enable it,
 add a @code{to-list} group parameter (@pxref{Group Parameters}),
@@ -11425,33 +11418,33 @@ That enables the following commands to the summary buffer:
 @table @kbd
 
 @item C-c C-n h
-@kindex C-c C-n h (Summary)
+@kindex C-c C-n h @r{(Summary)}
 @findex gnus-mailing-list-help
 Send a message to fetch mailing list help, if List-Help field exists.
 
 @item C-c C-n s
-@kindex C-c C-n s (Summary)
+@kindex C-c C-n s @r{(Summary)}
 @findex gnus-mailing-list-subscribe
 Send a message to subscribe the mailing list, if List-Subscribe field exists.
 
 @item C-c C-n u
-@kindex C-c C-n u (Summary)
+@kindex C-c C-n u @r{(Summary)}
 @findex gnus-mailing-list-unsubscribe
 Send a message to unsubscribe the mailing list, if List-Unsubscribe
 field exists.
 
 @item C-c C-n p
-@kindex C-c C-n p (Summary)
+@kindex C-c C-n p @r{(Summary)}
 @findex gnus-mailing-list-post
 Post to the mailing list, if List-Post field exists.
 
 @item C-c C-n o
-@kindex C-c C-n o (Summary)
+@kindex C-c C-n o @r{(Summary)}
 @findex gnus-mailing-list-owner
 Send a message to the mailing list owner, if List-Owner field exists.
 
 @item C-c C-n a
-@kindex C-c C-n a (Summary)
+@kindex C-c C-n a @r{(Summary)}
 @findex gnus-mailing-list-archive
 Browse the mailing list archive, if List-Archive field exists.
 
@@ -11629,9 +11622,9 @@ The following commands are available when you have placed point over a
 
 @table @kbd
 @findex gnus-article-press-button
-@item RET (Article)
-@kindex RET (Article)
-@itemx BUTTON-2 (Article)
+@item @key{RET} (Article)
+@kindex RET @r{(Article)}
+@itemx @key{BUTTON-2} (Article)
 Toggle displaying of the @acronym{MIME} object
 (@code{gnus-article-press-button}).  If built-in viewers can not display
 the object, Gnus resorts to external viewers in the @file{mailcap}
@@ -11639,33 +11632,33 @@ files.  If a viewer has the @samp{copiousoutput} specification, the
 object is displayed inline.
 
 @findex gnus-mime-view-part
-@item M-RET (Article)
-@kindex M-RET (Article)
+@item M-@key{RET} (Article)
+@kindex M-RET @r{(Article)}
 @itemx v (Article)
 Prompt for a method, and then view the @acronym{MIME} object using this
 method (@code{gnus-mime-view-part}).
 
 @findex gnus-mime-view-part-as-type
 @item t (Article)
-@kindex t (Article)
+@kindex t @r{(Article)}
 View the @acronym{MIME} object as if it were a different @acronym{MIME} media type
 (@code{gnus-mime-view-part-as-type}).
 
 @findex gnus-mime-view-part-as-charset
 @item C (Article)
-@kindex C (Article)
+@kindex C @r{(Article)}
 Prompt for a charset, and then view the @acronym{MIME} object using this
 charset (@code{gnus-mime-view-part-as-charset}).
 
 @findex gnus-mime-save-part
 @item o (Article)
-@kindex o (Article)
+@kindex o @r{(Article)}
 Prompt for a file name, and then save the @acronym{MIME} object
 (@code{gnus-mime-save-part}).
 
 @findex gnus-mime-save-part-and-strip
 @item C-o (Article)
-@kindex C-o (Article)
+@kindex C-o @r{(Article)}
 Prompt for a file name, then save the @acronym{MIME} object and strip it from
 the article.  Then proceed to article editing, where a reasonable
 suggestion is being made on how the altered article should look
@@ -11675,14 +11668,14 @@ message/external-body @acronym{MIME} type.
 
 @findex gnus-mime-replace-part
 @item r (Article)
-@kindex r (Article)
+@kindex r @r{(Article)}
 Prompt for a file name, replace the @acronym{MIME} object with an
 external body referring to the file via the message/external-body
 @acronym{MIME} type.  (@code{gnus-mime-replace-part}).
 
 @findex gnus-mime-delete-part
 @item d (Article)
-@kindex d (Article)
+@kindex d @r{(Article)}
 Delete the @acronym{MIME} object from the article and replace it with some
 information about the removed @acronym{MIME} object
 (@code{gnus-mime-delete-part}).
@@ -11691,7 +11684,7 @@ information about the removed @acronym{MIME} object
 
 @findex gnus-mime-copy-part
 @item c (Article)
-@kindex c (Article)
+@kindex c @r{(Article)}
 Copy the @acronym{MIME} object to a fresh buffer and display this buffer
 (@code{gnus-mime-copy-part}).  If given a prefix, copy the raw contents
 without decoding.  If given a numerical prefix, you can do semi-manual
@@ -11703,14 +11696,14 @@ Accessing Compressed Files, emacs, The Emacs Editor}).
 
 @findex gnus-mime-print-part
 @item p (Article)
-@kindex p (Article)
+@kindex p @r{(Article)}
 Print the @acronym{MIME} object (@code{gnus-mime-print-part}).  This
 command respects the @samp{print=} specifications in the
 @file{.mailcap} file.
 
 @findex gnus-mime-inline-part
 @item i (Article)
-@kindex i (Article)
+@kindex i @r{(Article)}
 Insert the contents of the @acronym{MIME} object into the buffer
 (@code{gnus-mime-inline-part}) as @samp{text/plain}.  If given a prefix, insert
 the raw contents without decoding.  If given a numerical prefix, you can
@@ -11723,25 +11716,25 @@ Compressed Files, emacs, The Emacs Editor}).
 
 @findex gnus-mime-view-part-internally
 @item E (Article)
-@kindex E (Article)
+@kindex E @r{(Article)}
 View the @acronym{MIME} object with an internal viewer.  If no internal
 viewer is available, use an external viewer
 (@code{gnus-mime-view-part-internally}).
 
 @findex gnus-mime-view-part-externally
 @item e (Article)
-@kindex e (Article)
+@kindex e @r{(Article)}
 View the @acronym{MIME} object with an external viewer.
 (@code{gnus-mime-view-part-externally}).
 
 @findex gnus-mime-pipe-part
 @item | (Article)
-@kindex | (Article)
+@kindex | @r{(Article)}
 Output the @acronym{MIME} object to a process (@code{gnus-mime-pipe-part}).
 
 @findex gnus-mime-action-on-part
 @item . (Article)
-@kindex . (Article)
+@kindex . @r{(Article)}
 Interactively run an action on the @acronym{MIME} object
 (@code{gnus-mime-action-on-part}).
 
@@ -11925,7 +11918,7 @@ controlling variable is a predicate list, as described above.
 
 @ifinfo
 @c Avoid sort of redundant entries in the same section for the printed
-@c manual, but add them in info to allow 'i gnus-treat-foo-bar RET' or
+@c manual, but add them in info to allow 'i gnus-treat-foo-bar @key{RET}' or
 @c 'i foo-bar'.
 @vindex gnus-treat-buttonize
 @vindex gnus-treat-buttonize-head
@@ -12130,7 +12123,7 @@ buffer, which means that you don't actually have to have a summary
 buffer displayed while reading.  You can do it all from the article
 buffer.
 
-@kindex v (Article)
+@kindex v @r{(Article)}
 @cindex keys, reserved for users (Article)
 The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.
@@ -12139,70 +12132,70 @@ A few additional keystrokes are available:
 
 @table @kbd
 
-@item SPACE
-@kindex SPACE (Article)
+@item @key{SPC}
+@kindex SPC @r{(Article)}
 @findex gnus-article-next-page
 Scroll forwards one page (@code{gnus-article-next-page}).
-This is exactly the same as @kbd{h SPACE h}.
+This is exactly the same as @kbd{h @key{SPC} h}.
 
-@item DEL
-@kindex DEL (Article)
+@item @key{DEL}
+@kindex DEL @r{(Article)}
 @findex gnus-article-prev-page
 Scroll backwards one page (@code{gnus-article-prev-page}).
-This is exactly the same as @kbd{h DEL h}.
+This is exactly the same as @kbd{h @key{DEL} h}.
 
 @item C-c ^
-@kindex C-c ^ (Article)
+@kindex C-c ^ @r{(Article)}
 @findex gnus-article-refer-article
 If point is in the neighborhood of a @code{Message-ID} and you press
 @kbd{C-c ^}, Gnus will try to get that article from the server
 (@code{gnus-article-refer-article}).
 
 @item C-c C-m
-@kindex C-c C-m (Article)
+@kindex C-c C-m @r{(Article)}
 @findex gnus-article-mail
 Send a reply to the address near point (@code{gnus-article-mail}).  If
 given a prefix, include the mail.
 
 @item s
-@kindex s (Article)
+@kindex s @r{(Article)}
 @findex gnus-article-show-summary
 Reconfigure the buffers so that the summary buffer becomes visible
 (@code{gnus-article-show-summary}).
 
 @item ?
-@kindex ? (Article)
+@kindex ? @r{(Article)}
 @findex gnus-article-describe-briefly
 Give a very brief description of the available keystrokes
 (@code{gnus-article-describe-briefly}).
 
-@item TAB
-@kindex TAB (Article)
+@item @key{TAB}
+@kindex TAB @r{(Article)}
 @findex gnus-article-next-button
 Go to the next button, if any (@code{gnus-article-next-button}).  This
 only makes sense if you have buttonizing turned on.
 
-@item M-TAB
-@kindex M-TAB (Article)
+@item M-@key{TAB}
+@kindex M-TAB @r{(Article)}
 @findex gnus-article-prev-button
 Go to the previous button, if any (@code{gnus-article-prev-button}).
 
 @item R
-@kindex R (Article)
+@kindex R @r{(Article)}
 @findex gnus-article-reply-with-original
 Send a reply to the current article and yank the current article
 (@code{gnus-article-reply-with-original}).  If the region is active,
 only yank the text in the region.
 
 @item S W
-@kindex S W (Article)
+@kindex S W @r{(Article)}
 @findex gnus-article-wide-reply-with-original
 Send a wide reply to the current article and yank the current article
 (@code{gnus-article-wide-reply-with-original}).  If the region is
 active, only yank the text in the region.
 
 @item F
-@kindex F (Article)
+@kindex F @r{(Article)}
 @findex gnus-article-followup-with-original
 Send a followup to the current article and yank the current article
 (@code{gnus-article-followup-with-original}).  If the region is active,
@@ -12225,7 +12218,7 @@ If non-@code{nil}, use the same article buffer for all the groups.
 article buffer.
 
 @item gnus-widen-article-window
-@cindex gnus-widen-article-window
+@vindex gnus-widen-article-window
 If non-@code{nil}, selecting the article buffer with the @kbd{h}
 command will ``widen'' the article window to take the entire frame.
 
@@ -12348,7 +12341,7 @@ when @code{mm-text-html-renderer} (@pxref{Display Customization,
 @cindex using s/mime
 @cindex using smime
 
-@kindex C-c C-c (Post)
+@kindex C-c C-c @r{(Post)}
 All commands for posting and mailing will put you in a message buffer
 where you can edit the article all you like, before you send the
 article by pressing @kbd{C-c C-c}.  @xref{Top, , Overview, message,
@@ -12946,10 +12939,10 @@ correct parameters.  The content of the group is not lost.
 
 @c @findex gnus-dissociate-buffer-from-draft
 @c @kindex C-c M-d (Mail)
-@c @kindex C-c M-d (Post)
+@c @kindex C-c M-d @r{(Post)}
 @c @findex gnus-associate-buffer-with-draft
 @c @kindex C-c C-d (Mail)
-@c @kindex C-c C-d (Post)
+@c @kindex C-c C-d @r{(Post)}
 @c If you're writing some super-secret message that you later want to
 @c encode with PGP before sending, you may wish to turn the auto-saving
 @c (and association with the draft group) off.  You never know who might be
@@ -12964,7 +12957,7 @@ correct parameters.  The content of the group is not lost.
 @c @code{gnus-use-draft} to @code{nil}.  It is @code{t} by default.
 
 @findex gnus-draft-edit-message
-@kindex D e (Draft)
+@kindex D e @r{(Draft)}
 When you want to continue editing the article, you simply enter the
 draft group and push @kbd{D e} (@code{gnus-draft-edit-message}) to do
 that.  You will be placed in a buffer where you left off.
@@ -12973,9 +12966,9 @@ Rejected articles will also be put in this draft group (@pxref{Rejected
 Articles}).
 
 @findex gnus-draft-send-all-messages
-@kindex D s (Draft)
+@kindex D s @r{(Draft)}
 @findex gnus-draft-send-message
-@kindex D S (Draft)
+@kindex D S @r{(Draft)}
 If you have lots of rejected messages you want to post (or mail) without
 doing further editing, you can use the @kbd{D s} command
 (@code{gnus-draft-send-message}).  This command understands the
@@ -12984,12 +12977,12 @@ command (@code{gnus-draft-send-all-messages}) will ship off all messages
 in the buffer.
 
 @findex gnus-draft-toggle-sending
-@kindex D t (Draft)
+@kindex D t @r{(Draft)}
 If you have some messages that you wish not to send, you can use the
 @kbd{D t} (@code{gnus-draft-toggle-sending}) command to mark the message
 as unsendable.  This is a toggling command.
 
-Finally, if you want to delete a draft, use the normal @kbd{B DEL}
+Finally, if you want to delete a draft, use the normal @kbd{B @key{DEL}}
 command (@pxref{Mail Group Commands}).
 
 
@@ -13041,43 +13034,43 @@ signing and the @kbd{C-c C-m c} key map for encryption, as follows.
 @table @kbd
 
 @item C-c C-m s s
-@kindex C-c C-m s s (Message)
+@kindex C-c C-m s s @r{(Message)}
 @findex mml-secure-message-sign-smime
 
 Digitally sign current message using @acronym{S/MIME}.
 
 @item C-c C-m s o
-@kindex C-c C-m s o (Message)
+@kindex C-c C-m s o @r{(Message)}
 @findex mml-secure-message-sign-pgp
 
 Digitally sign current message using @acronym{PGP}.
 
 @item C-c C-m s p
-@kindex C-c C-m s p (Message)
+@kindex C-c C-m s p @r{(Message)}
 @findex mml-secure-message-sign-pgp
 
 Digitally sign current message using @acronym{PGP/MIME}.
 
 @item C-c C-m c s
-@kindex C-c C-m c s (Message)
+@kindex C-c C-m c s @r{(Message)}
 @findex mml-secure-message-encrypt-smime
 
 Digitally encrypt current message using @acronym{S/MIME}.
 
 @item C-c C-m c o
-@kindex C-c C-m c o (Message)
+@kindex C-c C-m c o @r{(Message)}
 @findex mml-secure-message-encrypt-pgp
 
 Digitally encrypt current message using @acronym{PGP}.
 
 @item C-c C-m c p
-@kindex C-c C-m c p (Message)
+@kindex C-c C-m c p @r{(Message)}
 @findex mml-secure-message-encrypt-pgpmime
 
 Digitally encrypt current message using @acronym{PGP/MIME}.
 
 @item C-c C-m C-n
-@kindex C-c C-m C-n (Message)
+@kindex C-c C-m C-n @r{(Message)}
 @findex mml-unsecure-message
 Remove security related @acronym{MML} tags from message.
 
@@ -13224,72 +13217,72 @@ in your init files.
 @table @kbd
 
 @item v
-@kindex v (Server)
+@kindex v @r{(Server)}
 @cindex keys, reserved for users (Server)
 The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.
 
 @item a
-@kindex a (Server)
+@kindex a @r{(Server)}
 @findex gnus-server-add-server
 Add a new server (@code{gnus-server-add-server}).
 
 @item e
-@kindex e (Server)
+@kindex e @r{(Server)}
 @findex gnus-server-edit-server
 Edit a server (@code{gnus-server-edit-server}).
 
 @item S
-@kindex S (Server)
+@kindex S @r{(Server)}
 @findex gnus-server-show-server
 Show the definition of a server (@code{gnus-server-show-server}).
 
-@item SPACE
-@kindex SPACE (Server)
+@item @key{SPC}
+@kindex SPC @r{(Server)}
 @findex gnus-server-read-server
 Browse the current server (@code{gnus-server-read-server}).
 
 @item q
-@kindex q (Server)
+@kindex q @r{(Server)}
 @findex gnus-server-exit
 Return to the group buffer (@code{gnus-server-exit}).
 
 @item k
-@kindex k (Server)
+@kindex k @r{(Server)}
 @findex gnus-server-kill-server
 Kill the current server (@code{gnus-server-kill-server}).
 
 @item y
-@kindex y (Server)
+@kindex y @r{(Server)}
 @findex gnus-server-yank-server
 Yank the previously killed server (@code{gnus-server-yank-server}).
 
 @item c
-@kindex c (Server)
+@kindex c @r{(Server)}
 @findex gnus-server-copy-server
 Copy the current server (@code{gnus-server-copy-server}).
 
 @item l
-@kindex l (Server)
+@kindex l @r{(Server)}
 @findex gnus-server-list-servers
 List all servers (@code{gnus-server-list-servers}).
 
 @item s
-@kindex s (Server)
+@kindex s @r{(Server)}
 @findex gnus-server-scan-server
 Request that the server scan its sources for new articles
 (@code{gnus-server-scan-server}).  This is mainly sensible with mail
 servers.
 
 @item g
-@kindex g (Server)
+@kindex g @r{(Server)}
 @findex gnus-server-regenerate-server
 Request that the server regenerate all its data structures
 (@code{gnus-server-regenerate-server}).  This can be useful if you have
 a mail back end that has gotten out of sync.
 
 @item z
-@kindex z (Server)
+@kindex z @r{(Server)}
 @findex gnus-server-compact-server
 
 Compact all groups in the server under point
@@ -13421,7 +13414,7 @@ First you need to add a new server.  The @kbd{a} command does that.  It
 would probably be best to use @code{nnml} to read the cache.  You
 could also use @code{nnspool} or @code{nnmh}, though.
 
-Type @kbd{a nnml RET cache RET}.
+Type @kbd{a nnml @key{RET} cache @key{RET}}.
 
 You should now have a brand new @code{nnml} virtual server called
 @samp{cache}.  You now need to edit it to have the right definitions.
@@ -13441,7 +13434,7 @@ Change that to:
 @end lisp
 
 Type @kbd{C-c C-c} to return to the server buffer.  If you now press
-@kbd{RET} over this virtual server, you should be entered into a browse
+@kbd{@key{RET}} over this virtual server, you should be entered into a browse
 buffer, and you should be able to enter any of the groups displayed.
 
 
@@ -13512,44 +13505,44 @@ with the following commands:
 @table @kbd
 
 @item O
-@kindex O (Server)
+@kindex O @r{(Server)}
 @findex gnus-server-open-server
 Try to establish connection to the server on the current line
 (@code{gnus-server-open-server}).
 
 @item C
-@kindex C (Server)
+@kindex C @r{(Server)}
 @findex gnus-server-close-server
 Close the connection (if any) to the server
 (@code{gnus-server-close-server}).
 
 @item D
-@kindex D (Server)
+@kindex D @r{(Server)}
 @findex gnus-server-deny-server
 Mark the current server as unreachable
 (@code{gnus-server-deny-server}).  This will effectively disable the
 server.
 
 @item M-o
-@kindex M-o (Server)
+@kindex M-o @r{(Server)}
 @findex gnus-server-open-all-servers
 Open the connections to all servers in the buffer
 (@code{gnus-server-open-all-servers}).
 
 @item M-c
-@kindex M-c (Server)
+@kindex M-c @r{(Server)}
 @findex gnus-server-close-all-servers
 Close the connections to all servers in the buffer
 (@code{gnus-server-close-all-servers}).
 
 @item R
-@kindex R (Server)
+@kindex R @r{(Server)}
 @findex gnus-server-remove-denials
 Remove all marks to whether Gnus was denied connection from any servers
 (@code{gnus-server-remove-denials}).
 
 @item c
-@kindex c (Server)
+@kindex c @r{(Server)}
 @findex gnus-server-copy-server
 Copy a server and give it a new name
 (@code{gnus-server-copy-server}).  This can be useful if you have a
@@ -13557,7 +13550,7 @@ complex method definition, and want to use the same definition towards
 a different (physical) server.
 
 @item L
-@kindex L (Server)
+@kindex L @r{(Server)}
 @findex gnus-server-offline-server
 Set server status to offline (@code{gnus-server-offline-server}).
 
@@ -14565,7 +14558,7 @@ see @ref{Fancy Mail Splitting}.
 Note that the mail back ends are free to maul the poor, innocent,
 incoming headers all they want to.  They all add @code{Lines} headers;
 some add @code{X-Gnus-Group} headers; most rename the Unix mbox
-@code{From<SPACE>} line to something else.
+@code{From@key{SPC}} line to something else.
 
 @vindex nnmail-crosspost
 The mail back ends all support cross-posting.  If several regexps match,
@@ -14582,7 +14575,6 @@ links.  If that's the case for you, set
 @code{nnmail-crosspost-link-function} to @code{copy-file}.  (This
 variable is @code{add-name-to-file} by default.)
 
-@kindex M-x nnmail-split-history
 @findex nnmail-split-history
 If you wish to see where the previous mail split put the messages, you
 can use the @kbd{M-x nnmail-split-history} command.  If you wish to see
@@ -15721,7 +15713,7 @@ Type @kbd{G f} and give the file name to the mbox file when prompted to create a
 @code{nndoc} group from the mbox file (@pxref{Foreign Groups}).
 
 @item
-Type @kbd{SPACE} to enter the newly created group.
+Type @kbd{@key{SPC}} to enter the newly created group.
 
 @item
 Type @kbd{M P b} to process-mark all articles in this group's buffer
@@ -16036,7 +16028,7 @@ This can also be done non-destructively with
 
 @item nnmail-remove-tabs
 @findex nnmail-remove-tabs
-Translate all @samp{TAB} characters into @samp{SPACE} characters.
+Translate all @samp{@key{TAB}} characters into @samp{@key{SPC}} characters.
 
 @item nnmail-ignore-broken-references
 @findex nnmail-ignore-broken-references
@@ -16713,7 +16705,6 @@ The directory where the @acronym{NOV} files should be stored.  If
 
 
 @findex nnfolder-generate-active-file
-@kindex M-x nnfolder-generate-active-file
 If you have lots of @code{nnfolder}-like files you'd like to read with
 @code{nnfolder}, you can use the @kbd{M-x nnfolder-generate-active-file}
 command to make @code{nnfolder} aware of all likely files in
@@ -17062,14 +17053,14 @@ system because @acronym{RSS} uses UTF-8 for encoding non-@acronym{ASCII}
 text by default.  It is also used by default for non-@acronym{ASCII}
 group names.
 
-@kindex G R (Group)
+@kindex G R @r{(Group)}
 Use @kbd{G R} from the group buffer to subscribe to a feed---you will be
 prompted for the location, the title and the description of the feed.
 The title, which allows any characters, will be used for the group name
 and the name of the group data file.  The description can be omitted.
 
 An easy way to get started with @code{nnrss} is to say something like
-the following in the group buffer: @kbd{B nnrss RET RET y}, then
+the following in the group buffer: @kbd{B nnrss @key{RET} @key{RET} y}, then
 subscribe to groups.
 
 The @code{nnrss} back end saves the group data file in
@@ -18670,51 +18661,51 @@ The following commands are available in this buffer:
 
 @table @kbd
 @item q
-@kindex q (Category)
+@kindex q @r{(Category)}
 @findex gnus-category-exit
 Return to the group buffer (@code{gnus-category-exit}).
 
 @item e
-@kindex e (Category)
+@kindex e @r{(Category)}
 @findex gnus-category-customize-category
 Use a customization buffer to set all of the selected category's
 parameters at one time (@code{gnus-category-customize-category}).
 
 @item k
-@kindex k (Category)
+@kindex k @r{(Category)}
 @findex gnus-category-kill
 Kill the current category (@code{gnus-category-kill}).
 
 @item c
-@kindex c (Category)
+@kindex c @r{(Category)}
 @findex gnus-category-copy
 Copy the current category (@code{gnus-category-copy}).
 
 @item a
-@kindex a (Category)
+@kindex a @r{(Category)}
 @findex gnus-category-add
 Add a new category (@code{gnus-category-add}).
 
 @item p
-@kindex p (Category)
+@kindex p @r{(Category)}
 @findex gnus-category-edit-predicate
 Edit the predicate of the current category
 (@code{gnus-category-edit-predicate}).
 
 @item g
-@kindex g (Category)
+@kindex g @r{(Category)}
 @findex gnus-category-edit-groups
 Edit the list of groups belonging to the current category
 (@code{gnus-category-edit-groups}).
 
 @item s
-@kindex s (Category)
+@kindex s @r{(Category)}
 @findex gnus-category-edit-score
 Edit the download score rule of the current category
 (@code{gnus-category-edit-score}).
 
 @item l
-@kindex l (Category)
+@kindex l @r{(Category)}
 @findex gnus-category-list
 List all the categories (@code{gnus-category-list}).
 @end table
@@ -18788,7 +18779,7 @@ have to enable expiration in selected groups.
 @node Agent Commands
 @subsection Agent Commands
 @findex gnus-agent-toggle-plugged
-@kindex J j (Agent)
+@kindex J j @r{(Agent)}
 
 All the Gnus Agent commands are on the @kbd{J} submap.  The @kbd{J j}
 (@code{gnus-agent-toggle-plugged}) command works in all modes, and
@@ -18809,44 +18800,44 @@ toggles the plugged/unplugged state of the Gnus Agent.
 
 @table @kbd
 @item J u
-@kindex J u (Agent Group)
+@kindex J u @r{(Agent Group)}
 @findex gnus-agent-fetch-groups
 Fetch all eligible articles in the current group
 (@code{gnus-agent-fetch-groups}).
 
 @item J c
-@kindex J c (Agent Group)
+@kindex J c @r{(Agent Group)}
 @findex gnus-enter-category-buffer
 Enter the Agent category buffer (@code{gnus-enter-category-buffer}).
 
 @item J s
-@kindex J s (Agent Group)
+@kindex J s @r{(Agent Group)}
 @findex gnus-agent-fetch-session
 Fetch all eligible articles in all groups
 (@code{gnus-agent-fetch-session}).
 
 @item J S
-@kindex J S (Agent Group)
+@kindex J S @r{(Agent Group)}
 @findex gnus-group-send-queue
 Send all sendable messages in the queue group
 (@code{gnus-group-send-queue}).  @xref{Drafts}.
 
 @item J a
-@kindex J a (Agent Group)
+@kindex J a @r{(Agent Group)}
 @findex gnus-agent-add-group
 Add the current group to an Agent category
 (@code{gnus-agent-add-group}).  This command understands the
 process/prefix convention (@pxref{Process/Prefix}).
 
 @item J r
-@kindex J r (Agent Group)
+@kindex J r @r{(Agent Group)}
 @findex gnus-agent-remove-group
 Remove the current group from its category, if any
 (@code{gnus-agent-remove-group}).  This command understands the
 process/prefix convention (@pxref{Process/Prefix}).
 
 @item J Y
-@kindex J Y (Agent Group)
+@kindex J Y @r{(Agent Group)}
 @findex gnus-agent-synchronize-flags
 Synchronize flags changed while unplugged with remote server, if any.
 
@@ -18859,43 +18850,43 @@ Synchronize flags changed while unplugged with remote server, if any.
 
 @table @kbd
 @item J #
-@kindex J # (Agent Summary)
+@kindex J # @r{(Agent Summary)}
 @findex gnus-agent-mark-article
 Mark the article for downloading (@code{gnus-agent-mark-article}).
 
 @item J M-#
-@kindex J M-# (Agent Summary)
+@kindex J M-# @r{(Agent Summary)}
 @findex gnus-agent-unmark-article
 Remove the downloading mark from the article
 (@code{gnus-agent-unmark-article}).
 
 @cindex %
 @item @@
-@kindex @@ (Agent Summary)
+@kindex @@ @r{(Agent Summary)}
 @findex gnus-agent-toggle-mark
 Toggle whether to download the article
 (@code{gnus-agent-toggle-mark}).  The download mark is @samp{%} by
 default.
 
 @item J c
-@kindex J c (Agent Summary)
+@kindex J c @r{(Agent Summary)}
 @findex gnus-agent-catchup
 Mark all articles as read (@code{gnus-agent-catchup}) that are neither cached, downloaded, nor downloadable.
 
 @item J S
-@kindex J S (Agent Summary)
+@kindex J S @r{(Agent Summary)}
 @findex gnus-agent-fetch-group
 Download all eligible (@pxref{Agent Categories}) articles in this group.
 (@code{gnus-agent-fetch-group}).
 
 @item J s
-@kindex J s (Agent Summary)
+@kindex J s @r{(Agent Summary)}
 @findex gnus-agent-summary-fetch-series
 Download all processable articles in this group.
 (@code{gnus-agent-summary-fetch-series}).
 
 @item J u
-@kindex J u (Agent Summary)
+@kindex J u @r{(Agent Summary)}
 @findex gnus-agent-summary-fetch-group
 Download all downloadable articles in the current group
 (@code{gnus-agent-summary-fetch-group}).
@@ -18908,13 +18899,13 @@ Download all downloadable articles in the current group
 
 @table @kbd
 @item J a
-@kindex J a (Agent Server)
+@kindex J a @r{(Agent Server)}
 @findex gnus-agent-add-server
 Add the current server to the list of servers covered by the Gnus Agent
 (@code{gnus-agent-add-server}).
 
 @item J r
-@kindex J r (Agent Server)
+@kindex J r @r{(Agent Server)}
 @findex gnus-agent-remove-server
 Remove the current server from the list of servers covered by the Gnus
 Agent (@code{gnus-agent-remove-server}).
@@ -19015,8 +19006,6 @@ sense if you are using a nntp or nnimap back end.
 
 @vindex gnus-agent-expire-days
 @findex gnus-agent-expire
-@kindex M-x gnus-agent-expire
-@kindex M-x gnus-agent-expire-group
 @findex gnus-agent-expire-group
 @cindex agent expiry
 @cindex Gnus agent expiry
@@ -19070,14 +19059,12 @@ failure.  Running @code{gnus-agent-regenerate} or
 such that you don't need to download these articles a second time.
 
 @findex gnus-agent-regenerate
-@kindex M-x gnus-agent-regenerate
 The command @code{gnus-agent-regenerate} will perform
 @code{gnus-agent-regenerate-group} on every agentized group.  While
 you can run @code{gnus-agent-regenerate} in any buffer, it is strongly
 recommended that you first close all summary buffers.
 
 @findex gnus-agent-regenerate-group
-@kindex M-x gnus-agent-regenerate-group
 The command @code{gnus-agent-regenerate-group} uses the local copies
 of individual articles to repair the local @acronym{NOV}(header) database.  It
 then updates the internal data structures that document which articles
@@ -19463,18 +19450,18 @@ General score commands that don't actually change the score file:
 @table @kbd
 
 @item V s
-@kindex V s (Summary)
+@kindex V s @r{(Summary)}
 @findex gnus-summary-set-score
 Set the score of the current article (@code{gnus-summary-set-score}).
 
 @item V S
-@kindex V S (Summary)
+@kindex V S @r{(Summary)}
 @findex gnus-summary-current-score
 Display the score of the current article
 (@code{gnus-summary-current-score}).
 
 @item V t
-@kindex V t (Summary)
+@kindex V t @r{(Summary)}
 @findex gnus-score-find-trace
 Display all score rules that have been used on the current article
 (@code{gnus-score-find-trace}).  In the @file{*Score Trace*} buffer, you
@@ -19483,12 +19470,12 @@ current line and @kbd{f} to format (@code{gnus-score-pretty-print}) the
 score file and edit it.
 
 @item V w
-@kindex V w (Summary)
+@kindex V w @r{(Summary)}
 @findex gnus-score-find-favourite-words
 List words used in scoring (@code{gnus-score-find-favourite-words}).
 
 @item V R
-@kindex V R (Summary)
+@kindex V R @r{(Summary)}
 @findex gnus-summary-rescore
 Run the current summary through the scoring process
 (@code{gnus-summary-rescore}).  This might be useful if you're playing
@@ -19496,32 +19483,32 @@ around with your score files behind Gnus' back and want to see the
 effect you're having.
 
 @item V c
-@kindex V c (Summary)
+@kindex V c @r{(Summary)}
 @findex gnus-score-change-score-file
 Make a different score file the current
 (@code{gnus-score-change-score-file}).
 
 @item V e
-@kindex V e (Summary)
+@kindex V e @r{(Summary)}
 @findex gnus-score-edit-current-scores
 Edit the current score file (@code{gnus-score-edit-current-scores}).
 You will be popped into a @code{gnus-score-mode} buffer (@pxref{Score
 File Editing}).
 
 @item V f
-@kindex V f (Summary)
+@kindex V f @r{(Summary)}
 @findex gnus-score-edit-file
 Edit a score file and make this score file the current one
 (@code{gnus-score-edit-file}).
 
 @item V F
-@kindex V F (Summary)
+@kindex V F @r{(Summary)}
 @findex gnus-score-flush-cache
 Flush the score cache (@code{gnus-score-flush-cache}).  This is useful
 after editing score files.
 
 @item V C
-@kindex V C (Summary)
+@kindex V C @r{(Summary)}
 @findex gnus-score-customize
 Customize a score file in a visually pleasing manner
 (@code{gnus-score-customize}).
@@ -19533,13 +19520,13 @@ The rest of these commands modify the local score file.
 @table @kbd
 
 @item V m
-@kindex V m (Summary)
+@kindex V m @r{(Summary)}
 @findex gnus-score-set-mark-below
 Prompt for a score, and mark all articles with a score below this as
 read (@code{gnus-score-set-mark-below}).
 
 @item V x
-@kindex V x (Summary)
+@kindex V x @r{(Summary)}
 @findex gnus-score-set-expunge-below
 Prompt for a score, and add a score rule to the current score file to
 expunge all articles below this score
@@ -19674,7 +19661,7 @@ Immediately scoring.
 @item
 If you are scoring on @samp{e} (extra) headers, you will then be prompted for
 the header name on which you wish to score.  This must be a header named
-in gnus-extra-headers, and @samp{TAB} completion is available.
+in gnus-extra-headers, and @samp{@key{TAB}} completion is available.
 
 @end enumerate
 
@@ -19709,13 +19696,13 @@ There aren't many of these as yet, I'm afraid.
 @table @kbd
 
 @item W e
-@kindex W e (Group)
+@kindex W e @r{(Group)}
 @findex gnus-score-edit-all-score
 Edit the apply-to-all-groups all.SCORE file.  You will be popped into
 a @code{gnus-score-mode} buffer (@pxref{Score File Editing}).
 
 @item W f
-@kindex W f (Group)
+@kindex W f @r{(Group)}
 @findex gnus-score-flush-cache
 Gnus maintains a cache of score alists to avoid having to reload them
 all the time.  This command will flush the cache
@@ -20199,20 +20186,20 @@ additional commands:
 @table @kbd
 
 @item C-c C-c
-@kindex C-c C-c (Score)
+@kindex C-c C-c @r{(Score)}
 @findex gnus-score-edit-exit
 Save the changes you have made and return to the summary buffer
 (@code{gnus-score-edit-exit}).
 
 @item C-c C-d
-@kindex C-c C-d (Score)
+@kindex C-c C-d @r{(Score)}
 @findex gnus-score-edit-insert-date
 Insert the current date in numerical format
 (@code{gnus-score-edit-insert-date}).  This is really the day number, if
 you were wondering.
 
 @item C-c C-p
-@kindex C-c C-p (Score)
+@kindex C-c C-p @r{(Score)}
 @findex gnus-score-pretty-print
 The adaptive score files are saved in an unformatted fashion.  If you
 intend to read one of these files, you want to @dfn{pretty print} it
@@ -20578,7 +20565,7 @@ Restart Gnus and rebuild your @code{nnml} overview files with the
 time if you have much mail.
 
 Now you can score on @samp{To} and @samp{Cc} as ``extra headers'' like
-so: @kbd{I e s p To RET <your name> RET}.
+so: @kbd{I e s p To @key{RET} <your name> @key{RET}}.
 
 See?  Simple.
 
@@ -20765,12 +20752,12 @@ Two summary functions for editing a @sc{gnus} kill file:
 @table @kbd
 
 @item M-k
-@kindex M-k (Summary)
+@kindex M-k @r{(Summary)}
 @findex gnus-summary-edit-local-kill
 Edit this group's kill file (@code{gnus-summary-edit-local-kill}).
 
 @item M-K
-@kindex M-K (Summary)
+@kindex M-K @r{(Summary)}
 @findex gnus-summary-edit-global-kill
 Edit the general kill file (@code{gnus-summary-edit-global-kill}).
 @end table
@@ -20780,12 +20767,12 @@ Two group mode functions for editing the kill files:
 @table @kbd
 
 @item M-k
-@kindex M-k (Group)
+@kindex M-k @r{(Group)}
 @findex gnus-group-edit-local-kill
 Edit this group's kill file (@code{gnus-group-edit-local-kill}).
 
 @item M-K
-@kindex M-K (Group)
+@kindex M-K @r{(Group)}
 @findex gnus-group-edit-global-kill
 Edit the general kill file (@code{gnus-group-edit-global-kill}).
 @end table
@@ -21725,7 +21712,7 @@ want.
 @item
 The name of the @strong{back end server} where mairix should store its
 searches.  This must be a full server name, like @code{nnml:mymail}.
-Just hit @kbd{TAB} to see the available servers.  Currently, servers
+Just hit @kbd{@key{TAB}} to see the available servers.  Currently, servers
 which are accessed through @code{nnmaildir}, @code{nnimap} and
 @code{nnml} are supported.  As explained above, for locally stored
 mails, this can be an existing server where you store your mails.
@@ -21770,34 +21757,34 @@ In group mode:
 @table @kbd
 
 @item G b c
-@kindex G b c (Group)
+@kindex G b c @r{(Group)}
 @findex nnmairix-create-server-and-default-group
 Creates @code{nnmairix} server and default search group for this server
 (@code{nnmairix-create-server-and-default-group}).  You should have done
 this by now (@pxref{Configuring nnmairix}).
 
 @item G b s
-@kindex G b s (Group)
+@kindex G b s @r{(Group)}
 @findex nnmairix-search
 Prompts for query which is then sent to the mairix binary.  Search
 results are put into the default search group which is automatically
 displayed (@code{nnmairix-search}).
 
 @item G b m
-@kindex G b m (Group)
+@kindex G b m @r{(Group)}
 @findex nnmairix-widget-search
 Allows you to create a mairix search or a permanent group more
 comfortably using graphical widgets, similar to a customization
 group.  Just try it to see how it works (@code{nnmairix-widget-search}).
 
 @item G b i
-@kindex G b i (Group)
+@kindex G b i @r{(Group)}
 @findex nnmairix-search-interactive
 Another command for creating a mairix query more comfortably, but uses
 only the minibuffer (@code{nnmairix-search-interactive}).
 
 @item G b g
-@kindex G b g (Group)
+@kindex G b g @r{(Group)}
 @findex nnmairix-create-search-group
 Creates a permanent group which is associated with a search query
 (@code{nnmairix-create-search-group}).  The @code{nnmairix} back end
@@ -21805,20 +21792,20 @@ automatically calls mairix when you update this group with @kbd{g} or
 @kbd{M-g}.
 
 @item G b q
-@kindex G b q (Group)
+@kindex G b q @r{(Group)}
 @findex nnmairix-group-change-query-this-group
 Changes the search query for the @code{nnmairix} group under cursor
 (@code{nnmairix-group-change-query-this-group}).
 
 @item G b t
-@kindex G b t (Group)
+@kindex G b t @r{(Group)}
 @findex nnmairix-group-toggle-threads-this-group
 Toggles the 'threads' parameter for the @code{nnmairix} group under cursor,
 i.e., if you want see the whole threads of the found messages
 (@code{nnmairix-group-toggle-threads-this-group}).
 
 @item G b u
-@kindex G b u (Group)
+@kindex G b u @r{(Group)}
 @findex nnmairix-update-database
 @vindex nnmairix-mairix-update-options
 Calls mairix binary for updating the database
@@ -21828,20 +21815,20 @@ and @code{-Q} for making this as fast as possible (see variable
 options).
 
 @item G b r
-@kindex G b r (Group)
+@kindex G b r @r{(Group)}
 @findex nnmairix-group-toggle-readmarks-this-group
 Keep articles in this @code{nnmairix} group always read or unread, or leave the
 marks unchanged (@code{nnmairix-group-toggle-readmarks-this-group}).
 
 @item G b d
-@kindex G b d (Group)
+@kindex G b d @r{(Group)}
 @findex nnmairix-group-delete-recreate-this-group
 Recreate @code{nnmairix} group on the ``real'' mail back end
 (@code{nnmairix-group-delete-recreate-this-group}).  You can do this if
 you always get wrong article counts with a @code{nnmairix} group.
 
 @item G b a
-@kindex G b a (Group)
+@kindex G b a @r{(Group)}
 @findex nnmairix-group-toggle-allowfast-this-group
 Toggles the @code{allow-fast} parameters for group under cursor
 (@code{nnmairix-group-toggle-allowfast-this-group}).  The default
@@ -21853,14 +21840,14 @@ lead to dangling symlinks if something changed between updating and
 entering the group which is not yet in the mairix database.
 
 @item G b p
-@kindex G b p (Group)
+@kindex G b p @r{(Group)}
 @findex nnmairix-group-toggle-propmarks-this-group
 Toggle marks propagation for this group
 (@code{nnmairix-group-toggle-propmarks-this-group}).  (@pxref{Propagating
 marks}).
 
 @item G b o
-@kindex G b o (Group)
+@kindex G b o @r{(Group)}
 @findex nnmairix-propagate-marks
 Manually propagate marks (@code{nnmairix-propagate-marks}); needed only when
 @code{nnmairix-propagate-marks-upon-close} is set to @code{nil}.
@@ -21872,21 +21859,21 @@ In summary mode:
 @table @kbd
 
 @item G G m
-@kindex G G m (Summary)
+@kindex G G m @r{(Summary)}
 @findex nnmairix-widget-search-from-this-article
 Allows you to create a mairix query or group based on the current
 message using graphical widgets (same as @code{nnmairix-widget-search})
 (@code{nnmairix-widget-search-from-this-article}).
 
 @item G G g
-@kindex G G g (Summary)
+@kindex G G g @r{(Summary)}
 @findex nnmairix-create-search-group-from-message
 Interactively creates a new search group with query based on the current
 message, but uses the minibuffer instead of graphical widgets
 (@code{nnmairix-create-search-group-from-message}).
 
 @item G G t
-@kindex G G t (Summary)
+@kindex G G t @r{(Summary)}
 @findex nnmairix-search-thread-this-article
 Searches thread for the current article
 (@code{nnmairix-search-thread-this-article}).  This is effectively a
@@ -21894,14 +21881,14 @@ shortcut for calling @code{nnmairix-search} with @samp{m:msgid} of the
 current article and enabled threads.
 
 @item G G f
-@kindex G G f (Summary)
+@kindex G G f @r{(Summary)}
 @findex nnmairix-search-from-this-article
 Searches all messages from sender of the current article
 (@code{nnmairix-search-from-this-article}).  This is a shortcut for
 calling @code{nnmairix-search} with @samp{f:From}.
 
 @item G G o
-@kindex G G o (Summary)
+@kindex G G o @r{(Summary)}
 @findex nnmairix-goto-original-article
 (Only in @code{nnmairix} groups!) Tries determine the group this article
 originally came from and displays the article in this group, so that,
@@ -21911,7 +21898,7 @@ function will use the registry if available, but can also parse the
 article file name as a fallback method.
 
 @item G G u
-@kindex G G u (Summary)
+@kindex G G u @r{(Summary)}
 @findex nnmairix-remove-tick-mark-original-article
 Remove possibly existing tick mark from original article
 (@code{nnmairix-remove-tick-mark-original-article}).  (@pxref{nnmairix
@@ -22334,7 +22321,7 @@ for instance.  But what if you want to save without making a backup
 file, and you want Emacs to flash lights and play a nice tune at the
 same time?  You can't, and you're probably perfectly happy that way.
 
-@kindex M-i (Summary)
+@kindex M-i @r{(Summary)}
 @findex gnus-symbolic-argument
 I'm not, so I've added a second prefix---the @dfn{symbolic prefix}.  The
 prefix key is @kbd{M-i} (@code{gnus-symbolic-argument}), and the next
@@ -22390,7 +22377,6 @@ Currently Gnus uses the following formatting variables:
 All these format variables can also be arbitrary elisp forms.  In that
 case, they will be @code{eval}ed to insert the required lines.
 
-@kindex M-x gnus-update-format
 @findex gnus-update-format
 Gnus includes a command to help you while creating your own format
 specs.  @kbd{M-x gnus-update-format} will @code{eval} the current form,
@@ -24292,10 +24278,10 @@ group:
 @itemx M-d
 @itemx M s x
 @itemx S x
-@kindex $ (Summary)
-@kindex M-d (Summary)
-@kindex S x (Summary)
-@kindex M s x (Summary)
+@kindex $ @r{(Summary)}
+@kindex M-d @r{(Summary)}
+@kindex S x @r{(Summary)}
+@kindex M s x @r{(Summary)}
 @findex gnus-summary-mark-as-spam
 @findex gnus-summary-mark-as-spam
 Mark current article as spam, showing it with the @samp{$} mark
@@ -24567,7 +24553,7 @@ determined by either the @code{ham-process-destination} group
 parameter or a match in the @code{gnus-ham-process-destinations}
 variable, which is a list of regular expressions matched with group
 names (it's easiest to customize this variable with @kbd{M-x
-customize-variable @key{RET} gnus-ham-process-destinations}).  Each
+customize-variable @key{@key{RET}} gnus-ham-process-destinations}).  Each
 group name list is a standard Lisp list, if you prefer to customize
 the variable manually.  If the @code{ham-process-destination}
 parameter is not set, ham articles are left in place.  If the
@@ -24603,7 +24589,7 @@ When you leave a @emph{ham} or @emph{unclassified} group, all
 the @code{spam-process-destination} group parameter or a match in the
 @code{gnus-spam-process-destinations} variable, which is a list of
 regular expressions matched with group names (it's easiest to
-customize this variable with @kbd{M-x customize-variable @key{RET}
+customize this variable with @kbd{M-x customize-variable @key{@key{RET}}
 gnus-spam-process-destinations}).  Each group name list is a standard
 Lisp list, if you prefer to customize the variable manually.  If the
 @code{spam-process-destination} parameter is not set, the spam
@@ -26235,7 +26221,7 @@ you to optionally upload your first CloudSynchronizationDataPack(TM).
 After setting up, you can use these shortcuts from the Group buffer:
 
 @table @kbd
-@item ~ RET
+@item ~ @key{RET}
 @item ~ d
 @findex gnus-cloud-download-all-data
 @cindex cloud, download
@@ -26670,7 +26656,6 @@ to stop doing it the old way.
 
 Gnus understands all @sc{gnus} startup files.
 
-@kindex M-x gnus-bug
 @findex gnus-bug
 @cindex reporting bugs
 @cindex bugs
@@ -27749,7 +27734,7 @@ control over simplification.
 limit.
 
 @item
-@kbd{M-RET} is a new Message command for breaking cited text.
+@kbd{M-@key{RET}} is a new Message command for breaking cited text.
 
 @item
 @samp{\\1}-expressions are now valid in @code{nnmail-split-methods}.
@@ -28304,10 +28289,10 @@ Easy inclusion of X-Faces headers.  @xref{X-Face}.
 @item
 Group Carbon Copy (GCC) quoting
 
-To support groups that contains SPC and other weird characters, groups
+To support groups that contains @key{SPC} and other weird characters, groups
 are quoted before they are placed in the Gcc: header.  This means
 variables such as @code{gnus-message-archive-group} should no longer
-contain quote characters to make groups containing SPC work.  Also, if
+contain quote characters to make groups containing @key{SPC} work.  Also, if
 you are using the string @samp{nnml:foo, nnml:bar} (indicating Gcc
 into two groups) you must change it to return the list
 @code{("nnml:foo" "nnml:bar")}, otherwise the Gcc: line will be quoted
@@ -28396,7 +28381,7 @@ Gnus supports @acronym{PGP} (RFC 1991/2440), @acronym{PGP/MIME} (RFC
 
 It needs an external @acronym{S/MIME} and OpenPGP implementation, but no
 additional Lisp libraries.  This add several menu items to the
-Attachments menu, and @kbd{C-c RET} key bindings, when composing
+Attachments menu, and @kbd{C-c @key{RET}} key bindings, when composing
 messages.  This also obsoletes @code{gnus-article-hide-pgp-hook}.
 
 @item
@@ -28492,7 +28477,7 @@ message, Message Manual}).
 @item
 The tool bars have been updated to use GNOME icons in Group, Summary and
 Message mode.  You can also customize the tool bars: @kbd{M-x
-customize-apropos RET -tool-bar$} should get you started.  This is a new
+customize-apropos @key{RET} -tool-bar$} should get you started.  This is a new
 feature in Gnus 5.10.10.  (Only for Emacs, not in XEmacs.)
 
 @item The tool bar icons are now (de)activated correctly
@@ -28723,7 +28708,7 @@ commonly fetched via the protocol @acronym{NNTP}, whereas mail
 messages could be read from a file on the local disk.  The internal
 architecture of Gnus thus comprises a ``front end'' and a number of
 ``back ends''.  Internally, when you enter a group (by hitting
-@key{RET}, say), you thereby invoke a function in the front end in
+@key{@key{RET}}, say), you thereby invoke a function in the front end in
 Gnus.  The front end then ``talks'' to a back end and says things like
 ``Give me the list of articles in the foo group'' or ``Show me article
 number 4711''.
@@ -29125,12 +29110,12 @@ If all else fails, report the problem as a bug.
 @cindex bugs
 @cindex reporting bugs
 
-@kindex M-x gnus-bug
 @findex gnus-bug
-If you find a bug in Gnus, you can report it with the @kbd{M-x gnus-bug}
-command.  @kbd{M-x set-variable RET debug-on-error RET t RET}, and send
-me the backtrace.  I will fix bugs, but I can only fix them if you send
-me a precise description as to how to reproduce the bug.
+If you find a bug in Gnus, you can report it with the @kbd{M-x
+gnus-bug} command.  @kbd{M-x set-variable @key{RET} debug-on-error
+@key{RET} t @key{RET}}, and send me the backtrace.  I will fix bugs,
+but I can only fix them if you send me a precise description as to how
+to reproduce the bug.
 
 You really can never be too detailed in a bug report.  Always use the
 @kbd{M-x gnus-bug} command when you make bug reports, even if it creates
@@ -29163,9 +29148,9 @@ Lisp Reference Manual}).  To get you started with edebug, consider if
 you discover some weird behavior when pressing @kbd{c}, the first
 step is to do @kbd{C-h k c} and click on the hyperlink (Emacs only) in
 the documentation buffer that leads you to the function definition,
-then press @kbd{M-x edebug-defun RET} with point inside that function,
+then press @kbd{M-x edebug-defun @key{RET}} with point inside that function,
 return to Gnus and press @kbd{c} to invoke the code.  You will be
-placed in the lisp buffer and can single step using @kbd{SPC} and
+placed in the lisp buffer and can single step using @kbd{@key{SPC}} and
 evaluate expressions using @kbd{M-:} or inspect variables using
 @kbd{C-h v}, abort execution with @kbd{q}, and resume execution with
 @kbd{c} or @kbd{g}.
@@ -29183,8 +29168,8 @@ A fancier approach is to use the elisp profiler, ELP@.  The profiler is
 (or should be) fully documented elsewhere, but to get you started
 there are a few steps that need to be followed.  First, instrument the
 part of Gnus you are interested in for profiling, e.g., @kbd{M-x
-elp-instrument-package RET gnus} or @kbd{M-x elp-instrument-package
-RET message}.  Then perform the operation that is slow and press
+elp-instrument-package @key{RET} gnus} or @kbd{M-x elp-instrument-package
+@key{RET} message}.  Then perform the operation that is slow and press
 @kbd{M-x elp-results}.  You will then see which operations that takes
 time, and can debug them further.  If the entire operation takes much
 longer than the time spent in the slowest function in the profiler

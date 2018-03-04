@@ -965,7 +965,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 				  (eshell-stringify-list
 				   (eshell-flatten-list (cdr time-args))))))))
 
-(defun eshell/whoami (&rest args)
+(defun eshell/whoami (&rest _args)
   "Make \"whoami\" Tramp aware."
   (or (file-remote-p default-directory 'user) (user-login-name)))
 

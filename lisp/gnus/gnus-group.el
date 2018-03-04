@@ -1086,6 +1086,8 @@ See `gmm-tool-bar-from-list' for the format of the list."
 
 (defvar image-load-path)
 (defvar tool-bar-map)
+(declare-function image-load-path-for-library "image"
+		  (library image &optional path no-error))
 
 (defun gnus-group-make-tool-bar (&optional force)
   "Make a group mode tool bar from `gnus-group-tool-bar'.

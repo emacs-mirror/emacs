@@ -67,8 +67,23 @@
 
 
 (defcustom search-exit-option t
-  "Non-nil means random control characters terminate incremental search."
-  :type 'boolean)
+  "Defines what control characters do in incremental search.
+If t, random control and meta characters terminate the search
+and are then executed normally.
+If `edit', edit the search string instead of exiting.
+If `move', extend the search string by motion commands
+that have the `isearch-move' property on their symbols.
+If `shift-move', extend the search string by motion commands
+while holding down the shift key.
+Both `move' and `shift-move' extend the search string by yanking text
+that ends at the new position after moving point in the current buffer.
+If nil, run the command without exiting Isearch."
+  :type '(choice (const :tag "Terminate incremental search" t)
+                 (const :tag "Edit the search string" edit)
+                 (const :tag "Extend the search string by motion commands" move)
+                 (const :tag "Extend the search string by shifted motion keys" shift-move)
+                 (const :tag "Don't terminate incremental search" nil))
+  :version "27.1")
 
 (defcustom search-slow-window-lines 1
   "Number of lines in slow search display windows.
@@ -2391,6 +2406,7 @@ the bottom."
   (goto-char isearch-point))
 
 (defvar isearch-pre-scroll-point nil)
+(defvar isearch-pre-move-point nil)
 
 (defun isearch-pre-command-hook ()
   "Decide whether to exit Isearch mode before executing the command.
@@ -2398,8 +2414,9 @@ Don't exit Isearch if the key sequence that invoked this command
 is bound in `isearch-mode-map', or if the invoked command is
 a prefix argument command (when `isearch-allow-prefix' is non-nil),
 or it is a scrolling command (when `isearch-allow-scroll' is non-nil).
-Otherwise, exit Isearch (when `search-exit-option' is non-nil)
-before the command is executed globally with terminated Isearch."
+Otherwise, exit Isearch (when `search-exit-option' is t)
+before the command is executed globally with terminated Isearch.
+See more for options in `search-exit-option'."
   (let* ((key (this-single-command-keys))
 	 (main-event (aref key 0)))
     (cond
@@ -2427,6 +2444,14 @@ before the command is executed globally with terminated Isearch."
       ;; Swallow the up-event.
       (read-event)
       (setq this-command 'isearch-edit-string))
+     ;; Don't terminate the search for motion commands.
+     ((or (and (eq search-exit-option 'move)
+               (symbolp this-command)
+               (eq (get this-command 'isearch-move) t))
+          (and (eq search-exit-option 'shift-move)
+               this-command-keys-shift-translated))
+      (setq this-command-keys-shift-translated nil)
+      (setq isearch-pre-move-point (point)))
      ;; Other characters terminate the search and are then executed normally.
      (search-exit-option
       (isearch-done)
@@ -2436,13 +2461,28 @@ before the command is executed globally with terminated Isearch."
       (isearch-process-search-string key key)))))
 
 (defun isearch-post-command-hook ()
-  (when isearch-pre-scroll-point
+  (cond
+   (isearch-pre-scroll-point
     (let ((ab-bel (isearch-string-out-of-window isearch-pre-scroll-point)))
       (if ab-bel
 	  (isearch-back-into-window (eq ab-bel 'above) isearch-pre-scroll-point)
 	(goto-char isearch-pre-scroll-point)))
     (setq isearch-pre-scroll-point nil)
-    (isearch-update)))
+    (isearch-update))
+   ((memq search-exit-option '(move shift-move))
+    (when (and isearch-pre-move-point
+               (not (eq isearch-pre-move-point (point))))
+      (let ((string (buffer-substring-no-properties
+                     (or isearch-other-end isearch-opoint) (point))))
+        (if isearch-regexp (setq string (regexp-quote string)))
+        (setq isearch-string string)
+        (setq isearch-message (mapconcat 'isearch-text-char-description
+                                         string ""))
+        (setq isearch-yank-flag t)
+        (setq isearch-forward (<= (or isearch-other-end isearch-opoint) (point)))
+        (goto-char isearch-pre-move-point)
+        (isearch-search-and-update)))
+    (setq isearch-pre-move-point nil))))
 
 (defun isearch-quote-char (&optional count)
   "Quote special characters for incremental search.

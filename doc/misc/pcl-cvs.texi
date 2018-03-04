@@ -63,10 +63,11 @@ modify this GNU manual.''
 @node Top
 @top PCL-CVS
 
-This manual describes PCL-CVS, the GNU Emacs front-end to CVS@.  It
-is nowhere near complete, so you are advised to use @kbd{M-x
-customize-group RET pcl-cvs @key{RET}} and to look at the documentation strings
-of the various commands and major modes for further information.
+This manual describes PCL-CVS, the GNU Emacs front-end to CVS@.  It is
+nowhere near complete, so you are advised to use @kbd{M-x
+customize-group @key{RET} pcl-cvs @key{RET}} and to look at the
+documentation strings of the various commands and major modes for
+further information.
 @c This manual is updated to release 2.5 of PCL-CVS.
 
 @insertcopying
@@ -1109,7 +1110,7 @@ Tag all selected files by running @samp{cvs tag} on
 them (@code{cvs-mode-tag}).  It's usually preferable to tag a directory
 at a time.  Rather than selecting all files (which too often doesn't
 select all files but only the few that are displayed), clear the
-selection with @kbd{M-DEL} (@code{cvs-mode-unmark-all-files}), position
+selection with @kbd{M-@key{DEL}} (@code{cvs-mode-unmark-all-files}), position
 the cursor on the directory you want to tag and hit @kbd{t}.
 @end table
 

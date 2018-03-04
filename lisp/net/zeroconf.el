@@ -382,6 +382,8 @@ TYPE. The resulting list has the format
   ;; `zeroconf-services-hash'.
   (gethash (concat name "/" type) zeroconf-services-hash nil))
 
+(defvar dbus-debug)
+
 (defun zeroconf-resolve-service (service)
   "Return all service attributes SERVICE as list.
 NAME must be a string.  The service must be of service type

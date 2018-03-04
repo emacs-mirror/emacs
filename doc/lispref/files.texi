@@ -3267,7 +3267,7 @@ shown above; the details are crucial for proper behavior in the case of
 multiple handlers, and for operations that have two file names that may
 each have handlers.
 
-@kindex safe-magic (@r{property})
+@kindex safe-magic @r{(property)}
   Handlers that don't really do anything special for actual access to the
 file---such as the ones that implement completion of host names for
 remote file names---should have a non-@code{nil} @code{safe-magic}
@@ -3277,7 +3277,7 @@ file names, by prefixing them with @samp{/:}.  But if the handler that
 would be used for them has a non-@code{nil} @code{safe-magic}
 property, the @samp{/:} is not added.
 
-@kindex operations (@r{property})
+@kindex operations @r{(property)}
   A file name handler can have an @code{operations} property to
 declare which operations it handles in a nontrivial way.  If this
 property has a non-@code{nil} value, it should be a list of

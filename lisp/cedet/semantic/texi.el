@@ -365,6 +365,8 @@ Optional argument POINT is where to look for the environment."
 (eval-when-compile
   (require 'semantic/analyze))
 
+(declare-function semantic-analyze-context "semantic/analyze")
+
 (define-mode-local-override semantic-analyze-current-context
   texinfo-mode (point)
   "Analysis context makes no sense for texinfo.  Return nil."

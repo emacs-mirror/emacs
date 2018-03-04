@@ -1009,7 +1009,7 @@ effect as @kbd{C-u M-;} by typing @kbd{M-x comment-kill}
 (@code{comment-dwim} actually calls @code{comment-kill} as a
 subroutine when it is given a prefix argument).
 
-@kindex C-c C-c (C mode)
+@kindex C-c C-c @r{(C mode)}
 @findex comment-region
 @findex uncomment-region
   The command @kbd{M-x comment-region} is equivalent to calling
@@ -1626,7 +1626,7 @@ behind.  A prefix argument acts as a repeat count.  With a negative
 argument, move backward.
 
 @item M-a
-@kindex M-a (C mode)
+@kindex M-a @r{(C mode)}
 @findex c-beginning-of-statement
 Move point to the beginning of the innermost C statement
 (@code{c-beginning-of-statement}).  If point is already at the beginning
@@ -1637,7 +1637,7 @@ In comments or in strings which span more than one line, this command
 moves by sentences instead of statements.
 
 @item M-e
-@kindex M-e (C mode)
+@kindex M-e @r{(C mode)}
 @findex c-end-of-statement
 Move point to the end of the innermost C statement or sentence; like
 @kbd{M-a} except that it moves in the other direction
@@ -1702,17 +1702,17 @@ preprocessor commands.
 @item C-c C-@key{DEL}
 @itemx C-c @key{DEL}
 @findex c-hungry-delete-backwards
-@kindex C-c C-DEL (C Mode)
-@kindex C-c DEL (C Mode)
+@kindex C-c C-DEL @r{(C Mode)}
+@kindex C-c DEL @r{(C Mode)}
 Delete the entire block of whitespace preceding point (@code{c-hungry-delete-backwards}).
 
 @item C-c C-d
 @itemx C-c C-@key{Delete}
 @itemx C-c @key{Delete}
 @findex c-hungry-delete-forward
-@kindex C-c C-d (C Mode)
-@kindex C-c C-Delete (C Mode)
-@kindex C-c Delete (C Mode)
+@kindex C-c C-d @r{(C Mode)}
+@kindex C-c C-Delete @r{(C Mode)}
+@kindex C-c Delete @r{(C Mode)}
 Delete the entire block of whitespace after point (@code{c-hungry-delete-forward}).
 @end table
 

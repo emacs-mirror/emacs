@@ -1417,6 +1417,8 @@ commands, and @dfn{keymaps}, which record key bindings.  It also
 explains how to customize key bindings, which is done by editing your
 init file (@pxref{Init Rebinding}).
 
+@cindex reserved key bindings
+@cindex keys, reserved
   Since most modes define their own key bindings, activating a mode
 might override your custom key bindings.  A small number of keys are
 reserved for user-defined bindings, and should not be used by modes,
@@ -2162,7 +2164,7 @@ loading of this library, use the option @samp{--no-site-file}.
 better to put them in @file{default.el}, so that users can more easily
 override them.
 
-@cindex site-lisp directories
+@cindex @file{site-lisp} directories
   You can place @file{default.el} and @file{site-start.el} in any of
 the directories which Emacs searches for Lisp libraries.  The variable
 @code{load-path} (@pxref{Lisp Libraries}) specifies these directories.

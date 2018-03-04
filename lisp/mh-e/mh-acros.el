@@ -90,9 +90,10 @@ loads \"cl\" appropriately."
   "Create function NAME.
 If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
-  `(if (fboundp ',function)
-       (defalias ',name ',function)
-     (defun ,name ,arg-list ,@body)))
+  `(defalias ',name
+     (if (fboundp ',function)
+         ',function
+       (lambda ,arg-list ,@body))))
 (put 'defun-mh 'lisp-indent-function 'defun)
 (put 'defun-mh 'doc-string-elt 4)
 

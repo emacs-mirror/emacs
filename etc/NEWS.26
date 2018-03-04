@@ -431,9 +431,9 @@ always restricting the margin to a quarter of the window.
 
 +++
 ** Emacs can scroll horizontally using mouse, touchpad, and trackbar.
-You can enable this by customizing 'mwheel-tilt-scroll-p'.  If you
+You can enable this by customizing 'mouse-wheel-tilt-scroll'.  If you
 want to reverse the direction of the scroll, customize
-'mwheel-flip-direction'.
+'mouse-wheel-flip-direction'.
 
 +++
 ** The default GnuTLS priority string now includes %DUMBFW.
@@ -1219,7 +1219,7 @@ backend", which has been updated to benefit from the new UI features.
 ** Term
 
 ---
-*** `term-char-mode' now makes its buffer read-only.
+*** 'term-char-mode' now makes its buffer read-only.
 
 The buffer is made read-only to prevent changes from being made by
 anything other than the process filter; and movements of point away
@@ -1228,8 +1228,8 @@ correct position after each command.  This is needed to avoid states
 which are inconsistent with the state of the terminal understood by
 the inferior process.
 
-New user options `term-char-mode-buffer-read-only' and
-`term-char-mode-point-at-process-mark' control these behaviors, and
+New user options 'term-char-mode-buffer-read-only' and
+'term-char-mode-point-at-process-mark' control these behaviors, and
 are non-nil by default.  Customize these options to nil if you want
 the previous behavior.
 
@@ -1745,6 +1745,10 @@ instead of 0.8, to avoid rounding glitches.
 ** New function 'add-variable-watcher' can be used to call a function
 when a symbol's value is changed.  This is used to implement the new
 debugger command 'debug-on-variable-change'.
+
++++
+** New variable 'print-escape-control-characters' causes 'prin1' and
+'print' to output control characters as backslash sequences.
 
 +++
 ** Time conversion functions that accept a time zone rule argument now

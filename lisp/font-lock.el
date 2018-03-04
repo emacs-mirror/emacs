@@ -631,10 +631,7 @@ Major/minor modes can set this variable if they know which option applies.")
     (declare (indent 0) (debug t))
     `(let ((inhibit-point-motion-hooks t))
        (with-silent-modifications
-         ,@body)))
-  ;;
-  ;; Shut up the byte compiler.
-  (defvar font-lock-face-attributes))	; Obsolete but respected if set.
+         ,@body))))
 
 (defvar-local font-lock-set-defaults nil) ; Whether we have set up defaults.
 

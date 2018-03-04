@@ -3862,7 +3862,7 @@ clicks on the link quickly without moving the mouse.  This behavior is
 controlled by the user option @code{mouse-1-click-follows-link}.
 @xref{Mouse References,,, emacs, The GNU Emacs Manual}.
 
-@cindex follow-link (text or overlay property)
+@kindex follow-link @r{(text or overlay property)}
   To set up the link so that it obeys
 @code{mouse-1-click-follows-link}, you must either (1) apply a
 @code{follow-link} text or overlay property to the link text, or (2)

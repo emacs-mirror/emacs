@@ -29,6 +29,7 @@
   "Image support."
   :group 'multimedia)
 
+(declare-function image-flush "image.c" (spec &optional frame))
 (defalias 'image-refresh 'image-flush)
 
 (defconst image-type-header-regexps
@@ -1000,6 +1001,8 @@ default is 20%."
               (unless (memq key '(:scale :width :height :max-width :max-height))
               (setq new (nconc new (list key val))))))
           new)))
+
+(declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun image--current-scaling (image new-image)
   ;; The image may be scaled due to many reasons (:scale, :max-width,

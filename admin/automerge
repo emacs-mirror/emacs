@@ -138,7 +138,7 @@ trap "rm -f $tempfile 2> /dev/null" EXIT
 
 [ "$reset" ] && {
     echo "Resetting..."
-    git reset --hard origin/master || die "reset error"
+    git reset -q --hard origin/master || die "reset error"
 
     echo "Pulling..."
     git pull -q --ff-only || die "pull error"

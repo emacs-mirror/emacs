@@ -354,7 +354,7 @@ directory to hold queued messages.  It defaults to
   The function @code{smtpmail-send-queued-mail} can be used to send
 any queued mail when @code{smtpmail-queue-mail} is enabled.  It is
 typically invoked interactively with @kbd{M-x
-smtpmail-send-queued-mail RET} when you are connected to the internet.
+smtpmail-send-queued-mail @key{RET}} when you are connected to the internet.
 
 @node Server workarounds
 @chapter Server workarounds

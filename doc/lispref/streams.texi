@@ -778,6 +778,14 @@ In the second expression, the local binding of
 @code{prin1}, but not during the printing of the result.
 @end defvar
 
+@defvar print-escape-control-characters
+If this variable is non-@code{nil}, control characters in strings are
+printed as backslash sequences by the print functions @code{prin1} and
+@code{print} that print with quoting.  If this variable and
+@code{print-escape-newlines} are both non-@code{nil}, the latter takes
+precedences for newlines and formfeeds.
+@end defvar
+
 @defvar print-escape-nonascii
 If this variable is non-@code{nil}, then unibyte non-@acronym{ASCII}
 characters in strings are unconditionally printed as backslash sequences

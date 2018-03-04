@@ -316,7 +316,7 @@ file for build instructions.
 
 You can run Emacs without any extra steps, but if you want icons in your
 Start Menu, or for Emacs to detect the image libraries that are already
-installed on your system as part of GTK, then you should run the program
+installed on your system as part of GTK+, then you should run the program
 @file{addpm.exe}, which is usually installed into the same @file{bin}
 directory with @file{emacs.exe}.
 
@@ -2206,10 +2206,10 @@ outdated.  Tools available here that are useful for Emacs include:
 @item GifLib - library to support GIF images.
 @item Grep - for searching through files with @code{grep}.
 @item Gzip - used by Emacs to automatically decompress .gz files.
-@item Jpeg - library to support JPEG images (also in GTK).
+@item Jpeg - library to support JPEG images (also in GTK+).
 @item Lha - used by @code{archive-mode} to edit .lzh files.
-@item LibPng - library to support PNG images (also in GTK).
-@item LibTiff - library to support TIFF images (also in GTK).
+@item LibPng - library to support PNG images (also in GTK+).
+@item LibTiff - library to support TIFF images (also in GTK+).
 @item Make - used by @code{compile} for building projects (also in MinGW)
 @item OpenSSL - used by @code{gnus} to talk to servers over SSL.
 @item Patch - used by @code{ediff-patch-file} and others to apply patches.
@@ -2218,21 +2218,21 @@ outdated.  Tools available here that are useful for Emacs include:
 @item Unzip - used by @code{archive-mode} for extracting zip files.
 @item Xpm - library to support XPM images (bundled with Emacs binaries)
 @item Zip - used by @code{archive-mode} for editing zip files.
-@item Zlib - required by LibPng (also in GTK).
+@item Zlib - required by LibPng (also in GTK+).
 @end itemize
 
 @node GTK
-@section GTK
-@cindex GTK image libraries
-@cindex image libraries, GTK
-@cindex addpm, using GTK image libraries
+@section GTK+
+@cindex GTK+ image libraries
+@cindex image libraries, GTK+
+@cindex addpm, using GTK+ image libraries
 
-GTK is a potential source for some of the image libraries that Emacs
-requires.  GTK is installed along with other ports of GUI software,
+GTK+ is a potential source for some of the image libraries that Emacs
+requires.  GTK+ is installed along with other ports of GUI software,
 such as the GIMP image editor, and Pidgin instant messenger client.
-If GTK is installed when you run @command{addpm}, Emacs will use the
+If GTK+ is installed when you run @command{addpm}, Emacs will use the
 image libraries that it provides, even if they are not on the
-@env{PATH}.  GTK ships with JPEG, PNG and TIFF support.
+@env{PATH}.  GTK+ ships with JPEG, PNG and TIFF support.
 
 @node Read man pages
 @section How do I read man pages?

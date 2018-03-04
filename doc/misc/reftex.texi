@@ -3335,7 +3335,7 @@ have to rescan the buffer in order to see it.
 @findex reftex-arg-index
 @findex TeX-arg-index@r{, AUCTeX function}
 @findex TeX-insert-macro@r{, AUCTeX function}
-@kindex C-c @key{RET}
+@kindex C-c RET
 @b{@RefTeX{} supplies macro arguments}@* When you insert a macro
 interactively with @kbd{C-c @key{RET}}, @AUCTeX{} normally prompts for
 macro arguments.  Internally, it uses the functions

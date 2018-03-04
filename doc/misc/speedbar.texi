@@ -87,7 +87,7 @@ on.  @xref{Basic Navigation}.
 @chapter Introduction
 @cindex introduction
 
-To start using speedbar use the command @kbd{M-x speedbar RET} or
+To start using speedbar use the command @kbd{M-x speedbar @key{RET}} or
 select it from the @samp{Options->Show/Hide} sub-menu.  This command
 will open a new frame to summarize the local files.  On X Window
 systems or on MS-Windows, speedbar's frame is twenty characters wide,
@@ -188,7 +188,7 @@ these are available, some additional common bindings are available.
 
 @cindex common keys
 @table @kbd
-@item RET
+@item @key{RET}
 @itemx e
 Edit/Open the current group or tag.  This behavior is dependent on the
 mode.  In general, files or buffers are opened in the attached frame,

@@ -61,7 +61,7 @@ This includes when running `eshell-command'."
   "Initialize the script parsing code."
   (make-local-variable 'eshell-interpreter-alist)
   (setq eshell-interpreter-alist
-	(cons (cons #'(lambda (file args)
+	(cons (cons #'(lambda (file _args)
                         (string= (file-name-nondirectory file)
                                  "eshell"))
                     'eshell/source)

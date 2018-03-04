@@ -548,9 +548,13 @@ reversed."
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
       (set-buffer viper-ex-work-buf)
       (goto-char (point-max)))
-    (cond ((looking-back quit-regex1) (exit-minibuffer))
-	  ((looking-back stay-regex)  (insert " "))
-	  ((looking-back quit-regex2) (exit-minibuffer))
+    (cond ((looking-back quit-regex1 (line-beginning-position))
+	   (exit-minibuffer))
+	  ;; Almost certainly point-min should be line-beginning-position,
+	  ;; but probably the two are identical anyway, and who really cares?
+	  ((looking-back stay-regex (point-min)) (insert " "))
+	  ((looking-back quit-regex2 (line-beginning-position))
+	   (exit-minibuffer))
 	  (t (insert " ")))))
 
 (declare-function viper-tmp-insert-at-eob "viper-cmd" (msg))

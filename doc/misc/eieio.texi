@@ -1263,13 +1263,13 @@ The @var{parent-instance} slot indicates the instance which is
 considered the parent of the current instance.  Default is @code{nil}.
 @end deftp
 
-@cindex clone
+@cindex @code{clone}
 To use this class, inherit from it with your own class.
 To make a new instance that inherits from and existing instance of your
 class, use the @code{clone} method with additional parameters
 to specify local values.
 
-@cindex slot-unbound
+@cindex @code{slot-unbound}
 The @code{eieio-instance-inheritor} class works by causing cloned
 objects to have all slots unbound.  This class' @code{slot-unbound}
 method will cause references to unbound slots to be redirected to the
@@ -1395,7 +1395,7 @@ with a minimum of effort.
 
 @deftp {Class} eieio-speedbar buttontype buttonface
 Enables base speedbar display for a class.
-@cindex speedbar-make-tag-line
+@cindex @code{speedbar-make-tag-line}
 The slot @var{buttontype} is any of the symbols allowed by the
 function @code{speedbar-make-tag-line} for the @var{exp-button-type}
 argument @xref{Extending,,,speedbar}.

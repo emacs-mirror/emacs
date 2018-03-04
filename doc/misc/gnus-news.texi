@@ -324,7 +324,7 @@ messages are deleted again).
 @itemize @bullet
 
 @item The tool bar has been updated to use GNOME icons.
-You can also customize the tool bars: @kbd{M-x customize-apropos RET
+You can also customize the tool bars: @kbd{M-x customize-apropos @key{RET}
 -tool-bar$} should get you started.  (Only for Emacs, not in XEmacs.)
 @c FIXME: Document this in the manual
 

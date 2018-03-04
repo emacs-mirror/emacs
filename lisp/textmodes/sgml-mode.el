@@ -2232,6 +2232,9 @@ buffer's tick counter (as produced by `buffer-modified-tick'),
 and the CDR is the list of class names found in the buffer.")
 (make-variable-buffer-local 'html--buffer-ids-cache)
 
+(declare-function libxml-parse-html-region "xml.c"
+                  (start end &optional base-url discard-comments))
+
 (defun html-current-buffer-classes ()
   "Return a list of class names used in the current buffer.
 The result is cached in `html--buffer-classes-cache'."

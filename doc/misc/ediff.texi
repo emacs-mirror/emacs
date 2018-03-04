@@ -541,12 +541,12 @@ Copies the difference region from buffer C to buffer B@.
 The command @kbd{rb} undoes this.
 
 @item p
-@itemx DEL
+@itemx @key{DEL}
 @kindex p
 @kindex DEL
 Makes the previous difference region current.
 @item n
-@itemx SPC
+@itemx @key{SPC}
 @kindex n
 @kindex SPC
 Makes the next difference region current.

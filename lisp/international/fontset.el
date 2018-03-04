@@ -1144,6 +1144,8 @@ given from DEFAULT-SPEC."
 	(setcar (cdr elt) spec)))
     fontlist))
 
+(defvar fontset-alias-alist)
+
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.
 A valid fontset name should conform to XLFD (X Logical Font Description)

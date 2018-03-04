@@ -2750,7 +2750,7 @@ If the value is @code{grow-only}, the tool bar expands automatically,
 but does not contract automatically.  To contract the tool bar, the
 user has to redraw the frame by entering @kbd{C-l}.
 
-If Emacs is built with GTK or Nextstep, the tool bar can only show one
+If Emacs is built with GTK+ or Nextstep, the tool bar can only show one
 line, so this variable has no effect.
 @end defvar
 

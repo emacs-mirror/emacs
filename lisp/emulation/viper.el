@@ -300,6 +300,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
 (defvar quail-mode)

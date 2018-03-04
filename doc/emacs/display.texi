@@ -526,7 +526,7 @@ frames as if they have a dark background, whereas a value of
 background.
 
 @cindex background color
-@cindex default face
+@cindex @code{default face}
   You can customize a face to alter its attributes, and save those
 customizations for future Emacs sessions.  @xref{Face Customization},
 for details.
@@ -535,7 +535,7 @@ for details.
 of its attributes are specified.  Its background color is also used as
 the frame's background color.  @xref{Colors}.
 
-@cindex cursor face
+@cindex @code{cursor} face
   Another special face is the @code{cursor} face.  On graphical
 displays, the background color of this face is used to draw the text
 cursor.  None of the other attributes of this face have any effect;
@@ -627,10 +627,10 @@ but you should not make it a variable-width font.
 @item fixed-pitch-serif
 This face is like @code{fixed-pitch}, except the font has serifs and
 looks more like traditional typewriting.
-@cindex variable-pitch face
+@cindex @code{variable-pitch} face
 @item variable-pitch
 This face forces use of a variable-width font.
-@cindex shadow face
+@cindex @code{shadow} face
 @item shadow
 This face is used for making the text less noticeable than the surrounding
 ordinary text.  Usually this can be achieved by using shades of gray in
@@ -656,8 +656,8 @@ This face is used to highlight lazy matches for Isearch and Query
 Replace (matches other than the current one).
 @item region
 This face is used for displaying an active region (@pxref{Mark}).
-When Emacs is built with GTK support, its colors are taken from the
-current GTK theme.
+When Emacs is built with GTK+ support, its colors are taken from the
+current GTK+ theme.
 @item secondary-selection
 This face is used for displaying a secondary X selection (@pxref{Secondary
 Selection}).
@@ -685,40 +685,40 @@ frame:
 
 @table @code
 @item mode-line
-@cindex mode-line face
+@cindex @code{mode-line} face
 @cindex faces for mode lines
 This face is used for the mode line of the currently selected window,
 and for menu bars when toolkit menus are not used.  By default, it's
 drawn with shadows for a raised effect on graphical displays, and
 drawn as the inverse of the default face on non-windowed terminals.
 @item mode-line-inactive
-@cindex mode-line-inactive face
+@cindex @code{mode-line-inactive} face
 Like @code{mode-line}, but used for mode lines of the windows other
 than the selected one (if @code{mode-line-in-non-selected-windows} is
 non-@code{nil}).  This face inherits from @code{mode-line}, so changes
 in that face affect mode lines in all windows.
 @item mode-line-highlight
-@cindex mode-line-highlight face
+@cindex @code{mode-line-highlight} face
 Like @code{highlight}, but used for mouse-sensitive portions of text
 on mode lines.  Such portions of text typically pop up tooltips
 (@pxref{Tooltips}) when the mouse pointer hovers above them.
 @item mode-line-buffer-id
-@cindex mode-line-buffer-id face
+@cindex @code{mode-line-buffer-id} face
 This face is used for buffer identification parts in the mode line.
 @item header-line
-@cindex header-line face
+@cindex @code{header-line} face
 Similar to @code{mode-line} for a window's header line, which appears
 at the top of a window just as the mode line appears at the bottom.
 Most windows do not have a header line---only some special modes, such
 Info mode, create one.
 @item header-line-highlight
-@cindex header-line-highlight face
+@cindex @code{header-line-highlight} face
 Similar to @code{highlight} and @code{mode-line-highlight}, but used
 for mouse-sensitive portions of text on header lines.  This is a
 separate face because the @code{header-line} face might be customized
 in a way that does not interact well with @code{highlight}.
 @item vertical-border
-@cindex vertical-border face
+@cindex @code{vertical-border} face
 This face is used for the vertical divider between windows on text
 terminals.
 @item minibuffer-prompt
@@ -741,7 +741,7 @@ The @code{:background} attribute of this face specifies the color of
 the text cursor.  @xref{Cursor Display}.
 @item tooltip
 This face is used for tooltip text.  By default, if Emacs is built
-with GTK support, tooltips are drawn via GTK and this face has no
+with GTK+ support, tooltips are drawn via GTK+ and this face has no
 effect.  @xref{Tooltips}.
 @item mouse
 This face determines the color of the mouse pointer.
@@ -1177,7 +1177,7 @@ empty lines at the end of a buffer, without realizing it.  In most
 cases, this @dfn{trailing whitespace} has no effect, but sometimes it
 can be a nuisance.
 
-@cindex trailing-whitespace face
+@cindex @code{trailing-whitespace} face
   You can make trailing whitespace at the end of a line visible by
 setting the buffer-local variable @code{show-trailing-whitespace} to
 @code{t}.  Then Emacs displays trailing whitespace, using the face
@@ -1508,8 +1508,8 @@ as octal escape sequences instead of caret escape sequences.
 @cindex non-breaking space
 @cindex non-breaking hyphen
 @cindex soft hyphen
-@cindex escape-glyph face
-@cindex nobreak-space face
+@cindex @code{escape-glyph} face
+@cindex @code{nobreak-space} face
   Some non-@acronym{ASCII} characters have the same appearance as an
 @acronym{ASCII} space or hyphen (minus) character.  Such characters
 can cause problems if they are entered into a buffer without your
@@ -1531,7 +1531,7 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @cindex glyphless characters
 @cindex characters with no font glyphs
-@cindex glyphless-char face
+@cindex @code{glyphless-char} face
   On graphical displays, some characters may have no glyphs in any of
 the fonts available to Emacs.  These @dfn{glyphless characters} are
 normally displayed as boxes containing the hexadecimal character code.
@@ -1546,7 +1546,7 @@ for details.
 
 @cindex curly quotes, and terminal capabilities
 @cindex curved quotes, and terminal capabilities
-@cindex homoglyph face
+@cindex @code{homoglyph} face
 
 Emacs tries to determine if the curved quotes @samp{‘} and @samp{’}
 can be displayed on the current display.  By default, if this seems to
@@ -1801,7 +1801,7 @@ may wish to customize the variables
 @code{display-line-numbers-width} to a large enough value, to avoid
 occasional miscalculations of space reserved for the line numbers.
 
-@cindex line-number face
+@cindex @code{line-number} face
 The line numbers are displayed in a special face @code{line-number}.
 The current line number is displayed in a different face,
 @code{line-number-current-line}, so you can make the current line's

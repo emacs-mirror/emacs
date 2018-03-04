@@ -105,11 +105,11 @@ item should appear.
 To toggle @srecode{} minor mode on and off use:
 
 @example
-M-x srecode-minor-mode RET
+M-x srecode-minor-mode @key{RET}
 @end example
 or
 @example
-M-x global-srecode-minor-mode RET
+M-x global-srecode-minor-mode @key{RET}
 @end example
 
 or add
@@ -276,7 +276,8 @@ If the variable @code{srecode-insert-ask-variable-method} is set to
 instead create ``fields'' in the buffer.  A field-editing layer
 provides simple interaction through the fields.  Typing in a field
 will cause all variable locations that are the same to edit at the
-same time.  Pressing TAB on a field will move you to the next field.
+same time.  Pressing @kbd{@key{TAB}} on a field will move you to the
+next field.
 
 @node SRecode Minor Mode
 @chapter SRecode Minor Mode
@@ -284,17 +285,17 @@ same time.  Pressing TAB on a field will move you to the next field.
 The Semantic Recode minor mode enables a keymap and menu that provides
 simple access to different templates or template applications.
 
-The key prefix is @key{C-c /}.
+The key prefix is @kbd{C-c /}.
 
 If the variable @code{srecode-takeover-INS-key} is set, then the key
-@key{<insert>} can also be used.
+@kbd{@key{INSERT}} can also be used.
 
 The most important key is bound to @code{srecode-insert} which is
-@key{C-c / /}, or @key{insert insert}.  @ref{Quick Start}.
+@kbd{C-c / /}, or @kbd{@key{INSERT} @key{INSERT}}.  @ref{Quick Start}.
 
 Major keybindings are:
 
-@table @key
+@table @kbd
 @item C-c / /
 Insert a template whose name is typed into the minibuffer.
 @item C-c / <lower case letter>
@@ -338,7 +339,7 @@ will not be prompted to fill in values while the template is
 inserted.  Instead, short regions will be highlighted, and the cursor
 placed in a field.  Typing in the field will then fill in the value.
 Several fields might be linked together.  In that case, typing in one
-area will modify the other linked areas.  Pressing TAB will move
+area will modify the other linked areas.  Pressing @key{TAB} will move
 between editable fields in the template.
 
 Once the cursor moves out of the are inserted by the template, all the

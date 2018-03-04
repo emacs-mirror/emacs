@@ -131,9 +131,6 @@
 ;; define viper-vi-command-p
 (viper-test-com-defun viper-vi-command)
 
-;; Where viper saves mark. This mark is resurrected by m^
-(defvar viper-saved-mark nil)
-
 ;; Contains user settings for vars affected by viper-set-expert-level function.
 ;; Not a user option.
 (defvar viper-saved-user-settings nil)

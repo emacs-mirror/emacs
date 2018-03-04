@@ -1,4 +1,4 @@
-;;; mm-extern.el --- showing message/external-body
+;;; mm-extern.el --- showing message/external-body  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (require 'mm-util)
 (require 'mm-decode)
 (require 'mm-url)
@@ -33,13 +31,13 @@
 (defvar gnus-article-mime-handles)
 
 (defvar mm-extern-function-alist
-  '((local-file . mm-extern-local-file)
-    (url . mm-extern-url)
-    (anon-ftp . mm-extern-anon-ftp)
-    (ftp . mm-extern-ftp)
-;;;     (tftp . mm-extern-tftp)
-    (mail-server . mm-extern-mail-server)
-;;;     (afs . mm-extern-afs))
+  `((local-file . ,#'mm-extern-local-file)
+    (url . ,#'mm-extern-url)
+    (anon-ftp . ,#'mm-extern-anon-ftp)
+    (ftp . ,#'mm-extern-ftp)
+    ;; (tftp . ,#'mm-extern-tftp)
+    (mail-server . ,#'mm-extern-mail-server)
+    ;; (afs . ,#'mm-extern-afs))
     ))
 
 (defvar mm-extern-anonymous "anonymous")
@@ -72,7 +70,6 @@
 	 (name (cdr (assq 'name params)))
 	 (site (cdr (assq 'site params)))
 	 (directory (cdr (assq 'directory params)))
-	 (mode (cdr (assq 'mode params)))
 	 (path (concat "/" (or mm-extern-anonymous
 			       (read-string (format "ID for %s: " site)))
 		       "@" site ":" directory "/" name))
@@ -86,7 +83,7 @@
   (let (mm-extern-anonymous)
     (mm-extern-anon-ftp handle)))
 
-(declare-function message-goto-body "message" ())
+(declare-function message-goto-body "message" (&optional interactive))
 
 (defun mm-extern-mail-server (handle)
   (require 'message)

@@ -207,7 +207,7 @@ Thus, this does not include the current directory.")
   (when eshell-cd-on-directory
     (make-local-variable 'eshell-interpreter-alist)
     (setq eshell-interpreter-alist
-	  (cons (cons #'(lambda (file args)
+	  (cons (cons #'(lambda (file _args)
                           (eshell-lone-directory-p file))
 		      'eshell-dirs-substitute-cd)
 		eshell-interpreter-alist)))
@@ -300,7 +300,7 @@ Thus, this does not include the current directory.")
 		    (file-name-as-directory (cdr user))))
 		 eshell-user-names)))))))
 
-(defun eshell/pwd (&rest args)
+(defun eshell/pwd (&rest _args)
   "Change output from `pwd' to be cleaner."
   (let* ((path default-directory)
 	 (len (length path)))

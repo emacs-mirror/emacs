@@ -1145,7 +1145,7 @@ Typing @kbd{RET} on a reference line jumps to that reference.
 
 @node MRU Bookmarks
 @section MRU Bookmarks mode
-@cindex semantic-mru-bookmark-mode
+@cindex @code{semantic-mru-bookmark-mode}
 
 Semantic MRU Bookmarks mode is a minor mode that keeps track of the
 tags you have edited, allowing you to quickly return to them later
@@ -1193,7 +1193,7 @@ declarations.  Other possible tag classes are @code{variable},
 
 @node Highlight Func Mode
 @section Highlight Func Mode
-@cindex semantic-highlight-func-mode
+@cindex @code{semantic-highlight-func-mode}
 
 Semantic Highlight Function minor mode highlights the declaration line
 of the current function or tag (that is to say, the first line that
@@ -1220,7 +1220,7 @@ Func mode.
 
 @node Tag Decoration Mode
 @section Tag Decoration Mode
-@cindex semantic-decoration-mode
+@cindex @code{semantic-decoration-mode}
 
 Semantic Tag Decoration mode ``decorates'' each tag based on certain
 arbitrary features of that tag.  Decorations are specified using the

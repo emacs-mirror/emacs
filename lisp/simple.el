@@ -121,6 +121,11 @@ If non-nil, the value is passed directly to `recenter'."
 A buffer becomes most recent when its compilation, grep, or
 similar mode is started, or when it is used with \\[next-error]
 or \\[compile-goto-error].")
+
+;; next-error-last-buffer is made buffer-local to keep the reference
+;; to the parent buffer used to navigate to the current buffer, so the
+;; next call of next-buffer will use the same parent buffer to
+;; continue navigation from it.
 (make-variable-buffer-local 'next-error-last-buffer)
 
 (defvar next-error-function nil
@@ -170,11 +175,11 @@ rejected, and the function returns nil."
 	   (and extra-test-inclusive
 		(funcall extra-test-inclusive))))))
 
-(defcustom next-error-find-buffer-function nil
+(defcustom next-error-find-buffer-function #'ignore
   "Function called to find a `next-error' capable buffer."
   :type '(choice (const :tag "Single next-error capable buffer on selected frame"
                         next-error-buffer-on-selected-frame)
-                 (const :tag "No default" nil)
+                 (const :tag "No default" ignore)
                  (function :tag "Other function"))
   :group 'next-error
   :version "27.1")
@@ -212,10 +217,9 @@ that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (or
    ;; 1. If a customizable function returns a buffer, use it.
-   (when next-error-find-buffer-function
-     (funcall next-error-find-buffer-function avoid-current
-                                              extra-test-inclusive
-                                              extra-test-exclusive))
+   (funcall next-error-find-buffer-function avoid-current
+                                            extra-test-inclusive
+                                            extra-test-exclusive)
    ;; 2. If next-error-last-buffer is an acceptable buffer, use that.
    (if (and next-error-last-buffer
             (next-error-buffer-p next-error-last-buffer avoid-current

@@ -141,10 +141,10 @@
 (require 'rfc2104)
 ;; Hmm... digest-md5 is not part of Emacs.
 ;; FIXME: Should/can we use sasl-digest.el instead?
-(declare-function digest-md5-parse-digest-challenge "digest-md5")
-(declare-function digest-md5-digest-response "digest-md5")
-(declare-function digest-md5-digest-uri "digest-md5")
-(declare-function digest-md5-challenge "digest-md5")
+(declare-function digest-md5-parse-digest-challenge "ext:digest-md5")
+(declare-function digest-md5-digest-response "ext:digest-md5")
+(declare-function digest-md5-digest-uri "ext:digest-md5")
+(declare-function digest-md5-challenge "ext:digest-md5")
 
 ;; User variables.
 

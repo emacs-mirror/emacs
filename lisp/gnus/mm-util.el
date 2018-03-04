@@ -1,4 +1,4 @@
-;;; mm-util.el --- Utility functions for Mule and low level things
+;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'mail-prsvr)
 (require 'timer)
 
@@ -431,7 +431,7 @@ mail with multiple parts is preferred to sending a Unicode one.")
      (#x94 . #x201D) (#x95 . #x2022) (#x96 . #x2013) (#x97 . #x2014)
      (#x98 . #x02DC) (#x99 . #x2122) (#x9A . #x0161) (#x9B . #x203A)
      (#x9C . #x0153) (#x9E . #x017E) (#x9F . #x0178)))
-  "*Alist of extra numeric entities and characters other than ISO 10646.
+  "Alist of extra numeric entities and characters other than ISO 10646.
 This table is used for decoding extra numeric entities to characters,
 like \"&#128;\" to the euro sign, mainly in html messages."
   :type '(alist :key-type character :value-type character)
@@ -521,7 +521,7 @@ If POS is out of range, the value is nil."
   enable-multibyte-characters)
 
 (defun mm-iso-8859-x-to-15-region (&optional b e)
-  (let (charset item c inconvertible)
+  (let (item c inconvertible)
     (save-restriction
       (if e (narrow-to-region b e))
       (goto-char (point-min))
@@ -597,7 +597,7 @@ charset, and a longer list means no appropriate charset."
 	;; We're not multibyte, or a single coding system won't cover it.
 	(setq charsets
 	      (delete-dups
-	       (mapcar 'mm-mime-charset
+	       (mapcar #'mm-mime-charset
 		       (delq 'ascii
 			     (mm-find-charset-region b e))))))
     (if (and (> (length charsets) 1)
@@ -612,40 +612,18 @@ charset, and a longer list means no appropriate charset."
     charsets))
 
 (defmacro mm-with-unibyte-buffer (&rest forms)
-  "Create a temporary buffer, and evaluate FORMS there like `progn'.
-Use unibyte mode for this."
+  "Create a temporary unibyte buffer, and evaluate FORMS there like `progn'."
+  (declare (indent 0) (debug t))
   `(with-temp-buffer
      (mm-disable-multibyte)
      ,@forms))
-(put 'mm-with-unibyte-buffer 'lisp-indent-function 0)
-(put 'mm-with-unibyte-buffer 'edebug-form-spec '(body))
 
 (defmacro mm-with-multibyte-buffer (&rest forms)
-  "Create a temporary buffer, and evaluate FORMS there like `progn'.
-Use multibyte mode for this."
+  "Create a temporary multibyte buffer, and evaluate FORMS there like `progn'."
+  (declare (indent 0) (debug t))
   `(with-temp-buffer
      (mm-enable-multibyte)
      ,@forms))
-(put 'mm-with-multibyte-buffer 'lisp-indent-function 0)
-(put 'mm-with-multibyte-buffer 'edebug-form-spec '(body))
-
-(defmacro mm-with-unibyte-current-buffer (&rest forms)
-  "Evaluate FORMS with current buffer temporarily made unibyte.
-
-Note: We recommend not using this macro any more; there should be
-better ways to do a similar thing.  The previous version of this macro
-bound the default value of `enable-multibyte-characters' to nil while
-evaluating FORMS but it is no longer done.  So, some programs assuming
-it if any may malfunction."
-  (declare (obsolete nil "25.1") (indent 0) (debug t))
-  (let ((multibyte (make-symbol "multibyte")))
-    `(let ((,multibyte enable-multibyte-characters))
-       (when ,multibyte
-	 (set-buffer-multibyte nil))
-       (prog1
-	   (progn ,@forms)
-	 (when ,multibyte
-	   (set-buffer-multibyte t))))))
 
 (defun mm-find-charset-region (b e)
   "Return a list of Emacs charsets in the region B to E."
@@ -699,21 +677,26 @@ to advanced Emacs features, such as file-name-handlers, format decoding,
 `find-file-hook', etc.
 If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'.
 This function ensures that none of these modifications will take place."
-  (letf* ((format-alist nil)
-          (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
-          ((default-value 'major-mode) 'fundamental-mode)
-          (enable-local-variables nil)
-          (after-insert-file-functions nil)
-          (enable-local-eval nil)
-          (inhibit-file-name-operation (if inhibit
-                                           'insert-file-contents
-                                         inhibit-file-name-operation))
-          (inhibit-file-name-handlers
-           (if inhibit
-               (append mm-inhibit-file-name-handlers
-                       inhibit-file-name-handlers)
-             inhibit-file-name-handlers))
-	  (find-file-hook nil))
+  (cl-letf* ((format-alist nil)
+             ;; FIXME: insert-file-contents doesn't look at auto-mode-alist,
+             ;; nor at (default-value 'major-mode)!
+             (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
+             ((default-value 'major-mode) 'fundamental-mode)
+             ;; FIXME: neither enable-local-variables nor enable-local-eval are
+             ;; run by insert-file-contents, AFAICT?!
+             (enable-local-variables nil)
+             (after-insert-file-functions nil)
+             (enable-local-eval nil)
+             (inhibit-file-name-operation (if inhibit
+                                              'insert-file-contents
+                                            inhibit-file-name-operation))
+             (inhibit-file-name-handlers
+              (if inhibit
+                  (append mm-inhibit-file-name-handlers
+                          inhibit-file-name-handlers)
+                inhibit-file-name-handlers))
+             ;; FIXME: insert-file-contents doesn't run find-file-hook anyway!
+	     (find-file-hook nil))
     (insert-file-contents filename visit beg end replace)))
 
 (defun mm-append-to-file (start end filename &optional codesys inhibit)
@@ -838,17 +821,18 @@ decompressed data.  The buffer's multibyteness must be turned off."
 				       prog t (list t err-file) nil args)
 				jka-compr-acceptable-retval-list)
 		    (erase-buffer)
-		    (insert (mapconcat 'identity
+		    (insert (mapconcat #'identity
 				       (split-string
 					(prog2
 					    (insert-file-contents err-file)
 					    (buffer-string)
-					  (erase-buffer)) t)
+					  (erase-buffer))
+                                        t)
 				       " ")
 			    "\n")
 		    (setq err-msg
 			  (format "Error while executing \"%s %s < %s\""
-				  prog (mapconcat 'identity args " ")
+				  prog (mapconcat #'identity args " ")
 				  filename)))
 		  (setq retval (buffer-string)))
 	      (error

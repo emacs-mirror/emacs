@@ -92,7 +92,7 @@ the first @samp{F} previously found.  After another @kbd{O}, the
 cursor moves to just after the first @samp{FOO}.
 
 @cindex faces for highlighting search matches
-@cindex isearch face
+@cindex @code{isearch} face
   At each step, Emacs highlights the @dfn{current match}---the buffer
 text that matches the search string---using the @code{isearch} face
 (@pxref{Faces}).  @xref{Search Customizations}, for various options
@@ -280,7 +280,7 @@ down-casing.
 @node Error in Isearch
 @subsection Errors in Incremental Search
 
-@cindex isearch-fail face
+@cindex @code{isearch-fail} face
   If your string is not found at all, the echo area says @samp{Failing
 I-Search}, and the cursor moves past the place where Emacs found as
 much of your string as it could.  Thus, if you search for @samp{FOOT},
@@ -437,7 +437,7 @@ of the keymap @code{isearch-mode-map} (@pxref{Keymaps}).
 
 This subsection describes how to control whether typing a command not
 specifically meaningful in searches exits the search before executing
-the command.  It also describes two categories of commands which you
+the command.  It also describes three categories of commands which you
 can type without exiting the current incremental search, even though
 they are not themselves part of incremental search.
 
@@ -507,6 +507,18 @@ change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
 an incremental search.  This feature is disabled if
 @code{isearch-allow-scroll} is @code{nil} (which it is by default).
+
+@item Motion Commands
+@cindex motion commands, during incremental search
+When @code{search-exit-option} is customized to @code{shift-move},
+you can extend the search string by holding down the shift key while
+typing cursor motion commands.  It will yank text that ends at the new
+position after moving point in the current buffer.
+
+When @code{search-exit-option} is @code{move}, you can extend the
+search string without using the shift key for cursor motion commands,
+but it applies only for certain motion command that have the
+@code{isearch-move} property on their symbols.
 @end table
 
 @node Isearch Minibuffer
@@ -1552,8 +1564,8 @@ replacements are not added to the command history, and cannot be
 reused.
 
 @cindex faces for highlighting query replace
-@cindex query-replace face
-@cindex lazy-highlight face, in replace
+@cindex @code{query-replace} face
+@cindex @code{lazy-highlight} face, in replace
 @vindex query-replace-highlight
 @vindex query-replace-lazy-highlight
 @vindex query-replace-show-replacement
@@ -1869,7 +1881,7 @@ setting the variable @code{search-highlight} to @code{nil}.
 
 @cindex lazy highlighting customizations
 @vindex isearch-lazy-highlight
-@cindex lazy-highlight face
+@cindex @code{lazy-highlight} face
   The other matches for the search string that are visible on display
 are highlighted using the @code{lazy-highlight} face.  Setting the
 variable @code{isearch-lazy-highlight} to @code{nil} disables this

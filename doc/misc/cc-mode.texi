@@ -356,9 +356,9 @@ Customizing Macros
 
 @cindex BOCM
 @cindex history
-@cindex awk-mode.el
-@cindex c-mode.el
-@cindex c++-mode.el
+@cindex @file{awk-mode.el}
+@cindex @file{c-mode.el}
+@cindex @file{c++-mode.el}
 
 Welcome to @ccmode{}, a GNU Emacs mode for editing files containing C,
 C++, Objective-C, Java, CORBA IDL (and the variants CORBA PSDL and
@@ -577,9 +577,9 @@ for the latest information on Emacs version and package compatibility
 
 @deffn Command c-version
 @findex version @r{(c-)}
-You can find out what version of @ccmode{} you are using by visiting a C
-file and entering @kbd{M-x c-version RET}.  You should see this message in
-the echo area:
+You can find out what version of @ccmode{} you are using by visiting a
+C file and entering @kbd{M-x c-version @key{RET}}.  You should see
+this message in the echo area:
 
 @example
 Using CC Mode version 5.XX
@@ -920,8 +920,8 @@ must be in column zero.  See @ref{Defuns,,,@emacsman{},
 
 @item @kbd{C-M-a} (AWK Mode) (@code{c-awk-beginning-of-defun})
 @itemx @kbd{C-M-e} (AWK Mode) (@code{c-awk-end-of-defun})
-@kindex C-M-a (AWK Mode)
-@kindex C-M-e (AWK Mode)
+@kindex C-M-a @r{(AWK Mode)}
+@kindex C-M-e @r{(AWK Mode)}
 @findex c-awk-beginning-of-defun
 @findex awk-beginning-of-defun @r{(c-)}
 @findex c-awk-end-of-defun
@@ -1521,7 +1521,7 @@ deletion.
 @kindex DEL
 @findex c-electric-backspace
 @findex electric-backspace @r{(c-)}
-This command is run by default when you hit the @kbd{DEL} key.  When
+This command is run by default when you hit the @kbd{@key{DEL}} key.  When
 hungry delete mode is enabled, it deletes any amount of whitespace in
 the backwards direction.  Otherwise, or when used with a prefix
 argument or in a literal (@pxref{Auto-newlines}), the command just
@@ -1567,8 +1567,8 @@ rather than using the minor mode toggling.
 
 @table @asis
 @item @kbd{C-c C-@key{DEL}}, or @kbd{C-c @key{DEL}} (@code{c-hungry-delete-backwards})@footnote{This command was formerly known as @code{c-hungry-backspace}.}
-@kindex C-c C-<backspace>
-@kindex C-c <backspace>
+@kindex C-c C-Backspace
+@kindex C-c Backspace
 @kindex C-c C-DEL
 @kindex C-c DEL
 @findex c-hungry-delete-backwards
@@ -1581,21 +1581,21 @@ a character terminal.
 
 @item @kbd{C-c C-d}, @kbd{C-c C-@key{DELETE}}, or @kbd{C-c @key{DELETE}} (@code{c-hungry-delete-forward})
 @kindex C-c C-d
-@kindex C-c C-<DELETE>
-@kindex C-c <DELETE>
+@kindex C-c C-Delete
+@kindex C-c Delete
 @findex c-hungry-delete-forward
 @findex hungry-delete-forward @r{(c-)}
 Delete any amount of whitespace in the forward direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
-to both @kbd{C-c C-@key{DELETE}} and @kbd{C-c @key{DELETE}} for the
+to both @kbd{C-c C-@key{Delete}} and @kbd{C-c @key{Delete}} for the
 same reason as for @key{DEL} above.
 @end table
 @end table
 
-@kindex <delete>
-@kindex <backspace>
+@kindex Delete
+@kindex Backspace
 
-When we talk about @kbd{@key{DEL}}, and @kbd{@key{DELETE}} above, we
+When we talk about @kbd{@key{DEL}}, and @kbd{@key{Delete}} above, we
 actually do so without connecting them to the physical keys commonly
 known as @key{Backspace} and @key{Delete}.  The default bindings to
 those two keys depends on the flavor of (X)Emacs you are using.
@@ -1708,7 +1708,7 @@ nomenclature and treat them as separate words:
 @item     @kbd{M-b}   @tab @code{backward-word}      @tab @code{c-backward-subword}
 @item     @kbd{M-@@}  @tab @code{mark-word}          @tab @code{c-mark-subword}
 @item     @kbd{M-d}   @tab @code{kill-word}          @tab @code{c-kill-subword}
-@item     @kbd{M-DEL} @tab @code{backward-kill-word} @tab @code{c-backward-kill-subword}
+@item     @kbd{M-@key{DEL}} @tab @code{backward-kill-word} @tab @code{c-backward-kill-subword}
 @item     @kbd{M-t}   @tab @code{transpose-words}    @tab @code{c-transpose-subwords}
 @item     @kbd{M-c}   @tab @code{capitalize-word}    @tab @code{c-capitalize-subword}
 @item     @kbd{M-u}   @tab @code{upcase-word}        @tab @code{c-upcase-subword}
@@ -7250,13 +7250,13 @@ Set the variable @code{c-basic-offset}.  @xref{Getting Started}.
 @item
 @kindex RET
 @kindex C-j
-@emph{Why does/doesn't the @kbd{RET} key indent the new line?}
+@emph{Why does/doesn't the @kbd{@key{RET}} key indent the new line?}
 
 Emacs's convention used to be that @kbd{RET} just adds a newline, and that
 @kbd{C-j} adds a newline and indents it.  In Emacs-24.4, this convention was
 reversed.
 
-If you use an older Emacs and you want @kbd{RET} do this
+If you use an older Emacs and you want @kbd{@key{RET}} do this
 too, add this to your @code{c-initialization-hook}:
 
 @example

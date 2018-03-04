@@ -20930,7 +20930,7 @@
 
 2017-04-24  Alan Third  <alan@idiocy.org>
 
-	Fix XBM colour rendering in NS port (bug#22060)
+	Fix XBM color rendering in NS port (bug#22060)
 
 	src/nsimage.m (setXBMColor): Fix calculation of xbm_fg.
 
@@ -38136,7 +38136,7 @@
 	                         ^
 
 	* src/frame.c (x_set_frame_parameters): Drop width_changed and
-	height_changed variables in favour of storing that information in
+	height_changed variables in favor of storing that information in
 	width and height variables.
 
 2016-09-12  Michal Nazarewicz  <mina86@mina86.com>
@@ -38193,7 +38193,7 @@
 
 	Refactor common code in {upcase,downcase,capitalize}-word functions
 
-	* src/casefiddle.c (operate_on_word): Removed in favour of…
+	* src/casefiddle.c (operate_on_word): Removed in favor of…
 	(casify_word) …new function which does what operate_on_word did plus
 	what all of the common code from *-word functions.
 	(upcase-word, downcase-word, capitalize-word): Move code common between
@@ -38418,9 +38418,9 @@
 	alphabeticp.  Because both of those functions require Unicode general
 	category lookup, this resulted in unnecessary lookups (if alphabeticp
 	return false decimalp had to perform another lookup).  Drop decimalnump
-	in favour of alphanumericp which combines decimelnump with alphabeticp.
+	in favor of alphanumericp which combines decimelnump with alphabeticp.
 
-	* src/character.c (decimalnump): Remove in favour of…
+	* src/character.c (decimalnump): Remove in favor of…
 	(alphanumericp): …new function.
 
 	* src/regex.c (ISALNUM): Use alphanumericp.
@@ -42329,9 +42329,9 @@
 
 	Enable dividers in NS (bug#22973)
 
-	src/nsfns.m: Add colour settings functions to ns_frame_park_handlers.
+	src/nsfns.m: Add color settings functions to ns_frame_park_handlers.
 	src/nsterm.m (ns_draw_window_divider): ns_focus has to go before the
-	attempt to set the colour.
+	attempt to set the color.
 	src/nsterm.m (ns_draw_vertical_window_border): This had the same bug as
 	above, although I didn't see any errors.
 
@@ -43563,10 +43563,10 @@
 
 2016-06-08  Michal Nazarewicz  <mina86@mina86.com>
 
-	Remove ‘ert-with-function-mocked’ macro in favour of ‘cl-letf’ macro
+	Remove ‘ert-with-function-mocked’ macro in favor of ‘cl-letf’ macro
 
 	* lisp/emacs-lisp/ert-x.el (ert-with-function-mocked): Remove macro
-	in favour of ‘cl-letf’ macro which is more generic.  All existing
+	in favor of ‘cl-letf’ macro which is more generic.  All existing
 	uses are migrated accordingly.  The macro has not been included in
 	an official release yet so it should be fine to delete it.
 
@@ -49635,7 +49635,7 @@
 
 2016-02-27  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
-	Show the face colours when completing in `read-color'
+	Show the face colors when completing in `read-color'
 
 	* lisp/faces.el (defined-colors-with-face-attributes): New function.
 	(readable-foreground-color, defined-colors-with-face-attributes)

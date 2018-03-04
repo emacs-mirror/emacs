@@ -590,7 +590,7 @@ you can access it using the following Emacs commands:
 @table @kbd
 @findex mouse-set-secondary
 @kindex M-Drag-mouse-1
-@cindex secondary-selection face
+@cindex @code{secondary-selection} face
 @item M-Drag-mouse-1
 Set the secondary selection, with one end at the place where you press
 down the button, and the other end at the place where you release it
@@ -857,7 +857,8 @@ region is active.
 
 Unlike the standard region, the region-rectangle can have its corners
 extended past the end of buffer, or inside stretches of white space
-that point normally cannot enter, like the TAB.
+that point normally cannot enter, like in the middle of a TAB
+character.
 
 @findex rectangle-exchange-point-and-mark
 @findex exchange-point-and-mark@r{, in rectangle-mark-mode}

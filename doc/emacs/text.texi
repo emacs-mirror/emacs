@@ -1380,19 +1380,19 @@ buffer cycles the visibility of the entire outline structure, between
 (i) showing only top-level heading lines, (ii) showing all heading
 lines but no body lines, and (iii) showing everything.
 
-@kindex M-<up> @r{(Org Mode)}
-@kindex M-<down> @r{(Org Mode)}
-@kindex M-<left> @r{(Org Mode)}
-@kindex M-<right> @r{(Org Mode)}
+@kindex M-UP @r{(Org Mode)}
+@kindex M-DOWN @r{(Org Mode)}
+@kindex M-LEFT @r{(Org Mode)}
+@kindex M-RIGHT @r{(Org Mode)}
 @findex org-metaup
 @findex org-metadown
 @findex org-metaleft
 @findex org-metaright
   You can move an entire entry up or down in the buffer, including its
-body lines and subtree (if any), by typing @kbd{M-<up>}
-(@code{org-metaup}) or @kbd{M-<down>} (@code{org-metadown}) on the
+body lines and subtree (if any), by typing @kbd{M-@key{UP}}
+(@code{org-metaup}) or @kbd{M-@key{DOWN}} (@code{org-metadown}) on the
 heading line.  Similarly, you can promote or demote a heading line
-with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<right>}
+with @kbd{M-@key{LEFT}} (@code{org-metaleft}) and @kbd{M-@key{RIGHT}}
 (@code{org-metaright}).  These commands execute their global bindings
 if invoked on a body line.
 
@@ -2175,7 +2175,7 @@ text properties.
 @cindex soft newline
 @cindex newlines, hard and soft
 
-@cindex use-hard-newlines
+@findex use-hard-newlines
   In Enriched mode, Emacs distinguishes between two different kinds of
 newlines, @dfn{hard} newlines and @dfn{soft} newlines.  You can also
 enable or disable this feature in other buffers, by typing @kbd{M-x

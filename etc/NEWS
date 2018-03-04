@@ -180,6 +180,14 @@ created by 'edit-last-kbd-macro', and to save the macro by 'C-c C-c'.
 ---
 *** New filter ibuffer-filter-by-process; bound to '/E'.
 
+** Search and Replace
+
+*** 'search-exit-option' provides new options 'move' and 'shift-move'
+to extend the search string by yanking text that ends at the new
+position after moving point in the current buffer.  'shift-move'
+extends the search string by motion commands while holding down
+the shift key.
+
 ** Edebug
 
 +++

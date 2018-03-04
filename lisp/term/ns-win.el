@@ -738,6 +738,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;;; macOS-like defaults for trackpad and mouse wheel scrolling on
 ;;;; macOS 10.7+.
 
+(defvar ns-version-string)
+(defvar mouse-wheel-scroll-amount)
+(defvar mouse-wheel-progressive-speed)
+
 ;; FIXME: This doesn't look right.  Is there a better way to do this
 ;; that keeps customize happy?
 (when (featurep 'cocoa)

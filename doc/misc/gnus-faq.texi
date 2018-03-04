@@ -397,7 +397,7 @@ The ~/ means the home directory where Gnus and Emacs look
 for the configuration files.  However, you don't really
 need to know what this means, it suffices that Emacs knows
 what it means :-) You can type
-@samp{C-x C-f ~/.gnus.el RET }
+@samp{C-x C-f ~/.gnus.el @key{RET}}
 (yes, with the forward slash, even on Windows), and
 Emacs will open the right file for you.  (It will most
 likely be new, and thus empty.)
@@ -422,7 +422,7 @@ possibility to set environment variables.  Create a new one with
 name HOME and value C:\myhome.  Rebooting is not necessary.
 
 Now to create @file{~/.gnus.el}, say
-@samp{C-x C-f ~/.gnus.el RET C-x C-s}.
+@samp{C-x C-f ~/.gnus.el @key{RET} C-x C-s}.
 in Emacs.
 
 @node FAQ 3-3
@@ -459,11 +459,11 @@ subscribe to a group.
 @subsubheading Answer
 
 If you know the name of the group say @samp{U
-name.of.group RET} in group buffer (use the
+name.of.group @key{RET}} in group buffer (use the
 tab-completion Luke). Otherwise hit ^ in group buffer,
 this brings you to the server buffer. Now place point (the
 cursor) over the server which carries the group you want,
-hit @samp{RET}, move point to the group
+hit @samp{@key{RET}}, move point to the group
 you want to subscribe to and say @samp{u}
 to subscribe to it.
 
@@ -753,11 +753,11 @@ When I enter a group, all read messages are gone. How to view them again?
 @subsubheading Answer
 
 If you enter the group by saying
-@samp{RET}
+@samp{@key{RET}}
 in group buffer with point over the group, only unread and ticked messages are loaded. Say
-@samp{C-u RET}
+@samp{C-u @key{RET}}
 instead to load all available messages. If you want only the 300 newest say
-@samp{C-u 300 RET}
+@samp{C-u 300 @key{RET}}
 
 Loading only unread messages can be annoying if you have threaded view enabled, say
 
@@ -1019,7 +1019,7 @@ back ends. Gnus thinks ``highest-article-number @minus{}
 lowest-article-number = total-number-of-articles''. This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails. To cure the
-symptom, enter the group via @samp{C-u RET}
+symptom, enter the group via @samp{C-u @key{RET}}
 (this makes Gnus get all messages), then
 hit @samp{M P b} to mark all messages and
 then say @samp{B m name.of.group} to move
@@ -1494,8 +1494,8 @@ place them in ~/.emacs:
 @end example
 @noindent
 
-Now you should be ready to go. Say @samp{M-x bbdb RET
-RET} to open a bbdb buffer showing all
+Now you should be ready to go. Say @samp{M-x bbdb @key{RET}
+@key{RET}} to open a bbdb buffer showing all
 entries. Say @samp{c} to create a new
 entry, @samp{b} to search your BBDB and
 @samp{C-o} to add a new field to an
@@ -1734,15 +1734,15 @@ world, you may find tools at
 
 Now you've got to import this mbox file into Gnus. To do
 this, create a nndoc group based on the mbox file by
-saying @samp{G f /path/file.mbox RET} in
+saying @samp{G f /path/file.mbox @key{RET}} in
 Group buffer. You now have read-only access to your
 mail. If you want to import the messages to your normal
 Gnus mail groups hierarchy, enter the nndoc group you've
-just created by saying @samp{C-u RET}
+just created by saying @samp{C-u @key{RET}}
 (thus making sure all messages are retrieved), mark all
 messages by saying @samp{M P b} and
 either copy them to the desired group by saying
-@samp{B c name.of.group RET} or send them
+@samp{B c name.of.group @key{RET}} or send them
 through nnmail-split-methods (respool them) by saying
 @samp{B r}.
 
@@ -1809,7 +1809,7 @@ a Usenet group the easiest solution is probably to ask
 @uref{http://groups.google.com, groups.google.com},
 if you found the posting there, tell Google to display
 the raw message, look for the message-id, and say
-@samp{M-^ the@@message.id RET} in a
+@samp{M-^ the@@message.id @key{RET}} in a
 summary buffer.
 Since Gnus 5.10 there's also a Gnus interface for
 groups.google.com which you can call with
@@ -1853,7 +1853,7 @@ How to get rid of old unwanted mail?
 
 You can of course just mark the mail you don't need
 anymore by saying @samp{#} with point
-over the mail and then say @samp{B DEL}
+over the mail and then say @samp{B @key{DEL}}
 to get rid of them forever. You could also instead of
 actually deleting them, send them to a junk-group by
 saying @samp{B m nnml:trash-bin} which
@@ -2089,7 +2089,7 @@ How to find information and help inside Emacs?
 @subsubheading Answer
 
 The first stop should be the Gnus manual (Say
-@samp{C-h i d m Gnus RET} to start the
+@samp{C-h i d m Gnus @key{RET}} to start the
 Gnus manual, then walk through the menus or do a
 full-text search with @samp{s}). Then
 there are the general Emacs help commands starting with
@@ -2191,8 +2191,8 @@ The reason for this could be the way Gnus reads its
 active file, see the node "The Active File" in the Gnus
 manual for things you might try to speed the process up.
 An other idea would be to byte compile your @file{~/.gnus.el} (say
-@samp{M-x byte-compile-file RET ~/.gnus.el
-RET} to do it). Finally, if you have require
+@samp{M-x byte-compile-file @key{RET} ~/.gnus.el
+@key{RET}} to do it). Finally, if you have require
 statements in your .gnus, you could replace them with
 @code{with-eval-after-load}, which loads the stuff not at startup
 time, but when it's needed. Say you've got this in your

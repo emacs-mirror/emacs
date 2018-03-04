@@ -1223,8 +1223,8 @@ GTK resources
 
 * GTK Resource Basics::   Basic usage of GTK+ resources.
 * GTK Widget Names::      How GTK+ widgets are named.
-* GTK Names in Emacs::    GTK widgets used by Emacs.
-* GTK styles::            What can be customized in a GTK widget.
+* GTK Names in Emacs::    GTK+ widgets used by Emacs.
+* GTK styles::            What can be customized in a GTK+ widget.
 
 Emacs and macOS / GNUstep
 

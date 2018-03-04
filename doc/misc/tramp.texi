@@ -3040,12 +3040,19 @@ Java archives
 @cindex @file{jar} file archive suffix
 @cindex file archive suffix @file{jar}
 
-@item @samp{.lzh}, @samp{LZH} ---
+@item @samp{.lzh}, @samp{.LZH} ---
 Microsoft Windows compressed LHA archives
 @cindex @file{lzh} file archive suffix
 @cindex @file{LZH} file archive suffix
 @cindex file archive suffix @file{lzh}
 @cindex file archive suffix @file{LZH}
+
+@item @samp{.msu}, @samp{.MSU} ---
+Microsoft Windows Update packages
+@cindex @file{msu} file archive suffix
+@cindex @file{MSU} file archive suffix
+@cindex file archive suffix @file{msu}
+@cindex file archive suffix @file{MSU}
 
 @item @samp{.mtree} ---
 BSD mtree format
@@ -3072,7 +3079,7 @@ Shell archives
 @cindex @file{shar} file archive suffix
 @cindex file archive suffix @file{shar}
 
-@item @samp{.tar}, @samp{tbz}, @samp{tgz}, @samp{tlz}, @samp{txz} ---
+@item @samp{.tar}, @samp{.tbz}, @samp{.tgz}, @samp{.tlz}, @samp{.txz} ---
 (Compressed) tape archives
 @cindex @file{tar} file archive suffix
 @cindex @file{tbz} file archive suffix

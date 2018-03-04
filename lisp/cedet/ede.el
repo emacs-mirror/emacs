@@ -1095,6 +1095,7 @@ Flush the dead projects from the project cache."
     ))
 
 (defvar ede--disable-inode)             ;Defined in ede/files.el.
+(declare-function ede--project-inode "ede/files" (proj))
 
 (defun ede-global-list-sanity-check ()
   "Perform a sanity check to make sure there are no duplicate projects."

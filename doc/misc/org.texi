@@ -749,7 +749,7 @@ Specific header arguments
 
 Miscellaneous
 
-* Completion::                  M-TAB guesses completions
+* Completion::                  M-@key{TAB} guesses completions
 * Easy templates::              Quick insertion of structural elements
 * Speed keys::                  Electric commands at the beginning of a headline
 * Code evaluation security::    Org mode files evaluate inline code
@@ -884,7 +884,8 @@ We @b{strongly recommend} to stick to a single installation method.
 @subsubheading Using Emacs packaging system
 
 Recent Emacs distributions include a packaging system which lets you install
-Elisp libraries.  You can install Org with @kbd{M-x package-install RET org}.
+Elisp libraries.  You can install Org with @kbd{M-x package-install @key{RET}
+org}.
 
 @noindent @b{Important}: you need to do this in a session where no @code{.org} file has
 been visited, i.e., where no Org built-in function have been loaded.
@@ -1011,10 +1012,10 @@ version of Org available---if you are running an outdated version, it is
 quite possible that the bug has been fixed already.  If the bug persists,
 prepare a report and provide as much information as possible, including the
 version information of Emacs (@kbd{M-x emacs-version @key{RET}}) and Org
-(@kbd{M-x org-version RET}), as well as the Org related setup in the Emacs
-init file.  The easiest way to do this is to use the command
+(@kbd{M-x org-version @key{RET}}), as well as the Org related setup in the
+Emacs init file.  The easiest way to do this is to use the command
 @example
-@kbd{M-x org-submit-bug-report RET}
+@kbd{M-x org-submit-bug-report @key{RET}}
 @end example
 @noindent which will put all this information into an Emacs mail buffer so
 that you only need to add your description.  If you are not sending the Email
@@ -1074,7 +1075,7 @@ Reload uncompiled versions of all Org mode Lisp files.  The backtrace
 contains much more information if it is produced with uncompiled code.
 To do this, use
 @example
-@kbd{C-u M-x org-reload RET}
+@kbd{C-u M-x org-reload @key{RET}}
 @end example
 @noindent
 or select @code{Org -> Refresh/Reload -> Reload Org uncompiled} from the
@@ -1134,7 +1135,7 @@ accessing a functionality.  Org mode often uses the same key for different
 functions, depending on context.  The command that is bound to such keys has
 a generic name, like @code{org-metaright}.  In the manual we will, wherever
 possible, give the function that is internally called by the generic command.
-For example, in the chapter on document structure, @kbd{M-@key{right}} will
+For example, in the chapter on document structure, @kbd{M-@key{RIGHT}} will
 be listed to call @code{org-do-demote}, while in the chapter on tables, it
 will be listed to call @code{org-table-move-column-right}.  If you prefer,
 you can compile the manual without the command names by unsetting the flag
@@ -1340,9 +1341,9 @@ following lines anywhere in the buffer:
 #+STARTUP: showeverything
 @end example
 
-@cindex property, VISIBILITY
+@cindex property, @code{VISIBILITY}
 @noindent
-Furthermore, any entries with a @samp{VISIBILITY} property (@pxref{Properties
+Furthermore, any entries with a @code{VISIBILITY} property (@pxref{Properties
 and columns}) will get their visibility adapted accordingly.  Allowed values
 for this property are @code{folded}, @code{children}, @code{content}, and
 @code{all}.
@@ -1350,7 +1351,7 @@ for this property are @code{folded}, @code{children}, @code{content}, and
 @table @asis
 @orgcmd{C-u C-u @key{TAB},org-set-startup-visibility}
 Switch back to the startup visibility of the buffer, i.e., whatever is
-requested by startup options and @samp{VISIBILITY} properties in individual
+requested by startup options and @code{VISIBILITY} properties in individual
 entries.
 @end table
 
@@ -1390,7 +1391,7 @@ you can use the following keys to find your destination:
 @vindex org-goto-auto-isearch
 @example
 @key{TAB}         @r{Cycle visibility.}
-@key{down} / @key{up}   @r{Next/previous visible headline.}
+@key{DOWN} / @key{UP}   @r{Next/previous visible headline.}
 @key{RET}         @r{Select this location.}
 @kbd{/}           @r{Do a Sparse-tree search}
 @r{The following keys work if you turn off @code{org-goto-auto-isearch}}
@@ -1451,18 +1452,18 @@ In a new entry with no text yet, the first @key{TAB} demotes the entry to
 become a child of the previous one.  The next @key{TAB} makes it a parent,
 and so on, all the way to top level.  Yet another @key{TAB}, and you are back
 to the initial level.
-@orgcmd{M-@key{left},org-do-promote}
+@orgcmd{M-@key{LEFT},org-do-promote}
 Promote current heading by one level.
-@orgcmd{M-@key{right},org-do-demote}
+@orgcmd{M-@key{RIGHT},org-do-demote}
 Demote current heading by one level.
-@orgcmd{M-S-@key{left},org-promote-subtree}
+@orgcmd{M-S-@key{LEFT},org-promote-subtree}
 Promote the current subtree by one level.
-@orgcmd{M-S-@key{right},org-demote-subtree}
+@orgcmd{M-S-@key{RIGHT},org-demote-subtree}
 Demote the current subtree by one level.
-@orgcmd{M-@key{up},org-move-subtree-up}
+@orgcmd{M-@key{UP},org-move-subtree-up}
 Move subtree up (swap with previous subtree of same
 level).
-@orgcmd{M-@key{down},org-move-subtree-down}
+@orgcmd{M-@key{DOWN},org-move-subtree-down}
 Move subtree down (swap with next subtree of same level).
 @orgcmd{M-h,org-mark-element}
 Mark the element at point.  Hitting repeatedly will mark subsequent elements
@@ -1728,10 +1729,10 @@ one.
 @end table
 
 @table @kbd
-@kindex M-S-@key{RET}
+@kindex M-S-RET
 @item M-S-@key{RET}
 Insert a new item with a checkbox (@pxref{Checkboxes}).
-@kindex S-@key{down}
+@kindex S-DOWN
 @item S-up
 @itemx S-down
 @cindex shift-selection-mode
@@ -1741,25 +1742,25 @@ Jump to the previous/next item in the current list@footnote{If you want to
 cycle around items that way, you may customize
 @code{org-list-use-circular-motion}.}, but only if
 @code{org-support-shift-select} is off.  If not, you can still use paragraph
-jumping commands like @kbd{C-@key{up}} and @kbd{C-@key{down}} to quite
+jumping commands like @kbd{C-@key{UP}} and @kbd{C-@key{DOWN}} to quite
 similar effect.
-@kindex M-@key{up}
-@kindex M-@key{down}
+@kindex M-UP
+@kindex M-DOWN
 @item M-up
 @itemx M-down
 Move the item including subitems up/down@footnote{See
 @code{org-list-use-circular-motion} for a cyclic behavior.} (swap with
 previous/next item of same indentation).  If the list is ordered, renumbering
 is automatic.
-@kindex M-@key{left}
-@kindex M-@key{right}
+@kindex M-LEFT
+@kindex M-RIGHT
 @item M-left
 @itemx M-right
 Decrease/increase the indentation of an item, leaving children alone.
-@kindex M-S-@key{left}
-@kindex M-S-@key{right}
-@item M-S-@key{left}
-@itemx M-S-@key{right}
+@kindex M-S-LEFT
+@kindex M-S-RIGHT
+@item M-S-@key{LEFT}
+@itemx M-S-@key{RIGHT}
 Decrease/increase the indentation of the item, including subitems.
 Initially, the item tree is selected based on current indentation.  When
 these commands are executed several times in direct succession, the initially
@@ -1797,9 +1798,9 @@ its location).  @xref{Structure editing}, for a detailed explanation.
 Turn the whole plain list into a subtree of the current heading.  Checkboxes
 (@pxref{Checkboxes}) will become TODO (resp. DONE) keywords when unchecked
 (resp. checked).
-@kindex S-@key{left}
-@kindex S-@key{right}
-@item S-left/right
+@kindex S-LEFT
+@kindex S-RIGHT
+@item S-@key{LEFT}/@key{RIGHT}
 @vindex org-support-shift-select
 This command also cycles bullet styles when the cursor in on the bullet or
 anywhere in an item line, details depending on
@@ -1817,7 +1818,7 @@ or by a custom function.
 @cindex drawers
 @cindex visibility cycling, drawers
 
-@cindex org-insert-drawer
+@cindex @code{org-insert-drawer}
 @kindex C-c C-x d
 Sometimes you want to keep information associated with an entry, but you
 normally don't want to see it.  For this, Org mode has @emph{drawers}.  They
@@ -1873,7 +1874,7 @@ export output.  Property drawers are not affected by this variable: configure
 Org mode uses begin...end blocks for various purposes from including source
 code examples (@pxref{Literal examples}) to capturing time logging
 information (@pxref{Clocking work time}).  These blocks can be folded and
-unfolded by pressing TAB in the begin line.  You can also get all blocks
+unfolded by pressing @key{TAB} in the begin line.  You can also get all blocks
 folded at startup by configuring the option @code{org-hide-block-startup}
 or on a per-file basis by using
 
@@ -1997,7 +1998,7 @@ a separate window.  The window can be closed by pressing @kbd{C-c '}.
 If you like the intuitive way the Org mode structure editing and list
 formatting works, you might want to use these commands in other modes like
 Text mode or Mail mode as well.  The minor mode @code{orgstruct-mode} makes
-this possible.   Toggle the mode with @kbd{M-x orgstruct-mode RET}, or
+this possible.   Toggle the mode with @kbd{M-x orgstruct-mode @key{RET}}, or
 turn it on by default, for example in Message mode, with one of:
 
 @lisp
@@ -2038,7 +2039,7 @@ file falls into one of the categories above.
 To explore the abstract structure of an Org buffer, run this in a buffer:
 
 @lisp
-M-: (org-element-parse-buffer) RET
+M-: (org-element-parse-buffer) @key{RET}
 @end lisp
 
 It will output a list containing the buffer's content represented as an
@@ -2132,10 +2133,10 @@ table.  But it is easier just to start typing, like
 @orgcmd{C-c C-c,org-table-align}
 Re-align the table and don't move to another field.
 @c
-@orgcmd{C-c SPC,org-table-blank-field}
+@orgcmd{C-c @key{SPC},org-table-blank-field}
 Blank the field at point.
 @c
-@orgcmd{TAB,org-table-next-field}
+@orgcmd{@key{TAB},org-table-next-field}
 Re-align the table, move to the next field.  Creates a new row if
 necessary.
 @c
@@ -2153,22 +2154,22 @@ Move to beginning of the current table field, or on to the previous field.
 Move to end of the current table field, or on to the next field.
 
 @tsubheading{Column and row editing}
-@orgcmdkkcc{M-@key{left},M-@key{right},org-table-move-column-left,org-table-move-column-right}
+@orgcmdkkcc{M-@key{LEFT},M-@key{RIGHT},org-table-move-column-left,org-table-move-column-right}
 Move the current column left/right.
 @c
-@orgcmd{M-S-@key{left},org-table-delete-column}
+@orgcmd{M-S-@key{LEFT},org-table-delete-column}
 Kill the current column.
 @c
-@orgcmd{M-S-@key{right},org-table-insert-column}
+@orgcmd{M-S-@key{RIGHT},org-table-insert-column}
 Insert a new column to the left of the cursor position.
 @c
-@orgcmdkkcc{M-@key{up},M-@key{down},org-table-move-row-up,org-table-move-row-down}
+@orgcmdkkcc{M-@key{UP},M-@key{DOWN},org-table-move-row-up,org-table-move-row-down}
 Move the current row up/down.
 @c
-@orgcmd{M-S-@key{up},org-table-kill-row}
+@orgcmd{M-S-@key{UP},org-table-kill-row}
 Kill the current row or horizontal line.
 @c
-@orgcmd{M-S-@key{down},org-table-insert-row}
+@orgcmd{M-S-@key{DOWN},org-table-insert-row}
 Insert a new row above the current row.  With a prefix argument, the line is
 created below the current one.
 @c
@@ -2250,7 +2251,7 @@ window follow the cursor through the table and always show the current
 field.  The follow mode exits automatically when the cursor leaves the table,
 or when you repeat this command with @kbd{C-u C-u C-c `}.
 @c
-@item M-x org-table-import RET
+@item M-x org-table-import @key{RET}
 Import a file as a table.  The table should be TAB or whitespace
 separated.  Use, for example, to import a spreadsheet table or data
 from a database, because these programs generally can write
@@ -2263,7 +2264,7 @@ Tables can also be imported by pasting tabular text into the Org
 buffer, selecting the pasted text with @kbd{C-x C-x} and then using the
 @kbd{C-c |} command (see above under @i{Creation and conversion}).
 @c
-@item M-x org-table-export RET
+@item M-x org-table-export @key{RET}
 @findex org-table-export
 @vindex org-table-export-default-format
 Export the table, by default as a TAB-separated file.  Use for data
@@ -2388,11 +2389,11 @@ every vertical line you would like to have:
 @cindex Orgtbl mode
 @cindex minor mode for tables
 
-If you like the intuitive way the Org table editor works, you
-might also want to use it in other modes like Text mode or Mail mode.
-The minor mode Orgtbl mode makes this possible.  You can always toggle
-the mode with @kbd{M-x orgtbl-mode RET}.  To turn it on by default, for
-example in Message mode, use
+If you like the intuitive way the Org table editor works, you might also want
+to use it in other modes like Text mode or Mail mode.  The minor mode Orgtbl
+mode makes this possible.  You can always toggle the mode with @kbd{M-x
+orgtbl-mode @key{RET}}.  To turn it on by default, for example in Message
+mode, use
 
 @lisp
 (add-hook 'message-mode-hook 'turn-on-orgtbl)
@@ -2565,7 +2566,7 @@ rows/columns.
 @cindex references, named
 @cindex name, of column or field
 @cindex constants, in calculations
-@cindex #+CONSTANTS
+@cindex @code{#+CONSTANTS}
 
 @vindex org-table-formula-constants
 @samp{$name} is interpreted as the name of a column, parameter or
@@ -2602,7 +2603,7 @@ numbers.
 @cindex references, to a different table
 @cindex name, of column or field
 @cindex constants, in calculations
-@cindex #+NAME, for table
+@cindex @code{#+NAME}, for table
 
 You may also reference constants, fields and ranges from a different table,
 either in the current file or even in a different file.  The syntax is
@@ -2824,8 +2825,8 @@ preceded by @samp{:=}, for example @samp{:=vsum(@@II..III)}.  When you press
 the formula will be stored as the formula for this field, evaluated, and the
 current field will be replaced with the result.
 
-@cindex #+TBLFM
-Formulas are stored in a special line starting with @samp{#+TBLFM:} directly
+@cindex @code{#+TBLFM}
+Formulas are stored in a special line starting with @code{#+TBLFM:} directly
 below the table.  If you type the equation in the 4th field of the 3rd data
 line in the table, the formula will look like @samp{@@3$4=$1+$2}.  When
 inserting/deleting/swapping columns and rows with the appropriate commands,
@@ -2843,7 +2844,7 @@ command
 @table @kbd
 @orgcmd{C-u C-c =,org-table-eval-formula}
 Install a new formula for the current field.  The command prompts for a
-formula with default taken from the @samp{#+TBLFM:} line, applies
+formula with default taken from the @code{#+TBLFM:} line, applies
 it to the current field, and stores it.
 @end table
 
@@ -2890,7 +2891,7 @@ the formula will be stored as the formula for the current column, evaluated
 and the current field replaced with the result.  If the field contains only
 @samp{=}, the previously stored formula for this column is used.  For each
 column, Org will only remember the most recently used formula.  In the
-@samp{#+TBLFM:} line, column formulas will look like @samp{$4=$1+$2}.  The
+@code{#+TBLFM:} line, column formulas will look like @samp{$4=$1+$2}.  The
 left-hand side of a column formula cannot be the name of column, it must be
 the numeric column reference or @code{$>}.
 
@@ -2901,7 +2902,7 @@ following command:
 @orgcmd{C-c =,org-table-eval-formula}
 Install a new formula for the current column and replace current field with
 the result of the formula.  The command prompts for a formula, with default
-taken from the @samp{#+TBLFM} line, applies it to the current field and
+taken from the @code{#+TBLFM} line, applies it to the current field and
 stores it.  With a numeric prefix argument(e.g., @kbd{C-5 C-c =}) the command
 will apply it to that many consecutive fields in the current column.
 @end table
@@ -3012,22 +3013,22 @@ formula, @key{TAB} re-indents just like in Emacs Lisp mode.
 Complete Lisp symbols, just like in Emacs Lisp mode.@footnote{Many desktops
 intercept @kbd{M-@key{TAB}} to switch windows.  Use @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead for completion (@pxref{Completion}).}
-@kindex S-@key{up}
-@kindex S-@key{down}
-@kindex S-@key{left}
-@kindex S-@key{right}
+@kindex S-UP
+@kindex S-DOWN
+@kindex S-LEFT
+@kindex S-RIGHT
 @findex org-table-fedit-ref-up
 @findex org-table-fedit-ref-down
 @findex org-table-fedit-ref-left
 @findex org-table-fedit-ref-right
-@item S-@key{up}/@key{down}/@key{left}/@key{right}
+@item S-@key{UP}/@key{DOWN}/@key{LEFT}/@key{RIGHT}
 Shift the reference at point.  For example, if the reference is
-@code{B3} and you press @kbd{S-@key{right}}, it will become @code{C3}.
+@code{B3} and you press @kbd{S-@key{RIGHT}}, it will become @code{C3}.
 This also works for relative references and for hline references.
-@orgcmdkkcc{M-S-@key{up},M-S-@key{down},org-table-fedit-line-up,org-table-fedit-line-down}
+@orgcmdkkcc{M-S-@key{UP},M-S-@key{DOWN},org-table-fedit-line-up,org-table-fedit-line-down}
 Move the test line for column formulas in the Org buffer up and
 down.
-@orgcmdkkcc{M-@key{up},M-@key{down},org-table-fedit-scroll-down,org-table-fedit-scroll-up}
+@orgcmdkkcc{M-@key{UP},M-@key{DOWN},org-table-fedit-scroll-down,org-table-fedit-scroll-up}
 Scroll the window displaying the table.
 @kindex C-c @}
 @findex org-table-toggle-coordinate-overlays
@@ -3037,25 +3038,25 @@ Turn the coordinate grid in the table on and off.
 @end table
 
 Making a table field blank does not remove the formula associated with
-the field, because that is stored in a different line (the @samp{#+TBLFM}
+the field, because that is stored in a different line (the @code{#+TBLFM}
 line)---during the next recalculation the field will be filled again.
 To remove a formula from a field, you have to give an empty reply when
-prompted for the formula, or to edit the @samp{#+TBLFM} line.
+prompted for the formula, or to edit the @code{#+TBLFM} line.
 
 @kindex C-c C-c
-You may edit the @samp{#+TBLFM} directly and re-apply the changed
+You may edit the @code{#+TBLFM} directly and re-apply the changed
 equations with @kbd{C-c C-c} in that line or with the normal
 recalculation commands in the table.
 
 @anchor{Using multiple #+TBLFM lines}
-@subsubheading Using multiple #+TBLFM lines
-@cindex #+TBLFM line, multiple
-@cindex #+TBLFM
-@cindex #+TBLFM, switching
+@subsubheading Using multiple @code{#+TBLFM} lines
+@cindex @code{#+TBLFM} line, multiple
+@cindex @code{#+TBLFM}
+@cindex @code{#+TBLFM}, switching
 @kindex C-c C-c
 
 You may apply the formula temporarily.  This is useful when you
-switch the formula.  Place multiple @samp{#+TBLFM} lines right
+switch the formula.  Place multiple @code{#+TBLFM} lines right
 after the table, and then press @kbd{C-c C-c} on the formula to
 apply.  Here is an example:
 
@@ -3082,7 +3083,7 @@ Pressing @kbd{C-c C-c} in the line of @samp{#+TBLFM: $2=$1*2} yields:
 
 @noindent
 Note: If you recalculate this table (with @kbd{C-u C-c *}, for example), you
-will get the following result of applying only the first @samp{#+TBLFM} line.
+will get the following result of applying only the first @code{#+TBLFM} line.
 
 @example
 | x | y |
@@ -3131,10 +3132,10 @@ hline are left alone, assuming that these are part of the table header.
 Iterate the table by recomputing it until no further changes occur.
 This may be necessary if some computed fields use the value of other
 fields that are computed @i{later} in the calculation sequence.
-@item M-x org-table-recalculate-buffer-tables RET
+@item M-x org-table-recalculate-buffer-tables @key{RET}
 @findex org-table-recalculate-buffer-tables
 Recompute all tables in the current buffer.
-@item M-x org-table-iterate-buffer-tables RET
+@item M-x org-table-iterate-buffer-tables @key{RET}
 @findex org-table-iterate-buffer-tables
 Iterate all tables in the current buffer, in order to converge table-to-table
 dependencies.
@@ -3249,7 +3250,7 @@ functions.
 @section Org-Plot
 @cindex graph, in tables
 @cindex plot tables using Gnuplot
-@cindex #+PLOT
+@cindex @code{#+PLOT}
 
 Org-Plot can produce graphs of information stored in org tables, either
 graphically or in ASCII-art.
@@ -3432,7 +3433,7 @@ internal structure of all links, use the menu entry
 @cindex links, internal
 @cindex targets, for links
 
-@cindex property, CUSTOM_ID
+@cindex property, @code{CUSTOM_ID}
 If the link does not look like a URL, it is considered to be internal in the
 current file.  The most important case is a link like
 @samp{[[#my-custom-id]]} which will link to the entry with the
@@ -3448,7 +3449,7 @@ point to the corresponding headline.  The preferred match for a text link is
 a @i{dedicated target}: the same string in double angular brackets, like
 @samp{<<My Target>>}.
 
-@cindex #+NAME
+@cindex @code{#+NAME}
 If no dedicated target exists, the link will then try to match the exact name
 of an element within the buffer.  Naming is done with the @code{#+NAME}
 keyword, which has to be put in the line before the element it refers to, as
@@ -3640,8 +3641,8 @@ removed from the link and result in a wrong link---you should avoid putting
 timestamp in the headline.}.
 
 @vindex org-id-link-to-org-use-id
-@cindex property, CUSTOM_ID
-@cindex property, ID
+@cindex property, @code{CUSTOM_ID}
+@cindex property, @code{ID}
 If the headline has a @code{CUSTOM_ID} property, a link to this custom ID
 will be stored.  In addition or alternatively (depending on the value of
 @code{org-id-link-to-org-use-id}), a globally unique @code{ID} property will
@@ -3708,7 +3709,7 @@ becomes the default description.
 @b{Inserting stored links}@*
 All links stored during the
 current session are part of the history for this prompt, so you can access
-them with @key{up} and @key{down} (or @kbd{M-p/n}).
+them with @key{UP} and @key{DOWN} (or @kbd{M-p/n}).
 
 @b{Completion support}@* Completion with @key{TAB} will help you to insert
 valid link prefixes like @samp{https:}, including the prefixes
@@ -3883,7 +3884,7 @@ what the Org author is doing besides Emacs hacking with
 If you need special abbreviations just for a single Org buffer, you
 can define them in the file with
 
-@cindex #+LINK
+@cindex @code{#+LINK}
 @example
 #+LINK: bugzilla  http://10.1.2.9/bugzilla/show_bug.cgi?id=
 #+LINK: google    http://www.google.com/search?q=%s
@@ -4041,9 +4042,9 @@ completion; otherwise force cycling through TODO states with no prompt.  When
 @code{org-use-fast-todo-selection} is set to @code{prefix}, use the fast
 selection interface.
 
-@kindex S-@key{right}
-@kindex S-@key{left}
-@item S-@key{right} @ @r{/} @ S-@key{left}
+@kindex S-RIGHT
+@kindex S-LEFT
+@item S-@key{RIGHT} @ @r{/} @ S-@key{LEFT}
 @vindex org-treat-S-cursor-todo-selection-as-state-change
 Select the following/preceding TODO state, similar to cycling.  Useful
 mostly if more than two TODO states are possible (@pxref{TODO
@@ -4124,7 +4125,7 @@ With this setup, the command @kbd{C-c C-t} will cycle an entry from TODO
 to FEEDBACK, then to VERIFY, and finally to DONE and DELEGATED@.  You may
 also use a numeric prefix argument to quickly select a specific state.  For
 example @kbd{C-3 C-c C-t} will change the state immediately to VERIFY@.
-Or you can use @kbd{S-@key{left}} to go backward through the sequence.  If you
+Or you can use @kbd{S-@key{LEFT}} to go backward through the sequence.  If you
 define many keywords, you can use in-buffer completion
 (@pxref{Completion}) or even a special one-key selection scheme
 (@pxref{Fast access to TODO states}) to insert these words into the
@@ -4190,23 +4191,23 @@ select the correct sequence.  Besides the obvious ways like typing a
 keyword or using completion, you may also apply the following commands:
 
 @table @kbd
-@kindex C-S-@key{right}
-@kindex C-S-@key{left}
+@kindex C-S-RIGHT
+@kindex C-S-LEFT
 @kindex C-u C-u C-c C-t
 @item C-u C-u C-c C-t
-@itemx C-S-@key{right}
-@itemx C-S-@key{left}
+@itemx C-S-@key{RIGHT}
+@itemx C-S-@key{LEFT}
 These keys jump from one TODO subset to the next.  In the above example,
-@kbd{C-u C-u C-c C-t} or @kbd{C-S-@key{right}} would jump from @code{TODO} or
+@kbd{C-u C-u C-c C-t} or @kbd{C-S-@key{RIGHT}} would jump from @code{TODO} or
 @code{DONE} to @code{REPORT}, and any of the words in the second row to
 @code{CANCELED}.  Note that the @kbd{C-S-} key binding conflict with
 @code{shift-selection-mode} (@pxref{Conflicts}).
-@kindex S-@key{right}
-@kindex S-@key{left}
-@item S-@key{right}
-@itemx S-@key{left}
-@kbd{S-@key{left}} and @kbd{S-@key{right}} and walk through @emph{all}
-keywords from all sets, so for example @kbd{S-@key{right}} would switch
+@kindex S-RIGHT
+@kindex S-LEFT
+@item S-@key{RIGHT}
+@itemx S-@key{LEFT}
+@kbd{S-@key{LEFT}} and @kbd{S-@key{RIGHT}} and walk through @emph{all}
+keywords from all sets, so for example @kbd{S-@key{RIGHT}} would switch
 from @code{DONE} to @code{REPORT} in the example above.  See also
 @ref{Conflicts}, for a discussion of the interaction with
 @code{shift-selection-mode}.
@@ -4229,8 +4230,8 @@ each keyword, in parentheses@footnote{All characters are allowed except
 @end lisp
 
 @vindex org-fast-tag-selection-include-todo
-If you then press @kbd{C-c C-t} followed by the selection key, the entry
-will be switched to this state.  @kbd{SPC} can be used to remove any TODO
+If you then press @kbd{C-c C-t} followed by the selection key, the entry will
+be switched to this state.  @kbd{@key{SPC}} can be used to remove any TODO
 keyword from an entry.@footnote{Check also the option
 @code{org-fast-tag-selection-include-todo}, it allows you to change the TODO
 state through the tags interface (@pxref{Setting tags}), in case you like to
@@ -4241,9 +4242,9 @@ unique keys across both sets of keywords.}
 @subsection Setting up keywords for individual files
 @cindex keyword options
 @cindex per-file keywords
-@cindex #+TODO
-@cindex #+TYP_TODO
-@cindex #+SEQ_TODO
+@cindex @code{#+TODO}
+@cindex @code{#+TYP_TODO}
+@cindex @code{#+SEQ_TODO}
 
 It can be very useful to use different aspects of the TODO mechanism in
 different files.  For file-local settings, you need to add special lines to
@@ -4269,7 +4270,7 @@ A setup for using several sets in parallel would be:
 @end example
 
 @cindex completion, of option keywords
-@kindex M-@key{TAB}
+@kindex M-TAB
 @noindent To make sure you are using the correct keyword, type
 @samp{#+} into the buffer and then use @kbd{M-@key{TAB}} completion.
 
@@ -4318,7 +4319,7 @@ foreground or a background color.
 @cindex TODO dependencies, NOBLOCKING
 
 @vindex org-enforce-todo-dependencies
-@cindex property, ORDERED
+@cindex property, @code{ORDERED}
 The structure of Org files (hierarchy and lists) makes it easy to define TODO
 dependencies.  Usually, a parent TODO task should not be marked DONE until
 all subtasks (defined as children tasks) are marked as DONE@.  And sometimes
@@ -4357,7 +4358,7 @@ property:
 @table @kbd
 @orgcmd{C-c C-x o,org-toggle-ordered-property}
 @vindex org-track-ordered-property-with-tag
-@cindex property, ORDERED
+@cindex property, @code{ORDERED}
 Toggle the @code{ORDERED} property of the current entry.  A property is used
 for this behavior because this should be local to the current entry, not
 inherited like a tag.  However, if you would like to @i{track} the value of
@@ -4419,7 +4420,7 @@ Then each time you turn an entry from a TODO (not-done) state into any of the
 DONE states, a line @samp{CLOSED: [timestamp]} will be inserted just after
 the headline.  If you turn the entry back into a TODO item through further
 state cycling, that line will be removed again.  If you turn the entry back
-to a non-TODO state (by pressing @key{C-c C-t SPC} for example), that line
+to a non-TODO state (by pressing @key{C-c C-t @key{SPC}} for example), that line
 will also be removed, unless you set @code{org-closed-keep-when-no-todo} to
 non-@code{nil}.  If you want to record a note along with the timestamp,
 use@footnote{The corresponding in-buffer setting is: @code{#+STARTUP:
@@ -4439,7 +4440,7 @@ the entry with a @samp{Closing Note} heading.
 
 @vindex org-log-states-order-reversed
 @vindex org-log-into-drawer
-@cindex property, LOG_INTO_DRAWER
+@cindex property, @code{LOG_INTO_DRAWER}
 When TODO keywords are used as workflow states (@pxref{Workflow states}), you
 might want to keep track of when a state change occurred and maybe take a
 note about this change.  You can either record just a timestamp, or a
@@ -4449,8 +4450,8 @@ headline as an itemized list, newest first@footnote{See the option
 want to get the notes out of the way into a drawer (@pxref{Drawers}).
 Customize @code{org-log-into-drawer} to get this behavior---the recommended
 drawer for this is called @code{LOGBOOK}@footnote{Note that the
-@code{LOGBOOK} drawer is unfolded when pressing @key{SPC} in the agenda to
-show an entry---use @key{C-u SPC} to keep it folded here}.  You can also
+@code{LOGBOOK} drawer is unfolded when pressing @kbd{@key{SPC}} in the agenda to
+show an entry---use @kbd{C-u @key{SPC}} to keep it folded here}.  You can also
 overrule the setting of this variable for a subtree by setting a
 @code{LOG_INTO_DRAWER} property.
 
@@ -4493,12 +4494,12 @@ to a buffer:
 #+TODO: TODO(t) WAIT(w@@/!) | DONE(d!) CANCELED(c@@)
 @end example
 
-@cindex property, LOGGING
-In order to define logging settings that are local to a subtree or a
-single item, define a LOGGING property in this entry.  Any non-empty
-LOGGING property resets all logging settings to @code{nil}.  You may then turn
-on logging for this specific tree using STARTUP keywords like
-@code{lognotedone} or @code{logrepeat}, as well as adding state specific
+@cindex property, @code{LOGGING}
+In order to define logging settings that are local to a subtree or a single
+item, define a @code{LOGGING} property in this entry.  Any non-empty
+@code{LOGGING} property resets all logging settings to @code{nil}.  You may
+then turn on logging for this specific tree using @code{#+STARTUP} keywords
+like @code{lognotedone} or @code{logrepeat}, as well as adding state specific
 settings like @code{TODO(!)}.  For example
 
 @example
@@ -4642,7 +4643,7 @@ items.
 
 @table @kbd
 @item @kbd{C-c ,}
-@kindex @kbd{C-c ,}
+@kindex C-c ,
 @findex org-priority
 Set the priority of the current headline (@command{org-priority}).  The
 command prompts for a priority character @samp{A}, @samp{B} or @samp{C}.
@@ -4650,7 +4651,7 @@ When you press @key{SPC} instead, the priority cookie is removed from the
 headline.  The priorities can also be changed ``remotely'' from the agenda
 buffer with the @kbd{,} command (@pxref{Agenda commands}).
 @c
-@orgcmdkkcc{S-@key{up},S-@key{down},org-priority-up,org-priority-down}
+@orgcmdkkcc{S-@key{UP},S-@key{DOWN},org-priority-up,org-priority-down}
 @vindex org-priority-start-cycle-with-default
 Increase/decrease priority of current headline@footnote{See also the option
 @code{org-priority-start-cycle-with-default}.}.  Note that these keys are
@@ -4669,7 +4670,7 @@ these values (highest, lowest, default) like this (please make sure that
 the highest priority is earlier in the alphabet than the lowest
 priority):
 
-@cindex #+PRIORITIES
+@cindex @code{#+PRIORITIES}
 @example
 #+PRIORITIES: A C B
 @end example
@@ -4698,7 +4699,7 @@ be updated each time the TODO status of a child changes, or when pressing
 ** DONE Talk to neighbor
 @end example
 
-@cindex property, COOKIE_DATA
+@cindex property, @code{COOKIE_DATA}
 If a heading has both checkboxes and TODO children below it, the meaning of
 the statistics cookie become ambiguous.  Set the property
 @code{COOKIE_DATA} to either @samp{checkbox} or @samp{todo} to resolve
@@ -4770,7 +4771,7 @@ checked.
 
 @cindex statistics, for checkboxes
 @cindex checkbox statistics
-@cindex property, COOKIE_DATA
+@cindex property, @code{COOKIE_DATA}
 @vindex org-checkbox-hierarchical-statistics
 The @samp{[2/4]} and @samp{[1/3]} in the first and second line are cookies
 indicating how many checkboxes present in this entry have been checked off,
@@ -4792,7 +4793,7 @@ to either @samp{checkbox} or @samp{todo} to resolve this issue.
 
 @cindex blocking, of checkboxes
 @cindex checkbox blocking
-@cindex property, ORDERED
+@cindex property, @code{ORDERED}
 If the current outline node has an @code{ORDERED} property, checkboxes must
 be checked off in sequence, and an error will be thrown if you try to check
 off a box while there are unchecked boxes above it.
@@ -4829,7 +4830,7 @@ Insert a new item with a checkbox.  This works only if the cursor is already
 in a plain list item (@pxref{Plain lists}).
 @orgcmd{C-c C-x o,org-toggle-ordered-property}
 @vindex org-track-ordered-property-with-tag
-@cindex property, ORDERED
+@cindex property, @code{ORDERED}
 Toggle the @code{ORDERED} property of the entry, to toggle if checkboxes must
 be checked off in sequence.  A property is used for this behavior because
 this should be local to the current entry, not inherited like a tag.
@@ -4897,7 +4898,7 @@ a hypothetical level zero that surrounds the entire file.  Use a line like
 this@footnote{As with all these in-buffer settings, pressing @kbd{C-c C-c}
 activates any changes in the line.}:
 
-@cindex #+FILETAGS
+@cindex @code{#+FILETAGS}
 @example
 #+FILETAGS: :Peter:Boss:Secret:
 @end example
@@ -4931,7 +4932,7 @@ can really speed up agenda generation.
 @cindex setting tags
 @cindex tags, setting
 
-@kindex M-@key{TAB}
+@kindex M-TAB
 Tags can simply be typed into the buffer at the end of a headline.
 After a colon, @kbd{M-@key{TAB}} offers completion on tags.  There is
 also a special command for inserting tags:
@@ -4959,7 +4960,7 @@ currently used in the buffer.  You may also globally specify a hard list
 of tags with the variable @code{org-tag-alist}.  Finally you can set
 the default tags for a given file with lines like
 
-@cindex #+TAGS
+@cindex @code{#+TAGS}
 @example
 #+TAGS: @@work @@home @@tennisclub
 #+TAGS: laptop car pc sailboat
@@ -4978,7 +4979,7 @@ If you have a preferred set of tags that you would like to use in every file,
 in addition to those defined on a per-file basis by TAGS option lines, then
 you may specify a list of tags with the variable
 @code{org-tag-persistent-alist}.  You may turn this off on a per-file basis
-by adding a STARTUP option line to that file:
+by adding a @code{#+STARTUP} option line to that file:
 
 @example
 #+STARTUP: noptag
@@ -5062,17 +5063,17 @@ will turn off any other tags from that group.
 In this interface, you can also use the following special keys:
 
 @table @kbd
-@kindex @key{TAB}
+@kindex TAB
 @item @key{TAB}
 Enter a tag in the minibuffer, even if the tag is not in the predefined
 list.  You will be able to complete on all tags present in the buffer.
 You can also add several tags: just separate them with a comma.
 
-@kindex @key{SPC}
+@kindex SPC
 @item @key{SPC}
 Clear all tags for this line.
 
-@kindex @key{RET}
+@kindex RET
 @item @key{RET}
 Accept the modified set.
 
@@ -5328,8 +5329,8 @@ publishers and the number of disks in a box like this:
 
 If you want to set properties that can be inherited by any entry in a
 file, use a line like
-@cindex property, _ALL
-@cindex #+PROPERTY
+@cindex property, @code{_ALL}
+@cindex @code{#+PROPERTY}
 @example
 #+PROPERTY: NDisks_ALL 1 2 3 4
 @end example
@@ -5340,7 +5341,7 @@ buffer with @kbd{C-c C-c} to activate this change.
 If you want to add to the value of an existing property, append a @code{+} to
 the property name.  The following results in the property @code{var} having
 the value ``foo=1 bar=2''.
-@cindex property, +
+@cindex property, @code{+}
 @example
 #+PROPERTY: var  foo=1
 #+PROPERTY: var+ bar=2
@@ -5349,7 +5350,7 @@ the value ``foo=1 bar=2''.
 It is also possible to add to the values of inherited properties.  The
 following results in the @code{genres} property having the value ``Classic
 Baroque'' under the @code{Goldberg Variations} subtree.
-@cindex property, +
+@cindex property, @code{+}
 @example
 * CD collection
 ** Classic
@@ -5383,8 +5384,8 @@ in the current file will be offered as possible completions.
 @orgcmd{C-c C-x p,org-set-property}
 Set a property.  This prompts for a property name and a value.  If
 necessary, the property drawer is created as well.
-@item C-u M-x org-insert-drawer RET
-@cindex org-insert-drawer
+@item C-u M-x org-insert-drawer @key{RET}
+@cindex @code{org-insert-drawer}
 Insert a property drawer into the current entry.  The drawer will be
 inserted early in the entry, but after the lines with planning
 information like deadlines.
@@ -5393,7 +5394,7 @@ With the cursor in a property drawer, this executes property commands.
 @orgcmd{C-c C-c s,org-set-property}
 Set a property in the current entry.  Both the property and the value
 can be inserted using completion.
-@orgcmdkkcc{S-@key{right},S-@key{left},org-property-next-allowed-value,org-property-previous-allowed-value}
+@orgcmdkkcc{S-@key{RIGHT},S-@key{LEFT},org-property-next-allowed-value,org-property-previous-allowed-value}
 Switch property at point to the next/previous allowed value.
 @orgcmd{C-c C-c d,org-delete-property}
 Remove a property from the current entry.
@@ -5415,20 +5416,20 @@ a column view (@pxref{Column view}), or to use them in queries.  The
 following property names are special and should not be used as keys in the
 properties drawer:
 
-@cindex property, special, ALLTAGS
-@cindex property, special, BLOCKED
-@cindex property, special, CLOCKSUM
-@cindex property, special, CLOCKSUM_T
-@cindex property, special, CLOSED
-@cindex property, special, DEADLINE
-@cindex property, special, FILE
-@cindex property, special, ITEM
-@cindex property, special, PRIORITY
-@cindex property, special, SCHEDULED
-@cindex property, special, TAGS
-@cindex property, special, TIMESTAMP
-@cindex property, special, TIMESTAMP_IA
-@cindex property, special, TODO
+@cindex property, special, @code{ALLTAGS}
+@cindex property, special, @code{BLOCKED}
+@cindex property, special, @code{CLOCKSUM}
+@cindex property, special, @code{CLOCKSUM_T}
+@cindex property, special, @code{CLOSED}
+@cindex property, special, @code{DEADLINE}
+@cindex property, special, @code{FILE}
+@cindex property, special, @code{ITEM}
+@cindex property, special, @code{PRIORITY}
+@cindex property, special, @code{SCHEDULED}
+@cindex property, special, @code{TAGS}
+@cindex property, special, @code{TIMESTAMP}
+@cindex property, special, @code{TIMESTAMP_IA}
+@cindex property, special, @code{TODO}
 @example
 ALLTAGS      @r{All tags, including inherited ones.}
 BLOCKED      @r{"t" if task is currently blocked by children or siblings.}
@@ -5508,7 +5509,7 @@ search will stop at this value and return @code{nil}.
 Org mode has a few properties for which inheritance is hard-coded, at
 least for the special applications for which they are used:
 
-@cindex property, COLUMNS
+@cindex property, @code{COLUMNS}
 @table @code
 @item COLUMNS
 The @code{:COLUMNS:} property defines the format of column view
@@ -5517,16 +5518,16 @@ where a @code{:COLUMNS:} property is defined is used as the starting
 point for a column view table, independently of the location in the
 subtree from where columns view is turned on.
 @item CATEGORY
-@cindex property, CATEGORY
+@cindex property, @code{CATEGORY}
 For agenda view, a category set through a @code{:CATEGORY:} property
 applies to the entire subtree.
 @item ARCHIVE
-@cindex property, ARCHIVE
+@cindex property, @code{ARCHIVE}
 For archiving, the @code{:ARCHIVE:} property may define the archive
 location for the entire subtree (@pxref{Moving subtrees}).
 @item LOGGING
-@cindex property, LOGGING
-The LOGGING property may define logging settings for an entry or a
+@cindex property, @code{LOGGING}
+The @code{LOGGING} property may define logging settings for an entry or a
 subtree (@pxref{Tracking TODO state changes}).
 @end table
 
@@ -5571,7 +5572,7 @@ done by defining a column format line.
 
 To define a column format for an entire file, use a line like
 
-@cindex #+COLUMNS
+@cindex @code{#+COLUMNS}
 @example
 #+COLUMNS: %25ITEM %TAGS %PRIORITY %TODO
 @end example
@@ -5723,17 +5724,17 @@ Same as @kbd{r}.
 @orgcmd{q,org-columns-quit}
 Exit column view.
 @tsubheading{Editing values}
-@item @key{left} @key{right} @key{up} @key{down}
+@item @key{LEFT} @key{RIGHT} @key{UP} @key{DOWN}
 Move through the column view from field to field.
-@kindex S-@key{left}
-@kindex S-@key{right}
-@item  S-@key{left}/@key{right}
+@kindex S-LEFT
+@kindex S-RIGHT
+@item  S-@key{LEFT}/@key{RIGHT}
 Switch to the next/previous allowed value of the field.  For this, you
 have to have specified allowed values for a property.
 @item 1..9,0
 Directly select the Nth allowed value, @kbd{0} selects the 10th value.
 @orgcmdkkcc{n,p,org-columns-next-allowed-value,org-columns-previous-allowed-value}
-Same as @kbd{S-@key{left}/@key{right}}
+Same as @kbd{S-@key{LEFT}/@key{RIGHT}}
 @orgcmd{e,org-columns-edit-value}
 Edit the property at point.  For the special properties, this will
 invoke the same interface that you normally use to change that
@@ -5752,9 +5753,9 @@ current column view.
 @tsubheading{Modifying the table structure}
 @orgcmdkkcc{<,>,org-columns-narrow,org-columns-widen}
 Make the column narrower/wider by one character.
-@orgcmd{S-M-@key{right},org-columns-new}
+@orgcmd{S-M-@key{RIGHT},org-columns-new}
 Insert a new column, to the left of the current column.
-@orgcmd{S-M-@key{left},org-columns-delete}
+@orgcmd{S-M-@key{LEFT},org-columns-delete}
 Delete the current column.
 @end table
 
@@ -5766,7 +5767,7 @@ exported or printed directly.  If you want to capture a column view, use
 a @code{columnview} dynamic block (@pxref{Dynamic blocks}).  The frame
 of this block looks like this:
 
-@cindex #+BEGIN, columnview
+@cindex @code{#+BEGIN}, columnview
 @example
 * The column view
 #+BEGIN: columnview :hlines 1 :id "label"
@@ -5782,7 +5783,7 @@ This is the most important parameter.  Column view is a feature that is
 often localized to a certain (sub)tree, and the capture block might be
 at a different location in the file.  To identify the tree whose view to
 capture, you can use 4 values:
-@cindex property, ID
+@cindex property, @code{ID}
 @example
 local     @r{use the tree in which the capture block is located}
 global    @r{make a global view, including all headings in the file}
@@ -5790,7 +5791,7 @@ global    @r{make a global view, including all headings in the file}
           @r{run column view at the top of this file}
 "@var{ID}"      @r{call column view in the tree that has an @code{:ID:}}
           @r{property with the value @i{label}.  You can use}
-          @r{@kbd{M-x org-id-copy RET} to create a globally unique ID for}
+          @r{@kbd{M-x org-id-copy @key{RET}} to create a globally unique @code{ID} for}
           @r{the current entry and copy it to the kill-ring.}
 @end example
 @item :hlines
@@ -5814,7 +5815,7 @@ The following commands insert or update the dynamic block:
 @table @kbd
 @orgcmd{C-c C-x i,org-insert-columns-dblock}
 Insert a dynamic block capturing a column view.  You will be prompted
-for the scope or ID of the view.
+for the scope or @code{ID} of the view.
 @orgcmdkkc{C-c C-c,C-c C-x C-u,org-dblock-update}
 Update dynamic block at point.
 @orgcmd{C-u C-c C-x C-u,org-update-all-dblocks}
@@ -6008,11 +6009,11 @@ instead.
 Access the agenda for the date given by the timestamp or -range at
 point (@pxref{Weekly/daily agenda}).
 @c
-@orgcmdkkcc{S-@key{left},S-@key{right},org-timestamp-down-day,org-timestamp-up-day}
+@orgcmdkkcc{S-@key{LEFT},S-@key{RIGHT},org-timestamp-down-day,org-timestamp-up-day}
 Change date at cursor by one day.  These key bindings conflict with
 shift-selection and related modes (@pxref{Conflicts}).
 @c
-@orgcmdkkcc{S-@key{up},S-@key{down},org-timestamp-up,org-timestamp-down-down}
+@orgcmdkkcc{S-@key{UP},S-@key{DOWN},org-timestamp-up,org-timestamp-down-down}
 Change the item under the cursor in a timestamp.  The cursor can be on a
 year, month, day, hour or minute.  When the timestamp contains a time range
 like @samp{15:30-16:30}, modifying the first time will also shift the second,
@@ -6136,25 +6137,25 @@ from the minibuffer:
 @kindex M-v
 @kindex C-v
 @kindex mouse-1
-@kindex S-@key{right}
-@kindex S-@key{left}
-@kindex S-@key{down}
-@kindex S-@key{up}
-@kindex M-S-@key{right}
-@kindex M-S-@key{left}
-@kindex @key{RET}
-@kindex M-S-@key{down}
-@kindex M-S-@key{up}
+@kindex S-RIGHT
+@kindex S-LEFT
+@kindex S-DOWN
+@kindex S-UP
+@kindex M-S-RIGHT
+@kindex M-S-LEFT
+@kindex RET
+@kindex M-S-DOWN
+@kindex M-S-UP
 
 @example
 @key{RET}              @r{Choose date at cursor in calendar.}
 mouse-1            @r{Select date by clicking on it.}
-S-@key{right}/@key{left}   @r{One day forward/backward.}
-S-@key{down}/@key{up}      @r{One week forward/backward.}
-M-S-@key{right}/@key{left} @r{One month forward/backward.}
+S-@key{RIGHT}/@key{LEFT}   @r{One day forward/backward.}
+S-@key{DOWN}/@key{UP}      @r{One week forward/backward.}
+M-S-@key{RIGHT}/@key{LEFT} @r{One month forward/backward.}
 > / <              @r{Scroll calendar forward/backward by one month.}
 M-v / C-v          @r{Scroll calendar forward/backward by 3 months.}
-M-S-@key{down}/@key{up}    @r{Scroll calendar forward/backward by one year.}
+M-S-@key{DOWN}/@key{UP}    @r{Scroll calendar forward/backward by one year.}
 @end example
 
 @vindex org-read-date-display-live
@@ -6194,10 +6195,10 @@ following consequences:
 You cannot place the cursor onto a timestamp anymore, only before or
 after.
 @item
-The @kbd{S-@key{up}/@key{down}} keys can no longer be used to adjust
+The @kbd{S-@key{UP}/@key{DOWN}} keys can no longer be used to adjust
 each component of a timestamp.  If the cursor is at the beginning of
-the stamp, @kbd{S-@key{up}/@key{down}} will change the stamp by one day,
-just like @kbd{S-@key{left}/@key{right}}.  At the end of the stamp, the
+the stamp, @kbd{S-@key{UP}/@key{DOWN}} will change the stamp by one day,
+just like @kbd{S-@key{LEFT}/@key{RIGHT}}.  At the end of the stamp, the
 time will be changed by one minute.
 @item
 If the timestamp contains a range of clock times or a repeater, these
@@ -6222,7 +6223,7 @@ they refer to.
 
 @table @var
 @item DEADLINE
-@cindex DEADLINE keyword
+@cindex @code{DEADLINE} keyword
 
 Meaning: the task (most likely a TODO item, though not necessarily) is supposed
 to be finished on that date.
@@ -6248,7 +6249,7 @@ deactivated if the task gets scheduled and you set
 @code{org-agenda-skip-deadline-prewarning-if-scheduled} to @code{t}.
 
 @item SCHEDULED
-@cindex SCHEDULED keyword
+@cindex @code{SCHEDULED} keyword
 
 Meaning: you are planning to start working on that task on the given
 date.
@@ -6313,7 +6314,7 @@ an item:
 @table @kbd
 @c
 @orgcmd{C-c C-d,org-deadline}
-Insert @samp{DEADLINE} keyword along with a stamp.  Any CLOSED timestamp will
+Insert @code{DEADLINE} keyword along with a stamp.  Any CLOSED timestamp will
 be removed.  When called with a prefix arg, an existing deadline will be
 removed from the entry.  Depending on the variable
 @code{org-log-redeadline}@footnote{with corresponding @code{#+STARTUP}
@@ -6322,7 +6323,7 @@ keywords @code{logredeadline}, @code{lognoteredeadline}, and
 deadline.
 
 @orgcmd{C-c C-s,org-schedule}
-Insert @samp{SCHEDULED} keyword along with a stamp.  Any CLOSED timestamp
+Insert @code{SCHEDULED} keyword along with a stamp.  Any CLOSED timestamp
 will be removed.  When called with a prefix argument, remove the scheduling
 date from the entry.  Depending on the variable
 @code{org-log-reschedule}@footnote{with corresponding @code{#+STARTUP}
@@ -6356,8 +6357,8 @@ to the previous week before any current timestamp.
 @cindex tasks, repeated
 @cindex repeated tasks
 
-Some tasks need to be repeated again and again.  Org mode helps to
-organize such tasks using a so-called repeater in a DEADLINE, SCHEDULED,
+Some tasks need to be repeated again and again.  Org mode helps to organize
+such tasks using a so-called repeater in a @code{DEADLINE}, @code{SCHEDULED},
 or plain timestamp.  In the following example
 @example
 ** TODO Pay the rent
@@ -6374,18 +6375,18 @@ first and the warning period last: @code{DEADLINE: <2005-10-01 Sat +1m -3d>}.
 @vindex org-todo-repeat-to-state
 Deadlines and scheduled items produce entries in the agenda when they are
 over-due, so it is important to be able to mark such an entry as completed
-once you have done so.  When you mark a DEADLINE or a SCHEDULE with the TODO
-keyword DONE, it will no longer produce entries in the agenda.  The problem
-with this is, however, that then also the @emph{next} instance of the
-repeated entry will not be active.  Org mode deals with this in the following
-way: When you try to mark such an entry DONE (using @kbd{C-c C-t}), it will
-shift the base date of the repeating timestamp by the repeater interval, and
-immediately set the entry state back to TODO@footnote{In fact, the target
-state is taken from, in this sequence, the @code{REPEAT_TO_STATE} property or
-the variable @code{org-todo-repeat-to-state}.  If neither of these is
-specified, the target state defaults to the first state of the TODO state
-sequence.}.  In the example above, setting the state to DONE would actually
-switch the date like this:
+once you have done so.  When you mark a @code{DEADLINE} or a @code{SCHEDULED}
+with the TODO keyword DONE, it will no longer produce entries in the agenda.
+The problem with this is, however, that then also the @emph{next} instance of
+the repeated entry will not be active.  Org mode deals with this in the
+following way: When you try to mark such an entry DONE (using @kbd{C-c C-t}),
+it will shift the base date of the repeating timestamp by the repeater
+interval, and immediately set the entry state back to TODO@footnote{In fact,
+the target state is taken from, in this sequence, the @code{REPEAT_TO_STATE}
+property or the variable @code{org-todo-repeat-to-state}.  If neither of
+these is specified, the target state defaults to the first state of the TODO
+state sequence.}.  In the example above, setting the state to DONE would
+actually switch the date like this:
 
 @example
 ** TODO Pay the rent
@@ -6491,22 +6492,21 @@ what to do with it.
 @orgcmd{C-c C-x C-i,org-clock-in}
 @vindex org-clock-into-drawer
 @vindex org-clock-continuously
-@cindex property, LOG_INTO_DRAWER
-Start the clock on the current item (clock-in).  This inserts the CLOCK
-keyword together with a timestamp.  If this is not the first clocking of
-this item, the multiple CLOCK lines will be wrapped into a
-@code{:LOGBOOK:} drawer (see also the variable
-@code{org-clock-into-drawer}).  You can also overrule
-the setting of this variable for a subtree by setting a
-@code{CLOCK_INTO_DRAWER} or @code{LOG_INTO_DRAWER} property.
-When called with a @kbd{C-u} prefix argument,
-select the task from a list of recently clocked tasks.  With two @kbd{C-u
-C-u} prefixes, clock into the task at point and mark it as the default task;
-the default task will then always be available with letter @kbd{d} when
-selecting a clocking task.  With three @kbd{C-u C-u C-u} prefixes, force
-continuous clocking by starting the clock when the last clock stopped.@*
-@cindex property: CLOCK_MODELINE_TOTAL
-@cindex property: LAST_REPEAT
+@cindex property, @code{LOG_INTO_DRAWER}
+!Start the clock on the current item (clock-in).  This inserts the
+@code{CLOCK} keyword together with a timestamp.  If this is not the first
+clocking of this item, the multiple @code{CLOCK} lines will be wrapped into a
+@code{:LOGBOOK:} drawer (see also the variable @code{org-clock-into-drawer}).
+You can also overrule the setting of this variable for a subtree by setting a
+@code{CLOCK_INTO_DRAWER} or @code{LOG_INTO_DRAWER} property.  When called
+with a @kbd{C-u} prefix argument, select the task from a list of recently
+clocked tasks.  With two @kbd{C-u C-u} prefixes, clock into the task at point
+and mark it as the default task; the default task will then always be
+available with letter @kbd{d} when selecting a clocking task.  With three
+@kbd{C-u C-u C-u} prefixes, force continuous clocking by starting the clock
+when the last clock stopped.@*
+@cindex property, @code{CLOCK_MODELINE_TOTAL}
+@cindex property, @code{LAST_REPEAT}
 @vindex org-clock-modeline-total
 While the clock is running, the current clocking time is shown in the mode
 line, along with the title of the task.  The clock time shown will be all
@@ -6554,7 +6554,7 @@ clock duration keeps the same.
 @orgcmd{S-M-@key{up/down},org-timestamp-up/down}
 On @code{CLOCK} log lines, increase/decrease the timestamp at point and
 the one of the previous (or the next clock) timestamp by the same duration.
-For example, if you hit @kbd{S-M-@key{up}} to increase a clocked-out timestamp
+For example, if you hit @kbd{S-M-@key{UP}} to increase a clocked-out timestamp
 by five minutes, then the clocked-in timestamp of the next clock will be
 increased by five minutes.
 @orgcmd{C-c C-t,org-todo}
@@ -6605,7 +6605,7 @@ Update dynamic block at point.
 @orgkey{C-u C-c C-x C-u}
 Update all dynamic blocks (@pxref{Dynamic blocks}).  This is useful if
 you have several clock table blocks in a buffer.
-@orgcmdkxkc{S-@key{left},S-@key{right},org-clocktable-try-shift}
+@orgcmdkxkc{S-@key{LEFT},S-@key{RIGHT},org-clocktable-try-shift}
 Shift the current @code{:block} interval and update the table.  The cursor
 needs to be in the @code{#+BEGIN: clocktable} line for this command.  If
 @code{:block} is @code{today}, it will be shifted to @code{today-1} etc.
@@ -6615,7 +6615,7 @@ needs to be in the @code{#+BEGIN: clocktable} line for this command.  If
 Here is an example of the frame for a clock table as it is inserted into the
 buffer with the @kbd{C-c C-x C-r} command:
 
-@cindex #+BEGIN, clocktable
+@cindex @code{#+BEGIN}, clocktable
 @example
 #+BEGIN: clocktable :maxlevel 2 :emphasize nil :scope file
 #+END: clocktable
@@ -6655,7 +6655,7 @@ be selected:
              thismonth, lastmonth, thismonth-@var{N}  @r{a relative month}
              thisyear, lastyear, thisyear-@var{N}     @r{a relative year}
              untilnow
-             @r{Use @kbd{S-@key{left}/@key{right}} keys to shift the time interval.}
+             @r{Use @kbd{S-@key{LEFT}/@key{RIGHT}} keys to shift the time interval.}
 :tstart      @r{A time string specifying when to start considering times.}
              @r{Relative times like @code{"<-2w>"} can also be used.  See}
              @r{@ref{Matching tags and properties} for relative time syntax.}
@@ -6691,8 +6691,8 @@ but you can specify your own function using the @code{:formatter} parameter.
              @r{E.g., @code{:sort (1 . ?a)} sorts the first column alphabetically.}
 :compact     @r{Abbreviation for @code{:level nil :indent t :narrow 40! :tcolumns 1}}
              @r{All are overwritten except if there is an explicit @code{:narrow}}
-:timestamp   @r{A timestamp for the entry, when available.  Look for SCHEDULED,}
-             @r{DEADLINE, TIMESTAMP and TIMESTAMP_IA, in this order.}
+:timestamp   @r{A timestamp for the entry, when available.  Look for @code{SCHEDULED},}
+             @r{@code{DEADLINE}, @code{TIMESTAMP} and @code{TIMESTAMP_IA}, in this order.}
 :properties  @r{List of properties that should be shown in the table.  Each}
              @r{property will get its own column.}
 :inherit-props @r{When this flag is @code{t}, the values for @code{:properties} will be inherited.}
@@ -6805,7 +6805,8 @@ identical to dealing with away time due to idleness; it is just happening due
 to a recovery event rather than a set amount of idle time.
 
 You can also check all the files visited by your Org agenda for dangling
-clocks at any time using @kbd{M-x org-resolve-clocks RET} (or @kbd{C-c C-x C-z}).
+clocks at any time using @kbd{M-x org-resolve-clocks @key{RET}} (or @kbd{C-c
+C-x C-z}).
 
 @subsubheading Continuous clocking
 @cindex continuous clocking
@@ -6823,7 +6824,7 @@ with @code{org-clock-in} and two @kbd{C-u C-u} with @code{org-clock-in-last}.
 @section Effort estimates
 @cindex effort estimates
 
-@cindex property, Effort
+@cindex property, @code{EFFORT}
 If you want to plan your work in a very detailed way, or if you need to
 produce offers with quotations of the estimated work effort, you may want to
 assign effort estimates to entries.  If you are also clocking your work, you
@@ -6861,7 +6862,7 @@ In particular if you want to use this setup also in the agenda, a global
 setup may be advised.
 
 The way to assign estimates to individual items is then to switch to column
-mode, and to use @kbd{S-@key{right}} and @kbd{S-@key{left}} to change the
+mode, and to use @kbd{S-@key{RIGHT}} and @kbd{S-@key{LEFT}} to change the
 value.  The values you enter will immediately be summed up in the hierarchy.
 In the column next to it, any clocked time will be displayed.
 
@@ -6965,7 +6966,7 @@ If your configuration depends on @file{org-remember.el}, you need to update
 it and use the setup described below.  To convert your
 @code{org-remember-templates}, run the command
 @example
-@kbd{M-x org-capture-import-remember-templates RET}
+@kbd{M-x org-capture-import-remember-templates @key{RET}}
 @end example
 @noindent and then customize the new variable with @kbd{M-x
 customize-variable org-capture-templates}, check the result, and save the
@@ -7041,7 +7042,7 @@ Visit the last stored capture item in its buffer.
 @end table
 
 @vindex org-capture-bookmark
-@cindex org-capture-last-stored
+@cindex @code{org-capture-last-stored}
 You can also jump to the bookmark @code{org-capture-last-stored}, which will
 automatically be created unless you set @code{org-capture-bookmark} to
 @code{nil}.
@@ -7462,12 +7463,12 @@ Delete all of a task's attachments.  A safer way is to open the directory in
 @command{dired} and delete from there.
 
 @orgcmdtkc{s,C-c C-a s,org-attach-set-directory}
-@cindex property, ATTACH_DIR
+@cindex property, @code{ATTACH_DIR}
 Set a specific directory as the entry's attachment directory.  This works by
 putting the directory path into the @code{ATTACH_DIR} property.
 
 @orgcmdtkc{i,C-c C-a i,org-attach-set-inherit}
-@cindex property, ATTACH_DIR_INHERIT
+@cindex property, @code{ATTACH_DIR_INHERIT}
 Set the @code{ATTACH_DIR_INHERIT} property, so that children will use the
 same directory for attachments as the parent does.
 @end table
@@ -7641,14 +7642,14 @@ javascript:location.href='org-protocol://open-source?&url='+
       encodeURIComponent(location.href)
 @end example
 
-@cindex protocol, open-source, :base-url property
-@cindex :base-url property in open-source protocol
-@cindex protocol, open-source, :working-directory property
-@cindex :working-directory property in open-source protocol
-@cindex protocol, open-source, :online-suffix property
-@cindex :online-suffix property in open-source protocol
-@cindex protocol, open-source, :working-suffix property
-@cindex :working-suffix property in open-source protocol
+@cindex protocol, open-source, @code{:base-url} property
+@cindex @code{:base-url} property in open-source protocol
+@cindex protocol, open-source, @code{:working-directory} property
+@cindex @code{:working-directory} property in open-source protocol
+@cindex protocol, open-source, @code{:online-suffix} property
+@cindex @code{:online-suffix} property in open-source protocol
+@cindex protocol, open-source, @code{:working-suffix} property
+@cindex @code{:working-suffix} property in open-source protocol
 @vindex org-protocol-project-alist
 The variable @code{org-protocol-project-alist} maps URLs to local file names,
 by stripping URL parameters from the end and replacing the @code{:base-url}
@@ -7685,8 +7686,8 @@ to something like
 @code{open-source} handler probably cannot find a file named
 @file{/home/user/example/print/posters.html.php} and fails.
 
-@cindex protocol, open-source, :rewrites property
-@cindex :rewrites property in open-source protocol
+@cindex protocol, open-source, @code{:rewrites} property
+@cindex @code{:rewrites property} in open-source protocol
 Such an entry in @code{org-protocol-project-alist} may hold an additional
 property @code{:rewrites}.  This property is a list of cons cells, each of
 which maps a regular expression to a path relative to the
@@ -7837,12 +7838,12 @@ see the documentation string of the variable
 
 There is also an in-buffer option for setting this variable, for example:
 
-@cindex #+ARCHIVE
+@cindex @code{#+ARCHIVE}
 @example
 #+ARCHIVE: %s_done::
 @end example
 
-@cindex property, ARCHIVE
+@cindex property, @code{ARCHIVE}
 @noindent
 If you would like to have a special ARCHIVE location for a single entry
 or a (sub)tree, give the entry an @code{:ARCHIVE:} property with the
@@ -7909,7 +7910,7 @@ To do this, each subtree is checked for open TODO entries.  If none are
 found, the command offers to set the ARCHIVE tag for the child.  If the
 cursor is @emph{not} on a headline when this command is invoked, the
 level 1 trees will be checked.
-@orgcmd{C-@kbd{TAB},org-force-cycle-archived}
+@orgcmd{C-@key{TAB},org-force-cycle-archived}
 Cycle a tree even if it is tagged with ARCHIVE.
 @orgcmd{C-c C-x A,org-archive-to-archive-sibling}
 Move the current entry to the @emph{Archive Sibling}.  This is a sibling of
@@ -8021,8 +8022,7 @@ Remove current file from the list of agenda files.
 @orgcmd{C-',org-cycle-agenda-files}
 @itemx C-,
 Cycle through agenda file list, visiting one file after the other.
-@kindex M-x org-iswitchb
-@item M-x org-iswitchb RET
+@item M-x org-iswitchb @key{RET}
 Command to use an @code{iswitchb}-like interface to switch to and between Org
 buffers.
 @end table
@@ -8150,7 +8150,7 @@ The purpose of the weekly/daily @emph{agenda} is to act like a page of a
 paper agenda, showing all the tasks for the current week or day.
 
 @table @kbd
-@cindex org-agenda, command
+@cindex @code{org-agenda}, command
 @orgcmd{C-c a a,org-agenda-list}
 Compile an agenda for the current week from a list of Org files.  The agenda
 shows the entries for each day.  With a numeric prefix@footnote{For backward
@@ -8637,7 +8637,7 @@ associated with the item.
 @subsection Categories
 
 @cindex category
-@cindex #+CATEGORY
+@cindex @code{#+CATEGORY}
 The category is a broad label assigned to each agenda item.  By default, the
 category is simply derived from the file name, but you can also specify it
 with a special line in the buffer, like this:
@@ -8647,8 +8647,8 @@ with a special line in the buffer, like this:
 @end example
 
 @noindent
-@cindex property, CATEGORY
-If you would like to have a special CATEGORY for a single entry or a
+@cindex property, @code{CATEGORY}
+If you would like to have a special @code{CATEGORY} for a single entry or a
 (sub)tree, give the entry a @code{:CATEGORY:} property with the
 special category you want to apply as the value.
 
@@ -8788,12 +8788,13 @@ excluding the next tag.
 Org also supports automatic, context-aware tag filtering.  If the variable
 @code{org-agenda-auto-exclude-function} is set to a user-defined function,
 that function can decide which tags should be excluded from the agenda
-automatically.  Once this is set, the @kbd{/} command then accepts @kbd{RET}
-as a sub-option key and runs the auto exclusion logic.  For example, let's
-say you use a @code{Net} tag to identify tasks which need network access, an
-@code{Errand} tag for errands in town, and a @code{Call} tag for making phone
-calls.  You could auto-exclude these tags based on the availability of the
-Internet, and outside of business hours, with something like this:
+automatically.  Once this is set, the @kbd{/} command then accepts
+@kbd{@key{RET}} as a sub-option key and runs the auto exclusion logic.  For
+example, let's say you use a @code{Net} tag to identify tasks which need
+network access, an @code{Errand} tag for errands in town, and a @code{Call}
+tag for making phone calls.  You could auto-exclude these tags based on the
+availability of the Internet, and outside of business hours, with something
+like this:
 
 @smalllisp
 @group
@@ -8949,9 +8950,9 @@ the other commands, the cursor needs to be in the desired line.
 @tsubheading{Motion}
 @cindex motion commands in agenda
 @orgcmd{n,org-agenda-next-line}
-Next line (same as @key{down} and @kbd{C-n}).
+Next line (same as @key{DOWN} and @kbd{C-n}).
 @orgcmd{p,org-agenda-previous-line}
-Previous line (same as @key{up} and @kbd{C-p}).
+Previous line (same as @key{UP} and @kbd{C-p}).
 @orgcmd{N,org-agenda-next-item}
 Next item: same as next line, but only consider items.
 @orgcmd{P,org-agenda-previous-item}
@@ -9004,7 +9005,7 @@ Delete other windows.
 @xorgcmd{v t,org-agenda-fortnight-view}
 @xorgcmd{v m,org-agenda-month-view}
 @xorgcmd{v y,org-agenda-year-view}
-@xorgcmd{v SPC,org-agenda-reset-view}
+@xorgcmd{v @key{SPC},org-agenda-reset-view}
 @vindex org-agenda-span
 Switch to day/week/month/year view.  When switching to day or week view, this
 setting becomes the default for subsequent agenda refreshes.  Since month and
@@ -9102,8 +9103,8 @@ Toggle the time grid on and off.  See also the variables
 @c
 @orgcmd{r,org-agenda-redo}
 Recreate the agenda buffer, for example to reflect the changes after
-modification of the timestamps of items with @kbd{S-@key{left}} and
-@kbd{S-@key{right}}.  When the buffer is the global TODO list, a prefix
+modification of the timestamps of items with @kbd{S-@key{LEFT}} and
+@kbd{S-@key{RIGHT}}.  When the buffer is the global TODO list, a prefix
 argument is interpreted to create a selective list for a specific TODO
 keyword.
 @orgcmd{g,org-agenda-redo}
@@ -9167,8 +9168,8 @@ both in the agenda buffer and in the remote buffer.
 Change the TODO state of the item, both in the agenda and in the
 original org file.
 @c
-@orgcmd{C-S-@key{right},org-agenda-todo-nextset}
-@orgcmd{C-S-@key{left},org-agenda-todo-previousset}
+@orgcmd{C-S-@key{RIGHT},org-agenda-todo-nextset}
+@orgcmd{C-S-@key{LEFT},org-agenda-todo-previousset}
 Switch to the next/previous set of TODO keywords.
 @c
 @orgcmd{C-k,org-agenda-kill}
@@ -9218,12 +9219,12 @@ the priority cookie is removed from the entry.
 @orgcmd{P,org-agenda-show-priority}
 Display weighted priority of current item.
 @c
-@orgcmdkkc{+,S-@key{up},org-agenda-priority-up}
+@orgcmdkkc{+,S-@key{UP},org-agenda-priority-up}
 Increase the priority of the current item.  The priority is changed in
 the original buffer, but the agenda is not resorted.  Use the @kbd{r}
 key for this.
 @c
-@orgcmdkkc{-,S-@key{down},org-agenda-priority-down}
+@orgcmdkkc{-,S-@key{DOWN},org-agenda-priority-down}
 Decrease the priority of the current item.
 @c
 @orgcmdkkc{z,C-c C-z,org-agenda-add-note}
@@ -9241,19 +9242,19 @@ Schedule this item.  With prefix arg remove the scheduling timestamp
 @orgcmd{C-c C-d,org-agenda-deadline}
 Set a deadline for this item.  With prefix arg remove the deadline.
 @c
-@orgcmd{S-@key{right},org-agenda-do-date-later}
+@orgcmd{S-@key{RIGHT},org-agenda-do-date-later}
 Change the timestamp associated with the current line by one day into the
 future.  If the date is in the past, the first call to this command will move
 it to today.@*
 With a numeric prefix argument, change it by that many days.  For example,
-@kbd{3 6 5 S-@key{right}} will change it by a year.  With a @kbd{C-u} prefix,
+@kbd{3 6 5 S-@key{RIGHT}} will change it by a year.  With a @kbd{C-u} prefix,
 change the time by one hour.  If you immediately repeat the command, it will
 continue to change hours even without the prefix arg.  With a double @kbd{C-u
 C-u} prefix, do the same for changing minutes.@*
 The stamp is changed in the original Org file, but the change is not directly
 reflected in the agenda buffer.  Use @kbd{r} or @kbd{g} to update the buffer.
 @c
-@orgcmd{S-@key{left},org-agenda-do-date-earlier}
+@orgcmd{S-@key{LEFT},org-agenda-do-date-earlier}
 Change the timestamp associated with the current line by one day
 into the past.
 @c
@@ -9423,7 +9424,7 @@ calendars.
 @orgcmd{H,org-agenda-holidays}
 Show holidays for three months around the cursor date.
 
-@item M-x org-icalendar-combine-agenda-files RET
+@item M-x org-icalendar-combine-agenda-files @key{RET}
 Export a single iCalendar file containing entries from all agenda files.
 This is a globally available command, and also available in the agenda menu.
 
@@ -9860,7 +9861,7 @@ does not have a specific format---defined in a property, or in its file---it
 uses @code{org-columns-default-format}.
 
 @item
-@cindex property, special, CLOCKSUM
+@cindex property, special, @code{CLOCKSUM}
 If any of the columns has a summary type defined (@pxref{Column attributes}),
 turning on column view in the agenda will visit all relevant agenda files and
 make sure that the computations of this property are up to date.  This is
@@ -9884,7 +9885,7 @@ clocked time in the displayed period use clock table mode (press @kbd{R} in
 the agenda).
 
 @item
-@cindex property, special, CLOCKSUM_T
+@cindex property, special, @code{CLOCKSUM_T}
 When the column view in the agenda shows the @code{CLOCKSUM_T}, that is
 always today's clocked time for this item.  So even in the weekly agenda, the
 clocksum listed in column view only originates from today.  This lets you
@@ -9924,7 +9925,7 @@ To preserve the line breaks, indentation and blank lines in a region, but
 otherwise use normal formatting, you can use this construct, which can also
 be used to format poetry.
 
-@cindex #+BEGIN_VERSE
+@cindex @code{#+BEGIN_VERSE}
 @cindex verse blocks
 @example
 #+BEGIN_VERSE
@@ -9940,7 +9941,7 @@ When quoting a passage from another document, it is customary to format this
 as a paragraph that is indented on both the left and the right margin.  You
 can include quotations in Org mode documents like this:
 
-@cindex #+BEGIN_QUOTE
+@cindex @code{#+BEGIN_QUOTE}
 @cindex quote blocks
 @example
 #+BEGIN_QUOTE
@@ -9950,7 +9951,7 @@ but not any simpler -- Albert Einstein
 @end example
 
 If you would like to center some text, do it like this:
-@cindex #+BEGIN_CENTER
+@cindex @code{#+BEGIN_CENTER}
 @cindex center blocks
 @example
 #+BEGIN_CENTER
@@ -9994,8 +9995,8 @@ a horizontal line.
 @section Images and Tables
 
 @cindex tables, markup rules
-@cindex #+CAPTION
-@cindex #+NAME
+@cindex @code{#+CAPTION}
+@cindex @code{#+NAME}
 Both the native Org mode tables (@pxref{Tables}) and tables formatted with
 the @file{table.el} package will be exported properly.  For Org mode tables,
 the lines before the first horizontal separator line will become table header
@@ -10046,7 +10047,7 @@ or may not be handled.
 You can include literal examples that should not be subjected to
 markup.  Such examples will be typeset in monospace, so this is well suited
 for source code and similar examples.
-@cindex #+BEGIN_EXAMPLE
+@cindex @code{#+BEGIN_EXAMPLE}
 
 @example
 #+BEGIN_EXAMPLE
@@ -10085,7 +10086,7 @@ example@footnote{Code in @samp{src} blocks may also be evaluated either
 interactively or on export.  @xref{Working with source code}, for more
 information on evaluating code blocks.}, see @ref{Easy templates} for
 shortcuts to easily insert code blocks.
-@cindex #+BEGIN_SRC
+@cindex @code{#+BEGIN_SRC}
 
 @example
 #+BEGIN_SRC emacs-lisp
@@ -10407,14 +10408,14 @@ To disable it, simply use
 
 CD@LaTeX{} mode is a minor mode that is normally used in combination with a
 major @LaTeX{} mode like AUC@TeX{} in order to speed-up insertion of
-environments and math templates.  Inside Org mode, you can make use of
-some of the features of CD@LaTeX{} mode.  You need to install
-@file{cdlatex.el} and @file{texmathp.el} (the latter comes also with
-AUC@TeX{}) from @url{https://staff.fnwi.uva.nl/c.dominik/Tools/cdlatex}.
-Don't use CD@LaTeX{} mode itself under Org mode, but use the light
-version @code{org-cdlatex-mode} that comes as part of Org mode.  Turn it
-on for the current buffer with @kbd{M-x org-cdlatex-mode RET}, or for all
-Org files with
+environments and math templates.  Inside Org mode, you can make use of some
+of the features of CD@LaTeX{} mode.  You need to install @file{cdlatex.el}
+and @file{texmathp.el} (the latter comes also with AUC@TeX{}) from
+@url{https://staff.fnwi.uva.nl/c.dominik/Tools/cdlatex}.  Don't use
+CD@LaTeX{} mode itself under Org mode, but use the light version
+@code{org-cdlatex-mode} that comes as part of Org mode.  Turn it on for the
+current buffer with @kbd{M-x org-cdlatex-mode @key{RET}}, or for all Org
+files with
 
 @lisp
 (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
@@ -10427,7 +10428,7 @@ details see the documentation of CD@LaTeX{} mode):
 @item
 Environment templates can be inserted with @kbd{C-c @{}.
 @item
-@kindex @key{TAB}
+@kindex TAB
 The @key{TAB} key will do template expansion if the cursor is inside a
 @LaTeX{} fragment@footnote{Org mode has a method to test if the cursor is
 inside such a fragment, see the documentation of the function
@@ -10438,7 +10439,8 @@ the second brace.  Even outside fragments, @key{TAB} will expand
 environment abbreviations at the beginning of a line.  For example, if
 you write @samp{equ} at the beginning of a line and press @key{TAB},
 this abbreviation will be expanded to an @code{equation} environment.
-To get a list of all abbreviations, type @kbd{M-x cdlatex-command-help RET}.
+To get a list of all abbreviations, type @kbd{M-x cdlatex-command-help
+@key{RET}}.
 @item
 @kindex _
 @kindex ^
@@ -10600,7 +10602,7 @@ Org document by adjusting outline visibility settings.
 @section Export settings
 @cindex Export, settings
 
-@cindex #+OPTIONS
+@cindex @code{#+OPTIONS}
 Export options can be set: globally with variables; for an individual file by
 making variables buffer-local with in-buffer settings (@pxref{In-buffer
 settings}), by setting individual keywords, or by specifying them in a
@@ -10608,7 +10610,7 @@ compact form with the @code{#+OPTIONS} keyword; or for a tree by setting
 properties (@pxref{Properties and columns}).  Options set at a specific level
 override options set at a more general level.
 
-@cindex #+SETUPFILE
+@cindex @code{#+SETUPFILE}
 In-buffer settings may appear anywhere in the file, either directly or
 indirectly through a file included using @samp{#+SETUPFILE: filename or URL}
 syntax.  Option keyword sets tailored to a particular back-end can be
@@ -10616,37 +10618,37 @@ inserted from the export dispatcher (@pxref{The export dispatcher}) using the
 @code{Insert template} command by pressing @key{#}.  To insert keywords
 individually, a good way to make sure the keyword is correct is to type
 @code{#+} and then to use @kbd{M-@key{TAB}}@footnote{Many desktops intercept
-@kbd{M-TAB} to switch windows.  Use @kbd{C-M-i} or @kbd{@key{ESC} @key{TAB}}
-instead.} for completion.
+@kbd{M-@key{TAB}} to switch windows.  Use @kbd{C-M-i} or @kbd{@key{ESC}
+@key{TAB}} instead.} for completion.
 
 The export keywords available for every back-end, and their equivalent global
 variables, include:
 
 @table @samp
 @item AUTHOR
-@cindex #+AUTHOR
+@cindex @code{#+AUTHOR}
 @vindex user-full-name
 The document author (@code{user-full-name}).
 
 @item CREATOR
-@cindex #+CREATOR
+@cindex @code{#+CREATOR}
 @vindex org-export-creator-string
 Entity responsible for output generation (@code{org-export-creator-string}).
 
 @item DATE
-@cindex #+DATE
+@cindex @code{#+DATE}
 @vindex org-export-date-timestamp-format
 A date or a time-stamp@footnote{The variable
 @code{org-export-date-timestamp-format} defines how this time-stamp will be
 exported.}.
 
 @item EMAIL
-@cindex #+EMAIL
+@cindex @code{#+EMAIL}
 @vindex user-mail-address
 The email address (@code{user-mail-address}).
 
 @item LANGUAGE
-@cindex #+LANGUAGE
+@cindex @code{#+LANGUAGE}
 @vindex org-export-default-language
 Language to use for translating certain strings
 (@code{org-export-default-language}).  With @samp{#+LANGUAGE: fr}, for
@@ -10654,7 +10656,7 @@ example, Org translates @emph{Table of contents} to the French @emph{Table
 des matières}.
 
 @item SELECT_TAGS
-@cindex #+SELECT_TAGS
+@cindex @code{#+SELECT_TAGS}
 @vindex org-export-select-tags
 The default value is @code{:export:}.  When a tree is tagged with
 @code{:export:} (@code{org-export-select-tags}), Org selects that tree and
@@ -10663,7 +10665,7 @@ see below.  When selectively exporting files with @code{:export:} tags set,
 Org does not export any text that appears before the first headline.
 
 @item EXCLUDE_TAGS
-@cindex #+EXCLUDE_TAGS
+@cindex @code{#+EXCLUDE_TAGS}
 @vindex org-export-exclude-tags
 The default value is @code{:noexport:}.  When a tree is tagged with
 @code{:noexport:} (@code{org-export-exclude-tags}), Org excludes that tree
@@ -10673,12 +10675,12 @@ unconditionally excluded from the export, even if they have an
 code blocks contained in them.
 
 @item TITLE
-@cindex #+TITLE
+@cindex @code{#+TITLE}
 @cindex document title
 Org displays this title.  For long titles, use multiple @code{#+TITLE} lines.
 
 @item EXPORT_FILE_NAME
-@cindex #+EXPORT_FILE_NAME
+@cindex @code{#+EXPORT_FILE_NAME}
 The name of the output file to be generated.  Otherwise, Org generates the
 file name based on the buffer name and the extension based on the back-end
 format.
@@ -10784,7 +10786,7 @@ Toggle inclusion of inlinetasks (@code{org-export-with-inlinetasks}).
 
 @item num:
 @vindex org-export-with-section-numbers
-@cindex property, UNNUMBERED
+@cindex property, @code{UNNUMBERED}
 Toggle section-numbers (@code{org-export-with-section-numbers}).  When set to
 number @samp{n}, Org numbers only those headlines at level @samp{n} or above.
 Setting @code{UNNUMBERED} property to non-@code{nil} disables numbering of
@@ -10860,7 +10862,7 @@ respectively, @samp{EXPORT_DATE} and @samp{EXPORT_FILE_NAME}.  Except for
 @samp{SETUPFILE}, all other keywords listed above have an @samp{EXPORT_}
 equivalent.
 
-@cindex #+BIND
+@cindex @code{#+BIND}
 @vindex org-export-allow-bind-keywords
 If @code{org-export-allow-bind-keywords} is non-@code{nil}, Emacs variables
 can become buffer-local during export by using the BIND keyword.  Its syntax
@@ -10873,7 +10875,7 @@ settings that cannot be changed using keywords.
 @cindex list of tables
 @cindex list of listings
 
-@cindex #+TOC
+@cindex @code{#+TOC}
 @vindex org-export-with-toc
 Org normally inserts the table of contents directly before the first headline
 of the file.  Org sets the TOC depth the same as the headline levels in the
@@ -10919,7 +10921,7 @@ with captions.
 #+TOC: tables             @r{build a list of tables}
 @end example
 
-@cindex property, ALT_TITLE
+@cindex property, @code{ALT_TITLE}
 Normally Org uses the headline for its entry in the table of contents.  But
 with @code{ALT_TITLE} property, a different entry can be specified for the
 table of contents.
@@ -10929,7 +10931,7 @@ table of contents.
 @cindex include files, during export
 Include other files during export.  For example, to include your @file{.emacs}
 file, you could use:
-@cindex #+INCLUDE
+@cindex @code{#+INCLUDE}
 
 @example
 #+INCLUDE: "~/.emacs" src emacs-lisp
@@ -11001,7 +11003,7 @@ Visit the include file at point.
 @node Macro replacement
 @section Macro replacement
 @cindex macro replacement, during export
-@cindex #+MACRO
+@cindex @code{#+MACRO}
 
 @vindex org-export-global-macros
 Macros replace text snippets during export.  Macros are defined globally in
@@ -11093,9 +11095,9 @@ Lines starting with zero or more whitespace characters followed by one
 @samp{#} and a whitespace are treated as comments and, as such, are not
 exported.
 
-@cindex #+BEGIN_COMMENT
-Likewise, regions surrounded by @samp{#+BEGIN_COMMENT}
-... @samp{#+END_COMMENT} are not exported.
+@cindex @code{#+BEGIN_COMMENT}
+Likewise, regions surrounded by @code{#+BEGIN_COMMENT}
+... @code{#+END_COMMENT} are not exported.
 
 @cindex comment trees
 Finally, a @samp{COMMENT} keyword at the beginning of an entry, but after any
@@ -11151,7 +11153,7 @@ settings}).
 
 @table @samp
 @item SUBTITLE
-@cindex #+SUBTITLE (ASCII)
+@cindex @code{#+SUBTITLE} (ASCII)
 The document subtitle.  For long subtitles, use multiple @code{#+SUBTITLE}
 lines in the Org file.  Org prints them on one continuous line, wrapping into
 multiple lines if necessary.
@@ -11168,8 +11170,8 @@ where levels become lists, @pxref{Export settings}.
 To insert text within the Org file by the ASCII back-end, use one the
 following constructs, inline, keyword, or export block:
 
-@cindex #+ASCII
-@cindex #+BEGIN_EXPORT ascii
+@cindex @code{#+ASCII}
+@cindex @code{#+BEGIN_EXPORT ascii}
 @example
 Inline text @@@@ascii:and additional text@@@@ within a paragraph.
 
@@ -11181,7 +11183,7 @@ Org exports text in this block only when using ASCII back-end.
 @end example
 
 @subheading ASCII specific attributes
-@cindex #+ATTR_ASCII
+@cindex @code{#+ATTR_ASCII}
 @cindex horizontal rules, in ASCII export
 
 ASCII back-end recognizes only one attribute, @code{:width}, which specifies
@@ -11195,8 +11197,8 @@ syntax for specifying widths is:
 
 @subheading ASCII special blocks
 @cindex special blocks, in ASCII export
-@cindex #+BEGIN_JUSTIFYLEFT
-@cindex #+BEGIN_JUSTIFYRIGHT
+@cindex @code{#+BEGIN_JUSTIFYLEFT}
+@cindex @code{#+BEGIN_JUSTIFYRIGHT}
 
 Besides @code{#+BEGIN_CENTER} blocks (@pxref{Paragraphs}), ASCII back-end has
 these two left and right justification blocks:
@@ -11254,7 +11256,7 @@ output.  These keywords work similar to the general options settings
 
 @table @samp
 @item BEAMER_THEME
-@cindex #+BEAMER_THEME
+@cindex @code{#+BEAMER_THEME}
 @vindex org-beamer-theme
 The Beamer layout theme (@code{org-beamer-theme}).  Use square brackets for
 options.  For example:
@@ -11263,24 +11265,24 @@ options.  For example:
 @end smallexample
 
 @item BEAMER_FONT_THEME
-@cindex #+BEAMER_FONT_THEME
+@cindex @code{#+BEAMER_FONT_THEME}
 The Beamer font theme.
 
 @item BEAMER_INNER_THEME
-@cindex #+BEAMER_INNER_THEME
+@cindex @code{#+BEAMER_INNER_THEME}
 The Beamer inner theme.
 
 @item BEAMER_OUTER_THEME
-@cindex #+BEAMER_OUTER_THEME
+@cindex @code{#+BEAMER_OUTER_THEME}
 The Beamer outer theme.
 
 @item BEAMER_HEADER
-@cindex #+BEAMER_HEADER
+@cindex @code{#+BEAMER_HEADER}
 Arbitrary lines inserted in the preamble, just before the @samp{hyperref}
 settings.
 
 @item DESCRIPTION
-@cindex #+DESCRIPTION (Beamer)
+@cindex @code{#+DESCRIPTION} (Beamer)
 The document description.  For long descriptions, use multiple
 @code{#+DESCRIPTION} keywords.  By default, @samp{hyperref} inserts
 @code{#+DESCRIPTION} as metadata.  Use @code{org-latex-hyperref-template} to
@@ -11288,7 +11290,7 @@ configure document metadata.  Use @code{org-latex-title-command} to configure
 typesetting of description as part of front matter.
 
 @item KEYWORDS
-@cindex #+KEYWORDS (Beamer)
+@cindex @code{#+KEYWORDS} (Beamer)
 The keywords for defining the contents of the document.  Use multiple
 @code{#+KEYWORDS} lines if necessary.  By default, @samp{hyperref} inserts
 @code{#+KEYWORDS} as metadata.  Use @code{org-latex-hyperref-template} to
@@ -11296,7 +11298,7 @@ configure document metadata.  Use @code{org-latex-title-command} to configure
 typesetting of keywords as part of front matter.
 
 @item SUBTITLE
-@cindex #+SUBTITLE (Beamer)
+@cindex @code{#+SUBTITLE} (Beamer)
 @vindex org-beamer-subtitle-format
 Document's subtitle.  For typesetting, use @code{org-beamer-subtitle-format}
 string.  Use @code{org-latex-hyperref-template} to configure document
@@ -11318,7 +11320,7 @@ Org headlines become Beamer frames when the heading level in Org is equal to
 @code{org-beamer-frame-level} or @code{H} value in an @code{OPTIONS} line
 (@pxref{Export settings}).
 
-@cindex property, BEAMER_ENV
+@cindex property, @code{BEAMER_ENV}
 Org overrides headlines to frames conversion for the current tree of an Org
 file if it encounters the @code{BEAMER_ENV} property set to @code{frame} or
 @code{fullframe}.  Org ignores whatever @code{org-beamer-frame-level} happens
@@ -11337,7 +11339,7 @@ aid and has no semantic relevance.}.  For valid values see
 @code{org-beamer-environments-extra}.
 
 @item
-@cindex property, BEAMER_REF
+@cindex property, @code{BEAMER_REF}
 If @code{BEAMER_ENV} is set to @code{appendix}, Org exports the entry as an
 appendix.  When set to @code{note}, Org exports the entry as a note within
 the frame or between frames, depending on the entry's heading level.  When
@@ -11351,8 +11353,8 @@ not its content.  This is useful for inserting content between frames.  It is
 also useful for properly closing a @code{column} environment.
 @end itemize
 
-@cindex property, BEAMER_ACT
-@cindex property, BEAMER_OPT
+@cindex property, @code{BEAMER_ACT}
+@cindex property, @code{BEAMER_OPT}
 When @code{BEAMER_ACT} is set for a headline, Org export translates that
 headline as an overlay or action specification.  When enclosed in square
 brackets, Org export makes the overlay specification a default.  Use
@@ -11361,7 +11363,7 @@ or block.  The Beamer export back-end wraps with appropriate angular or
 square brackets.  It also adds the @code{fragile} option for any code that may
 require a verbatim block.
 
-@cindex property, BEAMER_COL
+@cindex property, @code{BEAMER_COL}
 To create a column on the Beamer slide, use the @code{BEAMER_COL} property
 for its headline in the Org file.  Set the value of @code{BEAMER_COL} to a
 decimal number representing the fraction of the total text width.  Beamer
@@ -11376,8 +11378,8 @@ needs, use the @code{BEAMER_ENV} property.
 @node Beamer specific syntax
 @subsection Beamer specific syntax
 Since Org's Beamer export back-end is an extension of the @LaTeX{} back-end,
-it recognizes other @LaTeX{} specific syntax---for example, @samp{#+LATEX:}
-or @samp{#+ATTR_LATEX:}.  @xref{@LaTeX{} export}, for details.
+it recognizes other @LaTeX{} specific syntax---for example, @code{#+LATEX:}
+or @code{#+ATTR_LATEX:}.  @xref{@LaTeX{} export}, for details.
 
 Beamer export wraps the table of contents generated with @code{toc:t}
 @code{OPTION} keyword in a @code{frame} environment.  Beamer export does not
@@ -11390,8 +11392,8 @@ contents}).  Use square brackets for specifying options.
 
 Insert Beamer-specific code using the following constructs:
 
-@cindex #+BEAMER
-@cindex #+BEGIN_EXPORT beamer
+@cindex @code{#+BEAMER}
+@cindex @code{#+BEGIN_EXPORT beamer}
 @example
 #+BEAMER: \pause
 
@@ -11412,7 +11414,7 @@ this example:
 A *@@@@beamer:<2->@@@@useful* feature
 @end example
 
-@cindex #+ATTR_BEAMER
+@cindex @code{#+ATTR_BEAMER}
 Beamer export recognizes the @code{ATTR_BEAMER} keyword with the following
 attributes from Beamer configurations: @code{:environment} for changing local
 Beamer environment, @code{:overlay} for specifying Beamer overlays in angular
@@ -11536,66 +11538,66 @@ described in @ref{Export settings}.
 
 @table @samp
 @item DESCRIPTION
-@cindex #+DESCRIPTION (HTML)
+@cindex @code{#+DESCRIPTION} (HTML)
 This is the document's description, which the HTML exporter inserts it as a
 HTML meta tag in the HTML file.  For long descriptions, use multiple
 @code{#+DESCRIPTION} lines.  The exporter takes care of wrapping the lines
 properly.
 
 @item HTML_DOCTYPE
-@cindex #+HTML_DOCTYPE
+@cindex @code{#+HTML_DOCTYPE}
 @vindex org-html-doctype
 Specify the document type, for example: HTML5 (@code{org-html-doctype}).
 
 @item HTML_CONTAINER
-@cindex #+HTML_CONTAINER
+@cindex @code{#+HTML_CONTAINER}
 @vindex org-html-container-element
 Specify the HTML container, such as @samp{div}, for wrapping sections and
 elements (@code{org-html-container-element}).
 
 @item HTML_LINK_HOME
-@cindex #+HTML_LINK_HOME
+@cindex @code{#+HTML_LINK_HOME}
 @vindex org-html-link-home
 The URL for home link (@code{org-html-link-home}).
 
 @item HTML_LINK_UP
-@cindex #+HTML_LINK_UP
+@cindex @code{#+HTML_LINK_UP}
 @vindex org-html-link-up
 The URL for the up link of exported HTML pages (@code{org-html-link-up}).
 
 @item HTML_MATHJAX
-@cindex #+HTML_MATHJAX
+@cindex @code{#+HTML_MATHJAX}
 @vindex org-html-mathjax-options
 Options for MathJax (@code{org-html-mathjax-options}).  MathJax is used to
 typeset @LaTeX{} math in HTML documents.  @xref{Math formatting in HTML
 export}, for an example.
 
 @item HTML_HEAD
-@cindex #+HTML_HEAD
+@cindex @code{#+HTML_HEAD}
 @vindex org-html-head
 Arbitrary lines for appending to the HTML document's head
 (@code{org-html-head}).
 
 @item HTML_HEAD_EXTRA
-@cindex #+HTML_HEAD_EXTRA
+@cindex @code{#+HTML_HEAD_EXTRA}
 @vindex org-html-head-extra
 More arbitrary lines for appending to the HTML document's head
 (@code{org-html-head-extra}).
 
 @item KEYWORDS
-@cindex #+KEYWORDS (HTML)
+@cindex @code{#+KEYWORDS} (HTML)
 Keywords to describe the document's content.  HTML exporter inserts these
 keywords as HTML meta tags.  For long keywords, use multiple
 @code{#+KEYWORDS} lines.
 
 @item LATEX_HEADER
-@cindex #+LATEX_HEADER (HTML)
+@cindex @code{#+LATEX_HEADER} (HTML)
 Arbitrary lines for appending to the preamble; HTML exporter appends when
 transcoding @LaTeX{} fragments to images (@pxref{Math formatting in HTML
 export}).
 
 @item SUBTITLE
-@cindex #+SUBTITLE (HTML)
+@cindex @code{#+SUBTITLE} (HTML)
 The document's subtitle.  HTML exporter formats subtitle if document type is
 @samp{HTML5} and the CSS has a @samp{subtitle} class.
 @end table
@@ -11729,14 +11731,13 @@ back-end can insert that HTML code in the output, use this inline syntax:
 text@@@@html:</b>@@@@}.  For larger raw HTML code blocks, use these HTML
 export code blocks:
 
-@cindex #+HTML
-@cindex #+BEGIN_EXPORT html
+@cindex @code{#+HTML}
 @example
 #+HTML: Literal HTML code for export
 @end example
 
 @noindent or
-@cindex #+BEGIN_EXPORT html
+@cindex @code{#+BEGIN_EXPORT html}
 
 @example
 #+BEGIN_EXPORT html
@@ -11773,7 +11774,7 @@ example, by using @code{#+ATTR_HTML} lines to specify new format attributes
 to @code{<a>} or @code{<img>} tags.  This example shows changing the link's
 @code{title} and @code{style}:
 
-@cindex #+ATTR_HTML
+@cindex @code{#+ATTR_HTML}
 @example
 #+ATTR_HTML: :title The Org mode homepage :style color:red;
 [[http://orgmode.org]]
@@ -11789,8 +11790,8 @@ exporting Org tables to HTML.  By default, the exporter does not draw frames
 and cell borders.  To change for this for a table, use the following lines
 before the table in the Org file:
 
-@cindex #+CAPTION
-@cindex #+ATTR_HTML
+@cindex @code{#+CAPTION}
+@cindex @code{#+ATTR_HTML}
 @example
 #+CAPTION: This is a table with lines around and between cells
 #+ATTR_HTML: :border 2 :rules all :frame border
@@ -11863,8 +11864,8 @@ Org file.  This example shows realignment to right, and adds @code{alt} and
 @code{title} attributes in support of text viewers and modern web accessibility
 standards.
 
-@cindex #+CAPTION
-@cindex #+ATTR_HTML
+@cindex @code{#+CAPTION}
+@cindex @code{#+ATTR_HTML}
 @example
 #+CAPTION: A black cat stalking a spider
 #+ATTR_HTML: :alt cat/spider image :title Action! :align right
@@ -11973,7 +11974,7 @@ p.creator           @r{creator info, about org mode version}
 .done               @r{the DONE keywords, all states that count as done}
 .WAITING            @r{each TODO keyword also uses a class named after itself}
 .timestamp          @r{timestamp}
-.timestamp-kwd      @r{keyword associated with a timestamp, like SCHEDULED}
+.timestamp-kwd      @r{keyword associated with a timestamp, like @code{SCHEDULED}}
 .timestamp-wrapper  @r{span around keyword plus timestamp}
 .tag                @r{tag in a headline}
 ._HOME              @r{each tag uses itself as a class, "@@" replaced by "_"}
@@ -12001,14 +12002,14 @@ p.footnote          @r{footnote definition paragraph, containing a footnote}
 @vindex org-html-head-include-default-style
 @vindex org-html-head
 @vindex org-html-head-extra
-@cindex #+HTML_INCLUDE_STYLE
+@cindex @code{#+HTML_INCLUDE_STYLE}
 The HTML export back-end includes a compact default style in each exported
 HTML file.  To override the default style with another style, use these
 keywords in the Org file.  They will replace the global defaults the HTML
 exporter uses.
 
-@cindex #+HTML_HEAD
-@cindex #+HTML_HEAD_EXTRA
+@cindex @code{#+HTML_HEAD}
+@cindex @code{#+HTML_HEAD_EXTRA}
 @example
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style1.css" />
 #+HTML_HEAD_EXTRA: <link rel="alternate stylesheet" type="text/css" href="style2.css" />
@@ -12058,7 +12059,7 @@ it on your own web server.
 
 To use this program, just add this line to the Org file:
 
-@cindex #+INFOJS_OPT
+@cindex @code{#+INFOJS_OPT}
 @example
 #+INFOJS_OPT: view:info toc:nil
 @end example
@@ -12179,7 +12180,7 @@ The @LaTeX{} export back-end has several additional keywords for customizing
 
 @table @samp
 @item DESCRIPTION
-@cindex #+DESCRIPTION (@LaTeX{})
+@cindex @code{#+DESCRIPTION} (@LaTeX{})
 The document's description.  The description along with author name,
 keywords, and related file metadata are inserted in the output file by the
 @samp{hyperref} package.  See @code{org-latex-hyperref-template} for
@@ -12188,7 +12189,7 @@ typesetting description into the document's front matter.  Use multiple
 @code{#+DESCRIPTION} lines for long descriptions.
 
 @item LATEX_CLASS
-@cindex #+LATEX_CLASS
+@cindex @code{#+LATEX_CLASS}
 @vindex org-latex-default-class
 @vindex org-latex-classes
 This is @LaTeX{} document class, such as @code{article}, @code{report},
@@ -12199,32 +12200,32 @@ default class name from the @code{org-latex-default-class} variable.  Org has
 element of @code{org-latex-classes}.
 
 @item LATEX_CLASS_OPTIONS
-@cindex #+LATEX_CLASS_OPTIONS
+@cindex @code{#+LATEX_CLASS_OPTIONS}
 Options the @LaTeX{} export back-end uses when calling the @LaTeX{} document
 class.
 
 @item LATEX_COMPILER
-@cindex #+LATEX_COMPILER
+@cindex @code{#+LATEX_COMPILER}
 @vindex org-latex-compiler
 The compiler, such as @samp{pdflatex}, @samp{xelatex}, @samp{lualatex}, for
 producing the PDF (@code{org-latex-compiler}).
 
 @item LATEX_HEADER
-@cindex #+LATEX_HEADER
+@cindex @code{#+LATEX_HEADER}
 @vindex org-latex-classes
 Arbitrary lines to add to the document's preamble, before the @samp{hyperref}
 settings.  See @code{org-latex-classes} for adjusting the structure and order
 of the @LaTeX{} headers.
 
 @item LATEX_HEADER_EXTRA
-@cindex #+LATEX_HEADER_EXTRA
+@cindex @code{#+LATEX_HEADER_EXTRA}
 @vindex org-latex-classes
 Arbitrary lines to add to the document's preamble, before the @samp{hyperref}
 settings.  See @code{org-latex-classes} for adjusting the structure and order
 of the @LaTeX{} headers.
 
 @item KEYWORDS
-@cindex #+KEYWORDS (@LaTeX{})
+@cindex @code{#+KEYWORDS} (@LaTeX{})
 The keywords for the document.  The description along with author name,
 keywords, and related file metadata are inserted in the output file by the
 @samp{hyperref} package.  See @code{org-latex-hyperref-template} for
@@ -12233,7 +12234,7 @@ typesetting description into the document's front matter.  Use multiple
 @code{#+KEYWORDS} lines if necessary.
 
 @item SUBTITLE
-@cindex #+SUBTITLE (@LaTeX{})
+@cindex @code{#+SUBTITLE} (@LaTeX{})
 @vindex org-latex-subtitle-separate
 @vindex org-latex-subtitle-format
 The document's subtitle.  It is typeset as per
@@ -12275,10 +12276,10 @@ exporter splices the values of @code{org-latex-default-packages-alist} and
 @code{org-latex-packages-alist}.  Use the same three variables to define
 custom sectioning or custom classes.
 
-@cindex #+LATEX_CLASS
-@cindex #+LATEX_CLASS_OPTIONS
-@cindex property, EXPORT_LATEX_CLASS
-@cindex property, EXPORT_LATEX_CLASS_OPTIONS
+@cindex @code{#+LATEX_CLASS}
+@cindex @code{#+LATEX_CLASS_OPTIONS}
+@cindex property, @code{EXPORT_LATEX_CLASS}
+@cindex property, @code{EXPORT_LATEX_CLASS_OPTIONS}
 The @LaTeX{} export back-end sends the @code{LATEX_CLASS_OPTIONS} keyword and
 @code{EXPORT_LATEX_CLASS_OPTIONS} property as options to the @LaTeX{}
 @code{\documentclass} macro.  The options and the syntax for specifying them,
@@ -12288,8 +12289,8 @@ including enclosing them in square brackets, follow @LaTeX{} conventions.
 #+LATEX_CLASS_OPTIONS: [a4paper,11pt,twoside,twocolumn]
 @end example
 
-@cindex #+LATEX_HEADER
-@cindex #+LATEX_HEADER_EXTRA
+@cindex @code{#+LATEX_HEADER}
+@cindex @code{#+LATEX_HEADER_EXTRA}
 The @LaTeX{} export back-end appends values from @code{LATEX_HEADER} and
 @code{LATEX_HEADER_EXTRA} keywords to the @LaTeX{} header.  The docstring for
 @code{org-latex-classes} explains in more detail.  Also note that @LaTeX{}
@@ -12323,14 +12324,14 @@ Code embedded in-line @@@@latex:any arbitrary LaTeX code@@@@ in a paragraph.
 @end example
 
 Inserting as one or more keyword lines in the Org file:
-@cindex #+LATEX
+@cindex @code{#+LATEX}
 @example
 #+LATEX: any arbitrary LaTeX code
 @end example
 
 Inserting as an export block in the Org file, where the back-end exports any
 code between begin and end markers:
-@cindex #+BEGIN_EXPORT latex
+@cindex @code{#+BEGIN_EXPORT latex}
 @example
 #+BEGIN_EXPORT latex
 any arbitrary LaTeX code
@@ -12340,7 +12341,7 @@ any arbitrary LaTeX code
 @node Tables in @LaTeX{} export
 @subsection Tables in @LaTeX{} export
 @cindex tables, in @LaTeX{} export
-@cindex #+ATTR_LATEX, in tables
+@cindex @code{#+ATTR_LATEX}, in tables
 
 The @LaTeX{} export back-end can pass several @LaTeX{} attributes for table
 contents and layout.  Besides specifying label and caption (@pxref{Images and
@@ -12444,7 +12445,7 @@ Set the caption with the @LaTeX{} command
 @subsection Images in @LaTeX{} export
 @cindex images, inline in @LaTeX{}
 @cindex inlining images in @LaTeX{}
-@cindex #+ATTR_LATEX, in images
+@cindex @code{#+ATTR_LATEX}, in images
 
 The @LaTeX{} export back-end processes image links in Org files that do not
 have descriptions, such as these links @samp{[[file:img.jpg]]} or
@@ -12514,7 +12515,7 @@ Set the @code{:comment-include} attribute to non-@code{nil} value for the
 @node Plain lists in @LaTeX{} export
 @subsection Plain lists in @LaTeX{} export
 @cindex plain lists, in @LaTeX{} export
-@cindex #+ATTR_LATEX, in plain lists
+@cindex @code{#+ATTR_LATEX}, in plain lists
 
 The @LaTeX{} export back-end accepts the @code{:environment} and
 @code{:options} attributes for plain lists.  Both attributes work together
@@ -12548,7 +12549,7 @@ four:
 @node Source blocks in @LaTeX{} export
 @subsection Source blocks in @LaTeX{} export
 @cindex source blocks, in @LaTeX{} export
-@cindex #+ATTR_LATEX, in source blocks
+@cindex @code{#+ATTR_LATEX}, in source blocks
 
 The @LaTeX{} export back-end can make source code blocks into floating
 objects through the attributes @code{:float} and @code{:options}.  For
@@ -12595,7 +12596,7 @@ variables.
 @subsection Example blocks in @LaTeX{} export
 @cindex example blocks, in @LaTeX{} export
 @cindex verbatim blocks, in @LaTeX{} export
-@cindex #+ATTR_LATEX, in example blocks
+@cindex @code{#+ATTR_LATEX}, in example blocks
 
 The @LaTeX{} export back-end wraps the contents of example blocks in a
 @samp{verbatim} environment.  To change this behavior to use another
@@ -12615,7 +12616,7 @@ This sentence is false.
 @cindex special blocks, in @LaTeX{} export
 @cindex abstract, in @LaTeX{} export
 @cindex proof, in @LaTeX{} export
-@cindex #+ATTR_LATEX, in special blocks
+@cindex @code{#+ATTR_LATEX}, in special blocks
 
 
 For other special blocks in the Org file, the @LaTeX{} export back-end makes
@@ -12663,7 +12664,7 @@ example:
 @node Horizontal rules in @LaTeX{} export
 @subsection Horizontal rules in @LaTeX{} export
 @cindex horizontal rules, in @LaTeX{} export
-@cindex #+ATTR_LATEX, in horizontal rules
+@cindex @code{#+ATTR_LATEX}, in horizontal rules
 
 The @LaTeX{} export back-end converts horizontal rules by the specified
 @code{:width} and @code{:thickness} attributes.  For example:
@@ -12747,10 +12748,10 @@ executable.  Without @file{zip}, export cannot finish.
 @anchor{x-export-to-odt}
 @cindex region, active
 @cindex active region
-@cindex transient-mark-mode
+@cindex @code{transient-mark-mode}
 @table @kbd
 @orgcmd{C-c C-e o o,org-odt-export-to-odt}
-@cindex property EXPORT_FILE_NAME
+@cindex property, @code{EXPORT_FILE_NAME}
 
 Export as OpenDocument Text file.
 
@@ -12787,13 +12788,13 @@ output.  Setting these keywords works similar to the general options
 
 @table @samp
 @item DESCRIPTION
-@cindex #+DESCRIPTION (ODT)
+@cindex @code{#+DESCRIPTION} (ODT)
 This is the document's description, which the ODT export back-end inserts as
 document metadata.  For long descriptions, use multiple @code{#+DESCRIPTION}
 lines.
 
 @item KEYWORDS
-@cindex #+KEYWORDS (ODT)
+@cindex @code{#+KEYWORDS} (ODT)
 The keywords for the document.  The ODT export back-end inserts the
 description along with author name, keywords, and related file metadata as
 metadata in the output file.  Use multiple @code{#+KEYWORDS} lines if
@@ -12848,7 +12849,7 @@ generic commands:
 @vindex org-odt-convert
 @table @kbd
 
-@item M-x org-odt-convert RET
+@item M-x org-odt-convert @key{RET}
 Convert an existing document from one format to another.  With a prefix
 argument, opens the newly produced file.
 @end table
@@ -12882,7 +12883,7 @@ Open one, modify, and save as either OpenDocument Text (@file{.odt}) or
 OpenDocument Template (@file{.ott}) file.
 
 @item
-@cindex #+ODT_STYLES_FILE
+@cindex @code{#+ODT_STYLES_FILE}
 @vindex org-odt-styles-file
 Customize the variable @code{org-odt-styles-file} and point it to the
 newly created file.  For additional configuration options
@@ -12941,7 +12942,7 @@ back-end honors any table alignments and relative widths for columns
 Note that the ODT export back-end interprets column widths as weighted
 ratios, the default weight being 1.
 
-@cindex #+ATTR_ODT
+@cindex @code{#+ATTR_ODT}
 
 Specifying @code{:rel-width} property on an @code{#+ATTR_ODT} line controls
 the width of the table.  For example:
@@ -12998,7 +12999,7 @@ when clicked jumps to @uref{http://Orgmode.org} website, do the following
 
 @subsubheading Sizing and scaling of embedded images
 
-@cindex #+ATTR_ODT
+@cindex @code{#+ATTR_ODT}
 Control the size and scale of the embedded images with the @code{#+ATTR_ODT}
 attribute.
 
@@ -13054,7 +13055,7 @@ height:width ratio, do the following
 
 @subsubheading Anchoring of images
 
-@cindex #+ATTR_ODT
+@cindex @code{#+ATTR_ODT}
 The ODT export back-end can anchor images to @samp{"as-char"},
 @samp{"paragraph"}, or @samp{"page"}.  Set the preferred anchor using the
 @code{:anchor} property of the @code{#+ATTR_ODT} line.
@@ -13123,10 +13124,10 @@ To quickly verify the reliability of the @LaTeX{}-to-MathML converter, use
 the following commands:
 
 @table @kbd
-@item M-x org-odt-export-as-odf RET
+@item M-x org-odt-export-as-odf @key{RET}
 Convert a @LaTeX{} math snippet to an OpenDocument formula (@file{.odf}) file.
 
-@item M-x org-odt-export-as-odf-and-open RET
+@item M-x org-odt-export-as-odf-and-open @key{RET}
 Convert a @LaTeX{} math snippet to an OpenDocument formula (@file{.odf}) file
 and open the formula file with the system-registered application.
 @end table
@@ -13452,7 +13453,7 @@ This paragraph is specially formatted and uses bold text.
 @subsubheading Customizing tables in ODT export
 @cindex tables, in ODT export
 
-@cindex #+ATTR_ODT
+@cindex @code{#+ATTR_ODT}
 Override the default table format by specifying a custom table style with the
 @code{#+ATTR_ODT} line.  For a discussion on default formatting of tables
 @pxref{Tables in ODT export}.
@@ -13696,52 +13697,52 @@ Texinfo output.  Setting these keywords works similar to the general options
 @table @samp
 
 @item SUBTITLE
-@cindex #+SUBTITLE (Texinfo)
+@cindex @code{#+SUBTITLE} (Texinfo)
 The document subtitle.
 
 @item SUBAUTHOR
-@cindex #+SUBAUTHOR
+@cindex @code{#+SUBAUTHOR}
 The document subauthor.
 
 @item TEXINFO_FILENAME
-@cindex #+TEXINFO_FILENAME
+@cindex @code{#+TEXINFO_FILENAME}
 The Texinfo filename.
 
 @item TEXINFO_CLASS
-@cindex #+TEXINFO_CLASS
+@cindex @code{#+TEXINFO_CLASS}
 @vindex org-texinfo-default-class
 The default document class (@code{org-texinfo-default-class}), which must be
 a member of @code{org-texinfo-classes}.
 
 @item TEXINFO_HEADER
-@cindex #+TEXINFO_HEADER
+@cindex @code{#+TEXINFO_HEADER}
 Arbitrary lines inserted at the end of the header.
 
 @item TEXINFO_POST_HEADER
-@cindex #+TEXINFO_POST_HEADER
+@cindex @code{#+TEXINFO_POST_HEADER}
 Arbitrary lines inserted after the end of the header.
 
 @item TEXINFO_DIR_CATEGORY
-@cindex #+TEXINFO_DIR_CATEGORY
+@cindex @code{#+TEXINFO_DIR_CATEGORY}
 The directory category of the document.
 
 @item TEXINFO_DIR_TITLE
-@cindex #+TEXINFO_DIR_TITLE
+@cindex @code{#+TEXINFO_DIR_TITLE}
 The directory title of the document.
 
 @item TEXINFO_DIR_DESC
-@cindex #+TEXINFO_DIR_DESC
+@cindex @code{#+TEXINFO_DIR_DESC}
 The directory description of the document.
 
 @item TEXINFO_PRINTED_TITLE
-@cindex #+TEXINFO_PRINTED_TITLE
+@cindex @code{#+TEXINFO_PRINTED_TITLE}
 The printed title of the document.
 @end table
 
 @node Texinfo file header
 @subsection Texinfo file header
 
-@cindex #+TEXINFO_FILENAME
+@cindex @code{#+TEXINFO_FILENAME}
 After creating the header for a Texinfo file, the Texinfo back-end
 automatically generates a name and destination path for the Info file.  To
 override this default with a more sensible path and name, specify the
@@ -13749,8 +13750,8 @@ override this default with a more sensible path and name, specify the
 
 @vindex org-texinfo-coding-system
 @vindex org-texinfo-classes
-@cindex #+TEXINFO_HEADER
-@cindex #+TEXINFO_CLASS
+@cindex @code{#+TEXINFO_HEADER}
+@cindex @code{#+TEXINFO_CLASS}
 Along with the output's file name, the Texinfo header also contains language
 details (@pxref{Export settings}) and encoding system as set in the
 @code{org-texinfo-coding-system} variable.  Insert @code{#+TEXINFO_HEADER}
@@ -13764,14 +13765,14 @@ setting the @code{#+TEXINFO_CLASS} keyword to that class.
 @node Texinfo title and copyright page
 @subsection Texinfo title and copyright page
 
-@cindex #+TEXINFO_PRINTED_TITLE
+@cindex @code{#+TEXINFO_PRINTED_TITLE}
 The default template for hard copy output has a title page with
 @code{#+TITLE} and @code{#+AUTHOR} (@pxref{Export settings}).  To replace the
 regular @code{#+TITLE} with something different for the printed version, use
 the @code{#+TEXINFO_PRINTED_TITLE} and @code{#+SUBTITLE} keywords.  Both
 expect raw Texinfo code for setting their values.
 
-@cindex #+SUBAUTHOR
+@cindex @code{#+SUBAUTHOR}
 If one @code{#+AUTHOR} is not sufficient, add multiple @code{#+SUBAUTHOR}
 keywords.  They have to be set in raw Texinfo code.
 
@@ -13781,7 +13782,7 @@ keywords.  They have to be set in raw Texinfo code.
 #+TEXINFO_PRINTED_TITLE: This Long Title@@inlinefmt@{tex,@@*@} Is Broken in @@TeX@{@}
 @end example
 
-@cindex property, COPYING
+@cindex property, @code{COPYING}
 Copying material is defined in a dedicated headline with a non-@code{nil}
 @code{:COPYING:} property.  The back-end inserts the contents within a
 @code{@@copying} command at the beginning of the document.  The heading
@@ -13809,9 +13810,9 @@ Copyright information is printed on the back of the title page.
 @cindex @code{install-info} parameters, in Texinfo export
 @cindex Texinfo export, @code{install-info} parameters
 
-@cindex #+TEXINFO_DIR_CATEGORY
-@cindex #+TEXINFO_DIR_TITLE
-@cindex #+TEXINFO_DIR_DESC
+@cindex @code{#+TEXINFO_DIR_CATEGORY}
+@cindex @code{#+TEXINFO_DIR_TITLE}
+@cindex @code{#+TEXINFO_DIR_DESC}
 The end result of the Texinfo export process is the creation of an Info file.
 This Info file's metadata has variables for category, title, and description:
 @code{#+TEXINFO_DIR_CATEGORY}, @code{#+TEXINFO_DIR_TITLE}, and
@@ -13831,7 +13832,7 @@ Here is an example that writes to the Info directory file:
 
 @vindex org-texinfo-classes
 @vindex org-texinfo-default-class
-@cindex #+TEXINFO_CLASS
+@cindex @code{#+TEXINFO_CLASS}
 The Texinfo export back-end uses a pre-defined scheme to convert Org
 headlines to an equivalent Texinfo structuring commands.  A scheme like this
 maps top-level headlines to numbered chapters tagged as @code{@@chapter} and
@@ -13846,12 +13847,12 @@ If an Org headline's level has no associated Texinfo structuring command, or
 is below a certain threshold (@pxref{Export settings}), then the Texinfo
 export back-end makes it into a list item.
 
-@cindex property, APPENDIX
+@cindex property, @code{APPENDIX}
 The Texinfo export back-end makes any headline with a non-@code{nil}
 @code{:APPENDIX:} property into an appendix.  This happens independent of the
 Org headline level or the @code{#+TEXINFO_CLASS}.
 
-@cindex property, DESCRIPTION
+@cindex property, @code{DESCRIPTION}
 The Texinfo export back-end creates a menu entry after the Org headline for
 each regular sectioning structure.  To override this with a shorter menu
 entry, use the @code{:ALT_TITLE:} property (@pxref{Table of contents}).
@@ -13877,22 +13878,22 @@ Top Node,,texinfo}, for more information.
 @node Indices
 @subsection Indices
 
-@cindex #+CINDEX
+@cindex @code{#+CINDEX}
 @cindex concept index, in Texinfo export
 @cindex Texinfo export, index, concept
-@cindex #+FINDEX
+@cindex @code{#+FINDEX}
 @cindex function index, in Texinfo export
 @cindex Texinfo export, index, function
-@cindex #+KINDEX
+@cindex @code{#+KINDEX}
 @cindex keystroke index, in Texinfo export
 @cindex Texinfo export, keystroke index
-@cindex #+PINDEX
+@cindex @code{#+PINDEX}
 @cindex program index, in Texinfo export
 @cindex Texinfo export, program index
-@cindex #+TINDEX
+@cindex @code{#+TINDEX}
 @cindex data type index, in Texinfo export
 @cindex Texinfo export, data type index
-@cindex #+VINDEX
+@cindex @code{#+VINDEX}
 @cindex variable index, in Texinfo export
 @cindex Texinfo export, variable index
 The Texinfo export back-end recognizes these indexing keywords if used in the
@@ -13905,7 +13906,7 @@ escaped with @samp{@@} if they not belong to a Texinfo command.
 #+CINDEX: Defining indexing entries
 @end example
 
-@cindex property, INDEX
+@cindex property, @code{INDEX}
 For the back-end to generate an index entry for a headline, set the
 @code{:INDEX:} property to @samp{cp} or @samp{vr}.  These abbreviations come
 from Texinfo that stand for concept index and variable index.  The Texinfo
@@ -13925,8 +13926,8 @@ inserts the index after its contents.
 
 Use any of the following three methods to insert or escape raw Texinfo code:
 
-@cindex #+TEXINFO
-@cindex #+BEGIN_EXPORT texinfo
+@cindex @code{#+TEXINFO}
+@cindex @code{#+BEGIN_EXPORT texinfo}
 @example
 Richard @@@@texinfo:@@sc@{@@@@Stallman@@@@texinfo:@}@@@@ commence' GNU.
 
@@ -13941,10 +13942,10 @@ This paragraph is preceded by...
 
 @node Plain lists in Texinfo export
 @subsection Plain lists in Texinfo export
-@cindex #+ATTR_TEXINFO, in plain lists
+@cindex @code{#+ATTR_TEXINFO}, in plain lists
 @cindex Two-column tables, in Texinfo export
 
-@cindex :table-type attribute, in Texinfo export
+@cindex @code{:table-type} attribute, in Texinfo export
 The Texinfo export back-end by default converts description lists in the Org
 file using the default command @code{@@table}, which results in a table with
 two columns.  To change this behavior, specify @code{:table-type} with
@@ -13952,14 +13953,14 @@ two columns.  To change this behavior, specify @code{:table-type} with
 @inforef{Two-column Tables,,texinfo}.
 
 @vindex org-texinfo-table-default-markup
-@cindex :indic attribute, in Texinfo export
+@cindex @code{:indic} attribute, in Texinfo export
 The Texinfo export back-end by default also applies a text highlight based on
 the defaults stored in @code{org-texinfo-table-default-markup}.  To override
 the default highlight command, specify another one with the @code{:indic}
 attribute.
 
 @cindex Multiple entries in two-column tables, in Texinfo export
-@cindex :sep attribute, in Texinfo export
+@cindex @code{:sep} attribute, in Texinfo export
 Org syntax is limited to one entry per list item.  Nevertheless, the Texinfo
 export back-end can split that entry according to any text provided through
 the @code{:sep} attribute.  Each part then becomes a new entry in the first
@@ -13985,7 +13986,7 @@ This is the common text for variables foo and bar.
 
 @node Tables in Texinfo export
 @subsection Tables in Texinfo export
-@cindex #+ATTR_TEXINFO, in tables
+@cindex @code{#+ATTR_TEXINFO}, in tables
 
 When exporting tables, the Texinfo export back-end uses the widest cell width
 in each column.  To override this and instead specify as fractions of line
@@ -13998,7 +13999,7 @@ length, use the @code{:columns} attribute.  See example below.
 
 @node Images in Texinfo export
 @subsection Images in Texinfo export
-@cindex #+ATTR_TEXINFO, in images
+@cindex @code{#+ATTR_TEXINFO}, in images
 
 Insert a file link to the image in the Org file, and the Texinfo export
 back-end inserts the image.  These links must have the usual supported image
@@ -14013,7 +14014,7 @@ the text using Texinfo code, as shown in the example:
 
 @node Special blocks in Texinfo export
 @subsection Special blocks
-@cindex #+ATTR_TEXINFO, in special blocks
+@cindex @code{#+ATTR_TEXINFO}, in special blocks
 
 The Texinfo export back-end converts special blocks to commands with the same
 name.  It also adds any @code{:options} attributes to the end of the command,
@@ -14136,7 +14137,7 @@ configure the variable @code{org-icalendar-categories}.  To assign clock
 alarms based on time, configure the @code{org-icalendar-alarm-time} variable.
 
 @vindex org-icalendar-store-UID
-@cindex property, ID
+@cindex property, @code{ID}
 The iCalendar format standard requires globally unique identifier---UID---for
 each entry.  The iCalendar export back-end creates UIDs during export.  To
 save a copy of the UID in the Org file set the variable
@@ -14165,26 +14166,27 @@ and write it to @code{org-icalendar-combined-agenda-file} file name.
 
 @vindex org-use-property-inheritance
 @vindex org-icalendar-include-body
-@cindex property, SUMMARY
-@cindex property, DESCRIPTION
-@cindex property, LOCATION
-@cindex property, TIMEZONE
-The iCalendar export back-end includes SUMMARY, DESCRIPTION, LOCATION and
-TIMEZONE properties from the Org entries when exporting.  To force the
-back-end to inherit the LOCATION and TIMEZONE properties, configure the
-@code{org-use-property-inheritance} variable.
+@cindex property, @code{SUMMARY}
+@cindex property, @code{DESCRIPTION}
+@cindex property, @code{LOCATION}
+@cindex property, @code{TIMEZONE}
+The iCalendar export back-end includes @code{SUMMARY}, @code{DESCRIPTION},
+@code{LOCATION} and @code{TIMEZONE} properties from the Org entries when
+exporting.  To force the back-end to inherit the @code{LOCATION} and
+@code{TIMEZONE} properties, configure the @code{org-use-property-inheritance}
+variable.
 
-When Org entries do not have SUMMARY, DESCRIPTION and LOCATION properties,
-the iCalendar export back-end derives the summary from the headline, and
-derives the description from the body of the Org item.  The
-@code{org-icalendar-include-body} variable limits the maximum number of
+When Org entries do not have @code{SUMMARY}, @code{DESCRIPTION} and
+@code{LOCATION} properties, the iCalendar export back-end derives the summary
+from the headline, and derives the description from the body of the Org item.
+The @code{org-icalendar-include-body} variable limits the maximum number of
 characters of the content are turned into its description.
 
-The TIMEZONE property can be used to specify a per-entry time zone, and will
-be applied to any entry with timestamp information.  Time zones should be
-specified as per the IANA time zone database format, e.g.@: ``Asia/Almaty''.
-Alternately, the property value can be ``UTC'', to force UTC time for this
-entry only.
+The @code{TIMEZONE} property can be used to specify a per-entry time zone,
+and will be applied to any entry with timestamp information.  Time zones
+should be specified as per the IANA time zone database format, e.g.@:
+``Asia/Almaty''.  Alternately, the property value can be ``UTC'', to force
+UTC time for this entry only.
 
 Exporting to iCalendar format depends in large part on the capabilities of
 the destination application.  Some are more lenient than others.  Consult the
@@ -14429,7 +14431,7 @@ In-place conversions are particularly handy for quick conversion of tables
 and lists in foreign buffers.  For example, turn on the minor mode @code{M-x
 orgstruct-mode} in an HTML buffer, then use the convenient Org keyboard
 commands to create a list, select it, and covert it to HTML with @code{M-x
-org-html-convert-region-to-html RET}.
+org-html-convert-region-to-html @key{RET}}.
 
 
 @node Publishing
@@ -14473,7 +14475,7 @@ and many other properties of a project.
 
 @node Project alist
 @subsection The variable @code{org-publish-project-alist}
-@cindex org-publish-project-alist
+@cindex @code{org-publish-project-alist}
 @cindex projects, for publishing
 
 @vindex org-publish-project-alist
@@ -14929,7 +14931,7 @@ The file will be created when first publishing a project with the
 "theindex.inc"}.  You can then build around this include statement by adding
 a title, style information, etc.
 
-@cindex #+INDEX
+@cindex @code{#+INDEX}
 Index entries are specified with @code{#+INDEX} keyword.  An entry that
 contains an exclamation mark will create a sub item.
 
@@ -15100,8 +15102,8 @@ such as not inside comments and fixed width areas.  Here's a sample
 #+END_SRC
 @end example
 
-Org can take the code in the block between the @samp{#+BEGIN_SRC} and
-@samp{#+END_SRC} tags, and format, compile, execute, and show the results.
+Org can take the code in the block between the @code{#+BEGIN_SRC} and
+@code{#+END_SRC} tags, and format, compile, execute, and show the results.
 Org can simplify many housekeeping tasks essential to modern code
 maintenance.  That's why these blocks in Org mode literature are sometimes
 referred to as @samp{live code} blocks (as compared to the static text and
@@ -15110,7 +15112,7 @@ block by tweaking the headers for compiling, execution, extraction.
 
 Org's @samp{src} code block type is one of many block types, such as quote,
 export, verse, latex, example, and verbatim.  This section pertains to
-@samp{src} code blocks between @samp{#+BEGIN_SRC} and @samp{#+END_SRC}
+@code{src} code blocks between @code{#+BEGIN_SRC} and @code{#+END_SRC}
 
 For editing @samp{src} code blocks, Org provides native Emacs major-modes.
 That leverages the latest Emacs features for that source code language mode.
@@ -15172,8 +15174,8 @@ Details of Org's facilities for working with source code are shown next.
 @section Structure of code blocks
 @cindex code block, structure
 @cindex source code, block structure
-@cindex #+NAME
-@cindex #+BEGIN_SRC
+@cindex @code{#+NAME}
+@cindex @code{#+BEGIN_SRC}
 
 Org offers two ways to structure source code in Org documents: in a
 @samp{src} block, and directly inline.  Both specifications are shown below.
@@ -15215,7 +15217,7 @@ results.  Code from other blocks, other files, and from table formulas
 (@pxref{The spreadsheet}) can use the name to reference a @samp{src} block.
 This naming serves the same purpose as naming Org tables.  Org mode requires
 unique names.  For duplicate names, Org mode's behavior is undefined.
-@cindex #+NAME
+@cindex @code{#+NAME}
 @item #+BEGIN_SRC
 @item #+END_SRC
 Mandatory.  They mark the start and end of a block that Org requires.  The
@@ -15426,7 +15428,7 @@ block header arguments: One, set @code{padline} (@pxref{padline}) to true
 @section Evaluating code blocks
 @cindex code block, evaluating
 @cindex source code, evaluating
-@cindex #+RESULTS
+@cindex @code{#+RESULTS}
 
 A note about security: With code evaluation comes the risk of harm.  Org
 safeguards by prompting for user's permission before executing any code in
@@ -15449,7 +15451,7 @@ evaluation from the @kbd{C-c C-c} key binding.} calls the
 @code{org-babel-execute-src-block} function, which executes the code in the
 block, collects the results, and inserts them in the buffer.
 
-@cindex #+CALL
+@cindex @code{#+CALL}
 By calling a named code block@footnote{Actually, the constructs call_<name>()
 and src_<lang>@{@} are not evaluated when they appear in a keyword line
 (i.e. lines starting with @code{#+KEYWORD:}, @pxref{In-buffer settings}).}
@@ -15732,7 +15734,7 @@ each line.  Note that Org currently accepts the plural spelling of
 @code{#+HEADER:} only as a convenience for backward-compatibility.  It may be
 removed at some point.
 
-@cindex #+HEADER:
+@cindex @code{#+HEADER:}
 
 Multi-line header arguments on an unnamed @samp{src} code block:
 
@@ -16146,7 +16148,7 @@ Interpreted as raw Org mode.  Inserted directly into the buffer.  Aligned if
 it is a table.  Usage example: @code{:results value raw}.
 @item @code{org}
 Results enclosed in a @code{BEGIN_SRC org} block.  For comma-escape, either
-@kbd{TAB} in the block, or export the file.  Usage example: @code{:results
+@key{TAB} in the block, or export the file.  Usage example: @code{:results
 value org}.
 @item @code{html}
 Results enclosed in a @code{BEGIN_EXPORT html} block.  Usage example:
@@ -16233,7 +16235,7 @@ output file, @code{:dir} specifies the default directory during @samp{src}
 code block execution.  If it is absent, then the directory associated with
 the current buffer is used.  In other words, supplying @code{:dir path}
 temporarily has the same effect as changing the current directory with
-@kbd{M-x cd path RET}, and then not supplying @code{:dir}.  Under the
+@kbd{M-x cd path @key{RET}}, and then not supplying @code{:dir}.  Under the
 surface, @code{:dir} simply sets the value of the Emacs variable
 @code{default-directory}.
 
@@ -17127,10 +17129,10 @@ Active key bindings in code blocks:
 @item @kbd{C-c C-c} @tab @code{org-babel-execute-src-block}
 @kindex C-c C-o
 @item @kbd{C-c C-o} @tab @code{org-babel-open-src-block-result}
-@kindex M-up
-@item @kbd{M-@key{up}}    @tab @code{org-babel-load-in-session}
-@kindex M-down
-@item @kbd{M-@key{down}}  @tab @code{org-babel-switch-to-session}
+@kindex M-UP
+@item @kbd{M-@key{UP}}    @tab @code{org-babel-load-in-session}
+@kindex M-DOWN
+@item @kbd{M-@key{DOWN}}  @tab @code{org-babel-switch-to-session}
 @end multitable
 
 Active key bindings in Org mode buffer:
@@ -17247,12 +17249,12 @@ emacs -Q --batch --eval "
 @chapter Miscellaneous
 
 @menu
-* Completion::                  M-TAB guesses completions
+* Completion::                  M-@key{TAB} guesses completions
 * Easy templates::              Quick insertion of structural elements
 * Speed keys::                  Electric commands at the beginning of a headline
 * Code evaluation security::    Org mode files evaluate inline code
 * Customization::               Adapting Org to changing tastes
-* In-buffer settings::          Overview of the #+KEYWORDS
+* In-buffer settings::          Overview of the @code{#+KEYWORDS}
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org on a tty
@@ -17286,7 +17288,7 @@ is involved.  Such mode-specific hot keys have become an integral part of
 Emacs and Org provides several shortcuts.
 
 @table @kbd
-@kindex M-@key{TAB}
+@kindex M-TAB
 @item M-@key{TAB}
 Complete word at point
 @itemize @bullet
@@ -17300,7 +17302,7 @@ can be used in search links like @samp{[[*find this headline]]}.
 @item
 After @samp{:} in a headline, complete tags.  The list of tags is taken
 from the variable @code{org-tag-alist} (possibly set through the
-@samp{#+TAGS} in-buffer option, @pxref{Setting tags}), or it is created
+@code{#+TAGS} in-buffer option, @pxref{Setting tags}), or it is created
 dynamically from all tags used in the current buffer.
 @item
 After @samp{:} and not in a headline, complete property keys.  The list
@@ -17313,7 +17315,7 @@ After @samp{#+}, complete the special keywords like @samp{TYP_TODO} or
 file-specific @samp{OPTIONS}.  After option keyword is complete, pressing
 @kbd{M-@key{TAB}} again will insert example settings for that option.
 @item
-After @samp{#+STARTUP: }, complete startup keywords.
+After @code{#+STARTUP:}, complete startup keywords.
 @item
 When the point is anywhere else, complete dictionary words using Ispell.
 @end itemize
@@ -17457,8 +17459,8 @@ Org executes formulas in tables (@pxref{The spreadsheet}) either through the
 @cindex variables, for customization
 
 Org has more than 500 variables for customization.  They can be accessed
-through the usual @kbd{M-x org-customize RET} command.  Or through the Org
-menu, @code{Org->Customization->Browse Org Group}.  Org also has per-file
+through the usual @kbd{M-x org-customize @key{RET}} command.  Or through the
+Org menu, @code{Org->Customization->Browse Org Group}.  Org also has per-file
 settings for some variables (@pxref{In-buffer settings}).
 
 @node In-buffer settings
@@ -17477,13 +17479,13 @@ reopening the Org file in Emacs also activates the changes.
 @table @kbd
 @item #+ARCHIVE: %s_done::
 Sets the archive location of the agenda file.  This location applies to the
-lines until the next @samp{#+ARCHIVE} line, if any, in the Org file.  The
+lines until the next @code{#+ARCHIVE} line, if any, in the Org file.  The
 first archive location in the Org file also applies to any entries before it.
 The corresponding variable is @code{org-archive-location}.
 @item #+CATEGORY:
 Sets the category of the agenda file, which applies to the entire document.
 @item #+COLUMNS: %25ITEM ...
-@cindex property, COLUMNS
+@cindex property, @code{COLUMNS}
 Sets the default format for columns view.  Org uses this format for column
 views where there is no @code{COLUMNS} property.
 @item #+CONSTANTS: name1=value1 ...
@@ -17510,7 +17512,7 @@ have a lower ASCII number than the lowest priority.
 @item #+PROPERTY: Property_Name Value
 This line sets a default inheritance value for entries in the current
 buffer, most useful for specifying the allowed values of a property.
-@cindex #+SETUPFILE
+@cindex @code{#+SETUPFILE}
 @item #+SETUPFILE: file or URL
 The setup file or a URL pointing to such file is for additional in-buffer
 settings.  Org loads this file and parses it for any settings in it only when
@@ -17522,7 +17524,7 @@ parses the contents of this document as if it was included in the buffer.  It
 can be another Org file.  To visit the file (not a URL), @kbd{C-c '} while
 the cursor is on the line with the file name.
 @item #+STARTUP:
-@cindex #+STARTUP
+@cindex @code{#+STARTUP}
 Startup options Org uses when first visiting a file.
 
 The first set of options deals with the initial visibility of the outline
@@ -17703,7 +17705,7 @@ fnadjust    @r{automatically renumber and sort footnotes}
 nofnadjust  @r{do not renumber and sort automatically}
 @end example
 
-@cindex org-hide-block-startup
+@cindex @code{org-hide-block-startup}
 To hide blocks on startup, use these keywords.  The corresponding variable is
 @code{org-hide-block-startup}.
 @cindex @code{hideblocks}, STARTUP keyword
@@ -17713,7 +17715,7 @@ hideblocks   @r{Hide all begin/end blocks on startup}
 nohideblocks @r{Do not hide blocks on startup}
 @end example
 
-@cindex org-pretty-entities
+@cindex @code{org-pretty-entities}
 The display of entities as UTF-8 characters is governed by the variable
 @code{org-pretty-entities} and the keywords
 @cindex @code{entitiespretty}, STARTUP keyword
@@ -17728,11 +17730,11 @@ entitiesplain   @r{Leave entities plain}
 These lines specify valid tags for this file.  Org accepts multiple tags
 lines.  Tags could correspond to the @emph{fast tag selection} keys.  The
 corresponding variable is @code{org-tag-alist}.
-@cindex #+TBLFM
+@cindex @code{#+TBLFM}
 @item #+TBLFM:
 This line is for formulas for the table directly above.  A table can have
-multiple @samp{#+TBLFM:} lines.  On table recalculation, Org applies only the
-first @samp{#+TBLFM:} line.  For details see @ref{Using multiple #+TBLFM
+multiple @code{#+TBLFM:} lines.  On table recalculation, Org applies only the
+first @code{#+TBLFM:} line.  For details see @ref{Using multiple #+TBLFM
 lines} in @ref{Editing and debugging formulas}.
 @item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+DATE:,
 @itemx #+OPTIONS:, #+BIND:,
@@ -17748,7 +17750,7 @@ The corresponding variable is @code{org-todo-keywords}.
 @node The very busy C-c C-c key
 @section The very busy C-c C-c key
 @kindex C-c C-c
-@cindex C-c C-c, overview
+@cindex @kbd{C-c C-c}, overview
 
 The @kbd{C-c C-c} key in Org serves many purposes depending on the context.
 It is probably the most over-worked, multi-purpose key combination in Org.
@@ -17912,7 +17914,8 @@ one of the following lines:
 @end example
 
 To switch between single and double stars layouts, use @kbd{M-x
-org-convert-to-odd-levels RET} and @kbd{M-x org-convert-to-oddeven-levels}.
+org-convert-to-odd-levels @key{RET}} and @kbd{M-x
+org-convert-to-oddeven-levels @key{RET}}.
 @end enumerate
 
 @node TTY keys
@@ -17929,23 +17932,23 @@ normal @kbd{S-@key{cursor}} for editing timestamp might be better with
 @multitable @columnfractions 0.15 0.2 0.1 0.2
 @item @b{Default} @tab @b{Alternative 1} @tab @b{Speed key} @tab @b{Alternative 2}
 @item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab @kbd{C} @tab
-@item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{l} @tab @kbd{@key{Esc} @key{left}}
-@item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab @kbd{L} @tab
-@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{r} @tab @kbd{@key{Esc} @key{right}}
-@item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab @kbd{R} @tab
-@item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{up}}
-@item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab @kbd{U} @tab
-@item @kbd{M-@key{down}}    @tab @kbd{C-c C-x d}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{down}}
-@item @kbd{M-S-@key{down}}  @tab @kbd{C-c C-x D}           @tab @kbd{D} @tab
+@item @kbd{M-@key{LEFT}}    @tab @kbd{C-c C-x l}           @tab @kbd{l} @tab @kbd{@key{Esc} @key{LEFT}}
+@item @kbd{M-S-@key{LEFT}}  @tab @kbd{C-c C-x L}           @tab @kbd{L} @tab
+@item @kbd{M-@key{RIGHT}}   @tab @kbd{C-c C-x r}           @tab @kbd{r} @tab @kbd{@key{Esc} @key{RIGHT}}
+@item @kbd{M-S-@key{RIGHT}} @tab @kbd{C-c C-x R}           @tab @kbd{R} @tab
+@item @kbd{M-@key{UP}}      @tab @kbd{C-c C-x u}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{UP}}
+@item @kbd{M-S-@key{UP}}    @tab @kbd{C-c C-x U}           @tab @kbd{U} @tab
+@item @kbd{M-@key{DOWN}}    @tab @kbd{C-c C-x d}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{DOWN}}
+@item @kbd{M-S-@key{DOWN}}  @tab @kbd{C-c C-x D}           @tab @kbd{D} @tab
 @item @kbd{S-@key{RET}}     @tab @kbd{C-c C-x c}           @tab @kbd{ } @tab
 @item @kbd{M-@key{RET}}     @tab @kbd{C-c C-x m}           @tab @kbd{ } @tab @kbd{@key{Esc} @key{RET}}
 @item @kbd{M-S-@key{RET}}   @tab @kbd{C-c C-x M}           @tab @kbd{ } @tab
-@item @kbd{S-@key{left}}    @tab @kbd{C-c @key{left}}      @tab @kbd{ } @tab
-@item @kbd{S-@key{right}}   @tab @kbd{C-c @key{right}}     @tab @kbd{ } @tab
-@item @kbd{S-@key{up}}      @tab @kbd{C-c @key{up}}        @tab @kbd{ } @tab
-@item @kbd{S-@key{down}}    @tab @kbd{C-c @key{down}}      @tab @kbd{ } @tab
-@item @kbd{C-S-@key{left}}  @tab @kbd{C-c C-x @key{left}}  @tab @kbd{ } @tab
-@item @kbd{C-S-@key{right}} @tab @kbd{C-c C-x @key{right}} @tab @kbd{ } @tab
+@item @kbd{S-@key{LEFT}}    @tab @kbd{C-c @key{LEFT}}      @tab @kbd{ } @tab
+@item @kbd{S-@key{RIGHT}}   @tab @kbd{C-c @key{RIGHT}}     @tab @kbd{ } @tab
+@item @kbd{S-@key{UP}}      @tab @kbd{C-c @key{UP}}        @tab @kbd{ } @tab
+@item @kbd{S-@key{DOWN}}    @tab @kbd{C-c @key{DOWN}}      @tab @kbd{ } @tab
+@item @kbd{C-S-@key{LEFT}}  @tab @kbd{C-c C-x @key{LEFT}}  @tab @kbd{ } @tab
+@item @kbd{C-S-@key{RIGHT}} @tab @kbd{C-c C-x @key{RIGHT}} @tab @kbd{ } @tab
 @end multitable
 
 
@@ -18058,9 +18061,9 @@ bindings in Org files, and in the agenda buffer (but not during date
 selection).
 
 @example
-S-UP      @result{}  M-p             S-DOWN     @result{}  M-n
-S-LEFT    @result{}  M--             S-RIGHT    @result{}  M-+
-C-S-LEFT  @result{}  M-S--           C-S-RIGHT  @result{}  M-S-+
+S-@key{UP}      @result{}  M-p             S-@key{DOWN}     @result{}  M-n
+S-@key{LEFT}    @result{}  M--             S-@key{RIGHT}    @result{}  M-+
+C-S-@key{LEFT}  @result{}  M-S--           C-S-@key{RIGHT}  @result{}  M-S-+
 @end example
 
 @vindex org-disputed-keys
@@ -18427,7 +18430,7 @@ the mode is C, then:
 At the location of source, Org needs a special line to direct Orgtbl to
 translate and to find the target for inserting the translated table.  For
 example:
-@cindex #+ORGTBL
+@cindex @code{#+ORGTBL}
 @example
 #+ORGTBL: SEND table_name translation_function arguments...
 @end example
@@ -18465,7 +18468,7 @@ Put the table after an @samp{END} statement.  For example @samp{\bye} in
 @TeX{} and @samp{\end@{document@}} in @LaTeX{}.
 @item
 Comment and uncomment each line of the table during edits.  The @kbd{M-x
-orgtbl-toggle-comment RET} command makes toggling easy.
+orgtbl-toggle-comment @key{RET}} command makes toggling easy.
 @end itemize
 
 @node A @LaTeX{} example
@@ -18478,10 +18481,10 @@ provided by @file{comment.sty}.  To activate it, put
 radio table skeleton@footnote{By default this works only for @LaTeX{}, HTML,
 and Texinfo.  Configure the variable @code{orgtbl-radio-table-templates} to
 install templates for other export formats.}  with the command @kbd{M-x
-orgtbl-insert-radio-table RET}, which prompts for a table name.  For example,
-if @samp{salesfigures} is the name, the template inserts:
+orgtbl-insert-radio-table @key{RET}}, which prompts for a table name.  For
+example, if @samp{salesfigures} is the name, the template inserts:
 
-@cindex #+ORGTBL, SEND
+@cindex @code{#+ORGTBL}, @samp{SEND}
 @example
 % BEGIN RECEIVE ORGTBL salesfigures
 % END RECEIVE ORGTBL salesfigures
@@ -18497,7 +18500,7 @@ The line @code{#+ORGTBL: SEND} tells Orgtbl mode to use the function
 @code{orgtbl-to-latex} to convert the table to @LaTeX{} format, then insert
 the table at the target (receive) location named @code{salesfigures}.  Now
 the table is ready for data entry.  It can even use spreadsheet
-features@footnote{If the @samp{#+TBLFM} line contains an odd number of dollar
+features@footnote{If the @code{#+TBLFM} line contains an odd number of dollar
 characters, this may cause problems with font-lock in @LaTeX{} mode.  As
 shown in the example you can fix this by adding an extra line inside the
 @code{comment} environment that is used to balance the dollar expressions.
@@ -18628,14 +18631,14 @@ translator functions by posting them to the Org users mailing list,
 @node Radio lists
 @subsection Radio lists
 @cindex radio lists
-@cindex org-list-insert-radio-list
+@cindex @code{org-list-insert-radio-list}
 
 Call the @code{org-list-insert-radio-list} function to insert a radio list
 template in HTML, @LaTeX{}, and Texinfo mode documents.  Sending and
 receiving radio lists works is the same as for radio tables (@pxref{Radio
 tables}) except for these differences:
 
-@cindex #+ORGLST
+@cindex @code{#+ORGLST}
 @itemize @minus
 @item
 Orgstruct mode must be active.
@@ -18679,7 +18682,7 @@ time}).
 Dynamic blocks can have names and function parameters.  The syntax is similar
 to @samp{src} code block specifications:
 
-@cindex #+BEGIN:dynamic block
+@cindex @code{#+BEGIN}, dynamic block
 @example
 #+BEGIN: myblock :parameter1 value1 :parameter2 value2 ...
 
@@ -18941,7 +18944,7 @@ priority-n   @r{The computed numerical priority}
 
 @noindent
 If the selection of the agenda item was based on a timestamp, including those
-items with @samp{DEADLINE} and @samp{SCHEDULED} keywords, then Org includes
+items with @code{DEADLINE} and @code{SCHEDULED} keywords, then Org includes
 date and time in the output.
 
 If the selection of the agenda item was based on a timestamp  (or

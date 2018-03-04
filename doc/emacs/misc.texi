@@ -409,7 +409,7 @@ is needed.  For OpenDocument and Microsoft Office documents, the
 @code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
-@cindex doc-view-minor-mode
+@findex doc-view-minor-mode
   When you visit a document file that can be displayed with DocView
 mode, Emacs automatically uses DocView mode @footnote{The needed
 external tools for the document type must be available, and Emacs must

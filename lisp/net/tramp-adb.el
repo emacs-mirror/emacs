@@ -71,7 +71,7 @@ It is used for TCP/IP devices."
 
 (defconst tramp-adb-ls-toolbox-regexp
   (concat
-   "^[[:space:]]*\\([-[:alpha:]]+\\)" 	; \1 permissions
+   "^[[:space:]]*\\([-.[:alpha:]]+\\)"	; \1 permissions
    "\\(?:[[:space:]]+[[:digit:]]+\\)?"	; links (Android 7/toybox)
    "[[:space:]]*\\([^[:space:]]+\\)"	; \2 username
    "[[:space:]]+\\([^[:space:]]+\\)"	; \3 group
@@ -458,13 +458,19 @@ pass to the OPERATION."
 			   result)))))))))
 
 (defun tramp-adb-get-ls-command (vec)
-  "Determine `ls' command at its arguments."
+  "Determine `ls' command and its arguments."
   (with-tramp-connection-property vec "ls"
     (tramp-message vec 5 "Finding a suitable `ls' command")
     (cond
+     ;; Support Android derived systems where "ls" command is provided
+     ;; by GNU Coreutils. Force "ls" to print one column and set
+     ;; time-style to imitate other "ls" flavours.
+     ((tramp-adb-send-command-and-check
+       vec "ls --time-style=long-iso /dev/null")
+      "ls -1 --time-style=long-iso")
      ;; Can't disable coloring explicitly for toybox ls command.  We
-     ;; must force "ls" to print just one column.
-     ((tramp-adb-send-command-and-check vec "toybox") "env COLUMNS=1 ls")
+     ;; also must force "ls" to print just one column.
+     ((tramp-adb-send-command-and-check vec "toybox") "ls -1")
      ;; On CyanogenMod based system BusyBox is used and "ls" output
      ;; coloring is enabled by default.  So we try to disable it when
      ;; possible.

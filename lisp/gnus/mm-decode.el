@@ -1,4 +1,4 @@
-;;; mm-decode.el --- Functions for decoding MIME things
+;;; mm-decode.el --- Functions for decoding MIME things  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
@@ -773,15 +773,16 @@ MIME-Version header before proceeding."
       (insert-buffer-substring obuf beg)
       (current-buffer))))
 
-(defun mm-display-parts (handle &optional no-default)
-  (if (stringp (car handle))
-      (mapcar 'mm-display-parts (cdr handle))
-    (if (bufferp (car handle))
-	(save-restriction
-	  (narrow-to-region (point) (point))
-	  (mm-display-part handle)
-	  (goto-char (point-max)))
-      (mapcar 'mm-display-parts handle))))
+(defun mm-display-parts (handle)
+  (cond
+   ((stringp (car handle)) (mapcar #'mm-display-parts (cdr handle)))
+   ((bufferp (car handle))
+    (save-restriction
+      (narrow-to-region (point) (point))
+      (mm-display-part handle)
+      (goto-char (point-max))))
+   (t
+    (mapcar #'mm-display-parts handle))))
 
 (autoload 'mailcap-parse-mailcaps "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
@@ -961,15 +962,15 @@ external if displayed external."
 				      mm-external-terminal-program
 				      "-e" shell-file-name
 				      shell-command-switch command)
-		       `(lambda (process state)
-			  (if (eq 'exit (process-status process))
-			      (run-at-time
-			       60.0 nil
-			       (lambda ()
-				 (ignore-errors (delete-file ,file))
-				 (ignore-errors (delete-directory
-						 ,(file-name-directory
-						   file))))))))
+		       (lambda (process _state)
+			 (if (eq 'exit (process-status process))
+			     (run-at-time
+			      60.0 nil
+			      (lambda ()
+				(ignore-errors (delete-file file))
+				(ignore-errors (delete-directory
+						(file-name-directory
+						 file))))))))
 		    (require 'term)
 		    (require 'gnus-win)
 		    (set-buffer
@@ -982,13 +983,13 @@ external if displayed external."
 		    (term-char-mode)
 		    (set-process-sentinel
 		     (get-buffer-process buffer)
-		     `(lambda (process state)
-			(when (eq 'exit (process-status process))
-			  (ignore-errors (delete-file ,file))
-			  (ignore-errors
-			    (delete-directory ,(file-name-directory file)))
-			  (gnus-configure-windows
-			   ',gnus-current-window-configuration))))
+                     (let ((wc gnus-current-window-configuration))
+		       (lambda (process _state)
+			 (when (eq 'exit (process-status process))
+			   (ignore-errors (delete-file file))
+			   (ignore-errors
+			     (delete-directory (file-name-directory file)))
+			   (gnus-configure-windows wc)))))
 		    (gnus-configure-windows 'display-term))
 		(mm-handle-set-external-undisplayer handle (cons file buffer))
 		(add-to-list 'mm-temp-files-to-be-deleted file t))
@@ -1032,34 +1033,29 @@ external if displayed external."
 				   shell-command-switch command)
 		    (set-process-sentinel
 		     (get-buffer-process buffer)
-		     (lexical-let ((outbuf outbuf)
-				   (file file)
-				   (buffer buffer)
-				   (command command)
-				   (handle handle))
-		       (lambda (process state)
-			 (when (eq (process-status process) 'exit)
-			   (run-at-time
-			    60.0 nil
-			    (lambda ()
-			      (ignore-errors (delete-file file))
-			      (ignore-errors (delete-directory
-					      (file-name-directory file)))))
-			   (when (buffer-live-p outbuf)
-			     (with-current-buffer outbuf
-			       (let ((buffer-read-only nil)
-				     (point (point)))
-				 (forward-line 2)
-				 (let ((start (point)))
-				   (mm-insert-inline
-				    handle (with-current-buffer buffer
-					     (buffer-string)))
-				   (put-text-property start (point)
-						      'face 'mm-command-output))
-				 (goto-char point))))
-			   (when (buffer-live-p buffer)
-			     (kill-buffer buffer)))
-			 (message "Displaying %s...done" command)))))
+		     (lambda (process _state)
+		       (when (eq (process-status process) 'exit)
+			 (run-at-time
+			  60.0 nil
+			  (lambda ()
+			    (ignore-errors (delete-file file))
+			    (ignore-errors (delete-directory
+					    (file-name-directory file)))))
+			 (when (buffer-live-p outbuf)
+			   (with-current-buffer outbuf
+			     (let ((buffer-read-only nil)
+				   (point (point)))
+			       (forward-line 2)
+			       (let ((start (point)))
+				 (mm-insert-inline
+				  handle (with-current-buffer buffer
+					   (buffer-string)))
+				 (put-text-property start (point)
+						    'face 'mm-command-output))
+			       (goto-char point))))
+			 (when (buffer-live-p buffer)
+			   (kill-buffer buffer)))
+		       (message "Displaying %s...done" command))))
 		(mm-handle-set-external-undisplayer
 		 handle (cons file buffer))
 		(add-to-list 'mm-temp-files-to-be-deleted file t))
@@ -1170,9 +1166,9 @@ external if displayed external."
     (goto-char (point-min))))
 
 (defun mm-assoc-string-match (alist type)
-  (dolist (elem alist)
+  (cl-dolist (elem alist)
     (when (string-match (car elem) type)
-      (return elem))))
+      (cl-return elem))))
 
 (defun mm-automatic-display-p (handle)
   "Say whether the user wants HANDLE to be displayed automatically."
@@ -1302,8 +1298,6 @@ are ignored."
 			 'gnus-decoded)
 		     (with-current-buffer (mm-handle-buffer handle)
 		       (buffer-string)))
-		    ((mm-multibyte-p)
-		     (string-to-multibyte (mm-get-part handle no-cache)))
 		    (t
 		     (mm-get-part handle no-cache)))))
     (save-restriction
@@ -1448,8 +1442,7 @@ text/html\\(?:;\\s-*charset=\\([^\t\n\r \"'>]+\\)\\)?[^>]*>" nil t)
 (defun mm-pipe-part (handle &optional cmd)
   "Pipe HANDLE to a process.
 Use CMD as the process."
-  (let ((name (mail-content-type-get (mm-handle-type handle) 'name))
-	(command (or cmd
+  (let ((command (or cmd
 		     (read-shell-command
 		      "Shell command on MIME part: " mm-last-shell-command))))
     (mm-with-unibyte-buffer
@@ -1784,6 +1777,9 @@ If RECURSIVE, search recursively."
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
 (defvar shr-use-fonts)
+(defvar shr-width)
+(defvar shr-content-function)
+(defvar shr-inhibit-images)
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.
@@ -1840,10 +1836,11 @@ text/html;\\s-*charset=\\([^\t\n\r \"'>]+\\)[^>]*>" nil t)
       (mm-convert-shr-links)
       (mm-handle-set-undisplayer
        handle
-       `(lambda ()
-	  (let ((inhibit-read-only t))
-	    (delete-region ,(point-min-marker)
-			   ,(point-max-marker))))))))
+       (let ((min (point-min-marker))
+             (max (point-max-marker)))
+         (lambda ()
+	   (let ((inhibit-read-only t))
+	     (delete-region min max))))))))
 
 (defvar shr-image-map)
 
@@ -1865,7 +1862,7 @@ text/html;\\s-*charset=\\([^\t\n\r \"'>]+\\)[^>]*>" nil t)
 	;; Mask keys that launch `widget-button-click'.
 	;; Those bindings are provided by `widget-keymap'
 	;; that is a parent of `gnus-article-mode-map'.
-	(dolist (key (where-is-internal #'widget-button-click widget-keymap))
+	(dolist (key (where-is-internal 'widget-button-click widget-keymap))
 	  (unless (lookup-key keymap key)
 	    (define-key keymap key #'ignore)))
 	;; Avoid `shr-next-link' and `shr-previous-link' in `keymap' so

@@ -1411,8 +1411,8 @@ patches) over all your contributions.
 @node Service
 @section How To Get Help with GNU Emacs
 @cindex help in using Emacs
-@cindex help-gnu-emacs mailing list
-@cindex gnu.emacs.help newsgroup
+@cindex @samp{help-gnu-emacs} mailing list
+@cindex @samp{gnu.emacs.help} newsgroup
 
 If you need help installing, using or changing GNU Emacs, there are
 two ways to find it:

@@ -169,13 +169,13 @@ the updates incrementally and hence is very fast.
 
 First, put @code{mairix.el} in your Emacs search path and put
 @code{(require 'mairix)} into your @file{.emacs} file.  Then, use
-@kbd{M-x customize-group mairix RET} to set your preferences for
-mairix.el.  The most important items are @emph{Mairix File Path},
-@emph{Mairix Search File} and @emph{Mairix Mail Program}.  The latter
-specifies which mail program should be used to display the mairix search
-results.  Currently, RMail, Gnus with mbox files, and VM are supported.
-If you use Gnus with maildir or mh, use the native Gnus back end
-nnmairix instead.
+@kbd{M-x customize-group @key{RET} mairix @key{RET}} to set your
+preferences for mairix.el.  The most important items are @emph{Mairix
+File Path}, @emph{Mairix Search File} and @emph{Mairix Mail Program}.
+The latter specifies which mail program should be used to display the
+mairix search results.  Currently, RMail, Gnus with mbox files, and VM
+are supported.  If you use Gnus with maildir or mh, use the native
+Gnus back end nnmairix instead.
 
 If you use another Emacs mail program which is not yet supported by
 mairix.el, it is pretty easy to integrate it.  @xref{Extending},
@@ -213,7 +213,6 @@ Here's a description of the available interactive functions:
 @table @code
 
 @item mairix-search
-@kindex M-x mairix-search
 @findex mairix-search
 @vindex mairix-search-file
 @vindex mairix-file-path
@@ -229,7 +228,6 @@ is specified by the variable @code{mairix-command}, together with the options
 for making searching faster.
 
 @item mairix-widget-search
-@kindex M-x mairix-widget-search
 @findex mairix-widget-search
 @vindex mairix-widget-fields-list
 Creates a mairix query using graphical widgets.  Very handy if you're
@@ -241,28 +239,24 @@ might want to include some other fields.  This can be easily done by
 modifying @code{mairix-widget-fields-list}.
 
 @item mairix-widget-search-based-on-article
-@kindex M-x mairix-widget-search-based-on-article
 @findex mairix-widget-search-based-on-article
 Create a mairix query using graphical widgets, but based on the
 currently displayed article, i.e., the available fields will be filled
 with the current header values.
 
 @item mairix-search-from-this-article
-@kindex M-x mairix-search-from-this-article
 @findex mairix-search-from-this-article
 Search messages from sender of the current article.  This is effectively
 a shortcut for calling @code{mairix-search} with @code{f:current_from}.
 If used with a prefix, include whole threads of the found messages.
 
 @item mairix-search-thread-this-article
-@kindex M-x mairix-search-thread-this-article
 @findex mairix-search-thread-this-article
 Search thread for the current article.  This is effectively a shortcut
 for calling @code{mairix-search} with @code{m:msgid} of the current article and
 enabled threads.
 
 @item mairix-save-search
-@kindex M-x mairix-save-search
 @findex mairix-save-search
 Save the last search for future use.  You will have to specify a name
 for the search and will then be asked if you want to save your saved
@@ -272,13 +266,11 @@ your @file{.emacs}.  You can also do this later by using
 @code{mairix-edit-saved-searches}.
 
 @item mairix-use-saved-search
-@kindex M-x mairix-use-saved-search
 @findex mairix-use-saved-search
 Call mairix with a previously saved search.  You will be asked for the
 name of the saved search (use @kbd{TAB} for completion).
 
 @item mairix-edit-saved-searches
-@kindex M-x mairix-edit-saved-searches
 @findex mairix-edit-saved-searches
 Edit your current mairix searches.  This is a simple major mode for
 editing the contents of the variable @code{mairix-saved-searches}.  You
@@ -290,14 +282,12 @@ to open different searches at the same time, or if you want to regularly
 access certain searches without the need to call mairix.
 
 @item mairix-edit-saved-searches-customize
-@kindex M-x mairix-edit-saved-searches-customize
 @findex mairix-edit-saved-searches-customize
 Edit the variable @code{mairix-saved-searches} in a normal customization
 buffer.  This function exists more or less for historic reasons, but
 maybe you like it.
 
 @item mairix-update-database
-@kindex M-x mairix-update-database
 @findex mairix-update-database
 @vindex mairix-update-options
 @vindex mairix-synchronous-update

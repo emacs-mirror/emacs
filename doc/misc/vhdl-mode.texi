@@ -100,7 +100,7 @@ How to customize the indentation engine.
 The major version number was incremented to 3 with the addition of
 many new features for editing VHDL code to the new indentation engine,
 which was introduced in major version 2. To find the minor revision
-number of this release, use @kbd{M-x vhdl-version RET}.
+number of this release, use @kbd{M-x vhdl-version @key{RET}}.
 
 A special word of thanks goes to Rod Whitby, who wrote the
 VHDL Mode indentation engine, and to Barry Warsaw, who wrote
@@ -119,7 +119,7 @@ makes everything highly self-explaining.
 @cindex   Getting Connected
 
 To get started, simply visit a @file{.vhd} file in Emacs; or type
-@kbd{M-x vhdl-mode RET}.
+@kbd{M-x vhdl-mode @key{RET}}.
 
 @node     New Indentation Engine
 @chapter  New Indentation Engine
@@ -302,11 +302,11 @@ being used.
 
 @vindex vhdl-echo-syntactic-information-p
 @vindex echo-syntactic-information-p @r{(vhdl-)}
-@cindex TAB
+@cindex @key{TAB}
 To help you configure VHDL Mode, you can set the variable
 @code{vhdl-echo-syntactic-information-p} to non-@code{nil} so that the
 syntactic component list and calculated offset will always be echoed in
-the minibuffer when you hit @kbd{TAB}.
+the minibuffer when you hit @kbd{@key{TAB}}.
 
 
 @ignore
@@ -322,7 +322,7 @@ the minibuffer when you hit @kbd{TAB}.
 @chapter  Customizing Indentation
 @cindex   Customizing Indentation
 
-@cindex vhdl-set-offset
+@cindex @code{vhdl-set-offset}
 @cindex set-offset (vhdl-)
 The @code{vhdl-offsets-alist} variable is where you customize all your
 indentations.  You simply need to decide what additional offset you want
@@ -334,7 +334,7 @@ pre-defined styles will suit your needs, but if not, this section will
 describe how to set up basic editing configurations.  @xref{Styles}, for
 an explanation of how to set up named styles.
 
-@cindex vhdl-basic-offset
+@cindex @code{vhdl-basic-offset}
 @cindex basic-offset (vhdl-)
 As mentioned previously, the variable @code{vhdl-offsets-alist} is an
 association list between syntactic symbols and the offsets to be applied
@@ -548,7 +548,7 @@ already built-in.  These include:
 @findex vhdl-set-style
 @findex set-style @r{(vhdl-)}
 If you'd like to experiment with these built-in styles you can simply
-type @kbd{M-x vhdl-set-style RET} in a VHDL Mode buffer.
+type @kbd{M-x vhdl-set-style @key{RET}} in a VHDL Mode buffer.
 
 You will be prompted for one of the above styles (with completion).
 Enter one of the styles and hit @kbd{RET}.  Note however that setting a

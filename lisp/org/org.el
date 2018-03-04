@@ -19316,6 +19316,9 @@ INCLUDE-LINKED is passed to `org-display-inline-images'."
     (org-toggle-inline-images)
     (org-toggle-inline-images)))
 
+;; For without-x builds.
+(declare-function image-refresh "image" (spec &optional frame))
+
 (defun org-display-inline-images (&optional include-linked refresh beg end)
   "Display inline images.
 
@@ -22905,7 +22908,7 @@ matches in paragraphs or comments, use it."
 		      (match-string 0)
 		    "")))))))))))
 
-(declare-function message-goto-body "message" ())
+(declare-function message-goto-body "message" (&optional interactive))
 (defvar message-cite-prefix-regexp)	; From message.el
 
 (defun org-fill-element (&optional justify)

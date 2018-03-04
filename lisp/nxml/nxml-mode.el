@@ -493,7 +493,7 @@ Many aspects this mode can be customized using
   ;; FIXME: Use the fact that we're parsing the document already
   ;; rather than using regex-based filtering.
   (setq-local tildify-foreach-region-function
-              (apply-partially #'tildify-foreach-ignore-environments
+              (apply-partially 'tildify-foreach-ignore-environments
                                '(("<! *--" . "-- *>") ("<" . ">"))))
   (setq-local mode-line-process '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves

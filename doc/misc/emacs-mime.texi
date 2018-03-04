@@ -179,18 +179,18 @@ Emacs source code.  This item works only in the groups matching
 @code{mm-uu-emacs-sources-regexp}.
 
 @item diff
-@vindex diff
+@findex diff
 @vindex mm-uu-diff-groups-regexp
 Patches.  This is intended for groups where diffs of committed files
 are automatically sent to.  It only works in groups matching
 @code{mm-uu-diff-groups-regexp}.
 
 @item verbatim-marks
-@cindex verbatim-marks
+@findex verbatim-marks
 Slrn-style verbatim marks.
 
 @item LaTeX
-@cindex LaTeX
+@findex LaTeX
 LaTeX documents.  It only works in groups matching
 @code{mm-uu-tex-groups-regexp}.
 
@@ -1093,7 +1093,7 @@ If non-@code{nil} a format=flowed article will be displayed flowed.
 @node Interface Functions
 @chapter Interface Functions
 @cindex interface functions
-@cindex mail-parse
+@cindex @code{mail-parse}
 
 The @code{mail-parse} library is an abstraction over the actual
 low-level libraries that are described in the next chapter.

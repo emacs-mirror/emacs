@@ -123,7 +123,7 @@ bindings to manage Sieve scripts remotely. @xref{Managing Sieve}.
 
 @table @kbd
 
-@item C-c RET
+@item C-c @key{RET}
 @kindex C-c RET
 @findex sieve-manage
 @cindex manage remote sieve script
@@ -160,8 +160,8 @@ press RET on <new script> to create a new script.
 @end example
 
 One of the scripts are highlighted, and standard point navigation
-commands (@kbd{<up>}, @kbd{<down>} etc.)@: can be used to navigate the
-list.
+commands (@kbd{@key{UP}}, @kbd{@key{DOWN}} etc.)@: can be used to
+navigate the list.
 
 The following commands are available in the Manage Sieve buffer:
 
@@ -187,7 +187,7 @@ Deactivates all scripts.
 @findex sieve-remove
 Remove currently highlighted script.
 
-@item RET
+@item @key{RET}
 @item mouse-2
 @item f
 @kindex RET
@@ -272,7 +272,7 @@ The @file{sieve-manage.el} library contains low-level functionality
 for talking to a server with the @sc{managesieve} protocol.
 
 A number of user-visible variables exist, which all can be customized
-in the @code{sieve} group (@kbd{M-x customize-group RET sieve RET}):
+in the @code{sieve} group (@kbd{M-x customize-group @key{RET} sieve @key{RET}}):
 
 @table @code
 

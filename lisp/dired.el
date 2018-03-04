@@ -2352,12 +2352,7 @@ Otherwise, an error occurs in these cases."
 		  (setq start (match-end 0))))))
 
           ;; Hence we don't need to worry about converting `\\' back to `\'.
-          (setq file (read (concat "\"" file "\"")))
-	  ;; The above `read' will return a unibyte string if FILE
-	  ;; contains eight-bit-control/graphic characters.
-	  (if (and enable-multibyte-characters
-		   (not (multibyte-string-p file)))
-	      (setq file (string-to-multibyte file)))))
+          (setq file (read (concat "\"" file "\"")))))
     (and file (files--name-absolute-system-p file)
 	 (setq already-absolute t))
     (cond

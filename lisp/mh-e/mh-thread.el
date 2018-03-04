@@ -647,20 +647,17 @@ Only information about messages in MSG-LIST are added to the tree."
 
 (defun mh-thread-set-tables (folder)
   "Use the tables of FOLDER in current buffer."
-  (mh-flet
-   ((mh-get-table (symbol)
-                  (with-current-buffer folder
-                    (symbol-value symbol))))
-   (setq mh-thread-id-hash (mh-get-table 'mh-thread-id-hash))
-   (setq mh-thread-subject-hash (mh-get-table 'mh-thread-subject-hash))
-   (setq mh-thread-id-table (mh-get-table 'mh-thread-id-table))
-   (setq mh-thread-id-index-map (mh-get-table 'mh-thread-id-index-map))
-   (setq mh-thread-index-id-map (mh-get-table 'mh-thread-index-id-map))
-   (setq mh-thread-scan-line-map (mh-get-table 'mh-thread-scan-line-map))
-   (setq mh-thread-subject-container-hash
-         (mh-get-table 'mh-thread-subject-container-hash))
-   (setq mh-thread-duplicates (mh-get-table 'mh-thread-duplicates))
-   (setq mh-thread-history (mh-get-table 'mh-thread-history))))
+  (dolist (v '(mh-thread-id-hash
+               mh-thread-subject-hash
+               mh-thread-id-table
+               mh-thread-id-index-map
+               mh-thread-index-id-map
+               mh-thread-scan-line-map
+               mh-thread-subject-container-hash
+               mh-thread-duplicates
+               mh-thread-history))
+    ;; Emacs >= 22.1: (buffer-local-value v folder).
+    (set v (with-current-buffer folder (symbol-value v)))))
 
 (defun mh-thread-process-in-reply-to (reply-to-header)
   "Extract message id's from REPLY-TO-HEADER.

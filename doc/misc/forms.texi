@@ -263,14 +263,14 @@ prompted for confirmation before the record is deleted unless a numeric
 argument has been provided.
 
 @findex forms-search-forward
-@kindex C-c C-s @var{regexp} @key{RET}
+@kindex C-c C-s @var{regexp} RET
 @item C-c C-s @var{regexp} @key{RET}
 Search forward for @var{regexp} in all records following this one
 (@code{forms-search-forward}).  If found, this record is shown.
 If you give an empty argument, the previous regexp is used again.
 
 @findex forms-search-backward
-@kindex C-c C-r @var{regexp} @key{RET}
+@kindex C-c C-r @var{regexp} RET
 @item C-c C-r @var{regexp} @key{RET}
 Search backward for @var{regexp} in all records following this one
 (@code{forms-search-backward}).  If found, this record is shown.
@@ -334,25 +334,25 @@ The following function key definitions are set up in Forms mode
 (whether read-only or not):
 
 @table @kbd
-@kindex next
-@item next
+@kindex NEXT
+@item @key{NEXT}
 forms-next-record
 
-@kindex prior
-@item prior
+@kindex PRIOR
+@item @key{PRIOR}
 forms-prev-record
 
-@kindex begin
-@item begin
+@kindex BEGIN
+@item @key{BEGIN}
 forms-first-record
 
-@kindex end
-@item end
+@kindex END
+@item @key{END}
 forms-last-record
 
-@kindex S-Tab
+@kindex S-TAB
 @findex forms-prev-field
-@item S-Tab
+@item S-@key{TAB}
 forms-prev-field
 @end table
 

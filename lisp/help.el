@@ -1059,6 +1059,9 @@ is currently activated with completion."
 	  (setq minor-modes (cdr minor-modes)))))
     result))
 
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+(declare-function x-display-pixel-width "xfns.c" (&optional terminal))
+
 ;;; Automatic resizing of temporary buffers.
 (defcustom temp-buffer-max-height
   (lambda (_buffer)

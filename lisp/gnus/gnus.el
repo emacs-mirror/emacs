@@ -752,6 +752,7 @@ be set in `.emacs' instead."
   (cdr (assq gnus-logo-color-style gnus-logo-color-alist))
   "Colors used for the Gnus logo.")
 
+(defvar image-load-path)
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-group-startup-message (&optional x y)

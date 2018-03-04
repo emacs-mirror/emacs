@@ -173,7 +173,7 @@ Key sequences longer than one key (and some single-key sequences) are
 written inside quotes or on lines by themselves, like this:
 
 @display
-  @kbd{M-x frobnicate-while-foo RET}
+  @kbd{M-x frobnicate-while-foo @key{RET}}
 @end display
 
 @noindent
@@ -201,7 +201,7 @@ Also, on very few keyboards does @kbd{C-?} generate @acronym{ASCII} code 127.
 @section What does @file{M-x @var{command}} mean?
 @cindex Extended commands
 @cindex Commands, extended
-@cindex M-x, meaning of
+@cindex @kbd{M-x}, meaning of
 
 @kbd{M-x @var{command}} means type @kbd{M-x}, then type the name of the
 command, then type @key{RET}.  (@xref{Basic keys}, if you're not sure
@@ -3808,9 +3808,9 @@ defines the @kbd{M-@key{TAB}} key sequence.
 
 @node Backspace invokes help
 @section Why does the @key{Backspace} key invoke help?
-@cindex Backspace key invokes help
-@cindex Help invoked by Backspace
-@cindex DEL key does not delete
+@cindex @key{Backspace} key invokes help
+@cindex Help invoked by @key{Backspace}
+@cindex @key{DEL} key does not delete
 
 The @key{Backspace} key (on most keyboards) generates @acronym{ASCII} code 8.
 @kbd{C-h} sends the same code.  In Emacs by default @kbd{C-h} invokes
@@ -4155,7 +4155,7 @@ This will disable the use of the extra keysyms systemwide, which may be
 undesirable if you actually intend to use them.
 
 @node SPC no longer completes file names
-@section Why doesn't SPC complete file names anymore?
+@section Why doesn't @key{SPC} complete file names anymore?
 @cindex @kbd{SPC} file name completion
 
 Starting with Emacs 22.1, @kbd{SPC} no longer completes file names in

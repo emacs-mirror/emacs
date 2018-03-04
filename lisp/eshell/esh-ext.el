@@ -37,8 +37,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'esh-io)
   (require 'esh-cmd))
+(require 'esh-io)
 (require 'esh-arg)
 (require 'esh-opt)
 (require 'esh-proc)

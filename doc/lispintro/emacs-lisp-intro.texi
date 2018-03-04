@@ -5882,7 +5882,7 @@ find and use again and again.
 @node New insert-buffer
 @subsection New Body for @code{insert-buffer}
 @findex insert-buffer@r{, new version body}
-@cindex new version body for insert-buffer
+@cindex new version body for @code{insert-buffer}
 
 The body in the GNU Emacs 22 version is more confusing than the original.
 
@@ -13254,7 +13254,7 @@ If you are reading this inside of GNU Emacs and you want to see the
 whole function, you can type @kbd{C-h f} (@code{describe-function})
 and the name of the function.  This gives you the function
 documentation and the name of the library containing the function's
-source.  Place point over the name of the library and press the RET
+source.  Place point over the name of the library and press the @key{RET}
 key; you will be taken directly to the source.  (Be sure to install
 your sources!  Without them, you are like a person who tries to drive
 a car with his eyes shut!)
@@ -14739,7 +14739,7 @@ In Emacs 22
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
-Interactively, the default if you just type RET is the current directory,
+Interactively, the default if you just type @key{RET} is the current directory,
 but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
@@ -15917,8 +15917,8 @@ a regular expression, including functions that are not interactive.
 What we want to look for is some command that prints or inserts
 columns.  Very likely, the name of the function will contain either
 the word ``print'' or the word ``insert'' or the word ``column''.
-Therefore, we can simply type @kbd{M-x apropos RET
-print\|insert\|column RET} and look at the result.  On my system, this
+Therefore, we can simply type @kbd{M-x apropos @key{RET}
+print\|insert\|column @key{RET}} and look at the result.  On my system, this
 command once took quite some time, and then produced a list of 79
 functions and variables.  Now it does not take much time at all and
 produces a list of 211 functions and variables.  Scanning down the
@@ -18147,7 +18147,7 @@ You can enter the debugger when you call the function by calling
 Type:
 
 @smallexample
-M-x debug-on-entry RET triangle-bugged RET
+M-x debug-on-entry @key{RET} triangle-bugged @key{RET}
 @end smallexample
 
 @need 1250
@@ -18255,7 +18255,7 @@ To cancel the effect of @code{debug-on-entry}, call
 @code{cancel-debug-on-entry} and the name of the function, like this:
 
 @smallexample
-M-x cancel-debug-on-entry RET triangle-bugged RET
+M-x cancel-debug-on-entry @key{RET} triangle-bugged @key{RET}
 @end smallexample
 
 @noindent
@@ -18341,7 +18341,7 @@ this by positioning your cursor within or just after the definition
 and typing
 
 @smallexample
-M-x edebug-defun RET
+M-x edebug-defun @key{RET}
 @end smallexample
 
 @noindent
@@ -18552,7 +18552,7 @@ one of those long, but decipherable functions.  You can look up
 
 In this instance, since the code is Lisp, the @file{*Help*} buffer
 contains the name of the library containing the function's source.
-You can put point over the name of the library and press the RET key,
+You can put point over the name of the library and press the @key{RET} key,
 which in this situation is bound to @code{help-follow}, and be taken
 directly to the source, in the same way as @kbd{M-.}
 (@code{find-tag}).

@@ -1370,8 +1370,8 @@ C-c}.
 
 @node Image-Dired
 @section Viewing Image Thumbnails in Dired
-@cindex image-dired mode
-@cindex image-dired
+@cindex @code{image-dired} mode
+@cindex @code{image-dired}
 
   Image-Dired is a facility for browsing image files.  It provides viewing
 the images either as thumbnails or in full size, either inside Emacs

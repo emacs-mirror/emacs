@@ -104,7 +104,7 @@ sending it.
 @end menu
 
 You can customize the Message Mode tool bar, see @kbd{M-x
-customize-apropos RET message-tool-bar}.  This feature is only available
+customize-apropos @key{RET} message-tool-bar}.  This feature is only available
 in Emacs.
 
 @node New Mail Message
@@ -707,14 +707,12 @@ This means that if the recipient supports RFC 2298 she might send you a
 notification that she received the message.
 
 @item M-x message-insert-importance-high
-@kindex M-x message-insert-importance-high
 @findex message-insert-importance-high
 @cindex Importance
 Insert an @samp{Importance} header with a value of @samp{high},
 deleting headers if necessary.
 
 @item M-x message-insert-importance-low
-@kindex M-x message-insert-importance-low
 @findex message-insert-importance-low
 @cindex Importance
 Insert an @samp{Importance} header with a value of @samp{low}, deleting
@@ -921,7 +919,7 @@ is fully available) @acronym{IDNA} encoding happens automatically.
 
 @findex message-idna-to-ascii-rhs
 If you want to experiment with the @acronym{IDNA} encoding, you can
-invoke @kbd{M-x message-idna-to-ascii-rhs RET} in the message buffer
+invoke @kbd{M-x message-idna-to-ascii-rhs @key{RET}} in the message buffer
 to have the non-@acronym{ASCII} domain names encoded while you edit
 the message.
 
@@ -1084,7 +1082,7 @@ Since signing and especially encryption often is used when sensitive
 information is sent, you may want to have some way to ensure that your
 mail is actually signed or encrypted.  After invoking the above
 sign/encrypt commands, it is possible to preview the raw article by
-using @kbd{C-u C-c RET P} (@code{mml-preview}).  Then you can
+using @kbd{C-u C-c @key{RET} P} (@code{mml-preview}).  Then you can
 verify that your long rant about what your ex-significant other or
 whomever actually did with that funny looking person at that strange
 party the other night, actually will be sent encrypted.
@@ -1176,7 +1174,7 @@ without some kind of configuration.  Especially, you need to tell it
 where your private key and your certificate is stored.  @acronym{MML}
 uses an Emacs interface to OpenSSL, aptly named @code{smime.el}, and it
 contain a @code{custom} group used for this configuration.  So, try
-@kbd{M-x customize-group RET smime RET} and look around.
+@kbd{M-x customize-group @key{RET} smime @key{RET}} and look around.
 
 Currently there is no support for talking to a CA (or RA) to create
 your own certificate.  None is planned either.  You need to do this
@@ -1222,7 +1220,7 @@ according to two different standards, namely @acronym{PGP} or
 @node Passphrase caching
 @subsection Passphrase caching
 
-@cindex gpg-agent
+@cindex @command{gpg-agent}
 Message with EasyPG internally calls GnuPG (the @command{gpg} or
 @command{gpgsm} command) to perform
 data encryption, and in certain cases (decrypting or signing for
@@ -1379,7 +1377,7 @@ end of the message (@code{message-kill-to-signature}).
 Delete all text in the body of the message that is outside the region
 (@code{message-delete-not-region}).
 
-@item M-RET
+@item M-@key{RET}
 @kindex M-RET
 @findex message-newline-and-reformat
 Insert four newlines, and then reformat if inside quoted text.
@@ -1390,7 +1388,7 @@ Here's an example:
 > This is some quoted text.  And here's more quoted text.
 @end example
 
-If point is before @samp{And} and you press @kbd{M-RET}, you'll get:
+If point is before @samp{And} and you press @kbd{M-@key{RET}}, you'll get:
 
 @example
 > This is some quoted text.
@@ -1408,12 +1406,12 @@ If point is before @samp{And} and you press @kbd{M-RET}, you'll get:
 Rename the buffer (@code{message-rename-buffer}).  If given a prefix,
 prompt for a new buffer name.
 
-@item TAB
+@item @key{TAB}
 @kindex TAB
 @findex message-tab
 @vindex message-tab-body-function
 If @code{message-tab-body-function} is non-@code{nil}, execute the
-function it specifies.  Otherwise use the function bound to @kbd{TAB} in
+function it specifies.  Otherwise use the function bound to @key{TAB} in
 @code{text-mode-map} or @code{global-map}.
 
 @end table

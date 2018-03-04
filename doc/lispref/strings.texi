@@ -727,7 +727,7 @@ minus sign if the argument is negative.
      @result{} "-23.5"
 @end example
 
-@cindex int-to-string
+@cindex @code{int-to-string}
 @code{int-to-string} is a semi-obsolete alias for this function.
 
 See also the function @code{format} in @ref{Formatting Strings}.

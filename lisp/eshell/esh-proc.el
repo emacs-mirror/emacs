@@ -158,7 +158,7 @@ The signals which will cause this to happen are matched by
 
 (defalias 'eshell/wait 'eshell-wait-for-process)
 
-(defun eshell/jobs (&rest args)
+(defun eshell/jobs (&rest _args)
   "List processes, if there are any."
   (and (fboundp 'process-list)
        (process-list)

@@ -129,7 +129,7 @@ invoked---that will always give you an editor.  When invoked via
 the program that invoked @command{emacsclient}.
 @end enumerate
 
-@cindex emacsclient, on MS-Windows
+@cindex @command{emacsclient}, on MS-Windows
 Note that, due to limitations of MS-Windows, Emacs cannot have both
 GUI and text-mode frames in the same session.  It also cannot open
 text-mode frames on more than a single @dfn{Command Prompt} window,
@@ -694,7 +694,7 @@ its normal effect: for example, @kbd{@key{Lwindow}} opens the
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}
-@cindex AltGr key (MS-Windows)
+@cindex @key{AltGr} key (MS-Windows)
   The variable @code{w32-recognize-altgr} controls whether the
 @key{AltGr} key (if it exists on your keyboard), or its equivalent,
 the combination of the right @key{Alt} and left @key{Ctrl} keys

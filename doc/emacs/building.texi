@@ -1499,7 +1499,7 @@ Evaluate all the Emacs Lisp expressions in the buffer.
 @ifinfo
 @c This uses 'colon' instead of a literal ':' because Info cannot
 @c cope with a ':' in a menu.
-@kindex M-@key{colon}
+@kindex M-colon
 @end ifinfo
 @ifnotinfo
 @kindex M-:

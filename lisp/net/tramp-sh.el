@@ -962,15 +962,16 @@ busybox awk '{}' </dev/null"
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
 while read file; do
+    quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/\"`
     if %s \"$file\"; then
-	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" t)\"
+	echo \"(\\\"$quoted\\\" \\\"file-exists-p\\\" t)\"
     else
-	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" nil)\"
+	echo \"(\\\"$quoted\\\" \\\"file-exists-p\\\" nil)\"
     fi
     if %s \"$file\"; then
-	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" t)\"
+	echo \"(\\\"$quoted\\\" \\\"file-readable-p\\\" t)\"
     else
-	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" nil)\"
+	echo \"(\\\"$quoted\\\" \\\"file-readable-p\\\" nil)\"
     fi
 done
 echo \")\""
@@ -2054,6 +2055,7 @@ file names."
 	  (t2 (tramp-tramp-file-p newname))
 	  (length (tramp-compat-file-attribute-size
 		   (file-attributes (file-truename filename))))
+	  ;; `file-extended-attributes' exists since Emacs 24.4.
 	  (attributes (and preserve-extended-attributes
 			   (apply 'file-extended-attributes (list filename)))))
 

@@ -628,7 +628,7 @@ they use the concept of checking out individual files.
 @node Log Buffer
 @subsection Features of the Log Entry Buffer
 
-@cindex C-c C-c @r{(Log Edit mode)}
+@kindex C-c C-c @r{(Log Edit mode)}
 @findex log-edit-done
   When you tell VC to commit a change, it pops up a buffer named
 @file{*vc-log*}.  In this buffer, you should write a @dfn{log entry}

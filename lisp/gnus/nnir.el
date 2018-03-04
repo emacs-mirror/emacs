@@ -644,7 +644,7 @@ skips all prompting."
       (add-hook 'gnus-summary-mode-hook 'nnir-mode)
       (nnoo-change-server 'nnir server definitions))))
 
-(deffoo nnir-request-group (group &optional server dont-check info)
+(deffoo nnir-request-group (group &optional server dont-check _info)
   (nnir-possibly-change-group group server)
   (let ((pgroup (gnus-group-guess-full-name-from-command-method group))
 	length)
@@ -669,7 +669,9 @@ skips all prompting."
                          group)))) ; group name
   nnir-artlist)
 
-(deffoo nnir-retrieve-headers (articles &optional group server fetch-old)
+(defvar gnus-inhibit-demon)
+
+(deffoo nnir-retrieve-headers (articles &optional _group _server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (let ((gnus-inhibit-demon t)
 	  (articles-by-group (nnir-categorize
@@ -716,6 +718,8 @@ skips all prompting."
       (mapc 'nnheader-insert-nov headers)
       'nov)))
 
+(defvar gnus-article-decode-hook)
+
 (deffoo nnir-request-article (article &optional group server to-buffer)
   (nnir-possibly-change-group group server)
   (if (and (stringp article)
@@ -753,7 +757,7 @@ skips all prompting."
             (cons artfullgroup artno)))))))
 
 (deffoo nnir-request-move-article (article group server accept-form
-					   &optional last internal-move-group)
+					   &optional last _internal-move-group)
   (nnir-possibly-change-group group server)
   (let* ((artfullgroup (nnir-article-group article))
 	 (artno (nnir-article-number article))
@@ -803,7 +807,8 @@ skips all prompting."
 		(error "Can't warp to a pseudo-article")))
 	 (backend-article-group (nnir-article-group cur))
          (backend-article-number (nnir-article-number cur))
-	 (quit-config (gnus-ephemeral-group-p gnus-newsgroup-name)))
+;	 (quit-config (gnus-ephemeral-group-p gnus-newsgroup-name))
+	 )
 
     ;; what should we do here? we could leave all the buffers around
     ;; and assume that we have to exit from them one by one. or we can
@@ -818,7 +823,7 @@ skips all prompting."
     (gnus-summary-read-group-1 backend-article-group t t  nil
                                nil (list backend-article-number))))
 
-(deffoo nnir-request-update-mark (group article mark)
+(deffoo nnir-request-update-mark (_group article mark)
   (let ((artgroup (nnir-article-group article))
 	(artnumber (nnir-article-number article)))
     (or (and artgroup
@@ -956,7 +961,7 @@ details on the language and supported extensions."
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
           (server (cadr (gnus-server-to-method srv)))
-          (defs (nth 2 (gnus-server-to-method srv)))
+;;          (defs (nth 2 (gnus-server-to-method srv)))
           (criteria (or (cdr (assq 'criteria query))
                         (cdr (assoc nnir-imap-default-search-key
                                     nnir-imap-search-arguments))))
@@ -1177,7 +1182,7 @@ returning the one at the supplied position."
 ;; - article number
 ;; - file size
 ;; - group
-(defun nnir-run-swish++ (query server &optional group)
+(defun nnir-run-swish++ (query server &optional _group)
   "Run QUERY against swish++.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually).
@@ -1267,7 +1272,7 @@ Windows NT 4.0."
                                   (nnir-artitem-rsv y)))))))))
 
 ;; Swish-E interface.
-(defun nnir-run-swish-e (query server &optional group)
+(defun nnir-run-swish-e (query server &optional _group)
   "Run given query against swish-e.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually).
@@ -1433,7 +1438,7 @@ Tested with swish-e-2.0.1 on Windows NT 4.0."
       )))
 
 ;; Namazu interface
-(defun nnir-run-namazu (query server &optional group)
+(defun nnir-run-namazu (query server &optional _group)
   "Run given query against Namazu.  Returns a vector of (group name, file name)
 pairs (also vectors, actually).
 
@@ -1502,7 +1507,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
-(defun nnir-run-notmuch (query server &optional group)
+(defun nnir-run-notmuch (query server &optional _group)
   "Run QUERY against notmuch.
 Returns a vector of (group name, file name) pairs (also vectors,
 actually)."
@@ -1667,7 +1672,7 @@ actually)."
   "Run a search against a gmane back-end server."
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
-	     (server (cadr (gnus-server-to-method srv)))
+;;	     (server (cadr (gnus-server-to-method srv)))
 	     (groupspec (mapconcat
 			 (lambda (x)
 			   (if (string-match-p "gmane" x)
@@ -1809,8 +1814,7 @@ article came from is also searched."
 	groups)
     (gnus-request-list method)
     (with-current-buffer nntp-server-buffer
-      (let ((cur (current-buffer))
-	    name)
+      (let ((cur (current-buffer)))
 	(goto-char (point-min))
 	(unless (or (null nnir-ignored-newsgroups)
 		    (string= nnir-ignored-newsgroups ""))
@@ -1851,7 +1855,7 @@ article came from is also searched."
 (declare-function gnus-registry-action "gnus-registry"
                   (action data-header from &optional to method))
 
-(defun nnir-registry-action (action data-header from &optional to method)
+(defun nnir-registry-action (action data-header _from &optional to method)
   "Call `gnus-registry-action' with the original article group."
   (gnus-registry-action
    action
@@ -1886,7 +1890,7 @@ article came from is also searched."
        (gnus-group-find-parameter pgroup)))))
 
 
-(deffoo nnir-request-create-group (group &optional server args)
+(deffoo nnir-request-create-group (group &optional _server args)
   (message "Creating nnir group %s" group)
   (let* ((group (gnus-group-prefixed-name  group '(nnir "nnir")))
          (specs (assq 'nnir-specs args))
@@ -1907,13 +1911,13 @@ article came from is also searched."
     (nnir-request-update-info group (gnus-get-info group)))
   t)
 
-(deffoo nnir-request-delete-group (group &optional force server)
+(deffoo nnir-request-delete-group (_group &optional _force _server)
   t)
 
-(deffoo nnir-request-list (&optional server)
+(deffoo nnir-request-list (&optional _server)
   t)
 
-(deffoo nnir-request-scan (group method)
+(deffoo nnir-request-scan (_group _method)
   t)
 
 (deffoo nnir-request-close ()

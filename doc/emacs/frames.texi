@@ -207,13 +207,13 @@ buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.
 
-@vindex mwheel-tilt-scroll-p
-@vindex mwheel-flip-direction
+@vindex mouse-wheel-tilt-scroll
+@vindex mouse-wheel-flip-direction
 Emacs can also support horizontal scrolling if your mouse's wheel can
 be tilted.  This feature is off by default; the variable
-@code{mwheel-tilt-scroll-p} turns it on.  If you'd like to reverse the
-direction of horizontal scrolling, customize the variable
-@code{mwheel-flip-direction} to a non-@code{nil} value.
+@code{mouse-wheel-tilt-scroll} turns it on.  If you'd like to reverse
+the direction of horizontal scrolling, customize the variable
+@code{mouse-wheel-flip-direction} to a non-@code{nil} value.
 
 
 @node Word and Line Mouse
@@ -479,14 +479,14 @@ cycles through all the frames on your terminal.
 @findex delete-other-frames
 Delete all frames on the current terminal, except the selected one.
 
-@item M-<F10>
-@kindex M-<F10>
+@item M-@key{F10}
+@kindex M-F10
 @findex toggle-frame-maximized
 Toggle the maximization state of the current frame.  When a frame is
 maximized, it fills the screen.
 
-@item <F11>
-@kindex <F11>
+@item @key{F11>}
+@kindex F11
 @findex toggle-frame-fullscreen
 Toggle full-screen mode for the current frame.  (The difference
 between full-screen and maximized is normally that the former
@@ -901,7 +901,7 @@ that server's selected frame.
 
 @node Frame Parameters
 @section Frame Parameters
-@cindex default-frame-alist
+@vindex default-frame-alist
 
   You can control the default appearance and behavior of all frames by
 specifying a default list of @dfn{frame parameters} in the variable
@@ -925,7 +925,7 @@ default font to @samp{Monospace-10}:
   For a list of frame parameters and their effects, see @ref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 
-@cindex initial-frame-alist
+@vindex initial-frame-alist
   You can also specify a list of frame parameters which apply to just
 the initial frame, by customizing the variable
 @code{initial-frame-alist}.
@@ -999,11 +999,11 @@ end of the buffer is shown; if @code{nil}, the thumb will be at the
 bottom when the end of the buffer is shown.  You cannot over-scroll
 when the entire buffer is visible.
 
-@cindex scroll-bar face
+@cindex @code{scroll-bar} face
   The visual appearance of the scroll bars is controlled by the
-@code{scroll-bar} face.  (Some toolkits, such as GTK and MS-Windows,
+@code{scroll-bar} face.  (Some toolkits, such as GTK+ and MS-Windows,
 ignore this face; the scroll-bar appearance there can only be
-customized system-wide, for GTK @pxref{GTK resources}).
+customized system-wide, for GTK+ @pxref{GTK resources}).
 
 @cindex vertical border
   On graphical frames, vertical scroll bars implicitly serve to separate

@@ -1969,7 +1969,8 @@ result.  The overhead of the `lambda's is accounted for.
 
 (autoload 'benchmark "benchmark" "\
 Print the time taken for REPETITIONS executions of FORM.
-Interactively, REPETITIONS is taken from the prefix arg.
+Interactively, REPETITIONS is taken from the prefix arg, and
+the command prompts for the form to benchmark.
 For non-interactive use see also `benchmark-run' and
 `benchmark-run-compiled'.
 
@@ -2927,6 +2928,7 @@ Like `bug-reference-mode', but only buttonize in comments and strings.
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
 (put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
+(put 'byte-compile-error-on-warn 'safe-local-variable 'booleanp)
 
 (put 'byte-compile-warnings 'safe-local-variable (lambda (v) (or (symbolp v) (null (delq nil (mapcar (lambda (x) (not (symbolp x))) v))))))
 
@@ -6192,7 +6194,7 @@ For example, the MH-E package updates this alist as follows:
 
 The value of PACKAGE needs to be unique and it needs to match the
 PACKAGE value appearing in the :package-version keyword.  Since
-the user might see the value in a error message, a good choice is
+the user might see the value in an error message, a good choice is
 the official name of the package, such as MH-E or Gnus.")
 
 (defalias 'customize-changed 'customize-changed-options)
@@ -9813,8 +9815,11 @@ the mode if ARG is omitted or nil.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding
-closing parenthesis.  (Likewise for brackets, etc.). To toggle
-the mode in a single buffer, use `electric-pair-local-mode'.
+closing parenthesis, and vice versa.  (Likewise for brackets, etc.).
+If the region is active, the parentheses (brackets, etc.) are
+inserted around the region instead.
+
+To toggle the mode in a single buffer, use `electric-pair-local-mode'.
 
 \(fn &optional ARG)" t nil)
 
@@ -9893,7 +9898,8 @@ FUNSYM must be a symbol of a defined function.
 (autoload 'elp-instrument-list "elp" "\
 Instrument, for profiling, all functions in `elp-function-list'.
 Use optional LIST if provided instead.
-If called interactively, read LIST using the minibuffer.
+If called interactively, prompt for LIST in the minibuffer;
+type \"nil\" to use `elp-function-list'.
 
 \(fn &optional LIST)" t nil)
 
@@ -15143,7 +15149,7 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'.
 
 (defalias 'rzgrep 'zrgrep)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "grep" '("rgrep-" "grep-" "kill-grep")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "grep" '("grep-" "rgrep-" "kill-grep")))
 
 ;;;***
 
@@ -16525,7 +16531,7 @@ See the documentation for `calendar-holidays' for details.")
 (autoload 'holidays "holidays" "\
 Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a init file.
+This function is suitable for execution in an init file.
 
 \(fn &optional ARG)" t nil)
 
@@ -16796,7 +16802,7 @@ Extract iCalendar events from current buffer.
 
 This function searches the current buffer for the first iCalendar
 object, reads it and adds all VEVENT elements to the diary
-DIARY-FILE.
+DIARY-FILENAME.
 
 It will ask for each appointment whether to add it to the diary
 unless DO-NOT-ASK is non-nil.  When called interactively,
@@ -16809,7 +16815,7 @@ Return code t means that importing worked well, return code nil
 means that an error has occurred.  Error messages will be in the
 buffer `*icalendar-errors*'.
 
-\(fn &optional DIARY-FILE DO-NOT-ASK NON-MARKING)" t nil)
+\(fn &optional DIARY-FILENAME DO-NOT-ASK NON-MARKING)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "icalendar" '("icalendar-")))
 
@@ -17335,6 +17341,8 @@ Return the name of a buffer selected.
 PROMPT is the prompt to give to the user.  DEFAULT if given is the default
 buffer to be selected, which will go to the front of the list.
 If REQUIRE-MATCH is non-nil, an existing buffer must be selected.
+Optional arg PREDICATE if non-nil is a function limiting the
+buffers that can be considered.
 
 \(fn PROMPT &optional DEFAULT REQUIRE-MATCH PREDICATE)" nil nil)
 
@@ -17913,8 +17921,8 @@ If non-nil this pattern is passed to `imenu--generic-function' to
 create a buffer index.
 
 For example, see the value of `fortran-imenu-generic-expression'
-used by `fortran-mode' with `imenu-syntax-alist' set locally to
-give the characters which normally have \"symbol\" syntax
+used by `fortran-mode' with `imenu-syntax-alist' set locally so that
+characters which normally have \"symbol\" syntax are considered to have
 \"word\" syntax during matching.")
 (put 'imenu-generic-expression 'risky-local-variable t)
 
@@ -22012,7 +22020,7 @@ QUALITY can be:
 ;;;### (autoloads nil "mwheel" "mwheel.el" (0 0 0 0))
 ;;; Generated autoloads from mwheel.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mwheel" '("mwheel-" "mouse-wheel-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "mwheel" '("mouse-wheel-" "mwheel-")))
 
 ;;;***
 
@@ -23246,6 +23254,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
+(push (purecopy '(org 9 1 6)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -24408,8 +24417,6 @@ activate the package system at any time.")
 Load Emacs Lisp packages, and activate them.
 The variable `package-load-list' controls which packages to load.
 If optional arg NO-ACTIVATE is non-nil, don't activate packages.
-If `user-init-file' does not mention `(package-initialize)', add
-it to the file.
 If called as part of loading `user-init-file', set
 `package-enable-at-startup' to nil, to prevent accidentally
 loading packages twice.
@@ -26421,7 +26428,7 @@ Optional argument FACE specifies the face to do the highlighting.
 
 ;;;### (autoloads nil "python" "progmodes/python.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/python.el
-(push (purecopy '(python 0 25 2)) package--builtin-versions)
+(push (purecopy '(python 0 26 1)) package--builtin-versions)
 
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.py[iw]?\\'") 'python-mode))
 
@@ -29843,13 +29850,6 @@ Like `mail' command, but display mail buffer in another frame.
 
 (put 'server-auth-dir 'risky-local-variable t)
 
-(defvar server-name "server" "\
-The name of the Emacs server, if this Emacs process creates one.
-The command `server-start' makes use of this.  It should not be
-changed while a server is running.")
-
-(custom-autoload 'server-name "server" t)
-
 (autoload 'server-start "server" "\
 Allow this Emacs process to be a server for client processes.
 This starts a server communications subprocess through which client
@@ -31725,7 +31725,7 @@ Args are NAME BUFFER HOST PORT.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or `buffer-name') to associate with the process.
  Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
+ a filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
 Third arg is name of the host to connect to, or its IP address.
@@ -34063,7 +34063,7 @@ Todo mode revisit this file or, with option
 file was last visited.
 
 If you call this command before you have created any todo file in
-the current format, and you have an todo file in old format, it
+the current format, and you have a todo file in old format, it
 will ask you whether to convert that file and show it.
 Otherwise, calling this command before any todo file exists
 prompts for a file name and an initial category (defaulting to
@@ -34312,6 +34312,27 @@ Discard Tramp from loading remote files.
 ;;;### (autoloads nil "tramp-archive" "net/tramp-archive.el" (0 0
 ;;;;;;  0 0))
 ;;; Generated autoloads from net/tramp-archive.el
+
+(defvar tramp-archive-enabled (featurep 'dbusbind) "\
+Non-nil when file archive support is available.")
+
+(defconst tramp-archive-suffixes '("7z" "apk" "ar" "cab" "CAB" "cpio" "deb" "depot" "exe" "iso" "jar" "lzh" "LZH" "msu" "MSU" "mtree" "pax" "rar" "rpm" "shar" "tar" "tbz" "tgz" "tlz" "txz" "warc" "xar" "xpi" "xps" "zip" "ZIP") "\
+List of suffixes which indicate a file archive.
+It must be supported by libarchive(3).")
+
+(defconst tramp-archive-compression-suffixes '("bz2" "gz" "lrz" "lz" "lz4" "lzma" "lzo" "uu" "xz" "Z") "\
+List of suffixes which indicate a compressed file.
+It must be supported by libarchive(3).")
+
+(defmacro tramp-archive-autoload-file-name-regexp nil "\
+Regular expression matching archive file names." `(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
+
+(defun tramp-register-archive-file-name-handler nil "\
+Add archive file name handler to `file-name-handler-alist'." (when tramp-archive-enabled (add-to-list 'file-name-handler-alist (cons (tramp-archive-autoload-file-name-regexp) 'tramp-autoload-file-name-handler)) (put 'tramp-archive-file-name-handler 'safe-magic t)))
+
+(add-hook 'after-init-hook 'tramp-register-archive-file-name-handler)
+
+(add-hook 'tramp-archive-unload-hook (lambda nil (remove-hook 'after-init-hook 'tramp-register-archive-file-name-handler)))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tramp-archive" '("tramp-" "with-parsed-tramp-archive-file-name")))
 
@@ -35867,7 +35888,10 @@ When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
 \(fn &optional REMOTE-LOCATION)" t nil)
 
 (autoload 'vc-region-history "vc" "\
-Show the history of the region FROM..TO.
+Show the history of the region between FROM and TO.
+
+If called interactively, show the history between point and
+mark.
 
 \(fn FROM TO)" t nil)
 

@@ -548,6 +548,9 @@ be \"related\" or \"alternate\"."
 						   ">")))))))
 	cont))))
 
+(autoload 'image-property "image")
+
+;; FIXME presumably (built-in) ImageMagick could replace exiftool?
 (defun mml--possibly-alter-image (file-name image)
   (if (or (null image)
 	  (not (consp image))

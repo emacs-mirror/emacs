@@ -281,22 +281,22 @@ The following keys are assigned.
 
 @table @kbd
 @item : d
-@kindex @kbd{: d}
+@kindex : d
 @findex epa-dired-do-decrypt
 Decrypt marked files.
 
 @item : v
-@kindex @kbd{: v}
+@kindex : v
 @findex epa-dired-do-verify
 Verify marked files.
 
 @item : s
-@kindex @kbd{: s}
+@kindex : s
 @findex epa-dired-do-sign
 Sign marked files.
 
 @item : e
-@kindex @kbd{: e}
+@kindex : e
 @findex epa-dired-do-encrypt
 Encrypt marked files.
 
@@ -322,26 +322,26 @@ interface.  Try @kbd{M-x customize-variable epa-global-mail-mode}.
 
 @table @kbd
 @item C-c C-e C-d and C-c C-e d
-@kindex @kbd{C-c C-e C-d}
-@kindex @kbd{C-c C-e d}
+@kindex C-c C-e C-d
+@kindex C-c C-e d
 @findex epa-mail-decrypt
 Decrypt OpenPGP armors in the current buffer.
 
 @item C-c C-e C-v and C-c C-e v
-@kindex @kbd{C-c C-e C-v}
-@kindex @kbd{C-c C-e v}
+@kindex C-c C-e C-v
+@kindex C-c C-e v
 @findex epa-mail-verify
 Verify OpenPGP cleartext signed messages in the current buffer.
 
 @item C-c C-e C-s and C-c C-e s
-@kindex @kbd{C-c C-e C-s}
-@kindex @kbd{C-c C-e s}
+@kindex C-c C-e C-s
+@kindex C-c C-e s
 @findex epa-mail-sign
 Compose a signed message from the current buffer.
 
 @item C-c C-e C-e and C-c C-e e
-@kindex @kbd{C-c C-e C-e}
-@kindex @kbd{C-c C-e e}
+@kindex C-c C-e C-e
+@kindex C-c C-e e
 @findex epa-mail-encrypt
 @vindex epa-mail-aliases
 Compose an encrypted message from the current buffer.

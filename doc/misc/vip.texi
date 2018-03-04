@@ -186,8 +186,8 @@ M-x vip-mode
 @node Modes in VIP
 @section Modes in VIP
 
-@kindex 032 @kbd{C-z} (@code{vip-change-mode-to-vi})
-@kindex 0301 @kbd{C-x C-z} (@code{suspend-emacs})
+@kindex 032 C-z @r{(}@code{vip-change-mode-to-vi}@r{)}
+@kindex 0301 C-x C-z @r{(}@code{suspend-emacs}@r{)}
 
 Loading VIP has the effect of globally binding @kbd{C-z} (@kbd{Control-z})
 to the function @code{vip-change-mode-to-vi}. The default binding of @kbd{C-z}
@@ -266,7 +266,7 @@ emacs mode             vi mode                 insert mode
 @node Emacs Mode
 @subsection Emacs Mode
 
-@kindex 032 @kbd{C-z} (@code{vip-change-mode-to-vi})
+@kindex 032 C-z @r{(}@code{vip-change-mode-to-vi}@r{)}
 
 You will be in this mode just after you loaded VIP@.  You can do all
 normal Emacs editing in this mode.  Note that the key @kbd{C-z} is globally
@@ -289,16 +289,16 @@ its content while you are in insert mode.
 
 @table @kbd
 @item @key{ESC}
-@kindex 033 @kbd{ESC} (@code{vip-change-mode-to-vi}) (insert mode)
+@kindex 033 ESC @r{(}@code{vip-change-mode-to-vi}@r{) (insert mode)}
 This key will take you back to vi mode.
 @item C-h
-@kindex 010 @kbd{C-h} (@code{vip-delete-backward-char}) (insert mode)
+@kindex 010 C-h @r{(}@code{vip-delete-backward-char}@r{) (insert mode)}
 Delete previous character.
 @item C-w
-@kindex 027 @kbd{C-w} (@code{vip-delete-backward-word}) (insert mode)
+@kindex 027 C-w @r{(}@code{vip-delete-backward-word}@r{) (insert mode)}
 Delete previous word.
 @item C-z
-@kindex 032 @kbd{C-z} (@code{vip-ESC}) (insert mode)
+@kindex 032 C-z @r{(}@code{vip-ESC}@r{) (insert mode)}
 Typing this key has the same effect as typing @key{ESC} in emacs mode.
 Thus typing @kbd{C-z x} in insert mode will have the same effect as typing
 @kbd{ESC x} in emacs mode.
@@ -332,8 +332,8 @@ The major differences from Vi are explained below.
 @node Undoing
 @subsection Undoing
 
-@kindex 165 @kbd{u} (@code{vip-undo})
-@kindex 056 @kbd{.} (@code{vip-repeat})
+@kindex 165 u @r{(}@code{vip-undo}@r{)}
+@kindex 056 . @r{(}@code{vip-repeat}@r{)}
 
 You can repeat undoing by the @kbd{.} key.  So, @kbd{u} will undo
 a single change, while @kbd{u .@: .@: .@:}, for instance, will undo 4 previous
@@ -350,14 +350,14 @@ then VIP will prompt you for a new word in the minibuffer by the prompt
 @samp{foo => }.  You can then enter @samp{bar} followed by @key{RET} or
 @key{ESC} to complete the command.  Before you enter @key{RET} or
 @key{ESC} you can abort the command by typing @kbd{C-g}.  In general,
-@kindex 007 @kbd{C-g} (@code{vip-keyboard-quit})
+@kindex 007 C-g @r{(}@code{vip-keyboard-quit})
 you can abort a partially formed command by typing @kbd{C-g}.
 
 @node Searching
 @subsection Searching
 
-@kindex 057 @kbd{/} (@code{vip-search-forward})
-@kindex 077 @kbd{?} (@code{vip-search-backward})
+@kindex 057 / @r{(}@code{vip-search-forward}@r{)}
+@kindex 077 ? @r{(}@code{vip-search-backward}@r{)}
 
 As in Vi, searching is done by @kbd{/} and @kbd{?}.  The string will be
 searched literally by default.  To invoke a regular expression search,
@@ -372,12 +372,12 @@ the buffer as in Vi.  You can change this by rebinding the variable
 @node z Command
 @subsection z Command
 
-@kindex 1723 @kbd{z H} (@code{vip-line-to-top})
-@kindex 1721 @kbd{z RET} (@code{vip-line-to-top})
-@kindex 1723 @kbd{z M} (@code{vip-line-to-middle})
-@kindex 1722 @kbd{z .} (@code{vip-line-to-middle})
-@kindex 1723 @kbd{z L} (@code{vip-line-to-bottom})
-@kindex 1722 @kbd{z -} (@code{vip-line-to-bottom})
+@kindex 1723 z H @r{(}@code{vip-line-to-top}@r{)}
+@kindex 1721 z RET @r{(}@code{vip-line-to-top}@r{)}
+@kindex 1723 z M @r{(}@code{vip-line-to-middle}@r{)}
+@kindex 1722 z . @r{(}@code{vip-line-to-middle}@r{)}
+@kindex 1723 z L @r{(}@code{vip-line-to-bottom}@r{)}
+@kindex 1722 z - @r{(}@code{vip-line-to-bottom}@r{)}
 
 For those of you who cannot remember which of @kbd{z} followed by @key{RET},
 @kbd{.}@: and @kbd{-} do what.  You can also use @kbd{z} followed by @kbd{H},
@@ -392,21 +392,21 @@ Some Vi commands which do not accept a count now accept one
 @table @kbd
 @item p
 @itemx P
-@kindex 160 @kbd{p} (@code{vip-put-back})
-@kindex 120 @kbd{P} (@code{vip-Put-back})
+@kindex 160 p @r{(}@code{vip-put-back}@r{)}
+@kindex 120 P @r{(}@code{vip-Put-back}@r{)}
 Given counts, text will be yanked (in Vi's sense) that many times.  Thus
 @kbd{3 p} is the same as @kbd{p p p}.
 @item o
 @itemx O
-@kindex 157 @kbd{o} (@code{vip-open-line})
-@kindex 117 @kbd{O} (@code{vip-Open-line})
+@kindex 157 o @r{(}@code{vip-open-line}@r{)}
+@kindex 117 O @r{(}@code{vip-Open-line}@r{)}
 Given counts, that many copies of text will be inserted. Thus
 @kbd{o a b c @key{ESC}} will insert 3 lines of @samp{abc} below the current
 line.
 @item /
 @itemx ?
-@kindex 057 @kbd{/} (@code{vip-search-forward})
-@kindex 077 @kbd{?} (@code{vip-search-backward})
+@kindex 057 / @r{(}@code{vip-search-forward}@r{)}
+@kindex 077 ? @r{(}@code{vip-search-backward}@r{)}
 Given a count @var{n}, @var{n}-th occurrence will be searched.
 @end table
 
@@ -417,7 +417,7 @@ Typing an @kbd{m} followed by a lower-case character @var{ch} marks the
 point to the register named @var{ch} as in Vi.  In addition to these, we
 have following key bindings for marking.
 
-@kindex 155 @kbd{m} (@code{vip-mark-point})
+@kindex 155 m @r{(}@code{vip-mark-point}@r{)}
 
 @table @kbd
 @item m <
@@ -451,34 +451,34 @@ Note that the keys below (except for @kbd{R}) are not used in Vi.
 
 @table @kbd
 @item C-a
-@kindex 001 @kbd{C-a} (@code{vip-beginning-of-line})
+@kindex 001 C-a @r{(}@code{vip-beginning-of-line}@r{)}
 Move point to the beginning of line.
 @item C-n
-@kindex 016 @kbd{C-n} (@code{vip-next-window})
+@kindex 016 C-n @r{(}@code{vip-next-window}@r{)}
 If you have two or more windows in the screen, this key will move point to
 the next window.
 @item C-o
-@kindex 017 @kbd{C-o} (@code{vip-open-line-at-point})
+@kindex 017 C-o @r{(}@code{vip-open-line-at-point}@r{)}
 Insert a newline and leave point before it, and then enter insert mode.
 @item C-r
-@kindex 022 @kbd{C-r} (@code{isearch-backward})
+@kindex 022 C-r @r{(}@code{isearch-backward}@r{)}
 Backward incremental search.
 @item C-s
-@kindex 023 @kbd{C-s} (@code{isearch-forward})
+@kindex 023 C-s @r{(}@code{isearch-forward}@r{)}
 Forward incremental search.
 @item C-c
 @itemx C-x
 @itemx @key{ESC}
-@kindex 003 @kbd{C-c} (@code{vip-ctl-c})
-@kindex 0300 @kbd{C-x} (@code{vip-ctl-x})
-@kindex 033 @kbd{ESC} (@code{vip-ESC})
+@kindex 003 C-c @r{(}@code{vip-ctl-c}@r{)}
+@kindex 0300 C-x @r{(}@code{vip-ctl-x}@r{)}
+@kindex 033 ESC @r{(}@code{vip-ESC}@r{)}
 These keys will exit from vi mode and return to emacs mode temporarily.  If
 you hit one of these keys, Emacs will be in emacs mode and will believe
 that you hit that key in emacs mode. For example, if you hit @kbd{C-x}
 followed by @kbd{2}, then the current window will be split into 2 and you
 will be in vi mode again.
 @item \
-@kindex 134 @kbd{\} (@code{vip-escape-to-emacs})
+@kindex 134 \ @r{(}@code{vip-escape-to-emacs}@r{)}
 Escape to emacs mode.  Hitting @kbd{\} will take you to emacs mode, and you
 can execute a single Emacs command.  After executing the Emacs command you
 will be in vi mode again.  You can give a count before typing @kbd{\}.
@@ -486,13 +486,13 @@ Thus @kbd{5 \ *}, as well as @kbd{\ C-u 5 *}, will insert @samp{*****}
 before point.  Similarly @kbd{1 0 \ C-p} will move the point 10 lines above
 the current line.
 @item K
-@kindex 113 @kbd{K} (@code{vip-kill-buffer})
+@kindex 113 K @r{(}@code{vip-kill-buffer}@r{)}
 Kill current buffer if it is not modified.  Useful when you selected a
 buffer which you did not want.
 @item Q
 @itemx R
-@kindex 121 @kbd{Q} (@code{vip-query-replace})
-@kindex 122 @kbd{R} (@code{vip-replace-string})
+@kindex 121 Q @r{(}@code{vip-query-replace}@r{)}
+@kindex 122 R @r{(}@code{vip-replace-string}@r{)}
 @kbd{Q} is for query replace and @kbd{R} is for replace.  By default,
 string to be replaced are treated literally.  If you wish to do a regular
 expression replace, first do replace with empty string as the string to be
@@ -500,39 +500,39 @@ replaced.  In this way, you can toggle between vanilla and regular
 expression replacement.
 @item v
 @itemx V
-@kindex 166 @kbd{v} (@code{vip-find-file})
-@kindex 126 @kbd{V} (@code{vip-find-file-other-window})
+@kindex 166 v @r{(}@code{vip-find-file}@r{)}
+@kindex 126 V @r{(}@code{vip-find-file-other-window}@r{)}
 These keys are used to Visit files.  @kbd{v} will switch to a buffer
 visiting file whose name can be entered in the minibuffer. @kbd{V} is
 similar, but will use window different from the current window.
 @item #
-@kindex 0430 @kbd{#} (@code{vip-command-argument})
+@kindex 0430 # @r{(}@code{vip-command-argument}@r{)}
 If followed by a certain character @var{ch}, it becomes an operator whose
 argument is the region determined by the motion command that follows.
 Currently, @var{ch} can be one of @kbd{c}, @kbd{C}, @kbd{g}, @kbd{q} and
 @kbd{s}.
 @item # c
-@kindex 0432 @kbd{# c} (@code{downcase-region})
+@kindex 0432 # c @r{(}@code{downcase-region}@r{)}
 Change upper-case characters in the region to lower case
 (@code{downcase-region}).
 @item # C
-@kindex 0431 @kbd{# C} (@code{upcase-region})
+@kindex 0431 # C @r{(}@code{upcase-region}@r{)}
 Change lower-case characters in the region to upper case. For instance,
 @kbd{# C 3 w} will capitalize 3 words from the current point
 (@code{upcase-region}).
 @item # g
-@kindex 0432 @kbd{# g} (@code{vip-global-execute})
+@kindex 0432 # g @r{(}@code{vip-global-execute}@r{)}
 Execute last keyboard macro for each line in the region
 (@code{vip-global-execute}).
 @item # q
-@kindex 0432 @kbd{# q} (@code{vip-quote-region})
+@kindex 0432 # q @r{(}@code{vip-quote-region}@r{)}
 Insert specified string at the beginning of each line in the region
 (@code{vip-quote-region}).
 @item # s
-@kindex 0432 @kbd{# s} (@code{spell-region})
+@kindex 0432 # s @r{(}@code{spell-region}@r{)}
 Check spelling of words in the region (@code{spell-region}).
 @item *
-@kindex 052 @kbd{*} (@code{vip-call-last-kbd-macro})
+@kindex 052 * @r{(}@code{vip-call-last-kbd-macro}@r{)}
 Call last keyboard macro.
 @end table
 
@@ -548,21 +548,21 @@ details.
 @table @kbd
 @item C-g
 @itemx g
-@kindex 007 @kbd{C-g} (@code{vip-keyboard-quit})
-@kindex 147 @kbd{g} (@code{vip-info-on-file})
+@kindex 007 C-g @r{(}@code{vip-keyboard-quit}@r{)}
+@kindex 147 g @r{(}@code{vip-info-on-file}@r{)}
 In Vi, @kbd{C-g} is used to get information about the file associated to
 the current buffer.  Here, @kbd{g} will do that, and @kbd{C-g} is
 used to abort a command (this is for compatibility with emacs mode.)
-@item SPC
+@item @key{SPC}
 @itemx @key{RET}
-@kindex 040 @kbd{SPC} (@code{vip-scroll})
-@kindex 015 @kbd{RET} (@code{vip-scroll-back})
+@kindex 040 SPC @r{(}@code{vip-scroll}@r{)}
+@kindex 015 RET @r{(}@code{vip-scroll-back}@r{)}
 Now these keys will scroll up and down the text of current window.
 Convenient for viewing the text.
 @item s
 @itemx S
-@kindex 163 @kbd{s} (@code{vip-switch-to-buffer})
-@kindex 123 @kbd{S} (@code{vip-switch-to-buffer-other-window})
+@kindex 163 s @r{(}@code{vip-switch-to-buffer}@r{)}
+@kindex 123 S @r{(}@code{vip-switch-to-buffer-other-window}@r{)}
 They are used to switch to a specified buffer.  Useful for switching to
 already existing buffer since buffer name completion is provided.  Also
 a default buffer will be given as part of the prompt, to which you can
@@ -570,8 +570,8 @@ switch by just typing @key{RET} key.  @kbd{s} is used to select buffer
 in the current window, while @kbd{S} selects buffer in another window.
 @item C
 @itemx X
-@kindex 103 @kbd{C} (@code{vip-ctl-c-equivalent})
-@kindex 1300 @kbd{X} (@code{vip-ctl-x-equivalent})
+@kindex 103 C @r{(}@code{vip-ctl-c-equivalent}@r{)}
+@kindex 1300 X @r{(}@code{vip-ctl-x-equivalent}@r{)}
 These keys will exit from vi mode and return to emacs mode temporarily.
 If you type @kbd{C} (@kbd{X}), Emacs will be in emacs mode and will believe
 that you have typed @kbd{C-c} (@kbd{C-x}) in emacs mode. Moreover,
@@ -588,7 +588,7 @@ vi mode again.
 
 In addition to these, @code{ctl-x-map} is slightly modified:
 
-@kindex 1301 @kbd{X 3} (@code{vip-buffer-in-two-windows})
+@kindex 1301 X 3 @r{(}@code{vip-buffer-in-two-windows}@r{)}
 
 @table @kbd
 @item X 3
@@ -604,19 +604,19 @@ basic functions related to windows, buffers and files.
 
 @table @kbd
 @item C-n
-@kindex 016 @kbd{C-n} (@code{vip-next-window})
+@kindex 016 C-n @r{(}@code{vip-next-window}@r{)}
 Switch to next window.
 @item X 1
 @itemx C-x 1
-@kindex 1301 @kbd{X 1} (@code{delete-other-windows})
+@kindex 1301 X 1 @r{(}@code{delete-other-windows}@r{)}
 Delete other windows.
 @item X 2
 @itemx C-x 2
-@kindex 1301 @kbd{X 2} (@code{split-window-vertically})
+@kindex 1301 X 2 @r{(}@code{split-window-vertically}@r{)}
 Split current window into two windows.
 @item X 3
 @itemx C-x 3
-@kindex 1301 @kbd{X 3} (@code{vip-buffer-in-two-windows})
+@kindex 1301 X 3 @r{(}@code{vip-buffer-in-two-windows}@r{)}
 Show current buffer in two windows.
 @end table
 
@@ -625,19 +625,19 @@ Show current buffer in two windows.
 
 @table @kbd
 @item s
-@kindex 163 @kbd{s} (@code{vip-switch-to-buffer})
+@kindex 163 s @r{(}@code{vip-switch-to-buffer}@r{)}
 Switch to the specified buffer in the current window
 (@code{vip-switch-to-buffer}).
 @item S
-@kindex 123 @kbd{S} (@code{vip-switch-to-buffer-other-window})
+@kindex 123 S @r{(}@code{vip-switch-to-buffer-other-window}@r{)}
 Switch to the specified buffer in another window
 (@code{vip-switch-to-buffer-other-window}).
 @item K
-@kindex 113 @kbd{K} (@code{vip-kill-buffer})
+@kindex 113 K @r{(}@code{vip-kill-buffer}@r{)}
 Kill the current buffer if it is not modified.
 @item X S
 @itemx C-x C-s
-@kindex 1302 @kbd{X S} (@code{save-buffer})
+@kindex 1302 X S @r{(}@code{save-buffer}@r{)}
 Save the current buffer in the file associated to the buffer.
 @end table
 
@@ -646,18 +646,18 @@ Save the current buffer in the file associated to the buffer.
 
 @table @kbd
 @item v
-@kindex 166 @kbd{v} (@code{vip-find-file})
+@kindex 166 v @r{(}@code{vip-find-file}@r{)}
 Visit specified file in the current window.
 @item V
-@kindex 126 @kbd{V} (@code{vip-find-file-other-window})
+@kindex 126 V @r{(}@code{vip-find-file-other-window}@r{)}
 Visit specified file in another window.
 @item X W
 @itemx C-x C-w
-@kindex 1302 @kbd{X W} (@code{write-file})
+@kindex 1302 X W @r{(}@code{write-file}@r{)}
 Write current buffer into the specified file.
 @item X I
 @itemx C-x C-i
-@kindex 1302 @kbd{X I} (@code{insert-file})
+@kindex 1302 X I @r{(}@code{insert-file}@r{)}
 
 Insert specified file at point.
 @end table
@@ -668,18 +668,18 @@ Insert specified file at point.
 @table @kbd
 @item X (
 @itemx C-x (
-@kindex 1301 @kbd{X (} (@code{start-kbd-macro})
+@kindex 1301 X ( @r{(}@code{start-kbd-macro}@r{)}
 Start remembering keyboard macro.
 @item X )
 @itemx C-x )
-@kindex 1301 @kbd{X )} (@code{end-kbd-macro})
+@kindex 1301 X ) @r{(}@code{end-kbd-macro}@r{)}
 Finish remembering keyboard macro.
 @item *
-@kindex 052 @kbd{*} (@code{vip-call-last-kbd-macro})
+@kindex 052 * @r{(}@code{vip-call-last-kbd-macro}@r{)}
 Call last remembered keyboard macro.
 @item X Z
 @itemx C-x C-z
-@kindex 1302 @kbd{X Z} (@code{suspend-emacs})
+@kindex 1302 X Z @r{(}@code{suspend-emacs}@r{)}
 Suspend Emacs.
 @item Z Z
 Exit Emacs.
@@ -715,15 +715,15 @@ commands described in this chapter are to be used in vi mode.
 
 @cindex numeric arguments
 @cindex count
-@kindex 061 @kbd{1} (numeric argument)
-@kindex 062 @kbd{2} (numeric argument)
-@kindex 063 @kbd{3} (numeric argument)
-@kindex 064 @kbd{4} (numeric argument)
-@kindex 065 @kbd{5} (numeric argument)
-@kindex 066 @kbd{6} (numeric argument)
-@kindex 067 @kbd{7} (numeric argument)
-@kindex 068 @kbd{8} (numeric argument)
-@kindex 069 @kbd{9} (numeric argument)
+@kindex 061 1 @r{(numeric argument)}
+@kindex 062 2 @r{(numeric argument)}
+@kindex 063 3 @r{(numeric argument)}
+@kindex 064 4 @r{(numeric argument)}
+@kindex 065 5 @r{(numeric argument)}
+@kindex 066 6 @r{(numeric argument)}
+@kindex 067 7 @r{(numeric argument)}
+@kindex 068 8 @r{(numeric argument)}
+@kindex 069 9 @r{(numeric argument)}
 
 Most Vi commands accept a @dfn{numeric argument} which can be supplied as
 a prefix to the commands.  A numeric argument is also called a @dfn{count}.
@@ -739,10 +739,10 @@ functions are the same in any of emacs, vi and insert mode.
 
 @table @kbd
 @item C-g
-@kindex 007 @kbd{C-g} (@code{vip-keyboard-quit})
+@kindex 007 C-g (@code{vip-keyboard-quit}@r{)}
 Quit.  Cancel running or partially typed command (@code{keyboard-quit}).
 @item C-l
-@kindex 014 @kbd{C-l} (@code{recenter})
+@kindex 014 C-l @r{(}@code{recenter}@r{)}
 Clear the screen and reprint everything (@code{recenter}).
 @end table
 
@@ -754,9 +754,9 @@ accessed from vi mode as easily as from emacs mode.
 @item C-x
 @itemx C-c
 @itemx @key{ESC}
-@kindex 003 @kbd{C-c} (@code{vip-ctl-c})
-@kindex 0300 @kbd{C-x} (@code{vip-ctl-x})
-@kindex 033 @kbd{ESC} (@code{vip-ESC})
+@kindex 003 C-c @r{(}@code{vip-ctl-c}@r{)}
+@kindex 0300 C-x @r{(}@code{vip-ctl-x}@r{)}
+@kindex 033 ESC @r{(}@code{vip-ESC}@r{)}
 Typing one of these keys have the same effect as typing it in emacs mode.
 Appropriate command will be executed according as the keys you type after
 it.  You will be in vi mode again after the execution of the command.
@@ -764,8 +764,8 @@ For instance, if you type @kbd{@key{ESC} <} (in vi mode) then the cursor will
 move to the beginning of the buffer and you will still be in vi mode.
 @item C
 @itemx X
-@kindex 103 @kbd{C} (@code{vip-ctl-c-equivalent})
-@kindex 1300 @kbd{X} (@code{vip-ctl-x-equivalent})
+@kindex 103 C @r{(}@code{vip-ctl-c-equivalent}@r{)}
+@kindex 1300 X @r{(}@code{vip-ctl-x-equivalent}@r{)}
 Typing one of these keys have the effect of typing the corresponding
 control character in emacs mode.  Moreover, if you type an upper-case
 character following it, that character will also be translated to the
@@ -773,7 +773,7 @@ corresponding control character.  Thus typing @kbd{X W} in vi mode is the
 same as typing @kbd{C-x C-w} in emacs mode.  You will be in vi mode again
 after the execution of a command.
 @item \
-@kindex 134 @kbd{\} (@code{vip-escape-to-emacs})
+@kindex 134 \ @r{(}@code{vip-escape-to-emacs}@r{)}
 Escape to emacs mode.  Hitting the @kbd{\} key will take you to emacs mode,
 and you can execute a single Emacs command.  After executing the
 Emacs command you will be in vi mode again.  You can give a count before
@@ -810,31 +810,31 @@ We have the following commands related to windows and buffers.
 
 @table @kbd
 @item C-n
-@kindex 016 @kbd{C-n} (@code{vip-next-window})
+@kindex 016 C-n @r{(}@code{vip-next-window}@r{)}
 Move cursor to the next-window (@code{vip-next-window}).
 @item X 1
-@kindex 1301 @kbd{X 1} (@code{delete-other-windows})
+@kindex 1301 X 1 @r{(}@code{delete-other-windows}@r{)}
 Delete other windows and make the selected window fill the screen
 @*(@code{delete-other-windows}).
 @item X 2
-@kindex 1301 @kbd{X 2} (@code{split-window-vertically})
+@kindex 1301 X 2 @r{(}@code{split-window-vertically}@r{)}
 Split current window into two windows (@code{split-window-vertically}).
 @item X 3
-@kindex 1301 @kbd{X 3} (@code{vip-buffer-in-two-windows})
+@kindex 1301 X 3 @r{(}@code{vip-buffer-in-two-windows}@r{)}
 Show current buffer in two windows.
 @item s @var{buffer} @key{RET}
-@kindex 163 @kbd{s} (@code{vip-switch-to-buffer})
+@kindex 163 s @r{(}@code{vip-switch-to-buffer}@r{)}
 Select or create a buffer named @var{buffer} (@code{vip-switch-to-buffer}).
 @item S @var{buffer} @key{RET}
-@kindex 123 @kbd{S} (@code{vip-switch-to-buffer-other-window})
+@kindex 123 S @r{(}@code{vip-switch-to-buffer-other-window}@r{)}
 Similar but select a buffer named @var{buffer} in another window
 @*(@code{vip-switch-to-buffer-other-window}).
 @item K
-@kindex 113 @kbd{K} (@code{vip-kill-buffer})
+@kindex 113 K @r{(}@code{vip-kill-buffer}@r{)}
 Kill the current buffer if it is not modified or if it is not associated
 with a file @*(@code{vip-kill-buffer}).
 @item X B
-@kindex 1302 @kbd{X B} (@code{list-buffers})
+@kindex 1302 X B @r{(}@code{list-buffers}@r{)}
 List the existing buffers (@code{list-buffers}).
 @end table
 
@@ -856,24 +856,24 @@ save and insert files.
 
 @table @kbd
 @item v @var{file} @key{RET}
-@kindex 166 @kbd{v} (@code{vip-find-file})
+@kindex 166 v @r{(}@code{vip-find-file}@r{)}
 Visit specified file in the current window (@code{vip-find-file}).
 @item V @var{file} @key{RET}
-@kindex 126 @kbd{V} (@code{vip-find-file-other-window})
+@kindex 126 V @r{(}@code{vip-find-file-other-window}@r{)}
 Visit specified file in another window (@code{vip-find-file-other-window}).
 @item X S
-@kindex 1302 @kbd{X S} (@code{save-buffer})
+@kindex 1302 X S @r{(}@code{save-buffer}@r{)}
 Save current buffer to the file associated with the buffer.  If no file is
 associated with the buffer, the name of the file to write out the content
 of the buffer will be asked in the minibuffer.
 @item X W @var{file} @key{RET}
-@kindex 1302 @kbd{X W} (@code{write-file})
+@kindex 1302 X W @r{(}@code{write-file}@r{)}
 Write current buffer into a specified file.
 @item X I @var{file} @key{RET}
-@kindex 1302 @kbd{X I} (@code{insert-file})
+@kindex 1302 X I @r{(}@code{insert-file}@r{)}
 Insert a specified file at point.
 @item g
-@kindex 147 @kbd{g} (@code{vip-info-on-file})
+@kindex 147 g @r{(}@code{vip-info-on-file}@r{)}
 Give information on the file associated with the current buffer.  Tell you
 the name of the file associated with the buffer, the line number of the
 current point and total line numbers in the buffer.  If no file is
@@ -940,29 +940,29 @@ buffer.
 @table @kbd
 @item @key{SPC}
 @itemx C-f
-@kindex 040 @kbd{SPC} (@code{vip-scroll})
-@kindex 006 @kbd{C-f} (@code{vip-scroll-back})
+@kindex 040 SPC @r{(}@code{vip-scroll}@r{)}
+@kindex 006 C-f @r{(}@code{vip-scroll-back}@r{)}
 Scroll text of current window upward almost full screen.  You can go
 @i{forward} in the buffer by this command (@code{vip-scroll}).
 @item @key{RET}
 @itemx C-b
-@kindex 015 @kbd{RET} (@code{vip-scroll-back})
-@kindex 002 @kbd{C-b} (@code{vip-scroll-back})
+@kindex 015 RET @r{(}@code{vip-scroll-back}@r{)}
+@kindex 002 C-b @r{(}@code{vip-scroll-back}@r{)}
 Scroll text of current window downward almost full screen.  You can go
 @i{backward} in the buffer by this command (@code{vip-scroll-back}).
 @item C-d
-@kindex 004 @kbd{C-d} (@code{vip-scroll-up})
+@kindex 004 C-d @r{(}@code{vip-scroll-up}@r{)}
 Scroll text of current window upward half screen.  You can go
 @i{down} in the buffer by this command (@code{vip-scroll-down}).
 @item C-u
-@kindex 025 @kbd{C-u} (@code{vip-scroll-down})
+@kindex 025 C-u @r{(}@code{vip-scroll-down}@r{)}
 Scroll text of current window downward half screen.  You can go
 @i{up} in the buffer by this command (@code{vip-scroll-up}).
 @item C-y
-@kindex 031 @kbd{C-y} (@code{vip-scroll-down-one})
+@kindex 031 C-y @r{(}@code{vip-scroll-down-one}@r{)}
 Scroll text of current window upward by one line (@code{vip-scroll-down-one}).
 @item C-e
-@kindex 005 @kbd{C-e} (@code{vip-scroll-up-one})
+@kindex 005 C-e @r{(}@code{vip-scroll-up-one}@r{)}
 Scroll text of current window downward by one line (@code{vip-scroll-up-one}).
 @end table
 @noindent
@@ -974,22 +974,22 @@ The following commands reposition point in the window.
 @table @kbd
 @item z H
 @itemx z @key{RET}
-@kindex 1723 @kbd{z H} (@code{vip-line-to-top})
-@kindex 1721 @kbd{z RET} (@code{vip-line-to-top})
+@kindex 1723 z H @r{(}@code{vip-line-to-top}@r{)}
+@kindex 1721 z RET @r{(}@code{vip-line-to-top}@r{)}
 Put point on the top (@i{home}) line in the window.  So the current line
 becomes the top line in the window.  Given a count @var{n}, point will be
 placed in the @var{n}-th line from top (@code{vip-line-to-top}).
 @item z M
 @itemx z .
-@kindex 1723 @kbd{z M} (@code{vip-line-to-middle})
-@kindex 1722 @kbd{z .} (@code{vip-line-to-middle})
+@kindex 1723 z M @r{(}@code{vip-line-to-middle}@r{)}
+@kindex 1722 z . @r{(}@code{vip-line-to-middle}@r{)}
 Put point on the @i{middle} line in the window.  Given a count @var{n},
 point will be placed in the @var{n}-th line from the middle line
 (@code{vip-line-to-middle}).
 @item z L
 @itemx z -
-@kindex 1723 @kbd{z L} (@code{vip-line-to-bottom})
-@kindex 1722 @kbd{z -} (@code{vip-line-to-bottom})
+@kindex 1723 z L @r{(}@code{vip-line-to-bottom}@r{)}
+@kindex 1722 z - @r{(}@code{vip-line-to-bottom}@r{)}
 Put point on the @i{bottom} line in the window.  Given a count @var{n},
 point will be placed in the @var{n}-th line from bottom
 (@code{vip-line-to-bottom}).
@@ -1004,7 +1004,7 @@ The following commands are used to mark positions in the buffer.
 
 @table @kbd
 @item m @var{ch}
-@kindex 155 @kbd{m} (@code{vip-mark-point})
+@kindex 155 m @r{(}@code{vip-mark-point}@r{)}
 Store current point in the register @var{ch}.  @var{ch} must be a
 lower-case @acronym{ASCII} letter.
 @item m <
@@ -1034,31 +1034,31 @@ to be described in the next section.
 
 @table @kbd
 @item h
-@kindex 150 @kbd{h} (@code{vip-backward-char})
+@kindex 150 h @r{(}@code{vip-backward-char}@r{)}
 Move point backward by one character.  Signal error if point is at the
 beginning of buffer, but (unlike Vi) do not complain otherwise
 (@code{vip-backward-char}).
 @item l
-@kindex 154 @kbd{l} (@code{vip-forward-char})
+@kindex 154 l @r{(}@code{vip-forward-char}@r{)}
 Move point backward by one character.  Signal error if point is at the
 end of buffer, but (unlike Vi) do not complain otherwise
 (@code{vip-forward-char}).
 @item j
-@kindex 152 @kbd{j} (@code{vip-next-line})
+@kindex 152 j @r{(}@code{vip-next-line}@r{)}
 Move point to the next line keeping the current column.  If point is on the
 last line of the buffer, a new line will be created and point will move to
 that line (@code{vip-next-line}).
 @item k
-@kindex 153 @kbd{k} (@code{vip-previous-line})
+@kindex 153 k @r{(}@code{vip-previous-line}@r{)}
 Move point to the previous line keeping the current column
 (@code{vip-next-line}).
 @item +
-@kindex 053 @kbd{+} (@code{vip-next-line-at-bol})
+@kindex 053 + @r{(}@code{vip-next-line-at-bol}@r{)}
 Move point to the next line at the first non-white character.  If point is
 on the last line of the buffer, a new line will be created and point will
 move to the beginning of that line (@code{vip-next-line-at-bol}).
 @item -
-@kindex 055 @kbd{-} (@code{vip-previous-line-at-bol})
+@kindex 055 - @r{(}@code{vip-previous-line-at-bol}@r{)}
 Move point to the previous line at the first non-white character
 (@code{vip-previous-line-at-bol}).
 @end table
@@ -1068,17 +1068,17 @@ many times.
 
 @table @kbd
 @item 0
-@kindex 060 @kbd{0} (@code{vip-beginning-of-line})
+@kindex 060 0 @r{(}@code{vip-beginning-of-line}@r{)}
 Move point to the beginning of line (@code{vip-beginning-of-line}).
 @item ^
-@kindex 136 @kbd{^} (@code{vip-bol-and-skip-white})
+@kindex 136 ^ @r{(}@code{vip-bol-and-skip-white}@r{)}
 Move point to the first non-white character on the line
 (@code{vip-bol-and-skip-white}).
 @item $
-@kindex 044 @kbd{$} (@code{vip-goto-eol})
+@kindex 044 $ @r{(}@code{vip-goto-eol}@r{)}
 Move point to the end of line (@code{vip-goto-eol}).
 @item @var{n} |
-@kindex 174 @kbd{|} (@code{vip-goto-col})
+@kindex 174 | @r{(}@code{vip-goto-col}@r{)}
 Move point to the @var{n}-th column on the line (@code{vip-goto-col}).
 @end table
 @noindent
@@ -1088,25 +1088,25 @@ Except for the @kbd{|} command, these commands neglect a count.
 
 @table @kbd
 @item w
-@kindex 167 @kbd{w} (@code{vip-forward-word})
+@kindex 167 w @r{(}@code{vip-forward-word}@r{)}
 Move point forward to the beginning of the next word
 (@code{vip-forward-word}).
 @item W
-@kindex 127 @kbd{W} (@code{vip-forward-Word})
+@kindex 127 W @r{(}@code{vip-forward-Word}@r{)}
 Move point forward to the beginning of the next word, where a @dfn{word} is
 considered as a sequence of non-white characters (@code{vip-forward-Word}).
 @item b
-@kindex 142 @kbd{b} (@code{vip-backward-word})
+@kindex 142 b @r{(}@code{vip-backward-word}@r{)}
 Move point backward to the beginning of a word (@code{vip-backward-word}).
 @item B
-@kindex 102 @kbd{B} (@code{vip-backward-Word})
+@kindex 102 B @r{(}@code{vip-backward-Word}@r{)}
 Move point backward to the beginning of a word, where a @i{word} is
 considered as a sequence of non-white characters (@code{vip-forward-Word}).
 @item e
-@kindex 145 @kbd{e} (@code{vip-end-of-word})
+@kindex 145 e @r{(}@code{vip-end-of-word}@r{)}
 Move point forward to the end of a word (@code{vip-end-of-word}).
 @item E
-@kindex 105 @kbd{E} (@code{vip-end-of-Word})
+@kindex 105 E @r{(}@code{vip-end-of-Word}@r{)}
 Move point forward to the end of a word, where a @i{word} is
 considered as a sequence of non-white characters (@code{vip-end-of-Word}).
 @end table
@@ -1120,17 +1120,17 @@ details of syntax table.
 
 @table @kbd
 @item H
-@kindex 110 @kbd{H} (@code{vip-window-top})
+@kindex 110 H @r{(}@code{vip-window-top}@r{)}
 Move point to the beginning of the @i{home} (top) line of the window.
 Given a count @var{n}, go to the @var{n}-th line from top
 (@code{vip-window-top}).
 @item M
-@kindex 115 @kbd{M} (@code{vip-window-middle})
+@kindex 115 M @r{(}@code{vip-window-middle}@r{)}
 Move point to the beginning of the @i{middle} line of the window.  Given
 a count @var{n}, go to the @var{n}-th line from the middle line
 (@code{vip-window-middle}).
 @item L
-@kindex 114 @kbd{L} (@code{vip-window-bottom})
+@kindex 114 L @r{(}@code{vip-window-bottom}@r{)}
 Move point to the beginning of the @i{lowest} (bottom) line of the
 window.  Given count, go to the @var{n}-th line from bottom
 (@code{vip-window-bottom}).
@@ -1140,19 +1140,19 @@ These commands can be used to go to the desired line visible on the screen.
 
 @table @kbd
 @item (
-@kindex 050 @kbd{(} (@code{vip-backward-sentence})
+@kindex 050 ( @r{(}@code{vip-backward-sentence}@r{)}
 Move point backward to the beginning of the sentence
 (@code{vip-backward-sentence}).
 @item )
-@kindex 051 @kbd{)} (@code{vip-forward-sentence})
+@kindex 051 ) @r{(}@code{vip-forward-sentence}@r{)}
 Move point forward to the end of the sentence
 (@code{vip-forward-sentence}).
 @item @{
-@kindex 173 @kbd{@{} (@code{vip-backward-paragraph})
+@kindex 173 @{ @r{(}@code{vip-backward-paragraph}@r{)}
 Move point backward to the beginning of the paragraph
 (@code{vip-backward-paragraph}).
 @item @}
-@kindex 175 @kbd{@}} (@code{vip-forward-paragraph})
+@kindex 175 @} @r{(}@code{vip-forward-paragraph}@r{)}
 Move point forward to the end of the paragraph
 (@code{vip-forward-paragraph}).
 @end table
@@ -1161,25 +1161,25 @@ A count repeats the effect for these commands.
 
 @table @kbd
 @item G
-@kindex 107 @kbd{G} (@code{vip-goto-line})
+@kindex 107 G @r{(}@code{vip-goto-line}@r{)}
 Given a count @var{n}, move point to the @var{n}-th line in the buffer on
 the first non-white character.  Without a count, go to the end of the buffer
 (@code{vip-goto-line}).
 @item ` `
-@kindex 140 @kbd{`} (@code{vip-goto-mark})
+@kindex 140 ` @r{(}@code{vip-goto-mark}@r{)}
 Exchange point and mark (@code{vip-goto-mark}).
 @item ` @var{ch}
 Move point to the position stored in the register @var{ch}.  @var{ch} must
 be a lower-case letter.
 @item ' '
-@kindex 047 @kbd{'} (@code{vip-goto-mark-and-skip-white})
+@kindex 047 ' @r{(}@code{vip-goto-mark-and-skip-white}@r{)}
 Exchange point and mark, and then move point to the first non-white
 character on the line (@code{vip-goto-mark-and-skip-white}).
 @item ' @var{ch}
 Move point to the position stored in the register @var{ch} and skip to the
 first non-white character on the line.  @var{ch} must be a lower-case letter.
 @item %
-@kindex 045 @kbd{%} (@code{vip-paren-match})
+@kindex 045 % @r{(}@code{vip-paren-match}@r{)}
 Move point to the matching parenthesis if point is looking at @kbd{(},
 @kbd{)}, @kbd{@{}, @kbd{@}}, @kbd{[} or @kbd{]}
 @*(@code{vip-paren-match}).
@@ -1194,27 +1194,27 @@ will repeat the effect.
 
 @table @kbd
 @item f @var{ch}
-@kindex 146 @kbd{f} (@code{vip-find-char-forward})
+@kindex 146 f @r{(}@code{vip-find-char-forward}@r{)}
 Move point forward to the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-find-char-forward}).
 @item F @var{ch}
-@kindex 106 @kbd{F} (@code{vip-find-char-backward})
+@kindex 106 F @r{(}@code{vip-find-char-backward}@r{)}
 Move point backward to the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-find-char-backward}).
 @item t @var{ch}
-@kindex 164 @kbd{t} (@code{vip-goto-char-forward})
+@kindex 164 t @r{(}@code{vip-goto-char-forward}@r{)}
 Move point forward upto the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-goto-char-forward}).
 @item T @var{ch}
-@kindex 124 @kbd{T} (@code{vip-goto-char-backward})
+@kindex 124 T @r{(}@code{vip-goto-char-backward}@r{)}
 Move point backward upto the character @var{ch} on the line.  Signal error if
 @var{ch} could not be found (@code{vip-goto-char-backward}).
 @item ;
-@kindex 073 @kbd{;} (@code{vip-repeat-find})
+@kindex 073 ; @r{(}@code{vip-repeat-find}@r{)}
 Repeat previous @kbd{f}, @kbd{t}, @kbd{F} or @kbd{T} command
 (@code{vip-repeat-find}).
 @item ,
-@kindex 054 @kbd{,} (@code{vip-repeat-find-opposite})
+@kindex 054 , @r{(}@code{vip-repeat-find-opposite}@r{)}
 Repeat previous @kbd{f}, @kbd{t}, @kbd{F} or @kbd{T} command, in the
 opposite direction (@code{vip-repeat-find-opposite}).
 @end table
@@ -1228,7 +1228,7 @@ Following commands are available for searching and replacing.
 
 @table @kbd
 @item / @var{string} @key{RET}
-@kindex 057 @kbd{/} (@code{vip-search-forward})
+@kindex 057 / @r{(}@code{vip-search-forward}@r{)}
 Search the first occurrence of the string @var{string} forward starting
 from point.  Given a count @var{n}, the @var{n}-th occurrence of
 @var{string} will be searched.  If the variable @code{vip-re-search} has value
@@ -1238,28 +1238,28 @@ empty string as @var{string} then the search mode will change from vanilla
 search to regular expression search and vice versa
 (@code{vip-search-forward}).
 @item ? @var{string} @key{RET}
-@kindex 077 @kbd{?} (@code{vip-search-backward})
+@kindex 077 ? @r{(}@code{vip-search-backward}@r{)}
 Same as @kbd{/}, except that search is done backward
 (@code{vip-search-backward}).
 @item n
-@kindex 156 @kbd{n} (@code{vip-search-next})
+@kindex 156 n @r{(}@code{vip-search-next}@r{)}
 Search the previous search pattern in the same direction as before
 (@code{vip-search-next}).
 @item N
-@kindex 116 @kbd{N} (@code{vip-search-Next})
+@kindex 116 N @r{(}@code{vip-search-Next}@r{)}
 Search the previous search pattern in the opposite direction
 (@code{vip-search-Next}).
 @item C-s
-@kindex 023 @kbd{C-s} (@code{isearch-forward})
+@kindex 023 C-s @r{(}@code{isearch-forward}@r{)}
 Search forward incrementally.  See GNU Emacs Manual for details
 (@code{isearch-forward}).
 @item C-r
-@kindex 022 @kbd{C-r} (@code{isearch-backward})
+@kindex 022 C-r @r{(}@code{isearch-backward}@r{)}
 Search backward incrementally (@code{isearch-backward}).
 @cindex vanilla (replacement)
 @cindex regular expression (replacement)
-@item R @var{string} RET @var{newstring}
-@kindex 122 @kbd{R} (@code{vip-replace-string})
+@item R @var{string} @key{RET} @var{newstring}
+@kindex 122 R @r{(}@code{vip-replace-string}@r{)}
 There are two modes of replacement, @dfn{vanilla} and @dfn{regular expression}.
 If the mode is @i{vanilla} you will get a prompt @samp{Replace string:},
 and if the mode is @i{regular expression} you will ge a prompt
@@ -1269,13 +1269,13 @@ vanilla, this command replaces every occurrence of @var{string} with
 @var{newstring}.  If the mode is regular expression, @var{string} is
 treated as a regular expression and every string matching the regular
 expression is replaced with @var{newstring} (@code{vip-replace-string}).
-@item Q @var{string} RET @var{newstring}
-@kindex 121 @kbd{Q} (@code{vip-query-replace})
+@item Q @var{string} @key{RET} @var{newstring}
+@kindex 121 Q @r{(}@code{vip-query-replace}@r{)}
 Same as @kbd{R} except that you will be asked form confirmation before each
 replacement
 @*(@code{vip-query-replace}).
 @item r @var{ch}
-@kindex 162 @kbd{r} (@code{vip-replace-char})
+@kindex 162 r @r{(}@code{vip-replace-char}@r{)}
 Replace the character point is looking at by the character @var{ch}.  Give
 count, replace that many characters by @var{ch} (@code{vip-replace-char}).
 @end table
@@ -1326,7 +1326,7 @@ command.
 
 @table @kbd
 @item d @var{motion-command}
-@kindex 1440 @kbd{d} (@code{vip-command-argument})
+@kindex 1440 d @r{(}@code{vip-command-argument}@r{)}
 Delete the region determined by the motion command @var{motion-command}.
 @end table
 @noindent
@@ -1337,7 +1337,7 @@ end of the buffer, since @kbd{G} is a line command.  A count given to the
 command above will become the count for the associated motion command.
 Thus, @kbd{3 d w} will delete three words.
 
-@kindex 042 @kbd{"} (@code{vip-command-argument})
+@kindex 042 " @r{(}@code{vip-command-argument}@r{)}
 It is also possible to save the deleted text into a register you specify.
 For example, you can say @kbd{" t 3 d w} to delete three words and save it
 to register @kbd{t}.  The name of a register is a lower-case letter between
@@ -1352,23 +1352,23 @@ We have more delete commands as below.
 
 @table @kbd
 @item d d
-@kindex 1442 @kbd{d d}
+@kindex 1442 d d
 Delete a line.  Given a count @var{n}, delete @var{n} lines.
 @item d r
-@kindex 1442 @kbd{d r}
+@kindex 1442 d r
 Delete current region.
 @item d R
-@kindex 1441 @kbd{d R}
+@kindex 1441 d R
 Expand current region and delete it.
 @item D
-@kindex 104 @kbd{D} (@code{vip-kill-line})
+@kindex 104 D @r{(}@code{vip-kill-line}@r{)}
 Delete to the end of a line (@code{vip-kill-line}).
 @item x
-@kindex 170 @kbd{x} (@code{vip-delete-char})
+@kindex 170 x @r{(}@code{vip-delete-char}@r{)}
 Delete a character after point.  Given @var{n}, delete @var{n} characters
 (@code{vip-delete-char}).
 @item @key{DEL}
-@kindex 177 @kbd{DEL} (@code{vip-delete-backward-char})
+@kindex 177 DEL @r{(}@code{vip-delete-backward-char}@r{)}
 Delete a character before point.  Given @var{n}, delete @var{n} characters
 (@code{vip-delete-backward-char}).
 @end table
@@ -1385,7 +1385,7 @@ commands that put back the yanked text into the buffer.
 
 @table @kbd
 @item y @var{motion-command}
-@kindex 1710 @kbd{y} (@code{vip-command-argument})
+@kindex 1710 y @r{(}@code{vip-command-argument}@r{)}
 Yank the region determined by the motion command @var{motion-command}.
 @end table
 @noindent
@@ -1398,14 +1398,14 @@ Use the following command to yank consecutive lines of text.
 @table @kbd
 @item y y
 @itemx Y
-@kindex 131 @kbd{Y} (@code{vip-yank-line})
-@kindex 1712 @kbd{y y} (@code{vip-yank-line})
+@kindex 131 Y @r{(}@code{vip-yank-line}@r{)}
+@kindex 1712 y y @r{(}@code{vip-yank-line}@r{)}
 Yank a line.  Given @var{n}, yank @var{n} lines (@code{vip-yank-line}).
 @item y r
-@kindex 1712 @kbd{y r}
+@kindex 1712 y r
 Yank current region.
 @item y R
-@kindex 1711 @kbd{y R}
+@kindex 1711 y R
 Expand current region and yank it.
 @end table
 
@@ -1416,7 +1416,7 @@ below.
 
 @table @kbd
 @item p
-@kindex 160 @kbd{p} (@code{vip-put-back})
+@kindex 160 p @r{(}@code{vip-put-back}@r{)}
 Insert, after the character point is looking at, most recently
 deleted/yanked text from anonymous register. Given a register name
 argument, the content of the named register will be put back.  Given a
@@ -1424,7 +1424,7 @@ count, the command will be repeated that many times. This command also
 checks if the text to put back ends with a new line character, and if so
 the text will be put below the current line (@code{vip-put-back}).
 @item P
-@kindex 120 @kbd{P} (@code{vip-Put-back})
+@kindex 120 P @r{(}@code{vip-Put-back}@r{)}
 Insert at point most recently deleted/yanked text from anonymous register.
 Given a register name argument, the content of the named register will
 be put back.  Given a count, the command will be repeated that many times.
@@ -1447,7 +1447,7 @@ Most commonly used change command takes the following form.
 
 @table @kbd
 @item c @var{motion-command}
-@kindex 1430 @kbd{c} (@code{vip-command-argument})
+@kindex 1430 c @r{(}@code{vip-command-argument}@r{)}
 Replace the content of the region determined by the motion command
 @var{motion-command} by the text you type.  If the motion command is a
 point command then you will type the text into minibuffer, and if the
@@ -1463,13 +1463,13 @@ command.
 
 @table @kbd
 @item c c
-@kindex 1432 @kbd{c c}
+@kindex 1432 c c
 Change a line.  Given a count, that many lines are changed.
 @item c r
-@kindex 1432 @kbd{c r}
+@kindex 1432 c r
 Change current region.
 @item c R
-@kindex 1431 @kbd{c R}
+@kindex 1431 c R
 Expand current region and change it.
 @end table
 
@@ -1481,13 +1481,13 @@ it.  It is also very easy to undo changes made by modifying commands.
 
 @table @kbd
 @item u
-@kindex 165 @kbd{u} (@code{vip-undo})
+@kindex 165 u @r{(}@code{vip-undo}@r{)}
 Undo the last change.  You can undo more by repeating undo by the repeat
 command @samp{.}.  For example, you can undo 5 previous changes by typing
 @samp{u....}.  If you type @samp{uu}, then the second @samp{u} undoes the
 first undo command (@code{vip-undo}).
 @item .
-@kindex 056 @kbd{.} (@code{vip-repeat})
+@kindex 056 . @r{(}@code{vip-repeat}@r{)}
 Repeat the last modifying command.  Given count @var{n} it becomes the new
 count for the repeated command.  Otherwise, the count for the last
 modifying command is used again (@code{vip-repeat}).
@@ -1500,12 +1500,12 @@ Miscellaneous Vi commands are collected here.
 
 @table @kbd
 @item Z Z
-@kindex 132 @kbd{Z Z} (@code{save-buffers-kill-emacs})
+@kindex 132 Z Z @r{(}@code{save-buffers-kill-emacs}@r{)}
 Exit Emacs.  If modified buffers exist, you will be asked whether you wish
 to save them or not (@code{save-buffers-kill-emacs}).
 @item !@: @var{motion-command} @var{format-command}
 @itemx @var{n} !@: !@: @var{format-command}
-@kindex 041 @kbd{!} (@code{vip-command-argument})
+@kindex 041 ! @r{(}@code{vip-command-argument}@r{)}
 The region determined by the motion command @var{motion-command} will be
 given to the shell command @var{format-command} and the region will be
 replaced by its output.  If a count is given, it will be passed to
@@ -1514,30 +1514,30 @@ between point and the 3rd line.  If @kbd{!} is used instead of
 @var{motion-command} then @var{n} lines will be processed by
 @var{format-command} (@code{vip-command-argument}).
 @item J
-@kindex 112 @kbd{J} (@code{vip-join-lines})
+@kindex 112 J @r{(}@code{vip-join-lines}@r{)}
 Join two lines.  Given count, join that many lines.  A space will be
 inserted at each junction (@code{vip-join-lines}).
 @item < @var{motion-command}
 @itemx @var{n} < <
-@kindex 074 @kbd{<} (@code{vip-command-argument})
+@kindex 074 < @r{(}@code{vip-command-argument}@r{)}
 Shift region determined by the motion command @var{motion-command} to
 left by @var{shift-width} (default is 8).  If @kbd{<} is used instead of
 @var{motion-command} then shift @var{n} lines
 @*(@code{vip-command-argument}).
 @item > @var{motion-command}
 @itemx @var{n} > >
-@kindex 076 @kbd{>} (@code{vip-command-argument})
+@kindex 076 > @r{(}@code{vip-command-argument}@r{)}
 Shift region determined by the motion command @var{motion-command} to
 right by @var{shift-width} (default is 8).  If @kbd{<} is used instead of
 @var{motion-command} then shift @var{n} lines
 @*(@code{vip-command-argument}).
 @item = @var{motion-command}
-@kindex 075 @kbd{=} (@code{vip-command-argument})
+@kindex 075 = @r{(}@code{vip-command-argument}@r{)}
 Indent region determined by the motion command @var{motion-command}.  If
 @kbd{=} is used instead of @var{motion-command} then indent @var{n} lines
 (@code{vip-command-argument}).
 @item *
-@kindex 052 @kbd{*} (@code{vip-call-last-kbd-macro})
+@kindex 052 * @r{(}@code{vip-call-last-kbd-macro}@r{)}
 Call last remembered keyboard macro.
 @item #
 A new vi operator. @xref{New Commands}, for more details.
@@ -1546,14 +1546,14 @@ A new vi operator. @xref{New Commands}, for more details.
 The following keys are reserved for future extensions, and currently
 assigned to a function that just beeps (@code{vip-nil}).
 
-@kindex 046 @kbd{&} (@code{vip-nil})
-@kindex 100 @kbd{@@} (@code{vip-nil})
-@kindex 125 @kbd{U} (@code{vip-nil})
-@kindex 133 @kbd{[} (@code{vip-nil})
-@kindex 135 @kbd{]} (@code{vip-nil})
-@kindex 137 @kbd{_} (@code{vip-nil})
-@kindex 161 @kbd{q} (@code{vip-nil})
-@kindex 176 @kbd{~} (@code{vip-nil})
+@kindex 046 & @r{(}@code{vip-nil}@r{)}
+@kindex 100 @@ @r{(}@code{vip-nil}@r{)}
+@kindex 125 U @r{(}@code{vip-nil}@r{)}
+@kindex 133 [ @r{(}@code{vip-nil}@r{)}
+@kindex 135 ] @r{(}@code{vip-nil}@r{)}
+@kindex 137 _ @r{(}@code{vip-nil}@r{)}
+@kindex 161 q @r{(}@code{vip-nil}@r{)}
+@kindex 176 ~ @r{(}@code{vip-nil}@r{)}
 
 @example
 &, @@, U, [, ], _, q, ~
@@ -1567,48 +1567,48 @@ keymap.  See GNU Emacs Manual for details.
 
 @table @kbd
 @item C-@@
-@kindex 000 @kbd{C-@@} (@code{set-mark-command})
+@kindex 000 C-@@ @r{(}@code{set-mark-command}@r{)}
 Set mark and push previous mark on mark ring (@code{set-mark-command}).
-@item TAB
-@kindex 011 TAB (@code{indent-for-tab-command})
+@item @key{TAB}
+@kindex 011 TAB @r{(}@code{indent-for-tab-command}@r{)}
 Indent line for current major mode (@code{indent-for-tab-command}).
 @item C-j
-@kindex 012 @kbd{C-j} (@code{electric-newline-and-maybe-indent})
+@kindex 012 C-j @r{(}@code{electric-newline-and-maybe-indent}@r{)}
 Insert a newline, and maybe indent according to mode.
 @item C-k
-@kindex 013 @kbd{C-k} (@code{kill-line})
+@kindex 013 C-k @r{(}@code{kill-line}@r{)}
 Kill the rest of the current line; before a newline, kill the newline.
 With a numeric argument, kill that many lines from point.  Negative arguments
 kill lines backward (@code{kill-line}).
 @item C-l
-@kindex 014 @kbd{C-l} (@code{recenter})
+@kindex 014 C-l @r{(}@code{recenter}@r{)}
 Clear the screen and reprint everything (@code{recenter}).
 @item @var{n} C-p
-@kindex 020 @kbd{C-p} (@code{previous-line})
+@kindex 020 C-p @r{(}@code{previous-line}@r{)}
 Move cursor vertically up @var{n} lines (@code{previous-line}).
 @item C-q
-@kindex 021 @kbd{C-q} (@code{quoted-insert})
+@kindex 021 C-q @r{(}@code{quoted-insert}@r{)}
 Read next input character and insert it.  Useful for inserting control
 characters
 @*(@code{quoted-insert}).
 @item C-r
-@kindex 022 @kbd{C-r} (@code{isearch-backward})
+@kindex 022 C-r @r{(}@code{isearch-backward}@r{)}
 Search backward incrementally (@code{isearch-backward}).
 @item C-s
-@kindex 023 @kbd{C-s} (@code{isearch-forward})
+@kindex 023 C-s @r{(}@code{isearch-forward}@r{)}
 Search forward incrementally (@code{isearch-forward}).
 @item @var{n} C-t
-@kindex 024 @kbd{C-t} (@code{transpose-chars})
+@kindex 024 C-t @r{(}@code{transpose-chars}@r{)}
 Interchange characters around point, moving forward one character.  With
 count @var{n}, take character before point and drag it forward past @var{n}
 other characters.  If no argument and at end of line, the previous two
 characters are exchanged (@code{transpose-chars}).
 @item @var{n} C-v
-@kindex 026 @kbd{C-v} (@code{scroll-up})
+@kindex 026 C-v @r{(}@code{scroll-up}@r{)}
 Scroll text upward @var{n} lines.  If @var{n} is not given, scroll near
 full screen (@code{scroll-up}).
 @item C-w
-@kindex 027 @kbd{C-w} (@code{kill-region})
+@kindex 027 C-w @r{(}@code{kill-region}@r{)}
 Kill between point and mark.  The text is save in the kill ring.  The
 command @kbd{P} or @kbd{p} can retrieve it from kill ring
 (@code{kill-region}).
@@ -1624,29 +1624,29 @@ and you can repeat them by the repeat command @kbd{.} (@code{vip-repeat}).
 
 @table @kbd
 @item i
-@kindex 151 @kbd{i} (@code{vip-insert})
+@kindex 151 i @r{(}@code{vip-insert}@r{)}
 Enter insert mode at point (@code{vip-insert}).
 @item I
-@kindex 111 @kbd{I} (@code{vip-Insert})
+@kindex 111 I @r{(}@code{vip-Insert}@r{)}
 Enter insert mode at the first non white character on the line
 (@code{vip-Insert}).
 @item a
-@kindex 141 @kbd{a} (@code{vip-append})
+@kindex 141 a @r{(}@code{vip-append}@r{)}
 Move point forward by one character and then enter insert mode
 (@code{vip-append}).
 @item A
-@kindex 101 @kbd{A} (@code{vip-Append})
+@kindex 101 A @r{(}@code{vip-Append}@r{)}
 Enter insert mode at end of line (@code{vip-Append}).
 @item o
-@kindex 157 @kbd{o} (@code{vip-open-line})
+@kindex 157 o @r{(}@code{vip-open-line}@r{)}
 Open a new line below the current line and enter insert mode
 (@code{vip-open-line}).
 @item O
-@kindex 117 @kbd{O} (@code{vip-Open-line})
+@kindex 117 O @r{(}@code{vip-Open-line}@r{)}
 Open a new line above the current line and enter insert mode
 (@code{vip-Open-line}).
 @item C-o
-@kindex 017 @kbd{C-o} (@code{vip-open-line-at-point})
+@kindex 017 C-o @r{(}@code{vip-open-line-at-point}@r{)}
 Insert a newline and leave point before it, and then enter insert mode
 @*(@code{vip-open-line-at-point}).
 @end table
@@ -1656,16 +1656,16 @@ differently from emacs mode.
 
 @table @kbd
 @item @key{ESC}
-@kindex 033 @kbd{ESC} (@code{vip-change-mode-to-vi}) (insert mode)
+@kindex 033 ESC @r{(}@code{vip-change-mode-to-vi}@r{) (insert mode)}
 This key will take you back to vi mode (@code{vip-change-mode-to-vi}).
 @item C-h
-@kindex 010 @kbd{C-h} (@code{delete-backward-char}) (insert mode)
+@kindex 010 C-h @r{(}@code{delete-backward-char}@r{) (insert mode)}
 Delete previous character (@code{delete-backward-char}).
 @item C-w
-@kindex 027 @kbd{C-w} (@code{vip-delete-backward-word}) (insert mode)
+@kindex 027 C-w @r{(}@code{vip-delete-backward-word}@r{) (insert mode)}
 Delete previous word (@code{vip-delete-backward-word}).
 @item C-z
-@kindex 032 @kbd{C-z} (@code{vip-ESC}) (insert mode)
+@kindex 032 C-z @r{(}@code{vip-ESC}@r{) (insert mode)}
 This key simulates @key{ESC} key in emacs mode.  For instance, typing
 @kbd{C-z x} in insert mode is the same as typing @kbd{ESC x} in emacs mode
 (@code{vip-ESC}).
@@ -1685,7 +1685,7 @@ commands while in insert mode.
 @node Ex Commands
 @chapter Ex Commands
 
-@kindex 072 @kbd{:} (@code{vip-ex})
+@kindex 072 : @r{(}@code{vip-ex}@r{)}
 
 In vi mode, you can execute an Ex command @var{ex-command} by typing:
 @example

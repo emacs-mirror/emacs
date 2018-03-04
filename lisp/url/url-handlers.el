@@ -41,6 +41,9 @@
 (declare-function mm-decode-string "mm-bodies" (string charset))
 ;; mm-decode loads mail-parse.
 (declare-function mail-content-type-get "mail-parse" (ct attribute))
+;; mm-decode loads mm-bodies, which loads mm-util.
+(declare-function mm-charset-to-coding-system "mm-util"
+                 (charset &optional lbt allow-override silent))
 
 ;; Implementation status
 ;; ---------------------

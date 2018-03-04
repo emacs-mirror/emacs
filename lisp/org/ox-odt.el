@@ -2192,6 +2192,10 @@ SHORT-CAPTION are strings."
     (org-odt-create-manifest-file-entry media-type target-file)
     target-file))
 
+;; For --without-x builds.
+(declare-function clear-image-cache "image.c" (&optional filter))
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (defun org-odt--image-size
   (file info &optional user-width user-height scale dpi embed-as)
   (let* ((--pixels-to-cms

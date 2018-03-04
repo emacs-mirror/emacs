@@ -894,7 +894,7 @@ will happen as it should (albeit slowly).
 
 @item Make sure syntax table is correct in Eshell mode
 
-So that @kbd{M-DEL} acts in a predictable manner, etc.
+So that @kbd{M-@key{DEL}} acts in a predictable manner, etc.
 
 @item Allow all Eshell buffers to share the same history and list-dir
 
@@ -908,19 +908,19 @@ output from all subsequent commands is swallowed.
 Make it similar to the way that @file{esh-arg.el} is structured.
 Then add parsing of @samp{$[?\n]}.
 
-@item After pressing @kbd{M-RET}, redisplay before running the next command
+@item After pressing @kbd{M-@key{RET}}, redisplay before running the next command
 
 @item Argument predicates and modifiers should work anywhere in a path
 
 @example
-/usr/local/src/editors/vim $ vi **/CVS(/)/Root(.)
-Invalid regexp: "Unmatched ( or \\("
+/usr/local/src/editors/vim $ vi **/CVS(/)/Root(.)  Invalid regexp:
+"Unmatched ( or \\("
 @end example
 
 With @command{zsh}, the glob above expands to all files named
 @file{Root} in directories named @file{CVS}.
 
-@item Typing @samp{echo $@{locate locate@}/bin<TAB>} results in a Lisp error
+@item Typing @samp{echo $@{locate locate@}/bin@key{TAB}} results in a Lisp error
 
 Perhaps it should interpolate all permutations, and make that the
 globbing result, since otherwise hitting return here will result in
@@ -960,7 +960,7 @@ At the moment, this is not supported.
 An error should be generated only if @code{eshell-error-if-no-glob} is
 non-@code{nil}.
 
-@item @samp{(+ RET SPC TAB} does not cause @code{indent-according-to-mode} to occur
+@item @samp{(+ @key{RET} @key{SPC} @key{TAB}} does not cause @code{indent-according-to-mode} to occur
 
 @item Create @code{eshell-auto-accumulate-list}
 
@@ -1172,8 +1172,8 @@ only.  That way, it could be listed as a login shell.
 @item Make @kbd{/} electric
 
 So that it automatically expands and corrects pathnames.  Or make
-pathname completion for Pcomplete auto-expand @samp{/u/i/std<TAB>} to
-@samp{/usr/include/std<TAB>}.
+pathname completion for Pcomplete auto-expand @samp{/u/i/std@key{TAB}} to
+@samp{/usr/include/std@key{TAB}}.
 
 @item Write the @command{pushd} stack to disk along with @code{last-dir-ring}
 
@@ -1221,7 +1221,7 @@ If the first thing that I do after entering Emacs is to run
 @code{eshell-command} and invoke @command{ls}, and then use @kbd{M-x
 eshell}, it doesn't display anything.
 
-@item @kbd{M-RET} during a long command (using smart display) doesn't work
+@item @kbd{M-@key{RET}} during a long command (using smart display) doesn't work
 
 Since it keeps the cursor up where the command was invoked.
 
