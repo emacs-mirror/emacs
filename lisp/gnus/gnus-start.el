@@ -1836,7 +1836,7 @@ backend check whether the group actually exists."
      ;; by one.
      (t
       (dolist (info infos)
-	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
+	(gnus-activate-group (gnus-info-group info) t nil method t))))))
 
 ;; Create a hash table out of the newsrc alist.  The `car's of the
 ;; alist elements are used as keys.

@@ -220,12 +220,12 @@ If this variable is nil, or if the provided function returns nil,
   t)
 
 
-(deffoo nnselect-request-group (group &optional server dont-check info)
+(deffoo nnselect-request-group (group &optional server _dont-check info)
   (let ((group (nnselect-possibly-change-group group server))
 	length)
     ;; Check for cached select result or run the selection and cache
     ;; the result.
-    (unless (and nnselect-artlist dont-check)
+    (unless nnselect-artlist
       (gnus-group-set-parameter
        group 'nnselect-artlist
        (setq nnselect-artlist
@@ -617,15 +617,28 @@ If this variable is nil, or if the provided function returns nil,
 (deffoo nnselect-request-rename-group (_group _new-name &optional _server)
   t)
 
-(deffoo nnselect-request-scan (_group _method)
-  t)
+(deffoo nnselect-request-scan (group _method)
+  (when (and group
+	     (gnus-group-get-parameter
+	      (gnus-group-prefixed-name
+	       (gnus-group-short-name group)
+	       '(nnselect "nnselect")) 'nnselect-rescan t))
+    (nnselect-request-group-scan group)))
 
-(deffoo nnselect-request-list (&optional _server)
-  t)
+
+(deffoo nnselect-request-group-scan (group &optional server info)
+  (let ((group (nnselect-possibly-change-group group server)))
+	(gnus-group-set-parameter
+	 group 'nnselect-artlist
+	 (setq nnselect-artlist
+	       (nnselect-run
+		(gnus-group-get-parameter group 'nnselect-specs t))))
+	(nnselect-request-update-info
+	 group (or info (gnus-get-info group)))))
 
 ;; Add any undefined required backend functions
 
-(nnoo-define-skeleton nnselect)
+;; (nnoo-define-skeleton nnselect)
 
 ;;; Util Code:
 
