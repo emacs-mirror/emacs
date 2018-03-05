@@ -1090,8 +1090,9 @@ The primary selection is one particular X selection (q.v.); it is the
 selection that most X applications use for transferring text to and from
 other applications.
 
-The Emacs kill commands set the primary selection and the yank command
-uses the primary selection when appropriate.  @xref{Killing}.
+The Emacs commands that mark or select text set the primary selection,
+and clicking the mouse inserts text from the primary selection when
+appropriate.  @xref{Shift Selection}.
 
 @item Prompt
 A prompt is text used to ask you for input.  Displaying a prompt
