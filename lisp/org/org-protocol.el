@@ -663,7 +663,7 @@ to deal with new-style links.")
 ;;; Org specific functions:
 
 (defun org-protocol-create-for-org ()
-  "Create a Org protocol project for the current file's project.
+  "Create an Org protocol project for the current file's project.
 The visited file needs to be part of a publishing project in
 `org-publish-project-alist' for this to work.  The function
 delegates most of the work to `org-protocol-create'."

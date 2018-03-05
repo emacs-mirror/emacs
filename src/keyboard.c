@@ -11735,8 +11735,9 @@ immediately after running `post-command-hook'.  */);
 
   DEFVAR_LISP ("input-method-function", Vinput_method_function,
 	       doc: /* If non-nil, the function that implements the current input method.
-It's called with one argument, a printing character that was just read.
-\(That means a character with code 040...0176.)
+It's called with one argument, which must be a single-byte
+character that was just read.  Any single-byte character is
+acceptable, except the DEL character, codepoint 127 decimal, 177 octal.
 Typically this function uses `read-event' to read additional events.
 When it does so, it should first bind `input-method-function' to nil
 so it will not be called recursively.

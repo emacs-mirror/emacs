@@ -2439,7 +2439,7 @@ See also `toggle-frame-maximized'."
        frame `((fullscreen . fullboth) (fullscreen-restore . ,fullscreen))))
     ;; Manipulating a frame without waiting for the fullscreen
     ;; animation to complete can cause a crash, or other unexpected
-    ;; behaviour, on macOS (bug#28496).
+    ;; behavior, on macOS (bug#28496).
     (when (featurep 'cocoa) (sleep-for 0.5))))
 
 

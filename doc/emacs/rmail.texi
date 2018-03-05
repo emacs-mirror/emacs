@@ -175,6 +175,7 @@ Move to the next message containing a match for @var{regexp}
 
 @item - M-s @var{regexp} @key{RET}
 Move to the previous message containing a match for @var{regexp}.
+(This is @kbd{M-s} with a negative argument.)
 @end table
 
 @kindex n @r{(Rmail)}
@@ -801,7 +802,7 @@ its contents.
 @vindex rmail-enable-mime-composing
 @findex unforward-rmail-message
   Rmail offers two formats for forwarded messages.  The default is to
-use MIME (@pxref{Rmail Display}) format.  This includes the original
+use the MIME format (@pxref{Rmail Display}).  This includes the original
 message as a separate part.  You can use a simpler format if you
 prefer, by setting the variable @code{rmail-enable-mime-composing} to
 @code{nil}.  In this case, Rmail just includes the original message
@@ -1091,7 +1092,7 @@ Sort messages of current Rmail buffer by author's name.
 @findex rmail-sort-by-recipient
 @item C-c C-s C-r
 @itemx M-x rmail-sort-by-recipient
-Sort messages of current Rmail buffer by recipient's names.
+Sort messages of current Rmail buffer by recipient's name.
 
 @findex rmail-sort-by-correspondent
 @item C-c C-s C-c
@@ -1584,7 +1585,7 @@ use it, add the @samp{--tls} flag to @code{rmail-movemail-flags}.
   If your incoming mail is stored on a local machine in a format other
 than Unix mailbox, you will need the Mailutils @command{movemail} to
 retrieve it.  @xref{Movemail}, for the detailed description of
-@command{movemail} versions.  For example, to access mail from a inbox in
+@command{movemail} versions.  For example, to access mail from an inbox in
 @code{maildir} format located in @file{/var/spool/mail/in}, you would
 include the following in the Rmail inbox list:
 

@@ -10,7 +10,7 @@
 @c Update the elisp.texi Antinews menu entry with the above version number.
 
 For those users who live backwards in time, here is information about
-downgrading to Emacs version 25.2.  We hope you will enjoy the greater
+downgrading to Emacs version 25.3.  We hope you will enjoy the greater
 simplicity that results from the absence of many @w{Emacs
 @value{EMACSVER}} features.
 
@@ -46,6 +46,15 @@ non-@acronym{ASCII} URLs are no longer easily accessible.  But such
 sites become more and more rare as you move back in time, so having a
 specialized library for their support was deemed an unnecessary
 maintenance burden.
+
+@item
+The time conversion functions @code{current-time-string},
+@code{current-time-zone}, @code{decode-time},
+@code{format-time-string}, and @code{set-time-zone-rule} no longer
+accept integer offsets as time zone rules, to make it more of a
+challenge to convert foreign timestamps.  Also,
+@code{format-time-string} no longer converts @samp{%q} to the calendar
+quarter, as that is something you can easily do for yourself.
 
 @item
 Field numbers like @samp{%2$} in format specifiers are no longer
@@ -84,10 +93,36 @@ confusing differences between the operation of these functions in
 interactive and non-interactive invocations has been removed.
 
 @item
+Several functions that create or rename their files now treat their
+destination specially if it happens to be a directory, even when its
+name does not appear to be that of a directory.  For example,
+@code{(rename-file "A" "B")} no longer renames @file{A} to @file{B} if
+@file{B} happens to be a directory.  This is so that dealing with
+files becomes more of an adventure.
+
+@item
+The @code{format} function now returns new strings in more cases, to
+place more stress on the Emacs memory manager and thereby test Emacs
+better.
+
+@item
 The function @file{assoc} has been simplified by removing its third
 optional argument.  It now always uses @code{equal} for comparison.
 Likewise, @code{alist-get} always uses @code{assq}, and @code{map-get}
 and @code{map-put} always use @code{eql} for their comparisons.
+
+@item
+Numeric comparisons and the functions @code{format},
+@code{make-hash-table}, @code{min}, @code{max} and @code{logb} now
+occasionally round values internally to make their results less
+predictable.
+
+@item
+The functions @code{ffloor}, @code{fceiling}l, @code{ftruncate} and
+@code{fround} now accept integer arguments.  Conversely, functions
+like @code{decode-char} that accept floating-point integers now accept
+arguments that are not integers.  In both cases the results are
+amusingly nonsensical sometimes.
 
 @item
 GnuTLS cryptographic functions are no longer available in Emacs.  We
@@ -104,14 +139,23 @@ broken by records.
 You can again use @code{string-as-unibyte},
 @code{string-make-multibyte}, and other similar functions, without
 being annoyed by messages about their deprecation.  This is in
-preparation for removal of multibyte text from Emacs in the distance
+preparation for removal of multibyte text from Emacs in the distant
 past.
+
+@item
+The @code{string-version-lessp} function has been removed, to
+encourage programmers to use their own idiosyncratic methods to
+determine whether one version string precedes another.
 
 @item
 The function @code{read-color} no longer displays color names using
 each color as the background.  We have determined that this surprises
 users and produces funny inconsistent results on color-challenged
 terminals.
+
+@item
+Support for 24-bit color on text terminals has been dropped, since
+it wasn't needed long ago.
 
 @item
 We removed the function @code{file-name-case-insensitive-p}, as
@@ -136,10 +180,55 @@ The function @code{mapcan} is gone; use @code{mapcar} instead, and
 process the resulting list as you see fit.
 
 @item
+Low-level list functions like @code{length} and @code{member} can now
+loop indefinitely when given cyclic lists, causing Emacs to freeze.
+This can help these functions run a tiny bit faster in the usual case
+where the input is not cyclic.
+
+@item
+The @code{write-region} function no longer propagates its
+@var{lockname} argument to file name handlers.
+
+@item
 You can once again write a Lisp program that returns funny random
 values from @code{file-attributes} by having another process alter the
 filesystem while Emacs is accessing the file.  This can give rise to
 some interesting applications in the near past.
+
+@item
+The functions @code{file-attributes}, @code{file-symlink-p}, and
+@code{make-symbolic-link} now quietly mutate the target of a local
+symbolic link in some cases, to make it more of a challenge to deal
+with arbitrary symlinks in Emacs code.
+
+@item
+The error @code{file-missing} has been removed; operations now lump
+such errors into the @code{file-error} category instead.
+
+@item
+The function @code{delete-directory} now signals an error if operating
+recursively and some other process deletes the directory before this
+function gets to it.
+
+@item
+The @code{dutch} input method now attempts to support Turkish too,
+albeit incorrectly.  Also, it converts @samp{IJ} and @samp{ij} to
+special characters instead of leaving them alone.
+
+@item
+Non-breaking hyphens and approximations to quotes are now displayed
+just with the @code{escape-glyph} face instead of having faces of
+their own.  This is simpler and gives the user amusing puzzles to
+solve when viewing text containing these characters.
+
+@item
+The user option @code{electric-quote-context-sensitive} and the
+variable @code{electric-quote-inhibit-functions}, so that electric
+quoting is simpler and more likely to do the wrong thing.
+
+@item
+The user option @code{text-quoting-style} has been removed, and is now
+just a variable.
 
 @item
 We have removed the functions @code{file-name-quote},
@@ -158,6 +247,34 @@ window-managers become less and less capable.
 We decided that the format of mode line and header line should be
 customizable only based on buffers; the @code{mode-line-format} and
 @code{header-line-format} window parameters have been removed.
+
+@item
+Emacs now normally builds a limited @command{movemail} substitute that
+retrieves POP3 email only via insecure channels, and the
+configure-time option @option{--with-mailutils} has been removed.
+This simplifies Emacs setup when security is not important.
+
+@item
+The configure-time option @option{--enable-gcc-warnings=warn-only}
+has been removed, so that build-time warnings are always fatal now.
+
+@item
+The configure-time option @option{--disable-build-details} has been
+removed.  This way, Emacs builds are unique and irreproducible.
+
+@item
+The variable @code{emacs-version} now includes the build number
+instead of storing it separately in @code{emacs-build-number}.
+
+@item
+Emacs has been ported to IRIX.
+
+@item
+Several options and variables have been removed to simplify Emacs and
+potentially make it less reliable.  These include the
+@option{--module-assertions} option, the
+@code{attempt-stack-overflow-recovery} variable, and the
+@code{attempt-orderly-shutdown-on-fatal-signal} variable.
 
 @item
 As part of the ongoing quest for simplicity, many other functions and

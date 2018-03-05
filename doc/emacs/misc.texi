@@ -409,12 +409,12 @@ is needed.  For OpenDocument and Microsoft Office documents, the
 @code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
-@cindex doc-view-minor-mode
+@findex doc-view-minor-mode
   When you visit a document file that can be displayed with DocView
 mode, Emacs automatically uses DocView mode @footnote{The needed
 external tools for the document type must be available, and Emacs must
-be running in a graphical frame and have PNG image support.  If any of
-these requirements is not fulfilled, Emacs falls back to another major
+be running in a graphical frame and have PNG image support.  If these
+requirements is not fulfilled, Emacs falls back to another major
 mode.}.  As an exception, when you visit a PostScript file, Emacs
 switches to PS mode, a major mode for editing PostScript files as
 text; however, it also enables DocView minor mode, so you can type
@@ -791,7 +791,8 @@ the variable @code{explicit-shell-file-name}.  If this is @code{nil}
 exists.  Otherwise, it usually uses the variable
 @code{shell-file-name} (@pxref{Single Shell}); but if the default
 directory is remote (@pxref{Remote Files}), it prompts you for the
-shell file name.
+shell file name.  @xref{Minibuffer File}, for hints how to type remote
+file names effectively.
 
   Emacs sends the new shell the contents of the file
 @file{~/.emacs_@var{shellname}} as input, if it exists, where
@@ -1211,7 +1212,7 @@ buffer after it has been sent.
 @subsubsection Shell History References
 @cindex history reference
 
-  Various shells including csh and bash support @dfn{history
+  Various shells, including csh and bash, support @dfn{history
 references} that begin with @samp{!} and @samp{^}.  Shell mode
 recognizes these constructs, and can perform the history substitution
 for you.
@@ -1358,7 +1359,7 @@ directory stack if they are not already on it
 underlying shell, of course.
 
 @vindex comint-terminfo-terminal
-@vindex TERM, environment variable, in sub-shell
+@vindex TERM@r{, environment variable, in sub-shell}
 Comint mode sets the @env{TERM} environment variable to a safe default
 value, but this value disables some useful features.  For example,
 color is disabled in applications that use @env{TERM} to determine if
@@ -1405,8 +1406,8 @@ by the faces @code{term-color-black}, @code{term-color-red},
 @code{term-color-underline}, and @code{term-color-bold}.
 @xref{Faces}.
 
-  You can also Term mode to communicate with a device connected to a
-serial port.  @xref{Serial Terminal}.
+  You can also use Term mode to communicate with a device connected to
+a serial port.  @xref{Serial Terminal}.
 
   The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
@@ -1426,12 +1427,8 @@ and later.
 @cindex Term mode
 @cindex mode, Term
 
-  The terminal emulator uses Term mode, which has two input modes.  In
-line mode, Term basically acts like Shell mode (@pxref{Shell Mode}).
-In char mode, each character is sent directly to the subshell, except
-for the Term escape character, normally @kbd{C-c}.
-
-  To switch between line and char mode, use these commands:
+  To switch between line and char mode in Term mode, use these
+commands:
 
 @table @kbd
 @kindex C-c C-j @r{(Term mode)}
@@ -1719,8 +1716,8 @@ Server})---then Emacs opens a frame on the terminal in which you
 called @command{emacsclient}.
 
   You can also force @command{emacsclient} to open a new frame on a
-graphical display, or on a text terminal, using the @samp{-c} and
-@samp{-t} options.  @xref{emacsclient Options}.
+graphical display using the @samp{-c} option, or on a text terminal
+using the @samp{-t} option.  @xref{emacsclient Options}.
 
   If you are running on a single text terminal, you can switch between
 @command{emacsclient}'s shell and the Emacs server using one of two
@@ -2437,6 +2434,11 @@ To disable this, set @code{desktop-restore-frames} to @code{nil}.
 (See that variable's documentation for some related options
 that you can customize to fine-tune this behavior.)
 
+@vindex desktop-files-not-to-save
+Information about buffers visiting remote files is not saved by
+default.  Customize the variable @code{desktop-files-not-to-save} to
+change this.
+
 @vindex frameset-filter-alist
    When the desktop restores the frame and window configuration, it
 uses the recorded values of frame parameters, disregarding any
@@ -2461,19 +2463,13 @@ sessions, or add this line in your init file (@pxref{Init File}):
 (desktop-save-mode 1)
 @end example
 
-@vindex desktop-auto-save-timeout
-@noindent
-When @code{desktop-save-mode} is active and the desktop file exists,
-Emacs auto-saves it every @code{desktop-auto-save-timeout}
-seconds, if that is non-@code{nil} and non-zero.
-
 @findex desktop-change-dir
 @findex desktop-revert
 @vindex desktop-path
   If you turn on @code{desktop-save-mode} in your init file, then when
 Emacs starts, it looks for a saved desktop in the current directory.
 (More precisely, it looks in the directories specified by
-@var{desktop-path}, and uses the first desktop it finds.)
+@code{desktop-path}, and uses the first desktop it finds.)
 Thus, you can have separate saved desktops in different directories,
 and the starting directory determines which one Emacs reloads.  You
 can save the current desktop and reload one saved in another directory
@@ -2488,7 +2484,7 @@ since it bypasses the init file, where @code{desktop-save-mode} is
 usually turned on.
 
 @vindex desktop-restore-eager
-  By default, all the buffers in the desktop are restored at one go.
+  By default, all the buffers in the desktop are restored in one go.
 However, this may be slow if there are a lot of buffers in the
 desktop.  You can specify the maximum number of buffers to restore
 immediately with the variable @code{desktop-restore-eager}; the
@@ -2506,6 +2502,35 @@ expression matching the names of buffers not to kill.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
+
+@vindex desktop-auto-save-timeout
+  While Emacs runs with @code{desktop-save-mode} turned on, it by
+default auto-saves the desktop whenever any of it changes.  The
+variable @code{desktop-auto-save-timeout} determines how frequently
+Emacs checks for modifications to your desktop.
+
+@vindex desktop-load-locked-desktop
+  The file in which Emacs saves the desktop is locked while the
+session runs, to avoid inadvertently overwriting it from another Emacs
+session.  That lock is normally removed when Emacs exits, but if Emacs
+or your system crashes, the lock stays, and when you restart Emacs, it
+will by default ask you whether to use the locked desktop file.  You
+can avoid the question by customizing the variable
+@code{desktop-load-locked-desktop} to either @code{nil}, which means
+never load the desktop in this case, or @code{t}, which means load the
+desktop without asking.
+
+@cindex desktop restore in daemon mode
+  When Emacs starts in daemon mode, it cannot ask you any questions,
+so if it finds the desktop file locked, it will not load it, unless
+@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
+the desktop in daemon mode is somewhat problematic for other reasons:
+e.g., the daemon cannot use GUI features, so parameters such as frame
+position, size, and decorations cannot be restored.  For that reason,
+you may wish to delay restoring the desktop in daemon mode until the
+first client connects, by calling @code{desktop-read} in a hook
+function that you add to @code{after-make-frame-functions}
+(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit
 @section Recursive Editing Levels

@@ -1380,19 +1380,19 @@ buffer cycles the visibility of the entire outline structure, between
 (i) showing only top-level heading lines, (ii) showing all heading
 lines but no body lines, and (iii) showing everything.
 
-@kindex M-<up> @r{(Org Mode)}
-@kindex M-<down> @r{(Org Mode)}
-@kindex M-<left> @r{(Org Mode)}
-@kindex M-<right> @r{(Org Mode)}
+@kindex M-UP @r{(Org Mode)}
+@kindex M-DOWN @r{(Org Mode)}
+@kindex M-LEFT @r{(Org Mode)}
+@kindex M-RIGHT @r{(Org Mode)}
 @findex org-metaup
 @findex org-metadown
 @findex org-metaleft
 @findex org-metaright
   You can move an entire entry up or down in the buffer, including its
-body lines and subtree (if any), by typing @kbd{M-<up>}
-(@code{org-metaup}) or @kbd{M-<down>} (@code{org-metadown}) on the
+body lines and subtree (if any), by typing @kbd{M-@key{UP}}
+(@code{org-metaup}) or @kbd{M-@key{DOWN}} (@code{org-metadown}) on the
 heading line.  Similarly, you can promote or demote a heading line
-with @kbd{M-<left>} (@code{org-metaleft}) and @kbd{M-<right>}
+with @kbd{M-@key{LEFT}} (@code{org-metaleft}) and @kbd{M-@key{RIGHT}}
 (@code{org-metaright}).  These commands execute their global bindings
 if invoked on a body line.
 
@@ -1461,8 +1461,9 @@ etc.
 export and publication.  To export the current buffer, type @kbd{C-c
 C-e} (@code{org-export}) anywhere in an Org buffer.  This command
 prompts for an export format; currently supported formats include
-HTML, @LaTeX{}, OpenDocument (@file{.odt}), and PDF@.  Some formats,
-such as PDF, require certain system tools to be installed.
+HTML, @LaTeX{}, Texinfo, OpenDocument (@file{.odt}), iCalendar,
+Markdown, man-page, and PDF@.  Some formats, such as PDF, require
+certain system tools to be installed.
 
 @vindex org-publish-project-alist
   To export several files at once to a specific directory, either
@@ -1508,29 +1509,27 @@ This is an example.
 @findex doctex-mode
 @findex bibtex-mode
 
-  Emacs provides special major modes for editing files written in
-@TeX{} and its related formats.  @TeX{} is a powerful text formatter
-written by Donald Knuth; like GNU Emacs, it is free software.
-@LaTeX{} is a simplified input format for @TeX{}, implemented using
-@TeX{} macros.  Doc@TeX{} is a special file format in which the
-@LaTeX{} sources are written, combining sources with documentation.
-Sli@TeX{} is an obsolete special form of @LaTeX{}.@footnote{It has
-been replaced by the @samp{slides} document class, which comes with
-@LaTeX{}.}
+  @TeX{} is a powerful text formatter written by Donald Knuth; like
+GNU Emacs, it is free software.  The @TeX{} format has several
+variants, including @LaTeX{}, a simplified input format for @TeX{};
+Doc@TeX{}, a special file format in which the @LaTeX{} sources are
+written, combining sources with documentation; and Sli@TeX{}, an
+obsolete special form of @LaTeX{}@footnote{
+It has been replaced by the @samp{slides} document class, which comes
+with @LaTeX{}.}.
 
 @vindex tex-default-mode
-  @TeX{} mode has four variants: Plain @TeX{} mode, @LaTeX{} mode,
-Doc@TeX{} mode, and Sli@TeX{} mode.  These distinct major modes differ
-only slightly, and are designed for editing the four different
-formats.  Emacs selects the appropriate mode by looking at the
-contents of the buffer.  (This is done by the @code{tex-mode} command,
-which is normally called automatically when you visit a @TeX{}-like
-file.  @xref{Choosing Modes}.)  If the contents are insufficient to
-determine this, Emacs chooses the mode specified by the variable
+  Emacs provides a @TeX{} major mode for each of these variants: Plain
+@TeX{} mode, @LaTeX{} mode, Doc@TeX{} mode, and Sli@TeX{} mode.  Emacs
+selects the appropriate mode by looking at the contents of the buffer.
+(This is done by invoking the @code{tex-mode} command, which is
+normally called automatically when you visit a @TeX{}-like file.
+@xref{Choosing Modes}.)  If the contents are insufficient to determine
+this, Emacs chooses the mode specified by the variable
 @code{tex-default-mode}; its default value is @code{latex-mode}.  If
 Emacs does not guess right, you can select the correct variant of
-@TeX{} mode using the command @kbd{M-x plain-tex-mode}, @kbd{M-x
-latex-mode}, @kbd{M-x slitex-mode}, or @kbd{doctex-mode}.
+@TeX{} mode using the commands @code{plain-tex-mode},
+@code{latex-mode}, @code{slitex-mode}, or @code{doctex-mode}.
 
   The following sections document the features of @TeX{} mode and its
 variants.  There are several other @TeX{}-related Emacs packages,
@@ -1628,7 +1627,9 @@ to keep braces balanced at all times, rather than inserting them
 singly.  Use @kbd{C-c @{} (@code{tex-insert-braces}) to insert a pair of
 braces.  It leaves point between the two braces so you can insert the
 text that belongs inside.  Afterward, use the command @kbd{C-c @}}
-(@code{up-list}) to move forward past the close brace.
+(@code{up-list}) to move forward past the close brace.  You can also
+invoke @kbd{C-c @{} after marking some text: then the command encloses
+the marked text in braces.
 
 @findex tex-validate-region
 @findex tex-terminate-paragraph
@@ -1694,21 +1695,23 @@ when you type the corresponding one.
 @node TeX Print
 @subsection @TeX{} Printing Commands
 
-  You can invoke @TeX{} as an subprocess of Emacs, supplying either
+  You can invoke @TeX{} as a subprocess of Emacs, supplying either
 the entire contents of the buffer or just part of it (e.g., one
 chapter of a larger document).
 
 @table @kbd
 @item C-c C-b
 Invoke @TeX{} on the entire current buffer (@code{tex-buffer}).
+
 @item C-c C-r
 Invoke @TeX{} on the current region, together with the buffer's header
 (@code{tex-region}).
+
 @item C-c C-f
 Invoke @TeX{} on the current file (@code{tex-file}).
 
 @item C-c C-v
-Preview the output from the last @kbd{C-c C-r}, @kbd{C-c C-b}, or @kbd{C-c
+Preview the output from the last @kbd{C-c C-b}, @kbd{C-c C-r}, or @kbd{C-c
 C-f} command (@code{tex-view}).
 
 @item C-c C-p
@@ -1743,10 +1746,10 @@ C-p} (@code{tex-print}) to print a hardcopy of the output file.
 @cindex @env{TEXINPUTS} environment variable
 @vindex tex-directory
   By default, @kbd{C-c C-b} runs @TeX{} in the current directory.  The
-output of @TeX{} also goes in this directory.  To run @TeX{} in a
+output of @TeX{} is also created in this directory.  To run @TeX{} in a
 different directory, change the variable @code{tex-directory} to
 the desired directory.  If your environment variable @env{TEXINPUTS}
-contains relative names, or if your files contains
+contains relative names, or if your files contain
 @samp{\input} commands with relative file names, then
 @code{tex-directory} @emph{must} be @code{"."} or you will get the
 wrong results.  Otherwise, it is safe to specify some other directory,
@@ -1889,14 +1892,16 @@ keys (@pxref{Completion}).
 
 @vindex tex-shell-hook
 @vindex tex-mode-hook
+@vindex doctex-mode-hook
 @vindex latex-mode-hook
 @vindex slitex-mode-hook
 @vindex plain-tex-mode-hook
   Entering any variant of @TeX{} mode runs the hooks
 @code{text-mode-hook} and @code{tex-mode-hook}.  Then it runs either
-@code{plain-tex-mode-hook}, @code{latex-mode-hook}, or
-@code{slitex-mode-hook}, whichever is appropriate.  Starting the
-@TeX{} shell runs the hook @code{tex-shell-hook}.  @xref{Hooks}.
+@code{plain-tex-mode-hook}, @code{doctex-mode-hook},
+@code{latex-mode-hook}, or @code{slitex-mode-hook}, whichever is
+appropriate.  Starting the @TeX{} shell runs the hook
+@code{tex-shell-hook}.  @xref{Hooks}.
 
 @findex iso-iso2tex
 @findex iso-tex2iso
@@ -2002,7 +2007,8 @@ characters themselves (@code{sgml-name-8bit-mode}).
 @kindex C-c C-v @r{(SGML mode)}
 @findex sgml-validate
 Run a shell command (which you must specify) to validate the current
-buffer as SGML (@code{sgml-validate}).
+buffer as SGML (@code{sgml-validate}).  (In HTML mode this key
+sequence runs a different command.)
 
 @item C-c @key{TAB}
 @kindex C-c TAB @r{(SGML mode)}
@@ -2017,7 +2023,7 @@ used as a cheap preview (@code{sgml-tags-invisible}).
 @findex nxml-mode
 @cindex XML schema
   The major mode for editing XML documents is called nXML mode.  This
-is a powerful major mode that can recognize many existing XML schema
+is a powerful major mode that can recognize many existing XML schemas
 and use them to provide completion of XML elements via
 @kbd{M-@key{TAB}}, as well as on-the-fly XML
 validation with error highlighting.  To enable nXML mode in an
@@ -2175,7 +2181,7 @@ text properties.
 @cindex soft newline
 @cindex newlines, hard and soft
 
-@cindex use-hard-newlines
+@findex use-hard-newlines
   In Enriched mode, Emacs distinguishes between two different kinds of
 newlines, @dfn{hard} newlines and @dfn{soft} newlines.  You can also
 enable or disable this feature in other buffers, by typing @kbd{M-x
@@ -2290,7 +2296,7 @@ Prompt for a color, and apply it as a background color.
 @end table
 
 @noindent
-These command are also available via the Text Properties menu.
+These commands are also available via the Text Properties menu.
 
   A self-inserting character normally inherits the face properties
 (and most other text properties) from the preceding character in the
@@ -2913,7 +2919,7 @@ right-hand buffer.)
 @kindex F2 RET
 @kindex C-x 6 RET
 @findex 2C-newline
-  The command @kbd{C-x 6 @key{RET}} or @kbd{@key{F2} @key{RET}}
+  The command @kbd{@key{F2} @key{RET}} or @kbd{C-x 6 @key{RET}}
 (@code{2C-newline}) inserts a newline in each of the two buffers at
 corresponding positions.  This is the easiest way to add a new line to
 the two-column text while editing it in split buffers.

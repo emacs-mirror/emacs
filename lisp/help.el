@@ -455,6 +455,8 @@ is specified by the variable `message-log-max'."
 
 (defun view-lossage ()
   "Display last few input keystrokes and the commands run.
+For convenience this uses the same format as
+`edit-last-kbd-macro'.
 
 To record all your input, use `open-dribble-file'."
   (interactive)
@@ -465,8 +467,8 @@ To record all your input, use `open-dribble-file'."
     (princ (mapconcat (lambda (key)
 			(cond
 			 ((and (consp key) (null (car key)))
-			  (format "[%s]\n" (if (symbolp (cdr key)) (cdr key)
-					   "anonymous-command")))
+			  (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
+					      "anonymous-command")))
 			 ((or (integerp key) (symbolp key) (listp key))
 			  (single-key-description key))
 			 (t
@@ -475,11 +477,11 @@ To record all your input, use `open-dribble-file'."
 		      " "))
     (with-current-buffer standard-output
       (goto-char (point-min))
-      (while (not (eobp))
-	(move-to-column 50)
-	(unless (eolp)
-	  (fill-region (line-beginning-position) (line-end-position)))
-	(forward-line 1))
+      (let ((comment-start ";; ")
+            (comment-column 24))
+        (while (not (eobp))
+          (comment-indent)
+	  (forward-line 1)))
       ;; jidanni wants to see the last keystrokes immediately.
       (set-marker help-window-point-marker (point)))))
 
@@ -1057,6 +1059,9 @@ is currently activated with completion."
 	  (setq minor-modes (cdr minor-modes)))))
     result))
 
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+(declare-function x-display-pixel-width "xfns.c" (&optional terminal))
+
 ;;; Automatic resizing of temporary buffers.
 (defcustom temp-buffer-max-height
   (lambda (_buffer)

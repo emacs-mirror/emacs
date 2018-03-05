@@ -411,7 +411,7 @@ If the EWOC is empty, nil is returned."
      ((>= pos (ewoc--node-start-marker (ewoc--node-nth dll -2)))
       (ewoc--node-nth dll -2))
 
-     ;; We now know that pos is within a elem.
+     ;; We now know that pos is within an elem.
      (t
       ;; Make an educated guess about which of the three known
       ;; node'es (the first, the last, or GUESS) is nearest.
@@ -500,7 +500,7 @@ Return the node (or nil if we just passed the last node)."
 
 (defun ewoc-goto-node (ewoc node)
   "Move point to NODE in EWOC."
-  (ewoc--set-buffer-bind-dll ewoc
+  (with-current-buffer (ewoc--buffer ewoc)
     (goto-char (ewoc--node-start-marker node))
     (if goal-column (move-to-column goal-column))
     (setf (ewoc--last-node ewoc) node)))

@@ -203,7 +203,7 @@ different Emacs versions.
 
 @findex ert
 You can run the tests that are currently defined in your Emacs with
-the command @kbd{@kbd{M-x} ert @kbd{RET} t @kbd{RET}}.  (For an
+the command @kbd{M-x ert @key{RET} t @key{RET}}.  (For an
 explanation of the @code{t} argument, @pxref{Test Selectors}.) ERT will pop
 up a new buffer, the ERT results buffer, showing the results of the
 tests run.  It looks like this:
@@ -262,9 +262,9 @@ for more details.
 
 @kindex TAB@r{, in ert results buffer}
 @kindex S-TAB@r{, in ert results buffer}
-In the ERT results buffer, @kbd{TAB} and @kbd{S-TAB} cycle between
+In the ERT results buffer, @kbd{@key{TAB}} and @kbd{S-@key{TAB}} cycle between
 buttons.  Each name of a function or macro in this buffer is a button;
-moving point to it and typing @kbd{RET} jumps to its definition.
+moving point to it and typing @kbd{@key{RET}} jumps to its definition.
 
 @kindex r@r{, in ert results buffer}
 @kindex d@r{, in ert results buffer}
@@ -273,7 +273,7 @@ moving point to it and typing @kbd{RET} jumps to its definition.
 @cindex backtrace of a failed test
 Pressing @kbd{r} re-runs the test near point on its own.  Pressing
 @kbd{d} re-runs it with the debugger enabled.  @kbd{.} jumps to the
-definition of the test near point (@kbd{RET} has the same effect if
+definition of the test near point (@kbd{@key{RET}} has the same effect if
 point is on the name of the test).  On a failed test, @kbd{b} shows
 the backtrace of the failure.
 
@@ -817,7 +817,7 @@ failed.  This can be useful to figure out how far it got.
 @item
 You can instrument tests for debugging the same way you instrument
 @code{defun}s for debugging: go to the source code of the test and
-type @kbd{@kbd{C-u} @kbd{C-M-x}}.  Then, go back to the ERT buffer and
+type @kbd{C-u C-M-x}.  Then, go back to the ERT buffer and
 re-run the test with @kbd{r} or @kbd{d}.
 
 @cindex discard obsolete test results

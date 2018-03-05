@@ -18,8 +18,8 @@ does not support versions before macOS 10.6.
 @samp{Nextstep} internally, instead of ``Cocoa'' or ``macOS''; for
 instance, most of the commands and variables described in this section
 begin with @samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep
-was an application interface released by NeXT Inc during the 1980s, of
-which Cocoa is a direct descendant.  Apart from Cocoa, there is
+was an application interface released by NeXT Inc.@: during the 1980s,
+of which Cocoa is a direct descendant.  Apart from Cocoa, there is
 another NeXTstep-style system: GNUstep, which is free software.  As of
 this writing, Emacs GNUstep support is alpha status (@pxref{GNUstep
 Support}), but we hope to improve it in the future.
@@ -34,8 +34,8 @@ Support}), but we hope to improve it in the future.
 @node Mac / GNUstep Basics
 @section Basic Emacs usage under macOS and GNUstep
 
-  By default, the @key{alt} and @key{option} keys are the same as
-@key{Meta}.  The Mac @key{Cmd} key is the same as @key{Super}, and
+  By default, the @key{Alt} and @key{Option} keys are the same as
+@key{META}.  The Mac @key{Cmd} key is the same as @key{Super}, and
 Emacs provides a set of key bindings using this modifier key that mimic
 other Mac / GNUstep applications (@pxref{Mac / GNUstep Events}).  You
 can change these bindings in the usual way (@pxref{Key Bindings}).
@@ -43,13 +43,14 @@ can change these bindings in the usual way (@pxref{Key Bindings}).
 @vindex ns-alternate-modifier
 @vindex ns-right-alternate-modifier
   The variable @code{ns-right-alternate-modifier} controls the
-behavior of the right @key{alt} and @key{option} keys.  These keys
+behavior of the right @key{Alt} and @key{Option} keys.  These keys
 behave like the left-hand keys if the value is @code{left} (the
 default).  A value of @code{control}, @code{meta}, @code{alt},
 @code{super}, or @code{hyper} makes them behave like the corresponding
 modifier keys; a value to @code{left} means be the same key as
 @code{ns-alternate-modifier}; a value of @code{none} tells Emacs to
-ignore them.
+ignore them, in which case you get the default behavior of macOS
+accentuation system from the right option key.
 
   @kbd{S-mouse-1} adjusts the region to the click position,
 just like @kbd{mouse-3} (@code{mouse-save-then-kill}); it does not pop

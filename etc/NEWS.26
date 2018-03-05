@@ -264,9 +264,9 @@ to non-nil moves point to the beginning of the region.
 
 +++
 ** New user option 'mouse-drag-and-drop-region'.
-This option allows to drag the entire region of text to another place
-or another buffer.  Its behavior is customizable via the new options
-'mouse-drag-and-drop-region-cut-when-buffers-differ',
+This option allows you to drag the entire region of text to another
+place or another buffer.  Its behavior is customizable via the new
+options 'mouse-drag-and-drop-region-cut-when-buffers-differ',
 'mouse-drag-and-drop-region-show-tooltip', and
 'mouse-drag-and-drop-region-show-cursor'.
 
@@ -431,9 +431,9 @@ always restricting the margin to a quarter of the window.
 
 +++
 ** Emacs can scroll horizontally using mouse, touchpad, and trackbar.
-You can enable this by customizing 'mwheel-tilt-scroll-p'.  If you
+You can enable this by customizing 'mouse-wheel-tilt-scroll'.  If you
 want to reverse the direction of the scroll, customize
-'mwheel-flip-direction'.
+'mouse-wheel-flip-direction'.
 
 +++
 ** The default GnuTLS priority string now includes %DUMBFW.
@@ -481,8 +481,8 @@ commands.
 libraries: 'find-library-other-window' and 'find-library-other-frame'.
 
 +++
-** The new variable 'display-raw-bytes-as-hex' allows to change the
-display of raw bytes from octal to hex.
+** The new variable 'display-raw-bytes-as-hex' allows you to change
+the display of raw bytes from octal to hex.
 
 +++
 ** You can now provide explicit field numbers in format specifiers.
@@ -855,8 +855,8 @@ breakpoint (e.g. with "f" and "o") by customizing the new option
 
 +++
 *** New customizable option 'edebug-max-depth'.
-This allows to enlarge the maximum recursion depth when instrumenting
-code.
+This allows you to enlarge the maximum recursion depth when
+instrumenting code.
 
 ** Eshell
 
@@ -958,7 +958,7 @@ the function 'image-dired-setup-dired-keybindings'.
 ---
 *** Thumbnail generation is now asynchronous.
 The number of concurrent processes is limited by the variable
-'image-dired-thumb-job-limit'.
+'image-dired-queue-active-limit'.
 
 ---
 *** 'image-dired-thumbnail-storage' has a new option 'standard-large'
@@ -1056,8 +1056,8 @@ A valid remote file name starts with "/method:host:" or
 "/-::" is the shortest remote file name then.
 
 +++
-*** The command 'tramp-change-syntax' allows to choose an alternative
-remote file name syntax.
+*** The command 'tramp-change-syntax' allows you to choose an
+alternative remote file name syntax.
 
 +++
 *** New connection method "sg", which supports editing files under a
@@ -1067,7 +1067,7 @@ different group ID.
 *** New connection method "doas" for OpenBSD hosts.
 
 +++
-*** New connection method "gdrive", which allows to access Google
+*** New connection method "gdrive", which allows access to Google
 Drive onsite repositories.
 
 +++
@@ -1169,6 +1169,9 @@ branch-related commands on a keymap bound to 'B'.
 *** 'vc-region-history' is now bound to 'C-x v h', replacing the older
 'vc-insert-headers' binding.
 
+*** New user option 'vc-git-print-log-follow' to follow renames in Git logs
+for a single file.
+
 ** CC mode
 
 ---
@@ -1216,7 +1219,7 @@ backend", which has been updated to benefit from the new UI features.
 ** Term
 
 ---
-*** `term-char-mode' now makes its buffer read-only.
+*** 'term-char-mode' now makes its buffer read-only.
 
 The buffer is made read-only to prevent changes from being made by
 anything other than the process filter; and movements of point away
@@ -1225,8 +1228,8 @@ correct position after each command.  This is needed to avoid states
 which are inconsistent with the state of the terminal understood by
 the inferior process.
 
-New user options `term-char-mode-buffer-read-only' and
-`term-char-mode-point-at-process-mark' control these behaviors, and
+New user options 'term-char-mode-buffer-read-only' and
+'term-char-mode-point-at-process-mark' control these behaviors, and
 are non-nil by default.  Customize these options to nil if you want
 the previous behavior.
 
@@ -1711,7 +1714,13 @@ t for all Emacs integers N.
 ---
 ** Calls that accept floating-point integers (for use on hosts with
 limited integer range) now signal an error if arguments are not
-integral.  For example '(decode-char 'ascii 0.5)' now signals an error.
+integral.  For example '(decode-char 'ascii 0.5)' now signals an
+error.
+
+---
+** Functions 'string-trim-left', 'string-trim-right' and 'string-trim'
+now accept optional arguments which specify the regexp of a substring
+to trim.
 
 +++
 ** The new function 'char-from-name' converts a Unicode name string
@@ -1736,6 +1745,10 @@ instead of 0.8, to avoid rounding glitches.
 ** New function 'add-variable-watcher' can be used to call a function
 when a symbol's value is changed.  This is used to implement the new
 debugger command 'debug-on-variable-change'.
+
++++
+** New variable 'print-escape-control-characters' causes 'prin1' and
+'print' to output control characters as backslash sequences.
 
 +++
 ** Time conversion functions that accept a time zone rule argument now
@@ -1868,10 +1881,11 @@ focus via the mouse.
 frame.
 
 +++
-**** 'width' and 'height' allow to specify pixel values and ratios now.
+**** 'width' and 'height' now allow the specification of pixel values
+and ratios.
 
 +++
-**** 'left' and 'top' allow to specify ratios now.
+**** 'left' and 'top' now allow the specification of ratios.
 
 +++
 **** 'keep-ratio' preserves size and position of child frames when their
@@ -1892,7 +1906,7 @@ handle fitting a frame to its buffer individually.
 +++
 **** 'drag-internal-border', 'drag-with-header-line',
 'drag-with-mode-line', 'snap-width', 'top-visible' and 'bottom-visible'
-allow to drag and resize frames with the mouse.
+allow dragging and resizing frames with the mouse.
 
 +++
 **** 'minibuffer' is now set to the default minibuffer window when
@@ -1939,8 +1953,9 @@ like a single live window - is now official.  For details consult the
 section "(elisp) Atomic Windows" in the ELisp manual.
 
 +++
-*** New 'display-buffer' alist entry 'window-parameters' allows to
-assign window parameters to the window used for displaying the buffer.
+*** New 'display-buffer' alist entry 'window-parameters' allows the
+assignment of window parameters to the window used for displaying the
+buffer.
 
 +++
 *** New function 'display-buffer-reuse-mode-window' is an action function
@@ -1960,7 +1975,7 @@ its window gets deleted by 'delete-other-windows'.
 
 +++
 *** New window parameters 'mode-line-format' and 'header-line-format'
-allow to override the buffer-local formats for this window.
+allow the buffer-local formats for this window to be overridden.
 
 +++
 *** New command 'window-swap-states' swaps the states of two live

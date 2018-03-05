@@ -1116,7 +1116,7 @@ Some of the (informal) data structures used in Htmlfontify are detailed here:
 @table @code
 
 @item hfy-style-assoc
-@cindex hfy-style-assoc
+@cindex @code{hfy-style-assoc}
 @anchor{hfy-style-assoc}
 
 An assoc representing/describing an Emacs face.  Properties may be repeated,
@@ -1148,7 +1148,7 @@ Some examples:
 @end lisp
 
 @item hfy-sheet-assoc
-@cindex hfy-sheet-assoc
+@cindex @code{hfy-sheet-assoc}
 @anchor{hfy-sheet-assoc}
 
 An assoc with elements of the form @samp{(face-name style-name . style-string)}.
@@ -1160,7 +1160,7 @@ The actual stylesheet for each page is derived from one of these.
 @end lisp
 
 @item hfy-facemap-assoc
-@cindex hfy-facemap-assoc
+@cindex @code{hfy-facemap-assoc}
 @anchor{hfy-facemap-assoc}
 
 An assoc of @code{(point . @var{face-symbol})} or

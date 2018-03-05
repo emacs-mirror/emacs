@@ -456,14 +456,14 @@ You can toggle display of the hidden buffers and files with @kbd{C-a}
 You can customize the @code{ido} group to change Ido functionality:
 
 @example
-M-x customize-group RET ido RET
+M-x customize-group @key{RET} ido @key{RET}
 @end example
 
 @noindent
 or customize a certain variable:
 
 @example
-M-x customize-variable RET ido-xxxxx
+M-x customize-variable @key{RET} ido-xxxxx @key{RET}
 @end example
 
 To modify the keybindings, use the @code{ido-setup-hook}.  For example:

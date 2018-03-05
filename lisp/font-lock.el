@@ -631,10 +631,7 @@ Major/minor modes can set this variable if they know which option applies.")
     (declare (indent 0) (debug t))
     `(let ((inhibit-point-motion-hooks t))
        (with-silent-modifications
-         ,@body)))
-  ;;
-  ;; Shut up the byte compiler.
-  (defvar font-lock-face-attributes))	; Obsolete but respected if set.
+         ,@body))))
 
 (defvar-local font-lock-set-defaults nil) ; Whether we have set up defaults.
 
@@ -1835,7 +1832,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 			       (eval keywords)))))
 
 (defun font-lock-value-in-major-mode (values)
-  "If VALUES is an list, use `major-mode' as a key and return the `assq' value.
+  "If VALUES is a list, use `major-mode' as a key and return the `assq' value.
 VALUES should then be an alist on the form ((MAJOR-MODE . VALUE) ...) where
 MAJOR-MODE may be t.
 If VALUES isn't a list, return VALUES."

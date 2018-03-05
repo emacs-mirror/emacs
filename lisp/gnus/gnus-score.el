@@ -514,7 +514,7 @@ of the last successful match.")
   "f" gnus-score-edit-file
   "F" gnus-score-flush-cache
   "t" gnus-score-find-trace
-  "w" gnus-score-find-favourite-words)
+  "w" gnus-score-find-favorite-words)
 
 ;; Summary score file commands
 
@@ -2517,7 +2517,7 @@ the score file and its full name, including the directory.")
     (set-buffer gnus-summary-buffer)
     (setq gnus-newsgroup-scored old-scored)))
 
-(defun gnus-score-find-favourite-words ()
+(defun gnus-score-find-favorite-words ()
   "List words used in scoring."
   (interactive)
   (let ((alists (gnus-score-load-files (gnus-all-score-files)))
@@ -2553,6 +2553,9 @@ the score file and its full name, including the directory.")
 	(pop rules))
       (goto-char (point-min))
       (gnus-configure-windows 'score-words))))
+(define-obsolete-function-alias
+  'gnus-score-find-favourite-words
+  'gnus-score-find-favorite-words "27.1")
 
 (defun gnus-summary-rescore ()
   "Redo the entire scoring process in the current summary."

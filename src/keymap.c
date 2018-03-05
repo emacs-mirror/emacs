@@ -1278,7 +1278,7 @@ append_key (Lisp_Object key_sequence, Lisp_Object key)
   return CALLN (Fvconcat, key_sequence, key_list);
 }
 
-/* Given a event type C which is a symbol,
+/* Given an event type C which is a symbol,
    signal an error if is a mistake such as RET or M-RET or C-DEL, etc.  */
 
 static void

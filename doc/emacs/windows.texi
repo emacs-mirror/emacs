@@ -379,7 +379,7 @@ Several of these commands are bound in the @kbd{C-x 5} prefix key.
 
 @node Window Choice
 @subsection How @code{display-buffer} works
-@findex display-buffer, detailed description
+@findex display-buffer@r{, detailed description}
 
 The @code{display-buffer} command (as well as commands that call it
 internally) chooses a window to display by following the steps given
@@ -465,7 +465,7 @@ bottom of the selected frame, regardless of the number of windows
 already shown on that frame.
 
   If you prefer Emacs to display a temporary buffer in a different
-fashion, we recommend to customize the variable
+fashion, we recommend customizing the variable
 @code{display-buffer-alist} (@pxref{Choosing Window,,Choosing a Window
 for Display, elisp, The Emacs Lisp Reference Manual}).  For example,
 to display @file{*Completions*} by splitting a window as described in

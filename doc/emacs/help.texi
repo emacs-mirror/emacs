@@ -4,7 +4,6 @@
 @c See file emacs.texi for copying conditions.
 @node Help
 @chapter Help
-@kindex Help
 @cindex help
 @cindex self-documentation
 @findex help-command
@@ -595,8 +594,8 @@ typing @kbd{C-h}, @kbd{?}, or @key{F1}
 few prefix keys for which not all of these keys work---those that
 provide their own bindings for that key.  One of these prefix keys
 is @key{ESC}, because @kbd{@key{ESC} C-h} is actually @kbd{C-M-h},
-which marks a defun.  However, @kbd{@key{ESC} @key{F1}} and
-@kbd{@key{ESC} ?} work fine.)
+which marks a defun.  However, @w{@kbd{@key{ESC} @key{F1}}} and
+@w{@kbd{@key{ESC} ?}} work fine.)
 
 @node Help Files
 @section Help Files
@@ -642,7 +641,7 @@ Display information about where to get external packages
 @item C-h C-f
 Display the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
 @item C-h g
-Visit a @uref{https://www.gnu.org} page with information about the GNU
+Visit the @uref{https://www.gnu.org, page} with information about the GNU
 Project (@code{describe-gnu-project}).
 @item C-h C-m
 Display information about ordering printed copies of Emacs manuals

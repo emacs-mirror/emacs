@@ -578,10 +578,11 @@ command will look in the buffer without revisiting the file, so the results
 might be inconsistent with the file on disk if its contents have changed
 since it was last visited.  If you don't want this, you may wish to
 revert the files you have visited in your buffers, or to turn on
-the @code{auto-revert} mode in those buffers, before invoking this
-command.  @xref{Reverting}.  If you prefer that this command always revisit
-the file, without having to revert the file or enable @code{auto-revert}
-mode, you might want to set @code{dired-always-read-filesystem} to non-@code{nil}.
+@code{auto-revert} mode in those buffers, before invoking this
+command.  @xref{Reverting}.  If you prefer that this command should always
+revisit the file, without you having to revert the file or enable
+@code{auto-revert} mode, you might want to set
+@code{dired-always-read-filesystem} to non-@code{nil}.
 
 @item C-/
 @itemx C-x u
@@ -738,8 +739,8 @@ this.)
 
 @vindex dired-chown-program
 The variable @code{dired-chown-program} specifies the name of the
-program to use to do the work (different systems put @command{chown}
-in different places).
+program to use to do the work.  (This variable is necessary because
+different systems put @command{chown} in different places).
 
 @findex dired-do-touch
 @kindex T @r{(Dired)}
@@ -909,7 +910,7 @@ treat it specially.
 Otherwise, if the command string contains @samp{?} surrounded by
 whitespace or @samp{`?`}, Emacs runs the shell command once
 @emph{for each file}, substituting the current file name for @samp{?}
-and @samp{`?`} each time.  You can use both @samp{?} or @samp{`?`} more
+and @samp{`?`} each time.  You can use both @samp{?} and @samp{`?`} more
 than once in the command; the same file name replaces each occurrence.
 If you mix them with @samp{*} the command signals an error.
 
@@ -1184,7 +1185,7 @@ without having to remove the Dired marks on files in those
 subdirectories.
 
 @xref{Subdirectories in Dired}, for how to insert a subdirectory
-listing, and @pxref{Dired Updating} for how delete it.
+listing, and see @ref{Dired Updating}, for how to delete it.
 
 @node Dired Updating
 @section Updating the Dired Buffer
@@ -1369,8 +1370,8 @@ C-c}.
 
 @node Image-Dired
 @section Viewing Image Thumbnails in Dired
-@cindex image-dired mode
-@cindex image-dired
+@cindex @code{image-dired} mode
+@cindex @code{image-dired}
 
   Image-Dired is a facility for browsing image files.  It provides viewing
 the images either as thumbnails or in full size, either inside Emacs
@@ -1402,7 +1403,7 @@ display the next image.  Typing @key{DEL}
 the previous thumbnail and displays that instead.
 
 @vindex image-dired-external-viewer
-  To view and the image in its original size, either provide a prefix
+  To view the image in its original size, either provide a prefix
 argument (@kbd{C-u}) before pressing @key{RET}, or type
 @kbd{C-@key{RET}} (@code{image-dired-thumbnail-display-external}) to
 display the image in an external viewer.  You must first configure
@@ -1437,7 +1438,8 @@ a comment from Dired (@code{image-dired-dired-comment-files}).
   Image-Dired also provides simple image manipulation.  In the
 thumbnail buffer, type @kbd{L} to rotate the original image 90 degrees
 anti clockwise, and @kbd{R} to rotate it 90 degrees clockwise.  This
-rotation is lossless, and uses an external utility called JpegTRAN.
+rotation is lossless, and uses an external utility called
+@command{jpegtran}, which you need to install first.
 
 @node Misc Dired Features
 @section Other Dired Features

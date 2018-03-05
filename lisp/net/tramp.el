@@ -2401,10 +2401,11 @@ remote file names."
   (put 'tramp-completion-file-name-handler 'operations
        (mapcar 'car tramp-completion-file-name-handler-alist))
 
-  (add-to-list 'file-name-handler-alist
-	       (cons tramp-archive-file-name-regexp
-		     'tramp-archive-file-name-handler))
-  (put 'tramp-archive-file-name-handler 'safe-magic t)
+  (when (bound-and-true-p tramp-archive-enabled)
+    (add-to-list 'file-name-handler-alist
+	         (cons tramp-archive-file-name-regexp
+		       'tramp-archive-file-name-handler))
+    (put 'tramp-archive-file-name-handler 'safe-magic t))
 
   ;; If jka-compr or epa-file are already loaded, move them to the
   ;; front of `file-name-handler-alist'.
@@ -3553,17 +3554,19 @@ support symbolic links."
     ;; First, we must replace environment variables.
     (setq filename (tramp-replace-environment-variables filename))
     (with-parsed-tramp-file-name filename nil
-      ;; Ignore in LOCALNAME everything before "//" or "/~".
-      (when (and (stringp localname) (string-match ".+?/\\(/\\|~\\)" localname))
-	(setq filename
-	      (concat (file-remote-p filename)
-		      (replace-match "\\1" nil nil localname)))
-	;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
-	(when (string-match "~$" filename)
-	  (setq filename (concat filename "/"))))
       ;; We do not want to replace environment variables, again.
       (let (process-environment)
-	(tramp-run-real-handler 'substitute-in-file-name (list filename))))))
+	;; Ignore in LOCALNAME everything before "//" or "/~".
+	(when (stringp localname)
+	  (if (string-match "//\\(/\\|~\\)" localname)
+	      (setq filename (substitute-in-file-name localname))
+	    (setq filename
+		  (concat (file-remote-p filename)
+			  (substitute-in-file-name localname))))))
+      ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
+      (if (and (stringp localname) (string-equal "~" localname))
+	  (concat filename "/")
+	filename))))
 
 (defun tramp-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -3620,10 +3623,16 @@ of."
 	   ;; only if that agrees with the buffer's record.
 	   (t (equal mt '(-1 65535)))))))))
 
+;; This is used in tramp-gvfs.el and tramp-sh.el.
+(defconst tramp-gio-events
+  '("attribute-changed" "changed" "changes-done-hint"
+    "created" "deleted" "moved" "pre-unmount" "unmounted")
+  "List of events \"gio monitor\" could send.")
+
+;; This is the default handler.  tramp-gvfs.el and tramp-sh.el have
+;; their own one.
 (defun tramp-handle-file-notify-add-watch (filename _flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
-  ;; This is the default handler.  tramp-gvfs.el and tramp-sh.el have
-  ;; their own one.
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (tramp-error
@@ -4450,6 +4459,7 @@ Invokes `password-read' if available, `read-passwd' else."
 					  auth-passwd))))
 	       ;; Try the password cache.
 	       (let ((password (password-read pw-prompt key)))
+		 ;; FIXME test password works before caching it.
 		 (password-cache-add key password)
 		 password)
 	       ;; Else, get the password interactively.

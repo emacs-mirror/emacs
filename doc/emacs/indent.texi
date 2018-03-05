@@ -201,12 +201,12 @@ are always displayed as empty spaces extending to the next
 @node Just Spaces
 @section Tabs vs.@: Spaces
 
-  Normally, indentation commands insert (or remove) an optimal mix of
-space characters and tab characters to align to the desired column.
-Tab characters are displayed as a stretch of empty space extending to
-the next @dfn{display tab stop}.  By default, there is one display tab
-stop every @code{tab-width} columns (the default is 8).  @xref{Text
-Display}.
+  Normally, indentation commands insert (or remove) the shortest
+possible series of tab and space characters so as to align to the
+desired column.  Tab characters are displayed as a stretch of empty
+space extending to the next @dfn{display tab stop}.  By default, there
+is one display tab stop every @code{tab-width} columns (the default is
+8).  @xref{Text Display}.
 
 @vindex indent-tabs-mode
   If you prefer, all indentation can be made from spaces only.  To

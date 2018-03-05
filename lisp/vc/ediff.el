@@ -153,7 +153,7 @@
 (declare-function dired-get-filename "dired"
                   (&optional localp no-error-if-not-filep))
 (declare-function dired-get-marked-files "dired"
-                  (&optional localp arg filter distinguish-one-marked))
+                  (&optional localp arg filter distinguish-one-marked error))
 
 ;; Return a plausible default for ediff's first file:
 ;; In dired, return the file number FILENO (or 0) in the list

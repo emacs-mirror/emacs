@@ -823,7 +823,7 @@
                     '("FreeMono" . "iso10646-1") nil 'prepend)
 
   ;; Since standard-fontset-spec on X uses fixed-medium font, which
-  ;; gets mapped to a iso8859-1 variant, we would like to prefer its
+  ;; gets mapped to an iso8859-1 variant, we would like to prefer its
   ;; iso10646-1 variant for symbols, where the coverage is known to be
   ;; good.
   (dolist (symbol-subgroup
@@ -1143,6 +1143,8 @@ given from DEFAULT-SPEC."
 		(font-put spec prop (font-get default-spec prop)))))
 	(setcar (cdr elt) spec)))
     fontlist))
+
+(defvar fontset-alias-alist)
 
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.

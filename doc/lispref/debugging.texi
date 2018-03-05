@@ -918,51 +918,65 @@ be cleaner to combine them.
 @section Profiling
 @cindex profiling
 @cindex profile
+@cindex performance analysis
 @cindex measuring resource usage
 @cindex memory usage
 
-If your program is working correctly, but you want to make it run more
-quickly or efficiently, the first thing to do is @dfn{profile} your
-code so that you know how it is using resources.  If you find that one
-particular function is responsible for a significant portion of the
-runtime, you can start looking for ways to optimize that piece.
+If your program is working correctly, but not fast enough, and you
+want to make it run more quickly or efficiently, the first thing to do
+is @dfn{profile} your code so that you know where it spends most of
+the execution time.  If you find that one particular function is
+responsible for a significant portion of the execution time, you can
+start looking for ways to optimize that piece.
 
 Emacs has built-in support for this.  To begin profiling, type
 @kbd{M-x profiler-start}.  You can choose to profile by processor
-usage, memory usage, or both.  After doing some work, type
-@kbd{M-x profiler-report} to display a summary buffer for each
-resource that you chose to profile.  The names of the report buffers
-include the times at which the reports were generated, so you can
-generate another report later on without erasing previous results.
-When you have finished profiling, type @kbd{M-x profiler-stop} (there
-is a small overhead associated with profiling).
+usage, memory usage, or both.  Then run the code you'd like to speed
+up.  After that, type @kbd{M-x profiler-report} to display a summary
+buffer for each resource (cpu and memory) that you chose to profile.
+The names of the report buffers include the times at which the reports
+were generated, so you can generate another report later on without
+erasing previous results.  When you have finished profiling, type
+@kbd{M-x profiler-stop} (there is a small overhead associated with
+profiling, so we don't recommend leaving it active except when you are
+actually running the code you want to examine).
 
 The profiler report buffer shows, on each line, a function that was
-called, followed by how much resource (processor or memory) it used in
-absolute and percentage times since profiling started.  If a given
+called, followed by how much resources (cpu or memory) it used in
+absolute and percentage terms since profiling started.  If a given
 line has a @samp{+} symbol at the left-hand side, you can expand that
 line by typing @kbd{@key{RET}}, in order to see the function(s) called
 by the higher-level function.  Use a prefix argument (@kbd{C-u
 @key{RET}}) to see the whole call tree below a function.  Pressing
 @kbd{@key{RET}} again will collapse back to the original state.
 
-Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function.
-Press @kbd{d} to view a function's documentation.
-You can save a profile to a file using @kbd{C-x C-w}.
-You can compare two profiles using @kbd{=}.
+Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function
+at point.  Press @kbd{d} to view a function's documentation.  You can
+save a profile to a file using @kbd{C-x C-w}.  You can compare two
+profiles using @kbd{=}.
 
 @c FIXME reversed calltree?
 
 @cindex @file{elp.el}
 @cindex timing programs
-The @file{elp} library offers an alternative approach.  See the file
-@file{elp.el} for instructions.
+The @file{elp} library offers an alternative approach, which is useful
+when you know in advance which Lisp function(s) you want to profile.
+Using that library, you begin by setting @code{elp-function-list} to
+the list of function symbols---those are the functions you want to
+profile.  Then type @w{@kbd{M-x elp-instrument-list @key{RET} nil
+@key{RET}}} to arrange for profiling those functions.  After running
+the code you want to profile, invoke @w{@kbd{M-x elp-results}} to
+display the current results.  See the file @file{elp.el} for more
+detailed instructions.  This approach is limited to profiling
+functions written in Lisp, it cannot profile Emacs primitives.
 
 @cindex @file{benchmark.el}
 @cindex benchmarking
-You can check the speed of individual Emacs Lisp forms using the
-@file{benchmark} library.  See the functions @code{benchmark-run} and
-@code{benchmark-run-compiled} in @file{benchmark.el}.
+You can measure the time it takes to evaluate individual Emacs Lisp
+forms using the @file{benchmark} library.  See the macros
+@code{benchmark-run} and @code{benchmark-run-compiled} in
+@file{benchmark.el}.  You can also use the @code{benchmark} command
+for timing forms interactively.
 
 @c Not worth putting in the printed manual.
 @ifnottex

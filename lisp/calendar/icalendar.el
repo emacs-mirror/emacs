@@ -1048,12 +1048,10 @@ written into the buffer `*icalendar-errors*'."
   (interactive "r
 FExport diary data into iCalendar file: ")
   (let ((result "")
-        (start 0)
         (entry-main "")
         (entry-rest "")
 	(entry-full "")
         (header "")
-        (contents-n-summary)
         (contents)
         (alarm)
         (found-error nil)
@@ -1073,7 +1071,8 @@ FExport diary data into iCalendar file: ")
               ;; possibly ignore hidden entries beginning with "&"
               (if icalendar-export-hidden-diary-entries
                   "^\\([^ \t\n#].+\\)\\(\\(\n[ \t].*\\)*\\)"
-                "^\\([^ \t\n&#].+\\)\\(\\(\n[ \t].*\\)*\\)") max t)
+                "^\\([^ \t\n&#].+\\)\\(\\(\n[ \t].*\\)*\\)")
+              max t)
         (setq entry-main (match-string 1))
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
@@ -1095,7 +1094,7 @@ FExport diary data into iCalendar file: ")
                             (loc (cdr (assoc 'loc other-elements)))
                             (org (cdr (assoc 'org other-elements)))
                             (sta (cdr (assoc 'sta other-elements)))
-                            (sum (cdr (assoc 'sum other-elements)))
+                            ;; (sum (cdr (assoc 'sum other-elements)))
                             (url (cdr (assoc 'url other-elements)))
                             (uid (cdr (assoc 'uid other-elements))))
                         (if cla
@@ -1202,7 +1201,7 @@ Returns an alist."
              (p-uid (or (string-match "%U" icalendar-import-format) -1))
              (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url p-uid) '<))
 	     (ct 0)
-             pos-cla pos-des pos-loc pos-org pos-sta pos-sum pos-url pos-uid)
+             pos-cla pos-des pos-loc pos-org pos-sta pos-url pos-uid) ;pos-sum
         (dotimes (i (length p-list))
 	  ;; Use 'ct' to keep track of current position in list
           (cond ((and (>= p-cla 0) (= (nth i p-list) p-cla))
@@ -1222,7 +1221,8 @@ Returns an alist."
                  (setq pos-sta (* 2 ct)))
                 ((and (>= p-sum 0) (= (nth i p-list) p-sum))
 		 (setq ct (+ ct 1))
-                 (setq pos-sum (* 2 ct)))
+                 ;; (setq pos-sum (* 2 ct))
+                 )
                 ((and (>= p-url 0) (= (nth i p-list) p-url))
 		 (setq ct (+ ct 1))
                  (setq pos-url (* 2 ct)))
@@ -1254,11 +1254,11 @@ Returns an alist."
 			   (icalendar--rris "%s" "\\(.*?\\)" s nil t)
                         "\\'"))
         (if (string-match s summary-and-rest)
-            (let (cla des loc org sta sum url uid)
-              (if (and pos-sum (match-beginning pos-sum))
-                  (setq sum (substring summary-and-rest
-                                       (match-beginning pos-sum)
-                                       (match-end pos-sum))))
+            (let (cla des loc org sta url uid) ;; sum
+              ;; (if (and pos-sum (match-beginning pos-sum))
+              ;;     (setq sum (substring summary-and-rest
+              ;;                          (match-beginning pos-sum)
+              ;;                          (match-end pos-sum))))
               (if (and pos-cla (match-beginning pos-cla))
                   (setq cla (substring summary-and-rest
                                        (match-beginning pos-cla)
@@ -1763,8 +1763,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                  ;;BUT remove today if `diary-float'
                  ;;expression does not hold true for today:
                  (when
-                     (null (let ((date (calendar-current-date))
-                                 (entry entry-main))
+                     (null (calendar-dlet* ((date (calendar-current-date))
+                                            (entry entry-main))
                              (diary-float month dayname n)))
                    (concat
                     "\nEXDATE;VALUE=DATE:"
@@ -1975,13 +1975,13 @@ P")
     (icalendar-import-buffer diary-filename t non-marking)))
 
 ;;;###autoload
-(defun icalendar-import-buffer (&optional diary-file do-not-ask
+(defun icalendar-import-buffer (&optional diary-filename do-not-ask
                                           non-marking)
   "Extract iCalendar events from current buffer.
 
 This function searches the current buffer for the first iCalendar
 object, reads it and adds all VEVENT elements to the diary
-DIARY-FILE.
+DIARY-FILENAME.
 
 It will ask for each appointment whether to add it to the diary
 unless DO-NOT-ASK is non-nil.  When called interactively,
@@ -2011,10 +2011,10 @@ buffer `*icalendar-errors*'."
           (message "Converting iCalendar...")
           (setq ical-errors (icalendar--convert-ical-to-diary
                              ical-contents
-                             diary-file do-not-ask non-marking))
-          (when diary-file
+                             diary-filename do-not-ask non-marking))
+          (when diary-filename
             ;; save the diary file if it is visited already
-            (let ((b (find-buffer-visiting diary-file)))
+            (let ((b (find-buffer-visiting diary-filename)))
               (when b
                 (save-current-buffer
                   (set-buffer b)
@@ -2066,12 +2066,12 @@ buffer `*icalendar-errors*'."
 	  conversion-list)
     string)))
 
-(defun icalendar--convert-ical-to-diary (ical-list diary-file
+(defun icalendar--convert-ical-to-diary (ical-list diary-filename
                                                    &optional do-not-ask
                                                    non-marking)
   "Convert iCalendar data to an Emacs diary file.
 Import VEVENTS from the iCalendar object ICAL-LIST and saves them to a
-DIARY-FILE.  If DO-NOT-ASK is nil the user is asked for each event
+DIARY-FILENAME.  If DO-NOT-ASK is nil the user is asked for each event
 whether to actually import it.  NON-MARKING determines whether diary
 events are created as non-marking.
 This function attempts to return t if something goes wrong.  In this
@@ -2164,7 +2164,7 @@ written into the buffer `*icalendar-errors*'."
              (rdate
               (icalendar--dmsg "rdate event")
               (setq diary-string "")
-              (mapc (lambda (datestring)
+              (mapc (lambda (_datestring)
 		      (setq diary-string
 			    (concat diary-string
 				    (format "......"))))
@@ -2174,14 +2174,14 @@ written into the buffer `*icalendar-errors*'."
              ((not (string= start-d end-d))
               (setq diary-string
                     (icalendar--convert-non-recurring-all-day-to-diary
-                     e start-d end-1-d))
+                     start-d end-1-d))
               (setq event-ok t))
              ;; not all-day
              ((and start-t (or (not end-t)
                                (not (string= start-t end-t))))
               (setq diary-string
                     (icalendar--convert-non-recurring-not-all-day-to-diary
-                     e dtstart-dec dtend-dec start-t end-t))
+                     dtstart-dec start-t end-t))
               (setq event-ok t))
              ;; all-day event
              (t
@@ -2199,8 +2199,8 @@ written into the buffer `*icalendar-errors*'."
                   (if do-not-ask (setq summary nil))
                   ;; add entry to diary and store actual name of diary
                   ;; file (in case it was nil)
-                  (setq diary-file
-                        (icalendar--add-diary-entry diary-string diary-file
+                  (setq diary-filename
+                        (icalendar--add-diary-entry diary-string diary-filename
                                                     non-marking summary)))
               ;; event was not ok
               (setq found-error t)
@@ -2217,8 +2217,8 @@ written into the buffer `*icalendar-errors*'."
          (message "%s" error-string))))
 
     ;; insert final newline
-    (if diary-file
-        (let ((b (find-buffer-visiting diary-file)))
+    (if diary-filename
+        (let ((b (find-buffer-visiting diary-filename)))
           (when b
             (save-current-buffer
               (set-buffer b)
@@ -2467,7 +2467,7 @@ END-T is the event's end time in diary format."
                        e 'EXRULE))))
     result))
 
-(defun icalendar--convert-non-recurring-all-day-to-diary (event start-d end-d)
+(defun icalendar--convert-non-recurring-all-day-to-diary (start-d end-d)
   "Convert non-recurring iCalendar EVENT to diary format.
 
 DTSTART is the decoded DTSTART property of E.
@@ -2476,14 +2476,12 @@ Argument END-D gives the last day."
   (icalendar--dmsg "non-recurring all-day event")
   (format "%%%%(and (diary-block %s %s))" start-d end-d))
 
-(defun icalendar--convert-non-recurring-not-all-day-to-diary (event dtstart-dec
-                                                                    dtend-dec
-                                                                    start-t
-                                                                    end-t)
+(defun icalendar--convert-non-recurring-not-all-day-to-diary (dtstart-dec
+                                                              start-t
+                                                              end-t)
   "Convert recurring icalendar EVENT to diary format.
 
 DTSTART-DEC is the decoded DTSTART property of E.
-DTEND-DEC is the decoded DTEND property of E.
 START-T is the event's start time in diary format.
 END-T is the event's end time in diary format."
   (icalendar--dmsg "not all day event")
@@ -2498,9 +2496,9 @@ END-T is the event's end time in diary format."
                   dtstart-dec "/")
                  start-t))))
 
-(defun icalendar--add-diary-entry (string diary-file non-marking
+(defun icalendar--add-diary-entry (string diary-filename non-marking
                                           &optional summary)
-  "Add STRING to the diary file DIARY-FILE.
+  "Add STRING to the diary file DIARY-FILENAME.
 STRING must be a properly formatted valid diary entry.  NON-MARKING
 determines whether diary events are created as non-marking.  If
 SUMMARY is not nil it must be a string that gives the summary of the
@@ -2513,21 +2511,21 @@ the entry."
       (setq non-marking
             (y-or-n-p (format "Make appointment non-marking? "))))
     (save-window-excursion
-      (unless diary-file
-        (setq diary-file
+      (unless diary-filename
+        (setq diary-filename
               (read-file-name "Add appointment to this diary file: ")))
       ;; Note: diary-make-entry will add a trailing blank char.... :(
       (funcall (if (fboundp 'diary-make-entry)
                    'diary-make-entry
                  'make-diary-entry)
-               string non-marking diary-file)))
+               string non-marking diary-filename)))
   ;; Würgaround to remove the trailing blank char
-  (with-current-buffer (find-file diary-file)
+  (with-current-buffer (find-file diary-filename)
     (goto-char (point-max))
     (if (= (char-before) ? )
         (delete-char -1)))
-  ;; return diary-file in case it has been changed interactively
-  diary-file)
+  ;; return diary-filename in case it has been changed interactively
+  diary-filename)
 
 ;; ======================================================================
 ;; Examples

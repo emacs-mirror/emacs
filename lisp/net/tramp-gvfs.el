@@ -1286,9 +1286,10 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
-    ;; We cannot watch directories, because `gvfs-monitor-dir' is not
-    ;; supported for gvfs-mounted directories.
-    (when (file-directory-p file-name)
+    ;; TODO: We cannot watch directories, because `gio monitor' is not
+    ;; supported for gvfs-mounted directories.  However,
+    ;; `file-notify-add-watch' uses directories.
+    (when (or (not (tramp-gvfs-gio-tool-p v)) (file-directory-p file-name))
       (tramp-error
        v 'file-notify-error "Monitoring not supported for `%s'" file-name))
     (let* ((default-directory (file-name-directory file-name))
@@ -1303,9 +1304,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   (p (apply
 	       'start-process
 	       "gvfs-monitor" (generate-new-buffer " *gvfs-monitor*")
-	       (if (tramp-gvfs-gio-tool-p v)
-		   `("gio" "monitor" ,(tramp-gvfs-url-file-name file-name))
-		 `("gvfs-monitor-file" (tramp-gvfs-url-file-name file-name))))))
+	       `("gio" "monitor" ,(tramp-gvfs-url-file-name file-name)))))
       (if (not (processp p))
 	  (tramp-error
 	   v 'file-notify-error "Monitoring not supported for `%s'" file-name)
@@ -1316,7 +1315,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(process-put p 'watch-name localname)
 	(process-put p 'adjust-window-size-function 'ignore)
 	(set-process-query-on-exit-flag p nil)
-	(set-process-filter p 'tramp-gvfs-monitor-file-process-filter)
+	(set-process-filter p 'tramp-gvfs-monitor-process-filter)
 	;; There might be an error if the monitor is not supported.
 	;; Give the filter a chance to read the output.
 	(tramp-accept-process-output p 1)
@@ -1325,45 +1324,58 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
 	p))))
 
-(defun tramp-gvfs-monitor-file-process-filter (proc string)
+(defun tramp-gvfs-monitor-process-filter (proc string)
   "Read output from \"gvfs-monitor-file\" and add corresponding \
 file-notify events."
-  (let* ((rest-string (process-get proc 'rest-string))
+  (let* ((events (process-get proc 'events))
+	 (rest-string (process-get proc 'rest-string))
 	 (dd (with-current-buffer (process-buffer proc) default-directory))
 	 (ddu (regexp-quote (tramp-gvfs-url-file-name dd))))
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
     (tramp-message proc 6 "%S\n%s" proc string)
     (setq string (concat rest-string string)
-	  ;; Attribute change is returned in unused wording.
-	  string (replace-regexp-in-string
-		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
-    (when (string-match "Monitoring not supported" string)
+          ;; Fix action names.
+          string (replace-regexp-in-string
+	          "attributes changed" "attribute-changed" string)
+          string (replace-regexp-in-string
+	          "changes done" "changes-done-hint" string)
+          string (replace-regexp-in-string
+	          "renamed to" "moved" string))
+    ;; https://bugs.launchpad.net/bugs/1742946
+    (when (string-match "Monitoring not supported\\|No locations given" string)
       (delete-process proc))
 
     (while (string-match
-	    (concat "^[\n\r]*"
-		    "File Monitor Event:[\n\r]+"
-		    "File = \\([^\n\r]+\\)[\n\r]+"
-		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
+	    (concat "^.+:"
+		    "[[:space:]]\\(.+\\):"
+		    "[[:space:]]" (regexp-opt tramp-gio-events t)
+		    "\\([[:space:]]\\(.+\\)\\)?$")
 	    string)
+
       (let ((file (match-string 1 string))
-	    (action (intern-soft
-		     (replace-regexp-in-string
-		      "_" "-" (downcase (match-string 2 string))))))
+	    (file1 (match-string 4 string))
+	    (action (intern-soft (match-string 2 string))))
 	(setq string (replace-match "" nil nil string))
 	;; File names are returned as URL paths.  We must convert them.
 	(when (string-match ddu file)
 	  (setq file (replace-match dd nil nil file)))
 	(while (string-match "%\\([0-9A-F]\\{2\\}\\)" file)
-	  (setq file
-		(replace-match
-		 (char-to-string (string-to-number (match-string 1 file) 16))
-		 nil nil file)))
+	  (setq file (url-unhex-string file)))
+	(when (string-match ddu (or file1 ""))
+	  (setq file1 (replace-match dd nil nil file1)))
+	(while (string-match "%\\([0-9A-F]\\{2\\}\\)" (or file1 ""))
+	  (setq file1 (url-unhex-string file1)))
+	;; Remove watch when file or directory to be watched is deleted.
+	(when (and (member action '(moved deleted))
+		   (string-equal file (process-get proc 'watch-name)))
+	  (delete-process proc))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
-	(tramp-compat-funcall 'file-notify-callback (list proc action file))))
+	(when (member action events)
+	  (tramp-compat-funcall
+           'file-notify-callback (list proc action file file1)))))
 
     ;; Save rest of the string.
     (when (zerop (length string)) (setq string nil))
@@ -1483,7 +1495,7 @@ file-notify events."
 
 (defun tramp-gvfs-url-file-name (filename)
   "Return FILENAME in URL syntax."
-  ;; "/" must NOT be hexlified.
+  ;; "/" must NOT be hexified.
   (setq filename (tramp-compat-file-name-unquote filename))
   (let ((url-unreserved-chars (cons ?/ url-unreserved-chars))
 	result)
@@ -2352,7 +2364,7 @@ They are retrieved from the hal daemon."
 ;; * (Customizable) unmount when exiting Emacs.  See tramp-archive.el.
 
 ;; * Host name completion for existing mount points (afp-server,
-;;   smb-server) or via smb-network.
+;;   smb-server, google-drive, owncloud) or via smb-network.
 ;;
 ;; * Check, how two shares of the same SMB server can be mounted in
 ;;   parallel.

@@ -1562,7 +1562,7 @@ The search for a correct position is as follows:
 
   * If search is within an area where options can be inserted, use the
     position of point.  Inside the options section and if point is in
-    the middle of a option definition, skip the rest of it.
+    the middle of an option definition, skip the rest of it.
   * If an options section already exists, insert the options at the end.
     If only the beginning of the area is visible, insert at the
     beginning.

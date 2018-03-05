@@ -362,6 +362,8 @@ Use old data if FORCE-OLDER is not nil."
   (interactive)
   (gnus-cloud-upload-data t))
 
+(autoload 'gnus-group-refresh-group "gnus-group")
+
 (defun gnus-cloud-upload-data (&optional full)
   "Upload data (newsrc and files) to the Gnus Cloud.
 When FULL is t, upload everything, not just a difference from the last full."

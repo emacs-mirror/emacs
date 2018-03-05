@@ -117,10 +117,11 @@ connect to.
 If you want to place ERC settings in their own file, you can place them
 in @file{~/.emacs.d/.ercrc.el}, creating it if necessary.
 
-If you would rather use the Customize interface to change how ERC works,
-do @kbd{M-x customize-group RET erc RET}.  In particular, ERC comes with
-lots of modules that may be enabled or disabled; to select which ones
-you want, do @kbd{M-x customize-variable RET erc-modules RET}.
+If you would rather use the Customize interface to change how ERC
+works, do @kbd{M-x customize-group @key{RET} erc @key{RET}}.  In
+particular, ERC comes with lots of modules that may be enabled or
+disabled; to select which ones you want, do @kbd{M-x
+customize-variable @key{RET} erc-modules @key{RET}}.
 
 @menu
 * Sample Session::              Example of connecting to the #emacs channel
@@ -269,14 +270,14 @@ This is a summary of keystrokes available in every ERC buffer.
 @item C-a or <home> (@code{erc-bol})
 Go to beginning of line or end of prompt.
 
-@item RET (@code{erc-send-current-line})
+@item @key{RET} (@code{erc-send-current-line})
 Send the current line
 
-@item TAB (@code{erc-complete-word})
+@item @key{TAB} (@code{erc-complete-word})
 If at prompt, complete the current word.
 Otherwise, move to the next link or button.
 
-@item M-TAB (@code{ispell-complete-word})
+@item M-@key{TAB} (@code{ispell-complete-word})
 Complete the given word, using ispell.
 
 @item C-c C-a (@code{erc-bol})
@@ -297,7 +298,7 @@ Toggle automatic CTCP replies (like VERSION and PING).
 @item C-c C-f (@code{erc-toggle-flood-control})
 Toggle use of flood control on sent messages.
 
-@item C-c TAB (@code{erc-invite-only-mode})
+@item C-c @key{TAB} (@code{erc-invite-only-mode})
 Turn on the invite only mode (+i) for the current channel.
 
 @item C-c C-j (@code{erc-join-channel})
@@ -349,8 +350,9 @@ One way to add functionality to ERC is to customize which of its many
 modules are loaded.
 
 There is a spiffy customize interface, which may be reached by typing
-@kbd{M-x customize-option erc-modules RET}.  Alternatively, set
-@code{erc-modules} manually and then call @code{erc-update-modules}.
+@kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.
+Alternatively, set @code{erc-modules} manually and then call
+@code{erc-update-modules}.
 
 The following is a list of available modules.
 
@@ -743,7 +745,7 @@ stuff, to the current ERC buffer."
 
 This section is extremely incomplete.  For now, the easiest way to
 check out all the available options for ERC is to do
-@kbd{M-x customize-group erc RET}.
+@kbd{M-x customize-group @key{RET} erc @key{RET}}.
 
 @defopt erc-hide-list
 If non, @code{nil}, this is a list of IRC message types to hide, e.g.:

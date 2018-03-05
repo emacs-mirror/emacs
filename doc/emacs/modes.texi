@@ -57,10 +57,10 @@ for specific programming languages.  These include Lisp mode (which
 has several variants), C mode, Fortran mode, and others.  The third
 group consists of major modes that are not associated directly with
 files; they are used in buffers created for specific purposes by
-Emacs, such as Dired mode for buffers made by Dired (@pxref{Dired}),
-Message mode for buffers made by @kbd{C-x m} (@pxref{Sending Mail}),
-and Shell mode for buffers used to communicate with an inferior shell
-process (@pxref{Interactive Shell}).
+Emacs.  Examples include Dired mode for buffers made by Dired
+(@pxref{Dired}), Message mode for buffers made by @kbd{C-x m}
+(@pxref{Sending Mail}), and Shell mode for buffers used to communicate
+with an inferior shell process (@pxref{Interactive Shell}).
 
   Usually, the major mode is automatically set by Emacs, when you
 first visit a file or create a buffer (@pxref{Choosing Modes}).  You

@@ -2495,7 +2495,7 @@ to are recalculated first."
          prefix-length)
     (when (and prefix (null (string= prefix "")))
       (setq prefix-length (length prefix))
-      (maphash (lambda (key val)
+      (maphash (lambda (key _val)
                  (let ((key-name (symbol-name key)))
                    (when (and (>= (length key-name) prefix-length)
                               (string= prefix (substring key-name 0 prefix-length)))
@@ -2648,7 +2648,7 @@ cells."
          prefix-length)
     (when prefix
       (setq prefix-length (length prefix))
-      (maphash (lambda (key val)
+      (maphash (lambda (key _val)
                  (let ((key-name (symbol-name key)))
                    (when (and (>= (length key-name) prefix-length)
                               (string= prefix (substring key-name 0 prefix-length)))

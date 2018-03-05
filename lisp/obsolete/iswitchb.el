@@ -1247,7 +1247,7 @@ Modified from `icomplete-completions'."
 
     (if (and iswitchb-use-faces comps)
 	(progn
-	  (setq first (car comps))
+	  (setq first (copy-sequence (car comps)))
 	  (setq first (format "%s" first))
 	  (put-text-property 0 (length first) 'face
 			     (if (= (length comps) 1)

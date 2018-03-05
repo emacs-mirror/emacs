@@ -962,15 +962,16 @@ busybox awk '{}' </dev/null"
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
 while read file; do
+    quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/\"`
     if %s \"$file\"; then
-	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" t)\"
+	echo \"(\\\"$quoted\\\" \\\"file-exists-p\\\" t)\"
     else
-	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" nil)\"
+	echo \"(\\\"$quoted\\\" \\\"file-exists-p\\\" nil)\"
     fi
     if %s \"$file\"; then
-	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" t)\"
+	echo \"(\\\"$quoted\\\" \\\"file-readable-p\\\" t)\"
     else
-	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" nil)\"
+	echo \"(\\\"$quoted\\\" \\\"file-readable-p\\\" nil)\"
     fi
 done
 echo \")\""
@@ -2054,6 +2055,7 @@ file names."
 	  (t2 (tramp-tramp-file-p newname))
 	  (length (tramp-compat-file-attribute-size
 		   (file-attributes (file-truename filename))))
+	  ;; `file-extended-attributes' exists since Emacs 24.4.
 	  (attributes (and preserve-extended-attributes
 			   (apply 'file-extended-attributes (list filename)))))
 
@@ -3581,7 +3583,19 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (mapcar
 	       (lambda (x) (intern-soft (replace-regexp-in-string "_" "-" x)))
 	       (split-string events "," 'omit))))
-       ;; "gvfs-monitor-dir" or "gio monitor".
+       ;; "gio monitor".
+       ((setq command (tramp-get-remote-gio-monitor v))
+	(setq filter 'tramp-sh-gio-monitor-process-filter
+	      events
+	      (cond
+	       ((and (memq 'change flags) (memq 'attribute-change flags))
+		'(created changed changes-done-hint moved deleted
+			  attribute-changed))
+	       ((memq 'change flags)
+		'(created changed changes-done-hint moved deleted))
+	       ((memq 'attribute-change flags) '(attribute-changed)))
+	      sequence `(,command "monitor" ,localname)))
+       ;; "gvfs-monitor-dir".
        ((setq command (tramp-get-remote-gvfs-monitor-dir v))
 	(setq filter 'tramp-sh-gvfs-monitor-dir-process-filter
 	      events
@@ -3592,9 +3606,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	       ((memq 'change flags)
 		'(created changed changes-done-hint moved deleted))
 	       ((memq 'attribute-change flags) '(attribute-changed)))
-	      sequence (if (string-match "/gio$" command)
-                           `(,command "monitor" ,localname)
-                         `(,command ,localname))))
+	      sequence `(,command ,localname)))
        ;; None.
        (t (tramp-error
 	   v 'file-notify-error
@@ -3628,6 +3640,64 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
 	p))))
 
+(defun tramp-sh-gio-monitor-process-filter (proc string)
+  "Read output from \"gio monitor\" and add corresponding file-notify events."
+  (let ((events (process-get proc 'events))
+	(remote-prefix
+	 (with-current-buffer (process-buffer proc)
+	   (file-remote-p default-directory)))
+	(rest-string (process-get proc 'rest-string)))
+    (when rest-string
+      (tramp-message proc 10 "Previous string:\n%s" rest-string))
+    (tramp-message proc 6 "%S\n%s" proc string)
+    (setq string (concat rest-string string)
+          ;; Fix action names.
+          string (replace-regexp-in-string
+	          "attributes changed" "attribute-changed" string)
+          string (replace-regexp-in-string
+	          "changes done" "changes-done-hint" string)
+          string (replace-regexp-in-string
+	          "renamed to" "moved" string))
+    ;; https://bugs.launchpad.net/bugs/1742946
+    (when (string-match "Monitoring not supported\\|No locations given" string)
+      (delete-process proc))
+
+    (while (string-match
+	    (concat "^[^:]+:"
+		    "[[:space:]]\\([^:]+\\):"
+		    "[[:space:]]"  (regexp-opt tramp-gio-events t)
+		    "\\([[:space:]]\\([^:]+\\)\\)?$")
+	    string)
+
+      (let* ((file (match-string 1 string))
+	     (file1 (match-string 4 string))
+	     (object
+	      (list
+	       proc
+	       (list
+		(intern-soft (match-string 2 string)))
+	       ;; File names are returned as absolute paths.  We must
+	       ;; add the remote prefix.
+	       (concat remote-prefix file)
+	       (when file1 (concat remote-prefix file1)))))
+	(setq string (replace-match "" nil nil string))
+	;; Remove watch when file or directory to be watched is deleted.
+	(when (and (member (cl-caadr object) '(moved deleted))
+		   (string-equal file (process-get proc 'watch-name)))
+	  (delete-process proc))
+	;; Usually, we would add an Emacs event now.  Unfortunately,
+	;; `unread-command-events' does not accept several events at
+	;; once.  Therefore, we apply the handler directly.
+	(when (member (cl-caadr object) events)
+	  (tramp-compat-funcall
+	   'file-notify-handle-event
+	   `(file-notify ,object file-notify-callback)))))
+
+    ;; Save rest of the string.
+    (when (zerop (length string)) (setq string nil))
+    (when string (tramp-message proc 10 "Rest string:\n%s" string))
+    (process-put proc 'rest-string string)))
+
 (defun tramp-sh-gvfs-monitor-dir-process-filter (proc string)
   "Read output from \"gvfs-monitor-dir\" and add corresponding \
 file-notify events."
@@ -3643,9 +3713,6 @@ file-notify events."
 	  ;; Attribute change is returned in unused wording.
 	  string (replace-regexp-in-string
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
-    ;; https://bugs.launchpad.net/bugs/1742946
-    (when (string-match "Monitoring not supported\\|No locations given" string)
-      (delete-process proc))
 
     (while (string-match
 	    (concat "^[\n\r]*"
@@ -3691,12 +3758,11 @@ file-notify events."
     (tramp-message proc 6 "%S\n%s" proc string)
     (dolist (line (split-string string "[\n\r]+" 'omit))
       ;; Check, whether there is a problem.
-      (unless
-	  (string-match
-	   (concat "^[^[:blank:]]+"
-		   "[[:blank:]]+\\([^[:blank:]]+\\)+"
-		   "\\([[:blank:]]+\\([^\n\r]+\\)\\)?")
-	   line)
+      (unless (string-match
+	       (concat "^[^[:blank:]]+"
+		       "[[:blank:]]+\\([^[:blank:]]+\\)+"
+		       "\\([[:blank:]]+\\([^\n\r]+\\)\\)?")
+	       line)
 	(tramp-error proc 'file-notify-error "%s" line))
 
       (let ((object
@@ -5459,6 +5525,12 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	vec (format "%s --block-size=1 --output=size,used,avail /" result))
        result))))
 
+(defun tramp-get-remote-gio-monitor (vec)
+  "Determine remote `gio-monitor' command."
+  (with-tramp-connection-property vec "gio-monitor"
+    (tramp-message vec 5 "Finding a suitable `gio-monitor' command")
+    (tramp-find-executable vec "gio" (tramp-get-remote-path vec) t t)))
+
 (defun tramp-get-remote-gvfs-monitor-dir (vec)
   "Determine remote `gvfs-monitor-dir' command."
   (with-tramp-connection-property vec "gvfs-monitor-dir"
@@ -5466,8 +5538,7 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
     ;; We distinguish "gvfs-monitor-dir.exe" from cygwin in order to
     ;; establish better timeouts in filenotify-tests.el.  Any better
     ;; distinction approach would be welcome!
-    (or (tramp-find-executable vec "gio" (tramp-get-remote-path vec) t t)
-	(tramp-find-executable
+    (or (tramp-find-executable
 	 vec "gvfs-monitor-dir.exe" (tramp-get-remote-path vec) t t)
 	(tramp-find-executable
 	 vec "gvfs-monitor-dir" (tramp-get-remote-path vec) t t))))

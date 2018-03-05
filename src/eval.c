@@ -1604,7 +1604,10 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
-      && ! NILP (error_symbol))
+      && ! NILP (error_symbol)
+      /* Don't try to call a lisp function if we've already overflowed
+         the specpdl stack.  */
+      && specpdl_ptr < specpdl + specpdl_size)
     {
       /* Edebug takes care of restoring these variables when it exits.  */
       if (lisp_eval_depth + 20 > max_lisp_eval_depth)

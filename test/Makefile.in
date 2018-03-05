@@ -96,6 +96,7 @@ TEST_LOCALE = C
 
 # Whether to run tests from .el files in preference to .elc, we do
 # this by default since it gives nicer stacktraces.
+# If you just want a pass/fail, setting this to no is much faster.
 TEST_LOAD_EL ?= yes
 
 # Maximum length of lines in ert backtraces; nil for no limit.
@@ -174,11 +175,18 @@ else
 maybe_exclude_module_tests := -name emacs-module-tests.el -prune -o
 endif
 
+## To speed up parallel builds, put these slow test files (which can
+## take longer than all the rest combined) at the start of the list.
+SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
+
 ELFILES := $(sort $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
 		-path "${srcdir}/data" -prune -o \
 		-name "*resources" -prune -o \
 		${maybe_exclude_module_tests} \
 		-name "*.el" ! -name ".*" -print))
+
+$(foreach slow,${SLOW_TESTS},$(eval ELFILES:= ${slow} $(filter-out ${slow},${ELFILES})))
+
 ## .log files may be in a different directory for out of source builds
 LOGFILES := $(patsubst %.el,%.log, \
 		$(patsubst $(srcdir)/%,%,$(ELFILES)))

@@ -363,7 +363,7 @@ a window into the `org-babel-get-src-block-info' function."
 ;;;###autoload
 (defun org-babel-expand-src-block-maybe ()
   "Conditionally expand a source block.
-Detect if this is context for a org-babel src-block and if so
+Detect if this is context for an org-babel src-block and if so
 then run `org-babel-expand-src-block'."
   (interactive)
   (org-babel-when-in-src-block
@@ -372,7 +372,7 @@ then run `org-babel-expand-src-block'."
 ;;;###autoload
 (defun org-babel-load-in-session-maybe ()
   "Conditionally load a source block in a session.
-Detect if this is context for a org-babel src-block and if so
+Detect if this is context for an org-babel src-block and if so
 then run `org-babel-load-in-session'."
   (interactive)
   (org-babel-when-in-src-block
@@ -383,7 +383,7 @@ then run `org-babel-load-in-session'."
 ;;;###autoload
 (defun org-babel-pop-to-session-maybe ()
   "Conditionally pop to a session.
-Detect if this is context for a org-babel src-block and if so
+Detect if this is context for an org-babel src-block and if so
 then run `org-babel-switch-to-session'."
   (interactive)
   (org-babel-when-in-src-block

@@ -956,6 +956,7 @@ Summarize disk usage of each FILE, recursively for directories.")
        :show-usage
        :usage "COMMAND...
 Show wall-clock time elapsed during execution of COMMAND.")
+     args                 ; suppress "unused lexical variable" warning
      (setq eshell-time-start (float-time))
      (add-hook 'eshell-post-command-hook 'eshell-show-elapsed-time nil t)
      ;; after setting
@@ -965,7 +966,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 				  (eshell-stringify-list
 				   (eshell-flatten-list (cdr time-args))))))))
 
-(defun eshell/whoami (&rest args)
+(defun eshell/whoami (&rest _args)
   "Make \"whoami\" Tramp aware."
   (or (file-remote-p default-directory 'user) (user-login-name)))
 

@@ -116,8 +116,8 @@ the @samp{$}; alternatively, it can be enclosed in braces after the
 @file{/u/$@{FOO@}/test.c} are abbreviations for
 @file{/u/rms/hacks/test.c}.  If the environment variable is not
 defined, no substitution occurs, so that the character @samp{$} stands
-for itself.  Note that environment variables affect Emacs only if they
-are applied before Emacs is started.
+for itself.  Note that environment variables set outside Emacs affect
+Emacs only if they are applied before Emacs is started.
 
   To access a file with @samp{$} in its name, if the @samp{$} causes
 expansion, type @samp{$$}.  This pair is converted to a single
@@ -167,7 +167,9 @@ minibuffer, you can abort the command by typing @kbd{C-g}.  @xref{File
 Names}, for details about entering file names into minibuffers.
 
   If the specified file exists but the system does not allow you to
-read it, an error message is displayed in the echo area.  Otherwise,
+read it, an error message is displayed in the echo area (on GNU and
+Unix systems you might be able to visit such a file using the
+@samp{su} or @samp{sudo} methods; @pxref{Remote Files}).  Otherwise,
 you can tell that @kbd{C-x C-f} has completed successfully by the
 appearance of new text on the screen, and by the buffer name shown in
 the mode line (@pxref{Mode Line}).  Emacs normally constructs the
@@ -279,7 +281,7 @@ files.  Firstly, when Emacs is built with a suitable GUI toolkit,
 commands invoked with the mouse (by clicking on the menu bar or tool
 bar) use the toolkit's standard file selection dialog instead of
 prompting for the file name in the minibuffer.  On GNU/Linux and Unix
-platforms, Emacs does this when built with GTK, LessTif, and Motif
+platforms, Emacs does this when built with GTK+, LessTif, and Motif
 toolkits; on MS-Windows and Mac, the GUI version does that by default.
 For information on how to customize this, see @ref{Dialog Boxes}.
 
@@ -291,7 +293,8 @@ see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
   On text-mode terminals and on graphical displays when Emacs was
 built without a GUI toolkit, you can visit files via the menu-bar
-@samp{File} menu, which has a @samp{Visit New File} item.
+@samp{File} menu, which has the @samp{Visit New File} and the
+@samp{Open File} items.
 
   Each time you visit a file, Emacs automatically scans its contents
 to detect what character encoding and end-of-line convention it uses,
@@ -638,7 +641,7 @@ you whether it should delete the excess backup versions.  If it has
 any other value, then Emacs never automatically deletes backups.
 
   Dired's @kbd{.} (Period) command can also be used to delete old versions.
-@xref{Dired Deletion}.
+@xref{Flagging Many Files}.
 
 @node Backup Copying
 @subsubsection Copying vs.@: Renaming
@@ -691,11 +694,12 @@ Otherwise, renaming is the default choice.
 
   When a file is managed with a version control system (@pxref{Version
 Control}), Emacs does not normally make backups in the usual way for
-that file.  But check-in and check-out are similar in some ways to
-making backups.  One unfortunate similarity is that these operations
-typically break hard links, disconnecting the file name you visited from
-any alternate names for the same file.  This has nothing to do with
-Emacs---the version control system does it.
+that file.  But @dfn{committing} (a.k.a.@: @dfn{checking in},
+@pxref{VCS Concepts}) new versions of files is similar in some ways
+to making backups.  One unfortunate similarity is that these
+operations typically break hard links, disconnecting the file name you
+visited from any alternate names for the same file.  This has nothing
+to do with Emacs---the version control system does it.
 
 @node Customize Save
 @subsection Customizing Saving of Files
@@ -738,7 +742,7 @@ survive a crash even if @code{fsync} works properly.
   The @code{write-region-inhibit-fsync} variable controls whether
 Emacs invokes @code{fsync} after saving a file.  The variable's
 default value is @code{nil} when Emacs is interactive, and @code{t}
-when Emacs runs in batch mode (@pxref{Initial Options, batch mode}).
+when Emacs runs in batch mode (@pxref{Initial Options, Batch Mode}).
 
   Emacs never uses @code{fsync} when writing auto-save files, as these
 files might lose data anyway.
@@ -751,7 +755,7 @@ files might lose data anyway.
   Simultaneous editing occurs when two users visit the same file, both
 make changes, and then both save them.  If nobody is informed that
 this is happening, whichever user saves first would later find that
-his changes were lost.
+their changes were lost.
 
   On some systems, Emacs notices immediately when the second user starts
 to change the file, and issues an immediate warning.  On all systems,
@@ -952,12 +956,25 @@ discard your changes.)
   You can also tell Emacs to revert buffers periodically.  To do this
 for a specific buffer, enable the minor mode Auto-Revert mode by
 typing @kbd{M-x auto-revert-mode}.  This automatically reverts the
-current buffer every five seconds; you can change the interval through
-the variable @code{auto-revert-interval}.  To do the same for all file
-buffers, type @kbd{M-x global-auto-revert-mode} to enable Global
-Auto-Revert mode.  These minor modes do not check or revert remote
-files, because that is usually too slow.  This behavior can be changed
-by setting the variable @code{auto-revert-remote-files} to non-@code{nil}.
+current buffer when its visited file changes on disk.  To do the same
+for all file buffers, type @kbd{M-x global-auto-revert-mode} to enable
+Global Auto-Revert mode.  These minor modes do not check or revert
+remote files, because that is usually too slow.  This behavior can be
+changed by setting the variable @code{auto-revert-remote-files} to
+non-@code{nil}.
+
+@cindex file notifications
+@vindex auto-revert-use-notify
+  By default, Auto-Revert mode works using @dfn{file notifications},
+whereby changes in the filesystem are reported to Emacs by the OS.
+You can disable use of file notifications by customizing the variable
+@code{auto-revert-use-notify} to a @code{nil} value, then Emacs will
+check for file changes by polling every five seconds.  You can change
+the polling interval through the variable @code{auto-revert-interval}.
+
+  Not all systems support file notifications; where they are not
+supported, @code{auto-revert-use-notify} will be @code{nil} by
+default.
 
   One use of Auto-Revert mode is to ``tail'' a file such as a system
 log, so that changes made to that file by other programs are
@@ -1159,7 +1176,7 @@ this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
   Emacs records information about interrupted sessions in files named
-@file{.saves-@var{pid}-@var{hostname}} in the directory
+@file{.saves-@var{pid}-@var{hostname}~} in the directory
 @file{~/.emacs.d/auto-save-list/}.  This directory is determined by
 the variable @code{auto-save-list-file-prefix}.  If you set
 @code{auto-save-list-file-prefix} to @code{nil}, sessions are not
@@ -1233,8 +1250,9 @@ named @file{/fsf}:
 listing} is a list of all the files in a directory.  Emacs provides
 commands to create and delete directories, and to make directory
 listings in brief format (file names only) and verbose format (sizes,
-dates, and authors included).  Emacs also includes a directory browser
-feature called Dired; see @ref{Dired}.
+dates, and other attributes included).  Emacs also includes a
+directory browser feature called Dired, which you can invoke with
+@kbd{C-x d}; see @ref{Dired}.
 
 @table @kbd
 @item C-x C-d @var{dir-or-pattern} @key{RET}
@@ -1315,6 +1333,9 @@ information about the @command{diff} program.
   The output of the @code{diff} command is shown using a major mode
 called Diff mode.  @xref{Diff Mode}.
 
+  A (much more sophisticated) alternative is @kbd{M-x ediff}
+(@pxref{Top, Ediff, Ediff, ediff, The Ediff Manual}).
+
 @findex diff-backup
   The command @kbd{M-x diff-backup} compares a specified file with its
 most recent backup.  If you specify the name of a backup file,
@@ -1331,10 +1352,10 @@ would make to the file if you save the buffer.
 current window with that in the window that was the selected window
 before you selected the current one.  (For more information about
 windows in Emacs, @ref{Windows}.)  Comparison starts at point in each
-window, after pushing each initial point value on the mark ring in its
-respective buffer.  Then it moves point forward in each window, one
-character at a time, until it reaches characters that don't match.
-Then the command exits.
+window, after pushing each initial point value on the mark ring
+(@pxref{Mark Ring}) in its respective buffer.  Then it moves point
+forward in each window, one character at a time, until it reaches
+characters that don't match.  Then the command exits.
 
   If point in the two windows is followed by non-matching text when
 the command starts, @kbd{M-x compare-windows} tries heuristically to
@@ -1348,8 +1369,9 @@ skips one matching range or finds the start of another.
 whitespace.  If the variable @code{compare-ignore-case} is
 non-@code{nil}, the comparison ignores differences in case as well.
 If the variable @code{compare-ignore-whitespace} is non-@code{nil},
-@code{compare-windows} normally ignores changes in whitespace, and a
-prefix argument turns that off.
+@code{compare-windows} by default ignores changes in whitespace, but a
+prefix argument turns that off for that single invocation of the
+command.
 
 @cindex Smerge mode
 @findex smerge-mode
@@ -1419,7 +1441,7 @@ Move to the next hunk-start (@code{diff-hunk-next}).
 This command has a side effect: it @dfn{refines} the hunk you move to,
 highlighting its changes with better granularity.  To disable this
 feature, type @kbd{M-x diff-auto-refine-mode} to toggle off the minor
-mode Diff Auto-Refine mode.  To disable Diff Auto Refine mode by
+mode Diff Auto-Refine mode.  To disable Diff Auto-Refine mode by
 default, add this to your init file (@pxref{Hooks}):
 
 @example
@@ -1548,17 +1570,17 @@ modify the original source files rather than the patched source files.
 @section Copying, Naming and Renaming Files
 
   Emacs has several commands for copying, naming, and renaming files.
-All of them read two file names @var{old} and @var{new} using the
-minibuffer, and then copy or adjust a file's name accordingly; they do
-not accept wildcard file names.
+All of them read two file names, @var{old} (or @var{target}) and
+@var{new}, using the minibuffer, and then copy or adjust a file's name
+accordingly; they do not accept wildcard file names.
 
 In all these commands, if the argument @var{new} is just a directory
-name, the real new name is in that directory, with the same
+name (@pxref{Directory Names,,, elisp, the Emacs Lisp Reference
+Manual}), the real new name is in that directory, with the same
 non-directory component as @var{old}.  For example, the command
 @w{@kbd{M-x rename-file @key{RET} ~/foo @key{RET} /tmp/ @key{RET}}}
 renames @file{~/foo} to @file{/tmp/foo}.  On GNU and other POSIX-like
-systems, directory names end in @samp{/}.  @xref{Directory Names,,,
-elisp, the Emacs Lisp Reference Manual}.
+systems, directory names end in @samp{/}.
 
 All these commands ask for confirmation when the new file name already
 exists.
@@ -1811,8 +1833,8 @@ To carry out this request, Emacs uses a remote-login program such as
 @command{ssh}.
 You must always specify in the file name which method to use---for
 example, @file{/ssh:@var{user}@@@var{host}:@var{filename}} uses
-@command{ssh}.  When you specify the pseudo method @var{-} in the file
-name, Emacs chooses the method as follows:
+@command{ssh}.  When you specify the pseudo method @samp{-} in the
+file name, Emacs chooses the method as follows:
 
 @enumerate
 @item
@@ -1835,7 +1857,7 @@ variable @code{tramp-mode} to @code{nil}.  You can turn off the
 feature in individual cases by quoting the file name with @samp{/:}
 (@pxref{Quoted File Names}).
 
-@cindex ange-ftp
+@cindex @code{ange-ftp}
   Remote file access through FTP is handled by the Ange-FTP package, which
 is documented in the following.  Remote file access through the other
 methods is handled by the Tramp package, which has its own manual.

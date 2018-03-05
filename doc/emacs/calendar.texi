@@ -12,7 +12,7 @@ planned or past events.  It also has facilities for managing your
 appointments, and keeping track of how much time you spend working on
 certain projects.
 
-  To enter the calendar, type @kbd{M-x calendar}; this displays a
+  To enter the calendar, type @kbd{M-x calendar}.  This displays a
 three-month calendar centered on the current month, with point on the
 current date.  With a numeric argument, as in @kbd{C-u M-x calendar}, it
 prompts you for the month and year to be the center of the three-month
@@ -41,8 +41,6 @@ For more advanced topics,
 * Lunar Phases::        Displaying phases of the moon.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
-* Appointments::        Reminders when it's time to do something.
-* Importing Diary::     Converting diary events to/from other formats.
 * Daylight Saving::     How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
 @ifnottex
@@ -128,10 +126,11 @@ whole year.
 
   The easiest way to remember these commands is to consider months and
 years analogous to paragraphs and pages of text, respectively.  But
-the commands themselves are not quite analogous.  The ordinary Emacs
-paragraph commands move to the beginning or end of a paragraph,
-whereas these month and year commands move by an entire month or an
-entire year, keeping the same date within the month or year.
+the calendar movement commands themselves do not quite parallel those
+for movement through text: the ordinary Emacs paragraph commands move
+to the beginning or end of a paragraph, whereas these month and year
+commands move by an entire month or an entire year, keeping the same
+date within the month or year.
 
   All these commands accept a numeric argument as a repeat count.
 For convenience, the digit keys and the minus sign specify numeric
@@ -936,6 +935,8 @@ entries.
 * Date Formats::           Various ways you can specify dates.
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
+* Appointments::           Reminders when it's time to do something.
+* Importing Diary::        Converting diary events to/from other formats.
 @end menu
 
 @node Format of Diary File
@@ -1363,7 +1364,7 @@ can perform arbitrary computations to determine when they apply.
 @end ifnottex
 
 @node Appointments
-@section Appointments
+@subsection Appointments
 @cindex appointment notification
 
 @vindex appt-display-format
@@ -1435,7 +1436,11 @@ also updated whenever the diary file (or a file it includes; see
 @ifnottex
 @ref{Fancy Diary Display})
 @end ifnottex
-is saved.
+is saved.  If you use the Org Mode and keep appointments in your Org
+agenda files, you can add those appointments to the list using the
+@code{org-agenda-to-appt} command.  @xref{Weekly/daily agenda,
+Appointment reminders,,org, The Org Manual}, for more about that
+command.
 
 @findex appt-add
 @findex appt-delete
@@ -1446,7 +1451,7 @@ list without affecting your diary file.  You delete entries from the
 appointment list with @kbd{M-x appt-delete}.
 
 @node Importing Diary
-@section Importing and Exporting Diary Entries
+@subsection Importing and Exporting Diary Entries
 
   You can transfer diary entries between Emacs diary files and a
 variety of other formats.
@@ -1502,7 +1507,8 @@ to the main diary file, if these are different files.
 @end ifnottex
 
 
-@findex icalendar-export-file, icalendar-export-region
+@findex icalendar-export-file
+@findex icalendar-export-region
   Use @code{icalendar-export-file} to interactively export an entire
 Emacs diary file to iCalendar format.  To export only a part of a diary
 file, mark the relevant area, and call @code{icalendar-export-region}.
@@ -1581,10 +1587,13 @@ variables' values are 120.
 @cindex time intervals, summing
 @cindex summing time intervals
 @cindex timeclock
+@cindex clocking time
 
   The timeclock package adds up time intervals, so you can (for
 instance) keep track of how much time you spend working on particular
-projects.
+projects.  (A more advanced alternative is to use the Org Mode's
+facilities for clocking time, @pxref{Clocking work time,,,org, The Org
+Manual}).
 
 @findex timeclock-in
 @findex timeclock-out

@@ -177,6 +177,13 @@ sys_thread_create (sys_thread_t *thread_ptr, const char *name,
   if (pthread_attr_init (&attr))
     return 0;
 
+  /* Avoid crash on macOS with deeply nested GC (Bug#30364).  */
+  size_t stack_size;
+  size_t required_stack_size = sizeof (void *) * 1024 * 1024;
+  if (pthread_attr_getstacksize (&attr, &stack_size) == 0
+      && stack_size < required_stack_size)
+    pthread_attr_setstacksize (&attr, required_stack_size);
+
   if (!pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED))
     {
       result = pthread_create (thread_ptr, &attr, func, arg) == 0;

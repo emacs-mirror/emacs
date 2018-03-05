@@ -3661,7 +3661,7 @@ struct marker_block
 static struct marker_block *marker_block;
 static int marker_block_index = MARKER_BLOCK_SIZE;
 
-static union Lisp_Misc *marker_free_list;
+static union Lisp_Misc *misc_free_list;
 
 /* Return a newly allocated Lisp_Misc object of specified TYPE.  */
 
@@ -3672,10 +3672,10 @@ allocate_misc (enum Lisp_Misc_Type type)
 
   MALLOC_BLOCK_INPUT;
 
-  if (marker_free_list)
+  if (misc_free_list)
     {
-      XSETMISC (val, marker_free_list);
-      marker_free_list = marker_free_list->u_free.chain;
+      XSETMISC (val, misc_free_list);
+      misc_free_list = misc_free_list->u_free.chain;
     }
   else
     {
@@ -3707,8 +3707,8 @@ void
 free_misc (Lisp_Object misc)
 {
   XMISCANY (misc)->type = Lisp_Misc_Free;
-  XMISC (misc)->u_free.chain = marker_free_list;
-  marker_free_list = XMISC (misc);
+  XMISC (misc)->u_free.chain = misc_free_list;
+  misc_free_list = XMISC (misc);
   consing_since_gc -= sizeof (union Lisp_Misc);
   total_free_markers++;
 }
@@ -7079,7 +7079,7 @@ sweep_misc (void)
   /* Put all unmarked misc's on free list.  For a marker, first
      unchain it from the buffer it points into.  */
 
-  marker_free_list = 0;
+  misc_free_list = 0;
 
   for (mblk = marker_block; mblk; mblk = *mprev)
     {
@@ -7106,8 +7106,8 @@ sweep_misc (void)
                  We could leave the type alone, since nobody checks it,
                  but this might catch bugs faster.  */
               mblk->markers[i].m.u_marker.type = Lisp_Misc_Free;
-              mblk->markers[i].m.u_free.chain = marker_free_list;
-              marker_free_list = &mblk->markers[i].m;
+              mblk->markers[i].m.u_free.chain = misc_free_list;
+              misc_free_list = &mblk->markers[i].m;
               this_free++;
             }
           else
@@ -7124,7 +7124,7 @@ sweep_misc (void)
         {
           *mprev = mblk->next;
           /* Unhook from the free list.  */
-          marker_free_list = mblk->markers[0].m.u_free.chain;
+          misc_free_list = mblk->markers[0].m.u_free.chain;
           lisp_free (mblk);
         }
       else

@@ -4130,17 +4130,16 @@ is an alternative to using the keymap itself.
 ** Changes in invisibility features
 
 *** Isearch can now temporarily show parts of the buffer which are
-hidden by an overlay with a invisible property, when the search match
+hidden by an overlay with an invisible property, when the search match
 is inside that portion of the buffer.  To enable this the overlay
-should have a isearch-open-invisible property which is a function that
-would be called having the overlay as an argument, the function should
-make the overlay visible.
+should have an isearch-open-invisible property, which is a function that
+would be called with the overlay as an argument, and should make it visible.
 
 During incremental search the overlays are shown by modifying the
-invisible and intangible properties, if beside this more actions are
-needed the overlay should have a isearch-open-invisible-temporary
-which is a function. The function is called with 2 arguments: one is
-the overlay and the second is nil when it should show the overlay and
+invisible and intangible properties.  If more actions are
+needed, the overlay should have an isearch-open-invisible-temporary property,
+which is a function.  The function is called with 2 arguments: one is
+the overlay, and the second is nil when it should show the overlay and
 t when it should hide it.
 
 *** add-to-invisibility-spec, remove-from-invisibility-spec

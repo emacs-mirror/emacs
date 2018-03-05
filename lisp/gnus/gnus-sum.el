@@ -2376,7 +2376,7 @@ increase the score of each group you read."
 	  ["Edit current score file" gnus-score-edit-current-scores t]
 	  ["Edit score file..." gnus-score-edit-file t]
 	  ["Trace score" gnus-score-find-trace t]
-	  ["Find words" gnus-score-find-favourite-words t]
+	  ["Find words" gnus-score-find-favorite-words t]
 	  ["Rescore buffer" gnus-summary-rescore t]
 	  ["Increase score..." gnus-summary-increase-score t]
 	  ["Lower score..." gnus-summary-lower-score t]))))
@@ -2950,6 +2950,8 @@ See `gmm-tool-bar-from-list' for the format of the list."
 
 (defvar image-load-path)
 (defvar tool-bar-map)
+(declare-function image-load-path-for-library "image"
+		  (library image &optional path no-error))
 
 (defun gnus-summary-make-tool-bar (&optional force)
   "Make a summary mode tool bar from `gnus-summary-tool-bar'.

@@ -752,6 +752,7 @@ be set in `.emacs' instead."
   (cdr (assq gnus-logo-color-style gnus-logo-color-alist))
   "Colors used for the Gnus logo.")
 
+(defvar image-load-path)
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun gnus-group-startup-message (&optional x y)
@@ -2378,11 +2379,11 @@ This variable is persisted in the user's .newsrc.eld file.")
 
 ;; Propagate flags to server, with the following exceptions:
 ;; `seen' is private to each gnus installation
-;; `cache' is a internal gnus flag for each gnus installation
-;; `download' is a agent flag private to each gnus installation
+;; `cache' is an internal gnus flag for each gnus installation
+;; `download' is an agent flag private to each gnus installation
 ;; `unsend' are for nndraft groups only
 ;; `score' is not a proper mark
-;; `bookmark': don't propagated it, or fix the bug in update-mark.
+;; `bookmark': don't propagate it, or fix the bug in update-mark.
 (defconst gnus-article-unpropagated-mark-lists
   '(seen cache download unsend score bookmark unexist)
   "Marks that shouldn't be propagated to back ends.

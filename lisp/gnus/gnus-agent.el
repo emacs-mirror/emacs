@@ -451,7 +451,7 @@ manipulated as follows:
 (defvar gnus-agent-mode-status '(gnus-agent-mode " Plugged"))
 
 (defun gnus-agent-mode ()
-  "Minor mode for providing a agent support in Gnus buffers."
+  "Minor mode for providing agent support in Gnus buffers."
   (let* ((buffer (progn (string-match "^gnus-\\(.*\\)-mode$"
 				      (symbol-name major-mode))
 			(match-string 1 (symbol-name major-mode))))

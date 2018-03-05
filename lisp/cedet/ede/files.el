@@ -25,7 +25,7 @@
 ;;
 ;; Basic Model:
 ;;
-;; A directory belongs to a project if a ede-project-autoload structure
+;; A directory belongs to a project if an ede-project-autoload structure
 ;; matches your directory.
 ;;
 ;; A toplevel project is one where there is no active project above

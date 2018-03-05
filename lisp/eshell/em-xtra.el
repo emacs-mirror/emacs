@@ -25,8 +25,10 @@
 
 (require 'esh-util)
 (eval-when-compile
-  (require 'eshell)
-  (require 'pcomplete))
+  (require 'eshell))
+;; Strictly speaking, should only be needed at compile time.
+;; Require at run-time too to silence compiler.
+(require 'pcomplete)
 (require 'compile)
 
 ;; There are no items in this custom group, but eshell modules (ab)use

@@ -87,7 +87,7 @@ variable's value to take effect."
   "Called each time a process is exec'd by `eshell-gather-process-output'.
 It is passed one argument, which is the process that was just started.
 It is useful for things that must be done each time a process is
-executed in a eshell mode buffer (e.g., `process-kill-without-query').
+executed in an eshell mode buffer (e.g., `process-kill-without-query').
 In contrast, `eshell-mode-hook' is only executed once when the buffer
 is created."
   :type 'hook
@@ -158,7 +158,7 @@ The signals which will cause this to happen are matched by
 
 (defalias 'eshell/wait 'eshell-wait-for-process)
 
-(defun eshell/jobs (&rest args)
+(defun eshell/jobs (&rest _args)
   "List processes, if there are any."
   (and (fboundp 'process-list)
        (process-list)

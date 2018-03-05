@@ -26,6 +26,8 @@
 (require 'cl-lib)
 (require 'map)
 
+(define-error 'json-tests--error "JSON test error")
+
 (ert-deftest json-serialize/roundtrip ()
   (skip-unless (fboundp 'json-serialize))
   ;; The noncharacter U+FFFF should be passed through,
@@ -175,6 +177,36 @@ Test with both unibyte and multibyte strings."
     (should (equal (json-parse-buffer) [123]))
     (should-not (bobp))
     (should (looking-at-p (rx " [456]" eos)))))
+
+(ert-deftest json-insert/signal ()
+  (skip-unless (fboundp 'json-insert))
+  (with-temp-buffer
+    (let ((calls 0))
+      (add-hook 'after-change-functions
+                (lambda (_begin _end _length)
+                  (cl-incf calls)
+                  (signal 'json-tests--error
+                          '("Error in `after-change-functions'")))
+                :local)
+      (should-error
+       (json-insert '((a . "b") (c . 123) (d . [1 2 t :false])))
+       :type 'json-tests--error)
+      (should (equal calls 1)))))
+
+(ert-deftest json-insert/throw ()
+  (skip-unless (fboundp 'json-insert))
+  (with-temp-buffer
+    (let ((calls 0))
+      (add-hook 'after-change-functions
+                (lambda (_begin _end _length)
+                  (cl-incf calls)
+                  (throw 'test-tag 'throw-value))
+                :local)
+      (should-error
+       (catch 'test-tag
+         (json-insert '((a . "b") (c . 123) (d . [1 2 t :false]))))
+       :type 'no-catch)
+      (should (equal calls 1)))))
 
 (provide 'json-tests)
 ;;; json-tests.el ends here

@@ -467,8 +467,6 @@ Add an entry here when adding a new search engine.")
 			,@(mapcar (lambda (elem) (list 'const (car elem)))
 				  nnir-engines)))))
 
-
-
 (defmacro nnir-add-result (dirnam artno score prefix server artlist)
   "Ask `nnir-compose-result' to construct a result vector,
 and if it is non-nil, add it to artlist."
@@ -1234,7 +1232,7 @@ actually)."
   "Run a search against a gmane back-end server."
       (let* ((case-fold-search t)
 	     (qstring (cdr (assq 'query query)))
-;	     (server (cadr (gnus-server-to-method srv)))
+;;	     (server (cadr (gnus-server-to-method srv)))
 	     (groupspec (mapconcat
 			 (lambda (x)
 			   (if (string-match-p "gmane" x)

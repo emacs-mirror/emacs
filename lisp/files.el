@@ -963,7 +963,8 @@ the function needs to examine, starting with FILE."
                     (null file)
                     (string-match locate-dominating-stop-dir-regexp file)))
       (setq try (if (stringp name)
-                    (file-exists-p (expand-file-name name file))
+                    (and (file-directory-p file)
+                         (file-exists-p (expand-file-name name file)))
                   (funcall name file)))
       (cond (try (setq root file))
             ((equal file (setq file (file-name-directory
@@ -3314,15 +3315,7 @@ n  -- to ignore the local variables list.")
 
       ;; Display the buffer and read a choice.
       (save-window-excursion
-	(pop-to-buffer buf `((display-buffer--maybe-same-window
-                              display-buffer-reuse-window
-                              display-buffer--maybe-pop-up-frame-or-window
-                              display-buffer-at-bottom)
-	                     ,(if temp-buffer-resize-mode
-		                  '(window-height . resize-temp-buffer-window)
-	                        '(window-height . fit-window-to-buffer))
-	                     ,(when temp-buffer-resize-mode
-	                        '(preserve-size . (nil . t)))))
+	(pop-to-buffer buf '(display-buffer--maybe-at-bottom))
 	(let* ((exit-chars '(?y ?n ?\s ?\C-g ?\C-v))
 	       (prompt (format "Please type %s%s: "
 			       (if offer-save "y, n, or !" "y or n")
@@ -6928,15 +6921,7 @@ if any returns nil.  If `confirm-kill-emacs' is non-nil, calls it."
            (or (not active)
                (with-displayed-buffer-window
                 (get-buffer-create "*Process List*")
-                `((display-buffer--maybe-same-window
-                   display-buffer-reuse-window
-                   display-buffer--maybe-pop-up-frame-or-window
-                   display-buffer-at-bottom)
-	          ,(if temp-buffer-resize-mode
-		       '(window-height . resize-temp-buffer-window)
-	             '(window-height . fit-window-to-buffer))
-	          ,(when temp-buffer-resize-mode
-	             '(preserve-size . (nil . t))))
+                '(display-buffer--maybe-at-bottom)
                 #'(lambda (window _value)
                     (with-selected-window window
                       (unwind-protect

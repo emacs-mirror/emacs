@@ -1712,39 +1712,59 @@ handled properly.  BODY shall not contain a timeout."
 
 (ert-deftest tramp-test04-substitute-in-file-name ()
   "Check `substitute-in-file-name'."
-  (should (string-equal (substitute-in-file-name "/method:host://foo") "/foo"))
+  (should (string-equal (substitute-in-file-name "/method:host:///foo") "/foo"))
+  (should
+   (string-equal
+    (substitute-in-file-name "/method:host://foo") "/method:host:/foo"))
+  (should
+   (string-equal (substitute-in-file-name "/method:host:/path///foo") "/foo"))
   (should
    (string-equal
     (substitute-in-file-name "/method:host:/path//foo") "/method:host:/foo"))
-  (should
-   (string-equal (substitute-in-file-name "/method:host:/path///foo") "/foo"))
   ;; Quoting local part.
+  (should
+   (string-equal
+    (substitute-in-file-name "/method:host:/:///foo") "/method:host:/:///foo"))
   (should
    (string-equal
     (substitute-in-file-name "/method:host:/://foo") "/method:host:/://foo"))
   (should
    (string-equal
-    (substitute-in-file-name "/method:host:/:/path//foo")
-    "/method:host:/:/path//foo"))
-  (should
-   (string-equal
     (substitute-in-file-name "/method:host:/:/path///foo")
     "/method:host:/:/path///foo"))
-
   (should
    (string-equal
-    (substitute-in-file-name "/method:host:/path/~/foo") "/method:host:~/foo"))
+    (substitute-in-file-name "/method:host:/:/path//foo")
+    "/method:host:/:/path//foo"))
+
   (should
-   (string-equal (substitute-in-file-name "/method:host:/path//~/foo") "~/foo"))
+   (string-equal (substitute-in-file-name "/method:host://~foo") "/~foo"))
+  (should
+   (string-equal
+    (substitute-in-file-name "/method:host:/~foo") "/method:host:/~foo"))
+  (should
+   (string-equal (substitute-in-file-name "/method:host:/path//~foo") "/~foo"))
+  ;; (substitute-in-file-name "/path/~foo") expands only to "/~foo"",
+  ;; if $LOGNAME or $USER is "foo".  Otherwise, it doesn't expand.
+  (should
+   (string-equal
+    (substitute-in-file-name
+     "/method:host:/path/~foo") "/method:host:/path/~foo"))
   ;; Quoting local part.
   (should
    (string-equal
-    (substitute-in-file-name "/method:host:/:/path/~/foo")
-    "/method:host:/:/path/~/foo"))
+    (substitute-in-file-name "/method:host:/://~foo") "/method:host:/://~foo"))
   (should
    (string-equal
-    (substitute-in-file-name "/method:host:/:/path//~/foo")
-    "/method:host:/:/path//~/foo"))
+    (substitute-in-file-name "/method:host:/:/~foo") "/method:host:/:/~foo"))
+  (should
+   (string-equal
+    (substitute-in-file-name
+     "/method:host:/:/path//~foo") "/method:host:/:/path//~foo"))
+  (should
+   (string-equal
+    (substitute-in-file-name
+     "/method:host:/:/path/~foo") "/method:host:/:/path/~foo"))
 
   (let (process-environment)
     (should

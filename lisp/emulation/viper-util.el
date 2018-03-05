@@ -39,7 +39,6 @@
 (defvar ex-unix-type-shell-options)
 (defvar viper-ex-tmp-buf-name)
 (defvar viper-syntax-preference)
-(defvar viper-saved-mark)
 
 (require 'ring)
 
@@ -885,6 +884,9 @@ Otherwise return the normal value."
 (defsubst viper-mark-marker ()
   (if (featurep 'xemacs) (mark-marker t)
     (mark-marker)))
+
+(defvar viper-saved-mark nil
+  "Where viper saves mark.  This mark is resurrected by m^.")
 
 ;; like (set-mark-command nil) but doesn't push twice, if (car mark-ring)
 ;; is the same as (mark t).

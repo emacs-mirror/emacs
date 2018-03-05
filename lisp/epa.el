@@ -267,7 +267,7 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-exit-buffer-function #'quit-window)
 
 (define-widget 'epa-key 'push-button
-  "Button for representing a epg-key object."
+  "Button for representing an epg-key object."
   :format "%[%v%]"
   :button-face-get 'epa--key-widget-button-face-get
   :value-create 'epa--key-widget-value-create

@@ -4890,7 +4890,7 @@ Key bindings:
   (set (make-local-variable 'indent-tabs-mode) vhdl-indent-tabs-mode)
   (set (make-local-variable 'hippie-expand-verbose) nil)
 
-  ;; setup the comment indent variable in a Emacs version portable way
+  ;; setup the comment indent variable in an Emacs version portable way
   ;; ignore any byte compiler warnings you might get here
   (when (boundp 'comment-indent-function)
     (set (make-local-variable 'comment-indent-function) 'vhdl-comment-indent))

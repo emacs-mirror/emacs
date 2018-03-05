@@ -1916,7 +1916,7 @@ may internally call functions in @code{completion-at-point-functions}
 many times, but care about the value of @var{collection} for only some
 of these calls.  By supplying a function for @var{collection}, Emacs
 can defer generating completions until necessary.  You can use
-@var{completion-table-dynamic} to create a wrapper function:
+@code{completion-table-dynamic} to create a wrapper function:
 
 @smallexample
 ;; Avoid this pattern.
@@ -2323,6 +2323,12 @@ frame's height; an integer specifies the maximum number of lines.  The
 default value is 0.25.
 @end defopt
 
+Note that the values of the above two variables take effect at display
+time, so let-binding them around code which produces echo-area messages
+will not work.  If you want to prevent resizing of minibuffer windows
+when displaying long messages, bind the @code{message-truncate-lines}
+variable instead (@pxref{Echo Area Customization}).
+
 
 @node Minibuffer Contents
 @section Minibuffer Contents
@@ -2449,12 +2455,6 @@ This function returns the window that was selected just before the
 minibuffer window was selected.  If the selected window is not a
 minibuffer window, it returns @code{nil}.
 @end defun
-
-@defopt max-mini-window-height
-This variable specifies the maximum height for resizing minibuffer
-windows.  If a float, it specifies a fraction of the height of the
-frame.  If an integer, it specifies a number of lines.
-@end defopt
 
 @vindex minibuffer-message-timeout
 @defun minibuffer-message string &rest args

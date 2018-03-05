@@ -4348,7 +4348,7 @@ integer.  This is a required property.
 `:pt-height HEIGHT'
 
 HEIGHT specifies the height of the image in pt (1/72 inch).  HEIGHT
-must be a integer.  This is an required property.
+must be an integer.  This is a required property.
 
 `:bounding-box BOX'
 
@@ -4868,7 +4868,7 @@ temporarily to nil, for example
      (enlarge-window 10))
 
 Likewise, an attempt to split a fixed-height window vertically,
-or a fixed-width window horizontally results in a error.
+or a fixed-width window horizontally results in an error.
 
 ** The cursor-type frame parameter is now supported on MS-DOS
 terminals.  When Emacs starts, it by default changes the cursor shape

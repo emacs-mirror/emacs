@@ -408,7 +408,7 @@ TYPE name does not exist.  Otherwise signal an error."
 SPECS must be a list of (TYPE . TOKENS) elements, where:
 
   TYPE is the name of the type symbol to define.
-  TOKENS is an list of (TOKSYM . MATCHER) elements, where:
+  TOKENS is a list of (TOKSYM . MATCHER) elements, where:
 
     TOKSYM is any lexical token symbol.
     MATCHER is a string or regexp a text must match to be a such

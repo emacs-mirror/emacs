@@ -423,8 +423,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
 
 ;; TODO:
 ;; * Watching a /dir/file may receive events for dir.
-;;   (This may be the desired behaviour.)
-;; * Watching a file in a already watched directory
+;;   (This may be the desired behavior.)
+;; * Watching a file in an already watched directory
 ;;   If the file is created and *then* a watch is added to that file, the
 ;;   watch might receive events which occurred prior to it being created,
 ;;   due to the way events are propagated during idle time.  Note: This

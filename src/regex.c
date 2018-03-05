@@ -5787,7 +5787,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, re_char *string1,
 
 	    EXTRACT_NUMBER (mcnt, p2 - 2);
 
-	    /* Ensure this is a indeed the trivial kind of loop
+	    /* Ensure this is indeed the trivial kind of loop
 	       we are expecting.  */
 	    assert (skip_one_char (p1) == p2 - 3);
 	    assert ((re_opcode_t) p2[-3] == jump && p2 + mcnt == p);

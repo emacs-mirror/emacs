@@ -121,7 +121,7 @@ See `semantic-analyze-scoped-tags' for details.")
 	   :type buffer
 	   :documentation "The buffer this context is derived from.")
    (errors :initarg :errors
-	   :documentation "Any errors thrown an caught during analysis.")
+	   :documentation "Any errors thrown and caught during analysis.")
    )
   "Base analysis data for any context.")
 

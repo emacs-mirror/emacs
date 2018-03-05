@@ -105,24 +105,32 @@ adds the package's content directory to @code{load-path}, and
 evaluates the autoload definitions in @file{@var{name}-autoloads.el}.
 
   Whenever Emacs starts up, it automatically calls the function
-@code{package-initialize} to load installed packages.  This is done
-after loading the init file and abbrev file (if any) and before
-running @code{after-init-hook} (@pxref{Startup Summary}).  Automatic
-package loading is disabled if the user option
-@code{package-enable-at-startup} is @code{nil}.
+@code{package-initialize} to make installed packages available to the
+current session.  This is done after loading the early init file, but
+before loading the regular init file (@pxref{Startup Summary}).
+Packages are not automatically made available if the user option
+@code{package-enable-at-startup} is set to @code{nil} in the early
+init file.
 
 @deffn Command package-initialize &optional no-activate
 This function initializes Emacs' internal record of which packages are
-installed, and loads them.  The user option @code{package-load-list}
-specifies which packages to load; by default, all installed packages
-are loaded.  If called during startup, this function also sets
+installed, and makes the packages available to the current session.
+The user option @code{package-load-list} specifies which packages to
+make available; by default, all installed packages are made available.
+If called during startup, this function also sets
 @code{package-enable-at-startup} to @code{nil}, to avoid accidentally
-loading the packages twice.  @xref{Package Installation,,, emacs, The
-GNU Emacs Manual}.
+evaluating package autoloads more than once.  @xref{Package
+Installation,,, emacs, The GNU Emacs Manual}.
 
 The optional argument @var{no-activate}, if non-@code{nil}, causes
 Emacs to update its record of installed packages without actually
-loading them; it is for internal use only.
+making them available; it is for internal use only.
+
+In most cases, you should not need to call @code{package-initialize},
+as this is done automatically during startup.  Simply make sure to put
+any code that should run before @code{package-initialize} in the early
+init file, and any code that should run after it in the primary init
+file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 @end deffn
 
 @node Simple Packages
@@ -191,7 +199,7 @@ standard keyword from the @code{finder-known-keywords} list.
 as explained in @ref{Packaging Basics}.  In the above example, a magic
 comment autoloads @code{superfrobnicator-mode}.
 
-  @xref{Package Archives}, for a explanation of how to add a
+  @xref{Package Archives}, for an explanation of how to add a
 single-file package to a package archive.
 
 @node Multi-file Packages

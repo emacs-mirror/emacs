@@ -631,7 +631,7 @@ After interpretation of ARGS the results are concatenated as for
      &aux
      (char (rst-Ado--validate-char char-arg))
      (-style 'simple)))
-   ;; Construct a over-and-under section header.
+   ;; Construct an over-and-under section header.
    (:constructor
     rst-Ado-new-over-and-under
     (char-arg
@@ -696,7 +696,7 @@ Return CHAR if so or signal an error otherwise."
 
 (defun rst-Ado-is-over-and-under (self)
   ;; testcover: ok.
-  "Return non-nil if SELF is a over-and-under section adornment."
+  "Return non-nil if SELF is an over-and-under section adornment."
   (cl-check-type self rst-Ado)
   (eq (rst-Ado--style self) 'over-and-under))
 
@@ -834,7 +834,7 @@ Return ADO if so or signal an error otherwise."
 
 (defun rst-Hdr-is-over-and-under (self)
   ;; testcover: ok.
-  "Return non-nil if SELF is a over-and-under section header."
+  "Return non-nil if SELF is an over-and-under section header."
   (cl-check-type self rst-Hdr)
   (rst-Ado-is-over-and-under (rst-Hdr-ado self)))
 
@@ -937,7 +937,7 @@ This type is immutable."
 		   (or (null und-beg) (integer-or-marker-p und-beg))
 		   (or (null und-end) (integer-or-marker-p und-end)))
 	(signal 'args-out-of-range
-		'("For a over-and-under section adornment all match pairs must be set."))))))
+		'("For an over-and-under section adornment all match pairs must be set."))))))
   match)
 
 (defun rst-Ttl--validate-indent (indent ado)
@@ -1224,7 +1224,7 @@ as well but give an additional message."
     ;; Makes paragraphs in region as a bullet list.
     (rst-define-key map [?\C-c ?\C-l ?\C-b] #'rst-bullet-list-region
 		    [?\C-c ?\C-b])
-    ;; Makes paragraphs in region as a enumeration.
+    ;; Makes paragraphs in region an enumeration.
     (rst-define-key map [?\C-c ?\C-l ?\C-e] #'rst-enumerate-region
 		    [?\C-c ?\C-e])
     ;; Converts bullets to an enumeration.
@@ -1529,7 +1529,7 @@ file."
 (defcustom rst-default-indent 1
   "Number of characters to indent the section title.
 This is only used while toggling adornment styles when switching
-from a simple adornment style to a over-and-under adornment
+from a simple adornment style to an over-and-under adornment
 style.  In addition this is used in cases where the adornments
 found in the buffer are to be used but the indentation for
 over-and-under adornments is inconsistent across the buffer."

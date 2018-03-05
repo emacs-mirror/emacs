@@ -351,7 +351,8 @@ be invoked with the right arguments."
   (declare (indent 1) (debug ((symbolp symbolp &optional form) body)))
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
-  `(let* ((,name (make-temp-file "files-tests" ,dir-flag))
+  `(let* ((temporary-file-directory (file-truename temporary-file-directory))
+          (,name (make-temp-file "files-tests" ,dir-flag))
           (,non-special-name (file-name-quote ,name)))
      (unwind-protect
          (progn ,@body)
@@ -416,10 +417,23 @@ be invoked with the right arguments."
     (should (equal (directory-files nospecial-dir)
                    (directory-files tmpdir)))))
 
+(defun files-tests-file-attributes-equal (attr1 attr2)
+  ;; Element 4 is access time, which may be changed by the act of
+  ;; checking the attributes.
+  (setf (nth 4 attr1) nil)
+  (setf (nth 4 attr2) nil)
+  ;; Element 9 is unspecified.
+  (setf (nth 9 attr1) nil)
+  (setf (nth 9 attr2) nil)
+  (equal attr1 attr2))
+
 (ert-deftest files-tests-file-name-non-special-directory-files-and-attributes ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (should (equal (directory-files-and-attributes nospecial-dir)
-                   (directory-files-and-attributes tmpdir)))))
+    (cl-loop for (file1 . attr1) in (directory-files-and-attributes nospecial-dir)
+             for (file2 . attr2) in (directory-files-and-attributes tmpdir)
+             do
+             (should (equal file1 file2))
+             (should (files-tests-file-attributes-equal attr1 attr2)))))
 
 (ert-deftest files-tests-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
@@ -450,7 +464,8 @@ be invoked with the right arguments."
 
 (ert-deftest files-tests-file-name-non-special-file-attributes ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (equal (file-attributes nospecial) (file-attributes tmpfile)))))
+    (should (files-tests-file-attributes-equal
+             (file-attributes nospecial) (file-attributes tmpfile)))))
 
 (ert-deftest files-tests-file-name-non-special-file-directory-p ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)

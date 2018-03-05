@@ -1271,8 +1271,9 @@ operation at startup.
 @item TMPDIR
 @vindex TMPDIR
 @vindex url-temporary-directory
-If this is defined, @var{url-temporary-directory} is initialized from
-it.
+If this is defined, @code{url-temporary-directory} is initialized from
+it.  This variable was obsoleted in 23.1, please use
+@code{temporary-file-directory} instead.
 @end table
 
   The following user options affect the general operation of

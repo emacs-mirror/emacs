@@ -195,10 +195,10 @@ EDT Emulation.  (Note: In a few rare circumstances this does not work
 properly.  In particular, it does not work if a subset of the leading
 @acronym{ASCII} characters in a key sequence are recognized by Emacs as
 having an existing binding.  For example, if the keypad 7 (@key{KP7})
-key generates the sequence @samp{<ESC>Ow} and @samp{<ESC>O} is already
+key generates the sequence @samp{@key{ESC}Ow} and @samp{@key{ESC}O} is already
 bound to a function, pressing @key{KP7} when told to do so by
 @file{edt-mapper.el} will result in @file{edt-mapper.el} incorrectly
-mapping @samp{<ESC>O} to @key{KP7} and @samp{w} to @key{KP8}.  If
+mapping @samp{@key{ESC}O} to @key{KP7} and @samp{w} to @key{KP8}.  If
 something like this happens to you, it is probably a bug in the support
 for your keyboard within Emacs @strong{or} a bug in the Unix
 termcap/terminfo support for your terminal @strong{or} a bug in the

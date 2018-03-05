@@ -3049,7 +3049,7 @@ Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
 
 If we reach the beginning or end of the accessible part of the buffer
 before we have scanned over COUNT lists, return nil if the depth at
-that point is zero, and signal a error if the depth is nonzero.  */)
+that point is zero, and signal an error if the depth is nonzero.  */)
   (Lisp_Object from, Lisp_Object count, Lisp_Object depth)
 {
   CHECK_NUMBER (from);

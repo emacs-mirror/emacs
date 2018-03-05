@@ -645,7 +645,7 @@ marked file, return (t FILENAME) instead of (FILENAME)."
      ;; save-excursion loses, again
      (dired-move-to-filename)))
 
-(defun dired-get-marked-files (&optional localp arg filter distinguish-one-marked)
+(defun dired-get-marked-files (&optional localp arg filter distinguish-one-marked error)
   "Return the marked files' names as list of strings.
 The list is in the same order as the buffer, that is, the car is the
   first marked file.
@@ -662,7 +662,10 @@ Optional third argument FILTER, if non-nil, is a function to select
 
 If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one marked file,
 return (t FILENAME) instead of (FILENAME).
-Don't use that together with FILTER."
+Don't use that together with FILTER.
+
+If ERROR is non-nil, signal an error when the list of found files is empty.
+ERROR can be a string with the error message."
   (let ((all-of-them
 	 (save-excursion
 	   (delq nil (dired-map-over-marks
@@ -672,13 +675,17 @@ Don't use that together with FILTER."
     (when (equal all-of-them '(t))
       (setq all-of-them nil))
     (if (not filter)
-	(if (and distinguish-one-marked (eq (car all-of-them) t))
-	    all-of-them
-	  (nreverse all-of-them))
+	(setq result
+              (if (and distinguish-one-marked (eq (car all-of-them) t))
+	          all-of-them
+	        (nreverse all-of-them)))
       (dolist (file all-of-them)
 	(if (funcall filter file)
-	    (push file result)))
-      result)))
+	    (push file result))))
+    (when (and (null result) error)
+      (user-error (if (stringp error) error "No files specified")))
+    result))
+
 
 ;; The dired command
 
@@ -2345,12 +2352,7 @@ Otherwise, an error occurs in these cases."
 		  (setq start (match-end 0))))))
 
           ;; Hence we don't need to worry about converting `\\' back to `\'.
-          (setq file (read (concat "\"" file "\"")))
-	  ;; The above `read' will return a unibyte string if FILE
-	  ;; contains eight-bit-control/graphic characters.
-	  (if (and enable-multibyte-characters
-		   (not (multibyte-string-p file)))
-	      (setq file (string-to-multibyte file)))))
+          (setq file (read (concat "\"" file "\"")))))
     (and file (files--name-absolute-system-p file)
 	 (setq already-absolute t))
     (cond

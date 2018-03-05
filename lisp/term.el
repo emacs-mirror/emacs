@@ -487,7 +487,7 @@ inconsistent with the state of the terminal understood by the
 inferior process.  Only the process filter is allowed to make
 changes to the buffer.
 
-Customize this option to nil if you want the previous behaviour."
+Customize this option to nil if you want the previous behavior."
   :version "26.1"
   :type 'boolean
   :group 'term)
@@ -508,7 +508,7 @@ commands can be invoked on the mouse-selected point or region,
 until the process filter (or user) moves point to the process
 mark once again.
 
-Customize this option to nil if you want the previous behaviour."
+Customize this option to nil if you want the previous behavior."
   :version "26.1"
   :type 'boolean
   :group 'term)

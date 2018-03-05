@@ -983,7 +983,7 @@ alphabeticp (int c)
 	  || gen_cat == UNICODE_CATEGORY_Nl);
 }
 
-/* Return true if C is a alphabetic or decimal-number character.  */
+/* Return true if C is an alphabetic or decimal-number character.  */
 bool
 alphanumericp (int c)
 {

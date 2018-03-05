@@ -2089,23 +2089,15 @@ This is like `cl-flet', but for macros instead of functions.
                                      (eval `(cl-function (lambda ,@(cdr res))) t))
 			       macroexpand-all-environment))))))
 
-(defconst cl--old-macroexpand
-  (if (and (boundp 'cl--old-macroexpand)
-           (eq (symbol-function 'macroexpand)
-               #'cl--sm-macroexpand))
-      cl--old-macroexpand
-    (symbol-function 'macroexpand)))
-
-(defun cl--sm-macroexpand (exp &optional env)
-  "Special macro expander used inside `cl-symbol-macrolet'.
-This function replaces `macroexpand' during macro expansion
-of `cl-symbol-macrolet', and does the same thing as `macroexpand'
-except that it additionally expands symbol macros."
+(defun cl--sm-macroexpand (orig-fun exp &optional env)
+  "Special macro expander advice used inside `cl-symbol-macrolet'.
+This function extends `macroexpand' during macro expansion
+of `cl-symbol-macrolet' to additionally expand symbol macros."
   (let ((macroexpand-all-environment env)
         (venv (alist-get :cl-symbol-macros env)))
     (while
         (progn
-          (setq exp (funcall cl--old-macroexpand exp env))
+          (setq exp (funcall orig-fun exp env))
           (pcase exp
             ((pred symbolp)
              ;; Perform symbol-macro expansion.
@@ -2114,7 +2106,7 @@ except that it additionally expands symbol macros."
                  (setq exp (cadr symval)))))
             (`(setq . ,_)
              ;; Convert setq to setf if required by symbol-macro expansion.
-             (let* ((args (mapcar (lambda (f) (cl--sm-macroexpand f env))
+             (let* ((args (mapcar (lambda (f) (macroexpand f env))
                                   (cdr exp)))
                     (p args))
                (while (and p (symbolp (car p))) (setq p (cddr p)))
@@ -2160,10 +2152,10 @@ except that it additionally expands symbol macros."
                                   (list (macroexpand-all (cadr binding)
                                                          env)))))
                    (push (if (assq var venv)
-                             ;; This binding should hide its symbol-macro,
-                             ;; but given the way macroexpand-all works
-                             ;; (i.e. the `env' we receive as input will be
-                             ;; (re)applied to the code we return), we can't
+                             ;; This binding should hide "its" surrounding
+                             ;; symbol-macro, but given the way macroexpand-all
+                             ;; works (i.e. the `env' we receive as input will
+                             ;; be (re)applied to the code we return), we can't
                              ;; prevent application of `env' to the
                              ;; sub-expressions, so we need to α-rename this
                              ;; variable instead.
@@ -2181,6 +2173,43 @@ except that it additionally expands symbol macros."
                                 (macroexpand-all (macroexp-progn body)
                                                  env)))))
                nil))
+            ;; Do the same as for `let' but for variables introduced
+            ;; via other means, such as `lambda' and `condition-case'.
+            (`(function (lambda ,args . ,body))
+             (let ((nargs ()) (found nil))
+               (dolist (var args)
+                 (push (cond
+                        ((memq var '(&optional &rest)) var)
+                        ((assq var venv)
+                         (let ((nvar (make-symbol (symbol-name var))))
+                           (setq found t)
+                           (push (list var nvar) venv)
+                           (push (cons :cl-symbol-macros venv) env)
+                           nvar))
+                        (t var))
+                       nargs))
+               (when found
+                 (setq exp `(function
+                             (lambda ,(nreverse nargs)
+                               . ,(mapcar (lambda (exp)
+                                            (macroexpand-all exp env))
+                                          body)))))
+               nil))
+            ((and `(condition-case ,var ,exp . ,clauses)
+                  (guard (assq var venv)))
+             (let ((nvar (make-symbol (symbol-name var))))
+               (push (list var nvar) venv)
+               (push (cons :cl-symbol-macros venv) env)
+               (setq exp
+                     `(condition-case ,nvar ,(macroexpand-all exp env)
+                        . ,(mapcar
+                            (lambda (clause)
+                              `(,(car clause)
+                                . ,(mapcar (lambda (exp)
+                                             (macroexpand-all exp env))
+                                           (cdr clause))))
+                            clauses)))
+               nil))
             )))
     exp))
 
@@ -2192,16 +2221,18 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 
 \(fn ((NAME EXPANSION) ...) FORM...)"
   (declare (indent 1) (debug ((&rest (symbolp sexp)) cl-declarations body)))
-  (let ((previous-macroexpand (symbol-function 'macroexpand))
-        (malformed-bindings nil))
+  (let ((malformed-bindings nil)
+        (advised (advice-member-p #'cl--sm-macroexpand 'macroexpand)))
     (dolist (binding bindings)
       (unless (and (consp binding) (symbolp (car binding))
                    (consp (cdr binding)) (null (cddr binding)))
         (push binding malformed-bindings)))
     (unwind-protect
         (progn
-          (fset 'macroexpand #'cl--sm-macroexpand)
-          (let* ((venv (cdr (assq :cl-symbol-macros macroexpand-all-environment)))
+          (unless advised
+            (advice-add 'macroexpand :around #'cl--sm-macroexpand))
+          (let* ((venv (cdr (assq :cl-symbol-macros
+                                  macroexpand-all-environment)))
                  (expansion
                   (macroexpand-all (macroexp-progn body)
                                    (cons (cons :cl-symbol-macros
@@ -2213,7 +2244,8 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
                                  (nreverse malformed-bindings))
                  expansion)
               expansion)))
-      (fset 'macroexpand previous-macroexpand))))
+      (unless advised
+        (advice-remove 'macroexpand #'cl--sm-macroexpand)))))
 
 ;;; Multiple values.
 

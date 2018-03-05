@@ -182,6 +182,8 @@ underneath each nick."
   :type '(repeat string)
   :group 'rcirc)
 
+(defvar rcirc-prompt-start-marker nil)
+
 (define-minor-mode rcirc-omit-mode
   "Toggle the hiding of \"uninteresting\" lines.
 With a prefix argument ARG, enable Rcirc-Omit mode if ARG is
@@ -401,7 +403,6 @@ will be killed."
 
 (defvar rcirc-nick nil)
 
-(defvar rcirc-prompt-start-marker nil)
 (defvar rcirc-prompt-end-marker nil)
 
 (defvar rcirc-nick-table nil)

@@ -1229,7 +1229,7 @@ When not inside a field, signal an error."
                               (save-restriction
                                 ;; `widget-narrow-to-field' can be
                                 ;; active when this function is called
-                                ;; from an change-functions hook. So
+                                ;; from a change-functions hook. So
                                 ;; temporarily remove field narrowing
                                 ;; before to call `get-char-property'.
                                 (widen)
@@ -1802,7 +1802,7 @@ If END is omitted, it defaults to the length of LIST."
 ;;; The `url-link' Widget.
 
 (define-widget 'url-link 'link
-  "A link to an www page."
+  "A link to a web page."
   :action 'widget-url-link-action)
 
 (defun widget-url-link-action (widget &optional _event)

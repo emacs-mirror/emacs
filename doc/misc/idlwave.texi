@@ -172,7 +172,7 @@ Catalogs
 @cindex CORBA (Common Object Request Broker Architecture)
 @cindex Interface Definition Language
 @cindex Interactive Data Language
-@cindex cc-mode.el
+@cindex @file{cc-mode.el}
 @cindex @file{idl.el}
 @cindex @file{idl-shell.el}
 @cindex Feature overview
@@ -935,7 +935,7 @@ IDL code.
 @cindex String splitting
 @cindex Splitting, of lines
 
-@kindex M-@key{RET}
+@kindex M-RET
 In IDL, a newline character terminates a statement unless preceded by a
 @samp{$}.  If you would like to start a continuation line, use
 @kbd{M-@key{RET}}, which calls the command @code{idlwave-split-line}.
@@ -1523,7 +1523,7 @@ The case-insensitive heading word in doclib headers to locate the
 @cindex Function name completion
 @cindex Procedure name completion
 
-@kindex M-@key{TAB}
+@kindex M-TAB
 @kindex C-c C-i
 IDLWAVE offers completion for class names, routine names, keywords,
 system variables, system variable tags, class structure tags, regular
@@ -4064,7 +4064,7 @@ sure you check the following things:
 @itemize @bullet
 @item When you download the IDLWAVE distribution, make sure you save the
 file under the names @file{idlwave.tar.gz}.
-@item M-TAB switches among running programs---use Esc-TAB
+@item M-@key{TAB} switches among running programs---use @key{ESC}-@key{TAB}
 instead.
 @item Other issues as yet unnamed...
 @end itemize

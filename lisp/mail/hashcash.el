@@ -133,7 +133,7 @@ For example, you may want to set this to (\"-Z2\") to reduce header length."
 
 (declare-function message-narrow-to-headers-or-head "message" ())
 (declare-function message-fetch-field "message" (header &optional not-all))
-(declare-function message-goto-eoh "message" ())
+(declare-function message-goto-eoh "message" (&optional interactive))
 (declare-function message-narrow-to-headers "message" ())
 
 (defun hashcash-token-substring ()

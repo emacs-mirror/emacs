@@ -2585,7 +2585,7 @@ comment at the start of cc-engine.el for more info."
   ;; or the car of the list is the "position element" of ELT, the position
   ;; where ELT is valid.
   ;;
-  ;; POINT is left at the postition for which the returned state is valid.  It
+  ;; POINT is left at the position for which the returned state is valid.  It
   ;; will be either the position element of ELT, or one character before
   ;; that.  (The latter happens in Emacs <= 25 and XEmacs, when ELT indicates
   ;; its position element directly follows a potential first character of a
@@ -2656,7 +2656,7 @@ comment at the start of cc-engine.el for more info."
 	      ((nth 3 state)		; A string
 	       (list (point) (nth 3 state) (nth 8 state)))
 	      ((and (nth 4 state)		 ; A comment
-		    (not (eq (nth 7 state) 'syntax-table))) ; but not a psuedo comment.
+		    (not (eq (nth 7 state) 'syntax-table))) ; but not a pseudo comment.
 	       (list (point)
 		     (if (eq (nth 7 state) 1) 'c++ 'c)
 		     (nth 8 state)))
@@ -3304,7 +3304,7 @@ comment at the start of cc-engine.el for more info."
 			     (point)
 			   here)))
 	pa+1		      ; pos just after an opening PAren (or brace).
-	(ren+1 from)	      ; usually a pos just after an closing paREN etc.
+	(ren+1 from)	      ; usually a pos just after a closing paREN etc.
 			      ; Is actually the pos. to scan for a (/{/[ from,
 			      ; which sometimes is after a silly )/}/].
 	paren+1		      ; Pos after some opening or closing paren.
@@ -10345,7 +10345,7 @@ comment at the start of cc-engine.el for more info."
       b-pos)))
 
 (defun c-backward-typed-enum-colon ()
-  ;; We're at a "{" which might be the opening brace of a enum which is
+  ;; We're at a "{" which might be the opening brace of an enum which is
   ;; strongly typed (by a ":" followed by a type).  If this is the case, leave
   ;; point before the colon and return t.  Otherwise leave point unchanged and return nil.
   ;; Match data will be clobbered.

@@ -80,7 +80,7 @@
 ;;
 ;;   echo x$(+ 1 2) "String $(+ 1 2)"
 ;;
-;; To pass a Lisp symbol as a argument, use the alternate quoting
+;; To pass a Lisp symbol as an argument, use the alternate quoting
 ;; syntax, since the single quote character is far too overused in
 ;; shell syntax:
 ;;

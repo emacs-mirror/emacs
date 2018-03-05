@@ -890,7 +890,7 @@ This discards the buffer's undo information."
 	(error "Invalid hex digit `%c'" ch)))))
 
 (defun hexl-oct-char-to-integer (character)
-  "Take a char and return its value as if it was a octal digit."
+  "Take a char and return its value as if it was an octal digit."
   (if (and (>= character ?0) (<= character ?7))
       (- character ?0)
     (error "Invalid octal digit `%c'" character)))

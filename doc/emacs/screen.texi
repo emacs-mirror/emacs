@@ -30,13 +30,13 @@ display systems commonly use the word ``window'' with a different
 meaning; but, as stated above, we refer to those graphical windows
 as ``frames''.
 
-  An Emacs window is where the @dfn{buffer}---the text you are
-editing---is displayed.  On a graphical display, the window possesses
-a @dfn{scroll bar} on one side, which can be used to scroll through
-the buffer.  The last line of the window is a @dfn{mode line}.  This
-displays various information about what is going on in the buffer,
-such as whether there are unsaved changes, the editing modes that are
-in use, the current line number, and so forth.
+  An Emacs window is where the @dfn{buffer}---the text or other
+graphics you are editing or viewing---is displayed.  On a graphical
+display, the window possesses a @dfn{scroll bar} on one side, which
+can be used to scroll through the buffer.  The last line of the window
+is a @dfn{mode line}.  This displays various information about what is
+going on in the buffer, such as whether there are unsaved changes, the
+editing modes that are in use, the current line number, and so forth.
 
   When you start Emacs, there is normally only one window in the
 frame.  However, you can subdivide this window horizontally or

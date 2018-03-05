@@ -1492,7 +1492,7 @@ If you set this on a terminal which can't distinguish Meta keys from
 8-bit characters, you will have to use ESC to type Meta characters.
 See Info node `Terminal Coding' and Info node `Unibyte Mode'.
 
-On non-windowing terminals, this is set from the locale by default.
+This is set at startup based on the locale.
 
 Setting this variable directly does not take effect;
 use either \\[customize] or \\[set-keyboard-coding-system]."

@@ -160,8 +160,8 @@ First, lets create a directory for our project.  For this example,
 we'll start with something in @file{/tmp}.
 
 @example
-C-x C-f /tmp/myproject/README RET
-M-x make-directory RET RET
+C-x C-f /tmp/myproject/README @key{RET}
+M-x make-directory @key{RET} @key{RET}
 @end example
 
 Now put some plain text in your README file to start.
@@ -169,7 +169,7 @@ Now put some plain text in your README file to start.
 Now, lets create the project:
 
 @example
-M-x ede-new RET Automake RET myproject RET
+M-x ede-new @key{RET} Automake @key{RET} myproject @key{RET}
 @end example
 
 
@@ -191,8 +191,8 @@ We'll make a more complex project, so use dired to create some more
 directories using the @kbd{+} key, and typing in new directories:
 
 @example
-+ include RET
-+ src RET
++ include @key{RET}
++ src @key{RET}
 @end example
 
 Now I'll short-cut in this tutorial.  Create the following files:
@@ -252,13 +252,13 @@ now create those projects.
 With @file{main.cpp} as your current buffer, type:
 
 @example
-M-x ede-new RET Automake RET src RET
+M-x ede-new @key{RET} Automake @key{RET} src @key{RET}
 @end example
 
 and in @file{myproj.hh} as your current buffer, type:
 
 @example
-M-x ede-new RET Automake RET include RET
+M-x ede-new @key{RET} Automake @key{RET} include @key{RET}
 @end example
 
 These steps effectively only create the Project.ede file in which you
@@ -272,7 +272,7 @@ Projects.  You can create targets either from a buffer, or from a
 
 Note: If for some reason a directory list buffer, or file does not have the
 @samp{Project} menu item, or if @ede{} keybindings don't work, just
-use @kbd{M-x revert-buffer RET} to force a refresh.  Sometimes
+use @kbd{M-x revert-buffer @key{RET}} to force a refresh.  Sometimes
 creating a new project doesn't restart buffers correctly.
 
 Lets start with the header file.  In @file{include/myproj.hh}, you
@@ -280,7 +280,7 @@ could use the menu, but we will now start using the @ede{} command prefix
 which is @kbd{C-c .}.
 
 @example
-C-c . t includes RET miscellaneous RET y
+C-c . t includes @key{RET} miscellaneous @key{RET} y
 @end example
 
 
@@ -292,7 +292,7 @@ Next, visit the @file{src} directory using dired.  There should be a
 @samp{Project} menu.   You can create a new target with
 
 @example
-. t myprogram RET program RET
+. t myprogram @key{RET} program @key{RET}
 @end example
 
 Note that @kbd{. t} is a command for creating a target.  This command
@@ -304,7 +304,7 @@ Next, place the cursor on @file{main.cpp}, and use @kbd{. a} to add
 that file to your target.
 
 @example
-. a myprogram RET
+. a myprogram @key{RET}
 @end example
 
 Note that these prompts often have completion, so you can just press
@@ -316,8 +316,8 @@ all in your dired buffer, and add them all at the same time.
 Next, do the same for the library by placing the cursor on @file{mylib.cpp}.
 
 @example
-. t mylib RET sharedobject RET
-. a mylib RET
+. t mylib @key{RET} sharedobject @key{RET}
+. a mylib @key{RET}
 @end example
 
 @section Step 5: Compile, and fail
@@ -350,7 +350,7 @@ To fix the failed compile, we need to add
 Visit @file{main.cpp}.
 
 @example
-M-x customize-project RET
+M-x customize-project @key{RET}
 @end example
 
 Select the @samp{[Settings]} subgroup of options.  Under
@@ -407,7 +407,7 @@ project.  This is because variables such as the include path are
 treated globally, whereas dependencies for a target are target specific.
 
 @example
-M-x customize-target RET
+M-x customize-target @key{RET}
 @end example
 
 On the first page, you will see an Ldlibs-local section.  Add mylib to
@@ -437,7 +437,7 @@ C-c . C
 You can run your program directly from @ede{}.
 
 @example
-C-c . R RET RET
+C-c . R @key{RET} @key{RET}
 @end example
 
 If your program takes command line arguments, you can type them in

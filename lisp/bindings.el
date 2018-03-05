@@ -619,7 +619,7 @@ Switch to the most recently selected buffer other than the current one."
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
 (bindings--define-key mode-line-mode-menu [auto-revert-tail-mode]
   '(menu-item "Auto revert tail (Tail)" auto-revert-tail-mode
-	      :help "Revert the tail of the buffer when buffer grows"
+	      :help "Revert the tail of the buffer when the file on disk grows"
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (bindings--define-key mode-line-mode-menu [auto-revert-mode]

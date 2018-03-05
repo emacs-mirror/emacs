@@ -207,13 +207,13 @@ buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.
 
-@vindex mwheel-tilt-scroll-p
-@vindex mwheel-flip-direction
+@vindex mouse-wheel-tilt-scroll
+@vindex mouse-wheel-flip-direction
 Emacs can also support horizontal scrolling if your mouse's wheel can
 be tilted.  This feature is off by default; the variable
-@code{mwheel-tilt-scroll-p} turns it on.  If you'd like to reverse the
-direction of horizontal scrolling, customize the variable
-@code{mwheel-flip-direction} to a non-@code{nil} value.
+@code{mouse-wheel-tilt-scroll} turns it on.  If you'd like to reverse
+the direction of horizontal scrolling, customize the variable
+@code{mouse-wheel-flip-direction} to a non-@code{nil} value.
 
 
 @node Word and Line Mouse
@@ -248,13 +248,13 @@ this to move point to the beginning of the region, scrolling the
 display backward if necessary.
 
 @item Double-Drag-mouse-1
-Select the text you drag across, in the form of whole words.
+Select the text you drag across, in units of whole words.
 
 @item Triple-mouse-1
 Select the line you click on.
 
 @item Triple-Drag-mouse-1
-Select the text you drag across, in the form of whole lines.
+Select the text you drag across, in units of whole lines.
 @end table
 
 @node Mouse References
@@ -312,7 +312,7 @@ button.
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
 
-  Several mouse clicks with the @key{CTRL} and @key{SHIFT} modifiers
+  Several mouse clicks with the @key{Ctrl} and @key{SHIFT} modifiers
 bring up menus.
 
 @table @kbd
@@ -409,10 +409,11 @@ boundary to the left or right.
   The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}.  Whereas
 each @kbd{C-x 4} command pops up a buffer in a different window in the
 selected frame (@pxref{Pop Up Window}), the @kbd{C-x 5} commands use a
-different frame.  If an existing visible or iconified (a.k.a.@: ``minimized'')
-frame already displays the requested buffer, that frame is raised and
-deiconified (``un-minimized''); otherwise, a new frame is created on
-the current display terminal.
+different frame.  If an existing visible or iconified (a.k.a.@:
+``minimized'', @pxref{Visibility of Frames,,, elisp, The Emacs Lisp
+Reference Manual}) frame already displays the requested buffer, that
+frame is raised and deiconified (``un-minimized''); otherwise, a new
+frame is created on the current display terminal.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:
@@ -478,14 +479,14 @@ cycles through all the frames on your terminal.
 @findex delete-other-frames
 Delete all frames on the current terminal, except the selected one.
 
-@item M-<F10>
-@kindex M-<F10>
+@item M-@key{F10}
+@kindex M-F10
 @findex toggle-frame-maximized
 Toggle the maximization state of the current frame.  When a frame is
 maximized, it fills the screen.
 
-@item <F11>
-@kindex <F11>
+@item @key{F11>}
+@kindex F11
 @findex toggle-frame-fullscreen
 Toggle full-screen mode for the current frame.  (The difference
 between full-screen and maximized is normally that the former
@@ -642,7 +643,7 @@ Monospace-12:weight=bold:slant=italic
 
 For a more detailed description of Fontconfig patterns, see the
 Fontconfig manual, which is distributed with Fontconfig and available
-online at @url{http://fontconfig.org/fontconfig-user.html}.
+online at @url{https://fontconfig.org/fontconfig-user.html}.
 
 @cindex GTK font pattern
   The second way to specify a font is to use a @dfn{GTK font pattern}.
@@ -900,7 +901,7 @@ that server's selected frame.
 
 @node Frame Parameters
 @section Frame Parameters
-@cindex default-frame-alist
+@vindex default-frame-alist
 
   You can control the default appearance and behavior of all frames by
 specifying a default list of @dfn{frame parameters} in the variable
@@ -924,7 +925,7 @@ default font to @samp{Monospace-10}:
   For a list of frame parameters and their effects, see @ref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 
-@cindex initial-frame-alist
+@vindex initial-frame-alist
   You can also specify a list of frame parameters which apply to just
 the initial frame, by customizing the variable
 @code{initial-frame-alist}.
@@ -954,7 +955,8 @@ toolkits allow you to customize the scroll bars to not have those
 buttons).  Clicking @kbd{mouse-1} above or below the scroll bar's
 inner box scrolls the window by nearly the entire height of the
 window, like @kbd{M-v} and @kbd{C-v} respectively (@pxref{Moving
-Point}).  Dragging the inner box scrolls continuously.
+Point}).  (This, too, can behave differently with some toolkits.)
+Dragging the inner box scrolls continuously.
 
   If Emacs is compiled on the X Window System without X toolkit
 support, the scroll bar behaves differently.  Clicking @kbd{mouse-1}
@@ -994,14 +996,14 @@ variable @code{scroll-bar-adjust-thumb-portion} to control
 when the end of the buffer is visible.  If its value is
 non-@code{nil}, the scroll bar can be dragged downwards even if the
 end of the buffer is shown; if @code{nil}, the thumb will be at the
-bottom when the end of the buffer is shown.  You can not over-scroll
+bottom when the end of the buffer is shown.  You cannot over-scroll
 when the entire buffer is visible.
 
-@cindex scroll-bar face
+@cindex @code{scroll-bar} face
   The visual appearance of the scroll bars is controlled by the
-@code{scroll-bar} face.  (Some toolkits, such as GTK and MS-Windows,
+@code{scroll-bar} face.  (Some toolkits, such as GTK+ and MS-Windows,
 ignore this face; the scroll-bar appearance there can only be
-customized system-wide, for GTK @pxref{GTK resources}).
+customized system-wide, for GTK+ @pxref{GTK resources}).
 
 @cindex vertical border
   On graphical frames, vertical scroll bars implicitly serve to separate

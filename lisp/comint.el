@@ -1448,10 +1448,18 @@ If nil, Isearch operates on the whole comint buffer."
 (defun comint-history-isearch-setup ()
   "Set up a comint for using Isearch to search the input history.
 Intended to be added to `isearch-mode-hook' in `comint-mode'."
-  (when (or (eq comint-history-isearch t)
-	    (and (eq comint-history-isearch 'dwim)
-		 ;; Point is at command line.
-		 (comint-after-pmark-p)))
+  (when (and
+         ;; Prompt is not empty like in Async Shell Command buffers
+         ;; or in finished shell buffers
+         (not (eq (save-excursion
+		    (goto-char (comint-line-beginning-position))
+		    (forward-line 0)
+		    (point))
+		  (comint-line-beginning-position)))
+	 (or (eq comint-history-isearch t)
+	     (and (eq comint-history-isearch 'dwim)
+		  ;; Point is at command line.
+		  (comint-after-pmark-p))))
     (setq isearch-message-prefix-add "history ")
     (setq-local isearch-search-fun-function
                 #'comint-history-isearch-search)
@@ -2281,8 +2289,10 @@ If this takes us past the end of the current line, don't skip at all."
 
 (defun comint-after-pmark-p ()
   "Return t if point is after the process output marker."
-  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
-    (<= (marker-position pmark) (point))))
+  (let ((process (get-buffer-process (current-buffer))))
+    (when process
+      (let ((pmark (process-mark process)))
+        (<= (marker-position pmark) (point))))))
 
 (defun comint-simple-send (proc string)
   "Default function for sending to PROC input STRING.

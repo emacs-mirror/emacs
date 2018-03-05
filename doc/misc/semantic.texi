@@ -445,7 +445,7 @@ completion lists.
 @node Tools
 @section Tools
 
-These files contain various tools a user can use.
+These files contain various tools for users.
 
 @table @file
 @item semantic-idle.el
@@ -485,8 +485,7 @@ A bunch of small minor-modes that exposes aspects of the semantic
 parser state.  Includes @code{semantic-stickyfunc-mode}.
 
 @item document.el
-@itemx document-vars.el
-Create an update comments for tags.
+Create and update comments for tags.
 
 @item semantic-adebug.el
 Extensions of @file{data-debug.el} for @semantic{}.

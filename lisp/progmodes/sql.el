@@ -2774,7 +2774,7 @@ local variable."
 
     ;; Our start must be between them
     (goto-char last)
-    ;; Find an beginning-of-stmt that's not in a comment
+    ;; Find a beginning-of-stmt that's not in a comment
     (while (and (re-search-forward regexp next t 1)
                 (nth 7 (syntax-ppss)))
       (goto-char (match-end 0)))
@@ -4225,7 +4225,7 @@ the call to \\[sql-product-interactive] with
                (symbolp product)) product)
          (t sql-product)))              ; Default to sql-product
 
-  ;; If we have a product and it has a interactive mode
+  ;; If we have a product and it has an interactive mode
   (if product
       (when (sql-get-product-feature product :sqli-comint-func)
         ;; If no new name specified, try to pop to an active SQL
@@ -4406,7 +4406,8 @@ The default comes from `process-coding-system-alist' and
                            (or coding 'utf-8))
                     (when (string-match (format "\\.%s\\'" (car cs)) nlslang)
                       (setq coding (cdr cs)))))
-    (set-buffer-process-coding-system coding coding)))
+    (set-process-coding-system (get-buffer-process (current-buffer))
+                               coding coding)))
 
 (defun sql-oracle-save-settings (sqlbuf)
   "Save most SQL*Plus settings so they may be reset by \\[sql-redirect]."

@@ -482,7 +482,7 @@ you are working on, some classes will only be known to exist but the
 location of their declarations and definitions will not be known.
 
 @item @key{RET}
-Works like @kbd{SPC}, except that it finds the class
+Works like @kbd{@key{SPC}}, except that it finds the class
 declaration rather than viewing it, so that it is ready for
 editing.
 @end table
@@ -886,7 +886,7 @@ the member.
 This command finds the declaration of the member the cursor is on.
 
 @item @key{SPC}
-This is the same command as @kbd{RET}, but views the member definition
+This is the same command as @kbd{@key{RET}}, but views the member definition
 instead of finding the member's source file.
 
 @item v
@@ -1314,7 +1314,7 @@ the next position stored in the position stack.
 
 @item C-c C-m p
 Displays an electric buffer showing all positions saved in the stack.
-You can select a position by pressing @kbd{SPC} in a line.  You can
+You can select a position by pressing @kbd{@key{SPC}} in a line.  You can
 view a position with @kbd{v}.
 @end table
 

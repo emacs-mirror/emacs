@@ -1638,7 +1638,7 @@ This function returns the proper justification style to use for filling
 the text around point.
 
 This returns the value of the @code{justification} text property at
-point, or the variable @var{default-justification} if there is no such
+point, or the variable @code{default-justification} if there is no such
 text property.  However, it returns @code{nil} rather than @code{none}
 to mean ``don't justify''.
 @end defun
@@ -2981,7 +2981,7 @@ optional argument @var{append} is non-@code{nil}, @var{face} is
 appended to the end of the list instead.  Note that in a face list,
 the first occurring value for each attribute takes precedence.
 
-For example, the following code would assign a italicized green face
+For example, the following code would assign an italicized green face
 to the text between @var{start} and @var{end}:
 
 @example
@@ -3862,7 +3862,7 @@ clicks on the link quickly without moving the mouse.  This behavior is
 controlled by the user option @code{mouse-1-click-follows-link}.
 @xref{Mouse References,,, emacs, The GNU Emacs Manual}.
 
-@cindex follow-link (text or overlay property)
+@kindex follow-link @r{(text or overlay property)}
   To set up the link so that it obeys
 @code{mouse-1-click-follows-link}, you must either (1) apply a
 @code{follow-link} text or overlay property to the link text, or (2)

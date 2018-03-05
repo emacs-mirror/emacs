@@ -3124,12 +3124,11 @@ machines, but will fail if the machine's arithmetic is extremely
 unusual, e.g., decimal.
 @end defun
 
-Since true Common Lisp supports up to four different floating-point
-precisions, it has families of constants like
+Since true Common Lisp supports up to four different kinds of floating-point
+numbers, it has families of constants like
 @code{most-positive-single-float}, @code{most-positive-double-float},
 @code{most-positive-long-float}, and so on.  Emacs has only one
-floating-point precision, so this package omits the precision word
-from the constants' names.
+kind of floating-point number, so this package just uses single constants.
 
 @defvar cl-most-positive-float
 This constant equals the largest value a Lisp float can hold.

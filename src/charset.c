@@ -2332,7 +2332,7 @@ init_charset_once (void)
    Don't make the value so small that the table is reallocated during
    bootstrapping, as glibc malloc calls larger than just under 64 KiB
    during an initial bootstrap wreak havoc after dumping; see the
-   M_MMAP_THRESHOLD value in alloc.c, plus there is a extra overhead
+   M_MMAP_THRESHOLD value in alloc.c, plus there is an extra overhead
    internal to glibc malloc and perhaps to Emacs malloc debugging.  */
 static struct charset charset_table_init[180];
 

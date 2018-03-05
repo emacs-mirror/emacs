@@ -413,6 +413,10 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
 	     ;; nsterm.m
+             ;;
+             ;; FIXME: Why does ⌃ use nil instead of none?  Also the
+             ;; description is confusing; setting it to nil disables ⌃
+             ;; entirely.
 	     (ns-control-modifier
 	      ns
 	      (choice (const :tag "No modifier" nil)
@@ -429,13 +433,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const super)) "24.1")
 	     (ns-command-modifier
 	      ns
-	      (choice (const :tag "No modifier" nil)
+	      (choice (const :tag "No modifier (work as layout switch)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
 	     (ns-right-command-modifier
 	      ns
-	      (choice (const :tag "No modifier (work as command)" none)
+	      (choice (const :tag "No modifier (work as layout switch)" none)
 		      (const :tag "Use the value of ns-command-modifier"
 			     left)
 		      (const control) (const meta)

@@ -325,5 +325,22 @@ cf. Bug#25477."
     (should (equal (butlast (new-list-fn))
                    (assoc-delete-all "foo" (new-list-fn))))))
 
+(ert-deftest shell-quote-argument-%-on-w32 ()
+  "Quoting of `%' in w32 shells isn't perfect.
+See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
+  :expected-result :failed
+  (skip-unless (and (fboundp 'w32-shell-dos-semantics)
+                    (w32-shell-dos-semantics)))
+  (let ((process-environment (append '("ca^=with-caret"
+                                       "ca=without-caret")
+                                     process-environment)))
+    ;; It actually results in
+    ;;    without-caret with-caret
+    (should (equal (shell-command-to-string
+                    (format "echo %s %s"
+                            "%ca%"
+                            (shell-quote-argument "%ca%")))
+                   "without-caret %ca%"))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

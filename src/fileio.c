@@ -139,7 +139,7 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 		     struct coding_system *);
 
 
-/* Return true if FILENAME exists.  */
+/* Return true if FILENAME exists, otherwise return false and set errno.  */
 
 static bool
 check_existing (const char *filename)
@@ -2595,7 +2595,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   /* The read-only attribute of the parent directory doesn't affect
      whether a file or directory can be created within it.  Some day we
      should check ACLs though, which do affect this.  */
-  return file_directory_p (SSDATA (dir)) ? Qt : Qnil;
+  return file_directory_p (dir) ? Qt : Qnil;
 #else
   return check_writable (SSDATA (dir), W_OK | X_OK) ? Qt : Qnil;
 #endif
@@ -2689,19 +2689,47 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
   absname = ENCODE_FILE (absname);
 
-  return file_directory_p (SSDATA (absname)) ? Qt : Qnil;
+  return file_directory_p (absname) ? Qt : Qnil;
 }
 
-/* Return true if FILE is a directory or a symlink to a directory.  */
+/* Return true if FILE is a directory or a symlink to a directory.
+   Otherwise return false and set errno.  */
 bool
-file_directory_p (char const *file)
+file_directory_p (Lisp_Object file)
 {
-#ifdef WINDOWSNT
+#ifdef DOS_NT
   /* This is cheaper than 'stat'.  */
-  return faccessat (AT_FDCWD, file, D_OK, AT_EACCESS) == 0;
+  return faccessat (AT_FDCWD, SSDATA (file), D_OK, AT_EACCESS) == 0;
 #else
+# ifdef O_PATH
+  /* Use O_PATH if available, as it avoids races and EOVERFLOW issues.  */
+  int fd = openat (AT_FDCWD, SSDATA (file), O_PATH | O_CLOEXEC | O_DIRECTORY);
+  if (0 <= fd)
+    {
+      emacs_close (fd);
+      return true;
+    }
+  if (errno != EINVAL)
+    return false;
+  /* O_PATH is defined but evidently this Linux kernel predates 2.6.39.
+     Fall back on generic POSIX code.  */
+# endif
+  /* Use file_accessible_directory, as it avoids stat EOVERFLOW
+     problems and could be cheaper.  However, if it fails because FILE
+     is inaccessible, fall back on stat; if the latter fails with
+     EOVERFLOW then FILE must have been a directory unless a race
+     condition occurred (a problem hard to work around portably).  */
+  if (file_accessible_directory_p (file))
+    return true;
+  if (errno != EACCES)
+    return false;
   struct stat st;
-  return stat (file, &st) == 0 && S_ISDIR (st.st_mode);
+  if (stat (SSDATA (file), &st) != 0)
+    return errno == EOVERFLOW;
+  if (S_ISDIR (st.st_mode))
+    return true;
+  errno = ENOTDIR;
+  return false;
 #endif
 }
 
@@ -2762,7 +2790,7 @@ file_accessible_directory_p (Lisp_Object file)
   return (SBYTES (file) == 0
 	  || w32_accessible_directory_p (SSDATA (file), SBYTES (file)));
 # else	/* MSDOS */
-  return file_directory_p (SSDATA (file));
+  return file_directory_p (file);
 # endif	 /* MSDOS */
 #else	 /* !DOS_NT */
   /* On POSIXish platforms, use just one system call; this avoids a
@@ -2783,12 +2811,15 @@ file_accessible_directory_p (Lisp_Object file)
     dir = data;
   else
     {
-      /* Just check for trailing '/' when deciding whether to append '/'.
-	 That's simpler than testing the two special cases "/" and "//",
-	 and it's a safe optimization here.  */
-      char *buf = SAFE_ALLOCA (len + 3);
+      /* Just check for trailing '/' when deciding whether append '/'
+	 before appending '.'.  That's simpler than testing the two
+	 special cases "/" and "//", and it's a safe optimization
+	 here.  After appending '.', append another '/' to work around
+	 a macOS bug (Bug#30350).  */
+      static char const appended[] = "/./";
+      char *buf = SAFE_ALLOCA (len + sizeof appended);
       memcpy (buf, data, len);
-      strcpy (buf + len, &"/."[data[len - 1] == '/']);
+      strcpy (buf + len, &appended[data[len - 1] == '/']);
       dir = buf;
     }
 
@@ -3192,7 +3223,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
       {
 #ifdef MSDOS
         /* Setting times on a directory always fails.  */
-        if (file_directory_p (SSDATA (encoded_absname)))
+        if (file_directory_p (encoded_absname))
           return Qnil;
 #endif
         report_file_error ("Setting file times", absname);

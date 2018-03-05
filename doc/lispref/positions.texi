@@ -602,7 +602,7 @@ line @var{count} screen lines from the top of the window; zero means
 the topmost line.  If @var{count} is negative, that specifies a
 position @w{@minus{}@var{count}} lines from the bottom (or the last
 line of the buffer, if the buffer ends above the specified screen
-position); thus, @var{count} of -1 specifies the last fully visible
+position); thus, @var{count} of @minus{}1 specifies the last fully visible
 screen line of the window.
 
 If @var{count} is @code{nil}, then point moves to the beginning of the

@@ -1181,9 +1181,10 @@ Useful when source code is displayed as help.  See the option
 	(with-syntax-table idlwave-mode-syntax-table
           (set (make-local-variable 'font-lock-defaults)
                idlwave-font-lock-defaults)
-          (if (fboundp 'font-lock-ensure)
+          (if (fboundp 'font-lock-ensure) ; Emacs >= 25.1
               (font-lock-ensure)
-            (font-lock-fontify-buffer))))))
+            ;; Silence "interactive use only" warning on Emacs >= 25.1.
+            (with-no-warnings (font-lock-fontify-buffer)))))))
 
 
 (defun idlwave-help-error (name type class keyword)

@@ -740,7 +740,7 @@ object, all but the last one are ignored.  If STRING doesn't contain a
 valid JSON object, an error of type `json-parse-error' is signaled.
 The keyword argument `:object-type' specifies which Lisp type is used
 to represent objects; it can be `hash-table' or `alist'.
-usage: (string &key (OBJECT-TYPE \\='hash-table)) */)
+usage: (json-parse-string STRING &key (OBJECT-TYPE \\='hash-table))  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -813,7 +813,7 @@ DEFUN ("json-parse-buffer", Fjson_parse_buffer, Sjson_parse_buffer,
 This is similar to `json-parse-string', which see.  Move point after
 the end of the object if parsing was successful.  On error, point is
 not moved.
-usage: (&key (OBJECT-TYPE \\='hash-table))  */)
+usage: (json-parse-buffer &key (OBJECT-TYPE \\='hash-table))  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();

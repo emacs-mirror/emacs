@@ -56,11 +56,12 @@ characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{LEFT}}.
 @cindex @key{ESC} replacing @key{META} key
   You can also type Meta characters using two-character sequences
 starting with @key{ESC}.  Thus, you can enter @kbd{M-a} by typing
-@kbd{@key{ESC} a}.  You can enter @kbd{C-M-a} by typing @kbd{@key{ESC}
-C-a}.  Unlike @key{META}, @key{ESC} is entered as a separate
-character.  You don't hold down @key{ESC} while typing the next
-character; instead, press @key{ESC} and release it, then enter the
-next character.  This feature is useful on certain text terminals
+@kbd{@key{ESC} a}.  You can enter @kbd{C-M-a} (holding down both
+@key{Ctrl} and @key{Alt}, then pressing @kbd{a}) by typing
+@kbd{@key{ESC} C-a}.  Unlike @key{META}, @key{ESC} is entered as a
+separate character.  You don't hold down @key{ESC} while typing the
+next character; instead, press @key{ESC} and release it, then enter
+the next character.  This feature is useful on certain text terminals
 where the @key{META} key does not function reliably.
 
 @cindex keys stolen by window manager

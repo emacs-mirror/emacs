@@ -2554,6 +2554,22 @@ emacs_close (int fd)
 #define MAX_RW_COUNT (INT_MAX >> 18 << 18)
 #endif
 
+/* Verify that MAX_RW_COUNT fits in the relevant standard types.  */
+#ifndef SSIZE_MAX
+# define SSIZE_MAX TYPE_MAXIMUM (ssize_t)
+#endif
+verify (MAX_RW_COUNT <= PTRDIFF_MAX);
+verify (MAX_RW_COUNT <= SIZE_MAX);
+verify (MAX_RW_COUNT <= SSIZE_MAX);
+
+#ifdef WINDOWSNT
+/* Verify that Emacs read requests cannot cause trouble, even in
+   64-bit builds.  The last argument of 'read' is 'unsigned int', and
+   the return value's type (see 'sys_read') is 'int'.  */
+verify (MAX_RW_COUNT <= INT_MAX);
+verify (MAX_RW_COUNT <= UINT_MAX);
+#endif
+
 /* Read from FD to a buffer BUF with size NBYTE.
    If interrupted, process any quits and pending signals immediately
    if INTERRUPTIBLE, and then retry the read unless quitting.
@@ -2562,10 +2578,11 @@ emacs_close (int fd)
 static ptrdiff_t
 emacs_intr_read (int fd, void *buf, ptrdiff_t nbyte, bool interruptible)
 {
+  /* No caller should ever pass a too-large size to emacs_read.  */
+  eassert (nbyte <= MAX_RW_COUNT);
+
   ssize_t result;
 
-  /* There is no need to check against MAX_RW_COUNT, since no caller ever
-     passes a size that large to emacs_read.  */
   do
     {
       if (interruptible)

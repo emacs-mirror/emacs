@@ -8,7 +8,7 @@
 @c Update the emacs.texi Antinews menu entry with the above version number.
 
   For those users who live backwards in time, here is information
-about downgrading to Emacs version 25.2.  We hope you will enjoy the
+about downgrading to Emacs version 25.3.  We hope you will enjoy the
 greater simplicity that results from the absence of many @w{Emacs
 @value{EMACSVER}} features.
 
@@ -47,7 +47,7 @@ development will make that unnecessary.
 
 @item
 The @option{--fg-daemon} is gone, leaving only @option{--daemon}.  No
-need to procrastinate on the dilemma whether you do or don't want the
+need to procrastinate on the dilemma whether you do or do not want the
 new shiny ``headless Emacs'' thingy.  Hail, simplicity!
 
 @item
@@ -59,7 +59,7 @@ should be monochrome, but you will have to keep downgrading to older
 Emacs versions to have that feature back.)
 
 @item
-Emacs 25.2 no longer supports magic signatures of the form
+Emacs 25.3 no longer supports magic signatures of the form
 @samp{#!/usr/bin/env @var{interpreter}} in scripts.  Moving back in
 time means you are getting closer to the ideal of the original Unix
 design where all the interpreters lived in a single directory
@@ -70,11 +70,11 @@ ballast.
 The double-buffering feature of Emacs display on X has been removed.
 We decided that its complexity and a few random surprising
 side-effects aren't justified by the gains, even though those gains
-were hailed in some quarters.  Yes, Emacs 25.2 will flicker in some
-use cases, but we are sure Emacs users will be able to suck it, a they
-have been doing for years.  Since this feature is gone, we've also
-removed the @code{inhibit-double-buffering} frame parameter, which is
-now unnecessary.
+were hailed in some quarters.  Yes, Emacs 25.3 will flicker in some
+use cases, but we are sure Emacs users will be able to suck it, as
+they have been doing for years.  Since this feature is gone, we've
+also removed the @code{inhibit-double-buffering} frame parameter,
+which is now unnecessary.
 
 @item
 Non-breaking hyphens and ASCII characters displayed instead of
@@ -90,12 +90,12 @@ You can no longer disable attempts of recovery from fatal exceptions
 such as C stack overflows and fatal signals.  Since the recovery
 included in Emacs is reliable enough, we decided there was no reason
 to put your edits in danger of becoming lost when these situations
-happen.  The variables @code{'attempt-stack-overflow-recovery} and
+happen.  The variables @code{attempt-stack-overflow-recovery} and
 @code{attempt-orderly-shutdown-on-fatal-signal} are therefore removed.
 
 @item
 The @code{list-timers} command was removed, as we decided timers are
-not user-level feature, and therefore users should not be allowed to
+not a user-level feature, and therefore users should not be allowed to
 mess with them.  Ask an Emacs Lisp guru near you for help if you have
 a runaway timer in your session.  (Of course, as you move back in
 time, such runaway timers will become less and less frequent, and
@@ -137,7 +137,7 @@ all those fancy options!
 
 @item
 The complication known as ``single-line horizontal scrolling'' is no
-longer with you in Emacs 25.2.  This feature was a bow to ``other
+longer with you in Emacs 25.3.  This feature was a bow to ``other
 editors''; instead, let those other editors bow to Emacs by hscrolling
 the entire window at all times.  Repeat after me: ``The Emacs way is
 the Only Way!''
@@ -166,5 +166,5 @@ removed.  Examples include @code{replace-buffer-contents} and
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
-other functions and files have been eliminated in Emacs 25.2.
+other functions and files have been eliminated in Emacs 25.3.
 @end itemize

@@ -99,7 +99,7 @@ web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
 
 @findex eww-open-in-new-buffer
 @kindex M-RET
-  The @kbd{M-RET} command (@code{eww-open-in-new-buffer}) opens the
+  The @kbd{M-@key{RET}} command (@code{eww-open-in-new-buffer}) opens the
 URL at point in a new EWW buffer, akin to opening a link in a new
 ``tab'' in other browsers.
 

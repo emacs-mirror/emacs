@@ -69,6 +69,20 @@ right-click on the shortcut, select ``Properties'', and in the
 ``Shortcut'' tab modify the ``Start in'' field to your liking.
 
 @item
+@cindex pinning Emacs to Windows task bar
+From a task-bar shortcut icon, by clicking once the left mouse button.
+Windows versions since Vista allow you to create such shortcuts by
+@dfn{pinning} the icon of a running program that appears in the task
+bar.  You can do that with Emacs, but afterwards you will have to
+change the properties of the pinned shortcut to run
+@file{runemacs.exe}, @emph{not} of @file{emacs.exe}.  You can also pin
+Emacs to the task bar by clicking the right mouse button on its icon
+in the Start menu, then selecting @samp{Pin to taskbar}.  Once again,
+be sure to specify @file{runemacs.exe} as the program to run.  You can
+control where Emacs starts by setting the ``Start in'' field of the
+shortcut's Properties.
+
+@item
 From the Command Prompt window, by typing @kbd{emacs @key{RET}} at the
 prompt.  The Command Prompt window where you did that will not be
 available for invoking other commands until Emacs exits.  In this
@@ -79,6 +93,12 @@ From the Command Prompt window, by typing @kbd{runemacs @key{RET}} at
 the prompt.  The Command Prompt window where you did that will be
 immediately available for invoking other commands.  In this case,
 Emacs will start in the current directory of the Windows shell.
+
+@item
+From the Windows @code{Run} dialog (normally reached by clicking the
+@code{Start} button).  Typing @kbd{runemacs @key{RET}} into the dialog
+will start Emacs in the parent directory of the Windows equivalent of
+your user's @code{HOME} directory, see @ref{Windows HOME}.
 
 @item
 @cindex invoking Emacs from Windows Explorer
@@ -109,7 +129,7 @@ invoked---that will always give you an editor.  When invoked via
 the program that invoked @command{emacsclient}.
 @end enumerate
 
-@cindex emacsclient, on MS-Windows
+@cindex @command{emacsclient}, on MS-Windows
 Note that, due to limitations of MS-Windows, Emacs cannot have both
 GUI and text-mode frames in the same session.  It also cannot open
 text-mode frames on more than a single @dfn{Command Prompt} window,
@@ -204,8 +224,8 @@ designates directory @file{\foo} on drive Z as an untranslated file
 system.
 
   Most often you would use @code{add-untranslated-filesystem} in your
-@file{.emacs} file, or in @file{site-start.el} so that all the users at
-your site get the benefit of it.
+@file{.emacs} or @file{init.el} init file, or in @file{site-start.el}
+so that all the users at your site get the benefit of it.
 
 @findex remove-untranslated-filesystem
   To countermand the effect of @code{add-untranslated-filesystem}, use
@@ -215,8 +235,8 @@ previously with @code{add-untranslated-filesystem}.
 
   Designating a file system as untranslated does not affect character
 set conversion, only end-of-line conversion.  Essentially, it directs
-Emacs to create new files with the Unix-style convention of using
-newline at the end of a line.  @xref{Coding Systems}.
+Emacs to default to creating new files with the Unix-style convention
+of using newline at the end of a line.  @xref{Coding Systems}.
 
 @node Windows Files
 @section File Names on MS-Windows
@@ -229,7 +249,9 @@ backslash, and also knows about drive letters in file names.
 
 @cindex file-name completion, on MS-Windows
   On MS-DOS/MS-Windows, file names are case-insensitive, so Emacs by
-default ignores letter-case in file names during completion.
+default ignores letter-case in file names during completion.  To this
+end, the default value of @code{read-file-name-completion-ignore-case}
+is non-@code{nil} on MS-DOS/MS-Windows.  @xref{Completion Options}.
 
 @vindex w32-get-true-file-attributes
   The variable @code{w32-get-true-file-attributes} controls whether
@@ -311,9 +333,9 @@ it doesn't support all of them.  Here's the list of the switches it
 does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
 @option{-c}, @option{-G}, @option{-g}, @option{-h}, @option{-i}, @option{-n},
 @option{-R}, @option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
-@option{-u}, and @option{-X}.  The @option{-F} switch is partially
-supported (it appends the character that classifies the file, but does
-not prevent symlink following).
+@option{-u}, @option{v}, and @option{-X}.  The @option{-F} switch is
+partially supported (it appends the character that classifies the
+file, but does not prevent symlink following).
 
 @vindex ls-lisp-use-insert-directory-program
   On MS-Windows and MS-DOS, @file{ls-lisp.el} is preloaded when Emacs
@@ -322,6 +344,26 @@ platforms.  If you have a ported @code{ls}, setting
 @code{ls-lisp-use-insert-directory-program} to a non-@code{nil} value
 will revert to using an external program named by the variable
 @code{insert-directory-program}.
+
+@cindex Dired sorting order, on MS-Windows/MS-DOS
+  The order in which @file{ls-lisp.el} sorts files depends on several
+customizable options described below.
+
+@vindex ls-lisp-use-string-collate
+  The default sorting order follows locale-specific rules derived from
+your system locale.  You can make the order locale-independent by
+customizing @code{ls-lisp-use-string-collate} to a @code{nil} value.
+
+@cindex Unicode Collation Algorithm (UCA), and @file{ls-lisp.el}
+@vindex ls-lisp-UCA-like-collation
+  On GNU and Unix systems, when the locale's encoding is UTF-8, the
+collation order follows the Unicode Collation Algorithm
+(@acronym{UCA}).  To have a similar effect on MS-Windows, the variable
+@code{ls-lisp-UCA-like-collation} should have a non-@code{nil} value
+(this is the default).  The resulting sorting order ignores
+punctuation, symbol characters, and whitespace characters, so
+@file{.foobar}, @file{foobar} and @w{@file{foo bar}} will appear
+together rather than far apart.
 
 @vindex ls-lisp-ignore-case
   By default, @file{ls-lisp.el} uses a case-sensitive sort order for
@@ -371,10 +413,10 @@ Emulate macOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
 @item MS-Windows
 Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
 @code{ls-lisp-dirs-first} to @code{t}, and @code{ls-lisp-verbosity} to
-@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X@.
-Note that the default emulation is @emph{not} @code{MS-Windows}, even
-on Windows, since many users of Emacs on those platforms prefer the
-@sc{gnu} defaults.
+@code{nil} on Windows 9X and to @code{t} on modern versions of
+Windows.  Note that the default emulation is @emph{not}
+@code{MS-Windows}, even on Windows, since many users of Emacs on those
+platforms prefer the @sc{gnu} defaults.
 @end table
 
 @noindent
@@ -421,6 +463,8 @@ formats file time stamps according to what
 @code{ls-lisp-format-time-list} specifies.  The @samp{%}-sequences in
 @code{ls-lisp-format-time-list} produce locale-dependent month and day
 names, which might cause misalignment of columns in Dired display.
+The default value of @code{ls-lisp-use-localized-time-format} is
+@code{nil}.
 @end ifnottex
 
 @node Windows HOME
@@ -430,9 +474,9 @@ names, which might cause misalignment of columns in Dired display.
   The Windows equivalent of @code{HOME} is the @dfn{user-specific
 application data directory}.  The actual location depends on the
 Windows version; typical values are @file{C:\Documents and
-Settings\@var{username}\Application Data} on Windows 2000/XP/2K3,
-@file{C:\Users\@var{username}\AppData\Roaming} on Windows
-Vista/7/2008, and either @file{C:\WINDOWS\Application Data} or
+Settings\@var{username}\Application Data} on Windows 2000 up to XP,
+@file{C:\Users\@var{username}\AppData\Roaming} on Windows Vista and
+later, and either @file{C:\WINDOWS\Application Data} or
 @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on Windows
 9X/ME@.  If this directory does not exist or cannot be accessed, Emacs
 falls back to @file{C:\} as the default value of @code{HOME}.
@@ -453,7 +497,8 @@ default @code{HOME} location, and will not look in the application
 data directory, even if it exists.  Note that only @file{.emacs} is
 looked for in @file{C:\}; the older name @file{_emacs} (see below) is
 not.  This use of @file{C:\.emacs} to define @code{HOME} is
-deprecated.
+deprecated; Emacs will display a warning about its use during
+startup.
 
   Whatever the final place is, Emacs sets the internal value of the
 @env{HOME} environment variable to point to it, and it will use that
@@ -467,15 +512,15 @@ first line.  Likewise, to visit your init file, type @kbd{C-x C-f
 ~/.emacs @key{RET}} (assuming the file's name is @file{.emacs}).
 
 @cindex init file @file{.emacs} on MS-Windows
-  The home directory is where your init file is stored.  It can have
-any name mentioned in @ref{Init File}.
+  Your init file can have any name mentioned in @ref{Init File}.
 
 @cindex @file{_emacs} init file, MS-Windows
   Because MS-DOS does not allow file names with leading dots, and
 older Windows systems made it hard to create files with such names,
 the Windows port of Emacs supports an init file name @file{_emacs}, if
 such a file exists in the home directory and @file{.emacs} does not.
-This name is considered obsolete.
+This name is considered obsolete, so Emacs will display a warning if
+it is used.
 
 @node Windows Keyboard
 @section Keyboard Usage on MS-Windows
@@ -491,7 +536,9 @@ Emacs key bindings.  (These Emacs key bindings were established years
 before Microsoft was founded.)  Examples of conflicts include
 @kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and @kbd{W-@key{SPC}}.
 You can redefine some of them with meanings more like the MS-Windows
-meanings by enabling CUA Mode (@pxref{CUA Bindings}).
+meanings by enabling CUA Mode (@pxref{CUA Bindings}).  Another
+optional feature which will make Emacs behave like other Windows
+applications is Delete Selection mode (@pxref{Using Region}).
 
 @iftex
 @inforef{Windows Keyboard, , emacs}, for information about additional
@@ -575,7 +622,7 @@ keys (it converts lower-case characters to their upper-case
 variants).  However, if you set the variable
 @code{w32-capslock-is-shiftlock} to a non-@code{nil} value, the
 @key{CapsLock} key will affect non-character keys as well, as if you
-pressed the @key{Shift} key while typing the non-character key.
+pressed the @key{SHIFT} key while typing the non-character key.
 
 @vindex w32-enable-caps-lock
   If the variable @code{w32-enable-caps-lock} is set to a @code{nil}
@@ -647,7 +694,7 @@ its normal effect: for example, @kbd{@key{Lwindow}} opens the
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}
-@cindex AltGr key (MS-Windows)
+@cindex @key{AltGr} key (MS-Windows)
   The variable @code{w32-recognize-altgr} controls whether the
 @key{AltGr} key (if it exists on your keyboard), or its equivalent,
 the combination of the right @key{Alt} and left @key{Ctrl} keys
@@ -690,16 +737,14 @@ is non-@code{nil}, the roles of these two buttons are reversed.
 @cindex subprocesses on MS-Windows
 
 @cindex DOS applications, running from Emacs
-  Emacs compiled as a native Windows application (as opposed to the DOS
-version) includes full support for asynchronous subprocesses.
-In the Windows version, synchronous and asynchronous subprocesses work
-fine on both
-Windows 9X/ME and Windows NT/2K/XP/Vista/7/8/10 as long as you run
-only 32-bit or 64-bit Windows
-applications.  However, when you run a DOS application in a subprocess,
-you may encounter problems or be unable to run the application at all;
-and if you run two DOS applications at the same time in two
-subprocesses, you may have to reboot your system.
+  Emacs compiled as a native Windows application (as opposed to the
+DOS version) includes full support for asynchronous subprocesses.  In
+the Windows version, synchronous and asynchronous subprocesses work
+fine on all versions of MS-Windows, as long as you run only 32-bit or
+64-bit Windows applications.  However, when you run a DOS application
+in a subprocess, you may encounter problems or be unable to run the
+application at all; and if you run two DOS applications at the same
+time in two subprocesses, you may have to reboot your system.
 
 Since the standard command interpreter (and most command line utilities)
 on Windows 9X are DOS applications, these problems are significant when
@@ -724,13 +769,13 @@ first one finishes, even if either or both of them are asynchronous.
 
 @cindex kill DOS application
 If you can go to the first subprocess, and tell it to exit, the second
-subprocess should continue normally.  However, if the second subprocess
-is synchronous, Emacs itself will be hung until the first subprocess
-finishes.  If it will not finish without user input, then you have no
-choice but to reboot if you are running on Windows 9X@.  If you are
-running on Windows NT/2K/XP, you can use a process viewer application to kill
-the appropriate instance of NTVDM instead (this will terminate both DOS
-subprocesses).
+subprocess should continue normally.  However, if the second
+subprocess is synchronous, Emacs itself will be hung until the first
+subprocess finishes.  If it will not finish without user input, then
+you have no choice but to reboot if you are running on Windows 9X@.
+If you are running on Windows NT and later, you can use a process
+viewer application to kill the appropriate instance of NTVDM instead
+(this will terminate both DOS subprocesses).
 
 If you have to reboot Windows 9X in this situation, do not use the
 @code{Shutdown} command on the @code{Start} menu; that usually hangs the
@@ -1033,7 +1078,8 @@ the system default antialiasing.
 @node Windows Misc
 @section Miscellaneous Windows-specific features
 
-  This section describes miscellaneous Windows-specific features.
+  This section describes Windows-specific features that don't fit
+anywhere else.
 
 @vindex w32-use-visible-system-caret
 @cindex screen reader software, MS-Windows

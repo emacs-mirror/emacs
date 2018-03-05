@@ -25,9 +25,9 @@
 ;;; Commentary:
 
 ;; When this module is active `org-store-link' (often on key C-c l) in
-;; a eww buffer stores a link to the current url of the eww buffer.
+;; an EWW buffer stores a link to the current url of the eww buffer.
 
-;; In an eww buffer function `org-eww-copy-for-org-mode' kills either
+;; In an EWW buffer function `org-eww-copy-for-org-mode' kills either
 ;; a region or the whole buffer if no region is set and transforms the
 ;; text on the fly so that it can be pasted into an Org buffer with
 ;; hot links.
@@ -58,7 +58,7 @@
 ;; Store Org-link in eww-mode buffer
 (org-link-set-parameters "eww" :follow #'eww :store #'org-eww-store-link)
 (defun org-eww-store-link ()
-  "Store a link to the url of a Eww buffer."
+  "Store a link to the url of an EWW buffer."
   (when (eq major-mode 'eww-mode)
     (org-store-link-props
      :type "eww"

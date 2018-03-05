@@ -1716,7 +1716,7 @@ function definition, and vice versa.
 @unnumberedsubsec @code{fill-column}, an Example Variable
 @end ifnottex
 
-@findex fill-column, @r{an example variable}
+@findex fill-column@r{, an example variable}
 @cindex Example variable, @code{fill-column}
 @cindex Variable, example of, @code{fill-column}
 The variable @code{fill-column} illustrates a symbol with a value
@@ -3839,7 +3839,7 @@ message @samp{5 is greater than 4!} will be printed.
 @noindent
 (The function @code{>} tests whether its first argument is greater than
 its second argument and returns true if it is.)
-@findex > (greater than)
+@findex > @r{(greater than)}
 
 Of course, in actual use, the test in an @code{if} expression will not
 be fixed for all time as it is by the expression @code{(> 5 4)}.
@@ -4552,7 +4552,7 @@ buffers.  Later, we will study other functions.
 @node Finding More
 @section Finding More Information
 
-@findex describe-function, @r{introduced}
+@findex describe-function@r{, introduced}
 @cindex Find function documentation
 In this walk-through, I will describe each new function as we come to
 it, sometimes in detail and sometimes briefly.  If you are interested,
@@ -5564,7 +5564,7 @@ outline of the function:
 
 @node insert-buffer interactive
 @subsection The Interactive Expression in @code{insert-buffer}
-@findex interactive, @r{example use of}
+@findex interactive@r{, example use of}
 
 In @code{insert-buffer}, the argument to the @code{interactive}
 declaration has two parts, an asterisk, @samp{*}, and @samp{bInsert
@@ -5881,8 +5881,8 @@ find and use again and again.
 
 @node New insert-buffer
 @subsection New Body for @code{insert-buffer}
-@findex insert-buffer, new version body
-@findex new version body for insert-buffer
+@findex insert-buffer@r{, new version body}
+@cindex new version body for @code{insert-buffer}
 
 The body in the GNU Emacs 22 version is more confusing than the original.
 
@@ -6734,8 +6734,8 @@ Or can you write the function without them?
 
 @node car cdr & cons
 @chapter @code{car}, @code{cdr}, @code{cons}: Fundamental Functions
-@findex car, @r{introduced}
-@findex cdr, @r{introduced}
+@findex car@r{, introduced}
+@findex cdr@r{, introduced}
 
 In Lisp, @code{car}, @code{cdr}, and @code{cons} are fundamental
 functions.  The @code{cons} function is used to construct lists, and
@@ -6900,7 +6900,7 @@ Emacs Lisp Reference Manual}.)
 
 @node cons
 @section @code{cons}
-@findex cons, @r{introduced}
+@findex cons@r{, introduced}
 
 The @code{cons} function constructs lists; it is the inverse of
 @code{car} and @code{cdr}.  For example, @code{cons} can be used to make
@@ -8715,7 +8715,7 @@ example-list
 @noindent
 Now, we can add a new element on to this list by evaluating the
 following expression:
-@findex push, @r{example}
+@findex push@r{, example}
 
 @smallexample
 (push "a third clause" example-list)
@@ -8762,13 +8762,13 @@ element of the kill ring---this means that since the @sc{cdr} of the
 next to last element is the last element of the kill ring, it will set
 the last element of the kill ring.
 
-@findex nthcdr, @r{example}
+@findex nthcdr@r{, example}
 The @code{nthcdr} function works by repeatedly taking the @sc{cdr} of a
 list---it takes the @sc{cdr} of the @sc{cdr} of the @sc{cdr}
 @dots{}  It does this @var{N} times and returns the results.
 (@xref{nthcdr, , @code{nthcdr}}.)
 
-@findex setcdr, @r{example}
+@findex setcdr@r{, example}
 Thus, if we had a four element list that was supposed to be three
 elements long, we could set the @sc{cdr} of the next to last element
 to @code{nil}, and thereby shorten the list.  (If you set the last
@@ -11799,7 +11799,7 @@ Uses recursion."
 @end group
 @end smallexample
 
-What happens when we call this function with a argument of 7?
+What happens when we call this function with an argument of 7?
 
 The first instance of the @code{triangle-recursively} function adds
 the number 7 to the value returned by a second instance of
@@ -13254,7 +13254,7 @@ If you are reading this inside of GNU Emacs and you want to see the
 whole function, you can type @kbd{C-h f} (@code{describe-function})
 and the name of the function.  This gives you the function
 documentation and the name of the library containing the function's
-source.  Place point over the name of the library and press the RET
+source.  Place point over the name of the library and press the @key{RET}
 key; you will be taken directly to the source.  (Be sure to install
 your sources!  Without them, you are like a person who tries to drive
 a car with his eyes shut!)
@@ -14739,7 +14739,7 @@ In Emacs 22
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
-Interactively, the default if you just type RET is the current directory,
+Interactively, the default if you just type @key{RET} is the current directory,
 but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
@@ -15917,8 +15917,8 @@ a regular expression, including functions that are not interactive.
 What we want to look for is some command that prints or inserts
 columns.  Very likely, the name of the function will contain either
 the word ``print'' or the word ``insert'' or the word ``column''.
-Therefore, we can simply type @kbd{M-x apropos RET
-print\|insert\|column RET} and look at the result.  On my system, this
+Therefore, we can simply type @kbd{M-x apropos @key{RET}
+print\|insert\|column @key{RET}} and look at the result.  On my system, this
 command once took quite some time, and then produced a list of 79
 functions and variables.  Now it does not take much time at all and
 produces a list of 211 functions and variables.  Scanning down the
@@ -17177,8 +17177,8 @@ file, as I intended, I accidentally set the width for filled text,
 almost always to a width I did not want.  Since I hardly ever reset my
 default width, I simply unbound the key.
 
-@findex list-buffers, @r{rebound}
-@findex buffer-menu, @r{bound to key}
+@findex list-buffers@r{, rebound}
+@findex buffer-menu@r{, bound to key}
 @need 1250
 The following rebinds an existing key:
 
@@ -18147,7 +18147,7 @@ You can enter the debugger when you call the function by calling
 Type:
 
 @smallexample
-M-x debug-on-entry RET triangle-bugged RET
+M-x debug-on-entry @key{RET} triangle-bugged @key{RET}
 @end smallexample
 
 @need 1250
@@ -18255,7 +18255,7 @@ To cancel the effect of @code{debug-on-entry}, call
 @code{cancel-debug-on-entry} and the name of the function, like this:
 
 @smallexample
-M-x cancel-debug-on-entry RET triangle-bugged RET
+M-x cancel-debug-on-entry @key{RET} triangle-bugged @key{RET}
 @end smallexample
 
 @noindent
@@ -18341,7 +18341,7 @@ this by positioning your cursor within or just after the definition
 and typing
 
 @smallexample
-M-x edebug-defun RET
+M-x edebug-defun @key{RET}
 @end smallexample
 
 @noindent
@@ -18552,7 +18552,7 @@ one of those long, but decipherable functions.  You can look up
 
 In this instance, since the code is Lisp, the @file{*Help*} buffer
 contains the name of the library containing the function's source.
-You can put point over the name of the library and press the RET key,
+You can put point over the name of the library and press the @key{RET} key,
 which in this situation is bound to @code{help-follow}, and be taken
 directly to the source, in the same way as @kbd{M-.}
 (@code{find-tag}).
@@ -20821,7 +20821,7 @@ The function @code{1+} which adds one to its argument, is executed on
 
 Contrast this with @code{apply}, which applies its first argument to
 all the remaining.
-(@xref{Readying a Graph, , Readying a Graph}, for a explanation of
+(@xref{Readying a Graph, , Readying a Graph}, for an explanation of
 @code{apply}.)
 
 @need 1250

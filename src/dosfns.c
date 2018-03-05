@@ -480,11 +480,7 @@ x_set_title (struct frame *f, Lisp_Object name)
 #endif /* !HAVE_X_WINDOWS */
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
-       doc: /* Return storage information about the file system FILENAME is on.
-Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
-storage of the file system, FREE is the free storage, and AVAIL is the
-storage available to a non-superuser.  All 3 numbers are in bytes.
-If the underlying system call fails, value is nil.  */)
+       doc: /* SKIP: real doc in fileio.c.  */)
   (Lisp_Object filename)
 {
   struct statfs stfs;

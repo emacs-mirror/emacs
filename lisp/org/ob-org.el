@@ -34,7 +34,7 @@
 
 (defvar org-babel-default-header-args:org
   '((:results . "raw silent") (:exports . "code"))
-  "Default arguments for evaluating a org source block.")
+  "Default arguments for evaluating an org source block.")
 
 (defvar org-babel-org-default-header
   "#+TITLE: default empty header\n"

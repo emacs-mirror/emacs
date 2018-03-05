@@ -66,8 +66,8 @@ minibuffer-electric-default-mode}.
 other uses of the echo area.  If an error message or an informative
 message is emitted while the minibuffer is active, the message hides
 the minibuffer for a few seconds, or until you type something; then
-the minibuffer comes back.  While the minibuffer is in use, keystrokes
-do not echo.
+the minibuffer comes back.  While the minibuffer is in use, Emacs does
+not echo keystrokes.
 
 @node Minibuffer File
 @section Minibuffers for File Names
@@ -117,7 +117,13 @@ second slash in the pair.  In the example above,
 @file{/u2/emacs/src/} is ignored, so the argument you supplied is
 @file{/etc/termcap}.  The ignored part of the file name is dimmed if
 the terminal allows it.  (To disable this dimming, turn off File Name
-Shadow mode with the command @kbd{M-x file-name-shadow-mode}.)
+Shadow mode with the command @w{@kbd{M-x file-name-shadow-mode}}.)
+
+  When completing remote file names (@pxref{Remote Files}), a double
+slash behaves slightly differently: it causes Emacs to ignore only the
+file-name part, leaving the rest (method, host and username, etc.)
+intact.  Typing three slashes in a row ignores everything in remote
+file names.  @xref{File name completion,,, tramp, The Tramp Manual}.
 
 @cindex home directory shorthand
   Emacs interprets @file{~/} as your home directory.  Thus,
@@ -458,12 +464,14 @@ Lisp symbol).  The default completion styles are (in order):
 
 @table @code
 @item basic
+@cindex @code{basic}, completion style
 A matching completion alternative must have the same beginning as the
 text in the minibuffer before point.  Furthermore, if there is any
 text in the minibuffer after point, the rest of the completion
 alternative must contain that text as a substring.
 
-@findex partial completion
+@cindex partial completion
+@cindex @code{partial-completion}, completion style
 @item partial-completion
 This aggressive completion style divides the minibuffer text into
 words separated by hyphens or spaces, and completes each word
@@ -475,6 +483,7 @@ Furthermore, a @samp{*} in the minibuffer text is treated as a
 corresponding position in the completion alternative.
 
 @item emacs22
+@cindex @code{emacs22}, completion style
 This completion style is similar to @code{basic}, except that it
 ignores the text in the minibuffer after point.  It is so-named
 because it corresponds to the completion behavior in Emacs 22.
@@ -487,6 +496,7 @@ can add them to @code{completion-styles} if you wish
 
 @table @code
 @item substring
+@cindex @code{substring}, completion style
 A matching completion alternative must contain the text in the
 minibuffer before point, and the text in the minibuffer after point,
 as substrings (in that same order).
@@ -497,6 +507,7 @@ between @samp{foo} and @samp{bar}, that matches
 @var{c} can be any string including the empty string.
 
 @item initials
+@cindex @code{initials}, completion style
 This very aggressive completion style attempts to complete acronyms
 and initialisms.  For example, when completing command names, it
 matches @samp{lch} to @samp{list-command-history}.
@@ -741,7 +752,7 @@ it by typing @key{RET}.
 @vindex isearch-resume-in-command-history
   Incremental search does not, strictly speaking, use the minibuffer.
 Therefore, although it behaves like a complex command, it normally
-does not appear in the history list for @kbd{C-x @key{ESC} @key{ESC}}.
+does not appear in the history list for @w{@kbd{C-x @key{ESC} @key{ESC}}}.
 You can make incremental search commands appear in the history by
 setting @code{isearch-resume-in-command-history} to a non-@code{nil}
 value.  @xref{Incremental Search}.
@@ -767,10 +778,10 @@ you type the required password, press @key{RET} to submit it.  To
 prevent others from seeing your password, every character you type is
 displayed as a dot (@samp{.}) instead of its usual form.
 
-  Most of the features and commands associated with the minibuffer can
-@emph{not} be used when entering a password.  There is no history or
-completion, and you cannot change windows or perform any other action
-with Emacs until you have submitted the password.
+  Most of the features and commands associated with the minibuffer
+@emph{cannot} be used when entering a password.  There is no history
+or completion, and you cannot change windows or perform any other
+action with Emacs until you have submitted the password.
 
   While you are typing the password, you may press @key{DEL} to delete
 backwards, removing the last character entered.  @kbd{C-u} deletes

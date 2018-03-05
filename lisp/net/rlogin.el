@@ -219,7 +219,7 @@ variable."
                ;; function, to avoid a gratuitous resync check; the default
                ;; should be the user's home directory, be it local or remote.
                (setq comint-file-name-prefix
-                     (concat "/" rlogin-remote-user "@" rlogin-host ":"))
+                     (concat "/-:" rlogin-remote-user "@" rlogin-host ":"))
                (cd-absolute comint-file-name-prefix))
               ((null rlogin-directory-tracking-mode))
               (t
@@ -253,7 +253,7 @@ local one share the same directories (e.g. through NFS)."
     (setq rlogin-directory-tracking-mode t)
     (setq shell-dirtrackp t)
     (setq comint-file-name-prefix
-          (concat "/" rlogin-remote-user "@" rlogin-host ":")))
+          (concat "/-:" rlogin-remote-user "@" rlogin-host ":")))
    ((< prefix 0)
     (setq rlogin-directory-tracking-mode nil)
     (setq shell-dirtrackp nil))

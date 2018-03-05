@@ -1237,7 +1237,7 @@ extern void ns_finish_events (void);
 #ifdef __OBJC__
 /* Needed in nsfns.m.  */
 extern void
-ns_set_represented_filename (NSString *fstr, struct frame *f);
+ns_set_represented_filename (struct frame *f);
 
 #endif
 

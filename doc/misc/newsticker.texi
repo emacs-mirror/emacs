@@ -239,17 +239,17 @@ The position of groups and feeds within the tree can be changed with these
 commands:
 
 @table @kbd
-@item M-up
-@itemx M-down
-@kindex M-up
-@kindex M-down
+@item M-@key{UP}
+@itemx M-@key{DOWN}
+@kindex M-UP
+@kindex M-DOWN
 @findex newsticker-group-shift-feed-up
 @findex newsticker-group-shift-feed-down
 Shift the currently selected feed up and down within its group.
-@item M-S-up
-@itemx M-S-down
-@kindex M-S-up
-@kindex M-S-down
+@item M-S-@key{UP}
+@itemx M-S-@key{DOWN}
+@kindex M-S-UP
+@kindex M-S-DOWN
 @findex newsticker-group-shift-group-up
 @findex newsticker-group-shift-group-down
 Shift the currently selected group up and down within its parent group.
@@ -397,8 +397,8 @@ Mark current item as immortal.  Immortal items are kept forever.
 @table @kbd
 @cindex Get News
 @item v
-@itemx RET
-@itemx <mouse-1>
+@itemx @key{RET}
+@itemx mouse-1
 @findex newsticker-treeview-browse-url
 Open the link to the full article (as contained in the current
 headline) in your web browser @code{newsticker-treeview-browse-url}).

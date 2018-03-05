@@ -243,7 +243,7 @@ Interesting point.  When wrapping skeletons around successive regions, they are
 put at these places.  Point is left at first @code{_} where nothing is wrapped.
 @item @code{>}
 Indent line according to major mode.  When following element is @code{_}, and
-there is a interregion that will be wrapped here, indent that interregion.
+there is an interregion that will be wrapped here, indent that interregion.
 @item @code{&}
 Logical and.  If preceding element moved point, i.e., usually inserted
 something, do following element.

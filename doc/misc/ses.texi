@@ -209,7 +209,7 @@ remove blank cells from the returned list, which allows to use
 @findex keyboard-quit
 
 To create a new spreadsheet, visit a nonexistent file whose name ends
-  with ".ses".  For example, @kbd{C-x C-f test.ses RET}.
+with ".ses".  For example, @kbd{C-x C-f test.ses @key{RET}}.
 
 
 A @dfn{cell identifier} is a symbol with a column letter and a row
@@ -310,7 +310,7 @@ To enter something else (e.g., a vector), begin with a digit, then
 erase the digit and type whatever you want.
 
 @table @kbd
-@item RET
+@item @key{RET}
 Edit the existing formula in the current cell (@code{ses-edit-cell}).
 
 @item C-c C-c
@@ -357,7 +357,7 @@ Basic commands:
 @item w
 (@code{ses-set-column-width})
 
-@item TAB
+@item @key{TAB}
 Moves point to the next rightward cell, or inserts a new column if
 already at last cell on line, or inserts a new row if at endline
 (@code{ses-forward-or-insert}).
@@ -639,7 +639,7 @@ or a non-string is displayed as an error by using @code{#} filling.
 These commands set both formula and printer to @code{nil}:
 
 @table @kbd
-@item DEL
+@item @key{DEL}
 Clear cell and move left (@code{ses-clear-cell-backward}).
 
 @item C-d
@@ -1282,10 +1282,10 @@ avoid virus warnings, each function used in a formula needs
 
 @node Uses of defadvice in @acronym{SES}
 @section Uses of defadvice in @acronym{SES}
-@cindex defadvice
-@cindex undo-more
-@cindex copy-region-as-kill
-@cindex yank
+@findex defadvice
+@findex undo-more
+@findex copy-region-as-kill
+@findex yank
 
 @table @code
 @item undo-more

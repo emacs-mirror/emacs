@@ -831,7 +831,7 @@ This assumes that a temporary buffer is set up."
                               (expand-file-name "flists" dir)))))))))
 
 (defun mh-file-command-p (file)
-  "Return t if file FILE is the name of a executable regular file."
+  "Return t if file FILE is the name of an executable regular file."
   (and (file-regular-p file) (file-executable-p file)))
 
 (defun mh-variant-set-variant (variant)

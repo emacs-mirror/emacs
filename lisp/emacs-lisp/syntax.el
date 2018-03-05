@@ -363,12 +363,6 @@ An \"outermost position\" means one that it is outside of any syntactic entity:
 outside of any parentheses, comments, or strings encountered in the scan.
 If no such position is recorded in PPSS (because the end of the scan was
 itself at the outermost level), return nil."
-  ;; BEWARE! We rely on the undocumented 9th field.  The 9th field currently
-  ;; contains the list of positions of the enclosing open-parens.
-  ;; I.e. those positions are outside of any string/comment and the first of
-  ;; those is outside of any paren (i.e. corresponds to a nil ppss).
-  ;; If this list is empty but we are in a string or comment, then the 8th
-  ;; field contains a similar "toplevel" position.
   (or (car (nth 9 ppss))
       (nth 8 ppss)))
 

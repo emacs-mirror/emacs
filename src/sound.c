@@ -2,6 +2,8 @@
 
 Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
 
+Author: Gerd Moellmann <gerd@gnu.org>
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
@@ -17,8 +19,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Gerd Moellmann <gerd@gnu.org>.  Tested with Luigi's
-   driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
+/* Tested with Luigi's driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
 
 /*
   Modified by Ben Key <Bkey1@tampabay.rr.com> to add a partial

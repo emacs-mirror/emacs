@@ -518,13 +518,14 @@
 
 
 (ert-deftest cl-lib-symbol-macrolet-hide ()
-  ;; bug#26325
+  ;; bug#26325, bug#26073
   (should (equal (let ((y 5))
                    (cl-symbol-macrolet ((x y))
                      (list x
                            (let ((x 6)) (list x y))
-                           (cl-letf ((x 6)) (list x y)))))
-                 '(5 (6 5) (6 6)))))
+                           (cl-letf ((x 6)) (list x y))
+                           (apply (lambda (x) (+ x 1)) (list 8)))))
+                 '(5 (6 5) (6 6) 9))))
 
 (defun cl-lib-tests--dummy-function ()
   ;; Dummy function to see if the file is compiled.

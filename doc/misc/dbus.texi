@@ -1815,7 +1815,7 @@ The function returns a number, which counts the connections this Emacs
 session has established to the @var{bus} under the same unique name
 (see @code{dbus-get-unique-name}).  It depends on the libraries Emacs
 is linked with, and on the environment Emacs is running.  For example,
-if Emacs is linked with the gtk toolkit, and it runs in a GTK-aware
+if Emacs is linked with the GTK+ toolkit, and it runs in a GTK+-aware
 environment like Gnome, another connection might already be
 established.
 
@@ -1837,9 +1837,9 @@ Example: You initialize a connection to the AT-SPI bus on your host:
 
 @result{} "unix:abstract=/tmp/dbus-2yzWHOCdSD,guid=a490dd26625870ca1298b6e10000fd7f"
 
-;; If Emacs is built with gtk support, and you run in a GTK enabled
+;; If Emacs is built with GTK+ support, and you run in a GTK+-enabled
 ;; environment (like a GNOME session), the initialization reuses the
-;; connection established by GTK's atk bindings.
+;; connection established by GTK+'s atk bindings.
 (dbus-init-bus my-bus)
 
 @result{} 2

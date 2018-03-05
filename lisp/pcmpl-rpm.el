@@ -96,7 +96,7 @@
 		    (pcomplete-process-result
 		     "rpm" "-q" (car pkgs) flag)))
       (setq pkgs (cdr pkgs)))
-    (pcomplete-uniqify-list (cdr provs))))
+    (pcomplete-uniquify-list (cdr provs))))
 
 (defsubst pcmpl-rpm-files ()
   (pcomplete-dirs-or-entries "\\.rpm\\'"))

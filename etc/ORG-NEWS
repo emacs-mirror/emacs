@@ -148,7 +148,7 @@ directories in published site-maps.
 **** Scheme: support for tables
 **** Scheme: new variable: ~org-babel-scheme-null-to~
 
-This new custom option allows to use a empty list or null symbol to
+This new custom option allows you to use an empty list or null symbol to
 format the table output, initially assigned to ~hlines~.
 
 **** Scheme: new header ~:prologue~
@@ -1358,7 +1358,7 @@ don't have to be distinct on a heading.
 
 Grouptags had to previously be defined with { }.  This syntax is
 already used for exclusive tags and Grouptags need their own,
-non-exclusive syntax.  This behaviour is achieved with [ ].  Note: { }
+non-exclusive syntax.  This behavior is achieved with [ ].  Note: { }
 can still be used also for Grouptags but then only one of the given
 tags can be used on the headline at the same time.  Example:
 
@@ -1422,9 +1422,9 @@ Check the documentation for more details.
 
 Thanks to Jarmo Hurri for this feature.
 
-*** New behaviour for ~org-toggle-latex-fragment~
+*** New behavior for ~org-toggle-latex-fragment~
 
-The new behaviour is the following:
+The new behavior is the following:
 
 - With a double prefix argument or with a single prefix argument when
   point is before the first headline, toggle overlays in the whole
@@ -1623,10 +1623,10 @@ leading spaces within table cells.
 Org uses the MathJax CDN by default.  See the manual and the docstring
 of ~org-html-mathjax-options~ for details.
 
-*** New behaviour in `org-export-options-alist'
+*** New behavior in `org-export-options-alist'
 
 When defining a back-end, it is now possible to specify to give
-`parse' behaviour on a keyword.  It is equivalent to call
+`parse' behavior on a keyword.  It is equivalent to call
 `org-element-parse-secondary-string' on the value.
 
 However, parsed =KEYWORD= is automatically associated to an
@@ -1745,7 +1745,7 @@ everywhere in the buffer, possibly corrupting URLs.
 *** Removed option =org-babel-sh-command=
 
 This undocumented option defaulted to the value of =shell-file-name= at
-the time of loading =ob-shell=.  The new behaviour is to use the value
+the time of loading =ob-shell=.  The new behavior is to use the value
 of =shell-file-name= directly when the shell langage is =shell=.  To chose
 a different shell, either customize =shell-file-name= or bind this
 variable locally.

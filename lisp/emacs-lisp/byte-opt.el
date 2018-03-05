@@ -1402,7 +1402,7 @@
 	     (setq offset (- offset #x80)))
             ((eq bytedecomp-op 'byte-switch)
              (cl-assert (hash-table-p last-constant) nil
-                        "byte-switch used without preceeding hash table")
+                        "byte-switch used without preceding hash table")
              ;; We cannot use the original hash table referenced in the op,
              ;; so we create a copy of it, and replace the addresses with
              ;; TAGs.

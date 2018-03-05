@@ -184,17 +184,8 @@ Move forward one character (@code{forward-char}).
 @item @key{RIGHT}
 @kindex RIGHT
 @findex right-char
-@vindex visual-order-cursor-movement
-@cindex cursor, visual-order motion
-This command (@code{right-char}) behaves like @kbd{C-f}, with one
-exception: when editing right-to-left scripts such as Arabic, it
-instead moves @emph{backward} if the current paragraph is a
-right-to-left paragraph.  @xref{Bidirectional Editing}.  If
-@code{visual-order-cursor-movement} is non-@code{nil}, this command
-moves to the character that is to the right of the current screen
-position, moving to the next or previous screen line as appropriate.
-Note that this might potentially move point many buffer positions
-away, depending on the surrounding bidirectional context.
+This command (@code{right-char}) behaves like @kbd{C-f}, except when
+point is in a right-to-left paragraph (@pxref{Bidirectional Editing}).
 
 @item C-b
 @kindex C-b
@@ -204,12 +195,8 @@ Move backward one character (@code{backward-char}).
 @item @key{LEFT}
 @kindex LEFT
 @findex left-char
-This command (@code{left-char}) behaves like @kbd{C-b}, except it
-moves @emph{forward} if the current paragraph is right-to-left.
-@xref{Bidirectional Editing}.  If @code{visual-order-cursor-movement}
-is non-@code{nil}, this command moves to the character that is to the
-left of the current screen position, moving to the previous or next
-screen line as appropriate.
+This command (@code{left-char}) behaves like @kbd{C-b}, except if the
+current paragraph is right-to-left (@pxref{Bidirectional Editing}).
 
 @item C-n
 @itemx @key{DOWN}
@@ -231,14 +218,14 @@ preserves position within the line, like @kbd{C-n}.
 @item C-a
 @itemx @key{Home}
 @kindex C-a
-@kindex HOME key
+@kindex HOME
 @findex move-beginning-of-line
 Move to the beginning of the line (@code{move-beginning-of-line}).
 
 @item C-e
 @itemx @key{End}
 @kindex C-e
-@kindex END key
+@kindex END
 @findex move-end-of-line
 Move to the end of the line (@code{move-end-of-line}).
 
@@ -290,7 +277,7 @@ On graphical displays, @kbd{C-@key{HOME}} does the same.
 
 @item M->
 @kindex M->
-@kindex C-@key{END}
+@kindex C-END
 @findex end-of-buffer
 Move to the end of the buffer (@code{end-of-buffer}).  On graphical
 displays, @kbd{C-@key{END}} does the same.
@@ -791,12 +778,12 @@ lines).
 
   You can use a numeric argument before a self-inserting character to
 insert multiple copies of it.  This is straightforward when the
-character is not a digit; for example, @kbd{C-u 6 4 a} inserts 64
+character is not a digit; for example, @w{@kbd{C-u 6 4 a}} inserts 64
 copies of the character @samp{a}.  But this does not work for
-inserting digits; @kbd{C-u 6 4 1} specifies an argument of 641.  You
-can separate the argument from the digit to insert with another
-@kbd{C-u}; for example, @kbd{C-u 6 4 C-u 1} does insert 64 copies of
-the character @samp{1}.
+inserting digits; @w{@kbd{C-u 6 4 1}} specifies an argument of 641.
+You can separate the argument from the digit to insert with another
+@kbd{C-u}; for example, @w{@kbd{C-u 6 4 C-u 1}} does insert 64 copies
+of the character @samp{1}.
 
   Some commands care whether there is an argument, but ignore its
 value.  For example, the command @kbd{M-q} (@code{fill-paragraph})
@@ -835,7 +822,7 @@ invoking the command.
 @cindex repeating a command
 
   Many simple commands, such as those invoked with a single key or
-with @kbd{M-x @var{command-name} @key{RET}}, can be repeated by
+with @w{@kbd{M-x @var{command-name} @key{RET}}}, can be repeated by
 invoking them with a numeric argument that serves as a repeat count
 (@pxref{Arguments}).  However, if the command you want to repeat
 prompts for input, or uses a numeric argument in another way, that

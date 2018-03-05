@@ -7,6 +7,7 @@
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
+;; Version: 9.1.6
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -10640,7 +10641,7 @@ a timestamp or a link."
 		   (save-excursion
 		     ;; Do not validate action when point is on the
 		     ;; spaces right after the footnote label, in
-		     ;; order to be on par with behaviour on links.
+		     ;; order to be on par with behavior on links.
 		     (skip-chars-forward " \t")
 		     (let ((begin
 			    (org-element-property :contents-begin context)))
@@ -10793,7 +10794,7 @@ there is one, return it."
        (cons link end)))))
 
 ;; TODO: These functions are deprecated since `org-open-at-point'
-;; hard-codes behaviour for "file+emacs" and "file+sys" types.
+;; hard-codes behavior for "file+emacs" and "file+sys" types.
 (defun org-open-file-with-system (path)
   "Open file at PATH using the system way of opening it."
   (org-open-file path 'system))
@@ -19315,6 +19316,9 @@ INCLUDE-LINKED is passed to `org-display-inline-images'."
     (org-toggle-inline-images)
     (org-toggle-inline-images)))
 
+;; For without-x builds.
+(declare-function image-refresh "image" (spec &optional frame))
+
 (defun org-display-inline-images (&optional include-linked refresh beg end)
   "Display inline images.
 
@@ -22904,7 +22908,7 @@ matches in paragraphs or comments, use it."
 		      (match-string 0)
 		    "")))))))))))
 
-(declare-function message-goto-body "message" ())
+(declare-function message-goto-body "message" (&optional interactive))
 (defvar message-cite-prefix-regexp)	; From message.el
 
 (defun org-fill-element (&optional justify)

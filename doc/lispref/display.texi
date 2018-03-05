@@ -581,7 +581,7 @@ truncated to fit it.
   The variable @code{max-mini-window-height}, which specifies the
 maximum height for resizing minibuffer windows, also applies to the
 echo area (which is really a special use of the minibuffer window;
-@pxref{Minibuffer Misc}).
+@pxref{Minibuffer Windows}).
 
 @node Warnings
 @section Reporting Warnings
@@ -3292,7 +3292,7 @@ nominal heights and widths would suggest.
 @defun x-list-fonts name &optional reference-face frame maximum width
 This function returns a list of available font names that match
 @var{name}.  @var{name} should be a string containing a font name in
-either the Fontconfig, GTK, or XLFD format (@pxref{Fonts,,, emacs, The
+either the Fontconfig, GTK+, or XLFD format (@pxref{Fonts,,, emacs, The
 GNU Emacs Manual}).  Within an XLFD string, wildcard characters may be
 used: the @samp{*} character matches any substring, and the @samp{?}
 character matches any single character.  Case is ignored when matching
@@ -3550,7 +3550,7 @@ specifications are as follows:
 
 @table @code
 @item :name
-The font name (a string), in either XLFD, Fontconfig, or GTK format.
+The font name (a string), in either XLFD, Fontconfig, or GTK+ format.
 @xref{Fonts,,, emacs, The GNU Emacs Manual}.
 
 @item :family
@@ -5993,7 +5993,7 @@ debugging.
 @cindex embedded widgets
 @cindex webkit browser widget
 
-  Emacs is able to display native widgets, such as GTK WebKit widgets,
+  Emacs is able to display native widgets, such as GTK+ WebKit widgets,
 in Emacs buffers when it was built with the necessary support
 libraries and is running on a graphical terminal.  To test whether
 Emacs supports display of embedded widgets, check that the
@@ -6966,14 +6966,16 @@ means to use the default for that slot, as stated below.
 @table @asis
 @item 0
 The glyph for the end of a truncated screen line (the default for this
-is @samp{$}).  @xref{Glyphs}.  On graphical terminals, Emacs uses
-arrows in the fringes to indicate truncation, so the display table has
-no effect.
+is @samp{$}).  @xref{Glyphs}.  On graphical terminals, Emacs by
+default uses arrows in the fringes to indicate truncation, so the
+display table has no effect, unless you disable the fringes
+(@pxref{Fringes,, Window Fringes, emacs, the Gnu Emacs Manual}).
 
 @item 1
 The glyph for the end of a continued line (the default is @samp{\}).
-On graphical terminals, Emacs uses curved arrows in the fringes to
-indicate continuation, so the display table has no effect.
+On graphical terminals, Emacs by default uses curved arrows in the
+fringes to indicate continuation, so the display table has no effect,
+unless you disable the fringes.
 
 @item 2
 The glyph for indicating a character displayed as an octal character
@@ -6988,9 +6990,12 @@ default is @samp{...}).  @xref{Selective Display}.
 
 @item 5
 The glyph used to draw the border between side-by-side windows (the
-default is @samp{|}).  @xref{Splitting Windows}.  This takes effect only
-when there are no scroll bars; if scroll bars are supported and in use,
-a scroll bar separates the two windows.
+default is @samp{|}).  @xref{Splitting Windows}.  This currently has
+effect only on text terminals; on graphical terminals, if vertical
+scroll bars are supported and in use, a scroll bar separates the two
+windows, and if there are no vertical scroll bars and no dividers
+(@pxref{Window Dividers}), Emacs uses a thin line to indicate the
+border.
 @end table
 
   For example, here is how to construct a display table that mimics

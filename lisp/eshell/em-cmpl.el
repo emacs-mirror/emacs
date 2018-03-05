@@ -434,7 +434,7 @@ to writing a completion function."
 	    (setq comps-in-path (cdr comps-in-path)))
 	  (setq paths (cdr paths)))
 	;; Add aliases which are currently visible, and Lisp functions.
-	(pcomplete-uniqify-list
+	(pcomplete-uniquify-list
 	 (if glob-name
 	     completions
 	   (setq completions

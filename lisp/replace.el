@@ -39,7 +39,7 @@
 (defcustom replace-char-fold nil
   "Non-nil means replacement commands should do character folding in matches.
 This means, for instance, that \\=' will match a large variety of
-unicode quotes.
+Unicode quotes.
 This variable affects `query-replace' and `replace-string', but not
 `replace-regexp'."
   :type 'boolean
@@ -1387,9 +1387,8 @@ invoke `occur'."
 ;; Region limits when `occur' applies on a region.
 (defvar occur--region-start nil)
 (defvar occur--region-end nil)
-(defvar occur--matches-threshold nil)
+(defvar occur--region-start-line nil)
 (defvar occur--orig-line nil)
-(defvar occur--orig-line-str nil)
 (defvar occur--final-pos nil)
 
 (defun occur (regexp &optional nlines region)
@@ -1442,17 +1441,15 @@ is not modified."
       (or end (setq end (point-max))))
     (let ((occur--region-start start)
           (occur--region-end end)
-          (occur--matches-threshold
+          (occur--region-start-line
            (and in-region-p
                 (line-number-at-pos (min start end))))
           (occur--orig-line
-           (line-number-at-pos (point)))
-          (occur--orig-line-str
-           (buffer-substring-no-properties
-            (line-beginning-position)
-            (line-end-position))))
+           (line-number-at-pos (point))))
       (save-excursion ; If no matches `occur-1' doesn't restore the point.
-        (and in-region-p (narrow-to-region start end))
+        (and in-region-p (narrow-to-region
+                          (save-excursion (goto-char start) (line-beginning-position))
+                          (save-excursion (goto-char end) (line-end-position))))
         (occur-1 regexp nlines (list (current-buffer)))
         (and in-region-p (widen))))))
 
@@ -1550,7 +1547,7 @@ See also `multi-occur'."
       (let ((inhibit-read-only t)
 	    ;; Don't generate undo entries for creation of the initial contents.
 	    (buffer-undo-list t)
-            (occur--final-pos nil))
+	    (occur--final-pos nil))
 	(erase-buffer)
 	(let ((count
 	       (if (stringp nlines)
@@ -1618,36 +1615,34 @@ See also `multi-occur'."
 	  (global-matches 0)  ;; total count of matches
 	  (coding nil)
 	  (case-fold-search case-fold)
-          (in-region-p (and occur--region-start occur--region-end))
-          (multi-occur-p (cdr buffers)))
+	  (in-region-p (and occur--region-start occur--region-end))
+	  (multi-occur-p (cdr buffers)))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
 	  (let ((lines 0)               ;; count of matching lines
 		(matches 0)             ;; count of matches
 		(curr-line              ;; line count
-                 (or occur--matches-threshold 1))
-                (orig-line occur--orig-line)
-                (orig-line-str occur--orig-line-str)
-                (orig-line-shown-p)
+		 (or occur--region-start-line 1))
+		(orig-line occur--orig-line)
+		(orig-line-shown-p)
 		(prev-line nil)         ;; line number of prev match endpt
 		(prev-after-lines nil)  ;; context lines of prev match
 		(matchbeg 0)
 		(origpt nil)
 		(begpt nil)
 		(endpt nil)
-                (finalpt nil)
 		(marker nil)
 		(curstring "")
 		(ret nil)
 		(inhibit-field-text-motion t)
 		(headerpt (with-current-buffer out-buf (point))))
 	    (with-current-buffer buf
-              ;; The following binding is for when case-fold-search
-              ;; has a local binding in the original buffer, in which
-              ;; case we cannot bind it globally and let that have
-              ;; effect in every buffer we search.
-              (let ((case-fold-search case-fold))
+	      ;; The following binding is for when case-fold-search
+	      ;; has a local binding in the original buffer, in which
+	      ;; case we cannot bind it globally and let that have
+	      ;; effect in every buffer we search.
+	      (let ((case-fold-search case-fold))
 	        (or coding
 		    ;; Set CODING only if the current buffer locally
 		    ;; binds buffer-file-coding-system.
@@ -1677,6 +1672,16 @@ See also `multi-occur'."
 		        ;; Count empty lines that don't use next loop (Bug#22062).
 		        (when (zerop len)
 			  (setq matches (1+ matches)))
+			(when (and list-matching-lines-jump-to-current-line
+				   (not multi-occur-p))
+			  (when (= curr-line orig-line)
+			    (add-face-text-property
+			     0 len list-matching-lines-current-line-face nil curstring)
+			    (add-text-properties 0 len '(current-line t) curstring))
+			  (when (and (>= orig-line (- curr-line nlines))
+				     (<= orig-line (+ curr-line nlines)))
+			    ;; Shown either here or will be shown by occur-context-lines
+			    (setq orig-line-shown-p t)))
 		        (while (and (< start len)
 				    (string-match regexp curstring start))
 			  (setq matches (1+ matches))
@@ -1703,9 +1708,9 @@ See also `multi-occur'."
 				                     ;; at the end of the prefix
 				                     ;; (for Occur Edit mode).
 				                     front-sticky t
-                                                     rear-nonsticky t
-				                     occur-target ,marker
-                                                     follow-link t
+						     rear-nonsticky t
+						     occur-target ,marker
+						     follow-link t
 				                     help-echo "mouse-2: go to this occurrence"))))
 			     (match-str
 			      ;; We don't put `mouse-face' on the newline,
@@ -1725,7 +1730,7 @@ See also `multi-occur'."
 			        "\n"
 			        (if prefix-face
 				    (propertize
-                                     "\n       :" 'font-lock-face prefix-face)
+				     "\n       :" 'font-lock-face prefix-face)
 				  "\n       :")
 			        match-str)
 			       ;; Add marker at eol, but no mouse props.
@@ -1737,26 +1742,33 @@ See also `multi-occur'."
 			        ;; The complex multi-line display style.
 			        (setq ret (occur-context-lines
 					   out-line nlines keep-props begpt
-                                           endpt curr-line prev-line
-                                           prev-after-lines prefix-face))
+					   endpt curr-line prev-line
+					   prev-after-lines prefix-face
+					   orig-line multi-occur-p))
 			        ;; Set first elem of the returned list to `data',
 			        ;; and the second elem to `prev-after-lines'.
 			        (setq prev-after-lines (nth 1 ret))
-			        (nth 0 ret))))
+			        (nth 0 ret)))
+			     (orig-line-str
+			      (when (and list-matching-lines-jump-to-current-line
+					 (null orig-line-shown-p)
+					 (> curr-line orig-line))
+				(setq orig-line-shown-p t)
+				(save-excursion
+				  (goto-char (point-min))
+				  (forward-line (- orig-line (or occur--region-start-line 1)))
+				  (occur-engine-line (line-beginning-position)
+						     (line-end-position) keep-props)))))
 		        ;; Actually insert the match display data
 		        (with-current-buffer out-buf
-                          (when (and list-matching-lines-jump-to-current-line
-                                     (not multi-occur-p)
-                                     (not orig-line-shown-p)
-                                     (>= curr-line orig-line))
-                            (insert
-                             (concat
-                              (propertize
-                               (format "%7d:%s" orig-line orig-line-str)
-                               'face list-matching-lines-current-line-face
-                               'mouse-face 'mode-line-highlight
-                               'help-echo "Current line") "\n"))
-                            (setq orig-line-shown-p t finalpt (point)))
+			  (when orig-line-str
+			    (add-face-text-property
+			     0 (length orig-line-str)
+			     list-matching-lines-current-line-face nil orig-line-str)
+			    (add-text-properties 0 (length orig-line-str)
+						 '(current-line t) orig-line-str)
+			    (insert (car (occur-engine-add-prefix
+					  (list orig-line-str) prefix-face))))
 			  (insert data)))
 		      (goto-char endpt))
 		    (if endpt
@@ -1765,29 +1777,34 @@ See also `multi-occur'."
 			  (setq curr-line (+ curr-line (count-lines begpt endpt)
 					     ;; Add 1 for empty last match line
 					     ;; since count-lines returns one
-                                             ;; line less.
+					     ;; line less.
 					     (if (and (bolp) (eolp)) 1 0)))
 			  ;; On to the next match...
 			  (forward-line 1))
 		      (goto-char (point-max)))
 		    (setq prev-line (1- curr-line)))
-                  ;; Insert original line if haven't done yet.
-                  (when (and list-matching-lines-jump-to-current-line
-                             (not multi-occur-p)
-                             (not orig-line-shown-p))
-                    (with-current-buffer out-buf
-                      (insert
-                       (concat
-                        (propertize
-                         (format "%7d:%s" orig-line orig-line-str)
-                         'face list-matching-lines-current-line-face
-                         'mouse-face 'mode-line-highlight
-                         'help-echo "Current line") "\n"))))
 		  ;; Flush remaining context after-lines.
 		  (when prev-after-lines
 		    (with-current-buffer out-buf
 		      (insert (apply #'concat (occur-engine-add-prefix
-					       prev-after-lines prefix-face)))))))
+					       prev-after-lines prefix-face)))))
+		  (when (and list-matching-lines-jump-to-current-line
+			     (null orig-line-shown-p))
+		    (setq orig-line-shown-p t)
+		    (let ((orig-line-str
+			   (save-excursion
+			     (goto-char (point-min))
+			     (forward-line (- orig-line (or occur--region-start-line 1)))
+			     (occur-engine-line (line-beginning-position)
+						(line-end-position) keep-props))))
+		      (add-face-text-property
+		       0 (length orig-line-str)
+		       list-matching-lines-current-line-face nil orig-line-str)
+		      (add-text-properties 0 (length orig-line-str)
+					   '(current-line t) orig-line-str)
+		      (with-current-buffer out-buf
+			(insert (car (occur-engine-add-prefix
+			              (list orig-line-str) prefix-face))))))))
 	      (when (not (zerop lines)) ;; is the count zero?
 	        (setq global-lines (+ global-lines lines)
 		      global-matches (+ global-matches matches))
@@ -1803,25 +1820,28 @@ See also `multi-occur'."
 				     (if (= lines matches)
 				         "" (format " in %d line%s"
 						    lines
-                                                    (if (= lines 1) "" "s")))
+						    (if (= lines 1) "" "s")))
 				     ;; Don't display regexp for multi-buffer.
 				     (if (> (length buffers) 1)
 				         "" (occur-regexp-descr regexp))
 				     (buffer-name buf)
-                                     (if in-region-p
-                                         (format " within region: %d-%d"
-                                                 occur--region-start
-                                                 occur--region-end)
-                                       ""))
+				     (if in-region-p
+					 (format " within region: %d-%d"
+						 occur--region-start
+						 occur--region-end)
+				       ""))
 			     'read-only t))
 		    (setq end (point))
 		    (add-text-properties beg end `(occur-title ,buf))
 		    (when title-face
 		      (add-face-text-property beg end title-face))
-                    (goto-char (if finalpt
-                                   (setq occur--final-pos
-                                         (cl-incf finalpt (- end beg)))
-                                 (point-min))))))))))
+		    (goto-char (if (and list-matching-lines-jump-to-current-line
+					(not multi-occur-p))
+				   (setq occur--final-pos
+					 (and (goto-char (point-max))
+					      (or (previous-single-property-change (point) 'current-line)
+						  (point-max))))
+				 (point-min))))))))))
       ;; Display total match count and regexp for multi-buffer.
       (when (and (not (zerop global-lines)) (> (length buffers) 1))
 	(goto-char (point-min))
@@ -1895,7 +1915,8 @@ See also `multi-occur'."
 ;; then concatenate them all together.
 (defun occur-context-lines (out-line nlines keep-props begpt endpt
 				     curr-line prev-line prev-after-lines
-				     &optional prefix-face)
+				     &optional prefix-face
+				     orig-line multi-occur-p)
   ;; Find after- and before-context lines of the current match.
   (let ((before-lines
 	 (nreverse (cdr (occur-accumulate-lines
@@ -1905,13 +1926,32 @@ See also `multi-occur'."
 	       (1+ nlines) keep-props endpt)))
 	separator)
 
+    (when (and list-matching-lines-jump-to-current-line
+	       (not multi-occur-p))
+      (when (and (>= orig-line (- curr-line nlines))
+		 (< orig-line curr-line))
+	(let ((curstring (nth (- (length before-lines) (- curr-line orig-line)) before-lines)))
+	  (add-face-text-property
+	   0 (length curstring)
+	   list-matching-lines-current-line-face nil curstring)
+	  (add-text-properties 0 (length curstring)
+			       '(current-line t) curstring)))
+      (when (and (<= orig-line (+ curr-line nlines))
+		 (> orig-line curr-line))
+	(let ((curstring (nth (- orig-line curr-line 1) after-lines)))
+	  (add-face-text-property
+	   0 (length curstring)
+	   list-matching-lines-current-line-face nil curstring)
+	  (add-text-properties 0 (length curstring)
+			       '(current-line t) curstring))))
+
     ;; Combine after-lines of the previous match
     ;; with before-lines of the current match.
 
     (when prev-after-lines
       ;; Don't overlap prev after-lines with current before-lines.
       (if (>= (+ prev-line (length prev-after-lines))
-	      (- curr-line      (length before-lines)))
+	      (- curr-line (length before-lines)))
 	  (setq prev-after-lines
 		(butlast prev-after-lines
 			 (- (length prev-after-lines)
@@ -2180,9 +2220,9 @@ It is called with three arguments, as if it were
   ;; used after `recursive-edit' might override them.
   (let* ((isearch-regexp regexp-flag)
 	 (isearch-regexp-function (or delimited-flag
-                           (and replace-char-fold
-                                (not regexp-flag)
-                                #'char-fold-to-regexp)))
+				      (and replace-char-fold
+					   (not regexp-flag)
+					   #'char-fold-to-regexp)))
 	 (isearch-lax-whitespace
 	  replace-lax-whitespace)
 	 (isearch-regexp-lax-whitespace

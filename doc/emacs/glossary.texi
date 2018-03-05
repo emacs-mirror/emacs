@@ -24,7 +24,7 @@ Setting the mark (q.v.@:) at a position in the text also activates it.
 When the mark is active, we call the region an active region.
 @xref{Mark}.
 
-@item Alt
+@item @key{Alt}
 Alt is the name of a modifier bit that a keyboard input character may
 have.  To make a character Alt, type it while holding down the @key{Alt}
 key.  Such characters are given names that start with @kbd{@key{Alt}-}
@@ -103,13 +103,14 @@ supports both of these forms, as well as any mixture of them---this
 is ``bidirectional text''.  @xref{Bidirectional Editing}.
 
 @item Bind
+@anchor{Glossary---Bind}
 To bind a key sequence means to give it a binding (q.v.).
 @xref{Rebinding}.
 
 @anchor{Glossary---Binding}
 @item Binding
 A key sequence gets its meaning in Emacs by having a binding, which is a
-command (q.v.), a Lisp function that is run when you type that
+command (q.v.)---a Lisp function that is run when you type that
 sequence.  @xref{Commands,Binding}.  Customization often involves
 rebinding a character to a different command function.  The bindings of
 all key sequences are recorded in the keymaps (q.v.).  @xref{Keymaps}.
@@ -141,8 +142,8 @@ are visiting (q.v.@:) some file.  @xref{Buffers}.
 
 @item Buffer Selection History
 Emacs keeps a buffer selection history that records how recently each
-Emacs buffer has been selected.  This is used for choosing a buffer to
-select.  @xref{Buffers}.
+Emacs buffer has been selected.  This is used for choosing which
+buffer to select.  @xref{Buffers}.
 
 @item Bug
 A bug is an incorrect or unreasonable behavior of a program, or
@@ -159,6 +160,12 @@ right away when you press down on a mouse button.  @xref{Mouse Buttons}.
 
 @item Byte Compilation
 @xref{Glossary---Compilation}.
+
+@item cf.
+@itemx c.f.
+Short for ``confer'' in Latin, which means ``compare with'' or
+``compare to''.  The second variant, ``c.f.'', is a widespread
+misspelling.
 
 @anchor{Glossary---C-}
 @item @kbd{C-}
@@ -187,7 +194,7 @@ other input events as well).  @xref{User Input}.
 
 @item Character Folding
 Character folding means ignoring differences between similarly looking
-characters, such as between @code{a}, and @code{@:a} and @code{@'a}.
+characters, such as between @code{a}, and @code{@"a} and @code{@'a}.
 Emacs performs character folding by default in text search.  @xref{Lax
 Search}.
 
@@ -214,20 +221,22 @@ the clipboard is used @emph{instead} of the primary selection.
 @xref{Clipboard}.
 
 @item Coding System
-A coding system is an encoding for representing text characters in a
-file or in a stream of information.  Emacs has the ability to convert
-text to or from a variety of coding systems when reading or writing it.
+A coding system is a way to encode text characters in a file or in a
+stream of information.  Emacs has the ability to convert text to or
+from a variety of coding systems when reading or writing it.
 @xref{Coding Systems}.
 
 @item Command
-A command is a Lisp function specially defined to be able to serve as a
-key binding in Emacs.  When you type a key sequence (q.v.), its
-binding (q.v.@:) is looked up in the relevant keymaps (q.v.@:) to find
-the command to run.  @xref{Commands}.
+A command is a Lisp function specially defined to be able to serve as
+a key binding in Emacs or to be invoked by its name
+(@pxref{Glossary---Command Name}).  When you type a key sequence
+(q.v.), its binding (q.v.@:) is looked up in the relevant keymaps
+(q.v.@:) to find the command to run.  @xref{Commands}.
 
 @item Command History
 @xref{Glossary---Minibuffer History}.
 
+@anchor{Glossary---Command Name}
 @item Command Name
 A command name is the name of a Lisp symbol that is a command
 (@pxref{Commands}).  You can invoke any command by its name using
@@ -250,16 +259,17 @@ Compilation is the process of creating an executable program from source
 code.  Emacs has commands for compiling files of Emacs Lisp code
 (@pxref{Byte Compilation,,, elisp, the Emacs Lisp
 Reference Manual}) and programs in C and other languages
-(@pxref{Compilation}).
+(@pxref{Compilation}).  Byte-compiled Emacs Lisp code loads and
+executes faster.
 
 @item Complete Key
 A complete key is a key sequence that fully specifies one action to be
-performed by Emacs.  For example, @kbd{X} and @kbd{C-f} and @kbd{C-x m}
-are complete keys.  Complete keys derive their meanings from being bound
-(q.v.@:) to commands (q.v.).  Thus, @kbd{X} is conventionally bound to
-a command to insert @samp{X} in the buffer; @kbd{C-x m} is
-conventionally bound to a command to begin composing a mail message.
-@xref{Keys}.
+performed by Emacs.  For example, @kbd{X} and @kbd{C-f} and @kbd{C-x
+m} are complete keys.  Complete keys derive their meanings from being
+bound (@pxref{Glossary---Bind}) to commands (q.v.).  Thus, @kbd{X} is
+conventionally bound to a command to insert @samp{X} in the buffer;
+@kbd{C-x m} is conventionally bound to a command to begin composing a
+mail message.  @xref{Keys}.
 
 @item Completion
 Completion is what Emacs does when it automatically expands an
@@ -272,11 +282,11 @@ file names.  Completion usually occurs when @key{TAB}, @key{SPC} or
 @anchor{Glossary---Continuation Line}
 @item Continuation Line
 When a line of text is longer than the width of the window, it
-normally (but see @ref{Glossary---Truncation}) takes up more than one
-screen line when displayed.  We say that the text line is continued, and all
-screen lines used for it after the first are called continuation
-lines.  @xref{Continuation Lines}.  A related Emacs feature is
-filling (q.v.).
+normally takes up more than one screen line when displayed (but see
+@ref{Glossary---Truncation}).  We say that the text line is continued,
+and all screen lines used for it after the first are called
+continuation lines.  @xref{Continuation Lines}.  A related Emacs
+feature is filling (q.v.).
 
 @item Control Character
 A control character is a character that you type by holding down the
@@ -409,7 +419,7 @@ Variables}.
 On GNU and other Unix-like systems, directory names are strings that
 end in @samp{/}.  For example, @file{/no-such-dir/} is a directory
 name whereas @file{/tmp} is not, even though @file{/tmp} names a file
-that happens to be a directory.  On MS-DOS the relationship is more
+that happens to be a directory.  On MS-Windows the relationship is more
 complicated.  @xref{Directory Names,,, elisp, the Emacs Lisp Reference
 Manual}.
 
@@ -439,6 +449,9 @@ tell it to.  @xref{Bugs}.
 
 @c TODO?  Not really appropriate for the user manual I think.
 @c Dynamic Binding
+
+@item e.g.
+Short for ``exempli gratia'' in Latin, which means ``for example''.
 
 @item Echo Area
 The echo area is the bottom line of the screen, used for echoing the
@@ -498,6 +511,9 @@ keyboards lacking a @key{META} key.  Unlike the @key{META} key (which,
 like the @key{SHIFT} key, is held down while another character is
 typed), you press the @key{ESC} key as you would press a letter key, and
 it applies to the next character you type.
+
+@item etc.
+Short for ``et cetera'' in Latin, which means ``and so on''.
 
 @item Expression
 @xref{Glossary---Balanced Expression}.
@@ -709,6 +725,9 @@ have.  To make a character Hyper, type it while holding down the
 @key{Hyper} key.  Such characters are given names that start with
 @kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{User Input}.
 
+@item i.e.
+Short for ``id est'' in Latin, which means ``that is''.
+
 @item Iff
 ``Iff'' means ``if and only if''.  This terminology comes from
 mathematics.  Try to avoid using this term in documentation, since
@@ -861,7 +880,7 @@ A local value of a variable (q.v.@:) applies to only one buffer.
 @xref{Locals}.
 
 @item @kbd{M-}
-@kbd{M-} in the name of a character is an abbreviation for @key{Meta},
+@kbd{M-} in the name of a character is an abbreviation for @key{META},
 one of the modifier keys that can accompany any character.
 @xref{User Input,M-}.
 
@@ -919,15 +938,15 @@ a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Meta
 Meta is the name of a modifier bit which you can use in a command
-character.  To enter a meta character, you hold down the @key{Meta}
+character.  To enter a meta character, you hold down the @key{META}
 key while typing the character.  We refer to such characters with
 names that start with @kbd{Meta-} (usually written @kbd{M-} for
-short).  For example, @kbd{M-<} is typed by holding down @key{Meta}
+short).  For example, @kbd{M-<} is typed by holding down @key{META}
 and at the same time typing @kbd{<} (which itself is done, on most
 terminals, by holding down @key{SHIFT} and typing @kbd{,}).
 @xref{User Input,Meta}.
 
-On some terminals, the @key{Meta} key is actually labeled @key{Alt}
+On some terminals, the @key{META} key is actually labeled @key{Alt}
 or @key{Edit}.
 
 @item Meta Character
@@ -1082,6 +1101,9 @@ read an argument (@pxref{Minibuffer}); the echoing that happens when
 you pause in the middle of typing a multi-character key sequence is also
 a kind of prompting (@pxref{Echo Area}).
 
+@item q.v.
+Short for ``quod vide'' in Latin, which means ``which see''.
+
 @item Query-Replace
 Query-replace is an interactive string replacement feature provided by
 Emacs.  @xref{Query Replace}.
@@ -1122,8 +1144,8 @@ one corner and putting the mark at the diagonally opposite corner.
 A recursive editing level is a state in which part of the execution of
 a command involves asking you to edit some text.  This text may
 or may not be the same as the text to which the command was applied.
-The mode line indicates recursive editing levels with square brackets
-(@samp{[} and @samp{]}).  @xref{Recursive Edit}.
+The mode line (q.v.@:) indicates recursive editing levels with square
+brackets (@samp{[} and @samp{]}).  @xref{Recursive Edit}.
 
 @item Redisplay
 Redisplay is the process of correcting the image on the screen to
@@ -1151,7 +1173,7 @@ digits.  @xref{Regexps}.
 @item Remote File
 A remote file is a file that is stored on a system other than your own.
 Emacs can access files on other computers provided that they are
-connected to the same network as your machine, and (obviously) that
+reachable from your machine over the network, and (obviously) that
 you have a supported method to gain access to those files.
 @xref{Remote Files}.
 
@@ -1173,8 +1195,9 @@ newline into the text.  It is also used to terminate most arguments
 read in the minibuffer (q.v.).  @xref{User Input,Return}.
 
 @item Reverting
-Reverting means returning to the original state.  Emacs lets you
-revert a buffer by re-reading its file from disk.  @xref{Reverting}.
+Reverting means returning to the original state.  For example, Emacs
+lets you revert a buffer by re-reading its file from disk.
+@xref{Reverting}.
 
 @c Seems too obvious, also there is nothing special about the format
 @c these days.
@@ -1346,6 +1369,7 @@ Emacs does not make a termscript file unless you tell it to.
 @xref{Bugs}.
 
 @item Text
+
 ``Text'' has two meanings (@pxref{Text}):
 
 @itemize @bullet
@@ -1354,6 +1378,7 @@ Data consisting of a sequence of characters, as opposed to binary
 numbers, executable programs, and the like.  The basic contents of an
 Emacs buffer (aside from the text properties, q.v.@:) are always text
 in this sense.
+
 @item
 Data consisting of written human language (as opposed to programs),
 or following the stylistic conventions of human language.
@@ -1456,7 +1481,7 @@ where they can be edited.  @xref{Visiting}.
 
 @item Whitespace
 Whitespace is any run of consecutive formatting characters (space,
-tab, newline, and backspace).
+tab, newline, backspace, etc.).
 
 @item Widening
 Widening is removing any restriction (q.v.@:) on the current buffer;

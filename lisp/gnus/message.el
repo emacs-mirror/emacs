@@ -7854,6 +7854,8 @@ See `gmm-tool-bar-from-list' for the format of the list."
   :group 'message)
 
 (defvar image-load-path)
+(declare-function image-load-path-for-library "image"
+		  (library image &optional path no-error))
 
 (defun message-make-tool-bar (&optional force)
   "Make a message mode tool bar from `message-tool-bar-list'.
@@ -8242,7 +8244,7 @@ Meant for use on `completion-at-point-functions'."
 	  (start (save-excursion
                    (skip-chars-backward "^, \t\n")
                    (point))))
-      `(,start ,end ,(apply-partially #'ecomplete-completion-table 'mail)))))
+      `(,start ,end ,(ecomplete-completion-table 'mail)))))
 
 ;; To send pre-formatted letters like the example below, you can use
 ;; `message-send-form-letter':

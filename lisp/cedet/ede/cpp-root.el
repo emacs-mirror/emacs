@@ -137,7 +137,7 @@
 ;; Need a way to reconfigure a project, and have it affect all open buffers.
 ;; From Tobias Gerdin:
 ;;
-;;   >>3) Is there any way to refresh a ede-cpp-root-project dynamically? I have
+;;   >>3) Is there any way to refresh an ede-cpp-root-project dynamically? I have
 ;;   >>some file open part of the project, fiddle with the include paths and would
 ;;   >>like the open buffer to notice this when I re-evaluate the
 ;;   >>ede-cpp-root-project constructor.

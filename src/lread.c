@@ -1123,7 +1123,7 @@ Return t if the file exists and loads successfully.  */)
   (Lisp_Object file, Lisp_Object noerror, Lisp_Object nomessage,
    Lisp_Object nosuffix, Lisp_Object must_suffix)
 {
-  FILE *stream;
+  FILE *stream UNINIT;
   int fd;
   int fd_index UNINIT;
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -1702,7 +1702,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 				      AT_EACCESS)
 			   == 0)
 		    {
-		      if (file_directory_p (pfn))
+		      if (file_directory_p (encoded_fn))
 			last_errno = EISDIR;
 		      else
 			fd = 1;
@@ -4922,7 +4922,7 @@ directory.  These file names are converted to absolute at startup.  */);
 If the file loaded had extension `.elc', and the corresponding source file
 exists, this variable contains the name of source file, suitable for use
 by functions like `custom-save-all' which edit the init file.
-While Emacs loads and evaluates the init file, value is the real name
+While Emacs loads and evaluates any init file, value is the real name
 of the file, regardless of whether or not it has the `.elc' extension.  */);
   Vuser_init_file = Qnil;
 

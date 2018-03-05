@@ -779,7 +779,7 @@ the dribble file.
 @item
 @findex open-termscript
 @cindex termscript file
-@vindex TERM, environment variable, and display bugs
+@vindex TERM@r{, environment variable, and display bugs}
 For possible display bugs, the terminal type (the value of environment
 variable @env{TERM}), the complete termcap entry for the terminal from
 @file{/etc/termcap} (since that file is not identical on all machines),
@@ -1322,7 +1322,7 @@ the Emacs Lisp Reference Manual
 @url{https://www.gnu.org/software/emacs}
 
 @item
-@url{http://www.emacswiki.org/}
+@url{https://www.emacswiki.org/}
 @end itemize
 
 @menu
@@ -1411,8 +1411,8 @@ patches) over all your contributions.
 @node Service
 @section How To Get Help with GNU Emacs
 @cindex help in using Emacs
-@cindex help-gnu-emacs mailing list
-@cindex gnu.emacs.help newsgroup
+@cindex @samp{help-gnu-emacs} mailing list
+@cindex @samp{gnu.emacs.help} newsgroup
 
 If you need help installing, using or changing GNU Emacs, there are
 two ways to find it:

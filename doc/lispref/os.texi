@@ -95,6 +95,22 @@ if requested by environment variables such as @env{LANG}.
 @item
 It does some basic parsing of the command-line arguments.
 
+@item
+It loads your early init file (@pxref{Early Init File,,, emacs, The
+GNU Emacs Manual}).  This is not done if the options @samp{-q},
+@samp{-Q}, or @samp{--batch} were specified.  If the @samp{-u} option
+was specified, Emacs looks for the init file in that user's home
+directory instead.
+
+@item
+It calls the function @code{package-initialize} to activate any
+optional Emacs Lisp package that has been installed.  @xref{Packaging
+Basics}.  However, Emacs doesn't initialize packages when
+@code{package-enable-at-startup} is @code{nil} or when it's started
+with one of the options @samp{-q}, @samp{-Q}, or @samp{--batch}.  To
+initialize packages in the latter case, @code{package-initialize}
+should be called explicitly (e.g., via the @samp{--funcall} option).
+
 @vindex initial-window-system@r{, and startup}
 @vindex window-system-initialization-alist
 @item
@@ -153,15 +169,6 @@ It loads your abbrevs from the file specified by
 @code{abbrev-file-name}, if that file exists and can be read
 (@pxref{Abbrev Files, abbrev-file-name}).  This is not done if the
 option @samp{--batch} was specified.
-
-@item
-It calls the function @code{package-initialize} to activate any
-optional Emacs Lisp package that has been installed.  @xref{Packaging
-Basics}.  However, Emacs doesn't initialize packages when
-@code{package-enable-at-startup} is @code{nil} or when it's started
-with one of the options @samp{-q}, @samp{-Q}, or @samp{--batch}.  To
-initialize packages in the latter case, @code{package-initialize}
-should be called explicitly (e.g., via the @samp{--funcall} option).
 
 @vindex after-init-time
 @item
@@ -361,6 +368,7 @@ Equivalent to @samp{-q --no-site-file --no-splash}.
 @cindex init file
 @cindex @file{.emacs}
 @cindex @file{init.el}
+@cindex @file{early-init.el}
 
   When you start Emacs, it normally attempts to load your @dfn{init
 file}.  This is either a file named @file{.emacs} or @file{.emacs.el}
@@ -383,6 +391,19 @@ systems) variable, to find your home directory and thus your init
 file; this way, even if you have su'd, Emacs still loads your own init
 file.  If those environment variables are absent, though, Emacs uses
 your user-id to find your home directory.
+
+@cindex early init file
+  Emacs also attempts to load a second init file, called the
+@dfn{early init file}, if it exists.  This is a file named
+@file{early-init.el} in your @file{~/.emacs.d} directory.  The
+difference between the early init file and the regular init file is
+that the early init file is loaded much earlier during the startup
+process, so you can use it to customize some things that are
+initialized before loading the regular init file.  For example, you
+can customize the process of initializing the package system, by
+setting variables such as @var{package-load-list} or
+@var{package-enable-at-startup}.  @xref{Package Installation,,,
+emacs,The GNU Emacs Manual}.
 
 @cindex default init file
   An Emacs installation may have a @dfn{default init file}, which is a
@@ -1301,7 +1322,7 @@ or rounding errors occur.
 @section Time Zone Rules
 @cindex time zone rules
 
-@vindex TZ, environment variable
+@vindex TZ@r{, environment variable}
 The default time zone is determined by the @env{TZ} environment
 variable.  @xref{System Environment}.  For example, you can tell Emacs
 to default to Universal Time with @code{(setenv "TZ" "UTC0")}.  If
@@ -1457,7 +1478,8 @@ on others, years as early as 1901 do work.
 @cindex formatting time values
 
   These functions convert time values to text in a string, and vice versa.
-Time values are lists of two to four integers (@pxref{Time of Day}).
+Time values include @code{nil}, numbers, and lists of two to four
+integers (@pxref{Time of Day}).
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the
@@ -3042,7 +3064,9 @@ with @samp{-}, or might contain shell metacharacters like @samp{;}.
 Although functions like @code{shell-quote-argument} can help avoid
 this sort of problem, they are not panaceas; for example, on a POSIX
 platform @code{shell-quote-argument} quotes shell metacharacters but
-not leading @samp{-}.  @xref{Shell Arguments}.  Typically it is safer
+not leading @samp{-}.  On MS-Windows, quoting for @samp{%} assumes
+none of the environment variables have @samp{^} in their name.
+@xref{Shell Arguments}.  Typically it is safer
 to use @code{call-process} than a subshell.  @xref{Synchronous
 Processes}.  And it is safer yet to use builtin Emacs functions; for
 example, use @code{(rename-file "@var{a}" "@var{b}" t)} instead of

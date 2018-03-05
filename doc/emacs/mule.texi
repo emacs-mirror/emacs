@@ -1841,7 +1841,33 @@ sometimes jump when point traverses reordered bidirectional text.
 Similarly, a highlighted region covering a contiguous range of
 character positions may look discontinuous if the region spans
 reordered text.  This is normal and similar to the behavior of other
-programs that support bidirectional text.  If you set
-@code{visual-order-cursor-movement} to a non-@code{nil} value, cursor
-motion by the arrow keys follows the visual order on screen
-(@pxref{Moving Point, visual-order movement}).
+programs that support bidirectional text.
+
+@kindex RIGHT@r{, and bidirectional text}
+@kindex LEFT@r{, and bidirectional text}
+@findex right-char@r{, and bidirectional text}
+@findex left-char@r{, and bidirectional text}
+  Cursor motion commands bound to arrow keys, such as @key{LEFT} and
+@kbd{C-@key{RIGHT}}, are sensitive to the base direction of the
+current paragraph.  In a left-to-right paragraph, commands bound to
+@key{RIGHT} with or without modifiers move @emph{forward} through
+buffer text, but in a right-to-left paragraph they move
+@emph{backward} instead.  This reflects the fact that in a
+right-to-left paragraph buffer positions predominantly increase when
+moving to the left on display.
+
+  When you move out of a paragraph, the meaning of the arrow keys
+might change if the base direction of the preceding or the following
+paragraph is different from the paragraph out of which you moved.
+When that happens, you need to adjust the arrow key you press to the
+new base direction.
+
+@vindex visual-order-cursor-movement
+@cindex cursor, visual-order motion
+  By default, @key{LEFT} and @key{RIGHT} move in the logical order,
+but if @code{visual-order-cursor-movement} is non-@code{nil}, these
+commands move to the character that is, correspondingly, to the left
+or right of the current screen position, moving to the next or
+previous screen line as appropriate.  Note that this might potentially
+move point many buffer positions away, depending on the surrounding
+bidirectional context.

@@ -425,6 +425,34 @@ See `compilation-error-regexp-alist' for format details.")
 (defvar grep-context-face 'shadow
   "Face name to use for grep context lines.")
 
+(defvar grep-num-matches-found 0)
+
+(defconst grep-mode-line-matches
+  `(" [" (:propertize (:eval (int-to-string grep-num-matches-found))
+                      face ,grep-hit-face
+                      help-echo "Number of matches so far")
+    "]"))
+
+(defcustom grep-find-hide t
+  "If non-nil, hide part of rgrep/lgrep/zrgrep command line.
+The hidden part contains a list of ignored directories and files.
+Clicking on the button-like ellipsis unhides the abbreviated part
+and reveals the entire command line."
+  :type 'boolean
+  :version "27.1"
+  :group 'grep)
+
+(defvar grep-find-hide-properties
+  (let ((ellipsis (if (char-displayable-p ?…) "[…]" "[...]"))
+        (map (make-sparse-keymap)))
+    (define-key map [down-mouse-2] 'mouse-set-point)
+    (define-key map [mouse-2] 'grep-find-show)
+    (define-key map "\C-m" 'grep-find-show)
+    `(face nil display ,ellipsis mouse-face highlight
+      help-echo "RET, mouse-2: show unabbreviated command"
+      keymap ,map))
+  "Properties of button-like ellipsis on part of rgrep command line.")
+
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
@@ -432,7 +460,7 @@ See `compilation-error-regexp-alist' for format details.")
      ;; remove match from grep-regexp-alist before fontifying
      ("^Grep[/a-zA-z]* started.*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t))
-     ("^Grep[/a-zA-z]* finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
+     ("^Grep[/a-zA-z]* finished with \\(?:\\(\\(?:[0-9]+ \\)?matches found\\)\\|\\(no matches found\\)\\).*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face nil t)
       (2 compilation-warning-face nil t))
@@ -442,9 +470,16 @@ See `compilation-error-regexp-alist' for format details.")
       (2 grep-error-face nil t))
      ;; "filename-linenumber-" format is used for context lines in GNU grep,
      ;; "filename=linenumber=" for lines with function names in "git grep -p".
-     ("^.+?\\([-=\0]\\)[0-9]+\\([-=]\\).*\n" (0 grep-context-face)
+     ("^.+?\\([-=\0]\\)[0-9]+\\([-=]\\).*\n"
+      (0 grep-context-face)
       (1 (if (eq (char-after (match-beginning 1)) ?\0)
-             `(face nil display ,(match-string 2))))))
+             `(face nil display ,(match-string 2)))))
+     ;; Hide excessive part of rgrep command
+     ("^find \\(\\. -type d .*\\\\)\\)"
+      (1 (when grep-find-hide grep-find-hide-properties)))
+     ;; Hide excessive part of lgrep command
+     ("^grep \\( *--exclude.*--exclude[^ ]+\\)"
+      (1 (when grep-find-hide grep-find-hide-properties))))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
@@ -503,20 +538,27 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     (setenv "GREP_COLOR" "01;31")
     ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
     (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:sl=:cx=:ne"))
+  (setq-local grep-num-matches-found 0)
   (set (make-local-variable 'compilation-exit-message-function)
-       (lambda (status code msg)
-	 (if (eq status 'exit)
-	     ;; This relies on the fact that `compilation-start'
-	     ;; sets buffer-modified to nil before running the command,
-	     ;; so the buffer is still unmodified if there is no output.
-	     (cond ((and (zerop code) (buffer-modified-p))
-		    '("finished (matches found)\n" . "matched"))
-		   ((not (buffer-modified-p))
-		    '("finished with no matches found\n" . "no match"))
-		   (t
-		    (cons msg code)))
-	   (cons msg code))))
+       'grep-exit-message)
   (run-hooks 'grep-setup-hook))
+
+(defun grep-exit-message (status code msg)
+  "Return a status message for grep results."
+  (if (eq status 'exit)
+      ;; This relies on the fact that `compilation-start'
+      ;; sets buffer-modified to nil before running the command,
+      ;; so the buffer is still unmodified if there is no output.
+      (cond ((and (zerop code) (buffer-modified-p))
+	     (if (> grep-num-matches-found 0)
+                 (cons (format "finished with %d matches found\n" grep-num-matches-found)
+                       "matched")
+               '("finished with matches found\n" . "matched")))
+	    ((not (buffer-modified-p))
+	     '("finished with no matches found\n" . "no match"))
+	    (t
+	     (cons msg code)))
+    (cons msg code)))
 
 (defun grep-filter ()
   "Handle match highlighting escape sequences inserted by the grep process.
@@ -535,7 +577,8 @@ This function is called from `compilation-filter-hook'."
         (while (re-search-forward "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
           (replace-match (propertize (match-string 1)
                                      'face nil 'font-lock-face grep-match-face)
-                         t t))
+                         t t)
+          (cl-incf grep-num-matches-found))
         ;; Delete all remaining escape sequences
         (goto-char beg)
         (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
@@ -718,6 +761,8 @@ This function is called from `compilation-filter-hook'."
 	     (grep-use-null-device ,grep-use-null-device)
 	     (grep-find-command ,grep-find-command)
 	     (grep-find-template ,grep-find-template)
+	     (grep-use-null-filename-separator
+	      ,grep-use-null-filename-separator)
 	     (grep-find-use-xargs ,grep-find-use-xargs)
 	     (grep-highlight-matches ,grep-highlight-matches))))))
 
@@ -775,6 +820,8 @@ This function is called from `compilation-filter-hook'."
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
        grep-regexp-alist)
+  (set (make-local-variable 'compilation-mode-line-errors)
+       grep-mode-line-matches)
   ;; compilation-directory-matcher can't be nil, so we set it to a regexp that
   ;; can never match.
   (set (make-local-variable 'compilation-directory-matcher) '("\\`a\\`"))
@@ -1148,6 +1195,24 @@ to specify a command to run."
                  (shell-quote-argument ")")
                  " -prune -o ")))))
 
+(defun grep-find-show ()
+  "Show the hidden part of rgrep/lgrep/zrgrep command line."
+  (interactive)
+  (when (get-text-property (point) 'display)
+    (let ((beg (or (previous-single-property-change
+                    (min (point-max) (1+ (point))) 'display)
+                   (point)))
+          (end (or (next-single-property-change
+                    (point) 'display)
+                   (point)))
+          (inhibit-modification-hooks t)
+          (inhibit-read-only t)
+	  (buffer-undo-list t)
+	  (modified (buffer-modified-p)))
+      (remove-list-of-text-properties
+       beg end '(display help-echo mouse-face help-echo keymap))
+      (set-buffer-modified-p modified))))
+
 ;;;###autoload
 (defun zrgrep (regexp &optional files dir confirm template)
   "Recursively grep for REGEXP in gzipped FILES in tree rooted at DIR.
@@ -1165,6 +1230,8 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
 	   (grep-find-template nil)
 	   (grep-find-command nil)
 	   (grep-host-defaults-alist nil)
+           ;; `zgrep' doesn't support the `--null' option.
+	   (grep-use-null-filename-separator nil)
 	   ;; Use for `grep-read-files'
 	   (grep-files-aliases '(("all" . "* .*")
 				 ("gz"  . "*.gz"))))

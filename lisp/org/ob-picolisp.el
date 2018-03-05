@@ -35,7 +35,7 @@
 ;; (http://picolisp.com/5000/-2.html). PicoLisp is included in some
 ;; GNU/Linux Distributions, and can be downloaded here:
 ;; http://software-lab.de/down.html.  It ships with a picolisp-mode and
-;; a inferior-picolisp-mode for Emacs (to be found in the /lib/el/
+;; an inferior-picolisp-mode for Emacs (to be found in the /lib/el/
 ;; directory).
 
 ;; Although it might seem more natural to use Emacs Lisp for most

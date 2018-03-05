@@ -698,7 +698,7 @@ Otherwise, VALUE must be a property list of the form:
 
 `(:color COLOR :style STYLE)'.
 
-COLOR can be a either a color name string or `foreground-color'.
+COLOR can be either a color name string or `foreground-color'.
 STYLE can be either `line' or `wave'.
 If a keyword/value pair is missing from the property list, a
 default value will be used for the value.

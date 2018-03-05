@@ -173,7 +173,7 @@ Key sequences longer than one key (and some single-key sequences) are
 written inside quotes or on lines by themselves, like this:
 
 @display
-  @kbd{M-x frobnicate-while-foo RET}
+  @kbd{M-x frobnicate-while-foo @key{RET}}
 @end display
 
 @noindent
@@ -201,7 +201,7 @@ Also, on very few keyboards does @kbd{C-?} generate @acronym{ASCII} code 127.
 @section What does @file{M-x @var{command}} mean?
 @cindex Extended commands
 @cindex Commands, extended
-@cindex M-x, meaning of
+@cindex @kbd{M-x}, meaning of
 
 @kbd{M-x @var{command}} means type @kbd{M-x}, then type the name of the
 command, then type @key{RET}.  (@xref{Basic keys}, if you're not sure
@@ -753,7 +753,7 @@ privileges, you have several options:
 Info files don't actually need to be installed before being used.
 You can use a prefix argument for the @code{info} command and specify
 the name of the Info file in the minibuffer.  This goes to the node
-named @samp{Top} in that file.  For example, to view a Info file named
+named @samp{Top} in that file.  For example, to view an Info file named
 @file{@var{info-file}} in your home directory, you can type this:
 
 @example
@@ -1490,38 +1490,68 @@ exhibits all the colors Emacs knows about on the current display.
 
 Syntax highlighting is on by default since version 22.1.
 
+@cindex direct color in terminals
 Emacs 26.1 and later support direct color mode in terminals.  If Emacs
 finds Terminfo capabilities @samp{setb24} and @samp{setf24}, 24-bit
 direct color mode is used.  The capability strings are expected to
 take one 24-bit pixel value as argument and transform the pixel to a
 string that can be used to send 24-bit colors to the terminal.
 
-There aren't yet any standard terminal type definitions that would
-support the capabilities, but Emacs can be invoked with a custom
-definition as shown below.
+Standard terminal definitions don't support these capabilities and
+therefore custom definition is needed.
 
 @example
-$ cat terminfo-24bit.src
+$ cat terminfo-custom.src
 
-# Use colon separators.
-xterm-24bit|xterm with 24-bit direct color mode,
+xterm-emacs|xterm with 24-bit direct color mode for Emacs,
   use=xterm-256color,
-  setb24=\E[48:2:%p1%@{65536@}%/%d:%p1%@{256@}%/%@{255@}%&%d:%p1%@{255@}%&%dm,
-  setf24=\E[38:2:%p1%@{65536@}%/%d:%p1%@{256@}%/%@{255@}%&%d:%p1%@{255@}%&%dm,
-# Use semicolon separators.
-xterm-24bits|xterm with 24-bit direct color mode,
-  use=xterm-256color,
-  setb24=\E[48;2;%p1%@{65536@}%/%d;%p1%@{256@}%/%@{255@}%&%d;%p1%@{255@}%&%dm,
-  setf24=\E[38;2;%p1%@{65536@}%/%d;%p1%@{256@}%/%@{255@}%&%d;%p1%@{255@}%&%dm,
+  setb24=\E[48\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&\
+     %d\:%p1%@{255@}%&%dm,
+  setf24=\E[38\:2\:\:%p1%@{65536@}%/%d\:%p1%@{256@}%/%@{255@}%&\
+     %d\:%p1%@{255@}%&%dm,
 
-$ tic -x -o ~/.terminfo terminfo-24bit.src
+$ tic -x -o ~/.terminfo terminfo-custom.src
 
-$ TERM=xterm-24bit emacs -nw
+$ TERM=xterm-emacs emacs -nw
 @end example
 
-Currently there's no standard way to determine whether a terminal
-supports direct color mode.  If such standard arises later on, support
-for @samp{setb24} and @samp{setf24} may be removed.
+@cindex 24-bit direct color mode
+Emacs 27.1 and later support Terminfo capability @samp{RGB} for
+detecting 24-bit direct color mode.  Multiple standard terminal
+definitions support this capability.
+
+@example
+$ TERM=xterm-direct infocmp | grep seta[bf]
+
+  setab=\E[%?%p1%@{8@}%<%t4%p1%d%e48\:2\:\:%p1%@{65536@}%/\
+     %d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%d%;m,
+  setaf=\E[%?%p1%@{8@}%<%t3%p1%d%e38\:2\:\:%p1%@{65536@}%/\
+     %d\:%p1%@{256@}%/%@{255@}%&%d\:%p1%@{255@}%&%d%;m,
+
+$ TERM=xterm-direct emacs -nw
+@end example
+
+If your terminal is incompatible with XTerm, you may have to use
+another @env{TERM} definition.  Any terminal whose name includes
+@samp{direct} should be a candidate.  The @command{toe} command can be
+used to find out which of these are installed on your system:
+
+@example
+$ toe | grep '\-direct'
+
+konsole-direct  konsole with direct-color indexing
+vte-direct      vte with direct-color indexing
+st-direct       st with direct-color indexing
+xterm-direct2   xterm with direct-color indexing (old)
+xterm-direct    xterm with direct-color indexing
+@end example
+
+Terminals with @samp{RGB} capability treat pixels #000001 - #000007 as
+indexed colors to maintain backward compatibility with applications
+that are unaware of direct color mode.  Therefore the seven darkest
+blue shades may not be available.  If this is a problem, you can
+always use custom terminal definition with @samp{setb24} and
+@samp{setf24}.
 
 @node Debugging a customization file
 @section How do I debug a @file{.emacs} file?
@@ -3389,7 +3419,7 @@ version of Emacs, and see @ref{Current GNU distributions}, for a list of
 archive sites that make GNU software available.
 
 @node Finding a package with particular functionality
-@section How do I find a Emacs Lisp package that does XXX?
+@section How do I find an Emacs Lisp package that does XXX?
 @cindex Package, finding
 @cindex Finding an Emacs Lisp package
 @cindex Functionality, finding a particular package
@@ -3778,9 +3808,9 @@ defines the @kbd{M-@key{TAB}} key sequence.
 
 @node Backspace invokes help
 @section Why does the @key{Backspace} key invoke help?
-@cindex Backspace key invokes help
-@cindex Help invoked by Backspace
-@cindex DEL key does not delete
+@cindex @key{Backspace} key invokes help
+@cindex Help invoked by @key{Backspace}
+@cindex @key{DEL} key does not delete
 
 The @key{Backspace} key (on most keyboards) generates @acronym{ASCII} code 8.
 @kbd{C-h} sends the same code.  In Emacs by default @kbd{C-h} invokes
@@ -4125,7 +4155,7 @@ This will disable the use of the extra keysyms systemwide, which may be
 undesirable if you actually intend to use them.
 
 @node SPC no longer completes file names
-@section Why doesn't SPC complete file names anymore?
+@section Why doesn't @key{SPC} complete file names anymore?
 @cindex @kbd{SPC} file name completion
 
 Starting with Emacs 22.1, @kbd{SPC} no longer completes file names in

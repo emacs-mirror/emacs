@@ -85,7 +85,7 @@ regard to completeness.
 	code (keymap.c and print.c).
 
  * Rationalize character syntax and its relationship to the Unicode
-   database.  (Applies mainly to symbol an punctuation syntax.)
+   database.  (Applies mainly to symbol and punctuation syntax.)
 
  * Fontset handling and customization needs work.  We want to relate
    fonts to scripts, probably based on the Unicode blocks.  The

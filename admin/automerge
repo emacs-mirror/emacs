@@ -138,10 +138,10 @@ trap "rm -f $tempfile 2> /dev/null" EXIT
 
 [ "$reset" ] && {
     echo "Resetting..."
-    git reset --hard origin/master || die "reset error"
+    git reset -q --hard origin/master || die "reset error"
 
     echo "Pulling..."
-    git pull --ff-only || die "pull error"
+    git pull -q --ff-only || die "pull error"
 }
 
 
@@ -161,10 +161,8 @@ merge ()
         return 0
 
     else
-        grep -qE "Nothing to merge|Number of missing commits" $tempfile && {
-            echo "Fewer than $nmin commits to merge"
+        grep -E "Nothing to merge|Number of missing commits" $tempfile && \
             exit 0
-        }
 
         cat "$tempfile" 1>&2
 
@@ -213,7 +211,8 @@ echo "Build finished ok"
 
 echo "Testing..."
 
-make "$@" check || die "check error"
+## We just want a fast pass/fail, we don't want to debug.
+make "$@" check TEST_LOAD_EL=no || die "check error"
 
 echo "Tests finished ok"
 

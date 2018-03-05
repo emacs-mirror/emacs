@@ -919,7 +919,7 @@ from a different message."
 
 ;; COLUMN and LINE are numbers parsed from an error message.  COLUMN and maybe
 ;; LINE will be nil for a message that doesn't contain them.  Then the
-;; location refers to a indented beginning of line or beginning of file.
+;; location refers to an indented beginning of line or beginning of file.
 ;; Once any location in some file has been jumped to, the list is extended to
 ;; (COLUMN LINE FILE-STRUCTURE MARKER TIMESTAMP . VISITED)
 ;; for all LOCs pertaining to that file.

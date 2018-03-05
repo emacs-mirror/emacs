@@ -376,15 +376,18 @@ get_environ_db (void)
 
   if (!p)
     {
-      /* Use ~/.Xdefaults-HOSTNAME.  */
-      char *home = gethomedir ();
-      ptrdiff_t homelen = strlen (home);
       Lisp_Object system_name = Fsystem_name ();
-      ptrdiff_t filenamesize = (homelen + sizeof xdefaults
-				+ 1 + SBYTES (system_name));
-      p = filename = xrealloc (home, filenamesize);
-      lispstpcpy (stpcpy (stpcpy (filename + homelen, xdefaults), "-"),
-		  system_name);
+      if (STRINGP (system_name))
+	{
+	  /* Use ~/.Xdefaults-HOSTNAME.  */
+	  char *home = gethomedir ();
+	  ptrdiff_t homelen = strlen (home);
+	  ptrdiff_t filenamesize = (homelen + sizeof xdefaults
+				    + 1 + SBYTES (system_name));
+	  p = filename = xrealloc (home, filenamesize);
+	  lispstpcpy (stpcpy (stpcpy (filename + homelen, xdefaults), "-"),
+		      system_name);
+	}
     }
 
   db = XrmGetFileDatabase (p);

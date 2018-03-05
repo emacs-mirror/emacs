@@ -8281,7 +8281,7 @@ extern WandExport void PixelGetMagickColor (const PixelWand *,
 #endif
 
 /* Log ImageMagick error message.
-   Useful when a ImageMagick function returns the status `MagickFalse'.  */
+   Useful when an ImageMagick function returns the status `MagickFalse'.  */
 
 static void
 imagemagick_error (MagickWand *wand)

@@ -111,7 +111,7 @@ documentation), this function returns nil."
 						(point))) ":")))
 	    (setq names (cons (nth 0 fields) names)))
 	  (forward-line))))
-    (pcomplete-uniqify-list names)))
+    (pcomplete-uniquify-list names)))
 
 (defsubst pcmpl-unix-group-names ()
   "Read the contents of /etc/group for group names."

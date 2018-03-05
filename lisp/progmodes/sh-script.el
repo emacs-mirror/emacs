@@ -3019,7 +3019,7 @@ If INFO is supplied it is used, else it is calculated."
 ;; line -- it is the PREVIOUS line which is continued, not the one
 ;; we are going to!
 ;; Also, we want to treat a whole "here document" as one big line,
-;; because we may want to a align to the beginning of it.
+;; because we may want to align to the beginning of it.
 ;;
 ;; What we do:
 ;; - go back to previous non-empty line
