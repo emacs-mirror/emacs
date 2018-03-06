@@ -720,10 +720,11 @@ customizing the various hooks, you can modify Emacs's behavior without
 changing any of its code.  @xref{Hooks}.
 
 @item Hyper
-Hyper is the name of a modifier bit that a keyboard input character may
-have.  To make a character Hyper, type it while holding down the
+Hyper is the name of a modifier bit that a keyboard input character
+may have.  To make a character Hyper, type it while holding down the
 @key{Hyper} key.  Such characters are given names that start with
-@kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{User Input}.
+@kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{Modifier
+Keys}.
 
 @item i.e.
 Short for ``id est'' in Latin, which means ``that is''.
@@ -1343,10 +1344,11 @@ which characters balance each other like parentheses, etc.
 Manual}.
 
 @item Super
-Super is the name of a modifier bit that a keyboard input character may
-have.  To make a character Super, type it while holding down the
+Super is the name of a modifier bit that a keyboard input character
+may have.  To make a character Super, type it while holding down the
 @key{SUPER} key.  Such characters are given names that start with
-@kbd{Super-} (usually written @kbd{s-} for short).  @xref{User Input}.
+@kbd{Super-} (usually written @kbd{s-} for short).  @xref{Modifier
+Keys}.
 
 @item Suspending
 Suspending Emacs means stopping it temporarily and returning control
@@ -1493,13 +1495,13 @@ Emacs divides a frame (q.v.@:) into one or more windows, each of which
 can display the contents of one buffer (q.v.@:) at any time.
 @xref{Screen}, for basic information on how Emacs uses the screen.
 @xref{Windows}, for commands to control the use of windows.  Some
-other editors use the term ``window'' for what we call a ``frame''
-(q.v.@:) in Emacs.
+other editors use the term ``window'' for what we call a ``frame'' in
+Emacs.
 
 @item Window System
 A window system is software that operates on a graphical display
-(q.v.), to subdivide the screen so that multiple applications can
-have their] own windows at the same time.  All modern operating systems
+(q.v.), to subdivide the screen so that multiple applications can have
+their own windows at the same time.  All modern operating systems
 include a window system.
 
 @item Word Abbrev
