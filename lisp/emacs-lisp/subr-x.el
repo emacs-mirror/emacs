@@ -121,7 +121,7 @@ If ELT is of the form ((EXPR)), listify (EXPR) with a dummy symbol."
                 binding))
             bindings)))
 
-(defmacro if-let (varlist then &rest else)
+(defmacro if-let* (varlist then &rest else)
   "Bind variables according to VARLIST and eval THEN or ELSE.
 Each binding is evaluated in turn, and evaluation stops if a
 binding value is nil.  If all are non-nil, the value of THEN is
@@ -131,18 +131,10 @@ Each element of VARLIST is a list (SYMBOL VALUEFORM) which binds
 SYMBOL to the value of VALUEFORM.  An element can additionally
 be of the form (VALUEFORM), which is evaluated and checked for
 nil; i.e. SYMBOL can be omitted if only the test result is of
-interest.
-
-As a special case, a VARLIST of the form (SYMBOL SOMETHING) is
-treated like ((SYMBOL SOMETHING))."
+interest."
   (declare (indent 2)
-           (debug ([&or (symbolp form)
-                        (&rest [&or symbolp (symbolp form) (form)])]
+           (debug ((&rest [&or symbolp (symbolp form) (form)])
                    form body)))
-  (pcase varlist
-    (`(,(pred symbolp) ,_)
-     ;; the single-tuple syntax case, for backward compatibility
-     (cl-callf list varlist)))
   (if varlist
       `(let* ,(setq varlist (internal--build-bindings varlist))
          (if ,(caar (last varlist))
@@ -150,23 +142,23 @@ treated like ((SYMBOL SOMETHING))."
            ,@else))
     `(let* () ,then)))
 
-(defmacro when-let (varlist &rest body)
+(defmacro when-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally eval BODY.
 Each binding is evaluated in turn, and evaluation stops if a
 binding value is nil.  If all are non-nil, the value of the last
 form in BODY is returned.
 
-VARLIST is the same as in `if-let'."
-  (declare (indent 1) (debug ([&or (symbolp form)
-                                   (&rest [&or symbolp (symbolp form) (form)])]
-                              body)))
-  (list 'if-let varlist (macroexp-progn body)))
+VARLIST is the same as in `if-let*'."
+  (declare (indent 1) (debug if-let*))
+  (list 'if-let* varlist (macroexp-progn body)))
 
-(defmacro and-let (varlist &rest body)
+(defmacro and-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally eval BODY.
-Like `when-let', except if BODY is empty and all the bindings
+Like `when-let*', except if BODY is empty and all the bindings
 are non-nil, then the result is non-nil."
-  (declare (indent 1) (debug when-let))
+  (declare (indent 1)
+           (debug ((&rest [&or symbolp (symbolp form) (form)])
+                   body)))
   (let (res)
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
@@ -174,9 +166,26 @@ are non-nil, then the result is non-nil."
                ,@(or body `(,res))))
       `(let* () ,@(or body '(t))))))
 
-(defalias 'if-let*   #'if-let)
-(defalias 'when-let* #'when-let)
-(defalias 'and-let*  #'and-let)
+(defmacro if-let (spec then &rest else)
+  "Bind variables according to SPEC and eval THEN or ELSE.
+Like `if-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
+  (declare (indent 2)
+           (debug ([&or (&rest [&or symbolp (symbolp form) (form)])
+                        (symbolp form)]
+                   form body))
+           (obsolete "use `if-let*' instead." "26.1"))
+  (when (and (<= (length spec) 2)
+             (not (listp (car spec))))
+    ;; Adjust the single binding case
+    (setq spec (list spec)))
+  (list 'if-let* spec then (macroexp-progn else)))
+
+(defmacro when-let (spec &rest body)
+  "Bind variables according to SPEC and conditionally eval BODY.
+Like `when-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
+  (declare (indent 1) (debug if-let)
+           (obsolete "use `when-let*' instead." "26.1"))
+  (list 'if-let spec (macroexp-progn body)))
 
 (defsubst hash-table-empty-p (hash-table)
   "Check whether HASH-TABLE is empty (has 0 elements)."

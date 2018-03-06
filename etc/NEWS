@@ -707,10 +707,12 @@ current buffer or the self-insertion takes place within a comment.
 ** The alist 'ucs-names' is now a hash table.
 
 ---
-** The new macro 'and-let' is an implementation of the Scheme SRFI-2
-syntax.  'if-let' and 'when-let' now also accept the same binding
-syntax as 'and-let'.  'if-let*', 'when-let*' and 'and-let*' are new
-aliases for 'if-let', 'when-let' and 'and-let'.
+** 'if-let' and 'when-let' are subsumed by 'if-let*' and 'when-let*'.
+The incumbent 'if-let' and 'when-let' are now marked obsolete.
+'if-let*' and 'when-let*' do not accept the single tuple special case.
+New macro 'and-let*' is an implementation of the Scheme SRFI-2 syntax
+of the same name.  'if-let*' and 'when-let*' now accept the same
+binding syntax as 'and-let*'.
 
 ---
 ** 'C-up', 'C-down', 'C-left' and 'C-right' are now defined in term

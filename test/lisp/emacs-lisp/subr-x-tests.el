@@ -28,13 +28,13 @@
 (require 'subr-x)
 
 
-;; `if-let' tests
+;; `if-let*' tests
 
-(ert-deftest subr-x-test-if-let-single-binding-expansion ()
+(ert-deftest subr-x-test-if-let*-single-binding-expansion ()
   "Test single bindings are expanded properly."
   (should (equal
            (macroexpand
-            '(if-let ((a 1))
+            '(if-let* ((a 1))
                  (- a)
                "no"))
            '(let* ((a (and t 1)))
@@ -43,7 +43,7 @@
                 "no"))))
   (should (equal
            (macroexpand
-            '(if-let (a)
+            '(if-let* (a)
                  (- a)
                "no"))
            '(let* ((a (and t a)))
@@ -51,11 +51,11 @@
                   (- a)
                 "no")))))
 
-(ert-deftest subr-x-test-if-let-single-symbol-expansion ()
+(ert-deftest subr-x-test-if-let*-single-symbol-expansion ()
   "Test single symbol bindings are expanded properly."
   (should (equal
            (macroexpand
-            '(if-let (a)
+            '(if-let* (a)
                  (- a)
                "no"))
            '(let* ((a (and t a)))
@@ -64,7 +64,7 @@
                 "no"))))
   (should (equal
            (macroexpand
-            '(if-let (a b c)
+            '(if-let* (a b c)
                  (- a)
                "no"))
            '(let* ((a (and t a))
@@ -75,7 +75,7 @@
                 "no"))))
   (should (equal
            (macroexpand
-            '(if-let (a (b 2) c)
+            '(if-let* (a (b 2) c)
                  (- a)
                "no"))
            '(let* ((a (and t a))
@@ -85,11 +85,11 @@
                   (- a)
                 "no")))))
 
-(ert-deftest subr-x-test-if-let-nil-related-expansion ()
+(ert-deftest subr-x-test-if-let*-nil-related-expansion ()
   "Test nil is processed properly."
   (should (equal
            (macroexpand
-            '(if-let (nil)
+            '(if-let* (nil)
                  (- a)
                "no"))
            '(let* ((nil (and t nil)))
@@ -98,7 +98,7 @@
                 "no"))))
   (should (equal
            (macroexpand
-            '(if-let ((a 1) nil (b 2))
+            '(if-let* ((a 1) nil (b 2))
                  (- a)
                "no"))
            '(let* ((a (and t 1))
@@ -108,106 +108,106 @@
                   (- a)
                 "no")))))
 
-(ert-deftest subr-x-test-if-let-malformed-binding ()
+(ert-deftest subr-x-test-if-let*-malformed-binding ()
   "Test malformed bindings trigger errors."
   (should-error (macroexpand
-                 '(if-let (_ (a 1 1) (b 2) (c 3) d)
+                 '(if-let* (_ (a 1 1) (b 2) (c 3) d)
                       (- a)
                     "no"))
                 :type 'error)
   (should-error (macroexpand
-                 '(if-let (_ (a 1) (b 2 2) (c 3) d)
+                 '(if-let* (_ (a 1) (b 2 2) (c 3) d)
                       (- a)
                     "no"))
                 :type 'error)
   (should-error (macroexpand
-                 '(if-let (_ (a 1) (b 2) (c 3 3) d)
+                 '(if-let* (_ (a 1) (b 2) (c 3 3) d)
                       (- a)
                     "no"))
                 :type 'error)
   (should-error (macroexpand
-                 '(if-let ((a 1 1))
+                 '(if-let* ((a 1 1))
                       (- a)
                     "no"))
                 :type 'error))
 
-(ert-deftest subr-x-test-if-let-true ()
+(ert-deftest subr-x-test-if-let*-true ()
   "Test `if-let' with truthy bindings."
   (should (equal
-           (if-let ((a 1))
+           (if-let* ((a 1))
                a
              "no")
            1))
   (should (equal
-           (if-let ((a 1) (b 2) (c 3))
+           (if-let* ((a 1) (b 2) (c 3))
                (list a b c)
              "no")
            (list 1 2 3))))
 
-(ert-deftest subr-x-test-if-let-false ()
+(ert-deftest subr-x-test-if-let*-false ()
   "Test `if-let' with falsie bindings."
   (should (equal
-           (if-let ((a nil))
+           (if-let* ((a nil))
                (list a b c)
              "no")
            "no"))
   (should (equal
-           (if-let ((a nil) (b 2) (c 3))
+           (if-let* ((a nil) (b 2) (c 3))
                (list a b c)
              "no")
            "no"))
   (should (equal
-           (if-let ((a 1) (b nil) (c 3))
+           (if-let* ((a 1) (b nil) (c 3))
                (list a b c)
              "no")
            "no"))
   (should (equal
-           (if-let ((a 1) (b 2) (c nil))
+           (if-let* ((a 1) (b 2) (c nil))
                (list a b c)
              "no")
            "no"))
   (should (equal
            (let (z)
-             (if-let (z (a 1) (b 2) (c 3))
+             (if-let* (z (a 1) (b 2) (c 3))
                  (list a b c)
                "no"))
            "no"))
   (should (equal
            (let (d)
-             (if-let ((a 1) (b 2) (c 3) d)
+             (if-let* ((a 1) (b 2) (c 3) d)
                  (list a b c)
                "no"))
            "no")))
 
-(ert-deftest subr-x-test-if-let-bound-references ()
+(ert-deftest subr-x-test-if-let*-bound-references ()
   "Test `if-let' bindings can refer to already bound symbols."
   (should (equal
-           (if-let ((a (1+ 0)) (b (1+ a)) (c (1+ b)))
+           (if-let* ((a (1+ 0)) (b (1+ a)) (c (1+ b)))
                (list a b c)
              "no")
            (list 1 2 3))))
 
-(ert-deftest subr-x-test-if-let-and-laziness-is-preserved ()
+(ert-deftest subr-x-test-if-let*-and-laziness-is-preserved ()
   "Test `if-let' respects `and' laziness."
   (let (a-called b-called c-called)
     (should (equal
-             (if-let ((a nil)
-                      (b (setq b-called t))
-                      (c (setq c-called t)))
+             (if-let* ((a nil)
+                       (b (setq b-called t))
+                       (c (setq c-called t)))
                  "yes"
                (list a-called b-called c-called))
              (list nil nil nil))))
   (let (a-called b-called c-called)
     (should (equal
-             (if-let ((a (setq a-called t))
-                      (b nil)
-                      (c (setq c-called t)))
+             (if-let* ((a (setq a-called t))
+                       (b nil)
+                       (c (setq c-called t)))
                  "yes"
                (list a-called b-called c-called))
              (list t nil nil))))
   (let (a-called b-called c-called)
     (should (equal
-             (if-let ((a (setq a-called t))
+             (if-let* ((a (setq a-called t))
                       (b (setq b-called t))
                       (c nil)
                       (d (setq c-called t)))
@@ -215,19 +215,14 @@
                (list a-called b-called c-called))
              (list t t nil)))))
 
-(defun if-let-single-tuple-case-test ()
-  "Test the BINDING-SPEC == (SYMBOL SOMETHING) case."
-  (should (equal (if-let (a 1) (1+ a)) 2))
-  (should (equal (let ((b 2)) (if-let (a b) a)) 2)))
-
 
-;; `when-let' tests
+;; `when-let*' tests
 
-(ert-deftest subr-x-test-when-let-body-expansion ()
+(ert-deftest subr-x-test-when-let*-body-expansion ()
   "Test body allows for multiple sexps wrapping with progn."
   (should (equal
            (macroexpand
-            '(when-let ((a 1))
+            '(when-let* ((a 1))
                (message "opposite")
                (- a)))
            '(let* ((a (and t 1)))
@@ -236,18 +231,18 @@
                     (message "opposite")
                     (- a)))))))
 
-(ert-deftest subr-x-test-when-let-single-symbol-expansion ()
+(ert-deftest subr-x-test-when-let*-single-symbol-expansion ()
   "Test single symbol bindings are expanded properly."
   (should (equal
            (macroexpand
-            '(when-let (a)
+            '(when-let* (a)
                (- a)))
            '(let* ((a (and t a)))
               (if a
                   (- a)))))
   (should (equal
            (macroexpand
-            '(when-let (a b c)
+            '(when-let* (a b c)
                (- a)))
            '(let* ((a (and t a))
                    (b (and a b))
@@ -256,7 +251,7 @@
                   (- a)))))
   (should (equal
            (macroexpand
-            '(when-let (a (b 2) c)
+            '(when-let* (a (b 2) c)
                (- a)))
            '(let* ((a (and t a))
                    (b (and a 2))
@@ -264,18 +259,18 @@
               (if c
                   (- a))))))
 
-(ert-deftest subr-x-test-when-let-nil-related-expansion ()
+(ert-deftest subr-x-test-when-let*-nil-related-expansion ()
   "Test nil is processed properly."
   (should (equal
            (macroexpand
-            '(when-let (nil)
+            '(when-let* (nil)
                (- a)))
            '(let* ((nil (and t nil)))
               (if nil
                   (- a)))))
   (should (equal
            (macroexpand
-            '(when-let ((a 1) nil (b 2))
+            '(when-let* ((a 1) nil (b 2))
                (- a)))
            '(let* ((a (and t 1))
                    (nil (and a nil))
@@ -283,178 +278,173 @@
               (if b
                   (- a))))))
 
-(ert-deftest subr-x-test-when-let-malformed-binding ()
+(ert-deftest subr-x-test-when-let*-malformed-binding ()
   "Test malformed bindings trigger errors."
   (should-error (macroexpand
-                 '(when-let (_ (a 1 1) (b 2) (c 3) d)
+                 '(when-let* (_ (a 1 1) (b 2) (c 3) d)
                     (- a)))
                 :type 'error)
   (should-error (macroexpand
-                 '(when-let (_ (a 1) (b 2 2) (c 3) d)
+                 '(when-let* (_ (a 1) (b 2 2) (c 3) d)
                     (- a)))
                 :type 'error)
   (should-error (macroexpand
-                 '(when-let (_ (a 1) (b 2) (c 3 3) d)
+                 '(when-let* (_ (a 1) (b 2) (c 3 3) d)
                     (- a)))
                 :type 'error)
   (should-error (macroexpand
-                 '(when-let ((a 1 1))
+                 '(when-let* ((a 1 1))
                     (- a)))
                 :type 'error))
 
-(ert-deftest subr-x-test-when-let-true ()
+(ert-deftest subr-x-test-when-let*-true ()
   "Test `when-let' with truthy bindings."
   (should (equal
-           (when-let ((a 1))
+           (when-let* ((a 1))
              a)
            1))
   (should (equal
-           (when-let ((a 1) (b 2) (c 3))
+           (when-let* ((a 1) (b 2) (c 3))
              (list a b c))
            (list 1 2 3))))
 
-(ert-deftest subr-x-test-when-let-false ()
+(ert-deftest subr-x-test-when-let*-false ()
   "Test `when-let' with falsie bindings."
   (should (equal
-           (when-let ((a nil))
+           (when-let* ((a nil))
              (list a b c)
              "no")
            nil))
   (should (equal
-           (when-let ((a nil) (b 2) (c 3))
+           (when-let* ((a nil) (b 2) (c 3))
              (list a b c)
              "no")
            nil))
   (should (equal
-           (when-let ((a 1) (b nil) (c 3))
+           (when-let* ((a 1) (b nil) (c 3))
              (list a b c)
              "no")
            nil))
   (should (equal
-           (when-let ((a 1) (b 2) (c nil))
+           (when-let* ((a 1) (b 2) (c nil))
              (list a b c)
              "no")
            nil))
   (should (equal
            (let (z)
-             (when-let (z (a 1) (b 2) (c 3))
+             (when-let* (z (a 1) (b 2) (c 3))
                (list a b c)
                "no"))
            nil))
   (should (equal
            (let (d)
-             (when-let ((a 1) (b 2) (c 3) d)
+             (when-let* ((a 1) (b 2) (c 3) d)
                (list a b c)
                "no"))
            nil)))
 
-(ert-deftest subr-x-test-when-let-bound-references ()
+(ert-deftest subr-x-test-when-let*-bound-references ()
   "Test `when-let' bindings can refer to already bound symbols."
   (should (equal
-           (when-let ((a (1+ 0)) (b (1+ a)) (c (1+ b)))
+           (when-let* ((a (1+ 0)) (b (1+ a)) (c (1+ b)))
              (list a b c))
            (list 1 2 3))))
 
-(ert-deftest subr-x-test-when-let-and-laziness-is-preserved ()
+(ert-deftest subr-x-test-when-let*-and-laziness-is-preserved ()
   "Test `when-let' respects `and' laziness."
   (let (a-called b-called c-called)
     (should (equal
              (progn
-               (when-let ((a nil)
-                          (b (setq b-called t))
-                          (c (setq c-called t)))
+               (when-let* ((a nil)
+                           (b (setq b-called t))
+                           (c (setq c-called t)))
                  "yes")
                (list a-called b-called c-called))
              (list nil nil nil))))
   (let (a-called b-called c-called)
     (should (equal
              (progn
-               (when-let ((a (setq a-called t))
-                          (b nil)
-                          (c (setq c-called t)))
+               (when-let* ((a (setq a-called t))
+                           (b nil)
+                           (c (setq c-called t)))
                  "yes")
                (list a-called b-called c-called))
              (list t nil nil))))
   (let (a-called b-called c-called)
     (should (equal
              (progn
-               (when-let ((a (setq a-called t))
-                          (b (setq b-called t))
-                          (c nil)
-                          (d (setq c-called t)))
+               (when-let* ((a (setq a-called t))
+                           (b (setq b-called t))
+                           (c nil)
+                           (d (setq c-called t)))
                  "yes")
                (list a-called b-called c-called))
              (list t t nil)))))
 
-(defun when-let-single-tuple-case-test ()
-  "Test the BINDING-SPEC == (SYMBOL SOMETHING) case."
-  (should (equal (when-let (a 1) (1+ a)) 2))
-  (should (equal (let ((b 2)) (when-let (a b) a)) 2)))
-
 
-;; `and-let' tests
+;; `and-let*' tests
 
 ;; Adapted from the Guile tests
 ;; https://git.savannah.gnu.org/cgit/guile.git/tree/test-suite/tests/srfi-2.test
 
-(ert-deftest subr-x-and-let-test-empty-varlist ()
-  (should (equal 1 (and-let () 1)))
-  (should (equal 2 (and-let () 1 2)))
-  (should (equal t (and-let ()))))
+(ert-deftest subr-x-and-let*-test-empty-varlist ()
+  (should (equal 1 (and-let* () 1)))
+  (should (equal 2 (and-let* () 1 2)))
+  (should (equal t (and-let* ()))))
 
-(ert-deftest subr-x-and-let-test-group-1 ()
-   (should (equal nil (let ((x nil)) (and-let (x)))))
-   (should (equal 1 (let ((x 1)) (and-let (x)))))
-   (should (equal nil (and-let ((x nil)))))
-   (should (equal 1 (and-let ((x 1)))))
+(ert-deftest subr-x-and-let*-test-group-1 ()
+   (should (equal nil (let ((x nil)) (and-let* (x)))))
+   (should (equal 1 (let ((x 1)) (and-let* (x)))))
+   (should (equal nil (and-let* ((x nil)))))
+   (should (equal 1 (and-let* ((x 1)))))
    ;; The error doesn't trigger when compiled: the compiler will give
    ;; a warning and then drop the erroneous code.  Therefore, use
    ;; `eval' to avoid compilation.
-   (should-error (eval '(and-let (nil (x 1))) lexical-binding)
+   (should-error (eval '(and-let* (nil (x 1))) lexical-binding)
                  :type 'setting-constant)
-   (should (equal nil (and-let ((nil) (x 1)))))
-   (should-error (eval '(and-let (2 (x 1))) lexical-binding)
+   (should (equal nil (and-let* ((nil) (x 1)))))
+   (should-error (eval '(and-let* (2 (x 1))) lexical-binding)
                  :type 'wrong-type-argument)
-   (should (equal 1 (and-let ((2) (x 1)))))
-   (should (equal 2 (and-let ((x 1) (2)))))
-   (should (equal nil (let ((x nil)) (and-let (x) x))))
-   (should (equal "" (let ((x "")) (and-let (x) x))))
-   (should (equal "" (let ((x "")) (and-let (x)))))
-   (should (equal 2 (let ((x 1)) (and-let (x) (+ x 1)))))
-   (should (equal nil (let ((x nil)) (and-let (x) (+ x 1)))))
-   (should (equal 2 (let ((x 1)) (and-let (((> x 0))) (+ x 1)))))
-   (should (equal t (let ((x 1)) (and-let (((> x 0)))))))
-   (should (equal nil (let ((x 0)) (and-let (((> x 0))) (+ x 1)))))
+   (should (equal 1 (and-let* ((2) (x 1)))))
+   (should (equal 2 (and-let* ((x 1) (2)))))
+   (should (equal nil (let ((x nil)) (and-let* (x) x))))
+   (should (equal "" (let ((x "")) (and-let* (x) x))))
+   (should (equal "" (let ((x "")) (and-let* (x)))))
+   (should (equal 2 (let ((x 1)) (and-let* (x) (+ x 1)))))
+   (should (equal nil (let ((x nil)) (and-let* (x) (+ x 1)))))
+   (should (equal 2 (let ((x 1)) (and-let* (((> x 0))) (+ x 1)))))
+   (should (equal t (let ((x 1)) (and-let* (((> x 0)))))))
+   (should (equal nil (let ((x 0)) (and-let* (((> x 0))) (+ x 1)))))
    (should (equal 3
-                  (let ((x 1)) (and-let (((> x 0)) (x (+ x 1))) (+ x 1))))))
+                  (let ((x 1)) (and-let* (((> x 0)) (x (+ x 1))) (+ x 1))))))
 
-(ert-deftest subr-x-and-let-test-rebind ()
+(ert-deftest subr-x-and-let*-test-rebind ()
    (should
     (equal 4
            (let ((x 1))
-             (and-let (((> x 0)) (x (+ x 1)) (x (+ x 1))) (+ x 1))))))
+             (and-let* (((> x 0)) (x (+ x 1)) (x (+ x 1))) (+ x 1))))))
 
-(ert-deftest subr-x-and-let-test-group-2 ()
+(ert-deftest subr-x-and-let*-test-group-2 ()
    (should
-    (equal 2 (let ((x 1)) (and-let (x ((> x 0))) (+ x 1)))))
+    (equal 2 (let ((x 1)) (and-let* (x ((> x 0))) (+ x 1)))))
    (should
-    (equal 2 (let ((x 1)) (and-let (((progn x)) ((> x 0))) (+ x 1)))))
-   (should (equal nil (let ((x 0)) (and-let (x ((> x 0))) (+ x 1)))))
-   (should (equal nil (let ((x nil)) (and-let (x ((> x 0))) (+ x 1)))))
+    (equal 2 (let ((x 1)) (and-let* (((progn x)) ((> x 0))) (+ x 1)))))
+   (should (equal nil (let ((x 0)) (and-let* (x ((> x 0))) (+ x 1)))))
+   (should (equal nil (let ((x nil)) (and-let* (x ((> x 0))) (+ x 1)))))
    (should
-    (equal nil (let ((x nil)) (and-let (((progn x)) ((> x 0))) (+ x 1))))))
+    (equal nil (let ((x nil)) (and-let* (((progn x)) ((> x 0))) (+ x 1))))))
 
-(ert-deftest subr-x-and-let-test-group-3 ()
+(ert-deftest subr-x-and-let*-test-group-3 ()
    (should
-    (equal nil (let ((x 1)) (and-let (x (y (- x 1)) ((> y 0))) (/ x y)))))
+    (equal nil (let ((x 1)) (and-let* (x (y (- x 1)) ((> y 0))) (/ x y)))))
    (should
-    (equal nil (let ((x 0)) (and-let (x (y (- x 1)) ((> y 0))) (/ x y)))))
+    (equal nil (let ((x 0)) (and-let* (x (y (- x 1)) ((> y 0))) (/ x y)))))
    (should
     (equal nil
-           (let ((x nil)) (and-let (x (y (- x 1)) ((> y 0))) (/ x y)))))
+           (let ((x nil)) (and-let* (x (y (- x 1)) ((> y 0))) (/ x y)))))
    (should
     (equal (/ 3.0 2)
-           (let ((x 3.0)) (and-let (x (y (- x 1)) ((> y 0))) (/ x y))))))
+           (let ((x 3.0)) (and-let* (x (y (- x 1)) ((> y 0))) (/ x y))))))
 
 
 
