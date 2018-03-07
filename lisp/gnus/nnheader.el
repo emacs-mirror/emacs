@@ -945,7 +945,7 @@ first.  Otherwise, find the newest one, though it may take a time."
   "Like `insert-file-contents', q.v., but only reads in the file.
 A buffer may be modified in several ways after reading into the buffer due
 to advanced Emacs features, such as file-name-handlers, format decoding,
-find-file-hooks, etc.
+find-file-hook, etc.
   This function ensures that none of these modifications will take place."
   (let ((coding-system-for-read nnheader-file-coding-system))
     (mm-insert-file-contents filename visit beg end replace)))

@@ -2067,27 +2067,27 @@ hook @code{text-mode-hook}, then @code{nroff-mode-hook}
 separators, pages are separated by @samp{.bp} commands, and comments
 start with backslash-doublequote.  It also defines these commands:
 
-@findex forward-text-line
-@findex backward-text-line
-@findex count-text-lines
+@findex nroff-forward-text-line
+@findex nroff-backward-text-line
+@findex nroff-count-text-lines
 @kindex M-n @r{(Nroff mode)}
 @kindex M-p @r{(Nroff mode)}
 @kindex M-? @r{(Nroff mode)}
 @table @kbd
 @item M-n
 Move to the beginning of the next line that isn't an nroff command
-(@code{forward-text-line}).  An argument is a repeat count.
+(@code{nroff-forward-text-line}).  An argument is a repeat count.
 @item M-p
-Like @kbd{M-n} but move up (@code{backward-text-line}).
+Like @kbd{M-n} but move up (@code{nroff-backward-text-line}).
 @item M-?
 Displays in the echo area the number of text lines (lines that are not
-nroff commands) in the region (@code{count-text-lines}).
+nroff commands) in the region (@code{nroff-count-text-lines}).
 @end table
 
-@findex electric-nroff-mode
+@findex nroff-electric-mode
   Electric Nroff mode is a buffer-local minor mode that can be used
 with Nroff mode.  To toggle this minor mode, type @kbd{M-x
-electric-nroff-mode} (@pxref{Minor Modes}).  When the mode is on, each
+nroff-electric-mode} (@pxref{Minor Modes}).  When the mode is on, each
 time you type @key{RET} to end a line containing an nroff command that
 opens a kind of grouping, the nroff command to close that grouping is
 automatically inserted on the following line.

@@ -4340,7 +4340,7 @@ fontset, or you can select it by setting the default font in your
 @file{~/.emacs}:
 
 @lisp
-  (set-default-font "fontset-bdf")
+  (set-frame-font "fontset-bdf")
 @end lisp
 
 
