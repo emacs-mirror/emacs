@@ -815,11 +815,13 @@ options which control the operation of this mode include:
 
 @itemize @bullet
 @item
-@code{show-paren-highlight-open-paren} controls whether to highlight
+@vindex show-paren-highlight-openparen
+@code{show-paren-highlight-openparen} controls whether to highlight
 an open paren when point stands just before it, and hence its position
 is marked by the cursor anyway.  The default is non-@code{nil} (yes).
 
 @item
+@vindex show-paren-style
 @code{show-paren-style} controls whether just the two parens, or also
 the space between them get highlighted.  The valid options here are
 @code{parenthesis} (show the matching paren), @code{expression}
@@ -828,10 +830,12 @@ the space between them get highlighted.  The valid options here are
 expression otherwise).
 
 @item
+@vindex show-paren-when-point-inside-paren
 @code{show-paren-when-point-inside-paren}, when non-@code{nil}, causes
 highlighting also when point is on the inside of a parenthesis.
 
 @item
+@vindex show-paren-when-point-in-periphery
 @code{show-paren-when-point-in-periphery}, when non-@code{nil}, causes
 highlighting also when point is in whitespace at the beginning or end
 of a line, and there is a paren at, respectively, the first or last,

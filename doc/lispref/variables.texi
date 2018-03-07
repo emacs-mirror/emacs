@@ -165,7 +165,7 @@ receive local values, which are the actual arguments supplied to the
 function call; these local bindings take effect within the body of the
 function.  To take another example, the @code{let} special form
 explicitly establishes local bindings for specific variables, which
-take effect within the body of the @code{let} form.
+take effect only within the body of the @code{let} form.
 
   We also speak of the @dfn{global binding}, which is where
 (conceptually) the global value is kept.
@@ -204,7 +204,8 @@ bindings:
 This special form sets up local bindings for a certain set of
 variables, as specified by @var{bindings}, and then evaluates all of
 the @var{forms} in textual order.  Its return value is the value of
-the last form in @var{forms}.
+the last form in @var{forms}.  The local bindings set up by @code{let}
+will be in effect only within the body of @var{forms}.
 
 Each of the @var{bindings} is either @w{(i) a} symbol, in which case
 that symbol is locally bound to @code{nil}; or @w{(ii) a} list of the
