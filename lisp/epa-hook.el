@@ -95,7 +95,7 @@ the mode if ARG is omitted or nil."
   :initialize 'custom-initialize-delay
   (setq file-name-handler-alist
 	(delq epa-file-handler file-name-handler-alist))
-  (remove-hook 'find-file-hooks 'epa-file-find-file-hook)
+  (remove-hook 'find-file-hook 'epa-file-find-file-hook)
   (setq auto-mode-alist (delq epa-file-auto-mode-alist-entry
 			      auto-mode-alist))
   (when auto-encryption-mode

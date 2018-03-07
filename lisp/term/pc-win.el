@@ -272,7 +272,7 @@ Consult the selection.  Treat empty strings as if they were unset."
 (fset 'iconify-or-deiconify-frame 'ignore)
 
 ;; From lisp/frame.el
-(fset 'set-default-font 'ignore)
+(fset 'set-frame-font 'ignore)
 (fset 'set-mouse-color 'ignore)		; We cannot, I think.
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.

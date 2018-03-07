@@ -902,7 +902,7 @@ Two differences:
   (viper-setup-ESC-to-escape t)
 
   (add-hook 'change-major-mode-hook #'viper-major-mode-change-sentinel)
-  (add-hook 'find-file-hooks #'set-viper-state-in-major-mode)
+  (add-hook 'find-file-hook #'set-viper-state-in-major-mode)
 
   ;; keep this because many modes we don't know about use this hook
   (defvar text-mode-hook)
