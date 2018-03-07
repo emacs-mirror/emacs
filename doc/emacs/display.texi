@@ -971,7 +971,7 @@ version.)
 Highlight text that matches @var{regexp} using face @var{face}
 (@code{highlight-regexp}).  The highlighting will remain as long as
 the buffer is loaded.  For example, to highlight all occurrences of
-the word ``whim'' using the default face (a yellow background)
+the word ``whim'' using the default face (a yellow background), type
 @kbd{M-s h r whim @key{RET} @key{RET}}.  Any face can be used for
 highlighting, Hi Lock provides several of its own and these are
 pre-loaded into a list of default values.  While being prompted
@@ -1239,7 +1239,7 @@ and @code{newline-mark}.
 Highlight trailing whitespace.
 
 @item tabs
-Highlight tab characters.
+Highlight TAB characters.
 
 @item spaces
 Highlight space and non-breaking space characters.
@@ -1263,10 +1263,10 @@ highlighted.  To change that, customize the regular expression
 @code{whitespace-big-indent-regexp}.
 
 @item space-mark
-Draw space and non-breaking characters with a special glyph.
+Draw SPC and non-breaking characters with a special glyph.
 
 @item tab-mark
-Draw tab characters with a special glyph.
+Draw TAB characters with a special glyph.
 
 @item newline-mark
 Draw newline characters with a special glyph.
@@ -1649,8 +1649,8 @@ Emacs can display long lines by @dfn{truncation}.  This means that all
 the characters that do not fit in the width of the screen or window do
 not appear at all.  On graphical displays, a small straight arrow in
 the fringe indicates truncation at either end of the line.  On text
-terminals, this is indicated with @samp{$} signs in the leftmost
-and/or rightmost columns.
+terminals, this is indicated with @samp{$} signs in the rightmost
+and/or leftmost columns.
 
 @vindex truncate-lines
 @findex toggle-truncate-lines
@@ -1676,8 +1676,9 @@ line truncation.  @xref{Split Window}, for the variable
 @dfn{word wrap}.  Here, each long logical line is divided into two or
 more screen lines, like in ordinary line continuation.  However, Emacs
 attempts to wrap the line at word boundaries near the right window
-edge.  This makes the text easier to read, as wrapping does not occur
-in the middle of words.
+edge.  (If line's direction is right-to-left, it is wrapped at the
+left window edge instead.)  This makes the text easier to read, as
+wrapping does not occur in the middle of words.
 
 @cindex mode, Visual Line
 @cindex Visual Line mode
@@ -1688,8 +1689,8 @@ To turn on Visual Line mode in the current buffer, type @kbd{M-x
 visual-line-mode}; repeating this command turns it off.  You can also
 turn on Visual Line mode using the menu bar: in the Options menu,
 select the @samp{Line Wrapping in this Buffer} submenu, followed by
-the @samp{Word Wrap (Visual Line Mode)} menu item.  While Visual Line
-mode is enabled, the mode-line shows the string @samp{wrap} in the
+the @samp{Word Wrap (Visual Line mode)} menu item.  While Visual Line
+mode is enabled, the mode line shows the string @samp{wrap} in the
 mode display.  The command @kbd{M-x global-visual-line-mode} toggles
 Visual Line mode in all buffers.
 
