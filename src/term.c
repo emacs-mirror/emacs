@@ -1591,13 +1591,13 @@ produce_glyphs (struct it *it)
 			+ it->continuation_lines_width);
       int x0 = absolute_x;
       /* Adjust for line numbers.  */
-      if (!NILP (Vdisplay_line_numbers))
+      if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
 	absolute_x -= it->lnum_pixel_width;
       int next_tab_x
 	= (((1 + absolute_x + it->tab_width - 1)
 	    / it->tab_width)
 	   * it->tab_width);
-      if (!NILP (Vdisplay_line_numbers))
+      if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
 	next_tab_x += it->lnum_pixel_width;
       int nspaces;
 

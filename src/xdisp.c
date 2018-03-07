@@ -8716,8 +8716,12 @@ move_it_in_display_line_to (struct it *it,
 
   if (it->hpos == 0)
     {
-      /* If line numbers are being displayed, produce a line number.  */
-      if (should_produce_line_number (it))
+      /* If line numbers are being displayed, produce a line number.
+	 But don't do that if we are to reach first_visible_x, because
+	 line numbers are not relevant to stuff that is not visible on
+	 display.  */
+      if (!((op && MOVE_TO_X) && to_x == it->first_visible_x)
+	  && should_produce_line_number (it))
 	{
 	  if (it->current_x == it->first_visible_x)
 	    maybe_produce_line_number (it);
@@ -21173,6 +21177,8 @@ maybe_produce_line_number (struct it *it)
       it->max_phys_descent = max (it->max_phys_descent, tem_it.max_phys_descent);
     }
 
+  it->line_number_produced_p = true;
+
   bidi_unshelve_cache (itdata, false);
 }
 
@@ -21290,6 +21296,8 @@ display_line (struct it *it, int cursor_vpos)
   row->displays_text_p = true;
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
   it->starts_in_middle_of_char_p = false;
+  it->tab_offset = 0;
+  it->line_number_produced_p = false;
 
   /* Arrange the overlays nicely for our purposes.  Usually, we call
      display_line on only one line at a time, in which case this
@@ -21333,6 +21341,10 @@ display_line (struct it *it, int cursor_vpos)
 	  && (move_result == MOVE_NEWLINE_OR_CR
 	      || move_result == MOVE_POS_MATCH_OR_ZV))
 	it->current_x = it->first_visible_x;
+
+      /* In case move_it_in_display_line_to above "produced" the line
+	 number.  */
+      it->line_number_produced_p = false;
 
       /* Record the smallest positions seen while we moved over
 	 display elements that are not visible.  This is needed by
@@ -21553,6 +21565,10 @@ display_line (struct it *it, int cursor_vpos)
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
 	  if (it->current_x - it->pixel_width < it->first_visible_x
+	      /* When line numbers are displayed, row->x should not be
+		 offset, as the first glyph after the line number can
+		 never be partially visible.  */
+	      && !line_number_needed
 	      /* In R2L rows, we arrange in extend_face_to_end_of_line
 		 to add a right offset to the line, by a suitable
 		 change to the stretch glyph that is the leftmost
@@ -21794,7 +21810,8 @@ display_line (struct it *it, int cursor_vpos)
 		  if (it->bidi_p)
 		    RECORD_MAX_MIN_POS (it);
 
-		  if (x < it->first_visible_x && !row->reversed_p)
+		  if (x < it->first_visible_x && !row->reversed_p
+		      && !line_number_needed)
 		    /* Glyph is partially visible, i.e. row starts at
 		       negative X position.  Don't do that in R2L
 		       rows, where we arrange to add a right offset to
@@ -21810,6 +21827,7 @@ display_line (struct it *it, int cursor_vpos)
 		     be taken care of in produce_special_glyphs.  */
 		  if (row->reversed_p
 		      && new_x > it->last_visible_x
+		      && !line_number_needed
 		      && !(it->line_wrap == TRUNCATE
 			   && WINDOW_LEFT_FRINGE_WIDTH (it->w) == 0))
 		    {
@@ -28274,8 +28292,14 @@ x_produce_glyphs (struct it *it)
 	      int x = it->current_x + it->continuation_lines_width;
 	      int x0 = x;
 	      /* Adjust for line numbers, if needed.   */
-	      if (!NILP (Vdisplay_line_numbers) && x0 >= it->lnum_pixel_width)
-		x -= it->lnum_pixel_width;
+	      if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
+		{
+		  x -= it->lnum_pixel_width;
+		  /* Restore the original TAB width, if required.  */
+		  if (x + it->tab_offset >= it->first_visible_x)
+		    x += it->tab_offset;
+		}
+
 	      int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
 
 	      /* If the distance from the current position to the next tab
@@ -28283,10 +28307,19 @@ x_produce_glyphs (struct it *it)
 		 tab stop after that.  */
 	      if (next_tab_x - x < font->space_width)
 		next_tab_x += tab_width;
-	      if (!NILP (Vdisplay_line_numbers) && x0 >= it->lnum_pixel_width)
-		next_tab_x += (it->lnum_pixel_width
-			       - ((it->w->hscroll * font->space_width)
-				  % tab_width));
+	      if (!NILP (Vdisplay_line_numbers) && it->line_number_produced_p)
+		{
+		  next_tab_x += it->lnum_pixel_width;
+		  /* If the line is hscrolled, and the TAB starts before
+		     the first visible pixel, simulate negative row->x.  */
+		  if (x < it->first_visible_x)
+		    {
+		      next_tab_x -= it->first_visible_x - x;
+		      it->tab_offset = it->first_visible_x - x;
+		    }
+		  else
+		    next_tab_x -= it->tab_offset;
+		}
 
 	      it->pixel_width = next_tab_x - x0;
 	      it->nglyphs = 1;
