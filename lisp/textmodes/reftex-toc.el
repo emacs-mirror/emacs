@@ -1096,7 +1096,7 @@ always show the current section in connection with the option
       (when (eq reftex-auto-recenter-toc 'frame)
         (unless reftex-toc-auto-recenter-timer
           (reftex-toggle-auto-toc-recenter))
-        (add-hook 'delete-frame-hook 'reftex-toc-delete-frame-hook)))))
+        (add-hook 'delete-frame-functions 'reftex-toc-delete-frame-hook)))))
 
 (defun reftex-toc-delete-frame-hook (frame)
   (if (and reftex-toc-auto-recenter-timer
