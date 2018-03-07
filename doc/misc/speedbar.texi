@@ -979,8 +979,8 @@ With a numeric argument (@kbd{C-u}), flush cached data before expanding.
 Contract the item under the cursor.
 @end table
 
-@cindex @code{speedbar-line-path}
-These function require that function @code{speedbar-line-path} be
+@cindex @code{speedbar-line-directory}
+These functions require that the function @code{speedbar-line-directory} be
 correctly overloaded to work.
 
 Next, register your extension like this;
@@ -1013,14 +1013,14 @@ like this:
 (speedbar-add-mode-functions-list
  '("MYEXTENSION"
    (speedbar-item-info . MyExtension-speedbar-item-info)
-   (speedbar-line-path . MyExtension-speedbar-line-path)))
+   (speedbar-line-directory . MyExtension-speedbar-line-directory)))
 @end example
 
 The first element in the list is the name of you extension.  The second
 is an alist of functions to overload.  The function to overload is
 first, followed by what you want called instead.
 
-For @code{speedbar-line-path} your function should take an optional DEPTH
+For @code{speedbar-line-directory} your function should take an optional DEPTH
 parameter.  This is the starting depth for heavily indented lines.  If
 it is not provided, you can derive it like this:
 

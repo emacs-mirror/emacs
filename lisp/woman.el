@@ -1759,8 +1759,8 @@ Leave point at end of new text.  Return length of inserted text."
 	   (condition-case ()
 	       (insert-file-contents filename nil)
 	     (file-error
-	      ;; Run find-file-not-found-hooks until one returns non-nil.
-	      ;; (run-hook-with-args-until-success 'find-file-not-found-hooks)
+	      ;; Run find-file-not-found-functions until one returns non-nil.
+	      ;; (run-hook-with-args-until-success 'find-file-not-found-functions)
 	      (insert "\n***** File " filename " not found! *****\n\n")))))))
 
 

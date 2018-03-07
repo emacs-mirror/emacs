@@ -1595,7 +1595,7 @@ non-@code{nil}, you should set it to @code{nil}:
 @cindex movemail, using pop3
 @cindex MAILHOST
 @vindex rmail-primary-inbox-list
-@vindex rmail-pop-password-required
+@vindex rmail-remote-password-required
 
 For incoming mail using the Rmail package and a POP3 server, you will
 need the following configuration:
@@ -1603,7 +1603,7 @@ need the following configuration:
 @example
 (setenv "MAILHOST" "@var{domain.name.of.your.pop3.server}")
 (setq rmail-primary-inbox-list '("po:@var{your logon id}"))
-(setq rmail-pop-password-required t)
+(setq rmail-remote-password-required t)
 @end example
 
 @node Incoming mail with Gnus

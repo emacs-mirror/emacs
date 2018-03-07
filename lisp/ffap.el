@@ -248,7 +248,7 @@ it passes it on to `dired'."
 
 (defcustom ffap-newfile-prompt nil
   ;; Suggestion from RHOGEE, 11 Jul 1994.  Disabled, I think this is
-  ;; better handled by `find-file-not-found-hooks'.
+  ;; better handled by `find-file-not-found-functions'.
   "Whether `find-file-at-point' prompts about a nonexistent file."
   :type 'boolean
   :group 'ffap)

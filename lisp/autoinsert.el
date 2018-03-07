@@ -386,7 +386,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 	      (not (eq this-command 'auto-insert))
 	      (set-buffer-modified-p (eq auto-insert t)))))
   ;; Return nil so that it could be used in
-  ;; `find-file-not-found-hooks', though that's probably inadvisable.
+  ;; `find-file-not-found-functions', though that's probably inadvisable.
   nil)
 
 

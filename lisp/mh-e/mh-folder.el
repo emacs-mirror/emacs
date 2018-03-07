@@ -88,7 +88,7 @@ the MH mail system."
 When desktop creates a buffer, DESKTOP-BUFFER-FILE-NAME holds the
 file name to visit, DESKTOP-BUFFER-NAME holds the desired buffer
 name, and DESKTOP-BUFFER-MISC holds a list of miscellaneous info
-used by the `desktop-buffer-handlers' functions."
+used by the `desktop-buffer-mode-handlers' functions."
   (mh-find-path)
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
