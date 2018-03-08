@@ -945,6 +945,8 @@ finally GNU mailutils MH."
       (when (not (mh-variant-set-variant variant))
         (message "Warning: %s variant not found. Autodetecting..." variant)
         (mh-variant-set 'autodetect)))
+     ((null valid-list)
+      (message "Unknown variant %s; can't find MH anywhere" variant))
      (t
       (message "Unknown variant %s; use %s"
                variant
