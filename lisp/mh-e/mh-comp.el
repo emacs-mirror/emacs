@@ -1056,6 +1056,7 @@ letter."
 (defun mh-insert-x-mailer ()
   "Append an X-Mailer field to the header.
 The versions of MH-E, Emacs, and MH are shown."
+  (or mh-variant-in-use (mh-variant-set mh-variant))
   ;; Lazily initialize mh-x-mailer-string.
   (when (and mh-insert-x-mailer-flag (null mh-x-mailer-string))
     (setq mh-x-mailer-string

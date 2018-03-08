@@ -410,6 +410,8 @@ gnus-version)
   (require 'gnus)
   gnus-version)
 
+(defvar mh-variant)
+
 ;;;###autoload
 (defun mh-version ()
   "Display version information about MH-E and the MH mail handling system."
@@ -430,6 +432,7 @@ gnus-version)
   ;; Emacs version.
   (insert (emacs-version) "\n\n")
   ;; MH version.
+  (or mh-variant-in-use (mh-variant-set mh-variant))
   (if mh-variant-in-use
       (insert mh-variant-in-use "\n"
               " mh-progs:\t" mh-progs "\n"
@@ -876,6 +879,7 @@ variant."
 (defun mh-variant-p (&rest variants)
   "Return t if variant is any of VARIANTS.
 Currently known variants are `MH', `nmh', and `gnu-mh'."
+  (or mh-variant-in-use (mh-variant-set mh-variant))
   (let ((variant-in-use
          (cadr (assoc 'variant (assoc mh-variant-in-use (mh-variants))))))
     (not (null (member variant-in-use variants)))))
@@ -972,6 +976,7 @@ necessary and can actually cause problems."
   :set (lambda (symbol value)
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
+  :initialize 'custom-initialize-default
   :group 'mh-e
   :package-version '(MH-E . "8.0"))
 
