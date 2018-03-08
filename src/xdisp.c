@@ -10136,17 +10136,46 @@ include the height of both, if present, in the return value.  */)
   itdata = bidi_shelve_cache ();
   SET_TEXT_POS (startp, start, CHAR_TO_BYTE (start));
   start_display (&it, w, startp);
+  /* It makes no sense to measure dimensions of region of text that
+     crosses the point where bidi reordering changes scan direction.
+     By using unidirectional movement here we at least support the use
+     case of measuring regions of text that have a uniformly R2L
+     directionality, and regions that begin and end in text of the
+     same directionality.  */
+  it.bidi_p = false;
+  void *it2data = NULL;
+  struct it it2;
+  SAVE_IT (it2, it, it2data);
 
-  if (NILP (x_limit))
-    x = move_it_to (&it, end, -1, max_y, -1, MOVE_TO_POS | MOVE_TO_Y);
-  else
+  int move_op = MOVE_TO_POS | MOVE_TO_Y;
+  int to_x = -1;
+  if (!NILP (x_limit))
     {
-      it.last_visible_x = max_x;
       /* Actually, we never want move_it_to stop at to_x.  But to make
 	 sure that move_it_in_display_line_to always moves far enough,
-	 we set it to INT_MAX and specify MOVE_TO_X.  */
-      x = move_it_to (&it, end, INT_MAX, max_y, -1,
-		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+	 we set to_x to INT_MAX and specify MOVE_TO_X.  */
+      move_op |= MOVE_TO_X;
+      to_x = INT_MAX;
+    }
+
+  x = move_it_to (&it, end, to_x, max_y, -1, move_op);
+
+  /* We could have a display property at END, in which case asking
+     move_it_to to stop at END will overshoot and stop at position
+     after END.  So we try again, stopping before END, and account for
+     the width of the last buffer position manually.  */
+  if (IT_CHARPOS (it) > end)
+    {
+      end--;
+      RESTORE_IT (&it, &it2, it2data);
+      x = move_it_to (&it, end, to_x, max_y, -1, move_op);
+      /* Add the width of the thing at TO, but only if we didn't
+	 overshoot it; if we did, it is already accounted for.  */
+      if (IT_CHARPOS (it) == end)
+	x += it.pixel_width;
+    }
+  if (!NILP (x_limit))
+    {
       /* Don't return more than X-LIMIT.  */
       if (x > max_x)
         x = max_x;
