@@ -446,7 +446,7 @@ they are not themselves part of incremental search.
 search exits the search before executing the command.  Thus, the
 command operates on the buffer from which you invoked the search.
 However, if you customize the variable @code{search-exit-option} to
-@code{nil}, the characters which you type that are not interpreted by
+@code{append}, the characters which you type that are not interpreted by
 the incremental search are simply appended to the search string.  This
 is so you could include in the search string control characters, such
 as @kbd{C-a}, that would normally exit the search and invoke the
