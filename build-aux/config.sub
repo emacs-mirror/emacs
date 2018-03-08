@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2018 Free Software Foundation, Inc.
 
-timestamp='2018-02-22'
+timestamp='2018-03-08'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -1376,7 +1376,7 @@ case $os in
 	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
-	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
+	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* | -hcos* \
 	      | -chorusos* | -chorusrdb* | -cegcc* | -glidix* \
 	      | -cygwin* | -msys* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
 	      | -midipix* | -mingw32* | -mingw64* | -linux-gnu* | -linux-android* \
@@ -1794,7 +1794,7 @@ echo "$basic_machine$os"
 exit
 
 # Local variables:
-# eval: (add-hook 'write-file-functions 'time-stamp)
+# eval: (add-hook 'before-save-hook 'time-stamp)
 # time-stamp-start: "timestamp='"
 # time-stamp-format: "%:y-%02m-%02d"
 # time-stamp-end: "'"
