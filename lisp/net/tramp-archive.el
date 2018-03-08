@@ -62,6 +62,7 @@
 ;; * ".lzh", ".LZH" - Microsoft Windows compressed LHA archives
 ;; * ".msu", ".MSU" - Microsoft Windows Update packages
 ;; * ".mtree" - BSD mtree format
+;; * ".odb" ".odf" ".odg" ".odp" ".ods" ".odt" - OpenDocument formats
 ;; * ".pax" - Posix archives
 ;; * ".rar" - RAR archives
 ;; * ".rpm" - Red Hat packages
@@ -126,9 +127,9 @@
 ;; <https://github.com/libarchive/libarchive/wiki/LibarchiveFormats>
 ;;;###autoload
 (defconst tramp-archive-suffixes
-  ;; "cab", "lzh" and "zip" are included with lower and upper letters,
-  ;; because Microsoft Windows provides them often with capital
-  ;; letters.
+  ;; "cab", "lzh", "msu" and "zip" are included with lower and upper
+  ;; letters, because Microsoft Windows provides them often with
+  ;; capital letters.
   '("7z" ;; 7-Zip archives.
     "apk" ;; Android package kits.  Not in libarchive testsuite.
     "ar" ;; UNIX archiver formats.
@@ -142,6 +143,7 @@
     "lzh" "LZH" ;; Microsoft Windows compressed LHA archives.
     "msu" "MSU" ;; Microsoft Windows Update packages.  Not in testsuite.
     "mtree" ;; BSD mtree format.
+    "odb" "odf" "odg" "odp" "ods" "odt" ;; OpenDocument formats.  Not in testsuite.
     "pax" ;; Posix archives.
     "rar" ;; RAR archives.
     "rpm" ;; Red Hat packages.

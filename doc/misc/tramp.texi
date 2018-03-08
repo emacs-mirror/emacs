@@ -3059,6 +3059,22 @@ BSD mtree format
 @cindex @file{mtree} file archive suffix
 @cindex file archive suffix @file{mtree}
 
+@item @samp{.odb}, @samp{.odf}, @samp{.odg}, @samp{.odp}, @samp{.ods},
+@samp{.odt} ---
+OpenDocument formats
+@cindex @file{odb} file archive suffix
+@cindex @file{odf} file archive suffix
+@cindex @file{odg} file archive suffix
+@cindex @file{odp} file archive suffix
+@cindex @file{ods} file archive suffix
+@cindex @file{odt} file archive suffix
+@cindex file archive suffix @file{odb}
+@cindex file archive suffix @file{odf}
+@cindex file archive suffix @file{odg}
+@cindex file archive suffix @file{odp}
+@cindex file archive suffix @file{ods}
+@cindex file archive suffix @file{odt}
+
 @item @samp{.pax} ---
 Posix archives
 @cindex @file{pax} file archive suffix
