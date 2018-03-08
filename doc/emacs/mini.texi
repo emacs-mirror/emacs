@@ -366,14 +366,26 @@ While in the completion list buffer, this chooses the completion at
 point (@code{choose-completion}).
 
 @findex next-completion
+@item @key{TAB}
 @item @key{RIGHT}
-While in the completion list buffer, this moves point to the following
-completion alternative (@code{next-completion}).
+While in the completion list buffer, these keys move point to the
+following completion alternative (@code{next-completion}).
 
 @findex previous-completion
+@item @key{S-TAB}
 @item @key{LEFT}
-While in the completion list buffer, this moves point to the previous
-completion alternative (@code{previous-completion}).
+While in the completion list buffer, these keys move point to the
+previous completion alternative (@code{previous-completion}).
+
+@findex quit-window
+@item @kbd{q}
+While in the completion list buffer, this quits the window showing it
+and selects the window showing the minibuffer (@code{quit-window}).
+
+@findex kill-current-buffer
+@item @kbd{z}
+While in the completion list buffer, kill it and delete the window
+showing it (@code{kill-current-buffer}).
 @end table
 
 @node Completion Exit
