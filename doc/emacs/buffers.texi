@@ -32,6 +32,13 @@ buffer.  When there is only one Emacs window, the buffer displayed in
 that window is current.  When there are multiple windows, the buffer
 displayed in the @dfn{selected window} is current.  @xref{Windows}.
 
+@cindex buffer contents
+@cindex contents of a buffer
+  A buffer's @dfn{contents} consist of a series of characters, each of
+which optionally carries a set of text properties
+(@pxref{International Chars, Text properties}) that can specify more
+information about that character.
+
   Aside from its textual contents, each buffer records several pieces
 of information, such as what file it is visiting (if any), whether it
 is modified, and what major mode and minor modes are in effect
@@ -231,13 +238,14 @@ Scroll through buffer @var{buffer}.  @xref{View Mode}.
 @kindex C-x C-q
 @vindex buffer-read-only
 @cindex read-only buffer
-  A buffer can be @dfn{read-only}, which means that commands to change
-its contents are not allowed.  The mode line indicates read-only
-buffers with @samp{%%} or @samp{%*} near the left margin.  @xref{Mode
-Line}.  Read-only buffers are usually made by subsystems such as Dired
-and Rmail that have special commands to operate on the text.  Visiting
-a file whose access control says you cannot write it also makes the
-buffer read-only.
+  A buffer can be @dfn{read-only}, which means that commands to insert
+or delete its text are not allowed.  (However, other commands, like
+@kbd{C-x @key{RET} f}, can still mark it as modified, @pxref{Text
+Coding}).  The mode line indicates read-only buffers with @samp{%%} or
+@samp{%*} near the left margin.  @xref{Mode Line}.  Read-only buffers
+are usually made by subsystems such as Dired and Rmail that have
+special commands to operate on the text.  Visiting a file whose access
+control says you cannot write it also makes the buffer read-only.
 
 @findex read-only-mode
 @vindex view-read-only
