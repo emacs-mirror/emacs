@@ -771,13 +771,15 @@ The result of the body appears to the compiler as a quoted constant."
 ;;;###autoload
 (defmacro cl-case (expr &rest clauses)
   "Eval EXPR and choose among clauses on that value.
-Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
-against each key in each KEYLIST; the corresponding BODY is evaluated.
-If no clause succeeds, cl-case returns nil.  A single atom may be used in
-place of a KEYLIST of one atom.  A KEYLIST of t or `otherwise' is
-allowed only in the final clause, and matches if no other keys match.
-Key values are compared by `eql'.
-\n(fn EXPR (KEYLIST BODY...)...)"
+Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and
+compared against each key in each KEYLIST; the corresponding BODY
+is evaluated.  If no clause succeeds, cl-case returns nil.  A
+single non-nil atom may be used in place of a KEYLIST of one
+atom.  A KEYLIST of t or `otherwise' is allowed only in the final
+clause, and matches if no other keys match.  Key values are
+compared by `eql'.
+
+\(fn EXPR (KEYLIST BODY...)...)"
   (declare (indent 1) (debug (form &rest (sexp body))))
   (macroexp-let2 macroexp-copyable-p temp expr
     (let* ((head-list nil))
