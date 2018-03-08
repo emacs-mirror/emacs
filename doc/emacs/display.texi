@@ -1239,7 +1239,7 @@ and @code{newline-mark}.
 Highlight trailing whitespace.
 
 @item tabs
-Highlight TAB characters.
+Highlight tab characters.
 
 @item spaces
 Highlight space and non-breaking space characters.
@@ -1263,7 +1263,7 @@ highlighted.  To change that, customize the regular expression
 @code{whitespace-big-indent-regexp}.
 
 @item space-mark
-Draw SPC and non-breaking characters with a special glyph.
+Draw space and non-breaking characters with a special glyph.
 
 @item tab-mark
 Draw tab characters with a special glyph.
