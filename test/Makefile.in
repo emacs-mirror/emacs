@@ -296,3 +296,9 @@ distclean: clean
 	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
+
+.PHONY: check-declare
+
+check-declare:
+	$(emacs) -l check-declare \
+	  --eval '(check-declare-directory "$(srcdir)")'
