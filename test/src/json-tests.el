@@ -26,6 +26,11 @@
 (require 'cl-lib)
 (require 'map)
 
+(declare-function json-serialize "json.c" (object))
+(declare-function json-insert "json.c" (object))
+(declare-function json-parse-string "json.c" (string &rest args))
+(declare-function json-parse-buffer "json.c" (&rest args))
+
 (define-error 'json-tests--error "JSON test error")
 
 (ert-deftest json-serialize/roundtrip ()
