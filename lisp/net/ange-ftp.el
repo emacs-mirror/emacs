@@ -3633,7 +3633,7 @@ so return the size on the remote host exactly. See RFC 3659."
 ;; 			     newname))
 ;; 	res)
 ;;     (set-process-sentinel proc 'ange-ftp-copy-file-locally-sentinel)
-;;     (process-kill-without-query proc)
+;;     (set-process-query-on-exit-flag proc nil)
 ;;     (with-current-buffer (process-buffer proc)
 ;;       (set (make-local-variable 'copy-cont) cont))))
 ;;

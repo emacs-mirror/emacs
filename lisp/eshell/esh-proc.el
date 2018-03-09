@@ -87,8 +87,8 @@ variable's value to take effect."
   "Called each time a process is exec'd by `eshell-gather-process-output'.
 It is passed one argument, which is the process that was just started.
 It is useful for things that must be done each time a process is
-executed in an eshell mode buffer (e.g., `process-kill-without-query').
-In contrast, `eshell-mode-hook' is only executed once when the buffer
+executed in an eshell mode buffer (e.g., `set-process-query-on-exit-flag').
+In contrast, `eshell-mode-hook' is only executed once, when the buffer
 is created."
   :type 'hook
   :group 'eshell-proc)
