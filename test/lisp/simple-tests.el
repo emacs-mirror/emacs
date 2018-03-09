@@ -489,13 +489,12 @@ See Bug#21722."
       (should (equal pos (point))))))
 
 (ert-deftest line-number-at-pos-when-passing-point ()
-  (let (pos)
-    (with-temp-buffer
-      (insert "a\nb\nc\nd\n")
-      (should (equal (line-number-at-pos 1) 1))
-      (should (equal (line-number-at-pos 3) 2))
-      (should (equal (line-number-at-pos 5) 3))
-      (should (equal (line-number-at-pos 7) 4)))))
+  (with-temp-buffer
+    (insert "a\nb\nc\nd\n")
+    (should (equal (line-number-at-pos 1) 1))
+    (should (equal (line-number-at-pos 3) 2))
+    (should (equal (line-number-at-pos 5) 3))
+    (should (equal (line-number-at-pos 7) 4))))
 
 
 ;;; Auto fill.

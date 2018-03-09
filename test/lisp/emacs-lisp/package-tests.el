@@ -473,8 +473,8 @@ Must called from within a `tar-mode' buffer."
 		       (let ((process-environment
 			      (cons (format "HOME=%s" homedir)
 				    process-environment)))
-			 (epg-check-configuration (epg-configuration))
-			 (epg-find-configuration 'OpenPGP))
+			 (epg-check-configuration
+                          (epg-find-configuration 'OpenPGP)))
 		     (delete-directory homedir t)))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
 	 (package-test-data-dir

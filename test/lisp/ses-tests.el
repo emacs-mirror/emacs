@@ -147,13 +147,10 @@ to A2 and inserting a row, makes A2 value empty, and A3 equal to
       (should-not A2)
       (should (eq A3 2)))))
 
-; (defvar ses-tests-trigger nil)
-
 (ert-deftest ses-tests-renamed-cells-row-insertion ()
   "Check that setting A1 to 1 and A2 to (1+ A1), and then renaming A1 to `foo' and A2 to `bar' jumping
 to `bar' and inserting a row, makes A2 value empty, and `bar' equal to
 2."
-  (setq ses-tests-trigger nil)
   (let ((ses-initial-size '(2 . 1)))
     (with-temp-buffer
       (ses-mode)

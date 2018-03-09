@@ -23,9 +23,9 @@
 (require 'ert)
 
 (ert-deftest benchmark-tests ()
-  (let (str t-long t-short)
-    (should (consp (benchmark-run nil (1+ 0))))
-    (should (consp (benchmark-run 1 (1+ 0))))
+  (let (str t-long t-short m)
+    (should (consp (benchmark-run nil (setq m (1+ 0)))))
+    (should (consp (benchmark-run 1 (setq m (1+ 0)))))
     (should (stringp (benchmark nil (1+ 0))))
     (should (stringp (benchmark 1 (1+ 0))))
     (should (consp (benchmark-run-compiled nil (1+ 0))))
@@ -33,10 +33,10 @@
     ;; First test is heavier, must need longer time.
     (should (> (car (benchmark-run nil
                       (let ((n 100000)) (while (> n 1) (setq n (1- n))))))
-               (car (benchmark-run nil (1+ 0)))))
+               (car (benchmark-run nil (setq m (1+ 0))))))
     (should (> (car (benchmark-run nil
                       (let ((n 100000)) (while (> n 1) (setq n (1- n))))))
-               (car (benchmark-run nil (1+ 0)))))
+               (car (benchmark-run nil (setq m (1+ 0))))))
     (should (> (car (benchmark-run-compiled nil
                       (let ((n 100000)) (while (> n 1) (setq n (1- n))))))
                (car (benchmark-run-compiled nil (1+ 0)))))
@@ -46,6 +46,8 @@
     (setq str (benchmark nil '(1+ 0)))
     (string-match "Elapsed time: \\([0-9.]+\\)" str)
     (setq t-short (string-to-number (match-string 1 str)))
-    (should (> t-long t-short))))
+    (should (> t-long t-short))
+    ;; Silence compiler.
+    m))
 
 ;;; benchmark-tests.el ends here.

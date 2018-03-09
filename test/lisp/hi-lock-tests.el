@@ -29,7 +29,7 @@
     (with-temp-buffer
       (insert "a A b B\n")
       (cl-letf (((symbol-function 'completing-read)
-                   (lambda (prompt coll x y z hist defaults)
+                   (lambda (_prompt _coll _x _y _z _hist defaults)
                      (car defaults))))
         (dotimes (_ 2)
           (let ((face (hi-lock-read-face-name)))
@@ -41,7 +41,7 @@
     (with-temp-buffer
       (insert "foo bar")
       (cl-letf (((symbol-function 'completing-read)
-                 (lambda (prompt coll x y z hist defaults)
+                 (lambda (_prompt _coll _x _y _z _hist defaults)
                    (car defaults))))
         (hi-lock-set-pattern "9999" (hi-lock-read-face-name)) ; No match
         (hi-lock-set-pattern "foo" (hi-lock-read-face-name)))

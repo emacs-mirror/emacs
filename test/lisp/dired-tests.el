@@ -210,12 +210,12 @@
                          (concat (file-name-as-directory test-dir)
                                  (file-name-as-directory "test-subdir"))))
           (push (dired-find-file) buffers)
-          (let ((pt2 (point)))          ; Point is on test-file.
-            (switch-to-buffer buf)
-            ;; Sanity check: point should now be back on the subdirectory.
-            (should (eq (point) pt1))
-            (push (dired test-dir) buffers)
-            (should (eq (point) pt1))))
+          ;; Point is on test-file.
+          (switch-to-buffer buf)
+          ;; Sanity check: point should now be back on the subdirectory.
+          (should (eq (point) pt1))
+          (push (dired test-dir) buffers)
+          (should (eq (point) pt1)))
       (dolist (buf buffers)
         (when (buffer-live-p buf) (kill-buffer buf)))
       (delete-directory test-dir t))))
@@ -224,7 +224,7 @@
   "Test for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27243#61 ."
   (let ((test-dir (make-temp-file "test-dir-" t))
         (dired-auto-revert-buffer t)
-        test-subdir1 test-subdir2 allbufs)
+        allbufs)
     (unwind-protect
         (progn
           (with-current-buffer (find-file-noselect test-dir)
@@ -294,9 +294,9 @@
 
 (ert-deftest dired-test-bug27899 ()
   "Test for https://debbugs.gnu.org/27899 ."
-  (let* ((dir (expand-file-name "src" source-directory))
-	 (buf (dired (list dir "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c")))
-         (orig dired-hide-details-mode))
+  (dired (list (expand-file-name "src" source-directory)
+               "cygw32.c" "alloc.c" "w32xfns.c" "xdisp.c"))
+  (let ((orig dired-hide-details-mode))
     (dired-goto-file (expand-file-name "cygw32.c"))
     (forward-line 0)
     (unwind-protect
@@ -362,8 +362,7 @@
 (defmacro dired-test-with-temp-dirs (just-empty-dirs &rest body)
   "Helper macro for Bug#27940 test."
   (declare (indent 1) (debug body))
-  (let ((dir (make-symbol "dir"))
-        (ignore-funcs (make-symbol "ignore-funcs")))
+  (let ((dir (make-symbol "dir")))
     `(let* ((,dir (make-temp-file "bug27940" t))
             (dired-deletion-confirmer (lambda (_) "yes")) ; Suppress prompts.
             (inhibit-message t)
