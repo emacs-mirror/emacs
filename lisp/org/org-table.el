@@ -5428,7 +5428,7 @@ which will prompt for the width."
 ;; - orgtbl-uc-draw-cont (smooth unicode)
 
 ;; This is best viewed with the "DejaVu Sans Mono" font
-;; (use M-x set-default-font).
+;; (use M-x set-frame-font).
 
 (defun orgtbl-uc-draw-grid (value min max &optional width)
   "Draw a bar in a table using block unicode characters.
