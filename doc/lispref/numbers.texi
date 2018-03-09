@@ -53,8 +53,9 @@ but many machines provide a wider range.  Many examples in this
 chapter assume the minimum integer width of 30 bits.
 @cindex overflow
 
-  The Lisp reader reads an integer as a sequence of digits with optional
-initial sign and optional final period.  An integer that is out of the
+  The Lisp reader reads an integer as a nonempty sequence
+of decimal digits with optional initial sign and optional
+final period.  A decimal integer that is out of the
 Emacs range is treated as a floating-point number.
 
 @example

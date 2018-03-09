@@ -302,6 +302,10 @@ as new-style, bind the new variable 'force-new-style-backquotes' to t.
 'cl-struct-define' whose name clashes with a builtin type (e.g.,
 'integer' or 'hash-table') now signals an error.
 
+** When formatting a floating-point number as an octal or hexadecimal
+integer, Emacs now signals an error if the number is too large for the
+implementation to format (Bug#30408).
+
 
 * Lisp Changes in Emacs 27.1
 
@@ -342,6 +346,9 @@ remote systems, which support this check.
 ** The function 'make-string' accepts an additional optional argument.
 If the optional third argument is non-nil, 'make-string' will produce
 a multibyte string even if its second argument is an ASCII character.
+
+** (format "%d" X) no longer mishandles a floating-point number X that
+does not fit in a machine integer (Bug#30408).
 
 ** New JSON parsing and serialization functions 'json-serialize',
 'json-insert', 'json-parse-string', and 'json-parse-buffer'.  These
