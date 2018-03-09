@@ -3006,7 +3006,11 @@ list_system_processes (void)
   for (tail = proclist; CONSP (tail); tail = next)
     {
       next = XCDR (tail);
-      XSETCAR (tail, Fstring_to_number (XCAR (tail), Qnil));
+      Lisp_Object pidstring = XCAR (tail);
+      Lisp_Object pid = Fstring_to_number (pidstring, Qnil);
+      if (!INTEGERP (pid) || XINT (pid) <= 0)
+	xsignal1 (Qoverflow_error, pidstring);
+      XSETCAR (tail, pid);
     }
 
   /* directory_files_internal returns the files in reverse order; undo
