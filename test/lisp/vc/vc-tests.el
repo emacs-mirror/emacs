@@ -109,7 +109,7 @@
 (require 'ert)
 (require 'vc)
 
-(declare-function w32-application-type "w32proc")
+(declare-function w32-application-type "w32proc.c")
 
 ;; The working horses.
 
