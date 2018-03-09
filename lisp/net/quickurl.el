@@ -155,7 +155,7 @@ could be used here."
 (defconst quickurl-reread-hook-postfix
     "
 ;; Local Variables:
-;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))
+;; eval: (progn (require 'quickurl) (add-hook 'write-file-functions (lambda () (quickurl-read) nil) nil t))
 ;; End:
 "
   "Example `quickurl-postfix' text that adds a local variable to the

@@ -1107,7 +1107,7 @@ Tree mode key bindings:
          (and tree (ebrowse-build-tree-obarray tree)))
     (set (make-local-variable 'ebrowse--frozen-flag) nil)
 
-    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn nil t)
+    (add-hook 'write-file-functions 'ebrowse-write-file-hook-fn nil t)
     (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
     (when tree
       (ebrowse-redraw-tree)
@@ -4023,7 +4023,7 @@ If VIEW is non-nil, view else find source files."
 
 (defun ebrowse-write-file-hook-fn ()
   "Write current buffer as a class tree.
-Installed on `local-write-file-hooks'."
+Added to `write-file-functions'."
   (ebrowse-save-tree)
   t)
 

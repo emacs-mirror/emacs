@@ -347,7 +347,7 @@ to invocation.")
 	      (goto-char (point-min))
 	      (funcall (ediff-with-current-buffer buf major-mode))
 	      (widen) ; merge buffer is always widened
-	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
+	      (add-hook 'write-file-functions 'ediff-set-merge-mode nil t)
 	      )))
       (setq buffer-read-only nil
 	    ediff-buffer-A buffer-A

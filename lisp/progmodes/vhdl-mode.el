@@ -4953,8 +4953,8 @@ Key bindings:
 (defun vhdl-write-file-hooks-init ()
   "Add/remove hooks when buffer is saved."
   (if vhdl-modify-date-on-saving
-      (add-hook 'local-write-file-hooks 'vhdl-template-modify-noerror nil t)
-    (remove-hook 'local-write-file-hooks 'vhdl-template-modify-noerror t))
+      (add-hook 'write-file-functions 'vhdl-template-modify-noerror nil t)
+    (remove-hook 'write-file-functions 'vhdl-template-modify-noerror t))
   (if (featurep 'xemacs) (make-local-hook 'after-save-hook))
   (add-hook 'after-save-hook 'vhdl-add-modified-file nil t))
 
