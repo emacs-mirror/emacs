@@ -219,7 +219,7 @@ for CLASS.  Optional ALLOW-SUBCLASS says that it is ok for
 `eieio-persistent-read' to load in subclasses of class instead of
 being pedantic."
   (unless class
-    (message "Unsafe call to `eieio-persistent-read'."))
+    (warn "`eieio-persistent-read' called without specifying a class"))
   (when class (cl-check-type class class))
   (let ((ret nil)
 	(buffstr nil))
@@ -234,13 +234,16 @@ being pedantic."
 	  ;; the current buffer will work.
 	  (setq ret (read buffstr))
 	  (when (not (child-of-class-p (car ret) 'eieio-persistent))
-	    (error "Corrupt object on disk: Unknown saved object"))
+	    (error
+             "Invalid object: %s is not a subclass of `eieio-persistent'"
+             (car ret)))
 	  (when (and class
-		     (not (or (eq (car ret) class ) ; same class
-			      (and allow-subclass
-				   (child-of-class-p (car ret) class)) ; subclasses
-			      )))
-	    (error "Corrupt object on disk: Invalid saved class"))
+		     (not (or (eq (car ret) class) ; same class
+			      (and allow-subclass  ; subclass
+				   (child-of-class-p (car ret) class)))))
+	    (error
+             "Invalid object: %s is not an object of class %s nor a subclass"
+             (car ret) class))
 	  (setq ret (eieio-persistent-convert-list-to-object ret))
 	  (oset ret file filename))
       (kill-buffer " *tmp eieio read*"))
@@ -332,7 +335,8 @@ Second, any text properties will be stripped from strings."
 		  ;; We have a predicate, but it doesn't satisfy the predicate?
 		  (dolist (PV (cdr proposed-value))
 		    (unless (child-of-class-p (car PV) (car classtype))
-		      (error "Corrupt object on disk")))
+		      (error "Invalid object: slot member %s does not match class %s"
+                             (car PV) (car classtype))))
 
 		  ;; We have a list of objects here.  Lets load them
 		  ;; in.
