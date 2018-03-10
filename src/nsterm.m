@@ -3487,23 +3487,38 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
             {
 	      struct font *font = font_for_underline_metrics (s);
               unsigned long descent = s->y + s->height - s->ybase;
+              unsigned long minimum_offset;
+              BOOL underline_at_descent_line, use_underline_position_properties;
+              Lisp_Object val = buffer_local_value (Qunderline_minimum_offset,
+                                                    s->w->contents);
+              if (INTEGERP (val))
+                minimum_offset = XFASTINT (val);
+              else
+                minimum_offset = 1;
+              val = buffer_local_value (Qx_underline_at_descent_line,
+                                        s->w->contents);
+              underline_at_descent_line = !(NILP (val) || EQ (val, Qunbound));
+              val = buffer_local_value (Qx_use_underline_position_properties,
+                                        s->w->contents);
+              use_underline_position_properties =
+		!(NILP (val) || EQ (val, Qunbound));
 
               /* Use underline thickness of font, defaulting to 1. */
               thickness = (font && font->underline_thickness > 0)
                 ? font->underline_thickness : 1;
 
               /* Determine the offset of underlining from the baseline. */
-              if (x_underline_at_descent_line)
+              if (underline_at_descent_line)
                 position = descent - thickness;
-              else if (x_use_underline_position_properties
+              else if (use_underline_position_properties
                        && font && font->underline_position >= 0)
                 position = font->underline_position;
               else if (font)
                 position = lround (font->descent / 2);
               else
-                position = underline_minimum_offset;
+                position = minimum_offset;
 
-              position = max (position, underline_minimum_offset);
+              position = max (position, minimum_offset);
 
               /* Ensure underlining is not cropped. */
               if (descent <= position)
@@ -9465,11 +9480,14 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 	       x_use_underline_position_properties,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_use_underline_position_properties = 0;
+  DEFSYM (Qx_use_underline_position_properties,
+	  "x-use-underline-position-properties");
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
+  DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qns, Qnil);
