@@ -5387,7 +5387,6 @@ hint to ImageMagick to help it detect the image type.
 Specifies a rotation angle in degrees.
 
 @item :index @var{frame}
-@c Doesn't work: https://debbugs.gnu.org/7978
 @xref{Multi-Frame Images}.
 @end table
 
@@ -5396,8 +5395,8 @@ Specifies a rotation angle in degrees.
 @cindex SVG images
 
 SVG (Scalable Vector Graphics) is an XML format for specifying images.
-If your Emacs build has with SVG support, you can create and manipulate
-these images with the following commands.
+If your Emacs build has SVG support, you can create and manipulate
+these images with the following functions.
 
 @defun svg-create width height &rest args
 Create a new, empty SVG image with the specified dimensions.
@@ -5411,7 +5410,7 @@ The default width (in pixels) of any lines created.
 The default stroke color on any lines created.
 @end table
 
-This function returns an SVG structure, and all the following commands
+This function returns an SVG structure, and all the following functions
 work on that structure.
 @end defun
 
