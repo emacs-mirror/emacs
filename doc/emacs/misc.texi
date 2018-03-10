@@ -2529,7 +2529,7 @@ e.g., the daemon cannot use GUI features, so parameters such as frame
 position, size, and decorations cannot be restored.  For that reason,
 you may wish to delay restoring the desktop in daemon mode until the
 first client connects, by calling @code{desktop-read} in a hook
-function that you add to @code{after-make-frame-functions}
+function that you add to @code{server-after-make-frame-hook}
 (@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit

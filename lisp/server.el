@@ -188,6 +188,13 @@ space (this means characters from ! to ~; or from code 33 to
   :group 'server
   :type 'hook)
 
+(defcustom server-after-make-frame-hook nil
+  "Hook run when the Emacs server creates a client frame.
+The created frame is selected when the hook is called."
+  :group 'server
+  :type 'hook
+  :version "27.1")
+
 (defcustom server-done-hook nil
   "Hook run when done editing a buffer for the Emacs server."
   :group 'server
@@ -1336,9 +1343,11 @@ The following commands are accepted by the client:
            ((or isearch-mode (minibufferp))
             nil)
            ((and frame (null buffers))
+            (run-hooks 'server-after-make-frame-hook)
             (message "%s" (substitute-command-keys
                            "When done with this frame, type \\[delete-frame]")))
            ((not (null buffers))
+            (run-hooks 'server-after-make-frame-hook)
             (server-switch-buffer (car buffers) nil (cdr (car files)))
             (run-hooks 'server-switch-hook)
             (unless nowait

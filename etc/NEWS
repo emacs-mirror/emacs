@@ -84,6 +84,15 @@ behavior where the tooltip text is also shown when the corresponding
 action does not apply.
 
 +++
+** New hook 'server-after-make-frame-hook'.
+This hook is a convenient place to perform initializations in daemon
+mode which require GUI features to be available.  One example is
+restoration of the previous session using the desktop.el package: put
+the call to 'desktop-read' in this hook, if you want the GUI settings
+to be restored, or if desktop.el needs to interact with you during
+restoration of the session.
+
++++
 ** New function 'logcount' calculates an integer's Hamming weight.
 
 +++

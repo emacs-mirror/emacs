@@ -181,6 +181,12 @@ the value of that parameter in the created frame to its value in the
 selected frame.
 @end defvar
 
+@defopt server-after-make-frame-hook
+A normal hook run when the Emacs server creates a client frame.  When
+this hook is called, the created frame is the selected one.
+@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+@end defopt
+
 
 @node Multiple Terminals
 @section Multiple Terminals

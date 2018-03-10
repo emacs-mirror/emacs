@@ -66,6 +66,7 @@ not exactly a hook, but does a similar job.
 
 @item after-make-frame-functions
 @itemx before-make-frame-hook
+@itemx server-after-make-frame-hook
 @xref{Creating Frames}.
 
 @c Not general enough?
