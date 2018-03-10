@@ -1043,7 +1043,8 @@ the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
 @item Homepage
-This line states the homepage of the library.
+@itemx URL
+These lines state the homepage of the library.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then
