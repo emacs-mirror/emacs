@@ -149,6 +149,8 @@ Transpose two words (@code{transpose-words}).
 Transpose two balanced expressions (@code{transpose-sexps}).
 @item C-x C-t
 Transpose two lines (@code{transpose-lines}).
+@item M-x transpose-regions
+Transpose two regions.
 @end table
 
 @kindex C-t
@@ -203,6 +205,15 @@ across four words.  @kbd{C-u - C-M-t} would cancel the effect of plain
 otherwise a command with a repeat count of zero would do nothing): to
 transpose the character (or word or expression or line) ending after
 point with the one ending after the mark.
+
+@findex transpose-regions
+  @kbd{M-x transpose-regions} transposes the text between point and
+mark with the text between the last two marks pushed to the mark ring
+(@pxref{Setting Mark}).  With a numeric prefix argument, it transposes
+the text between point and mark with the text between two successive
+marks that many entries back in the mark ring.  This command is best
+used for transposing multiple characters (or words or sentences or
+paragraphs) in one go.
 
 @node Fixing Case
 @section Case Conversion

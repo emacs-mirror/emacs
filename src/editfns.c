@@ -5100,7 +5100,16 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
     }
 }
 
-DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5, 0,
+DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5,
+       "(if (< (length mark-ring) 2)\
+	    (error \"Other region must be marked before transposing two regions\")\
+	  (let* ((num (if current-prefix-arg\
+			 (prefix-numeric-value current-prefix-arg)\
+			0))\
+		 (ring-length (length mark-ring))\
+		 (eltnum (mod num ring-length))\
+		 (eltnum2 (mod (1+ num) ring-length)))\
+	    (list (point) (mark) (elt mark-ring eltnum) (elt mark-ring eltnum2))))",
        doc: /* Transpose region STARTR1 to ENDR1 with STARTR2 to ENDR2.
 The regions should not be overlapping, because the size of the buffer is
 never changed in a transposition.
@@ -5108,7 +5117,14 @@ never changed in a transposition.
 Optional fifth arg LEAVE-MARKERS, if non-nil, means don't update
 any markers that happen to be located in the regions.
 
-Transposing beyond buffer boundaries is an error.  */)
+Transposing beyond buffer boundaries is an error.
+
+Interactively, STARTR1 and ENDR1 are point and mark; STARTR2 and ENDR2
+are the last two marks pushed to the mark ring; LEAVE-MARKERS is nil.
+If a prefix argument N is given, STARTR2 and ENDR2 are the two
+successive marks N entries back in the mark ring.  A negative prefix
+argument instead counts forward from the oldest mark in the mark
+ring.  */)
   (Lisp_Object startr1, Lisp_Object endr1, Lisp_Object startr2, Lisp_Object endr2, Lisp_Object leave_markers)
 {
   register ptrdiff_t start1, end1, start2, end2;
