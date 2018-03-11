@@ -152,7 +152,6 @@ endif
 WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
 ifdef EMACS_HYDRA_CI
 ## On Hydra, always show logs for certain problematic tests.
-lisp/emacs-lisp/eieio-tests/eieio-tests.log \
 lisp/net/tramp-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
 endif
