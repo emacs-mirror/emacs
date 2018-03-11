@@ -2096,9 +2096,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     {
       /* Make the pty be the controlling terminal of the process.  */
 #ifdef HAVE_PTYS
-      /* First, disconnect its current controlling terminal.  */
-      if (pty_flag)
-	setsid ();
+      /* First, disconnect its current controlling terminal.
+	 Do this even if !PTY_FLAG; see Bug#30762.  */
+      setsid ();
       /* Make the pty's terminal the controlling terminal.  */
       if (pty_flag && forkin >= 0)
 	{
