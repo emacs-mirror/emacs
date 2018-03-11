@@ -228,10 +228,6 @@ This item will replace the \"More...\" item."
   :group 'recentf
   :type 'boolean)
 
-(define-obsolete-variable-alias 'recentf-menu-append-commands-p
-                                'recentf-menu-append-commands-flag
-                                "22.1")
-
 (defcustom recentf-menu-append-commands-flag t
   "Non-nil means to append command items to the menu."
   :group 'recentf

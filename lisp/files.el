@@ -473,7 +473,7 @@ location of point in the current buffer."
   :group 'find-file)
 
 ;;;It is not useful to make this a local variable.
-;;;(put 'find-file-not-found-hooks 'permanent-local t)
+;;;(put 'find-file-not-found-functions 'permanent-local t)
 (define-obsolete-variable-alias 'find-file-not-found-hooks
     'find-file-not-found-functions "22.1")
 (defvar find-file-not-found-functions nil
@@ -483,7 +483,8 @@ Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
 
 ;;;It is not useful to make this a local variable.
-;;;(put 'find-file-hooks 'permanent-local t)
+;;;(put 'find-file-hook 'permanent-local t)
+;; I found some external files still using the obsolete form in 2018.
 (define-obsolete-variable-alias 'find-file-hooks 'find-file-hook "22.1")
 (defcustom find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
@@ -494,6 +495,7 @@ functions are called."
   :options '(auto-insert)
   :version "22.1")
 
+;; I found some external files still using the obsolete form in 2018.
 (define-obsolete-variable-alias 'write-file-hooks 'write-file-functions "22.1")
 (defvar write-file-functions nil
   "List of functions to be called before saving a buffer to a file.
@@ -513,6 +515,7 @@ node `(elisp)Saving Buffers'.)  To perform various checks or
 updates before the buffer is saved, use `before-save-hook'.")
 (put 'write-file-functions 'permanent-local t)
 
+;; I found some files still using the obsolete form in 2018.
 (defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)

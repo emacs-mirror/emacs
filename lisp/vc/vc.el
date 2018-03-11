@@ -1649,11 +1649,6 @@ to override the value of `vc-diff-switches' and `diff-switches'."
       ;; any switches in diff-switches.
       (when (listp switches) switches))))
 
-;; Old def for compatibility with Emacs-21.[123].
-(defmacro vc-diff-switches-list (backend)
-  (declare (obsolete vc-switches "22.1"))
-  `(vc-switches ',backend 'diff))
-
 (defun vc-diff-finish (buffer messages)
   ;; The empty sync output case has already been handled, so the only
   ;; possibility of an empty output is for an async process.

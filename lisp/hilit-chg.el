@@ -204,9 +204,6 @@
   :group 'highlight-changes)
 
 ;; A (not very good) default list of colors to rotate through.
-(define-obsolete-variable-alias 'highlight-changes-colours
-                                'highlight-changes-colors "22.1")
-
 (defcustom highlight-changes-colors
   (if (eq (frame-parameter nil 'background-mode) 'light)
       ;; defaults for light background:

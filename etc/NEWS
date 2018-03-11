@@ -290,6 +290,41 @@ This feature uses Tramp and works only on systems which support GVFS,
 i.e. GNU/Linux, roughly spoken.  See the chapter "(tramp) Archive file
 names" in the Tramp manual for full documentation of these facilities.
 
+** Some functions and variables obsolete since 22.1 have been removed:
+archive-mouse-extract, assoc-ignore-case, assoc-ignore-representation,
+backward-text-line, blink-cursor, bookmark-exit-hooks,
+comint-use-prompt-regexp-instead-of-fields, compilation-finish-function,
+count-text-lines, cperl-vc-header-alist, custom-face-save-command,
+cvs-display-full-path, cvs-fileinfo->full-path, delete-frame-hook,
+derived-mode-class, describe-char-after, describe-project,
+desktop-basefilename, desktop-buffer-handlers,
+desktop-buffer-misc-functions, desktop-buffer-modes-to-save,
+desktop-enable, desktop-load-default, dired-omit-files-p,
+disabled-command-hook, dungeon-mode-map, electric-nroff-mode,
+electric-nroff-newline, electric-perl-terminator, forward-text-line,
+generic-define-mswindows-modes, generic-define-unix-modes,
+generic-font-lock-defaults, goto-address-at-mouse,
+highlight-changes-colours, ibuffer-elide-long-columns, ibuffer-hooks,
+ibuffer-mode-hooks, icalendar-convert-diary-to-ical,
+icalendar-extract-ical-from-buffer, imenu-always-use-completion-buffer-p,
+ipconfig-program, ipconfig-program-options, isearch-lazy-highlight-cleanup,
+isearch-lazy-highlight-cleanup, isearch-lazy-highlight-initial-delay,
+isearch-lazy-highlight-interval, isearch-lazy-highlight-max-at-a-time,
+iswitchb-use-fonts, latin1-char-displayable-p, mouse-wheel-click-button,
+mouse-wheel-down-button, mouse-wheel-up-button, new-frame, pascal-outline,
+process-kill-without-query, recentf-menu-append-commands-p,
+rmail-pop-password, rmail-pop-password-required, savehist-load,
+set-default-font, spam-list-of-processors,
+speedbar-add-ignored-path-regexp, speedbar-buffers-line-path,
+speedbar-buffers-line-path, speedbar-ignored-path-expressions,
+speedbar-ignored-path-regexp, speedbar-line-path, speedbar-path-line,
+timer-set-time-with-usecs, tooltip-gud-display, tooltip-gud-modes,
+tooltip-gud-toggle-dereference, update-autoloads-from-directories,
+vc-comment-ring, vc-comment-ring-index, vc-comment-search-forward,
+vc-comment-search-reverse, vc-comment-to-change-log, vc-diff-switches-list,
+vc-next-comment, vc-previous-comment, view-todo, x-lost-selection-hooks,
+x-sent-selection-hooks
+
 
 * Incompatible Lisp Changes in Emacs 27.1
 

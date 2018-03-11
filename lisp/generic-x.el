@@ -241,30 +241,11 @@ This hook will be installed if the variable
     spice-generic-mode)
   "List of generic modes that are not defined by default.")
 
-(defcustom generic-define-mswindows-modes
-  (memq system-type '(windows-nt ms-dos))
-  "Non-nil means the modes in `generic-mswindows-modes' will be defined.
-This is a list of MS-Windows specific generic modes.  This variable
-only affects the default value of `generic-extras-enable-list'."
-  :group 'generic-x
-  :type 'boolean
-  :version "22.1")
-(make-obsolete-variable 'generic-define-mswindows-modes 'generic-extras-enable-list "22.1")
-
-(defcustom generic-define-unix-modes
-  (not (memq system-type '(windows-nt ms-dos)))
-  "Non-nil means the modes in `generic-unix-modes' will be defined.
-This is a list of Unix specific generic modes.  This variable only
-affects the default value of `generic-extras-enable-list'."
-  :group 'generic-x
-  :type 'boolean
-  :version "22.1")
-(make-obsolete-variable 'generic-define-unix-modes 'generic-extras-enable-list "22.1")
-
 (defcustom generic-extras-enable-list
   (append generic-default-modes
-	  (if generic-define-mswindows-modes generic-mswindows-modes)
-	  (if generic-define-unix-modes generic-unix-modes)
+          (if (memq system-type '(windows-nt ms-dos))
+              generic-mswindows-modes
+            generic-unix-modes)
 	  nil)
   "List of generic modes to define.
 Each entry in the list should be a symbol.  If you set this variable

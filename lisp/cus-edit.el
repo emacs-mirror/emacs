@@ -3790,10 +3790,6 @@ Optional EVENT is the location for the menu."
   (custom-save-all)
   (custom-face-state-set-and-redraw widget))
 
-;; For backward compatibility.
-(define-obsolete-function-alias 'custom-face-save-command 'custom-face-save
-  "22.1")
-
 (defun custom-face-reset-saved (widget)
   "Restore WIDGET to the face's default attributes.
 If there is a saved face, restore it; otherwise reset to the

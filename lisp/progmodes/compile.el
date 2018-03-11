@@ -100,16 +100,6 @@ compilation buffer.  It should return a string.
 If nil, compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 
 ;;;###autoload
-(defvar compilation-finish-function nil
-  "Function to call when a compilation process finishes.
-It is called with two arguments: the compilation buffer, and a string
-describing how the process finished.")
-
-(make-obsolete-variable 'compilation-finish-function
-  "use `compilation-finish-functions', but it works a little differently."
-  "22.1")
-
-;;;###autoload
 (defvar compilation-finish-functions nil
   "Functions to call when a compilation process finishes.
 Each function is called with two arguments: the compilation buffer,
@@ -2101,7 +2091,6 @@ by replacing the first word, e.g., `compilation-scroll-output' from
 		   compilation-error-regexp-alist
 		   compilation-error-regexp-alist-alist
 		   compilation-error-screen-columns
-		   compilation-finish-function
 		   compilation-finish-functions
 		   compilation-first-column
 		   compilation-mode-font-lock-keywords
@@ -2245,9 +2234,6 @@ commands of Compilation major mode are available.  See
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
-    (with-no-warnings
-      (if compilation-finish-function
-	  (funcall compilation-finish-function cur-buffer msg)))
     (run-hook-with-args 'compilation-finish-functions cur-buffer msg)))
 
 ;; Called when compilation process changes state.

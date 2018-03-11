@@ -614,9 +614,6 @@ frame.")
 (defvar after-setting-font-hook nil
   "Functions to run after a frame's font has been changed.")
 
-;; Alias, kept temporarily.
-(define-obsolete-function-alias 'new-frame 'make-frame "22.1")
-
 (defvar frame-inherited-parameters '()
   "Parameters `make-frame' copies from the selected to the new frame.")
 
@@ -1146,8 +1143,6 @@ FRAME defaults to the selected frame."
 
 (declare-function x-list-fonts "xfaces.c"
                   (pattern &optional face frame maximum width))
-
-(define-obsolete-function-alias 'set-default-font 'set-frame-font "23.1")
 
 (defun set-frame-font (font &optional keep-size frames)
   "Set the default font to FONT.
@@ -2113,10 +2108,6 @@ a live frame and defaults to the selected one."
         (delete-frame this))
       (setq this next))))
 
-;; miscellaneous obsolescence declarations
-(define-obsolete-variable-alias 'delete-frame-hook
-    'delete-frame-functions "22.1")
-
 
 ;;; Window dividers.
 (defgroup window-divider nil
@@ -2351,8 +2342,6 @@ This is done when a frame gets focus.  Blink timers may be stopped by
 	     (not blink-cursor-idle-timer))
     (remove-hook 'post-command-hook 'blink-cursor-check)
     (blink-cursor--start-idle-timer)))
-
-(define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
 
 (define-minor-mode blink-cursor-mode
   "Toggle cursor blinking (Blink Cursor mode).

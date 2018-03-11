@@ -328,13 +328,6 @@ otherwise off."
 	(kill-buffer viewbuf))
     (Man-getpage-in-background file)))
 
-;; Old names that were not namespace clean.
-(define-obsolete-function-alias 'count-text-lines 'nroff-count-text-lines "22.1")
-(define-obsolete-function-alias 'forward-text-line 'nroff-forward-text-line "22.1")
-(define-obsolete-function-alias 'backward-text-line 'nroff-backward-text-line "22.1")
-(define-obsolete-function-alias 'electric-nroff-newline 'nroff-electric-newline "22.1")
-(define-obsolete-function-alias 'electric-nroff-mode 'nroff-electric-mode "22.1")
-
 (provide 'nroff-mode)
 
 ;;; nroff-mode.el ends here

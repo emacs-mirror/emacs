@@ -137,8 +137,6 @@ folding to be used on case-insensitive filesystems only."
       (file-name-case-insensitive-p dir)
     dired-omit-case-fold))
 
-;; For backward compatibility
-(define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
 With a prefix argument ARG, enable Dired-Omit mode if ARG is

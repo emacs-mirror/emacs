@@ -204,29 +204,6 @@ histories, which is probably undesirable."
 	 (signal (car errvar) (cdr errvar)))))
     (savehist-install)))
 
-(defun savehist-load ()
-  "Load the variables stored in `savehist-file' and turn on Savehist mode.
-If `savehist-file' is in the old format that doesn't record
-the value of `savehist-minibuffer-history-variables', that
-value is deducted from the contents of the file."
-  (declare (obsolete savehist-mode "22.1"))
-  (savehist-mode 1)
-  ;; Old versions of savehist distributed with XEmacs didn't save
-  ;; savehist-minibuffer-history-variables.  If that variable is nil
-  ;; after loading the file, try to intuit the intended value.
-  (when (null savehist-minibuffer-history-variables)
-    (setq savehist-minibuffer-history-variables
-          (with-temp-buffer
-	    (ignore-errors
-	      (insert-file-contents savehist-file))
-            (let ((vars ()) form)
-              (while (setq form (condition-case nil
-				    (read (current-buffer)) (error nil)))
-		;; Each form read is of the form (setq VAR VALUE).
-		;; Collect VAR, i.e. (nth form 1).
-                (push (nth 1 form) vars))
-              vars)))))
-
 (defun savehist-install ()
   "Hook Savehist into Emacs.
 Normally invoked by calling `savehist-mode' to set the minor mode.

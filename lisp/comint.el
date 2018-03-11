@@ -429,9 +429,6 @@ See `comint-send-input'."
   :type 'boolean
   :group 'comint)
 
-(define-obsolete-variable-alias 'comint-use-prompt-regexp-instead-of-fields
-  'comint-use-prompt-regexp "22.1")
-
 ;; Note: If it is decided to purge comint-prompt-regexp from the source
 ;; entirely, searching for uses of this variable will help to identify
 ;; places that need attention.

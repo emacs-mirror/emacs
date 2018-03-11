@@ -1145,9 +1145,6 @@ write its autoloads into the specified file instead."
       ;; file-local autoload-generated-file settings.
       (autoload-save-buffers))))
 
-(define-obsolete-function-alias 'update-autoloads-from-directories
-    'update-directory-autoloads "22.1")
-
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.

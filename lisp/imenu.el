@@ -102,14 +102,7 @@ This variable is buffer-local."
   :type 'integer
   :group 'imenu)
 
-(defvar imenu-always-use-completion-buffer-p nil)
-(make-obsolete-variable 'imenu-always-use-completion-buffer-p
-			'imenu-use-popup-menu "22.1")
-
-(defcustom imenu-use-popup-menu
-  (if imenu-always-use-completion-buffer-p
-      (not (eq imenu-always-use-completion-buffer-p 'never))
-    'on-mouse)
+(defcustom imenu-use-popup-menu 'on-mouse
   "Use a popup menu rather than a minibuffer prompt.
 If nil, always use a minibuffer prompt.
 If t, always use a popup menu,
@@ -119,8 +112,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
 		 (other :tag "Always" t))
   :group 'imenu)
 
-(defcustom imenu-eager-completion-buffer
-  (not (eq imenu-always-use-completion-buffer-p 'never))
+(defcustom imenu-eager-completion-buffer t
   "If non-nil, eagerly popup the completion buffer."
   :type 'boolean
   :group 'imenu

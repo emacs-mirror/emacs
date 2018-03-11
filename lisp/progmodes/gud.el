@@ -3397,18 +3397,12 @@ it if ARG is omitted or nil."
 	(kill-local-variable 'gdb-define-alist)
 	(remove-hook 'after-save-hook 'gdb-create-define-alist t))))
 
-(define-obsolete-variable-alias 'tooltip-gud-modes
-                                'gud-tooltip-modes "22.1")
-
 (defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode
 					python-mode)
   "List of modes for which to enable GUD tooltips."
   :type '(repeat (symbol :tag "Major mode"))
   :group 'gud
   :group 'tooltip)
-
-(define-obsolete-variable-alias 'tooltip-gud-display
-                                'gud-tooltip-display "22.1")
 
 (defcustom gud-tooltip-display
   '((eq (tooltip-event-buffer gud-tooltip-event)
@@ -3501,8 +3495,6 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
   (message "Dereferencing is now %s."
 	   (if gud-tooltip-dereference "on" "off")))
 
-(define-obsolete-function-alias 'tooltip-gud-toggle-dereference
-                                'gud-tooltip-dereference "22.1")
 (defvar tooltip-use-echo-area)
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 (declare-function tooltip-strip-prompt "tooltip" (process output))

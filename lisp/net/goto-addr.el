@@ -221,10 +221,6 @@ and `goto-address-fontify-p'."
 ;; snarfed from browse-url.el
 
 ;;;###autoload
-(define-obsolete-function-alias
-  'goto-address-at-mouse 'goto-address-at-point "22.1")
-
-;;;###autoload
 (defun goto-address-at-point (&optional event)
   "Send to the e-mail address or load the URL at point.
 Send mail to address at point.  See documentation for

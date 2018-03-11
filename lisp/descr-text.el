@@ -835,8 +835,6 @@ relevant to POS."
           (if text-props-desc (insert text-props-desc))
           (setq buffer-read-only t))))))
 
-(define-obsolete-function-alias 'describe-char-after 'describe-char "22.1")
-
 ;;; Describe-Char-ElDoc
 
 (defun describe-char-eldoc--truncate (name width)

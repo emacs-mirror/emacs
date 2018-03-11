@@ -158,8 +158,6 @@ Used at desktop read to provide backward compatibility.")
   "Save status of Emacs when you exit."
   :group 'frames)
 
-;; Maintained for backward compatibility
-(define-obsolete-variable-alias 'desktop-enable 'desktop-save-mode "22.1")
 ;;;###autoload
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving (Desktop Save mode).
@@ -247,9 +245,6 @@ the normal hook `desktop-not-loaded-hook' is run."
     (const :tag "Ask the user" ask))
   :group 'desktop
   :version "22.2")
-
-(define-obsolete-variable-alias 'desktop-basefilename
-                                'desktop-base-file-name "22.1")
 
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
@@ -494,10 +489,6 @@ When file names are returned, they should be formatted using the call
 Later, when `desktop-read' evaluates the desktop file, auxiliary information
 is passed as the argument DESKTOP-BUFFER-MISC to functions in
 `desktop-buffer-mode-handlers'.")
-(make-obsolete-variable 'desktop-buffer-modes-to-save
-                        'desktop-save-buffer "22.1")
-(make-obsolete-variable 'desktop-buffer-misc-functions
-                        'desktop-save-buffer "22.1")
 
 ;;;###autoload
 (defvar desktop-buffer-mode-handlers nil
@@ -541,8 +532,6 @@ can guess how to load the mode's definition.")
 
 ;;;###autoload
 (put 'desktop-buffer-mode-handlers 'risky-local-variable t)
-(make-obsolete-variable 'desktop-buffer-handlers
-                        'desktop-buffer-mode-handlers "22.1")
 
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
@@ -1308,17 +1297,6 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
         (run-hooks 'desktop-no-desktop-file-hook))
       (message "No desktop file.")
       nil)))
-
-;; ----------------------------------------------------------------------------
-;; Maintained for backward compatibility
-;;;###autoload
-(defun desktop-load-default ()
-  "Load the `default' start-up library manually.
-Also inhibit further loading of it."
-  (declare (obsolete desktop-save-mode "22.1"))
-  (unless inhibit-default-init	        ; safety check
-    (load "default" t t)
-    (setq inhibit-default-init t)))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload

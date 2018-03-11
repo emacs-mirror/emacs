@@ -1403,7 +1403,6 @@ The default is a name found in the buffer around point."
     map)
   "Keymap used in Pascal Outline mode.")
 
-(define-obsolete-function-alias 'pascal-outline 'pascal-outline-mode "22.1")
 (define-minor-mode pascal-outline-mode
   "Outline-line minor mode for Pascal mode.
 With a prefix argument ARG, enable the mode if ARG is positive,

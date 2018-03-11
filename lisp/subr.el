@@ -680,20 +680,6 @@ If TEST is omitted or nil, `equal' is used."
       (setq tail (cdr tail)))
     value))
 
-(defun assoc-ignore-case (key alist)
-  "Like `assoc', but ignores differences in case and text representation.
-KEY must be a string.  Upper-case and lower-case letters are treated as equal.
-Unibyte strings are converted to multibyte for comparison."
-  (declare (obsolete assoc-string "22.1"))
-  (assoc-string key alist t))
-
-(defun assoc-ignore-representation (key alist)
-  "Like `assoc', but ignores differences in text representation.
-KEY must be a string.
-Unibyte strings are converted to multibyte for comparison."
-  (declare (obsolete assoc-string "22.1"))
-  (assoc-string key alist nil))
-
 (defun member-ignore-case (elt list)
   "Like `member', but ignore differences in case and text representation.
 ELT must be a string.  Upper-case and lower-case letters are treated as equal.
@@ -1491,11 +1477,6 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete-variable 'command-debug-status
                         "expect it to be removed in a future version." "25.2")
 
-(define-obsolete-variable-alias 'x-lost-selection-hooks
-  'x-lost-selection-functions "22.1")
-(define-obsolete-variable-alias 'x-sent-selection-hooks
-  'x-sent-selection-functions "22.1")
-
 ;; This was introduced in 21.4 for pre-unicode unification.  That
 ;; usage was rendered obsolete in 23.1 which uses Unicode internally.
 ;; Other uses are possible, so this variable is not _really_ obsolete,
@@ -2172,19 +2153,6 @@ process."
   (and (processp process)
        (memq (process-status process)
 	     '(run open listen connect stop))))
-
-;; compatibility
-
-(defun process-kill-without-query (process &optional _flag)
-  "Say no query needed if PROCESS is running when Emacs is exited.
-Optional second argument if non-nil says to require a query.
-Value is t if a query was formerly required."
-  (declare (obsolete
-            "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
-            "22.1"))
-  (let ((old (process-query-on-exit-flag process)))
-    (set-process-query-on-exit-flag process nil)
-    old))
 
 (defun process-kill-buffer-query-function ()
   "Ask before killing a buffer that has a running process."

@@ -1010,8 +1010,6 @@ using `make-temp-file', and the generated name is returned."
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))
 
-(define-obsolete-function-alias 'archive-mouse-extract 'archive-extract "22.1")
-
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
   (interactive (list nil last-input-event))

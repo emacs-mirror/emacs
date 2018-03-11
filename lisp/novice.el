@@ -35,9 +35,6 @@
 ;; and the keys are returned by (this-command-keys).
 
 ;;;###autoload
-(define-obsolete-variable-alias 'disabled-command-hook
-  'disabled-command-function "22.1")
-;;;###autoload
 (defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.
 If nil, the feature is disabled, i.e., all commands work normally.")

@@ -224,14 +224,6 @@ view of the buffers."
   :group 'ibuffer)
 (defvar ibuffer-sorting-reversep nil)
 
-(defcustom ibuffer-elide-long-columns nil
-  "If non-nil, then elide column entries which exceed their max length."
-  :type 'boolean
-  :group 'ibuffer)
-(make-obsolete-variable 'ibuffer-elide-long-columns
-                        "use the :elide argument of `ibuffer-formats'."
-                        "22.1")
-
 (defcustom ibuffer-eliding-string "..."
   "The string to use for eliding long columns."
   :type 'string
@@ -349,14 +341,10 @@ directory, like `default-directory'."
   :type 'regexp
   :group 'ibuffer)
 
-(define-obsolete-variable-alias 'ibuffer-hooks 'ibuffer-hook "22.1")
-
 (defcustom ibuffer-hook nil
   "Hook run when `ibuffer' is called."
   :type 'hook
   :group 'ibuffer)
-
-(define-obsolete-variable-alias 'ibuffer-mode-hooks 'ibuffer-mode-hook "22.1")
 
 (defcustom ibuffer-mode-hook nil
   "Hook run upon entry into `ibuffer-mode'."
@@ -952,7 +940,6 @@ directory, like `default-directory'."
 (defvar ibuffer-compiled-formats nil)
 (defvar ibuffer-cached-formats nil)
 (defvar ibuffer-cached-eliding-string nil)
-(defvar ibuffer-cached-elide-long-columns 0)
 
 (defvar ibuffer-sorting-functions-alist nil
   "An alist of functions which describe how to sort buffers.
@@ -1589,7 +1576,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-compile-make-eliding-form (strvar elide from-end-p)
   (let ((ellipsis (propertize ibuffer-eliding-string 'font-lock-face 'bold)))
-    (if (or elide (with-no-warnings ibuffer-elide-long-columns))
+    (if elide
 	`(if (> strlen 5)
 	     ,(if from-end-p
                   ;; FIXME: this should probably also be using
@@ -1789,9 +1776,6 @@ If point is on a group name, this function operates on that group."
 	      (not (eq ibuffer-cached-formats ibuffer-formats))
 	      (null ibuffer-cached-eliding-string)
 	      (not (equal ibuffer-cached-eliding-string ibuffer-eliding-string))
-	      (eql 0 ibuffer-cached-elide-long-columns)
-	      (not (eql ibuffer-cached-elide-long-columns
-			(with-no-warnings ibuffer-elide-long-columns)))
 	      (and ext-loaded
 		   (not (eq ibuffer-cached-filter-formats
 			    ibuffer-filter-format-alist))
@@ -1800,8 +1784,7 @@ If point is on a group name, this function operates on that group."
       (message "Formats have changed, recompiling...")
       (ibuffer-recompile-formats)
       (setq ibuffer-cached-formats ibuffer-formats
-	    ibuffer-cached-eliding-string ibuffer-eliding-string
-	    ibuffer-cached-elide-long-columns (with-no-warnings ibuffer-elide-long-columns))
+	    ibuffer-cached-eliding-string ibuffer-eliding-string)
       (when ext-loaded
 	(setq ibuffer-cached-filter-formats ibuffer-filter-format-alist))
       (message "Formats have changed, recompiling...done"))))
@@ -2746,7 +2729,6 @@ will be inserted before the group at point."
   (set (make-local-variable 'ibuffer-compiled-formats) nil)
   (set (make-local-variable 'ibuffer-cached-formats) nil)
   (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
-  (set (make-local-variable 'ibuffer-cached-elide-long-columns) nil)
   (set (make-local-variable 'ibuffer-current-format) nil)
   (set (make-local-variable 'ibuffer-did-modification) nil)
   (set (make-local-variable 'ibuffer-tmp-hide-regexps) nil)

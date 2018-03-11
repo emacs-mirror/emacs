@@ -2251,8 +2251,6 @@ strings returned are not."
   "Hook run at the end of loading library `bookmark.el'.")
 
 ;; Exit Hook, called from kill-emacs-hook
-(define-obsolete-variable-alias 'bookmark-exit-hooks
-  'bookmark-exit-hook "22.1")
 (defvar bookmark-exit-hook nil
   "Hook run when Emacs exits.")
 
