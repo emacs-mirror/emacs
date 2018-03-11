@@ -117,14 +117,10 @@ emacs_mktime_z (timezone_t tz, struct tm *tm)
   return t;
 }
 
-/* Allocate a timezone, signaling on failure.  */
-static timezone_t
-xtzalloc (char const *name)
+static _Noreturn void
+invalid_time_zone_specification (Lisp_Object zone)
 {
-  timezone_t tz = tzalloc (name);
-  if (!tz)
-    memory_full (SIZE_MAX);
-  return tz;
+  xsignal2 (Qerror, build_string ("Invalid time zone specification"), zone);
 }
 
 /* Free a timezone, except do not free the time zone for local time.
@@ -205,9 +201,15 @@ tzlookup (Lisp_Object zone, bool settz)
 	    }
 	}
       else
-	xsignal2 (Qerror, build_string ("Invalid time zone specification"),
-		  zone);
-      new_tz = xtzalloc (zone_string);
+	invalid_time_zone_specification (zone);
+
+      new_tz = tzalloc (zone_string);
+      if (!new_tz)
+	{
+	  if (errno == ENOMEM)
+	    memory_full (SIZE_MAX);
+	  invalid_time_zone_specification (zone);
+	}
     }
 
   if (settz)
