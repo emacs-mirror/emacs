@@ -149,6 +149,10 @@ Transpose two words (@code{transpose-words}).
 Transpose two balanced expressions (@code{transpose-sexps}).
 @item C-x C-t
 Transpose two lines (@code{transpose-lines}).
+@item M-x transpose-sentences
+Transpose two sentences (@code{transpose-sentences}).
+@item M-x transpose-paragraphs
+Transpose two paragraphs (@code{transpose-paragraphs}).
 @item M-x transpose-regions
 Transpose two regions.
 @end table
@@ -185,10 +189,14 @@ punctuation characters between the words do not move.  For example,
 @samp{@w{BAR FOO,}}.  When point is at the end of the line, it will
 transpose the word before point with the first word on the next line.
 
+@findex transpose-sentences
+@findex transpose-paragraphs
   @kbd{C-M-t} (@code{transpose-sexps}) is a similar command for
 transposing two expressions (@pxref{Expressions}), and @kbd{C-x C-t}
-(@code{transpose-lines}) exchanges lines.  They work like @kbd{M-t}
-except as regards the units of text they transpose.
+(@code{transpose-lines}) exchanges lines.  @kbd{M-x
+transpose-sentences} and @kbd{M-x transpose-paragraphs} transpose
+sentences and paragraphs, respectively.  These commands work like
+@kbd{M-t} except as regards the units of text they transpose.
 
   A numeric argument to a transpose command serves as a repeat count: it
 tells the transpose command to move the character (or word or
