@@ -400,11 +400,14 @@ possible responses are analogous to those of @code{query-replace}:
 
 @table @kbd
 @item y
+@item @key{SPC}
 Save this buffer and ask about the rest of the buffers.
 @item n
+@item @key{DEL}
 Don't save this buffer, but ask about the rest of the buffers.
 @item !
 Save this buffer and all the rest with no more questions.
+@item q
 @c following generates acceptable underfull hbox
 @item @key{RET}
 Terminate @code{save-some-buffers} without any more saving.
