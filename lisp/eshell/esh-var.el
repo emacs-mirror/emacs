@@ -353,7 +353,6 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
    '((?h "help" nil nil "show this usage screen")
      :external "env"
      :usage "<no arguments>")
-   args                   ; suppress "unused lexical variable" warning
    (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
      (eshell-buffered-print setting "\n"))
    (eshell-flush)))

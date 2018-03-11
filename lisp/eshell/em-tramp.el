@@ -109,7 +109,6 @@ Uses the system sudo through TRAMP's sudo method."
        :show-usage
        :usage "[(-u | --user) USER] COMMAND
 Execute a COMMAND as the superuser or another USER.")
-     args                 ; suppress "unused lexical variable" warning
      (throw 'eshell-external
 	    (let ((user (or user "root"))
 		  (host (or (file-remote-p default-directory 'host)

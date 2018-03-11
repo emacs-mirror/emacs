@@ -95,8 +95,8 @@ BODY-FORMS.  If instead an external command is run (because of
 an unknown option), the tag `eshell-external' will be thrown with
 the new process for its value.
 
-Lastly, any remaining arguments will be available in a locally
-interned variable `args' (created using a `let' form)."
+Lastly, any remaining arguments will be available in the locally
+let-bound variable `args'."
   (declare (debug (form form sexp body)))
   `(let* ((temp-args
            ,(if (memq ':preserve-args (cadr options))
@@ -111,7 +111,8 @@ interned variable `args' (created using a `let' form)."
                                ;; `options' is of the form (quote OPTS).
                                (cadr options))))
           (args processed-args))
-     ;; Unused lexical variable warning if body does not use `args'.
+     ;; Silence unused lexical variable warning if body does not use `args'.
+     (ignore args)
      ,@body-forms))
 
 ;;; Internal Functions:

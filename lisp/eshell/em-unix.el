@@ -956,7 +956,6 @@ Summarize disk usage of each FILE, recursively for directories.")
        :show-usage
        :usage "COMMAND...
 Show wall-clock time elapsed during execution of COMMAND.")
-     args                 ; suppress "unused lexical variable" warning
      (setq eshell-time-start (float-time))
      (add-hook 'eshell-post-command-hook 'eshell-show-elapsed-time nil t)
      ;; after setting
