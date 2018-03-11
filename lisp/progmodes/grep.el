@@ -286,6 +286,11 @@ See `compilation-error-screen-columns'"
     (define-key map [menu-bar grep]
       (cons "Grep" (make-sparse-keymap "Grep")))
 
+    (define-key map [menu-bar grep grep-find-toggle-abbreviation]
+      '(menu-item "Toggle command abbreviation"
+                  grep-find-toggle-abbreviation
+                  :help "Toggle showing verbose command options"))
+    (define-key map [menu-bar grep compilation-separator3] '("----"))
     (define-key map [menu-bar grep compilation-kill-compilation]
       '(menu-item "Kill Grep" kill-compilation
 		  :help "Kill the currently running grep process"))
@@ -308,7 +313,7 @@ See `compilation-error-screen-columns'"
     (define-key map [menu-bar grep compilation-recompile]
       '(menu-item "Repeat grep" recompile
 		  :help "Run grep again"))
-    (define-key map [menu-bar grep compilation-separator2] '("----"))
+    (define-key map [menu-bar grep compilation-separator1] '("----"))
     (define-key map [menu-bar grep compilation-first-error]
       '(menu-item "First Match" first-error
 		  :help "Restart at the first match, visit corresponding location"))
@@ -433,24 +438,26 @@ See `compilation-error-regexp-alist' for format details.")
                       help-echo "Number of matches so far")
     "]"))
 
-(defcustom grep-find-hide t
+(defcustom grep-find-abbreviate t
   "If non-nil, hide part of rgrep/lgrep/zrgrep command line.
 The hidden part contains a list of ignored directories and files.
 Clicking on the button-like ellipsis unhides the abbreviated part
-and reveals the entire command line."
+and reveals the entire command line.  The visibility of the
+abbreviated part can also be toggled with
+`grep-find-toggle-abbreviation'."
   :type 'boolean
   :version "27.1"
   :group 'grep)
 
-(defvar grep-find-hide-properties
+(defvar grep-find-abbreviate-properties
   (let ((ellipsis (if (char-displayable-p ?…) "[…]" "[...]"))
         (map (make-sparse-keymap)))
     (define-key map [down-mouse-2] 'mouse-set-point)
-    (define-key map [mouse-2] 'grep-find-show)
-    (define-key map "\C-m" 'grep-find-show)
+    (define-key map [mouse-2] 'grep-find-toggle-abbreviation)
+    (define-key map "\C-m" 'grep-find-toggle-abbreviation)
     `(face nil display ,ellipsis mouse-face highlight
       help-echo "RET, mouse-2: show unabbreviated command"
-      keymap ,map))
+      keymap ,map abbreviated-command t))
   "Properties of button-like ellipsis on part of rgrep command line.")
 
 (defvar grep-mode-font-lock-keywords
@@ -476,10 +483,12 @@ and reveals the entire command line."
              `(face nil display ,(match-string 2)))))
      ;; Hide excessive part of rgrep command
      ("^find \\(\\. -type d .*\\\\)\\)"
-      (1 (when grep-find-hide grep-find-hide-properties)))
+      (1 (if grep-find-abbreviate grep-find-abbreviate-properties
+           '(face nil abbreviated-command t))))
      ;; Hide excessive part of lgrep command
      ("^grep \\( *--exclude.*--exclude[^ ]+\\)"
-      (1 (when grep-find-hide grep-find-hide-properties))))
+      (1 (if grep-find-abbreviate grep-find-abbreviate-properties
+           '(face nil abbreviated-command t)))))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
@@ -1195,23 +1204,19 @@ to specify a command to run."
                  (shell-quote-argument ")")
                  " -prune -o ")))))
 
-(defun grep-find-show ()
-  "Show the hidden part of rgrep/lgrep/zrgrep command line."
+(defun grep-find-toggle-abbreviation ()
+  "Toggle showing the hidden part of rgrep/lgrep/zrgrep command line."
   (interactive)
-  (when (get-text-property (point) 'display)
-    (let ((beg (or (previous-single-property-change
-                    (min (point-max) (1+ (point))) 'display)
-                   (point)))
-          (end (or (next-single-property-change
-                    (point) 'display)
-                   (point)))
-          (inhibit-modification-hooks t)
-          (inhibit-read-only t)
-	  (buffer-undo-list t)
-	  (modified (buffer-modified-p)))
-      (remove-list-of-text-properties
-       beg end '(display help-echo mouse-face help-echo keymap))
-      (set-buffer-modified-p modified))))
+  (with-silent-modifications
+    (let* ((beg (next-single-property-change (point-min) 'abbreviated-command))
+           (end (when beg
+                  (next-single-property-change beg 'abbreviated-command))))
+      (if end
+          (if (get-text-property beg 'display)
+              (remove-list-of-text-properties
+               beg end '(display help-echo mouse-face help-echo keymap))
+            (add-text-properties beg end grep-find-abbreviate-properties))
+        (user-error "No abbreviated part to hide/show")))))
 
 ;;;###autoload
 (defun zrgrep (regexp &optional files dir confirm template)

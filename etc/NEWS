@@ -228,8 +228,10 @@ by default.
 
 *** rgrep, lgrep and zrgrep now hide part of the command line
 that contains a list of ignored directories and files.
-Clicking on the button with ellipsis unhides the truncated part.
-This truncation can be disabled by the new option 'grep-find-hide'.
+Clicking on the button with ellipsis unhides it.
+The abbreviation can be disabled by the new option
+'grep-find-abbreviate'.  The new command
+'grep-find-toggle-abbreviation' toggles it interactively.
 
 ** ERT
 

@@ -434,14 +434,17 @@ the variable @code{grep-files-aliases}.
 @kbd{M-x rgrep}.  The default value includes the data directories used
 by various version control systems.
 
-@vindex grep-find-hide
+@vindex grep-find-abbreviate
+@findex grep-find-toggle-abbreviation
   By default, the shell commands constructed for @code{lgrep},
 @code{rgrep}, and @code{zgrep} are abbreviated for display by
 concealing the part that contains a long list of files and directories
 to ignore.  You can reveal the concealed part by clicking on the
-button with ellipsis, which represents them.  To disable this
-abbreviation of the shell commands, customize the option
-@code{grep-find-hide} to a @code{nil} value.
+button with ellipsis, which represents them.  You can also
+interactively toggle viewing the concealed part by typing @kbd{M-x
+grep-find-toggle-abbreviation}.  To disable this abbreviation of the
+shell commands, customize the option @code{grep-find-abbreviate} to a
+@code{nil} value.
 
 @node Flymake
 @section Finding Syntax Errors On The Fly
