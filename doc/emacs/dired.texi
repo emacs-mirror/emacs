@@ -1240,7 +1240,7 @@ contents of the corresponding subdirectory.
   If you use @kbd{C-x d} or some other Dired command to visit a
 directory that is already being shown in a Dired buffer, Dired
 switches to that buffer but does not update it.  If the buffer is not
-up-to-date, Dired displays a warning telling you to type @key{g} to
+up-to-date, Dired displays a warning telling you to type @kbd{g} to
 update it.  You can also tell Emacs to revert each Dired buffer
 automatically when you revisit it, by setting the variable
 @code{dired-auto-revert-buffer} to a non-@code{nil} value.

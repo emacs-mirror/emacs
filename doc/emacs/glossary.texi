@@ -29,7 +29,7 @@ Alt is the name of a modifier bit that a keyboard input character may
 have.  To make a character Alt, type it while holding down the @key{Alt}
 key.  Such characters are given names that start with @kbd{@key{Alt}-}
 (usually written @kbd{A-} for short).  (Note that many terminals have a
-key labeled @key{Alt} that is really a @key{META} key.)  @xref{User
+key labeled @key{Alt} that is really a @key{Meta} key.)  @xref{User
 Input, Alt}.
 
 @item Argument
@@ -174,7 +174,7 @@ misspelling.
 
 @item @kbd{C-M-}
 @kbd{C-M-} in the name of a character is an abbreviation for
-Control-Meta.  If your terminal lacks a real @key{META} key, you type
+Control-Meta.  If your terminal lacks a real @key{Meta} key, you type
 a Control-Meta character by typing @key{ESC} and then typing the
 corresponding Control character.  @xref{User Input,C-M-}.
 
@@ -507,7 +507,7 @@ Such messages appear in the echo area, accompanied by a beep.
 
 @item @key{ESC}
 @key{ESC} is a character used as a prefix for typing Meta characters on
-keyboards lacking a @key{META} key.  Unlike the @key{META} key (which,
+keyboards lacking a @key{Meta} key.  Unlike the @key{Meta} key (which,
 like the @key{SHIFT} key, is held down while another character is
 typed), you press the @key{ESC} key as you would press a letter key, and
 it applies to the next character you type.
@@ -881,7 +881,7 @@ A local value of a variable (q.v.@:) applies to only one buffer.
 @xref{Locals}.
 
 @item @kbd{M-}
-@kbd{M-} in the name of a character is an abbreviation for @key{META},
+@kbd{M-} in the name of a character is an abbreviation for @key{Meta},
 one of the modifier keys that can accompany any character.
 @xref{User Input,M-}.
 
@@ -939,15 +939,15 @@ a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Meta
 Meta is the name of a modifier bit which you can use in a command
-character.  To enter a meta character, you hold down the @key{META}
+character.  To enter a meta character, you hold down the @key{Meta}
 key while typing the character.  We refer to such characters with
 names that start with @kbd{Meta-} (usually written @kbd{M-} for
-short).  For example, @kbd{M-<} is typed by holding down @key{META}
+short).  For example, @kbd{M-<} is typed by holding down @key{Meta}
 and at the same time typing @kbd{<} (which itself is done, on most
 terminals, by holding down @key{SHIFT} and typing @kbd{,}).
 @xref{User Input,Meta}.
 
-On some terminals, the @key{META} key is actually labeled @key{Alt}
+On some terminals, the @key{Meta} key is actually labeled @key{Alt}
 or @key{Edit}.
 
 @item Meta Character

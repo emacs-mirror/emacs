@@ -728,7 +728,7 @@ direction.
 @findex digit-argument
 @findex negative-argument
   The easiest way to specify a numeric argument is to type a digit
-and/or a minus sign while holding down the @key{META} key.  For
+and/or a minus sign while holding down the @key{Meta} key.  For
 example,
 
 @example
@@ -742,7 +742,7 @@ well as @kbd{M--}, are bound to commands (@code{digit-argument} and
 command.  @kbd{M--} without digits normally means @minus{}1.
 
 If you enter more than one digit, you need not hold down the
-@key{META} key for the second and subsequent digits.  Thus, to move
+@key{Meta} key for the second and subsequent digits.  Thus, to move
 down fifty lines, type
 
 @example

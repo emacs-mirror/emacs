@@ -547,7 +547,7 @@ Windows-specific variables in this category.
 @ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
-  By default, the key labeled @key{Alt} is mapped as the @key{META}
+  By default, the key labeled @key{Alt} is mapped as the @key{Meta}
 key.  If you wish it to produce the @code{Alt} modifier instead, set
 the variable @code{w32-alt-is-meta} to a @code{nil} value.
 
@@ -605,8 +605,8 @@ Windows key and @key{R} opens the Windows @code{Run} dialog.
 
   The hotkey registrations always also include all the shift and
 control modifier combinations for the given hotkey; that is,
-registering @kbd{s-@key{a}} as a hotkey gives you @kbd{S-s-@key{a}},
-@kbd{C-s-@key{a}} and @kbd{C-S-s-@key{a}} as well.
+registering @kbd{s-a} as a hotkey gives you @kbd{S-s-a},
+@kbd{C-s-a} and @kbd{C-S-s-a} as well.
 
   On Windows 98 and ME, the hotkey registration is more restricted.
 The desired hotkey must always be fully specified, and
@@ -670,8 +670,8 @@ value other than the above modifier symbols.
 @cindex @code{Alt} key invokes menu (Windows)
   Emacs compiled as a native Windows application normally turns off
 the Windows feature that tapping the @key{Alt} key invokes the Windows
-menu.  The reason is that the @key{Alt} serves as @key{META} in Emacs.
-When using Emacs, users often press the @key{META} key temporarily and
+menu.  The reason is that the @key{Alt} serves as @key{Meta} in Emacs.
+When using Emacs, users often press the @key{Meta} key temporarily and
 then change their minds; if this has the effect of bringing up the
 Windows menu, it alters the meaning of subsequent commands.  Many
 users find this frustrating.
@@ -701,7 +701,7 @@ the combination of the right @key{Alt} and left @key{Ctrl} keys
 pressed together, is recognized as the @key{AltGr} key.  The default
 is @code{t}, which means these keys produce @code{AltGr}; setting it
 to @code{nil} causes @key{AltGr} or the equivalent key combination to
-be interpreted as the combination of @key{Ctrl} and @key{META}
+be interpreted as the combination of @key{Ctrl} and @key{Meta}
 modifiers.
 @end ifnottex
 

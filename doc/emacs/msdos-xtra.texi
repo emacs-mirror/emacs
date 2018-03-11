@@ -83,17 +83,17 @@ a running command and for emergency escape
 @cindex Super (under MS-DOS)
 @vindex dos-super-key
 @vindex dos-hyper-key
-  The PC keyboard maps use the left @key{Alt} key as the @key{META} key.
+  The PC keyboard maps use the left @key{Alt} key as the @key{Meta} key.
 You have two choices for emulating the @key{SUPER} and @key{Hyper} keys:
 choose either the right @key{Ctrl} key or the right @key{Alt} key by
 setting the variables @code{dos-hyper-key} and @code{dos-super-key} to 1
 or 2 respectively.  If neither @code{dos-super-key} nor
 @code{dos-hyper-key} is 1, then by default the right @key{Alt} key is
-also mapped to the @key{META} key.  However, if the MS-DOS international
+also mapped to the @key{Meta} key.  However, if the MS-DOS international
 keyboard support program @file{KEYB.COM} is installed, Emacs will
-@emph{not} map the right @key{Alt} to @key{META}, since it is used for
+@emph{not} map the right @key{Alt} to @key{Meta}, since it is used for
 accessing characters like @kbd{~} and @kbd{@@} on non-US keyboard
-layouts; in this case, you may only use the left @key{Alt} as @key{META}
+layouts; in this case, you may only use the left @key{Alt} as @key{Meta}
 key.
 
 @kindex C-j @r{(MS-DOS)}

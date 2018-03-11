@@ -117,7 +117,7 @@ cognate to @kbd{C-@@}, which is an alias for @kbd{C-@key{SPC}}.
 @findex backward-word
   The commands @kbd{M-f} (@code{forward-word}) and @kbd{M-b}
 (@code{backward-word}) move forward and backward over words.  These
-@key{META}-based key sequences are analogous to the key sequences
+@key{Meta}-based key sequences are analogous to the key sequences
 @kbd{C-f} and @kbd{C-b}, which move over single characters.  The
 analogy extends to numeric arguments, which serve as repeat counts.
 @kbd{M-f} with a negative argument moves backward, and @kbd{M-b} with
@@ -1331,7 +1331,7 @@ quad click: exit all folds and hide text.
 @c FIXME not marked as a user variable
 @vindex foldout-mouse-modifiers
   You can specify different modifier keys (instead of
-@kbd{@key{Ctrl}-@key{META}-}) by setting @code{foldout-mouse-modifiers}; but if
+@kbd{@key{Ctrl}-@key{Meta}-}) by setting @code{foldout-mouse-modifiers}; but if
 you have already loaded the @file{foldout.el} library, you must reload
 it in order for this to take effect.
 
@@ -2765,8 +2765,7 @@ Invoking @kbd{M-x table-capture} on that text produces this table:
 to plain text, removing its cell borders.
 
   One application of this pair of commands is to edit a text in
-layout.  Look at the following three paragraphs (the latter two are
-indented with header lines):
+layout.  Look at the following three paragraphs:
 
 @example
 table-capture is a powerful command.

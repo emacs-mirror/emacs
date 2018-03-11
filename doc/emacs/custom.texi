@@ -1745,10 +1745,11 @@ characters.  For example, here's how to bind @kbd{C-x M-l} to
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
 @end example
 
-  To put @key{TAB}, @key{RET}, @key{ESC}, or @key{DEL} in the string,
-use the Emacs Lisp escape sequences @samp{\t}, @samp{\r}, @samp{\e},
-and @samp{\d} respectively.  Here is an example which binds @kbd{C-x
-@key{TAB}} to @code{indent-rigidly} (@pxref{Indentation}):
+  To bind a key sequence including @key{TAB}, @key{RET}, @key{ESC}, or
+@key{DEL}, the string should contain the Emacs Lisp escape sequence
+@samp{\t}, @samp{\r}, @samp{\e}, or @samp{\d} respectively.  Here is
+an example which binds @kbd{C-x @key{TAB}} to @code{indent-rigidly}
+(@pxref{Indentation}):
 
 @example
 (global-set-key "\C-x\t" 'indent-rigidly)
@@ -1822,11 +1823,11 @@ historical.
 characters case-sensitive when you customize Emacs.  For instance, you
 could make @kbd{M-a} and @kbd{M-A} run different commands.
 
-  Although only the @key{Control} and @key{META} modifier keys are
+  Although only the @key{Control} and @key{Meta} modifier keys are
 commonly used, Emacs supports three other modifier keys.  These are
 called @key{Super}, @key{Hyper}, and @key{Alt}.  Few terminals provide
 ways to use these modifiers; the key labeled @key{Alt} on most
-keyboards usually issues the @key{META} modifier, not @key{Alt}.  The
+keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
 standard key bindings in Emacs do not include any characters with
 these modifiers.  However, you can customize Emacs to assign meanings
 to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
@@ -1896,7 +1897,7 @@ the numeric keypad produces @code{kp-8}, which is translated to
 such as @kbd{8} or @key{UP}, it affects the equivalent keypad key too.
 However, if you rebind a @samp{kp-} key directly, that won't affect
 its non-keypad equivalent.  Note that the modified keys are not
-translated: for instance, if you hold down the @key{META} key while
+translated: for instance, if you hold down the @key{Meta} key while
 pressing the @samp{8} key on the numeric keypad, that generates
 @kbd{M-@key{kp-8}}.
 
@@ -2242,8 +2243,8 @@ sequences are mandatory.
 
 @samp{\C-} can be used as a prefix for a control character, as in
 @samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
-a Meta character, as in @samp{\M-a} for @kbd{@key{META}-A} or
-@samp{\M-\C-a} for @kbd{@key{Ctrl}-@key{META}-A}.
+a Meta character, as in @samp{\M-a} for @kbd{@key{Meta}-A} or
+@samp{\M-\C-a} for @kbd{@key{Ctrl}-@key{Meta}-A}.
 
 @xref{Init Non-ASCII}, for information about including
 non-@acronym{ASCII} in your init file.

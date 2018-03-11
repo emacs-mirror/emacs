@@ -44,25 +44,25 @@ are certain characters found on non-English keyboards
 @cindex M-
   Emacs also recognizes control characters that are entered using
 @dfn{modifier keys}.  Two commonly-used modifier keys are
-@key{Control} (usually labeled @key{Ctrl}), and @key{META} (usually
-labeled @key{Alt})@footnote{We refer to @key{Alt} as @key{META} for
+@key{Control} (usually labeled @key{Ctrl}), and @key{Meta} (usually
+labeled @key{Alt})@footnote{We refer to @key{Alt} as @key{Meta} for
 historical reasons.}.  For example, @kbd{Control-a} is entered by
 holding down the @key{Ctrl} key while pressing @kbd{a}; we will refer
-to this as @kbd{C-a} for short.  Similarly, @kbd{@key{META}-a}, or @kbd{M-a}
+to this as @kbd{C-a} for short.  Similarly, @kbd{@key{Meta}-a}, or @kbd{M-a}
 for short, is entered by holding down the @key{Alt} key and pressing
 @kbd{a}.  Modifier keys can also be applied to non-alphanumerical
 characters, e.g., @kbd{C-@key{F1}} or @kbd{M-@key{LEFT}}.
 
-@cindex @key{ESC} replacing @key{META} key
+@cindex @key{ESC} replacing @key{Meta} key
   You can also type Meta characters using two-character sequences
 starting with @key{ESC}.  Thus, you can enter @kbd{M-a} by typing
 @kbd{@key{ESC} a}.  You can enter @kbd{C-M-a} (holding down both
 @key{Ctrl} and @key{Alt}, then pressing @kbd{a}) by typing
-@kbd{@key{ESC} C-a}.  Unlike @key{META}, @key{ESC} is entered as a
+@kbd{@key{ESC} C-a}.  Unlike @key{Meta}, @key{ESC} is entered as a
 separate character.  You don't hold down @key{ESC} while typing the
 next character; instead, press @key{ESC} and release it, then enter
 the next character.  This feature is useful on certain text terminals
-where the @key{META} key does not function reliably.
+where the @key{Meta} key does not function reliably.
 
 @cindex keys stolen by window manager
 @cindex window manager, keys stolen by
