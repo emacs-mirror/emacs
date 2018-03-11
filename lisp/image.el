@@ -971,7 +971,8 @@ default is 20%."
                         0.8)))
 
 (defun image--get-image ()
-  (let ((image (get-text-property (point) 'display)))
+  "Return the image at point."
+  (let ((image (get-char-property (point) 'display)))
     (unless (eq (car-safe image) 'image)
       (error "No image under point"))
     image))
@@ -1026,10 +1027,7 @@ default is 20%."
 (defun image-save ()
   "Save the image under point."
   (interactive)
-  (let ((image (get-text-property (point) 'display)))
-    (when (or (not (consp image))
-              (not (eq (car image) 'image)))
-      (error "No image under point"))
+  (let ((image (image--get-image)))
     (with-temp-buffer
       (let ((file (plist-get (cdr image) :file)))
         (if file
