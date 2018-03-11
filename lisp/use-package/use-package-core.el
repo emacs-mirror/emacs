@@ -42,6 +42,7 @@
 (require 'bytecomp)
 (require 'cl-lib)
 (require 'tabulated-list)
+(require 'subr-x)
 
 (eval-when-compile
   (require 'cl)
