@@ -43,6 +43,12 @@
 (require 'cl-lib)
 (require 'tabulated-list)
 
+(if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
+    (defsubst hash-table-keys (hash-table)
+      "Return a list of keys in HASH-TABLE."
+      (cl-loop for k being the hash-keys of hash-table collect k))
+  (require 'subr-x))
+
 (eval-when-compile
   (require 'cl)
   (require 'regexp-opt))
