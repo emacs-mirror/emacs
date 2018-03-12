@@ -42,7 +42,6 @@
 (require 'bytecomp)
 (require 'cl-lib)
 (require 'tabulated-list)
-(require 'subr-x)
 
 (eval-when-compile
   (require 'cl)
@@ -967,27 +966,27 @@ If RECURSED is non-nil, recurse into sublists."
   (setq use-package-statistics (make-hash-table)))
 
 (defun use-package-statistics-status (package)
-  "Return loading configuration status of PACKAGE statistics."
-  (cond ((gethash :config package)      "Configured")
-        ((gethash :init package)        "Initialized")
-        ((gethash :preface package)     "Prefaced")
-        ((gethash :use-package package) "Declared")))
+  "Return loading configuration status of PACKAGE."
+  (cond ((gethash :config statistics)      "Configured")
+        ((gethash :init statistics)        "Initialized")
+        ((gethash :preface statistics)     "Prefaced")
+        ((gethash :use-package statistics) "Declared")))
 
 (defun use-package-statistics-last-event (package)
-  "Return the date when PACKAGE's status last changed.
+  "Return the date when package's status last changed.
 The date is returned as a string."
   (format-time-string "%Y-%m-%d %a %H:%M"
-                      (or (gethash :config package)
-                          (gethash :init package)
-                          (gethash :preface package)
-                          (gethash :use-package package))))
+                      (or (gethash :config statistics)
+                          (gethash :init statistics)
+                          (gethash :preface statistics)
+                          (gethash :use-package statistics))))
 
 (defun use-package-statistics-time (package)
-  "Return the time is took for PACKAGE to load."
-  (+ (float-time (gethash :config-secs package 0))
-     (float-time (gethash :init-secs package 0))
-     (float-time (gethash :preface-secs package 0))
-     (float-time (gethash :use-package-secs package 0))))
+  "Return the time is took for package to load."
+  (+ (float-time (gethash :config-secs statistics 0))
+     (float-time (gethash :init-secs statistics 0))
+     (float-time (gethash :preface-secs statistics 0))
+     (float-time (gethash :use-package-secs statistics 0))))
 
 (defun use-package-statistics-convert (package)
   "Return information about PACKAGE.
@@ -999,9 +998,9 @@ The information is formatted in a way suitable for
      package
      (vector
       (symbol-name package)
-      (use-package-statistics-status statistics)
-      (use-package-statistics-last-event statistics)
-      (format "%.2f" (use-package-statistics-time statistics))))))
+      (use-package-statistics-status package)
+      (use-package-statistics-last-event package)
+      (format "%.2f" (use-package-statistics-time package))))))
 
 (defun use-package-report ()
   "Show current statistics gathered about use-package declarations.
