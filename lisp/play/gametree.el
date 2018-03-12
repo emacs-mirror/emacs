@@ -586,8 +586,7 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 
 \\{gametree-mode-map}"
   (auto-fill-mode 0)
-  (make-local-variable 'write-contents-hooks)
-  (add-hook 'write-contents-hooks 'gametree-save-and-hack-layout))
+  (add-hook 'write-contents-functions 'gametree-save-and-hack-layout nil t))
 
 ;;;; Goodies for mousing users
 (defun gametree-mouse-break-line-here (event)

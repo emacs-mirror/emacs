@@ -521,6 +521,7 @@ updates before the buffer is saved, use `before-save-hook'.")
 (put 'local-write-file-hooks 'permanent-local t)
 (make-obsolete-variable 'local-write-file-hooks 'write-file-functions "22.1")
 
+;; I found some files still using the obsolete form in 2018.
 (define-obsolete-variable-alias 'write-contents-hooks
     'write-contents-functions "22.1")
 (defvar write-contents-functions nil
