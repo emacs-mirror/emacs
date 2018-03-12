@@ -1626,8 +1626,8 @@ COLLECTION can also be a function to do the completion itself.
 PREDICATE limits completion to a subset of COLLECTION.
 See `try-completion', `all-completions', `test-completion',
 and `completion-boundaries', for more details on completion,
-COLLECTION, and PREDICATE.  See also Info nodes `(elisp)Basic Completion'
-for the details about completion, and `(elisp)Programmed Completion' for
+COLLECTION, and PREDICATE.  See also Info node `(elisp)Basic Completion'
+for the details about completion, and Info node `(elisp)Programmed Completion' for
 expectations from COLLECTION when it's a function.
 
 REQUIRE-MATCH can take the following values:
