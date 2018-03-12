@@ -2754,7 +2754,7 @@ If the base used is not 10, STRING is always parsed as an integer.  */)
   while (*p == ' ' || *p == '\t')
     p++;
 
-  val = string_to_number (p, b, 1);
+  val = string_to_number (p, b, true);
   return NILP (val) ? make_number (0) : val;
 }
 
