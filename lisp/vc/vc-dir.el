@@ -697,7 +697,7 @@ share the same state."
 (defun vc-dir-unmark ()
   "Unmark the current file or all files in the region.
 If the region is active, unmark all the files in the region.
-Otherwise mark the file on the current line and move to the next
+Otherwise unmark the file on the current line and move to the next
 line."
   (interactive)
   (vc-dir-mark-unmark 'vc-dir-unmark-file))
