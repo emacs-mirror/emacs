@@ -2891,9 +2891,11 @@ See `term-prompt-regexp'."
                 ;; If the last char was written in last column,
                 ;; back up one column, but remember we did so.
                 ;; Thus we emulate xterm/vt100-style line-wrapping.
-                (cond ((eq (term-current-column) term-width)
-                       (term-move-columns -1)
-                       (setq term-do-line-wrapping t)))
+                (when (eq (term-current-column) term-width)
+                  (term-move-columns -1)
+                  ;; We check after ctrl sequence handling if point
+                  ;; was moved (and leave line-wrapping state if so).
+                  (setq term-do-line-wrapping (point)))
                 (setq term-current-column nil)
                 (setq i funny))
               (pcase-exhaustive (and (<= ctl-end str-length) (aref str i))
@@ -2993,6 +2995,9 @@ See `term-prompt-regexp'."
                      (substring str i ctl-end)))))
                 ;; Ignore NUL, Shift Out, Shift In.
                 ((or ?\0 #xE #xF 'nil) nil))
+              ;; Leave line-wrapping state if point was moved.
+              (unless (eq term-do-line-wrapping (point))
+                (setq term-do-line-wrapping nil))
               (if (term-handling-pager)
                   (progn
                     ;; Finish stuff to get ready to handle PAGER.

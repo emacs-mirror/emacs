@@ -124,6 +124,18 @@ line6\r
                     40 12 (list "\eAnSiTc /f" "oo/\n") 'default-directory)
                    "/foo/"))))
 
+(ert-deftest term-line-wrapping-then-motion ()
+  "Make sure we reset the line-wrapping state after moving cursor.
+A real-life example is the default zsh prompt which writes spaces
+to the end of line (triggering line-wrapping state), and then
+sends a carriage return followed by another space to overwrite
+the first character of the line."
+  (let* ((width 10)
+         (strs (list "x" (make-string (1- width) ?_)
+                     "\r_")))
+    (should (equal (term-test-screen-from-input width 12 strs)
+                   (make-string width ?_)))))
+
 (provide 'term-tests)
 
 ;;; term-tests.el ends here
