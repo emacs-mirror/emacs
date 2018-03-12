@@ -1875,15 +1875,17 @@ steps to a depth determined by the variable
 
 @findex xref-etags-mode
   Some major modes install @code{xref} support facilities that might
-fail to find certain identifiers.  For example, in Emacs Lisp mode
-(@pxref{Lisp Eval}) @kbd{M-.} will by default find only functions and
-variables from Lisp packages that are loaded into the current Emacs
-session.  To find more identifiers, turn on the Xref Etags minor mode
-with @w{@kbd{M-x xref-etags-mode}}.  This command forces @code{xref}
-to use the @code{etags} backend (@pxref{Xref}).  (For this to work,
-you should first run @command{etags} to create the tags table, see
-@ref{Create Tags Table}.)
-
+sometimes fail to find certain identifiers.  For example, in Emacs
+Lisp mode (@pxref{Lisp Eval}) @kbd{M-.} will by default find only
+functions and variables from Lisp packages which are loaded into the
+current Emacs session or are auto-loaded (@pxref{Autoload,,, elisp,
+The Emacs Lisp Reference Manual}).  If @kbd{M-.} fails to find some
+identifiers, you can try forcing @code{xref} to use the @code{etags}
+backend (@pxref{Xref}).  To this end, turn on the Xref Etags minor
+mode with @w{@kbd{M-x xref-etags-mode}}, then invoke @kbd{M-.} again.
+(For this to work, be sure to run @command{etags} to create the tags
+table in the directory tree of the source files, see @ref{Create Tags
+Table}.)
 
 @node Xref Commands
 @subsubsection Commands Available in the @file{*xref*} Buffer
