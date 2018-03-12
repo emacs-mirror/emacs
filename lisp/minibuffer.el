@@ -988,7 +988,7 @@ Moves point to the end of the new text."
   "Number of completion candidates below which cycling is used.
 Depending on this setting `completion-in-region' may use cycling,
 whereby invoking a completion command several times in a row
-completes to each of the candidates in turn, in cyclic manner.
+completes to each of the candidates in turn, in a cyclic manner.
 If nil, cycling is never used.
 If t, cycling is always used.
 If an integer, cycling is used so long as there are not more
