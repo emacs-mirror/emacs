@@ -1449,12 +1449,6 @@ be a list of the form returned by `event-start' and `event-end'."
   (declare (obsolete log "24.4"))
   (log x 10))
 
-;; These are used by VM and some old programs
-(defalias 'focus-frame 'ignore "")
-(make-obsolete 'focus-frame "it does nothing." "22.1")
-(defalias 'unfocus-frame 'ignore "")
-(make-obsolete 'unfocus-frame "it does nothing." "22.1")
-
 (set-advertised-calling-convention
  'all-completions '(string collection &optional predicate) "23.1")
 (set-advertised-calling-convention 'unintern '(name obarray) "23.3")

@@ -778,8 +778,8 @@ Reestablish the default window display."
 	  (select-frame-set-input-focus ediff-control-frame)
 	(raise-frame ediff-control-frame)
 	(select-frame ediff-control-frame)
-	(if (fboundp 'focus-frame)
-	    (focus-frame ediff-control-frame))))
+	(and (featurep 'xemacs) (fboundp 'focus-frame)
+	     (focus-frame ediff-control-frame))))
 
   ;; Redisplay whatever buffers are showing, if there is a selected difference
   (let ((control-frame ediff-control-frame)
