@@ -141,8 +141,6 @@ These are symbols with hooklike values whose names don't end in
 `-hook' or `-hooks', from which `unload-feature' should try to remove
 pertinent symbols.")
 
-(define-obsolete-variable-alias 'unload-hook-features-list
-    'unload-function-defs-list "22.2")
 (defvar unload-function-defs-list nil
   "List of definitions in the Lisp library being unloaded.
 

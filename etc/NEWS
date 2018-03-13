@@ -321,11 +321,11 @@ speedbar-add-ignored-path-regexp, speedbar-buffers-line-path,
 speedbar-buffers-line-path, speedbar-ignored-path-expressions,
 speedbar-ignored-path-regexp, speedbar-line-path, speedbar-path-line,
 timer-set-time-with-usecs, tooltip-gud-display, tooltip-gud-modes,
-tooltip-gud-toggle-dereference, update-autoloads-from-directories,
-vc-comment-ring, vc-comment-ring-index, vc-comment-search-forward,
-vc-comment-search-reverse, vc-comment-to-change-log, vc-diff-switches-list,
-vc-next-comment, vc-previous-comment, view-todo, x-lost-selection-hooks,
-x-sent-selection-hooks
+tooltip-gud-toggle-dereference, unload-hook-features-list,
+update-autoloads-from-directories, vc-comment-ring, vc-comment-ring-index,
+vc-comment-search-forward, vc-comment-search-reverse, vc-comment-to-change-log,
+vc-diff-switches-list, vc-next-comment, vc-previous-comment, view-todo,
+x-lost-selection-hooks, x-sent-selection-hooks
 
 
 * Incompatible Lisp Changes in Emacs 27.1
