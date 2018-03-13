@@ -283,6 +283,10 @@ To restore the old behavior, use
 *** New connection method "owncloud", which allows to access OwnCloud
 or NextCloud hosted files and directories.
 
+---
+** The options.el library has been removed.
+It was obsolete since Emacs 22.1, replaced by customize.
+
 
 * New Modes and Packages in Emacs 27.1
 
@@ -317,6 +321,7 @@ as new-style, bind the new variable 'force-new-style-backquotes' to t.
 integer, Emacs now signals an error if the number is too large for the
 implementation to format (Bug#30408).
 
+---
 ** Some functions and variables obsolete since Emacs 22 have been removed:
 archive-mouse-extract, assoc-ignore-case, assoc-ignore-representation,
 backward-text-line, blink-cursor, bookmark-exit-hooks,
