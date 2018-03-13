@@ -47,8 +47,8 @@
 ;; `metafont-mode-hook' and `metapost-mode-hook' which apply to the
 ;; individual modes.  In addition, there are several variables and
 ;; regexps controlling e.g. the behavior of the indentation function,
-;; which may be customized via `edit-options'.  Please refer to the
-;; docstrings in the code below for details.
+;; which may be customized.  Please refer to the docstrings in the code
+;; below for details.
 
 ;; Availability:
 ;;

@@ -31292,7 +31292,7 @@ for @code{Save} have no effect.
 You can modify Embedded mode's behavior by setting various Lisp
 variables described here.  These variables are customizable
 (@pxref{Customizing Calc}), or you can use @kbd{M-x set-variable}
-or @kbd{M-x edit-options} to adjust a variable on the fly.
+to adjust a variable on the fly.
 (Another possibility would be to use a file-local variable annotation at
 the end of the file;
 @pxref{File Variables, , Local Variables in Files, emacs, the Emacs manual}.)
@@ -31311,9 +31311,8 @@ regular expression is not completely plain, let's go through it
 in detail.
 
 The surrounding @samp{" "} marks quote the text between them as a
-Lisp string.  If you left them off, @code{set-variable} or
-@code{edit-options} would try to read the regular expression as a
-Lisp program.
+Lisp string.  If you left them off, @code{set-variable} (for example)
+would try to read the regular expression as a Lisp program.
 
 The most obvious property of this regular expression is that it
 contains indecently many backslashes.  There are actually two levels
