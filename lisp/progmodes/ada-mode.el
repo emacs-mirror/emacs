@@ -231,7 +231,7 @@ It may be `downcase-word', `upcase-word', `ada-loose-case-word' or
   "Non-nil means remove trailing spaces and untabify the buffer before saving."
   :type 'boolean :group 'ada)
 (make-obsolete-variable 'ada-clean-buffer-before-saving
-			"use the `write-file-functions' hook."
+			"it has no effect - use `write-file-functions' hook."
 			"23.2")
 
 
