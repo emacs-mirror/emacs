@@ -1379,9 +1379,9 @@ For example, I customize this to:
 ((t :background "black" :foreground "white" :family "misc-fixed"))
 @end lisp
 
-@item hfy-init-kludge-hooks
-@vindex hfy-init-kludge-hooks
-@anchor{hfy-init-kludge-hooks}
+@item hfy-init-kludge-hook
+@vindex hfy-init-kludge-hook
+@anchor{hfy-init-kludge-hook}
 
 List of functions to call when starting htmlfontify-buffer to do any
 kludging necessary to get highlighting modes to behave as you want, even

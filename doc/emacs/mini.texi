@@ -344,12 +344,6 @@ window.  You can display the same list with @kbd{?}
 used with the completion list:
 
 @table @kbd
-@findex mouse-choose-completion
-@item mouse-1
-@itemx mouse-2
-Clicking mouse button 1 or 2 on a completion alternative chooses it
-(@code{mouse-choose-completion}).
-
 @findex switch-to-completions
 @item M-v
 @itemx @key{PageUp}
@@ -362,6 +356,8 @@ the same.  You can also select the window in other ways
 
 @findex choose-completion
 @item @key{RET}
+@itemx mouse-1
+@itemx mouse-2
 While in the completion list buffer, this chooses the completion at
 point (@code{choose-completion}).
 
