@@ -56,7 +56,7 @@
           (set-buffer "Keys")
           (insert (format"(global-set-key %s %s)\n" tpu-key func))
           (set-buffer "Gold-Keys")
-          (insert (format "(define-key GOLD-map %s %s)\n" tpu-key gold-func))))
+          (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))))
     (message "Press %s%s: " ident descrip)
     (setq tpu-key-seq (read-event)
           tpu-key (format "[%s]" tpu-key-seq))
@@ -203,7 +203,7 @@ your local X guru can try to figure out why the key is being ignored."
 ")
   (set-buffer "Directions")
 
-  (tpu-map-key "PF1"  " - The GOLD key"               "GOLD-map"                 "'keyboard-quit")
+  (tpu-map-key "PF1"  " - The GOLD key"               "tpu-gold-map"              "'keyboard-quit")
   (tpu-map-key "PF2"  " - The Keypad Help key"        "'tpu-help"                 "'help-for-help")
   (tpu-map-key "PF3"  " - The Find/Find-Next key"     "'tpu-search-again"         "'tpu-search")
   (tpu-map-key "PF4"  " - The Del/Undelete Line key"  "'tpu-delete-current-line"  "'tpu-undelete-lines")
