@@ -51,7 +51,7 @@ others.
 @item
 You can insert non-@acronym{ASCII} characters or search for them.  To do that,
 you can specify an input method (@pxref{Select Input Method}) suitable
-for your language, or use the default input method set up when you chose
+for your language, or use the default input method set up when you choose
 your language environment.  If
 your keyboard can produce non-@acronym{ASCII} characters, you can select an
 appropriate keyboard coding system (@pxref{Terminal Coding}), and Emacs
@@ -698,7 +698,7 @@ carriage-return (Mac).
 Describe coding system @var{coding} (@code{describe-coding-system}).
 
 @item C-h C @key{RET}
-Describe the coding systems currently in use.
+Describe the coding systems currently in use (@code{describe-coding-system}).
 
 @item M-x list-coding-systems
 Display a list of all the supported coding systems.
@@ -936,7 +936,7 @@ or a local variables list at the end (@pxref{File Variables}).  You do
 this by defining a value for the ``variable'' named @code{coding}.
 Emacs does not really have a variable @code{coding}; instead of
 setting a variable, this uses the specified coding system for the
-file.  For example, @samp{-*-mode: C; coding: latin-1;-*-} specifies
+file.  For example, @w{@samp{-*-mode: C; coding: latin-1; -*-}} specifies
 use of the Latin-1 coding system, as well as C mode.  When you specify
 the coding explicitly in the file, that overrides
 @code{file-coding-system-alist}.
@@ -1207,13 +1207,13 @@ using the internal Emacs representation.
 @cindex file-name encoding, MS-Windows
 @vindex w32-unicode-filenames
   When Emacs runs on MS-Windows versions that are descendants of the
-NT family (Windows 2000, XP, Vista, Windows 7, and all the later
-versions), the value of @code{file-name-coding-system} is largely
-ignored, as Emacs by default uses APIs that allow passing Unicode file
-names directly.  By contrast, on Windows 9X, file names are encoded
-using @code{file-name-coding-system}, which should be set to the
-codepage (@pxref{Coding Systems, codepage}) pertinent for the current
-system locale.  The value of the variable @code{w32-unicode-filenames}
+NT family (Windows 2000, XP, and all the later versions), the value of
+@code{file-name-coding-system} is largely ignored, as Emacs by default
+uses APIs that allow passing Unicode file names directly.  By
+contrast, on Windows 9X, file names are encoded using
+@code{file-name-coding-system}, which should be set to the codepage
+(@pxref{Coding Systems, codepage}) pertinent for the current system
+locale.  The value of the variable @code{w32-unicode-filenames}
 controls whether Emacs uses the Unicode APIs when it calls OS
 functions that accept file names.  This variable is set by the startup
 code to @code{nil} on Windows 9X, and to @code{t} on newer versions of
@@ -1779,8 +1779,9 @@ of the first character you read precedes that of the next character.
 Reordering of bidirectional text into the @dfn{visual} order happens
 at display time.  As a result, character positions no longer increase
 monotonically with their positions on display.  Emacs implements the
-Unicode Bidirectional Algorithm (UBA) described in the Unicode
-Standard Annex #9, for reordering of bidirectional text for display.
+Unicode Bidirectional Algorithm (UBA) described in the
+@uref{http://unicode.org/reports/tr9/, Unicode Standard Annex #9}, for
+reordering of bidirectional text for display.
 It deviates from the UBA only in how continuation lines are displayed
 when text direction is opposite to the base paragraph direction,
 e.g., when a long line of English text appears in a right-to-left
