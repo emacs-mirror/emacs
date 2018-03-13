@@ -10143,20 +10143,22 @@ include the height of both, if present, in the return value.  */)
      directionality, and regions that begin and end in text of the
      same directionality.  */
   it.bidi_p = false;
-  void *it2data = NULL;
-  struct it it2;
-  SAVE_IT (it2, it, it2data);
 
   int move_op = MOVE_TO_POS | MOVE_TO_Y;
   int to_x = -1;
   if (!NILP (x_limit))
     {
+      it.last_visible_x = max_x;
       /* Actually, we never want move_it_to stop at to_x.  But to make
 	 sure that move_it_in_display_line_to always moves far enough,
 	 we set to_x to INT_MAX and specify MOVE_TO_X.  */
       move_op |= MOVE_TO_X;
       to_x = INT_MAX;
     }
+
+  void *it2data = NULL;
+  struct it it2;
+  SAVE_IT (it2, it, it2data);
 
   x = move_it_to (&it, end, to_x, max_y, -1, move_op);
 
