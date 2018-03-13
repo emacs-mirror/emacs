@@ -186,6 +186,7 @@ the arguments that would have been passed to OPERATION."
 (put 'file-name-absolute-p 'url-file-handlers (lambda (&rest ignored) t))
 (put 'expand-file-name 'url-file-handlers 'url-handler-expand-file-name)
 (put 'directory-file-name 'url-file-handlers 'url-handler-directory-file-name)
+(put 'file-name-directory 'url-file-handlers 'url-handler-file-name-directory)
 (put 'unhandled-file-name-directory 'url-file-handlers 'url-handler-unhandled-file-name-directory)
 (put 'file-remote-p 'url-file-handlers 'url-handler-file-remote-p)
 ;; (put 'file-name-as-directory 'url-file-handlers 'url-handler-file-name-as-directory)
@@ -230,6 +231,14 @@ the arguments that would have been passed to OPERATION."
       ;; All other URLs are not expected to be directly accessible from
       ;; a local process.
       nil)))
+
+(defun url-handler-file-name-directory (dir)
+  (let ((url (url-generic-parse-url dir)))
+    ;; Do not attempt to handle `file' URLs which are local.
+    (if (and (not (equal (url-type url) "file"))
+	     (string-empty-p (url-filename url)))
+	(url-handler-file-name-directory (concat dir "/"))
+      (url-run-real-handler 'file-name-directory (list dir)))))
 
 (defun url-handler-file-remote-p (filename &optional identification _connected)
   (let ((url (url-generic-parse-url filename)))
