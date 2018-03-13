@@ -4719,6 +4719,8 @@ process sentinels.  They shall not disturb each other."
 
   ;; This test could be blocked on hydra.  So we set a timeout of 300
   ;; seconds, and we send a SIGUSR1 signal after 300 seconds.
+  ;; This clearly doesn't work though, because the test not
+  ;; infrequently hangs for hours until killed by the infrastructure.
   (with-timeout (300 (tramp--test-timeout-handler))
     (define-key special-event-map [sigusr1] 'tramp--test-timeout-handler)
     (tramp--test-instrument-test-case (if (getenv "EMACS_HYDRA_CI") 10 0)
@@ -4743,6 +4745,7 @@ process sentinels.  They shall not disturb each other."
             (or
              (ignore-errors
                (string-to-number (getenv "REMOTE_PARALLEL_PROCESSES")))
+	     (if (getenv "EMACS_HYDRA_CI") 5)
              10))
            ;; On hydra, timings are bad.
            (timer-repeat
