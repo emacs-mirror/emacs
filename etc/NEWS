@@ -292,7 +292,32 @@ This feature uses Tramp and works only on systems which support GVFS,
 i.e. GNU/Linux, roughly spoken.  See the chapter "(tramp) Archive file
 names" in the Tramp manual for full documentation of these facilities.
 
-** Some functions and variables obsolete since 22.1 have been removed:
+
+* Incompatible Lisp Changes in Emacs 27.1
+
+** The FILENAME argument to 'file-name-base' is now mandatory and no
+longer defaults to 'buffer-file-name'.
+
+---
+** The function 'eldoc-message' now accepts a single argument.
+Programs that called it with multiple arguments before should pass
+them through 'format' first.  Even that is discouraged: for ElDoc
+support, you should set 'eldoc-documentation-function' instead of
+calling 'eldoc-message' directly.
+
+** Old-style backquotes now generate an error.  They have been
+generating warnings for a decade.  To interpret old-style backquotes
+as new-style, bind the new variable 'force-new-style-backquotes' to t.
+
+** Defining a Common Lisp structure using 'cl-defstruct' or
+'cl-struct-define' whose name clashes with a builtin type (e.g.,
+'integer' or 'hash-table') now signals an error.
+
+** When formatting a floating-point number as an octal or hexadecimal
+integer, Emacs now signals an error if the number is too large for the
+implementation to format (Bug#30408).
+
+** Some functions and variables obsolete since Emacs 22 have been removed:
 archive-mouse-extract, assoc-ignore-case, assoc-ignore-representation,
 backward-text-line, blink-cursor, bookmark-exit-hooks,
 comint-use-prompt-regexp-instead-of-fields, compilation-finish-function,
@@ -326,31 +351,6 @@ update-autoloads-from-directories, vc-comment-ring, vc-comment-ring-index,
 vc-comment-search-forward, vc-comment-search-reverse, vc-comment-to-change-log,
 vc-diff-switches-list, vc-next-comment, vc-previous-comment, view-todo,
 x-lost-selection-hooks, x-sent-selection-hooks
-
-
-* Incompatible Lisp Changes in Emacs 27.1
-
-** The FILENAME argument to 'file-name-base' is now mandatory and no
-longer defaults to 'buffer-file-name'.
-
----
-** The function 'eldoc-message' now accepts a single argument.
-Programs that called it with multiple arguments before should pass
-them through 'format' first.  Even that is discouraged: for ElDoc
-support, you should set 'eldoc-documentation-function' instead of
-calling 'eldoc-message' directly.
-
-** Old-style backquotes now generate an error.  They have been
-generating warnings for a decade.  To interpret old-style backquotes
-as new-style, bind the new variable 'force-new-style-backquotes' to t.
-
-** Defining a Common Lisp structure using 'cl-defstruct' or
-'cl-struct-define' whose name clashes with a builtin type (e.g.,
-'integer' or 'hash-table') now signals an error.
-
-** When formatting a floating-point number as an octal or hexadecimal
-integer, Emacs now signals an error if the number is too large for the
-implementation to format (Bug#30408).
 
 
 * Lisp Changes in Emacs 27.1
