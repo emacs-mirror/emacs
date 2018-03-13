@@ -22486,6 +22486,11 @@ Value is the new character position of point.  */)
 		    new_pos += (row->reversed_p ? -dir : dir);
 		  else
 		    new_pos -= (row->reversed_p ? -dir : dir);
+		  new_pos = clip_to_bounds (BEGV, new_pos, ZV);
+		  /* If we didn't move, we've hit BEGV or ZV, so we
+		     need to signal a suitable error.  */
+		  if (new_pos == PT)
+		    break;
 		}
 	      else if (BUFFERP (g->object))
 		new_pos = g->charpos;
