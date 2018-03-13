@@ -1522,7 +1522,7 @@ the Emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
 (make-obsolete-variable 'allout-passphrase-verifier-string
-			'allout-passphrase-verifier-string "23.3")
+			"it is no longer used." "23.3")
 ;;;###autoload
 (put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
 ;;;_   = allout-passphrase-hint-string
@@ -1538,7 +1538,7 @@ state, if file variable adjustments are enabled.  See
 (make-variable-buffer-local 'allout-passphrase-hint-string)
 (setq-default allout-passphrase-hint-string "")
 (make-obsolete-variable 'allout-passphrase-hint-string
-			'allout-passphrase-hint-string "23.3")
+			"it is no longer used." "23.3")
 ;;;###autoload
 (put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
