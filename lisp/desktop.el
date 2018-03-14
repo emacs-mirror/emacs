@@ -387,7 +387,7 @@ or `desktop-modes-not-to-save'."
 
 ;; Skip tramp and ange-ftp files
 (defcustom desktop-files-not-to-save
-  "\\(^/[^/:]*:\\|(ftp)$\\)"
+  "\\(\\`/[^/:]*:\\|(ftp)\\'\\)"
   "Regexp identifying files whose buffers are to be excluded from saving.
 The default value excludes buffers visiting remote files."
   :type '(choice (const :tag "None" nil)
@@ -534,8 +534,7 @@ can guess how to load the mode's definition.")
 (put 'desktop-buffer-mode-handlers 'risky-local-variable t)
 
 (defcustom desktop-minor-mode-table
-  '((auto-fill-function auto-fill-mode)
-    (defining-kbd-macro nil)
+  '((defining-kbd-macro nil)
     (isearch-mode nil)
     (vc-mode nil)
     (vc-dired-mode nil)
@@ -702,12 +701,12 @@ if different)."
     (if (symbolp var)
 	(set-default var nil)
       (set-default var (eval (cdr var)))))
-  (let ((preserve-regexp (concat "^\\("
+  (let ((preserve-regexp (concat "\\`\\("
                                  (mapconcat (lambda (regexp)
                                               (concat "\\(" regexp "\\)"))
                                             desktop-clear-preserve-buffers
                                             "\\|")
-                                 "\\)$")))
+                                 "\\)\\'")))
     (dolist (buffer (buffer-list))
       (let ((bufname (buffer-name buffer)))
 	(unless (or (eq (aref bufname 0) ?\s) ;; Don't kill internal buffers
@@ -735,7 +734,7 @@ if different)."
 
 ;; ----------------------------------------------------------------------------
 (unless noninteractive
-  (add-hook 'kill-emacs-hook 'desktop-kill))
+  (add-hook 'kill-emacs-hook #'desktop-kill))
 
 (defun desktop-kill ()
   "If `desktop-save-mode' is non-nil, do what `desktop-save' says to do.
@@ -804,6 +803,7 @@ buffer, which is (in order):
               (symbol-value minor-mode)
               (let* ((special (assq minor-mode desktop-minor-mode-table))
                      (value (cond (special (cadr special))
+                                  ((get minor-mode :minor-mode-function))
                                   ((functionp minor-mode) minor-mode))))
                 (when value (cl-pushnew value ret))))))
     ;; point and mark, and read-only status
@@ -889,8 +889,8 @@ QUOTE may be `may' (value may be quoted),
        (cons nil
              `(let ((mk (make-marker)))
                 (add-hook 'desktop-delay-hook
-                          `(lambda ()
-                             (set-marker ,mk ,,pos (get-buffer ,,buf))))
+                          (lambda ()
+                            (set-marker mk ,pos (get-buffer ,buf))))
                 mk))))
     (t                                  ; Save as text.
      (cons 'may "Unprintable entity"))))
@@ -1074,7 +1074,7 @@ without further confirmation."
 
 	(with-temp-buffer
 	  (insert
-	   ";; -*- mode: emacs-lisp; coding: emacs-mule; -*-\n"
+	   ";; -*- mode: emacs-lisp; lexical-binding:t; coding: utf-8-emacs; -*-\n"
 	   desktop-header
 	   ";; Created " (current-time-string) "\n"
 	   ";; Desktop file format version " (format "%d" desktop-io-file-version) "\n"
@@ -1087,7 +1087,7 @@ without further confirmation."
 	  (desktop-save-frameset)
 	  (unless (memq 'desktop-saved-frameset desktop-globals-to-save)
 	    (desktop-outvar 'desktop-saved-frameset))
-	  (mapc (function desktop-outvar) desktop-globals-to-save)
+	  (mapc #'desktop-outvar desktop-globals-to-save)
 	  (setq desktop-saved-frameset nil) ; after saving desktop-globals-to-save
 	  (when (memq 'kill-ring desktop-globals-to-save)
 	    (insert
@@ -1096,9 +1096,9 @@ without further confirmation."
 	     " kill-ring))\n"))
 
 	  (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-	  (dolist (l (mapcar 'desktop-buffer-info (buffer-list)))
+	  (dolist (l (mapcar #'desktop-buffer-info (buffer-list)))
 	    (let ((base (pop l)))
-	      (when (apply 'desktop-save-buffer-p l)
+	      (when (apply #'desktop-save-buffer-p l)
 		(insert "("
 			(if (or (not (integerp eager))
 				(if (zerop eager)
@@ -1129,9 +1129,9 @@ without further confirmation."
 				  ;; This is saved after the timestamp
 				  (search-forward (format "%S" desktop--app-id) nil t))
 			     (point))))
-		 (checksum (and beg (md5 (current-buffer) beg (point-max) 'emacs-mule))))
+		 (checksum (and beg (md5 (current-buffer) beg (point-max) 'utf-8-emacs))))
 	    (unless (and checksum (equal checksum desktop-file-checksum))
-	      (let ((coding-system-for-write 'emacs-mule))
+	      (let ((coding-system-for-write 'utf-8-emacs))
 		(write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	      (setq desktop-file-checksum checksum)
 	      ;; We remember when it was modified (which is presumably just now).
@@ -1230,12 +1230,12 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	    ;; disabled when loading the desktop fails with errors,
 	    ;; thus not overwriting the desktop with broken contents.
 	    (setq desktop-autosave-was-enabled
-		  (memq 'desktop-auto-save-set-timer
-                        ;; Use the toplevel value of the hook, in case some
+		  (memq #'desktop-auto-save-set-timer
+                        ;; Use the global value of the hook, in case some
                         ;; feature makes window-configuration-change-hook
                         ;; buffer-local, and puts there stuff which
                         ;; doesn't include our timer.
-                        (default-toplevel-value
+                        (default-value
                           'window-configuration-change-hook)))
 	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
@@ -1254,7 +1254,7 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
 	      ;; We want buffers existing prior to evaluating the desktop (and
 	      ;; not reused) to be placed at the end of the buffer list, so we
 	      ;; move them here.
-	      (mapc 'bury-buffer
+	      (mapc #'bury-buffer
 		    (nreverse (cdr (memq desktop-first-buffer (nreverse (buffer-list))))))
 	      (switch-to-buffer (car (buffer-list))))
 	    (run-hooks 'desktop-delay-hook)
@@ -1328,10 +1328,10 @@ directory DIRNAME."
 (defun desktop-auto-save-enable (&optional timeout)
   (when (and (integerp (or timeout desktop-auto-save-timeout))
 	     (> (or timeout desktop-auto-save-timeout) 0))
-    (add-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)))
+    (add-hook 'window-configuration-change-hook #'desktop-auto-save-set-timer)))
 
 (defun desktop-auto-save-disable ()
-  (remove-hook 'window-configuration-change-hook 'desktop-auto-save-set-timer)
+  (remove-hook 'window-configuration-change-hook #'desktop-auto-save-set-timer)
   (desktop-auto-save-cancel-timer))
 
 (defun desktop-auto-save ()
@@ -1586,7 +1586,7 @@ ARGS must be an argument list for `desktop-create-buffer'."
       (let ((desktop-first-buffer nil)
             (desktop-buffer-ok-count 0)
             (desktop-buffer-fail-count 0))
-        (apply 'desktop-create-buffer args)
+        (apply #'desktop-create-buffer args)
         (run-hooks 'desktop-delay-hook)
         (setq desktop-delay-hook nil)
         (bury-buffer (get-buffer buffer-name))
