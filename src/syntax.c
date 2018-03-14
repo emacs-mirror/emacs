@@ -1573,10 +1573,11 @@ left there and the function returns nil.  Field boundaries are not
 noticed if `inhibit-field-text-motion' is non-nil.
 
 The word boundaries are normally determined by the buffer's syntax
-table, but `find-word-boundary-function-table', such as set up
-by `subword-mode', can change that.  If a Lisp program needs to
-move by words determined strictly by the syntax table, it should
-use `forward-word-strictly' instead.  */)
+table and character script (according to `char-script-table'), but
+`find-word-boundary-function-table', such as set up by `subword-mode',
+can change that.  If a Lisp program needs to move by words determined
+strictly by the syntax table, it should use `forward-word-strictly'
+instead.  See Info node `(elisp) Word Motion' for details.  */)
   (Lisp_Object arg)
 {
   Lisp_Object tmp;

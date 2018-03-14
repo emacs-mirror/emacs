@@ -210,7 +210,7 @@ by the current buffer's syntax table (@pxref{Syntax Class Table}), but
 modes can override that by setting up a suitable
 @code{find-word-boundary-function-table}, described below.  Characters
 that belong to different scripts (as defined by
-@code{char-syntax-table}), also define a word boundary
+@code{char-script-table}), also define a word boundary
 (@pxref{Character Properties}).  In any case, this function cannot
 move point past the boundary of the accessible portion of the buffer,
 or across a field boundary (@pxref{Fields}).  The most common case of

@@ -7080,11 +7080,13 @@ current object."
 With argument ARG, do this that many times.
 If ARG is omitted or nil, move point backward one word.
 
-The word boundaries are normally determined by the buffer's syntax
-table, but `find-word-boundary-function-table', such as set up
-by `subword-mode', can change that.  If a Lisp program needs to
-move by words determined strictly by the syntax table, it should
-use `backward-word-strictly' instead."
+The word boundaries are normally determined by the buffer's
+syntax table and character script (according to
+`char-script-table'), but `find-word-boundary-function-table',
+such as set up by `subword-mode', can change that.  If a Lisp
+program needs to move by words determined strictly by the syntax
+table, it should use `backward-word-strictly' instead.  See Info
+node `(elisp) Word Motion' for details."
   (interactive "^p")
   (forward-word (- (or arg 1))))
 
