@@ -1548,7 +1548,14 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
       (mapc (lambda (l) (message "  %s" l)) notests))
     (when badtests
       (message "%d files did not finish:" (length badtests))
-      (mapc (lambda (l) (message "  %s" l)) badtests))
+      (mapc (lambda (l) (message "  %s" l)) badtests)
+      (if (getenv "EMACS_HYDRA_CI")
+          (with-temp-buffer
+            (dolist (f badtests)
+              (erase-buffer)
+              (insert-file-contents f)
+              (message "Contents of unfinished file %s:" f)
+              (message "-----\n%s\n-----" (buffer-string))))))
     (when unexpected
       (message "%d files contained unexpected results:" (length unexpected))
       (mapc (lambda (l) (message "  %s" l)) unexpected))
