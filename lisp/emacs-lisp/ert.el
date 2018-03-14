@@ -676,6 +676,7 @@ and is displayed in front of the value of MESSAGE-FORM."
 (cl-defstruct ert-test-result
   (messages nil)
   (should-forms nil)
+  (duration 0)
   )
 (cl-defstruct (ert-test-passed (:include ert-test-result)))
 (cl-defstruct (ert-test-result-with-condition (:include ert-test-result))
@@ -1230,6 +1231,11 @@ SELECTOR is the selector that was used to select TESTS."
         (ert-run-test test)
       (setf (aref (ert--stats-test-end-times stats) pos) (current-time))
       (let ((result (ert-test-most-recent-result test)))
+        (setf (ert-test-result-duration result)
+              (float-time
+               (time-subtract
+                (aref (ert--stats-test-end-times stats) pos)
+                (aref (ert--stats-test-start-times stats) pos))))
         (ert--stats-set-test-and-result stats pos test result)
         (funcall listener 'test-ended stats test result))
       (setf (ert--stats-current-test stats) nil))))
@@ -1335,6 +1341,9 @@ RESULT must be an `ert-test-result-with-condition'."
 
 (defvar ert-quiet nil
   "Non-nil makes ERT only print important information in batch mode.")
+
+(defvar ert-batch-print-duration nil
+  "Non-nil makes ERT print duration time of single tests in batch mode.")
 
 ;;;###autoload
 (defun ert-run-tests-batch (&optional selector)
@@ -1446,13 +1455,17 @@ Returns the stats object."
             (let* ((max (prin1-to-string (length (ert--stats-tests stats))))
                    (format-string (concat "%9s  %"
                                           (prin1-to-string (length max))
-                                          "s/" max "  %S")))
+                                          "s/" max "  %S"
+                                          (if ert-batch-print-duration
+                                              " (%f sec)"))))
               (message format-string
                        (ert-string-for-test-result result
                                                    (ert-test-result-expected-p
                                                     test result))
                        (1+ (ert--stats-test-pos stats test))
-                       (ert-test-name test))))))))
+                       (ert-test-name test)
+                       (if ert-batch-print-duration
+                           (ert-test-result-duration result)))))))))
    nil))
 
 ;;;###autoload

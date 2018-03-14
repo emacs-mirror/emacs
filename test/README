@@ -50,6 +50,11 @@ nicer backtraces.  To run the compiled version of a test use
 
     make TEST_LOAD_EL=no ...
 
+Sometimes, it is ncessary to trace the duration time for single tests.
+This is controlled by the environment variable TEST_PRINT_TEST_DURATION
+
+    make TEST_PRINT_TEST_DURATION=1 ...
+
 
 (Also, see etc/compilation.txt for compilation mode font lock tests.)
 

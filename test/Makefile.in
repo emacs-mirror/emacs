@@ -99,14 +99,20 @@ TEST_LOCALE = C
 # If you just want a pass/fail, setting this to no is much faster.
 TEST_LOAD_EL ?= yes
 
+# Additional settings for ert.
+ert_opts =
+
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).
 TEST_BACKTRACE_LINE_LENGTH =
 
-ifeq (${TEST_BACKTRACE_LINE_LENGTH},)
-ert_opts =
-else
-ert_opts = --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
+ifneq (${TEST_BACKTRACE_LINE_LENGTH},)
+ert_opts += --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
+endif
+
+# Whether the tests shall also report their duration.
+ifdef TEST_PRINT_TEST_DURATION
+ert_opts += --eval '(setq ert-batch-print-duration t)'
 endif
 
 ifeq (@HAVE_MODULES@, yes)
