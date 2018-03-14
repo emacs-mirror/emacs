@@ -159,7 +159,7 @@ To use Melpa:
 @lisp
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "http://melpa.org/packages/") t)
+	     '("melpa" . "https://melpa.org/packages/") t)
 @end lisp
 
 @itemize
@@ -170,7 +170,7 @@ To use Melpa-Stable:
 @lisp
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 @end lisp
 
 Once you have added your preferred archive, you need to update the
