@@ -982,6 +982,11 @@ Mostly we check word delimiters."
       (let ((command this-command)
             ;; Prevent anything we do from affecting the mark.
             deactivate-mark)
+        (if (and (eq command 'transpose-chars)
+                 flyspell-pre-point)
+            (save-excursion
+              (goto-char (- flyspell-pre-point 1))
+              (flyspell-word)))
         (if (flyspell-check-pre-word-p)
             (save-excursion
               '(flyspell-debug-signal-pre-word-checked)
