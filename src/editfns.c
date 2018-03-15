@@ -204,6 +204,18 @@ tzlookup (Lisp_Object zone, bool settz)
 	invalid_time_zone_specification (zone);
 
       new_tz = tzalloc (zone_string);
+
+#if defined __NetBSD_Version__ && __NetBSD_Version__ < 700000000
+      /* NetBSD 6 tzalloc mishandles POSIX TZ strings (Bug#30738).
+	 If possible, fall back on tzdb.  */
+      if (!new_tz && errno != ENOMEM && plain_integer
+	  && XINT (zone) % (60 * 60) == 0)
+	{
+	  sprintf (tzbuf, "Etc/GMT%+"pI"d", - (XINT (zone) / (60 * 60)));
+	  new_tz = tzalloc (zone_string);
+	}
+#endif
+
       if (!new_tz)
 	{
 	  if (errno == ENOMEM)
