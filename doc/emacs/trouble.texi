@@ -594,7 +594,6 @@ with the manual, one of them must be wrong; that is a bug.
 @cindex bug reporting
 @cindex report an Emacs bug, how to
 
-@findex emacs-version
   When you decide that there is a bug, it is important to report it
 and to report it in a way which is useful.  What is most useful is an
 exact description of what commands you type, starting with the shell
@@ -717,6 +716,7 @@ should include all these things:
 The version number of Emacs.  Without this, we won't know whether there is any
 point in looking for the bug in the current version of GNU Emacs.
 
+@findex emacs-version
 @kbd{M-x report-emacs-bug} includes this information automatically,
 but if you are not using that command for your report you can get the
 version number by typing @kbd{M-x emacs-version @key{RET}}.  If that
