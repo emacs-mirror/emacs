@@ -809,7 +809,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   (skip-unless (tramp-archive--test-emacs27-p))
 
   ;; tramp-archive is neither loaded at Emacs startup, nor when
-  ;; loading a file like "/ssh::" (which loads Tramp).
+  ;; loading a file like "/mock::foo" (which loads Tramp).
   (let ((default-directory (expand-file-name temporary-file-directory))
 	(code
 	 "(progn \
@@ -818,7 +818,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	    (file-attributes %S \"/\") \
 	    (message \"tramp-archive loaded: %%s %%s\" \
               (featurep 'tramp) (featurep 'tramp-archive)))"))
-    (dolist (file `("/ssh::foo" ,(concat tramp-archive-test-archive "foo")))
+    (dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
       (should
        (string-match
 	(format
