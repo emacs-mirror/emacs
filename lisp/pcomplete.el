@@ -272,6 +272,39 @@ to all arguments, such as variable names after a $."
   "Complete amongst a list of directories and executables."
   (pcomplete-entries regexp 'file-executable-p))
 
+(defmacro pcomplete-here (&optional form stub paring form-only)
+  "Complete against the current argument, if at the end.
+If completion is to be done here, evaluate FORM to generate the completion
+table which will be used for completion purposes.  If STUB is a
+string, use it as the completion stub instead of the default (which is
+the entire text of the current argument).
+
+For an example of when you might want to use STUB: if the current
+argument text is `long-path-name/', you don't want the completions
+list display to be cluttered by `long-path-name/' appearing at the
+beginning of every alternative.  Not only does this make things less
+intelligible, but it is also inefficient.  Yet, if the completion list
+does not begin with this string for every entry, the current argument
+won't complete correctly.
+
+The solution is to specify a relative stub.  It allows you to
+substitute a different argument from the current argument, almost
+always for the sake of efficiency.
+
+If PARING is nil, this argument will be pared against previous
+arguments using the function `file-truename' to normalize them.
+PARING may be a function, in which case that function is used for
+normalization.  If PARING is t, the argument dealt with by this
+call will not participate in argument paring.  If it is the
+integer 0, all previous arguments that have been seen will be
+cleared.
+
+If FORM-ONLY is non-nil, only the result of FORM will be used to
+generate the completions list.  This means that the hook
+`pcomplete-try-first-hook' will not be run."
+  (declare (debug t))
+  `(pcomplete--here (lambda () ,form) ,stub ,paring ,form-only))
+
 (defcustom pcomplete-command-completion-function
   (function
    (lambda ()
@@ -1013,39 +1046,6 @@ See the documentation for `pcomplete-here'."
              ;; Old calling convention, might still be used by files
              ;; byte-compiled with the older code.
              (eval form)))))
-
-(defmacro pcomplete-here (&optional form stub paring form-only)
-  "Complete against the current argument, if at the end.
-If completion is to be done here, evaluate FORM to generate the completion
-table which will be used for completion purposes.  If STUB is a
-string, use it as the completion stub instead of the default (which is
-the entire text of the current argument).
-
-For an example of when you might want to use STUB: if the current
-argument text is `long-path-name/', you don't want the completions
-list display to be cluttered by `long-path-name/' appearing at the
-beginning of every alternative.  Not only does this make things less
-intelligible, but it is also inefficient.  Yet, if the completion list
-does not begin with this string for every entry, the current argument
-won't complete correctly.
-
-The solution is to specify a relative stub.  It allows you to
-substitute a different argument from the current argument, almost
-always for the sake of efficiency.
-
-If PARING is nil, this argument will be pared against previous
-arguments using the function `file-truename' to normalize them.
-PARING may be a function, in which case that function is used for
-normalization.  If PARING is t, the argument dealt with by this
-call will not participate in argument paring.  If it is the
-integer 0, all previous arguments that have been seen will be
-cleared.
-
-If FORM-ONLY is non-nil, only the result of FORM will be used to
-generate the completions list.  This means that the hook
-`pcomplete-try-first-hook' will not be run."
-  (declare (debug t))
-  `(pcomplete--here (lambda () ,form) ,stub ,paring ,form-only))
 
 
 (defmacro pcomplete-here* (&optional form stub form-only)
