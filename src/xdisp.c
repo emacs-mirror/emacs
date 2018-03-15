@@ -9598,6 +9598,7 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
       it->current_x = line_start_x;
       line_start_x = 0;
       it->hpos = 0;
+      it->line_number_produced_p = false;
       it->current_y += it->max_ascent + it->max_descent;
       ++it->vpos;
       last_height = it->max_ascent + it->max_descent;
