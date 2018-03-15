@@ -205,11 +205,11 @@ terminal output.  Furthermore, if you are using an input method,
 string is displayed, that indicates a nontrivial end-of-line
 convention for encoding a file.  Usually, lines of text are separated
 by @dfn{newline characters} in a file, but two other conventions are
-sometimes used.  The MS-DOS convention uses a carriage-return
+sometimes used.  The MS-DOS convention uses a carriage return
 character followed by a linefeed character; when editing such
 files, the colon changes to either a backslash (@samp{\}) or
 @samp{(DOS)}, depending on the operating system.  Another convention,
-employed by older Macintosh systems, uses a carriage-return
+employed by older Macintosh systems, uses a carriage return
 character instead of a newline; when editing such files, the colon
 changes to either a forward slash (@samp{/}) or @samp{(Mac)}.  On some
 systems, Emacs displays @samp{(Unix)} instead of the colon for files

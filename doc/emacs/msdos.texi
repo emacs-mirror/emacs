@@ -152,15 +152,16 @@ window.  @xref{emacsclient Options}.
 convention used on GNU, Unix, and other POSIX-compliant systems.
 
 @cindex end-of-line conversion on MS-DOS/MS-Windows
-  By contrast, MS-DOS and MS-Windows normally use carriage-return linefeed,
-a two-character sequence, to separate text lines.  (Linefeed is the same
-character as newline.)  Therefore, convenient editing of typical files
-with Emacs requires conversion of these end-of-line (EOL) sequences.
-And that is what Emacs normally does: it converts carriage-return
-linefeed into newline when reading files, and converts newline into
-carriage-return linefeed when writing files.  The same mechanism that
-handles conversion of international character codes does this conversion
-also (@pxref{Coding Systems}).
+  By contrast, MS-DOS and MS-Windows normally use carriage return
+followed by linefeed, a two-character sequence, to separate text
+lines.  (Linefeed is the same character as newline.)  Therefore,
+convenient editing of typical files with Emacs requires conversion of
+these end-of-line (EOL) sequences.  And that is what Emacs normally
+does: it converts carriage return followed by linefeed into newline
+when reading files, and converts newline into carriage return followed
+by linefeed when writing files.  The same mechanism that handles
+conversion of international character codes does this conversion also
+(@pxref{Coding Systems}).
 
 @cindex cursor location, on MS-DOS
 @cindex point location, on MS-DOS
@@ -169,11 +170,11 @@ that character positions as reported by Emacs (@pxref{Position Info}) do
 not agree with the file size information known to the operating system.
 
   In addition, if Emacs recognizes from a file's contents that it uses
-newline rather than carriage-return linefeed as its line separator, it
-does not perform EOL conversion when reading or writing that file.
-Thus, you can read and edit files from GNU and Unix systems on MS-DOS
-with no special effort, and they will retain their Unix-style
-end-of-line convention after you edit them.
+newline rather than carriage return followed by linefeed as its line
+separator, it does not perform EOL conversion when reading or writing
+that file.  Thus, you can read and edit files from GNU and Unix
+systems on MS-DOS with no special effort, and they will retain their
+Unix-style end-of-line convention after you edit them.
 
   The mode line indicates whether end-of-line translation was used for
 the current buffer.  If MS-DOS end-of-line translation is in use for the
@@ -181,20 +182,20 @@ buffer, the MS-Windows build of Emacs displays a backslash @samp{\} after
 the coding system mnemonic near the beginning of the mode line
 (@pxref{Mode Line}).  If no EOL translation was performed, the string
 @samp{(Unix)} is displayed instead of the backslash, to alert you that the
-file's EOL format is not the usual carriage-return linefeed.
+file's EOL format is not the usual carriage return followed by linefeed.
 
 @cindex DOS-to-Unix conversion of files
   To visit a file and specify whether it uses DOS-style or Unix-style
 end-of-line, specify a coding system (@pxref{Text Coding}).  For
 example, @kbd{C-x @key{RET} c unix @key{RET} C-x C-f foobar.txt}
 visits the file @file{foobar.txt} without converting the EOLs; if some
-line ends with a carriage-return linefeed pair, Emacs will display
-@samp{^M} at the end of that line.  Similarly, you can direct Emacs to
-save a buffer in a specified EOL format with the @kbd{C-x @key{RET} f}
-command.  For example, to save a buffer with Unix EOL format, type
-@kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you visit a file
-with DOS EOL conversion, then save it with Unix EOL format, that
-effectively converts the file to Unix EOL style, like the
+line ends with a carriage return followed by linefeed pair, Emacs will
+display @samp{^M} at the end of that line.  Similarly, you can direct
+Emacs to save a buffer in a specified EOL format with the @kbd{C-x
+@key{RET} f} command.  For example, to save a buffer with Unix EOL
+format, type @kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you
+visit a file with DOS EOL conversion, then save it with Unix EOL
+format, that effectively converts the file to Unix EOL style, like the
 @code{dos2unix} program.
 
 @cindex untranslated file system

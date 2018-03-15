@@ -690,8 +690,8 @@ system; for example, to visit a file encoded in codepage 850, type
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs
 handles three different conventions for how to separate lines in a file:
-newline (Unix), carriage-return linefeed (DOS), and just
-carriage-return (Mac).
+newline (Unix), carriage return followed by linefeed (DOS), and just
+carriage return (Mac).
 
 @table @kbd
 @item C-h C @var{coding} @key{RET}
@@ -728,8 +728,8 @@ system, including the letter that stands for it in the mode line
 @code{no-conversion}, which means no conversion of any kind---specifies
 how and whether to convert printing characters, but leaves the choice of
 end-of-line conversion to be decided based on the contents of each file.
-For example, if the file appears to use the sequence carriage-return
-linefeed to separate lines, DOS end-of-line conversion will be used.
+For example, if the file appears to use the sequence carriage return
+and linefeed to separate lines, DOS end-of-line conversion will be used.
 
   Each of the listed coding systems has three variants, which specify
 exactly what to do for end-of-line conversion:
@@ -741,15 +741,15 @@ newline to separate lines.  (This is the convention normally used
 on Unix and GNU systems, and macOS.)
 
 @item @dots{}-dos
-Assume the file uses carriage-return linefeed to separate lines, and do
-the appropriate conversion.  (This is the convention normally used on
-Microsoft systems.@footnote{It is also specified for MIME @samp{text/*}
-bodies and in other network transport contexts.  It is different
-from the SGML reference syntax record-start/record-end format, which
-Emacs doesn't support directly.})
+Assume the file uses carriage return followed by linefeed to separate
+lines, and do the appropriate conversion.  (This is the convention
+normally used on Microsoft systems.@footnote{It is also specified for
+MIME @samp{text/*} bodies and in other network transport contexts.  It
+is different from the SGML reference syntax record-start/record-end
+format, which Emacs doesn't support directly.})
 
 @item @dots{}-mac
-Assume the file uses carriage-return to separate lines, and do the
+Assume the file uses carriage return to separate lines, and do the
 appropriate conversion.  (This was the convention used in Classic Mac
 OS.)
 @end table
@@ -859,15 +859,15 @@ the third argument says which coding system to use for these files.
 @vindex inhibit-eol-conversion
 @cindex DOS-style end-of-line display
   Emacs recognizes which kind of end-of-line conversion to use based on
-the contents of the file: if it sees only carriage-returns, or only
-carriage-return linefeed sequences, then it chooses the end-of-line
-conversion accordingly.  You can inhibit the automatic use of
-end-of-line conversion by setting the variable @code{inhibit-eol-conversion}
-to non-@code{nil}.  If you do that, DOS-style files will be displayed
-with the @samp{^M} characters visible in the buffer; some people
-prefer this to the more subtle @samp{(DOS)} end-of-line type
-indication near the left edge of the mode line (@pxref{Mode Line,
-eol-mnemonic}).
+the contents of the file: if it sees only carriage returns, or only
+carriage return followed by linefeed sequences, then it chooses the
+end-of-line conversion accordingly.  You can inhibit the automatic use
+of end-of-line conversion by setting the variable
+@code{inhibit-eol-conversion} to non-@code{nil}.  If you do that,
+DOS-style files will be displayed with the @samp{^M} characters
+visible in the buffer; some people prefer this to the more subtle
+@samp{(DOS)} end-of-line type indication near the left edge of the
+mode line (@pxref{Mode Line, eol-mnemonic}).
 
 @vindex inhibit-iso-escape-detection
 @cindex escape sequences in files
@@ -1041,7 +1041,7 @@ buffer (@pxref{Output Coding}).
 (@pxref{Coding Systems, end-of-line conversion}) for encoding the
 current buffer.  For example, @kbd{C-x @key{RET} f dos @key{RET}} will
 cause Emacs to save the current buffer's text with DOS-style
-carriage-return linefeed line endings.
+carriage return followed by linefeed line endings.
 
 @kindex C-x RET c
 @findex universal-coding-system-argument

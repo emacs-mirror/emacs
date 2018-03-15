@@ -33164,7 +33164,7 @@ This switches into the Calc buffer for the duration of the macro.
 For example, @samp{(calc-eval "vx5\rVR+" 'macro)} pushes the
 vector @samp{[1,2,3,4,5]} on the stack and then replaces it
 with the sum of those numbers.  Note that @samp{\r} is the Lisp
-notation for the carriage-return, @key{RET}, character.
+notation for the carriage return, @key{RET}, character.
 
 If your keyboard macro wishes to pop the stack, @samp{\C-d} is
 safer than @samp{\177} (the @key{DEL} character) because some
