@@ -871,7 +871,7 @@ eol-mnemonic}).
 
 @vindex inhibit-iso-escape-detection
 @cindex escape sequences in files
-  By default, the automatic detection of coding system is sensitive to
+  By default, the automatic detection of the coding system is sensitive to
 escape sequences.  If Emacs sees a sequence of characters that begin
 with an escape character, and the sequence is valid as an ISO-2022
 code, that tells Emacs to use one of the ISO-2022 encodings to decode
@@ -1344,9 +1344,8 @@ The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
 However, it does not specify font family names, so results can be
-somewhat random if you use it directly.  You can specify use of a
-particular fontset by starting Emacs with the @samp{-fn} option.
-For example,
+somewhat random if you use it directly.  You can specify a particular
+fontset by starting Emacs with the @samp{-fn} option.  For example,
 
 @example
 emacs -fn fontset-standard
