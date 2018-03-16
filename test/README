@@ -11,12 +11,23 @@ Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
 "(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
 for more information on writing and running tests.
 
+Tests could be tagged by the developer.  In this test directory, the
+following tags are recognised:
+
+* :expensive-test
+  The test needs a serious amount of time to run.  It is not intended
+  to run on a regular basis by users.  Instead, it runs on demand
+  only, or during regression tests.
+
+* :unstable
+  The test is under development.  It shall run on demand only.
+
 The Makefile in this directory supports the following targets:
 
 * make check
-  Run all tests as defined in the directory.  Expensive tests are
-  suppressed.  The result of the tests for <filename>.el is stored in
-  <filename>.log.
+  Run all tests as defined in the directory.  Expensive and unstable
+  tests are suppressed.  The result of the tests for <filename>.el is
+  stored in <filename>.log.
 
 * make check-maybe
   Like "make check", but run only the tests for files which have
@@ -24,6 +35,9 @@ The Makefile in this directory supports the following targets:
 
 * make check-expensive
   Like "make check", but run also the tests marked as expensive.
+
+* make check-all
+  Like "make check", but run all tests.
 
 * make <filename>  or  make <filename>.log
   Run all tests declared in <filename>.el.  This includes expensive
@@ -38,15 +52,16 @@ https://www.gnu.org/software/emacs/manual/html_node/ert/Test-Selectors.html
 
 You could use predefined selectors of the Makefile.  "make <filename>
 SELECTOR='$(SELECTOR_DEFAULT)'" runs all tests for <filename>.el
-except the tests tagged as expensive.
+except the tests tagged as expensive or unstable.
 
 If your test file contains the tests "test-foo", "test2-foo" and
 "test-foo-remote", and you want to run only the former two tests, you
 could use a selector regexp: "make <filename> SELECTOR='\"foo$$\"'".
 
 Note that although the test files are always compiled (unless they set
-no-byte-compile), the source files will be run by default, to give
-nicer backtraces.  To run the compiled version of a test use
+no-byte-compile), the source files will be run when expensive or
+unstable tests are involved, to give nicer backtraces.  To run the
+compiled version of a test use
 
     make TEST_LOAD_EL=no ...
 

@@ -97,7 +97,8 @@ TEST_LOCALE = C
 # Whether to run tests from .el files in preference to .elc, we do
 # this by default since it gives nicer stacktraces.
 # If you just want a pass/fail, setting this to no is much faster.
-TEST_LOAD_EL ?= yes
+export TEST_LOAD_EL ?= \
+    $(if $(findstring $(MAKECMDGOALS), all check check-maybe),no,yes)
 
 # Additional settings for ert.
 ert_opts =

@@ -873,7 +873,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 
 (ert-deftest tramp-archive-test99-libarchive-tests ()
   "Run tests of libarchive test files."
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (skip-unless tramp-archive-enabled)
   ;; We do not want to run unless chosen explicitly.  This test makes
   ;; sense only in my local environment.  Michael Albinus.

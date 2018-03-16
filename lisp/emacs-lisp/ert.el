@@ -1383,7 +1383,15 @@ Returns the stats object."
                      (if (zerop skipped)
                          ""
                        (format ", %s skipped" skipped))
-                     (ert--format-time-iso8601 (ert--stats-end-time stats))
+                     (if ert-batch-print-duration
+                         (format
+                          "%s, %f sec"
+                          (ert--format-time-iso8601 (ert--stats-end-time stats))
+                          (float-time
+                           (time-subtract
+                            (ert--stats-end-time stats)
+                            (ert--stats-start-time stats))))
+                       (ert--format-time-iso8601 (ert--stats-end-time stats)))
                      (if (zerop expected-failures)
                          ""
                        (format "\n%s expected failures" expected-failures)))
