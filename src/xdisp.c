@@ -10173,9 +10173,14 @@ include the height of both, if present, in the return value.  */)
       RESTORE_IT (&it, &it2, it2data);
       x = move_it_to (&it, end, to_x, max_y, -1, move_op);
       /* Add the width of the thing at TO, but only if we didn't
-	 overshoot it; if we did, it is already accounted for.  */
+	 overshoot it; if we did, it is already accounted for.  Also,
+	 account for the height of the thing at TO.  */
       if (IT_CHARPOS (it) == end)
-	x += it.pixel_width;
+	{
+	  x += it.pixel_width;
+	  it.max_ascent = max (it.max_ascent, it.ascent);
+	  it.max_descent = max (it.max_descent, it.descent);
+	}
     }
   if (!NILP (x_limit))
     {
