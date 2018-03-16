@@ -54,6 +54,8 @@ Equivalent modes share a parser, and a set of override methods.
 A value of nil means that the current major mode is the only one.")
 (make-variable-buffer-local 'semantic-equivalent-major-modes)
 
+(declare-function semanticdb-file-stream "semantic/db" (file))
+
 ;; These semanticdb calls will throw warnings in the byte compiler.
 ;; Doing the right thing to make them available at compile time
 ;; really messes up the compilation sequence.
@@ -79,6 +81,11 @@ If FILE is not loaded, and semanticdb is not available, find the file
 
 (semantic-alias-obsolete 'semantic-file-token-stream
 			 'semantic-file-tag-table "23.2")
+
+(declare-function semanticdb-abstract-table-child-p "semantic/db" (obj) t)
+(declare-function semanticdb-refresh-table "semantic/db")
+(declare-function semanticdb-get-tags "semantic/db" (arg &rest args) t)
+(declare-function semanticdb-find-results-p "semantic/db-find" (resultp))
 
 (defun semantic-something-to-tag-table (something)
   "Convert SOMETHING into a semantic tag table.
@@ -140,6 +147,11 @@ buffer, or a filename.  If SOMETHING is nil return nil."
 (defvar semantic-read-symbol-history nil
   "History for a symbol read.")
 
+(declare-function semantic-brute-find-tag-by-function
+		  "semantic/find"
+		  (function streamorbuffer
+			    &optional search-parts search-includes))
+
 (defun semantic-read-symbol (prompt &optional default stream filter)
   "Read a symbol name from the user for the current buffer.
 PROMPT is the prompt to use.
@@ -154,6 +166,7 @@ FILTER must be a function to call on each element."
   (setq stream
 	(if filter
 	    (semantic--find-tags-by-function filter stream)
+	  (require 'semantic/find)
 	  (semantic-brute-find-tag-standard stream)))
   (if (and default (string-match ":" prompt))
       (setq prompt
@@ -366,6 +379,11 @@ NOTFIRST indicates that this was not the first call in the recursive use."
 ;; Senator.
 
 ;; Symbol completion
+
+(declare-function semanticdb-fast-strip-find-results
+		  "semantic/db-find" (results))
+(declare-function semanticdb-deep-find-tags-for-completion
+		  "semantic/db-find" (prefix &optional path find-file-match))
 
 (defun semantic-find-tag-for-completion (prefix)
   "Find all tags with name starting with PREFIX.
