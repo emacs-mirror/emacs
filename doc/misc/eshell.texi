@@ -330,7 +330,7 @@ List subprocesses of the Emacs process, if any, using the function
 @item kill
 @cmindex kill
 Kill processes.  Takes a PID or a process object and an optional
-signal specifier.
+signal specifier which can either be a number or a signal name.
 
 @item listify
 @cmindex listify

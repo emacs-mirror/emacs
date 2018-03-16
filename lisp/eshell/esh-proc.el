@@ -167,7 +167,8 @@ The signals which will cause this to happen are matched by
 (defun eshell/kill (&rest args)
   "Kill processes.
 Usage: kill [-<signal>] <pid>|<process> ...
-Accepts PIDs and process objects."
+Accepts PIDs and process objects.  Optionally accept signals
+and signal names."
   ;; If the first argument starts with a dash, treat it as the signal
   ;; specifier.
   (let ((signum 'SIGINT))
@@ -178,12 +179,12 @@ Accepts PIDs and process objects."
          ((string-match "\\`-[[:digit:]]+\\'" arg)
           (setq signum (abs (string-to-number arg))))
          ((string-match "\\`-\\([[:upper:]]+\\|[[:lower:]]+\\)\\'" arg)
-          (setq signum (abs (string-to-number arg)))))
+          (setq signum (intern (substring arg 1)))))
         (setq args (cdr args))))
     (while args
       (let ((arg (if (eshell-processp (car args))
                      (process-id (car args))
-                   (car args))))
+                   (string-to-number (car args)))))
         (when arg
           (cond
            ((null arg)
@@ -197,6 +198,8 @@ Accepts PIDs and process objects."
             (signal-process arg signum)))))
       (setq args (cdr args))))
   nil)
+
+(put 'eshell/kill 'eshell-no-numeric-conversions t)
 
 (defun eshell-read-process-name (prompt)
   "Read the name of a process from the minibuffer, using completion.
