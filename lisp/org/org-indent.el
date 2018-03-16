@@ -183,11 +183,15 @@ during idle time."
 		  org-hide-leading-stars)
       (setq-local org-hide-leading-stars t))
     (org-indent--compute-prefixes)
-    (add-hook 'filter-buffer-substring-functions
-	      (lambda (fun start end delete)
-		(org-indent-remove-properties-from-string
-		 (funcall fun start end delete)))
-	      nil t)
+    (if (boundp 'filter-buffer-substring-functions)
+	(add-hook 'filter-buffer-substring-functions
+		  (lambda (fun start end delete)
+		    (org-indent-remove-properties-from-string
+		     (funcall fun start end delete)))
+		  nil t)
+      ;; Emacs >= 24.4.
+      (add-function :filter-return (local 'filter-buffer-substring-function)
+		    #'org-indent-remove-properties-from-string))
     (add-hook 'after-change-functions 'org-indent-refresh-maybe nil 'local)
     (add-hook 'before-change-functions
 	      'org-indent-notify-modified-headline nil 'local)
@@ -211,10 +215,13 @@ during idle time."
     (when (boundp 'org-hide-leading-stars-before-indent-mode)
       (setq-local org-hide-leading-stars
 		  org-hide-leading-stars-before-indent-mode))
-    (remove-hook 'filter-buffer-substring-functions
-		 (lambda (fun start end delete)
-		   (org-indent-remove-properties-from-string
-		    (funcall fun start end delete))))
+    (if (boundp 'filter-buffer-substring-functions)
+	(remove-hook 'filter-buffer-substring-functions
+		     (lambda (fun start end delete)
+		       (org-indent-remove-properties-from-string
+			(funcall fun start end delete))))
+      (remove-function (local 'filter-buffer-substring-function)
+		       #'org-indent-remove-properties-from-string))
     (remove-hook 'after-change-functions 'org-indent-refresh-maybe 'local)
     (remove-hook 'before-change-functions
 		 'org-indent-notify-modified-headline 'local)
