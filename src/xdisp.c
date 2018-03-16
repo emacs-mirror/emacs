@@ -1381,6 +1381,29 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
   move_it_to (&it, charpos, -1, it.last_visible_y - 1, -1,
 	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
+  /* Adjust for line numbers, if CHARPOS is at or beyond first_visible_x,
+     but we didn't yet produce the line-number glyphs.  */
+  if (!NILP (Vdisplay_line_numbers)
+      && it.current_x >= it.first_visible_x
+      && IT_CHARPOS (it) == charpos
+      && !it.line_number_produced_p)
+    {
+      /* If the pixel width of line numbers was not yet known, compute
+	 it now.  This usually happens in the first display line of a
+	 window.  */
+      if (!it.lnum_pixel_width)
+	{
+	  struct it it2;
+	  void *it2data = NULL;
+
+	  SAVE_IT (it2, it, it2data);
+	  move_it_by_lines (&it, 1);
+	  it2.lnum_pixel_width = it.lnum_pixel_width;
+	  RESTORE_IT (&it, &it2, it2data);
+	}
+      it.current_x += it.lnum_pixel_width;
+    }
+
   if (charpos >= 0
       && (((!it.bidi_p || it.bidi_it.scan_dir != -1)
 	   && IT_CHARPOS (it) >= charpos)
