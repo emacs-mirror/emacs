@@ -77,6 +77,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'subr-x))
 
 (require 'gnus)
 (require 'gnus-int)
