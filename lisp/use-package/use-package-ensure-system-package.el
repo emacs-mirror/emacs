@@ -48,7 +48,11 @@
     (cons arg (use-package-ensure-system-package-install-command arg)))
    ((symbolp arg)
     (cons arg (use-package-ensure-system-package-install-command (symbol-name arg))))
-   ((consp arg) arg)))
+   ((consp arg)
+    (if (stringp (cdr arg))
+        arg
+      (cons (car arg)
+            (use-package-ensure-system-package-install-command (symbol-name (cdr arg))))))))
 
 ;;;###autoload
 (defun use-package-normalize/:ensure-system-package (name-symbol keyword args)
