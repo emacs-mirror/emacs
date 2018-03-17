@@ -77,21 +77,18 @@ For Emacs Lisp, return addsuffix command on source files."
 	  (ede-proj-makefile-sourcevar this)))
 
 (defvar ede-source-emacs
-  (ede-sourcecode "ede-emacs-source"
-		  :name "Emacs Lisp"
+  (ede-sourcecode :name "Emacs Lisp"
 		  :sourcepattern "\\.el$"
 		  :garbagepattern '("*.elc"))
   "Emacs Lisp source code definition.")
 
 (defvar ede-emacs-compiler
   (ede-compiler
-   "ede-emacs-compiler"
    :name "emacs"
    :variables '(("EMACS" . "emacs")
 		("EMACSFLAGS" . "-batch --no-site-file --eval '(setq debug-on-error t)'")
 		("require" . "$(foreach r,$(1),(require (quote $(r))))"))
    :rules (list (ede-makefile-rule
-		 "elisp-inference-rule"
 		 :target "%.elc"
 		 :dependencies "%.el"
 		 :rules '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \
@@ -103,7 +100,7 @@ For Emacs Lisp, return addsuffix command on source files."
   "Compile Emacs Lisp programs.")
 
 (defvar ede-xemacs-compiler
-  (clone ede-emacs-compiler "ede-xemacs-compiler"
+  (clone ede-emacs-compiler
 	 :name "xemacs"
 	 :variables '(("EMACS" . "xemacs")))
   "Compile Emacs Lisp programs with XEmacs.")
@@ -324,7 +321,6 @@ Lays claim to all .elc files that match .el files in this target."
 ;; Compilers
 (defvar ede-emacs-cedet-autogen-compiler
   (ede-compiler
-   "ede-emacs-autogen-compiler"
    :name "emacs"
    :variables '(("EMACS" . "emacs")
 		("EMACSFLAGS" . "-batch --no-site-file --eval '(setq debug-on-error t)'")
@@ -333,7 +329,7 @@ Lays claim to all .elc files that match .el files in this target."
    '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \
 --eval '(setq generated-autoload-file \"$(abspath $(LOADDEFS))\")' \
 -f batch-update-autoloads $(abspath $(LOADDIRS))")
-   :rules (list (ede-makefile-rule "clean-autoloads" :target "clean-autoloads" :phony t :rules '("rm -f $(LOADDEFS)")))
+   :rules (list (ede-makefile-rule :target "clean-autoloads" :phony t :rules '("rm -f $(LOADDEFS)")))
    :sourcetype '(ede-source-emacs)
    )
   "Build an autoloads file.")

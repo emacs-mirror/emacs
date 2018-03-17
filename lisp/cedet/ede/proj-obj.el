@@ -83,8 +83,7 @@ file.")
 ;;; C/C++ Compilers and Linkers
 ;;
 (defvar ede-source-c
-  (ede-sourcecode "ede-source-c"
-		  :name "C"
+  (ede-sourcecode :name "C"
 		  :sourcepattern "\\.c$"
 		  :auxsourcepattern "\\.h$"
 		  :garbagepattern '("*.o" "*.obj" ".deps/*.P" ".lo"))
@@ -92,14 +91,12 @@ file.")
 
 (defvar ede-gcc-compiler
   (ede-object-compiler
-   "ede-c-compiler-gcc"
    :name "gcc"
    :dependencyvar '("C_DEPENDENCIES" . "-Wp,-MD,.deps/$(*F).P")
    :variables '(("CC" . "gcc")
 		("C_COMPILE" .
 		 "$(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)"))
    :rules (list (ede-makefile-rule
-		 "c-inference-rule"
 		 :target "%.o"
 		 :dependencies "%.c"
 		 :rules '("@echo '$(C_COMPILE) -c $<'; \\"
@@ -115,7 +112,6 @@ file.")
 
 (defvar ede-cc-linker
   (ede-linker
-   "ede-cc-linker"
    :name "cc"
    :sourcetype '(ede-source-c)
    :variables  '(("C_LINK" . "$(CC) $(CFLAGS) $(LDFLAGS) -L."))
@@ -124,8 +120,7 @@ file.")
   "Linker for C sourcecode.")
 
 (defvar ede-source-c++
-  (ede-sourcecode "ede-source-c++"
-		  :name "C++"
+  (ede-sourcecode :name "C++"
 		  :sourcepattern "\\.\\(c\\(pp?\\|c\\|xx\\|++\\)\\|C\\(PP\\)?\\)$"
 		  :auxsourcepattern "\\.\\(hpp?\\|hh?\\|hxx\\|H\\)$"
 		  :garbagepattern '("*.o" "*.obj" ".deps/*.P" ".lo"))
@@ -133,7 +128,6 @@ file.")
 
 (defvar ede-g++-compiler
   (ede-object-compiler
-   "ede-c-compiler-g++"
    :name "g++"
    :dependencyvar '("CXX_DEPENDENCIES" . "-Wp,-MD,.deps/$(*F).P")
    :variables '(("CXX" "g++")
@@ -141,7 +135,6 @@ file.")
 		 "$(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)")
 		)
    :rules (list (ede-makefile-rule
-		 "c++-inference-rule"
 		 :target "%.o"
 		 :dependencies "%.cpp"
 		 :rules '("@echo '$(CXX_COMPILE) -c $<'; \\"
@@ -157,7 +150,6 @@ file.")
 
 (defvar ede-g++-linker
   (ede-linker
-   "ede-g++-linker"
    :name "g++"
    ;; Only use this linker when c++ exists.
    :sourcetype '(ede-source-c++)
@@ -169,15 +161,13 @@ file.")
 
 ;;; LEX
 (defvar ede-source-lex
-  (ede-sourcecode "ede-source-lex"
-		  :name "lex"
+  (ede-sourcecode :name "lex"
 		  :sourcepattern "\\.l\\(l\\|pp\\|++\\)")
   "Lex source code definition.
 No garbage pattern since it creates C or C++ code.")
 
 (defvar ede-lex-compiler
   (ede-object-compiler
-   "ede-lex-compiler"
    ;; Can we support regular makefiles too??
    :autoconf '("AC_PROG_LEX")
    :sourcetype '(ede-source-lex))
@@ -185,15 +175,13 @@ No garbage pattern since it creates C or C++ code.")
 
 ;;; YACC
 (defvar ede-source-yacc
-  (ede-sourcecode "ede-source-yacc"
-		  :name "yacc"
+  (ede-sourcecode :name "yacc"
 		  :sourcepattern "\\.y\\(y\\|pp\\|++\\)")
   "Yacc source code definition.
 No garbage pattern since it creates C or C++ code.")
 
 (defvar ede-yacc-compiler
   (ede-object-compiler
-   "ede-yacc-compiler"
    ;; Can we support regular makefiles too??
    :autoconf '("AC_PROG_YACC")
    :sourcetype '(ede-source-yacc))
@@ -203,16 +191,14 @@ No garbage pattern since it creates C or C++ code.")
 ;;
 ;; Contributed by David Engster
 (defvar ede-source-f90
-  (ede-sourcecode "ede-source-f90"
-		  :name "Fortran 90/95"
+  (ede-sourcecode :name "Fortran 90/95"
 		  :sourcepattern "\\.[fF]9[05]$"
 		  :auxsourcepattern "\\.incf$"
 		  :garbagepattern '("*.o" "*.mod" ".deps/*.P"))
   "Fortran 90/95 source code definition.")
 
 (defvar ede-source-f77
-  (ede-sourcecode "ede-source-f77"
-		  :name "Fortran 77"
+  (ede-sourcecode :name "Fortran 77"
 		  :sourcepattern "\\.\\([fF]\\|for\\)$"
 		  :auxsourcepattern "\\.incf$"
 		  :garbagepattern '("*.o" ".deps/*.P"))
@@ -220,14 +206,12 @@ No garbage pattern since it creates C or C++ code.")
 
 (defvar ede-gfortran-compiler
   (ede-object-compiler
-   "ede-f90-compiler-gfortran"
    :name "gfortran"
    :dependencyvar '("F90_DEPENDENCIES" . "-Wp,-MD,.deps/$(*F).P")
    :variables '(("F90" . "gfortran")
 		("F90_COMPILE" .
 		 "$(F90) $(DEFS) $(INCLUDES) $(F90FLAGS)"))
    :rules (list (ede-makefile-rule
-		 "f90-inference-rule"
 		 :target "%.o"
 		 :dependencies "%.f90"
 		 :rules '("@echo '$(F90_COMPILE) -c $<'; \\"
@@ -242,7 +226,6 @@ No garbage pattern since it creates C or C++ code.")
 
 (defvar ede-gfortran-module-compiler
   (clone ede-gfortran-compiler
-	 "ede-f90-module-compiler-gfortran"
 	 :name "gfortranmod"
 	 :sourcetype '(ede-source-f90)
 	 :commands '("$(F90_COMPILE) -c $^")
@@ -253,7 +236,6 @@ No garbage pattern since it creates C or C++ code.")
 
 (defvar ede-gfortran-linker
   (ede-linker
-   "ede-gfortran-linker"
    :name "gfortran"
    :sourcetype '(ede-source-f90 ede-source-f77)
    :variables  '(("F90_LINK" . "$(F90) $(CFLAGS) $(LDFLAGS) -L."))
@@ -265,7 +247,6 @@ No garbage pattern since it creates C or C++ code.")
 ;;
 (defvar ede-ld-linker
   (ede-linker
-   "ede-ld-linker"
    :name "ld"
    :variables  '(("LD" . "ld")
 		 ("LD_LINK" . "$(LD) $(LDFLAGS) -L."))

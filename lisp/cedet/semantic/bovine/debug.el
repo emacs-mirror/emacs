@@ -73,8 +73,7 @@ The RULE is for \"thing\" is 1.
 The MATCH for \"thing\" is 1.
 COLLECTION is a list of `things' that have been matched so far.
 LEXTOKEN, is a token returned by the lexer which is being matched."
-  (let ((frame (semantic-bovine-debug-frame "frame"
-					    :nonterm nonterm
+  (let ((frame (semantic-bovine-debug-frame :nonterm nonterm
 					    :rule rule
 					    :match match
 					    :collection collection
@@ -119,8 +118,7 @@ LEXTOKEN, is a token returned by the lexer which is being matched."
 (defun semantic-create-bovine-debug-error-frame (condition)
   "Create an error frame for bovine debugger.
 Argument CONDITION is the thrown error condition."
-  (let ((frame (semantic-bovine-debug-error-frame "frame"
-						  :condition condition)))
+  (let ((frame (semantic-bovine-debug-error-frame :condition condition)))
     (semantic-debug-set-frame semantic-debug-current-interface
 			      frame)
     frame))

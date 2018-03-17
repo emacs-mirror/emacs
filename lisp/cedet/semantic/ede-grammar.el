@@ -67,8 +67,7 @@ For Emacs Lisp, return addsuffix command on source files."
 	      (ede-proj-makefile-sourcevar this))))))
 
 (defvar semantic-ede-source-grammar-wisent
-  (ede-sourcecode "semantic-ede-grammar-source-wisent"
-		  :name "Wisent Grammar"
+  (ede-sourcecode :name "Wisent Grammar"
 		  :sourcepattern "\\.wy$"
 		  :garbagepattern '("*-wy.el")
 		  )
@@ -80,13 +79,11 @@ For Emacs Lisp, return addsuffix command on source files."
 
 (defvar semantic-ede-grammar-compiler-wisent
   (semantic-ede-grammar-compiler-class
-   "ede-emacs-wisent-compiler"
    :name "emacs"
    :variables '(("EMACS" . "emacs")
 		("EMACSFLAGS" . "-batch --no-site-file --eval '(setq debug-on-error t)'")
 		("require" . "$(foreach r,$(1),(require (quote $(r))))"))
    :rules (list (ede-makefile-rule
-		 "elisp-inference-rule"
 		 :target "%-wy.el"
 		 :dependencies "%.wy"
 		 :rules '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \
@@ -98,8 +95,7 @@ For Emacs Lisp, return addsuffix command on source files."
 
 
 (defvar semantic-ede-source-grammar-bovine
-  (ede-sourcecode "semantic-ede-grammar-source-bovine"
-		  :name "Bovine Grammar"
+  (ede-sourcecode :name "Bovine Grammar"
 		  :sourcepattern "\\.by$"
 		  :garbagepattern '("*-by.el")
 		  )
@@ -107,13 +103,11 @@ For Emacs Lisp, return addsuffix command on source files."
 
 (defvar semantic-ede-grammar-compiler-bovine
   (semantic-ede-grammar-compiler-class
-   "ede-emacs-wisent-compiler"
    :name "emacs"
    :variables '(("EMACS" . "emacs")
 		("EMACSFLAGS" . "-batch --no-site-file --eval '(setq debug-on-error t)'")
 		("require" . "$(foreach r,$(1),(require (quote $(r))))"))
    :rules (list (ede-makefile-rule
-		 "elisp-inference-rule"
 		 :target "%-by.el"
 		 :dependencies "%.by"
 		 :rules '("$(EMACS) $(EMACSFLAGS) $(addprefix -L ,$(LOADPATH)) \

@@ -1990,7 +1990,7 @@ have to be wrapped in that namespace."
 	      (list (semantic-tag-new-type inside-ns "namespace" tags nil)))
 	;; Create new semantic-table for the wrapped tags, since we don't want
 	;; the namespace to actually be a part of the header file.
-	(setq newtable (semanticdb-table "include with context"))
+	(setq newtable (semanticdb-table))
 	(oset newtable tags newtags)
 	(oset newtable parent-db (oref inctable parent-db))
 	(oset newtable file (oref inctable file)))

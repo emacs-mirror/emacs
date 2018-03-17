@@ -378,7 +378,6 @@ Optional argument POINT is where to look for the environment."
     (when prefix
       (require 'semantic/analyze)
       (semantic-analyze-context
-       "Context-for-texinfo"
        :buffer (current-buffer)
        :scope nil
        :bounds bounds

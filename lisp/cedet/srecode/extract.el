@@ -88,7 +88,7 @@ the dictionary entries were for that block of text."
     (save-restriction
       (narrow-to-region start end)
       (let ((dict (srecode-create-dictionary t))
-	    (state (srecode-extract-state "state"))
+	    (state (srecode-extract-state))
 	    )
 	(goto-char start)
 	(srecode-extract-method template dict state)

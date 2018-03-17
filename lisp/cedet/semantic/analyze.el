@@ -642,7 +642,6 @@ Returns an object based on symbol `semantic-analyze-context'."
       ;; for the argument.
       (setq context-return
 	    (semantic-analyze-context-functionarg
-	     "functionargument"
 	     :buffer (current-buffer)
 	     :function fntag
 	     :index arg
@@ -665,7 +664,6 @@ Returns an object based on symbol `semantic-analyze-context'."
 
       (setq context-return
 	    (semantic-analyze-context-assignment
-	     "assignment"
 	     :buffer (current-buffer)
 	     :assignee asstag
 	     :scope scope
@@ -683,7 +681,6 @@ Returns an object based on symbol `semantic-analyze-context'."
       ;; Nothing in particular
       (setq context-return
 	    (semantic-analyze-context
-	     "context"
 	     :buffer (current-buffer)
 	     :scope scope
 	     :bounds bounds

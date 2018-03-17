@@ -309,7 +309,7 @@ are from nesting data types."
 			     (list searchname)))
 		   (fullsearchname nil)
 
-		   (miniscope (semantic-scope-cache "mini"))
+		   (miniscope (semantic-scope-cache))
 		   ptag)
 
 	      ;; Find the next entry in the referenced type for
@@ -368,7 +368,7 @@ and PROTECTION is the level of protection offered by the relationship.
 Optional SCOPETYPES are additional scoped entities in which our parent might
 be found."
   (let ((lineage nil)
-	(miniscope (semantic-scope-cache "mini"))
+	(miniscope (semantic-scope-cache))
 	)
     (oset miniscope parents parents)
     (oset miniscope scope scopetypes)
@@ -644,7 +644,7 @@ whose tags can be searched when needed, OR it may be a scope object."
 	  ;; We need to make a mini scope, and only include the misc bits
 	  ;; that will help in finding the parent.  We don't really need
 	  ;; to do any of the stuff related to variables and what-not.
-	  (setq tmpscope (semantic-scope-cache "mini"))
+	  (setq tmpscope (semantic-scope-cache))
 	  (let* ( ;; Step 1:
 		 (scopetypes (cons type (semantic-analyze-scoped-types (point))))
 		 (parents (semantic-analyze-scope-nested-tags (point) scopetypes))

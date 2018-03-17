@@ -166,7 +166,6 @@ We can't use the built-in ring data structure because we need
 to delete some items from the ring when we don't have the data.")
 
 (defvar semantic-mru-bookmark-ring (semantic-bookmark-ring
-				    "Ring"
 				    :ring (make-ring 20))
   "The MRU bookmark ring.
 This ring tracks the most recent active tags of interest.")
