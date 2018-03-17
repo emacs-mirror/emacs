@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'ietf-drums)
 (require 'rfc2047)
 (autoload 'mm-encode-body "mm-bodies")

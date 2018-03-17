@@ -36,6 +36,7 @@
 
 ;; ======================================================================
 ;;; Code:
+(require 'cl-lib)
 (require 'newst-reader)
 (require 'widget)
 (require 'tree-widget)

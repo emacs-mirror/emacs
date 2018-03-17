@@ -87,6 +87,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup perl nil
   "Major mode for editing Perl code."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)

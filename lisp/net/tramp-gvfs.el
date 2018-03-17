@@ -103,6 +103,7 @@
 ;; option "--without-dbus".  Declare used subroutines and variables.
 (declare-function dbus-get-unique-name "dbusbind.c")
 
+(eval-when-compile (require 'cl-lib))
 (require 'tramp)
 
 (require 'dbus)

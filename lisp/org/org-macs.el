@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defmacro org-with-gensyms (symbols &rest body)
   (declare (debug (sexp body)) (indent 1))
   `(let ,(mapcar (lambda (s)

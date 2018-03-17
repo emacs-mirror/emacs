@@ -107,6 +107,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'tramp-gvfs)
 
 (autoload 'dired-uncache "dired")

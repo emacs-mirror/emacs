@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defun feature-symbols (feature)
   "Return the file and list of definitions associated with FEATURE.
 The value is actually the element of `load-history'

@@ -22,6 +22,7 @@
 ;;; Code:
 
 (eval-and-compile
+  (require 'cl-lib)
   (require 'flyspell)
   (require 'sgml-mode))
 (require 'js)

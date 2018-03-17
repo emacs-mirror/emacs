@@ -45,6 +45,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defgroup dns-mode nil
   "DNS master file mode configuration."
   :group 'data)

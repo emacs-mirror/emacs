@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'tramp)
 
 ;; Define SMB method ...

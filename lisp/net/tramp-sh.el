@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'tramp)
 
 ;; Pacify byte-compiler.

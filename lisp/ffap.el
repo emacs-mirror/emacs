@@ -104,6 +104,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'url-parse)
 (require 'thingatpt)
 

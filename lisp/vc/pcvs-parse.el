@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'pcvs-util)
 (require 'pcvs-info)
 

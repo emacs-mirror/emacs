@@ -63,6 +63,7 @@
 ;;   error if these "potentially" 1-valued forms actually return differing
 ;;   values.
 
+(eval-when-compile (require 'cl-lib))
 (require 'edebug)
 (provide 'testcover)
 

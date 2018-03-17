@@ -2226,6 +2226,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
     table))
 
 (defun completion-lisp-mode-hook ()
+  (require 'cl-lib)
   (setq completion-syntax-table completion-lisp-syntax-table)
   ;; Lisp Mode diffs
   (setq-local completion-separator-chars

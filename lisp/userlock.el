@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (define-error 'file-locked "File is locked" 'file-error)
 
 ;;;###autoload
