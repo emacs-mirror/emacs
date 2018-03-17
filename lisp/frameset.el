@@ -800,22 +800,17 @@ Internal use only."
              (cons nil
                    (and mb-frame
                         (frameset-frame-id mb-frame)))))))))
-  ;; Now store text-pixel width and height if it differs from the calculated
-  ;; width and height and the frame is not fullscreen.
+  ;; Now store text-pixel width and height if `frame-resize-pixelwise'
+  ;; is set.  (Bug#30141)
   (dolist (frame frame-list)
-    (unless (frame-parameter frame 'fullscreen)
-      (unless (eq (* (frame-parameter frame 'width)
-                     (frame-char-width frame))
-                  (frame-text-width frame))
-        (set-frame-parameter
-         frame 'frameset--text-pixel-width
-         (frame-text-width frame)))
-      (unless (eq (* (frame-parameter frame 'height)
-                     (frame-char-height frame))
-                  (frame-text-height frame))
-        (set-frame-parameter
-         frame 'frameset--text-pixel-height
-         (frame-text-height frame))))))
+    (when (and frame-resize-pixelwise
+               (not (frame-parameter frame 'fullscreen)))
+      (set-frame-parameter
+       frame 'frameset--text-pixel-width
+       (frame-text-width frame))
+      (set-frame-parameter
+       frame 'frameset--text-pixel-height
+       (frame-text-height frame)))))
 
 ;;;###autoload
 (cl-defun frameset-save (frame-list
