@@ -1342,9 +1342,6 @@ RESULT must be an `ert-test-result-with-condition'."
 (defvar ert-quiet nil
   "Non-nil makes ERT only print important information in batch mode.")
 
-(defvar ert-batch-print-duration nil
-  "Non-nil makes ERT print duration time of single tests in batch mode.")
-
 ;;;###autoload
 (defun ert-run-tests-batch (&optional selector)
   "Run the tests specified by SELECTOR, printing results to the terminal.
@@ -1371,7 +1368,7 @@ Returns the stats object."
           (let ((unexpected (ert-stats-completed-unexpected stats))
                 (skipped (ert-stats-skipped stats))
 		(expected-failures (ert--stats-failed-expected stats)))
-            (message "\n%sRan %s tests, %s results as expected%s%s (%s)%s\n"
+            (message "\n%sRan %s tests, %s results as expected%s%s (%s, %f sec)%s\n"
                      (if (not abortedp)
                          ""
                        "Aborted: ")
@@ -1383,15 +1380,11 @@ Returns the stats object."
                      (if (zerop skipped)
                          ""
                        (format ", %s skipped" skipped))
-                     (if ert-batch-print-duration
-                         (format
-                          "%s, %f sec"
-                          (ert--format-time-iso8601 (ert--stats-end-time stats))
-                          (float-time
-                           (time-subtract
-                            (ert--stats-end-time stats)
-                            (ert--stats-start-time stats))))
-                       (ert--format-time-iso8601 (ert--stats-end-time stats)))
+                     (ert--format-time-iso8601 (ert--stats-end-time stats))
+                     (float-time
+                      (time-subtract
+                       (ert--stats-end-time stats)
+                       (ert--stats-start-time stats)))
                      (if (zerop expected-failures)
                          ""
                        (format "\n%s expected failures" expected-failures)))
@@ -1463,17 +1456,14 @@ Returns the stats object."
             (let* ((max (prin1-to-string (length (ert--stats-tests stats))))
                    (format-string (concat "%9s  %"
                                           (prin1-to-string (length max))
-                                          "s/" max "  %S"
-                                          (if ert-batch-print-duration
-                                              " (%f sec)"))))
+                                          "s/" max "  %S (%f sec)")))
               (message format-string
                        (ert-string-for-test-result result
                                                    (ert-test-result-expected-p
                                                     test result))
                        (1+ (ert--stats-test-pos stats test))
                        (ert-test-name test)
-                       (if ert-batch-print-duration
-                           (ert-test-result-duration result)))))))))
+                       (ert-test-result-duration result))))))))
    nil))
 
 ;;;###autoload

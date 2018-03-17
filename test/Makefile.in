@@ -111,11 +111,6 @@ ifneq (${TEST_BACKTRACE_LINE_LENGTH},)
 ert_opts += --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
 endif
 
-# Whether the tests shall also report their duration.
-ifdef TEST_PRINT_TEST_DURATION
-ert_opts += --eval '(setq ert-batch-print-duration t)'
-endif
-
 ifeq (@HAVE_MODULES@, yes)
 MODULES_EMACSOPT := --module-assertions
 else
