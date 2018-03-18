@@ -1,6 +1,6 @@
 ;;; nnselect.el --- a virtual group backend   -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2018 Free Software Foundation, Inc.
 
 ;; Author: Andrew Cohen <cohen@andy.bu.edu>
 ;; Keywords: news mail
@@ -64,10 +64,6 @@
 
 (defvar gnus-inhibit-demon)
 (defvar gnus-message-group-art)
-
-(defvar nnselect-artlist nil
-  "Internal: stores the list of articles.")
-
 
 ;; For future use
 (defvoo nnselect-directory gnus-directory
@@ -186,6 +182,18 @@ as `(keyfunc member)' and the corresponding element is just
     ,articles 'nnselect-article-group 'nnselect-article-number)))
 
 
+(defmacro nnselect-add-prefix (group)
+  "Ensures that the group name has an nnselect prefix."
+  `(gnus-group-prefixed-name
+   (gnus-group-short-name ,group) '(nnselect "nnselect")))
+
+(defmacro nnselect-get-artlist (group)
+  "Retrieve the list of articles for the group"
+  `(when (gnus-nnselect-group-p ,group)
+    (gnus-group-get-parameter
+     ,group
+     'nnselect-artlist t)))
+
 ;;; User Customizable Variables:
 
 (defgroup nnselect nil
@@ -220,9 +228,10 @@ If this variable is nil, or if the provided function returns nil,
   t)
 
 
-(deffoo nnselect-request-group (group &optional server _dont-check info)
-  (let ((group (nnselect-possibly-change-group group server))
-	length)
+(deffoo nnselect-request-group (group &optional _server _dont-check info)
+  (let* ((group (nnselect-add-prefix group))
+	 (nnselect-artlist (nnselect-get-artlist group))
+	 length)
     ;; Check for cached select result or run the selection and cache
     ;; the result.
     (unless nnselect-artlist
@@ -242,11 +251,14 @@ If this variable is nil, or if the provided function returns nil,
                          length    ; total #
                          1         ; first #
                          length    ; last #
-                         group)))) ; group name
-  nnselect-artlist)
+                         group))) ; group name
+  nnselect-artlist))
 
-(deffoo nnselect-retrieve-headers (articles &optional _group _server fetch-old)
-  (setq gnus-newsgroup-selection (or gnus-newsgroup-selection nnselect-artlist))
+
+(deffoo nnselect-retrieve-headers (articles &optional group _server fetch-old)
+  (setq gnus-newsgroup-selection (or gnus-newsgroup-selection
+				     (nnselect-get-artlist
+				      (nnselect-add-prefix group))))
   (let ((gnus-inhibit-demon t)
 	(gartids (ids-by-group articles))
 	headers)
@@ -342,10 +354,9 @@ If this variable is nil, or if the provided function returns nil,
 	(gnus-request-article (cdr group-art) (car group-art)))
       group-art)))
 
+
 (deffoo nnselect-request-move-article
     (article _group _server accept-form &optional last _internal-move-group)
-  ;; is this necessary?
-  ;; (nnselect-possibly-change-group group server)
   (let* ((artgroup (nnselect-article-group article))
 	 (artnumber (nnselect-article-number article))
 	 (to-newsgroup (nth 1 accept-form))
@@ -368,8 +379,6 @@ If this variable is nil, or if the provided function returns nil,
 
 (deffoo nnselect-request-expire-articles
     (articles _group &optional _server force)
-  ;; is this necessary?
-  ;; (nnselect-possibly-change-group group server)
   (if force
       (let (not-expired)
 	(pcase-dolist (`(,artgroup . ,artids) (ids-by-group articles))
@@ -387,9 +396,8 @@ If this variable is nil, or if the provided function returns nil,
 	(sort (delq nil not-expired) '<))
     articles))
 
+
 (deffoo nnselect-warp-to-article ()
-  ;; is this necessary?
-;;   (nnselect-possibly-change-group gnus-newsgroup-name)
   (let* ((cur (if (> (gnus-summary-article-number) 0)
 		  (gnus-summary-article-number)
 		(error "Can't warp to a pseudo-article")))
@@ -402,11 +410,11 @@ If this variable is nil, or if the provided function returns nil,
     ;; try to clean up directly
 
     ;;first exit from the nnselect summary buffer.
-;    (gnus-summary-exit)
+    ;;(gnus-summary-exit)
     ;; and if the nnselect summary buffer in turn came from another
     ;; summary buffer we have to clean that summary up too.
- ;   (when (not (eq (cdr quit-config) 'group))
-;      (gnus-summary-exit))
+    ;;(when (not (eq (cdr quit-config) 'group))
+    ;;  (gnus-summary-exit))
     (gnus-summary-read-group-1 artgroup t t  nil
                                nil (list artnumber))))
 
@@ -425,9 +433,8 @@ If this variable is nil, or if the provided function returns nil,
       (setq gmark gnus-expirable-mark))
     gmark))
 
+
 (deffoo nnselect-request-set-mark (_group actions &optional _server)
-  ;; is this necessary?
-;;  (nnselect-possibly-change-group group server)
   (mapc
    (lambda (request) (gnus-request-set-mark (car request) (cdr request)))
    (nnselect-categorize
@@ -444,10 +451,11 @@ If this variable is nil, or if the provided function returns nil,
      actions)
     'car 'cdr)))
 
-(deffoo nnselect-request-update-info (group info &optional server)
-  (let ((group  (nnselect-possibly-change-group group server))
-	(gnus-newsgroup-selection (or gnus-newsgroup-selection
-	nnselect-artlist)))
+
+(deffoo nnselect-request-update-info (group info &optional _server)
+  (let* ((group  (nnselect-add-prefix group))
+	 (gnus-newsgroup-selection (or gnus-newsgroup-selection
+				       (nnselect-get-artlist group))))
     (gnus-info-set-marks info nil)
     (gnus-info-set-read info nil)
     (pcase-dolist (`(,artgroup . ,nartids)
@@ -467,7 +475,7 @@ If this variable is nil, or if the provided function returns nil,
 	    (delq nil
 		  (mapcar
 		   #'(lambda (art)
-		       (when (member (cdr art) read) (car art)))
+		       (when (memq (cdr art) read) (car art)))
 		   artids))))
 	  (pcase-dolist (`(,type . ,range) marks)
 	    (setq range (gnus-uncompress-sequence range))
@@ -476,13 +484,14 @@ If this variable is nil, or if the provided function returns nil,
 	     (delq nil
 		   (mapcar
 		    #'(lambda (art)
-			(when (member (cdr art) range)
+			(when (memq (cdr art) range)
 			  (car art)))  artids)))))))
     (gnus-set-active group (cons 1 (nnselect-artlist-length
 				    gnus-newsgroup-selection)))))
 
+
 (deffoo nnselect-request-thread (header &optional group server)
-  (let ((group (nnselect-possibly-change-group group server)) ;; necessary?
+  (let ((group (nnselect-add-prefix group))
 	;; find the best group for the originating article. if its a
 	;; pseudo-article look for real articles in the same thread
 	;; and see where they come from.
@@ -550,7 +559,7 @@ If this variable is nil, or if the provided function returns nil,
 			      (delq nil
 				    (mapcar
 				     #'(lambda (art)
-					 (when (member (cdr art) marked)
+					 (when (memq (cdr art) marked)
 					   (car art)))
 				     artids)))
 		  (nconc
@@ -568,12 +577,11 @@ If this variable is nil, or if the provided function returns nil,
       (and (gnus-warp-to-article) (gnus-summary-refer-thread)))))
 
 
-
-(deffoo nnselect-close-group (group &optional server)
-  (let ((group (nnselect-possibly-change-group group server)))
+(deffoo nnselect-close-group (group &optional _server)
+  (let ((group (nnselect-add-prefix group)))
     (unless gnus-group-is-exiting-without-update-p
       (nnselect-push-info group))
-    (setq nnselect-artlist nil)
+    (setq gnus-newsgroup-selection nil)
     (when (gnus-ephemeral-group-p group)
       (gnus-kill-ephemeral-group group)
       (setq gnus-ephemeral-servers
@@ -614,27 +622,27 @@ If this variable is nil, or if the provided function returns nil,
      (gnus-find-method-for-group
       (nnselect-article-group (cdr gnus-message-group-art))))))
 
+
 (deffoo nnselect-request-rename-group (_group _new-name &optional _server)
   t)
 
+
 (deffoo nnselect-request-scan (group _method)
   (when (and group
-	     (gnus-group-get-parameter
-	      (gnus-group-prefixed-name
-	       (gnus-group-short-name group)
-	       '(nnselect "nnselect")) 'nnselect-rescan t))
+	     (gnus-group-get-parameter  (nnselect-add-prefix group)
+					'nnselect-rescan t))
     (nnselect-request-group-scan group)))
 
 
-(deffoo nnselect-request-group-scan (group &optional server info)
-  (let ((group (nnselect-possibly-change-group group server)))
-	(gnus-group-set-parameter
-	 group 'nnselect-artlist
-	 (setq nnselect-artlist
-	       (nnselect-run
-		(gnus-group-get-parameter group 'nnselect-specs t))))
-	(nnselect-request-update-info
-	 group (or info (gnus-get-info group)))))
+(deffoo nnselect-request-group-scan (group &optional _server _info)
+  (let ((group (nnselect-add-prefix group)))
+    (gnus-group-set-parameter
+     group 'nnselect-artlist
+     (nnselect-run
+      (gnus-group-get-parameter group 'nnselect-specs t)))
+    ;; (nnselect-request-update-info
+    ;;  group (or info (gnus-get-info group)))
+    ))
 
 ;; Add any undefined required backend functions
 
@@ -654,20 +662,6 @@ If this variable is nil, or if the provided function returns nil,
   (let ((func (alist-get 'nnselect-function specs))
 	(args (alist-get 'nnselect-args specs)))
     (funcall func args)))
-
-
-(defun nnselect-possibly-change-group (group &optional _server)
-  "If GROUP method for SERVER is `nnselect' install the
-`nnselect-artlist'. Return the fully prefixed group name."
-  ;; (or (not server) (nnselect-server-opened server)
-  ;;     (nnselect-open-server server))
-  (let ((group  (gnus-group-prefixed-name
-		 (gnus-group-short-name group) '(nnselect "nnselect"))))
-    (when (gnus-nnselect-group-p group)
-      (setq nnselect-artlist (gnus-group-get-parameter
-			      group
-			      'nnselect-artlist t)))
-    group))
 
 
 (defun nnselect-search-thread (header)
