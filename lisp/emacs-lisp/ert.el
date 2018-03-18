@@ -1360,9 +1360,10 @@ Returns the stats object."
        (run-started
         (unless ert-quiet
           (cl-destructuring-bind (stats) event-args
-            (message "Running %s tests (%s)"
+            (message "Running %s tests (%s, selector `%S')"
                      (length (ert--stats-tests stats))
-                     (ert--format-time-iso8601 (ert--stats-start-time stats))))))
+                     (ert--format-time-iso8601 (ert--stats-start-time stats))
+                     selector))))
        (run-ended
         (cl-destructuring-bind (stats abortedp) event-args
           (let ((unexpected (ert-stats-completed-unexpected stats))
