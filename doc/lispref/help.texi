@@ -744,16 +744,17 @@ This function returns the name of the help buffer, which is normally
 @end defun
 
 @vindex help-window-select
-@defmac with-help-window buffer-name body@dots{}
+@defmac with-help-window buffer-or-name body@dots{}
 This macro evaluates @var{body} like @code{with-output-to-temp-buffer}
-(@pxref{Temporary Displays}), inserting any output produced by its forms
-into a buffer named @var{buffer-name}.  (Usually, @var{buffer-name}
-should be the value returned by the function @code{help-buffer}.)  It
-also puts the specified buffer into Help mode and displays a message
-telling the user how to quit and scroll the help window.  It selects the
-help window if the current value of the user option
-@code{help-window-select} has been set accordingly.  It returns the last
-value in @var{body}.
+(@pxref{Temporary Displays}), inserting any output produced by its
+forms into a buffer specified by @var{buffer-or-name}, which can be a
+buffer or the name of a buffer.  (Frequently, @var{buffer-or-name} is
+the value returned by the function @code{help-buffer}.)  This macro
+puts the specified buffer into Help mode and displays a message
+telling the user how to quit and scroll the help window.  It selects
+the help window if the current value of the user option
+@code{help-window-select} has been set accordingly.  It returns the
+last value in @var{body}.
 @end defmac
 
 @defun help-setup-xref item interactive-p
