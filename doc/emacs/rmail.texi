@@ -62,7 +62,7 @@ The message that is shown is called the @dfn{current message}.  Rmail
 mode's special commands can do such things as delete the current
 message, copy it into another file, send a reply, or move to another
 message.  You can also create multiple Rmail files (@pxref{Files}) and
-use Rmail to move messages between them (@pxref{Output}).
+use Rmail to move messages between them (@pxref{Rmail Output}).
 
 @cindex message number (Rmail)
   Within the Rmail file, messages are normally arranged sequentially in
