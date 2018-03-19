@@ -45,9 +45,11 @@ messages and show you where the errors occurred.
 @item M-x compile
 Run a compiler asynchronously under Emacs, with error messages going to
 the @file{*compilation*} buffer.
+
 @item M-x recompile
 Invoke a compiler with the same command as in the last invocation of
 @kbd{M-x compile}.
+
 @item M-x kill-compilation
 Kill the running compilation subprocess.
 @end table
@@ -115,12 +117,12 @@ was started.
 @vindex compilation-always-kill
   Starting a new compilation also kills any compilation already
 running in @file{*compilation*}, as the buffer can only handle one
-compilation at any time.  However, @kbd{M-x compile} asks for
-confirmation before actually killing a compilation that is running; to
-always automatically kill the compilation without asking, change the
-variable @code{compilation-always-kill} to @code{t}.  You can also
-kill a compilation process with the command @kbd{M-x
-kill-compilation}.
+compilation at any time.  However, @kbd{M-x compile} and @kbd{M-x
+recompile} ask for confirmation before actually killing a compilation
+that is running; to always automatically kill the compilation without
+asking, change the variable @code{compilation-always-kill} to
+@code{t}.  You can also kill a compilation process with the command
+@kbd{M-x kill-compilation}.
 
   To run two compilations at once, start the first one, then rename
 the @file{*compilation*} buffer (perhaps using @code{rename-uniquely};
@@ -401,7 +403,7 @@ The possible values are either @code{nil} (don't save), @code{ask}
 (and is called with the file name as the parameter and should return
 non-@code{nil} if the buffer is to be saved).  Any other
 non-@code{nil} value means that all buffers should be saved without
-asking.
+asking.  The default is @code{ask}.
 
 @findex grep-find
 @findex find-grep
@@ -490,8 +492,8 @@ see the Flymake Info manual, which is distributed with Emacs.
 
 The GUD (Grand Unified Debugger) library provides an Emacs interface
 to a wide variety of symbolic debuggers.  It can run the GNU Debugger
-(GDB), as well as DBX, SDB, XDB, Perl's debugging mode, the Python
-debugger PDB, and the Java Debugger JDB.
+(GDB), as well as DBX, SDB, XDB, Guile REPL debug commands, Perl's
+debugging mode, the Python debugger PDB, and the Java Debugger JDB.
 
   Emacs provides a special interface to GDB, which uses extra Emacs
 windows to display the state of the debugged program.  @xref{GDB
@@ -803,12 +805,14 @@ Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 @vindex perldb-mode-hook
 @vindex pdb-mode-hook
 @vindex jdb-mode-hook
+@vindex guiler-mode-hook
   On startup, GUD runs one of the following hooks:
 @code{gdb-mode-hook}, if you are using GDB; @code{dbx-mode-hook}, if
 you are using DBX; @code{sdb-mode-hook}, if you are using SDB;
-@code{xdb-mode-hook}, if you are using XDB; @code{perldb-mode-hook},
-for Perl debugging mode; @code{pdb-mode-hook}, for PDB;
-@code{jdb-mode-hook}, for JDB@.  @xref{Hooks}.
+@code{xdb-mode-hook}, if you are using XDB; @code{guiler-mode-hook}
+for Guile REPL debugging; @code{perldb-mode-hook}, for Perl debugging
+mode; @code{pdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB@.
+@xref{Hooks}.
 
   The @code{gud-def} Lisp macro (@pxref{Defining Macros,,, elisp, the
 Emacs Lisp Reference Manual}) provides a convenient way to define an
@@ -964,16 +968,18 @@ still in the right places.
 
 @table @asis
 @item @kbd{mouse-1} (in fringe)
-Set or clear a breakpoint on that line.
+Set or clear a breakpoint on that line
+(@code{gdb-mouse-set-clear-breakpoint}).
 
 @item @kbd{C-mouse-1} (in fringe)
-Enable or disable a breakpoint on that line.
+Enable or disable a breakpoint on that line
+(@code{gdb-mouse-toggle-breakpoint-margin}).
 
 @item @kbd{mouse-3} (in fringe)
-Continue execution to that line.
+Continue execution to that line (@code{gdb-mouse-until}).
 
 @item @kbd{C-mouse-3} (in fringe)
-Jump to that line.
+Jump to that line (@code{gdb-mouse-jump}).
 @end table
 
   On a graphical display, you can click @kbd{mouse-1} in the fringe of
@@ -1030,7 +1036,8 @@ Visit the source line for the current breakpoint
 
 @item mouse-2
 @kindex mouse-2 @r{(GDB Breakpoints buffer)}
-Visit the source line for the breakpoint you click on.
+Visit the source line for the breakpoint you click on
+(@code{gdb-goto-breakpoint}).
 @end table
 
 @vindex gdb-show-threads-by-default
@@ -1051,8 +1058,8 @@ point there and press @key{RET} (@code{gdb-select-thread}), or click on
 it with @kbd{mouse-2}.  This also displays the associated source
 buffer, and updates the contents of the other GDB buffers.
 
-  You can customize variables under @code{gdb-buffers} group to select
-fields included in GDB Threads buffer.
+  You can customize variables in the @code{gdb-buffers} group to
+select fields included in GDB Threads buffer.
 
 @table @code
 @item gdb-thread-buffer-verbose-names
