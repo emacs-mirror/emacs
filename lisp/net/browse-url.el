@@ -1243,7 +1243,9 @@ used instead of `browse-url-new-window-flag'."
 
 ;;;###autoload
 (defun browse-url-emacs (url &optional same-window)
-  "Ask Emacs to load URL into a buffer and show it in another window."
+  "Ask Emacs to load URL into a buffer and show it in another window.
+Optional argument SAME-WINDOW non-nil means show the URL in the
+currently selected window instead."
   (interactive (browse-url-interactive-arg "URL: "))
   (require 'url-handlers)
   (let ((file-name-handler-alist

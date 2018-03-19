@@ -144,6 +144,11 @@ for abbrevs that have them.
 
 * Changes in Specialized Modes and Packages in Emacs 27.1
 
+** Browse-url
+*** The function 'browse-url-emacs' can now visit a URL in selected window.
+It now treats the optional 2nd argument to mean that the URL should be
+shown in the currently selected window.
+
 ** Ecomplete
 *** The ecomplete sorting has changed to a decay-based algorithm.
 This can be controlled by the new `ecomplete-sort-predicate' variable.
