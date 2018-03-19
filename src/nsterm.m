@@ -288,6 +288,9 @@ static BOOL gsaved = NO;
 static BOOL ns_fake_keydown = NO;
 #ifdef NS_IMPL_COCOA
 static BOOL ns_menu_bar_is_hidden = NO;
+
+/* The number of times NSDisableScreenUpdates has been called.  */
+static int disable_screen_updates_count = 0;
 #endif
 /*static int debug_lock = 0; */
 
@@ -725,6 +728,40 @@ ns_release_autorelease_pool (void *pool)
 {
   ns_release_object (pool);
 }
+
+
+#ifdef NS_IMPL_COCOA
+/* Disabling screen updates can be used to make several actions appear
+   "atomic" to the end user.  It seems some actions can still update
+   the display, though.
+
+   When we re-enable screen updates the number of calls to
+   NSEnableScreenUpdates should match the number to
+   NSDisableScreenUpdates.
+
+   We use these functions to prevent the user seeing a blank frame
+   after it has been resized.  x_set_window_size disables updates and
+   when redisplay completes unwind_redisplay enables them again
+   (bug#30699).  */
+
+static void
+ns_disable_screen_updates (void)
+{
+  NSDisableScreenUpdates ();
+  disable_screen_updates_count++;
+}
+
+void
+ns_enable_screen_updates (void)
+/* Re-enable screen updates.  Called from unwind_redisplay.  */
+{
+  while (disable_screen_updates_count > 0)
+    {
+      NSEnableScreenUpdates ();
+      disable_screen_updates_count--;
+    }
+}
+#endif
 
 
 static BOOL
@@ -1876,6 +1913,15 @@ x_set_window_size (struct frame *f,
   NSTRACE_MSG ("Font %d x %d", FRAME_COLUMN_WIDTH (f), FRAME_LINE_HEIGHT (f));
 
   block_input ();
+
+#ifdef NS_IMPL_COCOA
+  /* To prevent showing the user a blank frame, stop updates being
+     flushed to the screen until after redisplay has completed.  This
+     breaks live resize (resizing with a mouse), so don't do it if
+     we're in a live resize loop.  */
+  if (![view inLiveResize])
+    ns_disable_screen_updates ();
+#endif
 
   if (pixelwise)
     {

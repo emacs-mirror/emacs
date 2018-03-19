@@ -13918,7 +13918,15 @@ redisplay_internal (void)
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NS)
   if (popup_activated ())
-    return;
+    {
+#ifdef NS_IMPL_COCOA
+      /* On macOS we may have disabled screen updates due to window
+         resizing.  We should re-enable them so the popup can be
+         displayed.  */
+      ns_enable_screen_updates ();
+#endif
+      return;
+    }
 #endif
 
   /* I don't think this happens but let's be paranoid.  */
@@ -14722,6 +14730,12 @@ unwind_redisplay (void)
 {
   redisplaying_p = false;
   unblock_buffer_flips ();
+#ifdef NS_IMPL_COCOA
+  /* On macOS we may have disabled screen updates due to window
+     resizing.  When redisplay completes we want to re-enable
+     them.  */
+  ns_enable_screen_updates ();
+#endif
 }
 
 
