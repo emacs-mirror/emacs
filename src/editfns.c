@@ -147,7 +147,7 @@ tzlookup (Lisp_Object zone, bool settz)
 
   if (NILP (zone))
     return local_tz;
-  else if (EQ (zone, Qt))
+  else if (EQ (zone, Qt) || EQ (zone, make_number (0)))
     {
       zone_string = "UTC0";
       new_tz = utc_tz;
