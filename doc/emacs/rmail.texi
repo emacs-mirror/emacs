@@ -1521,7 +1521,7 @@ instead of storing the data in inbox files.  The Mailutils
 its use for this is not recommended since it does not support encrypted
 connections---the Mailutils version does.
 Both versions of @command{movemail} work only with POP3, not with
-older versions of POP3.
+older versions of POP.
 
 @cindex @env{MAILHOST} environment variable
 @cindex POP3 mailboxes
