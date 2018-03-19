@@ -546,6 +546,10 @@ Run the Java debugger.
 @findex pdb
 Run the Python debugger.
 
+@item M-x guiler
+@findex guiler
+Run Guile REPL for debugging Guile Scheme programs.
+
 @item M-x dbx
 @findex dbx
 Run the DBX debugger.
