@@ -36,7 +36,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 static Lisp_Object Vselection_alist;
 
-/* NSPasteboardNameGeneral is pretty much analogous to X11 CLIPBOARD */
+/* NSPasteboardNameGeneral is pretty much analogous to X11 CLIPBOARD.  */
 static NSString *NXPrimaryPboard;
 static NSString *NXSecondaryPboard;
 

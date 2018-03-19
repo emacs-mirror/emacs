@@ -307,8 +307,8 @@ is currently being used."
   "Insert contents of `ns-working-text' as UTF-8 string and mark with
 `ns-working-overlay'.  Any previously existing working text is cleared first.
 The overlay is assigned the face `ns-working-text-face'."
-  ;; FIXME: if buffer is read-only, don't try to insert anything
-  ;;  and if text is bound to a command, execute that instead (Bug#1453)
+  ;; FIXME: if buffer is read-only, don't try to insert anything, and
+  ;; if text is bound to a command, execute that instead (Bug#1453).
   (interactive)
   (ns-delete-working-text)
   (let ((start (point)))
@@ -437,7 +437,7 @@ Lines are highlighted according to `ns-input-line'."
 ;;;; File handling.
 
 (defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
-"SKIP: real doc in xfns.c."
+  "SKIP: real doc in xfns.c."
   (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
 (defun ns-open-file-using-panel ()

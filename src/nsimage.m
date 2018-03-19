@@ -26,7 +26,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
 /* This should be the first include, as it may set up #defines affecting
-   interpretation of even the system includes. */
+   interpretation of even the system includes.  */
 #include <config.h>
 
 #include "lisp.h"
@@ -41,7 +41,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
    C interface.  This allows easy calling from C files.  We could just
    compile everything as Objective-C, but that might mean slower
-   compilation and possible difficulties on some platforms..
+   compilation and possible difficulties on some platforms.
 
    ========================================================================== */
 
@@ -226,7 +226,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
 
 /* Create image from monochrome bitmap. If both FG and BG are 0
-   (black), set the background to white and make it transparent. */
+   (black), set the background to white and make it transparent.  */
 - (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
            fg: (unsigned long)fg bg: (unsigned long)bg
 {
@@ -251,7 +251,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 
   {
-    /* pull bits out to set the (bytewise) alpha mask */
+    /* Pull bits out to set the (bytewise) alpha mask.  */
     int i, j, k;
     unsigned char *s = bits;
     unsigned char *rr = planes[0];
@@ -362,7 +362,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 
-/* attempt to pull out pixmap data from a BitmapImageRep; returns NO if fails */
+/* Attempt to pull out pixmap data from a BitmapImageRep; returns NO if fails.  */
 - (void) setPixmapData
 {
   NSEnumerator *reps;
@@ -386,15 +386,15 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 
-/* note; this and next work only for image created with initForXPMWithDepth,
-         initFromSkipXBM, or where setPixmapData was called successfully */
+/* Note: this and next work only for image created with initForXPMWithDepth,
+         initFromSkipXBM, or where setPixmapData was called successfully.  */
 /* return ARGB */
 - (unsigned long) getPixelAtX: (int)x Y: (int)y
 {
   if (bmRep == nil)
     return 0;
 
-  /* this method is faster but won't work for bitmaps */
+  /* This method is faster but won't work for bitmaps.  */
   if (pixmapData[0] != NULL)
     {
       int loc = x + y * [self size].width;
@@ -457,7 +457,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 }
 
-/* returns a pattern color, which is cached here */
+/* Returns a pattern color, which is cached here.  */
 - (NSColor *)stippleMask
 {
   if (stippleMask == nil)
@@ -465,7 +465,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   return stippleMask;
 }
 
-/* Find the first NSBitmapImageRep which has multiple frames. */
+/* Find the first NSBitmapImageRep which has multiple frames.  */
 - (NSBitmapImageRep *)getAnimatedBitmapImageRep
 {
   for (NSImageRep * r in [self representations])
@@ -481,7 +481,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 /* If the image has multiple frames, get a count of them and the
-   animation delay, if available. */
+   animation delay, if available.  */
 - (Lisp_Object)getMetadata
 {
   Lisp_Object metadata = Qnil;
@@ -502,7 +502,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   return metadata;
 }
 
-/* Attempt to set the animation frame to be displayed. */
+/* Attempt to set the animation frame to be displayed.  */
 - (BOOL)setFrame: (unsigned int) index
 {
   NSBitmapImageRep * bm = [self getAnimatedBitmapImageRep];
@@ -511,7 +511,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     {
       int frames = [[bm valueForProperty:NSImageFrameCount] intValue];
 
-      /* If index is invalid, give up. */
+      /* If index is invalid, give up.  */
       if (index < 0 || index > frames)
         return NO;
 
@@ -520,7 +520,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 
   /* Setting the frame has succeeded, or the image doesn't have
-     multiple frames. */
+     multiple frames.  */
   return YES;
 }
 

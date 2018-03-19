@@ -27,7 +27,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
 /* This should be the first include, as it may set up #defines affecting
-   interpretation of even the system includes. */
+   interpretation of even the system includes.  */
 #include <config.h>
 
 #include <math.h>
@@ -54,7 +54,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 static EmacsTooltip *ns_tooltip = nil;
 
-/* Static variables to handle applescript execution.  */
+/* Static variables to handle AppleScript execution.  */
 static Lisp_Object as_script, *as_result;
 static int as_status;
 
@@ -116,7 +116,7 @@ ns_get_window (Lisp_Object maybeFrame)
   id view =nil, window =nil;
 
   if (!FRAMEP (maybeFrame) || !FRAME_NS_P (XFRAME (maybeFrame)))
-    maybeFrame = selected_frame;/*wrong_type_argument (Qframep, maybeFrame); */
+    maybeFrame = selected_frame; /* wrong_type_argument (Qframep, maybeFrame); */
 
   if (!NILP (maybeFrame))
     view = FRAME_NS_VIEW (XFRAME (maybeFrame));
@@ -178,7 +178,7 @@ ns_directory_from_panel (NSSavePanel *panel)
 static Lisp_Object
 interpret_services_menu (NSMenu *menu, Lisp_Object prefix, Lisp_Object old)
 /* --------------------------------------------------------------------------
-   Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side
+   Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
    -------------------------------------------------------------------------- */
 {
   int i, count;
@@ -261,7 +261,7 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (FRAME_NS_VIEW (f))
     {
       update_face_from_frame_parameter (f, Qforeground_color, arg);
-      /*recompute_basic_faces (f); */
+      /* recompute_basic_faces (f); */
       if (FRAME_VISIBLE_P (f))
         SET_FRAME_GARBAGED (f);
     }
@@ -285,8 +285,9 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       error ("Unknown color");
     }
 
-  /* clear the frame; in some instances the NS-internal GC appears not to
-     update, or it does update and cannot clear old text properly */
+  /* Clear the frame; in some instances the NS-internal GC appears not
+     to update, or it does update and cannot clear old text
+     properly.  */
   if (FRAME_VISIBLE_P (f))
     ns_clear_frame (f);
 
@@ -356,7 +357,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   NSView *view = FRAME_NS_VIEW (f);
   NSTRACE ("x_set_icon_name");
 
-  /* see if it's changed */
+  /* See if it's changed.  */
   if (STRINGP (arg))
     {
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
@@ -556,14 +557,14 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (nlines)
     {
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
-      /* does for all frames, whereas we just want for one frame
+      /* Does for all frames, whereas we just want for one frame
 	 [NSMenu setMenuBarVisible: YES]; */
     }
   else
     {
       if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
         free_frame_menubar (f);
-      /*      [NSMenu setMenuBarVisible: NO]; */
+      /* [NSMenu setMenuBarVisible: NO]; */
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
     }
 }
@@ -573,11 +574,11 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 static void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  /* Currently, when the tool bar change state, the frame is resized.
+  /* Currently, when the tool bar changes state, the frame is resized.
 
      TODO: It would be better if this didn't occur when 1) the frame
      is full height or maximized or 2) when specified by
-     `frame-inhibit-implied-resize'. */
+     `frame-inhibit-implied-resize'.  */
   int nlines;
 
   NSTRACE ("x_set_tool_bar_lines");
@@ -694,7 +695,7 @@ ns_implicitly_set_icon_type (struct frame *f)
        chain = XCDR (chain))
     {
       elt = XCAR (chain);
-      /* special case: t means go by file type */
+      /* Special case: t means go by file type.  */
       if (SYMBOLP (elt) && EQ (elt, Qt) && SSDATA (f->name)[0] == '/')
         {
           NSString *str
@@ -744,7 +745,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       store_frame_param (f, Qicon_type, arg);
     }
 
-  /* do it the implicit way */
+  /* Do it the implicit way.  */
   if (NILP (arg))
     {
       ns_implicitly_set_icon_type (f);
@@ -780,7 +781,7 @@ x_set_cursor_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  /* don't think we can do this on Nextstep */
+  /* Don't think we can do this on Nextstep.  */
 }
 
 
@@ -809,7 +810,7 @@ ns_appkit_version_str (void)
 
 /* This is for use by x-server-version and collapses all version info we
    have into a single int.  For a better picture of the implementation
-   running, use ns_appkit_version_str.*/
+   running, use ns_appkit_version_str.  */
 static int
 ns_appkit_version_int (void)
 {
@@ -852,7 +853,8 @@ x_icon (struct frame *f, Lisp_Object parms)
 }
 
 
-/* Note: see frame.c for template, also where generic functions are impl */
+/* Note: see frame.c for template, also where generic functions are
+   implemented.  */
 frame_parm_handler ns_frame_parm_handlers[] =
 {
   x_set_autoraise, /* generic OK */
@@ -896,7 +898,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
 #ifdef NS_IMPL_COCOA
   x_set_undecorated,
 #else
-  0, /*x_set_undecorated */
+  0, /* x_set_undecorated */
 #endif
   x_set_parent_frame,
   0, /* x_set_skip_taskbar */
@@ -1127,7 +1129,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
     /* use for default font name */
     id font = [NSFont userFixedPitchFontOfSize: -1.0]; /* default */
     x_default_parameter (f, parms, Qfontsize,
-                                    make_number (0 /*(int)[font pointSize]*/),
+                                    make_number (0 /* (int)[font pointSize] */),
                                     "fontSize", "FontSize", RES_TYPE_NUMBER);
     // Remove ' Regular', not handled by backends.
     char *fontname = xstrdup ([[font displayName] UTF8String]);
@@ -1170,7 +1172,6 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("White"),
                       "background", "Background", RES_TYPE_STRING);
-  /* FIXME: not supported yet in Nextstep */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qleft_fringe, Qnil,
@@ -1252,7 +1253,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !EQ (tem, Qnil));
 
   /* NOTE: on other terms, this is done in set_mouse_color, however this
-     was not getting called under Nextstep */
+     was not getting called under Nextstep.  */
   f->output_data.ns->text_cursor = [NSCursor IBeamCursor];
   f->output_data.ns->nontext_cursor = [NSCursor arrowCursor];
   f->output_data.ns->modeline_cursor = [NSCursor pointingHandCursor];
@@ -1284,8 +1285,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   /* ns_display_info does not have a reference_count.  */
   f->terminal->reference_count++;
 
-  /* It is now ok to make the frame official even if we get an error below.
-     The frame needs to be on Vframe_list or making it visible won't work. */
+  /* It is now ok to make the frame official even if we get an error
+     below.  The frame needs to be on Vframe_list or making it visible
+     won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
 
   x_default_parameter (f, parms, Qicon_type, Qnil,
@@ -1379,7 +1381,7 @@ x_focus_frame (struct frame *f, bool noactivate)
 
 static BOOL
 ns_window_is_ancestor (NSWindow *win, NSWindow *candidate)
-/* Test whether CANDIDATE is an ancestor window of WIN. */
+/* Test whether CANDIDATE is an ancestor window of WIN.  */
 {
   if (candidate == NULL)
     return NO;
@@ -1408,7 +1410,8 @@ Frames are listed from topmost (first) to bottommost (last).  */)
     {
       Lisp_Object frame;
 
-      /* Check against [win parentWindow] so that it doesn't match itself. */
+      /* Check against [win parentWindow] so that it doesn't match
+	 itself.  */
       if (parent == nil || ns_window_is_ancestor (parent, [win parentWindow]))
         {
           XSETFRAME (frame, ((EmacsView *)[win delegate])->emacsframe);
@@ -1453,7 +1456,7 @@ Some window managers may refuse to restack windows.  */)
 
 DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
        0, 1, "",
-       doc: /* Pop up the font panel. */)
+       doc: /* Pop up the font panel.  */)
      (Lisp_Object frame)
 {
   struct frame *f = decode_window_system_frame (frame);
@@ -1698,8 +1701,8 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
      (Lisp_Object terminal)
 {
   check_ns_display_info (terminal);
-  /* This function has no real equivalent under NeXTstep.  Return nil to
-     indicate this. */
+  /* This function has no real equivalent under Nextstep.  Return nil to
+     indicate this.  */
   return Qnil;
 }
 
@@ -1722,12 +1725,12 @@ DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
   (Lisp_Object terminal)
 {
   check_ns_display_info (terminal);
-  /*NOTE: it is unclear what would best correspond with "protocol";
-          we return 10.3, meaning Panther, since this is roughly the
-          level that GNUstep's APIs correspond to.
-          The last number is where we distinguish between the Apple
-          and GNUstep implementations ("distributor-specific release
-          number") and give int'ized versions of major.minor. */
+  /* NOTE: it is unclear what would best correspond with "protocol";
+           we return 10.3, meaning Panther, since this is roughly the
+           level that GNUstep's APIs correspond to.  The last number
+           is where we distinguish between the Apple and GNUstep
+           implementations ("distributor-specific release number") and
+           give int'ized versions of major.minor.  */
   return list3i (10, 3, ns_appkit_version_int ());
 }
 
@@ -1806,7 +1809,8 @@ DEFUN ("x-display-visual-class", Fx_display_visual_class,
   else if ( depth == NSBestDepth (NSCalibratedRGBColorSpace, 8, 24, NO, NULL))
     return intern ("direct-color");
   else
-    /* color mgmt as far as we do it is really handled by Nextstep itself anyway */
+    /* Color management as far as we do it is really handled by
+       Nextstep itself anyway.  */
     return intern ("direct-color");
 }
 
@@ -1932,7 +1936,7 @@ DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
        doc: /* Determine font PostScript or family name for font NAME.
 NAME should be a string containing either the font name or an XLFD
 font descriptor.  If string contains `fontset' and not
-`fontset-startup', it is left alone. */)
+`fontset-startup', it is left alone.  */)
      (Lisp_Object name)
 {
   char *nm;
@@ -2049,7 +2053,7 @@ there was no result.  */)
    status as function value.  A zero is returned if compilation and
    execution is successful, in which case *RESULT is set to a Lisp
    string or a number containing the resulting script value.  Otherwise,
-   1 is returned. */
+   1 is returned.  */
 static int
 ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 {
@@ -2102,7 +2106,7 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
   return 0;
 }
 
-/* Helper function called from sendEvent to run applescript
+/* Helper function called from sendEvent to run AppleScript
    from within the main event loop.  */
 
 void
@@ -2117,7 +2121,7 @@ DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
        doc: /* Execute AppleScript SCRIPT and return the result.
 If compilation and execution are successful, the resulting script value
 is returned as a string, a number or, in the case of other constructs, t.
-In case the execution fails, an error is signaled. */)
+In case the execution fails, an error is signaled.  */)
      (Lisp_Object script)
 {
   Lisp_Object result;
@@ -2133,10 +2137,10 @@ In case the execution fails, an error is signaled. */)
   as_script = script;
   as_result = &result;
 
-  /* executing apple script requires the event loop to run, otherwise
+  /* Executing AppleScript requires the event loop to run, otherwise
      errors aren't returned and executeAndReturnError hangs forever.
-     Post an event that runs applescript and then start the event loop.
-     The event loop is exited when the script is done.  */
+     Post an event that runs AppleScript and then start the event
+     loop.  The event loop is exited when the script is done.  */
   nxev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
                             location: NSMakePoint (0, 0)
                        modifierFlags: 0
@@ -2149,8 +2153,8 @@ In case the execution fails, an error is signaled. */)
 
   [NSApp postEvent: nxev atStart: NO];
 
-  // If there are other events, the event loop may exit.  Keep running
-  // until the script has been handled.  */
+  /* If there are other events, the event loop may exit.  Keep running
+     until the script has been handled.  */
   ns_init_events (&ev);
   while (! NILP (as_script))
     [NSApp run];
@@ -2203,7 +2207,7 @@ x_set_scroll_bar_default_height (struct frame *f)
 				       height - 1) / height;
 }
 
-/* terms impl this instead of x-get-resource directly */
+/* Terms implement this instead of x-get-resource directly.  */
 char *
 x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
 {
@@ -2381,7 +2385,7 @@ ns_screen_name (CGDirectDisplayID did)
       /* CGDisplayIOServicePort is deprecated.  Do it another (harder) way.
 
          Is this code OK for macOS < 10.9, and GNUstep?  I suspect it is,
-         in which case is it worth keeping the other method in here? */
+         in which case is it worth keeping the other method in here?  */
 
       if (IOMasterPort (MACH_PORT_NULL, &masterPort) != kIOReturnSuccess
           || IOServiceGetMatchingServices (masterPort,
@@ -2620,7 +2624,7 @@ compute_tip_xy (struct frame *f,
 	      - height);
     }
 
-  /* Find the screen that pt is on. */
+  /* Find the screen that pt is on.  */
   for (screen in [NSScreen screens])
     if (pt.x >= screen.frame.origin.x
         && pt.x < screen.frame.origin.x + screen.frame.size.width
@@ -2633,13 +2637,13 @@ compute_tip_xy (struct frame *f,
          if (CGRectContainsPoint ([screen frame], pt))
 
      which would be neater, but it causes problems building on old
-     versions of macOS and in GNUstep. */
+     versions of macOS and in GNUstep.  */
 
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
   if (INTEGERP (left) || INTEGERP (right))
     *root_x = pt.x;
   else if (pt.x + XINT (dx) <= screen.frame.origin.x)
-    *root_x = screen.frame.origin.x; /* Can happen for negative dx */
+    *root_x = screen.frame.origin.x;
   else if (pt.x + XINT (dx) + width
 	   <= screen.frame.origin.x + screen.frame.size.width)
     /* It fits to the right of the pointer.  */
@@ -2658,7 +2662,7 @@ compute_tip_xy (struct frame *f,
     *root_y = pt.y - height - XINT (dy);
   else if (pt.y + XINT (dy) + height
 	   <= screen.frame.origin.y + screen.frame.size.height)
-    /* It fits above the pointer */
+    /* It fits above the pointer.  */
       *root_y = pt.y + XINT (dy);
   else
     /* Put it on the top.  */
@@ -2885,7 +2889,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
 {
 #ifdef NS_IMPL_COCOA
   /* GNUstep doesn't support CGWarpMouseCursorPosition, so none of
-     this will work. */
+     this will work.  */
   struct frame *f = SELECTED_FRAME ();
   EmacsView *view = FRAME_NS_VIEW (f);
   NSScreen *screen = [[view window] screen];
@@ -2923,7 +2927,7 @@ DEFUN ("ns-mouse-absolute-pixel-position",
        doc: /* Return absolute position of mouse cursor in pixels.
 The position is returned as a cons cell (X . Y) of the
 coordinates of the mouse cursor position in pixels relative to a
-position (0, 0) of the selected frame's terminal. */)
+position (0, 0) of the selected frame's terminal.  */)
      (void)
 {
   struct frame *f = SELECTED_FRAME ();
@@ -2983,8 +2987,7 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
         case NSPageDownFunctionKey:
         case NSEndFunctionKey:
           /* Don't send command modified keys, as those are handled in the
-             performKeyEquivalent method of the super class.
-          */
+             performKeyEquivalent method of the super class.  */
           if (! ([theEvent modifierFlags] & NSEventModifierFlagCommand))
             {
               [panel sendEvent: theEvent];
@@ -2996,8 +2999,7 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
              them here.  TODO: handle Emacs key bindings for copy/cut/select-all
              here, paste works, because we have that in our Edit menu.
              I.e. refactor out code in nsterm.m, keyDown: to figure out the
-             correct modifier.
-          */
+             correct modifier.  */
         case 'x': // Cut
         case 'c': // Copy
         case 'v': // Paste
