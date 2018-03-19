@@ -277,7 +277,8 @@ check-maybe: check-no-automated-subdir
 ## summarizing step from running when there is an error.
 check-doit:
 	-@${MAKE} -k  ${LOGFILES}
-	@$(emacs) -l ert -f ert-summarize-tests-batch-and-exit ${LOGFILES}
+	@$(emacs) -l ert --eval \
+	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 

@@ -65,6 +65,11 @@ compiled version of a test use
 
     make TEST_LOAD_EL=no ...
 
+Some tests might take long time to run.  In order to summarize the
+<nn> tests with the longest duration, call
+
+    make SUMMARIZE_TESTS=<nn> ...
+
 
 (Also, see etc/compilation.txt for compilation mode font lock tests.)
 

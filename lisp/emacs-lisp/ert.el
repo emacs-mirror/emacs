@@ -1491,20 +1491,23 @@ the tests)."
       (kill-emacs 2))))
 
 
-(defun ert-summarize-tests-batch-and-exit ()
+(defun ert-summarize-tests-batch-and-exit (&optional high)
   "Summarize the results of testing.
 Expects to be called in batch mode, with logfiles as command-line arguments.
 The logfiles should have the `ert-run-tests-batch' format.  When finished,
-this exits Emacs, with status as per `ert-run-tests-batch-and-exit'."
+this exits Emacs, with status as per `ert-run-tests-batch-and-exit'.
+
+If HIGH is a natural number, the HIGH long lasting tests are summarized."
   (or noninteractive
       (user-error "This function is only for use in batch mode"))
+  (or (natnump high) (setq high 0))
   ;; Better crash loudly than attempting to recover from undefined
   ;; behavior.
   (setq attempt-stack-overflow-recovery nil
         attempt-orderly-shutdown-on-fatal-signal nil)
   (let ((nlogs (length command-line-args-left))
         (ntests 0) (nrun 0) (nexpected 0) (nunexpected 0) (nskipped 0)
-        nnotrun logfile notests badtests unexpected skipped)
+        nnotrun logfile notests badtests unexpected skipped tests)
     (with-temp-buffer
       (while (setq logfile (pop command-line-args-left))
         (erase-buffer)
@@ -1527,7 +1530,15 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
             (when (match-string 5)
               (push logfile skipped)
               (setq nskipped (+ nskipped
-                                (string-to-number (match-string 5)))))))))
+                                (string-to-number (match-string 5)))))
+            (unless (zerop high)
+              (goto-char (point-min))
+              (while (< (point) (point-max))
+                (if (looking-at "^\\s-+\\w+\\s-+[[:digit:]]+/[[:digit:]]+\\s-+\\S-+\\s-+(\\([.[:digit:]]+\\)\\s-+sec)$")
+                    (push (cons (string-to-number (match-string 1))
+                                (match-string 0))
+                          tests))
+                (forward-line)))))))
     (setq nnotrun (- ntests nrun))
     (message "\nSUMMARY OF TEST RESULTS")
     (message "-----------------------")
@@ -1558,6 +1569,12 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
     (when unexpected
       (message "%d files contained unexpected results:" (length unexpected))
       (mapc (lambda (l) (message "  %s" l)) unexpected))
+    (unless (or (null tests) (zerop high))
+      (message "\nLONG-RUNNING TESTS")
+      (message "------------------")
+      (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
+      (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
+      (message "%s" (mapconcat 'cdr tests "\n")))
     ;; More details on hydra, where the logs are harder to get to.
     (when (and (getenv "EMACS_HYDRA_CI")
                (not (zerop (+ nunexpected nskipped))))
