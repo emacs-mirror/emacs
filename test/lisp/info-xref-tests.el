@@ -155,7 +155,6 @@ text.
     (with-current-buffer info-xref-output-buffer
       (goto-char (point-max))
       (should (search-backward "done" nil t))
-      (re-search-forward "\\([0-9]+\\) bad" (line-end-position) t)
       (should (string-match-p
                " [0-9]\\{3,\\} good, 0 bad"
                (buffer-substring-no-properties (line-beginning-position)
