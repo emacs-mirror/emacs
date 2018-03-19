@@ -167,7 +167,7 @@ to writing a completion function."
   (eshell-cmpl--custom-variable-docstring 'pcomplete-suffix-list)
   :type (get 'pcomplete-suffix-list 'custom-type)
   :group 'pcomplete)
-;; Only labelled obsolete in 26.1, but all it does it set
+;; Only labeled obsolete in 26.1, but all it does it set
 ;; pcomplete-suffix-list, which is itself obsolete since 24.1.
 (make-obsolete-variable 'eshell-cmpl-suffix-list nil "24.1")
 
