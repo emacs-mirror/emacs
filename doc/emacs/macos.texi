@@ -21,7 +21,7 @@ begin with @samp{ns-}, which is short for @samp{Nextstep}.  NeXTstep
 was an application interface released by NeXT Inc.@: during the 1980s,
 of which Cocoa is a direct descendant.  Apart from Cocoa, there is
 another NeXTstep-style system: GNUstep, which is free software.  As of
-this writing, Emacs GNUstep support is alpha status (@pxref{GNUstep
+this writing, Emacs GNUstep support is in alpha status (@pxref{GNUstep
 Support}), but we hope to improve it in the future.
 
 @menu
@@ -34,6 +34,7 @@ Support}), but we hope to improve it in the future.
 @node Mac / GNUstep Basics
 @section Basic Emacs usage under macOS and GNUstep
 
+@cindex modifier keys (macOS)
   By default, the @key{Alt} and @key{Option} keys are the same as
 @key{Meta}.  The Mac @key{Cmd} key is the same as @key{Super}, and
 Emacs provides a set of key bindings using this modifier key that mimic
@@ -47,7 +48,7 @@ behavior of the right @key{Alt} and @key{Option} keys.  These keys
 behave like the left-hand keys if the value is @code{left} (the
 default).  A value of @code{control}, @code{meta}, @code{alt},
 @code{super}, or @code{hyper} makes them behave like the corresponding
-modifier keys; a value to @code{left} means be the same key as
+modifier keys; a value of @code{left} means be the same key as
 @code{ns-alternate-modifier}; a value of @code{none} tells Emacs to
 ignore them, in which case you get the default behavior of macOS
 accentuation system from the right option key.
@@ -64,6 +65,7 @@ dialogs to read file names.  However, if you use the regular Emacs key
 sequences, such as @kbd{C-x C-f}, Emacs uses the minibuffer to read
 file names.
 
+@cindex copy/paste to/from primary selection (macOS)
   On GNUstep, in an X-windows environment you need to use @kbd{Cmd-c}
 instead of one of the @kbd{C-w} or @kbd{M-w} commands to transfer text
 to the X primary selection; otherwise, Emacs will use the
@@ -76,6 +78,7 @@ clipboard.
 
 @c How is this any different to launching from a window manager menu
 @c in GNU/Linux?  These are sometimes not login shells either.
+@cindex environment variables (macOS)
 Many programs which may run under Emacs, like latex or man, depend on the
 settings of environment variables.  If Emacs is launched from the shell, it
 will automatically inherit these environment variables and its subprocesses
@@ -98,6 +101,7 @@ keys and the fullscreen behavior.  To see all such options, use
 
 @subsection Font and Color Panels
 
+@findex ns-popup-font-panel
 The standard Mac / GNUstep font and color panels are accessible via
 Lisp commands.  The Font Panel may be accessed with @kbd{M-x
 ns-popup-font-panel}.  It will set the default font in the frame most
@@ -106,6 +110,7 @@ recently used or clicked on.
 @c  To make the setting permanent, use @samp{Save Options} in the
 @c Options menu, or run @code{menu-bar-options-save}.
 
+@findex ns-popup-color-panel
 You can bring up a color panel with @kbd{M-x ns-popup-color-panel} and
 drag the color you want over the Emacs face you want to change.  Normal
 dragging will alter the foreground color.  Shift dragging will alter the
@@ -119,6 +124,7 @@ Useful in this context is the listing of all faces obtained by
 @kbd{M-x list-faces-display}.
 
 @cindex Core Text, on macOS
+@cindex font backend, on macOS
 In macOS, Emacs uses a Core Text based font backend
 by default.  If you prefer the older font style, enter the following
 at the command-line before starting Emacs:
@@ -130,6 +136,7 @@ at the command-line before starting Emacs:
 
 @node Mac / GNUstep Events
 @section Windowing System Events under macOS / GNUstep
+@cindex events on macOS
 
   Nextstep applications receive a number of special events which have
 no X equivalent.  These are sent as specially defined key events, which
@@ -152,7 +159,7 @@ You can change how Emacs responds to a @code{ns-open-file} event by
 changing the variable @code{ns-pop-up-frames}.  Its default value,
 @samp{fresh}, is what we have just described.  A value of @code{t}
 means to always visit the file in a new frame.  A value of @code{nil}
-means to always visit the file in an existing frame.
+means to always visit the file in the selected frame.
 
 @item ns-open-temp-file
 This event occurs when another application requests that Emacs open a
@@ -195,6 +202,7 @@ This event occurs when the user logs out and Emacs is still running, or when
 The default behavior is to save all file-visiting buffers.
 @end table
 
+@cindex using Nextstep services (macOS)
   Emacs also allows users to make use of Nextstep services, via a set
 of commands whose names begin with @samp{ns-service-} and end with the
 name of the service.  Type @kbd{M-x ns-service-@key{TAB}} to
