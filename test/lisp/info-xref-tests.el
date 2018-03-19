@@ -144,4 +144,22 @@ text.
                                (format "%s.info" (file-name-sans-extension
                                                   tempfile2)))))))
 
+(ert-deftest info-xref-test-emacs-manuals ()
+  "Test that all internal links in the Emacs manuals work."
+  :tags '(:expensive-test)
+  (require 'info)
+  (let ((default-directory (car (Info-default-dirs)))
+        (Info-directory-list '(".")))
+    (skip-unless (file-readable-p "emacs.info"))
+    (info-xref-check-all)
+    (with-current-buffer info-xref-output-buffer
+      (goto-char (point-max))
+      (should (search-backward "done" nil t))
+      (re-search-forward "\\([0-9]+\\) bad" (line-end-position) t)
+      (should (string-match-p
+               " [0-9]\\{3,\\} good, 0 bad"
+               (buffer-substring-no-properties (line-beginning-position)
+                                               (line-end-position)))))))
+
+
 ;;; info-xref.el ends here
