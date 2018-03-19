@@ -1181,7 +1181,7 @@ become up-to-date as a direct result of a VC command, it is listed.
 
 @noindent
 Two work files have been modified but not committed:
-@file{configure.ac} in the current directory, and @file{foo.c} in the
+@file{configure.ac} in the current directory, and @file{main.c} in the
 @file{src/} subdirectory.  The file named @file{README} has been added
 but is not yet committed, while @file{temp.txt} is not under version
 control (@pxref{Registering}).
