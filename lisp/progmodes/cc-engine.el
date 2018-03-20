@@ -10538,13 +10538,6 @@ comment at the start of cc-engine.el for more info."
 		      (looking-at c-return-key))
 		 (setq braceassignp t)
 		 nil)
-		((and c-has-compound-literals
-		      (eq (char-after) ?,))
-		 (save-excursion
-		   (when (and (c-go-up-list-backward nil lim)
-			      (eq (char-after) ?\())
-		     (setq braceassignp t)
-		     nil)))
 		((eq (char-after) ?=)
 		 ;; We've seen a =, but must check earlier tokens so
 		 ;; that it isn't something that should be ignored.
