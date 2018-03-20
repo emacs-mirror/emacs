@@ -4628,12 +4628,28 @@ Use the `ls' command."
 	 (coding-system-for-write utf8)
 	 (file-name-coding-system
 	  (coding-system-change-eol-conversion utf8 'unix)))
-    (tramp--test-check-files
-     (unless (tramp--test-hpux-p) "Γυρίστε το Γαλαξία με Ώτο Στοπ")
-     (unless (tramp--test-hpux-p)
-       "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
-     "银河系漫游指南系列"
-     "Автостопом по гала́ктике")))
+    (apply
+     'tramp--test-check-files
+     (if (tramp--test-expensive-test)
+	 (delete-dups
+	  (mapcar
+	   ;; Use all available language specific snippets.  Filter
+	   ;; out strings which use unencodable characters.  Remove
+	   ;; slash or newline.  Not Tramp's business.
+	   (lambda (x)
+	     (setq x (eval (cdr (assoc 'sample-text x))))
+	     (unless (or (null x)
+			 (unencodable-char-position
+			  nil nil file-name-coding-system nil x))
+	       (replace-regexp-in-string "[\n/]" "" x)))
+	   language-info-alist))
+
+       (list
+	(unless (tramp--test-hpux-p) "Γυρίστε το Γαλαξία με Ώτο Στοπ")
+	(unless (tramp--test-hpux-p)
+	  "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
+	"银河系漫游指南系列"
+	"Автостопом по гала́ктике")))))
 
 (ert-deftest tramp-test39-utf8 ()
   "Check UTF8 encoding in file names and file contents."
