@@ -137,7 +137,7 @@
   '(;; Functions
     (nil "^[ \t]*sub\\s-+\\([-[:alnum:]+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^[ \t]*\\(?:anon\\|argument\\|has\\|local\\|my\\|our\\|state\\|supersede\\)\\s-+\\([$@%][-[:alnum:]+_:]+\\)\\s-*=" 1)
+    ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-[:alnum:]+_:]+\\)\\s-*=" 1)
     ("Packages" "^[ \t]*package\\s-+\\([-[:alnum:]+_:]+\\);" 1)
     ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
@@ -181,9 +181,8 @@
                             "BEGIN" "END" "return" "exec" "eval") t)
               "\\>")
      ;;
-     ;; Fontify declarators and prefixes as types.
-     ("\\<\\(anon\\|argument\\|has\\|local\\|my\\|our\\|state\\|supersede\\)\\>" . font-lock-type-face) ; declarators
-     ("\\<\\(let\\|temp\\)\\>" . font-lock-type-face) ; prefixes
+     ;; Fontify local and my keywords as types.
+     ("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
      ;;
      ;; Fontify function, variable and file name references.
      ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
