@@ -255,54 +255,55 @@ If this variable is nil, or if the provided function returns nil,
   nnselect-artlist))
 
 
-(deffoo nnselect-retrieve-headers (articles &optional group _server fetch-old)
-  (setq gnus-newsgroup-selection (or gnus-newsgroup-selection
-				     (nnselect-get-artlist
-				      (nnselect-add-prefix group))))
-  (let ((gnus-inhibit-demon t)
-	(gartids (ids-by-group articles))
-	headers)
-    (with-current-buffer nntp-server-buffer
-      (pcase-dolist (`(,artgroup . ,artids) gartids)
-	(let ((artlist (sort (mapcar 'cdr artids) '<))
-	      (gnus-override-method (gnus-find-method-for-group artgroup))
-	      (fetch-old
-	       (or
-		(car-safe
-		 (gnus-group-find-parameter artgroup 'gnus-fetch-old-headers t))
-		fetch-old))
-	      parsefunc)
-	  (erase-buffer)
-	  (pcase (setq gnus-headers-retrieved-by
-		       (or
-			(and
-			 nnselect-retrieve-headers-override-function
-			 (funcall nnselect-retrieve-headers-override-function
-				  artlist artgroup))
-			(gnus-retrieve-headers artlist artgroup fetch-old)))
-	    ('nov
-	     (setq parsefunc 'nnheader-parse-nov))
-	    ('headers
-	     (setq parsefunc 'nnheader-parse-head))
-	    (_ (error "Unknown header type %s while requesting articles \
+(deffoo nnselect-retrieve-headers (articles group &optional _server fetch-old)
+  (let ((group (nnselect-add-prefix group)))
+    (with-current-buffer (gnus-summary-buffer-name group)
+      (setq gnus-newsgroup-selection (or gnus-newsgroup-selection
+					 (nnselect-get-artlist group)))
+      (let ((gnus-inhibit-demon t)
+	    (gartids (ids-by-group articles))
+	    headers)
+	(with-current-buffer nntp-server-buffer
+	  (pcase-dolist (`(,artgroup . ,artids) gartids)
+	    (let ((artlist (sort (mapcar 'cdr artids) '<))
+		  (gnus-override-method (gnus-find-method-for-group artgroup))
+		  (fetch-old
+		   (or
+		    (car-safe
+		     (gnus-group-find-parameter artgroup 'gnus-fetch-old-headers t))
+		    fetch-old))
+		  parsefunc)
+	      (erase-buffer)
+	      (pcase (setq gnus-headers-retrieved-by
+			   (or
+			    (and
+			     nnselect-retrieve-headers-override-function
+			     (funcall nnselect-retrieve-headers-override-function
+				      artlist artgroup))
+			    (gnus-retrieve-headers artlist artgroup fetch-old)))
+		('nov
+		 (setq parsefunc 'nnheader-parse-nov))
+		('headers
+		 (setq parsefunc 'nnheader-parse-head))
+		(_ (error "Unknown header type %s while requesting articles \
                     of group %s" gnus-headers-retrieved-by artgroup)))
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (let* ((novitem (funcall parsefunc))
-		   (artno (and novitem
-			       (mail-header-number novitem)))
-		   (art (car (rassq artno artids))))
-	      (when art
-		(mail-header-set-number novitem art)
-		(push novitem headers))
-	      (forward-line 1)))))
-    (setq headers
-	  (sort headers
-		(lambda (x y)
-		  (< (mail-header-number x) (mail-header-number y)))))
-    (erase-buffer)
-    (mapc 'nnheader-insert-nov headers)
-    'nov)))
+	      (goto-char (point-min))
+	      (while (not (eobp))
+		(let* ((novitem (funcall parsefunc))
+		       (artno (and novitem
+				   (mail-header-number novitem)))
+		       (art (car (rassq artno artids))))
+		  (when art
+		    (mail-header-set-number novitem art)
+		    (push novitem headers))
+		  (forward-line 1)))))
+	  (setq headers
+		(sort headers
+		      (lambda (x y)
+			(< (mail-header-number x) (mail-header-number y)))))
+	  (erase-buffer)
+	  (mapc 'nnheader-insert-nov headers)
+	  'nov)))))
 
 
 (deffoo nnselect-request-article (article &optional _group server to-buffer)
@@ -491,14 +492,14 @@ If this variable is nil, or if the provided function returns nil,
 
 
 (deffoo nnselect-request-thread (header &optional group server)
-  (let ((group (nnselect-add-prefix group))
-	;; find the best group for the originating article. if its a
-	;; pseudo-article look for real articles in the same thread
-	;; and see where they come from.
-	(artgroup (nnselect-article-group
-		   (if (> (mail-header-number header) 0)
-		       (mail-header-number header)
-		     (with-current-buffer gnus-summary-buffer
+  (with-current-buffer gnus-summary-buffer
+    (let ((group (nnselect-add-prefix group))
+	  ;; find the best group for the originating article. if its a
+	  ;; pseudo-article look for real articles in the same thread
+	  ;; and see where they come from.
+	  (artgroup (nnselect-article-group
+		     (if (> (mail-header-number header) 0)
+			 (mail-header-number header)
 		       (if (> (gnus-summary-article-number) 0)
 			   (gnus-summary-article-number)
 			 (let ((thread
@@ -506,75 +507,77 @@ If this variable is nil, or if the provided function returns nil,
 			   (when thread
 			     (cl-some #'(lambda (x)
 					  (when (and x (> x 0)) x))
-				      (gnus-articles-in-thread thread))))))))))
-    ;; Check if we are dealing with an imap backend.
-    (if (eq 'nnimap
-	    (car (gnus-find-method-for-group artgroup)))
-	;; If so we perform the query, massage the result, and return
-	;; the new headers back to the caller to incorporate into the
-	;; current summary buffer.
-	(let* ((group-spec
-		(list (delq nil (list
-				 (or server (gnus-group-server artgroup))
-				 (unless  gnus-refer-thread-use-search
-				    artgroup)))))
-	       (query-spec
-		(list (cons 'query (nnimap-make-thread-query header))
-		      (cons 'criteria "")))
-	       (last (nnselect-artlist-length gnus-newsgroup-selection))
-	       (first (1+ last))
-	       (new-nnselect-artlist
-		(nnir-run-query
-		 (list (cons 'nnir-query-spec query-spec)
-		       (cons 'nnir-group-spec group-spec))))
-	       old-arts seq
-	       headers)
-	  (mapc
-	   #'(lambda (article)
-	       (if
-		   (setq seq
-			 (cl-position article
-				      gnus-newsgroup-selection :test 'equal))
-		   (push (1+ seq) old-arts)
-		 (setq gnus-newsgroup-selection
-		       (vconcat gnus-newsgroup-selection (vector article)))
-		 (cl-incf last)))
-	   new-nnselect-artlist)
-	  (setq headers
-		(gnus-fetch-headers
-		 (append (sort old-arts '<)
-			 (number-sequence first last)) nil t))
-	  (gnus-group-set-parameter
-	   group
-	   'nnselect-artlist
-	   gnus-newsgroup-selection)
-	  (when (>= last first)
-	    (let (new-marks)
-	      (pcase-dolist (`(,artgroup . ,artids)
-			     (ids-by-group (number-sequence first last)))
-		(pcase-dolist (`(,type . ,marked)
-			       (gnus-info-marks (gnus-get-info artgroup)))
-		  (setq marked (gnus-uncompress-sequence marked))
-		  (when (setq new-marks
-			      (delq nil
-				    (mapcar
-				     #'(lambda (art)
-					 (when (memq (cdr art) marked)
-					   (car art)))
-				     artids)))
-		  (nconc
-		   (symbol-value (intern (format "gnus-newsgroup-%s"
-				   (car (rassq type gnus-article-mark-lists)))))
-		   new-marks)))))
-	    (setq gnus-newsgroup-active
-		  (cons 1 (nnselect-artlist-length gnus-newsgroup-selection)))
-	    (gnus-set-active
+				      (gnus-articles-in-thread thread)))))))))
+      ;; Check if we are dealing with an imap backend.
+      (if (eq 'nnimap
+	      (car (gnus-find-method-for-group artgroup)))
+	  ;; If so we perform the query, massage the result, and return
+	  ;; the new headers back to the caller to incorporate into the
+	  ;; current summary buffer.
+	  (let* ((group-spec
+		  (list (delq nil (list
+				   (or server (gnus-group-server artgroup))
+				   (unless  gnus-refer-thread-use-search
+				     artgroup)))))
+		 (query-spec
+		  (list (cons 'query (nnimap-make-thread-query header))
+			(cons 'criteria "")))
+		 (last (nnselect-artlist-length gnus-newsgroup-selection))
+		 (first (1+ last))
+		 (new-nnselect-artlist
+		  (nnir-run-query
+		   (list (cons 'nnir-query-spec query-spec)
+			 (cons 'nnir-group-spec group-spec))))
+		 old-arts seq
+		 headers)
+	    (mapc
+	     #'(lambda (article)
+		 (if
+		     (setq seq
+			   (cl-position article
+					gnus-newsgroup-selection :test 'equal))
+		     (push (1+ seq) old-arts)
+		   (setq gnus-newsgroup-selection
+			 (vconcat gnus-newsgroup-selection (vector article)))
+		   (cl-incf last)))
+	     new-nnselect-artlist)
+	    (setq headers
+		  (gnus-fetch-headers
+		   (append (sort old-arts '<)
+			   (number-sequence first last)) nil t))
+	    (gnus-group-set-parameter
 	     group
-	     (cons 1 (nnselect-artlist-length gnus-newsgroup-selection))))
-	  headers)
-      ;; If not an imap backend just warp to the original article
-      ;; group and punt back to gnus-summary-refer-thread.
-      (and (gnus-warp-to-article) (gnus-summary-refer-thread)))))
+	     'nnselect-artlist
+	     gnus-newsgroup-selection)
+	    (when (>= last first)
+	      (let (new-marks)
+		(pcase-dolist (`(,artgroup . ,artids)
+			       (ids-by-group (number-sequence first last)))
+		  (pcase-dolist (`(,type . ,marked)
+				 (gnus-info-marks (gnus-get-info artgroup)))
+		    (setq marked (gnus-uncompress-sequence marked))
+		    (when (setq new-marks
+				(delq nil
+				      (mapcar
+				       #'(lambda (art)
+					   (when (memq (cdr art) marked)
+					     (car art)))
+				       artids)))
+		      (nconc
+		       (symbol-value
+			(intern
+			 (format "gnus-newsgroup-%s"
+				 (car (rassq type gnus-article-mark-lists)))))
+		       new-marks)))))
+	      (setq gnus-newsgroup-active
+		    (cons 1 (nnselect-artlist-length gnus-newsgroup-selection)))
+	      (gnus-set-active
+	       group
+	       (cons 1 (nnselect-artlist-length gnus-newsgroup-selection))))
+	    headers)
+	;; If not an imap backend just warp to the original article
+	;; group and punt back to gnus-summary-refer-thread.
+	(and (gnus-warp-to-article) (gnus-summary-refer-thread))))))
 
 
 (deffoo nnselect-close-group (group &optional _server)
