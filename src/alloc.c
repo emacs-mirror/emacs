@@ -4981,7 +4981,11 @@ mark_memory (void *start, void *end)
   for (pp = start; (void *) pp < end; pp += GC_POINTER_ALIGNMENT)
     {
       mark_maybe_pointer (*(void **) pp);
-      mark_maybe_object (*(Lisp_Object *) pp);
+
+      verify (alignof (Lisp_Object) % GC_POINTER_ALIGNMENT == 0);
+      if (alignof (Lisp_Object) == GC_POINTER_ALIGNMENT
+	  || (uintptr_t) pp % alignof (Lisp_Object) == 0)
+	mark_maybe_object (*(Lisp_Object *) pp);
     }
 }
 
