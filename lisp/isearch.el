@@ -2441,7 +2441,7 @@ See more for options in `search-exit-option'."
       (setq isearch-pre-move-point (point)))
      ;; Append control characters to the search string
      ((eq search-exit-option 'append)
-      (when (cl-every #'characterp key)
+      (unless (memq nil (mapcar (lambda (k) (characterp k)) key))
         (isearch-process-search-string key key))
       (setq this-command 'ignore))
      ;; Other characters terminate the search and are then executed normally.
