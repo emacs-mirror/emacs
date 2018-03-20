@@ -21969,9 +21969,24 @@ display_line (struct it *it, int cursor_vpos)
 	  break;
 	}
 
+      /* Detect overly-wide wrap-prefixes made of (space ...) display
+	 properties.  When such a wrap prefix reaches past the right
+	 margin of the window, we need to avoid the call to
+	 set_iterator_to_next below, so that it->line_wrap is left at
+	 its TRUNCATE value wisely set by handle_line_prefix.
+	 Otherwise, set_iterator_to_next will pop the iterator stack,
+	 restore it->line_wrap, and redisplay might infloop.  */
+      bool overwide_wrap_prefix =
+	CONSP (it->object) && EQ (XCAR (it->object), Qspace)
+	&& it->sp > 0 && it->method == GET_FROM_STRETCH
+	&& it->current_x >= it->last_visible_x
+	&& it->continuation_lines_width > 0
+	&& it->line_wrap == TRUNCATE && it->stack[0].line_wrap != TRUNCATE;
+
       /* Proceed with next display element.  Note that this skips
 	 over lines invisible because of selective display.  */
-      set_iterator_to_next (it, true);
+      if (!overwide_wrap_prefix)
+	set_iterator_to_next (it, true);
 
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
