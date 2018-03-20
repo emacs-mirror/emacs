@@ -47,6 +47,7 @@ Run a compiler asynchronously under Emacs, with error messages going to
 the @file{*compilation*} buffer.
 
 @item M-x recompile
+@itemx g@r{ (Compilation mode)}
 Invoke a compiler with the same command as in the last invocation of
 @kbd{M-x compile}.
 
@@ -111,7 +112,8 @@ recompile}.  This reuses the compilation command from the last
 invocation of @kbd{M-x compile}.  It also reuses the
 @file{*compilation*} buffer and starts the compilation in its default
 directory, which is the directory in which the previous compilation
-was started.
+was started.  In @file{*compilation*} buffers this command is bound to
+@kbd{g}.
 
 @findex kill-compilation
 @vindex compilation-always-kill
@@ -185,6 +187,9 @@ different file (@code{compilation-previous-file}).
 @item C-c C-f
 Toggle Next Error Follow minor mode, which makes cursor motion in the
 compilation buffer produce automatic source display.
+@item g
+Re-run the last command whose output is shown in the
+@file{*compilation*} buffer.
 @end table
 
 @kindex M-g M-n
@@ -279,6 +284,12 @@ Names}).
 
 @node Compilation Shell
 @section Subshells for Compilation
+
+  This section includes various techniques and advice for using a
+shell and its features in compilation buffers.  This material is
+specific to local compilations, and will most probably not work in (or
+be irrelevant to) compilation buffers whose default directory is on
+remote hosts.
 
   The @kbd{M-x compile} command uses a shell to run the compilation
 command, but specifies the option for a noninteractive shell.  This
@@ -385,6 +396,8 @@ grep -nH -e foo *.el | grep bar | grep toto
   The output from @command{grep} goes in the @file{*grep*} buffer.  You
 can find the corresponding lines in the original files using @w{@kbd{C-x
 `}}, @key{RET}, and so forth, just like compilation errors.
+@xref{Compilation Mode}, for detailed description of commands and key
+bindings available in the @file{*grep*} buffer.
 
   Some grep programs accept a @samp{--color} option to output special
 markers around matches for the purpose of highlighting.  You can make
