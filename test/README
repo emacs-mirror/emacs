@@ -12,7 +12,7 @@ Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
 for more information on writing and running tests.
 
 Tests could be tagged by the developer.  In this test directory, the
-following tags are recognised:
+following tags are recognized:
 
 * :expensive-test
   The test needs a serious amount of time to run.  It is not intended
