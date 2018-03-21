@@ -689,7 +689,7 @@ Do not override for `prot-2'."
 (defvar eitest-II2 nil)
 (defvar eitest-II3 nil)
 (ert-deftest eieio-test-29-instance-inheritor ()
-  (setq eitest-II1 (II "II Test."))
+  (setq eitest-II1 (II))
   (oset eitest-II1 slot2 'cat)
   (setq eitest-II2 (clone eitest-II1 "eitest-II2 Test."))
   (oset eitest-II2 slot1 'moose)
