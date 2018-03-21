@@ -111,9 +111,9 @@
   "Calculate the Hamming weight of BYTE."
   (if (< byte 0)
       (setq byte (lognot byte)))
-  (setq byte (- byte (logand (lsh byte -1) #x55555555)))
-  (setq byte (+ (logand byte #x33333333) (logand (lsh byte -2) #x33333333)))
-  (lsh (* (logand (+ byte (lsh byte -4)) #x0f0f0f0f) #x01010101) -24))
+  (if (zerop byte)
+      0
+    (+ (logand byte 1) (data-tests-popcnt (lsh byte -1)))))
 
 (ert-deftest data-tests-logcount ()
   (should (cl-loop for n in (number-sequence -255 255)
