@@ -82,9 +82,11 @@ check_version ()
         printf '%s' "(using $uprog0=$uprog) "
     fi
 
-    ## /bin/sh should always define the "command" builtin, but for
-    ## some odd reason sometimes it does not on hydra.nixos.org.
-    ## /bin/sh = "BusyBox v1.27.2", "built-in shell (ash)". ?
+    ## /bin/sh should always define the "command" builtin, but
+    ## sometimes it does not on hydra.nixos.org.
+    ## /bin/sh = "BusyBox v1.27.2", "built-in shell (ash)".
+    ## It seems to be an optional compile-time feature in that shell:
+    ## see ASH_CMDCMD in <https://git.busybox.net/busybox/tree/shell/ash.c>.
     if command -v command > /dev/null 2>&1; then
         command -v $uprog > /dev/null || return 1
     else
