@@ -283,8 +283,9 @@ and choose the directory as the fortune-file."
 ;;; Display fortune
 (defun fortune-in-buffer (_interactive &optional file)
   "Put a fortune cookie in the *fortune* buffer.
-INTERACTIVE is ignored.  Optional argument FILE, when supplied,
-specifies the file to choose the fortune from."
+Optional argument FILE, when supplied, specifies the file to
+choose the fortune from."
+  (declare (advertised-calling-convention (&optional file) "27.1"))
   (let ((fortune-buffer (or (get-buffer fortune-buffer-name)
 			    (generate-new-buffer fortune-buffer-name)))
 	(fort-file (expand-file-name
