@@ -850,7 +850,7 @@ defined with @code{DEFVAR_BOOL} are automatically added to the list
 @code{byte-boolean-vars} used by the byte compiler.
 
 @cindex defining customization variables in C
-  If you want to make a Lisp variables that is defined in C behave
+  If you want to make a Lisp variable that is defined in C behave
 like one declared with @code{defcustom}, add an appropriate entry to
 @file{cus-start.el}.
 
