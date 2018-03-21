@@ -69,7 +69,7 @@ to shorten the delay for subsequent popups in the same key
 sequence. The default is for this value to be nil, which disables
 this behavior."
   :group 'which-key
-  :type 'float)
+  :type '(choice float (const :tag "Disabled" nil)))
 
 (defcustom which-key-echo-keystrokes (if (and echo-keystrokes
                                               (> (+ echo-keystrokes 0.01)
@@ -88,7 +88,7 @@ which-key popup."
   "Truncate the description of keys to this length.
 Also adds \"..\". If nil, disable any truncation."
   :group 'which-key
-  :type 'integer)
+  :type '(choice integer (const :tag "Disable truncation" nil)))
 
 (defcustom which-key-add-column-padding 0
   "Additional padding (number of spaces) to add to the left of
@@ -115,7 +115,7 @@ of the which-key popup."
 (defcustom which-key-dont-use-unicode nil
   "If non-nil, don't use any unicode characters in default setup."
   :group 'which-key
-  :type 'integer)
+  :type 'boolean)
 
 (defcustom which-key-separator
   (if which-key-dont-use-unicode " : " " → ")
@@ -189,10 +189,10 @@ Finally, you can multiple replacements to occur for a given key
 binding by setting `which-key-allow-multiple-replacements' to a
 non-nil value."
   :group 'which-key
-  :type '(alist :key-type (cons (choice regexp nil)
-                                (choice regexp nil))
-                :value-type (cons (choice string nil)
-                                  (choice string nil))))
+  :type '(alist :key-type (cons (choice regexp (const nil))
+                                (choice regexp (const nil)))
+                :value-type (cons (choice string (const nil))
+                                  (choice string (const nil)))))
 
 (when (bound-and-true-p which-key-key-replacement-alist)
   (mapc
@@ -282,7 +282,7 @@ and nil. Nil turns the feature off."
   "The maximum number of columns to display in the which-key
 buffer. nil means don't impose a maximum."
   :group 'which-key
-  :type 'integer)
+  :type '(choice integer (const :tag "Unbounded" nil)))
 
 (defcustom which-key-side-window-location 'bottom
   "Location of which-key popup when `which-key-popup-type' is side-window.
@@ -585,13 +585,13 @@ Will be passed the width of the active window and is expected to
 return the maximum height in lines and width in characters of the
 which-key popup in the form a cons cell (height . width)."
   :group 'which-key
-  :type 'function)
+  :type '(choice function (const nil)))
 
 (defcustom which-key-custom-hide-popup-function nil
   "Variable to hold a custom hide-popup function.
 It takes no arguments and the return value is ignored."
   :group 'which-key
-  :type 'function)
+  :type '(choice function (const nil)))
 
 (defcustom which-key-custom-show-popup-function nil
   "Variable to hold a custom show-popup function.
@@ -599,7 +599,7 @@ Will be passed the required dimensions in the form (height .
 width) in lines and characters respectively.  The return value is
 ignored."
   :group 'which-key
-  :type 'function)
+  :type '(choice function (const nil)))
 
 (defcustom which-key-lighter " WK"
   "Minor mode lighter to use in the mode-line."
