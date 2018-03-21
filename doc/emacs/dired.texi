@@ -12,7 +12,8 @@
   Dired makes an Emacs buffer containing a listing of a directory, and
 optionally some of its subdirectories as well.  You can use the normal
 Emacs commands to move around in this buffer, and special Dired
-commands to operate on the listed files.
+commands to operate on the listed files.  Dired works with both local
+and remote directories.
 
   The Dired buffer is normally read-only, and inserting text in it is
 not allowed (however, the Wdired mode allows that, @pxref{Wdired}).
@@ -109,8 +110,9 @@ default) means to perform the check; any other non-@code{nil} value
 means to use the @samp{--dired} option; and @code{nil} means not to
 use the @samp{--dired} option.
 
-  On MS-Windows and MS-DOS systems, Emacs emulates @command{ls}.
-@xref{ls in Lisp}, for options and peculiarities of this emulation.
+  On MS-Windows and MS-DOS systems, and also on some remote systems,
+Emacs emulates @command{ls}.  @xref{ls in Lisp}, for options and
+peculiarities of this emulation.
 
 @findex dired-other-window
 @kindex C-x 4 d
@@ -131,10 +133,13 @@ deletes its window if the window was created just for that buffer.
 
 @kindex C-n @r{(Dired)}
 @kindex C-p @r{(Dired)}
+@findex dired-next-line
+@findex dired-previous-line
   All the usual Emacs cursor motion commands are available in Dired
-buffers.  The keys @kbd{C-n} and @kbd{C-p} are redefined to put the
-cursor at the beginning of the file name on the line, rather than at
-the beginning of the line.
+buffers.  The keys @kbd{C-n} and @kbd{C-p} are redefined to run
+@code{dired-next-line} and @code{dired-previous-line}, respectively,
+and they put the cursor at the beginning of the file name on the line,
+rather than at the beginning of the line.
 
 @kindex SPC @r{(Dired)}
   For extra convenience, @key{SPC} and @kbd{n} in Dired are equivalent
@@ -235,10 +240,11 @@ the buffer, and no files actually deleted.
   You can delete empty directories just like other files, but normally
 Dired cannot delete directories that are nonempty.  If the variable
 @code{dired-recursive-deletes} is non-@code{nil}, then Dired can
-delete nonempty directories including all their contents.  That can
-be somewhat risky.
-Even if you have set @code{dired-recursive-deletes} to @code{nil},
-you might want sometimes to delete recursively directories
+delete nonempty directories including all their contents.  That can be
+somewhat risky.  If the value of the variable is @code{always}, Dired
+will delete nonempty directories recursively, which is even more
+risky.  Even if you have set @code{dired-recursive-deletes} to
+@code{nil}, you might want sometimes to delete recursively directories
 without being asked for confirmation for all of them.  This is handy
 when you have marked many directories for deletion and you are very
 sure that all of them can safely be deleted.  For every nonempty
@@ -251,6 +257,9 @@ questions.
 @code{t}, the above deletion commands will move the affected files or
 directories into the operating system's Trash, instead of deleting
 them outright.  @xref{Misc File Ops}.
+
+  An alternative way of deleting files is to mark them with @kbd{m}
+and delete with @kbd{D}, see @ref{Operating on Files}.
 
 @node Flagging Many Files
 @section Flagging Many Files at Once
@@ -420,7 +429,9 @@ Mark the current file with @samp{*} (@code{dired-mark}).  If the
 region is active, mark all files in the region instead; otherwise, if
 a numeric argument @var{n} is supplied, mark the next @var{n} files
 instead, starting with the current file (if @var{n} is negative, mark
-the previous @minus{}@var{n} files).
+the previous @minus{}@var{n} files).  If invoked on a subdirectory
+header line (@pxref{Subdirectories in Dired}), this command marks all
+the files in that subdirectory.
 
 @item * *
 @kindex * * @r{(Dired)}
@@ -578,10 +589,10 @@ command will look in the buffer without revisiting the file, so the results
 might be inconsistent with the file on disk if its contents have changed
 since it was last visited.  If you don't want this, you may wish to
 revert the files you have visited in your buffers, or to turn on
-@code{auto-revert} mode in those buffers, before invoking this
-command.  @xref{Reverting}.  If you prefer that this command should always
+Auto-Revert mode in those buffers, before invoking this command.
+@xref{Reverting}.  If you prefer that this command should always
 revisit the file, without you having to revert the file or enable
-@code{auto-revert} mode, you might want to set
+Auto-Revert mode, you might want to set
 @code{dired-always-read-filesystem} to non-@code{nil}.
 
 @item C-/
@@ -766,7 +777,9 @@ suitable guess made using the variables @code{lpr-command} and
 @item Z
 Compress the specified files (@code{dired-do-compress}).  If the file
 appears to be a compressed file already, uncompress it instead.  Each
-marked file is compressed into its own archive.
+marked file is compressed into its own archive.  This uses the
+@command{gzip} program if it is available, otherwise it uses
+@command{compress}.
 
 @findex dired-do-compress-to
 @kindex c @r{(Dired)}
@@ -1047,6 +1060,9 @@ shown in a buffer using Diff mode (@pxref{Comparing Files}).
 minibuffer is the file at the mark (i.e., the ordinary Emacs mark,
 not a Dired mark; @pxref{Setting Mark}).  Otherwise, if the file at
 point has a backup file (@pxref{Backup}), that is the default.
+
+  You could also compare files using @code{ediff-files}, see
+@ref{Major Entry Points,,, ediff, Ediff User's Manual}.
 
 @node Subdirectories in Dired
 @section Subdirectories in Dired
@@ -1476,7 +1492,7 @@ space.
 each marked file.  With just @kbd{C-u} as the prefix argument, it uses
 file names relative to the Dired buffer's default directory.  (This
 can still contain slashes if in a subdirectory.)  As a special case,
-if point is on a directory headerline, @kbd{w} gives you the absolute
+if point is on a directory header line, @kbd{w} gives you the absolute
 name of that directory.  Any prefix argument or marked files are
 ignored in this case.
 
