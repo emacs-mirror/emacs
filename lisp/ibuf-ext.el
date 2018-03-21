@@ -114,7 +114,7 @@ Buffers whose name matches a regexp in this list, are not searched."
   "A list of major modes ignored by `ibuffer-mark-by-content-regexp'.
 Buffers whose major mode is in this list, are not searched."
   :version "26.1"
-  :type '(repeat regexp)
+  :type '(repeat (symbol :tag "Major mode"))
   :require 'ibuf-ext
   :group 'ibuffer)
 
