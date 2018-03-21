@@ -142,6 +142,27 @@
   (should (string-equal (format "%#05X" #x10) "0X010"))
   (should (string-equal (format "%#04x" 0) "0000")))
 
+;;; Test Bug#30408.
+(ert-deftest format-%d-large-float ()
+  (should (string-equal (format "%d" 18446744073709551616.0)
+                        "18446744073709551616"))
+  (should (string-equal (format "%d" -18446744073709551616.0)
+                        "-18446744073709551616")))
+
+;;; Another test for Bug#30408.
+;;; Perhaps Emacs will be improved someday to return the correct
+;;; answer for positive numbers instead of overflowing; in
+;;; that case this test will need to be changed.  In the meantime make
+;;; sure Emacs is reporting the overflow correctly.
+(ert-deftest format-%x-large-float ()
+  (should-error (format "%x" 18446744073709551616.0)
+                :type 'overflow-error))
+
+;;; Another test for Bug#30408.
+(ert-deftest format-%o-invalid-float ()
+  (should-error (format "%o" -1e-37)
+                :type 'overflow-error))
+
 ;;; Check format-time-string with various TZ settings.
 ;;; Use only POSIX-compatible TZ values, since the tests should work
 ;;; even if tzdb is not in use.
