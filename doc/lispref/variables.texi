@@ -2317,11 +2317,12 @@ Attempting to assign them any other value will result in an error:
 
 @cindex generalized variable
 @cindex place form
-A @dfn{generalized variable} or @dfn{place form} is one of the many places
-in Lisp memory where values can be stored.  The simplest place form is
-a regular Lisp variable.  But the @sc{car}s and @sc{cdr}s of lists, elements
-of arrays, properties of symbols, and many other locations are also
-places where Lisp values are stored.
+A @dfn{generalized variable} or @dfn{place form} is one of the many
+places in Lisp memory where values can be stored using the @code{setf}
+macro (@pxref{Setting Generalized Variables}).  The simplest place
+form is a regular Lisp variable.  But the @sc{car}s and @sc{cdr}s of
+lists, elements of arrays, properties of symbols, and many other
+locations are also places where Lisp values get stored.
 
 Generalized variables are analogous to lvalues in the C
 language, where @samp{x = a[i]} gets an element from an array
@@ -2342,8 +2343,8 @@ variables.  The @code{setf} form is like @code{setq}, except that it
 accepts arbitrary place forms on the left side rather than just
 symbols.  For example, @code{(setf (car a) b)} sets the car of
 @code{a} to @code{b}, doing the same operation as @code{(setcar a b)},
-but without having to remember two separate functions for setting and
-accessing every type of place.
+but without you having to use two separate functions for setting and
+accessing this type of place.
 
 @defmac setf [place form]@dots{}
 This macro evaluates @var{form} and stores it in @var{place}, which
@@ -2353,18 +2354,19 @@ just as with @code{setq}.  @code{setf} returns the value of the last
 @var{form}.
 @end defmac
 
-The following Lisp forms will work as generalized variables, and
-so may appear in the @var{place} argument of @code{setf}:
+The following Lisp forms are the forms in Emacs that will work as
+generalized variables, and so may appear in the @var{place} argument
+of @code{setf}:
 
 @itemize
 @item
-A symbol naming a variable.  In other words, @code{(setf x y)} is
-exactly equivalent to @code{(setq x y)}, and @code{setq} itself is
-strictly speaking redundant given that @code{setf} exists.  Many
-programmers continue to prefer @code{setq} for setting simple
-variables, though, purely for stylistic or historical reasons.
-The macro @code{(setf x y)} actually expands to @code{(setq x y)},
-so there is no performance penalty for using it in compiled code.
+A symbol.  In other words, @code{(setf x y)} is exactly equivalent to
+@code{(setq x y)}, and @code{setq} itself is strictly speaking
+redundant given that @code{setf} exists.  Most programmers will
+continue to prefer @code{setq} for setting simple variables, though,
+for stylistic and historical reasons.  The macro @code{(setf x y)}
+actually expands to @code{(setq x y)}, so there is no performance
+penalty for using it in compiled code.
 
 @item
 A call to any of the following standard Lisp functions:
