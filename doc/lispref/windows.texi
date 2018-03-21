@@ -1772,7 +1772,7 @@ raise the frame or make sure input focus is directed to that frame.
 @end defun
 
 @cindex select window hook
-@cindex running a hook when a windows gets selected
+@cindex running a hook when a window gets selected
 For historical reasons, Emacs does not run a separate hook whenever a
 window gets selected.  Applications and internal routines often
 temporarily select a window to perform a few actions on it.  They do
