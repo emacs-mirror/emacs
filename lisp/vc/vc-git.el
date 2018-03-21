@@ -1481,9 +1481,24 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
       (vc-git--call nil "stash" "save" name)
       (vc-resynch-buffer root t t))))
 
+(defvar vc-git-stash-read-history nil
+  "History for `vc-git-stash-read'.")
+
+(defun vc-git-stash-read (prompt)
+  "Read a Git stash.  PROMPT is a string to prompt with."
+  (let ((stash (completing-read
+                 prompt
+                 (split-string
+                  (or (vc-git--run-command-string nil "stash" "list") "") "\n")
+                 nil :require-match nil 'vc-git-stash-read-history)))
+    (if (string-equal stash "")
+        (user-error "Not a stash")
+      (string-match "^stash@{[[:digit:]]+}" stash)
+      (match-string 0 stash))))
+
 (defun vc-git-stash-show (name)
   "Show the contents of stash NAME."
-  (interactive "sStash name: ")
+  (interactive (list (vc-git-stash-read "Show stash: ")))
   (vc-setup-buffer "*vc-git-stash*")
   (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
   (set-buffer "*vc-git-stash*")
@@ -1493,13 +1508,13 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-stash-apply (name)
   "Apply stash NAME."
-  (interactive "sApply stash: ")
+  (interactive (list (vc-git-stash-read "Apply stash: ")))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-pop (name)
   "Pop stash NAME."
-  (interactive "sPop stash: ")
+  (interactive (list (vc-git-stash-read "Pop stash: ")))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "pop" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
