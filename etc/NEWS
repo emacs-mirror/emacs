@@ -743,6 +743,10 @@ specialized for editing freedesktop.org desktop entries.
 ** New major mode 'less-css-mode' (a minor variant of 'css-mode') for
 editing Less files.
 
++++
+** New package 'auth-source-pass' integrates 'auth-source' with the
+password manager password-store (http://passwordstore.org).
+
 
 * Incompatible Lisp Changes in Emacs 26.1
 
