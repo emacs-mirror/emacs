@@ -1339,11 +1339,13 @@ This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
       tramp-default-host))
 
 (defun tramp-dissect-file-name (name &optional nodefault)
-  "Return a `tramp-file-name' structure.
-The structure consists of remote method, remote user, remote host,
-localname (file name on remote host) and hop.  If NODEFAULT is
-non-nil, the file name parts are not expanded to their default
-values."
+  "Return a `tramp-file-name' structure of NAME, a remote file name.
+The structure consists of method, user, domain, host, port,
+localname (file name on remote host), and hop.
+
+Unless NODEFAULT is non-nil, method, user and host are expanded
+to their default values. For the other file name parts, no
+default values are used."
   (save-match-data
     (unless (tramp-tramp-file-p name)
       (tramp-compat-user-error nil "Not a Tramp file name: \"%s\"" name))
