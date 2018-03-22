@@ -1388,6 +1388,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     (define-key map [git-grep]
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
+    (define-key map [git-ds]
+      '(menu-item "Delete Stash..." vc-git-stash-delete
+                  :help "Delete a stash"))
     (define-key map [git-sn]
       '(menu-item "Stash a Snapshot" vc-git-stash-snapshot
 		  :help "Stash the current state of the tree and keep the current state"))
@@ -1516,6 +1519,12 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "Pop stash NAME."
   (interactive (list (vc-git-stash-read "Pop stash: ")))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "pop" "-q" name)
+  (vc-resynch-buffer (vc-git-root default-directory) t t))
+
+(defun vc-git-stash-delete (name)
+  "Delete stash NAME."
+  (interactive (list (vc-git-stash-read "Delete stash: ")))
+  (vc-git-command "*vc-git-stash*" 0 nil "stash" "drop" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-snapshot ()
