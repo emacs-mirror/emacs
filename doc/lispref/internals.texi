@@ -735,7 +735,7 @@ Lisp form.  For example:
 
 @example
 @group
-DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED,
+DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED, 0
        "(list (read-char-by-name \"Insert character: \")\
               (prefix-numeric-value current-prefix-arg)\
               t))",
@@ -768,6 +768,43 @@ the actual documentation.  The others have placeholders beginning with
 All the usual rules for documentation strings in Lisp code
 (@pxref{Documentation Tips}) apply to C code documentation strings
 too.
+
+The documentation string can be followed by a list of C function
+attributes for the C function that implements the primitive, like
+this:
+
+@example
+@group
+DEFUN ("bar", Fbar, Sbar, 0, UNEVALLED, 0
+  doc: /* @dots{} /*
+  attributes: @var{attr1} @var{attr2} @dots{})
+@end group
+@end example
+
+@noindent
+You can specify more than a single attribute, one after the other.
+Currently, only the following attributes are recognized:
+
+@table @code
+@item noreturn
+Declares the C function as one that never returns.  This corresponds
+to the C11 keyword @code{_Noreturn} and to @w{@code{__attribute__
+((__noreturn__))}} attribute of GCC (@pxref{Function Attributes,,,
+gcc, Using the GNU Compiler Collection}).
+
+@item const
+Declares that the function does not examine any values except its
+arguments, and has no effects except the return value.  This
+corresponds to @w{@code{__attribute__ ((__const__))}} attribute of
+GCC.
+
+@item noinline
+This corresponds to @w{@code{__attribute__ ((__noinline__))}}
+attribute of GCC, which prevents the function from being considered
+for inlining.  This might be needed, e.g., to countermand effects of
+link-time optimizations on stack-based variables.
+@end table
+
 @end table
 
   After the call to the @code{DEFUN} macro, you must write the
