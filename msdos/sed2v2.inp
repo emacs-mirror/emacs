@@ -32,6 +32,7 @@
 /^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
 /^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/
 /^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
+/^#undef HAVE_SBRK *$/s/^.*$/#define HAVE_SBRK 1/
 /^#undef HAVE_SETITIMER *$/s/^.*$/#define HAVE_SETITIMER 1/
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
