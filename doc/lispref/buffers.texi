@@ -891,7 +891,7 @@ This function operates on each frame's @code{buffer-list} parameter as
 well as the fundamental buffer list; therefore, the buffer that you bury
 will come last in the value of @code{(buffer-list @var{frame})} and in
 the value of @code{(buffer-list)}.  In addition, it also puts the buffer
-at the end of the list of buffer of the selected window (@pxref{Window
+at the end of the list of buffers of the selected window (@pxref{Window
 History}) provided it is shown in that window.
 
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
