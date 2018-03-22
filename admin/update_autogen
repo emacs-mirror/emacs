@@ -47,7 +47,7 @@ cd $PD
 cd ../
 [ -d admin ] || die "Could not locate admin directory"
 
-[ -d .git ] || die "No .git directory"
+[ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1 || die "Not in a git repository"
 
 usage ()
 {
