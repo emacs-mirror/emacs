@@ -1186,6 +1186,7 @@
 	 char-equal char-to-string char-width compare-strings
 	 compare-window-configurations concat coordinates-in-window-p
 	 copy-alist copy-sequence copy-marker cos count-lines
+	 current-time-string current-time-zone
 	 decode-char
 	 decode-time default-boundp default-value documentation downcase
 	 elt encode-char exp expt encode-time error-message-string
@@ -1199,8 +1200,9 @@
 	 hash-table-count
 	 int-to-string intern-soft
 	 keymap-parent
-	 length local-variable-if-set-p local-variable-p log log10 logand
-	 logb logior lognot logxor lsh langinfo
+	 length line-beginning-position line-end-position
+	 local-variable-if-set-p local-variable-p locale-info
+	 log log10 logand logb logcount logior lognot logxor lsh
 	 make-list make-string make-symbol marker-buffer max member memq min
 	 minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
@@ -1210,7 +1212,7 @@
 	 radians-to-degrees rassq rassoc read-from-string regexp-quote
 	 region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp string-to-char
-	 string-to-int string-to-number substring
+	 string-to-number substring
 	 sxhash sxhash-equal sxhash-eq sxhash-eql
 	 symbol-function symbol-name symbol-plist symbol-value string-make-unibyte
 	 string-make-multibyte string-as-multibyte string-as-unibyte
@@ -1240,7 +1242,6 @@
 	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
-	 current-time-string current-time-zone
 	 eobp eolp eq equal eventp
 	 floatp following-char framep
 	 get-largest-window get-lru-window
@@ -1248,9 +1249,9 @@
 	 identity ignore integerp integer-or-marker-p interactive-p
 	 invocation-directory invocation-name
 	 keymapp keywordp
-	 line-beginning-position line-end-position list listp
+	 list listp
 	 make-marker mark mark-marker markerp max-char
-	 memory-limit minibuffer-window
+	 memory-limit
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp
 	 one-window-p overlayp
@@ -1275,16 +1276,24 @@
   nil)
 
 
-;; pure functions are side-effect free functions whose values depend
-;; only on their arguments. For these functions, calls with constant
-;; arguments can be evaluated at compile time. This may shift run time
-;; errors to compile time.
+;; Pure functions are side-effect free functions whose values depend
+;; only on their arguments, not on the platform.  For these functions,
+;; calls with constant arguments can be evaluated at compile time.
+;; This may shift runtime errors to compile time.  For example, logand
+;; is pure since its results are machine-independent, whereas ash is
+;; not pure because (ash 1 29)'s value depends on machine word size.
+;;
+;; When deciding whether a function is pure, do not worry about
+;; mutable strings or markers, as they are so unlikely in real code
+;; that they are not worth worrying about.  Thus string-to-char is
+;; pure even though it might return different values if a string is
+;; changed, and logand is pure even though it might return different
+;; values if a marker is moved.
 
 (let ((pure-fns
-       '(concat symbol-name regexp-opt regexp-quote string-to-syntax
-         string-to-char
-         ash lsh logb lognot logior logxor
-         ceiling floor)))
+       '(% concat logand logcount logior lognot logxor
+	 regexp-opt regexp-quote
+	 string-to-char string-to-syntax symbol-name)))
   (while pure-fns
     (put (car pure-fns) 'pure t)
     (setq pure-fns (cdr pure-fns)))
