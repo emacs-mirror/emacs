@@ -4018,7 +4018,6 @@ DIR is the absolute name of a directory which must contain at
 least one dir-local file (which is a file holding variables to
 apply).
 Return the new class name, which is a symbol named DIR."
-  (require 'map)
   (let* ((class-name (intern dir))
          (files (dir-locals--all-files dir))
          (read-circle nil)
@@ -4033,12 +4032,19 @@ Return the new class name, which is a symbol named DIR."
 	    (setq latest file-time)))
         (with-temp-buffer
           (insert-file-contents file)
-          (condition-case-unless-debug nil
-              (setq variables
+          (let ((newvars
+                 (condition-case-unless-debug nil
+                     (read (current-buffer))
+                   (end-of-file nil))))
+            (setq variables
+                  ;; Try and avoid loading `map' since that also loads cl-lib
+                  ;; which then might hamper bytecomp warnings (bug#30635).
+                  (if (not (and newvars variables))
+                      (or newvars variables)
+                    (require 'map)
                     (map-merge-with 'list (lambda (a b) (map-merge 'list a b))
                                     variables
-                                    (read (current-buffer))))
-            (end-of-file nil))))
+                                    newvars))))))
       (setq success latest))
     (dir-locals-set-class-variables class-name variables)
     (dir-locals-set-directory-class dir class-name success)
