@@ -66,7 +66,7 @@
   (when (< #x1fffffff most-positive-fixnum)
     (should (= (mod-test-sum 1 #x1fffffff)
                (1+ #x1fffffff)))
-    (should (= (mod-test-sum -1 #x20000000)
+    (should (= (mod-test-sum -1 (1+ #x1fffffff))
                #x1fffffff)))
   (should-error (mod-test-sum 1 most-positive-fixnum)
                 :type 'overflow-error)
