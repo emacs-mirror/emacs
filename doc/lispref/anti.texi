@@ -164,9 +164,10 @@ come, and learning to use yet another API is a burden.
 
 @item
 The function @code{read-multiple-choice} is also gone, in recognition
-of the fact that nothing makes Emacs Lisp hacker rejoice more than the
-need to sit down and write yet another interactive question-and-answer
-function, and make it optimal for each specific case.
+of the fact that nothing makes Emacs Lisp hackers rejoice more than
+the need to sit down and write yet another interactive
+question-and-answer function, and make it optimal for each specific
+case.
 
 @item
 The function @code{add-variable-watcher} and the corresponding
