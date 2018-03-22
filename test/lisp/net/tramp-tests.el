@@ -4653,6 +4653,7 @@ Use the `ls' command."
 
 (ert-deftest tramp-test39-utf8 ()
   "Check UTF8 encoding in file names and file contents."
+  :tags '(:unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
@@ -4664,7 +4665,7 @@ Use the `ls' command."
 (ert-deftest tramp-test39-utf8-with-stat ()
   "Check UTF8 encoding in file names and file contents.
 Use the `stat' command."
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
@@ -4684,7 +4685,7 @@ Use the `stat' command."
 (ert-deftest tramp-test39-utf8-with-perl ()
   "Check UTF8 encoding in file names and file contents.
 Use the `perl' command."
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
@@ -4707,7 +4708,7 @@ Use the `perl' command."
 (ert-deftest tramp-test39-utf8-with-ls ()
   "Check UTF8 encoding in file names and file contents.
 Use the `ls' command."
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
