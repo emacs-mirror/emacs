@@ -3564,8 +3564,8 @@ support symbolic links."
 	      (setq filename (substitute-in-file-name localname))
 	    (setq filename
 		  (concat (file-remote-p filename)
-			  (tramp-drop-volume-letter
-			   (substitute-in-file-name localname)))))))
+			  (tramp-run-real-handler
+			   'substitute-in-file-name (list localname)))))))
       ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
       (if (and (stringp localname) (string-equal "~" localname))
 	  (concat filename "/")
