@@ -47,10 +47,6 @@ after changing the value of this variable."
 	 (setq mouse-appearance-menu-map nil))
   :group 'w32)
 
-(defvar w32-list-proportional-fonts nil
-  "Include proportional fonts in the default font dialog.")
-(make-obsolete-variable 'w32-list-proportional-fonts "no longer used." "23.1")
-
 (unless (eq system-type 'cygwin)
   (defcustom w32-allow-system-shell nil
     "Disable startup warning when using \"system\" shells."

@@ -1506,41 +1506,6 @@ wrapped within allout's automatic `fill-prefix' setting.")
 (make-variable-buffer-local 'allout-outside-normal-auto-fill-function)
 ;;;_   = prevent redundant activation by desktop mode:
 (add-to-list 'desktop-minor-mode-handlers '(allout-mode . nil))
-;;;_   = allout-passphrase-verifier-string
-(defvar allout-passphrase-verifier-string nil
-  "Setting used to test solicited encryption passphrases against the one
-already associated with a file.
-
-It consists of an encrypted random string useful only to verify that a
-passphrase entered by the user is effective for decryption.  The passphrase
-itself is *not* recorded in the file anywhere, and the encrypted contents
-are random binary characters to avoid exposing greater susceptibility to
-search attacks.
-
-The verifier string is retained as an Emacs file variable, as well as in
-the Emacs buffer state, if file variable adjustments are enabled.  See
-`allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-passphrase-verifier-string)
-(make-obsolete-variable 'allout-passphrase-verifier-string
-			"it is no longer used." "23.3")
-;;;###autoload
-(put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
-;;;_   = allout-passphrase-hint-string
-(defvar allout-passphrase-hint-string ""
-  "Variable used to retain reminder string for file's encryption passphrase.
-
-See the description of `allout-passphrase-hint-handling' for details about how
-the reminder is deployed.
-
-The hint is retained as an Emacs file variable, as well as in the Emacs buffer
-state, if file variable adjustments are enabled.  See
-`allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-passphrase-hint-string)
-(setq-default allout-passphrase-hint-string "")
-(make-obsolete-variable 'allout-passphrase-hint-string
-			"it is no longer used." "23.3")
-;;;###autoload
-(put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
   "Internal variable, is nil or has the value of two points:
