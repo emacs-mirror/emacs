@@ -656,15 +656,15 @@
         ((not (symbolp form)) nil)
         ((null form))))
 
-;; If the function is being called with constant numeric args,
+;; If the function is being called with constant integer args,
 ;; evaluate as much as possible at compile-time.  This optimizer
-;; assumes that the function is associative, like + or *.
+;; assumes that the function is associative, like min or max.
 (defun byte-optimize-associative-math (form)
   (let ((args nil)
 	(constants nil)
 	(rest (cdr form)))
     (while rest
-      (if (numberp (car rest))
+      (if (integerp (car rest))
 	  (setq constants (cons (car rest) constants))
 	  (setq args (cons (car rest) args)))
       (setq rest (cdr rest)))
@@ -678,82 +678,7 @@
 	    (apply (car form) constants))
 	form)))
 
-;; If the function is being called with constant numeric args,
-;; evaluate as much as possible at compile-time.  This optimizer
-;; assumes that the function satisfies
-;;   (op x1 x2 ... xn) == (op ...(op (op x1 x2) x3) ...xn)
-;; like - and /.
-(defun byte-optimize-nonassociative-math (form)
-  (if (or (not (numberp (car (cdr form))))
-	  (not (numberp (car (cdr (cdr form))))))
-      form
-    (let ((constant (car (cdr form)))
-	  (rest (cdr (cdr form))))
-      (while (numberp (car rest))
-	(setq constant (funcall (car form) constant (car rest))
-	      rest (cdr rest)))
-      (if rest
-	  (cons (car form) (cons constant rest))
-	  constant))))
-
-;;(defun byte-optimize-associative-two-args-math (form)
-;;  (setq form (byte-optimize-associative-math form))
-;;  (if (consp form)
-;;      (byte-optimize-two-args-left form)
-;;      form))
-
-;;(defun byte-optimize-nonassociative-two-args-math (form)
-;;  (setq form (byte-optimize-nonassociative-math form))
-;;  (if (consp form)
-;;      (byte-optimize-two-args-right form)
-;;      form))
-
-(defun byte-optimize-approx-equal (x y)
-  (<= (* (abs (- x y)) 100) (abs (+ x y))))
-
-;; Collect all the constants from FORM, after the STARTth arg,
-;; and apply FUN to them to make one argument at the end.
-;; For functions that can handle floats, that optimization
-;; can be incorrect because reordering can cause an overflow
-;; that would otherwise be avoided by encountering an arg that is a float.
-;; We avoid this problem by (1) not moving float constants and
-;; (2) not moving anything if it would cause an overflow.
-(defun byte-optimize-delay-constants-math (form start fun)
-  ;; Merge all FORM's constants from number START, call FUN on them
-  ;; and put the result at the end.
-  (let ((rest (nthcdr (1- start) form))
-	(orig form)
-	;; t means we must check for overflow.
-	(overflow (memq fun '(+ *))))
-    (while (cdr (setq rest (cdr rest)))
-      (if (integerp (car rest))
-	  (let (constants)
-	    (setq form (copy-sequence form)
-		  rest (nthcdr (1- start) form))
-	    (while (setq rest (cdr rest))
-	      (cond ((integerp (car rest))
-		     (setq constants (cons (car rest) constants))
-		     (setcar rest nil))))
-	    ;; If necessary, check now for overflow
-	    ;; that might be caused by reordering.
-	    (if (and overflow
-		     ;; We have overflow if the result of doing the arithmetic
-		     ;; on floats is not even close to the result
-		     ;; of doing it on integers.
-		     (not (byte-optimize-approx-equal
-			    (apply fun (mapcar 'float constants))
-			    (float (apply fun constants)))))
-		(setq form orig)
-	      (setq form (nconc (delq nil form)
-				(list (apply fun (nreverse constants)))))))))
-    form))
-
-(defsubst byte-compile-butlast (form)
-  (nreverse (cdr (reverse form))))
-
 (defun byte-optimize-plus (form)
-  ;; Don't call `byte-optimize-delay-constants-math' (bug#1334).
-  ;;(setq form (byte-optimize-delay-constants-math form 1 '+))
   (if (memq 0 form) (setq form (delq 0 (copy-sequence form))))
   ;; For (+ constants...), byte-optimize-predicate does the work.
   (when (memq nil (mapcar 'numberp (cdr form)))
@@ -767,26 +692,19 @@
 	    (setq integer (nth 1 form) other (nth 2 form))
 	  (setq integer (nth 2 form) other (nth 1 form)))
 	(setq form
-	      (list (if (eq integer 1) '1+ '1-) other))))
-     ;; Here, we could also do
-     ;;  (+ x y ... 1) --> (1+ (+ x y ...))
-     ;;  (+ x y ... -1) --> (1- (+ x y ...))
-     ;; The resulting bytecode is smaller, but is it faster? -- cyd
-     ))
+	      (list (if (eq integer 1) '1+ '1-) other))))))
   (byte-optimize-predicate form))
 
 (defun byte-optimize-minus (form)
-  ;; Don't call `byte-optimize-delay-constants-math' (bug#1334).
-  ;;(setq form (byte-optimize-delay-constants-math form 2 '+))
   ;; Remove zeros.
   (when (and (nthcdr 3 form)
 	     (memq 0 (cddr form)))
     (setq form (nconc (list (car form) (cadr form))
 		      (delq 0 (copy-sequence (cddr form)))))
-    ;; After the above, we must turn (- x) back into (- x 0)
+    ;; After the above, we must turn (- x) back into (- x 0).
     (or (cddr form)
 	(setq form (nconc form (list 0)))))
-  ;; For (- constants..), byte-optimize-predicate does the work.
+  ;; For (- constants...), byte-optimize-predicate does the work.
   (when (memq nil (mapcar 'numberp (cdr form)))
     (cond
      ;; (- x 1) --> (1- x)
@@ -794,70 +712,24 @@
       (setq form (list '1- (nth 1 form))))
      ;; (- x -1) --> (1+ x)
      ((equal (nthcdr 2 form) '(-1))
-      (setq form (list '1+ (nth 1 form))))
-     ;; (- 0 x) --> (- x)
-     ((and (eq (nth 1 form) 0)
-	   (= (length form) 3))
-      (setq form (list '- (nth 2 form))))
-     ;; Here, we could also do
-     ;;  (- x y ... 1) --> (1- (- x y ...))
-     ;;  (- x y ... -1) --> (1+ (- x y ...))
-     ;; The resulting bytecode is smaller, but is it faster? -- cyd
-     ))
+      (setq form (list '1+ (nth 1 form))))))
   (byte-optimize-predicate form))
 
 (defun byte-optimize-multiply (form)
-  (setq form (byte-optimize-delay-constants-math form 1 '*))
-  ;; For (* constants..), byte-optimize-predicate does the work.
-  (when (memq nil (mapcar 'numberp (cdr form)))
-    ;; After `byte-optimize-predicate', if there is a INTEGER constant
-    ;; in FORM, it is in the last element.
-    (let ((last (car (reverse (cdr form)))))
-      (cond
-       ;; Would handling (* ... 0) here cause floating point errors?
-       ;; See bug#1334.
-       ((eq 1 last) (setq form (byte-compile-butlast form)))
-       ((eq -1 last)
-	(setq form (list '- (if (nthcdr 3 form)
-				(byte-compile-butlast form)
-			      (nth 1 form))))))))
+  (if (memq 1 form) (setq form (delq 1 (copy-sequence form))))
+  ;; For (* integers..), byte-optimize-predicate does the work.
   (byte-optimize-predicate form))
 
 (defun byte-optimize-divide (form)
-  (setq form (byte-optimize-delay-constants-math form 2 '*))
-  ;; After `byte-optimize-predicate', if there is a INTEGER constant
-  ;; in FORM, it is in the last element.
-  (let ((last (car (reverse (cdr (cdr form))))))
-    (cond
-     ;; Runtime error (leave it intact).
-     ((or (null last)
-	  (eq last 0)
-	  (memql 0.0 (cddr form))))
-     ;; No constants in expression
-     ((not (numberp last)))
-     ;; For (* constants..), byte-optimize-predicate does the work.
-     ((null (memq nil (mapcar 'numberp (cdr form)))))
-     ;; (/ x y.. 1) --> (/ x y..)
-     ((and (eq last 1) (nthcdr 3 form))
-      (setq form (byte-compile-butlast form)))
-     ;; (/ x -1), (/ x .. -1)  --> (- x), (- (/ x ..))
-     ((eq last -1)
-      (setq form (list '- (if (nthcdr 3 form)
-			      (byte-compile-butlast form)
-			    (nth 1 form)))))))
+  ;; Remove 1s.
+  (when (and (nthcdr 3 form)
+	     (memq 1 (cddr form)))
+    (setq form (nconc (list (car form) (cadr form))
+		      (delq 1 (copy-sequence (cddr form)))))
+    ;; After the above, we must turn (/ x) back into (/ x 1).
+    (or (cddr form)
+	(setq form (nconc form (list 1)))))
   (byte-optimize-predicate form))
-
-(defun byte-optimize-logmumble (form)
-  (setq form (byte-optimize-delay-constants-math form 1 (car form)))
-  (byte-optimize-predicate
-   (cond ((memq 0 form)
-	  (setq form (if (eq (car form) 'logand)
-			 (cons 'progn (cdr form))
-		       (delq 0 (copy-sequence form)))))
-	 ((and (eq (car-safe form) 'logior)
-	       (memq -1 form))
-	  (cons 'progn (cdr form)))
-	 (form))))
 
 
 (defun byte-optimize-binary-predicate (form)
@@ -923,9 +795,9 @@
 (put 'string< 'byte-optimizer 'byte-optimize-predicate)
 (put 'string-lessp 'byte-optimizer 'byte-optimize-predicate)
 
-(put 'logand 'byte-optimizer 'byte-optimize-logmumble)
-(put 'logior 'byte-optimizer 'byte-optimize-logmumble)
-(put 'logxor 'byte-optimizer 'byte-optimize-logmumble)
+(put 'logand 'byte-optimizer 'byte-optimize-predicate)
+(put 'logior 'byte-optimizer 'byte-optimize-predicate)
+(put 'logxor 'byte-optimizer 'byte-optimize-predicate)
 (put 'lognot 'byte-optimizer 'byte-optimize-predicate)
 
 (put 'car 'byte-optimizer 'byte-optimize-predicate)

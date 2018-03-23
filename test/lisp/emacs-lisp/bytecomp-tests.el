@@ -38,8 +38,7 @@
     (let ((a 3) (b 2) (c 1.0))                     (/ a b c))
     (let ((a (+ 1 (expt 2 -64))) (b (expt 2 -65))) (+ a -1 b))
     (let ((a (+ 1 (expt 2 -64))) (b (expt 2 -65))) (- a 1 (- b)))
-    ;; This fails.  Should it be a bug?
-    ;; (let ((a (expt 2 -1074)) (b 0.125))		   (* a 8 b))
+    (let ((a (expt 2 -1074)) (b 0.125))		   (* a 8 b))
     (let ((a 1.0))				   (* a 0))
     (let ((a 1.0))				   (* a 2.0 0))
     (let ((a 1.0))				   (/ 0 a))
@@ -244,6 +243,9 @@
     (let ((a 3) (b 2) (c 1.0)) (/ a b c 0))
     (let ((a 3) (b 2) (c 1.0)) (/ a b c 1))
     (let ((a 3) (b 2) (c 1.0)) (/ a b c -1))
+
+    (let ((a t)) (logand 0 a))
+
     ;; Test switch bytecode
     (let ((a 3)) (cond ((eq a 1) 'one) ((eq a 2) 'two) ((eq a 3) 'three) (t t)))
     (let ((a 'three)) (cond ((eq a 'one) 1) ((eq a 2) 'two) ((eq a 'three) 3)
