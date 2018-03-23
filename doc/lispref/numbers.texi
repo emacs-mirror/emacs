@@ -75,14 +75,17 @@ Emacs range is treated as a floating-point number.
 @cindex hex numbers
 @cindex octal numbers
 @cindex reading numbers in hex, octal, and binary
-  The syntax for integers in bases other than 10 uses @samp{#}
-followed by a letter that specifies the radix: @samp{b} for binary,
-@samp{o} for octal, @samp{x} for hex, or @samp{@var{radix}r} to
-specify radix @var{radix}.  Case is not significant for the letter
-that specifies the radix.  Thus, @samp{#b@var{integer}} reads
+  The syntax for integers in bases other than 10 consists of @samp{#}
+followed by a radix indication followed by one or more digits.  The
+radix indications are @samp{b} for binary, @samp{o} for octal,
+@samp{x} for hex, and @samp{@var{radix}r} for radix @var{radix}.
+Thus, @samp{#b@var{integer}} reads
 @var{integer} in binary, and @samp{#@var{radix}r@var{integer}} reads
 @var{integer} in radix @var{radix}.  Allowed values of @var{radix} run
-from 2 to 36.  For example:
+from 2 to 36, and allowed digits are the first @var{radix} characters
+taken from @samp{0}--@samp{9}, @samp{A}--@samp{Z}.
+Letter case is ignored and there is no initial sign or final period.
+For example:
 
 @example
 #b101100 @result{} 44
