@@ -61,7 +61,7 @@ function build_zip {
             CFLAGS="-O2 -static -g3"
     fi
 
-    make -j 16 install \
+    make -j 16 -l 16 install \
          prefix=$HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cd $HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cp $HOME/emacs-build/deps/libXpm/$ARCH/libXpm-noX4.dll bin
