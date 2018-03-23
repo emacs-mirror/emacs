@@ -49,8 +49,9 @@ function build_zip {
     export PKG_CONFIG_PATH=$PKG
 
     ## Running configure forces a rebuild of the C core which takes
-    ## time that is not always needed
-    if (($CONFIG))
+    ## time that is not always needed, so do not do it unless we have
+    ## to.
+    if [ ! -f Makefile ] || (($CONFIG))
     then
         echo [build] Configuring Emacs $ARCH
         ../../../git/$BRANCH/configure \
