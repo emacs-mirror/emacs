@@ -6342,12 +6342,8 @@ mark_localized_symbol (struct Lisp_Symbol *ptr)
 {
   struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (ptr);
   Lisp_Object where = blv->where;
-  /* If the value is set up for a killed buffer or deleted
-     frame, restore its global binding.  If the value is
-     forwarded to a C variable, either it's not a Lisp_Object
-     var, or it's staticpro'd already.  */
-  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where)))
-      || (FRAMEP (where) && !FRAME_LIVE_P (XFRAME (where))))
+  /* If the value is set up for a killed buffer restore its global binding.  */
+  if ((BUFFERP (where) && !BUFFER_LIVE_P (XBUFFER (where))))
     swap_in_global_binding (ptr);
   mark_object (blv->where);
   mark_object (blv->valcell);

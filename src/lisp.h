@@ -2679,18 +2679,15 @@ struct Lisp_Buffer_Objfwd
    in the buffer structure itself.  They are handled differently,
    using struct Lisp_Buffer_Objfwd.)
 
-   The `realvalue' slot holds the variable's current value, or a
-   forwarding pointer to where that value is kept.  This value is the
-   one that corresponds to the loaded binding.  To read or set the
-   variable, you must first make sure the right binding is loaded;
-   then you can access the value in (or through) `realvalue'.
+   The `valcell' slot holds the variable's current value (unless `fwd'
+   is set).  This value is the one that corresponds to the loaded binding.
+   To read or set the variable, you must first make sure the right binding
+   is loaded; then you can access the value in (or through) `valcell'.
 
-   `where' is the buffer for which the loaded binding was found.  If
-   it has changed, to make sure the right binding is loaded it is
+   `where' is the buffer for which the loaded binding was found.
+   If it has changed, to make sure the right binding is loaded it is
    necessary to find which binding goes with the current buffer, then
-   load it.  To load it, first unload the previous binding, then copy
-   the value of the new binding into `realvalue' (or through it).
-   Also update LOADED-BINDING to point to the newly loaded binding.
+   load it.  To load it, first unload the previous binding.
 
    `local_if_set' indicates that merely setting the variable creates a
    local binding for the current buffer.  Otherwise the latter, setting

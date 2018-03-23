@@ -1,4 +1,4 @@
-;;; data-tests.el --- tests for src/data.c
+;;; data-tests.el --- tests for src/data.c  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
@@ -499,3 +499,20 @@ comparing the subr with a much slower lisp implementation."
       (remove-variable-watcher 'data-tests-lvar collect-watch-data)
       (setq data-tests-lvar 6)
       (should (null watch-data)))))
+
+(ert-deftest data-tests-kill-all-local-variables () ;bug#30846
+  (with-temp-buffer
+    (setq-local data-tests-foo1 1)
+    (setq-local data-tests-foo2 2)
+    (setq-local data-tests-foo3 3)
+    (let ((oldfoo2 nil))
+      (add-variable-watcher 'data-tests-foo2
+                            (lambda (&rest _)
+                              (setq oldfoo2 (bound-and-true-p data-tests-foo2))))
+      (kill-all-local-variables)
+      (should (equal oldfoo2 '2)) ;Watcher is run before changing the var.
+      (should (not (or (bound-and-true-p data-tests-foo1)
+                       (bound-and-true-p data-tests-foo2)
+                       (bound-and-true-p data-tests-foo3)))))))
+
+;;; data-tests.el ends here

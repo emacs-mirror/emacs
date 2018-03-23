@@ -108,7 +108,6 @@ int last_per_buffer_idx;
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     bool after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
-static void swap_out_buffer_local_variables (struct buffer *b);
 static void reset_buffer_local_variables (struct buffer *, bool);
 
 /* Alist of all buffer names vs the buffers.  This used to be
@@ -991,10 +990,29 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
   else
     {
       Lisp_Object tmp, last = Qnil;
+      Lisp_Object buffer;
+      XSETBUFFER (buffer, b);
+
       for (tmp = BVAR (b, local_var_alist); CONSP (tmp); tmp = XCDR (tmp))
         {
           Lisp_Object local_var = XCAR (XCAR (tmp));
           Lisp_Object prop = Fget (local_var, Qpermanent_local);
+          Lisp_Object sym = local_var;
+
+          /* Watchers are run *before* modifying the var.  */
+          if (XSYMBOL (local_var)->u.s.trapped_write == SYMBOL_TRAPPED_WRITE)
+            notify_variable_watchers (local_var, Qnil,
+                                      Qmakunbound, Fcurrent_buffer ());
+
+          eassert (XSYMBOL (sym)->u.s.redirect == SYMBOL_LOCALIZED);
+          /* Need not do anything if some other buffer's binding is
+	     now cached.  */
+          if (EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
+	    {
+	      /* Symbol is set up for this buffer's old local value:
+	         swap it out!  */
+	      swap_in_global_binding (XSYMBOL (sym));
+	    }
 
           if (!NILP (prop))
             {
@@ -1034,10 +1052,6 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
             bset_local_var_alist (b, XCDR (tmp));
           else
             XSETCDR (last, XCDR (tmp));
-
-          if (XSYMBOL (local_var)->u.s.trapped_write == SYMBOL_TRAPPED_WRITE)
-            notify_variable_watchers (local_var, Qnil,
-                                      Qmakunbound, Fcurrent_buffer ());
         }
     }
 
@@ -1867,7 +1881,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      won't be protected from GC.  They would be protected
      if they happened to remain cached in their symbols.
      This gets rid of them for certain.  */
-  swap_out_buffer_local_variables (b);
   reset_buffer_local_variables (b, 1);
 
   bset_name (b, Qnil);
@@ -2737,11 +2750,6 @@ the normal hook `change-major-mode-hook'.  */)
 {
   run_hook (Qchange_major_mode_hook);
 
-  /* Make sure none of the bindings in local_var_alist
-     remain swapped in, in their symbols.  */
-
-  swap_out_buffer_local_variables (current_buffer);
-
   /* Actually eliminate all local bindings of this buffer.  */
 
   reset_buffer_local_variables (current_buffer, 0);
@@ -2753,31 +2761,6 @@ the normal hook `change-major-mode-hook'.  */)
   return Qnil;
 }
 
-/* Make sure no local variables remain set up with buffer B
-   for their current values.  */
-
-static void
-swap_out_buffer_local_variables (struct buffer *b)
-{
-  Lisp_Object oalist, alist, buffer;
-
-  XSETBUFFER (buffer, b);
-  oalist = BVAR (b, local_var_alist);
-
-  for (alist = oalist; CONSP (alist); alist = XCDR (alist))
-    {
-      Lisp_Object sym = XCAR (XCAR (alist));
-      eassert (XSYMBOL (sym)->u.s.redirect == SYMBOL_LOCALIZED);
-      /* Need not do anything if some other buffer's binding is
-	 now cached.  */
-      if (EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
-	{
-	  /* Symbol is set up for this buffer's old local value:
-	     swap it out!  */
-	  swap_in_global_binding (XSYMBOL (sym));
-	}
-    }
-}
 
 /* Find all the overlays in the current buffer that contain position POS.
    Return the number found, and store them in a vector in *VEC_PTR.
