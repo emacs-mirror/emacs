@@ -1858,7 +1858,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
 	       (+ vip-use-register 32) (point) (+ (point) val))
 	    (copy-to-register vip-use-register (point) (+ (point) val) nil))
 	  (setq vip-use-register nil)))
-    (delete-backward-char val t)))
+    (with-no-warnings (delete-backward-char val t))))
 
 
 ;; join lines.
