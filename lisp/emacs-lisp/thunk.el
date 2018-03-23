@@ -48,7 +48,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-macs))
+(require 'cl-lib)
 
 (defmacro thunk-delay (&rest body)
   "Delay the evaluation of BODY."

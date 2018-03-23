@@ -32,10 +32,9 @@
 ;; * Add texinfo lookup options.
 ;; * Add website
 
-(eval-when-compile (require 'cl))
-
 (require 'ede)
 (require 'ede/make)
+(eval-when-compile (require 'cl))
 
 (declare-function semanticdb-file-table-object "semantic/db")
 (declare-function semanticdb-needs-refresh-p "semantic/db")

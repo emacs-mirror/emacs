@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 
 (defvar tool-bar-mode)
 (defvar gnus-tmp-header)

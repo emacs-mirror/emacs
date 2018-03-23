@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 
 (require 'gnus-util)
 (require 'epg)
@@ -167,9 +167,9 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 	(if (or (eq style 'separate)
 		(eq style 'combined))
 	    ;; valid style setting?
-	    (setf (second style-item) style)
+	    (setf (cadr style-item) style)
 	  ;; otherwise, just return the current value
-	  (second style-item))
+	  (cadr style-item))
       (message "Warning, attempt to set invalid signencrypt style"))))
 
 ;;; Security functions
@@ -554,7 +554,7 @@ customized in this variable."
   "For CONTEXT, USAGE, and NAME record fingerprint(s) of KEYS.
 If optional SAVE is not nil, save customized fingerprints.
 Return keys."
-  (assert keys)
+  (cl-assert keys)
   (let* ((usage-prefs (mml-secure-cust-usage-lookup context usage))
 	 (curr-fprs (cdr (assoc name (cdr usage-prefs))))
 	 (key-fprs (mapcar 'mml-secure-fingerprint keys))

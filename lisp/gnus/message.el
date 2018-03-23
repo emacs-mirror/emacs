@@ -28,8 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
+(require 'cl-lib)
 (require 'mailheader)
 (require 'gmm-utils)
 (require 'mail-utils)

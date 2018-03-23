@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (eval-when-compile (require 'url))      ;For url-filename's setf handler.
 (require 'browse-url)
 (eval-when-compile (require 'subr-x))

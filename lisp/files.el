@@ -4012,6 +4012,9 @@ This function returns either:
       ;; No cache entry.
       locals-dir)))
 
+(declare-function map-merge-with "map" (type function &rest maps))
+(declare-function map-merge "map" (type &rest maps))
+
 (defun dir-locals-read-from-dir (dir)
   "Load all variables files in DIR and register a new class and instance.
 DIR is the absolute name of a directory which must contain at

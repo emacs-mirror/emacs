@@ -235,6 +235,8 @@ PREFIX is only used internally."
     (radix-tree-iter-mappings tree (lambda (_k _v) (setq i (1+ i))))
     i))
 
+(declare-function map-apply "map" (function map))
+
 (defun radix-tree-from-map (map)
   ;; Aka (cl-defmethod map-into (map (type (eql radix-tree)))) ...)
   (require 'map)

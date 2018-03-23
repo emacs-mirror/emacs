@@ -101,11 +101,11 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (eval-when-compile
   (require 'vc)
   (require 'vc-dir))
-
-(require 'cl-lib)
 
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 

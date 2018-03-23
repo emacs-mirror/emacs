@@ -24,10 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-(defvar tool-bar-mode)
-
+(require 'cl-lib)
 (require 'gnus)
 (require 'gnus-start)
 (require 'nnmail)
@@ -45,6 +42,8 @@
     (require 'gnus-sum))
   (unless (boundp 'gnus-cache-active-hashtb)
     (defvar gnus-cache-active-hashtb nil)))
+
+(defvar tool-bar-mode)
 
 (autoload 'gnus-agent-total-fetched-for "gnus-agent")
 (autoload 'gnus-cache-total-fetched-for "gnus-cache")
