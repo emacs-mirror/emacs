@@ -63,7 +63,6 @@
 ;;       constant.  These need to be returned as there would be no
 ;;       other possible completions.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'semantic/format)
 (require 'semantic/ctxt)

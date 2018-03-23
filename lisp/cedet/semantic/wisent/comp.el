@@ -41,7 +41,7 @@
 
 ;;; Code:
 (require 'semantic/wisent)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; -------------------
 ;;;; Misc. useful things
@@ -2906,7 +2906,7 @@ references found in BODY, and XBODY is BODY expression with
       (progn
         (if (wisent-check-$N body n)
             ;; Accumulate $i symbol
-            (pushnew body found :test #'equal))
+            (cl-pushnew body found :test #'equal))
         (cons found body))
     ;; BODY is a list, expand inside it
     (let (xbody sexpr)
@@ -2926,7 +2926,7 @@ references found in BODY, and XBODY is BODY expression with
          ;; $i symbol
          ((wisent-check-$N sexpr n)
           ;; Accumulate $i symbol
-          (pushnew sexpr found :test #'equal))
+          (cl-pushnew sexpr found :test #'equal))
          )
         ;; Accumulate expanded forms
         (setq xbody (nconc xbody (list sexpr))))

@@ -34,7 +34,7 @@
 
 (require 'ede)
 (require 'ede/make)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function semanticdb-file-table-object "semantic/db")
 (declare-function semanticdb-needs-refresh-p "semantic/db")
@@ -115,7 +115,7 @@ If DIR has not been used as a build directory, fall back to
    ;; detected build on source directory
    (and (file-exists-p (expand-file-name ".config" dir)) dir)
    ;; use configuration
-   (case project-linux-build-directory-default
+   (cl-case project-linux-build-directory-default
      (same dir)
      (ask (read-directory-name "Select Linux' build directory: " dir)))))
 
@@ -164,7 +164,7 @@ Uses `ede-linux--detect-architecture' for the auto-detection. If
 the result is `ask', let the user choose from architectures found
 in DIR."
   (let ((arch (ede-linux--detect-architecture bdir)))
-    (case arch
+    (cl-case arch
       (ask
        (completing-read "Select target architecture: "
                         (ede-linux--get-archs dir)))
@@ -175,7 +175,7 @@ in DIR."
   "Returns a list with include directories.
 Returned directories might not exist, since they are not created
 until Linux is built for the first time."
-  (map 'list
+  (cl-map 'list
        (lambda (elem) (format (concat (car elem) "/" (cdr elem)) arch))
        ;; XXX: taken from the output of "make V=1"
        (list (cons  dir "arch/%s/include")

@@ -27,12 +27,13 @@
 ;; This provides a dired interface to EDE, allowing users to modify
 ;; their project file by adding files (or whatever) directly from a
 ;; dired buffer.
-(eval-when-compile (require 'cl))
+
+;;; Code:
+
 (require 'easymenu)
 (require 'dired)
 (require 'ede)
 
-;;; Code:
 (defvar ede-dired-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map ".a" 'ede-dired-add-to-target)

@@ -28,7 +28,6 @@
 
 ;;; CLASSES
 
-(eval-when-compile (require 'cl))
 (require 'eieio)
 (require 'cl-generic)
 (require 'srecode)

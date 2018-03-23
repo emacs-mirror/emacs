@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'speedbar)
 (require 'eieio-speedbar)
 (require 'ede)

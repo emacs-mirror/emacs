@@ -106,7 +106,6 @@
 ;; `semantic-complete-inline-tag-engine' will complete text in
 ;; a buffer.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-opt)
 (require 'semantic/analyze)

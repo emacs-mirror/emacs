@@ -46,8 +46,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (require 'find-func)
 ;; For find-function-regexp-alist. It is tempting to replace this
 ;; ‘require’ by (defvar find-function-regexp-alist) and

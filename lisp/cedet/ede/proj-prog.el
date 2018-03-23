@@ -25,7 +25,6 @@
 ;;
 ;; Handle building programs from object files in and EDE Project file.
 
-(eval-when-compile (require 'cl))
 (require 'ede/pmake)
 (require 'ede/proj-obj)
 

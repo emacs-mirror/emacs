@@ -36,7 +36,6 @@
 ;; Each parser must implement the interface and override any methods as needed.
 ;;
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio)
 (require 'cl-generic)

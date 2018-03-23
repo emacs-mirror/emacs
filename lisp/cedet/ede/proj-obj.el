@@ -26,7 +26,6 @@
 ;; Handles a superclass of target types which create object code in
 ;; and EDE Project file.
 
-(eval-when-compile (require 'cl))
 (require 'ede/proj)
 (declare-function ede-pmake-varname "ede/pmake")
 

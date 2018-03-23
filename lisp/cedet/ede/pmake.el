@@ -43,7 +43,6 @@
 ;;       1) Insert distribution source variables for targets
 ;;       2) Insert user requested rules
 
-(eval-when-compile (require 'cl))
 (require 'ede/proj)
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)

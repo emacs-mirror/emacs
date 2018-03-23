@@ -30,9 +30,6 @@
 ;; load them all by doing (require 'cedet).  This is mostly for
 ;; compatibility with the upstream, stand-alone CEDET distribution.
 
-(eval-when-compile
-  (require 'cl))
-
 (declare-function inversion-find-version "inversion")
 
 (defconst cedet-version "2.0"

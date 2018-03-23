@@ -35,7 +35,7 @@
 ;;
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'semantic)
 (require 'semantic/decorate)
 (require 'semantic/tag-ls)
@@ -82,13 +82,13 @@ add items to this list."
 (defsubst semantic-decoration-set-property (deco property value)
   "Set the DECO decoration's PROPERTY to VALUE.
 Return DECO."
-  (assert (semantic-decoration-p deco))
+  (cl-assert (semantic-decoration-p deco))
   (semantic-overlay-put deco property value)
   deco)
 
 (defsubst semantic-decoration-get-property (deco property)
   "Return the DECO decoration's PROPERTY value."
-  (assert (semantic-decoration-p deco))
+  (cl-assert (semantic-decoration-p deco))
   (semantic-overlay-get deco property))
 
 (defsubst semantic-decoration-set-face (deco face)
@@ -103,7 +103,7 @@ Return DECO."
 (defsubst semantic-decoration-set-priority (deco priority)
   "Set the priority of the decoration DECO to PRIORITY.
 Return DECO."
-  (assert (natnump priority))
+  (cl-assert (natnump priority))
   (semantic-decoration-set-property deco 'priority priority))
 
 (defsubst semantic-decoration-priority (deco)
@@ -113,7 +113,7 @@ Return DECO."
 (defsubst semantic-decoration-move (deco begin end)
   "Move the decoration DECO on the region between BEGIN and END.
 Return DECO."
-  (assert (semantic-decoration-p deco))
+  (cl-assert (semantic-decoration-p deco))
   (semantic-overlay-move deco begin end)
   deco)
 
@@ -135,7 +135,7 @@ Return the overlay that makes up the new decoration."
 (defun semantic-decorate-clear-tag (tag &optional deco)
   "Remove decorations from TAG.
 If optional argument DECO is non-nil, remove only that decoration."
-  (assert (or (null deco) (semantic-decoration-p deco)))
+  (cl-assert (or (null deco) (semantic-decoration-p deco)))
   ;; Clear primary decorations.
   ;; For now, just unhighlight the tag.  How to deal with other
   ;; primary decorations like invisibility, etc. ?  Maybe just
