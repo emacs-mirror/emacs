@@ -7095,7 +7095,9 @@ sweep_misc (void)
           if (!mblk->markers[i].m.u_any.gcmarkbit)
             {
               if (mblk->markers[i].m.u_any.type == Lisp_Misc_Marker)
-                unchain_marker (&mblk->markers[i].m.u_marker);
+                /* Make sure markers have been unchained from their buffer
+                   in sweep_buffer before we collect them.  */
+                eassert (!mblk->markers[i].m.u_marker.buffer);
               else if (mblk->markers[i].m.u_any.type == Lisp_Misc_Finalizer)
                 unchain_finalizer (&mblk->markers[i].m.u_finalizer);
 #ifdef HAVE_MODULES
@@ -7142,6 +7144,23 @@ sweep_misc (void)
   total_free_markers = num_free;
 }
 
+/* Remove BUFFER's markers that are due to be swept.  This is needed since
+   we treat BUF_MARKERS and markers's `next' field as weak pointers.  */
+static void
+unchain_dead_markers (struct buffer *buffer)
+{
+  struct Lisp_Marker *this, **prev = &BUF_MARKERS (buffer);
+
+  while ((this = *prev))
+    if (this->gcmarkbit)
+      prev = &this->next;
+    else
+      {
+        this->buffer = NULL;
+        *prev = this->next;
+      }
+}
+
 NO_INLINE /* For better stack traces */
 static void
 sweep_buffers (void)
@@ -7160,6 +7179,7 @@ sweep_buffers (void)
         VECTOR_UNMARK (buffer);
         /* Do not use buffer_(set|get)_intervals here.  */
         buffer->text->intervals = balance_intervals (buffer->text->intervals);
+        unchain_dead_markers (buffer);
         total_buffers++;
         bprev = &buffer->next;
       }
@@ -7179,8 +7199,8 @@ gc_sweep (void)
   sweep_floats ();
   sweep_intervals ();
   sweep_symbols ();
-  sweep_misc ();
   sweep_buffers ();
+  sweep_misc ();
   sweep_vectors ();
   check_string_bytes (!noninteractive);
 }
