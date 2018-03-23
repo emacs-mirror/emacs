@@ -39,9 +39,6 @@
 
 (defvar ediff-after-quit-hook-internal nil)
 
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
-
 ;; end pacifier
 
 

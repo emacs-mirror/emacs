@@ -38,10 +38,6 @@
 (defvar frame-icon-title-format)
 (defvar ediff-diff-status)
 
-;; declare-function does not exist in XEmacs
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
-
 (require 'ediff-init)
 (require 'ediff-help)
 ;; end pacifier

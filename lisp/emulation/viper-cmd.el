@@ -45,8 +45,6 @@
 (defvar undo-beg-posn)
 (defvar undo-end-posn)
 
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest _))))
 ;; end pacifier
 
 

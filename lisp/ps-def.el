@@ -31,9 +31,6 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest _r))))
-
 (declare-function ps-plot-with-face "ps-print" (from to face))
 (declare-function ps-plot-string    "ps-print" (string))
 
