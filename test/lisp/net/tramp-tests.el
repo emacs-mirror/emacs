@@ -133,7 +133,8 @@ being the result.")
   "Whether expensive tests are run."
   (ert-select-tests
    (ert--stats-selector ert--current-run-stats)
-   (list (make-ert-test :body nil :tags '(:expensive-test)))))
+   (list (make-ert-test :name (ert-test-name (ert-running-test))
+                        :body nil :tags '(:expensive-test)))))
 
 (defun tramp--test-make-temp-name (&optional local quoted)
   "Return a temporary file name for test.
@@ -4660,7 +4661,8 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-windows-nt-and-batch)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
 
-  (tramp--test-utf8))
+  (tramp--test-instrument-test-case 10
+  (tramp--test-utf8)))
 
 (ert-deftest tramp-test39-utf8-with-stat ()
   "Check UTF8 encoding in file names and file contents.
