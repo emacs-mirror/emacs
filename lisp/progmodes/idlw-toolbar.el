@@ -34,8 +34,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defun idlwave-toolbar-make-button (image)
   (if (featurep 'xemacs)
       (toolbar-make-button-list image)

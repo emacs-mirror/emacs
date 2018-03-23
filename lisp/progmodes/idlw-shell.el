@@ -92,7 +92,7 @@
 (require 'comint)
 (require 'idlwave)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar idlwave-shell-have-new-custom nil)
 
@@ -2261,12 +2261,12 @@ overlays."
 (defun idlwave-shell-stack-up ()
   "Display the source code one step up the calling stack."
   (interactive)
-  (incf idlwave-shell-calling-stack-index)
+  (cl-incf idlwave-shell-calling-stack-index)
   (idlwave-shell-display-level-in-calling-stack 'hide))
 (defun idlwave-shell-stack-down ()
   "Display the source code one step down the calling stack."
   (interactive)
-  (decf idlwave-shell-calling-stack-index)
+  (cl-decf idlwave-shell-calling-stack-index)
   (idlwave-shell-display-level-in-calling-stack 'hide))
 
 (defun idlwave-shell-goto-frame (&optional frame)
@@ -3597,7 +3597,7 @@ Existing overlays are recycled, in order to minimize consumption."
       (if ov-alist
 	  (while (setq ov-list (pop ov-alist))
 	    (while (setq ov (pop (cdr ov-list)))
-	      (pushnew (overlay-buffer ov) old-buffers)
+	      (cl-pushnew (overlay-buffer ov) old-buffers)
 	      (delete-overlay ov))))
 
       (setq ov-alist idlwave-shell-bp-overlays

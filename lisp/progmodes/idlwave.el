@@ -151,7 +151,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'idlw-help)
 
 ;; For XEmacs
@@ -3898,7 +3898,7 @@ Buffers containing unsaved changes require confirmation before they are killed."
 	  (and (or (memq t reasons)
 		   (memq (cdr entry) reasons))
 	       (kill-buffer (car entry))
-	       (incf cnt)
+	       (cl-incf cnt)
 	       (setq idlwave-outlawed-buffers
 		     (delq entry idlwave-outlawed-buffers)))
 	(setq idlwave-outlawed-buffers
@@ -4104,14 +4104,14 @@ blank lines."
 		   (idlwave-sint-classes    10 10))))
 
     ;; Make sure these are lists
-    (loop for entry in entries
+    (cl-loop for entry in entries
       for var = (car entry)
       do (if (not (consp (symbol-value var))) (set var (list nil))))
 
     ;; Reset the system & library hash
     (when (or (eq what t) (eq what 'syslib)
 	      (null (cdr idlwave-sint-routines)))
-      (loop for entry in entries
+      (cl-loop for entry in entries
 	for var = (car entry) for size = (nth 1 entry)
 	do (setcdr (symbol-value var)
 		   (make-hash-table ':size size ':test 'equal)))
@@ -4121,7 +4121,7 @@ blank lines."
     ;; Reset the buffer & shell hash
     (when (or (eq what t) (eq what 'bufsh)
 	      (null (car idlwave-sint-routines)))
-      (loop for entry in entries
+      (cl-loop for entry in entries
 	for var = (car entry) for size = (nth 1 entry)
 	do (setcar (symbol-value var)
 		   (make-hash-table ':size size ':test 'equal))))))
@@ -4680,7 +4680,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 		(setq pref-list
 		      (if (match-string 1 kwd) '("X" "Y" "Z") '("X" "Y"))
 		      kwd (substring kwd (match-end 0)))
-		(loop for x in pref-list do
+		(cl-loop for x in pref-list do
 		      (push (list (concat x kwd) klink) kwds)))
 	    (push (list kwd klink) kwds)))
 
@@ -4701,7 +4701,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	(cons (substring name 1) link)
       (if extra-kws (setq kwds (nconc kwds extra-kws)))
       (setq kwds (idlwave-rinfo-group-keywords kwds link))
-      (loop for idx from 0 to 1 do
+      (cl-loop for idx from 0 to 1 do
 	    (if (aref syntax-vec idx)
 		(push (append (list name (if (eq idx 0) 'pro 'fun)
 				    class '(system)
@@ -4736,7 +4736,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
   ;; Clean up the syntax of routines which are actually aliases by
   ;; removing the "OR" from the statements
   (let (syntax entry)
-    (loop for x in aliases do
+    (cl-loop for x in aliases do
 	  (setq entry (assoc x idlwave-system-routines))
 	  (when entry
 	    (while (string-match " +or +" (setq syntax (nth 4 entry)))
@@ -4746,7 +4746,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
   ;; Duplicate and trim original routine aliases from rinfo list
   ;; This if for, e.g. OPENR/OPENW/OPENU
   (let (alias remove-list new parts all-parts)
-    (loop for x in aliases do
+    (cl-loop for x in aliases do
 	  (when (setq parts (split-string (cdr x) "/"))
 	    (setq new (assoc (cdr x) all-parts))
 	    (unless new
@@ -4755,30 +4755,30 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
 	    (setcdr new (delete (car x) (cdr new)))))
 
     ;; Add any missing aliases (separate by slashes)
-    (loop for x in all-parts do
+    (cl-loop for x in all-parts do
 	  (if (cdr x)
 	      (push (cons (nth 1 x) (car x)) aliases)))
 
-    (loop for x in aliases do
+    (cl-loop for x in aliases do
 	  (when (setq alias (assoc (cdr x) idlwave-system-routines))
 	    (unless (memq alias remove-list) (push alias remove-list))
 	    (setq alias (copy-sequence alias))
 	    (setcar alias (car x))
 	    (push alias idlwave-system-routines)))
-    (loop for x in remove-list do
+    (cl-loop for x in remove-list do
 	  (delq x idlwave-system-routines))))
 
 (defun idlwave-convert-xml-clean-sysvar-aliases (aliases)
   ;; Duplicate and trim original routine aliases from rinfo list
   ;; This if for, e.g. !X, !Y, !Z.
   (let (alias remove-list)
-    (loop for x in aliases do
+    (cl-loop for x in aliases do
 	  (when (setq alias (assoc (cdr x) idlwave-system-variables-alist))
 	    (unless (memq alias remove-list) (push alias remove-list))
 	    (setq alias (copy-sequence alias))
 	    (setcar alias (car x))
 	    (push alias idlwave-system-variables-alist)))
-    (loop for x in remove-list do
+    (cl-loop for x in remove-list do
 	  (delq x idlwave-system-variables-alist))))
 
 
@@ -4875,7 +4875,7 @@ Cache to disk for quick recovery."
     (while rinfo
       (setq elem (car rinfo)
 	    rinfo (cdr rinfo))
-      (incf elem-cnt)
+      (cl-incf elem-cnt)
       (when (listp elem)
 	(setq type (car elem)
 	      props (car (cdr elem)))
@@ -5106,7 +5106,7 @@ Cache to disk for quick recovery."
   "Return the class alist - make it if necessary."
   (or idlwave-class-alist
       (let (class)
-	(loop for x in idlwave-routines do
+	(cl-loop for x in idlwave-routines do
 	  (when (and (setq class (nth 2 x))
 		     (not (assq class idlwave-class-alist)))
 	    (push (list class) idlwave-class-alist)))
@@ -6223,7 +6223,7 @@ If yes, return the index (>=1)."
   (let (file (cnt 0))
     (catch 'exit
       (while entries
-	(incf cnt)
+	(cl-incf cnt)
 	(setq file (idlwave-routine-source-file (nth 3 (car entries))))
 	(if (and file (idlwave-syslib-p file))
 	    (throw 'exit cnt)
@@ -6520,7 +6520,7 @@ ARROW:  Location of the arrow"
 		      (progn (up-list -1) t)
 		    (error nil))
 	     (setq pos (point))
-	     (incf cnt)
+	     (cl-incf cnt)
 	     (when (and (= (following-char) ?\()
 			(re-search-backward
 			 "\\(::\\|\\<\\)\\([a-zA-Z][a-zA-Z0-9$_]*\\)[ \t]*\\="
@@ -8190,7 +8190,7 @@ demand _EXTRA in the keyword list."
 	       (while (setq re (pop regexps))
 		 (if (string-match re name) (throw 'exit t))))))
 
-      (loop for entry in (idlwave-routines) do
+      (cl-loop for entry in (idlwave-routines) do
 	    (and (nth 2 entry)                           ; non-nil class
 		 (memq (nth 2 entry) super-classes)      ; an inherited class
 		 (eq (nth 1 entry) type)                 ; correct type
@@ -8399,7 +8399,7 @@ If we do not know about MODULE, just return KEYWORD literally."
 		     "")
 		   (if (> total 1) "- " ""))
 	   entry props)
-	  (incf cnt)
+	  (cl-incf cnt)
 	  (when (and all (> cnt idlwave-rinfo-max-source-lines))
 	    ;; No more source lines, please
 	    (insert (format
@@ -8707,7 +8707,7 @@ can be used to detect possible name clashes during this process."
 		  (> (idlwave-count-memq 'lib (nth 2 (car dtwins))) 1)
 		  (> (idlwave-count-memq 'user (nth 2 (car dtwins))) 1)
 		  (> (idlwave-count-memq 'buffer (nth 2 (car dtwins))) 1))
-	  (incf cnt)
+	  (cl-incf cnt)
 	  (insert (format "\n%s%s"
 			  (idlwave-make-full-name (nth 2 routine)
 						  (car routine))
@@ -8776,7 +8776,7 @@ routines, and may have been scanned."
 	 (cnt 0)
 	 source type type-cons file alist syslibp key)
     (while (setq entry (pop entries))
-      (incf cnt)
+      (cl-incf cnt)
       (setq source (nth 3 entry)
 	    type (car source)
 	    type-cons (cons type (nth 3 source))

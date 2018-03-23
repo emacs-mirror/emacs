@@ -82,8 +82,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'easymenu)
 (require 'cc-mode)
@@ -1066,7 +1065,7 @@ Used for `antlr-slow-syntactic-context'.")
     (buffer-syntactic-context-depth)
     nil)
   :EMACS
-;;;  (incf antlr-statistics-inval)
+;;;  (cl-incf antlr-statistics-inval)
   (setq antlr-slow-context-cache nil))
 
 (defunx antlr-syntactic-context ()
@@ -1096,9 +1095,9 @@ WARNING: this may alter `match-data'."
       (if (>= orig antlr-slow-cache-diff-threshold)
 	  (beginning-of-defun)
 	(goto-char (point-min)))
-;;;      (cond ((and diff (< diff 0)) (incf antlr-statistics-full-neg))
-;;;	    ((and diff (>= diff 3000)) (incf antlr-statistics-full-diff))
-;;;	    (t (incf antlr-statistics-full-other)))
+;;;      (cond ((and diff (< diff 0)) (cl-incf antlr-statistics-full-neg))
+;;;	    ((and diff (>= diff 3000)) (cl-incf antlr-statistics-full-diff))
+;;;	    (t (cl-incf antlr-statistics-full-other)))
       (setq state (parse-partial-sexp (point) orig)))
     (goto-char orig)
     (if antlr-slow-context-cache
@@ -1110,12 +1109,12 @@ WARNING: this may alter `match-data'."
 	  ((nth 4 state) 'comment)	; block-comment? -- we don't care
 	  (t (car state)))))
 
-;;;  (incf (aref antlr-statistics 2))
+;;;  (cl-incf (aref antlr-statistics 2))
 ;;;  (unless (and (eq (current-buffer)
 ;;;		   (caar antlr-slow-context-cache))
 ;;;	       (eq (buffer-modified-tick)
 ;;;		   (cdar antlr-slow-context-cache)))
-;;;    (incf (aref antlr-statistics 1))
+;;;    (cl-incf (aref antlr-statistics 1))
 ;;;    (setq antlr-slow-context-cache nil))
 ;;;  (let* ((orig (point))
 ;;;	 (base (cadr antlr-slow-context-cache))
@@ -1124,7 +1123,7 @@ WARNING: this may alter `match-data'."
 ;;;		      ((eq orig (car base)) (cdr base))))
 ;;;	 diff diff2)
 ;;;    (unless state
-;;;      (incf (aref antlr-statistics 3))
+;;;      (cl-incf (aref antlr-statistics 3))
 ;;;      (when curr
 ;;;	(if (< (setq diff  (abs (- orig (car curr))))
 ;;;	       (setq diff2 (abs (- orig (car base)))))
@@ -1137,7 +1136,7 @@ WARNING: this may alter `match-data'."
 ;;;	  (setq state
 ;;;		(parse-partial-sexp (car state) orig nil nil (cdr state)))
 ;;;	(if (>= orig 3000) (beginning-of-defun) (goto-char (point-min)))
-;;;	(incf (aref antlr-statistics 4))
+;;;	(cl-incf (aref antlr-statistics 4))
 ;;;	(setq cw (list orig (point) base curr))
 ;;;	(setq state (parse-partial-sexp (point) orig)))
 ;;;      (goto-char orig)
@@ -1348,10 +1347,10 @@ is non-nil, move to beginning of the rule."
 	  (antlr-skip-exception-part skip-comment))
       (antlr-skip-file-prelude skip-comment))
     (if (< arg 0)
-	(unless (and (< (point) pos) (zerop (incf arg)))
+	(unless (and (< (point) pos) (zerop (cl-incf arg)))
 	  ;; if we have moved backward, we already moved one defun backward
 	  (goto-char beg)		; rewind (to ";" / point)
-	  (while (and arg (<= (incf arg) 0))
+	  (while (and arg (<= (cl-incf arg) 0))
 	    (if (antlr-search-backward ";")
 		(setq beg (point))
 	      (when (>= arg -1)
@@ -1368,9 +1367,9 @@ is non-nil, move to beginning of the rule."
 	    (antlr-skip-exception-part skip-comment)))
       (if (<= (point) pos)		; moved backward?
 	  (goto-char pos)		; rewind
-	(decf arg))			; already moved one defun forward
+	(cl-decf arg))			; already moved one defun forward
       (unless (zerop arg)
-	(while (>= (decf arg) 0)
+	(while (>= (cl-decf arg) 0)
 	  (antlr-search-forward ";"))
 	(antlr-skip-exception-part skip-comment)))))
 
@@ -1465,7 +1464,7 @@ If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
 	(antlr-invalidate-context-cache)
 	(while (antlr-re-search-forward "\"\\(\\sw\\(\\sw\\|-\\)*\\)\"" nil)
 	  (funcall transform (match-beginning 0) (match-end 0))
-	  (incf literals))))
+	  (cl-incf literals))))
     (message "Transformed %d literals" literals)))
 
 (defun antlr-upcase-literals ()
@@ -2131,7 +2130,7 @@ its export vocabulary is used as an import vocabulary."
 	  (or (null ivocab)
 	      (member ivocab import-vocabs) (push ivocab import-vocabs)))))
     (if classes
-	(list* (file-name-nondirectory buffer-file-name)
+	(cl-list* (file-name-nondirectory buffer-file-name)
 	       (cons (nreverse classes) (nreverse superclasses))
 	       (cons (nreverse export-vocabs) (nreverse import-vocabs))
 	       antlr-language))))
@@ -2277,7 +2276,7 @@ command `antlr-show-makefile-rules' for detail."
     (dolist (dep deps)
       (let ((supers (cdadr dep))
 	    (lang (cdr (assoc (cdddr dep) antlr-file-formats-alist))))
-	(if n (incf n))
+	(if n (cl-incf n))
 	(antlr-makefile-insert-variable n "" " =")
 	(if supers
 	    (insert " "
@@ -2313,7 +2312,7 @@ command `antlr-show-makefile-rules' for detail."
     (if n
 	(let ((i 0))
 	  (antlr-makefile-insert-variable nil "" " =")
-	  (while (<= (incf i) n)
+	  (while (<= (cl-incf i) n)
 	    (antlr-makefile-insert-variable i " $(" ")"))
 	  (insert "\n" (car antlr-makefile-specification))))
     (if (string-equal (car antlr-makefile-specification) "\n")
@@ -2442,8 +2441,8 @@ to a lesser extent, `antlr-tab-offset-alist'."
 	(goto-char boi)
 	(unless (symbolp syntax)		; direct indentation
 	  ;;(antlr-invalidate-context-cache)
-	  (incf indent (antlr-syntactic-context))
-	  (and (> indent 0) (looking-at antlr-indent-item-regexp) (decf indent))
+	  (cl-incf indent (antlr-syntactic-context))
+	  (and (> indent 0) (looking-at antlr-indent-item-regexp) (cl-decf indent))
 	  (setq indent (* indent c-basic-offset)))
 	;; the usual major-mode indent stuff ---------------------------------
 	(setq orig (- (point-max) orig))
