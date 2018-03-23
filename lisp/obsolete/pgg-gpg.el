@@ -27,8 +27,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'pgg)
 
@@ -303,7 +302,7 @@ passphrase cache or user."
 
 (defun pgg-gpg-select-matching-key (message-keys secret-keys)
   "Choose a key from MESSAGE-KEYS that matches one of the keys in SECRET-KEYS."
-  (loop for message-key in message-keys
+  (cl-loop for message-key in message-keys
 	for message-key-id = (and (equal (car message-key) 1)
 				  (cdr (assq 'key-identifier
 					     (cdr message-key))))

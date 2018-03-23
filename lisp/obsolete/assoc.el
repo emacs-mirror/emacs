@@ -27,7 +27,6 @@
 ;; fetching off key-value pairs in association lists.
 
 ;;; Code:
-(eval-when-compile (require 'cl))
 
 (defun asort (alist-symbol key)
   "Move a specified key-value pair to the head of an alist.

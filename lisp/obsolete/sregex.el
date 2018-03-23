@@ -240,7 +240,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Compatibility code for when we didn't have shy-groups
 (defvar sregex--current-sregex nil)
@@ -487,7 +487,7 @@ has one of the following forms:
 	(concat "\\(?:" (regexp-quote exp) "\\)")
       (regexp-quote exp)))
    ((symbolp exp)
-    (ecase exp
+    (cl-ecase exp
       (any ".")
       (bol "^")
       (eol "$")

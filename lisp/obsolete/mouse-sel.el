@@ -135,9 +135,6 @@
 (require 'mouse)
 (require 'thingatpt)
 
-(eval-when-compile
-  (require 'cl))
-
 ;;=== User Variables ======================================================
 
 (defgroup mouse-sel nil

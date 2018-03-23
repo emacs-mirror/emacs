@@ -190,10 +190,6 @@
 (defvar font-lock-face-list)
 
 (eval-when-compile
- ;;
- ;; We don't do this at the top-level as we only use non-autoloaded macros.
- (require 'cl)
- ;;
  ;; We use this to preserve or protect things when modifying text properties.
  (defmacro save-buffer-state (varlist &rest body)
    "Bind variables according to VARLIST and eval BODY restoring buffer state."
