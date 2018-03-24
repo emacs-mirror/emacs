@@ -32,19 +32,10 @@
 ;;;###autoload
 (defun use-package-handler/:chords (name keyword arg rest state)
   "Handler for `:chords' keyword in `use-package'."
-  (let* ((commands (remq nil (mapcar #'(lambda (arg)
-                                         (if (listp arg)
-                                             (cdr arg)
-                                           nil)) arg)))
-         (chord-binder
-          (use-package-concat
-           (use-package-process-keywords name
-             (use-package-sort-keywords
-              (use-package-plist-maybe-put rest :defer t))
-             (use-package-plist-append state :commands commands))
-           `(,(macroexpand
-               `(bind-chords :package ,name ,@arg))))))
-    (use-package-handler/:preface name keyword chord-binder rest state)))
+  (use-package-concat
+   (use-package-process-keywords name rest state)
+   `(,(macroexpand
+       `(bind-chords :package ,name ,@arg)))))
 
 (add-to-list 'use-package-keywords :chords t)
 
