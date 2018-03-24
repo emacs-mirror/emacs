@@ -166,12 +166,7 @@ nnmairix groups are specifically excluded because they are ephemeral."
 
 (defvar gnus-registry-misc-menus nil)   ; ugly way to keep the menus
 
-(make-obsolete-variable 'gnus-registry-clean-empty nil "23.4")
-(make-obsolete-variable 'gnus-registry-use-long-group-names nil "23.4")
-(make-obsolete-variable 'gnus-registry-max-track-groups nil "23.4")
-(make-obsolete-variable 'gnus-registry-entry-caching nil "23.4")
-(make-obsolete-variable 'gnus-registry-trim-articles-without-groups nil "23.4")
-;; FIXME it was simply deleted.
+;; It was simply deleted.
 (make-obsolete-variable 'gnus-registry-max-pruned-entries nil "25.1")
 
 (defcustom gnus-registry-track-extra '(subject sender recipient)
