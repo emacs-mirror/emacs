@@ -24,6 +24,9 @@
 (require 'bind-chord)
 
 ;;;###autoload
+(defalias 'use-package-autoloads/:chords 'use-package-autoloads-mode)
+
+;;;###autoload
 (defalias 'use-package-normalize/:chords 'use-package-normalize-binder)
 
 ;;;###autoload
