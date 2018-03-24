@@ -764,7 +764,23 @@
 		       (if (= 1 (length (cdr form))) "" "s"))
     form))
 
+(defun byte-optimize-memq (form)
+  ;; (memq foo '(bar)) => (and (eq foo 'bar) '(bar))
+  (if (/= (length (cdr form)) 2)
+      (byte-compile-warn "memq called with %d arg%s, but requires 2"
+		         (length (cdr form))
+		         (if (= 1 (length (cdr form))) "" "s"))
+    (let ((list (nth 2 form)))
+      (when (and (eq (car-safe list) 'quote)
+                 (listp (setq list (cadr list)))
+                 (= (length list) 1))
+        (setq form `(and ,(byte-optimize-predicate
+                           `(eq ,(nth 1 form) ',(nth 0 list)))
+                         ',list))))
+    (byte-optimize-and form)))
+
 (put 'identity 'byte-optimizer 'byte-optimize-identity)
+(put 'memq 'byte-optimizer 'byte-optimize-memq)
 
 (put '+   'byte-optimizer 'byte-optimize-plus)
 (put '*   'byte-optimizer 'byte-optimize-multiply)
@@ -787,7 +803,6 @@
 (put '1-  'byte-optimizer 'byte-optimize-predicate)
 (put 'not 'byte-optimizer 'byte-optimize-predicate)
 (put 'null  'byte-optimizer 'byte-optimize-predicate)
-(put 'memq  'byte-optimizer 'byte-optimize-predicate)
 (put 'consp 'byte-optimizer 'byte-optimize-predicate)
 (put 'listp 'byte-optimizer 'byte-optimize-predicate)
 (put 'symbolp 'byte-optimizer 'byte-optimize-predicate)
@@ -804,7 +819,6 @@
 (put 'cdr 'byte-optimizer 'byte-optimize-predicate)
 (put 'car-safe 'byte-optimizer 'byte-optimize-predicate)
 (put 'cdr-safe 'byte-optimizer 'byte-optimize-predicate)
-
 
 ;; I'm not convinced that this is necessary.  Doesn't the optimizer loop
 ;; take care of this? - Jamie
