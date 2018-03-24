@@ -729,13 +729,6 @@
   "Emacs interface to version control systems."
   :group 'tools)
 
-(defcustom vc-initial-comment nil
-  "If non-nil, prompt for initial comment when a file is registered."
-  :type 'boolean
-  :group 'vc)
-
-(make-obsolete-variable 'vc-initial-comment "it has no effect." "23.2")
-
 (defcustom vc-checkin-switches nil
   "A string or list of strings specifying extra switches for checkin.
 These are passed to the checkin program by \\[vc-checkin]."
