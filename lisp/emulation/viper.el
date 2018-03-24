@@ -937,8 +937,13 @@ Two differences:
     (if (and (eq viper-current-state 'vi-state)
 	     ;; Do not use called-interactively-p here. XEmacs does not have it
 	     ;; and interactive-p is just fine.
-	     ;; (called-interactively-p 'interactive))
-	     (interactive-p))
+             (if (featurep 'xemacs)
+                 (interactive-p)
+               ;; Respect the spirit of the above comment, though it
+               ;; seems pointless, since XE doesn't have advice-add or
+               ;; lexical binding or any other of the newer features
+               ;; this file uses.
+               (called-interactively-p 'interactive)))
 	(beep 1)
       (apply orig-fun args))))
 
