@@ -275,7 +275,7 @@ To restore the old behavior, use
     (add-hook 'eshell-expand-input-functions
               #'eshell-expand-history-references)
 
-*** The function 'shell-uniquify-list' has been renamed from
+*** The function 'eshell-uniquify-list' has been renamed from
 'eshell-uniqify-list'.
 
 ** Pcomplete
