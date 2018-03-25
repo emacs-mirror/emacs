@@ -774,10 +774,11 @@
       (when (and (eq (car-safe list) 'quote)
                  (listp (setq list (cadr list)))
                  (= (length list) 1))
-        (setq form `(and ,(byte-optimize-predicate
-                           `(eq ,(nth 1 form) ',(nth 0 list)))
-                         ',list))))
-    (byte-optimize-and form)))
+        (setq form (byte-optimize-and
+                    `(and ,(byte-optimize-predicate
+                            `(eq ,(nth 1 form) ',(nth 0 list)))
+                          ',list)))))
+    (byte-optimize-predicate form)))
 
 (put 'identity 'byte-optimizer 'byte-optimize-identity)
 (put 'memq 'byte-optimizer 'byte-optimize-memq)
