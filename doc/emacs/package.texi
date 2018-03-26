@@ -263,13 +263,13 @@ startup, change the variable @code{package-enable-at-startup} to
 is read before loading the regular init file.  Currently this variable
 cannot be set via Customize.
 
-@findex package-initialize
+@findex package-activate-all
   If you have set @code{package-enable-at-startup} to @code{nil}, you
 can still make packages available either during or after startup.  To
 make installed packages available during startup, call the function
-@code{package-initialize} in your init file.  To make installed
-packages available after startup, invoke the command @kbd{M-x
-package-initialize}.
+@code{package-activate-all} in your init file.  To make installed
+packages available after startup, invoke the command @kbd{M-:
+(package-activate-all) RET}.
 
 @vindex package-load-list
   For finer control over which packages are made available at startup,

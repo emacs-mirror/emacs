@@ -681,6 +681,9 @@ PKG-DESC is a `package-desc' object."
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 
+(defvar package--quickstart-pkgs t
+  "If set to a list, we're computing the set of pkgs to activate.")
+
 (defun package--load-files-for-activation (pkg-desc reload)
   "Load files for activating a package given by PKG-DESC.
 Load the autoloads file, and ensure `load-path' is setup.  If
@@ -723,7 +726,10 @@ correspond to previously loaded files (those returned by
             (message "Unable to activate package `%s'.\nRequired package `%s-%s' is unavailable"
                      name (car req) (package-version-join (cadr req)))
             (throw 'exit nil))))
-      (package--load-files-for-activation pkg-desc reload)
+      (if (listp package--quickstart-pkgs)
+          ;; We're only collecting the set of packages to activate!
+          (push pkg-desc package--quickstart-pkgs)
+        (package--load-files-for-activation pkg-desc reload))
       ;; Add info node.
       (when (file-exists-p (expand-file-name "dir" pkg-dir))
         ;; FIXME: not the friendliest, but simple.
@@ -1463,18 +1469,34 @@ that code in the early init-file."
   (setq package-enable-at-startup nil)
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
+  (setq package--initialized t)
   (unless no-activate
+    (package-activate-all))
+  ;; This uses `package--mapc' so it must be called after
+  ;; `package--initialized' is t.
+  (package--build-compatibility-table))
+
+(defvar package-quickstart-file)
+
+;;;###autoload
+(defun package-activate-all ()
+  "Activate all installed packages.
+The variable `package-load-list' controls which packages to load."
+  (setq package-enable-at-startup nil)
+  (if (file-readable-p package-quickstart-file)
+      ;; Skip load-source-file-function which would slow us down by a factor
+      ;; 2 (this assumes we were careful to save this file so it doesn't need
+      ;; any decoding).
+      (let ((load-source-file-function nil))
+        (load package-quickstart-file))
+    (unless package--initialized
+      (package-initialize t))
     (dolist (elt package-alist)
       (condition-case err
           (package-activate (car elt))
         ;; Don't let failure of activation of a package arbitrarily stop
         ;; activation of further packages.
-        (error (message "%s" (error-message-string err))))))
-  (setq package--initialized t)
-  ;; This uses `package--mapc' so it must be called after
-  ;; `package--initialized' is t.
-  (package--build-compatibility-table))
-
+        (error (message "%s" (error-message-string err)))))))
 
 ;;;; Populating `package-archive-contents' from archives
 ;; This subsection populates the variables listed above from the
@@ -1856,18 +1878,26 @@ If PACKAGE is a symbol, it is the package name and MIN-VERSION
 should be a version list.
 
 If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
-  (unless package--initialized (error "package.el is not yet initialized!"))
-  (if (package-desc-p package)
-      (let ((dir (package-desc-dir package)))
+  (cond
+   ((package-desc-p package)
+    (let ((dir (package-desc-dir package)))
         (and (stringp dir)
-             (file-exists-p dir)))
+             (file-exists-p dir))))
+   ((and (not package--initialized)
+         (null min-version)
+         package-activated-list)
+    ;; We used the quickstart: make it possible to use package-installed-p
+    ;; even before package is fully initialized.
+    (memq package package-activated-list))
+   ((not package--initialized) (error "package.el is not yet initialized!"))
+   (t
     (or
      (let ((pkg-descs (cdr (assq package package-alist))))
        (and pkg-descs
             (version-list-<= min-version
                              (package-desc-version (car pkg-descs)))))
      ;; Also check built-in packages.
-     (package-built-in-p package min-version))))
+     (package-built-in-p package min-version)))))
 
 (defun package-download-transaction (packages)
   "Download and install all the packages in PACKAGES.
@@ -1918,7 +1948,9 @@ to install it but still mark it as selected."
                      (package-compute-transaction (list pkg)
                                                   (package-desc-reqs pkg)))
                  (package-compute-transaction () (list (list pkg))))))
-        (package-download-transaction transaction)
+        (progn
+          (package-download-transaction transaction)
+          (package--quickstart-maybe-refresh))
       (message "`%s' is already installed" name))))
 
 (defun package-strip-rcs-id (str)
@@ -2090,7 +2122,9 @@ If NOSAVE is non-nil, the package is not removed from
              (delete pkg-desc pkgs)
              (unless (cdr pkgs)
                (setq package-alist (delq pkgs package-alist))))
-           (message "Package `%s' deleted." (package-desc-full-name pkg-desc))))))
+           (package--quickstart-maybe-refresh)
+           (message "Package `%s' deleted."
+                    (package-desc-full-name pkg-desc))))))
 
 ;;;###autoload
 (defun package-reinstall (pkg)
@@ -3414,6 +3448,95 @@ Does not fetch the updated list of packages before displaying.
 The list is displayed in a buffer named `*Packages*'."
   (interactive)
   (list-packages t))
+
+;;;; Quickstart: precompute activation actions for faster start up.
+
+;; Activating packages via `package-initialize' is costly: for N installed
+;; packages, it needs to read all N <pkg>-pkg.el files first to decide
+;; which packages to activate, and then again N <pkg>-autoloads.el files.
+;; To speed this up, we precompute a mega-autoloads file which is the
+;; concatenation of all those <pkg>-autoloads.el, so we can activate
+;; all packages by loading this one file (and hence without initializing
+;; package.el).
+
+;; Other than speeding things up, this also offers a bootstrap feature:
+;; it lets us activate packages according to package-load-list and
+;; package-user-dir even before those vars are set.
+
+(defcustom package-quickstart nil
+  "Precompute activation actions to speed up startup.
+This requires the use of `package-quickstart-refresh' every time the
+activations need to be changed, such as when `package-load-list' is modified."
+  :type 'boolean)
+
+(defcustom package-quickstart-file
+  (locate-user-emacs-file "package-quickstart.el")
+  "Location of the file used to speed up activation of packages at startup."
+  :type 'file)
+
+(defun package--quickstart-maybe-refresh ()
+  (if package-quickstart
+      ;; FIXME: Delay refresh in case we're installing/deleting
+      ;; several packages!
+      (package-quickstart-refresh)
+    (delete-file package-quickstart-file)))
+
+(defun package-quickstart-refresh ()
+  "(Re)Generate the `package-quickstart-file'."
+  (interactive)
+  (package-initialize 'no-activate)
+  (require 'info)
+  (let ((package--quickstart-pkgs ())
+        ;; Pretend we haven't activated anything yet!
+        (package-activated-list ())
+        ;; Make sure we can load this file without load-source-file-function.
+        (coding-system-for-write 'emacs-internal)
+        (Info-directory-list '("")))
+    (dolist (elt package-alist)
+      (condition-case err
+          (package-activate (car elt))
+        ;; Don't let failure of activation of a package arbitrarily stop
+        ;; activation of further packages.
+        (error (message "%s" (error-message-string err)))))
+    (setq package--quickstart-pkgs (nreverse package--quickstart-pkgs))
+    (with-temp-file package-quickstart-file
+      (emacs-lisp-mode)                 ;For `syntax-ppss'.
+      (insert ";;; Quickstart file to activate all packages at startup  -*- lexical-binding:t -*-\n")
+      (insert ";; ¡¡ This file is autogenerated by `package-quickstart-refresh', DO NOT EDIT !!\n\n")
+      (dolist (pkg package--quickstart-pkgs)
+        (let* ((file
+                ;; Prefer uncompiled files (and don't accept .so files).
+                (let ((load-suffixes '(".el" ".elc")))
+                  (locate-library (package--autoloads-file-name pkg))))
+               (pfile (prin1-to-string file)))
+          (insert "(let ((load-file-name " pfile "))\n")
+          (insert-file-contents file)
+          ;; Fixup the special #$ reader form and throw away comments.
+          (while (re-search-forward "#\\$\\|^;\\(.*\n\\)" nil 'move)
+            (unless (nth 8 (syntax-ppss))
+              (replace-match (if (match-end 1) "" pfile) t t)))
+          (unless (bolp) (insert "\n"))
+          (insert ")\n")))
+      (pp `(setq package-activated-list
+                 (append ',(mapcar #'package-desc-name package--quickstart-pkgs)
+                         package-activated-list))
+          (current-buffer))
+      (let ((info-dirs (butlast Info-directory-list)))
+        (when info-dirs
+          (pp `(progn (require 'info)
+                      (info-initialize)
+                      (setq Info-directory-list
+                            (append ',info-dirs Info-directory-list)))
+              (current-buffer))))
+      ;; Use `\s' instead of a space character, so this code chunk is not
+      ;; mistaken for an actual file-local section of package.el.
+      (insert "
+;; Local\sVariables:
+;; version-control: never
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:
+"))))
 
 (provide 'package)
 

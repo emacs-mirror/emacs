@@ -3627,7 +3627,8 @@ local variables, but directory-local variables may still be applied."
 				 (push (cons (if (eq var 'eval)
 						 'eval
 					       (indirect-variable var))
-					     val) result))))))
+					     val)
+                                       result))))))
 		    (forward-line 1))))))))
       ;; Now we've read all the local variables.
       ;; If HANDLE-MODE is t, return whether the mode was specified.

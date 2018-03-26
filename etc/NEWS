@@ -59,14 +59,20 @@ package system is initialized given that initialization now happens
 before loading the regular init file (see below).
 
 +++
-** Emacs now calls 'package-initialize' before loading the init file.
+** Installed packages are now activated *before* loading the init file.
 This is part of a change intended to eliminate the behavior of
 package.el inserting a call to 'package-initialize' into the init
 file, which was previously done when Emacs was started.  As a result
 of this change, it is no longer necessary to call 'package-initialize'
-in your init file.  However, if your init file changes the values of
-'package-load-list' or 'package-user-dir', then that code needs to be
-moved to the early init file (see above).
+in your init file.
+
+However, if your init file changes the values of 'package-load-list' or
+'package-user-dir', or sets 'package-enable-at-startup' to nil then it won't
+work right without some adjustment:
+- you can move that code to the early init file (see above), so those settings
+  apply before Emacs tries to activate the packages.
+- you can use the new 'package-quickstart` so activation of packages does not
+  need to pay attention to 'package-load-list' or 'package-user-dir' any more.
 
 
 * Changes in Emacs 27.1
@@ -148,6 +154,17 @@ for abbrevs that have them.
 *** The function 'browse-url-emacs' can now visit a URL in selected window.
 It now treats the optional 2nd argument to mean that the URL should be
 shown in the currently selected window.
+
+** Package
+*** New 'package-quickstart' feature
+When 'package-quickstart' is non-nil, package.el precomputes a big autoloads
+file so that activation of packages can be done much faster, which can speed up
+your startup significantly.
+It also causes variables like package-user-dir and package-load-list to be
+consulted when 'package-quickstart-refresh' is run rather than at startup so
+you don't need to set them in your early init file.
+
+*** New function 'package-activate-all'.
 
 ** Ecomplete
 *** The ecomplete sorting has changed to a decay-based algorithm.

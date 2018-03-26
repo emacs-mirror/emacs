@@ -103,12 +103,12 @@ was specified, Emacs looks for the init file in that user's home
 directory instead.
 
 @item
-It calls the function @code{package-initialize} to activate any
+It calls the function @code{package-activate-all} to activate any
 optional Emacs Lisp package that has been installed.  @xref{Packaging
-Basics}.  However, Emacs doesn't initialize packages when
+Basics}.  However, Emacs doesn't activate the packages when
 @code{package-enable-at-startup} is @code{nil} or when it's started
 with one of the options @samp{-q}, @samp{-Q}, or @samp{--batch}.  To
-initialize packages in the latter case, @code{package-initialize}
+activate the packages in the latter case, @code{package-activate-all}
 should be called explicitly (e.g., via the @samp{--funcall} option).
 
 @vindex initial-window-system@r{, and startup}

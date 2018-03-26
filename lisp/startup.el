@@ -1185,7 +1185,7 @@ please check its value")
                                 (package--description-file subdir)
                                 subdir))))
 		   (throw 'package-dir-found t)))))))
-       (package-initialize))
+       (package-activate-all))
 
   ;; Make sure window system's init file was loaded in loadup.el if
   ;; using a window system.
