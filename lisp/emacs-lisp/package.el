@@ -3460,19 +3460,21 @@ The list is displayed in a buffer named `*Packages*'."
 ;; package.el).
 
 ;; Other than speeding things up, this also offers a bootstrap feature:
-;; it lets us activate packages according to package-load-list and
-;; package-user-dir even before those vars are set.
+;; it lets us activate packages according to `package-load-list' and
+;; `package-user-dir' even before those vars are set.
 
 (defcustom package-quickstart nil
   "Precompute activation actions to speed up startup.
 This requires the use of `package-quickstart-refresh' every time the
 activations need to be changed, such as when `package-load-list' is modified."
-  :type 'boolean)
+  :type 'boolean
+  :version "27.1")
 
 (defcustom package-quickstart-file
   (locate-user-emacs-file "package-quickstart.el")
   "Location of the file used to speed up activation of packages at startup."
-  :type 'file)
+  :type 'file
+  :version "27.1")
 
 (defun package--quickstart-maybe-refresh ()
   (if package-quickstart

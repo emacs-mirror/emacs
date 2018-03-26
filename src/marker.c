@@ -775,7 +775,7 @@ ptrdiff_t
 verify_bytepos (ptrdiff_t charpos)
 {
   ptrdiff_t below = BEG;
-  ptrdiff_t below_byte = BYTE_BEG;
+  ptrdiff_t below_byte = BEG_BYTE;
 
   while (below != charpos)
     {
