@@ -35,9 +35,9 @@ DRY_RUN=False
 ## Packages to fiddle with
 SKIP_PKGS=["mingw-w64-gcc-libs"]
 MUNGE_PKGS ={"mingw-w64-libwinpthread-git":"mingw-w64-winpthreads-git"}
-ARCH_PKGS=["mingw-w64-mpc",
-           "mingw-w64-termcap",
-           "mingw-w64-xpm-nox"]
+
+## Currently no packages seem to require this!
+ARCH_PKGS=[]
 SRC_REPO="https://sourceforge.net/projects/msys2/files/REPOS/MINGW/Sources"
 
 
@@ -49,6 +49,7 @@ def check_output_maybe(*args,**kwargs):
 
 def extract_deps():
 
+    print( "Extracting deps" )
     # This list derives from the features we want Emacs to compile with.
     PKG_REQ='''mingw-w64-x86_64-giflib
 mingw-w64-x86_64-gnutls
