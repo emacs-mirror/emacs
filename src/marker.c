@@ -151,7 +151,7 @@ CHECK_MARKER (Lisp_Object x)
    worst case and it was rarely slower and never by much.
 
    The asymptotic behavior is still poor, tho, so in largish buffers with many
-   overlays (e.g. 300KB and 30K overlays), it can still be a bottlneck.  */
+   overlays (e.g. 300KB and 30K overlays), it can still be a bottleneck.  */
 #define BYTECHAR_DISTANCE_INITIAL 50
 #define BYTECHAR_DISTANCE_INCREMENT 50
 
