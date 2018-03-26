@@ -278,13 +278,16 @@ pass to the OPERATION."
 ;; code could be shared?
 (defun tramp-adb-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  (format
-   "%s%s"
+   ;; Preserve trailing "/".
+  (funcall
+   (if (string-equal (file-name-nondirectory filename) "")
+       'file-name-as-directory 'identity)
    (with-parsed-tramp-file-name (expand-file-name filename) nil
      (tramp-make-tramp-file-name
       v
       (with-tramp-file-property v localname "file-truename"
-	(let ((result nil))			; result steps in reverse order
+	(let ((result nil)			; result steps in reverse order
+	      (quoted (tramp-compat-file-name-quoted-p localname)))
 	  (tramp-message v 4 "Finding true name for `%s'" filename)
 	  (let* ((steps (split-string localname "/" 'omit))
 		 (localnamedir (tramp-run-real-handler
@@ -354,11 +357,19 @@ pass to the OPERATION."
 				  (not (string= (substring result -1) "/"))))
 	      (setq result (concat result "/"))))
 
+	  ;; Detect cycle.
+	  (when (and (file-symlink-p filename)
+		     (string-equal result localname))
+	    (tramp-error
+	     v 'file-error
+	     "Apparent cycle of symbolic links for %s" filename))
+	  ;; If the resulting localname looks remote, we must quote it
+	  ;; for security reasons.
+	  (when (or quoted (file-remote-p result))
+	    (let (file-name-handler-alist)
+	      (setq result (tramp-compat-file-name-quote result))))
 	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
-	  result))))
-
-   ;; Preserve trailing "/".
-   (if (string-equal (file-name-nondirectory filename) "") "/" "")))
+	  result))))))
 
 (defun tramp-adb-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."

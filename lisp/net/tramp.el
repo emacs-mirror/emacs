@@ -3208,17 +3208,18 @@ User is always nil."
 
 (defun tramp-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
-  (let ((result (expand-file-name filename))
-	(numchase 0)
-	;; Don't make the following value larger than
-	;; necessary.  People expect an error message in a
-	;; timely fashion when something is wrong;
-	;; otherwise they might think that Emacs is hung.
-	;; Of course, correctness has to come first.
-	(numchase-limit 20)
-	symlink-target)
-    (format
-     "%s%s"
+  ;; Preserve trailing "/".
+  (funcall
+   (if (string-equal (file-name-nondirectory filename) "")
+       'file-name-as-directory 'identity)
+   (let ((result (expand-file-name filename))
+	 (numchase 0)
+	 ;; Don't make the following value larger than necessary.
+	 ;; People expect an error message in a timely fashion when
+	 ;; something is wrong; otherwise they might think that Emacs
+	 ;; is hung.  Of course, correctness has to come first.
+	 (numchase-limit 20)
+	 symlink-target)
      (with-parsed-tramp-file-name result v1
        (with-tramp-file-property v1 v1-localname "file-truename"
 	 (while (and (setq symlink-target (file-symlink-p result))
@@ -3243,10 +3244,7 @@ User is always nil."
 	     (tramp-error
 	      v1 'file-error
 	      "Maximum number (%d) of symlinks exceeded" numchase-limit)))
-	 (directory-file-name result)))
-
-     ;; Preserve trailing "/".
-     (if (string-equal (file-name-nondirectory filename) "") "/" ""))))
+	 (directory-file-name result))))))
 
 (defun tramp-handle-find-backup-file-name (filename)
   "Like `find-backup-file-name' for Tramp files."

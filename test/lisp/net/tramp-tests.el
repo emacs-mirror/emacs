@@ -3117,13 +3117,15 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (delete-file tmp-name1)
 	  (delete-file tmp-name2)))
 
-      ;; `file-truename' shall preserve trailing link of directories.
-      (unless (file-symlink-p tramp-test-temporary-file-directory)
-	(let* ((dir1 (directory-file-name tramp-test-temporary-file-directory))
-	       (dir2 (file-name-as-directory dir1)))
-	  (should (string-equal (file-truename dir1) (expand-file-name dir1)))
-	  (should
-	   (string-equal (file-truename dir2) (expand-file-name dir2))))))))
+      ;; `file-truename' shall preserve trailing slash of directories.
+      (let* ((dir1
+	      (directory-file-name
+	       (funcall
+		(if quoted 'tramp-compat-file-name-quote 'identity)
+		tramp-test-temporary-file-directory)))
+	     (dir2 (file-name-as-directory dir1)))
+	(should (string-equal (file-truename dir1) (expand-file-name dir1)))
+	(should (string-equal (file-truename dir2) (expand-file-name dir2)))))))
 
 (ert-deftest tramp-test22-file-times ()
   "Check `set-file-times' and `file-newer-than-file-p'."
