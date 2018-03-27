@@ -678,59 +678,134 @@
 	    (apply (car form) constants))
 	form)))
 
+;; Portable Emacs integers fall in this range.
+(defconst byte-opt--portable-max #x1fffffff)
+(defconst byte-opt--portable-min (- -1 byte-opt--portable-max))
+
+;; True if N is a number that works the same on all Emacs platforms.
+;; Portable Emacs fixnums are exactly representable as floats on all
+;; Emacs platforms, and (except for -0.0) any floating-point number
+;; that equals one of these integers must be the same on all
+;; platforms.  Although other floating-point numbers such as 0.5 are
+;; also portable, it can be tricky to characterize them portably so
+;; they are not optimized.
+(defun byte-opt--portable-numberp (n)
+  (and (numberp n)
+       (<= byte-opt--portable-min n byte-opt--portable-max)
+       (= n (floor n))
+       (not (and (floatp n) (zerop n)
+                 (condition-case () (< (/ n) 0) (error))))))
+
+;; Use OP to reduce any leading prefix of portable numbers in the list
+;; (cons ACCUM ARGS) down to a single portable number, and return the
+;; resulting list A of arguments.  The idea is that applying OP to A
+;; is equivalent to (but likely more efficient than) applying OP to
+;; (cons ACCUM ARGS), on any Emacs platform.  Do not make any special
+;; provision for (- X) or (/ X); for example, it is the caller’s
+;; responsibility that (- 1 0) should not be "optimized" to (- 1).
+(defun byte-opt--arith-reduce (op accum args)
+  (when (byte-opt--portable-numberp accum)
+    (let (accum1)
+      (while (and (byte-opt--portable-numberp (car args))
+                  (byte-opt--portable-numberp
+                   (setq accum1 (condition-case ()
+                                    (funcall op accum (car args))
+                                  (error))))
+                  (= accum1 (funcall op (float accum) (car args))))
+        (setq accum accum1)
+        (setq args (cdr args)))))
+  (cons accum args))
+
 (defun byte-optimize-plus (form)
-  (if (memq 0 form) (setq form (delq 0 (copy-sequence form))))
-  ;; For (+ constants...), byte-optimize-predicate does the work.
-  (when (memq nil (mapcar 'numberp (cdr form)))
+  (let ((args (remq 0 (byte-opt--arith-reduce #'+ 0 (cdr form)))))
     (cond
+     ;; (+) -> 0
+     ((null args) 0)
+     ;; (+ n) -> n, where n is a number
+     ((and (null (cdr args)) (numberp (car args))) (car args))
      ;; (+ x 1) --> (1+ x) and (+ x -1) --> (1- x).
-     ((and (= (length form) 3)
-	   (or (memq (nth 1 form) '(1 -1))
-	       (memq (nth 2 form) '(1 -1))))
-      (let (integer other)
-	(if (memq (nth 1 form) '(1 -1))
-	    (setq integer (nth 1 form) other (nth 2 form))
-	  (setq integer (nth 2 form) other (nth 1 form)))
-	(setq form
-	      (list (if (eq integer 1) '1+ '1-) other))))))
-  (byte-optimize-predicate form))
+     ((and (null (cddr args)) (or (memq 1 args) (memq -1 args)))
+      (let* ((arg1 (car args)) (arg2 (cadr args))
+             (integer-is-first (memq arg1 '(1 -1)))
+             (integer (if integer-is-first arg1 arg2))
+             (other (if integer-is-first arg2 arg1)))
+        (list (if (eq integer 1) '1+ '1-) other)))
+     ;; not further optimized
+     ((equal args (cdr form)) form)
+     (t (cons '+ args)))))
 
 (defun byte-optimize-minus (form)
-  ;; Remove zeros.
-  (when (and (nthcdr 3 form)
-	     (memq 0 (cddr form)))
-    (setq form (nconc (list (car form) (cadr form))
-		      (delq 0 (copy-sequence (cddr form)))))
-    ;; After the above, we must turn (- x) back into (- x 0).
-    (or (cddr form)
-	(setq form (nconc form (list 0)))))
-  ;; For (- constants...), byte-optimize-predicate does the work.
-  (when (memq nil (mapcar 'numberp (cdr form)))
-    (cond
-     ;; (- x 1) --> (1- x)
-     ((equal (nthcdr 2 form) '(1))
-      (setq form (list '1- (nth 1 form))))
-     ;; (- x -1) --> (1+ x)
-     ((equal (nthcdr 2 form) '(-1))
-      (setq form (list '1+ (nth 1 form))))))
-  (byte-optimize-predicate form))
+  (let ((args (cdr form)))
+    (if (and (cdr args)
+             (null (cdr (setq args (byte-opt--arith-reduce
+                                    #'- (car args) (cdr args)))))
+             (numberp (car args)))
+        ;; The entire argument list reduced to a constant; return it.
+        (car args)
+      ;; Remove non-leading zeros, except for (- x 0).
+      (when (memq 0 (cdr args))
+        (setq args (cons (car args) (or (remq 0 (cdr args)) (list 0)))))
+      (cond
+       ;; (- x 1) --> (1- x)
+       ((equal (cdr args) '(1))
+        (list '1- (car args)))
+       ;; (- x -1) --> (1+ x)
+       ((equal (cdr args) '(-1))
+        (list '1+ (car args)))
+       ;; (- n) -> -n, where n and -n are portable numbers.
+       ;; This must be done separately since byte-opt--arith-reduce
+       ;; is not applied to (- n).
+       ((and (null (cdr args))
+             (byte-opt--portable-numberp (car args))
+             (byte-opt--portable-numberp (- (car args))))
+        (- (car args)))
+       ;; not further optimized
+       ((equal args (cdr form)) form)
+       (t (cons '- args))))))
+
+(defun byte-optimize-1+ (form)
+  (let ((args (cdr form)))
+    (when (null (cdr args))
+      (let ((n (car args)))
+        (when (and (byte-opt--portable-numberp n)
+                   (byte-opt--portable-numberp (1+ n)))
+          (setq form (1+ n))))))
+  form)
+
+(defun byte-optimize-1- (form)
+  (let ((args (cdr form)))
+    (when (null (cdr args))
+      (let ((n (car args)))
+        (when (and (byte-opt--portable-numberp n)
+                   (byte-opt--portable-numberp (1- n)))
+          (setq form (1- n))))))
+  form)
 
 (defun byte-optimize-multiply (form)
-  (if (memq 1 form) (setq form (delq 1 (copy-sequence form))))
-  ;; For (* integers..), byte-optimize-predicate does the work.
-  (byte-optimize-predicate form))
+  (let* ((args (remq 1 (byte-opt--arith-reduce #'* 1 (cdr form)))))
+    (cond
+     ;; (*) -> 1
+     ((null args) 1)
+     ;; (* n) -> n, where n is a number
+     ((and (null (cdr args)) (numberp (car args))) (car args))
+     ;; not further optimized
+     ((equal args (cdr form)) form)
+     (t (cons '* args)))))
 
 (defun byte-optimize-divide (form)
-  ;; Remove 1s.
-  (when (and (nthcdr 3 form)
-	     (memq 1 (cddr form)))
-    (setq form (nconc (list (car form) (cadr form))
-		      (delq 1 (copy-sequence (cddr form)))))
-    ;; After the above, we must turn (/ x) back into (/ x 1).
-    (or (cddr form)
-	(setq form (nconc form (list 1)))))
-  (byte-optimize-predicate form))
-
+  (let ((args (cdr form)))
+    (if (and (cdr args)
+             (null (cdr (setq args (byte-opt--arith-reduce
+                                    #'/ (car args) (cdr args)))))
+             (numberp (car args)))
+        ;; The entire argument list reduced to a constant; return it.
+        (car args)
+      ;; Remove non-leading 1s, except for (/ x 1).
+      (when (memq 1 (cdr args))
+        (setq args (cons (car args) (or (remq 1 (cdr args)) (list 1)))))
+      (if (equal args (cdr form))
+          form
+        (cons '/ args)))))
 
 (defun byte-optimize-binary-predicate (form)
   (cond
@@ -800,8 +875,8 @@
 (put '>   'byte-optimizer 'byte-optimize-predicate)
 (put '<=  'byte-optimizer 'byte-optimize-predicate)
 (put '>=  'byte-optimizer 'byte-optimize-predicate)
-(put '1+  'byte-optimizer 'byte-optimize-predicate)
-(put '1-  'byte-optimizer 'byte-optimize-predicate)
+(put '1+  'byte-optimizer 'byte-optimize-1+)
+(put '1-  'byte-optimizer 'byte-optimize-1-)
 (put 'not 'byte-optimizer 'byte-optimize-predicate)
 (put 'null  'byte-optimizer 'byte-optimize-predicate)
 (put 'consp 'byte-optimizer 'byte-optimize-predicate)
@@ -854,8 +929,7 @@
   ;; Throw away nil's, and simplify if less than 2 args.
   ;; If there is a literal non-nil constant in the args to `or', throw away all
   ;; following forms.
-  (if (memq nil form)
-      (setq form (delq nil (copy-sequence form))))
+  (setq form (remq nil form))
   (let ((rest form))
     (while (cdr (setq rest (cdr rest)))
       (if (byte-compile-trueconstp (car rest))
@@ -872,9 +946,8 @@
   (let (rest)
     ;; This must be first, to reduce (cond (t ...) (nil)) to (progn t ...)
     (while (setq rest (assq nil (cdr form)))
-      (setq form (delq rest (copy-sequence form))))
-    (if (memq nil (cdr form))
-	(setq form (delq nil (copy-sequence form))))
+      (setq form (remq rest form)))
+    (setq form (remq nil form))
     (setq rest form)
     (while (setq rest (cdr rest))
       (cond ((byte-compile-trueconstp (car-safe (car rest)))
