@@ -11548,7 +11548,8 @@ x_make_frame_visible (struct frame *f)
     poll_for_input_1 ();
     poll_suppress_count = old_poll_suppress_count;
 #endif
-    x_wait_for_event (f, MapNotify);
+    if (! FRAME_VISIBLE_P (f))
+      x_wait_for_event (f, MapNotify);
   }
 }
 
