@@ -530,7 +530,7 @@ POSITION is nil, makes marker point nowhere so it no longer slows down
 editing in any buffer.  Returns MARKER.  */)
   (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
-  return set_marker_internal (marker, position, buffer, 0);
+  return set_marker_internal (marker, position, buffer, false);
 }
 
 /* Like the above, but won't let the position be outside the visible part.  */
@@ -539,7 +539,7 @@ Lisp_Object
 set_marker_restricted (Lisp_Object marker, Lisp_Object position,
 		       Lisp_Object buffer)
 {
-  return set_marker_internal (marker, position, buffer, 1);
+  return set_marker_internal (marker, position, buffer, true);
 }
 
 /* Set the position of MARKER, specifying both the
@@ -584,6 +584,15 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
   else
     unchain_marker (m);
   return marker;
+}
+
+/* Detach a marker so that it no longer points anywhere and no longer
+   slows down editing.  Do not free the marker, though, as a change
+   function could have inserted it into an undo list (Bug#30931).  */
+void
+detach_marker (Lisp_Object marker)
+{
+  Fset_marker (marker, Qnil, Qnil);
 }
 
 /* Remove MARKER from the chain of whatever buffer it is in,

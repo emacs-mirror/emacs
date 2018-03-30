@@ -2148,13 +2148,10 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
 				   FETCH_START, FETCH_END, Qnil);
     }
 
-  /* Detach the markers now that we're done with them.  Don't directly
-     free them, since the change functions could have caused them to
-     be inserted into the undo list (Bug#30931).  */
   if (! NILP (start_marker))
-    Fset_marker (start_marker, Qnil, Qnil);
+    detach_marker (start_marker);
   if (! NILP (end_marker))
-    Fset_marker (end_marker, Qnil, Qnil);
+    detach_marker (end_marker);
   RESTORE_VALUE;
 
   unbind_to (count, Qnil);

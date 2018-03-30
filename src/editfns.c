@@ -3876,12 +3876,9 @@ save_restriction_restore (Lisp_Object data)
 
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
-      /* This isn’t needed anymore, so don’t wait for GC.  Do not call
-         free_marker on XCAR (data) or XCDR (data), though, since
-         record_marker_adjustments may have put them on the buffer’s
-         undo list (Bug#30931).  Just detach them instead.  */
-      Fset_marker (XCAR (data), Qnil, Qnil);
-      Fset_marker (XCDR (data), Qnil, Qnil);
+      /* Detach the markers, and free the cons instead of waiting for GC.  */
+      detach_marker (XCAR (data));
+      detach_marker (XCDR (data));
       free_cons (XCONS (data));
     }
   else
