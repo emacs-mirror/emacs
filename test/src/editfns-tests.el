@@ -247,4 +247,55 @@
                  (buffer-string)
                  "foo bar baz qux"))))))
 
+(ert-deftest delete-region-undo-markers-1 ()
+  "Make sure we don't end up with freed markers reachable from Lisp."
+  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=30931#40
+  (with-temp-buffer
+    (insert "1234567890")
+    (setq buffer-undo-list nil)
+    (narrow-to-region 2 5)
+    ;; `save-restriction' in a narrowed buffer creates two markers
+    ;; representing the current restriction.
+    (save-restriction
+      (widen)
+      ;; Any markers *within* the deleted region are put onto the undo
+      ;; list.
+      (delete-region 1 6))
+    ;; (princ (format "%S" buffer-undo-list) #'external-debugging-output)
+    ;; `buffer-undo-list' is now
+    ;; (("12345" . 1) (#<temp-marker1> . -1) (#<temp-marker2> . 1))
+    ;;
+    ;; If temp-marker1 or temp-marker2 are freed prematurely, calling
+    ;; `type-of' on them will cause Emacs to abort.  Calling
+    ;; `garbage-collect' will also abort if it finds any reachable
+    ;; freed objects.
+    (should (eq (type-of (car (nth 1 buffer-undo-list))) 'marker))
+    (should (eq (type-of (car (nth 2 buffer-undo-list))) 'marker))
+    (garbage-collect)))
+
+(ert-deftest delete-region-undo-markers-2 ()
+  "Make sure we don't end up with freed markers reachable from Lisp."
+  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=30931#55
+  (with-temp-buffer
+    (insert "1234567890")
+    (setq buffer-undo-list nil)
+    ;; signal_before_change creates markers delimiting a change
+    ;; region.
+    (let ((before-change-functions
+           (list (lambda (beg end)
+                   (delete-region (1- beg) (1+ end))))))
+      (delete-region 2 5))
+    ;; (princ (format "%S" buffer-undo-list) #'external-debugging-output)
+    ;; `buffer-undo-list' is now
+    ;; (("678" . 1) ("12345" . 1) (#<marker in no buffer> . -1)
+    ;;  (#<temp-marker1> . -1) (#<temp-marker2> . -4))
+    ;;
+    ;; If temp-marker1 or temp-marker2 are freed prematurely, calling
+    ;; `type-of' on them will cause Emacs to abort.  Calling
+    ;; `garbage-collect' will also abort if it finds any reachable
+    ;; freed objects.
+    (should (eq (type-of (car (nth 3 buffer-undo-list))) 'marker))
+    (should (eq (type-of (car (nth 4 buffer-undo-list))) 'marker))
+    (garbage-collect)))
+
 ;;; editfns-tests.el ends here

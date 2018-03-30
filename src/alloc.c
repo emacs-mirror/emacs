@@ -3884,15 +3884,6 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   return obj;
 }
 
-/* Put MARKER back on the free list after using it temporarily.  */
-
-void
-free_marker (Lisp_Object marker)
-{
-  unchain_marker (XMARKER (marker));
-  free_misc (marker);
-}
-
 
 /* Return a newly created vector or string with specified arguments as
    elements.  If all the arguments are characters that can fit
