@@ -3876,9 +3876,10 @@ save_restriction_restore (Lisp_Object data)
 
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
-      /* These aren't needed anymore, so don't wait for GC.  */
-      free_marker (XCAR (data));
-      free_marker (XCDR (data));
+      /* This isn’t needed anymore, so don’t wait for GC.
+         Do not call free_marker on XCAR (data) or XCDR (data),
+         though, since record_marker_adjustments may have put
+         them on the buffer’s undo list (Bug#30931).  */
       free_cons (XCONS (data));
     }
   else
