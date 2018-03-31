@@ -44,7 +44,7 @@ ns_check_file = @ns_appdir@/@ns_check_file@
 
 .PHONY: all
 
-all: ${ns_appdir} ${ns_appbindir}/Emacs
+all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_appbindir}/emacs.pdmp
 
 ${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	rm -rf ${ns_appdir}
@@ -62,6 +62,10 @@ ${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 ${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} $@
+
+${ns_appbindir}/emacs.pdmp: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}.pdmp
+	${MKDIR_P} ${ns_appbindir}
+	cp -f ../src/emacs${EXEEXT}.pdmp $@
 
 .PHONY: FORCE
 
