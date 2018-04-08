@@ -108,7 +108,7 @@ BUILD_64=1
 GIT_UP=0
 CONFIG=1
 
-while getopts "36gbhnsiV:" opt; do
+while getopts "36gb:hnsiV:" opt; do
   case $opt in
     3)
         BUILD_32=1
