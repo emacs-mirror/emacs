@@ -134,6 +134,7 @@ while getopts "36gb:hnsiV:" opt; do
         ;;
     b)
         REQUIRED_BRANCH=$OPTARG
+        echo "Setting Required branch $REQUIRED_BRANCH"
         ;;
     V)
         VERSION=$OPTARG
@@ -192,7 +193,7 @@ echo Checking for required branch
 if [ -z $REQUIRED_BRANCH ];
 then
     BRANCH=$REQUIRED_BRANCH
-    echo Building from Branch $BRANCH
+    echo [build] Building from Branch $BRANCH
     OF_VERSION="$VERSION-$BRANCH-`date +%Y-%m-%d`"
 fi
 
