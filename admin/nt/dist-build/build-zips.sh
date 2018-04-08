@@ -194,7 +194,7 @@ if [ -n $REQUIRED_BRANCH ];
 then
     BRANCH=$REQUIRED_BRANCH
     echo [build] Building from Branch $BRANCH
-    VERSION=$VERSION$BRANCH
+    VERSION=$VERSION-$BRANCH
     OF_VERSION="$VERSION-$BRANCH-`date +%Y-%m-%d`"
 fi
 
