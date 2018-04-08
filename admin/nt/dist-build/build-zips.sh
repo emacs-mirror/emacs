@@ -190,8 +190,9 @@ fi
 
 if [ -z $REQUIRED_BRANCH ];
 then
-   BRANCH=$REQUIRED_BRANCH
-   OF_VERSION="$VERSION-$BRANCH-`date +%Y-%m-%d`"
+    BRANCH=$REQUIRED_BRANCH
+    echo Building from Branch $BRANCH
+    OF_VERSION="$VERSION-$BRANCH-`date +%Y-%m-%d`"
 fi
 
 if (($GIT_UP))
