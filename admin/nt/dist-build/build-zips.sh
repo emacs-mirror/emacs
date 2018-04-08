@@ -196,6 +196,8 @@ then
     echo [build] Building from Branch $BRANCH
     VERSION=$VERSION-$BRANCH
     OF_VERSION="$VERSION-$BRANCH-`date +%Y-%m-%d`"
+    ## Use snapshot dependencies
+    SNAPSHOT=1
 fi
 
 if (($GIT_UP))
