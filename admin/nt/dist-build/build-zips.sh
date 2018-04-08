@@ -190,7 +190,7 @@ else
 fi
 
 echo Checking for required branch
-if [ -z $REQUIRED_BRANCH ];
+if [ -n $REQUIRED_BRANCH ];
 then
     BRANCH=$REQUIRED_BRANCH
     echo [build] Building from Branch $BRANCH
