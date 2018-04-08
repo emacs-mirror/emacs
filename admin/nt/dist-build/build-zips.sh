@@ -188,6 +188,7 @@ else
     OF_VERSION="$VERSION-`date +%Y-%m-%d`"
 fi
 
+echo Checking for required branch
 if [ -z $REQUIRED_BRANCH ];
 then
     BRANCH=$REQUIRED_BRANCH
