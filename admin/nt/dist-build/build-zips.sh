@@ -108,7 +108,7 @@ BUILD_64=1
 GIT_UP=0
 CONFIG=1
 
-while getopts "36ghnsiV:" opt; do
+while getopts "36gbhnsiV:" opt; do
   case $opt in
     3)
         BUILD_32=1
@@ -131,6 +131,9 @@ while getopts "36ghnsiV:" opt; do
         ;;
     i)
         BUILD=0
+        ;;
+    b)
+        REQUIRED_BRANCH=$OPTARG
         ;;
     V)
         VERSION=$OPTARG
@@ -183,6 +186,12 @@ else
     BRANCH=master
     CACHE=-C
     OF_VERSION="$VERSION-`date +%Y-%m-%d`"
+fi
+
+if [ -z $REQUIRED_BRANCH ];
+then
+   BRANCH=$REQUIRED_BRANCH
+   OF_VERSION="$VERSION-$BRANCH-`date +%Y-%m-%d`"
 fi
 
 if (($GIT_UP))
