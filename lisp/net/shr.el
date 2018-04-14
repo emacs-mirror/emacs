@@ -39,6 +39,8 @@
 (require 'svg)
 (require 'image)
 (require 'puny)
+(require 'with-url)
+(require 'mail-parse)
 
 (defgroup shr nil
   "Simple HTML Renderer"
@@ -450,13 +452,16 @@ the URL of the image to the kill buffer instead."
 (defun shr-insert-image ()
   "Insert the image under point into the buffer."
   (interactive)
-  (let ((url (get-text-property (point) 'image-url)))
+  (let ((url (get-text-property (point) 'image-url))
+        (buffer (current-buffer))
+        (start (1- (point)))
+        (end (point-marker)))
     (if (not url)
 	(message "No image under point")
       (message "Inserting %s..." url)
-      (url-retrieve url 'shr-image-fetched
-		    (list (current-buffer) (1- (point)) (point-marker))
-		    t t))))
+      (with-fetched-url (url :verbose 0
+                             :cookies nil)
+        (shr-image-fetched buffer start end)))))
 
 (defun shr-zoom-image ()
   "Toggle the image size.
@@ -480,17 +485,19 @@ size, and full-buffer size."
 	(when (> (- (point) start) 2)
 	  (delete-region start (1- (point)))))
       (message "Inserting %s..." url)
-      (url-retrieve url 'shr-image-fetched
-		    (list (current-buffer) (1- (point)) (point-marker)
-			  (list (cons 'size
-				      (cond ((or (eq size 'default)
-						 (null size))
-					     'original)
-					    ((eq size 'original)
-					     'full)
-					    ((eq size 'full)
-					     'default)))))
-		    t))))
+      (let ((buffer (current-buffer))
+            (start (1- (point)))
+            (end (point-marker)))
+        (with-fetched-url (url :verbose 0)
+          (shr-image-fetched buffer start end
+                             (list (cons 'size
+                                         (cond ((or (eq size 'default)
+                                                    (null size))
+                                                'original)
+                                               ((eq size 'original)
+                                                'full)
+                                               ((eq size 'full)
+                                                'default))))))))))
 
 ;;; Utility functions.
 
@@ -991,43 +998,37 @@ the mouse click event."
   (let ((url (get-text-property (point) 'shr-url)))
     (if (not url)
 	(message "No link under point")
-      (url-retrieve (shr-encode-url url)
-		    'shr-store-contents (list url directory)
-		    nil t))))
+      (with-fetched-url ((shr-encode-url url) :cookies nil)
+        (if (url-errorp)
+            (message "Couldn't fetch URL")
+          (write-region (point) (point-max)
+                        (expand-file-name (file-name-nondirectory url)
+                                          directory)))))))
 
-(defun shr-store-contents (status url directory)
-  (unless (plist-get status :error)
-    (when (or (search-forward "\n\n" nil t)
-	      (search-forward "\r\n\r\n" nil t))
-      (write-region (point) (point-max)
-		    (expand-file-name (file-name-nondirectory url)
-				      directory)))))
-
-(defun shr-image-fetched (status buffer start end &optional flags)
-  (let ((image-buffer (current-buffer)))
-    (when (and (buffer-name buffer)
-	       (not (plist-get status :error)))
-      (url-store-in-cache image-buffer)
-      (goto-char (point-min))
-      (when (or (search-forward "\n\n" nil t)
-		(search-forward "\r\n\r\n" nil t))
-	(let ((data (shr-parse-image-data)))
-	  (with-current-buffer buffer
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(let ((alt (buffer-substring start end))
-		      (properties (text-properties-at start))
-		      (inhibit-read-only t))
-		  (delete-region start end)
-		  (goto-char start)
-		  (funcall shr-put-image-function data alt flags)
-		  (while properties
-		    (let ((type (pop properties))
-			  (value (pop properties)))
-		      (unless (memq type '(display image-size))
-			(put-text-property start (point) type value)))))))))))
-    (kill-buffer image-buffer)))
+(defun shr-image-fetched (buffer start end &optional flags)
+  (when (and (buffer-name buffer)
+             (url-okp))
+    (let ((data (shr-parse-image-data
+                 (intern (car
+                          (mail-header-parse-content-type
+                           (or (url-header 'content-type) "text/plain")))
+                         obarray))))
+      (with-current-buffer buffer
+	(with-current-buffer buffer
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (let ((alt (buffer-substring start end))
+		    (properties (text-properties-at start))
+		    (inhibit-read-only t))
+		(delete-region start end)
+		(goto-char start)
+		(funcall shr-put-image-function data alt flags)
+		(while properties
+		  (let ((type (pop properties))
+			(value (pop properties)))
+		    (unless (memq type '(display image-size))
+		      (put-text-property start (point) type value))))))))))))
 
 (defun shr-image-from-data (data)
   "Return an image from the data: URI content DATA."
@@ -1138,36 +1139,13 @@ width/height instead."
          :max-height max-height
          :format content-type)))))
 
-;; url-cache-extract autoloads url-cache.
-(declare-function url-cache-create-filename "url-cache" (url))
-(autoload 'mm-disable-multibyte "mm-util")
 (autoload 'browse-url-mail "browse-url")
-
-(defun shr-get-image-data (url)
-  "Get image data for URL.
-Return a string with image data."
-  (with-temp-buffer
-    (mm-disable-multibyte)
-    (when (ignore-errors
-	    (url-cache-extract (url-cache-create-filename (shr-encode-url url)))
-	    t)
-      (when (re-search-forward "\r?\n\r?\n" nil t)
-	(shr-parse-image-data)))))
 
 (declare-function libxml-parse-xml-region "xml.c"
 		  (start end &optional base-url discard-comments))
 
-(defun shr-parse-image-data ()
-  (let ((data (buffer-substring (point) (point-max)))
-	(content-type
-	 (save-excursion
-	   (save-restriction
-	     (narrow-to-region (point-min) (point))
-	     (let ((content-type (mail-fetch-field "content-type")))
-	       (and content-type
-		    ;; Remove any comments in the type string.
-		    (intern (replace-regexp-in-string ";.*" "" content-type)
-			    obarray)))))))
+(defun shr-parse-image-data (&optional content-type)
+  (let ((data (buffer-substring (point) (point-max))))
     ;; SVG images may contain references to further images that we may
     ;; want to block.  So special-case these by parsing the XML data
     ;; and remove anything that looks like a blocked bit.
@@ -1196,9 +1174,12 @@ START, and END.  Note that START and END should be markers."
 		   (funcall shr-put-image-function
 			    image (buffer-substring start end))
 		   (delete-region (point) end))))
-	 (url-retrieve url 'shr-image-fetched
-		       (list (current-buffer) start end)
-		       t t)))))
+         (let ((buffer (current-buffer))
+               (start (1- (point)))
+               (end (point-marker)))
+           (with-fetched-url (url :verbose 0
+                                  :cookies nil)
+             (shr-image-fetched buffer start end)))))))
 
 (defun shr-heading (dom &rest types)
   (shr-ensure-paragraph)
@@ -1598,20 +1579,27 @@ The preference is a float determined from `shr-prefer-media-type'."
 	  (setq shr-start (point))
           (shr-insert alt))
 	 ((and (not shr-ignore-cache)
-	       (url-is-cached (shr-encode-url url)))
-	  (funcall shr-put-image-function (shr-get-image-data url) alt
-                   (list :width width :height height)))
-	 (t
-	  (when (and shr-ignore-cache
-		     (url-is-cached (shr-encode-url url)))
-	    (let ((file (url-cache-create-filename (shr-encode-url url))))
-	      (when (file-exists-p file)
-		(delete-file file))))
+	       (with-url-cached-p (shr-encode-url url)))
+          (let ((buffer (current-buffer)))
+            (let ((data
+                   (with-fetched-url ((shr-encode-url url)
+                                      :cache t
+                                      :wait t)
+                     (when (url-okp)
+                       (shr-parse-image-data
+                        (intern (car
+                                 (mail-header-parse-content-type
+                                  (or (url-header 'content-type)
+                                      "text/plain")))
+                                obarray))))))
+              (funcall shr-put-image-function data alt
+                       (list :width width :height height)))))
+         (t
           (when (image-type-available-p 'svg)
             (insert-image
              (shr-make-placeholder-image dom)
              (or alt "")))
-          (insert " ")
+          (insert "-")
 	  (url-queue-retrieve
 	   (shr-encode-url url) 'shr-image-fetched
 	   (list (current-buffer) start (set-marker (make-marker) (point))

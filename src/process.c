@@ -3303,6 +3303,7 @@ finish_after_tls_connection (Lisp_Object proc)
     {
       pset_status (p, list2 (Qfailed,
 			     build_string ("The Network Security Manager stopped the connections")));
+      p->tick = ++process_tick;
       deactivate_process (proc);
     }
   else if (p->outfd < 0)
@@ -3311,6 +3312,7 @@ finish_after_tls_connection (Lisp_Object proc)
 	 if the NSM prompt above take a long time), so recheck the file
 	 descriptor here. */
       pset_status (p, Qfailed);
+      p->tick = ++process_tick;
       deactivate_process (proc);
     }
   else if ((fd_callback_info[p->outfd].flags & NON_BLOCKING_CONNECT_FD) == 0)
@@ -3671,6 +3673,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 				   build_string ("TLS negotiation failed")));
 	  else
 	    pset_status (p, list2 (Qfailed, boot));
+	  p->tick = ++process_tick;
 	}
     }
 #endif
@@ -4896,6 +4899,7 @@ check_for_dns (Lisp_Object proc)
 			concat3 (build_string ("Name lookup of "),
 				 build_string (p->dns_request->ar_name),
 				 build_string (" failed")))));
+      p->tick = ++process_tick;
     }
 
   free_dns_request (proc);
@@ -5111,6 +5115,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 			    deactivate_process (aproc);
 			    pset_status (p, list2 (Qfailed,
 						   build_string ("TLS negotiation failed")));
+			    p->tick = ++process_tick;
 			  }
 		      }
 		  }

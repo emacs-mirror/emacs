@@ -272,6 +272,12 @@ request.")
 (defun url-http-user-agent-string ()
   "Compute a User-Agent string.
 The string is based on `url-privacy-level' and `url-user-agent'."
+  (let ((ua-string (url-http-user-agent)))
+    (if ua-string (format "User-Agent: %s\r\n" (string-trim ua-string)) "")))
+
+(defun url-http-user-agent ()
+  "Compute a User-Agent string.
+The string is based on `url-privacy-level' and `url-user-agent'."
   (let* ((hide-ua
           (or (eq url-privacy-level 'paranoid)
               (and (listp url-privacy-level)
@@ -281,8 +287,9 @@ The string is based on `url-privacy-level' and `url-user-agent'."
                (cond
                 ((functionp url-user-agent) (funcall url-user-agent))
                 ((stringp url-user-agent) url-user-agent)
-                ((eq url-user-agent 'default) (url-http--user-agent-default-string))))))
-    (if ua-string (format "User-Agent: %s\r\n" (string-trim ua-string)) "")))
+                ((eq url-user-agent 'default)
+                 (url-http--user-agent-default-string))))))
+    ua-string))
 
 (defun url-http-create-request ()
   "Create an HTTP request for `url-http-target-url', using `url-http-referer'

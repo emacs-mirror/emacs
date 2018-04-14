@@ -32,6 +32,7 @@
 (require 'url-util)			; for url-get-url-at-point
 (require 'mm-url)
 (require 'puny)
+(require 'with-url)
 (eval-when-compile (require 'subr-x)) ;; for string-trim
 
 (defgroup eww nil
@@ -263,6 +264,10 @@ word(s) will be searched for via `eww-search-prefix'."
        (current-buffer)
      (get-buffer-create "*eww*")))
   (eww-setup-buffer)
+  (eww--fetch-url url))
+
+(cl-defun eww--fetch-url (url &key (method 'get) data point buffer encode
+                              data-encoding)
   ;; Check whether the domain only uses "Highly Restricted" Unicode
   ;; IDNA characters.  If not, transform to punycode to indicate that
   ;; there may be funny business going on.
@@ -270,15 +275,18 @@ word(s) will be searched for via `eww-search-prefix'."
     (when (url-host parsed)
       (unless (puny-highly-restrictive-domain-p (url-host parsed))
         (setf (url-host parsed) (puny-encode-domain (url-host parsed)))
-        (setq url (url-recreate-url parsed)))))
-  (plist-put eww-data :url url)
-  (plist-put eww-data :title "")
-  (eww-update-header-line-format)
-  (let ((inhibit-read-only t))
-    (insert (format "Loading %s..." url))
-    (goto-char (point-min)))
-  (url-retrieve url 'eww-render
-                (list url nil (current-buffer))))
+        (setq url (url-recreate-url parsed))))
+    (plist-put eww-data :url url)
+    (plist-put eww-data :title "")
+    (eww-update-header-line-format)
+    (let ((inhibit-read-only t))
+      (insert (format "Loading %s..." url))
+      (goto-char (point-min)))
+    (let ((buffer (or buffer (current-buffer))))
+      (with-fetched-url (url :method method
+                             :data data
+                             :data-encoding data-encoding)
+        (eww-render point buffer encode)))))
 
 (defun eww--dwim-expand-url (url)
   (setq url (string-trim url))
@@ -354,27 +362,22 @@ Currently this means either text/html or application/xhtml+xml."
   (member content-type '("text/html"
 			 "application/xhtml+xml")))
 
-(defun eww-render (status url &optional point buffer encode)
-  (let* ((headers (eww-parse-headers))
+(defun eww-render (&optional point buffer encode)
+  (let* ((url (url-status 'url))
 	 (content-type
 	  (mail-header-parse-content-type
-           (if (zerop (length (cdr (assoc "content-type" headers))))
-	       "text/plain"
-             (cdr (assoc "content-type" headers)))))
+           (or (url-header 'content-type) "text/plain")))
 	 (charset (intern
 		   (downcase
 		    (or (cdr (assq 'charset (cdr content-type)))
 			(eww-detect-charset (eww-html-p (car content-type)))
 			"utf-8"))))
-	 (data-buffer (current-buffer))
 	 (shr-target-id (url-target (url-generic-parse-url url)))
 	 last-coding-system-used)
-    (let ((redirect (plist-get status :redirect)))
-      (when redirect
-        (setq url redirect)))
     (with-current-buffer buffer
       ;; Save the https peer status.
-      (plist-put eww-data :peer (plist-get status :peer))
+      (plist-put eww-data :peer (url-status 'tls-peer))
+      ;; (plist-put eww-data :peer (plist-get status :peer))
       ;; Make buffer listings more informative.
       (setq list-buffers-directory url)
       ;; Let the URL library have a handle to the current URL for
@@ -383,6 +386,14 @@ Currently this means either text/html or application/xhtml+xml."
     (unwind-protect
 	(progn
 	  (cond
+           ((url-errorp)
+            (with-current-buffer buffer
+              (let ((inhibit-read-only t))
+                (erase-buffer)
+                (insert (format "Error when fetching '%s':\n%s %s\n"
+                                url (car (url-status 'response))
+                                (cadr (url-status 'response))))
+                (goto-char (point-min)))))
            ((and eww-use-external-browser-for-content-type
                  (string-match-p eww-use-external-browser-for-content-type
                                  (car content-type)))
@@ -408,22 +419,7 @@ Currently this means either text/html or application/xhtml+xml."
 	    (setq eww-history-position 0)
 	    (and last-coding-system-used
 		 (set-buffer-file-coding-system last-coding-system-used))
-	    (run-hooks 'eww-after-render-hook)))
-      (kill-buffer data-buffer))))
-
-(defun eww-parse-headers ()
-  (let ((headers nil))
-    (goto-char (point-min))
-    (while (and (not (eobp))
-		(not (eolp)))
-      (when (looking-at "\\([^:]+\\): *\\(.*\\)")
-	(push (cons (downcase (match-string 1))
-		    (match-string 2))
-	      headers))
-      (forward-line 1))
-    (unless (eobp)
-      (forward-line 1))
-    headers))
+	    (run-hooks 'eww-after-render-hook))))))
 
 (defun eww-detect-charset (html-p)
   (let ((case-fold-search t)
@@ -933,14 +929,17 @@ If LOCAL is non-nil (interactively, the command was invoked with
 a prefix argument), don't reload the page from the network, but
 just re-display the HTML already fetched."
   (interactive "P")
-  (let ((url (plist-get eww-data :url)))
+  (let ((url (plist-get eww-data :url))
+        (point (point))
+        (buffer (current-buffer)))
     (if local
 	(if (null (plist-get eww-data :dom))
 	    (error "No current HTML data")
 	  (eww-display-html 'utf-8 url (plist-get eww-data :dom)
 			    (point) (current-buffer)))
-      (url-retrieve url 'eww-render
-		    (list url (point) (current-buffer) encode)))))
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (eww--fetch-url url :point point :buffer buffer :encode encode)))))
 
 ;; Form support.
 
@@ -1400,7 +1399,11 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
   (interactive)
   (let* ((this-input (get-text-property (point) 'eww-form))
 	 (form (plist-get this-input :eww-form))
-	 values next-submit)
+         (url (if (cdr (assq :action form))
+                  (shr-expand-url (cdr (assq :action form))
+                                  (plist-get eww-data :url))
+                (plist-get eww-data :url)))
+         values next-submit)
     (dolist (elem (sort (eww-inputs form)
 			(lambda (o1 o2)
 			  (< (car o1) (car o2)))))
@@ -1443,42 +1446,16 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	(push (cons (plist-get (cdr elem) :name)
 		    (or (plist-get (cdr elem) :value) ""))
 	      values)))
-    (if (and (stringp (cdr (assq :method form)))
-	     (equal (downcase (cdr (assq :method form))) "post"))
-	(let ((mtype))
-	  (dolist (x values mtype)
-	    (if (equal (car x) "file")
-		(progn
-		  (setq mtype "multipart/form-data"))))
-	  (cond ((equal mtype "multipart/form-data")
-		 (let ((boundary (mml-compute-boundary '())))
-		   (let ((url-request-method "POST")
-			 (url-request-extra-headers
-			  (list (cons "Content-Type"
-				      (concat "multipart/form-data; boundary="
-					      boundary))))
-			 (url-request-data
-			  (mm-url-encode-multipart-form-data values boundary)))
-		     (eww-browse-url (shr-expand-url
-				      (cdr (assq :action form))
-				      (plist-get eww-data :url))))))
-		(t
-		 (let ((url-request-method "POST")
-		       (url-request-extra-headers
-			'(("Content-Type" .
-			   "application/x-www-form-urlencoded")))
-		       (url-request-data
-			(mm-url-encode-www-form-urlencoded values)))
-		   (eww-browse-url (shr-expand-url
-				    (cdr (assq :action form))
-				    (plist-get eww-data :url)))))))
-      (eww-browse-url
-       (concat
-	(if (cdr (assq :action form))
-	    (shr-expand-url (cdr (assq :action form)) (plist-get eww-data :url))
-	  (plist-get eww-data :url))
-	"?"
-	(mm-url-encode-www-form-urlencoded values))))))
+    (eww-save-history)
+    (let ((inhibit-read-only t))
+      (erase-buffer))
+    (eww--fetch-url
+     url
+     :method (if (cl-equalp (cdr (assq :method form)) "post")
+                 'post
+               'get)
+     :data-encoding 'url-encode
+     :data values)))
 
 (defun eww-browse-with-external-browser (&optional url)
   "Browse the current URL with an external browser.
@@ -1532,20 +1509,17 @@ Differences in #targets are ignored."
   (let ((url (get-text-property (point) 'shr-url)))
     (if (not url)
         (message "No URL under point")
-      (url-retrieve url 'eww-download-callback (list url)))))
-
-(defun eww-download-callback (status url)
-  (unless (plist-get status :error)
-    (let* ((obj (url-generic-parse-url url))
-           (path (car (url-path-and-query obj)))
-           (file (eww-make-unique-file-name
-                  (eww-decode-url-file-name (file-name-nondirectory path))
-                  eww-download-directory)))
-      (goto-char (point-min))
-      (re-search-forward "\r?\n\r?\n")
-      (let ((coding-system-for-write 'no-conversion))
-        (write-region (point) (point-max) file))
-      (message "Saved %s" file))))
+      (with-fetched-url (url)
+        (if (url-errorp)
+            (message "Error while downloading: %s" (url-status 'response))
+          (let* ((obj (url-generic-parse-url url))
+                 (path (car (url-path-and-query obj)))
+                 (file (eww-make-unique-file-name
+                        (eww-decode-url-file-name (file-name-nondirectory path))
+                        eww-download-directory)))
+            (let ((coding-system-for-write 'no-conversion))
+              (write-region (point) (point-max) file))
+            (message "Saved %s" file)))))))
 
 (defun eww-decode-url-file-name (string)
   (let* ((binary (url-unhex-string string))
