@@ -55,4 +55,14 @@
     (let ((print-circle t))
       (should (equal "(#1=(a . #1#) #1#)" (cl-prin1-to-string x))))))
 
+(ert-deftest cl-print-circle-2 ()
+  ;; Bug#31146.
+  (let ((x '(0 . #1=(0 . #1#))))
+    (let ((print-circle nil))
+      (should (string-match "\\`(0 0 . #[0-9])\\'"
+                            (cl-prin1-to-string x))))
+    (let ((print-circle t))
+      (should (equal "(0 . #1=(0 . #1#))" (cl-prin1-to-string x))))))
+
+
 ;;; cl-print-tests.el ends here.

@@ -62,9 +62,12 @@ call other entry points instead, such as `cl-prin1'."
       (princ "(" stream)
       (cl-print-object car stream)
       (while (and (consp object)
-                  (not (if cl-print--number-table
-                           (numberp (gethash object cl-print--number-table))
-                         (memq object cl-print--currently-printing))))
+                  (not (cond
+                        (cl-print--number-table
+                         (numberp (gethash object cl-print--number-table)))
+                        ((memq object cl-print--currently-printing))
+                        (t (push object cl-print--currently-printing)
+                           nil))))
         (princ " " stream)
         (cl-print-object (pop object) stream))
       (when object
