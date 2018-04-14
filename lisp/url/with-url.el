@@ -597,6 +597,8 @@ If given, return the value in BUFFER instead."
      ;; Redirects.
      ((<= 300 code 399)
       (cl-incf (url-request-redirect-times req))
+      (when (memq code '(302 307))
+        (setf (url-request-method req) 'get))
       (cond
        ((not (url-request-follow-redirects req))
         (with-url--callback process '(200 "Redirect not followed")))
