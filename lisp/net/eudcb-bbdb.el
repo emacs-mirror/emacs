@@ -88,7 +88,6 @@ for continued use of those old names."
 
 (defun eudc-bbdb-filter-non-matching-record (record)
   "Return RECORD if it is a match for `eudc-bbdb-current-query', nil otherwise."
-  (require 'bbdb)
   (catch 'unmatch
     (progn
       (dolist (condition eudc-bbdb-current-query)
@@ -118,7 +117,6 @@ for continued use of those old names."
 
 (defun eudc-bbdb-extract-phones (record)
   "Extract phone numbers from BBDB RECORD."
-  (require 'bbdb)
   ;; Keep same order as in BBDB record.
   (nreverse
    (mapcar (function
@@ -133,7 +131,6 @@ for continued use of those old names."
 
 (defun eudc-bbdb-extract-addresses (record)
   "Extract addresses from BBDB RECORD."
-  (require 'bbdb)
   (let (s c val)
     (nreverse
      (mapcar (lambda (address)
@@ -159,7 +156,6 @@ for continued use of those old names."
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
 The record is filtered according to `eudc-bbdb-current-return-attributes'"
-  (require 'bbdb)
   (let ((attrs (or eudc-bbdb-current-return-attributes
 		   '(firstname lastname aka organization phone address mail
 			       notes)))
@@ -208,7 +204,6 @@ QUERY is a list of cons cells (ATTR . VALUE) where ATTRs should be valid
 BBDB attribute names.
 RETURN-ATTRS is a list of attributes to return, defaulting to
 `eudc-default-return-attributes'."
-  (require 'bbdb)
   (let ((eudc-bbdb-current-query query)
 	(eudc-bbdb-current-return-attributes return-attrs)
 	(query-attrs (eudc-bbdb-format-query query))
