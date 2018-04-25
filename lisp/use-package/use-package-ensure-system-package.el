@@ -6,7 +6,7 @@
 ;; Keywords: convenience, tools, extensions
 ;; URL: https://github.com/waymondo/use-package-ensure-system-package
 ;; Version: 0.1
-;; Package-Requires: ((use-package "2.1") (system-packages "0.1"))
+;; Package-Requires: ((use-package "2.1") (system-packages "1.0.4"))
 ;; Filename: use-package-ensure-system-package.el
 ;; License: GNU General Public License version 3, or (at your option) any later version
 ;;
@@ -29,17 +29,7 @@
 
 (defun use-package-ensure-system-package-install-command (pack)
   "Return the default install command for PACK."
-  (let ((command
-         (cdr (assoc 'install (cdr (assoc system-packages-package-manager
-                                          system-packages-supported-package-managers))))))
-    (unless command
-      (error (format "%S not supported in %S" 'install system-packages-package-manager)))
-    (unless (listp command)
-      (setq command (list command)))
-    (when system-packages-use-sudo
-      (setq command (mapcar (lambda (part) (concat "sudo " part)) command)))
-    (setq command (mapconcat 'identity command " && "))
-    (mapconcat 'identity (list command pack) " ")))
+  (system-packages-get-command 'install pack))
 
 (defun use-package-ensure-system-package-consify (arg)
   "Turn `arg' into a cons of (`package-name' . `install-command')."
