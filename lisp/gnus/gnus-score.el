@@ -2234,8 +2234,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	  (let* ((score (or (nth 1 kill) gnus-score-interactive-default-score))
 		 (date (nth 2 kill))
 		 found)
-	    (when (setq arts (intern-soft (nth 0 kill) hashtb))
-	      (setq arts (symbol-value arts))
+	    (when (setq arts (gethash (nth 0 kill) hashtb))
 	      (setq found t)
 	      (if trace
 		  (while (setq art (pop arts))
@@ -2273,11 +2272,11 @@ score in `gnus-newsgroup-scored' by SCORE."
     (with-syntax-table gnus-adaptive-word-syntax-table
       (while (re-search-forward "\\b\\w+\\b" nil t)
 	(setq val
-	      (gnus-gethash
+	      (gethash
 	       (setq word (downcase (buffer-substring
 				     (match-beginning 0) (match-end 0))))
 	       hashtb))
-	(gnus-sethash
+	(puthash
 	 word
 	 (append (get-text-property (point-at-eol) 'articles) val)
 	 hashtb)))
@@ -2289,7 +2288,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 				"."))
 			   gnus-default-ignored-adaptive-words)))
       (while ignored
-	(gnus-sethash (pop ignored) nil hashtb)))))
+	(remhash (pop ignored) hashtb)))))
 
 (defun gnus-score-string< (a1 a2)
   ;; Compare headers in articles A2 and A2.
@@ -2400,8 +2399,8 @@ score in `gnus-newsgroup-scored' by SCORE."
 		(goto-char (point-min))
 		(while (re-search-forward "\\b\\w+\\b" nil t)
 		  ;; Put the word and score into the hashtb.
-		  (setq val (gnus-gethash (setq word (match-string 0))
-					  hashtb))
+		  (setq val (gethash (setq word (match-string 0))
+				     hashtb))
 		  (when (or (not gnus-adaptive-word-length-limit)
 			    (> (length word)
 			       gnus-adaptive-word-length-limit))
@@ -2409,7 +2408,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 		    (if (and gnus-adaptive-word-minimum
 			     (< val gnus-adaptive-word-minimum))
 			(setq val gnus-adaptive-word-minimum))
-		    (gnus-sethash word val hashtb)))
+		    (puthash word val hashtb)))
 		(erase-buffer))))
 	  ;; Make all the ignorable words ignored.
 	  (let ((ignored (append gnus-ignored-adaptive-words
@@ -2420,16 +2419,14 @@ score in `gnus-newsgroup-scored' by SCORE."
 				      "."))
 				 gnus-default-ignored-adaptive-words)))
 	    (while ignored
-	      (gnus-sethash (pop ignored) nil hashtb)))
+	      (remhash (pop ignored) hashtb)))
 	  ;; Now we have all the words and scores, so we
 	  ;; add these rules to the ADAPT file.
 	  (set-buffer gnus-summary-buffer)
-	  (mapatoms
-	   (lambda (word)
-	     (when (symbol-value word)
-	       (gnus-summary-score-entry
-		"subject" (symbol-name word) 'w (symbol-value word)
-		date nil t)))
+	  (maphash
+	   (lambda (word val)
+	     (gnus-summary-score-entry
+	      "subject" word 'w val date nil t))
 	   hashtb))))))
 
 (defun gnus-score-edit-done ()

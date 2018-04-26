@@ -466,11 +466,14 @@ looks like an email address, \"ftp://\" if it starts with
      (while htbs
        (setq htb (car htbs) htbs (cdr htbs))
        (ignore-errors
-	 ;; errs: htb symbol may be unbound, or not a hash-table.
-	 ;; gnus-gethash is just a macro for intern-soft.
-	 (and (symbol-value htb)
-	      (intern-soft string (symbol-value htb))
-	      (setq ret string htbs nil))
+         (setq htb (symbol-value htb))
+	 (when (cond ((obarrayp htb)
+	              (intern-soft string htb))
+                     ((listp htb)
+                      (member string htb))
+                     ((hash-table-p htb)
+                      (gethash string htb)))
+	   (setq ret string htbs nil))
 	 ;; If we made it this far, gnus is running, so ignore "heads":
 	 (setq heads nil)))
      (or ret (not heads)

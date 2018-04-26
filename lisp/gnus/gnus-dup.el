@@ -44,7 +44,7 @@ seen in the same session."
   :type 'boolean)
 
 (defcustom gnus-duplicate-list-length 10000
-  "The number of Message-IDs to keep in the duplicate suppression list."
+  "The maximum number of duplicate Message-IDs to keep track of."
   :group 'gnus-duplicate
   :type 'integer)
 
@@ -55,8 +55,10 @@ seen in the same session."
 
 ;;; Internal variables
 
-(defvar gnus-dup-list nil)
-(defvar gnus-dup-hashtb nil)
+(defvar gnus-dup-list nil
+  "List of seen message IDs, as strings.")
+(defvar gnus-dup-hashtb nil
+  "Hash table of seen message IDs, for fast lookup.")
 
 (defvar gnus-dup-list-dirty nil)
 
@@ -80,8 +82,8 @@ seen in the same session."
     (setq gnus-dup-list nil))
   (setq gnus-dup-hashtb (gnus-make-hashtable gnus-duplicate-list-length))
   ;; Enter all Message-IDs into the hash table.
-  (let ((obarray gnus-dup-hashtb))
-    (mapc 'intern gnus-dup-list)))
+  (dolist (g gnus-dup-list)
+    (puthash g t gnus-dup-hashtb)))
 
 (defun gnus-dup-read ()
   "Read the duplicate suppression list."
@@ -116,13 +118,13 @@ seen in the same session."
 		 (not (= (gnus-data-mark datum) gnus-canceled-mark))
 		 (setq msgid (mail-header-id (gnus-data-header datum)))
 		 (not (nnheader-fake-message-id-p msgid))
-		 (not (intern-soft msgid gnus-dup-hashtb)))
+		 (not (gethash msgid gnus-dup-hashtb)))
 	(push msgid gnus-dup-list)
-	(intern msgid gnus-dup-hashtb))))
+	(puthash msgid t gnus-dup-hashtb))))
   ;; Chop off excess Message-IDs from the list.
   (let ((end (nthcdr gnus-duplicate-list-length gnus-dup-list)))
     (when end
-      (mapc (lambda (id) (unintern id gnus-dup-hashtb)) (cdr end))
+      (mapc (lambda (id) (remhash id gnus-dup-hashtb)) (cdr end))
       (setcdr end nil))))
 
 (defun gnus-dup-suppress-articles ()
@@ -134,7 +136,7 @@ seen in the same session."
 		   (memq gnus-duplicate-mark gnus-auto-expirable-marks)))
 	number)
     (dolist (header gnus-newsgroup-headers)
-      (when (and (intern-soft (mail-header-id header) gnus-dup-hashtb)
+      (when (and (gethash (mail-header-id header) gnus-dup-hashtb)
 		 (gnus-summary-article-unread-p (mail-header-number header)))
 	(setq gnus-newsgroup-unreads
 	      (delq (setq number (mail-header-number header))
@@ -152,7 +154,7 @@ seen in the same session."
     (when id
       (setq gnus-dup-list-dirty t)
       (setq gnus-dup-list (delete id gnus-dup-list))
-      (unintern id gnus-dup-hashtb))))
+      (remhash id gnus-dup-hashtb))))
 
 (provide 'gnus-dup)
 

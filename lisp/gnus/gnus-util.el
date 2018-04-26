@@ -35,6 +35,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (require 'time-date)
+(require 'text-property-search)
 
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
@@ -103,13 +104,6 @@ This is a compatibility function for different Emacsen."
 
 (put 'gnus-eval-in-buffer-window 'lisp-indent-function 1)
 (put 'gnus-eval-in-buffer-window 'edebug-form-spec '(form body))
-
-(defmacro gnus-intern-safe (string hashtable)
-  "Get hash value.  Arguments are STRING and HASHTABLE."
-  `(let ((symbol (intern ,string ,hashtable)))
-     (or (boundp symbol)
-	 (set symbol nil))
-     symbol))
 
 (defsubst gnus-goto-char (point)
   (and point (goto-char point)))
@@ -198,6 +192,36 @@ is slower."
     (goto-char (or (text-property-any (point) eol 'gnus-position t)
 		   (search-forward ":" eol t)
 		   (point)))))
+
+(defun gnus-text-property-search (prop value &optional forward-only goto end)
+  "Search current buffer for text property PROP with VALUE.
+Behaves like a combination of `text-property-any' and
+`text-property-search-forward'.  Searches for the beginning of a
+text property `equal' to VALUE.  Returns the value of point at
+the beginning of the matching text property span.
+
+If FORWARD-ONLY is non-nil, only search forward from point.
+
+If GOTO is non-nil, move point to the beginning of that span
+instead.
+
+If END is non-nil, use the end of the span instead."
+  (let* ((start (point))
+	 (found (progn
+		  (unless forward-only
+		    (goto-char (point-min)))
+		  (text-property-search-forward
+		   prop value #'equal)))
+	 (target (when found
+		   (if end
+		       (prop-match-end found)
+		     (prop-match-beginning found)))))
+    (when target
+      (if goto
+	  (goto-char target)
+	(prog1
+	    target
+	  (goto-char start))))))
 
 (declare-function gnus-find-method-for-group "gnus" (group &optional info))
 (declare-function gnus-group-name-decode "gnus-group" (string charset))
@@ -390,22 +414,9 @@ Cache the result as a text property stored in DATE."
   "Quote all \"%\"'s in STRING."
   (replace-regexp-in-string "%" "%%" string))
 
-;; Make a hash table (default and minimum size is 256).
-;; Optional argument HASHSIZE specifies the table size.
-(defun gnus-make-hashtable (&optional hashsize)
-  (make-vector (if hashsize (max (gnus-create-hash-size hashsize) 256) 256) 0))
-
-;; Make a number that is suitable for hashing; bigger than MIN and
-;; equal to some 2^x.  Many machines (such as sparcs) do not have a
-;; hardware modulo operation, so they implement it in software.  On
-;; many sparcs over 50% of the time to intern is spent in the modulo.
-;; Yes, it's slower than actually computing the hash from the string!
-;; So we use powers of 2 so people can optimize the modulo to a mask.
-(defun gnus-create-hash-size (min)
-  (let ((i 1))
-    (while (< i min)
-      (setq i (* 2 i)))
-    i))
+(defsubst gnus-make-hashtable (&optional size)
+  "Make a hash table of SIZE, testing on `equal'."
+  (make-hash-table :size (or size 300) :test #'equal))
 
 (defcustom gnus-verbose 6
   "Integer that says how verbose Gnus should be.
@@ -1174,18 +1185,16 @@ ARG is passed to the first function."
       ;; The buffer should be in the unibyte mode because group names
       ;; are ASCII text or encoded non-ASCII text (i.e., unibyte).
       (mm-disable-multibyte)
-      (mapatoms
-       (lambda (sym)
-	 (when (and sym
-		    (boundp sym)
-		    (symbol-value sym))
-	   (insert (format "%S %d %d y\n"
+      (maphash
+       (lambda (group active)
+	 (when active
+	   (insert (format "%s %d %d y\n"
 			   (if full-names
-			       sym
-			     (intern (gnus-group-real-name (symbol-name sym))))
-			   (or (cdr (symbol-value sym))
-			       (car (symbol-value sym)))
-			   (car (symbol-value sym))))))
+			       group
+			     (gnus-group-real-name group))
+			   (or (cdr active)
+			       (car active))
+			   (car active)))))
        hashtb)
       (goto-char (point-max))
       (while (search-backward "\\." nil t)

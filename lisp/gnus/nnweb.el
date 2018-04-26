@@ -109,7 +109,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-request-scan (&optional group server)
   (nnweb-possibly-change-server group server)
   (if nnweb-ephemeral-p
-      (setq nnweb-hashtb (gnus-make-hashtable 4095))
+      (setq nnweb-hashtb (gnus-make-hashtable 4000))
     (unless nnweb-articles
       (nnweb-read-overview group)))
   (funcall (nnweb-definition 'map))
@@ -229,11 +229,11 @@ Valid types include `google', `dejanews', and `gmane'.")
 	(nnheader-insert-nov (cadr (pop articles)))))))
 
 (defun nnweb-set-hashtb (header data)
-  (gnus-sethash (nnweb-identifier (mail-header-xref header))
+  (puthash (nnweb-identifier (mail-header-xref header))
 		data nnweb-hashtb))
 
 (defun nnweb-get-hashtb (url)
-  (gnus-gethash (nnweb-identifier url) nnweb-hashtb))
+  (gethash (nnweb-identifier url) nnweb-hashtb))
 
 (defun nnweb-identifier (ident)
   (funcall (nnweb-definition 'identifier) ident))
@@ -268,7 +268,7 @@ Valid types include `google', `dejanews', and `gmane'.")
   (unless nnweb-group-alist
     (nnweb-read-active))
   (unless nnweb-hashtb
-    (setq nnweb-hashtb (gnus-make-hashtable 4095)))
+    (setq nnweb-hashtb (make-hash-table :size 4000 :test #'equal)))
   (when group
     (setq nnweb-group group)))
 

@@ -29,7 +29,8 @@
 
 (run-hooks 'gnus-load-hook)
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-lib)
+		   (require 'subr-x))
 (require 'wid-edit)
 (require 'mm-util)
 (require 'nnheader)
@@ -2453,28 +2454,37 @@ such as a mark that says whether an article is stored in the cache
 gnus-registry.el will populate this if it's loaded.")
 
 (defvar gnus-newsrc-hashtb nil
-  "Hashtable of `gnus-newsrc-alist'.")
+  "Hash table of `gnus-newsrc-alist'.")
+
+(defvar gnus-group-list nil
+  "Ordered list of group names as strings.
+This variable only exists to provide easy access to the ordering
+of `gnus-newsrc-alist'.")
 
 (defvar gnus-killed-list nil
   "List of killed newsgroups.")
 
 (defvar gnus-killed-hashtb nil
-  "Hash table equivalent of `gnus-killed-list'.")
+  "Hash table equivalent of `gnus-killed-list'.
+This is a hash table purely for the fast membership test: values
+are always t.")
 
 (defvar gnus-zombie-list nil
   "List of almost dead newsgroups.")
 
 (defvar gnus-description-hashtb nil
-  "Descriptions of newsgroups.")
+  "Hash table mapping group names to their descriptions.")
 
 (defvar gnus-list-of-killed-groups nil
   "List of newsgroups that have recently been killed by the user.")
 
 (defvar gnus-active-hashtb nil
-  "Hashtable of active articles.")
+  "Hash table mapping group names to their active entry.")
 
 (defvar gnus-moderated-hashtb nil
-  "Hashtable of moderated newsgroups.")
+  "Hash table of moderated groups.
+This is a hash table purely for the fast membership test: values
+are always t.")
 
 ;; Save window configuration.
 (defvar gnus-prev-winconf nil)
@@ -2800,36 +2810,21 @@ See Info node `(gnus)Formatting Variables'."
 (defun gnus-header-from (header)
   (mail-header-from header))
 
-(defmacro gnus-gethash (string hashtable)
-  "Get hash value of STRING in HASHTABLE."
-  `(symbol-value (intern-soft ,string ,hashtable)))
-
-(defmacro gnus-gethash-safe (string hashtable)
-  "Get hash value of STRING in HASHTABLE.
-Return nil if not defined."
-  `(let ((sym (intern-soft ,string ,hashtable)))
-     (and (boundp sym) (symbol-value sym))))
-
-(defmacro gnus-sethash (string value hashtable)
-  "Set hash value.  Arguments are STRING, VALUE, and HASHTABLE."
-  `(set (intern ,string ,hashtable) ,value))
-(put 'gnus-sethash 'edebug-form-spec '(form form form))
-
 (defmacro gnus-group-unread (group)
   "Get the currently computed number of unread articles in GROUP."
-  `(car (gnus-gethash ,group gnus-newsrc-hashtb)))
+  `(car (gethash ,group gnus-newsrc-hashtb)))
 
 (defmacro gnus-group-entry (group)
   "Get the newsrc entry for GROUP."
-  `(gnus-gethash ,group gnus-newsrc-hashtb))
+  `(gethash ,group gnus-newsrc-hashtb))
 
 (defmacro gnus-active (group)
   "Get active info on GROUP."
-  `(gnus-gethash ,group gnus-active-hashtb))
+  `(gethash ,group gnus-active-hashtb))
 
 (defmacro gnus-set-active (group active)
   "Set GROUP's active info."
-  `(gnus-sethash ,group ,active gnus-active-hashtb))
+  `(puthash ,group ,active gnus-active-hashtb))
 
 ;; Info access macros.
 
@@ -2893,10 +2888,10 @@ Return nil if not defined."
        (setcar rank (cons (car rank) ,score)))))
 
 (defmacro gnus-get-info (group)
-  `(nth 2 (gnus-gethash ,group gnus-newsrc-hashtb)))
+  `(nth 1 (gethash ,group gnus-newsrc-hashtb)))
 
 (defun gnus-set-info (group info)
-  (setcar (nthcdr 2 (gnus-gethash group gnus-newsrc-hashtb))
+  (setcdr (gethash group gnus-newsrc-hashtb)
 	  info))
 
 
@@ -3185,7 +3180,7 @@ that that variable is buffer-local to the summary buffers."
 
 (defun gnus-kill-ephemeral-group (group)
   "Remove ephemeral GROUP from relevant structures."
-  (gnus-sethash group nil gnus-newsrc-hashtb))
+  (remhash group gnus-newsrc-hashtb))
 
 (defun gnus-simplify-mode-line ()
   "Make mode lines a bit simpler."

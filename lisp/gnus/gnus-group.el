@@ -38,6 +38,7 @@
 
 (eval-when-compile
   (require 'mm-url)
+  (require 'subr-x)
   (let ((features (cons 'gnus-group features)))
     (require 'gnus-sum))
   (unless (boundp 'gnus-cache-active-hashtb)
@@ -1142,7 +1143,7 @@ The following commands are available:
     (let ((gnus-process-mark ?\200)
 	  (gnus-group-update-hook nil)
 	  (gnus-group-marked '("dummy.group"))
-	  (gnus-active-hashtb (make-vector 10 0)))
+	  (gnus-active-hashtb (gnus-make-hashtable 10)))
       (gnus-set-active "dummy.group" '(0 . 0))
       (gnus-set-work-buffer)
       (gnus-group-insert-group-line "dummy.group" 0 nil 0 nil)
@@ -1186,6 +1187,9 @@ The following commands are available:
   (unless (derived-mode-p 'gnus-group-mode)
     (gnus-group-mode)))
 
+;; FIXME: If we never have to coerce group names to unibyte now, how
+;; much of this is necessary?  How much encoding/decoding do we still
+;; have to do?
 (defun gnus-group-name-charset (method group)
   (unless method
     (setq method (gnus-find-method-for-group group)))
@@ -1267,20 +1271,14 @@ Also see the `gnus-group-use-permanent-levels' variable."
 	;; has disappeared in the new listing, try to find the next
 	;; one.  If no next one can be found, just leave point at the
 	;; first newsgroup in the buffer.
-	(when (not (gnus-goto-char
-		    (text-property-any
-		     (point-min) (point-max)
-		     'gnus-group (gnus-intern-safe
-				  group gnus-active-hashtb))))
-	  (let ((newsrc (cdddr (gnus-group-entry group))))
-	    (while (and newsrc
-			(not (gnus-goto-char
-			      (text-property-any
-			       (point-min) (point-max) 'gnus-group
-			       (gnus-intern-safe
-				(caar newsrc) gnus-active-hashtb)))))
-	      (setq newsrc (cdr newsrc)))
-	    (unless newsrc
+	(when (not (gnus-text-property-search
+		    'gnus-group group nil 'goto))
+	  (let ((groups (cdr-safe (member group gnus-group-list))))
+	    (while (and groups
+			(not (gnus-text-property-search
+			      'gnus-group (car groups) 'forward 'goto)))
+	      (setq groups (cdr groups)))
+	    (unless groups
 	      (goto-char (point-max))
 	      (forward-line -1)))))))
     ;; Adjust cursor point.
@@ -1313,7 +1311,6 @@ If REGEXP is a function, list dead groups that the function returns non-nil;
 if it is a string, only list groups matching REGEXP."
   (set-buffer gnus-group-buffer)
   (let ((buffer-read-only nil)
-	(newsrc (cdr gnus-newsrc-alist))
 	(lowest (or lowest 1))
 	(not-in-list (and gnus-group-listed-groups
 			  (copy-sequence gnus-group-listed-groups)))
@@ -1321,12 +1318,11 @@ if it is a string, only list groups matching REGEXP."
     (erase-buffer)
     (when (or (< lowest gnus-level-zombie)
 	      gnus-group-listed-groups)
-      ;; List living groups.
-      (while newsrc
-	(setq info (car newsrc)
+      ;; List living groups, according to order in `gnus-group-list'.
+      (dolist (g (cdr gnus-group-list))
+	(setq info (nth 1 (gethash g gnus-newsrc-hashtb))
 	      group (gnus-info-group info)
 	      params (gnus-info-params info)
-	      newsrc (cdr newsrc)
 	      unread (gnus-group-unread group))
 	(when not-in-list
 	  (setq not-in-list (delete group not-in-list)))
@@ -1407,7 +1403,7 @@ if it is a string, only list groups matching REGEXP."
 		       (insert " " mark "     *: "
 			       (gnus-group-decoded-name group)
 			       "\n"))
-	     (list 'gnus-group (gnus-intern-safe group gnus-active-hashtb)
+	     (list 'gnus-group (gethash group gnus-active-hashtb)
 		   'gnus-unread t
 		   'gnus-level level))))
       (while groups
@@ -1438,7 +1434,7 @@ if it is a string, only list groups matching REGEXP."
 	   (not (gnus-ephemeral-group-p group))
 	   (gnus-dribble-enter
 	    (concat "(gnus-group-set-info '"
-		    (gnus-prin1-to-string (nth 2 entry))
+		    (gnus-prin1-to-string (nth 1 entry))
 		    ")")
 	    (concat "^(gnus-group-set-info '(\"" (regexp-quote group) "\"")))
       (setq gnus-group-indentation (gnus-group-group-indentation))
@@ -1455,7 +1451,7 @@ if it is a string, only list groups matching REGEXP."
     (if entry
 	(progn
 	  ;; (Un)subscribed group.
-	  (setq info (nth 2 entry))
+	  (setq info (nth 1 entry))
 	  (gnus-group-insert-group-line
 	   group (gnus-info-level info) (gnus-info-marks info)
 	   (or (car entry) t) (gnus-info-method info)))
@@ -1472,7 +1468,7 @@ if it is a string, only list groups matching REGEXP."
        (gnus-method-simplify (gnus-find-method-for-group group))))))
 
 (defun gnus-number-of-unseen-articles-in-group (group)
-  (let* ((info (nth 2 (gnus-group-entry group)))
+  (let* ((info (nth 1 (gnus-group-entry group)))
 	 (marked (gnus-info-marks info))
 	 (seen (cdr (assq 'seen marked)))
 	 (active (gnus-active group)))
@@ -1544,12 +1540,12 @@ if it is a string, only list groups matching REGEXP."
 	 (gnus-tmp-newsgroup-description
 	  (if gnus-description-hashtb
 	      (or (gnus-group-name-decode
-		   (gnus-gethash gnus-tmp-group gnus-description-hashtb)
+		   (gethash gnus-tmp-group gnus-description-hashtb)
 		   group-name-charset) "")
 	    ""))
 	 (gnus-tmp-moderated
 	  (if (and gnus-moderated-hashtb
-		   (gnus-gethash gnus-tmp-group gnus-moderated-hashtb))
+		   (gethash gnus-tmp-group gnus-moderated-hashtb))
 	      ?m ? ))
 	 (gnus-tmp-moderated-string
 	  (if (eq gnus-tmp-moderated ?m) "(m)" ""))
@@ -1575,7 +1571,7 @@ if it is a string, only list groups matching REGEXP."
 	      gnus-process-mark ? ))
 	 (buffer-read-only nil)
 	 beg end
-         gnus-tmp-header)	; passed as parameter to user-funcs.
+         gnus-tmp-header)	  ; passed as parameter to user-funcs.
     (beginning-of-line)
     (setq beg (point))
     (add-text-properties
@@ -1585,7 +1581,7 @@ if it is a string, only list groups matching REGEXP."
        (let ((gnus-tmp-decoded-group (gnus-group-name-decode
 				      gnus-tmp-group group-name-charset)))
 	 (eval gnus-group-line-format-spec)))
-     `(gnus-group ,(gnus-intern-safe gnus-tmp-group gnus-active-hashtb)
+     `(gnus-group ,gnus-tmp-group
 		  gnus-unread ,(if (numberp number)
 				   (string-to-number gnus-tmp-number-of-unread)
 				 t)
@@ -1619,7 +1615,7 @@ Some value are bound so the form can use them."
   (when list
     (let* ((entry (gnus-group-entry group))
            (active (gnus-active group))
-           (info (nth 2 entry))
+           (info (nth 1 entry))
            (method (inline (gnus-server-get-method
 			    group (gnus-info-method info))))
            (marked (gnus-info-marks info))
@@ -1690,9 +1686,7 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
       ;; The buffer may be narrowed.
       (save-restriction
         (widen)
-        (let ((ident (gnus-intern-safe group gnus-active-hashtb))
-              (loc (point-min))
-              found buffer-read-only)
+        (let (found buffer-read-only)
 	  (unless info-unchanged
 	    ;; Enter the current status into the dribble buffer.
 	    (let ((entry (gnus-group-entry group)))
@@ -1700,37 +1694,33 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 			 (not (gnus-ephemeral-group-p group)))
 		(gnus-dribble-enter
 		 (concat "(gnus-group-set-info '"
-			 (gnus-prin1-to-string (nth 2 entry))
+			 (gnus-prin1-to-string (nth 1 entry))
 			 ")")
 		 (concat "^(gnus-group-set-info '(\""
 			 (regexp-quote group) "\"")))))
-          ;; Find all group instances.  If topics are in use, each group
-          ;; may be listed in more than once.
-          (while (setq loc (text-property-any
-                            loc (point-max) 'gnus-group ident))
+          ;; Find all group instances.  If topics are in use, groups
+          ;; may be listed more than once.
+	  (goto-char (point-min))
+          (while (gnus-text-property-search
+                  'gnus-group group 'forward 'goto)
             (setq found t)
-            (goto-char loc)
             (let ((gnus-group-indentation (gnus-group-group-indentation)))
               (gnus-delete-line)
               (gnus-group-insert-group-line-info group)
               (save-excursion
                 (forward-line -1)
-                (gnus-run-hooks 'gnus-group-update-group-hook)))
-            (setq loc (1+ loc)))
+                (gnus-run-hooks 'gnus-group-update-group-hook))))
           (unless (or found visible-only)
             ;; No such line in the buffer, find out where it's supposed to
             ;; go, and insert it there (or at the end of the buffer).
             (if gnus-goto-missing-group-function
                 (funcall gnus-goto-missing-group-function group)
-              (let ((entry (cddr (gnus-group-entry group))))
-                (while (and entry (car entry)
+              (let ((entry (cdr (member group gnus-group-list))))
+		(goto-char (point-min))
+                (while (and (car-safe entry)
                             (not
-                             (gnus-goto-char
-                              (text-property-any
-                               (point-min) (point-max)
-                               'gnus-group (gnus-intern-safe
-                                            (caar entry)
-                                            gnus-active-hashtb)))))
+                             (gnus-text-property-search
+                              'gnus-group (car entry) 'forward 'goto)))
                   (setq entry (cdr entry)))
                 (or entry (goto-char (point-max)))))
             ;; Finally insert the line.
@@ -2062,7 +2052,7 @@ that group."
     (unless group
       (error "No group on current line"))
     (setq marked (gnus-info-marks
-		  (nth 2 (setq entry (gnus-group-entry group)))))
+		  (nth 1 (setq entry (gnus-group-entry group)))))
     ;; This group might be a dead group.  In that case we have to get
     ;; the number of unread articles from `gnus-active-hashtb'.
     (setq number
@@ -2137,6 +2127,7 @@ be permanent."
       (let ((group (gnus-group-group-name)))
 	(when group
 	  (gnus-group-decoded-name group)))
+    ;; FIXME: WTF
     (let ((regexp "[][\C-@-\t\v-*,/:-@\\^`{-\C-?]*\
 \\(nn[a-z]+\\(?:\\+[^][\C-@-*,/:-@\\^`{-\C-?]+\\)?:\
 [^][\C-@-*,./:-@\\^`{-\C-?]+\\(?:\\.[^][\C-@-*,./:-@\\^`{-\C-?]+\\)*\
@@ -2175,34 +2166,46 @@ be permanent."
 (defun gnus-group-completing-read (&optional prompt collection
 					     require-match initial-input hist
 					     def)
-  "Read a group name with completion.  Non-ASCII group names are allowed.
-The arguments are the same as `completing-read' except that COLLECTION
-and HIST default to `gnus-active-hashtb' and `gnus-group-history'
-respectively if they are omitted.  Regards COLLECTION as a hash table
-if it is not a list."
+  "Read a group name with completion.
+Non-ASCII group names are allowed.  The arguments are the same as
+`completing-read' except that COLLECTION and HIST default to
+`gnus-active-hashtb' and `gnus-group-history' respectively if
+they are omitted.  Can handle COLLECTION as a list, hash table,
+or vector."
   (or collection (setq collection gnus-active-hashtb))
   (let (choices group)
-    (if (listp collection)
-	(dolist (symbol collection)
-	  (setq group (symbol-name symbol))
-	  (push (if (string-match "[^\000-\177]" group)
-		    (gnus-group-decoded-name group)
-		  group)
-		choices))
-      (mapatoms (lambda (symbol)
-		  (setq group (symbol-name symbol))
-		  (push (if (string-match "[^\000-\177]" group)
-			    (gnus-group-decoded-name group)
-			  group)
-			choices))
-		collection))
-    (setq group (gnus-completing-read (or prompt "Group") (nreverse choices)
+    (cond ((listp collection)
+	   (if (symbolp (car collection))
+	       (dolist (symbol collection)
+		 (setq group (symbol-name symbol))
+		 (push (if (string-match "[^\000-\177]" group)
+			   (gnus-group-decoded-name group)
+			 group)
+		       choices))
+	     (setq choices collection)))
+	  ((vectorp collection)
+	   (mapatoms (lambda (symbol)
+		       (setq group (symbol-name symbol))
+		       (push (if (string-match "[^\000-\177]" group)
+				 (gnus-group-decoded-name group)
+			       group)
+			     choices))
+		     collection))
+	  ((hash-table-p collection)
+	   (setq choices (hash-table-keys collection))))
+    (setq group (gnus-completing-read (or prompt "Group") (reverse choices)
 				      require-match initial-input
 				      (or hist 'gnus-group-history)
 				      def))
-    (unless (if (listp collection)
-		(member group (mapcar 'symbol-name collection))
-	      (symbol-value (intern-soft group collection)))
+    (unless (cond ((and (listp collection)
+			(symbolp (car collection)))
+		   (member group (mapcar 'symbol-name collection)))
+		  ((listp collection)
+		   (member group collection))
+		  ((vectorp collection)
+		   (symbol-value (intern-soft group collection)))
+		  ((hash-table-p collection)
+		   (gethash group collection)))
       (setq group
 	    (encode-coding-string
 	     group (gnus-group-name-charset nil group))))
@@ -2280,7 +2283,7 @@ Return the name of the group if selection was successful."
     (nnheader-init-server-buffer)
     ;; Necessary because of funky inlining.
     (require 'gnus-cache)
-    (setq gnus-newsrc-hashtb (gnus-make-hashtable)))
+    (setq gnus-newsrc-hashtb (gnus-make-hashtable 100)))
   ;; Transform the select method into a unique server.
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
@@ -2297,23 +2300,23 @@ Return the name of the group if selection was successful."
 		 (gnus-group-prefixed-name (gnus-group-real-name group)
 					   method))))
     (gnus-set-active group nil)
-    (gnus-sethash
+    (puthash
      group
-     `(-1 nil (,group
-	       ,gnus-level-default-subscribed nil nil ,method
-	       ,(cons
-		 (cons 'quit-config
-		       (cond
-			(quit-config
-			 quit-config)
-			((assq gnus-current-window-configuration
-			       gnus-buffer-configuration)
-			 (cons gnus-summary-buffer
-			       gnus-current-window-configuration))
-			(t
-			 (cons (current-buffer)
-			       (current-window-configuration)))))
-		 parameters)))
+     `(-1 (,group
+	   ,gnus-level-default-subscribed nil nil ,method
+	   ,(cons
+	     (cons 'quit-config
+		   (cond
+		    (quit-config
+		     quit-config)
+		    ((assq gnus-current-window-configuration
+			   gnus-buffer-configuration)
+		     (cons gnus-summary-buffer
+			   gnus-current-window-configuration))
+		    (t
+		     (cons (current-buffer)
+			   (current-window-configuration)))))
+	     parameters)))
      gnus-newsrc-hashtb)
     (push method gnus-ephemeral-servers)
     (when (gnus-buffer-live-p gnus-group-buffer)
@@ -2562,30 +2565,29 @@ If PROMPT (the prefix) is a number, use the prompt specified in
 If FAR, it is likely that the group is not on the current line.
 If TEST-MARKED, the line must be marked."
   (when group
-    (let ((start (point)))
+    (let ((start (point))
+	  (active (and (gethash group gnus-active-hashtb)
+		       group)))
       (beginning-of-line)
       (cond
        ;; It's quite likely that we are on the right line, so
        ;; we check the current line first.
        ((and (not far)
-	     (eq (get-text-property (point) 'gnus-group)
-		 (gnus-intern-safe group gnus-active-hashtb))
+	     (equal (get-text-property (point) 'gnus-group) active)
 	     (or (not test-marked) (gnus-group-mark-line-p)))
 	(point))
        ;; Previous and next line are also likely, so we check them as well.
        ((and (not far)
 	     (save-excursion
 	       (forward-line -1)
-	       (and (eq (get-text-property (point) 'gnus-group)
-			(gnus-intern-safe group gnus-active-hashtb))
+	       (and (equal (get-text-property (point) 'gnus-group) active)
 		    (or (not test-marked) (gnus-group-mark-line-p)))))
 	(forward-line -1)
 	(point))
        ((and (not far)
 	     (save-excursion
 	       (forward-line 1)
-	       (and (eq (get-text-property (point) 'gnus-group)
-			(gnus-intern-safe group gnus-active-hashtb))
+	       (and (equal (get-text-property (point) 'gnus-group) active)
 		    (or (not test-marked) (gnus-group-mark-line-p)))))
 	(forward-line 1)
 	(point))
@@ -2593,21 +2595,16 @@ If TEST-MARKED, the line must be marked."
 	(goto-char (point-min))
 	(let (found)
 	  (while (and (not found)
-		      (gnus-goto-char
-		       (text-property-any
-			(point) (point-max)
-			'gnus-group
-			(gnus-intern-safe group gnus-active-hashtb))))
+		      (gnus-text-property-search
+		       'gnus-group active 'forward 'goto))
 	    (if (gnus-group-mark-line-p)
 		(setq found t)
 	      (forward-line 1)))
 	  found))
        (t
 	;; Search through the entire buffer.
-	(if (gnus-goto-char
-	     (text-property-any
-	      (point-min) (point-max)
-	      'gnus-group (gnus-intern-safe group gnus-active-hashtb)))
+	(if (gnus-text-property-search
+	     'gnus-group active nil 'goto)
 	    (point)
 	  (goto-char start)
 	  nil))))))
@@ -2775,9 +2772,7 @@ server."
     (gnus-group-change-level
      (setq info (list t nname gnus-level-default-subscribed nil nil meth))
      gnus-level-default-subscribed gnus-level-killed
-     (and (gnus-group-group-name)
-	  (gnus-group-entry (gnus-group-group-name)))
-     t)
+     (gnus-group-group-name) t)
     ;; Make it active.
     (gnus-set-active nname (cons 1 0))
     (unless (gnus-ephemeral-group-p name)
@@ -2837,6 +2832,7 @@ If FORCE (the prefix) is non-nil, all the articles in the group will
 be deleted.  This is \"deleted\" as in \"removed forever from the face
 of the Earth\".  There is no undo.  The user will be prompted before
 doing the deletion.
+
 Note that you also have to specify FORCE if you want the group to
 be removed from the server, even when it's empty."
   (interactive
@@ -2848,12 +2844,11 @@ be removed from the server, even when it's empty."
     (error "This back end does not support group deletion"))
   (prog1
       (let ((group-decoded (gnus-group-decoded-name group)))
-	(if (and (not no-prompt)
-		 (not (gnus-yes-or-no-p
-		       (format
-			"Do you really want to delete %s%s? "
-			group-decoded (if force " and all its contents" "")))))
-	    ()				; Whew!
+	(when (or no-prompt
+		  (gnus-yes-or-no-p
+		   (format
+		    "Do you really want to delete %s%s? "
+		    group-decoded (if force " and all its contents" ""))))
 	  (gnus-message 6 "Deleting group %s..." group-decoded)
 	  (if (not (gnus-request-delete-group group force))
 	      (gnus-error 3 "Couldn't delete group %s" group-decoded)
@@ -3234,7 +3229,7 @@ mail messages or news articles in files that have numeric names."
     ;; Subscribe the new group after the group on the current line.
     (gnus-subscribe-group pgroup (gnus-group-group-name) method)
     (gnus-group-update-group pgroup)
-    (forward-line -1)
+    (forward-line)
     (gnus-group-position-point)))
 
 (defun gnus-group-enter-directory (dir)
@@ -3627,7 +3622,7 @@ The return value is the number of articles that were marked as read,
 or nil if no action could be taken."
   (let* ((entry (gnus-group-entry group))
 	 (num (car entry))
-	 (marks (gnus-info-marks (nth 2 entry)))
+	 (marks (gnus-info-marks (nth 1 entry)))
 	 (unread (gnus-sequence-of-unread-articles group)))
     ;; Remove entries for this group.
     (nnmail-purge-split-history (gnus-group-real-name group))
@@ -3809,8 +3804,7 @@ group line."
        (or (and (member group gnus-zombie-list)
 		gnus-level-zombie)
 	   gnus-level-killed)
-       (when (gnus-group-group-name)
-	 (gnus-group-entry (gnus-group-group-name))))
+       (gnus-group-group-name))
       (unless silent
 	(gnus-group-update-group group)))
      (t (error "No such newsgroup: %s" group)))
@@ -3881,10 +3875,12 @@ of groups killed."
 	      `(progn
 		 (gnus-group-goto-group ,(gnus-group-group-name))
 		 (gnus-group-yank-group)))
-	    (push (cons (car entry) (nth 2 entry))
+	    (push (cons (car entry) (nth 1 entry))
 		  gnus-list-of-killed-groups))
 	  (gnus-group-change-level
 	   (if entry entry group) gnus-level-killed (if entry nil level))
+	  ;; FIXME: Since the group has already been removed from
+	  ;; `gnus-newsrc-hashtb', this check will always return nil.
 	  (when (numberp (gnus-group-unread group))
 	    (gnus-request-update-group-status group 'unsubscribe))
 	  (message "Killed group %s" (gnus-group-decoded-name group)))
@@ -3902,7 +3898,7 @@ of groups killed."
 		   group gnus-level-killed 3))
 	(cond
 	 ((setq entry (gnus-group-entry group))
-	  (push (cons (car entry) (nth 2 entry))
+	  (push (cons (car entry) (nth 1 entry))
 		gnus-list-of-killed-groups)
 	  (setcdr (cdr entry) (cdddr entry)))
 	 ((member group gnus-zombie-list)
@@ -3935,9 +3931,7 @@ yanked) a list of yanked groups is returned."
       ;; first newsgroup.
       (setq prev (gnus-group-group-name))
       (gnus-group-change-level
-       info (gnus-info-level (cdr info)) gnus-level-killed
-       (and prev (gnus-group-entry prev))
-       t)
+       info (gnus-info-level (cdr info)) gnus-level-killed prev t)
       (gnus-group-insert-group-line-info group)
       (gnus-request-update-group-status group 'subscribe)
       (gnus-undo-register
@@ -4023,14 +4017,7 @@ entail asking the server for the groups."
   ;; Find all groups and sort them.
   (let ((groups
 	 (sort
-	  (let (list)
-	    (mapatoms
-	     (lambda (sym)
-	       (and (boundp sym)
-		    (symbol-value sym)
-		    (push (symbol-name sym) list)))
-	     gnus-active-hashtb)
-	    list)
+	  (hash-table-keys gnus-active-hashtb)
 	  'string<))
 	(buffer-read-only nil)
 	group)
@@ -4042,7 +4029,7 @@ entail asking the server for the groups."
 		 (insert "       *: "
 			 (gnus-group-decoded-name group)
 			 "\n"))
-       (list 'gnus-group (gnus-intern-safe group gnus-active-hashtb)
+       (list 'gnus-group (gethash group gnus-active-hashtb)
 	     'gnus-unread t
 	     'gnus-level (inline (gnus-group-level group)))))
     (goto-char (point-min))))
@@ -4142,17 +4129,17 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	 desc)
     (when (and force
 	       gnus-description-hashtb)
-      (gnus-sethash mname nil gnus-description-hashtb))
+      (remhash mname gnus-description-hashtb))
     (unless group
       (error "No group name given"))
     (when (or (and gnus-description-hashtb
 		   ;; We check whether this group's method has been
 		   ;; queried for a description file.
-		   (gnus-gethash mname gnus-description-hashtb))
+		   (gethash mname gnus-description-hashtb))
 	      (setq desc (gnus-group-get-description group))
 	      (gnus-read-descriptions-file method))
       (gnus-message 1 "%s"
-		    (or desc (gnus-gethash group gnus-description-hashtb)
+		    (or desc (gethash group gnus-description-hashtb)
 			"No description available")))))
 
 ;; Suggested by Per Abrahamsen <amanda@iesd.auc.dk>.
@@ -4165,12 +4152,8 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 		 (gnus-read-all-descriptions-files)))
     (error "Couldn't request descriptions file"))
   (let ((buffer-read-only nil)
-	b groups)
-    (mapatoms
-     (lambda (group)
-       (push (symbol-name group) groups))
-     gnus-description-hashtb)
-    (setq groups (sort groups 'string<))
+	(groups (sort (hash-table-keys gnus-description-hashtb)))
+	b)
     (erase-buffer)
     (dolist (group groups)
       (setq b (point))
@@ -4193,20 +4176,16 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	(obuf (current-buffer))
 	groups des)
     ;; Go through all newsgroups that are known to Gnus.
-    (mapatoms
-     (lambda (group)
-       (and (symbol-name group)
-	    (string-match regexp (symbol-name group))
-	    (symbol-value group)
-	    (push (symbol-name group) groups)))
+    (maphash
+     (lambda (g-name _)
+       (and (string-match regexp g-name)
+	    (push g-name groups)))
      gnus-active-hashtb)
     ;; Also go through all descriptions that are known to Gnus.
     (when search-description
-      (mapatoms
-       (lambda (group)
-	 (and (string-match regexp (symbol-value group))
-	      (push (symbol-name group) groups)))
-       gnus-description-hashtb))
+      (dolist (g-name (hash-table-keys gnus-description-hashtb))
+	(when (string-match regexp g-name)
+	  (push g-name groups))))
     (if (not groups)
 	(gnus-message 3 "No groups matched \"%s\"." regexp)
       ;; Print out all the groups.
@@ -4222,8 +4201,8 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	    (let ((charset (gnus-group-name-charset nil prev)))
 	      (insert (gnus-group-name-decode prev charset) "\n")
 	      (when (and gnus-description-hashtb
-			 (setq des (gnus-gethash (car groups)
-						 gnus-description-hashtb)))
+			 (setq des (gethash (car groups)
+					    gnus-description-hashtb)))
 		(insert "  " (gnus-group-name-decode des charset) "\n"))))
 	  (setq groups (cdr groups)))
 	(goto-char (point-min))))
@@ -4468,7 +4447,7 @@ and the second element is the address."
     (let* ((entry (gnus-group-entry
 		   (or method-only-group (gnus-info-group info))))
 	   (part-info info)
-	   (info (if method-only-group (nth 2 entry) info))
+	   (info (if method-only-group (nth 1 entry) info))
 	   method)
       (when method-only-group
 	(unless entry
@@ -4510,7 +4489,7 @@ and the second element is the address."
       ;; can do the update.
       (if entry
 	  (progn
-	    (setcar (nthcdr 2 entry) info)
+	    (setcar (nthcdr 1 entry) info)
 	    (when (and (not (eq (car entry) t))
 		       (gnus-active (gnus-info-group info)))
 	      (setcar entry (length
@@ -4620,11 +4599,11 @@ This command may read the active file."
 		 (assq 'cache marks)))
 	   lowest
 	   #'(lambda (group)
-	       (or (gnus-gethash group
-				 gnus-cache-active-hashtb)
+	       (or (gethash group
+			    gnus-cache-active-hashtb)
 		   ;; Cache active file might use "."
 		   ;; instead of ":".
-		   (gnus-gethash
+		   (gethash
 		    (mapconcat 'identity
 			       (split-string group ":")
 			       ".")

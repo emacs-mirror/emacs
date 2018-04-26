@@ -624,7 +624,7 @@
 (defun nnbabyl-check-mbox ()
   "Go through the nnbabyl mbox and make sure that no article numbers are reused."
   (interactive)
-  (let ((idents (make-vector 1000 0))
+  (let ((idents (gnus-make-hashtable 1000))
 	id)
     (save-excursion
       (when (or (not nnbabyl-mbox-buffer)
@@ -633,13 +633,13 @@
       (set-buffer nnbabyl-mbox-buffer)
       (goto-char (point-min))
       (while (re-search-forward "^X-Gnus-Newsgroup: \\([^ ]+\\) "  nil t)
-	(if (intern-soft (setq id (match-string 1)) idents)
+	(if (gethash (setq id (match-string 1)) idents)
 	    (progn
 	      (delete-region (point-at-bol) (progn (forward-line 1) (point)))
 	      (nnheader-message 7 "Moving %s..." id)
 	      (nnbabyl-save-mail
 	       (nnmail-article-group 'nnbabyl-active-number)))
-	  (intern id idents)))
+	  (puthash id t idents)))
       (when (buffer-modified-p (current-buffer))
 	(save-buffer))
       (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file)

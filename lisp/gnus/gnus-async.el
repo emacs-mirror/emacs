@@ -84,7 +84,6 @@ that was fetched."
 (defvar gnus-async-article-alist nil)
 (defvar gnus-async-article-semaphore '(nil))
 (defvar gnus-async-fetch-list nil)
-(defvar gnus-async-hashtb nil)
 (defvar gnus-async-current-prefetch-group nil)
 (defvar gnus-async-current-prefetch-article nil)
 (defvar gnus-async-timer nil)
@@ -127,14 +126,11 @@ that was fetched."
 (defun gnus-async-close ()
   (gnus-kill-buffer gnus-async-prefetch-article-buffer)
   (gnus-kill-buffer gnus-async-prefetch-headers-buffer)
-  (setq gnus-async-hashtb nil
-	gnus-async-article-alist nil
+  (setq gnus-async-article-alist nil
 	gnus-async-header-prefetched nil))
 
 (defun gnus-async-set-buffer ()
-  (nnheader-set-temp-buffer gnus-async-prefetch-article-buffer t)
-  (unless gnus-async-hashtb
-    (setq gnus-async-hashtb (gnus-make-hashtable 1023))))
+  (nnheader-set-temp-buffer gnus-async-prefetch-article-buffer t))
 
 (defun gnus-async-halt-prefetch ()
   "Stop prefetching."
@@ -242,13 +238,10 @@ that was fetched."
 	  (when gnus-async-post-fetch-function
 	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
-	(setq
-	 gnus-async-article-alist
-	 (cons (list (intern (format "%s-%d" group article)
-			     gnus-async-hashtb)
-		     mark (point-max-marker)
-		     group article)
-	       gnus-async-article-alist))))
+	(push (list (format "%s-%d" group article)
+		    mark (point-max-marker)
+		    group article)
+	      gnus-async-article-alist)))
     (if (not (gnus-buffer-live-p summary))
 	(gnus-async-with-semaphore
 	  (setq gnus-async-fetch-list nil))
@@ -314,8 +307,7 @@ that was fetched."
     (set-marker (caddr entry) nil))
   (gnus-async-with-semaphore
     (setq gnus-async-article-alist
-	  (delq entry gnus-async-article-alist))
-    (unintern (car entry) gnus-async-hashtb)))
+	  (delete entry gnus-async-article-alist))))
 
 (defun gnus-async-prefetch-remove-group (group)
   "Remove all articles belonging to GROUP from the prefetch buffer."
@@ -331,9 +323,8 @@ that was fetched."
   "Return the entry for ARTICLE in GROUP if it has been prefetched."
   (let ((entry (save-excursion
 		 (gnus-async-set-buffer)
-		 (assq (intern-soft (format "%s-%d" group article)
-				    gnus-async-hashtb)
-		       gnus-async-article-alist))))
+		 (assoc (format "%s-%d" group article)
+			gnus-async-article-alist))))
     ;; Perhaps something has emptied the buffer?
     (if (and entry
 	     (= (cadr entry) (caddr entry)))
@@ -342,7 +333,7 @@ that was fetched."
 	    (set-marker (cadr entry) nil)
 	    (set-marker (caddr entry) nil))
 	  (setq gnus-async-article-alist
-		(delq entry gnus-async-article-alist))
+		(delete entry gnus-async-article-alist))
 	  nil)
       entry)))
 

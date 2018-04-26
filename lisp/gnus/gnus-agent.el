@@ -225,7 +225,9 @@ NOTES:
 (defvar gnus-agent-overview-buffer nil)
 (defvar gnus-category-predicate-cache nil)
 (defvar gnus-category-group-cache nil)
-(defvar gnus-agent-spam-hashtb nil)
+(defvar gnus-agent-spam-hashtb nil
+  "Cache of message subjects for spam messages.
+Actually a hash table holding subjects mapped to t.")
 (defvar gnus-agent-file-name nil)
 (defvar gnus-agent-file-coding-system 'raw-text)
 (defvar gnus-agent-file-loading-cache nil)
@@ -642,8 +644,8 @@ minor mode in all Gnus buffers."
 (defun gnus-agent-queue-setup (&optional group-name)
   "Make sure the queue group exists.
 Optional arg GROUP-NAME allows another group to be specified."
-  (unless (gnus-gethash (format "nndraft:%s" (or group-name "queue"))
-			gnus-newsrc-hashtb)
+  (unless (gethash (format "nndraft:%s" (or group-name "queue"))
+		   gnus-newsrc-hashtb)
     (gnus-request-create-group (or group-name "queue") '(nndraft ""))
     (let ((gnus-level-default-subscribed 1))
       (gnus-subscribe-group (format "nndraft:%s" (or group-name "queue"))
@@ -1330,11 +1332,11 @@ downloaded into the agent."
           (when (re-search-forward
                  (concat "^" (regexp-quote group) " ") nil t)
             (save-excursion
-              (setq oactive-max (read (current-buffer))	;; max
+              (setq oactive-max (read (current-buffer))	  ;; max
                     oactive-min (read (current-buffer)))) ;; min
             (gnus-delete-line)))
 	(when active
-	  (insert (format "%S %d %d y\n" (intern group)
+	  (insert (format "%s %d %d y\n" group
 			  (max (or oactive-max (cdr active)) (cdr active))
 			  (min (or oactive-min (car active)) (car active))))
 	  (goto-char (point-max))
@@ -2161,7 +2163,10 @@ doesn't exist, to valid the overview buffer."
 
     (gnus-agent-update-view-total-fetched-for group nil)))
 
-(defvar gnus-agent-article-local nil)
+;; FIXME: Why would this be a hash table?  Wouldn't a simple alist or
+;; something suffice?
+(defvar gnus-agent-article-local nil
+  "Hashtable holding information about a group.")
 (defvar gnus-agent-article-local-times nil)
 (defvar gnus-agent-file-loading-local nil)
 
@@ -2173,12 +2178,12 @@ article counts for each of the method's subscribed groups."
 	      (zerop gnus-agent-article-local-times)
 	      (not (gnus-methods-equal-p
 		    gnus-command-method
-		    (symbol-value (intern "+method" gnus-agent-article-local)))))
+		    (gethash "+method" gnus-agent-article-local))))
       (setq gnus-agent-article-local
 	    (gnus-cache-file-contents
 	     (gnus-agent-lib-file "local")
 	     'gnus-agent-file-loading-local
-	     'gnus-agent-read-and-cache-local))
+	     #'gnus-agent-read-and-cache-local))
       (when gnus-agent-article-local-times
 	(cl-incf gnus-agent-article-local-times)))
     gnus-agent-article-local))
@@ -2188,14 +2193,15 @@ article counts for each of the method's subscribed groups."
 gnus-agent-article-local.  If that variable had `dirty' (also known as
 modified) original contents, they are first saved to their own file."
   (if (and gnus-agent-article-local
-           (symbol-value (intern "+dirty" gnus-agent-article-local)))
+           (gethash "+dirty" gnus-agent-article-local))
       (gnus-agent-save-local))
   (gnus-agent-read-local file))
 
 (defun gnus-agent-read-local (file)
   "Load FILE and do a `read' there."
-  (let ((my-obarray (gnus-make-hashtable (count-lines (point-min)
-                                                      (point-max))))
+  (let ((hashtb (gnus-make-hashtable
+		 (count-lines (point-min)
+			      (point-max))))
         (line 1))
     (with-temp-buffer
       (condition-case nil
@@ -2204,7 +2210,8 @@ modified) original contents, they are first saved to their own file."
         (file-error))
 
       (goto-char (point-min))
-      ;; Skip any comments at the beginning of the file (the only place where they may appear)
+      ;; Skip any comments at the beginning of the file (the only
+      ;; place where they may appear)
       (while (= (following-char) ?\;)
         (forward-line 1)
         (setq line (1+ line)))
@@ -2214,33 +2221,32 @@ modified) original contents, they are first saved to their own file."
             (let (group
                   min
                   max
-                  (cur (current-buffer))
-		  (obarray my-obarray))
+                  (cur (current-buffer)))
               (setq group (read cur)
                     min (read cur)
                     max (read cur))
 
-              (when (stringp group)
-                (setq group (intern group my-obarray)))
+              (unless (stringp group)
+                (setq group (symbol-name group)))
 
               ;; NOTE: The '+ 0' ensure that min and max are both numerics.
-              (set group (cons (+ 0 min) (+ 0 max))))
+              (puthash group (cons (+ 0 min) (+ 0 max)) hashtb))
           (error
            (gnus-message 3 "Warning - invalid agent local: %s on line %d: %s"
                          file line (error-message-string err))))
         (forward-line 1)
         (setq line (1+ line))))
 
-    (set (intern "+dirty" my-obarray) nil)
-    (set (intern "+method" my-obarray) gnus-command-method)
-    my-obarray))
+    (puthash "+dirty" nil hashtb)
+    (puthash "+method" gnus-command-method hashtb)
+    hashtb))
 
 (defun gnus-agent-save-local (&optional force)
   "Save gnus-agent-article-local under it method's agent.lib directory."
-  (let ((my-obarray gnus-agent-article-local))
-    (when (and my-obarray
-               (or force (symbol-value (intern "+dirty" my-obarray))))
-      (let* ((gnus-command-method (symbol-value (intern "+method" my-obarray)))
+  (let ((hashtb gnus-agent-article-local))
+    (when (and hashtb
+               (or force (gethash "+dirty" hashtb)))
+      (let* ((gnus-command-method (gethash "+method" hashtb))
              ;; NOTE: gnus-command-method is used within gnus-agent-lib-file.
              (dest (gnus-agent-lib-file "local")))
         (gnus-make-directory (gnus-agent-lib-file ""))
@@ -2248,31 +2254,30 @@ modified) original contents, they are first saved to their own file."
 	(let ((coding-system-for-write gnus-agent-file-coding-system)
 	      (file-name-coding-system nnmail-pathname-coding-system))
 	  (with-temp-file dest
-	    (let ((gnus-command-method (symbol-value (intern "+method" my-obarray)))
+	    ;; FIXME: Why are we letting this again?
+	    (let ((gnus-command-method (gethash "+method" hashtb))
 		  print-level print-length
 		  (standard-output (current-buffer)))
-	      (mapatoms (lambda (symbol)
-			  (cond ((not (boundp symbol))
-				 nil)
-				((member (symbol-name symbol) '("+dirty" "+method"))
-				 nil)
-				(t
-				 (let ((range (symbol-value symbol)))
-				   (when range
-				     (prin1 symbol)
-				     (princ " ")
-				     (princ (car range))
-				     (princ " ")
-				     (princ (cdr range))
-				     (princ "\n"))))))
-			my-obarray))))))))
+	      (maphash (lambda (group active)
+			 (cond ((null active)
+				nil)
+			       ((member group '("+dirty" "+method"))
+				nil)
+			       (t
+				(when active
+				  (prin1 group)
+				  (princ " ")
+				  (princ (car active))
+				  (princ " ")
+				  (princ (cdr active))
+				  (princ "\n")))))
+		       hashtb))))))))
 
 (defun gnus-agent-get-local (group &optional gmane method)
   (let* ((gmane (or gmane (gnus-group-real-name group)))
          (gnus-command-method (or method (gnus-find-method-for-group group)))
          (local (gnus-agent-load-local))
-         (symb (intern gmane local))
-         (minmax (and (boundp symb) (symbol-value symb))))
+         (minmax (gethash gmane local)))
     (unless minmax
       ;; Bind these so that gnus-agent-load-alist doesn't change the
       ;; current alist (i.e. gnus-agent-article-alist)
@@ -2291,24 +2296,23 @@ modified) original contents, they are first saved to their own file."
   (let* ((gmane (or gmane (gnus-group-real-name group)))
          (gnus-command-method (or method (gnus-find-method-for-group group)))
          (local (or local (gnus-agent-load-local)))
-         (symb (intern gmane local))
-         (minmax (and (boundp symb) (symbol-value symb))))
+         (minmax (gethash gmane local)))
     (if (cond ((and minmax
                     (or (not (eq min (car minmax)))
                         (not (eq max (cdr minmax))))
 		    min
 		    max)
-               (setcar minmax min)
-               (setcdr minmax max)
+               (setcar (gethash gmane local) min)
+               (setcdr (gethash gmane local) max)
                t)
               (minmax
                nil)
               ((and min max)
-               (set symb (cons min max))
+               (puthash gmane (cons min max) local)
                t)
 	      (t
-	       (unintern symb local)))
-        (set (intern "+dirty" local) t))))
+	       (remhash gmane local)))
+        (puthash "+dirty" t local))))
 
 (defun gnus-agent-article-name (article group)
   (expand-file-name article
@@ -2878,8 +2882,8 @@ The following commands are available:
       nil
     (let ((string (gnus-simplify-subject (mail-header-subject gnus-headers))))
       (prog1
-	  (gnus-gethash string gnus-agent-spam-hashtb)
-	(gnus-sethash string t gnus-agent-spam-hashtb)))))
+	  (gethash string gnus-agent-spam-hashtb)
+	(puthash string t gnus-agent-spam-hashtb)))))
 
 (defun gnus-agent-short-p ()
   "Say whether an article is short or not."
@@ -3007,13 +3011,13 @@ articles."
   (unless gnus-category-group-cache
     (setq gnus-category-group-cache (gnus-make-hashtable 1000))
     (let ((cs gnus-category-alist)
-	  groups cat)
-      (while (setq cat (pop cs))
+	  groups)
+      (dolist (cat cs)
 	(setq groups (gnus-agent-cat-groups cat))
-	(while groups
-	  (gnus-sethash (pop groups) cat gnus-category-group-cache)))))
-  (or (gnus-gethash group gnus-category-group-cache)
-      (assq 'default gnus-category-alist)))
+	(dolist (g groups)
+	  (puthash g cat gnus-category-group-cache)))))
+  (gethash group gnus-category-group-cache
+	   (assq 'default gnus-category-alist)))
 
 (defvar gnus-agent-expire-current-dirs)
 (defvar gnus-agent-expire-stats)
@@ -3053,7 +3057,7 @@ FORCE is equivalent to setting the expiration predicates to true."
                                    (count-lines (point-min) (point-max))))))
                     (save-excursion
                       (gnus-agent-expire-group-1
-                       group overview (gnus-gethash-safe group orig)
+                       group overview (gethash group orig)
                        articles force))))
               (kill-buffer overview))))
       (gnus-message 4 "%s" (gnus-agent-expire-done-message)))))
@@ -3471,9 +3475,7 @@ articles in every agentized group? "))
                                    (count-lines (point-min) (point-max))))))
                     (dolist (expiring-group (gnus-groups-from-server
                                              gnus-command-method))
-                      (let* ((active
-                              (gnus-gethash-safe expiring-group orig)))
-
+                      (let ((active (gethash expiring-group orig)))
                         (when active
                           (save-excursion
                             (gnus-agent-expire-group-1
@@ -3503,83 +3505,80 @@ articles in every agentized group? "))
 (defun gnus-agent-expire-unagentized-dirs ()
   (when (and gnus-agent-expire-unagentized-dirs
              (boundp 'gnus-agent-expire-current-dirs))
-    (let* ((keep (gnus-make-hashtable))
-	   (file-name-coding-system nnmail-pathname-coding-system))
-
-      (gnus-sethash gnus-agent-directory t keep)
+    (let ((file-name-coding-system nnmail-pathname-coding-system)
+	  ;; Another hash table that could just be a list.
+	  (keep (gnus-make-hashtable 20))
+	  to-remove)
+      (puthash gnus-agent-directory t keep)
       (dolist (dir gnus-agent-expire-current-dirs)
 	(when (and (stringp dir)
 		   (file-directory-p dir))
-	  (while (not (gnus-gethash dir keep))
-	    (gnus-sethash dir t keep)
+	  (while (not (gethash dir keep))
+	    (puthash dir t keep)
 	    (setq dir (file-name-directory (directory-file-name dir))))))
 
-      (let* (to-remove
-             checker
-             (checker
-              (function
-               (lambda (d)
-                 "Given a directory, check it and its subdirectories for
-              membership in the keep hash.  If it isn't found, add
-              it to to-remove."
-                 (let ((files (directory-files d))
-                       file)
-                   (while (setq file (pop files))
-                     (cond ((equal file ".") ; Ignore self
-                            nil)
-                           ((equal file "..") ; Ignore parent
-                            nil)
-                           ((equal file ".overview")
-                            ;; Directory must contain .overview to be
-                            ;; agent's cache of a group.
-                            (let ((d (file-name-as-directory d))
-                                  r)
-                              ;; Search ancestor's for last directory NOT
-                              ;; found in keep hash.
-                              (while (not (gnus-gethash
-                                           (setq d (file-name-directory d)) keep))
-                                (setq r d
-                                      d (directory-file-name d)))
-                              ;; if ANY ancestor was NOT in keep hash and
-                              ;; it's not already in to-remove, add it to
-                              ;; to-remove.
-                              (if (and r
-                                       (not (member r to-remove)))
-                                  (push r to-remove))))
-                           ((file-directory-p (setq file (nnheader-concat d file)))
-                            (funcall checker file)))))))))
-        (funcall checker (expand-file-name gnus-agent-directory))
+      (cl-labels ((checker
+		   (d)
+		   ;; Given a directory, check it and its subdirectories
+		   ;; for membership in the keep list.  If it isn't found,
+		   ;; add it to to-remove.
+		   (let ((files (directory-files d))
+			 file)
+		     (while (setq file (pop files))
+		       (cond ((equal file ".") ; Ignore self
+			      nil)
+			     ((equal file "..") ; Ignore parent
+			      nil)
+			     ((equal file ".overview")
+			      ;; Directory must contain .overview to be
+			      ;; agent's cache of a group.
+			      (let ((d (file-name-as-directory d))
+				    r)
+				;; Search ancestors for last directory NOT
+				;; found in keep.
+				(while (not (gethash (setq d (file-name-directory d)) keep))
+				  (setq r d
+					d (directory-file-name d)))
+				;; if ANY ancestor was NOT in keep hash and
+				;; it's not already in to-remove, add it to
+				;; to-remove.
+				(if (and r
+					 (not (member r to-remove)))
+				    (push r to-remove))))
+			     ((file-directory-p (setq file (nnheader-concat d file)))
+			      (checker file)))))))
+        (checker (expand-file-name gnus-agent-directory)))
 
-        (when (and to-remove
-                   (or gnus-expert-user
-                       (gnus-y-or-n-p
-                        "gnus-agent-expire has identified local directories that are\
+      (when (and to-remove
+                 (or gnus-expert-user
+                     (gnus-y-or-n-p
+                      "gnus-agent-expire has identified local directories that are\
  not currently required by any agentized group.  Do you wish to consider\
  deleting them?")))
-          (while to-remove
-            (let ((dir (pop to-remove)))
-              (if (or gnus-expert-user
-		      (gnus-y-or-n-p (format "Delete %s? " dir)))
-                  (let* (delete-recursive
-			 files f
-                         (delete-recursive
-                          (function
-                           (lambda (f-or-d)
-                             (ignore-errors
-                               (if (file-directory-p f-or-d)
-                                   (condition-case nil
-                                       (delete-directory f-or-d)
-                                     (file-error
-				      (setq files (directory-files f-or-d))
-				      (while files
-					(setq f (pop files))
-					(or (member f '("." ".."))
-					    (funcall delete-recursive
-						     (nnheader-concat
-						      f-or-d f))))
-                                      (delete-directory f-or-d)))
-                                 (delete-file f-or-d)))))))
-                    (funcall delete-recursive dir))))))))))
+        (while to-remove
+          (let ((dir (pop to-remove)))
+            (if (or gnus-expert-user
+		    (gnus-y-or-n-p (format "Delete %s? " dir)))
+                (let* (delete-recursive
+		       files f
+                       (delete-recursive
+                        (function
+                         (lambda (f-or-d)
+                           (ignore-errors
+                             (if (file-directory-p f-or-d)
+                                 (condition-case nil
+                                     (delete-directory f-or-d)
+                                   (file-error
+				    (setq files (directory-files f-or-d))
+				    (while files
+				      (setq f (pop files))
+				      (or (member f '("." ".."))
+					  (funcall delete-recursive
+						   (nnheader-concat
+						    f-or-d f))))
+                                    (delete-directory f-or-d)))
+                               (delete-file f-or-d)))))))
+                  (funcall delete-recursive dir)))))))))
 
 ;;;###autoload
 (defun gnus-agent-batch ()
@@ -4097,8 +4096,8 @@ agent has fetched."
      ;; if null, gnus-agent-group-pathname will calc method.
      (let* ((gnus-command-method method)
 	    (path (or path (gnus-agent-group-pathname group)))
-	    (entry (or (gnus-gethash path gnus-agent-total-fetched-hashtb)
-		       (gnus-sethash path (make-list 3 0)
+	    (entry (or (gethash path gnus-agent-total-fetched-hashtb)
+		       (puthash path (make-list 3 0)
 				     gnus-agent-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system))
        (when (file-exists-p path)
@@ -4128,7 +4127,7 @@ agent has fetched."
 	 (cl-incf (nth 2 entry) delta))))))
 
 (defun gnus-agent-update-view-total-fetched-for
-  (group agent-over &optional method path)
+    (group agent-over &optional method path)
   "Update, or set, the total disk space used by the .agentview and
 .overview files.  These files are calculated separately as they can be
 modified."
@@ -4138,9 +4137,9 @@ modified."
      ;; if null, gnus-agent-group-pathname will calc method.
      (let* ((gnus-command-method method)
 	    (path (or path (gnus-agent-group-pathname group)))
-	    (entry (or (gnus-gethash path gnus-agent-total-fetched-hashtb)
-		       (gnus-sethash path (make-list 3 0)
-				     gnus-agent-total-fetched-hashtb)))
+	    (entry (or (gethash path gnus-agent-total-fetched-hashtb)
+		       (puthash path (make-list 3 0)
+				gnus-agent-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system)
 	    (size (or (file-attribute-size (file-attributes
 					    (nnheader-concat
@@ -4155,12 +4154,13 @@ modified."
   "Get the total disk space used by the specified GROUP."
   (unless (equal group "dummy.group")
     (unless gnus-agent-total-fetched-hashtb
-      (setq gnus-agent-total-fetched-hashtb (gnus-make-hashtable 1024)))
+      (setq gnus-agent-total-fetched-hashtb
+	    (gnus-make-hashtable 1000)))
 
     ;; if null, gnus-agent-group-pathname will calc method.
     (let* ((gnus-command-method method)
 	   (path (gnus-agent-group-pathname group))
-	   (entry (gnus-gethash path gnus-agent-total-fetched-hashtb)))
+	   (entry (gethash path gnus-agent-total-fetched-hashtb)))
       (if entry
 	  (apply '+ entry)
 	(let ((gnus-agent-inhibit-update-total-fetched-for (not no-inhibit)))

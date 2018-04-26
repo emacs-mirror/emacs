@@ -29,6 +29,7 @@
 (require 'mml-sec)
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'url))
+(eval-when-compile (require 'gnus-util))
 
 (autoload 'message-make-message-id "message")
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
@@ -1545,7 +1546,6 @@ Should be adopted if code in `message-send-mail' is changed."
 
 (defvar mml-preview-buffer nil)
 
-(autoload 'gnus-make-hashtable "gnus-util")
 (autoload 'widget-button-press "wid-edit" nil t)
 (declare-function widget-event-point "wid-edit" (event))
 ;; If gnus-buffer-configuration is bound this is loaded.

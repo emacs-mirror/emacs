@@ -8015,18 +8015,11 @@ regular text mode tabbing command."
 	       (skip-chars-backward "^, \t\n") (point))))
 	(completion-ignore-case t)
 	(e (progn (skip-chars-forward "^,\t\n ") (point)))
-	group collection)
-    (when (and (boundp 'gnus-active-hashtb)
-	       gnus-active-hashtb)
-      (mapatoms
-       (lambda (symbol)
-	 (setq group (symbol-name symbol))
-	 (push (if (string-match "[^\000-\177]" group)
-		   (gnus-group-decoded-name group)
-		 group)
-	       collection))
-       gnus-active-hashtb))
-    (completion-in-region b e collection)))
+	(collection (when (and (boundp 'gnus-active-hashtb)
+			       gnus-active-hashtb)
+		      (hash-table-keys gnus-active-hashtb))))
+    (when collection
+      (completion-in-region b e collection))))
 
 (defun message-expand-name ()
   (cond ((and (memq 'eudc message-expand-name-databases)
