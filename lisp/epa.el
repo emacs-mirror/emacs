@@ -701,6 +701,7 @@ If you do not specify PLAIN-FILE, this functions prompts for the value to use."
 					#'epa-progress-callback-function
 					(format "Decrypting %s..."
 						(file-name-nondirectory decrypt-file))))
+    (setf (epg-context-pinentry-mode context) epa-pinentry-mode)
     (message "Decrypting %s..." (file-name-nondirectory decrypt-file))
     (condition-case error
 	(epg-decrypt-file context decrypt-file plain-file)
