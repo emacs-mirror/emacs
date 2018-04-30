@@ -572,7 +572,7 @@ running.  INTERACTIVE is t if called interactively."
                       map)))))))
 
 (add-to-list 'mode-line-misc-info
-             `(t
+             `(eglot-mode
                (" [" eglot--mode-line-format "] ")))
 
 (provide 'eglot)
