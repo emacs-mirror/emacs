@@ -28,6 +28,7 @@
 (require 'cl-lib)
 (require 'project)
 (require 'url-parse)
+(require 'url-util)
 
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
@@ -143,8 +144,8 @@
     (when (not (process-live-p process))
       ;; Remember to cancel all timers
       ;;
-      (maphash (lambda (id triplet)
-                 (cl-destructuring-bind (_success _error timeout) triplet
+      (maphash (lambda (id quad)
+                 (cl-destructuring-bind (_success _error timeout _env) quad
                    (eglot--message
                     "(sentinel) Cancelling timer for continuation %s" id)
                    (cancel-timer timeout)))
@@ -185,7 +186,7 @@
             (when new-expected-bytes
               (when expected-bytes
                 (eglot--warn
-                 (concat "Unexpectedly starting new message but %s bytes"
+                 (concat "Unexpectedly starting new message but %s bytes "
                          "reportedly remaining from previous one")
                  expected-bytes))
               (set-marker message-mark (point))
@@ -207,21 +208,28 @@
                  (let* ((message-end (byte-to-position
                                       (+ (position-bytes message-mark)
                                          expected-bytes))))
-                   (save-excursion
-                     (save-restriction
-                       (goto-char message-mark)
-                       (narrow-to-region message-mark
-                                         message-end)
-                       (eglot--process-receive
-                        proc
-                        (let ((json-object-type 'plist))
-                          (json-read)))))
-                   (set-marker message-mark message-end)
-                   (setf (eglot--expected-bytes proc) nil)))
+                   (unwind-protect
+                       (save-excursion
+                         (save-restriction
+                           (goto-char message-mark)
+                           (narrow-to-region message-mark
+                                             message-end)
+                           (eglot--process-receive
+                            proc
+                            (let ((json-object-type 'plist))
+                              (json-read)))))
+                     (set-marker message-mark message-end)
+                     (setf (eglot--expected-bytes proc) nil))))
                 (t
                  ;; just adding some stuff to the end that doesn't yet
                  ;; complete the message
                  )))))))
+
+(defmacro eglot--obj (&rest what)
+  "Make an object suitable for `json-encode'"
+  ;; FIXME: maybe later actually do something, for now this just fixes
+  ;; the indenting of literal plists.
+  `(list ,@what))
 
 (defun eglot-events-buffer (process &optional interactive)
   (interactive (list (eglot--current-process-or-lose) t))
@@ -241,22 +249,39 @@
       (display-buffer buffer))
     buffer))
 
-(defun eglot--log-event (proc type message)
+(defun eglot--log-event (proc type message id error)
   (with-current-buffer (eglot-events-buffer proc)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
-      (insert (format "%s: \n%s\n" type (pp-to-string message))))))
+      (insert (format "%s%s%s:\n%s\n"
+                      type
+                      (if id (format " (id:%s)" id) "")
+                      (if error " ERROR" "")
+                      (pp-to-string message))))))
+
+(defvar eglot--environment-vars
+  '(eglot--current-flymake-report-fn)
+  "A list of variables with saved values on every request.")
+
+(defvar eglot--environment nil
+  "Dynamically bound alist of symbol and values")
 
 (defun eglot--process-receive (proc message)
-  (let ((inhibit-read-only t))
-    (insert (format "Server said:\n%s\n" message)))
-  (eglot--log-event proc 'server message)
-  ;; Maybe this is a responsee
-  ;;
+  "Process MESSAGE from PROC."
   (let* ((response-id (plist-get message :id))
          (err (plist-get message :error))
          (continuations (and response-id
                              (gethash response-id (eglot--pending-continuations)))))
+    (eglot--log-event proc
+                      (cond ((not response-id)
+                             'server-notification)
+                            ((not continuations)
+                             'unexpected-server-reply)
+                            (t
+                             'server-reply))
+                      message
+                      response-id
+                      err)
     (cond ((and response-id
                 (not continuations))
            (eglot--warn "Ooops no continuation for id %s" response-id))
@@ -271,21 +296,28 @@
           (t
            (let* ((method (plist-get message :method))
                   (handler-sym (intern (concat "eglot--"
-                                               method))))
+                                               method)))
+                  (eglot--environment (cl-fourth continuations)))
              (if (functionp handler-sym)
-                 (apply handler-sym proc (plist-get message :params))
+                 (cl-progv
+                     (mapcar #'car eglot--environment)
+                     (mapcar #'cdr eglot--environment)
+                   (apply handler-sym proc (plist-get message :params)))
                (eglot--debug "No implemetation for notification %s yet"
                              method)))))))
 
 (defvar eglot--expect-carriage-return nil)
 
-(defun eglot--process-send (proc message)
+(defun eglot--process-send (id proc message)
   (let* ((json (json-encode message))
          (to-send (format "Content-Length: %d\r\n\r\n%s"
                           (string-bytes json)
                           json)))
     (process-send-string proc to-send)
-    (eglot--log-event proc 'client message)))
+    (eglot--log-event proc (if id
+                               'client-request
+                             'client-notification)
+                      message id nil)))
 
 (defvar eglot--next-request-id 0)
 
@@ -300,6 +332,7 @@
                           method
                           params
                           &key success-fn error-fn timeout-fn (async-p t))
+  "Make a request to PROCESS, expecting a reply."
   (let* ((id (eglot--next-request-id))
          (timeout-fn
           (or timeout-fn
@@ -322,11 +355,12 @@
                   "(request) Request id=%s replied to with result=%s: %s"
                   id result-body)))))
          (catch-tag (cl-gensym (format "eglot--tag-%d-" id))))
-    (eglot--process-send process
-                         `(:jsonrpc  "2.0"
-                                     :id  ,id
-                                     :method  ,method
-                                     :params  ,params))
+    (eglot--process-send id
+                         process
+                         (eglot--obj :jsonrpc "2.0"
+                                     :id id
+                                     :method method
+                                     :params params))
     (catch catch-tag
       (let ((timeout-timer
              (run-with-timer 5 nil
@@ -343,7 +377,9 @@
                            error-fn
                          (lambda (&rest args)
                            (throw catch-tag (apply error-fn args))))
-                       timeout-timer)
+                       timeout-timer
+                       (cl-loop for var in eglot--environment-vars
+                                collect (cons var (symbol-value var))))
                  (eglot--pending-continuations process))
         (unless async-p
           (unwind-protect
@@ -362,6 +398,15 @@
                "(request) Last-change cancelling timer for continuation %s" id)
               (cancel-timer timeout-timer))))))))
 
+(cl-defun eglot--notify (process method params)
+  "Notify PROCESS of something, don't expect a reply.e"
+  (eglot--process-send nil
+                       process
+                       (eglot--obj :jsonrpc  "2.0"
+                                   :id nil
+                                   :method method
+                                   :params params)))
+
 
 ;;; Requests
 ;;;
@@ -373,8 +418,7 @@ INTERACTIVE is t if caller was called interactively."
    process
    :initialize
    `(:processId  ,(emacs-pid)
-                 :rootPath  ,(concat "" ;; FIXME RLS doesn't like "file://"
-                                     ;; "file://"
+                 :rootPath  ,(concat "file://"
                                      (expand-file-name (car (project-roots
                                                              (project-current)))))
                  :initializationOptions  []
@@ -423,45 +467,54 @@ running.  INTERACTIVE is t if called interactively."
 
 ;;; Notifications
 ;;;
-(defvar-local eglot--diagnostic-overlays nil)
+(defvar eglot--current-flymake-report-fn nil)
 
 (cl-defun eglot--textDocument/publishDiagnostics
     (_process &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (let* ((obj (url-generic-parse-url uri))
 	 (filename (car (url-path-and-query obj)))
-         (buffer (find-buffer-visiting filename)))
+         (buffer (find-buffer-visiting filename))
+         (report-fn (cdr (assoc 'eglot--current-flymake-report-fn
+                                eglot--environment))))
     (cond
+     ((not eglot--current-flymake-report-fn)
+      (eglot--warn "publishDiagnostics called but no report-fn"))
+     ((and report-fn
+           (not (eq report-fn
+                    eglot--current-flymake-report-fn)))
+      (eglot--warn "outdated publishDiagnostics report from server"))
      (buffer
       (with-current-buffer buffer
         (eglot--message "OK so add some %s diags" (length diagnostics))
-        (mapc #'delete-overlay eglot--diagnostic-overlays)
-        (setq eglot--diagnostic-overlays nil)
-        (cl-flet ((pos-at (pos-plist)
-                          (save-excursion
-                            (goto-char (point-min))
-                            (forward-line (plist-get pos-plist :line))
-                            (forward-char (plist-get pos-plist :character))
-                            (point))))
-          (cl-loop for diag across diagnostics
-                   do (cl-destructuring-bind (&key range severity
-                                                   _code _source message)
-                          diag
-                        (cl-destructuring-bind (&key start end)
-                            range
-                          (let* ((begin-pos (pos-at start))
-                                 (end-pos (pos-at end))
-                                 (ov (make-overlay begin-pos
-                                                   end-pos
-                                                   buffer)))
-                            (push ov eglot--diagnostic-overlays)
-                            (overlay-put ov 'face
-                                         (cl-case severity
-                                           (1 'flymake-errline)
-                                           (2 'flymake-warnline)))
-                            (overlay-put ov 'help-echo
-                                         message)
-                            (overlay-put ov 'eglot--diagnostic diag))))))))
+        (cl-flet ((pos-at
+                   (pos-plist)
+                   (car (flymake-diag-region
+                         (current-buffer)
+                         (plist-get pos-plist :line)
+                         (plist-get pos-plist :character)))))
+          (cl-loop for diag-spec across diagnostics
+                   collect (cl-destructuring-bind (&key range severity
+                                                        _code _source message)
+                               diag-spec
+                             (cl-destructuring-bind (&key start end)
+                                 range
+                               (let* ((begin-pos (pos-at start))
+                                      (end-pos (pos-at end)))
+                                 (flymake-make-diagnostic
+                                  (current-buffer)
+                                  begin-pos end-pos
+                                  (cond ((<= severity 1)
+                                         :error)
+                                        ((= severity 2)
+                                         :warning)
+                                        (t
+                                         :note))
+                                  message))))
+                   into diags
+                   finally (funcall
+                            eglot--current-flymake-report-fn
+                            diags)))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
@@ -498,7 +551,19 @@ running.  INTERACTIVE is t if called interactively."
   :group 'eglot)
 
 (define-minor-mode eglot-mode
-  "Minor mode for buffers where EGLOT is possible")
+  "Minor mode for buffers where EGLOT is possible"
+  nil
+  nil
+  eglot-mode-map
+  (cond (eglot-mode
+         (add-hook 'after-change-functions 'eglot--after-change nil t)
+         (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
+         (if (eglot--current-process)
+             (eglot--signalDidOpen)
+           (eglot--warn "No process")))
+        (t
+         (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
+         (remove-hook 'after-change-functions 'eglot--after-change t))))
 
 (defvar eglot-menu)
 
@@ -574,6 +639,82 @@ running.  INTERACTIVE is t if called interactively."
 (add-to-list 'mode-line-misc-info
              `(eglot-mode
                (" [" eglot--mode-line-format "] ")))
+
+(defvar eglot--recent-changes nil
+  "List of recent changes as collected by `eglot--after-change'")
+
+(defvar-local eglot--versioned-identifier 0)
+
+(defun eglot--current-buffer-versioned-identifier ()
+  "Return a VersionedTextDocumentIdentifier."
+  ;; FIXME: later deal with workspaces
+  eglot--versioned-identifier)
+
+(defun eglot--current-buffer-VersionedTextDocumentIdentifier ()
+  (eglot--obj :uri
+              (concat "file://"
+                      (url-hexify-string
+                       (file-truename buffer-file-name)
+                       url-path-allowed-chars))
+              :version (eglot--current-buffer-versioned-identifier)))
+
+(defun eglot--current-buffer-TextDocumentItem ()
+  (append
+   (eglot--current-buffer-VersionedTextDocumentIdentifier)
+   (eglot--obj :languageId (cdr (assoc major-mode
+                                       '((rust-mode . rust)
+                                         (emacs-lisp-mode . emacs-lisp))))
+               :text
+               (save-restriction
+                 (widen)
+                 (buffer-substring-no-properties (point-min) (point-max))))))
+
+(defun eglot--after-change (start end length)
+  (cl-incf eglot--versioned-identifier)
+  (push (list start end length) eglot--recent-changes)
+  (eglot--message "start is %s, end is %s, length is %s" start end length))
+
+(defun eglot--signalDidOpen ()
+  (eglot--notify (eglot--current-process-or-lose)
+                 :textDocument/didOpen
+                 (eglot--obj :textDocument
+                             (eglot--current-buffer-TextDocumentItem))))
+
+(defun eglot--maybe-signal-didChange ()
+  (when eglot--recent-changes
+    (save-excursion
+      (save-restriction
+        (widen)
+        (let* ((start (cl-reduce #'min (mapcar #'car eglot--recent-changes)))
+               (end (cl-reduce #'max (mapcar #'cadr eglot--recent-changes))))
+          (eglot--notify
+           (eglot--current-process-or-lose)
+           :textDocument/didChange
+           (eglot--obj
+            :textDocument (eglot--current-buffer-VersionedTextDocumentIdentifier)
+            :contentChanges
+            (vector
+             (eglot--obj
+              :range (eglot--obj
+                      :start
+                      (eglot--obj :line
+                                  (line-number-at-pos start t)
+                                  :character
+                                  (- (goto-char start)
+                                     (line-beginning-position)))
+                      :end
+                      (eglot--obj :line
+                                  (line-number-at-pos end t)
+                                  :character
+                                  (- (goto-char end)
+                                     (line-beginning-position))))
+              :rangeLength (- end start)
+              :text (buffer-substring-no-properties start end))))))))
+    (setq eglot--recent-changes nil)))
+
+(defun eglot-flymake-backend (report-fn &rest _more)
+  (setq eglot--current-flymake-report-fn report-fn)
+  (eglot--maybe-signal-didChange))
 
 (provide 'eglot)
 ;;; eglot.el ends here
