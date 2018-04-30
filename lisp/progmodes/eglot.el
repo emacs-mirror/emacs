@@ -27,6 +27,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 'project)
+(require 'url-parse)
 
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
@@ -211,8 +212,10 @@
                        (goto-char message-mark)
                        (narrow-to-region message-mark
                                          message-end)
-                                              (eglot--process-receive proc (let ((json-object-type 'plist))
-                                                       (json-read)))))
+                       (eglot--process-receive
+                        proc
+                        (let ((json-object-type 'plist))
+                          (json-read)))))
                    (set-marker message-mark message-end)
                    (setf (eglot--expected-bytes proc) nil)))
                 (t
@@ -258,21 +261,21 @@
                 (not continuations))
            (eglot--warn "Ooops no continuation for id %s" response-id))
           (continuations
-           (cancel-timer (third continuations))
+           (cancel-timer (cl-third continuations))
            (remhash response-id
                     (eglot--pending-continuations))
            (cond (err
-                  (apply (second continuations) err))
+                  (apply (cl-second continuations) err))
                  (t
-                  (apply (first continuations) (plist-get message :result)))))
+                  (apply (cl-first continuations) (plist-get message :result)))))
           (t
            (let* ((method (plist-get message :method))
                   (handler-sym (intern (concat "eglot--"
-                                              method))))
+                                               method))))
              (if (functionp handler-sym)
                  (apply handler-sym proc (plist-get message :params))
                (eglot--debug "No implemetation for notification %s yet"
-                         method)))))))
+                             method)))))))
 
 (defvar eglot--expect-carriage-return nil)
 
@@ -294,9 +297,9 @@
   (clrhash (eglot--pending-continuations process)))
 
 (cl-defun eglot--request (process
-                       method
-                       params
-                       &key success-fn error-fn timeout-fn (async-p t))
+                          method
+                          params
+                          &key success-fn error-fn timeout-fn (async-p t))
   (let* ((id (eglot--next-request-id))
          (timeout-fn
           (or timeout-fn
@@ -363,6 +366,9 @@
 ;;; Requests
 ;;;
 (defun eglot--protocol-initialize (process interactive)
+  "Initialize LSP protocol.
+PROCESS is a connected process (network or local).
+INTERACTIVE is t if caller was called interactively."
   (eglot--request
    process
    :initialize
@@ -385,7 +391,7 @@
 (defun eglot-quit-server (process &optional sync interactive)
   "Politely ask the server PROCESS to quit.
 If SYNC, don't leave this function with the server still
-running."
+running.  INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-process-or-lose) t t))
   (when interactive
     (eglot--message "(eglot-quit-server) Asking %s politely to terminate"
@@ -437,47 +443,50 @@ running."
                             (forward-line (plist-get pos-plist :line))
                             (forward-char (plist-get pos-plist :character))
                             (point))))
-          (loop for diag across diagnostics
-                do (cl-destructuring-bind (&key range severity
-                                                _code _source message)
-                       diag
-                     (cl-destructuring-bind (&key start end)
-                         range
-                       (let* ((begin-pos (pos-at start))
-                              (end-pos (pos-at end))
-                              (ov (make-overlay begin-pos
-                                                end-pos
-                                                buffer)))
-                         (push ov eglot--diagnostic-overlays)
-                         (overlay-put ov 'face
-                                      (case severity
-                                        (1 'flymake-errline)
-                                        (2 'flymake-warnline)))
-                         (overlay-put ov 'help-echo
-                                      message)
-                         (overlay-put ov 'eglot--diagnostic diag))))))))
+          (cl-loop for diag across diagnostics
+                   do (cl-destructuring-bind (&key range severity
+                                                   _code _source message)
+                          diag
+                        (cl-destructuring-bind (&key start end)
+                            range
+                          (let* ((begin-pos (pos-at start))
+                                 (end-pos (pos-at end))
+                                 (ov (make-overlay begin-pos
+                                                   end-pos
+                                                   buffer)))
+                            (push ov eglot--diagnostic-overlays)
+                            (overlay-put ov 'face
+                                         (cl-case severity
+                                           (1 'flymake-errline)
+                                           (2 'flymake-warnline)))
+                            (overlay-put ov 'help-echo
+                                         message)
+                            (overlay-put ov 'eglot--diagnostic diag))))))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
 
 ;;; Helpers
 ;;;
-(defun
-    eglot--debug (format &rest args)
+(defun eglot--debug (format &rest args)
+  "Debug message FORMAT with ARGS."
   (display-warning 'eglot
-     (apply #'format format args)
-     :debug))
+                   (apply #'format format args)
+                   :debug))
 
 (defun eglot--error (format &rest args)
+  "Error out with FORMAT with ARGS."
   (error (apply #'format format args)))
 
 (defun eglot--message (format &rest args)
+  "Message out with FORMAT with ARGS."
   (message (concat "[eglot] " (apply #'format format args))))
 
 (defun eglot--warn (format &rest args)
+  "Warning message with FORMAT and ARGS."
   (display-warning 'eglot
-     (apply #'format format args)
-     :warning))
+                   (apply #'format format args)
+                   :warning))
 
 
 
@@ -504,6 +513,7 @@ running."
 (put 'eglot--mode-line-format 'risky-local-variable t)
 
 (defun eglot--mode-line-format ()
+  "Compose the mode-line format spec."
   (let* ((proc (eglot--current-process))
          (name (and proc
                     (process-live-p proc)
