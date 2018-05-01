@@ -550,6 +550,8 @@ running.  INTERACTIVE is t if called interactively."
   "Face for package-name in EGLOT's mode line."
   :group 'eglot)
 
+(defvar eglot-mode-map (make-sparse-keymap))
+
 (define-minor-mode eglot-mode
   "Minor mode for buffers where EGLOT is possible"
   nil
@@ -567,9 +569,7 @@ running.  INTERACTIVE is t if called interactively."
 
 (defvar eglot-menu)
 
-(defvar eglot-mode-map (make-sparse-keymap))
-
-(easy-menu-define eglot-menu eglot-mode-map "SLY"
+(easy-menu-define eglot-menu eglot-mode-map "EGLOT"
   `("EGLOT" ))
 
 (defvar eglot--mode-line-format
