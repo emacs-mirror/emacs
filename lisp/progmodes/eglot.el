@@ -29,6 +29,7 @@
 (require 'project)
 (require 'url-parse)
 (require 'url-util)
+(require 'pcase)
 
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
@@ -97,12 +98,27 @@
                     major-mode))
     probe))
 
+(defun eglot--connect (name filter sentinel)
+  "Helper for `eglot-new-process'.
+NAME is a name to give the inferior process or connection.
+FILTER and SENTINEL are filter and sentinel.
+Should return a list of (PROCESS BUFFER)."
+  (let ((proc (make-process :name name
+                            :buffer (get-buffer-create
+                                     (format "*%s inferior*" name))
+                            :command (eglot--command 'error)
+                            :connection-type 'pipe
+                            :filter filter
+                            :sentinel sentinel
+                            :stderr (get-buffer-create (format "*%s stderr*"
+                                                               name)))))
+    (list proc (process-buffer proc))))
+
 (defun eglot-new-process (&optional interactive)
   "Start a new EGLOT process and initialize it.
 INTERACTIVE is t if called interactively."
   (interactive (list t))
-  (let ((project (project-current))
-        (command (eglot--command 'errorp)))
+  (let ((project (project-current)))
     (unless project (eglot--error "(new-process) Cannot work without a current project!"))
     (let ((current-process (eglot--current-process)))
       (when (and current-process
@@ -114,30 +130,24 @@ INTERACTIVE is t if called interactively."
                          (car (project-roots (project-current))))))
            (good-name
             (format "EGLOT server (%s)" short-name)))
-      (with-current-buffer (get-buffer-create
-                            (format "*%s inferior*" good-name))
-        (let* ((proc
-                (make-process :name good-name
-                              :buffer (current-buffer)
-                              :command command
-                              :connection-type 'pipe
-                              :filter 'eglot--process-filter
-                              :sentinel 'eglot--process-sentinel
-                              :stderr (get-buffer-create (format "*%s stderr*"
-                                                                 good-name))))
-               (inhibit-read-only t))
-          (setf (eglot--short-name proc) short-name)
-          (puthash (project-current) proc eglot--processes-by-project)
-          (erase-buffer)
-          (let ((marker (point-marker)))
-            (set-marker-insertion-type marker nil)
-            (setf (eglot--message-mark proc) marker))
-          (read-only-mode t)
-          (with-current-buffer (eglot-events-buffer proc)
-            (let ((inhibit-read-only t))
-              (insert
-               (format "\n-----------------------------------\n"))))
-          (eglot--protocol-initialize proc interactive))))))
+      (pcase-let ((`(,proc ,buffer)
+                   (eglot--connect good-name
+                                   'eglot--process-filter
+                                   'eglot--process-sentinel)))
+        (with-current-buffer buffer
+          (let ((inhibit-read-only t))
+            (setf (eglot--short-name proc) short-name)
+            (puthash (project-current) proc eglot--processes-by-project)
+            (erase-buffer)
+            (let ((marker (point-marker)))
+              (set-marker-insertion-type marker nil)
+              (setf (eglot--message-mark proc) marker))
+            (read-only-mode t)
+            (with-current-buffer (eglot-events-buffer proc)
+              (let ((inhibit-read-only t))
+                (insert
+                 (format "\n-----------------------------------\n"))))
+            (eglot--protocol-initialize proc interactive)))))))
 
 (defun eglot--process-sentinel (process change)
   (with-current-buffer (process-buffer process)
