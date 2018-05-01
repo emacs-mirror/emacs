@@ -92,6 +92,10 @@
   "\"Spinner\" used by some servers.
 A list (ID WHAT DONE-P).")
 
+(eglot--define-process-var eglot--status `(:unknown nil)
+  "Status as declared by the server.
+A list (WHAT SERIOUS-P).")
+
 (defun eglot--command (&optional errorp)
   (let ((probe (cdr (assoc major-mode eglot-executables))))
     (unless (or (not errorp)
@@ -265,15 +269,22 @@ INTERACTIVE is t if called interactively."
       (display-buffer buffer))
     buffer))
 
-(defun eglot--log-event (proc type message id error)
+(defun eglot--log-event (proc type message &optional id error)
+  "Log an eglot-related event.
+PROC is the current process.  TYPE is an identifier.  MESSAGE is
+a JSON-like plist or anything else.  ID is a continuation
+identifier.  ERROR is non-nil if this is an error."
   (with-current-buffer (eglot-events-buffer proc)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
-      (insert (format "%s%s%s:\n%s\n"
-                      type
-                      (if id (format " (id:%s)" id) "")
-                      (if error " ERROR" "")
-                      (pp-to-string message))))))
+      (let ((msg (format "%s%s%s:\n%s\n"
+                         type
+                         (if id (format " (id:%s)" id) "")
+                         (if error " ERROR" "")
+                         (pp-to-string message))))
+        (when error
+          (setq msg (propertize msg 'face 'error)))
+        (insert msg)))))
 
 (defvar eglot--environment-vars
   '(eglot--current-flymake-report-fn)
@@ -445,6 +456,7 @@ INTERACTIVE is t if caller was called interactively."
                 (lambda (&key capabilities)
                   (setf (eglot--capabilities process) capabilities)
                   (when interactive
+                    (setf (eglot--status process) nil)
                     (eglot--message
                      "So yeah I got lots (%d) of capabilities"
                      (length capabilities)))))))
@@ -535,6 +547,16 @@ running.  INTERACTIVE is t if called interactively."
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
+(cl-defun eglot--window/showMessage
+    (process &key type message)
+  "Handle notification window/showMessage"
+  (when (<= 1 type)
+    (setf (eglot--status process) '("error" t))
+    (eglot--log-event process
+                      (propertize "server-error" 'face 'error)
+                      message))
+  (eglot--message "Server reports (type=%s): %s" type message))
+
 
 ;;; Helpers
 ;;;
@@ -603,8 +625,12 @@ running.  INTERACTIVE is t if called interactively."
                (pending (and proc
                              (hash-table-count
                               (eglot--pending-continuations proc))))
-               (`(,_id ,what ,done-p) (and proc
-                                           (eglot--spinner))))
+               (`(,_id ,doing ,done-p)
+                (and proc
+                     (eglot--spinner proc)))
+               (`(,status ,serious-p)
+                (and proc
+                     (eglot--status proc))))
     (append
      `((:propertize "eglot"
                     face eglot-mode-line
@@ -629,10 +655,21 @@ running.  INTERACTIVE is t if called interactively."
           help-echo ,(concat "mouse-1: go to events buffer\n"
                              "mouse-2: quit server\n"
                              "mouse-3: new process"))
-         ,@(when (and what (not done-p))
+         ,@(when serious-p
              `("/"
                (:propertize
-                ,what
+                ,status
+                help-echo ,(concat "mouse-1: go to events buffer")
+                mouse-face mode-line-highlight
+                face compilation-mode-line-fail
+                keymap ,(let ((map (make-sparse-keymap)))
+                          (define-key map [mode-line mouse-1]
+                            'eglot-events-buffer)
+                          map))))
+         ,@(when (and doing (not done-p))
+             `("/"
+               (:propertize
+                ,doing
                 help-echo ,(concat "mouse-1: go to events buffer")
                 mouse-face mode-line-highlight
                 face compilation-mode-line-run
