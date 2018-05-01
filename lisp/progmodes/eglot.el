@@ -69,9 +69,6 @@
          `(let ((proc (or ,process (eglot--current-process-or-lose))))
             (process-put proc ',prop ,to-store))))))
 
-(eglot--define-process-var eglot--message-mark nil
-  "Point where next unread message starts")
-
 (eglot--define-process-var eglot--short-name nil
   "A short name for the process")
 
@@ -139,9 +136,6 @@ INTERACTIVE is t if called interactively."
             (setf (eglot--short-name proc) short-name)
             (puthash (project-current) proc eglot--processes-by-project)
             (erase-buffer)
-            (let ((marker (point-marker)))
-              (set-marker-insertion-type marker nil)
-              (setf (eglot--message-mark proc) marker))
             (read-only-mode t)
             (with-current-buffer (eglot-events-buffer proc)
               (let ((inhibit-read-only t))
@@ -170,71 +164,75 @@ INTERACTIVE is t if called interactively."
       (delete-process process))))
 
 (defun eglot--process-filter (proc string)
+  "Called when new data STRING has arrived for PROC."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      (let ((moving (= (point) (process-mark proc)))
-            (inhibit-read-only t)
+      (let ((inhibit-read-only t)
             (pre-insertion-mark (copy-marker (process-mark proc)))
-            (expected-bytes (eglot--expected-bytes proc))
-            (message-mark (eglot--message-mark proc)))
-        (save-excursion
-          ;; Insert the text, advancing the process marker.
-          (goto-char (process-mark proc))
-          (insert string)
-          (set-marker (process-mark proc) (point)))
-        (if moving (goto-char (process-mark proc)))
+            (expected-bytes (eglot--expected-bytes proc)))
+        ;; Insert the text, advancing the process marker.
+        (goto-char (process-mark proc))
+        (insert string)
+        (set-marker (process-mark proc) (point))
 
-        ;; check for new message header
+        ;; goto point just before insertion
         ;;
-        (save-excursion
-          (goto-char pre-insertion-mark)
-          (let* ((match (search-forward-regexp
-                         "\\(?:.*: .*\r\n\\)*Content-Length: \\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
-                         (+ (point) 100)
-                         t))
-                 (new-expected-bytes (and match
-                                          (string-to-number (match-string 1)))))
-            (when new-expected-bytes
-              (when expected-bytes
-                (eglot--warn
-                 (concat "Unexpectedly starting new message but %s bytes "
-                         "reportedly remaining from previous one")
-                 expected-bytes))
-              (set-marker message-mark (point))
-              (setf (eglot--expected-bytes proc) new-expected-bytes)
-              (setq expected-bytes new-expected-bytes))))
+        (goto-char pre-insertion-mark)
 
-        ;; check for message body
+        ;; loop for each message (more than one might have arrived)
         ;;
-        (let ((available-bytes (- (position-bytes (process-mark proc))
-                                  (position-bytes message-mark))))
-          (cond ((not expected-bytes)
-                 (eglot--warn
-                  "Skipping %s bytes of unexpected garbage from process %s"
-                  available-bytes
-                  proc)
-                 (set-marker message-mark (process-mark proc)))
-                ((>= available-bytes
-                     expected-bytes)
-                 (let* ((message-end (byte-to-position
-                                      (+ (position-bytes message-mark)
-                                         expected-bytes))))
-                   (unwind-protect
-                       (save-excursion
-                         (save-restriction
-                           (goto-char message-mark)
-                           (narrow-to-region message-mark
-                                             message-end)
-                           (eglot--process-receive
-                            proc
-                            (let ((json-object-type 'plist))
-                              (json-read)))))
-                     (set-marker message-mark message-end)
-                     (setf (eglot--expected-bytes proc) nil))))
-                (t
-                 ;; just adding some stuff to the end that doesn't yet
-                 ;; complete the message
-                 )))))))
+        (catch 'done
+          (while t
+            (let* ((match (search-forward-regexp
+                           "\\(?:.*: .*\r\n\\)*Content-Length: \\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
+                           (+ (point) 100)
+                           t))
+                   (new-expected-bytes (and match
+                                            (string-to-number (match-string 1)))))
+              (when new-expected-bytes
+                (when expected-bytes
+                  (eglot--warn
+                   (concat "Unexpectedly starting new message but %s bytes "
+                           "reportedly remaining from previous one")
+                   expected-bytes))
+                (setf (eglot--expected-bytes proc) new-expected-bytes)
+                (setq expected-bytes new-expected-bytes)))
+
+            ;; check for message body
+            ;;
+            (let ((available-bytes (- (position-bytes (process-mark proc))
+                                      (position-bytes (point)))))
+              (cond ((not expected-bytes) ; previous search didn't match
+                     (eglot--warn
+                      "Skipping %s bytes of unexpected garbage from process %s"
+                      available-bytes
+                      proc)
+                     (goto-char (process-mark proc))
+                     (throw 'done :skipping-garbage))
+                    ((>= available-bytes
+                         expected-bytes)
+                     (let* ((message-end (byte-to-position
+                                          (+ (position-bytes (point))
+                                             expected-bytes))))
+                       (unwind-protect
+                           (save-restriction
+                             (narrow-to-region (point)
+                                               message-end)
+                             (let* ((json-object-type 'plist)
+                                    (json-message (json-read)))
+                               ;; process in another buffer, shielding
+                               ;; buffer from tamper
+                               (with-temp-buffer
+                                 (eglot--process-receive proc json-message))))
+                         (goto-char message-end)
+                         (setf (eglot--expected-bytes proc) nil
+                               expected-bytes nil)))
+                     (when (= (point) (process-mark proc))
+                       (throw 'done :clean-done)))
+                    (t
+                     ;; just adding some stuff to the end that doesn't yet
+                     ;; complete the message
+                     (throw 'done :waiting-for-more-bytes))))))))))
 
 (defmacro eglot--obj (&rest what)
   "Make WHAT a suitable argument for `json-encode'."
