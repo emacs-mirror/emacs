@@ -30,6 +30,7 @@
 (require 'url-parse)
 (require 'url-util)
 (require 'pcase)
+(require 'compile) ; for some faces
 
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
@@ -86,6 +87,10 @@
 
 (eglot--define-process-var eglot--moribund nil
   "Non-nil if process is about to exit")
+
+(eglot--define-process-var eglot--spinner `(nil nil t)
+  "\"Spinner\" used by some servers.
+A list (ID WHAT DONE-P).")
 
 (defun eglot--command (&optional errorp)
   (let ((probe (cdr (assoc major-mode eglot-executables))))
@@ -591,17 +596,15 @@ running.  INTERACTIVE is t if called interactively."
 
 (defun eglot--mode-line-format ()
   "Compose the mode-line format spec."
-  (let* ((proc (eglot--current-process))
-         (name (and proc
-                    (process-live-p proc)
-                    (eglot--short-name proc)))
-         (pending (and proc
-                       (hash-table-count
-                        (eglot--pending-continuations proc))))
-         (format-number (lambda (n) (cond ((and n (not (zerop n)))
-                                           (format "%d" n))
-                                          (n "-")
-                                          (t "*")))))
+  (pcase-let* ((proc (eglot--current-process))
+               (name (and proc
+                          (process-live-p proc)
+                          (eglot--short-name proc)))
+               (pending (and proc
+                             (hash-table-count
+                              (eglot--pending-continuations proc))))
+               (`(,_id ,what ,done-p) (and proc
+                                           (eglot--spinner))))
     (append
      `((:propertize "eglot"
                     face eglot-mode-line
@@ -612,41 +615,51 @@ running.  INTERACTIVE is t if called interactively."
                     mouse-face mode-line-highlight
                     help-echo "mouse-1: pop-up EGLOT menu"
                     ))
-     (if name
-         `(" "
-           (:propertize
-            ,name
-            face eglot-mode-line
-            keymap ,(let ((map (make-sparse-keymap)))
-                      (define-key map [mode-line mouse-1] 'eglot-events-buffer)
-                      (define-key map [mode-line mouse-2] 'eglot-quit-server)
-                      (define-key map [mode-line mouse-3] 'eglot-new-process)
-                      map)
-            mouse-face mode-line-highlight
-            help-echo ,(concat "mouse-1: events buffer\n"
-                               "mouse-2: quit server\n"
-                               "mouse-3: new process"))
-           "/"
-           (:propertize
-            ,(funcall format-number pending)
-            help-echo ,(if name
-                           (format
-                            "%s pending events outgoing\n%s"
+     (when name
+       `(":"
+         (:propertize
+          ,name
+          face eglot-mode-line
+          keymap ,(let ((map (make-sparse-keymap)))
+                    (define-key map [mode-line mouse-1] 'eglot-events-buffer)
+                    (define-key map [mode-line mouse-2] 'eglot-quit-server)
+                    (define-key map [mode-line mouse-3] 'eglot-new-process)
+                    map)
+          mouse-face mode-line-highlight
+          help-echo ,(concat "mouse-1: go to events buffer\n"
+                             "mouse-2: quit server\n"
+                             "mouse-3: new process"))
+         ,@(when (and what (not done-p))
+             `("/"
+               (:propertize
+                ,what
+                help-echo ,(concat "mouse-1: go to events buffer")
+                mouse-face mode-line-highlight
+                face compilation-mode-line-run
+                keymap ,(let ((map (make-sparse-keymap)))
+                          (define-key map [mode-line mouse-1]
+                            'eglot-events-buffer)
+                          map))))
+         ,@(when (cl-plusp pending)
+             `("/"
+               (:propertize
+                (format "%d" pending)
+                help-echo ,(format
+                            "%s unanswered requests\n%s"
                             pending
                             (concat "mouse-1: go to events buffer"
                                     "mouse-3: forget pending continuations"))
-                         "No current connection")
-            mouse-face mode-line-highlight
-            face ,(cond ((and pending (cl-plusp pending))
-                         'warning)
-                        (t
-                         'eglot-mode-line))
-            keymap ,(let ((map (make-sparse-keymap)))
-                      (define-key map [mode-line mouse-1]
-                        'eglot-events-buffer)
-                      (define-key map [mode-line mouse-3]
-                        'eglot-forget-pending-continuations)
-                      map)))))))
+                mouse-face mode-line-highlight
+                face ,(cond ((and pending (cl-plusp pending))
+                             'warning)
+                            (t
+                             'eglot-mode-line))
+                keymap ,(let ((map (make-sparse-keymap)))
+                          (define-key map [mode-line mouse-1]
+                            'eglot-events-buffer)
+                          (define-key map [mode-line mouse-3]
+                            'eglot-forget-pending-continuations)
+                          map)))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot-mode
@@ -727,6 +740,14 @@ running.  INTERACTIVE is t if called interactively."
 (defun eglot-flymake-backend (report-fn &rest _more)
   (setq eglot--current-flymake-report-fn report-fn)
   (eglot--maybe-signal-didChange))
+
+
+;;; Rust-specific
+;;;
+(cl-defun eglot--window/progress
+    (process &key id done title )
+  "Handle notification window/progress"
+  (setf (eglot--spinner process) (list id title done)))
 
 (provide 'eglot)
 ;;; eglot.el ends here
