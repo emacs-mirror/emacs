@@ -36,12 +36,12 @@
   :group 'applications)
 
 (defvar eglot-executables '((rust-mode . ("rls")))
-  "Alist mapping major modes to server executables")
+  "Alist mapping major modes to server executables.")
 
 (defvar eglot--processes-by-project (make-hash-table :test #'equal))
 
 (defun eglot--current-process ()
-  "The current logical EGLOT process"
+  "The current logical EGLOT process."
   (let ((cur (project-current)))
     (and cur
          (gethash cur eglot--processes-by-project))))
@@ -98,7 +98,8 @@
     probe))
 
 (defun eglot-new-process (&optional interactive)
-  "Starts a new EGLOT process and initializes it"
+  "Start a new EGLOT process and initialize it.
+INTERACTIVE is t if called interactively."
   (interactive (list t))
   (let ((project (project-current))
         (command (eglot--command 'errorp)))
@@ -226,12 +227,14 @@
                  )))))))
 
 (defmacro eglot--obj (&rest what)
-  "Make an object suitable for `json-encode'"
+  "Make WHAT a suitable argument for `json-encode'."
   ;; FIXME: maybe later actually do something, for now this just fixes
   ;; the indenting of literal plists.
   `(list ,@what))
 
 (defun eglot-events-buffer (process &optional interactive)
+  "Display events buffer for current LSP connection PROCESS.
+INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-process-or-lose) t))
   (let* ((probe (eglot--events-buffer process))
          (buffer (or (and (buffer-live-p probe)
@@ -264,7 +267,7 @@
   "A list of variables with saved values on every request.")
 
 (defvar eglot--environment nil
-  "Dynamically bound alist of symbol and values")
+  "Dynamically bound alist of symbol and values.")
 
 (defun eglot--process-receive (proc message)
   "Process MESSAGE from PROC."
@@ -325,6 +328,7 @@
   (setq eglot--next-request-id (1+ eglot--next-request-id)))
 
 (defun eglot-forget-pending-continuations (process)
+  "Stop waiting for responses from the current LSP PROCESS."
   (interactive (eglot--current-process-or-lose))
   (clrhash (eglot--pending-continuations process)))
 
@@ -641,7 +645,7 @@ running.  INTERACTIVE is t if called interactively."
                (" [" eglot--mode-line-format "] ")))
 
 (defvar eglot--recent-changes nil
-  "List of recent changes as collected by `eglot--after-change'")
+  "List of recent changes as collected by `eglot--after-change'.")
 
 (defvar-local eglot--versioned-identifier 0)
 
