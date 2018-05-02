@@ -573,7 +573,6 @@ running.  INTERACTIVE is t if called interactively."
       (eglot--warn "outdated publishDiagnostics report from server"))
      (buffer
       (with-current-buffer buffer
-        (eglot--message "OK so add some %s diags" (length diagnostics))
         (cl-flet ((pos-at
                    (pos-plist)
                    (car (flymake-diag-region
@@ -662,6 +661,7 @@ running.  INTERACTIVE is t if called interactively."
     (eglot-mode 1)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
+    (flymake-mode 1)
     (if (eglot--current-process)
         (eglot--signalDidOpen)
       (if (y-or-n-p "No process, try to start one with `eglot-new-process'? ")
@@ -857,7 +857,10 @@ running.  INTERACTIVE is t if called interactively."
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
 Calls REPORT-FN maybe if server publishes diagnostics in time."
-  ;; FIXME: perhaps should call it immediately?
+  ;; call immediately with no diagnostics, this just means we don't
+  ;; have them yet (and also clears any pending ones).
+  ;;
+  (funcall report-fn nil)
   (setq eglot--current-flymake-report-fn report-fn)
   (eglot--maybe-signal-didChange))
 
