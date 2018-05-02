@@ -162,7 +162,8 @@ Call SUCCESS-FN with no args if all goes well."
   "Reconnect to PROCESS.
 INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-process-or-lose) t))
-  (eglot-quit-server process 'sync interactive)
+  (when (process-live-p process)
+    (eglot-quit-server process 'sync interactive))
   (eglot--connect (eglot--short-name process)
                   (eglot--bootstrap-fn process)
                   (lambda ()
@@ -174,7 +175,12 @@ INTERACTIVE is t if called interactively."
   (interactive (list t))
   (let ((project (project-current)))
     (unless project (eglot--error "(new-process) Cannot work without a current project!"))
-    (let ((current-process (eglot--current-process)))
+    (let ((current-process (eglot--current-process))
+          (command (let ((probe (cdr (assoc major-mode eglot-executables))))
+                     (unless probe
+                       (eglot--error "Don't know how to start EGLOT for %s buffers"
+                                     major-mode))
+                     probe)))
       (cond ((and current-process
                   (process-live-p current-process))
              (eglot--message "(new-process) Reconnecting instead")
@@ -187,11 +193,7 @@ INTERACTIVE is t if called interactively."
               (lambda (name)
                 (eglot-make-local-process
                  name
-                 (let ((probe (cdr (assoc major-mode eglot-executables))))
-                   (unless probe
-                     (eglot--error "Don't know how to start EGLOT for %s buffers"
-                                   major-mode))
-                   probe)))
+                 command))
               (lambda ()
                 (eglot--message "Connected")
                 (dolist (buffer (buffer-list))
@@ -221,8 +223,10 @@ INTERACTIVE is t if called interactively."
            (eglot--message "(sentinel) Moribund process exited with status %s"
                            (process-exit-status process)))
           (t
-           (eglot--warn "(sentinel) Process unexpectedly changed to %s"
-                        change)))
+           (eglot--warn
+            "(sentinel) Reconnecting after process unexpectedly changed to %s."
+            change)
+           (eglot-reconnect process)))
     (delete-process process)))
 
 (defun eglot--process-filter (proc string)
@@ -633,6 +637,7 @@ running.  INTERACTIVE is t if called interactively."
 
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
+  (apply #'eglot--message (concat "(warning) " format) args)
   (let ((warning-minimum-level :error))
     (display-warning 'eglot
                      (apply #'format format args)
