@@ -459,20 +459,23 @@ INTERACTIVE is t if caller was called interactively."
   (eglot--request
    process
    :initialize
-   `(:processId  ,(emacs-pid)
-                 :rootPath  ,(concat 
-                              (expand-file-name (car (project-roots
-                                                      (project-current)))))
-                 :initializationOptions  []
-                 :capabilities (:workspace (:executeCommand (:dynamicRegistration t))
-                                           :textDocument (:synchronization (:didSave t))))
+   (eglot--obj :processId  (emacs-pid)
+               :rootPath  (concat
+                           (expand-file-name (car (project-roots
+                                                   (project-current)))))
+               :initializationOptions  []
+               :capabilities
+               (eglot--obj
+                :workspace (eglot--obj)
+                :textDocument (eglot--obj
+                               :publishDiagnostics `(:relatedInformation t))))
    :success-fn (cl-function
                 (lambda (&key capabilities)
                   (setf (eglot--capabilities process) capabilities)
                   (when interactive
                     (setf (eglot--status process) nil)
                     (eglot--message
-                     "So yeah I got lots (%d) of capabilities"
+                     "Server reports %d capabilities"
                      (length capabilities)))))))
 
 (defun eglot-quit-server (process &optional sync interactive)
