@@ -54,6 +54,7 @@
              (gethash cur eglot--processes-by-project)))))
 
 (defun eglot--current-process-or-lose ()
+  "Return the current EGLOT process or error."
   (or (eglot--current-process)
       (eglot--error "No current EGLOT process%s"
                     (if (project-current) ""
@@ -109,29 +110,62 @@ A list (ID WHAT DONE-P)." t)
   "Status as declared by the server.
 A list (WHAT SERIOUS-P)." t)
 
-(defun eglot--command (&optional errorp)
-  (let ((probe (cdr (assoc major-mode eglot-executables))))
-    (unless (or (not errorp)
-                probe)
-      (eglot--error "Don't know how to start EGLOT for %s buffers"
-                    major-mode))
-    probe))
+(eglot--define-process-var eglot--bootstrap-fn nil
+  "Function for returning processes/connetions to LSP servers.
+Must be a function of one arg, a name, returning a process
+object.")
 
-(defun eglot--connect (name filter sentinel)
-  "Helper for `eglot-new-process'.
+(defun eglot-make-local-process (name command)
+  "Make a local LSP process from COMMAND.
 NAME is a name to give the inferior process or connection.
-FILTER and SENTINEL are filter and sentinel.
-Should return a list of (PROCESS BUFFER)."
-  (let ((proc (make-process :name name
-                            :buffer (get-buffer-create
-                                     (format "*%s inferior*" name))
-                            :command (eglot--command 'error)
-                            :connection-type 'pipe
-                            :filter filter
-                            :sentinel sentinel
-                            :stderr (get-buffer-create (format "*%s stderr*"
-                                                               name)))))
-    (list proc (process-buffer proc))))
+Returns a process object."
+  (let* ((readable-name (format "EGLOT server (%s)" name))
+         (proc
+          (make-process
+           :name readable-name
+           :buffer (get-buffer-create
+                    (format "*%s inferior*" readable-name))
+           :command command
+           :connection-type 'pipe
+           :filter 'eglot--process-filter
+           :sentinel 'eglot--process-sentinel
+           :stderr (get-buffer-create (format "*%s stderr*"
+                                              name)))))
+    proc))
+
+(defun eglot--connect (short-name bootstrap-fn &optional success-fn)
+  "Make a connection with SHORT-NAME and BOOTSTRAP-FN.
+Call SUCCESS-FN with no args if all goes well."
+  (let* ((proc (funcall bootstrap-fn short-name))
+         (buffer (process-buffer proc)))
+    (setf (eglot--bootstrap-fn proc) bootstrap-fn)
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (setf (eglot--short-name proc) short-name)
+        (puthash (project-current) proc eglot--processes-by-project)
+        (erase-buffer)
+        (read-only-mode t)
+        (with-current-buffer (eglot-events-buffer proc)
+          (let ((inhibit-read-only t))
+            (insert
+             (format "\n-----------------------------------\n"))))
+        (eglot--protocol-initialize
+         proc
+         (cl-function
+          (lambda (&key capabilities)
+            (setf (eglot--capabilities proc) capabilities)
+            (setf (eglot--status proc) nil)
+            (when success-fn (funcall success-fn)))))))))
+
+(defun eglot-reconnect (process &optional interactive)
+  "Reconnect to PROCESS.
+INTERACTIVE is t if called interactively."
+  (interactive (list (eglot--current-process-or-lose) t))
+  (eglot-quit-server process 'sync interactive)
+  (eglot--connect (eglot--short-name process)
+                  (eglot--bootstrap-fn process)
+                  (lambda ()
+                    (eglot--message "Reconnected"))))
 
 (defun eglot-new-process (&optional interactive)
   "Start a new EGLOT process and initialize it.
@@ -140,32 +174,28 @@ INTERACTIVE is t if called interactively."
   (let ((project (project-current)))
     (unless project (eglot--error "(new-process) Cannot work without a current project!"))
     (let ((current-process (eglot--current-process)))
-      (when (and current-process
-                 (process-live-p current-process))
-        (eglot--message "(new-process) Asking current process to terminate first")
-        (eglot-quit-server current-process 'sync interactive)))
-    (let* ((short-name (file-name-base
-                        (directory-file-name
-                         (car (project-roots (project-current))))))
-           (good-name
-            (format "EGLOT server (%s)" short-name)))
-      (pcase-let ((`(,proc ,buffer)
-                   (eglot--connect good-name
-                                   'eglot--process-filter
-                                   'eglot--process-sentinel)))
-        (with-current-buffer buffer
-          (let ((inhibit-read-only t))
-            (setf (eglot--short-name proc) short-name)
-            (puthash (project-current) proc eglot--processes-by-project)
-            (erase-buffer)
-            (read-only-mode t)
-            (with-current-buffer (eglot-events-buffer proc)
-              (let ((inhibit-read-only t))
-                (insert
-                 (format "\n-----------------------------------\n"))))
-            (eglot--protocol-initialize proc interactive)))))))
+      (cond ((and current-process
+                  (process-live-p current-process))
+             (eglot--message "(new-process) Reconnecting instead")
+             (eglot-reconnect current-process interactive))
+            (t
+             (eglot--connect
+              (file-name-base
+               (directory-file-name
+                (car (project-roots (project-current)))))
+              (lambda (name)
+                (eglot-make-local-process
+                 name
+                 (let ((probe (cdr (assoc major-mode eglot-executables))))
+                   (unless probe
+                     (eglot--error "Don't know how to start EGLOT for %s buffers"
+                                   major-mode))
+                   probe)))
+              (lambda ()
+                (eglot--message "Connected"))))))))
 
 (defun eglot--process-sentinel (process change)
+  "Called with PROCESS undergoes CHANGE."
   (eglot--debug "(sentinel) Process state changed to %s" change)
   (when (not (process-live-p process))
     ;; Remember to cancel all timers
@@ -459,10 +489,10 @@ identifier.  ERROR is non-nil if this is an error."
 
 ;;; Requests
 ;;;
-(defun eglot--protocol-initialize (process interactive)
+(defun eglot--protocol-initialize (process success-fn)
   "Initialize LSP protocol.
-PROCESS is a connected process (network or local).
-INTERACTIVE is t if caller was called interactively."
+PROCESS is a connected process (network or local).  SUCCESS-FN is
+called with capabilites after connection."
   (eglot--request
    process
    :initialize
@@ -476,14 +506,7 @@ INTERACTIVE is t if caller was called interactively."
                 :workspace (eglot--obj)
                 :textDocument (eglot--obj
                                :publishDiagnostics `(:relatedInformation t))))
-   :success-fn (cl-function
-                (lambda (&key capabilities)
-                  (setf (eglot--capabilities process) capabilities)
-                  (when interactive
-                    (setf (eglot--status process) nil)
-                    (eglot--message
-                     "Server reports %d capabilities"
-                     (length capabilities)))))))
+   :success-fn success-fn))
 
 (defun eglot-quit-server (process &optional sync interactive)
   "Politely ask the server PROCESS to quit.
@@ -687,12 +710,12 @@ running.  INTERACTIVE is t if called interactively."
           keymap ,(let ((map (make-sparse-keymap)))
                     (define-key map [mode-line mouse-1] 'eglot-events-buffer)
                     (define-key map [mode-line mouse-2] 'eglot-quit-server)
-                    (define-key map [mode-line mouse-3] 'eglot-new-process)
+                    (define-key map [mode-line mouse-3] 'eglot-reconnect)
                     map)
           mouse-face mode-line-highlight
           help-echo ,(concat "mouse-1: go to events buffer\n"
                              "mouse-2: quit server\n"
-                             "mouse-3: new process"))
+                             "mouse-3: reconnect to server"))
          ,@(when serious-p
              `("/"
                (:propertize
