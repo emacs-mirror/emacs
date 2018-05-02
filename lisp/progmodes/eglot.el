@@ -193,7 +193,17 @@ INTERACTIVE is t if called interactively."
                                    major-mode))
                    probe)))
               (lambda ()
-                (eglot--message "Connected"))))))))
+                (eglot--message "Connected")
+                (dolist (buffer (buffer-list))
+                  (with-current-buffer buffer
+                    (if (and buffer-file-name
+                             (cl-some
+                              (lambda (root)
+                                (string-prefix-p
+                                 (expand-file-name root)
+                                 (expand-file-name buffer-file-name)))
+                              (project-roots project)))
+                        (eglot--signalDidOpen)))))))))))
 
 (defun eglot--process-sentinel (process change)
   "Called with PROCESS undergoes CHANGE."
@@ -647,16 +657,19 @@ running.  INTERACTIVE is t if called interactively."
   nil
   nil
   eglot-mode-map
-  (cond (eglot-editing-mode
-         (eglot-mode 1)
-         (add-hook 'after-change-functions 'eglot--after-change nil t)
-         (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
-         (if (eglot--current-process)
-             (eglot--signalDidOpen)
-           (eglot--warn "No process")))
-        (t
-         (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
-         (remove-hook 'after-change-functions 'eglot--after-change t))))
+  (cond
+   (eglot-editing-mode
+    (eglot-mode 1)
+    (add-hook 'after-change-functions 'eglot--after-change nil t)
+    (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
+    (if (eglot--current-process)
+        (eglot--signalDidOpen)
+      (if (y-or-n-p "No process, try to start one with `eglot-new-process'? ")
+          (eglot-new-process t)
+        (eglot--warn "No process"))))
+   (t
+    (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
+    (remove-hook 'after-change-functions 'eglot--after-change t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
