@@ -55,7 +55,12 @@
                     (if (project-current) ""
                       " (Also no current project)"))))
 
-(defmacro eglot--define-process-var (var-sym initval &optional doc)
+(defmacro eglot--define-process-var
+    (var-sym initval &optional doc mode-line-update-p)
+  "Define VAR-SYM as a generalized process-local variable.
+INITVAL is the default value.  DOC is the documentation.
+MODE-LINE-UPDATE-P says to also force a mode line update
+after setting it."
   (declare (indent 2))
   `(progn
      (put ',var-sym 'function-documentation ,doc)
@@ -67,12 +72,15 @@
                (process-put proc ',var-sym def)
                def))))
      (gv-define-setter ,var-sym (to-store &optional process)
-       (let ((prop ',var-sym))
-         `(let ((proc (or ,process (eglot--current-process-or-lose))))
-            (process-put proc ',prop ,to-store))))))
+       (let* ((prop ',var-sym))
+         ,(let ((form '(let ((proc (or ,process (eglot--current-process-or-lose))))
+                         (process-put proc ',prop ,to-store))))
+            (if mode-line-update-p
+                `(backquote (prog1 ,form (force-mode-line-update t)))
+              `(backquote ,form)))))))
 
 (eglot--define-process-var eglot--short-name nil
-  "A short name for the process")
+  "A short name for the process" t)
 
 (eglot--define-process-var eglot--expected-bytes nil
   "How many bytes declared by server")
@@ -91,11 +99,11 @@
 
 (eglot--define-process-var eglot--spinner `(nil nil t)
   "\"Spinner\" used by some servers.
-A list (ID WHAT DONE-P).")
+A list (ID WHAT DONE-P)." t)
 
 (eglot--define-process-var eglot--status `(:unknown nil)
   "Status as declared by the server.
-A list (WHAT SERIOUS-P).")
+A list (WHAT SERIOUS-P)." t)
 
 (defun eglot--command (&optional errorp)
   (let ((probe (cdr (assoc major-mode eglot-executables))))
