@@ -361,8 +361,13 @@ identifier.  ERROR is non-nil if this is an error."
 
 (defun eglot-forget-pending-continuations (process)
   "Stop waiting for responses from the current LSP PROCESS."
-  (interactive (eglot--current-process-or-lose))
+  (interactive (list (eglot--current-process-or-lose)))
   (clrhash (eglot--pending-continuations process)))
+
+(defun eglot-clear-status (process)
+  "Clear most recent error message from PROCESS."
+  (interactive (list (eglot--current-process-or-lose)))
+  (setf (eglot--status process) nil))
 
 (cl-defun eglot--request (process
                           method
@@ -668,12 +673,15 @@ running.  INTERACTIVE is t if called interactively."
              `("/"
                (:propertize
                 ,status
-                help-echo ,(concat "mouse-1: go to events buffer")
+                help-echo ,(concat "mouse-1: go to events buffer\n"
+                                   "mouse-3: clear this status")
                 mouse-face mode-line-highlight
                 face compilation-mode-line-fail
                 keymap ,(let ((map (make-sparse-keymap)))
                           (define-key map [mode-line mouse-1]
                             'eglot-events-buffer)
+                          (define-key map [mode-line mouse-3]
+                            'eglot-clear-status)
                           map))))
          ,@(when (and doing (not done-p))
              `("/"
