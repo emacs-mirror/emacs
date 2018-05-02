@@ -43,11 +43,15 @@
 
 (defvar eglot--processes-by-project (make-hash-table :test #'equal))
 
+(defvar eglot--special-buffer-process nil
+  "Current buffer's eglot process.")
+
 (defun eglot--current-process ()
   "The current logical EGLOT process."
-  (let ((cur (project-current)))
-    (and cur
-         (gethash cur eglot--processes-by-project))))
+  (or eglot--special-buffer-process
+      (let ((cur (project-current)))
+        (and cur
+             (gethash cur eglot--processes-by-project)))))
 
 (defun eglot--current-process-or-lose ()
   (or (eglot--current-process)
@@ -270,8 +274,9 @@ INTERACTIVE is t if called interactively."
                        (with-current-buffer buffer
                          (buffer-disable-undo)
                          (read-only-mode t)
-                         (setf (eglot--events-buffer process)
-                               buffer))
+                         (setf (eglot--events-buffer process) buffer
+                               eglot--special-buffer-process process)
+                         (eglot-mode))
                        buffer))))
     (when interactive
       (display-buffer buffer))
@@ -610,12 +615,15 @@ running.  INTERACTIVE is t if called interactively."
 
 (defvar eglot-mode-map (make-sparse-keymap))
 
-(define-minor-mode eglot-mode
-  "Minor mode for buffers where EGLOT is possible"
+(defvar eglot-editing-mode-map (make-sparse-keymap))
+
+(define-minor-mode eglot-editing-mode
+  "Minor mode for source buffers where EGLOT helps you edit."
   nil
   nil
   eglot-mode-map
-  (cond (eglot-mode
+  (cond (eglot-editing-mode
+         (eglot-mode 1)
          (add-hook 'after-change-functions 'eglot--after-change nil t)
          (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
          (if (eglot--current-process)
@@ -624,6 +632,17 @@ running.  INTERACTIVE is t if called interactively."
         (t
          (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
          (remove-hook 'after-change-functions 'eglot--after-change t))))
+
+(define-minor-mode eglot-mode
+  "Minor mode for all buffers managed by EGLOT in some way."  nil
+  nil eglot-mode-map
+  (cond (eglot-mode
+         (when (and buffer-file-name
+                    (not eglot-editing-mode))
+           (eglot-editing-mode 1)))
+        (t
+         (when eglot-editing-mode
+           (eglot-editing-mode -1)))))
 
 (defvar eglot-menu)
 
