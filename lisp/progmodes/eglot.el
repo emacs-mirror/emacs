@@ -153,24 +153,23 @@ INTERACTIVE is t if called interactively."
             (eglot--protocol-initialize proc interactive)))))))
 
 (defun eglot--process-sentinel (process change)
-  (with-current-buffer (process-buffer process)
-    (eglot--debug "(sentinel) Process state changed to %s" change)
-    (when (not (process-live-p process))
-      ;; Remember to cancel all timers
-      ;;
-      (maphash (lambda (id quad)
-                 (cl-destructuring-bind (_success _error timeout _env) quad
-                   (eglot--message
-                    "(sentinel) Cancelling timer for continuation %s" id)
-                   (cancel-timer timeout)))
-               (eglot--pending-continuations process))
-      (cond ((eglot--moribund process)
-             (eglot--message "(sentinel) Moribund process exited with status %s"
-                             (process-exit-status process)))
-            (t
-             (eglot--warn "(sentinel) Process unexpectedly changed to %s"
-                          change)))
-      (delete-process process))))
+  (eglot--debug "(sentinel) Process state changed to %s" change)
+  (when (not (process-live-p process))
+    ;; Remember to cancel all timers
+    ;;
+    (maphash (lambda (id quad)
+               (cl-destructuring-bind (_success _error timeout _env) quad
+                 (eglot--message
+                  "(sentinel) Cancelling timer for continuation %s" id)
+                 (cancel-timer timeout)))
+             (eglot--pending-continuations process))
+    (cond ((eglot--moribund process)
+           (eglot--message "(sentinel) Moribund process exited with status %s"
+                           (process-exit-status process)))
+          (t
+           (eglot--warn "(sentinel) Process unexpectedly changed to %s"
+                        change)))
+    (delete-process process)))
 
 (defun eglot--process-filter (proc string)
   "Called when new data STRING has arrived for PROC."
@@ -371,7 +370,8 @@ identifier.  ERROR is non-nil if this is an error."
          (error-fn
           (or error-fn
               (cl-function
-               (lambda (&key code message)
+               (lambda (&key data code message &allow-other-keys)
+                 (setf (eglot--status process) '("error" t))
                  (eglot--warn
                   "(request) Request id=%s errored with code=%s: %s"
                   id code message)))))
@@ -446,9 +446,9 @@ INTERACTIVE is t if caller was called interactively."
    process
    :initialize
    `(:processId  ,(emacs-pid)
-                 :rootPath  ,(concat "file://"
-                                     (expand-file-name (car (project-roots
-                                                             (project-current)))))
+                 :rootPath  ,(concat 
+                              (expand-file-name (car (project-roots
+                                                      (project-current)))))
                  :initializationOptions  []
                  :capabilities (:workspace (:executeCommand (:dynamicRegistration t))
                                            :textDocument (:synchronization (:didSave t))))
