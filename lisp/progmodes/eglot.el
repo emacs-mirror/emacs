@@ -37,7 +37,8 @@
   :prefix "eglot-"
   :group 'applications)
 
-(defvar eglot-executables '((rust-mode . ("rls")))
+(defvar eglot-executables '((rust-mode . ("rls"))
+                            (python-mode . ("pyls")))
   "Alist mapping major modes to server executables.")
 
 (defvar eglot--processes-by-project (make-hash-table :test #'equal))
