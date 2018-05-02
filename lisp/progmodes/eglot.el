@@ -317,6 +317,8 @@ identifier.  ERROR is non-nil if this is an error."
                       message
                       response-id
                       err)
+    (when err
+      (setf (eglot--status proc) '("error" t)))
     (cond ((and response-id
                 (not continuations))
            (eglot--warn "Ooops no continuation for id %s" response-id))
@@ -384,7 +386,7 @@ identifier.  ERROR is non-nil if this is an error."
          (error-fn
           (or error-fn
               (cl-function
-               (lambda (&key data code message &allow-other-keys)
+               (lambda (&key code message &allow-other-keys)
                  (setf (eglot--status process) '("error" t))
                  (eglot--warn
                   "(request) Request id=%s errored with code=%s: %s"
