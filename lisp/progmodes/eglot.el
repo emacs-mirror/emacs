@@ -31,6 +31,7 @@
 (require 'url-util)
 (require 'pcase)
 (require 'compile) ; for some faces
+(require 'warnings)
 
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
@@ -623,9 +624,10 @@ running.  INTERACTIVE is t if called interactively."
 
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
-  (display-warning 'eglot
-                   (apply #'format format args)
-                   :warning))
+  (let ((warning-minimum-level :error))
+    (display-warning 'eglot
+                     (apply #'format format args)
+                     :warning)))
 
 
 
