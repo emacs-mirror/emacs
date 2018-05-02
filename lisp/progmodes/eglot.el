@@ -775,7 +775,8 @@ running.  INTERACTIVE is t if called interactively."
 (defun eglot--after-change (start end length)
   (cl-incf eglot--versioned-identifier)
   (push (list start end length) eglot--recent-changes)
-  (eglot--message "start is %s, end is %s, length is %s" start end length))
+  ;; (eglot--message "start is %s, end is %s, length is %s" start end length)
+  )
 
 (defun eglot--signalDidOpen ()
   (eglot--notify (eglot--current-process-or-lose)
@@ -816,6 +817,9 @@ running.  INTERACTIVE is t if called interactively."
     (setq eglot--recent-changes nil)))
 
 (defun eglot-flymake-backend (report-fn &rest _more)
+  "An EGLOT Flymake backend.
+Calls REPORT-FN maybe if server publishes diagnostics in time."
+  ;; FIXME: perhaps should call it immediately?
   (setq eglot--current-flymake-report-fn report-fn)
   (eglot--maybe-signal-didChange))
 
