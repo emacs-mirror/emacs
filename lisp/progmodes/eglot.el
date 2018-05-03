@@ -208,9 +208,9 @@ INTERACTIVE is t if called interactively."
      (eglot--message "Reconnected!"))))
 
 (defvar eglot--command-history nil
-  "History of COMMAND arguments to `eglot-new-process'.")
+  "History of COMMAND arguments to `eglot'.")
 
-(defun eglot-new-process (managed-major-mode command &optional interactive)
+(defun eglot (managed-major-mode command &optional interactive)
   ;; FIXME: Later make this function also connect to TCP servers by
   ;; overloading semantics on COMMAND.
   "Start a Language Server Protocol server.
@@ -252,7 +252,7 @@ INTERACTIVE is t if called interactively."
   (let* ((project (project-current))
          (short-name (eglot--project-short-name project)))
     (unless project (eglot--error
-                     "(new-process) Cannot work without a current project!"))
+                     "Cannot work without a current project!"))
     (let ((current-process (eglot--current-process))
           (command
            (or command
@@ -742,7 +742,7 @@ that case, also signal textDocument/didOpen."
     (flymake-mode 1)
     (if (eglot--current-process)
         (eglot--signalDidOpen)
-      (eglot--warn "No process, start one with `M-x eglot-new-process'")))
+      (eglot--warn "No process, start one with `M-x eglot'")))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
