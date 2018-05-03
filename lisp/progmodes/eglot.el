@@ -48,7 +48,7 @@
 (defvar eglot-editing-mode) ; forward decl
 (defvar eglot-mode) ; forward decl
 
-(defvar eglot--special-buffer-process nil
+(defvar-local eglot--special-buffer-process nil
   "Current buffer's eglot process.")
 
 (defun eglot--current-process ()
@@ -78,13 +78,14 @@ after setting it."
   (declare (indent 2))
   `(progn
      (put ',var-sym 'function-documentation ,doc)
-     (defun ,var-sym (&optional process)
-       (let* ((proc (or process (eglot--current-process-or-lose)))
-              (probe (process-get proc ',var-sym)))
-         (or probe
-             (let ((def ,initval))
-               (process-put proc ',var-sym def)
-               def))))
+     (defun ,var-sym (proc)
+       (let* ((plist (process-plist proc))
+              (probe (plist-member plist ',var-sym)))
+         (if probe
+             (cadr probe)
+           (let ((def ,initval))
+             (process-put proc ',var-sym def)
+             def))))
      (gv-define-setter ,var-sym (to-store &optional process)
        (let* ((prop ',var-sym))
          ,(let ((form '(let ((proc (or ,process (eglot--current-process-or-lose))))
@@ -417,7 +418,8 @@ identifier.  ERROR is non-nil if this is an error."
   (let* ((response-id (plist-get message :id))
          (err (plist-get message :error))
          (continuations (and response-id
-                             (gethash response-id (eglot--pending-continuations)))))
+                             (gethash response-id
+                                      (eglot--pending-continuations proc)))))
     (eglot--log-event proc
                       (cond ((not response-id)
                              'server-notification)
@@ -436,7 +438,7 @@ identifier.  ERROR is non-nil if this is an error."
           (continuations
            (cancel-timer (cl-third continuations))
            (remhash response-id
-                    (eglot--pending-continuations))
+                    (eglot--pending-continuations proc))
            (cond (err
                   (apply (cl-second continuations) err))
                  (t
@@ -655,11 +657,12 @@ running.  INTERACTIVE is t if called interactively."
                                   message))))
                    into diags
                    finally
-                   (if eglot--current-flymake-report-fn
-                       (funcall eglot--current-flymake-report-fn
-                                diags)
-                     (setq eglot--unreported-diagnostics
-                           diags))))))
+                   (if (null eglot--current-flymake-report-fn)
+                       (setq eglot--unreported-diagnostics
+                             diags)
+                     (funcall eglot--current-flymake-report-fn
+                              diags)
+                     (setq eglot--unreported-diagnostics nil))))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
