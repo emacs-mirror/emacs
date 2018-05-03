@@ -390,6 +390,7 @@ identifier.  ERROR is non-nil if this is an error."
 (defvar eglot--expect-carriage-return nil)
 
 (defun eglot--process-send (id proc message)
+  "Send MESSAGE to PROC (ID is optional)."
   (let* ((json (json-encode message))
          (to-send (format "Content-Length: %d\r\n\r\n%s"
                           (string-bytes json)
@@ -403,6 +404,7 @@ identifier.  ERROR is non-nil if this is an error."
 (defvar eglot--next-request-id 0)
 
 (defun eglot--next-request-id ()
+  "Compute the next id for a client request."
   (setq eglot--next-request-id (1+ eglot--next-request-id)))
 
 (defun eglot-forget-pending-continuations (process)
@@ -789,6 +791,7 @@ running.  INTERACTIVE is t if called interactively."
   eglot--versioned-identifier)
 
 (defun eglot--current-buffer-VersionedTextDocumentIdentifier ()
+  "Compute VersionedTextDocumentIdentifier object for current buffer."
   (eglot--obj :uri
               (concat "file://"
                       (url-hexify-string
@@ -797,6 +800,7 @@ running.  INTERACTIVE is t if called interactively."
               :version (eglot--current-buffer-versioned-identifier)))
 
 (defun eglot--current-buffer-TextDocumentItem ()
+  "Compute TextDocumentItem object for current buffer."
   (append
    (eglot--current-buffer-VersionedTextDocumentIdentifier)
    (eglot--obj :languageId (cdr (assoc major-mode
@@ -808,24 +812,29 @@ running.  INTERACTIVE is t if called interactively."
                  (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun eglot--after-change (start end length)
+  "Hook onto `after-change-functions'.
+Records START, END and LENGTH locally."
   (cl-incf eglot--versioned-identifier)
   (push (list start end length) eglot--recent-changes)
   ;; (eglot--message "start is %s, end is %s, length is %s" start end length)
   )
 
 (defun eglot--signalDidOpen ()
+  "Send textDocument/didOpen to server."
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didOpen
                  (eglot--obj :textDocument
                              (eglot--current-buffer-TextDocumentItem))))
 
 (defun eglot--signalDidClose ()
+  "Send textDocument/didClose to server."
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didClose
                  (eglot--obj :textDocument
                              (eglot--current-buffer-TextDocumentItem))))
 
 (defun eglot--maybe-signal-didChange ()
+  "Send textDocument/didChange to server."
   (when eglot--recent-changes
     (save-excursion
       (save-restriction
