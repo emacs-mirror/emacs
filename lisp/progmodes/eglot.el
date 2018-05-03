@@ -637,10 +637,13 @@ running.  INTERACTIVE is t if called interactively."
       (with-current-buffer buffer
         (cl-flet ((pos-at
                    (pos-plist)
-                   (car (flymake-diag-region
-                         (current-buffer)
-                         (plist-get pos-plist :line)
-                         (plist-get pos-plist :character)))))
+                   (save-excursion
+                     (goto-char (point-min))
+                     (forward-line (plist-get pos-plist :line))
+                     (forward-char
+                      (min (plist-get pos-plist :character)
+                           (- (line-end-position)
+                              (line-beginning-position)))))))
           (cl-loop for diag-spec across diagnostics
                    collect (cl-destructuring-bind (&key range severity
                                                         _code _source message)
