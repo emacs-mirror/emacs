@@ -192,6 +192,7 @@ fi
 echo Checking for required branch
 if [ -z $REQUIRED_BRANCH ];
 then
+    :
 else
     BRANCH=$REQUIRED_BRANCH
     echo [build] Building from Branch $BRANCH
