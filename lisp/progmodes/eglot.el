@@ -44,6 +44,9 @@
 
 (defvar eglot--processes-by-project (make-hash-table :test #'equal))
 
+(defvar eglot-editing-mode) ; forward decl
+(defvar eglot-mode) ; forward decl
+
 (defvar eglot--special-buffer-process nil
   "Current buffer's eglot process.")
 
@@ -103,6 +106,9 @@ after setting it."
 (eglot--define-process-var eglot--moribund nil
   "Non-nil if process is about to exit")
 
+(eglot--define-process-var eglot--project nil
+  "The project the process belongs to.")
+
 (eglot--define-process-var eglot--spinner `(nil nil t)
   "\"Spinner\" used by some servers.
 A list (ID WHAT DONE-P)." t)
@@ -134,12 +140,13 @@ Returns a process object."
                                               name)))))
     proc))
 
-(defun eglot--connect (short-name bootstrap-fn &optional success-fn)
-  "Make a connection with SHORT-NAME and BOOTSTRAP-FN.
+(defun eglot--connect (project short-name bootstrap-fn &optional success-fn)
+  "Make a connection with PROJECT, SHORT-NAME and BOOTSTRAP-FN.
 Call SUCCESS-FN with no args if all goes well."
   (let* ((proc (funcall bootstrap-fn short-name))
          (buffer (process-buffer proc)))
-    (setf (eglot--bootstrap-fn proc) bootstrap-fn)
+    (setf (eglot--bootstrap-fn proc) bootstrap-fn
+          (eglot--project proc) project)
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (setf (eglot--short-name proc) short-name)
@@ -164,48 +171,57 @@ INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-process-or-lose) t))
   (when (process-live-p process)
     (eglot-quit-server process 'sync interactive))
-  (eglot--connect (eglot--short-name process)
-                  (eglot--bootstrap-fn process)
-                  (lambda ()
-                    (eglot--message "Reconnected"))))
+  (eglot--connect
+   (eglot--project process)
+   (eglot--short-name process)
+   (eglot--bootstrap-fn process)
+   (lambda ()
+     (eglot--message "Reconnected"))))
 
 (defun eglot-new-process (&optional interactive)
   "Start a new EGLOT process and initialize it.
 INTERACTIVE is t if called interactively."
   (interactive (list t))
   (let ((project (project-current)))
-    (unless project (eglot--error "(new-process) Cannot work without a current project!"))
+    (unless project (eglot--error
+                     "(new-process) Cannot work without a current project!"))
     (let ((current-process (eglot--current-process))
           (command (let ((probe (cdr (assoc major-mode eglot-executables))))
                      (unless probe
                        (eglot--error "Don't know how to start EGLOT for %s buffers"
                                      major-mode))
                      probe)))
-      (cond ((and current-process
-                  (process-live-p current-process))
-             (eglot--message "(new-process) Reconnecting instead")
-             (eglot-reconnect current-process interactive))
-            (t
-             (eglot--connect
-              (file-name-base
-               (directory-file-name
-                (car (project-roots (project-current)))))
-              (lambda (name)
-                (eglot-make-local-process
-                 name
-                 command))
-              (lambda ()
-                (eglot--message "Connected")
-                (dolist (buffer (buffer-list))
-                  (with-current-buffer buffer
-                    (if (and buffer-file-name
-                             (cl-some
-                              (lambda (root)
-                                (string-prefix-p
-                                 (expand-file-name root)
-                                 (expand-file-name buffer-file-name)))
-                              (project-roots project)))
-                        (eglot--signalDidOpen)))))))))))
+      (cond
+       ((and current-process
+             (process-live-p current-process))
+        (when (and
+               interactive
+               (y-or-n-p "[eglot] Live process found, reconnect instead? "))
+          (eglot-reconnect current-process interactive)))
+       (t
+        (eglot--connect
+         project
+         (file-name-base
+          (directory-file-name
+           (car (project-roots (project-current)))))
+         (lambda (name)
+           (eglot-make-local-process
+            name
+            command))
+         (lambda ()
+           (eglot--message "Connected")
+           (dolist (buffer (buffer-list))
+             (with-current-buffer buffer
+               (when(and buffer-file-name
+                         (cl-some
+                          (lambda (root)
+                            (string-prefix-p
+                             (expand-file-name root)
+                             (expand-file-name buffer-file-name)))
+                          (project-roots project)))
+                 (unless eglot-editing-mode
+                   (eglot-editing-mode 1))
+                 (eglot--signalDidOpen)))))))))))
 
 (defun eglot--process-sentinel (process change)
   "Called with PROCESS undergoes CHANGE."
@@ -221,7 +237,8 @@ INTERACTIVE is t if called interactively."
              (eglot--pending-continuations process))
     (cond ((eglot--moribund process)
            (eglot--message "(sentinel) Moribund process exited with status %s"
-                           (process-exit-status process)))
+                           (process-exit-status process))
+           (remhash (eglot--project process) eglot--processes-by-project))
           (t
            (eglot--warn
             "(sentinel) Reconnecting after process unexpectedly changed to %s."
