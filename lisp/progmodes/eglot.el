@@ -198,13 +198,26 @@ SUCCESS-FN with no args if all goes well."
           (let ((inhibit-read-only t))
             (insert
              (format "\n-----------------------------------\n"))))
-        (eglot--protocol-initialize
+        (eglot--request
          proc
+         :initialize
+         (eglot--obj :processId  (emacs-pid)
+                     :rootPath  (concat
+                                 (expand-file-name (car (project-roots
+                                                         (project-current)))))
+                     :initializationOptions  []
+                     :capabilities
+                     (eglot--obj
+                      :workspace (eglot--obj)
+                      :textDocument (eglot--obj
+                                     :publishDiagnostics `(:relatedInformation t))))
+         :success-fn
          (cl-function
           (lambda (&key capabilities)
             (setf (eglot--capabilities proc) capabilities)
             (setf (eglot--status proc) nil)
-            (when success-fn (funcall success-fn proc)))))))))
+            (when success-fn (funcall success-fn proc))
+            (eglot--notify proc :initialized nil))))))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
@@ -347,7 +360,8 @@ INTERACTIVE is t if called interactively."
                    ;;
                    (setq expected-bytes
                          (and (search-forward-regexp
-                               "\\(?:.*: .*\r\n\\)*Content-Length: *\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
+                               "\\(?:.*: .*\r\n\\)*Content-Length: \
+*\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
                                (+ (point) 100)
                                t)
                               (string-to-number (match-string 1))))
@@ -454,11 +468,15 @@ identifier.  ERROR is non-nil if this is an error."
                  (t
                   (apply (cl-first continuations) (plist-get message :result)))))
           (t
+           ;; a server notification or a server request
            (let* ((method (plist-get message :method))
                   (handler-sym (intern (concat "eglot--server-"
                                                method))))
              (if (functionp handler-sym)
-                 (apply handler-sym proc (plist-get message :params))
+                 (apply handler-sym proc (append
+                                          (plist-get message :params)
+                                          (let ((id (plist-get message :id)))
+                                            (if id `(:id ,id)))))
                (eglot--warn "No implemetation for notification %s yet"
                             method)))))))
 
@@ -587,6 +605,10 @@ identifier.  ERROR is non-nil if this is an error."
   "Message out with FORMAT with ARGS."
   (message (concat "[eglot] " (apply #'format format args))))
 
+(defun eglot--log (format &rest args)
+  "Log out with FORMAT with ARGS."
+  (message (concat "[eglot-log] " (apply #'format format args))))
+
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
   (apply #'eglot--message (concat "(warning) " format) args)
@@ -614,15 +636,22 @@ identifier.  ERROR is non-nil if this is an error."
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
+    (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
+    (add-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen nil t)
+    (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
+    (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
     (flymake-mode 1)
-    (if (eglot--current-process)
-        (eglot--signal-textDocument/didOpen)
+    (unless (eglot--current-process)
       (eglot--warn "No process, start one with `M-x eglot'")))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
-    (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t))))
+    (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t)
+    (remove-hook 'before-revert-hook 'eglot--signal-textDocument/didClose t)
+    (remove-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen t)
+    (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
+    (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -755,25 +784,6 @@ that case, also signal textDocument/didOpen."
 
 ;;; Protocol implementation (Requests, notifications, etc)
 ;;;
-(defun eglot--protocol-initialize (process success-fn)
-  "Initialize LSP protocol.
-PROCESS is a connected process (network or local).  SUCCESS-FN is
-called with capabilites after connection."
-  (eglot--request
-   process
-   :initialize
-   (eglot--obj :processId  (emacs-pid)
-               :rootPath  (concat
-                           (expand-file-name (car (project-roots
-                                                   (project-current)))))
-               :initializationOptions  []
-               :capabilities
-               (eglot--obj
-                :workspace (eglot--obj)
-                :textDocument (eglot--obj
-                               :publishDiagnostics `(:relatedInformation t))))
-   :success-fn success-fn))
-
 (defun eglot-shutdown (process &optional sync interactive)
   "Politely ask the server PROCESS to quit.
 Forcefully quit it if it doesn't respond.
@@ -808,14 +818,47 @@ running.  INTERACTIVE is t if called interactively."
      :timeout-fn brutal)))
 
 (cl-defun eglot--server-window/showMessage
-    (process &key type message)
+    (_process &key type message)
   "Handle notification window/showMessage"
-  (when (<= 1 type)
-    (setf (eglot--status process) '("error" t))
-    (eglot--log-event process
-                      (propertize "server-error" 'face 'error)
-                      message))
-  (eglot--message "Server reports (type=%s): %s" type message))
+  (eglot--message (propertize "Server reports (type=%s): %s"
+                              'face (if (<= type 1) 'error))
+                  type message))
+
+(cl-defun eglot--server-window/showMessageRequest
+    (process &key id type message actions)
+  "Handle server request window/showMessageRequest"
+  (let (reply)
+    (unwind-protect
+        (setq reply
+              (completing-read
+               (concat
+                (format (propertize "[eglot] Server reports (type=%s): %s"
+                                    'face (if (<= type 1) 'error))
+                        type message)
+                "\nChoose an option: ")
+               (mapcar (lambda (obj) (plist-get obj :title)) actions)
+               nil
+               t
+               (plist-get (elt actions 0) :title)))
+      (eglot--process-send
+       id
+       process
+       (if reply
+           (eglot--obj :result (eglot--obj :title reply))
+         ;; request cancelled
+         (eglot--obj :error -32800))))))
+
+(cl-defun eglot--server-window/logMessage
+    (_process &key type message)
+  "Handle notification window/logMessage"
+  (eglot--log (propertize "Server reports (type=%s): %s"
+                          'face (if (<= type 1) 'error))
+              type message))
+
+(cl-defun eglot--server-telemetry/event
+    (_process &rest any)
+  "Handle notification telemetry/event"
+  (eglot--log "Server telemetry: %s" any))
 
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
@@ -970,8 +1013,12 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (setq eglot--recent-before-changes nil
         eglot--recent-after-changes nil))
 
+(defvar-local eglot--buffer-open-count 0)
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
+  (cl-incf eglot--buffer-open-count)
+  (when (> eglot--buffer-open-count 1)
+    (error "Too many textDocument/didOpen notifs for %s" (current-buffer)))
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didOpen
                  (eglot--obj :textDocument
@@ -979,10 +1026,32 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
+  (cl-decf eglot--buffer-open-count)
+  (when (< eglot--buffer-open-count 0)
+    (error "Too many textDocument/didClose notifs for %s" (current-buffer)))
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didClose
                  (eglot--obj :textDocument
                              (eglot--current-buffer-TextDocumentItem))))
+
+(defun eglot--signal-textDocument/willSave ()
+  "Send textDocument/willSave to server."
+  (eglot--notify
+   (eglot--current-process-or-lose)
+   :textDocument/willSave
+   (eglot--obj
+    :reason 1 ; Manual, emacs laughs in the face of auto-save muahahahaha
+    :textDocument (eglot--current-buffer-TextDocumentItem))))
+
+(defun eglot--signal-textDocument/didSave ()
+  "Send textDocument/didSave to server."
+  (eglot--notify
+   (eglot--current-process-or-lose)
+   :textDocument/didSave
+   (eglot--obj
+    ;; TODO: Handle TextDocumentSaveRegistrationOptions to control this.
+    :text (buffer-substring-no-properties (point-min) (point-max))
+    :textDocument (eglot--current-buffer-TextDocumentItem))))
 
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
