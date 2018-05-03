@@ -671,6 +671,7 @@ running.  INTERACTIVE is t if called interactively."
     (eglot-mode 1)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
+    (add-hook 'kill-buffer-hook 'eglot--signalDidClose nil t)
     (flymake-mode 1)
     (if (eglot--current-process)
         (eglot--signalDidOpen)
@@ -679,7 +680,8 @@ running.  INTERACTIVE is t if called interactively."
         (eglot--warn "No process"))))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
-    (remove-hook 'after-change-functions 'eglot--after-change t))))
+    (remove-hook 'after-change-functions 'eglot--after-change t)
+    (remove-hook 'kill-buffer-hook 'eglot--signalDidClose t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -829,6 +831,12 @@ running.  INTERACTIVE is t if called interactively."
 (defun eglot--signalDidOpen ()
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didOpen
+                 (eglot--obj :textDocument
+                             (eglot--current-buffer-TextDocumentItem))))
+
+(defun eglot--signalDidClose ()
+  (eglot--notify (eglot--current-process-or-lose)
+                 :textDocument/didClose
                  (eglot--obj :textDocument
                              (eglot--current-buffer-TextDocumentItem))))
 
