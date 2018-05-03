@@ -32,6 +32,7 @@
 (require 'pcase)
 (require 'compile) ; for some faces
 (require 'warnings)
+(require 'flymake)
 
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
@@ -657,12 +658,11 @@ running.  INTERACTIVE is t if called interactively."
                                   message))))
                    into diags
                    finally
-                   (if (null eglot--current-flymake-report-fn)
-                       (setq eglot--unreported-diagnostics
-                             diags)
-                     (funcall eglot--current-flymake-report-fn
-                              diags)
-                     (setq eglot--unreported-diagnostics nil))))))
+                   (if eglot--current-flymake-report-fn
+                       (funcall eglot--current-flymake-report-fn
+                                diags)
+                     (setq eglot--unreported-diagnostics
+                           diags))))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
@@ -724,7 +724,8 @@ that case, also signal textDocument/didOpen."
                 (and proc (eq proc cur)))
         (unless eglot-editing-mode
           (eglot-editing-mode 1))
-        (eglot--signalDidOpen)))))
+        (eglot--signalDidOpen)
+        (flymake-start)))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
@@ -947,10 +948,11 @@ Records START, END and LENGTH locally."
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
 Calls REPORT-FN maybe if server publishes diagnostics in time."
-  ;; Call immediately with anything unreported (this will clear any
-  ;; pending diags)
-  (funcall report-fn eglot--unreported-diagnostics)
-  (setq eglot--unreported-diagnostics nil)
+  ;; Maybe call immediately if anything unreported (this will clear
+  ;; any pending diags)
+  (when eglot--unreported-diagnostics
+    (funcall report-fn eglot--unreported-diagnostics)
+    (setq eglot--unreported-diagnostics nil))
   ;; Setup so maybe it's called later, too.
   (setq eglot--current-flymake-report-fn report-fn)
   ;; Take this opportunity to signal a didChange that might eventually
