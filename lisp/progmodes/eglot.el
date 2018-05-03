@@ -190,7 +190,7 @@ SUCCESS-FN with no args if all goes well."
           (lambda (&key capabilities)
             (setf (eglot--capabilities proc) capabilities)
             (setf (eglot--status proc) nil)
-            (when success-fn (funcall success-fn)))))))))
+            (when success-fn (funcall success-fn proc)))))))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
@@ -203,8 +203,8 @@ INTERACTIVE is t if called interactively."
    (eglot--major-mode process)
    (eglot--short-name process)
    (eglot--bootstrap-fn process)
-   (lambda ()
-     (eglot--message "Reconnected"))))
+   (lambda (_proc)
+     (eglot--message "Reconnected!"))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot-new-process'.")
@@ -273,21 +273,15 @@ INTERACTIVE is t if called interactively."
            (eglot-make-local-process
             name
             command))
-         (lambda ()
-           (eglot--message "Connected. Managing `%s' buffers in project %s."
-                           managed-major-mode short-name)
+         (lambda (proc)
+           (eglot--message "Connected! Process `%s' now managing `%s'\
+buffers in project %s."
+                           proc
+                           managed-major-mode
+                           short-name)
            (dolist (buffer (buffer-list))
              (with-current-buffer buffer
-               (when(and buffer-file-name
-                         (cl-some
-                          (lambda (root)
-                            (string-prefix-p
-                             (expand-file-name root)
-                             (expand-file-name buffer-file-name)))
-                          (project-roots project)))
-                 (unless eglot-editing-mode
-                   (eglot-editing-mode 1))
-                 (eglot--signalDidOpen)))))))))))
+               (eglot--maybe-activate-editing-mode proc))))))))))
 
 (defun eglot--process-sentinel (process change)
   "Called with PROCESS undergoes CHANGE."
@@ -706,7 +700,7 @@ running.  INTERACTIVE is t if called interactively."
 
 
 
-;;; Mode line
+;;; Minor modes and mode-line
 ;;;
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
@@ -716,6 +710,20 @@ running.  INTERACTIVE is t if called interactively."
 (defvar eglot-mode-map (make-sparse-keymap))
 
 (defvar eglot-editing-mode-map (make-sparse-keymap))
+
+(defun eglot--maybe-activate-editing-mode (&optional proc)
+  "Maybe activate mode function `eglot-editing-mode'.
+If PROC is supplied, do it only if BUFFER is managed by it.  In
+that case, also signal textDocument/didOpen."
+  (when buffer-file-name
+    (let ((cur (eglot--current-process)))
+      (when (or (and (null proc) cur)
+                (and proc (eq proc cur)))
+        (unless eglot-editing-mode
+          (eglot-editing-mode 1))
+        (eglot--signalDidOpen)))))
+
+(add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
 (define-minor-mode eglot-editing-mode
   "Minor mode for source buffers where EGLOT helps you edit."
