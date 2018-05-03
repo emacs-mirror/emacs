@@ -42,7 +42,8 @@
                             (python-mode . ("pyls")))
   "Alist mapping major modes to server executables.")
 
-(defvar eglot--processes-by-project (make-hash-table :test #'equal))
+(defvar eglot--processes-by-project (make-hash-table :test #'equal)
+  "Keys are projects.  Values are lists of processes.")
 
 (defvar eglot-editing-mode) ; forward decl
 (defvar eglot-mode) ; forward decl
@@ -53,9 +54,13 @@
 (defun eglot--current-process ()
   "The current logical EGLOT process."
   (or eglot--special-buffer-process
-      (let ((cur (project-current)))
-        (and cur
-             (gethash cur eglot--processes-by-project)))))
+      (let* ((cur (project-current))
+             (processes
+              (and cur
+                   (gethash cur eglot--processes-by-project))))
+        (cl-find major-mode
+                 processes
+                 :key #'eglot--major-mode))))
 
 (defun eglot--current-process-or-lose ()
   "Return the current EGLOT process or error."
@@ -91,6 +96,9 @@ after setting it."
 (eglot--define-process-var eglot--short-name nil
   "A short name for the process" t)
 
+(eglot--define-process-var eglot--major-mode nil
+  "The major-mode this server is managing.")
+
 (eglot--define-process-var eglot--expected-bytes nil
   "How many bytes declared by server")
 
@@ -104,10 +112,10 @@ after setting it."
   "Holds list of capabilities that server reported")
 
 (eglot--define-process-var eglot--moribund nil
-  "Non-nil if process is about to exit")
+  "Non-nil if server is about to exit")
 
 (eglot--define-process-var eglot--project nil
-  "The project the process belongs to.")
+  "The project the server belongs to.")
 
 (eglot--define-process-var eglot--spinner `(nil nil t)
   "\"Spinner\" used by some servers.
@@ -121,6 +129,20 @@ A list (WHAT SERIOUS-P)." t)
   "Function for returning processes/connetions to LSP servers.
 Must be a function of one arg, a name, returning a process
 object.")
+
+(defun eglot--project-short-name (project)
+  "Give PROJECT a short name."
+  (file-name-base
+   (directory-file-name
+    (car (project-roots project)))))
+
+(defun eglot--all-major-modes ()
+  "Return all know major modes."
+  (let ((retval))
+    (mapatoms (lambda (sym)
+                (when (plist-member (symbol-plist sym) 'derived-mode-parent)
+                  (push sym retval))))
+    retval))
 
 (defun eglot-make-local-process (name command)
   "Make a local LSP process from COMMAND.
@@ -140,17 +162,22 @@ Returns a process object."
                                               name)))))
     proc))
 
-(defun eglot--connect (project short-name bootstrap-fn &optional success-fn)
-  "Make a connection with PROJECT, SHORT-NAME and BOOTSTRAP-FN.
-Call SUCCESS-FN with no args if all goes well."
+(defun eglot--connect (project managed-major-mode
+                               short-name bootstrap-fn &optional success-fn)
+  "Make a connection for PROJECT, SHORT-NAME and MANAGED-MAJOR-MODE.
+Use BOOTSTRAP-FN to make the actual process object.  Call
+SUCCESS-FN with no args if all goes well."
   (let* ((proc (funcall bootstrap-fn short-name))
          (buffer (process-buffer proc)))
     (setf (eglot--bootstrap-fn proc) bootstrap-fn
-          (eglot--project proc) project)
+          (eglot--project proc) project
+          (eglot--major-mode proc) managed-major-mode)
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (setf (eglot--short-name proc) short-name)
-        (puthash (project-current) proc eglot--processes-by-project)
+        (push proc
+              (gethash (project-current)
+                       eglot--processes-by-project))
         (erase-buffer)
         (read-only-mode t)
         (with-current-buffer (eglot-events-buffer proc)
@@ -173,24 +200,63 @@ INTERACTIVE is t if called interactively."
     (eglot-quit-server process 'sync interactive))
   (eglot--connect
    (eglot--project process)
+   (eglot--major-mode process)
    (eglot--short-name process)
    (eglot--bootstrap-fn process)
    (lambda ()
      (eglot--message "Reconnected"))))
 
-(defun eglot-new-process (&optional interactive)
-  "Start a new EGLOT process and initialize it.
+(defvar eglot--command-history nil
+  "History of COMMAND arguments to `eglot-new-process'.")
+
+(defun eglot-new-process (managed-major-mode command &optional interactive)
+  ;; FIXME: Later make this function also connect to TCP servers by
+  ;; overloading semantics on COMMAND.
+  "Start a Language Server Protocol server.
+Server is started with COMMAND and manages buffers of
+MANAGED-MAJOR-MODE for the current project.
+
+COMMAND is a list of strings, an executable program and
+optionally its arguments.  MANAGED-MAJOR-MODE is an Emacs major
+mode.
+
+With a prefix arg, prompt for MANAGED-MAJOR-MODE and COMMAND,
+else guess them from current context and `eglot-executables'.
+
 INTERACTIVE is t if called interactively."
-  (interactive (list t))
-  (let ((project (project-current)))
+  (interactive
+   (let* ((managed-major-mode
+           (cond
+            ((or current-prefix-arg
+                 (not buffer-file-name))
+             (intern
+              (completing-read
+               "[eglot] Start a server to manage buffers of what major mode? "
+               (mapcar #'symbol-name
+                       (eglot--all-major-modes)) nil t
+               (symbol-name major-mode) nil
+               (symbol-name major-mode) nil)))
+            (t major-mode)))
+          (guessed-command
+           (cdr (assoc managed-major-mode eglot-executables))))
+     (list
+      managed-major-mode
+      (if current-prefix-arg
+          (split-string-and-unquote
+           (read-shell-command "[eglot] Run program: "
+                               (combine-and-quote-strings guessed-command)
+                               'eglot-command-history))
+        guessed-command)
+      t)))
+  (let* ((project (project-current))
+         (short-name (eglot--project-short-name project)))
     (unless project (eglot--error
                      "(new-process) Cannot work without a current project!"))
     (let ((current-process (eglot--current-process))
-          (command (let ((probe (cdr (assoc major-mode eglot-executables))))
-                     (unless probe
-                       (eglot--error "Don't know how to start EGLOT for %s buffers"
-                                     major-mode))
-                     probe)))
+          (command
+           (or command
+               (eglot--error "Don't know how to start EGLOT for %s buffers"
+                             major-mode))))
       (cond
        ((and current-process
              (process-live-p current-process))
@@ -201,15 +267,15 @@ INTERACTIVE is t if called interactively."
        (t
         (eglot--connect
          project
-         (file-name-base
-          (directory-file-name
-           (car (project-roots (project-current)))))
+         managed-major-mode
+         short-name
          (lambda (name)
            (eglot-make-local-process
             name
             command))
          (lambda ()
-           (eglot--message "Connected")
+           (eglot--message "Connected. Managing `%s' buffers in project %s."
+                           managed-major-mode short-name)
            (dolist (buffer (buffer-list))
              (with-current-buffer buffer
                (when(and buffer-file-name
@@ -238,12 +304,15 @@ INTERACTIVE is t if called interactively."
     (cond ((eglot--moribund process)
            (eglot--message "(sentinel) Moribund process exited with status %s"
                            (process-exit-status process))
-           (remhash (eglot--project process) eglot--processes-by-project))
+           (setf (gethash (eglot--project process) eglot--processes-by-project)
+                 (delq process
+                       (gethash (eglot--project process) eglot--processes-by-project))))
           (t
            (eglot--warn
             "(sentinel) Reconnecting after process unexpectedly changed to %s."
             change)
            (eglot-reconnect process)))
+    (force-mode-line-update t)
     (delete-process process)))
 
 (defun eglot--process-filter (proc string)
@@ -662,9 +731,7 @@ running.  INTERACTIVE is t if called interactively."
     (flymake-mode 1)
     (if (eglot--current-process)
         (eglot--signalDidOpen)
-      (if (y-or-n-p "No process, try to start one with `eglot-new-process'? ")
-          (eglot-new-process t)
-        (eglot--warn "No process"))))
+      (eglot--warn "No process, start one with `M-x eglot-new-process'")))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
