@@ -455,12 +455,12 @@ identifier.  ERROR is non-nil if this is an error."
                   (apply (cl-first continuations) (plist-get message :result)))))
           (t
            (let* ((method (plist-get message :method))
-                  (handler-sym (intern (concat "eglot--"
+                  (handler-sym (intern (concat "eglot--server-"
                                                method))))
              (if (functionp handler-sym)
                  (apply handler-sym proc (plist-get message :params))
-               (eglot--debug "No implemetation for notification %s yet"
-                             method)))))))
+               (eglot--warn "No implemetation for notification %s yet"
+                            method)))))))
 
 (defvar eglot--expect-carriage-return nil)
 
@@ -612,15 +612,15 @@ identifier.  ERROR is non-nil if this is an error."
     (eglot-mode 1)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
-    (add-hook 'kill-buffer-hook 'eglot--signalDidClose nil t)
+    (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (flymake-mode 1)
     (if (eglot--current-process)
-        (eglot--signalDidOpen)
+        (eglot--signal-textDocument/didOpen)
       (eglot--warn "No process, start one with `M-x eglot'")))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
-    (remove-hook 'kill-buffer-hook 'eglot--signalDidClose t))))
+    (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -643,7 +643,7 @@ that case, also signal textDocument/didOpen."
                 (and proc (eq proc cur)))
         (unless eglot-editing-mode
           (eglot-editing-mode 1))
-        (eglot--signalDidOpen)
+        (eglot--signal-textDocument/didOpen)
         (flymake-start)))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
@@ -805,7 +805,7 @@ running.  INTERACTIVE is t if called interactively."
      :async-p (not sync)
      :timeout-fn brutal)))
 
-(cl-defun eglot--window/showMessage
+(cl-defun eglot--server-window/showMessage
     (process &key type message)
   "Handle notification window/showMessage"
   (when (<= 1 type)
@@ -821,7 +821,7 @@ running.  INTERACTIVE is t if called interactively."
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported diagnostics for this buffer.")
 
-(cl-defun eglot--textDocument/publishDiagnostics
+(cl-defun eglot--server-textDocument/publishDiagnostics
     (_process &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (let* ((obj (url-generic-parse-url uri))
@@ -873,11 +873,6 @@ running.  INTERACTIVE is t if called interactively."
 
 (defvar-local eglot--versioned-identifier 0)
 
-(defun eglot--current-buffer-versioned-identifier ()
-  "Return a VersionedTextDocumentIdentifier."
-  ;; FIXME: later deal with workspaces
-  eglot--versioned-identifier)
-
 (defun eglot--current-buffer-VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
   (eglot--obj :uri
@@ -885,7 +880,8 @@ running.  INTERACTIVE is t if called interactively."
                       (url-hexify-string
                        (file-truename buffer-file-name)
                        url-path-allowed-chars))
-              :version (eglot--current-buffer-versioned-identifier)))
+              ;; FIXME: later deal with workspaces
+              :version eglot--versioned-identifier))
 
 (defun eglot--current-buffer-TextDocumentItem ()
   "Compute TextDocumentItem object for current buffer."
@@ -907,7 +903,7 @@ Records START, END and LENGTH locally."
   ;; (eglot--message "start is %s, end is %s, length is %s" start end length)
   )
 
-(defun eglot--maybe-signal-didChange ()
+(defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
   (when eglot--recent-changes
     (save-excursion
@@ -940,14 +936,14 @@ Records START, END and LENGTH locally."
               :text (buffer-substring-no-properties start end))))))))
     (setq eglot--recent-changes nil)))
 
-(defun eglot--signalDidOpen ()
+(defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didOpen
                  (eglot--obj :textDocument
                              (eglot--current-buffer-TextDocumentItem))))
 
-(defun eglot--signalDidClose ()
+(defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didClose
@@ -966,12 +962,12 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   (setq eglot--current-flymake-report-fn report-fn)
   ;; Take this opportunity to signal a didChange that might eventually
   ;; make the server report new diagnostics.
-  (eglot--maybe-signal-didChange))
+  (eglot--signal-textDocument/didChange))
 
 
 ;;; Rust-specific
 ;;;
-(cl-defun eglot--window/progress
+(cl-defun eglot--server-window/progress
     (process &key id done title )
   "Handle notification window/progress"
   (setf (eglot--spinner process) (list id title done)))
