@@ -611,6 +611,7 @@ identifier.  ERROR is non-nil if this is an error."
    (eglot-editing-mode
     (eglot-mode 1)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
+    (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (flymake-mode 1)
@@ -620,6 +621,7 @@ identifier.  ERROR is non-nil if this is an error."
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
+    (remove-hook 'before-change-functions 'eglot--before-change t)
     (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t))))
 
 (define-minor-mode eglot-mode
@@ -868,7 +870,9 @@ running.  INTERACTIVE is t if called interactively."
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
-(defvar eglot--recent-changes nil
+(defvar eglot--recent-before-changes nil
+  "List of recent changes as collected by `eglot--before-change'.")
+(defvar eglot--recent-after-changes nil
   "List of recent changes as collected by `eglot--after-change'.")
 
 (defvar-local eglot--versioned-identifier 0)
@@ -895,46 +899,76 @@ running.  INTERACTIVE is t if called interactively."
                  (widen)
                  (buffer-substring-no-properties (point-min) (point-max))))))
 
-(defun eglot--after-change (start end length)
+(defun eglot--pos-to-lsp-position (pos)
+  "Convert point POS to LSP position."
+  (save-excursion
+    (eglot--obj :line
+                ;; F!@(#*&#$)CKING OFF-BY-ONE
+                (1- (line-number-at-pos pos t))
+                :character
+                (- (goto-char pos)
+                   (line-beginning-position)))))
+
+(defun eglot--before-change (start end)
+  "Hook onto `before-change-functions'.
+Records START and END, crucially convert them into
+LSP (line/char) positions before that information is
+lost (because the after-change thingy doesn't know if newlines
+were deleted/added)"
+  (push (list (eglot--pos-to-lsp-position start)
+              (eglot--pos-to-lsp-position end))
+        eglot--recent-before-changes))
+
+(defun eglot--after-change (start end pre-change-length)
   "Hook onto `after-change-functions'.
-Records START, END and LENGTH locally."
+Records START, END and PRE-CHANGE-LENGTH locally."
   (cl-incf eglot--versioned-identifier)
-  (push (list start end length) eglot--recent-changes)
-  ;; (eglot--message "start is %s, end is %s, length is %s" start end length)
-  )
+  (push (list start end pre-change-length) eglot--recent-after-changes))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
-  (when eglot--recent-changes
+  (when (and eglot--recent-before-changes
+             eglot--recent-after-changes)
     (save-excursion
       (save-restriction
         (widen)
-        (let* ((start (cl-reduce #'min (mapcar #'car eglot--recent-changes)))
-               (end (cl-reduce #'max (mapcar #'cadr eglot--recent-changes))))
-          (eglot--notify
-           (eglot--current-process-or-lose)
-           :textDocument/didChange
-           (eglot--obj
-            :textDocument (eglot--current-buffer-VersionedTextDocumentIdentifier)
-            :contentChanges
-            (vector
+        (if (/= (length eglot--recent-before-changes)
+                (length eglot--recent-after-changes))
+            (eglot--notify
+             (eglot--current-process-or-lose)
+             :textDocument/didChange
              (eglot--obj
-              :range (eglot--obj
-                      :start
-                      (eglot--obj :line
-                                  (line-number-at-pos start t)
-                                  :character
-                                  (- (goto-char start)
-                                     (line-beginning-position)))
-                      :end
-                      (eglot--obj :line
-                                  (line-number-at-pos end t)
-                                  :character
-                                  (- (goto-char end)
-                                     (line-beginning-position))))
-              :rangeLength (- end start)
-              :text (buffer-substring-no-properties start end))))))))
-    (setq eglot--recent-changes nil)))
+              :textDocument (eglot--current-buffer-VersionedTextDocumentIdentifier)
+              :contentChanges
+              (vector
+               (eglot--obj
+                :text (buffer-substring-no-properties (point-min) (point-max))))))
+          (let ((combined (cl-mapcar 'append
+                                     eglot--recent-before-changes
+                                     eglot--recent-after-changes)))
+            (eglot--notify
+             (eglot--current-process-or-lose)
+             :textDocument/didChange
+             (eglot--obj
+              :textDocument (eglot--current-buffer-VersionedTextDocumentIdentifier)
+              :contentChanges
+              (apply
+               #'vector
+               (mapcar (pcase-lambda (`(,before-start-position
+                                        ,before-end-position
+                                        ,after-start
+                                        ,after-end
+                                        ,len))
+                         (eglot--obj
+                          :range
+                          (eglot--obj
+                           :start before-start-position
+                           :end before-end-position)
+                          :rangeLength len
+                          :text (buffer-substring-no-properties after-start after-end)))
+                       (reverse combined))))))))))
+  (setq eglot--recent-before-changes nil
+        eglot--recent-after-changes nil))
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
