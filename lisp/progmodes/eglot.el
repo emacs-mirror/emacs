@@ -46,9 +46,6 @@
 (defvar eglot--processes-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
-(defvar eglot-editing-mode) ; forward decl
-(defvar eglot-mode) ; forward decl
-
 (defvar-local eglot--special-buffer-process nil
   "Current buffer's eglot process.")
 
@@ -643,7 +640,8 @@ running.  INTERACTIVE is t if called interactively."
                      (forward-char
                       (min (plist-get pos-plist :character)
                            (- (line-end-position)
-                              (line-beginning-position)))))))
+                              (line-beginning-position))))
+                     (point))))
           (cl-loop for diag-spec across diagnostics
                    collect (cl-destructuring-bind (&key range severity
                                                         _code _source message)
