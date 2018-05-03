@@ -34,6 +34,8 @@
 (require 'warnings)
 (require 'flymake)
 
+
+;;; User tweakable stuff
 (defgroup eglot nil
   "Interaction with Language Server Protocol servers"
   :prefix "eglot-"
@@ -43,6 +45,13 @@
                             (python-mode . ("pyls")))
   "Alist mapping major modes to server executables.")
 
+(defface eglot-mode-line
+  '((t (:inherit font-lock-constant-face :weight bold)))
+  "Face for package-name in EGLOT's mode line."
+  :group 'eglot)
+
+
+;;; Process management
 (defvar eglot--processes-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
@@ -129,20 +138,6 @@ A list (WHAT SERIOUS-P)." t)
 Must be a function of one arg, a name, returning a process
 object.")
 
-(defun eglot--project-short-name (project)
-  "Give PROJECT a short name."
-  (file-name-base
-   (directory-file-name
-    (car (project-roots project)))))
-
-(defun eglot--all-major-modes ()
-  "Return all know major modes."
-  (let ((retval))
-    (mapatoms (lambda (sym)
-                (when (plist-member (symbol-plist sym) 'derived-mode-parent)
-                  (push sym retval))))
-    retval))
-
 (defun eglot-make-local-process (name command)
   "Make a local LSP process from COMMAND.
 NAME is a name to give the inferior process or connection.
@@ -160,6 +155,26 @@ Returns a process object."
            :stderr (get-buffer-create (format "*%s stderr*"
                                               name)))))
     proc))
+
+(defmacro eglot--obj (&rest what)
+  "Make WHAT a suitable argument for `json-encode'."
+  ;; FIXME: maybe later actually do something, for now this just fixes
+  ;; the indenting of literal plists.
+  `(list ,@what))
+
+(defun eglot--project-short-name (project)
+  "Give PROJECT a short name."
+  (file-name-base
+   (directory-file-name
+    (car (project-roots project)))))
+
+(defun eglot--all-major-modes ()
+  "Return all know major modes."
+  (let ((retval))
+    (mapatoms (lambda (sym)
+                (when (plist-member (symbol-plist sym) 'derived-mode-parent)
+                  (push sym retval))))
+    retval))
 
 (defun eglot--connect (project managed-major-mode
                                short-name bootstrap-fn &optional success-fn)
@@ -190,23 +205,6 @@ SUCCESS-FN with no args if all goes well."
             (setf (eglot--capabilities proc) capabilities)
             (setf (eglot--status proc) nil)
             (when success-fn (funcall success-fn proc)))))))))
-
-(defun eglot-reconnect (process &optional interactive)
-  "Reconnect to PROCESS.
-INTERACTIVE is t if called interactively."
-  (interactive (list (eglot--current-process-or-lose) t))
-  (when (process-live-p process)
-    (eglot-quit-server process 'sync interactive))
-  (eglot--connect
-   (eglot--project process)
-   (eglot--major-mode process)
-   (eglot--short-name process)
-   (eglot--bootstrap-fn process)
-   (lambda (proc)
-     (eglot--message "Reconnected!")
-     (dolist (buffer (buffer-list))
-       (with-current-buffer buffer
-         (eglot--maybe-activate-editing-mode proc))))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
@@ -284,6 +282,23 @@ buffers in project %s."
            (dolist (buffer (buffer-list))
              (with-current-buffer buffer
                (eglot--maybe-activate-editing-mode proc))))))))))
+
+(defun eglot-reconnect (process &optional interactive)
+  "Reconnect to PROCESS.
+INTERACTIVE is t if called interactively."
+  (interactive (list (eglot--current-process-or-lose) t))
+  (when (process-live-p process)
+    (eglot-shutdown process 'sync interactive))
+  (eglot--connect
+   (eglot--project process)
+   (eglot--major-mode process)
+   (eglot--short-name process)
+   (eglot--bootstrap-fn process)
+   (lambda (proc)
+     (eglot--message "Reconnected!")
+     (dolist (buffer (buffer-list))
+       (with-current-buffer buffer
+         (eglot--maybe-activate-editing-mode proc))))))
 
 (defun eglot--process-sentinel (process change)
   "Called with PROCESS undergoes CHANGE."
@@ -369,12 +384,6 @@ buffers in project %s."
         ;; Saved parsing state for next visit to this filter
         ;;
         (setf (eglot--expected-bytes proc) expected-bytes)))))
-
-(defmacro eglot--obj (&rest what)
-  "Make WHAT a suitable argument for `json-encode'."
-  ;; FIXME: maybe later actually do something, for now this just fixes
-  ;; the indenting of literal plists.
-  `(list ,@what))
 
 (defun eglot-events-buffer (process &optional interactive)
   "Display events buffer for current LSP connection PROCESS.
@@ -562,125 +571,6 @@ identifier.  ERROR is non-nil if this is an error."
                                    :params params)))
 
 
-;;; Requests
-;;;
-(defun eglot--protocol-initialize (process success-fn)
-  "Initialize LSP protocol.
-PROCESS is a connected process (network or local).  SUCCESS-FN is
-called with capabilites after connection."
-  (eglot--request
-   process
-   :initialize
-   (eglot--obj :processId  (emacs-pid)
-               :rootPath  (concat
-                           (expand-file-name (car (project-roots
-                                                   (project-current)))))
-               :initializationOptions  []
-               :capabilities
-               (eglot--obj
-                :workspace (eglot--obj)
-                :textDocument (eglot--obj
-                               :publishDiagnostics `(:relatedInformation t))))
-   :success-fn success-fn))
-
-(defun eglot-quit-server (process &optional sync interactive)
-  "Politely ask the server PROCESS to quit.
-If SYNC, don't leave this function with the server still
-running.  INTERACTIVE is t if called interactively."
-  (interactive (list (eglot--current-process-or-lose) t t))
-  (when interactive
-    (eglot--message "(eglot-quit-server) Asking %s politely to terminate"
-                    process))
-  (let ((brutal (lambda ()
-                  (eglot--warn "Brutally deleting existing process %s"
-                               process)
-                  (setf (eglot--moribund process) t)
-                  (delete-process process))))
-    (eglot--request
-     process
-     :shutdown
-     nil
-     :success-fn (lambda (&rest _anything)
-                   (when interactive
-                     (eglot--message "Now asking %s politely to exit" process))
-                   (setf (eglot--moribund process) t)
-                   (eglot--request process
-                                   :exit
-                                   nil
-                                   :success-fn brutal
-                                   :async-p (not sync)
-                                   :error-fn brutal
-                                   :timeout-fn brutal))
-     :error-fn brutal
-     :async-p (not sync)
-     :timeout-fn brutal)))
-
-
-;;; Notifications
-;;;
-(defvar-local eglot--current-flymake-report-fn nil
-  "Current flymake report function for this buffer")
-(defvar-local eglot--unreported-diagnostics nil
-  "Unreported diagnostics for this buffer.")
-
-(cl-defun eglot--textDocument/publishDiagnostics
-    (_process &key uri diagnostics)
-  "Handle notification publishDiagnostics"
-  (let* ((obj (url-generic-parse-url uri))
-	 (filename (car (url-path-and-query obj)))
-         (buffer (find-buffer-visiting filename)))
-    (cond
-     (buffer
-      (with-current-buffer buffer
-        (cl-flet ((pos-at
-                   (pos-plist)
-                   (save-excursion
-                     (goto-char (point-min))
-                     (forward-line (plist-get pos-plist :line))
-                     (forward-char
-                      (min (plist-get pos-plist :character)
-                           (- (line-end-position)
-                              (line-beginning-position))))
-                     (point))))
-          (cl-loop for diag-spec across diagnostics
-                   collect (cl-destructuring-bind (&key range severity
-                                                        _code _source message)
-                               diag-spec
-                             (cl-destructuring-bind (&key start end)
-                                 range
-                               (let* ((begin-pos (pos-at start))
-                                      (end-pos (pos-at end)))
-                                 (flymake-make-diagnostic
-                                  (current-buffer)
-                                  begin-pos end-pos
-                                  (cond ((<= severity 1)
-                                         :error)
-                                        ((= severity 2)
-                                         :warning)
-                                        (t
-                                         :note))
-                                  message))))
-                   into diags
-                   finally
-                   (if eglot--current-flymake-report-fn
-                       (funcall eglot--current-flymake-report-fn
-                                diags)
-                     (setq eglot--unreported-diagnostics
-                           diags))))))
-     (t
-      (eglot--message "OK so %s isn't visited" filename)))))
-
-(cl-defun eglot--window/showMessage
-    (process &key type message)
-  "Handle notification window/showMessage"
-  (when (<= 1 type)
-    (setf (eglot--status process) '("error" t))
-    (eglot--log-event process
-                      (propertize "server-error" 'face 'error)
-                      message))
-  (eglot--message "Server reports (type=%s): %s" type message))
-
-
 ;;; Helpers
 ;;;
 (defun eglot--debug (format &rest args)
@@ -705,33 +595,12 @@ running.  INTERACTIVE is t if called interactively."
                      (apply #'format format args)
                      :warning)))
 
-
 
-;;; Minor modes and mode-line
+;;; Minor modes
 ;;;
-(defface eglot-mode-line
-  '((t (:inherit font-lock-constant-face :weight bold)))
-  "Face for package-name in EGLOT's mode line."
-  :group 'eglot)
-
 (defvar eglot-mode-map (make-sparse-keymap))
 
 (defvar eglot-editing-mode-map (make-sparse-keymap))
-
-(defun eglot--maybe-activate-editing-mode (&optional proc)
-  "Maybe activate mode function `eglot-editing-mode'.
-If PROC is supplied, do it only if BUFFER is managed by it.  In
-that case, also signal textDocument/didOpen."
-  (when buffer-file-name
-    (let ((cur (eglot--current-process)))
-      (when (or (and (null proc) cur)
-                (and proc (eq proc cur)))
-        (unless eglot-editing-mode
-          (eglot-editing-mode 1))
-        (eglot--signalDidOpen)
-        (flymake-start)))))
-
-(add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
 (define-minor-mode eglot-editing-mode
   "Minor mode for source buffers where EGLOT helps you edit."
@@ -764,6 +633,24 @@ that case, also signal textDocument/didOpen."
          (when eglot-editing-mode
            (eglot-editing-mode -1)))))
 
+(defun eglot--maybe-activate-editing-mode (&optional proc)
+  "Maybe activate mode function `eglot-editing-mode'.
+If PROC is supplied, do it only if BUFFER is managed by it.  In
+that case, also signal textDocument/didOpen."
+  (when buffer-file-name
+    (let ((cur (eglot--current-process)))
+      (when (or (and (null proc) cur)
+                (and proc (eq proc cur)))
+        (unless eglot-editing-mode
+          (eglot-editing-mode 1))
+        (eglot--signalDidOpen)
+        (flymake-start)))))
+
+(add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
+
+
+;;; Mode-line, menu and other sugar
+;;;
 (defvar eglot-menu)
 
 (easy-menu-define eglot-menu eglot-mode-map "EGLOT"
@@ -806,7 +693,7 @@ that case, also signal textDocument/didOpen."
           face eglot-mode-line
           keymap ,(let ((map (make-sparse-keymap)))
                     (define-key map [mode-line mouse-1] 'eglot-events-buffer)
-                    (define-key map [mode-line mouse-2] 'eglot-quit-server)
+                    (define-key map [mode-line mouse-2] 'eglot-shutdown)
                     (define-key map [mode-line mouse-3] 'eglot-reconnect)
                     map)
           mouse-face mode-line-highlight
@@ -863,6 +750,124 @@ that case, also signal textDocument/didOpen."
              `(eglot-mode
                (" [" eglot--mode-line-format "] ")))
 
+
+;;; Protocol implementation (Requests, notifications, etc)
+;;;
+(defun eglot--protocol-initialize (process success-fn)
+  "Initialize LSP protocol.
+PROCESS is a connected process (network or local).  SUCCESS-FN is
+called with capabilites after connection."
+  (eglot--request
+   process
+   :initialize
+   (eglot--obj :processId  (emacs-pid)
+               :rootPath  (concat
+                           (expand-file-name (car (project-roots
+                                                   (project-current)))))
+               :initializationOptions  []
+               :capabilities
+               (eglot--obj
+                :workspace (eglot--obj)
+                :textDocument (eglot--obj
+                               :publishDiagnostics `(:relatedInformation t))))
+   :success-fn success-fn))
+
+(defun eglot-shutdown (process &optional sync interactive)
+  "Politely ask the server PROCESS to quit.
+Forcefully quit it if it doesn't respond.
+If SYNC, don't leave this function with the server still
+running.  INTERACTIVE is t if called interactively."
+  (interactive (list (eglot--current-process-or-lose) t t))
+  (when interactive
+    (eglot--message "(eglot-shutdown) Asking %s politely to terminate"
+                    process))
+  (let ((brutal (lambda ()
+                  (eglot--warn "Brutally deleting existing process %s"
+                               process)
+                  (setf (eglot--moribund process) t)
+                  (delete-process process))))
+    (eglot--request
+     process
+     :shutdown
+     nil
+     :success-fn (lambda (&rest _anything)
+                   (when interactive
+                     (eglot--message "Now asking %s politely to exit" process))
+                   (setf (eglot--moribund process) t)
+                   (eglot--request process
+                                   :exit
+                                   nil
+                                   :success-fn brutal
+                                   :async-p (not sync)
+                                   :error-fn brutal
+                                   :timeout-fn brutal))
+     :error-fn brutal
+     :async-p (not sync)
+     :timeout-fn brutal)))
+
+(cl-defun eglot--window/showMessage
+    (process &key type message)
+  "Handle notification window/showMessage"
+  (when (<= 1 type)
+    (setf (eglot--status process) '("error" t))
+    (eglot--log-event process
+                      (propertize "server-error" 'face 'error)
+                      message))
+  (eglot--message "Server reports (type=%s): %s" type message))
+
+(defvar-local eglot--current-flymake-report-fn nil
+  "Current flymake report function for this buffer")
+
+(defvar-local eglot--unreported-diagnostics nil
+  "Unreported diagnostics for this buffer.")
+
+(cl-defun eglot--textDocument/publishDiagnostics
+    (_process &key uri diagnostics)
+  "Handle notification publishDiagnostics"
+  (let* ((obj (url-generic-parse-url uri))
+	 (filename (car (url-path-and-query obj)))
+         (buffer (find-buffer-visiting filename)))
+    (cond
+     (buffer
+      (with-current-buffer buffer
+        (cl-flet ((pos-at
+                   (pos-plist)
+                   (save-excursion
+                     (goto-char (point-min))
+                     (forward-line (plist-get pos-plist :line))
+                     (forward-char
+                      (min (plist-get pos-plist :character)
+                           (- (line-end-position)
+                              (line-beginning-position))))
+                     (point))))
+          (cl-loop for diag-spec across diagnostics
+                   collect (cl-destructuring-bind (&key range severity
+                                                        _code _source message)
+                               diag-spec
+                             (cl-destructuring-bind (&key start end)
+                                 range
+                               (let* ((begin-pos (pos-at start))
+                                      (end-pos (pos-at end)))
+                                 (flymake-make-diagnostic
+                                  (current-buffer)
+                                  begin-pos end-pos
+                                  (cond ((<= severity 1)
+                                         :error)
+                                        ((= severity 2)
+                                         :warning)
+                                        (t
+                                         :note))
+                                  message))))
+                   into diags
+                   finally
+                   (if eglot--current-flymake-report-fn
+                       (funcall eglot--current-flymake-report-fn
+                                diags)
+                     (setq eglot--unreported-diagnostics
+                           diags))))))
+     (t
+      (eglot--message "OK so %s isn't visited" filename)))))
+
 (defvar eglot--recent-changes nil
   "List of recent changes as collected by `eglot--after-change'.")
 
@@ -902,20 +907,6 @@ Records START, END and LENGTH locally."
   ;; (eglot--message "start is %s, end is %s, length is %s" start end length)
   )
 
-(defun eglot--signalDidOpen ()
-  "Send textDocument/didOpen to server."
-  (eglot--notify (eglot--current-process-or-lose)
-                 :textDocument/didOpen
-                 (eglot--obj :textDocument
-                             (eglot--current-buffer-TextDocumentItem))))
-
-(defun eglot--signalDidClose ()
-  "Send textDocument/didClose to server."
-  (eglot--notify (eglot--current-process-or-lose)
-                 :textDocument/didClose
-                 (eglot--obj :textDocument
-                             (eglot--current-buffer-TextDocumentItem))))
-
 (defun eglot--maybe-signal-didChange ()
   "Send textDocument/didChange to server."
   (when eglot--recent-changes
@@ -948,6 +939,20 @@ Records START, END and LENGTH locally."
               :rangeLength (- end start)
               :text (buffer-substring-no-properties start end))))))))
     (setq eglot--recent-changes nil)))
+
+(defun eglot--signalDidOpen ()
+  "Send textDocument/didOpen to server."
+  (eglot--notify (eglot--current-process-or-lose)
+                 :textDocument/didOpen
+                 (eglot--obj :textDocument
+                             (eglot--current-buffer-TextDocumentItem))))
+
+(defun eglot--signalDidClose ()
+  "Send textDocument/didClose to server."
+  (eglot--notify (eglot--current-process-or-lose)
+                 :textDocument/didClose
+                 (eglot--obj :textDocument
+                             (eglot--current-buffer-TextDocumentItem))))
 
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
