@@ -205,8 +205,11 @@ INTERACTIVE is t if called interactively."
    (eglot--major-mode process)
    (eglot--short-name process)
    (eglot--bootstrap-fn process)
-   (lambda (_proc)
-     (eglot--message "Reconnected!"))))
+   (lambda (proc)
+     (eglot--message "Reconnected!")
+     (dolist (buffer (buffer-list))
+       (with-current-buffer buffer
+         (eglot--maybe-activate-editing-mode proc))))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
