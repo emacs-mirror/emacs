@@ -229,8 +229,8 @@ INTERACTIVE is t if called interactively."
   (when (not (process-live-p process))
     ;; Remember to cancel all timers
     ;;
-    (maphash (lambda (id quad)
-               (cl-destructuring-bind (_success _error timeout _env) quad
+    (maphash (lambda (id triplet)
+               (cl-destructuring-bind (_success _error timeout) triplet
                  (eglot--message
                   "(sentinel) Cancelling timer for continuation %s" id)
                  (cancel-timer timeout)))
@@ -349,13 +349,6 @@ identifier.  ERROR is non-nil if this is an error."
           (setq msg (propertize msg 'face 'error)))
         (insert msg)))))
 
-(defvar eglot--environment-vars
-  '(eglot--current-flymake-report-fn)
-  "A list of variables with saved values on every request.")
-
-(defvar eglot--environment nil
-  "Dynamically bound alist of symbol and values.")
-
 (defun eglot--process-receive (proc message)
   "Process MESSAGE from PROC."
   (let* ((response-id (plist-get message :id))
@@ -388,13 +381,9 @@ identifier.  ERROR is non-nil if this is an error."
           (t
            (let* ((method (plist-get message :method))
                   (handler-sym (intern (concat "eglot--"
-                                               method)))
-                  (eglot--environment (cl-fourth continuations)))
+                                               method))))
              (if (functionp handler-sym)
-                 (cl-progv
-                     (mapcar #'car eglot--environment)
-                     (mapcar #'cdr eglot--environment)
-                   (apply handler-sym proc (plist-get message :params)))
+                 (apply handler-sym proc (plist-get message :params))
                (eglot--debug "No implemetation for notification %s yet"
                              method)))))))
 
@@ -476,9 +465,7 @@ identifier.  ERROR is non-nil if this is an error."
                            error-fn
                          (lambda (&rest args)
                            (throw catch-tag (apply error-fn args))))
-                       timeout-timer
-                       (cl-loop for var in eglot--environment-vars
-                                collect (cons var (symbol-value var))))
+                       timeout-timer)
                  (eglot--pending-continuations process))
         (unless async-p
           (unwind-protect
@@ -563,23 +550,18 @@ running.  INTERACTIVE is t if called interactively."
 
 ;;; Notifications
 ;;;
-(defvar eglot--current-flymake-report-fn nil)
+(defvar-local eglot--current-flymake-report-fn nil
+  "Current flymake report function for this buffer")
+(defvar-local eglot--unreported-diagnostics nil
+  "Unreported diagnostics for this buffer.")
 
 (cl-defun eglot--textDocument/publishDiagnostics
     (_process &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (let* ((obj (url-generic-parse-url uri))
 	 (filename (car (url-path-and-query obj)))
-         (buffer (find-buffer-visiting filename))
-         (report-fn (cdr (assoc 'eglot--current-flymake-report-fn
-                                eglot--environment))))
+         (buffer (find-buffer-visiting filename)))
     (cond
-     ((not eglot--current-flymake-report-fn)
-      (eglot--warn "publishDiagnostics called but no report-fn"))
-     ((and report-fn
-           (not (eq report-fn
-                    eglot--current-flymake-report-fn)))
-      (eglot--warn "outdated publishDiagnostics report from server"))
      (buffer
       (with-current-buffer buffer
         (cl-flet ((pos-at
@@ -607,9 +589,12 @@ running.  INTERACTIVE is t if called interactively."
                                          :note))
                                   message))))
                    into diags
-                   finally (funcall
-                            eglot--current-flymake-report-fn
-                            diags)))))
+                   finally
+                   (if eglot--current-flymake-report-fn
+                       (funcall eglot--current-flymake-report-fn
+                                diags)
+                     (setq eglot--unreported-diagnostics
+                           diags))))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
@@ -875,11 +860,14 @@ running.  INTERACTIVE is t if called interactively."
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
 Calls REPORT-FN maybe if server publishes diagnostics in time."
-  ;; call immediately with no diagnostics, this just means we don't
-  ;; have them yet (and also clears any pending ones).
-  ;;
-  (funcall report-fn nil)
+  ;; Call immediately with anything unreported (this will clear any
+  ;; pending diags)
+  (funcall report-fn eglot--unreported-diagnostics)
+  (setq eglot--unreported-diagnostics nil)
+  ;; Setup so maybe it's called later, too.
   (setq eglot--current-flymake-report-fn report-fn)
+  ;; Take this opportunity to signal a didChange that might eventually
+  ;; make the server report new diagnostics.
   (eglot--maybe-signal-didChange))
 
 
