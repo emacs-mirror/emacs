@@ -695,6 +695,13 @@ that case, also signal textDocument/didOpen."
 
 (put 'eglot--mode-line-format 'risky-local-variable t)
 
+(defun eglot--mode-line-call (what)
+  "Make an interactive lambda for calling WHAT from mode-line."
+  (lambda (event)
+    (interactive "e")
+    (with-selected-window (posn-window (event-start event))
+      (call-interactively what))))
+
 (defun eglot--mode-line-format ()
   "Compose the mode-line format spec."
   (pcase-let* ((proc (eglot--current-process))
@@ -715,7 +722,7 @@ that case, also signal textDocument/didOpen."
                     face eglot-mode-line
                     keymap ,(let ((map (make-sparse-keymap)))
                               (define-key map [mode-line down-mouse-1]
-                                eglot-menu)
+                                (eglot--mode-line-call 'eglot-menu))
                               map)
                     mouse-face mode-line-highlight
                     help-echo "mouse-1: pop-up EGLOT menu"
@@ -726,9 +733,12 @@ that case, also signal textDocument/didOpen."
           ,name
           face eglot-mode-line
           keymap ,(let ((map (make-sparse-keymap)))
-                    (define-key map [mode-line mouse-1] 'eglot-events-buffer)
-                    (define-key map [mode-line mouse-2] 'eglot-shutdown)
-                    (define-key map [mode-line mouse-3] 'eglot-reconnect)
+                    (define-key map [mode-line mouse-1]
+                      (eglot--mode-line-call 'eglot-events-buffer))
+                    (define-key map [mode-line mouse-2]
+                      (eglot--mode-line-call 'eglot-shutdown))
+                    (define-key map [mode-line mouse-3]
+                      (eglot--mode-line-call 'eglot-reconnect))
                     map)
           mouse-face mode-line-highlight
           help-echo ,(concat "mouse-1: go to events buffer\n"
@@ -744,9 +754,9 @@ that case, also signal textDocument/didOpen."
                 face compilation-mode-line-fail
                 keymap ,(let ((map (make-sparse-keymap)))
                           (define-key map [mode-line mouse-1]
-                            'eglot-events-buffer)
+                            (eglot--mode-line-call 'eglot-events-buffer))
                           (define-key map [mode-line mouse-3]
-                            'eglot-clear-status)
+                            (eglot--mode-line-call 'eglot-clear-status))
                           map))))
          ,@(when (and doing (not done-p))
              `("/"
@@ -757,7 +767,7 @@ that case, also signal textDocument/didOpen."
                 face compilation-mode-line-run
                 keymap ,(let ((map (make-sparse-keymap)))
                           (define-key map [mode-line mouse-1]
-                            'eglot-events-buffer)
+                            (eglot--mode-line-call 'eglot-events-buffer))
                           map))))
          ,@(when (cl-plusp pending)
              `("/"
@@ -775,9 +785,9 @@ that case, also signal textDocument/didOpen."
                              'eglot-mode-line))
                 keymap ,(let ((map (make-sparse-keymap)))
                           (define-key map [mode-line mouse-1]
-                            'eglot-events-buffer)
+                            (eglot--mode-line-call 'eglot-events-buffer))
                           (define-key map [mode-line mouse-3]
-                            'eglot-forget-pending-continuations)
+                            (eglot--mode-line-call 'eglot-forget-pending-continuations))
                           map)))))))))
 
 (add-to-list 'mode-line-misc-info
