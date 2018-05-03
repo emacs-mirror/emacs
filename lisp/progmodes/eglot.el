@@ -843,7 +843,7 @@ running.  INTERACTIVE is t if called interactively."
                               (line-beginning-position))))
                      (point))))
           (cl-loop for diag-spec across diagnostics
-                   collect (cl-destructuring-bind (&key range severity
+                   collect (cl-destructuring-bind (&key range severity _group
                                                         _code _source message)
                                diag-spec
                              (cl-destructuring-bind (&key start end)
@@ -1002,7 +1002,7 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
 ;;; Rust-specific
 ;;;
 (cl-defun eglot--server-window/progress
-    (process &key id done title )
+    (process &key id done title &allow-other-keys)
   "Handle notification window/progress"
   (setf (eglot--spinner process) (list id title done)))
 
