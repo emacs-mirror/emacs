@@ -477,8 +477,11 @@ identifier.  ERROR is non-nil if this is an error."
                                           (plist-get message :params)
                                           (let ((id (plist-get message :id)))
                                             (if id `(:id ,id)))))
-               (eglot--warn "No implemetation for notification %s yet"
-                            method)))))))
+               ;; pyls keeps on sending nil notifs for each notif we
+               ;; send it, just ignore these.
+               (unless (null method)
+                 (eglot--warn "No implemetation for notification %s yet"
+                              method))))))))
 
 (defvar eglot--expect-carriage-return nil)
 
