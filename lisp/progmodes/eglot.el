@@ -1003,15 +1003,28 @@ running.  INTERACTIVE is t if called interactively."
 (cl-defun eglot--server-client/registerCapability
     (proc &key id registrations)
   "Handle notification client/registerCapability"
-  (mapc (lambda (reg)
-          (apply (cl-function
-                  (lambda (&key _id _method _registerOptions)
-                    ;;; TODO: handle this
-                    ))
-                 reg))
-        registrations)
-  (eglot--reply proc id :error (eglot--obj :code -32601
-                                           :message "sorry :-(")))
+  (catch 'done
+    (mapc
+     (lambda (reg)
+       (apply
+        (cl-function
+         (lambda (&key id method registerOptions)
+           (pcase-let*
+               ((handler-sym (intern (concat "eglot--register-"
+                                             method)))
+                (`(,ok ,message)
+                 (and (functionp handler-sym)
+                      (apply handler-sym proc :id id registerOptions))))
+             (unless ok
+               (throw
+                'done
+                (eglot--reply proc id
+                              :error (eglot--obj
+                                      :code -32601
+                                      :message (or message "sorry :-("))))))))
+        reg))
+     registrations)
+    (eglot--reply proc id :result (eglot--obj :message "OK"))))
 
 (defvar eglot--recent-before-changes nil
   "List of recent changes as collected by `eglot--before-change'.")
@@ -1175,6 +1188,16 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   ;; Take this opportunity to signal a didChange that might eventually
   ;; make the server report new diagnostics.
   (eglot--signal-textDocument/didChange))
+
+
+;;; Dynamic registration
+;;;
+(cl-defun eglot--register-workspace/didChangeWatchedFiles
+    (_proc &key _id _watchers)
+  "Handle dynamic registration of workspace/didChangeWatchedFiles"
+  ;; TODO: file-notify-add-watch and
+  ;; file-notify-rm-watch can probably handle this
+  (list nil "Sorry, can't do this yet"))
 
 
 ;;; Rust-specific
