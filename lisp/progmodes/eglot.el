@@ -341,12 +341,20 @@ INTERACTIVE is t if called interactively."
                   "(sentinel) Cancelling timer for continuation %s" id)
                  (cancel-timer timeout)))
              (eglot--pending-continuations process))
+    ;; Turn off `eglot--managed-mode' where appropriate.
+    ;;
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (eglot--buffer-managed-p process)
+          (eglot--managed-mode -1))))
+    ;; Forget about the process-project relationship
+    ;;
+    (setf (gethash (eglot--project process) eglot--processes-by-project)
+          (delq process
+                (gethash (eglot--project process) eglot--processes-by-project)))
     (cond ((eglot--moribund process)
            (eglot--message "(sentinel) Moribund process exited with status %s"
-                           (process-exit-status process))
-           (setf (gethash (eglot--project process) eglot--processes-by-project)
-                 (delq process
-                       (gethash (eglot--project process) eglot--processes-by-project))))
+                           (process-exit-status process)))
           (t
            (eglot--warn
             "(sentinel) Reconnecting after process unexpectedly changed to %s."
@@ -641,60 +649,55 @@ identifier.  ERROR is non-nil if this is an error."
 ;;;
 (defvar eglot-mode-map (make-sparse-keymap))
 
-(defvar eglot-editing-mode-map (make-sparse-keymap))
+(defvar eglot--managed-mode-map (make-sparse-keymap))
 
-(define-minor-mode eglot-editing-mode
-  "Minor mode for source buffers where EGLOT helps you edit."
+(define-minor-mode eglot--managed-mode
+  "Mode for source buffers managed by some EGLOT project."
   nil
   nil
   eglot-mode-map
   (cond
-   (eglot-editing-mode
+   (eglot--managed-mode
     (eglot-mode 1)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
-    (add-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen nil t)
+    ;; (add-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
-    (flymake-mode 1)
-    (unless (eglot--current-process)
-      (eglot--warn "No process, start one with `M-x eglot'")))
+    (flymake-mode 1))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
     (remove-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose t)
     (remove-hook 'before-revert-hook 'eglot--signal-textDocument/didClose t)
-    (remove-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen t)
+    ;; (remove-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen t)
     (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
-  nil eglot-mode-map
-  (cond (eglot-mode
-         (when (and buffer-file-name
-                    (not eglot-editing-mode))
-           (eglot-editing-mode 1)))
-        (t
-         (when eglot-editing-mode
-           (eglot-editing-mode -1)))))
+  nil eglot-mode-map)
+
+(defun eglot--buffer-managed-p (&optional proc)
+  "Tell if current buffer is managed by PROC."
+  (and buffer-file-name
+       (let ((cur (eglot--current-process)))
+         (or (and (null proc) cur)
+             (and proc (eq proc cur))))))
 
 (defun eglot--maybe-activate-editing-mode (&optional proc)
-  "Maybe activate mode function `eglot-editing-mode'.
+  "Maybe activate mode function `eglot--managed-mode'.
 If PROC is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
-  (when buffer-file-name
-    (let ((cur (eglot--current-process)))
-      (when (or (and (null proc) cur)
-                (and proc (eq proc cur)))
-        (unless eglot-editing-mode
-          (eglot-editing-mode 1))
-        (eglot--signal-textDocument/didOpen)
-        (flymake-start)))))
+  ;; Called even when revert-buffer-in-progress-p
+  (when (eglot--buffer-managed-p proc)
+    (eglot--managed-mode 1)
+    (eglot--signal-textDocument/didOpen)
+    (flymake-start)))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
