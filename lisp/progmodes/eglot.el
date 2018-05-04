@@ -229,7 +229,7 @@ SUCCESS-FN with no args if all goes well."
             (setf (eglot--capabilities proc) capabilities)
             (setf (eglot--status proc) nil)
             (when success-fn (funcall success-fn proc))
-            (eglot--notify proc :initialized nil))))))))
+            (eglot--notify proc :initialized (eglot--obj :__dummy__ t)))))))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
