@@ -251,7 +251,9 @@ SUCCESS-FN with no args if all goes well."
         (eglot--request
          proc
          :initialize
-         (eglot--obj :processId  (emacs-pid)
+         (eglot--obj :processId (unless (eq (process-type proc)
+                                            'network)
+                                  (emacs-pid))
                      :rootUri  (eglot--uri
                                 (expand-file-name (car (project-roots
                                                         (project-current)))))
@@ -1070,44 +1072,44 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   "Send textDocument/didChange to server."
   (when (and eglot--recent-before-changes
              eglot--recent-after-changes)
-    (save-excursion
+    (let* ((proc (eglot--current-process-or-lose))
+           (sync-kind (plist-get (eglot--capabilities proc) :textDocumentSync)))
       (save-restriction
         (widen)
-        (if (/= (length eglot--recent-before-changes)
-                (length eglot--recent-after-changes))
-            (eglot--notify
-             (eglot--current-process-or-lose)
-             :textDocument/didChange
-             (eglot--obj
-              :textDocument (eglot--current-buffer-VersionedTextDocumentIdentifier)
-              :contentChanges
-              (vector
-               (eglot--obj
-                :text (buffer-substring-no-properties (point-min) (point-max))))))
-          (let ((combined (cl-mapcar 'append
-                                     eglot--recent-before-changes
-                                     eglot--recent-after-changes)))
-            (eglot--notify
-             (eglot--current-process-or-lose)
-             :textDocument/didChange
-             (eglot--obj
-              :textDocument (eglot--current-buffer-VersionedTextDocumentIdentifier)
-              :contentChanges
+        (unless (or (not sync-kind)
+                    (eq sync-kind 0))
+          (eglot--notify
+           proc
+           :textDocument/didChange
+           (eglot--obj
+            :textDocument
+            (eglot--current-buffer-VersionedTextDocumentIdentifier)
+            :contentChanges
+            (if (or (eq sync-kind 1)
+                    (/= (length eglot--recent-before-changes)
+                        (length eglot--recent-after-changes)))
+                (vector
+                 (eglot--obj
+                  :text (buffer-substring-no-properties (point-min) (point-max))))
               (apply
                #'vector
-               (mapcar (pcase-lambda (`(,before-start-position
-                                        ,before-end-position
-                                        ,after-start
-                                        ,after-end
-                                        ,len))
-                         (eglot--obj
-                          :range
-                          (eglot--obj
-                           :start before-start-position
-                           :end before-end-position)
-                          :rangeLength len
-                          :text (buffer-substring-no-properties after-start after-end)))
-                       (reverse combined))))))))))
+               (mapcar
+                (pcase-lambda (`(,before-start-position
+                                 ,before-end-position
+                                 ,after-start
+                                 ,after-end
+                                 ,len))
+                  (eglot--obj
+                   :range
+                   (eglot--obj
+                    :start before-start-position
+                    :end before-end-position)
+                   :rangeLength len
+                   :text (buffer-substring-no-properties after-start after-end)))
+                (reverse
+                 (cl-mapcar 'append
+                            eglot--recent-before-changes
+                            eglot--recent-after-changes)))))))))))
   (setq eglot--recent-before-changes nil
         eglot--recent-after-changes nil))
 
