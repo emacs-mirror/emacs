@@ -221,9 +221,9 @@ SUCCESS-FN with no args if all goes well."
          proc
          :initialize
          (eglot--obj :processId  (emacs-pid)
-                     :rootPath  (concat
-                                 (expand-file-name (car (project-roots
-                                                         (project-current)))))
+                     :rootUri  (eglot--uri
+                                (expand-file-name (car (project-roots
+                                                        (project-current)))))
                      :initializationOptions  []
                      :capabilities (eglot--client-capabilities))
          :success-fn
@@ -666,6 +666,8 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
                      (apply #'format format args)
                      :warning)))
 
+(defun eglot--uri (path) "Add file:// to PATH." (concat "file://" path))
+
 
 ;;; Minor modes
 ;;;
@@ -988,10 +990,10 @@ running.  INTERACTIVE is t if called interactively."
 (defun eglot--current-buffer-VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
   (eglot--obj :uri
-              (concat "file://"
-                      (url-hexify-string
-                       (file-truename buffer-file-name)
-                       url-path-allowed-chars))
+              (eglot--uri
+               (url-hexify-string
+                (file-truename buffer-file-name)
+                url-path-allowed-chars))
               ;; FIXME: later deal with workspaces
               :version eglot--versioned-identifier))
 
