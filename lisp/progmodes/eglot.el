@@ -329,6 +329,9 @@ INTERACTIVE is t if called interactively."
        (with-current-buffer buffer
          (eglot--maybe-activate-editing-mode proc))))))
 
+(defvar eglot--inhibit-auto-reconnect nil
+  "If non-nil, don't autoreconnect on unexpected quit.")
+
 (defun eglot--process-sentinel (process change)
   "Called with PROCESS undergoes CHANGE."
   (eglot--debug "(sentinel) Process state changed to %s" change)
@@ -355,11 +358,20 @@ INTERACTIVE is t if called interactively."
     (cond ((eglot--moribund process)
            (eglot--message "(sentinel) Moribund process exited with status %s"
                            (process-exit-status process)))
-          (t
+          ((null eglot--inhibit-auto-reconnect)
            (eglot--warn
             "(sentinel) Reconnecting after process unexpectedly changed to %s."
             change)
-           (eglot-reconnect process)))
+           (eglot-reconnect process)
+           (setq eglot--inhibit-auto-reconnect
+                 (run-with-timer
+                  3 nil
+                  (lambda ()
+                    (setq eglot--inhibit-auto-reconnect nil)))))
+          (t
+           (eglot--warn
+            "(sentinel) Not auto-reconnecting, last one didn't last long."
+            change)))
     (force-mode-line-update t)
     (delete-process process)))
 
