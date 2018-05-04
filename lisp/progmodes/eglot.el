@@ -936,7 +936,7 @@ running.  INTERACTIVE is t if called interactively."
                      (point))))
           (cl-loop for diag-spec across diagnostics
                    collect (cl-destructuring-bind (&key range severity _group
-                                                        _code _source message)
+                                                        _code source message)
                                diag-spec
                              (cl-destructuring-bind (&key start end)
                                  range
@@ -951,7 +951,7 @@ running.  INTERACTIVE is t if called interactively."
                                          :warning)
                                         (t
                                          :note))
-                                  message))))
+                                  (concat source ": " message)))))
                    into diags
                    finally
                    (if eglot--current-flymake-report-fn
