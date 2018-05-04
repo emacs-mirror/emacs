@@ -1,6 +1,6 @@
-;;; filecache.el --- find files using a pre-loaded cache
+;;; filecache.el --- find files using a pre-loaded cache  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
@@ -19,22 +19,22 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
 ;; The file-cache package is an attempt to make it easy to locate files
 ;; by name, without having to remember exactly where they are located.
-;; This is very handy when working with source trees. You can also add
+;; This is very handy when working with source trees.  You can also add
 ;; frequently used files to the cache to create a hotlist effect.
 ;; The cache can be used with any interactive command which takes a
 ;; filename as an argument.
 ;;
 ;; It is worth noting that this package works best when most of the files
 ;; in the cache have unique names, or (if they have the same name) exist in
-;; only a few directories. The worst case is many files all with
+;; only a few directories.  The worst case is many files all with
 ;; the same name and in different directories, for example a big source tree
-;; with a Makefile in each directory. In such a case, you should probably
+;; with a Makefile in each directory.  In such a case, you should probably
 ;; use an alternate strategy to find the files.
 ;;
 ;; ADDING FILES TO THE CACHE:
@@ -49,11 +49,11 @@
 ;; `file-cache-delete-regexps' to eliminate unwanted files:
 ;;
 ;;   * `file-cache-add-directory': Adds the files in a directory to the
-;;     cache. You can also specify a regular expression to match the files
+;;     cache.  You can also specify a regular expression to match the files
 ;;     which should be added.
 ;;
 ;;   * `file-cache-add-directory-list': Same as above, but acts on a list
-;;     of directories. You can use `load-path', `exec-path' and the like.
+;;     of directories.  You can use `load-path', `exec-path' and the like.
 ;;
 ;;   * `file-cache-add-directory-using-find': Uses the `find' command to
 ;;     add a directory tree to the cache.
@@ -65,7 +65,7 @@
 ;;     add all files matching a pattern to the cache.
 ;;
 ;; Use the function `file-cache-clear-cache' to remove all items from the
-;; cache. There are a number of `file-cache-delete' functions provided
+;; cache.  There are a number of `file-cache-delete' functions provided
 ;; as well, but in general it is probably better to not worry too much
 ;; about extra files in the cache.
 ;;
@@ -76,7 +76,7 @@
 ;; FINDING FILES USING THE CACHE:
 ;;
 ;; You can use the file-cache with any function that expects a filename as
-;; an argument. For example:
+;; an argument.  For example:
 ;;
 ;; 1) Invoke a function which expects a filename as an argument:
 ;;    M-x find-file
@@ -160,13 +160,11 @@ File names which match these expressions will not be added to the cache.
 Note that the functions `file-cache-add-file' and `file-cache-add-file-list'
 do not use this variable."
   :version "25.1"                       ; added "/\\.#"
-  :type '(repeat regexp)
-  :group 'file-cache)
+  :type '(repeat regexp))
 
 (defcustom file-cache-find-command "find"
   "External program used by `file-cache-add-directory-using-find'."
-  :type 'string
-  :group 'file-cache)
+  :type 'string)
 
 (defcustom file-cache-find-command-posix-flag 'not-defined
   "Set to t, if `file-cache-find-command' handles wildcards POSIX style.
@@ -178,30 +176,25 @@ Under Windows operating system where Cygwin is available, this value
 should be t."
   :type  '(choice (const :tag "Yes" t)
 		  (const :tag "No" nil)
-		  (const :tag "Unknown" not-defined))
-  :group 'file-cache)
+		  (const :tag "Unknown" not-defined)))
 
 (defcustom file-cache-locate-command "locate"
   "External program used by `file-cache-add-directory-using-locate'."
-  :type 'string
-  :group 'file-cache)
+  :type 'string)
 
 ;; Minibuffer messages
 (defcustom file-cache-no-match-message " [File Cache: No match]"
   "Message to display when there is no completion."
-  :type 'string
-  :group 'file-cache)
+  :type 'string)
 
 (defcustom file-cache-sole-match-message " [File Cache: sole completion]"
   "Message to display when there is only one completion."
-  :type 'string
-  :group 'file-cache)
+  :type 'string)
 
 (defcustom file-cache-non-unique-message
   " [File Cache: complete but not unique]"
   "Message to display when there is a non-unique completion."
-  :type 'string
-  :group 'file-cache)
+  :type 'string)
 
 (defcustom file-cache-completion-ignore-case
   (if (memq system-type '(ms-dos windows-nt cygwin))
@@ -209,8 +202,7 @@ should be t."
      completion-ignore-case)
   "If non-nil, file-cache completion should ignore case.
 Defaults to the value of `completion-ignore-case'."
-  :type 'boolean
-  :group 'file-cache)
+  :type 'boolean)
 
 (defcustom file-cache-case-fold-search
   (if (memq system-type '(ms-dos windows-nt cygwin))
@@ -218,15 +210,13 @@ Defaults to the value of `completion-ignore-case'."
     case-fold-search)
   "If non-nil, file-cache completion should ignore case.
 Defaults to the value of `case-fold-search'."
-  :type 'boolean
-  :group 'file-cache)
+  :type 'boolean)
 
 (defcustom file-cache-ignore-case
   (memq system-type '(ms-dos windows-nt cygwin))
   "Non-nil means ignore case when checking completions in the file cache.
 Defaults to nil on DOS and Windows, and t on other systems."
-  :type 'boolean
-  :group 'file-cache)
+  :type 'boolean)
 
 (defvar file-cache-multiple-directory-message nil)
 
@@ -235,18 +225,10 @@ Defaults to nil on DOS and Windows, and t on other systems."
 ;; switch-to-completions in simple.el expects
 (defcustom file-cache-completions-buffer "*Completions*"
   "Buffer to display completions when using the file cache."
-  :type 'string
-  :group 'file-cache)
+  :type 'string)
 
-(defcustom file-cache-buffer "*File Cache*"
-  "Buffer to hold the cache of file names."
-  :type 'string
-  :group 'file-cache)
-
-(defcustom file-cache-buffer-default-regexp "^.+$"
-  "Regexp to match files in `file-cache-buffer'."
-  :type 'regexp
-  :group 'file-cache)
+(defvar file-cache-buffer-default-regexp "^.+$"
+  "Regexp to match files in find and locate's output.")
 
 (defvar file-cache-last-completion nil)
 
@@ -362,36 +344,31 @@ Find is run in DIRECTORY."
       (if (eq file-cache-find-command-posix-flag 'not-defined)
 	  (setq file-cache-find-command-posix-flag
 		(executable-command-find-posix-p file-cache-find-command))))
-    (set-buffer (get-buffer-create file-cache-buffer))
-    (erase-buffer)
-    (call-process file-cache-find-command nil
-		  (get-buffer file-cache-buffer) nil
-		  dir "-name"
-		  (if (memq system-type '(windows-nt cygwin))
-		      (if file-cache-find-command-posix-flag
-			  "\\*"
-			"'*'")
-		    "*")
-		  "-print")
-    (file-cache-add-from-file-cache-buffer)))
+    (with-temp-buffer
+      (call-process file-cache-find-command nil t nil
+		    dir "-name"
+		    (if (memq system-type '(windows-nt cygwin))
+		        (if file-cache-find-command-posix-flag
+			    "\\*"
+			  "'*'")
+		      "*")
+		    "-print")
+      (file-cache--add-from-buffer))))
 
 ;;;###autoload
 (defun file-cache-add-directory-using-locate (string)
   "Use the `locate' command to add files to the file cache.
 STRING is passed as an argument to the locate command."
   (interactive "sAdd files using locate string: ")
-  (set-buffer (get-buffer-create file-cache-buffer))
-  (erase-buffer)
-  (call-process file-cache-locate-command nil
-		(get-buffer file-cache-buffer) nil
-		string)
-  (file-cache-add-from-file-cache-buffer))
+  (with-temp-buffer
+    (call-process file-cache-locate-command nil t nil string)
+    (file-cache--add-from-buffer)))
 
 (autoload 'find-lisp-find-files "find-lisp")
 
 ;;;###autoload
 (defun file-cache-add-directory-recursively  (dir &optional regexp)
-  "Adds DIR and any subdirectories to the file-cache.
+  "Add DIR and any subdirectories to the file-cache.
 This function does not use any external programs.
 If the optional REGEXP argument is non-nil, only files which match it
 will be added to the cache.  Note that the REGEXP is applied to the
@@ -408,22 +385,16 @@ files in each directory, not to the directory list itself."
          (file-cache-add-file file)))
    (find-lisp-find-files dir (or regexp "^"))))
 
-(defun file-cache-add-from-file-cache-buffer (&optional regexp)
-  "Add any entries found in the file cache buffer.
+(defun file-cache--add-from-buffer ()
+  "Add any entries found in the current buffer.
 Each entry matches the regular expression `file-cache-buffer-default-regexp'
 or the optional REGEXP argument."
-  (set-buffer file-cache-buffer)
   (dolist (elt file-cache-filter-regexps)
     (goto-char (point-min))
     (delete-matching-lines elt))
   (goto-char (point-min))
-  (let ((full-filename))
-    (while (re-search-forward
-	    (or regexp file-cache-buffer-default-regexp)
-	    (point-max) t)
-      (setq full-filename (buffer-substring-no-properties
-		      (match-beginning 0) (match-end 0)))
-      (file-cache-add-file full-filename))))
+  (while (re-search-forward file-cache-buffer-default-regexp nil t)
+    (file-cache-add-file (match-string-no-properties 0))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions to delete from the cache
@@ -566,68 +537,65 @@ the directories that the name is available in.  With a prefix argument,
 the name is considered already unique; only the second substitution
 \(directories) is done."
   (interactive "P")
-  (let*
-      (
-       (completion-ignore-case file-cache-completion-ignore-case)
-       (case-fold-search       file-cache-case-fold-search)
-       (string                 (file-name-nondirectory (minibuffer-contents)))
-       (completion-string      (try-completion string file-cache-alist))
-       (completion-list)
-       (len)
-       (file-cache-string))
+  (let* ((completion-ignore-case file-cache-completion-ignore-case)
+         (case-fold-search       file-cache-case-fold-search)
+         (string                 (file-name-nondirectory (minibuffer-contents)))
+         (completion             (completion-try-completion
+                                  string file-cache-alist nil 0)))
     (cond
      ;; If it's the only match, replace the original contents
-     ((or arg (eq completion-string t))
-      (setq file-cache-string (file-cache-file-name string))
-      (if (string= file-cache-string (minibuffer-contents))
-	  (minibuffer-message file-cache-sole-match-message)
-	(delete-minibuffer-contents)
-	(insert file-cache-string)
-	(if file-cache-multiple-directory-message
-	    (minibuffer-message file-cache-multiple-directory-message))))
+     ((or arg (eq completion t))
+      (let ((file-name (file-cache-file-name string)))
+        (if (string= file-name (minibuffer-contents))
+            (minibuffer-message file-cache-sole-match-message)
+          (delete-minibuffer-contents)
+          (insert file-name)
+          (if file-cache-multiple-directory-message
+              (minibuffer-message file-cache-multiple-directory-message)))))
 
      ;; If it's the longest match, insert it
-     ((stringp completion-string)
-      ;; If we've already inserted a unique string, see if the user
-      ;; wants to use that one
-      (if (and (string= string completion-string)
-	       (assoc-string string file-cache-alist
-			     file-cache-ignore-case))
-	  (if (and (eq last-command this-command)
-		   (string= file-cache-last-completion completion-string))
-	      (progn
-		(delete-minibuffer-contents)
-		(insert (file-cache-file-name completion-string))
-		(setq file-cache-last-completion nil))
-	    (minibuffer-message file-cache-non-unique-message)
-	    (setq file-cache-last-completion string))
-	(setq file-cache-last-completion string)
-	(setq completion-list (all-completions string file-cache-alist)
-	      len             (length completion-list))
-	(if (> len 1)
-	    (progn
-	      (goto-char (point-max))
-	      (insert
-	       (substring completion-string (length string)))
-	      ;; Add our own setup function to the Completions Buffer
-	      (let ((completion-setup-hook
-                     (append completion-setup-hook
-                             (list 'file-cache-completion-setup-function))))
-		(with-output-to-temp-buffer file-cache-completions-buffer
-		  (display-completion-list
-                   (completion-hilit-commonality completion-list
-                                                 (length string))))))
-	  (setq file-cache-string (file-cache-file-name completion-string))
-	  (if (string= file-cache-string (minibuffer-contents))
-	      (minibuffer-message file-cache-sole-match-message)
-	    (delete-minibuffer-contents)
-	    (insert file-cache-string)
-	    (if file-cache-multiple-directory-message
-		(minibuffer-message file-cache-multiple-directory-message)))
-	  )))
+     ((consp completion)
+      (let ((newstring (car completion))
+            (newpoint  (cdr completion)))
+        ;; If we've already inserted a unique string, see if the user
+        ;; wants to use that one
+        (if (and (string= string newstring)
+                 (assoc-string string file-cache-alist
+                               file-cache-ignore-case))
+            (if (and (eq last-command this-command)
+                     (string= file-cache-last-completion newstring))
+                (progn
+                  (delete-minibuffer-contents)
+                  (insert (file-cache-file-name newstring))
+                  (setq file-cache-last-completion nil))
+              (minibuffer-message file-cache-non-unique-message)
+              (setq file-cache-last-completion string))
+          (setq file-cache-last-completion string)
+          (let* ((completion-list (completion-all-completions
+                                   newstring file-cache-alist nil newpoint))
+                 (base-size       (cdr (last completion-list))))
+            (when base-size
+              (setcdr (last completion-list) nil))
+            (if (> (length completion-list) 1)
+                (progn
+                  (delete-region (- (point-max) (length string)) (point-max))
+                  (save-excursion (insert newstring))
+                  (forward-char newpoint)
+                  (with-output-to-temp-buffer file-cache-completions-buffer
+                    (display-completion-list completion-list)
+                    ;; Add our own setup function to the Completions Buffer
+                    (file-cache-completion-setup-function)))
+              (let ((file-name (file-cache-file-name newstring)))
+                (if (string= file-name (minibuffer-contents))
+                    (minibuffer-message file-cache-sole-match-message)
+                  (delete-minibuffer-contents)
+                  (insert file-name)
+                  (if file-cache-multiple-directory-message
+                      (minibuffer-message
+                       file-cache-multiple-directory-message)))))))))
 
      ;; No match
-     ((eq completion-string nil)
+     ((eq completion nil)
       (minibuffer-message file-cache-no-match-message)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -647,7 +615,7 @@ the name is considered already unique; only the second substitution
     (file-cache-minibuffer-complete nil)))
 
 (define-obsolete-function-alias 'file-cache-mouse-choose-completion
-  'file-cache-choose-completion "23.2")
+  #'file-cache-choose-completion "23.2")
 
 (defun file-cache-complete  ()
   "Complete the word at point, using the filecache."

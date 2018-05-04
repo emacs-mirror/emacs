@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1999, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -25,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -317,6 +317,20 @@ If parsing fails, try to set this variable to nil."
       ("organization" "Sponsoring organization of the conference")
       ("publisher" "Publishing company, its location")
       ("note")))
+    ("Conference" "Article in Conference Proceedings" ; same as InProceedings
+     (("author")
+      ("title" "Title of the article in proceedings (BibTeX converts it to lowercase)"))
+     (("booktitle" "Name of the conference proceedings")
+      ("year"))
+     (("editor")
+      ("volume" "Volume of the conference proceedings in the series")
+      ("number" "Number of the conference proceedings in a small series (overwritten by volume)")
+      ("series" "Series in which the conference proceedings appeared")
+      ("pages" "Pages in the conference proceedings")
+      ("month") ("address")
+      ("organization" "Sponsoring organization of the conference")
+      ("publisher" "Publishing company, its location")
+      ("note")))
     ("InCollection" "Article in a Collection"
      (("author")
       ("title" "Title of the article in book (BibTeX converts it to lowercase)")
@@ -433,7 +447,7 @@ is present; but these fields are required otherwise.
 OPTIONAL is a list of optional fields.
 
 Each element of these lists is a list of the form
-  \(FIELD COMMENT INIT ALTERNATIVE).
+  (FIELD COMMENT INIT ALTERNATIVE).
 COMMENT, INIT, and ALTERNATIVE are optional.
 
 FIELD is the name of the field.
@@ -444,7 +458,7 @@ which is called to determine the initial content of the field.
 ALTERNATIVE if non-nil is an integer that numbers sets of
 alternatives, starting from zero."
   :group 'BibTeX
-  :version "24.1"
+  :version "26.1"                       ; add Conference
   :type 'bibtex-entry-alist)
 (put 'bibtex-BibTeX-entry-alist 'risky-local-variable t)
 
@@ -1024,6 +1038,9 @@ See `bibtex-generate-autokey' for details."
   :type '(repeat (cons (regexp :tag "Old")
                        (string :tag "New"))))
 
+(defvaralias 'bibtex-autokey-name-case-convert
+  'bibtex-autokey-name-case-convert-function)
+
 (defcustom bibtex-autokey-name-case-convert-function 'downcase
   "Function called for each name to perform case conversion.
 See `bibtex-generate-autokey' for details."
@@ -1035,8 +1052,6 @@ See `bibtex-generate-autokey' for details."
                  (function :tag "Conversion function")))
 (put 'bibtex-autokey-name-case-convert-function 'safe-local-variable
      (lambda (x) (memq x '(upcase downcase capitalize identity))))
-(defvaralias 'bibtex-autokey-name-case-convert
-  'bibtex-autokey-name-case-convert-function)
 
 (defcustom bibtex-autokey-name-length 'infty
   "Number of characters from name to incorporate into key.
@@ -1099,6 +1114,9 @@ Case is significant.  See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type '(repeat regexp))
 
+(defvaralias 'bibtex-autokey-titleword-case-convert
+  'bibtex-autokey-titleword-case-convert-function)
+
 (defcustom bibtex-autokey-titleword-case-convert-function 'downcase
   "Function called for each titleword to perform case conversion.
 See `bibtex-generate-autokey' for details."
@@ -1108,8 +1126,6 @@ See `bibtex-generate-autokey' for details."
                  (const :tag "Capitalize" capitalize)
                  (const :tag "Upcase" upcase)
                  (function :tag "Conversion function")))
-(defvaralias 'bibtex-autokey-titleword-case-convert
-  'bibtex-autokey-titleword-case-convert-function)
 
 (defcustom bibtex-autokey-titleword-abbrevs nil
   "Determines exceptions to the usual abbreviation mechanism.
@@ -1503,7 +1519,7 @@ At most `bibtex-entry-kill-ring-max' items are kept here.")
   "The tail of `bibtex-entry-kill-ring' whose car is the last item yanked.")
 
 (defvar bibtex-last-kill-command nil
-  "Type of the last kill command (either 'field or 'entry).")
+  "Type of the last kill command (either `field' or `entry').")
 
 (defvar bibtex-strings
   (lazy-completion-table bibtex-strings
@@ -2573,7 +2589,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 
 (defun bibtex-field-re-init (regexp-alist type)
   "Calculate optimized value for bibtex-regexp-TYPE-opt.
-This value is based on bibtex-regexp-TYPE-alist.  TYPE is 'braces or 'strings.
+This value is based on bibtex-regexp-TYPE-alist.  TYPE is `braces' or `strings'.
 Return optimized value to be used by `bibtex-format-entry'."
   (setq regexp-alist
         (mapcar (lambda (e)
@@ -2620,7 +2636,7 @@ is returned unchanged."
   "Get content of BibTeX field FIELD.  Return empty string if not found.
 Optional arg CHANGE-LIST is a list of substitution patterns that is
 applied to the content of FIELD.  It is an alist with pairs
-\(OLD-REGEXP . NEW-STRING\)."
+\(OLD-REGEXP . NEW-STRING)."
   (let* ((bibtex-expand-strings bibtex-autokey-expand-strings)
          (content (bibtex-text-in-field field bibtex-autokey-use-crossref))
         case-fold-search)
@@ -2918,7 +2934,7 @@ for parsing BibTeX keys.  If parsing fails, try to set this variable to nil."
               (if verbose
                   (bibtex-progress-message 'done))
               ;; successful operation --> return `bibtex-reference-keys'
-              (setq bibtex-reference-keys ref-keys)))))))
+              (setq bibtex-reference-keys (nreverse ref-keys))))))))
 
 (defun bibtex-parse-strings (&optional add abortable)
   "Set `bibtex-strings' to the string definitions in the whole buffer.
@@ -3647,7 +3663,7 @@ If optional arg CONTENT is non-nil extract content of text fields."
 (defun bibtex-autofill-entry ()
   "Try to fill fields of current BibTeX entry based on neighboring entries.
 The current entry must have a key.  Determine the neighboring entry
-\(previous or next\) whose key is more similar to the key of the current
+\(previous or next) whose key is more similar to the key of the current
 entry.  For all empty fields of the current entry insert the corresponding
 field contents of the neighboring entry.  Finally try to update the text
 based on the difference between the keys of the neighboring and the current
@@ -3857,7 +3873,7 @@ Otherwise display the beginning of entry."
 (defun bibtex-mark-entry ()
   "Put mark at beginning, point at end of current BibTeX entry."
   (interactive)
-  (push-mark (bibtex-beginning-of-entry))
+  (push-mark (bibtex-beginning-of-entry) :activate t)
   (bibtex-end-of-entry))
 
 (defun bibtex-count-entries (&optional count-string-entries)
@@ -4911,23 +4927,26 @@ If mark is active reformat entries in region, if not in whole buffer."
           (cond (read-options
                  (if use-previous-options
                      bibtex-reformat-previous-options
-                   (setq bibtex-reformat-previous-options
-                         (delq nil
-                               (mapcar (lambda (option)
-                                         (if (y-or-n-p (car option)) (cdr option)))
-                                       `(("Realign entries (recommended)? " . realign)
-                                         ("Remove empty optional and alternative fields? " . opts-or-alts)
-                                         ("Remove delimiters around pure numerical fields? " . numerical-fields)
-                                         (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
-                                                   " comma at end of entry? ") . last-comma)
-                                         ("Replace double page dashes by single ones? " . page-dashes)
-                                         ("Delete whitespace at the beginning and end of fields? " . whitespace)
-                                         ("Inherit booktitle? " . inherit-booktitle)
-                                         ("Force delimiters? " . delimiters)
-                                         ("Unify case of entry types and field names? " . unify-case)
-                                         ("Enclose parts of field entries by braces? " . braces)
-                                         ("Replace parts of field entries by string constants? " . strings)
-                                         ("Sort fields? " . sort-fields)))))))
+                   (let (answers)
+                     (map-y-or-n-p
+                      #'car
+                      (lambda (option)
+                        (push (cdr option) answers))
+                      `(("Realign entries (recommended)? " . realign)
+                        ("Remove empty optional and alternative fields? " . opts-or-alts)
+                        ("Remove delimiters around pure numerical fields? " . numerical-fields)
+                        (,(concat (if bibtex-comma-after-last-field "Insert" "Remove")
+                                  " comma at end of entry? ") . last-comma)
+                        ("Replace double page dashes by single ones? " . page-dashes)
+                        ("Delete whitespace at the beginning and end of fields? " . whitespace)
+                        ("Inherit booktitle? " . inherit-booktitle)
+                        ("Force delimiters? " . delimiters)
+                        ("Unify case of entry types and field names? " . unify-case)
+                        ("Enclose parts of field entries by braces? " . braces)
+                        ("Replace parts of field entries by string constants? " . strings)
+                        ("Sort fields? " . sort-fields))
+                      '("formatting action" "formatting actions" "perform"))
+                     (setq bibtex-reformat-previous-options (nreverse answers)))))
                 ;; Do not include required-fields because `bibtex-reformat'
                 ;; cannot handle the error messages of `bibtex-format-entry'.
                 ;; Use `bibtex-validate' to check for required fields.
@@ -5111,7 +5130,7 @@ entries from minibuffer."
   "Browse a URL for the BibTeX entry at point.
 Optional POS is the location of the BibTeX entry.
 The URL is generated using the schemes defined in `bibtex-generate-url-list'
-\(see there\).  If multiple schemes match for this entry, or the same scheme
+\(see there).  If multiple schemes match for this entry, or the same scheme
 matches more than once, use the one for which the first step's match is the
 closest to POS.  The URL is passed to `browse-url' unless NO-BROWSE is t.
 Return the URL or nil if none can be generated."

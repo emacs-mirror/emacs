@@ -1,13 +1,13 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2015 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,27 +15,22 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 #include <errno.h>
-#include <stdio.h>
 
 #include <binary-io.h>
 
 #include "lisp.h"
-#include "commands.h"
 #include "character.h"
 #include "buffer.h"
-#include "dispextern.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
-#include "syntax.h"
-#include "intervals.h"
 #include "keymap.h"
-#include "termhooks.h"
+#include "sysstdio.h"
 #include "systty.h"
 
 /* List of buffers for use as minibuffers.
@@ -199,7 +194,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   int c;
   unsigned char hide_char = 0;
   struct emacs_tty etty;
-  bool etty_valid;
+  bool etty_valid UNINIT;
 
   /* Check, whether we need to suppress echoing.  */
   if (CHARACTERP (Vread_hide_char))
@@ -208,21 +203,21 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   /* Manipulate tty.  */
   if (hide_char)
     {
-      etty_valid = emacs_get_tty (fileno (stdin), &etty) == 0;
+      etty_valid = emacs_get_tty (STDIN_FILENO, &etty) == 0;
       if (etty_valid)
-	set_binary_mode (fileno (stdin), O_BINARY);
-      suppress_echo_on_tty (fileno (stdin));
+	set_binary_mode (STDIN_FILENO, O_BINARY);
+      suppress_echo_on_tty (STDIN_FILENO);
     }
 
-  fwrite (SDATA (prompt), 1, SBYTES (prompt), stdout);
-  fflush (stdout);
+  fwrite_unlocked (SDATA (prompt), 1, SBYTES (prompt), stdout);
+  fflush_unlocked (stdout);
 
   val = Qnil;
   size = 100;
   len = 0;
   line = xmalloc (size);
 
-  while ((c = getchar ()) != '\n' && c != '\r')
+  while ((c = getchar_unlocked ()) != '\n' && c != '\r')
     {
       if (c == EOF)
 	{
@@ -234,12 +229,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	  if (hide_char)
 	    fprintf (stdout, "%c", hide_char);
 	  if (len == size)
-	    {
-	      if (STRING_BYTES_BOUND / 2 < size)
-		memory_full (SIZE_MAX);
-	      size *= 2;
-	      line = xrealloc (line, size);
-	    }
+	    line = xpalloc (line, &size, 1, -1, sizeof *line);
 	  line[len++] = c;
 	}
     }
@@ -250,8 +240,8 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
       fprintf (stdout, "\n");
       if (etty_valid)
 	{
-	  emacs_set_tty (fileno (stdin), &etty, 0);
-	  set_binary_mode (fileno (stdin), O_TEXT);
+	  emacs_set_tty (STDIN_FILENO, &etty, 0);
+	  set_binary_mode (STDIN_FILENO, O_TEXT);
 	}
     }
 
@@ -333,19 +323,6 @@ If the current buffer is not a minibuffer, return its entire contents.  */)
 {
   ptrdiff_t prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 0);
-}
-
-DEFUN ("minibuffer-completion-contents", Fminibuffer_completion_contents,
-       Sminibuffer_completion_contents, 0, 0, 0,
-       doc: /* Return the user input in a minibuffer before point as a string.
-That is what completion commands operate on.
-If the current buffer is not a minibuffer, return its entire contents.  */)
-  (void)
-{
-  ptrdiff_t prompt_end = XINT (Fminibuffer_prompt_end ());
-  if (PT < prompt_end)
-    error ("Cannot do completion in the prompt");
-  return make_buffer_string (prompt_end, PT, 1);
 }
 
 
@@ -507,6 +484,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
+  minibuf_save_list
+    = Fcons (Fthis_command_keys_vector (), minibuf_save_list);
 
   record_unwind_protect_void (read_minibuf_unwind);
   minibuf_level++;
@@ -616,9 +595,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   XWINDOW (minibuf_window)->hscroll = 0;
   XWINDOW (minibuf_window)->suspend_auto_hscroll = 0;
 
-  Fmake_local_variable (Qprint_escape_newlines);
-  print_escape_newlines = 1;
-
   /* Erase the buffer.  */
   {
     ptrdiff_t count1 = SPECPDL_INDEX ();
@@ -640,8 +616,31 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 			    Qrear_nonsticky, Qt, Qnil);
 	Fput_text_property (make_number (BEG), make_number (PT),
 			    Qfield, Qt, Qnil);
-	Fadd_text_properties (make_number (BEG), make_number (PT),
-			      Vminibuffer_prompt_properties, Qnil);
+	if (CONSP (Vminibuffer_prompt_properties))
+	  {
+	    /* We want to apply all properties from
+	       `minibuffer-prompt-properties' to the region normally,
+	       but if the `face' property is present, add that
+	       property to the end of the face properties to avoid
+	       overwriting faces. */
+	    Lisp_Object list = Vminibuffer_prompt_properties;
+	    while (CONSP (list))
+	      {
+		Lisp_Object key = XCAR (list);
+		list = XCDR (list);
+		if (CONSP (list))
+		  {
+		    Lisp_Object val = XCAR (list);
+		    list = XCDR (list);
+		    if (EQ (key, Qface))
+		      Fadd_face_text_property (make_number (BEG),
+					       make_number (PT), val, Qt, Qnil);
+		    else
+		      Fput_text_property (make_number (BEG), make_number (PT),
+					  key, val, Qnil);
+		  }
+	      }
+	  }
       }
     unbind_to (count1, Qnil);
   }
@@ -703,44 +702,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     histstring = Qnil;
 
   /* Add the value to the appropriate history list, if any.  */
-  if (!NILP (Vhistory_add_new_input)
-      && SYMBOLP (Vminibuffer_history_variable)
-      && !NILP (histstring))
-    {
-      /* If the caller wanted to save the value read on a history list,
-	 then do so if the value is not already the front of the list.  */
-
-      /* The value of the history variable must be a cons or nil.  Other
-	 values are unacceptable.  We silently ignore these values.  */
-
-      if (NILP (histval)
-	  || (CONSP (histval)
-	      /* Don't duplicate the most recent entry in the history.  */
-	      && (NILP (Fequal (histstring, Fcar (histval))))))
-	{
-	  Lisp_Object length;
-
-	  if (history_delete_duplicates) Fdelete (histstring, histval);
-	  histval = Fcons (histstring, histval);
-	  Fset (Vminibuffer_history_variable, histval);
-
-	  /* Truncate if requested.  */
-	  length = Fget (Vminibuffer_history_variable, Qhistory_length);
-	  if (NILP (length)) length = Vhistory_length;
-	  if (INTEGERP (length))
-	    {
-	      if (XINT (length) <= 0)
-		Fset (Vminibuffer_history_variable, Qnil);
-	      else
-		{
-		  Lisp_Object temp;
-
-		  temp = Fnthcdr (Fsub1 (length), histval);
-		  if (CONSP (temp)) Fsetcdr (temp, Qnil);
-		}
-	    }
-	}
-    }
+  if (! (NILP (Vhistory_add_new_input) || NILP (histstring)))
+    call2 (intern ("add-to-history"), Vminibuffer_history_variable, histstring);
 
   /* If Lisp form desired instead of string, parse it.  */
   if (expflag)
@@ -752,27 +715,25 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 }
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
- depth = 0 is the lowest allowed argument, and that is the value
- used for nonrecursive minibuffer invocations.  */
+   depth = 0 is the lowest allowed argument, and that is the value
+   used for nonrecursive minibuffer invocations.  */
 
 Lisp_Object
 get_minibuffer (EMACS_INT depth)
 {
-  Lisp_Object tail, num, buf;
-  char name[sizeof " *Minibuf-*" + INT_STRLEN_BOUND (EMACS_INT)];
-
-  XSETFASTINT (num, depth);
-  tail = Fnthcdr (num, Vminibuffer_list);
+  Lisp_Object tail = Fnthcdr (make_number (depth), Vminibuffer_list);
   if (NILP (tail))
     {
       tail = list1 (Qnil);
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
     }
-  buf = Fcar (tail);
+  Lisp_Object buf = Fcar (tail);
   if (NILP (buf) || !BUFFER_LIVE_P (XBUFFER (buf)))
     {
-      buf = Fget_buffer_create
-	(make_formatted_string (name, " *Minibuf-%"pI"d*", depth));
+      static char const name_fmt[] = " *Minibuf-%"pI"d*";
+      char name[sizeof name_fmt + INT_STRLEN_BOUND (EMACS_INT)];
+      AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, depth));
+      buf = Fget_buffer_create (lname);
 
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */
@@ -825,6 +786,11 @@ read_minibuf_unwind (void)
   Fset_buffer (XWINDOW (window)->contents);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
+  Lisp_Object key_vec = Fcar (minibuf_save_list);
+  eassert (VECTORP (key_vec));
+  this_command_key_count = XFASTINT (Flength (key_vec));
+  this_command_keys = key_vec;
+  minibuf_save_list = Fcdr (minibuf_save_list);
   minibuf_prompt = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   minibuf_prompt_width = XFASTINT (Fcar (minibuf_save_list));
@@ -862,6 +828,30 @@ read_minibuf_unwind (void)
      mini-window back to its normal size.  */
   if (minibuf_level == 0)
     resize_mini_window (XWINDOW (window), 0);
+
+  /* Deal with frames that should be removed when exiting the
+     minibuffer.  */
+  {
+    Lisp_Object frames, frame1, val;
+    struct frame *f1;
+
+    FOR_EACH_FRAME (frames, frame1)
+      {
+	f1 = XFRAME (frame1);
+
+	if ((FRAME_PARENT_FRAME (f1)
+	     || !NILP (get_frame_param (f1, Qdelete_before)))
+	    && !NILP (val = (get_frame_param (f1, Qminibuffer_exit))))
+	  {
+	    if (EQ (val, Qiconify_frame))
+	      Ficonify_frame (frame1);
+	    else if (EQ (val, Qdelete_frame))
+	      Fdelete_frame (frame1, Qnil);
+	    else
+	      Fmake_frame_invisible (frame1, Qnil);
+	  }
+      }
+  }
 
   /* In case the previous minibuffer displayed in this miniwindow is
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,
@@ -916,7 +906,7 @@ INITIAL-CONTENTS argument in more detail.  It is only relevant when
 studying existing code, or when HIST is a cons.  If non-nil,
 INITIAL-CONTENTS is a string to be inserted into the minibuffer before
 reading input.  Normally, point is put at the end of that string.
-However, if INITIAL-CONTENTS is \(STRING . POSITION), the initial
+However, if INITIAL-CONTENTS is (STRING . POSITION), the initial
 input is STRING, but point is placed at _one-indexed_ position
 POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
@@ -1061,7 +1051,8 @@ A user option, or customizable variable, is one for which
 
   name = Fcompleting_read (prompt, Vobarray,
 			   Qcustom_variable_p, Qt,
-			   Qnil, Qnil, default_string, Qnil);
+			   Qnil, Qcustom_variable_history,
+			   default_string, Qnil);
   if (NILP (name))
     return name;
   return Fintern (name, Qnil);
@@ -1238,8 +1229,8 @@ is used to further constrain the set of candidates.  */)
 		error ("Bad data in guts of obarray");
 	      elt = bucket;
 	      eltstring = elt;
-	      if (XSYMBOL (bucket)->next)
-		XSETSYMBOL (bucket, XSYMBOL (bucket)->next);
+	      if (XSYMBOL (bucket)->u.s.next)
+		XSETSYMBOL (bucket, XSYMBOL (bucket)->u.s.next);
 	      else
 		XSETFASTINT (bucket, 0);
 	    }
@@ -1491,8 +1482,8 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		error ("Bad data in guts of obarray");
 	      elt = bucket;
 	      eltstring = elt;
-	      if (XSYMBOL (bucket)->next)
-		XSETSYMBOL (bucket, XSYMBOL (bucket)->next);
+	      if (XSYMBOL (bucket)->u.s.next)
+		XSETSYMBOL (bucket, XSYMBOL (bucket)->u.s.next);
 	      else
 		XSETFASTINT (bucket, 0);
 	    }
@@ -1595,12 +1586,15 @@ PROMPT is a string to prompt with; normally it ends in a colon and a space.
 COLLECTION can be a list of strings, an alist, an obarray or a hash table.
 COLLECTION can also be a function to do the completion itself.
 PREDICATE limits completion to a subset of COLLECTION.
-See `try-completion' and `all-completions' for more details
- on completion, COLLECTION, and PREDICATE.
+See `try-completion', `all-completions', `test-completion',
+and `completion-boundaries', for more details on completion,
+COLLECTION, and PREDICATE.  See also Info node `(elisp)Basic Completion'
+for the details about completion, and Info node `(elisp)Programmed
+Completion' for expectations from COLLECTION when it's a function.
 
 REQUIRE-MATCH can take the following values:
-- t means that the user is not allowed to exit unless
-  the input is (or completes to) an element of COLLECTION or is null.
+- t means that the user is not allowed to exit unless the input is (or
+  completes to) an element of COLLECTION or is null.
 - nil means that the user can exit with any input.
 - `confirm' means that the user can exit with any input, but she needs
   to confirm her choice if the input is not an element of COLLECTION.
@@ -1611,19 +1605,19 @@ REQUIRE-MATCH can take the following values:
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
-If the input is null, `completing-read' returns DEF, or the first element
-of the list of default values, or an empty string if DEF is nil,
-regardless of the value of REQUIRE-MATCH.
+If the input is null, `completing-read' returns DEF, or the first
+element of the list of default values, or an empty string if DEF is
+nil, regardless of the value of REQUIRE-MATCH.
 
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially,
-  with point positioned at the end.
-  If it is (STRING . POSITION), the initial input is STRING, but point
-  is placed at _zero-indexed_ position POSITION in STRING.  (*Note*
-  that this is different from `read-from-minibuffer' and related
-  functions, which use one-indexing for POSITION.)  This feature is
-  deprecated--it is best to pass nil for INITIAL-INPUT and supply the
-  default value DEF instead.  The user can yank the default value into
-  the minibuffer easily using \\<minibuffer-local-map>\\[next-history-element].
+  with point positioned at the end.  If it is (STRING . POSITION), the
+  initial input is STRING, but point is placed at _zero-indexed_
+  position POSITION in STRING.  (*Note* that this is different from
+  `read-from-minibuffer' and related functions, which use one-indexing
+  for POSITION.)  This feature is deprecated--it is best to pass nil
+  for INITIAL-INPUT and supply the default value DEF instead.  The
+  user can yank the default value into the minibuffer easily using
+  \\<minibuffer-local-map>\\[next-history-element].
 
 HIST, if non-nil, specifies a history list and optionally the initial
   position in the list.  It can be a symbol, which is the history list
@@ -1631,16 +1625,16 @@ HIST, if non-nil, specifies a history list and optionally the initial
   that case, HISTVAR is the history list variable to use, and HISTPOS
   is the initial position (the position in the list used by the
   minibuffer history commands).  For consistency, you should also
-  specify that element of the history as the value of
-  INITIAL-INPUT.  (This is the only case in which you should use
-  INITIAL-INPUT instead of DEF.)  Positions are counted starting from
-  1 at the beginning of the list.  The variable `history-length'
-  controls the maximum length of a history list.
+  specify that element of the history as the value of INITIAL-INPUT.
+  (This is the only case in which you should use INITIAL-INPUT instead
+  of DEF.)  Positions are counted starting from 1 at the beginning of
+  the list.  The variable `history-length' controls the maximum length
+  of a history list.
 
 DEF, if non-nil, is the default value or the list of default values.
 
-If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
-  the current input method and the setting of `enable-multibyte-characters'.
+If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits the
+  current input method and the setting of `enable-multibyte-characters'.
 
 Completion ignores case if the ambient value of
   `completion-ignore-case' is non-nil.
@@ -1709,9 +1703,9 @@ the values STRING, PREDICATE and `lambda'.  */)
 			tem = tail;
 			break;
 		      }
-		    if (XSYMBOL (tail)->next == 0)
+		    if (XSYMBOL (tail)->u.s.next == 0)
 		      break;
-		    XSETSYMBOL (tail, XSYMBOL (tail)->next);
+		    XSETSYMBOL (tail, XSYMBOL (tail)->u.s.next);
 		  }
 	    }
 	}
@@ -1722,26 +1716,27 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
-      Lisp_Object key = Qnil;
       i = hash_lookup (h, string, NULL);
       if (i >= 0)
-	tem = HASH_KEY (h, i);
+        {
+          tem = HASH_KEY (h, i);
+          goto found_matching_key;
+        }
       else
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
-	  if (!NILP (HASH_HASH (h, i))
-	      && (key = HASH_KEY (h, i),
-		  SYMBOLP (key) ? key = Fsymbol_name (key) : key,
-		  STRINGP (key))
-	      && EQ (Fcompare_strings (string, make_number (0), Qnil,
-				       key, make_number (0) , Qnil,
-				       completion_ignore_case ? Qt : Qnil),
-		     Qt))
-	    {
-	      tem = key;
-	      break;
-	    }
-      if (!STRINGP (tem))
-	return Qnil;
+          {
+            if (NILP (HASH_HASH (h, i))) continue;
+            tem = HASH_KEY (h, i);
+            Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
+            if (!STRINGP (strkey)) continue;
+            if (EQ (Fcompare_strings (string, Qnil, Qnil,
+                                      strkey, Qnil, Qnil,
+                                      completion_ignore_case ? Qt : Qnil),
+                    Qt))
+              goto found_matching_key;
+          }
+      return Qnil;
+    found_matching_key: ;
     }
   else
     return call3 (collection, string, predicate, Qlambda);
@@ -1754,9 +1749,9 @@ the values STRING, PREDICATE and `lambda'.  */)
       for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 	   regexps = XCDR (regexps))
 	{
-	  if (NILP (Fstring_match (XCAR (regexps),
-				   SYMBOLP (tem) ? string : tem,
-				   Qnil)))
+          /* We can test against STRING, because if we got here, then
+             the element is equivalent to it.  */
+          if (NILP (Fstring_match (XCAR (regexps), string, Qnil)))
 	    return unbind_to (count, Qnil);
 	}
       unbind_to (count, Qnil);
@@ -1824,8 +1819,8 @@ DEFUN ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
 This returns the first element of LIST whose car matches the string or
 symbol KEY, or nil if no match exists.  When performing the
 comparison, symbols are first converted to strings, and unibyte
-strings to multibyte.  If the optional arg CASE-FOLD is non-nil, case
-is ignored.
+strings to multibyte.  If the optional arg CASE-FOLD is non-nil, both
+KEY and the elements of LIST are upcased for comparison.
 
 Unlike `assoc', KEY can also match an entry in LIST consisting of a
 single string, rather than a cons cell whose car is a string.  */)
@@ -1850,7 +1845,7 @@ single string, rather than a cons cell whose car is a string.  */)
 			      case_fold);
       if (EQ (tem, Qt))
 	return elt;
-      QUIT;
+      maybe_quit ();
     }
   return Qnil;
 }
@@ -1898,6 +1893,9 @@ syms_of_minibuf (void)
   staticpro (&last_minibuf_string);
   last_minibuf_string = Qnil;
 
+  DEFSYM (Qcustom_variable_history, "custom-variable-history");
+  Fset (Qcustom_variable_history, Qnil);
+
   DEFSYM (Qminibuffer_history, "minibuffer-history");
   DEFSYM (Qbuffer_name_history, "buffer-name-history");
   Fset (Qbuffer_name_history, Qnil);
@@ -1915,6 +1913,8 @@ syms_of_minibuf (void)
   DEFSYM (Qactivate_input_method, "activate-input-method");
   DEFSYM (Qcase_fold_search, "case-fold-search");
   DEFSYM (Qmetadata, "metadata");
+  /* A frame parameter.  */
+  DEFSYM (Qminibuffer_exit, "minibuffer-exit");
 
   DEFVAR_LISP ("read-expression-history", Vread_expression_history,
 	       doc: /* A history list for arguments that are Lisp expressions to evaluate.
@@ -1973,7 +1973,9 @@ controls the behavior, rather than this variable.  */);
 
   DEFVAR_BOOL ("enable-recursive-minibuffers", enable_recursive_minibuffers,
 	       doc: /* Non-nil means to allow minibuffer commands while in the minibuffer.
-This variable makes a difference whenever the minibuffer window is active. */);
+This variable makes a difference whenever the minibuffer window is active.
+Also see `minibuffer-depth-indicate-mode', which may be handy if this
+variable is non-nil. */);
   enable_recursive_minibuffers = 0;
 
   DEFVAR_LISP ("minibuffer-completion-table", Vminibuffer_completion_table,
@@ -2077,7 +2079,6 @@ characters.  This variable should never be set globally.  */);
   defsubr (&Sminibuffer_prompt_end);
   defsubr (&Sminibuffer_contents);
   defsubr (&Sminibuffer_contents_no_properties);
-  defsubr (&Sminibuffer_completion_contents);
 
   defsubr (&Stry_completion);
   defsubr (&Sall_completions);

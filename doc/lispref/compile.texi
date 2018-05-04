@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2015 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -88,10 +88,14 @@ the @code{byte-compile} function.  You can compile a whole file with
 @code{byte-compile-file}, or several files with
 @code{byte-recompile-directory} or @code{batch-byte-compile}.
 
+@vindex byte-compile-debug
   Sometimes, the byte compiler produces warning and/or error messages
-(@pxref{Compiler Errors}, for details).  These messages are recorded
-in a buffer called @file{*Compile-Log*}, which uses Compilation mode.
-@xref{Compilation Mode,,,emacs, The GNU Emacs Manual}.
+(@pxref{Compiler Errors}, for details).  These messages are normally
+recorded in a buffer called @file{*Compile-Log*}, which uses
+Compilation mode.  @xref{Compilation Mode,,,emacs, The GNU Emacs
+Manual}.  However, if the variable @code{byte-compile-debug} is
+non-@code{nil}, error messages will be signaled as Lisp errors instead
+(@pxref{Errors}).
 
 @cindex macro compilation
   Be careful when writing macro calls in files that you intend to
@@ -140,7 +144,7 @@ definition of @var{symbol} (@pxref{Byte-Code Objects}).
 
 If @var{symbol}'s definition is a byte-code function object,
 @code{byte-compile} does nothing and returns @code{nil}.  It does not
-``compile the symbol's definition again'', since the original
+compile the symbol's definition again, since the original
 (non-compiled) code has already been replaced in the symbol's function
 cell by the byte-compiled code.
 
@@ -157,7 +161,7 @@ function.
 
 @code{compile-defun} normally displays the result of evaluation in the
 echo area, but if @var{arg} is non-@code{nil}, it inserts the result
-in the current buffer after the form it compiled.
+in the current buffer after the form it has compiled.
 @end deffn
 
 @deffn Command byte-compile-file filename &optional load
@@ -242,7 +246,7 @@ $ emacs -batch -f batch-byte-compile *.el
 
   When Emacs loads functions and variables from a byte-compiled file,
 it normally does not load their documentation strings into memory.
-Each documentation string is ``dynamically'' loaded from the
+Each documentation string is dynamically loaded from the
 byte-compiled file only when needed.  This saves memory, and speeds up
 loading by skipping the processing of the documentation strings.
 
@@ -280,7 +284,7 @@ Internally, the dynamic loading of documentation strings is
 accomplished by writing compiled files with a special Lisp reader
 construct, @samp{#@@@var{count}}.  This construct skips the next
 @var{count} characters.  It also uses the @samp{#$} construct, which
-stands for ``the name of this file, as a string''.  Do not use these
+stands for the name of this file, as a string.  Do not use these
 constructs in Lisp source files; they are not designed to be clear to
 humans reading the file.
 
@@ -430,6 +434,7 @@ to what @code{eval-when-compile} does.
 @node Compiler Errors
 @section Compiler Errors
 @cindex compiler errors
+@cindex byte-compiler errors
 
   Error and warning messages from byte compilation are printed in a
 buffer named @file{*Compile-Log*}.  These messages include file names
@@ -438,7 +443,7 @@ Emacs commands for operating on compiler output can be used on these
 messages.
 
   When an error is due to invalid syntax in the program, the byte
-compiler might get confused about the errors' exact location.  One way
+compiler might get confused about the error's exact location.  One way
 to investigate is to switch to the buffer @w{@file{ *Compiler
 Input*}}.  (This buffer name starts with a space, so it does not show
 up in the Buffer Menu.)  This buffer contains the program being
@@ -446,6 +451,10 @@ compiled, and point shows how far the byte compiler was able to read;
 the cause of the error might be nearby.  @xref{Syntax Errors}, for
 some tips for locating syntax errors.
 
+@cindex byte-compiler warnings
+@cindex free variable, byte-compiler warning
+@cindex reference to free variable, compilation warning
+@cindex function not known to be defined, compilation warning
   A common type of warning issued by the byte compiler is for
 functions and variables that were used but not defined.  Such warnings
 report the line number for the end of the file, not the locations
@@ -486,12 +495,14 @@ The reference to @var{variable} must be in the @var{then-form} of the
 
 @item
 You can tell the compiler that a function is defined using
-@code{declare-function}. @xref{Declaring Functions}.
+@code{declare-function}.  @xref{Declaring Functions}.
 
 @item
 Likewise, you can tell the compiler that a variable is defined using
 @code{defvar} with no initial value.  (Note that this marks the
-variable as special.)  @xref{Defining Variables}.
+variable as special, i.e.@: dynamically bound, but only within the
+current lexical scope, or file if at top-level.)  @xref{Defining
+Variables}.
 @end itemize
 
   You can also suppress any and all compiler warnings within a certain
@@ -514,6 +525,11 @@ one you intend to suppress.
 the variable @code{byte-compile-warnings}.  See its documentation
 string for details.
 
+@vindex byte-compile-error-on-warn
+  Sometimes you may wish the byte-compiler warnings to be reported
+using @code{error}.  If so, set @code{byte-compile-error-on-warn} to a
+non-@code{nil} value.
+
 @node Byte-Code Objects
 @section Byte-Code Function Objects
 @cindex compiled function
@@ -533,8 +549,19 @@ there is no maximum number, but only the first six elements have any
 normal use.  They are:
 
 @table @var
-@item arglist
-The list of argument symbols.
+@item argdesc
+The descriptor of the arguments.  This can either be a list of
+arguments, as described in @ref{Argument List}, or an integer encoding
+the required number of arguments.  In the latter case, the value of
+the descriptor specifies the minimum number of arguments in the bits
+zero to 6, and the maximum number of arguments in bits 8 to 14.  If
+the argument list uses @code{&rest}, then bit 7 is set; otherwise it's
+cleared.
+
+If @var{argdesc} is a list, the arguments will be dynamically bound
+before executing the byte code.  If @var{argdesc} is an integer, the
+arguments will be instead pushed onto the stack of the byte-code
+interpreter, before executing the code.
 
 @item byte-code
 The string containing the byte-code instructions.
@@ -562,11 +589,11 @@ representation.  It is the definition of the command
 @code{backward-sexp}.
 
 @example
-#[(&optional arg)
-  "^H\204^F^@@\301^P\302^H[!\207"
-  [arg 1 forward-sexp]
-  2
-  254435
+#[256
+  "\211\204^G^@@\300\262^A\301^A[!\207"
+  [1 forward-sexp]
+  3
+  1793299
   "^p"]
 @end example
 

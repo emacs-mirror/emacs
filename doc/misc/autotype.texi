@@ -11,7 +11,7 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2015
+Copyright @copyright{} 1994--1995, 1999, 2001--2018
 Free Software Foundation, Inc.
 
 @quotation
@@ -200,7 +200,7 @@ the output from @kbd{M-x list-abbrevs} to make it look like this:
 
 @example
 (c-mode-abbrev-table)
-"if"           0    ""         c-if
+"ifst"           0    ""         c-if
 @end example
 
 @noindent
@@ -243,7 +243,7 @@ Interesting point.  When wrapping skeletons around successive regions, they are
 put at these places.  Point is left at first @code{_} where nothing is wrapped.
 @item @code{>}
 Indent line according to major mode.  When following element is @code{_}, and
-there is a interregion that will be wrapped here, indent that interregion.
+there is an interregion that will be wrapped here, indent that interregion.
 @item @code{&}
 Logical and.  If preceding element moved point, i.e., usually inserted
 something, do following element.
@@ -531,15 +531,17 @@ then @code{time-stamp} is conveniently listed as an option in the
 customization buffer.
 
 @vindex time-stamp-active
+@findex time-stamp-toggle-active
 @vindex time-stamp-format
-@vindex time-stamp-start
+@vindex time-stamp-time-zone
 The time stamp is updated only if the customizable variable
 @code{time-stamp-active} is on, which it is by default; the command
 @code{time-stamp-toggle-active} can be used to toggle it.  The format of
-the time stamp is set by the customizable variable
-@code{time-stamp-format}.
+the time stamp is set by the customizable variables
+@code{time-stamp-format} and @code{time-stamp-time-zone}.
 
 @vindex time-stamp-line-limit
+@vindex time-stamp-start
 @vindex time-stamp-end
 @vindex time-stamp-count
 @vindex time-stamp-inserts-lines
@@ -579,7 +581,7 @@ specify that @kbd{M-x quickurl} should insert @var{URL} if the word
 @var{key} is at point, for example:
 
 @example
-(("FSF"      "http://www.fsf.org/" "The Free Software Foundation")
+(("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
  ("emacs"  . "http://www.emacs.org/")
  ("hagbard"  "http://www.hagbard.demon.co.uk" "Hagbard's World"))
 @end example

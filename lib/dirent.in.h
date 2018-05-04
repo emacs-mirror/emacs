@@ -1,5 +1,5 @@
 /* A GNU-like <dirent.h>.
-   Copyright (C) 2006-2015 Free Software Foundation, Inc.
+   Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _@GUARD_PREFIX@_DIRENT_H
 
@@ -158,6 +158,13 @@ _GL_WARN_ON_USE (closedir, "closedir is not portable - "
 #  endif
 _GL_FUNCDECL_RPL (dirfd, int, (DIR *) _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (dirfd, int, (DIR *));
+
+#  ifdef __KLIBC__
+/* Gnulib internal hooks needed to maintain the dirfd metadata.  */
+_GL_EXTERN_C int _gl_register_dirp_fd (int fd, DIR *dirp)
+     _GL_ARG_NONNULL ((2));
+_GL_EXTERN_C void _gl_unregister_dirp_fd (int fd);
+#  endif
 # else
 #  if defined __cplusplus && defined GNULIB_NAMESPACE && defined dirfd
     /* dirfd is defined as a macro and not as a function.

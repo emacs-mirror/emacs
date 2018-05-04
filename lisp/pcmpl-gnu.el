@@ -1,6 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -125,7 +125,7 @@
 	(while (re-search-forward
 		(concat "^\\s-*\\([^\n#%.$][^:=\n]*\\)\\s-*:[^=]") nil t)
 	  (setq rules (append (split-string (match-string 1)) rules))))
-      (pcomplete-uniqify-list rules))))
+      (pcomplete-uniquify-list rules))))
 
 (defcustom pcmpl-gnu-tarfile-regexp
   "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\|xz\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
@@ -327,6 +327,42 @@
                       file (mapcar #'tar-header-name tar-parse-info)))))
 	      (pcomplete-entries))
 	    nil 'identity))))
+
+;;;###autoload
+
+(defun pcomplete/find ()
+  "Completion for the GNU find utility."
+  (let ((prec (pcomplete-arg 'last -1)))
+    (cond ((and (pcomplete-match "^-" 'last)
+                (string= "find" prec))
+           (pcomplete-opt "HLPDO"))
+          ((pcomplete-match "^-" 'last)
+           (while (pcomplete-here
+                   '("-amin" "-anewer" "-atime" "-cmin" "-cnewer" "-context"
+                     "-ctime" "-daystart" "-delete" "-depth" "-empty" "-exec"
+                     "-execdir" "-executable" "-false" "-fls" "-follow"
+                     "-fprint" "-fprint0" "-fprintf" "-fstype" "-gid" "-group"
+                     "-help" "-ignore_readdir_race" "-ilname" "-iname"
+                     "-inum" "-ipath" "-iregex" "-iwholename"
+                     "-links" "-lname" "-ls" "-maxdepth"
+                     "-mindepth" "-mmin" "-mount" "-mtime"
+                     "-name" "-newer" "-nogroup" "-noignore_readdir_race"
+                     "-noleaf" "-nouser" "-nowarn" "-ok"
+                     "-okdir" "-path" "-perm" "-print"
+                     "-print0" "-printf" "-prune" "-quit"
+                     "-readable" "-regex" "-regextype" "-samefile"
+                     "-size" "-true" "-type" "-uid"
+                     "-used" "-user" "-version" "-warn"
+                     "-wholename" "-writable" "-xdev" "-xtype"))))
+          ((string= "-type" prec)
+           (while (pcomplete-here (list "b" "c" "d" "p" "f" "l" "s" "D"))))
+          ((string= "-xtype" prec)
+           (while (pcomplete-here (list "b" "c" "d" "p" "f" "l" "s"))))
+          ((or (string= prec "-exec")
+               (string= prec "-execdir"))
+           (while (pcomplete-here* (funcall pcomplete-command-completion-function)
+                                   (pcomplete-arg 'last) t))))
+    (while (pcomplete-here (pcomplete-dirs) nil 'identity))))
 
 ;;;###autoload
 (defalias 'pcomplete/gdb 'pcomplete/xargs)

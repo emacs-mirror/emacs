@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (C) 2008-2015 Free Software Foundation, Inc.
+Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -504,7 +504,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 		</dict>
 	</array>
 
-	<!-- Export definitions so that OS X understands about the file types -->
+	<!-- Export definitions so that macOS understands about the file types -->
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
@@ -673,5 +673,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 			</array>
 		</dict>
 	</array>
+	<key>NSAppleScriptEnabled</key>
+	<string>YES</string>
 </dict>
 </plist>

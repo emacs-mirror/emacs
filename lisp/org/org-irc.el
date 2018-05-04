@@ -1,6 +1,6 @@
-;;; org-irc.el --- Store links to IRC sessions
+;;; org-irc.el --- Store Links to IRC Sessions -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
@@ -18,12 +18,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This file implements links to an IRC session from within Org-mode.
-;; Org-mode loads this module by default - if this is not what you want,
+;; This file implements links to an IRC session from within Org mode.
+;; Org mode loads this module by default - if this is not what you want,
 ;; configure the variable `org-modules'.
 ;;
 ;; Please customize the variable `org-modules' to select
@@ -50,20 +50,20 @@
 
 (require 'org)
 
-;; Declare the function form ERC that we use.
-(declare-function erc-current-logfile "erc-log" (&optional buffer))
-(declare-function erc-prompt "erc" ())
-(declare-function erc-default-target "erc" ())
-(declare-function erc-channel-p "erc" (channel))
 (declare-function erc-buffer-filter "erc" (predicate &optional proc))
-(declare-function erc-server-buffer "erc" ())
-(declare-function erc-get-server-nickname-list "erc" ())
+(declare-function erc-channel-p "erc" (channel))
 (declare-function erc-cmd-JOIN "erc" (channel &optional key))
-(declare-function org-pop-to-buffer-same-window
-		  "org-compat" (&optional buffer-or-name norecord label))
+(declare-function erc-current-logfile "erc-log" (&optional buffer))
+(declare-function erc-default-target "erc" ())
+(declare-function erc-get-server-nickname-list "erc" ())
+(declare-function erc-logging-enabled "erc-log" (&optional buffer))
+(declare-function erc-prompt "erc" ())
+(declare-function erc-save-buffer-in-logs "erc-log" (&optional buffer))
+(declare-function erc-server-buffer "erc" ())
 
 (defvar org-irc-client 'erc
   "The IRC client to act on.")
+
 (defvar org-irc-link-to-logs nil
   "Non-nil will store a link to the logs, nil will store an irc: style link.")
 
@@ -73,9 +73,7 @@
 
 ;; Generic functions/config (extend these for other clients)
 
-(add-to-list 'org-store-link-functions 'org-irc-store-link)
-
-(org-add-link-type "irc" 'org-irc-visit nil)
+(org-link-set-parameters "irc" :follow #'org-irc-visit :store #'org-irc-store-link)
 
 (defun org-irc-visit (link)
   "Parse LINK and dispatch to the correct function based on the client found."
@@ -114,11 +112,9 @@ chars that the value AFTER with `...'"
 			    (cons "[ \t]*$" "")
 			    (cons (concat "^\\(.\\{" after
 					  "\\}\\).*") "\\1..."))))
-    (mapc (lambda (x)
-	    (when (string-match (car x) string)
-	      (setq string (replace-match (cdr x) nil nil string))))
-	  replace-map)
-    string))
+    (dolist (x replace-map string)
+      (when (string-match (car x) string)
+	(setq string (replace-match (cdr x) nil nil string))))))
 
 ;; ERC specific functions
 
@@ -211,7 +207,8 @@ default."
   (require 'erc)
   (require 'erc-log)
   (let* ((server (car (car link)))
-	 (port (or (string-to-number (cadr (pop link))) erc-default-port))
+	 (port (let ((p (cadr (pop link))))
+		 (if p (string-to-number p) erc-default-port)))
 	 (server-buffer)
 	 (buffer-list
 	  (erc-buffer-filter
@@ -233,7 +230,7 @@ default."
 				      (throw 'found x))))))
 		(if chan-buf
 		    (progn
-		      (org-pop-to-buffer-same-window chan-buf)
+		      (pop-to-buffer-same-window chan-buf)
 		      ;; if we got a nick, and they're in the chan,
 		      ;; then start a chat with them
 		      (let ((nick (pop link)))
@@ -244,9 +241,9 @@ default."
 				(insert (concat nick ": ")))
 			    (error "%s not found in %s" nick chan-name)))))
 		  (progn
-		    (org-pop-to-buffer-same-window server-buffer)
+		    (pop-to-buffer-same-window server-buffer)
 		    (erc-cmd-JOIN chan-name))))
-	    (org-pop-to-buffer-same-window server-buffer)))
+	    (pop-to-buffer-same-window server-buffer)))
       ;; no server match, make new connection
       (erc-select :server server :port port))))
 

@@ -1,6 +1,6 @@
 ;;; srecode/map.el --- Manage a template file map
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -224,10 +224,9 @@ Optional argument RESET forces a reset of the current map."
   (require 'data-debug)
   (let ((start (current-time))
 	(p (srecode-get-maps t)) ;; Time the reset.
-	(end (current-time))
 	)
     (message "Updating the map took %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (data-debug-new-buffer "*SRECODE ADEBUG*")
     (data-debug-insert-stuff-list p "*")))
 
@@ -271,7 +270,7 @@ if that file is NEW, otherwise assume the mode has not changed."
   (if (not srecode-map-save-file)
       ;; 0) Create a MAP when in no save file mode.
       (when (not srecode-current-map)
-	(setq srecode-current-map (srecode-map "SRecode Map"))
+	(setq srecode-current-map (srecode-map))
 	(message "SRecode map created in non-save mode.")
 	)
 
@@ -291,8 +290,7 @@ if that file is NEW, otherwise assume the mode has not changed."
 	    (error "Change your SRecode map file"))))
       ;; Have a dir.  Make the object.
       (setq srecode-current-map
-	    (srecode-map "SRecode Map"
-			 :file srecode-map-save-file)))
+	    (srecode-map :file srecode-map-save-file)))
 
     ;; 2) Do we not have a current map?  If so load.
     (when (not srecode-current-map)
@@ -302,8 +300,7 @@ if that file is NEW, otherwise assume the mode has not changed."
 	(error
 	 ;; There was an error loading the old map.  Create a new one.
 	 (setq srecode-current-map
-	       (srecode-map "SRecode Map"
-			    :file srecode-map-save-file))))
+	       (srecode-map :file srecode-map-save-file))))
       )
 
     )

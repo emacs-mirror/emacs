@@ -2,7 +2,7 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996-1997, 1999-2015 Free Software Foundation, Inc.
+# Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -15,32 +15,24 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # ----------------------------------------------------------------------
-s/^#.*//
 s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 s/\.h\.in/.h-in/
-/^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
-/^abs_builddir *=/s|@abs_builddir@|../src|
-/^VPATH *=/s/@[^@\n]*@/./
-/^CC *=/s/@[^@\n]*@/gcc/
-/^CPP *=/s/@[^@\n]*@/gcc -e/
+/^top_srcdir *=/s/@[^@\n]*@/../
+/^CC *=/s/@[^@\n]*@/gcc -std=gnu99/
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -gcoff/
 /^ALL_CFLAGS *=/s/@[^@\n]*@//g
 /^ALL_CFLAGS *=/s/ -I\.//g
 /^CPPFLAGS *=/s|@[^@\n]*@|-I../msdos|
 /^LDFLAGS *=/s/@[^@\n]*@//
-/^LD_FIRSTFLAG *=/s/@[^@\n]*@//
-/^LIBS *=/s/@[^@\n]*@//
-/^LIBES *=/,/^ *$/ {
-  s/@[^@\n]*@//g
-}
 /^LIBOBJS *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
 /^GNUSTEP_CFLAGS *=/s/@GNUSTEP_CFLAGS@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
+/^PNG_CFLAGS *=/s/@PNG_CFLAGS@//
 /^WARN_CFLAGS *=/s/@WARN_CFLAGS@//
 /^WERROR_CFLAGS *=/s/@WERROR_CFLAGS@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
@@ -64,6 +56,7 @@ s/ *@LIBPNG@//
 s/ *@LIBGIF@//
 s/ *@LIBXPM@//
 /^XFT_LIBS *=/s/@XFT_LIBS@//
+/^XCB_LIBS *=/s/@XCB_LIBS@//
 /^FONTCONFIG_CFLAGS *=/s/@FONTCONFIG_CFLAGS@//
 /^FONTCONFIG_LIBS *=/s/@FONTCONFIG_LIBS@//
 /^FREETYPE_CFLAGS *=/s/@FREETYPE_CFLAGS@//
@@ -78,7 +71,8 @@ s/ *@LIBXPM@//
 /^NOTIFY_OBJ *=/s/@NOTIFY_OBJ@//
 /^SETTINGS_CFLAGS *=/s/@SETTINGS_CFLAGS@//
 /^SETTINGS_LIBS *=/s/@SETTINGS_LIBS@//
-/^GFILENOTIFY_LIBS *=/s/@GFILENOTIFY_LIBS@//
+/^NOTIFY_LIBS *=/s/@NOTIFY_LIBS@//
+/^NOTIFY_CFLAGS *=/s/@NOTIFY_CFLAGS@//
 /^GTK_OBJ *=/s/@GTK_OBJ@//
 /^LIBS_TERMCAP *=/s/@LIBS_TERMCAP@//
 /^TERMCAP_OBJ *=/s/@TERMCAP_OBJ@/termcap.o tparam.o/
@@ -92,7 +86,7 @@ s/ *@LIBXPM@//
 /^XGSELOBJ *=/s/@XGSELOBJ@//
 /^TOOLKIT_LIBW *=/s/@TOOLKIT_LIBW@//
 /^LIBSOUND *=/s/@LIBSOUND@//
-/^LIBS_GNUSTEP *=/s/@LIBS_GNUSTEP@//
+/^LIBS_GNUSTEP *=/s/=.*$/=/
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
@@ -100,16 +94,29 @@ s/ *@LIBXPM@//
 /^IMAGEMAGICK_CFLAGS *=/s/@IMAGEMAGICK_CFLAGS@//
 /^LIBXML2_LIBS *=/s/@LIBXML2_LIBS@//
 /^LIBXML2_CFLAGS *=/s/@LIBXML2_CFLAGS@//
+/^GETADDRINFO_A_LIBS *=/s/@GETADDRINFO_A_LIBS@//
+/^LIBLCMS2 *=/s/@LIBLCMS2@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
+/^XWIDGETS_OBJ *=/s/@XWIDGETS_OBJ@//
+/^WEBKIT_LIBS *=/s/@WEBKIT_LIBS@//
+/^WEBKIT_CFLAGS *=/s/@WEBKIT_CFLAGS@//
+/^CAIRO_LIBS *=/s/@CAIRO_LIBS@//
+/^CAIRO_CFLAGS *=/s/@CAIRO_CFLAGS@//
+/^XFIXES_LIBS *=/s/@XFIXES_LIBS@//
+/^XFIXES_CFLAGS *=/s/@XFIXES_CFLAGS@//
+/^XDBE_LIBS *=/s/@XDBE_LIBS@//
+/^XDBE_CFLAGS *=/s/@XDBE_CFLAGS@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^WINDOW_SYSTEM_OBJ *=/s/@WINDOW_SYSTEM_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
-/^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
-/^LIBRESOLV *=/s/@LIBRESOLV@//
+/^GNU_OBJC_CFLAGS*=/s/=.*$/=/
+/^LIBMODULES *=/s/@LIBMODULES@//
+/^MODULES_OBJ *=/s/@MODULES_OBJ@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
-/^LIB_PTHREAD_SIGMASK *=/s/@[^@\n]*@//
+/^LIBSYSTEMD_LIBS *=/s/@LIBSYSTEMD_LIBS@//
+/^LIBSYSTEMD_CFLAGS *=/s/@LIBSYSTEMD_CFLAGS@//
 /^LIB_CLOCK_GETTIME *=/s/@[^@\n]*@//g
 /^LIB_TIMER_TIME *=/s/@[^@\n]*@//g
 /^LIB_EXECINFO *=/s/@[^@\n]*@//g
@@ -131,6 +138,7 @@ s/ *@LIBXPM@//
 /^XRANDR_CFLAGS *=/s/@XRANDR_CFLAGS@//
 /^XINERAMA_LIBS *=/s/@XINERAMA_LIBS@//
 /^XINERAMA_CFLAGS *=/s/@XINERAMA_CFLAGS@//
+/^HYBRID_MALLOC *=/s/@HYBRID_MALLOC@//
 /^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/
 /^VMLIMIT_OBJ *=/s/@VMLIMIT_OBJ@/vm-limit.o/
 /^FIRSTFILE_OBJ *=/s/@FIRSTFILE_OBJ@//
@@ -138,102 +146,93 @@ s/ *@LIBXPM@//
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
 /^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexcoff.o/
+/^BUILD_DETAILS *=/s/@BUILD_DETAILS@//
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
-/^DEPFLAGS *=/s/@DEPFLAGS@//
-/^MKDEPDIR *=/s/@MKDEPDIR@//
 /^W32_OBJ *=/s/@W32_OBJ@//
 /^W32_LIBS *=/s/@W32_LIBS@//
 /^version *=/s/@[^@\n]*@//
 /^EMACSRES *=/s/@EMACSRES@//
-/^EMACS_MANIFEST *=/s/@EMACS_MANIFEST@//
 /^W32_RES_LINK *=/s/@W32_RES_LINK@//
 /^CM_OBJ *=/s/@CM_OBJ@/cm.o/
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/^TEMACS_POST_LINK *=/s/@TEMACS_POST_LINK@/stubedit temacs.exe minstack=1024k/
 /^ADDSECTION *=/s/@ADDSECTION@//
-/^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!
-/^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl.tmp/s!make-docfile!make-docfile -o gl.tmp!
-/^.\$(libsrc)\/make-doc/s!>.*$!!
-/^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp); cd ../src!
-/^[ 	]*$/d
-/^\$(leimdir)\/leim-list.el: /s/bootstrap-emacs\$(EXEEXT)/temacs$(EXEEXT) $(BOOTSTRAPEMACS)/
+/^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/
+/^[Aa][Mm]_/s/@AM_V@/$(V)/
+/^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/
+/^AUTO_DEPEND *=/s/@AUTO_DEPEND@/yes/
+/^PAXCTL_dumped *=/s/=.*$/=/
+/^PAXCTL_notdumped *=/s/=.*$/=/
+/^lisp\.mk:/,/^$/c\
+lisp.mk: $(lispsource)/loadup.el\
+	@rm -f $@\
+	${AM_V_GEN}printf 'shortlisp = \\\\\\n' > $@\
+	${AM_V_GEN}sed -n 's/^[ \t]*(load "\\([^"]*\\)".*/\\1/p' $< | sed -e "s/\$\$/.elc \\\\/" -e "s/\\.el\\.elc/.el/" >> $@\
+	${AM_V_GEN}djecho ""  >> $@
+
+#"
+
+/^	[ 	]*\$(AM_V_at)\$(libsrc)\/make-docfile -d/s!make-docfile!make-docfile -o $(etc)/DOC!
+/ > \$(etc)\/DOC *$/s/ >.*$//
+/^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-docfile.*>.*globals.tmp/s!make-docfile!make-docfile -o globals.tmp!
+/^	[ 	]*\$(AM_V_GLOBALS)\$(libsrc)\/make-doc/s!>.*$!!
+/^\$(libsrc)\/make-docfile\$(EXEEXT): /i\
+	cd ../src
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
-/^	 *test "X\$(PAXCTL)" = X/d
-/^	 *test "\$(CANNOT_DUMP)" = "yes"/d
-/^	if test "\$(CANNOT_DUMP)" =/,/^	else /d
-/^	 *\$(SETFATTR) -n/d
-/^	-\{0,1\} *ln /s/bootstrap-emacs\$(EXEEXT).*$/bootstrap-emacs$(EXEEXT)/
+/^	 *ifneq (\$(PAXCTL_notdumped),)/,/^	 *endif/d
+/^	 *ifneq (\$(PAXCTL_dumped),)/,/^	 *endif/d
+/^	 *ln /s/ln /cp /
 /^	fi/d
+/^	 *\$(RUN_TEMACS) /i\
+	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
-/-batch -l loadup/a\
+/-batch .* -l loadup/a\
 	stubify emacs\
-	stubedit emacs.exe minstack=2048k
-s/ || exit 1\; \\$//
-s/ || true\; \\$//
+	stubedit emacs.exe minstack=3072k
 s/ @true *$/ @rem/
 s/^	[^ 	]*move-if-change /	update /
-/^	echo[ 	][ 	]*timestamp/s/echo /djecho /
+/^	[^ 	]*echo[ 	][ 	]*timestamp/s/echo /djecho /
 /^	.*djecho timestamp/a\
-	@rm -f gl.tmp
-/^	cd ..\/leim && \$(MAKE)/i\
-	$(RUN_TEMACS) -batch -l loadup dump\
-	stubify emacs\
-	stubedit emacs.exe minstack=2048k\
-	rm -f b-emacs$(EXEEXT)\
-	cp emacs$(EXEEXT) b-emacs$(EXEEXT)
-/^	cd ..\/leim && \$(MAKE)/c\
-	$(MAKE) $(MFLAGS) -C ../leim leim-list.el EMACS=$(bootstrap_exe)
-/^	cd ..\/admin\/unidata && \$(MAKE)/c\
-	$(MAKE) $(MFLAGS) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
-/^	cd \$(lib) && \$(MAKE)/c\
-	$(MAKE) $(MFLAGS) -C $(lib) libgnu.a
-/^RUN_TEMACS *=/s|`/bin/pwd`|.|
-/^	 *@\$(MKDEPDIR) *$/d
+	@rm -f globals.tmp
 /^	mv \.\/\.gdbinit/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	#/d
-/^	cd.*make-docfile/s!$!; cd ../src!
 /^	@: /d
 /^	-\{0,1\} *ln /s/ln /cp /
 /^[ 	]touch /s/touch/djecho $@ >/
-s/@YMF_PASS_LDFLAGS@/flags/
-s/@lisp_frag@//
-s/@deps_frag@//
-s/@ns_frag@//
-s/@PRE_EDIT_LDFLAGS@//
-s/@POST_EDIT_LDFLAGS@//
 s/bootstrap-emacs/b-emacs/
-s/bootstrap-temacs/b-temacs/
-s/bootstrap-doc/b-doc/
 /rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
 s/echo.*buildobj.lst/dj&/
-/ --load loadup bootstrap/i\
-	stubedit temacs.exe minstack=1024k
 / --load loadup bootstrap/a\
 	stubify emacs
 /^	mv -f emacs/a\
 	stubedit b-emacs.exe minstack=3072k\
 	djecho bootlisp > bootlisp
 /^	-\{0,1\}rm -f/s/\\#/#/
-/^	@\{0,1\}cd ..\/lisp;.*[^\]$/s|$|\; cd ../src|
-/^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
-/^buildobj\.h:/,/^	mv /{
-  /^	 *for /,/^	 *done /c\
+/^buildobj\.h:/,/^	 *\$(AM_V_at)mv /{
+  /^	 *\$(AM_V_GEN)for /,/^	 *done /c\
 	djecho "$(ALLOBJS)" | sed -e 's/^ */"/' -e 's/ *$$/"/' -e 's/  */", "/g' >>$@.tmp
 }
+# Remove or replace dependencies we cannot have
+/^\.PRECIOUS: /s!\.\./config.status !!
+/^\.\.\/config.status: /,/^	/d
+/^Makefile: /s!\.\./config.status !!
 # Make the GCC command line fit one screen line
 /^[ 	][ 	]*\$(GNUSTEP_CFLAGS)/d
-/^[ 	][ 	]*\$(GCONF_CFLAGS)/d
 /^[ 	][ 	]*\$(LIBGNUTLS_CFLAGS)/d
-s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) \$(DEPFLAGS) //
+/^[ 	][ 	]*\$(LIBSYSTEMD_CFLAGS)/d
+/^[ 	][ 	]*\$(XRANDR_CFLAGS)/d
+/^[ 	][ 	]*\$(WEBKIT_CFLAGS)/d
+/^[ 	][ 	]*\$(SETTINGS_CFLAGS)/d
+s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) //
 s/ \$(C_SWITCH_X_SITE)//
 s/ \$(DBUS_CFLAGS)//
-s| -I\$(srcdir)/../lib||
-# Add our local inttypes.h to prerequisites where needed
-/^lread\.o:/s|lread\.c|& ../msdos/inttypes.h|
+s/ \$(PNG_CFLAGS) //
+s| -I\$(srcdir)/\.\./lib||
+s| -I\$(top_srcdir)/lib||
+s| -I\. -I\$(srcdir)| -I.|
 /^	 *test "X/d

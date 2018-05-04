@@ -1,6 +1,6 @@
 ;;; profiler.el --- UI and helper functions for Emacs's native profiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 ;; Author: Tomohiro Matsuyama <tomo@cx4a.org>
 ;; Keywords: lisp
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,7 +27,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'pcase)
 
 (defgroup profiler nil
   "Emacs profiler."
@@ -534,6 +533,7 @@ RET: expand or collapse"))
     (define-key map "\r"    'profiler-report-toggle-entry)
     (define-key map "\t"    'profiler-report-toggle-entry)
     (define-key map "i"     'profiler-report-toggle-entry)
+    (define-key map [mouse-1] 'profiler-report-toggle-entry)
     (define-key map "f"     'profiler-report-find-entry)
     (define-key map "j"     'profiler-report-find-entry)
     (define-key map [mouse-2] 'profiler-report-find-entry)
@@ -692,7 +692,8 @@ With a prefix argument, expand the whole subtree."
 
 (defun profiler-report-toggle-entry (&optional arg)
   "Expand entry at point if the tree is collapsed,
-otherwise collapse."
+otherwise collapse.  With prefix argument, expand all subentries
+below entry at point."
   (interactive "P")
   (or (profiler-report-expand-entry arg)
       (profiler-report-collapse-entry)))

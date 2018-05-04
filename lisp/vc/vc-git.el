@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,8 +102,7 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc)
-  (require 'vc-dir)
-  (require 'grep))
+  (require 'vc-dir))
 
 (defgroup vc-git nil
   "VC Git backend."
@@ -152,7 +151,7 @@ the staging area."
     ;; revision number to be group 1.
     "^\\(?:[*/\\| ]+ \\)?\\(?2: ([^)]+)\\)?\\(?1:[0-9a-z]+\\)..: \
 \\(?3:.*?\\)[ \t]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
-    ((1 'log-view-message-face)
+    ((1 'log-view-message)
      (2 'change-log-list nil lax)
      (3 'change-log-name)
      (4 'change-log-date)))
@@ -165,11 +164,27 @@ matching the resulting Git log output, and KEYWORDS is a list of
   :type '(list string string (repeat sexp))
   :version "24.1")
 
-(defvar vc-git-commits-coding-system 'utf-8
-  "Default coding system for git commits.")
+(defcustom vc-git-commits-coding-system 'utf-8
+  "Default coding system for sending commit log messages to Git.
+
+Should be consistent with the Git config value i18n.commitEncoding,
+and should also be consistent with `locale-coding-system'."
+  :type '(coding-system :tag "Coding system to encode Git commit logs")
+  :version "25.1")
+
+(defcustom vc-git-log-output-coding-system 'utf-8
+  "Default coding system for receiving log output from Git.
+
+Should be consistent with the Git config value i18n.logOutputEncoding."
+  :type '(coding-system :tag "Coding system to decode Git log output")
+  :version "25.1")
 
 ;; History of Git commands.
 (defvar vc-git-history nil)
+
+;; Clear up the cache to force vc-call to check again and discover
+;; new functions when we reload this file.
+(put 'Git 'vc-functions nil)
 
 ;;; BACKEND PROPERTIES
 
@@ -211,7 +226,7 @@ matching the resulting Git log output, and KEYWORDS is a list of
                         (concat name "\0"))))))))
 
 (defun vc-git--state-code (code)
-  "Convert from a string to a added/deleted/modified state."
+  "Convert from a string to an added/deleted/modified state."
   (pcase (string-to-char code)
     (?M 'edited)
     (?A 'added)
@@ -219,34 +234,87 @@ matching the resulting Git log output, and KEYWORDS is a list of
     (?U 'edited)     ;; FIXME
     (?T 'edited)))   ;; FIXME
 
+(defvar vc-git--program-version nil)
+
+(defun vc-git--program-version ()
+  (or vc-git--program-version
+      (let ((version-string
+             (vc-git--run-command-string nil "version")))
+        (setq vc-git--program-version
+              (if (and version-string
+                       ;; Git for Windows appends ".windows.N" to the
+                       ;; numerical version reported by Git.
+                       (string-match
+                        "git version \\([0-9.]+\\)\\(\.windows.[0-9]+\\)?$"
+                        version-string))
+                  (match-string 1 version-string)
+                "0")))))
+
+(defun vc-git--git-status-to-vc-state (code-list)
+  "Convert CODE-LIST to a VC status.
+
+Each element of CODE-LIST comes from the first two characters of
+a line returned by 'git status --porcelain' and should be passed
+in the order given by 'git status'."
+  ;; It is necessary to allow CODE-LIST to be a list because sometimes git
+  ;; status returns multiple lines, e.g. for a file that is removed from
+  ;; the index but is present in the HEAD and working tree.
+  (pcase code-list
+    ('nil 'up-to-date)
+    (`(,code)
+     (pcase code
+       ("!!" 'ignored)
+       ("??" 'unregistered)
+       ;; I have only seen this with a file that is only present in the
+       ;; index.  Let us call this `removed'.
+       ("AD" 'removed)
+       (_ (cond
+           ((string-match-p "^[ RD]+$" code) 'removed)
+           ((string-match-p "^[ M]+$" code) 'edited)
+           ((string-match-p "^[ A]+$" code) 'added)
+           ((string-match-p "^[ U]+$" code) 'conflict)
+           (t 'edited)))))
+    ;;  I know of two cases when git state returns more than one element,
+    ;;  in both cases returning '("D " "??")':
+    ;;  1. When a file is removed from the index but present in the
+    ;;     HEAD and working tree.
+    ;;  2. When a file A is renamed to B in the index and then back to A
+    ;;     in the working tree.
+    ;;  In both of these instances, `unregistered' is a reasonable response.
+    (`("D " "??") 'unregistered)
+    ;;  In other cases, let us return `edited'.
+    (_ 'edited)))
+
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  ;; FIXME: This can't set 'ignored or 'conflict yet
-  ;; The 'ignored state could be detected with `git ls-files -i -o
-  ;; --exclude-standard` It also can't set 'needs-update or
-  ;; 'needs-merge. The rough equivalent would be that upstream branch
-  ;; for current branch is in fast-forward state i.e. current branch
-  ;; is direct ancestor of corresponding upstream branch, and the file
-  ;; was modified upstream.  But we can't check that without a network
-  ;; operation.
-  ;; This assumes that status is known to be not `unregistered' because
-  ;; we've been successfully dispatched here from `vc-state', that
-  ;; means `vc-git-registered' returned t earlier once.  Bug#11757
-  (let ((diff (vc-git--run-command-string
-               file "diff-index" "-p" "--raw" "-z" "HEAD" "--")))
-    (if (and diff
-             (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0\\(.*\n.\\)?"
-                           diff))
-        (let ((diff-letter (match-string 1 diff)))
-          (if (not (match-beginning 2))
-              ;; Empty diff: file contents is the same as the HEAD
-              ;; revision, but timestamps are different (eg, file
-              ;; was "touch"ed).  Update timestamp in index:
-              (prog1 'up-to-date
-                (vc-git--call nil "add" "--refresh" "--"
-                              (file-relative-name file)))
-            (vc-git--state-code diff-letter)))
-      (if (vc-git--empty-db-p) 'added 'up-to-date))))
+  ;; It can't set `needs-update' or `needs-merge'. The rough
+  ;; equivalent would be that upstream branch for current branch is in
+  ;; fast-forward state i.e. current branch is direct ancestor of
+  ;; corresponding upstream branch, and the file was modified
+  ;; upstream.  We'd need to check against the upstream tracking
+  ;; branch for that (an extra process call or two).
+  (let* ((args
+          `("status" "--porcelain" "-z"
+            ;; Just to be explicit, it's the default anyway.
+            "--untracked-files"
+            ,@(when (version<= "1.7.6.3" (vc-git--program-version))
+                '("--ignored"))
+            "--"))
+        (status (apply #'vc-git--run-command-string file args)))
+    ;; Alternatively, the `ignored' state could be detected with 'git
+    ;; ls-files -i -o --exclude-standard', but that's an extra process
+    ;; call, and the `ignored' state is rarely needed.
+    (if (null status)
+        ;; If status is nil, there was an error calling git, likely because
+        ;; the file is not in a git repo.
+        'unregistered
+      ;; If this code is adapted to parse 'git status' for a directory,
+      ;; note that a renamed file takes up two null values and needs to be
+      ;; treated slightly more carefully.
+      (vc-git--git-status-to-vc-state
+       (mapcar (lambda (s)
+                 (substring s 0 2))
+               (split-string status "\0" t))))))
 
 (defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."
@@ -266,13 +334,13 @@ matching the resulting Git log output, and KEYWORDS is a list of
 
 (defun vc-git-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
-  (let* ((rev (vc-working-revision file))
+  (let* ((rev (vc-working-revision file 'Git))
          (disp-rev (or (vc-git--symbolic-ref file)
                        (substring rev 0 7)))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml))
          (face   (get-text-property 0 'face def-ml)))
-    (propertize (replace-regexp-in-string (concat rev "\\'") disp-rev def-ml t t)
+    (propertize (concat (substring def-ml 0 4) disp-rev)
                 'face face
                 'help-echo (concat help-echo "\nCurrent revision: " rev))))
 
@@ -389,11 +457,30 @@ or an empty string if none."
      (vc-git-file-type-as-string old-perm new-perm)
      (vc-git-rename-as-string state extra))))
 
-(defun vc-git-after-dir-status-stage (stage files update-function)
+(cl-defstruct (vc-git-dir-status-state
+               (:copier nil)
+               (:conc-name vc-git-dir-status-state->))
+  ;; Current stage.
+  stage
+  ;; List of files still to be processed.
+  files
+  ;; Update function to be called at the end.
+  update-function
+  ;; Hash table of entries for files we've computed so far.
+  (hash (make-hash-table :test 'equal)))
+
+(defsubst vc-git-dir-status-update-file (state filename file-state file-info)
+  (puthash filename (list file-state file-info)
+           (vc-git-dir-status-state->hash state))
+  (setf (vc-git-dir-status-state->files state)
+        (delete filename (vc-git-dir-status-state->files state))))
+
+(defun vc-git-after-dir-status-stage (git-state)
   "Process sentinel for the various dir-status stages."
-  (let (next-stage result)
+  (let (next-stage
+        (files (vc-git-dir-status-state->files git-state)))
     (goto-char (point-min))
-    (pcase stage
+    (pcase (vc-git-dir-status-state->stage git-state)
       (`update-index
        (setq next-stage (if (vc-git--empty-db-p) 'ls-files-added 'diff-index)))
       (`ls-files-added
@@ -401,29 +488,40 @@ or an empty string if none."
        (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
          (let ((new-perm (string-to-number (match-string 1) 8))
                (name (match-string 2)))
-           (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm))
-                 result))))
+           (vc-git-dir-status-update-file
+            git-state name 'added
+            (vc-git-create-extra-fileinfo 0 new-perm)))))
       (`ls-files-up-to-date
        (setq next-stage 'ls-files-unknown)
-       (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
+       (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} \\([0-3]\\)\t\\([^\0]+\\)\0" nil t)
+         (let ((perm (string-to-number (match-string 1) 8))
+               (state (match-string 2))
+               (name (match-string 3)))
+           (vc-git-dir-status-update-file
+            git-state name (if (equal state "0")
+                               'up-to-date
+                             'conflict)
+            (vc-git-create-extra-fileinfo perm perm)))))
+      (`ls-files-conflict
+       (setq next-stage 'ls-files-unknown)
+       ;; It's enough to look for "3" to notice a conflict.
+       (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 3\t\\([^\0]+\\)\0" nil t)
          (let ((perm (string-to-number (match-string 1) 8))
                (name (match-string 2)))
-           (push (list name 'up-to-date
-                       (vc-git-create-extra-fileinfo perm perm))
-                 result))))
+           (vc-git-dir-status-update-file
+            git-state name 'conflict
+            (vc-git-create-extra-fileinfo perm perm)))))
       (`ls-files-unknown
        (when files (setq next-stage 'ls-files-ignored))
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-         (push (list (match-string 1) 'unregistered
-                     (vc-git-create-extra-fileinfo 0 0))
-               result)))
+         (vc-git-dir-status-update-file git-state (match-string 1) 'unregistered
+                                        (vc-git-create-extra-fileinfo 0 0))))
       (`ls-files-ignored
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-         (push (list (match-string 1) 'ignored
-                     (vc-git-create-extra-fileinfo 0 0))
-               result)))
+         (vc-git-dir-status-update-file git-state (match-string 1) 'ignored
+                                        (vc-git-create-extra-fileinfo 0 0))))
       (`diff-index
-       (setq next-stage (if files 'ls-files-up-to-date 'ls-files-unknown))
+       (setq next-stage (if files 'ls-files-up-to-date 'ls-files-conflict))
        (while (re-search-forward
                ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
                nil t 1)
@@ -434,30 +532,34 @@ or an empty string if none."
                (new-name (match-string 8)))
            (if new-name  ; Copy or rename.
                (if (eq ?C (string-to-char state))
-                   (push (list new-name 'added
-                               (vc-git-create-extra-fileinfo old-perm new-perm
-                                                             'copy name))
-                         result)
-                 (push (list name 'removed
-                             (vc-git-create-extra-fileinfo 0 0
-                                                           'rename new-name))
-                       result)
-                 (push (list new-name 'added
-                             (vc-git-create-extra-fileinfo old-perm new-perm
-                                                           'rename name))
-                       result))
-             (push (list name (vc-git--state-code state)
-                         (vc-git-create-extra-fileinfo old-perm new-perm))
-                   result))))))
-    (when result
-      (setq result (nreverse result))
-      (when files
-        (dolist (entry result) (setq files (delete (car entry) files)))
-        (unless files (setq next-stage nil))))
-    (when (or result (not next-stage))
-      (funcall update-function result next-stage))
-    (when next-stage
-      (vc-git-dir-status-goto-stage next-stage files update-function))))
+                   (vc-git-dir-status-update-file
+                    git-state new-name 'added
+                    (vc-git-create-extra-fileinfo old-perm new-perm
+                                                  'copy name))
+                 (vc-git-dir-status-update-file
+                  git-state name 'removed
+                  (vc-git-create-extra-fileinfo 0 0 'rename new-name))
+                 (vc-git-dir-status-update-file
+                  git-state new-name 'added
+                  (vc-git-create-extra-fileinfo old-perm new-perm
+                                                'rename name)))
+             (vc-git-dir-status-update-file
+              git-state name (vc-git--state-code state)
+              (vc-git-create-extra-fileinfo old-perm new-perm)))))))
+    ;; If we had files but now we don't, it's time to stop.
+    (when (and files (not (vc-git-dir-status-state->files git-state)))
+      (setq next-stage nil))
+    (setf (vc-git-dir-status-state->stage git-state) next-stage)
+    (setf (vc-git-dir-status-state->files git-state) files)
+    (if next-stage
+        (vc-git-dir-status-goto-stage git-state)
+      (funcall (vc-git-dir-status-state->update-function git-state)
+               (let ((result nil))
+                 (maphash (lambda (key value)
+                            (push (cons key value) result))
+                          (vc-git-dir-status-state->hash git-state))
+                 result)
+               nil))))
 
 ;; Follows vc-git-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
@@ -465,41 +567,48 @@ or an empty string if none."
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
-(defun vc-git-dir-status-goto-stage (stage files update-function)
-  (erase-buffer)
-  (pcase stage
-    (`update-index
-     (if files
-         (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
-       (vc-git-command (current-buffer) 'async nil
-                       "update-index" "--refresh")))
-    (`ls-files-added
-     (vc-git-command (current-buffer) 'async files
-                     "ls-files" "-z" "-c" "-s" "--"))
-    (`ls-files-up-to-date
-     (vc-git-command (current-buffer) 'async files
-                     "ls-files" "-z" "-c" "-s" "--"))
-    (`ls-files-unknown
-     (vc-git-command (current-buffer) 'async files
-                     "ls-files" "-z" "-o" "--directory"
-                     "--no-empty-directory" "--exclude-standard" "--"))
-    (`ls-files-ignored
-     (vc-git-command (current-buffer) 'async files
-                     "ls-files" "-z" "-o" "-i" "--directory"
-                     "--no-empty-directory" "--exclude-standard" "--"))
-    ;; --relative added in Git 1.5.5.
-    (`diff-index
-     (vc-git-command (current-buffer) 'async files
-                     "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
-  (vc-run-delayed
-   (vc-git-after-dir-status-stage stage files update-function)))
+(defun vc-git-dir-status-goto-stage (git-state)
+  (let ((files (vc-git-dir-status-state->files git-state)))
+    (erase-buffer)
+    (pcase (vc-git-dir-status-state->stage git-state)
+      (`update-index
+       (if files
+           (vc-git-command (current-buffer) 'async files "add" "--refresh" "--")
+         (vc-git-command (current-buffer) 'async nil
+                         "update-index" "--refresh")))
+      (`ls-files-added
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-c" "-s" "--"))
+      (`ls-files-up-to-date
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-c" "-s" "--"))
+      (`ls-files-conflict
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-c" "-s" "--"))
+      (`ls-files-unknown
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-o" "--directory"
+                       "--no-empty-directory" "--exclude-standard" "--"))
+      (`ls-files-ignored
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-o" "-i" "--directory"
+                       "--no-empty-directory" "--exclude-standard" "--"))
+      ;; --relative added in Git 1.5.5.
+      (`diff-index
+       (vc-git-command (current-buffer) 'async files
+                       "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
+    (vc-run-delayed
+      (vc-git-after-dir-status-stage git-state))))
 
 (defun vc-git-dir-status-files (_dir files update-function)
   "Return a list of (FILE STATE EXTRA) entries for DIR."
   ;; Further things that would have to be fixed later:
   ;; - how to handle unregistered directories
   ;; - how to support vc-dir on a subdir of the project tree
-  (vc-git-dir-status-goto-stage 'update-index files update-function))
+  (vc-git-dir-status-goto-stage
+   (make-vc-git-dir-status-state :stage 'update-index
+                                 :files files
+                                 :update-function update-function)))
 
 (defvar vc-git-stash-map
   (let ((map (make-sparse-keymap)))
@@ -674,27 +783,52 @@ If toggling on, also insert its message into the buffer."
   "Major mode for editing Git log messages.
 It is based on `log-edit-mode', and has Git-specific extensions.")
 
-(defun vc-git-checkin (files comment)
+(defun vc-git-checkin (files comment &optional _rev)
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
          (default-directory (expand-file-name root))
          (only (or (cdr files)
                    (not (equal root (abbreviate-file-name file1)))))
-         (coding-system-for-write vc-git-commits-coding-system))
+         (pcsw coding-system-for-write)
+         (coding-system-for-write
+          ;; On MS-Windows, we must encode command-line arguments in
+          ;; the system codepage.
+          (if (eq system-type 'windows-nt)
+              locale-coding-system
+            (or coding-system-for-write vc-git-commits-coding-system)))
+         (msg-file
+          ;; On MS-Windows, pass the commit log message through a
+          ;; file, to work around the limitation that command-line
+          ;; arguments must be in the system codepage, and therefore
+          ;; might not support the non-ASCII characters in the log
+          ;; message.  Handle also remote files.
+          (if (eq system-type 'windows-nt)
+              (let ((default-directory (file-name-directory file1)))
+                (make-nearby-temp-file "git-msg")))))
     (cl-flet ((boolean-arg-fn
                (argument)
                (lambda (value) (when (equal value "yes") (list argument)))))
       ;; When operating on the whole tree, better pass "-a" than ".", since "."
       ;; fails when we're committing a merge.
       (apply 'vc-git-command nil 0 (if only files)
-             (nconc (list "commit" "-m")
-                    (log-edit-extract-headers
-                     `(("Author" . "--author")
-                       ("Date" . "--date")
-                       ("Amend" . ,(boolean-arg-fn "--amend"))
-                       ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
-                     comment)
-		    (if only (list "--only" "--") '("-a")))))))
+             (nconc (if msg-file (list "commit" "-F"
+                                       (file-local-name msg-file))
+                      (list "commit" "-m"))
+                    (let ((args
+                           (log-edit-extract-headers
+                            `(("Author" . "--author")
+                              ("Date" . "--date")
+                              ("Amend" . ,(boolean-arg-fn "--amend"))
+                              ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
+                            comment)))
+                      (when msg-file
+                        (let ((coding-system-for-write
+                               (or pcsw vc-git-commits-coding-system)))
+                          (write-region (car args) nil msg-file))
+                        (setq args (cdr args)))
+                      args)
+		    (if only (list "--only" "--") '("-a")))))
+    (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))))
 
 (defun vc-git-find-revision (file rev buffer)
   (let* (process-file-side-effects
@@ -714,7 +848,7 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
      "cat-file" "blob" (concat (if rev rev "HEAD") ":" fullname))))
 
 (defun vc-git-find-ignore-file (file)
-  "Return the root directory of the repository of FILE."
+  "Return the git ignore file that controls FILE."
   (expand-file-name ".gitignore"
 		    (vc-git-root file)))
 
@@ -729,13 +863,15 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
     (vc-git-command nil nil file "checkout" "-q" "--")))
 
 (defvar vc-git-error-regexp-alist
-  '(("^ \\(.+\\) |" 1 nil nil 0))
+  '(("^ \\(.+\\)\\> *|" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-git* buffers.")
 
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
+(defvar compilation-directory)
+(defvar compilation-arguments)
 
-(defun vc-git--pushpull (command prompt)
+(defun vc-git--pushpull (command prompt extra-args)
   "Run COMMAND (a string; either push or pull) on the current Git branch.
 If PROMPT is non-nil, prompt for the Git command to run."
   (let* ((root (vc-git-root default-directory))
@@ -754,22 +890,36 @@ If PROMPT is non-nil, prompt for the Git command to run."
       (setq git-program (car  args)
 	    command     (cadr args)
 	    args        (cddr args)))
+    (setq args (nconc args extra-args))
     (require 'vc-dispatcher)
     (apply 'vc-do-async-command buffer root git-program command args)
-    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
+    (with-current-buffer buffer
+      (vc-run-delayed
+        (vc-compilation-mode 'git)
+        (setq-local compile-command
+                    (concat git-program " " command " "
+                            (mapconcat 'identity args " ")))
+        (setq-local compilation-directory root)
+        ;; Either set `compilation-buffer-name-function' locally to nil
+        ;; or use `compilation-arguments' to set `name-function'.
+        ;; See `compilation-buffer-name'.
+        (setq-local compilation-arguments
+                    (list compile-command nil
+                          (lambda (_name-of-mode) buffer)
+                          nil))))
     (vc-set-async-update buffer)))
 
 (defun vc-git-pull (prompt)
   "Pull changes into the current Git branch.
 Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
 for the Git command to run."
-  (vc-git--pushpull "pull" prompt))
+  (vc-git--pushpull "pull" prompt '("--stat")))
 
 (defun vc-git-push (prompt)
   "Push changes from the current Git branch.
 Normally, this runs \"git push\".  If PROMPT is non-nil, prompt
 for the Git command to run."
-  (vc-git--pushpull "push" prompt))
+  (vc-git--pushpull "push" prompt nil))
 
 (defun vc-git-merge-branch ()
   "Merge changes into the current Git branch.
@@ -810,6 +960,10 @@ This prompts for a branch to merge from."
                                 "DU" "AA" "UU"))
             (push (expand-file-name file directory) files)))))))
 
+;; Everywhere but here, follows vc-git-command, which uses vc-do-command
+;; from vc-dispatcher.
+(autoload 'vc-resynch-buffer "vc-dispatcher")
+
 (defun vc-git-resolve-when-done ()
   "Call \"git add\" if the conflict markers have been removed."
   (save-excursion
@@ -823,6 +977,7 @@ This prompts for a branch to merge from."
                                                 (vc-git-root buffer-file-name)))
                (vc-git-conflicted-files (vc-git-root buffer-file-name)))
         (vc-git-command nil 0 nil "reset"))
+      (vc-resynch-buffer buffer-file-name t t)
       ;; Remove the hook so that it is not called multiple times.
       (remove-hook 'after-save-hook 'vc-git-resolve-when-done t))))
 
@@ -832,7 +987,7 @@ This prompts for a branch to merge from."
              ;; FIXME
              ;; 1) the net result is to call git twice per file.
              ;; 2) v-g-c-f is documented to take a directory.
-             ;; http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01126.html
+             ;; https://lists.gnu.org/r/emacs-devel/2014-01/msg01126.html
              (vc-git-conflicted-files buffer-file-name)
              (save-excursion
                (goto-char (point-min))
@@ -841,11 +996,16 @@ This prompts for a branch to merge from."
     (smerge-start-session)
     (when vc-git-resolve-conflicts
       (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local))
-    (message "There are unresolved conflicts in this file")))
+    (vc-message-unresolved-conflicts buffer-file-name)))
 
 ;;; HISTORY FUNCTIONS
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
+
+(defcustom vc-git-print-log-follow nil
+  "If true, follow renames in Git logs for a single file."
+  :type 'boolean
+  :version "26.1")
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -853,7 +1013,8 @@ If SHORTLOG is non-nil, use a short format based on `vc-git-root-log-format'.
 \(This requires at least Git version 1.5.6, for the --graph option.)
 If START-REVISION is non-nil, it is the newest revision to show.
 If LIMIT is non-nil, show no more than this many entries."
-  (let ((coding-system-for-read vc-git-commits-coding-system))
+  (let ((coding-system-for-read
+         (or coding-system-for-read vc-git-log-output-coding-system)))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
@@ -866,6 +1027,14 @@ If LIMIT is non-nil, show no more than this many entries."
 	       'async files
 	       (append
 		'("log" "--no-color")
+                (when (and vc-git-print-log-follow
+                           (null (cdr files))
+                           (car files)
+                           (not (file-directory-p (car files))))
+                  ;; "--follow" on directories or multiple files is broken
+                  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=8756
+                  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=16422
+                  (list "--follow"))
 		(when shortlog
 		  `("--graph" "--decorate" "--date=short"
                     ,(format "--pretty=tformat:%s"
@@ -877,8 +1046,9 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (defun vc-git-log-outgoing (buffer remote-location)
   (interactive)
+  (vc-setup-buffer buffer)
   (vc-git-command
-   buffer 0 nil
+   buffer 'async nil
    "log"
    "--no-color" "--graph" "--decorate" "--date=short"
    (format "--pretty=tformat:%s" (car vc-git-root-log-format))
@@ -890,9 +1060,10 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (defun vc-git-log-incoming (buffer remote-location)
   (interactive)
+  (vc-setup-buffer buffer)
   (vc-git-command nil 0 nil "fetch")
   (vc-git-command
-   buffer 0 nil
+   buffer 'async nil
    "log"
    "--no-color" "--graph" "--decorate" "--date=short"
    (format "--pretty=tformat:%s" (car vc-git-root-log-format))
@@ -917,7 +1088,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	   (cadr vc-git-root-log-format)
 	 "^commit *\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
-  (when (eq vc-log-view-type 'short)
+  (when (memq vc-log-view-type '(short log-outgoing log-incoming))
     (setq truncate-lines t)
     (set (make-local-variable 'log-view-expanded-log-entry-function)
 	 'vc-git-expanded-log-entry))
@@ -970,10 +1141,42 @@ or BRANCH^ (where \"^\" can be repeated)."
     (goto-char (point-min))
     (unless (eobp)
       ;; Indent the expanded log entry.
-      (indent-region (point-min) (point-max) 2)
+      (while (re-search-forward "^  " nil t)
+        (replace-match "")
+        (forward-line))
       (buffer-string))))
 
 (defun vc-git-region-history (file buffer lfrom lto)
+  "Insert into BUFFER the history of FILE for lines LFROM to LTO.
+This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
+  ;; The "git log" command below interprets the line numbers as applying
+  ;; to the HEAD version of the file, not to the current state of the file.
+  ;; So we need to look at all the local changes and adjust lfrom/lto
+  ;; accordingly.
+  ;; FIXME: Maybe this should be done in vc.el (i.e. for all backends), but
+  ;; since Git is the only backend to support this operation so far, it's hard
+  ;; to tell.
+  (with-temp-buffer
+    (vc-call-backend 'git 'diff file "HEAD" nil (current-buffer))
+    (goto-char (point-min))
+    (let ((last-offset 0)
+          (from-offset nil)
+          (to-offset nil))
+      (while (re-search-forward
+              "^@@ -\\([0-9]+\\),\\([0-9]+\\) \\+\\([0-9]+\\),\\([0-9]+\\) @@" nil t)
+        (let ((headno (string-to-number (match-string 1)))
+              (headcnt (string-to-number (match-string 2)))
+              (curno (string-to-number (match-string 3)))
+              (curcnt (string-to-number (match-string 4))))
+          (cl-assert (equal (- curno headno) last-offset))
+          (and (null from-offset) (> curno lfrom)
+               (setq from-offset last-offset))
+          (and (null to-offset) (> curno lto)
+               (setq to-offset last-offset))
+          (setq last-offset
+                (- (+ curno curcnt) (+ headno headcnt)))))
+      (setq lto (- lto (or to-offset last-offset)))
+      (setq lfrom (- lfrom (or to-offset last-offset)))))
   (vc-git-command buffer 'async nil "log" "-p" ;"--follow" ;FIXME: not supported?
                   (format "-L%d,%d:%s" lfrom lto (file-relative-name file))))
 
@@ -1019,13 +1222,21 @@ or BRANCH^ (where \"^\" can be repeated)."
               (cons 'vc-git-region-history-font-lock-keywords
                     (cdr font-lock-defaults))))
 
+(defun vc-git--asciify-coding-system ()
+  ;; Try to reconcile the content encoding with the encoding of Git's
+  ;; auxiliary output (which is ASCII or ASCII-compatible), bug#23595.
+  (unless (let ((samp "Binary files differ"))
+            (string-equal samp (decode-coding-string
+                                samp coding-system-for-read t)))
+    (setq coding-system-for-read 'undecided)))
 
 (autoload 'vc-switches "vc")
 
-(defun vc-git-diff (files &optional rev1 rev2 buffer async)
+(defun vc-git-diff (files &optional rev1 rev2 buffer _async)
   "Get a difference report using Git between two revisions of FILES."
   (let (process-file-side-effects
         (command "diff-tree"))
+    (vc-git--asciify-coding-system)
     (if rev2
         ;; Diffing against the empty tree.
         (unless rev1 (setq rev1 "4b825dc642cb6eb9a060e54bf8d69288fbee4904"))
@@ -1033,7 +1244,7 @@ or BRANCH^ (where \"^\" can be repeated)."
       (unless rev1 (setq rev1 "HEAD")))
     (if vc-git-diff-switches
         (apply #'vc-git-command (or buffer "*vc-diff*")
-	       (if async 'async 1)
+	       1 ; bug#21969
 	       files
                command
                "--exit-code"
@@ -1064,6 +1275,7 @@ or BRANCH^ (where \"^\" can be repeated)."
     table))
 
 (defun vc-git-annotate-command (file buf &optional rev)
+  (vc-git--asciify-coding-system)
   (let ((name (file-relative-name file)))
     (apply #'vc-git-command buf 'async nil "blame" "--date=short"
 	   (append (vc-switches 'git 'annotate)
@@ -1105,9 +1317,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-retrieve-tag (dir name _update)
   (let ((default-directory dir))
-    (vc-git-command nil 0 nil "checkout" name)
-    ;; FIXME: update buffers if `update' is true
-    ))
+    (vc-git-command nil 0 nil "checkout" name)))
 
 
 ;;; MISCELLANEOUS
@@ -1141,9 +1351,8 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
-  (let* ((default-directory (file-name-directory
-			     (expand-file-name file)))
-         (file (file-name-nondirectory file))
+  (let* ((default-directory (vc-git-root file))
+         (file (file-relative-name file))
          (current-rev
           (with-temp-buffer
             (and
@@ -1179,6 +1388,9 @@ or BRANCH^ (where \"^\" can be repeated)."
     (define-key map [git-grep]
       '(menu-item "Git grep..." vc-git-grep
 		  :help "Run the `git grep' command"))
+    (define-key map [git-ds]
+      '(menu-item "Delete Stash..." vc-git-stash-delete
+                  :help "Delete a stash"))
     (define-key map [git-sn]
       '(menu-item "Stash a Snapshot" vc-git-stash-snapshot
 		  :help "Stash the current state of the tree and keep the current state"))
@@ -1203,13 +1415,16 @@ or BRANCH^ (where \"^\" can be repeated)."
 (declare-function grep-read-files "grep" (regexp))
 (declare-function grep-expand-template "grep"
                  (template &optional regexp files dir excl))
+(defvar compilation-environment)
 
 ;; Derived from `lgrep'.
 (defun vc-git-grep (regexp &optional files dir)
   "Run git grep, searching for REGEXP in FILES in directory DIR.
 The search is limited to file names matching shell pattern FILES.
 FILES may use abbreviations defined in `grep-files-aliases', e.g.
-entering `ch' is equivalent to `*.[ch]'.
+entering `ch' is equivalent to `*.[ch]'.  As whitespace triggers
+completion when entering a pattern, including it requires
+quoting, e.g. `\\[quoted-insert]<space>'.
 
 With \\[universal-argument] prefix, you can edit the constructed shell command line
 before it is executed.
@@ -1230,7 +1445,9 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 				   nil nil 'grep-history)
 	     nil))
       (t (let* ((regexp (grep-read-regexp))
-		(files (grep-read-files regexp))
+		(files
+                 (mapconcat #'shell-quote-argument
+                            (split-string (grep-read-files regexp)) " "))
 		(dir (read-directory-name "In directory: "
 					  nil default-directory t)))
 	   (list regexp files dir))))))
@@ -1259,10 +1476,6 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
 
-;; Everywhere but here, follows vc-git-command, which uses vc-do-command
-;; from vc-dispatcher.
-(autoload 'vc-resynch-buffer "vc-dispatcher")
-
 (defun vc-git-stash (name)
   "Create a stash."
   (interactive "sStash name: ")
@@ -1271,9 +1484,24 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
       (vc-git--call nil "stash" "save" name)
       (vc-resynch-buffer root t t))))
 
+(defvar vc-git-stash-read-history nil
+  "History for `vc-git-stash-read'.")
+
+(defun vc-git-stash-read (prompt)
+  "Read a Git stash.  PROMPT is a string to prompt with."
+  (let ((stash (completing-read
+                 prompt
+                 (split-string
+                  (or (vc-git--run-command-string nil "stash" "list") "") "\n")
+                 nil :require-match nil 'vc-git-stash-read-history)))
+    (if (string-equal stash "")
+        (user-error "Not a stash")
+      (string-match "^stash@{[[:digit:]]+}" stash)
+      (match-string 0 stash))))
+
 (defun vc-git-stash-show (name)
   "Show the contents of stash NAME."
-  (interactive "sStash name: ")
+  (interactive (list (vc-git-stash-read "Show stash: ")))
   (vc-setup-buffer "*vc-git-stash*")
   (vc-git-command "*vc-git-stash*" 'async nil "stash" "show" "-p" name)
   (set-buffer "*vc-git-stash*")
@@ -1283,14 +1511,20 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-stash-apply (name)
   "Apply stash NAME."
-  (interactive "sApply stash: ")
+  (interactive (list (vc-git-stash-read "Apply stash: ")))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "apply" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-pop (name)
   "Pop stash NAME."
-  (interactive "sPop stash: ")
+  (interactive (list (vc-git-stash-read "Pop stash: ")))
   (vc-git-command "*vc-git-stash*" 0 nil "stash" "pop" "-q" name)
+  (vc-resynch-buffer (vc-git-root default-directory) t t))
+
+(defun vc-git-stash-delete (name)
+  "Delete stash NAME."
+  (interactive (list (vc-git-stash-read "Delete stash: ")))
+  (vc-git-command "*vc-git-stash*" 0 nil "stash" "drop" "-q" name)
   (vc-resynch-buffer (vc-git-root default-directory) t t))
 
 (defun vc-git-stash-snapshot ()
@@ -1336,11 +1570,15 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-stash-apply-at-point ()
   (interactive)
-  (vc-git-stash-apply (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+  (let (vc-dir-buffers) ; Small optimization.
+    (vc-git-stash-apply (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+  (vc-dir-refresh))
 
 (defun vc-git-stash-pop-at-point ()
   (interactive)
-  (vc-git-stash-pop (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+  (let (vc-dir-buffers) ; Likewise.
+    (vc-git-stash-pop (format "stash@%s" (vc-git-stash-get-at-point (point)))))
+  (vc-dir-refresh))
 
 (defun vc-git-stash-menu (e)
   (interactive "e")
@@ -1353,10 +1591,20 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
   "A wrapper around `vc-do-command' for use in vc-git.el.
 The difference to vc-do-command is that this function always invokes
 `vc-git-program'."
-  (let ((coding-system-for-read vc-git-commits-coding-system)
-	(coding-system-for-write vc-git-commits-coding-system))
+  (let ((coding-system-for-read
+         (or coding-system-for-read vc-git-log-output-coding-system))
+	(coding-system-for-write
+         (or coding-system-for-write vc-git-commits-coding-system))
+        (process-environment
+         (append
+          `("GIT_DIR"
+            ;; Avoid repository locking during background operations
+            ;; (bug#21559).
+            ,@(when revert-buffer-in-progress-p
+                '("GIT_OPTIONAL_LOCKS=0")))
+          process-environment)))
     (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
-	   ;; http://debbugs.gnu.org/16897
+	   ;; https://debbugs.gnu.org/16897
 	   (unless (and (not (cdr-safe file-or-list))
 			(let ((file (or (car-safe file-or-list)
 					file-or-list)))
@@ -1377,9 +1625,12 @@ The difference to vc-do-command is that this function always invokes
   ;; directories.  We enable `inhibit-null-byte-detection', otherwise
   ;; Tramp's eol conversion might be confused.
   (let ((inhibit-null-byte-detection t)
-	(coding-system-for-read vc-git-commits-coding-system)
-	(coding-system-for-write vc-git-commits-coding-system)
+	(coding-system-for-read
+         (or coding-system-for-read vc-git-log-output-coding-system))
+	(coding-system-for-write
+         (or coding-system-for-write vc-git-commits-coding-system))
 	(process-environment (cons "PAGER=" process-environment)))
+    (push "GIT_DIR" process-environment)
     (apply 'process-file vc-git-program nil buffer nil command args)))
 
 (defun vc-git--out-ok (command &rest args)

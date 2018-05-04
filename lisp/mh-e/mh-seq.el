@@ -1,6 +1,6 @@
 ;;; mh-seq.el --- MH-E sequences support
 
-;; Copyright (C) 1993, 1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -555,7 +555,7 @@ change."
 ;;;###mh-autoload
 (defun mh-valid-view-change-operation-p (op)
   "Check if the view change operation can be performed.
-OP is one of 'widen and 'unthread."
+OP is one of `widen' and `unthread'."
   (cond ((eq (car mh-view-ops) op)
          (pop mh-view-ops))
         (t nil)))

@@ -1,6 +1,6 @@
-;;; nxml-rap.el --- low-level support for random access parsing for nXML mode
+;;; nxml-rap.el --- low-level support for random access parsing for nXML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -46,8 +46,7 @@
 ;; look like it scales to large numbers of overlays in a buffer.
 ;;
 ;; We don't in fact track all these constructs, but only track them in
-;; some initial part of the instance. The variable `nxml-scan-end'
-;; contains the limit of where we have scanned up to for them.
+;; some initial part of the instance.
 ;;
 ;; Thus to parse some random point in the file we first ensure that we
 ;; have scanned up to that point.  Then we search backwards for a
@@ -74,92 +73,32 @@
 
 (require 'xmltok)
 (require 'nxml-util)
+(require 'sgml-mode)
 
-(defvar nxml-prolog-end nil
+(defvar-local nxml-prolog-end nil
   "Integer giving position following end of the prolog.")
-(make-variable-buffer-local 'nxml-prolog-end)
-
-(defvar nxml-scan-end nil
-  "Marker giving position up to which we have scanned.
-nxml-scan-end must be >= nxml-prolog-end.  Furthermore, nxml-scan-end
-must not be an inside position in the following sense.  A position is
-inside if the following character is a part of, but not the first
-character of, a CDATA section, comment or processing instruction.
-Furthermore all positions >= nxml-prolog-end and < nxml-scan-end that
-are inside positions must have a non-nil `nxml-inside' property whose
-value is a symbol specifying what it is inside.  Any characters with a
-non-nil `fontified' property must have position < nxml-scan-end and
-the correct face.  Dependent regions must also be established for any
-unclosed constructs starting before nxml-scan-end.
-There must be no `nxml-inside' properties after nxml-scan-end.")
-(make-variable-buffer-local 'nxml-scan-end)
 
 (defsubst nxml-get-inside (pos)
-  (get-text-property pos 'nxml-inside))
-
-(defsubst nxml-clear-inside (start end)
-  (nxml-debug-clear-inside start end)
-  (remove-text-properties start end '(nxml-inside nil)))
-
-(defsubst nxml-set-inside (start end type)
-  (nxml-debug-set-inside start end)
-  (put-text-property start end 'nxml-inside type))
+  (save-excursion (nth 8 (syntax-ppss pos))))
 
 (defun nxml-inside-end (pos)
   "Return the end of the inside region containing POS.
 Return nil if the character at POS is not inside."
-  (if (nxml-get-inside pos)
-      (or (next-single-property-change pos 'nxml-inside)
-	  (point-max))
-    nil))
+  (save-excursion
+    (let ((ppss (syntax-ppss pos)))
+      (when (nth 8 ppss)
+        (goto-char (nth 8 ppss))
+        (with-syntax-table sgml-tag-syntax-table
+          (if (nth 3 ppss)
+              (progn (forward-comment 1) (point))
+            (or (scan-sexps (point) 1) (point-max))))))))
 
 (defun nxml-inside-start (pos)
   "Return the start of the inside region containing POS.
 Return nil if the character at POS is not inside."
-  (if (nxml-get-inside pos)
-      (or (previous-single-property-change (1+ pos) 'nxml-inside)
-	  (point-min))
-    nil))
+  (save-excursion (nth 8 (syntax-ppss pos))))
 
 ;;; Change management
-
-(defun nxml-scan-after-change (start end)
-  "Restore `nxml-scan-end' invariants after a change.
-The change happened between START and END.
-Return position after which lexical state is unchanged.
-END must be > `nxml-prolog-end'.  START must be outside
-any “inside” regions and at the beginning of a token."
-  (if (>= start nxml-scan-end)
-      nxml-scan-end
-    (let ((inside-remove-start start)
-	  xmltok-errors)
-      (while (or (when (xmltok-forward-special (min end nxml-scan-end))
-		   (when (memq xmltok-type
-			       '(comment
-				 cdata-section
-				 processing-instruction))
-		     (nxml-clear-inside inside-remove-start
-					(1+ xmltok-start))
-		     (nxml-set-inside (1+ xmltok-start)
-				      (point)
-				      xmltok-type)
-		     (setq inside-remove-start (point)))
-		   (if (< (point) (min end nxml-scan-end))
-		       t
-		     (setq end (point))
-		     nil))
-		 ;; The end of the change was inside but is now outside.
-		 ;; Imagine something really weird like
-		 ;; <![CDATA[foo <!-- bar ]]> <![CDATA[ stuff --> <!-- ]]> -->
-		 ;; and suppose we deleted "<![CDATA[f"
-		 (let ((inside-end (nxml-inside-end end)))
-		   (when inside-end
-		     (setq end inside-end)
-		     t))))
-      (nxml-clear-inside inside-remove-start end))
-    (when (> end nxml-scan-end)
-      (set-marker nxml-scan-end end))
-    end))
 
 ;; n-s-p only called from nxml-mode.el, where this variable is defined.
 (defvar nxml-prolog-regions)
@@ -169,10 +108,7 @@ any “inside” regions and at the beginning of a token."
   (let (xmltok-dtd
 	xmltok-errors)
     (setq nxml-prolog-regions (xmltok-forward-prolog))
-    (setq nxml-prolog-end (point))
-    (nxml-clear-inside (point-min) nxml-prolog-end))
-  (when (< nxml-scan-end nxml-prolog-end)
-    (set-marker nxml-scan-end nxml-prolog-end)))
+    (setq nxml-prolog-end (point))))
 
 
 ;;; Random access parsing
@@ -223,14 +159,7 @@ Sets variables like `nxml-token-after'."
 
 (defun nxml-tokenize-forward ()
   (let (xmltok-errors)
-    (when (and (xmltok-forward)
-	       (> (point) nxml-scan-end))
-      (cond ((memq xmltok-type '(comment
-				 cdata-section
-				 processing-instruction))
-	     (with-silent-modifications
-	       (nxml-set-inside (1+ xmltok-start) (point) xmltok-type))))
-      (set-marker nxml-scan-end (point)))
+    (xmltok-forward)
     xmltok-type))
 
 (defun nxml-move-tag-backwards (bound)
@@ -253,32 +182,12 @@ As a precondition, point must be >= BOUND."
 Leave point unmoved if it is not inside anything special."
   (let ((start (nxml-inside-start (point))))
     (when start
-      (goto-char (1- start))
+      (goto-char start)
       (when (nxml-get-inside (point))
-	(error "Char before inside-start at %s had nxml-inside property %s"
-	       (point)
-	       (nxml-get-inside (point)))))))
+	(error "Char before inside-start at %s is still \"inside\"" (point))))))
 
 (defun nxml-ensure-scan-up-to-date ()
-  (let ((pos (point)))
-    (when (< nxml-scan-end pos)
-      (save-excursion
-	(goto-char nxml-scan-end)
-	(let (xmltok-errors)
-	  (while (when (xmltok-forward-special pos)
-		   (when (memq xmltok-type
-			       '(comment
-				 processing-instruction
-				 cdata-section))
-		     (with-silent-modifications
-		       (nxml-set-inside (1+ xmltok-start)
-					(point)
-					xmltok-type)))
-		   (if (< (point) pos)
-		       t
-		     (setq pos (point))
-		     nil)))
-	  (set-marker nxml-scan-end pos))))))
+  (syntax-propertize (point)))
 
 ;;; Element scanning
 

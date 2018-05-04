@@ -1,6 +1,6 @@
 ;;; semantic/db-ref.el --- Handle cross-db file references
 
-;;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -162,8 +162,7 @@ refreshed before dumping the result."
   (let* ((tab semanticdb-current-table)
 	 (myrefs (oref tab db-refs))
 	 (myinc (semanticdb-includes-in-table tab))
-	 (adbc (semanticdb-ref-adebug "DEBUG"
-				      :i-depend-on myrefs
+	 (adbc (semanticdb-ref-adebug :i-depend-on myrefs
 				      :local-table tab
 				      :i-include myinc)))
     (data-debug-new-buffer "*References ADEBUG*")

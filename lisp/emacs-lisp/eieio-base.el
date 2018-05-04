@@ -1,6 +1,6 @@
 ;;; eieio-base.el --- Base classes for EIEIO.  -*- lexical-binding:t -*-
 
-;;; Copyright (C) 2000-2002, 2004-2005, 2007-2015 Free Software
+;;; Copyright (C) 2000-2002, 2004-2005, 2007-2018 Free Software
 ;;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'eieio)
+(require 'seq)
 (eval-when-compile (require 'cl-lib))
 
 ;;; eieio-instance-inheritor
@@ -218,7 +219,7 @@ for CLASS.  Optional ALLOW-SUBCLASS says that it is ok for
 `eieio-persistent-read' to load in subclasses of class instead of
 being pedantic."
   (unless class
-    (message "Unsafe call to `eieio-persistent-read'."))
+    (warn "`eieio-persistent-read' called without specifying a class"))
   (when class (cl-check-type class class))
   (let ((ret nil)
 	(buffstr nil))
@@ -233,13 +234,16 @@ being pedantic."
 	  ;; the current buffer will work.
 	  (setq ret (read buffstr))
 	  (when (not (child-of-class-p (car ret) 'eieio-persistent))
-	    (error "Corrupt object on disk: Unknown saved object"))
+	    (error
+             "Invalid object: %s is not a subclass of `eieio-persistent'"
+             (car ret)))
 	  (when (and class
-		     (not (or (eq (car ret) class ) ; same class
-			      (and allow-subclass
-				   (child-of-class-p (car ret) class)) ; subclasses
-			      )))
-	    (error "Corrupt object on disk: Invalid saved class"))
+		     (not (or (eq (car ret) class) ; same class
+			      (and allow-subclass  ; subclass
+				   (child-of-class-p (car ret) class)))))
+	    (error
+             "Invalid object: %s is not an object of class %s nor a subclass"
+             (car ret) class))
 	  (setq ret (eieio-persistent-convert-list-to-object ret))
 	  (oset ret file filename))
       (kill-buffer " *tmp eieio read*"))
@@ -255,8 +259,11 @@ malicious code.
 Note: This function recurses when a slot of :type of some object is
 identified, and needing more object creation."
   (let* ((objclass (nth 0 inputlist))
-	 ;; (objname (nth 1 inputlist))
-	 (slots (nthcdr 2 inputlist))
+         ;; Earlier versions of `object-write' added a string name for
+         ;; the object, now obsolete.
+         (slots (nthcdr
+                 (if (stringp (nth 1 inputlist)) 2 1)
+                 inputlist))
 	 (createslots nil)
 	 (class
 	  (progn
@@ -294,8 +301,7 @@ Second, any text properties will be stripped from strings."
   (cond ((consp proposed-value)
 	 ;; Lists with something in them need special treatment.
 	 (let* ((slot-idx (- (eieio--slot-name-index class slot)
-                             (eval-when-compile
-                               (length (cl-struct-slot-info 'eieio--object)))))
+                             (eval-when-compile eieio--object-num-slots)))
                 (type (cl--slot-descriptor-type (aref (eieio--class-slots class)
                                                       slot-idx)))
                 (classtype (eieio-persistent-slot-type-is-class-p type)))
@@ -308,14 +314,6 @@ Second, any text properties will be stripped from strings."
 		 ((and (eq (car proposed-value) 'list)
 		       (= (length proposed-value) 1))
 		  nil)
-
-		  ;; We have a slot with a single object that can be
-		  ;; saved here.  Recurse and evaluate that
-		  ;; sub-object.
-		 ((and classtype (class-p classtype)
-		       (child-of-class-p (car proposed-value) classtype))
-		  (eieio-persistent-convert-list-to-object
-		   proposed-value))
 
 		 ;; List of object constructors.
 		 ((and (eq (car proposed-value) 'list)
@@ -337,7 +335,8 @@ Second, any text properties will be stripped from strings."
 		  ;; We have a predicate, but it doesn't satisfy the predicate?
 		  (dolist (PV (cdr proposed-value))
 		    (unless (child-of-class-p (car PV) (car classtype))
-		      (error "Corrupt object on disk")))
+		      (error "Invalid object: slot member %s does not match class %s"
+                             (car PV) (car classtype))))
 
 		  ;; We have a list of objects here.  Lets load them
 		  ;; in.
@@ -347,8 +346,45 @@ Second, any text properties will be stripped from strings."
 			    objlist))
 		    ;; return the list of objects ... reversed.
 		    (nreverse objlist)))
+		 ;; We have a slot with a single object that can be
+		 ;; saved here.  Recurse and evaluate that
+		 ;; sub-object.
+		 ((and classtype
+                       (seq-some
+                        (lambda (elt)
+                          (child-of-class-p (car proposed-value) elt))
+                        (if (listp classtype) classtype (list classtype))))
+		  (eieio-persistent-convert-list-to-object
+		   proposed-value))
 		 (t
 		  proposed-value))))
+        ;; For hash-tables and vectors, the top-level `read' will not
+        ;; "look inside" member values, so we need to do that
+        ;; explicitly.  Because `eieio-override-prin1' is recursive in
+        ;; the case of hash-tables and vectors, we recurse
+        ;; `eieio-persistent-validate/fix-slot-value' here as well.
+        ((hash-table-p proposed-value)
+         (maphash
+          (lambda (key value)
+            (setf (gethash key proposed-value)
+                  (if (class-p (car-safe value))
+                      (eieio-persistent-convert-list-to-object
+                       value)
+                    (eieio-persistent-validate/fix-slot-value
+                     class slot value))))
+          proposed-value)
+         proposed-value)
+
+        ((vectorp proposed-value)
+         (dotimes (i (length proposed-value))
+           (let ((val (aref proposed-value i)))
+             (aset proposed-value i
+                   (if (class-p (car-safe val))
+                       (eieio-persistent-convert-list-to-object
+                        val)
+                     (eieio-persistent-validate/fix-slot-value
+                      class slot val)))))
+         proposed-value)
 
 	 ((stringp proposed-value)
 	  ;; Else, check for strings, remove properties.
@@ -403,13 +439,9 @@ If no class is referenced there, then return nil."
 	       type))
 
 	((eq (car-safe type) 'or)
-	 ;; If type is a list, and is an or, it is possibly something
-	 ;; like (or null myclass), so check for that.
-	 (let ((ans nil))
-	   (dolist (subtype (cdr type))
-	     (setq ans (eieio-persistent-slot-type-is-class-p
-			subtype)))
-	   ans))
+	 ;; If type is a list, and is an `or', return all valid class
+	 ;; types within the `or' statement.
+	 (seq-filter #'eieio-persistent-slot-type-is-class-p (cdr type)))
 
 	(t
 	 ;; No match, not a class.
@@ -466,7 +498,7 @@ instance."
 (cl-defmethod eieio-object-name-string ((obj eieio-named))
   "Return a string which is OBJ's name."
   (or (slot-value obj 'object-name)
-      (symbol-name (eieio-object-class obj))))
+      (cl-call-next-method)))
 
 (cl-defmethod eieio-object-set-name-string ((obj eieio-named) name)
   "Set the string which is OBJ's NAME."

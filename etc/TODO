@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -13,12 +13,15 @@ the latest version of this file in the Emacs source code repository.
 
 Since Emacs is an FSF-copyrighted package, please be prepared to sign
 legal papers to transfer the copyright on your work to the FSF.
-For more details on this, see the section "Copyright Assignment"
-in etc/CONTRIBUTE.  That file also contains some more practical
-details about getting involved.
+Copyright assignment is a simple process.  Residents of some countries
+can do it entirely electronically.  We can help you get started, and
+answer any questions you may have (or point you to the people with the
+answers), at the emacs-devel@gnu.org mailing list.
+
+For more information about getting involved, see the CONTRIBUTE file.
 
 As well as the issues listed here, there are bug reports at
-<http://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for
+<https://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for
 beginners to work on, but unfortunately we are not very good at using
 this tag.  Bugs tagged "help" are ones where assistance is required,
 but may be difficult to fix.  Bugs with severity "important" or higher
@@ -31,20 +34,6 @@ is not always true.
 Change src/bytecode.c so that calls from byte-code functions to byte-code
 functions don't go through Ffuncall/funcall_lambda/exec_byte_code but instead
 stay within exec_byte_code.
-
-** Add new 'switch' byte-code
-This byte-code would take one argument from the stack (the object to test)
-and one argument from the constant-pool (a switch table, implemented as an
-eq-hashtable) and would jump to the "label" contained in the hashtable.
-
-Then add a 'case' special-form that can be compiled to this byte-code.
-This would behave just like cl-case, but instead of expanding to cond+eq it
-would be its own special form and would be compiled specially.
-
-Then change pcase to use 'case' when applicable.
-
-Then change the byte-compiler to recognize (cond ((eq x 'foo) bar) ...)
-and turn it into a 'case' for more efficient execution.
 
 ** Improve the byte-compiler to recognize immutable (lexical) bindings
 and get rid of them if they're used only once and/or they're bound to
@@ -106,17 +95,17 @@ make it.
 
 ** Move idlwave to elpa.gnu.org.
 Need to sync up the Emacs and external versions.
-See <http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00008.html>
+See <https://lists.gnu.org/r/emacs-devel/2014-07/msg00008.html>
 
 ** Move Org mode to elpa.gnu.org.
-See <http://lists.gnu.org/archive/html/emacs-devel/2014-08/msg00300.html>
-<http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00257.html>
+See <https://lists.gnu.org/r/emacs-devel/2014-08/msg00300.html>
+<https://lists.gnu.org/r/emacs-devel/2014-11/msg00257.html>
 
 ** Move verilog-mode to elpa.gnu.org.
-See <http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg01180.html>
+See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 ** Move vhdl-mode to elpa.gnu.org.
-See <http://lists.gnu.org/archive/html/emacs-devel/2015-02/msg01180.html>
+See <https://lists.gnu.org/r/emacs-devel/2015-02/msg01180.html>
 
 * Simple tasks. These don't require much Emacs knowledge, they are
 suitable for anyone from beginners to experts.
@@ -150,7 +139,7 @@ things in their .emacs.
 case to make sure it stays fixed.  Or pick your favorite programming
 major-mode, and write a test for its indentation.  Or a version
 control backend, and write a test for its status parser.  Etc.
-See test/automated for examples.
+See the 'test' directory for examples.
 
 * Small but important fixes needed in existing features:
 
@@ -168,7 +157,7 @@ for users to customize.
 
 ** revert-buffer should eliminate overlays and the mark.
    For related problems consult the thread starting with
-   http://lists.gnu.org/archive/html/emacs-devel/2005-11/msg01346.html
+   https://lists.gnu.org/r/emacs-devel/2005-11/msg01346.html
 
 ** erase-buffer should perhaps disregard read-only properties of text.
 
@@ -196,7 +185,7 @@ for users to customize.
 
 ** Define recompute-arg and recompute-arg-if for fix_command to use.
   See rms message of 11 Dec 05 in
-  http://lists.gnu.org/archive/html/emacs-pretest-bug/2005-12/msg00165.html,
+  https://lists.gnu.org/r/emacs-pretest-bug/2005-12/msg00165.html,
   and the rest of that discussion.
 
 ** In Emacs Info, examples of using Customize should be clickable
@@ -213,10 +202,10 @@ for users to customize.
 ** make back_comment use syntax-ppss or equivalent.
 
 ** Consider improving src/sysdep.c's search for a fqdn.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
+https://lists.gnu.org/r/emacs-devel/2007-04/msg00782.html
 
 ** Find a proper fix for rcirc multiline nick adding.
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
+https://lists.gnu.org/r/emacs-devel/2007-04/msg00684.html
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
@@ -227,7 +216,6 @@ Change them to use report-emacs-bug.
 **** lm-report-bug
 **** tramp-bug
 **** c-submit-bug-report
-**** ffap-bug and ffap-submit-bug (obsoleted)
 [Do all of them need changing?]
 
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
@@ -239,12 +227,12 @@ like make-backup-file-name-function for non-numeric backup files.
 dired buffers and DTRT WRT 'auto-revert-mode'.
 
 ** Check uses of prin1 for error-handling.
-http://lists.gnu.org/archive/html/emacs-devel/2008-08/msg00456.html
+https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features:
 
 ** "Emacs as word processor"
-http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00515.html
+https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
     rms writes:
     25 years ago I hoped we would extend Emacs to do WYSIWYG word
     processing.  That is why we added text properties and variable
@@ -322,15 +310,15 @@ never really made it work for this.
 Perspectives also need to interact with the tabs.
 
 ** FFI (foreign function interface)
-See eg http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00246.html
+See eg https://lists.gnu.org/r/emacs-devel/2013-10/msg00246.html
 
 One way of doing this is to start with fx's dynamic loading, and use it
 to implement things like auto-loaded buffer parsers and database
 access in cases which need more than Lisp.
 
 ** Replace unexec with a more portable form of dumping
-See eg http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01034.html
-       http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00452.html
+See eg https://lists.gnu.org/r/emacs-devel/2014-01/msg01034.html
+       https://lists.gnu.org/r/emacs-devel/2014-06/msg00452.html
 
 One way is to provide portable undumping using mmap (per gerd design).
 
@@ -356,7 +344,7 @@ scroll bars are extensible.
 ** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
   http://latex2rtf.sourceforge.net/.]  This task seems to be addressed
-  by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
+  by https://savannah.nongnu.org/projects/emacs-rtf/, which is still in
   very early stages.
 
   Another place to look is the Wikipedia article at
@@ -410,8 +398,8 @@ familiar with GNUstep and Objective C.
 ** A more modern printing interface.  One that pops up a dialog that lets
 you choose printer, page style, etc.
 Integration with the Gtk print dialog is apparently difficult.  See eg:
-http://lists.gnu.org/archive/html/emacs-devel/2009-03/msg00501.html
-http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00034.html
+https://lists.gnu.org/r/emacs-devel/2009-03/msg00501.html
+https://lists.gnu.org/r/emacs-devel/2009-04/msg00034.html
 
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
@@ -510,7 +498,7 @@ from the emacsclient process.
 
 ** Get some major packages installed: W3 (development version needs
   significant work), PSGML, _possibly_ ECB.
-  http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01493.html
+  https://lists.gnu.org/r/emacs-devel/2007-05/msg01493.html
   Check the assignments file for other packages which might go in and
   have been missed.
 
@@ -656,31 +644,260 @@ from the emacsclient process.
 
 ** Possibly make 'list-holidays' eval items in the calendar-holidays variable.
    See thread
-   <http://lists.gnu.org/archive/html/emacs-devel/2006-02/msg01034.html>.
+   <https://lists.gnu.org/r/emacs-devel/2006-02/msg01034.html>.
    [rgm@gnu.org will look at this after 22.1]
 
 ** Possibly make cal-dst use the system timezone database directly.
    See thread
-   <http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-11/msg00060.html>
+   <https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html>
 
 ** Possibly add a "close" button to the modeline.
    The idea is to add an "X" of some kind, that when clicked deletes
    the window associated with that modeline.
-   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02416.html
+   https://lists.gnu.org/r/emacs-devel/2007-09/msg02416.html
 
 * Things to be done for specific packages or features
 
 ** NeXTstep port
 
+*** Missing features
+
+This sections contains features found in other official Emacs ports.
+
+**** Support for xwidgets
+
+Emacs 25 has support for xwidgets, a system to include operating
+system components into an Emacs buffer.  The components range from
+simple buttons to webkit (effectively, a web browser).
+
+Currently, xwidgets works only for the gtk+ framework but it is
+designed to be compatible with multiple Emacs ports.
+
+**** Respect 'frame-inhibit-implied-resize'
+
+When the variable 'frame-inhibit-implied-resize' is non-nil, frames
+should not be resized when operations like changing font or toggling
+the tool bar is performed.
+
+Unfortunately, the tool bar (and possible other operations) always
+resize the frame.
+
+**** Support 'proced' (implement 'process-attributes')
+
+Unfortunately, a user-level process like Emacs does not have the
+privileges to get information about other processes under macOS.
+
+There are other ways to do this:
+
+ 1) Spawn "ps" and parse the output ("ps" has superuser privileges).
+
+ 2) Sign Emacs as part of the distribution process.
+
+ 3) Ask the user to self-sign Emacs, if this feature is of interest.
+
+Anders Lindgren <andlind@gmail.com> has implemented
+'process-attributes' for macOS, which currently only work when
+running Emacs as root.
+
+See this article by Bozhidar Batsov for an overview of Proced:
+http://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
+
+**** Tooltip properties
+
+Tooltip properties like the background color and font are hard-wired,
+even though Emacs allows a user to customize such features.
+
+*** New features
+
+This section contains features unique to Nextstep and/or macOS.
+
+**** PressAndHold for writing accented character
+
+On macOS, many application support the press and hold pattern to
+invoke a menu of accented characters.  (See example at
+https://support.apple.com/en-us/HT201586 .)
+
+Currently, this doesn't work in Emacs.
+
+Note that "ns-win.el" explicitly disables this.
+
+Note: This feature might not be allowed to be implemented until also
+implemented in Emacs for a free system.
+
+**** Floating scroll bars
+
+In modern macOS applications, the scroll bar often floats over the
+content, and is invisible unless actually used.  This makes the user
+interface less cluttered and more area could be used to contain text.
+
+With floating scroll bars, the user interface would look like it does
+when they are disabled today.  However, they will be made visible when
+a scroll action is initiated, e.g. by putting two fingers on a
+trackpad.
+
+Note: This feature might not be allowed to be implemented until also
+implemented in Emacs for a free system.
+
+*** Features from the "mac" port
+
+This section contains features available in the "mac" Emacs port.
+
+As the "mac" port (as of this writing) isn't an official Emacs port,
+it might contain features not following the FSF rule "must exist on
+free systems".
+
+The "mac" port is based on the Emacs 22 C-based Carbon interface.
+It has been maintained in parallel to the official Cocoa-based NS
+interface.  The Carbon interface has been enhanced, and a number of the
+features of that interface could be implemented NS.
+
+**** Smooth scrolling -- maybe not a good idea
+
+Today, by default, scrolling with a trackpad makes the text move in
+steps of five lines.  (Scrolling with SHIFT scrolls one line at a time.)
+
+The "mac" port provides smooth, pixel-based, scrolling.  This is a very
+popular features.  However, there are drawbacks to this method: what
+happens if only a fraction of a line is visible at the top of a
+window, is the partially visible text considered part of the window or
+not?  (Technically, what should 'window-start' return.)
+
+An alternative would be to make one-line scrolling the default on NS
+(or in Emacs in general).
+
+Note: This feature might not be allowed to be implemented until also
+implemented in Emacs for a free system.
+
+**** Mouse gestures
+
+The "mac" port defines the gestures 'swipe-left/right/up/down',
+'magnify-up/down', and 'rotate-left/right'.
+
+It also binds the magnification commands to change the font
+size.  (This should be not be done in a specific interface, instead
+Emacs should do this binding globally.)
+
+Note: This feature might not be allowed to be implemented until also
+implemented in Emacs for a free system.
+
+**** Synthesize bold fonts
+
+*** Open issues
+
+This section contains issues where there is an ongoing debate.
+
+**** Key bindings of CMD and ALT
+
+Currently in the "ns" port, ALT is bound to Meta and CMD is bound to
+Super -- allowing the user to use typical macOS commands like CMD-A to
+mark everything.
+
+Unfortunately, when using an international keyboard, you can't type
+normal characters like "(" etc.
+
+There are many alternative key bindings.  One solution is to bind CMD
+to Meta and pass ALT to the system.  In fact, this is what Emacs did up
+to, and including, version 22.  Also, this is how the "mac" port binds
+the keys.
+
+One could envision asymmetrical variants as well, however, this is
+inappropriate for the default setting.
+
+See the discussion on emacs-devel:
+https://lists.gnu.org/r/emacs-devel/2015-12/msg01575.html
+https://lists.gnu.org/r/emacs-devel/2016-01/msg00008.html
+
+*** Internal development features
+
+**** Regression test system (or at least a checklist)
+
+Today, after each change to the user interface, Emacs must be manually
+tested.  Often, small details are overlooked ("Oh, I didn't test
+toggling the tool-bar in one of the full screen modes, when multiple
+frame were open -- silly me.")
+
+It would be an enormous help if this could be tested automatically.
+Many features are generic, however, the NS interface provides a number
+of unique features.
+
+**** Existing packages
+
+Note that there is a generic UI test named frame-test.el, see
+https://debbugs.gnu.org/21415#284 .
+The NS interface passes this, with the exception of two toolbar-related errors.
+
+**** Anders frame test
+
+Anders Lindgren <andlind@gmail.com> has implemented some (very basic)
+tests for full screen, toolbar, and auto-hiding the menu bar.
+
+**** Make sure all build variants work
+
+Emacs can be build in a number of different ways.  For each feature,
+consider if is really is "NS" specific, or if it should be applied to
+all build versions.
+
+- With the "NS" interface.  This is the normal way to build Emacs on
+  macOS.
+
+- With the "X11" interface.  On macOS, this is mainly of interest to
+  developers of Emacs to get a "reference" interface implementations.
+  However, it might be of interest for people working remotely, as X11
+  applications can be used over a network connection.
+
+- Console only.
+
 *** Bugs
 
+**** Incorrect translation of Super modifier with Ctrl or Meta on macOS
+
+When pressing 'M-s-a', Emacs replies "M-s-å is undefined".  What
+happened is a mix of Emacs view that Meta and Super has been pressed,
+and macOS view that ALT-a should yield "å" (U+00E5 LATIN SMALL LETTER
+A WITH RING ABOVE).
+
+The bug reports suggest two different patches; unfortunately, neither
+works properly.  For example:
+
+   Use a Swedish keyboard layout
+
+   (setq ns-alternate-modifier nil)
+
+   "CMD-ALT-9"
+
+Today, this correctly yields that s-] is undefined.  With either
+of the two patches, Emacs responds that s-9 was pressed.
+
+More investigation is needed to fix this problem.
+
+Links:
+- https://debbugs.gnu.org/19977
+- https://debbugs.gnu.org/21330
+- https://debbugs.gnu.org/21551
+
+**** Toggling the toolbar in fullheight or maximized modes
+
+The toolbar, in the NS interface, is not considered part of the text
+area.  When it is toggled, the Emacs frame change height accordingly.
+
+Unfortunately, this also occurs when the frame is in fullheight or
+maximized modes (N.B. this is not the same as "fullscreen").  The
+effect is that the full frame size either increases (stretching down
+below the lower edge of the screen) or decreases (leaving space
+between the lower edge of the frame and the lower edge of the screen).
+
+A better solution would be for the frame to retain its size,
+i.e. change the text area.
+
+This is related to the 'frame-inhibit-implied-resize' issue.
+
 **** The event loop does not redraw.
-     A problem is that redraw don't happen during resize,
-     because we can't break out from the NSapp loop during resize.
-     There was a special trick to detect mouse press in the lower right
-     corner and track mouse movements, but this did not work well, and was
-     not scalable to the new Lion "resize on every window edge" behavior.
-     [As of trunk r109635, 2012-08-15, the event loop no longer polls.]
+A problem is that redraw don't happen during resize,
+because we can't break out from the NSapp loop during resize.
+There was a special trick to detect mouse press in the lower right
+corner and track mouse movements, but this did not work well, and was
+not scalable to the new Lion "resize on every window edge" behavior.
+[As of trunk r109635, 2012-08-15, the event loop no longer polls.]
 
 **** (mouse-avoidance-mode 'banish) then minimize Emacs, will pop window back
 up on top of all others (probably fixed in bug#17439)
@@ -749,6 +966,17 @@ R2L menu bar is tricky for the same reasons as the mode line.  In
 addition, toolkit builds create their menu bars in toolkit-specific
 parts of code, bypassing xdisp.c, so those parts need to be enhanced
 with toolkit-specific code to display the menu bar right to left.
+
+** Custom
+
+*** Extend :set-after to also mean initialize after.
+If defcustom A specifies :set-after '(B), then if a user customizes
+both A and B, custom will set A after B.  But if the user only customizes
+A, then if B is already defined, it gets left at its original setting.
+Instead, if B has not been customized it should be re-initialized
+(on the assumption that the default value depends on A).
+See the places where we manually call custom-reevaluate-setting,
+such as for mail-host-address and user-mail-address in startup.el.
 
 ** ImageMagick support
 
@@ -1172,10 +1400,6 @@ elements
 **** In rng-valid, instead of using modification-hooks and
 insert-behind-hooks on dependent overlays, use same technique as nxml-mode.
 
-**** Port to XEmacs.  Issues include: Unicode (XEmacs seems to be based on
-Mule-UCS); overlays/text properties vs extents; absence of
-fontification-functions hook.
-
 *** Fontification
 
 **** Allow face to depend on element qname, attribute qname, attribute
@@ -1244,6 +1468,15 @@ systems for HTML/XML files automatically."
 
 **** Leverage char-displayable-p.
 
+** RefTeX
+
+*** Provide a wdired-like mode for editing RefTeX TOC buffers.
+As a first step, renaming of sections could be supported.  Ultimately,
+it would be great if it also supported moving sections, e.g., by
+killing and yanking or providing org-mode like "move section
+upwards/downwards" commands.  However, that's not so easy in the
+presence of multi-file documents.
+
 * Internal changes
 
 ** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction
@@ -1258,7 +1491,7 @@ systems for HTML/XML files automatically."
    or just an extension of buff-menu.el.
 
 ** Replace linum.el with nlinum.el
-   http://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00379.html
+   https://lists.gnu.org/r/emacs-devel/2013-08/msg00379.html
 
 ** Merge sendmail.el and messages.el.
    Probably not a complete merge, but at least arrange for messages.el to be
@@ -1273,7 +1506,7 @@ systems for HTML/XML files automatically."
 
 ** Rewrite make-docfile to be clean and maintainable.
    It might be better to replace it with Lisp, using the byte compiler.
-   http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00037.html
+   https://lists.gnu.org/r/emacs-devel/2012-06/msg00037.html
 
 ** Add an inferior-comint-minor-mode to capture the common set of operations
    offered by major modes that offer an associated inferior
@@ -1289,7 +1522,7 @@ systems for HTML/XML files automatically."
 * Wishlist items:
 
 ** Maybe replace etags.c with a Lisp implementation.
-http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00354.html
+https://lists.gnu.org/r/emacs-devel/2012-06/msg00354.html
 
 ** Maybe replace lib-src/rcs2log with a Lisp implementation.
 It wouldn't have to be a complete replacement, just enough
@@ -1316,4 +1549,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

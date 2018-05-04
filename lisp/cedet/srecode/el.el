@@ -1,6 +1,6 @@
 ;;; srecode/el.el --- Emacs Lisp specific arguments
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,14 +17,14 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
 ;; Emacs Lisp specific handlers.  To use these handlers in your
 ;; template, add the :name part to your template argument list.
 ;;
-;; Error if not in a Emacs Lisp mode
+;; Error if not in an Emacs Lisp mode
 
 ;;; Code:
 

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2015 Free Software Foundation, Inc.
+# Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -57,6 +57,12 @@
 #
 # make docs
 #      Make Emacs documentation files from their sources; requires makeinfo.
+#
+# make check (or check-expensive or check-all)
+#      Run the Emacs test suite.
+#      check-expensive includes additional tests that can be slow.
+#      check-all runs all tests, including ones that can be slow, or
+#        fail unpredictably
 
 SHELL = @SHELL@
 
@@ -64,18 +70,11 @@ SHELL = @SHELL@
 # current directory.
 CDPATH=
 
-# If Make doesn't predefine MAKE, set it here.
-@SET_MAKE@
-
 # ==================== Things 'configure' Might Edit ====================
 
 cache_file = @cache_file@
 CONFIGURE_FLAGS = --cache-file=$(cache_file)
 
-AUTOCONF = @AUTOCONF@
-AUTOMAKE = @AUTOMAKE@
-AUTOHEADER = @AUTOHEADER@
-ACLOCAL = @ACLOCAL@
 AWK = @AWK@
 
 EXEEXT=@EXEEXT@
@@ -109,7 +108,7 @@ am__v_at_1 =
 
 # ==================== Where To Install Things ====================
 
-# Location to install Emacs.app under GNUstep / Mac OS X.
+# Location to install Emacs.app under GNUstep / macOS.
 # Later values may use these.
 ns_appbindir=@ns_appbindir@
 ns_appresdir=@ns_appresdir@
@@ -148,6 +147,9 @@ sharedstatedir=@sharedstatedir@
 # are actually installed in ${archlibdir}, which is (normally)
 # a subdirectory of this.
 libexecdir=@libexecdir@
+
+# Currently only used for the systemd service file.
+libdir=@libdir@
 
 # Where to install Emacs's man pages.
 # Note they contain cross-references that expect them to be in section 1.
@@ -191,6 +193,17 @@ desktopdir=$(datarootdir)/applications
 
 # Where the etc/emacs.appdata.xml file is to be installed.
 appdatadir=$(datarootdir)/appdata
+
+# Where the etc/emacs.service file is to be installed.
+# The system value (typically /usr/lib/systemd/user) can be
+# obtained with: pkg-config --variable=systemduserunitdir systemd
+# but that does not respect configure's prefix.
+# It is not clear where we should install this file when
+# prefix != /usr (or /usr/local?) (eg for non-root installs).
+# Other options include ~/.config/systemd/user/,
+# $XDG_RUNTIME_DIR/systemd/user/
+# It seems the user may end up having to make a manual link...
+systemdunitdir=$(libdir)/systemd/user
 
 # Where the etc/images/icons/hicolor directory is to be installed.
 icondir=$(datarootdir)/icons
@@ -251,8 +264,15 @@ archlibdir=@archlibdir@
 # Where to put the etc/DOC file.
 etcdocdir=@etcdocdir@
 
-# Where to install Emacs game score files.
+# User or group of the auxiliary program update-game-score, which is
+# installed on platforms with a game directory shared by multiple users.
+# On other platforms Emacs can update the score files itself.
+gameuser=@gameuser@
+gamegroup=@gamegroup@
+# Where to install game score files, if gameuser or gamegroup is nonempty.
 gamedir=@gamedir@
+# Nonempty if and only if a shared gamedir is used.
+use_gamedir=$(gameuser)$(gamegroup)
 
 # ==================== Utility Programs for the Build ====================
 
@@ -292,6 +312,11 @@ SUBDIR = $(NTDIR) lib lib-src src lisp
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
 SUBDIR_MAKEFILES = $(patsubst ${srcdir}/%,%,${SUBDIR_MAKEFILES_IN:.in=})
 
+# Non-makefile files created by config.status.
+CONFIG_STATUS_FILES_IN = \
+ ${srcdir}/nt/emacs.rc.in ${srcdir}/nt/emacsclient.rc.in \
+ ${srcdir}/doc/man/emacs.1.in
+
 # Subdirectories to install, and where they'll go.  lib-src's and nt's
 # makefiles know how to install them, so we don't do that here.
 # Directories that cannot simply be copied, eg info, are treated
@@ -314,7 +339,8 @@ etc-emacsver:
 	  ${srcdir}/build-aux/move-if-change emacsver.tex.$$$$ \
 	  ${srcdir}/etc/refcards/emacsver.tex
 
-removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
+# The shared gamedir name as a C string literal, or a null ptr if not in use.
+PATH_GAME = $(if $(use_gamedir),"$(gamedir)",((char const *) 0))
 
 # Generate epaths.h from epaths.in.  This target is invoked by 'configure'.
 # See comments in configure.ac for why it is done this way, as opposed
@@ -324,26 +350,24 @@ epaths-force:
 	@for dir in '$(abs_srcdir)' '$(lispdir)' '$(archlibdir)'; do \
 	  case $$dir in \
 	    *:*) \
-	      echo >&2 "Build or installation directory '$$dir'"; \
+	      printf >&2 "Build or installation directory '%s'\\n" "$$dir"; \
 	      echo >&2 "cannot contain ':'."; \
 	      exit 1;; \
 	  esac; \
 	done
-	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
-	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
-	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
-	  x_default_search_path=`echo ${x_default_search_path}`; \
-	  gamedir=`echo ${gamedir}`; \
+	@(gamedir='${gamedir}'; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
-	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'"$${standardlisppath}"'";' \
-	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${locallisppath}"'";' \
-	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'"$${buildlisppath}"'";' \
+	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "${standardlisppath}";' \
+	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "${locallisppath}";' \
+	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "${buildlisppath}";' \
+	  -e '/^#define PATH_[^ ]*SEARCH /s/\([":]\):*/\1/g'		\
+	  -e '/^#define PATH_[^ ]*SEARCH /s/:"/"/'			\
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
-	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
+	  -e 's;\(#.*PATH_GAME\).*$$;\1 $(PATH_GAME);'			\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${etcdocdir}";') &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
@@ -368,10 +392,6 @@ epaths-force-w32:
 	  -e '/^.*#/s/@CFG@/${configuration}/g' 		\
 	  -e "/^.*#/s|@SRC@|$${w32srcdir}|g") &&		\
 	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
-
-# If lib/Makefile would build files in '.', then build them before
-# building 'lib', to avoid races with parallel makes.
-lib: am--refresh
 
 lib-src src: $(NTDIR) lib
 
@@ -401,8 +421,10 @@ blessmail: Makefile src
 	$(MAKE) -C lib-src maybe-blessmail
 
 # We used to have one rule per */Makefile.in, but that leads to race
-# conditions with parallel makes, so let's assume that the time stamp on
-# ./Makefile is representative of the time stamp on all the other Makefiles.
+# conditions with parallel makes, so assume that the timestamp on
+# ./Makefile represents the timestamp on all the other Makefiles.
+# Similarly, assume the timestamp on ./configure represents the
+# timestamp on src/config.in.
 #
 # config.status overrides MAKEFILE_NAME with a bogus name when creating
 # src/epaths.h, so that 'make epaths-force' does not recursively invoke
@@ -412,8 +434,9 @@ blessmail: Makefile src
 # then attempts to build that file.  This forces 'Makefile', 'lib/Makefile',
 # etc. to be built without running into similar recursion problems.
 MAKEFILE_NAME = Makefile
-$(MAKEFILE_NAME): config.status $(srcdir)/src/config.in \
-          $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
+$(MAKEFILE_NAME): config.status $(srcdir)/configure \
+	 $(srcdir)/lib/gnulib.mk.in \
+         $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN) $(CONFIG_STATUS_FILES_IN)
 	MAKE='$(MAKE)' ./config.status
 
 # Don't erase these files if make is interrupted while refreshing them.
@@ -426,37 +449,8 @@ config.status: ${srcdir}/configure
 	    $(CFG) $(srcdir)/configure $(CONFIGURE_FLAGS); \
 	fi
 
-AUTOCONF_INPUTS = $(srcdir)/configure.ac $(srcdir)/aclocal.m4
-
-$(srcdir)/configure: $(AUTOCONF_INPUTS)
-	cd ${srcdir} && ${AUTOCONF}
-
-ACLOCAL_PATH = @ACLOCAL_PATH@
-ACLOCAL_INPUTS = $(srcdir)/configure.ac $(srcdir)/m4/*.m4
-$(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
-	cd $(srcdir) && ACLOCAL_PATH='$(ACLOCAL_PATH)' $(ACLOCAL) -I m4
-
-AUTOMAKE_INPUTS = $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am \
-  $(srcdir)/lib/gnulib.mk
-$(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
-	cd $(srcdir) && $(AUTOMAKE) --gnu -a -c lib/Makefile
-
-# Regenerate files that this makefile would have made, if this makefile
-# had been built by Automake.  The name 'am--refresh' is for
-# compatibility with subsidiary Automake-generated makefiles.
-am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
-.PHONY: am--refresh
-
-$(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
-	@ # Usually, there's no need to rebuild src/config.in just
-	@ # because stamp-h.in has changed (since building stamp-h.in
-	@ # refreshes config.in as well), but if config.in is missing
-	@ # then we really need to do something more.
-	$(if $(wildcard $@),,cd $(srcdir) && $(AUTOHEADER))
-$(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
-	cd ${srcdir} && ${AUTOHEADER}
-	rm -f $@
-	echo timestamp > $@
+$(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
+	cd $(srcdir) && ./autogen.sh autoconf
 
 # ==================== Installation ====================
 
@@ -497,7 +491,7 @@ ifeq (${ns_self_contained},no)
 	-chmod 755 "$(DESTDIR)${bindir}/$(EMACSFULL)"
 ifndef NO_BIN_LINK
 	rm -f "$(DESTDIR)${bindir}/$(EMACS)"
-	cd "$(DESTDIR)${bindir}" && $(LN_S_FILEONLY) $(EMACSFULL) $(EMACS)
+	cd "$(DESTDIR)${bindir}" && $(LN_S_FILEONLY) "$(EMACSFULL)" "$(EMACS)"
 endif
 else
 	subdir=${ns_appresdir}/site-lisp && ${write_subdir}
@@ -519,7 +513,7 @@ install-nt:
 ## For them, it is empty.
 INSTALL_ARCH_INDEP_EXTRA = @INSTALL_ARCH_INDEP_EXTRA@
 
-## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
+## https://lists.gnu.org/r/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
 set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 	  `id -un 2> /dev/null`; do \
@@ -558,11 +552,11 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 
 ## Note that we use tar instead of plain old cp -R/-r because the latter
 ## is apparently not portable (even in 2012!).
-## http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00278.html
+## https://lists.gnu.org/r/emacs-devel/2012-05/msg00278.html
 ## I have no idea which platforms Emacs supports where cp -R does not
 ## work correctly, and therefore no idea when tar can be replaced.
 ## See also these comments from 2004 about cp -r working fine:
-## http://lists.gnu.org/archive/html/autoconf-patches/2004-11/msg00005.html
+## https://lists.gnu.org/r/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
@@ -577,14 +571,14 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	  fi; \
 	  rm -rf "$${dest}" ; \
 	  umask 022; ${MKDIR_P} "$${dest}" ; \
-	  echo "Copying $${dir} to $${dest}..." ; \
+	  printf 'Copying %s to %s...\n' "$$dir" "$$dest" ; \
 	  (cd $${dir}; tar -chf - . ) \
 	    | (cd "$${dest}"; umask 022; \
 	       tar -xvf - && cat > /dev/null) || exit 1; \
 	  if [ "$${dir}" = "${srcdir}/etc" ]; then \
 	      rm -f "$${dest}/DOC"* ; \
 	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
-	      rm -f "$${dest}/refcards"/*.log; \
+	      rm -f "$${dest}/refcards"/*.log "$${dest}/refcards"/*.in; \
 	  else true; \
 	  fi; \
 	  (cd "$${dest}" || exit 1; \
@@ -593,8 +587,8 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	      rm -f $${subdir}/.gitignore ; \
 	      rm -f $${subdir}/.arch-inventory ; \
 	      rm -f $${subdir}/.DS_Store ; \
-	      rm -f $${subdir}/\#* ; \
-	      rm -f $${subdir}/.\#* ; \
+	      rm -f $${subdir}/#* ; \
+	      rm -f $${subdir}/.#* ; \
 	      rm -f $${subdir}/*~ ; \
 	      rm -f $${subdir}/*.orig ; \
 	      rm -f $${subdir}/ChangeLog* ; \
@@ -632,7 +626,8 @@ install-etcdoc: src install-arch-indep
 	if [ "`cd ./etc; /bin/pwd`" != "$$exp_etcdocdir" ]; \
 	then \
 	   docfile="DOC"; \
-	   echo "Copying etc/$${docfile} to $(DESTDIR)${etcdocdir} ..." ; \
+	   printf 'Copying %s to %s ...\n' "etc/$$docfile" \
+	     "$(DESTDIR)${etcdocdir}"; \
 	   ${INSTALL_DATA} etc/$${docfile} "$(DESTDIR)${etcdocdir}/$${docfile}"; \
 	   $(set_installuser); \
 	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
@@ -701,9 +696,8 @@ EMACS_ICON=emacs
 install-etc:
 	umask 022; ${MKDIR_P} "$(DESTDIR)${desktopdir}"
 	tmp=etc/emacs.tmpdesktop; rm -f $${tmp}; \
-	emacs_name=`echo emacs | sed '$(TRANSFORM)'`; \
-	sed -e "/^Exec=emacs/ s/emacs/$${emacs_name}/" \
-	  -e "/^Icon=emacs/ s/emacs/$${emacs_name}/" \
+	sed -e "/^Exec=emacs/ s/emacs/${EMACS_NAME}/" \
+	  -e "/^Icon=emacs/ s/emacs/${EMACS_NAME}/" \
 	  ${srcdir}/etc/emacs.desktop > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"; \
 	rm -f $${tmp}
@@ -713,6 +707,16 @@ install-etc:
 	  ${srcdir}/etc/emacs.appdata.xml > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"; \
 	rm -f $${tmp}
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(systemdunitdir)"
+	tmp=etc/emacs.tmpservice; rm -f $${tmp}; \
+	client_name=`echo emacsclient | sed '$(TRANSFORM)'`${EXEEXT}; \
+	sed -e '/^##/d' \
+	  -e "/^Documentation/ s/emacs(1)/${EMACS_NAME}(1)/" \
+	  -e "/^ExecStart/ s|emacs|${bindir}/${EMACS}|" \
+	  -e "/^ExecStop/ s|emacsclient|${bindir}/$${client_name}|" \
+	  ${srcdir}/etc/emacs.service > $${tmp}; \
+	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
+	rm -f $${tmp}
 	thisdir=`/bin/pwd`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
@@ -721,7 +725,7 @@ install-etc:
 	  for icon in $${dir}/${EMACS_ICON}[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
-	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\\.$${ext}\$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
 	    ( cd "$${thisdir}"; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} "$(DESTDIR)${icondir}/$${dir}/$${dest}" ) \
 	    || exit 1; \
@@ -770,18 +774,21 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	   for page in *.1; do \
 	     rm -f "$(DESTDIR)${man1dir}"/`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1$$ext; done; \
 	 fi)
-	(cd "$(DESTDIR)${bindir}" && rm -f $(EMACSFULL) $(EMACS) || true)
+	rm -f "$(DESTDIR)${bindir}/$(EMACS)" "$(DESTDIR)${bindir}/$(EMACSFULL)"
 	(if cd "$(DESTDIR)${icondir}"; then \
-	   rm -f hicolor/*x*/apps/${EMACS_NAME}.png \
-	     hicolor/scalable/apps/${EMACS_NAME}.svg \
+	   rm -f hicolor/*x*/apps/"${EMACS_NAME}.png" \
+	     "hicolor/scalable/apps/${EMACS_NAME}.svg" \
 	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
 	fi)
 	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
 	-rm -f "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"
+	-rm -f "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"
+  ifneq (,$(use_gamedir))
 	for file in snake-scores tetris-scores; do \
 	  file="$(DESTDIR)${gamedir}/$${file}"; \
 	  [ -s "$${file}" ] || rm -f "$$file"; \
 	done
+  endif
 
 ### Windows-specific uninstall target for removing programs produced
 ### in nt/, and its Posix do-nothing shadow.
@@ -813,9 +820,7 @@ mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
 $(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
 
 mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
-	for dir in test/automated; do \
-	  [ ! -d $$dir ] || $(MAKE) -C $$dir mostlyclean; \
-	done
+	[ ! -d test ] || $(MAKE) -C test $@
 
 ### 'clean'
 ###      Delete all files from the current directory that are normally
@@ -830,9 +835,8 @@ clean_dirs = $(mostlyclean_dirs) nextstep
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
 clean: $(clean_dirs:=_clean)
-	for dir in test/automated admin/charsets; do \
-	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
-	done
+	$(MAKE) -C admin/charsets $@
+	[ ! -d test ] || $(MAKE) -C test $@
 	-rm -f *.tmp etc/*.tmp*
 	-rm -rf info-dir.*
 
@@ -849,18 +853,20 @@ top_bootclean=\
 ###      distribution.
 top_distclean=\
 	${top_bootclean}; \
-	rm -f config.status config.log~ Makefile stamp-h1 ${SUBDIR_MAKEFILES}
+	rm -f config.status config.log~ \
+	  Makefile lib/gnulib.mk ${SUBDIR_MAKEFILES}
 
 distclean_dirs = $(clean_dirs) leim lisp
 
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
 
-maybeclean_dirs = test/automated admin/grammars admin/unidata admin/charsets
+maybeclean_dirs = test admin/grammars admin/unidata admin/charsets
 
 distclean: $(distclean_dirs:=_distclean)
-	for dir in ${maybeclean_dirs}; do \
-	  [ ! -d $$dir ] || $(MAKE) -C $$dir distclean; \
+	for dir in $(filter-out test,$(maybeclean_dirs)); do \
+	  $(MAKE) -C $$dir $@ || exit; \
 	done
+	[ ! -d test ] || $(MAKE) -C test $@
 	${top_distclean}
 
 ### 'bootstrap-clean'
@@ -869,9 +875,10 @@ distclean: $(distclean_dirs:=_distclean)
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
 
 bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
-	for dir in ${maybeclean_dirs}; do \
-	  [ ! -d $$dir ] || $(MAKE) -C $$dir bootstrap-clean; \
+	for dir in $(filter-out test,$(maybeclean_dirs)); do \
+	  $(MAKE) -C $$dir $@ || exit; \
 	done
+	[ ! -d test ] || $(MAKE) -C test $@
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
@@ -897,9 +904,10 @@ maintainer_clean_dirs = src leim lisp
 $(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
 
 maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
-	for dir in ${maybeclean_dirs}; do \
-	  [ ! -d $$dir ] || $(MAKE) -C $$dir maintainer-clean; \
+	for dir in $(filter-out test,$(maybeclean_dirs)); do \
+	  $(MAKE) -C $$dir $@ || exit; \
 	done
+	[ ! -d test ] || $(MAKE) -C test $@
 	${top_maintainer_clean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -924,13 +932,17 @@ extraclean: $(extraclean_dirs:=_extraclean)
 TAGS tags: lib lib-src src
 	$(MAKE) -C src tags
 
-check: all
-	@if test ! -d test/automated; then \
+.PHONY: have-tests
+have-tests:
+	@if test ! -d test; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
-	else \
-	  $(MAKE) -C test/automated check; \
+	 exit 1; \
 	fi
+
+.PHONY: check check-maybe check-expensive check-all
+check check-maybe check-expensive check-all: have-tests all
+	$(MAKE) -C test $@
 
 dist:
 	cd ${srcdir}; ./make-dist
@@ -946,7 +958,7 @@ $(DOCS):
 	$(MAKE) -C doc/$(subst -, ,$@)
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check html info-real info-dir check-info
+.PHONY: info dvi dist html info-real info-dir check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
@@ -980,12 +992,9 @@ info_dir_deps = \
 ## slow down parallelization.
 ${srcdir}/info/dir: ${info_dir_deps}
 	$(AM_V_at)${MKDIR_P} ${srcdir}/info
-	$(AM_V_GEN)tempfile=info-dir.$$$$; \
-	rm -f $${tempfile}; \
-	(cd ${srcdir}/doc && \
+	$(AM_V_GEN)(cd ${srcdir}/doc && \
 	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
-	) >$$tempfile && \
-	${srcdir}/build-aux/move-if-change $${tempfile} ${srcdir}/info/dir
+	) >$@.tmp && mv $@.tmp $@
 
 INSTALL_DVI = install-emacs-dvi install-lispref-dvi \
 	install-lispintro-dvi install-misc-dvi
@@ -1087,19 +1096,19 @@ check-info: info
 #  * Rebuild Makefile, to update the build procedure itself.
 #  * Do the actual build.
 bootstrap: bootstrap-clean
-	cd $(srcdir) && ./autogen.sh
+	cd $(srcdir) && ./autogen.sh autoconf
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) all
 
 .PHONY: ChangeLog change-history change-history-commit change-history-nocommit
-.PHONY: master-branch-is-current unchanged-history-files
+.PHONY: preferred-branch-is-current unchanged-history-files
 
 CHANGELOG = ChangeLog
 emacslog = build-aux/gitlog-to-emacslog
 # The ChangeLog history files are called ChangeLog.1, ChangeLog.2, ...,
 # ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX).  $(CHANGELOG_N) stands for
 # the newest (highest-numbered) ChangeLog history file.
-CHANGELOG_HISTORY_INDEX_MAX = 2
+CHANGELOG_HISTORY_INDEX_MAX = 3
 CHANGELOG_N = ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Convert git commit log to ChangeLog file.  make-dist uses this.
@@ -1109,8 +1118,9 @@ ChangeLog:
 	  ./$(emacslog) -o $(CHANGELOG) -n $(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Check that we are in a good state for changing history.
-master-branch-is-current:
-	git branch | grep -q '^\* master$$'
+PREFERRED_BRANCH = emacs-26
+preferred-branch-is-current:
+	git branch | grep -q '^\* $(PREFERRED_BRANCH)$$'
 unchanged-history-files:
 	x=$$(git diff-files --name-only $(CHANGELOG_N) $(emacslog)) && \
 	  test -z "$$x"
@@ -1120,7 +1130,7 @@ new_commit_regexp = ^commit [0123456789abcdef]* (inclusive)
 
 # Copy newer commit messages to the start of the ChangeLog history file,
 # and consider them to be older.
-change-history-nocommit: master-branch-is-current unchanged-history-files
+change-history-nocommit: preferred-branch-is-current unchanged-history-files
 	-rm -f ChangeLog.tmp
 	$(MAKE) ChangeLog CHANGELOG=ChangeLog.tmp
 	sed '/^This file records repository revisions/,$$d' \
@@ -1148,3 +1158,14 @@ check-declare:
 	  exit 1; \
 	fi
 	$(MAKE) -C lisp $@
+	$(MAKE) -C test $@
+
+.PHONY: gitmerge
+
+GITMERGE_EMACS = ./src/emacs${EXEEXT}
+GITMERGE_NMIN = 10
+
+gitmerge:
+	${GITMERGE_EMACS} -batch --no-site-file --no-site-lisp \
+	  -l ${srcdir}/admin/gitmerge.el \
+	  --eval '(setq gitmerge-minimum-missing ${GITMERGE_NMIN})' -f gitmerge

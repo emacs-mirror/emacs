@@ -11,7 +11,7 @@
 @copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -253,7 +253,7 @@ of a command pipe.
 @findex --search-path
 @item --search-path=@var{paths}
 This option lets you specify search paths for your input files.
-@var{paths} is a list of directory names, separated from each other by a
+@var{paths} is a list of directories, separated by
 either a colon or a semicolon, depending on the operating system.
 @end table
 
@@ -421,9 +421,9 @@ regions in the buffer.  Please notice the help strings in the echo area
 when the mouse moves over a sensitive region.
 
 @cindex context menu
-A click with @kbd{Mouse-3} on a mouse-sensitive region opens a context
+A click with @kbd{mouse-3} on a mouse-sensitive region opens a context
 menu.  In addition to this, each buffer also has a buffer-specific menu
-that is opened with a click with @kbd{Mouse-3} somewhere in the buffer
+that is opened with a click with @kbd{mouse-3} somewhere in the buffer
 where no highlight is displayed.
 
 
@@ -482,13 +482,13 @@ you are working on, some classes will only be known to exist but the
 location of their declarations and definitions will not be known.
 
 @item @key{RET}
-Works like @kbd{SPC}, except that it finds the class
+Works like @kbd{@key{SPC}}, except that it finds the class
 declaration rather than viewing it, so that it is ready for
 editing.
 @end table
 
 The same functionality is available from the menu opened with
-@kbd{Mouse-3} on the class name.
+@kbd{mouse-3} on the class name.
 
 
 
@@ -551,7 +551,7 @@ Display a list of types.
 @end table
 
 These lists are also available from the class' context menu invoked with
-@kbd{Mouse-3} on the class name.
+@kbd{mouse-3} on the class name.
 
 
 
@@ -886,7 +886,7 @@ the member.
 This command finds the declaration of the member the cursor is on.
 
 @item @key{SPC}
-This is the same command as @kbd{RET}, but views the member definition
+This is the same command as @kbd{@key{RET}}, but views the member definition
 instead of finding the member's source file.
 
 @item v
@@ -898,7 +898,7 @@ You can install a hook function to perform actions after a member or
 class declaration or definition has been found, or when it is not found.
 
 All the commands described above can also be found in the context menu
-displayed when clicking @kbd{Mouse-2} on a member name.
+displayed when clicking @kbd{mouse-2} on a member name.
 
 
 
@@ -1314,7 +1314,7 @@ the next position stored in the position stack.
 
 @item C-c C-m p
 Displays an electric buffer showing all positions saved in the stack.
-You can select a position by pressing @kbd{SPC} in a line.  You can
+You can select a position by pressing @kbd{@key{SPC}} in a line.  You can
 view a position with @kbd{v}.
 @end table
 

@@ -1,6 +1,6 @@
 ;;; avl-tree.el --- balanced binary trees, AVL-trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;         Inge Wallin <inge@lysator.liu.se>
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -52,7 +52,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-
+(require 'generator)
 
 
 ;; ================================================================
@@ -98,7 +98,8 @@
   ;; avl-tree-right avl-tree-data] branch) node)
   "Get value of a branch of a node.
 NODE is the node, and BRANCH is the branch.
-0 for left pointer, 1 for right pointer and 2 for the data.")
+0 for left pointer, 1 for right pointer and 2 for the data.
+\n(fn BRANCH NODE)")
 
 
 ;; The funcall/aref trick wouldn't work for the setf method, unless we
@@ -400,7 +401,8 @@ itself."
   reverse store)
 
 (defalias 'avl-tree-stack-p #'avl-tree--stack-p
-  "Return t if argument is an avl-tree-stack, nil otherwise.")
+  "Return t if OBJ is an avl-tree-stack, nil otherwise.
+\n(fn OBJ)")
 
 (defun avl-tree--stack-repopulate (stack)
   ;; Recursively push children of the node at the head of STACK onto the
@@ -419,12 +421,12 @@ itself."
 (defalias 'avl-tree-create #'avl-tree--create
   "Create an empty AVL tree.
 COMPARE-FUNCTION is a function which takes two arguments, A and B,
-and returns non-nil if A is less than B, and nil otherwise.")
+and returns non-nil if A is less than B, and nil otherwise.
+\n(fn COMPARE-FUNCTION)")
 
 (defalias 'avl-tree-compare-function #'avl-tree--cmpfun
   "Return the comparison function for the AVL tree TREE.
-
-\(fn TREE)")
+\n(fn TREE)")
 
 (defun avl-tree-empty (tree)
   "Return t if AVL tree TREE is empty, otherwise return nil."
@@ -561,7 +563,7 @@ Note that if you don't care about the order in which FUNCTION is
 applied, just that the resulting list is in the correct order,
 then
 
-  (avl-tree-mapf function 'cons tree (not reverse))
+  (avl-tree-mapf function \\='cons tree (not reverse))
 
 is more efficient."
   (nreverse (avl-tree-mapf fun 'cons tree reverse)))
@@ -615,7 +617,7 @@ is more efficient."
 of all elements of TREE.
 
 If REVERSE is non-nil, the stack is sorted in reverse order.
-\(See also `avl-tree-stack-pop'\).
+\(See also `avl-tree-stack-pop').
 
 Note that any modification to TREE *immediately* invalidates all
 avl-tree-stacks created before the modification (in particular,
@@ -666,6 +668,21 @@ a null element stored in the AVL tree.)"
 (defun avl-tree-stack-empty-p (avl-tree-stack)
   "Return t if AVL-TREE-STACK is empty, nil otherwise."
   (null (avl-tree--stack-store avl-tree-stack)))
+
+
+(iter-defun avl-tree-iter (tree &optional reverse)
+  "Return an AVL tree iterator object.
+
+Calling `iter-next' on this object will retrieve the next element
+from TREE. If REVERSE is non-nil, elements are returned in
+reverse order.
+
+Note that any modification to TREE *immediately* invalidates all
+iterators created from TREE before the modification (in
+particular, calling `iter-next' will give unpredictable results)."
+  (let ((stack (avl-tree-stack tree reverse)))
+    (while (not (avl-tree-stack-empty-p stack))
+      (iter-yield (avl-tree-stack-pop stack)))))
 
 
 (provide 'avl-tree)

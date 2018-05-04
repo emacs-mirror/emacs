@@ -1,6 +1,6 @@
 ### @configure_input@
 
-## Copyright (C) 2012-2015 Free Software Foundation, Inc.
+## Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -30,17 +30,16 @@ EXEEXT = @EXEEXT@
 # abs_top_srcdir may contain ".."
 top_srcdir_abs = $(shell cd @top_srcdir@; pwd -P)
 
-@SET_MAKE@
 MKDIR_P = @MKDIR_P@
 
 ## Emacs.app.
 ns_appdir = @ns_appdir@
-## GNUstep: ns_appdir; OS X: ns_appdir/Contents/MacOS
+## GNUstep: ns_appdir; macOS: ns_appdir/Contents/MacOS
 ns_appbindir = @ns_appbindir@
 ## GNUstep/Emacs.base or Cocoa/Emacs.base.
 ns_appsrc = @ns_appsrc@
 ## GNUstep: GNUstep/Emacs.base/Resources/Info-gnustep.plist
-## OS X: Cocoa/Emacs.base/Contents/Info.plist
+## macOS: Cocoa/Emacs.base/Contents/Info.plist
 ns_check_file = @ns_appdir@/@ns_check_file@
 
 .PHONY: all
@@ -77,7 +76,7 @@ links: ../src/emacs${EXEEXT}
 	for d in $(shell cd ${srcdir}/${ns_appsrc}; find . -type d); do ${MKDIR_P} ${ns_appdir}/$$d; done
 	for f in $(shell cd ${srcdir}/${ns_appsrc}; find . -type f); do ln -s $(shell cd ${srcdir}; pwd -P)/${ns_appsrc}/$$f ${ns_appdir}/$$f; done
 	for d in $(shell cd ${ns_appsrc}; find . -type d); do ${MKDIR_P} ${ns_appdir}/$$d; done
-	for f in $(shell cd ${ns_appsrc}; find . -type f); do ln -s $(shell cd ${ns_appsrc}; pwd -P)/$$f ${ns_appdir}/$$f; done
+	for f in $(shell cd ${ns_appsrc}; find . -type f); do rm -f ${ns_appdir}/$$f; ln -s $(shell cd ${ns_appsrc}; pwd -P)/$$f ${ns_appdir}/$$f; done
 	ln -s $(top_srcdir_abs)/lisp ${ns_appdir}/Contents/Resources
 	ln -s $(top_srcdir_abs)/info ${ns_appdir}/Contents/Resources
 	${MKDIR_P} ${ns_appbindir}

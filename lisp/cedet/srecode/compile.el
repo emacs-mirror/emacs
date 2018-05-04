@@ -1,6 +1,6 @@
 ;;; srecode/compile --- Compilation of srecode template files.
 
-;; Copyright (C) 2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -31,7 +31,6 @@
 ;; The output are a series of EIEIO objects which represent the
 ;; templates in a way that could be inserted later.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio)
 (require 'cl-generic)

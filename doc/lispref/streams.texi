@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1994, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
@@ -113,8 +113,8 @@ When it is called with no arguments, it should return the next character.
 When it is called with one argument (always a character), @var{function}
 should save the argument and arrange to return it on the next call.
 This is called @dfn{unreading} the character; it happens when the Lisp
-reader reads one character too many and wants to ``put it back where it
-came from''.  In this case, it makes no difference what value
+reader reads one character too many and wants to put it back where it
+came from.  In this case, it makes no difference what value
 @var{function} returns.
 @end itemize
 
@@ -343,10 +343,10 @@ shared structures.  @xref{Circular Objects}.  Its default value is
 When reading or writing from the standard input/output streams of the
 Emacs process in batch mode, it is sometimes required to make sure any
 arbitrary binary data will be read/written verbatim, and/or that no
-translation of newlines to or from CR-LF pairs are performed.  This
-issue does not exist on Posix hosts, only on MS-Windows and MS-DOS@.
-The following function allows to control the I/O mode of any standard
-stream of the Emacs process.
+translation of newlines to or from CR-LF pairs is performed.  This
+issue does not exist on POSIX hosts, only on MS-Windows and MS-DOS@.
+The following function allows you to control the I/O mode of any
+standard stream of the Emacs process.
 
 @defun set-binary-mode stream mode
 Switch @var{stream} into binary or text I/O mode.  If @var{mode} is
@@ -354,7 +354,7 @@ non-@code{nil}, switch to binary mode, otherwise switch to text mode.
 The value of @var{stream} can be one of @code{stdin}, @code{stdout},
 or @code{stderr}.  This function flushes any pending output data of
 @var{stream} as a side effect, and returns the previous value of I/O
-mode for @var{stream}.  On Posix hosts, it always returns a
+mode for @var{stream}.  On POSIX hosts, it always returns a
 non-@code{nil} value and does nothing except flushing pending output.
 @end defun
 
@@ -503,7 +503,7 @@ in reverse order.
 @end group
 
 @group
-(print "This is the output" 'eat-output)
+(print "This is the output" #'eat-output)
      @result{} "This is the output"
 @end group
 
@@ -529,6 +529,22 @@ Now we can put the output in the proper order by reversing the list:
 @noindent
 Calling @code{concat} converts the list to a string so you can see its
 contents more clearly.
+
+@cindex @code{stderr} stream, use for debugging
+@anchor{external-debugging-output}
+@defun external-debugging-output character
+This function can be useful as an output stream when debugging.  It
+writes @var{character} to the standard error stream.
+
+For example
+@example
+@group
+(print "This is the output" #'external-debugging-output)
+@print{} This is the output
+@result{} "This is the output"
+@end group
+@end example
+@end defun
 
 @node Output Functions
 @section Output Functions
@@ -570,8 +586,9 @@ operation:
 @end example
 
   In the functions below, @var{stream} stands for an output stream.
-(See the previous section for a description of output streams.)  If
-@var{stream} is @code{nil} or omitted, it defaults to the value of
+(See the previous section for a description of output streams.  Also
+@xref{external-debugging-output}, a useful stream value for debugging.)
+If @var{stream} is @code{nil} or omitted, it defaults to the value of
 @code{standard-output}.
 
 @defun print object &optional stream
@@ -639,7 +656,7 @@ spacing between calls.
 This function outputs a newline to @var{stream}.  The name stands for
 ``terminate print''.  If @var{ensure} is non-@code{nil} no newline is printed
 if @var{stream} is already at the beginning of a line.  Note in this
-case @var{stream} can not be a function and an error is signalled if
+case @var{stream} can not be a function and an error is signaled if
 it is.  This function returns @code{t} if a newline is printed.
 @end defun
 
@@ -701,13 +718,13 @@ returns @code{"The buffer is foo"}.
 
 @defun pp object &optional stream
 This function outputs @var{object} to @var{stream}, just like
-@code{prin1}, but does it in a more ``pretty'' way.  That is, it'll
+@code{prin1}, but does it in a prettier way.  That is, it'll
 indent and fill the object to make it more readable for humans.
 @end defun
 
 If you need to use binary I/O in batch mode, e.g., use the functions
 described in this section to write out arbitrary binary data or avoid
-conversion of newlines on non-Posix hosts, see @ref{Input Functions,
+conversion of newlines on non-POSIX hosts, see @ref{Input Functions,
 set-binary-mode}.
 
 @node Output Variables
@@ -759,6 +776,14 @@ b"
 In the second expression, the local binding of
 @code{print-escape-newlines} is in effect during the call to
 @code{prin1}, but not during the printing of the result.
+@end defvar
+
+@defvar print-escape-control-characters
+If this variable is non-@code{nil}, control characters in strings are
+printed as backslash sequences by the print functions @code{prin1} and
+@code{print} that print with quoting.  If this variable and
+@code{print-escape-newlines} are both non-@code{nil}, the latter takes
+precedences for newlines and formfeeds.
 @end defvar
 
 @defvar print-escape-nonascii

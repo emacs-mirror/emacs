@@ -9,12 +9,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.5
+@set VERSION 8.6
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2013-03-02
-@set UPDATE-MONTH March, 2013
+@set UPDATED 2016-04-29
+@set UPDATE-MONTH April, 2016
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -25,7 +25,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001--2003, 2005--2015 Free Software
+Copyright @copyright{} 1995, 2001--2003, 2005--2018 Free Software
 Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
@@ -237,7 +237,7 @@ read a built-in tutorial by starting GNU Emacs and typing @kbd{C-h t}
 @ref{Top, , GNU Emacs Manual, emacs, GNU Emacs Manual},
 @end ifinfo
 @ifhtml
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/,
 @cite{GNU Emacs Manual}},
 @end ifhtml
 from the Free Software Foundation.
@@ -386,7 +386,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Easy-Customization.html,
 Easy Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 @xref{Options}.
@@ -406,7 +406,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Face-Customization.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Face-Customization.html,
 Face Customization} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -424,7 +424,7 @@ Emacs Manual}
 @end ifnothtml
 @ifhtml
 See section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html,
 Hooks} in @cite{The GNU Emacs Manual}
 @end ifhtml
 for a description about @dfn{normal hooks} and @dfn{abnormal hooks}.
@@ -442,7 +442,7 @@ either @code{customize-option} or @code{add-hook}.
 @cindex point
 @cindex region
 @kindex C-@@
-@kindex C-@key{SPC}
+@kindex C-SPC
 
 There are several other terms that are used in Emacs that you should
 know. The @dfn{point} is where the cursor currently is. You can save
@@ -475,7 +475,7 @@ point.
 @end ifnothtml
 @ifhtml
 See the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 Note that @key{SPC} cannot be used for completing filenames and
@@ -692,7 +692,6 @@ get the big picture, and then you can read the manual as you wish.
 @cindex modes, MH-Letter
 @cindex sending mail
 @findex mh-smail
-@kindex M-x mh-smail
 
 Let's start our tour by sending ourselves a message which we can later
 read and process. Enter @kbd{M-x mh-smail} to invoke the MH-E program
@@ -762,7 +761,6 @@ message. Type @kbd{C-c C-c} now. That's all there is to it!
 @cindex modes, MH-Folder
 @cindex reading mail
 @findex mh-rmail
-@kindex M-x mh-rmail
 
 To read the mail you've just sent yourself, enter @kbd{M-x mh-rmail}.
 This incorporates the new mail and puts the output from
@@ -777,7 +775,6 @@ major mode is MH-Folder.
 
 @findex mh-rmail
 @kindex F r
-@kindex M-x mh-rmail
 
 @sp 1
 @center @strong{NOTE}
@@ -790,7 +787,7 @@ use @kbd{F r} to pull all your messages into MH-E.
 @end quotation
 @sp 1
 
-@kindex @key{RET}
+@kindex RET
 @kindex n
 @kindex p
 
@@ -820,8 +817,8 @@ This is a test message to get the wheels churning...
 @end cartouche
 @i{After incorporating new messages}
 
-@kindex @key{DEL}
-@kindex @key{SPC}
+@kindex DEL
+@kindex SPC
 
 If you typed a long message, you can view subsequent pages with
 @key{SPC} and previous pages with @key{DEL}.
@@ -830,7 +827,7 @@ If you typed a long message, you can view subsequent pages with
 @section Processing Mail
 
 @cindex processing mail
-@kindex @key{RET}
+@kindex RET
 @kindex r
 
 The first thing we want to do is reply to the message that we sent
@@ -883,7 +880,7 @@ Type C-c C-c to send message, C-c ? for help
 @kindex C-f
 @kindex C-n
 @kindex C-p
-@kindex @key{BS}
+@kindex BS
 
 By default, MH will not add you to the address list of your replies,
 so if you find that the @samp{To:} header field is missing, don't
@@ -898,7 +895,7 @@ editing your message, send it with @kbd{C-c C-c} as before.
 @cindex @command{refile}
 @cindex MH commands, @command{refile}
 @cindex folders
-@kindex @key{SPC}
+@kindex SPC
 @kindex o
 
 You'll often want to save messages that were sent to you in an
@@ -918,7 +915,7 @@ in a moment.
 @cindex modes, MH-Folder
 @kindex d
 @kindex i
-@kindex @key{RET}
+@kindex RET
 @kindex n
 @kindex p
 @kindex x
@@ -935,7 +932,6 @@ command.
 
 @findex mh-smail
 @kindex m
-@kindex M-x mh-smail
 
 If you want to send another message you can use @kbd{m} instead of
 @kbd{M-x mh-smail}. So go ahead, send some mail to your friends!
@@ -970,7 +966,6 @@ perform any refiles and deletes that you did there.
 @findex mh-rmail
 @kindex C-x b
 @kindex C-x k
-@kindex M-x mh-rmail
 @kindex q
 
 If you don't want to leave Emacs, you can type @kbd{q} to bury (hide)
@@ -1123,17 +1118,17 @@ exist,
 @footnote{The @cite{GNU Emacs Lisp Reference Manual} should be available
 via the Info system by typing @kbd{C-h i m Emacs Lisp
 @key{RET}}. It is also available online at @*
-@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
+@uref{https://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end iftex
 @ifinfo
 @footnote{@xref{Top, The GNU Emacs Lisp Reference Manual, , elisp, GNU
 Emacs Lisp Reference Manual}, which should be available via the
 Info system. It is also available online at
-@uref{http://www.gnu.org/software/emacs/manual/elisp.html}.}
+@uref{https://www.gnu.org/software/emacs/manual/elisp.html}.}
 @end ifinfo
 @ifhtml
 @footnote{The
-@uref{http://www.gnu.org/software/emacs/manual/elisp.html,
+@uref{https://www.gnu.org/software/emacs/manual/elisp.html,
 The GNU Emacs Lisp Reference Manual} should be available via
 the Info system by typing @kbd{C-h i m Emacs Lisp @key{RET}}.}
 @end ifhtml
@@ -1163,7 +1158,7 @@ your initials. (Unless, of course, your initials happen to be @emph{mh}!)
 @cindex customizing MH-E
 @cindex setting options
 @findex customize-option
-@vindex mh-lpr-command-format, example
+@vindex mh-lpr-command-format@r{, example}
 
 Many string or integer options are easy to modify using @kbd{M-x
 customize-option}. For example, to modify the option that controls
@@ -1181,7 +1176,7 @@ Sessions}. To read more about @code{mh-lpr-command-format}, see
 @cindex option, turning on and off
 @cindex t
 @findex customize-option
-@vindex mh-bury-show-buffer-flag, example
+@vindex mh-bury-show-buffer-flag@r{, example}
 
 Options can also hold boolean values. In Emacs Lisp, the boolean
 values are @code{nil}, which means false, and @code{t}, which means
@@ -1196,7 +1191,7 @@ the @samp{Erase Customization} menu item to reset the option to the
 default, which places the MH-Show buffer at the bottom of the buffer
 stack.
 
-@vindex mh-mhl-format-file, example
+@vindex mh-mhl-format-file@r{, example}
 
 The text usually says to turn on an option by setting it to a
 @emph{non-@code{nil}} value, because sometimes values other than
@@ -1228,7 +1223,7 @@ Many commands that operate on individual messages, such as
 @code{mh-forward} or @code{mh-refile-msg} take a @code{RANGE}
 argument. This argument can be used in several ways.
 
-@kindex C-u, with ranges
+@kindex C-u@r{, with ranges}
 
 If you provide the prefix argument @kbd{C-u} to these commands, then
 you will be prompted for the message range. This can be any valid MH
@@ -1298,7 +1293,7 @@ When you choose a folder in MH-E via a command such as @kbd{o}
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Completion.html,
 Completion} in @cite{The GNU Emacs Manual}).
 @end ifhtml
 In addition, MH-E has several ways of choosing a suitable default so
@@ -1520,9 +1515,9 @@ after running @kbd{M-x mh-rmail} the first time or when you've changed
 the message numbers from outside of MH-E.
 
 @findex mh-execute-commands
-@findex mh-rescan-folder, example
-@findex mh-show, example
-@vindex mh-inc-folder-hook, example
+@findex mh-rescan-folder@r{, example}
+@findex mh-show@r{, example}
+@vindex mh-inc-folder-hook@r{, example}
 
 @smalllisp
 @group
@@ -1552,7 +1547,6 @@ the message numbers from outside of MH-E.
 @findex mh-rmail
 @kindex F r
 @kindex F v
-@kindex M-x mh-rmail
 
 The MH-E entry point for reading mail is @kbd{M-x mh-rmail}. This
 command incorporates your mail and creates a buffer called
@@ -1566,7 +1560,7 @@ M-x mh-rmail @key{RET} bob @key{RET}}). @xref{Folders}.}.
 @findex display-time
 @vindex read-mail-command
 
-There are some commands that need to read mail, such as @kbd{Mouse-2}
+There are some commands that need to read mail, such as @kbd{mouse-2}
 over the @samp{Mail} button that @code{display-time} adds to the mode
 line. You can configure Emacs to have these commands use MH-E by
 setting the option @code{read-mail-command} to @samp{mh-rmail}.
@@ -1592,38 +1586,38 @@ Display cheat sheet for the MH-E commands (@code{mh-help}).
 @c -------------------------
 @cindex @samp{Message > Show Message} menu item
 @cindex menu item, @samp{Message > Show Message}
-@kindex @key{RET}
+@kindex RET
 @findex mh-show
 @item @key{RET}
 Display message (@code{mh-show}).
 @c -------------------------
 @cindex @samp{Message > Show Message with Header} menu item
 @cindex menu item, @samp{Message > Show Message with Header}
-@kindex , (comma)
+@kindex , @r{(comma)}
 @findex mh-header-display
 @item , (comma)
 Display message with all header fields (@code{mh-header-display}).
 @c -------------------------
 @cindex @samp{Message > Show Message with Preferred Alternative} menu item
 @cindex menu item, @samp{Message > Show Message with Preferred Alternative}
-@kindex : (colon)
+@kindex : @r{(colon)}
 @findex mh-show-preferred-alternative
 @item : (colon)
 Display message with the default preferred alternative
 (@code{mh-show-preferred-alternative}).
 @c -------------------------
-@kindex ; (semicolon)
+@kindex ; @r{(semicolon)}
 @findex mh-toggle-mh-decode-mime-flag
 @item ; (semicolon)
 Toggle the value of @code{mh-decode-mime-flag}
 (@code{mh-toggle-mh-decode-mime-flag}).
 @c -------------------------
-@kindex @key{SPC}
+@kindex SPC
 @findex mh-page-msg
 @item @key{SPC}
 Display next page in message (@code{mh-page-msg}).
 @c -------------------------
-@kindex @key{BS}
+@kindex BS
 @findex mh-previous-page
 @item @key{BS}
 Display previous page in message (@code{mh-previous-page}).
@@ -1661,12 +1655,12 @@ Delete range (@code{mh-delete-msg}).
 Display cheat sheet for the commands of the current prefix in
 minibuffer (@code{mh-prefix-help}).
 @c -------------------------
-@kindex D @key{SPC}
+@kindex D SPC
 @findex mh-page-digest
 @item D @key{SPC}
 Display next message in digest (@code{mh-page-digest}).
 @c -------------------------
-@kindex D @key{BS}
+@kindex D BS
 @findex mh-page-digest-backwards
 @item D @key{BS}
 Display previous message in digest (@code{mh-page-digest-backwards}).
@@ -1697,12 +1691,12 @@ Delete messages with same subject or thread
 Display cheat sheet for the commands of the current prefix in
 minibuffer (@code{mh-prefix-help}).
 @c -------------------------
-@kindex K @key{TAB}
+@kindex K TAB
 @findex mh-next-button
 @item K @key{TAB}
 Go to the next button (@code{mh-next-button}).
 @c -------------------------
-@kindex K S-@key{TAB}
+@kindex K S-TAB
 @findex mh-prev-button
 @item K S-@key{TAB}
 Go to the previous button (@code{mh-prev-button}).
@@ -1835,22 +1829,22 @@ minibuffer (@code{mh-prefix-help}).
 Unpack message created with @command{uudecode} or @command{shar}
 (@code{mh-store-msg}).
 @c -------------------------
-@kindex Mouse-2
+@kindex mouse-2
 @findex mh-show-mouse
-@item Mouse-2
+@item mouse-2
 Move point to mouse event and show message (@code{mh-show-mouse}).
 @end table
 
 Within the MH-Show buffer, the following command is defined.
 
 @table @kbd
-@kindex @key{RET}
-@kindex Mouse-1
-@kindex Mouse-2
+@kindex RET
+@kindex mouse-1
+@kindex mouse-2
 @findex mh-press-button
 @item @key{RET}
-@itemx Mouse-1
-@itemx Mouse-2
+@itemx mouse-1
+@itemx mouse-2
 View contents of button (@code{mh-press-button}).
 @end table
 
@@ -2017,15 +2011,15 @@ detail in the following sections.
 @findex mh-previous-page
 @findex mh-show
 @findex mh-show-mouse
-@kindex , (comma)
-@kindex . (period)
-@kindex @key{BS}
-@kindex @key{RET}
-@kindex @key{SPC}
-@kindex Mouse-2
+@kindex , @r{(comma)}
+@kindex . @r{(period)}
+@kindex BS
+@kindex RET
+@kindex SPC
+@kindex mouse-2
 
 The command @key{RET} (@code{mh-show}) displays the message that the
-cursor is on while @kbd{Mouse-2} (@code{mh-show-mouse}) displays the
+cursor is on while @kbd{mouse-2} (@code{mh-show-mouse}) displays the
 message that the mouse cursor is on. If the message is already
 displayed, it scrolls to the beginning of the message. Use @key{SPC}
 (@code{mh-page-msg}) and @key{BS} (@code{mh-previous-page}) to move
@@ -2101,9 +2095,9 @@ Emacs 21 and XEmacs. For more information, see
 @uref{http://quimby.gnus.org/circus/face/}.}.
 
 @cindex @command{uncompface}
-@cindex Emacs, packages, x-face
+@cindex Emacs, packages, @samp{x-face}
 @cindex Unix commands, @command{uncompface}
-@cindex x-face package
+@cindex @samp{x-face} package
 @vindex mh-show-xface
 
 Next is the traditional @samp{X-Face:} header field@footnote{The
@@ -2112,7 +2106,7 @@ display of this field requires the
 @command{uncompface} program}. Recent versions of XEmacs have internal
 support for @samp{X-Face:} images. If your version of XEmacs does not,
 then you'll need both @command{uncompface} and the
-@uref{ftp://ftp.jpl.org/pub/elisp/, @samp{x-face} package}.}. MH-E
+@uref{http://www.jpl.org/ftp/pub/elisp/, @samp{x-face} package}.}. MH-E
 renders the foreground and background of the image using the
 associated attributes of the face @code{mh-show-xface}.
 
@@ -2126,7 +2120,7 @@ associated attributes of the face @code{mh-show-xface}.
 Finally, MH-E will display images referenced by the
 @samp{X-Image-URL:} header field if neither the @samp{Face:} nor the
 @samp{X-Face:} fields are present@footnote{The display of the images
-requires the @uref{http://www.gnu.org/software/wget/wget.html,
+requires the @uref{https://www.gnu.org/software/wget/wget.html,
 @command{wget} program} to fetch the image and the @command{convert}
 program from the @uref{http://www.imagemagick.org/script/index.php,
 ImageMagick suite}.}. Of the three header fields this is the most
@@ -2200,14 +2194,14 @@ highlighting of citations entirely, choose @samp{None}.
 @cindex highlighting email addresses
 @cindex links, following
 @findex goto-address-at-point
-@kindex C-c @key{RET}
-@kindex Mouse-2
+@kindex C-c RET
+@kindex mouse-2
 @vindex goto-address-highlight-p
 
 Email addresses and URLs in the message are highlighted if the option
 @code{goto-address-highlight-p} is on, which it is by default. To view
 the web page for a highlighted URL or to send a message using a
-highlighted email address, use @kbd{Mouse-2} or @kbd{C-c @key{RET}}
+highlighted email address, use @kbd{mouse-2} or @kbd{C-c @key{RET}}
 (@code{goto-address-at-point}). @xref{Sending Mail}, to see how to
 configure Emacs to send the message using MH-E.
 
@@ -2306,10 +2300,10 @@ System: type @kbd{M-! xterm -e mhshow @var{message-number}}. You can
 leave out the @samp{xterm -e} if you use @command{mhlist} or
 @command{mhstore}.}.
 
-@cindex Emacs, packages, mm-decode
-@cindex mm-decode package
+@cindex Emacs, packages, @samp{mm-decode}
+@cindex @samp{mm-decode} package
 @findex mh-toggle-mh-decode-mime-flag
-@kindex ; (semicolon)
+@kindex ; @r{(semicolon)}
 @vindex mh-decode-mime-flag
 
 MH-E can handle attachments as well if the Gnus @samp{mm-decode}
@@ -2334,14 +2328,14 @@ Attachments in MH-E are indicated by @dfn{buttons} like this:
 @findex mh-next-button
 @findex mh-press-button
 @findex mh-prev-button
-@kindex @key{RET}
-@kindex K @key{TAB}
-@kindex K S-@key{TAB}
-@kindex Mouse-1
-@kindex Mouse-2
+@kindex RET
+@kindex K TAB
+@kindex K S-TAB
+@kindex mouse-1
+@kindex mouse-2
 
-To view the contents of the button, use either @kbd{Mouse-1} or
-@kbd{Mouse-2} on the button or @key{RET} (@code{mh-press-button}) when
+To view the contents of the button, use either @kbd{mouse-1} or
+@kbd{mouse-2} on the button or @key{RET} (@code{mh-press-button}) when
 the cursor is over the button. This command is a toggle so if you use
 it again on the same attachment, it is hidden. If Emacs does not know
 how to display the attachment, then Emacs offers to save the
@@ -2490,7 +2484,7 @@ the option @code{mm-discouraged-alternatives}, and add
 @samp{text/html}. The next best alternative, if any, will be shown.
 
 @findex mh-show-preferred-alternative
-@kindex : (colon)
+@kindex : @r{(colon)}
 
 Occasionally, though, you might want to see the preferred alternative.
 The command @kbd{:} (@code{mh-show-preferred-alternative}) displays
@@ -2527,8 +2521,7 @@ in the @cite{The Gnus Manual}.
 @cindex HTML
 @cindex Gnus
 
-MH-E can display messages that have been sent in HTML@footnote{This
-feature depends on a version of Gnus that is at least 5.10.}. The
+MH-E can display messages that have been sent in HTML. The
 content of the message will appear in the MH-Show buffer as you would
 expect if the entire message is HTML, or there is an inline HTML body
 part. However, if there is an HTML body part that is an attachment,
@@ -2549,86 +2542,100 @@ based upon the presence of a known browser on your system. If you wish
 to use a different browser, then set this option accordingly. See the
 documentation for the browser you use for additional information on
 how to use it. In particular, find and disable the option to render
-images as this can tip off spammers that the email address they have
-used is valid.
+images, as displaying remote images can tip off spammers that the
+email address they have used is valid.
 
 @vindex mm-text-html-renderer
 
 If you're confused about which @code{mm-text-html-renderer} to use,
-here's a brief description of each, sorted by popularity, that
-includes the results of a quick poll of MH-E users from 2005-12-23.
+here's a brief description of each, sorted by name.
 
 @table @asis
+@cindex browser, @samp{gnus-w3m}
+@cindex @samp{gnus-w3m}
 @cindex browser, @samp{w3m}
 @cindex @samp{w3m}
-@kindex Mouse-2
-@item @samp{w3m} 7
-The @samp{w3m} browser requires an external program. It's quick,
-produces pretty nice output, and best of all, it's the only browser
-that highlights links. These can be clicked with @kbd{Mouse-2} to view
-the content of the link in @samp{w3m}. The @samp{w3m} browser handles
-tables well and actually respects the table's width parameter (which
-can cause text to wrap if the author didn't anticipate that the page
-would be viewed in Emacs).
-@c -------------------------
-@cindex browser, @samp{w3m-standalone}
-@cindex @samp{w3m-standalone}
-@item @samp{w3m-standalone} 3
-This browser, along with @samp{nil} for the external browser, are the
-only choices that work without having to download a separate lisp
-package or external program. This browser is quick, but does not show
-links. It handles simple tables but some tables get rendered much
-wider than the Emacs frame. This browser was the only one not to
-handle the escape @samp{&ndash;} (it printed a @samp{?}), but it did
-render @samp{&reg;}.
-@c -------------------------
-@cindex browser, @samp{links}
-@cindex @samp{links}
-@item @samp{links} 1
-The @samp{links} browser requires an external program. It's quick, and
-produces nicer output than @samp{lynx} on single column mails in
-tables. However, it doesn't show links and it doesn't do as nice a job
-on multi-column tables as some lines wrap. At least it fits in 80
-columns and thus seems better than @samp{w3} and
-@samp{w3m-standalone}. Converts escapes such as @samp{&reg;} to (R).
-@c -------------------------
-@cindex browser, @samp{lynx}
-@cindex @samp{lynx}
-@item @samp{lynx} 1
-The @samp{lynx} browser requires an external program. It's quick and
-produces pretty decent output but it doesn't show links. It doesn't
-seem to do multi-column tables which makes output much cleaner. It
-centers the output and wraps long lines more than most. Handles
-@samp{&reg;}.
-@c -------------------------
-@item @samp{nil} 1
-This choice obviously requires an external browser. Like
-@samp{w3m-standalone}, it works out of the box. With this setting,
-HTML messages have a button for the body part which you can view with
-@kbd{K v} (@code{mh-folder-toggle-mime-part}).
-@c -------------------------
-@cindex browser, @samp{w3}
-@cindex @samp{w3}
-@item @samp{w3} 0
-This choice does not require an external program as all of the
-rendering is done in lisp. You do need to get the package separately.
-This browser is @strong{slow}, and doesn't appear to have been updated
-since 2001 and the author hasn't responded to my emails. It displays
-unknown tags instead of hiding them, so you get to see all the
-Microsoft crap in certain messages. Tends to make multi-column tables
-wider than even a full-screen Emacs can handle. Like @samp{w3m}, you
-can follow links, but you have to find them first as they are not
-highlighted. Performs well on single-column tables and handles escapes
-such as @samp{&reg;}.
+@item @samp{gnus-w3m}
+The @samp{gnus-w3m} browser requires an external program. It's quick,
+produces pretty nice output, and it highlights links. It renders
+@samp{&ndash;} and @samp{&reg;} okay. It sometimes fails to wrap lines
+properly. It always downloads remote images.
 @c -------------------------
 @cindex browser, @samp{html2text}
 @cindex @samp{html2text}
-@item @samp{html2text} 0
-The @samp{html2text} browser requires an external program. I noticed
-that it can do some nasty things with simple HTML mails (like filling
-the entire message as if it were one paragraph, including signature).
-On another message, it displayed half of the HTML tags for some
-reason.
+@item @samp{html2text}
+The @samp{html2text} browser requires an external program. Some users
+have reported problems with it, such as filling the entire message as
+if it were one paragraph, or displaying chunks of raw HTML.
+@c -------------------------
+@cindex browser, @samp{links}
+@cindex @samp{links}
+@item @samp{links}
+The @samp{links} browser requires an external program. It's quick, and
+produces nicer output than @samp{lynx} on single column mails in
+tables. However, it doesn't show links and it doesn't do as nice a job
+on multi-column tables as some lines wrap. It does do a good job of
+fitting text within 80 columns. It appears to render special
+characters using ASCII equivalents. For example, @samp{&reg;} appears
+as (R). It does not download images.
+@c -------------------------
+@cindex browser, @samp{lynx}
+@cindex @samp{lynx}
+@item @samp{lynx}
+The @samp{lynx} browser requires an external program. It's quick and
+produces pretty decent output but it doesn't show links. It doesn't
+seem to do multi-column tables which makes output much cleaner. It
+centers the output and wraps long lines more than most. It does not
+always handle special characters like @samp{&reg;} or @samp{&ndash;}.
+It does not download images.
+@c -------------------------
+@item @samp{shr}
+@cindex @samp{shr}
+This choice does not require an external program, but it does require
+that Emacs be configured at build time to use @samp{libxml2}. It is
+fairly quick, it highlights links, and it supports HTML color
+declarations. It renders @samp{&ndash;} and @samp{&reg;} okay. It
+sometimes truncates text, particularly if the message tries to have
+fancy text layout. By default it does not download images; this
+behavior is controlled by the options @code{mm-html-blocked-images}
+and @code{mm-html-inhibit-images}
+@ifinfo
+(@pxref{Display Customization,,,emacs-mime}).
+@end ifinfo
+@ifnotinfo
+(see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
+Display Customization} in the @cite{The Emacs MIME Manual}).
+@end ifnotinfo
+@c -------------------------
+@cindex browser, @samp{w3m}
+@cindex @samp{w3m}
+@kindex mouse-2
+@item @samp{w3m}
+The @samp{w3m} browser requires an external program. It's quick,
+produces pretty nice output, and it highlights links. These can be
+clicked with @kbd{mouse-2} to view the content of the link in
+@samp{w3m}. The @samp{w3m} browser handles tables well and actually
+respects the table's width parameter (which can cause text to wrap if
+the author didn't anticipate that the page would be viewed in Emacs).
+It does not download images by default; this behavior is controlled by
+the option @code{mm-w3m-safe-url-regexp}
+@ifinfo
+(@pxref{Display Customization,,,emacs-mime}).
+@end ifinfo
+@ifnotinfo
+(see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
+Display Customization} in the @cite{The Emacs MIME Manual}).
+@end ifnotinfo
+@c -------------------------
+@cindex browser, @samp{w3m-standalone}
+@cindex @samp{w3m-standalone}
+@cindex browser, @samp{w3m}
+@cindex @samp{w3m}
+@item @samp{w3m-standalone}
+This browser is quick, but does not show links. It handles simple
+tables but some tables get rendered much wider than the Emacs frame.
+This browser renders @samp{&ndash;} and @samp{&reg;} okay. It does not
+download images.
 @end table
 
 @vindex mm-text-html-renderer
@@ -2637,20 +2644,21 @@ For a couple more sources of information about
 @code{mm-text-html-renderer},
 @ifinfo
 @xref{Display Customization,,,emacs-mime}, and the documentation for
-the Gnus command @kbd{W h} (@pxref{Article Washing,,,gnus},).
+the Gnus command @kbd{W h} (@pxref{Article Washing,,,gnus}).
 @end ifinfo
 @ifnotinfo
 see section @uref{http://www.gnus.org/manual/emacs-mime_6.html,
 Display Customization} in the @cite{The Emacs MIME Manual} and the
 documentation for the Gnus command @kbd{W h} (see section
-@uref{http://www.gnus.org/manual/gnus_99.html, Article Washing} in the
+@uref{http://www.gnus.org/manual/gnus_48.html#Article-Washing, Article
+Washing} in the
 @cite{The Gnus Manual}).
 @end ifnotinfo
 
 @cindex @file{.emacs}
 @cindex files, @file{.emacs}
 @findex browse-url-at-mouse
-@kindex S-Mouse-2
+@kindex S-mouse-2
 
 A useful key binding that you can add to @file{~/.emacs} is the
 following which displays an HTML link or textual URL in an external
@@ -2667,10 +2675,10 @@ buffer, including HTML buffers.
 @cindex digests
 @findex mh-page-digest
 @findex mh-page-digest-backwards
-@kindex D @key{BS}
-@kindex D @key{SPC}
-@kindex @key{BS}
-@kindex @key{SPC}
+@kindex D BS
+@kindex D SPC
+@kindex BS
+@kindex SPC
 
 A digest is a message that contains other messages. Special MH-E
 commands let you read digests conveniently. You can use @key{SPC} and
@@ -2835,7 +2843,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
+@uref{https://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
@@ -2883,8 +2891,8 @@ Another related function is the command @kbd{P F}
 faces and not. When faces are enabled, the printed message will look
 very similar to the message in the MH-Show buffer.
 
-@cindex ps-print package
-@cindex Emacs, packages, ps-print
+@cindex @samp{ps-print} package
+@cindex Emacs, packages, @samp{ps-print}
 
 MH-E uses the @samp{ps-print} package to do the printing, so you can
 customize the printing further by going to the @samp{ps-print}
@@ -2974,7 +2982,7 @@ like to change the initial default directory, customize the option
 directory for storing the content of these messages.
 
 @findex mh-store-buffer
-@kindex @key{RET}
+@kindex RET
 @kindex X s
 
 By the way, @kbd{X s} calls the Emacs Lisp function
@@ -3024,7 +3032,7 @@ message with @kbd{M-<} (@code{mh-first-msg}) and @kbd{M->}
 @findex previous-line
 @kindex C-n
 @kindex C-p
-@kindex @key{RET}
+@kindex RET
 
 You can also use the Emacs commands @kbd{C-p} (@code{previous-line})
 and @kbd{C-n} (@code{next-line}) to move up and down the scan lines in
@@ -3154,7 +3162,7 @@ code to @file{~/.emacs}.
 @filbreak
 @end iftex
 
-@findex mh-rmail, example
+@findex mh-rmail@r{, example}
 
 @smalllisp
 @group
@@ -3469,7 +3477,7 @@ The hook @code{mh-folder-mode-hook} is called when visiting a new
 folder in MH-Folder mode. This could be used to set your own key
 bindings, for example:
 
-@vindex mh-folder-mode-hook, example
+@vindex mh-folder-mode-hook@r{, example}
 
 @smalllisp
 @group
@@ -3725,7 +3733,7 @@ The command @kbd{F p} runs @code{mh-pack-folder-hook} after
 renumbering the messages. A variable that is useful with this hook
 is @code{mh-current-folder}.
 
-@kindex @key{TAB}
+@kindex TAB
 @vindex mh-recursive-folders-flag
 
 By default, operations on folders work only one level at a time. Set
@@ -3789,9 +3797,9 @@ again.
 @findex mh-execute-commands
 @kindex q
 @vindex mh-before-quit-hook
-@vindex mh-before-quit-hook, example
+@vindex mh-before-quit-hook@r{, example}
 @vindex mh-quit-hook
-@vindex mh-quit-hook, example
+@vindex mh-quit-hook@r{, example}
 
 The two hooks @code{mh-before-quit-hook} and @code{mh-quit-hook} are
 called by @kbd{q}. The former one is called before the quit occurs, so
@@ -3829,16 +3837,15 @@ buffers that you would rather remove, you can use both
 
 You can use dired to manipulate the folders themselves. For example, I
 renamed my @samp{+out} folder to the more common @samp{+outbox} by
-running dired on my mail directory (@kbd{M-x dired RET ~/Mail RET}),
-moving my cursor to @samp{out} and using the command @kbd{R}
-(@code{dired-do-rename}).
+running dired on my mail directory (@kbd{M-x dired @key{RET} ~/Mail
+@key{RET}}), moving my cursor to @samp{out} and using the command
+@kbd{R} (@code{dired-do-rename}).
 
 @node Sending Mail, Editing Drafts, Folders, Top
 @chapter Sending Mail
 
 @cindex sending mail
 @findex mh-smail
-@kindex M-x mh-smail
 
 You can send a mail message in several ways. You can call @kbd{M-x
 mh-smail} directly, or from the command line like this:
@@ -4006,8 +4013,6 @@ more detail in the following sections.
 @cindex sending mail
 @findex mh-smail
 @findex mh-smail-other-window
-@kindex M-x mh-smail
-@kindex M-x mh-smail-other-window
 
 Outside of an MH-Folder buffer, you must call either @kbd{M-x
 mh-smail} or @kbd{M-x mh-smail-other-window} to compose a new message.
@@ -4078,7 +4083,7 @@ may have a complicated @file{components} file and need to tell MH-E
 where the cursor should go. Here's an example of how you would use
 this hook.
 
-@findex mh-insert-signature, example
+@findex mh-insert-signature@r{, example}
 
 @smalllisp
 @group
@@ -4369,28 +4374,28 @@ commands in addition to the normal Emacs editing commands to help you
 edit your draft. These can also be found in the @samp{Letter} menu.
 
 @table @kbd
-@kindex @key{SPC}
+@kindex SPC
 @findex mh-letter-complete-or-space
 @item @key{SPC}
 Perform completion or insert space (@code{mh-letter-complete-or-space}).
 @c -------------------------
-@kindex M-@key{TAB}
+@kindex M-TAB
 @findex mh-letter-complete
 @item M-@key{TAB}
 Perform completion on header field or word preceding point
 (@code{mh-letter-complete}).
 @c -------------------------
-@kindex , (comma)
+@kindex , @r{(comma)}
 @findex mh-letter-confirm-address
 @item , (comma)
 Flash alias expansion (@code{mh-letter-confirm-address}).
 @c -------------------------
-@kindex @key{TAB}
+@kindex TAB
 @findex mh-letter-next-header-field-or-indent
 @item @key{TAB}
 Cycle to next field (@code{mh-letter-next-header-field-or-indent}).
 @c -------------------------
-@kindex S-@key{TAB}
+@kindex S-TAB
 @findex mh-letter-previous-header-field
 @item S-@key{TAB}
 Cycle to the previous header field
@@ -4795,8 +4800,8 @@ draft. @xref{Folder Selection}.
 @findex indent-relative
 @findex mh-letter-next-header-field-or-indent
 @findex mh-letter-previous-header-field
-@kindex @key{TAB}
-@kindex S-@key{TAB}
+@kindex TAB
+@kindex S-TAB
 @vindex mh-compose-skipped-header-fields
 @vindex mh-letter-header-field
 
@@ -4821,9 +4826,9 @@ take point to the last field from anywhere in the body.
 @findex mh-letter-complete
 @findex mh-letter-complete-or-space
 @findex mh-letter-confirm-address
-@kindex , (comma)
-@kindex @key{SPC}
-@kindex M-@key{TAB}
+@kindex , @r{(comma)}
+@kindex SPC
+@kindex M-TAB
 @vindex mh-alias-flash-on-comma
 @vindex mh-compose-space-does-completion-flag
 @vindex mh-letter-complete-function
@@ -4976,8 +4981,8 @@ You can also turn on the @code{mh-delete-yanked-msg-window-flag}
 option to delete the window containing the original message after
 yanking it to make more room on your screen for your reply.
 
-@cindex Emacs, packages, supercite
-@cindex supercite package
+@cindex Emacs, packages, @samp{supercite}
+@cindex @samp{supercite} package
 @kindex r
 @vindex mail-citation-hook
 @vindex mh-yank-behavior
@@ -5040,8 +5045,8 @@ and it should leave point and mark around the modified citation text
 for the next hook function. The standard prefix
 @code{mh-ins-buf-prefix} is not added if this hook is set.
 
-@cindex Emacs, packages, trivial-cite
-@cindex trivial-cite package
+@cindex Emacs, packages, @samp{trivial-cite}
+@cindex @samp{trivial-cite} package
 @vindex mh-yank-behavior
 
 For example, if you use the hook function
@@ -5478,7 +5483,7 @@ LyogWFBNICovCnN0YXRpYyBjaGFyICogc2V0aWF0aG9tZV94cG1bXSA9IHsKIjQ1IDQ1IDc2N
 @end cartouche
 @i{MH-E @sc{mime} draft ready to send}
 
-@cindex undo effects of mh-mml-to-mime
+@cindex undo effects of @code{mh-mml-to-mime}
 
 This action can be undone by running @kbd{C-_} (@code{undo}).
 
@@ -5486,7 +5491,7 @@ This action can be undone by running @kbd{C-_} (@code{undo}).
 @cindex @command{mhn}
 @cindex MH commands, @command{mhbuild}
 @cindex MH commands, @command{mhn}
-@cindex undo effects of mh-mh-to-mime
+@cindex undo effects of @code{mh-mh-to-mime}
 @findex mh-mh-to-mime
 @findex mh-mh-to-mime-undo
 @kindex C-c C-e
@@ -5602,7 +5607,7 @@ See @cite{The PGG Manual}.
 @end ifinfo
 @ifhtml
 See
-@uref{http://www.gnu.org/software/emacs/manual/pgg.html,
+@uref{https://www.gnu.org/software/emacs/manual/pgg.html,
 @cite{The PGG Manual}}.
 @end ifhtml
 
@@ -5702,12 +5707,12 @@ The following commands are available in MH-Letter mode with the
 exception of @code{mh-alias-reload} which can be called from anywhere.
 
 @table @kbd
-@kindex @key{SPC}
+@kindex SPC
 @findex mh-letter-complete-or-space
 @item @key{SPC}
 Perform completion or insert space (@code{mh-letter-complete-or-space}).
 @c -------------------------
-@kindex M-@key{TAB}
+@kindex M-TAB
 @findex mh-letter-complete
 @item M-@key{TAB}
 Perform completion on header field or word preceding point
@@ -5779,7 +5784,7 @@ Hook run by @code{mh-alias-reload} after loading aliases (default:
 You can use aliases when you are adding recipients to a message.
 
 @findex minibuffer-complete
-@kindex @key{TAB}
+@kindex TAB
 @vindex mh-alias-expand-aliases-flag
 @vindex mh-compose-prompt-flag
 
@@ -5793,8 +5798,8 @@ aliases to be expanded to their respective addresses in the draft.
 
 @findex mh-letter-complete
 @findex mh-letter-complete-or-space
-@kindex @key{SPC}
-@kindex M-@key{TAB}
+@kindex SPC
+@kindex M-TAB
 
 Otherwise, you can complete aliases in the header of the draft with
 @kbd{M-@key{TAB}} (@code{mh-letter-complete}) or @key{SPC}
@@ -5913,7 +5918,6 @@ executed to generate the password file. For example, use @samp{ypcat
 passwd} to obtain the NIS password file.
 
 @findex mh-alias-reload
-@kindex M-x mh-alias-reload
 @vindex mh-alias-reloaded-hook
 
 Since aliases are updated frequently, MH-E reloads aliases
@@ -5929,7 +5933,6 @@ listed in your @samp{Aliasfile:} profile component. MH-E provides
 other methods for maintaining your alias file(s).
 
 @findex mh-alias-add-alias
-@kindex M-x mh-alias-add-alias
 
 You can use the @kbd{M-x mh-alias-add-alias} command which will prompt
 you for the alias and address that you would like to add. If the alias
@@ -5964,8 +5967,8 @@ Using prefixes instead of postfixes helps you explore aliases during
 completion. If you forget the name of an old dive buddy, you can enter
 @samp{div} and then @key{SPC} to get a listing of all your dive buddies.
 
-@kindex M-x mh-alias-add-address-under-point
-@kindex M-x mh-alias-grab-from-field
+@findex mh-alias-add-address-under-point
+@findex mh-alias-grab-from-field
 
 An alias for the sender of the current message is added automatically
 by clicking on the @samp{Grab From alias} tool bar button or by running
@@ -6000,7 +6003,6 @@ more appropriate.
 
 @cindex regular expressions, @code{mh-alias-apropos}
 @findex mh-alias-apropos
-@kindex M-x mh-alias-apropos
 
 If you can't quite remember an alias, you can use @kbd{M-x
 mh-alias-apropos} to show all aliases or addresses that match a
@@ -6011,7 +6013,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6161,7 +6163,7 @@ GNU Emacs Manual}).
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in
 @cite{The GNU Emacs Manual}).
 @end ifhtml
@@ -6259,9 +6261,9 @@ containing the value for the field is given.
 @cindex folder navigation
 @cindex speedbar
 @findex mh-visit-folder
+@findex speedbar
 @kindex F v
-@kindex M-x speedbar
-@kindex Mouse-2
+@kindex mouse-2
 
 You can also use the speedbar
 @ifnothtml
@@ -6269,13 +6271,13 @@ You can also use the speedbar
 @end ifnothtml
 @ifhtml
 (see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Speedbar.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Speedbar.html,
 Speedbar Frames} in @cite{The GNU Emacs Manual})
 @end ifhtml
 to view your folders. To bring up the speedbar, run @kbd{M-x speedbar
 @key{RET}}. You will see a new frame appear with all of your MH
 folders. Folders with unseen messages appear in boldface. Click on a
-folder name with @kbd{Mouse-2} to visit that folder in a similar
+folder name with @kbd{mouse-2} to visit that folder in a similar
 fashion to the command @kbd{F v} (@code{mh-visit-folder})
 (@pxref{Folders}). Click on the @samp{+} icon to expand and view the
 sub-folders of that folder.
@@ -6310,9 +6312,9 @@ count before the next automatic update (@code{mh-speed-refresh}).
 
 @findex delete-frame
 @kindex C-x 5 0
-@kindex Mouse-3
+@kindex mouse-3
 
-You can click on @kbd{Mouse-3} to bring up a context menu that
+You can click on @kbd{mouse-3} to bring up a context menu that
 contains these items. Dismiss the speedbar with @kbd{C-x 5 0}
 (@code{delete-frame}).
 
@@ -6401,7 +6403,7 @@ For a description of the menu bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Menu-Bar.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Menu-Bar.html,
 The Menu Bar} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6423,7 +6425,7 @@ tool bar, please
 @end ifnothtml
 @ifhtml
 see the section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Tool-Bars.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Tool-Bars.html,
 Tool Bars} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -6602,12 +6604,12 @@ Another few commands are available in the MH-Folder buffer resulting
 from a search.
 
 @table @kbd
-@kindex @key{TAB}
+@kindex TAB
 @findex mh-index-next-folder
 @item @key{TAB}
 Jump to the next folder marker (@code{mh-index-next-folder}).
 @c -------------------------
-@kindex S-@key{TAB}
+@kindex S-TAB
 @findex mh-index-previous-folder
 @item S-@key{TAB}
 Jump to the previous folder marker (@code{mh-index-previous-folder}).
@@ -6752,8 +6754,8 @@ method with the pick method by running the command @kbd{C-c C-p}
 @cindex @samp{+mhe-index}
 @findex mh-index-next-folder
 @findex mh-index-previous-folder
-@kindex @key{TAB}
-@kindex S-@key{TAB}
+@kindex TAB
+@kindex S-TAB
 @vindex mh-search-folder
 
 The messages that are found are put in a temporary sub-folder of
@@ -7493,7 +7495,6 @@ Mail}).
 @cindex sequence, @samp{cur}
 @cindex sequence, @samp{tick}
 @findex mh-update-sequences
-@kindex M-x mh-update-sequences
 @kindex q
 @kindex x
 @vindex mh-tick-seq
@@ -7623,10 +7624,10 @@ Whitelisted message face
 @end vtable
 
 @cindex SpamProbe
-@cindex Spamassassin
+@cindex SpamAssassin
 @cindex bogofilter
 @cindex spam filters, SpamProbe
-@cindex spam filters, Spamassassin
+@cindex spam filters, SpamAssassin
 @cindex spam filters, bogofilter
 
 MH-E depends on @uref{http://spamassassin.apache.org/, SpamAssassin},
@@ -7699,8 +7700,8 @@ MH-E can work with.
 
 @subheading SpamAssassin
 
-@cindex Spamassassin
-@cindex spam filters, Spamassassin
+@cindex SpamAssassin
+@cindex spam filters, SpamAssassin
 
 SpamAssassin is one of the more popular spam filtering programs. Get
 it from your local distribution or from the
@@ -7980,7 +7981,7 @@ system.
 @cindex MH-E version
 @cindex @file{*MH-E Info*}
 @cindex version
-@kindex M-x mh-version
+@findex mh-version
 
 One command worth noting is @kbd{M-x mh-version}. You can compare the
 version this command prints to the latest release (@pxref{Getting
@@ -8205,7 +8206,7 @@ GNU Emacs Manual}.
 @end ifnothtml
 @ifhtml
 section
-@uref{http://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
+@uref{https://www.gnu.org/software/emacs/manual/html_node/emacs/Regexps.html,
 Syntax of Regular Expressions} in @cite{The GNU Emacs Manual}.
 @end ifhtml
 
@@ -8457,7 +8458,7 @@ message according to MH; it also uses that column for notations.
 
 @vindex mh-adaptive-cmd-note-flag
 @vindex mh-scan-format-file
-@vindex mh-scan-format-file, example
+@vindex mh-scan-format-file@r{, example}
 
 The first thing you have to do is tell MH-E to use this file.
 Customize @code{mh-scan-format-file} and set its value to @samp{Use
@@ -8467,7 +8468,7 @@ Default scan Format}. If you didn't get already turn off
 Next, tell MH-E what a valid scan line looks like so that you can at
 least display the output of scan in your MH-Folder buffer.
 
-@vindex mh-scan-valid-regexp, example
+@vindex mh-scan-valid-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-valid-regexp "[0-9]+[+D^ ]$")
@@ -8478,8 +8479,8 @@ message, you need to tell MH-E how to access the message number. You
 should also see why MH-E requires that you include a message number in
 the first place.
 
-@vindex mh-scan-msg-number-regexp, example
-@vindex mh-scan-msg-search-regexp, example
+@vindex mh-scan-msg-number-regexp@r{, example}
+@vindex mh-scan-msg-search-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-msg-number-regexp "^.* \\([0-9]+\\)[+D^ ]$")
@@ -8488,7 +8489,7 @@ the first place.
 
 In order to get the next and previous commands working, add this.
 
-@vindex mh-scan-good-msg-regexp, example
+@vindex mh-scan-good-msg-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-good-msg-regexp "^.* \\([0-9]+\\)[+D^ ]$")
@@ -8498,8 +8499,8 @@ Note that the current message isn't marked with a @samp{+} when moving
 between the next and previous messages. Here is the code required to
 get this working.
 
-@vindex set-mh-cmd-note, example
-@vindex mh-scan-cur-msg-number-regexp, example
+@vindex set-mh-cmd-note@r{, example}
+@vindex mh-scan-cur-msg-number-regexp@r{, example}
 
 @smalllisp
 (set-mh-cmd-note 76)
@@ -8508,8 +8509,8 @@ get this working.
 
 Finally, add the following to delete and refile messages.
 
-@vindex mh-scan-deleted-msg-regexp, example
-@vindex mh-scan-refiled-msg-regexp, example
+@vindex mh-scan-deleted-msg-regexp@r{, example}
+@vindex mh-scan-refiled-msg-regexp@r{, example}
 
 @smalllisp
 (setq mh-scan-deleted-msg-regexp "^.* \\([0-9]+\\)D$")
@@ -8695,7 +8696,7 @@ I also point out some additional sources of information.
 
 @cindex bugs
 @cindex SourceForge
-@kindex M-x mh-version
+@findex mh-version
 
 Bug reports should be filed at
 @uref{https://sourceforge.net/p/mh-e/bugs/, SourceForge}. You need to
@@ -8771,7 +8772,7 @@ instead.
 @cindex news
 @cindex @samp{MH-E-NEWS}
 @cindex @samp{README}
-@kindex M-x mh-version
+@findex mh-version
 
 After you download and extract the MH-E tarball, read the
 @file{README} file and @file{MH-E-NEWS}. These correspond to the

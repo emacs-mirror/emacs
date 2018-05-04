@@ -1,6 +1,6 @@
-;;; tramp-cmds.el --- Interactive commands for Tramp
+;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -31,8 +31,25 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
+(declare-function mml-mode "mml")
+(declare-function mml-insert-empty-tag "mml")
+(declare-function reporter-dump-variable "reporter")
 (defvar reporter-eval-buffer)
 (defvar reporter-prompt-for-summary-p)
+
+;;;###tramp-autoload
+(defun tramp-change-syntax (&optional syntax)
+  "Change Tramp syntax.
+SYNTAX can be one of the symbols `default' (default),
+`simplified' (ange-ftp like) or `separate' (XEmacs like)."
+  (interactive
+   (let ((input (completing-read
+		 "Enter Tramp syntax: " (tramp-syntax-values) nil t
+		 (symbol-name tramp-syntax))))
+     (unless (string-equal input "")
+       (list (intern input)))))
+  (when syntax
+    (customize-set-variable 'tramp-syntax syntax)))
 
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
@@ -63,14 +80,7 @@ When called interactively, a Tramp connection has to be selected."
    ;; Return nil when there is no Tramp connection.
    (list
     (let ((connections
-	   (mapcar
-	    (lambda (x)
-	      (tramp-make-tramp-file-name
-	       (tramp-file-name-method x)
-	       (tramp-file-name-user x)
-	       (tramp-file-name-host x)
-	       (tramp-file-name-localname x)))
-	    (tramp-list-connections)))
+	   (mapcar 'tramp-make-tramp-file-name (tramp-list-connections)))
 	  name)
 
       (when connections
@@ -94,13 +104,13 @@ When called interactively, a Tramp connection has to be selected."
     (when keep-password (setq tramp-current-connection nil))
 
     ;; Flush file cache.
-    (tramp-flush-directory-property vec "")
+    (tramp-flush-directory-properties vec "")
 
     ;; Flush connection cache.
     (when (processp (tramp-get-connection-process vec))
-      (delete-process (tramp-get-connection-process vec))
-      (tramp-flush-connection-property (tramp-get-connection-process vec)))
-    (tramp-flush-connection-property vec)
+      (tramp-flush-connection-properties (tramp-get-connection-process vec))
+      (delete-process (tramp-get-connection-process vec)))
+    (tramp-flush-connection-properties vec)
 
     ;; Remove buffers.
     (dolist
@@ -128,10 +138,14 @@ This includes password cache, file cache, connection cache, buffers."
   (setq tramp-locked nil)
 
   ;; Flush password cache.
-  (tramp-compat-funcall 'password-reset)
+  (password-reset)
 
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
+
+  ;; Cleanup local copies of archives.
+  (when (bound-and-true-p tramp-archive-enabled)
+    (tramp-archive-cleanup-hash))
 
   ;; Remove buffers.
   (dolist (name (tramp-list-tramp-buffers))
@@ -142,7 +156,7 @@ This includes password cache, file cache, connection cache, buffers."
   "Kill all remote buffers."
   (interactive)
 
-  ;; Remove all Tramp related buffers.
+  ;; Remove all Tramp related connections.
   (tramp-cleanup-all-connections)
 
   ;; Remove all buffers with a remote default-directory.
@@ -166,9 +180,10 @@ This includes password cache, file cache, connection cache, buffers."
 (defun tramp-bug ()
   "Submit a bug report to the Tramp developers."
   (interactive)
-  (require 'reporter)
   (catch 'dont-send
-    (let ((reporter-prompt-for-summary-p t))
+    (let ((reporter-prompt-for-summary-p t)
+	  ;; In rare cases, it could contain the password.  So we make it nil.
+	  tramp-password-save-function)
       (reporter-submit-bug-report
        tramp-bug-report-address		; to-address
        (format "tramp (%s)" tramp-version) ; package name and version
@@ -185,17 +200,17 @@ This includes password cache, file cache, connection cache, buffers."
 	     backup-by-copying-when-mismatch
 	     backup-by-copying-when-privileged-mismatch
 	     backup-directory-alist
-	     bkup-backup-directory-info
 	     password-cache
 	     password-cache-expiry
 	     remote-file-name-inhibit-cache
+	     connection-local-profile-alist
+	     connection-local-criteria-alist
 	     file-name-handler-alist))))
 	(lambda (x y) (string< (symbol-name (car x)) (symbol-name (car y)))))
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       (tramp-compat-funcall
-	(if (functionp 'propertize) 'propertize 'progn)
+       (propertize
 	"\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
@@ -209,7 +224,7 @@ Before reproducing the bug, you might apply
 
   M-x tramp-cleanup-all-connections
 
-This allows to investigate from a clean environment.  Another
+This allows us to investigate from a clean environment.  Another
 useful thing to do is to put
 
   (setq tramp-verbose 9)
@@ -231,10 +246,9 @@ buffer in your bug report.
 	;; Pretty print the cache.
 	(set varsym (read (format "(%s)" (tramp-cache-print val))))
       ;; There are non-7bit characters to be masked.
-      (when (and (boundp 'mm-7bit-chars)
-		 (stringp val)
+      (when (and (stringp val)
 		 (string-match
-		  (concat "[^" (symbol-value 'mm-7bit-chars) "]") val))
+		  (concat "[^" (bound-and-true-p mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
 	  (set
 	   varsym
@@ -243,7 +257,7 @@ buffer in your bug report.
 	    (base64-encode-string (encode-coding-string val 'raw-text)))))))
 
     ;; Dump variable.
-    (tramp-compat-funcall 'reporter-dump-variable varsym mailbuf)
+    (reporter-dump-variable varsym mailbuf)
 
     (unless (hash-table-p val)
       ;; Remove string quotation.
@@ -264,15 +278,8 @@ buffer in your bug report.
 
 (defun tramp-load-report-modules ()
   "Load needed modules for reporting."
-  ;; We load message.el and mml.el from Gnus.
-  (if (featurep 'xemacs)
-      (progn
-	(load "message" 'noerror)
-	(load "mml" 'noerror))
-    (require 'message nil 'noerror)
-    (require 'mml nil 'noerror))
-  (tramp-compat-funcall 'message-mode)
-  (tramp-compat-funcall 'mml-mode t))
+  (message-mode)
+  (mml-mode t))
 
 (defun tramp-append-tramp-buffers ()
   "Append Tramp buffers and buffer local variables into the bug report."
@@ -301,9 +308,9 @@ buffer in your bug report.
 		'intern
 		(all-completions "tramp-" (buffer-local-variables buffer)))
 	       ;; Non-tramp variables of interest.
-	       '(default-directory))
+	       '(connection-local-variables-alist default-directory))
 	      'string<))
-	    (tramp-compat-funcall 'reporter-dump-variable varsym elbuf))
+	    (reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
@@ -313,16 +320,15 @@ buffer in your bug report.
   (ignore-errors
     (mapc
      (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
-     (split-string (tramp-compat-funcall 'list-load-path-shadows t) "\n")))
+     (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
   (when (and
 	 (eq major-mode 'message-mode)
-	 (boundp 'mml-mode)
-	 (symbol-value 'mml-mode))
+	 (bound-and-true-p mml-mode))
 
     (let ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
-	  (buffer-list (tramp-compat-funcall 'tramp-list-tramp-buffers))
+	  (buffer-list (tramp-list-tramp-buffers))
 	  (curbuf (current-buffer)))
 
       ;; There is at least one Tramp buffer.
@@ -352,7 +358,7 @@ names.  Passwords will never be included there.")
 Please note that you have set `tramp-verbose' to a value of at
 least 6.  Therefore, the contents of files might be included in
 the debug buffer(s).")
-	    (add-text-properties start (point) (list 'face 'italic))))
+	    (add-text-properties start (point) '(face italic))))
 
 	(set-buffer-modified-p nil)
 	(setq buffer-read-only t)
@@ -364,13 +370,13 @@ the debug buffer(s).")
 	      (kill-buffer nil)
 	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
-	      (insert (tramp-compat-funcall 'propertize "\n" 'display "\n\
+	      (insert (propertize "\n" 'display "\n\
 This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
 please ensure that the buffers are attached to your email.\n\n"))
 	      (dolist (buffer buffer-list)
-		(tramp-compat-funcall
-		 'mml-insert-empty-tag 'part 'type "text/plain"
+		(mml-insert-empty-tag
+		 'part 'type "text/plain"
 		 'encoding "base64" 'disposition "attachment" 'buffer buffer
 		 'description buffer))
 	      (set-buffer-modified-p nil))
@@ -391,10 +397,12 @@ please ensure that the buffers are attached to your email.\n\n"))
 ;;; TODO:
 
 ;; * Clean up unused *tramp/foo* buffers after a while.  (Pete Forman)
+;;
 ;; * WIBNI there was an interactive command prompting for Tramp
 ;;   method, hostname, username and filename and translates the user
 ;;   input into the correct filename syntax (depending on the Emacs
 ;;   flavor)  (Reiner Steib)
+;;
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.
 

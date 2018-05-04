@@ -1,6 +1,6 @@
 ;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
 
-;; Copyright (C) 1996-1999, 2002, 2004-2015 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2002, 2004-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: comm, data, processes
@@ -18,12 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (require 'url-vars)
 (require 'url-parse)
+(declare-function mm-disable-multibyte "mm-util" ())
 (autoload 'Info-goto-node "info" "" t)
 (autoload 'man "man" nil t)
 
@@ -98,6 +99,7 @@
 		(eq ?\; (aref mediatype 0)))
 	  (setq mediatype (concat "text/plain" mediatype))))
       (set-buffer (generate-new-buffer " *url-data*"))
+      (require 'mm-util)
       (mm-disable-multibyte)
       (insert (format "Content-Length: %d\n" (length data))
 	      "Content-Type: " mediatype "\n"

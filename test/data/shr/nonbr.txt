@@ -1,0 +1,12 @@
+(progn
+  (setq minibuffer-prompt-properties '(read-only t cursor-intangible t face
+minibuffer-prompt))
+
+  (defun turn-on-cursor-intangible-mode ()
+    "Turns on cursor-intangible-mode."
+    (interactive)
+    (cursor-intangible-mode 1))
+  (define-globalized-minor-mode global-cursor-intangible-mode
+cursor-intangible-mode turn-on-cursor-intangible-mode)
+
+  (global-cursor-intangible-mode 1))

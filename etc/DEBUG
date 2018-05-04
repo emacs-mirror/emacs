@@ -1,29 +1,178 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2015 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+** Preliminaries
 
-[People who debug Emacs on Windows using Microsoft debuggers should
-read the Windows-specific section near the end of this document.]
+This section can be skipped if you are already familiar with building
+Emacs with debug info, configuring and starting GDB, and simple GDB
+debugging techniques.
 
-** When you debug Emacs with GDB, you should start GDB in the directory
+*** Configuring Emacs for debugging
+
+It is best to configure and build Emacs with special options that will
+make the debugging easier.  Here's the configure-time options we
+recommend (they are in addition to any other options you might need,
+such as --prefix):
+
+  ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type \
+    CFLAGS='-O0 -g3'
+
+The CFLAGS value is important: debugging optimized code can be very
+hard.  (If the problem only happens with optimized code, you may need
+to enable optimizations.  If that happens, try using -Og first,
+instead of -O2, as the former will disable some optimizations that
+make debugging some code exceptionally hard.)
+
+Modern versions of GCC support more elaborate debug info that is
+available by just using the -g3 compiler switch.  Try using -gdwarf-4
+in addition to -g3, and if that fails, try -gdwarf-3.  This is
+especially important if you have to debug optimized code.  More info
+about this is available below; search for "analyze failed assertions".
+
+The 2 --enable-* switches are optional.  They don't have any effect on
+debugging with GDB, but will compile additional code that might catch
+the problem you are debugging much earlier, in the form of assertion
+violation.  The --enable-checking option also enables additional
+functionality useful for debugging display problems; see more about
+this below under "Debugging Emacs redisplay problems".
+
+Emacs needs not be installed to be debugged, you can debug the binary
+created in the 'src' directory.
+
+*** Configuring GDB
+
+To start GDB to debug Emacs, you can simply type "gdb ./emacs RET" at
+the shell prompt (assuming you do that from the directory of the Emacs
+executable, usually the 'src' sub-directory of the Emacs tree).
+However, we recommend starting GDB from Emacs, see below.
+
+When you debug Emacs with GDB, you should start GDB in the directory
 where the Emacs executable was made (the 'src' directory in the Emacs
 source tree).  That directory has a .gdbinit file that defines various
 "user-defined" commands for debugging Emacs.  (These commands are
 described below under "Examining Lisp object values" and "Debugging
 Emacs Redisplay problems".)
 
-Some GDB versions by default do not automatically load .gdbinit files
-in the directory where you invoke GDB.  With those versions of GDB,
-you will see a warning when GDB starts, like this:
+Starting the debugger from Emacs, via the "M-x gdb" command (described
+below), when the current buffer visits one of the Emacs C source files
+will automatically start GDB in the 'src' directory.  If you invoke
+"M-x gdb" from a buffer whose default directory is different, such as
+from the "*scratch*" buffer, you can change the default directory with
+the "M-x cd" command before starting the debugger.
+
+Recent GDB versions by default do not automatically load .gdbinit
+files in the directory where you invoke GDB.  With those versions of
+GDB, you will see a warning when GDB starts, like this:
 
   warning: File ".../src/.gdbinit" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load".
 
-There are several ways to overcome that difficulty, they are all
-described in the node "Auto-loading safe path" in the GDB user
-manual.  If nothing else helps, type "source /path/to/.gdbinit RET" at
-the GDB prompt, to unconditionally load the GDB init file.
+The simplest way to fix this is to add the following line to your
+~/.gdbinit file (creating such a file if it doesn't already exist):
+
+  add-auto-load-safe-path /path/to/emacs/src/.gdbinit
+
+There are other ways to overcome that difficulty, they are all
+described in the node "Auto-loading safe path" in the GDB user manual.
+If nothing else helps, type "source /path/to/.gdbinit RET" at the GDB
+prompt, to unconditionally load the GDB init file.
+
+*** Use the Emacs GDB UI front-end
+
+We recommend using the GUI front-end for GDB provided by Emacs.  With
+it, you can start GDB by typing "M-x gdb RET".  This will suggest the
+file name of the default binary to debug; if the suggested default is
+not the Emacs binary you want to debug, change the file name as
+needed.  Alternatively, if you want to attach the debugger to an
+already running Emacs process, change the GDB command shown in the
+minibuffer to say this:
+
+   gdb -i=mi -p PID
+
+where PID is the numerical process ID of the running Emacs process,
+displayed by system utilities such as 'top' or 'ps' on Posix hosts and
+Task Manager on MS-Windows.
+
+Once the debugger starts, open the additional windows provided by the
+GDB UI, by typing "M-x gdb-many-windows RET".  (Alternatively, click
+Gud->GDB-MI->Display Other Windows" from the menu bar.)  At this
+point, make your frame large enough (or full-screen) such that the
+windows you just opened have enough space to show the content without
+horizontal scrolling.
+
+You can later restore your window configuration with the companion
+command "M-x gdb-restore-windows RET", or by deselecting "Display
+Other Windows" from the menu bar.
+
+*** Setting initial breakpoints
+
+Before you let Emacs run, you should now set breakpoints in the code
+which you want to debug, so that Emacs stops there and lets GDB take
+control.  If the code which you want to debug is executed under some
+rare conditions, or only when a certain Emacs command is manually
+invoked, then just set your breakpoint there, let Emacs run, and
+trigger the breakpoint by invoking that command or reproducing those
+rare conditions.
+
+If you are less lucky, and the code in question is run very
+frequently, you will have to find some way of avoiding triggering your
+breakpoint when the conditions for the buggy behavior did not yet
+happen.  There's no single recipe for this, you will have to be
+creative and study the code to see what's appropriate.  Some useful
+tricks for that:
+
+  . Make your breakpoint conditional on certain buffer or string
+    position.  For example:
+
+      (gdb) break foo.c:1234 if PT >= 9876
+
+  . Set a break point in some rarely called function, then create the
+    conditions for the bug, call that rare function, and when GDB gets
+    control, set the breakpoint in the buggy code, knowing that it
+    will now be called when the bug happens.
+
+  . If the bug manifests itself as an error message, set a breakpoint
+    in Fsignal, and when it breaks, look at the backtrace to see what
+    triggers the error.
+
+Some additional techniques are described below under "Getting control
+to the debugger".
+
+You are now ready to start your debugging session.
+
+*** Running Emacs from GDB
+
+If you are starting a new Emacs session, type "run", followed by any
+command-line arguments (e.g., "-Q") into the *gud-emacs* buffer and
+press RET.  If you ran GDB outside of Emacs, type "run" followed by
+the command-line arguments at the GDB prompt instead.
+
+If you attached the debugger to a running Emacs, type "continue" into
+the *gud-emacs* buffer and press RET.
+
+Many variables you will encounter while debugging are Lisp objects.
+These are normally displayed as opaque pointers or integers that are
+hard to interpret, especially if they represent long lists.
+(They are instead displayed as structures containing these opaque
+values, if --enable-check-lisp-object-type is in effect.)  You can
+use the 'pp' command to display them in their Lisp form.  That command
+displays its output on the standard error stream, which you
+can redirect to a file using "M-x redirect-debugging-output".
+This means that if you attach GDB to a running Emacs that was invoked
+from a desktop icon, chances are you will not see the output at all,
+or it will wind up in an obscure place (check the documentation of
+your desktop environment).
+
+Additional information about displaying Lisp objects can be found
+under "Examining Lisp object values" below.
+
+The rest of this document describes specific useful techniques for
+debugging Emacs; we suggest reading it in its entirety the first time
+you are about to debug Emacs, then look up your specific issues
+whenever you need.
+
+Good luck!
 
 ** When you are trying to analyze failed assertions or backtraces, it
 is essential to compile Emacs with flags suitable for debugging.
@@ -54,24 +203,44 @@ kick in, provided that you run under GDB.
 
 ** Getting control to the debugger
 
+Setting a breakpoint in a strategic place, after loading Emacs into
+the debugger, but before running it, is the most efficient way of
+making sure control will be returned to the debugger when you need
+that.
+
 'Fsignal' is a very useful place to put a breakpoint in.  All Lisp
 errors go through there.  If you are only interested in errors that
-would fire the debugger, breaking at 'maybe_call_debugger' is useful.
+would fire the Lisp debugger, breaking at 'maybe_call_debugger' is
+useful.
 
-It is useful, when debugging, to have a guaranteed way to return to
-the debugger at any time.  When using X, this is easy: type C-z at the
-window where Emacs is running under GDB, and it will stop Emacs just
-as it would stop any ordinary program.  When Emacs is running in a
-terminal, things are not so easy.
+Another technique for getting control to the debugger is to put a
+breakpoint in some rarely used function.  One such convenient function
+is Fredraw_display, which you can invoke at will interactively with
+"M-x redraw-display RET".
+
+It is also useful to have a guaranteed way to return to the debugger
+at any arbitrary time.  When using X, this is easy: type C-z at the
+window where you are interacting with GDB, and it will stop Emacs just
+as it would stop any ordinary program.  (This doesn't work if GDB was
+attached to a running Emacs process; in that case, you will need to
+type C-z to the shell window from which Emacs was started, or use the
+"kill -TSTP" method described below.)
+
+When Emacs is displaying on a text terminal, things are not so easy,
+so we describe the various alternatives below (however, those of them
+that use signals only work on Posix systems).
 
 The src/.gdbinit file in the Emacs distribution arranges for SIGINT
-(C-g in Emacs) to be passed to Emacs and not give control back to GDB.
-On modern POSIX systems, you can override that with this command:
+(C-g in Emacs on a text-mode frame) to be passed to Emacs and not give
+control back to GDB.  On modern systems, you can override that with
+this command:
 
    handle SIGINT stop nopass
 
 After this 'handle' command, SIGINT will return control to GDB.  If
-you want the C-g to cause a QUIT within Emacs as well, omit the 'nopass'.
+you want the C-g to cause a quit within Emacs as well, omit the 'nopass'.
+See the GDB manual for more details about signal handling and the
+'handle' command.
 
 A technique that can work when 'handle SIGINT' does not is to store
 the code for some character into the variable stop_character.  Thus,
@@ -80,25 +249,36 @@ the code for some character into the variable stop_character.  Thus,
 
 makes Control-] (decimal code 29) the stop character.
 Typing Control-] will cause immediate stop.  You cannot
-use the set command until the inferior process has been started.
-Put a breakpoint early in 'main', or suspend the Emacs,
-to get an opportunity to do the set command.
+use the set command until the inferior process has been started, so
+start Emacs with the 'start' command, to get an opportunity to do the
+above 'set' command.
 
-Another technique for get control to the debugger is to put a
-breakpoint in some rarely used function.  One such convenient function
-is Fredraw_display, which you can invoke at will interactively with
-"M-x redraw-display RET".
+On a Posix host, you can also send a signal using the 'kill' command
+from a shell prompt, like this:
 
-When Emacs is running in a terminal, it is sometimes useful to use a separate
-terminal for the debug session.  This can be done by starting Emacs as usual,
-then attaching to it from gdb with the 'attach' command which is explained in
-the node "Attach" of the GDB manual.
+   kill -TSTP Emacs-PID
 
-On MS-Windows, you can start Emacs in its own separate terminal by
-setting the new-console option before running Emacs under GDB:
+where Emacs-PID is the process ID of Emacs being debugged.  Other
+useful signals to send are SIGUSR1 and SIGUSR2; see "Error Debugging"
+in the ELisp manual for how to use those.
+
+When Emacs is displaying on a text terminal, it is useful to have a
+separate terminal for the debug session.  This can be done by starting
+Emacs as usual, then attaching to it from gdb with the 'attach'
+command which is explained in the node "Attach" of the GDB manual.
+
+On MS-Windows, you can alternatively start Emacs from its own separate
+console by setting the new-console option before running Emacs under
+GDB:
 
   (gdb) set new-console 1
   (gdb) run
+
+If you do this, then typing C-c or C-BREAK into the console window
+through which you interact with GDB will stop Emacs and return control
+to the debugger, no matter if Emacs displays GUI or text-mode frames.
+This is the only reliable alternative on MS-Windows to get control to
+the debugger, besides setting breakpoints in advance.
 
 ** Examining Lisp object values.
 
@@ -110,6 +290,12 @@ arguments.  This calls a subroutine which uses the Lisp printer.
 You can also use 'pp value' to print the emacs value directly.
 
 To see the current value of a Lisp Variable, use 'pv variable'.
+
+These commands send their output to stderr; if that is closed or
+redirected to some file you don't know, you won't see their output.
+This is particularly so for Emacs invoked on MS-Windows from the
+desktop shortcut.  You can use the command 'redirect-debugging-output'
+to redirect stderr to a file.
 
 Note: It is not a good idea to try 'pr', 'pp', or 'pv' if you know that Emacs
 is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV
@@ -140,7 +326,7 @@ type.  Here are these commands:
     xbufobjfwd xkbobjfwd xbuflocal xbuffer xsymbol xstring xvector xframe
     xwinconfig xcompiled xcons xcar xcdr xsubr xprocess xfloat xscrollbar
     xchartable xsubchartable xboolvector xhashtable xlist xcoding
-    xcharset xfontset xfont xbytecode
+    xcharset xfontset xfont
 
 Each one of them applies to a certain type or class of types.
 (Some of these types are not visible in Lisp, because they exist only
@@ -181,7 +367,7 @@ Then Emacs hits the breakpoint:
     [...]
   }
 
-Now we can use 'pr' to print the frame parameters:
+Now we can use 'pp' to print the frame parameters:
 
   (gdb) pp $->param_alist
   ((background-mode . light) (display-type . color) [...])
@@ -400,15 +586,16 @@ Debugging with GDB in Emacs offers some advantages over the command line (See
 the GDB Graphical Interface node of the Emacs manual).  There are also some
 features available just for debugging Emacs:
 
-1) The command gud-pp is available on the tool bar (the 'pp' icon) and
+1) The command gud-print is available on the tool bar (the 'p' icon) and
    allows the user to print the s-expression of the variable at point,
    in the GUD buffer.
 
 2) Pressing 'p' on a component of a watch expression that is a lisp object
    in the speedbar prints its s-expression in the GUD buffer.
 
-3) The STOP button on the tool bar is adjusted so that it sends SIGTSTP
-   instead of the usual SIGINT.
+3) The STOP button on the tool bar and the Signals->STOP menu-bar menu
+   item are adjusted so that they send SIGTSTP instead of the usual
+   SIGINT.
 
 4) The command gud-pv has the global binding 'C-x C-a C-v' and prints the
    value of the lisp variable at point.
@@ -447,6 +634,15 @@ option, like this:
 Setting a breakpoint in the function 'x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
+
+Note that the -xrm option may have no effect when you make an Emacs
+process invoked with the -nw option a server and want to trace X
+protocol errors from subsequent invocations of emacsclient in a GUI
+frame.  In that case calling the initial Emacs via
+
+emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
+
+should give more reliable results.
 
 Some bugs related to the X protocol disappear when Emacs runs in a
 synchronous mode.  To track down those bugs, we suggest the following
@@ -494,7 +690,7 @@ procedure:
 ** If Emacs causes errors or memory leaks in your X server
 
 You can trace the traffic between Emacs and your X server with a tool
-like xmon, available at ftp://ftp.x.org/contrib/devel_tools/.
+like xmon.
 
 Xmon can be used to see exactly what Emacs sends when X protocol errors
 happen.  If Emacs causes the X server memory usage to increase you can
@@ -538,8 +734,9 @@ not exit when it should.
 On GNU and Unix systems, you can also trying sending Emacs SIGUSR2,
 which, if 'debug-on-event' has its default value, will cause Emacs to
 attempt to break it out of its current loop and into the Lisp
-debugger.  This feature is useful when a C-level debugger is not
-conveniently available.
+debugger.  (See the node "Debugging" in the ELisp manual for the
+details about the Lisp debugger.)  This feature is useful when a
+C-level debugger is not conveniently available.
 
 ** If certain operations in Emacs are slower than they used to be, here
 is some advice for how to find out why.
@@ -629,7 +826,7 @@ the machine where you started GDB and use the debugger from there.
 ** Debugging problems which happen in GC
 
 The array 'last_marked' (defined on alloc.c) can be used to display up
-to 500 last objects marked by the garbage collection process.
+to the 512 most-recent objects marked by the garbage collection process.
 Whenever the garbage collector marks a Lisp object, it records the
 pointer to that object in the 'last_marked' array, which is maintained
 as a circular buffer.  The variable 'last_marked_index' holds the
@@ -704,7 +901,7 @@ directed to the xterm window you opened above.
 Similar arrangement is possible on a character terminal by using the
 'screen' package.
 
-On MS-Windows, you can start Emacs in its own separate terminal by
+On MS-Windows, you can start Emacs in its own separate console by
 setting the new-console option before running Emacs under GDB:
 
   (gdb) set new-console 1
@@ -753,91 +950,6 @@ recovering the contents of Emacs buffers from a core dump file.  You
 might also find those commands useful for displaying the list of
 buffers in human-readable format from within the debugger.
 
-** Some suggestions for debugging on MS Windows:
-
-   (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
-
-To debug Emacs with Microsoft Visual C++, you either start emacs from
-the debugger or attach the debugger to a running emacs process.
-
-To start emacs from the debugger, you can use the file bin/debug.bat.
-The Microsoft Developer studio will start and under Project, Settings,
-Debug, General you can set the command-line arguments and Emacs's
-startup directory.  Set breakpoints (Edit, Breakpoints) at Fsignal and
-other functions that you want to examine.  Run the program (Build,
-Start debug).  Emacs will start and the debugger will take control as
-soon as a breakpoint is hit.
-
-You can also attach the debugger to an already running Emacs process.
-To do this, start up the Microsoft Developer studio and select Build,
-Start debug, Attach to process.  Choose the Emacs process from the
-list.  Send a break to the running process (Debug, Break) and you will
-find that execution is halted somewhere in user32.dll.  Open the stack
-trace window and go up the stack to w32_msg_pump.  Now you can set
-breakpoints in Emacs (Edit, Breakpoints).  Continue the running Emacs
-process (Debug, Step out) and control will return to Emacs, until a
-breakpoint is hit.
-
-To examine the contents of a Lisp variable, you can use the function
-'debug_print'.  Right-click on a variable, select QuickWatch (it has
-an eyeglass symbol on its button in the toolbar), and in the text
-field at the top of the window, place 'debug_print(' and ')' around
-the expression.  Press 'Recalculate' and the output is sent to stderr,
-and to the debugger via the OutputDebugString routine.  The output
-sent to stderr should be displayed in the console window that was
-opened when the emacs.exe executable was started.  The output sent to
-the debugger should be displayed in the 'Debug' pane in the Output
-window.  If Emacs was started from the debugger, a console window was
-opened at Emacs' startup; this console window also shows the output of
-'debug_print'.
-
-For example, start and run Emacs in the debugger until it is waiting
-for user input.  Then click on the 'Break' button in the debugger to
-halt execution.  Emacs should halt in 'ZwUserGetMessage' waiting for
-an input event.  Use the 'Call Stack' window to select the procedure
-'w32_msp_pump' up the call stack (see below for why you have to do
-this).  Open the QuickWatch window and enter
-"debug_print(Vexec_path)".  Evaluating this expression will then print
-out the contents of the Lisp variable 'exec-path'.
-
-If QuickWatch reports that the symbol is unknown, then check the call
-stack in the 'Call Stack' window.  If the selected frame in the call
-stack is not an Emacs procedure, then the debugger won't recognize
-Emacs symbols.  Instead, select a frame that is inside an Emacs
-procedure and try using 'debug_print' again.
-
-If QuickWatch invokes debug_print but nothing happens, then check the
-thread that is selected in the debugger.  If the selected thread is
-not the last thread to run (the "current" thread), then it cannot be
-used to execute debug_print.  Use the Debug menu to select the current
-thread and try using debug_print again.  Note that the debugger halts
-execution (e.g., due to a breakpoint) in the context of the current
-thread, so this should only be a problem if you've explicitly switched
-threads.
-
-It is also possible to keep appropriately masked and typecast Lisp
-symbols in the Watch window, this is more convenient when steeping
-though the code.  For instance, on entering apply_lambda, you can
-watch (struct Lisp_Symbol *) (0xfffffff & args[0]).
-
-Optimizations often confuse the MS debugger.  For example, the
-debugger will sometimes report wrong line numbers, e.g., when it
-prints the backtrace for a crash.  It is usually best to look at the
-disassembly to determine exactly what code is being run--the
-disassembly will probably show several source lines followed by a
-block of assembler for those lines.  The actual point where Emacs
-crashes will be one of those source lines, but not necessarily the one
-that the debugger reports.
-
-Another problematic area with the MS debugger is with variables that
-are stored in registers: it will sometimes display wrong values for
-those variables.  Usually you will not be able to see any value for a
-register variable, but if it is only being stored in a register
-temporarily, you will see an old value for it.  Again, you need to
-look at the disassembly to determine which registers are being used,
-and look at those registers directly, to see the actual current values
-of these variables.
-
 
 This file is part of GNU Emacs.
 
@@ -852,7 +964,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

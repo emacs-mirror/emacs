@@ -1,6 +1,6 @@
 ;;; nsm.el --- Network Security Manager
 
-;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: encryption, security, network
@@ -18,13 +18,14 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
 (require 'cl-lib)
+(require 'rmc)                       ; read-multiple-choice
 
 (defvar nsm-permanent-host-settings nil)
 (defvar nsm-temporary-host-settings nil)
@@ -87,7 +88,7 @@ against previous connections.  If the function determines that
 there is something odd about the connection, the user will be
 queried about what to do about it.
 
-The process it returned if everything is OK, and otherwise, the
+The process is returned if everything is OK, and otherwise, the
 process will be deleted and nil is returned.
 
 If SAVE-FINGERPRINT, always save the fingerprint of the
@@ -183,7 +184,9 @@ unencrypted."
 
 (defun nsm-check-protocol (process host port status settings)
   (let ((prime-bits (plist-get status :diffie-hellman-prime-bits))
-	(encryption (format "%s-%s-%s"
+        (signature-algorithm
+         (plist-get (plist-get status :certificate) :signature-algorithm))
+        (encryption (format "%s-%s-%s"
 			    (plist-get status :key-exchange)
 			    (plist-get status :cipher)
 			    (plist-get status :mac)))
@@ -207,6 +210,15 @@ unencrypted."
 	     host port status :rc4
 	     "The connection to %s:%s uses the RC4 algorithm (%s), which is believed to be unsafe."
 	     host port encryption)))
+      (delete-process process)
+      nil)
+     ((and (string-match "\\bSHA1\\b" signature-algorithm)
+	   (not (memq :signature-sha1 (plist-get settings :conditions)))
+	   (not
+	    (nsm-query
+	     host port status :signature-sha1
+	     "The certificate used to verify the connection to %s:%s uses the SHA1 algorithm (%s), which is believed to be unsafe."
+	     host port signature-algorithm)))
       (delete-process process)
       nil)
      ((and protocol
@@ -286,51 +298,50 @@ unencrypted."
       nil
     (let ((response
 	   (condition-case nil
-	       (nsm-query-user message args (nsm-format-certificate status))
+               (intern
+                (car (split-string
+                      (nsm-query-user message args
+                                      (nsm-format-certificate status))))
+                obarray)
 	     ;; Make sure we manage to close the process if the user hits
 	     ;; `C-g'.
 	     (quit 'no)
 	     (error 'no))))
       (if (eq response 'no)
-	  nil
+          (progn
+            (message "Aborting connection to %s:%s" host port)
+            nil)
+        (message (if (eq response 'session)
+                     "Accepting certificate for %s:%s this session only"
+                   "Permanently accepting certificate for %s:%s")
+                 host port)
 	(nsm-save-host host port status what response)
 	t))))
 
 (defun nsm-query-user (message args cert)
   (let ((buffer (get-buffer-create "*Network Security Manager*")))
-    (with-help-window buffer
-      (with-current-buffer buffer
-	(erase-buffer)
-	(when (> (length cert) 0)
-	  (insert cert "\n"))
-	(let ((start (point)))
-	  (insert (apply #'format-message message args))
-	  (goto-char start)
-	  ;; Fill the first line of the message, which usually
-	  ;; contains lots of explanatory text.
-	  (fill-region (point) (line-end-position)))))
-    (let ((responses '((?n . no)
-		       (?s . session)
-		       (?a . always)))
-	  (prefix "")
-	  (cursor-in-echo-area t)
-	  response)
-      (while (not response)
-	(setq response
-	      (cdr
-	       (assq (downcase
-		      (read-char
-		       (concat prefix
-			       "Continue connecting? (No, Session only, Always) ")))
-		     responses)))
-	(unless response
-	  (ding)
-	  (setq prefix "Invalid choice.  ")))
-      (kill-buffer buffer)
-      ;; If called from a callback, `read-char' will insert things
-      ;; into the pending input.  Clear that.
-      (clear-this-command-keys)
-      response)))
+    (save-window-excursion
+      ;; First format the certificate and warnings.
+      (with-help-window buffer
+        (with-current-buffer buffer
+          (erase-buffer)
+          (when (> (length cert) 0)
+            (insert cert "\n"))
+          (let ((start (point)))
+            (insert (apply #'format-message message args))
+            (goto-char start)
+            ;; Fill the first line of the message, which usually
+            ;; contains lots of explanatory text.
+            (fill-region (point) (line-end-position)))))
+      ;; Then ask the user what to do about it.
+      (unwind-protect
+          (cadr
+           (read-multiple-choice
+            "Continue connecting?"
+            '((?a "always" "Accept this certificate this session and for all future sessions.")
+              (?s "session only" "Accept this certificate this session only.")
+              (?n "no" "Refuse to use this certificate, and close the connection."))))
+        (kill-buffer buffer)))))
 
 (defun nsm-save-host (host port status what permanency)
   (let* ((id (nsm-id host port))

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998, 2001-2015 Free Software Foundation,
+@c Copyright (C) 1990-1995, 1998, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Macros
@@ -160,6 +160,12 @@ expand the embedded calls to @code{inc}:
 
 @end defun
 
+@defun macroexpand-1 form &optional environment
+This function expands macros like @code{macroexpand}, but it only
+performs one step of the expansion: if the result is another macro
+call, @code{macroexpand-1} will not expand it.
+@end defun
+
 @node Compiling Macros
 @section Macros and Byte Compilation
 @cindex byte-compiling macros
@@ -249,10 +255,6 @@ of constants and nonconstant parts.  To make this easier, use the
 @end example
 @end example
 
-  The body of a macro definition can include a @code{declare} form,
-which specifies additional properties about the macro.  @xref{Declare
-Form}.
-
 @node Problems with Macros
 @section Common Problems Using Macros
 @cindex macro caveats
@@ -307,7 +309,7 @@ program is actually run.
   When defining a macro you must pay attention to the number of times
 the arguments will be evaluated when the expansion is executed.  The
 following macro (used to facilitate iteration) illustrates the
-problem.  This macro allows us to write a ``for'' loop construct.
+problem.  This macro allows us to write a for-loop construct.
 
 @findex for
 @example
@@ -345,7 +347,7 @@ For example, (for i from 1 to 10 do (print i))."
 
 @noindent
 The arguments @code{from}, @code{to}, and @code{do} in this macro are
-``syntactic sugar''; they are entirely ignored.  The idea is that you
+syntactic sugar; they are entirely ignored.  The idea is that you
 will write noise words (such as @code{from}, @code{to}, and @code{do})
 in those positions in the macro call.
 
@@ -568,7 +570,7 @@ If @code{initialize} is interpreted, a new list @code{(nil)} is
 constructed each time @code{initialize} is called.  Thus, no side effect
 survives between calls.  If @code{initialize} is compiled, then the
 macro @code{empty-object} is expanded during compilation, producing a
-single ``constant'' @code{(nil)} that is reused and altered each time
+single constant @code{(nil)} that is reused and altered each time
 @code{initialize} is called.
 
 One way to avoid pathological cases like this is to think of
@@ -587,6 +589,11 @@ calls to the macro.  An indentation specification is written like this:
 @example
 (declare (indent @var{indent-spec}))
 @end example
+
+@noindent
+@cindex @code{lisp-indent-function} property
+This results in the @code{lisp-indent-function} property being set on
+the macro name.
 
 @noindent
 Here are the possibilities for @var{indent-spec}:

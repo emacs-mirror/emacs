@@ -1,9 +1,8 @@
 ;;; calc-alg.el --- algebraic functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger  <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -356,10 +355,19 @@
 ;; math-simplify-step, which is called by math-simplify.
 (defvar math-top-only)
 
+(defun calc-input-angle-units (input)
+  (cond ((math-expr-contains input '(var deg var-deg)) 'deg)
+        ((math-expr-contains input '(var rad var-rad)) 'rad)
+        ((math-expr-contains input '(var hms var-hms)) 'hms)
+        (t nil)))
+
 ;; math-normalize-error is declared in calc.el.
 (defvar math-normalize-error)
 (defun math-simplify (top-expr)
   (let ((math-simplifying t)
+        (calc-angle-mode (if (calc-input-angle-units top-expr)
+                             'rad
+                           calc-angle-mode))
 	(math-top-only (consp calc-simplify-mode))
 	(simp-rules (append (and (calc-has-rules 'var-AlgSimpRules)
 				 '((var AlgSimpRules var-AlgSimpRules)))
@@ -536,7 +544,7 @@
 	  (if (and (eq (car-safe nn) 'frac) (eq (nth 1 nn) 1) (not n))
 	      (unless (and (eq (car-safe math-simplify-expr) 'calcFunc-eq)
                            (eq (car-safe (nth 1 math-simplify-expr)) 'var)
-                           (not (math-expr-contains (nth 2 math-simplify-expr) 
+                           (not (math-expr-contains (nth 2 math-simplify-expr)
                                                     (nth 1 math-simplify-expr))))
 		(setcar (cdr math-simplify-expr)
                         (math-mul (nth 2 nn) (nth 1 math-simplify-expr)))

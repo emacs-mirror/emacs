@@ -1,6 +1,6 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985-1986, 1994, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -55,6 +55,8 @@
     (define-key map "\177" 'Buffer-menu-backup-unmark)
     (define-key map "~" 'Buffer-menu-not-modified)
     (define-key map "u" 'Buffer-menu-unmark)
+    (define-key map "\M-\177" 'Buffer-menu-unmark-all-buffers)
+    (define-key map "U" 'Buffer-menu-unmark-all)
     (let ((i ?0))
       (while (<= i ?9)
 	(define-key map (char-to-string i) 'digit-argument)
@@ -114,6 +116,7 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 \\[Buffer-menu-save] -- mark that buffer to be saved.
 \\[Buffer-menu-delete] or \\[Buffer-menu-delete-backwards] -- mark that buffer to be deleted.
 \\[Buffer-menu-unmark] -- remove all kinds of marks from current line.
+\\[Buffer-menu-unmark-all] -- remove all kinds of marks from all lines.
 \\[Electric-buffer-menu-mode-view-buffer] -- view buffer, returning when done.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks."
   (interactive "P")

@@ -1,6 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; ======================================================================
 ;;; Commentary:
@@ -228,7 +228,7 @@ Each function is called after one of `newsticker-next-item',
 `newsticker-next-new-item', `newsticker-previous-item',
 `newsticker-previous-new-item' has been called.
 
-The default value 'newsticker--buffer-make-item-completely-visible
+The default value `newsticker--buffer-make-item-completely-visible'
 assures that the current item is always completely visible."
   :type 'hook
   :options '(newsticker--buffer-make-item-completely-visible)
@@ -240,7 +240,7 @@ assures that the current item is always completely visible."
 Each function is called after one of `newsticker-next-feed', and
 `newsticker-previous-feed' has been called.
 
-The default value 'newsticker--buffer-make-item-completely-visible
+The default value `newsticker--buffer-make-item-completely-visible'
 assures that the current feed is completely visible."
   :type 'hook
   :options '(newsticker--buffer-make-item-completely-visible)
@@ -251,7 +251,7 @@ assures that the current feed is completely visible."
   "List of functions run after the newsticker buffer has been updated.
 Each function is called after `newsticker-buffer-update' has been called.
 
-The default value `\\='newsticker-w3m-show-inline-images' loads inline
+The default value `newsticker-w3m-show-inline-images' loads inline
 images."
   :type 'hook
   :group 'newsticker-plainview-hooks)
@@ -263,7 +263,7 @@ Each function is called after
 `newsticker-toggle-auto-narrow-to-feed' or
 `newsticker-toggle-auto-narrow-to-item' has been called.
 
-The default value `\\='newsticker-w3m-show-inline-images' loads inline
+The default value `newsticker-w3m-show-inline-images' loads inline
 images."
   :type 'hook
   :group 'newsticker-plainview-hooks)
@@ -562,7 +562,6 @@ This does NOT start the retrieval timers."
         (newsticker--debug-msg "Getting news for %s" (symbol-name feed))
         (newsticker-get-news (symbol-name feed)))))
 
-(unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 (declare-function w3m-toggle-inline-image "ext:w3m" (&optional force no-cache))
 
 (defun newsticker-w3m-show-inline-images ()
@@ -1524,8 +1523,8 @@ Scans the buffer between START and END."
 
 (defun newsticker--buffer-set-invisibility (start end)
   "Add invisibility properties according to nt-type property.
-Scans the buffer between START and END.  Sets the 'invisible
-property to '(<nt-type>-<nt-age> <nt-type> <nt-age>)."
+Scans the buffer between START and END.  Sets the `invisible'
+property to (<nt-type>-<nt-age> <nt-type> <nt-age>)."
   (save-excursion
     ;; reset invisibility settings
     (put-text-property start end 'invisible nil)

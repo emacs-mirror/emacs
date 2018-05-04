@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -19,22 +19,21 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
-(require 'gnus-ems)
 (require 'message)
 (require 'gnus-art)
 (require 'gnus-util)
 
 (defcustom gnus-post-method 'current
-  "*Preferred method for posting USENET news.
+  "Preferred method for posting USENET news.
 
 If this variable is `current' (which is the default), Gnus will use
 the \"current\" select method when posting.  If it is `native', Gnus
@@ -72,7 +71,7 @@ of names)."
 (make-obsolete-variable 'gnus-outgoing-message-group 'gnus-message-archive-group "24.1")
 
 (defcustom gnus-mailing-list-groups nil
-  "*If non-nil a regexp matching groups that are really mailing lists.
+  "If non-nil a regexp matching groups that are really mailing lists.
 This is useful when you're reading a mailing list that has been
 gatewayed to a newsgroup, and you want to followup to an article in
 the group."
@@ -81,7 +80,7 @@ the group."
 		 (const nil)))
 
 (defcustom gnus-add-to-list nil
-  "*If non-nil, add a `to-list' parameter automatically."
+  "If non-nil, add a `to-list' parameter automatically."
   :group 'gnus-message
   :type 'boolean)
 
@@ -112,12 +111,12 @@ the second with the current group name."
   :type 'hook)
 
 (defcustom gnus-bug-create-help-buffer t
-  "*Should we create the *Gnus Help Bug* buffer?"
+  "Should we create the *Gnus Help Bug* buffer?"
   :group 'gnus-message
   :type 'boolean)
 
 (defcustom gnus-posting-styles nil
-  "*Alist of styles to use when posting.
+  "Alist of styles to use when posting.
 See Info node `(gnus)Posting Styles'."
   :group 'gnus-message
   :link '(custom-manual "(gnus)Posting Styles")
@@ -394,6 +393,7 @@ Thank you for your help in stamping out bugs.
   "N" gnus-summary-followup-to-mail-with-original
   "m" gnus-summary-mail-other-window
   "u" gnus-uu-post-news
+  "A" gnus-summary-attach-article
   "\M-c" gnus-summary-mail-crosspost-complaint
   "Br" gnus-summary-reply-broken-reply-to
   "BR" gnus-summary-reply-broken-reply-to-with-original
@@ -496,8 +496,6 @@ Thank you for your help in stamping out bugs.
 	     (let ((mbl1 mml-buffer-list))
 	       (setq mml-buffer-list mbl)  ;; Global value
 	       (set (make-local-variable 'mml-buffer-list) mbl1);; Local value
-	       (gnus-make-local-hook 'kill-buffer-hook)
-	       (gnus-make-local-hook 'change-major-mode-hook)
 	       (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
 	       (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
 	   (mml-destroy-buffers)
@@ -538,7 +536,7 @@ instead."
       (progn
 	(message "Gnus not running; using plain Message mode")
 	(message-mail to subject other-headers continue
-		      nil yank-action send-actions return-action))
+                      switch-action yank-action send-actions return-action))
     (let ((buf (current-buffer))
 	  ;; Don't use posting styles corresponding to any existing group.
 	  (group-name gnus-newsgroup-name)
@@ -549,7 +547,8 @@ instead."
 	    (gnus-setup-message 'message
 	      (message-mail to subject other-headers continue
 			    nil yank-action send-actions return-action)))
-	(setq gnus-newsgroup-name group-name))
+	(with-current-buffer buf
+	  (setq gnus-newsgroup-name group-name)))
       (when switch-action
 	(setq mail-buf (current-buffer))
 	(switch-to-buffer buf)
@@ -594,11 +593,9 @@ instead."
 (defun gnus-inews-add-send-actions (winconf buffer article
 					    &optional config yanked
 					    winconf-name)
-  (gnus-make-local-hook 'message-sent-hook)
   (add-hook 'message-sent-hook (if gnus-agent 'gnus-agent-possibly-do-gcc
 				 'gnus-inews-do-gcc) nil t)
   (when gnus-agent
-    (gnus-make-local-hook 'message-header-hook)
     (add-hook 'message-header-hook 'gnus-agent-possibly-save-gcc nil t))
   (setq message-post-method
 	`(lambda (&optional arg)
@@ -1117,11 +1114,11 @@ If SILENT, don't prompt the user."
      ((and (eq gnus-post-method 'current)
 	   (not (memq (car group-method) gnus-discouraged-post-methods))
 	   (gnus-get-function group-method 'request-post t))
-      (assert (not arg))
+      (cl-assert (not arg))
       group-method)
      ;; Use gnus-post-method.
      ((listp gnus-post-method)		;A method...
-      (assert (not (listp (car gnus-post-method)))) ;... not a list of methods.
+      (cl-assert (not (listp (car gnus-post-method)))) ;... not a list of methods.
       gnus-post-method)
      ;; Use the normal select method (nil or native).
      (t gnus-select-method))))
@@ -1139,9 +1136,9 @@ See the variable `gnus-user-agent'."
 	   (gnus-v
 	    (when (memq 'gnus gnus-user-agent)
 	      (concat "Gnus/"
-		      (gnus-replace-in-string
-		       (format "%1.8f" (gnus-continuum-version gnus-version))
-		       "0+\\'" "")
+		      (replace-regexp-in-string
+		       "0+\\'" ""
+		       (format "%1.8f" (gnus-continuum-version gnus-version)))
 		      " (" gnus-version ")")))
 	   (emacs-v (gnus-emacs-version)))
       (concat gnus-v (when (and gnus-v emacs-v) " ")
@@ -1347,7 +1344,7 @@ For the \"inline\" alternatives, also see the variable
   (gnus-inews-insert-gcc)
   (let ((gcc (mapcar
 	      (lambda (group)
-		(mm-encode-coding-string
+		(encode-coding-string
 		 group
 		 (gnus-group-name-charset (gnus-inews-group-method group)
 					  group)))
@@ -1364,7 +1361,7 @@ For the \"inline\" alternatives, also see the variable
 	     (insert "Gcc: \"" gnus-newsgroup-name "\"\n"))
 	    ((stringp self)
 	     (insert "Gcc: "
-		     (mm-encode-coding-string
+		     (encode-coding-string
 		      (if (string-match " " self)
 			  (concat "\"" self "\"")
 			self)
@@ -1403,7 +1400,7 @@ For the \"inline\" alternatives, also see the variable
 	tem)
     (dolist (style styles)
       (when (stringp (cadr style))
-	(setcdr style (list (mm-decode-coding-string (cadr style) 'utf-8)))))
+	(setcdr style (list (decode-coding-string (cadr style) 'utf-8)))))
     (dolist (style (if styles
 		       (append gnus-posting-styles (list (cons ".*" styles)))
 		     gnus-posting-styles))
@@ -1496,7 +1493,7 @@ See `gnus-summary-mail-forward' for ARG."
 	(message-goto-subject)
 	(re-search-forward " *$")
 	(replace-match " (crosspost notification)" t t)
-	(gnus-deactivate-mark)
+	(deactivate-mark)
 	(when (gnus-y-or-n-p "Send this complaint? ")
 	  (message-send-and-exit))))))
 
@@ -1642,7 +1639,7 @@ this is a reply."
 	  ;; Copy the article over to some group(s).
 	  (while (setq group (pop groups))
 	    (setq method (gnus-inews-group-method group)
-		  group (mm-encode-coding-string
+		  group (encode-coding-string
 			 group
 			 (gnus-group-name-charset method group)))
 	    (unless (gnus-check-server method)
@@ -1663,8 +1660,7 @@ this is a reply."
 	      (run-hooks 'gnus-gcc-post-body-encode-hook)
 	      (save-restriction
 		(message-narrow-to-headers)
-		(let* ((mail-parse-charset message-default-charset)
-		       (newsgroups-field (save-restriction
+		(let* ((newsgroups-field (save-restriction
 					   (message-narrow-to-headers-or-head)
 					   (message-fetch-field "Newsgroups")))
 		       (followup-field (save-restriction
@@ -1845,8 +1841,8 @@ this is a reply."
 	  (when tmp-style
 	    (dolist (style tmp-style)
 	      (when (stringp (cadr style))
-		(setcdr style (list (mm-decode-coding-string (cadr style)
-							     'utf-8)))))
+		(setcdr style (list (decode-coding-string (cadr style)
+							  'utf-8)))))
 	    (setq styles (append styles (list (cons ".*" tmp-style)))))))
       ;; Go through all styles and look for matches.
       (dolist (style styles)
@@ -1909,10 +1905,10 @@ this is a reply."
 		  (cond
 		   ((stringp value)
 		    (if (and matched-string
-			     (gnus-string-match-p "\\\\[&[:digit:]]" value)
+			     (string-match-p "\\\\[&[:digit:]]" value)
 			     (match-beginning 1))
-			(gnus-match-substitute-replacement value nil nil
-							   matched-string)
+			(match-substitute-replacement value nil nil
+						      matched-string)
 		      value))
 		   ((or (symbolp value)
 			(functionp value))
@@ -1954,7 +1950,6 @@ this is a reply."
       (setq name (assq 'name results)
 	    address (assq 'address results))
       (setq results (delq name (delq address results)))
-      (gnus-make-local-hook 'message-setup-hook)
       (setq results (sort results (lambda (x y)
 				    (string-lessp (car x) (car y)))))
       (dolist (result results)
@@ -2006,9 +2001,35 @@ this is a reply."
 			 (insert "From: " (message-make-from) "\n"))))
 		  nil 'local)))))
 
-;;; Allow redefinition of functions.
+(defun gnus-summary-attach-article (n)
+  "Attach the current article(s) to an outgoing Message buffer.
+If any current in-progress Message buffers exist, the articles
+can be attached to them.  If not, a new Message buffer is
+created.
 
-(gnus-ems-redefine)
+This command uses the process/prefix convention, so if you
+process-mark several articles, they will all be attached."
+  (interactive "P")
+  (let ((buffers (message-buffers))
+	destination)
+    ;; Set up the destination mail composition buffer.
+    (if (and buffers
+	     (y-or-n-p "Attach files to existing mail composition buffer? "))
+	(setq destination
+	      (if (= (length buffers) 1)
+		  (get-buffer (car buffers))
+		(gnus-completing-read "Attach to buffer"
+                                      buffers t nil nil (car buffers))))
+      (gnus-summary-mail-other-window)
+      (setq destination (current-buffer)))
+    (gnus-summary-iterate n
+      (gnus-summary-select-article)
+      (set-buffer destination)
+      ;; Attach at the end of the buffer.
+      (save-excursion
+	(goto-char (point-max))
+	(message-forward-make-body-mime gnus-original-article-buffer)))
+    (gnus-configure-windows 'message t)))
 
 (provide 'gnus-msg)
 

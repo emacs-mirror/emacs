@@ -1,0 +1,264 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 2012-2018 Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@node Threads
+@chapter Threads
+@cindex threads
+@cindex concurrency
+
+  Emacs Lisp provides a limited form of concurrency, called
+@dfn{threads}.  All the threads in a given instance of Emacs share the
+same memory.  Concurrency in Emacs Lisp is ``mostly cooperative'',
+meaning that Emacs will only switch execution between threads at
+well-defined times.  However, the Emacs thread support has been
+designed in a way to later allow more fine-grained concurrency, and
+correct programs should not rely on cooperative threading.
+
+  Currently, thread switching will occur upon explicit request via
+@code{thread-yield}, when waiting for keyboard input or for process
+output (e.g., during @code{accept-process-output}), or during blocking
+operations relating to threads, such as mutex locking or
+@code{thread-join}.
+
+  Emacs Lisp provides primitives to create and control threads, and
+also to create and control mutexes and condition variables, useful for
+thread synchronization.
+
+  While global variables are shared among all Emacs Lisp threads,
+local variables are not---a dynamic @code{let} binding is local.  Each
+thread also has its own current buffer (@pxref{Current Buffer}) and
+its own match data (@pxref{Match Data}).
+
+  Note that @code{let} bindings are treated specially by the Emacs
+Lisp implementation.  There is no way to duplicate this unwinding and
+rewinding behavior other than by using @code{let}.  For example, a
+manual implementation of @code{let} written using
+@code{unwind-protect} cannot arrange for variable values to be
+thread-specific.
+
+  In the case of lexical bindings (@pxref{Variable Scoping}), a
+closure is an object like any other in Emacs Lisp, and bindings in a
+closure are shared by any threads invoking the closure.
+
+@menu
+* Basic Thread Functions::      Basic thread functions.
+* Mutexes::                     Mutexes allow exclusive access to data.
+* Condition Variables::         Inter-thread events.
+@end menu
+
+@node Basic Thread Functions
+@section Basic Thread Functions
+
+  Threads can be created and waited for.  A thread cannot be exited
+directly, but the current thread can be exited implicitly, and other
+threads can be signaled.
+
+@defun make-thread function &optional name
+Create a new thread of execution which invokes @var{function}.  When
+@var{function} returns, the thread exits.
+
+The new thread is created with no local variable bindings in effect.
+The new thread's current buffer is inherited from the current thread.
+
+@var{name} can be supplied to give a name to the thread.  The name is
+used for debugging and informational purposes only; it has no meaning
+to Emacs.  If @var{name} is provided, it must be a string.
+
+This function returns the new thread.
+@end defun
+
+@defun threadp object
+This function returns @code{t} if @var{object} represents an Emacs
+thread, @code{nil} otherwise.
+@end defun
+
+@defun thread-join thread
+Block until @var{thread} exits, or until the current thread is
+signaled.  If @var{thread} has already exited, this returns
+immediately.
+@end defun
+
+@defun thread-signal thread error-symbol data
+Like @code{signal} (@pxref{Signaling Errors}), but the signal is
+delivered in the thread @var{thread}.  If @var{thread} is the current
+thread, then this just calls @code{signal} immediately.  Otherwise,
+@var{thread} will receive the signal as soon as it becomes current.
+If @var{thread} was blocked by a call to @code{mutex-lock},
+@code{condition-wait}, or @code{thread-join}; @code{thread-signal}
+will unblock it.
+@end defun
+
+@defun thread-yield
+Yield execution to the next runnable thread.
+@end defun
+
+@defun thread-name thread
+Return the name of @var{thread}, as specified to @code{make-thread}.
+@end defun
+
+@defun thread-alive-p thread
+Return @code{t} if @var{thread} is alive, or @code{nil} if it is not.
+A thread is alive as long as its function is still executing.
+@end defun
+
+@defun thread--blocker thread
+Return the object that @var{thread} is waiting on.  This function is
+primarily intended for debugging, and is given a ``double hyphen''
+name to indicate that.
+
+If @var{thread} is blocked in @code{thread-join}, this returns the
+thread for which it is waiting.
+
+If @var{thread} is blocked in @code{mutex-lock}, this returns the mutex.
+
+If @var{thread} is blocked in @code{condition-wait}, this returns the
+condition variable.
+
+Otherwise, this returns @code{nil}.
+@end defun
+
+@defun current-thread
+Return the current thread.
+@end defun
+
+@defun all-threads
+Return a list of all the live thread objects.  A new list is returned
+by each invocation.
+@end defun
+
+When code run by a thread signals an error that is unhandled, the
+thread exits.  Other threads can access the error form which caused
+the thread to exit using the following function.
+
+@defun thread-last-error
+This function returns the last error form recorded when a thread
+exited due to an error.  Each thread that exits abnormally overwrites
+the form stored by the previous thread's error with a new value, so
+only the last one can be accessed.
+@end defun
+
+@node Mutexes
+@section Mutexes
+
+  A @dfn{mutex} is an exclusive lock.  At any moment, zero or one
+threads may own a mutex.  If a thread attempts to acquire a mutex, and
+the mutex is already owned by some other thread, then the acquiring
+thread will block until the mutex becomes available.
+
+  Emacs Lisp mutexes are of a type called @dfn{recursive}, which means
+that a thread can re-acquire a mutex it owns any number of times.  A
+mutex keeps a count of how many times it has been acquired, and each
+acquisition of a mutex must be paired with a release.  The last
+release by a thread of a mutex reverts it to the unowned state,
+potentially allowing another thread to acquire the mutex.
+
+@defun mutexp object
+This function returns @code{t} if @var{object} represents an Emacs
+mutex, @code{nil} otherwise.
+@end defun
+
+@defun make-mutex &optional name
+Create a new mutex and return it.  If @var{name} is specified, it is a
+name given to the mutex.  It must be a string.  The name is for
+debugging purposes only; it has no meaning to Emacs.
+@end defun
+
+@defun mutex-name mutex
+Return the name of @var{mutex}, as specified to @code{make-mutex}.
+@end defun
+
+@defun mutex-lock mutex
+This will block until this thread acquires @var{mutex}, or until this
+thread is signaled using @code{thread-signal}.  If @var{mutex} is
+already owned by this thread, this simply returns.
+@end defun
+
+@defun mutex-unlock mutex
+Release @var{mutex}.  If @var{mutex} is not owned by this thread, this
+will signal an error.
+@end defun
+
+@defmac with-mutex mutex body@dots{}
+This macro is the simplest and safest way to evaluate forms while
+holding a mutex.  It acquires @var{mutex}, invokes @var{body}, and
+then releases @var{mutex}.  It returns the result of @var{body}.
+@end defmac
+
+@node Condition Variables
+@section Condition Variables
+
+  A @dfn{condition variable} is a way for a thread to block until some
+event occurs.  A thread can wait on a condition variable, to be woken
+up when some other thread notifies the condition.
+
+  A condition variable is associated with a mutex and, conceptually,
+with some condition.  For proper operation, the mutex must be
+acquired, and then a waiting thread must loop, testing the condition
+and waiting on the condition variable.  For example:
+
+@example
+(with-mutex mutex
+  (while (not global-variable)
+    (condition-wait cond-var)))
+@end example
+
+  The mutex ensures atomicity, and the loop is for robustness---there
+may be spurious notifications.
+
+  Similarly, the mutex must be held before notifying the condition.
+The typical, and best, approach is to acquire the mutex, make the
+changes associated with this condition, and then notify it:
+
+@example
+(with-mutex mutex
+  (setq global-variable (some-computation))
+  (condition-notify cond-var))
+@end example
+
+@defun make-condition-variable mutex &optional name
+Make a new condition variable associated with @var{mutex}.  If
+@var{name} is specified, it is a name given to the condition variable.
+It must be a string.  The name is for debugging purposes only; it has
+no meaning to Emacs.
+@end defun
+
+@defun condition-variable-p object
+This function returns @code{t} if @var{object} represents a condition
+variable, @code{nil} otherwise.
+@end defun
+
+@defun condition-wait cond
+Wait for another thread to notify @var{cond}, a condition variable.
+This function will block until the condition is notified, or until a
+signal is delivered to this thread using @code{thread-signal}.
+
+It is an error to call @code{condition-wait} without holding the
+condition's associated mutex.
+
+@code{condition-wait} releases the associated mutex while waiting.
+This allows other threads to acquire the mutex in order to notify the
+condition.
+@end defun
+
+@defun condition-notify cond &optional all
+Notify @var{cond}.  The mutex with @var{cond} must be held before
+calling this.  Ordinarily a single waiting thread is woken by
+@code{condition-notify}; but if @var{all} is not @code{nil}, then all
+threads waiting on @var{cond} are notified.
+
+@code{condition-notify} releases the associated mutex while waiting.
+This allows other threads to acquire the mutex in order to wait on the
+condition.
+@c why bother?
+@end defun
+
+@defun condition-name cond
+Return the name of @var{cond}, as passed to
+@code{make-condition-variable}.
+@end defun
+
+@defun condition-mutex cond
+Return the mutex associated with @var{cond}.  Note that the associated
+mutex cannot be changed.
+@end defun

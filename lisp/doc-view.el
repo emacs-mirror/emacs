@@ -1,6 +1,6 @@
 ;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
 ;; Maintainer: Tassilo Horn <tsdh@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Requirements:
 
@@ -140,6 +140,7 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
+(eval-when-compile (require 'subr-x))
 
 ;;;; Customization Options
 
@@ -440,10 +441,26 @@ Typically \"page-%s.png\".")
 
 (defun doc-view-revert-buffer (&optional ignore-auto noconfirm)
   "Like `revert-buffer', but preserves the buffer's current modes."
-  ;; FIXME: this should probably be moved to files.el and used for
-  ;; most/all "g" bindings to revert-buffer.
   (interactive (list (not current-prefix-arg)))
-  (revert-buffer ignore-auto noconfirm 'preserve-modes))
+  (if (< undo-outer-limit (* 2 (buffer-size)))
+      ;; It's normal for this operation to result in a very large undo entry.
+      (setq-local undo-outer-limit (* 2 (buffer-size))))
+  (cl-labels ((revert ()
+                      (let (revert-buffer-function)
+                        (revert-buffer ignore-auto noconfirm 'preserve-modes))))
+    (if (and (eq 'pdf doc-view-doc-type)
+             (executable-find "pdfinfo"))
+        ;; We don't want to revert if the PDF file is corrupted which
+        ;; might happen when it is currently recompiled from a tex
+        ;; file.  (TODO: We'd like to have something like that also
+        ;; for other types, at least PS, but I don't know a good way
+        ;; to test if a PS file is complete.)
+        (if (= 0 (call-process (executable-find "pdfinfo") nil nil nil
+                               doc-view--buffer-file-name))
+            (revert)
+          (when (called-interactively-p 'interactive)
+            (message "Can't revert right now because the file is corrupted.")))
+      (revert))))
 
 
 (easy-menu-define doc-view-menu doc-view-mode-map
@@ -612,7 +629,7 @@ at the bottom edge of the page moves to the next page."
 	    (image-bob)
 	    (image-bol 1))
 	  (set-window-hscroll (selected-window) hscroll)))
-    (image-next-line 1)))
+    (image-next-line arg)))
 
 (defun doc-view-previous-line-or-previous-page (&optional arg)
   "Scroll downward by ARG lines if possible, else goto previous page.
@@ -682,14 +699,19 @@ It's a subdirectory of `doc-view-cache-directory'."
     (setq doc-view--current-cache-dir
 	  (file-name-as-directory
 	   (expand-file-name
-	    (concat (subst-char-in-string ?% ?_ ;; bug#13679
-                     (file-name-nondirectory doc-view--buffer-file-name))
-		    "-"
-		    (let ((file doc-view--buffer-file-name))
-		      (with-temp-buffer
-			(set-buffer-multibyte nil)
-			(insert-file-contents-literally file)
-			(md5 (current-buffer)))))
+	    (concat (thread-last
+                        (file-name-nondirectory doc-view--buffer-file-name)
+                      ;; bug#13679
+                      (subst-char-in-string ?% ?_)
+                      ;; arc-mode concatenates archive name and file name
+                      ;; with colon, which isn't allowed on MS-Windows.
+                      (subst-char-in-string ?: ?_))
+                    "-"
+                    (let ((file doc-view--buffer-file-name))
+                      (with-temp-buffer
+                        (set-buffer-multibyte nil)
+                        (insert-file-contents-literally file)
+                        (md5 (current-buffer)))))
             doc-view-cache-directory)))))
 
 ;;;###autoload
@@ -968,6 +990,11 @@ is named like ODF with the extension turned to pdf."
     (doc-view-start-process "odf->pdf" doc-view-odf->pdf-converter-program
 			    (list
 			     (concat "-env:UserInstallation=file://"
+                                     ;; The URL must be
+                                     ;; file:///C:/tmp/dir on Windows.
+                                     ;; https://wiki.documentfoundation.org/UserProfile.
+                                     (when (eq system-type 'windows-nt)
+                                       "/")
 				     tmp-user-install-dir)
 			     "--headless" "--convert-to" "pdf"
 			     "--outdir" (doc-view--current-cache-dir) odf)
@@ -1648,7 +1675,7 @@ If BACKWARD is non-nil, jump to the previous match."
                    ;; Microsoft Office formats (also handled by the odf
                    ;; conversion chain).
                    ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-                   ("ppt" odf) ("pps" odf) ("pptx" odf))
+                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf))
 		 t))))
 	(content-types
 	 (save-excursion
@@ -1701,7 +1728,8 @@ If BACKWARD is non-nil, jump to the previous match."
       ;; window-parameters in the window-state(s) and then restoring this
       ;; window-state should call us back (to interpret/use those parameters).
       (doc-view-goto-page page)
-      (when slice (apply 'doc-view-set-slice slice)))))
+      (when slice (apply 'doc-view-set-slice slice))
+      (current-buffer))))
 
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(doc-view-mode . doc-view-restore-desktop-buffer))
@@ -1738,6 +1766,8 @@ toggle between displaying the document or editing it as text.
     (unless doc-view-doc-type
       (doc-view-set-doc-type))
     (doc-view-set-up-single-converter)
+    (unless (memq doc-view-doc-type '(ps))
+      (setq-local require-final-newline nil))
 
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
@@ -1766,6 +1796,8 @@ toggle between displaying the document or editing it as text.
     (when (not (string= doc-view--buffer-file-name buffer-file-name))
       (write-region nil nil doc-view--buffer-file-name))
 
+    (setq-local revert-buffer-function #'doc-view-revert-buffer)
+
     (add-hook 'change-major-mode-hook
 	      (lambda ()
 		(doc-view-kill-proc)
@@ -1773,9 +1805,7 @@ toggle between displaying the document or editing it as text.
 	      nil t)
     (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
     (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
-    (when (and (boundp 'desktop-save-mode)
-	       desktop-save-mode)
-      (setq-local desktop-save-buffer 'doc-view-desktop-save-buffer))
+    (setq-local desktop-save-buffer 'doc-view-desktop-save-buffer)
 
     (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
     ;; Keep track of display info ([vh]scroll, page number, overlay,

@@ -1,10 +1,10 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2015 Free Software
+;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
-;; Maintainer: Inge Frick <inge@nada.kth.se>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: files
 
 ;; This file is part of GNU Emacs.
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,7 +48,7 @@
   "Peruse file or buffer without editing."
   :link '(function-link view-mode)
   :link '(custom-manual "(emacs)Misc File Ops")
-  :group 'wp)
+  :group 'text)
 
 (defcustom view-highlight-face 'highlight
    "The face used for highlighting the match found by View mode search."
@@ -429,7 +429,7 @@ x	exchanges point and mark.
 	  Mark ring is pushed at start of every successful search and when
 	  jump to line occurs.  The mark is set on jump to buffer start or end.
 \\[point-to-register]	save current position in character register.
-'	go to position saved in character register.
+\\='	go to position saved in character register.
 s	do forward incremental search.
 r	do reverse incremental search.
 \\[View-search-regexp-forward]	searches forward for regular expression, starting after current page.
@@ -982,7 +982,7 @@ for highlighting the match that is found."
 ;; This is the dumb approach, looking at each line.  The original
 ;; version of this function looked like it might have been trying to
 ;; do something clever, but not succeeding:
-;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00073.html
+;; https://lists.gnu.org/r/bug-gnu-emacs/2007-09/msg00073.html
 (defun view-search-no-match-lines (times regexp)
   "Search for the TIMESth occurrence of a line with no match for REGEXP.
 If such a line is found, return non-nil and set the match-data to that line.

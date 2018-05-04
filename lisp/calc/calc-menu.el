@@ -1,8 +1,6 @@
 ;;; calc-menu.el --- a menu for Calc
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
-
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -17,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -863,6 +861,13 @@
               :keys "I u M"
               :active (>= (calc-stack-size) 1)
               :help "The average (arithmetic mean) of the data values as an error form"]
+              ["rms(1:)"
+               (progn
+                 (require 'calc-stat)
+                 (call-interactively 'calc-vector-rms))
+               :keys "u R"
+               :active (>= (calc-stack-size) 1)
+               :help "The root mean square of the data values"]
               ["sdev(1:)"
                (progn
                  (require 'calc-stat)

@@ -1,14 +1,14 @@
 /* Header file: Caching facts about regions of the buffer, for optimization.
 
-Copyright (C) 1985-1986, 1993, 1995, 2001-2015 Free Software Foundation,
+Copyright (C) 1985-1986, 1993, 1995, 2001-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,8 +16,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_REGION_CACHE_H
+#define EMACS_REGION_CACHE_H
 
 /* This code was written by Jim Blandy <jimb@cs.oberlin.edu> to help
    GNU Emacs better support the gene editor written for the University
@@ -60,6 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this region has property P" vs. "I don't know if this region has
    property P or not."  */
 
+struct buffer;
 
 /* Allocate, initialize and return a new, empty region cache.  */
 struct region_cache *new_region_cache (void);
@@ -105,3 +108,5 @@ extern int region_cache_forward (struct buffer *buf, struct region_cache *c,
 /* Likewise, except before POS rather than after POS.  */
 extern int region_cache_backward (struct buffer *buf, struct region_cache *c,
 				  ptrdiff_t pos, ptrdiff_t *next);
+
+#endif /* EMACS_REGION_CACHE_H */

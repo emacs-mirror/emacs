@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2015 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -100,16 +100,6 @@ compilation buffer.  It should return a string.
 If nil, compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 
 ;;;###autoload
-(defvar compilation-finish-function nil
-  "Function to call when a compilation process finishes.
-It is called with two arguments: the compilation buffer, and a string
-describing how the process finished.")
-
-(make-obsolete-variable 'compilation-finish-function
-  "use `compilation-finish-functions', but it works a little differently."
-  "22.1")
-
-;;;###autoload
 (defvar compilation-finish-functions nil
   "Functions to call when a compilation process finishes.
 Each function is called with two arguments: the compilation buffer,
@@ -127,10 +117,24 @@ and a string describing how the process finished.")
 (defvar compilation-arguments nil
   "Arguments that were given to `compilation-start'.")
 
-(defvar compilation-num-errors-found)
+(defvar compilation-num-errors-found 0)
+(defvar compilation-num-warnings-found 0)
+(defvar compilation-num-infos-found 0)
+
+(defconst compilation-mode-line-errors
+  '(" [" (:propertize (:eval (int-to-string compilation-num-errors-found))
+                      face compilation-error
+                      help-echo "Number of errors so far")
+    " " (:propertize (:eval (int-to-string compilation-num-warnings-found))
+                     face compilation-warning
+                     help-echo "Number of warnings so far")
+    " " (:propertize (:eval (int-to-string compilation-num-infos-found))
+                     face compilation-info
+                     help-echo "Number of informational messages so far")
+    "]"))
 
 ;; If you make any changes to `compilation-error-regexp-alist-alist',
-;; be sure to run the ERT test in test/automated/compile-tests.el.
+;; be sure to run the ERT test in test/lisp/progmodes/compile-tests.el.
 ;; emacs -batch -l compile-tests.el -f ert-run-tests-batch-and-exit
 
 (defvar compilation-error-regexp-alist-alist
@@ -145,7 +149,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
 
     (ant
-     "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):\\)?\
+     "^[ \t]*\\[[^] \n]+\\][ \t]*\\(\\(?:[A-Za-z]:\\\\\\)?[^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):\\)?\
 \\( warning\\)?" 1 (2 . 4) (3 . 5) (6))
 
     (bash
@@ -161,13 +165,20 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
      2 (3 . 4) (5 . 6) (7))
 
+    (cmake
+     "^CMake \\(?:Error\\|\\(Warning\\)\\) at \\(.*\\):\\([1-9][0-9]*\\) ([^)]+):$"
+     2 3 nil (1))
+    (cmake-info
+     "^  \\(?: \\*\\)?\\(.*\\):\\([1-9][0-9]*\\) ([^)]+)$"
+     1 2 nil 0)
+
     (comma
      "^\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)\
 \\(?:[(. pos]+\\([0-9]+\\))?\\)?[:.,; (-]\\( warning:\\|[-0-9 ]*(W)\\)?" 1 2 3 (4))
 
     (cucumber
      "\\(?:^cucumber\\(?: -p [^[:space:]]+\\)?\\|#\\)\
-\\(?: \\)\\([^\(].*\\):\\([1-9][0-9]*\\)" 1 2)
+\\(?: \\)\\([^(].*\\):\\([1-9][0-9]*\\)" 1 2)
 
     (msft
      ;; Must be before edg-1, so that MSVC's longer messages are
@@ -223,6 +234,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      nil 1 nil 2 0
      (2 (compilation-face '(3))))
 
+    (clang-include
+     ,(rx bol "In file included from "
+          (group (+ (not (any ?\n ?:)))) ?:
+          (group (+ (any (?0 . ?9)))) ?:
+          eol)
+     1 2 nil 0)
+
     (gcc-include
      "^\\(?:In file included \\|                 \\|\t\\)from \
 \\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\
@@ -230,7 +248,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      1 2 3 (4 . 5))
 
     (ruby-Test::Unit
-     "^[\t ]*\\[\\([^\(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
+     "^[\t ]*\\[\\([^(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
     (gnu
      ;; The first line matches the program name for
@@ -377,7 +395,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      3 4 5 (1 . 2))
 
     (sun-ada
-     "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
+     "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., (-]" 1 2 3)
 
     (watcom
      "^[ \t]*\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)): ?\
@@ -477,7 +495,29 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^\\([^ \t\r\n(]+\\) (\\([0-9]+\\):\\([0-9]+\\)) "
      1 2 3)
-    (guile-file "^In \\(.+\\):\n" 1)
+
+    ;; Guile compilation yields file-headers in the following format:
+    ;;
+    ;;   In sourcefile.scm:
+    ;;
+    ;; We need to catch those, but we also need to be aware that Emacs
+    ;; byte-compilation yields compiler headers in similar form of
+    ;; those:
+    ;;
+    ;;   In toplevel form:
+    ;;   In end of data:
+    ;;
+    ;; We want to catch the Guile file-headers but not the Emacs
+    ;; byte-compilation headers, because that will cause next-error
+    ;; and prev-error to break, because the files "toplevel form" and
+    ;; "end of data" does not exist.
+    ;;
+    ;; To differentiate between these two cases, we require that the
+    ;; file-match must always contain an extension.
+    ;;
+    ;; We should also only treat this as "info", not "error", because
+    ;; we do not know what lines will follow.
+    (guile-file "^In \\(.+\\..+\\):\n" 1 nil nil 0)
     (guile-line "^ *\\([0-9]+\\): *\\([0-9]+\\)" nil 1 2)
     )
   "Alist of values for `compilation-error-regexp-alist'.")
@@ -658,7 +698,9 @@ You might also use mode hooks to specify it in certain modes, like this:
 		(concat \"make -k \"
 			(if buffer-file-name
 			  (shell-quote-argument
-			    (file-name-sans-extension buffer-file-name))))))))"
+			    (file-name-sans-extension buffer-file-name))))))))
+
+It's often useful to leave a space at the end of the value."
   :type 'string
   :group 'compilation)
 ;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command)) compilation-read-command))))
@@ -848,16 +890,26 @@ from a different message."
   :group 'compilation
   :version "22.1")
 
+(defun compilation-type (type)
+  (or (and (car type) (match-end (car type)) 1)
+      (and (cdr type) (match-end (cdr type)) 0)
+      2))
+
 (defun compilation-face (type)
-  (or (and (car type) (match-end (car type)) compilation-warning-face)
-      (and (cdr type) (match-end (cdr type)) compilation-info-face)
-      compilation-error-face))
+  (let ((typ (compilation-type type)))
+    (cond
+     ((eq typ 1)
+      compilation-warning-face)
+     ((eq typ 0)
+      compilation-info-face)
+     ((eq typ 2)
+      compilation-error-face))))
 
 ;;   LOC (or location) is a list of (COLUMN LINE FILE-STRUCTURE nil nil)
 
 ;; COLUMN and LINE are numbers parsed from an error message.  COLUMN and maybe
 ;; LINE will be nil for a message that doesn't contain them.  Then the
-;; location refers to a indented beginning of line or beginning of file.
+;; location refers to an indented beginning of line or beginning of file.
 ;; Once any location in some file has been jumped to, the list is extended to
 ;; (COLUMN LINE FILE-STRUCTURE MARKER TIMESTAMP . VISITED)
 ;; for all LOCs pertaining to that file.
@@ -929,7 +981,7 @@ from a different message."
 (defvar compilation--previous-directory-cache nil
   "A pair (POS . RES) caching the result of previous directory search.
 Basically, this pair says that calling
-   (previous-single-property-change POS 'compilation-directory)
+   (previous-single-property-change POS \\='compilation-directory)
 returned RES, i.e. there is no change of `compilation-directory' between
 POS and RES.")
 (make-variable-buffer-local 'compilation--previous-directory-cache)
@@ -945,7 +997,7 @@ POS and RES.")
    (t (setq compilation--previous-directory-cache nil))))
 
 (defun compilation--previous-directory (pos)
-  "Like (previous-single-property-change POS 'compilation-directory), but faster."
+  "Like (previous-single-property-change POS \\='compilation-directory), but faster."
   ;; This avoids an N² behavior when there's no/few compilation-directory
   ;; entries, in which case each call to previous-single-property-change
   ;; ends up having to walk very far back to find the last change.
@@ -1103,6 +1155,16 @@ POS and RES.")
     (compilation-internal-error-properties
      file line end-line col end-col type fmt)))
 
+(defun compilation-beginning-of-line (&optional n)
+  "Like `beginning-of-line', but accounts for lines hidden by `selective-display'."
+  (if (or (not (eq selective-display t))
+          (null n)
+          (= n 1))
+      (beginning-of-line n)
+    (re-search-forward "[\n\r]" nil 'end (1- n))
+    (if (< n 0)
+        (beginning-of-line))))
+
 (defun compilation-move-to-column (col screen)
   "Go to column COL on the current line.
 If SCREEN is non-nil, columns are screen columns, otherwise, they are
@@ -1161,13 +1223,15 @@ FMTS is a list of format specs for transforming the file name.
 	    (goto-char (marker-position marker))
 	    ;; Set end-marker if appropriate and go to line.
 	    (if (not (or end-col end-line))
-		(beginning-of-line (- line marker-line -1))
-	      (beginning-of-line (- (or end-line line) marker-line -1))
+		(compilation-beginning-of-line (- line marker-line -1))
+	      (compilation-beginning-of-line (- (or end-line line)
+                                                marker-line -1))
 	      (if (or (null end-col) (< end-col 0))
 		  (end-of-line)
 		(compilation-move-to-column end-col screen-columns))
 	      (setq end-marker (point-marker))
-	      (when end-line (beginning-of-line (- line end-line -1))))
+	      (when end-line
+                (compilation-beginning-of-line (- line end-line -1))))
 	    (if col
 		(compilation-move-to-column col screen-columns)
 	      (forward-to-indentation 0))
@@ -1284,6 +1348,14 @@ FMTS is a list of format specs for transforming the file name.
 
     (compilation-parse-errors start end)))
 
+(defun compilation--note-type (type)
+  "Note that a new message with severity TYPE was seen.
+This updates the appropriate variable used by the mode-line."
+  (cl-case type
+    (0 (cl-incf compilation-num-infos-found))
+    (1 (cl-incf compilation-num-warnings-found))
+    (2 (cl-incf compilation-num-errors-found))))
+
 (defun compilation-parse-errors (start end &rest rules)
   "Parse errors between START and END.
 The errors recognized are the ones specified in RULES which default
@@ -1347,14 +1419,17 @@ to `compilation-error-regexp-alist' if RULES is nil."
                              file line end-line col end-col (or type 2) fmt))
 
             (when (integerp file)
+              (setq type (if (consp type)
+                             (compilation-type type)
+                           (or type 2)))
+              (compilation--note-type type)
+
               (compilation--put-prop
                file 'font-lock-face
-               (if (consp type)
-                   (compilation-face type)
-                 (symbol-value (aref [compilation-info-face
-                                      compilation-warning-face
-                                      compilation-error-face]
-                                     (or type 2))))))
+               (symbol-value (aref [compilation-info-face
+                                    compilation-warning-face
+                                    compilation-error-face]
+                                   type))))
 
             (compilation--put-prop
              line 'font-lock-face compilation-line-face)
@@ -1655,19 +1730,13 @@ Returns the compilation buffer created."
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; Pop up the compilation buffer.
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01638.html
+    ;; https://lists.gnu.org/r/emacs-devel/2007-11/msg01638.html
     (setq outwin (display-buffer outbuf '(nil (allow-no-window . t))))
     (with-current-buffer outbuf
       (let ((process-environment
 	     (append
 	      compilation-environment
-	      (if (if (boundp 'system-uses-terminfo);`If' for compiler warning.
-		      system-uses-terminfo)
-		  (list "TERM=dumb" "TERMCAP="
-			(format "COLUMNS=%d" (window-width)))
-		(list "TERM=emacs"
-		      (format "TERMCAP=emacs:co#%d:tc=unknown:"
-			      (window-width))))
+              (comint-term-environment)
 	      (list (format "INSIDE_EMACS=%s,compile" emacs-version))
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
@@ -1702,7 +1771,7 @@ Returns the compilation buffer created."
 	    (funcall compilation-process-setup-function))
 	(and outwin (compilation-set-window-height outwin))
 	;; Start the compilation.
-	(if (fboundp 'start-process)
+	(if (fboundp 'make-process)
 	    (let ((proc
 		   (if (eq mode t)
 		       ;; comint uses `start-file-process'.
@@ -1718,7 +1787,8 @@ Returns the compilation buffer created."
 						       outbuf command))))
               ;; Make the buffer's mode line show process state.
               (setq mode-line-process
-                    '(:propertize ":%s" face compilation-mode-line-run))
+                    '((:propertize ":%s" face compilation-mode-line-run)
+                      compilation-mode-line-errors))
 
               ;; Set the process as killable without query by default.
               ;; This allows us to start a new compilation without
@@ -1747,7 +1817,8 @@ Returns the compilation buffer created."
 	  (message "Executing `%s'..." command)
 	  ;; Fake mode line display as if `start-process' were run.
 	  (setq mode-line-process
-		'(:propertize ":run" face compilation-mode-line-run))
+		'((:propertize ":run" face compilation-mode-line-run)
+                  compilation-mode-line-errors))
 	  (force-mode-line-update)
 	  (sit-for 0)			; Force redisplay
 	  (save-excursion
@@ -2020,7 +2091,6 @@ by replacing the first word, e.g., `compilation-scroll-output' from
 		   compilation-error-regexp-alist
 		   compilation-error-regexp-alist-alist
 		   compilation-error-screen-columns
-		   compilation-finish-function
 		   compilation-finish-functions
 		   compilation-first-column
 		   compilation-mode-font-lock-keywords
@@ -2056,6 +2126,9 @@ Optional argument MINOR indicates this is called from
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
+  (setq-local compilation-num-errors-found 0)
+  (setq-local compilation-num-warnings-found 0)
+  (setq-local compilation-num-infos-found 0)
   (set (make-local-variable 'overlay-arrow-string) "")
   (setq next-error-overlay-arrow-position nil)
   (add-hook 'kill-buffer-hook
@@ -2145,23 +2218,22 @@ commands of Compilation major mode are available.  See
     (add-text-properties omax (point)
 			 (append '(compilation-handle-exit t) nil))
     (setq mode-line-process
-	  (let ((out-string (format ":%s [%s]" process-status (cdr status)))
-		(msg (format "%s %s" mode-name
-			     (replace-regexp-in-string "\n?$" ""
-                                                       (car status)))))
-	    (message "%s" msg)
-	    (propertize out-string
-			'help-echo msg
-			'face (if (> exit-status 0)
-				  'compilation-mode-line-fail
-				'compilation-mode-line-exit))))
+          (list
+           (let ((out-string (format ":%s [%s]" process-status (cdr status)))
+                 (msg (format "%s %s" mode-name
+                              (replace-regexp-in-string "\n?$" ""
+                                                        (car status)))))
+             (message "%s" msg)
+             (propertize out-string
+                         'help-echo msg
+                         'face (if (> exit-status 0)
+                                   'compilation-mode-line-fail
+                                 'compilation-mode-line-exit)))
+           compilation-mode-line-errors))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
-    (with-no-warnings
-      (if compilation-finish-function
-	  (funcall compilation-finish-function cur-buffer msg)))
     (run-hook-with-args 'compilation-finish-functions cur-buffer msg)))
 
 ;; Called when compilation process changes state.
@@ -2236,7 +2308,7 @@ and runs `compilation-filter-hook'."
      (while (,< n 0)
        (setq opt pt)
        (or (setq pt (,property-change pt 'compilation-message))
-	   ;; Handle the case where where the first error message is
+	   ;; Handle the case where the first error message is
 	   ;; at the start of the buffer, and n < 0.
 	   (if (or (eq (get-text-property ,limit 'compilation-message)
 		       (get-text-property opt 'compilation-message))
@@ -2447,7 +2519,7 @@ This is the value of `next-error-function' in Compilation buffers."
             ;; Treat file's found lines in forward order, 1 by 1.
             (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
               (when (car line)		; else this is a filename w/o a line#
-                (beginning-of-line (- (car line) last -1))
+                (compilation-beginning-of-line (- (car line) last -1))
                 (setq last (car line)))
               ;; Treat line's found columns and store/update a marker for each.
               (dolist (col (cdr line))
@@ -2519,7 +2591,7 @@ displays at the top of the window; there is no arrow."
   (if (integerp compilation-context-lines)
       (set-window-start w (save-excursion
 			    (goto-char mk)
-			    (beginning-of-line
+			    (compilation-beginning-of-line
 			     (- 1 compilation-context-lines))
 			    (point)))
     ;; If there is no left fringe.
@@ -2572,7 +2644,7 @@ and overlay is highlighted between MK and END-MK."
 	(goto-char mk)))
     (if end-mk
         (push-mark end-mk t)
-      (if mark-active (setq mark-active)))
+      (if mark-active (setq mark-active nil)))
     ;; If hideshow got in the way of
     ;; seeing the right place, open permanently.
     (dolist (ov (overlays-at (point)))
@@ -2719,7 +2791,9 @@ FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
 In the former case, FILENAME may be relative or absolute.
 
 The file-structure looks like this:
-  ((FILENAME [DIR-FROM-PREV-MSG]) FMT LINE-STRUCT...)"
+  ((FILENAME [TRUE-DIRNAME]) FMT ...)
+
+TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
   (or (gethash file compilation-locs)
       ;; File was not previously encountered, at least not in the form passed.
       ;; Let's normalize it and look again.
@@ -2761,7 +2835,7 @@ The file-structure looks like this:
 		 ;; The gethash used to not use spec-directory, but
 		 ;; this leads to errors when files in different
 		 ;; directories have the same name:
-		 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00463.html
+		 ;; https://lists.gnu.org/r/emacs-devel/2007-08/msg00463.html
 		 (or (gethash (cons filename spec-directory) compilation-locs)
 		     (puthash (cons filename spec-directory)
 			      (compilation--make-file-struct
@@ -2774,7 +2848,7 @@ The file-structure looks like this:
   (let ((fs (compilation-get-file-structure file)))
     (cl-assert (eq fs (gethash file compilation-locs)))
     (cl-assert (eq fs (gethash (cons (caar fs) (cadr (car fs)))
-                            compilation-locs)))
+                               compilation-locs)))
     (maphash (lambda (k v)
                (if (eq v fs) (remhash k compilation-locs)))
              compilation-locs)))

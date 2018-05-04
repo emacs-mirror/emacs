@@ -6395,7 +6395,7 @@
 	* vc-svn.el (vc-svn-checkin): Use `nconc' instead of `list*',
 	because the latter is a CL-ism.  This fixes the bug reported by
 	Shawn Boyette <mdxi@collapsar.net> in
-	http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
+	https://lists.gnu.org/r/emacs-devel/2004-05/msg00442.html.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
@@ -14321,7 +14321,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2003-2011, 2013-2015 Free Software Foundation, Inc.
+  Copyright (C) 2003-2011, 2013-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -14336,4 +14336,4 @@ See ChangeLog.10 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

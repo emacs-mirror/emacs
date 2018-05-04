@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998-1999, 2001-2015 Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -123,6 +123,45 @@ In other words, the value does not change for all byte positions that
 belong to the same character.
 @end defun
 
+@cindex convert file byte to buffer position
+@cindex convert buffer position to file byte
+  The following two functions are useful when a Lisp program needs to
+map buffer positions to byte offsets in a file visited by the buffer.
+
+@defun bufferpos-to-filepos position &optional quality coding-system
+This function is similar to @code{position-bytes}, but instead of byte
+position in the current buffer it returns the offset from the
+beginning of the current buffer's file of the byte that corresponds to
+the given character @var{position} in the buffer.  The conversion
+requires to know how the text is encoded in the buffer's file; this is
+what the @var{coding-system} argument is for, defaulting to the value
+of @code{buffer-file-coding-system}.  The optional argument
+@var{quality} specifies how accurate the result should be; it should
+be one of the following:
+
+@table @code
+@item exact
+The result must be accurate.  The function may need to encode and
+decode a large part of the buffer, which is expensive and can be slow.
+@item approximate
+The value can be an approximation.  The function may avoid expensive
+processing and return an inexact result.
+@item nil
+If the exact result needs expensive processing, the function will
+return @code{nil} rather than an approximation.  This is the default
+if the argument is omitted.
+@end table
+@end defun
+
+@defun filepos-to-bufferpos byte &optional quality coding-system
+This function returns the buffer position corresponding to a file
+position specified by @var{byte}, a zero-base byte offset from the
+file's beginning.  The function performs the conversion opposite to
+what @code{bufferpos-to-filepos} does.  Optional arguments
+@var{quality} and @var{coding-system} have the same meaning and values
+as for @code{bufferpos-to-filepos}.
+@end defun
+
 @defun multibyte-string-p string
 Return @code{t} if @var{string} is a multibyte string, @code{nil}
 otherwise.  This function also returns @code{nil} if @var{string} is
@@ -173,7 +212,7 @@ emacs, GNU Emacs Manual}.  Unlike @code{find-file-literally}, finding
 a file as @samp{raw-text} doesn't disable format conversion,
 uncompression, or auto mode selection.
 
-@c See http://debbugs.gnu.org/11226 for lack of unibyte tooltip.
+@c See https://debbugs.gnu.org/11226 for lack of unibyte tooltip.
 @vindex enable-multibyte-characters
 The buffer-local variable @code{enable-multibyte-characters} is
 non-@code{nil} in multibyte buffers, and @code{nil} in unibyte ones.
@@ -381,6 +420,18 @@ codepoint can have.
 @end example
 @end defun
 
+@defun char-from-name string &optional ignore-case
+This function returns the character whose Unicode name is @var{string}.
+If @var{ignore-case} is non-@code{nil}, case is ignored in @var{string}.
+This function returns @code{nil} if @var{string} does not name a character.
+
+@example
+;; U+03A3
+(= (char-from-name "GREEK CAPITAL LETTER SIGMA") #x03A3)
+     @result{} t
+@end example
+@end defun
+
 @defun get-byte &optional pos string
 This function returns the byte at character position @var{pos} in the
 current buffer.  If the current buffer is unibyte, this is literally
@@ -483,7 +534,7 @@ Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
 an integer, or @code{nil} if the character has no decimal digit value.
 For unassigned codepoints, the value is @code{nil}, which means
-@acronym{NaN}, or ``not-a-number''.
+@acronym{NaN}, or ``not a number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
@@ -568,6 +619,29 @@ Corresponds to the Unicode @code{Simple_Titlecase_Mapping} property.
 character of a word needs to be capitalized.  The value of this
 property is a single character.  For unassigned codepoints, the value
 is @code{nil}, which means the character itself.
+
+@item special-uppercase
+Corresponds to Unicode language- and context-independent special upper-casing
+rules.  The value of this property is a string (which may be empty).  For
+example mapping for @code{U+00DF} (@sc{latin small letter sharp s}) is
+@code{"SS"}.  For characters with no special mapping, the value is @code{nil}
+which means @code{uppercase} property needs to be consulted instead.
+
+@item special-lowercase
+Corresponds to Unicode language- and context-independent special lower-casing
+rules.  The value of this property is a string (which may be empty).  For
+example mapping for @code{U+0130} (@sc{latin capital letter i with dot above})
+the value is @code{"i\u0307"} (i.e. 2-character string consisting of @sc{latin
+small letter i} followed by @sc{combining dot above}).  For characters with no
+special mapping, the value is @code{nil} which means @code{lowercase} property
+needs to be consulted instead.
+
+@item special-titlecase
+Corresponds to Unicode unconditional special title-casing rules.  The value of
+this property is a string (which may be empty).  For example mapping for
+@code{U+FB01} (@sc{latin small ligature fi}) the value is @code{"Fi"}.  For
+characters with no special mapping, the value is @code{nil} which means
+@code{titlecase} property needs to be consulted instead.
 @end table
 
 @defun get-char-code-property char propname
@@ -583,18 +657,21 @@ This function returns the value of @var{char}'s @var{propname} property.
      @result{} Nd
 @end group
 @group
-;; subscript 4
-(get-char-code-property ?\u2084 'digit-value)
+;; U+2084
+(get-char-code-property ?\N@{SUBSCRIPT FOUR@}
+                        'digit-value)
      @result{} 4
 @end group
 @group
-;; one fifth
-(get-char-code-property ?\u2155 'numeric-value)
+;; U+2155
+(get-char-code-property ?\N@{VULGAR FRACTION ONE FIFTH@}
+                        'numeric-value)
      @result{} 0.2
 @end group
 @group
-;; Roman IV
-(get-char-code-property ?\u2163 'numeric-value)
+;; U+2163
+(get-char-code-property ?\N@{ROMAN NUMERAL FOUR@}
+                        'numeric-value)
      @result{} 4
 @end group
 @group
@@ -963,10 +1040,14 @@ alternative encodings for the same characters; for example, there are
 three coding systems for the Cyrillic (Russian) alphabet: ISO,
 Alternativnyj, and KOI8.
 
+@vindex undecided@r{ coding system}
+@vindex prefer-utf-8@r{ coding system}
   Every coding system specifies a particular set of character code
 conversions, but the coding system @code{undecided} is special: it
 leaves the choice unspecified, to be chosen heuristically for each
-file, based on the file's data.
+file, based on the file's data.  The coding system @code{prefer-utf-8}
+is like @code{undecided}, but it prefers to choose @code{utf-8} when
+possible.
 
   In general, a coding system doesn't guarantee roundtrip identity:
 decoding a byte sequence using coding system, then encoding the
@@ -993,10 +1074,9 @@ that result from encoding unsupported characters.
 used on various systems for representing end of line in files.  The
 Unix convention, used on GNU and Unix systems, is to use the linefeed
 character (also called newline).  The DOS convention, used on
-MS-Windows and MS-DOS systems, is to use a carriage-return and a
+MS-Windows and MS-DOS systems, is to use a carriage return and a
 linefeed at the end of a line.  The Mac convention is to use just
-carriage-return.  (This was the convention used on the Macintosh
-system prior to OS X.)
+carriage return.  (This was the convention used in Classic Mac OS.)
 
 @cindex base coding system
 @cindex variant coding system
@@ -1032,7 +1112,9 @@ represented in the internal Emacs encoding (@pxref{Text
 Representations}).  This is like @code{raw-text} in that no code
 conversion happens, but different in that the result is multibyte
 data.  The name @code{emacs-internal} is an alias for
-@code{utf-8-emacs}.
+@code{utf-8-emacs-unix} (so it forces no conversion of end-of-line,
+unlike @code{utf-8-emacs}, which can decode all 3 kinds of
+end-of-line conventions).
 
 @defun coding-system-get coding-system property
 This function returns the specified property of the coding system
@@ -1071,7 +1153,7 @@ encode the buffer contents.
 (@pxref{Specifying Coding Systems}), or implicitly using a default
 mechanism (@pxref{Default Coding Systems}).  But these methods may not
 completely specify what to do.  For example, they may choose a coding
-system such as @code{undefined} which leaves the character code
+system such as @code{undecided} which leaves the character code
 conversion to be determined from the data.  In these cases, the I/O
 operation finishes the job of choosing a coding system.  Very often
 you will want to find out afterwards which coding system was chosen.
@@ -1299,9 +1381,9 @@ operates on the contents of @var{string} instead of bytes in the buffer.
 @cindex null bytes, and decoding text
 @defvar inhibit-null-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
-when detecting the encoding of a region or a string.  This allows to
-correctly detect the encoding of text that contains null bytes, such
-as Info files with Index nodes.
+when detecting the encoding of a region or a string.  This allows the
+encoding of text that contains null bytes to be correctly detected,
+such as Info files with Index nodes.
 @end defvar
 
 @defvar inhibit-iso-escape-detection
@@ -1373,19 +1455,21 @@ Otherwise, it asks the user to choose from a list of coding systems
 which can encode all the text, and returns the user's choice.
 
 @var{default-coding-system} can also be a list whose first element is
-t and whose other elements are coding systems.  Then, if no coding
+@code{t} and whose other elements are coding systems.  Then, if no coding
 system in the list can handle the text, @code{select-safe-coding-system}
 queries the user immediately, without trying any of the three
-alternatives described above.
+alternatives described above.  This is handy for checking only the
+coding systems in the list.
 
-The optional argument @var{accept-default-p}, if non-@code{nil},
-should be a function to determine whether a coding system selected
-without user interaction is acceptable.  @code{select-safe-coding-system}
-calls this function with one argument, the base coding system of the
-selected coding system.  If @var{accept-default-p} returns @code{nil},
-@code{select-safe-coding-system} rejects the silently selected coding
-system, and asks the user to select a coding system from a list of
-possible candidates.
+The optional argument @var{accept-default-p} determines whether a
+coding system selected without user interaction is acceptable.  If
+it's omitted or @code{nil}, such a silent selection is always
+acceptable.  If it is non-@code{nil}, it should be a function;
+@code{select-safe-coding-system} calls this function with one
+argument, the base coding system of the selected coding system.  If
+the function returns @code{nil}, @code{select-safe-coding-system}
+rejects the silently selected coding system, and asks the user to
+select a coding system from a list of possible candidates.
 
 @vindex select-safe-coding-system-accept-default-p
 If the variable @code{select-safe-coding-system-accept-default-p} is
@@ -1405,6 +1489,18 @@ similar functions).  If it detects an apparent inconsistency,
 @code{select-safe-coding-system} queries the user before selecting the
 coding system.
 @end defun
+
+@defvar select-safe-coding-system-function
+This variable names the function to be called to request the user to
+select a proper coding system for encoding text when the default
+coding system for an output operation cannot safely encode that text.
+The default value of this variable is @code{select-safe-coding-system}.
+Emacs primitives that write text to files, such as
+@code{write-region}, or send text to other processes, such as
+@code{process-send-region}, normally call the value of this variable,
+unless @code{coding-system-for-write} is bound to a non-@code{nil}
+value (@pxref{Specifying Coding Systems}).
+@end defvar
 
   Here are two functions you can use to let the user specify a coding
 system, with completion.  @xref{Completion}.
@@ -1666,12 +1762,31 @@ including @code{file-coding-system-alist},
 @defvar coding-system-for-write
 This works much like @code{coding-system-for-read}, except that it
 applies to output rather than input.  It affects writing to files,
-as well as sending output to subprocesses and net connections.
+as well as sending output to subprocesses and net connections.  It
+also applies to encoding command-line arguments with which Emacs
+invokes subprocesses.
 
 When a single operation does both input and output, as do
 @code{call-process-region} and @code{start-process}, both
 @code{coding-system-for-read} and @code{coding-system-for-write}
 affect it.
+@end defvar
+
+@defvar coding-system-require-warning
+Binding @code{coding-system-for-write} to a non-@code{nil} value
+prevents output primitives from calling the function specified by
+@code{select-safe-coding-system-function} (@pxref{User-Chosen Coding
+Systems}).  This is because @kbd{C-x @key{RET} c}
+(@code{universal-coding-system-argument}) works by binding
+@code{coding-system-for-write}, and Emacs should obey user selection.
+If a Lisp program binds @code{coding-system-for-write} to a value that
+might not be safe for encoding the text to be written, it can also bind
+@code{coding-system-require-warning} to a non-@code{nil} value, which
+will force the output primitives to check the encoding by calling the
+value of @code{select-safe-coding-system-function} even though
+@code{coding-system-for-write} is non-@code{nil}.  Alternatively, call
+@code{select-safe-coding-system} explicitly before using the specified
+encoding.
 @end defvar
 
 @defopt inhibit-eol-conversion
@@ -1956,7 +2071,7 @@ and @ref{Invoking the Input Method}.
 @section Locales
 @cindex locale
 
-  POSIX defines a concept of ``locales'' which control which language
+  In POSIX, locales control which language
 to use in language-related features.  These Emacs variables control
 how Emacs interacts with these features.
 

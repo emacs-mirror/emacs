@@ -1,6 +1,6 @@
 ;;; semantic/db-file.el --- Save a semanticdb to a cache file.
 
-;;; Copyright (C) 2000-2005, 2007-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -67,7 +67,8 @@ disable any saving anywhere, `always', which enables saving
 everywhere, or `project', which enables saving in any directory that
 passes a list of predicates in `semanticdb-project-predicate-functions'."
   :group 'semanticdb
-  :type nil)
+  :type '(repeat (choice (string :tag "Directory") (const never) (const always)
+                         (const project))))
 
 (define-obsolete-variable-alias 'semanticdb-save-database-hooks
   'semanticdb-save-database-functions "24.3")
@@ -286,22 +287,22 @@ Argument OBJ is the object to write."
   (when (semanticdb-live-p obj)
     (when (semanticdb-in-buffer-p obj)
       (with-current-buffer (semanticdb-in-buffer-p obj)
+        (save-excursion
+          ;; Make sure all our tag lists are up to date.
+          (semantic-fetch-tags)
 
-	;; Make sure all our tag lists are up to date.
-	(semantic-fetch-tags)
+          ;; Try to get an accurate unmatched syntax table.
+          (when (and (boundp semantic-show-unmatched-syntax-mode)
+                     semantic-show-unmatched-syntax-mode)
+            ;; Only do this if the user runs unmatched syntax
+            ;; mode display entries.
+            (oset obj unmatched-syntax
+                  (semantic-show-unmatched-lex-tokens-fetch))
+            )
 
-	;; Try to get an accurate unmatched syntax table.
-	(when (and (boundp semantic-show-unmatched-syntax-mode)
-		   semantic-show-unmatched-syntax-mode)
-	  ;; Only do this if the user runs unmatched syntax
-	  ;; mode display entries.
-	  (oset obj unmatched-syntax
-		(semantic-show-unmatched-lex-tokens-fetch))
-	  )
-
-	;; Make sure pointmax is up to date
-	(oset obj pointmax (point-max))
-	))
+          ;; Make sure pointmax is up to date
+          (oset obj pointmax (point-max))
+          )))
 
     ;; Make sure that the file size and other attributes are
     ;; up to date.

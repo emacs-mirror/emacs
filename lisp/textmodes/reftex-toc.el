@@ -1,6 +1,6 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 
-;; Copyright (C) 1997-2000, 2003-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -18,13 +18,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (provide 'reftex-toc)
 (require 'reftex)
 ;;;
@@ -42,41 +41,34 @@
     (substitute-key-definition
      'previous-line 'reftex-toc-previous map global-map)
 
-    (loop for x in
-          '(("n"        . reftex-toc-next)
-            ("p"        . reftex-toc-previous)
-            ("?"        . reftex-toc-show-help)
-            (" "        . reftex-toc-view-line)
-            ("\C-m"     . reftex-toc-goto-line-and-hide)
-            ("\C-i"     . reftex-toc-goto-line)
-            ("\C-c>"    . reftex-toc-display-index)
-            ("r"        . reftex-toc-rescan)
-            ("R"        . reftex-toc-Rescan)
-            ("g"        . revert-buffer)
-            ("q"        . reftex-toc-quit) ;
-            ("k"        . reftex-toc-quit-and-kill)
-            ("f"        . reftex-toc-toggle-follow) ;
-            ("a"        . reftex-toggle-auto-toc-recenter)
-            ("d"        . reftex-toc-toggle-dedicated-frame)
-            ("F"        . reftex-toc-toggle-file-boundary)
-            ("i"        . reftex-toc-toggle-index)
-            ("l"        . reftex-toc-toggle-labels)
-            ("t"        . reftex-toc-max-level)
-            ("c"        . reftex-toc-toggle-context)
-            ;; ("%"        . reftex-toc-toggle-commented)
-            ("\M-%"     . reftex-toc-rename-label)
-            ("x"        . reftex-toc-external)
-            ("z"        . reftex-toc-jump)
-            ("."        . reftex-toc-show-calling-point)
-            ("\C-c\C-n" . reftex-toc-next-heading)
-            ("\C-c\C-p" . reftex-toc-previous-heading)
-            (">"        . reftex-toc-demote)
-            ("<"        . reftex-toc-promote))
-          do (define-key map (car x) (cdr x)))
-
-    (loop for key across "0123456789" do
-          (define-key map (vector (list key)) 'digit-argument))
-    (define-key map "-" 'negative-argument)
+    (define-key map "n" 'reftex-toc-next)
+    (define-key map "p" 'reftex-toc-previous)
+    (define-key map "?" 'reftex-toc-show-help)
+    (define-key map " " 'reftex-toc-view-line)
+    (define-key map "\C-m" 'reftex-toc-goto-line-and-hide)
+    (define-key map "\C-i" 'reftex-toc-goto-line)
+    (define-key map "\C-c>" 'reftex-toc-display-index)
+    (define-key map "r" 'reftex-toc-rescan)
+    (define-key map "R" 'reftex-toc-Rescan)
+    (define-key map "q" 'reftex-toc-quit) ;
+    (define-key map "k" 'reftex-toc-quit-and-kill)
+    (define-key map "f" 'reftex-toc-toggle-follow) ;
+    (define-key map "a" 'reftex-toggle-auto-toc-recenter)
+    (define-key map "d" 'reftex-toc-toggle-dedicated-frame)
+    (define-key map "F" 'reftex-toc-toggle-file-boundary)
+    (define-key map "i" 'reftex-toc-toggle-index)
+    (define-key map "l" 'reftex-toc-toggle-labels)
+    (define-key map "t" 'reftex-toc-max-level)
+    (define-key map "c" 'reftex-toc-toggle-context)
+    ;; (define-key map "%" 'reftex-toc-toggle-commented)
+    (define-key map "\M-%" 'reftex-toc-rename-label)
+    (define-key map "x" 'reftex-toc-external)
+    (define-key map "z" 'reftex-toc-jump)
+    (define-key map "." 'reftex-toc-show-calling-point)
+    (define-key map "\C-c\C-n" 'reftex-toc-next-heading)
+    (define-key map "\C-c\C-p" 'reftex-toc-previous-heading)
+    (define-key map ">" 'reftex-toc-demote)
+    (define-key map "<" 'reftex-toc-promote)
 
     (easy-menu-define
       reftex-toc-menu map
@@ -224,7 +216,7 @@ When called with a raw C-u prefix, rescan the document first."
   (or reftex-support-index
       (setq reftex-toc-include-index-entries nil))
 
-  ;; Ensure access to scanning info and rescan buffer if prefix are is '(4)
+  ;; Ensure access to scanning info and rescan buffer if prefix arg is '(4)
   (reftex-access-scan-info current-prefix-arg)
 
   (let* ((this-buf (current-buffer))
@@ -388,13 +380,17 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 
 (defun reftex-re-enlarge ()
   "Enlarge window to a remembered size."
+  ;; FIXME: reftex-last-window-width might be the width of another window on
+  ;; another frame, so the enlarge-window call might make no sense.
+  ;; We should just use `quit-window' instead nowadays.
   (let ((count (if reftex-toc-split-windows-horizontally
 		   (- (or reftex-last-window-width (window-total-width))
 		      (window-total-width))
 		 (- (or reftex-last-window-height (window-height))
 		    (window-height)))))
     (when (> count 0)
-      (enlarge-window count reftex-toc-split-windows-horizontally))))
+      (with-demoted-errors           ;E.g. the window might be the root window!
+        (enlarge-window count reftex-toc-split-windows-horizontally)))))
 
 (defun reftex-toc-dframe-p (&optional frame error)
   ;; Check if FRAME is the dedicated TOC frame.
@@ -942,17 +938,17 @@ label prefix determines the wording of a reference."
       (with-selected-window toc-window
         (reftex-unhighlight 0)))
      ((eq final 'hide)
-      (let ((show-window (selected-window))
-            (show-buffer (window-buffer)))
-        (unless (eq show-window toc-window) ;FIXME: Can this happen?
+      (let ((window (selected-window))
+            (buffer (window-buffer)))
+        (unless (eq window toc-window) ;FIXME: Can this happen?
           (with-selected-window toc-window
             (reftex-unhighlight 0)
             (or (one-window-p) (delete-window))))
-        ;; If `show-window' is still live, show-buffer is already visible
+        ;; If window is still live, buffer is already visible
         ;; so let's not make it visible in yet-another-window.
-        (unless (window-live-p show-window)
-          ;; FIXME: How could show-window not be live?
-          (switch-to-buffer show-buffer))
+        (unless (window-live-p window)
+          ;; FIXME: How could window not be live?
+          (pop-to-buffer-same-window buffer))
         (reftex-re-enlarge)))
      (t
       (unless (eq (selected-frame) (window-frame toc-window))
@@ -1100,7 +1096,7 @@ always show the current section in connection with the option
       (when (eq reftex-auto-recenter-toc 'frame)
         (unless reftex-toc-auto-recenter-timer
           (reftex-toggle-auto-toc-recenter))
-        (add-hook 'delete-frame-hook 'reftex-toc-delete-frame-hook)))))
+        (add-hook 'delete-frame-functions 'reftex-toc-delete-frame-hook)))))
 
 (defun reftex-toc-delete-frame-hook (frame)
   (if (and reftex-toc-auto-recenter-timer
@@ -1111,5 +1107,5 @@ always show the current section in connection with the option
 ;;; reftex-toc.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

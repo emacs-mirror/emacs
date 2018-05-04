@@ -1,9 +1,9 @@
-;;; hashcash.el --- Add hashcash payments to email
+;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
-;; Maintainer: Paul Foley <mycroft@actrix.gen.nz>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, hashcash
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -47,7 +47,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; for case
+(eval-when-compile (require 'cl-lib))
 
 (defgroup hashcash nil
   "Hashcash configuration."
@@ -97,7 +97,7 @@ If this is not in your PATH, specify an absolute file name."
 
 (defcustom hashcash-extra-generate-parameters nil
   "A list of parameter strings passed to `hashcash-program' when minting.
-For example, you may want to set this to '(\"-Z2\") to reduce header length."
+For example, you may want to set this to (\"-Z2\") to reduce header length."
   :type '(repeat string)
   :group 'hashcash)
 
@@ -133,18 +133,18 @@ For example, you may want to set this to '(\"-Z2\") to reduce header length."
 
 (declare-function message-narrow-to-headers-or-head "message" ())
 (declare-function message-fetch-field "message" (header &optional not-all))
-(declare-function message-goto-eoh "message" ())
+(declare-function message-goto-eoh "message" (&optional interactive))
 (declare-function message-narrow-to-headers "message" ())
 
 (defun hashcash-token-substring ()
   (save-excursion
     (let ((token ""))
-      (loop
+      (cl-loop
 	(setq token
 	  (concat token (buffer-substring (point) (hashcash-point-at-eol))))
 	(goto-char (hashcash-point-at-eol))
 	(forward-char 1)
-	(unless (looking-at "[ \t]") (return token))
+	(unless (looking-at "[ \t]") (cl-return token))
 	(while (looking-at "[ \t]") (forward-char 1))))))
 
 (defun hashcash-payment-required (addr)
@@ -298,7 +298,7 @@ BUFFER defaults to the current buffer."
   (let* ((split (split-string token ":"))
 	 (key (if (< (hashcash-version token) 1.2)
 		  (nth 1 split)
-		  (case (string-to-number (nth 0 split))
+		  (pcase (string-to-number (nth 0 split))
 		    (0 (nth 2 split))
 		    (1 (nth 3 split))))))
     (cond ((null resource)

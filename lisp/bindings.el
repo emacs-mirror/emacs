@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2015 Free Software
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -124,17 +124,61 @@ corresponding to the mode line clicked."
 
 ;;; Mode line contents
 
-(defcustom mode-line-default-help-echo
-  "mouse-1: Select (drag to resize)\n\
-mouse-2: Make current window occupy the whole frame\n\
-mouse-3: Remove current window from display"
+(defun mode-line-default-help-echo (window)
+  "Return default help echo text for WINDOW's mode line."
+  (let* ((frame (window-frame window))
+         (line-1a
+          ;; Show text to select window only if the window is not
+          ;; selected.
+          (not (eq window (frame-selected-window frame))))
+         (line-1b
+          ;; Show text to drag mode line if either the window is not
+          ;; at the bottom of its frame or the minibuffer window of
+          ;; this frame can be resized.  This matches a corresponding
+          ;; check in `mouse-drag-mode-line'.
+          (or (not (window-at-side-p window 'bottom))
+              (let ((mini-window (minibuffer-window frame)))
+                (and (eq frame (window-frame mini-window))
+                     (or (minibuffer-window-active-p mini-window)
+                         (not resize-mini-windows))))))
+         (line-2
+          ;; Show text make window occupy the whole frame
+          ;; only if it doesn't already do that.
+          (not (eq window (frame-root-window frame))))
+         (line-3
+          ;; Show text to delete window only if that's possible.
+          (not (eq window (frame-root-window frame)))))
+    (when (or line-1a line-1b line-2 line-3)
+      (concat
+       (when (or line-1a line-1b)
+         (concat
+          "mouse-1: "
+          (when line-1a "Select window")
+          (when line-1b
+            (if line-1a " (drag to resize)" "Drag to resize"))
+          (when (or line-2 line-3) "\n")))
+       (when line-2
+         (concat
+          "mouse-2: Make window occupy whole frame"
+          (when line-3 "\n")))
+       (when line-3
+         "mouse-3: Remove window from frame")))))
+
+(defcustom mode-line-default-help-echo #'mode-line-default-help-echo
   "Default help text for the mode line.
 If the value is a string, it specifies the tooltip or echo area
 message to display when the mouse is moved over the mode line.
-If the text at the mouse position has a `help-echo' text
-property, that overrides this variable."
-  :type '(choice (const :tag "No help" :value nil) string)
-  :version "24.3"
+If the value is a function, call that function with one argument
+- the window whose mode line to display.  If the text at the
+mouse position has a `help-echo' text property, that overrides
+this variable."
+  :type '(choice
+          (const :tag "No help" :value nil)
+          function
+          (string :value "mouse-1: Select (drag to resize)\n\
+mouse-2: Make current window occupy the whole frame\n\
+mouse-3: Remove current window from display"))
+  :version "27.1"
   :group 'mode-line)
 
 (defvar mode-line-front-space '(:eval (if (display-graphic-p) " " "-"))
@@ -338,6 +382,10 @@ mouse-3: Toggle minor modes"
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
+    (bindings--define-key menu-map [size-indication-mode]
+      '(menu-item "Display Size Indication" size-indication-mode
+		  :help "Toggle displaying a size indication in the mode-line"
+		  :button (:toggle . size-indication-mode)))
     (bindings--define-key menu-map [line-number-mode]
       '(menu-item "Display Line Numbers" line-number-mode
 		  :help "Toggle displaying line numbers in the mode-line"
@@ -350,14 +398,44 @@ mouse-3: Toggle minor modes"
     map) "\
 Keymap to display on column and line numbers.")
 
+(defcustom column-number-indicator-zero-based t
+  "When non-nil, mode line displays column numbers zero-based.
+
+This variable has effect only when Column Number mode is turned on,
+which displays column numbers in the mode line.
+If the value is non-nil, the displayed column numbers start from
+zero, otherwise they start from one."
+  :type 'boolean
+  :group 'mode-line
+  :version "26.1")
+
+(defcustom mode-line-percent-position '(-3 "%p")
+  "Specification of \"percentage offset\" of window through buffer.
+This option specifies both the field width and the type of offset
+displayed in `mode-line-position', a component of the default
+`mode-line-format'."
+  :type `(radio
+          (const :tag "nil:  No offset is displayed" nil)
+          (const :tag "\"%o\": Proportion of \"travel\" of the window through the buffer"
+                 (-3 "%o"))
+          (const :tag "\"%p\": Percentage offset of top of window"
+                 (-3 "%p"))
+          (const :tag "\"%P\": Percentage offset of bottom of window"
+                 (-3 "%P"))
+          (const :tag "\"%q\": Offsets of both top and bottom of window"
+                 (6 "%q")))
+  :version "26.1"
+  :group 'mode-line)
+(put 'mode-line-percent-position 'risky-local-variable t)
+
 (defvar mode-line-position
-  `((-3 ,(propertize
-	  "%p"
-	  'local-map mode-line-column-line-number-mode-map
-	  'mouse-face 'mode-line-highlight
-	  ;; XXX needs better description
-	  'help-echo "Size indication mode\n\
-mouse-1: Display Line and Column Mode Menu"))
+  `((:propertize
+     mode-line-percent-position
+     local-map ,mode-line-column-line-number-mode-map
+     mouse-face mode-line-highlight
+     ;; XXX needs better description
+     help-echo "Size indication mode\n\
+mouse-1: Display Line and Column Mode Menu")
     (size-indication-mode
      (8 ,(propertize
 	  " of %I"
@@ -368,12 +446,19 @@ mouse-1: Display Line and Column Mode Menu"))
 mouse-1: Display Line and Column Mode Menu")))
     (line-number-mode
      ((column-number-mode
-       (10 ,(propertize
-	     " (%l,%c)"
-	     'local-map mode-line-column-line-number-mode-map
-	     'mouse-face 'mode-line-highlight
-	     'help-echo "Line number and Column number\n\
+       (column-number-indicator-zero-based
+        (10 ,(propertize
+              " (%l,%c)"
+              'local-map mode-line-column-line-number-mode-map
+              'mouse-face 'mode-line-highlight
+              'help-echo "Line number and Column number\n\
 mouse-1: Display Line and Column Mode Menu"))
+        (10 ,(propertize
+              " (%l,%C)"
+              'local-map mode-line-column-line-number-mode-map
+              'mouse-face 'mode-line-highlight
+              'help-echo "Line number and Column number\n\
+mouse-1: Display Line and Column Mode Menu")))
        (6 ,(propertize
 	    " L%l"
 	    'local-map mode-line-column-line-number-mode-map
@@ -381,12 +466,19 @@ mouse-1: Display Line and Column Mode Menu"))
 	    'help-echo "Line Number\n\
 mouse-1: Display Line and Column Mode Menu"))))
      ((column-number-mode
-       (5 ,(propertize
-	    " C%c"
-	    'local-map mode-line-column-line-number-mode-map
-	    'mouse-face 'mode-line-highlight
-	    'help-echo "Column number\n\
-mouse-1: Display Line and Column Mode Menu"))))))
+       (column-number-indicator-zero-based
+        (5 ,(propertize
+             " C%c"
+             'local-map mode-line-column-line-number-mode-map
+             'mouse-face 'mode-line-highlight
+             'help-echo "Column number\n\
+mouse-1: Display Line and Column Mode Menu"))
+        (5 ,(propertize
+             " C%C"
+             'local-map mode-line-column-line-number-mode-map
+             'mouse-face 'mode-line-highlight
+             'help-echo "Column number\n\
+mouse-1: Display Line and Column Mode Menu")))))))
   "Mode line construct for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
 buffer size, the line number and the column number.")
@@ -430,11 +522,9 @@ Major modes that edit things other than ordinary files may change this
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defvar mode-line-misc-info
-  '((which-func-mode ("" which-func-format " "))
-    (global-mode-string ("" global-mode-string " ")))
+  '((global-mode-string ("" global-mode-string " ")))
   "Mode line construct for miscellaneous information.
-By default, this shows the information specified by
-`which-func-mode' and `global-mode-string'.")
+By default, this shows the information specified by `global-mode-string'.")
 (put 'mode-line-misc-info 'risky-local-variable t)
 
 (defvar mode-line-end-spaces '(:eval (unless (display-graphic-p) "-%-"))
@@ -529,7 +619,7 @@ Switch to the most recently selected buffer other than the current one."
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
 (bindings--define-key mode-line-mode-menu [auto-revert-tail-mode]
   '(menu-item "Auto revert tail (Tail)" auto-revert-tail-mode
-	      :help "Revert the tail of the buffer when buffer grows"
+	      :help "Revert the tail of the buffer when the file on disk grows"
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (bindings--define-key mode-line-mode-menu [auto-revert-mode]
@@ -643,6 +733,7 @@ okay.  See `mode-line-format'.")
 ;; `kill-all-local-variables', because they have no default value.
 ;; For consistency, we give them the `permanent-local' property, even
 ;; though `kill-all-local-variables' does not actually consult it.
+;; See init_buffer_once in buffer.c for the origins of this list.
 
 (mapc (lambda (sym) (put sym 'permanent-local t))
       '(buffer-file-name default-directory buffer-backed-up
@@ -651,7 +742,8 @@ okay.  See `mode-line-format'.")
 	point-before-scroll buffer-file-truename
 	buffer-file-format buffer-auto-save-file-format
 	buffer-display-count buffer-display-time
-	enable-multibyte-characters))
+	enable-multibyte-characters
+	buffer-file-coding-system truncate-lines))
 
 ;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)
@@ -759,7 +851,7 @@ and \\[backward-word], which see.
 
 Value is normally t.
 If an edge of the buffer or a field boundary is reached, point is left there
-there and the function returns nil.  Field boundaries are not noticed
+and the function returns nil.  Field boundaries are not noticed
 if `inhibit-field-text-motion' is non-nil."
   (interactive "^p")
   (if (eq (current-bidi-paragraph-direction) 'left-to-right)
@@ -775,7 +867,7 @@ and \\[forward-word], which see.
 
 Value is normally t.
 If an edge of the buffer or a field boundary is reached, point is left there
-there and the function returns nil.  Field boundaries are not noticed
+and the function returns nil.  Field boundaries are not noticed
 if `inhibit-field-text-motion' is non-nil."
   (interactive "^p")
   (if (eq (current-bidi-paragraph-direction) 'left-to-right)
@@ -1265,9 +1357,9 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key abbrev-map "e" 'expand-abbrev)
 (define-key abbrev-map "'" 'expand-abbrev)
 ;; (define-key ctl-x-map "\C-a" 'add-mode-abbrev)
-;; (define-key ctl-x-map "\+" 'add-global-abbrev)
+;; (define-key ctl-x-map "+" 'add-global-abbrev)
 ;; (define-key ctl-x-map "\C-h" 'inverse-add-mode-abbrev)
-;; (define-key ctl-x-map "\-" 'inverse-add-global-abbrev)
+;; (define-key ctl-x-map "-" 'inverse-add-global-abbrev)
 (define-key esc-map "'" 'abbrev-prefix-mark)
 (define-key ctl-x-map "'" 'expand-abbrev)
 (define-key ctl-x-map "\C-b" 'list-buffers)

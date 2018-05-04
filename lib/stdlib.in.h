@@ -1,6 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2015 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -47,6 +47,9 @@
 
 /* Solaris declares getloadavg() in <sys/loadavg.h>.  */
 #if (@GNULIB_GETLOADAVG@ || defined GNULIB_POSIXCHECK) && @HAVE_SYS_LOADAVG_H@
+/* OpenIndiana has a bug: <sys/time.h> must be included before
+   <sys/loadavg.h>.  */
+# include <sys/time.h>
 # include <sys/loadavg.h>
 #endif
 
@@ -521,6 +524,9 @@ _GL_CXXALIASWARN (putenv);
 #endif
 
 #if @GNULIB_QSORT_R@
+/* Sort an array of NMEMB elements, starting at address BASE, each element
+   occupying SIZE bytes, in ascending order according to the comparison
+   function COMPARE.  */
 # if @REPLACE_QSORT_R@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef qsort_r
@@ -535,12 +541,24 @@ _GL_CXXALIAS_RPL (qsort_r, void, (void *base, size_t nmemb, size_t size,
                                                   void *),
                                   void *arg));
 # else
+#  if !@HAVE_QSORT_R@
+_GL_FUNCDECL_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
+                                  int (*compare) (void const *, void const *,
+                                                  void *),
+                                  void *arg) _GL_ARG_NONNULL ((1, 4)));
+#  endif
 _GL_CXXALIAS_SYS (qsort_r, void, (void *base, size_t nmemb, size_t size,
                                   int (*compare) (void const *, void const *,
                                                   void *),
                                   void *arg));
 # endif
 _GL_CXXALIASWARN (qsort_r);
+#elif defined GNULIB_POSIXCHECK
+# undef qsort_r
+# if HAVE_RAW_DECL_QSORT_R
+_GL_WARN_ON_USE (qsort_r, "qsort_r is not portable - "
+                 "use gnulib module qsort_r for portability");
+# endif
 #endif
 
 
@@ -582,7 +600,7 @@ _GL_WARN_ON_USE (srandom, "srandom is unportable - "
 #endif
 
 #if @GNULIB_RANDOM@
-# if !@HAVE_RANDOM@
+# if !@HAVE_RANDOM@ || !@HAVE_DECL_INITSTATE@
 _GL_FUNCDECL_SYS (initstate, char *,
                   (unsigned int seed, char *buf, size_t buf_size)
                   _GL_ARG_NONNULL ((2)));
@@ -599,7 +617,7 @@ _GL_WARN_ON_USE (initstate, "initstate is unportable - "
 #endif
 
 #if @GNULIB_RANDOM@
-# if !@HAVE_RANDOM@
+# if !@HAVE_RANDOM@ || !@HAVE_DECL_SETSTATE@
 _GL_FUNCDECL_SYS (setstate, char *, (char *arg_state) _GL_ARG_NONNULL ((1)));
 # endif
 _GL_CXXALIAS_SYS (setstate, char *, (char *arg_state));
@@ -748,6 +766,23 @@ _GL_CXXALIASWARN (realloc);
 /* Assume realloc is always declared.  */
 _GL_WARN_ON_USE (realloc, "realloc is not POSIX compliant everywhere - "
                  "use gnulib module realloc-posix for portability");
+#endif
+
+
+#if @GNULIB_REALLOCARRAY@
+# if ! @HAVE_REALLOCARRAY@
+_GL_FUNCDECL_SYS (reallocarray, void *,
+                  (void *ptr, size_t nmemb, size_t size));
+# endif
+_GL_CXXALIAS_SYS (reallocarray, void *,
+                  (void *ptr, size_t nmemb, size_t size));
+_GL_CXXALIASWARN (reallocarray);
+#elif defined GNULIB_POSIXCHECK
+# undef reallocarray
+# if HAVE_RAW_DECL_REALLOCARRAY
+_GL_WARN_ON_USE (reallocarray, "reallocarray is not portable - "
+                 "use gnulib module reallocarray for portability");
+# endif
 #endif
 
 #if @GNULIB_REALPATH@

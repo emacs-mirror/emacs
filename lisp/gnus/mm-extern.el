@@ -1,6 +1,6 @@
-;;; mm-extern.el --- showing message/external-body
+;;; mm-extern.el --- showing message/external-body  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: message external-body
@@ -18,13 +18,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (require 'mm-util)
 (require 'mm-decode)
@@ -33,13 +31,13 @@
 (defvar gnus-article-mime-handles)
 
 (defvar mm-extern-function-alist
-  '((local-file . mm-extern-local-file)
-    (url . mm-extern-url)
-    (anon-ftp . mm-extern-anon-ftp)
-    (ftp . mm-extern-ftp)
-;;;     (tftp . mm-extern-tftp)
-    (mail-server . mm-extern-mail-server)
-;;;     (afs . mm-extern-afs))
+  `((local-file . ,#'mm-extern-local-file)
+    (url . ,#'mm-extern-url)
+    (anon-ftp . ,#'mm-extern-anon-ftp)
+    (ftp . ,#'mm-extern-ftp)
+    ;; (tftp . ,#'mm-extern-tftp)
+    (mail-server . ,#'mm-extern-mail-server)
+    ;; (afs . ,#'mm-extern-afs))
     ))
 
 (defvar mm-extern-anonymous "anonymous")
@@ -72,7 +70,6 @@
 	 (name (cdr (assq 'name params)))
 	 (site (cdr (assq 'site params)))
 	 (directory (cdr (assq 'directory params)))
-	 (mode (cdr (assq 'mode params)))
 	 (path (concat "/" (or mm-extern-anonymous
 			       (read-string (format "ID for %s: " site)))
 		       "@" site ":" directory "/" name))
@@ -86,7 +83,7 @@
   (let (mm-extern-anonymous)
     (mm-extern-anon-ftp handle)))
 
-(declare-function message-goto-body "message" ())
+(declare-function message-goto-body "message" (&optional interactive))
 
 (defun mm-extern-mail-server (handle)
   (require 'message)

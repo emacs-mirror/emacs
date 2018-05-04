@@ -1,6 +1,6 @@
-;;; url-auth.el --- Uniform Resource Locator authorization modules
+;;; url-auth.el --- Uniform Resource Locator authorization modules -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -50,10 +50,10 @@
 Must be a symbol pointing to another variable that will actually store
 the information.  The value of this variable is an assoc list of assoc
 lists.  The first assoc list is keyed by the server name.  The cdr of
-this is an assoc list based on the 'directory' specified by the URL we
+this is an assoc list based on the \"directory\" specified by the URL we
 are looking up.")
 
-(defun url-basic-auth (url &optional prompt overwrite realm args)
+(defun url-basic-auth (url &optional prompt overwrite realm _args)
   "Get the username/password for the specified URL.
 If optional argument PROMPT is non-nil, ask for the username/password
 to use for the url and its descendants.  If optional third argument
@@ -80,6 +80,9 @@ instead of the filename inheritance method."
 	  byserv (cdr-safe (assoc server
 				  (symbol-value url-basic-auth-storage))))
     (cond
+     ((and user pass)
+      ;; Explicit http://user:pass@foo/ URL.  Just return the credentials.
+      (setq retval (base64-encode-string (format "%s:%s" user pass))))
      ((and prompt (not byserv))
       (setq user (or
 		  (url-do-auth-source-search server type :user)
@@ -128,8 +131,8 @@ instead of the filename inheritance method."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Digest authorization code
 ;;; ------------------------
-;;; This implements the DIGEST authorization type.  See the internet draft
-;;; ftp://ds.internic.net/internet-drafts/draft-ietf-http-digest-aa-01.txt
+;;; This implements the DIGEST authorization type.  See RFC 2617
+;;; https://www.ietf.org/rfc/rfc2617.txt
 ;;; for the complete documentation on this type.
 ;;;
 ;;; This is very secure
@@ -138,109 +141,308 @@ instead of the filename inheritance method."
   "Where usernames and passwords are stored.
 Its value is an assoc list of assoc lists.  The first assoc list is
 keyed by the server name.  The cdr of this is an assoc list based
-on the 'directory' specified by the url we are looking up.")
+on the \"directory\" specified by the url we are looking up.")
+
+(defsubst url-digest-auth-colonjoin (&rest args)
+  "Concatenate ARGS as strings with colon as a separator."
+  (mapconcat 'identity args ":"))
+
+(defsubst url-digest-auth-kd (data secret)
+  "Apply digest algorithm to DATA using SECRET and return the result."
+  (md5 (url-digest-auth-colonjoin secret data)))
+
+(defsubst url-digest-auth-make-ha1 (user realm password)
+  "Compute checksum out of strings USER, REALM, and PASSWORD."
+  (md5 (url-digest-auth-colonjoin user realm password)))
+
+(defsubst url-digest-auth-make-ha2 (method digest-uri)
+  "Compute checksum out of strings METHOD and DIGEST-URI."
+  (md5 (url-digest-auth-colonjoin method digest-uri)))
+
+(defsubst url-digest-auth-make-request-digest (ha1 ha2 nonce)
+  "Construct the request-digest from hash strings HA1, HA2, and NONCE.
+This is the value that server receives as a proof that user knows
+a password."
+  (url-digest-auth-kd (url-digest-auth-colonjoin nonce ha2) ha1))
+
+(defsubst url-digest-auth-make-request-digest-qop (qop ha1 ha2 nonce nc cnonce)
+  "Construct the request-digest with qop.
+QOP describes the \"quality of protection\" and algorithm to use.
+All of the strings QOP, HA1, HA2, NONCE, NC, and CNONCE are
+combined into a single hash value that proves to a server the
+user knows a password.  It's worth noting that HA2 already
+depends on value of QOP."
+  (url-digest-auth-kd (url-digest-auth-colonjoin
+                       nonce nc cnonce qop ha2) ha1))
+
+(defsubst url-digest-auth-directory-id (url realm)
+  "Make an identifier for selecting a key in key cache.
+The identifier is made either from URL or REALM.  It represents a
+protection space within a server so that one server can have
+multiple authorizations."
+  (or realm (or (url-file-directory (url-filename url)) "/")))
+
+(defsubst url-digest-auth-server-id (url)
+  "Make an identifier for selecting a server in key cache.
+The identifier is made from URL's host and port.  Together with
+`url-digest-auth-directory-id' these identify a single key in the
+key cache `url-digest-auth-storage'."
+  (format "%s:%d" (url-host url) (url-port url)))
+
+(defun url-digest-auth-make-cnonce ()
+  "Compute a new unique client nonce value."
+  (base64-encode-string
+   (apply 'format "%016x%04x%04x%05x%05x" (random) (current-time)) t))
+
+(defun url-digest-auth-nonce-count (_nonce)
+  "The number requests sent to server with the given NONCE.
+This count includes the request we're preparing here.
+
+Currently, this is not implemented and will always return 1.
+
+Value returned is in string format with leading zeroes, such as
+\"00000001\"."
+  (format "%08x" 1))
+
+(defun url-digest-auth-name-value-string (pairs)
+  "Concatenate name-value pairs in association list PAIRS.
+
+Output is formatted as \"name1=\\\"value1\\\", name2=\\\"value2\\\", ...\""
+  (mapconcat (lambda (pair)
+               (format "%s=\"%s\""
+                       (symbol-name (car pair))
+                       (cdr pair)))
+             pairs ", "))
+
+(defun url-digest-auth-source-creds (url)
+  "Find credentials for URL object from the Emacs auth-source.
+Return value is a plist that has `:user' and `:secret' properties
+if credentials were found.  Otherwise nil."
+  (let ((server (url-digest-auth-server-id url))
+        (type (url-type url)))
+    (list :user (url-do-auth-source-search server type :user)
+          :secret (url-do-auth-source-search server type :secret))))
+
+(defun url-digest-prompt-creds (url realm &optional creds)
+  "Prompt credentials for URL and REALM, defaulting to CREDS.
+CREDS is a plist that may have properties `:user' and `:secret'."
+  ;; Set explicitly in case creds were nil.  This makes the second
+  ;; plist-put modify the same plist.
+  (setq creds
+        (plist-put creds :user
+                   (read-string (url-auth-user-prompt url realm)
+                                (or (plist-get creds :user)
+                                    (user-real-login-name)))))
+  (plist-put creds :secret
+             (read-passwd "Password: " nil (plist-get creds :secret))))
+
+(defun url-digest-auth-directory-id-assoc (dirkey keylist)
+  "Find the best match for DIRKEY in key alist KEYLIST.
+
+The string DIRKEY should be obtained using
+`url-digest-auth-directory-id'.  The key list to search through
+is the alist KEYLIST where car of each element may match DIRKEY.
+If DIRKEY represents a realm, the list is searched only for an
+exact match.  For directory names, an ancestor is sufficient for
+a match."
+  (or
+   ;; Check exact match first.
+   (assoc dirkey keylist)
+   ;; No exact match found.  Continue to look for partial match if
+   ;; dirkey is not a realm.
+   (and (string-match "/" dirkey)
+        (let (match)
+          (while (and (null match) keylist)
+            (if (or
+                 ;; Any realm candidate matches.  Why?
+                 (not (string-match "/" (caar keylist)))
+                 ;; Parent directory matches.
+                 (string-prefix-p (caar keylist) dirkey))
+                (setq match (car keylist))
+              (setq keylist (cdr keylist))))
+          match))))
+
+(defun url-digest-cached-key (url realm)
+  "Find best match for URL and REALM from `url-digest-auth-storage'.
+The return value is a list consisting of a realm (or a directory)
+a user name, and hashed authentication tokens HA1 and HA2.
+Modifying the contents of the returned list will modify the cache
+variable `url-digest-auth-storage' itself."
+  (url-digest-auth-directory-id-assoc
+   (url-digest-auth-directory-id url realm)
+   (cdr (assoc (url-digest-auth-server-id url) url-digest-auth-storage))))
+
+(defun url-digest-cache-key (key url)
+  "Add key to `url-digest-auth-storage'.
+KEY has the same format as returned by `url-digest-cached-key'.
+The key is added to cache hierarchy under server id, deduced from
+URL."
+  (let ((serverid (url-digest-auth-server-id url)))
+    (push (list serverid key) url-digest-auth-storage)))
 
 (defun url-digest-auth-create-key (username password realm method uri)
-  "Create a key for digest authentication method"
-  (let* ((info (if (stringp uri)
-		   (url-generic-parse-url uri)
-		 uri))
-	 (a1 (md5 (concat username ":" realm ":" password)))
-	 (a2 (md5 (concat method ":" (url-filename info)))))
-    (list a1 a2)))
+  "Create a key for digest authentication method.
+The USERNAME and PASSWORD are the credentials for REALM and are
+used in making a hashed value named HA1.  The HTTP METHOD and URI
+makes a second hashed value HA2.  These hashes are used in making
+the authentication key that can be stored without saving the
+password in plain text.  The return value is a list (HA1 HA2).
 
-(defun url-digest-auth (url &optional prompt overwrite realm args)
-  "Get the username/password for the specified URL.
-If optional argument PROMPT is non-nil, ask for the username/password
-to use for the URL and its descendants.  If optional third argument
-OVERWRITE is non-nil, overwrite the old username/password pair if it
-is found in the assoc list.  If REALM is specified, use that as the realm
-instead of hostname:portnum."
-  (if args
-      (let* ((href (if (stringp url)
-		       (url-generic-parse-url url)
-		     url))
-	     (server (url-host href))
-	     (type (url-type href))
-	     (port (url-port href))
-	     (file (url-filename href))
-	     (enable-recursive-minibuffers t)
-	     user pass byserv retval data)
-	(setq file (cond
-		    (realm realm)
-		    ((string-match "/$" file) file)
-		    (t (url-file-directory file)))
-	      server (format "%s:%d" server port)
-	      byserv (cdr-safe (assoc server url-digest-auth-storage)))
-	(cond
-	 ((and prompt (not byserv))
-	  (setq user (or
-		      (url-do-auth-source-search server type :user)
-		      (read-string (url-auth-user-prompt url realm)
-				   (user-real-login-name)))
-		pass (or
-		      (url-do-auth-source-search server type :secret)
-		      (read-passwd "Password: "))
-		url-digest-auth-storage
-		(cons (list server
-			    (cons file
-				  (setq retval
-					(cons user
-					      (url-digest-auth-create-key
-					       user pass realm
-					       (or url-request-method "GET")
-					       url)))))
-		      url-digest-auth-storage)))
-	 (byserv
-	  (setq retval (cdr-safe (assoc file byserv)))
-	  (if (and (not retval)		; no exact match, check directories
-		   (string-match "/" file)) ; not looking for a realm
-	      (while (and byserv (not retval))
-		(setq data (car (car byserv)))
-		(if (or (not (string-match "/" data))
-			(and
-			 (>= (length file) (length data))
-			 (string= data (substring file 0 (length data)))))
-		    (setq retval (cdr (car byserv))))
-		(setq byserv (cdr byserv))))
-	  (if overwrite
-	      (if (and (not retval) prompt)
-		  (setq user (or
-			      (url-do-auth-source-search server type :user)
-			      (read-string (url-auth-user-prompt url realm)
-					   (user-real-login-name)))
-			pass (or
-			      (url-do-auth-source-search server type :secret)
-			      (read-passwd "Password: "))
-			retval (setq retval
-				     (cons user
-					   (url-digest-auth-create-key
-					    user pass realm
-					    (or url-request-method "GET")
-					    url)))
-			byserv (assoc server url-digest-auth-storage))
-		(setcdr byserv
-			(cons (cons file retval) (cdr byserv))))))
-	 (t (setq retval nil)))
-	(if retval
-	    (if (cdr-safe (assoc "opaque" args))
-		(let ((nonce (or (cdr-safe (assoc "nonce" args)) "nonegiven"))
-		      (opaque (cdr-safe (assoc "opaque" args))))
-		  (format
-		   (concat "Digest username=\"%s\", realm=\"%s\","
-			   "nonce=\"%s\", uri=\"%s\","
-			   "response=\"%s\", opaque=\"%s\"")
-		   (nth 0 retval) realm nonce (url-filename href)
-		   (md5 (concat (nth 1 retval) ":" nonce ":"
-				(nth 2 retval))) opaque))
-	      (let ((nonce (or (cdr-safe (assoc "nonce" args)) "nonegiven")))
-		(format
-		 (concat "Digest username=\"%s\", realm=\"%s\","
-			 "nonce=\"%s\", uri=\"%s\","
-			 "response=\"%s\"")
-		 (nth 0 retval) realm nonce (url-filename href)
-		 (md5 (concat (nth 1 retval) ":" nonce ":"
-			      (nth 2 retval))))))))))
+For backward compatibility, URI is allowed to be a URL cl-struct
+object."
+  (and username password realm
+       (list (url-digest-auth-make-ha1 username realm password)
+             (url-digest-auth-make-ha2 method (cond ((stringp uri) uri)
+                                                    (t (url-filename uri)))))))
+
+(defun url-digest-auth-build-response (key url realm attrs)
+  "Compute authorization string for the given challenge using KEY.
+
+The string looks like 'Digest username=\"John\", realm=\"The
+Realm\", ...'
+
+Part of the challenge is already solved in a pre-computed KEY
+which is list of a realm (or a directory), user name, and hash
+tokens HA1 and HA2.
+
+Some fields are filled as is from the given URL, REALM, and
+using the contents of alist ATTRS.
+
+ATTRS is expected to contain at least the server's \"nonce\"
+value.  It also might contain the optional \"opaque\" value.
+Newer implementations conforming to RFC 2617 should also contain
+qop (Quality Of Protection) and related attributes.
+
+Restrictions on Quality of Protection scheme: The qop value
+\"auth-int\" or algorithm any other than \"MD5\" are not
+implemented."
+
+  (when key
+    (let ((user (nth 1 key))
+          (ha1 (nth 2 key))
+          (ha2 (nth 3 key))
+          (digest-uri (url-filename url))
+          (qop (cdr-safe (assoc "qop" attrs)))
+          (nonce (cdr-safe (assoc "nonce" attrs)))
+          (opaque (cdr-safe (assoc "opaque" attrs))))
+
+      (concat
+       "Digest "
+       (url-digest-auth-name-value-string
+        (append (list (cons 'username user)
+                      (cons 'realm realm)
+                      (cons 'nonce nonce)
+                      (cons 'uri digest-uri))
+
+                (cond
+                 ((null qop)
+                  (list (cons 'response (url-digest-auth-make-request-digest
+                                         ha1 ha2 nonce))))
+                 ((string= qop "auth")
+                  (let ((nc (url-digest-auth-nonce-count nonce))
+                        (cnonce (url-digest-auth-make-cnonce)))
+                    (list (cons 'qop qop)
+                          (cons 'nc nc)
+                          (cons 'cnonce cnonce)
+                          (cons 'response
+                                (url-digest-auth-make-request-digest-qop
+                                 qop ha1 ha2 nonce nc cnonce)))))
+                 (t (message "Quality of protection \"%s\" is not implemented." qop)
+                    nil))
+
+
+                (if opaque (list (cons 'opaque opaque)))))))))
+
+(defun url-digest-find-creds (url prompt &optional realm)
+  "Find or ask credentials for URL.
+
+Primary method for finding credentials is from Emacs auth-source.
+If password isn't found, and PROMPT is non-nil, query credentials
+via minibuffer.  Optional REALM may be used when prompting as a
+hint to the user.
+
+Return value is nil in case either user name or password wasn't
+found.  Otherwise, it's a plist containing `:user' and `:secret'.
+Additional `:source' property denotes the origin of the
+credentials and its value can be either symbol `authsource' or
+`interactive'."
+  (let ((creds (url-digest-auth-source-creds url)))
+
+    ;; If credentials weren't found and prompting is allowed, prompt
+    ;; the user.
+    (if (and prompt
+             (or (null creds)
+                 (null (plist-get creds :secret))))
+        (progn
+          (setq creds (url-digest-prompt-creds url realm creds))
+          (plist-put creds :source 'interactive))
+      (plist-put creds :source 'authsource))
+
+    (and (plist-get creds :user)
+         (plist-get creds :secret)
+         creds)))
+
+(defun url-digest-find-new-key (url realm prompt)
+  "Find credentials and create a new authorization key for given URL and REALM.
+
+Return value is the new key, or nil if credentials weren't found.
+\"New\" in this context means a key that's not yet found in cache
+variable `url-digest-auth-storage'.  You may use `url-digest-cache-key'
+to put it there.
+
+This function uses `url-digest-find-creds' to find the
+credentials.  It first looks in auth-source.  If not found, and
+PROMPT is non-nil, user is asked for credentials interactively
+via minibuffer."
+  (let (creds)
+    (unwind-protect
+        (if (setq creds (url-digest-find-creds url prompt realm))
+            (cons (url-digest-auth-directory-id url realm)
+                  (cons (plist-get creds :user)
+                        (url-digest-auth-create-key
+                         (plist-get creds :user)
+                         (plist-get creds :secret)
+                         realm
+                         (or url-request-method "GET")
+                         (url-filename url)))))
+      (if (and creds
+               ;; Don't clear secret for `authsource' since it will
+               ;; corrupt any future fetches for it.
+               (not (eq (plist-get creds :source) 'authsource)))
+          (clear-string (plist-get creds :secret))))))
+
+(defun url-digest-auth (url &optional prompt overwrite realm attrs)
+  "Get the HTTP Digest response string for the specified URL.
+
+If optional argument PROMPT is non-nil, ask for the username and
+password to use for the URL and its descendants but only if one
+cannot be found from cache.  Look also in Emacs auth-source.
+
+If optional third argument OVERWRITE is non-nil, overwrite the
+old credentials, if they're found in cache, with new ones from
+user prompt or from Emacs auth-source.
+
+If REALM is specified, use that instead of the URL descendant
+method to match cached credentials.
+
+Alist ATTRS contains additional attributes for the authentication
+challenge such as nonce and opaque."
+  (if attrs
+      (let* ((href (if (stringp url) (url-generic-parse-url url) url))
+             (enable-recursive-minibuffers t)
+             (key (url-digest-cached-key href realm)))
+
+        (if (or (null key) overwrite)
+            (let ((newkey (url-digest-find-new-key href realm (cond
+                                                               (key nil)
+                                                               (t prompt)))))
+              (if (and newkey key overwrite)
+                  (setcdr key (cdr newkey))
+                (if (and newkey (null key))
+                    (url-digest-cache-key (setq key newkey) href)))))
+
+        (if key
+            (url-digest-auth-build-response key href realm attrs)))))
 
 (defvar url-registered-auth-schemes nil
   "A list of the registered authorization schemes and various and sundry

@@ -1,6 +1,6 @@
 ;;; mh-search  ---  MH-Search mode
 
-;; Copyright (C) 1993, 1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -443,7 +443,7 @@ search all folders."
            (setq redo-flag t))
           ((mh-folder-exists-p new-folder)
            ;; Folder exists but we don't have it open. That means they are
-           ;; stale results from a old flists search. Clear it out.
+           ;; stale results from an old flists search. Clear it out.
            (mh-exec-cmd-quiet nil "rmf" new-folder)))
     (setq message (mh-search "+" mh-flists-results-folder
                              redo-flag window-config)
@@ -1247,7 +1247,7 @@ is used to search."
   (prog1
       (block nil
         (when (eobp) (return nil))
-        (when (search-forward-regexp "^\+" (mh-line-end-position) t)
+        (when (search-forward-regexp "^\\+" (mh-line-end-position) t)
           (setq mh-index-pick-folder
                 (buffer-substring-no-properties (mh-line-beginning-position)
                                                 (mh-line-end-position)))
@@ -1262,7 +1262,7 @@ is used to search."
     (forward-line)))
 
 ;; All implementations of pick have special options -cc, -date, -from and
-;; -subject that allow to search for corresponding components. Any other
+;; -subject that allow searching for corresponding components. Any other
 ;; component is searched using option --COMPNAME, for example: `pick
 ;; --x-mailer mh-e'. Mailutils "pick" supports this option using a certain
 ;; kludge, but it prefers the following syntax for this purpose:
@@ -1416,7 +1416,7 @@ being the list of messages originally from that folder."
     (when cur-msg (mh-goto-msg cur-msg t t))
     (set-buffer-modified-p old-buffer-modified-flag)))
 
-(mh-require 'which-func nil t)
+(eval-and-compile (mh-require 'which-func nil t))
 
 ;; Shush compiler.
 (defvar which-func-mode)                ; < Emacs 22, XEmacs
@@ -1517,8 +1517,8 @@ construct the base name."
     (setq string (mh-replace-string "-lbrace" " "))
     (setq string (mh-replace-string "-rbrace" " "))
     (setq string (mh-replace-string "-search" " "))
-    (subst-char-in-region (point-min) (point-max) ?( ?  t)
-    (subst-char-in-region (point-min) (point-max) ?) ?  t)
+    (subst-char-in-region (point-min) (point-max) ?\( ?  t)
+    (subst-char-in-region (point-min) (point-max) ?\) ?  t)
     (subst-char-in-region (point-min) (point-max) ?- ?  t)
     (goto-char (point-min))
     (while (and (not (eobp)) (memq (char-after) '(?  ?\t ?\n ?\r ?_)))
@@ -1583,7 +1583,7 @@ If the folder returned doesn't exist then it is created."
     chosen-name))
 
 (defun mh-index-folder-search-regexp (folder)
-  "If FOLDER was created by a index search, return the search regexp.
+  "If FOLDER was created by an index search, return the search regexp.
 Return nil if FOLDER doesn't exist or the .mhe_index file is
 garbled."
   (ignore-errors
@@ -1859,7 +1859,7 @@ PROC is used to convert the value to actual data."
 (defun mh-index-update-maps (folder &optional origin-map)
   "Annotate all as yet unannotated messages in FOLDER with their MD5 hash.
 As a side effect msg -> checksum map is updated. Optional
-argument ORIGIN-MAP is a hashtable which maps each message in the
+argument ORIGIN-MAP is a hash table which maps each message in the
 index folder to the original folder and message from whence it
 was copied. If present the checksum -> (origin-folder,
 origin-index) map is updated too."
@@ -1912,8 +1912,8 @@ origin-index) map is updated too."
 
 (defun mh-index-update-single-msg (msg checksum origin-map)
   "Update various maps for one message.
-MSG is a index folder message, CHECKSUM its MD5 hash and
-ORIGIN-MAP, if non-nil, a hashtable containing which maps each
+MSG is an index folder message, CHECKSUM its MD5 hash and
+ORIGIN-MAP, if non-nil, a hash table containing which maps each
 message in the index folder to the folder and message that it was
 copied from. The function updates the hash tables
 `mh-index-msg-checksum-map' and `mh-index-checksum-origin-map'.

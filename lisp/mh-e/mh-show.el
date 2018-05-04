@@ -1,6 +1,6 @@
 ;;; mh-show.el --- MH-Show mode
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2015 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -900,7 +900,7 @@ See also `mh-folder-mode'.
   (interactive)
   ;; Don't allow Gnus to create buttons while highlighting, maybe this is bad
   ;; style?
-  (mh-cl-flet
+  (mh-flet
    ((gnus-article-add-button (&rest args) nil))
    (let* ((modified (buffer-modified-p))
           (gnus-article-buffer (buffer-name))

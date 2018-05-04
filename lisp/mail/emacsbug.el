@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2015 Free Software
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -72,42 +72,21 @@
 (defvar message-strip-special-text-properties)
 
 (defun report-emacs-bug-can-use-osx-open ()
-  "Return non-nil if the OS X \"open\" command is available for mailing."
+  "Return non-nil if the macOS \"open\" command is available for mailing."
   (and (featurep 'ns)
        (equal (executable-find "open") "/usr/bin/open")
        (memq system-type '(darwin))))
 
-;; FIXME this duplicates much of the logic from browse-url-can-use-xdg-open.
 (defun report-emacs-bug-can-use-xdg-email ()
   "Return non-nil if the \"xdg-email\" command can be used.
-xdg-email is a desktop utility that calls your preferred mail client.
-This requires you to be running either Gnome, KDE, or Xfce4."
-  (and (getenv "DISPLAY")
-       (executable-find "xdg-email")
-       (or (getenv "GNOME_DESKTOP_SESSION_ID")
-	   ;; GNOME_DESKTOP_SESSION_ID is deprecated, check on Dbus also.
-	   (condition-case nil
-	       (eq 0 (call-process
-		      "dbus-send" nil nil nil
-				  "--dest=org.gnome.SessionManager"
-				  "--print-reply"
-				  "/org/gnome/SessionManager"
-				  "org.gnome.SessionManager.CanShutdown"))
-	     (error nil))
-	   (equal (getenv "KDE_FULL_SESSION") "true")
-	   ;; FIXME? browse-url-can-use-xdg-open also accepts LXDE.
-	   ;; Is that no good here, or just overlooked?
-	   (condition-case nil
-	       (eq 0 (call-process
-		      "/bin/sh" nil nil nil
-		      "-c"
-		      ;; FIXME use string-match rather than grep.
-		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
-	     (error nil)))))
+xdg-email is a desktop utility that calls your preferred mail client."
+  (and ;; See browse-url-can-use-xdg-open.
+       (or (getenv "DISPLAY") (getenv "WAYLAND_DISPLAY"))
+       (executable-find "xdg-email")))
 
 (defun report-emacs-bug-insert-to-mailer ()
   "Send the message to your preferred mail client.
-This requires either the OS X \"open\" command, or the freedesktop
+This requires either the macOS \"open\" command, or the freedesktop
 \"xdg-email\" command to be available."
   (interactive)
   (save-excursion
@@ -137,6 +116,71 @@ This requires either the OS X \"open\" command, or the freedesktop
 			   (concat "mailto:" to)))
 	(error "Subject, To or body not found")))))
 
+(defun report-emacs-bug--os-description ()
+  "Return a string describing the operating system, or nil."
+  (cond ((eq system-type 'darwin)
+         (let (os)
+           (with-temp-buffer
+             (when (eq 0 (ignore-errors
+                           (call-process "sw_vers" nil '(t nil) nil)))
+               (dolist (s '("ProductName" "ProductVersion"))
+                 (goto-char (point-min))
+                 (if (re-search-forward (format "^%s\\s-*:\\s-+\\(.*\\)$" s)
+                                        nil t)
+                     (setq os (concat os " " (match-string 1)))))))
+           os))
+        ;; TODO include other branches here.
+        ;; MS Windows: systeminfo ?
+        ;; Cygwin, *BSD, etc: ?
+        (t
+         (or (let ((file "/etc/os-release"))
+               (and (file-readable-p file)
+                    (with-temp-buffer
+                      (insert-file-contents file)
+                      (if (re-search-forward
+                           "^\\sw*PRETTY_NAME=\"?\\(.+?\\)\"?$" nil t)
+                          (match-string 1)
+                        (let (os)
+                          (when (re-search-forward
+                                 "^\\sw*NAME=\"?\\(.+?\\)\"?$" nil t)
+                            (setq os (match-string 1))
+                            (if (re-search-forward
+                                 "^\\sw*VERSION=\"?\\(.+?\\)\"?$" nil t)
+                                (setq os (concat os " " (match-string 1))))
+                            os))))))
+             (with-temp-buffer
+               (when (eq 0 (ignore-errors
+                             (call-process "lsb_release" nil '(t nil)
+                                           nil "-d")))
+                 (goto-char (point-min))
+                 (if (looking-at "^\\sw+:\\s-+")
+                     (goto-char (match-end 0)))
+                 (buffer-substring (point) (line-end-position))))
+             (let ((file "/etc/lsb-release"))
+               (and (file-readable-p file)
+                    (with-temp-buffer
+                      (insert-file-contents file)
+                      (if (re-search-forward
+                           "^\\sw*DISTRIB_DESCRIPTION=\"?\\(.*release.*?\\)\"?$" nil t)
+                          (match-string 1)))))
+             (catch 'found
+               (dolist (f (append (file-expand-wildcards "/etc/*-release")
+                                  '("/etc/debian_version")))
+                 (and (not (member (file-name-nondirectory f)
+                                   '("lsb-release" "os-release")))
+                      (file-readable-p f)
+                      (with-temp-buffer
+                        (insert-file-contents f)
+                        (if (not (zerop (buffer-size)))
+                            (throw 'found
+                                   (format "%s%s"
+                                           (if (equal (file-name-nondirectory f)
+                                                      "debian_version")
+                                               "Debian " "")
+                                           (buffer-substring
+                                            (line-beginning-position)
+                                            (line-end-position)))))))))))))
+
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")
 (autoload 'message-make-address "message")
@@ -151,10 +195,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive "sBug Subject: ")
   ;; The syntax `version;' is preferred to `[version]' because the
   ;; latter could be mistakenly stripped by mailing software.
-  (if (eq system-type 'ms-dos)
-      (setq topic (concat emacs-version "; " topic))
-    (when (string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
-      (setq topic (concat (match-string 1 emacs-version) "; " topic))))
+  (setq topic (concat emacs-version "; " topic))
   (let ((from-buffer (current-buffer))
 	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
 			     (report-emacs-bug-can-use-osx-open)))
@@ -162,6 +203,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (setq message-end-point
 	  (with-current-buffer (messages-buffer)
 	    (point-max-marker)))
+    (condition-case nil
+        ;; For the novice user make sure there's always enough space for
+        ;; the mail and the warnings buffer on this frame (Bug#10873).
+        (unless report-emacs-bug-no-explanations
+          (delete-other-windows)
+          (set-window-dedicated-p nil nil)
+          (set-frame-parameter nil 'unsplittable nil))
+      (error nil))
     (compose-mail report-emacs-bug-address topic)
     ;; The rest of this does not execute if the user was asked to
     ;; confirm and said no.
@@ -195,7 +244,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
+		   (browse-url "https://lists.gnu.org/r/bug-gnu-emacs/"))
 	 'follow-link t)
 	(insert " mailing list\nand the GNU bug tracker at ")
 	(insert-text-button
@@ -203,7 +252,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
 	 'action (lambda (button)
-		   (browse-url "http://debbugs.gnu.org/"))
+		   (browse-url "https://debbugs.gnu.org/"))
 	 'follow-link t)
 
 	(insert ".  Please check that
@@ -234,7 +283,11 @@ usually do not have translators for other languages.\n\n")))
     (let ((txt (delete-and-extract-region (1+ user-point) (point))))
       (insert (propertize "\n" 'display txt)))
 
-    (insert "\n\nIn " (emacs-version) "\n")
+    (insert "\nIn " (emacs-version))
+    (if emacs-build-system
+        (insert " built on " emacs-build-system))
+    (insert "\n")
+
     (if (stringp emacs-repository-version)
 	(insert "Repository revision: " emacs-repository-version "\n"))
     (if (fboundp 'x-server-vendor)
@@ -244,13 +297,21 @@ usually do not have translators for other languages.\n\n")))
                     "', version "
 		    (mapconcat 'number-to-string (x-server-version) ".") "\n")
 	  (error t)))
-    (let ((lsb (with-temp-buffer
-		 (if (eq 0 (ignore-errors
-			     (call-process "lsb_release" nil '(t nil)
-					   nil "-d")))
-		     (buffer-string)))))
-      (if (stringp lsb)
-	  (insert "System " lsb "\n")))
+    (let ((os (ignore-errors (report-emacs-bug--os-description))))
+      (if (stringp os)
+          (insert "System Description: " os "\n\n")))
+    (let ((message-buf (get-buffer "*Messages*")))
+      (if message-buf
+	  (let (beg-pos
+		(end-pos message-end-point))
+	    (with-current-buffer message-buf
+	      (goto-char end-pos)
+	      (forward-line -10)
+	      (setq beg-pos (point)))
+            (terpri (current-buffer) t)
+	    (insert "Recent messages:\n")
+	    (insert-buffer-substring message-buf beg-pos end-pos))))
+    (insert "\n")
     (when (and system-configuration-options
 	       (not (equal system-configuration-options "")))
       (insert "Configured using:\n 'configure "
@@ -267,11 +328,6 @@ usually do not have translators for other languages.\n\n")))
        "LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
-    ;; Only ~ 0.2% of people from a sample of 3200 changed this from
-    ;; the default, t.
-    (or (default-value 'enable-multibyte-characters)
-	(insert (format "  default enable-multibyte-characters: %s\n"
-			(default-value 'enable-multibyte-characters))))
     (insert "\n")
     (insert (format "Major mode: %s\n"
 		    (format-mode-line
@@ -283,20 +339,6 @@ usually do not have translators for other languages.\n\n")))
       (and (boundp mode) (buffer-local-value mode from-buffer)
 	   (insert (format "  %s: %s\n" mode
 			   (buffer-local-value mode from-buffer)))))
-    (let ((message-buf (get-buffer "*Messages*")))
-      (if message-buf
-	  (let (beg-pos
-		(end-pos message-end-point))
-	    (with-current-buffer message-buf
-	      (goto-char end-pos)
-	      (forward-line -10)
-	      (setq beg-pos (point)))
-	    (insert "\nRecent messages:\n")
-	    (insert-buffer-substring message-buf beg-pos end-pos))))
-    ;; After Recent messages, to avoid the messages produced by
-    ;; list-load-path-shadows.
-    (unless (looking-back "\n" (1- (point)))
-      (insert "\n"))
     (insert "\n")
     (insert "Load-path shadows:\n")
     (let* ((msg "Checking for load-path shadows...")
@@ -417,7 +459,8 @@ and send the mail again%s."
 					 (regexp-quote (system-name)))
 				 from))
 	       (not (yes-or-no-p
-		     (format "Is '%s' really your email address? " from)))
+		     (format-message "Is `%s' really your email address? "
+                                     from)))
 	       (error "Please edit the From address and try again"))))))
 
 

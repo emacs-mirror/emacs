@@ -1,6 +1,6 @@
 ;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime
 
-;;; Copyright (C) 2002-2007, 2009-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2007, 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -114,7 +114,7 @@ If OBJ is a symbol check its value."
   (and (vectorp obj) (= 4 (length obj))
        (vectorp (aref obj 0)) (vectorp (aref obj 1))
        (= (length (aref obj 0)) (length (aref obj 1)))
-       (listp (aref obj 2)) (vectorp (aref obj 3))))
+       (listp (aref obj 2)) (obarrayp (aref obj 3))))
 
 (defsubst wisent-region (&rest positions)
   "Return the start/end positions of the region including POSITIONS.
@@ -127,8 +127,9 @@ POSITIONS are available."
               (apply #'max (mapcar #'cdr pl))))))
 
 ;;; Reporting
-(defvar wisent-parse-verbose-flag nil
-  "*Non-nil means to issue more messages while parsing.")
+(defcustom wisent-parse-verbose-flag nil
+  "Non-nil means to issue more messages while parsing."
+  :type 'boolean)
 
 (defun wisent-parse-toggle-verbose-flag ()
   "Toggle whether to issue more messages while parsing."
@@ -364,7 +365,7 @@ automaton has only one entry point."
 
 - START specify the start symbol (nonterminal) used by the parser as
   its goal.  It defaults to the start symbol defined in the grammar
-  \(see also `wisent-compile-grammar')."
+  (see also `wisent-compile-grammar')."
   (run-hooks 'wisent-pre-parse-hook)
   (let* ((actions (aref automaton 0))
          (gotos   (aref automaton 1))

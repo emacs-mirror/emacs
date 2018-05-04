@@ -1,6 +1,6 @@
 ;;; gitmerge.el --- help merge one Emacs branch into another
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Authors: David Engster <deng@randomsample.de>
 ;;          Stefan Monnier <monnier@iro.umontreal.ca>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,10 +48,23 @@
 (require 'smerge-mode)
 
 (defvar gitmerge-skip-regexp
-  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk\\|\
-Auto-commit"
+  ;; We used to include "sync" in there, but in my experience it only
+  ;; caused false positives.  --Stef
+  (let ((skip "back[- ]?port\\|cherry picked from commit\\|\
+\\(do\\( no\\|n['’]\\)t\\|no need to\\) merge\\|\
+bump \\(Emacs \\)?version\\|Auto-commit"))
+    (if noninteractive skip
+      ;; "Regenerate" is quite prone to false positives.
+      ;; We only want to skip merging things like AUTHORS and ldefs-boot.
+      ;; These should be covered by "bump version" and "auto-commit".
+      ;; It doesn't do much harm if we merge one of those files by mistake.
+      ;; So it's better to err on the side of false negatives.
+      (concat skip "\\|re-?generate\\|from trunk")))
   "Regexp matching logs of revisions that might be skipped.
 `gitmerge-missing' will ask you if it should skip any matches.")
+
+(defvar gitmerge-minimum-missing 10
+  "Minimum number of missing commits to consider merging in batch mode.")
 
 (defvar gitmerge-status-file (expand-file-name "gitmerge-status"
 					       user-emacs-directory)
@@ -65,8 +78,9 @@ Auto-commit"
   '((t (:strike-through t)))
   "Face for skipped commits.")
 
-(defconst gitmerge-default-branch "origin/emacs-24"
-  "Default for branch that should be merged.")
+(defvar gitmerge-default-branch nil
+  "Default for branch that should be merged.
+If nil, the function `gitmerge-default-branch' guesses.")
 
 (defconst gitmerge-buffer "*gitmerge*"
   "Working buffer for gitmerge.")
@@ -100,6 +114,21 @@ Auto-commit"
 
 (defvar gitmerge--commits nil)
 (defvar gitmerge--from nil)
+
+(defun gitmerge-emacs-version (&optional branch)
+  "Return the major version of Emacs, optionally in BRANCH."
+  (with-temp-buffer
+    (if (not branch)
+        (insert-file-contents "configure.ac")
+      (call-process "git" nil t nil "show" (format "%s:configure.ac" branch))
+      (goto-char (point-min)))
+    (re-search-forward "^AC_INIT([^,]+, \\([0-9]+\\)\\.")
+    (string-to-number (match-string 1))))
+
+(defun gitmerge-default-branch ()
+  "Default for branch that should be merged; eg \"origin/emacs-26\"."
+  (or gitmerge-default-branch
+      (format "origin/emacs-%s" (1- (gitmerge-emacs-version)))))
 
 (defun gitmerge-get-sha1 ()
   "Get SHA1 from commit at point."
@@ -169,9 +198,10 @@ Auto-commit"
 (defun gitmerge-highlight-skip-regexp ()
   "Highlight strings that match `gitmerge-skip-regexp'."
   (save-excursion
-    (while (re-search-forward gitmerge-skip-regexp nil t)
-      (put-text-property (match-beginning 0) (match-end 0)
-			 'face 'font-lock-warning-face))))
+    (let ((case-fold-search t))
+      (while (re-search-forward gitmerge-skip-regexp nil t)
+        (put-text-property (match-beginning 0) (match-end 0)
+                           'face 'font-lock-warning-face)))))
 
 (defun gitmerge-missing (from)
   "Return the list of revisions that need to be merged from FROM.
@@ -179,12 +209,14 @@ Will detect a default set of skipped revision by looking at
 cherry mark and search for `gitmerge-skip-regexp'.  The result is
 a list with entries of the form (SHA1 . SKIP), where SKIP denotes
 if and why this commit should be skipped."
+  (message "Finding missing commits...")
   (let (commits)
     ;; Go through the log and remember all commits that match
     ;; `gitmerge-skip-regexp' or are marked by --cherry-mark.
     (with-temp-buffer
-      (call-process "git" nil t nil "log" "--cherry-mark" from
-		    (concat "^" (car (vc-git-branches))))
+      (call-process "git" nil t nil "log" "--cherry-mark" "--left-only"
+		    "--no-decorate"
+		    (concat from "..." (car (vc-git-branches))))
       (goto-char (point-max))
       (while (re-search-backward "^commit \\(.+\\) \\([0-9a-f]+\\).*" nil t)
 	(let ((cherrymark (match-string 1))
@@ -200,15 +232,16 @@ if and why this commit should be skipped."
 		(when (re-search-forward gitmerge-skip-regexp nil t)
 		  (setcdr (car commits) "R"))))))
 	(delete-region (point) (point-max))))
+    (message "Finding missing commits...done")
     (nreverse commits)))
 
 (defun gitmerge-setup-log-buffer (commits from)
   "Create the buffer for choosing commits."
   (with-current-buffer (get-buffer-create gitmerge-buffer)
     (erase-buffer)
-    (call-process "git" nil t nil "log"
+    (call-process "git" nil t nil "log" "--left-only"
 		  "--pretty=format:%h %<(20,trunc) %an: %<(100,trunc) %s"
-		  from (concat "^" (car (vc-git-branches))))
+		  (concat from "..." (car (vc-git-branches))))
     (goto-char (point-min))
     (while (looking-at "^\\([a-f0-9]+\\)")
       (let ((skipreason (gitmerge-skip-commit-p (match-string 1) commits)))
@@ -288,23 +321,47 @@ Returns non-nil if conflicts remain."
             ;; (pop-to-buffer (current-buffer)) (debug 'before-resolve)
             ))
           ;; Try to resolve the conflicts.
-          (cond
-           ((member file '("configure" "lisp/ldefs-boot.el"
-                           "lisp/emacs-lisp/cl-loaddefs.el"))
-            ;; We are in the file's buffer, so names are relative.
-            (call-process "git" nil t nil "checkout" "--"
-                          (file-name-nondirectory file))
-            (revert-buffer nil 'noconfirm))
-           (t
-            (goto-char (point-max))
-            (while (re-search-backward smerge-begin-re nil t)
-              (save-excursion
-                (ignore-errors
-                  (smerge-match-conflict)
-                  (smerge-resolve))))
-            ;; (when (derived-mode-p 'change-log-mode)
-            ;;   (pop-to-buffer (current-buffer)) (debug 'after-resolve))
-            (save-buffer)))
+          (let (temp)
+            (cond
+             ((and (equal file "etc/NEWS")
+                   (ignore-errors
+                     (setq temp
+                           (format "NEWS.%s"
+                                   (gitmerge-emacs-version gitmerge--from))))
+                   (file-exists-p temp)
+                   (or noninteractive
+                       (y-or-n-p "Try to fix NEWS conflict? ")))
+              (let ((relfile (file-name-nondirectory file))
+                    (tempfile (make-temp-file "gitmerge")))
+                (unwind-protect
+                    (progn
+                      (call-process "git" nil `(:file ,tempfile) nil "diff"
+                                    (format ":1:%s" file)
+                                    (format ":3:%s" file))
+                      (call-process "git" nil t nil "reset" "--" relfile)
+                      (call-process "git" nil t nil "checkout" "--" relfile)
+                      (revert-buffer nil 'noconfirm)
+                      (call-process "patch" tempfile nil nil temp)
+                      (call-process "git" nil t nil "add" "--" temp))
+                  (delete-file tempfile))))
+             ;; Generated files.
+             ((member file '("lisp/ldefs-boot.el"))
+              ;; We are in the file's buffer, so names are relative.
+              (call-process "git" nil t nil "reset" "--"
+                            (file-name-nondirectory file))
+              (call-process "git" nil t nil "checkout" "--"
+                            (file-name-nondirectory file))
+              (revert-buffer nil 'noconfirm))
+             (t
+              (goto-char (point-max))
+              (while (re-search-backward smerge-begin-re nil t)
+                (save-excursion
+                  (ignore-errors
+                    (smerge-match-conflict)
+                    (smerge-resolve))))
+              ;; (when (derived-mode-p 'change-log-mode)
+              ;;   (pop-to-buffer (current-buffer)) (debug 'after-resolve))
+              (save-buffer))))
           (goto-char (point-min))
           (prog1 (re-search-forward smerge-begin-re nil t)
             (unless exists (kill-buffer))))))))
@@ -328,6 +385,10 @@ is nil, only the single commit BEG is merged."
 	   (if end (list (concat beg "~.." end))
 	     `("-1" ,beg)))
     (insert "\n")
+    ;; Truncate to 72 chars so that the resulting ChangeLog line fits in 80.
+    (goto-char (point-min))
+    (while (re-search-forward "^\\(.\\{69\\}\\).\\{4,\\}" nil t)
+      (replace-match "\\1..."))
     (buffer-string)))
 
 (defun gitmerge-apply (missing from)
@@ -380,20 +441,27 @@ Throw an user-error if we cannot resolve automatically."
 	      (setq conflicted t)
 	    ;; Mark as resolved
 	    (call-process "git" nil t nil "add" file)))
-	(when conflicted
+	(if (not conflicted)
+	    (and files (not (gitmerge-commit))
+		 (error "Error committing resolution - fix it manually"))
 	  (with-current-buffer (get-buffer-create gitmerge-warning-buffer)
 	    (erase-buffer)
 	    (insert "For the following files, conflicts could\n"
 		    "not be resolved automatically:\n\n")
-	    (call-process "git" nil t nil
-			  "diff" "--name-only" "--diff-filter=U")
+	    (let ((conflicts
+		   (with-temp-buffer
+		     (call-process "git" nil t nil
+				   "diff" "--name-only" "--diff-filter=U")
+		     (buffer-string))))
+	      (insert conflicts)
+	      (if noninteractive (message "Conflicts in:\n%s" conflicts)))
 	    (insert "\nResolve the conflicts manually, then run gitmerge again."
 		    "\nNote:\n  - You don't have to add resolved files or "
 		    "commit the merge yourself (but you can)."
 		    "\n  - You can safely close this Emacs session and do this "
 		    "in a new one."
 		    "\n  - When running gitmerge again, remember that you must "
-		    "that from within the Emacs repo.\n")
+		    "do that from within the Emacs repo.\n")
 	    (pop-to-buffer (current-buffer)))
 	  (user-error "Resolve the conflicts manually"))))))
 
@@ -405,6 +473,12 @@ Throw an user-error if we cannot resolve automatically."
       (call-process "git" nil t nil
 		    "diff" "--name-only")
       (zerop (buffer-size))))
+
+(defun gitmerge-commit ()
+  "Commit, and return non-nil if it succeeds."
+  (with-current-buffer (get-buffer-create gitmerge-output-buffer)
+    (erase-buffer)
+    (eq 0 (call-process "git" nil t nil "commit" "--no-edit"))))
 
 (defun gitmerge-maybe-resume ()
   "Check if we have to resume a merge.
@@ -418,7 +492,7 @@ If so, add no longer conflicted files and commit."
 	       (not (gitmerge-repo-clean)))
       (user-error "Repository is not clean"))
     (when statusexist
-      (if (not (y-or-n-p "Resume merge? "))
+      (if (or noninteractive (not (y-or-n-p "Resume merge? ")))
 	  (progn
 	    (delete-file gitmerge-status-file)
 	    ;; No resume.
@@ -427,11 +501,8 @@ If so, add no longer conflicted files and commit."
 	(gitmerge-resolve-unmerged)
 	;; Commit the merge.
 	(when mergehead
-	  (with-current-buffer (get-buffer-create gitmerge-output-buffer)
-	    (erase-buffer)
-	    (unless (zerop (call-process "git" nil t nil
-					 "commit" "--no-edit"))
-	      (error "Git error during merge - fix it manually"))))
+	  (or (gitmerge-commit)
+	      (error "Git error during merge - fix it manually")))
 	;; Successfully resumed.
 	t))))
 
@@ -487,8 +558,12 @@ Branch FROM will be prepended to the list."
        (list
 	(if (gitmerge-maybe-resume)
 	    'resume
-	  (completing-read "Merge branch: " (gitmerge-get-all-branches)
-			   nil t gitmerge-default-branch))))))
+	  (if noninteractive
+	      (or (pop command-line-args-left)
+		  (gitmerge-default-branch))
+	    (completing-read "Merge branch: "
+			     (gitmerge-get-all-branches)
+			     nil t (gitmerge-default-branch))))))))
   (let ((default-directory (vc-git-root default-directory)))
     (if (eq from 'resume)
 	(progn
@@ -500,6 +575,12 @@ Branch FROM will be prepended to the list."
       (setq gitmerge--from from)
       (when (null gitmerge--commits)
 	(user-error "Nothing to merge"))
+      (and noninteractive
+	   gitmerge-minimum-missing
+	   (< (length gitmerge--commits) gitmerge-minimum-missing)
+	   (user-error "Number of missing commits (%s) is less than %s"
+		       (length gitmerge--commits)
+		       gitmerge-minimum-missing))
       (with-current-buffer
 	  (gitmerge-setup-log-buffer gitmerge--commits gitmerge--from)
 	(goto-char (point-min))
@@ -510,7 +591,8 @@ Branch FROM will be prepended to the list."
 		"(C) Detected backport (cherry-mark), (R) Log matches "
 		"regexp, (M) Manually picked\n\n")
 	(gitmerge-mode)
-	(pop-to-buffer (current-buffer))))))
+	(pop-to-buffer (current-buffer))
+	(if noninteractive (gitmerge-start-merge))))))
 
 (defun gitmerge-start-merge ()
   (interactive)

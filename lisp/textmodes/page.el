@@ -1,6 +1,6 @@
 ;;; page.el --- page motion commands for Emacs
 
-;; Copyright (C) 1985, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: wp convenience
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,12 +48,13 @@ A page boundary is any line whose beginning matches the regexp
     (and (save-excursion (re-search-backward page-delimiter nil t))
 	 (= (match-end 0) (point))
 	 (goto-char (match-beginning 0)))
-    (forward-char -1)
-    (if (re-search-backward page-delimiter nil t)
-	;; We found one--move to the end of it.
-	(goto-char (match-end 0))
-      ;; We found nothing--go to beg of buffer.
-      (goto-char (point-min)))
+    (unless (bobp)
+      (forward-char -1)
+      (if (re-search-backward page-delimiter nil t)
+	  ;; We found one--move to the end of it.
+	  (goto-char (match-end 0))
+	;; We found nothing--go to beg of buffer.
+	(goto-char (point-min))))
     (setq count (1+ count))))
 
 (defun backward-page (&optional count)

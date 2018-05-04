@@ -1,6 +1,6 @@
 ;;; quickurl.el --- insert a URL based on text at point in buffer
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -39,7 +39,7 @@
 ;; where <Lookup> is a string that acts as the keyword lookup and <URL> is
 ;; the URL associated with it. An example might be:
 ;;
-;;    ("GNU" . "http://www.gnu.org/")
+;;    ("GNU" . "https://www.gnu.org/")
 ;;
 ;; A list entry looks like:
 ;;
@@ -50,12 +50,12 @@
 ;; used when presenting a list of URLS using `quickurl-list'. An example
 ;; might be:
 ;;
-;;    ("FSF" "http://www.fsf.org/" "The Free Software Foundation")
+;;    ("FSF" "https://www.fsf.org/" "The Free Software Foundation")
 ;;
 ;; Given the above, your quickurl file might look like:
 ;;
-;; (("GNU"    . "http://www.gnu.org/")
-;;  ("FSF"      "http://www.fsf.org/" "The Free Software Foundation")
+;; (("GNU"    . "https://www.gnu.org/")
+;;  ("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
 ;;  ("emacs"  . "http://www.emacs.org/")
 ;;  ("davep"    "http://www.davep.org/" "Dave's homepage"))
 ;;
@@ -101,17 +101,12 @@
   :type  'file
   :group 'quickurl)
 
-(defcustom quickurl-format-function (lambda (url) (format "<URL:%s>" (quickurl-url-url url)))
+(defcustom quickurl-format-function #'quickurl-format-url
   "Function to format the URL before insertion into the current buffer."
   :type  'function
   :group 'quickurl)
 
-(defcustom quickurl-sort-function (lambda (list)
-                                    (sort list
-                                          (lambda (x y)
-                                            (string<
-                                             (downcase (quickurl-url-description x))
-                                             (downcase (quickurl-url-description y))))))
+(defcustom quickurl-sort-function #'quickurl-sort-urls
   "Function to sort the URL list."
   :type  'function
   :group 'quickurl)
@@ -121,8 +116,13 @@
   :type  'function
   :group 'quickurl)
 
-(defcustom quickurl-assoc-function #'assoc-ignore-case
+(defun quickurl--assoc-function (key alist)
+  "Default function for `quickurl-assoc-function'."
+  (assoc-string key alist t))
+
+(defcustom quickurl-assoc-function #'quickurl--assoc-function
   "Function to use for alist lookup into `quickurl-urls'."
+  :version "26.1"                 ; was the obsolete assoc-ignore-case
   :type  'function
   :group 'quickurl)
 
@@ -155,7 +155,7 @@ could be used here."
 (defconst quickurl-reread-hook-postfix
     "
 ;; Local Variables:
-;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))
+;; eval: (progn (require 'quickurl) (add-hook 'write-file-functions (lambda () (quickurl-read) nil) nil t))
 ;; End:
 "
   "Example `quickurl-postfix' text that adds a local variable to the
@@ -175,7 +175,6 @@ in your init file (after loading/requiring quickurl).")
 
 (defvar quickurl-list-mode-map
   (let ((map (make-sparse-keymap)))
-    (suppress-keymap map t)
     (define-key map "a"           #'quickurl-list-add-url)
     (define-key map [(control m)] #'quickurl-list-insert-url)
     (define-key map "u"           #'quickurl-list-insert-naked-url)
@@ -185,7 +184,6 @@ in your init file (after loading/requiring quickurl).")
     (define-key map [(control g)] #'quickurl-list-quit)
     (define-key map "q"           #'quickurl-list-quit)
     (define-key map [mouse-2]     #'quickurl-list-mouse-select)
-    (define-key map "?"           #'describe-mode)
     map)
   "Local keymap for a `quickurl-list-mode' buffer.")
 
@@ -253,7 +251,18 @@ returned."
 
 ;; Main code:
 
-(cl-defun quickurl-read (&optional buffer)
+(defun quickurl-format-url (url)
+  (format "<URL:%s>" (quickurl-url-url url)))
+
+(defun quickurl-sort-urls (list)
+  "Sort URLs in LIST according to their `quickurl-url-description'."
+  (sort list
+        (lambda (x y)
+          (string<
+           (downcase (quickurl-url-description x))
+           (downcase (quickurl-url-description y))))))
+
+(defun quickurl-read (&optional buffer)
   "`read' the URL list from BUFFER into `quickurl-urls'.
 
 BUFFER, if nil, defaults to current buffer.
@@ -298,7 +307,7 @@ Also display a `message' saying what the URL was unless SILENT is non-nil."
     (message "Found %s" (quickurl-url-url url))))
 
 ;;;###autoload
-(cl-defun quickurl (&optional lookup)
+(defun quickurl (&optional lookup)
   "Insert a URL based on LOOKUP.
 
 If not supplied LOOKUP is taken to be the word at point in the current
@@ -347,7 +356,7 @@ It is assumed that the URL is either \"unguarded\" or is wrapped inside an
         ;; need to do a little more work to get to where we want to be.
         (when (thing-at-point-looking-at thing-at-point-markedup-url-regexp)
           (search-backward "<URL:"))
-        (backward-word 1)
+        (backward-word-strictly 1)
         (let ((word (funcall quickurl-grab-lookup-function)))
           (when word
             (quickurl-make-url
@@ -427,17 +436,14 @@ current buffer, this default action can be modified via
 
 ;; quickurl-list mode.
 
-(put 'quickurl-list-mode 'mode-class 'special)
-
 ;;;###autoload
-(define-derived-mode quickurl-list-mode fundamental-mode "quickurl list"
+(define-derived-mode quickurl-list-mode special-mode "Quickurl"
   "A mode for browsing the quickurl URL list.
 
 The key bindings for `quickurl-list-mode' are:
 
 \\{quickurl-list-mode-map}"
-  (setq buffer-read-only t
-        truncate-lines   t))
+  (setq truncate-lines t))
 
 ;;;###autoload
 (defun quickurl-list ()
@@ -459,14 +465,13 @@ The key bindings for `quickurl-list-mode' are:
            (fmt (format "%%-%ds %%s\n" (apply #'max sizes)))
            (inhibit-read-only t))
       (erase-buffer)
-      (cl-loop for url in quickurl-urls
-               do (let ((start (point)))
-                    (insert (format fmt (quickurl-url-description url)
-                                    (quickurl-url-url url)))
-                    (add-text-properties
-                     start (1- (point))
-                     '(mouse-face highlight
-                       help-echo "mouse-2: insert this URL"))))
+      (dolist (url quickurl-urls)
+        (let ((start (point)))
+          (insert (format fmt (quickurl-url-description url)
+                          (quickurl-url-url url)))
+          (add-text-properties
+           start (1- (point))
+           '(mouse-face highlight help-echo "mouse-2: insert this URL"))))
       (goto-char (point-min)))))
 
 (defun quickurl-list-add-url (word url comment)
@@ -477,9 +482,7 @@ The key bindings for `quickurl-list-mode' are:
 (defun quickurl-list-quit ()
   "Kill the buffer named `quickurl-list-buffer-name'."
   (interactive)
-  (kill-buffer quickurl-list-buffer-name)
-  (switch-to-buffer quickurl-list-last-buffer)
-  (delete-other-windows))
+  (quit-window t))
 
 (defun quickurl-list-mouse-select (event)
   "Select the URL under the mouse click."

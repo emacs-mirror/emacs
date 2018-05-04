@@ -1,14 +1,14 @@
 /* Calculate what line insertion or deletion to do, and do it
 
-Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2015 Free Software
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -25,9 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "termchar.h"
 #include "dispextern.h"
-#include "keyboard.h"
 #include "frame.h"
-#include "window.h"
 #include "termhooks.h"
 
 /* All costs measured in characters.
@@ -459,7 +457,7 @@ calculate_direct_scrolling (struct frame *frame,
   if (baud_rate <= 0)
     extra_cost = 1;
 
-  /* Overhead of setting the scroll window, plus the extra cost
+  /* Overhead of setting the scroll window, plus the extra
      cost of scrolling by a distance of one.  The extra cost is
      added once for consistency with the cost vectors */
   scroll_overhead

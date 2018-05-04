@@ -1,6 +1,6 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
-;; Copyright (C) 1993-1995, 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -659,7 +659,7 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--create-function-info (menu-cond-elt)
   "Create a vector from an element MENU-COND-ELT of `msb-menu-cond'.
 This takes the form:
-\[BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER]
+[BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER]
 See `msb-menu-cond' for a description of its elements."
   (let* ((list-symbol (make-symbol "-msb-buffer-list"))
 	 (tmp-ih (and (> (length menu-cond-elt) 3)

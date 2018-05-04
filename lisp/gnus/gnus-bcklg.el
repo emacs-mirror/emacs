@@ -1,6 +1,6 @@
 ;;; gnus-bcklg.el --- backlog functions for Gnus
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,13 +18,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (require 'gnus)
 
@@ -83,7 +81,7 @@
 	    (insert-buffer-substring buffer)
 	    ;; Tag the beginning of the article with the ident.
 	    (if (> (point-max) b)
-	      (gnus-put-text-property b (1+ b) 'gnus-backlog ident)
+	      (put-text-property b (1+ b) 'gnus-backlog ident)
 	      (gnus-error 3 "Article %d is blank" number))))))))
 
 (defun gnus-backlog-remove-oldest-article ()
@@ -144,8 +142,8 @@
 	    (setq end
 		  (next-single-property-change
 		   (1+ beg) 'gnus-backlog (current-buffer) (point-max)))))
-	(with-current-buffer (or (current-buffer) buffer)
-	  (let ((buffer-read-only nil))
+	(with-current-buffer (or buffer (current-buffer))
+	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (insert-buffer-substring gnus-backlog-buffer beg end)))
 	t))))

@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -146,12 +146,7 @@ NAME is a symbol: the name of a function, macro, or special form.
 HANDLER is a function which takes an argument DO followed by the same
 arguments as NAME.  DO is a function as defined in `gv-get'."
   (declare (indent 1) (debug (sexp form)))
-  ;; Use eval-and-compile so the method can be used in the same file as it
-  ;; is defined.
-  ;; FIXME: Just like byte-compile-macro-environment, we should have something
-  ;; like byte-compile-symbolprop-environment so as to handle these things
-  ;; cleanly without affecting the running Emacs.
-  `(eval-and-compile (put ',name 'gv-expander ,handler)))
+  `(function-put ',name 'gv-expander ,handler))
 
 ;;;###autoload
 (defun gv--defun-declaration (symbol name args handler &optional fix)
@@ -222,6 +217,8 @@ to be pure and copyable.  Example use:
   (declare (indent 2) (debug (&define name sexp body)))
   `(gv-define-expander ,name
      (lambda (do &rest args)
+       (declare-function
+        gv--defsetter "gv" (name setter do args &optional vars))
        (gv--defsetter ',name (lambda ,arglist ,@body) do args))))
 
 ;;;###autoload
@@ -233,7 +230,7 @@ turned into calls of the form (SETTER ARGS... VAL).
 
 If FIX-RETURN is non-nil, then SETTER is not assumed to return VAL and
 instead the assignment is turned into something equivalent to
-  \(let ((temp VAL))
+  (let ((temp VAL))
     (SETTER ARGS... temp)
     temp)
 so as to preserve the semantics of `setf'."
@@ -260,6 +257,8 @@ The return value is the last VAL in the list.
 
 \(fn PLACE VAL PLACE VAL ...)"
   (declare (debug (&rest [gv-place form])))
+  (if (/= (logand (length args) 1) 0)
+      (signal 'wrong-number-of-arguments (list 'setf (length args))))
   (if (and args (null (cddr args)))
       (let ((place (pop args))
             (val (car args)))
@@ -306,11 +305,14 @@ The return value is the last VAL in the list.
      (lambda (do before index place)
        (gv-letplace (getter setter) place
          (funcall do `(edebug-after ,before ,index ,getter)
-                  setter))))
+                  (lambda (store)
+                    `(progn (edebug-after ,before ,index ,getter)
+                            ,(funcall setter store)))))))
 
 ;;; The common generalized variables.
 
 (gv-define-simple-setter aref aset)
+(gv-define-simple-setter char-table-range set-char-table-range)
 (gv-define-simple-setter car setcar)
 (gv-define-simple-setter cdr setcdr)
 ;; FIXME: add compiler-macros for `cXXr' instead!
@@ -375,10 +377,12 @@ The return value is the last VAL in the list.
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
 
 (gv-define-expander alist-get
-  (lambda (do key alist &optional default remove)
+  (lambda (do key alist &optional default remove testfn)
     (macroexp-let2 macroexp-copyable-p k key
       (gv-letplace (getter setter) alist
-        (macroexp-let2 nil p `(assq ,k ,getter)
+        (macroexp-let2 nil p `(if (and ,testfn (not (eq ,testfn 'eq)))
+                                  (assoc ,k ,getter ,testfn)
+                                (assq ,k ,getter))
           (funcall do (if (null default) `(cdr ,p)
                         `(if ,p (cdr ,p) ,default))
                    (lambda (v)
@@ -432,7 +436,7 @@ The return value is the last VAL in the list.
            ;; code is large, but otherwise results in more efficient code.
            `(if ,test ,(gv-get then do)
               ,@(macroexp-unprogn (gv-get (macroexp-progn else) do)))
-         (let ((v (make-symbol "v")))
+         (let ((v (gensym "v")))
            (macroexp-let2 nil
                gv `(if ,test ,(gv-letplace (getter setter) then
                                 `(cons (lambda () ,getter)
@@ -457,7 +461,7 @@ The return value is the last VAL in the list.
                                     (gv-get (macroexp-progn (cdr branch)) do)))
                            (gv-get (car branch) do)))
                        branches))
-         (let ((v (make-symbol "v")))
+         (let ((v (gensym "v")))
            (macroexp-let2 nil
                gv `(cond
                     ,@(mapcar
@@ -534,7 +538,7 @@ This macro only makes sense when used in a place."
   "Return a reference to PLACE.
 This is like the `&' operator of the C language.
 Note: this only works reliably with lexical binding mode, except for very
-simple PLACEs such as (function-symbol 'foo) which will also work in dynamic
+simple PLACEs such as (symbol-function \\='foo) which will also work in dynamic
 binding mode."
   (let ((code
          (gv-letplace (getter setter) place

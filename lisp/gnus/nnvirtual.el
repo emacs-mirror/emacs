@@ -1,6 +1,6 @@
 ;;; nnvirtual.el --- virtual newsgroups access for Gnus
 
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,7 +38,7 @@
 (require 'gnus-start)
 (require 'gnus-sum)
 (require 'gnus-msg)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nnvirtual)
 
@@ -774,13 +774,13 @@ based on the marks on the component groups."
 
     ;; We need to convert the unreads to reads.  We compress the
     ;; sequence as we go, otherwise it could be huge.
-    (while (and (<= (incf i) nnvirtual-mapping-len)
+    (while (and (<= (cl-incf i) nnvirtual-mapping-len)
 		unreads)
       (if (= i (car unreads))
 	  (setq unreads (cdr unreads))
 	;; try to get a range.
 	(setq beg i)
-	(while (and (<= (incf i) nnvirtual-mapping-len)
+	(while (and (<= (cl-incf i) nnvirtual-mapping-len)
 		    (not (= i (car unreads)))))
 	(setq i (- i 1))
 	(if (= i beg)

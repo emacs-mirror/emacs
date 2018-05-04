@@ -12,7 +12,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -179,18 +179,18 @@ Emacs source code.  This item works only in the groups matching
 @code{mm-uu-emacs-sources-regexp}.
 
 @item diff
-@vindex diff
+@findex diff
 @vindex mm-uu-diff-groups-regexp
 Patches.  This is intended for groups where diffs of committed files
 are automatically sent to.  It only works in groups matching
 @code{mm-uu-diff-groups-regexp}.
 
 @item verbatim-marks
-@cindex verbatim-marks
+@findex verbatim-marks
 Slrn-style verbatim marks.
 
 @item LaTeX
-@cindex LaTeX
+@findex LaTeX
 LaTeX documents.  It only works in groups matching
 @code{mm-uu-tex-groups-regexp}.
 
@@ -404,25 +404,44 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
-This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{gnus-article-html},
-@code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
-information about emacs-w3m}, @code{links}, @code{lynx},
-@code{w3m-standalone} or @code{html2text}.  If @code{nil} use an
-external viewer.  You can also specify a function, which will be
+This selects the function used to render @acronym{HTML}.  The
+predefined renderers are selected by the symbols @code{shr},
+@code{gnus-w3m}, @code{w3m}@footnote{See
+@uref{http://emacs-w3m.namazu.org/} for more information about
+emacs-w3m}, @code{links}, @code{lynx}, @code{w3m-standalone} or
+@code{html2text}.  You can also specify a function, which will be
 called with a @acronym{MIME} handle as the argument.
 
-@item mm-inline-text-html-with-images
+@item mm-html-inhibit-images
+@vindex mm-html-inhibit-images
 @vindex mm-inline-text-html-with-images
+If this is non-@code{nil}, inhibit displaying of images inline in the
+article body.  It is effective to images in @acronym{HTML} articles
+rendered when @code{mm-text-html-renderer} (@pxref{Display
+Customization}) is @code{shr} or @code{w3m}.  In Gnus, this is
+overridden by the value of @code{gnus-inhibit-images} (@pxref{Misc
+Article, ,Misc Article, gnus, Gnus manual}).  The default is @code{nil}.
+
+@item mm-html-blocked-images
+@vindex mm-html-blocked-images
+External images that have @acronym{URL}s that match this regexp won't
+be fetched and displayed.  For instance, to block all @acronym{URL}s
+that have the string ``ads'' in them, do the following:
+
+@lisp
+(setq mm-html-blocked-images "ads")
+@end lisp
+
+It is effective when @code{mm-text-html-renderer} (@pxref{Display
+Customization}) is @code{shr}.  In Gnus, this is overridden by the value
+of @code{gnus-blocked-images} or the return value of the function that
+@code{gnus-blocked-images} is set to (@pxref{HTML, ,HTML, gnus, Gnus
+manual}).
+
 Some @acronym{HTML} mails might have the trick of spammers using
 @samp{<img>} tags.  It is likely to be intended to verify whether you
 have read the mail.  You can prevent your personal information from
-leaking by setting this option to @code{nil} (which is the default).
-For emacs-w3m, you may use the command @kbd{t} on the image anchor to
-show an image even if it is @code{nil}.@footnote{The command @kbd{T}
-will load all images.  If you have set the option
-@code{w3m-key-binding} to @code{info}, use @kbd{i} or @kbd{I}
-instead.}
+leaking by setting this option to @code{""} (which is the default).
 
 @item mm-w3m-safe-url-regexp
 @vindex mm-w3m-safe-url-regexp
@@ -634,6 +653,10 @@ Each tag can contain zero or more parameters on the form
 @samp{parameter=value}.  The values may be enclosed in quotation marks,
 but that's not necessary unless the value contains white space.  So
 @samp{filename=/home/user/#hello$^yes} is perfectly valid.
+
+If you want to talk about MML in a message, you need a way to
+``quote'' these tags.  The way to do that is to include an exclamation
+point after the opening two characters; i. e. @samp{<#!part ...>}.
 
 The following parameters have meaning in @acronym{MML}; parameters that have no
 meaning are ignored.  The @acronym{MML} parameter names are the same as the
@@ -1070,7 +1093,7 @@ If non-@code{nil} a format=flowed article will be displayed flowed.
 @node Interface Functions
 @chapter Interface Functions
 @cindex interface functions
-@cindex mail-parse
+@cindex @code{mail-parse}
 
 The @code{mail-parse} library is an abstraction over the actual
 low-level libraries that are described in the next chapter.
@@ -1517,6 +1540,9 @@ Here's a bunch of time/date/second/day examples:
 (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
 @result{} (13818 19266)
 
+(parse-iso8601-time-string "1998-09-12T12:21:54+0200")
+@result{} (13818 19266)
+
 (float-time '(13818 19266))
 @result{} 905595714.0
 
@@ -1535,7 +1561,7 @@ Here's a bunch of time/date/second/day examples:
 (time-less-p '(13818 19266) '(13818 19145))
 @result{} nil
 
-(subtract-time '(13818 19266) '(13818 19145))
+(time-subtract '(13818 19266) '(13818 19145))
 @result{} (0 121)
 
 (days-between "Sat Sep 12 12:21:54 1998 +0200"
@@ -1613,14 +1639,14 @@ return a ``zero'' time.
 
 @item time-less-p
 Take two times and say whether the first time is less (i.e., earlier)
-than the second time.
+than the second time.  (This is a built-in function.)
 
 @item time-since
 Take a time and return a time saying how long it was since that time.
 
-@item subtract-time
+@item time-subtract
 Take two times and subtract the second from the first.  I.e., return
-the time between the two times.
+the time between the two times.  (This is a built-in function.)
 
 @item days-between
 Take two days and return the number of days between those two days.
@@ -1807,6 +1833,11 @@ matching types.
 @vindex mailcap-mime-data
 This variable is an alist of alists containing backup viewing rules.
 
+@item mailcap-user-mime-data
+@vindex mailcap-user-mime-data
+A customizable list of viewers that take preference over
+@code{mailcap-mime-data}.
+
 @end table
 
 Interface functions:
@@ -1814,10 +1845,22 @@ Interface functions:
 @table @code
 @item mailcap-parse-mailcaps
 @findex mailcap-parse-mailcaps
+@vindex mailcap-prefer-mailcap-viewers
 Parse the @file{~/.mailcap} file.
 
 @item mailcap-mime-info
 Takes a @acronym{MIME} type as its argument and returns the matching viewer.
+
+The @code{mailcap-prefer-mailcap-viewers} variable controls which
+viewer is chosen.  The default non-@code{nil} value means that
+settings from @file{~/.mailcap} is preferred over system-wide or
+Emacs-provided viewer settings.
+
+If @code{nil}, Emacs-provided viewer settings have precedence.  Next,
+the most specific viewer has precedence over less specific settings,
+no matter if they're system-provided or private, so @samp{image/gif}
+in @file{/etc/mailcap} will ``win'' over a @samp{image/*} setting in
+@file{~/.mailcap}.
 
 @end table
 

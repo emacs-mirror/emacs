@@ -1,6 +1,6 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,13 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-sum)
@@ -35,7 +35,7 @@
   :group 'gnus)
 
 (defcustom gnus-use-article-prefetch 30
-  "*If non-nil, prefetch articles in groups that allow this.
+  "If non-nil, prefetch articles in groups that allow this.
 If a number, prefetch only that many articles forward;
 if t, prefetch as many articles as possible."
   :group 'gnus-asynchronous
@@ -44,7 +44,7 @@ if t, prefetch as many articles as possible."
 		 (integer :tag "some" 0)))
 
 (defcustom gnus-asynchronous nil
-  "*If nil, inhibit all Gnus asynchronicity.
+  "If nil, inhibit all Gnus asynchronicity.
 If non-nil, let the other asynch variables be heeded."
   :group 'gnus-asynchronous
   :type 'boolean)
@@ -59,7 +59,7 @@ from that group."
   :type '(set (const read) (const exit)))
 
 (defcustom gnus-use-header-prefetch nil
-  "*If non-nil, prefetch the headers to the next group."
+  "If non-nil, prefetch the headers to the next group."
   :group 'gnus-asynchronous
   :type 'boolean)
 
@@ -148,18 +148,13 @@ that was fetched."
     (with-current-buffer gnus-summary-buffer
       (let ((next (caadr (gnus-data-find-list article))))
 	(when next
-	  (if (not (fboundp 'run-with-idle-timer))
-	      ;; This is either an older Emacs or XEmacs, so we
-	      ;; do this, which leads to slightly slower article
-	      ;; buffer display.
-	      (gnus-async-prefetch-article group next summary)
-	    (when gnus-async-timer
-	      (ignore-errors
-		(nnheader-cancel-timer 'gnus-async-timer)))
-	    (setq gnus-async-timer
-		  (run-with-idle-timer
-		   0.1 nil 'gnus-async-prefetch-article
-		   group next summary))))))))
+	  (when gnus-async-timer
+	    (ignore-errors
+	      (nnheader-cancel-timer 'gnus-async-timer)))
+	  (setq gnus-async-timer
+		(run-with-idle-timer
+		 0.1 nil 'gnus-async-prefetch-article
+		 group next summary)))))))
 
 (defun gnus-async-prefetch-article (group article summary &optional next)
   "Possibly prefetch several articles starting with ARTICLE."
@@ -188,7 +183,7 @@ that was fetched."
 		    d)
 		(while (and (setq d (pop data))
 			    (if (numberp n)
-				(natnump (decf n))
+				(natnump (cl-decf n))
 			      n))
 		  (unless (or (gnus-async-prefetched-article-entry
 			       group (setq article (gnus-data-number d)))
@@ -295,7 +290,7 @@ that was fetched."
 	    ;; should check time-since-last-output, which
 	    ;; needs to be done in nntp.el.
 	    (while (eq article gnus-async-current-prefetch-article)
-	      (incf tries)
+	      (cl-incf tries)
 	      (when (nntp-accept-process-output proc)
 		(setq tries 0))
 	      (when (and (not nntp-have-messaged)

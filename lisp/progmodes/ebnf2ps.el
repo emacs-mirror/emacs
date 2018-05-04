@@ -1,9 +1,9 @@
-;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
+;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 (defconst ebnf-version "4.4"
   "ebnf2ps.el, v 4.4 <2007/02/12 vinicius>
@@ -30,8 +30,7 @@ Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <viniciusjl@ig.com.br>.
-")
+	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
 
 
 ;;; Commentary:
@@ -1136,7 +1135,7 @@ Please send all bug fixes and enhancements to
 ;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
 ;;    - `ebnf-arrow-extra-width', `ebnf-arrow-scale',
 ;;	`ebnf-production-name-p', `ebnf-stop-on-error',
-;;	`ebnf-file-suffix-regexp'and `ebnf-special-show-delimiter' variables.
+;;	`ebnf-file-suffix-regexp' and `ebnf-special-show-delimiter' variables.
 ;;    - `ebnf-delete-style', `ebnf-eps-file' and `ebnf-eps-directory'
 ;;	commands.
 ;;    - some docs fix.
@@ -1154,6 +1153,7 @@ Please send all bug fixes and enhancements to
 
 
 (require 'ps-print)
+(eval-when-compile (require 'cl-lib))
 
 (and (string< ps-print-version "5.2.3")
      (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
@@ -1191,7 +1191,7 @@ Elements of ALIST that are not conses are ignored."
   "Translate an EBNF to a syntactic chart on PostScript."
   :prefix "ebnf-"
   :version "20"
-  :group 'wp
+  :group 'text
   :group 'postscript)
 
 
@@ -1899,7 +1899,7 @@ It's only used when `ebnf-syntax' is `iso-ebnf'."
   :group 'ebnf-syntactic)
 
 
-(defcustom ebnf-file-suffix-regexp "\.[Bb][Nn][Ff]$"
+(defcustom ebnf-file-suffix-regexp "\\.[Bb][Nn][Ff]$"
   "Specify file name suffix that contains EBNF.
 
 See `ebnf-eps-directory' command."
@@ -2047,8 +2047,7 @@ It must be a float between 0.0 (top) and 1.0 (bottom)."
 
 
 (defcustom ebnf-default-width 0.6
-  "Specify additional border width over default terminal, non-terminal or
-special."
+  "Additional border width over default terminal, non-terminal or special."
   :type 'number
   :version "20"
   :group 'ebnf2ps)
@@ -2252,7 +2251,7 @@ See also `ebnf-print-buffer'."
 (defun ebnf-print-buffer (&optional filename)
   "Generate and print a PostScript syntactic chart image of the buffer.
 
-When called with a numeric prefix argument (C-u), prompts the user for
+When called with a numeric prefix argument (\\[universal-argument]), prompts the user for
 the name of a file to save the PostScript image in, instead of sending
 it to the printer.
 
@@ -2383,6 +2382,7 @@ WARNING: This function does *NOT* ask any confirmation to override existing
   (ebnf-log-header "(ebnf-eps-buffer)")
   (ebnf-eps-region (point-min) (point-max)))
 
+(defvar ebnf-eps-executing)
 
 ;;;###autoload
 (defun ebnf-eps-region (from to)
@@ -2411,7 +2411,7 @@ WARNING: This function does *NOT* ask any confirmation to override existing
 
 
 ;;;###autoload
-(defalias 'ebnf-despool 'ps-despool)
+(defalias 'ebnf-despool #'ps-despool)
 
 
 ;;;###autoload
@@ -2611,7 +2611,8 @@ See also `ebnf-syntax-buffer'."
 
 
 (defvar ebnf-stack-style nil
-  "Used in functions `ebnf-reset-style', `ebnf-push-style' and
+  "Stack of styles.
+Used in functions `ebnf-reset-style', `ebnf-push-style' and
 `ebnf-pop-style'.")
 
 
@@ -2731,7 +2732,7 @@ See also `ebnf-syntax-buffer'."
       (ebnf-syntax                      . 'ebnf)
       (ebnf-iso-alternative-p           . nil)
       (ebnf-iso-normalize-p             . nil)
-      (ebnf-file-suffix-regexp          . "\.[Bb][Nn][Ff]$")
+      (ebnf-file-suffix-regexp          . "\\.[Bb][Nn][Ff]$")
       (ebnf-eps-prefix                  . "ebnf--")
       (ebnf-eps-header-font             . '(11 Helvetica "Black" "White" bold))
       (ebnf-eps-header                  . nil)
@@ -3999,7 +4000,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 % === end EBNF engine
 
 "
-  "EBNF PostScript prologue")
+  "EBNF PostScript prologue.")
 
 
 (defconst ebnf-eps-prologue
@@ -4276,7 +4277,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 }bind def
 
 "
-  "EBNF EPS prologue")
+  "EBNF EPS prologue.")
 
 
 (defconst ebnf-eps-begin
@@ -4292,14 +4293,14 @@ end
 
 %%EndProlog
 "
-  "EBNF EPS begin")
+  "EBNF EPS begin.")
 
 
 (defconst ebnf-eps-end
   "#ebnf2ps#end
 %%EOF
 "
-  "EBNF EPS end")
+  "EBNF EPS end.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4329,14 +4330,16 @@ end
 
 ;; hacked fom `ps-output-string-prim' (ps-print.el)
 (defun ebnf-eps-string (string)
-  (let* ((str   (string-as-unibyte string))
+  (let* ((str   string)
 	 (len   (length str))
 	 (index 0)
 	 (new   "(")			; insert start-string delimiter
 	 start special)
     ;; Find and quote special characters as necessary for PS
-    ;; This skips everything except control chars, non-ASCII chars, (, ) and \.
-    (while (setq start (string-match "[^]-~ -'*-[]" str index))
+    ;; This skips everything except control chars, non-ASCII chars,
+    ;; (, ), \, and DEL.
+    (while (setq start (string-match "[[:cntrl:][:nonascii:]\177()\\]"
+                                     str index))
       (setq special (aref str start)
 	    new     (concat new
 			    (substring str index start)
@@ -4536,26 +4539,25 @@ end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PostScript generation
 
+(defvar ebnf-tree)
 
-(defun ebnf-generate-eps (ebnf-tree)
-  (let* ((ps-color-p           (and ebnf-color-p (ps-color-device)))
+(defun ebnf-generate-eps (tree)
+  (let* ((ebnf-tree tree)
+         (ps-color-p           (and ebnf-color-p (ps-color-device)))
 	 (ps-print-color-scale (if ps-color-p
 				   (float (car (ps-color-values "white")))
 				 1.0))
 	 (ebnf-total           (length ebnf-tree))
 	 (ebnf-nprod           0)
-	 (old-ps-output        (symbol-function 'ps-output))
-	 (old-ps-output-string (symbol-function 'ps-output-string))
 	 (eps-buffer           (get-buffer-create ebnf-eps-buffer-name))
-	 ebnf-debug-ps error-msg horizontal
+	 ebnf-debug-ps horizontal
 	 prod prod-name prod-width prod-height prod-list file-list)
-    ;; redefines `ps-output' and `ps-output-string'
-    (defalias 'ps-output        'ebnf-eps-output)
-    (defalias 'ps-output-string 'ps-output-string-prim)
     ;; generate EPS file
-    (save-excursion
-      (condition-case data
-	  (progn
+    (unwind-protect
+        ;; redefines `ps-output' and `ps-output-string'
+        (cl-letf (((symbol-function 'ps-output) #'ebnf-eps-output)
+                  ((symbol-function 'ps-output-string) #'ps-output-string-prim))
+          (save-excursion
 	    (while ebnf-tree
 	      (setq prod        (car ebnf-tree)
 		    prod-name   (ebnf-node-name prod)
@@ -4573,8 +4575,9 @@ end
 	      (if (setq prod-list (cdr (assoc prod-name
 					      ebnf-eps-production-list)))
 		  ;; insert EPS buffer in all buffer associated with production
-		  (ebnf-eps-production-list prod-list 'file-list horizontal
-					    prod-width prod-height eps-buffer)
+		  (ebnf-eps-production-list
+                   prod-list (gv-ref file-list) horizontal
+		   prod-width prod-height eps-buffer)
 		;; write EPS file for production
 		(ebnf-eps-finish-and-write eps-buffer
 					   (ebnf-eps-filename prod-name)))
@@ -4584,17 +4587,10 @@ end
 	      (setq ebnf-tree (cdr ebnf-tree)))
 	    ;; write and kill temporary buffers
 	    (ebnf-eps-write-kill-temp file-list t)
-	    (setq file-list nil))
-	;; handler
-	((quit error)
-	 (setq error-msg (error-message-string data)))))
-    ;; restore `ps-output' and `ps-output-string'
-    (defalias 'ps-output        old-ps-output)
-    (defalias 'ps-output-string old-ps-output-string)
-    ;; kill temporary buffers
-    (kill-buffer eps-buffer)
-    (ebnf-eps-write-kill-temp file-list nil)
-    (and error-msg (error error-msg))
+	    (setq file-list nil)))
+      ;; kill temporary buffers
+      (kill-buffer eps-buffer)
+      (ebnf-eps-write-kill-temp file-list nil))
     (message " ")))
 
 
@@ -4610,10 +4606,10 @@ end
 
 
 ;; insert EPS buffer in all buffer associated with production
-(defun ebnf-eps-production-list (prod-list file-list-sym horizontal
+(defun ebnf-eps-production-list (prod-list file-list-ref horizontal
 					   prod-width prod-height eps-buffer)
   (while prod-list
-    (add-to-list file-list-sym (car prod-list))
+    (cl-pushnew (car prod-list) (gv-deref file-list-ref) :test #'equal)
     (with-current-buffer (get-buffer-create (concat " *" (car prod-list) "*"))
       (goto-char (point-max))
       (cond
@@ -4647,8 +4643,9 @@ end
     (setq prod-list (cdr prod-list))))
 
 
-(defun ebnf-generate (ebnf-tree)
-  (let* ((ps-color-p           (and ebnf-color-p (ps-color-device)))
+(defun ebnf-generate (tree)
+  (let* ((ebnf-tree tree)
+         (ps-color-p           (and ebnf-color-p (ps-color-device)))
 	 (ps-print-color-scale (if ps-color-p
 				   (float (car (ps-color-values "white")))
 				 1.0))
@@ -4658,14 +4655,13 @@ end
 	 ps-print-begin-page-hook
 	 ps-print-begin-column-hook)
     (ps-generate (current-buffer) (point-min) (point-max)
-		 'ebnf-generate-postscript)))
+		 #'ebnf-generate-postscript)))
 
 
-(defvar ebnf-tree      nil)
 (defvar ebnf-direction "R")
 
 
-(defun ebnf-generate-postscript (from to)
+(defun ebnf-generate-postscript (_from _to)
   (ebnf-begin-file)
   (if ebnf-horizontal-max-height
       (ebnf-generate-with-max-height)
@@ -5314,9 +5310,9 @@ killed after process termination."
        "\n%%DocumentNeededResources: font "
        (or ebnf-fonts-required
 	   (setq ebnf-fonts-required
-		 (mapconcat 'identity
+		 (mapconcat #'identity
 			    (ps-remove-duplicates
-			     (mapcar 'ebnf-font-name-select
+			     (mapcar #'ebnf-font-name-select
 				     (list ebnf-production-font
 					   ebnf-terminal-font
 					   ebnf-non-terminal-font
@@ -5545,7 +5541,7 @@ killed after process termination."
   (ebnf-log "(ebnf-dimensions tree)")
   (let ((ebnf-total (length tree))
 	(ebnf-nprod 0))
-    (mapc 'ebnf-production-dimension tree))
+    (mapc #'ebnf-production-dimension tree))
   tree)
 
 
@@ -5925,7 +5921,7 @@ killed after process termination."
        ))))
 
 
-(defun ebnf-justify (node seq seq-width width last-p)
+(defun ebnf-justify (_node seq seq-width width last-p)
   (let ((term (car (if last-p (last seq) seq))))
     (cond
      ;; adjust empty term

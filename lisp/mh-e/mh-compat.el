@@ -1,6 +1,6 @@
 ;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
 
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -40,7 +40,7 @@
 ;; Items are listed alphabetically (except for mh-require which is
 ;; needed sooner it would normally appear).
 
-(require 'mh-acros)
+(eval-when-compile (require 'mh-acros))
 
 (mh-do-in-gnu-emacs
   (defalias 'mh-require 'require))
@@ -65,7 +65,8 @@ Simulate NOERROR argument in XEmacs which lacks it."
 Case is ignored if CASE-FOLD is non-nil.
 This function is used by Emacs versions that lack `assoc-string',
 introduced in Emacs 22."
-  (if case-fold
+  ;; Test for fboundp is solely to silence compiler for Emacs >= 22.1.
+  (if (and case-fold (fboundp 'assoc-ignore-case))
       (assoc-ignore-case key list)
     (assoc key list)))
 
@@ -75,11 +76,24 @@ introduced in Emacs 22."
       'cancel-timer
     'delete-itimer))
 
-;; Emacs 24 renamed flet to cl-flet.
-(defalias 'mh-cl-flet
-  (if (fboundp 'cl-flet)
-      'cl-flet
-    'flet))
+;; Emacs 24 made flet obsolete and suggested either cl-flet or
+;; cl-letf. This macro is based upon gmm-flet from Gnus.
+(defmacro mh-flet (bindings &rest body)
+  "Make temporary overriding function definitions.
+This is an analogue of a dynamically scoped `let' that operates on
+the function cell of FUNCs rather than their value cell.
+
+\(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (if (fboundp 'cl-letf)
+      `(cl-letf ,(mapcar (lambda (binding)
+                           `((symbol-function ',(car binding))
+                             (lambda ,@(cdr binding))))
+                         bindings)
+         ,@body)
+    `(flet ,bindings ,@body)))
+(put 'mh-flet 'lisp-indent-function 1)
+(put 'mh-flet 'edebug-form-spec
+     '((&rest (sexp sexp &rest form)) &rest form))
 
 (defun mh-display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
@@ -270,16 +284,6 @@ DOCSTRING arguments."
 See documentation for `make-obsolete-variable' for a description
 of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
 and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
-ACCESS-TYPE arguments."
-  (if (featurep 'xemacs)
-      `(make-obsolete-variable ,obsolete-name ,current-name)
-    `(make-obsolete-variable ,obsolete-name ,current-name ,when ,access-type)))
-
-(defmacro mh-make-obsolete-variable (obsolete-name current-name &optional when access-type)
-  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
-See documentation for `make-obsolete-variable' for a description
-of the arguments OBSOLETE-NAME, CURRENT-NAME, and perhaps WHEN
-and ACCESS-TYPE. This macro is used by XEmacs that lacks WHEN and
 ACCESS-TYPE arguments and by Emacs versions that lack ACCESS-TYPE,
 introduced in Emacs 24."
   (if (featurep 'xemacs)
@@ -304,7 +308,8 @@ This function is used by XEmacs that lacks `replace-regexp-in-string'.
 The function `replace-in-string' is used instead.
 The arguments FIXEDCASE, SUBEXP, and START, used by
 `replace-in-string' are ignored."
-  (replace-in-string string regexp rep literal))
+  (if (featurep 'xemacs)                ; silence Emacs compiler
+      (replace-in-string string regexp rep literal)))
 
 (defun-mh mh-test-completion
   test-completion (string collection &optional predicate)
@@ -313,15 +318,14 @@ XEmacs does not have `test-completion'. This function returns nil
 on that system." nil)
 
 ;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
-(if (not (boundp 'url-unreserved-chars))
-    (defconst mh-url-unreserved-chars
-      '(
-        ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
-        ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
-        ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-        ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
-      "A list of characters that are _NOT_ reserved in the URL spec.
-This is taken from RFC 2396."))
+(defconst mh-url-unreserved-chars
+  '(
+    ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
+       ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
+       ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
+       ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
+  "A list of characters that are _NOT_ reserved in the URL spec.
+This is taken from RFC 2396.")
 
 (defun-mh mh-url-hexify-string url-hexify-string (str)
   "Escape characters in a string.
@@ -371,7 +375,6 @@ XEmacs."
 (provide 'mh-compat)
 
 ;; Local Variables:
-;; no-byte-compile: t
 ;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:

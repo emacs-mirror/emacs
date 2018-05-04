@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -138,8 +138,8 @@ name could be @samp{org.gnu.Emacs.TextEditor} or
 @section D-Bus version.
 
 D-Bus has evolved over the years.  New features have been added with
-new D-Bus versions.  There are two variables, which allow to determine
-the used D-Bus version.
+new D-Bus versions.  There are two variables, which allow the determination
+of the D-Bus version used.
 
 @defvar dbus-compiled-version
 This variable, a string, determines the version of D-Bus Emacs is
@@ -1815,7 +1815,7 @@ The function returns a number, which counts the connections this Emacs
 session has established to the @var{bus} under the same unique name
 (see @code{dbus-get-unique-name}).  It depends on the libraries Emacs
 is linked with, and on the environment Emacs is running.  For example,
-if Emacs is linked with the gtk toolkit, and it runs in a GTK-aware
+if Emacs is linked with the GTK+ toolkit, and it runs in a GTK+-aware
 environment like Gnome, another connection might already be
 established.
 
@@ -1837,9 +1837,9 @@ Example: You initialize a connection to the AT-SPI bus on your host:
 
 @result{} "unix:abstract=/tmp/dbus-2yzWHOCdSD,guid=a490dd26625870ca1298b6e10000fd7f"
 
-;; If Emacs is built with gtk support, and you run in a GTK enabled
+;; If Emacs is built with GTK+ support, and you run in a GTK+-enabled
 ;; environment (like a GNOME session), the initialization reuses the
-;; connection established by GTK's atk bindings.
+;; connection established by GTK+'s atk bindings.
 (dbus-init-bus my-bus)
 
 @result{} 2

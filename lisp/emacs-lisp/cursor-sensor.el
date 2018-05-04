@@ -1,6 +1,6 @@
 ;;; cursor-sensor.el --- React to cursor movement  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defvar cursor-sensor-inhibit nil)
 
 (defun cursor-sensor--intangible-p (pos)
@@ -113,7 +114,7 @@
            ;; non-sticky on both ends, but that means get-pos-property might
            ;; never see it.
            (new (or (get-char-property point 'cursor-sensor-functions)
-                    (unless (bobp)
+                    (unless (<= (point-min) point)
                       (get-char-property (1- point) 'cursor-sensor-functions))))
            (old (window-parameter window 'cursor-sensor--last-state))
            (oldposmark (car old))
@@ -167,8 +168,8 @@
 This property should hold a list of functions which react to the motion
 of the cursor.  They're called with three arguments (WINDOW OLDPOS DIR)
 where WINDOW is the affected window, OLDPOS is the last known position of
-the cursor and DIR can be `left' or `entered' depending on whether the cursor is
-entering the area covered by the text-property property or leaving it."
+the cursor and DIR can be `entered' or `left' depending on whether the cursor
+is entering the area covered by the text-property property or leaving it."
   nil nil nil
   (if cursor-sensor-mode
       (add-hook 'pre-redisplay-functions #'cursor-sensor--detect

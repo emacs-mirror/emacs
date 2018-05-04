@@ -1,6 +1,6 @@
 ;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -147,13 +147,13 @@ The search priority is:
    ;; Do the check of the various tables.
    (or
     ;; DYNAMIC
-    (and (arrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
+    (and (obarrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
 	 (intern-soft name semantic-lex-spp-dynamic-macro-symbol-obarray))
     ;; PROJECT
-    (and (arrayp semantic-lex-spp-project-macro-symbol-obarray)
+    (and (obarrayp semantic-lex-spp-project-macro-symbol-obarray)
 	 (intern-soft name semantic-lex-spp-project-macro-symbol-obarray))
     ;; SYSTEM
-    (and (arrayp semantic-lex-spp-macro-symbol-obarray)
+    (and (obarrayp semantic-lex-spp-macro-symbol-obarray)
 	 (intern-soft name semantic-lex-spp-macro-symbol-obarray))
     ;; ...
     )))
@@ -291,7 +291,7 @@ REPLACEMENT a string that would be substituted in for NAME."
   "Return a list of spp macros and values.
 The return list is meant to be saved in a semanticdb table."
   (let (macros)
-    (when (arrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
+    (when (obarrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
       (mapatoms
        #'(lambda (symbol)
 	   (setq macros (cons (cons (symbol-name symbol)
@@ -304,17 +304,17 @@ The return list is meant to be saved in a semanticdb table."
   "Return a list of spp macros as Lisp symbols.
 The value of each symbol is the replacement stream."
   (let (macros)
-    (when (arrayp semantic-lex-spp-macro-symbol-obarray)
+    (when (obarrayp semantic-lex-spp-macro-symbol-obarray)
       (mapatoms
        #'(lambda (symbol)
 	   (setq macros (cons symbol macros)))
        semantic-lex-spp-macro-symbol-obarray))
-    (when (arrayp semantic-lex-spp-project-macro-symbol-obarray)
+    (when (obarrayp semantic-lex-spp-project-macro-symbol-obarray)
       (mapatoms
        #'(lambda (symbol)
 	   (setq macros (cons symbol macros)))
        semantic-lex-spp-project-macro-symbol-obarray))
-    (when (arrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
+    (when (obarrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
       (mapatoms
        #'(lambda (symbol)
 	   (setq macros (cons symbol macros)))
@@ -1239,7 +1239,7 @@ of type `spp-macro-undef' is to be created."
 ;; written yet.
 ;;
 (defcustom semantic-lex-spp-use-headers-flag nil
-  "*Non-nil means to pre-parse headers as we go.
+  "Non-nil means to pre-parse headers as we go.
 For languages that use the Semantic pre-processor, this can
 improve the accuracy of parsed files where include files
 can change the state of what's parsed in the current file.
@@ -1306,8 +1306,10 @@ where a valid symbol is 'system, or nil."
 ;;
 ;; These routines are for saving macro lists into an EIEIO persistent
 ;; file.
-(defvar semantic-lex-spp-macro-max-length-to-save 200
-  "*Maximum length of an SPP macro before we opt to not save it.")
+(defcustom semantic-lex-spp-macro-max-length-to-save 200
+  "Maximum length of an SPP macro before we opt to not save it."
+  :type 'integer
+  :group 'semantic)
 
 ;;;###autoload
 (defun semantic-lex-spp-table-write-slot-value (value)

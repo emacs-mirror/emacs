@@ -1,6 +1,6 @@
-;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
+;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -138,7 +138,7 @@ The commands enables verbose information from the SMTP server."
 (defcustom smtpmail-code-conv-from nil
   "Coding system for encoding outgoing mail.
 Used for the value of `sendmail-coding-system' when
-`select-message-coding-system' is called. "
+`select-message-coding-system' is called."
   :type 'coding-system
   :group 'smtpmail)
 
@@ -179,9 +179,11 @@ This is relative to `smtpmail-queue-dir'."
 ;; Buffer-local variable.
 (defvar smtpmail-read-point)
 
-(defconst smtpmail-auth-supported '(cram-md5 plain login)
+(defvar smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.
-The list is in preference order.")
+The list is in preference order.
+Every element should have a matching `cl-defmethod' for
+for `smtpmail-try-auth-method'.")
 
 (defvar smtpmail-mail-address nil
   "Value to use for envelope-from address for mail from ambient buffer.")
@@ -508,8 +510,7 @@ The list is in preference order.")
          (user (plist-get auth-info :user))
          (password (plist-get auth-info :secret))
 	 (save-function (and ask-for-password
-			     (plist-get auth-info :save-function)))
-	 ret)
+			     (plist-get auth-info :save-function))))
     (when (functionp password)
       (setq password (funcall password)))
     (when (and user
@@ -530,7 +531,10 @@ The list is in preference order.")
     (when (functionp password)
       (setq password (funcall password)))
     (let ((result (catch 'done
-		    (smtpmail-try-auth-method process mech user password))))
+                    (if (and mech user password)
+		        (smtpmail-try-auth-method process mech user password)
+                      ;; No mechanism, or no credentials.
+                      mech))))
       (if (stringp result)
 	  (progn
 	    (auth-source-forget+ :host host :port port)
@@ -539,51 +543,52 @@ The list is in preference order.")
 	  (funcall save-function))
 	result))))
 
-(defun smtpmail-try-auth-method (process mech user password)
-  (let (ret)
-    (cond
-     ((or (not mech)
-	  (not user)
-	  (not password))
-      ;; No mechanism, or no credentials.
-      mech)
-     ((eq mech 'cram-md5)
-      (setq ret (smtpmail-command-or-throw process "AUTH CRAM-MD5"))
-      (when (eq (car ret) 334)
-	(let* ((challenge (substring (cadr ret) 4))
-	       (decoded (base64-decode-string challenge))
-	       (hash (rfc2104-hash 'md5 64 16 password decoded))
-	       (response (concat user " " hash))
-	       ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
-	       ;; SMTP auth fails because the SMTP server identifies
-	       ;; only the first part of the string (delimited by
-	       ;; new line characters) as a response from the
-	       ;; client, and the rest as distinct commands.
+(cl-defgeneric smtpmail-try-auth-method (_process mech _user _password)
+  "Perform authentication of type MECH for USER with PASSWORD.
+MECH should be one of the values in `smtpmail-auth-supported'.
+USER and PASSWORD should be non-nil."
+  (error "Mechanism %S not implemented" mech))
 
-	       ;; In my case, the response string is 80 characters
-	       ;; long.  Without the no-line-break option for
-	       ;; `base64-encode-string', only the first 76 characters
-	       ;; are taken as a response to the server, and the
-	       ;; authentication fails.
-	       (encoded (base64-encode-string response t)))
-	  (smtpmail-command-or-throw process encoded))))
-     ((eq mech 'login)
-      (smtpmail-command-or-throw process "AUTH LOGIN")
-      (smtpmail-command-or-throw process (base64-encode-string user t))
-      (smtpmail-command-or-throw process (base64-encode-string password t)))
-     ((eq mech 'plain)
-      ;; We used to send an empty initial request, and wait for an
-      ;; empty response, and then send the password, but this
-      ;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
-      ;; is not sent if the server did not advertise AUTH PLAIN in
-      ;; the EHLO response.  See RFC 2554 for more info.
-      (smtpmail-command-or-throw
-       process
-       (concat "AUTH PLAIN "
-	       (base64-encode-string (concat "\0" user "\0" password) t))
-       235))
-     (t
-      (error "Mechanism %s not implemented" mech)))))
+(cl-defmethod smtpmail-try-auth-method
+  (process (_mech (eql cram-md5)) user password)
+  (let ((ret (smtpmail-command-or-throw process "AUTH CRAM-MD5")))
+    (when (eq (car ret) 334)
+      (let* ((challenge (substring (cadr ret) 4))
+	     (decoded (base64-decode-string challenge))
+	     (hash (rfc2104-hash 'md5 64 16 password decoded))
+	     (response (concat user " " hash))
+	     ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
+	     ;; SMTP auth fails because the SMTP server identifies
+	     ;; only the first part of the string (delimited by
+	     ;; new line characters) as a response from the
+	     ;; client, and the rest as distinct commands.
+
+	     ;; In my case, the response string is 80 characters
+	     ;; long.  Without the no-line-break option for
+	     ;; `base64-encode-string', only the first 76 characters
+	     ;; are taken as a response to the server, and the
+	     ;; authentication fails.
+	     (encoded (base64-encode-string response t)))
+	(smtpmail-command-or-throw process encoded)))))
+
+(cl-defmethod smtpmail-try-auth-method
+  (process (_mech (eql login)) user password)
+  (smtpmail-command-or-throw process "AUTH LOGIN")
+  (smtpmail-command-or-throw process (base64-encode-string user t))
+  (smtpmail-command-or-throw process (base64-encode-string password t)))
+
+(cl-defmethod smtpmail-try-auth-method
+  (process (_mech (eql plain)) user password)
+  ;; We used to send an empty initial request, and wait for an
+  ;; empty response, and then send the password, but this
+  ;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
+  ;; is not sent if the server did not advertise AUTH PLAIN in
+  ;; the EHLO response.  See RFC 2554 for more info.
+  (smtpmail-command-or-throw
+   process
+   (concat "AUTH PLAIN "
+	   (base64-encode-string (concat "\0" user "\0" password) t))
+   235))
 
 (defun smtpmail-response-code (string)
   (when string
@@ -662,7 +667,6 @@ Returns an error if the server cannot be contacted."
 	       (and from
 		    (cadr (mail-extract-address-components from))))
 	     (smtpmail-user-mail-address)))
-	response-code
 	process-buffer
 	result
 	auth-mechanisms
@@ -679,7 +683,9 @@ Returns an error if the server cannot be contacted."
 	    (setq buffer-undo-list t)
 	    (erase-buffer))
 
-	  ;; open the connection to the server
+	  ;; Open the connection to the server.
+          ;; FIXME: Should we use raw-text-dos coding system to handle the r\n
+          ;; for us?
 	  (let ((coding-system-for-read 'binary)
 		(coding-system-for-write 'binary))
 	    (setq result
@@ -716,9 +722,8 @@ Returns an error if the server cannot be contacted."
 	      (throw 'done (format "Connection not allowed: %s" greeting))))
 
 	  (with-current-buffer process-buffer
-	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
-	    (make-local-variable 'smtpmail-read-point)
-	    (setq smtpmail-read-point (point-min))
+            (set-process-coding-system process 'raw-text-unix 'raw-text-unix)
+	    (setq-local smtpmail-read-point (point-min))
 
 	    (let* ((capabilities (plist-get (cdr result) :capabilities))
 		   (code (smtpmail-response-code capabilities)))
@@ -858,8 +863,6 @@ Returns an error if the server cannot be contacted."
 	    ;; Send the contents.
 	    (smtpmail-command-or-throw process "DATA")
 	    (smtpmail-send-data process smtpmail-text-buffer)
-	    ;; DATA end "."
-	    (smtpmail-command-or-throw process ".")
 	    ;; Return success.
 	    nil))
       (when (and process
@@ -943,8 +946,7 @@ Returns an error if the server cannot be contacted."
 
   (if (and (multibyte-string-p data)
 	   smtpmail-code-conv-from)
-      (setq data (string-as-multibyte
-		  (encode-coding-string data smtpmail-code-conv-from))))
+      (setq data (encode-coding-string data smtpmail-code-conv-from)))
 
   (if smtpmail-debug-info
       (insert data "\r\n"))
@@ -957,10 +959,11 @@ Returns an error if the server cannot be contacted."
   (process-send-string process "\r\n"))
 
 (defun smtpmail-send-data (process buffer)
-  (let ((data-continue t) sending-data
+  (let ((data-continue t)
         (pr (with-current-buffer buffer
               (make-progress-reporter "Sending email "
-                                      (point-min) (point-max)))))
+                                      (point-min) (point-max))))
+        sending-data)
     (with-current-buffer buffer
       (goto-char (point-min)))
     (while data-continue
@@ -970,6 +973,8 @@ Returns an error if the server cannot be contacted."
 	(end-of-line 2)
         (setq data-continue (not (eobp))))
       (smtpmail-send-data-1 process sending-data))
+    ;; DATA end "."
+    (smtpmail-command-or-throw process ".")
     (progress-reporter-done pr)))
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)

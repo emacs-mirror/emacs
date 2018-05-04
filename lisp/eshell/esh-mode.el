@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -143,7 +143,7 @@ See variable `eshell-scroll-show-maximum-output' and function
   :type '(radio (const :tag "Do not scroll Eshell windows" nil)
 		(const :tag "Scroll all windows showing the buffer" all)
 		(const :tag "Scroll only the selected window" this)
-		(const :tag "Scroll all windows other than selected" this))
+		(const :tag "Scroll all windows other than selected" others))
   :group 'eshell-mode)
 
 (defcustom eshell-scroll-show-maximum-output t
@@ -296,7 +296,7 @@ and the hook `eshell-exit-hook'."
   (run-hooks 'eshell-exit-hook))
 
 ;;;###autoload
-(define-derived-mode eshell-mode fundamental-mode "EShell"
+(define-derived-mode eshell-mode fundamental-mode "Eshell"
   "Emacs shell interactive mode."
   (setq-local eshell-mode t)
 
@@ -379,6 +379,11 @@ and the hook `eshell-exit-hook'."
   (let ((modules-list (copy-sequence eshell-modules-list)))
     (make-local-variable 'eshell-modules-list)
     (setq eshell-modules-list modules-list))
+
+  ;; This is to avoid making the paragraph base direction
+  ;; right-to-left if the first word just happens to start with a
+  ;; strong R2L character.
+  (setq bidi-paragraph-direction 'left-to-right)
 
   ;; load extension modules into memory.  This will cause any global
   ;; variables they define to be visible, since some of the core
@@ -721,7 +726,9 @@ This is done after all necessary filtering has been done."
 		  (setq obeg (+ obeg nchars)))
 	      (if (<= (point) oend)
 		  (setq oend (+ oend nchars)))
-	      (insert-before-markers string)
+              ;; Let the ansi-color overlay hooks run.
+              (let ((inhibit-modification-hooks nil))
+                (insert-before-markers string))
 	      (if (= (window-start) (point))
 		  (set-window-start (selected-window)
 				    (- (point) nchars)))
@@ -877,8 +884,9 @@ If SCROLLBACK is non-nil, clear the scrollback contents."
   (interactive)
   (if scrollback
       (eshell/clear-scrollback)
-    (let ((number-newlines (count-lines (window-start) (point))))
-      (insert (make-string number-newlines ?\n))
+    (let ((eshell-input-filter-functions
+           (remq 'eshell-add-to-history eshell-input-filter-functions)))
+      (insert (make-string (window-size) ?\n))
       (eshell-send-input))))
 
 (defun eshell/clear-scrollback ()

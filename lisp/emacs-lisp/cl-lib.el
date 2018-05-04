@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -288,14 +288,6 @@ If true return the decimal value of digit CHAR in RADIX."
   (let ((n (aref cl-digit-char-table char)))
     (and n (< n (or radix 10)) n)))
 
-(defun cl--random-time ()
-  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
-    (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
-    v))
-
-(defvar cl--random-state
-  (vector 'cl--random-state-tag -1 30 (cl--random-time)))
-
 (defconst cl-most-positive-float nil
   "The largest value that a Lisp float can hold.
 If your system supports infinities, this is the largest finite value.
@@ -347,7 +339,7 @@ Call `cl-float-limits' to set this.")
 
 (cl--defalias 'cl-copy-seq 'copy-sequence)
 
-(declare-function cl--mapcar-many "cl-extra" (cl-func cl-seqs))
+(declare-function cl--mapcar-many "cl-extra" (cl-func cl-seqs &optional acc))
 
 (defun cl-mapcar (cl-func cl-x &rest cl-rest)
   "Apply FUNCTION to each element of SEQ, and make a list of the results.
@@ -358,7 +350,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 \n(fn FUNCTION SEQ...)"
   (if cl-rest
       (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
-	  (cl--mapcar-many cl-func (cons cl-x cl-rest))
+	  (cl--mapcar-many cl-func (cons cl-x cl-rest) 'accumulate)
 	(let ((cl-res nil) (cl-y (car cl-rest)))
 	  (while (and cl-x cl-y)
 	    (push (funcall cl-func (pop cl-x) (pop cl-y)) cl-res))
@@ -413,125 +405,30 @@ Signal an error if X is not a list."
   (declare (gv-setter (lambda (store) `(setcar (nthcdr 9 ,x) ,store))))
   (nth 9 x))
 
-(defun cl-caaar (x)
-  "Return the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (car (car x))))
-
-(defun cl-caadr (x)
-  "Return the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (car (cdr x))))
-
-(defun cl-cadar (x)
-  "Return the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (cdr (car x))))
-
-(defun cl-caddr (x)
-  "Return the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (cdr (cdr x))))
-
-(defun cl-cdaar (x)
-  "Return the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (car (car x))))
-
-(defun cl-cdadr (x)
-  "Return the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (car (cdr x))))
-
-(defun cl-cddar (x)
-  "Return the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (cdr (car x))))
-
-(defun cl-cdddr (x)
-  "Return the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (cdr (cdr x))))
-
-(defun cl-caaaar (x)
-  "Return the `car' of the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (car (car (car x)))))
-
-(defun cl-caaadr (x)
-  "Return the `car' of the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (car (car (cdr x)))))
-
-(defun cl-caadar (x)
-  "Return the `car' of the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (car (cdr (car x)))))
-
-(defun cl-caaddr (x)
-  "Return the `car' of the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (car (cdr (cdr x)))))
-
-(defun cl-cadaar (x)
-  "Return the `car' of the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (cdr (car (car x)))))
-
-(defun cl-cadadr (x)
-  "Return the `car' of the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (cdr (car (cdr x)))))
-
-(defun cl-caddar (x)
-  "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (cdr (cdr (car x)))))
-
-(defun cl-cadddr (x)
-  "Return the `car' of the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (car (cdr (cdr (cdr x)))))
-
-(defun cl-cdaaar (x)
-  "Return the `cdr' of the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (car (car (car x)))))
-
-(defun cl-cdaadr (x)
-  "Return the `cdr' of the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (car (car (cdr x)))))
-
-(defun cl-cdadar (x)
-  "Return the `cdr' of the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (car (cdr (car x)))))
-
-(defun cl-cdaddr (x)
-  "Return the `cdr' of the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (car (cdr (cdr x)))))
-
-(defun cl-cddaar (x)
-  "Return the `cdr' of the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (cdr (car (car x)))))
-
-(defun cl-cddadr (x)
-  "Return the `cdr' of the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (cdr (car (cdr x)))))
-
-(defun cl-cdddar (x)
-  "Return the `cdr' of the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (cdr (cdr (car x)))))
-
-(defun cl-cddddr (x)
-  "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
-  (cdr (cdr (cdr (cdr x)))))
+(defalias 'cl-caaar 'caaar)
+(defalias 'cl-caadr 'caadr)
+(defalias 'cl-cadar 'cadar)
+(defalias 'cl-caddr 'caddr)
+(defalias 'cl-cdaar 'cdaar)
+(defalias 'cl-cdadr 'cdadr)
+(defalias 'cl-cddar 'cddar)
+(defalias 'cl-cdddr 'cdddr)
+(defalias 'cl-caaaar 'caaaar)
+(defalias 'cl-caaadr 'caaadr)
+(defalias 'cl-caadar 'caadar)
+(defalias 'cl-caaddr 'caaddr)
+(defalias 'cl-cadaar 'cadaar)
+(defalias 'cl-cadadr 'cadadr)
+(defalias 'cl-caddar 'caddar)
+(defalias 'cl-cadddr 'cadddr)
+(defalias 'cl-cdaaar 'cdaaar)
+(defalias 'cl-cdaadr 'cdaadr)
+(defalias 'cl-cdadar 'cdadar)
+(defalias 'cl-cdaddr 'cdaddr)
+(defalias 'cl-cddaar 'cddaar)
+(defalias 'cl-cddadr 'cddadr)
+(defalias 'cl-cdddar 'cdddar)
+(defalias 'cl-cddddr 'cddddr)
 
 ;;(defun last* (x &optional n)
 ;;  "Returns the last link in the list LIST.
@@ -660,10 +557,12 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (gv-define-setter face-underline-p (x f &optional s)
   `(set-face-underline ,f ,x ,s))
 (gv-define-simple-setter file-modes set-file-modes t)
-(gv-define-simple-setter frame-height set-screen-height t)
+(gv-define-setter frame-height (x &optional frame)
+  `(set-frame-height (or ,frame (selected-frame)) ,x))
 (gv-define-simple-setter frame-parameters modify-frame-parameters t)
 (gv-define-simple-setter frame-visible-p cl--set-frame-visible-p)
-(gv-define-simple-setter frame-width set-screen-width t)
+(gv-define-setter frame-width (x &optional frame)
+  `(set-frame-width (or ,frame (selected-frame)) ,x))
 (gv-define-simple-setter getenv setenv t)
 (gv-define-simple-setter get-register set-register)
 (gv-define-simple-setter global-key-binding global-set-key)
@@ -730,6 +629,42 @@ If ALIST is non-nil, the new pairs are prepended to it."
   ;; When bootstrapping, cl-loaddefs hasn't been built yet!
   (require 'cl-macs)
   (require 'cl-seq))
+
+(defun cl--old-struct-type-of (orig-fun object)
+  (or (and (vectorp object) (> (length object) 0)
+           (let ((tag (aref object 0)))
+             (when (and (symbolp tag)
+                        (string-prefix-p "cl-struct-" (symbol-name tag)))
+               (unless (eq (symbol-function tag)
+                           :quick-object-witness-check)
+                 ;; Old-style old-style struct:
+                 ;; Convert to new-style old-style struct!
+                 (let* ((type (intern (substring (symbol-name tag)
+                                                 (length "cl-struct-"))))
+                        (class (cl--struct-get-class type)))
+                   ;; If the `cl-defstruct' was recompiled after the code
+                   ;; which constructed `object', `cl--struct-get-class' may
+                   ;; not have called `cl-struct-define' and setup the tag
+                   ;; symbol for us.
+                   (unless (eq (symbol-function tag)
+                               :quick-object-witness-check)
+                     (set tag class)
+                     (fset tag :quick-object-witness-check))))
+               (cl--class-name (symbol-value tag)))))
+      (funcall orig-fun object)))
+
+;;;###autoload
+(define-minor-mode cl-old-struct-compat-mode
+  "Enable backward compatibility with old-style structs.
+This can be needed when using code byte-compiled using the old
+macro-expansion of `cl-defstruct' that used vectors objects instead
+of record objects."
+  :global t
+  (cond
+   (cl-old-struct-compat-mode
+    (advice-add 'type-of :around #'cl--old-struct-type-of))
+   (t
+    (advice-remove 'type-of #'cl--old-struct-type-of))))
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

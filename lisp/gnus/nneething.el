@@ -1,6 +1,6 @@
 ;;; nneething.el --- arbitrary file access for Gnus
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -19,13 +19,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'mailcap)
 (require 'nnheader)
@@ -101,7 +101,7 @@ included.")
 	    (nneething-insert-head file)
 	    (insert ".\n"))
 
-	  (incf count)
+	  (cl-incf count)
 
 	  (and large
 	       (zerop (% count 20))
@@ -284,7 +284,7 @@ included.")
 (defun nneething-encode-file-name (file &optional coding-system)
   "Encode the name of the FILE in CODING-SYSTEM."
   (let ((pos 0) buf)
-    (setq file (mm-encode-coding-string
+    (setq file (encode-coding-string
 		file (or coding-system nnmail-pathname-coding-system)))
     (while (string-match "[^-0-9a-zA-Z_:/.]" file pos)
       (setq buf (cons (format "%%%02x" (aref file (match-beginning 0)))
@@ -300,7 +300,7 @@ included.")
       (setq buf (cons (string (string-to-number (match-string 1 file) 16))
 		      (cons (substring file pos (match-beginning 0)) buf))
 	    pos (match-end 0)))
-    (mm-decode-coding-string
+    (decode-coding-string
      (apply (function concat)
 	    (nreverse (cons (substring file pos) buf)))
      (or coding-system nnmail-pathname-coding-system))))

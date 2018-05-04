@@ -1,6 +1,6 @@
 ;;; tempo.el --- Flexible template insertion
 
-;; Copyright (C) 1994-1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Kågedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -147,14 +147,14 @@ disappears at the next keypress; otherwise, it remains forever."
   "List of functions to run when inserting a string.
 Each function is called with a single arg, STRING and should return
 another string.  This could be used for making all strings upcase by
-setting it to '(upcase), for example.")
+setting it to (upcase), for example.")
 
 (defvar tempo-tags nil
   "An association list with tags and corresponding templates.")
 
 (defvar tempo-local-tags '((tempo-tags . nil))
   "A list of locally installed tag completion lists.
-It is a association list where the car of every element is a symbol
+It is an association list where the car of every element is a symbol
 whose variable value is a template list.  The cdr part, if non-nil,
 is a function or a regexp that defines the string to match.  See the
 documentation for the function `tempo-complete-tag' for more info.
@@ -759,7 +759,3 @@ space bar, and looks something like this:
 (provide 'tempo)
 
 ;;; tempo.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

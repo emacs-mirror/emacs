@@ -847,7 +847,7 @@ saída do Emacs. Isso indica que um "recurso" do sistema operacional
 chamado "controle de fluxo" (flow control) esta interceptando o C-s e
 não deixando que passe pelo Emacs. Para destravar a tela, digite
 C-q. Então, leia na seção "Spontaneous Entry to Incremental Search" no
-manual do Emacs para uma dica de como lhe dar com esse "recurso".
+manual do Emacs para uma dica de como lidar com esse "recurso".
 
 Se você estiver no meio de uma pesquisa incremental e digitar <Delete>,
 você perceberá que o último caractere da pesquisa será apagado e a
@@ -1056,7 +1056,7 @@ Essa versão do tutorial foi originalmente traduzida por Marcelo Toledo
 <marcelo@gnu.org> e como o GNU Emacs, tem um copyright, e vem
 com uma permissão de distribuição de cópias nas seguintes condições:
 
-Copyright (C) 2004-2015 Free Software Foundation, Inc.
+Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
    Permissão é garantida a qualquer um para fazer ou distribuir cópias
    integrais deste documento como recebido, em qualquer meio, deixando

@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2015 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -244,8 +244,8 @@ line in region."
 (defcustom fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
 0        60        70\n\
-\[   ]|{   |    |    |    |    |    |    |    |    \
-\|    |    |    |    |}\n"
+[   ]|{   |    |    |    |    |    |    |    |    \
+|    |    |    |    |}\n"
   "String displayed above current line by \\[fortran-column-ruler].
 This variable is used in fixed format mode.
 See the variable `fortran-column-ruler-tab' for TAB format mode."
@@ -257,8 +257,8 @@ See the variable `fortran-column-ruler-tab' for TAB format mode."
 (defcustom fortran-column-ruler-tab
   "0       810        20        30        40        5\
 0        60        70\n\
-\[   ]|  { |    |    |    |    |    |    |    |    \
-\|    |    |    |    |}\n"
+[   ]|  { |    |    |    |    |    |    |    |    \
+|    |    |    |    |}\n"
   "String displayed above current line by \\[fortran-column-ruler].
 This variable is used in TAB format mode.
 See the variable `fortran-column-ruler-fixed' for fixed format mode."
@@ -496,12 +496,12 @@ This is used to fontify fixed-format Fortran comments."
   ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
    `(syntax-propertize-rules
-     ("^[cd\\*]" (0 "<"))
+     ("^[CcDd\\*]" (0 "<"))
      ;; We mark all chars after line-length as "comment-start", rather than
      ;; just the first one.  This is so that a closing ' that's past the
      ;; line-length will indeed be ignored (and will result in a string that
      ;; leaks into subsequent lines).
-     ((format "^[^cd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
+     ((format "^[^CcDd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
       (1 "<")))))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
@@ -1040,13 +1040,9 @@ With non-nil ARG, uncomments the region."
 Any other key combination is executed normally."
   (interactive "*")
   (insert last-command-event)
-  (let* ((event (if (fboundp 'next-command-event) ; XEmacs
-                    (next-command-event)
-                  (read-event)))
-         (char (if (fboundp 'event-to-character)
-                   (event-to-character event) event)))
+  (let ((event (read-event)))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (or (eq char ??) (eq char help-char)
+    (if (and abbrev-mode (or (eq event ??) (eq event help-char)
                              (memq event help-event-list)))
         (fortran-abbrev-help)
       (push event unread-command-events))))
@@ -1258,7 +1254,7 @@ Auto-indent does not happen if a numeric ARG is used."
 
 (defun fortran-previous-statement ()
   "Move point to beginning of the previous Fortran statement.
-Returns 'first-statement if that statement is the first
+Returns `first-statement' if that statement is the first
 non-comment Fortran statement in the file, and nil otherwise.
 Directive lines are treated as comments."
   (interactive)
@@ -1290,7 +1286,7 @@ Directive lines are treated as comments."
 
 (defun fortran-next-statement ()
   "Move point to beginning of the next Fortran statement.
-Returns 'last-statement if that statement is the last
+Returns `last-statement' if that statement is the last
 non-comment Fortran statement in the file, and nil otherwise.
 Directive lines are treated as comments."
   (interactive)

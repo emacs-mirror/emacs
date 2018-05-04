@@ -1,6 +1,6 @@
 ;;; cal-bahai.el --- calendar functions for the Bahá’í calendar.
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: calendar
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -323,9 +323,5 @@ Prefix argument ARG will make the entry nonmarking."
 
 
 (provide 'cal-bahai)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; cal-bahai.el ends here

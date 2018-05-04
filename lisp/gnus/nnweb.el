@@ -1,6 +1,6 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,13 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'nnoo)
 (require 'message)
@@ -33,9 +33,7 @@
 (require 'nnmail)
 (require 'mm-util)
 (require 'mm-url)
-(eval-and-compile
-  (ignore-errors
-    (require 'url)))
+(require 'url)
 
 (nnoo-declare nnweb)
 
@@ -103,10 +101,9 @@ Valid types include `google', `dejanews', and `gmane'.")
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let (article header)
-      (mm-with-unibyte-current-buffer
-	(while (setq article (pop articles))
-	  (when (setq header (cadr (assq article nnweb-articles)))
-	    (nnheader-insert-nov header))))
+      (while (setq article (pop articles))
+	(when (setq header (cadr (assq article nnweb-articles)))
+	  (nnheader-insert-nov header)))
       'nov)))
 
 (deffoo nnweb-request-scan (&optional group server)
@@ -153,8 +150,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (let* ((header (cadr (assq article nnweb-articles)))
 	   (url (and header (mail-header-xref header))))
       (when (or (and url
-		     (mm-with-unibyte-current-buffer
-		       (mm-url-insert url)))
+		     (mm-url-insert url))
 		(and (stringp article)
 		     (nnweb-definition 'id t)
 		     (let ((fetch (nnweb-definition 'id))
@@ -164,8 +160,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		       (when (and fetch art)
 			 (setq url (format fetch
 					   (mm-url-form-encode-xwfu art)))
-			 (mm-with-unibyte-current-buffer
-			   (mm-url-insert url))
+			 (mm-url-insert url)
 			 (if (nnweb-definition 'reference t)
 			     (setq article
 				   (funcall (nnweb-definition
@@ -215,17 +210,16 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defun nnweb-read-overview (group)
   "Read the overview of GROUP and build the map."
   (when (file-exists-p (nnweb-overview-file group))
-    (mm-with-unibyte-buffer
-      (nnheader-insert-file-contents (nnweb-overview-file group))
-      (goto-char (point-min))
-      (let (header)
-	(while (not (eobp))
-	  (setq header (nnheader-parse-nov))
-	  (forward-line 1)
-	  (push (list (mail-header-number header)
-		      header (mail-header-xref header))
-		nnweb-articles)
-	  (nnweb-set-hashtb header (car nnweb-articles)))))))
+    (nnheader-insert-file-contents (nnweb-overview-file group))
+    (goto-char (point-min))
+    (let (header)
+      (while (not (eobp))
+	(setq header (nnheader-parse-nov))
+	(forward-line 1)
+	(push (list (mail-header-number header)
+		    header (mail-header-xref header))
+	      nnweb-articles)
+	(nnweb-set-hashtb header (car nnweb-articles))))))
 
 (defun nnweb-write-overview (group)
   "Write the overview file for GROUP."
@@ -366,11 +360,11 @@ Valid types include `google', `dejanews', and `gmane'.")
 		     (current-time-string)))
 	(setq From (match-string 4)))
       (widen)
-      (incf i)
+      (cl-incf i)
       (unless (nnweb-get-hashtb url)
 	(push
 	 (list
-	  (incf (cdr active))
+	  (cl-incf (cdr active))
 	  (make-full-mail-header
 	   (cdr active) (if Newsgroups
 			    (concat  "(" Newsgroups ") " Subject)
@@ -386,8 +380,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (setq nnweb-articles
 	  (nconc nnweb-articles map))
     (when (setq header (cadar map))
-      (mm-with-unibyte-current-buffer
-	(mm-url-insert (mail-header-xref header)))
+      (mm-url-insert (mail-header-xref header))
       (caar map))))
 
 (defun nnweb-google-create-mapping ()
@@ -403,7 +396,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		  (nconc nnweb-articles (nnweb-google-parse-1)))
 	    ;; Check if there are more articles to fetch
 	    (goto-char (point-min))
-	    (incf i 100)
+	    (cl-incf i 100)
 	    (if (or (not (re-search-forward
 			  "<a [^>]+href=\"\n?\\([^>\" \n\t]+\\)[^<]*<img[^>]+src=[^>]+next"
 			  nil t))
@@ -483,7 +476,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 					 (rfc2047-encode-string subject))
 
 		(unless (nnweb-get-hashtb (mail-header-xref header))
-		  (mail-header-set-number header (incf (cdr active)))
+		  (mail-header-set-number header (cl-incf (cdr active)))
 		  (push (list (mail-header-number header) header) map)
 		  (nnweb-set-hashtb (cadar map) (car map))))))
 	  (forward-line 1)))
@@ -513,8 +506,8 @@ Valid types include `google', `dejanews', and `gmane'.")
        ;;("TOPDOC" . "1000")
        ))))
   (setq buffer-file-name nil)
-  (unless (featurep 'xemacs) (set-buffer-multibyte t))
-  (mm-decode-coding-region (point-min) (point-max) 'utf-8)
+  (set-buffer-multibyte t)
+  (decode-coding-region (point-min) (point-max) 'utf-8)
   t)
 
 (defun nnweb-gmane-identity (url)
@@ -530,10 +523,6 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defun nnweb-insert-html (parse)
   "Insert HTML based on a w3 parse tree."
   (if (stringp parse)
-      ;; We used to call nnheader-string-as-multibyte here, but it cannot
-      ;; be right, so I removed it.  If a bug shows up because of this change,
-      ;; please do not blindly revert the change, but help me find the real
-      ;; cause of the bug instead.  --Stef
       (insert parse)
     (insert "<" (symbol-name (car parse)) " ")
     (insert (mapconcat

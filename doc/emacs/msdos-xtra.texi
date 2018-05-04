@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2015 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -9,7 +9,7 @@
 @cindex MS-DOS peculiarities
 
   This section briefly describes the peculiarities of using Emacs on
-the MS-DOS ``operating system''.
+MS-DOS.
 @iftex
 Information about Emacs and Microsoft's current operating system
 Windows is in the main Emacs manual
@@ -22,7 +22,7 @@ current operating systems Windows is in
 @end ifnottex
 
   If you build Emacs for MS-DOS, the binary will also run on Windows
-3.X, Windows NT, Windows 9X/ME, Windows 2000/XP, or OS/2 as a DOS
+3.X, Windows NT, Windows 9X/ME, or Windows 2000/XP as a DOS
 application; all of this chapter applies for all of those systems, if
 you use an Emacs that was built for MS-DOS.
 
@@ -83,17 +83,17 @@ a running command and for emergency escape
 @cindex Super (under MS-DOS)
 @vindex dos-super-key
 @vindex dos-hyper-key
-  The PC keyboard maps use the left @key{Alt} key as the @key{META} key.
-You have two choices for emulating the @key{SUPER} and @key{HYPER} keys:
+  The PC keyboard maps use the left @key{Alt} key as the @key{Meta} key.
+You have two choices for emulating the @key{SUPER} and @key{Hyper} keys:
 choose either the right @key{Ctrl} key or the right @key{Alt} key by
 setting the variables @code{dos-hyper-key} and @code{dos-super-key} to 1
 or 2 respectively.  If neither @code{dos-super-key} nor
 @code{dos-hyper-key} is 1, then by default the right @key{Alt} key is
-also mapped to the @key{META} key.  However, if the MS-DOS international
+also mapped to the @key{Meta} key.  However, if the MS-DOS international
 keyboard support program @file{KEYB.COM} is installed, Emacs will
-@emph{not} map the right @key{Alt} to @key{META}, since it is used for
+@emph{not} map the right @key{Alt} to @key{Meta}, since it is used for
 accessing characters like @kbd{~} and @kbd{@@} on non-US keyboard
-layouts; in this case, you may only use the left @key{Alt} as @key{META}
+layouts; in this case, you may only use the left @key{Alt} as @key{Meta}
 key.
 
 @kindex C-j @r{(MS-DOS)}
@@ -122,8 +122,8 @@ and the menu bar
 (@pxref{Menu Bar}).
 @end ifnottex
  Scroll bars don't work in MS-DOS Emacs.  PC mice usually have only
-two buttons; these act as @kbd{Mouse-1} and @kbd{Mouse-2}, but if you
-press both of them together, that has the effect of @kbd{Mouse-3}.  If
+two buttons; these act as @kbd{mouse-1} and @kbd{mouse-2}, but if you
+press both of them together, that has the effect of @kbd{mouse-3}.  If
 the mouse does have 3 buttons, Emacs detects that at startup, and all
 the 3 buttons function normally, as on X.
 
@@ -363,7 +363,7 @@ the home directory, as you would on GNU or Unix.  You can also set
 @env{HOME} variable in the environment before starting Emacs; its
 value will then override the above default behavior.
 
-  Emacs on MS-DOS handles the directory name @file{/dev} specially,
+  Emacs on MS-DOS handles the name @file{/dev} specially,
 because of a feature in the emulator libraries of DJGPP that pretends
 I/O devices have names in that directory.  We recommend that you avoid
 using an actual directory named @file{/dev} on any disk.
@@ -380,7 +380,7 @@ using an actual directory named @file{/dev} on any disk.
 (@pxref{Printing}) and @code{ps-print-buffer} (@pxref{PostScript})
 @end ifnottex
 can work on MS-DOS by sending the output to one of the printer ports,
-if a Posix-style @code{lpr} program is unavailable.  The same Emacs
+if a POSIX-style @code{lpr} program is unavailable.  The same Emacs
 variables control printing on all systems, but in some cases they have
 different default values on MS-DOS.
 
@@ -412,7 +412,7 @@ will print the region while converting it to the codepage 850 encoding.
 
 @node MS-DOS and MULE
 @subsection International Support on MS-DOS
-@cindex international support @r{(MS-DOS)}
+@cindex international support (MS-DOS)
 
   Emacs on MS-DOS supports the same international character sets as it
 does on GNU, Unix and other platforms
@@ -471,7 +471,7 @@ codepage built into the display hardware.)  You can specify a different
 codepage for Emacs to use by setting the variable @code{dos-codepage} in
 your init file.
 
-@cindex language environment, automatic selection on @r{MS-DOS}
+@cindex language environment, automatic selection on MS-DOS
   Multibyte Emacs supports only certain DOS codepages: those which can
 display Far-Eastern scripts, like the Japanese codepage 932, and those
 that encode a single ISO 8859 character set.
@@ -494,7 +494,7 @@ codes.  For example, the letter @samp{@,{c}} (@samp{c} with cedilla) has
 code 231 in the standard Latin-1 character set, but the corresponding
 DOS codepage 850 uses code 135 for this glyph.}
 
-@cindex mode line @r{(MS-DOS)}
+@cindex mode line (MS-DOS)
   All the @code{cp@var{nnn}} coding systems use the letter @samp{D}
 (for ``DOS'') as their mode-line mnemonic.  Since both the terminal
 coding system and the default coding system for file I/O are set to
@@ -567,7 +567,7 @@ asynchronous invocation on other platforms
 
   Instead of the Shell mode, which doesn't work on MS-DOS, you can use
 the @kbd{M-x eshell} command.  This invokes the Eshell package that
-implements a Posix-like shell entirely in Emacs Lisp.
+implements a POSIX-like shell entirely in Emacs Lisp.
 
   By contrast, Emacs compiled as a native Windows application
 @strong{does} support asynchronous subprocesses.

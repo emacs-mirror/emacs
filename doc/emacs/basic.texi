@@ -1,5 +1,6 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic
@@ -44,16 +45,16 @@ forward, so that point remains just after the inserted text.
 @cindex newline
 @c @findex electric-indent-just-newline
   To end a line and start a new one, type @key{RET} (@code{newline}).
-(The @key{RET} key may be labeled @key{Return} or @key{Enter} on your
-keyboard, but we refer to it as @key{RET} in this manual.)  This
-command inserts a newline character into the buffer, then indents
-(@pxref{Indentation}) according to the major mode.  If point is at the end
-of the line, the effect is to create a new blank line after it and
-indent the new line; if point is in the middle of a line, the line is
-split at that position.  To turn off the auto-indentation, you can
-either disable Electric Indent mode (@pxref{Indent Convenience}) or
-type @kbd{C-j}, which inserts just a newline, without any
-auto-indentation.
+(The @key{RET} key may be labeled @key{Return}, or @key{Enter}, or
+with a funny-looking left-pointing arrow on your keyboard, but we
+refer to it as @key{RET} in this manual.)  This command inserts a
+newline character into the buffer, then indents (@pxref{Indentation})
+according to the major mode.  If point is at the end of the line, the
+effect is to create a new blank line after it and indent the new line;
+if point is in the middle of a line, the line is split at that
+position.  To turn off the auto-indentation, you can either disable
+Electric Indent mode (@pxref{Indent Convenience}) or type @kbd{C-j},
+which inserts just a newline, without any auto-indentation.
 
   As we explain later in this manual, you can change the way Emacs
 handles text insertion by turning on @dfn{minor modes}.  For instance,
@@ -108,8 +109,8 @@ just like digits.  Case is ignored.
 @cindex Unicode characters, inserting
 @cindex insert Unicode character
 @cindex characters, inserting by name or code-point
-@cindex curly quotes
-@cindex curved quotes
+@cindex curly quotes, inserting
+@cindex curved quotes, inserting
   A few common Unicode characters can be inserted via a command
 starting with @kbd{C-x 8}.  For example, @kbd{C-x 8 [} inserts @t{‘}
 which is Unicode code-point @code{U+2018} LEFT SINGLE QUOTATION MARK,
@@ -117,8 +118,8 @@ sometimes called a left single ``curved quote'' or ``curly quote''.
 Similarly, @kbd{C-x 8 ]}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the
 curved quotes @t{’}, @t{“} and @t{”}, respectively.  Also, a working
 Alt key acts like @kbd{C-x 8}; e.g., @kbd{A-[} acts like @kbd{C-x 8 [}
-and inserts @t{‘}.  To see which characters have @kbd{C-x 8}
-shorthands, type @kbd{C-x 8 C-h}.
+and inserts `.  To see which characters have @kbd{C-x 8} shorthands,
+type @kbd{C-x 8 C-h}.
 
   Alternatively, you can use the command @kbd{C-x 8 @key{RET}}
 (@code{insert-char}).  This prompts for the Unicode name or code-point
@@ -129,12 +130,6 @@ Unicode), or a number with a specified radix, e.g., @code{#o23072}
 (octal); @xref{Integer Basics,,, elisp, The Emacs Lisp Reference
 Manual}.  The command then inserts the corresponding character into
 the buffer.
-
-  In some contexts, if you type a quotation using grave accent and
-apostrophe @t{`like this'}, it is converted to a form @t{‘like this’}
-using single quotation marks.  Similarly, typing a quotation @t{``like
-this''} using double grave accent and apostrophe converts it to a form
-@t{“like this”} using double quotation marks.  @xref{Quotation Marks}.
 
   For example, the following all insert the same character:
 
@@ -149,6 +144,13 @@ this''} using double grave accent and apostrophe converts it to a form
 
   A numeric argument to @kbd{C-q} or @kbd{C-x 8 ...} specifies
 how many copies of the character to insert (@pxref{Arguments}).
+
+  In addition, in some contexts, if you type a quotation using grave
+accent and apostrophe @t{`like this'}, it is converted to a form
+@t{‘like this’} using single quotation marks, even without @kbd{C-x 8}
+commands.  Similarly, typing a quotation @t{``like this''} using
+double grave accent and apostrophe converts it to a form @t{“like
+this”} using double quotation marks.  @xref{Quotation Marks}.
 
 @node Moving Point
 @section Changing the Location of Point
@@ -182,17 +184,8 @@ Move forward one character (@code{forward-char}).
 @item @key{RIGHT}
 @kindex RIGHT
 @findex right-char
-@vindex visual-order-cursor-movement
-@cindex cursor, visual-order motion
-This command (@code{right-char}) behaves like @kbd{C-f}, with one
-exception: when editing right-to-left scripts such as Arabic, it
-instead moves @emph{backward} if the current paragraph is a
-right-to-left paragraph.  @xref{Bidirectional Editing}.  If
-@code{visual-order-cursor-movement} is non-@code{nil}, this command
-moves to the character that is to the right of the current screen
-position, moving to the next or previous screen line as appropriate.
-Note that this might potentially move point many buffer positions
-away, depending on the surrounding bidirectional context.
+This command (@code{right-char}) behaves like @kbd{C-f}, except when
+point is in a right-to-left paragraph (@pxref{Bidirectional Editing}).
 
 @item C-b
 @kindex C-b
@@ -202,12 +195,8 @@ Move backward one character (@code{backward-char}).
 @item @key{LEFT}
 @kindex LEFT
 @findex left-char
-This command (@code{left-char}) behaves like @kbd{C-b}, except it
-moves @emph{forward} if the current paragraph is right-to-left.
-@xref{Bidirectional Editing}.  If @code{visual-order-cursor-movement}
-is non-@code{nil}, this command moves to the character that is to the
-left of the current screen position, moving to the previous or next
-screen line as appropriate.
+This command (@code{left-char}) behaves like @kbd{C-b}, except if the
+current paragraph is right-to-left (@pxref{Bidirectional Editing}).
 
 @item C-n
 @itemx @key{DOWN}
@@ -229,21 +218,19 @@ preserves position within the line, like @kbd{C-n}.
 @item C-a
 @itemx @key{Home}
 @kindex C-a
-@kindex HOME key
+@kindex HOME
 @findex move-beginning-of-line
 Move to the beginning of the line (@code{move-beginning-of-line}).
 
 @item C-e
 @itemx @key{End}
 @kindex C-e
-@kindex END key
+@kindex END
 @findex move-end-of-line
 Move to the end of the line (@code{move-end-of-line}).
 
 @item M-f
-@kindex M-f
-@findex forward-word
-Move forward one word (@code{forward-word}).
+Move forward one word (@code{forward-word}).  @xref{Words}.
 
 @item C-@key{RIGHT}
 @itemx M-@key{RIGHT}
@@ -255,9 +242,7 @@ moves @emph{backward} by one word if the current paragraph is
 right-to-left.  @xref{Bidirectional Editing}.
 
 @item M-b
-@kindex M-b
-@findex backward-word
-Move backward one word (@code{backward-word}).
+Move backward one word (@code{backward-word}).  @xref{Words}.
 
 @item C-@key{LEFT}
 @itemx M-@key{LEFT}
@@ -288,21 +273,30 @@ arguments.
 @findex beginning-of-buffer
 Move to the top of the buffer (@code{beginning-of-buffer}).  With
 numeric argument @var{n}, move to @var{n}/10 of the way from the top.
+On graphical displays, @kbd{C-@key{HOME}} does the same.
 
 @item M->
 @kindex M->
+@kindex C-END
 @findex end-of-buffer
-Move to the end of the buffer (@code{end-of-buffer}).
+Move to the end of the buffer (@code{end-of-buffer}).  On graphical
+displays, @kbd{C-@key{END}} does the same.
 
 @item C-v
 @itemx @key{PageDown}
 @itemx @key{next}
+@kindex C-v
+@kindex PageDown
+@kindex next
 Scroll the display one screen forward, and move point onscreen if
 necessary (@code{scroll-up-command}).  @xref{Scrolling}.
 
 @item M-v
 @itemx @key{PageUp}
 @itemx @key{prior}
+@kindex M-v
+@kindex PageUp
+@kindex prior
 Scroll one screen backward, and move point onscreen if necessary
 (@code{scroll-down-command}).  @xref{Scrolling}.
 
@@ -336,10 +330,11 @@ move to the column number specified by the argument's numeric value.
 @kindex C-x C-n
 @findex set-goal-column
 Use the current column of point as the @dfn{semipermanent goal column}
-for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}).  When a
-semipermanent goal column is in effect, those commands always try to
-move to this column, or as close as possible to it, after moving
-vertically.  The goal column remains in effect until canceled.
+for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}) in the current
+buffer.  When a semipermanent goal column is in effect, those commands
+always try to move to this column, or as close as possible to it,
+after moving vertically.  The goal column remains in effect until
+canceled.
 
 @item C-u C-x C-n
 Cancel the goal column.  Henceforth, @kbd{C-n} and @kbd{C-p} try to
@@ -402,9 +397,12 @@ Delete the character after point (@code{delete-char}).
 
 @item C-k
 Kill to the end of the line (@code{kill-line}).
+
 @item M-d
 Kill forward to the end of the next word (@code{kill-word}).
+
 @item M-@key{DEL}
+@itemx M-@key{BACKSPACE}
 Kill back to the beginning of the previous word
 (@code{backward-kill-word}).
 @end table
@@ -424,7 +422,7 @@ On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
   The @key{Delete} (@code{delete-forward-char}) command deletes in the
-``opposite direction'': it deletes the character after point, i.e., the
+opposite direction: it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).
@@ -449,12 +447,11 @@ commands.
 
 @table @kbd
 @item C-/
-Undo one entry of the undo records---usually, one command worth
-(@code{undo}).
-
-@item C-x u
+@itemx C-x u
 @itemx C-_
-The same.
+Undo one entry of the undo records---usually, one command worth
+(@code{undo}).  (The first key might be unavailable on text-mode
+displays.)
 @end table
 
   Emacs records a list of changes made in the buffer text, so you can
@@ -588,7 +585,6 @@ earlier, @kbd{C-n} (@code{next-line}) and @kbd{C-p}
 (@code{previous-line}) are special exceptions: they move point down
 and up, respectively, by one screen line (@pxref{Moving Point}).
 
-@cindex truncation
 @cindex line truncation, and fringes
   Emacs can optionally @dfn{truncate} long logical lines instead of
 continuing them.  This means that every logical line occupies a single
@@ -605,15 +601,14 @@ before they get too long, by inserting newlines.  If you prefer, you
 can make Emacs insert a newline automatically when a line gets too
 long, by using Auto Fill mode.  @xref{Filling}.
 
-@cindex word wrap
   Sometimes, you may need to edit files containing many long logical
 lines, and it may not be practical to break them all up by adding
 newlines.  In that case, you can use Visual Line mode, which enables
 @dfn{word wrapping}: instead of wrapping long lines exactly at the
 right window edge, Emacs wraps them at the word boundaries (i.e.,
 space or tab characters) nearest to the right window edge.  Visual
-Line mode also redefines editing commands such as @code{C-a},
-@code{C-n}, and @code{C-k} to operate on screen lines rather than
+Line mode also redefines editing commands such as @kbd{C-a},
+@kbd{C-n}, and @kbd{C-k} to operate on screen lines rather than
 logical lines.  @xref{Visual Line Mode}.
 
 @node Position Info
@@ -628,7 +623,8 @@ Display the line number of point.
 @item M-x line-number-mode
 @itemx M-x column-number-mode
 Toggle automatic display of the current line number or column number.
-@xref{Optional Mode Line}.
+@xref{Optional Mode Line}.  If you want to have a line number
+displayed before each line, see @ref{Display Custom}.
 
 @item M-=
 Display the number of lines, words, and characters that are present in
@@ -657,7 +653,7 @@ Toggle automatic display of the size of the buffer.
 @cindex cursor location
 @cindex point location
   @kbd{M-x what-line} displays the current line number in the echo
-area.  This command is usually redundant, because the current line
+area.  This command is usually redundant because the current line
 number is shown in the mode line (@pxref{Mode Line}).  However, if you
 narrow the buffer, the mode line shows the line number relative to
 the accessible portion (@pxref{Narrowing}).  By contrast,
@@ -714,6 +710,9 @@ where the two extra numbers give the smallest and largest character
 position that point is allowed to assume.  The characters between
 those two positions are the accessible ones.  @xref{Narrowing}.
 
+  Related, but different feature is @code{display-line-numbers-mode}
+(@pxref{Display Custom}).
+
 @node Arguments
 @section Numeric Arguments
 @cindex numeric arguments
@@ -735,7 +734,7 @@ direction.
 @findex digit-argument
 @findex negative-argument
   The easiest way to specify a numeric argument is to type a digit
-and/or a minus sign while holding down the @key{META} key.  For
+and/or a minus sign while holding down the @key{Meta} key.  For
 example,
 
 @example
@@ -749,7 +748,7 @@ well as @kbd{M--}, are bound to commands (@code{digit-argument} and
 command.  @kbd{M--} without digits normally means @minus{}1.
 
 If you enter more than one digit, you need not hold down the
-@key{META} key for the second and subsequent digits.  Thus, to move
+@key{Meta} key for the second and subsequent digits.  Thus, to move
 down fifty lines, type
 
 @example
@@ -762,7 +761,7 @@ down one line, as you might expect---the @samp{0} is treated as part
 of the prefix argument.
 
 (What if you do want to insert five copies of @samp{0}?  Type @kbd{M-5
-C-u 0}.  Here, @kbd{C-u} ``terminates'' the prefix argument, so that
+C-u 0}.  Here, @kbd{C-u} terminates the prefix argument, so that
 the next keystroke begins the command that you want to execute.  Note
 that this meaning of @kbd{C-u} applies only to this case.  For the
 usual role of @kbd{C-u}, see below.)
@@ -780,17 +779,17 @@ multiplies the argument for the next command by four.  @kbd{C-u C-u}
 multiplies it by sixteen.  Thus, @kbd{C-u C-u C-f} moves forward
 sixteen characters.  Other useful combinations are @kbd{C-u C-n},
 @kbd{C-u C-u C-n} (move down a good fraction of a screen), @kbd{C-u
-C-u C-o} (make ``a lot'' of blank lines), and @kbd{C-u C-k} (kill four
+C-u C-o} (make sixteen blank lines), and @kbd{C-u C-k} (kill four
 lines).
 
   You can use a numeric argument before a self-inserting character to
 insert multiple copies of it.  This is straightforward when the
-character is not a digit; for example, @kbd{C-u 6 4 a} inserts 64
+character is not a digit; for example, @w{@kbd{C-u 6 4 a}} inserts 64
 copies of the character @samp{a}.  But this does not work for
-inserting digits; @kbd{C-u 6 4 1} specifies an argument of 641.  You
-can separate the argument from the digit to insert with another
-@kbd{C-u}; for example, @kbd{C-u 6 4 C-u 1} does insert 64 copies of
-the character @samp{1}.
+inserting digits; @w{@kbd{C-u 6 4 1}} specifies an argument of 641.
+You can separate the argument from the digit to insert with another
+@kbd{C-u}; for example, @w{@kbd{C-u 6 4 C-u 1}} does insert 64 copies
+of the character @samp{1}.
 
   Some commands care whether there is an argument, but ignore its
 value.  For example, the command @kbd{M-q} (@code{fill-paragraph})
@@ -799,7 +798,7 @@ fills text; with an argument, it justifies the text as well.
 commands, it is enough to specify the argument with a single
 @kbd{C-u}.
 
-  Some commands use the value of the argument as a repeat count, but
+  Some commands use the value of the argument as a repeat count but
 do something special when there is no argument.  For example, the
 command @kbd{C-k} (@code{kill-line}) with argument @var{n} kills
 @var{n} lines, including their terminating newlines.  But @kbd{C-k}
@@ -821,12 +820,15 @@ such arguments before the command, and to distinguish them from
 minibuffer arguments (@pxref{Minibuffer}), which are entered after
 invoking the command.
 
+  On graphical displays, @kbd{C-0}, @kbd{C-1}, etc.@ act the same as
+@kbd{M-0}, @kbd{M-1}, etc.
+
 @node Repeating
 @section Repeating a Command
 @cindex repeating a command
 
   Many simple commands, such as those invoked with a single key or
-with @kbd{M-x @var{command-name} @key{RET}}, can be repeated by
+with @w{@kbd{M-x @var{command-name} @key{RET}}}, can be repeated by
 invoking them with a numeric argument that serves as a repeat count
 (@pxref{Arguments}).  However, if the command you want to repeat
 prompts for input, or uses a numeric argument in another way, that
@@ -841,7 +843,7 @@ that were used before; it does not read new arguments each time.
 
   To repeat the command more than once, type additional @kbd{z}'s: each
 @kbd{z} repeats the command one more time.  Repetition ends when you
-type a character other than @kbd{z}, or press a mouse button.
+type a character other than @kbd{z} or press a mouse button.
 
   For example, suppose you type @kbd{C-u 2 0 C-d} to delete 20
 characters.  You can repeat that command (including its argument) three

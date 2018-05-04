@@ -1,6 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985-1986, 1995, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1995, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: K. Shane Hartman
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -227,7 +227,7 @@ Python does not lend itself to fully automatic indentation.")
     haskell-indentation-indent-line haskell-indent-cycle haskell-simple-indent
     yaml-indent-line)
   "List of indent functions that can't reindent.
-If `line-indent-function' is one of those, then `electric-indent-mode' will
+If `indent-line-function' is one of those, then `electric-indent-mode' will
 not try to reindent lines.  It is normally better to make the major
 mode set `electric-indent-inhibit', but this can be used as a workaround.")
 
@@ -417,62 +417,123 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 
 (defcustom electric-quote-comment t
   "Non-nil means to use electric quoting in program comments."
+  :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
 (defcustom electric-quote-string nil
   "Non-nil means to use electric quoting in program strings."
+  :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
+
+(defcustom electric-quote-chars '(?‘ ?’ ?“ ?”)
+  "Curved quote characters for `electric-quote-mode'.
+This list's members correspond to left single quote, right single
+quote, left double quote, and right double quote, respectively."
+  :version "26.1"
+  :type '(list character character character character)
+  :safe #'(lambda (x)
+	    (pcase x
+	      (`(,(pred characterp) ,(pred characterp)
+		 ,(pred characterp) ,(pred characterp))
+	       t)))
+  :group 'electricity)
 
 (defcustom electric-quote-paragraph t
   "Non-nil means to use electric quoting in text paragraphs."
+  :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
-(defun electric--insertable-p (string)
-  (or (not buffer-file-coding-system)
-      (eq (coding-system-base buffer-file-coding-system) 'undecided)
-      (not (unencodable-char-position nil nil buffer-file-coding-system
-                                      nil string))))
+(defcustom electric-quote-context-sensitive nil
+  "Non-nil means to replace \\=' with an electric quote depending on context.
+If `electric-quote-context-sensitive' is non-nil, Emacs replaces
+\\=' and \\='\\=' with an opening quote after a line break,
+whitespace, opening parenthesis, or quote and leaves \\=` alone."
+  :version "26.1"
+  :type 'boolean :safe #'booleanp :group 'electricity)
+
+(defcustom electric-quote-replace-double nil
+  "Non-nil means to replace \" with an electric double quote.
+Emacs replaces \" with an opening double quote after a line
+break, whitespace, opening parenthesis, or quote, and with a
+closing double quote otherwise."
+  :version "26.1"
+  :type 'boolean :safe #'booleanp :group 'electricity)
+
+(defvar electric-quote-inhibit-functions ()
+  "List of functions that should inhibit electric quoting.
+When the variable `electric-quote-mode' is non-nil, Emacs will
+call these functions in order after the user has typed an \\=` or
+\\=' character.  If one of them returns non-nil, electric quote
+substitution is inhibited.  The functions are called after the
+\\=` or \\=' character has been inserted with point directly
+after the inserted character.  The functions in this hook should
+not move point or change the current buffer.")
+
+(defvar electric-pair-text-pairs)
 
 (defun electric-quote-post-self-insert-function ()
   "Function that `electric-quote-mode' adds to `post-self-insert-hook'.
 This requotes when a quoting key is typed."
   (when (and electric-quote-mode
-             (memq last-command-event '(?\' ?\`)))
-    (let ((start
-           (if (and comment-start comment-use-syntax)
-               (when (or electric-quote-comment electric-quote-string)
-                 (let ((syntax (syntax-ppss)))
-                   (and (or (and electric-quote-comment (nth 4 syntax))
-                            (and electric-quote-string (nth 3 syntax)))
-                        (nth 8 syntax))))
-             (and electric-quote-paragraph
-                  (derived-mode-p 'text-mode)
-                  (or (eq last-command-event ?\`)
-                      (save-excursion (backward-paragraph) (point)))))))
-      (when start
-        (save-excursion
-          (if (eq last-command-event ?\`)
-              (cond ((and (electric--insertable-p "“")
-                          (search-backward "‘`" (- (point) 2) t))
-                     (replace-match "“")
-                     (when (and electric-pair-mode
-                                (eq (cdr-safe
-                                     (assq ?‘ electric-pair-text-pairs))
-                                    (char-after)))
-                       (delete-char 1))
-                     (setq last-command-event ?“))
-                    ((and (electric--insertable-p "‘")
-                          (search-backward "`" (1- (point)) t))
-                     (replace-match "‘")
-                     (setq last-command-event ?‘)))
-            (cond ((and (electric--insertable-p "”")
-                        (search-backward "’'" (- (point) 2) t))
-                   (replace-match "”")
-                   (setq last-command-event ?”))
-                  ((and (electric--insertable-p "’")
-                        (search-backward "'" (1- (point)) t))
-                   (replace-match "’")
-                   (setq last-command-event ?’)))))))))
+             (or (eq last-command-event ?\')
+                 (and (not electric-quote-context-sensitive)
+                      (eq last-command-event ?\`))
+                 (and electric-quote-replace-double
+                      (eq last-command-event ?\")))
+             (not (run-hook-with-args-until-success
+                   'electric-quote-inhibit-functions))
+             (if (derived-mode-p 'text-mode)
+                 electric-quote-paragraph
+               (and comment-start comment-use-syntax
+                    (or electric-quote-comment electric-quote-string)
+                    (let* ((syntax (syntax-ppss))
+                           (beg (nth 8 syntax)))
+                      (and beg
+                           (or (and electric-quote-comment (nth 4 syntax))
+                               (and electric-quote-string (nth 3 syntax)))
+                           ;; Do not requote a quote that starts or ends
+                           ;; a comment or string.
+                           (eq beg (nth 8 (save-excursion
+                                            (syntax-ppss (1- (point)))))))))))
+    (pcase electric-quote-chars
+      (`(,q< ,q> ,q<< ,q>>)
+       (save-excursion
+         (let ((backtick ?\`))
+           (if (or (eq last-command-event ?\`)
+                   (and (or electric-quote-context-sensitive
+                            (and electric-quote-replace-double
+                                 (eq last-command-event ?\")))
+                        (save-excursion
+                          (backward-char)
+                          (skip-syntax-backward "\\")
+                          (or (bobp) (bolp)
+                              (memq (char-before) (list q< q<<))
+                              (memq (char-syntax (char-before))
+                                    '(?\s ?\())))
+                        (setq backtick ?\')))
+               (cond ((search-backward (string q< backtick) (- (point) 2) t)
+                      (replace-match (string q<<))
+                      (when (and electric-pair-mode
+                                 (eq (cdr-safe
+                                      (assq q< electric-pair-text-pairs))
+                                     (char-after)))
+                        (delete-char 1))
+                      (setq last-command-event q<<))
+                     ((search-backward (string backtick) (1- (point)) t)
+                      (replace-match (string q<))
+                      (setq last-command-event q<))
+                     ((search-backward "\"" (1- (point)) t)
+                      (replace-match (string q<<))
+                      (setq last-command-event q<<)))
+             (cond ((search-backward (string q> ?') (- (point) 2) t)
+                    (replace-match (string q>>))
+                    (setq last-command-event q>>))
+                   ((search-backward "'" (1- (point)) t)
+                    (replace-match (string q>))
+                    (setq last-command-event q>))
+                   ((search-backward "\"" (1- (point)) t)
+                    (replace-match (string q>>))
+                    (setq last-command-event q>>))))))))))
 
 (put 'electric-quote-post-self-insert-function 'priority 10)
 
@@ -483,11 +544,14 @@ With a prefix argument ARG, enable Electric Quote mode if
 ARG is positive, and disable it otherwise.  If called from Lisp,
 enable the mode if ARG is omitted or nil.
 
-When enabled, as you type this replaces \\=` with \\=‘, \\=' with \\=’,
+When enabled, as you type this replaces \\=` with ‘, \\=' with ’,
 \\=`\\=` with “, and \\='\\=' with ”.  This occurs only in comments, strings,
 and text paragraphs, and these are selectively controlled with
 `electric-quote-comment', `electric-quote-string', and
 `electric-quote-paragraph'.
+
+Customize `electric-quote-chars' to use characters other than the
+ones listed here.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-quote-local-mode'."

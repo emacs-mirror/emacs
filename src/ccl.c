@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -12,8 +12,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +21,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -730,7 +730,7 @@ while (0)
 #endif
 
 /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
-   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
 #define ASCENDING_ORDER(lo, med, hi) (((lo) <= (med)) & ((med) <= (hi)))
 
 #define GET_CCL_RANGE(var, ccl_prog, ic, lo, hi)		\
@@ -1000,7 +1000,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_ReadBranch:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
 	  CCL_READ_CHAR (reg[rrr]);
-	  /* fall through ... */
+	  FALLTHROUGH;
 	case CCL_Branch:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
 	{
 	  int ioff = 0 <= reg[rrr] && reg[rrr] < field1 ? reg[rrr] : field1;
@@ -1174,6 +1174,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_ReadJumpCondExprConst: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  CCL_READ_CHAR (reg[rrr]);
+	  FALLTHROUGH;
 	case CCL_JumpCondExprConst: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
 	  jump_address = ic + ADDR;
@@ -1184,6 +1185,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_ReadJumpCondExprReg: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  CCL_READ_CHAR (reg[rrr]);
+	  FALLTHROUGH;
 	case CCL_JumpCondExprReg:
 	  i = reg[rrr];
 	  jump_address = ic + ADDR;
@@ -1908,8 +1910,6 @@ ccl_get_compiled_code (Lisp_Object ccl_prog, ptrdiff_t *idx)
 bool
 setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 {
-  int i;
-
   if (! NILP (ccl_prog))
     {
       struct Lisp_Vector *vp;
@@ -1931,8 +1931,7 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 	}
     }
   ccl->ic = CCL_HEADER_MAIN;
-  for (i = 0; i < 8; i++)
-    ccl->reg[i] = 0;
+  memset (ccl->reg, 0, sizeof ccl->reg);
   ccl->last_block = false;
   ccl->status = 0;
   ccl->stack_idx = 0;
@@ -1996,7 +1995,7 @@ programs.  */)
 		  : 0);
 
   ccl_driver (&ccl, NULL, NULL, 0, 0, Qnil);
-  QUIT;
+  maybe_quit ();
   if (ccl.status != CCL_STAT_SUCCESS)
     error ("Error in CCL program at %dth code", ccl.ic);
 
@@ -2071,12 +2070,10 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     }
 
   buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
-
-  if ((min (PTRDIFF_MAX, SIZE_MAX) - 256) / buf_magnification < str_bytes)
+  outbufsize = str_bytes;
+  if (INT_MULTIPLY_WRAPV (buf_magnification, outbufsize, &outbufsize)
+      || INT_ADD_WRAPV (256, outbufsize, &outbufsize))
     memory_full (SIZE_MAX);
-  outbufsize = (ccl.buf_magnification
-		? str_bytes * ccl.buf_magnification + 256
-		: str_bytes + 256);
   outp = outbuf = xmalloc (outbufsize);
 
   consumed_chars = consumed_bytes = 0;

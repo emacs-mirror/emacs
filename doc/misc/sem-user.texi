@@ -1,5 +1,5 @@
 @c This is part of the Semantic manual.
-@c Copyright (C) 1999-2005, 2007, 2009-2015 Free Software Foundation,
+@c Copyright (C) 1999-2005, 2007, 2009-2018 Free Software Foundation,
 @c Inc.
 @c See file semantic.texi for copying conditions.
 
@@ -874,9 +874,9 @@ command, like this:
 @end example
 @end defun
 
-These commands are often more accurate than the @code{find-tag}
-command (@pxref{Tags,,,emacs,Emacs manual}), because the Semantic
-Analyzer is context-sensitive.
+These commands are often more accurate than the @code{xref-find-definitions}
+command (@pxref{Looking Up Identifiers,,,emacs,Emacs manual}), because
+the Semantic Analyzer is context-sensitive.
 
 You can also use @kbd{C-c , j} (@code{semantic-complete-jump-local})
 and @kbd{C-c , J} (@code{semantic-complete-jump}) to navigate tags.
@@ -953,7 +953,7 @@ list, you can use @kbd{M-x semanticdb-find-test-translate-path}.
 @xref{Semanticdb search debugging commands}.
 
 If items should be loaded but aren't, or if you see some tables that
-have no tags in them, then you you may have an incorrectly-set search
+have no tags in them, then you may have an incorrectly-set search
 throttle (@pxref{Search Throttle}).  For example,
 
 @example
@@ -1145,7 +1145,7 @@ Typing @kbd{RET} on a reference line jumps to that reference.
 
 @node MRU Bookmarks
 @section MRU Bookmarks mode
-@cindex semantic-mru-bookmark-mode
+@cindex @code{semantic-mru-bookmark-mode}
 
 Semantic MRU Bookmarks mode is a minor mode that keeps track of the
 tags you have edited, allowing you to quickly return to them later
@@ -1173,7 +1173,7 @@ the declaration line of the function or tag on the topmost line in the
 text area.  This allows you to keep that declaration line in view at
 all times, even if it is scrolls off the ``top'' of the screen.
 
-In addition, clicking @kbd{Mouse-1} on the header line opens a context
+In addition, clicking @kbd{mouse-1} on the header line opens a context
 menu that contains menu items for copying, killing, or narrowing to
 that tag.
 
@@ -1193,13 +1193,13 @@ declarations.  Other possible tag classes are @code{variable},
 
 @node Highlight Func Mode
 @section Highlight Func Mode
-@cindex semantic-highlight-func-mode
+@cindex @code{semantic-highlight-func-mode}
 
 Semantic Highlight Function minor mode highlights the declaration line
 of the current function or tag (that is to say, the first line that
 describes the rest of the construct).
 
-In addition, clicking @kbd{Mouse-3} on the highlighted declaration
+In addition, clicking @kbd{mouse-3} on the highlighted declaration
 line opens a context menu that contains menu items for copying,
 killing, or narrowing to that tag.
 
@@ -1220,7 +1220,7 @@ Func mode.
 
 @node Tag Decoration Mode
 @section Tag Decoration Mode
-@cindex semantic-decoration-mode
+@cindex @code{semantic-decoration-mode}
 
 Semantic Tag Decoration mode ``decorates'' each tag based on certain
 arbitrary features of that tag.  Decorations are specified using the

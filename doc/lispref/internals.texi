@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1993, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -32,7 +32,9 @@ executable.  You don't have to know this material to build and install
 Emacs, since the makefiles do all these things automatically.  This
 information is pertinent to Emacs developers.
 
-   Compilation of the C source files in the @file{src} directory
+  Building Emacs requires GNU Make version 3.81 or later.
+
+  Compilation of the C source files in the @file{src} directory
 produces an executable file called @file{temacs}, also called a
 @dfn{bare impure Emacs}.  It contains the Emacs Lisp interpreter and
 I/O routines, but not the editing commands.
@@ -63,6 +65,16 @@ is the one which is installed.  The variable
 into the dumped Emacs.  If you port Emacs to a new operating system,
 and are not able to implement dumping, then Emacs must load
 @file{loadup.el} each time it starts.
+
+@cindex build details
+@cindex deterministic build
+@cindex @option{--disable-build-details} option to @command{configure}
+  By default the dumped @file{emacs} executable records details such
+as the build time and host name.  Use the
+@option{--disable-build-details} option of @command{configure} to
+suppress these details, so that building and installing Emacs twice
+from the same sources is more likely to result in identical copies of
+Emacs.
 
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
@@ -236,7 +248,7 @@ of 8k bytes, and small vectors are packed into blocks of 4k bytes).
 @cindex storage of vector-like Lisp objects
   Beyond the basic vector, a lot of objects like window, buffer, and
 frame are managed as if they were vectors.  The corresponding C data
-structures include the @code{struct vectorlike_header} field whose
+structures include the @code{union vectorlike_header} field whose
 @code{size} member contains the subtype enumerated by @code{enum pvec_type}
 and an information about how many @code{Lisp_Object} fields this structure
 contains and what the size of the rest data is.  This information is
@@ -258,7 +270,7 @@ accessible objects are also accessible.
 matter what the Lisp program or the user does, it is impossible to refer
 to them, since there is no longer a way to reach them.  Their space
 might as well be reused, since no one will miss them.  The second
-(``sweep'') phase of the garbage collector arranges to reuse them.
+(sweep) phase of the garbage collector arranges to reuse them.
 
 @c ??? Maybe add something describing weak hash tables here?
 
@@ -660,6 +672,7 @@ usage: (or CONDITIONS...)  */)
       if (!NILP (val))
         break;
       args = XCDR (args);
+      maybe_quit ();
     @}
 @end group
 
@@ -722,11 +735,11 @@ Lisp form.  For example:
 
 @example
 @group
-DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED,
+DEFUN ("foo", Ffoo, Sfoo, 0, UNEVALLED, 0
        "(list (read-char-by-name \"Insert character: \")\
               (prefix-numeric-value current-prefix-arg)\
               t))",
-  doc: /* @dots{} /*)
+  doc: /* @dots{} */)
 @end group
 @end example
 
@@ -745,9 +758,53 @@ names in the documentation string from the ones used in the C code.
 @samp{usage:} is required if the function has an unlimited number of
 arguments.
 
+Some primitives have multiple definitions, one per platform (e.g.,
+@code{x-create-frame}).  In such cases, rather than writing the
+same documentation string in each definition, only one definition has
+the actual documentation.  The others have placeholders beginning with
+@samp{SKIP}, which are ignored by the function that parses the
+@file{DOC} file.
+
 All the usual rules for documentation strings in Lisp code
 (@pxref{Documentation Tips}) apply to C code documentation strings
 too.
+
+The documentation string can be followed by a list of C function
+attributes for the C function that implements the primitive, like
+this:
+
+@example
+@group
+DEFUN ("bar", Fbar, Sbar, 0, UNEVALLED, 0
+  doc: /* @dots{} */
+  attributes: @var{attr1} @var{attr2} @dots{})
+@end group
+@end example
+
+@noindent
+You can specify more than a single attribute, one after the other.
+Currently, only the following attributes are recognized:
+
+@table @code
+@item noreturn
+Declares the C function as one that never returns.  This corresponds
+to the C11 keyword @code{_Noreturn} and to @w{@code{__attribute__
+((__noreturn__))}} attribute of GCC (@pxref{Function Attributes,,,
+gcc, Using the GNU Compiler Collection}).
+
+@item const
+Declares that the function does not examine any values except its
+arguments, and has no effects except the return value.  This
+corresponds to @w{@code{__attribute__ ((__const__))}} attribute of
+GCC.
+
+@item noinline
+This corresponds to @w{@code{__attribute__ ((__noinline__))}}
+attribute of GCC, which prevents the function from being considered
+for inlining.  This might be needed, e.g., to countermand effects of
+link-time optimizations on stack-based variables.
+@end table
+
 @end table
 
   After the call to the @code{DEFUN} macro, you must write the
@@ -778,6 +835,14 @@ functions that access non-object components must take care to refetch
 their addresses after performing Lisp evaluation.  Lisp evaluation can
 occur via calls to @code{eval_sub} or @code{Feval}, either directly or
 indirectly.
+
+@cindex @code{maybe_quit}, use in Lisp primitives
+  Note the call to @code{maybe_quit} inside the loop: this function
+checks whether the user pressed @kbd{C-g}, and if so, aborts the
+processing.  You should do that in any loop that can potentially
+require a large number of iterations; in this case, the list of
+arguments could be very long.  This increases Emacs responsiveness and
+improves user experience.
 
   You must not use C initializers for static or global variables unless
 the variables are never written once Emacs is dumped.  These variables
@@ -822,7 +887,7 @@ defined with @code{DEFVAR_BOOL} are automatically added to the list
 @code{byte-boolean-vars} used by the byte compiler.
 
 @cindex defining customization variables in C
-  If you want to make a Lisp variables that is defined in C behave
+  If you want to make a Lisp variable that is defined in C behave
 like one declared with @code{defcustom}, add an appropriate entry to
 @file{cus-start.el}.
 
@@ -1064,7 +1129,7 @@ Some of the fields of @code{struct buffer} are:
 
 @table @code
 @item header
-A header of type @code{struct vectorlike_header} is common to all
+A header of type @code{union vectorlike_header} is common to all
 vectorlike objects.
 
 @item own_text
@@ -1368,7 +1433,7 @@ The buffer's value of point, as of the last time a redisplay completed
 in this window.
 
 @item last_had_star
-A non-@code{nil} value means the window's buffer was ``modified'' when the
+A non-@code{nil} value means the window's buffer was modified when the
 window was last updated.
 
 @item vertical_scroll_bar
@@ -1584,7 +1649,7 @@ fit in @code{int} range.
 Do not assume that signed integer arithmetic wraps around on overflow.
 This is no longer true of Emacs porting targets: signed integer
 overflow has undefined behavior in practice, and can dump core or
-even cause earlier or later code to behave ``illogically''.  Unsigned
+even cause earlier or later code to behave illogically.  Unsigned
 overflow does wrap around reliably, modulo a power of two.
 
 @item

@@ -1,6 +1,6 @@
-;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend -*- coding: utf-8 -*-
+;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;    This library provides an interface to use BBDB as a backend of
@@ -42,21 +42,13 @@
 (defvar eudc-bbdb-current-query nil)
 (defvar eudc-bbdb-current-return-attributes nil)
 
-(defvar bbdb-version)
-
 (defun eudc-bbdb-field (field-symbol)
   "Convert FIELD-SYMBOL so that it is recognized by the current BBDB version.
 BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
   ;; This just-in-time translation permits upgrading from BBDB 2 to
   ;; BBDB 3 without restarting Emacs.
   (if (and (eq field-symbol 'net)
-	   (or
-	    ;; MELPA versions of BBDB may have a bad package version,
-	    ;; but they're all version 3 or later.
-	    (equal bbdb-version "@PACKAGE_VERSION@")
-	    ;; Development versions of BBDB can have the format "X.YZ
-	    ;; devo".  Split the string just in case.
-	    (version<= "3" (car (split-string bbdb-version)))))
+	   (eudc--using-bbdb-3-or-newer-p))
       'mail
     field-symbol))
 

@@ -1,6 +1,6 @@
 ;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
 
-;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Sascha Lüdecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
@@ -19,20 +19,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-and-compile
-  (if (locate-library "password-cache")
-      (require 'password-cache)
-    (require 'password)))
-
-(eval-when-compile
-  (require 'cl)
-  (require 'mm-util))
+(eval-when-compile (require 'mm-util))
 
 (require 'mm-encode)
 (require 'mml-sec)
@@ -63,17 +56,24 @@
 
 (defvar mml1991-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase.")
+(make-obsolete-variable 'mml1991-cache-passphrase
+			'mml-secure-cache-passphrase
+			"25.1")
 
 (defvar mml1991-passphrase-cache-expiry mml-secure-passphrase-cache-expiry
   "How many seconds the passphrase is cached.
 Whether the passphrase is cached at all is controlled by
 `mml1991-cache-passphrase'.")
+(make-obsolete-variable 'mml1991-passphrase-cache-expiry
+			'mml-secure-passphrase-cache-expiry
+			"25.1")
 
 (defvar mml1991-signers nil
   "A list of your own key ID which will be used to sign a message.")
 
 (defvar mml1991-encrypt-to-self nil
   "If t, add your own key ID to recipient list when encryption.")
+
 
 ;;; mailcrypt wrapper
 
@@ -193,17 +193,20 @@ Whether the passphrase is cached at all is controlled by
       (pop-to-buffer pgg-errors-buffer)
       (error "Encrypt error"))
     (delete-region (point-min) (point-max))
-    (mm-with-unibyte-current-buffer
-      (insert-buffer-substring pgg-output-buffer)
-      (goto-char (point-min))
-      (while (re-search-forward "\r+$" nil t)
-	(replace-match "" t t))
-      (when cte
-	(mm-encode-content-transfer-encoding cte))
-      (goto-char (point-min))
-      (when headers
-	(insert headers))
-      (insert "\n"))
+    (insert
+     (with-temp-buffer
+       (set-buffer-multibyte nil)
+       (insert-buffer-substring pgg-output-buffer)
+       (goto-char (point-min))
+       (while (re-search-forward "\r+$" nil t)
+	 (replace-match "" t t))
+       (when cte
+	 (mm-encode-content-transfer-encoding cte))
+       (goto-char (point-min))
+       (when headers
+	 (insert headers))
+       (insert "\n")
+       (buffer-string)))
     t))
 
 (defun mml1991-pgg-encrypt (cont &optional sign)
@@ -255,91 +258,9 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 
-(defvar mml1991-epg-secret-key-id-list nil)
-
-(defun mml1991-epg-passphrase-callback (context key-id ignore)
-  (if (eq key-id 'SYM)
-      (epg-passphrase-callback-function context key-id nil)
-    (let* ((entry (assoc key-id epg-user-id-alist))
-	   (passphrase
-	    (password-read
-	     (format "GnuPG passphrase for %s: "
-		     (if entry
-			 (cdr entry)
-		       key-id))
-	     (if (eq key-id 'PIN)
-		 "PIN"
-	       key-id))))
-      (when passphrase
-	(let ((password-cache-expiry mml1991-passphrase-cache-expiry))
-	  (password-cache-add key-id passphrase))
-	(setq mml1991-epg-secret-key-id-list
-	      (cons key-id mml1991-epg-secret-key-id-list))
-	(copy-sequence passphrase)))))
-
-(defun mml1991-epg-find-usable-key (keys usage)
-  (catch 'found
-    (while keys
-      (let ((pointer (epg-key-sub-key-list (car keys))))
-	;; The primary key will be marked as disabled, when the entire
-	;; key is disabled (see 12 Field, Format of colon listings, in
-	;; gnupg/doc/DETAILS)
-	(unless (memq 'disabled (epg-sub-key-capability (car pointer)))
-	  (while pointer
-	    (if (and (memq usage (epg-sub-key-capability (car pointer)))
-		     (not (memq (epg-sub-key-validity (car pointer))
-				'(revoked expired))))
-		(throw 'found (car keys)))
-	    (setq pointer (cdr pointer)))))
-      (setq keys (cdr keys)))))
-
-;; XXX: since gpg --list-secret-keys does not return validity of each
-;; key, `mml1991-epg-find-usable-key' defined above is not enough for
-;; secret keys.  The function `mml1991-epg-find-usable-secret-key'
-;; below looks at appropriate public keys to check usability.
-(defun mml1991-epg-find-usable-secret-key (context name usage)
-  (let ((secret-keys (epg-list-keys context name t))
-	secret-key)
-    (while (and (not secret-key) secret-keys)
-      (if (mml1991-epg-find-usable-key
-	   (epg-list-keys context (epg-sub-key-fingerprint
-				   (car (epg-key-sub-key-list
-					 (car secret-keys)))))
-	   usage)
-	  (setq secret-key (car secret-keys)
-		secret-keys nil)
-	(setq secret-keys (cdr secret-keys))))
-    secret-key))
-
 (defun mml1991-epg-sign (cont)
-  (let ((context (epg-make-context))
-	headers cte signer-key signers signature)
-    (if (eq mm-sign-option 'guided)
-	(setq signers (epa-select-keys context "Select keys for signing.
-If no one is selected, default secret key is used.  "
-				       mml1991-signers t))
-      (if mml1991-signers
-	  (setq signers (delq nil
-			      (mapcar
-			       (lambda (name)
-				 (setq signer-key
-				       (mml1991-epg-find-usable-secret-key
-					context name 'sign))
-				 (unless (or signer-key
-					     (y-or-n-p
-					      (format
-					       "No secret key for %s; skip it? "
-					       name)))
-				   (error "No secret key for %s" name))
-				 signer-key)
-			       mml1991-signers)))))
-    (epg-context-set-armor context t)
-    (epg-context-set-textmode context t)
-    (epg-context-set-signers context signers)
-    (if mml1991-cache-passphrase
-	(epg-context-set-passphrase-callback
-	 context
-	 #'mml1991-epg-passphrase-callback))
+  (let ((inhibit-redisplay t)
+	headers cte)
     ;; Don't sign headers.
     (goto-char (point-min))
     (when (re-search-forward "^$" nil t)
@@ -352,28 +273,26 @@ If no one is selected, default secret key is used.  "
       (when cte
 	(setq cte (intern (downcase cte)))
 	(mm-decode-content-transfer-encoding cte)))
-    (condition-case error
-	(setq signature (epg-sign-string context (buffer-string) 'clear)
-	      mml1991-epg-secret-key-id-list nil)
-      (error
-       (while mml1991-epg-secret-key-id-list
-	 (password-cache-remove (car mml1991-epg-secret-key-id-list))
-	 (setq mml1991-epg-secret-key-id-list
-	       (cdr mml1991-epg-secret-key-id-list)))
-       (signal (car error) (cdr error))))
-    (delete-region (point-min) (point-max))
-    (mm-with-unibyte-current-buffer
-      (insert signature)
-      (goto-char (point-min))
-      (while (re-search-forward "\r+$" nil t)
-	(replace-match "" t t))
-      (when cte
-	(mm-encode-content-transfer-encoding cte))
-      (goto-char (point-min))
-      (when headers
-	(insert headers))
-      (insert "\n"))
-    t))
+    (let* ((pair (mml-secure-epg-sign 'OpenPGP 'clear))
+	   (signature (car pair)))
+      (unless (stringp signature)
+        (error "Signature failed"))
+      (delete-region (point-min) (point-max))
+      (insert
+       (with-temp-buffer
+	 (set-buffer-multibyte nil)
+	 (insert signature)
+	 (goto-char (point-min))
+	 (while (re-search-forward "\r+$" nil t)
+	   (replace-match "" t t))
+	 (when cte
+	   (mm-encode-content-transfer-encoding cte))
+	 (goto-char (point-min))
+	 (when headers
+	   (insert headers))
+	 (insert "\n")
+	 (buffer-string)))
+      t)))
 
 (defun mml1991-epg-encrypt (cont &optional sign)
   (goto-char (point-min))
@@ -386,78 +305,7 @@ If no one is selected, default secret key is used.  "
       (delete-region (point-min) (point))
       (when cte
 	(mm-decode-content-transfer-encoding (intern (downcase cte))))))
-  (let ((context (epg-make-context))
-	(recipients
-	 (if (message-options-get 'message-recipients)
-	     (split-string
-	      (message-options-get 'message-recipients)
-	      "[ \f\t\n\r\v,]+")))
-	recipient-key signer-key cipher signers config)
-    (when mml1991-encrypt-to-self
-      (unless mml1991-signers
-	(error "mml1991-signers is not set"))
-      (setq recipients (nconc recipients mml1991-signers)))
-    ;; We should remove this check if epg-0.0.6 is released.
-    (if (and (condition-case nil
-		 (require 'epg-config)
-	       (error))
-	     (functionp #'epg-expand-group))
-	(setq config (epg-configuration)
-	      recipients
-	      (apply #'nconc
-		     (mapcar (lambda (recipient)
-			       (or (epg-expand-group config recipient)
-				   (list recipient)))
-			     recipients))))
-    (if (eq mm-encrypt-option 'guided)
-	(setq recipients
-	      (epa-select-keys context "Select recipients for encryption.
-If no one is selected, symmetric encryption will be performed.  "
-			       recipients))
-      (setq recipients
-	    (delq nil (mapcar
-		       (lambda (name)
-			 (setq recipient-key (mml1991-epg-find-usable-key
-					      (epg-list-keys context name)
-					      'encrypt))
-			 (unless (or recipient-key
-				   (y-or-n-p
-				    (format "No public key for %s; skip it? "
-					    name)))
-			   (error "No public key for %s" name))
-			 recipient-key)
-		       recipients)))
-      (unless recipients
-	(error "No recipient specified")))
-    (when sign
-      (if (eq mm-sign-option 'guided)
-	  (setq signers (epa-select-keys context "Select keys for signing.
-If no one is selected, default secret key is used.  "
-					 mml1991-signers t))
-	(if mml1991-signers
-	    (setq signers (delq nil
-				(mapcar
-				 (lambda (name)
-				   (mml1991-epg-find-usable-secret-key
-				    context name 'sign))
-				 mml1991-signers)))))
-      (epg-context-set-signers context signers))
-    (epg-context-set-armor context t)
-    (epg-context-set-textmode context t)
-    (if mml1991-cache-passphrase
-	(epg-context-set-passphrase-callback
-	 context
-	 #'mml1991-epg-passphrase-callback))
-    (condition-case error
-	(setq cipher
-	      (epg-encrypt-string context (buffer-string) recipients sign)
-	      mml1991-epg-secret-key-id-list nil)
-      (error
-       (while mml1991-epg-secret-key-id-list
-	 (password-cache-remove (car mml1991-epg-secret-key-id-list))
-	 (setq mml1991-epg-secret-key-id-list
-	       (cdr mml1991-epg-secret-key-id-list)))
-       (signal (car error) (cdr error))))
+  (let ((cipher (mml-secure-epg-encrypt 'OpenPGP cont sign)))
     (delete-region (point-min) (point-max))
     (insert "\n" cipher))
   t)

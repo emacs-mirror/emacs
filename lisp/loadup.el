@@ -1,6 +1,6 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2015 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -47,39 +47,51 @@
 
 ;;; Code:
 
+;; This is used in xdisp.c to determine when bidi reordering is safe.
+;; (It starts non-nil in temacs, but we set it non-nil here anyway, in
+;; case someone loads loadup one more time.)  We reset it after
+;; successfully loading charprop.el, which defines the Unicode tables
+;; bidi.c needs for its job.
+(setq redisplay--inhibit-bidi t)
+
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
 (if (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
 	;; FIXME this is irritatingly fragile.
-	(equal (nth 4 command-line-args) "unidata-gen.el")
-	(equal (nth 7 command-line-args) "unidata-gen-files")
+	(and (stringp (nth 4 command-line-args))
+	     (string-match "^unidata-gen\\(\\.elc?\\)?$"
+			   (nth 4 command-line-args)))
+	(member (nth 7 command-line-args) '("unidata-gen-file"
+					    "unidata-gen-charprop"))
 	(if (fboundp 'dump-emacs)
 	    (string-match "src/bootstrap-emacs" (nth 0 command-line-args))
 	  t))
     (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
+      ;; Value of max-lisp-eval-depth when compiling initially.
+      ;; During bootstrapping the byte-compiler is run interpreted when
+      ;; compiling itself, which uses a lot more stack than usual.
+      (setq max-lisp-eval-depth 2200)
       (setq load-path (list (expand-file-name "." dir)
 			    (expand-file-name "emacs-lisp" dir)
+			    (expand-file-name "progmodes" dir)
 			    (expand-file-name "language" dir)
 			    (expand-file-name "international" dir)
 			    (expand-file-name "textmodes" dir)
 			    (expand-file-name "vc" dir)))))
 
-;; Prevent build-time PATH getting stored in the binary.
-;; Mainly cosmetic, but helpful for Guix.  (Bug#20330)
-(setq exec-path nil)
-
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
-    (setq purify-flag (make-hash-table :test 'equal :size 70000)))
+    (setq purify-flag (make-hash-table :test 'equal :size 80000)))
 
 (message "Using load-path %s" load-path)
 
 ;; This is a poor man's `last', since we haven't loaded subr.el yet.
-(if (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
-	(equal (member "dump" command-line-args) '("dump")))
+(if (and (fboundp 'dump-emacs)
+         (or (equal (member "bootstrap" command-line-args) '("bootstrap"))
+             (equal (member "dump" command-line-args) '("dump"))))
     (progn
       ;; To reduce the size of dumped Emacs, we avoid making huge char-tables.
       (setq inhibit-load-charset-map t)
@@ -110,6 +122,10 @@
 (load "format")
 (load "bindings")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
+;; We are now capable of resizing the mini-windows, so give the
+;; variable its advertised default value (it starts as nil, see
+;; xdisp.c).
+(setq resize-mini-windows 'grow-only)
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
@@ -137,18 +153,25 @@
 ;; emacs binary has been built.  We therefore compromise and keep
 ;; ldefs-boot.el in the repository.  This does not need to be updated
 ;; as often as the real loaddefs.el would.  Bootstrap should always
-;; work with ldefs-boot.el.  Therefore, Whenever a new autoload cookie
+;; work with ldefs-boot.el.  Therefore, whenever a new autoload cookie
 ;; gets added that is necessary during bootstrapping, ldefs-boot.el
 ;; should be updated by overwriting it with an up-to-date copy of
-;; loaddefs.el that is uncorrupted by local changes.
-;; autogen/update_autogen can be used to periodically update ldefs-boot.
+;; loaddefs.el that is not corrupted by local changes.
+;; admin/update_autogen can be used to update ldefs-boot.el periodically.
 (condition-case nil (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
+(let ((new (make-hash-table :test 'equal)))
+  ;; Now that loaddefs has populated definition-prefixes, purify its contents.
+  (maphash (lambda (k v) (puthash (purecopy k) (purecopy v) new))
+           definition-prefixes)
+  (setq definition-prefixes new))
+
 (load "emacs-lisp/nadvice")
 (load "emacs-lisp/cl-preloaded")
 (load "minibuffer")            ;After loaddefs, for define-minor-mode.
+(load "obarray")        ;abbrev.el is implemented in terms of obarrays.
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
 
@@ -163,6 +186,8 @@
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.
 (load "international/charprop.el" t)
+(if (featurep 'charprop)
+    (setq redisplay--inhibit-bidi nil))
 (load "international/characters")
 (load "composite")
 
@@ -276,7 +301,13 @@
 (if (featurep 'ns)
     (progn
       (load "term/common-win")
-      (load "term/ns-win")))
+      ;; Don't load ucs-normalize.el unless uni-*.el files were
+      ;; already produced, because it needs uni-*.el files that might
+      ;; not be built early enough during bootstrap.
+      (when (featurep 'charprop)
+        (load "international/mule-util")
+        (load "international/ucs-normalize")
+        (load "term/ns-win"))))
 (if (fboundp 'x-create-frame)
     ;; Do it after loading term/foo-win.el since the value of the
     ;; mouse-wheel-*-event vars depends on those files being loaded or not.
@@ -307,7 +338,7 @@
   ;; We reset load-path after dumping.
   ;; For a permanent change in load-path, use configure's
   ;; --enable-locallisppath option.
-  ;; See http://debbugs.gnu.org/16107 for more details.
+  ;; See https://debbugs.gnu.org/16107 for more details.
   (or (equal lp load-path)
       (message "Warning: Change in load-path due to site-load will be \
 lost after dumping")))
@@ -320,12 +351,14 @@ lost after dumping")))
 ;; in non-ASCII directories is to manipulate unibyte strings in the
 ;; current locale's encoding.
 (if (and (member (car (last command-line-args)) '("dump" "bootstrap"))
+         (fboundp 'dump-emacs)
 	 (multibyte-string-p default-directory))
     (error "default-directory must be unibyte when dumping Emacs!"))
 
-;; Determine which last version number to use
+;; Determine which build number to use
 ;; based on the executables that now exist.
 (if (and (equal (last command-line-args) '("dump"))
+         (fboundp 'dump-emacs)
 	 (not (eq system-type 'ms-dos)))
     (let* ((base (concat "emacs-" emacs-version "."))
 	   (exelen (if (eq system-type 'windows-nt) -4))
@@ -337,14 +370,14 @@ lost after dumping")))
 			     files)))
       (setq emacs-repository-version (condition-case nil (emacs-repository-get-version)
                               (error nil)))
-      ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
-      (defconst emacs-version
-	(format "%s.%d"
-		emacs-version (if versions (1+ (apply 'max versions)) 1)))))
+      ;; A constant, so we shouldn't change it with `setq'.
+      (defconst emacs-build-number
+	(if versions (1+ (apply 'max versions)) 1))))
 
 
 (message "Finding pointers to doc strings...")
-(if (equal (last command-line-args) '("dump"))
+(if (and (fboundp 'dump-emacs)
+         (equal (last command-line-args) '("dump")))
     (Snarf-documentation "DOC")
   (condition-case nil
       (Snarf-documentation "DOC")
@@ -410,8 +443,17 @@ lost after dumping")))
 (if (null (garbage-collect))
     (setq pure-space-overflow t))
 
-(if (member (car (last command-line-args)) '("dump" "bootstrap"))
+;; Make sure we will attempt bidi reordering henceforth.
+(setq redisplay--inhibit-bidi nil)
+
+(if (and (fboundp 'dump-emacs)
+         (member (car (last command-line-args)) '("dump" "bootstrap")))
     (progn
+      ;; Prevent build-time PATH getting stored in the binary.
+      ;; Mainly cosmetic, but helpful for Guix.  (Bug#20330)
+      ;; Do this here, rather than earlier, so that the above code
+      ;; can invoke Git commands and the like.
+      (setq exec-path nil)
       (message "Dumping under the name emacs")
       (condition-case ()
 	  (delete-file "emacs")
@@ -427,7 +469,7 @@ lost after dumping")))
                    ;; Don't bother adding another name if we're just
                    ;; building bootstrap-emacs.
                    (equal (last command-line-args) '("bootstrap"))))
-	  (let ((name (concat "emacs-" emacs-version))
+	  (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
 		(exe (if (eq system-type 'windows-nt) ".exe" "")))
 	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))

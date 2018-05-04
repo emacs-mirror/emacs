@@ -1,6 +1,6 @@
 ;;; semantic/bovine/grammar.el --- Bovine's input grammar mode
 ;;
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -475,6 +475,7 @@ Menu items are appended to the common grammar menu.")
 	 ;; This is with-demoted-errors.
 	 (condition-case err
 	     (with-current-buffer (find-file-noselect infile)
+	       (setq infile buffer-file-name)
 	       (if outdir (setq default-directory outdir))
 	       (semantic-grammar-create-package nil t))
 	   (error (message "%s" (error-message-string err)) nil)))
@@ -505,12 +506,16 @@ Menu items are appended to the common grammar menu.")
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
-;; This file was generated from admin/grammars/"
-		lang ".by.
+;; This file was generated from "
+		(if (string-match "\\(admin/grammars/.*\\.by\\)\\'" infile)
+		    (match-string 1 infile)
+		  (concat "admin/grammars/"
+			  (if (string-equal lang "scm") "scheme" lang) ".by"))
+".
 
 ;;; Code:
 ")

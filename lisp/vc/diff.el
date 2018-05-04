@@ -1,6 +1,6 @@
 ;;; diff.el --- run `diff'  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 1996, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Frank Bresz
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -167,7 +167,7 @@ Possible values are:
       (setq default-directory thisdir)
       (let ((inhibit-read-only t))
 	(insert command "\n"))
-      (if (and (not no-async) (fboundp 'start-process))
+      (if (and (not no-async) (fboundp 'make-process))
 	  (let ((proc (start-process "Diff" buf shell-file-name
                                      shell-command-switch command)))
 	    (set-process-filter proc 'diff-process-filter)

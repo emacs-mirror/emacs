@@ -14,6 +14,7 @@
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuChangeSelection(Display *display, register XMenu *menu, register int p_num, register int s_num, char *data, int data_sw, char *label, int label_sw)

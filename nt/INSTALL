@@ -1,7 +1,7 @@
 		    Building and Installing Emacs on MS-Windows
                           using the MSYS and MinGW tools
 
-  Copyright (C) 2013-2015 Free Software Foundation, Inc.
+  Copyright (C) 2013-2018 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
@@ -11,6 +11,9 @@ build will run on Windows 9X and newer systems).
 
   Do not use this recipe with Cygwin.  For building on Cygwin, use the
   normal installation instructions, ../INSTALL.
+
+  For building Emacs using the MinGW64/MSYS2 toolchain, see the
+  instructions in the file INSTALL.W64 in this directory.
 
 * For the brave (a.k.a. "impatient"):
 
@@ -49,7 +52,8 @@ build will run on Windows 9X and newer systems).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs'
+       ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs' \
+         CFLAGS='-O0 -g3'
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -74,6 +78,48 @@ build will run on Windows 9X and newer systems).
 
   If these short instructions somehow fail, read the rest of this
   file.
+
+* Installing Git for Windows
+
+  Skip this section if you already have Git installed and configured,
+  or if you are building from the release tarball, not from the
+  development repository.
+
+  Git for Windows is available from this download page:
+
+    https://github.com/git-for-windows/git/releases
+
+  That page offers both 32-bit and 64-bit installations; pick the one
+  suitable for your OS.  In general, we recommend to install a 64-bit
+  Git if you have a 64-bit Windows system; the 32-bit Git will run on
+  64-bit Windows just fine, but might run into memory problems where
+  the 64-bit Git won't.
+
+  During Git installation, be sure to select the "Checkout as-is,
+  commit as-is" option from the "Configure line ending conversions"
+  dialog.  Otherwise, Git will convert text files to DOS-style CRLF
+  end-of-line (EOL) format, which will cause subtle problems when
+  building Emacs, because MSYS tools (see below) used to build Emacs
+  use binary file I/O that preserves the CR characters that get in the
+  way of some text-processing tools, like 'makeinfo' and the commands
+  invoked by the autogen.sh script.
+
+  If you already have Git installed and configured with some other EOL
+  conversion option, you will need to reconfigure it, removing the
+  following variables from all of your .gitconfig files:
+
+    core.eol
+    core.safecrlf
+    core.autocrlf
+
+  If you cloned the Emacs directory before changing these config
+  variables, you will have to delete the repository and re-clone it
+  after the change.
+
+  The instructions for cloning the Emacs repository can be found on
+  the Emacs's Savannah project page:
+
+    https://savannah.gnu.org/projects/emacs
 
 * Installing MinGW and MSYS
 
@@ -136,6 +182,10 @@ build will run on Windows 9X and newer systems).
   command "mingw-get remove msys-texinfo", or mark "msys-texinfo" for
   removal in the mingw-get GUI, then select Installation->Apply Changes.)
 
+  (Similarly, we recommend to refrain from installing the MinGW
+  Autoconf package; instead, install its MSYS build available from the
+  ezwinports site, see below.)
+
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
   script" section for the build instructions.  If you want to build it
@@ -143,7 +193,7 @@ build will run on Windows 9X and newer systems).
   optional libraries near the end of this document, before you start
   the build.  Also, consider installing additional MinGW packages that
   are required/recommended, especially if you are building from the
-  repository, as described in the next section.
+  development repository, as described in the next section.
 
 ** Installing MinGW and MSYS manually
 
@@ -187,7 +237,7 @@ build will run on Windows 9X and newer systems).
   been warned!
 
   Additional MinGW packages are required/recommended, especially if
-  you are building from the repository:
+  you are building from the development repository:
 
    . Texinfo (needed to produce the Info manuals when building from
      the repository, and for "make install")
@@ -197,7 +247,7 @@ build will run on Windows 9X and newer systems).
    . pkg-config (invoked by the configure script to look for optional
      packages)
 
-     Available from http://www.gtk.org/download/win32.php
+     Available from http://sourceforge.net/projects/ezwinports/files/.
 
    . gzip (needed to compress files during "make install")
 
@@ -241,11 +291,9 @@ build will run on Windows 9X and newer systems).
      These should only be needed if you intend to build development
      versions of Emacs from the repository.
 
-   . Additional packages (needed only if building from the
-     repository): Automake and Autoconf.  They are available from
-     here:
+   . Additional package (needed only if building from the repository):
+     Autoconf.  It is available from here:
 
-       http://sourceforge.net/projects/ezwinports/files/automake-1.11.6-msys-bin.zip/download
        http://sourceforge.net/projects/ezwinports/files/autoconf-2.65-msys-bin.zip/download
 
   MSYS packages are distributed as .tar.lzma compressed archives.  To
@@ -256,11 +304,10 @@ build will run on Windows 9X and newer systems).
   For example, use D:\MSYS or D:\usr\MSYS as the top-level directory
   from which you unpack all of the MSYS packages.
 
-  After installing Automake and Autoconf, make sure any of the *.m4
-  files you might have in your MinGW installation also exist in the
-  MSYS installation tree, in the share/aclocal directory.  Those *.m4
-  files which exist in the MinGW tree, but not in the MSYS tree should
-  be copied there.
+  After installing Autoconf, make sure any of the *.m4 files you might
+  have in your MinGW installation also exist in the MSYS installation
+  tree, in the share/aclocal directory.  Those *.m4 files which exist
+  in the MinGW tree, but not in the MSYS tree should be copied there.
 
   If/when you are confident in your MinGW/MSYS installation, and want
   to speed up the builds, we recommend installing a pre-release
@@ -333,13 +380,15 @@ build will run on Windows 9X and newer systems).
      $ ./autogen.sh
      Checking whether you have the necessary tools...
      (Read INSTALL.REPO for more details on building Emacs)
+     Checking for autoconf (need at least version 2.65) ... ok
+     Your system has the required tools.
+     Building aclocal.m4 ...
+     Running 'autoreconf -fi -I m4' ...
+     You can now run './configure'.
 
-     Checking for autoconf (need at least version 2.65)...
-     ok
-     Checking for automake (need at least version 1.11)...
-     ok
-     Your system has the required tools, running autoreconf...
-     You can now run `./configure'.
+  If the script fails because it cannot find Git, you will need to
+  arrange for the MSYS Bash's PATH to include the Git's 'bin'
+  subdirectory, where there's the git.exe executable.
 
 * Configuring Emacs for MinGW:
 
@@ -413,13 +462,14 @@ build will run on Windows 9X and newer systems).
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
 
-     CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking='yes,glyphs'
+     ./configure --prefix=PREFIX --enable-checking='yes,glyphs' \
+       CFLAGS='-O0 -g3'
 
   Once invoked, the configure script will run for some time, and, if
   successful, will eventually produce a summary of the configuration
   similar to this:
 
-     Configured for `i686-pc-mingw32'.
+     Configured for 'i686-pc-mingw32'.
 
        Where should the build process find the source code?    /path/to/emacs/sources
        What compiler should emacs be built with?               gcc  -std=gnu99 -O0 -g3
@@ -438,6 +488,8 @@ build will run on Windows 9X and newer systems).
        Does Emacs use a gif library?                           yes
        Does Emacs use a png library?                           yes
        Does Emacs use -lrsvg-2?                                yes
+       Does Emacs use cairo?                                   no
+       Does Emacs use -llcms2?                                 yes
        Does Emacs use imagemagick?                             no
        Does Emacs support sound?                               no
        Does Emacs use -lgpm?                                   no
@@ -577,14 +629,15 @@ build will run on Windows 9X and newer systems).
   is in the PATH or otherwise accessible and that the binaries are
   compatible (for example, that they were built with the same compiler).
 
+  To support XPM images (required for color tool-bar icons), you will
+  need the libXpm library.  It is available from the ezwinports site,
+  http://sourceforge.net/projects/ezwinports/files/ and from
+  https://ftp.gnu.org/gnu/emacs/windows/.
+
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
-  precompiled libraries and headers on the GTK download page for
-  Windows (http://www.gtk.org/download/win32.php for 32-bit builds and
-  http://www.gtk.org/download/win64.php for 64-bit builds).  The
-  ezwinports site, http://sourceforge.net/projects/ezwinports/files/
-  also offers PNG (as well as other image libraries), which are
-  usually newer.
+  precompiled libraries and headers on the ezwinports site and on
+  ftp.gnu.org.
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which
@@ -601,7 +654,8 @@ build will run on Windows 9X and newer systems).
   For GIF images, we recommend to use versions 5.0.0 or later of
   giflib, as it is much enhanced wrt previous versions.  You can find
   precompiled binaries and headers for giflib on the ezwinports site,
-  http://sourceforge.net/projects/ezwinports/files/.
+  http://sourceforge.net/projects/ezwinports/files/ and on
+  https://ftp.gnu.org/gnu/emacs/windows/.
 
   Version 5.0.0 and later of giflib are binary incompatible with
   previous versions (the signatures of several functions have
@@ -615,76 +669,42 @@ build will run on Windows 9X and newer systems).
 
   For JPEG images, you will need libjpeg 6b or later, which will be
   called libjpeg-N.dll, jpeg62.dll, libjpeg.dll, or jpeg.dll.  You can
-  find these on the ezwinports site.
+  find these on the ezwinports site and on ftp.gnu.org.
 
   TIFF images require libTIFF 3.0 or later, which will be called
   libtiffN.dll or libtiff-N.dll or libtiff.dll.  These can be found on
   the ezwinports site.
 
-  Pre-built versions of librsvg and its dependencies can be found in
-  one of these places:
+  Pre-built versions of librsvg and its dependencies can be found
+  here:
 
-  1. http://sourceforge.net/projects/ezwinports/files/
+    http://sourceforge.net/projects/ezwinports/files/
 
-     This site includes a minimal (as much as possible for librsvg)
-     build of the library and its dependencies; it is also more
-     up-to-date with the latest upstream versions.  However, it
-     currently only offers 32-bit builds.  For building Emacs, you
-     need to download from this site all of the following *-bin.zip
-     archives:
+    This site includes a minimal (as much as possible for librsvg)
+    build of the library and its dependencies; it is also more
+    up-to-date with the latest upstream versions.  However, it
+    currently only offers 32-bit builds.  For building Emacs, you need
+    to download from this site all of the following *-bin.zip
+    archives:
 
-       librsvg, gdk-pixbuf, cairo, glib
+      librsvg, gdk-pixbuf, cairo, glib
 
-     The 'bin' archives on this site include both header files and the
-     libraries needed for building with librsvg and for running Emacs.
-     The librsvg archive includes all the shared libraries needed to
-     run Emacs with SVG support; the other 3 packages are required
-     because the compiler needs to see their header files when
-     building Emacs.
+    The 'bin' archives on this site include both header files and the
+    libraries needed for building with librsvg and for running Emacs.
+    The librsvg archive includes all the shared libraries needed to
+    run Emacs with SVG support; the other 3 packages are required
+    because the compiler needs to see their header files when building
+    Emacs.
 
-  2. GTK project download site for Windows (see above for 2 URLs,
-     either for 32-bit builds or 64-bit builds)
+    https://ftp.gnu.org/gnu/emacs/windows/
 
-     This is the official Windows download site of the GTK project.
-     Its builds of librsvg are fatter, but are currently the only
-     alternative for 64-bit builds.  The easiest way to obtain the
-     dependencies required for building from this site is to download
-     a pre-bundled GTK+ development environment for Windows.  If you
-     would nevertheless like to download only the packages that are
-     strictly required, then, as of the time of this writing, here's
-     the list of GTK+ packages you will need:
-
-        librsvg, pango, freetype-2.4.11, freetype-2.4.2, croco, cairo,
-        glib, gdk-pixbuf, fontconfig, libpng-1.4.x, libpng-1.5.x,
-        libffi, libxml2, zlib
-
-     The GTK download page provides 2 separate archives for each
-     package: a 'bin' (binary) archive with programs and DLLs, and a
-     'dev' (development) archive with header files, import libraries,
-     and pkg-config files; download and install both archives for each
-     package you need.  (Sources of each package are available in a
-     separate, 3rd archive.)
-
-     As you see, some libraries for using this site's librsvg are
-     needed in more than one version -- this is because librsvg and
-     some of its dependencies were linked against different versions
-     of those libraries, and will look only for those DLLs when you
-     invoke SVG function.  So there's a bit of "DLL hell" involved
-     here, but at least in theory this should work, as each library
-     will dynamically link only against its dependencies, even if
-     another version of the same library is already loaded.  In
-     particular, at least 2 different versions of libpng will have to
-     be installed on your machine.  When you install these libpng
-     versions, be sure to keep the header files and the pkg-config
-     files in sync, i.e. install both the 'bin' and 'dev' archives of
-     the same libpng version together.
+    More fat ports, from the MSYS2 project.
 
   To use librsvg at runtime, ensure that librsvg and its dependencies
   are on your PATH, or in the same directory as the emacs.exe binary.
   If you are downloading from the ezwinports site, you only need to
   install a single archive, librsvg-X.Y.Z-w32-bin.zip, which includes
-  all the dependency DLLs.  For the GTK project site, download the
-  'bin' archives for each of the libraries mentioned above.
+  all the dependency DLLs.
 
   If you think you've got all the dependencies and SVG support is
   still not working, check your PATH for other libraries that shadow
@@ -736,7 +756,8 @@ build will run on Windows 9X and newer systems).
   session.
 
   You can get pre-built binaries (including any required DLL and the
-  header files) at http://sourceforge.net/projects/ezwinports/files/.
+  header files) at http://sourceforge.net/projects/ezwinports/files/
+  and on https://ftp.gnu.org/gnu/emacs/windows/.
 
 * Optional libxml2 support
 
@@ -758,6 +779,7 @@ build will run on Windows 9X and newer systems).
   (including any required DLL and the header files) is here:
 
      http://sourceforge.net/projects/ezwinports/files/
+     https://ftp.gnu.org/gnu/emacs/windows/
 
   For runtime support of libxml2, you will also need to install the
   libiconv "development" tarball, because the libiconv headers need to
@@ -768,6 +790,30 @@ build will run on Windows 9X and newer systems).
 
   You need the libiconv-X.Y.Z-N-mingw32-dev.tar.lzma tarball from that
   site.
+
+* Optional support for decompressing text
+
+  Emacs can decompress text if compiled with the zlib library.
+  Prebuilt binaries of zlib DLL (for 32-bit builds of Emacs) are
+  available from the ezwinports site and on ftp.gnu.org; see above for
+  the URLs.
+
+  (This library is also a prerequisite for several image libraries, so
+  you may already have it; look for zlib1.dll or libz-1.dll.)
+
+* Optional support for lcms2 library
+
+  Emacs can expose some capabilities of the Little CMS color
+  management engine to Lisp programs using the lcms2 library.
+  Prebuilt binaries of lcms2 DLL (for 32-bit builds of Emacs) are
+  available from the ezwinports site and from the MSYS2 project.
+
+* Optional support for JSON
+
+  Emacs can provide built-in support for JSON parsing and
+  serialization using the libjansson library.  Prebuilt binaries of
+  the libjansson DLL (for 32-bit builds of Emacs) are available from
+  the ezwinports site and from the MSYS2 project.
 
 
 This file is part of GNU Emacs.
@@ -783,4 +829,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

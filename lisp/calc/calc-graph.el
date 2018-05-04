@@ -1,9 +1,8 @@
 ;;; calc-graph.el --- graph output functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -909,9 +908,9 @@
 (defun calc-graph-show-tty (output)
   "Default calc-gnuplot-plot-command for \"tty\" output mode.
 This is useful for tek40xx and other graphics-terminal types."
-  (call-process-region 1 1 shell-file-name
-		       nil calc-gnuplot-buffer nil
-		       "-c" (format "cat %s >/dev/tty; rm %s" output output)))
+  (call-process shell-file-name nil calc-gnuplot-buffer nil
+                shell-command-switch
+                (format "cat %s >/dev/tty; rm %s" output output)))
 
 (defvar calc-dumb-map nil
   "The keymap for the \"dumb\" terminal plot.")

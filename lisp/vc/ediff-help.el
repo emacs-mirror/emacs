@@ -1,6 +1,6 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -112,7 +112,7 @@ n,SPC -next diff     |     h -highlighting       |  r -restore buf C's old diff
   C-l -recenter      | #f/#h -focus/hide regions |  + -combine diff regions
   v/V -scroll up/dn  |     X -read-only in buf X | wx -save buf X
   </> -scroll lt/rt  |     m -wide display       | wd -save diff output
-    ~ -swap variants |     s -shrink window C    |  / -show ancestor buff
+    ~ -swap variants |     s -shrink window C    |  / -show/hide ancestor buff
                      |  $$ -show clashes only    |  & -merge w/new default
                      |  $* -skip changed regions |
 "
@@ -190,7 +190,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 			     (overlays-at pos)))))
 
     (if (not (stringp cmd))
-	(error "Hmm...  I don't see an Ediff command around here..."))
+	(user-error "Hmm...  I don't see an Ediff command around here..."))
 
     (ediff-documentation "Quick Help Commands")
 
@@ -236,7 +236,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 	    ((string= cmd "s") (re-search-forward "^['`‘]s['’]"))
 	    ((string= cmd "+") (re-search-forward "^['`‘]\\+['’]"))
 	    ((string= cmd "=") (re-search-forward "^['`‘]=['’]"))
-	    (t (error "Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer")))
+	    (t (user-error "Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer")))
       ) ; let case-fold-search
     ))
 

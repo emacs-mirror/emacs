@@ -1,6 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2015 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -57,9 +57,6 @@
 This is to avoid conflict with user settings if URL is dumped with
 Emacs."
   (unless url-setup-done
-
-    ;; Make OS/2 happy
-    ;;(push '("http" "80") tcp-binary-process-input-services)
 
     (mailcap-parse-mailcaps)
     (mailcap-parse-mimetypes)
@@ -122,6 +119,8 @@ variable in the original buffer as a forwarding pointer.")
 
 (defvar url-retrieve-number-of-calls 0)
 (autoload 'url-cache-prune-cache "url-cache")
+(defvar url-asynchronous t
+  "Bind to nil before calling `url-retrieve' to signal :nowait connections.")
 
 ;;;###autoload
 (defun url-retrieve (url callback &optional cbargs silent inhibit-cookies)
@@ -186,13 +185,14 @@ URL-encoded before it's used."
   (when (stringp url)
     (set-text-properties 0 (length url) nil url)
     (setq url (url-encode-url url)))
-  (if (not (vectorp url))
+  (if (not (url-p url))
       (setq url (url-generic-parse-url url)))
   (if (not (functionp callback))
       (error "Must provide a callback function to url-retrieve"))
   (unless (url-type url)
     (error "Bad url: %s" (url-recreate-url url)))
   (setf (url-silent url) silent)
+  (setf (url-asynchronous url) url-asynchronous)
   (setf (url-use-cookies url) (not inhibit-cookies))
   ;; Once in a while, remove old entries from the URL cache.
   (when (zerop (% url-retrieve-number-of-calls 1000))
@@ -221,14 +221,21 @@ URL-encoded before it's used."
     buffer))
 
 ;;;###autoload
-(defun url-retrieve-synchronously (url &optional silent inhibit-cookies)
+(defun url-retrieve-synchronously (url &optional silent inhibit-cookies timeout)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data
 associated with it (the case for dired, info, or mailto URLs that need
-no further processing).  URL is either a string or a parsed URL."
+no further processing).  URL is either a string or a parsed URL.
+
+If SILENT is non-nil, don't do any messaging while retrieving.
+If INHIBIT-COOKIES is non-nil, refuse to store cookies.  If
+TIMEOUT is passed, it should be a number that says (in seconds)
+how long to wait for a response before giving up."
   (url-do-setup)
 
   (let ((retrieval-done nil)
+	(start-time (current-time))
+        (url-asynchronous nil)
         (asynch-buffer nil))
     (setq asynch-buffer
 	  (url-retrieve url (lambda (&rest ignored)
@@ -250,7 +257,10 @@ no further processing).  URL is either a string or a parsed URL."
 	;; buffer-local variable so we can find the exact process that we
 	;; should be waiting for.  In the mean time, we'll just wait for any
 	;; process output.
-	(while (not retrieval-done)
+	(while (and (not retrieval-done)
+                    (or (not timeout)
+                        (< (float-time (time-subtract nil start-time))
+                           timeout)))
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)
@@ -281,7 +291,7 @@ no further processing).  URL is either a string or a parsed URL."
             ;; `sleep-for' was tried but it lead to other forms of
             ;; hanging.  --Stef
             (unless (or (with-local-quit
-			  (accept-process-output proc))
+			  (accept-process-output proc 1))
 			(null proc))
               ;; accept-process-output returned nil, maybe because the process
               ;; exited (and may have been replaced with another).  If we got

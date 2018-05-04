@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Milan Zamazal <pdm@zamazal.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -252,7 +252,7 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	;; Parentheses
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
-	  (while (re-search-forward "[a-zA-Z]_*\\(\(\\)" end t)
+	  (while (re-search-forward "[a-zA-Z]_*\\((\\)" end t)
 	    (unless (glasses-parenthesis-exception-p (point-at-bol) (match-end 1))
 	      (glasses-make-overlay (match-beginning 1) (match-end 1)
 				    'glasses-parenthesis))))))))
@@ -291,7 +291,7 @@ recognized according to the current value of the variable `glasses-separator'."
 	      (goto-char (match-beginning 1)))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
-	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)
+	  (while (re-search-forward "[a-zA-Z]_*\\( \\)(" nil t)
 	    (unless (glasses-parenthesis-exception-p (point-at-bol) (1+ (match-end 1)))
 	      (replace-match "" t nil nil 1)))))))
   ;; nil must be returned to allow use in write file hooks
@@ -326,10 +326,10 @@ add virtual separators (like underscores) at places they belong to."
       (if glasses-mode
 	  (progn
 	    (jit-lock-register 'glasses-change)
-	    (add-hook 'local-write-file-hooks
+	    (add-hook 'write-file-functions
 		      'glasses-convert-to-unreadable nil t))
 	(jit-lock-unregister 'glasses-change)
-	(remove-hook 'local-write-file-hooks
+	(remove-hook 'write-file-functions
 		     'glasses-convert-to-unreadable t)))))
 
 

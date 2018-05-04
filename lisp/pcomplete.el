@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -271,6 +271,39 @@ to all arguments, such as variable names after a $."
 (defsubst pcomplete-executables (&optional regexp)
   "Complete amongst a list of directories and executables."
   (pcomplete-entries regexp 'file-executable-p))
+
+(defmacro pcomplete-here (&optional form stub paring form-only)
+  "Complete against the current argument, if at the end.
+If completion is to be done here, evaluate FORM to generate the completion
+table which will be used for completion purposes.  If STUB is a
+string, use it as the completion stub instead of the default (which is
+the entire text of the current argument).
+
+For an example of when you might want to use STUB: if the current
+argument text is `long-path-name/', you don't want the completions
+list display to be cluttered by `long-path-name/' appearing at the
+beginning of every alternative.  Not only does this make things less
+intelligible, but it is also inefficient.  Yet, if the completion list
+does not begin with this string for every entry, the current argument
+won't complete correctly.
+
+The solution is to specify a relative stub.  It allows you to
+substitute a different argument from the current argument, almost
+always for the sake of efficiency.
+
+If PARING is nil, this argument will be pared against previous
+arguments using the function `file-truename' to normalize them.
+PARING may be a function, in which case that function is used for
+normalization.  If PARING is t, the argument dealt with by this
+call will not participate in argument paring.  If it is the
+integer 0, all previous arguments that have been seen will be
+cleared.
+
+If FORM-ONLY is non-nil, only the result of FORM will be used to
+generate the completions list.  This means that the hook
+`pcomplete-try-first-hook' will not be run."
+  (declare (debug t))
+  `(pcomplete--here (lambda () ,form) ,stub ,paring ,form-only))
 
 (defcustom pcomplete-command-completion-function
   (function
@@ -772,7 +805,7 @@ this is `comint-dynamic-complete-functions'."
 		(setq c (cdr c)))
 	      (setq pcomplete-stub (substring common-stub 0 len)
 		    pcomplete-autolist t)
-	      (when (and begin (not pcomplete-show-list))
+	      (when (and begin (> len 0) (not pcomplete-show-list))
 		(delete-region begin (point))
 		(pcomplete-insert-entry "" pcomplete-stub))
 	      (throw 'pcomplete-completions completions))
@@ -950,7 +983,7 @@ Arguments NO-GANGING and ARGS-FOLLOW are currently ignored."
 		(function
 		 (lambda (opt)
 		   (concat "-" opt)))
-		(pcomplete-uniqify-list choices))))
+		(pcomplete-uniquify-list choices))))
     (let ((arg (pcomplete-arg)))
       (when (and (> (length arg) 1)
 		 (stringp arg)
@@ -1013,39 +1046,6 @@ See the documentation for `pcomplete-here'."
              ;; Old calling convention, might still be used by files
              ;; byte-compiled with the older code.
              (eval form)))))
-
-(defmacro pcomplete-here (&optional form stub paring form-only)
-  "Complete against the current argument, if at the end.
-If completion is to be done here, evaluate FORM to generate the completion
-table which will be used for completion purposes.  If STUB is a
-string, use it as the completion stub instead of the default (which is
-the entire text of the current argument).
-
-For an example of when you might want to use STUB: if the current
-argument text is `long-path-name/', you don't want the completions
-list display to be cluttered by `long-path-name/' appearing at the
-beginning of every alternative.  Not only does this make things less
-intelligible, but it is also inefficient.  Yet, if the completion list
-does not begin with this string for every entry, the current argument
-won't complete correctly.
-
-The solution is to specify a relative stub.  It allows you to
-substitute a different argument from the current argument, almost
-always for the sake of efficiency.
-
-If PARING is nil, this argument will be pared against previous
-arguments using the function `file-truename' to normalize them.
-PARING may be a function, in which case that function is used for
-normalization.  If PARING is t, the argument dealt with by this
-call will not participate in argument paring.  If it is the
-integer 0, all previous arguments that have been seen will be
-cleared.
-
-If FORM-ONLY is non-nil, only the result of FORM will be used to
-generate the completions list.  This means that the hook
-`pcomplete-try-first-hook' will not be run."
-  (declare (debug t))
-  `(pcomplete--here (lambda () ,form) ,stub ,paring ,form-only))
 
 
 (defmacro pcomplete-here* (&optional form stub form-only)
@@ -1269,7 +1269,7 @@ If specific documentation can't be given, be generic."
 
 ;; general utilities
 
-(defun pcomplete-uniqify-list (l)
+(defun pcomplete-uniquify-list (l)
   "Sort and remove multiples in L."
   (setq l (sort l 'string-lessp))
   (let ((m l))
@@ -1280,6 +1280,9 @@ If specific documentation can't be given, be generic."
 	(setcdr m (cddr m)))
       (setq m (cdr m))))
   l)
+(define-obsolete-function-alias
+  'pcomplete-uniqify-list
+  'pcomplete-uniquify-list "27.1")
 
 (defun pcomplete-process-result (cmd &rest args)
   "Call CMD using `call-process' and return the simplest result."

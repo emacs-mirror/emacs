@@ -1,6 +1,6 @@
-;;; info-xref.el --- check external references in an Info document
+;;; info-xref.el --- check external references in an Info document -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -454,7 +454,7 @@ and can take a long time."
         (cond ((symbolp load)
                (condition-case cause (require load)
                  (error
-                  (info-xref-output "Symbol `%s': cannot require '%s: %s"
+                  (info-xref-output "Symbol `%s': cannot require `%s': %s"
                                     symbol load cause))))
               ;; skip if previously loaded
               ((assoc load load-history))

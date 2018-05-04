@@ -15,7 +15,7 @@ This manual documents Newsticker, a feed reader for Emacs.  It
 corresponds to Emacs version @value{EMACSVER}.
 
 @noindent
-Copyright @copyright{} 2004--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -239,17 +239,17 @@ The position of groups and feeds within the tree can be changed with these
 commands:
 
 @table @kbd
-@item M-up
-@itemx M-down
-@kindex M-up
-@kindex M-down
+@item M-@key{UP}
+@itemx M-@key{DOWN}
+@kindex M-UP
+@kindex M-DOWN
 @findex newsticker-group-shift-feed-up
 @findex newsticker-group-shift-feed-down
 Shift the currently selected feed up and down within its group.
-@item M-S-up
-@itemx M-S-down
-@kindex M-S-up
-@kindex M-S-down
+@item M-S-@key{UP}
+@itemx M-S-@key{DOWN}
+@kindex M-S-UP
+@kindex M-S-DOWN
 @findex newsticker-group-shift-group-up
 @findex newsticker-group-shift-group-down
 Shift the currently selected group up and down within its parent group.
@@ -397,8 +397,8 @@ Mark current item as immortal.  Immortal items are kept forever.
 @table @kbd
 @cindex Get News
 @item v
-@itemx RET
-@itemx <mouse-1>
+@itemx @key{RET}
+@itemx mouse-1
 @findex newsticker-treeview-browse-url
 Open the link to the full article (as contained in the current
 headline) in your web browser @code{newsticker-treeview-browse-url}).
@@ -440,20 +440,18 @@ headlines.  Instead of reading headlines yourself you can tell
 Newsticker to do that for you.
 
 @vindex newsticker-new-item-functions
-In order to do so write a function which takes three arguments
+In order to do so write a function which takes two arguments
 
 @table @var
-@item FEED
+@item FEEDNAME
 the name of the corresponding news feed,
-@item TITLE
-the title of the headline,
-@item DESC
-the decoded description of the headline.
+@item ITEM
+the decoded headline.
 @end table
 
 and add it to @code{newsticker-new-item-functions}.  Each function
 contained in this list is called once for each new headline.
-Depending on the feed, the title and the description of a headline you
+Depending on the feed name and the contents of the new headline you
 can
 
 @itemize
@@ -463,7 +461,7 @@ descriptions (for which a function already exists, see
 @code{newsticker-download-images}),
 @item
 automatically save enclosed audio and video files (for which another
-function exists as well, see @code{newsticker-download-images}),
+function exists as well, see @code{newsticker-download-enclosures}),
 @item
 flash the screen while playing some sound,
 @item

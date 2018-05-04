@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1994, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Debugging
@@ -18,6 +18,16 @@ alter its internal state.
 
 @item
 You can use Edebug, a source-level debugger for Emacs Lisp.
+
+@item
+@cindex tracing Lisp programs
+You can trace the execution of functions involved in the problem using
+the tracing facilities provided by the @file{trace.el} package.  This
+package provides the functions @code{trace-function-foreground} and
+@code{trace-function-background} for tracing function calls, and
+@code{trace-values} for adding values of select variables to the
+trace.  For the details, see the documentation of these facilities in
+@file{trace.el}.
 
 @item
 If a syntactic problem is preventing Lisp from even reading the
@@ -69,6 +79,7 @@ debugger recursively.  @xref{Recursive Editing}.
 * Error Debugging::       Entering the debugger when an error happens.
 * Infinite Loops::        Stopping and debugging a program that doesn't exit.
 * Function Debugging::    Entering it when a certain function is called.
+* Variable Debugging::    Entering it when a variable is modified.
 * Explicit Debug::        Entering it at a certain point in the program.
 * Using Debugger::        What the debugger does; what you see while in it.
 * Debugger Commands::     Commands used while in the debugger.
@@ -134,14 +145,14 @@ set @code{debug-ignored-errors} to @code{nil}.
 @defopt eval-expression-debug-on-error
 If this variable has a non-@code{nil} value (the default), running the
 command @code{eval-expression} causes @code{debug-on-error} to be
-temporarily bound to to @code{t}.  @xref{Lisp Eval,, Evaluating
+temporarily bound to @code{t}.  @xref{Lisp Eval,, Evaluating
 Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}.
 
 If @code{eval-expression-debug-on-error} is @code{nil}, then the value
 of @code{debug-on-error} is not changed during @code{eval-expression}.
 @end defopt
 
-@defvar debug-on-signal
+@defopt debug-on-signal
 Normally, errors caught by @code{condition-case} never invoke the
 debugger.  The @code{condition-case} gets a chance to handle the error
 before the debugger gets a chance.
@@ -152,13 +163,20 @@ presence of @code{condition-case}.  (To invoke the debugger, the error
 must still fulfill the criteria specified by @code{debug-on-error} and
 @code{debug-ignored-errors}.)
 
+@cindex emacsclient, getting a backtrace
+@cindex backtrace from emacsclient's @option{--eval}
+For example, setting this variable is useful to get a backtrace from
+code evaluated by emacsclient's @option{--eval} option.  If Lisp code
+evaluated by emacsclient signals an error while this variable is
+non-@code{nil}, the backtrace will popup in the running Emacs.
+
 @strong{Warning:} Setting this variable to non-@code{nil} may have
 annoying effects.  Various parts of Emacs catch errors in the normal
 course of affairs, and you may not even realize that errors happen
 there.  If you need to debug code wrapped in @code{condition-case},
 consider using @code{condition-case-unless-debug} (@pxref{Handling
 Errors}).
-@end defvar
+@end defopt
 
 @defopt debug-on-event
 If you set @code{debug-on-event} to a special event (@pxref{Special
@@ -282,6 +300,36 @@ omitted or @code{nil}, it cancels break-on-entry for all functions.
 Calling @code{cancel-debug-on-entry} does nothing to a function which is
 not currently set up to break on entry.
 @end deffn
+
+@node Variable Debugging
+@subsection Entering the debugger when a variable is modified
+@cindex variable write debugging
+@cindex debugging changes to variables
+
+Sometimes a problem with a function is due to a wrong setting of a
+variable.  Setting up the debugger to trigger whenever the variable is
+changed is a quick way to find the origin of the setting.
+
+@deffn Command debug-on-variable-change variable
+This function arranges for the debugger to be called whenever
+@var{variable} is modified.
+
+It is implemented using the watchpoint mechanism, so it inherits the
+same characteristics and limitations: all aliases of @var{variable}
+will be watched together, only dynamic variables can be watched, and
+changes to the objects referenced by variables are not detected.  For
+details, see @ref{Watching Variables}.
+@end deffn
+
+@deffn Command cancel-debug-on-variable-change &optional variable
+This function undoes the effect of @code{debug-on-variable-change} on
+@var{variable}.  When called interactively, it prompts for
+@var{variable} in the minibuffer.  If @var{variable} is omitted or
+@code{nil}, it cancels break-on-change for all variables.  Calling
+@code{cancel-debug-on-variable-change} does nothing to a variable
+which is not currently set up to break on change.
+@end deffn
+
 
 @node Explicit Debug
 @subsection Explicit Entry to the Debugger
@@ -571,7 +619,7 @@ was called.  The convention for arguments is detailed in the description
 of @code{debug} (@pxref{Invoking the Debugger}).
 @end defvar
 
-@deffn Command backtrace
+@defun backtrace
 @cindex run time stack
 @cindex call stack
 This function prints a trace of Lisp function calls currently active.
@@ -608,7 +656,7 @@ forms are elided.
   (list ...computing arguments...)
 @end group
   (progn ...)
-  eval((progn (1+ var) (list (quote testing) (backtrace))))
+  eval((progn (1+ var) (list 'testing (backtrace))))
   (setq ...)
   (save-excursion ...)
   (let ...)
@@ -621,7 +669,38 @@ forms are elided.
 ----------- Buffer: backtrace-output ------------
 @end group
 @end smallexample
-@end deffn
+@end defun
+
+@defopt debugger-stack-frame-as-list
+If this variable is non-@code{nil}, every stack frame of the backtrace
+is displayed as a list.  This aims at improving the backtrace
+readability at the cost of special forms no longer being visually
+different from regular function calls.
+
+With @code{debugger-stack-frame-as-list} non-@code{nil}, the above
+example would look as follows:
+
+@smallexample
+@group
+----------- Buffer: backtrace-output ------------
+  (backtrace)
+  (list ...computing arguments...)
+@end group
+  (progn ...)
+  (eval (progn (1+ var) (list 'testing (backtrace))))
+  (setq ...)
+  (save-excursion ...)
+  (let ...)
+  (with-output-to-temp-buffer ...)
+  (eval (with-output-to-temp-buffer ...))
+  (eval-last-sexp-1 nil)
+@group
+  (eval-last-sexp nil)
+  (call-interactively eval-last-sexp)
+----------- Buffer: backtrace-output ------------
+@end group
+@end smallexample
+@end defopt
 
 @defvar debug-on-next-call
 @cindex @code{eval}, and debugging
@@ -654,9 +733,11 @@ invocation.
 The advantage of using this variable rather than an ordinary global
 variable is that the data will never carry over to a subsequent command
 invocation.
+
+This variable is obsolete and will be removed in future versions.
 @end defvar
 
-@defun backtrace-frame frame-number
+@defun backtrace-frame frame-number &optional base
 The function @code{backtrace-frame} is intended for use in Lisp
 debuggers.  It returns information about what computation is happening
 in the stack frame @var{frame-number} levels down.
@@ -673,8 +754,29 @@ In the return value, @var{function} is whatever was supplied as the
 case of a macro call.  If the function has a @code{&rest} argument, that
 is represented as the tail of the list @var{arg-values}.
 
+If @var{base} is specified, @var{frame-number} counts relative to
+the topmost frame whose @var{function} is @var{base}.
+
 If @var{frame-number} is out of range, @code{backtrace-frame} returns
 @code{nil}.
+@end defun
+
+@defun mapbacktrace function &optional base
+The function @code{mapbacktrace} calls @var{function} once for each
+frame in the backtrace, starting at the first frame whose function is
+@var{base} (or from the top if @var{base} is omitted or @code{nil}).
+
+@var{function} is called with four arguments: @var{evald}, @var{func},
+@var{args}, and @var{flags}.
+
+If a frame has not evaluated its arguments yet or is a special form,
+@var{evald} is @code{nil} and @var{args} is a list of forms.
+
+If a frame has evaluated its arguments and called its function
+already, @var{evald} is @code{t} and @var{args} is a list of values.
+@var{flags} is a plist of properties of the current frame: currently,
+the only supported property is @code{:debug-on-exit}, which is
+@code{t} if the stack frame's @code{debug-on-exit} flag is set.
 @end defun
 
 @include edebug.texi
@@ -684,11 +786,11 @@ If @var{frame-number} is out of range, @code{backtrace-frame} returns
 @cindex debugging invalid Lisp syntax
 
   The Lisp reader reports invalid syntax, but cannot say where the real
-problem is.  For example, the error ``End of file during parsing'' in
+problem is.  For example, the error @samp{End of file during parsing} in
 evaluating an expression indicates an excess of open parentheses (or
 square brackets).  The reader detects this imbalance at the end of the
 file, but it cannot figure out where the close parenthesis should have
-been.  Likewise, ``Invalid read syntax: ")"'' indicates an excess close
+been.  Likewise, @samp{Invalid read syntax: ")"} indicates an excess close
 parenthesis or missing open parenthesis, but does not say where the
 missing parenthesis belongs.  How, then, to find what to change?
 
@@ -816,50 +918,65 @@ be cleaner to combine them.
 @section Profiling
 @cindex profiling
 @cindex profile
+@cindex performance analysis
 @cindex measuring resource usage
 @cindex memory usage
 
-If your program is working correctly, but you want to make it run more
-quickly or efficiently, the first thing to do is @dfn{profile} your
-code so that you know how it is using resources.  If you find that one
-particular function is responsible for a significant portion of the
-runtime, you can start looking for ways to optimize that piece.
+If your program is working correctly, but not fast enough, and you
+want to make it run more quickly or efficiently, the first thing to do
+is @dfn{profile} your code so that you know where it spends most of
+the execution time.  If you find that one particular function is
+responsible for a significant portion of the execution time, you can
+start looking for ways to optimize that piece.
 
 Emacs has built-in support for this.  To begin profiling, type
 @kbd{M-x profiler-start}.  You can choose to profile by processor
-usage, memory usage, or both.  After doing some work, type
-@kbd{M-x profiler-report} to display a summary buffer for each
-resource that you chose to profile.  The names of the report buffers
-include the times at which the reports were generated, so you can
-generate another report later on without erasing previous results.
-When you have finished profiling, type @kbd{M-x profiler-stop} (there
-is a small overhead associated with profiling).
+usage, memory usage, or both.  Then run the code you'd like to speed
+up.  After that, type @kbd{M-x profiler-report} to display a summary
+buffer for each resource (cpu and memory) that you chose to profile.
+The names of the report buffers include the times at which the reports
+were generated, so you can generate another report later on without
+erasing previous results.  When you have finished profiling, type
+@kbd{M-x profiler-stop} (there is a small overhead associated with
+profiling, so we don't recommend leaving it active except when you are
+actually running the code you want to examine).
 
 The profiler report buffer shows, on each line, a function that was
-called, followed by how much resource (processor or memory) it used in
-absolute and percentage times since profiling started.  If a given
+called, followed by how much resources (cpu or memory) it used in
+absolute and percentage terms since profiling started.  If a given
 line has a @samp{+} symbol at the left-hand side, you can expand that
-line by typing @key{RET}, in order to see the function(s) called by
-the higher-level function.  Pressing @key{RET} again will collapse
-back to the original state.
+line by typing @kbd{@key{RET}}, in order to see the function(s) called
+by the higher-level function.  Use a prefix argument (@kbd{C-u
+@key{RET}}) to see the whole call tree below a function.  Pressing
+@kbd{@key{RET}} again will collapse back to the original state.
 
-Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function.
-Press @kbd{d} to view a function's documentation.
-You can save a profile to a file using @kbd{C-x C-w}.
-You can compare two profiles using @kbd{=}.
+Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function
+at point.  Press @kbd{d} to view a function's documentation.  You can
+save a profile to a file using @kbd{C-x C-w}.  You can compare two
+profiles using @kbd{=}.
 
 @c FIXME reversed calltree?
 
 @cindex @file{elp.el}
 @cindex timing programs
-The @file{elp} library offers an alternative approach.  See the file
-@file{elp.el} for instructions.
+The @file{elp} library offers an alternative approach, which is useful
+when you know in advance which Lisp function(s) you want to profile.
+Using that library, you begin by setting @code{elp-function-list} to
+the list of function symbols---those are the functions you want to
+profile.  Then type @w{@kbd{M-x elp-instrument-list @key{RET} nil
+@key{RET}}} to arrange for profiling those functions.  After running
+the code you want to profile, invoke @w{@kbd{M-x elp-results}} to
+display the current results.  See the file @file{elp.el} for more
+detailed instructions.  This approach is limited to profiling
+functions written in Lisp, it cannot profile Emacs primitives.
 
 @cindex @file{benchmark.el}
 @cindex benchmarking
-You can check the speed of individual Emacs Lisp forms using the
-@file{benchmark} library.  See the functions @code{benchmark-run} and
-@code{benchmark-run-compiled} in @file{benchmark.el}.
+You can measure the time it takes to evaluate individual Emacs Lisp
+forms using the @file{benchmark} library.  See the macros
+@code{benchmark-run} and @code{benchmark-run-compiled} in
+@file{benchmark.el}.  You can also use the @code{benchmark} command
+for timing forms interactively.
 
 @c Not worth putting in the printed manual.
 @ifnottex

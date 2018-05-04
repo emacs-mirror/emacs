@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -86,6 +86,8 @@ After the communication, this variable is set to nil.")
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
 
+(define-obsolete-variable-alias 'x-select-enable-clipboard
+  'select-enable-clipboard "25.1")
 (defcustom select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
 This can be in addition to, but in preference to, the primary selection,
@@ -94,18 +96,16 @@ if applicable (i.e. under X11)."
   :group 'killing
   ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
   :version "24.1")
-(define-obsolete-variable-alias 'x-select-enable-clipboard
-  'select-enable-clipboard "25.1")
 
+(define-obsolete-variable-alias 'x-select-enable-primary
+  'select-enable-primary "25.1")
 (defcustom select-enable-primary nil
-  "Non-nil means cutting and pasting uses the primary selection
+  "Non-nil means cutting and pasting uses the primary selection.
 The existence of a primary selection depends on the underlying GUI you use.
 E.g. it doesn't exist under MS-Windows."
   :type 'boolean
   :group 'killing
-  :version "24.1")
-(define-obsolete-variable-alias 'x-select-enable-primary
-  'select-enable-primary "25.1")
+  :version "25.1")
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
@@ -235,7 +235,7 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 
 (defun gui-get-primary-selection ()
   "Return the PRIMARY selection, or the best emulation thereof."
-  (or (gui-get-selection 'PRIMARY)
+  (or (gui--selection-value-internal 'PRIMARY)
       (and (fboundp 'w32-get-selection-value)
            (eq (framep (selected-frame)) 'w32)
            ;; MS-Windows emulates PRIMARY in x-get-selection, but only
@@ -291,8 +291,10 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see.  This argument is
-ignored on NS, MS-Windows and MS-DOS."
+in `selection-converter-alist', which see.  Window systems other
+than X usually support only a small subset of these symbols, in
+addition to `STRING'; MS-Windows supports `TARGETS', which reports
+the formats available in the clipboard if TYPE is `CLIPBOARD'."
   (let ((data (gui-backend-get-selection (or type 'PRIMARY)
                                          (or data-type 'STRING))))
     (when (and (stringp data)
@@ -474,6 +476,9 @@ two markers or an overlay.  Otherwise, it is nil."
 
 	   (t
 	    (error "Unknown selection type: %S" type)))))
+
+      ;; Most programs are unable to handle NUL bytes in strings.
+      (setq str (replace-regexp-in-string "\0" "\\0" str t t))
 
       (setq next-selection-coding-system nil)
       (cons type str))))

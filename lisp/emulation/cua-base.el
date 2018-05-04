@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -302,7 +302,7 @@ is not turned on."
 If there is additional input within this time, the prefix key is
 used as a normal prefix key.  So typing a key sequence quickly will
 inhibit overriding the prefix key.
-As a special case, if the prefix keys repeated within this time, the
+As a special case, if the prefix key is repeated within this time, the
 first prefix key is discarded, so typing a prefix key twice in quick
 succession will also inhibit overriding the prefix key.
 If the value is nil, use a shifted prefix key to inhibit the override."
@@ -852,8 +852,6 @@ With numeric prefix arg, copy to register 0-9 instead."
   (if (fboundp 'cua--cancel-rectangle)
       (cua--cancel-rectangle)))
 
-(declare-function x-clipboard-yank "../term/x-win" ())
-
 (put 'cua-paste 'delete-selection 'yank)
 (defun cua-paste (arg)
   "Paste last cut or copied region or rectangle.
@@ -884,10 +882,8 @@ If global mark is active, copy from register or one character."
 	 ((consp regtxt) (cua--insert-rectangle regtxt))
 	 ((stringp regtxt) (insert-for-yank regtxt))
 	 (t (message "Unknown data in register %c" cua--register))))
-       ((eq this-original-command 'clipboard-yank)
-	(clipboard-yank))
-       ((eq this-original-command 'x-clipboard-yank)
-	(x-clipboard-yank))
+       ((memq this-original-command '(clipboard-yank x-clipboard-yank))
+        (funcall this-original-command))
        (t (yank arg)))))))
 
 

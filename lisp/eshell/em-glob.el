@@ -1,6 +1,6 @@
 ;;; em-glob.el --- extended file name globbing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -193,8 +193,8 @@ The basic syntax is:
   *      .*      matches any group of characters (or none)
   #      *       matches zero or more occurrences of preceding
   ##     +       matches one or more occurrences of preceding
-  (x)    \(x\)   makes `x' a regular expression group
-  |      \|      boolean OR within an expression group
+  (x)    \\(x\\)   makes `x' a regular expression group
+  |      \\|      boolean OR within an expression group
   [a-b]  [a-b]   matches a character or range
   [^a]   [^a]    excludes a character or range
 

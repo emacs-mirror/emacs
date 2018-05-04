@@ -2,7 +2,7 @@
 # Configuration script for src/config.h under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1993-1997, 1999-2000, 2002-2015 Free Software
+# Copyright (C) 1993-1997, 1999-2000, 2002-2018 Free Software
 # Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -27,11 +27,12 @@
 #ifndef MSDOS\
 #define MSDOS\
 #endif
-/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2015 Free Software Foundation, Inc."/
+/^#undef COPYRIGHT *$/s/^.*$/#define COPYRIGHT "Copyright (C) 2018 Free Software Foundation, Inc."/
 /^#undef DIRECTORY_SEP *$/s!^.*$!#define DIRECTORY_SEP '/'!
 /^#undef DOS_NT *$/s/^.*$/#define DOS_NT/
 /^#undef FLOAT_CHECK_DOMAIN *$/s/^.*$/#define FLOAT_CHECK_DOMAIN/
 /^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
+/^#undef HAVE_SBRK *$/s/^.*$/#define HAVE_SBRK 1/
 /^#undef HAVE_SETITIMER *$/s/^.*$/#define HAVE_SETITIMER 1/
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
@@ -55,6 +56,7 @@
 /^#undef HAVE_STRNCASECMP *$/s/^.*$/#define HAVE_STRNCASECMP 1/
 /^#undef HAVE_STRUCT_TM_TM_ZONE *$/s/^.*$/#define HAVE_STRUCT_TM_TM_ZONE 1/
 /^#undef HAVE_SYNC *$/s/^.*$/#define HAVE_SYNC 1/
+/^#undef HAVE___BUILTIN_FRAME_ADDRESS *$/s/^.*$/#define HAVE___BUILTIN_FRAME_ADDRESS 1/
 /^#undef HAVE___BUILTIN_UNWIND_INIT *$/s/^.*$/#define HAVE___BUILTIN_UNWIND_INIT 1/
 /^#undef HAVE_MENUS *$/s/^.*$/#define HAVE_MENUS 1/
 /^#undef DATA_START/s/^.*$/#define DATA_START (\&etext + 1)/
@@ -64,9 +66,7 @@
 /^#undef PACKAGE_NAME/s/^.*$/#define PACKAGE_NAME ""/
 /^#undef PACKAGE_STRING/s/^.*$/#define PACKAGE_STRING ""/
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
-/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
-/^#undef PENDING_OUTPUT_COUNT/s/^.*$/#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_ptr - (FILE)->_base)/
-/^#undef VERSION/s/^.*$/#define VERSION "25.0.50"/
+/^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION "27.0.50"/
 /^#undef SYSTEM_TYPE/s/^.*$/#define SYSTEM_TYPE "ms-dos"/
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
@@ -82,15 +82,17 @@
 /^#undef HAVE_SIGNED_SIG_ATOMIC_T *$/s/^.*$/#define HAVE_SIGNED_SIG_ATOMIC_T 1/
 /^#undef HAVE_SIGNED_WINT_T *$/s/^.*$/#define HAVE_SIGNED_WINT_T 1/
 /^#undef HAVE_UNSIGNED_LONG_LONG_INT *$/s/^.*$/#define HAVE_UNSIGNED_LONG_LONG_INT 1/
-/^#undef HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
 /^#undef DEVICE_SEP *$/s/^.*$/#define DEVICE_SEP ':'/
 /^#undef IS_DIRECTORY_SEP *$/s,^.*$,#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\\\'),
 /^#undef IS_DEVICE_SEP *$/s/^.*$/#define IS_DEVICE_SEP(_c_) ((_c_) == ':')/
 /^#undef IS_ANY_SEP *$/s/^.*$/#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))/
+/^#undef NEED_MKTIME_INTERNAL *$/s/^.*$/#define NEED_MKTIME_INTERNAL 1/
+/^#undef NEED_MKTIME_WORKING *$/s/^.*$/#define NEED_MKTIME_WORKING 1/
 /^#undef INTERNAL_TERMINAL *$/s,^.*$,#define INTERNAL_TERMINAL "pc|bios|IBM PC with color display::co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>::se=</SO>:so=<SO>:us=<UL>:ue=</UL>:md=<BD>:mh=<DIM>:mb=<BL>:mr=<RV>:me=<NV>::AB=<BG %d>:AF=<FG %d>:op=<DefC>:",
 /^#undef NULL_DEVICE *$/s/^.*$/#define NULL_DEVICE "nul"/
 /^#undef SEPCHAR *$/s/^.*$/#define SEPCHAR '\;'/
 /^#undef USER_FULL_NAME *$/s/^.*$/#define USER_FULL_NAME (getenv ("NAME"))/
+/^# *undef _GNU_SOURCE *$/s/^.*$/#define _GNU_SOURCE 1/
 /^#undef inline/s/^.*$/#define inline __inline__/
 /^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/
@@ -101,6 +103,8 @@
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/
 s/^#undef EMACS_CONFIG_OPTIONS *$/#define EMACS_CONFIG_OPTIONS "msdos"/
+s/^#undef EMACS_CONFIG_FEATURES *$/#define EMACS_CONFIG_FEATURES ""/
+s|^#undef FLEXIBLE_ARRAY_MEMBER *$|#define FLEXIBLE_ARRAY_MEMBER /**/|
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 /^#undef HAVE_INTTYPES_H/c\
@@ -115,12 +119,33 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #else\
 #undef HAVE_STDINT_H\
 #endif
+s/^#undef HAVE_C_VARARRAYS *$/#define HAVE_C_VARARRAYS 1/
+s/^#undef HAVE_DECL_ALIGNED_ALLOC *$/#define HAVE_DECL_ALIGNED_ALLOC 0/
+s/^#undef HAVE_DECL_CLEARERR_UNLOCKED *$/#define HAVE_DECL_CLEARERR_UNLOCKED 0/
+s/^#undef HAVE_DECL_FEOF_UNLOCKED *$/#define HAVE_DECL_FEOF_UNLOCKED 0/
+s/^#undef HAVE_DECL_FERROR_UNLOCKED *$/#define HAVE_DECL_FERROR_UNLOCKED 0/
+s/^#undef HAVE_DECL_FFLUSH_UNLOCKED *$/#define HAVE_DECL_FFLUSH_UNLOCKED 0/
+s/^#undef HAVE_DECL_FGETS_UNLOCKED *$/#define HAVE_DECL_FGETS_UNLOCKED 0/
+s/^#undef HAVE_DECL_FPUTC_UNLOCKED *$/#define HAVE_DECL_FPUTC_UNLOCKED 0/
+s/^#undef HAVE_DECL_FPUTS_UNLOCKED *$/#define HAVE_DECL_FPUTS_UNLOCKED 0/
+s/^#undef HAVE_DECL_FREAD_UNLOCKED *$/#define HAVE_DECL_FREAD_UNLOCKED 0/
+s/^#undef HAVE_DECL_FWRITE_UNLOCKED *$/#define HAVE_DECL_FWRITE_UNLOCKED 0/
+s/^#undef HAVE_DECL_GETCHAR_UNLOCKED *$/#define HAVE_DECL_GETCHAR_UNLOCKED 0/
+s/^#undef HAVE_DECL_GETC_UNLOCKED *$/#define HAVE_DECL_GETC_UNLOCKED 0/
+s/^#undef HAVE_DECL_PUTCHAR_UNLOCKED *$/#define HAVE_DECL_PUTCHAR_UNLOCKED 0/
+s/^#undef HAVE_DECL_PUTC_UNLOCKED *$/#define HAVE_DECL_PUTC_UNLOCKED 0/
 s/^#undef HAVE_DECL_STRTOLL *$/#define HAVE_DECL_STRTOLL 1/
-s/^#undef HAVE_DECL_STRTOULL *$/#define HAVE_DECL_STRTOULL 1/
 s/^#undef HAVE_DECL_STRTOIMAX *$/#define HAVE_DECL_STRTOIMAX 1/
-s/^#undef HAVE_DECL_STRTOUMAX *$/#define HAVE_DECL_STRTOUMAX 1/
 s/^#undef HAVE_STRTOLL *$/#define HAVE_STRTOLL 1/
 s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
+/^#undef HAVE_STRUCT_DIRENT_D_TYPE *$/c\
+#if __DJGPP__ + (__DJGPP_MINOR__ >= 5) >= 3\
+#define HAVE_STRUCT_DIRENT_D_TYPE 1/\
+#else\
+#undef HAVE_STRUCT_DIRENT_D_TYPE\
+#endif
+s/^#undef HAVE_STRUCT_ATTRIBUTE_ALIGNED *$/#define HAVE_STRUCT_ATTRIBUTE_ALIGNED 1/
+s/^#undef HAVE_PUTENV *$/#define HAVE_PUTENV 1/
 /^#undef HAVE_SIGSET_T *$/s/^.*$/#define HAVE_SIGSET_T 1/
 /^#undef HAVE_SNPRINTF/c\
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\
@@ -130,7 +155,9 @@ s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 #include <sys/types.h>\
 extern int snprintf (char *__restrict, size_t, const char *__restrict, ...);\
 #endif
-s/^#undef PENDING_OUTPUT_N_BYTES *$/#define PENDING_OUTPUT_N_BYTES fp->_ptr - fp->_base/
+/^#include <conf_post.h>/i\
+/* From libc/file.h, needed by lib/fpending.c.  */\
+#define _IOERR  000200
 
 # Comment out any remaining undef directives, because some of them
 # might be defined in sys/config.h we include at the top of config.h.

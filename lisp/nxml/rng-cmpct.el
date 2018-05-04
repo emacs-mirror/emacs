@@ -1,6 +1,6 @@
-;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas
+;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -674,13 +674,7 @@ the primary expression."
      (substring rng-c-current-token n (- n)))))
 
 (defun rng-c-fix-escaped-newlines (str)
-  (let ((pos 0))
-    (while (progn
-	     (let ((n (string-match "\C-@" str pos)))
-	       (and n
-		    (aset str n ?\n)
-		    (setq pos (1+ n)))))))
-  str)
+  (subst-char-in-string ?\C-@ ?\n str))
 
 (defun rng-c-parse-identifier-or-keyword ()
   (cond ((rng-c-current-token-ncname-p)

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 2001-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -18,10 +18,11 @@
 @cindex starting Emacs
 
   The usual way to invoke Emacs is with the shell command
-@command{emacs}.  From a terminal window running in the X Window
-System, you can run Emacs in the background with @command{emacs &};
-this way, Emacs won't tie up the terminal window, so you can use it to
-run other shell commands.
+@command{emacs}.  From a terminal window running a Unix shell on a GUI
+terminal, you can run Emacs in the background with @kbd{emacs &}; this
+way, Emacs won't tie up the terminal window, so you can use it to run
+other shell commands.  (For comparable methods of starting Emacs on
+MS-Windows, see @ref{Windows Startup}.)
 
 @cindex startup screen
   When Emacs starts up, the initial frame displays a special buffer
@@ -100,7 +101,7 @@ display them initially.
 Kill Emacs (@code{save-buffers-kill-terminal}).
 @item C-z
 On a text terminal, suspend Emacs; on a graphical display,
-``minimize'' the selected frame (@code{suspend-emacs}).
+iconify (or ``minimize'') the selected frame (@code{suspend-frame}).
 @end table
 
 @kindex C-x C-c
@@ -116,7 +117,7 @@ subprocesses are still running, since killing Emacs will also kill the
 subprocesses (@pxref{Shell}).
 
   @kbd{C-x C-c} behaves specially if you are using Emacs as a server.
-If you type it from a ``client frame'', it closes the client
+If you type it from a client frame, it closes the client
 connection.  @xref{Emacs Server}.
 
   Emacs can, optionally, record certain session information when you
@@ -132,6 +133,14 @@ is non-@code{nil}, the session is killed, otherwise Emacs continues to
 run.  One convenient function to use as the value of
 @code{confirm-kill-emacs} is the function @code{yes-or-no-p}.  The
 default value of @code{confirm-kill-emacs} is @code{nil}.
+
+@vindex confirm-kill-processes
+  If the value of the variable @code{confirm-kill-processes} is
+@code{nil}, @kbd{C-x C-c} does not ask for confirmation before killing
+subprocesses started by Emacs.  The value is @code{t} by default.
+
+  To further customize what happens when Emacs is exiting, see
+@ref{Killing Emacs,,, elisp, The GNU Emacs Lisp Reference Manual}.
 
 @findex kill-emacs
   To kill Emacs without being prompted about saving, type @kbd{M-x

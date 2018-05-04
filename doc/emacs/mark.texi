@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mark
@@ -43,7 +43,7 @@ Ordinarily, only the selected window highlights its region; however,
 if the variable @code{highlight-nonselected-windows} is
 non-@code{nil}, each window highlights its own region.
 
-  There is another kind of region: the ``rectangular region''.
+  There is another kind of region: the rectangular region.
 @xref{Rectangles}.
 
 @menu
@@ -69,9 +69,9 @@ The same.
 @item C-x C-x
 Set the mark at point, and activate it; then move point where the mark
 used to be (@code{exchange-point-and-mark}).
-@item Drag-Mouse-1
+@item Drag-mouse-1
 Set point and the mark around the text you drag across.
-@item Mouse-3
+@item mouse-3
 Set the mark at point, then move point to where you click
 (@code{mouse-save-then-kill}).
 @item @samp{Shifted cursor motion keys}
@@ -105,7 +105,7 @@ region also automatically deactivate the mark, like @kbd{C-x C-u} in
 the above example.
 
   Instead of setting the mark in order to operate on a region, you can
-also use it to ``remember'' a position in the buffer (by typing
+also use it to remember a position in the buffer (by typing
 @kbd{C-@key{SPC} C-@key{SPC}}), and later jump back there (by typing
 @kbd{C-u C-@key{SPC}}).  @xref{Mark Ring}, for details.
 
@@ -131,15 +131,15 @@ mouse button (@kbd{mouse-3}) sets the mark at point and then moves
 point to where you clicked.  @xref{Mouse Commands}, for a more
 detailed description of these mouse commands.
 
-@cindex shift-selection
   Finally, you can set the mark by holding down the shift key while
 typing certain cursor motion commands (such as @kbd{S-@key{RIGHT}},
 @kbd{S-C-f}, @kbd{S-C-n}, etc.).  This is called @dfn{shift-selection}.
 It sets the mark at point before moving point, but only if there is no
-active mark set via shift-selection.  The mark set by mouse commands
-and by shift-selection behaves slightly differently from the usual
-mark: any subsequent unshifted cursor motion command deactivates it
-automatically.  For details, @xref{Shift Selection}.
+active mark set via a previous shift-selection or mouse commands.  The
+mark set by mouse commands and by shift-selection behaves slightly
+differently from the usual mark: any subsequent unshifted cursor motion
+command deactivates it automatically.  For details, see @ref{Shift
+Selection}.
 
   Many commands that insert text, such as @kbd{C-y} (@code{yank}), set
 the mark at the other end of the inserted text, without activating it.
@@ -147,7 +147,7 @@ This lets you easily return to that position (@pxref{Mark Ring}).  You
 can tell that a command does this when it shows @samp{Mark set} in the
 echo area.
 
-@cindex primary selection
+@cindex primary selection, when active region changes
   Under X, every time the active region changes, Emacs saves the text
 in the region to the @dfn{primary selection}.  This lets you insert
 that text into other X applications with @kbd{mouse-2} clicks.
@@ -162,7 +162,7 @@ object such as a word, list, paragraph or page:
 
 @table @kbd
 @item M-@@
-Set mark after end of next word (@code{mark-word}).  This does not
+Set mark at the end of the next word (@code{mark-word}).  This does not
 move point.
 @item C-M-@@
 Set mark after end of following balanced expression
@@ -260,7 +260,7 @@ change the variable @code{use-empty-active-region} to @code{t}.
 
 @vindex delete-active-region
   As described in @ref{Erasing}, the @key{DEL}
-(@code{backward-delete-char}) and @key{delete}
+(@code{backward-delete-char}) and @key{Delete}
 (@code{delete-forward-char}) commands also act this way.  If the mark
 is active, they delete the text in the region.  (As an exception, if
 you supply a numeric argument @var{n}, where @var{n} is not one, these
@@ -273,9 +273,9 @@ active.  If you change the value to @code{kill}, these commands
 @vindex mark-even-if-inactive
   Other commands always operate on the region, and have no default
 behavior.  Such commands usually have the word @code{region} in their
-names, like @kbd{C-w} (@code{kill-region}) and @code{C-x C-u}
+names, like @kbd{C-w} (@code{kill-region}) and @kbd{C-x C-u}
 (@code{upcase-region}).  If the mark is inactive, they operate on the
-``inactive region''---that is, on the text between point and the
+@dfn{inactive region}---that is, on the text between point and the
 position at which the mark was last set (@pxref{Mark Ring}).  To
 disable this behavior, change the variable
 @code{mark-even-if-inactive} to @code{nil}.  Then these commands will
@@ -286,10 +286,11 @@ instead signal an error if the mark is inactive.
 @findex delete-selection-mode
   By default, text insertion occurs normally even if the mark is
 active---for example, typing @kbd{a} inserts the character @samp{a},
-then deactivates the mark.  If you enable Delete Selection mode, a
-minor mode, then inserting text while the mark is active causes the
-text in the region to be deleted first.  To toggle Delete Selection
-mode on or off, type @kbd{M-x delete-selection-mode}.
+then deactivates the mark.  Delete Selection mode, a minor mode,
+modifies this behavior: if you enable that mode, then inserting text
+while the mark is active causes the text in the region to be deleted
+first.  To toggle Delete Selection mode on or off, type @kbd{M-x
+delete-selection-mode}.
 
 @node Mark Ring
 @section The Mark Ring
@@ -364,7 +365,7 @@ of buffers that you have been in, and, for each buffer, a place where
 you set the mark.  The length of the global mark ring is controlled by
 @code{global-mark-ring-max}, and is 16 by default.
 
-@kindex C-x C-@key{SPC}
+@kindex C-x C-SPC
 @findex pop-global-mark
   The command @kbd{C-x C-@key{SPC}} (@code{pop-global-mark}) jumps to
 the buffer and position of the latest entry in the global ring.  It also
@@ -446,7 +447,7 @@ using @kbd{C-@key{SPC} C-@key{SPC}} or @kbd{C-u C-x C-x}.
 
 @table @kbd
 @item C-@key{SPC} C-@key{SPC}
-@kindex C-@key{SPC} C-@key{SPC}
+@kindex C-SPC C-SPC@r{, disabling Transient Mark}
 Set the mark at point (like plain @kbd{C-@key{SPC}}) and enable
 Transient Mark mode just once, until the mark is deactivated.  (This
 is not really a separate command; you are using the @kbd{C-@key{SPC}}

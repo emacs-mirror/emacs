@@ -1,6 +1,6 @@
 ;;; ibuf-macs.el --- macros for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -169,6 +169,8 @@ value if and only if `a' is \"less than\" `b'.
 				  dangerous
 				  (opstring "operated on")
 				  (active-opstring "Operate on")
+                                  before
+                                  after
 				  complex)
 				 &rest body)
   "Generate a function which operates on a buffer.
@@ -198,10 +200,17 @@ operation is complete, in the form:
 ACTIVE-OPSTRING is a string which will be displayed to the user in a
 confirmation message, in the form:
  \"Really ACTIVE-OPSTRING x buffers?\"
-COMPLEX means this function is special; see the source code of this
-macro for exactly what it does.
+BEFORE is a form to evaluate before start the operation.
+AFTER is a form to evaluate once the operation is complete.
+COMPLEX means this function is special; if COMPLEX is nil BODY
+evaluates once for each marked buffer, MBUF, with MBUF current
+and saving the point.  If COMPLEX is non-nil, BODY evaluates
+without requiring MBUF current.
+BODY define the operation; they are forms to evaluate per each
+marked buffer.  BODY is evaluated with `buf' bound to the
+buffer object.
 
-\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)"
+\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)"
   (declare (indent 2) (doc-string 3))
   `(progn
      (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
@@ -233,6 +242,7 @@ macro for exactly what it does.
 			  (if (eq modifier-p t)
 			      '((setq ibuffer-did-modification t))
 			    ())
+                          (and after `(,after)) ; post-operation form.
 			  `((ibuffer-redisplay t)
 			    (message ,(concat "Operation finished; " opstring " %s buffers") count))))
 		 (inner-body (if complex
@@ -242,7 +252,8 @@ macro for exactly what it does.
 				    (save-excursion
 				      ,@body))
 				  t)))
-		 (body `(let ((count
+		 (body `(let ((_ ,before) ; pre-operation form.
+                               (count
 			       (,(pcase mark
 				   (:deletion
 				    'ibuffer-map-deletion-lines)
@@ -290,15 +301,24 @@ bound to the current value of the filter.
        (defun ,fn-name (qualifier)
 	 ,(or documentation "This filter is not documented.")
 	 (interactive (list ,reader))
-	 (ibuffer-push-filter (cons ',name qualifier))
-	 (message "%s"
-		  (format ,(concat (format "Filter by %s added: " description)
-				   " %s")
-			  qualifier))
-	 (ibuffer-update nil t))
+	 (if (null (ibuffer-push-filter (cons ',name qualifier)))
+	     (message "%s"
+		      (format ,(concat (format "Filter by %s already applied: " description)
+				       " %s")
+			      qualifier))
+           (message "%s"
+		    (format ,(concat (format "Filter by %s added: " description)
+				     " %s")
+			    qualifier))
+	   (ibuffer-update nil t)))
        (push (list ',name ,description
-		   #'(lambda (buf qualifier)
-		       ,@body))
+		   (lambda (buf qualifier)
+                     (condition-case nil
+                         (progn ,@body)
+                       (error (ibuffer-pop-filter)
+                              (when (eq ',name 'predicate)
+                                (error "Wrong filter predicate: %S"
+                                       qualifier))))))
 	     ibuffer-filtering-alist)
        :autoload-end)))
 

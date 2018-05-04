@@ -4,7 +4,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994-1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -183,7 +183,7 @@ To override this, give an argument to `ff-find-other-file'."
 ;;;###autoload
 (defcustom ff-special-constructs
   ;; C/C++ include, for NeXTstep too
-  `((,(purecopy "^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
+  `((,(purecopy "^#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
      (lambda ()
        (buffer-substring (match-beginning 2) (match-end 2)))))
   ;; We include `ff-treat-as-special' documentation here so that autoload
@@ -222,7 +222,7 @@ may not exist.
 
 A typical format is
 
-    '(\".\" \"/usr/include\" \"$PROJECT/*/include\")
+    (\".\" \"/usr/include\" \"$PROJECT/*/include\")
 
 Environment variables can be inserted between slashes (`/').
 They will be replaced by their definition.  If a variable does
@@ -242,11 +242,11 @@ the preceding slash.  The star represents all the subdirectories except
 
 (defcustom cc-other-file-alist
   '(("\\.cc\\'"  (".hh" ".h"))
-    ("\\.hh\\'"  (".cc" ".C"))
+    ("\\.hh\\'"  (".cc" ".C" ".CC" ".cxx" ".cpp" ".c++"))
 
     ("\\.c\\'"   (".h"))
     ("\\.m\\'"   (".h"))
-    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".m"))
+    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp" ".c++" ".m"))
 
     ("\\.C\\'"   (".H"  ".hh" ".h"))
     ("\\.H\\'"   (".C"  ".CC"))
@@ -378,6 +378,15 @@ Variables of interest include:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support functions
 
+(defun ff-buffer-file-name (&optional buf)
+  "Like `buffer-file-name' but works with indirect buffers as well.
+If BUF is nil, uses the current buffer."
+  (unless buf
+    (setq buf (current-buffer)))
+  (or (buffer-file-name buf)
+      (when (buffer-base-buffer buf)
+	(buffer-file-name (buffer-base-buffer buf)))))
+
 (defun ff-find-the-other-file (&optional in-other-window)
   "Find the header or source file corresponding to the current file.
 Being on a `#include' line pulls in that file, but see the help on
@@ -420,9 +429,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
       (setq alist (if (symbolp ff-other-file-alist)
                       (symbol-value ff-other-file-alist)
                     ff-other-file-alist)
-            pathname (if (buffer-file-name)
-                         (buffer-file-name)
-                       "/none.none"))
+            pathname (or (ff-buffer-file-name) "/none.none"))
 
       (setq fname (file-name-nondirectory pathname)
             no-match nil
@@ -448,7 +455,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
         ;; invoke it with the name of the current file
         (if (and (atom action) (fboundp action))
             (progn
-              (setq suffixes (funcall action (buffer-file-name))
+              (setq suffixes (funcall action (ff-buffer-file-name))
                     match (cons (car match) (list suffixes))
                     stub nil
                     default-name (car suffixes)))
@@ -550,9 +557,7 @@ the `ff-ignore-include' variable."
       (setq alist (if (symbolp ff-other-file-alist)
                       (symbol-value ff-other-file-alist)
                     ff-other-file-alist)
-            pathname (if (buffer-file-name)
-                         (buffer-file-name)
-                       "/none.none"))
+            pathname (or (ff-buffer-file-name) "/none.none"))
 
       (setq fname (file-name-nondirectory pathname)
             match (car alist))
@@ -576,7 +581,7 @@ the `ff-ignore-include' variable."
         ;; invoke it with the name of the current file
         (if (and (atom action) (fboundp action))
             (progn
-              (setq suffixes (funcall action (buffer-file-name))
+              (setq suffixes (funcall action (ff-buffer-file-name))
                     match (cons (car match) (list suffixes))
                     stub nil))
 
@@ -655,14 +660,14 @@ name of the first file found."
           (message "Finding buffer %s..." filename))
 
       (if (bufferp (get-file-buffer filename))
-          (setq found (buffer-file-name (get-file-buffer filename))))
+          (setq found (ff-buffer-file-name (get-file-buffer filename))))
 
       (setq blist (buffer-list))
       (setq buf (buffer-name (car blist)))
       (while (and blist (not found))
 
         (if (string-match-p (concat filename "<[0-9]+>") buf)
-            (setq found (buffer-file-name (car blist))))
+            (setq found (ff-buffer-file-name (car blist))))
 
         (setq blist (cdr blist))
         (setq buf (buffer-name (car blist))))
@@ -678,7 +683,7 @@ name of the first file found."
       (setq suffixes suffix-list)
 
       ;; if dir does not contain '/*', look for the file
-      (if (and dir (not (string-match "\\([^*]*\\)/\\\*\\(/.*\\)*" dir)))
+      (if (and dir (not (string-match "\\([^*]*\\)/\\*\\(/.*\\)*" dir)))
           (progn
 
             ;; suffixes is nil => fname-stub is the file we are looking for

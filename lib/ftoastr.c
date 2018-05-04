@@ -1,6 +1,6 @@
 /* floating point to accurate string
 
-   Copyright (C) 2010-2015 Free Software Foundation, Inc.
+   Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -39,6 +39,7 @@
 # define FLOAT_MIN LDBL_MIN
 # define FLOAT_PREC_BOUND _GL_LDBL_PREC_BOUND
 # define FTOASTR ldtoastr
+# define PROMOTED_FLOAT long double
 # if HAVE_C99_STRTOLD
 #  define STRTOF strtold
 # endif
@@ -48,6 +49,7 @@
 # define FLOAT_MIN DBL_MIN
 # define FLOAT_PREC_BOUND _GL_DBL_PREC_BOUND
 # define FTOASTR dtoastr
+# define PROMOTED_FLOAT double
 #else
 # define LENGTH 1
 # define FLOAT float
@@ -55,6 +57,7 @@
 # define FLOAT_MIN FLT_MIN
 # define FLOAT_PREC_BOUND _GL_FLT_PREC_BOUND
 # define FTOASTR ftoastr
+# define PROMOTED_FLOAT double
 # if HAVE_STRTOF
 #  define STRTOF strtof
 # endif
@@ -77,20 +80,21 @@ static int
 ftoastr_snprintf (char *buf, size_t bufsize, char const *format,
                   int width, int prec, FLOAT x)
 {
+  PROMOTED_FLOAT promoted_x = x;
   char width_0_buffer[LENGTH == 1 ? FLT_BUFSIZE_BOUND
                       : LENGTH == 2 ? DBL_BUFSIZE_BOUND
                       : LDBL_BUFSIZE_BOUND];
   int n = width;
   if (bufsize < sizeof width_0_buffer)
     {
-      n = sprintf (width_0_buffer, format, 0, prec, x);
+      n = sprintf (width_0_buffer, format, 0, prec, promoted_x);
       if (n < 0)
         return n;
       if (n < width)
         n = width;
     }
   if (n < bufsize)
-    n = sprintf (buf, format, width, prec, x);
+    n = sprintf (buf, format, width, prec, promoted_x);
   return n;
 }
 #endif
@@ -101,11 +105,12 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
   /* The following method is simple but slow.
      For ideas about speeding things up, please see:
 
-     Florian Loitsch, Printing floating-point numbers quickly and accurately
-     with integers.  ACM SIGPLAN notices 46, 6 (June 2010), 233-243
-     <http://dx.doi.org/10.1145/1809028.1806623>; also see the
-     2010-03-21 draft <http://florian.loitsch.com/tmp/article.pdf>.  */
+     Andrysco M, Jhala R, Lerner S. Printing floating-point numbers:
+     a faster, always correct method. ACM SIGPLAN notices - POPL '16.
+     2016;51(1):555-67 <http://dx.doi.org/10.1145/2914770.2837654>; draft at
+     <https://cseweb.ucsd.edu/~lerner/papers/fp-printing-popl16.pdf>.  */
 
+  PROMOTED_FLOAT promoted_x = x;
   char format[sizeof "%-+ 0*.*Lg"];
   FLOAT abs_x = x < 0 ? -x : x;
   int prec;
@@ -128,7 +133,7 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
 
   for (prec = abs_x < FLOAT_MIN ? 1 : FLOAT_DIG; ; prec++)
     {
-      int n = snprintf (buf, bufsize, format, width, prec, x);
+      int n = snprintf (buf, bufsize, format, width, prec, promoted_x);
       if (n < 0
           || FLOAT_PREC_BOUND <= prec
           || (n < bufsize && STRTOF (buf, NULL) == x))

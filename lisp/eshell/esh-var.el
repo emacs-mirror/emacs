@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -343,6 +343,8 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 					       obarray 'boundp))
 	      (pcomplete-here))))
 
+;; FIXME the real "env" command does more than this, it runs a program
+;; in a modified environment.
 (defun eshell/env (&rest args)
   "Implementation of `env' in Lisp."
   (eshell-init-print-buffer)
@@ -530,7 +532,7 @@ Integers imply a direct index, and names, an associate lookup using
 For example, to retrieve the second element of a user's record in
 '/etc/passwd', the variable reference would look like:
 
-  ${egrep johnw /etc/passwd}[: 2]"
+  ${grep johnw /etc/passwd}[: 2]"
   (while indices
     (let ((refs (car indices)))
       (when (stringp value)
@@ -563,6 +565,8 @@ For example, to retrieve the second element of a user's record in
 
 (defun eshell-index-value (value index)
   "Reference VALUE using the given INDEX."
+  (when (and (stringp index) (get-text-property 0 'number index))
+    (setq index (string-to-number index)))
   (if (stringp index)
       (cdr (assoc index value))
     (cond

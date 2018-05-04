@@ -1,6 +1,6 @@
-;;; rot13.el --- display a buffer in ROT13
+;;; rot13.el --- display a buffer in ROT13  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: emacs-devel@gnu.org
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -63,7 +63,10 @@
 
 ;;;###autoload
 (defun rot13 (object &optional start end)
-  "Return ROT13 encryption of OBJECT, a buffer or string."
+  "ROT13 encrypt OBJECT, a buffer or string.
+If OBJECT is a buffer, encrypt the region between START and END.
+If OBJECT is a string, encrypt it in its entirety, ignoring START
+and END, and return the encrypted string."
   (if (bufferp object)
       (with-current-buffer object
 	(rot13-region start end))

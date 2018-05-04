@@ -1,6 +1,6 @@
 ;;; pcmpl-cvs.el --- functions for dealing with cvs completions
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Package: pcomplete
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -122,7 +122,7 @@
     (let (cmds)
       (while (re-search-forward "^\\s-+\\([a-z]+\\)" nil t)
 	(setq cmds (cons (match-string 1) cmds)))
-      (pcomplete-uniqify-list cmds))))
+      (pcomplete-uniquify-list cmds))))
 
 (defun pcmpl-cvs-modules ()
   "Return a list of available modules under CVS."
@@ -132,7 +132,7 @@
     (let (entries)
       (while (re-search-forward "\\(\\S-+\\)$" nil t)
 	(setq entries (cons (match-string 1) entries)))
-      (pcomplete-uniqify-list entries))))
+      (pcomplete-uniquify-list entries))))
 
 (defun pcmpl-cvs-tags (&optional opers)
   "Return all the tags which could apply to the files related to OPERS."
@@ -149,7 +149,7 @@
 	    (error "Error in output from `cvs status -v'"))
 	  (setq tags (cons (match-string 1) tags))
 	  (forward-line))))
-    (pcomplete-uniqify-list tags)))
+    (pcomplete-uniquify-list tags)))
 
 (defun pcmpl-cvs-entries (&optional opers)
   "Return the Entries for the current directory.
@@ -187,6 +187,6 @@ operation character applies, as displayed by `cvs -n update'."
                 (setq entries (cons text entries))))
             (forward-line)))))
     (setq pcomplete-stub nondir)
-    (pcomplete-uniqify-list entries)))
+    (pcomplete-uniquify-list entries)))
 
 ;;; pcmpl-cvs.el ends here

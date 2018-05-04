@@ -1,6 +1,6 @@
 ;;; w32console.el -- Setup w32 console keys and colors.
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -92,5 +92,7 @@
     (set-terminal-parameter nil 'background-mode bg-mode))
   (tty-set-up-initial-frame-faces)
   (run-hooks 'terminal-init-w32-hook))
+
+(provide 'term/w32console)
 
 ;;; w32console.el ends here

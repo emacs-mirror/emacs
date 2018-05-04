@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993-1994, 2000-2015 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2018 Free Software Foundation,
    Inc.
 
 Author: Joseph Arceneaux
@@ -9,8 +9,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -41,11 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xresource.h>
 #ifdef HAVE_PWD_H
 #include <pwd.h>
-#endif
-
-#ifdef USE_MOTIF
-/* For Vdouble_click_time.  */
-#include "keyboard.h"
 #endif
 
 /* X file search path processing.  */
@@ -182,12 +177,8 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
 
       /* Do we have room for this component followed by a '\0'?  */
       if (path_size - path_len <= next_len)
-	{
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
-	    memory_full (SIZE_MAX);
-	  path_size = (path_len + next_len + 1) * 2;
-	  path = xrealloc (path, path_size);
-	}
+	path = xpalloc (path, &path_size, path_len - path_size + next_len + 1,
+			-1, sizeof *path);
 
       memcpy (path + path_len, next, next_len);
       path_len += next_len;
@@ -354,6 +345,7 @@ get_user_db (Display *display)
     db = XrmGetStringDatabase (xdefs);
   else
     {
+      /* Use ~/.Xdefaults.  */
       char *home = gethomedir ();
       ptrdiff_t homelen = strlen (home);
       char *filename = xrealloc (home, homelen + sizeof xdefaults);
@@ -384,13 +376,18 @@ get_environ_db (void)
 
   if (!p)
     {
-      char *home = gethomedir ();
-      ptrdiff_t homelen = strlen (home);
       Lisp_Object system_name = Fsystem_name ();
-      ptrdiff_t filenamesize = (homelen + sizeof xdefaults
-				+ SBYTES (system_name));
-      p = filename = xrealloc (home, filenamesize);
-      lispstpcpy (stpcpy (filename + homelen, xdefaults), system_name);
+      if (STRINGP (system_name))
+	{
+	  /* Use ~/.Xdefaults-HOSTNAME.  */
+	  char *home = gethomedir ();
+	  ptrdiff_t homelen = strlen (home);
+	  ptrdiff_t filenamesize = (homelen + sizeof xdefaults
+				    + 1 + SBYTES (system_name));
+	  p = filename = xrealloc (home, filenamesize);
+	  lispstpcpy (stpcpy (stpcpy (filename + homelen, xdefaults), "-"),
+		      system_name);
+	}
     }
 
   db = XrmGetFileDatabase (p);

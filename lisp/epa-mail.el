@@ -1,5 +1,5 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -111,7 +111,7 @@ If no one is selected, default secret key is used.  "
 
 (defun epa-mail-default-recipients ()
   "Return the default list of encryption recipients for a mail buffer."
-  (let ((config (epg-configuration))
+  (let ((config (epg-find-configuration 'OpenPGP))
 	recipients-string real-recipients)
     (save-excursion
       (goto-char (point-min))

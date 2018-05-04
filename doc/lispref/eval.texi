@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2015 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1998, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -20,11 +20,12 @@ function @code{eval}.
 
 @ifnottex
 @menu
-* Intro Eval::  Evaluation in the scheme of things.
-* Forms::       How various sorts of objects are evaluated.
-* Quoting::     Avoiding evaluation (to put constants in the program).
-* Backquote::   Easier construction of list structure.
-* Eval::        How to invoke the Lisp interpreter explicitly.
+* Intro Eval::     Evaluation in the scheme of things.
+* Forms::          How various sorts of objects are evaluated.
+* Quoting::        Avoiding evaluation (to put constants in the program).
+* Backquote::      Easier construction of list structure.
+* Eval::           How to invoke the Lisp interpreter explicitly.
+* Deferred Eval::  Deferred and lazy evaluation of forms.
 @end menu
 
 @node Intro Eval
@@ -104,9 +105,9 @@ interpretation.  @xref{Command Loop}.
   A Lisp object that is intended to be evaluated is called a
 @dfn{form} (or an @dfn{expression}).  How Emacs evaluates a form
 depends on its data type.  Emacs has three different kinds of form
-that are evaluated differently: symbols, lists, and ``all other
-types''.  This section describes all three kinds, one by one, starting
-with the ``all other types'' which are self-evaluating forms.
+that are evaluated differently: symbols, lists, and all other
+types.  This section describes all three kinds, one by one, starting
+with the other types, which are self-evaluating forms.
 
 @menu
 * Self-Evaluating Forms::   Forms that evaluate to themselves.
@@ -116,7 +117,7 @@ with the ``all other types'' which are self-evaluating forms.
                               we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
-* Special Forms::           ``Special forms'' are idiosyncratic primitives,
+* Special Forms::           Special forms are idiosyncratic primitives,
                               most of them extremely important.
 * Autoloading::             Functions set up to load files
                               containing their real definitions.
@@ -146,7 +147,7 @@ contents unchanged.
      @result{} 123
 @end group
 @group
-(eval '123)        ; @r{Evaluated ``by hand''---result is the same.}
+(eval '123)        ; @r{Evaluated "by hand"---result is the same.}
      @result{} 123
 @end group
 @group
@@ -328,13 +329,12 @@ This function returns the meaning of @var{function} as a function.  If
 definition and starts over with that value.  If @var{function} is not a
 symbol, then it returns @var{function} itself.
 
-This function signals a @code{void-function} error if the final symbol
-is unbound and optional argument @var{noerror} is @code{nil} or
-omitted.  Otherwise, if @var{noerror} is non-@code{nil}, it returns
-@code{nil} if the final symbol is unbound.
+This function returns @code{nil} if the final symbol is unbound.  It
+signals a @code{cyclic-function-indirection} error if there is a loop
+in the chain of symbols.
 
-It signals a @code{cyclic-function-indirection} error if there is a
-loop in the chain of symbols.
+The optional argument @var{noerror} is obsolete, kept for backward
+compatibility, and has no effect.
 
 Here is how you could define @code{indirect-function} in Lisp:
 
@@ -580,15 +580,15 @@ Here are some examples of expressions that use @code{quote}:
 @end group
 @group
 ''foo
-     @result{} (quote foo)
+     @result{} 'foo
 @end group
 @group
 '(quote foo)
-     @result{} (quote foo)
+     @result{} 'foo
 @end group
 @group
 ['foo]
-     @result{} [(quote foo)]
+     @result{} ['foo]
 @end group
 @end example
 
@@ -780,7 +780,8 @@ to specify this function, but it is more robust to use the
 @deffn Command eval-buffer &optional buffer-or-name stream filename unibyte print
 This is similar to @code{eval-region}, but the arguments provide
 different optional features.  @code{eval-buffer} operates on the
-entire accessible portion of buffer @var{buffer-or-name}.
+entire accessible portion of buffer @var{buffer-or-name}
+(@pxref{Narrowing,,, emacs, The GNU Emacs Manual}).
 @var{buffer-or-name} can be a buffer, a buffer name (a string), or
 @code{nil} (or omitted), which means to use the current buffer.
 @var{stream} is used as in @code{eval-region}, unless @var{stream} is
@@ -818,7 +819,7 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 400.  If you set it to a value
+The default value of this variable is 800.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is
 reached.  Entry to the Lisp debugger increases the value, if there is
 little room left, to make sure the debugger itself has room to
@@ -833,9 +834,9 @@ The value of this variable is a list of the values returned by all the
 expressions that were read, evaluated, and printed from buffers
 (including the minibuffer) by the standard Emacs commands which do
 this.  (Note that this does @emph{not} include evaluation in
-@file{*ielm*} buffers, nor evaluation using @kbd{C-j} in
-@code{lisp-interaction-mode}.)  The elements are ordered most recent
-first.
+@file{*ielm*} buffers, nor evaluation using @kbd{C-j}, @kbd{C-x C-e},
+and similar evaluation commands in @code{lisp-interaction-mode}.)  The
+elements are ordered most recent first.
 
 @example
 @group
@@ -877,3 +878,115 @@ particular elements, like this:
 @end group
 @end example
 @end defvar
+
+@node Deferred Eval
+@section Deferred and Lazy Evaluation
+
+@cindex deferred evaluation
+@cindex lazy evaluation
+
+
+  Sometimes it is useful to delay the evaluation of an expression, for
+example if you want to avoid performing a time-consuming calculation
+if it turns out that the result is not needed in the future of the
+program.  The @file{thunk} library provides the following functions
+and macros to support such @dfn{deferred evaluation}:
+
+@cindex thunk
+@defmac thunk-delay forms@dots{}
+Return a @dfn{thunk} for evaluating the @var{forms}.  A thunk is a
+closure (@pxref{Closures}) that inherits the lexical environment of the
+@code{thunk-delay} call.  Using this macro requires
+@code{lexical-binding}.
+@end defmac
+
+@defun thunk-force thunk
+Force @var{thunk} to perform the evaluation of the forms specified in
+the @code{thunk-delay} that created the thunk.  The result of the
+evaluation of the last form is returned.  The @var{thunk} also
+``remembers'' that it has been forced: Any further calls of
+@code{thunk-force} with the same @var{thunk} will just return the same
+result without evaluating the forms again.
+@end defun
+
+@defmac thunk-let (bindings@dots{}) forms@dots{}
+This macro is analogous to @code{let} but creates ``lazy'' variable
+bindings.  Any binding has the form @w{@code{(@var{symbol}
+@var{value-form})}}.  Unlike @code{let}, the evaluation of any
+@var{value-form} is deferred until the binding of the according
+@var{symbol} is used for the first time when evaluating the
+@var{forms}.  Any @var{value-form} is evaluated at most once.  Using
+this macro requires @code{lexical-binding}.
+@end defmac
+
+Example:
+
+@example
+@group
+(defun f (number)
+  (thunk-let ((derived-number
+              (progn (message "Calculating 1 plus 2 times %d" number)
+                     (1+ (* 2 number)))))
+    (if (> number 10)
+        derived-number
+      number)))
+@end group
+
+@group
+(f 5)
+@result{} 5
+@end group
+
+@group
+(f 12)
+@print{} Calculating 1 plus 2 times 12
+@result{} 25
+@end group
+
+@end example
+
+Because of the special nature of lazily bound variables, it is an error
+to set them (e.g.@: with @code{setq}).
+
+
+@defmac thunk-let* (bindings@dots{}) forms@dots{}
+This is like @code{thunk-let} but any expression in @var{bindings} is allowed
+to refer to preceding bindings in this @code{thunk-let*} form.  Using
+this macro requires @code{lexical-binding}.
+@end defmac
+
+@example
+@group
+(thunk-let* ((x (prog2 (message "Calculating x...")
+                    (+ 1 1)
+                  (message "Finished calculating x")))
+             (y (prog2 (message "Calculating y...")
+                    (+ x 1)
+                  (message "Finished calculating y")))
+             (z (prog2 (message "Calculating z...")
+                    (+ y 1)
+                  (message "Finished calculating z")))
+             (a (prog2 (message "Calculating a...")
+                    (+ z 1)
+                  (message "Finished calculating a"))))
+  (* z x))
+
+@print{} Calculating z...
+@print{} Calculating y...
+@print{} Calculating x...
+@print{} Finished calculating x
+@print{} Finished calculating y
+@print{} Finished calculating z
+@result{} 8
+
+@end group
+@end example
+
+@code{thunk-let} and @code{thunk-let*} use thunks implicitly: their
+expansion creates helper symbols and binds them to thunks wrapping the
+binding expressions.  All references to the original variables in the
+body @var{forms} are then replaced by an expression that calls
+@code{thunk-force} with the according helper variable as the argument.
+So, any code using @code{thunk-let} or @code{thunk-let*} could be
+rewritten to use thunks, but in many cases using these macros results
+in nicer code than using thunks explicitly.

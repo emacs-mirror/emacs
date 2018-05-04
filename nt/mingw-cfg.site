@@ -40,6 +40,12 @@ gl_cv_sys_struct_timespec_in_pthread_h=no
 # Or at all...
 ac_cv_header_pthread_h=no
 
+# We don't want to check for these functions
+# because they are implemented in libwinpthread.
+ac_cv_search_clock_gettime="none required"
+ac_cv_func_clock_gettime=no
+ac_cv_func_clock_settime=no
+
 # ACL functions are implemented in w32.c
 ac_cv_search_acl_get_file="none required"
 ac_cv_func_acl_get_file=yes
@@ -68,8 +74,11 @@ ac_cv_func_getsockname=yes
 ac_cv_func_getpeername=yes
 # Implemented as sys_socket in w32.c
 ac_cv_func_socket=yes
+# Implemented as sys_getaddrinfo in w32.c
+ac_cv_func_getaddrinfo=yes
+# Implemented as an inline function in ws2tcpip.h
+ac_cv_func_gai_strerror=yes
 # Implemented in w32.c
-ac_cv_func_mkostemp=yes
 ac_cv_func_readlink=yes
 ac_cv_func_symlink=yes
 # Avoid run-time tests of readlink and symlink, which will fail
@@ -119,3 +128,9 @@ gl_cv_func_stat_file_slash=yes
 ac_cv_func_random=yes
 # Implemented in w32.c as sys_putenv
 gl_cv_func_svid_putenv=yes
+# Implemented in w32heap.c
+ac_cv_func_sbrk=yes
+ac_cv_func_getrlimit=yes
+ac_cv_func_setrlimit=yes
+# GCC warnings that produce too much noise
+gl_cv_warn_c__Wredundant_decls=no

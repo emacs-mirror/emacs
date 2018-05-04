@@ -1,6 +1,6 @@
 ;;; viper-macs.el --- functions implementing keyboard macros for Viper
 
-;; Copyright (C) 1994-1997, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -274,7 +274,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
     ))
 
 
-(declare-function viper-change-state-to-vi "viper-cmd" ())
+(declare-function viper-change-state-to-vi "viper-cmd" (&rest _))
 
 ;; Terminate a Vi kbd macro.
 ;; optional argument IGNORE, if t, indicates that we are dealing with an
@@ -327,8 +327,8 @@ Can be used in `viper-custom-file-name' to define permanent macros.
 MACRO-NAME is a string of characters or a vector of keys.  STATE is
 either `vi-state' or `insert-state'.  It specifies the Viper state in which to
 define the macro.  MACRO-BODY is a string that represents the keyboard macro.
-Optional SCOPE says whether the macro should be global \(t\), mode-specific
-\(a major-mode symbol\), or buffer-specific \(buffer name, a string\).
+Optional SCOPE says whether the macro should be global \(t), mode-specific
+\(a major-mode symbol), or buffer-specific \(buffer name, a string).
 If SCOPE is nil, the user is asked to specify the scope."
   (let* (state-name keymap
 	 (macro-alist-var
@@ -894,7 +894,7 @@ mistakes in macro names to be passed to this function is to use
   (set-register reg last-kbd-macro))
 
 (defun viper-register-macro (count)
-  "Keyboard macros in registers - a modified \@ command."
+  "Keyboard macros in registers - a modified @ command."
   (interactive "P")
   (let ((reg (downcase (read-char))))
     (cond ((or (and (<= ?a reg) (<= reg ?z)))

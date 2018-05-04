@@ -1,6 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,13 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-util)
@@ -34,27 +34,27 @@
   :group 'gnus)
 
 (defcustom gnus-use-full-window t
-  "*If non-nil, use the entire Emacs screen."
+  "If non-nil, use the entire Emacs screen."
   :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-window-min-width 2
-  "*Minimum width of Gnus buffers."
+  "Minimum width of Gnus buffers."
   :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-window-min-height 1
-  "*Minimum height of Gnus buffers."
+  "Minimum height of Gnus buffers."
   :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-always-force-window-configuration nil
-  "*If non-nil, always force the Gnus window configurations."
+  "If non-nil, always force the Gnus window configurations."
   :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-use-frames-on-any-display nil
-  "*If non-nil, frames on all displays will be considered usable by Gnus.
+  "If non-nil, frames on all displays will be considered usable by Gnus.
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
   :version "22.1"
@@ -195,7 +195,7 @@ See the Gnus manual for an explanation of the syntax used.")
   "Mapping from short symbols to buffer names or buffer variables.")
 
 (defcustom gnus-configure-windows-hook nil
-  "*A hook called when configuring windows."
+  "A hook called when configuring windows."
   :version "22.1"
   :group 'gnus-windows
   :type 'hook)
@@ -273,9 +273,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	      (cond
                ((eq buf (window-buffer (selected-window)))
                 (set-buffer buf))
-               ((eq t (window-dedicated-p
-		       ;; XEmacs version of `window-dedicated-p' requires it.
-		       (selected-window)))
+               ((eq t (window-dedicated-p))
                 ;; If the window is hard-dedicated, we have a problem because
                 ;; we just can't do what we're asked.  But signaling an error,
                 ;; like `switch-to-buffer' would do, is not an option because
@@ -314,7 +312,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    ;; Select the frame in question and do more splits there.
 	    (select-frame frame)
 	    (setq fresult (or (gnus-configure-frame (elt subs i)) fresult))
-	    (incf i))
+	    (cl-incf i))
 	  ;; Select the frame that has the selected buffer.
 	  (when fresult
 	    (select-frame (window-frame fresult)))))
@@ -346,7 +344,7 @@ See the Gnus manual for an explanation of the syntax used.")
 		    ((eq type 'vertical)
 		     (setq s (max s window-min-height))))
 	      (setcar (cdar comp-subs) s)
-	      (incf total s)))
+	      (cl-incf total s)))
 	  ;; Take care of the "1.0" spec.
 	  (if rest
 	      (setcar (cdr rest) (- len total))
@@ -417,19 +415,15 @@ See the Gnus manual for an explanation of the syntax used.")
                     (gnus-delete-windows-in-gnusey-frames))
                 ;; Just remove some windows.
                 (gnus-remove-some-windows)
-                (if (featurep 'xemacs)
-                    (switch-to-buffer nntp-server-buffer)
-                  (set-buffer nntp-server-buffer)))
+                (set-buffer nntp-server-buffer))
             (select-frame frame)))
 
         (let (gnus-window-frame-focus)
-          (if (featurep 'xemacs)
-              (switch-to-buffer nntp-server-buffer)
-            (set-buffer nntp-server-buffer))
+          (set-buffer nntp-server-buffer)
           (gnus-configure-frame split)
           (run-hooks 'gnus-configure-windows-hook)
           (when gnus-window-frame-focus
-            (gnus-select-frame-set-input-focus
+            (select-frame-set-input-focus
              (window-frame gnus-window-frame-focus)))))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
@@ -510,28 +504,16 @@ should have point."
 		  lowest-buf buf))))
       (when lowest-buf
 	(pop-to-buffer lowest-buf)
-	(if (featurep 'xemacs)
-	    (switch-to-buffer nntp-server-buffer)
-	  (set-buffer nntp-server-buffer)))
+	(set-buffer nntp-server-buffer))
       (mapcar (lambda (b) (delete-windows-on b t))
 	      (delq lowest-buf bufs)))))
-
-(eval-and-compile
-  (cond
-   ((fboundp 'frames-on-display-list)
-    (defalias 'gnus-frames-on-display-list 'frames-on-display-list))
-   ((and (featurep 'xemacs) (fboundp 'frame-device))
-    (defun gnus-frames-on-display-list ()
-      (apply 'filtered-frame-list 'identity (list (frame-device nil)))))
-   (t
-    (defalias 'gnus-frames-on-display-list 'frame-list))))
 
 (defun gnus-get-buffer-window (buffer &optional frame)
   (cond ((and (null gnus-use-frames-on-any-display)
 	      (memq frame '(t 0 visible)))
 	 (car
-	  (let ((frames (gnus-frames-on-display-list)))
-	    (gnus-remove-if (lambda (win) (not (memq (window-frame win)
+	  (let ((frames (frames-on-display-list)))
+	    (seq-remove (lambda (win) (not (memq (window-frame win)
 						     frames)))
 			    (get-buffer-window-list buffer nil frame)))))
 	(t

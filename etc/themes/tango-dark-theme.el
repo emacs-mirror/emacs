@@ -1,6 +1,6 @@
 ;;; tango-dark-theme.el --- Tango-based custom theme for faces
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Authors: Chong Yidong <cyd@stupidchicken>
 ;;          Jan Moringen <jan.moringen@uni-bielefeld.de>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary
 
@@ -78,6 +78,7 @@ Semantic, and Ansi-Color faces are included.")
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:foreground ,cham-0))))
    `(escape-glyph ((,class (:foreground ,butter-3))))
+   `(homoglyph ((,class (:foreground ,butter-3))))
    `(error ((,class (:foreground ,red-0))))
    `(warning ((,class (:foreground ,orange-1))))
    `(success ((,class (:foreground ,cham-1))))
@@ -139,6 +140,16 @@ Semantic, and Ansi-Color faces are included.")
    ;; Flyspell faces
    `(flyspell-duplicate ((,class (:underline ,orange-1))))
    `(flyspell-incorrect ((,class (:underline ,red-1))))
+   ;; Realgud
+   `(realgud-overlay-arrow1  ((,class (:foreground "green"))))
+   `(realgud-overlay-arrow2  ((,class (:foreground ,orange-1))))
+   `(realgud-overlay-arrow3  ((,class (:foreground ,plum-0))))
+   `(realgud-bp-disabled-face      ((,class (:foreground ,blue-3))))
+   `(realgud-bp-line-enabled-face  ((,class (:underline "red"))))
+   `(realgud-bp-line-disabled-face ((,class (:underline ,blue-3))))
+   `(realgud-file-name             ((,class :foreground ,blue-1)))
+   `(realgud-line-number           ((,class :foreground ,plum-0)))
+   `(realgud-backtrace-number      ((,class :foreground ,plum-0 :weight bold)))
    ;; Semantic faces
    `(semantic-decoration-on-includes ((,class (:underline ,alum-4))))
    `(semantic-decoration-on-private-members-face

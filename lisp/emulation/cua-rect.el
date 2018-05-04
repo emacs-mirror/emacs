@@ -1,6 +1,6 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Acknowledgments
 
@@ -664,6 +664,22 @@ If command is repeated at same position, delete the rectangle."
     	     (when (> as 0)
     	       (setq row (concat row (make-string as ?\s))))
     	     (setq rect (cons row rect))))))
+    (nreverse rect)))
+
+(defun cua--extract-rectangle-bounds ()
+  (let (rect)
+    (if (not (cua--rectangle-virtual-edges))
+        (cua--rectangle-operation nil nil nil nil nil ; do not tabify
+          (lambda (s e _l _r)
+             (setq rect (cons (cons s e) rect))))
+      (cua--rectangle-operation nil 1 nil nil nil ; do not tabify
+        (lambda (s e l r _v)
+           (goto-char s)
+           (move-to-column l)
+           (setq s (point))
+           (move-to-column r)
+           (setq e (point))
+           (setq rect (cons (cons s e) rect)))))
     (nreverse rect)))
 
 (defun cua--insert-rectangle (rect &optional below paste-column line-count)
@@ -1394,6 +1410,8 @@ With prefix arg, indent to that column."
 
 (add-function :around region-extract-function
               #'cua--rectangle-region-extract)
+(add-function :around region-insert-function
+              #'cua--insert-rectangle)
 (add-function :around redisplay-highlight-region-function
               #'cua--rectangle-highlight-for-redisplay)
 
@@ -1405,8 +1423,12 @@ With prefix arg, indent to that column."
 
 (defun cua--rectangle-region-extract (orig &optional delete)
   (cond
-   ((not cua--rectangle) (funcall orig delete))
-   ((eq delete 'delete-only) (cua--delete-rectangle))
+   ((not cua--rectangle)
+    (funcall orig delete))
+   ((eq delete 'bounds)
+    (cua--extract-rectangle-bounds))
+   ((eq delete 'delete-only)
+    (cua--delete-rectangle))
    (t
     (let* ((strs (cua--extract-rectangle))
            (str (mapconcat #'identity strs "\n")))

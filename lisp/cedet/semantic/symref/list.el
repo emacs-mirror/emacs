@@ -1,6 +1,6 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -114,7 +114,7 @@ Display the references in `semantic-symref-results-mode'."
     (define-key km "+" 'semantic-symref-list-toggle-showing)
     (define-key km "n" 'semantic-symref-list-next-line)
     (define-key km "p" 'semantic-symref-list-prev-line)
-    (define-key km "q" 'semantic-symref-hide-buffer)
+    (define-key km "q" 'quit-window)
     (define-key km "\C-c\C-e" 'semantic-symref-list-expand-all)
     (define-key km "\C-c\C-r" 'semantic-symref-list-contract-all)
     (define-key km "R" 'semantic-symref-list-rename-open-hits)
@@ -192,11 +192,6 @@ Display the references in `semantic-symref-results-mode'."
   ;; FIXME: Why bother turning off font-lock?
   (set (make-local-variable 'font-lock-global-modes) nil)
   (font-lock-mode -1))
-
-(defun semantic-symref-hide-buffer ()
-  "Hide buffer with semantic-symref results."
-  (interactive)
-  (bury-buffer))
 
 (defcustom semantic-symref-results-summary-function 'semantic-format-tag-prototype
   "Function to use when creating items in Imenu.

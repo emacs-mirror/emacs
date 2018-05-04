@@ -1,9 +1,8 @@
 ;;; calc-comb.el --- combinatoric functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -261,7 +260,7 @@
 (defun calcFunc-lcm (a b)
   (let ((g (calcFunc-gcd a b)))
     (if (Math-numberp g)
-	(math-div (math-mul a b) g)
+	(math-div (math-abs (math-mul a b)) g)
       (list 'calcFunc-lcm a b))))
 
 (defun calcFunc-egcd (a b)   ; Knuth section 4.5.2
@@ -363,11 +362,13 @@
     (math-gammap1-raw '(float -25 -2))))
 
 (defun math-factorial-iter (count n f)
-  (if (= (% n 5) 1)
-      (math-working (format "factorial(%d)" (1- n)) f))
-  (if (> count 0)
-      (math-factorial-iter (1- count) (1+ n) (math-mul n f))
-    f))
+  (while (> count 0)
+    (if (= (% n 5) 1)
+	(math-working (format "factorial(%d)" (1- n)) f))
+    (setq count (1- count)
+	  f (math-mul n f)
+	  n (1+ n)))
+  f)
 
 (defun calcFunc-dfact (n)   ; [I I] [F F] [Public]
   (cond ((Math-integer-negp n)

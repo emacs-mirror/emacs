@@ -26,7 +26,7 @@
 
 (defun post-mail-send-it ()
   "The MH -post interface for `rmail-mail' to call.
-To use it, include \"(setq send-mail-function 'post-mail-send-it)\" in
+To use it, include \"(setq send-mail-function \\='post-mail-send-it)\" in
 site-init."
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " post-mail errors")

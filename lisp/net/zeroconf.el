@@ -1,6 +1,6 @@
-;;; zeroconf.el --- Service browser using Avahi.
+;;; zeroconf.el --- Service browser using Avahi.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -99,10 +99,7 @@
 
 ;;; Code:
 
-;;  Pacify byte-compiler.  D-Bus support in the Emacs core can be
-;; disabled with configuration option "--without-dbus".  Declare used
-;; subroutines and variables of `dbus' therefore.
-(defvar dbus-debug)
+(eval-when-compile (require 'cl-lib))
 
 (require 'dbus)
 
@@ -197,7 +194,7 @@ The key of an entry is the concatenation of the service name and
 service type of a discovered service.  The value is the service
 itself.  The format of a service is
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS\)
+  \(INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS)
 
 The INTERFACE is a number, which represents the network interface
 the service is located at.  The corresponding network interface
@@ -233,7 +230,7 @@ The key of an entry is the concatenation of the service name and
 service type of a resolved service.  The value is the service
 itself.  The format of a service is
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS\)
+  (INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS)
 
 INTERFACE, PROTOCOL, NAME, TYPE, DOMAIN and FLAGS have the same
 meaning as in `zeroconf-services-hash'.
@@ -259,7 +256,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi service names as list."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (zeroconf-service-name value)))
+     (lambda (_key value) (add-to-list 'result (zeroconf-service-name value)))
      zeroconf-services-hash)
     result))
 
@@ -267,7 +264,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi service types as list."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (zeroconf-service-type value)))
+     (lambda (_key value) (add-to-list 'result (zeroconf-service-type value)))
      zeroconf-services-hash)
     result))
 
@@ -275,11 +272,11 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi services for a given service type TYPE.
 The service type is one of the returned values of
 `zeroconf-list-service-types'.  The return value is a list
-\(SERVICE1 SERVICE2 ...\).  See `zeroconf-services-hash' for the
+\(SERVICE1 SERVICE2 ...).  See `zeroconf-services-hash' for the
 format of SERVICE."
   (let (result)
     (maphash
-     (lambda (key value)
+     (lambda (_key value)
        (when (equal type (zeroconf-service-type value))
 	 (add-to-list 'result value)))
      zeroconf-services-hash)
@@ -296,7 +293,7 @@ The key of an entry is a service type.")
 (defun zeroconf-service-add-hook (type event function)
   "Add FUNCTION to the hook of service type TYPE.
 
-EVENT must be either :new or :removed, indicating whether
+EVENT must be either `:new' or `:removed', indicating whether
 FUNCTION shall be called when a new service has been newly
 detected, or removed.
 
@@ -320,15 +317,13 @@ The attributes of SERVICE can be retrieved via the functions
 
   (cond
    ((equal event :new)
-    (let ((l-hook (gethash type zeroconf-service-added-hooks-hash nil)))
-      (add-hook 'l-hook function)
-      (puthash type l-hook zeroconf-service-added-hooks-hash)
-      (dolist (service (zeroconf-list-services type))
-	(funcall function service))))
+    (cl-pushnew function (gethash type zeroconf-service-added-hooks-hash)
+                :test #'equal)
+    (dolist (service (zeroconf-list-services type))
+      (funcall function service)))
    ((equal event :removed)
-    (let ((l-hook (gethash type zeroconf-service-removed-hooks-hash nil)))
-      (add-hook 'l-hook function)
-      (puthash type l-hook zeroconf-service-removed-hooks-hash)))
+    (cl-pushnew function (gethash type zeroconf-service-removed-hooks-hash)
+                :test #'equal))
    (t (error "EVENT must be either `:new' or `:removed'"))))
 
 (defun zeroconf-service-remove-hook (type event function)
@@ -336,16 +331,13 @@ The attributes of SERVICE can be retrieved via the functions
 
 EVENT must be either :new or :removed and has to match the event
 type used when registering FUNCTION."
-  (let* ((table (cond
-		 ((equal event :new)
-		  zeroconf-service-added-hooks-hash)
-		 ((equal event :removed)
-		  zeroconf-service-removed-hooks-hash)
-		 (t (error "EVENT must be either `:new' or `:removed'"))))
-	 (l-hook (gethash type table nil)))
-    (remove-hook 'l-hook function)
-    (if l-hook
-	(puthash type l-hook table)
+  (let* ((table (pcase event
+                  (:new zeroconf-service-added-hooks-hash)
+                  (:removed zeroconf-service-removed-hooks-hash)
+                  (_ (error "EVENT must be either `:new' or `:removed'"))))
+	 (functions (remove function (gethash type table))))
+    (if functions
+	(puthash type functions table)
       (remhash type table))))
 
 (defun zeroconf-get-host ()
@@ -385,17 +377,19 @@ type used when registering FUNCTION."
 NAME must be a string.  The service must be of service type
 TYPE. The resulting list has the format
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS\)."
+  (INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS)."
   ;; Due to the service browser, all known services are kept in
   ;; `zeroconf-services-hash'.
   (gethash (concat name "/" type) zeroconf-services-hash nil))
+
+(defvar dbus-debug)
 
 (defun zeroconf-resolve-service (service)
   "Return all service attributes SERVICE as list.
 NAME must be a string.  The service must be of service type
 TYPE. The resulting list has the format
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS\)."
+  (INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS)."
   (let* ((name (zeroconf-service-name service))
 	 (type (zeroconf-service-type service))
 	 (key (concat name "/" type)))
@@ -580,13 +574,13 @@ DOMAIN is nil, the local domain is used."
      ((string-equal (dbus-event-member-name last-input-event) "ItemNew")
       ;; Add new service.
       (puthash key val zeroconf-services-hash)
-      (run-hook-with-args 'ahook val))
+      (dolist (f ahook) (funcall f val)))
 
      ((string-equal (dbus-event-member-name last-input-event) "ItemRemove")
       ;; Remove the service.
       (remhash key zeroconf-services-hash)
       (remhash key zeroconf-resolved-services-hash)
-      (run-hook-with-args 'rhook val)))))
+      (dolist (f rhook) (funcall f val))))))
 
 (defun zeroconf-register-service-resolver (name type)
   "Register a service resolver at the Avahi daemon."
@@ -653,7 +647,7 @@ For the description of arguments, see `zeroconf-resolved-services-hash'."
 
     ;; The TXT field has the signature "as".  Transform to "aay".
     (dolist (elt txt)
-      (add-to-list 'result (dbus-string-to-byte-array elt)))
+      (cl-pushnew (dbus-string-to-byte-array elt) result :test #'equal))
 
     ;; Add the service.
     (dbus-call-method

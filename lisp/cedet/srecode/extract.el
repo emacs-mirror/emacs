@@ -1,6 +1,6 @@
 ;;; srecode/extract.el --- Extract content from previously inserted macro.
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -88,7 +88,7 @@ the dictionary entries were for that block of text."
     (save-restriction
       (narrow-to-region start end)
       (let ((dict (srecode-create-dictionary t))
-	    (state (srecode-extract-state "state"))
+	    (state (srecode-extract-state))
 	    )
 	(goto-char start)
 	(srecode-extract-method template dict state)

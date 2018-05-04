@@ -1,9 +1,9 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2018 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
-;; Maintainer: Andre Spiegel <spiegel@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,13 +34,13 @@
 
 ;; Faces
 
-(defgroup vc-state-faces nil
+(defgroup vc-faces nil
   "Faces used in the mode line by the VC state indicator."
-  :group 'vc-faces
+  :group 'vc
   :group 'mode-line
   :version "25.1")
 
-(defface vc-state-base-face
+(defface vc-state-base
   '((default))
   "Base face for VC state indicator."
   :group 'vc-faces
@@ -48,50 +48,50 @@
   :version "25.1")
 
 (defface vc-up-to-date-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is up to date."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-needs-update-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file needs update."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-locked-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file locked."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-locally-added-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is locally added."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-conflict-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file contains merge conflicts."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-removed-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file was removed from the VC system."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-missing-state
-  '((default :inherit vc-state-base-face))
+  '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is missing from the file system."
   :version "25.1"
   :group 'vc-faces)
 
 (defface vc-edited-state
-  '((default :inherit vc-state-base-face))
-  "Face for VC modeline state when the file is up to date."
+  '((default :inherit vc-state-base))
+  "Face for VC modeline state when the file is edited."
   :version "25.1"
   :group 'vc-faces)
 
@@ -122,7 +122,7 @@ An empty list disables VC altogether."
   :group 'vc)
 
 ;; Note: we don't actually have a darcs back end yet.
-;; Also, Meta-CVS (corresponding to MCVS) and Arch are unsupported.
+;; Also, Arch is unsupported, and the Meta-CVS back end has been removed.
 ;; The Arch back end will be retrieved and fixed if it is ever required.
 (defcustom vc-directory-exclusion-list (purecopy '("SCCS" "RCS" "CVS" "MCVS"
 					 ".src" ".svn" ".git" ".hg" ".bzr"
@@ -206,17 +206,17 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 	   (not (memq property vc-touched-properties)))
       (setq vc-touched-properties (append (list property)
 					  vc-touched-properties)))
-  (put (intern file vc-file-prop-obarray) property value))
+  (put (intern (expand-file-name file) vc-file-prop-obarray) property value))
 
 (defun vc-file-getprop (file property)
   "Get per-file VC PROPERTY for FILE."
-  (get (intern file vc-file-prop-obarray) property))
+  (get (intern (expand-file-name file) vc-file-prop-obarray) property))
 
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
   (if (boundp 'vc-parent-buffer)
       (kill-local-variable 'vc-parent-buffer))
-  (setplist (intern file vc-file-prop-obarray) nil))
+  (setplist (intern (expand-file-name file) vc-file-prop-obarray) nil))
 
 
 ;; We keep properties on each symbol naming a backend as follows:
@@ -243,12 +243,12 @@ if that doesn't exist either, return nil."
   "Call for BACKEND the implementation of FUNCTION-NAME with the given ARGS.
 Calls
 
-    (apply 'vc-BACKEND-FUN ARGS)
+    (apply \\='vc-BACKEND-FUN ARGS)
 
 if vc-BACKEND-FUN exists (after trying to find it in vc-BACKEND.el)
 and else calls
 
-    (apply 'vc-default-FUN BACKEND ARGS)
+    (apply \\='vc-default-FUN BACKEND ARGS)
 
 It is usually called via the `vc-call' macro."
   (let ((f (assoc function-name (get backend 'vc-functions))))
@@ -394,7 +394,7 @@ For registered files, the possible values are:
 
 (defun vc-user-login-name (file)
   "Return the name under which the user accesses the given FILE."
-  (or (and (eq (string-match tramp-file-name-regexp file) 0)
+  (or (and (file-remote-p file)
            ;; tramp case: execute "whoami" via tramp
            (let ((default-directory (file-name-directory file))
 		 process-file-side-effects)
@@ -468,16 +468,20 @@ status of this file.  Otherwise, the value returned is one of:
 
   `unregistered'     The file is not under version control."
 
-  ;; Note: in Emacs 22 and older, return of nil meant the file was
-  ;; unregistered.  This is potentially a source of
-  ;; backward-compatibility bugs.
+  ;; Note: we usually return nil here for unregistered files anyway
+  ;; when called with only one argument.  This doesn't seem to cause
+  ;; any problems.  But if we wanted to change that, we should
+  ;; probably opt for redefining the `registered' command to return
+  ;; non-nil even for unregistered files (maybe also rename it), and
+  ;; then make sure that all `state' implementations handle
+  ;; unregistered file appropriately.
 
   ;; FIXME: New (sub)states needed (?):
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
       (when (> (length file) 0)         ;Why??  --Stef
-	(setq backend (or backend (vc-responsible-backend file)))
-	(when backend
+        (setq backend (or backend (vc-backend file)))
+        (when backend
           (vc-state-refresh file backend)))))
 
 (defun vc-state-refresh (file backend)
@@ -495,10 +499,11 @@ status of this file.  Otherwise, the value returned is one of:
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
       (progn
-	(setq backend (or backend (vc-responsible-backend file)))
-	(when backend
-	  (vc-file-setprop file 'vc-working-revision
-			   (vc-call-backend backend 'working-revision file))))))
+        (setq backend (or backend (vc-backend file)))
+        (when backend
+          (vc-file-setprop file 'vc-working-revision
+                           (vc-call-backend
+                            backend 'working-revision file))))))
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
@@ -791,7 +796,11 @@ current, and kill the buffer that visits the link."
   nil)
 
 (defun vc-refresh-state ()
-  "Activate or deactivate VC mode as appropriate."
+  "Refresh the VC state of the current buffer's file.
+
+This command is more thorough than `vc-state-refresh', in that it
+also supports switching a back-end or removing the file from VC.
+In the latter case, VC mode is deactivated for this buffer."
   (interactive)
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
@@ -803,15 +812,15 @@ current, and kill the buffer that visits the link."
     (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
     (let (backend)
       (cond
-       ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
+        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
+         ;; Let the backend setup any buffer-local things he needs.
+         (vc-call-backend backend 'find-file-hook)
 	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
 	  ;; because this is for things that depend on the file name.
-	  (set (make-local-variable 'backup-inhibited) t))
-	;; Let the backend setup any buffer-local things he needs.
-	(vc-call-backend backend 'find-file-hook))
+          (set (make-local-variable 'backup-inhibited) t)))
        ((let* ((truename (and buffer-file-truename
 			      (expand-file-name buffer-file-truename)))
 	       (link-type (and truename
@@ -873,7 +882,7 @@ current, and kill the buffer that visits the link."
     (define-key map "d" 'vc-dir)
     (define-key map "g" 'vc-annotate)
     (define-key map "G" 'vc-ignore)
-    (define-key map "h" 'vc-insert-headers)
+    (define-key map "h" 'vc-region-history)
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
     (define-key map "L" 'vc-print-root-log)

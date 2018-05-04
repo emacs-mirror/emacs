@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2015 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -20,13 +20,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar nnmail-extra-headers)
 (defvar gnus-newsgroup-name)
@@ -62,22 +62,26 @@ they will keep on jabbering all the time."
   :group 'gnus-server
   :type 'boolean)
 
-(defvar nnheader-max-head-length 8192
-  "*Max length of the head of articles.
+(defcustom nnheader-max-head-length 8192
+  "Max length of the head of articles.
 
 Value is an integer, nil, or t.  nil means read in chunks of a file
-indefinitely until a complete head is found\; t means always read the
+indefinitely until a complete head is found; t means always read the
 entire file immediately, disregarding `nnheader-head-chop-length'.
 
 Integer values will in effect be rounded up to the nearest multiple of
-`nnheader-head-chop-length'.")
+`nnheader-head-chop-length'."
+  :group 'gnus-article-various		; FIXME?
+  :type '(choice integer (const :tag "Read chunks" nil)
+		 (const :tag "Read entire file" t)))
 
-(defvar nnheader-head-chop-length 2048
-  "*Length of each read operation when trying to fetch HEAD headers.")
+(defcustom nnheader-head-chop-length 2048
+  "Length of each read operation when trying to fetch HEAD headers."
+  :group 'gnus-article-various		; FIXME?
+  :type 'integer)
 
 (defvar nnheader-read-timeout
-  (if (string-match "windows-nt\\|os/2\\|cygwin"
-		    (symbol-name system-type))
+  (if (memq system-type '(windows-nt cygwin))
       ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
       ;;
       ;; IIRC, values lower than 1.0 didn't/don't work on Windows/DOS.
@@ -98,27 +102,22 @@ Integer values will in effect be rounded up to the nearest multiple of
   "How long nntp should wait between checking for the end of output.
 Shorter values mean quicker response, but are more CPU intensive.")
 
-(defvar nnheader-file-name-translation-alist
-  (let ((case-fold-search t))
-    (cond
-     ((string-match "windows-nt\\|os/2\\|cygwin"
-		    (symbol-name system-type))
-      (append (mapcar (lambda (c) (cons c ?_))
-		      '(?: ?* ?\" ?< ?> ??))
-	      (if (string-match "windows-nt\\|cygwin"
-				(symbol-name system-type))
-		  nil
-		'((?+ . ?-)))))
-     (t nil)))
-  "*Alist that says how to translate characters in file names.
+(defcustom nnheader-file-name-translation-alist
+  (if (memq system-type '(windows-nt cygwin))
+      (mapcar (lambda (c) (cons c ?_)) '(?: ?* ?\" ?< ?> ??)))
+  "Alist that says how to translate characters in file names.
 For instance, if \":\" is invalid as a file character in file names
 on your system, you could say something like:
 
-\(setq nnheader-file-name-translation-alist \\='((?: . ?_)))")
+\(setq nnheader-file-name-translation-alist \\='((?: . ?_)))"
+  :group 'gnus-article-various		; FIXME?
+  :type '(alist :key-type character :value-type character))
 
-(defvar nnheader-directory-separator-character
+(defcustom nnheader-directory-separator-character
   (string-to-char (substring (file-name-as-directory ".") -1))
-  "*A character used to a directory separator.")
+  "A character used as a directory separator."
+  :group 'gnus-article-various		; FIXME?
+  :type 'character)
 
 (autoload 'nnmail-message-id "nnmail")
 (autoload 'mail-position-on-field "sendmail")
@@ -238,7 +237,7 @@ on your system, you could say something like:
       (format "fake+none+%s+%d" gnus-newsgroup-name number)
     (format "fake+none+%s+%s"
 	    gnus-newsgroup-name
-	    (int-to-string (incf nnheader-fake-message-id)))))
+	    (int-to-string (cl-incf nnheader-fake-message-id)))))
 
 (defsubst nnheader-fake-message-id-p (id)
   (save-match-data		       ; regular message-id's are <.*>
@@ -613,7 +612,7 @@ the line could be found."
 	(while (and (eq nnheader-head-chop-length
 			(nth 1 (mm-insert-file-contents
 				file nil beg
-				(incf beg nnheader-head-chop-length))))
+				(cl-incf beg nnheader-head-chop-length))))
 		    ;; CRLF or CR might be used for the line-break code.
 		    (prog1 (not (re-search-forward "\n\r?\n\\|\r\r" nil t))
 		      (goto-char (point-max)))
@@ -621,8 +620,8 @@ the line could be found."
 			(< beg nnheader-max-head-length))))
 	;; Finally decode the contents.
 	(when (mm-coding-system-p nnheader-file-coding-system)
-	  (mm-decode-coding-region start (point-max)
-				   nnheader-file-coding-system))))
+	  (decode-coding-region start (point-max)
+				nnheader-file-coding-system))))
     t))
 
 (defun nnheader-article-p ()
@@ -726,9 +725,7 @@ the line could be found."
     (string-match nnheader-numerical-short-files file)
     (string-to-number (match-string 0 file))))
 
-(defvar nnheader-directory-files-is-safe
-  (or (eq system-type 'windows-nt)
-      (not (featurep 'xemacs)))
+(defvar nnheader-directory-files-is-safe (not (eq system-type 'windows-nt))
   "If non-nil, Gnus believes `directory-files' is safe.
 It has been reported numerous times that `directory-files' fails with
 an alarming frequency on NFS mounted file systems. If it is nil,
@@ -780,34 +777,14 @@ If FULL, translate everything."
 		      2 0))
 	;; We translate -- but only the file name.  We leave the directory
 	;; alone.
-	(if (and (featurep 'xemacs)
-		 (memq system-type '(windows-nt cygwin)))
-	    ;; This is needed on NT and stuff, because
-	    ;; file-name-nondirectory is not enough to split
-	    ;; file names, containing ':', e.g.
-	    ;; "d:\\Work\\News\\nntp+news.fido7.ru:fido7.ru.gnu.SCORE"
-	    ;;
-	    ;; we are trying to correctly split such names:
-	    ;; "d:file.name" -> "a:" "file.name"
-	    ;; "aaa:bbb.ccc" -> "" "aaa:bbb.ccc"
-	    ;; "d:aaa\\bbb:ccc"   -> "d:aaa\\" "bbb:ccc"
-	    ;; etc.
-	    ;; to translate then only the file name part.
-	    (progn
-	      (setq leaf file
-		    path "")
-	      (if (string-match "\\(^\\w:\\|[/\\]\\)\\([^/\\]+\\)$" file)
-		  (setq leaf (substring file (match-beginning 2))
-			path (substring file 0 (match-beginning 2)))))
-	  ;; Emacs DTRT, says andrewi.
-	  (setq leaf (file-name-nondirectory file)
-		path (file-name-directory file))))
+	(setq leaf (file-name-nondirectory file)
+	      path (file-name-directory file)))
       (setq len (length leaf))
       (while (< i len)
 	(when (setq trans (cdr (assq (aref leaf i)
 				     nnheader-file-name-translation-alist)))
 	  (aset leaf i trans))
-	(incf i))
+	(cl-incf i))
       (concat path leaf))))
 
 (defun nnheader-report (backend &rest args)
@@ -842,7 +819,7 @@ without formatting."
     t))
 
 (defsubst nnheader-replace-chars-in-string (string from to)
-  (mm-subst-char-in-string from to string))
+  (subst-char-in-string from to string))
 
 (defun nnheader-replace-duplicate-chars-in-string (string from to)
   "Replace characters in STRING from FROM to TO."
@@ -886,8 +863,10 @@ without formatting."
   (or (not (numberp gnus-verbose-backends))
       (<= level gnus-verbose-backends)))
 
-(defvar nnheader-pathname-coding-system 'iso-8859-1
-  "*Coding system for file name.")
+(defcustom nnheader-pathname-coding-system 'iso-8859-1
+  "Coding system for file name."
+  :group 'gnus-article-various		; FIXME?
+  :type 'coding-system)
 
 (defun nnheader-group-pathname (group dir &optional file)
   "Make file name for GROUP."
@@ -898,7 +877,7 @@ without formatting."
       (if (file-directory-p (concat dir group))
 	  (expand-file-name group dir)
 	;; If not, we translate dots into slashes.
-	(expand-file-name (mm-encode-coding-string
+	(expand-file-name (encode-coding-string
 			   (nnheader-replace-chars-in-string group ?. ?/)
 			   nnheader-pathname-coding-system)
 			  dir))))
@@ -966,7 +945,7 @@ first.  Otherwise, find the newest one, though it may take a time."
   "Like `insert-file-contents', q.v., but only reads in the file.
 A buffer may be modified in several ways after reading into the buffer due
 to advanced Emacs features, such as file-name-handlers, format decoding,
-find-file-hooks, etc.
+find-file-hook, etc.
   This function ensures that none of these modifications will take place."
   (let ((coding-system-for-read nnheader-file-coding-system))
     (mm-insert-file-contents filename visit beg end replace)))
@@ -994,7 +973,7 @@ find-file-hooks, etc.
 (defun nnheader-find-file-noselect (&rest args)
   "Open a file with some variables bound.
 See `find-file-noselect' for the arguments."
-  (letf* ((format-alist nil)
+  (cl-letf* ((format-alist nil)
           (auto-mode-alist (mm-auto-mode-alist))
           ((default-value 'major-mode) 'fundamental-mode)
           (enable-local-variables nil)
@@ -1002,14 +981,8 @@ See `find-file-noselect' for the arguments."
           (enable-local-eval nil)
           (coding-system-for-read nnheader-file-coding-system)
           (version-control 'never)
-          (ffh (if (boundp 'find-file-hook)
-                   'find-file-hook
-                 'find-file-hooks))
-          (val (symbol-value ffh)))
-    (set ffh nil)
-    (unwind-protect
-	(apply 'find-file-noselect args)
-      (set ffh val))))
+	  (find-file-hook nil))
+    (apply 'find-file-noselect args)))
 
 (defun nnheader-directory-regular-files (dir)
   "Return a list of all regular files in DIR."
@@ -1098,16 +1071,11 @@ See `find-file-noselect' for the arguments."
 
 (defmacro nnheader-insert-buffer-substring (buffer &optional start end)
   "Copy string from unibyte buffer to multibyte current buffer."
-  (if (featurep 'xemacs)
-      `(insert-buffer-substring ,buffer ,start ,end)
-    `(if enable-multibyte-characters
-	 (insert (with-current-buffer ,buffer
-		   (mm-string-to-multibyte
-		    ,(if (or start end)
-			 `(buffer-substring (or ,start (point-min))
-					    (or ,end (point-max)))
-		       '(buffer-string)))))
-       (insert-buffer-substring ,buffer ,start ,end))))
+  `(insert (with-current-buffer ,buffer
+	     ,(if (or start end)
+		  `(buffer-substring (or ,start (point-min))
+				     (or ,end (point-max)))
+		'(buffer-string)))))
 
 (defvar nnheader-last-message-time '(0 0))
 (defun nnheader-message-maybe (&rest args)
@@ -1115,9 +1083,6 @@ See `find-file-noselect' for the arguments."
     (when (> (float-time (time-subtract now nnheader-last-message-time)) 1)
       (setq nnheader-last-message-time now)
       (apply 'nnheader-message args))))
-
-(when (featurep 'xemacs)
-  (require 'nnheaderxm))
 
 (run-hooks 'nnheader-load-hook)
 

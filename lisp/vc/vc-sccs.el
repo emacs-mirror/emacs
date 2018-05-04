@@ -1,9 +1,9 @@
 ;;; vc-sccs.el --- support for SCCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
-;; Maintainer: Andre Spiegel <spiegel@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -222,10 +222,11 @@ to the SCCS command."
       (stringp (vc-sccs-search-project-dir (or (file-name-directory file) "")
 					   (file-name-nondirectory file)))))
 
-(defun vc-sccs-checkin (files comment)
+(defun vc-sccs-checkin (files comment &optional rev)
   "SCCS-specific version of `vc-backend-checkin'."
   (dolist (file (vc-expand-dirs files 'SCCS))
     (apply 'vc-sccs-do-command nil 0 "delta" (vc-master-name file)
+           (if rev (concat "-r" rev))
 	   (concat "-y" comment)
 	   (vc-switches 'SCCS 'checkin))
 	(vc-sccs-do-command nil 0 "get" (vc-master-name file))))

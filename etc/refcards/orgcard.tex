@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{8.2}
-\def\versionyear{2014}          % latest update
+\def\orgversionnumber{9.1.9}
+\def\versionyear{2018}          % latest update
 \input emacsver.tex
 
 %**start of header
@@ -17,23 +17,27 @@
 \pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
-% Copyright (C) 1987, 1993, 1996-1997, 2001-2015 Free Software
+% Copyright (C) 1987, 1993, 1996-1997, 2001-2018 Free Software
 % Foundation, Inc.
 
-% This file is part of GNU Emacs.
-
-% GNU Emacs is free software: you can redistribute it and/or modify
+% This document is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or
 % (at your option) any later version.
 
-% GNU Emacs is distributed in the hope that it will be useful,
+% As a special additional permission, you may distribute reference cards
+% printed, or formatted for printing, with the notice "Released under
+% the terms of the GNU General Public License version 3 or later"
+% instead of the usual distributed-under-the-GNU-GPL notice, and without
+% a copy of the GPL itself.
+
+% This document is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 % GNU General Public License for more details.
 
 % You should have received a copy of the GNU General Public License
-% along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+% along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 % This file is intended to be processed by plain TeX (TeX82).
 %
@@ -73,9 +77,11 @@
 \centerline{Author: Philip Rooke}
 \centerline{based on refcard design and format by Stephen Gildea}
 
-Permission is granted to make and distribute copies of
-this card provided the copyright notice and this permission notice
-are preserved on all copies.
+\centerline{Released under the terms of the GNU General Public License}
+\centerline{version 3 or later.}
+
+\centerline{For more Emacs documentation, and the \TeX{} source for this card, see}
+\centerline{the Emacs distribution, or {\tt https://www.gnu.org/software/emacs}}
 
 \endgroup}
 
@@ -306,10 +312,11 @@ are preserved on all copies.
 \key{turn item/line into headline}{C-c *}
 \key{promote/demote heading}{M-LEFT/RIGHT}
 \metax{promote/demote current subtree}{M-S-LEFT/RIGHT}
-\metax{move subtree/list item up/down}{M-S-UP/DOWN}
+\metax{move subtree/list item up/down}{M-UP/DOWN}
+\metax{move the line at point up/down}{M-S-UP/DOWN}
 \metax{sort subtree/region/plain-list}{C-c \^{}}
 \metax{clone a subtree}{C-c C-x c}
-\metax{copy visible text}{C-c C-x v}
+\metax{copy visible parts of the region}{C-c C-x v}
 \metax{kill/copy subtree}{C-c C-x C-w/M-w}
 \metax{yank subtree}{C-c C-x C-y or C-y}
 \metax{narrow buffer to subtree / widen}{C-x n s/w}
@@ -327,7 +334,6 @@ are preserved on all copies.
 \key{construct a sparse tree by various criteria}{C-c /}
 \key{view TODO's in sparse tree}{C-c / t/T}
 \key{global TODO list in agenda mode}{C-c a t \noteone}
-\key{time sorted view of current org file}{C-c a L}
 
 \section{Tables}
 
@@ -369,7 +375,6 @@ Outside of tables, the same keys may have other functionality.
 \metax{cut/copy/paste rectangular region}{C-c C-x C-w/M-w/C-y}
 %\key{copy rectangular region}{C-c C-x M-w}
 %\key{paste rectangular region}{C-c C-x C-y}
-\key{fill paragraph across selected cells}{C-c C-q}
 
 {\bf Miscellaneous}
 
@@ -568,7 +573,6 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{match tags, TODO kwds, properties}{C-c a m \noteone}
 \key{match only in TODO entries}{C-c a M \noteone}
 \key{find stuck projects}{C-c a \# \noteone}
-\key{show timeline of current org file}{C-c a L \noteone}
 \key{configure custom commands}{C-c a C \noteone}
 %\key{configure stuck projects}{C-c a ! \noteone}
 \key{agenda for date at cursor}{C-c C-o}
@@ -655,8 +659,11 @@ some other place.
 
 \key{export/publish dispatcher}{C-c C-e}
 
-\key{export visible part only}{C-c C-e v}
-\key{insert template of export options}{C-c C-e t}
+\key{toggle asynchronous export}{C-c C-e C-a}
+\key{toggle body/visible only export}{C-c C-e C-b/v}
+\key{toggle subtree export}{C-c C-e C-s}
+\key{insert template of export options}{C-c C-e \#}
+
 \key{toggle fixed width for entry or region}{C-c :}
 \key{toggle pretty display of scripts, entities}{C-c C-x {\tt\char`\\}}
 
@@ -684,6 +691,5 @@ your own key as shown under ACTIVATION.
 \bye
 
 % Local variables:
-% compile-command: "tex refcard"
+% compile-command: "pdftex orgcard"
 % End:
-

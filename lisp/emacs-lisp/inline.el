@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -59,7 +59,7 @@
 ;;         and then M-: (macroexpand-all '(my-test1 y)) RET)
 ;; There is still one downside shared with the defmacro and cl-defsubst
 ;; approach: when the function is inlined, the scoping rules (dynamic or
-;; lexical) will be inherited from the the call site.
+;; lexical) will be inherited from the call site.
 
 ;; Of course, since define-inline defines a compiler macro, you can also do
 ;; call-site optimizations, just like you can with `defmacro', but not with
@@ -91,9 +91,13 @@
 
 (defmacro inline--leteval (_var-exp &rest _body)
   (declare (indent 1) (debug (sexp &rest body)))
+  ;; BEWARE: if we're here it's presumably via macro-expansion of
+  ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 (defmacro inline--letlisteval (_list &rest _body)
   (declare (indent 1) (debug (sexp &rest body)))
+  ;; BEWARE: if we're here it's presumably via macro-expansion of
+  ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 
 (defmacro inline-letevals (vars &rest body)
@@ -102,7 +106,7 @@ VARS should be a list of elements of the form (VAR EXP) or just VAR, in case
 EXP is equal to VAR.  The result is to evaluate EXP and bind the result to VAR.
 
 The tail of VARS can be either nil or a symbol VAR which should hold a list
-of arguments,in which case each argument is evaluated and the resulting
+of arguments, in which case each argument is evaluated and the resulting
 new list is re-bound to VAR.
 
 After VARS is handled, BODY is evaluated in the new environment."
@@ -124,6 +128,10 @@ After VARS is handled, BODY is evaluated in the new environment."
 
 ;;;###autoload
 (defmacro define-inline (name args &rest body)
+  "Define an inline function NAME with arguments ARGS and body in BODY.
+
+This is like `defmacro', but has several advantages.
+See Info node `(elisp)Defining Functions' for more details."
   ;; FIXME: How can this work with CL arglists?
   (declare (indent defun) (debug defun) (doc-string 3))
   (let ((doc (if (stringp (car-safe body)) (list (pop body))))
@@ -191,9 +199,9 @@ After VARS is handled, BODY is evaluated in the new environment."
        (while (and (consp exp) (not (eq '\, (car exp))))
          (push (inline--dont-quote (pop exp)) args))
        (setq args (nreverse args))
-       (if exp
-           `(apply ,@args ,(inline--dont-quote exp))
-         args)))
+       (if (null exp)
+           args
+         `(apply #',(car args) ,@(cdr args) ,(inline--dont-quote exp)))))
     (_ exp)))
 
 (defun inline--do-leteval (var-exp &rest body)
@@ -218,7 +226,7 @@ After VARS is handled, BODY is evaluated in the new environment."
     `(let* ((,bsym ())
             (,listvar (mapcar (lambda (e)
                                 (if (macroexp-copyable-p e) e
-                                  (let ((v (make-symbol "v")))
+                                  (let ((v (gensym "v")))
                                     (push (list v e) ,bsym)
                                     v)))
                               ,listvar)))

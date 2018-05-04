@@ -1,12 +1,12 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,12 +14,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_MSDOS_H
 #define EMACS_MSDOS_H
 
 #include <dpmi.h>
+
+#include "termhooks.h"		/* struct terminal */
 
 int dos_ttraw (struct tty_display_info *);
 int dos_ttcooked (void);
@@ -41,8 +43,12 @@ void mouse_on (void);
 void mouse_off (void);
 void mouse_moveto (int, int);
 
+void IT_set_frame_parameters (struct frame *, Lisp_Object);
+
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pc.h>
+#include <signal.h>
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
 int readlink (const char *, char *, size_t);
@@ -50,9 +56,20 @@ int readlink (const char *, char *, size_t);
 ssize_t readlinkat (int, const char *, char *, size_t);
 int fstatat (int, char const *, struct stat *, int);
 int unsetenv (const char *);
+int faccessat (int, const char *, int, int);
+void msdos_fatal_signal (int);
+void syms_of_msdos (void);
+int pthread_sigmask (int, const sigset_t *, sigset_t *);
+int dos_keysns (void);
+int dos_keyread (void);
+int run_msdos_command (char **, const char *, int, int, int, char **);
+
+void syms_of_win16select (void);
+
 
 /* Constants.  */
 #define EINPROGRESS 112
+#define ENOTSUP     ENOSYS
 /* Gnulib sets O_CLOEXEC to O_NOINHERIT, which gets in the way when we
    need to redirect standard handles for subprocesses using temporary
    files created by mkostemp, see callproc.c.  */
@@ -129,4 +146,3 @@ void XMenuDestroy (Display *, XMenu *);
 #endif /* not HAVE_X_WINDOWS */
 
 #endif /* not EMACS_MSDOS_H */
-

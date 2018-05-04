@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,6 +41,9 @@
 ;;
 ;;   beginning-op	Function to call to skip to the beginning of a "thing".
 ;;   end-op		Function to call to skip to the end of a "thing".
+;;
+;; For simple things, defined as sequences of specific kinds of characters,
+;; use macro define-thing-chars.
 ;;
 ;; Reliance on existing operators means that many `things' can be accessed
 ;; without further code:  eg.
@@ -221,20 +224,15 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
   "Return the bounds of the list at point.
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
-    (let ((opoint (point))
-	  (beg (ignore-errors
-		 (up-list -1)
-		 (point))))
-      (ignore-errors
-	(if beg
-	    (progn (forward-sexp)
-		   (cons beg (point)))
-	  ;; Are we are at the beginning of a top-level sexp?
-	  (forward-sexp)
-	  (let ((end (point)))
-	    (backward-sexp)
-	    (if (>= opoint (point))
-		(cons opoint end))))))))
+    (let* ((st (parse-partial-sexp (point-min) (point)))
+           (beg (or (and (eq 4 (car (syntax-after (point))))
+                         (not (nth 8 st))
+                         (point))
+                    (nth 1 st))))
+      (when beg
+        (goto-char beg)
+        (forward-sexp)
+        (cons beg (point))))))
 
 ;; Defuns
 
@@ -242,21 +240,28 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 (put 'defun 'end-op       'end-of-defun)
 (put 'defun 'forward-op   'end-of-defun)
 
+;; Things defined by sets of characters
+
+(defmacro define-thing-chars (thing chars)
+  "Define THING as a sequence of CHARS.
+E.g.:
+\(define-thing-chars twitter-screen-name \"[:alnum:]_\")"
+  `(progn
+     (put ',thing 'end-op
+          (lambda ()
+            (re-search-forward (concat "\\=[" ,chars "]*") nil t)))
+     (put ',thing 'beginning-op
+          (lambda ()
+            (if (re-search-backward (concat "[^" ,chars "]") nil t)
+	        (forward-char)
+	      (goto-char (point-min)))))))
+
 ;;  Filenames
 
 (defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
 
-(put 'filename 'end-op
-     (lambda ()
-       (re-search-forward (concat "\\=[" thing-at-point-file-name-chars "]*")
-			  nil t)))
-(put 'filename 'beginning-op
-     (lambda ()
-       (if (re-search-backward (concat "[^" thing-at-point-file-name-chars "]")
-			       nil t)
-	   (forward-char)
-	 (goto-char (point-min)))))
+(define-thing-chars filename thing-at-point-file-name-chars)
 
 ;;  URIs
 
@@ -280,8 +285,8 @@ If nil, construct the regexp from `thing-at-point-uri-schemes'.")
     "finger://" "fish://" "ftp://" "geo:" "git://" "go:" "gopher://"
     "h323:" "http://" "https://" "im:" "imap://" "info:" "ipp:"
     "irc://" "irc6://" "ircs://" "iris.beep:" "jar:" "ldap://"
-    "ldaps://" "mailto:" "mid:"  "mtqp://" "mupdate://" "news:"
-    "nfs://" "nntp://" "opaquelocktoken:" "pop://" "pres:"
+    "ldaps://" "magnet:" "mailto:" "mid:"  "mtqp://" "mupdate://"
+    "news:" "nfs://" "nntp://" "opaquelocktoken:" "pop://" "pres:"
     "resource://" "rmi://" "rsync://" "rtsp://" "rtspu://" "service:"
     "sftp://" "sip:" "sips:" "smb://" "sms:" "snmp://" "soap.beep://"
     "soap.beeps://" "ssh://" "svn://" "svn+ssh://" "tag:" "tel:"
@@ -385,13 +390,15 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
 	     (save-restriction
 	       (narrow-to-region (1- url-beg) (min end (point-max)))
 	       (setq paren-end (ignore-errors
-				 (scan-lists (1- url-beg) 1 0))))
+                                 ;; Make the scan work inside comments.
+                                 (let ((parse-sexp-ignore-comments nil))
+                                   (scan-lists (1- url-beg) 1 0)))))
 	     (not (blink-matching-check-mismatch (1- url-beg) paren-end))
 	     (setq end (1- paren-end)))
 	;; Ensure PT is actually within BOUNDARY. Check the following
 	;; example with point on the beginning of the line:
 	;;
-	;; 3,1406710489,http://gnu.org,0,"0"
+	;; 3,1406710489,https://gnu.org,0,"0"
 	(and (<= url-beg pt end) (cons url-beg end))))))
 
 (put 'url 'thing-at-point 'thing-at-point-url-at-point)
@@ -489,19 +496,26 @@ looks like an email address, \"ftp://\" if it starts with
 (defun thing-at-point-looking-at (regexp &optional distance)
   "Return non-nil if point is in or just after a match for REGEXP.
 Set the match data from the earliest such match ending at or after
-point."
+point.
+
+Optional argument DISTANCE limits search for REGEXP forward and
+back from point."
   (save-excursion
     (let ((old-point (point))
 	  (forward-bound (and distance (+ (point) distance)))
 	  (backward-bound (and distance (- (point) distance)))
-	  match)
+	  match prev-pos new-pos)
       (and (looking-at regexp)
 	   (>= (match-end 0) old-point)
 	   (setq match (point)))
       ;; Search back repeatedly from end of next match.
       ;; This may fail if next match ends before this match does.
       (re-search-forward regexp forward-bound 'limit)
-      (while (and (re-search-backward regexp backward-bound t)
+      (setq prev-pos (point))
+      (while (and (setq new-pos (re-search-backward regexp backward-bound t))
+                  ;; Avoid inflooping with some regexps, such as "^",
+                  ;; matching which never moves point.
+                  (< new-pos prev-pos)
 		  (or (> (match-beginning 0) old-point)
 		      (and (looking-at regexp)	; Extend match-end past search start
 			   (>= (match-end 0) old-point)
@@ -579,9 +593,11 @@ Signal an error if the entire string was not used."
   "This is an internal thingatpt function and should not be used.")
 
 (defun form-at-point (&optional thing pred)
-  (let ((sexp (ignore-errors
-		(thing-at-point--read-from-whole-string
-		 (thing-at-point (or thing 'sexp))))))
+  (let* ((obj (thing-at-point (or thing 'sexp)))
+         (sexp (if (stringp obj)
+                   (ignore-errors
+                     (thing-at-point--read-from-whole-string obj))
+                 obj)))
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload
@@ -596,7 +612,10 @@ Signal an error if the entire string was not used."
 ;;;###autoload
 (defun number-at-point ()
   "Return the number at point, or nil if none is found."
-  (form-at-point 'sexp 'numberp))
+  (when (thing-at-point-looking-at "-?[0-9]+\\.?[0-9]*" 500)
+    (string-to-number
+     (buffer-substring (match-beginning 0) (match-end 0)))))
+
 (put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload
 (defun list-at-point ()

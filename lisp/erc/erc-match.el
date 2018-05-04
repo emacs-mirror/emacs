@@ -1,6 +1,6 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,7 +44,7 @@ Group containing all things concerning pattern matching in ERC
 messages."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-match-mode "erc-match")
+;;;###autoload(autoload 'erc-match-mode "erc-match")
 (define-erc-module match nil
   "This mode checks whether messages match certain patterns.  If so,
 they are hidden or highlighted.  This is controlled via the variables
@@ -84,7 +84,7 @@ Useful to mark nicks from dangerous hosts."
 
 (defcustom erc-current-nick-highlight-type 'keyword
   "Determines how to highlight text in which your current nickname appears
-\(does not apply to text sent by you\).
+\(does not apply to text sent by you).
 
 The following values are allowed:
 
@@ -191,7 +191,7 @@ use for the logged message."
   "Flag specifying when matched message logging should happen.
 When nil, don't log any matched messages.
 When t, log messages.
-When 'away, log messages only when away."
+When `away', log messages only when away."
   :group 'erc-match
   :type '(choice (const nil)
 		 (const away)
@@ -486,7 +486,7 @@ Use this defun with `erc-insert-modify-hook'."
 		    nick-end)
 	       (erc-put-text-property
 		nick-beg nick-end
-		'face match-face (current-buffer)))
+		'font-lock-face match-face (current-buffer)))
 	      ;; Highlight the nick of the message, or the current
 	      ;; nick if there's no nick in the message (e.g. /NAMES
 	      ;; output)
@@ -495,17 +495,17 @@ Use this defun with `erc-insert-modify-hook'."
 	       (if nick-end
 		   (erc-put-text-property
 		    nick-beg nick-end
-		    'face match-face (current-buffer))
+		    'font-lock-face match-face (current-buffer))
 		 (goto-char (+ 2 (or nick-end
 				     (point-min))))
 		 (while (re-search-forward match-regex nil t)
 		   (erc-put-text-property (match-beginning 0) (match-end 0)
-					  'face match-face))))
+					  'font-lock-face match-face))))
 	      ;; Highlight the whole message
 	      ((eq match-htype 'all)
 	       (erc-put-text-property
 		(point-min) (point-max)
-		'face match-face (current-buffer)))
+		'font-lock-face match-face (current-buffer)))
 	      ;; Highlight all occurrences of the word to be
 	      ;; highlighted.
 	      ((and (string= match-type "keyword")
@@ -521,7 +521,7 @@ Use this defun with `erc-insert-modify-hook'."
 			 (while (re-search-forward regex nil t)
 			   (erc-put-text-property
 			    (match-beginning 0) (match-end 0)
-			    'face face))))
+			    'font-lock-face face))))
 		     match-regex))
 	      ;; Highlight all occurrences of our nick.
 	      ((and (string= match-type "current-nick")
@@ -530,7 +530,7 @@ Use this defun with `erc-insert-modify-hook'."
 				   (point-min))))
 	       (while (re-search-forward match-regex nil t)
 		 (erc-put-text-property (match-beginning 0) (match-end 0)
-					'face match-face)))
+					'font-lock-face match-face)))
 	      ;; Else twiddle your thumbs.
 	      (t nil))
 	     (run-hook-with-args
@@ -648,6 +648,7 @@ This function is meant to be called from `erc-text-matched-hook'."
 ;;; erc-match.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -103,7 +103,12 @@ connected to automatically.
 `:encryption'
 
 VALUE must be `plain' (the default) for unencrypted connections, or `tls'
-for connections using SSL/TLS."
+for connections using SSL/TLS.
+
+`:server-alias'
+
+VALUE must be a string that will be used instead of the server name for
+display purposes. If absent, the real server name will be displayed instead."
   :type '(alist :key-type string
 		:value-type (plist :options
                                    ((:nick string)
@@ -113,7 +118,8 @@ for connections using SSL/TLS."
                                     (:full-name string)
                                     (:channels (repeat string))
                                     (:encryption (choice (const tls)
-                                                         (const plain))))))
+                                                         (const plain)))
+                                    (:server-alias string))))
   :group 'rcirc)
 
 (defcustom rcirc-default-port 6667
@@ -170,10 +176,32 @@ underneath each nick."
   "If non-nil, activity in this buffer is considered low priority.")
 (make-variable-buffer-local 'rcirc-low-priority-flag)
 
-(defvar rcirc-omit-mode nil
-  "Non-nil if Rcirc-Omit mode is enabled.
-Use the command `rcirc-omit-mode' to change this variable.")
-(make-variable-buffer-local 'rcirc-omit-mode)
+(defcustom rcirc-omit-responses
+  '("JOIN" "PART" "QUIT" "NICK")
+  "Responses which will be hidden when `rcirc-omit-mode' is enabled."
+  :type '(repeat string)
+  :group 'rcirc)
+
+(defvar rcirc-prompt-start-marker nil)
+
+(define-minor-mode rcirc-omit-mode
+  "Toggle the hiding of \"uninteresting\" lines.
+With a prefix argument ARG, enable Rcirc-Omit mode if ARG is
+positive, and disable it otherwise. If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+Uninteresting lines are those whose responses are listed in
+`rcirc-omit-responses'."
+  nil " Omit" nil
+  (if rcirc-omit-mode
+      (progn
+	(add-to-invisibility-spec '(rcirc-omit . nil))
+	(message "Rcirc-Omit mode enabled"))
+    (remove-from-invisibility-spec '(rcirc-omit . nil))
+    (message "Rcirc-Omit mode disabled"))
+  (dolist (window (get-buffer-window-list (current-buffer)))
+    (with-selected-window window
+      (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
 
 (defcustom rcirc-time-format "%H:%M "
   "Describes how timestamps are printed.
@@ -320,7 +348,7 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
 
 (defcustom rcirc-decode-coding-system 'utf-8
   "Coding system used to decode incoming irc messages.
-Set to 'undecided if you want the encoding of the incoming
+Set to `undecided' if you want the encoding of the incoming
 messages autodetected."
   :type 'coding-system
   :group 'rcirc)
@@ -375,7 +403,6 @@ will be killed."
 
 (defvar rcirc-nick nil)
 
-(defvar rcirc-prompt-start-marker nil)
 (defvar rcirc-prompt-end-marker nil)
 
 (defvar rcirc-nick-table nil)
@@ -484,22 +511,26 @@ If ARG is non-nil, instead prompt for connection parameters."
 	      (channels (plist-get (cdr c) :channels))
               (password (plist-get (cdr c) :password))
               (encryption (plist-get (cdr c) :encryption))
+              (server-alias (plist-get (cdr c) :server-alias))
               contact)
 	  (when server
 	    (let (connected)
 	      (dolist (p (rcirc-process-list))
-		(when (string= server (process-name p))
+		(when (string= (or server-alias server) (process-name p))
 		  (setq connected p)))
 	      (if (not connected)
 		  (condition-case nil
 		      (rcirc-connect server port nick user-name
-				     full-name channels password encryption)
-		    (quit (message "Quit connecting to %s" server)))
+                                     full-name channels password encryption
+                                     server-alias)
+		    (quit (message "Quit connecting to %s"
+                                   (or server-alias server))))
 		(with-current-buffer (process-buffer connected)
                   (setq contact (process-contact
-                                 (get-buffer-process (current-buffer)) :host))
+                                 (get-buffer-process (current-buffer)) :name))
                   (setq connected-servers
-                        (cons (if (stringp contact) contact server)
+                        (cons (if (stringp contact)
+                                  contact (or server-alias server))
                               connected-servers))))))))
       (when connected-servers
 	(message "Already connected to %s"
@@ -528,9 +559,10 @@ If ARG is non-nil, instead prompt for connection parameters."
 
 ;;;###autoload
 (defun rcirc-connect (server &optional port nick user-name
-                             full-name startup-channels password encryption)
+                             full-name startup-channels password encryption
+                             server-alias)
   (save-excursion
-    (message "Connecting to %s..." server)
+    (message "Connecting to %s..." (or server-alias server))
     (let* ((inhibit-eol-conversion)
            (port-number (if port
 			    (if (stringp port)
@@ -542,7 +574,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 	   (full-name (or full-name rcirc-default-full-name))
 	   (startup-channels startup-channels)
            (process (open-network-stream
-                     server nil server port-number
+                     (or server-alias server) nil server port-number
                      :type (or encryption 'plain))))
       ;; set up process
       (set-process-coding-system process 'raw-text 'raw-text)
@@ -557,7 +589,8 @@ If ARG is non-nil, instead prompt for connection parameters."
 			password encryption))
       (setq-local rcirc-process process)
       (setq-local rcirc-server server)
-      (setq-local rcirc-server-name server) ; Update when we get 001 response.
+      (setq-local rcirc-server-name
+                  (or server-alias server)) ; Update when we get 001 response.
       (setq-local rcirc-buffer-alist nil)
       (setq-local rcirc-nick-table (make-hash-table :test 'equal))
       (setq-local rcirc-nick nick)
@@ -584,7 +617,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 	(setq rcirc-keepalive-timer
 	      (run-at-time 0 (/ rcirc-timeout-seconds 2) 'rcirc-keepalive)))
 
-      (message "Connecting to %s...done" server)
+      (message "Connecting to %s...done" (or server-alias server))
 
       ;; return process object
       process)))
@@ -599,10 +632,7 @@ If ARG is non-nil, instead prompt for connection parameters."
   `(with-current-buffer rcirc-server-buffer
      ,@body))
 
-(defalias 'rcirc-float-time
-  (if (featurep 'xemacs)
-      'time-to-seconds
-    'float-time))
+(define-obsolete-function-alias 'rcirc-float-time 'float-time "26.1")
 
 (defun rcirc-prompt-for-encryption (server-plist)
   "Prompt the user for the encryption method to use.
@@ -626,7 +656,7 @@ last ping."
                   (rcirc-send-ctcp process
                                    rcirc-nick
                                    (format "KEEPALIVE %f"
-                                           (rcirc-float-time))))))
+                                           (float-time))))))
             (rcirc-process-list))
     ;; no processes, clean up timer
     (when (timerp rcirc-keepalive-timer)
@@ -635,7 +665,7 @@ last ping."
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process _target _sender message)
   (with-rcirc-process-buffer process
-    (setq header-line-format (format "%f" (- (rcirc-float-time)
+    (setq header-line-format (format "%f" (- (float-time)
 					     (string-to-number message))))))
 
 (defvar rcirc-debug-buffer "*rcirc debug*")
@@ -1396,12 +1426,6 @@ the of the following escape sequences replaced by the described values:
 		:value-type string)
   :group 'rcirc)
 
-(defcustom rcirc-omit-responses
-  '("JOIN" "PART" "QUIT" "NICK")
-  "Responses which will be hidden when `rcirc-omit-mode' is enabled."
-  :type '(repeat string)
-  :group 'rcirc)
-
 (defun rcirc-format-response-string (process sender response target text)
   "Return a nicely-formatted response string, incorporating TEXT
 \(and perhaps other arguments).  The specific formatting used
@@ -1872,9 +1896,6 @@ if ARG is omitted or nil."
 (or (assq 'rcirc-low-priority-flag minor-mode-alist)
     (setq minor-mode-alist
           (cons '(rcirc-low-priority-flag " LowPri") minor-mode-alist)))
-(or (assq 'rcirc-omit-mode minor-mode-alist)
-    (setq minor-mode-alist
-          (cons '(rcirc-omit-mode " Omit") minor-mode-alist)))
 
 (defun rcirc-toggle-ignore-buffer-activity ()
   "Toggle the value of `rcirc-ignore-buffer-activity-flag'."
@@ -1895,23 +1916,6 @@ if ARG is omitted or nil."
 	       "Activity in this buffer is low priority"
 	     "Activity in this buffer is normal priority"))
   (force-mode-line-update))
-
-(defun rcirc-omit-mode ()
-  "Toggle the Rcirc-Omit mode.
-If enabled, \"uninteresting\" lines are not shown.
-Uninteresting lines are those whose responses are listed in
-`rcirc-omit-responses'."
-  (interactive)
-  (setq rcirc-omit-mode (not rcirc-omit-mode))
-  (if rcirc-omit-mode
-      (progn
-	(add-to-invisibility-spec '(rcirc-omit . nil))
-	(message "Rcirc-Omit mode enabled"))
-    (remove-from-invisibility-spec '(rcirc-omit . nil))
-    (message "Rcirc-Omit mode disabled"))
-  (dolist (window (get-buffer-window-list (current-buffer)))
-    (with-selected-window window
-      (recenter (when (> (point) rcirc-prompt-start-marker) -1)))))
 
 (defun rcirc-switch-to-server-buffer ()
   "Switch to the server buffer associated with current channel buffer."
@@ -2330,7 +2334,7 @@ With a prefix arg, prompt for new topic."
 
 (defun rcirc-ctcp-sender-PING (process target _request)
   "Send a CTCP PING message to TARGET."
-  (let ((timestamp (format "%.0f" (rcirc-float-time))))
+  (let ((timestamp (format-time-string "%s")))
     (rcirc-send-ctcp process target "PING" timestamp)))
 
 (defun rcirc-cmd-me (args &optional process target)
@@ -2496,12 +2500,15 @@ If ARG is given, opens the URL in a new browser window."
            (end (match-end 0))
            (url (match-string-no-properties 0))
            (link-text (buffer-substring-no-properties start end)))
-      (make-button start end
-		   'face 'rcirc-url
-		   'follow-link t
-		   'rcirc-url url
-		   'action (lambda (button)
-			     (browse-url (button-get button 'rcirc-url))))
+      ;; Add a button for the URL.  Note that we use `make-text-button',
+      ;; rather than `make-button', as text-buttons are much faster in
+      ;; large buffers.
+      (make-text-button start end
+			'face 'rcirc-url
+			'follow-link t
+			'rcirc-url url
+			'action (lambda (button)
+				  (browse-url (button-get button 'rcirc-url))))
       ;; record the url if it is not already the latest stored url
       (when (not (string= link-text (caar rcirc-urls)))
         (push (cons link-text start) rcirc-urls)))))
@@ -2600,7 +2607,7 @@ If ARG is given, opens the URL in a new browser window."
 		   (cond ((rcirc-channel-p target)
 			  target)
 			 ;;; -ChanServ- [#gnu] Welcome...
-			 ((string-match "\\[\\(#[^\] ]+\\)\\]" message)
+			 ((string-match "\\[\\(#[^] ]+\\)\\]" message)
 			  (match-string 1 message))
 			 (sender
 			  (if (string= sender (rcirc-server-name process))

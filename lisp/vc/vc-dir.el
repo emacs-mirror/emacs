@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Credits:
 
@@ -255,6 +255,7 @@ See `run-hooks'."
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
     (define-key map "L" 'vc-print-root-log) ;; C-x v L
     (define-key map "I" 'vc-log-incoming)   ;; C-x v I
+    (define-key map "O" 'vc-log-outgoing)   ;; C-x v O
     ;; More confusing than helpful, probably
     ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer
@@ -271,6 +272,7 @@ See `run-hooks'."
     (define-key map " " 'vc-dir-next-line)
     (define-key map "\t" 'vc-dir-next-directory)
     (define-key map "p" 'vc-dir-previous-line)
+    (define-key map [?\S-\ ] 'vc-dir-previous-line)
     (define-key map [backtab] 'vc-dir-previous-directory)
     ;;; Rebind paragraph-movement commands.
     (define-key map "\M-}" 'vc-dir-next-directory)
@@ -294,6 +296,12 @@ See `run-hooks'."
     (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
     (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
     (define-key map "G" 'vc-dir-ignore)
+
+    (let ((branch-map (make-sparse-keymap)))
+      (define-key map "B" branch-map)
+      (define-key branch-map "c" 'vc-create-tag)
+      (define-key branch-map "l" 'vc-print-branch-log)
+      (define-key branch-map "s" 'vc-retrieve-tag))
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -546,11 +554,15 @@ If a prefix argument is given, move by that many lines."
 
 (defun vc-dir-mark-unmark (mark-unmark-function)
   (if (use-region-p)
-      (let (;; (firstl (line-number-at-pos (region-beginning)))
+      (let ((processed-line nil)
 	    (lastl (line-number-at-pos (region-end))))
 	(save-excursion
 	  (goto-char (region-beginning))
-	  (while (<= (line-number-at-pos) lastl)
+	  (while (and (<= (line-number-at-pos) lastl)
+                      ;; We make sure to not get stuck processing the
+                      ;; same line in an infinite loop.
+		      (not (eq processed-line (line-number-at-pos))))
+	    (setq processed-line (line-number-at-pos))
 	    (condition-case nil
 		(funcall mark-unmark-function)
 	      ;; `vc-dir-mark-file' signals an error if we try marking
@@ -685,7 +697,7 @@ share the same state."
 (defun vc-dir-unmark ()
   "Unmark the current file or all files in the region.
 If the region is active, unmark all the files in the region.
-Otherwise mark the file on the current line and move to the next
+Otherwise unmark the file on the current line and move to the next
 line."
   (interactive)
   (vc-dir-mark-unmark 'vc-dir-unmark-file))
@@ -932,7 +944,7 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let ((file (or fname (expand-file-name buffer-file-name)))
+  (let ((file (expand-file-name (or fname buffer-file-name)))
         (drop '()))
     (save-current-buffer
       ;; look for a vc-dir buffer that might show this file.

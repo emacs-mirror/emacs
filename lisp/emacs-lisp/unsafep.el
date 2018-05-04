@@ -1,6 +1,6 @@
 ;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -93,7 +93,7 @@ in the parse.")
 (put 'unsafep-vars 'risky-local-variable t)
 
 ;;Side-effect-free functions from subr.el
-(dolist (x '(assoc-default assoc-ignore-case butlast last match-string
+(dolist (x '(assoc-default butlast last match-string
 	     match-string-no-properties member-ignore-case remove remq))
   (put x 'side-effect-free t))
 

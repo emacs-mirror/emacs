@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997, 2000-2015 Free Software
+;; Copyright (C) 1986, 1993-1995, 1997, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,7 +38,7 @@
 (defgroup outlines nil
   "Support for hierarchical outlining."
   :prefix "outline-"
-  :group 'wp)
+  :group 'text)
 
 (defvar outline-regexp "[*\^L]+"
   "Regular expression to match the beginning of a heading.
@@ -388,9 +388,9 @@ at the end of the buffer."
 		      nil 'move))
 
 (defsubst outline-invisible-p (&optional pos)
-  "Non-nil if the character after POS is invisible.
+  "Non-nil if the character after POS has outline invisible property.
 If POS is nil, use `point' instead."
-  (get-char-property (or pos (point)) 'invisible))
+  (eq (get-char-property (or pos (point)) 'invisible) 'outline))
 
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
@@ -788,7 +788,8 @@ Show the heading too, if it is currently invisible."
     'show-entry 'outline-show-entry "25.1")
 
 (defun outline-hide-body ()
-  "Hide all body lines in buffer, leaving all headings visible."
+  "Hide all body lines in buffer, leaving all headings visible.
+Note that this does not hide the lines preceding the first heading line."
   (interactive)
   (outline-hide-region-body (point-min) (point-max)))
 
@@ -868,7 +869,12 @@ Show the heading too, if it is currently invisible."
 		       nil))
 
 (defun outline-hide-sublevels (levels)
-  "Hide everything but the top LEVELS levels of headers, in whole buffer."
+  "Hide everything but the top LEVELS levels of headers, in whole buffer.
+This also unhides the top heading-less body, if any.
+
+Interactively, the prefix argument supplies the value of LEVELS.
+When invoked without a prefix argument, LEVELS defaults to the level
+of the current heading, or to 1 if the current line is not a heading."
   (interactive (list
 		(cond
 		 (current-prefix-arg (prefix-numeric-value current-prefix-arg))
@@ -909,7 +915,8 @@ Show the heading too, if it is currently invisible."
     'hide-sublevels 'outline-hide-sublevels "25.1")
 
 (defun outline-hide-other ()
-  "Hide everything except current body and parent and top-level headings."
+  "Hide everything except current body and parent and top-level headings.
+This also unhides the top heading-less body, if any."
   (interactive)
   (outline-hide-sublevels 1)
   (let (outline-view-change-hook)
@@ -1093,28 +1100,26 @@ convenient way to make a table of contents of the buffer."
     (save-restriction
       (narrow-to-region beg end)
       (goto-char (point-min))
-      (let ((buffer (current-buffer))
-	    start end)
-	(with-temp-buffer
-	  (with-current-buffer buffer
-	    ;; Boundary condition: starting on heading:
-	    (when (outline-on-heading-p)
-	      (outline-back-to-heading)
-	      (setq start (point)
-		    end (progn (outline-end-of-heading)
-			       (point)))
-	      (insert-buffer-substring buffer start end)
-	      (insert "\n\n")))
-	  (let ((temp-buffer (current-buffer)))
-	    (with-current-buffer buffer
-	      (while (outline-next-heading)
-		(unless (outline-invisible-p)
-		  (setq start (point)
-			end (progn (outline-end-of-heading) (point)))
-		  (with-current-buffer temp-buffer
-		    (insert-buffer-substring buffer start end)
-		    (insert "\n\n"))))))
-	  (kill-new (buffer-string)))))))
+      (let ((buffer (current-buffer)) start end)
+        (with-temp-buffer
+          (let ((temp-buffer (current-buffer)))
+            (with-current-buffer buffer
+              ;; Boundary condition: starting on heading:
+              (when (outline-on-heading-p)
+                (outline-back-to-heading)
+                (setq start (point)
+                      end (progn (outline-end-of-heading) (point)))
+                (with-current-buffer temp-buffer
+                  (insert-buffer-substring buffer start end)
+                  (insert "\n\n")))
+              (while (outline-next-heading)
+                (unless (outline-invisible-p)
+                  (setq start (point)
+                        end (progn (outline-end-of-heading) (point)))
+                  (with-current-buffer temp-buffer
+                    (insert-buffer-substring buffer start end)
+                    (insert "\n\n"))))))
+          (kill-new (buffer-string)))))))
 
 (provide 'outline)
 (provide 'noutline)

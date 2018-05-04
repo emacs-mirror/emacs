@@ -1,7 +1,7 @@
 ;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- coding: utf-8 -*-
 ;; This file was formerly called gm-lingo.el.
 
-;; Copyright (C) 1993-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Gschwind <mike@vlsivie.tuwien.ac.at>
 ;; Keywords: tex, iso, latin, i18n
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; This lisp code is a general framework for translating various
@@ -46,7 +46,7 @@
 (defvar iso-spanish-trans-tab
   '(
     ("~n" "ñ")
-    ("\([a-zA-Z]\)#" "\\1ñ")
+    ("([a-zA-Z])#" "\\1ñ")
     ("~N" "Ñ")
     ("\\([-a-zA-Z\"`]\\)\"u" "\\1ü")
     ("\\([-a-zA-Z\"`]\\)\"U" "\\1Ü")

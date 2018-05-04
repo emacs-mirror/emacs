@@ -1,10 +1,10 @@
-;;; ob-gnuplot.el --- org-babel functions for gnuplot evaluation
+;;; ob-gnuplot.el --- Babel Functions for Gnuplot    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,7 +39,6 @@
 
 ;;; Code:
 (require 'ob)
-(eval-when-compile (require 'cl))
 
 (declare-function org-time-string-to-time "org" (s))
 (declare-function org-combine-plists "org" (&rest plists))
@@ -64,7 +63,7 @@
     (term       . :any))
   "Gnuplot specific header args.")
 
-(defvar org-babel-gnuplot-timestamp-fmt nil)
+(defvar org-babel-gnuplot-timestamp-fmt nil) ; Dynamically scoped.
 
 (defvar *org-babel-gnuplot-missing* nil)
 
@@ -80,7 +79,7 @@
 Dumps all vectors into files and returns an association list
 of variable names and the related value to be used in the gnuplot
 code."
-  (let ((*org-babel-gnuplot-missing* (cdr (assoc :missing params))))
+  (let ((*org-babel-gnuplot-missing* (cdr (assq :missing params))))
     (mapcar
      (lambda (pair)
        (cons
@@ -94,38 +93,35 @@ code."
 		 (if tablep val (mapcar 'list val)))
 	       (org-babel-temp-file "gnuplot-") params)
 	  val))))
-     (mapcar #'cdr (org-babel-get-header params :var)))))
+     (org-babel--get-vars params))))
 
 (defun org-babel-expand-body:gnuplot (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (save-window-excursion
     (let* ((vars (org-babel-gnuplot-process-vars params))
-           (out-file (cdr (assoc :file params)))
-	   (prologue (cdr (assoc :prologue params)))
-	   (epilogue (cdr (assoc :epilogue params)))
-	   (term (or (cdr (assoc :term params))
+           (out-file (cdr (assq :file params)))
+	   (prologue (cdr (assq :prologue params)))
+	   (epilogue (cdr (assq :epilogue params)))
+	   (term (or (cdr (assq :term params))
                      (when out-file
 		       (let ((ext (file-name-extension out-file)))
 			 (or (cdr (assoc (intern (downcase ext))
 					 *org-babel-gnuplot-terms*))
 			     ext)))))
-           (cmdline (cdr (assoc :cmdline params)))
-           (title (cdr (assoc :title params)))
-           (lines (cdr (assoc :line params)))
-           (sets (cdr (assoc :set params)))
-           (x-labels (cdr (assoc :xlabels params)))
-           (y-labels (cdr (assoc :ylabels params)))
-           (timefmt (cdr (assoc :timefmt params)))
-           (time-ind (or (cdr (assoc :timeind params))
+           (title (cdr (assq :title params)))
+           (lines (cdr (assq :line params)))
+           (sets (cdr (assq :set params)))
+           (x-labels (cdr (assq :xlabels params)))
+           (y-labels (cdr (assq :ylabels params)))
+           (timefmt (cdr (assq :timefmt params)))
+           (time-ind (or (cdr (assq :timeind params))
                          (when timefmt 1)))
-	   (missing (cdr (assoc :missing params)))
-	   (add-to-body (lambda (text) (setq body (concat text "\n" body))))
-           output)
+	   (directory (and (buffer-file-name)
+			   (file-name-directory (buffer-file-name))))
+	   (add-to-body (lambda (text) (setq body (concat text "\n" body)))))
       ;; append header argument settings to body
       (when title (funcall add-to-body (format "set title '%s'" title)))
       (when lines (mapc (lambda (el) (funcall add-to-body el)) lines))
-      (when missing
-	(funcall add-to-body (format "set datafile missing '%s'" missing)))
       (when sets
 	(mapc (lambda (el) (funcall add-to-body (format "set %s" el))) sets))
       (when x-labels
@@ -167,16 +163,18 @@ code."
 			  (format "\\$%s" (car pair)) (cdr pair) body)))
 	    vars)
       (when prologue (funcall add-to-body prologue))
-      (when epilogue (setq body (concat body "\n" epilogue))))
+      (when epilogue (setq body (concat body "\n" epilogue)))
+      ;; Setting the directory needs to be done first so that
+      ;; subsequent 'output' directive goes to the right place.
+      (when directory (funcall add-to-body (format "cd '%s'" directory))))
     body))
 
 (defun org-babel-execute:gnuplot (body params)
   "Execute a block of Gnuplot code.
 This function is called by `org-babel-execute-src-block'."
   (require 'gnuplot)
-  (let ((session (cdr (assoc :session params)))
-        (result-type (cdr (assoc :results params)))
-        (out-file (cdr (assoc :file params)))
+  (let ((session (cdr (assq :session params)))
+        (result-type (cdr (assq :results params)))
         (body (org-babel-expand-body:gnuplot body params))
 	output)
     (save-window-excursion
@@ -194,7 +192,7 @@ This function is called by `org-babel-execute-src-block'."
 		     script-file
 		     (if (member system-type '(cygwin windows-nt ms-dos))
 			 t nil)))))
-            (message output))
+            (message "%s" output))
         (with-temp-buffer
           (insert (concat body "\n"))
           (gnuplot-mode)
@@ -209,10 +207,12 @@ This function is called by `org-babel-execute-src-block'."
          (var-lines (org-babel-variable-assignments:gnuplot params)))
     (message "%S" session)
     (org-babel-comint-in-buffer session
-      (mapc (lambda (var-line)
-              (insert var-line) (comint-send-input nil t)
-              (org-babel-comint-wait-for-output session)
-              (sit-for .1) (goto-char (point-max))) var-lines))
+      (dolist (var-line  var-lines)
+	(insert var-line)
+	(comint-send-input nil t)
+	(org-babel-comint-wait-for-output session)
+	(sit-for .1)
+	(goto-char (point-max))))
     session))
 
 (defun org-babel-load-session:gnuplot (session body params)
@@ -231,7 +231,7 @@ This function is called by `org-babel-execute-src-block'."
    (org-babel-gnuplot-process-vars params)))
 
 (defvar gnuplot-buffer)
-(defun org-babel-gnuplot-initiate-session (&optional session params)
+(defun org-babel-gnuplot-initiate-session (&optional session _params)
   "Initiate a gnuplot session.
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session.  The current
@@ -267,15 +267,13 @@ then create one.  Return the initialized session.  The current
   "Export TABLE to DATA-FILE in a format readable by gnuplot.
 Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
   (with-temp-file data-file
-    (make-local-variable 'org-babel-gnuplot-timestamp-fmt)
-    (setq org-babel-gnuplot-timestamp-fmt (or
-                                           (plist-get params :timefmt)
-                                           "%Y-%m-%d-%H:%M:%S"))
-    (insert (orgtbl-to-generic
-	     table
-	     (org-combine-plists
-	      '(:sep "\t" :fmt org-babel-gnuplot-quote-tsv-field)
-	      params))))
+    (insert (let ((org-babel-gnuplot-timestamp-fmt
+		   (or (plist-get params :timefmt) "%Y-%m-%d-%H:%M:%S")))
+	      (orgtbl-to-generic
+	       table
+	       (org-combine-plists
+		'(:sep "\t" :fmt org-babel-gnuplot-quote-tsv-field)
+		params)))))
   data-file)
 
 (provide 'ob-gnuplot)

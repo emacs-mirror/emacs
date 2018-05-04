@@ -1,6 +1,6 @@
 ;;; url-dired.el --- URL Dired minor mode
 
-;; Copyright (C) 1996-1999, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
 
 ;; Keywords: comm, files
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 

@@ -1,0 +1,59 @@
+#+TITLE: The Location of Emacs-Lisp Tests
+
+
+
+* The Main Emacs Repository
+
+The Emacs repository contains a very large number of Emacs-Lisp files, many of
+which pre-date both formal package support for Emacs and automated unit
+testing.
+
+All paths are relative to the Emacs root directory.
+
+** Source
+
+Lisp files are stored in the ~lisp~ directory or its sub-directories.
+Sub-directories are in many cases themed after packages (~gnus~, ~org~,
+~calc~), related functionality (~net~, ~emacs-lisp~, ~progmodes~) or status
+(~obsolete~).
+
+C source is stored in the ~src~ directory, which is flat.
+
+** Test Files
+
+Automated tests should be stored in the ~test/lisp~ directory for
+tests of functionality implemented in Lisp, and in the ~test/src~
+directory for functionality implemented in C.  Tests should reflect
+the directory structure of the source tree; so tests for files in the
+~lisp/emacs-lisp~ source directory should reside in the
+~test/lisp/emacs-lisp~ directory.
+
+Tests should normally reside in a file with ~-tests.el~ added to the
+base-name of the tested source file; hence ~ert.el~ is tested in
+~ert-tests.el~, and ~pcase.el~ is tested in ~pcase-tests.el~.  As an
+exception, tests for a single feature may be placed into multiple
+files of any name which are themselves placed in a directory named
+after the feature with ~-tests~ appended, such as
+~/test/lisp/emacs-lisp/eieio-tests~
+
+Similarly, features implemented in C should reside in ~/test/src~ and
+be named after the C file with ~-tests.el~ added to the base-name of
+the tested source file.  Thus, tests for ~src/fileio.c~ should be in
+~test/src/fileio-tests.el~.
+
+There are also some test materials that cannot be run automatically
+(i.e. via ert).  These should be placed in ~/test/manual~; they are
+not run by the "make check" command and its derivatives.
+
+** Resource Files
+
+Resource files for tests (containing test data) should reside in a
+directory named after the feature with a ~-resources~ suffix, and
+located in the same directory as the feature.  Hence, the lisp file
+~lisp/progmodes/flymake.el~, with tests in
+~test/lisp/progmodes/flymake-tests.el~, should have resources in a
+directory called ~test/lisp/progmodes/flymake-resources~.
+
+No guidance is given for the organization of resource files inside the
+~-resources~ directory; files can be organized at the author's
+discretion.

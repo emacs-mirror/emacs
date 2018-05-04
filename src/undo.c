@@ -1,13 +1,13 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993-1994, 2000-2015 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,24 +15,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 
 #include "lisp.h"
-#include "character.h"
 #include "buffer.h"
-#include "commands.h"
-#include "window.h"
-
-/* Last buffer for which undo information was recorded.  */
-/* BEWARE: This is not traced by the GC, so never dereference it!  */
-static struct buffer *last_undo_buffer;
-
-/* Position of point last time we inserted a boundary.  */
-static struct buffer *last_boundary_buffer;
-static ptrdiff_t last_boundary_position;
+#include "keyboard.h"
 
 /* The first time a command records something for undo.
    it also allocates the undo-boundary object
@@ -41,47 +31,50 @@ static ptrdiff_t last_boundary_position;
    an undo-boundary.  */
 static Lisp_Object pending_boundary;
 
-/* Record point as it was at beginning of this command (if necessary)
-   and prepare the undo info for recording a change.
-   PT is the position of point that will naturally occur as a result of the
-   undo record that will be added just after this command terminates.  */
-
+/* Prepare the undo info for recording a change. */
 static void
-record_point (ptrdiff_t pt)
+prepare_record (void)
 {
-  bool at_boundary;
+  /* Allocate a cons cell to be the undo boundary after this command.  */
+  if (NILP (pending_boundary))
+    pending_boundary = Fcons (Qnil, Qnil);
+}
 
+/* Record point, if necessary, as it was at beginning of this command.
+   BEG is the position of point that will naturally occur as a result
+   of the undo record that will be added just after this command
+   terminates.  */
+static void
+record_point (ptrdiff_t beg)
+{
   /* Don't record position of pt when undo_inhibit_record_point holds.  */
   if (undo_inhibit_record_point)
     return;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
+  bool at_boundary;
 
-  if ((current_buffer != last_undo_buffer)
-      /* Don't call Fundo_boundary for the first change.  Otherwise we
-	 risk overwriting last_boundary_position in Fundo_boundary with
-	 PT of the current buffer and as a consequence not insert an
-	 undo boundary because last_boundary_position will equal pt in
-	 the test at the end of the present function (Bug#731).  */
-      && (MODIFF > SAVE_MODIFF))
-    Fundo_boundary ();
-  last_undo_buffer = current_buffer;
-
+  /* Check whether we are at a boundary now, in case we record the
+  first change. FIXME: This check is currently dependent on being
+  called before record_first_change, but could be made not to by
+  ignoring timestamp undo entries */
   at_boundary = ! CONSP (BVAR (current_buffer, undo_list))
                 || NILP (XCAR (BVAR (current_buffer, undo_list)));
 
+  /* If this is the first change since save, then record this.*/
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
-  /* If we are just after an undo boundary, and
-     point wasn't at start of deleted range, record where it was.  */
+  /* We may need to record point if we are immediately after a
+     boundary, so that this will be restored correctly after undo. We
+     do not need to do this if point is at the start of a change
+     region since it will be restored there anyway, and we must not do
+     this if the buffer has changed since the last command, since the
+     value of point that we have will be for that buffer, not this.*/
   if (at_boundary
-      && current_buffer == last_boundary_buffer
-      && last_boundary_position != pt)
+      && point_before_last_command_or_undo != beg
+      && buffer_before_last_command_or_undo == current_buffer )
     bset_undo_list (current_buffer,
-		    Fcons (make_number (last_boundary_position),
+		    Fcons (make_number (point_before_last_command_or_undo),
 			   BVAR (current_buffer, undo_list)));
 }
 
@@ -97,6 +90,8 @@ record_insert (ptrdiff_t beg, ptrdiff_t length)
 
   if (EQ (BVAR (current_buffer, undo_list), Qt))
     return;
+
+  prepare_record ();
 
   record_point (beg);
 
@@ -135,13 +130,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
   register struct Lisp_Marker *m;
   register ptrdiff_t charpos, adjustment;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
-
-  if (current_buffer != last_undo_buffer)
-    Fundo_boundary ();
-  last_undo_buffer = current_buffer;
+  prepare_record();
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
@@ -174,7 +163,6 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
 /* Record that a deletion is about to take place, of the characters in
    STRING, at location BEG.  Optionally record adjustments for markers
    in the region STRING occupies in the current buffer.  */
-
 void
 record_delete (ptrdiff_t beg, Lisp_Object string, bool record_markers)
 {
@@ -183,15 +171,17 @@ record_delete (ptrdiff_t beg, Lisp_Object string, bool record_markers)
   if (EQ (BVAR (current_buffer, undo_list), Qt))
     return;
 
+  prepare_record ();
+
+  record_point (beg);
+
   if (PT == beg + SCHARS (string))
     {
       XSETINT (sbeg, -beg);
-      record_point (PT);
     }
   else
     {
       XSETFASTINT (sbeg, beg);
-      record_point (beg);
     }
 
   /* primitive-undo assumes marker adjustments are recorded
@@ -228,10 +218,6 @@ record_first_change (void)
   if (EQ (BVAR (current_buffer, undo_list), Qt))
     return;
 
-  if (current_buffer != last_undo_buffer)
-    Fundo_boundary ();
-  last_undo_buffer = current_buffer;
-
   if (base_buffer->base_buffer)
     base_buffer = base_buffer->base_buffer;
 
@@ -249,25 +235,12 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
 			Lisp_Object buffer)
 {
   Lisp_Object lbeg, lend, entry;
-  struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
-  bool boundary = false;
+  struct buffer *buf = XBUFFER (buffer);
 
   if (EQ (BVAR (buf, undo_list), Qt))
     return;
 
-  /* Allocate a cons cell to be the undo boundary after this command.  */
-  if (NILP (pending_boundary))
-    pending_boundary = Fcons (Qnil, Qnil);
-
-  if (buf != last_undo_buffer)
-    boundary = true;
-  last_undo_buffer = buf;
-
-  /* Switch temporarily to the buffer that was changed.  */
-  current_buffer = buf;
-
-  if (boundary)
-    Fundo_boundary ();
+  prepare_record();
 
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
@@ -277,8 +250,6 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
   entry = Fcons (Qnil, Fcons (prop, Fcons (value, Fcons (lbeg, lend))));
   bset_undo_list (current_buffer,
 		  Fcons (entry, BVAR (current_buffer, undo_list)));
-
-  current_buffer = obuf;
 }
 
 DEFUN ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
@@ -306,8 +277,11 @@ but another undo command will undo to the previous boundary.  */)
 	bset_undo_list (current_buffer,
 			Fcons (Qnil, BVAR (current_buffer, undo_list)));
     }
-  last_boundary_position = PT;
-  last_boundary_buffer = current_buffer;
+
+  Fset (Qundo_auto__last_boundary_cause, Qexplicit);
+  point_before_last_command_or_undo = PT;
+  buffer_before_last_command_or_undo = current_buffer;
+
   return Qnil;
 }
 
@@ -383,7 +357,6 @@ truncate_undo_list (struct buffer *b)
       && !NILP (Vundo_outer_limit_function))
     {
       Lisp_Object tem;
-      struct buffer *temp = last_undo_buffer;
 
       /* Normally the function this calls is undo-outer-limit-truncate.  */
       tem = call1 (Vundo_outer_limit_function, make_number (size_so_far));
@@ -394,10 +367,6 @@ truncate_undo_list (struct buffer *b)
 	  unbind_to (count, Qnil);
 	  return;
 	}
-      /* That function probably used the minibuffer, and if so, that
-	 changed last_undo_buffer.  Change it back so that we don't
-	 force next change to make an undo boundary here.  */
-      last_undo_buffer = temp;
     }
 
   if (CONSP (next))
@@ -455,15 +424,14 @@ void
 syms_of_undo (void)
 {
   DEFSYM (Qinhibit_read_only, "inhibit-read-only");
+  DEFSYM (Qundo_auto__last_boundary_cause, "undo-auto--last-boundary-cause");
+  DEFSYM (Qexplicit, "explicit");
 
   /* Marker for function call undo list elements.  */
   DEFSYM (Qapply, "apply");
 
   pending_boundary = Qnil;
   staticpro (&pending_boundary);
-
-  last_undo_buffer = NULL;
-  last_boundary_buffer = NULL;
 
   defsubr (&Sundo_boundary);
 

@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,11 +30,8 @@
 (require 'gnus-score)
 (require 'gnus-srvr)
 (require 'gnus-util)
-(eval-when-compile
-  (if (featurep 'xemacs)
-      (require 'itimer)
-    (require 'timer))
-  (require 'cl))
+(require 'timer)
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'gnus-server-update-server "gnus-srvr")
 (autoload 'gnus-agent-customize-category "gnus-cus")
@@ -82,27 +79,15 @@ If nil, only read articles will be expired."
   :group 'gnus-agent
   :type 'hook)
 
-;; Extracted from gnus-xmas-redefine in order to preserve user settings
-(when (featurep 'xemacs)
-  (add-hook 'gnus-agent-group-mode-hook 'gnus-xmas-agent-group-menu-add))
-
 (defcustom gnus-agent-summary-mode-hook nil
   "Hook run in Agent summary minor modes."
   :group 'gnus-agent
   :type 'hook)
 
-;; Extracted from gnus-xmas-redefine in order to preserve user settings
-(when (featurep 'xemacs)
-  (add-hook 'gnus-agent-summary-mode-hook 'gnus-xmas-agent-summary-menu-add))
-
 (defcustom gnus-agent-server-mode-hook nil
   "Hook run in Agent summary minor modes."
   :group 'gnus-agent
   :type 'hook)
-
-;; Extracted from gnus-xmas-redefine in order to preserve user settings
-(when (featurep 'xemacs)
-  (add-hook 'gnus-agent-server-mode-hook 'gnus-xmas-agent-server-menu-add))
 
 (defcustom gnus-agent-confirmation-function 'y-or-n-p
   "Function to confirm when error happens."
@@ -175,7 +160,7 @@ enable expiration per categories, topics, and groups."
                 (const :format "Disable " DISABLE)))
 
 (defcustom gnus-agent-expire-unagentized-dirs t
-  "*Whether expiration should expire in unagentized directories.
+  "Whether expiration should expire in unagentized directories.
 Have gnus-agent-expire scan the directories under
 \(gnus-agent-directory) for groups that are no longer agentized.
 When found, offer to remove them."
@@ -186,7 +171,7 @@ When found, offer to remove them."
 (defcustom gnus-agent-auto-agentize-methods nil
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
-See Info nodes `(gnus)Server Buffer', `(gnus)Agent Variables'."
+See Info node `(gnus)Server Buffer' and Info node `(gnus)Agent Variables'."
   :version "22.1"
   :type '(repeat symbol)
   :group 'gnus-agent)
@@ -251,16 +236,6 @@ NOTES:
 ;; Dynamic variables
 (defvar gnus-headers)
 (defvar gnus-score)
-
-;; Added to support XEmacs
-(eval-and-compile
-  (unless (fboundp 'directory-files-and-attributes)
-    (defun directory-files-and-attributes (directory
-					   &optional full match nosort)
-      (let (result)
-	(dolist (file (directory-files directory full match nosort))
-	  (push (cons file (file-attributes file)) result))
-	(nreverse result)))))
 
 ;;;
 ;;; Setup
@@ -356,9 +331,9 @@ manipulated as follows:
     `(progn (defmacro ,name (category)
               (list 'cdr (list 'assq '',prop-name category)))
 
-            (defsetf ,name (category) (value)
-              (list 'gnus-agent-cat-set-property
-                    category '',prop-name value))))
+	    (gv-define-setter ,name (value category)
+	      (list 'gnus-agent-cat-set-property
+		    category '',prop-name value))))
   )
 
 (defmacro gnus-agent-cat-name (category)
@@ -385,11 +360,7 @@ manipulated as follows:
 (gnus-agent-cat-defaccessor
  gnus-agent-cat-enable-undownloaded-faces  agent-enable-undownloaded-faces)
 
-
-;; This form may expand to code that uses CL functions at run-time,
-;; but that's OK since those functions will only ever be called from
-;; something like `setf', so only when CL is loaded anyway.
-(defsetf gnus-agent-cat-groups gnus-agent-set-cat-groups)
+(gv-define-simple-setter gnus-agent-cat-groups gnus-agent-set-cat-groups)
 
 (defun gnus-agent-set-cat-groups (category groups)
   (unless (eq groups 'ignore)
@@ -475,7 +446,7 @@ manipulated as follows:
 (defvar gnus-agent-mode-status '(gnus-agent-mode " Plugged"))
 
 (defun gnus-agent-mode ()
-  "Minor mode for providing a agent support in Gnus buffers."
+  "Minor mode for providing agent support in Gnus buffers."
   (let* ((buffer (progn (string-match "^gnus-\\(.*\\)-mode$"
 				      (symbol-name major-mode))
 			(match-string 1 (symbol-name major-mode))))
@@ -571,19 +542,9 @@ manipulated as follows:
        ["Remove" gnus-agent-remove-server t]))))
 
 (defun gnus-agent-make-mode-line-string (string mouse-button mouse-func)
-  (if (and (fboundp 'propertize)
-	   (fboundp 'make-mode-line-mouse-map))
-      (propertize string 'local-map
-		  (make-mode-line-mouse-map mouse-button mouse-func)
-		  'mouse-face
-		  (if (and (featurep 'xemacs)
-			   ;; XEmacs's `facep' only checks for a face
-			   ;; object, not for a face name, so it's useless
-			   ;; to check with `facep'.
-			   (find-face 'modeline))
-		      'modeline
-		    'mode-line-highlight))
-    string))
+  (propertize string 'local-map
+	      (make-mode-line-mouse-map mouse-button mouse-func)
+	      'mouse-face 'mode-line-highlight))
 
 (defun gnus-agent-toggle-plugged (set-to)
   "Toggle whether Gnus is unplugged or not."
@@ -680,7 +641,7 @@ minor mode in all Gnus buffers."
 
 (defun gnus-agent-queue-setup (&optional group-name)
   "Make sure the queue group exists.
-Optional arg GROUP-NAME allows to specify another group."
+Optional arg GROUP-NAME allows another group to be specified."
   (unless (gnus-gethash (format "nndraft:%s" (or group-name "queue"))
 			gnus-newsrc-hashtb)
     (gnus-request-create-group (or group-name "queue") '(nndraft ""))
@@ -868,7 +829,7 @@ be a select method."
 		      (not (eq gnus-agent-synchronize-flags 'ask)))
 		 (and (eq gnus-agent-synchronize-flags 'ask)
 		      (gnus-y-or-n-p
-		       (gnus-format-message
+		       (format-message
 			"Synchronize flags on server `%s'? "
 			(cadr method))))))
     (gnus-agent-synchronize-flags-server method)))
@@ -1142,7 +1103,7 @@ downloadable."
                 gnus-newsgroup-cached)
         (setq articles (gnus-sorted-ndifference
 			(gnus-sorted-ndifference
-			 (gnus-copy-sequence articles)
+			 (copy-tree articles)
 			 gnus-newsgroup-downloadable)
 			gnus-newsgroup-cached)))
 
@@ -1157,7 +1118,7 @@ downloadable."
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
           (let* ((dl gnus-newsgroup-downloadable)
-		 (processable (sort (gnus-copy-sequence gnus-newsgroup-processable) '<))
+		 (processable (sort (copy-tree gnus-newsgroup-processable) '<))
                  (gnus-newsgroup-downloadable processable))
 	    (gnus-agent-summary-fetch-group)
 
@@ -1547,7 +1508,7 @@ downloaded into the agent."
         (let* ((fetched-articles (list nil))
                (tail-fetched-articles fetched-articles)
                (dir (gnus-agent-group-pathname group))
-               (date (time-to-days (current-time)))
+               (date (time-to-days nil))
                (case-fold-search t)
                pos crosses
 	       (file-name-coding-system nnmail-pathname-coding-system))
@@ -2214,7 +2175,7 @@ article counts for each of the method's subscribed groups."
 	     'gnus-agent-file-loading-local
 	     'gnus-agent-read-and-cache-local))
       (when gnus-agent-article-local-times
-	(incf gnus-agent-article-local-times)))
+	(cl-incf gnus-agent-article-local-times)))
     gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
@@ -2667,8 +2628,10 @@ General format specifiers can also be used.  See Info node
     "\C-c\C-i" gnus-info-find-node
     "\C-c\C-b" gnus-bug))
 
-(defvar gnus-category-menu-hook nil
-  "*Hook run after the creation of the menu.")
+(defcustom gnus-category-menu-hook nil
+  "Hook run after the creation of the menu."
+  :group 'gnus-agent
+  :type 'hook)
 
 (defun gnus-category-make-menu-bar ()
   (gnus-turn-off-edit-menu 'category)
@@ -2713,7 +2676,7 @@ The following commands are available:
   (let* ((gnus-tmp-name (format "%s" (car category)))
 	 (gnus-tmp-groups (length (gnus-agent-cat-groups category))))
     (beginning-of-line)
-    (gnus-add-text-properties
+    (add-text-properties
      (point)
      (prog1 (1+ (point))
        ;; Insert the text.
@@ -2865,7 +2828,7 @@ The following commands are available:
   "Copy the current category."
   (interactive (list (gnus-category-name) (intern (read-string "New name: "))))
   (let ((info (assq category gnus-category-alist)))
-    (push (let ((newcat (gnus-copy-sequence info)))
+    (push (let ((newcat (copy-tree info)))
             (setf (gnus-agent-cat-name newcat) to)
             (setf (gnus-agent-cat-groups newcat) nil)
             newcat)
@@ -3121,7 +3084,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 	      (nov-entries-deleted 0)
 	      (info (gnus-get-info group))
 	      (alist gnus-agent-article-alist)
-	      (day (- (time-to-days (current-time))
+	      (day (- (time-to-days nil)
 		      (gnus-agent-find-parameter group 'agent-days-until-old)))
 	      (specials (if (and alist
 				 (not force))
@@ -3385,9 +3348,9 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 		       (let* ((file-name (nnheader-concat dir (number-to-string
 							       article-number)))
 			      (size (float (nth 7 (file-attributes file-name)))))
-			 (incf bytes-freed size)
-			 (incf size-files-deleted size)
-			 (incf files-deleted)
+			 (cl-incf bytes-freed size)
+			 (cl-incf size-files-deleted size)
+			 (cl-incf files-deleted)
 			 (delete-file file-name))
 		       (push "expired cached article" actions))
 		     (setf (nth 1 entry) nil)
@@ -3400,13 +3363,13 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 				    marker
 				  (- marker position-offset)))
 
-		     (incf nov-entries-deleted)
+		     (cl-incf nov-entries-deleted)
 
 		     (let* ((from (point-at-bol))
 			    (to (progn (forward-line 1) (point)))
 			    (freed (- to from)))
-		       (incf bytes-freed freed)
-		       (incf position-offset freed)
+		       (cl-incf bytes-freed freed)
+		       (cl-incf position-offset freed)
 		       (delete-region from to)))
 
 		   ;; If considering all articles is set, I can only
@@ -3463,9 +3426,9 @@ expiration tests failed." decoded article-number)
 
 	 (when (boundp 'gnus-agent-expire-stats)
 	   (let ((stats gnus-agent-expire-stats))
-	     (incf (nth 2 stats) bytes-freed)
-	     (incf (nth 1 stats) files-deleted)
-	     (incf (nth 0 stats) nov-entries-deleted)))
+	     (cl-incf (nth 2 stats) bytes-freed)
+	     (cl-incf (nth 1 stats) files-deleted)
+	     (cl-incf (nth 0 stats) nov-entries-deleted)))
 
 	 (gnus-agent-update-files-total-fetched-for group (- size-files-deleted)))))))
 
@@ -3856,7 +3819,7 @@ has been fetched."
       ;; be expired later.
       (gnus-agent-load-alist group)
       (gnus-agent-save-alist group (list article)
-			     (time-to-days (current-time))))))
+			     (time-to-days nil)))))
 
 (defun gnus-agent-regenerate-group (group &optional reread)
   "Regenerate GROUP.
@@ -4142,7 +4105,7 @@ agent has fetched."
 	       (let ((sum 0.0)
 		     file)
 		 (while (setq file (pop delta))
-		   (incf sum (float (or (nth 7 (file-attributes
+		   (cl-incf sum (float (or (nth 7 (file-attributes
 						(nnheader-concat
 						 path
 						 (if (numberp file)
@@ -4154,11 +4117,11 @@ agent has fetched."
 			  path nil "^-?[0-9]+$" t))
 		   file)
 	       (while (setq file (pop info))
-		 (incf sum (float (or (nth 8 file) 0))))
+		 (cl-incf sum (float (or (nth 8 file) 0))))
 	       (setq delta sum))))
 
 	 (setq gnus-agent-need-update-total-fetched-for t)
-	 (incf (nth 2 entry) delta))))))
+	 (cl-incf (nth 2 entry) delta))))))
 
 (defun gnus-agent-update-view-total-fetched-for
   (group agent-over &optional method path)

@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -25,7 +25,7 @@ this version is not backward compatible to 0.14 or earlier.")
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -242,8 +242,8 @@ frame."
 
 (defcustom speedbar-query-confirmation-method 'all
   "Query control for file operations.
-The 'all flag means to always query before file operations.
-The 'none-but-delete flag means to not query before any file
+The `all' flag means to always query before file operations.
+The `none-but-delete' flag means to not query before any file
 operations, except before a file deletion."
   :group 'speedbar
   :type '(radio (const :tag "Always Query before some file operations."
@@ -392,8 +392,8 @@ display is used instead."
 
 (defcustom speedbar-default-position 'left-right
   "Default position of the speedbar frame.
-Possible values are 'left, 'right or 'left-right.
-If value is 'left-right, the most suitable location is
+Possible values are `left', `right' or `left-right'.
+If value is `left-right', the most suitable location is
 determined automatically."
   :group 'speedbar
   :type '(radio (const :tag "Automatic" left-right)
@@ -637,9 +637,6 @@ Created from `speedbar-ignored-directory-expressions' with the function
 Use the function `speedbar-add-ignored-directory-regexp', or customize the
 variable `speedbar-ignored-directory-expressions' to modify this variable.")
 
-(define-obsolete-variable-alias 'speedbar-ignored-path-expressions
-  'speedbar-ignored-directory-expressions "22.1")
-
 (defcustom speedbar-ignored-directory-expressions
   '("[/\\]logs?[/\\]\\'")
   "List of regular expressions matching directories speedbar will ignore.
@@ -743,13 +740,6 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
     (setq directory-expression (cdr directory-expression)))
   (setq speedbar-ignored-directory-regexp (speedbar-extension-list-to-regex
 				      speedbar-ignored-directory-expressions)))
-
-;; If we don't have custom, then we set it here by hand.
-(if (not (fboundp 'custom-declare-variable))
-    (setq speedbar-file-regexp (speedbar-extension-list-to-regex
-				speedbar-supported-extension-expressions)
-	  speedbar-ignored-directory-regexp (speedbar-extension-list-to-regex
-					speedbar-ignored-directory-expressions)))
 
 (defcustom speedbar-update-flag dframe-have-timer-flag
   "Non-nil means to automatically update the display.
@@ -1989,7 +1979,7 @@ INDEX is not used, but is required by the caller."
 This is the button that expands or contracts a node (if applicable),
 and EXP-BUTTON-CHAR the character in it (+, -, ?, etc).  EXP-BUTTON-FUNCTION
 is the function to call if it's clicked on.  Button types are
-'bracket, 'angle, 'curly, 'expandtag, 'statictag, t, or nil.
+`bracket', `angle', `curly', `expandtag', `statictag', t, or nil.
 EXP-BUTTON-DATA is extra data attached to the text forming the expansion
 button.
 
@@ -2061,7 +2051,7 @@ position to insert a new item, and that the new item will end with a CR."
   "Insert list of FILES starting at point, and indenting all files to LEVEL.
 Tag expandable items with a +, otherwise a ?.  Don't highlight ? as we
 don't know how to manage them.  The input parameter FILES is a cons
-cell of the form ( 'DIRLIST . 'FILELIST )."
+cell of the form (DIRLIST . FILELIST)."
   ;; Start inserting all the directories
   (let ((dirs (car files)))
     (while dirs
@@ -2341,7 +2331,7 @@ Argument LST is the list of tags to trim."
       (append newlst trimlst))))
 
 (defun speedbar-simple-group-tag-hierarchy (lst)
-  "Create a simple 'Tags' group with orphaned tags.
+  "Create a simple `Tags' group with orphaned tags.
 Argument LST is the list of tags to sort into groups."
   (let ((newlst nil)
 	(sublst nil))
@@ -2857,7 +2847,7 @@ indicator, then do not add a space."
 	(progn
 	  (goto-char speedbar-ro-to-do-point)
 	  (while (and (not (input-pending-p))
-		      (re-search-forward "^\\([0-9]+\\):\\s-*[[<][+-\?][]>] "
+		      (re-search-forward "^\\([0-9]+\\):\\s-*[[<][+-?][]>] "
 					 nil t))
 	    (setq speedbar-ro-to-do-point (point))
 	    (let ((f (speedbar-line-file)))
@@ -3469,11 +3459,11 @@ TOKEN will be the list, and INDENT is the current indentation level."
 ;;
 (defcustom speedbar-select-frame-method 'attached
   "Specify how to select a frame for displaying a file.
-A value of 'attached means to use the attached frame (the frame
-that speedbar was started from.)  A number such as 1 or -1 means to
-pass that number to `other-frame' while selecting a frame from speedbar."
+A number such as 1 or -1 means to pass that number to `other-frame'
+while selecting a frame from speedbar.  Any other value means to use
+the attached frame (the frame that speedbar was started from)."
   :group 'speedbar
-  :type 'sexp)
+  :type '(choice integer (other :tag "attached" attached)))
 
 (defun speedbar-find-file-in-frame (file)
   "This will load FILE into the speedbar attached frame.
@@ -4077,26 +4067,6 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 	 (setq font-lock-global-modes (delq 'speedbar-mode
 					    font-lock-global-modes)))))
 
-;;; Obsolete variables and functions
-
-(define-obsolete-variable-alias
-  'speedbar-ignored-path-regexp 'speedbar-ignored-directory-regexp "22.1")
-
-(define-obsolete-function-alias 'speedbar-add-ignored-path-regexp
-  'speedbar-add-ignored-directory-regexp "22.1")
-
-(define-obsolete-function-alias 'speedbar-line-path
-  'speedbar-line-directory "22.1")
-
-(define-obsolete-function-alias 'speedbar-buffers-line-path
-  'speedbar-buffers-line-directory "22.1")
-
-(define-obsolete-function-alias 'speedbar-path-line
-  'speedbar-directory-line "22.1")
-
-(define-obsolete-function-alias 'speedbar-buffers-line-path
-  'speedbar-buffers-line-directory "22.1")
-
 (provide 'speedbar)
 
 ;; run load-time hooks

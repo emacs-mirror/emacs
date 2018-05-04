@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -7,7 +7,7 @@
 @cindex frames
 
   When Emacs is started on a graphical display, e.g., on the X Window
-System, it occupies a graphical system-level ``window''.  In this
+System, it occupies a graphical system-level display region.  In this
 manual, we call this a @dfn{frame}, reserving the word ``window'' for
 the part of the frame used for displaying a buffer.  A frame initially
 contains one window, but it can be subdivided into multiple windows
@@ -28,7 +28,7 @@ displays (@pxref{Exiting}).  To close just the selected frame, type
   This chapter describes Emacs features specific to graphical displays
 (particularly mouse commands), and features for managing multiple
 frames.  On text terminals, many of these features are unavailable.
-However, it is still possible to create multiple ``frames'' on text
+However, it is still possible to create multiple frames on text
 terminals; such frames are displayed one at a time, filling the entire
 terminal screen (@pxref{Non-Window Terminals}).  It is also possible
 to use the mouse on some text terminals (@pxref{Text-Only Mouse}, for
@@ -70,22 +70,22 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 @cindex mouse buttons (what they do)
 @cindex mouse, selecting text using
 
-@kindex Mouse-1
-@kindex Mouse-2
-@kindex Mouse-3
+@kindex mouse-1
+@kindex mouse-2
+@kindex mouse-3
 @table @kbd
-@item Mouse-1
+@item mouse-1
 Move point to where you click (@code{mouse-set-point}).
 
-@item Drag-Mouse-1
+@item Drag-mouse-1
 Activate the region around the text selected by dragging, and put the
 text in the primary selection (@code{mouse-set-region}).
 
-@item Mouse-2
+@item mouse-2
 Move point to where you click, and insert the contents of the primary
 selection there (@code{mouse-yank-primary}).
 
-@item Mouse-3
+@item mouse-3
 If the region is active, move the nearer end of the region to the
 click position; otherwise, set mark at the current value of point and
 point at the click position.  Save the resulting region in the kill
@@ -94,10 +94,11 @@ ring; on a second click, kill it (@code{mouse-save-then-kill}).
 
 @findex mouse-set-point
   The most basic mouse command is @code{mouse-set-point}, which is
-invoked by clicking with the left mouse button, @kbd{Mouse-1}, in the
+invoked by clicking with the left mouse button, @kbd{mouse-1}, in the
 text area of a window.  This moves point to the position where you
 clicked.  If that window was not the selected window, it becomes the
-selected window.
+selected window.  You can also activate a region by double-clicking
+@kbd{mouse-1} (@pxref{Word and Line Mouse}).
 
 @vindex x-mouse-click-focus-ignore-position
   Normally, if the frame you clicked in was not the selected frame, it
@@ -110,7 +111,7 @@ the window and sets the cursor position.
 
 @cindex mouse, dragging
 @findex mouse-set-region
-  Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
+  Holding down @kbd{mouse-1} and dragging the mouse over a stretch
 of text activates the region around that text
 (@code{mouse-set-region}), placing the mark where you started holding
 down the mouse button, and point where you release it (@pxref{Mark}).
@@ -132,49 +133,49 @@ on how far away from the window edge the mouse has gone; the variable
 
 @findex mouse-yank-primary
 @findex mouse-yank-at-click
-  Clicking with the middle mouse button, @kbd{Mouse-2}, moves point to
+  Clicking with the middle mouse button, @kbd{mouse-2}, moves point to
 the position where you clicked and inserts the contents of the primary
 selection (@code{mouse-yank-primary}).  @xref{Primary Selection}.
 This behavior is consistent with other X applications.  Alternatively,
-you can rebind @kbd{Mouse-2} to @code{mouse-yank-at-click}, which
+you can rebind @kbd{mouse-2} to @code{mouse-yank-at-click}, which
 performs a yank at the position you click.
 
 @vindex mouse-yank-at-point
   If you change the variable @code{mouse-yank-at-point} to a
-non-@code{nil} value, @kbd{Mouse-2} does not move point; it inserts
+non-@code{nil} value, @kbd{mouse-2} does not move point; it inserts
 the text at point, regardless of where you clicked or even which of
 the frame's windows you clicked on.  This variable affects both
 @code{mouse-yank-primary} and @code{mouse-yank-at-click}.
 
 @findex mouse-save-then-kill
-  Clicking with the right mouse button, @kbd{Mouse-3}, runs the
+  Clicking with the right mouse button, @kbd{mouse-3}, runs the
 command @code{mouse-save-then-kill}.  This performs several actions
 depending on where you click and the status of the region:
 
 @itemize @bullet
 @item
-If no region is active, clicking @kbd{Mouse-3} activates the region,
+If no region is active, clicking @kbd{mouse-3} activates the region,
 placing the mark where point was and point at the clicked position.
 
 @item
-If a region is active, clicking @kbd{Mouse-3} adjusts the nearer end
+If a region is active, clicking @kbd{mouse-3} adjusts the nearer end
 of the region by moving it to the clicked position.  The adjusted
 region's text is copied to the kill ring; if the text in the original
 region was already on the kill ring, it replaces it there.
 
 @item
 If you originally specified the region using a double or triple
-@kbd{Mouse-1}, so that the region is defined to consist of entire
+@kbd{mouse-1}, so that the region is defined to consist of entire
 words or lines (@pxref{Word and Line Mouse}), then adjusting the
-region with @kbd{Mouse-3} also proceeds by entire words or lines.
+region with @kbd{mouse-3} also proceeds by entire words or lines.
 
 @item
-If you use @kbd{Mouse-3} a second time consecutively, at the same
+If you use @kbd{mouse-3} a second time consecutively, at the same
 place, that kills the region already selected.  Thus, the simplest way
-to kill text with the mouse is to click @kbd{Mouse-1} at one end, then
-click @kbd{Mouse-3} twice at the other end.  To copy the text into the
-kill ring without deleting it from the buffer, press @kbd{Mouse-3}
-just once---or just drag across the text with @kbd{Mouse-1}.  Then you
+to kill text with the mouse is to click @kbd{mouse-1} at one end, then
+click @kbd{mouse-3} twice at the other end.  To copy the text into the
+kill ring without deleting it from the buffer, press @kbd{mouse-3}
+just once---or just drag across the text with @kbd{mouse-1}.  Then you
 can copy it elsewhere by yanking it.
 @end itemize
 
@@ -206,18 +207,27 @@ buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.
 
+@vindex mouse-wheel-tilt-scroll
+@vindex mouse-wheel-flip-direction
+Emacs can also support horizontal scrolling if your mouse's wheel can
+be tilted.  This feature is off by default; the variable
+@code{mouse-wheel-tilt-scroll} turns it on.  If you'd like to reverse
+the direction of horizontal scrolling, customize the variable
+@code{mouse-wheel-flip-direction} to a non-@code{nil} value.
+
+
 @node Word and Line Mouse
 @section Mouse Commands for Words and Lines
 
-  These variants of @kbd{Mouse-1} select entire words or lines at a
+  These variants of @kbd{mouse-1} select entire words or lines at a
 time.  Emacs activates the region around the selected text, which is
 also copied to the kill ring.
 
 @table @kbd
-@item Double-Mouse-1
-Select the text around the word which you click on.
+@item Double-mouse-1
+Select the text around the word or character which you click on.
 
-Double-clicking on a character with ``symbol'' syntax (such as
+Double-clicking on a character with symbol syntax (such as
 underscore, in C mode) selects the symbol surrounding that character.
 Double-clicking on a character with open- or close-parenthesis syntax
 selects the parenthetical grouping which that character starts or
@@ -226,20 +236,31 @@ ends.  Double-clicking on a character with string-delimiter syntax
 constant (Emacs uses heuristics to figure out whether that character
 is the beginning or the end of it).
 
-@item Double-Drag-Mouse-1
-Select the text you drag across, in the form of whole words.
+Double-clicking on the beginning of a parenthetical grouping or
+beginning string-delimiter moves point to the end of the region,
+scrolling the buffer display forward if necessary to show the new
+location of point.  Double-clicking on the end of a parenthetical
+grouping or end string-delimiter keeps point at the end of the region
+by default, so the beginning of the region will not be visible if it
+is above the top of the window; setting the user option
+@code{mouse-select-region-move-to-beginning} to non-@code{nil} changes
+this to move point to the beginning of the region, scrolling the
+display backward if necessary.
 
-@item Triple-Mouse-1
+@item Double-Drag-mouse-1
+Select the text you drag across, in units of whole words.
+
+@item Triple-mouse-1
 Select the line you click on.
 
-@item Triple-Drag-Mouse-1
-Select the text you drag across, in the form of whole lines.
+@item Triple-Drag-mouse-1
+Select the text you drag across, in units of whole lines.
 @end table
 
 @node Mouse References
 @section Following References with the Mouse
-@kindex Mouse-1 @r{(on buttons)}
-@kindex Mouse-2 @r{(on buttons)}
+@kindex mouse-1 @r{(on buttons)}
+@kindex mouse-2 @r{(on buttons)}
 @cindex hyperlinks
 @cindex links
 @cindex text buttons
@@ -256,14 +277,14 @@ cursor changes and the button lights up.  If you change the variable
 highlighting.
 
   You can activate a button by moving point to it and typing
-@key{RET}, or by clicking either @kbd{Mouse-1} or @kbd{Mouse-2} on the
+@key{RET}, or by clicking either @kbd{mouse-1} or @kbd{mouse-2} on the
 button.  For example, in a Dired buffer, each file name is a button;
 activating it causes Emacs to visit that file (@pxref{Dired}).  In a
 @file{*Compilation*} buffer, each error message is a button, and
 activating it visits the source code for that error
 (@pxref{Compilation}).
 
-  Although clicking @kbd{Mouse-1} on a button usually activates the
+  Although clicking @kbd{mouse-1} on a button usually activates the
 button, if you hold the mouse button down for a period of time before
 releasing it (specifically, for more than 450 milliseconds), then
 Emacs moves point where you clicked, without activating the button.
@@ -271,45 +292,45 @@ In this way, you can use the mouse to move point over a button without
 activating it.  Dragging the mouse over or onto a button has its usual
 behavior of setting the region, and does not activate the button.
 
-  You can change how @kbd{Mouse-1} applies to buttons by customizing
+  You can change how @kbd{mouse-1} applies to buttons by customizing
 the variable @code{mouse-1-click-follows-link}.  If the value is a
 positive integer, that determines how long you need to hold the mouse
 button down for, in milliseconds, to cancel button activation; the
 default is 450, as described in the previous paragraph.  If the value
-is @code{nil}, @kbd{Mouse-1} just sets point where you clicked, and
+is @code{nil}, @kbd{mouse-1} just sets point where you clicked, and
 does not activate buttons.  If the value is @code{double}, double
 clicks activate buttons but single clicks just set point.
 
 @vindex mouse-1-click-in-non-selected-windows
-  Normally, @kbd{Mouse-1} on a button activates the button even if it
+  Normally, @kbd{mouse-1} on a button activates the button even if it
 is in a non-selected window.  If you change the variable
 @code{mouse-1-click-in-non-selected-windows} to @code{nil},
-@kbd{Mouse-1} on a button in an unselected window moves point to the
+@kbd{mouse-1} on a button in an unselected window moves point to the
 clicked position and selects that window, without activating the
 button.
 
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
 
-  Several mouse clicks with the @key{CTRL} and @key{SHIFT} modifiers
+  Several mouse clicks with the @key{Ctrl} and @key{SHIFT} modifiers
 bring up menus.
 
 @table @kbd
-@item C-Mouse-1
-@kindex C-Mouse-1
+@item C-mouse-1
+@kindex C-mouse-1
 This menu is for selecting a buffer.
 
 The MSB (``mouse select buffer'') global minor mode makes this
 menu smarter and more customizable.  @xref{Buffer Menus}.
 
-@item C-Mouse-2
-@kindex C-Mouse-2
+@item C-mouse-2
+@kindex C-mouse-2
 This menu contains entries for examining faces and other text
 properties, and well as for setting them (the latter is mainly useful
 when editing enriched text; @pxref{Enriched Text}).
 
-@item C-Mouse-3
-@kindex C-Mouse-3
+@item C-mouse-3
+@kindex C-mouse-3
 This menu is mode-specific.  For most modes if Menu-bar mode is on,
 this menu has the same items as all the mode-specific menu-bar menus
 put together.  Some modes may specify a different menu for this
@@ -318,17 +339,18 @@ which would be present in the menu bar---not just the mode-specific
 ones---so that you can access them without having to display the menu
 bar.
 
-@item S-Mouse-1
+@item S-mouse-1
 This menu is for changing the default face within the window's buffer.
 @xref{Text Scale}.
 @end table
 
-  Some graphical applications use @kbd{Mouse-3} for a mode-specific
-menu.  If you prefer @kbd{Mouse-3} in Emacs to bring up such a menu
+  Some graphical applications use @kbd{mouse-3} for a mode-specific
+menu.  If you prefer @kbd{mouse-3} in Emacs to bring up such a menu
 instead of running the @code{mouse-save-then-kill} command, rebind
-@kbd{Mouse-3} by adding the following line to your init file
+@kbd{mouse-3} by adding the following line to your init file
 (@pxref{Init Rebinding}):
 
+@c FIXME: `mouse-popup-menubar-stuff' is obsolete since 23.1.
 @smallexample
 (global-set-key [mouse-3] 'mouse-popup-menubar-stuff)
 @end smallexample
@@ -348,32 +370,31 @@ the special bindings will be displayed (@pxref{Tooltips}).  This
 section's commands do not apply in those areas.
 
 @table @kbd
-@item Mouse-1
-@kindex Mouse-1 @r{(mode line)}
-@kbd{Mouse-1} on a mode line selects the window it belongs to.  By
-dragging @kbd{Mouse-1} on the mode line, you can move it, thus
+@item mouse-1
+@kindex mouse-1 @r{(mode line)}
+@kbd{mouse-1} on a mode line selects the window it belongs to.  By
+dragging @kbd{mouse-1} on the mode line, you can move it, thus
 changing the height of the windows above and below.  Changing heights
 with the mouse in this way never deletes windows, it just refuses to
 make any window smaller than the minimum height.
 
-@item Mouse-2
-@kindex Mouse-2 @r{(mode line)}
-@kbd{Mouse-2} on a mode line expands that window to fill its frame.
+@item mouse-2
+@kindex mouse-2 @r{(mode line)}
+@kbd{mouse-2} on a mode line expands that window to fill its frame.
 
-@item Mouse-3
-@kindex Mouse-3 @r{(mode line)}
-@kbd{Mouse-3} on a mode line deletes the window it belongs to.  If the
+@item mouse-3
+@kindex mouse-3 @r{(mode line)}
+@kbd{mouse-3} on a mode line deletes the window it belongs to.  If the
 frame has only one window, it does nothing.
 
-@item C-Mouse-2
-@kindex C-mouse-2 @r{(mode line)}
-@kbd{C-Mouse-2} on a mode line splits that window, producing two
+@item C-mouse-2
+@kbd{C-mouse-2} on a mode line splits that window, producing two
 side-by-side windows with the boundary running through the click
 position (@pxref{Split Window}).
 @end table
 
-@kindex Mouse-1 @r{(scroll bar)}
-  Furthermore, by clicking and dragging @kbd{Mouse-1} on the divider
+@kindex mouse-1 @r{(scroll bar)}
+  Furthermore, by clicking and dragging @kbd{mouse-1} on the divider
 between two side-by-side mode lines, you can move the vertical
 boundary to the left or right.
 
@@ -388,10 +409,11 @@ boundary to the left or right.
   The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}.  Whereas
 each @kbd{C-x 4} command pops up a buffer in a different window in the
 selected frame (@pxref{Pop Up Window}), the @kbd{C-x 5} commands use a
-different frame.  If an existing visible or iconified (``minimized'')
-frame already displays the requested buffer, that frame is raised and
-deiconified (``un-minimized''); otherwise, a new frame is created on
-the current display terminal.
+different frame.  If an existing visible or iconified (a.k.a.@:
+``minimized'', @pxref{Visibility of Frames,,, elisp, The Emacs Lisp
+Reference Manual}) frame already displays the requested buffer, that
+frame is raised and deiconified (``un-minimized''); otherwise, a new
+frame is created on the current display terminal.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:
@@ -415,9 +437,9 @@ Start composing a mail message in another frame.  This runs
 @code{compose-mail-other-frame}.  It is the other-frame variant of
 @kbd{C-x m}.  @xref{Sending Mail}.
 @item C-x 5 .
-Find a tag in the current tag table in another frame.  This runs
-@code{find-tag-other-frame}, the multiple-frame variant of @kbd{M-.}.
-@xref{Tags}.
+Find the definition of an identifier in another frame.  This runs
+@code{xref-find-definitions-other-frame}, the multiple-frame variant
+of @kbd{M-.}.  @xref{Xref}.
 @item C-x 5 r @var{filename} @key{RET}
 @kindex C-x 5 r
 @findex find-file-read-only-other-frame
@@ -443,8 +465,7 @@ error if there is only one frame.
 
 @item C-z
 @kindex C-z @r{(X windows)}
-@findex suspend-frame
-Minimize (or ``iconify'') the selected Emacs frame
+Minimize (or iconify) the selected Emacs frame
 (@code{suspend-frame}).  @xref{Exiting}.
 
 @item C-x 5 o
@@ -458,17 +479,17 @@ cycles through all the frames on your terminal.
 @findex delete-other-frames
 Delete all frames on the current terminal, except the selected one.
 
-@item M-<F10>
-@kindex M-<F10>
+@item M-@key{F10}
+@kindex M-F10
 @findex toggle-frame-maximized
 Toggle the maximization state of the current frame.  When a frame is
 maximized, it fills the screen.
 
-@item <F11>
-@kindex <F11>
+@item @key{F11}
+@kindex F11
 @findex toggle-frame-fullscreen
-Toggle fullscreen mode for the current frame.  (The difference
-between ``fullscreen'' and ``maximized'' is normally that the former
+Toggle full-screen mode for the current frame.  (The difference
+between full-screen and maximized is normally that the former
 hides window manager decorations, giving slightly more screen space to
 Emacs itself.)
 @end table
@@ -476,7 +497,7 @@ Emacs itself.)
 @vindex frame-resize-pixelwise
   Note that with some window managers you may have to customize the
 variable @code{frame-resize-pixelwise} to a non-@code{nil} value in
-order to make a frame truly ``maximized'' or ``fullscreen''.  This
+order to make a frame truly maximized or full-screen.  This
 variable, when set to a non-@code{nil} value, in general allows
 resizing frames at pixel resolution, rather than in integral multiples
 of lines and columns.
@@ -485,7 +506,7 @@ of lines and columns.
 frame.  However, it will refuse to delete the last frame in an Emacs
 session, to prevent you from losing the ability to interact with the
 Emacs session.  Note that when Emacs is run as a daemon (@pxref{Emacs
-Server}), there is always a ``virtual frame'' that remains after all
+Server}), there is always a virtual frame that remains after all
 the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
 5 0} can delete the last interactive frame; you can use
 @command{emacsclient} to reconnect to the Emacs session.
@@ -553,7 +574,8 @@ font names in X resource files.
 If you are running Emacs on the GNOME desktop, you can tell Emacs to
 use the default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
-For this to work, Emacs must have been compiled with Gconf support.
+For this to work, Emacs must have been compiled with support for
+Gsettings (or the older Gconf).
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
@@ -565,7 +587,7 @@ command can be helpful.  It describes the character at point, and
 names the font that it's rendered in.
 
 @cindex fontconfig
-  On X, there are four different ways to express a ``font name''.  The
+  On X, there are four different ways to express a font name.  The
 first is to use a @dfn{Fontconfig pattern}.  Fontconfig patterns have
 the following form:
 
@@ -621,7 +643,7 @@ Monospace-12:weight=bold:slant=italic
 
 For a more detailed description of Fontconfig patterns, see the
 Fontconfig manual, which is distributed with Fontconfig and available
-online at @url{http://fontconfig.org/fontconfig-user.html}.
+online at @url{https://fontconfig.org/fontconfig-user.html}.
 
 @cindex GTK font pattern
   The second way to specify a font is to use a @dfn{GTK font pattern}.
@@ -738,8 +760,8 @@ have.  Normally you should use @samp{iso8859} for @var{registry} and
 @samp{1} for @var{encoding}.
 @end table
 
-  The fourth and final method of specifying a font is to use a ``font
-nickname''.  Certain fonts have shorter nicknames, which you can use
+  The fourth and final method of specifying a font is to use a font
+nickname.  Certain fonts have shorter nicknames, which you can use
 instead of a normal font specification.  For instance, @samp{6x13} is
 equivalent to
 
@@ -763,7 +785,8 @@ Fontconfig fonts, you can use the @command{fc-list} command to list
 the available fixed-width fonts, like this:
 
 @example
-fc-list :spacing=mono fc-list :spacing=charcell
+fc-list :spacing=mono
+fc-list :spacing=charcell
 @end example
 
 @noindent
@@ -771,7 +794,7 @@ For server-side X fonts, you can use the @command{xlsfonts} program to
 list the available fixed-width fonts, like this:
 
 @example
-xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
+xlsfonts -fn '*x*' | grep -E '^[0-9]+x[0-9]+'
 xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-m*'
 xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-c*'
 @end example
@@ -812,8 +835,8 @@ associate the speedbar with a different frame, dismiss it and call
   The speedbar can operate in various modes.  Its default mode is
 @dfn{File Display} mode, which shows the files in the current
 directory of the selected window of the attached frame, one file per
-line.  Clicking on a file name visits that file in the selected window
-of the attached frame, and clicking on a directory name shows that
+line.  Clicking on a non-directory visits that file in the selected window
+of the attached frame, and clicking on a directory shows that
 directory in the speedbar (@pxref{Mouse References}).  Each line also
 has a box, @samp{[+]} or @samp{<+>}, that you can click on to
 @dfn{expand} the contents of that item.  Expanding a directory adds
@@ -878,7 +901,7 @@ that server's selected frame.
 
 @node Frame Parameters
 @section Frame Parameters
-@cindex default-frame-alist
+@vindex default-frame-alist
 
   You can control the default appearance and behavior of all frames by
 specifying a default list of @dfn{frame parameters} in the variable
@@ -902,7 +925,7 @@ default font to @samp{Monospace-10}:
   For a list of frame parameters and their effects, see @ref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 
-@cindex initial-frame-alist
+@vindex initial-frame-alist
   You can also specify a list of frame parameters which apply to just
 the initial frame, by customizing the variable
 @code{initial-frame-alist}.
@@ -911,6 +934,14 @@ the initial frame, by customizing the variable
 specify colors and fonts don't affect menus and the menu bar, since
 those are drawn by the toolkit and not directly by Emacs.
 
+  Note that if you are using the desktop library to save and restore
+your sessions, the frames to be restored are recorded in the desktop
+file, together with their parameters.  When these frames are restored,
+the recorded parameters take precedence over the frame parameters
+specified by @code{default-frame-alist} and @code{initial-frame-alist}
+in your init file.  @xref{Saving Emacs Sessions}, for how to avoid
+that.
+
 @node Scroll Bars
 @section Scroll Bars
 @cindex Scroll Bar mode
@@ -918,17 +949,19 @@ those are drawn by the toolkit and not directly by Emacs.
 @cindex Vertical Scroll Bar
 
   On graphical displays, there is a @dfn{vertical scroll bar} on the
-side of each Emacs window.  Clicking @kbd{Mouse-1} on the scroll bar's
-up and down buttons scrolls the window by one line at a time.  Clicking
-@kbd{Mouse-1} above or below the scroll bar's inner box scrolls the
-window by nearly the entire height of the window, like @kbd{M-v} and
-@kbd{C-v} respectively (@pxref{Moving Point}).  Dragging the inner box
-scrolls continuously.
+side of each Emacs window.  Clicking @kbd{mouse-1} on the scroll bar's
+up and down buttons scrolls the window by one line at a time (but some
+toolkits allow you to customize the scroll bars to not have those
+buttons).  Clicking @kbd{mouse-1} above or below the scroll bar's
+inner box scrolls the window by nearly the entire height of the
+window, like @kbd{M-v} and @kbd{C-v} respectively (@pxref{Moving
+Point}).  (This, too, can behave differently with some toolkits.)
+Dragging the inner box scrolls continuously.
 
   If Emacs is compiled on the X Window System without X toolkit
-support, the scroll bar behaves differently.  Clicking @kbd{Mouse-1}
+support, the scroll bar behaves differently.  Clicking @kbd{mouse-1}
 anywhere on the scroll bar scrolls forward like @kbd{C-v}, while
-@kbd{Mouse-3} scrolls backward like @kbd{M-v}.  Clicking @kbd{Mouse-2}
+@kbd{mouse-3} scrolls backward like @kbd{M-v}.  Clicking @kbd{mouse-2}
 in the scroll bar lets you drag the inner box up and down.
 
 @findex scroll-bar-mode
@@ -944,7 +977,7 @@ variable @code{scroll-bar-mode}.  Its value should be either
 @code{right} (put scroll bars on the right side of windows), @code{left}
 (put them on the left), or @code{nil} (disable vertical scroll bars).
 By default, Emacs puts scroll bars on the right if it was compiled with
-GTK+ support on the X Window System, and on MS-Windows or Mac OS; Emacs
+GTK+ support on the X Window System, and on MS-Windows or macOS; Emacs
 puts scroll bars on the left if compiled on the X Window System without
 GTK+ support (following the old convention for X applications).
 
@@ -963,21 +996,39 @@ variable @code{scroll-bar-adjust-thumb-portion} to control
 when the end of the buffer is visible.  If its value is
 non-@code{nil}, the scroll bar can be dragged downwards even if the
 end of the buffer is shown; if @code{nil}, the thumb will be at the
-bottom when the end of the buffer is shown.  You can not over-scroll
+bottom when the end of the buffer is shown.  You cannot over-scroll
 when the entire buffer is visible.
 
-@cindex scroll-bar face
+@cindex @code{scroll-bar} face
   The visual appearance of the scroll bars is controlled by the
-@code{scroll-bar} face.
+@code{scroll-bar} face.  (Some toolkits, such as GTK+ and MS-Windows,
+ignore this face; the scroll-bar appearance there can only be
+customized system-wide, for GTK+ @pxref{GTK resources}).
+
+@cindex vertical border
+  On graphical frames, vertical scroll bars implicitly serve to separate
+side-by-side windows visually.  When vertical scroll bars are disabled,
+Emacs by default separates such windows with the help of a one-pixel
+wide @dfn{vertical border}.  That border occupies the first pixel column
+of the window on the right and may thus overdraw the leftmost pixels of
+any glyph displayed there.  If these pixels convey important
+information, you can make them visible by enabling window dividers, see
+@ref{Window Dividers}.  To replicate the look of vertical borders, set
+the @code{right-divider-width} parameter of frames to one and have the
+@code{window-divider} face inherit from that of @code{vertical-border},
+@ref{Window Dividers,, Window Dividers, elisp, The Emacs Lisp Reference
+Manual}.
 
 @cindex Horizontal Scroll Bar
 @cindex Horizontal Scroll Bar mode
   On graphical displays with toolkit support, Emacs may also supply a
 @dfn{horizontal scroll bar} on the bottom of each window.  Clicking
-@kbd{Mouse-1} on the that scroll bar's left and right buttons scrolls
-the window horizontally by one column at a time.  Clicking @kbd{Mouse-1}
-on the left or right of the scroll bar's inner box scrolls the window by
-four columns.  Dragging the inner box scrolls the window continuously.
+@kbd{mouse-1} on that scroll bar's left and right buttons scrolls the
+window horizontally by one column at a time.  (Note that some toolkits
+allow customizations of the scroll bar that cause these buttons not to
+be shown.)  Clicking @kbd{mouse-1} on the left or right of the scroll
+bar's inner box scrolls the window by four columns.  Dragging the
+inner box scrolls the window continuously.
 
   Note that such horizontal scrolling can make the window's position of
 point disappear on the left or the right.  Typing a character to insert
@@ -1009,7 +1060,7 @@ scroll bar height, change the @code{scroll-bar-height} frame parameter
 
   On graphical displays, you can use @dfn{window dividers} in order to
 separate windows visually.  Window dividers are bars that can be dragged
-with the mouse, thus allowing to easily resize adjacent windows.
+with the mouse, thus allowing you to easily resize adjacent windows.
 
 @findex window-divider-mode
   To toggle the display of window dividers, use the command @kbd{M-x
@@ -1028,7 +1079,12 @@ window-divider-mode}.
 customize the options @code{window-divider-default-bottom-width} and
 @code{window-divider-default-right-width}.
 
-   For more details about window dividers see @ref{Window Dividers,,
+  When vertical scroll bars are disabled, dividers can be also useful to
+make the first pixel column of a window visible, which would be otherwise
+covered by the vertical border used to separate side-by-side windows
+(@pxref{Scroll Bars}).
+
+For more details about window dividers see @ref{Window Dividers,,
 Window Dividers, elisp, The Emacs Lisp Reference Manual}.
 
 @node Drag and Drop
@@ -1051,6 +1107,31 @@ the variable @code{dnd-open-file-other-window}.
   The XDND and Motif drag and drop protocols, and the old KDE 1.x
 protocol, are currently supported.
 
+@vindex mouse-drag-and-drop-region
+  Emacs can also optionally drag the region with the mouse into
+another portion of this or another buffer.  To enable that, customize
+the variable @code{mouse-drag-and-drop-region} to a non-@code{nil}
+value.  Normally, the text is moved, i.e. cut and pasted, when the
+destination is the same buffer as the origin; dropping the region on
+another buffer copies the text instead.  If the value of this variable
+names a modifier key, such as @samp{shift}, @samp{control} or
+@samp{alt}, then pressing that modifier key when dropping the text
+will copy it instead of cutting it, even if you drop on the same
+buffer as the one from which the text came.
+
+@vindex mouse-drag-and-drop-region-cut-when-buffers-differ
+@vindex mouse-drag-and-drop-region-show-tooltip
+@vindex mouse-drag-and-drop-region-show-cursor
+In order to cut text even when source and destination buffers differ,
+set the option
+@code{mouse-drag-and-drop-region-cut-when-buffers-differ} to a
+non-@code{nil} value.  By default, on a graphic display the selected
+text is shown in a tooltip and point moves together with the mouse
+cursor during dragging.  To suppress such behavior, set the options
+@code{mouse-drag-and-drop-region-show-tooltip} and/or
+@code{mouse-drag-and-drop-region-show-cursor} to @code{nil}.
+
+
 @node Menu Bars
 @section Menu Bars
 @cindex Menu Bar mode
@@ -1065,11 +1146,11 @@ argument is positive, off if the argument is not positive.  To control
 the use of menu bars at startup, customize the variable
 @code{menu-bar-mode}.
 
-@kindex C-Mouse-3 @r{(when menu bar is disabled)}
+@kindex C-mouse-3 @r{(when menu bar is disabled)}
   Expert users often turn off the menu bar, especially on text
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
-with @kbd{C-Mouse-3} on a display which supports pop-up menus.
+with @kbd{C-mouse-3} on a display which supports pop-up menus.
 @xref{Menu Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
@@ -1110,6 +1191,12 @@ specific tool bar style, customize the variable @code{tool-bar-style}.
 bar with the frame parameter @code{tool-bar-position}.  @xref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.
 
+  NS builds consider the tool bar to be a window decoration, and
+therefore do not display it when a window is undecorated.  @xref{Frame
+Parameters,,, elisp, The Emacs Lisp Reference Manual}.  On macOS the
+tool bar is hidden when the frame is put into fullscreen, but can be
+displayed by moving the mouse pointer to the top of the screen.
+
 @node Dialog Boxes
 @section Using Dialog Boxes
 @cindex dialog boxes
@@ -1138,8 +1225,8 @@ suppressed all dialog boxes with the variable @code{use-dialog-box}.
 @vindex x-gtk-file-dialog-help-text
 @cindex hidden files, in GTK+ file chooser
 @cindex help text, in GTK+ file chooser
-  When Emacs is compiled with GTK+ support, it uses the GTK+ ``file
-chooser'' dialog.  Emacs adds an additional toggle button to this
+  When Emacs is compiled with GTK+ support, it uses the GTK+ file
+chooser dialog.  Emacs adds an additional toggle button to this
 dialog, which you can use to enable or disable the display of hidden
 files (files starting with a dot) in that dialog.  If you want this
 toggle to be activated by default, change the variable
@@ -1151,11 +1238,11 @@ change the variable @code{x-gtk-file-dialog-help-text} to @code{nil}.
 @section Tooltips
 @cindex tooltips
 
-  @dfn{Tooltips} are small windows that display text information at
-the current mouse position.  They activate when there is a pause in
-mouse movement over some significant piece of text in a window, or the
-mode line, or some other part of the Emacs frame such as a tool bar
-button or menu item.
+  @dfn{Tooltips} are small special frames that display text
+information at the current mouse position.  They activate when there
+is a pause in mouse movement over some significant piece of text in a
+window, or the mode line, or some other part of the Emacs frame such
+as a tool bar button or menu item.
 
 @findex tooltip-mode
   You can toggle the use of tooltips with the command @kbd{M-x
@@ -1163,11 +1250,41 @@ tooltip-mode}.  When Tooltip mode is disabled, the help text is
 displayed in the echo area instead.  To control the use of tooltips at
 startup, customize the variable @code{tooltip-mode}.
 
-@vindex tooltip-delay
-  The variables @code{tooltip-delay} specifies how long Emacs should
-wait before displaying a tooltip.  For additional customization
-options for displaying tooltips, use @kbd{M-x customize-group
-@key{RET} tooltip @key{RET}}.
+The following variables provide customization options for tooltip
+display:
+
+@vtable @code
+@item tooltip-delay
+This variable specifies how long Emacs should wait before displaying
+the first tooltip.  The value is in seconds.
+
+@item tooltip-short-delay
+This variable specifies how long Emacs should wait before displaying
+subsequent tooltips on different items, having already displayed the
+first tooltip.  The value is in seconds.
+
+@item tooltip-hide-delay
+The number of seconds since displaying a tooltip to hide it, if the
+mouse doesn't move.
+
+@item tooltip-x-offset
+@itemx tooltip-y-offset
+The X and Y offsets, in pixels, of the left top corner of the tooltip
+from the mouse pointer position.  Note that these are ignored if
+@code{tooltip-frame-parameters} was customized to include,
+respectively, the @code{left} and @code{top} parameters.  The values
+of the offsets should be chosen so that the tooltip doesn't cover the
+mouse pointer's hot spot, or it might interfere with clicking the
+mouse.
+
+@item tooltip-frame-parameters
+The frame parameters used for displaying tooltips.  @xref{Frame
+Parameters,,, elisp, The Emacs Lisp Reference Manual}, and also
+@ref{Tooltips,,, elisp, The Emacs Lisp Reference Manual}.
+@end vtable
+
+For additional customization options for displaying tooltips, use
+@kbd{M-x customize-group @key{RET} tooltip @key{RET}}.
 
 @vindex x-gtk-use-system-tooltips
   If Emacs is built with GTK+ support, it displays tooltips via GTK+,
@@ -1189,11 +1306,11 @@ Operation}.
   On graphical terminals, the mouse pointer may obscure the text in
 the Emacs frame.  Emacs provides two methods to avoid this problem.
 
-@vindex make-pointer-invisible
   Firstly, Emacs hides the mouse pointer each time you type a
 self-inserting character, if the pointer lies inside an Emacs frame;
 moving the mouse pointer makes it visible again.  To disable this
 feature, set the variable @code{make-pointer-invisible} to @code{nil}.
+@xref{Display Custom}.
 
 @vindex mouse-avoidance-mode
   Secondly, you can use Mouse Avoidance mode, a minor mode, to keep
@@ -1264,16 +1381,20 @@ Some text terminals support mouse clicks in the terminal window.
   In a terminal emulator which is compatible with @command{xterm}, you
 can use @kbd{M-x xterm-mouse-mode} to give Emacs control over simple
 uses of the mouse---basically, only non-modified single clicks are
-supported.  The normal @command{xterm} mouse functionality for such
-clicks is still available by holding down the @kbd{SHIFT} key when you
-press the mouse button.  Xterm Mouse mode is a global minor mode
-(@pxref{Minor Modes}).  Repeating the command turns the mode off
+supported.  Newer versions of @command{xterm} also support
+mouse-tracking.  The normal @command{xterm} mouse functionality for
+such clicks is still available by holding down the @key{SHIFT} key
+when you press the mouse button.  Xterm Mouse mode is a global minor
+mode (@pxref{Minor Modes}).  Repeating the command turns the mode off
 again.
 
 @findex gpm-mouse-mode
   In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to
 enable mouse support.  You must have the gpm server installed and
-running on your system in order for this to work.
+running on your system in order for this to work.  Note that when
+this mode is enabled, you cannot use the mouse to transfer text
+between Emacs and other programs which use GPM.  This is due to
+limitations in GPM and the Linux kernel.
 
 @iftex
 @xref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features},

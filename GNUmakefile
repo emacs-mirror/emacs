@@ -1,6 +1,6 @@
 # Build Emacs from a fresh tarball or version-control checkout.
 
-# Copyright (C) 2011-2015 Free Software Foundation, Inc.
+# Copyright (C) 2011-2018 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 #
 # written by Paul Eggert
 
@@ -64,7 +64,7 @@ default $(ORDINARY_GOALS): Makefile
 
 configure:
 	@echo >&2 'There seems to be no "configure" file in this directory.'
-	@echo >&2 'Running ./autogen.sh ...'
+	@echo >&2 Running ./autogen.sh ...
 	./autogen.sh
 	@echo >&2 '"configure" file built.'
 

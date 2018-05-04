@@ -1,6 +1,6 @@
 ;;; pulse.el --- Pulsing Overlays
 
-;;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Version: 1.0
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -196,11 +196,11 @@ Optional argument FACE specifies the face to do the highlighting."
       (pulse-reset-face face)
       (setq pulse-momentary-timer
             (run-with-timer 0 pulse-delay #'pulse-tick
-                            (time-add (current-time)
+                            (time-add nil
                                       (* pulse-delay pulse-iterations)))))))
 
 (defun pulse-tick (stop-time)
-  (if (time-less-p (current-time) stop-time)
+  (if (time-less-p nil stop-time)
       (pulse-lighten-highlight)
     (pulse-momentary-unhighlight)))
 

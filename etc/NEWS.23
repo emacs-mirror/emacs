@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2007-2015 Free Software Foundation, Inc.
+Copyright (C) 2007-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -551,7 +551,7 @@ System (CLOS).  It is used by the other CEDET packages.
 
 ** js.el is a new major mode for JavaScript files.
 
-** imap-hash.el is a new library to address IMAP mailboxes as hashtables.
+** imap-hash.el is a new library to address IMAP mailboxes as hash tables.
 
 
 * Incompatible Lisp Changes in Emacs 23.2
@@ -2558,7 +2558,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

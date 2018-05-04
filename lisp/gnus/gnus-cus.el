@@ -1,6 +1,6 @@
 ;;; gnus-cus.el --- customization commands for Gnus
 
-;; Copyright (C) 1996, 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -365,7 +365,7 @@ category."))
     (unless (or group topic)
       (error "No group on current line"))
     (when (and group topic)
-      (error "Both a group an topic on current line"))
+      (error "Both a group and topic on current line"))
     (unless (or topic (setq info (gnus-get-info group)))
       (error "Killed group; can't be edited"))
     ;; Ready.
@@ -406,7 +406,7 @@ category."))
       ;; every duplicate ends up being displayed.  So, rather than
       ;; display them, remove them from the list.
 
-      (let ((tmp (setq values (gnus-copy-sequence values)))
+      (let ((tmp (setq values (copy-tree values)))
 	    elem)
 	(while (cdr tmp)
 	  (while (setq elem (assq (caar tmp) (cdr tmp)))
@@ -416,7 +416,7 @@ category."))
       ;; Decode values posting-style holds.
       (dolist (style (cdr (assq 'posting-style values)))
 	(when (stringp (cadr style))
-	  (setcdr style (list (mm-decode-coding-string (cadr style) 'utf-8)))))
+	  (setcdr style (list (decode-coding-string (cadr style) 'utf-8)))))
 
       (setq gnus-custom-params
             (apply 'widget-create 'group
@@ -436,7 +436,7 @@ to the groups in this topic, then edit the value to suit your taste."
                                        :greedy t
                                        :tag "Agent Parameters"
                                        :format "%t:\n%h%v"
-                                       :doc "\ These agent parameters are
+                                       :doc "These agent parameters are
 recognized by Gnus.  They control article selection and expiration for
 use in the unplugged cache.  Check the [ ] for the parameters you want
 to apply to this group or to the groups in this topic, then edit the
@@ -454,7 +454,7 @@ Set variables local to the group you are entering.
 If you want to turn threading off in `news.answers', you could put
 `(gnus-show-threads nil)' in the group parameters of that group.
 `gnus-show-threads' will be made into a local variable in the summary
-buffer you enter, and the form nil will be `eval'ed there.
+buffer you enter, and the form nil will be `eval'uated there.
 
 This can also be used as a group-specific hook function, if you'd
 like.  If you want to hear a beep when you enter a group, you could
@@ -492,7 +492,7 @@ form, but who cares?"
     ;; Encode values posting-style holds.
     (dolist (style (cdr (assq 'posting-style params)))
       (when (stringp (cadr style))
-	(setcdr style (list (mm-encode-coding-string (cadr style) 'utf-8)))))
+	(setcdr style (list (encode-coding-string (cadr style) 'utf-8)))))
     (if gnus-custom-topic
 	(gnus-topic-set-parameters gnus-custom-topic params)
       (gnus-group-edit-group-done 'params gnus-custom-group params)
@@ -535,7 +535,7 @@ These files will not be loaded, even though they would normally be so,
 for some reason or other.")
 
     (eval (sexp :tag "Eval" :value nil) "\
-The value of this entry will be `eval'el.
+The value of this entry will be `eval'uated.
 This element will be ignored when handling global score files.")
 
     (read-only (boolean :tag "Read-only" :value t) "\

@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994-1995, 1997, 1999-2015 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2018 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Created by devin@lucid.com */
 
@@ -28,13 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include <sys/types.h>
-#if (defined __sun) && !(defined SUNOS41)
-#define SUNOS41
 #include <X11/Xos.h>
-#undef SUNOS41
-#else
-#include <X11/Xos.h>
-#endif
 #include <X11/IntrinsicP.h>
 #include <X11/ObjectP.h>
 #include <X11/StringDefs.h>
@@ -273,7 +267,7 @@ abort_gracefully (Widget w)
   if (XtIsShell (XtParent (w)))
     XtRemoveGrab (w);
   ungrab_all (w, CurrentTime);
-  abort ();
+  emacs_abort ();
 }
 
 static void
@@ -903,7 +897,7 @@ draw_separator (XlwMenuWidget mw,
       break;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -939,7 +933,7 @@ separator_height (enum menu_separator separator)
       return 5;
 
     default:
-      abort ();
+      emacs_abort ();
     }
 }
 
@@ -1906,7 +1900,7 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
           if (!mw->menu.font)
             {
               fprintf (stderr, "Menu font fixed not found, can't continue.\n");
-              abort ();
+              emacs_abort ();
             }
         }
     }

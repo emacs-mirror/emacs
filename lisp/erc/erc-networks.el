@@ -1,6 +1,6 @@
 ;;; erc-networks.el --- IRC networks
 
-;; Copyright (C) 2002, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -443,7 +443,15 @@ NET is a symbol indicating to which network from `erc-networks-alist' this
 HOST is the servers hostname and
 PORTS is either a number, a list of numbers, or a list of port ranges."
   :group 'erc-networks
-  :type 'sexp)
+  :type '(alist :key-type (string :tag "Name")
+		:value-type
+		(group symbol (string :tag "Hostname")
+		       (choice :tag "Ports"
+			       (integer :tag "Port number")
+			       (repeat :tag "List of ports or ranges"
+				       (choice (integer :tag "Port number")
+					       (list :tag "Port range"
+						     integer integer)))))))
 
 (defcustom erc-networks-alist
   '((4-irc "4-irc.com")
@@ -588,7 +596,7 @@ PORTS is either a number, a list of numbers, or a list of port ranges."
     (LagNet "lagnet.org.za")
     (Librenet "librenet.net")
     (LinkNet "link-net.org")
-    (LinuxChix "cats\.meow\.at\\|linuxchix\.org")
+    (LinuxChix "cats\\.meow\\.at\\|linuxchix\\.org")
     (Liquidized "liquidized.net")
     (M-IRC "m-sys.org")
     (MagicStar "magicstar.net")

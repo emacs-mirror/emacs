@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2015 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -535,9 +535,5 @@ ARG is negative moves it backwards.  If ARG is zero, exchanges
 the current sentence with the one containing the mark."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; paragraphs.el ends here

@@ -1,6 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1998, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,14 +102,7 @@ This variable is buffer-local."
   :type 'integer
   :group 'imenu)
 
-(defvar imenu-always-use-completion-buffer-p nil)
-(make-obsolete-variable 'imenu-always-use-completion-buffer-p
-			'imenu-use-popup-menu "22.1")
-
-(defcustom imenu-use-popup-menu
-  (if imenu-always-use-completion-buffer-p
-      (not (eq imenu-always-use-completion-buffer-p 'never))
-    'on-mouse)
+(defcustom imenu-use-popup-menu 'on-mouse
   "Use a popup menu rather than a minibuffer prompt.
 If nil, always use a minibuffer prompt.
 If t, always use a popup menu,
@@ -119,8 +112,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
 		 (other :tag "Always" t))
   :group 'imenu)
 
-(defcustom imenu-eager-completion-buffer
-  (not (eq imenu-always-use-completion-buffer-p 'never))
+(defcustom imenu-eager-completion-buffer t
   "If non-nil, eagerly popup the completion buffer."
   :type 'boolean
   :group 'imenu
@@ -224,8 +216,8 @@ If non-nil this pattern is passed to `imenu--generic-function' to
 create a buffer index.
 
 For example, see the value of `fortran-imenu-generic-expression'
-used by `fortran-mode' with `imenu-syntax-alist' set locally to
-give the characters which normally have \"symbol\" syntax
+used by `fortran-mode' with `imenu-syntax-alist' set locally so that
+characters which normally have \"symbol\" syntax are considered to have
 \"word\" syntax during matching.")
 ;;;###autoload(put 'imenu-generic-expression 'risky-local-variable t)
 
@@ -462,12 +454,15 @@ Don't move point."
 Simple elements in the alist look like (INDEX-NAME . POSITION).
 POSITION is the buffer position of the item; to go to the item
 is simply to move point to that position.
-POSITION is passed to `imenu-default-goto-function', so it can be a non-number
-if that variable has been changed (e.g. Semantic uses overlays for POSITIONs).
 
-Special elements look like (INDEX-NAME POSITION FUNCTION ARGUMENTS...).
-To \"go to\" a special element means applying FUNCTION
-to INDEX-NAME, POSITION, and the ARGUMENTS.
+POSITION is passed to `imenu-default-goto-function', so it can be
+a non-number if that variable has been changed (e.g. Semantic
+uses overlays for POSITIONs).
+
+Special elements look like
+\(INDEX-NAME POSITION FUNCTION ARGUMENTS...).
+To \"go to\" a special element means applying FUNCTION to
+INDEX-NAME, POSITION, and the ARGUMENTS.
 
 A nested sub-alist element looks like (INDEX-NAME . SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t
@@ -496,7 +491,12 @@ An item looks like (NAME . POSITION)."
   (string-lessp (car item1) (car item2)))
 
 (defun imenu--sort-by-position (item1 item2)
-  (< (cdr item1) (cdr item2)))
+  "Comparison function to sort items depending on their position.
+Return non-nil if and only if ITEM1's position is lower than ITEM2's
+position."
+  (if (listp (cdr item1))
+      (< (cadr item1) (cadr item2))
+    (< (cdr item1) (cdr item2))))
 
 (defun imenu--relative-position (&optional reverse)
   "Support function to calculate relative position in buffer.
@@ -509,7 +509,7 @@ If REVERSE is non-nil then the beginning is 100 and the end is 0."
 
 (defun imenu--split (list n)
   "Split LIST into sublists of max length N.
-Example (imenu--split '(1 2 3 4 5 6 7 8) 3)-> '((1 2 3) (4 5 6) (7 8))
+Example (imenu--split \\='(1 2 3 4 5 6 7 8) 3) => ((1 2 3) (4 5 6) (7 8))
 The returned list DOES NOT share structure with LIST."
   (let ((remain list)
 	(result '())

@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2015 Free Software
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1858,7 +1858,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
 	       (+ vip-use-register 32) (point) (+ (point) val))
 	    (copy-to-register vip-use-register (point) (+ (point) val) nil))
 	  (setq vip-use-register nil)))
-    (delete-backward-char val t)))
+    (with-no-warnings (delete-backward-char val t))))
 
 
 ;; join lines.
@@ -2596,7 +2596,7 @@ a token has type \(command, address, end-mark\) and value."
   "ex goto command"
   (if (null ex-addresses)
       (setq ex-addresses (cons (point) nil)))
-  (push-mark (point))
+  (push-mark)
   (goto-char (car ex-addresses))
   (beginning-of-line))
 

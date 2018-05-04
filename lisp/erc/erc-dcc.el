@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2015 Free Software
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -54,9 +54,11 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'pcomplete))
+;; Strictly speaking, should only be needed at compile time.
+;; Require at run-time too to silence compiler.
+(require 'pcomplete)
 
-;;;###autoload (autoload 'erc-dcc-mode "erc-dcc")
+;;;###autoload(autoload 'erc-dcc-mode "erc-dcc")
 (define-erc-module dcc nil
   "Provide Direct Client-to-Client support for ERC."
   ((add-hook 'erc-server-401-functions 'erc-dcc-no-such-nick))
@@ -649,9 +651,10 @@ that subcommand."
           "\"\\(\\(.*?\\(\\\\\"\\)?\\)+?\\)\"\\|\\([^ ]+\\)"
           "\\) \\([0-9]+\\) \\([0-9]+\\) *\\([0-9]*\\)"))
 
-(defsubst erc-dcc-unquote-filename (filename)
-  (erc-replace-regexp-in-string "\\\\\\\\" "\\"
-                                (erc-replace-regexp-in-string "\\\\\"" "\"" filename t t) t t))
+(define-inline erc-dcc-unquote-filename (filename)
+  (inline-quote
+   (erc-replace-regexp-in-string "\\\\\\\\" "\\"
+                                 (erc-replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t)))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -780,8 +783,8 @@ unconfirmed."
   :group 'erc-dcc
   :type '(choice (const nil) integer))
 
-(defsubst erc-dcc-get-parent (proc)
-  (plist-get (erc-dcc-member :peer proc) :parent))
+(define-inline erc-dcc-get-parent (proc)
+  (inline-quote (plist-get (erc-dcc-member :peer ,proc) :parent)))
 
 (defun erc-dcc-send-block (proc)
   "Send one block of data.
@@ -1005,7 +1008,7 @@ rather than every 1024 byte block, but nobody seems to care."
        ((and (> (plist-get erc-dcc-entry-data :size) 0)
              (> received-bytes (plist-get erc-dcc-entry-data :size)))
         (erc-display-message
-         nil '(error notice) 'active
+         nil '(notice error) 'active
          'dcc-get-file-too-long
          ?f (file-name-nondirectory buffer-file-name))
         (delete-process proc))
@@ -1091,13 +1094,13 @@ Possible values are: ask, auto, ignore."
   (pcomplete-here '("auto" "ask" "ignore")))
 (defalias 'pcomplete/erc-mode/SREQ 'pcomplete/erc-mode/CREQ)
 
+(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
+  'erc-dcc-chat-filter-functions "24.3")
+
 (defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
   "Abnormal hook run after parsing (and maybe inserting) a DCC message.
 Each function is called with two arguments: the ERC process and
 the unprocessed output.")
-
-(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
-  'erc-dcc-chat-filter-functions "24.3")
 
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1205,7 +1208,7 @@ other client."
         (setq posn (match-end 0))
         (erc-display-message
          nil nil proc
-         'dcc-chat-privmsg ?n (erc-propertize erc-dcc-from 'face
+         'dcc-chat-privmsg ?n (erc-propertize erc-dcc-from 'font-lock-face
                                               'erc-nick-default-face) ?m line))
       (setq erc-dcc-unprocessed-output (substring str posn)))))
 
@@ -1257,5 +1260,6 @@ other client."
 ;;; erc-dcc.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:

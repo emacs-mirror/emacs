@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2000-2015 Free Software Foundation, Inc.
+# Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 SHELL = @SHELL@
 
@@ -47,6 +47,9 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
+
+FIND_DELETE = @FIND_DELETE@
+
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
@@ -65,45 +68,29 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
 # The example above is just for developers, it should not be used by default.
 
-# Automatically generated autoload files, apart from lisp/loaddefs.el.
-# Note this includes only those files that need special rules to
-# build; ie it does not need to include things created via
-# generated-autoload-file (eg calc/calc-loaddefs.el).
+# Those automatically generated autoload files that need special rules
+# to build; ie not including things created via generated-autoload-file
+# (eg calc/calc-loaddefs.el).
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 	$(lisp)/calendar/diary-loaddefs.el \
 	$(lisp)/calendar/hol-loaddefs.el \
 	$(lisp)/mh-e/mh-loaddefs.el \
 	$(lisp)/net/tramp-loaddefs.el
 
+# All generated autoload files.
+loaddefs = $(shell find ${srcdir} -name '*loaddefs.el' ! -name '.*')
 # Elisp files auto-generated.
-AUTOGENEL = loaddefs.el \
-	$(LOADDEFS) \
-	cus-load.el \
-	finder-inf.el \
-	subdirs.el \
-	emacs-lisp/cl-loaddefs.el \
-	calc/calc-loaddefs.el \
-	eshell/esh-groups.el \
-	cedet/semantic/loaddefs.el \
-	cedet/ede/loaddefs.el \
-	cedet/srecode/loaddefs.el \
-	org/org-loaddefs.el
-
-# Value of max-lisp-eval-depth when compiling initially.
-# During bootstrapping the byte-compiler is run interpreted when compiling
-# itself, and uses more stack than usual.
-#
-BIG_STACK_DEPTH = 2200
-BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
+AUTOGENEL = ${loaddefs} ${srcdir}/cus-load.el ${srcdir}/finder-inf.el \
+  ${srcdir}/subdirs.el ${srcdir}/eshell/esh-groups.el
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
-BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) \
+BYTE_COMPILE_FLAGS = \
   --eval '(setq load-prefer-newer t)' $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
 # the slowest-compiler on the smallest file and move to larger files as the
-# compiler gets faster.  `autoload.elc' comes last because it is not used by
+# compiler gets faster.  'autoload.elc' comes last because it is not used by
 # the compiler (so its compilation does not speed up subsequent compilations),
 # it's only placed here so as to speed up generation of the loaddefs.el file.
 
@@ -113,6 +100,10 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/byte-opt.elc \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/autoload.elc
+
+# Files to compile early in compile-main.  Works around bug#25556.
+MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
+  ./cedet/semantic/db.el
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSPATH
@@ -145,13 +136,13 @@ PHONY_EXTRAS =
 # This could lead to problems in parallel builds if automatically
 # generated *.el files (eg loaddefs etc) were being changed at the same time.
 # One solution was to add autoloads as a prerequisite:
-# http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-01/msg00469.html
-# http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00171.html
+# https://lists.gnu.org/r/emacs-pretest-bug/2007-01/msg00469.html
+# https://lists.gnu.org/r/bug-gnu-emacs/2007-12/msg00171.html
 # However, this meant that running these targets modified loaddefs.el,
 # every time (due to time-stamping).  Calling these rules from
 # bootstrap-after would modify loaddefs after src/emacs, resulting
 # in make install remaking src/emacs for no real reason:
-# http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
+# https://lists.gnu.org/r/emacs-devel/2008-02/msg00311.html
 # Nowadays these commands don't scan automatically generated files,
 # since they will never contain any useful information
 # (see finder-no-scan-regexp and custom-dependencies-no-scan-regexp).
@@ -170,20 +161,55 @@ $(lisp)/finder-inf.el:
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
 	  -f finder-compile-keywords-make-dist ${SUBDIRS_FINDER}
 
+## Comments on loaddefs generation:
+
+# loaddefs depends on gen-lisp for two reasons:
+# 1) In ../src, the emacs target depends on loaddefs but not on eg leim-list.
+# So having leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
+# gets created before the final emacs is dumped.  Having leim
+# dependencies in ../src as well would create a parallel race condition.
+#
+# 2) Files that are marked no-update-autoloads still get recorded in loaddefs.
+# So those files should be generated before we make autoloads, if we
+# don't want a successive make autoloads to change the output file.
+# Said changes are trivial (only comments in the "files without autoloads"
+# section), but still can be annoying.  Of course, if generated lisp files
+# do contain autoloads, it is essential they be built before make autoloads.
+# (Also, if a generated file is not written atomically, it is possible that
+# in a parallel build, make autoloads could read a partial version of it.)
+#
+# We'd really like to add "make -C ../admin/unidata all" to gen-lisp
+# because of 2) above, but it causes a race condition in parallel
+# builds because ../src also runs that rule.  Given the limitations of
+# recursive make, the only way to fix that would be to remove unidata
+# from ../src rules, but that doesn't seem possible due to the various
+# non-trivial dependencies.
+
+# We make $(lisp)/loaddefs.el a dependency of .PHONY to cause Make to
+# ignore its time stamp.  That's because the real dependencies of
+# loaddefs.el aren't known to Make, they are implemented in
+# batch-update-autoloads, which only updates the autoloads whose
+# sources have changed.
+
 # Use expand-file-name rather than $abs_scrdir so that Emacs does not
 # get confused when it compares file-names for equality.
-#
-# Note that we set no-update-autoloads in _generated_ leim files.
-# If you want to allow autoloads in such files, remove that,
-# and make this depend on leim.
+
 autoloads .PHONY: $(lisp)/loaddefs.el
-$(lisp)/loaddefs.el: $(LOADDEFS)
+$(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
 	@echo Directories for loaddefs: ${SUBDIRS_ALMOST}
 	$(AM_V_GEN)$(emacs) -l autoload \
 	    --eval '(setq autoload-ensure-writable t)' \
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
 	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
+
+# autoloads only runs when loaddefs.el is nonexistent, although it
+# generates a number of different files. Provide a force option to enable
+# regeneration of all these files.
+.PHONY: autoloads-force
+autoloads-force:
+	rm loaddefs.el
+	$(MAKE) autoloads
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
@@ -194,7 +220,7 @@ update-subdirs:
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
 	done;
 
-.PHONY: updates repo-update update-authors
+.PHONY: updates repo-update update-authors update-gnus-news
 
 # Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
@@ -207,33 +233,39 @@ updates: update-subdirs autoloads finder-data custom-deps
 # this directory's autoloads rule.
 repo-update: compile finder-data custom-deps
 
-# Update the AUTHORS file.
+# Update etc/AUTHORS and etc/GNUS-NEWS.
 
 update-authors:
 	$(emacs) -L "$(top_srcdir)/admin" -l authors \
 	  -f batch-update-authors "$(top_srcdir)/etc/AUTHORS" "$(top_srcdir)"
 
+update-gnus-news:
+	$(emacs) -L "$(top_srcdir)/doc/misc" -l gnus-news -f batch-gnus-news \
+	  "$(top_srcdir)/doc/misc/gnus-news.texi" \
+	  "$(top_srcdir)/etc/GNUS-NEWS"
 
-ETAGS = ../lib-src/etags
+FORCE:
+.PHONY: FORCE
 
-lisptagsfiles1 = $(srcdir)/*.el
-lisptagsfiles2 = $(srcdir)/*/*.el
-lisptagsfiles3 = $(srcdir)/*/*/*.el
-lisptagsfiles4 = $(srcdir)/*/*/*/*.el
+tagsfiles = $(shell find ${srcdir} -name '*.el' \
+	        ! -name '.*' ! -name '*loaddefs.el')
+tagsfiles := $(filter-out ${srcdir}/ldefs-boot.el,${tagsfiles})
+tagsfiles := $(filter-out ${srcdir}/eshell/esh-groups.el,${tagsfiles})
 
-## The echo | sed | xargs is to stop the command line getting too long
+ETAGS = ../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+## The use of xargs is to stop the command line getting too long
 ## on MS Windows, when the MSYS Bash passes it to a MinGW compiled
 ## etags.  It might be better to use find in a similar way to
 ## compile-main.  But maybe this is not even necessary any more now
 ## that this uses relative filenames.
-TAGS: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+TAGS: ${ETAGS} ${tagsfiles}
 	rm -f $@
 	touch $@
-	echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | \
-	  sed -e 's,$(srcdir)/[^ ]*loaddefs[^ ]*,,g' \
-	    -e 's,$(srcdir)/ldefs-boot[^ ]*,,' \
-	    -e 's,$(srcdir)/[^ ]*esh-groups.el[^ ]*,,' | \
-	    xargs $(XARGS_LIMIT) "$(ETAGS)" -a -o $@
+	ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
 
 
 # The src/Makefile.in has its own set of dependencies and when they decide
@@ -272,26 +304,26 @@ $(THEFILE)c:
 
 compile-first: $(COMPILE_FIRST)
 
-# In `compile-main' we could directly do
+# In 'compile-main' we could directly do
 #    ... | xargs $(MAKE)
 # and it works, but it generates a lot of messages like
 #    make[2]: gnus/gnus-mlspl.elc is up to date.
 # so instead, we use "xargs echo" to split the list of file into manageable
-# chunks and then use an intermediate `compile-targets' target so the
+# chunks and then use an intermediate 'compile-targets' target so the
 # actual targets (the .elc files) are not mentioned as targets on the
 # make command line.
 
 
 .PHONY: compile-targets
-# TARGETS is set dynamically in the recursive call from `compile-main'.
+# TARGETS is set dynamically in the recursive call from 'compile-main'.
 compile-targets: $(TARGETS)
 
 # Compile all the Elisp files that need it.  Beware: it approximates
-# `no-byte-compile', so watch out for false-positives!
-compile-main: leim semantic compile-clean
+# 'no-byte-compile', so watch out for false-positives!
+compile-main: gen-lisp compile-clean
 	@(cd $(lisp) && \
 	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
-	for el in $$els; do \
+	for el in ${MAIN_FIRST} $$els; do \
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
 	  echo "$${el}c"; \
@@ -312,7 +344,12 @@ compile-clean:
 	  fi \
 	done
 
-.PHONY: leim semantic
+.PHONY: gen-lisp leim semantic
+
+## make -C ../admin/unidata all should be here, but that would race
+## with ../src.  See comments above for loaddefs.
+gen-lisp: leim semantic
+
 leim:
 	$(MAKE) -C ../leim all EMACS="$(EMACS)"
 
@@ -326,11 +363,11 @@ semantic:
 compile: $(LOADDEFS) autoloads compile-first
 	$(MAKE) compile-main
 
-# Compile all Lisp files.  This is like `compile' but compiles files
+# Compile all Lisp files.  This is like 'compile' but compiles files
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 compile-always:
-	cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc
+	find $(lisp) -name '*.elc' $(FIND_DELETE)
 	$(MAKE) compile
 
 .PHONY: backup-compiled-files compile-after-backup
@@ -396,7 +433,7 @@ $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 CAL_DIR = $(lisp)/calendar
 ## Those files that may contain internal calendar autoload cookies.
 CAL_SRC = $(addprefix ${CAL_DIR}/,diary-lib.el holidays.el lunar.el solar.el)
-CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal*.el))
+CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal-*.el))
 CAL_SRC := $(filter-out ${CAL_DIR}/cal-loaddefs.el,${CAL_SRC})
 
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
@@ -420,7 +457,8 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
 .PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
-	-cd $(lisp) && rm -f *.elc */*.elc */*/*.elc */*/*/*.elc $(AUTOGENEL)
+	find $(lisp) -name '*.elc' $(FIND_DELETE)
+	rm -f $(AUTOGENEL)
 
 distclean:
 	-rm -f ./Makefile $(lisp)/loaddefs.el~
@@ -436,8 +474,8 @@ check-declare:
 ## This finds a lot of duplicates between foo.el and obsolete/foo.el.
 check-defun-dups:
 	sed -n -e '/^(defun /s/\(.\)(.*/\1/p' \
-	  $$(find . -name '*.el' -print | \
-	  grep -Ev '(loaddefs|ldefs-boot)\.el') | sort | uniq -d
+	  $$(find . -name '*.el' ! -name '.*' -print | \
+	  grep -Ev '(loaddefs|ldefs-boot)\.el|obsolete') | sort | uniq -d
 
 # Dependencies
 
@@ -447,7 +485,7 @@ check-defun-dups:
 ## ones that don't change very often at that) seems pretty pointless
 ## to me.
 
-# http://debbugs.gnu.org/1004
+# https://debbugs.gnu.org/1004
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-*.elc files on the macros in other cc-*.el and the
 # version string in cc-defs.el.

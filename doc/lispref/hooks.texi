@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998, 2001-2015 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1998, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Hooks
@@ -66,6 +66,7 @@ not exactly a hook, but does a similar job.
 
 @item after-make-frame-functions
 @itemx before-make-frame-hook
+@itemx server-after-make-frame-hook
 @xref{Creating Frames}.
 
 @c Not general enough?
@@ -104,7 +105,7 @@ Hook run when the buffer list changes (@pxref{Buffer List}).
 
 @item buffer-quit-function
 @vindex buffer-quit-function
-Function to call to ``quit'' the current buffer.
+Function to call to quit the current buffer.
 
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.
@@ -180,6 +181,26 @@ Hook run when about to switch windows with a mouse command.
 @item mouse-position-function
 @xref{Mouse Position}.
 
+@item prefix-command-echo-keystrokes-functions
+@vindex prefix-command-echo-keystrokes-functions
+An abnormal hook run by prefix commands (such as @kbd{C-u}) which
+should return a string describing the current prefix state.  For
+example, @kbd{C-u} produces @samp{C-u-} and @samp{C-u 1 2 3-}.  Each
+hook function is called with no arguments and should return a string
+describing the current prefix state, or @code{nil} if there's no
+prefix state.  @xref{Prefix Command Arguments}.
+
+@item prefix-command-preserve-state-hook
+@vindex prefix-command-preserve-state-hook
+Hook run when a prefix command needs to preserve the prefix by passing
+the current prefix command state to the next command.  For example,
+@kbd{C-u} needs to pass the state to the next command when the user
+types @kbd{C-u -} or follows @kbd{C-u} with a digit.
+
+@item pre-redisplay-functions
+Hook run in each window just before redisplaying it.  @xref{Forcing
+Redisplay}.
+
 @item post-command-hook
 @itemx pre-command-hook
 @xref{Command Overview}.
@@ -221,11 +242,6 @@ Hook run when about to switch windows with a mouse command.
 @itemx window-scroll-functions
 @itemx window-size-change-functions
 @xref{Window Hooks}.
-
-@item window-text-change-functions
-@vindex window-text-change-functions
-Functions to call in redisplay when text in the window might change.
-
 @end table
 
 @ignore

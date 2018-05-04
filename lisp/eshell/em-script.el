@@ -1,6 +1,6 @@
 ;;; em-script.el --- Eshell script files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -61,7 +61,7 @@ This includes when running `eshell-command'."
   "Initialize the script parsing code."
   (make-local-variable 'eshell-interpreter-alist)
   (setq eshell-interpreter-alist
-	(cons (cons #'(lambda (file args)
+	(cons (cons #'(lambda (file _args)
                         (string= (file-name-nondirectory file)
                                  "eshell"))
                     'eshell/source)

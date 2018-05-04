@@ -1,6 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2015 Free
+;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2018 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -60,6 +60,8 @@
 ;; with all the bitmaps you want to use.
 
 (require 'eieio)
+(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-generic))
 
 ;;; Code:
 (define-obsolete-variable-alias 'chart-map 'chart-mode-map "24.1")
@@ -117,20 +119,12 @@ Useful if new Emacs is used on B&W display.")
 List is limited currently, which is ok since you really can't display
 too much in text characters anyways.")
 
-(define-derived-mode chart-mode fundamental-mode "CHART"
+(define-derived-mode chart-mode special-mode "Chart"
   "Define a mode in Emacs for displaying a chart."
   (buffer-disable-undo)
   (set (make-local-variable 'font-lock-global-modes) nil)
   (font-lock-mode -1)                   ;Isn't it off already?  --Stef
   )
-
-(defun chart-new-buffer (obj)
-  "Create a new buffer NAME in which the chart OBJ is displayed.
-Returns the newly created buffer."
-  (with-current-buffer (get-buffer-create (format "*%s*" (oref obj title)))
-    (chart-mode)
-    (setq chart-local-object obj)
-    (current-buffer)))
 
 (defclass chart ()
   ((title :initarg :title
@@ -156,7 +150,15 @@ Returns the newly created buffer."
    )
   "Superclass for all charts to be displayed in an Emacs buffer.")
 
-(defmethod initialize-instance :AFTER ((obj chart) &rest _fields)
+(defun chart-new-buffer (obj)
+  "Create a new buffer NAME in which the chart OBJ is displayed.
+Returns the newly created buffer."
+  (with-current-buffer (get-buffer-create (format "*%s*" (oref obj title)))
+    (chart-mode)
+    (setq chart-local-object obj)
+    (current-buffer)))
+
+(cl-defmethod initialize-instance :after ((obj chart) &rest _fields)
   "Initialize the chart OBJ being created with FIELDS.
 Make sure the width/height is correct."
   (oset obj x-width (- (window-width) 10))
@@ -201,39 +203,40 @@ Make sure the width/height is correct."
 	      :initform vertical))
   "Subclass for bar charts (vertical or horizontal).")
 
-(defmethod chart-draw ((c chart) &optional buff)
+(cl-defmethod chart-draw ((c chart) &optional buff)
   "Start drawing a chart object C in optional BUFF.
 Erases current contents of buffer."
-  (save-excursion
-    (if buff (set-buffer buff))
-    (erase-buffer)
-    (insert (make-string 100 ?\n))
-    ;; Start by displaying the axis
-    (chart-draw-axis c)
-    ;; Display title
-    (chart-draw-title c)
-    ;; Display data
-    (message "Rendering chart...")
-    (sit-for 0)
-    (chart-draw-data c)
-    ;; Display key
-    ; (chart-draw-key c)
-    (message "Rendering chart...done")
-    ))
+  (with-silent-modifications
+    (save-excursion
+      (if buff (set-buffer buff))
+      (erase-buffer)
+      (insert (make-string (window-height (selected-window)) ?\n))
+      ;; Start by displaying the axis
+      (chart-draw-axis c)
+      ;; Display title
+      (chart-draw-title c)
+      ;; Display data
+      (message "Rendering chart...")
+      (sit-for 0)
+      (chart-draw-data c)
+      ;; Display key
+                                        ; (chart-draw-key c)
+      (message "Rendering chart...done")
+      )))
 
-(defmethod chart-draw-title ((c chart))
+(cl-defmethod chart-draw-title ((c chart))
   "Draw a title upon the chart.
 Argument C is the chart object."
   (chart-display-label (oref c title) 'horizontal 0 0 (window-width)
 		       (oref c title-face)))
 
-(defmethod chart-size-in-dir ((c chart) dir)
+(cl-defmethod chart-size-in-dir ((c chart) dir)
   "Return the physical size of chart C in direction DIR."
   (if (eq dir 'vertical)
       (oref c y-width)
     (oref c x-width)))
 
-(defmethod chart-draw-axis ((c chart))
+(cl-defmethod chart-draw-axis ((c chart))
   "Draw axis into the current buffer defined by chart C."
   (let ((ymarg (oref c y-margin))
 	(xmarg (oref c x-margin))
@@ -247,7 +250,7 @@ Argument C is the chart object."
 		     ymarg (+ ymarg xlen)))
   )
 
-(defmethod chart-axis-draw ((a chart-axis) &optional dir margin zone start end)
+(cl-defmethod chart-axis-draw ((a chart-axis) &optional dir margin zone start end)
   "Draw some axis for A in direction DIR with MARGIN in boundary.
 ZONE is a zone specification.
 START and END represent the boundary."
@@ -257,7 +260,7 @@ START and END represent the boundary."
 					       1 0))
 		       start end (oref a name-face)))
 
-(defmethod chart-translate-xpos ((c chart) x)
+(cl-defmethod chart-translate-xpos ((c chart) x)
   "Translate in chart C the coordinate X into a screen column."
   (let ((range (oref (oref c x-axis) bounds)))
     (+ (oref c x-margin)
@@ -266,7 +269,7 @@ START and END represent the boundary."
 		    (float (- (cdr range) (car range))))))))
   )
 
-(defmethod chart-translate-ypos ((c chart) y)
+(cl-defmethod chart-translate-ypos ((c chart) y)
   "Translate in chart C the coordinate Y into a screen row."
   (let ((range (oref (oref c y-axis) bounds)))
     (+ (oref c x-margin)
@@ -276,7 +279,7 @@ START and END represent the boundary."
 		       (float (- (cdr range) (car range)))))))))
   )
 
-(defmethod chart-axis-draw ((a chart-axis-range) &optional dir margin zone _start _end)
+(cl-defmethod chart-axis-draw ((a chart-axis-range) &optional dir margin zone _start _end)
   "Draw axis information based upon a range to be spread along the edge.
 A is the chart to draw.  DIR is the direction.
 MARGIN, ZONE, START, and END specify restrictions in chart space."
@@ -313,7 +316,7 @@ MARGIN, ZONE, START, and END specify restrictions in chart space."
       (setq i (+ i j))))
 )
 
-(defmethod chart-translate-namezone ((c chart) n)
+(cl-defmethod chart-translate-namezone ((c chart) n)
   "Return a dot-pair representing a positional range for a name.
 The name in chart C of the Nth name resides.
 Automatically compensates for direction."
@@ -329,7 +332,7 @@ Automatically compensates for direction."
 	  (+ m -1 (round (* lpn (+ 1.0 (float n))))))
     ))
 
-(defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone _start _end)
+(cl-defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone _start _end)
   "Draw axis information based upon A range to be spread along the edge.
 Optional argument DIR is the direction of the chart.
 Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing."
@@ -368,7 +371,7 @@ Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing
 	    s (cdr s))))
 )
 
-(defmethod chart-draw-data ((c chart-bar))
+(cl-defmethod chart-draw-data ((c chart-bar))
   "Display the data available in a bar chart C."
   (let* ((data (oref c sequences))
 	 (dir (oref c direction))
@@ -413,7 +416,7 @@ Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing
       (setq data (cdr data))))
   )
 
-(defmethod chart-add-sequence ((c chart) &optional seq axis-label)
+(cl-defmethod chart-add-sequence ((c chart) &optional seq axis-label)
   "Add to chart object C the sequence object SEQ.
 If AXIS-LABEL, then the axis stored in C is updated with the bounds of SEQ,
 or is created with the bounds of SEQ."
@@ -433,11 +436,10 @@ or is created with the bounds of SEQ."
 		(setq axis (make-instance 'chart-axis-range
 					  :name (oref seq name)
 					  :chart c)))
-	    (while l
-	      (if (< (car l) (car range)) (setcar range (car l)))
-	      (if (> (car l) (cdr range)) (setcdr range (car l)))
-	      (setq l (cdr l)))
-	    (oset axis bounds range)))
+            (dolist (x l)
+              (if (< x (car range)) (setcar range x))
+              (if (> x (cdr range)) (setcdr range x)))
+            (oset axis bounds range)))
 	(if (eq axis-label 'x-axis) (oset axis loweredge nil))
 	(eieio-oset c axis-label axis)
 	))
@@ -445,17 +447,16 @@ or is created with the bounds of SEQ."
 
 ;;; Charting optimizers
 
-(defmethod chart-trim ((c chart) max)
+(cl-defmethod chart-trim ((c chart) max)
   "Trim all sequences in chart C to be at most MAX elements long."
   (let ((s (oref c sequences)))
-    (while s
-      (let ((sl (oref (car s) data)))
+    (dolist (x s)
+      (let ((sl (oref x data)))
 	(if (> (length sl) max)
-	    (setcdr (nthcdr (1- max) sl) nil)))
-      (setq s (cdr s))))
+            (setcdr (nthcdr (1- max) sl) nil)))))
   )
 
-(defmethod chart-sort ((c chart) pred)
+(cl-defmethod chart-sort ((c chart) pred)
   "Sort the data in chart C using predicate PRED.
 See `chart-sort-matchlist' for more details."
   (let* ((sl (oref c sequences))
@@ -479,7 +480,7 @@ See `chart-sort-matchlist' for more details."
 
 (defun chart-sort-matchlist (namelst numlst pred)
   "Sort NAMELST and NUMLST (both sequence objects) based on predicate PRED.
-PRED should be the equivalent of '<, except it must expect two
+PRED should be the equivalent of `<', except it must expect two
 cons cells of the form (NAME . NUM).  See `sort' for more details."
   ;; 1 - create 1 list of cons cells
   (let ((newlist nil)
@@ -571,7 +572,7 @@ R1 and R2 are dotted pairs.  Colorize it with FACE."
 (defun chart-bar-quickie (dir title namelst nametitle numlst numtitle
 			      &optional max sort-pred)
   "Wash over the complex EIEIO stuff and create a nice bar chart.
-Create it going in direction DIR ['horizontal 'vertical] with TITLE
+Create it going in direction DIR [`horizontal' `vertical'] with TITLE
 using a name sequence NAMELST labeled NAMETITLE with values NUMLST
 labeled NUMTITLE.
 Optional arguments:
@@ -613,27 +614,20 @@ SORT-PRED if desired."
 (defun chart-file-count (dir)
   "Draw a chart displaying the number of different file extensions in DIR."
   (interactive "DDirectory: ")
-  (if (not (string-match "/$" dir))
-      (setq dir (concat dir "/")))
   (message "Collecting statistics...")
   (let ((flst (directory-files dir nil nil t))
 	(extlst (list "<dir>"))
 	(cntlst (list 0)))
-    (while flst
-      (let* ((j (string-match "[^\\.]\\(\\.[a-zA-Z]+\\|~\\|#\\)$" (car flst)))
-	     (s (if (file-accessible-directory-p (concat dir (car flst)))
-		    "<dir>"
-		  (if j
-		      (substring (car flst) (match-beginning 1) (match-end 1))
-		    nil)))
+    (dolist (f flst)
+      (let* ((x (file-name-extension f))
+             (s (if (file-accessible-directory-p (expand-file-name f dir))
+                    "<dir>" x))
 	     (m (member s extlst)))
-	(if (not s) nil
+	(unless (null s)
 	  (if m
-	      (let ((cell (nthcdr (- (length extlst) (length m)) cntlst)))
-		(setcar cell (1+ (car cell))))
+              (cl-incf (car (nthcdr (- (length extlst) (length m)) cntlst)))
 	    (setq extlst (cons s extlst)
-		  cntlst (cons 1 cntlst)))))
-      (setq flst (cdr flst)))
+                  cntlst (cons 1 cntlst))))))
     ;; Let's create the chart!
     (chart-bar-quickie 'vertical "Files Extension Distribution"
 		       extlst "File Extensions"

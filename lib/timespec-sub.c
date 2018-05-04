@@ -1,6 +1,6 @@
 /* Subtract two struct timespec values.
 
-   Copyright (C) 2011-2015 Free Software Foundation, Inc.
+   Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -33,36 +33,39 @@ timespec_sub (struct timespec a, struct timespec b)
   time_t bs = b.tv_sec;
   int ns = a.tv_nsec - b.tv_nsec;
   int rns = ns;
+  time_t tmin = TYPE_MINIMUM (time_t);
+  time_t tmax = TYPE_MAXIMUM (time_t);
 
   if (ns < 0)
     {
       rns = ns + TIMESPEC_RESOLUTION;
-      if (rs == TYPE_MINIMUM (time_t))
-        {
-          if (bs <= 0)
-            goto low_overflow;
-          bs--;
-        }
-      else
+      if (bs < tmax)
+        bs++;
+      else if (- TYPE_SIGNED (time_t) < rs)
         rs--;
+      else
+        goto low_overflow;
     }
 
-  if (INT_SUBTRACT_OVERFLOW (rs, bs))
+  /* INT_SUBTRACT_WRAPV is not appropriate since time_t might be unsigned.
+     In theory time_t might be narrower than int, so plain
+     INT_SUBTRACT_OVERFLOW does not suffice.  */
+  if (! INT_SUBTRACT_OVERFLOW (rs, bs) && tmin <= rs - bs && rs - bs <= tmax)
+    rs -= bs;
+  else
     {
       if (rs < 0)
         {
         low_overflow:
-          rs = TYPE_MINIMUM (time_t);
+          rs = tmin;
           rns = 0;
         }
       else
         {
-          rs = TYPE_MAXIMUM (time_t);
+          rs = tmax;
           rns = TIMESPEC_RESOLUTION - 1;
         }
     }
-  else
-    rs -= bs;
 
   return make_timespec (rs, rns);
 }

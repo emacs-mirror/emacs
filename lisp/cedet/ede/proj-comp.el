@@ -1,6 +1,6 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
 
-;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2015 Free Software
+;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -44,7 +44,6 @@
 ;; To write a method that inserts a variable or rule for a compiler
 ;; based object, wrap the body of your call in `ede-compiler-only-once'
 
-(eval-when-compile (require 'cl))
 (require 'ede)				;source object
 (require 'ede/autoconf-edit)
 

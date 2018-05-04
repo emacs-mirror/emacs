@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2015 Free Software Foundation,
+## Copyright (C) 1995, 1997-1998, 2000-2018 Free Software Foundation,
 ## Inc.
 
 ## This file is part of GNU Emacs.
@@ -17,7 +17,7 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Commentary:
 
@@ -53,6 +53,7 @@ default_gzip=gzip
 newer=""
 with_tests=no
 changelog=yes
+verbose=no
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -100,7 +101,6 @@ while [ $# -gt 0 ]; do
       clean_up=yes
       make_tar=yes
       update=no
-      check=no
      ;;
 
     ## Include the test/ directory.
@@ -109,8 +109,12 @@ while [ $# -gt 0 ]; do
       with_tests=yes
      ;;
 
+    "--verbose")
+      verbose=yes
+     ;;
+
     "--help")
-      echo "Usage: ${progname} [options]"
+      printf '%s\n' "Usage: ${progname} [options]"
       echo ""
       echo "  --bzip2	use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
@@ -123,12 +127,13 @@ while [ $# -gt 0 ]; do
       echo "  --snapshot	same as --clean-up --no-update --tar --no-check"
       echo "  --tar		make a tar file"
       echo "  --tests	include the test/ directory"
+      echo "  --verbose		noisier output"
       echo ""
       exit 0
     ;;
 
     * )
-      echo "${progname}: Unrecognized argument: $1" >&2
+      printf '%s\n' "${progname}: Unrecognized argument: $1" >&2
       exit 1
     ;;
   esac
@@ -137,9 +142,9 @@ done
 
 ### Make sure we're running in the right place.
 if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/subr.el ]; then
-  echo "${progname}: Can't find 'src/lisp.h' and 'lisp/subr.el'." >&2
-  echo "${progname} must be run in the top directory of the Emacs" >&2
-  echo "distribution tree.  cd to that directory and try again." >&2
+  printf '%s\n' "${progname}: Can't find 'src/lisp.h' and 'lisp/subr.el'." >&2
+  printf '%s\n' "${progname} must be run in the top directory of the Emacs" >&2
+  printf '%s\n' "distribution tree.  cd to that directory and try again." >&2
   exit 1
 fi
 
@@ -155,7 +160,7 @@ then
       /*) ;;
       *)
 	if [ ! -f "$EMACS" ]; then
-	  echo "$0: You must set the EMACS environment variable " \
+	  printf '%s\n' "$0: You must set the EMACS environment variable " \
 	       "to an absolute file name." 2>&1
 	  exit 1
 	fi;;
@@ -168,7 +173,8 @@ version=`
   sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 ,)]*\).*/\1/p' <configure.ac
 ` || version=
 if [ ! "${version}" ]; then
-  echo "${progname}: can't find current Emacs version in './src/emacs.c'" >&2
+  printf '%s\n' \
+    "${progname}: can't find current Emacs version in './src/emacs.c'" >&2
   exit 1
 fi
 
@@ -195,7 +201,7 @@ fi
 ### Make sure the subdirectory is available.
 tempparent="make-dist.tmp.$$"
 if [ -d ${tempparent} ]; then
-  echo "${progname}: staging directory '${tempparent}' already exists.
+  printf '%s\n' "${progname}: staging directory '${tempparent}' already exists.
 Perhaps a previous invocation of '${progname}' failed to clean up after
 itself.  Check that directories whose names are of the form
 'make-dist.tmp.NNNNN' don't contain any important information, remove
@@ -204,6 +210,11 @@ them, and try again." >&2
 fi
 
 if [ $check = yes ]; then
+
+  echo "Sanity checking (use --no-check to disable this)..."
+
+  error=no
+
   ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el \
 	lisp/[a-z]*/[a-z]*/[a-z]*/[a-zA-Z0-9]*.el > /tmp/el
@@ -217,6 +228,7 @@ if [ $check = yes ]; then
 
   bogosities=`comm -13 /tmp/elelc /tmp/elc`
   if [ x"${bogosities}" != x"" ]; then
+    error=yes
     echo "The following .elc files have no corresponding .el files:"
     echo "${bogosities}"
   fi
@@ -224,6 +236,19 @@ if [ $check = yes ]; then
   ### Check for .el files with no corresponding .elc file.
   sed 's/\.elc$/.el/' /tmp/elc > /tmp/elcel
   losers=`comm -23 /tmp/el /tmp/elcel`
+
+  bogosities=
+  while read elc; do
+      el=`echo $elc | sed 's/c$//'`
+      [ -r $el ] || continue
+      [ $elc -nt $el ] || bogosities="$bogosities $elc"
+  done < /tmp/elc
+
+  if [ x"${bogosities}" != x"" ]; then
+      error=yes
+      echo "The following .elc files are older than their .el files:"
+      echo "${bogosities}"
+  fi
 
   rm -f /tmp/el /tmp/elc /tmp/elcel /tmp/elelc
 
@@ -238,9 +263,60 @@ if [ $check = yes ]; then
 
   done
   if [ x"${bogosities}" != x"" ]; then
+    error=yes
     echo "The following .el files have no corresponding .elc files:"
     echo "${bogosities}"
   fi
+
+
+  ## This is only a crude check, eg it does not handle .info
+  ## files with multiple .texi source files.
+  find doc -name '*.texi' > /tmp/el
+
+  bogosities=
+  while read texi; do
+      info=`sed -n 's/^@setfilename //p' $texi | sed 's|.*info/||'`
+      [ x"${info}" != x"" ] || continue
+      info=info/$info
+      [ -r $info ] || continue
+      [ $info -nt $texi ] || bogosities="$bogosities $info"
+  done < /tmp/el
+
+  rm -f /tmp/el
+
+  if [ x"${bogosities}" != x"" ]; then
+    error=yes
+    echo "The following .info files are older than their .texi files:"
+    echo "${bogosities}"
+  fi
+
+  ## This exits with non-zero status if any .info files need
+  ## rebuilding.
+  if [ -r Makefile ]; then
+      echo "Checking to see if info files are up-to-date..."
+      make --question info || error=yes
+  fi
+
+  ## Is this a release?
+  case $version in
+      [1-9][0-9].[0-9])
+          if [ -r ChangeLog ]; then
+              if ! grep -q "Version $version released" ChangeLog; then
+                  echo "No release notice in ChangeLog"
+                  error=yes
+              fi
+          else
+              echo "A release must have a ChangeLog"
+              error=yes
+          fi
+      ;;
+  esac
+
+  if [ $error = yes ]; then
+      echo "Failed checks" >&2
+      exit 1
+  fi
+
 fi
 
 if [ $update = yes ]; then
@@ -270,7 +346,7 @@ fi                              # $update = yes
 
 echo "Creating staging directory: '${tempparent}'"
 
-mkdir ${tempparent}
+mkdir ${tempparent} || exit
 tempdir="${tempparent}/${emacsname}"
 
 ### This trap ensures that the staging directory will be cleaned up even
@@ -280,13 +356,21 @@ if [ "${clean_up}" = yes ]; then
 fi
 
 echo "Creating top directory: '${tempdir}'"
-mkdir ${tempdir}
+mkdir ${tempdir} || exit
 
+top_level_ChangeLog=
 if [ "$changelog" = yes ]; then
-  if test -d .git; then
-    echo "Making top-level ChangeLog"
-    make ChangeLog CHANGELOG=${tempdir}/ChangeLog || \
-      { x=$?; echo "make ChangeLog FAILED (try --no-changelog?)" >&2; exit $x; }
+  if test -r .git; then
+    ## When making a release or pretest the ChangeLog should already
+    ## have been created and edited as needed.  Don't ignore it.
+    if test -r ChangeLog; then
+      echo "Using existing top-level ChangeLog"
+      top_level_ChangeLog=ChangeLog
+    else
+      echo "Making top-level ChangeLog"
+      make ChangeLog CHANGELOG=${tempdir}/ChangeLog || \
+        { x=$?; echo "make ChangeLog FAILED (try --no-changelog?)" >&2; exit $x; }
+    fi
   else
     echo "No repository, so omitting top-level ChangeLog"
   fi
@@ -297,20 +381,23 @@ fi
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
-ln INSTALL README BUGS ${tempdir}
-ln ChangeLog.*[0-9] Makefile.in autogen.sh configure configure.ac ${tempdir}
-ln config.bat make-dist .dir-locals.el ${tempdir}
-ln aclocal.m4 ${tempdir}
+top_level='
+  INSTALL README BUGS
+  ChangeLog.*[0-9] Makefile.in autogen.sh configure configure.ac
+  config.bat make-dist .dir-locals.el
+  aclocal.m4 CONTRIBUTE
+'
+ln $top_level $top_level_ChangeLog $tempdir || exit
 
 echo "Creating subdirectories"
 for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC leim/SKK-DIC \
-	      build-aux build-aux/snippet \
+	      build-aux \
 	      src src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp admin test -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
-	      info m4 msdos \
+	      info m4 modules msdos \
 	      nextstep nextstep/templates \
 	      nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
@@ -329,134 +416,152 @@ do
   ## site-lisp for in-place installs (?).
   [ "$subdir" = "site-lisp" ] || [ -d "$subdir" ] || \
       echo "WARNING: $subdir not found, making anyway"
-  echo "  ${tempdir}/${subdir}"
-  mkdir ${tempdir}/${subdir}
+  [ "$verbose" = "yes" ] && echo "  ${tempdir}/${subdir}"
+  mkdir ${tempdir}/${subdir} || exit
 done
 
 echo "Making links to 'lisp' and its subdirectories"
 files=`find lisp \( -name '*.el' -o -name '*.elc' -o -name 'ChangeLog*' \
- -o -name 'README' \)`
+ -o -name 'README' \)` || exit
 
 ### Don't distribute site-init.el, site-load.el, or default.el.
 for file in lisp/Makefile.in $files; do
   case $file in
     */site-init*|*/site-load*|*/default*) continue ;;
   esac
-  ln $file $tempdir/$file
+  ln $file $tempdir/$file || exit
 done
 
 echo "Making links to 'leim' and its subdirectories"
-(cd leim
- ln ChangeLog.*[0-9] README ../${tempdir}/leim
- ln CXTERM-DIC/README CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
- ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC
- ln MISC-DIC/README MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
- ln Makefile.in ../${tempdir}/leim/Makefile.in
- ln leim-ext.el ../${tempdir}/leim/leim-ext.el)
+(cd leim &&
+ ln ChangeLog.*[0-9] README ../${tempdir}/leim &&
+ ln CXTERM-DIC/README CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC &&
+ ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC &&
+ ln MISC-DIC/README MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC &&
+ ln Makefile.in ../${tempdir}/leim/Makefile.in &&
+ ln leim-ext.el ../${tempdir}/leim/leim-ext.el &&
+:) || exit
 
 ## FIXME Can we not just use the "find -type f" method for this one?
 echo "Making links to 'build-aux'"
-(cd build-aux
- ln compile config.guess config.sub depcomp msys-to-w32 ../${tempdir}/build-aux
- ln gitlog-to-changelog gitlog-to-emacslog ../${tempdir}/build-aux
- ln install-sh missing move-if-change ../${tempdir}/build-aux
- ln update-copyright update-subdirs ../${tempdir}/build-aux
- ln dir_top make-info-dir ../${tempdir}/build-aux)
-
-echo "Making links to 'build-aux/snippet'"
-(cd build-aux/snippet
- ln *.h ../../${tempdir}/build-aux/snippet)
+(cd build-aux &&
+ ln config.guess config.sub msys-to-w32 ../${tempdir}/build-aux &&
+ ln gitlog-to-changelog gitlog-to-emacslog ../${tempdir}/build-aux &&
+ ln install-sh move-if-change ../${tempdir}/build-aux &&
+ ln update-copyright update-subdirs ../${tempdir}/build-aux &&
+ ln dir_top make-info-dir ../${tempdir}/build-aux &&
+:) || exit
 
 echo "Making links to 'src'"
 ### Don't distribute the configured versions of
 ### config.in, paths.in, buildobj.h, or Makefile.in.
-(cd src
- echo "  (It is ok if ln fails in some cases.)"
- ln [a-zA-Z]*.[chm] ../${tempdir}/src
- ln [a-zA-Z]*.in ../${tempdir}/src
- ln deps.mk ../${tempdir}/src
- ln README ChangeLog.*[0-9] ../${tempdir}/src
- ln .gdbinit .dbxinit ../${tempdir}/src
- cd ../${tempdir}/src
- rm -f globals.h config.h epaths.h Makefile buildobj.h)
+(cd src &&
+ ln [a-zA-Z]*.[chm] ../${tempdir}/src &&
+ ln [a-zA-Z]*.in ../${tempdir}/src &&
+ ln deps.mk ../${tempdir}/src &&
+ ln README ChangeLog.*[0-9] ../${tempdir}/src &&
+ ln .gdbinit .dbxinit ../${tempdir}/src &&
+ cd ../${tempdir}/src &&
+ rm -f globals.h config.h epaths.h Makefile buildobj.h &&
+:) || exit
 
 echo "Making links to 'src/bitmaps'"
-(cd src/bitmaps
- ln README *.xbm ../../${tempdir}/src/bitmaps)
+(cd src/bitmaps &&
+ ln README *.xbm ../../${tempdir}/src/bitmaps &&
+:) || exit
 
 echo "Making links to 'lib'"
-(snippet_h=`(cd build-aux/snippet && ls *.h)`
- cd lib
- ln [a-zA-Z]*.[ch] ../${tempdir}/lib
- ln gnulib.mk Makefile.am Makefile.in ../${tempdir}/lib
- cd ../${tempdir}/lib
- script='/[*]/d; s/\.in\.h$/.h/'
- rm -f `(echo "$snippet_h"; ls *.in.h) | sed "$script"`)
+(cd lib &&
+ ln [a-zA-Z_]*.[ch] ../${tempdir}/lib &&
+ ln gnulib.mk.in Makefile.in ../${tempdir}/lib &&
+ cd ../${tempdir}/lib &&
+ script='/[*]/d; s/\.in\.h$/.h/' &&
+ rm -f `ls *.in.h | sed "$script"` &&
+:) || exit
 
 echo "Making links to 'lib-src'"
-(cd lib-src
- ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
- ln ChangeLog.*[0-9] Makefile.in README ../${tempdir}/lib-src
- ln rcs2log ../${tempdir}/lib-src
- ln update-game-score.exe.manifest ../${tempdir}/lib-src)
+(cd lib-src &&
+ ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src &&
+ ln ChangeLog.*[0-9] Makefile.in README ../${tempdir}/lib-src &&
+ ln rcs2log ../${tempdir}/lib-src &&
+:) || exit
 
 echo "Making links to 'm4'"
-(cd m4
- ln *.m4 ../${tempdir}/m4)
+(cd m4 &&
+ ln *.m4 ../${tempdir}/m4 &&
+:) || exit
+
+echo "Making links to 'modules'"
+(cd modules &&
+ ln *.py ../${tempdir}/modules &&
+:) || exit
 
 echo "Making links to 'nt'"
-(cd nt
- ln emacs-x86.manifest emacs-x64.manifest ../${tempdir}/nt
- ln subdirs.el [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
- ln *.in gnulib.mk ../${tempdir}/nt
- ln mingw-cfg.site epaths.nt INSTALL.OLD ../${tempdir}/nt
- ln ChangeLog.*[0-9] INSTALL README README.W32 ../${tempdir}/nt)
+(cd nt &&
+ ln emacs-x86.manifest emacs-x64.manifest ../${tempdir}/nt &&
+ ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt &&
+ ln *.in gnulib-cfg.mk ../${tempdir}/nt &&
+ ln mingw-cfg.site epaths.nt INSTALL.W64 ../${tempdir}/nt &&
+ ln ChangeLog.*[0-9] INSTALL README README.W32 ../${tempdir}/nt &&
+:) || exit
 
 echo "Making links to 'nt/inc' and its subdirectories"
 for f in `find nt/inc -type f -name '[a-z]*.h'`; do
-  ln $f $tempdir/$f
+  ln $f $tempdir/$f || exit
 done
 
 echo "Making links to 'nt/icons'"
-(cd nt/icons
- ln README [a-z]*.ico ../../${tempdir}/nt/icons
- ln [a-z]*.cur ../../${tempdir}/nt/icons)
+(cd nt/icons &&
+ ln README [a-z]*.ico ../../${tempdir}/nt/icons &&
+ ln [a-z]*.cur ../../${tempdir}/nt/icons &&
+:) || exit
 
 echo "Making links to 'msdos'"
-(cd msdos
- ln ChangeLog.*[0-9] INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
- ln depfiles.bat inttypes.h ../${tempdir}/msdos
- ln mainmake.v2 sed*.inp ../${tempdir}/msdos)
+(cd msdos &&
+ ln ChangeLog.*[0-9] INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos &&
+ ln depfiles.bat inttypes.h ../${tempdir}/msdos &&
+ ln mainmake.v2 sed*.inp ../${tempdir}/msdos &&
+:) || exit
 
 echo "Making links to 'nextstep'"
-(cd nextstep
- ln ChangeLog.*[0-9] README INSTALL Makefile.in ../${tempdir}/nextstep)
+(cd nextstep &&
+ ln ChangeLog.*[0-9] README INSTALL Makefile.in ../${tempdir}/nextstep &&
+:) || exit
 
 echo "Making links to 'nextstep/templates'"
-(cd nextstep/templates
- ln Emacs.desktop.in Info-gnustep.plist.in Info.plist.in InfoPlist.strings.in ../../${tempdir}/nextstep/templates)
+(cd nextstep/templates &&
+ ln Emacs.desktop.in Info-gnustep.plist.in Info.plist.in InfoPlist.strings.in \
+   ../../${tempdir}/nextstep/templates &&
+:) || exit
 
 echo "Making links to 'nextstep/Cocoa/Emacs.base/Contents'"
-(cd nextstep/Cocoa/Emacs.base/Contents
- ln PkgInfo ../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents)
+(cd nextstep/Cocoa/Emacs.base/Contents &&
+ ln PkgInfo ../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents &&
+:) || exit
 
 echo "Making links to 'nextstep/Cocoa/Emacs.base/Contents/Resources'"
-(cd nextstep/Cocoa/Emacs.base/Contents/Resources
- ln Credits.html *.icns ../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources)
+(cd nextstep/Cocoa/Emacs.base/Contents/Resources &&
+ ln Credits.html *.icns \
+   ../../../../../${tempdir}/nextstep/Cocoa/Emacs.base/Contents/Resources &&
+:) || exit
 
 echo "Making links to 'nextstep/GNUstep/Emacs.base/Resources'"
-(cd nextstep/GNUstep/Emacs.base/Resources
- ln README emacs.tiff ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources )
+(cd nextstep/GNUstep/Emacs.base/Resources &&
+ ln README emacs.tiff \
+   ../../../../${tempdir}/nextstep/GNUstep/Emacs.base/Resources &&
+:) || exit
 
 echo "Making links to 'oldXMenu'"
-(cd oldXMenu
- ln *.[ch] *.in *.mk ../${tempdir}/oldXMenu
- ln README ChangeLog.*[0-9] ../${tempdir}/oldXMenu)
+(cd oldXMenu &&
+ ln *.[ch] *.in *.mk ../${tempdir}/oldXMenu &&
+ ln README ChangeLog.*[0-9] ../${tempdir}/oldXMenu &&
+:) || exit
 
 echo "Making links to 'lwlib'"
-(cd lwlib
- ln *.[ch] *.in *.mk ../${tempdir}/lwlib
- ln README ChangeLog.*[0-9] ../${tempdir}/lwlib)
+(cd lwlib &&
+ ln *.[ch] *.in *.mk ../${tempdir}/lwlib &&
+ ln README ChangeLog.*[0-9] ../${tempdir}/lwlib &&
+:) || exit
 
 ## It is important to distribute admin/ because it contains sources
 ## for generated lisp/international/uni-*.el files.
@@ -465,18 +570,18 @@ for f in `find admin -type f`; do
   case $f in
     */Makefile) [ -f $f.in ] && continue ;;
   esac
-  ln $f $tempdir/$f
+  ln $f $tempdir/$f || exit
 done
 
 if [ "$with_tests" = "yes" ]; then
   echo "Making links to 'test' and its subdirectories"
-  for f in `find test -type f`; do
+  for f in `find test -type f ! -name '*.log' ! -name a.out \
+	      ! -name '*.so' ! -name '*.dll' ! -name '*.o'
+  `; do
     case $f in
-      test/automated/*.log) continue ;;
-      test/automated/flymake/warnpred/a.out) continue ;;
-      test/automated/Makefile) continue ;;
+        */Makefile) [ -f $f.in ] && continue ;;
     esac
-    ln $f $tempdir/$f
+    ln $f $tempdir/$f || exit
   done
 fi
 
@@ -488,64 +593,73 @@ for f in `find etc -type f`; do
     etc/refcards/*.aux|etc/refcards/*.dvi|etc/refcards/*.log|etc/refcards/*.ps)
       continue ;;
   esac
-  ln $f $tempdir/$f
+  ln $f $tempdir/$f || exit
 done
 
-echo "Making links to 'info'"
-ln `find info -type f -print` ${tempdir}/info
+if [ -d info ]; then # Skip in case we've built --without-makeinfo.
+  echo "Making links to 'info'"
+  ln `find info -type f -print` ${tempdir}/info || exit
+fi
 
 echo "Making links to 'doc/emacs'"
-(cd doc/emacs
- ln *.texi *.in ChangeLog.*[0-9] ../../${tempdir}/doc/emacs)
+(cd doc/emacs &&
+ ln *.texi *.in ChangeLog.*[0-9] ../../${tempdir}/doc/emacs &&
+:) || exit
 
 echo "Making links to 'doc/misc'"
-(cd doc/misc
+(cd doc/misc &&
  ln *.texi *.tex *.in gnus-news.el ChangeLog.*[0-9] \
-    ../../${tempdir}/doc/misc)
+   ../../${tempdir}/doc/misc &&
+:) || exit
 
 echo "Making links to 'doc/lispref'"
-(cd doc/lispref
- ln *.texi *.in README ChangeLog.*[0-9] ../../${tempdir}/doc/lispref
- ln spellfile ../../${tempdir}/doc/lispref
- ln two-volume.make two-volume-cross-refs.txt ../../${tempdir}/doc/lispref)
+(cd doc/lispref &&
+ ln *.texi *.in README ChangeLog.*[0-9] ../../${tempdir}/doc/lispref &&
+ ln spellfile ../../${tempdir}/doc/lispref &&
+ ln two-volume.make two-volume-cross-refs.txt ../../${tempdir}/doc/lispref &&
+:) || exit
 
 echo "Making links to 'doc/lispintro'"
-(cd doc/lispintro
- ln *.texi *.in *.eps *.pdf ../../${tempdir}/doc/lispintro
- ln README ChangeLog.*[0-9] ../../${tempdir}/doc/lispintro
- cd ../../${tempdir}/doc/lispintro)
+(cd doc/lispintro &&
+ ln *.texi *.in *.eps *.pdf ../../${tempdir}/doc/lispintro &&
+ ln README ChangeLog.*[0-9] ../../${tempdir}/doc/lispintro &&
+ cd ../../${tempdir}/doc/lispintro &&
+:) || exit
 
 echo "Making links to 'doc/man'"
-(cd doc/man
- ln *.*[0-9] *.in ../../${tempdir}/doc/man
- cd ../../${tempdir}/doc/man
- rm -f emacs.1)
+(cd doc/man &&
+ ln *.*[0-9] *.in ../../${tempdir}/doc/man &&
+ cd ../../${tempdir}/doc/man &&
+ rm -f emacs.1 &&
+:) || exit
 
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
 echo "Making sure copying notices are all copies of 'COPYING'"
 for subdir in . etc leim lib lib-src lisp lwlib msdos nt src; do
-  rm -f ${tempdir}/${subdir}/COPYING
-  cp COPYING ${tempdir}/${subdir}
+  rm -f ${tempdir}/${subdir}/COPYING || exit
+  cp COPYING ${tempdir}/${subdir} || exit
 done
 
 if [ "${newer}" ]; then
-  echo "Removing files older than $newer"
+  printf '%s\n' "Removing files older than $newer"
   ## We remove .elc files unconditionally, on the theory that anyone picking
   ## up an incremental distribution already has a running Emacs to byte-compile
   ## them with.
-  find ${tempparent} \( -name '*.elc' -o ! -newer ${newer} \) -exec rm -f {} \;
+  find ${tempparent} \( -name '*.elc' -o ! -newer ${newer} \) \
+    -exec rm -f {} \; || exit
 fi
 
 ## Don't distribute backups, autosaves, etc.
 echo "Removing unwanted files"
-find ${tempparent} \( -name '*~' -o -name '#*#' -o -name '.*ignore' -o -name '=*' -o -name 'TAGS' \) -exec rm -f {} \;
+find ${tempparent} \( -name '*~' -o -name '#*#' -o -name '.*ignore' -o -name '=*' -o -name 'TAGS' \) -exec rm -f {} \; || exit
 
 if [ "${make_tar}" = yes ]; then
   echo "Looking for $default_gzip"
   found=0
-  temppath=`echo $PATH | sed -e 's/^:/.:/' -e 's/::/:.:/g' -e 's/:$/:./' \
-     -e 's/:/ /g'`
+  temppath=`printf '%s\n' "$PATH" |
+    sed -e 's/^:/.:/' -e 's/::/:.:/g' -e 's/:$/:./' -e 's/:/ /g'
+  `
   for dir in ${temppath}; do
     [ -x ${dir}/$default_gzip ] || continue
     found=1; break
@@ -557,17 +671,32 @@ if [ "${make_tar}" = yes ]; then
   case "${default_gzip}" in
     bzip2) gzip_extension=.bz2 ;;
     xz)  gzip_extension=.xz ;;
-    gzip)  gzip_extension=.gz ; default_gzip="gzip --best";;
+    gzip)  gzip_extension=.gz ; default_gzip="gzip --best --no-name";;
        *)  gzip_extension= ;;
   esac
   echo "Creating tar file"
-  (cd ${tempparent} ; tar cvf - ${emacsname} ) \
-    | ${default_gzip} \
-    > ${emacsname}.tar${gzip_extension}
+  taropt='--numeric-owner --owner=0 --group=0 --mode=go+u,go-w'
+  tar --sort=name -cf /dev/null $tempparent/$emacsname/src/lisp.h 2>/tmp/out &&
+    taropt="$taropt --sort=name"
+  [ "$verbose" = "yes" ] && taropt="$taropt --verbose"
+
+  (cd $tempparent &&
+   case $default_gzip in
+     cat) tar $taropt -cf - $emacsname;;
+     *) if tar $taropt -cf /dev/null --use-compress-program="$default_gzip" \
+	       $emacsname/src/lisp.h
+	then
+	  tar $taropt -cf - --use-compress-program="$default_gzip" $emacsname
+	else
+	  tar $taropt -cf $emacsname.tar $emacsname &&
+	  $default_gzip <$emacsname.tar
+        fi;;
+   esac
+  ) >$emacsname.tar$gzip_extension || exit
 fi
 
 if [ "${clean_up}" != yes ]; then
-  (cd ${tempparent}; mv ${emacsname} ..)
+  (cd ${tempparent} && mv ${emacsname} ..) &&
   rm -rf ${tempparent}
 fi
 

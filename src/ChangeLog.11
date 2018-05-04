@@ -26,7 +26,7 @@
 
 	current_column: Now returns EMACS_INT, fixing some iftc
 	that was introduced in the 2002-06-02 change "temporarily"; see
-	<http://lists.gnu.org/archive/html/emacs-devel/2002-06/msg00039.html>.
+	<https://lists.gnu.org/r/emacs-devel/2002-06/msg00039.html>.
 	* bytecode.c (Fbyte_code): Don't cast current_column () to int.
 	* cmds.c (internal_self_insert): Likewise.
 	* indent.c (Fcurrent_column): Likewise.
@@ -91,7 +91,7 @@
 
 	* fileio.c (Fmake_symbolic_link): Treat ENOSYS specially, and
 	generate a special message for it.  Suggested by Eli Zaretskii in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00995.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-02/msg00995.html>.
 	(Frename_file, Fmake_symbolic_link, Ffile_symlink_p):
 	Simplify the code by assuming that the readlink and symlink calls
 	exist, even if they always fail on this host.
@@ -154,7 +154,7 @@
 
 	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12
 	as per recent filemodestring API change.  Reported by Jonas Öster in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg01069.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-02/msg01069.html>.
 
 2011-02-23  Ben Key  <bkey76@gmail.com>
 
@@ -7244,9 +7244,9 @@
 	* xdisp.c (try_scrolling): Compute the limit for searching point
 	in forward scroll from scroll_max, instead of an arbitrary limit
 	of 10 screen lines.
-	See http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
+	See https://lists.gnu.org/r/emacs-devel/2010-06/msg00766.html
 	and
-	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00773.html
+	https://lists.gnu.org/r/emacs-devel/2010-06/msg00773.html
 	for details.
 
 2010-06-16  Glenn Morris  <rgm@gnu.org>
@@ -7346,7 +7346,7 @@
 	* window.c (Fselect_window): Move `record_buffer' up to the
 	beginning of this function, so the buffer gets recorded
 	even if the selected window does not change.
-	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00137.html
+	https://lists.gnu.org/r/emacs-devel/2010-06/msg00137.html
 
 2010-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -7688,7 +7688,7 @@
 	* fileio.c (Fdelete_file): Change interactive spec to use
 	`read-file-name' like in `find-file-read-args' where the default
 	value is `default-directory' instead of `buffer-file-name'.
-	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00533.html
+	https://lists.gnu.org/r/emacs-devel/2010-05/msg00533.html
 
 2010-05-20  Kevin Ryde  <user42@zip.com.au>
 
@@ -7962,7 +7962,7 @@
 
 	* xdisp.c (init_iterator): Don't turn on bidi reordering in
 	unibyte buffers.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00263.html.
+	https://lists.gnu.org/r/emacs-devel/2010-05/msg00263.html.
 
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
@@ -8910,9 +8910,9 @@
 
 	* xdisp.c (display_line): Don't write beyond the last glyph row in
 	the desired matrix.  Fixes a crash in "emacs -nw" (bug#5972), see
-	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00075.html
+	https://lists.gnu.org/r/emacs-devel/2010-04/msg00075.html
 	and
-	http://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00213.html
+	https://lists.gnu.org/r/emacs-devel/2010-04/msg00213.html
 
 2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -10673,7 +10673,7 @@
 	Try font from Ffont_get_system_font.
 	Do not get font from x_default_parameter if we got one from
 	Ffont_get_system_font.
-	(Fx_select_font): Get the defaut font name from :name of FRAME_FONT(f).
+	(Fx_select_font): Get the default font name from :name of FRAME_FONT(f).
 
 	* w32font.c (w32font_driver): Initialize all members.
 
@@ -11510,7 +11510,7 @@
 
 	* frame.c (xrdb_get_resource): Return nil for empty string resources;
 	some parts of Emacs code (like font selection) don't grok them.
-	See http://lists.gnu.org/archive/html/emacs-devel/2009-09/msg00528.html
+	See https://lists.gnu.org/r/emacs-devel/2009-09/msg00528.html
 
 2009-09-24  Andreas Schwab  <schwab@redhat.com>
 
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2015 Free Software Foundation, Inc.
+  Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -31400,4 +31400,4 @@ See ChangeLog.10 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

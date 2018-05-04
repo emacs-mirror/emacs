@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -316,7 +316,7 @@ Default action as described in `semanticdb-find-translate-path'."
 ;;;###autoload
 (define-overloadable-function semanticdb-find-table-for-include (includetag &optional table)
   "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
-INCLUDETAG is a semantic TAG of class 'include.
+INCLUDETAG is a semantic TAG of class `include'.
 TABLE is a semanticdb table that identifies where INCLUDETAG came from.
 TABLE is optional if INCLUDETAG has an overlay of :filename attribute."
   )
@@ -854,7 +854,7 @@ This makes it appear more like the results of a `semantic-find-' call.
 Optional FIND-FILE-MATCH loads all files associated with RESULTS
 into buffers.  This has the side effect of enabling `semantic-tag-buffer' to
 return a value.
-If FIND-FILE-MATCH is 'name, then only the filename is stored
+If FIND-FILE-MATCH is `name', then only the filename is stored
 in each tag instead of loading each file into a buffer.
 If the input RESULTS are not going to be used again, and if
 FIND-FILE-MATCH is nil, you can use `semanticdb-fast-strip-find-results'
@@ -902,7 +902,7 @@ instead."
 This makes it appear more like the results of a `semantic-find-' call.
 This is like `semanticdb-strip-find-results', except the input list RESULTS
 will be changed."
-  (apply #'nconc (mapcar #'cdr results)))
+  (mapcan #'cdr results))
 
 (defun semanticdb-find-results-p (resultp)
   "Non-nil if RESULTP is in the form of a semanticdb search result.
@@ -930,7 +930,7 @@ but should be good enough for debugging assertions."
 	    (length result))))
 
 (defun semanticdb-find-result-with-nil-p (resultp)
-  "Non-nil of RESULTP is in the form of a semanticdb search result.
+  "Non-nil if RESULTP is in the form of a semanticdb search result.
 The value nil is valid where a TABLE usually is, but only if the TAG
 results include overlays.
 This query only really tests the first entry in the list that is RESULTP,
@@ -1333,12 +1333,18 @@ Returns a table of all matching tags."
       (semantic-find-tags-included (or tags (semanticdb-get-tags table)))
     (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table)))))
 
+(declare-function semantic-find-tags-external-children-of-type
+		  "semantic/find" (type &optional table))
+
 (cl-defmethod semanticdb-find-tags-external-children-of-type-method ((table semanticdb-abstract-table) parent &optional tags)
    "In TABLE, find all occurrences of tags whose parent is the PARENT type.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
    (require 'semantic/find)
    (semantic-find-tags-external-children-of-type parent (or tags (semanticdb-get-tags table))))
+
+(declare-function semantic-find-tags-subclasses-of-type
+		  "semantic/find" (type &optional table))
 
 (cl-defmethod semanticdb-find-tags-subclasses-of-type-method ((table semanticdb-abstract-table) parent &optional tags)
    "In TABLE, find all occurrences of tags whose parent is the PARENT type.

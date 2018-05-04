@@ -1,6 +1,6 @@
-;;; man.el --- browse UNIX manual pages  -*- coding: utf-8 -*-
+;;; man.el --- browse UNIX manual pages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2015 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -75,7 +75,7 @@
 ;; ============= TODO ===========
 ;; - Add a command for printing.
 ;; - The awk script deletes multiple blank lines.  This behavior does
-;;   not allow to understand if there was indeed a blank line at the
+;;   not allow one to understand if there was indeed a blank line at the
 ;;   end or beginning of a page (after the header, or before the
 ;;   footer).  A different algorithm should be used.  It is easy to
 ;;   compute how many blank lines there are before and after the page
@@ -184,7 +184,9 @@ The value also can be a positive integer for a fixed width."
 
 (defcustom Man-frame-parameters nil
   "Frame parameter list for creating a new frame for a manual page."
-  :type 'sexp
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value")))
   :group 'man)
 
 (defcustom Man-downcase-section-letters-flag t
@@ -266,6 +268,16 @@ Used in `bookmark-set' to get the default bookmark name."
   :type 'string
   :group 'man)
 
+;; This is for people who have UTF-8 encoded man pages in non-UTF-8
+;; locales, or who use Cygwin 'man' command from a native MS-Windows
+;; build of Emacs.
+(defcustom Man-coding-system nil
+  "Coding-system to decode output from the commands run by `man'.
+If this is nil, `man' will use `locale-coding-system'."
+  :type 'coding-system
+  :group 'man
+  :version "26.1")
+
 (defcustom Man-mode-hook nil
   "Hook run when Man mode is enabled."
   :type 'hook
@@ -276,7 +288,7 @@ Used in `bookmark-set' to get the default bookmark name."
   :type 'hook
   :group 'man)
 
-(defvar Man-name-regexp "[-a-zA-Z0-9_­+][-a-zA-Z0-9_.:­+]*"
+(defvar Man-name-regexp "[-[:alnum:]_­+][-[:alnum:]_.:­+]*"
   "Regular expression describing the name of a manpage (without section).")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z0-9+]*\\|[LNln]"
@@ -284,16 +296,16 @@ Used in `bookmark-set' to get the default bookmark name."
 
 (defvar Man-page-header-regexp
   (if (string-match "-solaris2\\." system-configuration)
-      (concat "^[-A-Za-z0-9_].*[ \t]\\(" Man-name-regexp
+      (concat "^[-[:alnum:]_].*[ \t]\\(" Man-name-regexp
 	      "(\\(" Man-section-regexp "\\))\\)$")
     (concat "^[ \t]*\\(" Man-name-regexp
 	    "(\\(" Man-section-regexp "\\))\\).*\\1"))
   "Regular expression describing the heading of a page.")
 
-(defvar Man-heading-regexp "^\\([A-Z][A-Z0-9 /-]+\\)$"
+(defvar Man-heading-regexp "^\\([[:upper:]][[:upper:]0-9 /-]+\\)$"
   "Regular expression describing a manpage heading entry.")
 
-(defvar Man-see-also-regexp "SEE ALSO"
+(defvar Man-see-also-regexp "\\(SEE ALSO\\|VOIR AUSSI\\|SIEHE AUCH\\|VÉASE TAMBIÉN\\|VEJA TAMBÉM\\|VEDERE ANCHE\\|ZOBACZ TAKŻE\\|İLGİLİ BELGELER\\|参照\\|参见 SEE ALSO\\|參見 SEE ALSO\\)"
   "Regular expression for SEE ALSO heading (or your equivalent).
 This regexp should not start with a `^' character.")
 
@@ -306,12 +318,12 @@ This regular expression should start with a `^' character.")
 
 (defvar Man-reference-regexp
   (concat "\\(" Man-name-regexp
-	  "\\(\n[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
+	  "\\(‐?\n[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
 	  Man-section-regexp "\\))")
   "Regular expression describing a reference to another manpage.")
 
 (defvar Man-apropos-regexp
-  (concat "\\\[\\(" Man-name-regexp "\\)\\\][ \t]*(\\(" Man-section-regexp "\\))")
+  (concat "\\[\\(" Man-name-regexp "\\)\\][ \t]*(\\(" Man-section-regexp "\\))")
   "Regular expression describing a reference to manpages in \"man -k output\".")
 
 (defvar Man-synopsis-regexp "SYNOPSIS"
@@ -430,29 +442,23 @@ Otherwise, the value is whatever the function
 (defvar Man-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (set-keymap-parent map button-buffer-map)
+    (set-keymap-parent map
+      (make-composed-keymap button-buffer-map special-mode-map))
 
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map " "    'scroll-up-command)
-    (define-key map "\177" 'scroll-down-command)
     (define-key map "n"    'Man-next-section)
     (define-key map "p"    'Man-previous-section)
     (define-key map "\en"  'Man-next-manpage)
     (define-key map "\ep"  'Man-previous-manpage)
-    (define-key map ">"    'end-of-buffer)
-    (define-key map "<"    'beginning-of-buffer)
     (define-key map "."    'beginning-of-buffer)
     (define-key map "r"    'Man-follow-manual-reference)
     (define-key map "g"    'Man-goto-section)
     (define-key map "s"    'Man-goto-see-also-section)
     (define-key map "k"    'Man-kill)
-    (define-key map "q"    'Man-quit)
     (define-key map "u"    'Man-update-manpage)
     (define-key map "m"    'man)
     ;; Not all the man references get buttons currently.  The text in the
     ;; manual page can contain references to other man pages
     (define-key map "\r"   'man-follow)
-    (define-key map "?"    'describe-mode)
 
     (easy-menu-define nil map
       "`Man-mode' menu."
@@ -474,7 +480,7 @@ Otherwise, the value is whatever the function
         "--"
         ["Man..." man t]
         ["Kill Buffer" Man-kill t]
-        ["Quit" Man-quit t]))
+        ["Quit" quit-window t]))
     map)
   "Keymap for Man mode.")
 
@@ -617,7 +623,7 @@ This is necessary if one wants to dump man.el with Emacs."
                           ;; `call-process' below sends it to /dev/null,
                           ;; so we don't need `2>' even with DOS shells
                           ;; which do support stderr redirection.
-                          ((not (fboundp 'start-process)) " %s")
+                          ((not (fboundp 'make-process)) " %s")
                           ((concat " %s 2>" null-device)))))
 	(flist Man-filter-list))
     (while (and flist (car flist))
@@ -777,7 +783,7 @@ POS defaults to `point'."
       ;;     see this-
       ;;     command-here(1)
       ;; Note: This code gets executed iff our entry is after POS.
-      (when (looking-at "[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
+      (when (looking-at "‐?[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
 	(setq word (concat word (match-string-no-properties 1)))
 	;; Make sure the section number gets included by the code below.
 	(goto-char (match-end 1)))
@@ -836,10 +842,7 @@ indicating optional parts and whitespace being interpreted
 somewhat loosely.
 
 foo[, bar [, ...]] [other stuff] (sec) - description
-foo(sec)[, bar(sec) [, ...]] [other stuff] - description
-
-For more details and some regression tests, please see
-test/automated/man-tests.el in the emacs repository."
+foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
   (goto-char (point-min))
   ;; See man-tests for data about which systems use which format (hopefully we
   ;; will be able to simplify the code if/when some of those formats aren't
@@ -885,7 +888,7 @@ test/automated/man-tests.el in the emacs repository."
           (setq default-directory "/") ;; in case inherited doesn't exist
           ;; Actually for my `man' the arg is a regexp.
           ;; POSIX says it must be ERE and "man-db" seems to agree,
-          ;; whereas under MacOSX it seems to be BRE-style and doesn't
+          ;; whereas under macOS it seems to be BRE-style and doesn't
           ;; accept backslashes at all.  Let's not bother to
           ;; quote anything.
           (let ((process-environment (copy-sequence process-environment)))
@@ -962,7 +965,7 @@ otherwise look like a page name.
 
 An \"apropos\" query with -k gives a buffer of matching page
 names or descriptions.  The pattern argument is usually an
-\"egrep\" style regexp.
+\"grep -E\" style regexp.
 
     -k pattern"
 
@@ -1010,7 +1013,10 @@ names or descriptions.  The pattern argument is usually an
 	(coding-system-for-write 'raw-text-unix)
 	;; We must decode the output by a coding system that the
 	;; system's locale suggests in multibyte mode.
-	(coding-system-for-read locale-coding-system)
+	(coding-system-for-read
+         (or coding-system-for-read  ; allow overriding with "C-x RET c"
+             Man-coding-system
+             locale-coding-system))
 	;; Avoid possible error by using a directory that always exists.
 	(default-directory
 	  (if (and (file-directory-p default-directory)
@@ -1078,7 +1084,7 @@ Return the buffer in which the manpage will appear."
 					"[cleaning...]")
 				      'face 'mode-line-emphasis)))
 	(Man-start-calling
-	 (if (fboundp 'start-process)
+	 (if (fboundp 'make-process)
 	     (let ((proc (start-process
 			  manual-program buffer
 			  (if (memq system-type '(cygwin windows-nt))
@@ -1181,10 +1187,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
   (unless (eq t (compare-strings "latin-" 0 nil
 				 current-language-environment 0 6 t))
     (goto-char (point-min))
-    (let ((str "\255"))
-      (if enable-multibyte-characters
-	  (setq str (string-as-multibyte str)))
-      (while (search-forward str nil t) (replace-match "-")))))
+    (while (search-forward "­" nil t) (replace-match "-"))))
 
 (defun Man-fontify-manpage ()
   "Convert overstriking and underlining to the correct fonts.
@@ -1428,8 +1431,17 @@ manpage command."
 			(quit-restore-window
 			 (get-buffer-window (current-buffer) t) 'kill)
 		      (kill-buffer (current-buffer)))
-		    (message "Can't find the %s manpage"
-			     (Man-page-from-arguments args)))
+                    ;; Entries hyphenated due to the window's width
+                    ;; won't be found in the man database, so remove
+                    ;; the hyphenation -- assuming Groff hyphenates
+                    ;; either with hyphen-minus (ASCII 45, #x2d),
+                    ;; hyphen (#x2010) or soft hyphen (#xad) -- and
+                    ;; look again.
+		    (if (string-match "[-‐­]" args)
+			(let ((str (replace-match "" nil nil args)))
+			  (Man-getpage-in-background str))
+                      (message "Can't find the %s manpage"
+                               (Man-page-from-arguments args))))
 
 		(if Man-fontify-manpage-flag
 		    (message "%s man page formatted"
@@ -1463,9 +1475,7 @@ manpage command."
 
 (defvar bookmark-make-record-function)
 
-(put 'Man-mode 'mode-class 'special)
-
-(define-derived-mode Man-mode fundamental-mode "Man"
+(define-derived-mode Man-mode special-mode "Man"
   "A mode for browsing Un*x manual pages.
 
 The following man commands are available in the buffer.  Try
@@ -1479,7 +1489,7 @@ The following man commands are available in the buffer.  Try
 \\[Man-previous-section]       Jump to previous manpage section.
 \\[Man-goto-section]       Go to a manpage section.
 \\[Man-goto-see-also-section]       Jumps to the SEE ALSO manpage section.
-\\[Man-quit]       Deletes the manpage window, bury its buffer.
+\\[quit-window]       Deletes the manpage window, bury its buffer.
 \\[Man-kill]       Deletes the manpage window, kill its buffer.
 \\[describe-mode]       Prints this help text.
 
@@ -1506,8 +1516,7 @@ The following key bindings are currently in effect in the buffer:
 	mode-line-buffer-identification
 	(list (default-value 'mode-line-buffer-identification)
 	      " {" 'Man-page-mode-string "}")
-	truncate-lines t
-	buffer-read-only t)
+	truncate-lines t)
   (buffer-disable-undo)
   (auto-fill-mode -1)
   (setq imenu-generic-expression (list (list nil Man-heading-regexp 0)))
@@ -1517,16 +1526,17 @@ The following key bindings are currently in effect in the buffer:
   (set (make-local-variable 'bookmark-make-record-function)
        'Man-bookmark-make-record))
 
-(defsubst Man-build-section-alist ()
+(defun Man-build-section-list ()
   "Build the list of manpage sections."
-  (setq Man--sections nil)
+  (setq Man--sections ())
   (goto-char (point-min))
   (let ((case-fold-search nil))
-    (while (re-search-forward Man-heading-regexp (point-max) t)
+    (while (re-search-forward Man-heading-regexp nil t)
       (let ((section (match-string 1)))
         (unless (member section Man--sections)
           (push section Man--sections)))
-      (forward-line 1))))
+      (forward-line)))
+  (setq Man--sections (nreverse Man--sections)))
 
 (defsubst Man-build-references-alist ()
   "Build the list of references (in the SEE ALSO section)."
@@ -1783,11 +1793,6 @@ Specify which REFERENCE to use; default is based on word at point."
   (interactive)
   (quit-window t))
 
-(defun Man-quit ()
-  "Bury the buffer containing the manpage."
-  (interactive)
-  (quit-window))
-
 (defun Man-goto-page (page &optional noerror)
   "Go to the manual page on page PAGE."
   (interactive
@@ -1811,7 +1816,7 @@ Specify which REFERENCE to use; default is based on word at point."
       (widen)
       (goto-char page-start)
       (narrow-to-region page-start page-end)
-      (Man-build-section-alist)
+      (Man-build-section-list)
       (Man-build-references-alist)
       (goto-char (point-min)))))
 

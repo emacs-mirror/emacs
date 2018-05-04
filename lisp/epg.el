@@ -1,5 +1,5 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
-;; Copyright (C) 1999-2000, 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -174,10 +174,6 @@
   (file nil :read-only t)
   (string nil :read-only t))
 
-(defmacro epg--gv-nreverse (place)
-  (gv-letplace (getter setter) place
-    (funcall setter `(nreverse ,getter))))
-
 (cl-defstruct (epg-context
                (:constructor nil)
                (:constructor epg-context--make
@@ -186,11 +182,11 @@
                           compress-algorithm
                  &aux
                  (program
-                  (pcase protocol
-                    (`OpenPGP epg-gpg-program)
-                    (`CMS epg-gpgsm-program)
-                    (_ (signal 'epg-error
-                               (list "unknown protocol" protocol)))))))
+                  (let ((configuration (epg-find-configuration protocol)))
+                    (unless configuration
+                      (signal 'epg-error
+                              (list "no usable configuration" protocol)))
+                    (alist-get 'program configuration)))))
                (:copier nil)
                (:predicate nil))
   protocol
@@ -602,26 +598,13 @@ callback data (if any)."
       (setq process-environment
 	    (cons (concat "GPG_TTY=" terminal-name)
 		  (cons "TERM=xterm" process-environment))))
-    ;; Start the Emacs Pinentry server if allow-emacs-pinentry is set
-    ;; in ~/.gnupg/gpg-agent.conf.
-    (when (and (fboundp 'pinentry-start)
-	       (executable-find epg-gpgconf-program)
-	       (with-temp-buffer
-		 (when (= (call-process epg-gpgconf-program nil t nil
-					"--list-options" "gpg-agent")
-			  0)
-		   (goto-char (point-min))
-		   (re-search-forward
-                    "^allow-emacs-pinentry:\\(?:.*:\\)\\{8\\}1"
-                    nil t))))
-      (pinentry-start))
     (setq process-environment
 	  (cons (format "INSIDE_EMACS=%s,epg" emacs-version)
 		process-environment))
     ;; Record modified time of gpg-agent socket to restore the Emacs
     ;; frame on text terminal in `epg-wait-for-completion'.
     ;; See
-    ;; <http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00755.html>
+    ;; <https://lists.gnu.org/r/emacs-devel/2007-02/msg00755.html>
     ;; for more details.
     (when (and agent-info (string-match "\\(.*\\):[0-9]+:[0-9]+" agent-info))
       (setq agent-file (match-string 1 agent-info)
@@ -751,9 +734,8 @@ callback data (if any)."
   ;; Restore Emacs frame on text terminal, when pinentry-curses has terminated.
   (if (with-current-buffer (process-buffer (epg-context-process context))
 	(and epg-agent-file
-	     (> (float-time (or (nth 5 (file-attributes epg-agent-file))
-				'(0 0 0 0)))
-		(float-time epg-agent-mtime))))
+	     (time-less-p epg-agent-mtime
+			  (or (nth 5 (file-attributes epg-agent-file)) 0))))
       (redraw-frame))
   (epg-context-set-result-for
    context 'error
@@ -1041,7 +1023,7 @@ callback data (if any)."
 (defun epg--status-TRUST_MARGINAL (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
-	     (eq (epg-signature-status signature) 'marginal))
+	     (eq (epg-signature-status signature) 'good))
 	(setf (epg-signature-validity signature) 'marginal))))
 
 (defun epg--status-TRUST_FULLY (context _string)
@@ -1337,8 +1319,8 @@ callback data (if any)."
 
 (defun epg-list-keys (context &optional name mode)
   "Return a list of epg-key objects matched with NAME.
-If MODE is nil or 'public, only public keyring should be searched.
-If MODE is t or 'secret, only secret keyring should be searched.
+If MODE is nil or `public', only public keyring should be searched.
+If MODE is t or `secret', only secret keyring should be searched.
 Otherwise, only public keyring should be searched and the key
 signatures should be included.
 NAME is either a string or a list of strings."
@@ -1404,10 +1386,10 @@ NAME is either a string or a list of strings."
     (setq keys (nreverse keys)
 	  pointer keys)
     (while pointer
-      (epg--gv-nreverse (epg-key-sub-key-list (car pointer)))
-      (setq pointer-1 (epg--gv-nreverse (epg-key-user-id-list (car pointer))))
+      (cl-callf nreverse (epg-key-sub-key-list (car pointer)))
+      (setq pointer-1 (cl-callf nreverse (epg-key-user-id-list (car pointer))))
       (while pointer-1
-	(epg--gv-nreverse (epg-user-id-signature-list (car pointer-1)))
+	(cl-callf nreverse (epg-user-id-signature-list (car pointer-1)))
 	(setq pointer-1 (cdr pointer-1)))
       (setq pointer (cdr pointer)))
     keys))
@@ -1678,8 +1660,8 @@ which will return a list of `epg-signature' object."
   "Initiate a sign operation on PLAIN.
 PLAIN is a data object.
 
-If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
-If it is nil or 'normal, it makes a normal signature.
+If optional 3rd argument MODE is t or `detached', it makes a detached signature.
+If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature.
 
 If you use this function, you will need to wait for the completion of
@@ -1690,8 +1672,8 @@ If you are unsure, use synchronous version of this function
   (setf (epg-context-operation context) 'sign)
   (setf (epg-context-result context) nil)
   (unless (memq mode '(t detached nil normal)) ;i.e. cleartext
-    (epg-context-set-armor context nil)
-    (epg-context-set-textmode context nil))
+    (setf (epg-context-armor context) nil)
+    (setf (epg-context-textmode context) nil))
   (epg--start context
 	     (append (list (if (memq mode '(t detached))
 			       "--detach-sign"
@@ -1722,8 +1704,8 @@ If you are unsure, use synchronous version of this function
 (defun epg-sign-file (context plain signature &optional mode)
   "Sign a file PLAIN and store the result to a file SIGNATURE.
 If SIGNATURE is nil, it returns the result as a string.
-If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
-If it is nil or 'normal, it makes a normal signature.
+If optional 3rd argument MODE is t or `detached', it makes a detached signature.
+If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature."
   (unwind-protect
       (progn
@@ -1743,16 +1725,11 @@ Otherwise, it makes a cleartext signature."
 
 (defun epg-sign-string (context plain &optional mode)
   "Sign a string PLAIN and return the output as string.
-If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
-If it is nil or 'normal, it makes a normal signature.
+If optional 3rd argument MODE is t or `detached', it makes a detached signature.
+If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature."
   (let ((input-file
-	 (unless (or (eq (epg-context-protocol context) 'CMS)
-		     (condition-case nil
-			 (progn
-			   (epg-check-configuration (epg-configuration))
-			   t)
-		       (error)))
+	 (unless (eq (epg-context-protocol context) 'CMS)
 	   (epg--make-temp-file "epg-input")))
 	(coding-system-for-write 'binary))
     (unwind-protect
@@ -1859,12 +1836,7 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 If RECIPIENTS is nil, it performs symmetric encryption."
   (let ((input-file
 	 (unless (or (not sign)
-		     (eq (epg-context-protocol context) 'CMS)
-		     (condition-case nil
-			 (progn
-			   (epg-check-configuration (epg-configuration))
-			   t)
-		       (error)))
+		     (eq (epg-context-protocol context) 'CMS))
 	   (epg--make-temp-file "epg-input")))
 	(coding-system-for-write 'binary))
     (unwind-protect
@@ -2199,7 +2171,7 @@ The return value is an alist mapping from types to values."
       (if (eq index (string-match "[ \t\n\r]*" string index))
 	  (setq index (match-end 0)))
       (if (eq index (string-match
-		     "\\([0-9]+\\(\\.[0-9]+\\)*\\)\[ \t\n\r]*=[ \t\n\r]*"
+		     "\\([0-9]+\\(\\.[0-9]+\\)*\\)[ \t\n\r]*=[ \t\n\r]*"
 		     string index))
 	  (setq type (match-string 1 string)
 		index (match-end 0))

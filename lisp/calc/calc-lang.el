@@ -1,9 +1,8 @@
 ;;; calc-lang.el --- calc language functions
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -2524,9 +2523,5 @@ order to Calc's."
     h))
 
 (provide 'calc-lang)
-
-;; Local variables:
-;; coding: utf-8
-;; End:
 
 ;;; calc-lang.el ends here

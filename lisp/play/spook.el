@@ -1,6 +1,6 @@
 ;;; spook.el --- spook phrase utility for overloading the NSA line eater
 
-;; Copyright (C) 1988, 1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

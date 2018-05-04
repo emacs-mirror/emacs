@@ -1,14 +1,14 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2015 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,20 +16,21 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
 #include <limits.h> /* for INT_MAX */
 
 #include "lisp.h"
+#include "character.h"
+#include "coding.h"
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
 #include "window.h"
 #include "termhooks.h"
 #include "blockinput.h"
-#include "dispextern.h"
 #include "buffer.h"
 
 #ifdef USE_X_TOOLKIT
@@ -41,12 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_NTGUI
-# ifdef NTGUI_UNICODE
-# define unicode_append_menu AppendMenuW
-# else /* !NTGUI_UNICODE */
 extern AppendMenuW_Proc unicode_append_menu;
-# endif /* NTGUI_UNICODE */
-extern HMENU current_popup_menu;
 #endif /* HAVE_NTGUI  */
 
 #include "menu.h"
@@ -407,7 +403,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 
       if (prefix)
 	{
-	  AUTO_STRING (prefix_obj, prefix);
+	  AUTO_STRING_WITH_LEN (prefix_obj, prefix, 4);
 	  item_string = concat2 (prefix_obj, item_string);
 	}
   }
@@ -607,7 +603,7 @@ free_menubar_widget_value_tree (widget_value *wv)
 
   wv->name = wv->value = wv->key = (char *) 0xDEADBEEF;
 
-  if (wv->contents && (wv->contents != (widget_value*)1))
+  if (wv->contents && (wv->contents != (widget_value *) 1))
     {
       free_menubar_widget_value_tree (wv->contents);
       wv->contents = (widget_value *) 0xDEADBEEF;
@@ -1049,7 +1045,7 @@ menu_item_width (const unsigned char *str)
       int ch_len;
       int ch = STRING_CHAR_AND_LENGTH (p, ch_len);
 
-      len += CHAR_WIDTH (ch);
+      len += CHARACTER_WIDTH (ch);
       p += ch_len;
     }
   return len;
@@ -1116,51 +1112,8 @@ into menu items.  */)
   return Qnil;
 }
 
-
-DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
-       doc: /* Pop up a deck-of-cards menu and return user's selection.
-POSITION is a position specification.  This is either a mouse button event
-or a list ((XOFFSET YOFFSET) WINDOW)
-where XOFFSET and YOFFSET are positions in pixels from the top left
-corner of WINDOW.  (WINDOW may be a window or a frame object.)
-This controls the position of the top left of the menu as a whole.
-If POSITION is t, it means to use the current mouse position.
-
-MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
-The menu items come from key bindings that have a menu string as well as
-a definition; actually, the "definition" in such a key binding looks like
-\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
-the keymap as a top-level element.
-
-If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
-Otherwise, REAL-DEFINITION should be a valid key binding definition.
-
-You can also use a list of keymaps as MENU.
-  Then each keymap makes a separate pane.
-
-When MENU is a keymap or a list of keymaps, the return value is the
-list of events corresponding to the user's choice. Note that
-`x-popup-menu' does not actually execute the command bound to that
-sequence of events.
-
-Alternatively, you can specify a menu of multiple panes
-  with a list of the form (TITLE PANE1 PANE2...),
-where each pane is a list of form (TITLE ITEM1 ITEM2...).
-Each ITEM is normally a cons cell (STRING . VALUE);
-but a string can appear as an item--that makes a nonselectable line
-in the menu.
-With this form of menu, the return value is VALUE from the chosen item.
-
-If POSITION is nil, don't display the menu at all, just precalculate the
-cached information about equivalent key sequences.
-
-If the user gets rid of the menu without making a valid choice, for
-instance by clicking the mouse away from a valid choice or by typing
-keyboard input, then this normally results in a quit and
-`x-popup-menu' does not return.  But if POSITION is a mouse button
-event (indicating that the user invoked the menu with the mouse) then
-no quit occurs and `x-popup-menu' returns nil.  */)
-  (Lisp_Object position, Lisp_Object menu)
+Lisp_Object
+x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 {
   Lisp_Object keymap, tem, tem2;
   int xpos = 0, ypos = 0;
@@ -1235,6 +1188,9 @@ no quit occurs and `x-popup-menu' returns nil.  */)
       {
 	/* Use the mouse's current position.  */
 	struct frame *new_f = SELECTED_FRAME ();
+
+	XSETFASTINT (x, 0);
+	XSETFASTINT (y, 0);
 #ifdef HAVE_X_WINDOWS
 	if (FRAME_X_P (new_f))
 	  {
@@ -1444,6 +1400,55 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   return selection;
 }
 
+DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
+       doc: /* Pop up a deck-of-cards menu and return user's selection.
+POSITION is a position specification.  This is either a mouse button event
+or a list ((XOFFSET YOFFSET) WINDOW)
+where XOFFSET and YOFFSET are positions in pixels from the top left
+corner of WINDOW.  (WINDOW may be a window or a frame object.)
+This controls the position of the top left of the menu as a whole.
+If POSITION is t, it means to use the current mouse position.
+
+MENU is a specifier for a menu.  For the simplest case, MENU is a keymap.
+The menu items come from key bindings that have a menu string as well as
+a definition; actually, the "definition" in such a key binding looks like
+\(STRING . REAL-DEFINITION).  To give the menu a title, put a string into
+the keymap as a top-level element.
+
+If REAL-DEFINITION is nil, that puts a nonselectable string in the menu.
+Otherwise, REAL-DEFINITION should be a valid key binding definition.
+
+You can also use a list of keymaps as MENU.
+  Then each keymap makes a separate pane.
+
+When MENU is a keymap or a list of keymaps, the return value is the
+list of events corresponding to the user's choice. Note that
+`x-popup-menu' does not actually execute the command bound to that
+sequence of events.
+
+Alternatively, you can specify a menu of multiple panes
+  with a list of the form (TITLE PANE1 PANE2...),
+where each pane is a list of form (TITLE ITEM1 ITEM2...).
+Each ITEM is normally a cons cell (STRING . VALUE);
+but a string can appear as an item--that makes a nonselectable line
+in the menu.
+With this form of menu, the return value is VALUE from the chosen item.
+
+If POSITION is nil, don't display the menu at all, just precalculate the
+cached information about equivalent key sequences.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+`x-popup-menu' does not return.  But if POSITION is a mouse button
+event (indicating that the user invoked the menu with the mouse) then
+no quit occurs and `x-popup-menu' returns nil.  */)
+  (Lisp_Object position, Lisp_Object menu)
+{
+  init_raw_keybuf_count ();
+  return x_popup_menu_1 (position, menu);
+}
+
 /* If F's terminal is not capable of displaying a popup dialog,
    emulate it with a menu.  */
 
@@ -1541,7 +1546,7 @@ for instance using the window manager, then this produces a quit and
 
   /* Note that xw_popup_dialog can call menu code, so
      Vmenu_updating_frame should be set (Bug#17891).  */
-  eassert (f && FRAME_LIVE_P (f));
+  eassume (f && FRAME_LIVE_P (f));
   XSETFRAME (Vmenu_updating_frame, f);
 
   /* Force a redisplay before showing the dialog.  If a frame is created

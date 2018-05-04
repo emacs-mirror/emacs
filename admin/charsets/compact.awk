@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # Commentary:
 # Make a charset map compact by changing this kind of line sequence:
@@ -69,7 +69,7 @@ function decode_hex(str, idx) {
   return n;
 }
 
-/^\#/ {
+/^#/ {
   print;
   next;
 }
@@ -119,4 +119,3 @@ END {
 	printf "0x%04X-0x%04X 0x%04X\n", from_code, to_code, from_unicode;
     }
 }
-

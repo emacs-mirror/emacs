@@ -1,6 +1,6 @@
 ;;; common-win.el --- common part of handling window systems
 
-;; Copyright (C) 1993-1994, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: terminals
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -112,7 +112,7 @@
 ;; Handle the -xrm option.
 (defun x-handle-xrm-switch (switch)
   (unless (consp x-invocation-args)
-    (error "%s: missing argument to `%s' option" (invocation-name) switch))
+    (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-command-line-resources
 	(if (null x-command-line-resources)
 	    (pop x-invocation-args)
@@ -152,7 +152,7 @@
 ;; the initial frame, too.
 (defun x-handle-name-switch (switch)
   (or (consp x-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+      (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-resource-name (pop x-invocation-args)
 	initial-frame-alist (cons (cons 'name x-resource-name)
 				  initial-frame-alist)))

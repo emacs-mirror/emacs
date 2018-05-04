@@ -1,6 +1,6 @@
 ;;; semantic/db-mode.el --- Semanticdb Minor Mode
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -39,7 +39,6 @@
     (semanticdb-kill-hook kill-buffer-hook)
     (semanticdb-kill-hook change-major-mode-hook) ;; Not really a kill, but we need the same effect.
     (semanticdb-kill-emacs-hook kill-emacs-hook)
-    (semanticdb-save-all-db-idle auto-save-hook)
     )
   "List of hooks and values to add/remove when configuring semanticdb.")
 
@@ -50,6 +49,9 @@
   "Return non-nil if `semanticdb-minor-mode' is active."
   (member (car (car semanticdb-hooks))
 	  (symbol-value (car (cdr (car semanticdb-hooks))))))
+
+(defvaralias 'semanticdb-mode-hook 'global-semanticdb-minor-mode-hook)
+(defvaralias 'semanticdb-global-mode 'global-semanticdb-minor-mode)
 
 ;;;###autoload
 (define-minor-mode global-semanticdb-minor-mode
@@ -68,8 +70,6 @@ database, which can be saved for future Emacs sessions."
     (dolist (elt semanticdb-hooks)
       (remove-hook (cadr elt) (car elt)))))
 
-(defvaralias 'semanticdb-mode-hook 'global-semanticdb-minor-mode-hook)
-(defvaralias 'semanticdb-global-mode 'global-semanticdb-minor-mode)
 (semantic-varalias-obsolete 'semanticdb-mode-hooks
 			    'global-semanticdb-minor-mode-hook "23.2")
 

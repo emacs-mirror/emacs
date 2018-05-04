@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -57,17 +57,18 @@ including @code{beginning-of-line}, @code{forward-word},
 @code{forward-sentence}, and @code{forward-paragraph}, stop at the
 boundary between the prompt and the actual text.
 
-@c See http://debbugs.gnu.org/11276
+@c See https://debbugs.gnu.org/11276
   The minibuffer's window is normally a single line; it grows
-automatically if the contents require more space.  Whilst it is
-active, you can explicitly resize it temporarily with the window
-sizing commands; it reverts to its normal size when the minibuffer is
-exited.  When the minibuffer is not active, you can resize it
-permanently by using the window sizing commands in the frame's other
-window, or dragging the mode line with the mouse.  (Due to details of
-the current implementation, for this to work @code{resize-mini-windows}
-must be @code{nil}.)  If the frame contains just a minibuffer, you can
-change the minibuffer's size by changing the frame's size.
+automatically if the contents require more space.  Whilst the minibuffer
+is active, you can explicitly resize its window temporarily with the
+window sizing commands; the window reverts to its normal size when the
+minibuffer is exited.  When the minibuffer is not active, you can resize
+its window permanently by using the window sizing commands in the
+frame's other window, or dragging the mode line with the mouse.  (Due to
+details of the current implementation, for this to work
+@code{resize-mini-windows} must be @code{nil}.)  If the frame contains
+just a minibuffer window, you can change its size by changing the
+frame's size.
 
   Use of the minibuffer reads input events, and that alters the values
 of variables such as @code{this-command} and @code{last-command}
@@ -81,7 +82,7 @@ there is an active minibuffer; such a minibuffer is called a
 incrementing the number at the end of the name.  (The names begin with
 a space so that they won't show up in normal buffer lists.)  Of
 several recursive minibuffers, the innermost (or most recently
-entered) is the active minibuffer.  We usually call this ``the''
+entered) is the active minibuffer.  We usually call this @emph{the}
 minibuffer.  You can permit or forbid recursive minibuffers by setting
 the variable @code{enable-recursive-minibuffers}, or by putting
 properties of that name on command symbols (@xref{Recursive Mini}.)
@@ -169,6 +170,23 @@ If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string that is returned includes whatever text
 properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.
+
+@vindex minibuffer-prompt-properties
+The text properties in @code{minibuffer-prompt-properties} are applied
+to the prompt.  By default, this property list defines a face to use
+for the prompt.  This face, if present, is applied to the end of the
+face list and merged before display.
+
+If the user wants to completely control the look of the prompt, the
+most convenient way to do that is to specify the @code{default} face
+at the end of all face lists.  For instance:
+
+@lisp
+(read-from-minibuffer
+ (concat
+  (propertize "Bold" 'face '(bold default))
+  (propertize " and normal: " 'face '(default))))
+@end lisp
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
 minibuffer inherits the current input method (@pxref{Input Methods}) and
@@ -263,7 +281,7 @@ The function now has a list of regular expressions that it passes to
 @code{read-from-minibuffer} to obtain the user's input.  The first
 element of the list is the default result in case of empty input.  All
 elements of the list are available to the user as the ``future
-minibuffer history list'' (@pxref{Minibuffer History, future list,,
+minibuffer history'' list (@pxref{Minibuffer History, future list,,
 emacs, The GNU Emacs Manual}).
 
 The optional argument @var{history}, if non-@code{nil}, is a symbol
@@ -272,7 +290,7 @@ History}).  If it is omitted or @code{nil}, the history list defaults
 to @code{regexp-history}.
 @end defun
 
-@defvar read-regexp-defaults-function
+@defopt read-regexp-defaults-function
 The function @code{read-regexp} may use the value of this variable to
 determine its list of default regular expressions.  If non-@code{nil},
 the value of this variable should be either:
@@ -288,7 +306,7 @@ or a list of strings.
 
 @noindent
 See @code{read-regexp} above for details of how these values are used.
-@end defvar
+@end defopt
 
 @defvar minibuffer-allow-text-properties
 If this variable is @code{nil}, then @code{read-from-minibuffer}
@@ -616,6 +634,12 @@ A history list for arguments that are Lisp expressions to evaluate.
 A history list for arguments that are faces.
 @end defvar
 
+@findex read-variable@r{, history list}
+@defvar custom-variable-history
+A history list for variable-name arguments read by
+@code{read-variable}.
+@end defvar
+
 @c Less common: coding-system-history, input-method-history,
 @c command-history, grep-history, grep-find-history,
 @c read-envvar-name-history, setenv-history, yes-or-no-p-history.
@@ -733,8 +757,8 @@ list contains elements of any other type, those are ignored.
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names
 of all symbols in the obarray form the set of permissible completions.
 
-If @var{collection} is a hash table, then the keys that are strings
-are the possible completions.  Other keys are ignored.
+If @var{collection} is a hash table, then the keys that are strings or
+symbols are the possible completions.  Other keys are ignored.
 
 You can also use a function as @var{collection}.  Then the function is
 solely responsible for performing completion; @code{try-completion}
@@ -895,7 +919,7 @@ pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
 @end defun
 
 If you store a completion alist in a variable, you should mark the
-variable as ``risky'' by giving it a non-@code{nil}
+variable as risky by giving it a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
 
 @defvar completion-ignore-case
@@ -974,6 +998,9 @@ completion.  Some of these commands also call @code{test-completion}.
 Thus, if @var{predicate} is non-@code{nil}, it should be compatible
 with @var{collection} and @code{completion-ignore-case}.
 @xref{Definition of test-completion}.
+
+@xref{Programmed Completion}, for detailed requirements when
+@var{collection} is a function.
 
 The value of the optional argument @var{require-match} determines how
 the user may exit the minibuffer:
@@ -1233,14 +1260,14 @@ Lisp function.  When possible, do all minibuffer input as part of
 reading the arguments for a command, in the @code{interactive}
 specification.  @xref{Defining Commands}.
 
-@defun read-buffer prompt &optional default require-match
+@defun read-buffer prompt &optional default require-match predicate
 This function reads the name of a buffer and returns it as a string.
-The argument @var{default} is the default name to use, the value to
-return if the user exits with an empty minibuffer.  If non-@code{nil},
-it should be a string, a list of strings, or a buffer.  If it is
-a list, the default value is the first element of this list.  It is
-mentioned in the prompt, but is not inserted in the minibuffer as
-initial input.
+It prompts with @var{prompt}.  The argument @var{default} is the
+default name to use, the value to return if the user exits with an
+empty minibuffer.  If non-@code{nil}, it should be a string, a list of
+strings, or a buffer.  If it is a list, the default value is the first
+element of this list.  It is mentioned in the prompt, but is not
+inserted in the minibuffer as initial input.
 
 The argument @var{prompt} should be a string ending with a colon and a
 space.  If @var{default} is non-@code{nil}, the function inserts it in
@@ -1249,6 +1276,12 @@ the minibuffer with a default value (@pxref{Programming Tips}).
 
 The optional argument @var{require-match} has the same meaning as in
 @code{completing-read}.  @xref{Minibuffer Completion}.
+
+The optional argument @var{predicate}, if non-@code{nil}, specifies a
+function to filter the buffers that should be considered: the function
+will be called with every potential candidate as its argument, and
+should return @code{nil} to reject the candidate, non-@code{nil} to
+accept it.
 
 In the following example, the user enters @samp{minibuffer.t}, and
 then types @key{RET}.  The argument @var{require-match} is @code{t},
@@ -1284,7 +1317,7 @@ its usual work, with the same arguments passed to @code{read-buffer}.
 
 @defopt read-buffer-completion-ignore-case
 If this variable is non-@code{nil}, @code{read-buffer} ignores case
-when performing completion.
+when performing completion while reading the buffer name.
 @end defopt
 
 @defun read-command prompt &optional default
@@ -1413,7 +1446,7 @@ platform-dependent.  Here, we simply document the behavior when using
 the minibuffer.
 
 @code{read-file-name} does not automatically expand the returned file
-name.  You must call @code{expand-file-name} yourself if an absolute
+name.  You can call @code{expand-file-name} yourself if an absolute
 file name is required.
 
 The optional argument @var{require-match} has the same meaning as in
@@ -1809,13 +1842,19 @@ emacs, The GNU Emacs Manual}.  Its argument list and return value are
 the same as for @code{display-sort-function}.
 @end table
 
-@defun completion-table-dynamic function
+@defun completion-table-dynamic function &optional switch-buffer
 This function is a convenient way to write a function that can act as
 a programmed completion function.  The argument @var{function} should be
 a function that takes one argument, a string, and returns an alist of
-possible completions of it.  You can think of
+possible completions of it.  It is allowed to ignore the argument and
+return a full list of all possible completions.  You can think of
 @code{completion-table-dynamic} as a transducer between that interface
 and the interface for programmed completion functions.
+
+If the optional argument @var{switch-buffer} is non-@code{nil}, and
+completion is performed in the minibuffer, @var{function} will be
+called with current buffer set to the buffer from which the minibuffer
+was entered.
 @end defun
 
 @defun completion-table-with-cache function &optional ignore-case
@@ -1846,8 +1885,9 @@ completion tables (@pxref{Major Mode Conventions}).
 
 When the command @code{completion-at-point} runs, it calls the
 functions in the list one by one, without any argument.  Each function
-should return @code{nil} if it is unable to produce a completion table
-for the text at point.  Otherwise it should return a list of the form
+should return @code{nil} unless it can and wants to take
+responsibility for the completion data for the text at point.
+Otherwise it should return a list of the following form:
 
 @example
 (@var{start} @var{end} @var{collection} . @var{props})
@@ -1877,13 +1917,15 @@ next function in @code{completion-at-point-functions} instead of
 reporting a completion failure.
 @end table
 
+The functions on this hook should generally return quickly, since they
+may be called very often (e.g., from @code{post-command-hook}).
 Supplying a function for @var{collection} is strongly recommended if
 generating the list of completions is an expensive operation.  Emacs
 may internally call functions in @code{completion-at-point-functions}
 many times, but care about the value of @var{collection} for only some
 of these calls.  By supplying a function for @var{collection}, Emacs
 can defer generating completions until necessary.  You can use
-@var{completion-table-dynamic} to create a wrapper function:
+@code{completion-table-dynamic} to create a wrapper function:
 
 @smallexample
 ;; Avoid this pattern.
@@ -1899,11 +1941,17 @@ can defer generating completions until necessary.  You can use
             (my-make-completions)))))
 @end smallexample
 
+Additionally, the @var{collection} should generally not be
+pre-filtered based on the current text between @var{start} and
+@var{end}, because that is the responsibility of the caller of
+@code{completion-at-point-functions} to do that according to the
+completion styles it decides to use.
+
 A function in @code{completion-at-point-functions} may also return a
 function instead of a list as described above.  In that case, that
 returned function is called, with no argument, and it is entirely
 responsible for performing the completion.  We discourage this usage;
-it is intended to help convert old code to using
+it is only intended to help convert old code to using
 @code{completion-at-point}.
 
 The first function in @code{completion-at-point-functions} to return a
@@ -1958,7 +2006,7 @@ the call.
 This function asks the user a question, expecting input in the echo
 area.  It returns @code{t} if the user types @kbd{y}, @code{nil} if the
 user types @kbd{n}.  This function also accepts @key{SPC} to mean yes
-and @key{DEL} to mean no.  It accepts @kbd{C-]} to mean ``quit'', like
+and @key{DEL} to mean no.  It accepts @kbd{C-]} to quit, like
 @kbd{C-g}, because the question might look like a minibuffer and for
 that reason the user might try to use @kbd{C-]} to get out.  The answer
 is a single character, with no @key{RET} needed to terminate it.  Upper
@@ -2049,7 +2097,7 @@ Do you really want to remove everything? (yes or no)
 @cindex multiple yes-or-no questions
 
   When you have a series of similar questions to ask, such as ``Do you
-want to save this buffer'' for each buffer in turn, you should use
+want to save this buffer?'' for each buffer in turn, you should use
 @code{map-y-or-n-p} to ask the collection of questions, rather than
 asking each question individually.  This gives the user certain
 convenient facilities such as the ability to answer the whole series at
@@ -2120,7 +2168,7 @@ answer); @var{function} is a function of one argument (an object from
 
 When the user responds with @var{char}, @code{map-y-or-n-p} calls
 @var{function}.  If it returns non-@code{nil}, the object is considered
-``acted upon'', and @code{map-y-or-n-p} advances to the next object in
+acted upon, and @code{map-y-or-n-p} advances to the next object in
 @var{list}.  If it returns @code{nil}, the prompt is repeated for the
 same object.
 
@@ -2224,43 +2272,48 @@ contents of the minibuffer before the point.
 These functions access and select minibuffer windows, test whether they
 are active and control how they get resized.
 
-@defun active-minibuffer-window
-This function returns the currently active minibuffer window, or
-@code{nil} if there is none.
-@end defun
-
 @defun minibuffer-window &optional frame
 @anchor{Definition of minibuffer-window}
 This function returns the minibuffer window used for frame @var{frame}.
-If @var{frame} is @code{nil}, that stands for the current frame.  Note
-that the minibuffer window used by a frame need not be part of that
+If @var{frame} is @code{nil}, that stands for the selected frame.
+
+Note that the minibuffer window used by a frame need not be part of that
 frame---a frame that has no minibuffer of its own necessarily uses some
-other frame's minibuffer window.
+other frame's minibuffer window.  The minibuffer window of a
+minibuffer-less frame can be changed by setting that frame's
+@code{minibuffer} frame parameter (@pxref{Buffer Parameters}).
 @end defun
 
 @defun set-minibuffer-window window
 This function specifies @var{window} as the minibuffer window to use.
 This affects where the minibuffer is displayed if you put text in it
-without invoking the usual minibuffer commands.  It has no effect on
-the usual minibuffer input functions because they all start by
-choosing the minibuffer window according to the current frame.
+without invoking the usual minibuffer commands.  It has no effect on the
+usual minibuffer input functions because they all start by choosing the
+minibuffer window according to the selected frame.
 @end defun
 
 @c Emacs 19 feature
 @defun window-minibuffer-p &optional window
 This function returns non-@code{nil} if @var{window} is a minibuffer
-window.
-@var{window} defaults to the selected window.
+window.  @var{window} defaults to the selected window.
 @end defun
 
-It is not correct to determine whether a given window is a minibuffer by
-comparing it with the result of @code{(minibuffer-window)}, because
-there can be more than one minibuffer window if there is more than one
-frame.
+The following function returns the window showing the currently active
+minibuffer.
+
+@defun active-minibuffer-window
+This function returns the window of the currently active minibuffer, or
+@code{nil} if there is no active minibuffer.
+@end defun
+
+It is not sufficient to determine whether a given window shows the
+currently active minibuffer by comparing it with the result of
+@code{(minibuffer-window)}, because there can be more than one
+minibuffer window if there is more than one frame.
 
 @defun minibuffer-window-active-p window
-This function returns non-@code{nil} if @var{window} is the currently
-active minibuffer window.
+This function returns non-@code{nil} if @var{window} shows the currently
+active minibuffer.
 @end defun
 
 The following two options control whether minibuffer windows are resized
@@ -2284,6 +2337,12 @@ automatically.  A floating-point number specifies a fraction of the
 frame's height; an integer specifies the maximum number of lines.  The
 default value is 0.25.
 @end defopt
+
+Note that the values of the above two variables take effect at display
+time, so let-binding them around code which produces echo-area messages
+will not work.  If you want to prevent resizing of minibuffer windows
+when displaying long messages, bind the @code{message-truncate-lines}
+variable instead (@pxref{Echo Area Customization}).
 
 
 @node Minibuffer Contents
@@ -2321,11 +2380,11 @@ This is like @code{minibuffer-contents}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
-@defun delete-minibuffer-contents
-This function erases the editable contents of the minibuffer (that is,
+@deffn Command delete-minibuffer-contents
+This command erases the editable contents of the minibuffer (that is,
 everything except the prompt), if a minibuffer is current.  Otherwise,
 it erases the entire current buffer.
-@end defun
+@end deffn
 
 @node Recursive Mini
 @section Recursive Minibuffers
@@ -2342,14 +2401,14 @@ returns zero.
 
 @defopt enable-recursive-minibuffers
 If this variable is non-@code{nil}, you can invoke commands (such as
-@code{find-file}) that use minibuffers even while the minibuffer window
-is active.  Such invocation produces a recursive editing level for a new
+@code{find-file}) that use minibuffers even while the minibuffer is
+active.  Such invocation produces a recursive editing level for a new
 minibuffer.  The outer-level minibuffer is invisible while you are
 editing the inner one.
 
-If this variable is @code{nil}, you cannot invoke minibuffer
-commands when the minibuffer window is active, not even if you switch to
-another window to do it.
+If this variable is @code{nil}, you cannot invoke minibuffer commands
+when the minibuffer is active, not even if you switch to another window
+to do it.
 @end defopt
 
 @c Emacs 19 feature
@@ -2375,6 +2434,19 @@ This is a normal hook that is run whenever the minibuffer is entered.
 @xref{Hooks}.
 @end defvar
 
+@defmac minibuffer-with-setup-hook function &rest body
+This macro executes @var{body} after arranging for the specified
+@var{function} to be called via @code{minibuffer-setup-hook}.  By
+default, @var{function} is called before the other functions in the
+@code{minibuffer-setup-hook} list, but if @var{function} is of the
+form @w{@code{(:append @var{func})}}, @var{func} will be called
+@emph{after} the other hook functions.
+
+The @var{body} forms should not use the minibuffer more than once.  If
+the minibuffer is re-entered recursively, @var{function} will only be
+called once, for the outermost use of the minibuffer.
+@end defmac
+
 @defvar minibuffer-exit-hook
 This is a normal hook that is run whenever the minibuffer is exited.
 @xref{Hooks}.
@@ -2394,16 +2466,10 @@ minibuffer, it scrolls this window.
 @end defvar
 
 @defun minibuffer-selected-window
-This function returns the window that was selected when the
-minibuffer was entered.  If selected window is not a minibuffer
-window, it returns @code{nil}.
+This function returns the window that was selected just before the
+minibuffer window was selected.  If the selected window is not a
+minibuffer window, it returns @code{nil}.
 @end defun
-
-@defopt max-mini-window-height
-This variable specifies the maximum height for resizing minibuffer
-windows.  If a float, it specifies a fraction of the height of the
-frame.  If an integer, it specifies a number of lines.
-@end defopt
 
 @vindex minibuffer-message-timeout
 @defun minibuffer-message string &rest args

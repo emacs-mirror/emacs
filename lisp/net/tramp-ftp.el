@@ -1,6 +1,6 @@
-;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
+;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,22 +32,12 @@
 
 ;; Pacify byte-compiler.
 (eval-when-compile
-  (require 'cl)
   (require 'custom))
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
 (defvar ange-ftp-name-format)
 
 ;; Disable Ange-FTP from file-name-handler-alist.
-;; To handle EFS, the following functions need to be dealt with:
-;;
-;; * dired-before-readin-hook contains efs-dired-before-readin
-;; * file-name-handler-alist contains efs-file-handler-function
-;;   and efs-root-handler-function and efs-sifn-handler-function
-;; * find-file-hooks contains efs-set-buffer-mode
-;;
-;; But it won't happen for EFS since the XEmacs maintainers
-;; don't want to use a unified filename syntax.
 (defun tramp-disable-ange-ftp ()
   "Turn Ange-FTP off.
 This is useful for unified remoting.  See
@@ -69,6 +59,7 @@ present for backward compatibility."
 
 ;;;###autoload
 (defun tramp-ftp-enable-ange-ftp ()
+  "Reenable Ange-FTP, when Tramp is unloaded."
   ;; The following code is commented out in Ange-FTP.
 
   ;;; This regexp takes care of real ange-ftp file names (with a slash
@@ -104,14 +95,15 @@ present for backward compatibility."
 
 ;; ... and add it to the method list.
 ;;;###tramp-autoload
-(unless (featurep 'xemacs)
-  (add-to-list 'tramp-methods (cons tramp-ftp-method nil))
+(add-to-list 'tramp-methods (cons tramp-ftp-method nil))
 
-  ;; Add some defaults for `tramp-default-method-alist'.
-  (add-to-list 'tramp-default-method-alist
-	       (list "\\`ftp\\." nil tramp-ftp-method))
-  (add-to-list 'tramp-default-method-alist
-	       (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method)))
+;; Add some defaults for `tramp-default-method-alist'.
+;;;###tramp-autoload
+(add-to-list 'tramp-default-method-alist
+	     (list "\\`ftp\\." nil tramp-ftp-method))
+;;;###tramp-autoload
+(add-to-list 'tramp-default-method-alist
+	     (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
 
 ;; Add completion function for FTP method.
 ;;;###tramp-autoload
@@ -152,7 +144,7 @@ pass to the OPERATION."
        ((memq operation '(file-directory-p file-exists-p))
 	(if (apply 'ange-ftp-hook-function operation args)
 	    (let ((v (tramp-dissect-file-name (car args) t)))
-	      (aset v 0 tramp-ftp-method)
+	      (setf (tramp-file-name-method v) tramp-ftp-method)
 	      (tramp-set-connection-property v "started" t))
 	  nil))
 
@@ -195,9 +187,8 @@ pass to the OPERATION."
 	   tramp-ftp-method))
 
 ;;;###tramp-autoload
-(unless (featurep 'xemacs)
-  (add-to-list 'tramp-foreign-file-name-handler-alist
-	       (cons 'tramp-ftp-file-name-p 'tramp-ftp-file-name-handler)))
+(add-to-list 'tramp-foreign-file-name-handler-alist
+	     (cons 'tramp-ftp-file-name-p 'tramp-ftp-file-name-handler))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

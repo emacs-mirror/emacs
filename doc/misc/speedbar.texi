@@ -5,7 +5,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -49,7 +49,7 @@ packages, and web browsers.
 Speedbar displays a narrow frame in which a tree view is shown.  This
 tree view defaults to containing a list of files and directories.  Files
 can be ``expanded'' to list tags inside. Directories can be expanded to
-list the files within itself.  Each file or tag can be jumped to
+list the files within them.  Each file or tag can be jumped to
 immediately.
 
 Speedbar expands upon ``explorer'' windows by maintaining context with the
@@ -62,7 +62,7 @@ authors of other packages to provide speedbar summaries customized to
 the needs of that mode.
 
 Throughout this manual, activities are defined as ``clicking on'', or
-``expanding'' items.  Clicking means using @kbd{Mouse-2} on a
+``expanding'' items.  Clicking means using @kbd{mouse-2} on a
 button.  Expanding refers to clicking on an expansion button to display
 an expanded summary of the entry the expansion button is
 on.  @xref{Basic Navigation}.
@@ -87,7 +87,7 @@ on.  @xref{Basic Navigation}.
 @chapter Introduction
 @cindex introduction
 
-To start using speedbar use the command @kbd{M-x speedbar RET} or
+To start using speedbar use the command @kbd{M-x speedbar @key{RET}} or
 select it from the @samp{Options->Show/Hide} sub-menu.  This command
 will open a new frame to summarize the local files.  On X Window
 systems or on MS-Windows, speedbar's frame is twenty characters wide,
@@ -188,7 +188,7 @@ these are available, some additional common bindings are available.
 
 @cindex common keys
 @table @kbd
-@item RET
+@item @key{RET}
 @itemx e
 Edit/Open the current group or tag.  This behavior is dependent on the
 mode.  In general, files or buffers are opened in the attached frame,
@@ -316,29 +316,29 @@ with the mouse, or affected by the menu.
 The mouse bindings are:
 
 @table @kbd
-@item Mouse-1
+@item mouse-1
 Move cursor to that location.
-@item Mouse-2
-@itemx Double-Mouse-1
-Activate the current button.  @kbd{Double-Mouse-1} is called a @dfn{double
+@item mouse-2
+@itemx Double-mouse-1
+Activate the current button.  @kbd{Double-mouse-1} is called a @dfn{double
 click} on other platforms, and is useful for windows users with two
 button mice.
-@c Isn't it true that with two-button mice, the right button is Mouse-2?
-@c On GNU/Linux, the right button is Mouse-3.
-@item S-Mouse-2
-@itemx S-Double-Mouse-1
+@c Isn't it true that with two-button mice, the right button is mouse-2?
+@c On GNU/Linux, the right button is mouse-3.
+@item S-mouse-2
+@itemx S-Double-mouse-1
 @cindex power click
-This has the same effect as @kbd{Mouse-2}, except it is called a power
+This has the same effect as @kbd{mouse-2}, except it is called a power
 click.  This means that if a group with an expansion button @samp{+} is
 clicked, any caches are flushed, and subitems re-read.  If it is a name,
 it will be opened in a new frame.
-@item Mouse-3
+@item mouse-3
 Activate the speedbar menu.  The item selected affects the line clicked,
 not the line where the cursor was.
-@item Mouse-1 @r{(mode line)}
+@item mouse-1 @r{(mode line)}
 Activate the menu.  This affects the item the cursor is on before the
 click, since the mouse was not clicked on anything.
-@item C-Mouse-1
+@item C-mouse-1
 Buffers sub-menu.  The buffer in the attached frame is switched.
 @end table
 
@@ -355,7 +355,7 @@ You can display different data by using different display modes.  These
 specialized modes make it easier to navigate the relevant pieces of
 information, such as files and directories, or buffers.
 
-In the main menu, found by clicking @kbd{Mouse-3}, there is a submenu
+In the main menu, found by clicking @kbd{mouse-3}, there is a submenu
 labeled @samp{Displays}.  This submenu lets you easily choose between
 different display modes.
 
@@ -979,8 +979,8 @@ With a numeric argument (@kbd{C-u}), flush cached data before expanding.
 Contract the item under the cursor.
 @end table
 
-@cindex @code{speedbar-line-path}
-These function require that function @code{speedbar-line-path} be
+@cindex @code{speedbar-line-directory}
+These functions require that the function @code{speedbar-line-directory} be
 correctly overloaded to work.
 
 Next, register your extension like this;
@@ -1013,14 +1013,14 @@ like this:
 (speedbar-add-mode-functions-list
  '("MYEXTENSION"
    (speedbar-item-info . MyExtension-speedbar-item-info)
-   (speedbar-line-path . MyExtension-speedbar-line-path)))
+   (speedbar-line-directory . MyExtension-speedbar-line-directory)))
 @end example
 
 The first element in the list is the name of you extension.  The second
 is an alist of functions to overload.  The function to overload is
 first, followed by what you want called instead.
 
-For @code{speedbar-line-path} your function should take an optional DEPTH
+For @code{speedbar-line-directory} your function should take an optional DEPTH
 parameter.  This is the starting depth for heavily indented lines.  If
 it is not provided, you can derive it like this:
 
@@ -1030,7 +1030,7 @@ it is not provided, you can derive it like this:
       (progn
         (beginning-of-line)
         (looking-at "^\\([0-9]+\\):")
-        (setq depth (string-to-int (match-string 1)))))
+        (setq depth (string-to-number (match-string 1)))))
 @end example
 
 @noindent

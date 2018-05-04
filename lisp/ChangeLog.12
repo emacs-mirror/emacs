@@ -13538,7 +13538,7 @@
 	mh-tool-bar.el, mh-xface.el.  Remove mh-customize.el, mh-init.el.
 	(mh-autoloads): Don't use comments on otherwise empty lines.
 
-2006-01-29  Edward O'Connor  <ted@oconnor.cx>
+2006-01-29  Theresa O'Connor  <ted@oconnor.cx>
 
 	* emulation/viper.el (viper-major-mode-modifier-list):
 	Add insert-state and vi-state entries for erc-mode.
@@ -14350,7 +14350,7 @@
 	* progmodes/ld-script.el (auto-mode-alist): Recognize linker
 	scripts whose file-name extensions are "\.x[bdsru]?[cn]?$".
 
-2006-01-01  Michael Ernst  <mernst@alum.mit.edu>  (tiny changes)
+2006-01-01  Michael Ernst  <mernst@alum.mit.edu>  (tiny change)
 
 	* textmodes/tildify.el: Fix typos (misspellings) in the commentary.
 
@@ -18772,7 +18772,7 @@
 	(pgg-pgp5-sign-region): Use new name of pgg-add-passphrase-to-cache
 	function.
 
-2005-11-04  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+2005-11-04  Theresa O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* net/goto-addr.el (goto-address-url-regexp): Remove `data:' URLs
 	from goto-address-url-regexp.
@@ -30895,7 +30895,7 @@
 	* textmodes/tex-mode.el (tex-view): If tex-shell process is not
 	running, restart it.
 
-2005-03-19  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny changes)
+2005-03-19  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
 
 	* finder.el (finder-current-item): Throw an error on an empty line.
 
@@ -33334,7 +33334,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005-2015 Free Software Foundation, Inc.
+    Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -33349,4 +33349,4 @@ See ChangeLog.11 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

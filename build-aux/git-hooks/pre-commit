@@ -1,7 +1,7 @@
 #!/bin/sh
 # Check file names in git commits for GNU Emacs.
 
-# Copyright 2014-2015 Free Software Foundation, Inc.
+# Copyright 2014-2018 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 LC_ALL=C
 export LC_ALL
@@ -25,16 +25,32 @@ exec >&2
 
 . git-sh-setup
 
+# When doing a two-way merge, ignore problems that came from the other
+# side of the merge.
+head=HEAD
+if test -r "$GIT_DIR"/MERGE_HEAD; then
+  merge_heads=`cat "$GIT_DIR"/MERGE_HEAD` || exit
+  for merge_head in $merge_heads; do
+    case $head in
+      HEAD) head=$merge_head;;
+      # For multi-head merges, there's no easy way to ignore merged-in
+      # changes.  But if you're doing multi-head merges, presumably
+      # you know how to handle any ensuing problems.
+      *) head=HEAD; break;;
+    esac
+  done
+fi
+
 git_diff='git diff --cached --name-only --diff-filter=A'
 ok_chars='\0+[=-=]./0-9A-Z_a-z'
-nbadchars=`$git_diff -z HEAD | tr -d "$ok_chars" | wc -c`
+nbadchars=`$git_diff -z $head | tr -d "$ok_chars" | wc -c`
 
 if test "$nbadchars" -ne 0; then
   echo "File name does not consist of -+./_ or ASCII letters or digits."
   exit 1
 fi
 
-for new_name in `$git_diff HEAD`; do
+for new_name in `$git_diff $head`; do
   case $new_name in
     -* | */-*)
       echo "$new_name: File name component begins with '-'."
@@ -45,4 +61,12 @@ for new_name in `$git_diff HEAD`; do
   esac
 done
 
-exec git diff-index --check --cached HEAD --
+# The '--check' option of git diff-index makes Git complain if changes
+# introduce whitespace errors.  This can be a pain when editing test
+# files that deliberately contain lines with trailing whitespace.
+# To work around the problem you can run a command like 'git config
+# core.whitespace -trailing-space'.  It may be better to revamp the
+# tests so that trailing spaces are generated on the fly rather than
+# being committed as source.
+
+exec git diff-index --check --cached $head --

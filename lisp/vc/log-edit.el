@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -97,7 +97,7 @@
 
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
-If 'changed, only request confirmation if the list of files has
+If `changed', only request confirmation if the list of files has
   changed since the beginning of the log-edit session."
   :group 'log-edit
   :type '(choice (const changed) (const t) (const nil)))
@@ -115,7 +115,7 @@ Enforce it silently if t, query if non-nil and don't do anything if nil."
 
 (defcustom log-edit-setup-invert nil
   "Non-nil means `log-edit' should invert the meaning of its SETUP arg.
-If SETUP is 'force, this variable has no effect."
+If SETUP is `force', this variable has no effect."
   :group 'log-edit
   :type 'boolean)
 
@@ -203,10 +203,7 @@ when this variable is set to nil.")
 
 (defconst log-edit-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
-(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
 (defvar log-edit-comment-ring (make-ring log-edit-maximum-comment-ring-size))
-(define-obsolete-variable-alias 'vc-comment-ring-index
-  'log-edit-comment-ring-index "22.1")
 (defvar log-edit-comment-ring-index nil)
 (defvar log-edit-last-comment-match "")
 
@@ -310,13 +307,6 @@ automatically."
     (delete-char (- (skip-syntax-backward " ")))
     (or (eobp) (looking-at "\n\n")
 	(insert "\n"))))
-
-;; Compatibility with old names.
-(define-obsolete-function-alias 'vc-previous-comment 'log-edit-previous-comment "22.1")
-(define-obsolete-function-alias 'vc-next-comment 'log-edit-next-comment "22.1")
-(define-obsolete-function-alias 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
-(define-obsolete-function-alias 'vc-comment-search-forward 'log-edit-comment-search-forward "22.1")
-(define-obsolete-function-alias 'vc-comment-to-change-log 'log-edit-comment-to-change-log "22.1")
 
 ;;;
 ;;; Actual code
@@ -623,7 +613,7 @@ Also saves its contents in the comment history and hides
       (setq buffer-read-only nil)
       (erase-buffer)
       (cvs-insert-strings files)
-      (setq buffer-read-only t)
+      (special-mode)
       (goto-char (point-min))
       (save-selected-window
 	(cvs-pop-to-buffer-same-frame buf)
@@ -905,7 +895,7 @@ Return non-nil if it is."
 The return value looks like this:
   (LOGBUFFER (ENTRYSTART ENTRYEND) ...)
 where LOGBUFFER is the name of the ChangeLog buffer, and each
-\(ENTRYSTART . ENTRYEND\) pair is a buffer region."
+\(ENTRYSTART . ENTRYEND) pair is a buffer region."
   (let ((changelog-file-name
          (let ((default-directory
                  (file-name-directory (expand-file-name file)))

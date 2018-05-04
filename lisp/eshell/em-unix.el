@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -517,7 +517,7 @@ Remove the DIRECTORY(ies), if they are empty.")
      :usage "[OPTION]... SOURCE DEST
    or: mv [OPTION]... SOURCE... DIRECTORY
 Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
-\[OPTION] DIRECTORY...")
+[OPTION] DIRECTORY...")
    (let ((no-dereference t))
      (eshell-mvcpln-template "mv" "moving" 'rename-file
 			     eshell-mv-interactive-query
@@ -748,7 +748,12 @@ external command."
 	     (cmd (progn
 		    (set-text-properties 0 (length args)
 					 '(invisible t) args)
-		    (format "%s -n %s" command args)))
+		    (format "%s -n %s"
+			    (pcase command
+			      ("egrep" "grep -E")
+			      ("fgrep" "grep -F")
+			      (x x))
+			    args)))
 	     compilation-scroll-output)
 	(grep cmd)))))
 
@@ -757,11 +762,11 @@ external command."
   (eshell-grep "grep" args t))
 
 (defun eshell/egrep (&rest args)
-  "Use Emacs grep facility instead of calling external egrep."
+  "Use Emacs grep facility instead of calling external grep -E."
   (eshell-grep "egrep" args t))
 
 (defun eshell/fgrep (&rest args)
-  "Use Emacs grep facility instead of calling external fgrep."
+  "Use Emacs grep facility instead of calling external grep -F."
   (eshell-grep "fgrep" args t))
 
 (defun eshell/agrep (&rest args)
@@ -956,11 +961,11 @@ Show wall-clock time elapsed during execution of COMMAND.")
      ;; after setting
      (throw 'eshell-replace-command
 	    (eshell-parse-command (car time-args)
-;;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-08/msg00205.html
+;;; https://lists.gnu.org/r/bug-gnu-emacs/2007-08/msg00205.html
 				  (eshell-stringify-list
 				   (eshell-flatten-list (cdr time-args))))))))
 
-(defun eshell/whoami (&rest args)
+(defun eshell/whoami (&rest _args)
   "Make \"whoami\" Tramp aware."
   (or (file-remote-p default-directory 'user) (user-login-name)))
 

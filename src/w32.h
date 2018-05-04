@@ -2,14 +2,14 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef CYGWIN
 #error "w32.h is not compatible with Cygwin"
@@ -89,7 +89,7 @@ typedef struct _child_process
      terminate it by sys_kill.  */
   HWND                hwnd;
   /* Information about subprocess returned by CreateProcess.  Includes
-     handles to the subprocess and its primary thread, and the
+     handles to the subprocess and its main thread, and the
      corresponding process ID and thread ID numbers.  The PID is
      mirrored by the 'pid' member above.  The process handle is used
      to wait on it.  */
@@ -162,7 +162,7 @@ extern void reset_standard_handles (int in, int out,
 				    int err, HANDLE handles[4]);
 
 /* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE w32_get_resource (char * key, LPDWORD type);
+extern LPBYTE w32_get_resource (const char * key, LPDWORD type);
 
 extern void release_listen_threads (void);
 extern void init_ntproc (int);
@@ -179,8 +179,11 @@ extern int _sys_wait_connect (int fd);
 
 extern HMODULE w32_delayed_load (Lisp_Object);
 
-extern int (WINAPI *pMultiByteToWideChar)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
-extern int (WINAPI *pWideCharToMultiByte)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
+typedef int (WINAPI *MultiByteToWideChar_Proc)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
+typedef int (WINAPI *WideCharToMultiByte_Proc)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
+extern MultiByteToWideChar_Proc pMultiByteToWideChar;
+extern WideCharToMultiByte_Proc pWideCharToMultiByte;
+extern DWORD multiByteToWideCharFlags;
 
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
@@ -192,6 +195,7 @@ extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern void w32_init_file_name_codepage (void);
 extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);
 extern int  w32_copy_file (const char *, const char *, int, int, int);
@@ -219,6 +223,9 @@ extern int w32_memory_info (unsigned long long *, unsigned long long *,
 
 /* Compare 2 UTF-8 strings in locale-dependent fashion.  */
 extern int w32_compare_strings (const char *, const char *, char *, int);
+
+/* Return a cryptographically secure seed for PRNG.  */
+extern int w32_init_random (void *, ptrdiff_t);
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>

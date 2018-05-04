@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2015 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Noah Friedman
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -133,7 +133,7 @@ keystroke even though they really require multiple keys to generate them.
 The command `type-break-guesstimate-keystroke-threshold' can be used to
 guess a reasonably good pair of values for this variable."
   :set-after '(type-break-interval)
-  :type 'sexp
+  :type '(cons (choice integer (const nil)) (choice integer (const nil)))
   :group 'type-break)
 
 (defcustom type-break-query-function 'yes-or-no-p
@@ -376,7 +376,7 @@ problems."
        (if (and type-break-time-last-break
                 (< (setq diff (type-break-time-difference
                                type-break-time-last-break
-                               (current-time)))
+                               nil))
                    type-break-interval))
            ;; Use the file's value.
            (progn
@@ -402,7 +402,7 @@ problems."
                                                'nowarn)
         (set-buffer-modified-p nil)
         (unlock-buffer)
-        (kill-this-buffer))))))
+        (kill-current-buffer))))))
 
 (define-minor-mode type-break-mode-line-message-mode
   "Toggle warnings about typing breaks in the mode line.
@@ -563,7 +563,7 @@ as per the function `type-break-schedule'."
         (cond
          (good-interval
           (let ((break-secs (type-break-time-difference
-                             start-time (current-time))))
+                             start-time nil)))
             (cond
              ((>= break-secs good-interval)
               (setq continue nil))
@@ -624,7 +624,7 @@ INTERVAL is the full length of an interval (defaults to TIME)."
                type-break-time-warning-intervals))
 
     (or time
-        (setq time (type-break-time-difference (current-time)
+        (setq time (type-break-time-difference nil
                                                type-break-time-next-break)))
 
     (while (and type-break-current-time-warning-interval
@@ -677,7 +677,7 @@ INTERVAL is the full length of an interval (defaults to TIME)."
 (defun type-break-check ()
   "Ask to take a typing break if appropriate.
 This may be the case either because the scheduled time has come \(and the
-minimum keystroke threshold has been reached\) or because the maximum
+minimum keystroke threshold has been reached) or because the maximum
 keystroke threshold has been exceeded."
   (type-break-file-keystroke-count)
   (let* ((min-threshold (car type-break-keystroke-threshold))
@@ -685,7 +685,7 @@ keystroke threshold has been exceeded."
     (and type-break-good-rest-interval
          (progn
            (and (> (type-break-time-difference
-                    type-break-time-last-command (current-time))
+                    type-break-time-last-command nil)
                    type-break-good-rest-interval)
                 (progn
                   (type-break-keystroke-reset)

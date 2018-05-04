@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -76,7 +76,7 @@ The difference from the ordinal Thai keyboard:
   "๑" "ฤ" "ฺ" "ฉ" "ฏ" "ฎ" "โ" "ฌ"	; @ .. G
   "็" "ณ" "๋" "ษ" "ศ" "?" "์" "ฯ"	; H .. O
   "ญ" "๐" "ฑ" "ฆ" "ธ" "๊" "ฮ" "\""	; P .. W
-  "\)" "ํ" "\(" "บ" "ฃ" "ล" "ู" "๘"	; X .. _
+  ")" "ํ" "(" "บ" "ฃ" "ล" "ู" "๘"	; X .. _
   "_" "ฟ" "ิ" "แ" "ก" "ำ" "ด" "เ"	; ` .. g
   "้" "ร" "่" "า" "ส" "ท" "ื" "น"	; h .. o
   "ย" "ๆ" "พ" "ห" "ะ" "ี" "อ" "ไ"	; p .. w

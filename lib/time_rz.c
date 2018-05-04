@@ -1,6 +1,6 @@
 /* Time zone functions such as tzalloc and localtime_rz
 
-   Copyright 2015 Free Software Foundation, Inc.
+   Copyright 2015-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -27,27 +27,27 @@
 #include <time.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "flexmember.h"
 #include "time-internal.h"
 
-#if !HAVE_TZSET
-static void tzset (void) { }
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
 #endif
 
 /* The approximate size to use for small allocation requests.  This is
    the largest "small" request for the GNU C library malloc.  */
 enum { DEFAULT_MXFAST = 64 * sizeof (size_t) / 4 };
 
-/* Minimum size of the ABBRS member of struct abbr.  ABBRS is larger
+/* Minimum size of the ABBRS member of struct tm_zone.  ABBRS is larger
    only in the unlikely case where an abbreviation longer than this is
    used.  */
 enum { ABBR_SIZE_MIN = DEFAULT_MXFAST - offsetof (struct tm_zone, abbrs) };
-
-static char const TZ[] = "TZ";
 
 /* Magic cookie timezone_t value, for local time.  It differs from
    NULL and from all other timezone_t values.  Only the address
@@ -90,14 +90,13 @@ extend_abbrs (char *abbrs, char const *abbr, size_t abbr_size)
 }
 
 /* Return a newly allocated time zone for NAME, or NULL on failure.
-   As a special case, return a nonzero constant for wall clock time, a
-   constant that survives freeing.  */
+   A null NAME stands for wall clock time (which is like unset TZ).  */
 timezone_t
 tzalloc (char const *name)
 {
   size_t name_size = name ? strlen (name) + 1 : 0;
   size_t abbr_size = name_size < ABBR_SIZE_MIN ? ABBR_SIZE_MIN : name_size + 1;
-  timezone_t tz = malloc (offsetof (struct tm_zone, abbrs) + abbr_size);
+  timezone_t tz = malloc (FLEXSIZEOF (struct tm_zone, abbrs, abbr_size));
   if (tz)
     {
       tz->next = NULL;
@@ -152,7 +151,13 @@ save_abbr (timezone_t tz, struct tm *tm)
           if (! (*zone_copy || (zone_copy == tz->abbrs && tz->tz_is_set)))
             {
               size_t zone_size = strlen (zone) + 1;
-              if (zone_size < tz->abbrs + ABBR_SIZE_MIN - zone_copy)
+              size_t zone_used = zone_copy - tz->abbrs;
+              if (SIZE_MAX - zone_used < zone_size)
+                {
+                  errno = ENOMEM;
+                  return false;
+                }
+              if (zone_used + zone_size < ABBR_SIZE_MIN)
                 extend_abbrs (zone_copy, zone, zone_size);
               else
                 {
@@ -206,7 +211,7 @@ tzfree (timezone_t tz)
 static char *
 getenv_TZ (void)
 {
-  return getenv (TZ);
+  return getenv ("TZ");
 }
 #endif
 
@@ -214,7 +219,7 @@ getenv_TZ (void)
 static int
 setenv_TZ (char const *tz)
 {
-  return tz ? setenv (TZ, tz, 1) : unsetenv (TZ);
+  return tz ? setenv ("TZ", tz, 1) : unsetenv ("TZ");
 }
 #endif
 
@@ -281,6 +286,21 @@ revert_tz (timezone_t tz)
 struct tm *
 localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
 {
+#ifdef HAVE_LOCALTIME_INFLOOP_BUG
+  /* The -67768038400665599 comes from:
+     https://lists.gnu.org/r/bug-gnulib/2017-07/msg00142.html
+     On affected platforms the greatest POSIX-compatible time_t value
+     that could return nonnull is 67768036191766798 (when
+     TZ="XXX24:59:59" it resolves to the year 2**31 - 1 + 1900, on
+     12-31 at 23:59:59), so test for that too while we're in the
+     neighborhood.  */
+  if (! (-67768038400665599 <= *t && *t <= 67768036191766798))
+    {
+      errno = EOVERFLOW;
+      return NULL;
+    }
+#endif
+
   if (!tz)
     return gmtime_r (t, tm);
   else
@@ -288,10 +308,8 @@ localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
       timezone_t old_tz = set_tz (tz);
       if (old_tz)
         {
-          tm = localtime_r (t, tm);
-          if (tm && !save_abbr (tz, tm))
-            tm = NULL;
-          if (revert_tz (old_tz))
+          bool abbr_saved = localtime_r (t, tm) && save_abbr (tz, tm);
+          if (revert_tz (old_tz) && abbr_saved)
             return tm;
         }
       return NULL;

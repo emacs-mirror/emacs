@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,7 +15,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,6 +30,7 @@
 
 (defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
+Also update the etc/HISTORY file.
 Root must be the root of an Emacs source tree.
 Optional argument DATE is the release date, default today."
   (interactive (list (read-directory-name "Emacs root directory: ")
@@ -42,6 +43,19 @@ Optional argument DATE is the release date, default today."
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (let ((clog (expand-file-name "ChangeLog" root)))
+    (if (file-exists-p clog)
+        ;; Basic check that a ChangeLog that exists is not your personal one.
+        ;; TODO Perhaps we should move any existing file and unconditionally
+        ;; call make ChangeLog?  Or make ChangeLog CHANGELOG=temp and compare
+        ;; with the existing?
+        (with-temp-buffer
+          (insert-file-contents clog)
+          (or (re-search-forward "^[ \t]*Copyright.*Free Software" nil t)
+              (user-error "ChangeLog looks like a personal one - remove it?")))
+      (or
+       (zerop (call-process "make" nil nil nil "-C" root "ChangeLog"))
+       (error "Problem generating ChangeLog"))))
   (require 'add-log)
   (or date (setq date (funcall add-log-time-format nil t)))
   (let* ((logs (process-lines "find" root "-name" "ChangeLog"))
@@ -53,7 +67,14 @@ Optional argument DATE is the release date, default today."
     (dolist (log logs)
       (find-file log)
       (goto-char (point-min))
-      (insert entry))))
+      (insert entry)))
+  (let ((histfile (expand-file-name "etc/HISTORY" root)))
+    (unless (file-exists-p histfile)
+      (error "%s not present" histfile))
+    (find-file histfile)
+    (goto-char (point-max))
+    (search-backward "")
+    (insert (format "GNU Emacs %s (%s) emacs-%s\n\n" version date version))))
 
 (defun set-version-in-file (root file version rx)
   "Subroutine of `set-version' and `set-copyright'."
@@ -72,9 +93,7 @@ Optional argument DATE is the release date, default today."
 Root must be the root of an Emacs source tree."
   (interactive (list
 		(read-directory-name "Emacs root directory: " source-directory)
-		(read-string "Version number: "
-			     (replace-regexp-in-string "\\.[0-9]+\\'" ""
-						       emacs-version))))
+		(read-string "Version number: " emacs-version)))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (message "Setting version numbers...")
@@ -88,21 +107,98 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "AC_INIT" (1+ (not (in ?,)))
                                 ?, (0+ space)
                                 (submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "nt/README.W32" version
+		       (rx (and "version" (1+ space)
+				(submatch (1+ (in "0-9."))))))
   ;; TODO: msdos could easily extract the version number from
   ;; configure.ac with sed, rather than duplicating the information.
   (set-version-in-file root "msdos/sed2v2.inp" version
 		       (rx (and bol "/^#undef " (1+ not-newline)
-				"define VERSION" (1+ space) "\""
+				"define PACKAGE_VERSION" (1+ space) "\""
 				(submatch (1+ (in "0-9."))))))
   ;; Major version only.
   (when (string-match "\\([0-9]\\{2,\\}\\)" version)
-    (setq version (match-string 1 version))
-    (set-version-in-file root "src/msdos.c" version
-			 (rx (and "Vwindow_system_version" (1+ not-newline)
-				  ?\( (submatch (1+ (in "0-9"))) ?\))))
-    (set-version-in-file root "etc/refcards/ru-refcard.tex" version
-			 "\\\\newcommand{\\\\versionemacs}\\[0\\]\
-{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs"))
+    (let ((newmajor (match-string 1 version)))
+      (set-version-in-file root "src/msdos.c" newmajor
+                           (rx (and "Vwindow_system_version" (1+ not-newline)
+                                    ?\( (submatch (1+ (in "0-9"))) ?\))))
+      (set-version-in-file root "etc/refcards/ru-refcard.tex" newmajor
+                           "\\\\newcommand{\\\\versionemacs}\\[0\\]\
+{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))
+  (let* ((oldversion
+          (with-temp-buffer
+            (insert-file-contents (expand-file-name "README" root))
+            (if (re-search-forward "version \\([0-9.]*\\)" nil t)
+                (version-to-list (match-string 1)))))
+         (oldmajor (if oldversion (car oldversion)))
+         (newversion (version-to-list version))
+         (newmajor (car newversion))
+         (newshort (format "%s.%s" newmajor
+                           (+ (cadr newversion)
+                              (if (eq 2 (length newversion)) 0 1))))
+         (majorbump (and oldversion (not (equal oldmajor newmajor))))
+         (minorbump (and oldversion (not majorbump)
+                         (not (equal (cadr oldversion) (cadr newversion)))))
+         (newsfile (expand-file-name "etc/NEWS" root))
+         (oldnewsfile (expand-file-name (format "etc/NEWS.%s" oldmajor) root)))
+    (unless (> (length newversion) 2)   ; pretest or release candidate?
+      (with-temp-buffer
+        (insert-file-contents newsfile)
+        (if (re-search-forward "^\\(+++ *\\|--- *\\)$" nil t)
+            (display-warning 'admin
+                             "NEWS file still contains temporary markup.
+Documentation changes might not have been completed!"))))
+    (when (and majorbump
+               (not (file-exists-p oldnewsfile)))
+      (rename-file newsfile oldnewsfile)
+      (find-file oldnewsfile)           ; to prompt you to commit it
+      (copy-file oldnewsfile newsfile)
+      (with-temp-buffer
+        (insert-file-contents newsfile)
+        (re-search-forward "is about changes in Emacs version \\([0-9]+\\)")
+        (replace-match (number-to-string newmajor) nil nil nil 1)
+        (re-search-forward "^See files \\(NEWS\\)")
+        (unless (save-match-data
+                  (when (looking-at "\\(\\..*\\), \\(\\.\\.\\.\\|…\\)")
+                    (replace-match
+                     (format ".%s, NEWS.%s" oldmajor (1- oldmajor))
+                     nil nil nil 1)
+                    t))
+          (replace-match (format "NEWS.%s, NEWS" oldmajor) nil nil nil 1)
+          (let ((start (line-beginning-position)))
+            (search-forward "in older Emacs versions")
+            (or (equal start (line-beginning-position))
+                (fill-region start (line-beginning-position 2)))))
+        (re-search-forward "^$")
+        (forward-line -1)
+        (let ((start (point)))
+          (goto-char (point-max))
+          (re-search-backward "^$" nil nil 2)
+          (delete-region start (line-beginning-position 0)))
+        (write-region nil nil newsfile)))
+    (when (or majorbump minorbump)
+      (find-file newsfile)
+      (goto-char (point-min))
+      (if (re-search-forward (format "^\\* .*in Emacs %s" newshort) nil t)
+          (progn
+            (kill-buffer)
+            (message "No need to update etc/NEWS"))
+        (goto-char (point-min))
+        (re-search-forward "^$")
+        (forward-line -1)
+        (dolist (s '("Installation Changes" "Startup Changes" "Changes"
+                     "Editing Changes"
+                     "Changes in Specialized Modes and Packages"
+                          "New Modes and Packages"
+                          "Incompatible Lisp Changes"
+                          "Lisp Changes"))
+          (insert (format "\n\n* %s in Emacs %s\n" s newshort)))
+        (insert (format "\n\n* Changes in Emacs %s on \
+Non-Free Operating Systems\n" newshort)))
+      ;; Because we skip "bump version" commits when merging between branches.
+      ;; Probably doesn't matter in practice, because NEWS changes
+      ;; will only happen on master anyway.
+      (message "Commit any NEWS changes separately")))
   (message "Setting version numbers...done"))
 
 ;; Note this makes some assumptions about form of short copyright.
@@ -565,7 +661,10 @@ style=\"text-align:left\">")
     ("@GZIP_PROG@" . "gzip")
     ("@INSTALL@" . "install -c")
     ("@INSTALL_DATA@" . "${INSTALL} -m 644")
-    ("@configure_input@" . ""))
+    ("@configure_input@" . "")
+    ("@AM_DEFAULT_VERBOSITY@" . "0")
+    ("@AM_V@" . "${V}")
+    ("@AM_DEFAULT_V@" . "${AM_DEFAULT_VERBOSITY}"))
   "Alist of (REGEXP . REPLACEMENT) pairs for `make-manuals-dist'.")
 
 (defun make-manuals-dist--1 (root type)
@@ -585,7 +684,9 @@ style=\"text-align:left\">")
 	(delete-directory stem t))
     (make-directory stem)
     (copy-file "../doc/misc/texinfo.tex" stem)
-    (or (equal type "emacs") (copy-file "../doc/emacs/emacsver.texi" stem))
+    (unless (equal type "emacs")
+      (copy-file "../doc/emacs/emacsver.texi" stem)
+      (copy-file "../doc/emacs/docstyle.texi" stem))
     (dolist (file (directory-files (format "../doc/%s" type) t))
       (if (or (string-match-p "\\(\\.texi\\'\\|/README\\'\\)" file)
 	      (and (equal type "lispintro")
@@ -798,3 +899,7 @@ changes (in a non-trivial way).  This function does not check for that."
 (provide 'admin)
 
 ;;; admin.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

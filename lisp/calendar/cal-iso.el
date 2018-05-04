@@ -1,6 +1,6 @@
 ;;; cal-iso.el --- calendar functions for the ISO calendar
 
-;; Copyright (C) 1995, 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -33,7 +33,7 @@
 
 (defun calendar-iso-to-absolute (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The `ISO year' corresponds approximately to the Gregorian year, but
+The \"ISO year\" corresponds approximately to the Gregorian year, but
 weeks start on Monday and end on Sunday.  The first week of the ISO year is
 the first such week in which at least 4 days are in a year.  The ISO
 commercial DATE has the form (week day year) in which week is in the range
@@ -49,7 +49,7 @@ Sunday).  The Gregorian date Sunday, December 31, 1 BC is imaginary."
 
 ;;;###cal-autoload
 (defun calendar-iso-from-absolute (date)
-  "Compute the `ISO commercial date' corresponding to the absolute DATE.
+  "Compute the \"ISO commercial date\" corresponding to the absolute DATE.
 The ISO year corresponds approximately to the Gregorian year, but weeks
 start on Monday and end on Sunday.  The first week of the ISO year is the
 first such week in which at least 4 days are in a year.  The ISO commercial

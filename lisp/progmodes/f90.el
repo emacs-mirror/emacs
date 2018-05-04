@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -123,7 +123,6 @@
 ;;    mechanism for treating multi-line directives (continued by \ ).
 ;; 7) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
 ;;    You are urged to use f90-do loops (with labels if you wish).
-;; 8) The highlighting mode under XEmacs is not as complete as under Emacs.
 
 ;; List of user commands
 ;;   f90-previous-statement         f90-next-statement
@@ -133,7 +132,7 @@
 ;;   f90-indent-region    (can be called by calling indent-region)
 ;;   f90-indent-subprogram
 ;;   f90-break-line                 f90-join-lines
-;;   f90-fill-region
+;;   f90-fill-region                f90-fill-paragraph
 ;;   f90-insert-end
 ;;   f90-upcase-keywords            f90-upcase-region-keywords
 ;;   f90-downcase-keywords          f90-downcase-region-keywords
@@ -240,7 +239,7 @@
   :group 'f90-indent)
 
 (defcustom f90-beginning-ampersand t
-  "Non-nil gives automatic insertion of \& at start of continuation line."
+  "Non-nil gives automatic insertion of `&' at start of continuation line."
   :type  'boolean
   :safe  'booleanp
   :group 'f90)
@@ -295,7 +294,7 @@ the constant `f90-no-break-re' ensures that such tokens are not split."
 
 (defcustom f90-auto-keyword-case nil
   "Automatic case conversion of keywords.
-The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
+The options are `downcase-word', `upcase-word', `capitalize-word' and nil."
   :type  '(choice (const downcase-word) (const upcase-word)
                   (const capitalize-word) (const nil))
   :safe (lambda (value) (memq value '(downcase-word
@@ -649,7 +648,7 @@ forall\\|block\\|critical\\)\\)\\_>"
 \\|enumerator\\|procedure\\|\
 logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
-    '("\\_<\\(namelist\\|common\\)[ \t]*\/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
+    '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\_<else\\([ \t]*if\\|where\\)?\\_>"
     '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
@@ -784,6 +783,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
         ["Indent Region" f90-indent-region :active mark-active]
         ["Fill Region" f90-fill-region :active mark-active
          :help "Fill long lines in the region"]
+        ["Fill Statement/Comment" fill-paragraph :active t]
         "--"
         ["Break Line at Point" f90-break-line :active t
          :help "Break the current line at point"]
@@ -895,8 +895,10 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 ;; This is for a TYPE block, not a variable of derived TYPE.
 ;; Hence no need to add CLASS for F2003.
+;; Note that this also matches "type is", so you might need to use
+;; f90-typeis-re as well.
 (defconst f90-type-def-re
-  ;; type word
+  ;; type word    (includes "type is")
   ;; type :: word
   ;; type, attr-list :: word
   ;;   where attr-list = attr [, attr ...]
@@ -907,6 +909,8 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 [ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
   "Regexp matching the definition of a derived type.")
 
+;; Maybe this should include "class default", but the constant is no
+;; longer used.
 (defconst f90-typeis-re
   "\\_<\\(class\\|type\\)[ \t]*is[ \t]*("
   "Regexp matching a CLASS/TYPE IS statement.")
@@ -953,10 +957,14 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    ;; Avoid F2003 "type is" in "select type",
    ;; and also variables of derived type "type (foo)".
    ;; "type, foo" must be a block (?).
-   "type[ \t,]\\("
-   "[^i(!\n\"\& \t]\\|"                 ; not-i(
-   "i[^s!\n\"\& \t]\\|"                 ; i not-s
-   "is\\(?:\\sw\\|\\s_\\)\\)\\|"
+   ;; And a partial effort to avoid "class default".
+   "\\(?:type\\|class\\)[ \t,]\\("
+   "[^id(!\n\"& \t]\\|"                ; not-id(
+   "i[^s!\n\"& \t]\\|"                 ; i not-s
+   "d[^e!\n\"& \t]\\|"                 ; d not-e
+   "de[^f!\n\"& \t]\\|"                ; de not-f
+   "def[^a!\n\"& \t]\\|"               ; def not-a
+   "\\(?:is\\|default\\)\\(?:\\sw\\|\\s_\\)\\)\\|"
    ;; "abstract interface" is F2003; "submodule" is F2008.
    "program\\|\\(?:abstract[ \t]*\\)?interface\\|\\(?:sub\\)?module\\|"
    ;; "enum", but not "enumerator".
@@ -992,9 +1000,9 @@ Set subexpression 1 in the match-data to the name of the type."
     found))
 
 (defvar f90-imenu-generic-expression
-  (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
-        (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]")
-        ;; (not-ib "[^i(!\n\"\& \t]") (not-s "[^s!\n\"\& \t]")
+  (let ((good-char "[^!\"&\n \t]") (not-e "[^e!\n\"& \t]")
+        (not-n "[^n!\n\"& \t]") (not-d "[^d!\n\"& \t]")
+        ;; (not-ib "[^i(!\n\"& \t]") (not-s "[^s!\n\"& \t]")
         )
     `((nil "^[ \t0-9]*program[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)" 1)
       ("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
@@ -1015,7 +1023,7 @@ Set subexpression 1 in the match-data to the name of the type."
          "\\("
          ;; At least three non-space characters before function/subroutine.
          ;; Check that the last three non-space characters do not spell E N D.
-         "[^!\"\&\n]*\\("
+         "[^!\"&\n]*\\("
          not-e good-char good-char "\\|"
          good-char not-n good-char "\\|"
          good-char good-char not-d "\\)"
@@ -1154,7 +1162,7 @@ Variables controlling indentation style and extra features:
   Non-nil causes `f90-do-auto-fill' to break lines before delimiters
   (default t).
 `f90-beginning-ampersand'
-  Automatic insertion of \& at beginning of continuation lines (default t).
+  Automatic insertion of `&' at beginning of continuation lines (default t).
 `f90-smart-end'
   From an END statement, check and fill the end using matching block start.
   Allowed values are `blink', `no-blink', and nil, which determine
@@ -1177,6 +1185,7 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'normal-auto-fill-function) 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)           ; auto buffer local
+  (set (make-local-variable 'fill-paragraph-function) 'f90-fill-paragraph)
   (set (make-local-variable 'font-lock-defaults)
        '((f90-font-lock-keywords f90-font-lock-keywords-1
                                  f90-font-lock-keywords-2
@@ -1378,7 +1387,7 @@ write\\)[ \t]*([^)\n]*)")
    ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-         (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
+         (looking-at "[^!'\"&\n]*\\(function\\|subroutine\\)[ \t]+\
 \\(\\(?:\\sw\\|\\s_\\)+\\)"))
     (list (match-string 1) (match-string 2)))))
 ;; Following will match an un-named main program block; however
@@ -1452,7 +1461,8 @@ if all else fails."
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
-block\\|critical\\|enum\\)\\_>")
+\\(?:class\\|type\\)[ \t]*is\\|class[ \t]*default\\|\
+block\\|critical\\|enum\\|associate\\)\\_>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\_>")
              (looking-at "\\(contains\\|\\(?:\\sw\\|\\s_\\)+[ \t]*:\\)")
@@ -1836,10 +1846,8 @@ A block is a subroutine, if-endif, etc."
     (push-mark)
     (goto-char pos)
     (setq program (f90-beginning-of-subprogram))
-    (if (featurep 'xemacs)
-        (zmacs-activate-region)
-      (setq mark-active t
-            deactivate-mark nil))
+    (setq mark-active t
+          deactivate-mark nil)
     program))
 
 (defun f90-comment-region (beg-region end-region)
@@ -1877,8 +1885,8 @@ after indenting."
     ;; FIXME This means f90-calculate-indent gives different answers
     ;; for comments and preprocessor lines to this function.
     ;; Better to make f90-calculate-indent return the correct answer?
-    (cond ((looking-at "!") (setq indent (f90-comment-indent)))
-          ((looking-at "#") (setq indent 0))
+    (cond ((= (following-char) ?!) (setq indent (f90-comment-indent)))
+          ((= (following-char) ?#) (setq indent 0))
           (t
            (and f90-smart-end (looking-at "end")
                 (f90-match-end))
@@ -2031,9 +2039,7 @@ If run in the middle of a line, the line is not broken."
     (goto-char save-point)
     (set-marker end-region-mark nil)
     (set-marker save-point nil)
-    (if (featurep 'xemacs)
-        (zmacs-deactivate-region)
-      (deactivate-mark))))
+    (deactivate-mark)))
 
 (defun f90-indent-subprogram ()
   "Properly indent the subprogram containing point."
@@ -2110,7 +2116,7 @@ Like `join-line', but handles F90 syntax."
   (if arg (forward-line 1))
   (when (eq (preceding-char) ?\n)
     (skip-chars-forward " \t")
-    (if (looking-at "\&") (delete-char 1))
+    (if (looking-at "&") (delete-char 1))
     (beginning-of-line)
     (delete-region (point) (1- (point)))
     (skip-chars-backward " \t")
@@ -2146,9 +2152,21 @@ Like `join-line', but handles F90 syntax."
             f90-cache-position (point)))
     (setq f90-cache-position nil)
     (set-marker end-region-mark nil)
-    (if (featurep 'xemacs)
-        (zmacs-deactivate-region)
-      (deactivate-mark))))
+    (deactivate-mark)))
+
+(defun f90-fill-paragraph (&optional justify)
+  "In a comment, fill it as a paragraph, else fill the current statement.
+For use as the value of `fill-paragraph-function'.
+Passes optional argument JUSTIFY to `fill-comment-paragraph'.
+Always returns non-nil (to prevent `fill-paragraph' being called)."
+  (interactive "*P")
+  (or (fill-comment-paragraph justify)
+      (save-excursion
+        (f90-next-statement)
+        (let ((end (if (bobp) (point) (1- (point)))))
+          (f90-previous-statement)
+          (f90-fill-region (point) end)))
+      t))
 
 (defconst f90-end-block-optional-name
   '("program" "module" "subroutine" "function" "type")
@@ -2330,7 +2348,7 @@ Any other key combination is executed normally."
 ;; Change the keywords according to argument.
 (defun f90-change-keywords (change-word &optional beg end)
   "Change the case of F90 keywords in the region (if specified) or buffer.
-CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
+CHANGE-WORD should be one of `upcase-word', `downcase-word', `capitalize-word'."
   (save-excursion
     (setq beg (or beg (point-min))
           end (or end (point-max)))
@@ -2355,7 +2373,8 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
               (setq ref-point (point)
                     ;; FIXME this does not work for constructs with
                     ;; embedded space, eg "sync all".
-                    back-point (save-excursion (backward-word 1) (point))
+                    back-point (save-excursion (backward-word-strictly 1)
+                                               (point))
                     saveword (buffer-substring back-point ref-point))
               (funcall change-word -1)
               (or (string= saveword (buffer-substring back-point ref-point))
@@ -2381,9 +2400,5 @@ escape character."
 
 
 (provide 'f90)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; f90.el ends here

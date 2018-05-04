@@ -1,6 +1,6 @@
 /* Provide file descriptor control.
 
-   Copyright (C) 2009-2015 Free Software Foundation, Inc.
+   Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Eric Blake <ebb9@byu.net>.  */
 
@@ -38,7 +38,11 @@
 # include <windows.h>
 
 /* Get _get_osfhandle.  */
-# include "msvc-nothrow.h"
+# if GNULIB_MSVC_NOTHROW
+#  include "msvc-nothrow.h"
+# else
+#  include <io.h>
+# endif
 
 /* Upper bound on getdtablesize().  See lib/getdtablesize.c.  */
 # define OPEN_MAX_MAX 0x10000
@@ -161,6 +165,93 @@ dupfd (int oldfd, int newfd, int flags)
   return result;
 }
 #endif /* W32 */
+
+#ifdef __KLIBC__
+
+# define INCL_DOS
+# include <os2.h>
+
+static int
+klibc_fcntl (int fd, int action, /* arg */...)
+{
+  va_list arg_ptr;
+  int arg;
+  struct stat sbuf;
+  int result = -1;
+
+  va_start (arg_ptr, action);
+  arg = va_arg (arg_ptr, int);
+  result = fcntl (fd, action, arg);
+  /* EPERM for F_DUPFD, ENOTSUP for others */
+  if (result == -1 && (errno == EPERM || errno == ENOTSUP)
+      && !fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
+  {
+    ULONG ulMode;
+
+    switch (action)
+      {
+      case F_DUPFD:
+        /* Find available fd */
+        while (fcntl (arg, F_GETFL) != -1 || errno != EBADF)
+          arg++;
+
+        result = dup2 (fd, arg);
+        break;
+
+      /* Using underlying APIs is right ? */
+      case F_GETFD:
+        if (DosQueryFHState (fd, &ulMode))
+          break;
+
+        result = (ulMode & OPEN_FLAGS_NOINHERIT) ? FD_CLOEXEC : 0;
+        break;
+
+      case F_SETFD:
+        if (arg & ~FD_CLOEXEC)
+          break;
+
+        if (DosQueryFHState (fd, &ulMode))
+          break;
+
+        if (arg & FD_CLOEXEC)
+          ulMode |= OPEN_FLAGS_NOINHERIT;
+        else
+          ulMode &= ~OPEN_FLAGS_NOINHERIT;
+
+        /* Filter supported flags.  */
+        ulMode &= (OPEN_FLAGS_WRITE_THROUGH | OPEN_FLAGS_FAIL_ON_ERROR
+                   | OPEN_FLAGS_NO_CACHE | OPEN_FLAGS_NOINHERIT);
+
+        if (DosSetFHState (fd, ulMode))
+          break;
+
+        result = 0;
+        break;
+
+      case F_GETFL:
+        result = 0;
+        break;
+
+      case F_SETFL:
+        if (arg != 0)
+          break;
+
+        result = 0;
+        break;
+
+      default :
+        errno = EINVAL;
+        break;
+      }
+  }
+
+  va_end (arg_ptr);
+
+  return result;
+}
+
+# define fcntl klibc_fcntl
+#endif
 
 /* Perform the specified ACTION on the file descriptor FD, possibly
    using the argument ARG further described below.  This replacement

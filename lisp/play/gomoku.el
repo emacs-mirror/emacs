@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -263,7 +263,7 @@ Other useful commands:\n
   "Vector recording the actual score of the free squares.")
 
 
-;; The key point point about the algorithm is that, rather than considering
+;; The key point about the algorithm is that, rather than considering
 ;; the board as just a set of squares, we prefer to see it as a "space" of
 ;; internested 5-tuples of contiguous squares (called qtuples).
 ;;
@@ -551,7 +551,7 @@ that DVAL has been added on SQUARE."
 ;;;
 
 ;; Several variables are used to monitor a game, including a GAME-HISTORY (the
-;; list of all (SQUARE . PREVSCORE) played) that allows to take moves back
+;; list of all (SQUARE . PREVSCORE) played) that allows you to take moves back
 ;; (anti-updating the score table) and to compute the table from scratch in
 ;; case of an interruption.
 

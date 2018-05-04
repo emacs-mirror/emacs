@@ -1,0 +1,363 @@
+This document describes the release process used by GNU Emacs.
+
+* RELEASE CYCLE
+
+Each release cycle will be split into two periods.
+
+** Phase one: development
+
+The first phase of the release schedule is the "heads-down" working
+period for new features, on the 'master' branch and any needed feature
+branches.
+
+** Phase two: fixing and stabilizing the release branch
+
+Shortly before this phase, Emacs developers will be devoted to
+figuring out what features to include in the next release and what
+features to defer to a later release.
+
+This phase is mostly spent fixing bugs and documenting new features
+and changes on the "emacs-NN" branch.  Actually, the default branch
+for pushing any work in this phase should be "emacs-NN", except for
+new features.
+
+At the beginning of this phase, a release branch called "emacs-NN"
+("NN" represents the major version number of the new Emacs release)
+will be cut from 'master'.  When that happens, the version number on
+'master' should be incremented; use admin/admin.el's 'set-version'
+command to do that, then commit the changes it made and push to
+'master'.  For major releases, also update the value of
+'customize-changed-options-previous-release'.
+
+Each chapter of the two main manuals, the User Manual and the Emacs
+Lisp Manual, should be proofread, preferably by at least two people.
+This job is so big that it should be considered a collective
+responsibility, not fobbed off on just a few people.  After each
+chapter is checked, mark off the name(s) of those who checked it in
+the checklist near the end of this file.
+
+In parallel to this phase, 'master' can receive new features, to be
+released in the next release cycle.  From time to time, the master
+branches merges bugfix commits from the "emacs-NN" branch.
+See admin/gitmerge.el.
+
+* RELEASE-CRITICAL BUGS
+
+Emacs uses the "blocking" feature of Debbugs for bugs that need to be
+addressed in the next release.
+
+Currently, bug#21966 is the tracking bug for release of 25.2 and
+bug#24655 is the tracking bug for release 26.1.  Say bug#123 needs
+to be fixed for Emacs 26.1.  Send a message to control@debbugs.gnu.org
+that says:
+
+   block 24655 by 123
+
+Change "block" to "unblock" to remove a bug from the list.  Closed
+bugs are not listed as blockers, so you do not need to explicitly
+unblock one that has been closed.  You may need to force an update of
+the tracking bug with ctrl-f5/shift-reload to see the latest version.
+
+
+* TO BE DONE SHORTLY BEFORE RELEASE
+
+See 'admin/make-tarball.txt' for the details of making a release or pretest.
+
+** Make sure the Copyright date reflects the current year in all source files.
+(This should be done each January anyway, regardless of releases.)
+See admin/update-copyright and admin.el's set-copyright.
+For more details, see 'admin/notes/years'.
+
+** Make sure the necessary sources and scripts for any generated files
+are included in the source tarball.  (They don't need to be installed,
+so e.g. admin/ is fine.)  This is important for legal compliance.
+
+** Remove temporary +++/--- lines in NEWS.
+But first make sure there are no unmarked entries, and update the
+documentation (or decide no updates are necessary) for those that aren't.
+
+** Try to reorder NEWS: most important things first, related items together.
+
+** For a major release, add a "New in Emacs XX" section to faq.texi.
+
+** cusver-check from admin.el can help find new defcustoms missing
+:version tags.
+
+** Manuals
+Check for node names using problematic characters:
+  find doc -name '*.texi' -exec grep '^@node[^,]*[:.()]' {} +
+Sadly makeinfo does not warn about such characters.
+
+Check for major new features added since the last release (e.g. new
+lisp files), and add the relevant authors to the Acknowledgments in
+doc/emacs/ack.texi and emacs.texi.
+
+For major releases, rewrite the "Antinews" appendix of the User Manual
+(doc/emacs/anti.texi) to describe features lost by downgrading to the
+previous version.  The way to do that is read NEWS, pick up the more
+significant changes and new features in the upcoming release, then
+describe the "benefits" from losing those features.  Be funny, use
+humor.  The text written for the previous releases can serve as an example.
+
+The Emacs FAQ (doc/misc/efaq.texi) also has a "What's new" section;
+for major releases a new section should be added listing the
+significant changes.
+
+Check cross-references between the manuals (e.g. from emacs to elisp)
+are correct.  You can use something like the following in the info
+directory in the Emacs build tree:
+
+emacs -Q --eval "(progn (require 'info) (setq Info-directory-list '(\".\")))" \
+  -f info-xref-check-all
+
+Setting Info-directory-list avoids having system info pages confuse
+things.  References to external manuals will be flagged as
+uncheckable.  You should still check these, and also that each
+external manual has an appropriate redirect in the file manual/.htaccess
+in the web pages repository.  E.g.:
+Redirect /software/emacs/manual/html_mono/automake.html /software/automake/manual/automake.html
+Redirect /software/emacs/manual/html_node/automake/ /software/automake/manual/html_node/
+
+Another tool you can use to check links is gnu.org's linc.py:
+https://www.gnu.org/server/source/
+
+You run this with something like:
+
+cd /path/to/cvs/emacs-www
+linc.py -o /path/to/output-dir --url https://www.gnu.org/software/emacs/ .
+
+Be warned that it is really, really slow (as in, can take ~ a full day
+to check the manual/ directory).  It is probably best to run it on a
+single directory at a time from e.g. manual/html_node.  It is very
+inefficient, but may reveal a few things that info-xref does not.
+
+make emacs.dvi, elisp.dvi, and deal with any errors (undefined
+references etc) in the output.  Break any overfull lines.
+Underfull hboxes are not serious, but it can be nice to get rid of
+them if a simple rephrasing or rearrangement will work.
+
+Update the master menu and detailed menu (e.g. the antinews version).
+The command texinfo-multiple-files-update can do this, but you
+probably want to apply the results selectively (e.g. the current master
+menu has better line-breaks than the automatic version).  It includes
+the menu-entry name (if there is one) as well as the node name - using
+only the latter looks better.  Also, it doesn't seem to handle nested
+includes, so will miss edebug.texi etc.
+
+Check for widow and orphan lines in the printed manual; make sure all
+the pages really look OK in the manual as formatted.  Orphans/widows
+are cases where the first/last line of a paragraph is on its own at
+the end/start of a page, or where the last word in a paragraph is on
+its own at the start of a line.  It looks better if you reword/respace
+things to avoid these.  (AFAIK, there is no way to find these except
+paging through the whole manual.)  This should be the very last thing
+you do, since any change can alter the layout.
+(Actually, there is probably little point in trying to do this.
+It's only really relevant if printed versions of the manuals are going
+to be published.  End-users are not likely to print out all 1000+
+pages of the manuals, and even if they do, the resulting page breaks
+depend on what paper and font size they use.  This also means that if
+you _are_ going to do this, it should be done with the paper and font
+size that the GNU Press are going to use when they print the manuals.
+I think this is different to what you get if you just use e.g. 'make
+emacs.pdf' (e.g., enable "smallbook").
+
+** Check the keybindings in the refcards are correct, and add any new ones.
+What paper size are the English versions supposed to be on?
+On Debian testing, the packages texlive-lang-czechslovak and
+texlive-lang-polish will let you generate the cs-* and sk-* pdfs.
+(You may need texlive-lang-cyrillic, texlive-lang-german for others.)
+The Makefile rules did not work for me, I had to use something like:
+csplain -output-format=pdf cs-refcard
+
+** Ask maintainers of refcard translations to update them.
+
+Emacs 22 translators:
+
+LANG	Translator            Status
+cs	Pavel Janík
+de	Sven Joachim
+fr	Eric Jacoboni
+pl	Włodek Bzyl
+pt-br	Rodrigo Real
+ru	Alex Ott
+sk	Miroslav Vaško
+
+* BUGS
+
+** Check for modes which bind M-s that conflicts with a new global binding M-s
+and change key bindings where necessary.  The current list of modes:
+
+1. Gnus binds 'M-s' to 'gnus-summary-search-article-forward'.
+
+2. Minibuffer binds 'M-s' to 'next-matching-history-element'
+   (not useful any more since C-s can now search in the history).
+
+3. 'center-line' in Text mode was already moved to the text formatting
+   keymap as 'M-o M-s' (thus this binding is not necessary any more
+   in 'nroff-mode-map' too and can be removed now from the nroff mode
+   because it can now use the global key binding 'M-o M-s' 'center-line').
+
+4. PCL-CVS binds 'M-s' to 'cvs-status', and log-edit-mode binds it to
+   'log-edit-comment-search-forward'.  Perhaps search commands
+   on the global key binding 'M-s' are useless in these modes.
+
+5. Rmail binds '\es' to 'rmail-search'/'rmail-summary-search'.
+
+
+* DOCUMENTATION
+
+** Check the Emacs Tutorial.
+
+The first line of every tutorial must begin with text ending in a
+period (".", ASCII 0x2E) saying "Emacs Tutorial" in the respective
+language. This should be followed by "See end for copying conditions",
+likewise in the respective language.
+
+After each file name, on the same line or the following line, come the
+names of the people who have checked it.
+
+SECTION                  READERS
+----------------------------------
+TUTORIAL
+TUTORIAL.bg
+TUTORIAL.cn
+TUTORIAL.cs
+TUTORIAL.de
+TUTORIAL.eo
+TUTORIAL.es
+TUTORIAL.fr
+TUTORIAL.he
+TUTORIAL.it
+TUTORIAL.ja
+TUTORIAL.ko
+TUTORIAL.nl
+TUTORIAL.pl
+TUTORIAL.pt_BR
+TUTORIAL.ro
+TUTORIAL.ru
+TUTORIAL.sk
+TUTORIAL.sl
+TUTORIAL.sv
+TUTORIAL.th
+TUTORIAL.zh
+
+** Check the manual.
+
+abbrevs.texi 		Steve Byrne
+ack.texi
+anti.texi
+arevert-xtra.texi
+basic.texi
+buffers.texi
+building.texi
+calendar.texi
+cal-xtra.texi
+cmdargs.texi
+commands.texi
+custom.texi
+dired.texi
+dired-xtra.texi
+display.texi
+emacs.texi
+emacs-xtra.texi
+emerge-xtra.texi
+entering.texi
+files.texi
+fixit.texi
+fortran-xtra.texi
+frames.texi
+glossary.texi
+help.texi
+indent.texi
+killing.texi
+kmacro.texi
+macos.texi
+maintaining.texi
+mark.texi
+mini.texi
+misc.texi
+modes.texi
+msdos.texi
+msdos-xtra.texi
+mule.texi
+m-x.texi
+package.texi
+picture-xtra.texi
+programs.texi
+regs.texi
+rmail.texi
+screen.texi
+search.texi
+sending.texi
+text.texi
+trouble.texi
+vc-xtra.texi
+vc1-xtra.texi
+windows.texi
+xresources.texi
+
+** Check the Lisp manual.
+
+abbrevs.texi 		Steve Byrne
+anti.texi
+back.texi
+backups.texi
+buffers.texi
+commands.texi
+compile.texi
+control.texi
+customize.texi
+debugging.texi
+display.texi
+edebug.texi
+elisp.texi
+errors.texi
+eval.texi
+files.texi
+frames.texi
+functions.texi
+hash.texi
+help.texi
+hooks.texi
+index.texi
+internals.texi
+intro.texi
+keymaps.texi
+lists.texi
+loading.texi
+macros.texi
+maps.texi
+markers.texi
+minibuf.texi
+modes.texi
+nonascii.texi
+numbers.texi
+objects.texi
+os.texi
+package.texi
+positions.texi
+processes.texi
+searching.texi
+sequences.texi
+streams.texi
+strings.texi
+symbols.texi
+syntax.texi
+text.texi
+tips.texi
+variables.texi
+windows.texi
+
+* OTHER INFORMATION
+
+For Emacs's versioning scheme, see 'admin/notes/versioning'.
+
+For instructions to create pretest or release tarballs, announcements,
+etc., see 'admin/make-tarball.txt'.
+
+
+Local variables:
+mode: outline
+coding: utf-8
+end:

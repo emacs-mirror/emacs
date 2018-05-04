@@ -1,6 +1,6 @@
 ;;; mule-conf.el --- configure multilingual environment
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1175,7 +1175,8 @@
   :short-name  "CNS11643-15"
   :long-name "CNS11643-15 (Chinese traditional)"
   :code-space [33 126 33 126]
-  :code-offset #x27A000)
+  :code-offset #x27A000
+  :unify-map "CNS-F")
 
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
@@ -1186,6 +1187,7 @@
 (unify-charset 'chinese-cns11643-5)
 (unify-charset 'chinese-cns11643-6)
 (unify-charset 'chinese-cns11643-7)
+(unify-charset 'chinese-cns11643-15)
 (unify-charset 'big5)
 (unify-charset 'chinese-big5-1)
 (unify-charset 'chinese-big5-2)
@@ -1568,6 +1570,61 @@ for decoding and encoding files, process I/O, etc."
 (aset latin-extra-code-table ?\224 t)
 (aset latin-extra-code-table ?\225 t)
 (aset latin-extra-code-table ?\226 t)
+
+(defcustom password-word-equivalents
+  '("password" "passcode" "passphrase" "pass phrase"
+    ; These are sorted according to the GNU en_US locale.
+    "암호"		; ko
+    "パスワード"	; ja
+    "ପ୍ରବେଶ ସଙ୍କେତ"	; or
+    "ពាក្យសម្ងាត់"		; km
+    "adgangskode"	; da
+    "contraseña"	; es
+    "contrasenya"	; ca
+    "geslo"		; sl
+    "hasło"		; pl
+    "heslo"		; cs, sk
+    "iphasiwedi"	; zu
+    "jelszó"		; hu
+    "lösenord"		; sv
+    "lozinka"		; hr, sr
+    "mật khẩu"		; vi
+    "mot de passe"	; fr
+    "parola"		; tr
+    "pasahitza"		; eu
+    "passord"		; nb
+    "passwort"		; de
+    "pasvorto"		; eo
+    "salasana"		; fi
+    "senha"		; pt
+    "slaptažodis"	; lt
+    "wachtwoord"	; nl
+    "كلمة السر"		; ar
+    "ססמה"		; he
+    "лозинка"		; sr
+    "пароль"		; kk, ru, uk
+    "गुप्तशब्द"		; mr
+    "शब्दकूट"		; hi
+    "પાસવર્ડ"		; gu
+    "సంకేతపదము"		; te
+    "ਪਾਸਵਰਡ"		; pa
+    "ಗುಪ್ತಪದ"		; kn
+    "கடவுச்சொல்"		; ta
+    "അടയാളവാക്ക്"		; ml
+    "গুপ্তশব্দ"		; as
+    "পাসওয়ার্ড"		; bn_IN
+    "රහස්පදය"		; si
+    "密码"		; zh_CN
+    "密碼"		; zh_TW
+    )
+  "List of words equivalent to \"password\".
+This is used by Shell mode and other parts of Emacs to recognize
+password prompts, including prompts in languages other than
+English.  Different case choices should not be assumed to be
+included; callers should bind `case-fold-search' to t."
+  :type '(repeat string)
+  :version "24.4"
+  :group 'processes)
 
 ;; The old code-pages library is obsoleted by coding systems based on
 ;; the charsets defined in this file but might be required by user

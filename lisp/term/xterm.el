@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -65,33 +65,40 @@ using the OSC 52 sequence.
 If you select a region larger than this size, it won't be copied to your system
 clipboard.  Since clipboard data is base 64 encoded, the actual number of
 string bytes that can be copied is 3/4 of this value."
+  :version "25.1"
   :type 'integer)
+
+(defcustom xterm-set-window-title nil
+  "Whether Emacs should set window titles to an Emacs frame in an XTerm."
+  :version "27.1"
+  :type 'boolean)
 
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters send by the terminal to end a bracketed paste.")
 
+(defun xterm--pasted-text ()
+  "Handle the rest of a terminal paste operation.
+Return the pasted text as a string."
+  (let ((end-marker-length (length xterm-paste-ending-sequence)))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (while (not (search-backward xterm-paste-ending-sequence
+                                   (- (point) end-marker-length) t))
+	(let ((event (read-event nil nil
+                                 ;; Use finite timeout to avoid glomming the
+                                 ;; event onto this-command-keys.
+                                 most-positive-fixnum)))
+	  (when (eql event ?\r)
+	    (setf event ?\n))
+	  (insert event)))
+      (let ((last-coding-system-used))
+	(decode-coding-region (point-min) (point) (keyboard-coding-system)
+                              t)))))
+
 (defun xterm-paste ()
   "Handle the start of a terminal paste operation."
   (interactive)
-  (let* ((end-marker-length (length xterm-paste-ending-sequence))
-         (pasted-text (with-temp-buffer
-                        (set-buffer-multibyte nil)
-                        (while (not (search-backward
-                                     xterm-paste-ending-sequence
-                                     (- (point) end-marker-length) t))
-                          (let ((event (read-event
-                                        nil nil
-                                        ;; Use finite timeout to avoid
-                                        ;; glomming the event onto
-                                        ;; this-command-keys.
-                                        most-positive-fixnum)))
-                            (when (eql event ?\r)
-                              (setf event ?\n))
-                            (insert event)))
-                        (let ((last-coding-system-used))
-                          (decode-coding-region
-                           (point-min) (point)
-                           (keyboard-coding-system) t))))
+  (let* ((pasted-text (xterm--pasted-text))
          (interprogram-paste-function (lambda () pasted-text)))
     (yank)))
 
@@ -589,13 +596,26 @@ string bytes that can be copied is 3/4 of this value."
     (define-key map [f59] [M-f11])
     (define-key map [f60] [M-f12])
 
+    (define-key map [f61] [M-S-f1])
+    (define-key map [f62] [M-S-f2])
+    (define-key map [f63] [M-S-f3])
+    (define-key map [f64] [M-S-f4])
+    (define-key map [f65] [M-S-f5])
+    (define-key map [f66] [M-S-f6])
+    (define-key map [f67] [M-S-f7])
+    (define-key map [f68] [M-S-f8])
+    (define-key map [f69] [M-S-f9])
+    (define-key map [f70] [M-S-f10])
+    (define-key map [f71] [M-S-f11])
+    (define-key map [f72] [M-S-f12])
+
     map)
   "Keymap of possible alternative meanings for some keys.")
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors
   ;; The names in the comments taken from XTerm-col.ad in the xterm
-  ;; distribution, see ftp://dickey.his.com/xterm/.  RGB values are
+  ;; distribution, see https://invisible-island.net/xterm/.  RGB values are
   ;; from rgb.txt.
   '(("black"          0 (  0   0   0))	; black
     ("red"            1 (205   0   0))	; red3
@@ -655,8 +675,13 @@ string bytes that can be copied is 3/4 of this value."
         (when (and (> version 2000) (equal (match-string 1 str) "1"))
           ;; Hack attack!  bug#16988: gnome-terminal reports "1;NNNN;0"
           ;; with a large NNNN but is based on a rather old xterm code.
-          ;; Gnome terminal 3.6.1 reports 1;3406;0
           ;; Gnome terminal 2.32.1 reports 1;2802;0
+          ;; Gnome terminal 3.6.1 reports 1;3406;0
+          ;; Gnome terminal 3.22.2 reports 1;4601;0 and *does* support
+          ;; background color querying (Bug#29716).
+          (when (> version 4000)
+            (xterm--query "\e]11;?\e\\"
+                          '(("\e]11;" .  xterm--report-background-handler))))
           (setq version 200))
         (when (equal (match-string 1 str) "83")
           ;; `screen' (which returns 83;40003;0) seems to also lack support for
@@ -769,7 +794,7 @@ We run the first FUNCTION whose STRING matches the input events."
       ;; Try to find out the type of terminal by sending a "Secondary
       ;; Device Attributes (DA)" query.
       (xterm--query "\e[>0c"
-                    ;; Some terminals (like OS X's Terminal.app) respond to
+                    ;; Some terminals (like macOS's Terminal.app) respond to
                     ;; this query as if it were a "Primary Device Attributes"
                     ;; query instead, so we should handle that too.
                     '(("\e[?" . xterm--version-handler)
@@ -787,6 +812,8 @@ We run the first FUNCTION whose STRING matches the input events."
     (when (memq 'setSelection xterm-extra-capabilities)
       (xterm--init-activate-set-selection)))
 
+  (when xterm-set-window-title
+    (xterm--init-frame-title))
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
   (xterm--init-bracketed-paste-mode)
@@ -813,6 +840,34 @@ We run the first FUNCTION whose STRING matches the input events."
   "Terminal initialization for `gui-set-selection'."
   (set-terminal-parameter nil 'xterm--set-selection t))
 
+(defun xterm--init-frame-title ()
+  "Terminal initialization for XTerm frame titles."
+  (xterm-set-window-title)
+  (add-hook 'after-make-frame-functions 'xterm-set-window-title-flag)
+  (add-hook 'window-configuration-change-hook 'xterm-unset-window-title-flag)
+  (add-hook 'post-command-hook 'xterm-set-window-title)
+  (add-hook 'minibuffer-exit-hook 'xterm-set-window-title))
+
+(defvar xterm-window-title-flag nil
+  "Whether a new frame has been created, calling for a title update.")
+
+(defun xterm-set-window-title-flag (_frame)
+  "Set `xterm-window-title-flag'.
+See `xterm--init-frame-title'"
+  (setq xterm-window-title-flag t))
+
+(defun xterm-unset-window-title-flag ()
+  (when xterm-window-title-flag
+    (setq xterm-window-title-flag nil)
+    (xterm-set-window-title)))
+
+(defun xterm-set-window-title (&optional terminal)
+  "Set the window title of the Xterm TERMINAL.
+The title is constructed from `frame-title-format'."
+  (send-string-to-terminal
+   (format "\e]2;%s\a" (format-mode-line frame-title-format))
+   terminal))
+
 (defun xterm--selection-char (type)
   (pcase type
     ('PRIMARY "p")
@@ -821,7 +876,7 @@ We run the first FUNCTION whose STRING matches the input events."
 
 (cl-defmethod gui-backend-get-selection
     (type data-type
-     &context (window-system (eql nil))
+     &context (window-system nil)
               ;; Only applies to terminals which have it enabled.
               ((terminal-parameter nil 'xterm--get-selection) (eql t)))
   (unless (eq data-type 'STRING)
@@ -844,7 +899,7 @@ We run the first FUNCTION whose STRING matches the input events."
 
 (cl-defmethod gui-backend-set-selection
     (type data
-     &context (window-system (eql nil))
+     &context (window-system nil)
               ;; Only applies to terminals which have it enabled.
               ((terminal-parameter nil 'xterm--set-selection) (eql t)))
   "Copy DATA to the X selection using the OSC 52 escape sequence.
@@ -915,6 +970,14 @@ versions of xterm."
     ;; are more colors to support, compute them now.
     (when (> ncolors 0)
       (cond
+       ((= ncolors 16777200) ; 24-bit xterm
+	;; all named tty colors
+	(let ((idx (length xterm-standard-colors)))
+	  (mapc (lambda (color)
+		  (unless (assoc (car color) xterm-standard-colors)
+		    (tty-color-define (car color) idx (cdr color))
+		    (setq idx (1+ idx))))
+		color-name-rgb-alist)))
        ((= ncolors 240)	; 256-color xterm
 	;; 216 non-gray colors first
 	(let ((r 0) (g 0) (b 0))

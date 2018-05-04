@@ -1,12 +1,12 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2015 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,16 +14,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
-
-/* Don't multiply include: dispextern.h includes macterm.h which
-   includes frame.h some emacs source includes both dispextern.h and
-   frame.h.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_FRAME_H
 #define EMACS_FRAME_H
 
-#include "dispextern.h"
 #include "termhooks.h"
 #include "window.h"
 
@@ -50,13 +45,41 @@ enum fullscreen_type
 #endif
 };
 
+enum z_group
+{
+  z_group_none,
+  z_group_above,
+  z_group_below,
+  z_group_above_suspended,
+};
+
+enum internal_border_part
+  {
+   INTERNAL_BORDER_NONE,
+   INTERNAL_BORDER_LEFT_EDGE,
+   INTERNAL_BORDER_TOP_LEFT_CORNER,
+   INTERNAL_BORDER_TOP_EDGE,
+   INTERNAL_BORDER_TOP_RIGHT_CORNER,
+   INTERNAL_BORDER_RIGHT_EDGE,
+   INTERNAL_BORDER_BOTTOM_RIGHT_CORNER,
+   INTERNAL_BORDER_BOTTOM_EDGE,
+   INTERNAL_BORDER_BOTTOM_LEFT_CORNER,
+  };
+
+#ifdef NS_IMPL_COCOA
+enum ns_appearance_type
+  {
+   ns_appearance_aqua,
+   ns_appearance_vibrant_dark
+  };
+#endif
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* The structure representing a frame.  */
 
 struct frame
 {
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */
@@ -72,6 +95,11 @@ struct frame
   /* This is the frame title specified explicitly, if any.
      Usually it is nil.  */
   Lisp_Object title;
+
+#if defined (HAVE_WINDOW_SYSTEM)
+  /* This frame's parent frame, if it has one.  */
+  Lisp_Object parent_frame;
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* The frame which should receive keystrokes that occur in this
      frame, or nil if they should go to the frame itself.  This is
@@ -293,8 +321,9 @@ struct frame
      cleared.  */
   bool_bf explicit_name : 1;
 
-  /* True if size of some window on this frame has changed.  */
-  bool_bf window_sizes_changed : 1;
+  /* True if configuration of windows on this frame has changed since
+     last call of run_window_size_change_functions.  */
+  bool_bf window_configuration_changed : 1;
 
   /* True if the mouse has moved on this display device
      since the last time we checked.  */
@@ -313,6 +342,9 @@ struct frame
   ENUM_BF (output_method) output_method : 3;
 
 #ifdef HAVE_WINDOW_SYSTEM
+  /* True if this frame is a tooltip frame.  */
+  bool_bf tooltip : 1;
+
   /* See FULLSCREEN_ enum on top.  */
   ENUM_BF (fullscreen_type) want_fullscreen : 4;
 
@@ -322,6 +354,32 @@ struct frame
 
   /* Nonzero if we should actually display horizontal scroll bars on this frame.  */
   bool_bf horizontal_scroll_bars : 1;
+
+  /* True if this is an undecorated frame.  */
+  bool_bf undecorated : 1;
+
+#ifndef HAVE_NTGUI
+  /* True if this is an override_redirect frame.  */
+  bool_bf override_redirect : 1;
+#endif
+
+  /* Nonzero if this frame's icon should not appear on its display's taskbar.  */
+  bool_bf skip_taskbar : 1;
+
+  /* Nonzero if this frame's window F's X window does not want to
+     receive input focus when it is mapped.  */
+  bool_bf no_focus_on_map : 1;
+
+  /* Nonzero if this frame's window does not want to receive input focus
+     via mouse clicks or by moving the mouse into it.  */
+  bool_bf no_accept_focus : 1;
+
+  /* The z-group this frame's window belongs to. */
+  ENUM_BF (z_group) z_group : 2;
+
+  /* Non-zero if display of truncation and continuation glyphs outside
+     the fringes is suppressed.  */
+  bool_bf no_special_glyphs : 1;
 #endif /* HAVE_WINDOW_SYSTEM */
 
   /* Whether new_height and new_width shall be interpreted
@@ -335,9 +393,16 @@ struct frame
   /* Set to true after this frame was made by `make-frame'.  */
   bool_bf after_make_frame : 1;
 
-  /* True means tool bar has been redisplayed at least once in current
-     session.  */
-  bool_bf tool_bar_redisplayed_once : 1;
+  /* Whether the tool bar height change should be taken into account.  */
+  bool_bf tool_bar_redisplayed : 1;
+  bool_bf tool_bar_resized : 1;
+
+  /* Inhibit implied resize before after_make_frame is set.  */
+  bool_bf inhibit_horizontal_resize : 1;
+  bool_bf inhibit_vertical_resize : 1;
+
+  /* Non-zero if this frame's faces need to be recomputed.  */
+  bool_bf face_change : 1;
 
   /* Bitfield area ends here.  */
 
@@ -383,7 +448,7 @@ struct frame
 
   /* New text height and width for pending size change.  0 if no change
      pending.  These values represent pixels or canonical character units
-     according to the value of new_pixelwise and correlate to the the
+     according to the value of new_pixelwise and correlate to the
      text width/height of the frame.  */
   int new_width, new_height;
 
@@ -507,6 +572,12 @@ struct frame
   /* All display backends seem to need these two pixel values.  */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
+
+#ifdef NS_IMPL_COCOA
+  /* NSAppearance theme used on this frame.  */
+  enum ns_appearance_type ns_appearance;
+  bool_bf ns_transparent_titlebar;
+#endif
 };
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
@@ -531,6 +602,13 @@ fset_face_alist (struct frame *f, Lisp_Object val)
 {
   f->face_alist = val;
 }
+#if defined (HAVE_WINDOW_SYSTEM)
+INLINE void
+fset_parent_frame (struct frame *f, Lisp_Object val)
+{
+  f->parent_frame = val;
+}
+#endif
 INLINE void
 fset_focus_frame (struct frame *f, Lisp_Object val)
 {
@@ -618,7 +696,11 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 }
 #endif /* HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS */
 
-#define NUMVAL(X) (NUMBERP (X) ? XFLOATINT (X) : -1)
+INLINE double
+NUMVAL (Lisp_Object x)
+{
+  return NUMBERP (x) ? XFLOATINT (x) : -1;
+}
 
 INLINE double
 default_pixels_per_inch_x (void)
@@ -774,7 +856,7 @@ default_pixels_per_inch_y (void)
 #ifdef USE_GTK
 #define FRAME_TOOL_BAR_POSITION(f) (f)->tool_bar_position
 #else
-#define FRAME_TOOL_BAR_POSITION(f) ((void) f, Qtop)
+#define FRAME_TOOL_BAR_POSITION(f) ((void) (f), Qtop)
 #endif
 
 /* Number of lines of frame F used for the tool-bar.  */
@@ -826,10 +908,10 @@ default_pixels_per_inch_y (void)
    are frozen on frame F.  */
 #define FRAME_WINDOWS_FROZEN(f) (f)->frozen_window_starts
 
-/* True if a size change has been requested for frame F
-   but not yet really put into effect.  This can be true temporarily
-   when an X event comes in at a bad time.  */
-#define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
+/* True if the frame's window configuration has changed since last call
+   of run_window_size_change_functions.  */
+#define FRAME_WINDOW_CONFIGURATION_CHANGED(f)	\
+  (f)->window_configuration_changed
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
 #define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
@@ -847,7 +929,6 @@ default_pixels_per_inch_y (void)
 #define FRAME_FOCUS_FRAME(f) f->focus_frame
 
 #ifdef HAVE_WINDOW_SYSTEM
-
 /* This frame slot says whether scroll bars are currently enabled for frame F,
    and which side they are on.  */
 #define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((f)->vertical_scroll_bar_type)
@@ -857,15 +938,54 @@ default_pixels_per_inch_y (void)
   ((f)->vertical_scroll_bar_type == vertical_scroll_bar_left)
 #define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) \
   ((f)->vertical_scroll_bar_type == vertical_scroll_bar_right)
-
 #else /* not HAVE_WINDOW_SYSTEM */
-
 /* If there is no window system, there are no scroll bars.  */
-#define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) ((void) f, vertical_scroll_bar_none)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) f, 0)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) f, 0)
-#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) f, 0)
+#define FRAME_VERTICAL_SCROLL_BAR_TYPE(f) \
+  ((void) (f), vertical_scroll_bar_none)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((void) (f), 0)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT(f) ((void) (f), 0)
+#define FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT(f) ((void) (f), 0)
+#endif /* HAVE_WINDOW_SYSTEM */
 
+#if defined (HAVE_WINDOW_SYSTEM)
+#define FRAME_UNDECORATED(f) ((f)->undecorated)
+#ifdef HAVE_NTGUI
+#define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
+#else
+#define FRAME_OVERRIDE_REDIRECT(f) ((f)->override_redirect)
+#endif
+#define FRAME_PARENT_FRAME(f)			\
+  (NILP ((f)->parent_frame)			\
+   ? NULL					\
+   : XFRAME ((f)->parent_frame))
+#define FRAME_SKIP_TASKBAR(f) ((f)->skip_taskbar)
+#define FRAME_NO_FOCUS_ON_MAP(f) ((f)->no_focus_on_map)
+#define FRAME_NO_ACCEPT_FOCUS(f) ((f)->no_accept_focus)
+#define FRAME_NO_SPECIAL_GLYPHS(f) ((f)->no_special_glyphs)
+#define FRAME_Z_GROUP(f) ((f)->z_group)
+#define FRAME_Z_GROUP_NONE(f) ((f)->z_group == z_group_none)
+#define FRAME_Z_GROUP_ABOVE(f) ((f)->z_group == z_group_above)
+#define FRAME_Z_GROUP_ABOVE_SUSPENDED(f)	\
+  ((f)->z_group == z_group_above_suspended)
+#define FRAME_Z_GROUP_BELOW(f) ((f)->z_group == z_group_below)
+#define FRAME_TOOLTIP_P(f) ((f)->tooltip)
+#ifdef NS_IMPL_COCOA
+#define FRAME_NS_APPEARANCE(f) ((f)->ns_appearance)
+#define FRAME_NS_TRANSPARENT_TITLEBAR(f) ((f)->ns_transparent_titlebar)
+#endif
+#else /* not HAVE_WINDOW_SYSTEM */
+#define FRAME_UNDECORATED(f) ((void) (f), 0)
+#define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
+#define FRAME_PARENT_FRAME(f) ((void) (f), NULL)
+#define FRAME_SKIP_TASKBAR(f) ((void) (f), 0)
+#define FRAME_NO_FOCUS_ON_MAP(f) ((void) (f), 0)
+#define FRAME_NO_ACCEPT_FOCUS(f) ((void) (f), 0)
+#define FRAME_NO_SPECIAL_GLYPHS(f) ((void) (f), 0)
+#define FRAME_Z_GROUP(f) ((void) (f), z_group_none)
+#define FRAME_Z_GROUP_NONE(f) ((void) (f), true)
+#define FRAME_Z_GROUP_ABOVE(f) ((void) (f), false)
+#define FRAME_Z_GROUP_BELOW(f) ((void) (f), false)
+#define FRAME_TOOLTIP_P(f) ((void) f, false)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Whether horizontal scroll bars are currently enabled for frame F.  */
@@ -873,7 +993,7 @@ default_pixels_per_inch_y (void)
 #define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) \
   ((f)->horizontal_scroll_bars)
 #else
-#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) f, 0)
+#define FRAME_HAS_HORIZONTAL_SCROLL_BARS(f) ((void) (f), 0)
 #endif
 
 /* Width that a scroll bar in frame F should have, if there is one.
@@ -1034,7 +1154,8 @@ default_pixels_per_inch_y (void)
    loop will set FRAME_VAR, a Lisp_Object, to each frame in
    Vframe_list in succession and execute the statement.  LIST_VAR
    should be a Lisp_Object too; it is used to iterate through the
-   Vframe_list.
+   Vframe_list.  Note that this macro walks over child frames and
+   the tooltip frame as well.
 
    This macro is a holdover from a time when multiple frames weren't always
    supported.  An alternate definition of the macro would expand to
@@ -1099,7 +1220,14 @@ extern Lisp_Object selected_frame;
 extern int frame_default_tool_bar_height;
 #endif
 
-extern struct frame *decode_window_system_frame (Lisp_Object);
+#ifdef HAVE_WINDOW_SYSTEM
+# define WINDOW_SYSTEM_RETURN
+#else
+# define WINDOW_SYSTEM_RETURN _Noreturn
+#endif
+
+extern WINDOW_SYSTEM_RETURN struct frame *
+  decode_window_system_frame (Lisp_Object);
 extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
@@ -1109,11 +1237,20 @@ extern struct frame *make_minibuffer_frame (void);
 extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
-extern bool window_system_available (struct frame *);
-#else /* not HAVE_WINDOW_SYSTEM */
-#define window_system_available(f) ((void) (f), false)
-#endif /* HAVE_WINDOW_SYSTEM */
-extern void check_window_system (struct frame *);
+extern bool display_available (void);
+#endif
+
+INLINE bool
+window_system_available (struct frame *f)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  return f ? FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f) : display_available ();
+#else
+  return false;
+#endif
+}
+
+extern WINDOW_SYSTEM_RETURN void check_window_system (struct frame *);
 extern void frame_make_pointer_invisible (struct frame *);
 extern void frame_make_pointer_visible (struct frame *);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
@@ -1147,46 +1284,69 @@ extern Lisp_Object Vframe_list;
    This value currently equals the average width of the default font of F.  */
 #define FRAME_COLUMN_WIDTH(F) ((F)->column_width)
 
-/* Pixel width of areas used to display truncation marks, continuation
-   marks, overlay arrows.  This is 0 for terminal frames.  */
+/* Get a frame's window system dimension.  If no window system, this is 0.  */
 
+INLINE int
+frame_dimension (int x)
+{
 #ifdef HAVE_WINDOW_SYSTEM
+  return x;
+#else
+  return 0;
+#endif
+}
 
 /* Total width of fringes reserved for drawing truncation bitmaps,
    continuation bitmaps and alike.  The width is in canonical char
    units of the frame.  This must currently be the case because window
    sizes aren't pixel values.  If it weren't the case, we wouldn't be
    able to split windows horizontally nicely.  */
-#define FRAME_FRINGE_COLS(F) ((F)->fringe_cols)
+INLINE int
+FRAME_FRINGE_COLS (struct frame *f)
+{
+  return frame_dimension (f->fringe_cols);
+}
 
 /* Pixel-width of the left and right fringe.  */
 
-#define FRAME_LEFT_FRINGE_WIDTH(F) ((F)->left_fringe_width)
-#define FRAME_RIGHT_FRINGE_WIDTH(F) ((F)->right_fringe_width)
+INLINE int
+FRAME_LEFT_FRINGE_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->left_fringe_width);
+}
+INLINE int
+FRAME_RIGHT_FRINGE_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->right_fringe_width);
+}
 
 /* Total width of fringes in pixels.  */
 
-#define FRAME_TOTAL_FRINGE_WIDTH(F) \
-  (FRAME_LEFT_FRINGE_WIDTH (F) + FRAME_RIGHT_FRINGE_WIDTH (F))
+INLINE int
+FRAME_TOTAL_FRINGE_WIDTH (struct frame *f)
+{
+  return FRAME_LEFT_FRINGE_WIDTH (f) + FRAME_RIGHT_FRINGE_WIDTH (f);
+}
 
-/* Pixel-width of internal border lines */
-#define FRAME_INTERNAL_BORDER_WIDTH(F) ((F)->internal_border_width)
+/* Pixel-width of internal border lines.  */
+INLINE int
+FRAME_INTERNAL_BORDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->internal_border_width);
+}
 
-/* Pixel-size of window border lines */
-#define FRAME_RIGHT_DIVIDER_WIDTH(F) ((F)->right_divider_width)
-#define FRAME_BOTTOM_DIVIDER_WIDTH(F) ((F)->bottom_divider_width)
+/* Pixel-size of window divider lines.  */
+INLINE int
+FRAME_RIGHT_DIVIDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->right_divider_width);
+}
 
-#else /* not HAVE_WINDOW_SYSTEM */
-
-#define FRAME_FRINGE_COLS(F)	0
-#define FRAME_TOTAL_FRINGE_WIDTH(F)	0
-#define FRAME_LEFT_FRINGE_WIDTH(F)  0
-#define FRAME_RIGHT_FRINGE_WIDTH(F) 0
-#define FRAME_INTERNAL_BORDER_WIDTH(F) 0
-#define FRAME_RIGHT_DIVIDER_WIDTH(F) 0
-#define FRAME_BOTTOM_DIVIDER_WIDTH(F) 0
-
-#endif /* not HAVE_WINDOW_SYSTEM */
+INLINE int
+FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->bottom_divider_width);
+}
 
 /***********************************************************************
 	    Conversion between canonical units and pixels
@@ -1376,9 +1536,10 @@ extern void x_set_horizontal_scroll_bars (struct frame *, Lisp_Object, Lisp_Obje
 extern void x_set_scroll_bar_width (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_scroll_bar_height (struct frame *, Lisp_Object, Lisp_Object);
 
-extern long x_figure_window_size (struct frame *, Lisp_Object, bool);
+extern long x_figure_window_size (struct frame *, Lisp_Object, bool, int *, int *);
 
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);
 
@@ -1401,6 +1562,8 @@ extern void x_activate_menubar (struct frame *);
 extern void x_real_positions (struct frame *, int *, int *);
 extern void free_frame_menubar (struct frame *);
 extern void x_free_frame_resources (struct frame *);
+extern bool frame_ancestor_p (struct frame *af, struct frame *df);
+extern enum internal_border_part frame_internal_border_part (struct frame *f, int x, int y);
 
 #if defined HAVE_X_WINDOWS
 extern void x_wm_set_icon_position (struct frame *, int, int);
@@ -1411,7 +1574,7 @@ extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
 extern void x_query_colors (struct frame *f, XColor *, int);
-extern void x_focus_frame (struct frame *);
+extern void x_focus_frame (struct frame *, bool);
 
 #ifndef HAVE_NS
 
@@ -1467,7 +1630,7 @@ INLINE_HEADER_END
 /* Suppress -Wsuggest-attribute=const if there are no scroll bars.
    This is for functions like x_set_horizontal_scroll_bars that have
    no effect in this case.  */
-#if ! USE_HORIZONTAL_SCROLL_BARS && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+#if ! USE_HORIZONTAL_SCROLL_BARS && GNUC_PREREQ (4, 6, 0)
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=const"
 #endif
 

@@ -1,13 +1,13 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2015 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2018 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -25,15 +25,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "keyboard.h"
-#include "keymap.h"
 #include "frame.h"
-#include "termhooks.h"
-#include "window.h"
 #include "blockinput.h"
-#include "character.h"
 #include "buffer.h"
-#include "charset.h"
-#include "coding.h"
+#include "coding.h"	/* for ENCODE_SYSTEM */
 #include "menu.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -54,8 +49,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #endif
 
-#include "dispextern.h"
-
 #include "w32common.h"	/* for osinfo_cache */
 
 #undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
@@ -66,9 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* no TRUE */
 
 HMENU current_popup_menu;
-
-void syms_of_w32menu (void);
-void globals_of_w32menu (void);
 
 typedef BOOL (WINAPI * GetMenuItemInfoA_Proc) (
     IN HMENU,
@@ -87,18 +77,16 @@ typedef int (WINAPI * MessageBoxW_Proc) (
     IN UINT type);
 
 #ifdef NTGUI_UNICODE
-#define get_menu_item_info GetMenuItemInfoA
-#define set_menu_item_info SetMenuItemInfoA
-#define unicode_append_menu AppendMenuW
-#define unicode_message_box MessageBoxW
+GetMenuItemInfoA_Proc get_menu_item_info = GetMenuItemInfoA;
+SetMenuItemInfoA_Proc set_menu_item_info = SetMenuItemInfoA;
+AppendMenuW_Proc unicode_append_menu = AppendMenuW;
+MessageBoxW_Proc unicode_message_box = MessageBoxW;
 #else /* !NTGUI_UNICODE */
 GetMenuItemInfoA_Proc get_menu_item_info = NULL;
 SetMenuItemInfoA_Proc set_menu_item_info = NULL;
 AppendMenuW_Proc unicode_append_menu = NULL;
 MessageBoxW_Proc unicode_message_box = NULL;
 #endif /* NTGUI_UNICODE */
-
-void set_frame_menubar (struct frame *, bool, bool);
 
 #ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show (struct frame *, Lisp_Object, Lisp_Object, char **);
@@ -179,6 +167,7 @@ x_activate_menubar (struct frame *f)
    when the user makes a selection.
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
+void menubar_selection_callback (struct frame *, void *);
 
 void
 menubar_selection_callback (struct frame *f, void * client_data)
@@ -278,7 +267,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i, last_i;
+  int i, last_i = 0;
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
 
@@ -501,7 +490,10 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
     /* Force the window size to be recomputed so that the frame's text
        area remains the same, if menubar has just been created.  */
     if (old_widget == NULL)
-      adjust_frame_size (f, -1, -1, 2, false, Qmenu_bar_lines);
+      {
+	windows_or_buffers_changed = 23;
+	adjust_frame_size (f, -1, -1, 2, false, Qmenu_bar_lines);
+      }
   }
 
   unblock_input ();
@@ -835,7 +827,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
     {
       unblock_input ();
       /* Make "Cancel" equivalent to C-g.  */
-      Fsignal (Qquit, Qnil);
+      quit ();
     }
 
   unblock_input ();
@@ -1027,7 +1019,7 @@ w32_dialog_show (struct frame *f, Lisp_Object title,
     }
   else
     /* Make "Cancel" equivalent to C-g.  */
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   return Qnil;
 }
@@ -1104,18 +1096,18 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 
       if (STRINGP (temp))
 	{
-	  char *utf8_text = SDATA (ENCODE_UTF_8 (temp));
+	  char *utf8_text = SSDATA (ENCODE_UTF_8 (temp));
 	  /* Be pessimistic about the number of characters needed.
 	     Remember characters outside the BMP will take more than
 	     one utf16 word, so we cannot simply use the character
 	     length of temp.  */
 	  int utf8_len = strlen (utf8_text);
 	  text = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
-	  utf8to16 (utf8_text, utf8_len, text);
+	  utf8to16 ((unsigned char *)utf8_text, utf8_len, text);
 	}
       else
 	{
-	  text = L"";
+	  text = (WCHAR *)L"";
 	}
 
       if (NILP (header))
@@ -1140,7 +1132,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 	 encoding so questions representable by the system codepage
 	 are encoded properly.  */
       if (STRINGP (temp))
-	text = SDATA (ENCODE_SYSTEM (temp));
+	text = SSDATA (ENCODE_SYSTEM (temp));
       else
 	text = "";
 
@@ -1163,7 +1155,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
   else if (answer == IDNO)
     lispy_answer = build_string ("No");
   else
-    Fsignal (Qquit, Qnil);
+    quit ();
 
   for (temp = XCDR (contents); CONSP (temp); temp = XCDR (temp))
     {
@@ -1185,8 +1177,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 	  return value;
 	}
     }
-  Fsignal (Qquit, Qnil);
-  return Qnil;
+  return quit ();
 }
 #endif  /* !HAVE_DIALOGS  */
 
@@ -1353,7 +1344,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	utf16_string = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
 
-      utf8to16 (out_string, utf8_len, utf16_string);
+      utf8to16 ((unsigned char *)out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,
 					  item != NULL ? (UINT_PTR) item
 					    : (UINT_PTR) wv->call_data,
@@ -1469,6 +1460,8 @@ fill_in_menu (HMENU menu, widget_value *wv)
 /* Display help string for currently pointed to menu item. Not
    supported on NT 3.51 and earlier, as GetMenuItemInfo is not
    available. */
+void w32_menu_display_help (HWND, HMENU, UINT, UINT);
+
 void
 w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 {
@@ -1578,7 +1571,7 @@ w32_free_menu_strings (HWND hwnd)
 /* The following is used by delayed window autoselection.  */
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
-       doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
+       doc: /* SKIP: real doc in xmenu.c.  */)
   (void)
 {
   struct frame *f;

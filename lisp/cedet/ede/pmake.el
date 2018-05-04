@@ -1,6 +1,6 @@
 ;;; ede-pmake.el --- EDE Generic Project Makefile code generator.
 
-;; Copyright (C) 1998-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -43,7 +43,6 @@
 ;;       1) Insert distribution source variables for targets
 ;;       2) Insert user requested rules
 
-(eval-when-compile (require 'cl))
 (require 'ede/proj)
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)
@@ -277,7 +276,7 @@ Execute BODY in a location where a value can be placed."
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 
 (defsubst ede-pmake-varname (obj)
-  "Convert OBJ into a variable name name.
+  "Convert OBJ into a variable name.
 Change .  to _ in the variable name."
   (let ((name (oref obj name)))
     (while (string-match "\\." name)

@@ -1,6 +1,6 @@
 ;;; gnus-delay.el --- Delayed posting of articles
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -53,12 +53,12 @@
   :group 'gnus-delay)
 
 (defcustom gnus-delay-default-delay "3d"
-  "*Default length of delay."
+  "Default length of delay."
   :type 'string
   :group 'gnus-delay)
 
 (defcustom gnus-delay-default-hour 8
-  "*If deadline is given as date, then assume this time of day."
+  "If deadline is given as date, then assume this time of day."
   :version "22.1"
   :type 'integer
   :group 'gnus-delay)
@@ -103,10 +103,10 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	   (aset deadline 1 minute)
 	   (aset deadline 2 hour)
 	   ;; Convert to seconds.
-	   (setq deadline (gnus-float-time (apply 'encode-time
-						  (append deadline nil))))
+	   (setq deadline (float-time (apply 'encode-time
+					     (append deadline nil))))
 	   ;; If this time has passed already, add a day.
-	   (when (< deadline (gnus-float-time))
+	   (when (< deadline (float-time))
 	     (setq deadline (+ 86400 deadline))) ; 86400 secs/day
 	   ;; Convert seconds to date header.
 	   (setq deadline (message-make-date
@@ -129,7 +129,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 		 (t
 		  (setq delay (* num 60))))
 	   (setq deadline (message-make-date
-			   (seconds-to-time (+ (gnus-float-time) delay)))))
+			   (seconds-to-time (+ (float-time) delay)))))
 	  (t (error "Malformed delay `%s'" delay)))
     (message-add-header (format "%s: %s" gnus-delay-header deadline)))
   (set-buffer-modified-p t)

@@ -1,6 +1,6 @@
-;;; secrets.el --- Client interface to gnome-keyring and kwallet.
+;;; secrets.el --- Client interface to gnome-keyring and kwallet. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm password passphrase
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -158,7 +158,7 @@
 (defvar secrets-enabled nil
   "Whether there is a daemon offering the Secret Service API.")
 
-(defvar secrets-debug t
+(defvar secrets-debug nil
   "Write debug messages")
 
 (defconst secrets-service "org.freedesktop.secrets"
@@ -331,9 +331,7 @@ It returns t if not."
 	     ;; Properties.
 	     `(:array
 	       (:dict-entry ,(concat secrets-interface-item ".Label")
-			    (:variant "dummy"))
-	       (:dict-entry ,(concat secrets-interface-item ".Type")
-			    (:variant ,secrets-interface-item-type-generic)))
+			    (:variant " ")))
 	     ;; Secret.
 	     `(:struct :object-path ,path
 		       (:array :signature "y")
@@ -433,7 +431,7 @@ returned, and it will be stored in `secrets-session-path'."
   "Handler for signals emitted by `secrets-interface-service'."
   (cond
    ((string-equal (dbus-event-member-name last-input-event) "CollectionCreated")
-    (add-to-list 'secrets-collection-paths (car args)))
+    (cl-pushnew (car args) secrets-collection-paths))
    ((string-equal (dbus-event-member-name last-input-event) "CollectionDeleted")
     (setq secrets-collection-paths
 	  (delete (car args) secrets-collection-paths)))))
@@ -539,6 +537,18 @@ For the time being, only the alias \"default\" is supported."
    secrets-interface-service "SetAlias"
    alias :object-path secrets-empty-path))
 
+(defun secrets-lock-collection (collection)
+  "Lock collection labeled COLLECTION.
+If successful, return the object path of the collection."
+  (let ((collection-path (secrets-collection-path collection)))
+    (unless (secrets-empty-path collection-path)
+      (secrets-prompt
+       (cadr
+	(dbus-call-method
+	 :session secrets-service secrets-path secrets-interface-service
+	 "Lock" `(:array :object-path ,collection-path)))))
+    collection-path))
+
 (defun secrets-unlock-collection (collection)
   "Unlock collection labeled COLLECTION.
 If successful, return the object path of the collection."
@@ -598,7 +608,7 @@ If successful, return the object path of the collection."
 ATTRIBUTES are key-value pairs.  The keys are keyword symbols,
 starting with a colon.  Example:
 
-  \(secrets-search-items \"Tramp collection\" :user \"joe\")
+  (secrets-search-items \"Tramp collection\" :user \"joe\")
 
 The object labels of the found items are returned as list."
   (let ((collection-path (secrets-unlock-collection collection))
@@ -610,12 +620,11 @@ The object labels of the found items are returned as list."
 	  (error 'wrong-type-argument (car attributes)))
         (unless (stringp (cadr attributes))
           (error 'wrong-type-argument (cadr attributes)))
-	(setq props (add-to-list
-		     'props
-		     (list :dict-entry
-			   (substring (symbol-name (car attributes)) 1)
-			   (cadr attributes))
-		     'append)
+	(setq props (append
+		     props
+		     `((:dict-entry
+			,(substring (symbol-name (car attributes)) 1)
+			,(cadr attributes))))
 	      attributes (cddr attributes)))
       ;; Search.  The result is a list of object paths.
       (setq result
@@ -635,26 +644,38 @@ The object labels of the found items are returned as list."
 ATTRIBUTES are key-value pairs set for the created item.  The
 keys are keyword symbols, starting with a colon.  Example:
 
-  \(secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
-   :method \"sudo\" :user \"joe\" :host \"remote-host\"\)
+  (secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
+   :method \"sudo\" :user \"joe\" :host \"remote-host\")
+
+The key `:xdg:schema' determines the scope of the item to be
+generated, i.e. for which applications the item is intended for.
+This is just a string like \"org.freedesktop.NetworkManager.Mobile\"
+or \"org.gnome.OnlineAccounts\", the other required keys are
+determined by this.  If no `:xdg:schema' is given,
+\"org.freedesktop.Secret.Generic\" is used by default.
 
 The object path of the created item is returned."
   (unless (member item (secrets-list-items collection))
     (let ((collection-path (secrets-unlock-collection collection))
 	  result props)
       (unless (secrets-empty-path collection-path)
+        ;; Set default type if needed.
+        (unless (member :xdg:schema attributes)
+          (setq attributes
+                (append
+                 attributes
+                 `(:xdg:schema ,secrets-interface-item-type-generic))))
 	;; Create attributes list.
 	(while (consp (cdr attributes))
 	  (unless (keywordp (car attributes))
 	    (error 'wrong-type-argument (car attributes)))
           (unless (stringp (cadr attributes))
             (error 'wrong-type-argument (cadr attributes)))
-	  (setq props (add-to-list
-		       'props
-		       (list :dict-entry
-			     (substring (symbol-name (car attributes)) 1)
-			     (cadr attributes))
-		       'append)
+	  (setq props (append
+		       props
+		       `((:dict-entry
+			  ,(substring (symbol-name (car attributes)) 1)
+			  ,(cadr attributes))))
 		attributes (cddr attributes)))
 	;; Create the item.
 	(setq result
@@ -665,9 +686,7 @@ The object path of the created item is returned."
 	       (append
 		`(:array
 		  (:dict-entry ,(concat secrets-interface-item ".Label")
-			       (:variant ,item))
-		  (:dict-entry ,(concat secrets-interface-item ".Type")
-			       (:variant ,secrets-interface-item-type-generic)))
+			       (:variant ,item)))
 		(when props
 		  `((:dict-entry ,(concat secrets-interface-item ".Attributes")
 				 (:variant ,(append '(:array) props))))))
@@ -734,32 +753,29 @@ If there is no such item, or the item doesn't own this attribute, return nil."
 
 ;;; Visualization.
 
-(define-derived-mode secrets-mode nil "Secrets"
+(defvar secrets-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map (make-composed-keymap special-mode-map widget-keymap))
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "z" 'kill-current-buffer)
+    map)
+  "Keymap used in `secrets-mode' buffers.")
+
+(define-derived-mode secrets-mode special-mode "Secrets"
   "Major mode for presenting password entries retrieved by Security Service.
 In this mode, widgets represent the search results.
 
 \\{secrets-mode-map}"
-  ;; Keymap.
-  (setq secrets-mode-map (copy-keymap special-mode-map))
-  (set-keymap-parent secrets-mode-map widget-keymap)
-  (define-key secrets-mode-map "z" 'kill-this-buffer)
-
+  (setq buffer-undo-list t)
+  (set (make-local-variable 'revert-buffer-function)
+       #'secrets-show-collections)
   ;; When we toggle, we must set temporary widgets.
   (set (make-local-variable 'tree-widget-after-toggle-functions)
-       '(secrets-tree-widget-after-toggle-function))
-
-  (when (not (called-interactively-p 'interactive))
-    ;; Initialize buffer.
-    (setq buffer-read-only t)
-    (let ((inhibit-read-only t))
-      (erase-buffer))))
+       '(secrets-tree-widget-after-toggle-function)))
 
 ;; It doesn't make sense to call it interactively.
 (put 'secrets-mode 'disabled t)
-
-;; The very first buffer created with `secrets-mode' does not have the
-;; keymap etc.  So we create a dummy buffer.  Stupid.
-(with-temp-buffer (secrets-mode))
 
 ;; We autoload `secrets-show-secrets' only on systems with D-Bus support.
 ;;;###autoload(when (featurep 'dbusbind)
@@ -783,10 +799,9 @@ to their attributes."
       (secrets-mode)
       (secrets-show-collections))))
 
-(defun secrets-show-collections ()
+(defun secrets-show-collections (&optional _ignore _noconfirm)
   "Show all available collections."
-  (let ((inhibit-read-only t)
-	(alias (secrets-get-alias "default")))
+  (let ((inhibit-read-only t))
     (erase-buffer)
     (tree-widget-set-theme "folder")
     (dolist (coll (secrets-list-collections))
@@ -855,7 +870,7 @@ to their attributes."
 				     "%v\n"))))
       attributes))))
 
-(defun secrets-tree-widget-after-toggle-function (widget &rest ignore)
+(defun secrets-tree-widget-after-toggle-function (widget &rest _ignore)
   "Add a temporary widget to show the password."
   (dolist (child (widget-get widget :children))
     (when (widget-member child :secret)
@@ -867,7 +882,7 @@ to their attributes."
        "Show password")))
   (widget-setup))
 
-(defun secrets-tree-widget-show-password (widget &rest ignore)
+(defun secrets-tree-widget-show-password (widget &rest _ignore)
   "Show password, and remove temporary widget."
   (let ((parent (widget-get widget :parent)))
     (widget-put parent :secret nil)

@@ -1,12 +1,12 @@
 /* Definitions and headers for communication on the NeXT/Open/GNUstep API.
-   Copyright (C) 1995, 2005, 2008-2015 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2005, 2008-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,12 +14,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef __NSGUI_H__
 #define __NSGUI_H__
 
-/* this gets included from a couple of the plain (non-NS) .c files */
+/* This gets included from a couple of the plain (non-NS) .c files.  */
 #ifdef __OBJC__
 
 #ifdef NS_IMPL_COCOA
@@ -75,7 +75,7 @@ typedef unichar XChar2b;
 
 
 /* XXX: xfaces requires these structures, but the question is are we
-        forced to use them? */
+        forced to use them?  */
 typedef struct _XGCValues
 {
   unsigned long foreground;
@@ -119,8 +119,8 @@ typedef int Display;
 typedef Lisp_Object XrmDatabase;
 
 
-/* some sort of attempt to normalize rectangle handling.. seems a bit much
-   for what is accomplished */
+/* Some sort of attempt to normalize rectangle handling.  Seems a bit
+   much for what is accomplished.  */
 typedef struct {
       int x, y;
       unsigned width, height;
@@ -160,7 +160,7 @@ typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
 
 
 
-/* This stuff needed by frame.c. */
+/* This stuff needed by frame.c.  */
 #define ForgetGravity		0
 #define NorthWestGravity	1
 #define NorthGravity		2

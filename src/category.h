@@ -11,8 +11,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,8 +20,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_CATEGORY_H
+#define EMACS_CATEGORY_H
 
 /* We introduce here three types of object: category, category set,
    and category table.
@@ -52,6 +54,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    The second extra slot is a version number of the category table.
    But, for the moment, we are not using this slot.  */
+
+#include "lisp.h"
 
 INLINE_HEADER_BEGIN
 
@@ -116,3 +120,5 @@ CHAR_HAS_CATEGORY (int ch, int category)
 extern bool word_boundary_p (int, int);
 
 INLINE_HEADER_END
+
+#endif /* EMACS_CATEGORY_H */

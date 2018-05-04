@@ -435,7 +435,7 @@
 	* erc-lang.el (language):
 	* erc-backend.el (erc-server-connect): Fix buggy call to `message'.
 
-2007-12-07  Edward O'Connor  <ted@oconnor.cx>
+2007-12-07  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-services.el: Provide a hook that runs when nickserv confirms
 	that the user has successfully identified.
@@ -1979,7 +1979,7 @@
 	* erc.el (erc-buffer-filter): Make sure all buffers returned from
 	this are live.
 
-2006-05-01  Edward O'Connor  <ted@oconnor.cx>
+2006-05-01  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-goodies.el (erc-handle-irc-url): New function, suitable as
 	a value for `url-irc-function'.
@@ -2314,7 +2314,7 @@
 	sections may be skipped if using the version of ERC that comes
 	with Emacs.
 
-2006-01-29  Edward O'Connor  <ted@oconnor.cx>
+2006-01-29  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-viper.el: Remove.  Now that ERC is included in Emacs, these
 	work-arounds live in Viper itself.
@@ -2370,7 +2370,7 @@
 	other versions of Emacs.
 	(erc-insert-timestamp-right): Use the new function.
 
-2006-01-25  Edward O'Connor  <ted@oconnor.cx>
+2006-01-25  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc.el (erc-modules): Ensure that `erc-button-mode' gets enabled
 	before `erc-match-mode'.
@@ -2721,7 +2721,7 @@
 	xemacs feature as future versions of XEmacs might accept three
 	arguments.
 
-2005-10-18  Edward O'Connor  <ted@oconnor.cx>
+2005-10-18  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc.el: Tell emacs-lisp-mode how to font-lock define-erc-module
 	docstrings.
@@ -2765,7 +2765,7 @@
 	* erc-match.el (erc-log-matches-make-buffer): Use
 	erc-view-mode-enter rather than view-mode-enter.
 
-2005-10-05  Edward O'Connor  <ted@oconnor.cx>
+2005-10-05  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-backend.el (erc-encode-string-for-target): If str is nil,
 	pass the empty string to erc-encode-coding-string instead, which
@@ -3305,7 +3305,7 @@
 	* erc.el: autoload erc-select-read-args, which, because it parses
 	erc-select's args, can be called before erc.el is loaded.
 
-2005-04-07  Edward O'Connor  <ted@oconnor.cx>
+2005-04-07  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-viper.el: Remove final newlines from previously-existing ERC
 	buffers. (Minor bug fix.)
@@ -3460,14 +3460,14 @@
 	(erc-load-irc-script-lines): Use `erc-command-indicator' instead
 	of `erc-prompt'.
 
-2005-01-23  Edward O'Connor  <ted@oconnor.cx>
+2005-01-23  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-viper.el: Ensure that `viper-comint-mode-hook' runs in
 	buffers whose `erc-mode-hook' has already run when this file is
 	loaded.
 	Explicitly `require' erc.el.
 
-2005-01-22  Edward O'Connor  <ted@oconnor.cx>
+2005-01-22  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc.el (erc-mode): Remove frobbing of `require-final-newline'.
 
@@ -3479,7 +3479,7 @@
 	Emacs, some of the hacks in this file should be merged into Viper
 	itself.
 
-2005-01-21  Edward O'Connor  <ted@oconnor.cx>
+2005-01-21  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc.el (erc-mode): Set `require-final-newline' to nil in ERC
 	buffers. This prevents a Viper misfeature whereby extraneous
@@ -3683,7 +3683,7 @@
 	fixes a bug which caused an error to occur when trying to enable
 	the module using the customization interface.
 
-2005-01-08  Edward O'Connor  <ted@oconnor.cx>
+2005-01-08  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-track.el: Support using faces to indicate channel activity
 	in the modeline under XEmacs.
@@ -3959,7 +3959,7 @@
 	* erc.el (erc-process-ctcp-query, erc-process-ctcp-reply): Display
 	message in the active window, not the server window.
 
-2004-12-16  Edward O'Connor  <ted@oconnor.cx>
+2004-12-16  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-track.el (erc-track-position-in-mode-line): Check for
 	'erc-track-mode variable with boundp.  From Adrian Aichner
@@ -3971,12 +3971,12 @@
 	in erc-send-ctcp-message would eat consecutive whitespace etc.
 	(erc-send-ctcp-message, erc-send-ctcp-notice): Use it.
 
-2004-12-15  Edward O'Connor  <ted@oconnor.cx>
+2004-12-15  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc.el (erc-send-ctcp-message): Fix braino with my previous
 	patch.  It always helps to C-x C-s before `cvs commit'.
 
-2004-12-15  Edward O'Connor  <ted@oconnor.cx>
+2004-12-15  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc.el (erc-send-ctcp-message): Only upcase the ctcp command,
 	and not the entire message.  Brian Palmer's change of 2004-12-12 had broken /me.
@@ -5646,7 +5646,7 @@
 	* erc-log.el (erc-save-buffer-in-logs): bind `inhibit-read-only'
 	to t around call to `erase-buffer'.
 
-2004-02-23  Edward O'Connor  <ted@oconnor.cx>
+2004-02-23  Theresa O'Connor  <ted@oconnor.cx>
 
 	* erc-chess.el, erc-dcc.el, erc-ezbounce.el, erc-list.el,
 	erc-macs.el, erc-ring.el, erc-stamp.el, erc.el: Normalized buffer
@@ -6289,7 +6289,7 @@
 	* make 353 (NAMES reply) output go into the appropriate channel buffer
 	  (if it exists) or into the active erc buffer (if not).
 
-2003-08-29  mtoledo  <mtoledo@confusibombus>
+2003-08-29  Marcelo Toledo  <mtoledo@confusibombus>
 
 	* erc.el:
 	Added the variable erc-echo-notices-in-current-buffer to make possible display notices in the current buffer (queries to nickserv/chanserv/memoserv). Defaults to nil so nothing changes from what we have today.
@@ -10324,8 +10324,8 @@
 	* TODO: TODO list created.
 	Add comments and expand it.
 
-	* erc.el:
-	Fixed bug in query buffer handling (only happend in mixed-case situations)
+	* erc.el: Fixed bug in query buffer handling (only happened in
+	mixed-case situations)
 
 	* erc.el: shapr checkdoc patch #1
 	massive docfixes! yay, keep going!
@@ -11635,10 +11635,6 @@
 	(erc-join-info-buffer): Changed default to 'disable.
 	(erc-nick-completion): Changed default to 'all.
 
-2001-07-04  uid31117  <uid31117@confusibombus>
-
-	* erc.el: Resolved...
-
 2001-07-03  Alex Schroeder  <alex@gnu.org>
 
 	* erc.el(erc-highlight-strings): New option and new function.
@@ -11706,7 +11702,7 @@
 
 	* erc-speak.el, erc.el: New file.
 
-  Copyright (C) 2001-2015 Free Software Foundation, Inc.
+  Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -11721,7 +11717,7 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; Local Variables:
 ;; coding: utf-8

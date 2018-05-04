@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1989, 1994, 1998, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -294,7 +294,7 @@ in hexl format.
 
 A sample format:
 
-  HEX ADDR: 0001 0203 0405 0607 0809 0a0b 0c0d 0e0f     ASCII-TEXT
+  HEX ADDR: 0011 2233 4455 6677 8899 aabb ccdd eeff     ASCII-TEXT
   --------  ---- ---- ---- ---- ---- ---- ---- ----  ----------------
   00000000: 5468 6973 2069 7320 6865 786c 2d6d 6f64  This is hexl-mod
   00000010: 652e 2020 4561 6368 206c 696e 6520 7265  e.  Each line re
@@ -406,7 +406,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
 
 (defun hexl-isearch-search-function ()
-  (if (and (not isearch-regexp) (not isearch-word))
+  (if (and (not isearch-regexp) (not isearch-regexp-function))
       (lambda (string &optional bound noerror count)
 	(funcall
 	 (if isearch-forward 're-search-forward 're-search-backward)
@@ -730,13 +730,13 @@ If there is no byte at the target address move to the last byte in that line."
 Leaves `hexl-mark' at previous position.
 With prefix arg N, puts point N bytes of the way from the true beginning."
   (interactive "p")
-  (push-mark (point))
+  (push-mark)
   (hexl-goto-address (+ 0 (1- arg))))
 
 (defun hexl-end-of-buffer (arg)
   "Go to `hexl-max-address' minus ARG."
   (interactive "p")
-  (push-mark (point))
+  (push-mark)
   (hexl-goto-address (- hexl-max-address (1- arg))))
 
 (defun hexl-beginning-of-line ()
@@ -890,7 +890,7 @@ This discards the buffer's undo information."
 	(error "Invalid hex digit `%c'" ch)))))
 
 (defun hexl-oct-char-to-integer (character)
-  "Take a char and return its value as if it was a octal digit."
+  "Take a char and return its value as if it was an octal digit."
   (if (and (>= character ?0) (<= character ?7))
       (- character ?0)
     (error "Invalid octal digit `%c'" character)))

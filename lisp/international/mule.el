@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -665,8 +665,8 @@ without any conversions.
 
 VALUE is the EOL (end-of-line) format of the coding system.  It must be
 one of `unix', `dos', `mac'.  The symbol `unix' means Unix-like EOL
-\(i.e. a single LF character), `dos' means DOS-like EOL \(i.e. a sequence
-of CR followed by LF), and `mac' means Mac-like EOL \(i.e. a single CR).
+\(i.e., a single LF character), `dos' means DOS-like EOL \(i.e., a sequence
+of CR followed by LF), and `mac' means Mac-like EOL \(i.e., a single CR).
 If omitted, Emacs detects the EOL format automatically when decoding.
 
 `:charset-list' (required if `:coding-type' is `charset' or `shift-jis')
@@ -713,7 +713,11 @@ decoded by the coding system itself and before any functions in
 `after-insert-functions' are called.  This function is passed one
 argument: the number of characters in the text to convert, with
 point at the start of the text.  The function should leave point
-unchanged, and should return the new character count.
+unchanged, and should return the new character count.  Note that
+this function should avoid reading from files or receiving text
+from subprocesses -- anything that could invoke decoding; if it
+must do so, it should bind `coding-system-for-read' to a value
+other than the current coding-system, to avoid infinite recursion.
 
 `:pre-write-conversion'
 
@@ -722,7 +726,12 @@ VALUE must be a function to call after all functions in
 called, and before the text is encoded by the coding system
 itself.  This function should convert the whole text in the
 current buffer.  For backward compatibility, this function is
-passed two arguments which can be ignored.
+passed two arguments which can be ignored.  Note that this
+function should avoid writing to files or sending text to
+subprocesses -- anything that could invoke encoding; if it
+must do so, it should bind `coding-system-for-write' to a
+value other than the current coding-system, to avoid infinite
+recursion.
 
 `:default-char'
 
@@ -764,7 +773,7 @@ never used by the other charsets.
 If it is a list, the elements must be charsets, nil, 94, or 96.  GN
 can be used by all the listed charsets.  If the list contains 94, any
 iso-2022 charset whose code-space ranges are 94 long can be designated
-to GN.  If the list contains 96, any charsets whose whose ranges are
+to GN.  If the list contains 96, any charsets whose ranges are
 96 long can be designated to GN.  If the first element is a charset,
 that charset is initially designated to GN.
 
@@ -1302,8 +1311,8 @@ Internal use only.")
                                     preferred))))))
          (completion-ignore-case t)
          (completion-pcm--delim-wild-regex ; Let "u8" complete to "utf-8".
-          (concat completion-pcm--delim-wild-regex
-                  "\\|\\([[:alpha:]]\\)[[:digit:]]"))
+          (concat "\\(?:" completion-pcm--delim-wild-regex
+                  "\\|\\([[:alpha:]]\\)[[:digit:]]\\)"))
          (cs (completing-read
               (format "Coding system for saving file (default %s): " default)
               combined-table
@@ -1445,42 +1454,35 @@ graphical terminals."
   (let ((coding-type (coding-system-type coding-system))
 	(saved-meta-mode
 	 (terminal-parameter terminal 'keyboard-coding-saved-meta-mode)))
-    (if (not (eq coding-type 'raw-text))
-	(let (accept-8-bit)
-	  (if (not (or (coding-system-get coding-system :suitable-for-keyboard)
-		       (coding-system-get coding-system :ascii-compatible-p)))
-	      (error "Unsuitable coding system for keyboard: %s" coding-system))
-	  (cond ((memq coding-type '(charset utf-8 shift-jis big5 ccl))
-		 (setq accept-8-bit t))
-		((eq coding-type 'iso-2022)
-		 (let ((flags (coding-system-get coding-system :flags)))
-		   (or (memq '7-bit flags)
-		       (setq accept-8-bit t))))
-		(t
-		 (error "Unsupported coding system for keyboard: %s"
-			coding-system)))
-	  (if accept-8-bit
-	      (progn
-		(or saved-meta-mode
-		    (set-terminal-parameter terminal
-					    'keyboard-coding-saved-meta-mode
-					    (cons (nth 2 (current-input-mode))
-						  nil)))
-		(set-input-meta-mode 8 terminal))
-	    (when saved-meta-mode
-	      (set-input-meta-mode (car saved-meta-mode) terminal)
-	      (set-terminal-parameter terminal
-				      'keyboard-coding-saved-meta-mode
-				      nil)))
-	  ;; Avoid end-of-line conversion.
-	  (setq coding-system
-		(coding-system-change-eol-conversion coding-system 'unix)))
-
-      (when saved-meta-mode
-	(set-input-meta-mode (car saved-meta-mode) terminal)
-	(set-terminal-parameter terminal
-				'keyboard-coding-saved-meta-mode
-				nil))))
+    (let (accept-8-bit)
+      (if (not (or (coding-system-get coding-system :suitable-for-keyboard)
+                   (coding-system-get coding-system :ascii-compatible-p)))
+          (error "Unsuitable coding system for keyboard: %s" coding-system))
+      (cond ((memq coding-type '(raw-text charset utf-8 shift-jis big5 ccl))
+             (setq accept-8-bit t))
+            ((eq coding-type 'iso-2022)
+             (let ((flags (coding-system-get coding-system :flags)))
+               (or (memq '7-bit flags)
+                   (setq accept-8-bit t))))
+            (t
+             (error "Unsupported coding system for keyboard: %s"
+                    coding-system)))
+      (if accept-8-bit
+          (progn
+            (or saved-meta-mode
+                (set-terminal-parameter terminal
+                                        'keyboard-coding-saved-meta-mode
+                                        (cons (nth 2 (current-input-mode))
+                                              nil)))
+            (set-input-meta-mode 8 terminal))
+        (when saved-meta-mode
+          (set-input-meta-mode (car saved-meta-mode) terminal)
+          (set-terminal-parameter terminal
+                                  'keyboard-coding-saved-meta-mode
+                                  nil)))
+      ;; Avoid end-of-line conversion.
+      (setq coding-system
+            (coding-system-change-eol-conversion coding-system 'unix))))
   (set-keyboard-coding-system-internal coding-system terminal)
   (setq keyboard-coding-system coding-system))
 
@@ -1490,7 +1492,7 @@ If you set this on a terminal which can't distinguish Meta keys from
 8-bit characters, you will have to use ESC to type Meta characters.
 See Info node `Terminal Coding' and Info node `Unibyte Mode'.
 
-On non-windowing terminals, this is set from the locale by default.
+This is set at startup based on the locale.
 
 Setting this variable directly does not take effect;
 use either \\[customize] or \\[set-keyboard-coding-system]."
@@ -1512,6 +1514,7 @@ DECODING is the coding system to be used to decode input from the process,
 ENCODING is the coding system to be used to encode output to the process.
 
 For a list of possible coding systems, use \\[list-coding-systems]."
+  (declare (interactive-only set-process-coding-system))
   (interactive
    "zCoding-system for output from the process: \nzCoding-system for input to the process: ")
   (let ((proc (get-buffer-process (current-buffer))))
@@ -1871,7 +1874,7 @@ files.")
 (defun auto-coding-alist-lookup (filename)
   "Return the coding system specified by `auto-coding-alist' for FILENAME."
   (let ((alist auto-coding-alist)
-	(case-fold-search (memq system-type '(windows-nt ms-dos cygwin)))
+	(case-fold-search (file-name-case-insensitive-p filename))
 	coding-system)
     (while (and alist (not coding-system))
       (if (string-match (car (car alist)) filename)
@@ -1968,7 +1971,7 @@ use \"coding: 'raw-text\" instead."
 	  (goto-char tail-start)
 	  (re-search-forward "[\r\n]\^L" tail-end t)
 	  (if (re-search-forward
-	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]"
+	       "[\r\n]\\([^\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]"
 	       tail-end t)
 	      ;; The prefix is what comes before "local variables:" in its
 	      ;; line.  The suffix is what comes after "local variables:"
@@ -2491,7 +2494,17 @@ This function is intended to be added to `auto-coding-functions'."
 	    (let* ((match (match-string 1))
 		   (sym (intern (downcase match))))
 	      (if (coding-system-p sym)
-		  sym
+                  ;; If the encoding tag is UTF-8 and the buffer's
+                  ;; encoding is one of the variants of UTF-8, use the
+                  ;; buffer's encoding.  This allows, e.g., saving an
+                  ;; XML file as UTF-8 with BOM when the tag says UTF-8.
+                  (let ((sym-type (coding-system-type sym))
+                        (bfcs-type
+                         (coding-system-type buffer-file-coding-system)))
+                    (if (and (coding-system-equal 'utf-8 sym-type)
+                             (coding-system-equal 'utf-8 bfcs-type))
+                        buffer-file-coding-system
+		      sym))
 		(message "Warning: unknown coding system \"%s\"" match)
 		nil))
           ;; Files without an encoding tag should be UTF-8. But users
@@ -2504,7 +2517,8 @@ This function is intended to be added to `auto-coding-functions'."
                    (coding-system-base
                     (detect-coding-region (point-min) size t)))))
             ;; Pure ASCII always comes back as undecided.
-            (if (memq detected '(utf-8 undecided))
+            (if (memq detected
+                      '(utf-8 'utf-8-with-signature 'utf-8-hfs undecided))
                 'utf-8
               (warn "File contents detected as %s.
   Consider adding an encoding attribute to the xml declaration,

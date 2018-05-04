@@ -1,0 +1,253 @@
+#!/bin/bash
+### automerge - automatically merge the Emacs release branch to master
+
+## Copyright (C) 2018 Free Software Foundation, Inc.
+
+## Author: Glenn Morris <rgm@gnu.org>
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Automatically merge the Emacs release branch to master.
+## If the merge succeeds, optionally build and test the results,
+## and then push it.
+## Intended usage:
+## Have a dedicated git directory just for this.
+## Have a cron job that calls this script with -r -p.
+##
+## Modifying a running shell script can have unpredictable results,
+## so the paranoid will first make a copy of this script, and then run
+## it with the -d option in the repository directory, in case a pull
+## updates this script while it is working.
+
+die ()                 # write error to stderr and exit
+{
+    [ $# -gt 0 ] && echo "$PN: $@" >&2
+    exit 1
+}
+
+PN=${0##*/}                     # basename of script
+PD=${0%/*}
+
+[ "$PD" = "$0" ] && PD=.        # if PATH includes PWD
+
+usage ()
+{
+    cat 1>&2 <<EOF
+Usage: ${PN} [-b] [-d] [-e emacs] [-n nmin] [-p] [-r] [-t] [-- mflags]
+Merge the Emacs release branch to master.
+Passes any non-option args to make (eg -- -j2).
+Options:
+-d: no initial cd to parent of script directory
+-e: Emacs executable to use for the initial merge (default $emacs)
+-n: minimum number of commits to try merging (default $nmin)
+-b: try to build after merging
+-t: try to check after building
+-p: if merge, build, check all succeed, push when finished (caution!)
+-r: start by doing a hard reset (caution!) and pull
+EOF
+    exit 1
+}
+
+
+## Defaults.
+
+emacs=emacs
+nmin=10
+build=
+test=
+push=
+quiet=
+reset=
+nocd=
+
+while getopts ":hbde:n:pqrt" option ; do
+    case $option in
+        (h) usage ;;
+
+        (b) build=1 ;;
+
+        (d) nocd=1 ;;
+
+        (e) emacs=$OPTARG ;;
+
+        (n) nmin=$OPTARG ;;
+
+        (p) push=1 ;;
+
+        (q) quiet=1 ;;
+
+        (r) reset=1 ;;
+
+        (t) test=1 ;;
+
+        (\?) die "Bad option -$OPTARG" ;;
+
+        (:) die "Option -$OPTARG requires an argument" ;;
+
+        (*) die "getopts error" ;;
+    esac
+done
+shift $(( --OPTIND ))
+OPTIND=1
+
+
+[ "$nocd" ] || {
+    cd $PD                      # this should be the admin directory
+    cd ../
+}
+
+[ -d admin ] || die "Could not locate admin directory"
+
+[ -e .git ] || die "No .git"
+
+
+## Does not work 100% because a lot of Emacs batch output comes on
+## stderr (?).
+[ "$quiet" ] && exec 1> /dev/null
+
+
+[ "$push" ] && test=1
+[ "$test" ] && build=1
+
+
+tempfile=/tmp/$PN.$$
+
+trap "rm -f $tempfile 2> /dev/null" EXIT
+
+
+[ -e Makefile ] && [ "$build" ] && {
+    echo "Cleaning..."
+    make maintainer-clean >& /dev/null
+}
+
+
+[ "$reset" ] && {
+    echo "Resetting..."
+    git reset -q --hard origin/master || die "reset error"
+
+    echo "Pulling..."
+    git pull -q --ff-only || die "pull error"
+}
+
+
+rev=$(git rev-parse HEAD)
+
+[ $(git rev-parse @{u}) = $rev ] || die "Local state does not match origin"
+
+
+merge ()
+{
+    echo "Merging..."
+
+    if $emacs --batch -Q -l ./admin/gitmerge.el \
+              --eval "(setq gitmerge-minimum-missing $nmin)" -f gitmerge \
+              >| $tempfile 2>&1; then
+        echo "merged ok"
+        return 0
+
+    else
+        grep -E "Nothing to merge|Number of missing commits" $tempfile && \
+            exit 0
+
+        cat "$tempfile" 1>&2
+
+        die "merge error"
+    fi
+}
+
+
+merge
+
+
+[ "$build" ] || exit 0
+
+
+echo "Running autoreconf..."
+
+autoreconf -i -I m4 2>| $tempfile
+
+retval=$?
+
+## Annoyingly, autoreconf puts the "installing `./foo' messages on stderr.
+if [ "$quiet" ]; then
+    grep -v 'installing `\.' $tempfile 1>&2
+else
+    cat "$tempfile" 1>&2
+fi
+
+[ $retval -ne 0 ] && die "autoreconf error"
+
+
+echo "Running ./configure..."
+
+## Minimize required packages.
+./configure --without-x || die "configure error"
+
+
+echo "Building..."
+
+make "$@" || die "make error"
+
+echo "Build finished ok"
+
+
+[ "$test" ] || exit 0
+
+
+echo "Testing..."
+
+## We just want a fast pass/fail, we don't want to debug.
+make "$@" check TEST_LOAD_EL=no || die "check error"
+
+echo "Tests finished ok"
+
+
+[ "$push" ] || exit 0
+
+
+## In case someone else pushed while we were working.
+echo "Checking for remote changes..."
+git fetch || die "fetch error"
+
+[ $(git rev-parse @{u}) = $rev ] || {
+
+    echo "Upstream has changed"
+
+    ## Rebasing would be incorrect, since it would rewrite the
+    ## (already published) release branch commits.
+    ## Ref eg http://lists.gnu.org/r/emacs-devel/2014-12/msg01435.html
+    ## Instead, we throw away what we just did, and do the merge again.
+    echo "Resetting..."
+    git reset --hard $rev
+
+    echo "Pulling..."
+    git pull --ff-only || die "pull error"
+
+    merge
+
+    ## If the merge finished ok again, we don't bother doing a second
+    ## build and test.
+}
+
+echo "Pushing..."
+git push || die "push error"
+
+
+exit 0
+
+### automerge ends here

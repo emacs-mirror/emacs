@@ -1,6 +1,6 @@
 ;;; version.el --- record version number of Emacs
 
-;; Copyright (C) 1985, 1992, 1994-1995, 1999-2015 Free Software
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,13 +38,17 @@ This variable first existed in version 19.23.")
   "Minor version number of this version of Emacs.
 This variable first existed in version 19.23.")
 
-(defconst emacs-build-time (current-time)
-  "Time at which Emacs was dumped out.")
-
-;; I think this should be obsoleted/removed.  It's just one more meaningless
-;; difference between different builds.  It's usually not even an fqdn.
 (defconst emacs-build-system (system-name)
-  "Name of the system on which Emacs was built.")
+  "Name of the system on which Emacs was built, or nil if not available.")
+
+(defconst emacs-build-time (if emacs-build-system (current-time))
+  "Time at which Emacs was dumped out, or nil if not available.")
+
+(defconst emacs-build-number 1          ; loadup.el may increment this
+  "The build number of this version of Emacs.
+This is an integer that increments each time Emacs is built in a given
+directory (without cleaning).  This is likely to only be relevant when
+developing Emacs.")
 
 (defvar motif-version-string)
 (defvar gtk-version-string)
@@ -58,10 +62,9 @@ Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
-         (format (if (not (called-interactively-p 'interactive))
-		     "GNU Emacs %s (%s%s%s%s)\n of %s"
-		   "GNU Emacs %s (%s%s%s%s) of %s")
+         (format "GNU Emacs %s (build %s, %s%s%s%s)%s"
                  emacs-version
+                 emacs-build-number
 		 system-configuration
 		 (cond ((featurep 'motif)
 			(concat ", " (substring motif-version-string 4)))
@@ -79,7 +82,14 @@ to the system configuration; look at `system-configuration' instead."
 		     (format ", %s scroll bars"
 			     (capitalize (symbol-name x-toolkit-scroll-bars)))
 		   "")
-		 (format-time-string "%Y-%m-%d" emacs-build-time))))
+		 (if emacs-build-time
+		     (format-time-string (concat
+					  (if (called-interactively-p
+					       'interactive)
+					      "" "\n")
+					  " of %Y-%m-%d")
+					 emacs-build-time)
+		   ""))))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
@@ -89,14 +99,14 @@ to the system configuration; look at `system-configuration' instead."
 ;; We hope that this alias is easier for people to find.
 (defalias 'version 'emacs-version)
 
+(define-obsolete-variable-alias 'emacs-bzr-version
+                                'emacs-repository-version "24.4")
+
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-repository-version nil
   "String giving the repository revision from which this Emacs was built.
 Value is nil if Emacs was not built from a repository checkout,
 or if we could not determine the revision.")
-
-(define-obsolete-variable-alias 'emacs-bzr-version
-                                'emacs-repository-version "24.4")
 
 (define-obsolete-function-alias 'emacs-bzr-get-version
                                 'emacs-repository-get-version "24.4")
@@ -113,18 +123,6 @@ or if we could not determine the revision.")
 		  (looking-at "[0-9a-fA-F]\\{40\\}"))
 	   (match-string 0)))))
 
-(defun emacs-repository--version-git-1 (file)
-  "Internal subroutine of `emacs-repository-get-version'."
-  (when (file-readable-p file)
-    (erase-buffer)
-    (insert-file-contents file)
-    (cond ((looking-at "[0-9a-fA-F]\\{40\\}")
-	   (match-string 0))
-	  ((looking-at "ref: \\(.*\\)")
-	   (emacs-repository--version-git-1
-	    (expand-file-name (match-string 1)
-			      (file-name-directory file)))))))
-
 (defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
@@ -134,24 +132,8 @@ this reports on the current state of the sources, which may not
 correspond to the running Emacs.
 
 Optional argument DIR is a directory to use instead of `source-directory'.
-Optional argument EXTERNAL non-nil means to just ask the VCS itself,
-if the sources appear to be under version control.  Otherwise only ask
-the VCS if we cannot find any information ourselves."
-  (or dir (setq dir source-directory))
-  (when (file-directory-p (expand-file-name ".git" dir))
-    (if external
-	(emacs-repository-version-git dir)
-      (or (let ((files '("HEAD" "refs/heads/master"))
-		file rev)
-	    (with-temp-buffer
-	      (while (and (not rev)
-			  (setq file (car files)))
-		(setq file (expand-file-name (format ".git/%s" file) dir)
-		      files (cdr files)
-		      rev (emacs-repository--version-git-1 file))))
-	    rev)
-	  ;; AFAICS this doesn't work during dumping (bug#20799).
-	  (emacs-repository-version-git dir)))))
+Optional argument EXTERNAL is ignored."
+  (emacs-repository-version-git (or dir source-directory)))
 
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

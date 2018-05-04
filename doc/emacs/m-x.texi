@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node M-x
@@ -43,13 +43,23 @@ Note that @code{forward-char} is the same command that you invoke with
 the key @kbd{C-f}.  The existence of a key binding does not stop you
 from running the command by name.
 
+@cindex obsolete command
+  When @kbd{M-x} completes on commands, it ignores the commands that
+are declared @dfn{obsolete}; for these, you will have to type their
+full name.  Obsolete commands are those for which newer, better
+alternatives exist, and which are slated for removal in some future
+Emacs release.
+
   To cancel the @kbd{M-x} and not run a command, type @kbd{C-g} instead
 of entering the command name.  This takes you back to command level.
 
   To pass a numeric argument to the command you are invoking with
 @kbd{M-x}, specify the numeric argument before @kbd{M-x}.  The
 argument value appears in the prompt while the command name is being
-read, and finally @kbd{M-x} passes the argument to that command.
+read, and finally @kbd{M-x} passes the argument to that command.  For
+example, to pass the numeric argument of 42 to the command
+@code{forward-char} you can type @kbd{C-u 42 M-x forward-char
+@key{RET}}.
 
 @vindex suggest-key-bindings
   When the command you run with @kbd{M-x} has a key binding, Emacs
@@ -57,12 +67,23 @@ mentions this in the echo area after running the command.  For
 example, if you type @kbd{M-x forward-word}, the message says that you
 can run the same command by typing @kbd{M-f}.  You can turn off these
 messages by setting the variable @code{suggest-key-bindings} to
-@code{nil}.
+@code{nil}.  The value of @code{suggest-key-bindings} can also be a
+number, in which case Emacs will show the binding for that many
+seconds before removing it from display.  The default behavior is to
+display the binding for 2 seconds.
+
+@vindex extended-command-suggest-shorter
+  Commands that don't have key bindings, can still be invoked after
+typing less than their full name at the @samp{M-x} prompt.  Emacs
+mentions such shorthands in the echo area if they are significantly
+shorter than the full command name, and
+@code{extended-command-suggest-shorter} is non-@code{nil}.  The
+setting of @code{suggest-key-bindings} affects these hints as well.
 
   In this manual, when we speak of running a command by name, we often
 omit the @key{RET} that terminates the name.  Thus we might say
-@kbd{M-x auto-fill-mode} rather than @kbd{M-x auto-fill-mode
-@key{RET}}.  We mention the @key{RET} only for emphasis, such as when
+@kbd{M-x auto-fill-mode} rather than @w{@kbd{M-x auto-fill-mode
+@key{RET}}}.  We mention the @key{RET} only for emphasis, such as when
 the command is followed by arguments.
 
 @findex execute-extended-command

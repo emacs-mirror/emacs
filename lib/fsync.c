@@ -2,12 +2,12 @@
    cross-compilers like MinGW.
 
    This is derived from sqlite3 sources.
-   http://www.sqlite.org/cvstrac/rlog?f=sqlite/src/os_win.c
-   http://www.sqlite.org/copyright.html
+   https://www.sqlite.org/src/finfo?name=src/os_win.c
+   https://www.sqlite.org/copyright.html
 
    Written by Richard W.M. Jones <rjones.at.redhat.com>
 
-   Copyright (C) 2008-2015 Free Software Foundation, Inc.
+   Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public
@@ -20,7 +20,7 @@
    General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <unistd.h>
@@ -34,7 +34,11 @@
 # include <errno.h>
 
 /* Get _get_osfhandle.  */
-# include "msvc-nothrow.h"
+# if GNULIB_MSVC_NOTHROW
+#  include "msvc-nothrow.h"
+# else
+#  include <io.h>
+# endif
 
 int
 fsync (int fd)

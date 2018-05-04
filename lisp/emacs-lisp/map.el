@@ -1,10 +1,10 @@
 ;;; map.el --- Map manipulation functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: convenience, map, hash-table, alist, array
-;; Version: 1.0
+;; Version: 1.2
 ;; Package: map
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,18 +43,24 @@
 ;;; Code:
 
 (require 'seq)
+(eval-when-compile (require 'cl-lib))
 
 (pcase-defmacro map (&rest args)
-  "pcase pattern matching map elements.
-Matches if the object is a map (list, hash-table or array), and
-binds values from ARGS to their corresponding elements of the map.
+  "Build a `pcase' pattern matching map elements.
 
-ARGS can be a list elements of the form (KEY PAT), in which case
-KEY in an unquoted form.
+ARGS is a list of elements to be matched in the map.
 
-ARGS can also be a list of symbols, which stands for ('SYMBOL
-SYMBOL)."
-  `(and (pred map-p)
+Each element of ARGS can be of the form (KEY PAT), in which case KEY is
+evaluated and searched for in the map.  The match fails if for any KEY
+found in the map, the corresponding PAT doesn't match the value
+associated to the KEY.
+
+Each element can also be a SYMBOL, which is an abbreviation of a (KEY
+PAT) tuple of the form (\\='SYMBOL SYMBOL).
+
+Keys in ARGS not found in the map are ignored, and the match doesn't
+fail."
+  `(and (pred mapp)
         ,@(map--make-pcase-bindings args)))
 
 (defmacro map-let (keys map &rest body)
@@ -67,31 +73,34 @@ KEYS can also be a list of (KEY VARNAME) pairs, in which case
 KEY is an unquoted form.
 
 MAP can be a list, hash-table or array."
-  (declare (indent 2) (debug t))
+  (declare (indent 2)
+           (debug ((&rest &or symbolp ([form symbolp])) form body)))
   `(pcase-let ((,(map--make-pcase-patterns keys) ,map))
      ,@body))
 
 (eval-when-compile
   (defmacro map--dispatch (map-var &rest args)
-    "Evaluate one of the forms specified by ARGS based on the type of MAP.
+    "Evaluate one of the forms specified by ARGS based on the type of MAP-VAR.
 
 The following keyword types are meaningful: `:list',
 `:hash-table' and `:array'.
 
-An error is thrown if MAP is neither a list, hash-table nor array.
+An error is thrown if MAP-VAR is neither a list, hash-table nor array.
 
-Return RESULT if non-nil or the result of evaluation of the form."
+Returns the result of evaluating the form associated with MAP-VAR's type."
     (declare (debug t) (indent 1))
     `(cond ((listp ,map-var) ,(plist-get args :list))
            ((hash-table-p ,map-var) ,(plist-get args :hash-table))
            ((arrayp ,map-var) ,(plist-get args :array))
            (t (error "Unsupported map: %s" ,map-var)))))
 
-(defun map-elt (map key &optional default)
-  "Perform a lookup in MAP of KEY and return its associated value.
+(defun map-elt (map key &optional default testfn)
+  "Lookup KEY in MAP and return its associated value.
 If KEY is not found, return DEFAULT which defaults to nil.
 
-If MAP is a list, `eql' is used to lookup KEY.
+If MAP is a list, `eql' is used to lookup KEY.  Optional argument
+TESTFN, if non-nil, means use its function definition instead of
+`eql'.
 
 MAP can be a list, hash-table or array."
   (declare
@@ -100,57 +109,52 @@ MAP can be a list, hash-table or array."
       (gv-letplace (mgetter msetter) `(gv-delay-error ,map)
         (macroexp-let2* nil
             ;; Eval them once and for all in the right order.
-            ((key key) (default default))
+            ((key key) (default default) (testfn testfn))
           `(if (listp ,mgetter)
                ;; Special case the alist case, since it can't be handled by the
                ;; map--put function.
                ,(gv-get `(alist-get ,key (gv-synthetic-place
                                           ,mgetter ,msetter)
-                                    ,default)
+                                    ,default nil ,testfn)
                         do)
              ,(funcall do `(map-elt ,mgetter ,key ,default)
                        (lambda (v) `(map--put ,mgetter ,key ,v)))))))))
   (map--dispatch map
-    :list (alist-get key map default)
+    :list (alist-get key map default nil testfn)
     :hash-table (gethash key map default)
     :array (if (and (>= key 0) (< key (seq-length map)))
                (seq-elt map key)
              default)))
 
-(defmacro map-put (map key value)
-  "In MAP, associate KEY with VALUE and return MAP.
+(defmacro map-put (map key value &optional testfn)
+  "Associate KEY with VALUE in MAP and return VALUE.
 If KEY is already present in MAP, replace the associated value
 with VALUE.
+When MAP is a list, test equality with TESTFN if non-nil, otherwise use `eql'.
 
 MAP can be a list, hash-table or array."
-  (macroexp-let2 nil map map
-    `(progn
-       (setf (map-elt ,map ,key) ,value)
-       ,map)))
+  `(setf (map-elt ,map ,key nil ,testfn) ,value))
 
-(defmacro map-delete (map key)
-  "In MAP, delete the key KEY if present and return MAP.
-If MAP is an array, store nil at the index KEY.
+(defun map-delete (map key)
+  "Delete KEY from MAP and return MAP.
+No error is signaled if KEY is not a key of MAP.  If MAP is an
+array, store nil at the index KEY.
 
 MAP can be a list, hash-table or array."
-  (declare (debug t))
-  (gv-letplace (mgetter msetter) `(gv-delay-error ,map)
-    (macroexp-let2 nil key key
-      `(if (not (listp ,mgetter))
-           (map--delete ,mgetter ,key)
-         ;; The alist case is special, since it can't be handled by the
-         ;; map--delete function.
-         (setf (alist-get ,key (gv-synthetic-place ,mgetter ,msetter)
-                          nil t)
-               nil)
-         ,mgetter))))
+  (map--dispatch map
+    :list (setf (alist-get key map nil t) nil)
+    :hash-table (remhash key map)
+    :array (and (>= key 0)
+                (<= key (seq-length map))
+                (aset map key nil)))
+  map)
 
 (defun map-nested-elt (map keys &optional default)
   "Traverse MAP using KEYS and return the looked up value or DEFAULT if nil.
 
 Map can be a nested map composed of alists, hash-tables and arrays."
   (or (seq-reduce (lambda (acc key)
-                    (when (map-p acc)
+                    (when (mapp acc)
                       (map-elt acc key)))
                   keys
                   map)
@@ -201,6 +205,16 @@ MAP can be a list, hash-table or array."
            function
            map))
 
+(defun map-do (function map)
+  "Apply FUNCTION to each element of MAP and return nil.
+FUNCTION is called with two arguments, the key and the value."
+  (funcall (map--dispatch map
+             :list #'map--do-alist
+             :hash-table #'maphash
+             :array #'map--do-array)
+           function
+           map))
+
 (defun map-keys-apply (function map)
   "Return the result of applying FUNCTION to each key of MAP.
 
@@ -234,14 +248,14 @@ MAP can be a list, hash-table or array."
   (map-filter (lambda (key val) (not (funcall pred key val)))
               map))
 
-(defun map-p (map)
+(defun mapp (map)
   "Return non-nil if MAP is a map (list, hash-table or array)."
   (or (listp map)
       (hash-table-p map)
       (arrayp map)))
 
 (defun map-empty-p (map)
-  "Return non-nil is MAP is empty.
+  "Return non-nil if MAP is empty.
 
 MAP can be a list, hash-table or array."
   (map--dispatch map
@@ -250,7 +264,7 @@ MAP can be a list, hash-table or array."
     :hash-table (zerop (hash-table-count map))))
 
 (defun map-contains-key (map key &optional testfn)
-  "Return non-nil if MAP contain the key KEY, nil otherwise.
+  "If MAP contain KEY return KEY, nil otherwise.
 Equality is defined by TESTFN if non-nil or by `equal' if nil.
 
 MAP can be a list, hash-table or array."
@@ -274,21 +288,42 @@ MAP can be a list, hash-table or array."
 MAP can be a list, hash-table or array."
   (catch 'map--break
     (map-apply (lambda (key value)
-                 (or (funcall pred key value)
-                     (throw 'map--break nil)))
-               map)
+              (or (funcall pred key value)
+                  (throw 'map--break nil)))
+            map)
     t))
 
 (defun map-merge (type &rest maps)
-  "Merge into a map of type TYPE all the key/value pairs in the maps MAPS.
+  "Merge into a map of type TYPE all the key/value pairs in MAPS.
 
 MAP can be a list, hash-table or array."
-  (let (result)
+  (let ((result (map-into (pop maps) type)))
     (while maps
+      ;; FIXME: When `type' is `list', we get an O(N^2) behavior.
+      ;; For small tables, this is fine, but for large tables, we
+      ;; should probably use a hash-table internally which we convert
+      ;; to an alist in the end.
       (map-apply (lambda (key value)
                    (setf (map-elt result key) value))
                  (pop maps)))
-    (map-into result type)))
+    result))
+
+(defun map-merge-with (type function &rest maps)
+  "Merge into a map of type TYPE all the key/value pairs in MAPS.
+When two maps contain the same key, call FUNCTION on the two
+values and use the value returned by it.
+MAP can be a list, hash-table or array."
+  (let ((result (map-into (pop maps) type))
+        (not-found (cons nil nil)))
+    (while maps
+      (map-apply (lambda (key value)
+                   (cl-callf (lambda (old)
+                               (if (eq old not-found)
+                                   value
+                                 (funcall function old value)))
+                       (map-elt result key not-found)))
+                 (pop maps)))
+    result))
 
 (defun map-into (map type)
   "Convert the map MAP into a map of type TYPE.
@@ -316,15 +351,6 @@ MAP can be a list, hash-table or array."
                       (cdr pair)))
            map))
 
-(defun map--delete (map key)
-  (map--dispatch map
-    :list (error "No place to remove the mapping for %S" key)
-    :hash-table (remhash key map)
-    :array (and (>= key 0)
-                (<= key (seq-length map))
-                (aset map key nil)))
-  map)
-
 (defun map--apply-hash-table (function map)
   "Private function used to apply FUNCTION over MAP, MAP being a hash-table."
   (let (result)
@@ -341,6 +367,20 @@ MAP can be a list, hash-table or array."
                    (funcall function index elt)
                  (setq index (1+ index))))
              map)))
+
+(defun map--do-alist (function alist)
+  "Private function used to iterate over ALIST using FUNCTION."
+  (seq-do (lambda (pair)
+            (funcall function
+                     (car pair)
+                     (cdr pair)))
+          alist))
+
+(defun map--do-array (function array)
+  "Private function used to iterate over ARRAY using FUNCTION."
+  (seq-do-indexed (lambda (elt index)
+                     (funcall function index elt))
+                   array))
 
 (defun map--into-hash-table (map)
   "Convert MAP into a hash-table."

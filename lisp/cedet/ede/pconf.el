@@ -1,6 +1,6 @@
 ;;; ede/pconf.el --- configure.ac maintenance for EDE
 
-;;; Copyright (C) 1998-2000, 2005, 2008-2015 Free Software Foundation,
+;;; Copyright (C) 1998-2000, 2005, 2008-2018 Free Software Foundation,
 ;;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -93,11 +93,11 @@ don't do it.  A value of nil means to just do it.")
     (ede-map-all-subprojects
      this
      (lambda (sp)
-       (ede-map-targets sp 'ede-proj-flush-autoconf)))
+       (ede-map-targets sp #'ede-proj-flush-autoconf)))
     (ede-map-all-subprojects
      this
      (lambda (sp)
-       (ede-map-targets this 'ede-proj-tweak-autoconf)))
+       (ede-map-targets this #'ede-proj-tweak-autoconf)))
     ;; Now save
     (save-buffer)
     (setq postcmd "autoreconf -f -i;")

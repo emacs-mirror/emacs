@@ -1,12 +1,12 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
    Geoff Voelker (voelker@cs.washington.edu)                         8-12-94
@@ -34,11 +34,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Include relevant definitions from IMAGEHLP.H, which can be found
    in \\win32sdk\mstools\samples\image\include\imagehlp.h. */
 
-PIMAGE_NT_HEADERS
-(__stdcall * pfnCheckSumMappedFile) (LPVOID BaseAddress,
-				    DWORD FileLength,
-				    LPDWORD HeaderSum,
-				    LPDWORD CheckSum);
+PIMAGE_NT_HEADERS (__stdcall * pfnCheckSumMappedFile) (LPVOID BaseAddress,
+						       DWORD FileLength,
+						       LPDWORD HeaderSum,
+						       LPDWORD CheckSum);
 
 extern BOOL ctrl_c_handler (unsigned long type);
 
@@ -50,10 +49,6 @@ extern char *my_begbss_static;
 
 /* Basically, our "initialized" flag.  */
 BOOL using_dynamic_heap = FALSE;
-
-int open_input_file (file_data *p_file, char *name);
-int open_output_file (file_data *p_file, char *name, unsigned long size);
-void close_file_data (file_data *p_file);
 
 void get_section_info (file_data *p_file);
 void copy_executable_and_dump_data (file_data *, file_data *);
@@ -82,14 +77,17 @@ DWORD_PTR  extra_bss_size_static = 0;
 #define _start __start
 #endif
 
+extern void mainCRTStartup (void);
+
 /* Startup code for running on NT.  When we are running as the dumped
    version, we need to bootstrap our heap and .bss section into our
    address space before we can actually hand off control to the startup
    code supplied by NT (primarily because that code relies upon malloc ()).  */
+void _start (void);
+
 void
 _start (void)
 {
-  extern void mainCRTStartup (void);
 
 #if 1
   /* Give us a way to debug problems with crashes on startup when
@@ -206,7 +204,7 @@ close_file_data (file_data *p_file)
 
 /* Return pointer to section header for named section. */
 IMAGE_SECTION_HEADER *
-find_section (char * name, IMAGE_NT_HEADERS * nt_header)
+find_section (const char * name, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -215,7 +213,7 @@ find_section (char * name, IMAGE_NT_HEADERS * nt_header)
 
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
-      if (strcmp (section->Name, name) == 0)
+      if (strcmp ((char *)section->Name, name) == 0)
 	return section;
       section++;
     }
@@ -250,9 +248,10 @@ rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header)
   return NULL;
 }
 
+#if 0	/* unused */
 /* Return pointer to section header for section containing the given
    offset in its raw data area. */
-IMAGE_SECTION_HEADER *
+static IMAGE_SECTION_HEADER *
 offset_to_section (DWORD_PTR offset, IMAGE_NT_HEADERS * nt_header)
 {
   PIMAGE_SECTION_HEADER section;
@@ -269,11 +268,12 @@ offset_to_section (DWORD_PTR offset, IMAGE_NT_HEADERS * nt_header)
     }
   return NULL;
 }
+#endif
 
 /* Return offset to an object in dst, given offset in src.  We assume
    there is at least one section in both src and dst images, and that
    the some sections may have been added to dst (after sections in src).  */
-DWORD_PTR
+static DWORD_PTR
 relocate_offset (DWORD_PTR offset,
 		 IMAGE_NT_HEADERS * src_nt_header,
 		 IMAGE_NT_HEADERS * dst_nt_header)
@@ -307,9 +307,6 @@ relocate_offset (DWORD_PTR offset,
     (dst_section->PointerToRawData - src_section->PointerToRawData);
 }
 
-#define OFFSET_TO_RVA(offset, section) \
-  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
-
 #define RVA_TO_OFFSET(rva, section) \
   ((section)->PointerToRawData + ((DWORD_PTR)(rva) - (section)->VirtualAddress))
 
@@ -319,14 +316,19 @@ relocate_offset (DWORD_PTR offset,
 /* Convert address in executing image to RVA.  */
 #define PTR_TO_RVA(ptr) ((DWORD_PTR)(ptr) - (DWORD_PTR) GetModuleHandle (NULL))
 
-#define RVA_TO_PTR(var,section,filedata) \
-	  ((unsigned char *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
-
 #define PTR_TO_OFFSET(ptr, pfile_data) \
           ((unsigned char *)(ptr) - (pfile_data)->file_base)
 
 #define OFFSET_TO_PTR(offset, pfile_data) \
           ((pfile_data)->file_base + (DWORD_PTR)(offset))
+
+#if 0	/* unused */
+#define OFFSET_TO_RVA(offset, section) \
+  ((section)->VirtualAddress + ((DWORD_PTR)(offset) - (section)->PointerToRawData))
+
+#define RVA_TO_PTR(var,section,filedata) \
+	  ((unsigned char *)(RVA_TO_OFFSET (var,section) + (filedata).file_base))
+#endif
 
 
 /* Flip through the executable and cache the info necessary for dumping.  */
@@ -355,7 +357,7 @@ get_section_info (file_data *p_infile)
   /* Check the NT header signature ...  */
   if (nt_header->Signature != IMAGE_NT_SIGNATURE)
     {
-      printf ("Invalid IMAGE_NT_SIGNATURE 0x%x in %s...bailing.\n",
+      printf ("Invalid IMAGE_NT_SIGNATURE 0x%lx in %s...bailing.\n",
 	      nt_header->Signature, p_infile->name);
       exit (1);
     }
@@ -463,10 +465,17 @@ get_section_info (file_data *p_infile)
       bss_start = min (bss_start, bss_start_static);
       bss_size = max (my_endbss, my_endbss_static) - bss_start;
       bss_section_static = 0;
+      extra_bss_size = max (extra_bss_size, extra_bss_size_static);
       extra_bss_size_static = 0;
     }
 }
 
+/* Format to print a DWORD_PTR value.  */
+#if defined MINGW_W64 && defined _WIN64
+# define pDWP  "16llx"
+#else
+# define pDWP  "08lx"
+#endif
 
 /* The dump routines.  */
 
@@ -487,13 +496,13 @@ copy_executable_and_dump_data (file_data *p_infile,
 #define COPY_CHUNK(message, src, size, verbose)					\
   do {										\
     unsigned char *s = (void *)(src);						\
-    unsigned long count = (size);						\
+    DWORD_PTR count = (size);						\
     if (verbose)								\
       {										\
 	printf ("%s\n", (message));						\
-	printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base); 	\
-	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
-	printf ("\t0x%08x Size in bytes.\n", count);				\
+	printf ("\t0x%"pDWP" Offset in input file.\n", (DWORD_PTR)(s - p_infile->file_base)); \
+	printf ("\t0x%"pDWP" Offset in output file.\n", (DWORD_PTR)(dst - p_outfile->file_base)); \
+	printf ("\t0x%"pDWP" Size in bytes.\n", count);				\
       }										\
     memcpy (dst, s, count);							\
     dst += count;								\
@@ -502,15 +511,15 @@ copy_executable_and_dump_data (file_data *p_infile,
 #define COPY_PROC_CHUNK(message, src, size, verbose)				\
   do {										\
     unsigned char *s = (void *)(src);						\
-    unsigned long count = (size);						\
+    DWORD_PTR count = (size);						\
     if (verbose)								\
       {										\
 	printf ("%s\n", (message));						\
 	printf ("\t0x%p Address in process.\n", s);				\
 	printf ("\t0x%p Base       output file.\n", p_outfile->file_base); \
-	printf ("\t0x%p Offset  in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%"pDWP" Offset  in output file.\n", (DWORD_PTR)(dst - p_outfile->file_base)); \
 	printf ("\t0x%p Address in output file.\n", dst); \
-	printf ("\t0x%p Size in bytes.\n", count);				\
+	printf ("\t0x%"pDWP" Size in bytes.\n", count);				\
       }										\
     memcpy (dst, s, count);							\
     dst += count;								\
@@ -736,7 +745,7 @@ unexec (const char *new_name, const char *old_name)
   /* Open the undumped executable file.  */
   if (!open_input_file (&in_file, in_filename))
     {
-      printf ("Failed to open %s (%d)...bailing.\n",
+      printf ("Failed to open %s (%lu)...bailing.\n",
 	      in_filename, GetLastError ());
       exit (1);
     }
@@ -751,7 +760,7 @@ unexec (const char *new_name, const char *old_name)
     extra_bss_size_static;
   if (!open_output_file (&out_file, out_filename, size))
     {
-      printf ("Failed to open %s (%d)...bailing.\n",
+      printf ("Failed to open %s (%lu)...bailing.\n",
 	      out_filename, GetLastError ());
       exit (1);
     }

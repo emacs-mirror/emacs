@@ -1,6 +1,6 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2015 Free Software
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,20 +36,20 @@
 
 ;;;###autoload
 (defvar lpr-lp-system
-  (memq system-type '(usg-unix-v hpux irix))
+  (memq system-type '(usg-unix-v hpux))
   "Non-nil if running on a system type that uses the \"lp\" command.")
 
 
 (defgroup lpr nil
   "Print Emacs buffer on line printer."
-  :group 'wp)
+  :group 'text)
 
 
 ;;;###autoload
 (defcustom printer-name
   (and (eq system-type 'ms-dos) "PRN")
   "The name of a local printer to which data is sent for printing.
-\(Note that PostScript files are sent to `ps-printer-name', which see.\)
+\(Note that PostScript files are sent to `ps-printer-name', which see.)
 
 On Unix-like systems, a string value should be a name understood by
 lpr's -P option; otherwise the value should be nil.

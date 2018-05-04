@@ -1,6 +1,6 @@
-;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode
+;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -33,6 +33,7 @@
 (require 'rng-valid)
 (require 'nxml-mode)
 (require 'rng-loc)
+(require 'sgml-mode)
 
 (defcustom rng-nxml-auto-validate-flag t
   "Non-nil means automatically turn on validation with nxml-mode."
@@ -65,6 +66,9 @@ Complete on start-tag names regardless.")
     ["Validation" rng-validate-mode
      :style toggle
      :selected rng-validate-mode]
+    ["Electric Pairs" sgml-electric-tag-pair-mode
+     :style toggle
+     :selected sgml-electric-tag-pair-mode]
     "---"
     ("Set Schema"
      ["Automatically" rng-auto-set-schema]
@@ -107,25 +111,15 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                'append)
   (cond (rng-nxml-auto-validate-flag
 	 (rng-validate-mode 1)
-	 (add-hook 'nxml-completion-hook 'rng-complete nil t)
-	 (add-hook 'nxml-in-mixed-content-hook 'rng-in-mixed-content-p nil t))
+	 (add-hook 'completion-at-point-functions #'rng-completion-at-point nil t)
+	 (add-hook 'nxml-in-mixed-content-hook #'rng-in-mixed-content-p nil t))
 	(t
 	 (rng-validate-mode 0)
-	 (remove-hook 'nxml-completion-hook 'rng-complete t)
-	 (remove-hook 'nxml-in-mixed-content-hook 'rng-in-mixed-content-p t))))
+	 (remove-hook 'completion-at-point-functions #'rng-completion-at-point t)
+	 (remove-hook 'nxml-in-mixed-content-hook #'rng-in-mixed-content-p t))))
 
-(defvar rng-tag-history nil)
-(defvar rng-attribute-name-history nil)
-(defvar rng-attribute-value-history nil)
-
-(defvar rng-complete-target-names nil)
-(defvar rng-complete-name-attribute-flag nil)
-(defvar rng-complete-extra-strings nil)
-
-(defun rng-complete ()
-  "Complete the string before point using the current schema.
-Return non-nil if in a context it understands."
-  (interactive)
+(defun rng-completion-at-point ()
+  "Return completion data for the string before point using the current schema."
   (and rng-validate-mode
        (let ((lt-pos (save-excursion (search-backward "<" nil t)))
 	     xmltok-dtd)
@@ -145,53 +139,48 @@ Return non-nil if in a context it understands."
    t))
 
 (defun rng-complete-tag (lt-pos)
-  (let (rng-complete-extra-strings)
-    (when (and (= lt-pos (1- (point)))
-	       rng-complete-end-tags-after-<
-	       rng-open-elements
-	       (not (eq (car rng-open-elements) t))
-	       (or rng-collecting-text
-		   (rng-match-save
-		     (rng-match-end-tag))))
-      (setq rng-complete-extra-strings
-	    (cons (concat "/"
-			  (if (caar rng-open-elements)
-			      (concat (caar rng-open-elements)
-				      ":"
-				      (cdar rng-open-elements))
-			    (cdar rng-open-elements)))
-		  rng-complete-extra-strings)))
+  (let ((extra-strings
+         (when (and (= lt-pos (1- (point)))
+                    rng-complete-end-tags-after-<
+                    rng-open-elements
+                    (not (eq (car rng-open-elements) t))
+                    (or rng-collecting-text
+                        (rng-match-save
+                          (rng-match-end-tag))))
+           (list (concat "/"
+                         (if (caar rng-open-elements)
+                             (concat (caar rng-open-elements)
+                                     ":"
+                                     (cdar rng-open-elements))
+                           (cdar rng-open-elements)))))))
     (when (save-excursion
 	    (re-search-backward rng-in-start-tag-name-regex
 				lt-pos
 				t))
       (and rng-collecting-text (rng-flush-text))
-      (let ((completion
-	     (let ((rng-complete-target-names
-		    (rng-match-possible-start-tag-names))
-		   (rng-complete-name-attribute-flag nil))
-	       (rng-complete-before-point (1+ lt-pos)
-					  'rng-complete-qname-function
-					  "Tag: "
-					  nil
-					  'rng-tag-history)))
-	    name)
-	(when completion
-	  (cond ((rng-qname-p completion)
-		 (setq name (rng-expand-qname completion
-					      t
-					      'rng-start-tag-expand-recover))
-		 (when (and name
-			    (rng-match-start-tag-open name)
-			    (or (not (rng-match-start-tag-close))
-				;; need a namespace decl on the root element
-				(and (car name)
-				     (not rng-open-elements))))
-		   ;; attributes are required
-		   (insert " ")))
-		((member completion rng-complete-extra-strings)
-		 (insert ">")))))
-      t)))
+      (let ((target-names (rng-match-possible-start-tag-names)))
+        `(,(1+ lt-pos)
+          ,(save-excursion (skip-chars-forward "[[:alnum:]_.-:]") (point))
+          ,(apply-partially #'rng-complete-qname-function
+                            target-names nil extra-strings)
+          :exit-function
+          ,(lambda (completion status)
+             (cond
+              ((not (eq status 'finished)) nil)
+              ((rng-qname-p completion)
+               (let ((name (rng-expand-qname completion
+                                             t
+                                             #'rng-start-tag-expand-recover)))
+                 (when (and name
+                            (rng-match-start-tag-open name)
+                            (or (not (rng-match-start-tag-close))
+                                ;; need a namespace decl on the root element
+                                (and (car name)
+                                     (not rng-open-elements))))
+                   ;; attributes are required
+                   (insert " "))))
+              ((member completion extra-strings)
+               (insert ">")))))))))
 
 (defconst rng-in-end-tag-name-regex
   (replace-regexp-in-string
@@ -216,29 +205,18 @@ Return non-nil if in a context it understands."
 		      (concat (caar rng-open-elements)
 			      ":"
 			      (cdar rng-open-elements))
-		    (cdar rng-open-elements)))
-		 (end-tag-name
-		  (buffer-substring-no-properties (+ (match-beginning 0) 2)
-						  (point))))
-	     (cond ((or (> (length end-tag-name)
-			   (length start-tag-name))
-			(not (string= (substring start-tag-name
-						 0
-						 (length end-tag-name))
-				      end-tag-name)))
-		    (message "Expected end-tag %s"
-			     (rng-quote-string
-			      (concat "</" start-tag-name ">")))
-		    (ding))
-		   (t
-		    (delete-region (- (point) (length end-tag-name))
-				   (point))
-		    (insert start-tag-name ">")
-		    (when (not (or rng-collecting-text
-				   (rng-match-end-tag)))
-		      (message "Element %s is incomplete"
-			       (rng-quote-string start-tag-name))))))))
-    t))
+		    (cdar rng-open-elements))))
+             `(,(+ (match-beginning 0) 2)
+               ,(save-excursion (skip-chars-forward "[[:alnum:]_.-:]") (point))
+               ,(list start-tag-name)   ;Sole completion candidate.
+               :exit-function
+               ,(lambda (_completion status)
+                  (when (eq status 'finished)
+                    (unless (eq (char-after) ?>) (insert ">"))
+                    (when (not (or rng-collecting-text
+                                   (rng-match-end-tag)))
+                      (message "Element \"%s\" is incomplete"
+                               start-tag-name))))))))))
 
 (defconst rng-in-attribute-regex
   (replace-regexp-in-string
@@ -260,22 +238,24 @@ Return non-nil if in a context it understands."
 	  rng-undeclared-prefixes)
       (and (rng-adjust-state-for-attribute lt-pos
 					   attribute-start)
-	   (let ((rng-complete-target-names
+	   (let ((target-names
 		  (rng-match-possible-attribute-names))
-		 (rng-complete-extra-strings
+		 (extra-strings
 		  (mapcar (lambda (prefix)
 			    (if prefix
 				(concat "xmlns:" prefix)
 			      "xmlns"))
-			  rng-undeclared-prefixes))
-		 (rng-complete-name-attribute-flag t))
-	     (rng-complete-before-point attribute-start
-					'rng-complete-qname-function
-					"Attribute: "
-					nil
-					'rng-attribute-name-history))
-	   (insert "=\"")))
-    t))
+			  rng-undeclared-prefixes)))
+             `(,attribute-start
+               ,(save-excursion (skip-chars-forward "[[:alnum:]_.-:]") (point))
+               ,(apply-partially #'rng-complete-qname-function
+                                 target-names t extra-strings)
+               :exit-function
+               ,(lambda (_completion status)
+                  (when (and (eq status 'finished)
+                             (not (looking-at "=")))
+                    (insert "=\"\"")
+                    (forward-char -1)))))))))
 
 (defconst rng-in-attribute-value-regex
   (replace-regexp-in-string
@@ -292,43 +272,40 @@ Return non-nil if in a context it understands."
 (defun rng-complete-attribute-value (lt-pos)
   (when (save-excursion
 	  (re-search-backward rng-in-attribute-value-regex lt-pos t))
-    (let ((name-start (match-beginning 1))
-	  (name-end (match-end 1))
-	  (colon (match-beginning 2))
-	  (value-start (1+ (match-beginning 3))))
+    (let* ((name-start (match-beginning 1))
+           (name-end (match-end 1))
+           (colon (match-beginning 2))
+           (value-start (1+ (match-beginning 3)))
+           (exit-function
+            (lambda (_completion status)
+              (when (eq status 'finished)
+                (let ((delim (char-before value-start)))
+                  (unless (eq (char-after) delim) (insert delim)))))))
       (and (rng-adjust-state-for-attribute lt-pos
 					   name-start)
 	   (if (string= (buffer-substring-no-properties name-start
 							(or colon name-end))
 			"xmlns")
-	       (rng-complete-before-point
-		value-start
-		(rng-strings-to-completion-alist
-		 (rng-possible-namespace-uris
-		  (and colon
-		       (buffer-substring-no-properties (1+ colon) name-end))))
-		"Namespace URI: "
-		nil
-		'rng-namespace-uri-history)
+               `(,value-start ,(point)
+                 ,(rng-strings-to-completion-table
+                   (rng-possible-namespace-uris
+                    (and colon
+                         (buffer-substring-no-properties (1+ colon) name-end))))
+                 :exit-function ,exit-function)
 	     (rng-adjust-state-for-attribute-value name-start
 						   colon
 						   name-end)
-	     (rng-complete-before-point
-	      value-start
-	      (rng-strings-to-completion-alist
-	       (rng-match-possible-value-strings))
-	      "Value: "
-	      nil
-	      'rng-attribute-value-history))
-	   (insert (char-before value-start))))
-    t))
+             `(,value-start ,(point)
+               ,(rng-strings-to-completion-table
+                 (rng-match-possible-value-strings))
+               :exit-function ,exit-function))))))
 
 (defun rng-possible-namespace-uris (prefix)
   (let ((ns (if prefix (nxml-ns-get-prefix prefix)
 	      (nxml-ns-get-default))))
     (if (and ns (memq prefix (nxml-ns-changed-prefixes)))
 	(list (nxml-namespace-name ns))
-      (mapcar 'nxml-namespace-name
+      (mapcar #'nxml-namespace-name
 	      (delq nxml-xml-namespace-uri
 		    (rng-match-possible-namespace-uris))))))
 
@@ -349,7 +326,7 @@ Return non-nil if in a context it understands."
 		(recover-fun (funcall recover-fun prefix (cdr qname)))))
       (cons (and defaultp (nxml-ns-get-default)) (cdr qname)))))
 
-(defun rng-start-tag-expand-recover (prefix local-name)
+(defun rng-start-tag-expand-recover (_prefix local-name)
   (let ((ns (rng-match-infer-start-tag-namespace local-name)))
     (and ns
 	 (cons ns local-name))))
@@ -386,7 +363,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
     (save-restriction
       (widen)
       (nxml-with-invisible-motion
-	(if (= pos 1)
+	(if (= pos (point-min))
 	    (rng-set-initial-state)
 	  (let ((state (get-text-property (1- pos) 'rng-state)))
 	    (cond (state
@@ -501,24 +478,21 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
     (and (or (not prefix) ns)
 	 (rng-match-attribute-name (cons ns local-name)))))
 
-(defun rng-complete-qname-function (string predicate flag)
-  (let ((alist (mapcar (lambda (name) (cons name nil))
-		       (rng-generate-qname-list string))))
-    (cond ((not flag)
-	   (try-completion string alist predicate))
-	  ((eq flag t)
-	   (all-completions string alist predicate))
-	  ((eq flag 'lambda)
-	   (and (assoc string alist) t)))))
+(defun rng-complete-qname-function (candidates attributes-flag extra-strings
+                                               string predicate flag)
+  (complete-with-action flag
+                        (rng-generate-qname-list
+                         string candidates attributes-flag extra-strings)
+                        string predicate))
 
-(defun rng-generate-qname-list (&optional string)
+(defun rng-generate-qname-list (&optional string candidates attribute-flag extra-strings)
   (let ((forced-prefix (and string
 			    (string-match ":" string)
 			    (> (match-beginning 0) 0)
 			    (substring string
 				       0
 				       (match-beginning 0))))
-	(namespaces (mapcar 'car rng-complete-target-names))
+	(namespaces (mapcar #'car candidates))
 	ns-prefixes-alist ns-prefixes iter ns prefer)
     (while namespaces
       (setq ns (car namespaces))
@@ -526,7 +500,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 	(setq ns-prefixes-alist
 	      (cons (cons ns (nxml-ns-prefixes-for
 			      ns
-			      rng-complete-name-attribute-flag))
+			      attribute-flag))
 		    ns-prefixes-alist)))
       (setq namespaces (delq ns (cdr namespaces))))
     (setq iter ns-prefixes-alist)
@@ -546,12 +520,12 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 	    (setcdr ns-prefixes (list prefer)))
 	  ;; Unless it's an attribute with a non-nil namespace,
 	  ;; allow no prefix for this namespace.
-	  (unless rng-complete-name-attribute-flag
+	  (unless attribute-flag
 	    (setcdr ns-prefixes (cons nil (cdr ns-prefixes))))))
       (setq iter (cdr iter)))
     (rng-uniquify-equal
-     (sort (apply 'append
-		  (cons rng-complete-extra-strings
+     (sort (apply #'append
+		  (cons extra-strings
 			(mapcar (lambda (name)
 				  (if (car name)
 				      (mapcar (lambda (prefix)
@@ -563,7 +537,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 					(cdr (assoc (car name)
 						    ns-prefixes-alist)))
 				    (list (cdr name))))
-				rng-complete-target-names)))
+				candidates)))
 	   'string<))))
 
 (defun rng-get-preferred-unused-prefix (ns)
@@ -582,10 +556,8 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 	    nil))))
     prefix))
 
-(defun rng-strings-to-completion-alist (strings)
-  (mapcar (lambda (s) (cons s s))
-	  (rng-uniquify-equal (sort (mapcar 'rng-escape-string strings)
-				    'string<))))
+(defun rng-strings-to-completion-table (strings)
+  (mapcar #'rng-escape-string strings))
 
 (provide 'rng-nxml)
 

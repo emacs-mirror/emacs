@@ -1,14 +1,14 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2015 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,23 +16,36 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Commentary:
+/* Put the code here rather than in configure.ac using AH_BOTTOM.
+   This way, the code does not get processed by autoheader.  For
+   example, undefs here are not commented out.
 
-   Rather than writing this code directly in AH_BOTTOM, we include it
-   via this file.  This is so that it does not get processed by
-   autoheader.  Eg, any undefs here would otherwise be commented out.
-*/
-
-/* Code: */
-
-/* Include any platform specific configuration file.  */
-#ifdef config_opsysfile
-# include config_opsysfile
-#endif
+   To help make dependencies clearer elsewhere, this file typically
+   does not #include other files.  The exceptions are first stdbool.h
+   because it is unlikely to interfere with configuration and bool is
+   such a core part of the C language, and second ms-w32.h (DOS_NT
+   only) because it historically was included here and changing that
+   would take some work.  */
 
 #include <stdbool.h>
+
+#if defined WINDOWSNT && !defined DEFER_MS_W32_H
+# include <ms-w32.h>
+#endif
+
+/* GNUC_PREREQ (V, W, X) is true if this is GNU C version V.W.X or later.
+   It can be used in a preprocessor expression.  */
+#ifndef __GNUC_MINOR__
+# define GNUC_PREREQ(v, w, x) false
+#elif ! defined __GNUC_PATCHLEVEL__
+# define GNUC_PREREQ(v, w, x) \
+    ((v) < __GNUC__ + ((w) < __GNUC_MINOR__ + ((x) == 0))
+#else
+# define GNUC_PREREQ(v, w, x) \
+    ((v) < __GNUC__ + ((w) < __GNUC_MINOR__ + ((x) <= __GNUC_PATCHLEVEL__)))
+#endif
 
 /* The type of bool bitfields.  Needed to compile Objective-C with
    standard GCC.  It was also needed to port to pre-C99 compilers,
@@ -43,18 +56,29 @@ typedef unsigned int bool_bf;
 typedef bool bool_bf;
 #endif
 
-#ifndef WINDOWSNT
-/* On AIX 3 this must be included before any other include file.  */
-#include <alloca.h>
-#if ! HAVE_ALLOCA
-# error "alloca not available on this machine"
-#endif
+/* Simulate __has_attribute on compilers that lack it.  It is used only
+   on arguments like alloc_size that are handled in this simulation.
+   __has_attribute should be used only in #if expressions, as Oracle
+   Studio 12.5's __has_attribute does not work in plain code.  */
+#ifndef __has_attribute
+# define __has_attribute(a) __has_attribute_##a
+# define __has_attribute_alloc_size GNUC_PREREQ (4, 3, 0)
+# define __has_attribute_cleanup GNUC_PREREQ (3, 4, 0)
+# define __has_attribute_externally_visible GNUC_PREREQ (4, 1, 0)
+# define __has_attribute_no_address_safety_analysis false
+# define __has_attribute_no_sanitize_address GNUC_PREREQ (4, 8, 0)
 #endif
 
-/* When not using Clang, assume its attributes and features are absent.  */
-#ifndef __has_attribute
-# define __has_attribute(a) false
+/* Simulate __has_builtin on compilers that lack it.  It is used only
+   on arguments like __builtin_assume_aligned that are handled in this
+   simulation.  */
+#ifndef __has_builtin
+# define __has_builtin(a) __has_builtin_##a
+# define __has_builtin___builtin_assume_aligned GNUC_PREREQ (4, 7, 0)
 #endif
+
+/* Simulate __has_feature on compilers that lack it.  It is used only
+   to define ADDRESS_SANITIZER below.  */
 #ifndef __has_feature
 # define __has_feature(a) false
 #endif
@@ -66,18 +90,17 @@ typedef bool bool_bf;
 # define ADDRESS_SANITIZER false
 #endif
 
+/* Yield PTR, which must be aligned to ALIGNMENT.  */
+#if ! __has_builtin (__builtin_assume_aligned)
+# define __builtin_assume_aligned(ptr, ...) ((void *) (ptr))
+#endif
+
 #ifdef DARWIN_OS
-#ifdef emacs
+#if defined emacs && !defined CANNOT_DUMP
 #define malloc unexec_malloc
 #define realloc unexec_realloc
 #define free unexec_free
 #endif
-/* The following solves the problem that Emacs hangs when evaluating
-   (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
-   does not exist.  Also, setsid is not allowed in the vfork child's
-   context as of Darwin 9/Mac OS X 10.5.  */
-#undef HAVE_WORKING_VFORK
-#define vfork fork
 #endif  /* DARWIN_OS */
 
 /* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
@@ -88,12 +111,9 @@ typedef bool bool_bf;
 #ifdef emacs
 #define malloc hybrid_malloc
 #define realloc hybrid_realloc
+#define aligned_alloc hybrid_aligned_alloc
 #define calloc hybrid_calloc
 #define free hybrid_free
-#if defined HAVE_GET_CURRENT_DIR_NAME && !defined BROKEN_GET_CURRENT_DIR_NAME
-#define HYBRID_GET_CURRENT_DIR_NAME 1
-#define get_current_dir_name hybrid_get_current_dir_name
-#endif
 #endif
 #endif	/* HYBRID_MALLOC */
 
@@ -108,14 +128,6 @@ typedef bool bool_bf;
 #undef HAVE_RANDOM
 #undef HAVE_RINT
 #endif  /* HPUX */
-
-#ifdef IRIX6_5
-#ifdef emacs
-char *_getpty();
-#endif
-#define INET6 /* Needed for struct sockaddr_in6.  */
-#undef HAVE_GETADDRINFO /* IRIX has getaddrinfo but not struct addrinfo.  */
-#endif /* IRIX6_5 */
 
 #ifdef MSDOS
 #ifndef __DJGPP__
@@ -134,6 +146,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 # define HAVE_LSTAT 1
 #else
 # define lstat stat
+/* DJGPP 2.03 and older don't have the next two.  */
+# define EOVERFLOW ERANGE
+# define SIZE_MAX  4294967295U
 #endif
 
 /* We must intercept 'opendir' calls to stash away the directory name,
@@ -167,7 +182,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 #endif  /* MSDOS */
 
-/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
+/* macOS / GNUstep need a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #ifdef HAVE_NS
 #if defined NS_IMPL_GNUSTEP
@@ -178,7 +193,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 
 #ifdef CYGWIN
-#define SYSTEM_PURESIZE_EXTRA 10000
+#define SYSTEM_PURESIZE_EXTRA 50000
 #endif
 
 #if defined HAVE_NTGUI && !defined DebPrint
@@ -186,7 +201,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 extern void _DebPrint (const char *fmt, ...);
 #  define DebPrint(stuff) _DebPrint stuff
 # else
-#  define DebPrint(stuff)
+#  define DebPrint(stuff) ((void) 0)
 # endif
 #endif
 
@@ -213,38 +228,76 @@ extern void _DebPrint (const char *fmt, ...);
 extern char *emacs_getenv_TZ (void);
 extern int emacs_setenv_TZ (char const *);
 
-#include <string.h>
-#include <stdlib.h>
-
 #if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
 #define NO_INLINE __attribute__((noinline))
 #else
 #define NO_INLINE
 #endif
 
-#if (__clang__								\
-     ? __has_attribute (externally_visible)				\
-     : (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
+#if __has_attribute (externally_visible)
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE
 #endif
 
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+#if GNUC_PREREQ (2, 7, 0)
 # define ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
 #else
 # define ATTRIBUTE_FORMAT(spec) /* empty */
 #endif
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
-# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
-   ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
+#if GNUC_PREREQ (7, 0, 0)
+# define FALLTHROUGH __attribute__ ((__fallthrough__))
 #else
-# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
-   ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
+# define FALLTHROUGH ((void) 0)
 #endif
 
+#if GNUC_PREREQ (4, 4, 0) && defined __GLIBC_MINOR__
+# define PRINTF_ARCHETYPE __gnu_printf__
+#elif GNUC_PREREQ (4, 4, 0) && defined __MINGW32__
+# ifdef MINGW_W64
+/* When __USE_MINGW_ANSI_STDIO is non-zero (as set by config.h),
+   MinGW64 replaces printf* with its own versions that are
+   __gnu_printf__ compatible, and emits warnings for MS native %I64d
+   format spec.  */
+#  if __USE_MINGW_ANSI_STDIO
+#   define PRINTF_ARCHETYPE __gnu_printf__
+#  else
+#   define PRINTF_ARCHETYPE __ms_printf__
+#  endif
+# else	/* mingw.org's MinGW */
+/* Starting from runtime v5.0.0, mingw.org's MinGW with GCC 6 and
+   later turns on __USE_MINGW_ANSI_STDIO by default, replaces printf*
+   with its own __mingw_printf__ version, which still recognizes
+   %I64d.  */
+#  if GNUC_PREREQ (6, 0, 0) && __MINGW32_MAJOR_VERSION >= 5
+#   define PRINTF_ARCHETYPE __mingw_printf__
+#  else  /* __MINGW32_MAJOR_VERSION < 5 */
+#   define PRINTF_ARCHETYPE __ms_printf__
+#  endif  /* __MINGW32_MAJOR_VERSION < 5 */
+# endif	 /* MinGW */
+#else
+# define PRINTF_ARCHETYPE __printf__
+#endif
+#define ATTRIBUTE_FORMAT_PRINTF(string_index, first_to_check) \
+  ATTRIBUTE_FORMAT ((PRINTF_ARCHETYPE, string_index, first_to_check))
+
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
+#define ATTRIBUTE_UNUSED _GL_UNUSED
+
+#if GNUC_PREREQ (3, 3, 0) && !defined __ICC
+# define ATTRIBUTE_MAY_ALIAS __attribute__ ((__may_alias__))
+#else
+# define ATTRIBUTE_MAY_ALIAS
+#endif
+
+/* Declare NAME to be a pointer to an object of type TYPE, initialized
+   to the address ADDR, which may be of a different type.  Accesses
+   via NAME may alias with other accesses with the traditional
+   behavior, even if options like gcc -fstrict-aliasing are used.  */
+
+#define DECLARE_POINTER_ALIAS(name, type, addr) \
+  type ATTRIBUTE_MAY_ALIAS *name = (type *) (addr)
 
 #if 3 <= __GNUC__
 # define ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
@@ -252,9 +305,7 @@ extern int emacs_setenv_TZ (char const *);
 # define ATTRIBUTE_MALLOC
 #endif
 
-#if (__clang__					\
-     ? __has_attribute (alloc_size)		\
-     : 4 < __GNUC__ + (3 <= __GNUC_MINOR__))
+#if __has_attribute (alloc_size)
 # define ATTRIBUTE_ALLOC_SIZE(args) __attribute__ ((__alloc_size__ args))
 #else
 # define ATTRIBUTE_ALLOC_SIZE(args)
@@ -267,7 +318,7 @@ extern int emacs_setenv_TZ (char const *);
    no_sanitize_address attribute.  This bug is fixed in GCC 4.9.0 and
    clang 3.4.  */
 #if (! ADDRESS_SANITIZER \
-     || ((4 < __GNUC__ + (9 <= __GNUC_MINOR__)) \
+     || (GNUC_PREREQ (4, 9, 0) \
 	 || 3 < __clang_major__ + (4 <= __clang_minor__)))
 # define ADDRESS_SANITIZER_WORKAROUND /* No workaround needed.  */
 #else
@@ -277,8 +328,7 @@ extern int emacs_setenv_TZ (char const *);
 /* Attribute of functions whose code should not have addresses
    sanitized.  */
 
-#if (__has_attribute (no_sanitize_address) \
-     || 4 < __GNUC__ + (8 <= __GNUC_MINOR__))
+#if __has_attribute (no_sanitize_address)
 # define ATTRIBUTE_NO_SANITIZE_ADDRESS \
     __attribute__ ((no_sanitize_address)) ADDRESS_SANITIZER_WORKAROUND
 #elif __has_attribute (no_address_safety_analysis)
@@ -286,6 +336,16 @@ extern int emacs_setenv_TZ (char const *);
     __attribute__ ((no_address_safety_analysis)) ADDRESS_SANITIZER_WORKAROUND
 #else
 # define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
+
+/* gcc -fsanitize=address does not work with vfork in Fedora 25 x86-64.
+   For now, assume that this problem occurs on all platforms.  */
+#if ADDRESS_SANITIZER && !defined vfork
+# define vfork fork
+#endif
+
+#if ! (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__)
+# undef PROFILING
 #endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */
@@ -316,6 +376,11 @@ extern int emacs_setenv_TZ (char const *);
 
    before including config.h or any other .h file.
    Other .c files should not define INLINE.
+   For Emacs, this is done by having emacs.c first '#define INLINE
+   EXTERN_INLINE' and then include every .h file that uses INLINE.
+
+   The INLINE_HEADER_BEGIN and INLINE_HEADER_END suppress bogus
+   warnings in some GCC versions; see ../m4/extern-inline.m4.
 
    C99 compilers compile functions like 'incr' as C99-style extern
    inline functions.  Buggy GCC implementations do something similar with
@@ -329,22 +394,10 @@ extern int emacs_setenv_TZ (char const *);
 #define INLINE_HEADER_BEGIN _GL_INLINE_HEADER_BEGIN
 #define INLINE_HEADER_END _GL_INLINE_HEADER_END
 
-/* To use the struct hack with N elements, declare the struct like this:
-     struct s { ...; t name[FLEXIBLE_ARRAY_MEMBER]; };
-   and allocate (offsetof (struct s, name) + N * sizeof (t)) bytes.
-   IBM xlc 12.1 claims to do C99 but mishandles flexible array members.  */
-#ifdef __IBMC__
-# define FLEXIBLE_ARRAY_MEMBER 1
+/* 'int x UNINIT;' is equivalent to 'int x;', except it cajoles GCC
+   into not warning incorrectly about use of an uninitialized variable.  */
+#if defined GCC_LINT || defined lint
+# define UNINIT = {0,}
 #else
-# define FLEXIBLE_ARRAY_MEMBER
+# define UNINIT /* empty */
 #endif
-
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
-#ifdef lint
-/* Use CODE only if lint checking is in effect.  */
-# define IF_LINT(Code) Code
-#else
-# define IF_LINT(Code) /* empty */
-#endif
-
-/* conf_post.h ends here */

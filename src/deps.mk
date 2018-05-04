@@ -1,6 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2015 Free Software
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2018 Free Software
 ## Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 ## GNU General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Commentary:
 ##
@@ -35,7 +35,7 @@
 ### Code:
 
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
- globals.h ../lib/unistd.h $(config_h)
+ globals.h ../lib/unistd.h msdos.h $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h msdos.h lisp.h \
    globals.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
@@ -92,7 +92,7 @@ editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \
    globals.h ../lib/unistd.h window.h dispextern.h keyboard.h keymap.h \
-   frame.h coding.h gnutls.h msdos.h unexec.h
+   frame.h coding.h gnutls.h msdos.h dosfns.h unexec.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    coding.h msdos.h blockinput.h atimer.h lisp.h $(config_h) frame.h \
    commands.h globals.h ../lib/unistd.h

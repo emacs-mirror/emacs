@@ -1,6 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2015 Free Software
+;; Copyright (C) 1986-1987, 1989-1990, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -85,8 +85,7 @@ reading-type           received an altmode but nothing else
 reading-string         reading prompt string")
 
 (defvar-local xscheme-allow-output-p t
-  "This variable, if nil, prevents output from the scheme process
-from being inserted into the process-buffer.")
+  "Non-nil stops scheme process output being inserted in the process buffer.")
 
 (defvar-local xscheme-prompt ""
   "The current scheme prompt string.")
@@ -300,7 +299,7 @@ With argument, asks for a command line."
 
 (defun scheme-interaction-mode (&optional preserve)
   "Major mode for interacting with an inferior MIT Scheme process.
-Like  scheme-mode  except that:
+Like `scheme-mode' except that:
 
 \\[xscheme-send-previous-expression] sends the expression before point to the Scheme process as input
 \\[xscheme-yank-pop] yanks an expression previously sent to Scheme
@@ -315,7 +314,7 @@ in the minibuffer.  If an error occurs, the process buffer will
 automatically pop up to show you the error message.
 
 While the Scheme process is running, the mode lines of all buffers in
-scheme-mode are modified to show the state of the process.  The
+`scheme-mode' are modified to show the state of the process.  The
 possible states and their meanings are:
 
 input		waiting for input
@@ -347,19 +346,19 @@ the command interpreter stack:
 
 Some possible command interpreter types and their meanings are:
 
-\[Evaluator]	read-eval-print loop for evaluating expressions
-\[Debugger]	single character commands for debugging errors
-\[Where]		single character commands for examining environments
+[Evaluator]	read-eval-print loop for evaluating expressions
+[Debugger]	single character commands for debugging errors
+[Where]		single character commands for examining environments
 
 Starting with release 6.2 of Scheme, the latter two types of command
 interpreters will change the major mode of the Scheme process buffer
-to scheme-debugger-mode , in which the evaluation commands are
+to `scheme-debugger-mode', in which the evaluation commands are
 disabled, and the keys which normally self insert instead send
 themselves to the Scheme process.  The command character ? will list
 the available commands.
 
-For older releases of Scheme, the major mode will be be
-scheme-interaction-mode , and the command characters must be sent as
+For older releases of Scheme, the major mode will be
+`scheme-interaction-mode', and the command characters must be sent as
 if they were expressions.
 
 Commands:
@@ -367,10 +366,8 @@ Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-interaction-mode-map}
 
-Entry to this mode calls the value of scheme-interaction-mode-hook
-with no args, if that value is non-nil.
- Likewise with the value of scheme-mode-hook.
- scheme-interaction-mode-hook is called after scheme-mode-hook."
+Entry to this mode runs `scheme-mode-hook' and then
+`scheme-interaction-mode-hook'."
   ;; FIXME: Use define-derived-mode.
   (interactive "P")
   (if (not preserve)
@@ -456,7 +453,7 @@ with no args, if that value is non-nil.
 
 (defun scheme-debugger-mode ()
   "Major mode for executing the Scheme debugger.
-Like  scheme-mode  except that the evaluation commands
+Like `scheme-mode' except that the evaluation commands
 are disabled, and characters that would normally be self inserting are
 sent to the Scheme process instead.  Typing ?  will show you which
 characters perform useful functions.
@@ -580,7 +577,7 @@ See also the commands \\[xscheme-yank-pop] and \\[xscheme-yank-push]."
   (xscheme-rotate-yank-pointer (if (listp arg) 0
 				 (if (eq arg '-) -1
 				   (1- arg))))
-  (push-mark (point))
+  (push-mark)
   (insert (car xscheme-expressions-ring-yank-pointer))
   (if (consp arg)
       (exchange-point-and-mark)))
@@ -593,7 +590,7 @@ See also the commands \\[xscheme-yank-pop] and \\[xscheme-yank-push]."
   "Insert or replace a just-yanked expression with an older expression.
 If the previous command was not a yank, it yanks.
 Otherwise, the region contains a stretch of reinserted
-expression.  yank-pop deletes that text and inserts in its
+expression.  `yank-pop' deletes that text and inserts in its
 place a different expression.
 
 With no argument, the next older expression is inserted.
@@ -620,7 +617,7 @@ comes the newest one."
   "Insert or replace a just-yanked expression with a more recent expression.
 If the previous command was not a yank, it yanks.
 Otherwise, the region contains a stretch of reinserted
-expression.  yank-pop deletes that text and inserts in its
+expression.  `yank-pop' deletes that text and inserts in its
 place a different expression.
 
 With no argument, the next more recent expression is inserted.
@@ -1174,9 +1171,10 @@ the remaining input.")
 
 (defun xscheme-prompt-for-expression-exit ()
   (interactive)
-  (if (eq (xscheme-region-expression-p (point-min) (point-max)) 'one)
+  (if (eq (xscheme-region-expression-p (minibuffer-prompt-end) (point-max))
+	  'one)
       (exit-minibuffer)
-      (error "input must be a single, complete expression")))
+    (error "Input must be a single, complete expression")))
 
 (defun xscheme-region-expression-p (start end)
   (save-excursion

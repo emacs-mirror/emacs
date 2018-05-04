@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993-1995, 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -148,8 +148,7 @@ created in the future."
   "Return non-nil when horizontal scroll bars are available on this system."
   (and (display-graphic-p)
        (boundp 'x-toolkit-scroll-bars)
-       x-toolkit-scroll-bars
-       (not (eq (window-system) 'ns))))
+       x-toolkit-scroll-bars))
 
 (define-minor-mode horizontal-scroll-bar-mode
   "Toggle horizontal scroll bars on all frames (Horizontal Scroll Bar mode).
@@ -184,9 +183,7 @@ when they are turned on; if it is nil, they go on the left."
   (interactive "P")
   (if (null arg)
       (setq arg
-	    (if (cdr (assq 'vertical-scroll-bars
-			   (frame-parameters (selected-frame))))
-		-1 1))
+	    (if (frame-parameter nil 'vertical-scroll-bars) -1 1))
     (setq arg (prefix-numeric-value arg)))
   (modify-frame-parameters
    (selected-frame)
@@ -200,9 +197,7 @@ With ARG, turn vertical scroll bars on if and only if ARG is positive."
   (interactive "P")
   (if (null arg)
       (setq arg
-	    (if (cdr (assq 'horizontal-scroll-bars
-			   (frame-parameters (selected-frame))))
-		-1 1))
+	    (if (frame-parameter nil 'horizontal-scroll-bars) -1 1))
     (setq arg (prefix-numeric-value arg)))
   (modify-frame-parameters
    (selected-frame)
@@ -286,7 +281,7 @@ If you click outside the slider, the window scrolls to bring the slider there."
     (with-current-buffer (window-buffer window)
       (setq before-scroll point-before-scroll))
     (save-selected-window
-      (select-window window)
+      (select-window window 'mark-for-redisplay)
       (setq before-scroll
 	    (or before-scroll (point))))
     (scroll-bar-drag-1 event)
@@ -331,7 +326,7 @@ If you click outside the slider, the window scrolls to bring the slider there."
     (with-current-buffer (window-buffer window)
       (setq before-scroll point-before-scroll))
     (save-selected-window
-      (select-window window)
+      (select-window window 'mark-for-redisplay)
       (setq before-scroll
 	    (or before-scroll (point))))
     (scroll-bar-horizontal-drag-1 event)
@@ -361,7 +356,7 @@ EVENT should be a scroll bar click."
     (unwind-protect
 	(save-selected-window
 	  (let ((portion-whole (nth 2 end-position)))
-	    (select-window window)
+	    (select-window window 'mark-for-redisplay)
 	    (setq before-scroll
 		  (or before-scroll (point)))
 	    (scroll-down
@@ -382,7 +377,7 @@ EVENT should be a scroll bar click."
     (unwind-protect
 	(save-selected-window
 	  (let ((portion-whole (nth 2 end-position)))
-	    (select-window window)
+	    (select-window window 'mark-for-redisplay)
 	    (setq before-scroll
 		  (or before-scroll (point)))
 	    (scroll-up
@@ -407,7 +402,7 @@ EVENT should be a scroll bar click."
       (with-current-buffer (window-buffer window)
 	(setq before-scroll point-before-scroll))
       (save-selected-window
-	(select-window window)
+	(select-window window 'mark-for-redisplay)
 	(setq before-scroll (or before-scroll (point)))
 	(cond
 	 ((eq part 'above-handle)
@@ -454,7 +449,7 @@ EVENT should be a scroll bar click."
       (with-current-buffer (window-buffer window)
 	(setq before-scroll point-before-scroll))
       (save-selected-window
-	(select-window window)
+	(select-window window 'mark-for-redisplay)
 	(setq before-scroll (or before-scroll (point)))
 	(cond
 	 ((eq part 'before-handle)

@@ -1,12 +1,12 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
+
+#ifndef EMACS_PURESIZE_H
+#define EMACS_PURESIZE_H
+
+#include "lisp.h"
+
+INLINE_HEADER_BEGIN
 
 /* Define PURESIZE, the number of bytes of pure Lisp code to leave space for.
 
@@ -40,7 +47,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef BASE_PURESIZE
-#define BASE_PURESIZE (1800000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
+#define BASE_PURESIZE (1900000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
 #endif
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
@@ -70,16 +77,39 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define PURESIZE  (BASE_PURESIZE * PURESIZE_RATIO * PURESIZE_CHECKING_RATIO)
 #endif
 
-/* Signal an error if OBJ is pure.  */
-#define CHECK_IMPURE(obj) \
-  { if (PURE_P (obj))	  \
-      pure_write_error (obj); }
-
 extern _Noreturn void pure_write_error (Lisp_Object);
-
-/* Define PURE_P.  */
 
 extern EMACS_INT pure[];
 
-#define PURE_P(obj) \
-  ((uintptr_t) XPNTR (obj) - (uintptr_t) pure <= PURESIZE)
+/* The puresize_h_* macros are private to this include file.  */
+
+/* True if PTR is pure.  */
+
+#define puresize_h_PURE_P(ptr) \
+  ((uintptr_t) (ptr) - (uintptr_t) pure <= PURESIZE)
+
+INLINE bool
+PURE_P (void *ptr)
+{
+  return puresize_h_PURE_P (ptr);
+}
+
+/* Signal an error if OBJ is pure.  PTR is OBJ untagged.  */
+
+#define puresize_h_CHECK_IMPURE(obj, ptr) \
+  (PURE_P (ptr) ? pure_write_error (obj) : (void) 0)
+
+INLINE void
+CHECK_IMPURE (Lisp_Object obj, void *ptr)
+{
+  puresize_h_CHECK_IMPURE (obj, ptr);
+}
+
+#if DEFINE_KEY_OPS_AS_MACROS
+# define PURE_P(ptr) puresize_h_PURE_P (ptr)
+# define CHECK_IMPURE(obj, ptr) puresize_h_CHECK_IMPURE (obj, ptr)
+#endif
+
+INLINE_HEADER_END
+
+#endif /* EMACS_PURESIZE_H */

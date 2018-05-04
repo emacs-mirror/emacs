@@ -1,6 +1,6 @@
 ;;; mh-comp.el --- MH-E functions for composing and sending messages
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2015 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -269,7 +269,7 @@ RETURN-ACTION and any additional arguments are IGNORED."
 
 When you are all through editing a message, you send it with this
 command. You can give a prefix argument ARG to monitor the first stage
-of the delivery\; this output can be found in a buffer called \"*MH-E
+of the delivery; this output can be found in a buffer called \"*MH-E
 Mail Delivery*\".
 
 The hook `mh-before-send-letter-hook' is run at the beginning of
@@ -305,17 +305,19 @@ message and scan line."
         (file-name buffer-file-name)
         (config mh-previous-window-config)
         (coding-system-for-write
-         (if (and (local-variable-p 'buffer-file-coding-system
-                                    (current-buffer)) ;XEmacs needs two args
-                  ;; We're not sure why, but buffer-file-coding-system
-                  ;; tends to get set to undecided-unix.
-                  (not (memq buffer-file-coding-system
-                             '(undecided undecided-unix undecided-dos))))
-             buffer-file-coding-system
-           (or (and (boundp 'sendmail-coding-system) sendmail-coding-system)
-               (and (default-boundp 'buffer-file-coding-system)
-                    (default-value 'buffer-file-coding-system))
-               'iso-latin-1))))
+         (if (fboundp 'select-message-coding-system)
+             (select-message-coding-system) ; Emacs has this since at least 21.1
+           (if (and (local-variable-p 'buffer-file-coding-system
+                                      (current-buffer)) ;XEmacs needs two args
+                    ;; We're not sure why, but buffer-file-coding-system
+                    ;; tends to get set to undecided-unix.
+                    (not (memq buffer-file-coding-system
+                               '(undecided undecided-unix undecided-dos))))
+               buffer-file-coding-system
+             (or (and (boundp 'sendmail-coding-system) sendmail-coding-system)
+                 (and (default-boundp 'buffer-file-coding-system)
+                      (default-value 'buffer-file-coding-system))
+                 'iso-latin-1)))))
     ;; Older versions of spost do not support -msgid and -mime.
     (unless mh-send-uses-spost-flag
       ;; Adding a Message-ID field looks good, makes it easier to search for
@@ -916,14 +918,14 @@ CONFIG is the window configuration before sending mail."
   ;; use it as the drafts folder.  Then copy the skeleton to a regular
   ;; temp file, and return the regular temp file.
   (let (new
-        (temp-folder (mm-make-temp-file
+        (temp-folder (make-temp-file
                       (concat mh-user-path "draftfolder.") t)))
     (mh-exec-cmd "comp" "-nowhatnowproc"
                  "-draftfolder" (format "+%s"
                                         (file-name-nondirectory temp-folder))
                  (if (stringp mh-comp-formfile)
                      (list "-form" mh-comp-formfile)))
-    (setq new (mm-make-temp-file "comp."))
+    (setq new (make-temp-file "comp."))
     (rename-file (concat temp-folder "/" "1") new t)
     (delete-file (concat temp-folder "/" ".mh_sequences"))
     (delete-directory temp-folder)
@@ -1054,6 +1056,7 @@ letter."
 (defun mh-insert-x-mailer ()
   "Append an X-Mailer field to the header.
 The versions of MH-E, Emacs, and MH are shown."
+  (or mh-variant-in-use (mh-variant-set mh-variant))
   ;; Lazily initialize mh-x-mailer-string.
   (when (and mh-insert-x-mailer-flag (null mh-x-mailer-string))
     (setq mh-x-mailer-string
@@ -1064,7 +1067,7 @@ The versions of MH-E, Emacs, and MH are shown."
                          (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
                                        emacs-version)
                          (match-string 0 emacs-version))
-                        ((string-match "[0-9.]*\\( +\([ a-z]+[0-9]+\)\\)?"
+                        ((string-match "[0-9.]*\\( +([ a-z]+[0-9]+)\\)?"
                                        emacs-version)
                          (match-string 0 emacs-version))
                         (t (format "%s.%s" emacs-major-version

@@ -1,6 +1,6 @@
 ;;; erc-autoaway.el --- Provides autoaway for ERC
 
-;; Copyright (C) 2002-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -82,7 +82,7 @@ This is used when `erc-autoaway-idle-method' is 'user."
   (unless (erc-autoaway-some-server-buffer)
     (remove-hook 'post-command-hook 'erc-autoaway-reset-idle-user)))
 
-;;;###autoload (autoload 'erc-autoaway-mode "erc-autoaway")
+;;;###autoload(autoload 'erc-autoaway-mode "erc-autoaway")
 (define-erc-module autoaway nil
   "In ERC autoaway mode, you can be set away automatically.
 If `erc-auto-set-away' is set, then you will be set away after
@@ -282,6 +282,7 @@ active server buffer available."
 ;;; erc-autoaway.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

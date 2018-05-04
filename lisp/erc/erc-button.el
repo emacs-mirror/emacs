@@ -1,6 +1,6 @@
 ;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -49,7 +49,7 @@
   "Define how text can be turned into clickable buttons."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-button-mode "erc-button" nil t)
+;;;###autoload(autoload 'erc-button-mode "erc-button" nil t)
 (define-erc-module button nil
   "This mode buttonizes all messages according to `erc-button-alist'."
   ((add-hook 'erc-insert-modify-hook 'erc-button-add-buttons 'append)
@@ -121,9 +121,13 @@ longer than `erc-fill-column'."
   :group 'erc-button
   :type 'string)
 
-(defcustom erc-button-google-url "http://www.google.com/search?q=%s"
-  "URL used to browse Google search references.
+(define-obsolete-variable-alias 'erc-button-google-url
+  'erc-button-search-url "27.1")
+
+(defcustom erc-button-search-url "http://duckduckgo.com/?q=%s"
+  "URL used to search for a term.
 %s is replaced by the search string."
+  :version "27.1"
   :group 'erc-button
   :type 'string)
 
@@ -148,7 +152,7 @@ longer than `erc-fill-column'."
     ("Lisp:\\([a-zA-Z.+-]+\\)" 0 t erc-browse-emacswiki-lisp 1)
     ("\\bGoogle:\\([^ \t\n\r\f]+\\)"
      0 t (lambda (keywords)
-           (browse-url (format erc-button-google-url keywords)))
+           (browse-url (format erc-button-search-url keywords)))
      1)
     ("\\brfc[#: ]?\\([0-9]+\\)"
      0 t (lambda (num)
@@ -165,11 +169,11 @@ REGEXP is the string matching text around the button or a symbol
   entries in lists or alists are considered to be nicks or other
   complete words.  Therefore they are enclosed in \\< and \\>
   while searching.  REGEXP can also be the quoted symbol
-  'nicknames, which matches the nickname of any user on the
+  \\='nicknames, which matches the nickname of any user on the
   current server.
 
 BUTTON is the number of the regexp grouping actually matching the
-  button,  This is ignored if REGEXP is 'nicknames.
+  button,  This is ignored if REGEXP is \\='nicknames.
 
 FORM is a lisp expression which must eval to true for the button to
   be added,
@@ -180,7 +184,7 @@ CALLBACK is the function to call when the user push this button.
 
 PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments.  If REGEXP is
-  'nicknames, these are ignored, and CALLBACK will be called with
+  \\='nicknames, these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
   :group 'erc-button
   :version "24.1"                       ; remove finger (bug#4443)
@@ -300,14 +304,14 @@ specified by `erc-button-alist'."
     (when (or (eq t form)
               (eval form))
       (goto-char (point-min))
-      (while (forward-word 1)
-        (setq bounds (bounds-of-thing-at-point 'word))
-        (setq word (buffer-substring-no-properties
-                    (car bounds) (cdr bounds)))
-        (when (or (and (erc-server-buffer-p) (erc-get-server-user word))
-                  (and erc-channel-users (erc-get-channel-user word)))
-          (erc-button-add-button (car bounds) (cdr bounds)
-                                 fun t (list word)))))))
+      (while (erc-forward-word)
+        (when (setq bounds (erc-bounds-of-word-at-point))
+          (setq word (buffer-substring-no-properties
+                      (car bounds) (cdr bounds)))
+          (when (or (and (erc-server-buffer-p) (erc-get-server-user word))
+                    (and erc-channel-users (erc-get-channel-user word)))
+            (erc-button-add-button (car bounds) (cdr bounds)
+                                   fun t (list word))))))))
 
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."
@@ -390,9 +394,9 @@ REGEXP is the regular expression which matched for this button."
   ;; merged correctly.  If we use overlays, then redisplay will be
   ;; very slow with lots of buttons.  This is why we manually merge
   ;; face text properties.
-  (let ((old (erc-list (get-text-property from 'face)))
+  (let ((old (erc-list (get-text-property from 'font-lock-face)))
         (pos from)
-        (end (next-single-property-change from 'face nil to))
+        (end (next-single-property-change from 'font-lock-face nil to))
         new)
     ;; old is the face at pos, in list form.  It is nil if there is no
     ;; face at pos.  If nil, the new face is FACE.  If not nil, the
@@ -400,10 +404,10 @@ REGEXP is the regular expression which matched for this button."
     ;; where this face changes.
     (while (< pos to)
       (setq new (if old (cons face old) face))
-      (put-text-property pos end 'face new)
+      (put-text-property pos end 'font-lock-face new)
       (setq pos end
-            old (erc-list (get-text-property pos 'face))
-            end (next-single-property-change pos 'face nil to)))))
+            old (erc-list (get-text-property pos 'font-lock-face))
+            end (next-single-property-change pos 'font-lock-face nil to)))))
 
 ;; widget-button-click calls with two args, we ignore the first.
 ;; Since Emacs runs this directly, rather than with
@@ -545,5 +549,6 @@ and `apropos' for other symbols."
 
 ;;; erc-button.el ends here
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:

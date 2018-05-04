@@ -1,6 +1,6 @@
 ;;; semantic/decorate/mode.el --- Minor mode for decorating tags
 
-;; Copyright (C) 2000-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -35,7 +35,7 @@
 ;;
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'semantic)
 (require 'semantic/decorate)
 (require 'semantic/tag-ls)
@@ -82,13 +82,13 @@ add items to this list."
 (defsubst semantic-decoration-set-property (deco property value)
   "Set the DECO decoration's PROPERTY to VALUE.
 Return DECO."
-  (assert (semantic-decoration-p deco))
+  (cl-assert (semantic-decoration-p deco))
   (semantic-overlay-put deco property value)
   deco)
 
 (defsubst semantic-decoration-get-property (deco property)
   "Return the DECO decoration's PROPERTY value."
-  (assert (semantic-decoration-p deco))
+  (cl-assert (semantic-decoration-p deco))
   (semantic-overlay-get deco property))
 
 (defsubst semantic-decoration-set-face (deco face)
@@ -103,7 +103,7 @@ Return DECO."
 (defsubst semantic-decoration-set-priority (deco priority)
   "Set the priority of the decoration DECO to PRIORITY.
 Return DECO."
-  (assert (natnump priority))
+  (cl-assert (natnump priority))
   (semantic-decoration-set-property deco 'priority priority))
 
 (defsubst semantic-decoration-priority (deco)
@@ -113,7 +113,7 @@ Return DECO."
 (defsubst semantic-decoration-move (deco begin end)
   "Move the decoration DECO on the region between BEGIN and END.
 Return DECO."
-  (assert (semantic-decoration-p deco))
+  (cl-assert (semantic-decoration-p deco))
   (semantic-overlay-move deco begin end)
   deco)
 
@@ -135,7 +135,7 @@ Return the overlay that makes up the new decoration."
 (defun semantic-decorate-clear-tag (tag &optional deco)
   "Remove decorations from TAG.
 If optional argument DECO is non-nil, remove only that decoration."
-  (assert (or (null deco) (semantic-decoration-p deco)))
+  (cl-assert (or (null deco) (semantic-decoration-p deco)))
   ;; Clear primary decorations.
   ;; For now, just unhighlight the tag.  How to deal with other
   ;; primary decorations like invisibility, etc. ?  Maybe just
@@ -455,7 +455,7 @@ Does not provide overlines for prototypes.")
      (:overline "cyan"))
     (((class color) (background light))
      (:overline "blue")))
-  "*Face used to show long tags in.
+  "Face used to show long tags in.
 Used by decoration style: `semantic-tag-boundary'."
   :group 'semantic-faces)
 
@@ -504,7 +504,7 @@ Used by decoration style: `semantic-tag-boundary'."
      (:background "#200000"))
     (((class color) (background light))
      (:background "#8fffff")))
-  "*Face used to show privately scoped tags in.
+  "Face used to show privately scoped tags in.
 Used by the decoration style: `semantic-decoration-on-private-members'."
   :group 'semantic-faces)
 
@@ -526,7 +526,7 @@ Use a primary decoration."
      (:background "#000020"))
     (((class color) (background light))
      (:background "#fffff8")))
-  "*Face used to show protected scoped tags in.
+  "Face used to show protected scoped tags in.
 Used by the decoration style: `semantic-decoration-on-protected-members'."
   :group 'semantic-faces)
 

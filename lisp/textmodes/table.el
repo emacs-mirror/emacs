@@ -1,6 +1,6 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -570,7 +570,7 @@
 ;; Maybe provide complete XEmacs support in the future however the
 ;; "extent" is the single largest obstacle lying ahead, read the
 ;; document in Emacs info.
-;; (eval '(progn (require 'info) (Info-find-node "elisp" "Not Intervals")))
+;; (progn (require 'info) (Info-find-node "elisp" "Not Intervals"))
 ;;
 ;;
 ;; ---------------
@@ -641,7 +641,7 @@
   "Text based table manipulation utilities."
   :tag "Table"
   :prefix "table-"
-  :group 'wp
+  :group 'text
   :version "22.1")
 
 (defgroup table-hooks nil
@@ -936,6 +936,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     ([(shift backtab)]	. table-backward-cell) ; for HPUX console keyboard
     ([(shift iso-lefttab)]    . table-backward-cell) ; shift-tab on a microsoft natural keyboard and redhat linux
     ([(shift tab)]	. table-backward-cell)
+    ([backtab]          . table-backward-cell) ; for terminals (e.g., xterm)
     ([return]		. *table--cell-newline)
     ([(control m)]	. *table--cell-newline)
     ([(control j)]	. *table--cell-newline-and-indent)
@@ -2938,7 +2939,7 @@ WHERE is provided the cell and table at that location is reported."
 (defun table-generate-source (language &optional dest-buffer caption)
   "Generate source of the current table in the specified language.
 LANGUAGE is a symbol that specifies the language to describe the
-structure of the table.  It must be either 'html, 'latex or 'cals.
+structure of the table.  It must be either `html', `latex' or `cals'.
 The resulted source text is inserted into DEST-BUFFER and the buffer
 object is returned.  When DEST-BUFFER is omitted or nil the default
 buffer specified in `table-dest-buffer-name' is used.  In this case
@@ -2967,8 +2968,7 @@ CALS (DocBook DTD):
 	  (default (car table-source-language-history))
 	  (language (downcase (completing-read
 			       (format "Language (default %s): " default)
-			       (mapcar (lambda (s) (list (symbol-name s)))
-				       table-source-languages)
+			       table-source-languages
 			       nil t nil 'table-source-language-history default))))
      (list
       (intern language)
@@ -3561,7 +3561,7 @@ delimiter regular expressions.  This parsing determines the number of
 columns and rows of the table automatically.  If COL-DELIM-REGEXP and
 ROW-DELIM-REGEXP are omitted the result table has only one cell and
 the entire region contents is placed in that cell.  Optional JUSTIFY
-is one of 'left, 'center or 'right, which specifies the cell
+is one of `left', `center' or `right', which specifies the cell
 justification.  Optional MIN-CELL-WIDTH specifies the minimum cell
 width.  Optional COLUMNS specify the number of columns when
 ROW-DELIM-REGEXP is not specified.

@@ -1,13 +1,13 @@
 /* Profiler implementation.
 
-Copyright (C) 2012-2015 Free Software Foundation, Inc.
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
@@ -44,11 +44,10 @@ make_log (EMACS_INT heap_size, EMACS_INT max_stack_depth)
      a special way.  This is OK as long as the object is not exposed
      to Elisp, i.e. until it is returned by *-profiler-log, after which
      it can't be used any more.  */
-  Lisp_Object log = make_hash_table (hashtest_profiler,
-				     make_number (heap_size),
-				     make_float (DEFAULT_REHASH_SIZE),
-				     make_float (DEFAULT_REHASH_THRESHOLD),
-				     Qnil);
+  Lisp_Object log = make_hash_table (hashtest_profiler, heap_size,
+				     DEFAULT_REHASH_SIZE,
+				     DEFAULT_REHASH_THRESHOLD,
+				     Qnil, false);
   struct Lisp_Hash_Table *h = XHASH_TABLE (log);
 
   /* What is special about our hash-tables is that the keys are pre-filled
@@ -119,7 +118,7 @@ static void evict_lower_half (log_t *log)
 	  XSET_HASH_TABLE (tmp, log); /* FIXME: Use make_lisp_ptr.  */
 	  Fremhash (key, tmp);
 	}
-	eassert (EQ (log->next_free, make_number (i)));
+	eassert (log->next_free == i);
 
 	eassert (VECTORP (key));
 	for (ptrdiff_t j = 0; j < ASIZE (key); j++)
@@ -139,11 +138,11 @@ record_backtrace (log_t *log, EMACS_INT count)
   Lisp_Object backtrace;
   ptrdiff_t index;
 
-  if (!INTEGERP (log->next_free))
+  if (log->next_free < 0)
     /* FIXME: transfer the evicted counts to a special entry rather
        than dropping them on the floor.  */
     evict_lower_half (log);
-  index = XINT (log->next_free);
+  index = log->next_free;
 
   /* Get a "working memory" vector.  */
   backtrace = HASH_KEY (log, index);
@@ -163,8 +162,8 @@ record_backtrace (log_t *log, EMACS_INT count)
       }
     else
       { /* BEWARE!  hash_put in general can allocate memory.
-	   But currently it only does that if log->next_free is nil.  */
-	eassert (!NILP (log->next_free));
+	   But currently it only does that if log->next_free is -1.  */
+	eassert (0 <= log->next_free);
 	ptrdiff_t j = hash_put (log, backtrace, make_number (count), hash);
 	/* Let's make sure we've put `backtrace' right where it
 	   already was to start with.  */
@@ -174,8 +173,8 @@ record_backtrace (log_t *log, EMACS_INT count)
 	   some global flag so that some Elisp code can offload its
 	   data elsewhere, so as to avoid the eviction code.
 	   There are 2 ways to do that, AFAICT:
-	   - Set a flag checked in QUIT, such that QUIT can then call
-	     Fprofiler_cpu_log and stash the full log for later use.
+	   - Set a flag checked in maybe_quit, such that maybe_quit can then
+	     call Fprofiler_cpu_log and stash the full log for later use.
 	   - Set a flag check in post-gc-hook, so that Elisp code can call
 	     profiler-cpu-log.  That gives us more flexibility since that
 	     Elisp code can then do all kinds of fun stuff like write
@@ -201,7 +200,12 @@ static bool profiler_timer_ok;
 
 /* Status of sampling profiler.  */
 static enum profiler_cpu_running
-  { NOT_RUNNING, TIMER_SETTIME_RUNNING, SETITIMER_RUNNING }
+  { NOT_RUNNING,
+#ifdef HAVE_ITIMERSPEC
+    TIMER_SETTIME_RUNNING,
+#endif
+    SETITIMER_RUNNING
+  }
   profiler_cpu_running;
 
 /* Hash-table log of CPU profiler.  */
@@ -224,7 +228,7 @@ static EMACS_INT current_sampling_interval;
 static void
 handle_profiler_signal (int signal)
 {
-  if (EQ (backtrace_top_function (), Qautomatic_gc))
+  if (EQ (backtrace_top_function (), QAutomatic_GC))
     /* Special case the time-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
        More specifically it uses ASIZE at many places where it does
@@ -418,7 +422,7 @@ Before returning, a new log is allocated for future samples.  */)
   cpu_log = (profiler_cpu_running
 	     ? make_log (profiler_log_size, profiler_max_stack_depth)
 	     : Qnil);
-  Fputhash (Fmake_vector (make_number (1), Qautomatic_gc),
+  Fputhash (Fmake_vector (make_number (1), QAutomatic_GC),
 	    make_number (cpu_gc_count),
 	    result);
   cpu_gc_count = 0;

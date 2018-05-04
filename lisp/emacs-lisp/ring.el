@@ -1,6 +1,6 @@
-;;; ring.el --- handle rings of items
+;;; ring.el --- handle rings of items   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -160,14 +160,15 @@ will be performed."
 	(size (ring-size ring))
 	(vect (cddr ring))
 	lst)
-    (dotimes (var (cadr ring) lst)
-      (push (aref vect (mod (+ start var) size)) lst))))
+    (dotimes (var (cadr ring))
+      (push (aref vect (mod (+ start var) size)) lst))
+    lst))
 
 (defun ring-member (ring item)
   "Return index of ITEM if on RING, else nil.
 Comparison is done via `equal'.  The index is 0-based."
   (catch 'found
-    (dotimes (ind (ring-length ring) nil)
+    (dotimes (ind (ring-length ring))
       (when (equal item (ring-ref ring ind))
 	(throw 'found ind)))))
 

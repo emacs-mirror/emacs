@@ -1,6 +1,6 @@
 GNU Emacs Installation Guide for the DJGPP (a.k.a. MS-DOS) port
 
-Copyright (C) 1992, 1994, 1996-1997, 2000-2015 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2018 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -151,4 +151,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

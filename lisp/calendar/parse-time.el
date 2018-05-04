@@ -1,6 +1,6 @@
-;;; parse-time.el --- parsing time strings
+;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,17 +41,16 @@
 (defvar parse-time-val)
 
 (defsubst parse-time-string-chars (char)
-  (save-match-data
-    (let (case-fold-search str)
-      (cond ((eq char ?+) 1)
-	    ((eq char ?-) -1)
-	    ((eq char ?:) ?d)
-	    ((string-match "[[:upper:]]" (setq str (string char))) ?A)
-	    ((string-match "[[:lower:]]" str) ?a)
-	    ((string-match "[[:digit:]]" str) ?0)))))
+  (cond ((<= ?a char ?z) ?a)
+        ((<= ?0 char ?9) ?0)
+        ((eq char ?+) 1)
+        ((eq char ?-) -1)
+        ((eq char ?:) ?d)))
 
 (defun parse-time-tokenize (string)
-  "Tokenize STRING into substrings."
+  "Tokenize STRING into substrings.
+Each substring is a run of \"valid\" characters, i.e., lowercase
+letters, digits, plus or minus signs or colons."
   (let ((start nil)
 	(end (length string))
 	(all-digits nil)
@@ -62,7 +61,8 @@
       (while (and (< index end)		;Skip invalid characters.
 		  (not (setq c (parse-time-string-chars (aref string index)))))
 	(cl-incf index))
-      (setq start index all-digits (eq c ?0))
+      (setq start index
+            all-digits (eq c ?0))
       (while (and (< (cl-incf index) end)	;Scan valid characters.
 		  (setq c (parse-time-string-chars (aref string index))))
 	(setq all-digits (and all-digits (eq c ?0))))
@@ -146,8 +146,12 @@
 ;;;###autoload
 (defun parse-time-string (string)
   "Parse the time-string STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-The values are identical to those of `decode-time', but any values that are
-unknown are returned as nil."
+STRING should be on something resembling an RFC2822 string, a la
+\"Fri, 25 Mar 2016 16:24:56 +0100\", but this function is
+somewhat liberal in what format it accepts, and will attempt to
+return a \"likely\" value even for somewhat malformed strings.
+The values returned are identical to those of `decode-time', but
+any values that are unknown are returned as nil."
   (let ((time (list nil nil nil nil nil nil nil nil nil))
 	(temp (parse-time-tokenize (downcase string))))
     (while temp
@@ -198,28 +202,28 @@ unknown are returned as nil."
 	 (time-minute 2digit)
 	 (time-second 2digit)
 	 (time-secfrac "\\(\\.[0-9]+\\)?")
-	 (time-numoffset (concat "[-+]\\(" time-hour "\\):" time-minute))
-	 (time-offset (concat "Z" time-numoffset))
+	 (time-numoffset (concat "\\([-+]\\)" time-hour ":?" time-minute "?"))
 	 (partial-time (concat time-hour colon time-minute colon time-second
 			       time-secfrac))
-	 (full-date (concat date-fullyear dash date-month dash date-mday))
-	 (full-time (concat partial-time time-offset))
-	 (date-time (concat full-date "T" full-time)))
+	 (full-date (concat date-fullyear dash date-month dash date-mday)))
     (list (concat "^" full-date)
 	  (concat "T" partial-time)
-	  (concat "Z" time-numoffset)))
+	  (concat "\\(Z\\|" time-numoffset "\\)")))
   "List of regular expressions matching ISO 8601 dates.
 1st regular expression matches the date.
 2nd regular expression matches the time.
 3rd regular expression matches the (optional) timezone specification.")
 
 (defun parse-iso8601-time-string (date-string)
+  "Parse an ISO 8601 time string, such as 2016-12-01T23:35:06-05:00.
+If DATE-STRING cannot be parsed, it falls back to
+`parse-time-string'."
   (let* ((date-re (nth 0 parse-time-iso8601-regexp))
 	 (time-re (nth 1 parse-time-iso8601-regexp))
 	 (tz-re (nth 2 parse-time-iso8601-regexp))
-	 re-start
-	 time seconds minute hour fractional-seconds
-	 day month year day-of-week dst tz)
+         re-start
+         time seconds minute hour
+         day month year day-of-week dst tz)
     ;; We need to populate 'time' with
     ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
 
@@ -233,15 +237,21 @@ unknown are returned as nil."
 	(setq hour (string-to-number (match-string 1 date-string))
 	      minute (string-to-number (match-string 2 date-string))
 	      seconds (string-to-number (match-string 3 date-string))
-	      fractional-seconds (string-to-number (or
-                                                    (match-string 4 date-string)
-                                                    "0"))
 	      re-start (match-end 0))
 	(when (string-match tz-re date-string re-start)
-	  (setq tz (match-string 1 date-string)))
+          (if (string= "Z" (match-string 1 date-string))
+              (setq tz 0)  ;; UTC timezone indicated by Z
+            (setq tz (+
+                      (* 3600
+                         (string-to-number (match-string 3 date-string)))
+                      (* 60
+                         (string-to-number
+                          (or (match-string 4 date-string) "0")))))
+            (when (string= "-" (match-string 2 date-string))
+              (setq tz (- tz)))))
 	(setq time (list seconds minute hour day month year day-of-week dst tz))))
 
-    ;; Fall back to having Gnus do fancy things for us.
+    ;; Fall back to having `parse-time-string' do fancy things for us.
     (when (not time)
       (setq time (parse-time-string date-string)))
 

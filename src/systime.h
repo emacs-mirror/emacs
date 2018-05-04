@@ -1,12 +1,12 @@
 /* systime.h - System-dependent definitions for time manipulations.
-   Copyright (C) 1993-1994, 2002-2015 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2002-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_SYSTIME_H
 #define EMACS_SYSTIME_H
@@ -83,8 +83,8 @@ extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 extern void set_waiting_for_input (struct timespec *);
 
 /* When lisp.h is not included Lisp_Object is not defined (this can
-   happen when this files is used outside the src directory).  */
-#ifdef EMACS_LISP_H
+   happen when this file is used outside the src directory).  */
+#ifdef emacs
 
 /* Emacs uses the integer list (HI LO US PS) to represent the time
    (HI << LO_TIME_BITS) + LO + US / 1e6 + PS / 1e12.  */

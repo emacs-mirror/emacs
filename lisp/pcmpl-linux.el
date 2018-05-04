@@ -1,6 +1,6 @@
 ;;; pcmpl-linux.el --- functions for dealing with GNU/Linux completions
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,7 +43,7 @@
   "Completion for GNU/Linux `kill', using /proc filesystem."
   (if (pcomplete-match "^-\\(.*\\)" 0)
       (pcomplete-here
-       (pcomplete-uniqify-list
+       (pcomplete-uniquify-list
 	(split-string
 	 (pcomplete-process-result "kill" "-l")))
        (pcomplete-match-string 1 0)))
@@ -82,7 +82,7 @@
 		 (args (split-string line " ")))
 	    (setq points (cons (nth 1 args) points)))
 	  (forward-line)))
-      (pcomplete-uniqify-list points))))
+      (pcomplete-uniquify-list points))))
 
 (defun pcomplete-pare-list (l r)
   "Destructively remove from list L all elements matching any in list R.
@@ -109,7 +109,7 @@ Test is done using `equal'."
 	    (setq points (cons (nth 1 args) points)))
 	  (forward-line)))
       (pcomplete-pare-list
-       (pcomplete-uniqify-list points)
+       (pcomplete-uniquify-list points)
        (cons "swap" (pcmpl-linux-mounted-directories))))))
 
 ;;; pcmpl-linux.el ends here

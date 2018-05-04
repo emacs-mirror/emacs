@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Markers
@@ -20,8 +20,8 @@ deleted, so that it stays with the two characters on either side of it.
 * Marker Insertion Types::   Two ways a marker can relocate when you
                                insert where it points.
 * Moving Markers::           Moving the marker to a new buffer or position.
-* The Mark::                 How ``the mark'' is implemented with a marker.
-* The Region::               How to access ``the region''.
+* The Mark::                 How the mark is implemented with a marker.
+* The Region::               How to access the region.
 @end menu
 
 @node Overview of Markers
@@ -340,10 +340,10 @@ text is inserted at its position.  If @var{type} is @code{nil},
 This function reports the current insertion type of @var{marker}.
 @end defun
 
-Most functions that create markers, without an argument allowing to
-specify the insertion type, create them with insertion type
-@code{nil}.  Also, the mark has, by default, insertion type
-@code{nil}.
+All functions that create markers without accepting an argument that
+specifies the insertion type, create them with insertion type
+@code{nil} (@pxref{Creating Markers}).  Also, the mark has, by
+default, insertion type @code{nil}.
 
 @node Moving Markers
 @section Moving Marker Positions
@@ -404,7 +404,7 @@ This is another name for @code{set-marker}.
 
   Each buffer has a special marker, which is designated @dfn{the
 mark}.  When a buffer is newly created, this marker exists but does
-not point anywhere; this means that the mark ``doesn't exist'' in that
+not point anywhere; this means that the mark doesn't exist in that
 buffer yet.  Subsequent commands can set the mark.
 
   The mark specifies a position to bound a range of text for many
@@ -424,7 +424,7 @@ sets the mark to the value of point before doing any replacements,
 because this enables the user to move back there conveniently after
 the replace is finished.
 
-  Once the mark ``exists'' in a buffer, it normally never ceases to
+  Once the mark exists in a buffer, it normally never ceases to
 exist.  However, it may become @dfn{inactive}, if Transient Mark mode
 is enabled.  The buffer-local variable @code{mark-active}, if
 non-@code{nil}, means that the mark is active.  A command can call the
@@ -576,7 +576,7 @@ If an editor command sets this variable non-@code{nil}, then the editor
 command loop deactivates the mark after the command returns (if
 Transient Mark mode is enabled).  All the primitives that change the
 buffer set @code{deactivate-mark}, to deactivate the mark when the
-command is finished.
+command is finished.  Setting this variable makes it buffer-local.
 
 To write Lisp code that modifies the buffer without causing
 deactivation of the mark at the end of the command, bind
@@ -620,7 +620,7 @@ This piece of command_loop_1, run unless deactivating the mark:
 @end defvar
 
 @defun handle-shift-selection
-This function implements the ``shift-selection'' behavior of
+This function implements the shift-selection behavior of
 point-motion commands.  @xref{Shift Selection,,, emacs, The GNU Emacs
 Manual}.  It is called automatically by the Emacs command loop
 whenever a command with a @samp{^} character in its @code{interactive}
@@ -659,10 +659,28 @@ more marks than this are pushed onto the @code{mark-ring},
 @c There is also global-mark-ring-max, but this chapter explicitly
 @c does not talk about the global mark.
 
+@cindex @code{delete-selection}, symbol property
+@findex delete-selection-helper
+@findex delete-selection-pre-hook
+When Delete Selection mode (@pxref{Using Region, Delete Selection, ,
+emacs, The GNU Emacs Manual}) is enabled, commands that operate on the
+active region (a.k.a.@: ``selection'') behave slightly differently.
+This works by adding the function @code{delete-selection-pre-hook} to
+the @code{pre-command-hook} (@pxref{Command Overview}).  That function
+calls @code{delete-selection-helper} to delete the selection as
+appropriate for the command.  If you want to adapt a command to Delete
+Selection mode, put the @code{delete-selection} property on the
+function's symbol (@pxref{Symbol Plists}); commands that don't have
+this property on their symbol won't delete the selection.  This
+property can have one of several values to tailor the behavior to what
+the command is supposed to do; see the doc strings of
+@code{delete-selection-pre-hook} and @code{delete-selection-helper}
+for the details.
+
 @node The Region
 @section The Region
-@c The index entry must be just ``region'' to make it the first hit
-@c when the user types ``i region RET'', because otherwise the Info
+@c The index entry must be just "region" to make it the first hit
+@c when the user types "i region RET", because otherwise the Info
 @c reader will present substring matches in alphabetical order,
 @c putting this one near the end, with something utterly unrelated as
 @c the first hit.

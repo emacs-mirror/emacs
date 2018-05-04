@@ -1,6 +1,6 @@
-;;; 5x5.el --- simple little puzzle game -*- coding: utf-8 -*-
+;;; 5x5.el --- simple little puzzle game
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

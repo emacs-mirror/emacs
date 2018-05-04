@@ -1,12 +1,12 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008-2015 Free Software Foundation, Inc.
+   Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -33,11 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "w32term.h"
 #include "frame.h"
-#include "dispextern.h"
-#include "character.h"
-#include "charset.h"
 #include "composite.h"
-#include "fontset.h"
 #include "font.h"
 #include "w32font.h"
 
@@ -54,7 +50,7 @@ static int CALLBACK ALIGN_STACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
 								NEWTEXTMETRICEX *,
 								DWORD, LPARAM);
 /* Used by uniscribe_otf_capability.  */
-static Lisp_Object otf_features (HDC context, char *table);
+static Lisp_Object otf_features (HDC context, const char *table);
 
 static int
 memq_no_quit (Lisp_Object elt, Lisp_Object list)
@@ -93,12 +89,19 @@ uniscribe_list_family (struct frame *f)
   /* Limit enumerated fonts to outline fonts to save time.  */
   font_match_pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
 
+  /* Prevent quitting while EnumFontFamiliesEx runs and conses the
+     list it will return.  That's because get_frame_dc acquires the
+     critical section, so we cannot quit before we release it in
+     release_frame_dc.  */
+  Lisp_Object prev_quit = Vinhibit_quit;
+  Vinhibit_quit = Qt;
   dc = get_frame_dc (f);
 
   EnumFontFamiliesEx (dc, &font_match_pattern,
                       (FONTENUMPROC) add_opentype_font_name_to_list,
                       (LPARAM) &list, 0);
   release_frame_dc (f, dc);
+  Vinhibit_quit = prev_quit;
 
   return list;
 }
@@ -779,7 +782,6 @@ uniscribe_check_otf_1 (HDC context, Lisp_Object script, Lisp_Object lang,
   int max_tags = ARRAYELTS (tags);
   int ntags, i, ret = 0;
   HRESULT rslt;
-  Lisp_Object rest;
 
   *retval = 0;
 
@@ -1047,7 +1049,7 @@ uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec)
 }
 
 static Lisp_Object
-otf_features (HDC context, char *table)
+otf_features (HDC context, const char *table)
 {
   Lisp_Object script_list = Qnil;
   unsigned short scriptlist_table, n_scripts, feature_table;
@@ -1140,7 +1142,7 @@ font_table_error:
 
 struct font_driver uniscribe_font_driver =
   {
-    LISP_INITIALLY_ZERO, /* Quniscribe */
+    LISPSYM_INITIALLY (Quniscribe),
     0, /* case insensitive */
     w32font_get_cache,
     uniscribe_list,
@@ -1171,6 +1173,8 @@ struct font_driver uniscribe_font_driver =
 
 /* Note that this should be called at every startup, not just when dumping,
    as it needs to test for the existence of the Uniscribe library.  */
+void syms_of_w32uniscribe (void);
+
 void
 syms_of_w32uniscribe (void)
 {
@@ -1185,7 +1189,6 @@ syms_of_w32uniscribe (void)
   if (!uniscribe)
     return;
 
-  uniscribe_font_driver.type = Quniscribe;
   uniscribe_available = 1;
 
   register_font_driver (&uniscribe_font_driver, NULL);

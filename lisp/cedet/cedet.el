@@ -1,6 +1,6 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,9 +29,6 @@
 ;; This file depends on the major components of CEDET, so that you can
 ;; load them all by doing (require 'cedet).  This is mostly for
 ;; compatibility with the upstream, stand-alone CEDET distribution.
-
-(eval-when-compile
-  (require 'cl))
 
 (declare-function inversion-find-version "inversion")
 

@@ -1,13 +1,13 @@
 /* Code for doing intervals.
-   Copyright (C) 1993-1995, 1997-1998, 2001-2015 Free Software
+   Copyright (C) 1993-1995, 1997-1998, 2001-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* NOTES:
@@ -43,10 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"
-#include "character.h"
 #include "buffer.h"
 #include "puresize.h"
-#include "keyboard.h"
 #include "keymap.h"
 
 /* Test for membership, allowing for t (actually any non-cons) to mean the
@@ -91,11 +89,9 @@ create_root_interval (Lisp_Object parent)
 {
   INTERVAL new;
 
-  CHECK_IMPURE (parent);
-
   new = make_interval ();
 
-  if (BUFFERP (parent))
+  if (! STRINGP (parent))
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
@@ -103,15 +99,16 @@ create_root_interval (Lisp_Object parent)
       set_buffer_intervals (XBUFFER (parent), new);
       new->position = BEG;
     }
-  else if (STRINGP (parent))
+  else
     {
+      CHECK_IMPURE (parent, XSTRING (parent));
       new->total_length = SCHARS (parent);
       eassert (TOTAL_LENGTH (new) >= 0);
       set_string_intervals (parent, new);
       new->position = 0;
     }
   eassert (LENGTH (new) > 0);
-  
+
   set_interval_object (new, parent);
 
   return new;
@@ -227,7 +224,8 @@ intervals_equal (INTERVAL i0, INTERVAL i1)
    Pass FUNCTION two args: an interval, and ARG.  */
 
 void
-traverse_intervals_noorder (INTERVAL tree, void (*function) (INTERVAL, Lisp_Object), Lisp_Object arg)
+traverse_intervals_noorder (INTERVAL tree, void (*function) (INTERVAL, void *),
+			    void *arg)
 {
   /* Minimize stack usage.  */
   while (tree)
@@ -259,69 +257,6 @@ traverse_intervals (INTERVAL tree, ptrdiff_t position,
       position += LENGTH (tree); tree = tree->right;
     }
 }
-
-#if 0
-
-static int icount;
-static int idepth;
-static int zero_length;
-
-/* These functions are temporary, for debugging purposes only.  */
-
-INTERVAL search_interval, found_interval;
-
-void
-check_for_interval (INTERVAL i)
-{
-  if (i == search_interval)
-    {
-      found_interval = i;
-      icount++;
-    }
-}
-
-INTERVAL
-search_for_interval (INTERVAL i, INTERVAL tree)
-{
-  icount = 0;
-  search_interval = i;
-  found_interval = NULL;
-  traverse_intervals_noorder (tree, &check_for_interval, Qnil);
-  return found_interval;
-}
-
-static void
-inc_interval_count (INTERVAL i)
-{
-  icount++;
-  if (LENGTH (i) == 0)
-    zero_length++;
-  if (depth > idepth)
-    idepth = depth;
-}
-
-int
-count_intervals (INTERVAL i)
-{
-  icount = 0;
-  idepth = 0;
-  zero_length = 0;
-  traverse_intervals_noorder (i, &inc_interval_count, Qnil);
-
-  return icount;
-}
-
-static INTERVAL
-root_interval (INTERVAL interval)
-{
-  register INTERVAL i = interval;
-
-  while (! ROOT_INTERVAL_P (i))
-    i = INTERVAL_PARENT (i);
-
-  return i;
-}
-#endif
 
 /* Assuming that a left child exists, perform the following operation:
 
@@ -1824,11 +1759,16 @@ set_point (ptrdiff_t charpos)
 void
 set_point_from_marker (Lisp_Object marker)
 {
+  ptrdiff_t charpos = clip_to_bounds (BEGV, marker_position (marker), ZV);
+  ptrdiff_t bytepos = marker_byte_position (marker);
+
+  /* Don't trust the byte position if the marker belongs to a
+     different buffer.  */
   if (XMARKER (marker)->buffer != current_buffer)
-    signal_error ("Marker points into wrong buffer", marker);
-  set_point_both
-    (clip_to_bounds (BEGV, marker_position (marker), ZV),
-     clip_to_bounds (BEGV_BYTE, marker_byte_position (marker), ZV_BYTE));
+    bytepos = buf_charpos_to_bytepos (current_buffer, charpos);
+  else
+    bytepos = clip_to_bounds (BEGV_BYTE, bytepos, ZV_BYTE);
+  set_point_both (charpos, bytepos);
 }
 
 /* If there's an invisible character at position POS + TEST_OFFS in the
@@ -2213,6 +2153,7 @@ get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)
 {
   Lisp_Object prop, lispy_position, lispy_buffer;
   ptrdiff_t old_begv, old_zv, old_begv_byte, old_zv_byte;
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   position = clip_to_bounds (BUF_BEGV (buffer), position, BUF_ZV (buffer));
 
@@ -2223,6 +2164,7 @@ get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)
   old_begv_byte = BUF_BEGV_BYTE (buffer);
   old_zv_byte = BUF_ZV_BYTE (buffer);
 
+  specbind (Qinhibit_quit, Qt);
   SET_BUF_BEGV_BOTH (buffer, BUF_BEG (buffer), BUF_BEG_BYTE (buffer));
   SET_BUF_ZV_BOTH (buffer, BUF_Z (buffer), BUF_Z_BYTE (buffer));
 
@@ -2240,6 +2182,7 @@ get_local_map (ptrdiff_t position, struct buffer *buffer, Lisp_Object type)
 
   SET_BUF_BEGV_BOTH (buffer, old_begv, old_begv_byte);
   SET_BUF_ZV_BOTH (buffer, old_zv, old_zv_byte);
+  unbind_to (count, Qnil);
 
   /* Use the local map only if it is valid.  */
   prop = get_keymap (prop, 0, 0);

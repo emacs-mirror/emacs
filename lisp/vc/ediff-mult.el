@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -174,7 +174,8 @@ directories.")
 (defcustom ediff-default-filtering-regexp nil
   "The default regular expression used as a filename filter in multifile comparisons.
 Should be a sexp.  For instance (car ediff-filtering-regexp-history) or nil."
-  :type 'sexp
+  :type 'sexp                           ; yuck - why not just a regexp?
+  :risky t
   :group 'ediff-mult)
 
 ;; This has the form ((meta-buf regexp dir1 dir2 dir3 merge-auto-store-dir)
@@ -1241,7 +1242,7 @@ behavior."
     (insert "\n")))
 
 (defun ediff-draw-dir-diffs (diff-list &optional buf-name)
-  (if (null diff-list) (error "Lost difference info on these directories"))
+  (if (null diff-list) (user-error "Lost difference info on these directories"))
   (setq buf-name
 	(or buf-name
 	    (ediff-unique-buffer-name "*Ediff File Group Differences" "*")))
@@ -1359,7 +1360,7 @@ Useful commands:
   "Display differences among the directories involved in session group."
   (interactive)
   (if (ediff-one-filegroup-metajob)
-      (error "This command is inapplicable in the present context"))
+      (user-error "This command is inapplicable in the present context"))
   (or (ediff-buffer-live-p ediff-dir-diffs-buffer)
       (ediff-draw-dir-diffs ediff-dir-difference-list))
   (let ((buf ediff-dir-diffs-buffer))
@@ -1440,7 +1441,7 @@ Useful commands:
   (if (ediff-buffer-live-p ediff-parent-meta-buffer)
       (ediff-show-meta-buffer
        ediff-parent-meta-buffer ediff-meta-session-number)
-    (error "This session group has no parent")))
+    (user-error "This session group has no parent")))
 
 
 ;; argument is ignored
@@ -1591,7 +1592,7 @@ Useful commands:
     (cond (ignore)
 	  (unmark (ediff-set-session-status info nil))
 ;;;   (if (ediff-buffer-live-p session-buf)
-;;;	  (error "Can't hide active session, %s" (buffer-name session-buf)))
+;;;	  (user-error "Can't hide active session, %s" (buffer-name session-buf)))
 	  (t (ediff-set-session-status info ?H))))
   unmark)
 
@@ -1706,7 +1707,7 @@ Useful commands:
 		(setq custom-diff-buf ediff-custom-diff-buffer)))))
 
     (or (ediff-buffer-live-p meta-diff-buff)
-	(error "Ediff: something wrong--killed multiple diff's buffer"))
+	(user-error "Ediff: something wrong--killed multiple diff's buffer"))
 
     (cond ((ediff-buffer-live-p custom-diff-buf)
 	   ;; for live session buffers we do them first because the user may
@@ -1739,7 +1740,7 @@ Useful commands:
 	     (insert "\n")))
 	  (t
 	   (ediff-kill-buffer-carefully meta-diff-buff)
-	   (error "Session %d compares versions of file.  Such session must be active to enable multifile patch collection" sessionNum )))
+	   (user-error "Session %d compares versions of file.  Such session must be active to enable multifile patch collection" sessionNum )))
     ))
 
 (defun ediff-collect-custom-diffs ()
@@ -1791,7 +1792,7 @@ all marked sessions must be active."
 	    (goto-char (point-min))
 	    (display-buffer ediff-tmp-buffer 'not-this-window)
 	    ))
-      (error "The patch buffer wasn't found"))))
+      (user-error "The patch buffer wasn't found"))))
 
 (declare-function ediff-directories-internal "ediff"
 		  (dir1 dir2 dir3 regexp action jobname
@@ -1828,7 +1829,7 @@ all marked sessions must be active."
 	      (progn
 		(ediff-set-session-status info nil)
 		(ediff-update-meta-buffer meta-buf nil session-number))
-	    (error "Aborted"))))
+	    (user-error "Aborted"))))
 
     (ediff-with-current-buffer meta-buf
       (setq merge-autostore-dir
@@ -1845,9 +1846,9 @@ all marked sessions must be active."
 		     (read-string
 		      (if (stringp default-regexp)
 			  (format
-			   "Filter through regular expression (default %s): "
+			   "Filter filenames through regular expression (default %s): "
 			   default-regexp)
-			"Filter through regular expression: ")
+			"Filter filenames through regular expression: ")
 		      nil
 		      'ediff-filtering-regexp-history
 		      (eval ediff-default-filtering-regexp)))
@@ -1871,7 +1872,7 @@ all marked sessions must be active."
 		  (file-directory-p file1))
 	     (if (ediff-buffer-live-p session-buf)
 		 (ediff-show-meta-buffer session-buf)
-	       (setq regexp (read-string "Filter through regular expression: "
+	       (setq regexp (read-string "Filter filenames through regular expression: "
 					 nil 'ediff-filtering-regexp-history))
 	       (ediff-directory-revisions-internal
 		file1 regexp
@@ -1926,7 +1927,7 @@ all marked sessions must be active."
 			     ;; level; see below
 			     (setcar
 			      (quote ,info) ediff-control-buffer))))
-	       (error "Aborted")))
+	       (user-error "Aborted")))
 	    ((ediff-one-filegroup-metajob) 	; needs 1 file arg
 	     (funcall ediff-session-action-function
 		      file1
@@ -2056,7 +2057,7 @@ all marked sessions must be active."
 
     (setq meta-buf (or meta-buf ediff-meta-buffer))
     (cond ((not (bufferp meta-buf))
-	   (error "This Ediff session is not part of a session group"))
+	   (user-error "This Ediff session is not part of a session group"))
 	  ((not (ediff-buffer-live-p meta-buf))
 	   (error
 	    "Can't find this session's group panel -- session itself is ok")))
@@ -2126,7 +2127,7 @@ all marked sessions must be active."
   (interactive)
   (ediff-update-registry)
   (if (not (ediff-buffer-live-p ediff-registry-buffer))
-      (error "No active Ediff sessions or corrupted session registry"))
+      (user-error "No active Ediff sessions or corrupted session registry"))
   (let (wind frame)
     ;; for some reason, point moves in ediff-registry-buffer, so we preserve it
     ;; explicitly
@@ -2298,7 +2299,7 @@ If this is a session registry buffer then just bury it."
     (or result
 	(unless noerror
 	  (ediff-update-registry)
-	  (error "No session info in this line")))))
+	  (user-error "No session info in this line")))))
 
 
 (defun ediff-get-meta-overlay-at-pos (point)
@@ -2379,7 +2380,7 @@ If this is a session registry buffer then just bury it."
 	 session-buf beg-marker end-marker)
 
     (if (or (file-directory-p file) (string-match "/dev/null" file))
-	(error "`%s' is not an ordinary file" (file-name-as-directory file)))
+	(user-error "`%s' is not an ordinary file" (file-name-as-directory file)))
     (setq session-buf (ediff-get-session-buffer info)
 	  beg-marker (ediff-get-session-objB-name info)
 	  end-marker (ediff-get-session-objC-name info))

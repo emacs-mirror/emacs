@@ -1,4 +1,123 @@
-This directory contains files needed to build Emacs on Nextstep-based
-platforms, including GNUstep and Mac OS X (using the Cocoa libraries).
+  NS -- the Cocoa interface for macOS and compatible systems
+  ----------------------------------------------------------
 
-See the INSTALL file in this directory for compilation instructions.
+This directory contains files needed to build Emacs on system based on
+NextStep (NS), including macOS and GNUstep, using the Cocoa API.
+
+
+  HISTORY
+
+
+The Nextstep (NS) interface of GNU Emacs was originally written in
+1994 for NeXTSTEP systems running Emacs 19 and subsequently ported to
+OpenStep and then Rhapsody, which became Mac OS X.  In 2004 it was
+adapted to GNUstep, a free OpenStep implementation, and in 2008 it was
+merged to the GNU Emacs trunk and released with Emacs 23.  Around the
+same time a separate Mac-only port using the Carbon APIs and
+descending from a 2001 Mac OS 8/9 port of Emacs 21 was removed. (It
+remains available externally under the name "mac".)
+
+
+  OVERVIEW OF COCOA AND OBJECTIVE-C
+
+Cocoa is an API for the Objective-C language, an objective oriented
+superset of C.  Anybody with experience with iOS or modern macOS
+application development should feel at home.
+
+A method call in Objective-C differs from most other languages in the
+fact that it doesn't have a normal name.  Instead, the method name is
+made up of the name of each parameter.  An exception to this rule are
+methods without parameters.
+
+The following calls a method in the object 'anObject'.
+
+    [anObject alpha:1 beta:2 gamma:3];
+
+Classes are declared like the following:
+
+    @interface AClassName
+    {
+      // A class method.
+      + (TYPE)name1:(TYPE)param1
+
+      // An object method.
+      - (TYPE)name1:(TYPE)param1 name2:(TYPE)param2;
+    }
+    @end
+
+
+  GUIDELINES
+
+* Adhere the to the FSF philosophy that a feature in GNU software
+  should not only be available on non-free systems.
+
+* People with varying Cocoa and Objective-C skills will read and
+  modify the NS code over a long period of time.  Keep the code simple
+  and avoid language constructs that makes the code hard to maintain.
+
+* Don't use macros and types intended for the XCode Interface Builder,
+  like 'IBAction'.
+
+* The NS interface should work on all version of macOS from Mac OS X
+  10.6.8 (Snow Leopard) to the latest official release.
+
+* Under macOS, it is possible to build Emacs using NS, X11, or console
+  only.  A new macOS feature should work in all appropriate builds.
+
+
+  TRACING SUPPORT
+
+The NS interface features a printf-based trace package that prints the
+call tree of selected functions in the Cocoa interface, plus various
+extra information.  It can be enabled by uncommenting the line
+defining 'NSTRACE_ENABLED' in "nsterm.h".  To enable more output,
+uncomment the lines defining symbols starting with 'NSTRACE_GROUP'.
+
+
+  GNUSTEP AND OTHER COMPATIBLE SYSTEMS
+
+The NS interface works on systems compatible with macOS, for example
+GNUstep.  Even though they are less frequently used, this is important
+for a number of reasons:
+
+* It supports the GNUstep project and provides an Emacs with the same
+  look-and-feel as the rest of the system.
+
+* This allows other Emacs developers to test their changes on the NS
+  interface without having access to a macOS machine.
+
+* If a feature in the NS interface work on free systems like GNUstep,
+  this meets the FSF requirement that features in GNU software should
+  not only be available on non-free systems.
+
+
+  SEE ALSO
+
+The src/ns... files contains the C and Objective-C parts.
+
+The lisp/term/ns-win.el file contains the lisp part of the NS
+interface.
+
+The INSTALL file in this directory for compilation instructions.
+
+The Nextstep section in the etc/TODO file for a list of ideas for
+future development.
+
+
+----------------------------------------------------------------------
+Copyright 2008-2018 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

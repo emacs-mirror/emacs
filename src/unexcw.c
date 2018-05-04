@@ -1,14 +1,14 @@
 /* unexec() support for Cygwin;
    complete rewrite of xemacs Cygwin unexec() code
 
-   Copyright (C) 2004-2015 Free Software Foundation, Inc.
+   Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,12 +16,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "unexec.h"
 #include "lisp.h"
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <a.out.h>
@@ -29,10 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <assert.h>
 
 #define DOTEXE ".exe"
-
-extern void report_sheap_usage (int);
-
-extern int bss_sbrk_did_unexec;
 
 /*
 ** header for Windows executable files
@@ -151,7 +146,7 @@ fixup_executable (int fd)
 	  assert (ret == my_edata - (char *) start_address);
 	  ++found_data;
 	  if (debug_unexcw)
-	    printf ("         .data, mem start %#lx mem length %d\n",
+	    printf ("         .data, mem start %#lx mem length %td\n",
 		    start_address, my_edata - (char *) start_address);
 	  if (debug_unexcw)
 	    printf ("         .data, file start %d file length %d\n",
@@ -217,7 +212,7 @@ fixup_executable (int fd)
 		       sizeof (exe_header->section_header[i]));
 	      assert (ret == sizeof (exe_header->section_header[i]));
 	      if (debug_unexcw)
-		printf ("         seek to %ld, write %d\n",
+		printf ("         seek to %ld, write %zu\n",
 			(long) ((char *) &exe_header->section_header[i] -
 				(char *) exe_header),
 			sizeof (exe_header->section_header[i]));
@@ -232,7 +227,7 @@ fixup_executable (int fd)
 		   my_endbss - (char *) start_address);
 	  assert (ret == (my_endbss - (char *) start_address));
 	  if (debug_unexcw)
-	    printf ("         .bss, mem start %#lx mem length %d\n",
+	    printf ("         .bss, mem start %#lx mem length %td\n",
 		    start_address, my_endbss - (char *) start_address);
 	  if (debug_unexcw)
 	    printf ("         .bss, file start %d file length %d\n",
@@ -276,14 +271,12 @@ unexec (const char *outfile, const char *infile)
   int ret;
   int ret2;
 
-  report_sheap_usage (1);
-
   infile = add_exe_suffix_if_necessary (infile, infile_buffer);
   outfile = add_exe_suffix_if_necessary (outfile, outfile_buffer);
 
-  fd_in = emacs_open (infile, O_RDONLY | O_BINARY, 0);
+  fd_in = emacs_open (infile, O_RDONLY, 0);
   assert (fd_in >= 0);
-  fd_out = emacs_open (outfile, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 0755);
+  fd_out = emacs_open (outfile, O_RDWR | O_TRUNC | O_CREAT, 0755);
   assert (fd_out >= 0);
   for (;;)
     {
@@ -302,9 +295,7 @@ unexec (const char *outfile, const char *infile)
   ret = emacs_close (fd_in);
   assert (ret == 0);
 
-  bss_sbrk_did_unexec = 1;
   fixup_executable (fd_out);
-  bss_sbrk_did_unexec = 0;
 
   ret = emacs_close (fd_out);
   assert (ret == 0);

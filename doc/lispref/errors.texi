@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2015 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Errors
@@ -107,6 +107,11 @@ the error-strings are not very relevant.  However, these error symbols
 do have @code{error-message} properties, and if no data is provided,
 the @code{error-message} property @emph{is} used.  @xref{Files}.
 
+@item file-missing
+This is a subcategory of @code{file-error}.  It occurs when an
+operation attempts to act on a file that is missing.  @xref{Changing
+Files}.
+
 @c jka-compr.el
 @item compression-error
 This is a subcategory of @code{file-error}, which results from
@@ -167,8 +172,11 @@ The message is @samp{Search failed}.  @xref{Searching and Matching}.
 
 @item setting-constant
 The message is @samp{Attempt to set a constant symbol}.  This happens
-when attempting to assign values to @code{nil}, @code{t}, and keyword
-symbols.  @xref{Constant Variables}.
+when attempting to assign values to @code{nil}, @code{t},
+@code{most-positive-fixnum}, @code{most-negative-fixnum}, and keyword
+symbols.  It also happens when attempting to assign values to
+@code{enable-multibyte-characters} and some other symbols whose direct
+assignment is not allowed for some reason.  @xref{Constant Variables}.
 
 @c simple.el
 @item text-read-only
@@ -181,6 +189,12 @@ The message is @samp{Undefined color}.  @xref{Color Names}.
 @item user-error
 The message is the empty string.  @xref{Signaling Errors}.
 
+@item user-search-failed
+This is like @samp{search-failed}, but doesn't trigger the debugger,
+like @samp{user-error}.  @xref{Signaling Errors}, and @xref{Searching
+and Matching}.  This is used for searching in Info files, @xref{Search
+Text,,,info,Info}.
+
 @item void-function
 The message is @samp{Symbol's function definition is void}.
 @xref{Function Cells}.
@@ -190,8 +204,7 @@ The message is @samp{Symbol's value as variable is void}.
 @xref{Accessing Variables}.
 
 @item wrong-number-of-arguments
-The message is @samp{Wrong number of arguments}.  @xref{Classifying
-Lists}.
+The message is @samp{Wrong number of arguments}.  @xref{Argument List}.
 
 @item wrong-type-argument
 The message is @samp{Wrong type argument}.  @xref{Type Predicates}.

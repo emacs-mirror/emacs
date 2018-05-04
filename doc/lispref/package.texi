@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2015 Free Software Foundation, Inc.
+@c Copyright (C) 2010-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -54,7 +54,8 @@ prefix used in the program (@pxref{Coding Conventions}).
 @item Version
 A version number, in a form that the function @code{version-to-list}
 understands (e.g., @samp{11.86}).  Each release of a package should be
-accompanied by an increase in the version number.
+accompanied by an increase in the version number so that it will be
+recognized as an upgrade by users querying the package archive.
 
 @item Brief description
 This is shown when the package is listed in the Package Menu.  It
@@ -71,8 +72,9 @@ once it is installed.
 A list of other packages (possibly including minimal acceptable
 version numbers) on which this package depends.  The list may be
 empty, meaning this package has no dependencies.  Otherwise,
-installing this package also automatically installs its dependencies;
-if any dependency cannot be found, the package cannot be installed.
+installing this package also automatically installs its dependencies,
+recursively; if any dependency cannot be found, the package cannot be
+installed.
 @end table
 
 @cindex content directory, package
@@ -103,24 +105,36 @@ adds the package's content directory to @code{load-path}, and
 evaluates the autoload definitions in @file{@var{name}-autoloads.el}.
 
   Whenever Emacs starts up, it automatically calls the function
-@code{package-initialize} to load installed packages.  This is done
-after loading the init file and abbrev file (if any) and before
-running @code{after-init-hook} (@pxref{Startup Summary}).  Automatic
-package loading is disabled if the user option
-@code{package-enable-at-startup} is @code{nil}.
+@code{package-activate-all} to make installed packages available to the
+current session.  This is done after loading the early init file, but
+before loading the regular init file (@pxref{Startup Summary}).
+Packages are not automatically made available if the user option
+@code{package-enable-at-startup} is set to @code{nil} in the early
+init file.
+
+@defun package-activate-all
+This function makes the packages available to the current session.
+The user option @code{package-load-list} specifies which packages to
+make available; by default, all installed packages are made available.
+If called during startup, this function also sets
+@code{package-enable-at-startup} to @code{nil}, to avoid accidentally
+evaluating package autoloads more than once.  @xref{Package
+Installation,,, emacs, The GNU Emacs Manual}.
+
+In most cases, you should not need to call @code{package-activate-all},
+as this is done automatically during startup.  Simply make sure to put
+any code that should run before @code{package-activate-all} in the early
+init file, and any code that should run after it in the primary init
+file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
+@end defun
 
 @deffn Command package-initialize &optional no-activate
 This function initializes Emacs' internal record of which packages are
-installed, and loads them.  The user option @code{package-load-list}
-specifies which packages to load; by default, all installed packages
-are loaded.  If called during startup, this function also sets
-@code{package-enable-at-startup} to @code{nil}, to avoid accidentally
-loading the packages twice.  @xref{Package Installation,,, emacs, The
-GNU Emacs Manual}.
+installed, and then calls @code{package-activate-all}.
 
 The optional argument @var{no-activate}, if non-@code{nil}, causes
 Emacs to update its record of installed packages without actually
-loading them; it is for internal use only.
+making them available.
 @end deffn
 
 @node Simple Packages
@@ -189,7 +203,7 @@ standard keyword from the @code{finder-known-keywords} list.
 as explained in @ref{Packaging Basics}.  In the above example, a magic
 comment autoloads @code{superfrobnicator-mode}.
 
-  @xref{Package Archives}, for a explanation of how to add a
+  @xref{Package Archives}, for an explanation of how to add a
 single-file package to a package archive.
 
 @node Multi-file Packages
@@ -212,8 +226,8 @@ subdirectories of the content directory.
   One of the files in the content directory must be named
 @file{@var{name}-pkg.el}.  It must contain a single Lisp form,
 consisting of a call to the function @code{define-package}, described
-below.  This defines the package's version, brief description, and
-requirements.
+below.  This defines the package's attributes: version, brief
+description, and requirements.
 
   For example, if we distribute version 1.3 of the superfrobnicator as
 a multi-file package, the tar file would be
@@ -273,7 +287,7 @@ variable @code{load-file-name} (@pxref{Loading}).  Here is an example:
   Via the Package Menu, users may download packages from @dfn{package
 archives}.  Such archives are specified by the variable
 @code{package-archives}, whose default value contains a single entry:
-the archive hosted by the GNU project at @url{http://elpa.gnu.org}.  This
+the archive hosted by the GNU project at @url{https://elpa.gnu.org}.  This
 section describes how to set up and maintain a package archive.
 
 @cindex base location, package archive
@@ -286,13 +300,13 @@ form @code{(@var{id} . @var{location})}, where @var{id} is the name of
 the archive (a string) and @var{location} is its @dfn{base location}
 (a string).
 
-If the base location starts with @samp{http:}, it is treated as a HTTP
-URL, and packages are downloaded from this archive via HTTP (as is the
-case for the default GNU archive).
+If the base location starts with @samp{http:} or @samp{https:}, it
+is treated as an HTTP(S) URL, and packages are downloaded from this
+archive via HTTP(S) (as is the case for the default GNU archive).
 
 Otherwise, the base location should be a directory name.  In this
 case, Emacs retrieves packages from this archive via ordinary file
-access.  Such ``local'' archives are mainly useful for testing.
+access.  Such local archives are mainly useful for testing.
 @end defopt
 
   A package archive is simply a directory in which the package files,

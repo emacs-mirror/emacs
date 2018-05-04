@@ -1,9 +1,8 @@
 ;;; calc-map.el --- higher-order functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -417,6 +416,7 @@
 				( ?G 1 calcFunc-vgmean )
 				( ?M 1 calcFunc-vmean )
 				( ?N 1 calcFunc-vmin )
+                                ( ?R 1 calcFunc-rms )
 				( ?S 1 calcFunc-vsdev )
 				( ?X 1 calcFunc-vmax ) )
 			      ( ( ?C 2 calcFunc-vpcov )
@@ -795,8 +795,8 @@
 
 ;;; Do substitutions in parallel to avoid crosstalk.
 
-;; The variables math-ms-temp and math-ms-args are local to 
-;; math-multi-subst, but are used by math-multi-subst-rec, which 
+;; The variables math-ms-temp and math-ms-args are local to
+;; math-multi-subst, but are used by math-multi-subst-rec, which
 ;; is called by math-multi-subst.
 (defvar math-ms-temp)
 (defvar math-ms-args)
@@ -811,7 +811,7 @@
     (math-multi-subst-rec expr)))
 
 (defun math-multi-subst-rec (expr)
-  (cond ((setq math-ms-temp (assoc expr math-ms-args)) 
+  (cond ((setq math-ms-temp (assoc expr math-ms-args))
          (cdr math-ms-temp))
 	((Math-primp expr) expr)
 	((and (eq (car expr) 'calcFunc-lambda) (> (length expr) 2))
@@ -820,7 +820,7 @@
 	   (while (cdr (setq expr (cdr expr)))
 	     (setq new (cons (car expr) new))
 	     (if (assoc (car expr) math-ms-args)
-		 (setq math-ms-args (cons (cons (car expr) (car expr)) 
+		 (setq math-ms-args (cons (cons (car expr) (car expr))
                                           math-ms-args))))
 	   (nreverse (cons (math-multi-subst-rec (car expr)) new))))
 	(t

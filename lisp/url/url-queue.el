@@ -1,6 +1,6 @@
-;;; url-queue.el --- Fetching web pages in parallel
+;;; url-queue.el --- Fetching web pages in parallel   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: comm
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -47,11 +47,12 @@
 ;;; Internal variables.
 
 (defvar url-queue nil)
+(defvar url-queue-progress-timer nil)
 
 (cl-defstruct url-queue
   url callback cbargs silentp
   buffer start-time pre-triggered
-  inhibit-cookiesp)
+  inhibit-cookiesp context-buffer)
 
 ;;;###autoload
 (defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
@@ -66,7 +67,8 @@ The variable `url-queue-timeout' sets a timeout."
 				      :callback callback
 				      :cbargs cbargs
 				      :silentp silent
-				      :inhibit-cookiesp inhibit-cookies))))
+				      :inhibit-cookiesp inhibit-cookies
+                                      :context-buffer (current-buffer)))))
   (url-queue-setup-runners))
 
 ;; To ensure asynch behavior, we start the required number of queue
@@ -90,7 +92,13 @@ The variable `url-queue-timeout' sets a timeout."
     (when (and waiting
 	       (< running url-queue-parallel-processes))
       (setf (url-queue-pre-triggered waiting) t)
-      (run-with-idle-timer 0.01 nil 'url-queue-run-queue))))
+      ;; We start fetching from this idle timer...
+      (run-with-idle-timer 0.01 nil #'url-queue-run-queue)
+      ;; And then we set up a separate timer to ensure progress when a
+      ;; web server is unresponsive.
+      (unless url-queue-progress-timer
+        (setq url-queue-progress-timer
+              (run-with-idle-timer 1 1 #'url-queue-check-progress))))))
 
 (defun url-queue-run-queue ()
   (url-queue-prune-old-entries)
@@ -106,6 +114,13 @@ The variable `url-queue-timeout' sets a timeout."
 	       (< running url-queue-parallel-processes))
       (setf (url-queue-start-time waiting) (float-time))
       (url-queue-start-retrieve waiting))))
+
+(defun url-queue-check-progress ()
+  (when url-queue-progress-timer
+    (if url-queue
+        (url-queue-run-queue)
+      (cancel-timer url-queue-progress-timer)
+      (setq url-queue-progress-timer nil))))
 
 (defun url-queue-callback-function (status job)
   (setq url-queue (delq job url-queue))
@@ -133,11 +148,14 @@ The variable `url-queue-timeout' sets a timeout."
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors
-	  (let ((url-request-noninteractive t))
-	    (url-retrieve (url-queue-url job)
-			  #'url-queue-callback-function (list job)
-			  (url-queue-silentp job)
-			  (url-queue-inhibit-cookiesp job))))))
+          (with-current-buffer (if (buffer-live-p (url-queue-context-buffer job))
+                                   (url-queue-context-buffer job)
+                                 (current-buffer))
+	   (let ((url-request-noninteractive t))
+             (url-retrieve (url-queue-url job)
+                           #'url-queue-callback-function (list job)
+                           (url-queue-silentp job)
+                           (url-queue-inhibit-cookiesp job)))))))
 
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)
@@ -163,7 +181,7 @@ The variable `url-queue-timeout' sets a timeout."
   (with-current-buffer
       (if (and (bufferp (url-queue-buffer job))
 	       (buffer-live-p (url-queue-buffer job)))
-	  ;; Use the (partially filled) process buffer it it exists.
+	  ;; Use the (partially filled) process buffer if it exists.
 	  (url-queue-buffer job)
 	;; If not, just create a new buffer, which will probably be
 	;; killed again by the caller.

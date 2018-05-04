@@ -2033,7 +2033,7 @@
 	(uniquify-get-proposed-name): Arguments changed, callers changed.
 	(uniquify-rationalize-conflicting-sublist): Explicitly reset the
 	uniquify-possibly-resolvable flag, which is no more bound locally.
-	(uniquify-rename-buffer): Do not set the old unrationalised-buffer
+	(uniquify-rename-buffer): Do not set the old unrationalized-buffer
 	flag, which does not exist any more.
 
 2001-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -6523,7 +6523,7 @@
 	* ansi-color.el (ansi-color-process-output): Use markers instead
 	of positions for start and end of region.
 	(ansi-color-apply-on-region): Rewrote code to make it more robust.
-	Previously, occasional mistakes happend when fontifying many
+	Previously, occasional mistakes happened when fontifying many
 	chunks of output (eg. ls --color=yes /dev).  This happened
 	whenever an overlay was created up to the end of the region, which
 	coincided with the process-mark.  New text would then be added
@@ -20685,7 +20685,7 @@ See ChangeLog.8 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2000-2011, 2013-2015 Free Software Foundation, Inc.
+    Copyright (C) 2000-2011, 2013-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -20700,4 +20700,4 @@ See ChangeLog.8 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

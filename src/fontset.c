@@ -1,6 +1,6 @@
 /* Fontset handler.
 
-Copyright (C) 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -13,8 +13,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,27 +22,22 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "blockinput.h"
 #include "character.h"
-#include "buffer.h"
 #include "charset.h"
-#include "ccl.h"
-#include "keyboard.h"
 #include "frame.h"
 #include "dispextern.h"
-#include "intervals.h"
 #include "fontset.h"
-#include "window.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
-#include "termhooks.h"
 #include "font.h"
 
 /* FONTSET
@@ -69,17 +64,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    An element of a base fontset is a vector of FONT-DEFs which themselves
    are vectors of the form [ FONT-SPEC ENCODING REPERTORY ].
 
-   An element of a realized fontset is nil, t, 0, or a vector of this
-   form:
+   An element of a realized fontset is nil, t, 0, or a cons that has
+   this from:
 
-	[ PREFERRED-RFONT-DEF RFONT-DEF0 RFONT-DEF1 ... ]
+	(CHARSET-ORDERED-LIST-TICK . FONT-GROUP)
+
+   CHARSET_ORDERED_LIST_TICK is the same as charset_ordered_list_tick or -1.
+
+   FONT-GROUP is a vector of elements that have this form:
+
+	[ RFONT-DEF0 RFONT-DEF1 ... ]
 
    Each RFONT-DEFn (i.e. Realized FONT-DEF) has this form:
 
 	[ FACE-ID FONT-DEF FONT-OBJECT SORTING-SCORE ]
 
-   RFONT-DEFn are automatically reordered by the current charset
-   priority list.
+   RFONT-DEFn are automatically reordered considering the current
+   charset priority list, the current language environment, and
+   priorities determined by font-backends.
+
+   RFONT-DEFn may not be a vector in the following cases.
 
    The value nil means that we have not yet generated the above vector
    from the base of the fontset.
@@ -89,7 +93,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    The value 0 means that no font is available for the corresponding
    range of characters in this fontset, but may be available in the
-   default fontset.
+   fallback font-group or in the default fontset.
 
    A fontset has 8 extra slots.
 
@@ -413,6 +417,9 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
 
 	  if (! NILP (encoding))
 	    {
+	      /* This spec specifies an encoding by a charset set
+		 name.  Reflect the preference order of that charset
+		 in the upper bits of SCORE.  */
 	      Lisp_Object tail;
 
 	      for (tail = Vcharset_ordered_list;
@@ -425,6 +432,10 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
 	    }
 	  else
 	    {
+	      /* This spec does not specify an encoding.  If the spec
+		 specifies a language, and the language is not for the
+		 current language environment, make the score
+		 larger.  */
 	      Lisp_Object lang = Ffont_get (font_spec, QClang);
 
 	      if (! NILP (lang)
@@ -448,11 +459,11 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
   XSETCAR (font_group, make_number (low_tick_bits));
 }
 
-/* Return a font-group (actually a cons (-1 . FONT-GROUP-VECTOR)) for
-   character C in FONTSET.  If C is -1, return a fallback font-group.
-   If C is not -1, the value may be Qt (FONTSET doesn't have a font
-   for C even in the fallback group), or 0 (a font for C may be found
-   only in the fallback group).  */
+/* Return a font-group (actually a cons (CHARSET_ORDERED_LIST_TICK
+   . FONT-GROUP)) for character C or a fallback font-group in the
+   realized fontset FONTSET.  The elements of FONT-GROUP are
+   RFONT-DEFs.  The value may not be a cons.  See the comment at the
+   head of this file for the detail of the return value.  */
 
 static Lisp_Object
 fontset_get_font_group (Lisp_Object fontset, int c)
@@ -467,23 +478,37 @@ fontset_get_font_group (Lisp_Object fontset, int c)
   else
     font_group = FONTSET_FALLBACK (fontset);
   if (! NILP (font_group))
+    /* We have already realized FONT-DEFs of this font group for C or
+       for fallback (FONT_GROUP is a cons), or we have already found
+       that no appropriate font was found (FONT_GROUP is t or 0).  */
     return font_group;
   base_fontset = FONTSET_BASE (fontset);
   if (NILP (base_fontset))
+    /* Actually we never come here because FONTSET is a realized one,
+       and thus it should have a base.  */
     font_group = Qnil;
   else if (c >= 0)
     font_group = char_table_ref_and_range (base_fontset, c, &from, &to);
   else
     font_group = FONTSET_FALLBACK (base_fontset);
+
+  /* FONT_GROUP not being a vector means that no fonts are specified
+     for C, or the fontset does not have fallback fonts.  */
   if (NILP (font_group))
     {
       font_group = make_number (0);
       if (c >= 0)
+	/* Record that FONTSET does not specify fonts for C.  As
+	   there's a possibility that a font is found in a fallback
+	   font group, we set 0 at the moment.  */
 	char_table_set_range (fontset, from, to, font_group);
       return font_group;
     }
   if (!VECTORP (font_group))
     return font_group;
+
+  /* Now realize FONT-DEFs of this font group, and update the realized
+     fontset FONTSET. */
   font_group = Fcopy_sequence (font_group);
   for (i = 0; i < ASIZE (font_group); i++)
     if (! NILP (AREF (font_group, i)))
@@ -504,21 +529,21 @@ fontset_get_font_group (Lisp_Object fontset, int c)
 }
 
 /* Return RFONT-DEF (vector) in the realized fontset FONTSET for the
-   character C.  If no font is found, return Qnil if there's a
+   character C.  If no font is found, return Qnil or 0 if there's a
    possibility that the default fontset or the fallback font groups
    have a proper font, and return Qt if not.
 
    If a font is found but is not yet opened, open it (if FACE is not
    NULL) or return Qnil (if FACE is NULL).
 
-   ID is a charset-id that must be preferred, or -1 meaning no
+   CHARSET_ID is a charset-id that must be preferred, or -1 meaning no
    preference.
 
    If FALLBACK, search only fallback fonts.  */
 
 static Lisp_Object
-fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
-                   bool fallback)
+fontset_find_font (Lisp_Object fontset, int c, struct face *face,
+		   int charset_id, bool fallback)
 {
   Lisp_Object vec, font_group;
   int i, charset_matched = 0, found_index;
@@ -540,8 +565,8 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 	/* We have just created the font-group,
 	   or the charset priorities were changed.  */
 	reorder_font_vector (font_group, face->ascii_face->font);
-      if (id >= 0)
-	/* Find a spec matching with the charset ID to try at
+      if (charset_id >= 0)
+	/* Find a spec matching with CHARSET_ID to try it at
 	   first.  */
 	for (i = 0; i < ASIZE (vec); i++)
 	  {
@@ -552,7 +577,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 	      break;
 	    repertory = FONT_DEF_REPERTORY (RFONT_DEF_FONT_DEF (rfont_def));
 
-	    if (XINT (repertory) == id)
+	    if (XINT (repertory) == charset_id)
 	      {
 		charset_matched = i;
 		break;
@@ -560,7 +585,9 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 	  }
     }
 
-  /* Find the first available font in the vector of RFONT-DEF.  */
+  /* Find the first available font in the vector of RFONT-DEF.  If
+     CHARSET_MATCHED > 0, try the corresponding RFONT-DEF first, then
+     try the rest.  */
   for (i = 0; i < ASIZE (vec); i++)
     {
       Lisp_Object font_def;
@@ -571,13 +598,13 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 	{
 	  if (charset_matched > 0)
 	    {
-	      /* Try the element matching with the charset ID at first.  */
+	      /* Try the element matching with CHARSET_ID at first.  */
 	      found_index = charset_matched;
 	      /* Make this negative so that we don't come here in the
 		 next loop.  */
 	      charset_matched = - charset_matched;
 	      /* We must try the first element in the next loop.  */
-	      i--;
+	      i = -1;
 	    }
 	}
       else if (i == - charset_matched)
@@ -636,10 +663,10 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 	  if (NILP (font_object))
 	    {
 	      /* Something strange happened, perhaps because of a
-		 Font-backend problem.  Too avoid crashing, record
+		 Font-backend problem.  To avoid crashing, record
 		 that this spec is unusable.  It may be better to find
 		 another font of the same spec, but currently we don't
-		 have such an API.  */
+		 have such an API in font-backend.  */
 	      RFONT_DEF_SET_FACE (rfont_def, -1);
 	      continue;
 	    }
@@ -699,6 +726,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 	i = found_index;
     }
 
+  /* Record that no font in this font group supports C.  */
   FONTSET_SET (fontset, make_number (c), make_number (0));
   return Qnil;
 
@@ -717,10 +745,14 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id,
 }
 
 
+/* Return RFONT-DEF (vector) corresponding to the font for character
+   C.  The value is not a vector if no font is found for C.  */
+
 static Lisp_Object
 fontset_font (Lisp_Object fontset, int c, struct face *face, int id)
 {
-  Lisp_Object rfont_def, default_rfont_def IF_LINT (= Qnil);
+  Lisp_Object rfont_def;
+  Lisp_Object default_rfont_def UNINIT;
   Lisp_Object base_fontset;
 
   /* Try a font-group of FONTSET. */
@@ -889,7 +921,8 @@ face_for_char (struct frame *f, struct face *face, int c,
   if (ASCII_CHAR_P (c) || CHAR_BYTE8_P (c))
     return face->ascii_face->id;
 
-  if (c > 0 && EQ (CHAR_TABLE_REF (Vchar_script_table, c), Qsymbol))
+  if (use_default_font_for_symbols  /* let the user disable this feature */
+      && c > 0 && EQ (CHAR_TABLE_REF (Vchar_script_table, c), Qsymbol))
     {
       /* Fonts often have characters for punctuation and other
          symbols, even if they don't match the 'symbol' script.  So
@@ -1153,7 +1186,7 @@ fs_query_fontset (Lisp_Object name, int name_pattern)
     {
       tem = Frassoc (name, Vfontset_alias_alist);
       if (NILP (tem))
-	tem = Fassoc (name, Vfontset_alias_alist);
+	tem = Fassoc (name, Vfontset_alias_alist, Qnil);
       if (CONSP (tem) && STRINGP (XCAR (tem)))
 	name = XCAR (tem);
       else if (name_pattern == 0)
@@ -1274,7 +1307,7 @@ free_realized_fontsets (Lisp_Object base)
 	    {
 	      struct frame *f = XFRAME (FONTSET_FRAME (this));
 	      int face_id = XINT (XCDR (XCAR (tail)));
-	      struct face *face = FACE_FROM_ID (f, face_id);
+	      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
 	      /* Face THIS itself is also freed by the following call.  */
 	      free_realized_face (f, face);
@@ -1292,6 +1325,10 @@ free_realized_fontsets (Lisp_Object base)
       if (CHAR_TABLE_P (this) && EQ (FONTSET_BASE (this), base))
 	{
 	  Fclear_face_cache (Qt);
+	  /* This is in case some Lisp calls this function and then
+	     proceeds with calling some other function, like font-at,
+	     which needs the basic faces.  */
+	  recompute_basic_faces (XFRAME (FONTSET_FRAME (this)));
 	  break;
 	}
     }
@@ -1606,7 +1643,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    continue;
 	  if (fontset_id != FRAME_FONTSET (f))
 	    continue;
-	  face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+	  face = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
 	  if (face)
 	    font_object = font_load_for_lface (f, face->lface, font_spec);
 	  else
@@ -1644,11 +1681,10 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 `set-fontset-font' for the meaning.  */)
   (Lisp_Object name, Lisp_Object fontlist)
 {
-  Lisp_Object fontset;
+  Lisp_Object fontset, tail;
   int id;
 
   CHECK_STRING (name);
-  CHECK_LIST (fontlist);
 
   name = Fdowncase (name);
   id = fs_query_fontset (name, 0);
@@ -1681,11 +1717,11 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       Fset_char_table_range (fontset, Qt, Qnil);
     }
 
-  for (; CONSP (fontlist); fontlist = XCDR (fontlist))
+  for (tail = fontlist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt, script;
 
-      elt = XCAR (fontlist);
+      elt = XCAR (tail);
       script = Fcar (elt);
       elt = Fcdr (elt);
       if (CONSP (elt) && (NILP (XCDR (elt)) || CONSP (XCDR (elt))))
@@ -1694,6 +1730,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       else
 	Fset_fontset_font (name, script, elt, Qnil, Qappend);
     }
+  CHECK_LIST_END (tail, fontlist);
   return name;
 }
 
@@ -2117,6 +2154,16 @@ is assumed to be specified by _MULE_DEFAULT_ASCENT property of a font.
 This affects how a composite character which contains
 such a character is displayed on screen.  */);
   Vuse_default_ascent = Qnil;
+
+  DEFVAR_BOOL ("use-default-font-for-symbols", use_default_font_for_symbols,
+	       doc: /*
+If non-nil, use the default face's font for symbols and punctuation.
+
+By default, Emacs will try to use the default face's font for
+displaying symbol and punctuation characters, disregarding the
+fontsets, if the default font can display the character.
+Set this to nil to make Emacs honor the fontsets instead.  */);
+  use_default_font_for_symbols = 1;
 
   DEFVAR_LISP ("ignore-relative-composition", Vignore_relative_composition,
 	       doc: /*

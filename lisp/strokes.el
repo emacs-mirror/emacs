@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -858,7 +858,7 @@ The command will be executed provided one exists for that stroke,
 based on the variable `strokes-minimum-match-score'.
 If no stroke matches, nothing is done and return value is nil."
   ;; FIXME: Undocument return value.  It is not documented for all cases,
-  ;; and doesn't allow to difference between no stroke matches and
+  ;; and doesn't allow differentiating between no stroke matches and
   ;; command-execute returning nil, anyway.
   (let* ((match (strokes-match-stroke stroke strokes-global-map))
 	 (command (car match))

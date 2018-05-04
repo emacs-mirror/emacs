@@ -1,6 +1,6 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -205,6 +205,7 @@
 	(deseret #x10400)
 	(shavian #x10450)
 	(osmanya #x10480)
+        (osage #x104B0)
 	(elbasan #x10500)
 	(caucasian-albanian #x10530)
 	(linear-a #x10600)
@@ -220,17 +221,26 @@
 	(khojki #x11200)
 	(khudawadi #x112B0)
 	(grantha #x11305)
+        (newa #x11400)
 	(tirhuta #x11481)
 	(siddham #x11580)
 	(modi #x11600)
 	(takri #x11680)
 	(warang-citi #x118A1)
+        (zanabazar-square #x11A00)
+        (soyombo #x11A50)
 	(pau-cin-hau #x11AC0)
+        (bhaiksuki #x11C00)
+        (marchen #x11C72)
+        (masaram-gondi #x11D00)
 	(cuneiform #x12000)
 	(cuneiform-numbers-and-punctuation #x12400)
 	(mro #x16A40)
 	(bassa-vah #x16AD0)
 	(pahawh-hmong #x16B11)
+        (tangut #x17000)
+        (tangut-components #x18800)
+        (nushu #x1B170)
 	(duployan-shorthand #x1BC20)
 	(byzantine-musical-symbol #x1D000)
 	(musical-symbol #x1D100)
@@ -238,31 +248,38 @@
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
 	(mende-kikakui #x1E810)
+        (adlam #x1E900)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)))
 
 (defvar otf-script-alist)
 
-;; The below was synchronized with the latest Jan 3, 2013 version of
+;; The below was synchronized with the latest Feb 25, 2016 version of
 ;; https://www.microsoft.com/typography/otspec/scripttags.htm.
 (setq otf-script-alist
-      '((arab . arabic)
+      '((adlm . adlam)
+        (ahom . ahom)
+        (hluw . anatolian)
+        (arab . arabic)
 	(armi . aramaic)
 	(armn . armenian)
 	(avst . avestan)
 	(bali . balinese)
 	(bamu . bamum)
+        (bass . bassa-vah)
 	(batk . batak)
 	(bng2 . bengali)
 	(beng . bengali)
+        (bhks . bhaiksuki)
 	(bopo . bopomofo)
-	(brai . braille)
 	(brah . brahmi)
+	(brai . braille)
 	(bugi . buginese)
 	(buhd . buhid)
 	(byzm . byzantine-musical-symbol)
 	(cans . canadian-aboriginal)
 	(cari . carian)
+        (aghb . caucasian-albanian)
 	(cakm . chakma)
 	(cham . cham)
 	(cher . cherokee)
@@ -273,11 +290,14 @@
 	(dsrt . deseret)
 	(deva . devanagari)
 	(dev2 . devanagari)
+        (dupl . duployan-shorthand)
 	(egyp . egyptian)
+        (elba . elbasan)
 	(ethi . ethiopic)
 	(geor . georgian)
 	(glag . glagolitic)
 	(goth . gothic)
+        (gran . grantha)
 	(grek . greek)
 	(gujr . gujarati)
 	(gjr2 . gujarati)
@@ -287,6 +307,7 @@
 	(hang . hangul)
 	(jamo . hangul)
 	(hano . hanunoo)
+        (hatr . hatran)
 	(hebr . hebrew)
 	(phli . inscriptional-pahlavi)
 	(prti . inscriptional-parthian)
@@ -298,43 +319,67 @@
 	(kali . kayah-li)
 	(khar . kharoshthi)
 	(khmr . khmer)
+        (khoj . khojki)
+        (sind . khudawadi)
 	(lao\  . lao)
 	(latn . latin)
 	(lepc . lepcha)
 	(limb . limbu)
+	(lina . linear_a)
 	(linb . linear_b)
         (lisu . lisu)
         (lyci . lycian)
         (lydi . lydian)
+        (mahj . mahajani)
+        (marc . marchen)
 	(mlym . malayalam)
 	(mlm2 . malayalam)
 	(mand . mandaic)
+        (mani . manichaean)
 	(math . mathematical)
 	(mtei . meetei-mayek)
+        (mend . mende-kikakui)
 	(merc . meroitic)
 	(mero . meroitic)
+        (plrd . miao)
+        (modi . modi)
 	(mong . mongolian)
+        (mroo . mro)
+        (mult . multani)
 	(musc . musical-symbol)
 	(mym2 . burmese)
 	(mymr . burmese)
+        (nbat . nabataean)
+        (newa . newa)
 	(nko\  . nko)
 	(ogam . ogham)
 	(olck . ol-chiki)
 	(ital . old_italic)
 	(xpeo . old_persian)
+        (narb . old-north-arabian)
+        (perm . old-permic)
 	(sarb . old-south-arabian)
 	(orkh . old-turkic)
 	(orya . oriya)
 	(ory2 . oriya)
+        (osge . osage)
 	(osma . osmanya)
+        (hmng . pahawh-hmong)
+        (palm . palmyrene)
+        (pauc . pau-cin-hau)
 	(phag . phags-pa)
+        (phli . inscriptional-pahlavi)
 	(phnx . phoenician)
+        (phlp . psalter-pahlavi)
+        (prti . inscriptional-parthian)
 	(rjng . rejang)
 	(runr . runic)
 	(samr . samaritan)
 	(saur . saurashtra)
 	(shrd . sharada)
 	(shaw . shavian)
+        (sidd . siddham)
+        (sgnw . sutton-sign-writing)
 	(sinh . sinhala)
 	(sora . sora-sompeng)
 	(sund . sundanese)
@@ -349,14 +394,17 @@
 	(takr . takri)
 	(taml . tamil)
 	(tml2 . tamil)
+        (tang . tangut)
 	(telu . telugu)
 	(tel2 . telugu)
 	(thaa . thaana)
 	(thai . thai)
 	(tibt . tibetan)
 	(tfng . tifinagh)
+        (tirh . tirhuta)
 	(ugar . ugaritic)
 	(vai\  . vai)
+        (wara . warang-citi)
 	(yi\ \   . yi)))
 
 ;; Set standard fontname specification of characters in the default
@@ -768,13 +816,14 @@
              (#x1F700 . #x1F77F)	;; Alchemical Symbols
              (#x1F780 . #x1F7FF)	;; Geometric Shapes Extended
              (#x1F800 . #x1F8FF)))	;; Supplemental Arrows-C
-    (set-fontset-font "fontset-default" symbol-subgroup "Symbola" nil 'prepend))
+    (set-fontset-font "fontset-default" symbol-subgroup
+                      '("Symbola" . "iso10646-1") nil 'prepend))
   ;; Box Drawing and Block Elements
   (set-fontset-font "fontset-default" '(#x2500 . #x259F)
-                    "FreeMono" nil 'prepend)
+                    '("FreeMono" . "iso10646-1") nil 'prepend)
 
   ;; Since standard-fontset-spec on X uses fixed-medium font, which
-  ;; gets mapped to a iso8859-1 variant, we would like to prefer its
+  ;; gets mapped to an iso8859-1 variant, we would like to prefer its
   ;; iso10646-1 variant for symbols, where the coverage is known to be
   ;; good.
   (dolist (symbol-subgroup
@@ -1095,13 +1144,19 @@ given from DEFAULT-SPEC."
 	(setcar (cdr elt) spec)))
     fontlist))
 
+(defvar fontset-alias-alist)
+
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.
 A valid fontset name should conform to XLFD (X Logical Font Description)
-with \"fontset\" in `<CHARSET_REGISTRY>' field."
-  (and (string-match xlfd-tight-regexp fontset)
-       (string= (match-string (1+ xlfd-regexp-registry-subnum) fontset)
-		"fontset")))
+with \"fontset-SOMETHING\" in `<CHARSET_REGISTRY>' field.
+A fontset alias name recorded in `fontset-alias-alist' is also a valid
+fontset name."
+  (or (and (string-match xlfd-tight-regexp fontset)
+           (let ((registry
+                  (match-string (1+ xlfd-regexp-registry-subnum) fontset)))
+             (= 0 (string-match "\\`fontset-" registry))))
+      (consp (rassoc fontset fontset-alias-alist))))
 
 (declare-function fontset-list "fontset.c" ())
 
@@ -1215,7 +1270,7 @@ to map charsets to scripts.")
 					 &optional _style-variant _noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
-	FONTSET-NAME,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1, ...
+	FONTSET-NAME[,SCRIPT-NAME0:FONT-NAME0,SCRIPT-NAME1:FONT-NAME1] ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
 When a frame uses the fontset as the `font' parameter, the frame's

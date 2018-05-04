@@ -4,7 +4,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1999--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -71,7 +71,7 @@ modify this GNU manual.''
 The Emacs mode for programming in Ada helps the user in understanding
 existing code and facilitates writing new code.
 
-When the Gnu Ada compiler GNAT is used, the cross-reference
+When the GNU Ada compiler GNAT is used, the cross-reference
 information output by the compiler is used to provide powerful code
 navigation (jump to definition, find all uses, etc.).
 
@@ -221,7 +221,7 @@ is beyond the scope of this manual; see the current definitions in
 @node Other compiler
 @section Other compiler
 
-By default, Ada mode is configured to use the Gnu Ada compiler GNAT.
+By default, Ada mode is configured to use the GNU Ada compiler GNAT.
 
 To use a different Ada compiler, you must specify the command lines
 used to run that compiler, either in lisp variables or in Emacs
@@ -540,7 +540,7 @@ Lisp variable: @code{ada-prj-default-bind-opt}.
 @item @code{build_dir}      [default: @code{"."}]
 The compile commands will be issued in this directory.
 
-@item @code{casing}         [default: @code{("~/.emacs_case_exceptions")}
+@item @code{casing}         [default: @code{("~/.emacs_case_exceptions")}]
 List of files containing casing exceptions. See the help on
 @code{ada-case-exception-file} for more info.
 @c FIXME: section on case exceptions
@@ -1356,7 +1356,7 @@ specified by the variable @code{ada-case-exception-file}
 specifies the casing of one word or word fragment. Comments may be
 included, separated from the word by a space.
 
-If the word starts with an asterisk (@key{*}), it defines the casing
+If the word starts with an asterisk (@samp{*}), it defines the casing
 as a word fragment (or ``substring''); part of a word between two
 underscores or word boundary.
 

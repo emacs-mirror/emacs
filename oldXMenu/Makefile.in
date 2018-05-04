@@ -15,7 +15,7 @@
 ## without express or implied warranty.
 
 
-## Copyright (C) 2001-2015 Free Software Foundation, Inc.
+## Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ### Commentary:
@@ -58,12 +58,12 @@ CC=@CC@
 CFLAGS=@CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 
-TAGS = etags
 RM = rm -f
 RANLIB = @RANLIB@
 AR = @AR@
 ARFLAGS = @ARFLAGS@
 MKDIR_P = @MKDIR_P@
+EXEEXT = @EXEEXT@
 
 OBJS =  Activate.o \
 	AddPane.o \
@@ -111,15 +111,14 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
-DEPDIR = deps
 AUTO_DEPEND = @AUTO_DEPEND@
-
+DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
-DEPFLAGS = -MMD -MF ${DEPDIR}/$*.d -MP
-MKDEPDIR = ${MKDIR_P} ${DEPDIR}
+  DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
+  -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
 else
-DEPFLAGS =
-MKDEPDIR = :
+  DEPFLAGS =
+  include $(srcdir)/deps.mk
 endif
 
 ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
@@ -129,7 +128,6 @@ ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
   -I../src -I../lib -I${srcdir} -I${srcdir}/../src -I${srcdir}/../lib
 
 .c.o:
-	@$(MKDEPDIR)
 	$(AM_V_CC)$(CC) -c ${ALL_CFLAGS} $<
 
 libXMenu11.a: $(OBJS) $(EXTRA)
@@ -137,23 +135,26 @@ libXMenu11.a: $(OBJS) $(EXTRA)
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(OBJS) $(EXTRA)
 	$(AM_V_at)$(RANLIB) $@
 
-ifeq ($(AUTO_DEPEND),yes)
--include $(ALLOBJS:%.o=${DEPDIR}/%.d)
-else
-include $(srcdir)/deps.mk
-endif
-
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f libXMenu11.a *.o
-	-rm -rf ${DEPDIR}
+	rm -f libXMenu11.a *.o $(DEPDIR)/*
 
 bootstrap-clean maintainer-clean distclean: clean
 	rm -f Makefile
+	rm -fr $(DEPDIR)
 
-.PHONY: tags
-tags:
-	$(TAGS) -t *.[ch]
+ETAGS = ../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+tagsfiles = $(wildcard ${srcdir}/*.[ch])
+
+FORCE:
+.PHONY: tags FORCE
+tags: TAGS
+TAGS: ${ETAGS} ${tagsfiles}
+	${ETAGS} ${tagsfiles}
 
 ### Makefile.in ends here

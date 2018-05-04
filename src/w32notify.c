@@ -1,12 +1,15 @@
 /* Filesystem notifications support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 2012-2015 Free Software Foundation, Inc.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+Author: Eli Zaretskii <eliz@gnu.org>
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,35 +17,36 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Eli Zaretskii <eliz@gnu.org>.
-
-   Design overview:
+/* Design overview:
 
    For each watch request, we launch a separate worker thread.  The
    worker thread runs the watch_worker function, which issues an
-   asynchronous call to ReadDirectoryChangesW, and then waits in
-   SleepEx for that call to complete.  Waiting in SleepEx puts the
-   thread in an "alertable" state, so it wakes up when either (a) the
-   call to ReadDirectoryChangesW completes, or (b) the main thread
-   instructs the worker thread to terminate by sending it an APC, see
-   below.
+   asynchronous call to ReadDirectoryChangesW, and then calls
+   WaitForSingleObjectEx to wait that an event be signaled
+   to terminate the thread.
+   Waiting with WaitForSingleObjectEx puts the thread in an
+   "alertable" state, so it wakes up when either (a) the call to
+   ReadDirectoryChangesW completes, or (b) the main thread instructs
+   the worker thread to terminate by signaling an event, see below.
 
    When the ReadDirectoryChangesW call completes, its completion
    routine watch_completion is automatically called.  watch_completion
-   stashes the received file events in a buffer used to communicate
-   them to the main thread (using a critical section, so that several
-   threads could use the same buffer), posts a special message,
-   WM_EMACS_FILENOTIFY, to the Emacs's message queue, and returns.
-   That causes the SleepEx function call inside watch_worker to
-   return, and watch_worker then issues another call to
-   ReadDirectoryChangesW.  (Except when it does not, see below.)
+   stashes the received file events in a linked list used to
+   communicate them to the main thread (using a critical section, so
+   that several threads could alter the same linked list), posts a
+   special message, WM_EMACS_FILENOTIFY, to the Emacs's message queue,
+   and returns.  That causes the WaitForSingleObjectEx function call
+   inside watch_worker to return, but the thread won't terminate until
+   the event telling to do so will be signaled.  The completion
+   routine issued another call to ReadDirectoryChangesW as quickly as
+   possible.  (Except when it does not, see below.)
 
    In a GUI session, the WM_EMACS_FILENOTIFY message posted to the
    message queue gets dispatched to the main Emacs window procedure,
    which queues it for processing by w32_read_socket.  When
-   w32_read_socket sees this message, it accesses the buffer with file
+   w32_read_socket sees this message, it accesses the linked list with file
    notifications (using a critical section), extracts the information,
    converts it to a series of FILE_NOTIFY_EVENT events, and stuffs
    them into the input event queue to be processed by keyboard.c input
@@ -53,7 +57,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    procedures in console programs.  That message wakes up
    MsgWaitForMultipleObjects inside sys_select, which then signals to
    its caller that some keyboard input is available.  This causes
-   w32_console_read_socket to be called, which accesses the buffer
+   w32_console_read_socket to be called, which accesses the linked list
    with file notifications and stuffs them into the input event queue
    for keyboard.c to process.
 
@@ -62,30 +66,30 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    bound to a command.  The default binding is file-notify-handle-event,
    defined on subr.el.
 
-   After w32_read_socket or w32_console_read_socket are done
-   processing the notifications, they reset a flag signaling to all
-   watch worker threads that the notifications buffer is available for
-   more input.
+   Routines w32_read_socket or w32_console_read_socket process notifications
+   sets as long as some are available.
 
    When the watch is removed by a call to w32notify-rm-watch, the main
-   thread requests that the worker thread terminates by queuing an APC
-   for the worker thread.  The APC specifies the watch_end function to
-   be called.  watch_end calls CancelIo on the outstanding
-   ReadDirectoryChangesW call and closes the handle on which the
-   watched directory was open.  When watch_end returns, the
-   watch_completion function is called one last time with the
-   ERROR_OPERATION_ABORTED status, which causes it to clean up and set
-   a flag telling watch_worker to exit without issuing another
-   ReadDirectoryChangesW call.  Since watch_worker is the thread
-   procedure of the worker thread, exiting it causes the thread to
-   exit.  The main thread waits for some time for the worker thread to
-   exit, and if it doesn't, terminates it forcibly.  */
+   thread requests that the worker thread terminates by signaling the
+   appropriate event and queuing an APC for the worker thread.  The
+   APC specifies the watch_end function to be called.  watch_end calls
+   CancelIo on the outstanding ReadDirectoryChangesW call.  When
+   watch_end returns, the watch_completion function is called one last
+   time with the ERROR_OPERATION_ABORTED status, which causes it to
+   clean up and set a flag telling watch_worker to exit without
+   issuing another ReadDirectoryChangesW call.  Since watch_worker is
+   the thread procedure of the worker thread, exiting it causes the
+   thread to exit.  The main thread waits for some time for the worker
+   thread to exit, and if it doesn't, terminates it forcibly.  */
+
+#define DEFER_MS_W32_H
+#include <config.h>
 
 #include <stddef.h>
 #include <errno.h>
 
-/* must include CRT headers *before* config.h */
-#include <config.h>
+/* Include CRT headers *before* ms-w32.h.  */
+#include <ms-w32.h>
 
 #include <windows.h>
 
@@ -98,6 +102,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"	/* needed by termhooks.h */
 #include "termhooks.h"	/* for FILE_NOTIFY_EVENT */
 
+#define DIRWATCH_BUFFER_SIZE 16384
 #define DIRWATCH_SIGNATURE 0x01233210
 
 struct notification {
@@ -108,72 +113,53 @@ struct notification {
   char *watchee;	/* the file we are interested in, UTF-8 encoded */
   HANDLE dir;		/* handle to the watched directory */
   HANDLE thr;		/* handle to the thread that watches */
-  volatile int terminate; /* if non-zero, request for the thread to terminate */
+  HANDLE terminate;     /* event signaling the thread to terminate */
   unsigned signature;
 };
 
 /* Used for communicating notifications to the main thread.  */
-volatile int notification_buffer_in_use;
-BYTE file_notifications[16384];
-DWORD notifications_size;
-void *notifications_desc;
+struct notifications_set *notifications_set_head;
 
 static Lisp_Object watch_list;
 
 /* Signal to the main thread that we have file notifications for it to
    process.  */
 static void
-send_notifications (BYTE *info, DWORD info_size, void *desc,
-		    volatile int *terminate)
+send_notifications (struct notifications_set *ns)
 {
-  int done = 0;
   struct frame *f = SELECTED_FRAME ();
 
-  /* A single buffer is used to communicate all notifications to the
-     main thread.  Since both the main thread and several watcher
-     threads could be active at the same time, we use a critical area
-     and an "in-use" flag to synchronize them.  A watcher thread can
-     only put its notifications in the buffer if it acquires the
-     critical area and finds the "in-use" flag reset.  The main thread
-     resets the flag after it is done processing notifications.
-
-     FIXME: is there a better way of dealing with this?  */
-  while (!done && !*terminate)
-    {
+  /* We add the current notification set to the linked list.  Use the
+     critical section to make sure only one thread will access the
+     linked list. */
       enter_crit ();
-      if (!notification_buffer_in_use)
-	{
-	  if (info_size)
-	    memcpy (file_notifications, info, info_size);
-	  notifications_size = info_size;
-	  notifications_desc = desc;
-	  /* If PostMessage fails, the message queue is full.  If that
-	     happens, the last thing they will worry about is file
-	     notifications.  So we effectively discard the
-	     notification in that case.  */
-	  if ((FRAME_TERMCAP_P (f)
-	       /* We send the message to the main (a.k.a. "Lisp")
-		  thread, where it will wake up MsgWaitForMultipleObjects
-		  inside sys_select, causing it to report that there's
-		  some keyboard input available.  This will in turn cause
-		  w32_console_read_socket to be called, which will pick
-		  up the file notifications.  */
-	       && PostThreadMessage (dwMainThreadId, WM_EMACS_FILENOTIFY, 0, 0))
-	      || (FRAME_W32_P (f)
-		  && PostMessage (FRAME_W32_WINDOW (f),
-				  WM_EMACS_FILENOTIFY, 0, 0))
-	      /* When we are running in batch mode, there's no one to
-		 send a message, so we just signal the data is
-		 available and hope sys_select will be called soon and
-		 will read the data.  */
-	      || (FRAME_INITIAL_P (f) && noninteractive))
-	    notification_buffer_in_use = 1;
-	  done = 1;
-	}
-      leave_crit ();
-      if (!done)
-	Sleep (5);
-    }
+  ns->next = notifications_set_head;
+  ns->prev = notifications_set_head->prev;
+  ns->prev->next = ns;
+  notifications_set_head->prev = ns;
+  leave_crit();
+
+  /* If PostMessage fails, the message queue is full.  If that
+     happens, the last thing they will worry about is file
+     notifications.  So we effectively discard the notification in
+     that case.  */
+  if (FRAME_TERMCAP_P (f))
+    /* We send the message to the main (a.k.a. "Lisp") thread, where
+       it will wake up MsgWaitForMultipleObjects inside sys_select,
+       causing it to report that there's some keyboard input
+       available.  This will in turn cause w32_console_read_socket to
+       be called, which will pick up the file notifications.  */
+    PostThreadMessage (dwMainThreadId, WM_EMACS_FILENOTIFY, 0, 0);
+  else if (FRAME_W32_P (f))
+    PostMessage (FRAME_W32_WINDOW (f),
+                 WM_EMACS_FILENOTIFY, 0, 0);
+  /* When we are running in batch mode, there's no one to send a
+     message, so we just signal the data is available and hope
+     sys_select will be called soon and will read the data.  */
+#if 0
+  else if (FRAME_INITIAL_P (f) && noninteractive)
+    ;
+#endif
 }
 
 /* An APC routine to cancel outstanding directory watch.  Invoked by
@@ -181,33 +167,40 @@ send_notifications (BYTE *info, DWORD info_size, void *desc,
    thread that issued the ReadDirectoryChangesW call can call CancelIo
    to cancel that.  (CancelIoEx is only available since Vista, so we
    cannot use it on XP.)  */
+VOID CALLBACK watch_end (ULONG_PTR);
+
 VOID CALLBACK
 watch_end (ULONG_PTR arg)
 {
   HANDLE hdir = (HANDLE)arg;
 
   if (hdir && hdir != INVALID_HANDLE_VALUE)
-    {
-      CancelIo (hdir);
-      CloseHandle (hdir);
-    }
+    CancelIo (hdir);
 }
 
 /* A completion routine (a.k.a. "APC function") for handling events
    read by ReadDirectoryChangesW.  Called by the OS when the thread
    which issued the asynchronous ReadDirectoryChangesW call is in the
    "alertable state", i.e. waiting inside SleepEx call.  */
+VOID CALLBACK watch_completion (DWORD, DWORD, OVERLAPPED *);
+
 VOID CALLBACK
 watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
 {
   struct notification *dirwatch;
+  DWORD _bytes;
+  struct notifications_set *ns = NULL;
+  BOOL terminate = FALSE;
 
   /* Who knows what happened?  Perhaps the OVERLAPPED structure was
      freed by someone already?  In any case, we cannot do anything
      with this request, so just punt and skip it.  FIXME: should we
      raise the 'terminate' flag in this case?  */
   if (!io_info)
-    return;
+    {
+      DebPrint(("watch_completion: io_info is null.\n"));
+      return;
+    }
 
   /* We have a pointer to our dirwatch structure conveniently stashed
      away in the hEvent member of the OVERLAPPED struct.  According to
@@ -215,26 +208,69 @@ watch_completion (DWORD status, DWORD bytes_ret, OVERLAPPED *io_info)
      of the OVERLAPPED structure is not used by the system, so you can
      use it yourself."  */
   dirwatch = (struct notification *)io_info->hEvent;
+
   if (status == ERROR_OPERATION_ABORTED)
     {
       /* We've been called because the main thread told us to issue
 	 CancelIo on the directory we watch, and watch_end did so.
-	 The directory handle is already closed.  We should clean up
-	 and exit, signaling to the thread worker routine not to
-	 issue another call to ReadDirectoryChangesW.  Note that we
-	 don't free the dirwatch object itself nor the memory consumed
-	 by its buffers; this is done by the main thread in
-	 remove_watch.  Calling malloc/free from a thread other than
-	 the main thread is a no-no.  */
-      dirwatch->dir = NULL;
-      dirwatch->terminate = 1;
+         We must exit, without issuing another call to
+         ReadDirectoryChangesW. */
+      return;
     }
-  else
+
+  /* We allocate a new set of notifications to be linked to the linked
+     list of notifications set.  This will be processed by Emacs event
+     loop in the main thread.  We need to duplicate the notifications
+     buffer, but not the dirwatch structure.  */
+
+  /* Implementation note: In general, allocating memory in non-main
+     threads is a no-no in Emacs.  We certainly cannot call xmalloc
+     and friends, because it can longjmp when allocation fails, which
+     will crash Emacs because the jmp_buf is set up to a location on
+     the main thread's stack.  However, we can call 'malloc' directly,
+     since that is redirected to HeapAlloc that uses our private heap,
+     see w32heap.c, and that is thread-safe.  */
+  ns = malloc (sizeof(struct notifications_set));
+  if (ns)
     {
-      /* Tell the main thread we have notifications for it.  */
-      send_notifications (dirwatch->buf, bytes_ret, dirwatch,
-			  &dirwatch->terminate);
+      memset (ns, 0, sizeof(struct notifications_set));
+      ns->notifications = malloc (bytes_ret);
+      if (ns->notifications)
+	{
+	  memcpy (ns->notifications, dirwatch->buf, bytes_ret);
+	  ns->size = bytes_ret;
+	  ns->desc = dirwatch;
+	}
+      else
+	{
+	  free (ns);
+	  ns = NULL;
+	}
     }
+  if (ns == NULL)
+    DebPrint(("Out of memory.  Notifications lost."));
+
+  /* Calling ReadDirectoryChangesW quickly to watch again for new
+     notifications.  */
+  if (!ReadDirectoryChangesW (dirwatch->dir, dirwatch->buf,
+			      DIRWATCH_BUFFER_SIZE, dirwatch->subtree,
+			      dirwatch->filter, &_bytes, dirwatch->io_info,
+			      watch_completion))
+    {
+      DebPrint (("ReadDirectoryChangesW error: %lu\n", GetLastError ()));
+      /* If this call fails, it means that the directory is not
+         watchable any more.  We need to terminate the worker thread.
+         Still, we will wait until the current notifications have been
+         sent to the main thread.  */
+      terminate = TRUE;
+    }
+
+  if (ns)
+    send_notifications(ns);
+
+  /* If we were asked to terminate the thread, then fire the event. */
+  if (terminate)
+    SetEvent(dirwatch->terminate);
 }
 
 /* Worker routine for the watch thread.  */
@@ -242,42 +278,43 @@ static DWORD WINAPI
 watch_worker (LPVOID arg)
 {
   struct notification *dirwatch = (struct notification *)arg;
+  BOOL bErr;
+  DWORD _bytes = 0;
+  DWORD status;
+
+  if (dirwatch->dir)
+    {
+      bErr = ReadDirectoryChangesW (dirwatch->dir, dirwatch->buf,
+				    DIRWATCH_BUFFER_SIZE, dirwatch->subtree,
+				    dirwatch->filter, &_bytes,
+				    dirwatch->io_info, watch_completion);
+      if (!bErr)
+	{
+	  DebPrint (("ReadDirectoryChangesW: %lu\n", GetLastError ()));
+	  /* We cannot remove the dirwatch object from watch_list,
+	     because we are in a separate thread.  For the same
+	     reason, we also cannot free memory consumed by the
+	     buffers allocated for the dirwatch object.  So we close
+	     the directory handle, but do not free the object itself
+	     or its buffers.  We also don't touch the signature.  This
+	     way, remove_watch can still identify the object, remove
+	     it, and free its memory.  */
+	  CloseHandle (dirwatch->dir);
+	  dirwatch->dir = NULL;
+	  return 1;
+	}
+    }
 
   do {
-    BOOL status;
-    DWORD bytes_ret = 0;
+    status = WaitForSingleObjectEx(dirwatch->terminate, INFINITE, TRUE);
+  } while (status == WAIT_IO_COMPLETION);
 
-    if (dirwatch->dir)
-      {
-	status = ReadDirectoryChangesW (dirwatch->dir, dirwatch->buf, 16384,
-					dirwatch->subtree, dirwatch->filter,
-					&bytes_ret,
-					dirwatch->io_info, watch_completion);
-	if (!status)
-	  {
-	    DebPrint (("watch_worker, abnormal exit: %lu\n", GetLastError ()));
-	    /* We cannot remove the dirwatch object from watch_list,
-	       because we are in a separate thread.  For the same
-	       reason, we also cannot free memory consumed by the
-	       buffers allocated for the dirwatch object.  So we close
-	       the directory handle, but do not free the object itself
-	       or its buffers.  We also don't touch the signature.
-	       This way, remove_watch can still identify the object,
-	       remove it, and free its memory.  */
-	    CloseHandle (dirwatch->dir);
-	    dirwatch->dir = NULL;
-	    return 1;
-	  }
-      }
-    /* Sleep indefinitely until awoken by the I/O completion, which
-       could be either a change notification or a cancellation of the
-       watch.  */
-    SleepEx (INFINITE, TRUE);
-  } while (!dirwatch->terminate);
+  /* The thread is about to terminate, so we clean up the dir handle.  */
+  CloseHandle (dirwatch->dir);
+  dirwatch->dir = NULL;
 
   return 0;
 }
-
 /* Launch a thread to watch changes to FILE in a directory open on
    handle HDIR.  */
 static struct notification *
@@ -286,7 +323,7 @@ start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
   struct notification *dirwatch = xzalloc (sizeof (struct notification));
 
   dirwatch->signature = DIRWATCH_SIGNATURE;
-  dirwatch->buf = xmalloc (16384);
+  dirwatch->buf = xmalloc (DIRWATCH_BUFFER_SIZE);
   dirwatch->io_info = xzalloc (sizeof(OVERLAPPED));
   /* Stash a pointer to dirwatch structure for use by the completion
      routine.  According to MSDN documentation of ReadDirectoryChangesW:
@@ -296,7 +333,9 @@ start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
   dirwatch->subtree = subdirs;
   dirwatch->filter = flags;
   dirwatch->watchee = xstrdup (file);
-  dirwatch->terminate = 0;
+
+  dirwatch->terminate = CreateEvent(NULL, FALSE, FALSE, NULL);
+
   dirwatch->dir = hdir;
 
   /* See w32proc.c where it calls CreateThread for the story behind
@@ -306,11 +345,11 @@ start_watching (const char *file, HANDLE hdir, BOOL subdirs, DWORD flags)
 
   if (!dirwatch->thr)
     {
+      CloseHandle(dirwatch->terminate);
       xfree (dirwatch->buf);
       xfree (dirwatch->io_info);
       xfree (dirwatch->watchee);
       xfree (dirwatch);
-      dirwatch = NULL;
     }
   return dirwatch;
 }
@@ -369,7 +408,10 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
     return NULL;
 
   if ((dirwatch = start_watching (file, hdir, subdirs, flags)) == NULL)
-    CloseHandle (hdir);
+    {
+      CloseHandle (hdir);
+      dirwatch->dir = NULL;
+    }
 
   return dirwatch;
 }
@@ -382,7 +424,7 @@ remove_watch (struct notification *dirwatch)
     {
       int i;
       BOOL status;
-      DWORD exit_code, err;
+      DWORD exit_code = 0, err = 0;
 
       /* Only the thread that issued the outstanding I/O call can call
 	 CancelIo on it.  (CancelIoEx is available only since Vista.)
@@ -390,12 +432,10 @@ remove_watch (struct notification *dirwatch)
 	 to terminate.  */
       if (!QueueUserAPC (watch_end, dirwatch->thr, (ULONG_PTR)dirwatch->dir))
 	DebPrint (("QueueUserAPC failed (%lu)!\n", GetLastError ()));
-      /* We also set the terminate flag, for when the thread is
-	 waiting on the critical section that never gets acquired.
-	 FIXME: is there a cleaner method?  Using SleepEx there is a
-	 no-no, as that will lead to recursive APC invocations and
-	 stack overflow.  */
-      dirwatch->terminate = 1;
+
+      /* We also signal the thread that it can terminate.  */
+      SetEvent(dirwatch->terminate);
+
       /* Wait for the thread to exit.  FIXME: is there a better method
 	 that is not overly complex?  */
       for (i = 0; i < 50; i++)
@@ -405,11 +445,13 @@ remove_watch (struct notification *dirwatch)
 	    break;
 	  Sleep (10);
 	}
+
       if ((status == FALSE && (err = GetLastError ()) == ERROR_INVALID_HANDLE)
 	  || exit_code == STILL_ACTIVE)
 	{
 	  if (!(status == FALSE && err == ERROR_INVALID_HANDLE))
 	    {
+              DebPrint(("Forcing thread termination.\n"));
 	      TerminateThread (dirwatch->thr, 0);
 	      if (dirwatch->dir)
 		CloseHandle (dirwatch->dir);
@@ -422,11 +464,11 @@ remove_watch (struct notification *dirwatch)
 	  CloseHandle (dirwatch->thr);
 	  dirwatch->thr = NULL;
 	}
+      CloseHandle(dirwatch->terminate);
       xfree (dirwatch->buf);
       xfree (dirwatch->io_info);
       xfree (dirwatch->watchee);
       xfree (dirwatch);
-
       return 0;
     }
   else
@@ -525,11 +567,11 @@ generate notifications correctly, though.  */)
 
   /* The underlying features are available only since XP.  */
   if (os_subtype == OS_9X
-      || (w32_major_version == 5 && w32_major_version < 1))
+      || (w32_major_version == 5 && w32_minor_version < 1))
     {
       errno = ENOSYS;
-      report_file_error ("Watching filesystem events is not supported",
-			 Qnil);
+      report_file_notify_error ("Watching filesystem events is not supported",
+				Qnil);
     }
 
   /* filenotify.el always passes us a directory, either the parent
@@ -573,11 +615,11 @@ generate notifications correctly, though.  */)
 					      Vlocale_coding_system, 0);
 	  else
 	    lisp_errstr = build_string (errstr);
-	  report_file_error ("Cannot watch file",
-			     Fcons (lisp_errstr, Fcons (file, Qnil)));
+	  report_file_notify_error ("Cannot watch file",
+				    Fcons (lisp_errstr, Fcons (file, Qnil)));
 	}
       else
-	report_file_error ("Cannot watch file", Fcons (file, Qnil));
+	report_file_notify_error ("Cannot watch file", Fcons (file, Qnil));
     }
   /* Store watch object in watch list. */
   watch_descriptor = make_pointer_integer (dirwatch);
@@ -601,7 +643,7 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
   /* Remove the watch object from watch list.  Do this before freeing
      the object, do that even if we fail to free it, watch_list is
      kept free of junk.  */
-  watch_object = Fassoc (watch_descriptor, watch_list);
+  watch_object = Fassoc (watch_descriptor, watch_list, Qnil);
   if (!NILP (watch_object))
     {
       watch_list = Fdelete (watch_object, watch_list);
@@ -611,8 +653,8 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
     }
 
   if (status == -1)
-    report_file_error ("Invalid watch descriptor", Fcons (watch_descriptor,
-							  Qnil));
+    report_file_notify_error ("Invalid watch descriptor",
+			      Fcons (watch_descriptor, Qnil));
 
   return Qnil;
 }
@@ -623,9 +665,33 @@ w32_get_watch_object (void *desc)
   Lisp_Object descriptor = make_pointer_integer (desc);
 
   /* This is called from the input queue handling code, inside a
-     critical section, so we cannot possibly QUIT if watch_list is not
+     critical section, so we cannot possibly quit if watch_list is not
      in the right condition.  */
   return NILP (watch_list) ? Qnil : assoc_no_quit (descriptor, watch_list);
+}
+
+DEFUN ("w32notify-valid-p", Fw32notify_valid_p, Sw32notify_valid_p, 1, 1, 0,
+       doc: /* Check a watch specified by its WATCH-DESCRIPTOR for validity.
+
+WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.
+
+A watch can become invalid if the directory it watches is deleted, or if
+the watcher thread exits abnormally for any other reason.  Removing the
+watch by calling `w32notify-rm-watch' also makes it invalid.  */)
+     (Lisp_Object watch_descriptor)
+{
+  Lisp_Object watch_object = Fassoc (watch_descriptor, watch_list, Qnil);
+
+  if (!NILP (watch_object))
+    {
+      struct notification *dirwatch =
+	(struct notification *)XINTPTR (watch_descriptor);
+      if (w32_valid_pointer_p (dirwatch, sizeof(struct notification))
+	  && dirwatch->dir != NULL)
+	return Qt;
+    }
+
+  return Qnil;
 }
 
 void
@@ -648,6 +714,7 @@ syms_of_w32notify (void)
 
   defsubr (&Sw32notify_add_watch);
   defsubr (&Sw32notify_rm_watch);
+  defsubr (&Sw32notify_valid_p);
 
   staticpro (&watch_list);
 

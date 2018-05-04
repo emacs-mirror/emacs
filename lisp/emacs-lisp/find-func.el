@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -43,6 +43,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 ;;; User variables:
 
 (defgroup find-function nil
@@ -62,7 +64,7 @@ ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
 menu-bar-make-toggle\\)"
    find-function-space-re
-   "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
+   "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
@@ -103,7 +105,7 @@ Please send improvements and fixes to the maintainer."
 (defcustom find-feature-regexp
   (concat ";;; Code:")
   "The regexp used by `xref-find-definitions' when searching for a feature definition.
-Note it must contain a `%s' at the place where `format'
+Note it may contain up to one `%s' at the place where `format'
 should insert the feature name."
   ;; We search for ";;; Code" rather than (feature '%s) because the
   ;; former is near the start of the code, and the latter is very
@@ -111,7 +113,7 @@ should insert the feature name."
   ;; (point-min), which is acceptable in this case.
   :type 'regexp
   :group 'xref
-  :version "25.0")
+  :version "25.1")
 
 (defcustom find-alias-regexp
   "(defalias +'%s"
@@ -120,7 +122,7 @@ Note it must contain a `%s' at the place where `format'
 should insert the feature name."
   :type 'regexp
   :group 'xref
-  :version "25.0")
+  :version "25.1")
 
 (defvar find-function-regexp-alist
   '((nil . find-function-regexp)
@@ -182,15 +184,15 @@ See the functions `find-function' and `find-variable'."
 LIBRARY should be a string (the name of the library)."
   ;; If the library is byte-compiled, try to find a source library by
   ;; the same name.
-  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
-      (setq library (replace-match "" t t library)))
+  (when (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+    (setq library (replace-match "" t t library)))
   (or
    (locate-file library
-		(or find-function-source-path load-path)
-		(find-library-suffixes))
+                (or find-function-source-path load-path)
+                (find-library-suffixes))
    (locate-file library
-		(or find-function-source-path load-path)
-		load-file-rep-suffixes)
+                (or find-function-source-path load-path)
+                load-file-rep-suffixes)
    (when (file-name-absolute-p library)
      (let ((rel (find-library--load-name library)))
        (when rel
@@ -201,7 +203,21 @@ LIBRARY should be a string (the name of the library)."
           (locate-file rel
                        (or find-function-source-path load-path)
                        load-file-rep-suffixes)))))
+   (find-library--from-load-history library)
    (error "Can't find library %s" library)))
+
+(defun find-library--from-load-history (library)
+  ;; In `load-history', the file may be ".elc", ".el", ".el.gz", and
+  ;; LIBRARY may be "foo.el" or "foo".
+  (let ((load-re
+         (concat "\\(" (regexp-quote (file-name-sans-extension library)) "\\)"
+                 (regexp-opt (get-load-suffixes)) "\\'")))
+    (cl-loop
+     for (file . _) in load-history thereis
+     (and (stringp file) (string-match load-re file)
+          (let ((dir (substring file 0 (match-beginning 1)))
+                (basename (match-string 1 file)))
+            (locate-file basename (list dir) (find-library-suffixes)))))))
 
 (defvar find-function-C-source-directory
   (let ((dir (expand-file-name "src" source-directory)))
@@ -257,33 +273,64 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 ;;;###autoload
 (defun find-library (library)
   "Find the Emacs Lisp source of LIBRARY.
-LIBRARY should be a string (the name of the library)."
-  (interactive
-   (let* ((dirs (or find-function-source-path load-path))
-          (suffixes (find-library-suffixes))
-          (table (apply-partially 'locate-file-completion-table
-                                  dirs suffixes))
-	  (def (if (eq (function-called-at-point) 'require)
-		   ;; `function-called-at-point' may return 'require
-		   ;; with `point' anywhere on this line.  So wrap the
-		   ;; `save-excursion' below in a `condition-case' to
-		   ;; avoid reporting a scan-error here.
-		   (condition-case nil
-		       (save-excursion
-			 (backward-up-list)
-			 (forward-char)
-			 (forward-sexp 2)
-			 (thing-at-point 'symbol))
-		     (error nil))
-		 (thing-at-point 'symbol))))
-     (when (and def (not (test-completion def table)))
-       (setq def nil))
-     (list
-      (completing-read (if def (format "Library name (default %s): " def)
-			 "Library name: ")
-		       table nil nil nil nil def))))
-  (let ((buf (find-file-noselect (find-library-name library))))
-    (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
+
+Interactively, prompt for LIBRARY using the one at or near point."
+  (interactive (list (read-library-name)))
+  (prog1
+      (switch-to-buffer (find-file-noselect (find-library-name library)))
+    (run-hooks 'find-function-after-hook)))
+
+(defun read-library-name ()
+  "Read and return a library name, defaulting to the one near point.
+
+A library name is the filename of an Emacs Lisp library located
+in a directory under `load-path' (or `find-function-source-path',
+if non-nil)."
+  (let* ((dirs (or find-function-source-path load-path))
+         (suffixes (find-library-suffixes))
+         (table (apply-partially 'locate-file-completion-table
+                                 dirs suffixes))
+         (def (if (eq (function-called-at-point) 'require)
+                  ;; `function-called-at-point' may return 'require
+                  ;; with `point' anywhere on this line.  So wrap the
+                  ;; `save-excursion' below in a `condition-case' to
+                  ;; avoid reporting a scan-error here.
+                  (condition-case nil
+                      (save-excursion
+                        (backward-up-list)
+                        (forward-char)
+                        (forward-sexp 2)
+                        (thing-at-point 'symbol))
+                    (error nil))
+                (thing-at-point 'symbol))))
+    (when (and def (not (test-completion def table)))
+      (setq def nil))
+    (completing-read (if def
+                         (format "Library name (default %s): " def)
+                       "Library name: ")
+                     table nil nil nil nil def)))
+
+;;;###autoload
+(defun find-library-other-window (library)
+  "Find the Emacs Lisp source of LIBRARY in another window.
+
+See `find-library' for more details."
+  (interactive (list (read-library-name)))
+  (prog1
+      (switch-to-buffer-other-window (find-file-noselect
+                                      (find-library-name library)))
+    (run-hooks 'find-function-after-hook)))
+
+;;;###autoload
+(defun find-library-other-frame (library)
+  "Find the Emacs Lisp source of LIBRARY in another frame.
+
+See `find-library' for more details."
+  (interactive (list (read-library-name)))
+  (prog1
+      (switch-to-buffer-other-frame (find-file-noselect
+                                     (find-library-name library)))
+    (run-hooks 'find-function-after-hook)))
 
 ;;;###autoload
 (defun find-function-search-for-symbol (symbol type library)
@@ -321,28 +368,30 @@ The search is done in the source for library LIBRARY."
                                 (concat "\\\\?"
                                         (regexp-quote (symbol-name symbol))))))
 	      (case-fold-search))
-	  (with-syntax-table emacs-lisp-mode-syntax-table
-	    (goto-char (point-min))
-	    (if (if (functionp regexp)
-                    (funcall regexp symbol)
-                  (or (re-search-forward regexp nil t)
-                      ;; `regexp' matches definitions using known forms like
-                      ;; `defun', or `defvar'.  But some functions/variables
-                      ;; are defined using special macros (or functions), so
-                      ;; if `regexp' can't find the definition, we look for
-                      ;; something of the form "(SOMETHING <symbol> ...)".
-                      ;; This fails to distinguish function definitions from
-                      ;; variable declarations (or even uses thereof), but is
-                      ;; a good pragmatic fallback.
-                      (re-search-forward
-                       (concat "^([^ ]+" find-function-space-re "['(]?"
-                               (regexp-quote (symbol-name symbol))
-                               "\\_>")
-                       nil t)))
-		(progn
-		  (beginning-of-line)
-		  (cons (current-buffer) (point)))
-	      (cons (current-buffer) nil))))))))
+          (save-restriction
+            (widen)
+            (with-syntax-table emacs-lisp-mode-syntax-table
+              (goto-char (point-min))
+              (if (if (functionp regexp)
+                      (funcall regexp symbol)
+                    (or (re-search-forward regexp nil t)
+                        ;; `regexp' matches definitions using known forms like
+                        ;; `defun', or `defvar'.  But some functions/variables
+                        ;; are defined using special macros (or functions), so
+                        ;; if `regexp' can't find the definition, we look for
+                        ;; something of the form "(SOMETHING <symbol> ...)".
+                        ;; This fails to distinguish function definitions from
+                        ;; variable declarations (or even uses thereof), but is
+                        ;; a good pragmatic fallback.
+                        (re-search-forward
+                         (concat "^([^ ]+" find-function-space-re "['(]?"
+                                 (regexp-quote (symbol-name symbol))
+                                 "\\_>")
+                         nil t)))
+                  (progn
+                    (beginning-of-line)
+                    (cons (current-buffer) (point)))
+                (cons (current-buffer) nil)))))))))
 
 (defun find-function-library (function &optional lisp-only verbose)
   "Return the pair (ORIG-FUNCTION . LIBRARY) for FUNCTION.
@@ -357,8 +406,10 @@ signal an error.
 
 If VERBOSE is non-nil, and FUNCTION is an alias, display a
 message about the whole chain of aliases."
-  (let ((def (if (symbolp function)
-                 (find-function-advised-original function)))
+  (let ((def (when (symbolp function)
+               (or (fboundp function)
+                   (signal 'void-function (list function)))
+               (find-function-advised-original function)))
         aliases)
     ;; FIXME for completeness, it might be nice to print something like:
     ;; foo (which is advised), which is an alias for bar (which is advised).

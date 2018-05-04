@@ -1,13 +1,15 @@
 /* sound.c -- sound support.
 
-Copyright (C) 1998-1999, 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
+
+Author: Gerd Moellmann <gerd@gnu.org>
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,10 +17,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Gerd Moellmann <gerd@gnu.org>.  Tested with Luigi's
-   driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
+/* Tested with Luigi's driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
 
 /*
   Modified by Ben Key <Bkey1@tampabay.rr.com> to add a partial
@@ -46,7 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #include "lisp.h"
-#include "dispextern.h"
 #include "atimer.h"
 #include "syssignal.h"
 /* END: Common Includes */
@@ -294,6 +294,7 @@ static int do_play_sound (const char *, unsigned long);
 
 /* BEGIN: Common functions */
 
+#ifndef WINDOWSNT
 /* Like perror, but signals an error.  */
 
 static _Noreturn void
@@ -311,11 +312,10 @@ sound_perror (const char *msg)
   }
 #endif
   if (saved_errno != 0)
-    error ("%s: %s", msg, strerror (saved_errno));
+    error ("%s: %s", msg, emacs_strerror (saved_errno));
   else
     error ("%s", msg);
 }
-
 
 /* Display a warning message.  */
 
@@ -324,6 +324,7 @@ sound_warning (const char *msg)
 {
   message1 (msg);
 }
+#endif	/* !WINDOWSNT */
 
 
 /* Parse sound specification SOUND, and fill ATTRS with what is
@@ -386,14 +387,14 @@ parse_sound (Lisp_Object sound, Lisp_Object *attrs)
     {
       if (INTEGERP (attrs[SOUND_VOLUME]))
 	{
-	  if (XINT (attrs[SOUND_VOLUME]) < 0
-	      || XINT (attrs[SOUND_VOLUME]) > 100)
+	  EMACS_INT volume = XINT (attrs[SOUND_VOLUME]);
+	  if (! (0 <= volume && volume <= 100))
 	    return 0;
 	}
       else if (FLOATP (attrs[SOUND_VOLUME]))
 	{
-	  if (XFLOAT_DATA (attrs[SOUND_VOLUME]) < 0
-	      || XFLOAT_DATA (attrs[SOUND_VOLUME]) > 1)
+	  double volume = XFLOAT_DATA (attrs[SOUND_VOLUME]);
+	  if (! (0 <= volume && volume <= 1))
 	    return 0;
 	}
       else

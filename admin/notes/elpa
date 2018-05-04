@@ -10,7 +10,7 @@ repository named "elpa", hosted on Savannah.  To check it out:
 
 Changes to this branch propagate to elpa.gnu.org via a "deployment" script run
 daily.  This script (which is kept in elpa/admin/update-archive.sh) generates
-the content visible at http://elpa.gnu.org/packages.
+the content visible at https://elpa.gnu.org/packages.
 
 A new package is released as soon as the "version number" of that package is
 changed.  So you can use 'elpa' to work on a package without fear of releasing

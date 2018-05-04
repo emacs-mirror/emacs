@@ -10,7 +10,7 @@
 @copying
 This file describes EasyPG Assistant @value{VERSION}.
 
-Copyright @copyright{} 2007--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -42,7 +42,7 @@ modify this GNU manual.''
 
 @contents
 
-@node Top
+@node Top, Overview, (dir), (dir)
 @top EasyPG Assistant user's manual
 
 EasyPG Assistant is an Emacs user interface to GNU Privacy Guard
@@ -61,6 +61,7 @@ called EasyPG Library.
 * Quick start::
 * Commands::
 * Caching Passphrases::
+* GnuPG version compatibility::
 * Bug Reports::
 * GNU Free Documentation License::  The license for this documentation.
 * Key Index::
@@ -68,7 +69,7 @@ called EasyPG Library.
 * Variable Index::
 @end menu
 
-@node  Overview
+@node  Overview, Quick start, Top, Top
 @chapter Overview
 
 EasyPG Assistant provides the following features.
@@ -82,7 +83,7 @@ EasyPG Assistant provides the following features.
 @item Automatic encryption/decryption of *.gpg files.
 @end itemize
 
-@node  Quick start
+@node  Quick start, Commands, Overview, Top
 @chapter Quick start
 
 EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
@@ -99,7 +100,7 @@ EasyPG Assistant provides several cryptographic features which can be
 integrated into other Emacs functionalities.  For example, automatic
 encryption/decryption of @file{*.gpg} files.
 
-@node Commands
+@node Commands, GnuPG version compatibility, Quick start, Top
 @chapter Commands
 
 This chapter introduces various commands for typical use cases.
@@ -113,7 +114,7 @@ This chapter introduces various commands for typical use cases.
 * Encrypting/decrypting gpg files::
 @end menu
 
-@node Key management
+@node Key management, Cryptographic operations on regions, Commands, Commands
 @section Key management
 Probably the first step of using EasyPG Assistant is to browse your
 keyring.  @kbd{M-x epa-list-keys} is corresponding to @samp{gpg
@@ -196,7 +197,7 @@ Delete selected keys.  If @var{allow-secret} is non-@code{nil}, it
 also delete the secret keys.
 @end deffn
 
-@node Cryptographic operations on regions
+@node Cryptographic operations on regions, Cryptographic operations on files, Key management, Commands
 @section Cryptographic operations on regions
 
 @deffn Command epa-decrypt-region start end
@@ -241,7 +242,7 @@ also ask you whether or not to sign the text before encryption and if
 you answered yes, it will let you select the signing keys.
 @end deffn
 
-@node Cryptographic operations on files
+@node Cryptographic operations on files, Dired integration, Cryptographic operations on regions, Commands
 @section Cryptographic operations on files
 
 @deffn Command epa-decrypt-file file &optional output
@@ -262,7 +263,7 @@ select signing keys, and then a signature type.
 Encrypt @var{file}.  It will let you select recipients.
 @end deffn
 
-@node Dired integration
+@node Dired integration, Mail-mode integration, Cryptographic operations on files, Commands
 @section Dired integration
 
 EasyPG Assistant extends Dired Mode for GNU Emacs to allow users to
@@ -280,28 +281,28 @@ The following keys are assigned.
 
 @table @kbd
 @item : d
-@kindex @kbd{: d}
+@kindex : d
 @findex epa-dired-do-decrypt
 Decrypt marked files.
 
 @item : v
-@kindex @kbd{: v}
+@kindex : v
 @findex epa-dired-do-verify
 Verify marked files.
 
 @item : s
-@kindex @kbd{: s}
+@kindex : s
 @findex epa-dired-do-sign
 Sign marked files.
 
 @item : e
-@kindex @kbd{: e}
+@kindex : e
 @findex epa-dired-do-encrypt
 Encrypt marked files.
 
 @end table
 
-@node Mail-mode integration
+@node Mail-mode integration, Encrypting/decrypting gpg files, Dired integration, Commands
 @section Mail-mode integration
 
 EasyPG Assistant provides a minor mode @code{epa-mail-mode} to help
@@ -321,26 +322,26 @@ interface.  Try @kbd{M-x customize-variable epa-global-mail-mode}.
 
 @table @kbd
 @item C-c C-e C-d and C-c C-e d
-@kindex @kbd{C-c C-e C-d}
-@kindex @kbd{C-c C-e d}
+@kindex C-c C-e C-d
+@kindex C-c C-e d
 @findex epa-mail-decrypt
 Decrypt OpenPGP armors in the current buffer.
 
 @item C-c C-e C-v and C-c C-e v
-@kindex @kbd{C-c C-e C-v}
-@kindex @kbd{C-c C-e v}
+@kindex C-c C-e C-v
+@kindex C-c C-e v
 @findex epa-mail-verify
 Verify OpenPGP cleartext signed messages in the current buffer.
 
 @item C-c C-e C-s and C-c C-e s
-@kindex @kbd{C-c C-e C-s}
-@kindex @kbd{C-c C-e s}
+@kindex C-c C-e C-s
+@kindex C-c C-e s
 @findex epa-mail-sign
 Compose a signed message from the current buffer.
 
 @item C-c C-e C-e and C-c C-e e
-@kindex @kbd{C-c C-e C-e}
-@kindex @kbd{C-c C-e e}
+@kindex C-c C-e C-e
+@kindex C-c C-e e
 @findex epa-mail-encrypt
 @vindex epa-mail-aliases
 Compose an encrypted message from the current buffer.
@@ -353,7 +354,7 @@ use that option to ignore specific recipients for encryption purposes.
 
 @end table
 
-@node Encrypting/decrypting gpg files
+@node Encrypting/decrypting gpg files,  , Mail-mode integration, Commands
 @section Encrypting/decrypting gpg files
 By default, every file whose name ends with @file{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
@@ -362,7 +363,7 @@ Similarly, when you save the buffer to a @file{foo.gpg} file,
 encrypted data is written.
 
 The file name pattern for encrypted files can be controlled by
-@var{epa-file-name-regexp}.
+@code{epa-file-name-regexp}.
 
 @defvar epa-file-name-regexp
 Regexp which matches filenames treated as encrypted.
@@ -391,7 +392,7 @@ public key encryption.
 @end deffn
 
 You can also change the default behavior with the variable
-@var{epa-file-select-keys}.
+@code{epa-file-select-keys}.
 
 @defvar epa-file-select-keys
 Control whether or not to pop up the key selection dialog.
@@ -436,18 +437,53 @@ If non-@code{nil}, disable auto-saving when opening an encrypted file.
 The default value is @code{t}.
 @end defvar
 
-@node Caching Passphrases
+@node GnuPG version compatibility, Caching Passphrases, Commands, Top
+@chapter GnuPG version compatibility
+
+As of February 2016, there are three active branches of GnuPG: 2.1,
+2.0, and 1.4.  All those branches should work flawlessly with Emacs
+with basic use-cases.  They have, however, some incompatible
+characteristics, which might be visible when used from Emacs.
+
+@itemize
+@item
+The key store format used by GnuPG 2.1 is incompatible with 1.4.  That
+means, a key created with GnuPG 2.1 is not visible with 1.4.
+
+@item
+GnuPG 2.1 uses a fixed address for the Unix domain socket used to
+communicate with gpg-agent.  The @code{GPG_AGENT_INFO} environment
+variable, which is used by GnuPG 2.0 and 1.4, is ignored.  That means,
+if your system has both GnuPG 2.1 and 1.4, the gpg command from GnuPG
+1.4 is not able to use gpg-agent provided by 2.1 (at least out of box).
+
+@item
+GnuPG 2.1 (2.1.5 or later) has a mechanism to direct the Pinentry
+password prompt to the Emacs minibuffer@footnote{To enable this
+feature, add @samp{allow-emacs-pinentry} to
+@file{~/.gnupg/gpg-agent.conf} and let gpg-agent reload the
+configuration, with: @samp{gpgconf --reload gpg-agent}}, which would
+be useful when you use Emacs remotely or from a text-only terminal.
+That feature is not available in other versions, and more
+specifically, with 2.0 (as of 2.0.29), there is no way to avoid the
+graphical prompt.
+@end itemize
+
+@node Caching Passphrases, Bug Reports, GnuPG version compatibility, Top
 @chapter Caching Passphrases
 
-Typing passphrases is an irritating task if you frequently open and
+Typing passphrases is a troublesome task if you frequently open and
 close the same file.  GnuPG and EasyPG Assistant provide mechanisms to
-remember your passphrases.  However, the configuration is a bit
-confusing since it depends on your GnuPG installation (GnuPG version 1 or
-GnuPG version 2), encryption method (symmetric or public key), and whether or
-not you want to use gpg-agent.  Here are some questions:
+remember your passphrases for a limited time.  Using these, you only
+need to re-enter the passphrase occasionally.
+However, the configuration is a bit
+confusing since it depends on your GnuPG installation@xref{GnuPG
+version compatibility}, encryption method (symmetric or public key),
+and whether or not you want to use gpg-agent.  Here are some
+questions:
 
 @enumerate
-@item Do you use GnuPG version 2 instead of GnuPG version 1?
+@item Do you use GnuPG version 2.1 or 2.0 instead of GnuPG version 1.4?
 @item Do you use symmetric encryption rather than public key encryption?
 @item Do you want to use gpg-agent?
 @end enumerate
@@ -473,7 +509,7 @@ To set up elisp passphrase cache, set
 @code{epa-file-cache-passphrase-for-symmetric-encryption}.
 @xref{Encrypting/decrypting gpg files}.
 
-@node Bug Reports
+@node Bug Reports, GNU Free Documentation License, Caching Passphrases, Top
 @chapter Bug Reports
 
 Bugs and problems with EasyPG Assistant are actively worked on by the
@@ -495,19 +531,19 @@ Before reporting the bug, you should set @code{epg-debug} in the
 of the @file{ *epg-debug*} buffer.  Note that the first letter of the
 buffer name is a whitespace.
 
-@node GNU Free Documentation License
+@node GNU Free Documentation License, Key Index, Bug Reports, Top
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
-@node Key Index
+@node Key Index, Function Index, GNU Free Documentation License, Top
 @unnumbered Key Index
 @printindex ky
 
-@node Function Index
+@node Function Index, Variable Index, Key Index, Top
 @unnumbered Function Index
 @printindex fn
 
-@node Variable Index
+@node Variable Index,  , Function Index, Top
 @unnumbered Variable Index
 @printindex vr
 

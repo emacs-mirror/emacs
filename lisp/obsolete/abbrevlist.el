@@ -1,6 +1,6 @@
 ;;; abbrevlist.el --- list one abbrev table alphabetically ordered
 
-;; Copyright (C) 1986, 1992, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992, 2001-2018 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

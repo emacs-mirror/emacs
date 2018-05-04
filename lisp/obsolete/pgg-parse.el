@@ -1,6 +1,6 @@
 ;;; pgg-parse.el --- OpenPGP packet parsing
 
-;; Copyright (C) 1999, 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -35,10 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  ;; For Emacs <22.2 and XEmacs.
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup pgg-parse ()
   "OpenPGP packet parsing."
@@ -229,7 +226,7 @@
     (list content-tag packet-bytes header-bytes)))
 
 (defun pgg-parse-packet (ptag)
-  (case (car ptag)
+  (cl-case (car ptag)
     (1 ;Public-Key Encrypted Session Key Packet
      (pgg-parse-public-key-encrypted-session-key-packet ptag))
     (2 ;Signature Packet
@@ -282,7 +279,7 @@
 	  (1+ (cdr length-type)))))
 
 (defun pgg-parse-signature-subpacket (ptag)
-  (case (car ptag)
+  (cl-case (car ptag)
     (2 ;signature creation time
      (cons 'creation-time
 	   (let ((bytes (pgg-read-bytes 4)))

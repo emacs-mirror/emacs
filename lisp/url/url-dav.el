@@ -1,6 +1,6 @@
 ;;; url-dav.el --- WebDAV support
 
-;; Copyright (C) 2001, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; DAV is in RFC 2518.
 
@@ -495,7 +495,7 @@ make sure you are comfortable with it leaking to the outside world.")
 (defun url-dav-lock-resource (url exclusive &optional depth)
   "Request a lock on URL.  If EXCLUSIVE is non-nil, get an exclusive lock.
 Optional 3rd argument DEPTH says how deep the lock should go, default is 0
-\(lock only the resource and none of its children\).
+\(lock only the resource and none of its children).
 
 Returns a cons-cell of (SUCCESSFUL-RESULTS . FAILURE-RESULTS).
 SUCCESSFUL-RESULTS is a list of (URL STATUS locktoken).
@@ -518,7 +518,7 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 				    depth '(("Timeout" . "Infinite"))))
 
     ;; Get the parent URL ready for expand-file-name
-    (if (not (vectorp url))
+    (if (not (url-p url))
 	(setq url (url-generic-parse-url url)))
 
     ;; Walk thru the response list, fully expand the URL, and grab the
@@ -540,7 +540,7 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 	(child-url nil)
 	(child-results nil)
 	(results nil))
-    (if (not (vectorp url))
+    (if (not (url-p url))
 	(setq url (url-generic-parse-url url)))
 
     (while response

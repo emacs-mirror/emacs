@@ -12,7 +12,7 @@
 @copying
 This manual documents EIEIO, an object framework for Emacs Lisp.
 
-Copyright @copyright{} 2007--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -112,7 +112,7 @@ three slots named @code{name}, @code{birthday}, and @code{phone}:
 Each class can have methods, which are defined like this:
 
 @example
-(defmethod call-record ((rec record) &optional scriptname)
+(cl-defmethod call-record ((rec record) &optional scriptname)
   "Dial the phone for the record REC.
 Execute the program SCRIPTNAME to dial the phone."
   (message "Dialing the phone for %s"  (oref rec name))
@@ -170,7 +170,7 @@ or
 In these examples, @eieio{} automatically examines the class of
 @code{rec}, and ensures that the method defined above is called.  If
 @code{rec} is some other class lacking a @code{call-record} method, or
-some other data type, Emacs signals a @code{no-method-definition}
+some other data type, Emacs signals a @code{cl-no-applicable-method}
 error.  @ref{Signals}.
 
 @node Introduction
@@ -479,31 +479,31 @@ Name of a generic function which can be used to fetch the value of this slot.
 You can call this function later on your object and retrieve the value
 of the slot.
 
-This options is in the CLOS spec, but is not fully compliant in @eieio{}.
+This option is in the CLOS spec, but is not fully compliant in @eieio{}.
 
 @item :writer
 Name of a generic function which will write this slot.
 
-This options is in the CLOS spec, but is not fully compliant in @eieio{}.
+This option is in the CLOS spec, but is not fully compliant in @eieio{}.
 
 @item :reader
 Name of a generic function which will read this slot.
 
-This options is in the CLOS spec, but is not fully compliant in @eieio{}.
+This option is in the CLOS spec, but is not fully compliant in @eieio{}.
 
 @item :custom
 A custom :type specifier used when editing an object of this type.
 See documentation for @code{defcustom} for details.  This specifier is
 equivalent to the :type spec of a @code{defcustom} call.
 
-This options is specific to Emacs, and is not in the CLOS spec.
+This option is specific to Emacs, and is not in the CLOS spec.
 
 @item :label
 When customizing an object, the value of :label will be used instead
 of the slot name.  This enables better descriptions of the data than
 would usually be afforded.
 
-This options is specific to Emacs, and is not in the CLOS spec.
+This option is specific to Emacs, and is not in the CLOS spec.
 
 @item :group
 Similar to @code{defcustom}'s :group command, this organizes different
@@ -511,7 +511,7 @@ slots in an object into groups.  When customizing an object, only the
 slots belonging to a specific group need be worked with, simplifying the
 size of the display.
 
-This options is specific to Emacs, and is not in the CLOS spec.
+This option is specific to Emacs, and is not in the CLOS spec.
 
 @item :printer
 This routine takes a symbol which is a function name.  The function
@@ -546,7 +546,7 @@ Access this slot only from methods of the same class or a child class.
 Access this slot only from methods of the same class.
 @end table
 
-This options is specific to Emacs, and is not in the CLOS spec.
+This option is specific to Emacs, and is not in the CLOS spec.
 
 @end table
 
@@ -571,7 +571,7 @@ the @code{:type} is specifies something such as @code{string} then allow
 this to pass.  The default is to have this option be off.  This is
 implemented as an alternative to unbound slots.
 
-This options is specific to Emacs, and is not in the CLOS spec.
+This option is specific to Emacs, and is not in the CLOS spec.
 
 @item :abstract
 A class which is @code{:abstract} cannot be instantiated, and instead
@@ -589,9 +589,9 @@ This option is specific to Emacs, and is not in the CLOS spec.
 
 @item :method-invocation-order
 This controls the order in which method resolution occurs for
-@code{:primary} methods in cases of multiple inheritance.  The order
+methods in cases of multiple inheritance.  The order
 affects which method is called first in a tree, and if
-@code{call-next-method} is used, it controls the order in which the
+@code{cl-call-next-method} is used, it controls the order in which the
 stack of methods are run.
 
 Valid values are:
@@ -817,19 +817,19 @@ provides a function binding and the base documentation for the method
 symbol (@pxref{Symbol Components,,,elisp,GNU Emacs Lisp Reference
 Manual}).
 
-@defmac defgeneric method arglist [doc-string]
+@defmac cl-defgeneric method arglist [doc-string]
 This macro turns the (unquoted) symbol @var{method} into a function.
 @var{arglist} is the default list of arguments to use (not implemented
 yet).  @var{doc-string} is the documentation used for this symbol.
 
 A generic function acts as a placeholder for methods.  There is no
-need to call @code{defgeneric} yourself, as @code{defmethod} will call
+need to call @code{cl-defgeneric} yourself, as @code{cl-defmethod} will call
 it if necessary.  Currently the argument list is unused.
 
-@code{defgeneric} signals an error if you attempt to turn an existing
+@code{cl-defgeneric} signals an error if you attempt to turn an existing
 Emacs Lisp function into a generic function.
 
-You can also create a generic method with @code{defmethod}
+You can also create a generic method with @code{cl-defmethod}
 (@pxref{Methods}).  When a method is created and there is no generic
 method in place with that name, then a new generic will be created,
 and the new method will use it.
@@ -842,31 +842,26 @@ only occurs for the first argument, so the @var{arglist} is not used.
 @node Methods
 @section Methods
 
-A method is a function that is executed if the first argument passed
-to it matches the method's class.  Different @eieio{} classes may
+A method is a function that is executed if the arguments passed
+to it matches the method's specializers.  Different @eieio{} classes may
 share the same method names.
 
-Methods are created with the @code{defmethod} macro, which is similar
+Methods are created with the @code{cl-defmethod} macro, which is similar
 to @code{defun}.
 
-@defmac defmethod method [:before | :primary | :after | :static ] arglist [doc-string] forms
+@defmac cl-defmethod method [:before | :around | :after ] arglist [doc-string] forms
 
 @var{method} is the name of the function to create.
 
-@code{:before} and @code{:after} specify execution order (i.e., when
-this form is called).  If neither of these symbols are present, the
-default priority is used (before @code{:after} and after
-@code{:before}); this default priority is represented in CLOS as
-@code{:primary}.
+@code{:before}, @code{:around}, and @code{:after} specify execution order
+(i.e., when this form is called).  If none of these symbols are present, the
+method is said to be a @emph{primary}.
 
-@b{Note:} The @code{:BEFORE}, @code{:PRIMARY}, @code{:AFTER}, and
-@code{:STATIC} method tags were in all capital letters in previous
-versions of @eieio{}.
-
-@var{arglist} is the list of arguments to this method.  The first
-argument in this list---and @emph{only} the first argument---may have
-a type specifier (see the example below).  If no type specifier is
-supplied, the method applies to any object.
+@var{arglist} is the list of arguments to this method.  The mandatory arguments
+in this list may have a type specializer (see the example below) which means
+that the method will only apply when those arguments match the given type
+specializer.  An argument with no type specializer means that the method
+applies regardless of its value.
 
 @var{doc-string} is the documentation attached to the implementation.
 All method doc-strings are incorporated into the generic method's
@@ -881,7 +876,7 @@ In the following example, we create a method @code{mymethod} for the
 @code{classname} class:
 
 @example
-(defmethod mymethod ((obj classname) secondarg)
+(cl-defmethod mymethod ((obj classname) secondarg)
   "Doc string" )
 @end example
 
@@ -889,84 +884,86 @@ In the following example, we create a method @code{mymethod} for the
 This method only executes if the @var{obj} argument passed to it is an
 @eieio{} object of class @code{classname}.
 
-A method with no type specifier is a @dfn{default method}.  If a given
+A method with no type specializer is a @dfn{default method}.  If a given
 class has no implementation, then the default method is called when
 that method is used on a given object of that class.
 
-Only one default method per execution specifier (@code{:before},
-@code{:primary}, or @code{:after}) is allowed.  If two
-@code{defmethod}s appear with @var{arglist}s lacking a type specifier,
-and having the same execution specifier, then the first implementation
-is replaced.
+Only one method per combination of specializers and qualifiers (@code{:before},
+@code{:around}, or @code{:after}) is kept.  If two @code{cl-defmethod}s appear
+with the same specializers and the same qualifiers, then the second
+implementation replaces the first.
 
 When a method is called on an object, but there is no method specified
 for that object, but there is a method specified for object's parent
-class, the parent class' method is called.  If there is a method
+class, the parent class's method is called.  If there is a method
 defined for both, only the child's method is called.  A child method
-may call a parent's method using @code{call-next-method}, described
+may call a parent's method using @code{cl-call-next-method}, described
 below.
 
 If multiple methods and default methods are defined for the same
 method and class, they are executed in this order:
 
 @enumerate
-@item method :before
-@item default :before
-@item method :primary
-@item default :primary
-@item method :after
-@item default :after
+@item :around methods
+The most specific @code{:around} method is called first, which may invoke the
+less specific ones via @code{cl-call-next-method}.  If it doesn't invoke
+@code{cl-call-next-method}, then no other methods will be executed.  When there
+are no more @code{:around} methods to call, falls through to run the other
+(non-@code{:around}) methods.
+@item :before methods
+Called in sequence from most specific to least specific.
+@item primary methods
+The most specific method is called, which may invoke the less specific
+ones via @code{cl-call-next-method}.
+@item :after methods
+Called in sequence from least specific to most specific.
 @end enumerate
 
-If no methods exist, Emacs signals a @code{no-method-definition}
-error.  @xref{Signals}.
+If no methods exist, Emacs signals a @code{cl-no-applicable-method} error.
+@xref{Signals}.  If methods exist but none of them are primary, Emacs
+signals a @code{cl-no-primary-method} error.  @xref{Signals}.
 
-@defun call-next-method &rest replacement-args
-@anchor{call-next-method}
+@defun cl-call-next-method &rest replacement-args
+@anchor{cl-call-next-method}
 
 This function calls the superclass method from a subclass method.
 This is the ``next method'' specified in the current method list.
 
-If @var{replacement-args} is non-@code{nil}, then use them instead of
-@code{eieio-generic-call-arglst}.  At the top level, the generic
-argument list is passed in.
+If @var{replacement-args} is non-@code{nil}, then use them instead of the
+arguments originally provided to the method.
 
-Use @code{next-method-p} to find out if there is a next method to
-call.
+Can only be used from within the lexical body of a primary or around method.
 @end defun
 
-@defun next-method-p
-@anchor{next-method-p}
+@defun cl-next-method-p
+@anchor{cl-next-method-p}
 Non-@code{nil} if there is a next method.
-Returns a list of lambda expressions which is the @code{next-method}
-order.
+
+Can only be used from within the lexical body of a primary or around method.
 @end defun
-
-At present, @eieio{} does not implement all the features of CLOS:
-
-@enumerate
-@item
-There is currently no @code{:around} tag.
-@item
-CLOS allows multiple sets of type-cast arguments, but @eieio{} only
-allows the first argument to be cast.
-@end enumerate
 
 @node Static Methods
 @section Static Methods
 
 Static methods do not depend on an object instance, but instead
 operate on a class.  You can create a static method by using
-the @code{:static} key with @code{defmethod}.
+the @code{subclass} specializer with @code{cl-defmethod}:
 
-The first argument of a @code{:static} method will be a class rather than an
+@example
+(cl-defmethod make-instance ((class (subclass mychild)) &rest args)
+  (let ((new (cl-call-next-method)))
+    (push new all-my-children)
+    new))
+@end example
+
+The first argument of a static method will be a class rather than an
 object.  Use the functions @code{oref-default} or @code{oset-default} which
 will work on a class.
 
-A class's @code{make-instance} method is defined as a @code{:static}
+A class's @code{make-instance} method is defined as a static
 method.
 
-@b{Note:} The @code{:static} keyword is unique to @eieio{}.
+@b{Note:} The @code{subclass} specializer is unique to @eieio{}.
 
 @c TODO - Write some more about static methods here
 
@@ -977,9 +974,9 @@ When classes are defined, you can specify the
 @code{:method-invocation-order}.  This is a feature specific to EIEIO.
 
 This controls the order in which method resolution occurs for
-@code{:primary} methods in cases of multiple inheritance.  The order
+methods in cases of multiple inheritance.  The order
 affects which method is called first in a tree, and if
-@code{call-next-method} is used, it controls the order in which the
+@code{cl-call-next-method} is used, it controls the order in which the
 stack of methods are run.
 
 The original EIEIO order turned out to be broken for multiple
@@ -1020,7 +1017,7 @@ If @var{errorp} is non-@code{nil}, @code{wrong-argument-type} is signaled.
 
 @defun class-p class
 @anchor{class-p}
-Return @code{t} if @var{class} is a valid class vector.
+Return @code{t} if @var{class} is a valid class object.
 @var{class} is a symbol.
 @end defun
 
@@ -1058,7 +1055,7 @@ Will fetch the documentation string for @code{eieio-default-superclass}.
 Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
 This should look like Lisp symbols from other parts of Emacs such as
 buffers and processes, and is shorter and cleaner than printing the
-object's vector.  It is more useful to use @code{object-print} to get
+object's record.  It is more useful to use @code{object-print} to get
 and object's print form, as this allows the object to add extra display
 information into the symbol.
 @end defun
@@ -1215,7 +1212,7 @@ items defined in this second slot.
 
 Introspection permits a programmer to peek at the contents of a class
 without any previous knowledge of that class.  While @eieio{} implements
-objects on top of vectors, and thus everything is technically visible,
+objects on top of records, and thus everything is technically visible,
 some functions have been provided.  None of these functions are a part
 of CLOS.
 
@@ -1266,13 +1263,13 @@ The @var{parent-instance} slot indicates the instance which is
 considered the parent of the current instance.  Default is @code{nil}.
 @end deftp
 
-@cindex clone
+@cindex @code{clone}
 To use this class, inherit from it with your own class.
 To make a new instance that inherits from and existing instance of your
 class, use the @code{clone} method with additional parameters
 to specify local values.
 
-@cindex slot-unbound
+@cindex @code{slot-unbound}
 The @code{eieio-instance-inheritor} class works by causing cloned
 objects to have all slots unbound.  This class' @code{slot-unbound}
 method will cause references to unbound slots to be redirected to the
@@ -1297,8 +1294,7 @@ class.
 
 @defmethod eieio-instance-tracker initialize-instance obj slot
 This method is defined as an @code{:after} method.
-It adds new instances to the master list.  Do not overload this method
-unless you use @code{call-next-method.}
+It adds new instances to the master list.
 @end defmethod
 
 @defmethod eieio-instance-tracker delete-instance obj
@@ -1399,7 +1395,7 @@ with a minimum of effort.
 
 @deftp {Class} eieio-speedbar buttontype buttonface
 Enables base speedbar display for a class.
-@cindex speedbar-make-tag-line
+@cindex @code{speedbar-make-tag-line}
 The slot @var{buttontype} is any of the symbols allowed by the
 function @code{speedbar-make-tag-line} for the @var{exp-button-type}
 argument @xref{Extending,,,speedbar}.
@@ -1529,7 +1525,7 @@ Currently, the default superclass is defined as follows:
   nil
   "Default parent class for classes with no specified parent class.
 Its slots are automatically adopted by classes with no specified
-parents.  This class is not stored in the `parent' slot of a class vector."
+parents.  This class is not stored in the `parent' slot of a class object."
   :abstract t)
 @end example
 
@@ -1582,7 +1578,7 @@ Additional useful methods defined on the base subclass are:
 Make a copy of @var{obj}, and then apply @var{params}.
 @var{params} is a parameter list of the same form as @var{initialize-instance}
 which are applied to change the object.  When overloading @dfn{clone}, be
-sure to call @dfn{call-next-method} first and modify the returned object.
+sure to call @dfn{cl-call-next-method} first and modify the returned object.
 @end defun
 
 @defun object-print this &rest strings
@@ -1595,7 +1591,7 @@ It is sometimes useful to put a summary of the object into the
 default #<notation> string when using eieio browsing tools.
 
 Implement this function and specify @var{strings} in a call to
-@dfn{call-next-method} to provide additional summary information.
+@dfn{cl-call-next-method} to provide additional summary information.
 When passing in extra strings from child classes, always remember
 to prepend a space.
 
@@ -1604,10 +1600,11 @@ to prepend a space.
    (value)
    "Object containing one data slot.")
 
-(defmethod object-print ((this data-object) &optional strings)
+(cl-defmethod object-print ((this data-object) &optional strings)
   "Return a string with a summary of the data object as part of the name."
-  (apply 'call-next-method this
-         (cons (format " value: %s" (render this)) strings)))
+  (apply #'cl-call-next-method this
+         (format " value: %s" (render this))
+         strings))
 @end example
 
 Here is what some output could look like:
@@ -1667,24 +1664,36 @@ In @var{clos}, the argument list is (@var{class} @var{object} @var{slot-name}), 
 @var{eieio} can only dispatch on the first argument, so the first two are swapped.
 @end defun
 
-@defun no-applicable-method object method &rest args
-@anchor{no-applicable-method}
-Called if there are no implementations for @var{object} in @var{method}.
-@var{object} is the object which has no method implementation.
-@var{args} are the arguments that were passed to @var{method}.
+@defun cl-no-applicable-method generic &rest args
+@anchor{cl-no-applicable-method}
+Called if there are no methods applicable for @var{args} in the generic
+function @var{generic}.
+@var{args} are the arguments that were passed to @var{generic}.
 
 Implement this for a class to block this signal.  The return
 value becomes the return value of the original method call.
 @end defun
 
-@defun no-next-method object &rest args
-@anchor{no-next-method}
-Called from @dfn{call-next-method} when no additional methods are available.
-@var{object} is othe object being called on @dfn{call-next-method}.
+@defun cl-no-primary-method generic &rest args
+@anchor{cl-no-primary-method}
+Called if there are methods applicable for @var{args} in the generic
+function @var{generic} but they are all qualified.
+@var{args} are the arguments that were passed to @var{generic}.
+
+Implement this for a class to block this signal.  The return
+value becomes the return value of the original method call.
+@end defun
+
+@defun cl-no-next-method generic method &rest args
+@anchor{cl-no-next-method}
+Called from @dfn{cl-call-next-method} when no additional methods are available.
+@var{generic} is the generic function being called on
+@dfn{cl-call-next-method}, @var{method} is the method where
+@dfn{cl-call-next-method} was called, and
 @var{args} are the arguments it is called by.
-This method signals @dfn{no-next-method} by default.  Override this
+This method signals @dfn{cl-no-next-method} by default.  Override this
 method to not throw an error, and its return value becomes the
-return value of @dfn{call-next-method}.
+return value of @dfn{cl-call-next-method}.
 @end defun
 
 @node Signals
@@ -1699,23 +1708,29 @@ This signal is called when an attempt to reference a slot in an
 it.
 @end deffn
 
-@deffn Signal no-method-definition method arguments
-This signal is called when @var{method} is called, with @var{arguments}
-and nothing is resolved.  This occurs when @var{method} has been
+@deffn Signal cl-no-applicable-method generic arguments
+This signal is called when @var{generic} is called, with @var{arguments}
+and nothing is resolved.  This occurs when @var{generic} has been
 defined, but the arguments make it impossible for @eieio{} to determine
 which method body to run.
 
 To prevent this signal from occurring in your class, implement the
-method @code{no-applicable-method} for your class.  This method is
+method @code{cl-no-applicable-method} for your class.  This method is
 called when to throw this signal, so implementing this for your class
 allows you block the signal, and perform some work.
 @end deffn
 
-@deffn Signal no-next-method class arguments
-This signal is called if the function @code{call-next-method} is called
+@deffn Signal cl-no-primary-method generic arguments
+Like @code{cl-no-applicable-method} but applies when there are some applicable
+methods, but none of them are primary.  You can similarly block it by
+implementing a @code{cl-no-primary-method} method.
+@end deffn
+
+@deffn Signal cl-no-next-method class arguments
+This signal is called if the function @code{cl-call-next-method} is called
 and there is no next method to be called.
 
-Overload the method @code{no-next-method} to protect against this signal.
+Overload the method @code{cl-no-next-method} to protect against this signal.
 @end deffn
 
 @deffn Signal invalid-slot-type slot spec value
@@ -1796,22 +1811,17 @@ Make instance works as expected, however it just uses the @eieio{} instance
 creator automatically generated when a new class is created.
 @xref{Making New Objects}.
 
-@item defgeneric
-Creates the desired symbol, and accepts all of the expected arguments
-except @code{:around}.
+@item cl-defgeneric
+Creates the desired symbol, and accepts most of the expected arguments of
+CLOS's @code{defgeneric}.
 
-@item defmethod
-Calls defgeneric, and accepts most of the expected arguments.  Only
-the first argument to the created method may have a type specifier.
-To type cast against a class, the class must exist before defmethod is
-called.  In addition, the @code{:around} tag is not supported.
+@item cl-defmethod
+Accepts most of the expected arguments of CLOS's @code{defmethod}.  To type
+cast against a class, the class must exist before @code{cl-defmethod}
+is called.
 
-@item call-next-method
-Inside a method, calls the next available method up the inheritance tree
-for the given object.  This is different than that found in CLOS because
-in @eieio{} this function accepts replacement arguments.  This permits
-subclasses to modify arguments as they are passed up the tree.  If no
-arguments are given, the expected CLOS behavior is used.
+@item cl-call-next-method
+Works just like CLOS's @code{call-next-method}.
 @end table
 
 CLOS supports the @code{describe} command, but @eieio{} provides
@@ -1834,13 +1844,7 @@ Some important compatibility features that would be good to add are:
 
 @enumerate
 @item
-Support for metaclasses and EQL specialization.
-@item
-@code{:around} method key.
-@item
-Method dispatch for built-in types.
-@item
-Method dispatch for multiple argument typing.
+Support for metaclasses.
 @item
 Improve integration with the @file{cl} package.
 @end enumerate

@@ -1,6 +1,6 @@
 ;;; gnus-demon.el --- daemonic Gnus behavior
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,13 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-int)
@@ -93,10 +93,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 (defun gnus-demon-idle-since ()
   "Return the number of seconds since when Emacs is idle."
-  (if (featurep 'xemacs)
-      (itimer-time-difference (current-time) last-command-event-time)
-    (float-time (or (current-idle-time)
-                    '(0 0 0)))))
+  (float-time (or (current-idle-time) '(0 0 0))))
 
 (defun gnus-demon-run-callback (func &optional idle time special)
   "Run FUNC if Emacs has been idle for longer than IDLE seconds.
@@ -104,7 +101,7 @@ If not, and a TIME is given, restart a new idle timer, so FUNC
 can be called at the next opportunity. Such a special idle run is
 marked with SPECIAL."
   (unless gnus-inhibit-demon
-    (block run-callback
+    (cl-block run-callback
       (when (eq idle t)
         (setq idle 0.001))
       (cond (special
@@ -120,7 +117,7 @@ marked with SPECIAL."
 				(run-with-idle-timer idle nil
 						     'gnus-demon-run-callback
 						     func idle time t))))
-             (return-from run-callback)))
+             (cl-return-from run-callback)))
       (with-local-quit
         (ignore-errors
           (funcall func))))))

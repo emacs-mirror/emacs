@@ -1,13 +1,16 @@
 ;;; let-alist.el --- Easily let-bind values of an assoc-list by their names -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
-;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
-;; Maintainer: Artur Malabarba <bruce.connor.am@gmail.com>
-;; Version: 1.0.4
+;; Author: Artur Malabarba <emacs@endlessparentheses.com>
+;; Package-Requires: ((emacs "24.1"))
+;; Version: 1.0.5
 ;; Keywords: extensions lisp
 ;; Prefix: let-alist
 ;; Separator: -
+
+;; This is an Elpa :core package. Don't use functionality that is not
+;; compatible with Emacs 24.1.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -73,6 +76,11 @@ symbol, and each cdr is the same symbol without the `.'."
         ;; with other results in the clause below.
         (list (cons data (intern (replace-match "" nil nil name)))))))
    ((not (consp data)) nil)
+   ((eq (car data) 'let-alist)
+    ;; For nested ‘let-alist’ forms, ignore symbols appearing in the
+    ;; inner body because they don’t refer to the alist currently
+    ;; being processed.  See Bug#24641.
+    (let-alist--deep-dot-search (cadr data)))
    (t (append (let-alist--deep-dot-search (car data))
               (let-alist--deep-dot-search (cdr data))))))
 
@@ -117,10 +125,10 @@ For instance, the following code
 
 essentially expands to
 
-  (let ((.title (cdr (assq 'title alist)))
-        (.body  (cdr (assq 'body alist)))
-        (.site  (cdr (assq 'site alist)))
-        (.site.contents (cdr (assq 'contents (cdr (assq 'site alist))))))
+  (let ((.title (cdr (assq \\='title alist)))
+        (.body  (cdr (assq \\='body alist)))
+        (.site  (cdr (assq \\='site alist)))
+        (.site.contents (cdr (assq \\='contents (cdr (assq \\='site alist))))))
     (if (and .title .body)
         .body
       .site
@@ -134,7 +142,7 @@ displayed in the example above."
   (let ((var (make-symbol "alist")))
     `(let ((,var ,alist))
        (let ,(mapcar (lambda (x) `(,(car x) ,(let-alist--access-sexp (car x) var)))
-               (delete-dups (let-alist--deep-dot-search body)))
+                     (delete-dups (let-alist--deep-dot-search body)))
          ,@body))))
 
 (provide 'let-alist)

@@ -1,6 +1,6 @@
 ;;; widget.el --- a library of user interface components
 ;;
-;; Copyright (C) 1996-1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -68,7 +68,6 @@
 ;;  :button-face-get :button-face :value-face :keymap :entry-from
 ;;  :entry-to :help-echo :documentation-property :tab-order)
 
-(put 'define-widget 'doc-string-elt 3)  ;`declare' doesn't work in functions.
 (defun define-widget (name class doc &rest args)
   "Define a new widget type named NAME from CLASS.
 
@@ -80,9 +79,10 @@ create identical widgets:
 
 * (widget-create NAME)
 
-* (apply \\='widget-create CLASS ARGS)
+* (apply #\\='widget-create CLASS ARGS)
 
 The third argument DOC is a documentation string for the widget."
+  (declare (doc-string 3))
   ;;
   (unless (or (null doc) (stringp doc))
     (error "widget documentation must be nil or a string."))
@@ -91,7 +91,7 @@ The third argument DOC is a documentation string for the widget."
   name)
 
 ;; This is used by external widget code (in W3, at least).
-(defalias 'widget-plist-member 'plist-member)
+(define-obsolete-function-alias 'widget-plist-member #'plist-member "26.1")
 
 ;;; The End.
 

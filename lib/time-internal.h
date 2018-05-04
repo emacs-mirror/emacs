@@ -1,6 +1,6 @@
 /* Time internal interface
 
-   Copyright 2015 Free Software Foundation, Inc.
+   Copyright 2015-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -38,8 +38,8 @@ struct tm_zone
   /* A sequence of null-terminated strings packed next to each other.
      The strings are followed by an extra null byte.  If TZ_IS_SET,
      there must be at least one string and the first string (which is
-     actually a TZ environment value value) may be empty.  Otherwise
-     all strings must be nonempty.
+     actually a TZ environment value) may be empty.  Otherwise all
+     strings must be nonempty.
 
      Abbreviations are stored here because otherwise the values of
      tm_zone and/or tzname would be dead after changing TZ and calling

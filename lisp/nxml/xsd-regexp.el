@@ -1,6 +1,6 @@
-;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps
+;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, regexp
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -147,7 +147,7 @@ ranges are merged wherever possible."
 (defun xsdre-range-list-difference (orig subtract)
   "Return a range-list for the difference of two range-lists."
   (when orig
-    (let (new head next first last)
+    (let (new head first last)
       (while orig
 	(setq head (car orig))
 	(setq first (xsdre-range-first head))
@@ -208,7 +208,7 @@ Signal an error if it is not."
 	 (nreverse (xsdre-compile-regexp re nil))))
 
 (defun xsdre-compile-regexp (re accum)
-  "Return a Emacs regular expression for the symbolic regexp RE.
+  "Return an Emacs regular expression for the symbolic regexp RE.
 Returns a list of strings whose head is the regexp for RE
 and whose tail is ACCUM."
   (cond ((not (consp re))
@@ -271,7 +271,7 @@ and whose tail is ACCUM."
 	(t (xsdre-compile-char-class re accum))))
 
 (defun xsdre-compile-char-class (cc accum)
-  "Return a Emacs regular expression for the symbolic character class CC.
+  "Return an Emacs regular expression for the symbolic character class CC.
 Returns a list of strings whose head is the regexp for CC
 and whose tail is ACCUM."
   (cons (if (integerp cc)
@@ -450,7 +450,7 @@ LOWER ::= UNICODE
 UPPER ::= UNICODE
 SYMBOLIC-CHAR-CLASS ::= SYMBOL
 
-where UNICODE is a integer specifying a Unicode code-point and
+where UNICODE is an integer specifying a Unicode code-point and
 SYMBOLIC-CHAR-CLASS is a symbol which has either a `xsdre-char-class'
 property whose value is a CHAR-CLASS, or a `xsdre-ranges' property
 whose value is a range-list."
@@ -621,7 +621,7 @@ whose value is a range-list."
 (defun xsdre-parse-escape ()
   (let ((ch (car xsdre-current-regexp)))
     (xsdre-advance)
-    (cond ((memq ch '(?\\ ?| ?. ?- ?^ ?* ?+ ?( ?) ?{ ?} ?[ ?])) ch)
+    (cond ((memq ch '(?\\ ?| ?. ?- ?^ ?* ?+ ?\( ?\) ?{ ?} ?\[ ?\])) ch)
 	  ((eq ch ?r) ?\r)
 	  ((eq ch ?n) ?\n)
 	  ((eq ch ?t) ?\t)
@@ -745,7 +745,7 @@ Code is inserted into the current buffer."
             (save-excursion
               (goto-char start)
               (down-list 2)
-              (while (condition-case err
+              (while (condition-case nil
                          (progn
                            (forward-sexp)
                            t)

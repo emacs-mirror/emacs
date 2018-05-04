@@ -1,6 +1,6 @@
-/* Internal implementation of access control lists.
+/* Internal implementation of access control lists.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
    Written by Paul Eggert, Andreas Grünbacher, and Bruno Haible.  */
 
@@ -255,7 +255,7 @@ extern int acl_nontrivial (int count, struct acl *entries);
 
 struct permission_context {
   mode_t mode;
-#ifdef USE_ACL
+#if USE_ACL
 # if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
   acl_t acl;
 #  if !HAVE_ACL_TYPE_EXTENDED

@@ -1,6 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -101,7 +101,7 @@ disconnected from `erc-modified-channels-alist'."
 
 (defcustom erc-track-exclude-types '("NICK" "333" "353")
   "List of message types to be ignored.
-This list could look like '(\"JOIN\" \"PART\").
+This list could look like (\"JOIN\" \"PART\").
 
 By default, exclude changes of nicknames (NICK), display of who
 set the channel topic (333), and listing of users on the current
@@ -210,7 +210,7 @@ If you would like to ignore changes in certain channels where there
 are no faces corresponding to your `erc-track-faces-priority-list', set
 this variable.  You can set a list of channel name strings, so those
 will be ignored while all other channels will be tracked as normal.
-Other options are 'all, to apply this to all channels or nil, to disable
+Other options are `all', to apply this to all channels or nil, to disable
 this feature.
 
 Note: If you have a lot of faces listed in `erc-track-faces-priority-list',
@@ -326,7 +326,7 @@ when there are no more active channels."
   leastactive -  find buffer with least unseen messages
   mostactive  -  find buffer with most unseen messages.
 
-If set to 'importance, the importance is determined by position
+If set to `importance', the importance is determined by position
 in `erc-track-faces-priority-list', where first is most
 important."
   :group 'erc-track
@@ -480,99 +480,6 @@ START is the minimum length of the name used."
 	(setq result other)))
     result))
 
-;;; Test:
-
-(cl-assert
- (and
-  ;; verify examples from the doc strings
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("#emacs" "#vi" "#electronica" "#folk")
-	    '("#emacs" "#vi")))
-	 '("#em" "#vi"))	 ; emacs is different from electronica
-  (equal (let ((erc-track-shorten-aggressively t))
-	   (erc-unique-channel-names
-	    '("#emacs" "#vi" "#electronica" "#folk")
-	    '("#emacs" "#vi")))
-	 '("#em" "#v"))		       ; vi is shortened by one letter
-  (equal (let ((erc-track-shorten-aggressively 'max))
-	   (erc-unique-channel-names
-	    '("#emacs" "#vi" "#electronica" "#folk")
-	    '("#emacs" "#vi")))
-	 '("#e" "#v"))  ; emacs need not be different from electronica
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("#linux-de" "#linux-fr")
-	    '("#linux-de" "#linux-fr")))
-	 '("#linux-de" "#linux-fr")) ; shortening by one letter is too aggressive
-  (equal (let ((erc-track-shorten-aggressively t))
-	   (erc-unique-channel-names
-	    '("#linux-de" "#linux-fr")
-	    '("#linux-de" "#linux-fr")))
-	 '("#linux-d" "#linux-f")); now we want to be aggressive
-  ;; specific problems
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("#dunnet" "#lisp" "#sawfish" "#fsf" "#guile"
-	      "#testgnome" "#gnu" "#fsbot" "#hurd" "#hurd-bunny"
-	      "#emacs")
-	    '("#hurd-bunny" "#hurd" "#sawfish" "#lisp")))
-	 '("#hurd-" "#hurd" "#s" "#l"))
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-substrings
-	    '("#emacs" "#vi" "#electronica" "#folk")))
-	 '("#em" "#vi" "#el" "#f"))
-  (equal (let ((erc-track-shorten-aggressively t))
-	   (erc-unique-substrings
-	    '("#emacs" "#vi" "#electronica" "#folk")))
-	 '("#em" "#v" "#el" "#f"))
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("#emacs" "#burse" "+linux.de" "#starwars"
-	      "#bitlbee" "+burse" "#ratpoison")
-	    '("+linux.de" "#starwars" "#burse")))
-	 '("+l" "#s" "#bu"))
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("fsbot" "#emacs" "deego")
-	    '("fsbot")))
-	 '("fs"))
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("fsbot" "#emacs" "deego")
-	    '("fsbot")
-	    (lambda (s)
-	      (> (length s) 4))
-	    1))
-	 '("f"))
-  (equal (let ((erc-track-shorten-aggressively nil))
-	   (erc-unique-channel-names
-	    '("fsbot" "#emacs" "deego")
-	    '("fsbot")
-	    (lambda (s)
-	      (> (length s) 4))
-	    2))
-	 '("fs"))
-  (let ((erc-track-shorten-aggressively nil))
-    (equal (erc-unique-channel-names '("deego" "#hurd" "#hurd-bunny" "#emacs")
-				     '("#hurd" "#hurd-bunny"))
-	   '("#hurd" "#hurd-")))
-  ;; general examples
-  (let ((erc-track-shorten-aggressively t))
-    (and (equal (erc-unique-substring-1 "abc" '("ab" "abcd")) "abcd")
-	 (not (erc-unique-substring-1 "a" '("xyz" "xab")))
-	 (equal (erc-unique-substrings '("abc" "xyz" "xab"))
-		'("ab" "xy" "xa"))
-	 (equal (erc-unique-substrings '("abc" "abcdefg"))
-		'("abc" "abcd"))))
-  (let ((erc-track-shorten-aggressively nil))
-    (and (equal (erc-unique-substring-1 "abc" '("ab" "abcd")) "abcd")
-	 (not (erc-unique-substring-1 "a" '("xyz" "xab")))
-	 (equal (erc-unique-substrings '("abc" "xyz" "xab"))
-		'("abc" "xyz" "xab"))
-	 (equal (erc-unique-substrings '("abc" "abcdefg"))
-		'("abc" "abcd"))))))
-
 ;;; Minor mode
 
 ;; Play nice with other IRC clients (and Emacs development rules) by
@@ -635,7 +542,7 @@ keybindings will not do anything useful."
 
 ;;; Module
 
-;;;###autoload (autoload 'erc-track-mode "erc-track" nil t)
+;;;###autoload(autoload 'erc-track-mode "erc-track" nil t)
 (define-erc-module track nil
   "This mode tracks ERC channel buffers with activity."
   ;; Enable:
@@ -971,7 +878,8 @@ is in `erc-mode'."
   "Return a list of all faces used in STR."
   (let ((i 0)
 	(m (length str))
-	(faces (erc-list (get-text-property 0 'face str)))
+	(faces (let ((face1 (get-text-property 0 'face str)))
+		 (when face1 (list face1))))
 	cur)
     (while (and (setq i (next-single-property-change i 'face str m))
 		(not (= i m)))
@@ -979,13 +887,6 @@ is in `erc-mode'."
 	   (not (member cur faces))
 	   (push cur faces)))
     faces))
-
-(cl-assert
- (let ((str "is bold"))
-   (put-text-property 3 (length str)
-		      'face '(bold erc-current-nick-face)
-		      str)
-   (erc-faces-in str)))
 
 ;;; Buffer switching
 
@@ -1073,6 +974,7 @@ switch back to the last non-ERC buffer visited.  Next is defined by
 ;;; erc-track.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:

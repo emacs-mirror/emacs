@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2018 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -265,11 +265,10 @@ write-date, checksum, link-type, and link-name."
           (setq name (concat (substring string tar-prefix-offset
                                         (1- (match-end 0)))
                              "/" name)))
-        (if (default-value 'enable-multibyte-characters)
-            (setq name
-                  (decode-coding-string name coding)
-                  linkname
-                  (decode-coding-string linkname coding)))
+        (setq name
+              (decode-coding-string name coding)
+              linkname
+              (decode-coding-string linkname coding))
         (if (and (null link-p) (string-match "/\\'" name))
             (setq link-p 5))            ; directory
 
@@ -469,7 +468,7 @@ checksum before doing the check."
     (concat " " (substring str 4 16) (format-time-string " %Y" time))))
 
 (defun tar-grind-file-mode (mode)
-  "Construct a `-rw--r--r--' string indicating MODE.
+  "Construct a `rw-r--r--' string indicating MODE.
 MODE should be an integer which is a file mode value."
   (string
    (if (zerop (logand 256 mode)) ?- ?r)
@@ -544,6 +543,7 @@ MODE should be an integer which is a file mode value."
                (dir (if (eq (tar-header-link-type descriptor) 5)
                         name
                       (file-name-directory name)))
+               (link-desc (tar--describe-as-link descriptor))
                (start (tar-header-data-start descriptor))
                (end (+ start (tar-header-size descriptor))))
           (unless (file-directory-p name)
@@ -552,6 +552,10 @@ MODE should be an integer which is a file mode value."
                 (make-directory dir t))
             (unless (file-directory-p name)
 	      (let ((coding-system-for-write 'no-conversion))
+                (when link-desc
+                  (lwarn '(tar link) :warning
+                         "Extracted `%s', %s, as a normal file"
+                         name link-desc))
 		(write-region start end name)))
             (set-file-modes name (tar-header-mode descriptor))))))))
 
@@ -591,7 +595,7 @@ MODE should be an integer which is a file mode value."
         (progress-reporter-done progress-reporter)
       (message "Warning: premature EOF parsing tar file"))
     (goto-char (point-min))
-    (let ((buffer-file-truename nil) ; avoid changing dir mtime by lock_file
+    (let ((create-lockfiles nil) ; avoid changing dir mtime by lock_file
 	  (inhibit-read-only t)
           (total-summaries
            (mapconcat 'tar-header-block-summarize tar-parse-info "\n")))
@@ -816,19 +820,23 @@ tar-file's buffer."
 	  nil
 	  (error "This line does not describe a tar-file entry"))))
 
-(defun tar--check-descriptor (descriptor)
+(defun tar--describe-as-link (descriptor)
   (let ((link-p (tar-header-link-type descriptor)))
     (if link-p
-	(error "This is %s, not a real file"
-	       (cond ((eq link-p 5) "a directory")
-		     ((eq link-p 20) "a tar directory header")
-		     ((eq link-p 28) "a next has longname")
-		     ((eq link-p 29) "a multivolume-continuation")
-		     ((eq link-p 35) "a sparse entry")
-		     ((eq link-p 38) "a volume header")
-		     ((eq link-p 55) "a pax global extended header")
-		     ((eq link-p 72) "a pax extended header")
-		     (t "a link"))))))
+	(cond ((eq link-p 5) "a directory")
+              ((eq link-p 20) "a tar directory header")
+              ((eq link-p 28) "a next has longname")
+              ((eq link-p 29) "a multivolume-continuation")
+              ((eq link-p 35) "a sparse entry")
+              ((eq link-p 38) "a volume header")
+              ((eq link-p 55) "a pax global extended header")
+              ((eq link-p 72) "a pax extended header")
+              (t "a link")))))
+
+(defun tar--check-descriptor (descriptor)
+  (let ((link-desc (tar--describe-as-link descriptor)))
+    (when link-desc
+      (error "This is %s, not a real file" link-desc))))
 
 (defun tar-get-descriptor ()
   (let* ((descriptor (tar-current-descriptor))
@@ -898,8 +906,7 @@ tar-file's buffer."
         (if (or (not coding)
                 (eq (coding-system-type coding) 'undecided))
             (setq coding (detect-coding-region start end t)))
-        (if (and (default-value 'enable-multibyte-characters)
-                 (coding-system-get coding :for-unibyte))
+        (if (coding-system-get coding :for-unibyte)
             (with-current-buffer buffer
               (set-buffer-multibyte nil)))
         (widen)
@@ -1109,7 +1116,7 @@ for this to be permanent."
 	(save-excursion
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (if (looking-at "D")
+	    (if (= (following-char) ?D)
 		(progn (tar-expunge-internal)
 		       (setq n (1+ n)))
 		(forward-line 1)))

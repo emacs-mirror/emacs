@@ -1,6 +1,6 @@
 @c -*-coding: utf-8-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2015 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
 @node Introduction
@@ -9,7 +9,7 @@
   Most of the GNU Emacs text editor is written in the programming
 language called Emacs Lisp.  You can write new code in Emacs Lisp and
 install it as an extension to the editor.  However, Emacs Lisp is more
-than a mere ``extension language''; it is a full computer programming
+than a mere extension language; it is a full computer programming
 language in its own right.  You can use it as you would any other
 programming language.
 
@@ -148,8 +148,8 @@ manual.  You may want to skip this section and refer back to it later.
 printer'' refer to those routines in Lisp that convert textual
 representations of Lisp objects into actual Lisp objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
-person reading this manual, are thought of as ``the programmer'' and are
-addressed as ``you''.  ``The user'' is the person who uses Lisp
+person reading this manual, are thought of as the programmer and are
+addressed as ``you''.  The user is the person who uses Lisp
 programs, including those you write.
 
 @cindex typographic conventions
@@ -191,7 +191,7 @@ in Lisp programs also.
   In contexts where a truth value is expected, any non-@code{nil} value
 is considered to be @var{true}.  However, @code{t} is the preferred way
 to represent the truth value @var{true}.  When you need to choose a
-value which represents @var{true}, and there is no other basis for
+value that represents @var{true}, and there is no other basis for
 choosing, use @code{t}.  The symbol @code{t} always has the value
 @code{t}.
 
@@ -287,7 +287,7 @@ the echo area.
 @cindex buffer text notation
 
   Some examples describe modifications to the contents of a buffer, by
-showing the ``before'' and ``after'' versions of the text.  These
+showing the before and after versions of the text.  These
 examples show the contents of the buffer in question between two lines
 of dashes containing the buffer name.  In addition, @samp{@point{}}
 indicates the location of point.  (The symbol for point, of course, is
@@ -480,8 +480,8 @@ running.  It is useful to include this string in bug reports.
 @smallexample
 @group
 (emacs-version)
-  @result{} "GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.16)
-             of 2015-06-01"
+  @result{} "GNU Emacs 26.1 (build 1, x86_64-unknown-linux-gnu,
+             GTK+ Version 3.16) of 2017-06-01"
 @end group
 @end smallexample
 
@@ -494,7 +494,8 @@ giving a prefix argument makes @var{here} non-@code{nil}.
 @defvar emacs-build-time
 The value of this variable indicates the time at which Emacs was
 built.  It is a list of four integers, like the value of
-@code{current-time} (@pxref{Time of Day}).
+@code{current-time} (@pxref{Time of Day}), or is @code{nil}
+if the information is not available.
 
 @example
 @group
@@ -506,11 +507,11 @@ emacs-build-time
 
 @defvar emacs-version
 The value of this variable is the version of Emacs being run.  It is a
-string such as @code{"23.1.1"}.  The last number in this string is not
-really part of the Emacs release version number; it is incremented
-each time Emacs is built in any given directory.  A value with four
-numeric components, such as @code{"22.0.91.1"}, indicates an
-unreleased test version.
+string such as @code{"26.1"}.  A value with three numeric components,
+such as @code{"26.0.91"}, indicates an unreleased test version.
+(Prior to Emacs 26.1, the string includes an extra final component
+with the integer that is now stored in @code{emacs-build-number};
+e.g., @code{"25.1.1"}.)
 @end defvar
 
 @defvar emacs-major-version
@@ -521,6 +522,12 @@ The major version number of Emacs, as an integer.  For Emacs version
 @defvar emacs-minor-version
 The minor version number of Emacs, as an integer.  For Emacs version
 23.1, the value is 1.
+@end defvar
+
+@defvar emacs-build-number
+An integer that increments each time Emacs is built in the same
+directory (without cleaning).  This is only of relevance when
+developing Emacs.
 @end defvar
 
 @node Acknowledgments

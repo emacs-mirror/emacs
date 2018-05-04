@@ -1,6 +1,6 @@
-;;; color.el --- Color manipulation library -*- coding: utf-8; lexical-binding:t -*-
+;;; color.el --- Color manipulation library -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,7 +42,7 @@
 (defun color-name-to-rgb (color &optional frame)
   "Convert COLOR string to a list of normalized RGB components.
 COLOR should be a color name (e.g. \"white\") or an RGB triplet
-string (e.g. \"#ff12ec\").
+string (e.g. \"#ffff1122eecc\").
 
 Normally the return value is a list of three floating-point
 numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
@@ -52,19 +52,24 @@ displayed.  If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, return nil."
   ;; `colors-values' maximum value is either 65535 or 65280 depending on the
   ;; display system.  So we use a white conversion to get the max value.
-  (let ((valmax (float (car (color-values "#ffffff")))))
+  (let ((valmax (float (car (color-values "#ffffffffffff")))))
     (mapcar (lambda (x) (/ x valmax)) (color-values color frame))))
 
-(defun color-rgb-to-hex  (red green blue)
-  "Return hexadecimal notation for the color RED GREEN BLUE.
-RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive."
-  (format "#%02x%02x%02x"
-          (* red 255) (* green 255) (* blue 255)))
+(defun color-rgb-to-hex  (red green blue &optional digits-per-component)
+  "Return hexadecimal #RGB notation for the color specified by RED GREEN BLUE.
+RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive.
+Optional argument DIGITS-PER-COMPONENT can be either 4 (the default)
+or 2; use the latter if you need a 24-bit specification of a color."
+  (or digits-per-component (setq digits-per-component 4))
+  (let* ((maxval (if (= digits-per-component 2) 255 65535))
+         (fmt (if (= digits-per-component 2) "#%02x%02x%02x" "#%04x%04x%04x")))
+    (format fmt (* red maxval) (* green maxval) (* blue maxval))))
 
 (defun color-complement (color-name)
   "Return the color that is the complement of COLOR-NAME.
 COLOR-NAME should be a string naming a color (e.g. \"white\"), or
-a string specifying a color's RGB components (e.g. \"#ff12ec\")."
+a string specifying a color's RGB
+components (e.g. \"#ffff1212ecec\")."
   (let ((color (color-name-to-rgb color-name)))
     (list (- 1.0 (nth 0 color))
           (- 1.0 (nth 1 color))
@@ -78,9 +83,10 @@ resulting list."
   (let* ((r (nth 0 start))
 	 (g (nth 1 start))
 	 (b (nth 2 start))
-	 (r-step (/ (- (nth 0 stop) r) (1+ step-number)))
-	 (g-step (/ (- (nth 1 stop) g) (1+ step-number)))
-	 (b-step (/ (- (nth 2 stop) b) (1+ step-number)))
+         (interval (float (1+ step-number)))
+	 (r-step (/ (- (nth 0 stop) r) interval))
+	 (g-step (/ (- (nth 1 stop) g) interval))
+	 (b-step (/ (- (nth 2 stop) b) interval))
 	 result)
     (dotimes (_ step-number)
       (push (list (setq r (+ r r-step))
@@ -93,7 +99,7 @@ resulting list."
   "Compute hue from V1 and V2 H.
 Used internally by `color-hsl-to-rgb'."
   (cond
-   ((< h (/ 1.0 6))   (+ v1 (* (- v2 v1) h 6.0)))
+   ((< h (/ 6.0))     (+ v1 (* (- v2 v1) h 6.0)))
    ((< h 0.5)         v2)
    ((< h (/ 2.0 3))   (+ v1 (* (- v2 v1) (- (/ 2.0 3) h) 6.0)))
    (t                 v1)))
@@ -110,9 +116,9 @@ inclusive."
 		 (- (+ L S) (* L S))))
 	   (m1 (- (* 2.0 L) m2)))
       (list
-       (color-hue-to-rgb m1 m2 (mod (+ H (/ 1.0 3)) 1))
+       (color-hue-to-rgb m1 m2 (mod (+ H (/ 3.0)) 1))
        (color-hue-to-rgb m1 m2 H)
-       (color-hue-to-rgb m1 m2 (mod (- H (/ 1.0 3)) 1))))))
+       (color-hue-to-rgb m1 m2 (mod (- H (/ 3.0)) 1))))))
 
 (defun color-complement-hex (color)
   "Return the color that is the complement of COLOR, in hexadecimal format."
@@ -173,7 +179,8 @@ each element is between 0.0 and 1.0, inclusive."
 		    ((= r max)      (- bc gc))
 		    ((= g max)      (+ 2.0 rc (- bc)))
 		    (t              (+ 4.0 gc (- rc))))
-		   6.0) 1.0)))
+		   6.0)
+                  1.0)))
 	(list h s l)))))
 
 (defun color-srgb-to-xyz (red green blue)
@@ -199,16 +206,25 @@ RED, GREEN and BLUE should be between 0.0 and 1.0, inclusive."
         (b (+ (* 0.0556434 X) (* -0.2040259 Y) (* 1.0572252 Z))))
     (list (if (<= r 0.0031308)
               (* 12.92 r)
-            (- (* 1.055 (expt r (/ 1 2.4))) 0.055))
+            (- (* 1.055 (expt r (/ 2.4))) 0.055))
           (if (<= g 0.0031308)
               (* 12.92 g)
-            (- (* 1.055 (expt g (/ 1 2.4))) 0.055))
+            (- (* 1.055 (expt g (/ 2.4))) 0.055))
           (if (<= b 0.0031308)
               (* 12.92 b)
-            (- (* 1.055 (expt b (/ 1 2.4))) 0.055)))))
+            (- (* 1.055 (expt b (/ 2.4))) 0.055)))))
+
+(defconst color-d75-xyz '(0.9497 1.0 1.2264)
+  "D75 white point in CIE XYZ.")
 
 (defconst color-d65-xyz '(0.950455 1.0 1.088753)
   "D65 white point in CIE XYZ.")
+
+(defconst color-d55-xyz '(0.9568 1.0 0.9215)
+  "D55 white point in CIE XYZ.")
+
+(defconst color-d50-xyz '(0.9642 1.0 0.8249)
+  "D50 white point in CIE XYZ.")
 
 (defconst color-cie-ε (/ 216 24389.0))
 (defconst color-cie-κ (/ 24389 27.0))
@@ -222,13 +238,13 @@ conversion.  If omitted or nil, use `color-d65-xyz'."
              (yr (/ Y Yr))
              (zr (/ Z Zr))
              (fx (if (> xr color-cie-ε)
-                     (expt xr (/ 1 3.0))
+                     (expt xr (/ 3.0))
                    (/ (+ (* color-cie-κ xr) 16) 116.0)))
              (fy (if (> yr color-cie-ε)
-                     (expt yr (/ 1 3.0))
+                     (expt yr (/ 3.0))
                    (/ (+ (* color-cie-κ yr) 16) 116.0)))
              (fz (if (> zr color-cie-ε)
-                     (expt zr (/ 1 3.0))
+                     (expt zr (/ 3.0))
                    (/ (+ (* color-cie-κ zr) 16) 116.0))))
         (list
          (- (* 116 fy) 16)                  ; L
@@ -263,6 +279,24 @@ conversion.  If omitted or nil, use `color-d65-xyz'."
 (defun color-lab-to-srgb (L a b)
   "Convert CIE L*a*b* to RGB."
   (apply 'color-xyz-to-srgb (color-lab-to-xyz L a b)))
+
+(defun color-xyz-to-xyy (X Y Z)
+  "Convert CIE XYZ to xyY."
+  (let ((d (float (+ X Y Z))))
+    (list (/ X d) (/ Y d) Y)))
+
+(defun color-xyy-to-xyz (x y Y)
+  "Convert CIE xyY to XYZ."
+  (let ((y (float y)))
+   (list (/ (* Y x) y) Y (/ (* Y (- 1 x y)) y))))
+
+(defun color-lab-to-lch (L a b)
+  "Convert CIE L*a*b* to L*C*h*"
+  (list L (sqrt (+ (* a a) (* b b))) (atan b a)))
+
+(defun color-lch-to-lab (L C h)
+  "Convert CIE L*a*b* to L*C*h*"
+  (list L (* C (cos h)) (* C (sin h))))
 
 (defun color-cie-de2000 (color1 color2 &optional kL kC kH)
   "Return the CIEDE2000 color distance between COLOR1 and COLOR2.

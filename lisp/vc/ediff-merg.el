@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -84,7 +84,7 @@ A region is considered to have been changed if it is different from the current
 default (`default-A', `default-B', `combined') and it hasn't been marked as
 `prefer-A' or `prefer-B'.
 A region is considered to have been changed also when it is marked as
-as `prefer-A', but is different from the corresponding difference region in
+`prefer-A', but is different from the corresponding difference region in
 Buffer A or if it is marked as `prefer-B' and is different from the region in
 Buffer B."
   :type 'boolean
@@ -194,7 +194,7 @@ Buffer B."
 
 (defun ediff-set-merge-mode ()
   (normal-mode t)
-  (remove-hook 'local-write-file-hooks 'ediff-set-merge-mode))
+  (remove-hook 'write-file-functions 'ediff-set-merge-mode t))
 
 
 ;; Go over all diffs starting with DIFF-NUM and copy regions into buffer C
@@ -281,7 +281,7 @@ With a prefix argument, returns window C to its normal size.
 Used only for merging jobs."
   (interactive "P")
   (if (not ediff-merge-job)
-      (error "ediff-shrink-window-C can be used only for merging jobs"))
+      (user-error "ediff-shrink-window-C can be used only for merging jobs"))
   (cond ((eq arg '-) (setq arg -1))
 	((not (numberp arg)) (setq arg nil)))
   (cond ((null arg)

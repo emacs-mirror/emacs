@@ -1,14 +1,14 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2015 Free Software
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -480,11 +480,7 @@ x_set_title (struct frame *f, Lisp_Object name)
 #endif /* !HAVE_X_WINDOWS */
 
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
-       doc: /* Return storage information about the file system FILENAME is on.
-Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
-storage of the file system, FREE is the free storage, and AVAIL is the
-storage available to a non-superuser.  All 3 numbers are in bytes.
-If the underlying system call fails, value is nil.  */)
+       doc: /* SKIP: real doc in fileio.c.  */)
   (Lisp_Object filename)
 {
   struct statfs stfs;

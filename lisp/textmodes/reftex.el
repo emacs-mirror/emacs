@@ -1,5 +1,5 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (C) 1997-2000, 2003-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,13 +36,13 @@
 ;;
 ;; The documentation in various formats is also available at
 ;;
-;;     http://www.gnu.org/software/auctex/manual/reftex.index.html
+;;     https://www.gnu.org/software/auctex/manual/reftex.index.html
 ;;
 ;; RefTeX is bundled with Emacs and available as a plug-in package for
 ;; XEmacs 21.x.  If you need to install it yourself, you can find a
 ;; distribution at
 ;;
-;;    http://www.gnu.org/software/auctex/reftex.html
+;;    https://www.gnu.org/software/auctex/reftex.html
 ;;
 ;; RefTeX was written by Carsten Dominik <dominik@science.uva.nl> with
 ;; contributions from Stephen Eglen.  It is currently maintained by
@@ -50,7 +50,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Stuff that needs to be there when we use defcustom
 (require 'custom)
@@ -70,7 +70,8 @@
 (require 'reftex-vars)
 
 
-;;; Autoloads - see end for automatic autoloads
+;;; Autoloads to ensure loading of support files when necessary
+(require 'reftex-loaddefs)
 
 ;; We autoload tons of functions from these files, but some have
 ;; a single function that needs to be globally autoloaded.
@@ -99,7 +100,42 @@
 (defconst reftex-version emacs-version
   "Version string for RefTeX.")
 
-(defvar reftex-mode-map (make-sparse-keymap)
+(defvar reftex-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; The default bindings in the mode map.
+    (define-key map "\C-c=" 'reftex-toc)
+    (define-key map "\C-c-" 'reftex-toc-recenter)
+    (define-key map "\C-c(" 'reftex-label)
+    (define-key map "\C-c)" 'reftex-reference)
+    (define-key map "\C-c[" 'reftex-citation)
+    (define-key map "\C-c<" 'reftex-index)
+    (define-key map "\C-c>" 'reftex-display-index)
+    (define-key map "\C-c/" 'reftex-index-selection-or-word)
+    (define-key map "\C-c\\" 'reftex-index-phrase-selection-or-word)
+    (define-key map "\C-c|" 'reftex-index-visit-phrases-buffer)
+    (define-key map "\C-c&" 'reftex-view-crossref)
+
+    ;; Bind `reftex-mouse-view-crossref' only when the key is still free
+    (if (featurep 'xemacs)
+        (unless (key-binding [(shift button2)])
+          (define-key map [(shift button2)] 'reftex-mouse-view-crossref))
+      (unless (key-binding [(shift mouse-2)])
+        (define-key map [(shift mouse-2)] 'reftex-mouse-view-crossref)))
+
+    ;; For most of these commands there are already bindings in place.
+    ;; Setting `reftex-extra-bindings' really is only there to spare users
+    ;; the hassle of defining bindings in the user space themselves.  This
+    ;; is why they violate the key binding recommendations.
+    (when reftex-extra-bindings
+      (define-key map "\C-ct" 'reftex-toc)
+      (define-key map "\C-cl" 'reftex-label)
+      (define-key map "\C-cr" 'reftex-reference)
+      (define-key map "\C-cc" 'reftex-citation)
+      (define-key map "\C-cv" 'reftex-view-crossref)
+      (define-key map "\C-cg" 'reftex-grep-document)
+      (define-key map "\C-cs" 'reftex-search-document))
+
+    map)
   "Keymap for RefTeX mode.")
 
 (defvar reftex-mode-menu nil)
@@ -254,7 +290,7 @@ on the menu bar.
 
 (defun reftex-next-multifile-index ()
   ;; Return the next free index for multifile symbols.
-  (incf reftex-multifile-index))
+  (cl-incf reftex-multifile-index))
 
 (defun reftex-tie-multifile-symbols ()
   "Tie the buffer-local symbols to globals connected with the master file.
@@ -306,12 +342,28 @@ If the symbols for the current master file do not exist, they are created."
   (let
       ((master
         (cond
-         ((fboundp 'TeX-master-file) ; AUCTeX is loaded.  Use its mechanism.
+	 ;; Test if we're in a subfile using the subfiles document
+	 ;; class, e.g., \documentclass[main.tex]{subfiles}.  It's
+	 ;; argument is the main file, however it's not really the
+	 ;; master file in `TeX-master-file' or `tex-main-file's
+	 ;; sense.  It should be used for references but not for
+	 ;; compilation, thus subfiles use a setting of
+	 ;; `TeX-master'/`tex-main-file' being themselves.
+	 ((save-excursion
+            (goto-char (point-min))
+            (re-search-forward
+             "^[[:space:]]*\\\\documentclass\\[\\([^]]+\\)\\]{subfiles}"
+             nil t))
+          (match-string-no-properties 1))
+         ;; AUCTeX is loaded.  Use its mechanism.
+         ((fboundp 'TeX-master-file)
           (condition-case nil
               (TeX-master-file t)
             (error (buffer-file-name))))
-         ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
-         ((boundp 'TeX-master)       ; The variable is defined - let's use it.
+         ;; Emacs LaTeX mode
+         ((fboundp 'tex-main-file) (tex-main-file))
+         ;; Check the `TeX-master' variable.
+         ((boundp 'TeX-master)
           (cond
            ((eq TeX-master t)
             (buffer-file-name))
@@ -322,6 +374,7 @@ If the symbols for the current master file do not exist, they are created."
            (t
             (setq TeX-master (read-file-name "Master file: "
                                              nil nil t nil)))))
+         ;; Check the `tex-main-file' variable.
          ((boundp 'tex-main-file)
           ;; This is the variable from the default TeX modes.
           (cond
@@ -331,8 +384,9 @@ If the symbols for the current master file do not exist, they are created."
            (t
             ;; In this case, the buffer is its own master.
             (buffer-file-name))))
+         ;; We know nothing about master file.  Assume this is a
+         ;; master file.
          (t
-          ;; Know nothing about master file.  Assume this is a master file.
           (buffer-file-name)))))
     (cond
      ((null master)
@@ -425,7 +479,7 @@ will deactivate it."
 	     (unless (member style list)
 	       (setq reftex-tables-dirty t
 		     changed t)
-	       (add-to-list 'list style t)))
+               (setq list (append list (list style)))))
 	    ((eq action 'deactivate)
 	     (when (member style list)
 	       (setq reftex-tables-dirty t
@@ -434,7 +488,7 @@ will deactivate it."
 	    (t
 	     (if (member style list)
 		 (delete style list)
-	       (add-to-list 'list style t))
+	       (setq list (append list (list style))))
 	     (setq reftex-tables-dirty t
 		   changed t)))
       (when changed
@@ -640,9 +694,9 @@ on next use."
   (interactive)
 
   ;; Reset the file search path variables
-  (loop for prop in '(status master-dir recursive-path rec-type) do
-        (put 'reftex-tex-path prop nil)
-        (put 'reftex-bib-path prop nil))
+  (dolist (prop '(status master-dir recursive-path rec-type))
+    (put 'reftex-tex-path prop nil)
+    (put 'reftex-bib-path prop nil))
 
   ;; Kill temporary buffers associated with RefTeX - just in case they
   ;; were not cleaned up properly
@@ -777,15 +831,15 @@ This enforces rescanning the buffer on next use."
               reffmt (nth 1 fmt))
         ;; Note a new typekey
         (if typekey
-            (add-to-list 'reftex-typekey-list typekey))
+            (cl-pushnew typekey reftex-typekey-list :test #'equal))
         (if (and typekey prefix
                  (not (assoc prefix reftex-prefix-to-typekey-alist)))
-            (add-to-list 'reftex-prefix-to-typekey-alist
-                         (cons prefix typekey)))
+            (cl-pushnew (cons prefix typekey) reftex-prefix-to-typekey-alist
+                        :test #'equal))
         (if (and typekey prefix
                  (not (assoc typekey reftex-typekey-to-prefix-alist)))
-            (add-to-list 'reftex-typekey-to-prefix-alist
-                         (cons typekey prefix)))
+            (cl-pushnew (cons typekey prefix) reftex-typekey-to-prefix-alist
+                        :test #'equal))
         ;; Check if this is a macro or environment
         (cond
          ((symbolp env-or-mac)
@@ -794,17 +848,17 @@ This enforces rescanning the buffer on next use."
             (message "Warning: %s does not seem to be a valid function"
                      env-or-mac))
           (setq nargs nil nlabel nil opt-args nil)
-          (add-to-list 'reftex-special-env-parsers env-or-mac)
+          (cl-pushnew env-or-mac reftex-special-env-parsers)
           (setq env-or-mac (symbol-name env-or-mac)))
          ((string-match "\\`\\\\" env-or-mac)
           ;; It's a macro
           (let ((result (reftex-parse-args env-or-mac)))
-            (setq env-or-mac (or (first result) env-or-mac)
-                  nargs (second result)
-                  nlabel (third result)
-                  opt-args (fourth result))
-            (if nlabel (add-to-list 'macros-with-labels env-or-mac)))
-          (if typekey (add-to-list 'reftex-label-mac-list env-or-mac)))
+            (setq env-or-mac (or (cl-first result) env-or-mac)
+                  nargs (cl-second result)
+                  nlabel (cl-third result)
+                  opt-args (cl-fourth result))
+            (if nlabel (cl-pushnew env-or-mac macros-with-labels :test #'equal)))
+          (if typekey (cl-pushnew env-or-mac reftex-label-mac-list :test #'equal)))
          (t
           ;; It's an environment
           (setq nargs nil nlabel nil opt-args nil)
@@ -812,7 +866,7 @@ This enforces rescanning the buffer on next use."
                 ((string= env-or-mac ""))
                 ((string= env-or-mac "section"))
                 (t
-                 (add-to-list 'reftex-label-env-list env-or-mac)
+                 (cl-pushnew env-or-mac reftex-label-env-list :test #'equal)
                  (if toc-level
                      (let ((string (format "begin{%s}" env-or-mac)))
                        (or (assoc string toc-levels)
@@ -896,7 +950,7 @@ This enforces rescanning the buffer on next use."
                          (not (member (aref fmt i) '(?%))))
                (setq word (concat word "\\|" (regexp-quote
                                               (substring fmt 0 (1+ i)))))
-               (incf i))
+               (cl-incf i))
              (cons (concat word "\\)\\=") typekey))
            (nreverse reftex-words-to-typekey-alist)))
 
@@ -922,10 +976,10 @@ This enforces rescanning the buffer on next use."
                          (t t))
             all-index (cdr all-index))
       (let ((result (reftex-parse-args macro)))
-        (setq macro (or (first result) macro)
-              nargs (second result)
-              nindex (third result)
-              opt-args (fourth result))
+        (setq macro (or (cl-first result) macro)
+              nargs (cl-second result)
+              nindex (cl-third result)
+              opt-args (cl-fourth result))
         (unless (member macro reftex-macros-with-index)
           ;;           0     1    2      3     4     5       6        7
           (push (list macro tag prefix verify nargs nindex opt-args repeat)
@@ -949,7 +1003,7 @@ This enforces rescanning the buffer on next use."
            (mapconcat
             (lambda(x)
               (format "[%c] %-20.20s%s" (car x) (nth 1 x)
-                      (if (= 0 (mod (incf i) 3)) "\n" "")))
+                      (if (= 0 (mod (cl-incf i) 3)) "\n" "")))
             reftex-key-to-index-macro-alist "")))
 
     ;; Make the full list of section levels
@@ -961,8 +1015,8 @@ This enforces rescanning the buffer on next use."
     ;; Calculate the regular expressions
     (let* (
 ;          (wbol "\\(\\`\\|[\n\r]\\)[ \t]*")
-           (wbol "\\(^\\)[ \t]*") ; Need to keep the empty group because
-                                  ; match numbers are hard coded
+           (wbol "\\(^\\)%?[ \t]*") ; Need to keep the empty group because
+                                    ; match numbers are hard coded
            (label-re (concat "\\(?:"
 			     (mapconcat 'identity reftex-label-regexps "\\|")
 			     "\\)"))
@@ -1039,7 +1093,7 @@ This enforces rescanning the buffer on next use."
               (args (substring macro (match-beginning 0)))
               opt-list nlabel (cnt 0))
           (while (string-match "\\`[[{]\\(\\*\\)?[]}]" args)
-            (incf cnt)
+            (cl-incf cnt)
             (when (eq ?\[ (string-to-char args))
               (push cnt opt-list))
             (when (and (match-end 1)
@@ -1104,7 +1158,7 @@ This enforces rescanning the buffer on next use."
 
 (defun reftex-silence-toc-markers (list n)
   ;; Set all toc markers in the first N entries in list to nil
-  (while (and list (> (decf n) -1))
+  (while (and list (> (cl-decf n) -1))
     (and (eq (car (car list)) 'toc)
          (markerp (nth 4 (car list)))
          (set-marker (nth 4 (car list)) nil))
@@ -1235,7 +1289,7 @@ Valid actions are: readable, restore, read, kill, write."
                   "SELECT EXTERNAL DOCUMENT\n------------------------\n"
                   (mapconcat
                    (lambda (x)
-                     (format fmt (incf n) (or (car x) "")
+                     (format fmt (cl-incf n) (or (car x) "")
                              (abbreviate-file-name (cdr x))))
                    xr-alist ""))
                  nil t))
@@ -1442,7 +1496,8 @@ When DIE is non-nil, throw an error if file not found."
   (and n (setq conf-variable (nth n conf-variable)))
   (or (eq conf-variable t)
       (and (stringp conf-variable)
-           (string-match (concat "[" conf-variable "]") typekey))))
+           (let ((case-fold-search nil))
+             (string-match (concat "[" conf-variable "]") typekey)))))
 
 (defun reftex-check-recursive-edit ()
   ;; Check if we are already in a recursive edit.  Abort with helpful
@@ -1705,7 +1760,7 @@ When DIE is non-nil, throw an error if file not found."
 (defvar message-stack)
 (if (and (featurep 'xemacs)
          (not (fboundp 'current-message)))
-    (defun current-message (&optional frame)
+    (defun current-message (&optional _frame)
       (cdr (car message-stack))))
 
 (defun reftex-visited-files (list)
@@ -1739,11 +1794,11 @@ When DIE is non-nil, throw an error if file not found."
              ;;       with limited Magic
 
              ;; The magic goes away
-             (letf ((format-alist nil)
-                    (auto-mode-alist (reftex-auto-mode-alist))
-                    ((default-value 'major-mode) 'fundamental-mode)
-                    (enable-local-variables nil)
-                    (after-insert-file-functions nil))
+             (cl-letf ((format-alist nil)
+                       (auto-mode-alist (reftex-auto-mode-alist))
+                       ((default-value 'major-mode) 'fundamental-mode)
+                       (enable-local-variables nil)
+                       (after-insert-file-functions nil))
                (setq buf (find-file-noselect file)))
 
              ;; Is there a hook to run?
@@ -1753,7 +1808,7 @@ When DIE is non-nil, throw an error if file not found."
 
            ;; Let's see if we got a license to kill :-|
            (and mark-to-kill
-                (add-to-list 'reftex-buffers-to-kill buf))
+                (cl-pushnew buf reftex-buffers-to-kill))
 
            ;; Return the new buffer
            buf)
@@ -2047,7 +2102,7 @@ IGNORE-WORDS List of words which should be removed from the string."
             (message "Sorry: cannot refontify RefTeX Select buffer."))))
       (rename-buffer oldname))))
 
-(defun reftex-select-font-lock-fontify-region (beg end &optional loudly)
+(defun reftex-select-font-lock-fontify-region (beg end &optional _loudly)
   ;; Fontify a region, but only lines starting with a dot.
   (let ((func (if (fboundp 'font-lock-default-fontify-region)
                   'font-lock-default-fontify-region
@@ -2059,7 +2114,7 @@ IGNORE-WORDS List of words which should be removed from the string."
       (funcall func beg1 end1 nil)
       (goto-char end1))))
 
-(defun reftex-select-font-lock-unfontify (&rest ignore) t)
+(defun reftex-select-font-lock-unfontify (&rest _ignore) t)
 
 (defun reftex-verified-face (&rest faces)
   ;; Return the first valid face in FACES, or nil if none is valid.
@@ -2115,51 +2170,12 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;;;
 ;;; Keybindings
 
-;; The default bindings in the mode map.
-(loop for x in
-      '(("\C-c="  . reftex-toc)
-        ("\C-c-"  . reftex-toc-recenter)
-        ("\C-c("  . reftex-label)
-        ("\C-c)"  . reftex-reference)
-        ("\C-c["  . reftex-citation)
-        ("\C-c<"  . reftex-index)
-        ("\C-c>"  . reftex-display-index)
-        ("\C-c/"  . reftex-index-selection-or-word)
-        ("\C-c\\" . reftex-index-phrase-selection-or-word)
-        ("\C-c|"  . reftex-index-visit-phrases-buffer)
-        ("\C-c&"  . reftex-view-crossref))
-      do (define-key reftex-mode-map (car x) (cdr x)))
-
-;; Bind `reftex-mouse-view-crossref' only when the key is still free
-(if (featurep 'xemacs)
-    (unless (key-binding [(shift button2)])
-      (define-key reftex-mode-map [(shift button2)]
-        'reftex-mouse-view-crossref))
-  (unless (key-binding [(shift mouse-2)])
-    (define-key reftex-mode-map [(shift mouse-2)]
-      'reftex-mouse-view-crossref)))
-
 (defvar bibtex-mode-map)
 
 ;; Bind `reftex-view-crossref-from-bibtex' in BibTeX mode map
 (eval-after-load
  "bibtex"
  '(define-key bibtex-mode-map "\C-c&" 'reftex-view-crossref-from-bibtex))
-
-;; For most of these commands there are already bindings in place.
-;; Setting `reftex-extra-bindings' really is only there to spare users
-;; the hassle of defining bindings in the user space themselves.  This
-;; is why they violate the key binding recommendations.
-(when reftex-extra-bindings
-  (loop for x in
-        '(("\C-ct" . reftex-toc)
-          ("\C-cl" . reftex-label)
-          ("\C-cr" . reftex-reference)
-          ("\C-cc" . reftex-citation)
-          ("\C-cv" . reftex-view-crossref)
-          ("\C-cg" . reftex-grep-document)
-          ("\C-cs" . reftex-search-document))
-        do (define-key reftex-mode-map (car x) (cdr x))))
 
 ;;; =========================================================================
 ;;;
@@ -2250,7 +2266,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 		      :style 'toggle
 		      :selected `(member ,elt (reftex-ref-style-list))))
 	  (unless (member item list)
-	    (add-to-list 'list item t)))
+            (setq list (append list (list item)))))
 	list))
    ("Citation Style"
     ,@(mapcar
@@ -2341,6 +2357,7 @@ output buffer into your mail program, as it gives us important
 information about your RefTeX version and configuration."
   (interactive)
   (require 'reporter)
+  (defvar reporter-prompt-for-summary-p)
   (let ((reporter-prompt-for-summary-p "Bug report subject: "))
     (reporter-submit-bug-report
      "bug-auctex@gnu.org, bug-gnu-emacs@gnu.org"
@@ -2352,9 +2369,9 @@ information about your RefTeX version and configuration."
 what in fact did happen.
 
 Check if the bug is reproducible with an up-to-date version of
-RefTeX available from http://www.gnu.org/software/auctex/.
+RefTeX available from https://www.gnu.org/software/auctex/.
 
-If the bug is triggered by a specific \(La\)TeX file, you should try
+If the bug is triggered by a specific \(La)TeX file, you should try
 to produce a minimal sample file showing the problem and include it
 in your report.
 
@@ -2374,702 +2391,6 @@ Your bug report will be posted to the AUCTeX bug reporting list.
 ;;; That's it! ----------------------------------------------------------------
 
 (setq reftex-tables-dirty t)  ; in case this file is evaluated by hand
-
-
-;;; Start of automatically extracted autoloads.
-
-;;;### (autoloads nil "reftex-auc" "reftex-auc.el" "cf606f7918831321cb46f254436dc66e")
-;;; Generated autoloads from reftex-auc.el
-
-(autoload 'reftex-arg-label "reftex-auc" "\
-Use `reftex-label', `reftex-reference' or AUCTeX's code to insert label arg.
-What is being used depends upon `reftex-plug-into-AUCTeX'.
-
-\(fn OPTIONAL &optional PROMPT DEFINITION)" nil nil)
-
-(autoload 'reftex-arg-cite "reftex-auc" "\
-Use `reftex-citation' or AUCTeX's code to insert a cite-key macro argument.
-What is being used depends upon `reftex-plug-into-AUCTeX'.
-
-\(fn OPTIONAL &optional PROMPT DEFINITION)" nil nil)
-
-(autoload 'reftex-arg-index-tag "reftex-auc" "\
-Prompt for an index tag with completion.
-This is the name of an index, not the entry.
-
-\(fn OPTIONAL &optional PROMPT &rest ARGS)" nil nil)
-
-(autoload 'reftex-arg-index "reftex-auc" "\
-Prompt for an index entry completing with known entries.
-Completion is specific for just one index, if the macro or a tag
-argument identify one of multiple indices.
-
-\(fn OPTIONAL &optional PROMPT &rest ARGS)" nil nil)
-
-(autoload 'reftex-plug-into-AUCTeX "reftex-auc" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'reftex-toggle-plug-into-AUCTeX "reftex-auc" "\
-Toggle Interface between AUCTeX and RefTeX on and off.
-
-\(fn)" t nil)
-
-(autoload 'reftex-add-label-environments "reftex-auc" "\
-Add label environment descriptions to `reftex-label-alist-style'.
-The format of ENTRY-LIST is exactly like `reftex-label-alist'.  See there
-for details.
-This function makes it possible to support RefTeX from AUCTeX style files.
-The entries in ENTRY-LIST will be processed after the user settings in
-`reftex-label-alist', and before the defaults (specified in
-`reftex-default-label-alist-entries').  Any changes made to
-`reftex-label-alist-style' will raise a flag to the effect that
-the label information is recompiled on next use.
-
-\(fn ENTRY-LIST)" nil nil)
-
-(defalias 'reftex-add-to-label-alist 'reftex-add-label-environments)
-
-(autoload 'reftex-add-section-levels "reftex-auc" "\
-Add entries to the value of `reftex-section-levels'.
-The added values are kept local to the current document.  The format
-of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
-`reftex-section-levels' for an example.
-
-\(fn ENTRY-LIST)" nil nil)
-
-(autoload 'reftex-notice-new-section "reftex-auc" "\
-
-
-\(fn)" nil nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-cite" "reftex-cite.el" "83811ccf3471820f0ad0dc005ffc88d5")
-;;; Generated autoloads from reftex-cite.el
-
-(autoload 'reftex-default-bibliography "reftex-cite" "\
-Return the expanded value of variable `reftex-default-bibliography'.
-The expanded value is cached.
-
-\(fn)" nil nil)
-
-(autoload 'reftex-bib-or-thebib "reftex-cite" "\
-Test if BibTeX or egin{thebibliography} should be used for the citation.
-Find the bof of the current file
-
-\(fn)" nil nil)
-
-(autoload 'reftex-get-bibfile-list "reftex-cite" "\
-Return list of bibfiles for current document.
-When using the chapterbib or bibunits package you should either
-use the same database files everywhere, or separate parts using
-different databases into different files (included into the mater file).
-Then this function will return the applicable database files.
-
-\(fn)" nil nil)
-
-(autoload 'reftex-pop-to-bibtex-entry "reftex-cite" "\
-Find BibTeX KEY in any file in FILE-LIST in another window.
-If MARK-TO-KILL is non-nil, mark new buffer to kill.
-If HIGHLIGHT is non-nil, highlight the match.
-If ITEM in non-nil, search for bibitem instead of database entry.
-If RETURN is non-nil, just return the entry and restore point.
-
-\(fn KEY FILE-LIST &optional MARK-TO-KILL HIGHLIGHT ITEM RETURN)" nil nil)
-
-(autoload 'reftex-end-of-bib-entry "reftex-cite" "\
-
-
-\(fn ITEM)" nil nil)
-
-(autoload 'reftex-parse-bibtex-entry "reftex-cite" "\
-Parse BibTeX ENTRY.
-If ENTRY is nil then parse the entry in current buffer between FROM and TO.
-If RAW is non-nil, keep double quotes/curly braces delimiting fields.
-
-\(fn ENTRY &optional FROM TO RAW)" nil nil)
-
-(autoload 'reftex-citation "reftex-cite" "\
-Make a citation using BibTeX database files.
-After prompting for a regular expression, scans the buffers with
-bibtex entries (taken from the \\bibliography command) and offers the
-matching entries for selection.  The selected entry is formatted according
-to `reftex-cite-format' and inserted into the buffer.
-
-If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
-
-FORMAT-KEY can be used to pre-select a citation format.
-
-When called with a `C-u' prefix, prompt for optional arguments in
-cite macros.  When called with a numeric prefix, make that many
-citations.  When called with point inside the braces of a `\\cite'
-command, it will add another key, ignoring the value of
-`reftex-cite-format'.
-
-The regular expression uses an expanded syntax: && is interpreted as `and'.
-Thus, `aaaa&&bbb' matches entries which contain both `aaaa' and `bbb'.
-While entering the regexp, completion on knows citation keys is possible.
-`=' is a good regular expression to match all entries in all files.
-
-\(fn &optional NO-INSERT FORMAT-KEY)" t nil)
-
-(autoload 'reftex-citep "reftex-cite" "\
-Call `reftex-citation' with a format selector `?p'.
-
-\(fn)" t nil)
-
-(autoload 'reftex-citet "reftex-cite" "\
-Call `reftex-citation' with a format selector `?t'.
-
-\(fn)" t nil)
-
-(autoload 'reftex-make-cite-echo-string "reftex-cite" "\
-Format a bibtex ENTRY for the echo area and cache the result.
-
-\(fn ENTRY DOCSTRUCT-SYMBOL)" nil nil)
-
-(autoload 'reftex-create-bibtex-file "reftex-cite" "\
-Create a new BibTeX database BIBFILE with all entries referenced in document.
-The command prompts for a filename and writes the collected
-entries to that file.  Only entries referenced in the current
-document with any \\cite-like macros are used.  The sequence in
-the new file is the same as it was in the old database.
-
-Entries referenced from other entries must appear after all
-referencing entries.
-
-You can define strings to be used as header or footer for the
-created files in the variables `reftex-create-bibtex-header' or
-`reftex-create-bibtex-footer' respectively.
-
-\(fn BIBFILE)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-dcr" "reftex-dcr.el" "08fc5bd6c35f9d6ab4a6ad336d3769c0")
-;;; Generated autoloads from reftex-dcr.el
-
-(autoload 'reftex-view-crossref "reftex-dcr" "\
-View cross reference of macro at point.  Point must be on the KEY
-argument.  When at a `\\ref' macro, show corresponding `\\label'
-definition, also in external documents (`xr').  When on a label, show
-a locations where KEY is referenced.  Subsequent calls find additional
-locations.  When on a `\\cite', show the associated `\\bibitem' macro or
-the BibTeX database entry.  When on a `\\bibitem', show a `\\cite' macro
-which uses this KEY. When on an `\\index', show other locations marked
-by the same index entry.
-To define additional cross referencing items, use the option
-`reftex-view-crossref-extra'.  See also `reftex-view-crossref-from-bibtex'.
-With one or two C-u prefixes, enforce rescanning of the document.
-With argument 2, select the window showing the cross reference.
-AUTO-HOW is only for the automatic crossref display and is handed through
-to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'.
-
-\(fn &optional ARG AUTO-HOW FAIL-QUIETLY)" t nil)
-
-(autoload 'reftex-mouse-view-crossref "reftex-dcr" "\
-View cross reference of \\ref or \\cite macro where you click.
-If the macro at point is a \\ref, show the corresponding label definition.
-If it is a \\cite, show the BibTeX database entry.
-If there is no such macro at point, search forward to find one.
-With argument, actually select the window showing the cross reference.
-
-\(fn EV)" t nil)
-
-(autoload 'reftex-toggle-auto-view-crossref "reftex-dcr" "\
-Toggle the automatic display of crossref information in the echo area.
-When active, leaving point idle in the argument of a \\ref or \\cite macro
-will display info in the echo area.
-
-\(fn)" t nil)
-
-(autoload 'reftex-view-crossref-from-bibtex "reftex-dcr" "\
-View location in a LaTeX document which cites the BibTeX entry at point.
-Since BibTeX files can be used by many LaTeX documents, this function
-prompts upon first use for a buffer in RefTeX mode.  To reset this
-link to a document, call the function with a prefix arg.
-Calling this function several times find successive citation locations.
-
-\(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-global" "reftex-global.el" "5fdd9c2edced0882471f86baf4b4b234")
-;;; Generated autoloads from reftex-global.el
-
-(autoload 'reftex-create-tags-file "reftex-global" "\
-Create TAGS file by running `etags' on the current document.
-The TAGS file is also immediately visited with `visit-tags-table'.
-
-\(fn)" t nil)
-
-(autoload 'reftex-grep-document "reftex-global" "\
-Run grep query through all files related to this document.
-With prefix arg, force to rescan document.
-No active TAGS table is required.
-
-\(fn GREP-CMD)" t nil)
-
-(autoload 'reftex-search-document "reftex-global" "\
-Regexp search through all files of the current document.
-Starts always in the master file.  Stops when a match is found.
-To continue searching for next match, use command \\[tags-loop-continue].
-No active TAGS table is required.
-
-\(fn &optional REGEXP)" t nil)
-
-(autoload 'reftex-query-replace-document "reftex-global" "\
-Do `query-replace-regexp' of FROM with TO over the entire document.
-Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
-If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue].
-No active TAGS table is required.
-
-\(fn &optional FROM TO DELIMITED)" t nil)
-
-(autoload 'reftex-find-duplicate-labels "reftex-global" "\
-Produce a list of all duplicate labels in the document.
-
-\(fn)" t nil)
-
-(autoload 'reftex-change-label "reftex-global" "\
-Run `query-replace-regexp' of FROM with TO in all macro arguments.
-Works on the entire multifile document.
-If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
-with the command \\[tags-loop-continue].
-No active TAGS table is required.
-
-\(fn &optional FROM TO)" t nil)
-
-(autoload 'reftex-renumber-simple-labels "reftex-global" "\
-Renumber all simple labels in the document to make them sequentially.
-Simple labels are the ones created by RefTeX, consisting only of the
-prefix and a number.  After the command completes, all these labels will
-have sequential numbers throughout the document.  Any references to
-the labels will be changed as well.  For this, RefTeX looks at the
-arguments of any macros which either start or end in the string `ref'.
-This command should be used with care, in particular in multifile
-documents.  You should not use it if another document refers to this
-one with the `xr' package.
-
-\(fn)" t nil)
-
-(autoload 'reftex-save-all-document-buffers "reftex-global" "\
-Save all documents associated with the current document.
-The function is useful after a global action like replacing or renumbering
-labels.
-
-\(fn)" t nil)
-
-(autoload 'reftex-isearch-minor-mode "reftex-global" "\
-When on, isearch searches the whole document, not only the current file.
-This minor mode allows isearch to search through all the files of
-the current TeX document.
-
-With no argument, this command toggles
-`reftex-isearch-minor-mode'.  With a prefix argument ARG, turn
-`reftex-isearch-minor-mode' on if ARG is positive, otherwise turn it off.
-
-\(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-index" "reftex-index.el" "29cb6e91c2e06592053e9d543f30f0ea")
-;;; Generated autoloads from reftex-index.el
-
-(autoload 'reftex-index-selection-or-word "reftex-index" "\
-Put selection or the word near point into the default index macro.
-This uses the information in `reftex-index-default-macro' to make an index
-entry.  The phrase indexed is the current selection or the word near point.
-When called with one `C-u' prefix, let the user have a chance to edit the
-index entry.  When called with 2 `C-u' as prefix, also ask for the index
-macro and other stuff.
-When called inside TeX math mode as determined by the `texmathp.el' library
-which is part of AUCTeX, the string is first processed with the
-`reftex-index-math-format', which see.
-
-\(fn &optional ARG PHRASE)" t nil)
-
-(autoload 'reftex-index "reftex-index" "\
-Query for an index macro and insert it along with its arguments.
-The index macros available are those defined in `reftex-index-macro' or
-by a call to `reftex-add-index-macros', typically from an AUCTeX style file.
-RefteX provides completion for the index tag and the index key, and
-will prompt for other arguments.
-
-\(fn &optional CHAR KEY TAG SEL NO-INSERT)" t nil)
-
-(autoload 'reftex-index-complete-tag "reftex-index" "\
-
-
-\(fn &optional ITAG OPT-ARGS)" nil nil)
-
-(autoload 'reftex-index-select-tag "reftex-index" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'reftex-index-complete-key "reftex-index" "\
-
-
-\(fn &optional TAG OPTIONAL INITIAL)" nil nil)
-
-(autoload 'reftex-index-show-entry "reftex-index" "\
-
-
-\(fn DATA &optional NO-REVISIT)" nil nil)
-
-(autoload 'reftex-display-index "reftex-index" "\
-Display a buffer with an index compiled from the current document.
-When the document has multiple indices, first prompts for the correct one.
-When index support is turned off, offer to turn it on.
-With one or two `C-u' prefixes, rescan document first.
-With prefix 2, restrict index to current document section.
-With prefix 3, restrict index to region.
-
-\(fn &optional TAG OVERRIDING-RESTRICTION REDO &rest LOCATIONS)" t nil)
-
-(autoload 'reftex-index-phrase-selection-or-word "reftex-index" "\
-Add current selection or word at point to the phrases buffer.
-When you are in transient-mark-mode and the region is active, the
-selection will be used - otherwise the word at point.
-You get a chance to edit the entry in the phrases buffer - finish with
-`C-c C-c'.
-
-\(fn ARG)" t nil)
-
-(autoload 'reftex-index-visit-phrases-buffer "reftex-index" "\
-Switch to the phrases buffer, initialize if empty.
-
-\(fn)" t nil)
-
-(autoload 'reftex-index-phrases-mode "reftex-index" "\
-Major mode for managing the Index phrases of a LaTeX document.
-This buffer was created with RefTeX.
-
-To insert new phrases, use
- - `C-c \\' in the LaTeX document to copy selection or word
- - `\\[reftex-index-new-phrase]' in the phrases buffer.
-
-To index phrases use one of:
-
-\\[reftex-index-this-phrase]     index current phrase
-\\[reftex-index-next-phrase]     index next phrase (or N with prefix arg)
-\\[reftex-index-all-phrases]     index all phrases
-\\[reftex-index-remaining-phrases]     index current and following phrases
-\\[reftex-index-region-phrases]     index the phrases in the region
-
-You can sort the phrases in this buffer with \\[reftex-index-sort-phrases].
-To display information about the phrase at point, use \\[reftex-index-phrases-info].
-
-For more information see the RefTeX User Manual.
-
-Here are all local bindings.
-
-\\{reftex-index-phrases-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-parse" "reftex-parse.el" "c327a848a6d168412b1a9be9f2e3dce8")
-;;; Generated autoloads from reftex-parse.el
-
-(autoload 'reftex-parse-one "reftex-parse" "\
-Re-parse this file.
-
-\(fn)" t nil)
-
-(autoload 'reftex-parse-all "reftex-parse" "\
-Re-parse entire document.
-
-\(fn)" t nil)
-
-(autoload 'reftex-do-parse "reftex-parse" "\
-Do a document rescan.
-When allowed, do only a partial scan from FILE.
-
-\(fn RESCAN &optional FILE)" nil nil)
-
-(autoload 'reftex-everything-regexp "reftex-parse" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'reftex-all-document-files "reftex-parse" "\
-Return a list of all files belonging to the current document.
-When RELATIVE is non-nil, give file names relative to directory
-of master file.
-
-\(fn &optional RELATIVE)" nil nil)
-
-(autoload 'reftex-locate-bibliography-files "reftex-parse" "\
-Scan buffer for bibliography macros and return file list.
-
-\(fn MASTER-DIR &optional FILES)" nil nil)
-
-(autoload 'reftex-section-info "reftex-parse" "\
-Return a section entry for the current match.
-Careful: This function expects the match-data to be still in place!
-
-\(fn FILE)" nil nil)
-
-(autoload 'reftex-ensure-index-support "reftex-parse" "\
-When index support is turned off, ask to turn it on and
-set the current prefix argument so that `reftex-access-scan-info'
-will rescan the entire document.
-
-\(fn &optional ABORT)" nil nil)
-
-(autoload 'reftex-index-info-safe "reftex-parse" "\
-
-
-\(fn FILE)" nil nil)
-
-(autoload 'reftex-index-info "reftex-parse" "\
-Return an index entry for the current match.
-Careful: This function expects the match-data to be still in place!
-
-\(fn FILE)" nil nil)
-
-(autoload 'reftex-short-context "reftex-parse" "\
-Get about one line of useful context for the label definition at point.
-
-\(fn ENV PARSE &optional BOUND DERIVE)" nil nil)
-
-(autoload 'reftex-where-am-I "reftex-parse" "\
-Return the docstruct entry above point.
-Actually returns a cons cell in which the cdr is a flag indicating
-if the information is exact (t) or approximate (nil).
-
-\(fn)" nil nil)
-
-(autoload 'reftex-notice-new "reftex-parse" "\
-Hook to handshake with RefTeX after something new has been inserted.
-
-\(fn &optional N FORCE)" nil nil)
-
-(autoload 'reftex-what-macro-safe "reftex-parse" "\
-Call `reftex-what-macro' with special syntax table.
-
-\(fn WHICH &optional BOUND)" nil nil)
-
-(autoload 'reftex-what-macro "reftex-parse" "\
-Find out if point is within the arguments of any TeX-macro.
-The return value is either (\"\\macro\" . (point)) or a list of them.
-
-If WHICH is nil, immediately return nil.
-If WHICH is 1, return innermost enclosing macro.
-If WHICH is t, return list of all macros enclosing point.
-If WHICH is a list of macros, look only for those macros and return the
-  name of the first macro in this list found to enclose point.
-If the optional BOUND is an integer, bound backwards directed
-  searches to this point.  If it is nil, limit to nearest \\section -
-  like statement.
-
-This function is pretty stable, but can be fooled if the text contains
-things like \\macro{aa}{bb} where \\macro is defined to take only one
-argument.  As RefTeX cannot know this, the string \"bb\" would still be
-considered an argument of macro \\macro.
-
-\(fn WHICH &optional BOUND)" nil nil)
-
-(autoload 'reftex-what-environment "reftex-parse" "\
-Find out if point is inside a LaTeX environment.
-The return value is (e.g.) either (\"equation\" . (point)) or a list of
-them.
-
-If WHICH is nil, immediately return nil.
-If WHICH is 1, return innermost enclosing environment.
-If WHICH is t, return list of all environments enclosing point.
-If WHICH is a list of environments, look only for those environments and
-  return the name of the first environment in this list found to enclose
-  point.
-
-If the optional BOUND is an integer, bound backwards directed searches to
-this point.  If it is nil, limit to nearest \\section - like statement.
-
-\(fn WHICH &optional BOUND)" nil nil)
-
-(autoload 'reftex-what-special-env "reftex-parse" "\
-Run the special environment parsers and return the matches.
-
-The return value is (e.g.) either (\"my-parser-function\" . (point))
-or a list of them.
-
-If WHICH is nil, immediately return nil.
-If WHICH is 1, return innermost enclosing environment.
-If WHICH is t, return list of all environments enclosing point.
-If WHICH is a list of environments, look only for those environments and
-  return the name of the first environment in this list found to enclose
-  point.
-
-\(fn WHICH &optional BOUND)" nil nil)
-
-(autoload 'reftex-nth-arg "reftex-parse" "\
-Return the Nth following {} or [] parentheses content.
-OPT-ARGS is a list of argument numbers which are optional.
-
-\(fn N &optional OPT-ARGS)" nil nil)
-
-(autoload 'reftex-move-over-touching-args "reftex-parse" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'reftex-init-section-numbers "reftex-parse" "\
-Initialize the section numbers with zeros or with what is found in the TOC-ENTRY.
-
-\(fn &optional TOC-ENTRY APPENDIX)" nil nil)
-
-(autoload 'reftex-section-number "reftex-parse" "\
-Return a string with the current section number.
-When LEVEL is non-nil, increase section numbers on that level.
-
-\(fn &optional LEVEL STAR)" nil nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-ref" "reftex-ref.el" "86c0a243e49d55bb33a32ddac613e189")
-;;; Generated autoloads from reftex-ref.el
-
-(autoload 'reftex-label-location "reftex-ref" "\
-Return the environment or macro which determines the label type at point.
-If optional BOUND is an integer, limit backward searches to that point.
-
-\(fn &optional BOUND)" nil nil)
-
-(autoload 'reftex-label-info-update "reftex-ref" "\
-
-
-\(fn CELL)" nil nil)
-
-(autoload 'reftex-label-info "reftex-ref" "\
-
-
-\(fn LABEL &optional FILE BOUND DERIVE ENV-OR-MAC)" nil nil)
-
-(autoload 'reftex-label "reftex-ref" "\
-Insert a unique label.  Return the label.
-If ENVIRONMENT is given, don't bother to find out yourself.
-If NO-INSERT is non-nil, do not insert label into buffer.
-With prefix arg, force to rescan document first.
-When you are prompted to enter or confirm a label, and you reply with
-just the prefix or an empty string, no label at all will be inserted.
-A new label is also recorded into the label list.
-This function is controlled by the settings of reftex-insert-label-flags.
-
-\(fn &optional ENVIRONMENT NO-INSERT)" t nil)
-
-(autoload 'reftex-reference "reftex-ref" "\
-Make a LaTeX reference.  Look only for labels of a certain TYPE.
-With prefix arg, force to rescan buffer for labels.  This should only be
-necessary if you have recently entered labels yourself without using
-reftex-label.  Rescanning of the buffer can also be requested from the
-label selection menu.
-The function returns the selected label or nil.
-If NO-INSERT is non-nil, do not insert \\ref command, just return label.
-When called with 2 C-u prefix args, disable magic word recognition.
-
-\(fn &optional TYPE NO-INSERT CUT)" t nil)
-
-(autoload 'reftex-query-label-type "reftex-ref" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'reftex-show-label-location "reftex-ref" "\
-
-
-\(fn DATA FORWARD NO-REVISIT &optional STAY ERROR)" nil nil)
-
-(autoload 'reftex-goto-label "reftex-ref" "\
-Prompt for a label (with completion) and jump to the location of this label.
-Optional prefix argument OTHER-WINDOW goes to the label in another window.
-
-\(fn &optional OTHER-WINDOW)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-sel" "reftex-sel.el" "faea36cbe37033efd3f9063187eef7ee")
-;;; Generated autoloads from reftex-sel.el
-
-(autoload 'reftex-select-label-mode "reftex-sel" "\
-Major mode for selecting a label in a LaTeX document.
-This buffer was created with RefTeX.
-It only has a meaningful keymap when you are in the middle of a
-selection process.
-To select a label, move the cursor to it and press RET.
-Press `?' for a summary of important key bindings.
-
-During a selection process, these are the local bindings.
-
-\\{reftex-select-label-mode-map}
-
-\(fn)" t nil)
-
-(autoload 'reftex-select-bib-mode "reftex-sel" "\
-Major mode for selecting a citation key in a LaTeX document.
-This buffer was created with RefTeX.
-It only has a meaningful keymap when you are in the middle of a
-selection process.
-In order to select a citation, move the cursor to it and press RET.
-Press `?' for a summary of important key bindings.
-
-During a selection process, these are the local bindings.
-
-\\{reftex-select-label-mode-map}
-
-\(fn)" t nil)
-
-(autoload 'reftex-get-offset "reftex-sel" "\
-
-
-\(fn BUF HERE-AM-I &optional TYPEKEY TOC INDEX FILE)" nil nil)
-
-(autoload 'reftex-insert-docstruct "reftex-sel" "\
-
-
-\(fn BUF TOC LABELS INDEX-ENTRIES FILES CONTEXT COUNTER SHOW-COMMENTED HERE-I-AM XR-PREFIX TOC-BUFFER)" nil nil)
-
-(autoload 'reftex-find-start-point "reftex-sel" "\
-
-
-\(fn FALLBACK &rest LOCATIONS)" nil nil)
-
-(autoload 'reftex-select-item "reftex-sel" "\
-
-
-\(fn REFTEX-SELECT-PROMPT HELP-STRING KEYMAP &optional OFFSET CALL-BACK CB-FLAG)" nil nil)
-
-;;;***
-
-;;;### (autoloads nil "reftex-toc" "reftex-toc.el" "db9b727d89e2a6ff01986e7c6aff1058")
-;;; Generated autoloads from reftex-toc.el
-
-(autoload 'reftex-toc "reftex-toc" "\
-Show the table of contents for the current document.
-When called with a raw C-u prefix, rescan the document first.
-
-\(fn &optional REBUILD REUSE)" t nil)
-
-(autoload 'reftex-toc-recenter "reftex-toc" "\
-Display the TOC window and highlight line corresponding to current position.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'reftex-toggle-auto-toc-recenter "reftex-toc" "\
-Toggle the automatic recentering of the TOC window.
-When active, leaving point idle will make the TOC window jump to the correct
-section.
-
-\(fn)" t nil)
-
-;;;***
-
-;;; End of automatically extracted autoloads.
 
 (provide 'reftex)
 

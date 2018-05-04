@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993-1994, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Dave Gillespie <daveg@synaptics.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -88,20 +88,26 @@ Default nil means to write characters above \\177 in octal notation."
 (defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
-Or, type `C-x e' or RET to edit the last keyboard macro, `C-h l' to edit
-the last 300 keystrokes as a keyboard macro, or `\\[execute-extended-command]' to edit a macro by
-its command name.
+Or, type `\\[kmacro-end-and-call-macro]' or RET to edit the last
+keyboard macro, `\\[view-lossage]' to edit the last 300
+keystrokes as a keyboard macro, or `\\[execute-extended-command]'
+to edit a macro by its command name.
 With a prefix argument, format the macro in a more concise way."
-  (interactive "kKeyboard macro to edit (C-x e, M-x, C-h l, or keys): \nP")
+  (interactive
+   (list (read-key-sequence (substitute-command-keys "Keyboard macro to edit \
+\(\\[kmacro-end-and-call-macro], \\[execute-extended-command], \\[view-lossage],\
+ or keys): "))
+         current-prefix-arg))
   (when keys
     (let ((cmd (if (arrayp keys) (key-binding keys) keys))
+          (cmd-noremap (when (arrayp keys) (key-binding keys nil t)))
 	  (mac nil) (mac-counter nil) (mac-format nil)
 	  kmacro)
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
-	    ((or (memq cmd '(call-last-kbd-macro kmacro-call-macro
-			     kmacro-end-or-call-macro kmacro-end-and-call-macro))
+	    ((or (memq cmd '(call-last-kbd-macro kmacro-call-macro kmacro-end-or-call-macro kmacro-end-and-call-macro))
+                 (memq cmd-noremap '(call-last-kbd-macro kmacro-call-macro kmacro-end-or-call-macro kmacro-end-and-call-macro))
 		 (member keys '("\r" [return])))
 	     (or last-kbd-macro
 		 (y-or-n-p "No keyboard macro defined.  Create one? ")
@@ -109,13 +115,14 @@ With a prefix argument, format the macro in a more concise way."
 	     (setq mac (or last-kbd-macro ""))
 	     (setq keys nil)
 	     (setq cmd 'last-kbd-macro))
-	    ((eq cmd 'execute-extended-command)
+	    ((memq 'execute-extended-command (list cmd cmd-noremap))
 	     (setq cmd (read-command "Name of keyboard macro to edit: "))
 	     (if (string-equal cmd "")
 		 (error "No command name given"))
 	     (setq keys nil)
 	     (setq mac (symbol-function cmd)))
-	    ((memq cmd '(view-lossage electric-view-lossage))
+	    ((or (memq cmd '(view-lossage electric-view-lossage))
+                 (memq cmd-noremap '(view-lossage electric-view-lossage)))
 	     (setq mac (recent-keys))
 	     (setq keys nil)
 	     (setq cmd 'last-kbd-macro))

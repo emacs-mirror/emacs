@@ -1,6 +1,6 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996-1999, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -184,7 +184,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
            ;; if it has been specified: e.g. http://www.example.com:80 will
            ;; be transcoded as http://www.example.com
            (url-recreate-url
-            (if (vectorp url) url
+            (if (url-p url) url
               (url-generic-parse-url url)))))
 
 ;;;###autoload
@@ -206,7 +206,7 @@ If `url-standalone-mode' is non-nil, cached items never expire."
 	   (time-add
 	    cache-time
 	    (seconds-to-time (or expire-time url-cache-expire-time)))
-	   (current-time))))))
+	   nil)))))
 
 (defun url-cache-prune-cache (&optional directory)
   "Remove all expired files from the cache.

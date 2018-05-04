@@ -1,6 +1,6 @@
-;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t; coding: utf-8 -*-
+;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -103,7 +103,7 @@ each clause."
 (defun macroexp--funcall-if-compiled (_form)
   "Pseudo function used internally by macroexp to delay warnings.
 The purpose is to delay warnings to bytecomp.el, so they can use things
-like `byte-compile-log-warning' to get better file-and-line-number data
+like `byte-compile-warn' to get better file-and-line-number data
 and also to avoid outputting the warning during normal execution."
   nil)
 (put 'macroexp--funcall-if-compiled 'byte-compile
@@ -122,7 +122,7 @@ and also to avoid outputting the warning during normal execution."
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
 (defun macroexp--warn-and-return (msg form &optional compile-only)
-  (let ((when-compiled (lambda () (byte-compile-log-warning msg t))))
+  (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
     (cond
      ((null msg) form)
      ((macroexp--compiling-p)
@@ -261,7 +261,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,arg1 ,f . ,args))))
-      (`(funcall (,(or 'quote 'function) ,(and f (pred symbolp)) . ,_) . ,args)
+      (`(funcall #',(and f (pred symbolp)) . ,args)
        ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
        ;; has a compiler-macro.
        (macroexp--expand-all `(,f . ,args)))
@@ -318,37 +318,49 @@ definitions to shadow the loaded ones for use in file byte-compilation."
     (cons (nreverse decls) body)))
 
 (defun macroexp-progn (exps)
-  "Return an expression equivalent to `(progn ,@EXPS)."
+  "Return an expression equivalent to \\=`(progn ,@EXPS)."
   (if (cdr exps) `(progn ,@exps) (car exps)))
 
 (defun macroexp-unprogn (exp)
-  "Turn EXP into a list of expressions to execute in sequence."
-  (if (eq (car-safe exp) 'progn) (cdr exp) (list exp)))
+  "Turn EXP into a list of expressions to execute in sequence.
+Never returns an empty list."
+  (if (eq (car-safe exp) 'progn) (or (cdr exp) '(nil)) (list exp)))
 
 (defun macroexp-let* (bindings exp)
-  "Return an expression equivalent to `(let* ,bindings ,exp)."
+  "Return an expression equivalent to \\=`(let* ,bindings ,exp)."
   (cond
    ((null bindings) exp)
    ((eq 'let* (car-safe exp)) `(let* (,@bindings ,@(cadr exp)) ,@(cddr exp)))
    (t `(let* ,bindings ,exp))))
 
 (defun macroexp-if (test then else)
-  "Return an expression equivalent to `(if ,test ,then ,else)."
+  "Return an expression equivalent to \\=`(if ,TEST ,THEN ,ELSE)."
   (cond
    ((eq (car-safe else) 'if)
-    (if (equal test (nth 1 else))
-        ;; Doing a test a second time: get rid of the redundancy.
-        `(if ,test ,then ,@(nthcdr 3 else))
-      `(cond (,test ,then)
-             (,(nth 1 else) ,(nth 2 else))
-             (t ,@(nthcdr 3 else)))))
+    (cond
+     ;; Drop this optimization: It's unsafe (it assumes that `test' is
+     ;; pure, or at least idempotent), and it's not used even a single
+     ;; time while compiling Emacs's sources.
+     ;;((equal test (nth 1 else))
+     ;; ;; Doing a test a second time: get rid of the redundancy.
+     ;; (message "macroexp-if: sharing 'test' %S" test)
+     ;; `(if ,test ,then ,@(nthcdr 3 else)))
+     ((equal then (nth 2 else))
+      ;; (message "macroexp-if: sharing 'then' %S" then)
+      `(if (or ,test ,(nth 1 else)) ,then ,@(nthcdr 3 else)))
+     ((equal (macroexp-unprogn then) (nthcdr 3 else))
+      ;; (message "macroexp-if: sharing 'then' with not %S" then)
+      `(if (or ,test (not ,(nth 1 else)))
+           ,then ,@(macroexp-unprogn (nth 2 else))))
+     (t
+      `(cond (,test ,@(macroexp-unprogn then))
+             (,(nth 1 else) ,@(macroexp-unprogn (nth 2 else)))
+             (t ,@(nthcdr 3 else))))))
    ((eq (car-safe else) 'cond)
-    `(cond (,test ,then)
-           ;; Doing a test a second time: get rid of the redundancy, as above.
-           ,@(remove (assoc test else) (cdr else))))
+    `(cond (,test ,@(macroexp-unprogn then)) ,@(cdr else)))
    ;; Invert the test if that lets us reduce the depth of the tree.
    ((memq (car-safe then) '(if cond)) (macroexp-if `(not ,test) else then))
-   (t `(if ,test ,then ,else))))
+   (t `(if ,test ,then ,@(macroexp-unprogn else)))))
 
 (defmacro macroexp-let2 (test sym exp &rest body)
   "Evaluate BODY with SYM bound to an expression for EXP's value.

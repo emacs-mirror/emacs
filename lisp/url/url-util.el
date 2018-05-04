@@ -1,6 +1,6 @@
-;;; url-util.el --- Miscellaneous helper routines for URL library
+;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2015 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -160,7 +160,7 @@ conversion.  Replaces these characters as follows:
 
 ;;;###autoload
 (defun url-normalize-url (url)
-  "Return a 'normalized' version of URL.
+  "Return a \"normalized\" version of URL.
 Strips out default port numbers, etc."
   (let (type data retval)
     (setq data (url-generic-parse-url url)
@@ -188,7 +188,7 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-get-normalized-date (&optional specified-time)
- "Return a 'real' date string that most HTTP servers can understand."
+ "Return a date string that most HTTP servers can understand."
  (let ((system-time-locale "C"))
   (format-time-string "%a, %d %b %Y %T GMT" specified-time t)))
 
@@ -450,13 +450,10 @@ This function also performs URI normalization, e.g. converting
 the scheme to lowercase if it is uppercase.  Apart from
 normalization, if URL is already URI-encoded, this function
 should return it unchanged."
-  (if (multibyte-string-p url)
-      (setq url (encode-coding-string url 'utf-8)))
   (let* ((obj  (url-generic-parse-url url))
 	 (user (url-user obj))
 	 (pass (url-password obj))
-	 (host (url-host obj))
-	 (path-and-query (url-path-and-query obj))
+         (path-and-query (url-path-and-query obj))
 	 (path  (car path-and-query))
 	 (query (cdr path-and-query))
 	 (frag (url-target obj)))
@@ -464,12 +461,6 @@ should return it unchanged."
 	(setf (url-user obj) (url-hexify-string user)))
     (if pass
 	(setf (url-password obj) (url-hexify-string pass)))
-    ;; No special encoding for IPv6 literals.
-    (and host
-	 (not (string-match "\\`\\[.*\\]\\'" host))
-	 (setf (url-host obj)
-	       (url-hexify-string host url-host-allowed-chars)))
-
     (if path
 	(setq path (url-hexify-string path url-path-allowed-chars)))
     (if query
@@ -574,7 +565,7 @@ Has a preference for looking backward when not directly on a symbol."
 	      (skip-chars-forward url-get-url-filename-chars))
 	  (setq start (point)))
 	(setq url (buffer-substring-no-properties start (point))))
-      (if (and url (string-match "^(.*)\\.?$" url))
+      (if (and url (string-match "^(\\(.*\\))\\.?$" url))
 	  (setq url (match-string 1 url)))
       (if (and url (string-match "^URL:" url))
 	  (setq url (substring url 4 nil)))
@@ -635,6 +626,34 @@ Creates FILE and its parent directories if they do not exist."
      (if (file-symlink-p file)
          (error "Danger: `%s' is a symbolic link" file))
      (set-file-modes file #o0600))))
+
+(autoload 'puny-encode-domain "puny")
+(autoload 'url-domsuf-cookie-allowed-p "url-domsuf")
+
+;;;###autoload
+(defun url-domain (url)
+  "Return the domain of the host of the URL.
+Return nil if this can't be determined.
+
+For instance, this function will return \"fsf.co.uk\" if the host in URL
+is \"www.fsf.co.uk\"."
+  (let* ((host (puny-encode-domain (url-host url)))
+         (parts (nreverse (split-string host "\\.")))
+         (candidate (pop parts))
+         found)
+    ;; IP addresses aren't domains.
+    (when (string-match "\\`[0-9.]+\\'" host)
+      (setq parts nil))
+    ;; We assume that the top-level domain is never an appropriate
+    ;; thing as "the domain", so we start at the next one (eg.
+    ;; "fsf.org").
+    (while (and parts
+                (not (setq found
+                           (url-domsuf-cookie-allowed-p
+                            (setq candidate (concat (pop parts) "."
+                                                    candidate))))))
+      )
+    (and found candidate)))
 
 (provide 'url-util)
 

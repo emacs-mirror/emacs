@@ -1,6 +1,6 @@
 # serial 6
 
-# Copyright (C) 1998-1999, 2001, 2009-2015 Free Software Foundation, Inc.
+# Copyright (C) 1998-1999, 2001, 2009-2018 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -17,7 +17,7 @@ AC_DEFUN([AC_STRUCT_ST_DM_MODE],
 
   if test $ac_cv_struct_st_dm_mode = yes; then
     AC_DEFINE([HAVE_ST_DM_MODE], [1],
-              [Define if struct stat has an st_dm_mode member. ])
+              [Define if struct stat has an st_dm_mode member.])
   fi
  ]
 )

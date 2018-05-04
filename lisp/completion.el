@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2015 Free Software
+;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -518,6 +518,9 @@ Used to decide whether to save completions.")
 	(modify-syntax-entry char "w" table)))
     table))
 
+;; Old name, non-namespace-clean.
+(defvaralias 'cmpl-syntax-table 'completion-syntax-table)
+
 (defvar completion-syntax-table completion-standard-syntax-table
   "This variable holds the current completion syntax table.")
 (make-variable-buffer-local 'completion-syntax-table)
@@ -542,13 +545,13 @@ But only if it is longer than `completion-min-length'."
         ;; Remove chars to ignore at the start.
         (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                (goto-char cmpl-symbol-start)
-               (forward-word 1)
+               (forward-word-strictly 1)
                (setq cmpl-symbol-start (point))
                (goto-char saved-point)))
         ;; Remove chars to ignore at the end.
         (cond ((= (char-syntax (char-after (1- cmpl-symbol-end))) ?w)
                (goto-char cmpl-symbol-end)
-               (forward-word -1)
+               (forward-word-strictly -1)
                (setq cmpl-symbol-end (point))
                (goto-char saved-point)))
         ;; Return completion if the length is reasonable.
@@ -584,7 +587,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
            ;; Remove chars to ignore at the start.
            (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                   (goto-char cmpl-symbol-start)
-                  (forward-word 1)
+                  (forward-word-strictly 1)
                   (setq cmpl-symbol-start (point))
                   (goto-char cmpl-symbol-end)))
            ;; Return value if long enough.
@@ -597,12 +600,12 @@ Returns nil if there isn't one longer than `completion-min-length'."
            (let ((saved-point (point)))
              (setq cmpl-symbol-start (scan-sexps saved-point -1))
              ;; take off chars. from end
-             (forward-word -1)
+             (forward-word-strictly -1)
              (setq cmpl-symbol-end (point))
              ;; remove chars to ignore at the start
              (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                     (goto-char cmpl-symbol-start)
-                    (forward-word 1)
+                    (forward-word-strictly 1)
                     (setq cmpl-symbol-start (point))))
              ;; Restore state.
              (goto-char saved-point)
@@ -653,7 +656,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
            ;; Remove chars to ignore at the start.
            (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
                   (goto-char cmpl-symbol-start)
-                  (forward-word 1)
+                  (forward-word-strictly 1)
                   (setq cmpl-symbol-start (point))
                   (goto-char cmpl-symbol-end)))
            ;; Return completion if the length is reasonable.
@@ -821,7 +824,7 @@ This is sensitive to `case-fold-search'."
 				  ;; symbol char to ignore at end.  Are we at end ?
 				  (progn
 				    (setq saved-point-2 (point))
-				    (forward-word -1)
+				    (forward-word-strictly -1)
 				    (prog1
 				      (= (char-syntax (preceding-char)) ? )
 				      (goto-char saved-point-2)))))
@@ -1850,7 +1853,7 @@ Prefix args ::
                     (cond ((looking-at "\\(define\\|ifdef\\)\\>")
                            ;; skip forward over definition symbol
                            ;; and add it to database
-                           (and (forward-word 2)
+                           (and (forward-word-strictly 2)
                                 (setq string (symbol-before-point))
                                 ;;(push string foo)
                                 (add-completion-to-tail-if-new string)))))
@@ -1868,7 +1871,7 @@ Prefix args ::
                         ;; move to next separator char.
                         (goto-char
                          (setq next-point (scan-sexps (point) 1))))
-                      (forward-word -1)
+                      (forward-word-strictly -1)
                       ;; add to database
                       (if (setq string (symbol-under-point))
                           ;; (push string foo)
@@ -1876,7 +1879,7 @@ Prefix args ::
                         ;; Local TMC hack (useful for parsing paris.h)
                         (if (and (looking-at "_AP") ;; "ansi prototype"
                                  (progn
-                                   (forward-word -1)
+                                   (forward-word-strictly -1)
                                    (setq string
                                          (symbol-under-point))))
                             (add-completion-to-tail-if-new string)))
@@ -2225,7 +2228,10 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
       (modify-syntax-entry char "_" table))
     table))
 
+(declare-function cl-set-difference "cl-seq" (cl-list1 cl-list2 &rest cl-keys))
+
 (defun completion-lisp-mode-hook ()
+  (require 'cl-lib)
   (setq completion-syntax-table completion-lisp-syntax-table)
   ;; Lisp Mode diffs
   (setq-local completion-separator-chars
@@ -2357,8 +2363,7 @@ if ARG is omitted or nil."
 (completion-def-wrapper 'delete-backward-char :backward)
 (completion-def-wrapper 'delete-backward-char-untabify :backward)
 
-;; Old names, non-namespace-clean.
-(defvaralias 'cmpl-syntax-table 'completion-syntax-table)
+;; Old name, non-namespace-clean.
 (defalias 'initialize-completions 'completion-initialize)
 
 (provide 'completion)

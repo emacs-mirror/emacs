@@ -1,6 +1,6 @@
 ;;; tsdh-dark-theme.el --- Tassilo's dark custom theme
 
-;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -15,16 +15,16 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
 (deftheme tsdh-dark
-  "Minor tweaks to the Emacs dark-background defaults.
-Used and created by Tassilo Horn.")
+  "A dark theme used and created by Tassilo Horn.")
 
 (custom-theme-set-faces
  'tsdh-dark
+ '(aw-leading-char-face ((t (:background "gray30" :foreground "red" :weight bold))))
  '(default ((t (:background "gray20" :foreground "white smoke"))))
  '(diff-added ((t (:inherit diff-changed :background "dark green"))) t)
  '(diff-changed ((t (:background "midnight blue"))) t)
@@ -34,6 +34,7 @@ Used and created by Tassilo Horn.")
  '(diff-removed ((t (:inherit diff-changed :background "dark red"))) t)
  '(dired-directory ((t (:foreground "DodgerBlue" :weight bold))))
  '(error ((t (:foreground "deep pink" :weight bold))))
+ '(eshell-prompt ((t (:inherit font-lock-function-name-face :weight bold))))
  '(font-lock-builtin-face ((t (:foreground "chartreuse2"))))
  '(font-lock-comment-face ((t (:foreground "peru"))))
  '(font-lock-constant-face ((t (:foreground "dodger blue"))))
@@ -44,15 +45,21 @@ Used and created by Tassilo Horn.")
  '(font-lock-string-face ((t (:foreground "light salmon"))))
  '(font-lock-type-face ((t (:foreground "medium purple"))))
  '(font-lock-variable-name-face ((t (:foreground "yellow green"))))
- '(font-lock-warning-face ((t (:foreground "hot pink"))))
+ '(font-lock-warning-face ((t (:foreground "hot pink" :weight bold))))
  '(gnus-button ((t (:inherit button))))
  '(gnus-cite-1 ((t (:foreground "dark turquoise"))) t)
  '(gnus-group-mail-1 ((t (:inherit gnus-group-mail-1-empty :weight bold))))
- '(gnus-group-mail-1-empty ((t (:foreground "#00CC00"))))
+ '(gnus-group-mail-1-empty ((t (:foreground "turquoise1"))))
+ '(gnus-group-mail-2 ((t (:inherit gnus-group-mail-2-empty :weight bold))))
+ '(gnus-group-mail-2-empty ((t (:foreground "turquoise3"))))
  '(gnus-group-mail-3 ((t (:inherit gnus-group-mail-3-empty :weight bold))))
- '(gnus-group-mail-3-empty ((t (:foreground "#009999"))))
+ '(gnus-group-mail-3-empty ((t (:foreground "turquoise4"))))
+ '(gnus-group-news-1 ((t (:inherit gnus-group-news-1-empty :weight bold))))
+ '(gnus-group-news-1-empty ((t (:foreground "SpringGreen1"))))
+ '(gnus-group-news-2 ((t (:inherit gnus-group-news-2-empty :weight bold))))
+ '(gnus-group-news-2-empty ((t (:foreground "SpringGreen3"))))
  '(gnus-group-news-3 ((t (:inherit gnus-group-news-3-empty :weight bold))))
- '(gnus-group-news-3-empty ((t (:foreground "light green"))))
+ '(gnus-group-news-3-empty ((t (:foreground "SpringGreen4"))))
  '(gnus-header-content ((t (:foreground "#A64B00"))))
  '(gnus-header-name ((t (:weight bold))))
  '(gnus-header-subject ((t (:foreground "#A64B00" :weight bold))))
@@ -68,6 +75,11 @@ Used and created by Tassilo Horn.")
  '(ido-first-match ((t (:foreground "turquoise" :weight bold))))
  '(ido-only-match ((t (:foreground "medium spring green" :weight bold))))
  '(ido-subdir ((t (:inherit dired-directory :weight normal))))
+ '(ivy-current-match ((t (:inherit highlight))))
+ '(ivy-minibuffer-match-face-1 ((t (:background "gray50" :weight normal))))
+ '(ivy-minibuffer-match-face-2 ((t (:background "gold3" :weight bold))))
+ '(ivy-minibuffer-match-face-4 ((t (:background "forest green" :weight bold))))
+ '(ivy-remote ((t (:foreground "deep sky blue" :slant italic))))
  '(lusty-file-face ((t (:foreground "SpringGreen1"))) t)
  '(magit-header ((t (:box 1 :weight bold))))
  '(magit-section-title ((t (:inherit magit-header :background "dark slate blue"))))
@@ -106,6 +118,16 @@ Used and created by Tassilo Horn.")
  '(outline-6 ((t (:foreground "light salmon" :weight bold))))
  '(outline-7 ((t (:foreground "pale goldenrod" :weight bold))))
  '(outline-8 ((t (:foreground "OliveDrab1" :weight bold))))
+ '(realgud-overlay-arrow1        ((t (:foreground "medium spring green"))))
+ '(realgud-overlay-arrow2        ((t (:foreground "OliveDrab1"))))
+ '(realgud-overlay-arrow3        ((t (:foreground "light salmon"))))
+ '(realgud-bp-enabled-face       ((t (:inherit error))))
+ '(realgud-bp-disabled-face      ((t (:foreground "gray35"))))
+ '(realgud-bp-line-enabled-face  ((t (:foreground "light salmon"))))
+ '(realgud-bp-line-disabled-face ((t (:foreground "medium spring green"))))
+ '(realgud-file-name             ((t (:foreground "dark khaki"))))
+ '(realgud-line-number           ((t (:foreground "cyan3"))))
+ '(realgud-backtrace-number      ((t (:foreground "cyan3" :weight bold))))
  '(rcirc-my-nick ((t (:foreground "SpringGreen1" :weight bold))) t)
  '(rcirc-other-nick ((t (:foreground "dodger blue"))) t)
  '(rcirc-track-keyword ((t (:foreground "DodgerBlue" :weight bold))) t)
@@ -115,6 +137,7 @@ Used and created by Tassilo Horn.")
  '(secondary-selection ((t (:background "#333366" :foreground "#f6f3e8"))))
  '(show-paren-match ((t (:background "DeepSkyBlue4"))))
  '(show-paren-mismatch ((t (:background "dark magenta"))))
+ '(swiper-match-face-1 ((t (:background "gray35"))))
  '(th-sentence-hl-face ((t (:weight bold))))
  '(widget-field ((t (:box (:line-width 2 :color "grey75" :style pressed-button)))))
  '(window-number-face ((t (:foreground "red" :weight bold)))))

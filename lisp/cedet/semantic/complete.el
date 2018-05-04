@@ -1,6 +1,6 @@
 ;;; semantic/complete.el --- Routines for performing tag completion
 
-;; Copyright (C) 2003-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -106,7 +106,6 @@
 ;; `semantic-complete-inline-tag-engine' will complete text in
 ;; a buffer.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-opt)
 (require 'semantic/analyze)
@@ -156,7 +155,7 @@ Presumably if you call this you will insert something new there."
   "Display the string FMT formatted with ARGS at the end of the minibuffer."
   (if semantic-complete-inline-overlay
       (apply 'message fmt args)
-    (message (concat (buffer-string) (apply #'format-message fmt args)))))
+    (apply 'message (concat "%s" fmt) (buffer-string) args)))
 
 ;;; ------------------------------------------------------------
 ;;; MINIBUFFER: Option Selection harnesses
@@ -568,7 +567,7 @@ if INLINE, then completion is happening inline in a buffer."
      (:underline "yellow"))
     (((class color) (background light))
      (:underline "brown")))
-  "*Face used to show the region being completed inline.
+  "Face used to show the region being completed inline.
 The face is used in `semantic-complete-inline-tag-engine'."
   :group 'semantic-faces)
 
@@ -1370,7 +1369,7 @@ This object type doesn't do focus, so will never have a focus object."
 ;; Traditional displayor
 (defcustom semantic-completion-displayor-format-tag-function
   #'semantic-format-tag-name
-  "*A Tag format function to use when showing completions."
+  "A Tag format function to use when showing completions."
   :group 'semantic
   :type semantic-format-tag-custom-list)
 
@@ -1871,7 +1870,7 @@ Use this to enable custom editing.")
 
 (defcustom semantic-complete-inline-analyzer-displayor-class
   'semantic-displayor-traditional
-  "*Class for displayor to use with inline completion."
+  "Class for displayor to use with inline completion."
   :group 'semantic
   :type semantic-complete-inline-custom-type
   )
@@ -1890,8 +1889,8 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
    (semantic-collector-buffer-deep prompt :buffer (current-buffer))
-   (semantic-displayor-traditional-with-focus-highlight "simple")
-   ;;(semantic-displayor-tooltip "simple")
+   (semantic-displayor-traditional-with-focus-highlight)
+   ;;(semantic-displayor-tooltip)
    prompt
    default-tag
    initial-input
@@ -1912,8 +1911,8 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
    (semantic-collector-local-members prompt :buffer (current-buffer))
-   (semantic-displayor-traditional-with-focus-highlight "simple")
-   ;;(semantic-displayor-tooltip "simple")
+   (semantic-displayor-traditional-with-focus-highlight)
+   ;;(semantic-displayor-tooltip)
    prompt
    default-tag
    initial-input
@@ -1937,7 +1936,7 @@ HISTORY is a symbol representing a variable to store the history in."
 				       :buffer (current-buffer)
 				       :path (current-buffer)
 				       )
-   (semantic-displayor-traditional-with-focus-highlight "simple")
+   (semantic-displayor-traditional-with-focus-highlight)
    prompt
    default-tag
    initial-input
@@ -1954,7 +1953,6 @@ to control how completion options are displayed.
 See `semantic-complete-inline-tag-engine' for details on how
 completion works."
   (let* ((collector (semantic-collector-project-brutish
-		     "inline"
 		     :buffer (current-buffer)
 		     :path (current-buffer)))
 	 (sbounds (semantic-ctxt-current-symbol-and-bounds))
@@ -1984,9 +1982,8 @@ completion works."
 	  ;; There are several options.  Do the completion.
 	  (semantic-complete-inline-tag-engine
 	   collector
-	   (funcall semantic-complete-inline-analyzer-displayor-class
-		    "inline displayor")
-	   ;;(semantic-displayor-tooltip "simple")
+	   (funcall semantic-complete-inline-analyzer-displayor-class)
+	   ;;(semantic-displayor-tooltip)
 	   (current-buffer)
 	   start end))
       )))
@@ -2013,7 +2010,7 @@ prompts.  these are calculated from the CONTEXT variable passed in."
       prompt
       :buffer (oref context buffer)
       :context context)
-     (semantic-displayor-traditional-with-focus-highlight "simple")
+     (semantic-displayor-traditional-with-focus-highlight)
      (with-current-buffer (oref context buffer)
        (goto-char (cdr (oref context bounds)))
        (concat prompt (mapconcat 'identity syms ".")
@@ -2037,7 +2034,6 @@ completion works."
   (if (not context) (setq context (semantic-analyze-current-context (point))))
   (if (not context) (error "Nothing to complete on here"))
   (let* ((collector (semantic-collector-analyze-completions
-		     "inline"
 		     :buffer (oref context buffer)
 		     :context context))
 	 (syms (semantic-ctxt-current-symbol (point)))
@@ -2064,9 +2060,8 @@ completion works."
 	  ;; There are several options.  Do the completion.
 	  (semantic-complete-inline-tag-engine
 	   collector
-	   (funcall semantic-complete-inline-analyzer-displayor-class
-		    "inline displayor")
-	   ;;(semantic-displayor-tooltip "simple")
+	   (funcall semantic-complete-inline-analyzer-displayor-class)
+	   ;;(semantic-displayor-tooltip)
 	   (oref context buffer)
 	   (car (oref context bounds))
 	   (cdr (oref context bounds))
@@ -2075,7 +2070,7 @@ completion works."
 
 (defcustom semantic-complete-inline-analyzer-idle-displayor-class
   'semantic-displayor-ghost
-  "*Class for displayor to use with inline completion at idle time."
+  "Class for displayor to use with inline completion at idle time."
   :group 'semantic
   :type semantic-complete-inline-custom-type
   )
@@ -2120,7 +2115,7 @@ completion works."
     (when (semantic-tag-p tag)
       (push-mark)
       (semantic-go-to-tag tag)
-      (switch-to-buffer (current-buffer))
+      (pop-to-buffer-same-window (current-buffer))
       (semantic-momentary-highlight-tag tag)
       (message "%S: %s "
 	       (semantic-tag-class tag)

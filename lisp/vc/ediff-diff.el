@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -168,7 +168,7 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-auto-refine-limit 14000
-  "Auto-refine only the regions of this size \(in bytes\) or less.")
+  "Auto-refine only the regions of this size (in bytes) or less.")
 
 ;;; General
 
@@ -340,7 +340,7 @@ one optional arguments, diff-number to refine.")
 	(ediff-skip-unsuitable-frames)
 	(switch-to-buffer error-buf)
 	(ediff-kill-buffer-carefully ctl-buf)
-	(error "Errors in diff output.  Diff output is in %S" diff-buff))))
+	(user-error "Errors in diff output.  Diff output is in %S" diff-buff))))
 
 ;; BOUNDS specifies visibility bounds to use.
 ;; WORD-MODE tells whether we are in the word-mode or not.
@@ -909,7 +909,7 @@ delimiter regions"))
 (defun ediff-get-diff3-group (file)
   ;; This save-excursion allows ediff-get-diff3-group to be called for the
   ;; various groups of lines (1, 2, 3) in any order, and for the lines to
-  ;; appear in any order.  The reason this is necessary is that Gnu diff3
+  ;; appear in any order.  The reason this is necessary is that GNU diff3
   ;; can produce the groups in the order 1, 2, 3 or 1, 3, 2.
   (save-excursion
     (re-search-forward
@@ -1134,12 +1134,20 @@ delimiter regions"))
    ))
 
 
-;; Execute PROGRAM asynchronously, unless OS/2, Windows-*, or DOS, or unless
-;; SYNCH is non-nil.  BUFFER must be a buffer object, and must be alive.  The
-;; OPTIONS arg is a list of options to pass to PROGRAM. It may be a blank
-;; string.  All elements in FILES must be strings.  We also delete nil from
-;; args.
 (defun ediff-exec-process (program buffer synch options &rest files)
+  "Execute the diff PROGRAM.
+
+The PROGRAM output is sent to BUFFER, which must be a live buffer
+object.
+
+The PROGRAM is executed asynchronously unless `system-type' is
+`windows-nt' or `ms-dos', or SYNCH is non-nil.
+
+OPTIONS is a string of space-separated options to pass to PROGRAM.  It
+may be a blank string.
+
+FILES is a list of filenames to pass to PROGRAM; nil and \"\" elements
+are ignored."
   (let ((data (match-data))
 	;; If this is a buffer job, we are diffing temporary files
 	;; produced by Emacs with ediff-coding-system-for-write, so
@@ -1149,7 +1157,12 @@ delimiter regions"))
 	     ediff-coding-system-for-write
 	   ediff-coding-system-for-read))
 	args)
-    (setq args (append (split-string options) files))
+    (setq args (append (split-string options)
+                       (mapcar (lambda (file)
+                                 (when (stringp file)
+                                   (file-name-unquote
+                                    (or (file-local-copy file) file))))
+                               files)))
     (setq args (delete "" (delq nil args))) ; delete nil and "" from arguments
     ;; the --binary option, if present, should be used only for buffer jobs
     ;; or for refining the differences
@@ -1347,10 +1360,8 @@ arguments to `skip-chars-forward'."
 		 ;; located on the same remote host.
 		 (apply 'process-file ediff-cmp-program nil nil nil
 			(append ediff-cmp-options
-				(list (or (file-remote-p f1 'localname)
-					  (expand-file-name f1))
-				      (or (file-remote-p f2 'localname)
-					  (expand-file-name f2)))))
+				(list (expand-file-name (file-local-name f1))
+				      (expand-file-name (file-local-name f2)))))
 		 ))
 	    (and (numberp res) (eq res 0)))
 

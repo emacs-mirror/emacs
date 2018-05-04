@@ -438,7 +438,7 @@ shuttled robotically onward."
 If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
 version of Emacs doesn't include the function `y-or-n-p-with-timeout'
-\(e.g., some versions of XEmacs\)."
+\(e.g., some versions of XEmacs)."
   :version "24.1"
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
@@ -449,7 +449,7 @@ version of Emacs doesn't include the function `y-or-n-p-with-timeout'
   "If non-nil remove Bcc: lines from the message headers.
 In any case, the Bcc: lines do participate in the composed address
 list.  You may want to leave them in if you're using sendmail
-\(see `feedmail-buffer-eating-function'\)."
+\(see `feedmail-buffer-eating-function')."
   :group 'feedmail-headers
   :type 'boolean
   )
@@ -459,7 +459,7 @@ list.  You may want to leave them in if you're using sendmail
   "If non-nil remove Resent-Bcc: lines from the message headers.
 In any case, the Resent-Bcc: lines do participate in the composed
 address list.  You may want to leave them in if you're using sendmail
-\(see `feedmail-buffer-eating-function'\)."
+\(see `feedmail-buffer-eating-function')."
   :group 'feedmail-headers
   :type 'boolean
   )
@@ -504,7 +504,7 @@ as-is.  The filling is done after mail address alias expansion."
   )
 
 
-(defcustom feedmail-fill-to-cc-fill-column default-fill-column
+(defcustom feedmail-fill-to-cc-fill-column (default-value 'fill-column)
   "Fill column used by `feedmail-fill-to-cc'."
   :group 'feedmail-headers
   :type 'integer
@@ -606,7 +606,7 @@ variables or other means, this option has no effect."
 May be t, in which case a default is computed (and you probably won't
 be happy with it).  May be nil, in which case nothing in particular is
 done with respect to From: lines.  By design, will not replace an
-existing From: line, but you can achieve that with a fiddle-plex 'replace
+existing From: line, but you can achieve that with a fiddle-plex `replace'
 action.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
@@ -645,7 +645,7 @@ is not an option for many users.  As this is the default behavior of most
 sendmail installations, one can mostly only wish it were otherwise.  If feedmail
 believes the sendmail program will sell you out this way, it won't use the \"-f\"
 option when calling sendmail.  If it doesn't think sendmail will sell you out,
-it will use the \"-f\" \(since it is a handy feature\).  You control what
+it will use the \"-f\" \(since it is a handy feature).  You control what
 feedmail thinks with this variable.  The default is nil, meaning that feedmail
 will believe that sendmail will sell you out."
   :version "24.1"
@@ -861,7 +861,7 @@ as well."
   "User-supplied specification for a crude form of mailmerge capability.
 When spraying is enabled, feedmail composes a list of envelope addresses.
 In turn, `feedmail-spray-this-address' is temporarily set to each address
-\(stripped of any comments and angle brackets\) and a function is called which
+\(stripped of any comments and angle brackets) and a function is called which
 fiddles message headers according to this variable.  See the documentation for
 `feedmail-fiddle-plex-blurb', for an overview of fiddle-plex data structures.
 
@@ -870,11 +870,11 @@ headers for specific addresses.
 
 May be t, in which case a \"To:\" header is added to the message with
 the stripped address as the header contents.  The fiddle-plex operator
-is 'supplement.
+is `supplement'.
 
 May be a string, in which case the string is assumed to be the name of
 a message header field with the stripped address serving as the value.
-The fiddle-plex operator is 'supplement.
+The fiddle-plex operator is `supplement'.
 
 May be a function, in which case it is called with no arguments and is
 expected to return nil, t, a string, another function, or a fiddle-plex.
@@ -891,7 +891,7 @@ If a list, each item is acted on in turn as described above.
 
 For example,
 
-  (setq feedmail-spray-address-fiddle-plex-list 'feedmail-spray-via-bbdb)
+  (setq feedmail-spray-address-fiddle-plex-list \\='feedmail-spray-via-bbdb)
 
 The idea of the example is that, during spray mode, as each message is
 about to be transmitted to an individual address, the function will be
@@ -1313,7 +1313,7 @@ of `buffer-file-name' to nil because that will defeat feedmail's file
 management features.  Instead, arrange for this variable to be set to
 the value of `buffer-file-name' before setting that to nil.  An easy way
 to do that would be with defadvice on `mail-send' \(undoing the
-assignments in a later advice\).
+assignments in a later advice).
 
 feedmail will pretend that `buffer-file-name', if nil, has the value
 assigned of `feedmail-queue-buffer-file-name' and carry out its normal
@@ -1383,7 +1383,7 @@ See documentation of `feedmail-mail-send-hook-splitter' for details."
 (defun feedmail-confirm-addresses-hook-example ()
   "An example of a `feedmail-last-chance-hook'.
 It shows the simple addresses and gets a confirmation.  Use as:
- (setq feedmail-last-chance-hook 'feedmail-confirm-addresses-hook-example)."
+ (setq feedmail-last-chance-hook \\='feedmail-confirm-addresses-hook-example)."
   (save-window-excursion
     (display-buffer (set-buffer (get-buffer-create " F-C-A-H-E")))
     (erase-buffer)
@@ -1507,7 +1507,7 @@ The default action is an anonymous function which gets rid of the file
 from the queue directory.  With a non-nil second argument, a brief
 message is give for each file deleted.  You could replace this
 function, for example, to archive all of your sent messages someplace
-\(though there are better ways to get that particular result\)."
+\(though there are better ways to get that particular result)."
   :group 'feedmail-queue
   :type 'function
   )
@@ -1715,7 +1715,7 @@ for ACTION (default is `supplement'):
                 VAL-LIKE is not used.  Else, if VAL-LIKE is a function,
                 it is called with two arguments: NAME and the
                 aggregate like values.  Else, if VAL-LIKE is a string, it is
-                used as a format string where a single \%s will be
+                used as a format string where a single %s will be
                 replaced by the aggregate values of like fields.
 
                 VAL-PRE, the results of using VAL-LIKE, and VAL-POST
@@ -1745,7 +1745,8 @@ applied to a file after you've just read it from disk: for example, a
 feedmail FQM message file from a queue.  You could use something like
 this:
 
-\(setq auto-mode-alist \(cons \\='\(\"\\\\.fqm$\" . feedmail-vm-mail-mode\) auto-mode-alist\)\)
+\(setq auto-mode-alist
+      (cons \\='(\"\\\\.fqm$\" . feedmail-vm-mail-mode) auto-mode-alist))
 "
   (feedmail-say-debug ">in-> feedmail-vm-mail-mode")
   (let ((the-buf (current-buffer)))
@@ -1894,26 +1895,26 @@ You're dispatching a message and feedmail queuing is enabled.
 Typing ? again will normally scroll this help buffer.
 
 Choices:
-   q  QUEUE        for later sending \(via feedmail-run-the-queue\)
+   q  QUEUE        for later sending (via feedmail-run-the-queue)
    Q  QUEUE!       like \"q\", but always make a new file
-   i  IMMEDIATELY  send this \(but not the other queued messages\)
+   i  IMMEDIATELY  send this (but not the other queued messages)
    I  IMMEDIATELY! like \"i\", but skip following confirmation prompt
    d  DRAFT        queue in the draft directory
    D  DRAFT!       like \"d\", but always make a new file
-   e  EDIT         return to the message edit buffer \(don't send or queue\)
-   *  SPRAY        toggle spray mode \(individual message transmissions\)
-   >  SCROLL UP    scroll message up \(toward end of message\)
-   <  SCROLL DOWN  scroll message down \(toward beginning of message\)
+   e  EDIT         return to the message edit buffer (don't send or queue)
+   *  SPRAY        toggle spray mode (individual message transmissions)
+   >  SCROLL UP    scroll message up (toward end of message)
+   <  SCROLL DOWN  scroll message down (toward beginning of message)
    ?  HELP         show or scroll this help buffer
 
 Synonyms:
-   s  SEND         immediately \(same as \"i\"\)
-   S  SEND!        immediately \(same as \"I\"\)
-   r  ROUGH        draft \(same as \"d\"\)
-   R  ROUGH!       draft \(same as \"D\"\)
-   n  NOPE         didn't mean it \(same as \"e\"\)
-   y  YUP          do the default behavior \(same as \"C-m\"\)
-  SPC SCROLL UP    \(same as \">\"\)
+   s  SEND         immediately (same as \"i\")
+   S  SEND!        immediately (same as \"I\")
+   r  ROUGH        draft (same as \"d\")
+   R  ROUGH!       draft (same as \"D\")
+   n  NOPE         didn't mean it (same as \"e\")
+   y  YUP          do the default behavior (same as \"C-m\")
+  SPC SCROLL UP    (same as \">\")
 
 The user-configurable default is currently \""))
 	(princ d-string)
@@ -2079,7 +2080,7 @@ backup file names and the like)."
 (defun feedmail-queue-reminder (&optional what-event)
   "Perform some kind of reminder activity about queued and draft messages.
 Called with an optional symbol argument which says what kind of event
-is triggering the reminder activity.  The default is 'on-demand, which
+is triggering the reminder activity.  The default is `on-demand', which
 is what you typically would use if you were putting this in your Emacs start-up
 or mail hook code.  Other recognized values for WHAT-EVENT (these are passed
 internally by feedmail):
@@ -2758,23 +2759,17 @@ return that value."
   (cond
    ;; nil means do nothing
    ((eq nil feedmail-from-line) nil)
-   ;; t is the same a using the default computation, so compute it and recurse
+   ;; t is the same as using the default computation, so compute it and recurse
    ;; user-full-name suggested by kpc@ptolemy.arc.nasa.gov (=Kimball Collins)
    ;; improvement using user-mail-address suggested by
    ;;   gray@austin.apc.slb.com (Douglas Gray Stephens)
-   ;; improvement using mail-host-address suggested by "Jason Eisner" <jason@cs.jhu.edu>
-   ;; ((this situation really is hopeless, though)
    ((eq t feedmail-from-line)
     (let ((feedmail-from-line
-	   (let ((at-stuff
-		  (if user-mail-address user-mail-address
-		    (concat (user-login-name) "@"
-			    (or mail-host-address (system-name))))))
-	     (cond
-	      ((eq mail-from-style nil) at-stuff)
-	      ((eq mail-from-style 'parens) (concat at-stuff " (" (user-full-name) ")"))
-	      ((eq mail-from-style 'angles) (concat "\"" (user-full-name) "\" <" at-stuff ">"))
-	      ))))
+	   (cond
+	    ((eq mail-from-style nil) user-mail-address)
+	    ((eq mail-from-style 'parens) (concat user-mail-address " (" (user-full-name) ")"))
+	    ((eq mail-from-style 'angles) (concat "\"" (user-full-name) "\" <" user-mail-address ">"))
+	    )))
       (feedmail-fiddle-from)))
 
    ;; if it's a string, simply make a fiddle-plex out of it and recurse
@@ -3146,7 +3141,7 @@ been weeded out."
 		(setq simple-address (substring address-blob (match-beginning 2) (match-end 2)))
 		(setq address-blob (replace-match "" t t address-blob))
 		(if (not (member simple-address address-list))
-		    (add-to-list 'address-list simple-address)))
+		    (push simple-address address-list)))
 	      ))
 	  (kill-buffer nil)))
     (identity address-list)))

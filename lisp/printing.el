@@ -1,9 +1,9 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000-2001, 2003-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2003-2018 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.9.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
@@ -12,7 +12,7 @@
   "printing.el, v 6.9.3 <2007/12/09 vinicius>
 
 Please send all bug fixes and enhancements to
-	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl@ig.com.br>
+	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ")
 
 ;; This file is part of GNU Emacs.
@@ -28,7 +28,7 @@ Please send all bug fixes and enhancements to
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -58,7 +58,7 @@ Please send all bug fixes and enhancements to
 ;; On GNU or Unix system, `printing' depends on gs and gv utilities.
 ;; On NT system, `printing' depends on gstools (gswin32.exe and gsview32.exe).
 ;; To obtain ghostscript, ghostview and GSview see the URL
-;; `http://www.gnu.org/software/ghostscript/ghostscript.html'.
+;; `https://www.gnu.org/software/ghostscript/ghostscript.html'.
 ;;
 ;; `printing' depends on ps-print package to generate PostScript files, to
 ;; spool and to despool PostScript buffer.  So, `printing' provides an
@@ -958,7 +958,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; * For GNU or Unix system:
 ;;
-;;    gs, gv         `http://www.gnu.org/software/ghostscript/ghostscript.html'
+;;    gs, gv         `https://www.gnu.org/software/ghostscript/ghostscript.html'
 ;;    enscript       `http://people.ssh.fi/mtr/genscript/'
 ;;    psnup          `http://www.knackered.org/angus/psutils/'
 ;;    mpage          `http://www.mesa.nl/pub/mpage/'
@@ -966,7 +966,7 @@ Please send all bug fixes and enhancements to
 ;; * For Windows system:
 ;;
 ;;    gswin32, gsview32
-;;                   `http://www.gnu.org/software/ghostscript/ghostscript.html'
+;;                   `https://www.gnu.org/software/ghostscript/ghostscript.html'
 ;;    gsprint        `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;    enscript       `http://people.ssh.fi/mtr/genscript/'
 ;;    psnup          `http://gnuwin32.sourceforge.net/packages/psutils.htm'
@@ -1668,7 +1668,7 @@ separator; otherwise, ensure unix-style directory separator."
   :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
   :prefix "pr-"
   :version "22.1"
-  :group 'wp
+  :group 'text
   :group 'postscript)
 
 
@@ -2249,7 +2249,7 @@ See also `pr-path-alist'.
 Useful links:
 
 * GNU gv manual
-  `http://www.gnu.org/software/gv/manual/gv.html'
+  `https://www.gnu.org/software/gv/manual/gv.html'
 
 * GSview Help
   `http://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm'
@@ -2272,7 +2272,7 @@ Useful links:
 * gv 3.5, June 1997
   `http://www.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
 
-* MacGSView (MacOS)
+* MacGSView (Mac OS)
   `http://www.cs.wisc.edu/~ghost/macos/index.htm'
 "
   :type '(string :tag "Ghostview Utility")
@@ -2929,7 +2929,7 @@ INHERITS	Specify the inheritance for SYMBOL group.  It's a symbol name
 		Let's see an example to illustrate the inheritance mechanism:
 
 		(setq pr-setting-database
-		      '((no-duplex	; setting symbol name
+		      \\='((no-duplex	; setting symbol name
 			 nil		; inherits
 			 nil nil	; local  kill-local
 			 (pr-file-duplex . nil) ; settings
@@ -2979,9 +2979,9 @@ SETTING		It's a cons like:
 		This setting is ignored if VARIABLE is equal to keyword
 		`inherits-from:'.
 		Examples:
-			'(ps-landscape-mode . nil)
-			'(ps-spool-duplex . t)
-			'(pr-gs-device . (my-gs-device t))"
+			(ps-landscape-mode . nil)
+			(ps-spool-duplex . t)
+			(pr-gs-device . (my-gs-device t))"
   :type '(repeat
 	  (list
 	   :tag ""
@@ -5673,7 +5673,7 @@ If menu binding was not done, calls `pr-menu-bind'."
   (or (listp switches)
       (error "%S should have a list of strings" mess))
   (lpr-flatten-list			; dynamic evaluation
-   (mapcar 'ps-eval-switch switches)))
+   (mapcar #'lpr-eval-switch switches)))
 
 
 (defun pr-ps-preview (kind n-up filename mess)

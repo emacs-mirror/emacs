@@ -1,6 +1,6 @@
-;;; gamegrid.el --- library for implementing grid-based games on Emacs
+;;; gamegrid.el --- library for implementing grid-based games on Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 1.02
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -86,49 +86,157 @@ directory will be used.")
 (defvar gamegrid-mono-x-face nil)
 (defvar gamegrid-mono-tty-face nil)
 
-;; ;;;;;;;;;;;;; constants ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar gamegrid-glyph-height-mm 7.0
+  "Desired glyph height in mm.")
 
-(defconst gamegrid-glyph-height 16)
+;; ;;;;;;;;;;;;; glyph generation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defconst gamegrid-xpm "\
+(defun gamegrid-calculate-glyph-size ()
+  "Calculate appropriate glyph size in pixels based on display resolution.
+Return a multiple of 8 no less than 16."
+  (if (and (display-pixel-height) (display-mm-height))
+      (let* ((y-pitch (/ (display-pixel-height) (float (display-mm-height))))
+             (pixels (* y-pitch gamegrid-glyph-height-mm))
+             (rounded (* (floor (/ (+ pixels 4) 8)) 8)))
+        (max 16 rounded))
+    16))
+
+;; Example of glyph in XPM format:
+;;
+;; /* XPM */
+;; static char *noname[] = {
+;; /* width height ncolors chars_per_pixel */
+;; \"16 16 3 1\",
+;; /* colors */
+;; \"+ s col1\",
+;; \". s col2\",
+;; \"- s col3\",
+;; /* pixels */
+;; \"---------------+\",
+;; \"--------------++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"--............++\",
+;; \"-+++++++++++++++\",
+;; \"++++++++++++++++\"
+;; };
+
+(defun gamegrid-xpm ()
+  "Generate the XPM format image used for each square."
+  (let* ((glyph-pixel-count (gamegrid-calculate-glyph-size))
+         (border-pixel-count (/ glyph-pixel-count 8))
+         (center-pixel-count (- glyph-pixel-count (* border-pixel-count 2))))
+    (with-temp-buffer
+      (insert (format "\
 /* XPM */
 static char *noname[] = {
 /* width height ncolors chars_per_pixel */
-\"16 16 3 1\",
+\"%s %s 3 1\",
 /* colors */
 \"+ s col1\",
 \". s col2\",
 \"- s col3\",
 /* pixels */
-\"---------------+\",
-\"--------------++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"--............++\",
-\"-+++++++++++++++\",
-\"++++++++++++++++\"
-};
-"
-  "XPM format image used for each square")
+" glyph-pixel-count glyph-pixel-count))
 
-(defvar gamegrid-xbm "\
+      (dotimes (row border-pixel-count)
+        (let ((edge-pixel-count (+ row 1)))
+          (insert "\"")
+          (dotimes (_ (- glyph-pixel-count edge-pixel-count)) (insert "-"))
+          (dotimes (_ edge-pixel-count) (insert "+"))
+          (insert "\",\n")))
+
+      (let ((middle (format "\"%s%s%s\",\n"
+                            (make-string border-pixel-count ?-)
+                            (make-string center-pixel-count ?.)
+                            (make-string border-pixel-count ?+))))
+        (dotimes (_ center-pixel-count) (insert middle)))
+
+      (dotimes (row border-pixel-count)
+        (let ((edge-pixel-count (- border-pixel-count row 1)))
+          (insert "\"")
+          (dotimes (_ edge-pixel-count) (insert "-"))
+          (dotimes (_ (- glyph-pixel-count edge-pixel-count)) (insert "+"))
+          (insert "\"")
+          (if (/= row (1- border-pixel-count))
+              (insert ",\n")
+            (insert "\n};\n"))))
+      (buffer-string))))
+
+;; Example of glyph in XBM format:
+;;
+;; /* gamegrid XBM */
+;; #define gamegrid_width 16
+;; #define gamegrid_height 16
+;; static unsigned char gamegrid_bits[] = {
+;;    0xff, 0xff, 0xff, 0x7f, 0xff, 0x3f, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a,
+;;    0x57, 0x15, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a,
+;;    0x57, 0x15, 0x07, 0x00, 0x03, 0x00, 0x01, 0x00 };
+
+(defun gamegrid-xbm ()
+  "Generate XBM format image used for each square."
+  (let* ((glyph-pixel-count (gamegrid-calculate-glyph-size))
+         (border-pixel-count (1- (/ glyph-pixel-count 4)))
+         (center-pixel-count (- glyph-pixel-count (* 2 border-pixel-count))))
+    (with-temp-buffer
+      (insert (format "\
 /* gamegrid XBM */
-#define gamegrid_width 16
-#define gamegrid_height 16
+#define gamegrid_width %s
+#define gamegrid_height %s
 static unsigned char gamegrid_bits[] = {
-   0xff, 0xff, 0xff, 0x7f, 0xff, 0x3f, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a,
-   0x57, 0x15, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a,
-   0x57, 0x15, 0x07, 0x00, 0x03, 0x00, 0x01, 0x00 };"
-  "XBM format image used for each square.")
+" glyph-pixel-count glyph-pixel-count))
+      (dotimes (row border-pixel-count)
+        (gamegrid-insert-xbm-bits
+         (concat (make-string (- glyph-pixel-count row) ?1)
+                 (make-string row ?0)))
+        (insert ", \n"))
+
+      (let* ((left-border (make-string border-pixel-count ?1))
+             (right-border (make-string border-pixel-count ?0))
+             (even-line (apply 'concat
+                               (append (list left-border)
+                                       (make-list (/ center-pixel-count 2) "10")
+                                       (list right-border))))
+             (odd-line (apply 'concat
+                              (append (list left-border)
+                                      (make-list (/ center-pixel-count 2) "01")
+                                      (list right-border)))))
+        (dotimes (row center-pixel-count)
+          (gamegrid-insert-xbm-bits (if (eq (logand row 1) 1) odd-line even-line))
+          (insert ", \n")))
+
+      (dotimes (row border-pixel-count)
+        (let ((edge-pixel-count (- border-pixel-count row)))
+          (gamegrid-insert-xbm-bits
+           (concat (make-string edge-pixel-count ?1)
+                   (make-string (- glyph-pixel-count edge-pixel-count) ?0))))
+        (if (/= row (1- border-pixel-count))
+            (insert ", \n")
+          (insert " };\n")))
+      (buffer-string))))
+
+(defun gamegrid-insert-xbm-bits (str)
+  "Convert binary to hex and insert in current buffer.
+STR should be a string composed of 1s and 0s and be a multiple of
+8 in length.  Divide it into 8 bit bytes, reverse the order of
+each, convert them to hex and insert them in comma separated C
+format."
+  (let ((byte-count (/ (length str) 8)))
+    (dotimes (i byte-count)
+      (let* ((byte (reverse (substring str (* i 8) (+ (* i 8) 8))))
+             (value (string-to-number byte 2)))
+        (insert (format "0x%02x" value))
+        (unless (= i (1- byte-count))
+          (insert ", "))))))
 
 ;; ;;;;;;;;;;;;;;;; miscellaneous functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -228,13 +336,13 @@ static unsigned char gamegrid_bits[] = {
        gamegrid-mono-tty-face))))
 
 (defun gamegrid-colorize-glyph (color)
-  (find-image `((:type xpm :data ,gamegrid-xpm
+  (find-image `((:type xpm :data ,(gamegrid-xpm)
 		       :ascent center
 		       :color-symbols
 		       (("col1" . ,(gamegrid-color color 0.6))
 			("col2" . ,(gamegrid-color color 0.8))
 			("col3" . ,(gamegrid-color color 1.0))))
-		(:type xbm :data ,gamegrid-xbm
+		(:type xbm :data ,(gamegrid-xbm)
 		       :ascent center
 		       :foreground ,(gamegrid-color color 1.0)
 		       :background ,(gamegrid-color color 0.5)))))
@@ -376,10 +484,10 @@ static unsigned char gamegrid_bits[] = {
 	(buffer-read-only nil))
     (erase-buffer)
     (setq gamegrid-buffer-start (point))
-    (dotimes (i height)
+    (dotimes (_ height)
       (insert line))
     ;; Adjust the height of the default face to the height of the
-    ;; images. Unlike XEmacs, Emacs doesn't allow to make the default
+    ;; images. Unlike XEmacs, Emacs doesn't allow making the default
     ;; face buffer-local; so we do this with an overlay.
     (when (eq gamegrid-display-mode 'glyph)
       (overlay-put (make-overlay (point-min) (point-max))
@@ -475,17 +583,19 @@ FILE is created there."
 ;;        update FILE.  This is for the case that a user has installed
 ;;        a game on her own.
 ;;
-;;     4. "update-game-score" is not setgid/setuid.  Use it to
-;;        create/update FILE in the user's home directory.  There is
-;;        presumably no shared game directory.
+;;     4. "update-game-score" does not exist or is not setgid/setuid.
+;;        Create/update FILE in the user's home directory, without
+;;        using "update-game-score".  There is presumably no shared
+;;        game directory.
 
 (defvar gamegrid-shared-game-dir)
 
 (defun gamegrid-add-score-with-update-game-score (file score)
   (let ((gamegrid-shared-game-dir
-	 (not (zerop (logand (file-modes
-			      (expand-file-name "update-game-score"
-						exec-directory))
+	 (not (zerop (logand (or (file-modes
+				  (expand-file-name "update-game-score"
+						    exec-directory))
+				  0)
 			     #o6000)))))
     (cond ((file-name-absolute-p file)
 	   (gamegrid-add-score-insecure file score))
@@ -497,23 +607,12 @@ FILE is created there."
 	    (expand-file-name file shared-game-score-directory) score))
 	  ;; Else: Add the score to a score file in the user's home
 	  ;; directory.
-	  (gamegrid-shared-game-dir
-	   ;; If `gamegrid-shared-game-dir' is non-nil, then
-	   ;; "update-gamescore" program is setuid, so don't use it.
-	   (unless (file-exists-p
-		    (directory-file-name gamegrid-user-score-file-directory))
-	     (make-directory gamegrid-user-score-file-directory t))
-	   (gamegrid-add-score-insecure file score
-					gamegrid-user-score-file-directory))
 	  (t
 	   (unless (file-exists-p
 		    (directory-file-name gamegrid-user-score-file-directory))
 	     (make-directory gamegrid-user-score-file-directory t))
-	   (let ((f (expand-file-name file
-				      gamegrid-user-score-file-directory)))
-	     (unless (file-exists-p f)
-	       (write-region "" nil f nil 'silent nil 'excl))
-	     (gamegrid-add-score-with-update-game-score-1 file f score))))))
+	   (gamegrid-add-score-insecure file score
+					gamegrid-user-score-file-directory)))))
 
 (defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")

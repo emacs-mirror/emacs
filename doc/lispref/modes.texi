@@ -1,17 +1,18 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
 @chapter Major and Minor Modes
 @cindex mode
 
-  A @dfn{mode} is a set of definitions that customize Emacs and can be
-turned on and off while you edit.  There are two varieties of modes:
-@dfn{major modes}, which are mutually exclusive and used for editing
-particular kinds of text, and @dfn{minor modes}, which provide features
-that users can enable individually.
+  A @dfn{mode} is a set of definitions that customize Emacs behavior
+in useful ways.  There are two varieties of modes: @dfn{minor modes},
+which provide features that users can turn on and off while editing;
+and @dfn{major modes}, which are used for editing or interacting with
+a particular kind of text.  Each buffer has exactly one @dfn{major
+mode} at a time.
 
   This chapter describes how to write both major and minor modes, how to
 indicate them in the mode line, and how they run hooks supplied by the
@@ -116,7 +117,7 @@ This function runs an abnormal hook by calling all the hook functions in
 
 @defun run-hook-with-args-until-failure hook &rest args
 This function runs an abnormal hook by calling each hook function in
-turn, stopping if one of them ``fails'' by returning @code{nil}.  Each
+turn, stopping if one of them fails by returning @code{nil}.  Each
 hook function is passed the arguments @var{args}.  If this function
 stops because one of the hook functions fails, it returns @code{nil};
 otherwise it returns a non-@code{nil} value.
@@ -124,7 +125,7 @@ otherwise it returns a non-@code{nil} value.
 
 @defun run-hook-with-args-until-success hook &rest args
 This function runs an abnormal hook by calling each hook function,
-stopping if one of them ``succeeds'' by returning a non-@code{nil}
+stopping if one of them succeeds by returning a non-@code{nil}
 value.  Each hook function is passed the arguments @var{args}.  If this
 function stops because one of the hook functions returns a
 non-@code{nil} value, it returns that value; otherwise it returns
@@ -196,12 +197,15 @@ from the buffer-local hook list instead of from the global hook list.
 @cindex major mode
 
 @cindex major mode command
-  Major modes specialize Emacs for editing particular kinds of text.
-Each buffer has one major mode at a time.  Every major mode is
-associated with a @dfn{major mode command}, whose name should end in
-@samp{-mode}.  This command takes care of switching to that mode in the
-current buffer, by setting various buffer-local variables such as a
-local keymap.  @xref{Major Mode Conventions}.
+  Major modes specialize Emacs for editing or interacting with
+particular kinds of text.  Each buffer has exactly one major mode at a
+time.  Every major mode is associated with a @dfn{major mode command},
+whose name should end in @samp{-mode}.  This command takes care of
+switching to that mode in the current buffer, by setting various
+buffer-local variables such as a local keymap.  @xref{Major Mode
+Conventions}.  Note that unlike minor modes there is no way to ``turn
+off'' a major mode, instead the buffer must be switched to a different
+one.
 
   The least specialized major mode is called @dfn{Fundamental mode},
 which has no mode-specific definitions or variable settings.
@@ -310,6 +314,11 @@ Data}, for other possible forms).  The name of the mode appears
 in the mode line.
 
 @item
+Calling the major mode command twice in direct succession should not
+fail and should do the same thing as calling the command only once.
+In other words, the major mode command should be idempotent.
+
+@item
 @cindex functions in modes
 Since all global names are in the same name space, all the global
 variables, constants, and functions that are part of the mode should
@@ -346,14 +355,14 @@ reserved for users.
 
 A major mode can also rebind the keys @kbd{M-n}, @kbd{M-p} and
 @kbd{M-s}.  The bindings for @kbd{M-n} and @kbd{M-p} should normally
-be some kind of ``moving forward and backward'', but this does not
+be some kind of moving forward and backward, but this does not
 necessarily mean cursor motion.
 
 It is legitimate for a major mode to rebind a standard key sequence if
-it provides a command that does ``the same job'' in a way better
+it provides a command that does the same job in a way better
 suited to the text this mode is used for.  For example, a major mode
 for editing a programming language might redefine @kbd{C-M-a} to
-``move to the beginning of a function'' in a way that works better for
+move to the beginning of a function in a way that works better for
 that language.
 
 It is also legitimate for a major mode to rebind a standard key
@@ -445,7 +454,8 @@ other packages would interfere with them.
 Each major mode should have a normal @dfn{mode hook} named
 @code{@var{modename}-mode-hook}.  The very last thing the major mode command
 should do is to call @code{run-mode-hooks}.  This runs the normal
-hook @code{change-major-mode-after-body-hook}, the mode hook,
+hook @code{change-major-mode-after-body-hook}, the mode hook, the
+function @code{hack-local-variables} (when the buffer is visiting a file),
 and then the normal hook @code{after-change-major-mode-hook}.
 @xref{Mode Hooks}.
 
@@ -525,11 +535,12 @@ the buffer based on information in the file name or in the file itself.
 It also processes local variables specified in the file text.
 
 @deffn Command normal-mode &optional find-file
-This function establishes the proper major mode and buffer-local variable
-bindings for the current buffer.  First it calls @code{set-auto-mode}
-(see below), then it runs @code{hack-local-variables} to parse, and
-bind or evaluate as appropriate, the file's local variables
-(@pxref{File Local Variables}).
+This function establishes the proper major mode and buffer-local
+variable bindings for the current buffer.  It calls
+@code{set-auto-mode} (see below).  As of Emacs 26.1, it no longer
+runs @code{hack-local-variables}, this now being done in
+@code{run-mode-hooks} at the initialization of major modes
+(@pxref{Mode Hooks}).
 
 If the @var{find-file} argument to @code{normal-mode} is non-@code{nil},
 @code{normal-mode} assumes that the @code{find-file} function is calling
@@ -543,9 +554,9 @@ If you run @code{normal-mode} interactively, the argument
 @var{find-file} is normally @code{nil}.  In this case,
 @code{normal-mode} unconditionally processes any file local variables.
 
-The function calls @code{set-auto-mode} to choose a major mode.  If this
-does not specify a mode, the buffer stays in the major mode determined
-by the default value of @code{major-mode} (see below).
+The function calls @code{set-auto-mode} to choose and set a major
+mode.  If this does not specify a mode, the buffer stays in the major
+mode determined by the default value of @code{major-mode} (see below).
 
 @cindex file mode specification error
 @code{normal-mode} uses @code{condition-case} around the call to the
@@ -555,16 +566,17 @@ mode specification error}, followed by the original error message.
 
 @defun set-auto-mode &optional keep-mode-if-same
 @cindex visited file mode
-  This function selects the major mode that is appropriate for the
-current buffer.  It bases its decision (in order of precedence) on the
-@w{@samp{-*-}} line, on any @samp{mode:} local variable near the end of
-a file, on the @w{@samp{#!}} line (using @code{interpreter-mode-alist}),
-on the text at the beginning of the buffer (using
-@code{magic-mode-alist}), and finally on the visited file name (using
-@code{auto-mode-alist}).  @xref{Choosing Modes, , How Major Modes are
-Chosen, emacs, The GNU Emacs Manual}.  If @code{enable-local-variables}
-is @code{nil}, @code{set-auto-mode} does not check the @w{@samp{-*-}}
-line, or near the end of the file, for any mode tag.
+  This function selects and sets the major mode that is appropriate
+for the current buffer.  It bases its decision (in order of
+precedence) on the @w{@samp{-*-}} line, on any @samp{mode:} local
+variable near the end of a file, on the @w{@samp{#!}} line (using
+@code{interpreter-mode-alist}), on the text at the beginning of the
+buffer (using @code{magic-mode-alist}), and finally on the visited
+file name (using @code{auto-mode-alist}).  @xref{Choosing Modes, , How
+Major Modes are Chosen, emacs, The GNU Emacs Manual}.  If
+@code{enable-local-variables} is @code{nil}, @code{set-auto-mode} does
+not check the @w{@samp{-*-}} line, or near the end of the file, for
+any mode tag.
 
 @vindex inhibit-local-variables-regexps
 There are some file types where it is not appropriate to scan the file
@@ -749,7 +761,8 @@ The new mode has its own abbrev table, kept in the variable
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook}.  It
 runs this hook, after running the hooks of its ancestor modes, with
-@code{run-mode-hooks}, as the last thing it does.  @xref{Mode Hooks}.
+@code{run-mode-hooks}, as the last thing it does, apart from running
+any @code{:after-hook} form it may have.  @xref{Mode Hooks}.
 @end itemize
 
 In addition, you can specify how to override other aspects of
@@ -773,8 +786,9 @@ about the mode's hook, followed by the mode's keymap, at the end of this
 documentation string.  If you omit @var{docstring},
 @code{define-derived-mode} generates a documentation string.
 
-The @var{keyword-args} are pairs of keywords and values.  The values
-are evaluated.  The following keywords are currently supported:
+The @var{keyword-args} are pairs of keywords and values.  The values,
+except for @code{:after-hook}'s, are evaluated.  The following
+keywords are currently supported:
 
 @table @code
 @item :syntax-table
@@ -794,23 +808,32 @@ if @var{parent} is @code{nil}.  (Again, a @code{nil} value is
 
 @item :group
 If this is specified, the value should be the customization group for
-this mode.  (Not all major modes have one.)  Only the (still
-experimental and unadvertised) command @code{customize-mode} currently
-uses this.  @code{define-derived-mode} does @emph{not} automatically
-define the specified customization group.
+this mode.  (Not all major modes have one.)  The command
+@code{customize-mode} uses this.  @code{define-derived-mode} does
+@emph{not} automatically define the specified customization group.
+
+@item :after-hook
+This optional keyword specifies a single Lisp form to evaluate as the
+final act of the mode function, after the mode hooks have been run.
+It should not be quoted.  Since the form might be evaluated after the
+mode function has terminated, it should not access any element of the
+mode function's local state.  An @code{:after-hook} form is useful for
+setting up aspects of the mode which depend on the user's settings,
+which in turn may have been changed in a mode hook.
 @end table
 
 Here is a hypothetical example:
 
 @example
+(defvar hypertext-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [down-mouse-3] 'do-hyper-link)
+    map))
+
 (define-derived-mode hypertext-mode
   text-mode "Hypertext"
-  "Major mode for hypertext.
-\\@{hypertext-mode-map@}"
-  (setq case-fold-search nil))
-
-(define-key hypertext-mode-map
-  [down-mouse-3] 'do-hyper-link)
+  "Major mode for hypertext."
+  (setq-local case-fold-search nil))
 @end example
 
 Do not write an @code{interactive} spec in the definition;
@@ -899,7 +922,7 @@ follow these conventions: they may run the parent's mode hook too early,
 or fail to run @code{after-change-major-mode-hook}.  If you encounter
 such a major mode, please correct it to follow these conventions.
 
-  When you defined a major mode using @code{define-derived-mode}, it
+  When you define a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
 define a major mode ``by hand'', not using @code{define-derived-mode},
 use the following functions to handle these conventions automatically.
@@ -907,11 +930,15 @@ use the following functions to handle these conventions automatically.
 @defun run-mode-hooks &rest hookvars
 Major modes should run their mode hook using this function.  It is
 similar to @code{run-hooks} (@pxref{Hooks}), but it also runs
-@code{change-major-mode-after-body-hook} and
-@code{after-change-major-mode-hook}.
+@code{change-major-mode-after-body-hook}, @code{hack-local-variables}
+(when the buffer is visiting a file) (@pxref{File Local Variables}),
+and @code{after-change-major-mode-hook}.  The last thing it does is to
+evaluate any @code{:after-hook} forms declared by parent modes
+(@pxref{Derived Modes}).
 
 When this function is called during the execution of a
-@code{delay-mode-hooks} form, it does not run the hooks immediately.
+@code{delay-mode-hooks} form, it does not run the hooks or
+@code{hack-local-variables} or evaluate the forms immediately.
 Instead, it arranges for the next call to @code{run-mode-hooks} to run
 them.
 @end defun
@@ -1003,7 +1030,7 @@ should have the form @w{@code{(@var{id} @var{contents})}}, where
 @itemize
 @item
 @var{id} is either @code{nil}, or a Lisp object that identifies the
-entry.  If the latter, the cursor stays on the ``same'' entry when
+entry.  If the latter, the cursor stays on the same entry when
 re-sorting entries.  Comparison is done with @code{equal}.
 
 @item
@@ -1048,7 +1075,7 @@ to invert the sort order.
 @defun tabulated-list-init-header
 This function computes and sets @code{header-line-format} for the
 Tabulated List buffer (@pxref{Header Lines}), and assigns a keymap to
-the header line to allow sort entries by clicking on column headers.
+the header line to allow sorting entries by clicking on column headers.
 
 Modes derived from Tabulated List mode should call this after setting
 the above variables (in particular, only after setting
@@ -1092,8 +1119,8 @@ documentation for the mode command.  If you do not supply it,
 The argument @var{comment-list} is a list in which each element is
 either a character, a string of one or two characters, or a cons cell.
 A character or a string is set up in the mode's syntax table as a
-``comment starter''.  If the entry is a cons cell, the @sc{car} is set
-up as a ``comment starter'' and the @sc{cdr} as a ``comment ender''.
+comment starter.  If the entry is a cons cell, the @sc{car} is set
+up as a comment starter and the @sc{cdr} as a comment ender.
 (Use @code{nil} for the latter if you want comments to end at the end
 of the line.)  Note that the syntax table mechanism has limitations
 about what comment starters and enders are actually possible.
@@ -1361,9 +1388,10 @@ similar to the code generated by the @code{define-minor-mode} macro):
 
 @example
 (interactive (list (or current-prefix-arg 'toggle)))
-(let ((enable (if (eq arg 'toggle)
-                  (not foo-mode) ; @r{this mode's mode variable}
-                (> (prefix-numeric-value arg) 0))))
+(let ((enable
+       (if (eq arg 'toggle)
+           (not foo-mode) ; @r{this is the mode's mode variable}
+         (> (prefix-numeric-value arg) 0))))
   (if enable
       @var{do-enable}
     @var{do-disable}))
@@ -1389,6 +1417,10 @@ a minor mode in a mode hook is a little uglier:
 
 @noindent
 However, this is not very commonly done.
+
+  Enabling or disabling a minor mode twice in direct succession should
+not fail and should do the same thing as enabling or disabling it only
+once.  In other words, the minor mode command should be idempotent.
 
 @item
 Add an element to @code{minor-mode-alist} for each minor mode
@@ -1468,10 +1500,11 @@ alist @code{minor-mode-map-alist}.  @xref{Definition of minor-mode-map-alist}.
   One use of minor mode keymaps is to modify the behavior of certain
 self-inserting characters so that they do something else as well as
 self-insert.  (Another way to customize @code{self-insert-command} is
-through @code{post-self-insert-hook}.  Apart from this, the facilities
-for customizing @code{self-insert-command} are limited to special cases,
-designed for abbrevs and Auto Fill mode.  Do not try substituting your
-own definition of @code{self-insert-command} for the standard one.  The
+through @code{post-self-insert-hook}, see @ref{Commands for
+Insertion}.  Apart from this, the facilities for customizing
+@code{self-insert-command} are limited to special cases, designed for
+abbrevs and Auto Fill mode.  Do not try substituting your own
+definition of @code{self-insert-command} for the standard one.  The
 editor command loop handles this function specially.)
 
 Minor modes may bind commands to key sequences consisting of @kbd{C-c}
@@ -1715,7 +1748,9 @@ holds a @dfn{mode line construct}: a template that controls what is
 displayed on the buffer's mode line.  The value of
 @code{header-line-format} specifies the buffer's header line in the same
 way.  All windows for the same buffer use the same
-@code{mode-line-format} and @code{header-line-format}.
+@code{mode-line-format} and @code{header-line-format} unless a
+@code{mode-line-format} or @code{header-line-format} parameter has been
+specified for that window (@pxref{Window Parameters}).
 
   For efficiency, Emacs does not continuously recompute each window's
 mode line and header line.  It does so when circumstances appear to call
@@ -1782,7 +1817,7 @@ symbol whose value is void.
 There is one exception: if the value of @var{symbol} is a string, it is
 displayed verbatim: the @code{%}-constructs are not recognized.
 
-Unless @var{symbol} is marked as ``risky'' (i.e., it has a
+Unless @var{symbol} is marked as risky (i.e., it has a
 non-@code{nil} @code{risky-local-variable} property), all text
 properties specified in @var{symbol}'s value are ignored.  This includes
 the text properties of strings in @var{symbol}'s value, as well as all
@@ -1912,7 +1947,8 @@ could have the same effects on the mode line if the value of
 @code{mode-line-format} is changed to use them.  However, various parts
 of Emacs set these variables on the understanding that they will control
 parts of the mode line; therefore, practically speaking, it is essential
-for the mode line to use them.
+for the mode line to use them.  Also see
+@ref{Optional Mode Line,,, emacs, The GNU Emacs Manual}.
 
 @defvar mode-line-mule-info
 This variable holds the value of the mode line construct that displays
@@ -1943,10 +1979,18 @@ Its default value displays the buffer name, padded with spaces to at
 least 12 columns.
 @end defvar
 
-@defopt mode-line-position
+@defvar mode-line-position
 This variable indicates the position in the buffer.  Its default value
 displays the buffer percentage and, optionally, the buffer size, the
 line number and the column number.
+@end defvar
+
+@defopt mode-line-percent-position
+This option is used in @code{mode-line-position}.  Its value specifies
+both the buffer percentage to display (one of @code{nil}, @code{"%o"},
+@code{"%p"}, @code{"%P"} or @code{"%q"}, @pxref{%-Constructs}) and a
+width to space-fill or truncate to.  You are recommended to set this
+option with the @code{customize-variable} facility.
 @end defopt
 
 @defvar vc-mode
@@ -1956,11 +2000,11 @@ and, if so, which kind.  Its value is a string that appears in the mode
 line, or @code{nil} for no version control.
 @end defvar
 
-@defopt mode-line-modes
+@defvar mode-line-modes
 This variable displays the buffer's major and minor modes.  Its
 default value also displays the recursive editing level, information
 on the process status, and whether narrowing is in effect.
-@end defopt
+@end defvar
 
 @defvar mode-line-remote
 This variable is used to show whether @code{default-directory} for the
@@ -1991,6 +2035,21 @@ space.  For example, its value in the @file{*shell*} buffer is
 @code{(":%s")}, which allows the shell to display its status along
 with the major mode as: @samp{(Shell:run)}.  Normally this variable
 is @code{nil}.
+@end defvar
+
+@defvar mode-line-front-space
+This variable is displayed at the front of the mode line.  By default,
+this construct is displayed right at the beginning of the mode line,
+except that if there is a memory-full message, it is displayed first.
+@end defvar
+
+@defvar mode-line-end-spaces
+This variable is displayed at the end of the mode line.
+@end defvar
+
+@defvar mode-line-misc-info
+Mode line construct for miscellaneous information.  By default, this
+shows the information specified by @code{global-mode-string}.
 @end defvar
 
 @defvar minor-mode-alist
@@ -2073,7 +2132,12 @@ The current buffer name, obtained with the @code{buffer-name} function.
 @xref{Buffer Names}.
 
 @item %c
-The current column number of point.
+The current column number of point, counting from zero starting at the
+left margin of the window.
+
+@item %C
+The current column number of point, counting from one starting at the
+left margin of the window.
 
 @item %e
 When Emacs is nearly out of memory for Lisp objects, a brief message
@@ -2104,6 +2168,12 @@ of the buffer.
 @samp{Narrow} when narrowing is in effect; nothing otherwise (see
 @code{narrow-to-region} in @ref{Narrowing}).
 
+@item %o
+The degree of @dfn{travel} of the window through (the visible portion
+of) the buffer, i.e. the size of the text above the top of the window
+expressed as a percentage of all the text outside the window, or
+@samp{Top}, @samp{Bottom} or @samp{All}.
+
 @item %p
 The percentage of the buffer text above the @strong{top} of window, or
 @samp{Top}, @samp{Bottom} or @samp{All}.  Note that the default mode
@@ -2114,6 +2184,10 @@ The percentage of the buffer text that is above the @strong{bottom} of
 the window (which includes the text visible in the window, as well as
 the text above the top), plus @samp{Top} if the top of the buffer is
 visible on screen; or @samp{Bottom} or @samp{All}.
+
+@item %q
+The percentages of text above both the @strong{top} and the
+@strong{bottom} of the window, separated by @samp{-}, or @samp{All}.
 
 @item %s
 The status of the subprocess belonging to the current buffer, obtained with
@@ -2408,10 +2482,10 @@ variables @code{imenu-prev-index-position-function} and
 
 @defvar imenu-prev-index-position-function
 If this variable is non-@code{nil}, its value should be a function that
-finds the next ``definition'' to put in the buffer index, scanning
+finds the next definition to put in the buffer index, scanning
 backward in the buffer from point.  It should return @code{nil} if it
-doesn't find another ``definition'' before point.  Otherwise it should
-leave point at the place it finds a ``definition'' and return any
+doesn't find another definition before point.  Otherwise it should
+leave point at the place it finds a definition and return any
 non-@code{nil} value.
 
 Setting this variable makes it buffer-local in the current buffer.
@@ -2509,6 +2583,53 @@ Search-based fontification happens second.
 @node Font Lock Basics
 @subsection Font Lock Basics
 
+  The Font Lock functionality is based on several basic functions.
+Each of these calls the function specified by the corresponding
+variable.  This indirection allows major and minor modes to modify the
+way fontification works in the buffers of that mode, and even use the
+Font Lock mechanisms for features that have nothing to do with
+fontification.  (This is why the description below says ``should''
+when it describes what the functions do: the mode can customize the
+values of the corresponding variables to do something entirely
+different.)  The variables mentioned below are described in @ref{Other
+Font Lock Variables}.
+
+@ftable @code
+@item font-lock-fontify-buffer
+This function should fontify the current buffer's accessible portion,
+by calling the function specified by
+@code{font-lock-fontify-buffer-function}.
+
+@item font-lock-unfontify-buffer
+Used when turning Font Lock off to remove the fontification.  Calls
+the function specified by @code{font-lock-unfontify-buffer-function}.
+
+@item font-lock-fontify-region beg end &optional loudly
+Should fontify the region between @var{beg} and @var{end}.  If
+@var{loudly} is non-@code{nil}, should display status messages while
+fontifying.  Calls the function specified by
+@code{font-lock-fontify-region-function}.
+
+@item font-lock-unfontify-region beg end
+Should remove fontification from the region between @var{beg} and
+@var{end}.  Calls the function specified by
+@code{font-lock-unfontify-region-function}.
+
+@item font-lock-flush &optional beg end
+This function should mark the fontification of the region between
+@var{beg} and @var{end} as outdated.  If not specified or @code{nil},
+@var{beg} and @var{end} default to the beginning and end of the
+buffer's accessible portion.  Calls the function specified by
+@code{font-lock-flush-function}.
+
+@item font-lock-ensure &optional beg end
+This function should make sure the region between @var{beg} and
+@var{end} has been fontified.  The optional arguments @var{beg} and
+@var{end} default to the beginning and the end of the buffer's
+accessible portion.  Calls the function specified by
+@code{font-lock-ensure-function}.
+@end ftable
+
   There are several variables that control how Font Lock mode highlights
 text.  But major modes should not set any of these variables directly.
 Instead, they should set @code{font-lock-defaults} as a buffer-local
@@ -2516,10 +2637,10 @@ variable.  The value assigned to this variable is used, if and when Font
 Lock mode is enabled, to set all the other variables.
 
 @defvar font-lock-defaults
-This variable is set by major modes to specify how to fontify text in
-that mode.  It automatically becomes buffer-local when set.  If its
-value is @code{nil}, Font Lock mode does no highlighting, and you can
-use the @samp{Faces} menu (under @samp{Edit} and then @samp{Text
+This variable is set by modes to specify how to fontify text in that
+mode.  It automatically becomes buffer-local when set.  If its value
+is @code{nil}, Font Lock mode does no highlighting, and you can use
+the @samp{Faces} menu (under @samp{Edit} and then @samp{Text
 Properties} in the menu bar) to assign faces explicitly to text in the
 buffer.
 
@@ -2527,7 +2648,7 @@ If non-@code{nil}, the value should look like this:
 
 @example
 (@var{keywords} [@var{keywords-only} [@var{case-fold}
- [@var{syntax-alist} [@var{syntax-begin} @var{other-vars}@dots{}]]]])
+ [@var{syntax-alist} @var{other-vars}@dots{}]]])
 @end example
 
 The first element, @var{keywords}, indirectly specifies the value of
@@ -2558,11 +2679,6 @@ fontification; the resulting syntax table is stored in
 @code{font-lock-syntax-table}.  If @var{syntax-alist} is omitted or
 @code{nil}, syntactic fontification uses the syntax table returned by
 the @code{syntax-table} function.  @xref{Syntax Table Functions}.
-
-The fifth element, @var{syntax-begin}, specifies the value of
-@code{font-lock-beginning-of-syntax-function}.  We recommend setting
-this variable to @code{nil} and using @code{syntax-begin-function}
-instead.
 
 All the remaining elements (if any) are collectively called
 @var{other-vars}.  Each of these elements should have the form
@@ -2859,7 +2975,9 @@ This function removes @var{keywords} from @code{font-lock-keywords}
 for the current buffer or for major mode @var{mode}.  As in
 @code{font-lock-add-keywords}, @var{mode} should be a major mode
 command name or @code{nil}.  All the caveats and requirements for
-@code{font-lock-add-keywords} apply here too.
+@code{font-lock-add-keywords} apply here too.  The argument
+@var{keywords} must exactly match the one used by the corresponding
+@code{font-lock-add-keywords}.
 @end defun
 
   For example, the following code adds two fontification patterns for C
@@ -2939,6 +3057,22 @@ function should print status messages.  The default value is
 Function to use for unfontifying a region.  It should take two
 arguments, the beginning and end of the region.  The default value is
 @code{font-lock-default-unfontify-region}.
+@end defvar
+
+@defvar font-lock-flush-function
+Function to use for declaring that a region's fontification is out of
+date.  It takes two arguments, the beginning and end of the region.
+The default value of this variable is
+@code{font-lock-after-change-function}.
+@end defvar
+
+@defvar font-lock-ensure-function
+Function to use for making sure a region of the current buffer has
+been fontified.  It is called with two arguments, the beginning and
+end of the region.  The default value of this variable is a function
+that calls @code{font-lock-default-fontify-buffer} if the buffer is
+not fontified; the effect is to make sure the entire accessible
+portion of the buffer is fontified.
 @end defvar
 
 @defun jit-lock-register function &optional contextual
@@ -3026,7 +3160,7 @@ default value is the symbol itself.  Thus, the default value of
 @code{font-lock-comment-face} is @code{font-lock-comment-face}.
 
   The faces are listed with descriptions of their typical usage, and in
-order of greater to lesser ``prominence''.  If a mode's syntactic
+order of greater to lesser prominence.  If a mode's syntactic
 categories do not fit well with the usage descriptions, the faces can be
 assigned using the ordering as a guide.
 
@@ -3122,26 +3256,6 @@ comments and strings.  It is normally set by Font Lock mode based on the
 is @code{nil}, syntactic fontification uses the buffer's syntax table
 (the value returned by the function @code{syntax-table}; @pxref{Syntax
 Table Functions}).
-@end defvar
-
-@defvar font-lock-beginning-of-syntax-function
-If this variable is non-@code{nil}, it should be a function to move
-point back to a position that is syntactically at ``top level'' and
-outside of strings or comments.  The value is normally set through an
-@var{other-vars} element in @code{font-lock-defaults}.  If it is
-@code{nil}, Font Lock uses @code{syntax-begin-function} to move back
-outside of any comment, string, or sexp (@pxref{Position Parse}).
-
-This variable is semi-obsolete; we usually recommend setting
-@code{syntax-begin-function} instead.  One of its uses is to tune the
-behavior of syntactic fontification, e.g., to ensure that different
-kinds of strings or comments are highlighted differently.
-
-The specified function is called with no arguments.  It should leave
-point at the beginning of any enclosing syntactic block.  Typical values
-are @code{beginning-of-line} (used when the start of the line is known
-to be outside a syntactic block), or @code{beginning-of-defun} for
-programming modes, or @code{backward-paragraph} for textual modes.
 @end defvar
 
 @defvar font-lock-syntactic-face-function
@@ -3262,7 +3376,7 @@ easy to add the @code{font-lock-multiline} property by hand.
 
   The @code{font-lock-multiline} property is meant to ensure proper
 refontification; it does not automatically identify new multiline
-constructs.  Identifying the requires that Font Lock mode operate on
+constructs.  Identifying them requires that Font Lock mode operate on
 large enough chunks at a time.  This will happen by accident on many
 cases, which may give the impression that multiline constructs magically
 work.  If you set the @code{font-lock-multiline} variable
@@ -3338,13 +3452,13 @@ indentation code will want to be somewhat friendly to syntactically
 incorrect code.
 
 Good maintainable indentation functions usually fall into two categories:
-either parsing forward from some ``safe'' starting point until the
+either parsing forward from some safe starting point until the
 position of interest, or parsing backward from the position of interest.
 Neither of the two is a clearly better choice than the other: parsing
 backward is often more difficult than parsing forward because
 programming languages are designed to be parsed forward, but for the
 purpose of indentation it has the advantage of not needing to
-guess a ``safe'' starting point, and it generally enjoys the property
+guess a safe starting point, and it generally enjoys the property
 that only a minimum of text will be analyzed to decide the indentation
 of a line, so indentation will tend to be less affected by syntax errors in
 some earlier unrelated piece of code.  Parsing forward on the other hand
@@ -3370,8 +3484,8 @@ of Lisp sexps and adapts it to non-Lisp languages.
 @cindex SMIE
 
 SMIE is a package that provides a generic navigation and indentation
-engine.  Based on a very simple parser using an ``operator precedence
-grammar'', it lets major modes extend the sexp-based navigation of Lisp
+engine.  Based on a very simple parser using an operator precedence
+grammar, it lets major modes extend the sexp-based navigation of Lisp
 to non-Lisp languages as well as provide a simple to use but reliable
 auto-indentation.
 
@@ -3432,10 +3546,11 @@ provided grammar is precise enough, @code{transpose-sexps} can correctly
 transpose the two arguments of a @code{+} operator, taking into account
 the precedence rules of the language.
 
-Calling @code{smie-setup} is also sufficient to make TAB indentation work in
-the expected way, extends @code{blink-matching-paren} to apply to
-elements like @code{begin...end}, and provides some commands that you
-can bind in the major mode keymap.
+Calling @code{smie-setup} is also sufficient to make @key{TAB}
+indentation work in the expected way, extends
+@code{blink-matching-paren} to apply to elements like
+@code{begin...end}, and provides some commands that you can bind in
+the major mode keymap.
 
 @deffn Command smie-close-block
 This command closes the most recently opened (and not yet closed) block.

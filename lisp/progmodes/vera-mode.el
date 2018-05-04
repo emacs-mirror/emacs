@@ -1,6 +1,6 @@
 ;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -32,7 +32,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Commentary:
@@ -259,7 +259,7 @@ Usage:
 
   INDENTATION:  Typing `TAB' at the beginning of a line indents the line.
     The amount of indentation is specified by option `vera-basic-offset'.
-    Indentation can be done for an entire region \(`M-C-\\') or buffer (menu).
+    Indentation can be done for an entire region (`M-C-\\') or buffer (menu).
     `TAB' always indents the line if option `vera-intelligent-tab' is nil.
 
   WORD/COMMAND COMPLETION:  Typing `TAB' after a (not completed) word looks
@@ -870,7 +870,7 @@ This function does not modify point or mark."
 	    (beginning-of-line)))))))
 
 (defmacro vera-prepare-search (&rest body)
-  "Execute BODY with a syntax table that includes '_'."
+  "Execute BODY with a syntax table that includes `_'."
   `(with-syntax-table vera-mode-ext-syntax-table ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1109,7 +1109,7 @@ try to increase performance by using this macro."
        ((and (save-excursion
 	       (vera-backward-syntactic-ws nil t)
 	       ;; previous line ends with a block opening?
-	       (or (/= (skip-chars-backward "{") 0) (backward-word 1))
+	       (or (/= (skip-chars-backward "{") 0) (backward-word-strictly 1))
 	       (when (looking-at vera-beg-block-re)
 		 ;; go to beginning of substatement
 		 (vera-beginning-of-substatement)
@@ -1162,7 +1162,7 @@ try to increase performance by using this macro."
        ;; is this line preceded by a substatement opening statement?
        ((save-excursion (vera-backward-syntactic-ws nil t)
 			(when (= (preceding-char) ?\)) (backward-sexp))
-			(backward-word 1)
+			(backward-word-strictly 1)
 			(setq placeholder (point))
 			(looking-at vera-beg-substatement-re))
 	(goto-char placeholder)
@@ -1225,7 +1225,7 @@ Calls `indent-region' for whole buffer."
   "If previous word is a block closing or `else', indent line again."
   (when (= (char-syntax (preceding-char)) ?w)
     (save-excursion
-      (backward-word 1)
+      (backward-word-strictly 1)
       (when (and (not (vera-in-literal))
 		 (looking-at (concat vera-end-block-re "\\|\\<else\\>")))
 	(indent-according-to-mode)))))

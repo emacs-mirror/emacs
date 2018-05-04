@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2015 Free Software
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -19,17 +19,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-and-compile
-  ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
-  ;; `make-network-stream'.
-  (unless (fboundp 'open-protocol-stream)
-    (require 'proto-stream)))
 
 (require 'nnheader)
 (require 'nnoo)
@@ -39,7 +33,7 @@
 
 (nnoo-declare nntp)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'auth-source-search "auth-source")
 
@@ -54,7 +48,7 @@
   "Port number on the physical nntp server.")
 
 (defvoo nntp-server-opened-hook '(nntp-send-mode-reader)
-  "*Hook used for sending commands to the server at startup.
+  "Hook used for sending commands to the server at startup.
 The default value is `nntp-send-mode-reader', which makes an innd
 server spawn an nnrpd server.")
 
@@ -100,7 +94,7 @@ For indirect connections:
 - `nntp-open-via-telnet-and-telnet'")
 
 (defvoo nntp-never-echoes-commands nil
-  "*Non-nil means the nntp server never echoes commands.
+  "Non-nil means the nntp server never echoes commands.
 It is reported that some nntps server doesn't echo commands.  So, you
 may want to set this to non-nil in the method for such a server setting
 `nntp-open-connection-function' to `nntp-open-ssl-stream' for example.
@@ -109,102 +103,102 @@ variable overrides the nil value of this variable.")
 
 (defvoo nntp-open-connection-functions-never-echo-commands
     '(nntp-open-network-stream)
-  "*List of functions that never echo commands.
+  "List of functions that never echo commands.
 Add or set a function which you set to `nntp-open-connection-function'
 to this list if it does not echo commands.  Note that a non-nil value
 of the `nntp-never-echoes-commands' variable overrides this variable.")
 
 (defvoo nntp-pre-command nil
-  "*Pre-command to use with the various nntp-open-via-* methods.
+  "Pre-command to use with the various nntp-open-via-* methods.
 This is where you would put \"runsocks\" or stuff like that.")
 
 (defvoo nntp-telnet-command "telnet"
-  "*Telnet command used to connect to the nntp server.
+  "Telnet command used to connect to the nntp server.
 This command is used by the methods `nntp-open-telnet-stream',
 `nntp-open-via-rlogin-and-telnet' and `nntp-open-via-telnet-and-telnet'.")
 
 (defvoo nntp-telnet-switches '("-8")
-  "*Switches given to the telnet command `nntp-telnet-command'.")
+  "Switches given to the telnet command `nntp-telnet-command'.")
 
 (defvoo nntp-end-of-line "\r\n"
-  "*String to use on the end of lines when talking to the NNTP server.
+  "String to use on the end of lines when talking to the NNTP server.
 This is \"\\r\\n\" by default, but should be \"\\n\" when using an indirect
 connection method (nntp-open-via-*).")
 
 (defvoo nntp-via-rlogin-command "rsh"
-  "*Rlogin command used to connect to an intermediate host.
+  "Rlogin command used to connect to an intermediate host.
 This command is used by the methods `nntp-open-via-rlogin-and-telnet'
 and `nntp-open-via-rlogin-and-netcat'.  The default is \"rsh\", but \"ssh\"
 is a popular alternative.")
 
 (defvoo nntp-via-rlogin-command-switches nil
-  "*Switches given to the rlogin command `nntp-via-rlogin-command'.
+  "Switches given to the rlogin command `nntp-via-rlogin-command'.
 If you use \"ssh\" for `nntp-via-rlogin-command', you may set this to
 \(\"-C\") in order to compress all data connections, otherwise set this
 to \(\"-t\" \"-e\" \"none\") or (\"-C\" \"-t\" \"-e\" \"none\") if the telnet
 command requires a pseudo-tty allocation on an intermediate host.")
 
 (defvoo nntp-via-telnet-command "telnet"
-  "*Telnet command used to connect to an intermediate host.
+  "Telnet command used to connect to an intermediate host.
 This command is used by the `nntp-open-via-telnet-and-telnet' method.")
 
 (defvoo nntp-via-telnet-switches '("-8")
-  "*Switches given to the telnet command `nntp-via-telnet-command'.")
+  "Switches given to the telnet command `nntp-via-telnet-command'.")
 
 (defvoo nntp-netcat-command "nc"
-  "*Netcat command used to connect to the nntp server.
+  "Netcat command used to connect to the nntp server.
 This command is used by the `nntp-open-netcat-stream' and
 `nntp-open-via-rlogin-and-netcat' methods.")
 
 (defvoo nntp-netcat-switches nil
-  "*Switches given to the netcat command `nntp-netcat-command'.")
+  "Switches given to the netcat command `nntp-netcat-command'.")
 
 (defvoo nntp-via-user-name nil
-  "*User name to log in on an intermediate host with.
+  "User name to log in on an intermediate host with.
 This variable is used by the various nntp-open-via-* methods.")
 
 (defvoo nntp-via-user-password nil
-  "*Password to use to log in on an intermediate host with.
+  "Password to use to log in on an intermediate host with.
 This variable is used by the `nntp-open-via-telnet-and-telnet' method.")
 
 (defvoo nntp-via-address nil
-  "*Address of an intermediate host to connect to.
+  "Address of an intermediate host to connect to.
 This variable is used by the various nntp-open-via-* methods.")
 
 (defvoo nntp-via-envuser nil
-  "*Whether both telnet client and server support the ENVIRON option.
+  "Whether both telnet client and server support the ENVIRON option.
 If non-nil, there will be no prompt for a login name.")
 
-(defvoo nntp-via-shell-prompt "bash\\|\$ *\r?$\\|> *\r?"
-  "*Regular expression to match the shell prompt on an intermediate host.
+(defvoo nntp-via-shell-prompt "bash\\|[$>] *\r?$"
+  "Regular expression to match the shell prompt on an intermediate host.
 This variable is used by the `nntp-open-via-telnet-and-telnet' method.")
 
 (defvoo nntp-large-newsgroup 50
-  "*The number of articles which indicates a large newsgroup.
+  "The number of articles which indicates a large newsgroup.
 If the number of articles is greater than the value, verbose
 messages will be shown to indicate the current status.")
 
 (defvoo nntp-maximum-request 400
-  "*The maximum number of the requests sent to the NNTP server at one time.
+  "The maximum number of the requests sent to the NNTP server at one time.
 If Emacs hangs up while retrieving headers, set the variable to a
 lower value.")
 
 (defvoo nntp-nov-is-evil nil
-  "*If non-nil, nntp will never attempt to use XOVER when talking to the server.")
+  "If non-nil, nntp will never attempt to use XOVER when talking to the server.")
 
 (defvoo nntp-xover-commands '("XOVER" "XOVERVIEW")
-  "*List of strings that are used as commands to fetch NOV lines from a server.
+  "List of strings that are used as commands to fetch NOV lines from a server.
 The strings are tried in turn until a positive response is gotten.  If
 none of the commands are successful, nntp will just grab headers one
 by one.")
 
 (defvoo nntp-nov-gap 5
-  "*Maximum allowed gap between two articles.
+  "Maximum allowed gap between two articles.
 If the gap between two consecutive articles is bigger than this
 variable, split the XOVER request into two requests.")
 
 (defvoo nntp-xref-number-is-evil nil
-  "*If non-nil, Gnus never trusts article numbers in the Xref header.
+  "If non-nil, Gnus never trusts article numbers in the Xref header.
 Some news servers, e.g., ones running Diablo, run multiple engines
 having the same articles but article numbers are not kept synchronized
 between them.  If you connect to such a server, set this to a non-nil
@@ -212,7 +206,7 @@ value, and Gnus never uses article numbers (that appear in the Xref
 header and vary by which engine is chosen) to refer to articles.")
 
 (defvoo nntp-prepare-server-hook nil
-  "*Hook run before a server is opened.
+  "Hook run before a server is opened.
 If can be used to set up a server remotely, for instance.  Say you
 have an account at the machine \"other.machine\".  This machine has
 access to an NNTP server that you can't access locally.  You could
@@ -243,12 +237,11 @@ server there that you can connect to.  See also
 
 
 (defvoo nntp-connection-timeout nil
-  "*Number of seconds to wait before an nntp connection times out.
-If this variable is nil, which is the default, no timers are set.
-NOTE: This variable is never seen to work in Emacs 20 and XEmacs 21.")
+  "Number of seconds to wait before an nntp connection times out.
+If this variable is nil, which is the default, no timers are set.")
 
 (defvoo nntp-prepare-post-hook nil
-  "*Hook run just before posting an article.  It is supposed to be used
+  "Hook run just before posting an article.  It is supposed to be used
 to insert Cancel-Lock headers.")
 
 (defvoo nntp-server-list-active-group 'try
@@ -259,8 +252,10 @@ update their active files often, this can help.")
 ;;; Internal variables.
 
 (defvoo nntp-retrieval-in-progress nil)
-(defvar nntp-record-commands nil
-  "*If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer.")
+(defcustom nntp-record-commands nil
+  "If non-nil, nntp will record all commands in the \"*nntp-log*\" buffer."
+  :group 'nntp
+  :type 'boolean)
 
 (defvar nntp-have-messaged nil)
 
@@ -344,16 +339,12 @@ retried once before actually displaying the error report."
 
 (defmacro nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
-  (if (featurep 'xemacs)
-      `(copy-to-buffer ,buffer ,start ,end)
-    `(let ((string (buffer-substring ,start ,end)))
-       (with-current-buffer ,buffer
-	 (erase-buffer)
-	 (insert (if enable-multibyte-characters
-		     (mm-string-to-multibyte string)
-		   string))
-	 (goto-char (point-min))
-	 nil))))
+  `(let ((string (buffer-substring ,start ,end)))
+     (with-current-buffer ,buffer
+       (erase-buffer)
+       (insert string)
+       (goto-char (point-min))
+       nil)))
 
 (defsubst nntp-wait-for (process wait-for buffer &optional decode discard)
   "Wait for WAIT-FOR to arrive from PROCESS."
@@ -572,7 +563,7 @@ retried once before actually displaying the error report."
      (nntp-find-connection-buffer nntp-server-buffer)))
   (nntp-encode-text)
   ;; Make sure we did not forget to encode some of the content.
-  (assert (save-excursion (goto-char (point-min))
+  (cl-assert (save-excursion (goto-char (point-min))
                           (not (re-search-forward "[^\000-\377]" nil t))))
   (mm-disable-multibyte)
   (process-send-region (nntp-find-connection nntp-server-buffer)
@@ -708,7 +699,7 @@ command whose response triggered the error."
                      ;; `articles' is either a list of article numbers
                      ;; or a list of article IDs.
                      article))
-           (incf count)
+           (cl-incf count)
            ;; Every 400 requests we have to read the stream in
            ;; order to avoid deadlocks.
            (when (or (null articles)    ;All requests have been sent.
@@ -720,7 +711,7 @@ command whose response triggered the error."
                       ;; Count replies.
                       (while (nntp-next-result-arrived-p)
                         (setq last-point (point))
-                        (incf received))
+                        (cl-incf received))
                       (< received count))
                ;; If number of headers is greater than 100, give
                ;;  informative messages.
@@ -793,7 +784,7 @@ command whose response triggered the error."
 				    "^[.]"
 				  "^[0-9]")
 				nil t)
-			  (incf received))
+			  (cl-incf received))
 			(setq last-point (point))
 			(< received count)))
 	    (nntp-accept-response))
@@ -858,7 +849,7 @@ command whose response triggered the error."
                (throw 'done nil))
              ;; Send the command to the server.
              (nntp-send-command nil command (pop groups))
-             (incf count)
+             (cl-incf count)
              ;; Every 400 requests we have to read the stream in
              ;; order to avoid deadlocks.
              (when (or (null groups)    ;All requests have been sent.
@@ -872,7 +863,7 @@ command whose response triggered the error."
                              (goto-char last-point)
                              ;; Count replies.
                              (while (re-search-forward "^[0-9]" nil t)
-                               (incf received))
+                               (cl-incf received))
                              (setq last-point (point))
                              (< received count)))
                  (nntp-accept-response))))
@@ -944,7 +935,7 @@ command whose response triggered the error."
                       ;; `articles' is either a list of article numbers
                       ;; or a list of article IDs.
                       article))
-         (incf count)
+         (cl-incf count)
          ;; Every 400 requests we have to read the stream in
          ;; order to avoid deadlocks.
          (when (or (null articles)	;All requests have been sent.
@@ -957,7 +948,7 @@ command whose response triggered the error."
                     (while (nntp-next-result-arrived-p)
                       (aset map received (cons (aref map received) (point)))
                       (setq last-point (point))
-                      (incf received))
+                      (cl-incf received))
                     (< received count))
              ;; If number of headers is greater than 100, give
              ;;  informative messages.
@@ -1115,24 +1106,14 @@ command whose response triggered the error."
 
 (deffoo nntp-request-newgroups (date &optional server)
   (nntp-with-open-group
-   nil server
-   (with-current-buffer nntp-server-buffer
-     (let* ((time (date-to-time date))
-            (ls (- (cadr time) (nth 8 (decode-time time)))))
-       (cond ((< ls 0)
-              (setcar time (1- (car time)))
-              (setcar (cdr time) (+ ls 65536)))
-             ((>= ls 65536)
-              (setcar time (1+ (car time)))
-              (setcar (cdr time) (- ls 65536)))
-             (t
-              (setcar (cdr time) ls)))
-       (prog1
-           (nntp-send-command
-            "^\\.\r?\n" "NEWGROUPS"
-            (format-time-string "%y%m%d %H%M%S" time)
-            "GMT")
-         (nntp-decode-text))))))
+      nil server
+    (with-current-buffer nntp-server-buffer
+      (prog1
+	  (nntp-send-command
+	   "^\\.\r?\n" "NEWGROUPS"
+	   (format-time-string "%y%m%d %H%M%S" (date-to-time date) t)
+	   "GMT")
+	(nntp-decode-text)))))
 
 (deffoo nntp-request-post (&optional server)
   (nntp-with-open-group
@@ -1279,7 +1260,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 			   (nntp-open-ssl-stream tls)
 			   (nntp-open-tls-stream tls))))
 		(if (assoc nntp-open-connection-function map)
-		    (open-protocol-stream
+		    (open-network-stream
 		     "nntpd" pbuffer nntp-address nntp-port-number
 		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
@@ -1311,13 +1292,11 @@ If SEND-IF-FORCE, only send authinfo to the server if the
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
 	       process)
-      (when (and (fboundp 'set-network-process-option) ;; Unavailable in XEmacs.
-		 (fboundp 'process-type) ;; Emacs 22 doesn't provide it.
-                 (eq (process-type process) 'network))
+      (when (eq (process-type process) 'network)
         ;; Use TCP-keepalive so that connections that pass through a NAT router
         ;; don't hang when left idle.
         (set-network-process-option process :keepalive t))
-      (gnus-set-process-query-on-exit-flag process nil)
+      (set-process-query-on-exit-flag process nil)
       (if (and (nntp-wait-for process "^2.*\n" buffer nil t)
 	       (memq (process-status process) '(open run)))
 	  (prog1
@@ -1591,7 +1570,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 		     ;; Count replies.
 		     (while (re-search-forward "^\\([0-9][0-9][0-9]\\) .*\n"
 					       nil t)
-		       (incf received)
+		       (cl-incf received)
 		       (setq status (match-string 1))
 		       (if (string-match "^[45]" status)
 			   (setq status 'error)
@@ -1762,26 +1741,26 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 ;; ==========================================================================
 
 (defvoo nntp-open-telnet-envuser nil
-  "*If non-nil, telnet session (client and server both) will support the ENVIRON option and not prompt for login name.")
+  "If non-nil, telnet session (client and server both) will support the ENVIRON option and not prompt for login name.")
 
-(defvoo nntp-telnet-shell-prompt "bash\\|\$ *\r?$\\|> *\r?"
-  "*Regular expression to match the shell prompt on the remote machine.")
+(defvoo nntp-telnet-shell-prompt "bash\\|[$>] *\r?$"
+  "Regular expression to match the shell prompt on the remote machine.")
 
 (defvoo nntp-rlogin-program "rsh"
-  "*Program used to log in on remote machines.
+  "Program used to log in on remote machines.
 The default is \"rsh\", but \"ssh\" is a popular alternative.")
 
 (defvoo nntp-rlogin-parameters '("telnet" "-8" "${NNTPSERVER:=news}" "nntp")
-  "*Parameters to `nntp-open-rlogin'.
+  "Parameters to `nntp-open-rlogin'.
 That function may be used as `nntp-open-connection-function'.  In that
 case, this list will be used as the parameter list given to rsh.")
 
 (defvoo nntp-rlogin-user-name nil
-  "*User name on remote system when using the rlogin connect method.")
+  "User name on remote system when using the rlogin connect method.")
 
 (defvoo nntp-telnet-parameters
     '("exec" "telnet" "-8" "${NNTPSERVER:=news}" "nntp")
-  "*Parameters to `nntp-open-telnet'.
+  "Parameters to `nntp-open-telnet'.
 That function may be used as `nntp-open-connection-function'.  In that
 case, this list will be executed as a command after logging in
 via telnet.")

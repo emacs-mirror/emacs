@@ -1,6 +1,6 @@
-;;; eudc-hotlist.el --- hotlist management for EUDC -*- coding: utf-8 -*-
+;;; eudc-hotlist.el --- hotlist management for EUDC
 
-;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,7 +42,7 @@
     (define-key map "s" 'eudc-hotlist-select-server)
     (define-key map "t" 'eudc-hotlist-transpose-servers)
     (define-key map "q" 'eudc-hotlist-quit-edit)
-    (define-key map "x" 'kill-this-buffer)
+    (define-key map "x" 'kill-current-buffer)
     map))
 
 (define-derived-mode eudc-hotlist-mode fundamental-mode "EUDC-Servers"

@@ -1,6 +1,6 @@
 ;;; mailalias.el --- expand and complete mailing address aliases -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1995-1997, 2001-2015 Free Software
+;; Copyright (C) 1985, 1987, 1995-1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -130,7 +130,12 @@ or like this:
 
 (defcustom mail-directory-stream nil
   "List of (HOST SERVICE) for stream connection to mail directory."
-  :type 'sexp
+  :type '(choice (const nil)
+                 (list (string :tag "Host name or ip address")
+                       (choice (integer :tag "Service port number")
+                               (string :tag "Service name"))
+                       (plist :inline t
+                              :tag "Additional open-network-stream parameters")))
   :group 'mailalias)
 (put 'mail-directory-stream 'risky-local-variable t)
 

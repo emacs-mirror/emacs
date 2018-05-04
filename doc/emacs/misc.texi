@@ -1,12 +1,13 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
 
   This chapter contains several brief topics that do not fit anywhere
-else: reading Usenet news, viewing PDFs and other such documents, web
+else: reading Usenet news, host and network security,
+viewing PDFs and other such documents, web
 browsing, running shell commands and shell subprocesses, using a
 single shared Emacs for utilities that expect to run an editor as a
 subprocess, printing, sorting text, editing binary files, saving an
@@ -20,7 +21,7 @@ hyperlinks, and various diversions and amusements.
 @end ifnottex
 
 @node Gnus
-@section Gnus
+@section Email and Usenet News with Gnus
 @cindex Gnus
 @cindex Usenet news
 @cindex newsreader
@@ -131,7 +132,8 @@ sessions.
 @kindex SPC @r{(Gnus Group mode)}
 @findex gnus-group-read-group
 @item @key{SPC}
-Switch to the summary buffer for the group on the current line.
+Switch to the summary buffer for the group on the current line
+(@code{gnus-group-read-group}).
 
 @kindex l @r{(Gnus Group mode)}
 @kindex A s @r{(Gnus Group mode)}
@@ -139,7 +141,8 @@ Switch to the summary buffer for the group on the current line.
 @item l
 @itemx A s
 In the group buffer, list only the groups to which you subscribe and
-which contain unread articles (this is the default listing).
+which contain unread articles (@code{gnus-group-list-groups}; this is
+the default listing).
 
 @kindex L @r{(Gnus Group mode)}
 @kindex A u @r{(Gnus Group mode)}
@@ -147,24 +150,25 @@ which contain unread articles (this is the default listing).
 @item L
 @itemx A u
 List all subscribed and unsubscribed groups, but not killed or zombie
-groups.
+groups (@code{gnus-group-list-all-groups}).
 
 @kindex A k @r{(Gnus Group mode)}
-@findex gnus-group-list-all-groups
+@findex gnus-group-list-killed
 @item A k
-List killed groups.
+List killed groups (@code{gnus-group-list-killed}).
 
 @kindex A z @r{(Gnus Group mode)}
-@findex gnus-group-list-all-groups
+@findex gnus-group-list-zombies
 @item A z
-List zombie groups.
+List zombie groups (@code{gnus-group-list-zombies}).
 
 @kindex u @r{(Gnus Group mode)}
 @findex gnus-group-unsubscribe-current-group
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
-Toggle the subscription status of the group on the current line
+Toggle the subscription status of the group
+(@code{gnus-group-unsubscribe-current-group}) on the current line
 (i.e., turn a subscribed group into an unsubscribed group, or vice
 versa).  Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
@@ -172,30 +176,31 @@ unsubscribed group.
 @kindex C-k @r{(Gnus Group mode)}
 @findex gnus-group-kill-group
 @item C-k
-Kill the group on the current line.  Killed groups are not recorded in
-the @file{.newsrc} file, and they are not shown in the @kbd{l} or
-@kbd{L} listings.
+Kill the group on the current line (@code{gnus-group-kill-group}).
+Killed groups are not recorded in the @file{.newsrc} file, and they
+are not shown in the @kbd{l} or @kbd{L} listings.
 
 @kindex DEL @r{(Gnus Group mode)}
 @item @key{DEL}
-Move point to the previous group containing unread articles.
+Move point to the previous group containing unread articles
+(@code{gnus-group-prev-unread-group}.)
 
 @kindex n @r{(Gnus Group mode)}
 @findex gnus-group-next-unread-group
-@findex gnus-summary-next-unread-article
 @item n
-Move point to the next unread group.
+Move point to the next unread group
+(@code{gnus-group-next-unread-group}).
 
 @kindex p @r{(Gnus Group mode)}
 @findex gnus-group-prev-unread-group
-@findex gnus-summary-prev-unread-article
 @item p
-Move point to the previous unread group.
+Move point to the previous unread group
+(@code{gnus-group-prev-unread-group}).
 
 @kindex q @r{(Gnus Group mode)}
 @findex gnus-group-exit
 @item q
-Update your Gnus settings, and quit Gnus.
+Update your Gnus settings, and quit Gnus (@code{gnus-group-exit}).
 @end table
 
 @node Gnus Summary Buffer
@@ -205,12 +210,12 @@ Update your Gnus settings, and quit Gnus.
 
 @table @kbd
 @kindex SPC @r{(Gnus Summary mode)}
-@findex gnus-group-read-group
+@findex gnus-summary-next-page
 @item @key{SPC}
 If there is no article selected, select the article on the current
 line and display its article buffer.  Otherwise, try scrolling the
 selected article buffer in its window; on reaching the end of the
-buffer, select the next unread article.
+buffer, select the next unread article (@code{gnus-summary-next-page}).
 
 Thus, you can read through all articles by repeatedly typing
 @key{SPC}.
@@ -218,37 +223,65 @@ Thus, you can read through all articles by repeatedly typing
 @kindex DEL @r{(Gnus Summary mode)}
 @findex gnus-summary-prev-page
 @item @key{DEL}
-Scroll the text of the article backwards.
+Scroll the text of the article backwards
+(@code{gnus-summary-prev-page}).
 
 @kindex n @r{(Gnus Summary mode)}
-@findex gnus-group-next-unread-group
 @findex gnus-summary-next-unread-article
 @item n
-Select the next unread article.
+Select the next unread article
+(@code{gnus-summary-next-unread-article}).
 
 @kindex p @r{(Gnus Summary mode)}
-@findex gnus-group-prev-unread-group
 @findex gnus-summary-prev-unread-article
 @item p
-Select the previous unread article.
+Select the previous unread article
+(@code{gnus-summary-prev-unread-article}).
 
 @kindex s @r{(Gnus Summary mode)}
 @findex gnus-summary-isearch-article
 @item s
-Do an incremental search on the selected article buffer, as if you
-switched to the buffer and typed @kbd{C-s} (@pxref{Incremental
-Search}).
+Do an incremental search on the selected article buffer
+(@code{gnus-summary-isearch-article}), as if you switched to the
+buffer and typed @kbd{C-s} (@pxref{Incremental Search}).
 
 @kindex M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
 @item M-s @var{regexp} @key{RET}
-Search forward for articles containing a match for @var{regexp}.
+Search forward for articles containing a match for @var{regexp}
+(@code{gnus-summary-search-article-forward}).
+
+@kindex M-r @r{(Gnus Summary mode)}
+@findex gnus-summary-search-article-backward
+@item M-r @var{regexp} @key{RET}
+Search back for articles containing a match for @var{regexp}
+(@code{gnus-summary-search-article-backward}).
 
 @kindex q @r{(Gnus Summary mode)}
 @item q
-Exit the summary buffer and return to the group buffer.
+Exit the summary buffer and return to the group buffer
+(@code{gnus-summary-exit}).
 @end table
 
+@node Host Security
+@section Host Security
+@cindex security
+
+Emacs runs inside an operating system such as GNU/Linux, and relies on
+the operating system to check security constraints such as accesses to
+files.  The default settings for Emacs are designed for typical use;
+they may require some tailoring in environments where security is more
+of a concern, or less of a concern, than usual.  For example,
+file-local variables can be risky, and you can set the variable
+@code{enable-local-variables} to @code{:safe} or (even more
+conservatively) to @code{nil}; conversely, if your files can all be
+trusted and the default checking for these variables is irritating,
+you can set @code{enable-local-variables} to @code{:all}.  @xref{Safe
+File Variables}.
+
+@xref{Security Considerations,,, elisp, The Emacs Lisp Reference
+Manual}, for more information about security considerations when using
+Emacs as part of a larger application.
 
 @node Network Security
 @section Network Security
@@ -257,12 +290,14 @@ Exit the summary buffer and return to the group buffer.
 @cindex encryption
 @cindex SSL
 @cindex TLS
+@cindex Transport Layer Security
 @cindex STARTTLS
 
 Whenever Emacs establishes any network connection, it passes the
 established connection to the @dfn{Network Security Manager}
 (@acronym{NSM}).  @acronym{NSM} is responsible for enforcing the
-network security under your control.
+network security under your control.  Currently, this works by using
+the Transport Layer Security (@acronym{TLS}) features.
 
 @vindex network-security-level
 The @code{network-security-level} variable determines the security
@@ -331,7 +366,7 @@ Certificate Authorities which issue new certificates for third-party
 services, you may want to keep track of these changes.
 
 @item Diffie-Hellman low prime bits
-When doing the public key exchange, the number of ``prime bits''
+When doing the public key exchange, the number of prime bits
 should be high to ensure that the channel can't be eavesdropped on by
 third parties.  If this number is too low, you will be warned.
 
@@ -365,7 +400,8 @@ By default, host names will not be saved for non-@code{STARTTLS}
 connections.  Instead a host/port hash is used to identify connections.
 This means that one can't casually read the settings file to see what
 servers the user has connected to.  If this variable is @code{t},
-@acronym{NSM} will also save host names in the nsm-settings-file.
+@acronym{NSM} will also save host names in the
+@code{nsm-settings-file}.
 @end table
 
 
@@ -393,13 +429,12 @@ is needed.  For OpenDocument and Microsoft Office documents, the
 @code{unoconv} tool is needed.}, and displaying those images.
 
 @findex doc-view-toggle-display
-@findex doc-view-toggle-display
-@cindex doc-view-minor-mode
+@findex doc-view-minor-mode
   When you visit a document file that can be displayed with DocView
-mode, Emacs automatically uses DocView mode @footnote{The needed
+mode, Emacs automatically uses that mode @footnote{The needed
 external tools for the document type must be available, and Emacs must
-be running in a graphical frame and have PNG image support.  If any of
-these requirements is not fulfilled, Emacs falls back to another major
+be running in a graphical frame and have PNG image support.  If these
+requirements is not fulfilled, Emacs falls back to another major
 mode.}.  As an exception, when you visit a PostScript file, Emacs
 switches to PS mode, a major mode for editing PostScript files as
 text; however, it also enables DocView minor mode, so you can type
@@ -411,7 +446,7 @@ underlying file contents.
 @findex doc-view-open-text
   When you visit a file which would normally be handled by DocView
 mode but some requirement is not met (e.g., you operate in a terminal
-frame or emacs has no PNG support), you are queried if you want to
+frame or Emacs has no PNG support), you are queried if you want to
 view the document's contents as plain text.  If you confirm, the
 buffer is put in text mode and DocView minor mode is activated.  Thus,
 by typing @kbd{C-c C-c} you switch to the fallback mode.  With another
@@ -419,8 +454,8 @@ by typing @kbd{C-c C-c} you switch to the fallback mode.  With another
 also be displayed from within DocView mode by typing @kbd{C-c C-t}
 (@code{doc-view-open-text}).
 
-  You can explicitly enable DocView mode with the command @code{M-x
-doc-view-mode}.  You can toggle DocView minor mode with @code{M-x
+  You can explicitly enable DocView mode with the command @kbd{M-x
+doc-view-mode}.  You can toggle DocView minor mode with @kbd{M-x
 doc-view-minor-mode}.
 
   When DocView mode starts, it displays a welcome screen and begins
@@ -457,12 +492,16 @@ displays the next page if you are at the end of the current page.
 @findex doc-view-previous-page
 @kindex n @r{(DocView mode)}
 @kindex p @r{(DocView mode)}
+@kindex PageDown @r{(DocView mode)}
+@kindex PageUp @r{(DocView mode)}
+@kindex next @r{(DocView mode)}
+@kindex prior @r{(DocView mode)}
 @kindex C-x ] @r{(DocView mode)}
 @kindex C-x [ @r{(DocView mode)}
-  You can also display the next page by typing @kbd{n}, @key{next} or
-@kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
-page, type @kbd{p}, @key{prior} or @kbd{C-x [}
-(@code{doc-view-previous-page}).
+  You can also display the next page by typing @kbd{n},
+@key{PageDown}, @key{next} or @kbd{C-x ]} (@code{doc-view-next-page}).
+To display the previous page, type @kbd{p}, @key{PageUp}, @key{prior}
+or @kbd{C-x [} (@code{doc-view-previous-page}).
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
@@ -559,9 +598,9 @@ including its entire margins.
 @vindex doc-view-cache-directory
 @findex doc-view-clear-cache
   For efficiency, DocView caches the images produced by @command{gs}.
-The name of this directory is given by the variable
+The name of the directory where it caches images is given by the variable
 @code{doc-view-cache-directory}.  You can clear the cache directory by
-typing @code{M-x doc-view-clear-cache}.
+typing @kbd{M-x doc-view-clear-cache}.
 
 @findex doc-view-kill-proc
 @findex doc-view-kill-proc-and-buffer
@@ -571,18 +610,6 @@ associated with the current buffer, type @kbd{K}
 (@code{doc-view-kill-proc}).  The command @kbd{k}
 (@code{doc-view-kill-proc-and-buffer}) kills the converter process and
 the DocView buffer.
-
-@node EWW
-@section Web Browsing with EWW
-
-@findex eww
-@findex eww-open-file
-  @dfn{EWW}, the Emacs Web Wowser, is a web browser package for Emacs.
-It allows browsing URLs within an Emacs buffer.  The command @kbd{M-x
-eww} will open a URL or search the web.  You can open a file
-using the command @kbd{M-x eww-open-file}.  You can use EWW as the
-web browser for @code{browse-url}, @pxref{Browse-URL}.  For full
-details, @pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
 
 @node Shell
 @section Running Shell Commands from Emacs
@@ -619,7 +646,7 @@ available.
 (either in the @var{cmd} argument to one of the above commands, or in
 other contexts), Emacs searches for the program in the directories
 specified by the variable @code{exec-path}.  The value of this
-variable must be a list of directory names; the default value is
+variable must be a list of directories; the default value is
 initialized from the environment variable @env{PATH} when Emacs is
 started (@pxref{General Variables}).
 
@@ -657,7 +684,9 @@ for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
 either in the echo area (if it is short), or in an Emacs buffer named
 @file{*Shell Command Output*}, displayed in another window (if the
-output is long).
+output is long).  The variables @code{resize-mini-windows} and
+@code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
+the output is considered too long for the echo area.
 
   For instance, one way to decompress a file named @file{foo.gz} is to
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
@@ -700,6 +729,11 @@ this; e.g., whether to rename the pre-existing output buffer, or to
 use a different buffer for the new command.  Consult the variable's
 documentation for more possibilities.
 
+@vindex async-shell-command-display-buffer
+  If you want the output buffer for asynchronous shell commands to be
+displayed only when the command generates output, set
+@code{async-shell-command-display-buffer} to @code{nil}.
+
 @kindex M-|
 @findex shell-command-on-region
   @kbd{M-|} (@code{shell-command-on-region}) is like @kbd{M-!}, but
@@ -729,6 +763,14 @@ the output buffer.  But if you change the value of the variable
 @code{shell-command-default-error-buffer} to a string, error output is
 inserted into a buffer of that name.
 
+@vindex shell-command-dont-erase-buffer
+  By default, the output buffer is erased between shell commands.
+If you change the value of the variable
+@code{shell-command-dont-erase-buffer} to a non-@code{nil} value,
+the output buffer is not erased.  This variable also controls where to
+set the point in the output buffer after the command completes; see the
+documentation of the variable for details.
+
 @node Interactive Shell
 @subsection Interactive Subshell
 
@@ -740,6 +782,10 @@ say, any terminal output from the subshell goes into the buffer,
 advancing point, and any terminal input for the subshell comes from
 text in the buffer.  To give input to the subshell, go to the end of
 the buffer and type the input, terminated by @key{RET}.
+
+  By default, when the subshell is invoked interactively, the
+@file{*shell*} buffer is displayed in a new window.  This behavior can
+be customized via @code{display-buffer-alist} (@pxref{Window Choice}).
 
   While the subshell is waiting or running a command, you can switch
 windows or buffers and perform other editing in Emacs.  Emacs inserts
@@ -771,7 +817,8 @@ the variable @code{explicit-shell-file-name}.  If this is @code{nil}
 exists.  Otherwise, it usually uses the variable
 @code{shell-file-name} (@pxref{Single Shell}); but if the default
 directory is remote (@pxref{Remote Files}), it prompts you for the
-shell file name.
+shell file name.  @xref{Minibuffer File}, for hints how to type remote
+file names effectively.
 
   Emacs sends the new shell the contents of the file
 @file{~/.emacs_@var{shellname}} as input, if it exists, where
@@ -816,7 +863,7 @@ in the shell buffer to submit the current line as input.
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
-@findex completion-at-point
+@findex completion-at-point@r{, in Shell Mode}
 @cindex shell completion
 Complete the command name or file name before point in the shell
 buffer (@code{completion-at-point}).  This uses the usual Emacs
@@ -851,11 +898,12 @@ line---but after @kbd{C-c @key{SPC}} the process mark may be in a
 previous line.)
 
 @item C-c @key{SPC}
-Accumulate multiple lines of input, then send them together.  This
-command inserts a newline before point, but does not send the preceding
-text as input to the subshell---at least, not yet.  Both lines, the one
-before this newline and the one after, will be sent together (along with
-the newline that separates them), when you type @key{RET}.
+Accumulate multiple lines of input, then send them together
+(@code{comint-accumulate}).  This command inserts a newline before
+point, but does not send the preceding text as input to the
+subshell---at least, not yet.  Both lines, the one before this newline
+and the one after, will be sent together (along with the newline that
+separates them), when you type @key{RET}.
 
 @item C-c C-u
 @kindex C-c C-u @r{(Shell mode)}
@@ -915,7 +963,7 @@ of the window; also move the cursor there (@code{comint-show-output}).
 @item C-c C-e
 @kindex C-c C-e @r{(Shell mode)}
 @findex comint-show-maximum-output
-Scroll to put the end of the buffer at the bottom of the window
+Scroll to put the last line of the buffer at the bottom of the window
 (@code{comint-show-maximum-output}).
 
 @item C-c C-f
@@ -1006,9 +1054,9 @@ specializations of Shell mode.
 @cindex prompt, shell
   A prompt is text output by a program to show that it is ready to
 accept new user input.  Normally, Comint mode (and thus Shell mode)
-automatically figures out part of the buffer is a prompt, based on the
-output of the subprocess.  (Specifically, it assumes that any received
-output line which doesn't end with a newline is a prompt.)
+automatically figures out which part of the buffer is a prompt, based
+on the output of the subprocess.  (Specifically, it assumes that any
+received output line which doesn't end with a newline is a prompt.)
 
   Comint mode divides the buffer into two types of @dfn{fields}: input
 fields (where user input is typed) and output fields (everywhere
@@ -1061,28 +1109,32 @@ resubmit them or copy them to the end.  Or you can use a
 @kindex M-p @r{(Shell mode)}
 @item M-p
 @itemx C-@key{UP}
-Fetch the next earlier old shell command.
+Fetch the next earlier old shell command
+(@code{comint-previous-input}).
 
 @kindex M-n @r{(Shell mode)}
 @findex comint-next-input
 @item M-n
 @itemx C-@key{DOWN}
-Fetch the next later old shell command.
+Fetch the next later old shell command (@code{comint-next-input}).
 
 @kindex M-r @r{(Shell mode)}
 @findex comint-history-isearch-backward-regexp
 @item M-r
-Begin an incremental regexp search of old shell commands.
+Begin an incremental regexp search of old shell commands
+(@code{comint-history-isearch-backward-regexp}).
 
 @item C-c C-x
 @kindex C-c C-x @r{(Shell mode)}
 @findex comint-get-next-from-history
-Fetch the next subsequent command from the history.
+Fetch the next subsequent command from the history
+(@code{comint-get-next-from-history}).
 
 @item C-c .
 @kindex C-c . @r{(Shell mode)}
 @findex comint-input-previous-argument
-Fetch one argument from an old shell command.
+Fetch one argument from an old shell command
+(@code{comint-input-previous-argument}).
 
 @item C-c C-l
 @kindex C-c C-l @r{(Shell mode)}
@@ -1171,7 +1223,7 @@ submit the copy as input with @key{RET}.  If you wish, you can edit
 the copy before resubmitting it.  If you use this command on an output
 line, it copies that line to the end of the buffer.
 
-@item Mouse-2
+@item mouse-2
 If @code{comint-use-prompt-regexp} is @code{nil} (the default), copy
 the old input command that you click on, inserting the copy at the end
 of the buffer (@code{comint-insert-input}).  If
@@ -1180,7 +1232,7 @@ not over old input, just yank as usual.
 @end table
 
   Moving to a previous input and then copying it with @kbd{C-c
-@key{RET}} or @kbd{Mouse-2} produces the same results---the same
+@key{RET}} or @kbd{mouse-2} produces the same results---the same
 buffer contents---that you would get by using @kbd{M-p} enough times
 to fetch that previous input from the history list.  However, @kbd{C-c
 @key{RET}} copies the text from the buffer, which can be different
@@ -1191,7 +1243,7 @@ buffer after it has been sent.
 @subsubsection Shell History References
 @cindex history reference
 
-  Various shells including csh and bash support @dfn{history
+  Various shells, including csh and bash, support @dfn{history
 references} that begin with @samp{!} and @samp{^}.  Shell mode
 recognizes these constructs, and can perform the history substitution
 for you.
@@ -1210,7 +1262,7 @@ typing @key{RET}.
 when you send them to the shell.  To request this, set the variable
 @code{comint-input-autoexpand} to @code{input}.  You can make
 @key{SPC} perform history expansion by binding @key{SPC} to the
-command @code{comint-magic-space}.
+command @code{comint-magic-space}.  @xref{Rebinding}.
 
   Shell mode recognizes history references when they follow a prompt.
 @xref{Shell Prompts}, for how Shell mode recognizes prompts.
@@ -1337,6 +1389,16 @@ directory stack if they are not already on it
 (@code{shell-pushd-dunique}).  The values you choose should match the
 underlying shell, of course.
 
+@vindex comint-terminfo-terminal
+@vindex TERM@r{, environment variable, in sub-shell}
+Comint mode sets the @env{TERM} environment variable to a safe default
+value, but this value disables some useful features.  For example,
+color is disabled in applications that use @env{TERM} to determine if
+color is supported.  Therefore, Emacs provides an option
+@code{comint-terminfo-terminal}, which you can set to a terminal that
+is present in your system's terminfo database, in order to take
+advantage of advanced features of that terminal.
+
 @node Terminal emulator
 @subsection Emacs Terminal Emulator
 @findex term
@@ -1375,8 +1437,8 @@ by the faces @code{term-color-black}, @code{term-color-red},
 @code{term-color-underline}, and @code{term-color-bold}.
 @xref{Faces}.
 
-  You can also Term mode to communicate with a device connected to a
-serial port.  @xref{Serial Terminal}.
+  You can also use Term mode to communicate with a device connected to
+a serial port.  @xref{Serial Terminal}.
 
   The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
@@ -1388,20 +1450,13 @@ examining your input.  But some shells can tell Term what the current
 directory is.  This is done automatically by @code{bash} version 1.15
 and later.
 
-
-
-
 @node Term Mode
 @subsection Term Mode
 @cindex Term mode
 @cindex mode, Term
 
-  The terminal emulator uses Term mode, which has two input modes.  In
-line mode, Term basically acts like Shell mode (@pxref{Shell Mode}).
-In char mode, each character is sent directly to the subshell, except
-for the Term escape character, normally @kbd{C-c}.
-
-  To switch between line and char mode, use these commands:
+  To switch between line and char mode in Term mode, use these
+commands:
 
 @table @kbd
 @kindex C-c C-j @r{(Term mode)}
@@ -1421,7 +1476,8 @@ char mode.
 
 @table @kbd
 @item C-c C-c
-Send a literal @kbd{C-c} to the sub-shell.
+Send a literal @kbd{C-c} to the sub-shell
+(@code{term-interrupt-subjob}).
 
 @item C-c @var{char}
 This is equivalent to @kbd{C-x @var{char}} in normal Emacs.  For
@@ -1437,13 +1493,13 @@ output pause at the end of each screenful:
 @kindex C-c C-q @r{(Term mode)}
 @findex term-pager-toggle
 @item C-c C-q
-Toggle the page-at-a-time feature.  This command works in both line
-and char modes.  When the feature is enabled, the mode-line displays
-the word @samp{page}, and each time Term receives more than a
-screenful of output, it pauses and displays @samp{**MORE**} in the
-mode-line.  Type @key{SPC} to display the next screenful of output, or
-@kbd{?} to see your other options.  The interface is similar to the
-@code{more} program.
+Toggle the page-at-a-time feature (@code{term-pager-toggle}).  This
+command works in both line and char modes.  When the feature is
+enabled, the mode-line displays the word @samp{page}, and each time
+Term receives more than a screenful of output, it pauses and displays
+@samp{**MORE**} in the mode-line.  Type @key{SPC} to display the next
+screenful of output, or @kbd{?} to see your other options.  The
+interface is similar to the @code{more} program.
 @end table
 
 @node Remote Host
@@ -1454,8 +1510,8 @@ mode-line.  Type @key{SPC} to display the next screenful of output, or
 @cindex Rlogin
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g., using the @code{telnet} or
-@code{rlogin} commands), from a Term window.
+would from a regular terminal (e.g., using the @code{ssh} or
+@code{telnet} or @code{rlogin} commands), from a Term window.
 
   A program that asks you for a password will normally suppress
 echoing of the password, so the password will not show up in the
@@ -1486,8 +1542,8 @@ this buffer just like it does with a terminal in ordinary Term mode.
 most common speed is 9600 bits per second.  You can change the speed
 interactively by clicking on the mode line.
 
-  A serial port can be configured even more by clicking on ``8N1'' in
-the mode line.  By default, a serial port is configured as ``8N1'',
+  A serial port can be configured even more by clicking on @samp{8N1} in
+the mode line.  By default, a serial port is configured as @samp{8N1},
 which means that each byte consists of 8 data bits, No parity check
 bit, and 1 stopbit.
 
@@ -1516,7 +1572,7 @@ process.
 
   You can solve this problem by setting up Emacs as an @dfn{edit
 server}, so that it ``listens'' for external edit requests and acts
-accordingly.  There are two ways to start an Emacs server:
+accordingly.  There are various ways to start an Emacs server:
 
 @itemize
 @findex server-start
@@ -1529,15 +1585,51 @@ dies with the Emacs process.
 
 @cindex daemon, Emacs
 @item
-Run Emacs as a @dfn{daemon}, using the @samp{--daemon} command-line
-option.  @xref{Initial Options}.  When Emacs is started this way, it
-calls @code{server-start} after initialization, and returns control to
-the calling terminal instead of opening an initial frame; it then
-waits in the background, listening for edit requests.
+Run Emacs as a @dfn{daemon}, using one of the @samp{--daemon} command-line
+options.  @xref{Initial Options}.  When Emacs is started this way, it
+calls @code{server-start} after initialization and does not open an
+initial frame.  It then waits for edit requests from clients.
+
+@cindex systemd unit file
+@item
+If your operating system uses @command{systemd} to manage startup,
+you can automatically start Emacs in daemon mode when you login
+using the supplied @dfn{systemd unit file}.  To activate this:
+@example
+systemctl --user enable emacs
+@end example
+(If your Emacs was installed into a non-standard location, you may
+need to copy the @file{emacs.service} file to a standard directory
+such as @file{~/.config/systemd/user/}.)
+
+@cindex socket activation, systemd, Emacs
+@item
+An external process can invoke the Emacs server when a connection
+event occurs upon a specified socket and pass the socket to the new
+Emacs server process.  An instance of this is the socket functionality
+of @command{systemd}: the @command{systemd} service creates a socket and
+listens for connections on it; when @command{emacsclient} connects to
+it for the first time, @command{systemd} can launch the Emacs server
+and hand over the socket to it for servicing @command{emacsclient}
+connections.  A setup to use this functionality could be:
+
+@file{~/.config/systemd/user/emacs.socket}:
+@example
+[Socket]
+ListenStream=/path/to/.emacs.socket
+
+[Install]
+WantedBy=sockets.target
+@end example
+
+(The @file{emacs.service} file described above must also be installed.)
+
+The @code{ListenStream} path will be the path that Emacs listens for
+connections from @command{emacsclient}; this is a file of your choice.
 @end itemize
 
 @cindex @env{TEXEDIT} environment variable
-  Either way, once an Emacs server is started, you can use a shell
+  Once an Emacs server is started, you can use a shell
 command called @command{emacsclient} to connect to the Emacs process
 and tell it to visit a file.  You can then set the @env{EDITOR}
 environment variable to @samp{emacsclient}, so that external programs
@@ -1548,11 +1640,18 @@ variable to @samp{emacsclient +%d %s}.}
 
 @vindex server-name
   You can run multiple Emacs servers on the same machine by giving
-each one a unique ``server name'', using the variable
+each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
-server-name @key{RET} foo @key{RET}} sets the server name to
+server-name @key{RET} "foo" @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
 name, using the @samp{-s} option (@pxref{emacsclient Options}).
+
+  If you want to run multiple Emacs daemons (@pxref{Initial Options}),
+you can give each daemon its own server name like this:
+
+@example
+  emacs --daemon=foo
+@end example
 
 @findex server-eval-at
   If you have defined a server by a unique server name, it is possible
@@ -1564,9 +1663,67 @@ expression @code{(+ 1 2)} on the @samp{foo} server, and returns
 signaled.)  Currently, this feature is mainly useful for developers.
 
 @menu
+* TCP Emacs server::     Listening to a TCP socket.
 * Invoking emacsclient:: Connecting to the Emacs server.
 * emacsclient Options::  Emacs client startup options.
 @end menu
+
+@node TCP Emacs server
+@subsection TCP Emacs server
+@cindex TCP Emacs server
+
+@vindex server-use-tcp
+  An Emacs server usually listens to connections on a local Unix
+domain socket.  Some operating systems, such as MS-Windows, do not
+support local sockets; in that case, the server uses TCP sockets
+instead.  In some cases it is useful to have the server listen on a
+TCP socket even if local sockets are supported, e.g., if you need to
+contact the Emacs server from a remote machine.  You can set
+@code{server-use-tcp} to non-@code{nil} to have Emacs listen on a TCP
+socket instead of a local socket.  This is the default if your OS does
+not support local sockets.
+
+@vindex server-host
+@vindex server-port
+  If the Emacs server is set to use TCP, it will by default listen on
+a random port on the localhost interface.  This can be changed to
+another interface and/or a fixed port using the variables
+@code{server-host} and @code{server-port}.
+
+@vindex server-auth-key
+  A TCP socket is not subject to file system permissions.  To retain
+some control over which users can talk to an Emacs server over TCP
+sockets, the @command{emacsclient} program must send an authorization
+key to the server.  This key is normally randomly generated by the
+Emacs server.  This is the recommended mode of operation.
+
+@findex server-generate-key
+  If needed, you can set the authorization key to a static value by
+setting the @code{server-auth-key} variable.  The key must consist of
+64 ASCII printable characters except for space (this means characters
+from @samp{!} to @samp{~}, or from decimal code 33 to 126).  You can
+use @kbd{M-x server-generate-key} to get a random key.
+
+@vindex server-auth-dir
+@cindex server file
+  When you start a TCP Emacs server, Emacs creates a @dfn{server file}
+containing the TCP information to be used by @command{emacsclient} to
+connect to the server.  The variable @code{server-auth-dir} specifies
+the directory containing the server file; by default, this is
+@file{~/.emacs.d/server/}.  In the absence of a local socket with file
+permissions, the permissions of this directory determine which users
+can have their @command{emacsclient} processes talk to the Emacs
+server.
+
+@vindex EMACS_SERVER_FILE@r{, environment variable}
+  To tell @command{emacsclient} to connect to the server over TCP with
+a specific server file, use the @samp{-f} or @samp{--server-file}
+option, or set the @env{EMACS_SERVER_FILE} environment variable
+(@pxref{emacsclient Options}).  If @code{server-auth-dir} is set to a
+non-standard value, @command{emacsclient} needs an absolute file name
+to the server file, as the default @code{server-auth-dir} is
+hard-coded in @command{emacsclient} to be used as the directory for
+resolving relative filenames.
 
 @node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
@@ -1580,14 +1737,16 @@ graphical frame, or one in a text terminal (@pxref{Frames}).  You
 can then select that frame to begin editing.
 
   If there is no Emacs server, the @command{emacsclient} program halts
-with an error message.  If the Emacs process has no existing
+with an error message (you can prevent this from happening by using
+the @samp{--alternate-editor=""} option to @command{emacsclient},
+@pxref{emacsclient Options}).  If the Emacs process has no existing
 frame---which can happen if it was started as a daemon (@pxref{Emacs
 Server})---then Emacs opens a frame on the terminal in which you
 called @command{emacsclient}.
 
   You can also force @command{emacsclient} to open a new frame on a
-graphical display, or on a text terminal, using the @samp{-c} and
-@samp{-t} options.  @xref{emacsclient Options}.
+graphical display using the @samp{-c} option, or on a text terminal
+using the @samp{-t} option.  @xref{emacsclient Options}.
 
   If you are running on a single text terminal, you can switch between
 @command{emacsclient}'s shell and the Emacs server using one of two
@@ -1596,7 +1755,7 @@ different virtual terminals, and switch to the Emacs server's virtual
 terminal after calling @command{emacsclient}; or (ii) call
 @command{emacsclient} from within the Emacs server itself, using Shell
 mode (@pxref{Interactive Shell}) or Term mode (@pxref{Term Mode});
-@code{emacsclient} blocks only the subshell under Emacs, and you can
+@command{emacsclient} blocks only the subshell under Emacs, and you can
 still use Emacs to edit the file.
 
 @kindex C-x #
@@ -1605,7 +1764,7 @@ still use Emacs to edit the file.
 @kbd{C-x #} (@code{server-edit}) in its buffer.  This saves the file
 and sends a message back to the @command{emacsclient} program, telling
 it to exit.  Programs that use @env{EDITOR} usually wait for the
-``editor''---in this case @command{emacsclient}---to exit before doing
+editor---in this case @command{emacsclient}---to exit before doing
 something else.
 
   You can also call @command{emacsclient} with multiple file name
@@ -1625,7 +1784,7 @@ create it.  However, if you set @code{server-kill-new-buffers} to
 @code{nil}, then a different criterion is used: finishing with a
 server buffer kills it if the file name matches the regular expression
 @code{server-temp-file-regexp}.  This is set up to distinguish certain
-``temporary'' files.
+temporary files.
 
   Each @kbd{C-x #} checks for other pending external requests to edit
 various files, and selects the next such file.  You can switch to a
@@ -1661,11 +1820,13 @@ listed below:
 @table @samp
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
-Specify a command to run if @code{emacsclient} fails to contact Emacs.
-This is useful when running @code{emacsclient} in a script.
+Specify a shell command to run if @command{emacsclient} fails to
+contact Emacs.  This is useful when running @code{emacsclient} in a
+script.  The command may include arguments, which may be quoted "like
+this".  Currently, escaping of quotes is not supported.
 
 As a special exception, if @var{command} is the empty string, then
-@code{emacsclient} starts Emacs in daemon mode (as @command{emacs
+@command{emacsclient} starts Emacs in daemon mode (as @samp{emacs
 --daemon}) and then tries connecting again.
 
 @cindex @env{ALTERNATE_EDITOR} environment variable
@@ -1713,25 +1874,18 @@ evaluate, @emph{not} as a list of files to visit.
 
 @item -f @var{server-file}
 @itemx --server-file=@var{server-file}
-@cindex @env{EMACS_SERVER_FILE} environment variable
-Specify a @dfn{server file} for connecting to an Emacs server via TCP.
+Specify a server file (@pxref{TCP Emacs server}) for connecting to an
+Emacs server via TCP.  Alternatively, you can set the
+@env{EMACS_SERVER_FILE} environment variable to point to the server
+file.  (The command-line option overrides the environment variable.)
 
-An Emacs server usually uses an operating system feature called a
-``local socket'' to listen for connections.  Some operating systems,
-such as Microsoft Windows, do not support local sockets; in that case,
-the server communicates with @command{emacsclient} via TCP.
-
-@vindex server-auth-dir
-@cindex server file
-@vindex server-port
-When you start a TCP Emacs server, Emacs creates a @dfn{server file}
-containing the TCP information to be used by @command{emacsclient} to
-connect to the server.  The variable @code{server-auth-dir} specifies
-the directory containing the server file; by default, this is
-@file{~/.emacs.d/server/}.  To tell @command{emacsclient} to connect
-to the server over TCP with a specific server file, use the @samp{-f}
-or @samp{--server-file} option, or set the @env{EMACS_SERVER_FILE}
-environment variable.
+An Emacs server usually uses a local socket to listen for connections,
+but also supports connections over TCP.  To connect to a TCP Emacs
+server, @command{emacsclient} needs to read a @dfn{server file}
+containing the connection details of the Emacs server.  The name of
+this file is specified with this option, either as a file name
+relative to @file{~/.emacs.d/server} or as an absolute file name.
+@xref{TCP Emacs server}.
 
 @item -n
 @itemx --no-wait
@@ -1749,6 +1903,12 @@ option is mainly useful for developers.
 @itemx --quiet
 Do not let @command{emacsclient} display messages about waiting for
 Emacs or connecting to remote server sockets.
+
+@item -u
+@itemx --suppress-output
+Do not let @command{emacsclient} display results returned from the
+server.  Mostly useful in combination with @samp{-e} when the
+evaluation performed is for side-effect rather than result.
 
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
@@ -1769,6 +1929,38 @@ On MS-Windows, @samp{-t} behaves just like @samp{-c} if the Emacs
 server is using the graphical display, but if the Emacs server is
 running on a text terminal, it creates a new frame in the current text
 terminal.
+
+@item -T @var{tramp-prefix}
+@itemx --tramp-prefix=@var{tramp-prefix}
+Set the prefix to add to filenames for Emacs to locate files on remote
+machines (@pxref{Remote Files}) using TRAMP (@pxref{Top, The Tramp
+Manual,, tramp, The Tramp Manual}).  This is mostly useful in
+combination with using the Emacs server over TCP (@pxref{TCP Emacs
+server}).  By ssh-forwarding the listening port and making the
+@var{server-file} available on a remote machine, programs on the
+remote machine can use @command{emacsclient} as the value for the
+@env{EDITOR} and similar environment variables, but instead of talking
+to an Emacs server on the remote machine, the files will be visited in
+the local Emacs session using TRAMP.
+
+@vindex EMACSCLIENT_TRAMP@r{, environment variable}
+Setting the environment variable @env{EMACSCLIENT_TRAMP} has the same
+effect as using the @samp{-T} option.  If both are specified, the
+command-line option takes precedence.
+
+For example, assume two hosts, @samp{local} and @samp{remote}, and
+that the local Emacs listens on tcp port 12345.  Assume further that
+@file{/home} is on a shared file system, so that the server file
+@file{~/.emacs.d/server/server} is readable on both hosts.
+
+@example
+local$ ssh -R12345:localhost:12345 remote
+remote$ export EDITOR="emacsclient \
+        --server-file=server \
+        --tramp=/ssh:remote:"
+remote$ $EDITOR /tmp/foo.txt #Should open in local emacs.
+@end example
+
 @end table
 
   The new graphical or text terminal frames created by the @samp{-c}
@@ -1811,7 +2003,7 @@ print hardcopies from Dired (@pxref{Operating on Files}) and the diary
 (@pxref{Displaying the Diary}).  You can also ``print'' an Emacs
 buffer to HTML with the command @kbd{M-x htmlfontify-buffer}, which
 converts the current buffer to a HTML file, replacing Emacs faces with
-CSS-based markup.  Furthermore, Org mode allows you to ``print'' Org
+CSS-based markup.  Furthermore, Org mode allows you to print Org
 files to a variety of formats, such as PDF (@pxref{Org Mode}).
 
 @table @kbd
@@ -1832,7 +2024,7 @@ Like @code{lpr-buffer} but print only the current region.
 @findex lpr-region
 @vindex lpr-switches
 @vindex lpr-commands
-  On most operating system, the above hardcopy commands submit files
+  On most operating systems, the above hardcopy commands submit files
 for printing by calling the @command{lpr} program.  To change the
 printer program, customize the variable @code{lpr-command}.  To
 specify extra switches to give the printer program, customize the list
@@ -1906,8 +2098,8 @@ buffer; the other, just the region.  The commands
 @code{ps-print-region-with-faces} behave similarly, but use PostScript
 features to show the faces (fonts and colors) of the buffer text.
 
-  Interactively, when you use a prefix argument (@kbd{C-u}), the command
-prompts the user for a file name, and saves the PostScript image in that file
+  Interactively, when you use a prefix argument (@kbd{C-u}), these commands
+prompt the user for a file name, and save the PostScript image in that file
 instead of sending it to the printer.
 
 @findex ps-spool-region
@@ -1984,7 +2176,7 @@ additional paper sizes by changing the variable
 @vindex ps-landscape-mode
   The variable @code{ps-landscape-mode} specifies the orientation of
 printing on the page.  The default is @code{nil}, which stands for
-``portrait'' mode.  Any non-@code{nil} value specifies ``landscape''
+portrait mode.  Any non-@code{nil} value specifies landscape
 mode.
 
 @vindex ps-number-of-columns
@@ -1999,7 +2191,9 @@ default is 1.
 for printing ordinary text.  Legitimate values include @code{Courier},
 @code{Helvetica}, @code{NewCenturySchlbk}, @code{Palatino} and
 @code{Times}.  The variable @code{ps-font-size} specifies the size of
-the font for ordinary text.  It defaults to 8.5 points.
+the font for ordinary text and defaults to 8.5 points.  The value of
+@code{ps-font-size} can also be a cons of 2 floats: one for landscape
+mode, the other for portrait mode.
 
 @vindex ps-multibyte-buffer
 @cindex Intlfonts for PostScript printing
@@ -2051,7 +2245,7 @@ You can also type @kbd{M-x pr-interface @key{RET}}; this creates a
 @file{*Printing Interface*} buffer, similar to a customization buffer,
 where you can set the printing options.  After selecting what and how
 to print, you start the print job using the @samp{Print} button (click
-@kbd{Mouse-2} on it, or move point over it and type @key{RET}).  For
+@kbd{mouse-2} on it, or move point over it and type @key{RET}).  For
 further information on the various options, use the @samp{Interface
 Help} button.
 
@@ -2067,7 +2261,8 @@ into the order determined by the sort keys.  The records are ordered so
 that their keys are in alphabetical order, or, for numeric sorting, in
 numeric order.  In alphabetic sorting, all upper-case letters @samp{A}
 through @samp{Z} come before lower-case @samp{a}, in accordance with the
-@acronym{ASCII} character sequence.
+@acronym{ASCII} character sequence (but @code{sort-fold-case},
+described below, can change that).
 
   The various sort commands differ in how they divide the text into sort
 records and in which part of each record is used as the sort key.  Most of
@@ -2105,10 +2300,11 @@ in a line constitutes field 1, the second such run constitutes field
 2, etc.
 
 Specify which field to sort by with a numeric argument: 1 to sort by
-field 1, etc.  A negative argument means count fields from the right
-instead of from the left; thus, minus 1 means sort by the last field.
-If several lines have identical contents in the field being sorted, they
-keep the same relative order that they had in the original buffer.
+field 1, etc.; the default is 1.  A negative argument means count
+fields from the right instead of from the left; thus, minus 1 means
+sort by the last field.  If several lines have identical contents in
+the field being sorted, they keep the same relative order that they
+had in the original buffer.
 
 @item M-x sort-numeric-fields
 Like @kbd{M-x sort-fields} except the specified field is converted
@@ -2232,10 +2428,10 @@ Insert a byte with a code typed in octal.
 Insert a byte with a code typed in hex.
 
 @item C-x [
-Move to the beginning of a 1k-byte ``page''.
+Move to the beginning of a 1k-byte page.
 
 @item C-x ]
-Move to the end of a 1k-byte ``page''.
+Move to the end of a 1k-byte page.
 
 @item M-g
 Move to an address specified in hex.
@@ -2272,6 +2468,22 @@ To disable this, set @code{desktop-restore-frames} to @code{nil}.
 (See that variable's documentation for some related options
 that you can customize to fine-tune this behavior.)
 
+@vindex desktop-files-not-to-save
+Information about buffers visiting remote files is not saved by
+default.  Customize the variable @code{desktop-files-not-to-save} to
+change this.
+
+@vindex frameset-filter-alist
+   When the desktop restores the frame and window configuration, it
+uses the recorded values of frame parameters, disregarding any
+settings for those parameters you have in your init file (@pxref{Init
+File}).  This means that frame parameters such as fonts and faces for
+the restored frames will come from the desktop file, where they were
+saved when you exited your previous Emacs session; any settings for
+those parameters in your init file will be ignored.  To disable this,
+customize the value of @code{frameset-filter-alist} to filter out the
+frame parameters you don't want to be restored.
+
 @findex desktop-save
 @vindex desktop-save-mode
   You can save the desktop manually with the command @kbd{M-x
@@ -2285,19 +2497,13 @@ sessions, or add this line in your init file (@pxref{Init File}):
 (desktop-save-mode 1)
 @end example
 
-@vindex desktop-auto-save-timeout
-@noindent
-When @code{desktop-save-mode} is active and the desktop file exists,
-Emacs auto-saves it every @code{desktop-auto-save-timeout}
-seconds, if that is non-@code{nil} and non-zero.
-
 @findex desktop-change-dir
 @findex desktop-revert
 @vindex desktop-path
   If you turn on @code{desktop-save-mode} in your init file, then when
 Emacs starts, it looks for a saved desktop in the current directory.
 (More precisely, it looks in the directories specified by
-@var{desktop-path}, and uses the first desktop it finds.)
+@code{desktop-path}, and uses the first desktop it finds.)
 Thus, you can have separate saved desktops in different directories,
 and the starting directory determines which one Emacs reloads.  You
 can save the current desktop and reload one saved in another directory
@@ -2312,11 +2518,11 @@ since it bypasses the init file, where @code{desktop-save-mode} is
 usually turned on.
 
 @vindex desktop-restore-eager
-  By default, all the buffers in the desktop are restored at one go.
+  By default, all the buffers in the desktop are restored in one go.
 However, this may be slow if there are a lot of buffers in the
 desktop.  You can specify the maximum number of buffers to restore
 immediately with the variable @code{desktop-restore-eager}; the
-remaining buffers are restored ``lazily'', when Emacs is idle.
+remaining buffers are restored lazily, when Emacs is idle.
 
 @findex desktop-clear
 @vindex desktop-globals-to-clear
@@ -2330,6 +2536,35 @@ expression matching the names of buffers not to kill.
 
   If you want to save minibuffer history from one session to
 another, use the @code{savehist} library.
+
+@vindex desktop-auto-save-timeout
+  While Emacs runs with @code{desktop-save-mode} turned on, it by
+default auto-saves the desktop whenever any of it changes.  The
+variable @code{desktop-auto-save-timeout} determines how frequently
+Emacs checks for modifications to your desktop.
+
+@vindex desktop-load-locked-desktop
+  The file in which Emacs saves the desktop is locked while the
+session runs, to avoid inadvertently overwriting it from another Emacs
+session.  That lock is normally removed when Emacs exits, but if Emacs
+or your system crashes, the lock stays, and when you restart Emacs, it
+will by default ask you whether to use the locked desktop file.  You
+can avoid the question by customizing the variable
+@code{desktop-load-locked-desktop} to either @code{nil}, which means
+never load the desktop in this case, or @code{t}, which means load the
+desktop without asking.
+
+@cindex desktop restore in daemon mode
+  When Emacs starts in daemon mode, it cannot ask you any questions,
+so if it finds the desktop file locked, it will not load it, unless
+@code{desktop-load-locked-desktop} is @code{t}.  Note that restoring
+the desktop in daemon mode is somewhat problematic for other reasons:
+e.g., the daemon cannot use GUI features, so parameters such as frame
+position, size, and decorations cannot be restored.  For that reason,
+you may wish to delay restoring the desktop in daemon mode until the
+first client connects, by calling @code{desktop-read} in a hook
+function that you add to @code{server-after-make-frame-hook}
+(@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit
 @section Recursive Editing Levels
@@ -2391,7 +2626,7 @@ stack overflow) from time to time.  So remember to exit or abort the
 recursive edit when you no longer need it.
 
   In general, we try to minimize the use of recursive editing levels in
-GNU Emacs.  This is because they constrain you to ``go back'' in a
+GNU Emacs.  This is because they constrain you to go back in a
 particular order---from the innermost level toward the top level.  When
 possible, we present different activities in separate buffers so that
 you can switch between them as you please.  Some commands switch to a
@@ -2401,7 +2636,7 @@ the order you choose.
 
 @ignore
 @c Apart from edt and viper, this is all obsolete.
-@c (Can't believe we were saying ``most other editors'' into 2014!)
+@c (Can't believe we were saying "most other editors" into 2014!)
 @c There seems no point having a node just for those, which both have
 @c their own manuals.
 @node Emulation
@@ -2460,8 +2695,8 @@ Viper, viper}.
 @findex vi-mode
 @kbd{M-x vi-mode} enters a major mode that replaces the previously
 established major mode.  All of the vi commands that, in real vi, enter
-``input'' mode are programmed instead to return to the previous major
-mode.  Thus, ordinary Emacs serves as vi's ``input'' mode.
+input mode are programmed instead to return to the previous major
+mode.  Thus, ordinary Emacs serves as vi's input mode.
 
 Because vi emulation works through major modes, it does not work
 to switch buffers during emulation.  Return to normal Emacs first.
@@ -2472,7 +2707,7 @@ to the @code{vi-mode} command.
 @item vi (alternate emulator)
 @findex vip-mode
 @kbd{M-x vip-mode} invokes another vi emulator, said to resemble real vi
-more thoroughly than @kbd{M-x vi-mode}.  ``Input'' mode in this emulator
+more thoroughly than @kbd{M-x vi-mode}.  Input mode in this emulator
 is changed from ordinary Emacs so you can use @key{ESC} to go back to
 emulated vi command mode.  To get from emulated vi command mode back to
 ordinary Emacs, type @kbd{C-z}.
@@ -2494,16 +2729,52 @@ key bindings.
 
 
 @node Hyperlinking
-@section Hyperlinking and Navigation Features
+@section Hyperlinking and Web Navigation Features
 
   The following subsections describe convenience features for handling
 URLs and other types of links occurring in Emacs buffer text.
 
 @menu
+* EWW::                         A web browser in Emacs.
+* Embedded WebKit Widgets::     Embedding browser widgets in Emacs buffers.
 * Browse-URL::                  Following URLs.
 * Goto Address mode::           Activating URLs.
 * FFAP::                        Finding files etc. at point.
 @end menu
+
+@node EWW
+@subsection Web Browsing with EWW
+
+@findex eww
+@findex eww-open-file
+  @dfn{EWW}, the Emacs Web Wowser, is a web browser package for Emacs.
+It allows browsing URLs within an Emacs buffer.  The command @kbd{M-x
+eww} will open a URL or search the web.  You can open a file
+using the command @kbd{M-x eww-open-file}.  You can use EWW as the
+web browser for @code{browse-url}, @pxref{Browse-URL}.  For full
+details, @pxref{Top, EWW,, eww, The Emacs Web Wowser Manual}.
+
+@node Embedded WebKit Widgets
+@subsection Embedded WebKit Widgets
+@cindex xwidget
+@cindex webkit widgets
+@cindex embedded widgets
+
+@findex xwidget-webkit-browse-url
+@findex xwidget-webkit-mode
+@cindex Xwidget-WebKit mode
+  If Emacs was compiled with the appropriate support packages, it is
+able to show browser widgets in its buffers.  The command @kbd{M-x
+xwidget-webkit-browse-url} asks for a URL to display in the browser
+widget.  The URL normally defaults to the URL at or before point, but
+if there is an active region (@pxref{Mark}), the default URL comes
+from the region instead, after removing any whitespace from it.  The
+command then creates a new buffer with the embedded browser showing
+the specified URL.  The buffer is put in the Xwidget-WebKit mode
+(similar to Image mode, @pxref{File Conveniences}), which provides
+one-key commands for scrolling the widget, changing its size, and
+reloading it.  Type @w{@kbd{C-h b}} in that buffer to see the key
+bindings.
 
 @node Browse-URL
 @subsection  Following URLs
@@ -2560,8 +2831,8 @@ typing @kbd{M-x goto-address-mode}.  When this buffer-local minor mode
 is enabled, it finds all the URLs in the buffer, highlights them, and
 turns them into clickable buttons.  You can follow the URL by typing
 @kbd{C-c @key{RET}} (@code{goto-address-at-point}) while point is on
-its text; or by clicking with @kbd{Mouse-2}, or by clicking
-@kbd{Mouse-1} quickly (@pxref{Mouse References}).  Following a URL is
+its text; or by clicking with @kbd{mouse-2}, or by clicking
+@kbd{mouse-1} quickly (@pxref{Mouse References}).  Following a URL is
 done by calling @code{browse-url} as a subroutine
 (@pxref{Browse-URL}).
 
@@ -2604,49 +2875,50 @@ functionality in Rmail, Gnus and VM article buffers.
 @kindex C-x C-f @r{(FFAP)}
 Find @var{filename}, guessing a default from text around point
 (@code{find-file-at-point}).
-@item C-x C-r
+@item C-x C-r @var{filename} @key{RET}
 @kindex C-x C-r @r{(FFAP)}
 @code{ffap-read-only}, analogous to @code{find-file-read-only}.
-@item C-x C-v
+@item C-x C-v @var{filename} @key{RET}
 @kindex C-x C-v @r{(FFAP)}
 @code{ffap-alternate-file}, analogous to @code{find-alternate-file}.
 @item C-x d @var{directory} @key{RET}
 @kindex C-x d @r{(FFAP)}
-Start Dired on @var{directory}, defaulting to the directory name at
+Start Dired on @var{directory}, defaulting to the directory at
 point (@code{dired-at-point}).
-@item C-x C-d
+@item C-x C-d @var{directory} @key{RET}
 @code{ffap-list-directory}, analogous to @code{list-directory}.
-@item C-x 4 f
+@item C-x 4 f @var{filename} @key{RET}
 @kindex C-x 4 f @r{(FFAP)}
 @code{ffap-other-window}, analogous to @code{find-file-other-window}.
-@item C-x 4 r
+@item C-x 4 r @var{filename} @key{RET}
 @code{ffap-read-only-other-window}, analogous to
 @code{find-file-read-only-other-window}.
-@item C-x 4 d
+@item C-x 4 d @var{directory} @key{RET}
 @code{ffap-dired-other-window}, like @code{dired-other-window}.
-@item C-x 5 f
+@item C-x 5 f @var{filename} @key{RET}
 @kindex C-x 5 f @r{(FFAP)}
 @code{ffap-other-frame}, analogous to @code{find-file-other-frame}.
-@item C-x 5 r
+@item C-x 5 r @var{filename} @key{RET}
 @code{ffap-read-only-other-frame}, analogous to
 @code{find-file-read-only-other-frame}.
-@item C-x 5 d
+@item C-x 5 d @var{directory} @key{RET}
 @code{ffap-dired-other-frame}, analogous to @code{dired-other-frame}.
 @item M-x ffap-next
 Search buffer for next file name or URL, then find that file or URL.
-@item S-Mouse-3
-@kindex S-Mouse-3 @r{(FFAP)}
+@item S-mouse-3
+@kindex S-mouse-3 @r{(FFAP)}
 @code{ffap-at-mouse} finds the file guessed from text around the position
 of a mouse click.
-@item C-S-Mouse-3
-@kindex C-S-Mouse-3 @r{(FFAP)}
+@item C-S-mouse-3
+@kindex C-S-mouse-3 @r{(FFAP)}
 Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
 
 @node Amusements
-@section Other Amusements
+@section Games and Other Amusements
 @cindex boredom
+@cindex games
 
 @findex animate-birthday-present
 @cindex animate
@@ -2665,6 +2937,7 @@ guess---to guess a value, type a letter and then the digit you think it
 stands for.  The aim of @code{5x5} is to fill in all the squares.
 
 @findex bubbles
+@cindex bubbles
   @kbd{M-x bubbles} is a game in which the object is to remove as many
 bubbles as you can in the smallest number of moves.
 
@@ -2689,6 +2962,7 @@ character.  Keep dissociwords out of your documentation, if you want
 it to be well userenced and properbose.
 
 @findex dunnet
+@cindex dunnet
   @kbd{M-x dunnet} runs a text-based adventure game.
 
 @findex gomoku
@@ -2704,14 +2978,7 @@ bored, try an argument of 9.  Sit back and watch.
 
 @findex life
 @cindex Life
-  @kbd{M-x life} runs Conway's ``Life'' cellular automaton.
-
-@findex landmark
-@cindex landmark game
-  @kbd{M-x landmark} runs a relatively non-participatory game in which
-a robot attempts to maneuver towards a tree at the center of the
-window based on unique olfactory cues from each of the four
-directions.
+  @kbd{M-x life} runs Conway's Game of Life cellular automaton.
 
 @findex morse-region
 @findex unmorse-region
@@ -2738,8 +3005,14 @@ implementations of the well-known Pong, Snake and Tetris games.
 across other pegs.
 
 @findex zone
+@cindex zone
   The command @kbd{M-x zone} plays games with the display when Emacs
 is idle.
+
+@findex butterfly
+@cindex butterfly
+  ``Real Programmers'' deploy @kbd{M-x butterfly}, which uses butterflies
+to flip a bit on the drive platter, see @uref{https://xkcd.com/378}.
 
 @findex doctor
 @cindex Eliza

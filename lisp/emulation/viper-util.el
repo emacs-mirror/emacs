@@ -1,6 +1,6 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
-;; Copyright (C) 1994-1997, 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,7 +29,6 @@
 
 ;; Compiler pacifier
 (defvar viper-overriding-map)
-(defvar pm-color-alist)
 (defvar viper-minibuffer-current-face)
 (defvar viper-minibuffer-insert-face)
 (defvar viper-minibuffer-vi-face)
@@ -40,12 +39,8 @@
 (defvar ex-unix-type-shell-options)
 (defvar viper-ex-tmp-buf-name)
 (defvar viper-syntax-preference)
-(defvar viper-saved-mark)
 
 (require 'ring)
-
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 ;; end pacifier
 
@@ -131,12 +126,6 @@ Otherwise return the normal value."
        (let ((fp (assoc ',variable (frame-parameters))))
 	 (if fp (cdr fp)
 	   ,variable)))))
-
-;; OS/2
-(cond ((eq (viper-device-type) 'pm)
-       (fset 'viper-color-defined-p
-	     (lambda (color) (assoc color pm-color-alist)))))
-
 
 ;; cursor colors
 (defun viper-change-cursor-color (new-color &optional frame)
@@ -379,7 +368,7 @@ Otherwise return the normal value."
 
 ;; Append LIS2 to LIS1, both alists, by side-effect and returns LIS1
 ;; LIS2 is modified by filtering it: deleting its members of the form
-;; \(car elt\) such that (car elt') is in LIS1.
+;; (car elt) such that (car elt') is in LIS1.
 (defun viper-append-filter-alist (lis1 lis2)
   (let ((temp lis1)
 	elt)
@@ -426,7 +415,7 @@ Otherwise return the normal value."
       ;; Issue an error, if no match.
       (unless (eq 0 status)
 	(save-excursion
-	  (skip-chars-forward " \t\n\j")
+	  (skip-chars-forward " \t\n")
 	  (if (looking-at "ls:")
 	      (viper-forward-Word 1))
 	  (error "%s: %s"
@@ -859,7 +848,7 @@ Otherwise return the normal value."
 
 (defsubst viper-is-in-minibuffer ()
   (save-match-data
-    (string-match "\*Minibuf-" (buffer-name))))
+    (string-match "\\*Minibuf-" (buffer-name))))
 
 
 
@@ -892,6 +881,9 @@ Otherwise return the normal value."
 (defsubst viper-mark-marker ()
   (if (featurep 'xemacs) (mark-marker t)
     (mark-marker)))
+
+(defvar viper-saved-mark nil
+  "Where viper saves mark.  This mark is resurrected by m^.")
 
 ;; like (set-mark-command nil) but doesn't push twice, if (car mark-ring)
 ;; is the same as (mark t).
@@ -1330,9 +1322,9 @@ Works best when set in the hooks to various major modes.
 `strict-vi' means Viper words are (hopefully) exactly as in Vi.
 
 `reformed-vi' means Viper words are like Emacs words \(as determined using
-Emacs syntax tables, which are different for different major modes\) with two
+Emacs syntax tables, which are different for different major modes) with two
 exceptions: the symbol `_' is always part of a word and typical Vi non-word
-symbols, such as `,',:,\",),{, etc., are excluded.
+symbols like `\\=`', `\\='', `:', `\"', `)', and `{' are excluded.
 This behaves very close to `strict-vi', but also works well with non-ASCII
 characters from various alphabets.
 

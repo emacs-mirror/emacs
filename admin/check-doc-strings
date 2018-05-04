@@ -1,5 +1,5 @@
 : #-*- Perl -*-
-eval 'exec perl -S $0 ${1+"$@"}' # Portability kludge
+eval 'exec perl -S $0 "$@"' # Portability kludge
     if 0;
 
 # Author: Martin Buchholz
@@ -299,4 +299,3 @@ foreach my $fun (sort keys %texi_funtype) {
     print "nuke-this-doc: $fun $texi_funtype{$fun}\n";
   }
 }
-

@@ -1,6 +1,6 @@
 ;;; gnus-mh.el --- mh-e interface for Gnus
 
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,6 +39,13 @@
 (require 'gnus-sum)
 
 (defvar mh-lib-progs)
+
+(defcustom gnus-rcvstore-options nil
+  "Options that are passed to rcvstore, or nil.
+These are used when saving articles to an MH folder."
+  :version "26.1"
+  :group 'gnus-article
+  :type '(repeat string))
 
 (defun gnus-summary-save-article-folder (&optional arg)
   "Append the current article to an mh folder.
@@ -77,8 +84,10 @@ Optional argument FOLDER specifies folder name."
       (save-restriction
 	(widen)
 	(unwind-protect
-	    (call-process-region
-	     (point-min) (point-max) "rcvstore" nil errbuf nil folder)
+	    (apply
+	     #'call-process-region
+	     (point-min) (point-max) "rcvstore" nil errbuf nil folder
+	     gnus-rcvstore-options)
 	  (set-buffer errbuf)
 	  (if (zerop (buffer-size))
 	      (message "Article saved in folder: %s" folder)

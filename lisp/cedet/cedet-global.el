@@ -1,6 +1,6 @@
 ;;; cedet-global.el --- GNU Global support for CEDET.
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Package: cedet
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -97,14 +97,15 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
     ;; Check for warnings.
     (with-current-buffer b
       (goto-char (point-min))
-      (when (re-search-forward "Error\\|Warning" nil t)
+      (when (re-search-forward "Error\\|Warning\\|invalid" nil t)
 	(error "Output:\n%S" (buffer-string))))
 
     b))
 
 (defun cedet-gnu-global-expand-filename (filename)
   "Expand the FILENAME with GNU Global.
-Return a fully qualified filename."
+Return a list of absolute filenames or nil if none found.
+Signal an error if GNU global not available."
   (interactive "sFile: ")
   (let ((ans (with-current-buffer (cedet-gnu-global-call (list "-Pa" filename))
 	       (goto-char (point-min))
@@ -126,9 +127,9 @@ Return a fully qualified filename."
   (message "%s" (cedet-gnu-global-root)))
 
 (defun cedet-gnu-global-root (&optional dir)
-  "Return the root of any GNU Global scanned project.
-If a default starting DIR is not specified, the current buffer's
-`default-directory' is used."
+  "Return the root of any GNU Global scanned project containing DIR.
+Returns nil if no GNU Global project can be found.
+DIR defaults to `default-directory'."
   (let ((default-directory (or dir default-directory)))
     (with-current-buffer (cedet-gnu-global-call (list "-pq"))
       (goto-char (point-min))
@@ -186,12 +187,14 @@ If a database already exists, then just update it."
   (let ((root (cedet-gnu-global-root dir)))
     (if root (setq dir root))
     (let ((default-directory dir))
-      (cedet-gnu-global-gtags-call
-       (when root
-	 '("-u");; Incremental update flag.
-	 ))
-      )
-    ))
+      (if root
+          ;; Incremental update. This can be either "gtags -i" or
+          ;; "global -u"; the gtags manpage says it's better to use
+          ;; "global -u".
+	  (cedet-gnu-global-call (list "-u"))
+	(cedet-gnu-global-gtags-call nil)
+	)
+      )))
 
 (provide 'cedet-global)
 

@@ -1,6 +1,6 @@
 ;;; bat-mode.el --- Major mode for editing DOS/Windows scripts
 
-;; Copyright (C) 2003, 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Arni Magnusson <arnima@hafro.is>
 ;; Keywords: languages
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -82,12 +82,17 @@
          (2 font-lock-constant-face t))
         ("^:[^:].*"
          . 'bat-label-face)
-        ("\\_<\\(defined\\|set\\)\\_>[ \t]*\\(\\w+\\)"
+        ("\\_<\\(defined\\|set\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
          (2 font-lock-variable-name-face))
-        ("%\\(\\w+\\)%?"
+        ("%~\\([0-9]\\)"
          (1 font-lock-variable-name-face))
-        ("!\\(\\w+\\)!?"                ; delayed-expansion !variable!
+        ("%\\([^%~ \n]+\\)%?"
          (1 font-lock-variable-name-face))
+        ("!\\([^!%~ \n]+\\)!?"  ; delayed-expansion !variable!
+         (1 font-lock-variable-name-face))
+        ("%%\\(?:~[adfnpstxz]*\\(?:\\$\\(\\(?:\\sw\\|\\s_\\|_\\)+\\):\\)?\\)?\\([]!#$&-:?-[_-{}~]\\)"
+         (1 font-lock-variable-name-face nil t) ; PATH expansion
+         (2 font-lock-variable-name-face)) ; iteration variable or positional parameter
         ("[ =][-/]+\\(\\w+\\)"
          (1 font-lock-type-face append))
         (,(concat "\\_<" (regexp-opt COMMANDS) "\\_>") . font-lock-builtin-face)
@@ -130,6 +135,7 @@
     (modify-syntax-entry ?{ "_" table)
     (modify-syntax-entry ?} "_" table)
     (modify-syntax-entry ?\\ "." table)
+    (modify-syntax-entry ?= "." table)
     table))
 
 (defconst bat--syntax-propertize
@@ -175,6 +181,7 @@ with `bat-cmd-help'.  Navigate between sections using `imenu'.
 Run script using `bat-run' and `bat-run-args'.\n
 \\{bat-mode-map}"
   (setq-local comment-start "rem ")
+  (setq-local comment-start-skip "rem[ \t]+")
   (setq-local syntax-propertize-function bat--syntax-propertize)
   (setq-local font-lock-defaults
        '(bat-font-lock-keywords nil t)) ; case-insensitive keywords

@@ -19,4 +19,6 @@
   ;; The arg only matters in that it is not t or nil.
   (set-input-meta-mode 'iso-latin-1))
 
+(provide 'term/linux)
+
 ;;; linux.el ends here

@@ -1,6 +1,6 @@
 ;;; semantic/find.el --- Search routines for Semantic
 
-;; Copyright (C) 1999-2005, 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -378,11 +378,11 @@ See `semantic-tag-protected-p' for details on which tags are returned."
 
 ;;;###autoload
 (define-overloadable-function semantic-find-tags-included (&optional table)
-  "Find all tags in TABLE that are of the 'include class.
+  "Find all tags in TABLE that are of the `include' class.
 TABLE is a tag table.  See `semantic-something-to-tag-table'.")
 
 (defun semantic-find-tags-included-default (&optional table)
-  "Find all tags in TABLE that are of the 'include class.
+  "Find all tags in TABLE that are of the `include' class.
 TABLE is a tag table.  See `semantic-something-to-tag-table'.
 By default, just call `semantic-find-tags-by-class'."
   (semantic-find-tags-by-class 'include table))

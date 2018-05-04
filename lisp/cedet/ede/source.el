@@ -1,6 +1,6 @@
 ;; ede/source.el --- EDE source code object
 
-;; Copyright (C) 2000, 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -156,14 +156,12 @@ Used to guess header files, but uses the auxsource regular expression."
 ;;
 ;; This must appear at the end so that the init method will work.
 (defvar ede-source-scheme
-  (ede-sourcecode "ede-source-scheme"
-		  :name "Scheme"
+  (ede-sourcecode :name "Scheme"
 		  :sourcepattern "\\.scm$")
   "Scheme source code definition.")
 
 ;;(defvar ede-source-
-;;  (ede-sourcecode "ede-source-"
-;;		    :name ""
+;;  (ede-sourcecode :name ""
 ;;		    :sourcepattern "\\.$"
 ;;		    :garbagepattern '("*."))
 ;;  " source code definition.")

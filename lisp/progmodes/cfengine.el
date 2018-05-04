@@ -1,6 +1,6 @@
 ;;; cfengine.el --- mode for editing Cfengine files
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1005,12 +1005,12 @@ Intended as the value of `indent-line-function'."
 				   (point))))
       (let ((paragraph-start
 	     ;; Include start of parenthesized block.
-	     "\f\\|[ \t]*$\\|.*\(")
+	     "\f\\|[ \t]*$\\|.*(")
 	    (paragraph-separate
 	     ;; Include action and class lines, start and end of
 	     ;; bracketed blocks and end of parenthesized blocks to
 	     ;; avoid including these in fill.  This isn't ideal.
-	     "[ \t\f]*$\\|.*#\\|.*[\){}]\\|\\s-*[[:alpha:]_().|!]+:")
+	     "[ \t\f]*$\\|.*#\\|.*[){}]\\|\\s-*[[:alpha:]_().|!]+:")
 	    fill-paragraph-function)
 	(fill-paragraph justify))
       t))

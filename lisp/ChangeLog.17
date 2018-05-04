@@ -1254,7 +1254,7 @@
 2015-03-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/shr.el (shr-insert): Remove soft hyphens.
-	(shr-insert): Also remove soft hypens from non-folded text.
+	(shr-insert): Also remove soft hyphens from non-folded text.
 
 2015-02-28  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1758,7 +1758,7 @@
 
 	* net/shr.el (shr-insert): Make sure the space inserted has the
 	right font (for width).
-	(shr-fill-line): Preserve background colours when indenting/folding.
+	(shr-fill-line): Preserve background colors when indenting/folding.
 	(shr-ensure-paragraph): Don't insert a new paragraph as the first
 	item in a <li>.
 
@@ -3598,7 +3598,7 @@
 
 	* comint.el (comint-history-isearch-message): Use field-beginning
 	instead of comint-line-beginning-position - that's more fixes for
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg00305.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg00305.html
 	(comint-history-isearch-message): Fix args of isearch-message-prefix.
 
 2014-12-29  Juri Linkov  <juri@linkov.net>
@@ -3698,7 +3698,7 @@
 
 	* language/misc-lang.el (composition-function-table): Add Syriac
 	characters and also ZWJ/ZWNJ.
-	See http://lists.gnu.org/archive/html/help-gnu-emacs/2014-12/msg00248.html
+	See https://lists.gnu.org/r/help-gnu-emacs/2014-12/msg00248.html
 	for the details.
 
 2014-12-27  Fabián Ezequiel Gallina  <fgallina@gnu.org>
@@ -3737,7 +3737,7 @@
 	* net/tramp.el (tramp-read-passwd): Ignore errors from `auth-source-*'.
 
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Use "\n"
-	as end-of-line delimeter for passwords, when running on MS Windows.
+	as end-of-line delimiter for passwords, when running on MS Windows.
 
 2014-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3951,7 +3951,8 @@
 
 2014-12-22  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-	* let-alist.el (let-alist): Use `make-symbol' instead of `gensym'.
+	* emacs-lisp/let-alist.el (let-alist): Use `make-symbol'
+	instead of `gensym'.
 
 2014-12-20  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -3963,7 +3964,7 @@
 
 2014-12-19  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-	* let-alist.el (let-alist): Enable access to deeper alists by
+	* emacs-lisp/let-alist.el (let-alist): Enable access to deeper alists by
 	using dots inside the dotted symbols.
 
 2014-12-19  Alan Mackenzie  <acm@muc.de>
@@ -4005,7 +4006,7 @@
 
 2014-12-18  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-	* let-alist.el (let-alist): Evaluate the `alist' argument only once.
+	* emacs-lisp/let-alist.el (let-alist): Evaluate the `alist' argument only once.
 
 2014-12-18  Sam Steingold  <sds@gnu.org>
 
@@ -4141,12 +4142,12 @@
 
 2014-12-14  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-	* let-alist.el: Add lexical binding.
+	* emacs-lisp/let-alist.el: Add lexical binding.
 
 2014-12-14  Steve Purcell  <steve@sanityinc.com>  (tiny change)
 
 	* emacs-lisp/package.el (package-menu-mode): Use an extra column
-	for the "Version" column, to accomodate date-and-time-based versions.
+	for the "Version" column, to accommodate date-and-time-based versions.
 
 2014-12-14  Cameron Desautels  <camdez@gmail.com>
 
@@ -4273,7 +4274,7 @@
 
 2014-12-10  Artur Malabarba  <bruce.connor.am@gmail.com>
 
-	* let-alist.el: Add new package and macro.
+	* emacs-lisp/let-alist.el: Add new package and macro.
 
 2014-12-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -4436,7 +4437,7 @@
 
 2014-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/eww.el (eww-follow-link): Revert prefix behaviour to
+	* net/eww.el (eww-follow-link): Revert prefix behavior to
 	previous behavior.
 	(eww-copy-page-url): Add doc string.
 
@@ -4488,14 +4489,14 @@
 	comint-line-beginning-position.
 	(comint-send-input): Go to the end of the field instead of the end
 	of the line to accept whole multi-line input.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg00305.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg00305.html
 
 2014-12-05  Juri Linkov  <juri@linkov.net>
 
 	* minibuffer.el (minibuffer-completion-help):
 	Compare selected-window with minibuffer-window to check whether
 	completions should be displayed near the minibuffer.  (Bug#17809)
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg00311.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg00311.html
 
 2014-12-05  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4604,7 +4605,7 @@
 	the remote repository were unreachable, because the VC hooks tried
 	to run "svn status -u" on the file, where the "-u" tells svn to
 	get update information from the remote repository.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-12/msg00174.html
+	https://lists.gnu.org/r/emacs-devel/2014-12/msg00174.html
 
 	* vc/vc-svn.el (vc-svn-state): Remove optional `localp'
 	argument and always pass "-v" to "svn status", never "-u".
@@ -5305,7 +5306,7 @@
 	(query-replace-read-from): Call custom-reevaluate-setting on
 	query-replace-from-to-separator to reevaluate the separator
 	depending on the return value of char-displayable-p.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00466.html
+	https://lists.gnu.org/r/emacs-devel/2014-11/msg00466.html
 
 2014-11-18  Juri Linkov  <juri@linkov.net>
 
@@ -5315,7 +5316,7 @@
 
 	* simple.el (next-line-or-history-element)
 	(previous-line-or-history-element): New commands.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00822.html
+	https://lists.gnu.org/r/emacs-devel/2014-11/msg00822.html
 
 2014-11-18  Leo Liu  <sdl.web@gmail.com>
 
@@ -5440,7 +5441,7 @@
 
 	Improve time stamp handling, and be more consistent about it.
 	This implements a suggestion made in:
-	http://lists.gnu.org/archive/html/emacs-devel/2014-10/msg00587.html
+	https://lists.gnu.org/r/emacs-devel/2014-10/msg00587.html
 	Among other things, this means timer.el no longer needs to
 	autoload the time-date module.
 	* allout-widgets.el (allout-elapsed-time-seconds): Doc fix.
@@ -5681,7 +5682,7 @@
 2014-11-10  Sylvain Chouleur  <sylvain.chouleur@gmail.com>  (tiny change)
 
 	Allow VTIMEZONE where daylight and standard time zones are equal.
-	See: http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00494.html
+	See: https://lists.gnu.org/r/emacs-devel/2014-11/msg00494.html
 	* calendar/icalendar.el (icalendar--convert-tz-offset):
 	Support timezone without daylight saving time.
 
@@ -5812,7 +5813,7 @@
 	to the history variables.
 	(query-replace-read-to): Add FROM-TO pairs to query-replace-defaults.
 	(query-replace-regexp-eval): Let-bind query-replace-defaults to nil.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-11/msg00253.html
+	https://lists.gnu.org/r/emacs-devel/2014-11/msg00253.html
 
 	* isearch.el (isearch-text-char-description): Keep characters
 	intact and put formatted strings with the `display' property.
@@ -6025,7 +6026,7 @@
 
 2014-11-01  Michael R. Mauger  <michael@mauger.com>
 
-	* sql.el (sql-mode-oracle-font-lock-keywords): Correct regexp
+	* progmodes/sql.el (sql-mode-oracle-font-lock-keywords): Correct regexp
 	syntax, add new keywords, and parse longer keywords first.
 	(sql-redirect-one): Protect against empty command.
 	(sql-mode, sql-interactive-mode): Set `custom-mode-group' property
@@ -6033,7 +6034,7 @@
 
 2014-11-01  Michael R. Mauger  <michael@mauger.com>
 
-	* sql.el (sql-interactive-mode, sql-stop): Correct fix for
+	* progmodes/sql.el (sql-interactive-mode, sql-stop): Correct fix for
 	Bug#16814 with let-bind of comint-input-ring variables around read
 	and save functions.
 
@@ -6834,7 +6835,7 @@
 	console as well (bug#18629).
 	* w32-common-fns.el: Remove.
 	* loadup.el: Don't load w32-common-fns.el.
-	* w32-fns.elc: Don't require w32-common-fns.
+	* w32-fns.el: Don't require w32-common-fns.
 
 	* icomplete.el: Move Iswitchb autoload here.  Much simpler.
 	* obsolete/iswitchb.el (iswitchb-mode): Use normal autoload cookie.
@@ -7564,7 +7565,7 @@
 	(lisp--form-quoted-p): New functions.
 	(lisp-completion-at-point): Use them to see if we're completing a
 	variable reference, a function name, or just any symbol.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-02/msg00229.html
+	https://lists.gnu.org/r/emacs-devel/2014-02/msg00229.html
 
 2014-09-18  Ivan Kanis  <ivan@kanis.fr>
 
@@ -8032,7 +8033,7 @@
 2014-08-24  Alan Mackenzie  <acm@muc.de>
 
 	Handle C++11's "auto" and "decltype" constructions.
-	* progmodes/cc-engine.el (c-forward-type): Enhance to recognise
+	* progmodes/cc-engine.el (c-forward-type): Enhance to recognize
 	and return 'decltype.
 	(c-forward-decl-or-cast-1): New let variables backup-kwd-sym,
 	prev-kwd-sym, new-style-auto.  Enhance to handle the new "auto"
@@ -8700,9 +8701,9 @@
 	(python-shell-prompt-detect)
 	(python-shell-prompt-validate-regexps): New functions.
 	(python-shell-prompt-set-calculated-regexps): New function.
-	(inferior-python-mode): Use it.  Also honor overriden
+	(inferior-python-mode): Use it.  Also honor overridden
 	python-shell-interpreter and python-shell-interpreter-args.
-	(python-shell-make-comint): Honor overriden
+	(python-shell-make-comint): Honor overridden
 	python-shell-interpreter and python-shell-interpreter-args.
 	(python-shell-get-or-create-process): Make it testable by allowing
 	to call run-python non-interactively.
@@ -9139,7 +9140,7 @@
 2014-06-30  Grégoire Jadi  <daimrod@gmail.com>
 
 	* net/rcirc.el (rcirc-buffer-process): Restore previous
-	behaviour.  (Bug#17772)
+	behavior.  (Bug#17772)
 
 2014-06-29  Alan Mackenzie  <acm@muc.de>
 
@@ -9936,7 +9937,7 @@
 	`window-configuration-change-hook'.
 	(desktop-auto-save-set-timer): Change REPEAT arg of
 	`run-with-idle-timer' from t to nil.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-06/msg00147.html
+	https://lists.gnu.org/r/emacs-devel/2014-06/msg00147.html
 
 2014-06-08  Santiago Payà i Miralta  <santiagopim@gmail.com>
 
@@ -10383,13 +10384,13 @@
 	(todo-move-category): Keep the moved category's name unless the
 	file moved to already has a category with that name.  If the
 	numerically last category of the source file was moved, make the
-	first category current to avoid selecting a nonexisting category.
+	first category current to avoid selecting a nonexistent category.
 	(todo-merge-category): Fix implementation to make merging to a
 	category in another file work as documented.  Eliminate now
 	insufficient and unnecessary renaming of archive category, correct
 	document string accordingly, and clarify it.  If the numerically
 	last category of the source file was merged, make the first
-	category current to avoid selecting a nonexisting category.
+	category current to avoid selecting a nonexistent category.
 	(todo-archive-done-item): When there are marked items and point
 	happens to be on an unmarked item, ignore the latter.  Don't leave
 	point below last item after archiving marked items.
@@ -10487,7 +10488,7 @@
 	* emacs-lisp/package.el (package-generate-description-file):
 	Output first-line comment to set buffer-local var `no-byte-compile'.
 	Suggested by Dmitry Gutov:
-	<http://lists.gnu.org/archive/html/emacs-devel/2014-05/msg00401.html>.
+	<https://lists.gnu.org/r/emacs-devel/2014-05/msg00401.html>.
 
 2014-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -10975,9 +10976,9 @@
 
 	* faces.el (face-spec-recalc): Apply X resources only after the
 	defface spec has been applied. Thus, X resources are no longer
-	overriden by the defface spec which also fixes issues on win32 where
+	overridden by the defface spec which also fixes issues on win32 where
 	the toolbar coloring was wrong because it is set through X resources
-	and was (wrongfully) overriden.  (Bug#16694)
+	and was (wrongfully) overridden.  (Bug#16694)
 
 2014-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -12169,7 +12170,7 @@
 	to `comment-start-skip' if not `comment-use-syntax'.  (Bug#16971)
 	(comment-beginning): Use `narrow-to-region' instead of moving back
 	one character.
-	(http://lists.gnu.org/archive/html/emacs-devel/2014-03/msg00488.html)
+	(https://lists.gnu.org/r/emacs-devel/2014-03/msg00488.html)
 	(comment-start-skip): Update the docstring.
 
 2014-03-18  Richard Stallman  <rms@gnu.org>
@@ -12466,7 +12467,7 @@
 	from `xterm-standard-colors' that look well on the default white
 	background (and also on the black background) to avoid illegible
 	color combinations like yellow-on-white and white-on-white.
-	http://lists.gnu.org/archive/html/emacs-devel/2014-02/msg00157.html
+	https://lists.gnu.org/r/emacs-devel/2014-02/msg00157.html
 
 2014-03-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -13223,7 +13224,7 @@
 2014-02-12  Dmitry Gutov  <dgutov@yandex.ru>
 
 	* progmodes/js.el (js-indent-line): Don't widen.
-	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00276.html
+	https://lists.gnu.org/r/emacs-devel/2012-06/msg00276.html
 
 2014-02-12  Glenn Morris  <rgm@gnu.org>
 
@@ -13541,7 +13542,7 @@
 
 	c-parse-state.  Don't "append-lower-brace-pair" in certain
 	circumstances.  Also fix an obscure bug where "\\s!" shouldn't be
-	recognised as a comment.
+	recognized as a comment.
 
 	* progmodes/cc-engine.el (c-state-pp-to-literal): Check for "\\s!"
 	as well as normal comment starter.
@@ -13964,7 +13965,7 @@
 	choices.
 	(ruby-smie-rules): Instead of using a hardcoded list of alignable
 	keywords, check against the value of `ruby-alignable-keywords'
-	(http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01439.html).
+	(https://lists.gnu.org/r/emacs-devel/2014-01/msg01439.html).
 
 2014-01-17  Glenn Morris  <rgm@gnu.org>
 
@@ -14160,7 +14161,7 @@
 
 2014-01-10  Eric S. Raymond  <esr@thyrsus.com>
 
-	* version.el (emacs-bzr-get-version): Restore compatibilty with
+	* version.el (emacs-bzr-get-version): Restore compatibility with
 	24.3 (Tested).
 
 2014-01-10  Bozhidar Batsov  <bozhidar@batsov.com>
@@ -15407,7 +15408,7 @@
 	* simple.el (blink-matching--overlay): New variable.
 	(blink-matching-open): Instead of moving point, highlight the
 	matching paren with an overlay
-	(http://lists.gnu.org/archive/html/emacs-devel/2013-12/msg00333.html).
+	(https://lists.gnu.org/r/emacs-devel/2013-12/msg00333.html).
 
 	* faces.el (paren-showing-faces, show-paren-match)
 	(show-paren-mismatch): Move from paren.el.
@@ -16627,7 +16628,7 @@
 
 	* textmodes/ispell.el (ispell-lookup-words): When `look' is not
 	available and the word has no wildcards, append one to the grep pattern.
-	http://lists.gnu.org/archive/html/emacs-devel/2013-11/msg00258.html
+	https://lists.gnu.org/r/emacs-devel/2013-11/msg00258.html
 	(ispell-complete-word): Call `ispell-lookup-words' with the value
 	independent of `ispell-look-p'.
 
@@ -17479,7 +17480,7 @@
 	after a function declaration with only types (no identifiers) in
 	the parentheses.  Also, accept a function declaration with just a
 	type inside the parentheses, if this type can be positively
-	recognised as such, or if a prefix keyword like "explicit" nails
+	recognized as such, or if a prefix keyword like "explicit" nails
 	down the construct as a declaration.
 
 2013-10-19  Eli Zaretskii  <eliz@gnu.org>
@@ -18281,7 +18282,7 @@
 
 	* emacs-lisp/package.el (package-buffer-info, describe-package-1):
 	Use :url instead of :homepage, as per
-	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00622.html
+	https://lists.gnu.org/r/emacs-devel/2013-09/msg00622.html
 
 	* newcomment.el (comment-beginning): When `comment-use-syntax' is
 	non-nil, use `syntax-ppss' (Bug#15251).
@@ -19827,7 +19828,7 @@
 
 	* xml.el (xml-parse-tag-1): Use looking-at (this reverts change in
 	2013-08-11T00:07:48Z!lekktu@gmail.com, which breaks the test suite).
-	https://lists.gnu.org/archive/html/emacs-devel/2013-08/msg00263.html
+	https://lists.gnu.org/r/emacs-devel/2013-08/msg00263.html
 
 2013-08-12  Eli Zaretskii  <eliz@gnu.org>
 
@@ -21941,7 +21942,7 @@
 2013-06-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window--state-get-1): Workaround for bug#14527.
-	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00941.html
+	https://lists.gnu.org/r/emacs-devel/2013-06/msg00941.html
 
 2013-06-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -22054,7 +22055,7 @@
 
 	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move `catch',
 	add some more keyword-like methods.
-	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00911.html
+	https://lists.gnu.org/r/emacs-devel/2013-06/msg00911.html
 
 2013-06-22  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -22673,7 +22674,7 @@
 2013-06-18  Matthias Meulien  <orontee@gmail.com>
 
 	* tabify.el (untabify, tabify): With prefix, apply to entire buffer.
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00545.html>
+	<https://lists.gnu.org/r/emacs-devel/2013-03/msg00545.html>
 
 2013-06-18  Glenn Morris  <rgm@gnu.org>
 
@@ -22703,7 +22704,7 @@
 
 	* emacs-lisp/package.el (package-load-descriptor):
 	Remove `with-syntax-table' call, `read' doesn't need it.
-	http://lists.gnu.org/archive/html/emacs-devel/2013-06/msg00539.html
+	https://lists.gnu.org/r/emacs-devel/2013-06/msg00539.html
 
 2013-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -23665,7 +23666,7 @@
 
 2013-05-28  Alan Mackenzie  <acm@muc.de>
 
-	Handle "capitalised keywords" correctly.
+	Handle "capitalized keywords" correctly.
 	* progmodes/cc-mode.el (c-after-change): Bind case-fold-search to nil.
 
 2013-05-28  Aidan Gauland  <aidalgol@amuri.net>
@@ -24620,7 +24621,7 @@
 
 	* progmodes/octave.el (octave-beginning-of-line)
 	(octave-end-of-line): Check before using up-list because it jumps
-	out of more syntactic contructs since moving to smie.
+	out of more syntactic constructs since moving to smie.
 	(octave-indent-comment): New function.
 	(octave-mode): Use it in smie-indent-functions.  (Bug#14350)
 	(octave-begin-keywords, octave-end-keywords)
@@ -25117,7 +25118,7 @@
 	(desktop-auto-save, desktop-auto-save-set-timer): New functions.
 	(after-init-hook): Call `desktop-auto-save-set-timer'.
 	Suggested by Reuben Thomas <rrt@sc3d.org> in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00327.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-04/msg00327.html>.
 
 2013-04-27  Leo Liu  <sdl.web@gmail.com>
 
@@ -25143,7 +25144,7 @@
 
 	* ls-lisp.el (ls-lisp-insert-directory): If no files are
 	displayed, move point to after the totals line.
-	See http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00677.html
+	See https://lists.gnu.org/r/emacs-devel/2013-04/msg00677.html
 	for the details.
 
 2013-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -25756,7 +25757,7 @@
 
 	Do not set x-display-name until X connection is established.
 	This is needed to prevent from weird situation described at
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-04/msg00212.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-04/msg00212.html>.
 	* frame.el (make-frame): Set x-display-name after call to
 	window system initialization function, not before.
 	* term/x-win.el (x-initialize-window-system): Add optional
@@ -26078,7 +26079,7 @@
 	(batch-skkdic-convert): Suppress most of the chatter.
 	It's not needed so much now that machines are faster,
 	and its non-ASCII component was confusing; see Dmitry Gutov in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00508.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-03/msg00508.html>.
 
 2013-03-20  Leo Liu  <sdl.web@gmail.com>
 
@@ -26222,7 +26223,7 @@
 	* startup.el (command-line-normalize-file-name): Fix handling of
 	backslashes in DOS and Windows file names.  Reported by Xue Fuqiao
 	<xfq.free@gmail.com> in
-	http://lists.gnu.org/archive/html/help-gnu-emacs/2013-03/msg00245.html.
+	https://lists.gnu.org/r/help-gnu-emacs/2013-03/msg00245.html.
 
 2013-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -26293,7 +26294,7 @@ See ChangeLog.16 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2015 Free Software Foundation, Inc.
+  Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -26308,4 +26309,4 @@ See ChangeLog.16 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

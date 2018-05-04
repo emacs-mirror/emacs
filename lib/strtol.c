@@ -1,6 +1,6 @@
 /* Convert string representation of a number into an integer value.
 
-   Copyright (C) 1991-1992, 1994-1999, 2003, 2005-2007, 2009-2015 Free Software
+   Copyright (C) 1991-1992, 1994-1999, 2003, 2005-2007, 2009-2018 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with the GNU C
@@ -17,7 +17,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef _LIBC
 # define USE_NUMBER_GROUPING
@@ -121,30 +121,19 @@
 /* The extra casts in the following macros work around compiler bugs,
    e.g., in Cray C 5.0.3.0.  */
 
-/* True if negative values of the signed integer type T use two's
-   complement, ones' complement, or signed magnitude representation,
-   respectively.  Much GNU code assumes two's complement, but some
-   people like to be portable to all possible C hosts.  */
-# define TYPE_TWOS_COMPLEMENT(t) ((t) ~ (t) 0 == (t) -1)
-# define TYPE_ONES_COMPLEMENT(t) ((t) ~ (t) 0 == 0)
-# define TYPE_SIGNED_MAGNITUDE(t) ((t) ~ (t) 0 < (t) -1)
-
 /* True if the arithmetic type T is signed.  */
 # define TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
 
-/* The maximum and minimum values for the integer type T.  These
-   macros have undefined behavior if T is signed and has padding bits.
-   If this is a problem for you, please let us know how to fix it for
-   your host.  */
-# define TYPE_MINIMUM(t) \
-   ((t) (! TYPE_SIGNED (t) \
-         ? (t) 0 \
-         : TYPE_SIGNED_MAGNITUDE (t) \
-         ? ~ (t) 0 \
-         : ~ TYPE_MAXIMUM (t)))
-# define TYPE_MAXIMUM(t) \
-   ((t) (! TYPE_SIGNED (t) \
-         ? (t) -1 \
+/* Minimum and maximum values for integer types.
+   These macros have undefined behavior for signed types that either
+   have padding bits or do not use two's complement.  If this is a
+   problem for you, please let us know how to fix it for your host.  */
+
+/* The maximum and minimum values for the integer type T.  */
+# define TYPE_MINIMUM(t) ((t) ~ TYPE_MAXIMUM (t))
+# define TYPE_MAXIMUM(t)                                                 \
+   ((t) (! TYPE_SIGNED (t)                                               \
+         ? (t) -1                                                        \
          : ((((t) 1 << (sizeof (t) * CHAR_BIT - 2)) - 1) * 2 + 1)))
 
 # ifndef ULLONG_MAX

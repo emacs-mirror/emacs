@@ -1162,7 +1162,7 @@ Dired ви позволява да гледате списъка от файло
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2015 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.
@@ -1178,7 +1178,7 @@ comes with permission to distribute copies on certain conditions:
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Моля, прочетете файла COPYING и тогава давайте копия на ГНУ Емакс на
 свои приятели.  Помогнете да спрем затвореността на програмите

@@ -1,6 +1,6 @@
 ;;; titdic-cnv.el --- convert cxterm dictionary (TIT format) to Quail package -*- coding:iso-2022-7bit; -*-
 
-;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -86,7 +86,7 @@
   '(("chinese-4corner" "$(0(?-F(B")
     ("chinese-array30" "$(0#R#O(B")
     ("chinese-ccdospy" "$AKuF4(B"
-     "Pinyin base input method for Chinese charset GB2312 \(`chinese-gb2312').
+     "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
 
 Pinyin is the standard Roman transliteration method for Chinese.
 For the detail of Pinyin system, see the documentation of the input
@@ -647,7 +647,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; details.
 ;;
 ;; You should have received a copy of the GNU General Public License along with
-;; CCE.  If not, see <http://www.gnu.org/licenses/>.")
+;; CCE.  If not, see <https://www.gnu.org/licenses/>.")
 
     ("chinese-ziranma" "$AWTH;(B"
      "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
@@ -675,7 +675,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; details.
 ;;
 ;; You should have received a copy of the GNU General Public License along with
-;; CCE.  If not, see <http://www.gnu.org/licenses/>.")
+;; CCE.  If not, see <https://www.gnu.org/licenses/>.")
 
     ("chinese-ctlau" "$AAuTA(B"
      "CTLau.html" cn-gb-2312 "CTLau.el"
@@ -700,7 +700,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; # GNU General Public License for more details.
 ;; #
 ;; # You should have received a copy of the GNU General Public License
-;; # along with this program.  If not, see <http://www.gnu.org/licenses/>.")
+;; # along with this program.  If not, see <https://www.gnu.org/licenses/>.")
 
     ("chinese-ctlaub" "$(0N,Gn(B"
      "CTLau-b5.html" big5 "CTLau-b5.el"
@@ -725,7 +725,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; # GNU General Public License for more details.
 ;; #
 ;; # You should have received a copy of the GNU General Public License
-;; # along with this program.  If not, see <http://www.gnu.org/licenses/>.")
+;; # along with this program.  If not, see <https://www.gnu.org/licenses/>.")
     ))
 
 ;; Generate a code of a Quail package in the current buffer from Tsang
@@ -1167,11 +1167,14 @@ the generated Quail package is saved."
 		    (if (eq coding 'iso-2022-cn-ext) "Chinese-CNS"
 		      "Chinese-GB"))
 		  "\" \"" title "\" t\n")
-	  (let* ((coding-system-for-read
-		  (coding-system-change-eol-conversion coding 'unix))
-		 (dicbuf (find-file-noselect filename)))
-	    (funcall converter dicbuf name title)
-	    (kill-buffer dicbuf))
+          (let ((coding-system-for-read
+                 (coding-system-change-eol-conversion coding 'unix))
+                (dstbuf (current-buffer)))
+            (with-temp-buffer
+              (insert-file-contents filename)
+              (let ((dicbuf (current-buffer)))
+                (with-current-buffer dstbuf
+                  (funcall converter dicbuf name title)))))
 	  (insert ";; Local Variables:\n"
 		  ";; version-control: never\n"
 		  ";; no-update-autoloads: t\n"

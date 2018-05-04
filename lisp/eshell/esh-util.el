@@ -1,6 +1,6 @@
 ;;; esh-util.el --- general utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -142,7 +142,7 @@ function `string-to-number'."
 (defmacro eshell-condition-case (tag form &rest handlers)
   "If `eshell-handle-errors' is non-nil, this is `condition-case'.
 Otherwise, evaluates FORM with no error handling."
-  (declare (indent 2))
+  (declare (indent 2) (debug (sexp form &rest form)))
   (if eshell-handle-errors
       `(condition-case-unless-debug ,tag
 	   ,form
@@ -228,7 +228,7 @@ If N or M is nil, it means the end of the list."
 
 (defvar eshell-path-env (getenv "PATH")
   "Content of $PATH.
-It might be different from \(getenv \"PATH\"\), when
+It might be different from \(getenv \"PATH\"), when
 `default-directory' points to a remote host.")
 (make-variable-buffer-local 'eshell-path-env)
 
@@ -295,7 +295,7 @@ Prepend remote identification of `default-directory', if any."
 	(nconc new-list (list a))))
     (cdr new-list)))
 
-(defun eshell-uniqify-list (l)
+(defun eshell-uniquify-list (l)
   "Remove occurring multiples in L.  You probably want to sort first."
   (let ((m l))
     (while m
@@ -305,6 +305,9 @@ Prepend remote identification of `default-directory', if any."
 	(setcdr m (cddr m)))
       (setq m (cdr m))))
   l)
+(define-obsolete-function-alias
+  'eshell-uniqify-list
+  'eshell-uniquify-list "27.1")
 
 (defun eshell-stringify (object)
   "Convert OBJECT into a string value."
@@ -678,8 +681,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun eshell-file-attributes (file &optional id-format)
   "Return the attributes of FILE, playing tricks if it's over ange-ftp.
 The optional argument ID-FORMAT specifies the preferred uid and
-gid format.  Valid values are 'string and 'integer, defaulting to
-'integer.  See `file-attributes'."
+gid format.  Valid values are `string' and `integer', defaulting to
+`integer'.  See `file-attributes'."
   (let* ((file (expand-file-name file))
 	 entry)
     (if (string-equal (file-remote-p file 'method) "ftp")

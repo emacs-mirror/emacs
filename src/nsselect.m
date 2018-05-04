@@ -1,13 +1,13 @@
-/* NeXT/Open/GNUstep / MacOSX Cocoa selection processing for emacs.
-   Copyright (C) 1993-1994, 2005-2006, 2008-2015 Free Software
+/* NeXT/Open/GNUstep / macOS Cocoa selection processing for emacs.
+   Copyright (C) 1993-1994, 2005-2006, 2008-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,13 +15,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 Originally by Carl Edman
 Updated by Christian Limpach (chris@nice.ch)
 OpenStep/Rhapsody port by Scott Bender (sbender@harmony-ds.com)
-MacOSX/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
+macOS/Aqua port by Christophe de Dinechin (descubes@earthlink.net)
 GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
@@ -36,7 +36,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 static Lisp_Object Vselection_alist;
 
-/* NSGeneralPboard is pretty much analogous to X11 CLIPBOARD */
+/* NSPasteboardNameGeneral is pretty much analogous to X11 CLIPBOARD.  */
 static NSString *NXPrimaryPboard;
 static NSString *NXSecondaryPboard;
 
@@ -54,7 +54,7 @@ static NSString *
 symbol_to_nsstring (Lisp_Object sym)
 {
   CHECK_SYMBOL (sym);
-  if (EQ (sym, QCLIPBOARD))   return NSGeneralPboard;
+  if (EQ (sym, QCLIPBOARD))   return NSPasteboardNameGeneral;
   if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
@@ -70,7 +70,7 @@ ns_symbol_to_pb (Lisp_Object symbol)
 static Lisp_Object
 ns_string_to_symbol (NSString *t)
 {
-  if ([t isEqualToString: NSGeneralPboard])
+  if ([t isEqualToString: NSPasteboardNameGeneral])
     return QCLIPBOARD;
   if ([t isEqualToString: NXPrimaryPboard])
     return QPRIMARY;
@@ -469,7 +469,7 @@ nxatoms_of_nsselect (void)
   pasteboard_changecount
     = [[NSMutableDictionary
 	 dictionaryWithObjectsAndKeys:
-	     [NSNumber numberWithLong:0], NSGeneralPboard,
+	     [NSNumber numberWithLong:0], NSPasteboardNameGeneral,
 	     [NSNumber numberWithLong:0], NXPrimaryPboard,
 	     [NSNumber numberWithLong:0], NXSecondaryPboard,
 	     [NSNumber numberWithLong:0], NSStringPboardType,

@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,7 +102,7 @@ docstring.  The variable becomes buffer-local whenever set."
   (declare (indent defun))
   `(progn
     (defvar ,var ,default-value
-      ,(format "%s\n\(buffer local\)" documentation))
+      ,(format "%s\n(buffer local)" documentation))
     (make-variable-buffer-local ',var)))
 
 ;; (viper-loop COUNT BODY) Execute BODY COUNT times.
@@ -344,9 +344,7 @@ Use `\\[viper-set-expert-level]' to change this.")
 	     (quail-delete-overlays))
 	 (setq describe-current-input-method-function nil)
 	 (setq current-input-method nil)
-	 (run-hooks
-	  'input-method-inactivate-hook ; for backward compatibility
-	  'input-method-deactivate-hook)
+	 (run-hooks 'input-method-deactivate-hook)
 	 (force-mode-line-update))
 	))
 (defun viper-activate-input-method ()
@@ -368,15 +366,6 @@ Use `\\[viper-set-expert-level]' to change this.")
 
 
 ;; VI-style Undo
-
-;; Used to 'undo' complex commands, such as replace and insert commands.
-(viper-deflocalvar viper-undo-needs-adjustment nil)
-(put 'viper-undo-needs-adjustment 'permanent-local t)
-
-;; A mark that Viper puts on buffer-undo-list.  Marks the beginning of a
-;; complex command that must be undone atomically.  If inserted, it is
-;; erased by viper-change-state-to-vi and viper-repeat.
-(defconst viper-buffer-undo-list-mark 'viper)
 
 (defcustom viper-keep-point-on-undo nil
   "Non-nil means not to move point while undoing commands.
@@ -778,7 +767,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		; latex
 	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	; texinfo
 	  "^.+:-")			                        ; prolog
-  "Regexps for Headings.  Used by \[\[ and \]\].")
+  "Regexps for Headings.  Used by [[ and ]].")
 
 (defvar viper-heading-end
   (concat "^}\\|"						; C/C++
@@ -786,7 +775,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^@end \\|"						; texinfo
 	  ")\n\n[ \t\n]*\\|"					; lisp
 	  "\\.\\s-*$")						; prolog
-      "*Regexps to end Headings/Sections.  Used by \[\].")
+  "Regexps to end Headings/Sections.  Used by [].")
 
 
 ;; These two vars control the interaction of jumps performed by ' and `.

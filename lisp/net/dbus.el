@@ -1,6 +1,6 @@
-;;; dbus.el --- Elisp bindings for D-Bus.
+;;; dbus.el --- Elisp bindings for D-Bus. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -41,8 +41,15 @@
 (defvar dbus-message-type-method-return)
 (defvar dbus-message-type-error)
 (defvar dbus-message-type-signal)
-(defvar dbus-debug)
 (defvar dbus-registered-objects-table)
+
+;; The following symbols are defined in dbusbind.c.  We need them also
+;; when Emacs is compiled without D-Bus support.
+(unless (boundp 'dbus-error)
+  (define-error 'dbus-error "D-Bus error"))
+
+(unless (boundp 'dbus-debug)
+  (defvar dbus-debug nil))
 
 ;; Pacify byte compiler.
 (eval-when-compile (require 'cl-lib))
@@ -380,7 +387,7 @@ Example:
   \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
   \"system.kernel.machine\")
 
-  => \(:serial :system 2)
+  => (:serial :system 2)
 
   -| i686"
 
@@ -492,7 +499,7 @@ See `dbus-registered-objects-table' for a description of the
 hash table."
   (let (result)
     (maphash
-     (lambda (key value) (add-to-list 'result (cons key value) 'append))
+     (lambda (key value) (push (cons key value) result))
      dbus-registered-objects-table)
     result))
 
@@ -656,8 +663,8 @@ Example:
   :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
   \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
 
-  => \(\(:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
-      \(\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
+  => ((:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
+      (\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
 
 `dbus-register-signal' returns an object, which can be used in
 `dbus-unregister-object' for removing the registration."
@@ -1113,9 +1120,9 @@ unique names for services."
   "Retrieve all services which correspond to a known name in BUS.
 A service has a known name if it doesn't start with \":\"."
   (let (result)
-    (dolist (name (dbus-list-names bus) result)
+    (dolist (name (dbus-list-names bus) (nreverse result))
       (unless (string-equal ":" (substring name 0 1))
-	(add-to-list 'result name 'append)))))
+	(push name result)))))
 
 (defun dbus-list-queued-owners (bus service)
   "Return the unique names registered at D-Bus BUS and queued for SERVICE.
@@ -1143,7 +1150,7 @@ Note, that this autoloads SERVICE if it is not running yet.  If
 it shall be checked whether SERVICE is already running, one shall
 apply
 
-  \(member service \(dbus-list-known-names bus))"
+  (member service \(dbus-list-known-names bus))"
   ;; "Ping" raises a D-Bus error if SERVICE does not exist.
   ;; Otherwise, it returns silently with nil.
   (condition-case nil
@@ -1214,9 +1221,8 @@ It returns a list of strings.  The node names stand for further
 object paths of the D-Bus service."
   (let ((object (dbus-introspect-xml bus service path))
 	result)
-    (dolist (elt (xml-get-children object 'node) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'node) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-all-nodes (bus service path)
   "Return all node names of SERVICE in D-Bus BUS at object path PATH.
@@ -1240,9 +1246,8 @@ interface is \"org.freedesktop.DBus.Properties\".  If present,
 children, beside \"method\" and \"signal\" objects."
   (let ((object (dbus-introspect-xml bus service path))
 	result)
-    (dolist (elt (xml-get-children object 'interface) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'interface) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-interface (bus service path interface)
   "Return the INTERFACE of SERVICE in D-Bus BUS at object path PATH.
@@ -1264,9 +1269,8 @@ The resulting \"interface\" object can contain \"method\", \"signal\",
 SERVICE is a service of D-Bus BUS at object path PATH."
   (let ((object (dbus-introspect-get-interface bus service path interface))
 	result)
-    (dolist (elt (xml-get-children object 'method) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'method) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-method (bus service path interface method)
   "Return method METHOD of interface INTERFACE as XML object.
@@ -1288,9 +1292,8 @@ object can contain \"arg\" and \"annotation\" children."
 SERVICE is a service of D-Bus BUS at object path PATH."
   (let ((object (dbus-introspect-get-interface bus service path interface))
 	result)
-    (dolist (elt (xml-get-children object 'signal) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'signal) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-signal (bus service path interface signal)
   "Return signal SIGNAL of interface INTERFACE as XML object.
@@ -1312,9 +1315,8 @@ object can contain \"arg\" and \"annotation\" children."
 SERVICE is a service of D-Bus BUS at object path PATH."
   (let ((object (dbus-introspect-get-interface bus service path interface))
 	result)
-    (dolist (elt (xml-get-children object 'property) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'property) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-property (bus service path interface property)
   "This function returns PROPERTY of INTERFACE as XML object.
@@ -1345,9 +1347,8 @@ object, where the annotations belong to."
 		 (dbus-introspect-get-property bus service path interface name))
 	   (dbus-introspect-get-interface bus service path interface)))
 	result)
-    (dolist (elt (xml-get-children object 'annotation) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'annotation) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-annotation
   (bus service path interface name annotation)
@@ -1382,9 +1383,8 @@ therefore, even if the method or signal has arguments."
 	 (or (dbus-introspect-get-method bus service path interface name)
 	     (dbus-introspect-get-signal bus service path interface name)))
 	result)
-    (dolist (elt (xml-get-children object 'arg) result)
-      (add-to-list
-       'result (dbus-introspect-get-attribute elt "name") 'append))))
+    (dolist (elt (xml-get-children object 'arg) (nreverse result))
+      (push (dbus-introspect-get-attribute elt "name") result))))
 
 (defun dbus-introspect-get-argument (bus service path interface name arg)
   "Return argument ARG as XML object.
@@ -1473,8 +1473,8 @@ nil is returned."
 	       (dbus-call-method
 		bus service path dbus-interface-properties
 		"GetAll" :timeout 500 interface)
-	       result)
-	(add-to-list 'result (cons (car dict) (cl-caadr dict)) 'append)))))
+	       (nreverse result))
+	(push (cons (car dict) (cl-caadr dict)) result)))))
 
 (defun dbus-register-property
   (bus service path interface property access value
@@ -1609,11 +1609,11 @@ It will be registered for all objects created by `dbus-register-property'."
 	   (when (and (equal (butlast key) (list :property bus interface))
 		      (string-equal path (nth 2 (car val)))
 		      (not (functionp (car (last (car val))))))
-	     (add-to-list
-	      'result
+	     (push
 	      (list :dict-entry
 		    (car (last key))
-		    (list :variant (cdar (last (car val))))))))
+		    (list :variant (cdar (last (car val)))))
+              result)))
 	 dbus-registered-objects-table)
 	;; Return the result, or an empty array.
 	(list :array (or result '(:signature "{sv}"))))))))
@@ -1631,22 +1631,22 @@ name, and the cdr is the list of properties as returned by
 
 \(dbus-get-all-managed-objects :session \"org.gnome.SettingsDaemon\" \"/\")
 
-  => \(\(\"/org/gnome/SettingsDaemon/MediaKeys\"
-       \(\"org.gnome.SettingsDaemon.MediaKeys\")
-       \(\"org.freedesktop.DBus.Peer\")
-       \(\"org.freedesktop.DBus.Introspectable\")
-       \(\"org.freedesktop.DBus.Properties\")
-       \(\"org.freedesktop.DBus.ObjectManager\"))
-      \(\"/org/gnome/SettingsDaemon/Power\"
-       \(\"org.gnome.SettingsDaemon.Power.Keyboard\")
-       \(\"org.gnome.SettingsDaemon.Power.Screen\")
-       \(\"org.gnome.SettingsDaemon.Power\"
-        \(\"Icon\" . \". GThemedIcon battery-full-charged-symbolic \")
-        \(\"Tooltip\" . \"Laptop battery is charged\"))
-       \(\"org.freedesktop.DBus.Peer\")
-       \(\"org.freedesktop.DBus.Introspectable\")
-       \(\"org.freedesktop.DBus.Properties\")
-       \(\"org.freedesktop.DBus.ObjectManager\"))
+  => ((\"/org/gnome/SettingsDaemon/MediaKeys\"
+       (\"org.gnome.SettingsDaemon.MediaKeys\")
+       (\"org.freedesktop.DBus.Peer\")
+       (\"org.freedesktop.DBus.Introspectable\")
+       (\"org.freedesktop.DBus.Properties\")
+       (\"org.freedesktop.DBus.ObjectManager\"))
+      (\"/org/gnome/SettingsDaemon/Power\"
+       (\"org.gnome.SettingsDaemon.Power.Keyboard\")
+       (\"org.gnome.SettingsDaemon.Power.Screen\")
+       (\"org.gnome.SettingsDaemon.Power\"
+        (\"Icon\" . \". GThemedIcon battery-full-charged-symbolic \")
+        (\"Tooltip\" . \"Laptop battery is charged\"))
+       (\"org.freedesktop.DBus.Peer\")
+       (\"org.freedesktop.DBus.Introspectable\")
+       (\"org.freedesktop.DBus.Properties\")
+       (\"org.freedesktop.DBus.ObjectManager\"))
       ...)
 
 If possible, \"org.freedesktop.DBus.ObjectManager.GetManagedObjects\"
@@ -1684,12 +1684,12 @@ and \"org.freedesktop.DBus.Properties.GetAll\", which is slow."
 		(interface
 		 (dbus-introspect-get-interface-names bus service object)
 		 result1)
-	      (add-to-list
-	       'result1
+	      (push
 	       (cons interface
-		     (dbus-get-all-properties bus service object interface))))
+		     (dbus-get-all-properties bus service object interface))
+               result1))
 	    (when result1
-	      (add-to-list 'result (cons object result1))))))))
+	      (push (cons object result1) result)))))))
 
 (defun dbus-managed-objects-handler ()
   "Default handler for the \"org.freedesktop.DBus.ObjectManager\" interface.
@@ -1705,7 +1705,7 @@ It will be registered for all objects created by `dbus-register-service'."
        (lambda (key val)
 	 (when (and (equal (butlast key 2) (list :method bus))
 		    (null (nth 2 (car-safe val))))
-	   (add-to-list 'interfaces (nth 2 key))))
+	   (push (nth 2 key) interfaces)))
        dbus-registered-objects-table)
 
       ;; Check all registered object paths.
@@ -1716,7 +1716,7 @@ It will be registered for all objects created by `dbus-register-service'."
 		      (string-prefix-p path object))
 	     (dolist (interface (cons (nth 2 key) interfaces))
 	       (unless (assoc object result)
-		 (add-to-list 'result (list object)))
+		 (push (list object) result))
 	       (unless (assoc interface (cdr (assoc object result)))
 		 (setcdr
 		  (assoc object result)

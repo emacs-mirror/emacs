@@ -1,6 +1,6 @@
 ;;; icon.el --- mode for editing Icon code
 
-;; Copyright (C) 1989, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -90,7 +90,7 @@
   :group 'icon)
 
 (defcustom icon-brace-imaginary-offset 0
-  "Imagined indentation of a Icon open brace that actually follows a statement."
+  "Imagined indentation of an Icon open brace that actually follows a statement."
   :type 'integer
   :group 'icon)
 
@@ -404,8 +404,8 @@ Returns nil if line starts inside a string, t if in a comment."
 	 (ch-syntax (char-syntax ch)))
     (if (eq ch-syntax ?w)
 	(assoc (buffer-substring
-		(progn (forward-word -1) (point))
-		(progn (forward-word 1) (point)))
+		(progn (forward-word-strictly -1) (point))
+		(progn (forward-word-strictly 1) (point)))
 	       icon-resword-alist)
       (not (memq ch '(0 ?\; ?\} ?\{ ?\) ?\] ?\" ?\' ?\# ?\, ?\. ?\n))))))
 
@@ -431,7 +431,8 @@ Returns nil if line starts inside a string, t if in a comment."
    ((and (eq (char-syntax (following-char)) ?w)
 	 (cdr
 	  (assoc (buffer-substring (point)
-				   (save-excursion (forward-word 1) (point)))
+				   (save-excursion (forward-word-strictly 1)
+                                                   (point)))
 		 icon-resword-alist))) 0)
    (t (end-of-line 0) (icon-backward-to-start-of-continued-exp lim))))
 
@@ -458,9 +459,9 @@ Returns nil if line starts inside a string, t if in a comment."
 (defun mark-icon-function ()
   "Put mark at end of Icon function, point at beginning."
   (interactive)
-  (push-mark (point))
+  (push-mark)
   (end-of-icon-defun)
-  (push-mark (point))
+  (push-mark)
   (beginning-of-line 0)
   (beginning-of-icon-defun))
 
@@ -475,7 +476,7 @@ Returns nil if line starts inside a string, t if in a comment."
   (interactive)
   (if (not (bobp)) (forward-char -1))
   (re-search-forward "\\(\\s \\|^\\)end\\(\\s \\|$\\)" (point-max) 'move)
-  (forward-word -1)
+  (forward-word-strictly -1)
   (forward-line 1))
 
 (defun indent-icon-exp ()

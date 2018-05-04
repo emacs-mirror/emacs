@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994-1997, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1991, 1994-1997, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -589,7 +589,14 @@ Commands:                        Equivalent keys in read-only mode:
 	(make-local-variable 'forms--dynamic-text)
 
 	;; Prevent accidental overwrite of the control file and auto-save.
-	(set-visited-file-name nil)
+        ;; We bind change-major-mode-with-file-name to nil to prevent
+        ;; set-visited-file-name from calling set-auto-mode, which
+        ;; might kill all local variables and set forms-file nil,
+        ;; which will then barf in find-file-noselect below.  This can
+        ;; happen when the user sets the default major mode that is
+        ;; different from the Fundamental mode.
+        (let (change-major-mode-with-file-name)
+          (set-visited-file-name nil))
 
 	;; Prepare this buffer for further processing.
 	(setq buffer-read-only nil)

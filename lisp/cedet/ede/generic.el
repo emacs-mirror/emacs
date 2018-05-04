@@ -1,6 +1,6 @@
 ;;; ede/generic.el --- Base Support for generic build systems
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -302,6 +302,8 @@ CLASS is the EIEIO class that is used to track this project.  It should subclass
 			      ".svn" 'ede-generic-vc-project)
   (ede-generic-new-autoloader "generic-cvs" "Generic CVS"
 			      "CVS" 'ede-generic-vc-project)
+  (ede-generic-new-autoloader "generic-mtn" "Generic Monotone"
+                              "_MTN" 'ede-generic-vc-project)
 
   ;; Take advantage of existing 'projectile' based projects.
   ;; @TODO - if projectile supports compile commands etc, can we

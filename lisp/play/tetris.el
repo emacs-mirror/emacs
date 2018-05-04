@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -87,9 +87,15 @@ If the return value is a number, it is used as the timer period."
 
 (defcustom tetris-x-colors
   [[0 0 1] [0.7 0 1] [1 1 0] [1 0 1] [0 1 1] [0 1 0] [1 0 0]]
-  "Vector of colors of the various shapes."
+  "Vector of RGB colors of the various shapes."
   :group 'tetris
-  :type 'sexp)
+  :type '(vector (vector :tag "Shape 1" number number number)
+                 (vector :tag "Shape 2" number number number)
+                 (vector :tag "Shape 3" number number number)
+                 (vector :tag "Shape 4" number number number)
+                 (vector :tag "Shape 5" number number number)
+                 (vector :tag "Shape 6" number number number)
+                 (vector :tag "Shape 7" number number number)))
 
 (defcustom tetris-buffer-name "*Tetris*"
   "Name used for Tetris buffer."

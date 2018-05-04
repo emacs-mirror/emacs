@@ -1,6 +1,6 @@
 ;;; emacs-lock.el --- protect buffers against killing or exiting -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Inspired by emacs-lock.el by Tom Wurgler <twurgler@goodyear.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -87,6 +87,9 @@ The functions get one argument, the first locked buffer found."
   :type 'hook
   :group 'emacs-lock
   :version "24.3")
+
+(define-obsolete-variable-alias 'emacs-lock-from-exiting
+  'emacs-lock-mode "24.1")
 
 (defvar-local emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
@@ -181,9 +184,6 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
               (t
                ;; anything else (turn off)
                mode))))
-
-(define-obsolete-variable-alias 'emacs-lock-from-exiting
-  'emacs-lock-mode "24.1")
 
 ;;;###autoload
 (define-minor-mode emacs-lock-mode

@@ -1,6 +1,6 @@
-;;; rfc2104.el --- RFC2104 Hashed Message Authentication Codes
+;;; rfc2104.el --- RFC2104 Hashed Message Authentication Codes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -55,7 +55,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Magic character for inner HMAC round. 0x36 == 54 == '6'
 (defconst rfc2104-ipad ?\x36)
@@ -101,7 +101,7 @@ In XEmacs return just STRING."
 	 (opad (make-string (+ block-length hash-length) rfc2104-opad))
          c partial)
     ;; Prefix *pad with key, appropriately XORed.
-    (do ((i 0 (1+ i)))
+    (cl-do ((i 0 (1+ i)))
         ((= len i))
       (setq c (aref key i))
       (aset ipad i (logxor rfc2104-ipad c))
@@ -110,8 +110,8 @@ In XEmacs return just STRING."
     (setq partial (rfc2104-string-make-unibyte
 		   (funcall hash (concat ipad text))))
     ;; Pack latter part of opad.
-    (do ((r 0 (+ 2 r))
-         (w block-length (1+ w)))
+    (cl-do ((r 0 (+ 2 r))
+            (w block-length (1+ w)))
         ((= (* 2 hash-length) r))
       (aset opad w
             (+ (* 16 (aref rfc2104-nybbles (aref partial     r)))

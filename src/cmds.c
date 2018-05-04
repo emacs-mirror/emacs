@@ -1,13 +1,13 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -25,10 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "syntax.h"
-#include "window.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "dispextern.h"
 #include "frame.h"
 
 static int internal_self_insert (int, EMACS_INT);
@@ -220,36 +218,6 @@ to t.  */)
   return Qnil;
 }
 
-static int nonundocount;
-
-static void
-remove_excessive_undo_boundaries (void)
-{
-  bool remove_boundary = true;
-
-  if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
-    nonundocount = 0;
-
-  if (NILP (Vexecuting_kbd_macro))
-    {
-      if (nonundocount <= 0 || nonundocount >= 20)
-	{
-	  remove_boundary = false;
-	  nonundocount = 0;
-	}
-      nonundocount++;
-    }
-
-  if (remove_boundary
-      && CONSP (BVAR (current_buffer, undo_list))
-      && NILP (XCAR (BVAR (current_buffer, undo_list)))
-      /* Only remove auto-added boundaries, not boundaries
-	 added by explicit calls to undo-boundary.  */
-      && EQ (BVAR (current_buffer, undo_list), last_undo_boundary))
-    /* Remove the undo_boundary that was just pushed.  */
-    bset_undo_list (current_buffer, XCDR (BVAR (current_buffer, undo_list)));
-}
-
 DEFUN ("delete-char", Fdelete_char, Sdelete_char, 1, 2, "p\nP",
        doc: /* Delete the following N characters (previous if N is negative).
 Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
@@ -264,8 +232,8 @@ because it respects values of `delete-active-region' and `overwrite-mode'.  */)
 
   CHECK_NUMBER (n);
 
-  if (abs (XINT (n)) < 2)
-    remove_excessive_undo_boundaries ();
+  if (eabs (XINT (n)) < 2)
+    call0 (Qundo_auto_amalgamate);
 
   pos = PT + XINT (n);
   if (NILP (killflag))
@@ -300,18 +268,19 @@ Whichever character you type to run this command is inserted.
 The numeric prefix argument N says how many times to repeat the insertion.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
-After insertion, the value of `auto-fill-function' is called if the
-`auto-fill-chars' table has a non-nil value for the inserted character.
-At the end, it runs `post-self-insert-hook'.  */)
+After insertion, `internal-auto-fill' is called if
+`auto-fill-function' is non-nil and if the `auto-fill-chars' table has
+a non-nil value for the inserted character.  At the end, it runs
+`post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
   CHECK_NUMBER (n);
 
-  if (XFASTINT (n) < 0)
-    error ("Negative repetition argument %"pI"d", XFASTINT (n));
+  if (XINT (n) < 0)
+    error ("Negative repetition argument %"pI"d", XINT (n));
 
   if (XFASTINT (n) < 2)
-    remove_excessive_undo_boundaries ();
+    call0 (Qundo_auto_amalgamate);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -321,7 +290,7 @@ At the end, it runs `post-self-insert-hook'.  */)
 				    XINT (last_command_event));
     int val = internal_self_insert (character, XFASTINT (n));
     if (val == 2)
-      nonundocount = 0;
+      Fset (Qundo_auto__this_command_amalgamating, Qnil);
     frame_make_pointer_invisible (SELECTED_FRAME ());
   }
 
@@ -452,11 +421,11 @@ internal_self_insert (int c, EMACS_INT n)
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
       if (SYMBOLP (sym) && ! NILP (sym)
-	  && ! NILP (XSYMBOL (sym)->function)
-	  && SYMBOLP (XSYMBOL (sym)->function))
+	  && ! NILP (XSYMBOL (sym)->u.s.function)
+	  && SYMBOLP (XSYMBOL (sym)->u.s.function))
 	{
 	  Lisp_Object prop;
-	  prop = Fget (XSYMBOL (sym)->function, intern ("no-self-insert"));
+	  prop = Fget (XSYMBOL (sym)->u.s.function, intern ("no-self-insert"));
 	  if (! NILP (prop))
 	    return 1;
 	}
@@ -470,16 +439,17 @@ internal_self_insert (int c, EMACS_INT n)
       int mc = ((NILP (BVAR (current_buffer, enable_multibyte_characters))
 		 && SINGLE_BYTE_CHAR_P (c))
 		? UNIBYTE_TO_CHAR (c) : c);
-      Lisp_Object string = Fmake_string (make_number (n), make_number (mc));
+      Lisp_Object string = Fmake_string (make_number (n), make_number (mc),
+					 Qnil);
 
       if (spaces_to_insert)
 	{
 	  tem = Fmake_string (make_number (spaces_to_insert),
-			      make_number (' '));
+			      make_number (' '), Qnil);
 	  string = concat2 (string, tem);
 	}
 
-      replace_range (PT, PT + chars_to_delete, string, 1, 1, 1);
+      replace_range (PT, PT + chars_to_delete, string, 1, 1, 1, 0);
       Fforward_char (make_number (n));
     }
   else if (n > 1)
@@ -507,7 +477,7 @@ internal_self_insert (int c, EMACS_INT n)
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      auto_fill_result = call0 (BVAR (current_buffer, auto_fill_function));
+      auto_fill_result = call0 (Qinternal_auto_fill);
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
@@ -526,6 +496,12 @@ internal_self_insert (int c, EMACS_INT n)
 void
 syms_of_cmds (void)
 {
+  DEFSYM (Qinternal_auto_fill, "internal-auto-fill");
+
+  DEFSYM (Qundo_auto_amalgamate, "undo-auto-amalgamate");
+  DEFSYM (Qundo_auto__this_command_amalgamating,
+          "undo-auto--this-command-amalgamating");
+
   DEFSYM (Qkill_forward_chars, "kill-forward-chars");
 
   /* A possible value for a buffer's overwrite-mode variable.  */
@@ -555,7 +531,6 @@ keys_of_cmds (void)
 {
   int n;
 
-  nonundocount = 0;
   initial_define_key (global_map, Ctl ('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");

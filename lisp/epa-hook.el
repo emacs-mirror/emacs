@@ -1,5 +1,5 @@
 ;;; epa-hook.el --- preloaded code to enable epa-file.el -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -95,7 +95,7 @@ the mode if ARG is omitted or nil."
   :initialize 'custom-initialize-delay
   (setq file-name-handler-alist
 	(delq epa-file-handler file-name-handler-alist))
-  (remove-hook 'find-file-hooks 'epa-file-find-file-hook)
+  (remove-hook 'find-file-hook 'epa-file-find-file-hook)
   (setq auto-mode-alist (delq epa-file-auto-mode-alist-entry
 			      auto-mode-alist))
   (when auto-encryption-mode

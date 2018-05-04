@@ -1,6 +1,6 @@
 ;;; mh-thread.el --- MH-E threading support
 
-;; Copyright (C) 2002-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -89,11 +89,11 @@
   (real-child-p t))
 
 (defvar mh-thread-id-hash nil
-  "Hashtable used to canonicalize message identifiers.")
+  "Hash table used to canonicalize message identifiers.")
 (make-variable-buffer-local 'mh-thread-id-hash)
 
 (defvar mh-thread-subject-hash nil
-  "Hashtable used to canonicalize subject strings.")
+  "Hash table used to canonicalize subject strings.")
 (make-variable-buffer-local 'mh-thread-subject-hash)
 
 (defvar mh-thread-id-table nil
@@ -109,11 +109,11 @@
 (make-variable-buffer-local 'mh-thread-id-index-map)
 
 (defvar mh-thread-subject-container-hash nil
-  "Hashtable used to group messages by subject.")
+  "Hash table used to group messages by subject.")
 (make-variable-buffer-local 'mh-thread-subject-container-hash)
 
 (defvar mh-thread-duplicates nil
-  "Hashtable used to associate messages with the same message identifier.")
+  "Hash table used to associate messages with the same message identifier.")
 (make-variable-buffer-local 'mh-thread-duplicates)
 
 (defvar mh-thread-history ()
@@ -647,20 +647,17 @@ Only information about messages in MSG-LIST are added to the tree."
 
 (defun mh-thread-set-tables (folder)
   "Use the tables of FOLDER in current buffer."
-  (mh-cl-flet
-   ((mh-get-table (symbol)
-                  (with-current-buffer folder
-                    (symbol-value symbol))))
-   (setq mh-thread-id-hash (mh-get-table 'mh-thread-id-hash))
-   (setq mh-thread-subject-hash (mh-get-table 'mh-thread-subject-hash))
-   (setq mh-thread-id-table (mh-get-table 'mh-thread-id-table))
-   (setq mh-thread-id-index-map (mh-get-table 'mh-thread-id-index-map))
-   (setq mh-thread-index-id-map (mh-get-table 'mh-thread-index-id-map))
-   (setq mh-thread-scan-line-map (mh-get-table 'mh-thread-scan-line-map))
-   (setq mh-thread-subject-container-hash
-         (mh-get-table 'mh-thread-subject-container-hash))
-   (setq mh-thread-duplicates (mh-get-table 'mh-thread-duplicates))
-   (setq mh-thread-history (mh-get-table 'mh-thread-history))))
+  (dolist (v '(mh-thread-id-hash
+               mh-thread-subject-hash
+               mh-thread-id-table
+               mh-thread-id-index-map
+               mh-thread-index-id-map
+               mh-thread-scan-line-map
+               mh-thread-subject-container-hash
+               mh-thread-duplicates
+               mh-thread-history))
+    ;; Emacs >= 22.1: (buffer-local-value v folder).
+    (set v (with-current-buffer folder (symbol-value v)))))
 
 (defun mh-thread-process-in-reply-to (reply-to-header)
   "Extract message id's from REPLY-TO-HEADER.

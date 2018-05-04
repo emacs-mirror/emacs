@@ -1,5 +1,5 @@
 /* Header for coding system handler.
-   Copyright (C) 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -12,8 +12,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,10 +21,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_CODING_H
 #define EMACS_CODING_H
+
+#include "lisp.h"
 
 /* Index to arguments of Fdefine_coding_system_internal.  */
 
@@ -93,39 +95,6 @@ enum define_coding_undecided_arg_index
 
 extern Lisp_Object Vcoding_system_hash_table;
 
-
-/* Enumeration of coding system type.  */
-
-enum coding_system_type
-  {
-    coding_type_charset,
-    coding_type_utf_8,
-    coding_type_utf_16,
-    coding_type_iso_2022,
-    coding_type_emacs_mule,
-    coding_type_sjis,
-    coding_type_ccl,
-    coding_type_raw_text,
-    coding_type_undecided,
-    coding_type_max
-  };
-
-
-/* Enumeration of end-of-line format type.  */
-
-enum end_of_line_type
-  {
-    eol_lf,		/* Line-feed only, same as Emacs' internal
-			   format.  */
-    eol_crlf,		/* Sequence of carriage-return and
-			   line-feed.  */
-    eol_cr,		/* Carriage-return only.  */
-    eol_any,		/* Accept any of above.  Produce line-feed
-			   only.  */
-    eol_undecided,	/* This value is used to denote that the
-			   eol-type is not yet undecided.  */
-    eol_type_max
-  };
 
 /* Enumeration of index to an attribute vector of a coding system.  */
 
@@ -693,8 +662,22 @@ struct coding_system
 /* Note that this encodes utf-8, not utf-8-emacs, so it's not a no-op.  */
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, true)
 
+/* Return true if VAL is a high surrogate.  VAL must be a 16-bit code
+   unit.  */
+
+#define UTF_16_HIGH_SURROGATE_P(val) \
+  (((val) & 0xFC00) == 0xD800)
+
+/* Return true if VAL is a low surrogate.  VAL must be a 16-bit code
+   unit.  */
+
+#define UTF_16_LOW_SURROGATE_P(val) \
+  (((val) & 0xFC00) == 0xDC00)
+
 /* Extern declarations.  */
 extern Lisp_Object code_conversion_save (bool, bool);
+extern bool encode_coding_utf_8 (struct coding_system *);
+extern bool utf8_string_p (Lisp_Object);
 extern void setup_coding_system (Lisp_Object, struct coding_system *);
 extern Lisp_Object coding_charset_list (struct coding_system *);
 extern Lisp_Object coding_system_charset_list (Lisp_Object);
@@ -717,6 +700,8 @@ extern void decode_coding_object (struct coding_system *,
 extern void encode_coding_object (struct coding_system *,
                                   Lisp_Object, ptrdiff_t, ptrdiff_t,
                                   ptrdiff_t, ptrdiff_t, Lisp_Object);
+/* Defined in this file.  */
+INLINE int surrogates_to_codepoint (int, int);
 
 #if defined (WINDOWSNT) || defined (CYGWIN)
 
@@ -761,12 +746,22 @@ extern Lisp_Object from_unicode_buffer (const wchar_t *wstr);
   } while (false)
 
 
+/* Return the Unicode code point for the given UTF-16 surrogates.  */
+
+INLINE int
+surrogates_to_codepoint (int low, int high)
+{
+  eassert (0 <= low && low <= 0xFFFF);
+  eassert (0 <= high && high <= 0xFFFF);
+  eassert (UTF_16_LOW_SURROGATE_P (low));
+  eassert (UTF_16_HIGH_SURROGATE_P (high));
+  return 0x10000 + (low - 0xDC00) + ((high - 0xD800) * 0x400);
+}
+
 extern Lisp_Object preferred_coding_system (void);
 
 
 #ifdef emacs
-
-extern char *emacs_strerror (int);
 
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */

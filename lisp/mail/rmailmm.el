@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -172,7 +172,7 @@ The value is usually nil, and bound to non-nil while inserting
 MIME entities.")
 
 (defvar rmail-mime-searching nil
-  "Bound to T inside `rmail-search-mime-message' to suppress expensive 
+  "Bound to T inside `rmail-search-mime-message' to suppress expensive
 operations such as HTML decoding")
 
 ;;; MIME-entity object
@@ -190,7 +190,7 @@ A MIME-entity is a vector of 10 elements:
 TYPE and DISPOSITION correspond to MIME headers Content-Type and
 Content-Disposition respectively, and have this format:
 
-  \(VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
+  (VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
 
 Each VALUE is a string and each ATTRIBUTE is a string.
 
@@ -202,7 +202,7 @@ Content-Type: multipart/mixed;
 The corresponding TYPE argument must be:
 
 \(\"multipart/mixed\"
-  \(\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))
+  (\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))
 
 TRANSFER-ENCODING corresponds to MIME header
 Content-Transfer-Encoding, and is a lower-case string.
@@ -817,12 +817,13 @@ directly."
 	 (bulk-data (aref tagline 1))
 	 (body (rmail-mime-entity-body entity))
 	 ;; Find the default directory for this media type.
-	 (directory (catch 'directory
-		      (dolist (entry rmail-mime-attachment-dirs-alist)
-			(when (string-match (car entry) (car content-type))
-			  (dolist (dir (cdr entry))
-			    (when (file-directory-p dir)
-			      (throw 'directory dir)))))))
+	 (directory (or (catch 'directory
+			  (dolist (entry rmail-mime-attachment-dirs-alist)
+			    (when (string-match (car entry) (car content-type))
+			      (dolist (dir (cdr entry))
+				(when (file-directory-p dir)
+				  (throw 'directory dir))))))
+			"~"))
 	 (filename (or (cdr (assq 'name (cdr content-type)))
 		       (cdr (assq 'filename (cdr content-disposition)))
 		       "noname"))
@@ -1119,11 +1120,11 @@ are the values of the respective parsed headers.  The latter should
 be lower-case.  The parsed headers for CONTENT-TYPE and CONTENT-DISPOSITION
 have the form
 
-  \(VALUE . ALIST)
+  (VALUE . ALIST)
 
 In other words:
 
-  \(VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
+  (VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
 
 VALUE is a string and ATTRIBUTE is a symbol.
 
@@ -1135,7 +1136,7 @@ Content-Type: multipart/mixed;
 The parsed header value:
 
 \(\"multipart/mixed\"
-  \(\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))"
+  (\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))"
   ;; Handle the content transfer encodings we know.  Unknown transfer
   ;; encodings will be passed on to the various handlers.
   (cond ((string= content-transfer-encoding "base64")
@@ -1560,7 +1561,7 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
 (provide 'rmailmm)
 
 ;; Local Variables:
-;; generated-autoload-file: "rmail.el"
+;; generated-autoload-file: "rmail-loaddefs.el"
 ;; End:
 
 ;;; rmailmm.el ends here

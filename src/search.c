@@ -1,14 +1,14 @@
 /* String search routines for GNU Emacs.
 
-Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2015 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2018 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,23 +16,20 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 
 #include "lisp.h"
-#include "category.h"
 #include "character.h"
 #include "buffer.h"
 #include "syntax.h"
 #include "charset.h"
 #include "region-cache.h"
-#include "commands.h"
 #include "blockinput.h"
 #include "intervals.h"
 
-#include <sys/types.h>
 #include "regex.h"
 
 #define REGEXP_CACHE_SIZE 20
@@ -42,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct regexp_cache
 {
   struct regexp_cache *next;
-  Lisp_Object regexp, whitespace_regexp;
+  Lisp_Object regexp, f_whitespace_regexp;
   /* Syntax table for which the regexp applies.  We need this because
      of character classes.  If this is t, then the compiled pattern is valid
      for any syntax-table.  */
@@ -77,12 +74,12 @@ static struct regexp_cache *searchbuf_head;
    to call re_set_registers after compiling a new pattern or after
    setting the match registers, so that the regex functions will be
    able to free or re-allocate it properly.  */
-static struct re_registers search_regs;
+/* static struct re_registers search_regs; */
 
 /* The buffer in which the last search was performed, or
    Qt if the last search was done in a string;
    Qnil if no searching has been done yet.  */
-static Lisp_Object last_thing_searched;
+/* static Lisp_Object last_thing_searched; */
 
 static void set_search_regs (ptrdiff_t, ptrdiff_t);
 static void save_search_regs (void);
@@ -102,6 +99,25 @@ matcher_overflow (void)
   error ("Stack overflow in regexp matcher");
 }
 
+static void
+freeze_buffer_relocation (void)
+{
+#ifdef REL_ALLOC
+  /* Prevent ralloc.c from relocating the current buffer while
+     searching it.  */
+  r_alloc_inhibit_buffer_relocation (1);
+  record_unwind_protect_int (r_alloc_inhibit_buffer_relocation, 0);
+#endif
+}
+
+static void
+thaw_buffer_relocation (void)
+{
+#ifdef REL_ALLOC
+  unbind_to (SPECPDL_INDEX () - 1, Qnil);
+#endif
+}
+
 /* Compile a regexp and signal a Lisp error if anything goes wrong.
    PATTERN is the pattern to compile.
    CP is the place to put the result.
@@ -115,8 +131,8 @@ static void
 compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
 		   Lisp_Object translate, bool posix)
 {
+  const char *whitespace_regexp;
   char *val;
-  reg_syntax_t old;
 
   cp->regexp = Qnil;
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
@@ -124,33 +140,26 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.charset_unibyte = charset_unibyte;
   if (STRINGP (Vsearch_spaces_regexp))
-    cp->whitespace_regexp = Vsearch_spaces_regexp;
+    cp->f_whitespace_regexp = Vsearch_spaces_regexp;
   else
-    cp->whitespace_regexp = Qnil;
+    cp->f_whitespace_regexp = Qnil;
 
   /* rms: I think BLOCK_INPUT is not needed here any more,
      because regex.c defines malloc to call xmalloc.
      Using BLOCK_INPUT here means the debugger won't run if an error occurs.
      So let's turn it off.  */
   /*  BLOCK_INPUT;  */
-  old = re_set_syntax (RE_SYNTAX_EMACS
-		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
-  if (STRINGP (Vsearch_spaces_regexp))
-    re_set_whitespace_regexp (SSDATA (Vsearch_spaces_regexp));
-  else
-    re_set_whitespace_regexp (NULL);
+  whitespace_regexp = STRINGP (Vsearch_spaces_regexp) ?
+    SSDATA (Vsearch_spaces_regexp) : NULL;
 
-  val = (char *) re_compile_pattern (SSDATA (pattern),
-				     SBYTES (pattern), &cp->buf);
+  val = (char *) re_compile_pattern (SSDATA (pattern), SBYTES (pattern),
+				     posix, whitespace_regexp, &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
      syntax-table, it can only be reused with *this* syntax table.  */
   cp->syntax_table = cp->buf.used_syntax ? BVAR (current_buffer, syntax_table) : Qt;
 
-  re_set_whitespace_regexp (NULL);
-
-  re_set_syntax (old);
   /* unblock_input ();  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
@@ -226,7 +235,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 	  && cp->posix == posix
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
-	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp))
+	  && !NILP (Fequal (cp->f_whitespace_regexp, Vsearch_spaces_regexp))
 	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
 
@@ -286,8 +295,8 @@ looking_at_1 (Lisp_Object string, bool posix)
 			  posix,
 			  !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
-  immediate_quit = 1;
-  QUIT;			/* Do a pending quit right away, to avoid paradoxical behavior */
+  /* Do a pending quit right away, to avoid paradoxical behavior */
+  maybe_quit ();
 
   /* Get pointers and sizes of the two strings
      that make up the visible portion of the buffer. */
@@ -310,12 +319,13 @@ looking_at_1 (Lisp_Object string, bool posix)
 
   re_match_object = Qnil;
 
+  freeze_buffer_relocation ();
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 		  PT_BYTE - BEGV_BYTE,
 		  (NILP (Vinhibit_changing_match_data)
 		   ? &search_regs : NULL),
 		  ZV_BYTE - BEGV_BYTE);
-  immediate_quit = 0;
+  thaw_buffer_relocation ();
 
   if (i == -2)
     matcher_overflow ();
@@ -400,7 +410,6 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
 			   ? BVAR (current_buffer, case_canon_table) : Qnil),
 			  posix,
 			  STRING_MULTIBYTE (string));
-  immediate_quit = 1;
   re_match_object = string;
 
   val = re_search (bufp, SSDATA (string),
@@ -408,7 +417,6 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
 		   SBYTES (string) - pos_byte,
 		   (NILP (Vinhibit_changing_match_data)
 		    ? &search_regs : NULL));
-  immediate_quit = 0;
 
   /* Set last_thing_searched only when match data is changed.  */
   if (NILP (Vinhibit_changing_match_data))
@@ -472,13 +480,11 @@ fast_string_match_internal (Lisp_Object regexp, Lisp_Object string,
 
   bufp = compile_pattern (regexp, 0, table,
 			  0, STRING_MULTIBYTE (string));
-  immediate_quit = 1;
   re_match_object = string;
 
   val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
-  immediate_quit = 0;
   return val;
 }
 
@@ -499,9 +505,7 @@ fast_c_string_match_ignore_case (Lisp_Object regexp,
   bufp = compile_pattern (regexp, 0,
 			  Vascii_canon_table, 0,
 			  0);
-  immediate_quit = 1;
   val = re_search (bufp, string, len, 0, len, 0);
-  immediate_quit = 0;
   return val;
 }
 
@@ -562,10 +566,10 @@ fast_looking_at (Lisp_Object regexp, ptrdiff_t pos, ptrdiff_t pos_byte,
     }
 
   buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
-  immediate_quit = 1;
+  freeze_buffer_relocation ();
   len = re_match_2 (buf, (char *) p1, s1, (char *) p2, s2,
 		    pos_byte, NULL, limit_byte);
-  immediate_quit = 0;
+  thaw_buffer_relocation ();
 
   return len;
 }
@@ -642,7 +646,7 @@ newline_cache_on_off (struct buffer *buf)
    If BYTEPOS is not NULL, set *BYTEPOS to the byte position corresponding
    to the returned character position.
 
-   If ALLOW_QUIT, set immediate_quit.  That's good to do
+   If ALLOW_QUIT, check for quitting.  That's good to do
    except when inside redisplay.  */
 
 ptrdiff_t
@@ -678,8 +682,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   if (shortage != 0)
     *shortage = 0;
 
-  immediate_quit = allow_quit;
-
   if (count > 0)
     while (start != end)
       {
@@ -697,7 +699,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
             ptrdiff_t next_change;
 	    int result = 1;
 
-            immediate_quit = 0;
             while (start < end && result)
 	      {
 		ptrdiff_t lim1;
@@ -750,7 +751,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		start_byte = end_byte;
 		break;
 	      }
-            immediate_quit = allow_quit;
 
             /* START should never be after END.  */
             if (start_byte > ceiling_byte)
@@ -803,11 +803,12 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
 	      if (--count == 0)
 		{
-		  immediate_quit = 0;
 		  if (bytepos)
 		    *bytepos = lim_byte + next;
 		  return BYTE_TO_CHAR (lim_byte + next);
 		}
+	      if (allow_quit)
+		maybe_quit ();
             }
 
 	  start_byte = lim_byte;
@@ -826,7 +827,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
             ptrdiff_t next_change;
 	    int result = 1;
 
-            immediate_quit = 0;
             while (start > end && result)
 	      {
 		ptrdiff_t lim1;
@@ -863,7 +863,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 		start_byte = end_byte;
 		break;
 	      }
-            immediate_quit = allow_quit;
 
             /* Start should never be at or before end.  */
             if (start_byte <= ceiling_byte)
@@ -911,11 +910,12 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
 	      if (++count >= 0)
 		{
-		  immediate_quit = 0;
 		  if (bytepos)
 		    *bytepos = ceiling_byte + prev + 1;
 		  return BYTE_TO_CHAR (ceiling_byte + prev + 1);
 		}
+	      if (allow_quit)
+		maybe_quit ();
             }
 
 	  start_byte = ceiling_byte;
@@ -923,7 +923,6 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         }
       }
 
-  immediate_quit = 0;
   if (shortage)
     *shortage = count * direction;
   if (bytepos)
@@ -947,7 +946,7 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
    the number of line boundaries left unfound, and position at
    the limit we bumped up against.
 
-   If ALLOW_QUIT, set immediate_quit.  That's good to do
+   If ALLOW_QUIT, check for quitting.  That's good to do
    except in special cases.  */
 
 ptrdiff_t
@@ -1190,10 +1189,7 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 			      trt, posix,
 			      !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
-      immediate_quit = 1;	/* Quit immediately if user types ^G,
-				   because letting this function finish
-				   can take too long. */
-      QUIT;			/* Do a pending quit right away,
+      maybe_quit ();		/* Do a pending quit right away,
 				   to avoid paradoxical behavior */
       /* Get pointers and sizes of the two strings
 	 that make up the visible portion of the buffer. */
@@ -1214,6 +1210,8 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	  s2 = 0;
 	}
       re_match_object = Qnil;
+
+      freeze_buffer_relocation ();
 
       while (n < 0)
 	{
@@ -1255,10 +1253,11 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	    }
 	  else
 	    {
-	      immediate_quit = 0;
+	      thaw_buffer_relocation ();
 	      return (n);
 	    }
 	  n++;
+	  maybe_quit ();
 	}
       while (n > 0)
 	{
@@ -1297,12 +1296,13 @@ search_buffer (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 	    }
 	  else
 	    {
-	      immediate_quit = 0;
+	      thaw_buffer_relocation ();
 	      return (0 - n);
 	    }
 	  n--;
+	  maybe_quit ();
 	}
-      immediate_quit = 0;
+      thaw_buffer_relocation ();
       return (pos);
     }
   else				/* non-RE case */
@@ -1804,6 +1804,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
     {
       /* Setup translate_prev_byte1/2/3/4 from CHAR_BASE.  Only a
 	 byte following them are the target of translation.  */
+      eassume (0x80 <= char_base && char_base <= MAX_CHAR);
       unsigned char str[MAX_MULTIBYTE_LENGTH];
       int cblen = CHAR_STRING (char_base, str);
 
@@ -1906,7 +1907,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	  < 0)
 	return (n * (0 - direction));
       /* First we do the part we can by pointers (maybe nothing) */
-      QUIT;
+      maybe_quit ();
       pat = base_pat;
       limit = pos_byte - dirlen + direction;
       if (direction > 0)
@@ -2001,12 +2002,26 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	      if (i + direction == 0)
 		{
 		  ptrdiff_t position, start, end;
+#ifdef REL_ALLOC
+		  ptrdiff_t cursor_off;
+#endif
 
 		  cursor -= direction;
 
 		  position = pos_byte + cursor - p2 + ((direction > 0)
 						       ? 1 - len_byte : 0);
+#ifdef REL_ALLOC
+		  /* set_search_regs might call malloc, which could
+		     cause ralloc.c relocate buffer text.  We need to
+		     update pointers into buffer text due to that.  */
+		  cursor_off = cursor - p2;
+#endif
 		  set_search_regs (position, len_byte);
+#ifdef REL_ALLOC
+		  p_limit = BYTE_POS_ADDR (limit);
+		  p2 = BYTE_POS_ADDR (pos_byte);
+		  cursor = p2 + cursor_off;
+#endif
 
 		  if (NILP (Vinhibit_changing_match_data))
 		    {
@@ -2166,12 +2181,17 @@ DEFUN ("search-backward", Fsearch_backward, Ssearch_backward, 1, 4,
        doc: /* Search backward from point for STRING.
 Set point to the beginning of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend before that position.
+  The match found must not begin before that position.  A value of nil
+  means search to the beginning of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
- If not nil and not t, position at limit of search and return nil.
-Optional fourth argument COUNT, if non-nil, means to search for COUNT
- successive occurrences.  If COUNT is negative, search forward,
- instead of backward, for -COUNT occurrences.
+  If not nil and not t, position at limit of search and return nil.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  forward, instead of backward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth to last one (or
+  last, if COUNT is 1 or nil) in the buffer located entirely before
+  the origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2186,13 +2206,17 @@ DEFUN ("search-forward", Fsearch_forward, Ssearch_forward, 1, 4, "MSearch: ",
        doc: /* Search forward from point for STRING.
 Set point to the end of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend after that position.  A value of nil is
-  equivalent to (point-max).
+  The match found must not end after that position.  A value of nil
+  means search to the end of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument COUNT, if non-nil, means to search for COUNT
- successive occurrences.  If COUNT is negative, search backward,
- instead of forward, for -COUNT occurrences.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  backward, instead of forward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth one (or first,
+  if COUNT is 1 or nil) in the buffer located entirely after the
+  origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2205,21 +2229,12 @@ See also the functions `match-beginning', `match-end' and `replace-match'.  */)
 
 DEFUN ("re-search-backward", Fre_search_backward, Sre_search_backward, 1, 4,
        "sRE search backward: ",
-       doc: /* Search backward from point for match for regular expression REGEXP.
-Set point to the beginning of the match, and return point.
-The match found is the one starting last in the buffer
-and yet ending before the origin of the search.
-An optional second argument bounds the search; it is a buffer position.
-The match found must start at or after that position.
-Optional third argument, if t, means if fail just return nil (no error).
-  If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+       doc: /* Search backward from point for regular expression REGEXP.
+This function is almost identical to `re-search-forward', except that
+by default it searches backward instead of forward, and the sign of
+COUNT also indicates exactly the opposite searching direction.
 
-Search case-sensitivity is determined by the value of the variable
-`case-fold-search', which see.
-
-See also the functions `match-beginning', `match-end', `match-string',
-and `replace-match'.  */)
+See `re-search-forward' for details.  */)
   (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (regexp, bound, noerror, count, -1, 1, 0);
@@ -2229,11 +2244,22 @@ DEFUN ("re-search-forward", Fre_search_forward, Sre_search_forward, 1, 4,
        "sRE search: ",
        doc: /* Search forward from point for regular expression REGEXP.
 Set point to the end of the occurrence found, and return point.
-An optional second argument bounds the search; it is a buffer position.
-The match found must not extend after that position.
-Optional third argument, if t, means if fail just return nil (no error).
-  If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+The optional second argument BOUND is a buffer position that bounds
+  the search.  The match found must not end after that position.  A
+  value of nil means search to the end of the accessible portion of
+  the buffer.
+The optional third argument NOERROR indicates how errors are handled
+  when the search fails.  If it is nil or omitted, emit an error; if
+  it is t, simply return nil and do nothing; if it is neither nil nor
+  t, move to the limit of search and return nil.
+The optional fourth argument COUNT is a number that indicates the
+  search direction and the number of occurrences to search for.  If it
+  is positive, search forward for COUNT successive occurrences; if it
+  is negative, search backward, instead of forward, for -COUNT
+  occurrences.  A value of nil means the same as 1.
+With COUNT positive/negative, the match found is the COUNTth/-COUNTth
+  one in the buffer located entirely after/before the origin of the
+  search.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2249,14 +2275,19 @@ DEFUN ("posix-search-backward", Fposix_search_backward, Sposix_search_backward, 
        "sPosix search backward: ",
        doc: /* Search backward from point for match for regular expression REGEXP.
 Find the longest match in accord with Posix regular expression rules.
-Set point to the beginning of the match, and return point.
-The match found is the one starting last in the buffer
-and yet ending before the origin of the search.
+Set point to the beginning of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must start at or after that position.
+  The match found must not begin before that position.  A value of nil
+  means search to the beginning of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
-  If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+  If not nil and not t, position at limit of search and return nil.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  forward, instead of backward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth to last one (or
+  last, if COUNT is 1 or nil) in the buffer located entirely before
+  the origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2274,10 +2305,17 @@ DEFUN ("posix-search-forward", Fposix_search_forward, Sposix_search_forward, 1, 
 Find the longest match in accord with Posix regular expression rules.
 Set point to the end of the occurrence found, and return point.
 An optional second argument bounds the search; it is a buffer position.
-The match found must not extend after that position.
+  The match found must not end after that position.  A value of nil
+  means search to the end of the accessible portion of the buffer.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
-Optional fourth argument is repeat count--search for successive occurrences.
+Optional fourth argument COUNT, if a positive number, means to search
+  for COUNT successive occurrences.  If COUNT is negative, search
+  backward, instead of forward, for -COUNT occurrences.  A value of
+  nil means the same as 1.
+With COUNT positive, the match found is the COUNTth one (or first,
+  if COUNT is 1 or nil) in the buffer located entirely after the
+  origin of the search; correspondingly with COUNT negative.
 
 Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
@@ -2593,6 +2631,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  const unsigned char *add_stuff = NULL;
 	  ptrdiff_t add_len = 0;
 	  ptrdiff_t idx = -1;
+	  ptrdiff_t begbyte UNINIT;
 
 	  if (str_multibyte)
 	    {
@@ -2655,11 +2694,10 @@ since only regular expressions have distinguished subexpressions.  */)
 	     set up ADD_STUFF and ADD_LEN to point to it.  */
 	  if (idx >= 0)
 	    {
-	      ptrdiff_t begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
+	      begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
 	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
 	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
 		move_gap_both (search_regs.start[idx], begbyte);
-	      add_stuff = BYTE_POS_ADDR (begbyte);
 	    }
 
 	  /* Now the stuff we want to add to SUBSTED
@@ -2671,6 +2709,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	      xpalloc (substed, &substed_alloc_size,
 		       add_len - (substed_alloc_size - substed_len),
 		       STRING_BYTES_BOUND, 1);
+
+	  /* We compute this after the call to xpalloc, because that
+	     could cause buffer text be relocated when ralloc.c is used.  */
+	  if (idx >= 0)
+	    add_stuff = BYTE_POS_ADDR (begbyte);
 
 	  /* Now add to the end of SUBSTED.  */
 	  if (add_stuff)
@@ -2686,37 +2729,38 @@ since only regular expressions have distinguished subexpressions.  */)
       xfree (substed);
     }
 
+  /* The functions below modify the buffer, so they could trigger
+     various modification hooks (see signal_before_change and
+     signal_after_change).  If these hooks clobber the match data we
+     error out since otherwise this will result in confusing bugs.  */
+  ptrdiff_t sub_start = search_regs.start[sub];
+  ptrdiff_t sub_end = search_regs.end[sub];
+  unsigned  num_regs = search_regs.num_regs;
+  newpoint = search_regs.start[sub] + SCHARS (newtext);
+
   /* Replace the old text with the new in the cleanest possible way.  */
   replace_range (search_regs.start[sub], search_regs.end[sub],
-		 newtext, 1, 0, 1);
-  newpoint = search_regs.start[sub] + SCHARS (newtext);
+                 newtext, 1, 0, 1, 1);
+  /* Update saved data to match adjustment made by replace_range.  */
+  {
+    ptrdiff_t change = newpoint - sub_end;
+    if (sub_start >= sub_end)
+      sub_start += change;
+    sub_end += change;
+  }
 
   if (case_action == all_caps)
     Fupcase_region (make_number (search_regs.start[sub]),
-		    make_number (newpoint));
+		    make_number (newpoint),
+		    Qnil);
   else if (case_action == cap_initial)
     Fupcase_initials_region (make_number (search_regs.start[sub]),
 			     make_number (newpoint));
 
-  /* Adjust search data for this change.  */
-  {
-    ptrdiff_t oldend = search_regs.end[sub];
-    ptrdiff_t oldstart = search_regs.start[sub];
-    ptrdiff_t change = newpoint - search_regs.end[sub];
-    ptrdiff_t i;
-
-    for (i = 0; i < search_regs.num_regs; i++)
-      {
-	if (search_regs.start[i] >= oldend)
-	  search_regs.start[i] += change;
-	else if (search_regs.start[i] > oldstart)
-	  search_regs.start[i] = oldstart;
-	if (search_regs.end[i] >= oldend)
-	  search_regs.end[i] += change;
-	else if (search_regs.end[i] > oldstart)
-	  search_regs.end[i] = oldstart;
-      }
-  }
+  if (search_regs.start[sub] != sub_start
+      || search_regs.end[sub] != sub_end
+      || search_regs.num_regs != num_regs)
+    error ("Match data clobbered by buffer modification hooks");
 
   /* Put point back where it was in the text.  */
   if (opoint <= 0)
@@ -2784,7 +2828,7 @@ if the last match was on a buffer; integers or nil if a string was matched.
 Use `set-match-data' to reinstate the data in this list.
 
 If INTEGERS (the optional first argument) is non-nil, always use
-integers \(rather than markers) to represent buffer positions.  In
+integers (rather than markers) to represent buffer positions.  In
 this case, and if the last match was in a buffer, the buffer will get
 stored as one additional element at the end of the list.
 
@@ -3014,9 +3058,9 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
 /* If true the match data have been saved in saved_search_regs
    during the execution of a sentinel or filter. */
-static bool search_regs_saved;
-static struct re_registers saved_search_regs;
-static Lisp_Object saved_last_thing_searched;
+/* static bool search_regs_saved; */
+/* static struct re_registers saved_search_regs; */
+/* static Lisp_Object saved_last_thing_searched; */
 
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
@@ -3055,6 +3099,27 @@ restore_search_regs (void)
       last_thing_searched = saved_last_thing_searched;
       saved_last_thing_searched = Qnil;
       search_regs_saved = 0;
+    }
+}
+
+/* Called from replace-match via replace_range.  */
+void
+update_search_regs (ptrdiff_t oldstart, ptrdiff_t oldend, ptrdiff_t newend)
+{
+  /* Adjust search data for this change.  */
+  ptrdiff_t change = newend - oldend;
+  ptrdiff_t i;
+
+  for (i = 0; i < search_regs.num_regs; i++)
+    {
+      if (search_regs.start[i] >= oldend)
+        search_regs.start[i] += change;
+      else if (search_regs.start[i] > oldstart)
+        search_regs.start[i] = oldstart;
+      if (search_regs.end[i] >= oldend)
+        search_regs.end[i] += change;
+      else if (search_regs.end[i] > oldstart)
+        search_regs.end[i] = oldstart;
     }
 }
 
@@ -3135,8 +3200,6 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   if (shortage != 0)
     *shortage = 0;
 
-  immediate_quit = allow_quit;
-
   if (count > 0)
     while (start != end)
       {
@@ -3179,11 +3242,12 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
 
 	      if (--count == 0)
 		{
-		  immediate_quit = 0;
 		  if (bytepos)
 		    *bytepos = lim_byte + next;
 		  return BYTE_TO_CHAR (lim_byte + next);
 		}
+	      if (allow_quit)
+		maybe_quit ();
             }
 
 	  start_byte = lim_byte;
@@ -3191,7 +3255,6 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         }
       }
 
-  immediate_quit = 0;
   if (shortage)
     *shortage = count;
   if (bytepos)
@@ -3305,10 +3368,10 @@ syms_of_search (void)
       searchbufs[i].buf.buffer = xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
-      searchbufs[i].whitespace_regexp = Qnil;
+      searchbufs[i].f_whitespace_regexp = Qnil;
       searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
-      staticpro (&searchbufs[i].whitespace_regexp);
+      staticpro (&searchbufs[i].f_whitespace_regexp);
       staticpro (&searchbufs[i].syntax_table);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
@@ -3317,6 +3380,10 @@ syms_of_search (void)
   /* Error condition used for failing searches.  */
   DEFSYM (Qsearch_failed, "search-failed");
 
+  /* Error condition used for failing searches started by user, i.e.,
+     where failure should not invoke the debugger.  */
+  DEFSYM (Quser_search_failed, "user-search-failed");
+
   /* Error condition signaled when regexp compile_pattern fails.  */
   DEFSYM (Qinvalid_regexp, "invalid-regexp");
 
@@ -3324,6 +3391,12 @@ syms_of_search (void)
 	listn (CONSTYPE_PURE, 2, Qsearch_failed, Qerror));
   Fput (Qsearch_failed, Qerror_message,
 	build_pure_c_string ("Search failed"));
+
+  Fput (Quser_search_failed, Qerror_conditions,
+        listn (CONSTYPE_PURE, 4,
+               Quser_search_failed, Quser_error, Qsearch_failed, Qerror));
+  Fput (Quser_search_failed, Qerror_message,
+        build_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qinvalid_regexp, Qerror));
@@ -3344,6 +3417,7 @@ or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
 
+  DEFSYM (Qinhibit_changing_match_data, "inhibit-changing-match-data");
   DEFVAR_LISP ("inhibit-changing-match-data", Vinhibit_changing_match_data,
       doc: /* Internal use only.
 If non-nil, the primitive searching and matching functions

@@ -1,6 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read
 
-;; Copyright (C) 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -309,7 +309,7 @@ Buffer is not displayed if SHOW is non-nil."
 ;; to file name.
 ;(defun get-folder-from-spool-safe (name)
 ;  "Return the folder name corresponding to the spool file NAME."
-;  (if (string-match "^\\(.*\\)\.spool$" name)
+;  (if (string-match "^\\(.*\\)\\.spool$" name)
 ;      (substring name (match-beginning 1) (match-end 1))
 ;    (error "Could not extract folder name from spool name %s" name)))
 

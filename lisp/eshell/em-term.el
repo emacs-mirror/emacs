@@ -1,6 +1,6 @@
 ;;; em-term.el --- running visual commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -102,10 +102,11 @@ See also `eshell-visual-commands' and `eshell-visual-options'."
 of commands with options that present their output in a visual
 fashion.  For example, a sensible entry would be
 
-  (\"git\" \"--help\")
+  (\"git\" \"--help\" \"--paginate\")
 
 because \"git <command> --help\" shows the command's
-documentation with a pager.
+documentation with a pager and \"git --paginate <command>\"
+always uses a pager for output.
 
 See also `eshell-visual-commands' and `eshell-visual-subcommands'."
   :type '(repeat (cons (string :tag "Command")
@@ -136,6 +137,7 @@ character to the invoked process."
   "If non-nil, term buffers are destroyed after their processes die.
 WARNING: Setting this to non-nil may result in unexpected
 behavior for short-lived processes, see bug#18108."
+  :version "25.1"
   :type 'boolean
   :group 'eshell-term)
 

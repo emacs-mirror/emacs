@@ -1,6 +1,6 @@
 ;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC
 
-;; Copyright (C) 2009-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Taichi Kawabata <kawabata.taichi@gmail.com>
 ;; Keywords: unicode, normalization
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -176,6 +176,13 @@
     (setq decomposition-pair-to-composition nil)
   (defvar non-starter-decompositions nil)
     (setq non-starter-decompositions nil)
+  ;; This file needs to access these 2 Unicode properties, but when we
+  ;; compile it during bootstrap, charprop.el was not built yet, and
+  ;; therefore is not yet loaded into bootstrap-emacs, so
+  ;; char-code-property-alist is nil, and get-char-code-property
+  ;; always returns nil, something the code here doesn't like.
+  (define-char-code-property 'decomposition "uni-decomposition.el")
+  (define-char-code-property 'canonical-combining-class "uni-combining.el")
   (let ((char 0) ccc decomposition)
     (mapc
      (lambda (start-end)
@@ -220,7 +227,7 @@
     table))
 
 (defvar ucs-normalize-decomposition-pair-to-primary-composite nil
-  "Hashtable of decomposed pair to primary composite.
+  "Hash table of decomposed pair to primary composite.
 Note that Hangul are excluded.")
   (setq ucs-normalize-decomposition-pair-to-primary-composite
         (ucs-normalize-make-hash-table-from-alist
@@ -256,7 +263,7 @@ Note that Hangul are excluded.")
 (defvar ucs-normalize-combining-chars-regexp nil
   "Regular expression to match sequence of combining characters.")
   (setq ucs-normalize-combining-chars-regexp
-  (eval-when-compile (concat (regexp-opt (mapcar 'char-to-string combining-chars)) "+")))
+        (eval-when-compile (concat (regexp-opt-charset combining-chars) "+")))
 
 (declare-function decomposition-translation-alist "ucs-normalize"
                   (decomposition-function))
@@ -389,20 +396,22 @@ If COMPOSITION-PREDICATE is not given, then do nothing."
 It includes Singletons, CompositionExclusions, and Non-Starter
 decomposition."
     (let (entries decomposition composition)
-      (mapc
-       (lambda (start-end)
-         (cl-do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
-           (setq decomposition
-                 (string-to-list
-                  (with-temp-buffer
-                    (insert i)
-                    (translate-region 1 2 decomposition-translation)
-                    (buffer-string))))
-           (setq composition
-                 (ucs-normalize-block-compose-chars decomposition composition-predicate))
-           (when (not (equal composition (list i)))
-             (setq entries (cons i entries)))))
-       check-range)
+      (with-temp-buffer
+        (mapc
+         (lambda (start-end)
+           (cl-do ((i (car start-end) (+ i 1))) ((> i (cdr start-end)))
+             (setq decomposition
+                   (string-to-list
+                    (progn
+                      (erase-buffer)
+                      (insert i)
+                      (translate-region 1 2 decomposition-translation)
+                      (buffer-string))))
+             (setq composition
+                   (ucs-normalize-block-compose-chars decomposition composition-predicate))
+             (when (not (equal composition (list i)))
+               (setq entries (cons i entries)))))
+         check-range))
       ;;(remove-duplicates
        (append entries
                ucs-normalize-composition-exclusions
@@ -424,7 +433,7 @@ decomposition."
     (setq hfs-nfc-quick-check-list (quick-check-list 'ucs-normalize-hfs-nfd-table t ))
 
   (defun quick-check-list-to-regexp (quick-check-list)
-    (regexp-opt (mapcar 'char-to-string (append quick-check-list combining-chars))))
+    (regexp-opt-charset (append quick-check-list combining-chars)))
 
   (defun quick-check-decomposition-list-to-regexp (quick-check-list)
     (concat (quick-check-list-to-regexp quick-check-list) "\\|[가-힣]"))
@@ -606,18 +615,13 @@ COMPOSITION-PREDICATE will be used to compose region."
       (- (point-max) (point-min)))))
 
 ;; Pre-write conversion for `utf-8-hfs'.
-(defun ucs-normalize-hfs-nfd-pre-write-conversion (from to)
-  (let ((old-buf (current-buffer)))
-    (set-buffer (generate-new-buffer " *temp*"))
-    (if (stringp from)
-        (insert from)
-      (insert-buffer-substring old-buf from to))
-    (ucs-normalize-HFS-NFD-region (point-min) (point-max))
-    nil))
+;; _from and _to are legacy arguments (see `define-coding-system').
+(defun ucs-normalize-hfs-nfd-pre-write-conversion (_from _to)
+  (ucs-normalize-HFS-NFD-region (point-min) (point-max)))
 
 ;;; coding-system definition
 (define-coding-system 'utf-8-hfs
-  "UTF-8 based coding system for MacOS HFS file names.
+  "UTF-8 based coding system for macOS HFS file names.
 The singleton characters in HFS normalization exclusion will not
 be decomposed."
   :coding-type 'utf-8
@@ -626,6 +630,10 @@ be decomposed."
   :post-read-conversion 'ucs-normalize-hfs-nfd-post-read-conversion
   :pre-write-conversion 'ucs-normalize-hfs-nfd-pre-write-conversion
   )
+
+;; This is tested in dired.c:file_name_completion in order to reject
+;; false positives due to comparison of encoded file names.
+(coding-system-put 'utf-8-hfs 'decomposed-characters 't)
 
 (provide 'ucs-normalize)
 

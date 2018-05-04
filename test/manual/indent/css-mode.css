@@ -1,0 +1,96 @@
+/* asdfasdf */
+
+.xxx
+{
+}
+
+article[role="main"] {
+    width: 60%;
+}
+
+a, b:hover, c {
+    color: black !important;
+}
+
+a, b:hover {                    /* bug:20282 */
+    c {
+        color: black;
+    }
+    color: black;
+}
+
+a.b:c,d.e:f,g[h]:i,j[k]:l,.m.n:o,.p.q:r,.s[t]:u,.v[w]:x { /* bug:20282 */
+    background-color: white;
+}
+
+/* asdfasdf */
+@foo x2 {
+    bla:toto;
+}
+.x2
+{
+    /* foo: bar; */ foo2: bar2;
+    bar1: url("http://toto/titi");
+    bar2: url('http://toto/titi');
+    bar3: url(http://toto/titi);
+}
+
+div.x3
+{
+}
+
+article:hover
+{
+    color: black;
+}
+
+/* bug:13425 */
+div:first-child,
+div:last-child,
+div[disabled],
+div::before {
+    font: 15px "Helvetica Neue",
+          Helvetica,
+          Arial,
+          "Nimbus Sans L",
+          sans-serif;
+    font: 15px "Helvetica Neue", Helvetica, Arial,
+          "Nimbus Sans L", sans-serif;
+    background: no-repeat right
+                5px center;
+    transform: matrix(1.0, 2.0,
+                      3.0, 4.0,
+                      5.0, 6.0);
+    transform: matrix(
+        1.0, 2.0,
+        3.0, 4.0,
+        5.0, 6.0
+    );
+}
+
+/* Multi-line selector including both a pseudo-class and
+   parenthesis. */
+.form-group:not(.required) label,
+.birth-date .row > * {
+    &::after {
+        display: inline;
+        font-weight: normal;
+    }
+}
+
+@font-face {
+    src: url("Sans-Regular.eot") format("eot"),
+         url("Sans-Regular.woff") format("woff"),
+         url("Sans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    src:
+        url("Sans-Regular.eot") format("eot"),
+        url("Sans-Regular.woff") format("woff");
+}
+
+.foo-bar--baz {
+    --foo-variable: 5px;
+    margin: var(--foo-variable);
+}

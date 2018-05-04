@@ -1,12 +1,12 @@
 /* Terminal hooks for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1999, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
    Tim Fleehart (apollo@online.com)		1-17-92
@@ -28,21 +28,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 
 #include "lisp.h"
-#include "character.h"
 #include "coding.h"
-#include "disptab.h"
-#include "frame.h"
-#include "window.h"
-#include "termhooks.h"
-#include "termchar.h"
-#include "dispextern.h"
+#include "termchar.h"	/* for FRAME_TTY */
 #include "menu.h"	/* for tty_menu_show */
 #include "w32term.h"
 #include "w32common.h"	/* for os_subtype */
 #include "w32inevt.h"
 
-/* from window.c */
-extern Lisp_Object Frecenter (Lisp_Object);
+#ifdef WINDOWSNT
+#include "w32.h"	/* for syms_of_ntterm */
+#endif
 
 static void w32con_move_cursor (struct frame *f, int row, int col);
 static void w32con_clear_to_end (struct frame *f);
@@ -75,6 +70,8 @@ int w32_console_unicode_input;
 /* Setting this as the ctrl handler prevents emacs from being killed when
    someone hits ^C in a 'suspended' session (child shell).
    Also ignore Ctrl-Break signals.  */
+
+BOOL ctrl_c_handler (unsigned long);
 
 BOOL
 ctrl_c_handler (unsigned long type)
@@ -297,7 +294,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 {
   DWORD r;
   WORD char_attr;
-  unsigned char *conversion_buffer;
+  LPCSTR conversion_buffer;
   struct coding_system *coding;
 
   if (len <= 0)
@@ -328,7 +325,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
       if (n == len)
 	/* This is the last run.  */
 	coding->mode |= CODING_MODE_LAST_BLOCK;
-      conversion_buffer = encode_terminal_code (string, n, coding);
+      conversion_buffer = (LPCSTR) encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
 	  /* Set the attribute for these characters.  */
@@ -336,7 +333,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 					   coding->produced, cursor_coords,
 					   &r))
 	    {
-	      printf ("Failed writing console attributes: %d\n",
+	      printf ("Failed writing console attributes: %lu\n",
 		      GetLastError ());
 	      fflush (stdout);
 	    }
@@ -346,7 +343,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 					    coding->produced, cursor_coords,
 					    &r))
 	    {
-	      printf ("Failed writing console characters: %d\n",
+	      printf ("Failed writing console characters: %lu\n",
 		      GetLastError ());
 	      fflush (stdout);
 	    }
@@ -365,7 +362,7 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
 			       register struct glyph *string, register int len,
 			       register int face_id)
 {
-  unsigned char *conversion_buffer;
+  LPCSTR conversion_buffer;
   struct coding_system *coding;
 
   if (len <= 0)
@@ -380,7 +377,7 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
      they all have the same face.  So this _is_ the last block.  */
   coding->mode |= CODING_MODE_LAST_BLOCK;
 
-  conversion_buffer = encode_terminal_code (string, len, coding);
+  conversion_buffer = (LPCSTR) encode_terminal_code (string, len, coding);
   if (coding->produced > 0)
     {
       DWORD filled, written;
@@ -518,10 +515,14 @@ w32con_update_end (struct frame * f)
 			stubs from termcap.c
  ***********************************************************************/
 
+void sys_tputs (char *, int, int (*) (int));
+
 void
 sys_tputs (char *str, int nlines, int (*outfun) (int))
 {
 }
+
+char *sys_tgetstr (char *, char **);
 
 char *
 sys_tgetstr (char *cap, char **area)
@@ -537,11 +538,15 @@ sys_tgetstr (char *cap, char **area)
 struct tty_display_info *current_tty = NULL;
 int cost = 0;
 
+int evalcost (int);
+
 int
 evalcost (int c)
 {
   return c;
 }
+
+int cmputc (int);
 
 int
 cmputc (int c)
@@ -549,20 +554,28 @@ cmputc (int c)
   return c;
 }
 
+void cmcheckmagic (struct tty_display_info *);
+
 void
 cmcheckmagic (struct tty_display_info *tty)
 {
 }
+
+void cmcostinit (struct tty_display_info *);
 
 void
 cmcostinit (struct tty_display_info *tty)
 {
 }
 
+void cmgoto (struct tty_display_info *, int, int);
+
 void
 cmgoto (struct tty_display_info *tty, int row, int col)
 {
 }
+
+void Wcm_clear (struct tty_display_info *);
 
 void
 Wcm_clear (struct tty_display_info *tty)
@@ -597,8 +610,6 @@ w32_face_attributes (struct frame *f, int face_id)
 {
   WORD char_attr;
   struct face *face = FACE_FROM_ID (f, face_id);
-
-  eassert (face != NULL);
 
   char_attr = char_attr_normal;
 
@@ -766,13 +777,11 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   else
     w32_console_unicode_input = 0;
 
-  /* This is needed by w32notify.c:send_notifications.  */
-  dwMainThreadId = GetCurrentThreadId ();
-
   /* Setup w32_display_info structure for this frame. */
-
   w32_initialize_display_info (build_string ("Console"));
 
+  /* Set up the keyboard hook.  */
+  setup_w32_kbdhook ();
 }
 
 

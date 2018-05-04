@@ -1,15 +1,14 @@
 /* Convert files for Emacs Hexl mode.
-   Copyright (C) 1989, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
 
-Author: Keith Gabryelski
-(according to authors.el)
+Author: Keith Gabryelski (according to authors.el)
 
 This file is not considered part of GNU Emacs.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,244 +16,206 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 
-#include <stdio.h>
-#include <ctype.h>
+#include <inttypes.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <binary-io.h>
+#include <unlocked-io.h>
 
-#define DEFAULT_GROUPING	0x01
-#define DEFAULT_BASE		16
+static char *progname;
 
-int base = DEFAULT_BASE;
-bool un_flag = false, iso_flag = false, endian = true;
-int group_by = DEFAULT_GROUPING;
-char *progname;
+static _Noreturn void
+output_error (void)
+{
+  fprintf (stderr, "%s: write error\n", progname);
+  exit (EXIT_FAILURE);
+}
 
-_Noreturn void usage (void);
+static int
+hexchar (int c)
+{
+  return c - ('0' <= c && c <= '9' ? '0' : 'a' - 10);
+}
 
 int
 main (int argc, char **argv)
 {
-  register long address;
-  char string[18];
-  FILE *fp;
-
-  progname = *argv++; --argc;
+  int status = EXIT_SUCCESS;
+  int DEFAULT_GROUPING = 0x01;
+  int group_by = DEFAULT_GROUPING;
+  bool un_flag = false, iso_flag = false;
+  progname = *argv++;
 
   /*
    ** -hex		hex dump
-   ** -oct		Octal dump
    ** -group-by-8-bits
    ** -group-by-16-bits
    ** -group-by-32-bits
    ** -group-by-64-bits
    ** -iso		iso character set.
-   ** -big-endian	Big Endian
-   ** -little-endian	Little Endian
    ** -un || -de	from hexl format to binary.
    ** --		End switch list.
    ** <filename>	dump filename
    ** -		(as filename == stdin)
    */
 
-  while (*argv && *argv[0] == '-' && (*argv)[1])
+  for (; *argv && *argv[0] == '-' && (*argv)[1]; argv++)
     {
       /* A switch! */
       if (!strcmp (*argv, "--"))
 	{
-	  --argc; argv++;
+	  argv++;
 	  break;
 	}
       else if (!strcmp (*argv, "-un") || !strcmp (*argv, "-de"))
 	{
 	  un_flag = true;
-	  --argc; argv++;
+	  set_binary_mode (fileno (stdout), O_BINARY);
 	}
       else if (!strcmp (*argv, "-hex"))
-	{
-	  base = 16;
-	  --argc; argv++;
-	}
+	/* Hex is the default and is only base supported.  */;
       else if (!strcmp (*argv, "-iso"))
-	{
-	  iso_flag = true;
-	  --argc; argv++;
-	}
-      else if (!strcmp (*argv, "-oct"))
-	{
-	  base = 8;
-	  --argc; argv++;
-	}
-      else if (!strcmp (*argv, "-big-endian"))
-	{
-	  endian = true;
-	  --argc; argv++;
-	}
-      else if (!strcmp (*argv, "-little-endian"))
-	{
-	  endian = false;
-	  --argc; argv++;
-	}
+	iso_flag = true;
       else if (!strcmp (*argv, "-group-by-8-bits"))
-	{
-	  group_by = 0x00;
-	  --argc; argv++;
-	}
+	group_by = 0x00;
       else if (!strcmp (*argv, "-group-by-16-bits"))
-	{
-	  group_by = 0x01;
-	  --argc; argv++;
-	}
+	group_by = 0x01;
       else if (!strcmp (*argv, "-group-by-32-bits"))
-	{
-	  group_by = 0x03;
-	  --argc; argv++;
-	}
+	group_by = 0x03;
       else if (!strcmp (*argv, "-group-by-64-bits"))
-	{
-	  group_by = 0x07;
-	  endian = false;
-	  --argc; argv++;
-	}
+	group_by = 0x07;
       else
 	{
 	  fprintf (stderr, "%s: invalid switch: \"%s\".\n", progname,
 		   *argv);
-	  usage ();
+	  fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
+	  return EXIT_FAILURE;
 	}
     }
 
+  char const *filename = *argv ? *argv++ : "-";
+
   do
     {
-      if (*argv == NULL)
-	fp = stdin;
+      FILE *fp;
+
+      if (!strcmp (filename, "-"))
+	{
+	  fp = stdin;
+	  if (!un_flag)
+	    set_binary_mode (fileno (stdin), O_BINARY);
+	}
       else
 	{
-	  char *filename = *argv++;
-
-	  if (!strcmp (filename, "-"))
-	    fp = stdin;
-	  else if ((fp = fopen (filename, "r")) == NULL)
+	  fp = fopen (filename, un_flag ? "r" : "rb");
+	  if (!fp)
 	    {
 	      perror (filename);
+	      status = EXIT_FAILURE;
 	      continue;
 	    }
 	}
 
       if (un_flag)
 	{
-	  SET_BINARY (fileno (stdout));
-
-	  for (;;)
+	  for (int c; 0 <= (c = getc (fp)); )
 	    {
-	      int i, c = 0, d;
-	      char buf[18];
+	      /* Skip address at start of line.  */
+	      if (c != ' ')
+		continue;
 
-#define hexchar(x) (isdigit (x) ? x - '0' : x - 'a' + 10)
+	      for (int i = 0; i < 16; i++)
+		{
+		  c = getc (fp);
+		  if (c < 0 || c == ' ')
+		    break;
 
-	      /* Skip 10 bytes.  */
-	      if (fread (buf, 1, 10, fp) != 10)
+		  int hc = hexchar (c);
+		  c = getc (fp);
+		  if (c < 0)
+		    break;
+		  putchar (hc * 0x10 + hexchar (c));
+
+		  if ((i & group_by) == group_by)
+		    {
+		      c = getc (fp);
+		      if (c < 0)
+			break;
+		    }
+		}
+
+	      while (0 <= c && c != '\n')
+		c = getc (fp);
+	      if (c < 0)
 		break;
-
-	      for (i=0; i < 16; ++i)
-		{
-		  if ((c = getc (fp)) == ' ' || c == EOF)
-		    break;
-
-		  d = getc (fp);
-		  c = hexchar (c) * 0x10 + hexchar (d);
-		  putchar (c);
-
-		  if ((i&group_by) == group_by)
-		    getc (fp);
-		}
-
-	      if (c == ' ')
-		{
-		  while ((c = getc (fp)) != '\n' && c != EOF)
-		    ;
-
-		  if (c == EOF)
-		    break;
-		}
-	      else
-		{
-		  if (i < 16)
-		    break;
-
-		  /* Skip 18 bytes.  */
-		  if (fread (buf, 1, 18, fp) != 18)
-		    break;
-		}
+	      if (ferror (stdout))
+		output_error ();
 	    }
 	}
       else
 	{
-	  SET_BINARY (fileno (fp));
-	  address = 0;
+	  int c = 0;
+	  char string[18];
 	  string[0] = ' ';
 	  string[17] = '\0';
-	  for (;;)
+	  for (uintmax_t address = 0; 0 <= c; address += 0x10)
 	    {
-	      register int i, c = 0;
-
-	      for (i=0; i < 16; ++i)
+	      int i;
+	      for (i = 0; i < 16; i++)
 		{
-		  if ((c = getc (fp)) == EOF)
+		  if (0 <= c)
+		    c = getc (fp);
+		  if (c < 0)
 		    {
 		      if (!i)
 			break;
 
 		      fputs ("  ", stdout);
-		      string[i+1] = '\0';
+		      string[i + 1] = '\0';
 		    }
 		  else
 		    {
 		      if (!i)
-			printf ("%08lx: ", address + 0ul);
+			printf ("%08"PRIxMAX": ", address);
 
-		      if (iso_flag)
-			string[i+1] =
-			  (c < 0x20 || (c >= 0x7F && c < 0xa0)) ? '.' :c;
-		      else
-			string[i+1] = (c < 0x20 || c >= 0x7F) ? '.' : c;
+		      string[i + 1]
+			= (c < 0x20 || (0x7F <= c && (!iso_flag || c < 0xa0))
+			   ? '.' : c);
 
 		      printf ("%02x", c + 0u);
 		    }
 
-		  if ((i&group_by) == group_by)
+		  if ((i & group_by) == group_by)
 		    putchar (' ');
 		}
 
 	      if (i)
 		puts (string);
 
-	      if (c == EOF)
-		break;
-
-	      address += 0x10;
-
+	      if (ferror (stdout))
+		output_error ();
 	    }
 	}
 
-      if (fp != stdin)
-	fclose (fp);
+      bool trouble = ferror (fp) != 0;
+      trouble |= fp != stdin && fclose (fp) != 0;
+      if (trouble)
+	{
+	  fprintf (stderr, "%s: read error\n", progname);
+	  status = EXIT_FAILURE;
+	}
 
-    } while (*argv != NULL);
-  return EXIT_SUCCESS;
+      filename = *argv++;
+    }
+  while (filename);
+
+  if (ferror (stdout) || fclose (stdout) != 0)
+    output_error ();
+  return status;
 }
-
-void
-usage (void)
-{
-  fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
-  exit (EXIT_FAILURE);
-}
-
-
-/* hexl.c ends here */

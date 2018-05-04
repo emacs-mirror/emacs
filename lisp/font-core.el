@@ -1,6 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, faces
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -30,7 +30,7 @@
   "Defaults for Font Lock mode specified by the major mode.
 Defaults should be of the form:
 
- (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST [SYNTAX-BEGIN ...]]]])
+ (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST ...]]])
 
 KEYWORDS may be a symbol (a variable or function whose value is the keywords
 to use for fontification) or a list of symbols (specifying different levels
@@ -45,20 +45,9 @@ If SYNTAX-ALIST is non-nil, it should be a list of cons pairs of the form
 \(CHAR-OR-STRING . STRING) used to set the local Font Lock syntax table, for
 keyword and syntactic fontification (see `modify-syntax-entry').
 
-If SYNTAX-BEGIN is non-nil, it should be a function with no args used to move
-backwards outside any enclosing syntactic block, for syntactic fontification.
-Typical values are `beginning-of-line' (i.e., the start of the line is known to
-be outside a syntactic block), or `beginning-of-defun' for programming modes or
-`backward-paragraph' for textual modes (i.e., the mode-dependent function is
-known to move outside a syntactic block).  If nil, the beginning of the buffer
-is used as a position outside of a syntactic block, in the worst case.
-
-\(See also Info node `(elisp)Font Lock Basics'.)
-
 These item elements are used by Font Lock mode to set the variables
 `font-lock-keywords', `font-lock-keywords-only',
-`font-lock-keywords-case-fold-search', `font-lock-syntax-table' and
-`font-lock-beginning-of-syntax-function', respectively.
+`font-lock-keywords-case-fold-search', `font-lock-syntax-table'.
 
 Further item elements are alists of the form (VARIABLE . VALUE) and are in no
 particular order.  Each VARIABLE is made buffer-local before set to VALUE.
@@ -97,46 +86,50 @@ When Font Lock mode is enabled, text is fontified as you type it:
 
  - Comments are displayed in `font-lock-comment-face';
  - Strings are displayed in `font-lock-string-face';
- - Certain other expressions are displayed in other faces according to the
-   value of the variable `font-lock-keywords'.
+ - Certain other expressions are displayed in other faces
+   according to the value of the variable `font-lock-keywords'.
 
 To customize the faces (colors, fonts, etc.) used by Font Lock for
 fontifying different parts of buffer text, use \\[customize-face].
 
-You can enable Font Lock mode in any major mode automatically by turning on in
-the major mode's hook.  For example, put in your ~/.emacs:
+You can enable Font Lock mode in any major mode automatically by
+turning on in the major mode's hook.  For example, put in your
+~/.emacs:
 
  (add-hook \\='c-mode-hook \\='turn-on-font-lock)
 
-Alternatively, you can use Global Font Lock mode to automagically turn on Font
-Lock mode in buffers whose major mode supports it and whose major mode is one
-of `font-lock-global-modes'.  For example, put in your ~/.emacs:
+Alternatively, you can use Global Font Lock mode to automagically
+turn on Font Lock mode in buffers whose major mode supports it
+and whose major mode is one of `font-lock-global-modes'.  For
+example, put in your ~/.emacs:
 
  (global-font-lock-mode t)
 
-Where major modes support different levels of fontification, you can use
-the variable `font-lock-maximum-decoration' to specify which level you
-generally prefer.  When you turn Font Lock mode on/off the buffer is
-fontified/defontified, though fontification occurs only if the buffer is
-less than `font-lock-maximum-size'.
+Where major modes support different levels of fontification, you
+can use the variable `font-lock-maximum-decoration' to specify
+which level you generally prefer.  When you turn Font Lock mode
+on/off the buffer is fontified/defontified, though fontification
+occurs only if the buffer is less than `font-lock-maximum-size'.
 
-To add your own highlighting for some major mode, and modify the highlighting
-selected automatically via the variable `font-lock-maximum-decoration', you can
-use `font-lock-add-keywords'.
+To add your own highlighting for some major mode, and modify the
+highlighting selected automatically via the variable
+`font-lock-maximum-decoration', you can use
+`font-lock-add-keywords'.
 
-To fontify a buffer, without turning on Font Lock mode and regardless of buffer
-size, you can use \\[font-lock-fontify-buffer].
+To fontify a buffer, without turning on Font Lock mode and
+regardless of buffer size, you can use \\[font-lock-fontify-buffer].
 
-To fontify a block (the function or paragraph containing point, or a number of
-lines around point), perhaps because modification on the current line caused
-syntactic change on other lines, you can use \\[font-lock-fontify-block].
+To fontify a block (the function or paragraph containing point,
+or a number of lines around point), perhaps because modification
+on the current line caused syntactic change on other lines, you
+can use \\[font-lock-fontify-block].
 
 You can set your own default settings for some mode, by setting a
 buffer local value for `font-lock-defaults', via its mode hook.
 
-The above is the default behavior of `font-lock-mode'; you may specify
-your own function which is called when `font-lock-mode' is toggled via
-`font-lock-function'. "
+The above is the default behavior of `font-lock-mode'; you may
+specify your own function which is called when `font-lock-mode'
+is toggled via `font-lock-function'. "
   nil nil nil
   :after-hook (font-lock-initial-fontify)
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a

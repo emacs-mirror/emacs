@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Christoph Wedler <Christoph.Wedler@sap.com>
 ;; Keywords: languages, ANTLR, code generator
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -82,8 +82,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'easymenu)
 (require 'cc-mode)
@@ -225,7 +224,7 @@ variable list\" near the end of the file, see
     (c++-mode "C++" "\"Cpp\"" "Cpp"))
   "List of ANTLR's supported languages.
 Each element in this list looks like
-  \(MAJOR-MODE MODELINE-STRING OPTION-VALUE...)
+  (MAJOR-MODE MODELINE-STRING OPTION-VALUE...)
 
 MAJOR-MODE, the major mode of the code in the grammar's actions, is the
 value of `antlr-language' if the first group in the string matched by
@@ -243,7 +242,7 @@ also displayed in the mode line next to \"Antlr\"."
 (defcustom antlr-language-limit-n-regexp
   '(8192 . "language[ \t]*=[ \t]*\\(\"?[A-Z][A-Za-z_]*\"?\\)")
   "Used to set a reasonable value for `antlr-language'.
-Looks like \(LIMIT \. REGEXP).  Search for REGEXP from the beginning of
+Looks like \(LIMIT . REGEXP).  Search for REGEXP from the beginning of
 the buffer to LIMIT and use the first group in the matched string to set
 the language according to `antlr-language-alist'."
   :group 'antlr
@@ -537,8 +536,8 @@ corresponding kind, i.e., looks like \(OPTION-DEF...).
 Each OPTION-DEF looks like \(OPTION-NAME EXTRA-FN VALUE-SPEC...) which
 defines a file/grammar/rule/subrule option with name OPTION-NAME.  The
 OPTION-NAMEs are used for the creation of the \"Insert XXX Option\"
-submenus, see `antlr-options-use-submenus', and to allow to insert the
-option name with completion when using \\[antlr-insert-option].
+submenus, see `antlr-options-use-submenus', and to allow the insertion
+of the option name with completion when using \\[antlr-insert-option].
 
 If EXTRA-FN is a function, it is called at different phases of the
 insertion with arguments \(PHASE OPTION-NAME).  PHASE can have the
@@ -619,8 +618,8 @@ COUNT starts with 1.  GEN-SEP is used to separate long variable values."
   '((java-mode ("%sTokenTypes.java") ("%s.java"))
     (c++-mode ("%sTokenTypes.hpp") ("%s.cpp" "%s.hpp")))
   "Language dependent formats which specify generated files.
-Each element in this list looks looks like
-  \(MAJOR-MODE (VOCAB-FILE-FORMAT...) (CLASS-FILE-FORMAT...)).
+Each element in this list looks like
+  (MAJOR-MODE (VOCAB-FILE-FORMAT...) (CLASS-FILE-FORMAT...)).
 
 The element whose MAJOR-MODE is equal to `antlr-language' is used to
 specify the generated files which are language dependent.  See variable
@@ -779,7 +778,7 @@ fontification, see `antlr-font-lock-keywords-alist'.
 
 While calculating the decoration level for actions, `major-mode' is
 bound to `antlr-language'.  For example, with value
-  \((java-mode \. 2) (c++-mode \. 0))
+  ((java-mode . 2) (c++-mode . 0))
 Java actions are fontified with level 2 and C++ actions are not
 fontified at all."
   :group 'antlr
@@ -817,23 +816,18 @@ Do not change the value of this constant.")
      c++-font-lock-keywords-3))
   "List of font-lock keywords for actions in the grammar.
 Each element in this list looks like
-  \(MAJOR-MODE KEYWORD...)
+  (MAJOR-MODE KEYWORD...)
 
 If `antlr-language' is equal to MAJOR-MODE, the KEYWORDs are the
 font-lock keywords according to `font-lock-defaults' used for the code
 in the grammar's actions and semantic predicates, see
 `antlr-font-lock-maximum-decoration'.")
 
-(defvar antlr-default-face 'antlr-default)
 (defface antlr-default '((t nil))
   "Face to prevent strings from language dependent highlighting.
 Do not change."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-default-face 'face-alias 'antlr-default)
-(put 'antlr-font-lock-default-face 'obsolete-face "22.1")
 
-(defvar antlr-keyword-face 'antlr-keyword)
 (defface antlr-keyword
   (cond-emacs-xemacs
    '((((class color) (background light))
@@ -841,11 +835,7 @@ Do not change."
      (t :inherit font-lock-keyword-face)))
   "ANTLR keywords."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-keyword-face 'face-alias 'antlr-keyword)
-(put 'antlr-font-lock-keyword-face 'obsolete-face "22.1")
 
-(defvar antlr-syntax-face 'antlr-keyword)
 (defface antlr-syntax
   (cond-emacs-xemacs
    '((((class color) (background light))
@@ -853,11 +843,7 @@ Do not change."
      (t :inherit font-lock-constant-face)))
   "ANTLR syntax symbols like :, |, (, ), ...."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-syntax-face 'face-alias 'antlr-syntax)
-(put 'antlr-font-lock-syntax-face 'obsolete-face "22.1")
 
-(defvar antlr-ruledef-face 'antlr-ruledef)
 (defface antlr-ruledef
   (cond-emacs-xemacs
    '((((class color) (background light))
@@ -865,11 +851,7 @@ Do not change."
      (t :inherit font-lock-function-name-face)))
   "ANTLR rule references (definition)."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-ruledef-face 'face-alias 'antlr-ruledef)
-(put 'antlr-font-lock-ruledef-face 'obsolete-face "22.1")
 
-(defvar antlr-tokendef-face 'antlr-tokendef)
 (defface antlr-tokendef
   (cond-emacs-xemacs
    '((((class color) (background light))
@@ -877,31 +859,19 @@ Do not change."
      (t :inherit font-lock-function-name-face)))
   "ANTLR token references (definition)."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-tokendef-face 'face-alias 'antlr-tokendef)
-(put 'antlr-font-lock-tokendef-face 'obsolete-face "22.1")
 
-(defvar antlr-ruleref-face 'antlr-ruleref)
 (defface antlr-ruleref
   '((((class color) (background light)) (:foreground "blue4"))
     (t :inherit font-lock-type-face))
   "ANTLR rule references (usage)."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-ruleref-face 'face-alias 'antlr-ruleref)
-(put 'antlr-font-lock-ruleref-face 'obsolete-face "22.1")
 
-(defvar antlr-tokenref-face 'antlr-tokenref)
 (defface antlr-tokenref
   '((((class color) (background light)) (:foreground "orange4"))
     (t :inherit font-lock-type-face))
   "ANTLR token references (usage)."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-tokenref-face 'face-alias 'antlr-tokenref)
-(put 'antlr-font-lock-tokenref-face 'obsolete-face "22.1")
 
-(defvar antlr-literal-face 'antlr-literal)
 (defface antlr-literal
   (cond-emacs-xemacs
    '((((class color) (background light))
@@ -911,9 +881,6 @@ Do not change."
 It is used to highlight strings matched by the first regexp group of
 `antlr-font-lock-literal-regexp'."
   :group 'antlr)
-;; backward-compatibility alias
-(put 'antlr-font-lock-literal-face 'face-alias 'antlr-literal)
-(put 'antlr-font-lock-literal-face 'obsolete-face "22.1")
 
 (defcustom antlr-font-lock-literal-regexp "\"\\(\\sw\\(\\sw\\|-\\)*\\)\""
   "Regexp matching literals with special syntax highlighting, or nil.
@@ -932,56 +899,58 @@ group.  The string matched by the first group is highlighted with
   (cond-emacs-xemacs
    `((antlr-invalidate-context-cache)
      ("\\$setType[ \t]*(\\([A-Za-z\300-\326\330-\337]\\sw*\\))"
-      (1 antlr-tokendef-face))
-     ("\\$\\sw+" (0 antlr-keyword-face))
+      (1 'antlr-tokendef))
+     ("\\$\\sw+" (0 'antlr-keyword))
      ;; the tokens are already fontified as string/docstrings:
      (,(lambda (limit)
 	 (if antlr-font-lock-literal-regexp
 	     (antlr-re-search-forward antlr-font-lock-literal-regexp limit)))
-      (1 antlr-literal-face t)
+      (1 'antlr-literal t)
       :XEMACS (0 nil))			; XEmacs bug workaround
      (,(lambda (limit)
 	 (antlr-re-search-forward antlr-class-header-regexp limit))
-      (1 antlr-keyword-face)
-      (2 antlr-ruledef-face)
-      (3 antlr-keyword-face)
+      (1 'antlr-keyword)
+      (2 'antlr-ruledef)
+      (3 'antlr-keyword)
       (4 (if (member (match-string 4) '("Lexer" "Parser" "TreeParser"))
-	     antlr-keyword-face
-	   font-lock-type-face)))
+             'antlr-keyword
+           'font-lock-type-face)))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "\\<\\(header\\|options\\|tokens\\|exception\\|catch\\|returns\\)\\>"
 	  limit))
-     (1 antlr-keyword-face))
+     (1 'antlr-keyword))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "^\\(private\\|public\\|protected\\)\\>[ \t]*\\(\\(\\sw+[ \t]*\\(:\\)?\\)\\)?"
 	  limit))
-     (1 font-lock-type-face)		; not XEmacs's java level-3 fruit salad
+     (1 'font-lock-type-face)		; not XEmacs's java level-3 fruit salad
      (3 (if (antlr-upcase-p (char-after (match-beginning 3)))
-	    antlr-tokendef-face
-	  antlr-ruledef-face) nil t)
-     (4 antlr-syntax-face nil t))
+            'antlr-tokendef
+          'antlr-ruledef)
+        nil t)
+     (4 'antlr-syntax nil t))
      (,(lambda (limit)
 	 (antlr-re-search-forward "^\\(\\sw+\\)[ \t]*\\(:\\)?" limit))
      (1 (if (antlr-upcase-p (char-after (match-beginning 0)))
-	    antlr-tokendef-face
-	  antlr-ruledef-face) nil t)
-     (2 antlr-syntax-face nil t))
+            'antlr-tokendef
+          'antlr-ruledef)
+        nil t)
+     (2 'antlr-syntax nil t))
      (,(lambda (limit)
 	 ;; v:ruleref and v:"literal" is allowed...
 	 (antlr-re-search-forward "\\(\\sw+\\)[ \t]*\\([=:]\\)?" limit))
      (1 (if (match-beginning 2)
 	    (if (eq (char-after (match-beginning 2)) ?=)
-		antlr-default-face
-	      font-lock-variable-name-face)
+                'antlr-default
+              'font-lock-variable-name-face)
 	  (if (antlr-upcase-p (char-after (match-beginning 1)))
-	      antlr-tokenref-face
-	    antlr-ruleref-face)))
-     (2 antlr-default-face nil t))
+              'antlr-tokenref
+            'antlr-ruleref)))
+     (2 'antlr-default nil t))
      (,(lambda (limit)
 	 (antlr-re-search-forward "[|&:;(~]\\|)\\([*+?]\\|=>\\)?" limit))
-     (0 antlr-syntax-face))))
+     (0 'antlr-syntax))))
   "Font-lock keywords for ANTLR's normal grammar code.
 See `antlr-font-lock-keywords-alist' for the keywords of actions.")
 
@@ -1096,7 +1065,7 @@ Used for `antlr-slow-syntactic-context'.")
     (buffer-syntactic-context-depth)
     nil)
   :EMACS
-;;;  (incf antlr-statistics-inval)
+;;;  (cl-incf antlr-statistics-inval)
   (setq antlr-slow-context-cache nil))
 
 (defunx antlr-syntactic-context ()
@@ -1126,9 +1095,9 @@ WARNING: this may alter `match-data'."
       (if (>= orig antlr-slow-cache-diff-threshold)
 	  (beginning-of-defun)
 	(goto-char (point-min)))
-;;;      (cond ((and diff (< diff 0)) (incf antlr-statistics-full-neg))
-;;;	    ((and diff (>= diff 3000)) (incf antlr-statistics-full-diff))
-;;;	    (t (incf antlr-statistics-full-other)))
+;;;      (cond ((and diff (< diff 0)) (cl-incf antlr-statistics-full-neg))
+;;;	    ((and diff (>= diff 3000)) (cl-incf antlr-statistics-full-diff))
+;;;	    (t (cl-incf antlr-statistics-full-other)))
       (setq state (parse-partial-sexp (point) orig)))
     (goto-char orig)
     (if antlr-slow-context-cache
@@ -1140,12 +1109,12 @@ WARNING: this may alter `match-data'."
 	  ((nth 4 state) 'comment)	; block-comment? -- we don't care
 	  (t (car state)))))
 
-;;;  (incf (aref antlr-statistics 2))
+;;;  (cl-incf (aref antlr-statistics 2))
 ;;;  (unless (and (eq (current-buffer)
 ;;;		   (caar antlr-slow-context-cache))
 ;;;	       (eq (buffer-modified-tick)
 ;;;		   (cdar antlr-slow-context-cache)))
-;;;    (incf (aref antlr-statistics 1))
+;;;    (cl-incf (aref antlr-statistics 1))
 ;;;    (setq antlr-slow-context-cache nil))
 ;;;  (let* ((orig (point))
 ;;;	 (base (cadr antlr-slow-context-cache))
@@ -1154,7 +1123,7 @@ WARNING: this may alter `match-data'."
 ;;;		      ((eq orig (car base)) (cdr base))))
 ;;;	 diff diff2)
 ;;;    (unless state
-;;;      (incf (aref antlr-statistics 3))
+;;;      (cl-incf (aref antlr-statistics 3))
 ;;;      (when curr
 ;;;	(if (< (setq diff  (abs (- orig (car curr))))
 ;;;	       (setq diff2 (abs (- orig (car base)))))
@@ -1167,7 +1136,7 @@ WARNING: this may alter `match-data'."
 ;;;	  (setq state
 ;;;		(parse-partial-sexp (car state) orig nil nil (cdr state)))
 ;;;	(if (>= orig 3000) (beginning-of-defun) (goto-char (point-min)))
-;;;	(incf (aref antlr-statistics 4))
+;;;	(cl-incf (aref antlr-statistics 4))
 ;;;	(setq cw (list orig (point) base curr))
 ;;;	(setq state (parse-partial-sexp (point) orig)))
 ;;;      (goto-char orig)
@@ -1378,10 +1347,10 @@ is non-nil, move to beginning of the rule."
 	  (antlr-skip-exception-part skip-comment))
       (antlr-skip-file-prelude skip-comment))
     (if (< arg 0)
-	(unless (and (< (point) pos) (zerop (incf arg)))
+	(unless (and (< (point) pos) (zerop (cl-incf arg)))
 	  ;; if we have moved backward, we already moved one defun backward
 	  (goto-char beg)		; rewind (to ";" / point)
-	  (while (and arg (<= (incf arg) 0))
+	  (while (and arg (<= (cl-incf arg) 0))
 	    (if (antlr-search-backward ";")
 		(setq beg (point))
 	      (when (>= arg -1)
@@ -1398,9 +1367,9 @@ is non-nil, move to beginning of the rule."
 	    (antlr-skip-exception-part skip-comment)))
       (if (<= (point) pos)		; moved backward?
 	  (goto-char pos)		; rewind
-	(decf arg))			; already moved one defun forward
+	(cl-decf arg))			; already moved one defun forward
       (unless (zerop arg)
-	(while (>= (decf arg) 0)
+	(while (>= (cl-decf arg) 0)
 	  (antlr-search-forward ";"))
 	(antlr-skip-exception-part skip-comment)))))
 
@@ -1495,7 +1464,7 @@ If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
 	(antlr-invalidate-context-cache)
 	(while (antlr-re-search-forward "\"\\(\\sw\\(\\sw\\|-\\)*\\)\"" nil)
 	  (funcall transform (match-beginning 0) (match-end 0))
-	  (incf literals))))
+	  (cl-incf literals))))
     (message "Transformed %d literals" literals)))
 
 (defun antlr-upcase-literals ()
@@ -1570,8 +1539,8 @@ Inserting an option with this command works as follows:
  4. Ask user for confirmation if the given OPTION does not seem to be a
     valid option to insert into the current file.
  5. Find a correct position to insert the option.
- 6. Depending on the option, insert it the following way \(inserting an
-    option also means inserting the option section if necessary\):
+ 6. Depending on the option, insert it the following way (inserting an
+    option also means inserting the option section if necessary):
      - Insert the option and let user insert the value at point.
      - Read a value (with completion) from the minibuffer, using a
        previous value as initial contents, and insert option with value.
@@ -1592,7 +1561,7 @@ The search for a correct position is as follows:
 
   * If search is within an area where options can be inserted, use the
     position of point.  Inside the options section and if point is in
-    the middle of a option definition, skip the rest of it.
+    the middle of an option definition, skip the rest of it.
   * If an options section already exists, insert the options at the end.
     If only the beginning of the area is visible, insert at the
     beginning.
@@ -1687,9 +1656,9 @@ Return \(LEVEL OPTION LOCATION)."
 (defun antlr-option-kind (requested)
   "Return level and location for option to insert near point.
 Call function `antlr-option-level' with argument REQUESTED.  If the
-result is nil, return \(REQUESTED \. error).  If the result has the
-non-nil value LEVEL, return \(LEVEL \. LOCATION) where LOCATION looks
-like \(AREA \. PLACE), see `antlr-option-location'."
+result is nil, return \(REQUESTED . error).  If the result has the
+non-nil value LEVEL, return \(LEVEL . LOCATION) where LOCATION looks
+like \(AREA . PLACE), see `antlr-option-location'."
   (save-excursion
     (save-restriction
       (let ((min0 (point-min))		; before `widen'!
@@ -1845,7 +1814,7 @@ WARNING: this may alter `match-data'."
 (defun antlr-insert-option-do (level option old area pos)
   "Insert option into buffer at position POS.
 Insert option of level LEVEL and name OPTION.  If OLD is non-nil, an
-options area is already exists.  If OLD looks like \(BEG \. END), the
+options area is already exists.  If OLD looks like \(BEG . END), the
 option already exists.  Then, BEG is the start position of the option
 value, the position of the `=' or nil, and END is the end position of
 the option value or nil.
@@ -2104,7 +2073,7 @@ Called in PHASE `before-input', see `antlr-options-alists'."
 
 (defun antlr-file-dependencies ()
   "Return dependencies for grammar in current buffer.
-The result looks like \(FILE \(CLASSES \. SUPERS) VOCABS \. LANGUAGE)
+The result looks like \(FILE \(CLASSES . SUPERS) VOCABS . LANGUAGE)
   where CLASSES = ((CLASS . CLASS-EVOCAB) ...),
         SUPERS  = ((SUPER . USE-EVOCAB-P) ...), and
         VOCABS  = ((EVOCAB ...) . (IVOCAB ...))
@@ -2161,15 +2130,15 @@ its export vocabulary is used as an import vocabulary."
 	  (or (null ivocab)
 	      (member ivocab import-vocabs) (push ivocab import-vocabs)))))
     (if classes
-	(list* (file-name-nondirectory buffer-file-name)
+	(cl-list* (file-name-nondirectory buffer-file-name)
 	       (cons (nreverse classes) (nreverse superclasses))
 	       (cons (nreverse export-vocabs) (nreverse import-vocabs))
 	       antlr-language))))
 
 (defun antlr-directory-dependencies (dirname)
   "Return dependencies for all grammar files in directory DIRNAME.
-The result looks like \((CLASS-SPEC ...) \. \(FILE-DEP ...))
-  where CLASS-SPEC = (CLASS (FILE \. EVOCAB) ...).
+The result looks like \((CLASS-SPEC ...) . \(FILE-DEP ...))
+  where CLASS-SPEC = (CLASS (FILE . EVOCAB) ...).
 
 FILE-DEP are the dependencies for each grammar file in DIRNAME, see
 `antlr-file-dependencies'.  For each grammar class CLASS, FILE is a
@@ -2220,7 +2189,7 @@ The result looks like \(OPTION WITH-UNKNOWN GLIB ...).  OPTION is the
 complete \"-glib\" option.  WITH-UNKNOWN is t if there is none or more
 than one grammar file for at least one super grammar.
 
-Each GLIB looks like \(GRAMMAR-FILE \. EVOCAB).  GRAMMAR-FILE is a file
+Each GLIB looks like \(GRAMMAR-FILE . EVOCAB).  GRAMMAR-FILE is a file
 in which a super-grammar is defined.  EVOCAB is the value of the export
 vocabulary of the super-grammar or nil if it is not needed."
   ;; If the superclass is defined in the same file, that file will be included
@@ -2307,7 +2276,7 @@ command `antlr-show-makefile-rules' for detail."
     (dolist (dep deps)
       (let ((supers (cdadr dep))
 	    (lang (cdr (assoc (cdddr dep) antlr-file-formats-alist))))
-	(if n (incf n))
+	(if n (cl-incf n))
 	(antlr-makefile-insert-variable n "" " =")
 	(if supers
 	    (insert " "
@@ -2343,7 +2312,7 @@ command `antlr-show-makefile-rules' for detail."
     (if n
 	(let ((i 0))
 	  (antlr-makefile-insert-variable nil "" " =")
-	  (while (<= (incf i) n)
+	  (while (<= (cl-incf i) n)
 	    (antlr-makefile-insert-variable i " $(" ")"))
 	  (insert "\n" (car antlr-makefile-specification))))
     (if (string-equal (car antlr-makefile-specification) "\n")
@@ -2472,8 +2441,8 @@ to a lesser extent, `antlr-tab-offset-alist'."
 	(goto-char boi)
 	(unless (symbolp syntax)		; direct indentation
 	  ;;(antlr-invalidate-context-cache)
-	  (incf indent (antlr-syntactic-context))
-	  (and (> indent 0) (looking-at antlr-indent-item-regexp) (decf indent))
+	  (cl-incf indent (antlr-syntactic-context))
+	  (and (> indent 0) (looking-at antlr-indent-item-regexp) (cl-decf indent))
 	  (setq indent (* indent c-basic-offset)))
 	;; the usual major-mode indent stuff ---------------------------------
 	(setq orig (- (point-max) orig))

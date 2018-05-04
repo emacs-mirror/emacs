@@ -1,6 +1,6 @@
 ;;; semantic/symref/global.el --- Use GNU Global for symbol references
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -49,6 +49,9 @@ See the function `cedet-gnu-global-search' for more details.")
     (semantic-symref-parse-tool-output tool b)
     ))
 
+(defconst semantic-symref-global--line-re
+  "^\\([^ ]+\\) +\\([0-9]+\\) \\([^ ]+\\) ")
+
 (cl-defmethod semantic-symref-parse-tool-output-one-line ((tool semantic-symref-tool-global))
   "Parse one line of grep output, and return it as a match list.
 Moves cursor to end of the match."
@@ -57,8 +60,13 @@ Moves cursor to end of the match."
 	 ;; Search for files
 	 (when (re-search-forward "^\\([^\n]+\\)$" nil t)
 	   (match-string 1)))
+        ((eq (oref tool :resulttype) 'line-and-text)
+         (when (re-search-forward semantic-symref-global--line-re nil t)
+           (list (string-to-number (match-string 2))
+                 (match-string 3)
+                 (buffer-substring-no-properties (point) (line-end-position)))))
 	(t
-	 (when (re-search-forward "^\\([^ ]+\\) +\\([0-9]+\\) \\([^ ]+\\) " nil t)
+	 (when (re-search-forward semantic-symref-global--line-re nil t)
 	   (cons (string-to-number (match-string 2))
 		 (match-string 3))
 	   ))))

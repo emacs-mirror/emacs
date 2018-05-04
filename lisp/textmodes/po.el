@@ -1,6 +1,6 @@
-;;; po.el --- basic support of PO translation files -*- coding: utf-8; -*-
+;;; po.el --- basic support of PO translation files
 
-;; Copyright (C) 1995-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Authors: François Pinard <pinard@iro.umontreal.ca>,
 ;;          Greg McGary <gkm@magilla.cichlid.com>,
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

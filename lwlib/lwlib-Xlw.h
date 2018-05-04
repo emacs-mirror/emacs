@@ -15,15 +15,13 @@ xlw_update_one_widget (widget_instance* instance, Widget widget,
 
 void
 xlw_update_one_value (widget_instance* instance, Widget widget,
-		      widget_value* val)
-  ATTRIBUTE_CONST;
+		      widget_value* val);
 
 void
 xlw_destroy_instance (widget_instance* instance);
 
 void
-xlw_pop_instance (widget_instance* instance, Boolean up)
-  ATTRIBUTE_CONST;
+xlw_pop_instance (widget_instance* instance, Boolean up);
 
 void
 xlw_popup_menu (Widget widget, XEvent * event);

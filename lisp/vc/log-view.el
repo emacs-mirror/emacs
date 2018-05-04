@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -200,8 +200,6 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
     (t (:weight bold)))
   "Face for the file header line in `log-view-mode'."
   :group 'log-view)
-(define-obsolete-face-alias 'log-view-file-face 'log-view-file "22.1")
-(defvar log-view-file-face 'log-view-file)
 
 (defface log-view-message
   '((((class color) (background light))
@@ -209,9 +207,6 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
     (t (:weight bold)))
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
-;; backward-compatibility alias
-(define-obsolete-face-alias 'log-view-message-face 'log-view-message "22.1")
-(defvar log-view-message-face 'log-view-message)
 
 (defvar log-view-file-re
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
@@ -246,8 +241,8 @@ The match group number 1 should match the revision number itself.")
   ;; and log-view-message-re, if applicable.
   '((eval . `(,log-view-file-re
               (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
-              (0 log-view-file-face append)))
-    (eval . `(,log-view-message-re . log-view-message-face))))
+              (0 'log-view-file append)))
+    (eval . `(,log-view-message-re . 'log-view-message))))
 
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
@@ -542,7 +537,7 @@ If called interactively, visit the version at point."
       (setq en (point))
       (or (log-view-current-entry nil t)
           (throw 'beginning-of-buffer nil))
-      (cond ((memq backend '(SCCS RCS CVS MCVS SVN))
+      (cond ((memq backend '(SCCS RCS CVS SVN))
 	     (forward-line 2))
 	    ((eq backend 'Hg)
 	     (forward-line 4)
@@ -613,10 +608,16 @@ considered file(s)."
     (log-view-diff-common beg end t)))
 
 (defun log-view-diff-common (beg end &optional whole-changeset)
-  (let ((to (log-view-current-tag beg))
-        (fr (log-view-current-tag end)))
-    (when (string-equal fr to)
-      ;; TO and FR are the same, look at the previous revision.
+  (let* ((to (log-view-current-tag beg))
+         (fr-entry (log-view-current-entry end))
+         (fr (cadr fr-entry)))
+    ;; When TO and FR are the same, or when point is on a line after
+    ;; the last entry, look at the previous revision.
+    (when (or (string-equal fr to)
+              (>= (point)
+                  (save-excursion
+                    (goto-char (car fr-entry))
+                    (forward-line))))
       (setq fr (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
     (vc-diff-internal
      t (list log-view-vc-backend

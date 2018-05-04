@@ -7,7 +7,7 @@
 @copying
 This file documents the Ido package for GNU Emacs.
 
-Copyright @copyright{} 2013-2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2013-2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -456,14 +456,14 @@ You can toggle display of the hidden buffers and files with @kbd{C-a}
 You can customize the @code{ido} group to change Ido functionality:
 
 @example
-M-x customize-group RET ido RET
+M-x customize-group @key{RET} ido @key{RET}
 @end example
 
 @noindent
 or customize a certain variable:
 
 @example
-M-x customize-variable RET ido-xxxxx
+M-x customize-variable @key{RET} ido-xxxxx @key{RET}
 @end example
 
 To modify the keybindings, use the @code{ido-setup-hook}.  For example:
@@ -706,7 +706,8 @@ packages.
 @noindent
 After @kbd{C-x b} (@code{ido-switch-buffer}), the buffer at the head
 of the list can be killed by pressing @kbd{C-k}.  If the buffer needs
-saving, you will be queried before the buffer is killed.
+saving, you will be queried before the buffer is killed.  @kbd{C-S-b}
+buries the buffer at the head of the list.
 
 Likewise, after @kbd{C-x C-f}, you can delete (i.e., physically
 remove) the file at the head of the list with @kbd{C-k}.  You will

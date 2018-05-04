@@ -14,6 +14,7 @@
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuInsertSelection(register XMenu *menu, register int p_num, register int s_num, char *data, char *label, int active)

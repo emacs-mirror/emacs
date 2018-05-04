@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -138,7 +138,7 @@
 
 (defcustom hide-ifdef-exclude-define-regexp nil
   "Ignore #define names if those names match this exclusion pattern."
-  :type 'string
+  :type '(choice (const nil) string)
   :version "25.1")
 
 (defcustom hide-ifdef-expand-reinclusion-protection t
@@ -653,7 +653,7 @@ that form should be displayed.")
            (stringp id))))
 
 (defun hif-define-operator (tokens)
-  "`Upgrade' hif-define xxx to '(hif-define xxx)' so it won't be substituted."
+  "\"Upgrade\" hif-define XXX to `(hif-define XXX)' so it won't be substituted."
   (let ((result nil)
         (tok nil))
     (while (setq tok (pop tokens))
@@ -766,7 +766,7 @@ macros to prevent self-reference."
           (error "Error: unexpected token: %s" hif-token)))))
 
 (defun hif-exprlist ()
-  "Parse an exprlist: expr { ',' expr}."
+  "Parse an exprlist: expr { `,' expr}."
   (let ((result (hif-expr)))
     (if (eq hif-token 'hif-comma)
         (let ((temp (list result)))
@@ -780,7 +780,7 @@ macros to prevent self-reference."
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
-expr : or-expr | or-expr '?' expr ':' expr."
+expr : or-expr | or-expr `?' expr `:' expr."
   (let ((result (hif-or-expr))
         middle)
     (while (eq hif-token 'hif-conditional)
@@ -794,7 +794,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-or-expr ()
-  "Parse an or-expr : and-expr | or-expr '||' and-expr."
+  "Parse an or-expr : and-expr | or-expr `||' and-expr."
   (let ((result (hif-and-expr)))
     (while (eq hif-token 'hif-or)
       (hif-nexttoken)
@@ -802,7 +802,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
   result))
 
 (defun hif-and-expr ()
-  "Parse an and-expr : logior-expr | and-expr '&&' logior-expr."
+  "Parse an and-expr : logior-expr | and-expr `&&' logior-expr."
   (let ((result (hif-logior-expr)))
     (while (eq hif-token 'hif-and)
       (hif-nexttoken)
@@ -810,7 +810,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-logior-expr ()
-  "Parse a logor-expr : logxor-expr | logor-expr '|' logxor-expr."
+  "Parse a logor-expr : logxor-expr | logor-expr `|' logxor-expr."
   (let ((result (hif-logxor-expr)))
     (while (eq hif-token 'hif-logior)
       (hif-nexttoken)
@@ -818,7 +818,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-logxor-expr ()
-  "Parse a logxor-expr : logand-expr | logxor-expr '^' logand-expr."
+  "Parse a logxor-expr : logand-expr | logxor-expr `^' logand-expr."
   (let ((result (hif-logand-expr)))
     (while (eq hif-token 'hif-logxor)
       (hif-nexttoken)
@@ -826,7 +826,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-logand-expr ()
-  "Parse a logand-expr : eq-expr | logand-expr '&' eq-expr."
+  "Parse a logand-expr : eq-expr | logand-expr `&' eq-expr."
   (let ((result (hif-eq-expr)))
     (while (eq hif-token 'hif-logand)
       (hif-nexttoken)
@@ -866,7 +866,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
 
 (defun hif-math ()
   "Parse an expression with + or -.
-       math : muldiv | math '+|-' muldiv."
+       math : muldiv | math `+'|`-' muldiv."
   (let ((result (hif-muldiv-expr))
         (math-op nil))
     (while (memq hif-token '(hif-plus hif-minus))
@@ -877,7 +877,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
 
 (defun hif-muldiv-expr ()
   "Parse an expression with *,/,%.
-       muldiv : factor | muldiv '*|/|%' factor."
+       muldiv : factor | muldiv `*'|`/'|`%' factor."
   (let ((result (hif-factor))
         (math-op nil))
     (while (memq hif-token '(hif-multiply hif-divide hif-modulo))
@@ -888,8 +888,8 @@ expr : or-expr | or-expr '?' expr ':' expr."
 
 (defun hif-factor ()
   "Parse a factor.
-factor : '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' |
-         'id(parmlist)' | strings | id."
+factor : `!' factor | `~' factor | `(' expr `)' | `defined(' id `)' |
+         id `(' parmlist `)' | strings | id."
   (cond
    ((eq hif-token 'hif-not)
     (hif-nexttoken)
@@ -999,9 +999,9 @@ This macro cannot be evaluated alone without parameters input."
 (defun hif-token-concat (a b)
   "Concatenate two tokens into a longer token.
 Currently support only simple token concatenation.  Also support weird (but
-valid) token concatenation like '>' ## '>' becomes '>>'.  Here we take care only
+valid) token concatenation like `>' ## `>' becomes `>>'.  Here we take care only
 those that can be evaluated during preprocessing time and ignore all those that
-can only be evaluated at C(++) runtime (like '++', '--' and '+='...)."
+can only be evaluated at C(++) runtime (like `++', `--' and `+='...)."
   (if (or (memq a hif-valid-token-list)
           (memq b hif-valid-token-list))
       (let* ((ra (car (rassq a hif-token-alist)))
@@ -1114,8 +1114,8 @@ preprocessing token"
       result)))
 
 (defun hif-delimit (lis atom)
-  (nconc (cl-mapcan (lambda (l) (list l atom))
-                    (butlast lis))
+  (nconc (mapcan (lambda (l) (list l atom))
+                 (butlast lis))
          (last lis)))
 
 ;; Perform token replacement:
@@ -1581,14 +1581,17 @@ Refer to `hide-ifdef-expand-reinclusion-protection' for more details."
     result))
 
 (defun hif-evaluate-macro (rstart rend)
-  "Evaluate the macro expansion result for a region.
+  "Evaluate the macro expansion result for the active region.
 If no region active, find the current #ifdefs and evaluate the result.
 Currently it supports only math calculations, strings or argumented macros can
 not be expanded."
-  (interactive "r")
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     '(nil nil)))
   (let ((case-fold-search nil))
     (save-excursion
-      (unless mark-active
+      (unless (use-region-p)
         (setq rstart nil rend nil)
         (beginning-of-line)
         (when (and (re-search-forward hif-macro-expr-prefix-regexp nil t)
@@ -1632,8 +1635,8 @@ not be expanded."
         result))))
 
 (defun hif-parse-macro-arglist (str)
-  "Parse argument list formatted as '( arg1 [ , argn] [...] )'.
-The '...' is also included.  Return a list of the arguments, if '...' exists the
+  "Parse argument list formatted as `( arg1 [ , argn] [...] )'.
+The `...' is also included.  Return a list of the arguments, if `...' exists the
 first arg will be `hif-etc'."
   (let* ((hif-simple-token-only nil) ; Dynamic binding var for `hif-tokenize'
          (tokenlist
@@ -1654,8 +1657,8 @@ first arg will be `hif-etc'."
 
 ;; The original version of hideif evaluates the macro early and store the
 ;; final values for the defined macro into the symbol database (aka
-;; `hide-ifdef-env'). The evaluation process is "strings -> tokens -> parsed
-;; tree -> [value]". (The square bracket refers to what's stored in in our
+;; `hide-ifdef-env').  The evaluation process is "strings -> tokens -> parsed
+;; tree -> [value]".  (The square bracket refers to what's stored in our
 ;; `hide-ifdef-env'.)
 ;;
 ;; This forbids the evaluation of an argumented macro since the parameters
@@ -1825,7 +1828,7 @@ This allows #ifdef VAR to be hidden."
    (let* ((default (save-excursion
                      (beginning-of-line)
                      (cond ((looking-at hif-ifx-else-endif-regexp)
-                            (forward-word 2)
+                            (forward-word-strictly 2)
                             (current-word 'strict))
                            (t
                             nil))))
@@ -1844,9 +1847,13 @@ This allows #ifdef VAR to be hidden."
 
 (defun hide-ifdef-undef (start end)
   "Undefine a VAR so that #ifdef VAR would not be included."
-  (interactive "r")
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     '(nil nil)))
   (let* ((symstr
-          (or (and mark-active
+          (or (and (number-or-marker-p start)
+                   (number-or-marker-p end)
                    (buffer-substring-no-properties start end))
               (read-string "Undefine what? " (current-word))))
          (sym (and symstr
@@ -1915,7 +1922,7 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 With optional prefix argument ARG, also hide the #ifdefs themselves."
   (interactive "P\nr")
   (let ((hide-ifdef-lines arg))
-    (if mark-active
+    (if (use-region-p)
         (let ((hif-recurse-level (1+ hif-recurse-level)))
           (hif-recurse-on start end t)
           (setq mark-active nil))
@@ -1931,8 +1938,12 @@ With optional prefix argument ARG, also hide the #ifdefs themselves."
 
 (defun show-ifdef-block (&optional start end)
   "Show the ifdef block (true or false part) enclosing or before the cursor."
-  (interactive "r")
-  (if mark-active
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     '(nil nil)))
+  (if (and (number-or-marker-p start)
+           (number-or-marker-p end))
       (progn
         (dolist (o (overlays-in start end))
           (if (overlay-get o 'hide-ifdef)

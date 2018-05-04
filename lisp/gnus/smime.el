@@ -1,6 +1,6 @@
-;;; smime.el --- S/MIME support library
+;;; smime.el --- S/MIME support library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -67,7 +67,7 @@
 ;;
 ;; To be able to verify messages you need to build up trust with
 ;; someone.  Perhaps you trust the CA that issued your certificate, at
-;; least I did, so I export it's certificates from my PKCS#12
+;; least I did, so I export its certificates from my PKCS#12
 ;; certificate with:
 ;;
 ;; $ openssl pkcs12 -in mykey.p12 -cacerts -nodes > cacert.pem
@@ -120,31 +120,16 @@
 
 (require 'dig)
 
-(if (locate-library "password-cache")
-    (require 'password-cache)
-  (require 'password))
+(require 'password-cache)
 
-(eval-when-compile (require 'cl))
-
-(eval-and-compile
-  (cond
-   ((fboundp 'replace-in-string)
-    (defalias 'smime-replace-in-string 'replace-in-string))
-   ((fboundp 'replace-regexp-in-string)
-    (defun smime-replace-in-string  (string regexp newtext &optional literal)
-      "Replace all matches for REGEXP with NEWTEXT in STRING.
-If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
-string containing the replacements.
-
-This is a compatibility function for different Emacsen."
-      (replace-regexp-in-string regexp newtext string nil literal)))))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup smime nil
   "S/MIME configuration."
   :group 'mime)
 
 (defcustom smime-keys nil
-  "*Map mail addresses to a file containing Certificate (and private key).
+  "Map mail addresses to a file containing Certificate (and private key).
 The file is assumed to be in PEM format. You can also associate additional
 certificates to be sent with every message to each address."
   :type '(repeat (list (string :tag "Mail address")
@@ -154,7 +139,7 @@ certificates to be sent with every message to each address."
   :group 'smime)
 
 (defcustom smime-CA-directory nil
-  "*Directory containing certificates for CAs you trust.
+  "Directory containing certificates for CAs you trust.
 Directory should contain files (in PEM format) named to the X.509
 hash of the certificate.  This can be done using OpenSSL such as:
 
@@ -167,7 +152,7 @@ certificate."
   :group 'smime)
 
 (defcustom smime-CA-file nil
-  "*Files containing certificates for CAs you trust.
+  "Files containing certificates for CAs you trust.
 File should contain certificates in PEM format."
   :version "22.1"
   :type '(choice (const :tag "none" nil)
@@ -175,7 +160,7 @@ File should contain certificates in PEM format."
   :group 'smime)
 
 (defcustom smime-certificate-directory "~/Mail/certs/"
-  "*Directory containing other people's certificates.
+  "Directory containing other people's certificates.
 It should contain files named to the X.509 hash of the certificate,
 and the files themselves should be in PEM format."
 ;The S/MIME library provide simple functionality for fetching
@@ -189,14 +174,14 @@ and the files themselves should be in PEM format."
 	   (eq 0 (call-process "openssl" nil nil nil "version"))
 	 (error nil))
        "openssl")
-  "*Name of OpenSSL binary."
+  "Name of OpenSSL binary."
   :type 'string
   :group 'smime)
 
 ;; OpenSSL option to select the encryption cipher
 
 (defcustom smime-encrypt-cipher "-des3"
-  "*Cipher algorithm used for encryption."
+  "Cipher algorithm used for encryption."
   :version "22.1"
   :type '(choice (const :tag "Triple DES" "-des3")
 		 (const :tag "DES"  "-des")
@@ -206,7 +191,7 @@ and the files themselves should be in PEM format."
   :group 'smime)
 
 (defcustom smime-crl-check nil
-  "*Check revocation status of signers certificate using CRLs.
+  "Check revocation status of signers certificate using CRLs.
 Enabling this will have OpenSSL check the signers certificate
 against a certificate revocation list (CRL).
 
@@ -227,7 +212,7 @@ At least OpenSSL version 0.9.7 is required for this to work."
   :group 'smime)
 
 (defcustom smime-dns-server nil
-  "*DNS server to query certificates from.
+  "DNS server to query certificates from.
 If nil, use system defaults."
   :version "22.1"
   :type '(choice (const :tag "System defaults")
@@ -244,42 +229,29 @@ must be set in `ldap-host-parameters-alist'."
 
 (defvar smime-details-buffer "*OpenSSL output*")
 
-;; Use mm-util?
-(eval-and-compile
-  (defalias 'smime-make-temp-file
-    (if (fboundp 'make-temp-file)
-	'make-temp-file
-      (lambda (prefix &optional dir-flag) ;; Simple implementation
-	(expand-file-name
-	 (make-temp-name prefix)
-	 (if (fboundp 'temp-directory)
-	     (temp-directory)
-	   temporary-file-directory))))))
-
-;; Password dialog function
-(declare-function password-read-and-add "password-cache" (prompt &optional key))
-
 (defun smime-ask-passphrase (&optional cache-key)
   "Asks the passphrase to unlock the secret key.
 If `cache-key' and `password-cache' is non-nil then cache the
 password under `cache-key'."
   (let ((passphrase
-	 (password-read-and-add
+	 (password-read
 	  "Passphrase for secret key (RET for no passphrase): " cache-key)))
     (if (string= passphrase "")
 	nil
+      ;; FIXME test passphrase works before caching it.
+      (and passphrase cache-key (password-cache-add cache-key passphrase))
       passphrase)))
 
 ;; OpenSSL wrappers.
 
 (defun smime-call-openssl-region (b e buf &rest args)
-  (case (apply 'call-process-region b e smime-openssl-program nil buf nil args)
+  (pcase (apply #'call-process-region b e smime-openssl-program nil buf nil args)
     (0 t)
     (1 (message "OpenSSL: An error occurred parsing the command options.") nil)
     (2 (message "OpenSSL: One of the input files could not be read.") nil)
     (3 (message "OpenSSL: An error occurred creating the PKCS#7 file or when reading the MIME message.") nil)
     (4 (message "OpenSSL: An error occurred decrypting or verifying the message.") nil)
-    (t (error "Unknown OpenSSL exitcode") nil)))
+    (_ (error "Unknown OpenSSL exitcode"))))
 
 (defun smime-make-certfiles (certfiles)
   (if certfiles
@@ -301,7 +273,7 @@ key and certificate itself."
 	 (keyfile (or (car-safe keyfile) keyfile))
 	 (buffer (generate-new-buffer " *smime*"))
 	 (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
-	 (tmpfile (smime-make-temp-file "smime")))
+	 (tmpfile (make-temp-file "smime")))
     (if passphrase
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
     (prog1
@@ -335,7 +307,7 @@ have proper MIME tags.  CERTFILES is a list of filenames, each file
 is expected to contain of a PEM encoded certificate."
   (smime-new-details-buffer)
   (let ((buffer (generate-new-buffer " *smime*"))
-	(tmpfile (smime-make-temp-file "smime")))
+	(tmpfile (make-temp-file "smime")))
     (prog1
 	(when (prog1
 		  (apply 'smime-call-openssl-region b e (list buffer tmpfile)
@@ -403,7 +375,7 @@ Any details (stdout and stderr) are left in the buffer specified by
     (unless CAs
       (error "No CA configured"))
     (if smime-crl-check
-	(add-to-list 'CAs smime-crl-check))
+	(cl-pushnew smime-crl-check CAs :test #'equal))
     (if (apply 'smime-call-openssl-region b e (list smime-details-buffer t)
 	       "smime" "-verify" "-out" "/dev/null" CAs)
 	t
@@ -430,8 +402,8 @@ Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
   (smime-new-details-buffer)
   (let ((buffer (generate-new-buffer " *smime*"))
-	CAs (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
-	(tmpfile (smime-make-temp-file "smime")))
+	(passphrase (smime-ask-passphrase (expand-file-name keyfile)))
+	(tmpfile (make-temp-file "smime")))
     (if passphrase
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
     (if (prog1
@@ -537,7 +509,7 @@ A string or a list of strings is returned."
       (let ((curkey (car keys))
 	    (otherkeys (cdr keys)))
 	(if (string= keyfile (cadr curkey))
-	    (caddr curkey)
+	    (nth 2 curkey)
 	  (smime-get-certfiles keyfile otherkeys)))))
 
 (defun smime-buffer-as-string-region (b e)
@@ -588,35 +560,35 @@ A string or a list of strings is returned."
   "Get certificate for MAIL from the ldap server at HOST."
   (let ((ldapresult
 	 (funcall
-	  (if (featurep 'xemacs)
-	      (progn
-		(require 'smime-ldap)
-		'smime-ldap-search)
-	    (progn
-	      (require 'ldap)
-	      'ldap-search))
+	  (progn
+	    (require 'ldap)
+	    'ldap-search)
 	  (concat "mail=" mail)
 	  host '("userCertificate") nil))
 	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
+        ldapstr
 	cert)
-    (if (and (>= (length ldapresult) 1)
-             (> (length (cadaar ldapresult)) 0))
+    (if (and (consp ldapresult)
+             ;; FIXME: This seems to expect a format rather different from
+             ;; the list of alists described in ldap.el.
+             (setq ldapstr (cadr (caar ldapresult)))
+             (> (length ldapstr) 0))
 	(with-current-buffer retbuf
 	  ;; Certificates on LDAP servers _should_ be in DER format,
 	  ;; but there are some servers out there that distributes the
 	  ;; certificates in PEM format (with or without
 	  ;; header/footer) so we try to handle them anyway.
-	  (if (or (string= (substring (cadaar ldapresult) 0 27)
+	  (if (or (string= (substring ldapstr 0 27)
 			   "-----BEGIN CERTIFICATE-----")
-		  (string= (substring (cadaar ldapresult) 0 3)
+		  (string= (substring ldapstr 0 3)
 			   "MII"))
 	      (setq cert
-		    (smime-replace-in-string
-		     (cadaar ldapresult)
+		    (replace-regexp-in-string
 		     (concat "\\(\n\\|\r\\|-----BEGIN CERTIFICATE-----\\|"
 			     "-----END CERTIFICATE-----\\)")
-		     "" t))
-	    (setq cert (base64-encode-string (cadaar ldapresult) t)))
+		     ""
+		     ldapstr nil t))
+	    (setq cert (base64-encode-string ldapstr t)))
 	  (insert "-----BEGIN CERTIFICATE-----\n")
 	  (let ((i 0) (len (length cert)))
 	    (while (> (- len 64) i)

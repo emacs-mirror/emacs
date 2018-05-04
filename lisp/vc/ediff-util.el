@@ -1,6 +1,6 @@
-;;; ediff-util.el --- the core commands and utilities of ediff
+;;; ediff-util.el --- the core commands and utilities of ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,9 +38,6 @@
 (defvar mark-active)
 
 (defvar ediff-after-quit-hook-internal nil)
-
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  _r))))
 
 ;; end pacifier
 
@@ -178,7 +175,7 @@ to invocation.")
   (define-key ediff-mode-map "r"  nil)
   (cond (ediff-merge-job
 	 ;; Will barf if no ancestor
-	 (define-key ediff-mode-map "/" 'ediff-show-ancestor)
+	 (define-key ediff-mode-map "/" 'ediff-toggle-show-ancestor)
 	 ;; In merging, we allow only A->C and B->C copying.
 	 (define-key ediff-mode-map "a" 'ediff-copy-A-to-C)
 	 (define-key ediff-mode-map "b" 'ediff-copy-B-to-C)
@@ -347,7 +344,7 @@ to invocation.")
 	      (goto-char (point-min))
 	      (funcall (ediff-with-current-buffer buf major-mode))
 	      (widen) ; merge buffer is always widened
-	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
+	      (add-hook 'write-file-functions 'ediff-set-merge-mode nil t)
 	      )))
       (setq buffer-read-only nil
 	    ediff-buffer-A buffer-A
@@ -517,7 +514,7 @@ to invocation.")
       (select-window ediff-control-window)
       (ediff-visible-region)
 
-      (run-hooks 'startup-hooks)
+      (mapc #'funcall startup-hooks)
       (ediff-arrange-autosave-in-merge-jobs merge-buffer-file)
 
       (ediff-refresh-mode-lines)
@@ -553,11 +550,12 @@ to invocation.")
     (ediff-refresh-mode-lines)
     (setq ediff-control-window (selected-window))
     (setq ediff-window-config-saved
-	  (format "%S%S%S%S%S%S%S"
+	  (format "%S%S%S%S%S%S%S%S"
 		  ediff-control-window
 		  ediff-window-A
 		  ediff-window-B
 		  ediff-window-C
+		  ediff-window-Ancestor
 		  ediff-split-window-function
 		  (ediff-multiframe-setup-p)
 		  ediff-wide-display-p))
@@ -600,12 +598,6 @@ to these buffers are not saved at this point---the user can do this later,
 if necessary."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (if (and (ediff-buffer-live-p ediff-ancestor-buffer)
-	   (not
-	    (y-or-n-p
-	     "Ancestor buffer will not be used.  Recompute diffs anyway? ")))
-      (error "Recomputation of differences canceled"))
-
   (let ((point-A (ediff-with-current-buffer ediff-buffer-A (point)))
 	;;(point-B (ediff-with-current-buffer ediff-buffer-B (point)))
 	(tmp-buffer (get-buffer-create ediff-tmp-buffer))
@@ -614,14 +606,17 @@ if necessary."
 	;; (null ediff-buffer-C) is no problem, as we later check if
 	;; ediff-buffer-C is alive
 	(buf-C-file-name (buffer-file-name ediff-buffer-C))
+	(buf-ancestor-file-name (buffer-file-name ediff-ancestor-buffer))
 	(overl-A (ediff-get-value-according-to-buffer-type
 		  'A ediff-narrow-bounds))
 	(overl-B (ediff-get-value-according-to-buffer-type
 		  'B ediff-narrow-bounds))
 	(overl-C (ediff-get-value-according-to-buffer-type
 		  'C ediff-narrow-bounds))
-	beg-A end-A beg-B end-B beg-C end-C
-	file-A file-B file-C)
+        (overl-Ancestor (ediff-get-value-according-to-buffer-type
+                         'Ancestor ediff-narrow-bounds))
+	beg-A end-A beg-B end-B beg-C end-C beg-Ancestor end-Ancestor
+	file-A file-B file-C file-Ancestor)
 
     (if (stringp buf-A-file-name)
 	(setq buf-A-file-name (file-name-nondirectory buf-A-file-name)))
@@ -629,15 +624,19 @@ if necessary."
 	(setq buf-B-file-name (file-name-nondirectory buf-B-file-name)))
     (if (stringp buf-C-file-name)
 	(setq buf-C-file-name (file-name-nondirectory buf-C-file-name)))
+    (if (stringp buf-ancestor-file-name)
+        (setq buf-ancestor-file-name (file-name-nondirectory buf-ancestor-file-name)))
 
     (ediff-unselect-and-select-difference -1)
 
     (setq beg-A (ediff-overlay-start overl-A)
 	  beg-B (ediff-overlay-start overl-B)
 	  beg-C (ediff-overlay-start overl-C)
+	  beg-Ancestor (ediff-overlay-start overl-Ancestor)
 	  end-A (ediff-overlay-end overl-A)
 	  end-B (ediff-overlay-end overl-B)
-	  end-C (ediff-overlay-end overl-C))
+	  end-C (ediff-overlay-end overl-C)
+          end-Ancestor (ediff-overlay-end overl-Ancestor))
 
     (if ediff-word-mode
 	(progn
@@ -645,51 +644,37 @@ if necessary."
 	  (setq file-A (ediff-make-temp-file tmp-buffer "regA"))
 	  (ediff-wordify beg-B end-B ediff-buffer-B tmp-buffer)
 	  (setq file-B (ediff-make-temp-file tmp-buffer "regB"))
-	  (if ediff-3way-job
-	      (progn
-		(ediff-wordify beg-C end-C ediff-buffer-C tmp-buffer)
-		(setq file-C (ediff-make-temp-file tmp-buffer "regC"))))
+	  (when ediff-3way-job
+            (ediff-wordify beg-C end-C ediff-buffer-C tmp-buffer)
+            (setq file-C (ediff-make-temp-file tmp-buffer "regC")))
+          (when ediff-merge-with-ancestor-job
+            (ediff-wordify beg-Ancestor end-Ancestor ediff-ancestor-buffer tmp-buffer)
+            (setq file-Ancestor (ediff-make-temp-file tmp-buffer "regAncestor")))
 	  )
       ;; not word-mode
       (setq file-A (ediff-make-temp-file ediff-buffer-A buf-A-file-name))
       (setq file-B (ediff-make-temp-file ediff-buffer-B buf-B-file-name))
       (if ediff-3way-job
 	  (setq file-C (ediff-make-temp-file ediff-buffer-C buf-C-file-name)))
+      (when ediff-merge-with-ancestor-job
+        (setq file-Ancestor
+              (ediff-make-temp-file
+               ediff-ancestor-buffer
+               buf-ancestor-file-name)))
       )
-
     (ediff-clear-diff-vector 'ediff-difference-vector-A 'fine-diffs-also)
     (ediff-clear-diff-vector 'ediff-difference-vector-B 'fine-diffs-also)
     (ediff-clear-diff-vector 'ediff-difference-vector-C 'fine-diffs-also)
     (ediff-clear-diff-vector
      'ediff-difference-vector-Ancestor 'fine-diffs-also)
-    ;; let them garbage collect.  we can't use the ancestor after recomputing
-    ;; the diffs.
-    (setq ediff-difference-vector-Ancestor nil
-	  ediff-ancestor-buffer nil
-	  ediff-state-of-merge nil)
-
     (setq ediff-killed-diffs-alist nil) ; invalidate saved killed diff regions
-
-    ;; In case of merge job, fool it into thinking that it is just doing
-    ;; comparison
-    (let ((ediff-setup-diff-regions-function ediff-setup-diff-regions-function)
-	  (ediff-3way-comparison-job ediff-3way-comparison-job)
-	  (ediff-merge-job ediff-merge-job)
-	  (ediff-merge-with-ancestor-job ediff-merge-with-ancestor-job)
-	  (ediff-job-name ediff-job-name))
-      (if ediff-merge-job
-	  (setq ediff-setup-diff-regions-function 'ediff-setup-diff-regions3
-		ediff-3way-comparison-job t
-		ediff-merge-job nil
-		ediff-merge-with-ancestor-job nil
-		ediff-job-name 'ediff-files3))
-      (funcall ediff-setup-diff-regions-function file-A file-B file-C))
-
+    (funcall ediff-setup-diff-regions-function file-A file-B
+             (if ediff-merge-with-ancestor-job file-Ancestor file-C))
     (setq ediff-number-of-differences (length ediff-difference-vector-A))
     (delete-file file-A)
     (delete-file file-B)
-    (if file-C
-	(delete-file file-C))
+    (and file-C (delete-file file-C))
+    (and file-Ancestor (delete-file file-Ancestor))
 
     (if ediff-3way-job
 	(ediff-set-state-of-all-diffs-in-all-buffers ediff-control-buffer))
@@ -737,14 +722,16 @@ if necessary."
 ;; optional NO-REHIGHLIGHT says to not rehighlight buffers
 (defun ediff-recenter (&optional no-rehighlight)
   "Bring the highlighted region of all buffers being compared into view.
-Reestablish the default three-window display."
+Reestablish the default window display."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (let (buffer-read-only)
     (if (and (ediff-buffer-live-p ediff-buffer-A)
 	     (ediff-buffer-live-p ediff-buffer-B)
 	     (or (not ediff-3way-job)
-		 (ediff-buffer-live-p ediff-buffer-C)))
+		 (ediff-buffer-live-p ediff-buffer-C))
+             (or (not ediff-merge-with-ancestor-job)
+		 (ediff-buffer-live-p ediff-ancestor-buffer)))
 	(ediff-setup-windows
 	 ediff-buffer-A ediff-buffer-B ediff-buffer-C ediff-control-buffer)
       (or (eq this-command 'ediff-quit)
@@ -788,8 +775,8 @@ Reestablish the default three-window display."
 	  (select-frame-set-input-focus ediff-control-frame)
 	(raise-frame ediff-control-frame)
 	(select-frame ediff-control-frame)
-	(if (fboundp 'focus-frame)
-	    (focus-frame ediff-control-frame))))
+	(and (featurep 'xemacs) (fboundp 'focus-frame)
+	     (focus-frame ediff-control-frame))))
 
   ;; Redisplay whatever buffers are showing, if there is a selected difference
   (let ((control-frame ediff-control-frame)
@@ -949,7 +936,7 @@ On a dumb terminal, switches between ASCII highlighting and no highlighting."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (if ediff-word-mode
-      (error "No fine differences in this mode"))
+      (user-error "No fine differences in this mode"))
   (cond ((eq ediff-auto-refine 'nix)
 	 (setq ediff-auto-refine 'on)
 	 (ediff-make-fine-diffs ediff-current-difference 'noforce)
@@ -963,18 +950,43 @@ On a dumb terminal, switches between ASCII highlighting and no highlighting."
 	 (setq ediff-auto-refine 'nix))
 	))
 
-(defun ediff-show-ancestor ()
-  "Show the ancestor buffer in a suitable window."
-  (interactive)
-  (ediff-recenter)
+(defun ediff--check-ancestor-exists ()
   (or (ediff-buffer-live-p ediff-ancestor-buffer)
       (if ediff-merge-with-ancestor-job
-	  (error "Lost connection to ancestor buffer...sorry")
-	(error "Not merging with ancestor")))
-  (let (wind)
-    (cond ((setq wind (ediff-get-visible-buffer-window ediff-ancestor-buffer))
-	   (raise-frame (window-frame wind)))
-	  (t (set-window-buffer ediff-window-C ediff-ancestor-buffer)))))
+	  (user-error "Lost connection to ancestor buffer.  This shouldn't happen.  \
+Please report this bug to bug-gnu-emacs@gnu.org")
+	(user-error "Not merging with ancestor"))))
+
+;; Restore `ediff-show-ancestor' on exit.
+(defun ediff--restore-options-on-exit ()
+  (message "Restoring ediff-show-ancestor to %S..." ediff--show-ancestor-orig)
+  (setq ediff-show-ancestor ediff--show-ancestor-orig
+        ediff--show-ancestor-orig nil)
+  (remove-hook 'ediff-quit-hook #'ediff--restore-options-on-exit))
+
+(defun ediff-toggle-show-ancestor ()
+  "Toggle to show/hide the ancestor buffer."
+  (interactive)
+  (ediff--check-ancestor-exists)
+  ;; Save original value if not yet, and add hook to restore it on exit.
+  (unless ediff--show-ancestor-orig
+    (setq ediff--show-ancestor-orig ediff-show-ancestor)
+    (add-hook 'ediff-quit-hook #'ediff--restore-options-on-exit))
+  (setq ediff-show-ancestor (not ediff-show-ancestor))
+  ;; If equal than orig, then nothing to restore on exit.
+  (when (eq ediff-show-ancestor ediff--show-ancestor-orig)
+    (setq ediff--show-ancestor-orig nil)
+    (remove-hook 'ediff-quit-hook #'ediff--restore-options-on-exit))
+  (if (not ediff-show-ancestor)
+      (progn
+        (delete-window ediff-window-Ancestor)
+        (ediff-recenter)
+        (message "Ancestor buffer is hidden"))
+    (let ((wind
+           (ediff-get-visible-buffer-window ediff-ancestor-buffer)))
+      (when wind (raise-frame (window-frame wind))))
+    (ediff-recenter)
+    (message "Showing ancestor buffer")))
 
 (defun ediff-make-or-kill-fine-diffs (arg)
   "Compute fine diffs.  With negative prefix arg, kill fine diffs.
@@ -1065,7 +1077,7 @@ of the current buffer."
 	      (save-window-excursion
 		(select-window (ediff-get-visible-buffer-window buf))
 		(command-execute toggle-ro-cmd)))
-	  (error "Don't know how to toggle read-only in buffer %S" buf))
+	  (user-error "Don't know how to toggle read-only in buffer %S" buf))
 
 	;; Check if we made the current buffer updatable, but its file is RO.
 	;; Signal a warning in this case.
@@ -1141,11 +1153,8 @@ of the current buffer."
        ))
 
 (defun ediff-file-compressed-p (file)
-  (condition-case nil
-      (require 'jka-compr)
-    (error))
-  (if (featurep 'jka-compr)
-      (string-match (jka-compr-build-file-regexp) file)))
+  (require 'jka-compr)
+  (string-match (jka-compr-build-file-regexp) file))
 
 
 (defun ediff-swap-buffers ()
@@ -1258,7 +1267,7 @@ This is especially useful when comparing buffers side-by-side."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (or (ediff-window-display-p)
-      (error "%sEmacs is not running as a window application"
+      (user-error "%sEmacs is not running as a window application"
 	     (if (featurep 'emacs) "" "X")))
   (ediff-recenter 'no-rehighlight) ; make sure buffs are displayed in windows
   (let ((ctl-buf ediff-control-buffer))
@@ -1288,12 +1297,13 @@ which see."
   (interactive)
   (let (window-setup-func)
     (or (ediff-window-display-p)
-	(error "%sEmacs is not running as a window application"
+	(user-error "%sEmacs is not running as a window application"
 	       (if (featurep 'emacs) "" "X")))
 
   (cond ((eq ediff-window-setup-function 'ediff-setup-windows-multiframe)
 	 (setq ediff-multiframe nil)
-	 (setq window-setup-func 'ediff-setup-windows-plain))
+	 (setq window-setup-func 'ediff-setup-windows-plain)
+         (message "ediff is now in 'plain' mode"))
 	((eq ediff-window-setup-function 'ediff-setup-windows-plain)
 	 (if (ediff-in-control-buffer-p)
 	     (ediff-kill-bottom-toolbar))
@@ -1301,14 +1311,15 @@ which see."
 		  (window-live-p ediff-control-window))
 	     (set-window-dedicated-p ediff-control-window nil))
 	 (setq ediff-multiframe t)
-	 (setq window-setup-func 'ediff-setup-windows-multiframe))
+	 (setq window-setup-func 'ediff-setup-windows-multiframe)
+         (message "ediff is now in 'multiframe' mode"))
 	(t
 	 (if (and (ediff-buffer-live-p ediff-control-buffer)
 		  (window-live-p ediff-control-window))
 	     (set-window-dedicated-p ediff-control-window nil))
 	 (setq ediff-multiframe t)
 	 (setq window-setup-func 'ediff-setup-windows-multiframe))
-	)
+         (message "ediff is now in 'multiframe' mode"))
 
   ;; change default
   (setq-default ediff-window-setup-function window-setup-func)
@@ -1332,7 +1343,7 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
   (if (featurep 'ediff-tbar)
       (progn
 	(or (ediff-window-display-p)
-	    (error "%sEmacs is not running as a window application"
+	    (user-error "%sEmacs is not running as a window application"
 		   (if (featurep 'emacs) "" "X")))
 	(if (ediff-use-toolbar-p)
 	    (ediff-kill-bottom-toolbar))
@@ -1387,7 +1398,7 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (if (not ediff-merge-with-ancestor-job)
-      (error "This command makes sense only when merging with an ancestor"))
+      (user-error "This command makes sense only when merging with an ancestor"))
   (setq ediff-show-clashes-only (not ediff-show-clashes-only))
   (if ediff-show-clashes-only
       (message "Focus on regions where both buffers differ from the ancestor")
@@ -1469,7 +1480,10 @@ Used in ediff-windows/regions only."
       (ediff-recenter 'no-rehighlight))
   (if (not (and (ediff-buffer-live-p ediff-buffer-A)
 		(ediff-buffer-live-p ediff-buffer-B)
-		(or (not ediff-3way-job) ediff-buffer-C)
+		(or (not ediff-3way-job) (ediff-buffer-live-p ediff-buffer-C))
+		(or (not ediff-merge-with-ancestor-job)
+                    (not ediff-show-ancestor)
+                    (ediff-buffer-live-p ediff-ancestor-buffer))
 		))
       (error ediff-KILLED-VITAL-BUFFER))
 
@@ -1477,11 +1491,15 @@ Used in ediff-windows/regions only."
 	 (wind-A ediff-window-A)
 	 (wind-B ediff-window-B)
 	 (wind-C ediff-window-C)
+	 (wind-Anc ediff-window-Ancestor)
 	 (coefA (ediff-get-region-size-coefficient 'A operation))
 	 (coefB (ediff-get-region-size-coefficient 'B operation))
 	 (three-way ediff-3way-job)
+         (with-Ancestor (and ediff-merge-with-ancestor-job ediff-show-ancestor))
 	 (coefC (if three-way
-		    (ediff-get-region-size-coefficient 'C operation))))
+		    (ediff-get-region-size-coefficient 'C operation)))
+         (coefAnc (if with-Ancestor
+                      (ediff-get-region-size-coefficient 'Ancestor operation))))
 
     (select-window wind-A)
     (condition-case nil
@@ -1497,10 +1515,15 @@ Used in ediff-windows/regions only."
 	  (condition-case nil
 	      (funcall operation (round (* coefC arg)))
 	    (error))))
+    (when with-Ancestor
+      (select-window wind-Anc)
+      (condition-case nil
+          (funcall operation (round (* coefAnc arg)))
+        (error)))
     (select-window wind)))
 
 (defun ediff-scroll-vertically (&optional arg)
-  "Vertically scroll buffers A, B \(and C if appropriate\).
+  "Vertically scroll buffers A, B (and C if appropriate).
 With optional argument ARG, scroll ARG lines; otherwise scroll by nearly
 the one half of the height of window-A."
   (interactive "P")
@@ -1513,6 +1536,9 @@ the one half of the height of window-A."
 		(ediff-buffer-live-p ediff-buffer-B)
 		(or (not ediff-3way-job)
 		    (ediff-buffer-live-p ediff-buffer-C))
+                (or (not ediff-merge-with-ancestor-job)
+                    (not ediff-show-ancestor)
+		    (ediff-buffer-live-p ediff-ancestor-buffer))
 		))
       (error ediff-KILLED-VITAL-BUFFER))
 
@@ -1532,6 +1558,10 @@ the one half of the height of window-A."
 			(window-height ediff-window-B)
 			(if ediff-3way-job
 			    (window-height ediff-window-C)
+			  500) ; some large number
+                        (if (and ediff-merge-with-ancestor-job
+                                 ediff-show-ancestor)
+			    (window-height ediff-window-Ancestor)
 			  500)) ; some large number
 		   2)
 		1 next-screen-context-lines))
@@ -1544,7 +1574,7 @@ the one half of the height of window-A."
 
 
 (defun ediff-scroll-horizontally (&optional arg)
-  "Horizontally scroll buffers A, B \(and C if appropriate\).
+  "Horizontally scroll buffers A, B (and C if appropriate).
 If an argument is given, that is how many columns are scrolled, else nearly
 the width of the A/B/C windows."
   (interactive "P")
@@ -1557,6 +1587,9 @@ the width of the A/B/C windows."
 		(ediff-buffer-live-p ediff-buffer-B)
 		(or (not ediff-3way-job)
 		    (ediff-buffer-live-p ediff-buffer-C))
+                (or (not ediff-merge-with-ancestor-job)
+                    (not ediff-show-ancestor)
+		    (ediff-buffer-live-p ediff-ancestor-buffer))
 		))
       (error ediff-KILLED-VITAL-BUFFER))
 
@@ -1588,7 +1621,10 @@ the width of the A/B/C windows."
 			  (if ediff-3way-comparison-job
 			      (window-width ediff-window-C)
 			    500) ; some large number
-			  )
+                          (if (and ediff-merge-with-ancestor-job
+                                   ediff-show-ancestor)
+                              (window-height ediff-window-Ancestor)
+                            500)) ; some large number
 		     2)
 		  3)))
 	 ;; window found
@@ -1643,8 +1679,8 @@ the width of the A/B/C windows."
   (or ctl-buf (setq ctl-buf ediff-control-buffer))
   (ediff-with-current-buffer ctl-buf
     (let* ((buf (ediff-get-buffer buf-type))
-	   (wind (eval (ediff-get-symbol-from-alist
-			buf-type ediff-window-alist)))
+	   (wind (symbol-value (ediff-get-symbol-from-alist
+                                buf-type ediff-window-alist)))
 	   (beg (window-start wind))
 	   (end (ediff-get-diff-posn buf-type 'end))
 	   lines)
@@ -1661,8 +1697,8 @@ the width of the A/B/C windows."
   (or ctl-buf (setq ctl-buf ediff-control-buffer))
   (ediff-with-current-buffer ctl-buf
     (let* ((buf (ediff-get-buffer buf-type))
-	   (wind (eval (ediff-get-symbol-from-alist
-			buf-type ediff-window-alist)))
+	   (wind (symbol-value (ediff-get-symbol-from-alist
+                                buf-type ediff-window-alist)))
 	   (end (or (window-end wind) (window-end wind t)))
 	   (beg (ediff-get-diff-posn buf-type 'beg diff-num)))
       (ediff-with-current-buffer buf
@@ -1690,6 +1726,11 @@ the width of the A/B/C windows."
 			       (funcall func 'B n ctl-buf)
 			       (if (ediff-buffer-live-p ediff-buffer-C)
 				   (funcall func 'C n ctl-buf)
+				 0)
+                               (if (and ediff-merge-with-ancestor-job
+                                        ediff-show-ancestor
+                                        (ediff-buffer-live-p ediff-ancestor-buffer))
+				   (funcall func 'Ancestor n ctl-buf)
 				 0))))
 	  ;; this covers the horizontal coefficient as well:
 	  ;; if max-lines = 0 then coef = 1
@@ -1749,7 +1790,7 @@ With a prefix argument, go forward that many differences."
 	(ediff-unselect-and-select-difference n)
 	) ; let
     (ediff-visible-region)
-    (error "At end of the difference list")))
+    (user-error "At end of the difference list")))
 
 (defun ediff-previous-difference (&optional arg)
   "Go to the previous difference.
@@ -1798,7 +1839,7 @@ With a prefix argument, go back that many differences."
 	(ediff-unselect-and-select-difference n)
 	) ; let
     (ediff-visible-region)
-    (error "At beginning of the difference list")))
+    (user-error "At beginning of the difference list")))
 
 ;; The diff number is as perceived by the user (i.e., 1+ the internal
 ;; representation)
@@ -1822,7 +1863,7 @@ If the prefix is negative, count differences from the end."
 
 (defun ediff-jump-to-difference-at-point (arg)
   "Go to difference closest to the point in buffer A, B, or C.
-The buffer depends on last command character \(a, b, or c\) that invoked this
+The buffer depends on last command character \(a, b, or c) that invoked this
 command.  For instance, if the command was `ga' then the point value in buffer
 A is used.
 With a prefix argument, synchronize all files around the current point position
@@ -1921,7 +1962,7 @@ in the specified buffer."
 ;;; Copying diffs.
 
 (defun ediff-diff-to-diff (arg &optional keys)
-  "Copy buffer-X'th difference region to buffer Y \(X,Y are A, B, or C\).
+  "Copy buffer-X'th difference region to buffer Y (X,Y are A, B, or C).
 If numerical prefix argument, copy the difference specified in the arg.
 Otherwise, copy the difference given by `ediff-current-difference'.
 This command assumes it is bound to a 2-character key sequence, `ab', `ba',
@@ -1986,7 +2027,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 
 
 
-;; Copy diff N from FROM-BUF-TYPE \(given as A, B or C\) to TO-BUF-TYPE.
+;; Copy diff N from FROM-BUF-TYPE (given as A, B or C) to TO-BUF-TYPE.
 ;; If optional DO-NOT-SAVE is non-nil, do not save the old value of the
 ;; target diff.  This is used in merging, when constructing the merged
 ;; version.
@@ -2065,7 +2106,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
       (message "%s" messg))
     ))
 
-;; Save Nth diff of buffer BUF-TYPE \(A, B, or C\).
+;; Save Nth diff of buffer BUF-TYPE (A, B, or C).
 ;; That is to say, the Nth diff on the `ediff-killed-diffs-alist'.  REG
 ;; is the region to save.  It is redundant here, but is passed anyway, for
 ;; convenience.
@@ -2117,7 +2158,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
     (if (cdr saved-rec)
 	(setq saved-diff (cdr saved-rec))
       (if (> ediff-number-of-differences 0)
-	  (error "Nothing saved for diff %d in buffer %S" (1+ n) buf-type)
+	  (user-error "Nothing saved for diff %d in buffer %S" (1+ n) buf-type)
 	(error ediff-NO-DIFFERENCES)))
 
     (setq reg-beg (ediff-get-diff-posn buf-type 'beg n ediff-control-buffer))
@@ -2385,10 +2426,10 @@ the number seen by the user."
   "Finish an Ediff session and exit Ediff.
 Unselects the selected difference, if any, restores the read-only and modified
 flags of the compared file buffers, kills Ediff buffers for this session
-\(but not buffers A, B, C\).
+\(but not buffers A, B, C).
 
 If `ediff-keep-variants' is nil, the user will be asked whether the buffers
-containing the variants should be removed \(if they haven't been modified\).
+containing the variants should be removed \(if they haven't been modified).
 If it is t, they will be preserved unconditionally.  A prefix argument,
 temporarily reverses the meaning of this variable."
   (interactive "P")
@@ -2440,7 +2481,9 @@ temporarily reverses the meaning of this variable."
   ;; restore buffer mode line id's in buffer-A/B/C
   (let ((control-buffer ediff-control-buffer)
 	(meta-buffer ediff-meta-buffer)
-	(after-quit-hook-internal ediff-after-quit-hook-internal)
+        ;; FIXME: Here we ignore the global part of the
+        ;; ediff-after-quit-hook-internal hook.
+        (after-quit-hook-internal (remq t ediff-after-quit-hook-internal))
 	(session-number ediff-meta-session-number)
 	;; suitable working frame
 	(warp-frame (if (and (ediff-window-display-p) (eq ediff-grab-mouse t))
@@ -2523,7 +2566,7 @@ temporarily reverses the meaning of this variable."
 			    (frame-selected-window warp-frame))
 			  2 1))
 
-  (run-hooks 'after-quit-hook-internal)
+  (mapc #'funcall after-quit-hook-internal)
   ))
 
 ;; Returns frame under mouse, if this frame is not a minibuffer
@@ -2624,7 +2667,9 @@ temporarily reverses the meaning of this variable."
 (defun ediff-janitor (ask keep-variants)
   "Kill buffers A, B, and, possibly, C, if these buffers aren't modified.
 In merge jobs, buffer C is not deleted here, but rather according to
-ediff-quit-merge-hook.
+`ediff-quit-merge-hook'.
+ASK non-nil means ask the user whether to keep each unmodified buffer, unless
+KEEP-VARIANTS is non-nil, in which case buffers are never killed.
 A side effect of cleaning up may be that you should be careful when comparing
 the same buffer in two separate Ediff sessions: quitting one of them might
 delete this buffer in another session as well."
@@ -3152,7 +3197,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	(setq f (expand-file-name
 		 (file-name-nondirectory default-file) f)))
     (if (and no-dirs (file-directory-p f))
-	(error "File %s is a directory" f))
+	(user-error "File %s is a directory" f))
     f))
 
 ;; If PREFIX is given, then it is used as a prefix for the temp file
@@ -3229,16 +3274,14 @@ Hit \\[ediff-recenter] to reset the windows afterward."
     file))
 
 
-;; Quote metacharacters (using \) when executing diff in Unix, but not in
-;; EMX OS/2
+;; Quote metacharacters (using \) when executing diff in Unix.
 ;;(defun ediff-protect-metachars (str)
-;;  (or (memq system-type '(emx))
-;;      (let ((limit 0))
-;;	(while (string-match ediff-metachars str limit)
-;;	  (setq str (concat (substring str 0 (match-beginning 0))
-;;			    "\\"
-;;			    (substring str (match-beginning 0))))
-;;	  (setq limit (1+ (match-end 0))))))
+;;  (let ((limit 0))
+;;    (while (string-match ediff-metachars str limit)
+;;      (setq str (concat (substring str 0 (match-beginning 0))
+;;			"\\"
+;;			(substring str (match-beginning 0))))
+;;      (setq limit (1+ (match-end 0)))))
 ;;  str)
 
 ;; Make sure the current buffer (for a file) has the same contents as the
@@ -3261,7 +3304,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		(error
 		 (beep)
 		 (message "Couldn't save %s" buffer-file-name)))
-	    (error "Buffer is out of sync for file %s" buffer-file-name))
+	    (user-error "Buffer is out of sync for file %s" buffer-file-name))
 	;; If buffer is not obsolete and is not modified, do nothing
 	nil)
     ;; If buffer is obsolete, offer to revert
@@ -3274,7 +3317,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	  (if file-magic
 	      (erase-buffer))
 	  (revert-buffer t t))
-      (error "Buffer out of sync for file %s" buffer-file-name))))
+      (user-error "Buffer out of sync for file %s" buffer-file-name))))
 
 ;; if there is another buffer visiting the file of the merge buffer, offer to
 ;; save and delete the buffer; else bark
@@ -3312,7 +3355,7 @@ and `wd' saves the diff output.
 
 With prefix argument, `wd' saves plain diff output.
 Without an argument, it saves customized diff argument, if available
-\(and plain output, if customized output was not generated\)."
+\(and plain output, if customized output was not generated)."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (ediff-compute-custom-diffs-maybe)
@@ -3329,7 +3372,7 @@ Without an argument, it saves customized diff argument, if available
 		    ediff-custom-diff-buffer)
 		   ((ediff-buffer-live-p ediff-diff-buffer)
 		    ediff-diff-buffer)
-		   (t (error "Output from `diff' not found"))))
+		   (t (user-error "Output from `diff' not found"))))
 	    )
     (let ((window-min-height 2))
       (save-buffer))))
@@ -3348,6 +3391,7 @@ Without an argument, it saves customized diff argument, if available
     (setq wind (ediff-get-visible-buffer-window cloned-buff))
     (select-window wind)
     (delete-other-windows)
+    (or (mark) (push-mark))
     (ediff-activate-mark)
     (split-window-vertically)
     (ediff-select-lowest-window)
@@ -3479,6 +3523,7 @@ Without an argument, it saves customized diff argument, if available
 (declare-function ediff-regions-internal "ediff"
 		  (buffer-a beg-a end-a buffer-b beg-b end-b
 			    startup-hooks job-name word-mode setup-parameters))
+(defvar zmacs-regions) ;;XEmacs'ism.
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.
@@ -3526,7 +3571,7 @@ Ediff Control Panel to restore highlighting."
 	   (while (cond ((memq answer possibilities)
 			 (setq possibilities (delq answer possibilities))
 			 (setq bufA
-			       (eval
+			       (symbol-value
 				(ediff-get-symbol-from-alist
 				 answer ediff-buffer-alist)))
 			 nil)
@@ -3545,7 +3590,7 @@ Ediff Control Panel to restore highlighting."
 	   (while (cond ((memq answer possibilities)
 			 (setq possibilities (delq answer possibilities))
 			 (setq bufB
-			       (eval
+			       (symbol-value
 				(ediff-get-symbol-from-alist
 				 answer ediff-buffer-alist)))
 			 nil)
@@ -3944,15 +3989,18 @@ Ediff Control Panel to restore highlighting."
 	(setq n (1+ n)))
       (format "%s<%d>%s" prefix n suffix))))
 
+(defvar reporter-prompt-for-summary-p)
 
 (defun ediff-submit-report ()
   "Submit bug report on Ediff."
   (interactive)
   (ediff-barf-if-not-control-buffer)
+  (defvar ediff-device-type)
+  (defvar ediff-buffer-name)
   (let ((reporter-prompt-for-summary-p t)
 	(ctl-buf ediff-control-buffer)
 	(ediff-device-type (ediff-device-type))
-	varlist salutation buffer-name)
+	varlist salutation ediff-buffer-name)
     (setq varlist '(ediff-diff-program ediff-diff-options
                     ediff-diff3-program ediff-diff3-options
 		    ediff-patch-program ediff-patch-options
@@ -3969,7 +4017,7 @@ Ediff Control Panel to restore highlighting."
 		    ediff-split-window-function
 		    ediff-job-name
 		    ediff-word-mode
-		    buffer-name
+		    ediff-buffer-name
 		    ediff-device-type
 		    ))
     (setq salutation "
@@ -4006,7 +4054,7 @@ interfaces to several other packages and runs under Emacs and XEmacs,
 byte-compilation may produce output like this:
 
        While compiling toplevel forms in file ediff.el:
-	 ** reference to free variable pm-color-alist
+	 ** reference to free variable zzz
 	   ........................
        While compiling the end of the data:
 	 ** The following functions are not known to be defined:
@@ -4024,7 +4072,7 @@ Mail anyway? (y or n) ")
 	(progn
 	  (if (ediff-buffer-live-p ctl-buf)
 	      (set-buffer ctl-buf))
-	  (setq buffer-name (buffer-name))
+	  (setq ediff-buffer-name (buffer-name))
 	  (require 'reporter)
 	  (reporter-submit-bug-report "kifer@cs.stonybrook.edu, bug-gnu-emacs@gnu.org"
 				      (ediff-version)

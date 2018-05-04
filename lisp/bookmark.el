@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -74,7 +74,7 @@ bookmark is to set this variable to 1 (or 0, which produces the same
 behavior.)
 
 To specify the file in which to save them, modify the variable
-`bookmark-default-file', which is `~/.emacs.bmk' by default."
+`bookmark-default-file'."
   :type '(choice (const nil) integer (other t))
   :group 'bookmark)
 
@@ -138,7 +138,7 @@ This is as opposed to inline text at the top of the buffer."
 
 (defconst bookmark-bmenu-inline-header-height 2
   "Number of lines used for the *Bookmark List* header
-\(only significant when `bookmark-bmenu-use-header-line' is nil\).")
+\(only significant when `bookmark-bmenu-use-header-line' is nil).")
 
 (defconst bookmark-bmenu-marks-width 2
   "Number of columns (chars) used for the *Bookmark List* marks column,
@@ -196,6 +196,7 @@ A non-nil value may result in truncated bookmark names."
 
 ;;;###autoload (define-key ctl-x-r-map "b" 'bookmark-jump)
 ;;;###autoload (define-key ctl-x-r-map "m" 'bookmark-set)
+;;;###autoload (define-key ctl-x-r-map "M" 'bookmark-set-no-overwrite)
 ;;;###autoload (define-key ctl-x-r-map "l" 'bookmark-bmenu-list)
 
 ;;;###autoload
@@ -204,6 +205,7 @@ A non-nil value may result in truncated bookmark names."
     ;; Read the help on all of these functions for details...
     (define-key map "x" 'bookmark-set)
     (define-key map "m" 'bookmark-set) ;"m"ark
+    (define-key map "M" 'bookmark-set-no-overwrite) ;"M"aybe mark
     (define-key map "j" 'bookmark-jump)
     (define-key map "g" 'bookmark-jump) ;"g"o
     (define-key map "o" 'bookmark-jump-other-window)
@@ -227,7 +229,7 @@ functions have a binding in this keymap.")
 
 ;;; Core variables and data structures:
 (defvar bookmark-alist ()
-  "Association list of bookmarks and their records.
+  "Association list of bookmark names and their parameters.
 Bookmark functions update the value automatically.
 You probably do NOT want to change the value yourself.
 
@@ -252,7 +254,7 @@ or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
   (annotation . ANNOTATION)
 
  FILENAME names the bookmarked file.
- POS is the bookmarked buffer position (position in the file).
+ POS is the bookmarked buffer position.
  STR-AFTER-POS is buffer text that immediately follows POS.
  STR-BEFORE-POS is buffer text that immediately precedes POS.
  ANNOTATION is a string that describes the bookmark.
@@ -260,11 +262,13 @@ or the deprecated form (BOOKMARK-NAME PARAM-ALIST).
    `bookmark-automatically-show-annotations'.
  HANDLER is a function that provides the bookmark-jump behavior for a
  specific kind of bookmark.  This is the case for Info bookmarks,
- for instance.  HANDLER must accept a bookmark as argument.")
+ for instance.  HANDLER must accept a bookmark as its single argument.")
 
 (defvar bookmarks-already-loaded nil
   "Non-nil if and only if bookmarks have been loaded from `bookmark-default-file'.")
 
+(defvar bookmark-file-coding-system nil
+  "The coding-system of the last loaded or saved bookmark file.")
 
 ;; more stuff added by db.
 
@@ -687,7 +691,7 @@ This expects to be called from `point-min' in a bookmark file."
   (let* ((old-list (bookmark-alist-from-buffer))
          (new-list (bookmark-upgrade-version-0-alist old-list)))
     (delete-region (point-min) (point-max))
-    (bookmark-insert-file-format-version-stamp)
+    (bookmark-insert-file-format-version-stamp buffer-file-coding-system)
     (pp new-list (current-buffer))
     (save-buffer))
   (goto-char (point-min))
@@ -724,11 +728,14 @@ This expects to be called from `point-min' in a bookmark file."
       (error "Bookmark file format version strangeness")))))
 
 
-(defun bookmark-insert-file-format-version-stamp ()
-  "Insert text indicating current version of bookmark file format."
+(defun bookmark-insert-file-format-version-stamp (coding)
+  "Insert text indicating current version of bookmark file format.
+CODING is the symbol of the coding-system in which the file is encoded."
+  (if (memq (coding-system-base coding) '(undecided prefer-utf-8))
+      (setq coding 'utf-8-emacs))
   (insert
-   (format ";;;; Emacs Bookmark Format Version %d ;;;;\n"
-           bookmark-file-format-version))
+   (format ";;;; Emacs Bookmark Format Version %d ;;;; -*- coding: %S -*- \n"
+           bookmark-file-format-version (coding-system-base coding)))
   (insert ";;; This format is meant to be slightly human-readable;\n"
           ";;; nevertheless, you probably don't want to edit it.\n"
           ";;; "
@@ -754,31 +761,19 @@ This expects to be called from `point-min' in a bookmark file."
     (define-key map "\C-w" 'bookmark-yank-word)
     map))
 
-;;;###autoload
-(defun bookmark-set (&optional name no-overwrite)
-  "Set a bookmark named NAME at the current location.
-If name is nil, then prompt the user.
+(defun bookmark-set-internal (prompt name overwrite-or-push)
+  "Interactively set a bookmark named NAME at the current location.
 
-With a prefix arg (non-nil NO-OVERWRITE), do not overwrite any
-existing bookmark that has the same name as NAME, but instead push the
-new bookmark onto the bookmark alist.  The most recently set bookmark
-with name NAME is thus the one in effect at any given time, but the
-others are still there, should the user decide to delete the most
-recent one.
+Begin the interactive prompt with PROMPT, followed by a space, a
+generated default name in parentheses, a colon and a space.
 
-To yank words from the text of the buffer and use them as part of the
-bookmark name, type C-w while setting a bookmark.  Successive C-w's
-yank successive words.
-
-Typing C-u inserts (at the bookmark name prompt) the name of the last
-bookmark used in the document where the new bookmark is being set;
-this helps you use a single bookmark name to track progress through a
-large document.  If there is no prior bookmark for this document, then
-C-u inserts an appropriate name based on the buffer or file.
-
-Use \\[bookmark-delete] to remove bookmarks (you give it a name and
-it removes only the first instance of a bookmark with that name from
-the list of bookmarks.)"
+If OVERWRITE-OR-PUSH is nil, then error if there is already a
+bookmark named NAME; if `overwrite', then replace any existing
+bookmark if there is one; if `push' then push the new bookmark
+onto the bookmark alist.  The `push' behavior means that among
+bookmarks named NAME, this most recently set one becomes the one in
+effect, but the others are still there, in order, if the topmost one
+is ever deleted."
   (interactive (list nil current-prefix-arg))
   (unwind-protect
        (let* ((record (bookmark-make-record))
@@ -807,12 +802,24 @@ the list of bookmarks.)"
          (let ((str
                 (or name
                     (read-from-minibuffer
-                     (format "Set bookmark (%s): " default)
+                     (format "%s (default: \"%s\"): " prompt default)
                      nil
                      bookmark-minibuffer-read-name-map
                      nil nil defaults))))
            (and (string-equal str "") (setq str default))
-           (bookmark-store str (cdr record) no-overwrite)
+
+           (cond
+            ((eq overwrite-or-push nil)
+             (if (bookmark-get-bookmark str t)
+                 (error "A bookmark named \"%s\" already exists." str)
+               (bookmark-store str (cdr record) nil)))
+            ((eq overwrite-or-push 'overwrite)
+             (bookmark-store str (cdr record) nil))
+            ((eq overwrite-or-push 'push)
+             (bookmark-store str (cdr record) t))
+            (t
+             (error "Unrecognized value for `overwrite-or-push': %S"
+                    overwrite-or-push)))
 
            ;; Ask for an annotation buffer for this bookmark
            (when bookmark-use-annotations
@@ -821,14 +828,76 @@ the list of bookmarks.)"
     (setq bookmark-current-buffer nil)))
 
 
+;;;###autoload
+(defun bookmark-set (&optional name no-overwrite)
+  "Set a bookmark named NAME at the current location.
+If NAME is nil, then prompt the user.
+
+With a prefix arg (non-nil NO-OVERWRITE), do not overwrite any
+existing bookmark that has the same name as NAME, but instead push the
+new bookmark onto the bookmark alist.  The most recently set bookmark
+with name NAME is thus the one in effect at any given time, but the
+others are still there, should the user decide to delete the most
+recent one.
+
+To yank words from the text of the buffer and use them as part of the
+bookmark name, type C-w while setting a bookmark.  Successive C-w's
+yank successive words.
+
+Typing C-u inserts (at the bookmark name prompt) the name of the last
+bookmark used in the document where the new bookmark is being set;
+this helps you use a single bookmark name to track progress through a
+large document.  If there is no prior bookmark for this document, then
+C-u inserts an appropriate name based on the buffer or file.
+
+Use \\[bookmark-delete] to remove bookmarks (you give it a name and
+it removes only the first instance of a bookmark with that name from
+the list of bookmarks.)"
+  (interactive (list nil current-prefix-arg))
+  (let ((prompt
+         (if no-overwrite "Set bookmark" "Set bookmark unconditionally")))
+    (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))
+
+;;;###autoload
+(defun bookmark-set-no-overwrite (&optional name push-bookmark)
+  "Set a bookmark named NAME at the current location.
+If NAME is nil, then prompt the user.
+
+If a bookmark named NAME already exists and prefix argument
+PUSH-BOOKMARK is non-nil, then push the new bookmark onto the
+bookmark alist.  Pushing it means that among bookmarks named
+NAME, this one becomes the one in effect, but the others are
+still there, in order, and become effective again if the user
+ever deletes the most recent one.
+
+Otherwise, if a bookmark named NAME already exists but PUSH-BOOKMARK
+is nil, raise an error.
+
+To yank words from the text of the buffer and use them as part of the
+bookmark name, type C-w while setting a bookmark.  Successive C-w's
+yank successive words.
+
+Typing C-u inserts (at the bookmark name prompt) the name of the last
+bookmark used in the document where the new bookmark is being set;
+this helps you use a single bookmark name to track progress through a
+large document.  If there is no prior bookmark for this document, then
+C-u inserts an appropriate name based on the buffer or file.
+
+Use \\[bookmark-delete] to remove bookmarks (you give it a name and
+it removes only the first instance of a bookmark with that name from
+the list of bookmarks.)"
+  (interactive (list nil current-prefix-arg))
+  (bookmark-set-internal "Set bookmark" name (if push-bookmark 'push nil)))
+
+
 (defun bookmark-kill-line (&optional newline-too)
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
   (let ((eol (line-end-position)))
     (delete-region (point) eol)
-    (if (and newline-too (looking-at "\n"))
-        (delete-char 1))))
+    (when (and newline-too (= (following-char) ?\n))
+      (delete-char 1))))
 
 
 ;; Defvars to avoid compilation warnings:
@@ -888,7 +957,7 @@ Lines beginning with `#' are ignored."
       (error "Not in bookmark-edit-annotation-mode"))
   (goto-char (point-min))
   (while (< (point) (point-max))
-    (if (looking-at "^#")
+    (if (= (following-char) ?#)
         (bookmark-kill-line t)
       (forward-line 1)))
   ;; Take no chances with text properties.
@@ -1353,20 +1422,30 @@ for a file, defaulting to the file defined by variable
   (with-current-buffer (get-buffer-create " *Bookmarks*")
     (goto-char (point-min))
     (delete-region (point-min) (point-max))
-    (let ((print-length nil)
+    (let ((coding-system-for-write
+           (or coding-system-for-write
+               bookmark-file-coding-system 'utf-8-emacs))
+          (print-length nil)
           (print-level nil)
           ;; See bug #12503 for why we bind `print-circle'.  Users
           ;; can define their own bookmark types, which can result in
           ;; arbitrary Lisp objects being stored in bookmark records,
           ;; and some users create objects containing circularities.
           (print-circle t))
-      (bookmark-insert-file-format-version-stamp)
       (insert "(")
       ;; Rather than a single call to `pp' we make one per bookmark.
       ;; Apparently `pp' has a poor algorithmic complexity, so this
       ;; scales a lot better.  bug#4485.
       (dolist (i bookmark-alist) (pp i (current-buffer)))
       (insert ")")
+      ;; Make sure the specified encoding can safely encode the
+      ;; bookmarks.  If it cannot, suggest utf-8-emacs as default.
+      (with-coding-priority '(utf-8-emacs)
+        (setq coding-system-for-write
+              (select-safe-coding-system (point-min) (point-max)
+                                         (list t coding-system-for-write))))
+      (goto-char (point-min))
+      (bookmark-insert-file-format-version-stamp coding-system-for-write)
       (let ((version-control
              (cond
               ((null bookmark-version-control) nil)
@@ -1376,6 +1455,7 @@ for a file, defaulting to the file defined by variable
         (condition-case nil
             (write-region (point-min) (point-max) file)
           (file-error (message "Can't write %s" file)))
+        (setq bookmark-file-coding-system coding-system-for-write)
         (kill-buffer (current-buffer))
         (bookmark-maybe-message
          "Saving bookmarks to file %s...done" file)))))
@@ -1417,9 +1497,9 @@ while loading.
 If you load a file that doesn't contain a proper bookmark alist, you
 will corrupt Emacs's bookmark list.  Generally, you should only load
 in files that were created with the bookmark functions in the first
-place.  Your own personal bookmark file, `~/.emacs.bmk', is
-maintained automatically by Emacs; you shouldn't need to load it
-explicitly.
+place.  Your own personal bookmark file, specified by the variable
+`bookmark-default-file', is maintained automatically by Emacs; you
+shouldn't need to load it explicitly.
 
 If you load a file containing bookmarks with the same names as
 bookmarks already present in your Emacs, the new bookmarks will get
@@ -1457,7 +1537,8 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
                     (expand-file-name bookmark-default-file))
                    file)
                   (setq bookmarks-already-loaded t))
-              (bookmark-bmenu-surreptitiously-rebuild-list))
+              (bookmark-bmenu-surreptitiously-rebuild-list)
+              (setq bookmark-file-coding-system buffer-file-coding-system))
           (error "Invalid bookmark list in %s" file)))
       (kill-buffer (current-buffer)))
     (if (null no-msg)
@@ -1983,7 +2064,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (let ((o-point  (point))
         (o-str    (save-excursion
                     (beginning-of-line)
-                    (unless (looking-at "^D")
+                    (unless (= (following-char) ?D)
                       (buffer-substring
                        (point)
                        (progn (end-of-line) (point))))))
@@ -2059,7 +2140,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
                            (current-buffer))))
           (read-string "Pattern: ")
           (when timer (cancel-timer timer) (setq timer nil)))
-      (when timer ;; Signalled an error or a `quit'.
+      (when timer ;; Signaled an error or a `quit'.
         (cancel-timer timer)
         (bookmark-bmenu-list)
         (bookmark-bmenu-goto-bookmark bmk)))))
@@ -2170,8 +2251,6 @@ strings returned are not."
   "Hook run at the end of loading library `bookmark.el'.")
 
 ;; Exit Hook, called from kill-emacs-hook
-(define-obsolete-variable-alias 'bookmark-exit-hooks
-  'bookmark-exit-hook "22.1")
 (defvar bookmark-exit-hook nil
   "Hook run when Emacs exits.")
 

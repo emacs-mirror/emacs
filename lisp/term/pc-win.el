@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2015 Free Software
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,7 +38,7 @@
 
 (if (not (fboundp 'msdos-remember-default-colors))
     (error "%s: Loading pc-win.el but not compiled for MS-DOS"
-	   (invocation-name)))
+	   invocation-name))
 
 (declare-function msdos-remember-default-colors "msdos.c")
 (declare-function w16-set-clipboard-data "w16select.c")
@@ -158,62 +158,59 @@ created."
 ;; a useful function for returning 'nil regardless of argument.
 
 ;; Note: Any re-definition in this file of a function that is defined
-;; in C on other platforms, should either have no doc-string, or one
-;; that is identical to the C version, but with the arglist signature
-;; at the end.  Otherwise help-split-fundoc gets confused on other
-;; platforms.  (Bug#10783)
+;; in C on other platforms, should either have a doc-string that
+;; starts with "SKIP", or one that is identical to the C version,
+;; but with the arglist signature at the end.  Otherwise
+;; help-split-fundoc gets confused on other platforms.  (Bug#10783)
 
-;; From src/xfns.c
 (defun x-list-fonts (_pattern &optional _face _frame _maximum width)
-  "Return a list of the names of available fonts matching PATTERN.
-If optional arguments FACE and FRAME are specified, return only fonts
-the same size as FACE on FRAME.
-
-PATTERN should be a string containing a font name in the XLFD,
-Fontconfig, or GTK format.  A font name given in the XLFD format may
-contain wildcard characters:
-  the * character matches any substring, and
-  the ? character matches any single character.
-  PATTERN is case-insensitive.
-
-The return value is a list of strings, suitable as arguments to
-`set-face-font'.
-
-Fonts Emacs can't use may or may not be excluded
-even if they match PATTERN and FACE.
-The optional fourth argument MAXIMUM sets a limit on how many
-fonts to match.  The first MAXIMUM fonts are reported.
-The optional fifth argument WIDTH, if specified, is a number of columns
-occupied by a character of a font.  In that case, return only fonts
-the WIDTH times as wide as FACE on FRAME."
+  "SKIP: real doc in xfaces.c."
   (if (or (null width) (and (numberp width) (= width 1)))
       (list "ms-dos")
     (list "no-such-font")))
-(defun x-display-pixel-width (&optional frame) (frame-width frame))
-(defun x-display-pixel-height (&optional frame) (frame-height frame))
-(defun x-display-planes (&optional _frame) 4) ;bg switched to 16 colors as well
-(defun x-display-color-cells (&optional _frame) 16)
-(defun x-server-max-request-size (&optional _frame) 1000000) ; ???
-(defun x-server-vendor (&optional _frame) t "GNU")
-(defun x-server-version (&optional _frame) '(1 0 0))
-(defun x-display-screens (&optional _frame) 1)
-(defun x-display-mm-height (&optional _frame) 245) ; Guess the size of my
-(defun x-display-mm-width (&optional _frame) 322)  ; monitor, EZ...
-(defun x-display-backing-store (&optional _frame) 'not-useful)
-(defun x-display-visual-class (&optional _frame) 'static-color)
+(defun x-display-pixel-width (&optional frame)
+  "SKIP: real doc in xfns.c."
+  (frame-width frame))
+(defun x-display-pixel-height (&optional frame)
+  "SKIP: real doc in xfns.c."
+  (frame-height frame))
+(defun x-display-planes (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  4) ;bg switched to 16 colors as well
+(defun x-display-color-cells (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  16)
+(defun x-server-max-request-size (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  1000000) ; ???
+(defun x-server-vendor (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  "GNU")
+(defun x-server-version (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  '(1 0 0))
+(defun x-display-screens (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  1)
+(defun x-display-mm-height (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  245) ; Guess the size of my...
+(defun x-display-mm-width (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  322)  ; ...monitor, EZ...
+(defun x-display-backing-store (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  'not-useful)
+(defun x-display-visual-class (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  'static-color)
 (fset 'x-display-save-under 'ignore)
 (fset 'x-get-resource 'ignore)
 
-;; From lisp/term/x-win.el
 (defvar x-display-name "pc"
-  "The name of the window display on which Emacs was started.
-On X, the display name of individual X frames is recorded in the
-`display' frame parameter.")
+  "SKIP: real doc in common-win.el.")
 (defvar x-colors (mapcar 'car msdos-color-values)
-  "List of basic colors available on color displays.
-For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
-For Nextstep, this is a list of non-PANTONE colors returned by
-the operating system.")
+  "SKIP: real doc in common-win.el.")
 
 ;; From lisp/term/w32-win.el
 ;
@@ -221,7 +218,7 @@ the operating system.")
 
 ;; gui-get-selection is used in select.el
 (cl-defmethod gui-backend-get-selection (_selection-symbol _target-type
-                                         &context (window-system (eql pc)))
+                                         &context (window-system pc))
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
   ;; Don't die if x-get-selection signals an error.
@@ -231,11 +228,11 @@ Consult the selection.  Treat empty strings as if they were unset."
 (declare-function w16-selection-exists-p "w16select.c")
 ;; gui-selection-owner-p is used in simple.el.
 (cl-defmethod gui-backend-selection-exists-p (selection
-                                              &context (window-system (eql pc)))
+                                              &context (window-system pc))
   (w16-selection-exists-p selection))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
-                                             &context (window-system (eql pc)))
+                                             &context (window-system pc))
   (w16-selection-owner-p selection))
 
 (defun w16-selection-owner-p (_selection)
@@ -258,12 +255,12 @@ Consult the selection.  Treat empty strings as if they were unset."
 (declare-function w16-set-clipboard-data "w16select.c"
 		  (string &optional ignored))
 (cl-defmethod gui-backend-set-selection (selection value
-                                         &context (window-system (eql pc)))
+                                         &context (window-system pc))
   (if (not value)
       (if (w16-selection-owner-p selection)
           t)
     ;; FIXME: Other systems don't obey
-    ;; gui-select-enable-clipboard here.
+    ;; select-enable-clipboard here.
     (with-demoted-errors "w16-set-clipboard-data: %S"
       (w16-set-clipboard-data value))
     value))
@@ -275,7 +272,7 @@ Consult the selection.  Treat empty strings as if they were unset."
 (fset 'iconify-or-deiconify-frame 'ignore)
 
 ;; From lisp/frame.el
-(fset 'set-default-font 'ignore)
+(fset 'set-frame-font 'ignore)
 (fset 'set-mouse-color 'ignore)		; We cannot, I think.
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.
@@ -333,7 +330,7 @@ Errors out because it is not supposed to be called, ever."
 	 (window-system)))
 
 ;; window-system-initialization is called by startup.el:command-line.
-(cl-defmethod window-system-initialization (&context (window-system (eql pc))
+(cl-defmethod window-system-initialization (&context (window-system pc)
                                             &optional _display)
   "Initialization function for the `pc' \"window system\"."
   (or (eq (window-system) 'pc)
@@ -377,16 +374,17 @@ Errors out because it is not supposed to be called, ever."
   (run-hooks 'terminal-init-msdos-hook))
 
 ;; frame-creation-function is called by frame.el:make-frame.
-(cl-defmethod frame-creation-function (params &context (window-system (eql pc)))
+(cl-defmethod frame-creation-function (params &context (window-system pc))
   (msdos-create-frame-with-faces params))
 
 ;; We don't need anything beyond tty-handle-args for handling
 ;; command-line argument; see startup.el.
-(cl-defmethod handle-args-function (args &context (window-system (eql pc)))
+(cl-defmethod handle-args-function (args &context (window-system pc))
   (tty-handle-args args))
 
 ;; ---------------------------------------------------------------------------
 
 (provide 'pc-win)
+(provide 'term/pc-win)
 
 ;;; pc-win.el ends here

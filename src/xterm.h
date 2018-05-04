@@ -1,13 +1,13 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2015 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef XTERM_H
 #define XTERM_H
@@ -38,18 +38,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/CoreP.h>		/* foul, but we need this to use our own
 				   window inside a widget instead of one
 				   that Xt creates... */
+#ifdef X_TOOLKIT_EDITRES
+#include <X11/Xmu/Editres.h>
+#endif
+
 typedef Widget xt_or_gtk_widget;
 #endif
 
 #ifdef USE_GTK
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
-
-/* Some definitions to reduce conditionals.  */
-typedef GtkWidget *xt_or_gtk_widget;
-#undef XSync
-#define XSync(d, b) do { gdk_window_process_all_updates (); \
-                         XSync (d, b);  } while (false)
 #endif /* USE_GTK */
 
 /* True iff GTK's version is at least I.J.K.  */
@@ -64,6 +62,19 @@ typedef GtkWidget *xt_or_gtk_widget;
 #  define GTK_CHECK_VERSION(i, j, k) false
 # endif
 #endif
+
+#ifdef USE_GTK
+/* Some definitions to reduce conditionals.  */
+typedef GtkWidget *xt_or_gtk_widget;
+#undef XSync
+/* gdk_window_process_all_updates is deprecated in GDK 3.22.  */
+#if GTK_CHECK_VERSION (3, 22, 0)
+#define XSync(d, b) do { XSync ((d), (b)); } while (false)
+#else
+#define XSync(d, b) do { gdk_window_process_all_updates (); \
+                         XSync (d, b);  } while (false)
+#endif
+#endif /* USE_GTK */
 
 /* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
 #if GTK_CHECK_VERSION (2, 14, 0)
@@ -85,6 +96,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 
 #ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>
+#endif
+
+#ifdef USE_XCB
+#include <X11/Xlib-xcb.h>
 #endif
 
 #include "dispextern.h"
@@ -151,6 +166,17 @@ struct x_gc_ext_data
   XRectangle clip_rects[MAX_CLIP_RECTS];
 };
 #endif
+
+
+struct color_name_cache_entry
+{
+  struct color_name_cache_entry *next;
+  XColor rgb;
+  char *name;
+};
+
+Status x_parse_color (struct frame *f, const char *color_name,
+		      XColor *color);
 
 
 /* For each X display, we have a structure that records
@@ -385,6 +411,9 @@ struct x_display_info
   struct xim_inst_t *xim_callback_data;
 #endif
 
+  /* A cache mapping color names to RGB values.  */
+  struct color_name_cache_entry *color_names;
+
   /* If non-null, a cache of the colors in the color map.  Don't
      use this directly, call x_color_cells instead.  */
   XColor *color_cells;
@@ -425,9 +454,9 @@ struct x_display_info
   /* Atoms dealing with EWMH (i.e. _NET_...) */
   Atom Xatom_net_wm_state, Xatom_net_wm_state_fullscreen,
     Xatom_net_wm_state_maximized_horz, Xatom_net_wm_state_maximized_vert,
-    Xatom_net_wm_state_sticky, Xatom_net_wm_state_hidden,
-    Xatom_net_frame_extents,
-    Xatom_net_current_desktop, Xatom_net_workarea;
+    Xatom_net_wm_state_sticky, Xatom_net_wm_state_above, Xatom_net_wm_state_below,
+    Xatom_net_wm_state_hidden, Xatom_net_wm_state_skip_taskbar,
+    Xatom_net_frame_extents, Xatom_net_current_desktop, Xatom_net_workarea;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -441,8 +470,21 @@ struct x_display_info
   /* SM */
   Atom Xatom_SM_CLIENT_ID;
 
+#ifdef HAVE_XRANDR
+  int xrandr_major_version;
+  int xrandr_minor_version;
+#endif
+
 #ifdef USE_CAIRO
   XExtCodes *ext_codes;
+#endif
+
+#ifdef USE_XCB
+  xcb_connection_t *xcb_connection;
+#endif
+
+#ifdef HAVE_XDBE
+  bool supports_xdbe;
 #endif
 };
 
@@ -460,6 +502,8 @@ extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
 extern bool x_display_ok (const char *);
 
 extern void select_visual (struct x_display_info *);
+
+extern Window tip_window;
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains
@@ -495,6 +539,16 @@ struct x_output
      May be zero while the frame object is being created
      and the X window has not yet been created.  */
   Window window_desc;
+
+  /* The drawable to which we're rendering.  In the single-buffered
+     base, the window itself.  In the double-buffered case, the
+     window's back buffer.  */
+  Drawable draw_desc;
+
+  /* Flag that indicates whether we've modified the back buffer and
+     need to publish our modifications to the front buffer at a
+     convenient time.  */
+  bool need_buffer_flip;
 
   /* The X window used for the bitmap icon;
      or 0 if we don't have a bitmap icon.  */
@@ -592,6 +646,14 @@ struct x_output
   Cursor horizontal_drag_cursor;
   Cursor vertical_drag_cursor;
   Cursor current_cursor;
+  Cursor left_edge_cursor;
+  Cursor top_left_corner_cursor;
+  Cursor top_edge_cursor;
+  Cursor top_right_corner_cursor;
+  Cursor right_edge_cursor;
+  Cursor bottom_right_corner_cursor;
+  Cursor bottom_edge_cursor;
+  Cursor bottom_left_corner_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display an hourglass cursor.  */
@@ -706,6 +768,24 @@ enum
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
 
+/* Return the drawable used for rendering to frame F.  */
+#define FRAME_X_RAW_DRAWABLE(f) ((f)->output_data.x->draw_desc)
+
+extern void x_mark_frame_dirty (struct frame *f);
+
+/* Return the drawable used for rendering to frame F and mark the
+   frame as needing a buffer flip later.  There's no easy way to run
+   code after any drawing command, but we can run code whenever
+   someone asks for the handle necessary to draw.  */
+#define FRAME_X_DRAWABLE(f)                             \
+  (x_mark_frame_dirty((f)), FRAME_X_RAW_DRAWABLE ((f)))
+
+#define FRAME_X_DOUBLE_BUFFERED_P(f)            \
+  (FRAME_X_WINDOW (f) != FRAME_X_RAW_DRAWABLE (f))
+
+/* Return the need-buffer-flip flag for frame F.  */
+#define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+
 /* Return the outermost X window associated with the frame F.  */
 #ifdef USE_X_TOOLKIT
 #define FRAME_OUTER_WINDOW(f) ((f)->output_data.x->widget ?             \
@@ -809,7 +889,7 @@ enum
 struct scroll_bar
 {
   /* These fields are shared by all vectors.  */
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;
@@ -1010,12 +1090,18 @@ XrmDatabase x_load_resources (Display *, const char *, const char *,
 
 /* Defined in xterm.c */
 
+typedef void (*x_special_error_handler)(Display *, XErrorEvent *, char *,
+					void *);
+
 extern bool x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
+extern void x_catch_errors_with_handler (Display *, x_special_error_handler,
+					 void *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
+extern void x_uncatch_errors_after_check (void);
 extern void x_clear_errors (Display *);
 extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
@@ -1071,10 +1157,42 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time t)
   dpyinfo->last_user_time = t;
 }
 
+INLINE unsigned long
+x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
+{
+  unsigned long pr, pg, pb;
+
+  /* Scale down RGB values to the visual's bits per RGB, and shift
+     them to the right position in the pixel color.  Note that the
+     original RGB values are 16-bit values, as usual in X.  */
+  pr = (r >> (16 - dpyinfo->red_bits))   << dpyinfo->red_offset;
+  pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
+  pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
+
+  /* Assemble the pixel color.  */
+  return pr | pg | pb;
+}
+
+/* If display has an immutable color map, freeing colors is not
+   necessary and some servers don't allow it, so we won't do it.  That
+   also allows us to make other optimizations relating to server-side
+   reference counts.  */
+INLINE bool
+x_mutable_colormap (Visual *visual)
+{
+  int class = visual->class;
+  return (class != StaticColor && class != StaticGray && class != TrueColor);
+}
+
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_skip_taskbar (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_z_group (struct frame *, Lisp_Object, Lisp_Object);
 extern bool x_wm_supports (struct frame *, Atom);
 extern void x_wait_for_event (struct frame *, int);
 extern void x_clear_under_internal_border (struct frame *f);
+
+extern void tear_down_x_back_buffer (struct frame *f);
+extern void initial_set_up_x_back_buffer (struct frame *f);
 
 /* Defined in xselect.c.  */
 

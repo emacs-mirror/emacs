@@ -1,6 +1,6 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994-1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -103,6 +103,14 @@ Each entry is a list with the following elements:
 			       (const :tag "False branch writable" nil)
 			       (const :tag "Both branches writable" both))))
   :group 'cpp)
+
+(defcustom cpp-message-min-time-interval 1.0
+  "Minimum time interval in seconds for `cpp-progress-message' messages.
+If nil, `cpp-progress-message' prints no progress messages."
+  :type '(choice (const :tag "Disable progress messages" nil)
+                 float)
+  :group 'cpp
+  :version "26.1")
 
 (defvar cpp-overlay-list nil)
 ;; List of cpp overlays active in the current buffer.
@@ -278,7 +286,7 @@ A prefix arg suppresses display of that buffer."
 			  (cpp-parse-close from to))
 			 (t
 			  (cpp-parse-error "Parser error"))))))))
-      (message "Parsing...done"))
+      (cpp-progress-message "Parsing...done"))
     (if cpp-state-stack
       (save-excursion
 	(goto-char (nth 3 (car cpp-state-stack)))
@@ -560,6 +568,14 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
     (set-window-start nil start)
     (goto-char pos)))
 
+(defun cpp-locate-user-emacs-file (file)
+  (locate-user-emacs-file
+   ;; Remove initial '.' from file.
+   (if (eq (aref file 0) ?.)
+       (substring file 1)
+     file)
+   file))
+
 (defun cpp-edit-load ()
   "Load cpp configuration."
   (interactive)
@@ -568,8 +584,8 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 	 nil)
 	((file-readable-p cpp-config-file)
 	 (load-file cpp-config-file))
-	((file-readable-p (concat "~/" cpp-config-file))
-	 (load-file cpp-config-file)))
+	((file-readable-p (cpp-locate-user-emacs-file cpp-config-file))
+	 (load-file (cpp-locate-user-emacs-file cpp-config-file))))
   (if (derived-mode-p 'cpp-edit-mode)
       (cpp-edit-reset)))
 
@@ -578,7 +594,10 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
   (interactive)
   (require 'pp)
   (with-current-buffer cpp-edit-buffer
-    (let ((buffer (find-file-noselect cpp-config-file)))
+    (let* ((config-file (if (file-writable-p cpp-config-file)
+                            cpp-config-file
+                          (cpp-locate-user-emacs-file cpp-config-file)))
+           (buffer (find-file-noselect config-file)))
       (set-buffer buffer)
       (erase-buffer)
       (pp (list 'setq 'cpp-known-face
@@ -593,7 +612,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 		(list 'quote cpp-unknown-writable)) buffer)
       (pp (list 'setq 'cpp-edit-list
 		(list 'quote cpp-edit-list)) buffer)
-      (write-file cpp-config-file))))
+      (write-file config-file))))
 
 (defun cpp-edit-home ()
   "Switch back to original buffer."
@@ -664,7 +683,7 @@ otherwise make them unwritable."
 
 (defun cpp-edit-write (symbol branch)
   "Set which branches of SYMBOL should be writable to BRANCH.
-BRANCH should be either nil (false branch), t (true branch) or 'both."
+BRANCH should be either nil (false branch), t (true branch) or `both'."
   (interactive (list (cpp-choose-symbol) (cpp-choose-branch)))
   (setcar (nthcdr 3 (cpp-edit-list-entry-get-or-create symbol)) branch)
   (cpp-edit-reset))
@@ -819,16 +838,21 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 ;;; Utilities:
 
-(defvar cpp-progress-time 0)
-;; Last time we issued a progress message.
+(defvar cpp-progress-time 0
+  "Last time `cpp-progress-message' issued a progress message.")
 
 (defun cpp-progress-message (&rest args)
-  ;; Report progress at most once a second.  Take same ARGS as `message'.
-  (let ((time (nth 1 (current-time))))
-    (if (= time cpp-progress-time)
-	()
-      (setq cpp-progress-time time)
-      (apply 'message args))))
+  "Report progress by printing messages used by \"cpp-\" functions.
+
+Print messages at most once every `cpp-message-min-time-interval' seconds.
+If that option is nil, don't prints messages.
+ARGS are the same as for `message'."
+  (when cpp-message-min-time-interval
+    (let ((time (current-time)))
+      (when (>= (float-time (time-subtract time cpp-progress-time))
+                cpp-message-min-time-interval)
+        (setq cpp-progress-time time)
+        (apply 'message args)))))
 
 (provide 'cpp)
 

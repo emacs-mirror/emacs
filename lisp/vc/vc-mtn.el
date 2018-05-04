@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -101,6 +101,10 @@ switches."
 (defun vc-mtn-find-admin-dir (file)
   "Return the administrative directory of FILE."
   (expand-file-name vc-mtn-admin-dir (vc-mtn-root file)))
+
+(defun vc-mtn-find-ignore-file (file)
+  "Return the mtn ignore file that controls FILE."
+  (expand-file-name ".mtnignore" (vc-mtn-root file)))
 
 (defun vc-mtn-registered (file)
   (let ((root (vc-mtn-root file)))
@@ -199,7 +203,7 @@ switches."
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
-(defun vc-mtn-checkin (files comment)
+(defun vc-mtn-checkin (files comment &optional _rev)
   (apply 'vc-mtn-command nil 0 files
 	 (nconc (list "commit" "-m")
 		(log-edit-extract-headers '(("Author" . "--author")
@@ -246,17 +250,17 @@ If LIMIT is non-nil, show no more than this many entries."
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append log-view-font-lock-keywords
                '(("^[ |]+Author: \\(.*\\)" (1 'change-log-email))
-                 ("^[ |]+Date: \\(.*\\)" (1 'change-log-date-face))))))
+                 ("^[ |]+Date: \\(.*\\)" (1 'change-log-date))))))
 
 ;; (defun vc-mtn-show-log-entry (revision)
 ;;   )
 
 (autoload 'vc-switches "vc")
 
-(defun vc-mtn-diff (files &optional rev1 rev2 buffer async)
+(defun vc-mtn-diff (files &optional rev1 rev2 buffer _async)
   "Get a difference report using monotone between two revisions of FILES."
   (apply 'vc-mtn-command (or buffer "*vc-diff*")
-	 (if async 'async 1)
+	 1 ; bug#21969
 	 files "diff"
          (append
            (vc-switches 'mtn 'diff)

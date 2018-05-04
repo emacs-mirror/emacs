@@ -1,6 +1,6 @@
 ;;; format-spec.el --- functions for formatting arbitrary formatting strings
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools
@@ -18,13 +18,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (defun format-spec (format specification)
   "Return a string based on FORMAT and SPECIFICATION.

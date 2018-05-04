@@ -1,6 +1,6 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
-;; Copyright (C) 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
 ;; Keywords: convenience scroll lock
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;    This mode allows multiple buffers to be 'locked' so that scrolling
@@ -33,7 +33,7 @@
 
 ;; Suggestions/ideas from:
 ;;    Rick Macdonald <rickm@vsl.com>
-;;    Anders Lindgren <andersl@csd.uu.se>
+;;    Anders Lindgren
 
 ;;; Code:
 

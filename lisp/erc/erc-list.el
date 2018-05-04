@@ -1,6 +1,6 @@
 ;;; erc-list.el --- /list support for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -55,7 +55,7 @@
 (defvar erc-list-server-buffer nil)
 
 ;; Define module:
-;;;###autoload (autoload 'erc-list-mode "erc-list")
+;;;###autoload(autoload 'erc-list-mode "erc-list")
 (define-erc-module list nil
   "List channels nicely in a separate buffer."
   ((remove-hook 'erc-server-321-functions 'erc-server-321-message)
@@ -145,7 +145,7 @@
   (erc-propertize title
 		  'column-number column
 		  'help-echo "mouse-1: sort by column"
-		  'mouse-face 'highlight
+		  'mouse-face 'header-line-highlight
 		  'keymap erc-list-menu-sort-button-map))
 
 (define-derived-mode erc-list-menu-mode special-mode "ERC-List"
@@ -225,7 +225,7 @@ to RFC and send the LIST header (#321) at start of list transmission."
 ;;; erc-list.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

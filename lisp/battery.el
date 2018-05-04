@@ -1,6 +1,6 @@
-;;; battery.el --- display battery status information  -*- coding: utf-8 -*-
+;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -18,14 +18,14 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; There is at present support for GNU/Linux, OS X and Windows.  This
+;; There is at present support for GNU/Linux, macOS and Windows.  This
 ;; library supports both the `/proc/apm' file format of Linux version
 ;; 1.3.58 or newer and the `/proc/acpi/' directory structure of Linux
-;; 2.4.20 and 2.6.  Darwin (OS X) is supported by using the `pmset'
+;; 2.4.20 and 2.6.  Darwin (macOS) is supported by using the `pmset'
 ;; program.  Windows is supported by the GetSystemPowerStatus API call.
 
 ;;; Code:
@@ -38,8 +38,18 @@
   :prefix "battery-"
   :group 'hardware)
 
-;; Either BATn or yeeloong-bat, basically.
-(defconst battery--linux-sysfs-regexp "[bB][aA][tT][0-9]?$")
+(defcustom battery-linux-sysfs-regexp "[bB][aA][tT][0-9]?$"
+  "Regexp for folder names to be searched under
+  /sys/class/power_supply/ that contain battery information."
+  :version "26.1"
+  :type 'regexp
+  :group 'battery)
+
+(defcustom battery-upower-device "battery_BAT1"
+  "Upower battery device name."
+  :version "26.1"
+  :type 'string
+  :group 'battery)
 
 (defcustom battery-status-function
   (cond ((and (eq system-type 'gnu/linux)
@@ -51,7 +61,7 @@
 	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/sys/class/power_supply/")
 	      (directory-files "/sys/class/power_supply/" nil
-                               battery--linux-sysfs-regexp))
+                               battery-linux-sysfs-regexp))
 	 #'battery-linux-sysfs)
 	((and (eq system-type 'berkeley-unix)
 	      (file-executable-p "/usr/sbin/apm"))
@@ -445,7 +455,7 @@ The following %-sequences are provided:
       (dolist (dir (ignore-errors
 		    (directory-files
 		     "/sys/class/power_supply/" t
-                     battery--linux-sysfs-regexp)))
+                     battery-linux-sysfs-regexp)))
 	(erase-buffer)
 	(ignore-errors (insert-file-contents
 			(expand-file-name "uevent" dir)))
@@ -532,6 +542,72 @@ The following %-sequences are provided:
                     (t "N/A"))))))
 
 
+(declare-function dbus-get-property "dbus.el"
+                  (bus service path interface property))
+
+;;; `upowerd' interface.
+(defsubst battery-upower-prop (pname &optional device)
+  (dbus-get-property
+   :system
+   "org.freedesktop.UPower"
+   (concat "/org/freedesktop/UPower/devices/" (or device battery-upower-device))
+   "org.freedesktop.UPower"
+   pname))
+
+(defun battery-upower ()
+  "Get battery status from dbus Upower interface.
+This function works only in systems with `upowerd' daemon
+running.
+
+The following %-sequences are provided:
+%c Current capacity (mWh)
+%p Battery load percentage
+%r Current rate
+%B Battery status (verbose)
+%L AC line status (verbose)
+%s Remaining time (to charge or discharge) in seconds
+%m Remaining time (to charge or discharge) in minutes
+%h Remaining time (to charge or discharge) in hours
+%t Remaining time (to charge or discharge) in the form `h:min'"
+  (let ((percents (battery-upower-prop "Percentage"))
+        (time-to-empty (battery-upower-prop "TimeToEmpty"))
+        (time-to-full (battery-upower-prop "TimeToFull"))
+        (state (battery-upower-prop "State"))
+        (online (battery-upower-prop "Online" "line_power_ACAD"))
+        (energy (battery-upower-prop "Energy"))
+        (energy-rate (battery-upower-prop "EnergyRate"))
+        (battery-states '((0 . "unknown") (1 . "charging")
+                          (2 . "discharging") (3 . "empty")
+                          (4 . "fully-charged") (5 . "pending-charge")
+                          (6 . "pending-discharge")))
+        seconds minutes hours remaining-time)
+    (cond ((and online time-to-full)
+           (setq seconds time-to-full))
+          ((and (not online) time-to-empty)
+           (setq seconds time-to-empty)))
+    (when seconds
+      (setq minutes (/ seconds 60)
+            hours (/ minutes 60)
+            remaining-time
+            (format "%d:%02d" (truncate hours)
+                    (- (truncate minutes) (* 60 (truncate hours))))))
+    (list (cons ?c (or (and energy
+                            (number-to-string (round (* 1000 energy))))
+                       "N/A"))
+          (cons ?p (or (and percents (number-to-string (round percents)))
+                       "N/A"))
+          (cons ?r (or (and energy-rate
+                            (concat (number-to-string energy-rate) " W"))
+                       "N/A"))
+          (cons ?B (or (and state (cdr (assoc state battery-states)))
+                       "unknown"))
+          (cons ?L (or (and online "on-line") "off-line"))
+          (cons ?s (or (and seconds (number-to-string seconds)) "N/A"))
+          (cons ?m (or (and minutes (number-to-string minutes)) "N/A"))
+          (cons ?h (or (and hours (number-to-string hours)) "N/A"))
+          (cons ?t (or remaining-time "N/A")))))
+
+
 ;;; `apm' interface for BSD.
 (defun battery-bsd-apm ()
   "Get APM status information from BSD apm binary.
@@ -600,7 +676,7 @@ The following %-sequences are provided:
 	  (cons ?t (or remaining-time "N/A")))))
 
 
-;;; `pmset' interface for Darwin (OS X).
+;;; `pmset' interface for Darwin (macOS).
 
 (defun battery-pmset ()
   "Get battery status information using `pmset'.
@@ -621,19 +697,19 @@ The following %-sequences are provided:
       (goto-char (point-min))
       (when (re-search-forward "\\(?:Currentl?y\\|Now\\) drawing from '\\(AC\\|Battery\\) Power'" nil t)
 	(setq power-source (match-string 1))
-	(when (re-search-forward "^ -InternalBattery-0[ \t]+" nil t)
+	(when (re-search-forward "^ -InternalBattery-0\\([ \t]+(id=[0-9]+)\\)*[ \t]+" nil t)
 	  (when (looking-at "\\([0-9]\\{1,3\\}\\)%")
 	    (setq load-percentage (match-string 1))
 	    (goto-char (match-end 0))
 	    (cond ((looking-at "; charging")
 		   (setq battery-status "charging"
 			 battery-status-symbol "+"))
-		  ((< (string-to-number load-percentage) battery-load-low)
-		   (setq battery-status "low"
-			 battery-status-symbol "-"))
 		  ((< (string-to-number load-percentage) battery-load-critical)
 		   (setq battery-status "critical"
 			 battery-status-symbol "!"))
+		  ((< (string-to-number load-percentage) battery-load-low)
+		   (setq battery-status "low"
+			 battery-status-symbol "-"))
 		  (t
 		   (setq battery-status "high"
 			 battery-status-symbol "")))

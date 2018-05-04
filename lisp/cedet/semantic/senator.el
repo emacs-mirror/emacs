@@ -1,6 +1,6 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -530,11 +530,11 @@ Some tags such as includes have other reference features."
        ;; A tag
        ((semantic-tag-p result)
 	(semantic-go-to-tag result)
-	(switch-to-buffer (current-buffer))
+        (pop-to-buffer-same-window (current-buffer))
 	(semantic-momentary-highlight-tag result))
        ;; Buffers
        ((bufferp result)
-	(switch-to-buffer result)
+        (pop-to-buffer-same-window result)
 	(pulse-momentary-highlight-one-line (point)))
        ;; Files
        ((and (stringp result) (file-exists-p result))
@@ -659,7 +659,7 @@ Use semantic tags to navigate."
         (end    (progn (senator-end-of-defun) (point)))
         (start  (progn (senator-beginning-of-defun) (point))))
     (goto-char origin)
-    (push-mark (point))
+    (push-mark)
     (goto-char end) ;; end-of-defun
     (push-mark (point) nil t)
     (goto-char start) ;; beginning-of-defun
@@ -803,7 +803,7 @@ if available."
   (setq isearch-adjusted t)
   (isearch-update))
 
-;; Recent versions of GNU Emacs allow to override the isearch search
+;; Recent versions of GNU Emacs allow overriding the isearch search
 ;; function for special needs, and avoid to advice the built-in search
 ;; function :-)
 (defun senator-isearch-search-fun ()
@@ -813,7 +813,7 @@ Use a senator search function when semantic isearch mode is enabled."
    (concat (if senator-isearch-semantic-mode
                "senator-"
              "")
-           (cond (isearch-word "word-")
+           (cond (isearch-regexp-function "word-")
                  (isearch-regexp "re-")
                  (t ""))
            "search-"

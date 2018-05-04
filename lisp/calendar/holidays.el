@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2015 Free Software
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -346,9 +346,10 @@ The holidays are those in the list `calendar-holidays'."
                          (eval p)
                        (error
                         (display-warning
-                         :error
+                         'holidays
                          (format "Bad holiday list item: %s\nError: %s\n"
-                                 p err))
+                                 p err)
+                         :error)
                         nil))))
            (setq res (append h res))))
      'calendar-date-compare)))
@@ -398,7 +399,7 @@ use instead of point."
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a init file."
+This function is suitable for execution in an init file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
@@ -521,7 +522,6 @@ strings describing those holidays that apply on DATE, or nil if none do."
           (setq holiday-list (append holiday-list (cdr h)))))))
 
 
-;; Formerly cal-tex-list-holidays.
 (defun holiday-in-range (d1 d2)
   "Generate a list of all holidays in range from absolute date D1 to D2."
   (let* ((start (calendar-gregorian-from-absolute d1))
@@ -822,9 +822,5 @@ arguments, it returns the date of Pascha (Greek Orthodox Easter)."
 	(list (list greg (or string "Pascha (Greek Orthodox Easter)"))))))
 
 (provide 'holidays)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; holidays.el ends here

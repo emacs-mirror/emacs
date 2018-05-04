@@ -31,8 +31,8 @@ Con@TeX{}t
 @include emacsver.texi
 
 @set VERSION @value{EMACSVER}
-@set AUCTEXSITE @uref{http://www.gnu.org/software/auctex/,@AUCTeX{} web site}
-@set MAINTAINERSITE @uref{http://www.gnu.org/software/auctex/reftex.html,@RefTeX{} web page}
+@set AUCTEXSITE @uref{https://www.gnu.org/software/auctex/,@AUCTeX{} web site}
+@set MAINTAINERSITE @uref{https://www.gnu.org/software/auctex/reftex.html,@RefTeX{} web page}
 @set MAINTAINERCONTACT @uref{mailto:auctex-devel@@gnu.org,contact the maintainers}
 @set MAINTAINER the @AUCTeX{} project
 @set SUPPORTADDRESS @AUCTeX{} user mailing list (@email{auctex@@gnu.org})
@@ -46,7 +46,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1710,8 +1710,8 @@ customizing @code{reftex-ref-macro-prompt} and relying only on the
 selection facilities provided in the last step.
 
 In the last step, i.e., the label selection, two key bindings are
-provided to set the reference macro.  Type @key{v} in order to cycle
-forward through the list of available macros or @key{V} to cycle
+provided to set the reference macro.  Type @kbd{v} in order to cycle
+forward through the list of available macros or @kbd{V} to cycle
 backward.  The mode line of the selection buffer shows the macro
 currently selected.
 
@@ -1732,8 +1732,8 @@ seems inconvenient to you.@footnote{You could, e.g., bind
 @cindex LaTeX packages, @code{varioref}
 @cindex @code{fancyref}, LaTeX package
 @cindex LaTeX packages, @code{fancyref}
-@vindex reftex-vref-is-default (deprecated)
-@vindex reftex-fref-is-default (deprecated)
+@vindex reftex-vref-is-default @r{(deprecated)}
+@vindex reftex-fref-is-default @r{(deprecated)}
 In former versions of @RefTeX{} only support for @code{varioref} and
 @code{fancyref} was included.  @code{varioref} is a @LaTeX{} package to
 create cross-references with page information.  @code{fancyref} is a
@@ -2893,6 +2893,9 @@ default.  If you want to have these key bindings available, set in your
 (setq reftex-extra-bindings t)
 @end lisp
 
+Note that this variable has to be set before @RefTeX{} is loaded to
+have an effect.
+
 @vindex reftex-load-hook
 Changing and adding to @RefTeX{}'s key bindings is best done in the hook
 @code{reftex-load-hook}.  For information on the keymaps
@@ -3292,11 +3295,11 @@ The following list describes the individual parts of the interface.
 @itemize @bullet
 @item
 @findex reftex-label
-@vindex LaTeX-label-function, @r{AUCTeX}
+@vindex LaTeX-label-function@r{, AUCTeX}
 @kindex C-c C-e
 @kindex C-c C-s
-@findex LaTeX-section, @r{AUCTeX}
-@findex TeX-insert-macro, @r{AUCTeX}
+@findex LaTeX-section@r{, AUCTeX}
+@findex TeX-insert-macro@r{, AUCTeX}
 @b{@AUCTeX{} calls @code{reftex-label} to insert labels}@*
 When a new section is created with @kbd{C-c C-s}, or a new environment
 is inserted with @kbd{C-c C-e}, @AUCTeX{} normally prompts for a label to
@@ -3324,15 +3327,15 @@ have to rescan the buffer in order to see it.
 
 @item
 @findex reftex-arg-label
-@findex TeX-arg-label, @r{AUCTeX function}
+@findex TeX-arg-label@r{, AUCTeX function}
 @findex reftex-arg-ref
-@findex TeX-arg-ref, @r{AUCTeX function}
+@findex TeX-arg-ref@r{, AUCTeX function}
 @findex reftex-arg-cite
-@findex TeX-arg-cite, @r{AUCTeX function}
+@findex TeX-arg-cite@r{, AUCTeX function}
 @findex reftex-arg-index
-@findex TeX-arg-index, @r{AUCTeX function}
-@findex TeX-insert-macro, @r{AUCTeX function}
-@kindex C-c @key{RET}
+@findex TeX-arg-index@r{, AUCTeX function}
+@findex TeX-insert-macro@r{, AUCTeX function}
+@kindex C-c RET
 @b{@RefTeX{} supplies macro arguments}@* When you insert a macro
 interactively with @kbd{C-c @key{RET}}, @AUCTeX{} normally prompts for
 macro arguments.  Internally, it uses the functions
@@ -3354,7 +3357,7 @@ Labels}).
 @node Style Files
 @subsection Style Files
 @cindex Style files, AUCTeX
-@findex TeX-add-style-hook, @r{AUCTeX}
+@findex TeX-add-style-hook@r{, AUCTeX}
 Style files are Emacs Lisp files which are evaluated by @AUCTeX{} in
 association with the @code{\documentclass} and @code{\usepackage}
 commands of a document (@pxref{Style Files,,,auctex}). Support for
@@ -3393,7 +3396,7 @@ style file of @AUCTeX{} for example contains the following:
 @end lisp
 
 @noindent
-@findex LaTeX-add-environments, @r{AUCTeX}
+@findex LaTeX-add-environments@r{, AUCTeX}
 while a package @code{myprop} defining a @code{proposition} environment
 with @code{\newtheorem} might use
 
@@ -5210,7 +5213,7 @@ mouse    @r{Highlighting is mouse driven.}
 both     @r{Both cursor and mouse trigger highlighting.}
 @end example
 
-Changing this variable requires to rebuild the selection and *toc*
+Changing this variable requires rebuilding the selection and *toc*
 buffers to become effective (keys @kbd{g} or @kbd{r}).
 @end defopt
 
@@ -5418,8 +5421,8 @@ after words.  Disabled indexing in comment lines.
 New command @code{reftex-create-bibtex-file} to create a new database
 with all entries referenced in the current document.
 @item
-New keys @kbd{e} and @kbd{E} allow to produce a BibTeX database file
-from entries marked in a citation selection buffer.
+New keys @kbd{e} and @kbd{E} allow you to produce a BibTeX database
+file from entries marked in a citation selection buffer.
 @end itemize
 
 @noindent @b{Version 4.21}
@@ -5607,8 +5610,8 @@ demand.
 @item
 Index support, along with many new options.
 @item
-The selection of keys for @code{\ref} and @code{\cite} now allows to
-select multiple items by marking entries with the @kbd{m} key.
+The selection of keys for @code{\ref} and @code{\cite} now allows you
+to select multiple items by marking entries with the @kbd{m} key.
 @item
 Fancyref support.
 @end itemize

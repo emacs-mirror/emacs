@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2015 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -23,7 +23,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -188,6 +188,13 @@ space (this means characters from ! to ~; or from code 33 to
   :group 'server
   :type 'hook)
 
+(defcustom server-after-make-frame-hook nil
+  "Hook run when the Emacs server creates a client frame.
+The created frame is selected when the hook is called."
+  :group 'server
+  :type 'hook
+  :version "27.1")
+
 (defcustom server-done-hook nil
   "Hook run when done editing a buffer for the Emacs server."
   :group 'server
@@ -245,17 +252,22 @@ in this way."
   :type 'boolean
   :version "21.1")
 
-;; FIXME? This is not a minor mode; what's the point of this?  (See bug#20201)
-(or (assq 'server-buffer-clients minor-mode-alist)
-    (push '(server-buffer-clients " Server") minor-mode-alist))
-
 (defvar server-existing-buffer nil
   "Non-nil means the buffer existed before the server was asked to visit it.
 This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
-(defcustom server-name "server"
+(defvar server--external-socket-initialized nil
+  "When an external socket is passed into Emacs, we need to call
+`server-start' in order to initialize the connection.  This flag
+prevents multiple initializations when an external socket has
+been consumed.")
+
+(defcustom server-name
+  (if internal--daemon-sockname
+      (file-name-nondirectory internal--daemon-sockname)
+    "server")
   "The name of the Emacs server, if this Emacs process creates one.
 The command `server-start' makes use of this.  It should not be
 changed while a server is running."
@@ -266,8 +278,10 @@ changed while a server is running."
 ;; We do not use `temporary-file-directory' here, because emacsclient
 ;; does not read the init file.
 (defvar server-socket-dir
-  (and (featurep 'make-network-process '(:family local))
-       (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid)))
+  (if internal--daemon-sockname
+      (file-name-directory internal--daemon-sockname)
+    (and (featurep 'make-network-process '(:family local))
+         (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))))
   "The directory in which to place the server socket.
 If local sockets are not supported, this is nil.")
 
@@ -528,30 +542,38 @@ Creates the directory if necessary and makes sure:
     ;; Check that it's safe for use.
     (let* ((uid (nth 2 attrs))
 	   (w32 (eq system-type 'windows-nt))
-	   (safe (cond
-		  ((not (eq t (car attrs))) nil)  ; is a dir?
-		  ((and w32 (zerop uid))	  ; on FAT32?
-		   (display-warning
-		    'server
-		    (format-message "\
+           (unsafe (cond
+                    ((not (eq t (car attrs)))
+                     (if (null attrs) "its attributes can't be checked"
+                       (format "it is a %s"
+                               (if (stringp (car attrs))
+                                   "symlink" "file"))))
+                    ((and w32 (zerop uid)) ; on FAT32?
+                     (display-warning
+                      'server
+                      (format-message "\
 Using `%s' to store Emacs-server authentication files.
 Directories on FAT32 filesystems are NOT secure against tampering.
 See variable `server-auth-dir' for details."
-			    (file-name-as-directory dir))
-		    :warning)
-		   t)
-		  ((and (/= uid (user-uid))	  ; is the dir ours?
-			(or (not w32)
-			    ;; Files created on Windows by Administrator
-			    ;; (RID=500) have the Administrators (RID=544)
-			    ;; group recorded as the owner.
-			    (/= uid 544) (/= (user-uid) 500)))
-		   nil)
-		  (w32 t)			  ; on NTFS?
-		  (t				  ; else, check permissions
-		   (zerop (logand ?\077 (file-modes dir)))))))
-      (unless safe
-	(error "The directory `%s' is unsafe" dir)))))
+                                      (file-name-as-directory dir))
+                      :warning)
+                     nil)
+                    ((and (/= uid (user-uid)) ; is the dir ours?
+                          (or (not w32)
+                              ;; Files created on Windows by Administrator
+                              ;; (RID=500) have the Administrators (RID=544)
+                              ;; group recorded as the owner.
+                              (/= uid 544) (/= (user-uid) 500)))
+                     (format "it is not owned by you (owner = %s (%d))"
+                             (user-full-name uid) uid))
+                    (w32 nil)           ; on NTFS?
+                    ((/= 0 (logand ?\077 (file-modes dir)))
+                     (format "it is accessible by others (%03o)"
+                             (file-modes dir)))
+                    (t nil))))
+      (when unsafe
+        (error "`%s' is not a safe directory because %s"
+               (expand-file-name dir) unsafe)))))
 
 (defun server-generate-key ()
   "Generate and return a random authentication key.
@@ -613,23 +635,29 @@ To force-start a server, do \\[server-force-delete] and then
       (when server-process
 	;; kill it dead!
 	(ignore-errors (delete-process server-process)))
-      ;; Delete the socket files made by previous server invocations.
-      (if (not (eq t (server-running-p server-name)))
-	  ;; Remove any leftover socket or authentication file
-	  (ignore-errors
-	    (let (delete-by-moving-to-trash)
-	      (delete-file server-file)))
-	(setq server-mode nil) ;; already set by the minor mode code
-	(display-warning
-	 'server
-	 (concat "Unable to start the Emacs server.\n"
-		 (format "There is an existing Emacs server, named %S.\n"
-			 server-name)
-		 (substitute-command-keys
-                  "To start the server in this Emacs process, stop the existing
+      ;; Check to see if an uninitialized external socket has been
+      ;; passed in, if that is the case, skip checking
+      ;; `server-running-p' as this will return the wrong result.
+      (if (and internal--daemon-sockname
+               (not server--external-socket-initialized))
+          (setq server--external-socket-initialized t)
+        ;; Delete the socket files made by previous server invocations.
+        (if (not (eq t (server-running-p server-name)))
+           ;; Remove any leftover socket or authentication file.
+           (ignore-errors
+             (let (delete-by-moving-to-trash)
+               (delete-file server-file)))
+         (setq server-mode nil) ;; already set by the minor mode code
+         (display-warning
+          'server
+          (concat "Unable to start the Emacs server.\n"
+                  (format "There is an existing Emacs server, named %S.\n"
+                          server-name)
+                  (substitute-command-keys
+                    "To start the server in this Emacs process, stop the existing
 server or call `\\[server-force-delete]' to forcibly disconnect it."))
-	 :warning)
-	(setq leave-dead t))
+          :warning)
+         (setq leave-dead t)))
       ;; If this Emacs already had a server, clear out associated status.
       (while server-clients
 	(server-delete-client (car server-clients)))
@@ -647,7 +675,12 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	  (add-hook 'kill-emacs-query-functions
                     'server-kill-emacs-query-function)
-	  (add-hook 'kill-emacs-hook 'server-force-stop) ;Cleanup upon exit.
+          ;; We put server's kill-emacs-hook after the others, so that
+          ;; frames are not deleted too early, because doing that
+          ;; would severely degrade our abilities to communicate with
+          ;; the user, while some hooks may wish to ask the user
+          ;; questions (e.g., desktop-kill).
+	  (add-hook 'kill-emacs-hook 'server-force-stop t) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
 		       :name server-name
@@ -655,6 +688,7 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 		       :noquery t
 		       :sentinel #'server-sentinel
 		       :filter #'server-process-filter
+		       :use-external-socket t
 		       ;; We must receive file names without being decoded.
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
@@ -782,7 +816,7 @@ This handles splitting the command if it would be bigger than
       ;; We have to split the string
       (setq part (substring qtext 0 (- server-msg-size (length prefix) 1)))
       ;; Don't split in the middle of a quote sequence
-      (if (string-match "\\(^\\|[^&]\\)\\(&&\\)+$" part)
+      (if (string-match "\\(^\\|[^&]\\)&\\(&&\\)*$" part)
 	  ;; There is an uneven number of & at the end
 	  (setq part (substring part 0 -1)))
       (setq qtext (substring qtext (length part)))
@@ -1050,9 +1084,8 @@ The following commands are accepted by the client:
           ;; supported any more.
           (cl-assert (eq (match-end 0) (length string)))
 	  (let ((request (substring string 0 (match-beginning 0)))
-		(coding-system (and (default-value 'enable-multibyte-characters)
-				    (or file-name-coding-system
-					default-file-name-coding-system)))
+		(coding-system (or file-name-coding-system
+				   default-file-name-coding-system))
 		nowait     ; t if emacsclient does not want to wait for us.
 		frame      ; Frame opened for the client (if any).
 		display    ; Open frame on this display.
@@ -1066,7 +1099,8 @@ The following commands are accepted by the client:
 		tty-type   ; string.
 		files
 		filepos
-		args-left)
+		args-left
+                create-frame-func)
 	    ;; Remove this line from STRING.
 	    (setq string (substring string (match-end 0)))
 	    (setq args-left
@@ -1172,7 +1206,7 @@ The following commands are accepted by the client:
                    ;; Allow Cygwin's emacsclient to be used as a file
                    ;; handler on MS-Windows, in which case FILENAME
                    ;; might start with a drive letter.
-                   (when (and (eq system-type 'cygwin)
+                   (when (and (fboundp 'cygwin-convert-file-name-from-windows)
                               (string-match "\\`[A-Za-z]:" file))
                      (setq file (cygwin-convert-file-name-from-windows file)))
                    (setq file (expand-file-name file dir))
@@ -1218,28 +1252,29 @@ The following commands are accepted by the client:
 		 (or files commands)
 		 (setq use-current-frame t))
 
-	    (setq frame
-		  (cond
-		   ((and use-current-frame
-			 (or (eq use-current-frame 'always)
-			     ;; We can't use the Emacs daemon's
-			     ;; terminal frame.
-			     (not (and (daemonp)
-				       (null (cdr (frame-list)))
-				       (eq (selected-frame)
-					   terminal-frame)))))
-		    (setq tty-name nil tty-type nil)
-		    (if display (server-select-display display)))
-		   ((or (and (eq system-type 'windows-nt)
-			     (daemonp)
-			     (setq display "w32"))
-		        (eq tty-name 'window-system))
-		    (server-create-window-system-frame display nowait proc
-						       parent-id
-						       frame-parameters))
-		   ;; When resuming on a tty, tty-name is nil.
-		   (tty-name
-		    (server-create-tty-frame tty-name tty-type proc))))
+	    (setq create-frame-func
+                  (lambda ()
+		    (cond
+		     ((and use-current-frame
+			   (or (eq use-current-frame 'always)
+			       ;; We can't use the Emacs daemon's
+			       ;; terminal frame.
+			       (not (and (daemonp)
+				         (null (cdr (frame-list)))
+				         (eq (selected-frame)
+					     terminal-frame)))))
+		      (setq tty-name nil tty-type nil)
+		      (if display (server-select-display display)))
+		     ((or (and (eq system-type 'windows-nt)
+			       (daemonp)
+			       (setq display "w32"))
+		          (eq tty-name 'window-system))
+		      (server-create-window-system-frame display nowait proc
+						    parent-id
+						    frame-parameters))
+		     ;; When resuming on a tty, tty-name is nil.
+		     (tty-name
+		      (server-create-tty-frame tty-name tty-type proc)))))
 
             (process-put
              proc 'continuation
@@ -1251,7 +1286,7 @@ The following commands are accepted by the client:
                          (if (and dir (file-directory-p dir))
                              dir default-directory)))
                    (server-execute proc files nowait commands
-                                   dontkill frame tty-name)))))
+                                   dontkill create-frame-func tty-name)))))
 
             (when (or frame files)
               (server-goto-toplevel proc))
@@ -1260,7 +1295,7 @@ The following commands are accepted by the client:
     ;; condition-case
     (error (server-return-error proc err))))
 
-(defun server-execute (proc files nowait commands dontkill frame tty-name)
+(defun server-execute (proc files nowait commands dontkill create-frame-func tty-name)
   ;; This is run from timers and process-filters, i.e. "asynchronously".
   ;; But w.r.t the user, this is not really asynchronous since the timer
   ;; is run after 0s and the process-filter is run in response to the
@@ -1270,21 +1305,29 @@ The following commands are accepted by the client:
   ;; including code that needs to wait.
   (with-local-quit
     (condition-case err
-        (let ((buffers (server-visit-files files proc nowait)))
-          (mapc 'funcall (nreverse commands))
+        (let* ((buffers (server-visit-files files proc nowait))
+               ;; If we were told only to open a new client, obey
+               ;; `initial-buffer-choice' if it specifies a file
+               ;; or a function.
+               (initial-buffer (unless (or files commands)
+                                 (let ((buf
+                                        (cond ((stringp initial-buffer-choice)
+                                               (find-file-noselect initial-buffer-choice))
+                                              ((functionp initial-buffer-choice)
+                                               (funcall initial-buffer-choice)))))
+                                   (if (buffer-live-p buf) buf (get-buffer-create "*scratch*")))))
+               ;; Set current buffer so that newly created tty frames
+               ;; show the correct buffer initially.
+               (frame (with-current-buffer (or (car buffers)
+                                               initial-buffer
+                                               (current-buffer))
+                        (prog1
+                            (funcall create-frame-func)
+                          ;; Switch to initial buffer in case the frame was reused.
+                          (when initial-buffer
+                            (switch-to-buffer initial-buffer 'norecord))))))
 
-	  ;; If we were told only to open a new client, obey
-	  ;; `initial-buffer-choice' if it specifies a file
-          ;; or a function.
-          (unless (or files commands)
-            (let ((buf
-                   (cond ((stringp initial-buffer-choice)
-			  (find-file-noselect initial-buffer-choice))
-			 ((functionp initial-buffer-choice)
-			  (funcall initial-buffer-choice)))))
-	      (switch-to-buffer
-	       (if (buffer-live-p buf) buf (get-buffer-create "*scratch*"))
-	       'norecord)))
+          (mapc 'funcall (nreverse commands))
 
           ;; Delete the client if necessary.
           (cond
@@ -1300,9 +1343,11 @@ The following commands are accepted by the client:
            ((or isearch-mode (minibufferp))
             nil)
            ((and frame (null buffers))
+            (run-hooks 'server-after-make-frame-hook)
             (message "%s" (substitute-command-keys
                            "When done with this frame, type \\[delete-frame]")))
            ((not (null buffers))
+            (run-hooks 'server-after-make-frame-hook)
             (server-switch-buffer (car buffers) nil (cdr (car files)))
             (run-hooks 'server-switch-hook)
             (unless nowait
@@ -1491,13 +1536,12 @@ specifically for the clients and did not exist before their request for it."
 
 (defun server-kill-emacs-query-function ()
   "Ask before exiting Emacs if it has live clients."
-  (or (not server-clients)
-      (let (live-client)
-	(dolist (proc server-clients)
-	  (when (memq t (mapcar 'buffer-live-p (process-get
-						proc 'buffers)))
-	    (setq live-client t)))
-        live-client)
+  (or (not (let (live-client)
+             (dolist (proc server-clients)
+               (when (memq t (mapcar 'buffer-live-p (process-get
+                                                     proc 'buffers)))
+                 (setq live-client t)))
+             live-client))
       (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
 
 (defun server-kill-buffer ()

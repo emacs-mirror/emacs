@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ;;; Commentary:
@@ -83,20 +83,9 @@
 (require 'nnoo)
 (require 'nnheader)
 (require 'nnmail)
-(eval-when-compile (require 'cl))
 
 (require 'gnus-start)
 (require 'gnus-sum)
-
-;; Compatibility Functions  =================================================
-
-(eval-and-compile
-  (if (fboundp 'signal-error)
-      (defun nndiary-error (&rest args)
-	(apply #'signal-error 'nndiary args))
-    (defun nndiary-error (&rest args)
-      (apply #'error args))))
-
 
 ;; Back End behavior customization ===========================================
 
@@ -107,7 +96,7 @@
 
 (defcustom nndiary-mail-sources
   `((file :path ,(expand-file-name "~/.nndiary")))
-  "*NNDiary specific mail sources.
+  "NNDiary specific mail sources.
 This variable is used by nndiary in place of the standard `mail-sources'
 variable when `nndiary-get-new-mail' is set to non-nil.  These sources
 must contain diary messages ONLY."
@@ -116,7 +105,7 @@ must contain diary messages ONLY."
   :type 'sexp)
 
 (defcustom nndiary-split-methods '(("diary" ""))
-  "*NNDiary specific split methods.
+  "NNDiary specific split methods.
 This variable is used by nndiary in place of the standard
 `nnmail-split-methods' variable when `nndiary-get-new-mail' is set to
 non-nil."
@@ -128,7 +117,7 @@ non-nil."
 
 
 (defcustom nndiary-reminders '((0 . day))
-  "*Different times when you want to be reminded of your appointments.
+  "Different times when you want to be reminded of your appointments.
 Diary articles will appear again, as if they'd been just received.
 
 Entries look like (3 . day) which means something like \"Please
@@ -174,7 +163,7 @@ In order to make this clear, here are some examples:
 			       (const :format "%v" year)))))
 
 (defcustom nndiary-week-starts-on-monday nil
-  "*Whether a week starts on monday (otherwise, sunday)."
+  "Whether a week starts on monday (otherwise, sunday)."
   :type 'boolean
   :group 'nndiary)
 
@@ -182,7 +171,7 @@ In order to make this clear, here are some examples:
 (define-obsolete-variable-alias 'nndiary-request-create-group-hooks
   'nndiary-request-create-group-functions "24.3")
 (defcustom nndiary-request-create-group-functions nil
-  "*Hook run after `nndiary-request-create-group' is executed.
+  "Hook run after `nndiary-request-create-group' is executed.
 The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)
@@ -190,7 +179,7 @@ The hook functions will be called with the full group name as argument."
 (define-obsolete-variable-alias 'nndiary-request-update-info-hooks
   'nndiary-request-update-info-functions "24.3")
 (defcustom nndiary-request-update-info-functions nil
-  "*Hook run after `nndiary-request-update-info-group' is executed.
+  "Hook run after `nndiary-request-update-info-group' is executed.
 The hook functions will be called with the full group name as argument."
   :group 'nndiary
   :type 'hook)
@@ -198,14 +187,14 @@ The hook functions will be called with the full group name as argument."
 (define-obsolete-variable-alias 'nndiary-request-accept-article-hooks
   'nndiary-request-accept-article-functions "24.3")
 (defcustom nndiary-request-accept-article-functions nil
-  "*Hook run before accepting an article.
+  "Hook run before accepting an article.
 Executed near the beginning of `nndiary-request-accept-article'.
 The hook functions will be called with the article in the current buffer."
   :group 'nndiary
   :type 'hook)
 
 (defcustom nndiary-check-directory-twice t
-  "*If t, check directories twice to avoid NFS failures."
+  "If t, check directories twice to avoid NFS failures."
   :group 'nndiary
   :type 'boolean)
 
@@ -243,7 +232,7 @@ through all nnml directories and generate nov databases for them
 all.  This may very well take some time.")
 
 (defvoo nndiary-prepare-save-mail-hook nil
-  "*Hook run narrowed to an article before saving.")
+  "Hook run narrowed to an article before saving.")
 
 (defvoo nndiary-inhibit-expiry nil
   "If non-nil, inhibit expiry.")
@@ -1157,12 +1146,12 @@ all.  This may very well take some time.")
   ;; within the specified bounds.
   ;; Signals are caught by `nndiary-schedule'.
   (if (not (string-match "^[ \t]*[0-9]+[ \t]*$" str))
-      (nndiary-error "not an integer value")
+      (error "Not an integer value")
     ;; else
     (let ((val (string-to-number str)))
       (and (or (< val min)
 	       (and max (> val max)))
-	   (nndiary-error "value out of range"))
+	   (error "Value out of range"))
       val)))
 
 (defun nndiary-parse-schedule-value (str min-or-values max)
@@ -1179,7 +1168,7 @@ all.  This may very well take some time.")
 			(match-string 1 str))))
 	  (if (and val (setq val (assoc val min-or-values)))
 	      (list (cadr val))
-	    (nndiary-error "invalid syntax")))
+	    (error "Invalid syntax")))
       ;; min-or-values is min
       (mapcar
        (lambda (val)
@@ -1199,7 +1188,7 @@ all.  This may very well take some time.")
 		     (t
 		      (cons end beg)))))
 	    (t
-	     (nndiary-error "invalid syntax")))
+	     (error "Invalid syntax")))
 	   ))
        (split-string str ",")))
     ))
@@ -1214,7 +1203,7 @@ all.  This may very well take some time.")
   (let ((header (format "^X-Diary-%s: \\(.*\\)$" head)))
     (goto-char (point-min))
     (if (not (re-search-forward header nil t))
-	(nndiary-error "header missing")
+	(error "Header missing")
       ;; else
       (nndiary-parse-schedule-value (match-string 1) min-or-values max))
     ))
@@ -1288,35 +1277,33 @@ all.  This may very well take some time.")
     (while (setq reminder (pop reminders))
       (push
        (cond ((eq (cdr reminder) 'minute)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 (nthcdr 1 date-elts))
 	       (seconds-to-time (* (car reminder) 60.0))))
 	     ((eq (cdr reminder) 'hour)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 (nthcdr 2 date-elts))
 	       (seconds-to-time (* (car reminder) 3600.0))))
 	     ((eq (cdr reminder) 'day)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 (nthcdr 3 date-elts))
 	       (seconds-to-time (* (car reminder) 86400.0))))
 	     ((eq (cdr reminder) 'week)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 monday (nthcdr 4 date-elts))
 	       (seconds-to-time (* (car reminder) 604800.0))))
 	     ((eq (cdr reminder) 'month)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 1 (nthcdr 4 date-elts))
 	       (seconds-to-time (* (car reminder) 18748800.0))))
 	     ((eq (cdr reminder) 'year)
-	      (subtract-time
+	      (time-subtract
 	       (apply 'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
 	       (seconds-to-time (* (car reminder) 400861056.0)))))
        res))
     (sort res 'time-less-p)))
 
-;; FIXME: "occurrence" is misspelled in this function name.
-
-(defun nndiary-last-occurence (sched)
+(defun nndiary-last-occurrence (sched)
   ;; Returns the last occurrence of schedule SCHED as an Emacs time struct, or
   ;; nil for permanent schedule or errors.
   (let ((minute (nndiary-max (nth 0 sched)))
@@ -1395,10 +1382,11 @@ all.  This may very well take some time.")
 	   (nnheader-report 'nndiary "Undecidable schedule")
 	   nil))
 	))))
+(define-obsolete-function-alias
+  'nndiary-last-occurence
+  'nndiary-last-occurrence "26.1")
 
-;; FIXME: "occurrence" is misspelled in this function name.
-
-(defun nndiary-next-occurence (sched now)
+(defun nndiary-next-occurrence (sched now)
   ;; Returns the next occurrence of schedule SCHED, starting from time NOW.
   ;; If there's no next occurrence, returns the last one (if any) which is then
   ;; in the past.
@@ -1527,10 +1515,13 @@ all.  This may very well take some time.")
 		       ))
 		   )))
 	     ))
-	 (nndiary-last-occurence sched))
+	 (nndiary-last-occurrence sched))
       ;; else
-      (nndiary-last-occurence sched))
+      (nndiary-last-occurrence sched))
     ))
+(define-obsolete-function-alias
+  'nndiary-next-occurence
+  'nndiary-next-occurrence "26.1")
 
 (defun nndiary-expired-article-p (file)
   (with-temp-buffer
@@ -1539,8 +1530,8 @@ all.  This may very well take some time.")
 	  ;; An article has expired if its last schedule (if any) is in the
 	  ;; past. A permanent schedule never expires.
 	  (and sched
-	       (setq sched (nndiary-last-occurence sched))
-	       (time-less-p sched (current-time))))
+	       (setq sched (nndiary-last-occurrence sched))
+	       (time-less-p sched nil)))
       ;; else
       (nnheader-report 'nndiary "Could not read file %s" file)
       nil)
@@ -1553,7 +1544,7 @@ all.  This may very well take some time.")
 	    (sched (nndiary-schedule)))
 	;; The article should be re-considered as unread if there's a reminder
 	;; between the group timestamp and the current time.
-	(when (and sched (setq sched (nndiary-next-occurence sched now)))
+	(when (and sched (setq sched (nndiary-next-occurrence sched now)))
 	  (let ((reminders ;; add the next occurrence itself at the end.
 		 (append (nndiary-compute-reminders sched) (list sched))))
 	    (while (and reminders (time-less-p (car reminders) timestamp))

@@ -1,6 +1,6 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000-2015 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1996, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Francesco Potortì <pot@gnu.org>
@@ -27,7 +27,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -390,7 +390,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		;; the way of font-lock, highlighting etc.
 		(insert
 		 (format
-		  "/* Preprocessor terminated with status %s\n\n   Messages from '%s\':\n\n"
+		  "/* Preprocessor terminated with status %s\n\n   Messages from '%s':\n\n"
 		  exit-status cppcommand))
 		(goto-char (+ (point)
 			      (nth 1 (insert-file-contents tempname))))
@@ -405,7 +405,3 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
       (kill-buffer outbuf))))
 
 ;;; cmacexp.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

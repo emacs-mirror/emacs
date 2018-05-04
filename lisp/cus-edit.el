@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -175,9 +175,15 @@
   :group 'emacs)
 
 (defgroup wp nil
-  "Support for editing text files."
-  :tag "Text"
+  "Support for editing text files.
+Use group `text' for this instead.  This group is deprecated."
   :group 'emacs)
+
+(defgroup text nil
+  "Support for editing text files."
+  :group 'emacs
+  ;; Inherit from deprecated `wp' for compatibility, for now.
+  :group 'wp)
 
 (defgroup data nil
   "Support for editing binary data files."
@@ -196,14 +202,6 @@
   "Emulations of other editors."
   :link '(custom-manual "(emacs)Emulation")
   :group 'editing)
-
-(defgroup mouse nil
-  "Mouse support."
-  :group 'editing)
-
-(defgroup outlines nil
-  "Support for hierarchical outlining."
-  :group 'wp)
 
 (defgroup external nil
   "Interfacing to external utilities."
@@ -317,7 +315,7 @@
 (defgroup tex nil
   "Code related to the TeX formatter."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
-  :group 'wp)
+  :group 'text)
 
 (defgroup faces nil
   "Support for multiple fonts."
@@ -404,10 +402,6 @@
 
 (defgroup keyboard nil
   "Input from the keyboard."
-  :group 'environment)
-
-(defgroup mouse nil
-  "Input from the mouse."
   :group 'environment)
 
 (defgroup menu nil
@@ -992,7 +986,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       current-prefix-arg))
   (custom-load-symbol variable)
   (custom-push-theme 'theme-value variable 'user 'set (custom-quote value))
-  (funcall (or (get variable 'custom-set) 'set-default) variable value)
+  (funcall (or (get variable 'custom-set) #'set-default) variable value)
   (put variable 'customized-value (list (custom-quote value)))
   (cond ((string= comment "")
  	 (put variable 'variable-comment nil)
@@ -1072,9 +1066,10 @@ are shown; the contents of those subgroups are initially hidden."
 
 ;;;###autoload
 (defun customize-mode (mode)
-  "Customize options related to the current major mode.
-If a prefix \\[universal-argument] was given (or if the current major mode has no known group),
-then prompt for the MODE to customize."
+  "Customize options related to a major or minor mode.
+By default the current major mode is used.  With a prefix
+argument or if the current major mode has no known group, prompt
+for the MODE to customize."
   (interactive
    (list
     (let ((completion-regexp-list '("-mode\\'"))
@@ -1083,8 +1078,8 @@ then prompt for the MODE to customize."
 	  major-mode
 	(intern
 	 (completing-read (if group
-			      (format "Major mode (default %s): " major-mode)
-			    "Major mode: ")
+			      (format "Mode (default %s): " major-mode)
+			    "Mode: ")
 			  obarray
 			  'custom-group-of-mode
 			  t nil nil (if group (symbol-name major-mode))))))))
@@ -1164,7 +1159,7 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "24.1"
+(defvar customize-changed-options-previous-release "25.3"
   "Version for `customize-changed-options' to refer back to by default.")
 
 ;; Packages will update this variable, so make it available.
@@ -1197,7 +1192,7 @@ For example, the MH-E package updates this alist as follows:
 
 The value of PACKAGE needs to be unique and it needs to match the
 PACKAGE value appearing in the :package-version keyword.  Since
-the user might see the value in a error message, a good choice is
+the user might see the value in an error message, a good choice is
 the official name of the package, such as MH-E or Gnus.")
 
 ;;;###autoload
@@ -1339,7 +1334,7 @@ suggest to customize that face, if it's customizable."
       (if (get face 'face-alias)
 	  (setq face (get face 'face-alias)))
       (unless (facep face)
-	(error "Invalid face %S" face))
+	(user-error "Invalid face %S" face))
       (funcall display-fun
 	       (list (list face 'custom-face))
 	       (format "*Customize Face: %s*"
@@ -1499,11 +1494,12 @@ Return non-nil if user chooses to customize, for use in
 (defcustom custom-buffer-style 'links
   "Control the presentation style for customization buffers.
 The value should be a symbol, one of:
-
-brackets: groups nest within each other with big horizontal brackets.
-links: groups have links to subgroups."
+`brackets': groups nest within each other with big horizontal brackets.
+`links': groups have links to subgroups.
+`tree': display groups as trees."
   :type '(radio (const brackets)
-		(const links))
+		(const links)
+                (const tree))
   :group 'custom-buffer)
 
 (defcustom custom-buffer-done-kill nil
@@ -1543,27 +1539,29 @@ not for everybody."
 	buf))))
 
 ;;;###autoload
-(defun custom-buffer-create (options &optional name description)
+(defun custom-buffer-create (options &optional name _description)
   "Create a buffer containing OPTIONS.
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option.
 DESCRIPTION is unused."
-  (pop-to-buffer-same-window (custom-get-fresh-buffer (or name "*Customization*")))
-  (custom-buffer-create-internal options description))
+  (pop-to-buffer-same-window
+   (custom-get-fresh-buffer (or name "*Customization*")))
+  (custom-buffer-create-internal options))
 
 ;;;###autoload
-(defun custom-buffer-create-other-window (options &optional name description)
+(defun custom-buffer-create-other-window (options &optional name _description)
   "Create a buffer containing OPTIONS, and display it in another window.
 The result includes selecting that window.
 Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
-that option."
+that option.
+DESCRIPTION is unused."
   (unless name (setq name "*Customization*"))
   (switch-to-buffer-other-window (custom-get-fresh-buffer name))
-  (custom-buffer-create-internal options description))
+  (custom-buffer-create-internal options))
 
 (defcustom custom-reset-button-menu t
   "If non-nil, only show a single reset button in customize buffers.
@@ -1621,7 +1619,9 @@ Otherwise use brackets."
     ;; Insert verbose help at the top of the custom buffer.
     (when custom-buffer-verbose-help
       (unless init-file
-	(widget-insert "Custom settings cannot be saved; maybe you started Emacs with `-q'.\n"))
+	(widget-insert
+         (format-message
+          "Custom settings cannot be saved; maybe you started Emacs with `-q'.\n")))
       (widget-insert "For help using this buffer, see ")
       (widget-create 'custom-manual
 		     :tag "Easy Customization"
@@ -2431,6 +2431,18 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 ;;; The `custom-variable' Widget.
 
+(defface custom-variable-obsolete
+  '((((class color) (background dark))
+     :foreground "light blue")
+    (((min-colors 88) (class color) (background light))
+     :foreground "blue1")
+    (((class color) (background light))
+     :foreground "blue")
+    (t :slant italic))
+  "Face used for obsolete variables."
+  :version "27.1"
+  :group 'custom-faces)
+
 (defface custom-variable-tag
   `((((class color) (background dark))
      :foreground "light blue" :weight bold)
@@ -2456,8 +2468,9 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 (defun custom-variable-documentation (variable)
   "Return documentation of VARIABLE for use in Custom buffer.
 Normally just return the docstring.  But if VARIABLE automatically
-becomes buffer local when set, append a message to that effect."
-  (format "%s%s" (documentation-property variable 'variable-documentation t)
+becomes buffer local when set, append a message to that effect.
+Also append any obsolescence information."
+  (format "%s%s%s" (documentation-property variable 'variable-documentation t)
 	  (if (and (local-variable-if-set-p variable)
 		   (or (not (local-variable-p variable))
 		       (with-temp-buffer
@@ -2465,7 +2478,21 @@ becomes buffer local when set, append a message to that effect."
 	      "\n
 This variable automatically becomes buffer-local when set outside Custom.
 However, setting it through Custom sets the default value."
-	    "")))
+	    "")
+	  ;; This duplicates some code from describe-variable.
+	  ;; TODO extract to separate utility function?
+	  (let* ((obsolete (get variable 'byte-obsolete-variable))
+		 (use (car obsolete)))
+	    (if obsolete
+		(concat "\n
+This variable is obsolete"
+			(if (nth 2 obsolete)
+			    (format " since %s" (nth 2 obsolete)))
+			(cond ((stringp use) (concat ";\n" use))
+			      (use (format-message ";\nuse `%s' instead."
+						   (car obsolete)))
+			      (t ".")))
+	      ""))))
 
 (define-widget 'custom-variable 'custom
   "A widget for displaying a Custom variable.
@@ -2518,7 +2545,10 @@ try matching its doc string against `custom-guess-doc-alist'."
 		  (copy-sequence type)
 		(list type))))
     (when options
-      (widget-put tmp :options options))
+      ;; This used to use widget-put, but with strict plists that
+      ;; fails when type is an even-length list, eg (repeat character).
+      ;; Passing our result through widget-convert makes it a valid widget.
+      (setcdr tmp (append (list :options options) (cdr tmp))))
     tmp))
 
 (defun custom-variable-value-create (widget)
@@ -2546,7 +2576,8 @@ try matching its doc string against `custom-guess-doc-alist'."
 	 (state (or (widget-get widget :custom-state)
 		    (if (memq (custom-variable-state symbol value)
 			      (widget-get widget :hidden-states))
-			'hidden))))
+			'hidden)))
+	 (obsolete (get symbol 'byte-obsolete-variable)))
 
     ;; If we don't know the state, see if we need to edit it in lisp form.
     (unless state
@@ -2578,7 +2609,9 @@ try matching its doc string against `custom-guess-doc-alist'."
 	   (push (widget-create-child-and-convert
 		  widget 'item
 		  :format "%{%t%} "
-		  :sample-face 'custom-variable-tag
+		  :sample-face (if obsolete
+				   'custom-variable-obsolete
+				 'custom-variable-tag)
 		  :tag tag
 		  :parent widget)
 		 buttons))
@@ -2636,7 +2669,9 @@ try matching its doc string against `custom-guess-doc-alist'."
 		    :help-echo "Change value of this option."
 		    :mouse-down-action 'custom-tag-mouse-down-action
 		    :button-face 'custom-variable-button
-		    :sample-face 'custom-variable-tag
+		    :sample-face (if obsolete
+				     'custom-variable-obsolete
+				   'custom-variable-tag)
 		    tag)
 		   buttons)
 	     (push (widget-create-child-and-convert
@@ -2796,7 +2831,7 @@ If STATE is nil, the value is computed by `custom-variable-state'."
     ;; init-file-user rather than user-init-file.  This is in case
     ;; cus-edit is loaded by something in site-start.el, because
     ;; user-init-file is not set at that stage.
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00310.html
+    ;; https://lists.gnu.org/r/emacs-devel/2007-10/msg00310.html
     ,@(when (or custom-file init-file-user)
 	'(("Save for Future Sessions" custom-variable-save
 	   (lambda (widget)
@@ -3246,10 +3281,6 @@ Only match the specified window systems.")
 					   :sibling-args (:help-echo "\
 The X11 Window System.")
 					   x)
-				    (const :format "PM "
-					   :sibling-args (:help-echo "\
-OS/2 Presentation Manager.")
-					   pm)
 				    (const :format "W32 "
 					   :sibling-args (:help-echo "\
 MS Windows.")
@@ -3323,6 +3354,23 @@ Only match frames that support the specified face attributes.")
   :group 'custom-buffer
   :version "20.3")
 
+(defun custom-face-documentation (face)
+  "Return documentation of FACE for use in Custom buffer."
+  (format "%s%s" (face-documentation face)
+          ;; This duplicates some code from describe-face.
+          ;; TODO extract to separate utility function?
+          ;; In practice this does not get used, because M-x customize-face
+          ;; follows aliases.
+          (let ((alias (get face 'face-alias))
+                (obsolete (get face 'obsolete-face)))
+            (if (and alias obsolete)
+                (format "\nThis face is obsolete%s; use `%s' instead.\n"
+                        (if (stringp obsolete)
+                            (format " since %s" obsolete)
+                          "")
+                        alias)
+              ""))))
+
 (define-widget 'custom-face 'custom
   "Widget for customizing a face.
 The following properties have special meanings for this widget:
@@ -3346,7 +3394,7 @@ The following properties have special meanings for this widget:
   of the widget, instead of the current face spec."
   :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
-  :documentation-property #'face-doc-string
+  :documentation-property #'custom-face-documentation
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
@@ -3741,10 +3789,6 @@ Optional EVENT is the location for the menu."
   (custom-face-mark-to-save widget)
   (custom-save-all)
   (custom-face-state-set-and-redraw widget))
-
-;; For backward compatibility.
-(define-obsolete-function-alias 'custom-face-save-command 'custom-face-save
-  "22.1")
 
 (defun custom-face-reset-saved (widget)
   "Restore WIDGET to the face's default attributes.
@@ -4362,7 +4406,7 @@ option itself, into the file you specify, overwriting any
 `custom-set-variables' and `custom-set-faces' forms already
 present in that file.  It will not delete any customizations from
 the old custom file.  You should do that manually if that is what you
-want.  You also have to put something like `(load \"CUSTOM-FILE\")
+want.  You also have to put something like (load \"CUSTOM-FILE\")
 in your init file, where CUSTOM-FILE is the actual name of the
 file.  Otherwise, Emacs will not load the file when it starts up,
 and hence will not set `custom-file' to that file either."
@@ -4581,7 +4625,7 @@ This function does not save the buffer."
       (if (bolp)
 	  (princ " "))
       (princ ")")
-      (unless (looking-at-p "\n")
+      (when (/= (following-char) ?\n)
 	(princ "\n")))))
 
 (defun custom-save-faces ()
@@ -4636,7 +4680,7 @@ This function does not save the buffer."
       (if (bolp)
 	  (princ " "))
       (princ ")")
-      (unless (looking-at-p "\n")
+      (when (/= (following-char) ?\n)
 	(princ "\n")))))
 
 ;;; The Customize Menu.
@@ -4777,6 +4821,8 @@ If several parents are listed, go to the first of them."
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))
 
+(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
+
 (defcustom Custom-mode-hook nil
   "Hook called when entering Custom mode."
   :type 'hook
@@ -4805,7 +4851,6 @@ If several parents are listed, go to the first of them."
     (setq-local widget-link-suffix ""))
   (setq show-trailing-whitespace nil))
 
-(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
 (define-derived-mode Custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 
@@ -4849,8 +4894,6 @@ if that value is non-nil."
 (put 'Custom-mode 'mode-class 'special)
 
 (define-obsolete-function-alias 'custom-mode 'Custom-mode "23.1")
-
-(add-to-list 'debug-ignored-errors "^Invalid face:? ")
 
 ;;; The End.
 

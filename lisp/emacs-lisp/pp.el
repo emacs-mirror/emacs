@@ -1,6 +1,6 @@
-;;; pp.el --- pretty printer for Emacs Lisp
+;;; pp.el --- pretty printer for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -67,8 +67,7 @@ to make output that `read' can handle, whenever this is possible."
            (progn (skip-chars-backward " \t\n") (point)))
           (insert "\n"))))
      ((ignore-errors (up-list 1) t)
-      (while (looking-at-p "\\s)")
-        (forward-char 1))
+      (skip-syntax-forward ")")
       (delete-region
        (point)
        (progn (skip-chars-forward " \t\n") (point)))
@@ -129,7 +128,7 @@ Also add the value to the front of the list in the variable `values'."
   (interactive
    (list (read--expression "Eval: ")))
   (message "Evaluating...")
-  (setq values (cons (eval expression lexical-binding) values))
+  (push (eval expression lexical-binding) values)
   (pp-display-expression (car values) "*Pp Eval Output*"))
 
 ;;;###autoload
@@ -141,22 +140,21 @@ Also add the value to the front of the list in the variable `values'."
 
 (defun pp-last-sexp ()
   "Read sexp before point.  Ignores leading comment characters."
-  (let ((stab (syntax-table)) (pt (point)) start exp)
-    (set-syntax-table emacs-lisp-mode-syntax-table)
-    (save-excursion
-      (forward-sexp -1)
-      ;; If first line is commented, ignore all leading comments:
-      (if (save-excursion (beginning-of-line) (looking-at-p "[ \t]*;"))
-	  (progn
-	    (setq exp (buffer-substring (point) pt))
-	    (while (string-match "\n[ \t]*;+" exp start)
-	      (setq start (1+ (match-beginning 0))
-		    exp (concat (substring exp 0 start)
-				(substring exp (match-end 0)))))
-	    (setq exp (read exp)))
-	(setq exp (read (current-buffer)))))
-    (set-syntax-table stab)
-    exp))
+  (with-syntax-table emacs-lisp-mode-syntax-table
+    (let ((pt (point)))
+      (save-excursion
+        (forward-sexp -1)
+        (read
+         ;; If first line is commented, ignore all leading comments:
+         (if (save-excursion (beginning-of-line) (looking-at-p "[ \t]*;"))
+             (let ((exp (buffer-substring (point) pt))
+                   (start nil))
+               (while (string-match "\n[ \t]*;+" exp start)
+                 (setq start (1+ (match-beginning 0))
+                       exp (concat (substring exp 0 start)
+                                   (substring exp (match-end 0)))))
+               exp)
+           (current-buffer)))))))
 
 ;;;###autoload
 (defun pp-eval-last-sexp (arg)
@@ -177,19 +175,6 @@ Ignores leading comment characters."
   (if arg
       (insert (pp-to-string (macroexpand-1 (pp-last-sexp))))
     (pp-macroexpand-expression (pp-last-sexp))))
-
-;;; Test cases for quote
-;; (pp-eval-expression ''(quote quote))
-;; (pp-eval-expression ''((quote a) (quote b)))
-;; (pp-eval-expression ''('a 'b))	; same as above
-;; (pp-eval-expression ''((quote (quote quote)) (quote quote)))
-;; These do not satisfy the quote test.
-;; (pp-eval-expression ''quote)
-;; (pp-eval-expression ''(quote))
-;; (pp-eval-expression ''(quote . quote))
-;; (pp-eval-expression ''(quote a b))
-;; (pp-eval-expression ''(quotefoo))
-;; (pp-eval-expression ''(a b))
 
 (provide 'pp)				; so (require 'pp) works
 

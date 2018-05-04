@@ -11,7 +11,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright @copyright{} 1996--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -67,7 +67,6 @@ Message mode buffers.
 * Interface::         Setting up message buffers.
 * Commands::          Commands you can execute in message mode buffers.
 * Variables::         Customizing the message buffers.
-* Compatibility::     Making Message backwards compatible.
 * Appendices::        More technical things.
 * GNU Free Documentation License:: The license for this documentation.
 * Index::             Variable, function and concept index.
@@ -105,7 +104,7 @@ sending it.
 @end menu
 
 You can customize the Message Mode tool bar, see @kbd{M-x
-customize-apropos RET message-tool-bar}.  This feature is only available
+customize-apropos @key{RET} message-tool-bar}.  This feature is only available
 in Emacs.
 
 @node New Mail Message
@@ -185,8 +184,9 @@ but you can change the behavior to suit your needs by fiddling with the
 
 @vindex message-dont-reply-to-names
 Addresses that match the @code{message-dont-reply-to-names} regular
-expression (or list of regular expressions) will be removed from the
-@code{Cc} header. A value of @code{nil} means exclude your name only.
+expression (or list of regular expressions or a predicate function)
+will be removed from the @code{Cc} header.  A value of @code{nil} means
+to exclude only your email address.
 
 @vindex message-prune-recipient-rules
 @code{message-prune-recipient-rules} is used to prune the addresses
@@ -316,7 +316,7 @@ when forwarding a message.
 @item message-forward-included-headers
 @vindex message-forward-included-headers
 In non-@code{nil}, only headers that match this regexp will be kept
-when forwarding a message.
+when forwarding a message.  This can also be a list of regexps.
 
 @item message-make-forward-subject-function
 @vindex message-make-forward-subject-function
@@ -345,10 +345,10 @@ constructed.  The default value is @code{nil}.
 
 @item message-forward-as-mime
 @vindex message-forward-as-mime
-If this variable is @code{t} (the default), forwarded messages are
-included as inline @acronym{MIME} RFC822 parts.  If it's @code{nil}, forwarded
-messages will just be copied inline to the new message, like previous,
-non @acronym{MIME}-savvy versions of Gnus would do.
+If this variable is @code{t}, forwarded messages are included as
+inline @acronym{MIME} RFC822 parts.  If it's @code{nil} (the default),
+forwarded messages will just be copied inline to the new message, like
+previous, non @acronym{MIME}-savvy versions of Gnus would do.
 
 @item message-forward-before-signature
 @vindex message-forward-before-signature
@@ -707,14 +707,12 @@ This means that if the recipient supports RFC 2298 she might send you a
 notification that she received the message.
 
 @item M-x message-insert-importance-high
-@kindex M-x message-insert-importance-high
 @findex message-insert-importance-high
 @cindex Importance
 Insert an @samp{Importance} header with a value of @samp{high},
 deleting headers if necessary.
 
 @item M-x message-insert-importance-low
-@kindex M-x message-insert-importance-low
 @findex message-insert-importance-low
 @cindex Importance
 Insert an @samp{Importance} header with a value of @samp{low}, deleting
@@ -921,11 +919,11 @@ is fully available) @acronym{IDNA} encoding happens automatically.
 
 @findex message-idna-to-ascii-rhs
 If you want to experiment with the @acronym{IDNA} encoding, you can
-invoke @kbd{M-x message-idna-to-ascii-rhs RET} in the message buffer
+invoke @kbd{M-x message-idna-to-ascii-rhs @key{RET}} in the message buffer
 to have the non-@acronym{ASCII} domain names encoded while you edit
 the message.
 
-Note that you must have @uref{http://www.gnu.org/software/libidn/, GNU
+Note that you must have @uref{https://www.gnu.org/software/libidn/, GNU
 Libidn} installed in order to use this functionality.
 
 @node Security
@@ -938,16 +936,82 @@ Libidn} installed in order to use this functionality.
 @cindex encrypt
 @cindex secure
 
-Using the @acronym{MML} language, Message is able to create digitally
-signed and digitally encrypted messages.  Message (or rather
-@acronym{MML}) currently support @acronym{PGP} (RFC 1991),
-@acronym{PGP/MIME} (RFC 2015/3156) and @acronym{S/MIME}.
+By default, e-mails are transmitted without any protection around the
+Internet, which implies that they can be read and changed by lots of
+different parties.  In particular, they are analyzed under bulk
+surveillance, which violates basic human rights.  To defend those
+rights, digital self-defense is necessary (in addition to legal
+changes), and encryption and digital signatures are powerful
+techniques for self-defense.  In essence, encryption ensures that
+only the intended recipient will be able to read a message, while
+digital signatures make sure that modifications to messages can be
+detected by the recipient.
+
+Nowadays, there are two major incompatible e-mail encryption
+standards, namely @acronym{OpenPGP} and @acronym{S/MIME}.  Both of
+these standards are implemented by the @uref{https://www.gnupg.org/,
+GNU Privacy Guard (GnuPG)}, which needs to be installed as external
+software in addition to GNU Emacs.  Before you can start to encrypt,
+decrypt, and sign messages, you need to create a so-called key-pair,
+which consists of a private key and a public key.  Your @emph{public} key
+(also known as @emph{certificate}, in particular with @acronym{S/MIME}), is
+used by others (a) to encrypt messages intended for you and (b) to verify
+digital signatures created by you.  In contrast, you use your @emph{private}
+key (a) to decrypt messages and (b) to sign messages.  (You may want to
+think of your public key as an open safe that you offer to others such
+that they can deposit messages and lock the door, while your private
+key corresponds to the opening combination for the safe.)
+
+Thus, you need to perform the following steps for e-mail encryption,
+typically outside Emacs.  See, for example, the
+@uref{https://www.gnupg.org/gph/en/manual.html, The GNU Privacy
+Handbook} for details covering the standard @acronym{OpenPGP} with
+@acronym{GnuPG}.
+@enumerate
+@item
+Install GnuPG.
+@item
+Create a key-pair for your own e-mail address.
+@item
+Distribute your public key, e.g., via upload to key servers.
+@item
+Import the public keys for the recipients to which you want to send
+encrypted e-mails.
+@end enumerate
+
+Whether to use the standard @acronym{OpenPGP} or @acronym{S/MIME} is
+beyond the scope of this documentation.  Actually, you can use one
+standard for one set of recipients and the other standard for
+different recipients (depending their preferences or capabilities).
+
+In case you are not familiar with all those acronyms: The standard
+@acronym{OpenPGP} is also called @acronym{PGP} (Pretty Good Privacy).
+The command line tools offered by @acronym{GnuPG} for
+@acronym{OpenPGP} are called @command{gpg} and @command{gpg2}, while
+the one for @acronym{S/MIME} is called @command{gpgsm}.  An
+alternative, but discouraged, tool for @acronym{S/MIME} is
+@command{openssl}.  To make matters worse, e-mail messages can be
+formed in two different ways with @acronym{OpenPGP}, namely
+@acronym{PGP} (RFC 1991/4880) and @acronym{PGP/MIME} (RFC 2015/3156).
+
+The good news, however, is the following: In GNU Emacs, Message
+supports all those variants, comes with reasonable defaults that can
+be customized according to your needs, and invokes the proper command
+line tools behind the scenes for encryption, decryption, as well as
+creation and verification of digital signatures.
+
+Message uses the @acronym{MML} language for the creation of signed
+and/or encrypted messages as explained in the following.
+
 
 @menu
 * Signing and encryption::      Signing and encrypting commands.
 * Using S/MIME::                Using S/MIME
-* Using PGP/MIME::              Using PGP/MIME
+* Using OpenPGP::               Using OpenPGP
+* Passphrase caching::          How to cache passphrases
 * PGP Compatibility::           Compatibility with older implementations
+* Encrypt-to-self::             Reading your own encrypted messages
+* Bcc Warning::                 Do not use encryption with Bcc headers
 @end menu
 
 @node Signing and encryption
@@ -1018,7 +1082,7 @@ Since signing and especially encryption often is used when sensitive
 information is sent, you may want to have some way to ensure that your
 mail is actually signed or encrypted.  After invoking the above
 sign/encrypt commands, it is possible to preview the raw article by
-using @kbd{C-u C-c RET P} (@code{mml-preview}).  Then you can
+using @kbd{C-u C-c @key{RET} P} (@code{mml-preview}).  Then you can
 verify that your long rant about what your ex-significant other or
 whomever actually did with that funny looking person at that strange
 party the other night, actually will be sent encrypted.
@@ -1041,11 +1105,45 @@ programs are required to make things work, and some small general hints.
 @node Using S/MIME
 @subsection Using S/MIME
 
-@emph{Note!}  This section assume you have a basic familiarity with
-modern cryptography, @acronym{S/MIME}, various PKCS standards, OpenSSL and
-so on.
+@acronym{S/MIME} requires an external implementation, such as
+@uref{https://www.gnupg.org/, GNU Privacy Guard} or
+@uref{https://www.openssl.org/, OpenSSL}.  The default Emacs interface
+to the S/MIME implementation is EasyPG (@pxref{Top,,EasyPG Assistant
+User's Manual, epa, EasyPG Assistant User's Manual}), which has been
+included in Emacs since version 23 and which relies on the command
+line tool @command{gpgsm} provided by @acronym{GnuPG}.  That tool
+implements certificate management, including certificate revocation
+and expiry, while such tasks need to be performed manually, if OpenSSL
+is used.
 
-The @acronym{S/MIME} support in Message (and @acronym{MML}) require
+The choice between EasyPG and OpenSSL is controlled by the variable
+@code{mml-smime-use}, which needs to be set to the value @code{epg}
+for EasyPG.  Depending on your version of Emacs that value may be the
+default; if not, you can either customize that variable or place the
+following line in your @file{.emacs} file (that line needs to be
+placed above other code related to message/gnus/encryption):
+
+@lisp
+(require 'epg)
+@end lisp
+
+Moreover, you may want to customize the variables
+@code{mml-default-encrypt-method} and
+@code{mml-default-sign-method} to the string @code{"smime"}.
+
+That's all if you want to use S/MIME with EasyPG, and that's the
+recommended way of using S/MIME with Message.
+
+If you think about using OpenSSL instead of EasyPG, please read the
+BUGS section in the manual for the @command{smime} command coming with
+OpenSSL first.  If you still want to use OpenSSL, the following
+applies.
+
+@emph{Note!}  The remainder of this section assumes you have a basic
+familiarity with modern cryptography, @acronym{S/MIME}, various PKCS
+standards, OpenSSL and so on.
+
+The @acronym{S/MIME} support in Message (and @acronym{MML}) can use
 OpenSSL@.  OpenSSL performs the actual @acronym{S/MIME} sign/encrypt
 operations.  OpenSSL can be found at @uref{http://www.openssl.org/}.
 OpenSSL 0.9.6 and later should work.  Version 0.9.5a cannot extract mail
@@ -1076,7 +1174,7 @@ without some kind of configuration.  Especially, you need to tell it
 where your private key and your certificate is stored.  @acronym{MML}
 uses an Emacs interface to OpenSSL, aptly named @code{smime.el}, and it
 contain a @code{custom} group used for this configuration.  So, try
-@kbd{M-x customize-group RET smime RET} and look around.
+@kbd{M-x customize-group @key{RET} smime @key{RET}} and look around.
 
 Currently there is no support for talking to a CA (or RA) to create
 your own certificate.  None is planned either.  You need to do this
@@ -1101,26 +1199,44 @@ you use unencrypted keys (e.g., if they are on a secure storage, or if
 you are on a secure single user machine) simply press @code{RET} at
 the passphrase prompt.
 
-@node Using PGP/MIME
-@subsection Using PGP/MIME
+@node Using OpenPGP
+@subsection Using OpenPGP
 
-@acronym{PGP/MIME} requires an external OpenPGP implementation, such
-as @uref{http://www.gnupg.org/, GNU Privacy Guard}. Pre-OpenPGP
+Use of OpenPGP requires an external software, such
+as @uref{https://www.gnupg.org/, GNU Privacy Guard}.  Pre-OpenPGP
 implementations such as PGP 2.x and PGP 5.x are also supported.  The
 default Emacs interface to the PGP implementation is EasyPG
 (@pxref{Top,,EasyPG Assistant User's Manual, epa, EasyPG Assistant
 User's Manual}), but PGG (@pxref{Top, ,PGG, pgg, PGG Manual}) and
 Mailcrypt are also supported.  @xref{PGP Compatibility}.
 
-@cindex gpg-agent
-Message internally calls GnuPG (the @command{gpg} command) to perform
+As stated earlier, messages encrypted with OpenPGP can be formatted
+according to two different standards, namely @acronym{PGP} or
+@acronym{PGP/MIME}.  The variables
+@code{mml-default-encrypt-method} and
+@code{mml-default-sign-method} determine which variant to prefer,
+@acronym{PGP/MIME} by default.
+
+@node Passphrase caching
+@subsection Passphrase caching
+
+@cindex @command{gpg-agent}
+Message with EasyPG internally calls GnuPG (the @command{gpg} or
+@command{gpgsm} command) to perform
 data encryption, and in certain cases (decrypting or signing for
-example), @command{gpg} requires user's passphrase.  Currently the
-recommended way to supply your passphrase to @command{gpg} is to use the
+example), @command{gpg}/@command{gpgsm} requires user's passphrase.
+Currently the recommended way to supply your passphrase is to use the
 @command{gpg-agent} program.
 
-To use @command{gpg-agent} in Emacs, you need to run the following
-command from the shell before starting Emacs.
+In particular, the @command{gpg-agent} program supports passphrase
+caching so that you do not need to enter your passphrase for every
+decryption/sign operation.  @xref{Agent Options, , , gnupg, Using the
+GNU Privacy Guard}.
+
+How to use @command{gpg-agent} in Emacs depends on your version of
+GnuPG.  With GnuPG version 2.1, @command{gpg-agent} is started
+automatically if necessary.  With older versions you may need to run
+the following command from the shell before starting Emacs.
 
 @example
 eval `gpg-agent --daemon`
@@ -1135,11 +1251,10 @@ GNU Privacy Guard}.
 Once your @command{gpg-agent} is set up, it will ask you for a
 passphrase as needed for @command{gpg}.  Under the X Window System,
 you will see a new passphrase input dialog appear.  The dialog is
-provided by PIN Entry (the @command{pinentry} command), and as of
-version 0.7.2, @command{pinentry} cannot cooperate with Emacs on a
-single tty.  So, if you are using a text console, you may need to put
-a passphrase into gpg-agent's cache beforehand.  The following command
-does the trick.
+provided by PIN Entry (the @command{pinentry} command), reasonably
+recent versions of which can also cooperate with Emacs on a text
+console.  If that does not work, you may need to put a passphrase into
+gpg-agent's cache beforehand.  The following command does the trick.
 
 @example
 gpg --use-agent --sign < /dev/null > /dev/null
@@ -1180,6 +1295,44 @@ message that can be understood by PGP version 2.
 
 (Refer to @uref{http://www.gnupg.org/gph/en/pgp2x.html} for more
 information about the problem.)
+
+@node Encrypt-to-self
+@subsection Encrypt-to-self
+
+By default, messages are encrypted to all recipients (@code{To},
+@code{Cc}, @code{Bcc} headers).  Thus, you will not be able to decrypt
+your own messages.  To make sure that messages are also encrypted to
+your own key(s), several alternative solutions exist:
+@enumerate
+@item
+Use the @code{encrypt-to} option in the file @file{gpg.conf} (for
+OpenPGP) or @file{gpgsm.conf} (for @acronym{S/MIME} with EasyPG).
+@xref{Invoking GPG, , , gnupg, Using the GNU Privacy Guard}, or
+@xref{Invoking GPGSM, , , gnupg, Using the GNU Privacy Guard}.
+@item
+Include your own e-mail address (for which you created a key-pair)
+among the recipients.
+@item
+Customize the variable @code{mml-secure-openpgp-encrypt-to-self} (for
+OpenPGP) or @code{mml-secure-smime-encrypt-to-self} (for
+@acronym{S/MIME} with EasyPG).
+@end enumerate
+
+@node Bcc Warning
+@subsection Bcc Warning
+
+The @code{Bcc} header is meant to hide recipients of messages.
+However, when encrypted messages are used, the e-mail addresses of all
+@code{Bcc}-headers are given away to all recipients without
+warning, which is a bug.
+@vindex mml-secure-safe-bcc-list
+But now Message got to warn if @code{Bcc} recipients are found in an
+encrypted message when you are just about to send it.  If you are sure
+those @code{Bcc} addresses are safe to expose, set the
+@code{mml-secure-safe-bcc-list} variable, that is a list of e-mail
+addresses.  See
+@uref{https://debbugs.gnu.org/cgi/bugreport.cgi?bug=18718}.
+
 
 @node Various Commands
 @section Various Commands
@@ -1224,7 +1377,7 @@ end of the message (@code{message-kill-to-signature}).
 Delete all text in the body of the message that is outside the region
 (@code{message-delete-not-region}).
 
-@item M-RET
+@item M-@key{RET}
 @kindex M-RET
 @findex message-newline-and-reformat
 Insert four newlines, and then reformat if inside quoted text.
@@ -1235,7 +1388,7 @@ Here's an example:
 > This is some quoted text.  And here's more quoted text.
 @end example
 
-If point is before @samp{And} and you press @kbd{M-RET}, you'll get:
+If point is before @samp{And} and you press @kbd{M-@key{RET}}, you'll get:
 
 @example
 > This is some quoted text.
@@ -1253,12 +1406,12 @@ If point is before @samp{And} and you press @kbd{M-RET}, you'll get:
 Rename the buffer (@code{message-rename-buffer}).  If given a prefix,
 prompt for a new buffer name.
 
-@item TAB
+@item @key{TAB}
 @kindex TAB
 @findex message-tab
 @vindex message-tab-body-function
 If @code{message-tab-body-function} is non-@code{nil}, execute the
-function it specifies.  Otherwise use the function bound to @kbd{TAB} in
+function it specifies.  Otherwise use the function bound to @key{TAB} in
 @code{text-mode-map} or @code{global-map}.
 
 @end table
@@ -1327,8 +1480,12 @@ If you're using @code{ecomplete}, all addresses from @code{To} and
 @code{Cc} headers, @code{ecomplete} will check out the values stored
 there and ``electrically'' say what completions are possible.  To
 choose one of these completions, use the @kbd{M-n} command to move
-down to the list.  Use @kbd{M-n} and @kbd{M-p} to move down and up the
-list, and @kbd{RET} to choose a completion.
+down to the list.  Use @kbd{@key{DOWN}} or @kbd{M-n} and
+@kbd{@key{UP}} or @kbd{M-p} to move down and up the list, and
+@kbd{@key{RET}} to choose a completion.
+
+The @code{ecomplete-sort-predicate} variable controls how
+@code{ecomplete} matches are sorted.
 
 @node Spelling
 @section Spelling
@@ -1523,10 +1680,10 @@ trailing old subject.  In this case,
 
 @item message-alternative-emails
 @vindex message-alternative-emails
-Regexp matching alternative email addresses.  The first address in the
-To, Cc or From headers of the original article matching this variable is
-used as the From field of outgoing messages, replacing the default From
-value.
+Regexp or predicate function matching alternative email addresses.
+The first address in the To, Cc or From headers of the original
+article matching this variable is used as the From field of outgoing
+messages, replacing the default From value.
 
 For example, if you have two secondary email addresses john@@home.net
 and john.doe@@work.com and want to use them in the From field when
@@ -2435,22 +2592,6 @@ killed, postponed or exited.
 An @dfn{action} can be either: a normal function, or a list where the
 @sc{car} is a function and the @sc{cdr} is the list of arguments, or
 a form to be @code{eval}ed.
-
-
-@node Compatibility
-@chapter Compatibility
-@cindex compatibility
-
-Message uses virtually only its own variables---older @code{mail-}
-variables aren't consulted.  To force Message to take those variables
-into account, you can put the following in your @file{.emacs} file:
-
-@lisp
-(require 'messcompat)
-@end lisp
-
-This will initialize many Message variables from the values in the
-corresponding mail variables.
 
 
 @node Appendices

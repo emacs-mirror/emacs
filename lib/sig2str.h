@@ -1,6 +1,6 @@
 /* sig2str.h -- convert between signal names and numbers
 
-   Copyright (C) 2002, 2005, 2009-2015 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005, 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -44,6 +44,8 @@ int str2sig (char const *, int *);
 
 #if defined _sys_nsig
 # define SIGNUM_BOUND (_sys_nsig - 1)
+#elif defined _SIG_MAXSIG
+# define SIGNUM_BOUND (_SIG_MAXSIG - 2) /* FreeBSD >= 7.  */
 #elif defined NSIG
 # define SIGNUM_BOUND (NSIG - 1)
 #else

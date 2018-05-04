@@ -1,6 +1,6 @@
 ;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -33,8 +33,6 @@
 
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (defun idlwave-toolbar-make-button (image)
   (if (featurep 'xemacs)
@@ -439,7 +437,7 @@ static char * file[] = {
 \"                            \",
 \"                            \",
 \"                            \"};")
-  "The Cont icon.")	  
+  "The Cont icon.")
 
 (defvar idlwave-toolbar-to-here-icon
   (idlwave-toolbar-make-button
@@ -918,7 +916,7 @@ static char * file[] = {
 		     (help (aref x 3))
 		     (key (vector 'tool-bar func))
 		     (def (list 'menu-item
-				"a"
+				""
 				func
 				:image (symbol-value icon)
 				:visible show

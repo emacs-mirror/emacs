@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -88,7 +88,7 @@ the MH mail system."
 When desktop creates a buffer, DESKTOP-BUFFER-FILE-NAME holds the
 file name to visit, DESKTOP-BUFFER-NAME holds the desired buffer
 name, and DESKTOP-BUFFER-MISC holds a list of miscellaneous info
-used by the `desktop-buffer-handlers' functions."
+used by the `desktop-buffer-mode-handlers' functions."
   (mh-find-path)
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
@@ -525,7 +525,7 @@ font-lock is done highlighting.")
                         (cons (current-buffer) nil)))))
 
 ;; Register mh-folder-mode as supporting which-function-mode...
-(mh-require 'which-func nil t)
+(eval-and-compile (mh-require 'which-func nil t))
 (when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
@@ -755,7 +755,7 @@ You can enter the message NUMBER either before or after typing
 
 In a program, optional non-nil second argument NO-ERROR-IF-NO-MESSAGE
 means return nil instead of signaling an error if message does not
-exist\; in this case, the cursor is positioned near where the message
+exist; in this case, the cursor is positioned near where the message
 would have been. Non-nil third argument DONT-SHOW means not to show
 the message."
   (interactive "NGo to message: ")

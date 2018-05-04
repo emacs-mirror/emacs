@@ -1,6 +1,6 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;; Copyright (C) 2003-2006, 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2006, 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -141,7 +141,7 @@ Use the command `semantic-idle-scheduler-mode' to change this variable.")
 (make-variable-buffer-local 'semantic-idle-scheduler-mode)
 
 (defcustom semantic-idle-scheduler-max-buffer-size 0
-  "*Maximum size in bytes of buffers where idle-scheduler is enabled.
+  "Maximum size in bytes of buffers where idle-scheduler is enabled.
 If this value is less than or equal to 0, idle-scheduler is enabled in
 all buffers regardless of their size."
   :group 'semantic
@@ -303,13 +303,13 @@ call additional functions registered with the timer calls."
 ;; Unlike the shorter timer, the WORK timer will kick of tasks that
 ;; may take a long time to complete.
 (defcustom semantic-idle-work-parse-neighboring-files-flag nil
-  "*Non-nil means to parse files in the same dir as the current buffer.
+  "Non-nil means to parse files in the same dir as the current buffer.
 Disable to prevent lots of excessive parsing in idle time."
   :group 'semantic
   :type 'boolean)
 
 (defcustom semantic-idle-work-update-headers-flag nil
-  "*Non-nil means to parse through header files in idle time.
+  "Non-nil means to parse through header files in idle time.
 Disable to prevent idle time parsing of many files.  If completion
 is called that work will be done then instead."
   :group 'semantic

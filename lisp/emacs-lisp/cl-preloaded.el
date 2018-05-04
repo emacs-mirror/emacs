@@ -1,8 +1,9 @@
 ;;; cl-preloaded.el --- Preloaded part of the CL library  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -17,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -44,10 +45,43 @@
 
 (defun cl--assertion-failed (form &optional string sargs args)
   (if debug-on-error
-      (debug `(cl-assertion-failed ,form ,string ,@sargs))
+      (funcall debugger 'error `(cl-assertion-failed (,form ,string ,@sargs)))
     (if string
         (apply #'error string (append sargs args))
       (signal 'cl-assertion-failed `(,form ,@sargs)))))
+
+(defconst cl--typeof-types
+  ;; Hand made from the source code of `type-of'.
+  '((integer number number-or-marker atom)
+    (symbol atom) (string array sequence atom)
+    (cons list sequence)
+    ;; Markers aren't `numberp', yet they are accepted wherever integers are
+    ;; accepted, pretty much.
+    (marker number-or-marker atom)
+    (overlay atom) (float number atom) (window-configuration atom)
+    (process atom) (window atom) (subr atom) (compiled-function function atom)
+    (module-function function atom)
+    (buffer atom) (char-table array sequence atom)
+    (bool-vector array sequence atom)
+    (frame atom) (hash-table atom) (terminal atom)
+    (thread atom) (mutex atom) (condvar atom)
+    (font-spec atom) (font-entity atom) (font-object atom)
+    (vector array sequence atom)
+    (user-ptr atom)
+    ;; Plus, really hand made:
+    (null symbol list sequence atom))
+  "Alist of supertypes.
+Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
+the symbols returned by `type-of', and SUPERTYPES is the list of its
+supertypes from the most specific to least specific.")
+
+(defconst cl--all-builtin-types
+  (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
+
+(defun cl--struct-name-p (name)
+  "Return t if NAME is a valid structure name for `cl-defstruct'."
+  (and name (symbolp name) (not (keywordp name))
+       (not (memq name cl--all-builtin-types))))
 
 ;; When we load this (compiled) file during pre-loading, the cl--struct-class
 ;; code below will need to access the `cl-struct' info, since it's considered
@@ -60,10 +94,10 @@
 (fset 'cl--make-slot-desc
       ;; To break circularity, we pre-define the slot constructor by hand.
       ;; It's redefined a bit further down as part of the cl-defstruct of
-      ;; cl--slot-descriptor.
+      ;; cl-slot-descriptor.
       ;; BEWARE: Obviously, it's important to keep the two in sync!
       (lambda (name &optional initform type props)
-        (vector 'cl-struct-cl-slot-descriptor
+        (record 'cl-slot-descriptor
                 name initform type props)))
 
 (defun cl--struct-get-class (name)
@@ -100,7 +134,7 @@
 (defun cl--struct-register-child (parent tag)
   ;; Can't use (cl-typep parent 'cl-structure-class) at this stage
   ;; because `cl-structure-class' is defined later.
-  (while (vectorp parent)
+  (while (recordp parent)
     (add-to-list (cl--struct-class-children-sym parent) tag)
     ;; Only register ourselves as a child of the leftmost parent since structs
     ;; can only only have one parent.
@@ -109,6 +143,13 @@
 ;;;###autoload
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print)
+  (cl-check-type name cl--struct-name)
+  (unless type
+    ;; Legacy defstruct, using tagged vectors.  Enable backward compatibility.
+    (cl-old-struct-compat-mode 1))
+  (if (eq type 'record)
+      ;; Defstruct using record objects.
+      (setq type nil))
   (cl-assert (or type (not named)))
   (if (boundp children-sym)
       (add-to-list children-sym tag)
@@ -149,8 +190,21 @@
                    parent name))))
     (add-to-list 'current-load-list `(define-type . ,name))
     (cl--struct-register-child parent-class tag)
-    (unless (eq named t)
-      (eval `(defconst ,tag ',class) t)
+    (unless (or (eq named t) (eq tag name))
+      ;; We used to use `defconst' instead of `set' but that
+      ;; has a side-effect of purecopying during the dump, so that the
+      ;; class object stored in the tag ends up being a *copy* of the
+      ;; one stored in the `cl--class' property!  We could have fixed
+      ;; this needless duplication by using the purecopied object, but
+      ;; that then breaks down a bit later when we modify the
+      ;; cl-structure-class class object to close the recursion
+      ;; between cl-structure-object and cl-structure-class (because
+      ;; modifying purecopied objects is not allowed.  Since this is
+      ;; done during dumping, we could relax this rule and allow the
+      ;; modification, but it's cumbersome).
+      ;; So in the end, it's easier to just avoid the duplication by
+      ;; avoiding the use of the purespace here.
+      (set tag class)
       ;; In the cl-generic support, we need to be able to check
       ;; if a vector is a cl-struct object, without knowing its particular type.
       ;; So we use the (otherwise) unused function slots of the tag symbol
@@ -174,7 +228,7 @@
   (name nil :type symbol)               ;The type name.
   (docstring nil :type string)
   (parents nil :type (list-of cl--class)) ;The included struct.
-  (slots nil :type (vector cl--slot-descriptor))
+  (slots nil :type (vector cl-slot-descriptor))
   (index-table nil :type hash-table)
   (tag nil :type symbol) ;Placed in cl-tag-slot.  Holds the struct-class object.
   (type nil :type (memq (vector list)))

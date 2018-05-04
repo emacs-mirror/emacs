@@ -1,13 +1,13 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985-1988, 1993-1995, 1998-2015 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Old BUGS:
    - [M-C-a] != [?\M-\C-a]
@@ -41,14 +41,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
 #include "buffer.h"
-#include "charset.h"
 #include "keyboard.h"
-#include "frame.h"
 #include "termhooks.h"
 #include "blockinput.h"
 #include "puresize.h"
@@ -94,7 +93,7 @@ static void describe_command (Lisp_Object, Lisp_Object);
 static void describe_translation (Lisp_Object, Lisp_Object);
 static void describe_map (Lisp_Object, Lisp_Object,
                           void (*) (Lisp_Object, Lisp_Object),
-			  bool, Lisp_Object, Lisp_Object*, bool, bool);
+			  bool, Lisp_Object, Lisp_Object *, bool, bool);
 static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
                              void (*) (Lisp_Object, Lisp_Object), bool,
                              Lisp_Object, Lisp_Object, bool, bool);
@@ -341,7 +340,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 	 If we came to the end, add the parent in PREV.  */
       if (!CONSP (list) || KEYMAPP (list))
 	{
-	  CHECK_IMPURE (prev);
+	  CHECK_IMPURE (prev, XCONS (prev));
 	  XSETCDR (prev, parent);
 	  return parent;
 	}
@@ -524,7 +523,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 		retval = Fcons (Qkeymap, Fcons (retval, retval_tail));
 	      }
 	  }
-	QUIT;
+	maybe_quit ();
       }
 
     return EQ (Qunbound, retval) ? get_keyelt (t_binding, autoload) : retval;
@@ -750,7 +749,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 
   /* If we are preparing to dump, and DEF is a menu element
      with a menu item indicator, copy it to ensure it is not pure.  */
-  if (CONSP (def) && PURE_P (def)
+  if (CONSP (def) && PURE_P (XCONS (def))
       && (EQ (XCAR (def), Qmenu_item) || STRINGP (XCAR (def))))
     def = Fcons (XCAR (def), XCDR (def));
 
@@ -798,7 +797,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	  {
 	    if (NATNUMP (idx) && XFASTINT (idx) < ASIZE (elt))
 	      {
-		CHECK_IMPURE (elt);
+		CHECK_IMPURE (elt, XVECTOR (elt));
 		ASET (elt, XFASTINT (idx), def);
 		return def;
 	      }
@@ -851,11 +850,13 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	      }
 	    else if (EQ (idx, XCAR (elt)))
 	      {
-		CHECK_IMPURE (elt);
+		CHECK_IMPURE (elt, XCONS (elt));
 		XSETCDR (elt, def);
 		return def;
 	      }
-	    else if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	    else if (CONSP (idx)
+		     && CHARACTERP (XCAR (idx))
+		     && CHARACTERP (XCAR (elt)))
 	      {
 		int from = XFASTINT (XCAR (idx));
 		int to = XFASTINT (XCDR (idx));
@@ -876,7 +877,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	     should be inserted before it.  */
 	  goto keymap_end;
 
-	QUIT;
+	maybe_quit ();
       }
 
   keymap_end:
@@ -895,7 +896,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	}
       else
 	elt = Fcons (idx, def);
-      CHECK_IMPURE (insertion_point);
+      CHECK_IMPURE (insertion_point, XCONS (insertion_point));
       XSETCDR (insertion_point, Fcons (elt, XCDR (insertion_point)));
     }
   }
@@ -971,8 +972,18 @@ copy_keymap_1 (Lisp_Object chartable, Lisp_Object idx, Lisp_Object elt)
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
        doc: /* Return a copy of the keymap KEYMAP.
-The copy starts out with the same definitions of KEYMAP,
-but changing either the copy or KEYMAP does not affect the other.
+
+Note that this is almost never needed.  If you want a keymap that's like
+another yet with a few changes, you should use map inheritance rather
+than copying.  I.e. something like:
+
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map <theirmap>)
+      (define-key map ...)
+      ...)
+
+After performing `copy-keymap', the copy starts out with the same definitions
+of KEYMAP, but changing either the copy or KEYMAP does not affect the other.
 Any key definitions that are subkeymaps are recursively copied.
 However, a key definition which is a symbol whose definition is a keymap
 is not copied.  */)
@@ -1239,7 +1250,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       if (!CONSP (keymap))
 	return make_number (idx);
 
-      QUIT;
+      maybe_quit ();
     }
 }
 
@@ -1267,7 +1278,7 @@ append_key (Lisp_Object key_sequence, Lisp_Object key)
   return CALLN (Fvconcat, key_sequence, key_list);
 }
 
-/* Given a event type C which is a symbol,
+/* Given an event type C which is a symbol,
    signal an error if is a mistake such as RET or M-RET or C-DEL, etc.  */
 
 static void
@@ -1281,7 +1292,7 @@ silly_event_symbol_error (Lisp_Object c)
   base = XCAR (parsed);
   name = Fsymbol_name (base);
   /* This alist includes elements such as ("RET" . "\\r").  */
-  assoc = Fassoc (name, exclude_keys);
+  assoc = Fassoc (name, exclude_keys, Qnil);
 
   if (! NILP (assoc))
     {
@@ -1303,7 +1314,7 @@ silly_event_symbol_error (Lisp_Object c)
       *p = 0;
 
       c = reorder_modifiers (c);
-      AUTO_STRING (new_mods_string, new_mods);
+      AUTO_STRING_WITH_LEN (new_mods_string, new_mods, p - new_mods);
       keystring = concat2 (new_mods_string, XCDR (assoc));
 
       error ("To bind the key %s, use [?%s], not [%s]",
@@ -1737,10 +1748,12 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 
 DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 3, 0,
        doc: /* Define COMMAND as a prefix command.  COMMAND should be a symbol.
-A new sparse keymap is stored as COMMAND's function definition and its value.
-If a second optional argument MAPVAR is given, the map is stored as
-its value instead of as COMMAND's value; but COMMAND is still defined
-as a function.
+A new sparse keymap is stored as COMMAND's function definition and its
+value.
+This prepares COMMAND for use as a prefix key's binding.
+If a second optional argument MAPVAR is given, it should be a symbol.
+The map is then stored as MAPVAR's value instead of as COMMAND's
+value; but COMMAND is still defined as a function.
 The third optional argument NAME, if given, supplies a menu name
 string for the map.  This is required to use the keymap as a menu.
 This function returns COMMAND.  */)
@@ -1986,9 +1999,10 @@ For an approximate inverse of this, see `kbd'.  */)
     size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4 < size)
+  EMACS_INT size4;
+  if (INT_MULTIPLY_WRAPV (size, 4, &size4))
     memory_full (SIZE_MAX);
-  SAFE_ALLOCA_LISP (args, size * 4);
+  SAFE_ALLOCA_LISP (args, size4);
 
   /* In effect, this computes
      (mapconcat 'single-key-description keys " ")
@@ -2452,7 +2466,7 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
 	   non-ascii prefixes like `C-down-mouse-2'.  */
 	continue;
 
-      QUIT;
+      maybe_quit ();
 
       data.definition = definition;
       data.noindirect = noindirect;
@@ -3159,7 +3173,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
-      QUIT;
+      maybe_quit ();
 
       if (VECTORP (XCAR (tail))
 	  || CHAR_TABLE_P (XCAR (tail)))
@@ -3412,7 +3426,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       int range_beg, range_end;
       Lisp_Object val;
 
-      QUIT;
+      maybe_quit ();
 
       if (i == stop)
 	{

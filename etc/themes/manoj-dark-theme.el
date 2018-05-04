@@ -1,6 +1,6 @@
 ;;; manoj-dark.el --- A dark theme from Manoj
 
-;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Manoj Srivastava <srivasta@ieee.org>
 ;; Keywords: lisp, faces
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -91,8 +91,8 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(font-lock-doc-string-face    ((t (:foreground "Plum"))))
  '(font-lock-warning-face ((t (:bold t :foreground "Pink" :weight bold))))
 
- '(cperl-array-face ((t (:foreground "LawnGreen" :background "B;ack" :bold t))))
- '(cperl-hash-face ((t (:foreground "SpringGreen" :background "B;ack" :bold t :italic t))))
+ '(cperl-array-face ((t (:foreground "LawnGreen" :background "Black" :bold t))))
+ '(cperl-hash-face ((t (:foreground "SpringGreen" :background "Black" :bold t :italic t))))
  '(cperl-nonoverridable-face ((t (:foreground "chartreuse3"))))
 
  '(gnus-button ((t (:bold t :weight bold :background "#191932" :box (:line-width 2 :style released-button)))))
@@ -482,6 +482,7 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(epa-validity-medium ((t (:italic t :foreground "PaleTurquoise" :slant italic))))
 
  '(escape-glyph ((t (:foreground "cyan"))))
+ '(homoglyph ((t (:foreground "cyan"))))
 
  '(eshell-ls-archive-face ((t (:bold t :foreground "IndianRed"))))
  '(eshell-ls-backup-face ((t (:foreground "Grey"))))
@@ -601,6 +602,16 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(paren-no-match-face ((t (:bold t :background "white" :foreground "red"))))
  '(query-replace ((t (:foreground "brown4" :background "palevioletred2"))))
  '(region ((t (:background "blue3"))))
+ '(realgud-overlay-arrow1        ((t (:foreground "medium sea green"))))
+ '(realgud-overlay-arrow2        ((t (:foreground "white"))))
+ '(realgud-overlay-arrow3        ((t (:foreground "indian red"))))
+ '(realgud-bp-enabled-face       ((t (:inherit error))))
+ '(realgud-bp-disabled-face      ((t (:underline t))))
+ '(realgud-bp-line-enabled-face  ((t (:foreground "orange"))))
+ '(realgud-bp-line-disabled-face ((t (:underline t))))
+ '(realgud-file-name             ((t (:foreground "cyan"))))
+ '(realgud-line-number           ((t (:foreground "yellow"))))
+ '(realgud-backtrace-number      ((t (:foreground "yellow" :weight bold))))
  '(scroll-bar ((t (:background "grey75" :foreground "WhiteSmoke"))))
  '(secondary-selection ((t (:background "SkyBlue4"))))
  '(semantic-dirty-token-face ((t (:background "lightyellow"))))

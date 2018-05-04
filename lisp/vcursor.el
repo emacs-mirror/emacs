@@ -1,6 +1,6 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
-;; Copyright (C) 1994, 1996, 1998, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1994, 1996, 1998, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -573,11 +573,11 @@ With optional NOT-THIS non-nil never return the current window.
 
 With NEW-WIN non-nil, display the virtual cursor buffer in another
 window if the virtual cursor is not currently visible \(note, however,
-that this function never changes `window-point'\).
+that this function never changes `window-point').
 
 With THIS-FRAME non-nil, don't search other frames for a new window
 \(though if the vcursor is already off-frame then its current window is
-always considered, and the value of `pop-up-frames' is always respected\).
+always considered, and the value of `pop-up-frames' is always respected).
 
 Returns nil if the virtual cursor is not visible anywhere suitable.
 Set `vcursor-window' to the returned value as a side effect."

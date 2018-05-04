@@ -1,6 +1,6 @@
 ;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*-coding: utf-8;-*-
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -200,10 +200,6 @@ character set: `latin-2', `hebrew' etc."
   (let* ((info (get-language-info language 'charset))
 	 (char (and info (decode-char (car (remq 'ascii info)) ?\ ))))
     (and char (char-displayable-p char))))
-
-;; Backwards compatibility.
-(define-obsolete-function-alias 'latin1-char-displayable-p
-  'char-displayable-p "22.1")
 
 (defun latin1-display-setup (set &optional force)
   "Set up Latin-1 display for characters in the given SET.
@@ -2271,7 +2267,7 @@ isn't changed if the display can render Unicode characters."
 	     (?\∨ "OR")
 	     (?\∩ "(U")
 	     (?\∪ ")U")
-	     (?\∫ "\int ")
+	     (?\∫ "\\int ")
 	     (?\∬ "DI")
 	     (?\∮ "Io")
 	     (?\∴ ".:")

@@ -1,6 +1,6 @@
 ;;; erc-pcomplete.el --- Provides programmable completion for ERC
 
-;; Copyright (C) 2002-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -60,7 +60,7 @@ the most recent speakers are listed first."
   :group 'erc-pcomplete
   :type 'boolean)
 
-;;;###autoload (autoload 'erc-completion-mode "erc-pcomplete" nil t)
+;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
   ((add-hook 'erc-mode-hook 'pcomplete-erc-setup)
@@ -225,9 +225,10 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
                  (erc-get-channel-user-list)))
         (nicks nil))
     (dolist (user users)
-      (unless (and ignore-self
-                   (string= (erc-server-user-nickname (car user))
-                            (erc-current-nick)))
+      (unless (or (not user)
+                  (and ignore-self
+                       (string= (erc-server-user-nickname (car user))
+                                (erc-current-nick))))
         (setq nicks (cons (concat (erc-server-user-nickname (car user))
                                   postfix)
                           nicks))))
@@ -237,10 +238,12 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
   "Returns a list of all nicks on the current server."
   (let (nicks)
     (erc-with-server-buffer
-      (maphash (lambda (nick _user)
-                 (setq nicks (cons (concat nick postfix) nicks)))
+      (maphash (lambda (_nick user)
+                 (setq nicks (cons
+                              (concat (erc-server-user-nickname user) postfix)
+                              nicks)))
                erc-server-users))
-      nicks))
+    nicks))
 
 (defun pcomplete-erc-channels ()
   "Returns a list of channels associated with the current server."
@@ -281,6 +284,6 @@ up to where point is right now."
 ;;; erc-pcomplete.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:
-

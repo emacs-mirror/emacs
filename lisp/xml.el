@@ -1,6 +1,6 @@
-;;; xml.el --- XML parser
+;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -126,9 +126,9 @@ tag.  For example,
 
 would be represented by
 
-    '(\"\" . \"foo\").
+    (\"\" . \"foo\").
 
-If you'd just like a plain symbol instead, use 'symbol-qnames in
+If you'd just like a plain symbol instead, use `symbol-qnames' in
 the PARSE-NS argument."
 
   (car node))
@@ -401,9 +401,9 @@ Both features can be combined by providing a cons cell
 		     parse-dtd)
 		(setq dtd (car result))
 		(if (cdr result)	; possible leading comment
-		    (add-to-list 'xml (cdr result))))
+		    (push (cdr result) xml)))
 	       (t
-		(add-to-list 'xml result))))
+		(push result xml))))
 	  (goto-char (point-max))))
       (if parse-dtd
 	  (cons dtd (nreverse xml))
@@ -437,6 +437,7 @@ in the XML-NS argument."
                                  (if symbol-qnames (cdr xml-ns) xml-ns)))
                      "")))
 	(if (and symbol-qnames
+                 (not special)
 		 (not (string= prefix "xmlns")))
 	    (intern (concat ns lname))
 	  (cons ns (if special "" lname))))
@@ -579,7 +580,14 @@ Return one of:
 	(error "XML: (Well-Formed) Invalid character"))
       ;; However, if we're parsing incrementally, then we need to deal
       ;; with stray CDATA.
-      (xml-parse-string)))))
+      (let ((s (xml-parse-string)))
+        (when (zerop (length s))
+          ;; We haven't consumed any input! We must throw an error in
+          ;; order to prevent looping forever.
+          (error "XML: (Not Well-Formed) Could not parse: %s"
+                 (buffer-substring-no-properties
+                  (point) (min (+ (point) 10) (point-max)))))
+        s)))))
 
 (defun xml-parse-string ()
   "Parse character data at point, and return it as a string.
@@ -640,7 +648,7 @@ surpassed `xml-entity-expansion-limit'"))))
   "Return the attribute-list after point.
 Leave point at the first non-blank character after the tag."
   (let ((attlist ())
-	end-pos name)
+        end-pos name)
     (skip-syntax-forward " ")
     (while (looking-at (eval-when-compile
 			 (concat "\\(" xml-name-re "\\)\\s-*=\\s-*")))
@@ -1010,12 +1018,12 @@ The first line is indented with the optional INDENT-STRING."
 
 (defun xml-escape-string (string)
   "Convert STRING into a string containing valid XML character data.
-Replace occurrences of &<>'\" in STRING with their default XML
-entity references (e.g. replace each & with &amp;).
+Replace occurrences of &<>\\='\" in STRING with their default XML
+entity references (e.g., replace each & with &amp;).
 
 XML character data must not contain & or < characters, nor the >
 character under some circumstances.  The XML spec does not impose
-restriction on \" or ', but we just substitute for these too
+restriction on \" or \\=', but we just substitute for these too
 \(as is permitted by the spec)."
   (with-temp-buffer
     (insert string)
@@ -1064,6 +1072,19 @@ The first line is indented with INDENT-STRING."
 		      (stringp (car tree))))
 	(insert ?\n indent-string))
       (insert ?< ?/ (symbol-name (xml-node-name xml)) ?>))))
+
+;;;###autoload
+(defun xml-remove-comments (beg end)
+  "Remove XML/HTML comments in the region between BEG and END.
+All text between the <!-- ... --> markers will be removed."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char beg)
+      (while (search-forward "<!--" nil t)
+        (let ((start (match-beginning 0)))
+          (when (search-forward "-->" nil t)
+            (delete-region start (point))))))))
 
 (provide 'xml)
 

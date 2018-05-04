@@ -1,5 +1,5 @@
-# fcntl.m4 serial 8
-dnl Copyright (C) 2009-2015 Free Software Foundation, Inc.
+# fcntl.m4 serial 9
+dnl Copyright (C) 2009-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -54,6 +54,17 @@ AC_DEFUN([gl_FUNC_FCNTL],
               if (errno != EINVAL) result |= 2;
               if (fcntl (0, F_DUPFD, bad_fd) != -1) result |= 4;
               if (errno != EINVAL) result |= 8;
+              /* On OS/2 kLIBC, F_DUPFD does not work on a directory fd */
+              {
+                int fd;
+                fd = open (".", O_RDONLY);
+                if (fd == -1)
+                  result |= 16;
+                else if (fcntl (fd, F_DUPFD, STDERR_FILENO + 1) == -1)
+                  result |= 32;
+
+                close (fd);
+              }
               return result;]])],
          [gl_cv_func_fcntl_f_dupfd_works=yes],
          [gl_cv_func_fcntl_f_dupfd_works=no],

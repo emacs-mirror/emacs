@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2001-2015 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Hash Tables
 @chapter Hash Tables
@@ -31,10 +31,10 @@ the way two alists can share a common tail.
 with a series of functions for operating on them.  Hash tables have a
 special printed representation, which consists of @samp{#s} followed
 by a list specifying the hash table properties and contents.
-@xref{Creating Hash}.  (Note that the term ``hash notation'', which
-refers to the initial @samp{#} character used in the printed
+@xref{Creating Hash}.
+(Hash notation, the initial @samp{#} character used in the printed
 representations of objects with no read representation, has nothing to
-do with the term ``hash table''.  @xref{Printed Representation}.)
+do with hash tables.  @xref{Printed Representation}.)
 
   Obarrays are also a kind of hash table, but they are a different type
 of object and are used only for recording interned symbols
@@ -71,16 +71,16 @@ alternatives:
 
 @table @code
 @item eql
-Keys which are numbers are ``the same'' if they are @code{equal}, that
+Keys which are numbers are the same if they are @code{equal}, that
 is, if they are equal in value and either both are integers or both
 are floating point; otherwise, two distinct objects are never
-``the same''.
+the same.
 
 @item eq
-Any two distinct Lisp objects are ``different'' as keys.
+Any two distinct Lisp objects are different as keys.
 
 @item equal
-Two Lisp objects are ``the same'', as keys, if they are equal
+Two Lisp objects are the same, as keys, if they are equal
 according to @code{equal}.
 @end table
 
@@ -128,24 +128,25 @@ doing that takes some extra time.
 The default size is 65.
 
 @item :rehash-size @var{rehash-size}
-When you add an association to a hash table and the table is ``full'',
+When you add an association to a hash table and the table is full,
 it grows automatically.  This value specifies how to make the hash table
 larger, at that time.
 
 If @var{rehash-size} is an integer, it should be positive, and the hash
-table grows by adding that much to the nominal size.  If
+table grows by adding approximately that much to the nominal size.  If
 @var{rehash-size} is floating point, it had better be greater
-than 1, and the hash table grows by multiplying the old size by that
-number.
+than 1, and the hash table grows by multiplying the old size by
+approximately that number.
 
 The default value is 1.5.
 
 @item :rehash-threshold @var{threshold}
-This specifies the criterion for when the hash table is ``full'' (so
+This specifies the criterion for when the hash table is full (so
 it should be made larger).  The value, @var{threshold}, should be a
 positive floating-point number, no greater than 1.  The hash table is
-``full'' whenever the actual number of entries exceeds this fraction
-of the nominal size.  The default for @var{threshold} is 0.8.
+full whenever the actual number of entries exceeds the nominal size
+multiplied by an approximation to this value.  The default for
+@var{threshold} is 0.8125.
 @end table
 @end defun
 
@@ -253,13 +254,13 @@ This function defines a new hash table test, named @var{name}.
 After defining @var{name} in this way, you can use it as the @var{test}
 argument in @code{make-hash-table}.  When you do that, the hash table
 will use @var{test-fn} to compare key values, and @var{hash-fn} to compute
-a ``hash code'' from a key value.
+a hash code from a key value.
 
 The function @var{test-fn} should accept two arguments, two keys, and
-return non-@code{nil} if they are considered ``the same''.
+return non-@code{nil} if they are considered the same.
 
 The function @var{hash-fn} should accept one argument, a key, and return
-an integer that is the ``hash code'' of that key.  For good results, the
+an integer that is the hash code of that key.  For good results, the
 function should use the whole range of integers for hash codes,
 including negative integers.
 
@@ -268,18 +269,43 @@ under the property @code{hash-table-test}; the property value's form is
 @code{(@var{test-fn} @var{hash-fn})}.
 @end defun
 
-@defun sxhash obj
+@defun sxhash-equal obj
 This function returns a hash code for Lisp object @var{obj}.
 This is an integer which reflects the contents of @var{obj}
 and the other Lisp objects it points to.
 
-If two objects @var{obj1} and @var{obj2} are equal, then @code{(sxhash
-@var{obj1})} and @code{(sxhash @var{obj2})} are the same integer.
+If two objects @var{obj1} and @var{obj2} are @code{equal}, then
+@code{(sxhash-equal @var{obj1})} and @code{(sxhash-equal @var{obj2})}
+are the same integer.
 
-If the two objects are not equal, the values returned by @code{sxhash}
-are usually different, but not always; once in a rare while, by luck,
-you will encounter two distinct-looking objects that give the same
-result from @code{sxhash}.
+If the two objects are not @code{equal}, the values returned by
+@code{sxhash-equal} are usually different, but not always; once in a
+rare while, by luck, you will encounter two distinct-looking objects
+that give the same result from @code{sxhash-equal}.
+
+@b{Common Lisp note:} In Common Lisp a similar function is called
+@code{sxhash}.  Emacs provides this name as a compatibility alias for
+@code{sxhash-equal}.
+@end defun
+
+@defun sxhash-eq obj
+This function returns a hash code for Lisp object @var{obj}.  Its
+result reflects identity of @var{obj}, but not its contents.
+
+If two objects @var{obj1} and @var{obj2} are @code{eq}, then
+@code{(xhash @var{obj1})} and @code{(xhash @var{obj2})} are the same
+integer.
+@end defun
+
+@defun sxhash-eql obj
+This function returns a hash code for Lisp object @var{obj} suitable
+for @code{eql} comparison.  I.e. it reflects identity of @var{obj}
+except for the case where the object is a float number, in which case
+hash code is generated for the value.
+
+If two objects @var{obj1} and @var{obj2} are @code{eql}, then
+@code{(xhash @var{obj1})} and @code{(xhash @var{obj2})} are the same
+integer.
 @end defun
 
   This example creates a hash table whose keys are strings that are
@@ -289,7 +315,7 @@ compared case-insensitively.
 (defun case-fold-string= (a b)
   (eq t (compare-strings a nil nil b nil nil t)))
 (defun case-fold-string-hash (a)
-  (sxhash (upcase a)))
+  (sxhash-equal (upcase a)))
 
 (define-hash-table-test 'case-fold
   'case-fold-string= 'case-fold-string-hash)
@@ -302,7 +328,7 @@ predefined test value @code{equal}.  The keys can be any Lisp object,
 and equal-looking objects are considered the same key.
 
 @example
-(define-hash-table-test 'contents-hash 'equal 'sxhash)
+(define-hash-table-test 'contents-hash 'equal 'sxhash-equal)
 
 (make-hash-table :test 'contents-hash)
 @end example

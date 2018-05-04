@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -262,7 +262,7 @@ item was added to the menu bar to make it easily accessible
 You no longer need to download a separate tarball in order to build
 Emacs with Leim.
 
-** Support for MacOS X was added.
+** Support for Mac OS X was added.
 See the files mac/README and mac/INSTALL for build instructions.
 
 ** Mac OS 9 port now uses the Carbon API by default.  You can also
@@ -3390,7 +3390,7 @@ obsolete; use `dframe-update-speed' instead.
 
 *** display-battery-mode replaces display-battery.
 
-*** battery.el now works on recent versions of OS X.
+*** battery.el now works on recent versions of Mac OS X.
 
 ** Games
 
@@ -4895,7 +4895,7 @@ described above and specifies the total height of the line, causing a
 varying number of pixels to be inserted after the line to make it line
 exactly that many pixels high.
 
-If the `line-spacing' property value is an positive integer, the value
+If the `line-spacing' property value is a positive integer, the value
 is used as additional pixels to insert after the display line; this
 overrides the default frame `line-spacing' and any buffer local value of
 the `line-spacing' variable.
@@ -5598,7 +5598,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

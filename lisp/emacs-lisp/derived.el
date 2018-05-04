@@ -1,7 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993-1994, 1999, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1999, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -137,6 +137,9 @@ BODY can start with a bunch of keyword arguments.  The following keyword
 :abbrev-table TABLE
 	Use TABLE instead of the default (CHILD-abbrev-table).
 	A nil value means to simply use the same abbrev-table as the parent.
+:after-hook FORM
+	A single lisp form which is evaluated after the mode hooks have been
+	run.  It should not be quoted.
 
 Here is how you could define LaTeX-Thesis mode as a variant of LaTeX mode:
 
@@ -163,7 +166,12 @@ See Info node `(elisp)Derived Modes' for more details."
   (declare (debug (&define name symbolp sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
 	   (doc-string 4)
-           (indent 3))
+	   ;; Ask not what
+	   ;;(indent 3)
+	   ;; can do for you, ask what it can do to others. IOW, the
+	   ;; missing of indentation setting here is the indentation
+	   ;; setting and not an oversight.
+	   )
 
   (when (and docstring (not (stringp docstring)))
     ;; Some trickiness, since what appears to be the docstring may really be
@@ -179,7 +187,8 @@ See Info node `(elisp)Derived Modes' for more details."
 	(declare-abbrev t)
 	(declare-syntax t)
 	(hook (derived-mode-hook-name child))
-	(group nil))
+	(group nil)
+        (after-hook nil))
 
     ;; Process the keyword args.
     (while (keywordp (car body))
@@ -187,17 +196,20 @@ See Info node `(elisp)Derived Modes' for more details."
 	(`:group (setq group (pop body)))
 	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
 	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+        (`:after-hook (setq after-hook (pop body)))
 	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
 		     parent child docstring syntax abbrev))
 
     `(progn
-       (defvar ,hook nil
-         ,(format "Hook run after entering %s mode.
+       (defvar ,hook nil)
+       (unless (get ',hook 'variable-documentation)
+         (put ',hook 'variable-documentation
+              ,(format "Hook run after entering %s mode.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-                  name))
+                       name)))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
        (with-no-warnings (defvar ,map (make-sparse-keymap)))
@@ -206,17 +218,20 @@ No problems result if this variable is not bound.
 	      (purecopy ,(format "Keymap for `%s'." child))))
        ,(if declare-syntax
 	    `(progn
+               (defvar ,syntax)
 	       (unless (boundp ',syntax)
-		 (put ',syntax 'definition-name ',child))
-	       (defvar ,syntax (make-syntax-table))
+		 (put ',syntax 'definition-name ',child)
+		 (defvar ,syntax (make-syntax-table)))
 	       (unless (get ',syntax 'variable-documentation)
 		 (put ',syntax 'variable-documentation
 		      (purecopy ,(format "Syntax table for `%s'." child))))))
        ,(if declare-abbrev
 	    `(progn
-	       (put ',abbrev 'definition-name ',child)
-	       (defvar ,abbrev
-		 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+               (defvar ,abbrev)
+	       (unless (boundp ',abbrev)
+		 (put ',abbrev 'definition-name ',child)
+		 (defvar ,abbrev
+		   (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
 	       (unless (get ',abbrev 'variable-documentation)
 		 (put ',abbrev 'variable-documentation
 		      (purecopy ,(format "Abbrev table for `%s'." child))))))
@@ -266,21 +281,10 @@ No problems result if this variable is not bound.
 					; Splice in the body (if any).
 	  ,@body
 	  )
-	 ;; Run the hooks, if any.
-         (run-mode-hooks ',hook)))))
-
-;; PUBLIC: find the ultimate class of a derived mode.
-
-(defun derived-mode-class (mode)
-  "Find the class of a major MODE.
-A mode's class is the first ancestor which is NOT a derived mode.
-Use the `derived-mode-parent' property of the symbol to trace backwards.
-Since major-modes might all derive from `fundamental-mode', this function
-is not very useful."
-  (declare (obsolete derived-mode-p "22.1"))
-  (while (get mode 'derived-mode-parent)
-    (setq mode (get mode 'derived-mode-parent)))
-  mode)
+	 ,@(when after-hook
+	     `((push (lambda () ,after-hook) delayed-after-hook-functions)))
+	 ;; Run the hooks (and delayed-after-hook-functions), if any.
+	 (run-mode-hooks ',hook)))))
 
 
 ;;; PRIVATE
@@ -339,7 +343,7 @@ which more-or-less shadow%s %s's corresponding table%s."
 			 (format "`%s' " parent))
 		       "might have run,\nthis mode "))
 		    (format "runs the hook `%s'" hook)
-		    ", as the final step\nduring initialization.")))
+		    ", as the final or penultimate step\nduring initialization.")))
 
     (unless (string-match "\\\\[{[]" docstring)
       ;; And don't forget to put the mode's keymap.

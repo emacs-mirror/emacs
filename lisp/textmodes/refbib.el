@@ -1,6 +1,6 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -61,7 +61,7 @@
 (defgroup refbib nil
   "Convert refer-style references to ones usable by Latex bib."
   :prefix "r2b-"
-  :group 'wp)
+  :group 'text)
 
 (defcustom r2b-trace-on nil
   "Non-nil means trace conversion."
@@ -79,7 +79,7 @@ may be eliminated if is exactly the same as the car.
   Because titles are capitalized before matching, the abbreviation
 for the journal name should be listed as beginning with a capital
 letter, even if it really doesn't.
-  For example, a value of '((\"Aij\" \"{Artificial Intelligence}\")
+  For example, a value of ((\"Aij\" \"{Artificial Intelligence}\")
 \(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the
 BibTeX macro \"ijcai7\"."
@@ -97,7 +97,7 @@ abbreviation.  The cadr may be eliminated if is exactly the same as
 the car.
   Because titles are capitalized before matching, the abbreviated title
 should be listed as beginning with a capital letter, even if it doesn't.
-  For example, a value of '((\"Aij\" \"{Artificial Intelligence}\")
+  For example, a value of ((\"Aij\" \"{Artificial Intelligence}\")
 \(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the
 BibTeX macro \"ijcai7\"."
@@ -115,7 +115,7 @@ The entry must match the given data exactly.
 should begin with a capital letter.
   For example, suppose the title \"Ijcai81\" is used for the proceedings of
 a conference, and its expansion is the BibTeX macro \"ijcai7\".  Then
-`r2b-proceedings-list' should be '((\"Ijcai81\") ...).  If instead its
+`r2b-proceedings-list' should be ((\"Ijcai81\") ...).  If instead its
 expansion were \"Proceedings of the Seventh International Conference
 on Artificial Intelligence\", then you would NOT need to include Ijcai81
 in `r2b-proceedings-list' (although it wouldn't cause an error)."

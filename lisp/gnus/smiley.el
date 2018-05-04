@@ -1,6 +1,6 @@
 ;;; smiley.el --- displaying smiley faces
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: news mail multimedia
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -47,7 +47,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'nnheader)
 (require 'gnus-art)
 
@@ -58,19 +57,17 @@
 (defvar smiley-data-directory)
 
 (defcustom smiley-style
-  (if (or (and (fboundp 'face-attribute)
-	       ;; In batch mode, attributes can be unspecified.
-	       (condition-case nil
-		   (>= (face-attribute 'default :height) 160)
-		 (error nil)))
-	  (and (fboundp 'face-height)
-	       (>= (face-height 'default) 14)))
+  (if (and (fboundp 'face-attribute)
+	   ;; In batch mode, attributes can be unspecified.
+	   (condition-case nil
+	       (>= (face-attribute 'default :height) 160)
+	     (error nil)))
       'medium
     'low-color)
   "Smiley style."
-  :type '(choice (const :tag "small, 3 colors" low-color) ;; 13x14
-		 (const :tag "medium, ~10 colors" medium) ;; 16x16
-		 (const :tag "dull, grayscale" grayscale));; 14x14
+  :type '(choice (const :tag "small, 3 colors" low-color)  ;; 13x14
+		 (const :tag "medium, ~10 colors" medium)  ;; 16x16
+		 (const :tag "dull, grayscale" grayscale)) ;; 14x14
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (setq smiley-data-directory (smiley-directory))
@@ -94,7 +91,7 @@ is nil, use `smiley-style'."
 		 ((eq smiley-style 'grayscale) "/grayscale")))))
 
 (defcustom smiley-data-directory (smiley-directory)
-  "*Location of the smiley faces files."
+  "Location of the smiley faces files."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (smiley-update-cache))
@@ -118,7 +115,7 @@ is nil, use `smiley-style'."
     ("\\(:-D\\)\\W" 1 "grin")
     ;; "smile" must be come after "evil"
     ("\\(\\^?:-?)\\)\\W" 1 "smile"))
-  "*A list of regexps to map smilies to images.
+  "A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH IMAGE), where MATCH is the submatch in
 regexp to replace with IMAGE.  IMAGE is the name of an image file in
 `smiley-data-directory'."
@@ -139,7 +136,7 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
     (when (gnus-image-type-available-p 'gif)
       (push "gif" types))
     types)
-  "*List of suffixes on smiley file names to try."
+  "List of suffixes on smiley file names to try."
   :version "24.1"
   :type '(repeat string)
   :group 'smiley)
@@ -179,7 +176,7 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
   "Replace in the region `smiley-regexp-alist' matches with corresponding images.
 A list of images is returned."
   (interactive "r")
-  (when (gnus-graphic-display-p)
+  (when (display-graphic-p)
     (unless smiley-cached-regexp-alist
       (smiley-update-cache))
     (save-excursion

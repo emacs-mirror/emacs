@@ -1,0 +1,29 @@
+.desktop-and-old-ie(@rules) {
+    @media screen and (min-width: 1200) { @rules(); }
+    html.lt-ie9 &                       { @rules(); }
+}
+
+header {
+    background-color: blue;
+
+    .desktop-and-old-ie({
+        background-color: red;
+    });
+}
+
+.e(@name, @rules) {
+    &__@{name} { @rules(); }
+}
+
+.m(@name, @rules) {
+    &--@{name} { @rules(); }
+}
+
+.btn {
+    .e(span, {  // .btn__span
+        display: inline-block;
+    });
+    .m(primary, { // .btn--primary
+        background: blue;
+    });
+}

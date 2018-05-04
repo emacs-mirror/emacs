@@ -1,6 +1,6 @@
 ;;; viper-mous.el --- mouse support for Viper
 
-;; Copyright (C) 1994-1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -145,7 +145,7 @@ If CLICK-COUNT is 2,then `word' is a Word in Vi sense.
 If the character clicked on is a non-separator and is non-alphanumeric but
 is adjacent to an alphanumeric symbol, then it is considered alphanumeric
 for the purpose of this command.  If this character has a matching
-character, such as `\(' is a match for `\)', then the matching character is
+character, such as `(' is a match for `)', then the matching character is
 also considered alphanumeric.
 For convenience, in Lisp modes, `-' is considered alphanumeric.
 
@@ -250,7 +250,7 @@ On single or double click, returns the word as determined by
 With prefix argument, N, insert that many words.
 This command must be bound to a mouse click.
 The double-click action of the same mouse button must not be bound
-\(or it must be bound to the same function\).
+\(or it must be bound to the same function).
 See `viper-surrounding-word' for the definition of a word in this case."
   (interactive "e\nP")
   (if viper-frame-of-focus	;; to handle clicks in another frame
@@ -339,7 +339,7 @@ See `viper-surrounding-word' for the definition of a word in this case."
    "Find the word clicked or double-clicked on.  Word may be in another window.
 With prefix argument, N, search for N-th occurrence.
 This command must be bound to a mouse click.  The double-click action of the
-same button must not be bound \(or it must be bound to the same function\).
+same button must not be bound \(or it must be bound to the same function).
 See `viper-surrounding-word' for the details on what constitutes a word for
 this command."
   (interactive "e\nP")

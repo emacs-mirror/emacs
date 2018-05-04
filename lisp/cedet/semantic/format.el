@@ -1,6 +1,6 @@
 ;;; semantic/format.el --- Routines for formatting tags
 
-;; Copyright (C) 1999-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -559,14 +559,14 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 ;;; UML display styles
 ;;
 (defcustom semantic-uml-colon-string " : "
-  "*String used as a color separator between parts of a UML string.
+  "String used as a color separator between parts of a UML string.
 In UML, a variable may appear as `varname : type'.
 Change this variable to change the output separator."
   :group 'semantic
   :type 'string)
 
 (defcustom semantic-uml-no-protection-string ""
-  "*String used to describe when no protection is specified.
+  "String used to describe when no protection is specified.
 Used by `semantic-format-tag-uml-protection-to-string'."
   :group 'semantic
   :type 'string)
@@ -603,7 +603,7 @@ UML attribute strings are things like {abstract} or {leaf}."
     (private . "-")
     )
   "Association list of the form (SYMBOL . \"STRING\") for protection symbols.
-This associates a symbol, such as 'public with the st ring \"+\".")
+For example, it might associate the symbol `public' with the string \"+\".")
 
 (define-overloadable-function semantic-format-tag-uml-protection-to-string (protection-symbol color)
   "Convert PROTECTION-SYMBOL to a string for UML.

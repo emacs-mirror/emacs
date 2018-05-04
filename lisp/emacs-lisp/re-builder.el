@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -64,8 +64,8 @@
 ;; syntax and string syntax are both delimited by `"'s and behave
 ;; according to their name.  With the `string' syntax there's no need
 ;; to escape the backslashes and double quotes simplifying the editing
-;; somewhat.  The other three allow editing of symbolic regular
-;; expressions supported by the packages of the same name.
+;; somewhat.  The `rx' syntax allows editing of symbolic regular
+;; expressions supported by the package of the same name.
 
 ;; Editing symbolic expressions is done through a major mode derived
 ;; from `emacs-lisp-mode' so you'll get all the good stuff like
@@ -488,10 +488,10 @@ If the optional PAUSE is non-nil then pause at the end in any case."
 Optional argument SYNTAX must be specified if called non-interactively."
   (interactive
    (list (intern
-	  (completing-read "Select syntax: "
-			   (mapcar (lambda (el) (cons (symbol-name el) 1))
-				   '(read string sregex rx))
-			   nil t (symbol-name reb-re-syntax)))))
+	  (completing-read
+	   (format "Select syntax (default %s): " reb-re-syntax)
+	   '(read string sregex rx)
+	   nil t nil nil (symbol-name reb-re-syntax)))))
 
   (if (memq syntax '(read string sregex rx))
       (let ((buffer (get-buffer reb-buffer)))

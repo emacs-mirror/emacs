@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -17,7 +17,6 @@ also considered.
 
 @node Quitting
 @section Quitting and Aborting
-@cindex quitting
 
 @table @kbd
 @item C-g
@@ -78,8 +77,8 @@ actually executed as a command if you type it while Emacs is waiting for
 input.  In that case, the command it runs is @code{keyboard-quit}.
 
   On a text terminal, if you quit with @kbd{C-g} a second time before
-the first @kbd{C-g} is recognized, you activate the ``emergency
-escape'' feature and return to the shell.  @xref{Emergency Escape}.
+the first @kbd{C-g} is recognized, you activate the emergency-escape
+feature and return to the shell.  @xref{Emergency Escape}.
 
 @cindex NFS and quitting
   There are some situations where you cannot quit.  When Emacs is
@@ -118,7 +117,7 @@ it executes as an ordinary command, and Emacs doesn't notice it until
 it is ready for the next command.
 
 @findex top-level
-  The command @kbd{M-x top-level} is equivalent to ``enough''
+  The command @kbd{M-x top-level} is equivalent to enough
 @kbd{C-]} commands to get you out of all the levels of recursive edits
 that you are in; it also exits the minibuffer if it is active.
 @kbd{C-]} gets you out one level at a time, but @kbd{M-x top-level}
@@ -186,8 +185,8 @@ command @kbd{M-x normal-erase-is-backspace-mode}.  This toggles
 between the two modes that Emacs supports for handling @key{DEL}, so
 if Emacs starts in the wrong mode, this should switch to the right
 mode.  On a text terminal, if you want to ask for help when @key{BS}
-is treated as @key{DEL}, use @key{F1}; @kbd{C-?} may also work, if it
-sends character code 127.
+is treated as @key{DEL}, use @key{F1} instead of @kbd{C-h}; @kbd{C-?}
+may also work, if it sends character code 127.
 
   To fix the problem in every Emacs session, put one of the following
 lines into your initialization file (@pxref{Init File}).  For the
@@ -234,10 +233,10 @@ top-level}.  @xref{Recursive Edit}.
 @cindex screen display, wrong
 
   If the text on a text terminal looks wrong, the first thing to do is
-see whether it is wrong in the buffer.  Type @kbd{C-l} to redisplay
-the entire screen.  If the screen appears correct after this, the
-problem was entirely in the previous screen update.  (Otherwise, see
-the following section.)
+see whether it is wrong in the buffer.  Type @kbd{C-l}
+(@code{recenter-top-bottom}) to redisplay the entire screen.  If the
+screen appears correct after this, the problem was entirely in the
+previous screen update.  (Otherwise, see the following section.)
 
   Display updating problems often result from an incorrect terminfo
 entry for the terminal you are using.  The file @file{etc/TERMS} in
@@ -252,16 +251,17 @@ bug in Emacs that appears for certain terminal types.
 @cindex garbled text
 @cindex buffer text garbled
 
-  If @kbd{C-l} shows that the text is wrong, first type @kbd{C-h l} to
-see what commands you typed to produce the observed results.  Then try
-undoing the changes step by step using @kbd{C-x u}, until it gets back
-to a state you consider correct.
+  If @kbd{C-l} shows that the text is wrong, first type @kbd{C-h l}
+(@code{view-lossage}) to see what commands you typed to produce the
+observed results.  Then try undoing the changes step by step using
+@kbd{C-x u} (@code{undo}), until it gets back to a state you consider
+correct.
 
   If a large portion of text appears to be missing at the beginning or
 end of the buffer, check for the word @samp{Narrow} in the mode line.
 If it appears, the text you don't see is probably still present, but
 temporarily off-limits.  To make it accessible again, type @kbd{C-x n
-w}.  @xref{Narrowing}.
+w} (@code{widen}).  @xref{Narrowing}.
 
 @node Memory Full
 @subsection Running out of Memory
@@ -269,12 +269,13 @@ w}.  @xref{Narrowing}.
 @cindex out of memory
 
   If you get the error message @samp{Virtual memory exceeded}, save
-your modified buffers with @kbd{C-x s}.  This method of saving them
-has the smallest need for additional memory.  Emacs keeps a reserve of
-memory which it makes available when this error happens; that should
-be enough to enable @kbd{C-x s} to complete its work.  When the
-reserve has been used, @samp{!MEM FULL!} appears at the beginning of
-the mode line, indicating there is no more reserve.
+your modified buffers with @kbd{C-x s} (@code{save-some-buffers}).
+This method of saving them has the smallest need for additional
+memory.  Emacs keeps a reserve of memory which it makes available when
+this error happens; that should be enough to enable @kbd{C-x s} to
+complete its work.  When the reserve has been used, @samp{!MEM FULL!}
+appears at the beginning of the mode line, indicating there is no more
+reserve.
 
   Once you have saved your modified buffers, you can exit this Emacs
 session and start another, or you can use @kbd{M-x kill-some-buffers}
@@ -417,19 +418,22 @@ first @kbd{C-g} properly, then the second one will get you back to the
 shell.
 
   When you resume Emacs after a suspension caused by emergency escape,
-it asks two questions before going back to what it had been doing:
+it reports the resumption and asks a question or two before going back
+to what it had been doing:
 
 @example
+Emacs is resuming after an emergency escape.
 Auto-save? (y or n)
 Abort (and dump core)? (y or n)
 @end example
 
 @noindent
-Answer each one with @kbd{y} or @kbd{n} followed by @key{RET}.
+Answer each question with @kbd{y} or @kbd{n} followed by @key{RET}.
 
   Saying @kbd{y} to @samp{Auto-save?} causes immediate auto-saving of
 all modified buffers in which auto-saving is enabled.  Saying @kbd{n}
-skips this.
+skips this.  This question is omitted if Emacs is in a state where
+auto-saving cannot be done safely.
 
   Saying @kbd{y} to @samp{Abort (and dump core)?} causes Emacs to
 crash, dumping core.  This is to enable a wizard to figure out why
@@ -450,7 +454,7 @@ displays, you can use the mouse to kill Emacs or switch to another
 program.
 
   On MS-DOS, you must type @kbd{C-@key{Break}} (twice) to cause
-emergency escape---but there are cases where it won't work, when
+emergency escape---but there are cases where it won't work, when a
 system call hangs or when Emacs is stuck in a tight loop in C code.
 
 @node Bugs
@@ -488,7 +492,7 @@ are suggestions for workarounds and solutions.
 
 @cindex bug tracker
 @item
-The GNU Bug Tracker at @url{http://debbugs.gnu.org}.  Emacs bugs are
+The GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Emacs bugs are
 filed in the tracker under the @samp{emacs} package.  The tracker
 records information about the status of each bug, the initial bug
 report, and the follow-up messages by the bug reporter and Emacs
@@ -506,8 +510,8 @@ by the Emacs maintainers, are shown by @kbd{M-x debbugs-gnu-usertags}.
 @item
 The @samp{bug-gnu-emacs} mailing list (also available as the newsgroup
 @samp{gnu.emacs.bug}).  You can read the list archives at
-@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs}.  This list
-works as a ``mirror'' of the Emacs bug reports and follow-up messages
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs}.  This list
+works as a mirror of the Emacs bug reports and follow-up messages
 which are sent to the bug tracker.  It also contains old bug reports
 from before the bug tracker was introduced (in early 2008).
 
@@ -521,7 +525,7 @@ The @samp{emacs-pretest-bug} mailing list.  This list is no longer
 used, and is mainly of historical interest.  At one time, it was used
 for bug reports in development (i.e., not yet released) versions of
 Emacs.  You can read the archives for 2003 to mid 2007 at
-@url{http://lists.gnu.org/archive/html/emacs-pretest-bug/}.  Nowadays,
+@url{https://lists.gnu.org/r/emacs-pretest-bug/}.  Nowadays,
 it is an alias for @samp{bug-gnu-emacs}.
 
 @item
@@ -538,10 +542,10 @@ not feel obliged to read this list before reporting a bug.
 @cindex bug criteria
 @cindex what constitutes an Emacs bug
 
-  If Emacs accesses an invalid memory location (``segmentation
-fault''), or exits with an operating system error message that
-indicates a problem in the program (as opposed to something like
-``disk full''), then it is certainly a bug.
+  If Emacs accesses an invalid memory location (a.k.a.@:
+``segmentation fault'') or exits with an operating system error
+message that indicates a problem in the program (as opposed to
+something like ``disk full''), then it is certainly a bug.
 
   If the Emacs display does not correspond properly to the contents of
 the buffer, then it is a bug.  But you should check that features like
@@ -587,12 +591,14 @@ important to report documentation bugs as program bugs.
   If the built-in documentation for a function or variable disagrees
 with the manual, one of them must be wrong; that is a bug.
 
+  For problems with packages that are not part of Emacs, it is better
+to begin by reporting them to the package developers.
+
 @node Understanding Bug Reporting
 @subsection Understanding Bug Reporting
 @cindex bug reporting
 @cindex report an Emacs bug, how to
 
-@findex emacs-version
   When you decide that there is a bug, it is important to report it
 and to report it in a way which is useful.  What is most useful is an
 exact description of what commands you type, starting with the shell
@@ -618,7 +624,7 @@ large file, and Emacs displayed @samp{I feel pretty today}.''  This is
 what we mean by ``guessing explanations''.  The problem might be due
 to the fact that there is a @samp{z} in the file name.  If this is so,
 then when we got your report, we would try out the problem with some
-``large file'', probably with no @samp{z} in its name, and not see any
+large file, probably with no @samp{z} in its name, and not see any
 problem.  There is no way we could guess that we should try visiting a
 file with a @samp{z} in its name.
 
@@ -677,7 +683,7 @@ will be sent to the Emacs maintainers at
 @email{bug-gnu-emacs@@gnu.org}.
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}.
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, bug-gnu-emacs}.
 @end ifhtml
 (If you want to suggest an improvement or new feature, use the same
 address.)  If you cannot send mail from inside Emacs, you can copy the
@@ -687,12 +693,12 @@ and send it to that address.  Or you can simply send an email to that
 address describing the problem.
 
 Your report will be sent to the @samp{bug-gnu-emacs} mailing list, and
-stored in the GNU Bug Tracker at @url{http://debbugs.gnu.org}.  Please
+stored in the GNU Bug Tracker at @url{https://debbugs.gnu.org}.  Please
 include a valid reply email address, in case we need to ask you for
 more information about your report.  Submissions are moderated, so
 there may be a delay before your report appears.
 
-You do not need to know how the Gnu Bug Tracker works in order to
+You do not need to know how the GNU Bug Tracker works in order to
 report a bug, but if you want to, you can read the tracker's online
 documentation to see the various features you can use.
 
@@ -705,7 +711,10 @@ tracker.
 
 If your data is more than 500,000 bytes, please don't include it
 directly in the bug report; instead, offer to send it on request, or
-make it available by ftp and say where.
+make it available online and say where.
+
+The GNU Bug Tracker will assign a bug number to your report; please
+use it in the following discussions.
 
   To enable maintainers to investigate a bug, your report
 should include all these things:
@@ -715,6 +724,7 @@ should include all these things:
 The version number of Emacs.  Without this, we won't know whether there is any
 point in looking for the bug in the current version of GNU Emacs.
 
+@findex emacs-version
 @kbd{M-x report-emacs-bug} includes this information automatically,
 but if you are not using that command for your report you can get the
 version number by typing @kbd{M-x emacs-version @key{RET}}.  If that
@@ -768,20 +778,21 @@ customizations.
 @cindex dribble file
 @cindex logging keystrokes
 One way to record the input to Emacs precisely is to write a dribble
-file.  To start the file, use the @kbd{M-x open-dribble-file
-@key{RET}} command.  From then on, Emacs copies all your input to the
-specified dribble file until the Emacs process is killed.  Be aware
-that sensitive information (such as passwords) may end up recorded in
-the dribble file.
+file.  To start the file, use the @kbd{M-x open-dribble-file} command.
+From then on, Emacs copies all your input to the specified dribble
+file until the Emacs process is killed.  Be aware that sensitive
+information (such as passwords) may end up recorded in the dribble
+file.
 
 @item
 @findex open-termscript
 @cindex termscript file
-@cindex @env{TERM} environment variable
-For possible display bugs, the terminal type (the value of environment
-variable @env{TERM}), the complete termcap entry for the terminal from
-@file{/etc/termcap} (since that file is not identical on all machines),
-and the output that Emacs actually sent to the terminal.
+@vindex TERM@r{, environment variable, and display bugs}
+For possible display bugs on text-mode terminals, the terminal type
+(the value of environment variable @env{TERM}), the complete termcap
+entry for the terminal from @file{/etc/termcap} (since that file is
+not identical on all machines), and the output that Emacs actually
+sent to the terminal.
 
 The way to collect the terminal output is to execute the Lisp expression
 
@@ -804,7 +815,7 @@ stimulates the bug.
 @item
 If non-@acronym{ASCII} text or internationalization is relevant, the locale that
 was current when you started Emacs.  On GNU/Linux and Unix systems, or
-if you use a Posix-style shell such as Bash, you can use this shell
+if you use a POSIX-style shell such as Bash, you can use this shell
 command to view the relevant values:
 
 @smallexample
@@ -924,13 +935,13 @@ However, you need to think when you collect the additional information
 if you want it to show what causes the bug.
 
 @cindex backtrace for bug reports
-For example, many people send just a backtrace, but that is not very
-useful by itself.  A simple backtrace with arguments often conveys
-little about what is happening inside GNU Emacs, because most of the
-arguments listed in the backtrace are pointers to Lisp objects.  The
-numeric values of these pointers have no significance whatever; all that
-matters is the contents of the objects they point to (and most of the
-contents are themselves pointers).
+For example, many people send just a C-level backtrace, but that is
+not very useful by itself.  A simple backtrace with arguments often
+conveys little about what is happening inside GNU Emacs, because most
+of the arguments listed in the backtrace are pointers to Lisp objects.
+The numeric values of these pointers have no significance whatever;
+all that matters is the contents of the objects they point to (and
+most of the contents are themselves pointers).
 
 @findex debug_print
 To provide useful information, you need to show the values of Lisp
@@ -1065,7 +1076,7 @@ send it to the developers.  Sending it to
 recommended, because that list is coupled to a tracking system that
 makes it easier to locate patches.  If your patch is not complete and
 you think it needs more discussion, you might want to send it to
-@email{emacs-devel@@gnu@@gnu.org} instead.  If you revise your patch,
+@email{emacs-devel@@gnu.org} instead.  If you revise your patch,
 send it as a followup to the initial topic.
 
 We prefer to get the patches as plain text, either inline (be careful
@@ -1081,7 +1092,7 @@ improvement they bring about.
 For a fix for an existing bug, it is
 best to reply to the relevant discussion on the @samp{bug-gnu-emacs}
 list, or the bug entry in the GNU Bug Tracker at
-@url{http://debbugs.gnu.org}.  Explain why your change fixes the bug.
+@url{https://debbugs.gnu.org}.  Explain why your change fixes the bug.
 
 @item
 For a new feature, include a description of the feature and your
@@ -1130,7 +1141,8 @@ The patch itself.
 Use @samp{diff -u} to make your diffs.  Diffs without context are hard
 to install reliably.  More than that, they are hard to study; we must
 always study a patch to decide whether we want to install it.  Context
-format is better than contextless diffs, but we prefer we unified format.
+format is better than contextless diffs, but we prefer the unified
+format.
 
 If you have GNU diff, use @samp{diff -u -F'^[_a-zA-Z0-9$]\+ *('} when
 making diffs of C code.  This shows the name of the function that each
@@ -1172,10 +1184,10 @@ documentation, i.e., Texinfo files.
 @xref{Change Log},
 @ifset WWW_GNU_ORG
 see
-@url{http://www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html},
+@url{https://www.gnu.org/prep/standards/html_node/Change-Log-Concepts.html},
 @end ifset
 @xref{Change Log Concepts, Change Log Concepts,
-Change Log Concepts, gnu-coding-standards, GNU Coding Standards}.
+Change Log Concepts, standards, GNU Coding Standards}.
 
 @item
 When you write the fix, keep in mind that we can't install a change that
@@ -1214,16 +1226,15 @@ answer questions on the Emacs user mailing list
 @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
 
 @item
-write documentation, either on the wiki, or in the Emacs source
-repository (@pxref{Sending Patches}).
+write documentation, either on the @uref{https://www.emacswiki.org/,
+wiki}, or in the Emacs source repository (@pxref{Sending Patches}).
 
 @item
 check if existing bug reports are fixed in newer versions of Emacs
-@url{http://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
+@url{https://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
 
 @item
-fix existing bug reports
-@url{http://debbugs.gnu.org/cgi/pkgreport.cgi?which=pkg&data=emacs}.
+fix existing bug reports.
 
 @item
 @c etc/TODO not in WWW_GNU_ORG
@@ -1235,7 +1246,7 @@ implement a new feature, and submit a patch.
 
 @item
 develop a package that works with Emacs, and publish it on your own
-or in Gnu ELPA (@url{https://elpa.gnu.org/}).
+or in GNU ELPA (@url{https://elpa.gnu.org/}).
 
 @item
 port Emacs to a new platform, but that is not common nowadays.
@@ -1247,7 +1258,7 @@ If you would like to work on improving Emacs, please contact the maintainers at
 @email{emacs-devel@@gnu.org}.
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, the
+@url{https://lists.gnu.org/mailman/listinfo/emacs-devel, the
 emacs-devel mailing list}.
 @end ifhtml
 You can ask for suggested projects or suggest your own ideas.
@@ -1258,7 +1269,7 @@ you have not yet started work, it is useful to contact
 @email{emacs-devel@@gnu.org}
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/emacs-devel, emacs-devel}
+@url{https://lists.gnu.org/mailman/listinfo/emacs-devel, emacs-devel}
 @end ifhtml
 before you start; it might be possible to suggest ways to make your
 extension fit in better with the rest of Emacs.
@@ -1270,7 +1281,7 @@ require a copyright assignment to the FSF; @xref{Copyright Assignment}.
 The development version of Emacs can be downloaded from the
 repository where it is actively maintained by a group of developers.
 See the Emacs project page
-@url{http://savannah.gnu.org/projects/emacs/} for access details.
+@url{https://savannah.gnu.org/projects/emacs/} for access details.
 
 It is important to write your patch based on the current working
 version.  If you start from an older version, your patch may be
@@ -1281,7 +1292,7 @@ downloaded the repository source, you should read the file
 from a normal build).
 
 If you would like to make more extensive contributions, see the
-@file{./CONTRIBUTE} file in the Emacs distribution for information on
+@file{CONTRIBUTE} file in the Emacs distribution for information on
 how to be an Emacs developer.
 
 For documentation on Emacs (to understand how to implement your
@@ -1292,7 +1303,7 @@ desired change), refer to:
 @ifset WWW_GNU_ORG
 @ifhtml
 the Emacs Manual
-@url{http://www.gnu.org/software/emacs/manual/emacs.html}.
+@url{https://www.gnu.org/software/emacs/manual/emacs.html}.
 @end ifhtml
 @ifnothtml
 @xref{Top, Emacs Manual,,emacs}.
@@ -1306,7 +1317,7 @@ the Emacs Manual
 @ifset WWW_GNU_ORG
 @ifhtml
 the Emacs Lisp Reference Manual
-@url{http://www.gnu.org/software/emacs/manual/elisp.html}.
+@url{https://www.gnu.org/software/emacs/manual/elisp.html}.
 @end ifhtml
 @ifnothtml
 @xref{Top, Emacs Lisp Reference Manual,,elisp}.
@@ -1317,14 +1328,14 @@ the Emacs Lisp Reference Manual
 @end ifclear
 
 @item
-@url{http://www.gnu.org/software/emacs}
+@url{https://www.gnu.org/software/emacs}
 
 @item
-@url{http://www.emacswiki.org/}
+@url{https://www.emacswiki.org/}
 @end itemize
 
 @menu
-* Coding Standards::        Gnu Emacs coding standards
+* Coding Standards::        GNU Emacs coding standards
 * Copyright Assignment::    assigning copyright to the FSF
 @end menu
 
@@ -1333,7 +1344,7 @@ the Emacs Lisp Reference Manual
 @cindex coding standards
 
 Contributed code should follow the GNU Coding Standards
-@url{http://www.gnu.org/prep/standards/}. This may also be available
+@url{https://www.gnu.org/prep/standards/}. This may also be available
 in info on your system.
 
 If it doesn't, we'll need to find someone to fix the code before we
@@ -1345,21 +1356,21 @@ Emacs has additional style and coding conventions:
 @item
 @ifset WWW_GNU_ORG
 @ifhtml
-the ``Tips'' Appendix in the Emacs Lisp Reference
-@url{http://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
+the ``Tips and Conventions'' Appendix in the Emacs Lisp Reference
+@url{https://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
 @end ifhtml
 @ifnothtml
-@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips and Conventions'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifnothtml
 @end ifset
 @ifclear WWW_GNU_ORG
-@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips and Conventions'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
 @item
-Avoid using @code{defadvice} or @code{eval-after-load} for Lisp code
+Avoid using @code{defadvice} or @code{with-eval-after-load} for Lisp code
 to be included in Emacs.
 
 @item
@@ -1381,11 +1392,12 @@ Use @code{?\s} instead of @code{? } in Lisp code for a space character.
 The FSF (Free Software Foundation) is the copyright holder for GNU Emacs.
 The FSF is a nonprofit with a worldwide mission to promote computer
 user freedom and to defend the rights of all free software users.
-For general information, see the website @url{http://www.fsf.org/}.
+For general information, see the website @url{https://www.fsf.org/}.
 
-Generally speaking, for non-trivial contributions to GNU Emacs we
-require that the copyright be assigned to the FSF@.  For the reasons
-behind this, see @url{http://www.gnu.org/licenses/why-assign.html}.
+Generally speaking, for non-trivial contributions to GNU Emacs and
+packages stored in GNU ELPA, we require that the copyright be assigned
+to the FSF@.  For the reasons behind this, see
+@url{https://www.gnu.org/licenses/why-assign.html}.
 
 Copyright assignment is a simple process.  Residents of some countries
 can do it entirely electronically.  We can help you get started, and
@@ -1409,8 +1421,8 @@ patches) over all your contributions.
 @node Service
 @section How To Get Help with GNU Emacs
 @cindex help in using Emacs
-@cindex help-gnu-emacs mailing list
-@cindex gnu.emacs.help newsgroup
+@cindex @samp{help-gnu-emacs} mailing list
+@cindex @samp{gnu.emacs.help} newsgroup
 
 If you need help installing, using or changing GNU Emacs, there are
 two ways to find it:
@@ -1422,7 +1434,7 @@ Send a message to
 the mailing list @email{help-gnu-emacs@@gnu.org},
 @end ifnothtml
 @ifhtml
-@url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
+@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
 help-gnu-emacs mailing list},
 @end ifhtml
 or post your request on newsgroup @code{gnu.emacs.help}.  (This
@@ -1430,7 +1442,7 @@ mailing list and newsgroup interconnect, so it does not matter which
 one you use.)
 
 @item
-Look in the @uref{http://www.fsf.org/resources/service/, service
+Look in the @uref{https://www.fsf.org/resources/service/, service
 directory} for someone who might help you for a fee.
 @end itemize
 

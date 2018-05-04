@@ -1,6 +1,6 @@
 ;; unidata-gen.el -- Create files containing character property data.
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -19,19 +19,19 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; SPECIAL NOTICE
 ;;
 ;;   This file must be byte-compilable/loadable by `temacs' and also
-;;   the entry function `unidata-gen-files' must be runnable by `temacs'.
+;;   the entry function `unidata-gen-file' must be runnable by `temacs'.
 
 ;; FILES TO BE GENERATED
 ;;
-;;   The entry function `unidata-gen-files' generates these files in
-;;   in directory specified by its dest-dir argument.
+;;   The entry functions `unidata-gen-file' and `unidata-gen-charprop'
+;;   generate these files:
 ;;
 ;;   charprop.el
 ;;	It contains a series of forms of this format:
@@ -94,13 +94,14 @@
 
 ;; Name of the directory containing files of Unicode Character Database.
 
-;; Dynamically bound in unidata-gen-files.
+;; Dynamically bound in unidata-gen-file.
 (defvar unidata-dir nil)
 
 (defun unidata-setup-list (unidata-text-file)
   (let* ((table (list nil))
 	 (tail table)
 	 (block-names '(("^<CJK Ideograph" . CJK\ IDEOGRAPH)
+                        ("^<Tangut Ideograph" . TANGUT\ IDEOGRAPH)
 			("^<Hangul Syllable" . HANGUL\ SYLLABLE)
 			("^<.*High Surrogate" . HIGH\ SURROGATE)
 			("^<.*Low Surrogate" . LOW\ SURROGATE)
@@ -148,14 +149,14 @@
     (setq unidata-list (cdr table))))
 
 ;; Alist of this form:
-;;   (PROP INDEX GENERATOR FILENAME DOCSTRING DESCRIBER DEFAULT VAL-LIST)
+;;   (FILENAME (PROP INDEX GENERATOR DOCSTRING DESCRIBER DEFAULT VAL-LIST) ...)
+;; FILENAME: filename to store the char-table(s)
 ;; PROP: character property
 ;; INDEX: index to each element of unidata-list for PROP.
 ;;   It may be a function that generates an alist of character codes
 ;;   vs. the corresponding property values.  Currently, only character
 ;;   codepoints or symbol values are supported in this case.
 ;; GENERATOR: function to generate a char-table
-;; FILENAME: filename to store the char-table
 ;; DOCSTRING: docstring for the property
 ;; DESCRIBER: function to call to get a description string of property value
 ;; DEFAULT: the default value of the property.  It may have the form
@@ -165,139 +166,196 @@
 ;;   between FROMn and TOn is VALn.
 ;; VAL-LIST: list of specially ordered property values
 
-(defconst unidata-prop-alist
-  '((name
-     1 unidata-gen-table-name "uni-name.el"
-     "Unicode character name.
+(defconst unidata-file-alist
+  '(
+    ;; NB this list is parsed by the Makefile to extract the names of
+    ;; the uni-*.el files, so preserve the formatting of those lines.
+    ("uni-name.el"
+     (name
+      1 unidata-gen-table-name
+      "Unicode character name.
 Property value is a string or nil.
 The value nil stands for the default value \"null string\")."
-     nil
-     nil)
-    (general-category
-     2 unidata-gen-table-symbol "uni-category.el"
-     "Unicode general category.
+      nil
+      nil))
+    ("uni-category.el"
+     (general-category
+      2 unidata-gen-table-symbol
+      "Unicode general category.
 Property value is one of the following symbols:
   Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
   Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn"
-     unidata-describe-general-category
-     Cn
-     ;; The order of elements must be in sync with unicode_category_t
-     ;; in src/character.h.
-     (Lu Ll Lt Lm Lo Mn Mc Me Nd Nl No Pc Pd Ps Pe Pi Pf Po
-	 Sm Sc Sk So Zs Zl Zp Cc Cf Cs Co Cn))
-    (canonical-combining-class
-     3 unidata-gen-table-integer "uni-combining.el"
-     "Unicode canonical combining class.
+      unidata-describe-general-category
+      Cn
+      ;; The order of elements must be in sync with
+      ;; unicode_category_t in src/character.h.
+      (Lu Ll Lt Lm Lo Mn Mc Me Nd Nl No Pc Pd Ps Pe Pi Pf Po
+	  Sm Sc Sk So Zs Zl Zp Cc Cf Cs Co Cn)))
+    ("uni-combining.el"
+     (canonical-combining-class
+      3 unidata-gen-table-integer
+      "Unicode canonical combining class.
 Property value is an integer."
-     unidata-describe-canonical-combining-class
-     0)
-    (bidi-class
-     4 unidata-gen-table-symbol "uni-bidi.el"
-     "Unicode bidi class.
+      unidata-describe-canonical-combining-class
+      0))
+    ("uni-bidi.el"
+     (bidi-class
+      4 unidata-gen-table-symbol
+      "Unicode bidi class.
 Property value is one of the following symbols:
   L, LRE, LRO, LRI, R, AL, RLE, RLO, RLI, FSI, PDF, PDI,
   EN, ES, ET, AN, CS, NSM, BN, B, S, WS, ON"
-     unidata-describe-bidi-class
-     ;; The assignment of default values to blocks of code points
-     ;; follows the file DerivedBidiClass.txt from the Unicode
-     ;; Character Database (UCD).
-     (L (#x0600 #x06FF AL) (#xFB50 #xFDFF AL) (#xFE70 #xFEFF AL)
-	(#x0590 #x05FF R) (#x07C0 #x08FF R)
-	(#xFB1D #xFB4F R) (#x10800 #x10FFF R) (#x1E800 #x1EFFF R))
-     ;; The order of elements must be in sync with bidi_type_t in
-     ;; src/dispextern.h.
-     (L R EN AN BN B AL LRE LRO RLE RLO PDF LRI RLI FSI PDI
-	ES ET CS NSM S WS ON))
-    (decomposition
-     5 unidata-gen-table-decomposition "uni-decomposition.el"
-     "Unicode decomposition mapping.
+      unidata-describe-bidi-class
+      ;; The assignment of default values to blocks of code points
+      ;; follows the file DerivedBidiClass.txt from the Unicode
+      ;; Character Database (UCD).
+      (L (#x0600 #x06FF AL) (#xFB50 #xFDFF AL) (#xFE70 #xFEFF AL)
+	 (#x0590 #x05FF R) (#x07C0 #x08FF R)
+	 (#xFB1D #xFB4F R) (#x10800 #x10FFF R) (#x1E800 #x1EFFF R))
+      ;; The order of elements must be in sync with bidi_type_t in
+      ;; src/dispextern.h.
+      (L R EN AN BN B AL LRE LRO RLE RLO PDF LRI RLI FSI PDI
+	 ES ET CS NSM S WS ON)))
+    ("uni-decomposition.el"
+     (decomposition
+      5 unidata-gen-table-decomposition
+      "Unicode decomposition mapping.
 Property value is a list of characters.  The first element may be
 one of these symbols representing compatibility formatting tag:
   font, noBreak, initial, medial, final, isolated, circle, super,
   sub, vertical, wide, narrow, small, square, fraction, compat"
-     unidata-describe-decomposition)
-    (decimal-digit-value
-     6 unidata-gen-table-integer "uni-decimal.el"
-     "Unicode numeric value (decimal digit).
+      unidata-describe-decomposition))
+    ("uni-decimal.el"
+     (decimal-digit-value
+      6 unidata-gen-table-integer
+      "Unicode numeric value (decimal digit).
 Property value is an integer 0..9, or nil.
-The value nil stands for NaN \"Numeric_Value\".")
-    (digit-value
-     7 unidata-gen-table-integer "uni-digit.el"
-     "Unicode numeric value (digit).
+The value nil stands for NaN \"Numeric_Value\"."))
+    ("uni-digit.el"
+     (digit-value
+      7 unidata-gen-table-integer
+      "Unicode numeric value (digit).
 Property value is an integer 0..9, or nil.
-The value nil stands for NaN \"Numeric_Value\".")
-    (numeric-value
-     8 unidata-gen-table-numeric "uni-numeric.el"
-     "Unicode numeric value (numeric).
+The value nil stands for NaN \"Numeric_Value\"."))
+    ("uni-numeric.el"
+     (numeric-value
+      8 unidata-gen-table-numeric
+      "Unicode numeric value (numeric).
 Property value is an integer, a floating point, or nil.
-The value nil stands for NaN \"Numeric_Value\".")
-    (mirrored
-     9 unidata-gen-table-symbol "uni-mirrored.el"
-     "Unicode bidi mirrored flag.
+The value nil stands for NaN \"Numeric_Value\"."))
+    ("uni-mirrored.el"
+     (mirrored
+      9 unidata-gen-table-symbol
+      "Unicode bidi mirrored flag.
 Property value is a symbol `Y' or `N'.  See also the property `mirroring'."
-     nil
-     N)
-    (old-name
-     10 unidata-gen-table-name "uni-old-name.el"
-     "Unicode old names as published in Unicode 1.0.
-Property value is a string or nil.
-The value nil stands for the default value \"null string\").")
-    (iso-10646-comment
-     11 unidata-gen-table-name "uni-comment.el"
-     "Unicode ISO 10646 comment.
-Property value is a string.")
-    (uppercase
-     12 unidata-gen-table-character "uni-uppercase.el"
-     "Unicode simple uppercase mapping.
-Property value is a character or nil.
-The value nil means that the actual property value of a character
-is the character itself."
-     string)
-    (lowercase
-     13 unidata-gen-table-character "uni-lowercase.el"
-     "Unicode simple lowercase mapping.
-Property value is a character or nil.
-The value nil means that the actual property value of a character
-is the character itself."
-     string)
-    (titlecase
-     14 unidata-gen-table-character "uni-titlecase.el"
-     "Unicode simple titlecase mapping.
-Property value is a character or nil.
-The value nil means that the actual property value of a character
-is the character itself."
-     string)
-    (mirroring
-     unidata-gen-mirroring-list unidata-gen-table-character "uni-mirrored.el"
-     "Unicode bidi-mirroring characters.
+      nil
+      N)
+     (mirroring
+      unidata-gen-mirroring-list unidata-gen-table-character
+      "Unicode bidi-mirroring characters.
 Property value is a character that has the corresponding mirroring image or nil.
 The value nil means that the actual property value of a character
-is the character itself.")
-    (paired-bracket
-     unidata-gen-brackets-list unidata-gen-table-character "uni-brackets.el"
-     "Unicode bidi paired-bracket characters.
+is the character itself."))
+    ("uni-old-name.el"
+     (old-name
+      10 unidata-gen-table-name
+      "Unicode old names as published in Unicode 1.0.
+Property value is a string or nil.
+The value nil stands for the default value \"null string\")."))
+    ("uni-comment.el"
+     (iso-10646-comment
+      11 unidata-gen-table-name
+      "Unicode ISO 10646 comment.
+Property value is a string."))
+    ("uni-uppercase.el"
+     (uppercase
+      12 unidata-gen-table-character
+      "Unicode simple uppercase mapping.
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself."
+      string))
+    ("uni-lowercase.el"
+     (lowercase
+      13 unidata-gen-table-character
+      "Unicode simple lowercase mapping.
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself."
+      string))
+    ("uni-titlecase.el"
+     (titlecase
+      14 unidata-gen-table-character
+      "Unicode simple titlecase mapping.
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself."
+      string))
+    ("uni-special-uppercase.el"
+     (special-uppercase
+      2 unidata-gen-table-special-casing
+      "Unicode unconditional special casing mapping.
+
+Property value is (possibly empty) string or nil.  The value nil denotes that
+`uppercase' property should be consulted instead.  A string denotes what
+sequence of characters given character maps into.
+
+This mapping includes language- and context-independent special casing rules
+defined by Unicode only.  It also does not include association which would
+duplicate information from `uppercase' property."
+      nil))
+    ("uni-special-lowercase.el"
+     (special-lowercase
+      0 unidata-gen-table-special-casing
+      "Unicode unconditional special casing mapping.
+
+Property value is (possibly empty) string or nil.  The value nil denotes that
+`lowercase' property should be consulted instead.  A string denotes what
+sequence of characters given character maps into.
+
+This mapping includes language- and context-independent special casing rules
+defined by Unicode only.  It also does not include association which would
+duplicate information from `lowercase' property."
+      nil))
+    ("uni-special-titlecase.el"
+     (special-titlecase
+      1 unidata-gen-table-special-casing
+      "Unicode unconditional special casing mapping.
+
+Property value is (possibly empty) string or nil.  The value nil denotes that
+`titlecase' property should be consulted instead.  A string denotes what
+sequence of characters given character maps into.
+
+This mapping includes language- and context-independent special casing rules
+defined by Unicode only.  It also does not include association which would
+duplicate information from `titlecase' property."
+      nil))
+    ("uni-brackets.el"
+     (paired-bracket
+      unidata-gen-brackets-list unidata-gen-table-character
+      "Unicode bidi paired-bracket characters.
 Property value is the paired bracket character, or nil.
 The value nil means that the character is neither an opening nor
 a closing paired bracket."
-     string)
-    (bracket-type
-     unidata-gen-bracket-type-list unidata-gen-table-symbol "uni-brackets.el"
-     "Unicode bidi paired-bracket type.
+      string)
+     (bracket-type
+      unidata-gen-bracket-type-list unidata-gen-table-symbol
+      "Unicode bidi paired-bracket type.
 Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
-     unidata-describe-bidi-bracket-type
-     n
-     ;; The order of elements must be in sync with bidi_bracket_type_t
-     ;; in src/dispextern.h.
-     (n o c))))
+      unidata-describe-bidi-bracket-type
+      n
+      ;; The order of elements must be in sync with bidi_bracket_type_t
+      ;; in src/dispextern.h.
+      (n o c)))))
 
 ;; Functions to access the above data.
-(defsubst unidata-prop-index (prop) (nth 1 (assq prop unidata-prop-alist)))
-(defsubst unidata-prop-generator (prop) (nth 2 (assq prop unidata-prop-alist)))
-(defsubst unidata-prop-file (prop) (nth 3 (assq prop unidata-prop-alist)))
-(defsubst unidata-prop-docstring (prop) (nth 4 (assq prop unidata-prop-alist)))
-(defsubst unidata-prop-describer (prop) (nth 5 (assq prop unidata-prop-alist)))
-(defsubst unidata-prop-default (prop) (nth 6 (assq prop unidata-prop-alist)))
-(defsubst unidata-prop-val-list (prop) (nth 7 (assq prop unidata-prop-alist)))
+(defsubst unidata-prop-prop (proplist) (nth 0 proplist))
+(defsubst unidata-prop-index (proplist) (nth 1 proplist))
+(defsubst unidata-prop-generator (proplist) (nth 2 proplist))
+(defsubst unidata-prop-docstring (proplist) (nth 3 proplist))
+(defsubst unidata-prop-describer (proplist) (nth 4 proplist))
+(defsubst unidata-prop-default (proplist) (nth 5 proplist))
+(defsubst unidata-prop-val-list (proplist) (nth 6 proplist))
 
 
 ;; SIMPLE TABLE
@@ -325,9 +383,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 ;;   3rd: 0 (corresponding to uniprop_encode_character in chartab.c)
 ;;   4th to 5th: nil
 
-(defun unidata-gen-table-character (prop &rest ignore)
+(defun unidata-gen-table-character (prop prop-idx &rest ignore)
   (let ((table (make-char-table 'char-code-property-table))
-	(prop-idx (unidata-prop-index prop))
 	(vec (make-vector 128 0))
 	(tail unidata-list)
 	elt range val idx slot)
@@ -432,13 +489,12 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 ;; Generate a char-table for the character property PROP.
 
-(defun unidata-gen-table (prop val-func default-value val-list)
+(defun unidata-gen-table (prop prop-idx val-func default-value val-list)
   (let ((table (make-char-table 'char-code-property-table))
-	(prop-idx (unidata-prop-index prop))
 	(vec (make-vector 128 0))
 	;; When this warning is printed, there's a need to make the
 	;; following changes:
-	;; (1) update unidata-prop-alist with the new bidi-class values;
+	;; (1) update unidata-file-alist with the new bidi-class values;
 	;; (2) extend bidi_type_t enumeration on src/dispextern.h to
 	;;     include the new classes;
 	;; (3) possibly update the assertion in bidi.c:bidi_check_type; and
@@ -559,8 +615,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
     (set-char-table-extra-slot table 4 (vconcat (mapcar 'car val-list)))
     table))
 
-(defun unidata-gen-table-symbol (prop default-value val-list)
-  (let ((table (unidata-gen-table prop
+(defun unidata-gen-table-symbol (prop index default-value val-list)
+  (let ((table (unidata-gen-table prop index
 				  #'(lambda (x) (and (> (length x) 0)
 						     (intern x)))
 				  default-value val-list)))
@@ -568,8 +624,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
     (set-char-table-extra-slot table 2 1)
     table))
 
-(defun unidata-gen-table-integer (prop default-value val-list)
-  (let ((table (unidata-gen-table prop
+(defun unidata-gen-table-integer (prop index default-value val-list)
+  (let ((table (unidata-gen-table prop index
 				  #'(lambda (x) (and (> (length x) 0)
 						     (string-to-number x)))
 				  default-value val-list)))
@@ -577,8 +633,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
     (set-char-table-extra-slot table 2 1)
     table))
 
-(defun unidata-gen-table-numeric (prop default-value val-list)
-  (let ((table (unidata-gen-table prop
+(defun unidata-gen-table-numeric (prop index default-value val-list)
+  (let ((table (unidata-gen-table prop index
 				  #'(lambda (x)
 				      (if (string-match "/" x)
 					  (/ (float (string-to-number x))
@@ -779,6 +835,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 			   (aref (aref jamo-name-table 2) (1- T)))))))
 	    ((eq sym 'CJK\ IDEOGRAPH)
 	     (format "%s-%04X" sym char))
+	    ((eq sym 'TANGUT\ IDEOGRAPH)
+	     (format "%s-%04X" sym char))
 	    ((eq sym 'CJK\ COMPATIBILITY\ IDEOGRAPH)
 	     (format "%s-%04X" sym char))
 	    ((eq sym 'HIGH\ SURROGATE)
@@ -882,9 +940,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 ;; Generate a char-table for character names.
 
-(defun unidata-gen-table-word-list (prop val-func)
+(defun unidata-gen-table-word-list (prop prop-idx val-func)
   (let ((table (make-char-table 'char-code-property-table))
-	(prop-idx (unidata-prop-index prop))
 	(word-list (list nil))
 	word-table
 	block-list block-word-table block-end
@@ -1029,8 +1086,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
     (or (byte-code-function-p (symbol-function fun))
 	(byte-compile fun))))
 
-(defun unidata-gen-table-name (prop &rest ignore)
-  (let* ((table (unidata-gen-table-word-list prop 'unidata-split-name))
+(defun unidata-gen-table-name (prop index &rest ignore)
+  (let* ((table (unidata-gen-table-word-list prop index 'unidata-split-name))
 	 (word-tables (char-table-extra-slot table 4)))
     (unidata--ensure-compiled 'unidata-get-name 'unidata-put-name)
     (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-name))
@@ -1067,8 +1124,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	(nreverse l)))))
 
 
-(defun unidata-gen-table-decomposition (prop &rest ignore)
-  (let* ((table (unidata-gen-table-word-list prop 'unidata-split-decomposition))
+(defun unidata-gen-table-decomposition (prop index &rest ignore)
+  (let* ((table (unidata-gen-table-word-list prop index 'unidata-split-decomposition))
 	 (word-tables (char-table-extra-slot table 4)))
     (unidata--ensure-compiled 'unidata-get-decomposition
 			      'unidata-put-decomposition)
@@ -1079,6 +1136,50 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
     (set-char-table-extra-slot table 4 (car word-tables))
     table))
 
+
+
+
+(defvar unidata-gen-table-special-casing--cache nil
+  "Cached value for `unidata-gen-table-special-casing' function.")
+
+(defun unidata-gen-table-special-casing--do-load ()
+  (let (result)
+    (with-temp-buffer
+      (insert-file-contents (expand-file-name "SpecialCasing.txt" unidata-dir))
+      (goto-char (point-min))
+      (while (not (eobp))
+        ;; Ignore empty lines and comments.
+        (unless (or (eq (char-after) ?\n) (eq (char-after) ?#))
+          (let ((line (split-string
+                       (buffer-substring (point) (progn (end-of-line) (point)))
+                       ";" "")))
+            ;; Ignore entries with conditions, i.e. those with six values.
+            (when (= (length line) 5)
+              (let ((ch (string-to-number (pop line) 16)))
+                (setcdr (cddr line) nil) ; strip comment
+                (push
+                 (cons ch
+                       (mapcar (lambda (entry)
+                                 (mapcar (lambda (n) (string-to-number n 16))
+                                         (split-string entry)))
+                               line))
+                 result)))))
+        (forward-line)))
+    result))
+
+(defun unidata-gen-table-special-casing (prop prop-idx &rest ignore)
+  (let ((table (make-char-table 'char-code-property-table)))
+    (set-char-table-extra-slot table 0 prop)
+    (mapc (lambda (entry)
+            (let ((ch (car entry)) (v (nth prop-idx (cdr entry))))
+              ;; If character maps to a single character, the mapping is already
+              ;; covered by regular casing property.  Don’t store those.
+              (when (/= (length v) 1)
+                (set-char-table-range table ch (apply 'string v)))))
+          (or unidata-gen-table-special-casing--cache
+              (setq unidata-gen-table-special-casing--cache
+                    (unidata-gen-table-special-casing--do-load))))
+    table))
 
 
 (defun unidata-describe-general-category (val)
@@ -1238,136 +1339,142 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 ;;   (unidata-check))
 
 (defun unidata-check ()
-  (dolist (elt unidata-prop-alist)
-    (let* ((prop (car elt))
-	   (index (unidata-prop-index prop))
-	   (generator (unidata-prop-generator prop))
-	   (default-value (unidata-prop-default prop))
-	   (val-list (unidata-prop-val-list prop))
-	   (table (progn
-		    (message "Generating %S table..." prop)
-		    (funcall generator prop default-value val-list)))
-	   (decoder (char-table-extra-slot table 1))
-	   (alist (and (functionp index)
-		       (funcall index)))
-	   (check #x400))
-      (dolist (e unidata-list)
-	(let* ((char (car e))
-	       (val1
-		(if alist (nth 1 (assoc char alist))
-		  (nth index e)))
-	       val2)
-	  (if (and (stringp val1) (= (length val1) 0))
-	      (setq val1 nil))
-	  (unless (or (consp char)
-		      (integerp decoder))
-	    (setq val2
-		  (cond ((functionp decoder)
-			 (funcall decoder char (aref table char) table))
-			(t		; must be nil
-			 (aref table char))))
-	    (if val1
-		(cond ((eq generator 'unidata-gen-table-symbol)
-		       (setq val1 (intern val1)))
-		      ((eq generator 'unidata-gen-table-integer)
-		       (setq val1 (string-to-number val1)))
-		      ((eq generator 'unidata-gen-table-character)
-		       (setq val1 (string-to-number val1 16)))
-		      ((eq generator 'unidata-gen-table-decomposition)
-		       (setq val1 (unidata-split-decomposition val1))))
-	      (cond ((eq prop 'decomposition)
-		     (setq val1 (list char)))
-		    ((eq prop 'bracket-type)
-		     (setq val1 'n))))
-	    (when (>= char check)
-	      (message "%S %04X" prop check)
-	      (setq check (+ check #x400)))
-	    (or (equal val1 val2)
-		;; <control> characters get a 'name' property of nil
-		(and (eq prop 'name) (string= val1 "<control>") (null val2))
-		(insert (format "> %04X %S\n< %04X %S\n"
-				char val1 char val2)))
-	    (sit-for 0)))))))
+  (dolist (elt unidata-file-alist)
+    (dolist (proplist (cdr elt))
+      (let* ((prop (unidata-prop-prop proplist))
+	     (index (unidata-prop-index proplist))
+	     (generator (unidata-prop-generator proplist))
+	     (default-value (unidata-prop-default proplist))
+	     (val-list (unidata-prop-val-list proplist))
+	     (check #x400)
+	     table decoder alist)
+        ;; We compare values in unidata.txt with the ones returned by various
+        ;; generator functions.  However, SpecialCasing.txt is read directly by
+        ;; unidata-gen-table-special-casing--do-load and there is no other file
+        ;; to compare those values with.  This is why we’re skipping the check
+        ;; for special casing properties.
+        (unless (eq generator 'unidata-gen-table-special-casing)
+          (setq table (progn
+                        (message "Generating %S table..." prop)
+                        (funcall generator prop index default-value val-list))
+                decoder (char-table-extra-slot table 1))
+          (unless (integerp decoder)
+            (setq alist (and (functionp index) (funcall index)))
+            (dolist (e unidata-list)
+              (let ((char (car e)) val1 val2)
+                (unless (consp char)
+                  (setq val1 (if alist
+                                 (nth 1 (assoc char alist))
+                               (nth index e)))
+                  (and (stringp val1)
+                       (= (length val1) 0)
+                       (setq val1 nil))
+                  (if val1
+                      (cond ((eq generator 'unidata-gen-table-symbol)
+                             (setq val1 (intern val1)))
+                            ((eq generator 'unidata-gen-table-integer)
+                             (setq val1 (string-to-number val1)))
+                            ((eq generator 'unidata-gen-table-character)
+                             (setq val1 (string-to-number val1 16)))
+                            ((eq generator 'unidata-gen-table-decomposition)
+                             (setq val1 (unidata-split-decomposition val1))))
+                    (cond ((eq prop 'decomposition)
+                           (setq val1 (list char)))
+                          ((eq prop 'bracket-type)
+                           (setq val1 'n))))
+                  (setq val2 (aref table char))
+                  (when decoder
+                    (setq val2 (funcall decoder char val2 table)))
+                  (when (>= char check)
+                    (message "%S %04X" prop check)
+                    (setq check (+ check #x400)))
+                  (or (equal val1 val2)
+                      ;; <control> characters get a 'name' property of nil
+                      (and (eq prop 'name)
+                           (string= val1 "<control>")
+                           (null val2))
+                      (insert (format "> %04X %S\n< %04X %S\n"
+                                      char val1 char val2)))
+                  (sit-for 0))))))))))
 
-;; The entry function.  It generates files described in the header
+;; The entry functions.  They generate files described in the header
 ;; comment of this file.
 
-;; Write files (charprop.el, uni-*.el) to dest-dir (default PWD),
-;; using as input files from data-dir, and
-;; unidata-text-file (default "unidata.txt" in PWD).
-(defun unidata-gen-files (&optional data-dir dest-dir unidata-text-file)
-  (or data-dir
-      (setq data-dir (pop command-line-args-left)
-	    dest-dir (or (pop command-line-args-left) default-directory)
+(defun unidata-gen-file (&optional file data-dir unidata-text-file)
+  "Generate lisp file FILE from Unicode data."
+  (or file
+      (setq file (pop command-line-args-left)
+	    data-dir (or (pop command-line-args-left) default-directory)
 	    unidata-text-file (or (pop command-line-args-left)
 				  (expand-file-name "unidata.txt"))))
-  (let ((coding-system-for-write 'utf-8-unix)
-	(charprop-file (expand-file-name "charprop.el" dest-dir))
-	(unidata-dir data-dir))
-    (dolist (elt unidata-prop-alist)
-      (let* ((prop (car elt))
-	     (file (expand-file-name (unidata-prop-file prop) dest-dir)))
-	(if (file-exists-p file)
-	    (delete-file file))))
-    (unidata-setup-list unidata-text-file)
-    (with-temp-file charprop-file
-      (insert ";; Automatically generated by unidata-gen.el.\n")
-      (dolist (elt unidata-prop-alist)
-	(let* ((prop (car elt))
-	       (generator (unidata-prop-generator prop))
-	       (file (expand-file-name (unidata-prop-file prop) dest-dir))
-	       (basename (file-name-nondirectory file))
-	       (docstring (unidata-prop-docstring prop))
-	       (describer (unidata-prop-describer prop))
-	       (default-value (unidata-prop-default prop))
-	       (val-list (unidata-prop-val-list prop))
-	       ;; Avoid creating backup files for those uni-*.el files
-	       ;; that hold more than one table.
-	       (backup-inhibited t)
-	       table)
-	  ;; Filename in this comment line is extracted by sed in
-	  ;; Makefile.
-	  (insert (format ";; FILE: %s\n" basename))
-	  (insert (format "(define-char-code-property '%S %S\n  %S)\n"
-			  prop basename docstring))
-	  (with-temp-buffer
-	    (or noninteractive (message "Generating %s..." file))
-	    (when (file-exists-p file)
-	      (insert-file-contents file)
-	      (goto-char (point-max))
-	      (search-backward ";; Local Variables:"))
-	    (setq table (funcall generator prop default-value val-list))
-	    (when describer
-	      (unless (subrp (symbol-function describer))
-		(unidata--ensure-compiled describer)
-		(setq describer (symbol-function describer)))
-	      (set-char-table-extra-slot table 3 describer))
-	    (if (bobp)
-		(insert ";; Copyright (C) 1991-2014 Unicode, Inc.
-;; This file was generated from the Unicode data files at
-;; http://www.unicode.org/Public/UNIDATA/.
-;; See lisp/international/README for the copyright and permission notice.\n"))
-	    (insert (format "(define-char-code-property '%S\n  %S\n  %S)\n"
-			    prop table docstring))
-	    (if (eobp)
-		(insert ";; Local Variables:\n"
-			";; coding: utf-8\n"
-			";; version-control: never\n"
-			";; no-byte-compile: t\n"
-			";; no-update-autoloads: t\n"
-			";; End:\n\n"
-			(format ";; %s ends here\n" basename)))
-	    (write-file file)
-	    (or noninteractive (message "Generating %s...done" file)))))
-      (message "Writing %s..." charprop-file)
-      (insert ";; Local Variables:\n"
-	      ";; coding: utf-8\n"
-	      ";; version-control: never\n"
-	      ";; no-byte-compile: t\n"
-	      ";; no-update-autoloads: t\n"
-	      ";; End:\n\n"
-	      (format ";; %s ends here\n"
-		      (file-name-nondirectory charprop-file))))))
+  (let* ((coding-system-for-write 'utf-8-unix)
+	 (coding-system-for-read 'utf-8)
+	 (unidata-dir data-dir)
+	 (copyright (with-temp-buffer
+		      (insert-file-contents
+		       (expand-file-name "copyright.html" unidata-dir))
+		      (re-search-forward "^Copyright .*Unicode, Inc.")
+		      (match-string 0))))
+    (or unidata-list (unidata-setup-list unidata-text-file))
+    (let* ((basename (file-name-nondirectory file))
+	   (elt (assoc basename unidata-file-alist)))
+      (or elt (user-error "Unknown output file: %s" basename))
+      (or noninteractive (message "Generating %s..." file))
+      (with-temp-file file
+        (insert ";; " copyright "
+;; Generated from Unicode data files by unidata-gen.el.
+;; The sources for this file are found in the admin/unidata/ directory in
+;; the Emacs sources.  The Unicode data files are used under the
+;; Unicode Terms of Use, as contained in the file copyright.html in that
+;; same directory.\n")
+        (dolist (proplist (cdr elt))
+          (let ((prop (unidata-prop-prop proplist))
+                (index (unidata-prop-index proplist))
+                (generator (unidata-prop-generator proplist))
+                (docstring (unidata-prop-docstring proplist))
+                (describer (unidata-prop-describer proplist))
+                (default-value (unidata-prop-default proplist))
+                (val-list (unidata-prop-val-list proplist))
+                table)
+            (setq table (funcall generator prop index default-value val-list))
+            (when describer
+              (unless (subrp (symbol-function describer))
+                (unidata--ensure-compiled describer)
+                (setq describer (symbol-function describer)))
+              (set-char-table-extra-slot table 3 describer))
+            (insert (format "(define-char-code-property '%S\n  %S\n  %S)\n"
+                            prop table docstring))))
+        (insert ";; Local Variables:\n"
+                ";; coding: utf-8\n"
+                ";; version-control: never\n"
+                ";; no-byte-compile: t\n"
+                ";; no-update-autoloads: t\n"
+                ";; End:\n\n"
+                (format ";; %s ends here\n" basename)))))
+  (or noninteractive (message "Generating %s...done" file)))
+
+(defun unidata-gen-charprop (&optional charprop-file)
+  (or charprop-file (setq charprop-file (pop command-line-args-left)))
+  (with-temp-file charprop-file
+    (insert ";; Automatically generated by unidata-gen.el.\n"
+            ";; See the admin/unidata/ directory in the Emacs sources.\n")
+    (dolist (elt unidata-file-alist)
+      (dolist (proplist (cdr elt))
+	(insert (format "(define-char-code-property '%S %S\n  %S)\n"
+			(unidata-prop-prop proplist) (car elt)
+			(unidata-prop-docstring proplist)))))
+    (or noninteractive (message "Writing %s..." charprop-file))
+    (insert "\n"
+	    "(provide 'charprop)\n"
+	    "\n"
+	    ";; Local Variables:\n"
+	    ";; coding: utf-8\n"
+	    ";; version-control: never\n"
+	    ";; no-byte-compile: t\n"
+	    ";; no-update-autoloads: t\n"
+	    ";; End:\n\n"
+	    (format ";; %s ends here\n"
+		    (file-name-nondirectory charprop-file)))))
 
 
 

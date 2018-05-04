@@ -1,6 +1,6 @@
 ;;; eieio-core.el --- Core implementation for eieio  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -32,7 +32,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'pcase)
+(require 'eieio-loaddefs nil t)
 
 ;;;
 ;; A few functions that are better in the official EIEIO src, but
@@ -84,7 +84,7 @@ Currently under control of this var:
 (progn
   ;; Arrange for field access not to bother checking if the access is indeed
   ;; made to an eieio--class object.
-  (cl-declaim (optimize (safety 0)))
+  (eval-when-compile (cl-declaim (optimize (safety 0))))
 
 (cl-defstruct (eieio--class
                (:constructor nil)
@@ -103,25 +103,22 @@ Currently under control of this var:
   options ;; storage location of tagged class option
           ; Stored outright without modifications or stripping
   )
-  ;; Set it back to the default value.
-  (cl-declaim (optimize (safety 1))))
+  ;; Set it back to the default value.  NOTE: Using the default
+  ;; `safety' value does NOT give the default
+  ;; `byte-compile-delete-errors' value.  Therefore limit this (and
+  ;; the above `cl-declaim') to compile time so that we don't affect
+  ;; code which only loads this library.
+  (eval-when-compile (cl-declaim (optimize (safety 1)))))
 
 
-(cl-defstruct (eieio--object
-               (:type vector)           ;We manage our own tagging system.
-               (:constructor nil)
-               (:copier nil))
-  ;; `class-tag' holds a symbol, which is not the class name, but is instead
-  ;; properly prefixed as an internal EIEIO thingy and which holds the class
-  ;; object/struct in its `symbol-value' slot.
-  class-tag)
+(eval-and-compile
+  (defconst eieio--object-num-slots 1))
 
-(eval-when-compile
-  (defconst eieio--object-num-slots
-    (length (cl-struct-slot-info 'eieio--object))))
+(defsubst eieio--object-class-tag (obj)
+  (aref obj 0))
 
 (defsubst eieio--object-class (obj)
-  (symbol-value (eieio--object-class-tag obj)))
+  (eieio--object-class-tag obj))
 
 
 ;;; Important macros used internally in eieio.
@@ -165,13 +162,8 @@ Return nil if that option doesn't exist."
 
 (defun eieio-object-p (obj)
   "Return non-nil if OBJ is an EIEIO object."
-  (and (vectorp obj)
-       (> (length obj) 0)
-       (let ((tag (eieio--object-class-tag obj)))
-         (and (symbolp tag)
-              ;; (eq (symbol-function tag) :quick-object-witness-check)
-              (boundp tag)
-              (eieio--class-p (symbol-value tag))))))
+  (and (recordp obj)
+       (eieio--class-p (eieio--object-class-tag obj))))
 
 (define-obsolete-function-alias 'object-p 'eieio-object-p "25.1")
 
@@ -459,7 +451,7 @@ See `defclass' for more information."
                           (cl--slot-descriptor-initform (aref slots i)))))
       (setf (eieio--class-class-allocation-values newc) v))
 
-    ;; Attach slot symbols into a hashtable, and store the index of
+    ;; Attach slot symbols into a hash table, and store the index of
     ;; this slot as the value this table.
     (let* ((slots (eieio--class-slots newc))
 	   ;; (cslots (eieio--class-class-slots newc))
@@ -495,18 +487,11 @@ See `defclass' for more information."
     (if clearparent (setf (eieio--class-parents newc) nil))
 
     ;; Create the cached default object.
-    (let ((cache (make-vector (+ (length (eieio--class-slots newc))
-                                 (eval-when-compile eieio--object-num-slots))
-                              nil))
-          ;; We don't strictly speaking need to use a symbol, but the old
-          ;; code used the class's name rather than the class's object, so
-          ;; we follow this preference for using a symbol, which is probably
-          ;; convenient to keep the printed representation of such Elisp
-          ;; objects readable.
-          (tag (intern (format "eieio-class-tag--%s" cname))))
-      (set tag newc)
-      (fset tag :quick-object-witness-check)
-      (setf (eieio--object-class-tag cache) tag)
+    (let ((cache (make-record newc
+                              (+ (length (eieio--class-slots newc))
+                                 (eval-when-compile eieio--object-num-slots)
+                                 -1)
+                              nil)))
       (let ((eieio-skip-typecheck t))
 	;; All type-checking has been done to our satisfaction
 	;; before this call.  Don't waste our time in this call..
@@ -756,9 +741,7 @@ Argument FN is the function calling this verifier."
 	  ;; The slot-missing method is a cool way of allowing an object author
 	  ;; to intercept missing slot definitions.  Since it is also the LAST
 	  ;; thing called in this fn, its return value would be retrieved.
-	  (slot-missing obj slot 'oref)
-	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
-	  )
+	  (slot-missing obj slot 'oref))
       (cl-check-type obj eieio-object)
       (eieio-barf-if-slot-unbound (aref obj c) obj slot 'oref))))
 
@@ -769,7 +752,8 @@ Fills in OBJ's SLOT with its default value."
   (cl-check-type obj (or eieio-object class))
   (cl-check-type slot symbol)
   (let* ((cl (cond ((symbolp obj) (cl--find-class obj))
-                   (t (eieio--object-class obj))))
+                   ((eieio-object-p obj) (eieio--object-class obj))
+                   (t obj)))
 	 (c (eieio--slot-name-index cl slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.
@@ -779,9 +763,7 @@ Fills in OBJ's SLOT with its default value."
 	    ;; Oref that slot.
 	    (aref (eieio--class-class-allocation-values cl)
 		  c)
-	  (slot-missing obj slot 'oref-default)
-	  ;;(signal 'invalid-slot-name (list (class-name cl) slot))
-	  )
+	  (slot-missing obj slot 'oref-default))
       (eieio-barf-if-slot-unbound
        (let ((val (cl--slot-descriptor-initform
                    (aref (eieio--class-slots cl)
@@ -821,9 +803,7 @@ Fills in OBJ's SLOT with VALUE."
 	      (aset (eieio--class-class-allocation-values class)
 		    c value))
 	  ;; See oref for comment on `slot-missing'
-	  (slot-missing obj slot 'oset value)
-	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
-	  )
+	  (slot-missing obj slot 'oset value))
       (eieio--validate-slot-value class c value slot)
       (aset obj c value))))
 
@@ -975,7 +955,7 @@ If a consistent order does not exist, signal an error."
 
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
-  (let ((parents (eieio--class-parents (cl--find-class class))))
+  (let ((parents (eieio--class-parents class)))
     (eieio--c3-merge-lists
      (list class)
      (append
@@ -1058,18 +1038,19 @@ method invocation orders of the involved classes."
 
 ;;;; General support to dispatch based on the type of the argument.
 
-(defconst eieio--generic-generalizer
-  (cl-generic-make-generalizer
-   ;; Use the exact same tagcode as for cl-struct, so that methods
-   ;; that dispatch on both kinds of objects get to share this
-   ;; part of the dispatch code.
-   50 #'cl--generic-struct-tag
-   (lambda (tag)
-        (and (symbolp tag) (boundp tag) (eieio--class-p (symbol-value tag))
-             (mapcar #'eieio--class-name
-                     (eieio--class-precedence-list (symbol-value tag)))))))
+(cl-generic-define-generalizer eieio--generic-generalizer
+  ;; Use the exact same tagcode as for cl-struct, so that methods
+  ;; that dispatch on both kinds of objects get to share this
+  ;; part of the dispatch code.
+  50 #'cl--generic-struct-tag
+  (lambda (tag &rest _)
+    (let ((class (cl--find-class tag)))
+      (and (eieio--class-p class)
+           (mapcar #'eieio--class-name
+                   (eieio--class-precedence-list class))))))
 
 (cl-defmethod cl-generic-generalizers :extra "class" (specializer)
+  "Support for dispatch on types defined by EIEIO's `defclass'."
   ;; CLHS says:
   ;;    A class must be defined before it can be used as a parameter
   ;;    specializer in a defmethod form.
@@ -1087,111 +1068,20 @@ method invocation orders of the involved classes."
 ;; would not make much sense (e.g. to which argument should it apply?).
 ;; Instead, we add a new "subclass" specializer.
 
-(defun eieio--generic-subclass-specializers (tag)
+(defun eieio--generic-subclass-specializers (tag &rest _)
   (when (eieio--class-p tag)
     (mapcar (lambda (class)
               `(subclass ,(eieio--class-name class)))
             (eieio--class-precedence-list tag))))
 
-(defconst eieio--generic-subclass-generalizer
-  (cl-generic-make-generalizer
-   60 (lambda (name) `(and (symbolp ,name) (cl--find-class ,name)))
-   #'eieio--generic-subclass-specializers))
+(cl-generic-define-generalizer eieio--generic-subclass-generalizer
+  60 (lambda (name &rest _) `(and (symbolp ,name) (cl--find-class ,name)))
+  #'eieio--generic-subclass-specializers)
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head subclass)))
+  "Support for (subclass CLASS) specializers.
+These match if the argument is the name of a subclass of CLASS."
   (list eieio--generic-subclass-generalizer))
-
-
-;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "ea8c7f24ed47c6b71ac37cbdae1c9931")
-;;; Generated autoloads from eieio-compat.el
-
-(autoload 'eieio--defalias "eieio-compat" "\
-Like `defalias', but with less side-effects.
-More specifically, it has no side-effects at all when the new function
-definition is the same (`eq') as the old one.
-
-\(fn NAME BODY)" nil nil)
-
-(autoload 'defgeneric "eieio-compat" "\
-Create a generic function METHOD.
-DOC-STRING is the base documentation for this class.  A generic
-function has no body, as its purpose is to decide which method body
-is appropriate to use.  Uses `defmethod' to create methods, and calls
-`defgeneric' for you.  With this implementation the ARGS are
-currently ignored.  You can use `defgeneric' to apply specialized
-top level documentation to a method.
-
-\(fn METHOD ARGS &optional DOC-STRING)" nil t)
-
-(function-put 'defgeneric 'doc-string-elt '3)
-
-(make-obsolete 'defgeneric 'cl-defgeneric '"25.1")
-
-(autoload 'defmethod "eieio-compat" "\
-Create a new METHOD through `defgeneric' with ARGS.
-
-The optional second argument KEY is a specifier that
-modifies how the method is called, including:
-   :before  - Method will be called before the :primary
-   :primary - The default if not specified
-   :after   - Method will be called after the :primary
-   :static  - First arg could be an object or class
-The next argument is the ARGLIST.  The ARGLIST specifies the arguments
-to the method as with `defun'.  The first argument can have a type
-specifier, such as:
-  ((VARNAME CLASS) ARG2 ...)
-where VARNAME is the name of the local variable for the method being
-created.  The CLASS is a class symbol for a class made with `defclass'.
-A DOCSTRING comes after the ARGLIST, and is optional.
-All the rest of the args are the BODY of the method.  A method will
-return the value of the last form in the BODY.
-
-Summary:
-
- (defmethod mymethod [:before | :primary | :after | :static]
-                     ((typearg class-name) arg2 &optional opt &rest rest)
-    \"doc-string\"
-     body)
-
-\(fn METHOD &rest ARGS)" nil t)
-
-(function-put 'defmethod 'doc-string-elt '3)
-
-(make-obsolete 'defmethod 'cl-defmethod '"25.1")
-
-(autoload 'eieio--defgeneric-init-form "eieio-compat" "\
-
-
-\(fn METHOD DOC-STRING)" nil nil)
-
-(autoload 'eieio--defmethod "eieio-compat" "\
-
-
-\(fn METHOD KIND ARGCLASS CODE)" nil nil)
-
-(autoload 'eieio-defmethod "eieio-compat" "\
-Obsolete work part of an old version of the `defmethod' macro.
-
-\(fn METHOD ARGS)" nil nil)
-
-(make-obsolete 'eieio-defmethod 'cl-defmethod '"24.1")
-
-(autoload 'eieio-defgeneric "eieio-compat" "\
-Obsolete work part of an old version of the `defgeneric' macro.
-
-\(fn METHOD DOC-STRING)" nil nil)
-
-(make-obsolete 'eieio-defgeneric 'cl-defgeneric '"24.1")
-
-(autoload 'eieio-defclass "eieio-compat" "\
-
-
-\(fn CNAME SUPERCLASSES SLOTS OPTIONS)" nil nil)
-
-(make-obsolete 'eieio-defclass 'eieio-defclass-internal '"25.1")
-
-;;;***
-
 
 (provide 'eieio-core)
 

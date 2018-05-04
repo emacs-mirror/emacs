@@ -1,6 +1,6 @@
 /* GNU Emacs routines to deal with category tables.
 
-Copyright (C) 1998, 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 1998, 2001-2018 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -13,8 +13,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 /* Here we handle three objects: category, category set, and category
@@ -33,9 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
-#include "charset.h"
 #include "category.h"
-#include "keymap.h"
 
 /* This setter is used only in this file, so it can be private.  */
 static void
@@ -66,10 +64,9 @@ hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
   if (NILP (XCHAR_TABLE (table)->extras[1]))
     set_char_table_extras
       (table, 1,
-       make_hash_table (hashtest_equal, make_number (DEFAULT_HASH_SIZE),
-			make_float (DEFAULT_REHASH_SIZE),
-			make_float (DEFAULT_REHASH_THRESHOLD),
-			Qnil));
+       make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
+			DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
+			Qnil, false));
   h = XHASH_TABLE (XCHAR_TABLE (table)->extras[1]);
   i = hash_lookup (h, category_set, &hash);
   if (i >= 0)
@@ -338,6 +335,8 @@ The category is changed only for table TABLE, which defaults to
 the current buffer's category table.
 CHARACTER can be either a single character or a cons representing the
 lower and upper ends of an inclusive character range to modify.
+CATEGORY must be a category name (a character between ` ' and `~').
+Use `describe-categories' to see existing category names.
 If optional fourth argument RESET is non-nil,
 then delete CATEGORY from the category set instead of adding it.  */)
   (Lisp_Object character, Lisp_Object category, Lisp_Object table, Lisp_Object reset)

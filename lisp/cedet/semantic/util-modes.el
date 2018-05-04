@@ -1,6 +1,6 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;; Copyright (C) 2000-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -712,7 +712,7 @@ minor mode is enabled."
 	  ;; Disable minor mode if semantic stuff not available
 	  (setq semantic-stickyfunc-mode nil)
 	  (error "Buffer %s was not set up for parsing" (buffer-name)))
-	(unless (boundp 'default-header-line-format)
+	(unless (boundp 'header-line-format)
 	  ;; Disable if there are no header lines to use.
 	  (setq semantic-stickyfunc-mode nil)
 	  (error "Sticky Function mode requires Emacs"))
@@ -782,7 +782,7 @@ If there is no function, disable the header line."
 		  (goto-char (semantic-tag-start tag))
 		  ;; Klaus Berndl <klaus.berndl@sdm.de>:
 		  ;; goto the tag name; this is especially needed for languages
-		  ;; like c++ where a often used style is like:
+		  ;; like c++ where an often used style is like:
 		  ;;     void
 		  ;;     ClassX::methodM(arg1...)
 		  ;;     {

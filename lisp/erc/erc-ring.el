@@ -1,6 +1,6 @@
 ;; erc-ring.el -- Command history handling for erc using ring.el
 
-;; Copyright (C) 2001-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -42,7 +42,7 @@
   "An input ring for ERC."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-ring-mode "erc-ring" nil t)
+;;;###autoload(autoload 'erc-ring-mode "erc-ring" nil t)
 (define-erc-module ring nil
   "Stores input in a ring so that previous commands and messages can
 be recalled using M-p and M-n."
@@ -58,7 +58,7 @@ be recalled using M-p and M-n."
 
 (defvar erc-input-ring-index nil
   "Position in the input ring for erc.
-If nil, the input line is blank and the user is conceptually 'after'
+If nil, the input line is blank and the user is conceptually after
 the most recently added item in the ring. If an integer, the input
 line is non-blank and displays the item from the ring indexed by this
 variable.")
@@ -146,6 +146,6 @@ containing a password."
 
 ;;; erc-ring.el ends here
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:
-

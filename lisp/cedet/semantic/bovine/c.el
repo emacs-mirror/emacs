@@ -1,6 +1,6 @@
 ;;; semantic/bovine/c.el --- Semantic details for C
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -296,7 +296,7 @@ Return the defined symbol as a special spp lex token."
 ;;; Conditional Skipping
 ;;
 (defcustom semantic-c-obey-conditional-section-parsing-flag t
-  "*Non-nil means to interpret preprocessor #if sections.
+  "Non-nil means to interpret preprocessor #if sections.
 This implies that some blocks of code will not be parsed based on the
 values of the conditions in the #if blocks."
   :group 'c
@@ -1513,7 +1513,7 @@ Override function for `semantic-tag-protection'."
 
 (define-mode-local-override semantic-find-tags-included c-mode
   (&optional table)
-  "Find all tags in TABLE that are of the 'include class.
+  "Find all tags in TABLE that are of the `include' class.
 TABLE is a tag table.  See `semantic-something-to-tag-table'.
 For C++, we also have to search namespaces for include tags."
   (let ((tags (semantic-find-tags-by-class 'include table))
@@ -1948,7 +1948,7 @@ For types with a :parent, create faux namespaces to put TAG into."
 (define-mode-local-override semanticdb-find-table-for-include c-mode
   (includetag &optional table)
   "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
-INCLUDETAG is a semantic TAG of class 'include.
+INCLUDETAG is a semantic TAG of class `include'.
 TABLE is a semanticdb table that identifies where INCLUDETAG came from.
 TABLE is optional if INCLUDETAG has an overlay of :filename attribute.
 
@@ -1990,7 +1990,7 @@ have to be wrapped in that namespace."
 	      (list (semantic-tag-new-type inside-ns "namespace" tags nil)))
 	;; Create new semantic-table for the wrapped tags, since we don't want
 	;; the namespace to actually be a part of the header file.
-	(setq newtable (semanticdb-table "include with context"))
+	(setq newtable (semanticdb-table))
 	(oset newtable tags newtags)
 	(oset newtable parent-db (oref inctable parent-db))
 	(oset newtable file (oref inctable file)))
@@ -2253,7 +2253,7 @@ actually in their parent which is not accessible.")
 	  (princ "      Your project symbol map is also derived from the EDE object:\n      ")
 	  (princ (object-print ede-object)))
 	(princ "\n\n")
-	(if (arrayp semantic-lex-spp-project-macro-symbol-obarray)
+	(if (obarrayp semantic-lex-spp-project-macro-symbol-obarray)
 	    (let ((macros nil))
 	      (mapatoms
 	       #'(lambda (symbol)

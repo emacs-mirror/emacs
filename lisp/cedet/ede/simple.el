@@ -1,6 +1,6 @@
 ;;; ede/simple.el --- Overlay an EDE structure on an existing project
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -46,7 +46,7 @@
 ;;; Code:
 
 (add-to-list 'ede-project-class-files
-	     (ede-project-autoload "simple-overlay"
+	     (ede-project-autoload
 	      :name "Simple" :file 'ede/simple
 	      :proj-file 'ede-simple-projectfile-for-dir
 	      :load-type 'ede-simple-load
@@ -55,12 +55,12 @@
 	     t)
 
 (defcustom ede-simple-save-directory "~/.ede"
-  "*Directory where simple EDE project overlays are saved."
+  "Directory where simple EDE project overlays are saved."
  :group 'ede
  :type 'directory)
 
 (defcustom ede-simple-save-file-name "ProjSimple.ede"
-  "*File name used for simple project wrappers."
+  "File name used for simple project wrappers."
   :group 'ede
   :type 'string)
 

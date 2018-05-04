@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2015 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2018 Free Software
 Foundation, Inc.
 
 @quotation
@@ -112,11 +112,11 @@ technically obsolete despite its widespread vernacular usage.)
 meaning.  For example, the URI
 
 @example
-http://www.gnu.org/software/emacs/
+https://www.gnu.org/software/emacs/
 @end example
 
 @noindent
-specifies the scheme component @samp{http}, the hostname component
+specifies the scheme component @samp{https}, the hostname component
 @samp{www.gnu.org}, and the path component @samp{/software/emacs/}.
 
 @cindex parsed URIs
@@ -289,11 +289,17 @@ string or a parsed URL structure.  If it is a string, that string is
 passed through @code{url-encode-url} before using it, to ensure that
 it is properly URI-encoded (@pxref{URI Encoding}).
 
-@defun url-retrieve-synchronously url
+@defun url-retrieve-synchronously url &optional silent no-cookies timeout
 This function synchronously retrieves the data specified by @var{url},
 and returns a buffer containing the data.  The return value is
 @code{nil} if there is no data associated with the URL (as is the case
 for @code{dired}, @code{info}, and @code{mailto} URLs).
+
+If the optional argument @var{silent} is non-@code{nil}, progress
+messages are suppressed.  If the optional argument @var{no-cookies} is
+non-@code{nil}, cookies are not stored or sent.  If the optional
+argument @var{timeout} is non-@code{nil}, it should be a number that
+says (in seconds) how long to wait for a response before giving up.
 @end defun
 
 @defun url-retrieve url callback &optional cbargs silent no-cookies
@@ -373,9 +379,10 @@ for specific schemes.
 * rlogin/telnet/tn3270::        Remote host connectivity.
 * irc::                         Internet Relay Chat.
 * data::                        Embedded data URLs.
-* nfs::                         Networked File System
-* ldap::                        Lightweight Directory Access Protocol
+* nfs::                         Networked File System.
+* ldap::                        Lightweight Directory Access Protocol.
 * man::                         Unix man pages.
+* Tramp::                       Schemes supported via Tramp.
 @end menu
 
 @node http/https
@@ -394,7 +401,7 @@ gateway method to be used.  @xref{Gateways in general}.
 @defopt url-honor-refresh-requests
 If this option is non-@code{nil} (the default), the @code{url} library
 honors the HTTP @samp{Refresh} header, which is used by servers to
-direct clients to reload documents from the same URL or a or different
+direct clients to reload documents from the same URL or a different
 one.  If the value is @code{nil}, the @samp{Refresh} header is
 ignored; any other value means to ask the user on each request.
 @end defopt
@@ -416,13 +423,19 @@ cookies, if there are any.  You can remove a cookie using the
 @kbd{C-k} (@code{url-cookie-delete}) command.
 @end defun
 
+@defun url-cookie-delete-cookies &optional regexp
+This function takes a regular expression as its parameters and deletes
+all cookies from that domain.  If @var{regexp} is @code{nil}, delete
+all cookies.
+@end defun
+
 @defopt url-cookie-file
 The file in which cookies are stored, defaulting to @file{cookies} in
 the directory specified by @code{url-configuration-directory}.
 @end defopt
 
 @defopt url-cookie-confirmation
-Specifies whether confirmation is require to accept cookies.
+Specifies whether confirmation is required to accept cookies.
 @end defopt
 
 @defopt url-cookie-multiple-line
@@ -549,21 +562,14 @@ file://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 @noindent
 If the URL specifies a local file, it is retrieved by reading the file
 contents in the usual way.  If it specifies a remote file, it is
-retrieved using the Ange-FTP package.  @xref{Remote Files,,, emacs,
-The GNU Emacs Manual}.
+retrieved using either the Tramp or the Ange-FTP package.
+@xref{Remote Files,,, emacs, The GNU Emacs Manual}.
 
   When retrieving a compressed file, it is automatically uncompressed
 if it has the file suffix @file{.z}, @file{.gz}, @file{.Z},
 @file{.bz2}, or @file{.xz}.  (The list of supported suffixes is
 hard-coded, and cannot be altered by customizing
 @code{jka-compr-compression-info-list}.)
-
-@defopt url-directory-index-file
-This option specifies the filename to look for when a @code{file} or
-@code{ftp} URL specifies a directory.  The default is
-@file{index.html}.  If this file exists and is readable, it is viewed.
-Otherwise, Emacs visits the directory using Dired.
-@end defopt
 
 @node info
 @section info
@@ -593,7 +599,7 @@ sending a message to @samp{foo@@bar.com}.  The ``retrieval method''
 for such URLs is to open a mail composition buffer in which the
 appropriate content (e.g., the recipient address) has been filled in.
 
-  As defined in RFC 2368, a @code{mailto} URL has the form
+  As defined in RFC 6068, a @code{mailto} URL can have the form
 
 @example
 @samp{mailto:@var{mailbox}[?@var{header}=@var{contents}[&@var{header}=@var{contents}]]}
@@ -682,7 +688,8 @@ telnet://@var{user}:@var{password}@@@var{host}:@var{port}
 @end example
 
 @noindent
-but the @var{password} component is ignored.
+but the @var{password} component is ignored.  By default, the
+@code{telnet} scheme is handled via Tramp (@pxref{Tramp}).
 
 To handle rlogin, telnet and tn3270 URLs, a @code{rlogin},
 @code{telnet} or @code{tn3270} (the program names and arguments are
@@ -797,6 +804,38 @@ The @code{man} scheme is a non-standard one.  Such URLs have the form
 @noindent
 and are retrieved by passing @var{page-spec} to the Lisp function
 @code{man}.
+
+@node Tramp
+@section URL Types Supported via Tramp
+
+@vindex url-tramp-protocols
+Some additional URL types are supported by passing them to Tramp
+(@pxref{Top, The Tramp Manual,, tramp, The Tramp Manual}).  These
+protocols are listed in the @code{url-tramp-protocols} variable, which
+you can customize.  The default value includes the following
+protocols:
+
+@table @code
+@item ftp
+The file transfer protocol.  @xref{file/ftp}.
+
+@item ssh
+@cindex ssh
+The secure shell protocol.  @xref{Inline methods,,, tramp, The Tramp
+Manual}.
+
+@item scp
+@cindex scp
+The secure file copy protocol.  @xref{External methods,,, tramp, The
+Tramp Manual}.
+
+@item rsync
+@cindex rsync
+The remote sync protocol.
+
+@item telnet
+The telnet protocol.
+@end table
 
 @node General Facilities
 @chapter General Facilities
@@ -1217,18 +1256,6 @@ You can use this function to do completion of URLs from the history.
 @node Customization
 @chapter Customization
 
-@cindex environment variables
-  The following environment variables affect the @code{url} library's
-operation at startup.
-
-@table @code
-@item TMPDIR
-@vindex TMPDIR
-@vindex url-temporary-directory
-If this is defined, @var{url-temporary-directory} is initialized from
-it.
-@end table
-
   The following user options affect the general operation of
 @code{url} library.
 
@@ -1256,6 +1283,20 @@ It may also be a list of the types of messages to be logged.
 @defopt url-personal-mail-address
 @end defopt
 @defopt url-privacy-level
+@end defopt
+@defopt url-lastloc-privacy-level
+Provided @code{lastloc} is not prohibited by @code{url-privacy-level},
+this determines who we send our last location to.  @code{none} means
+we include our last location in every outgoing request.
+@code{domain-match} means we send it only if the domain of our last
+location matches the domain of the URI we are requesting.
+@code{host-match} means we only send our last location back to the
+same host.  The default is @code{domain-match}.
+
+Using @code{domain-match} for this option requires emacs to make one
+or more DNS requests each time a new host is contacted, to determine
+the domain of the host.  Results of these lookups are cached, so
+repeated visits do not require repeated domain lookups.
 @end defopt
 @defopt url-uncompressor-alist
 @end defopt
@@ -1294,6 +1335,20 @@ Connect with SSL;
 @item native
 Connect directly.
 @end table
+@end defopt
+
+@defopt url-user-agent
+The User Agent string used for sending @acronym{HTTP}/@acronym{HTTPS}
+requests.  The value should be @code{nil}, which means that no
+@samp{User-Agent} header is generated, @code{default}, which means
+that a string is generated based on the setting of
+@code{url-privacy-leve}, a string or a function of no arguments that
+returns a string.
+
+The default is @code{default}, which means that the
+@w{@samp{User-Agent: @var{package-name} URL/Emacs}} string will be
+generated, where @var{package-name} is the value of
+@code{url-package-name} and its version, if they are non-@code{nil}.
 @end defopt
 
 @node GNU Free Documentation License

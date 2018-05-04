@@ -1,13 +1,13 @@
-/* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985-1986, 1993-1995, 1997-2015 Free Software
+/* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
+   Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -23,11 +23,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 
 #include "lisp.h"
+#include "composite.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
 #include "window.h"
-#include "blockinput.h"
 #include "region-cache.h"
 
 static void insert_from_string_1 (Lisp_Object, ptrdiff_t, ptrdiff_t, ptrdiff_t,
@@ -126,7 +126,10 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
       if (i == 0)
 	break;
       /* If a quit is requested, stop copying now.
-	 Change BYTEPOS to be where we have actually moved the gap to.  */
+	 Change BYTEPOS to be where we have actually moved the gap to.
+	 Note that this cannot happen when we are called to make the
+	 gap larger or smaller, since make_gap_larger and
+	 make_gap_smaller set inhibit-quit.  */
       if (QUITP)
 	{
 	  bytepos = new_s1;
@@ -148,7 +151,7 @@ gap_left (ptrdiff_t charpos, ptrdiff_t bytepos, bool newgap)
   GPT = charpos;
   eassert (charpos <= bytepos);
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  QUIT;
+  maybe_quit ();
 }
 
 /* Move the gap to a position greater than the current GPT.
@@ -179,7 +182,10 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
       if (i == 0)
 	break;
       /* If a quit is requested, stop copying now.
-	 Change BYTEPOS to be where we have actually moved the gap to.  */
+	 Change BYTEPOS to be where we have actually moved the gap to.
+	 Note that this cannot happen when we are called to make the
+	 gap larger or smaller, since make_gap_larger and
+	 make_gap_smaller set inhibit-quit.  */
       if (QUITP)
 	{
 	  bytepos = new_s1;
@@ -198,7 +204,7 @@ gap_right (ptrdiff_t charpos, ptrdiff_t bytepos)
   GPT_BYTE = bytepos;
   eassert (charpos <= bytepos);
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
-  QUIT;
+  maybe_quit ();
 }
 
 /* If the selected window's old pointm is adjacent or covered by the
@@ -358,6 +364,78 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   check_markers ();
 }
 
+/* Starting at POS (BYTEPOS), find the byte position corresponding to
+   ENDPOS, which could be either before or after POS.  */
+static ptrdiff_t
+count_bytes (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t endpos)
+{
+  eassert (BEG_BYTE <= bytepos && bytepos <= Z_BYTE
+	   && BEG <= endpos && endpos <= Z);
+
+  if (pos <= endpos)
+    for ( ; pos < endpos; pos++)
+      INC_POS (bytepos);
+  else
+    for ( ; pos > endpos; pos--)
+      DEC_POS (bytepos);
+
+  return bytepos;
+}
+
+/* Adjust byte positions of markers when their character positions
+   didn't change.  This is used in several places that replace text,
+   but keep the character positions of the markers unchanged -- the
+   byte positions could still change due to different numbers of bytes
+   in the new text.
+
+   FROM (FROM_BYTE) and TO (TO_BYTE) specify the region of text where
+   changes have been done.  TO_Z, if non-zero, means all the markers
+   whose positions are after TO should also be adjusted.  */
+void
+adjust_markers_bytepos (ptrdiff_t from, ptrdiff_t from_byte,
+			ptrdiff_t to, ptrdiff_t to_byte, int to_z)
+{
+  register struct Lisp_Marker *m;
+  ptrdiff_t beg = from, begbyte = from_byte;
+
+  adjust_suspend_auto_hscroll (from, to);
+
+  if (Z == Z_BYTE || (!to_z && to == to_byte))
+    {
+      /* Make sure each affected marker's bytepos is equal to
+	 its charpos.  */
+      for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+	{
+	  if (m->bytepos > from_byte
+	      && (to_z || m->bytepos <= to_byte))
+	    m->bytepos = m->charpos;
+	}
+    }
+  else
+    {
+      for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+	{
+	  /* Recompute each affected marker's bytepos.  */
+	  if (m->bytepos > from_byte
+	      && (to_z || m->bytepos <= to_byte))
+	    {
+	      if (m->charpos < beg
+		  && beg - m->charpos > m->charpos - from)
+		{
+		  beg = from;
+		  begbyte = from_byte;
+		}
+	      m->bytepos = count_bytes (beg, begbyte, m->charpos);
+	      beg = m->charpos;
+	      begbyte = m->bytepos;
+	    }
+	}
+    }
+
+  /* Make sure cached charpos/bytepos is invalid.  */
+  clear_charpos_cache (current_buffer);
+}
+
 
 void
 buffer_overflow (void)
@@ -386,7 +464,9 @@ make_gap_larger (ptrdiff_t nbytes_added)
 
   enlarge_buffer_text (current_buffer, nbytes_added);
 
-  /* Prevent quitting in move_gap.  */
+  /* Prevent quitting in gap_left.  We cannot allow a quit there,
+     because that would leave the buffer text in an inconsistent
+     state, with 2 gap holes instead of just one.  */
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
 
@@ -432,7 +512,9 @@ make_gap_smaller (ptrdiff_t nbytes_removed)
   if (GAP_SIZE - nbytes_removed < GAP_BYTES_MIN)
     nbytes_removed = GAP_SIZE - GAP_BYTES_MIN;
 
-  /* Prevent quitting in move_gap.  */
+  /* Prevent quitting in gap_right.  We cannot allow a quit there,
+     because that would leave the buffer text in an inconsistent
+     state, with 2 gap holes instead of just one.  */
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
 
@@ -478,7 +560,22 @@ void
 make_gap (ptrdiff_t nbytes_added)
 {
   if (nbytes_added >= 0)
-    make_gap_larger (nbytes_added);
+    /* With set-buffer-multibyte on a large buffer, we can end up growing the
+     * buffer *many* times.  Avoid an O(N^2) behavior by increasing by an
+     * amount at least proportional to the size of the buffer.
+     * On my test (a 223.9MB zip file on a Thinkpad T61):
+     * With /5    =>  24s
+     * With /32   =>  25s
+     * With /64   =>  26s
+     * With /128  =>  28s
+     * With /1024 =>  51s
+     * With /4096 => 131s
+     * With /∞    => gave up after 858s
+     * Of course, ideally we should never call set-buffer-multibyte on
+     * a non-empty buffer (e.g. use buffer-swap-text instead).
+     * We chose /64 because it already brings almost the best performance while
+     * limiting the potential wasted memory to 1.5%.  */
+    make_gap_larger (max (nbytes_added, (Z - BEG) / 64));
 #if defined USE_MMAP_FOR_BUFFERS || defined REL_ALLOC || defined DOUG_LEA_MALLOC
   else
     make_gap_smaller (-nbytes_added);
@@ -1258,7 +1355,9 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 /* Replace the text from character positions FROM to TO with NEW,
    If PREPARE, call prepare_to_modify_buffer.
    If INHERIT, the newly inserted text should inherit text properties
-   from the surrounding non-deleted text.  */
+   from the surrounding non-deleted text.
+   If ADJUST_MATCH_DATA, then adjust the match data before calling
+   signal_after_change.  */
 
 /* Note that this does not yet handle markers quite right.
    Also it needs to record a single undo-entry that does a replacement
@@ -1269,7 +1368,8 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 
 void
 replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
-	       bool prepare, bool inherit, bool markers)
+               bool prepare, bool inherit, bool markers,
+               bool adjust_match_data)
 {
   ptrdiff_t inschars = SCHARS (new);
   ptrdiff_t insbytes = SBYTES (new);
@@ -1387,6 +1487,16 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (markers)
     adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
 				inschars, outgoing_insbytes);
+  else
+    {
+      /* The character positions of the markers remain intact, but we
+	 still need to update their byte positions, because the
+	 deleted and the inserted text might have multibyte sequences
+	 which make the original byte positions of the markers
+	 invalid.  */
+      adjust_markers_bytepos (from, from_byte, from + inschars,
+			      from_byte + outgoing_insbytes, 1);
+    }
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
@@ -1415,6 +1525,9 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   MODIFF++;
   CHARS_MODIFF = MODIFF;
+
+  if (adjust_match_data)
+    update_search_regs (from, to, from + SCHARS (new));
 
   signal_after_change (from, nchars_del, GPT - from);
   update_compositions (from, GPT, CHECK_BORDER);
@@ -1499,10 +1612,22 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   eassert (GPT <= GPT_BYTE);
 
   /* Adjust markers for the deletion and the insertion.  */
-  if (markers
-      && ! (nchars_del == 1 && inschars == 1 && nbytes_del == insbytes))
-    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
-				inschars, insbytes);
+  if (! (nchars_del == 1 && inschars == 1 && nbytes_del == insbytes))
+    {
+      if (markers)
+	adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+				    inschars, insbytes);
+      else
+	{
+	  /* The character positions of the markers remain intact, but
+	     we still need to update their byte positions, because the
+	     deleted and the inserted text might have multibyte
+	     sequences which make the original byte positions of the
+	     markers invalid.  */
+	  adjust_markers_bytepos (from, from_byte, from + inschars,
+				  from_byte + insbytes, 1);
+	}
+    }
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
@@ -1580,7 +1705,7 @@ del_range_1 (ptrdiff_t from, ptrdiff_t to, bool prepare, bool ret_string)
 /* Like del_range_1 but args are byte positions, not char positions.  */
 
 void
-del_range_byte (ptrdiff_t from_byte, ptrdiff_t to_byte, bool prepare)
+del_range_byte (ptrdiff_t from_byte, ptrdiff_t to_byte)
 {
   ptrdiff_t from, to;
 
@@ -1596,23 +1721,22 @@ del_range_byte (ptrdiff_t from_byte, ptrdiff_t to_byte, bool prepare)
   from = BYTE_TO_CHAR (from_byte);
   to = BYTE_TO_CHAR (to_byte);
 
-  if (prepare)
-    {
-      ptrdiff_t old_from = from, old_to = Z - to;
-      ptrdiff_t range_length = to - from;
-      prepare_to_modify_buffer (from, to, &from);
-      to = from + range_length;
+  {
+    ptrdiff_t old_from = from, old_to = Z - to;
+    ptrdiff_t range_length = to - from;
+    prepare_to_modify_buffer (from, to, &from);
+    to = from + range_length;
 
-      if (old_from != from)
-	from_byte = CHAR_TO_BYTE (from);
-      if (to > ZV)
-	{
-	  to = ZV;
-	  to_byte = ZV_BYTE;
-	}
-      else if (old_to == Z - to)
-	to_byte = CHAR_TO_BYTE (to);
-    }
+    if (old_from != from)
+      from_byte = CHAR_TO_BYTE (from);
+    if (to > ZV)
+      {
+	to = ZV;
+	to_byte = ZV_BYTE;
+      }
+    else if (old_to == Z - to)
+      to_byte = CHAR_TO_BYTE (to);
+  }
 
   del_range_2 (from, from_byte, to, to_byte, 0);
   signal_after_change (from, to - from, 0);
@@ -1765,6 +1889,18 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   bset_point_before_scroll (current_buffer, Qnil);
 }
 
+/* Signal that we are about to make a change that may result in new
+   undo information.
+ */
+static void
+run_undoable_change (void)
+{
+  if (EQ (BVAR (current_buffer, undo_list), Qt))
+    return;
+
+  call0 (Qundo_auto__undoable_change);
+}
+
 /* Check that it is okay to modify the buffer between START and END,
    which are char positions.
 
@@ -1773,7 +1909,12 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
    any modification properties the text may have.
 
    If PRESERVE_PTR is nonzero, we relocate *PRESERVE_PTR
-   by holding its value temporarily in a marker.  */
+   by holding its value temporarily in a marker.
+
+   This function runs Lisp, which means it can GC, which means it can
+   compact buffers, including the current buffer being worked on here.
+   So don't you dare calling this function while manipulating the gap,
+   or during some other similar "critical section".  */
 
 void
 prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
@@ -1785,6 +1926,8 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
   XSETFASTINT (temp, start);
   if (!NILP (BVAR (current_buffer, read_only)))
     Fbarf_if_buffer_read_only (temp);
+
+  run_undoable_change();
 
   bset_redisplay (current_buffer);
 
@@ -1858,18 +2001,21 @@ invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
      see below).  */
   if (buf->bidi_paragraph_cache)
     {
-      if (start != end
-	  && start > BUF_BEG (buf))
+      if (start > BUF_BEG (buf))
 	{
 	  /* If we are deleting or replacing characters, we could
 	     create a paragraph start, because all of the characters
 	     from START to the beginning of START's line are
 	     whitespace.  Therefore, we must extend the region to be
-	     invalidated up to the newline before START.  */
+	     invalidated up to the newline before START.  Similarly,
+	     if we are inserting characters immediately after a
+	     newline, we could create a paragraph start if the
+	     inserted characters start with a newline.  */
 	  ptrdiff_t line_beg = start;
 	  ptrdiff_t start_byte = buf_charpos_to_bytepos (buf, start);
+	  int prev_char = BUF_FETCH_BYTE (buf, start_byte - 1);
 
-	  if (BUF_FETCH_BYTE (buf, start_byte - 1) != '\n')
+	  if ((start == end) == (prev_char == '\n'))
 	    {
 	      struct buffer *old = current_buffer;
 
@@ -2003,9 +2149,9 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
     }
 
   if (! NILP (start_marker))
-    free_marker (start_marker);
+    detach_marker (start_marker);
   if (! NILP (end_marker))
-    free_marker (end_marker);
+    detach_marker (end_marker);
   RESTORE_VALUE;
 
   unbind_to (count, Qnil);
@@ -2187,6 +2333,8 @@ syms_of_insdel (void)
   combine_after_change_list = Qnil;
   combine_after_change_buffer = Qnil;
 
+  DEFSYM (Qundo_auto__undoable_change, "undo-auto--undoable-change");
+
   DEFVAR_LISP ("combine-after-change-calls", Vcombine_after_change_calls,
 	       doc: /* Used internally by the function `combine-after-change-calls' macro.  */);
   Vcombine_after_change_calls = Qnil;
@@ -2194,7 +2342,10 @@ syms_of_insdel (void)
   DEFVAR_BOOL ("inhibit-modification-hooks", inhibit_modification_hooks,
 	       doc: /* Non-nil means don't run any of the hooks that respond to buffer changes.
 This affects `before-change-functions' and `after-change-functions',
-as well as hooks attached to text properties and overlays.  */);
+as well as hooks attached to text properties and overlays.
+Setting this variable non-nil also inhibits file locks and checks
+whether files are locked by another Emacs session, as well as
+handling of the active region per `select-active-regions'.  */);
   inhibit_modification_hooks = 0;
   DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
 

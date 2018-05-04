@@ -1,13 +1,13 @@
 /* Dump an executable image.
-   Copyright (C) 1985-1988, 1999, 2001-2015 Free Software Foundation,
+   Copyright (C) 1985-1988, 1999, 2001-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 In other words, you are welcome to use, share and improve this program.
@@ -245,15 +245,15 @@ make_hdr (int new, int a_out,
 
       if (f_thdr == 0)
 	{
-	  ERROR1 ("unexec: couldn't find \"%s\" section", (int) _TEXT);
+	  ERROR1 ("unexec: couldn't find \"%s\" section", _TEXT);
 	}
       if (f_dhdr == 0)
 	{
-	  ERROR1 ("unexec: couldn't find \"%s\" section", (int) _DATA);
+	  ERROR1 ("unexec: couldn't find \"%s\" section", _DATA);
 	}
       if (f_bhdr == 0)
 	{
-	  ERROR1 ("unexec: couldn't find \"%s\" section", (int) _BSS);
+	  ERROR1 ("unexec: couldn't find \"%s\" section", _BSS);
 	}
     }
   else
@@ -382,7 +382,7 @@ copy_text_and_data (int new)
   write_segment (new, ptr, end);
 
   lseek (new, data_scnptr, SEEK_SET);
-  ptr = (char *) f_ohdr.data_start;
+  ptr = (char *) (ptrdiff_t) f_ohdr.data_start;
   end = ptr + f_ohdr.dsize;
   write_segment (new, ptr, end);
 
@@ -399,7 +399,7 @@ write_segment (int new, char *ptr, char *end)
   for (i = 0; ptr < end;)
     {
       /* distance to next block.  */
-      nwrite = (((int) ptr + UnexBlockSz) & -UnexBlockSz) - (int) ptr;
+      nwrite = (((ptrdiff_t) ptr + UnexBlockSz) & -UnexBlockSz) - (ptrdiff_t) ptr;
       /* But not beyond specified end.  */
       if (nwrite > end - ptr) nwrite = end - ptr;
       ret = write (new, ptr, nwrite);

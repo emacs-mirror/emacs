@@ -1,13 +1,13 @@
 /* Functions taken directly from X sources for use with the Microsoft Windows API.
-   Copyright (C) 1989, 1992-1995, 1999, 2001-2015 Free Software
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2018 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,21 +15,17 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#include <windows.h>
+#include <windowsx.h>
 
 #include "lisp.h"
-#include "keyboard.h"
 #include "frame.h"
-#include "window.h"
-#include "charset.h"
-#include "fontset.h"
-#include "blockinput.h"
 #include "w32term.h"
-#include "windowsx.h"
 
 #define myalloc(cb) GlobalAllocPtr (GPTR, cb)
 #define myfree(lp) GlobalFreePtr (lp)
@@ -51,6 +47,21 @@ init_crit (void)
   /* For safety, input_available should only be reset by get_next_msg
      when the input queue is empty, so make it a manual reset event. */
   input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
+
+#if HAVE_W32NOTIFY
+  /* Initialize the linked list of notifications sets that will be
+     used to communicate between the watching worker threads and the
+     main thread.  */
+  notifications_set_head = malloc (sizeof(struct notifications_set));
+  if (notifications_set_head)
+    {
+      memset (notifications_set_head, 0, sizeof(struct notifications_set));
+      notifications_set_head->next
+	= notifications_set_head->prev = notifications_set_head;
+    }
+  else
+    DebPrint(("Out of memory: can't initialize notifications sets."));
+#endif
 
 #ifdef WINDOWSNT
   keyboard_handle = input_available;
@@ -80,6 +91,23 @@ delete_crit (void)
       CloseHandle (interrupt_handle);
       interrupt_handle = NULL;
     }
+
+#if HAVE_W32NOTIFY
+  if (notifications_set_head)
+    {
+      /* Free any remaining notifications set that could be left over.  */
+      while (notifications_set_head->next != notifications_set_head)
+	{
+	  struct notifications_set *ns = notifications_set_head->next;
+	  notifications_set_head->next = ns->next;
+	  ns->next->prev = notifications_set_head;
+	  if (ns->notifications)
+	    free (ns->notifications);
+	  free (ns);
+	}
+    }
+  free (notifications_set_head);
+#endif
 }
 
 void

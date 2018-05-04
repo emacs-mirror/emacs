@@ -1,6 +1,6 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -194,8 +194,6 @@
     (t (:inverse-video t)))
   "Face used for highlighting changes."
   :group 'highlight-changes)
-(define-obsolete-face-alias 'highlight-changes-face
-  'highlight-changes "22.1")
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
 (defface highlight-changes-delete
@@ -204,14 +202,8 @@
     (t (:inverse-video t)))
   "Face used for highlighting deletions."
   :group 'highlight-changes)
-(define-obsolete-face-alias 'highlight-changes-delete-face
-  'highlight-changes-delete "22.1")
-
 
 ;; A (not very good) default list of colors to rotate through.
-(define-obsolete-variable-alias 'highlight-changes-colours
-                                'highlight-changes-colors "22.1")
-
 (defcustom highlight-changes-colors
   (if (eq (frame-parameter nil 'background-mode) 'light)
       ;; defaults for light background:
@@ -305,9 +297,9 @@ modes only."
 
 (defcustom highlight-changes-global-changes-existing-buffers nil
   "If non-nil, toggling global Highlight Changes mode affects existing buffers.
-Normally, `global-highlight-changes' affects only new buffers (to be
+Normally, `global-highlight-changes-mode' affects only new buffers (to be
 created).  However, if `highlight-changes-global-changes-existing-buffers'
-is non-nil, then turning on `global-highlight-changes' will turn on
+is non-nil, then turning on `global-highlight-changes-mode' will turn on
 Highlight Changes mode in suitable buffers, and turning the mode off will
 remove it from existing buffers."
   :type 'boolean
@@ -782,7 +774,7 @@ is non-nil."
 	   a-start a-end len-a
 	   b-start b-end len-b
 	   (bufa-modified (buffer-modified-p buf-a))
-	   (bufb-modified (buffer-modified-p buf-b))
+	   (bufb-modified (and (not (eq buf-a buf-b)) (buffer-modified-p buf-b)))
 	   (buf-a-read-only (with-current-buffer buf-a buffer-read-only))
 	   (buf-b-read-only (with-current-buffer buf-b buffer-read-only))
 	   temp-a temp-b)
@@ -913,7 +905,7 @@ changes are made, so \\[highlight-changes-next-change] and
   (let (hilit-e hilit-x hilit-y)
     (ediff-setup buf-a file-a buf-b file-b
 	       nil nil   ; buf-c file-C
-	       'hilit-chg-get-diff-list-hk
+	       '(hilit-chg-get-diff-list-hk)
 	       (list (cons 'ediff-job-name 'something))
 	       )
     (ediff-with-current-buffer hilit-e (ediff-really-quit nil))

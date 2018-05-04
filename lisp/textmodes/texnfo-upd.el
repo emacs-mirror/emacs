@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989-1992, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -519,7 +519,7 @@ line.  If there is no node name, returns an empty string."
 
   (save-excursion
     (buffer-substring
-     (progn (forward-word 1)              ; skip over node command
+     (progn (forward-word-strictly 1)     ; skip over node command
 	    (skip-chars-forward " \t")    ; and over spaces
 	    (point))
      (if (search-forward "," (line-end-position) t) ; bound search
@@ -542,7 +542,7 @@ must have been done by `texinfo-menu-locate-entry-p'."
   (goto-char (match-beginning 7))       ; match section name
 
   (buffer-substring
-   (progn (forward-word 1)              ; skip over section type
+   (progn (forward-word-strictly 1)     ; skip over section type
 	  (skip-chars-forward " \t")    ; and over spaces
 	  (point))
    (progn (end-of-line) (point))))
@@ -694,8 +694,8 @@ section titles are often too short to explain a node well.
 
 MENU-LIST has form:
 
-    \(\(\"node-name1\" . \"description\"\)
-    \(\"node-name2\" . \"description\"\) ... \)
+    ((\"node-name1\" . \"description\")
+     (\"node-name2\" . \"description\") ... )
 
 However, the description field might be nil.
 
@@ -794,7 +794,7 @@ complements the node name rather than repeats it as a title does."
           (setq title
 		(buffer-substring
 		 ;; skip over section type
-		 (progn (forward-word 1)
+		 (progn (forward-word-strictly 1)
 			;; and over spaces
 			(skip-chars-forward " \t")
 			(point))
@@ -1002,9 +1002,9 @@ following menu and the title of the node preceding that menu.
 
 The master menu list has this form:
 
-    \(\(\(... \"entry-1-2\"  \"entry-1\"\) \"title-1\"\)
-      \(\(... \"entry-2-2\"  \"entry-2-1\"\) \"title-2\"\)
-      ...\)
+    (((... \"entry-1-2\"  \"entry-1\") \"title-1\")
+     ((... \"entry-2-2\"  \"entry-2-1\") \"title-2\")
+     ...)
 
 However, there does not need to be a title field."
 
@@ -1018,7 +1018,7 @@ However, there does not need to be a title field."
   "Format and insert the master menu in the current buffer."
   (goto-char (point-min))
   ;; Insert a master menu only after `Top' node and before next node
-  ;; \(or include file if there is no next node\).
+  ;; (or include file if there is no next node).
   (unless (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t)
     (error "This buffer needs a Top node"))
   (let ((first-chapter
@@ -1104,7 +1104,7 @@ point."
 	   t)
 	  (progn
 	    (beginning-of-line)
-	    (forward-word 1)              ; skip over section type
+	    (forward-word-strictly 1)     ; skip over section type
 	    (skip-chars-forward " \t")    ; and over spaces
 	    (buffer-substring
 	     (point)
@@ -1167,7 +1167,7 @@ error if the node is not the top node and a section is not found."
 	  (setq sec-name (buffer-substring-no-properties
 			  (progn (beginning-of-line) ; copy its name
 				 (1+ (point)))
-			  (progn (forward-word 1)
+			  (progn (forward-word-strictly 1)
 				 (point))))))
     (cond
      ((or sec-pos top-pos)
@@ -1374,7 +1374,7 @@ Point must be at beginning of node line.  Does not move point."
   (save-excursion
     (let ((initial (texinfo-copy-next-section-title)))
       ;; This is not clean.  Use `interactive' to read the arg.
-      (forward-word 1)                    ; skip over node command
+      (forward-word-strictly 1)           ; skip over node command
       (skip-chars-forward " \t")          ; and over spaces
       (if (not (looking-at "[^,\t\n ]+")) ; regexp based on what Info looks for
 					  ; alternatively, use "[a-zA-Z]+"
@@ -1407,7 +1407,7 @@ level in the Texinfo file; when looking for the `Previous' pointer,
 the section found will be at the same or higher hierarchical level in
 the Texinfo file; when looking for the `Up' pointer, the section found
 will be at some level higher in the Texinfo file.  The fourth argument
-\(one of `next', `previous', or `up'\) specifies whether to find the
+\(one of `next', `previous', or `up') specifies whether to find the
 `Next', `Previous', or `Up' pointer."
   (let ((case-fold-search t))
     (cond ((eq direction 'next)
@@ -1700,7 +1700,7 @@ node names in pre-existing `@node' lines that lack names."
       (if title-p
 	  (progn
 	    (beginning-of-line)
-	    (forward-word 1)
+	    (forward-word-strictly 1)
 	    (skip-chars-forward " \t")
 	    (setq title (buffer-substring
 			 (point)
@@ -1713,7 +1713,7 @@ node names in pre-existing `@node' lines that lack names."
 	       (line-beginning-position -1))
 	   t)
 	  ;;  @node is present, and point at beginning of that line
-	  (forward-word 1)          ; Leave point just after @node.
+	  (forward-word-strictly 1) ; Leave point just after @node.
 	;; Else @node missing; insert one.
 	(beginning-of-line)         ; Beginning of `@section' line.
 	(insert "@node\n")
@@ -1728,7 +1728,7 @@ node names in pre-existing `@node' lines that lack names."
 	    (if (not (looking-at "[^,\t\n ]+"))
 		(progn
 		  (beginning-of-line)
-		  (forward-word 1)
+		  (forward-word-strictly 1)
 		  (insert " " title)
 		  (message "Inserted title %s ... " title)))))
       ;; Go forward beyond current section title.
@@ -1813,7 +1813,7 @@ same place.  If there is no title, returns an empty string."
 	    ;; copy title
 	    (let ((title
 		   (buffer-substring
-		    (progn (forward-word 1)           ; skip over section type
+		    (progn (forward-word-strictly 1)  ; skip over section type
 			   (skip-chars-forward " \t") ; and over spaces
 			   (point))
 		    (progn (end-of-line) (point)))))
@@ -1850,8 +1850,8 @@ chapters."
 
 ;; The menu-list has the form:
 ;;
-;;     \(\(\"node-name1\" . \"title1\"\)
-;;       \(\"node-name2\" . \"title2\"\) ... \)
+;;     ((\"node-name1\" . \"title1\")
+;;      (\"node-name2\" . \"title2\") ... )
 ;;
 ;; However, there does not need to be a title field and this function
 ;; does not fill it; however a comment tells you how to do so.

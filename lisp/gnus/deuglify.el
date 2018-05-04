@@ -1,6 +1,6 @@
 ;;; deuglify.el --- deuglify broken Outlook (Express) articles
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Raymond Scholz <rscholz@zonix.de>
 ;;         Thomas Steffen
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -284,7 +284,7 @@
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-display-hook nil
-  "A hook called after an deuglified article has been prepared.
+  "A hook called after a deuglified article has been prepared.
 It is run after `gnus-article-prepare-hook'."
   :version "22.1"
   :type 'hook

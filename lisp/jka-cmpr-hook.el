@@ -1,6 +1,6 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2015 Free Software
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -244,7 +244,15 @@ options through Custom does this automatically."
     ["\\.dz\\'"
      nil              nil            nil
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
-     nil t "\037\213"]))
+     nil t "\037\213"]
+    ["\\.zst\\'"
+     "zstd compressing"   "zstd"         ("-c" "-q")
+     "zstd uncompressing" "zstd"         ("-c" "-q" "-d")
+     t t "\050\265\057\375"]
+    ["\\.tzst\\'"
+     "zstd compressing"   "zstd"         ("-c" "-q")
+     "zstd uncompressing" "zstd"         ("-c" "-q" "-d")
+     t nil "\050\265\057\375"]))
 
   "List of vectors that describe available compression techniques.
 Each element, which describes a compression technique, is a vector of
@@ -308,7 +316,8 @@ variables.  Setting this through Custom does that automatically."
 (defcustom jka-compr-mode-alist-additions
   (purecopy '(("\\.tgz\\'" . tar-mode)
               ("\\.tbz2?\\'" . tar-mode)
-              ("\\.txz\\'" . tar-mode)))
+              ("\\.txz\\'" . tar-mode)
+              ("\\.tzst\\'" . tar-mode)))
   "List of pairs added to `auto-mode-alist' when installing jka-compr.
 Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
 installing added.

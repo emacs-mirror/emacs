@@ -15,6 +15,7 @@
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int active)

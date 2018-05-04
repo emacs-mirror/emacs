@@ -20,7 +20,7 @@
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2015
+Copyright @copyright{} 1994--1995, 1999, 2001--2018
 Free Software Foundation, Inc.
 
 @quotation
@@ -338,7 +338,7 @@ inside your @code{dired-mode-hook} to have omitting initially turned on in
 
 To enable omitting automatically only in certain directories you can add
 a directory local setting
-(@pxref{Directory Variables,,,emacs,The Gnu Emacs manual}) for Dired mode
+(@pxref{Directory Variables,,,emacs,The GNU Emacs manual}) for Dired mode
 
 @example
 ((dired-mode . ((dired-omit-mode . t))))
@@ -368,6 +368,18 @@ and @code{dired-texinfo-unclean-extensions}.
 
 If non-@code{nil}, a list of extensions (strings) to omit from Dired listings.
 Its format is the same as that of @code{completion-ignored-extensions}.
+
+@vindex dired-omit-case-fold
+@item dired-omit-case-fold
+
+Default:  @code{filesystem}
+
+By default, when @code{dired-omit-case-fold} is set to @code{filesystem},
+@code{dired-omit-mode} will match filenames and extensions
+case-sensitively on Dired buffers visiting case-sensitive filesystems,
+and case-insensitively on case-insensitive filesystems.  Set it to
+@code{nil} to be always case-sensitive, and to @code{t} to be always
+case-insensitive.
 
 @vindex dired-omit-localp
 @item dired-omit-localp
@@ -475,7 +487,7 @@ in your @code{dired-mode-hook}.
 @noindent
 This Dired-X feature is obsolete as of Emacs 24.1.  The standard Emacs
 directory local variables mechanism (@pxref{Directory
-Variables,,,emacs,The Gnu Emacs manual}) replaces it.  For an example of
+Variables,,,emacs,The GNU Emacs manual}) replaces it.  For an example of
 the new mechanisms, @pxref{Omitting Variables}.
 
 When Dired visits a directory, it looks for a file whose name is the
@@ -628,7 +640,7 @@ A non-@code{nil} value means that @samp{-q} is passed to @code{gzip}
 overriding a verbose option in the @env{GZIP} environment variable.
 
 @item dired-guess-shell-znew-switches nil
-@vindex dired-guess-shell-znew-switches nil
+@vindex dired-guess-shell-znew-switches
 @cindex @code{znew}
 Default: @code{nil}
 
@@ -637,7 +649,7 @@ A string of switches passed to @code{znew}.  An example is
 smaller than the @file{.gz} file.
 
 @item dired-shell-command-history nil
-@vindex dired-shell-command-history nil
+@vindex dired-shell-command-history
 
 History list for commands that read dired-shell commands.
 @end table
@@ -709,10 +721,25 @@ variable @code{window-min-height}.
 @item dired-mark-extension
 @findex dired-mark-extension
 Mark all files with a certain extension for use in later commands.  A @samp{.}
-is not automatically prepended to the string entered, you must type it
-explicitly.
+is automatically prepended to the string entered when not present.
+If invoked with prefix argument @kbd{C-u}, this command unmarks files instead.
+If called with the @kbd{C-u C-u} prefix, asks for a character to use
+as the marker, and marks files with it.
 
 When called from Lisp, @var{extension} may also be a list of extensions
+and an optional argument @var{marker-char} specifies the marker used.
+
+@item dired-mark-suffix
+@findex dired-mark-suffix
+Mark all files with a certain suffix for use in later commands.  A @samp{.}
+is not automatically prepended to the string entered, you must type it
+explicitly.  This is different from @code{dired-mark-extension} which prepends
+a @samp{.} if not present.
+If invoked with prefix argument @kbd{C-u}, this command unmarks files instead.
+If called with the @kbd{C-u C-u} prefix, asks for a character to use
+as the marker, and marks files with it.
+
+When called from Lisp, @var{suffix} may also be a list of suffixes
 and an optional argument @var{marker-char} specifies the marker used.
 
 @item dired-flag-extension
@@ -968,7 +995,7 @@ If there are several Dired buffers for a directory, the most recently
 used is chosen.
 
 Dired avoids switching to the current buffer, so that if you have a
-normal and a wildcard buffer for the same directory, @kbd{C-x d RET}
+normal and a wildcard buffer for the same directory, @kbd{C-x d @key{RET}}
 will toggle between those two.
 @end table
 

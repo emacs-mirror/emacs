@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Symbols
@@ -157,7 +157,7 @@ that cell can hold only one Lisp object at any given time.
 both as a variable (e.g., with @code{defvar}) and as a function or
 macro (e.g., with @code{defun}).  Such definitions do not conflict.
 
-  These definition also act as guides for programming tools.  For
+  These definitions also act as guides for programming tools.  For
 example, the @kbd{C-h f} and @kbd{C-h v} commands create help buffers
 containing links to the relevant variable, function, or macro
 definitions.  @xref{Name Help,,, emacs, The GNU Emacs Manual}.
@@ -176,7 +176,7 @@ cause complete confusion.
 @cindex obarray
 @cindex bucket (in obarray)
   When the Lisp reader encounters a symbol, it reads all the characters
-of the name.  Then it ``hashes'' those characters to find an index in a
+of the name.  Then it hashes those characters to find an index in a
 table called an @dfn{obarray}.  Hashing is an efficient method of
 looking something up.  For example, instead of searching a telephone
 book cover to cover when looking up Jan Jones, you start with the J's
@@ -271,6 +271,12 @@ distinct uninterned symbol whose name is also @samp{foo}.
 (eq sym 'foo)
      @result{} nil
 @end example
+@end defun
+
+@defun gensym &optional prefix
+This function returns a symbol using @code{make-symbol}, whose name is
+made by appending @code{gensym-counter} to @var{prefix}.  The prefix
+defaults to @code{"g"}.
 @end defun
 
 @defun intern name &optional obarray
@@ -461,10 +467,23 @@ You could define @code{put} in terms of @code{setplist} and
 @end example
 @end defun
 
-@defun function-get symbol property
+@defun function-get symbol property &optional autoload
 This function is identical to @code{get}, except that if @var{symbol}
 is the name of a function alias, it looks in the property list of the
-symbol naming the actual function.  @xref{Defining Functions}.
+symbol naming the actual function.  @xref{Defining Functions}.  If the
+optional argument @var{autoload} is non-@code{nil}, and @var{symbol}
+is auto-loaded, this function will try to autoload it, since
+autoloading might set @var{property} of @var{symbol}.  If
+@var{autoload} is the symbol @code{macro}, only try autoloading if
+@var{symbol} is an auto-loaded macro.
+@end defun
+
+@defun function-put function property value
+This function sets @var{property} of @var{function} to @var{value}.
+@var{function} should be a symbol.  This function is preferred to
+calling @code{put} for setting properties of a function, because it
+will allow us some day to implement remapping of old properties to new
+ones.
 @end defun
 
 @node Standard Properties
@@ -525,7 +544,7 @@ The value is an expression for determining whether the named menu item
 should be enabled in menus.  @xref{Simple Menu Items}.
 
 @item mode-class
-If the value is @code{special}, the named major mode is ``special''.
+If the value is @code{special}, the named major mode is special.
 @xref{Major Mode Conventions}.
 
 @item permanent-local

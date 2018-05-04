@@ -1,6 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, news
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -237,21 +237,12 @@ comma-separated list, and return the pruned list."
   ;; Or just set the default directly in the defcustom.
   (if (null mail-dont-reply-to-names)
       (setq mail-dont-reply-to-names
-	    (concat
 	     ;; `rmail-default-dont-reply-to-names' is obsolete.
-	     (if (bound-and-true-p rmail-default-dont-reply-to-names)
-		 (concat rmail-default-dont-reply-to-names "\\|")
-	       "")
-	     (if (and user-mail-address
-		      (not (equal user-mail-address user-login-name)))
-		 ;; Anchor the login name and email address so that we
-		 ;; don't match substrings: if the login name is
-		 ;; "foo", we shouldn't match "barfoo@baz.com".
-		 (concat "\\`"
-			 (regexp-quote user-mail-address)
-			 "\\'\\|")
-	       "")
-	     (concat "\\`" (regexp-quote user-login-name) "@"))))
+	    (let ((a (bound-and-true-p rmail-default-dont-reply-to-names))
+		  (b (if (> (length user-mail-address) 0)
+			 (concat "\\`" (regexp-quote user-mail-address) "\\'"))))
+	      (cond ((and a b) (concat a "\\|" b))
+		    ((or a b))))))
   ;; Split up DESTINATIONS and match each element separately.
   (let ((start-pos 0) (cur-pos 0)
 	(case-fold-search t))
@@ -271,7 +262,8 @@ comma-separated list, and return the pruned list."
 	      (setq cur-pos start-pos)))
 	(let* ((address (substring destinations start-pos cur-pos))
 	       (naked-address (mail-strip-quoted-names address)))
-	  (if (string-match mail-dont-reply-to-names naked-address)
+	  (if (and mail-dont-reply-to-names
+		   (string-match mail-dont-reply-to-names naked-address))
 	      (setq destinations (concat (substring destinations 0 start-pos)
 				    (and cur-pos (substring destinations
 							    (1+ cur-pos))))

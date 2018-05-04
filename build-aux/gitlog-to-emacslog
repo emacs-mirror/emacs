@@ -2,7 +2,7 @@
 
 # Convert git log output to ChangeLog format for GNU Emacs.
 
-# Copyright (C) 2014-2015 Free Software Foundation, Inc.
+# Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 # Author: Paul Eggert
 
@@ -17,7 +17,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 LC_ALL=C
 export LC_ALL
@@ -35,14 +35,14 @@ while [ $# -gt 0 ]; do
       -f|--force) force=1 ;;
       -n|--nmax) nmax="$2"; shift ;;
       -o|--output) output="$2" ; shift ;;
-      *) echo "Unrecognized argument: $1" >&2; exit 1 ;;
+      *) printf '%s\n' "Unrecognized argument: $1" >&2; exit 1 ;;
   esac
   shift
 done
 
 if [ ! -f ChangeLog.$nmax ]; then
-    echo "Can't find ChangeLog.$nmax" >&2
-    echo "Must be run from the top source directory" >&2
+    printf '%s\n' "Can't find ChangeLog.$nmax" >&2
+    printf '%s\n' "Must be run from the top source directory" >&2
     exit 1
 fi
 
@@ -52,7 +52,7 @@ fi
     gen_origin_line=`
       grep -E '^commit [0-9a-f]+ [(]inclusive[)]' ChangeLog.$nmax
     ` || {
-	echo "ChangeLog.$nmax lacks a 'commit ... (inclusive)' line" >&2
+	printf '%s\n' "ChangeLog.$nmax lacks a 'commit ... (inclusive)' line" >&2
 	exit 1
     }
     set $gen_origin_line
@@ -63,12 +63,12 @@ fi
 new_origin=`git log --pretty=format:%H 'HEAD^!'` || exit
 
 if [ -f "$output" ]; then
-    [ ! "$force" ] && echo "$output exists" >&2 && exit 1
+    [ ! "$force" ] && printf '%s\n' "$output exists" >&2 && exit 1
     rm -f "$output" || exit 1
 fi
 
 # If this is not a Git repository, just generate an empty ChangeLog.
-test -d .git || {
+test -r .git || {
   >"$output"
   exit
 }
@@ -77,11 +77,11 @@ test -d .git || {
 # Maybe we should skip all "Merge branch 'master'" messages.
 # See eg the cairo-related ones.
 ./build-aux/gitlog-to-changelog \
-    --ignore-matching="^; |^Merge branch 'master' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs$|^Merge remote-tracking branch '.*'$" \
+    --ignore-matching="^; |^Merge branch '[^']*' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs|^Merge remote-tracking branch '.*'$" \
   --ignore-line='^; ' --format='%B' \
   "$gen_origin..$new_origin" >"ChangeLog.tmp" || exit
 
-if test -s "ChangeLog.tmp"; then
+if test -r "ChangeLog.tmp"; then
 
   # Fix up bug references.
   # This would be better as eg a --transform option to gitlog-to-changelog,
@@ -99,7 +99,7 @@ if test -s "ChangeLog.tmp"; then
   `
   start_year=
   end_year=
-  for year in $years; do
+  for year in ${years:-`date +%Y`}; do
     : ${start_year:=$year}
     end_year=$year
   done
@@ -110,13 +110,19 @@ if test -s "ChangeLog.tmp"; then
     year_range=$start_year-$end_year
   fi
 
-  # Update gen_origin and append a proper copyright notice.
-  sed -n '
-    1i\
+  # Update gen_origin
+  if test "$gen_origin" != "$new_origin"; then
+      sed -n '
+        1i\
 
-    /^This file records repository revisions/p
-    s/^commit [0-9a-f]* (exclusive)/commit '"$gen_origin"' (exclusive)/p
-    s/^commit [0-9a-f]* (inclusive)/commit '"$new_origin"' (inclusive)/p
+        /^This file records repository revisions/p
+        s/^commit [0-9a-f]* (exclusive)/commit '"$gen_origin"' (exclusive)/p
+        s/^commit [0-9a-f]* (inclusive)/commit '"$new_origin"' (inclusive)/p
+      ' <ChangeLog.$nmax >>"ChangeLog.tmp" || exit
+  fi
+
+  # Append a proper copyright notice.
+  sed -n '
     /^See ChangeLog.[0-9]* for earlier/,${
        s/ChangeLog\.[0-9]*/ChangeLog.'$nmax'/
        s/\(Copyright[ (C)]*\)[0-9]*-[0-9]*/\1'"$year_range"'/

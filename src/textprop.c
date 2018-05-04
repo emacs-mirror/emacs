@@ -1,13 +1,13 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2015 Free Software Foundation,
+   Copyright (C) 1993-1995, 1997, 1999-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,13 +15,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include "lisp.h"
 #include "intervals.h"
-#include "character.h"
 #include "buffer.h"
 #include "window.h"
 
@@ -212,7 +211,7 @@ validate_plist (Lisp_Object list)
 	  if (! CONSP (tail))
 	    error ("Odd length text property list");
 	  tail = XCDR (tail);
-	  QUIT;
+	  maybe_quit ();
 	}
       while (CONSP (tail));
 
@@ -2044,18 +2043,19 @@ add_text_properties_from_list (Lisp_Object object, Lisp_Object list, Lisp_Object
    end-points to NEW_END.  */
 
 Lisp_Object
-extend_property_ranges (Lisp_Object list, Lisp_Object new_end)
+extend_property_ranges (Lisp_Object list, Lisp_Object old_end, Lisp_Object new_end)
 {
   Lisp_Object prev = Qnil, head = list;
   ptrdiff_t max = XINT (new_end);
 
   for (; CONSP (list); prev = list, list = XCDR (list))
     {
-      Lisp_Object item, beg, end;
+      Lisp_Object item, beg;
+      ptrdiff_t end;
 
       item = XCAR (list);
       beg = XCAR (item);
-      end = XCAR (XCDR (item));
+      end = XINT (XCAR (XCDR (item)));
 
       if (XINT (beg) >= max)
 	{
@@ -2066,9 +2066,16 @@ extend_property_ranges (Lisp_Object list, Lisp_Object new_end)
 	  else
 	    XSETCDR (prev, XCDR (list));
 	}
-      else if (XINT (end) > max)
-	/* The end-point is past the end of the new string.  */
-	XSETCAR (XCDR (item), new_end);
+      else if ((end == XINT (old_end) && end != max)
+	       || end > max)
+	{
+	  /* Either the end-point is past the end of the new string,
+	     and we need to discard the properties past the new end,
+	     or the caller is extending the property range, and we
+	     should update all end-points that are on the old end of
+	     the range to reflect that.  */
+	  XSETCAR (XCDR (item), new_end);
+	}
     }
 
   return head;

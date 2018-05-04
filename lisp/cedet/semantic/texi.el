@@ -1,6 +1,6 @@
 ;;; semantic/texi.el --- Semantic details for Texinfo files
 
-;; Copyright (C) 2001-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -258,7 +258,7 @@ can handle the @menu environment.")
 	(when (not parenthetical)
 	  ;; We are in parentheses.  Are they the types of parens
 	  ;; belonging to a texinfo construct?
-	  (forward-word -1)
+	  (forward-word-strictly -1)
 	  (when (looking-at "@\\w+{")
 	    (setq done (point))))))
     ;; If we are not in a parenthetical node, then find a block instead.
@@ -287,7 +287,7 @@ can handle the @menu environment.")
       ;; If we can't go up, we can't do this either.
       t
     ;; We moved, so now we need to skip into whatever this thing is.
-    (forward-word 1) ;; skip the command
+    (forward-word-strictly 1) ;; skip the command
     (if (looking-at "\\s-*{")
 	;; In a short command.  Go in.
 	(down-list 1)
@@ -365,6 +365,8 @@ Optional argument POINT is where to look for the environment."
 (eval-when-compile
   (require 'semantic/analyze))
 
+(declare-function semantic-analyze-context "semantic/analyze")
+
 (define-mode-local-override semantic-analyze-current-context
   texinfo-mode (point)
   "Analysis context makes no sense for texinfo.  Return nil."
@@ -376,7 +378,6 @@ Optional argument POINT is where to look for the environment."
     (when prefix
       (require 'semantic/analyze)
       (semantic-analyze-context
-       "Context-for-texinfo"
        :buffer (current-buffer)
        :scope nil
        :bounds bounds

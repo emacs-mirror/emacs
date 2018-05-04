@@ -1,6 +1,6 @@
-;;; nxml-enc.el --- XML encoding auto-detection
+;;; nxml-enc.el --- XML encoding auto-detection  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -68,7 +68,7 @@
     (and nxml-non-xml-set-auto-coding-function
 	 (funcall nxml-non-xml-set-auto-coding-function file-name size))))
 
-(defun nxml-set-xml-coding (file-name size)
+(defun nxml-set-xml-coding (_file-name size)
   "Function to use as `set-auto-coding-function' when file is known to be XML."
   (nxml-detect-coding-system (+ (point) (min size 1024))))
 
@@ -91,7 +91,7 @@
 	     ;; no-conversion gives the user a chance to fix it.
 	     'no-conversion)
 	    ;; There are other things we might try here in the future
-	    ;; eg UTF-8 BOM, UTF-16 with no BOM 
+	    ;; eg UTF-8 BOM, UTF-16 with no BOM
 	    ;; translate to EBCDIC
 	    (t
 	     (let ((enc-pos (xmltok-get-declared-encoding-position limit)))

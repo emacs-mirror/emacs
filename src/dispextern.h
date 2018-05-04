@@ -1,13 +1,13 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2015 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* New redisplay written by Gerd Moellmann <gerd@gnu.org>.  */
 
@@ -82,6 +82,7 @@ typedef XImagePtr XImagePtr_or_DC;
 
 #ifdef HAVE_WINDOW_SYSTEM
 # include <time.h>
+# include "fontset.h"
 #endif
 
 #ifndef HAVE_WINDOW_SYSTEM
@@ -347,7 +348,10 @@ enum glyph_type
   IMAGE_GLYPH,
 
   /* Glyph is a space of fractional width and/or height.  */
-  STRETCH_GLYPH
+  STRETCH_GLYPH,
+
+  /* Glyph is an external widget drawn by the GUI toolkit.  */
+  XWIDGET_GLYPH
 };
 
 
@@ -380,6 +384,7 @@ struct glyph
       glyph standing for newline at end of line    0
       empty space after the end of the line       -1
       overlay arrow on a TTY                      -1
+      glyph displaying line number                -1
       glyph at EOB that ends in a newline         -1
       left truncation glyphs:                     -1
       right truncation/continuation glyphs        next buffer position
@@ -498,6 +503,11 @@ struct glyph
 
     /* Image ID for image glyphs (type == IMAGE_GLYPH).  */
     int img_id;
+
+#ifdef HAVE_XWIDGETS
+    /* Xwidget reference (type == XWIDGET_GLYPH).  */
+    struct xwidget *xwidget;
+#endif
 
     /* Sub-structure for type == STRETCH_GLYPH.  */
     struct
@@ -1097,7 +1107,7 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
 #define MATRIX_BOTTOM_TEXT_ROW(MATRIX, W)		\
      ((MATRIX)->rows					\
       + (MATRIX)->nrows					\
-      - (WINDOW_WANTS_MODELINE_P ((W)) ? 1 : 0))
+      - (window_wants_mode_line ((W)) ? 1 : 0))
 
 /* Non-zero if the face of the last glyph in ROW's text area has
    to be drawn to the end of the text area.  */
@@ -1267,7 +1277,6 @@ struct glyph_string
 
   /* X display and window for convenience.  */
   Display *display;
-  Window window;
 
   /* The glyph row for which this string was built.  It determines the
      y-origin and height of the string.  */
@@ -1349,6 +1358,9 @@ struct glyph_string
 
   /* Image, if any.  */
   struct image *img;
+
+  /* Xwidget.  */
+  struct xwidget *xwidget;
 
   /* Slice */
   struct glyph_slice slice;
@@ -1458,40 +1470,6 @@ struct glyph_string
 #define DESIRED_HEADER_LINE_HEIGHT(W) \
      MATRIX_HEADER_LINE_HEIGHT ((W)->desired_matrix)
 
-/* PXW: The height checks below serve to show at least one text line
-   instead of a mode- and/or header line when a window gets very small.
-   But (1) the check fails when the mode- or header-line is taller than
-   the associated frame's line height and (2) we don't care much about
-   text visibility anyway when shrinking a frame containing a toolbar.
-
-   So maybe these checks should be removed and any clipping left to the
-   window manager.  */
-
-/* Value is true if window W wants a mode line and is large enough
-   to accommodate it.  */
-#define WINDOW_WANTS_MODELINE_P(W)					\
-  (BUFFERP ((W)->contents)						\
-   ? (!MINI_WINDOW_P (W)						\
-      && !(W)->pseudo_window_p						\
-      && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
-      && !NILP (BVAR (XBUFFER ((W)->contents), mode_line_format))	\
-      && WINDOW_PIXEL_HEIGHT (W) > WINDOW_FRAME_LINE_HEIGHT (W))	\
-   : false)
-
-/* Value is true if window W wants a header line and is large enough
-   to accommodate it.  */
-#define WINDOW_WANTS_HEADER_LINE_P(W)					\
-     (BUFFERP ((W)->contents)						\
-      ? (!MINI_WINDOW_P (W)						\
-	 && !(W)->pseudo_window_p					\
-	 && FRAME_WANTS_MODELINE_P (XFRAME (WINDOW_FRAME (W)))		\
-	 && !NILP (BVAR (XBUFFER ((W)->contents), header_line_format))	\
-	 && (WINDOW_PIXEL_HEIGHT (W)					\
-	     > (WINDOW_WANTS_MODELINE_P (W)				\
-		? (2 * WINDOW_FRAME_LINE_HEIGHT (W))			\
-		: WINDOW_FRAME_LINE_HEIGHT (W))))			\
-      : false)
-
 /* Return proper value to be used as baseline offset of font that has
    ASCENT and DESCENT to draw characters by the font at the vertical
    center of the line of frame F.
@@ -1530,7 +1508,8 @@ struct glyph_string
    large vertical space.  The heuristics is in the factor of 3.  We
    ignore the ascent and descent values reported by such fonts, and
    instead go by the values reported for individual glyphs.  */
-#define FONT_TOO_HIGH(ft)  ((ft)->ascent + (ft)->descent > 3*(ft)->pixel_size)
+#define FONT_TOO_HIGH(ft)						\
+  ((ft)->pixel_size > 0 && (ft)->ascent + (ft)->descent > 3*(ft)->pixel_size)
 
 
 /***********************************************************************
@@ -1772,6 +1751,7 @@ enum face_id
   WINDOW_DIVIDER_FACE_ID,
   WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID,
   WINDOW_DIVIDER_LAST_PIXEL_FACE_ID,
+  INTERNAL_BORDER_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -1800,36 +1780,46 @@ struct face_cache
   bool_bf menu_face_changed_p : 1;
 };
 
+/* Return a non-null pointer to the cached face with ID on frame F.  */
+
+#define FACE_FROM_ID(F, ID)					\
+  (eassert (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)),	\
+   FRAME_FACE_CACHE (F)->faces_by_id[ID])
+
 /* Return a pointer to the face with ID on frame F, or null if such a
    face doesn't exist.  */
 
-#define FACE_FROM_ID(F, ID)				\
-     (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
-      ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
-      : NULL)
+#define FACE_FROM_ID_OR_NULL(F, ID)			\
+  (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
+   ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
+   : NULL)
 
+/* True if FACE is suitable for displaying ASCII characters.  */
+INLINE bool
+FACE_SUITABLE_FOR_ASCII_CHAR_P (struct face *face)
+{
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* Non-zero if FACE is suitable for displaying character CHAR.  */
-
-#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR)	\
-  ((FACE) == (FACE)->ascii_face)
+  return face == face->ascii_face;
+#else
+  return true;
+#endif
+}
 
 /* Return the id of the realized face on frame F that is like the face
-   FACE, but is suitable for displaying character CHAR at buffer or
+   FACE, but is suitable for displaying character CHARACTER at buffer or
    string position POS.  OBJECT is the string object, or nil for
    buffer.  This macro is only meaningful for multibyte character
    CHAR.  */
-
-#define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT)	\
-  face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT))
-
-#else /* not HAVE_WINDOW_SYSTEM */
-
-#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR) true
-#define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
-
-#endif /* not HAVE_WINDOW_SYSTEM */
+INLINE int
+FACE_FOR_CHAR (struct frame *f, struct face *face, int character,
+	       ptrdiff_t pos, Lisp_Object object)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  return face_for_char (f, face, character, pos, object);
+#else
+  return face->id;
+#endif
+}
 
 /* Return true if G contains a valid character code.  */
 INLINE bool
@@ -1962,8 +1952,8 @@ struct bidi_it {
 				   resolving weak and neutral types */
   bidi_type_t type_after_wn;	/* bidi type after overrides and Wn */
   bidi_type_t orig_type;	/* original bidi type, as found in the buffer */
-  char resolved_level;		/* final resolved level of this character */
-  char isolate_level;		/* count of isolate initiators unmatched by PDI */
+  signed char resolved_level;	/* final resolved level of this character */
+  signed char isolate_level;	/* count of isolate initiators unmatched by PDI */
   ptrdiff_t invalid_levels;	/* how many PDFs to ignore */
   ptrdiff_t invalid_isolates;	/* how many PDIs to ignore */
   struct bidi_saved_info prev;	/* info about previous character */
@@ -2101,7 +2091,10 @@ enum display_element_type
   IT_TRUNCATION,
 
   /* Continuation glyphs.  See the comment for IT_TRUNCATION.  */
-  IT_CONTINUATION
+  IT_CONTINUATION,
+
+  /* Xwidget.  */
+  IT_XWIDGET
 };
 
 
@@ -2165,6 +2158,7 @@ enum it_method {
   GET_FROM_C_STRING,
   GET_FROM_IMAGE,
   GET_FROM_STRETCH,
+  GET_FROM_XWIDGET,
   NUM_IT_METHODS
 };
 
@@ -2189,7 +2183,7 @@ struct composition_it
      the automatic composition.  Provided that ELT is an element of
      Vcomposition_function_table for CH, (nth ELT RULE_IDX) is the
      rule for the composition.  */
-  int rule_idx;
+  EMACS_INT rule_idx;
   /* If this is an automatic composition, how many characters to look
      back from the position where a character triggering the
      composition exists.  */
@@ -2210,7 +2204,7 @@ struct composition_it
   /* Indices of the glyphs for the current grapheme cluster.  */
   int from, to;
   /* Width of the current grapheme cluster in units of columns it will
-     occupy on display; see CHAR_WIDTH.  */
+     occupy on display; see CHARACTER_WIDTH.  */
   int width;
 };
 
@@ -2378,14 +2372,14 @@ struct it
 	struct it_slice slice;
 	ptrdiff_t image_id;
       } image;
-      /* method == GET_FROM_COMPOSITION */
-      struct {
-	Lisp_Object object;
-      } comp;
       /* method == GET_FROM_STRETCH */
       struct {
 	Lisp_Object object;
       } stretch;
+      /* method == GET_FROM_XWIDGET */
+      struct {
+	Lisp_Object object;
+      } xwidget;
     } u;
 
     /* Current text and display positions.  */
@@ -2426,7 +2420,7 @@ struct it
   /* Face to use.  */
   int face_id;
 
-  /* Setting of buffer-local variable selective-display-ellipsis.  */
+  /* Setting of buffer-local variable selective-display-ellipses.  */
   bool_bf selective_display_ellipsis_p : 1;
 
   /* True means control characters are translated into the form `^C'
@@ -2467,6 +2461,10 @@ struct it
   /* If true, adjust current glyph so it does not increase current row
      descent/ascent (line-height property).  Reset after this glyph.  */
   bool_bf constrain_row_ascent_descent_p : 1;
+
+  /* If true, glyphs for line number display were already produced for
+     the current row.  */
+  bool_bf line_number_produced_p : 1;
 
   enum line_wrap_method line_wrap;
 
@@ -2510,6 +2508,9 @@ struct it
   /* If what == IT_IMAGE, the id of the image to display.  */
   ptrdiff_t image_id;
 
+  /* If what == IT_XWIDGET.  */
+  struct xwidget *xwidget;
+
   /* Values from `slice' property.  */
   struct it_slice slice;
 
@@ -2541,7 +2542,12 @@ struct it
      Do NOT use !BUFFERP (it.object) as a test whether we are
      iterating over a string; use STRINGP (it.string) instead.
 
-     Position is the current iterator position in object.  */
+     Position is the current iterator position in object.
+
+     The 'position's CHARPOS is copied to glyph->charpos of the glyph
+     produced by PRODUCE_GLYPHS, so any artificial value documented
+     under 'struct glyph's 'charpos' member can also be found in the
+     'position' member here.  */
   Lisp_Object object;
   struct text_pos position;
 
@@ -2624,6 +2630,26 @@ struct it
      Only set there, not in display_line, and only when the X
      coordinate is past first_visible_x.  */
   int hpos;
+
+  /* Current line number, zero-based.  */
+  ptrdiff_t lnum;
+
+  /* The byte position corresponding to lnum.  */
+  ptrdiff_t lnum_bytepos;
+
+  /* The width, in columns and in pixels, needed for display of the
+     line numbers, or zero if not computed.  */
+  int lnum_width;
+  int lnum_pixel_width;
+
+  /* The line number of point's line, or zero if not computed yet.  */
+  ptrdiff_t pt_lnum;
+
+  /* Number of pixels to offset tab stops due to width fixup of the
+     first glyph that crosses first_visible_x.  This is only needed on
+     GUI frames, only when display-line-numbers is in effect, and only
+     in hscrolled windows.  */
+  int tab_offset;
 
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
@@ -3064,13 +3090,19 @@ struct image_cache
 };
 
 
+/* A non-null pointer to the image with id ID on frame F.  */
+
+#define IMAGE_FROM_ID(F, ID)					\
+  (eassert (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)),	\
+   FRAME_IMAGE_CACHE (F)->images[ID])
+
 /* Value is a pointer to the image with id ID on frame F, or null if
    no image with that id exists.  */
 
-#define IMAGE_FROM_ID(F, ID)					\
-     (((ID) >= 0 && (ID) < (FRAME_IMAGE_CACHE (F)->used))	\
-      ? FRAME_IMAGE_CACHE (F)->images[ID]			\
-      : NULL)
+#define IMAGE_OPT_FROM_ID(F, ID)				\
+  (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)		\
+   ? FRAME_IMAGE_CACHE (F)->images[ID]				\
+   : NULL)
 
 /* Size of bucket vector of image caches.  Should be prime.  */
 
@@ -3228,6 +3260,7 @@ void move_it_past_eol (struct it *);
 void move_it_in_display_line (struct it *it,
 			      ptrdiff_t to_charpos, int to_x,
 			      enum move_operation_enum op);
+int partial_line_height (struct it *it_origin);
 bool in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;
@@ -3257,6 +3290,7 @@ extern void dump_glyph_string (struct glyph_string *) EXTERNALLY_VISIBLE;
 
 extern void x_get_glyph_overhangs (struct glyph *, struct frame *,
                                    int *, int *);
+extern struct font *font_for_underline_metrics (struct glyph_string *);
 extern void x_produce_glyphs (struct it *);
 
 extern void x_write_glyphs (struct window *, struct glyph_row *,
@@ -3320,6 +3354,8 @@ void x_cr_init_fringe (struct redisplay_interface *);
 #endif
 
 extern unsigned row_hash (struct glyph_row *);
+
+extern bool buffer_flipping_blocked_p (void);
 
 /* Defined in image.c */
 
@@ -3426,8 +3462,6 @@ void gamma_correct (struct frame *, COLORREF *);
 void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 void x_change_tool_bar_height (struct frame *f, int);
 
-extern Lisp_Object tip_frame;
-extern Window tip_window;
 extern frame_parm_handler x_frame_parm_handlers[];
 
 extern void start_hourglass (void);

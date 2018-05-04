@@ -1,6 +1,6 @@
 * COPYRIGHT
 
-Copyright (C) 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 * Changes in MH-E 8.6
@@ -13,7 +13,7 @@ Version 8.6 fixes composition errors in nmh 1.6.
 
 A components file is now generated that works with nmh 1.5 (partially
 closes SF #468).
-	
+
 *** Error if mh-x-face-file is nil
 
 Ensure that `mh-x-face-file' is a string before trying to use it
@@ -284,7 +284,7 @@ This has been fixed (closes SF #1565460).
 
 *** Errors Associated with mh-junk-background
 
-The Spamassassin filter commands were used inconsistently and
+The SpamAssassin filter commands were used inconsistently and
 incorrectly; if `mh-junk-background' were nil, not all of the updating
 would happen correctly. In the other back-ends such as bogofilter and
 SpamProbe, a value of t for `mh-junk-background' would cause the
@@ -380,7 +380,7 @@ gatewayed at gmane.org (closes SF #979308).
 If you want to see the release notes for the alpha and beta releases
 leading up this release, please see:
 
-  http://cvs.savannah.gnu.org/viewvc/emacs/emacs/etc/MH-E-NEWS?revision=1.25&view=markup
+  https://cvs.savannah.gnu.org/viewvc/emacs/emacs/etc/MH-E-NEWS?revision=1.25&view=markup
 
 
 
@@ -1147,9 +1147,9 @@ The -face suffix has been dropped from all face names.
 Items in swish indexes that aren't mail messages are now handled more
 gracefully.
 
-*** Spamassassin Fixes
+*** SpamAssassin Fixes
 
-If you use spamassassin, there was an error when you tried to junk
+If you use SpamAssassin, there was an error when you tried to junk
 mail if the option `mh-junk-background' was set. This has been fixed.
 
 *** Mairix Support
@@ -2363,7 +2363,7 @@ new customization variables `mh-show-use-xface-flag' and `mh-x-face-file'
 (closes SF #480770).
 
 MH-E depends on the external x-face package found in
-ftp://ftp.jpl.org/pub/elisp/ to do this. The `uncompface' binary is
+http://www.jpl.org/pub/elisp/ to do this. The `uncompface' binary is
 also required to be in the execute PATH. It can be obtained from:
 http://freshmeat.net/redir/compface/1439/url_tgz/compface-1.4.tar.gz.
 
@@ -3394,7 +3394,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 Local variables:

@@ -1,6 +1,6 @@
 /* Basic character set support.
 
-Copyright (C) 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -15,8 +15,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,22 +24,21 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include <errno.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
 #include <sys/types.h>
-#include <c-ctype.h>
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
 #include "coding.h"
-#include "disptab.h"
 #include "buffer.h"
+#include "sysstdio.h"
 
 /*** GENERAL NOTES on CODED CHARACTER SETS (CHARSETS) ***
 
@@ -241,7 +240,8 @@ struct charset_map_entries
 static void
 load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
-  Lisp_Object vec IF_LINT (= Qnil), table IF_LINT (= Qnil);
+  Lisp_Object vec UNINIT;
+  Lisp_Object table UNINIT;
   unsigned max_code = CHARSET_MAX_CODE (charset);
   bool ascii_compatible_p = charset->ascii_compatible_p;
   int min_char, max_char, nonascii_min_char;
@@ -407,43 +407,49 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 
 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
-   paying attention to comment character '#'.  */
+   paying attention to comment character '#'.  LOOKAHEAD is the
+   lookahead byte if it is nonnegative.  Store into *TERMINATOR the
+   input byte after the number, or EOF if an end-of-file or input
+   error occurred.  Set *OVERFLOW if the number overflows.  */
 
 static unsigned
-read_hex (FILE *fp, bool *eof, bool *overflow)
+read_hex (FILE *fp, int lookahead, int *terminator, bool *overflow)
 {
-  int c;
-  unsigned n;
+  int c = lookahead < 0 ? getc_unlocked (fp) : lookahead;
 
-  while ((c = getc (fp)) != EOF)
+  while (true)
     {
       if (c == '#')
-	{
-	  while ((c = getc (fp)) != EOF && c != '\n');
-	}
+	do
+	  c = getc_unlocked (fp);
+	while (0 <= c && c != '\n');
       else if (c == '0')
 	{
-	  if ((c = getc (fp)) == EOF || c == 'x')
+	  c = getc_unlocked (fp);
+	  if (c < 0 || c == 'x')
 	    break;
 	}
+      if (c < 0)
+	break;
+      c = getc_unlocked (fp);
     }
-  if (c == EOF)
-    {
-      *eof = 1;
-      return 0;
-    }
-  n = 0;
-  while (c_isxdigit (c = getc (fp)))
-    {
-      if (UINT_MAX >> 4 < n)
-	*overflow = 1;
-      n = ((n << 4)
-	   | (c - ('0' <= c && c <= '9' ? '0'
-		   : 'A' <= c && c <= 'F' ? 'A' - 10
-		   : 'a' - 10)));
-    }
-  if (c != EOF)
-    ungetc (c, fp);
+
+  unsigned n = 0;
+  bool v = false;
+
+  if (0 <= c)
+    while (true)
+      {
+	c = getc_unlocked (fp);
+	int digit = char_hexdigit (c);
+	if (digit < 0)
+	  break;
+	v |= INT_LEFT_SHIFT_OVERFLOW (n, 4);
+	n = (n << 4) + digit;
+      }
+
+  *terminator = c;
+  *overflow |= v;
   return n;
 }
 
@@ -498,23 +504,26 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   memset (entries, 0, sizeof (struct charset_map_entries));
 
   n_entries = 0;
-  while (1)
+  int ch = -1;
+  while (true)
     {
-      unsigned from, to, c;
-      int idx;
-      bool eof = 0, overflow = 0;
-
-      from = read_hex (fp, &eof, &overflow);
-      if (eof)
+      bool overflow = false;
+      unsigned from = read_hex (fp, ch, &ch, &overflow), to;
+      if (ch < 0)
 	break;
-      if (getc (fp) == '-')
-	to = read_hex (fp, &eof, &overflow);
+      if (ch == '-')
+	{
+	  to = read_hex (fp, -1, &ch, &overflow);
+	  if (ch < 0)
+	    break;
+	}
       else
-	to = from;
-      if (eof)
-	break;
-      c = read_hex (fp, &eof, &overflow);
-      if (eof)
+	{
+	  to = from;
+	  ch = -1;
+	}
+      unsigned c = read_hex (fp, ch, &ch, &overflow);
+      if (ch < 0)
 	break;
 
       if (overflow)
@@ -529,7 +538,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
 	  memset (entries, 0, sizeof (struct charset_map_entries));
 	  n_entries = 0;
 	}
-      idx = n_entries;
+      int idx = n_entries;
       entries->entry[idx].from = from;
       entries->entry[idx].to = to;
       entries->entry[idx].c = c;
@@ -843,9 +852,9 @@ usage: (define-charset-internal ...)  */)
   int nchars;
 
   if (nargs != charset_arg_max)
-    return Fsignal (Qwrong_number_of_arguments,
-		    Fcons (intern ("define-charset-internal"),
-			   make_number (nargs)));
+    Fsignal (Qwrong_number_of_arguments,
+	     Fcons (intern ("define-charset-internal"),
+		    make_number (nargs)));
 
   attrs = Fmake_vector (make_number (charset_attr_max), Qnil);
 
@@ -1051,8 +1060,8 @@ usage: (define-charset-internal ...)  */)
       /* Here, we just copy the parent's fast_map.  It's not accurate,
 	 but at least it works for quickly detecting which character
 	 DOESN'T belong to this charset.  */
-      for (i = 0; i < 190; i++)
-	charset.fast_map[i] = parent_charset->fast_map[i];
+      memcpy (charset.fast_map, parent_charset->fast_map,
+	      sizeof charset.fast_map);
 
       /* We also copy these for parents.  */
       charset.min_char = parent_charset->min_char;
@@ -1401,7 +1410,7 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars,
 
   int final_ch = XFASTINT (final_char);
   if (! ('0' <= final_ch && final_ch <= '~'))
-    error ("Invalid FINAL-CHAR '%c', it should be '0'..'~'", final_ch);
+    error ("Invalid FINAL-CHAR `%c', it should be `0'..`~'", final_ch);
 
   return chars_flag;
 }
@@ -1839,12 +1848,12 @@ encode_char (struct charset *charset, int c)
 }
 
 
-DEFUN ("decode-char", Fdecode_char, Sdecode_char, 2, 3, 0,
+DEFUN ("decode-char", Fdecode_char, Sdecode_char, 2, 2, 0,
        doc: /* Decode the pair of CHARSET and CODE-POINT into a character.
 Return nil if CODE-POINT is not valid in CHARSET.
 
 CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).  */)
-  (Lisp_Object charset, Lisp_Object code_point, Lisp_Object restriction)
+  (Lisp_Object charset, Lisp_Object code_point)
 {
   int c, id;
   unsigned code;
@@ -1858,10 +1867,10 @@ CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).  */)
 }
 
 
-DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 3, 0,
+DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 2, 0,
        doc: /* Encode the character CH into a code-point of CHARSET.
 Return nil if CHARSET doesn't include CH.  */)
-  (Lisp_Object ch, Lisp_Object charset, Lisp_Object restriction)
+  (Lisp_Object ch, Lisp_Object charset)
 {
   int c, id;
   unsigned code;
@@ -2323,7 +2332,7 @@ init_charset_once (void)
    Don't make the value so small that the table is reallocated during
    bootstrapping, as glibc malloc calls larger than just under 64 KiB
    during an initial bootstrap wreak havoc after dumping; see the
-   M_MMAP_THRESHOLD value in alloc.c, plus there is a extra overhead
+   M_MMAP_THRESHOLD value in alloc.c, plus there is an extra overhead
    internal to glibc malloc and perhaps to Emacs malloc debugging.  */
 static struct charset charset_table_init[180];
 

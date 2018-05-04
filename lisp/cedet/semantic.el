@@ -1,6 +1,6 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -37,6 +37,7 @@
 (require 'cedet)
 (require 'semantic/tag)
 (require 'semantic/lex)
+(require 'cl-lib)
 
 (defvar semantic-version "2.2"
   "Current version of Semantic.")
@@ -329,7 +330,7 @@ If the major mode is ready for Semantic, and no
 to use Semantic, and `semantic-init-hook' is run."
   ;; In upstream Semantic, the parser setup functions are called from
   ;; mode hooks.  In the version bundled with Emacs, we do it here.
-  (let ((entry (assq major-mode semantic-new-buffer-setup-functions)))
+  (let ((entry (cl-assoc-if #'derived-mode-p semantic-new-buffer-setup-functions)))
     (when entry
       (funcall (cdr entry))))
   ;; Do stuff if semantic was activated by a mode hook in this buffer,
@@ -388,10 +389,9 @@ the output buffer."
   (if clear (semantic-clear-toplevel-cache))
   (if (eq clear '-) (setq clear -1))
   (let* ((start (current-time))
-	 (out (semantic-fetch-tags))
-	 (end (current-time)))
+	 (out (semantic-fetch-tags)))
     (message "Retrieving tags took %.2f seconds."
-	     (semantic-elapsed-time start end))
+	     (semantic-elapsed-time start nil))
     (when (or (null clear) (not (listp clear))
 	      (and (numberp clear) (< 0 clear)))
       (pop-to-buffer "*Parser Output*")
@@ -1115,8 +1115,9 @@ Semantic mode.
 	;; Enable all the global auxiliary minor modes in
 	;; `semantic-submode-list'.
 	(dolist (mode semantic-submode-list)
-	  (if (memq mode semantic-default-submodes)
-	      (funcall mode 1)))
+	  (and (memq mode semantic-default-submodes)
+	       (fboundp mode)
+	       (funcall mode 1)))
 	(unless semantic-load-system-cache-loaded
 	  (setq semantic-load-system-cache-loaded t)
 	  (when (and (boundp 'semanticdb-default-system-save-directory)
@@ -1138,7 +1139,7 @@ Semantic mode.
 	(add-hook 'completion-at-point-functions
 		  'semantic-analyze-completion-at-point-function)
 
-	(if global-ede-mode
+	(if (bound-and-true-p global-ede-mode)
 	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
 	(dolist (b (buffer-list))
 	  (with-current-buffer b
@@ -1191,7 +1192,7 @@ This function can be used by `completion-at-point-functions'."
 (defun semantic-analyze-notc-completion-at-point-function ()
   "Return possible analysis completions at point.
 The completions provided are via `semantic-analyze-possible-completions',
-but with the 'no-tc option passed in, which means constraints based
+but with the `no-tc' option passed in, which means constraints based
 on what is being assigned to are ignored.
 This function can be used by `completion-at-point-functions'."
   (when (semantic-active-p)
@@ -1207,7 +1208,7 @@ This function can be used by `completion-at-point-functions'."
 (defun semantic-analyze-nolongprefix-completion-at-point-function ()
   "Return possible analysis completions at point.
 The completions provided are via `semantic-analyze-possible-completions',
-but with the 'no-tc and 'no-longprefix option passed in, which means
+but with the `no-tc' and `no-longprefix' option passed in, which means
 constraints resulting in a long multi-symbol dereference are ignored.
 This function can be used by `completion-at-point-functions'."
   (when (semantic-active-p)

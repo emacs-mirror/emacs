@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1996--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -436,7 +436,7 @@ when Octave is waiting for input, or done sending output.
 @c You can use either 'plain' Emacs Info or the function @code{octave-help}
 @c as your Octave info reader (for @samp{help -i}).  In the former case,
 @c use @code{info_program ("info-emacs-info")}.
-@c The latter is perhaps more attractive because it allows to look up keys
+@c The latter is perhaps more attractive because it allows you to look up keys
 @c in the indices of @emph{several} info files related to Octave (provided
 @c that the Emacs variable @code{octave-help-files} is set correctly).  In
 @c this case, use @code{info_program ("info-emacs-octave-help")}.

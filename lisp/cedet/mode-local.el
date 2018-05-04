@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities
 ;;
-;; Copyright (C) 2004-2005, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -31,7 +31,7 @@
 ;; This library permits the setting of override functions for tasks of
 ;; that nature, and also provides reasonable defaults.
 ;;
-;; There are buffer local variables, and frame local variables.
+;; There are buffer local variables (and there were frame local variables).
 ;; This library gives the illusion of mode specific variables.
 ;;
 ;; You should use a mode-local variable or override to allow extension
@@ -45,8 +45,6 @@
 ;; Add macro for defining the '-default' functionality.
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (require 'find-func)
 ;; For find-function-regexp-alist. It is tempting to replace this
@@ -189,7 +187,7 @@ BINDINGS is a list of (VARIABLE . VALUE).
 Optional argument PLIST is a property list each VARIABLE symbol will
 be set to.  The following properties have special meaning:
 
-- `constant-flag' if non-nil, prevent to rebind variables.
+- `constant-flag' if non-nil, prevent rebinding variables.
 - `mode-variable-flag' if non-nil, define mode variables.
 - `override-flag' if non-nil, define override functions.
 
@@ -544,7 +542,7 @@ default is to call the function `NAME-default' with the appropriate
 arguments.
 
 BODY can also include an override form that specifies which part of
-BODY is specifically overridden.  This permits to specify common code
+BODY is specifically overridden.  This permits specifying common code
 run for both default and overridden implementations.
 An override form is one of:
 
@@ -579,6 +577,8 @@ ARGS are the function arguments, which should match those of the same
 named function created with `define-overload'.
 DOCSTRING is the documentation string.
 BODY is the implementation of this function."
+  ;; FIXME: Make this obsolete and use cl-defmethod with &context instead.
+  (declare (doc-string 4))
   (let ((newname (intern (format "%s-%s" name mode))))
     `(progn
        (eval-and-compile
@@ -604,7 +604,7 @@ PROMPT, INITIAL, HIST, and DEFAULT are the same as for `completing-read'."
 ;;
 (defun overload-docstring-extension (overload)
   "Return the doc string that augments the description of OVERLOAD."
-  (let ((doc "\n\This function can be overloaded\
+  (let ((doc "\nThis function can be overloaded\
  with `define-mode-local-override'.")
         (sym (overload-obsoleted-by overload)))
     (when sym
@@ -627,26 +627,31 @@ SYMBOL is a function that can be overridden."
       (beginning-of-line)
       (forward-line -1))
     (let ((inhibit-read-only t))
-      (insert (overload-docstring-extension symbol) "\n")
+      (insert (substitute-command-keys (overload-docstring-extension symbol))
+              "\n")
       ;; NOTE TO SELF:
       ;; LIST ALL LOADED OVERRIDES FOR SYMBOL HERE
       )))
 
+;; We are called from describe-function in help-fns.el, where this is defined.
+(defvar describe-function-orig-buffer)
+
 (defun describe-mode-local-overload (symbol)
   "For `help-fns-describe-function-functions'; add overloads for SYMBOL."
-  (when (get symbol 'mode-local-overload)
+  (when (function-overload-p symbol)
     (let ((default (or (intern-soft (format "%s-default" (symbol-name symbol)))
 		       symbol))
 	  (override (with-current-buffer describe-function-orig-buffer
                       (fetch-overload symbol)))
           modes)
 
-      (insert (overload-docstring-extension symbol) "\n\n")
+      (insert (substitute-command-keys (overload-docstring-extension symbol))
+              "\n\n")
       (insert (format-message "default function: `%s'\n" default))
       (if override
-	  (insert (format-message "\noverride in buffer '%s': `%s'\n"
+	  (insert (format-message "\noverride in buffer `%s': `%s'\n"
 				  describe-function-orig-buffer override))
-	(insert (format-message "\nno override in buffer '%s'\n"
+	(insert (format-message "\nno override in buffer `%s'\n"
 				describe-function-orig-buffer)))
 
       (mapatoms
@@ -665,7 +670,7 @@ SYMBOL is a function that can be overridden."
 
 (add-hook 'help-fns-describe-function-functions 'describe-mode-local-overload)
 
-(declare-function xref-item-location "xref" (xref))
+(declare-function xref-item-location "xref" (xref) t)
 
 (defun xref-mode-local--override-present (sym xrefs)
   "Return non-nil if SYM is in XREFS."
@@ -679,7 +684,7 @@ SYMBOL is a function that can be overridden."
 (defun xref-mode-local-overload (symbol)
   "For `elisp-xref-find-def-functions'; add overloads for SYMBOL."
   ;; Current buffer is the buffer where xref-find-definitions was invoked.
-  (when (get symbol 'mode-local-overload)
+  (when (function-overload-p symbol)
     (let* ((symbol-file (find-lisp-object-file-name symbol (symbol-function symbol)))
 	   (default (intern-soft (format "%s-default" (symbol-name symbol))))
 	   (default-file (when default (find-lisp-object-file-name default (symbol-function default))))
@@ -871,24 +876,6 @@ invoked interactively."
           t (symbol-name major-mode))))
   (when (setq mode (intern-soft mode))
     (mode-local-describe-bindings-1 mode (called-interactively-p 'any))))
-
-;; ;;; find-func support (Emacs 21.4, or perhaps 22.1)
-;; ;;
-;; (condition-case nil
-;;     ;; Try to get find-func so we can modify it.
-;;     (require 'find-func)
-;;   (error nil))
-
-;; (when (boundp 'find-function-regexp)
-;;   (unless (string-match "ine-overload" find-function-regexp)
-;;     (if (string-match "(def\\\\(" find-function-regexp)
-;; 	(let ((end (match-end 0))
-;; 	      )
-;; 	  (setq find-function-regexp
-;; 		(concat (substring find-function-regexp 0 end)
-;; 			"ine-overload\\|ine-mode-local-override\\|"
-;; 			"ine-child-mode\\|"
-;; 			(substring find-function-regexp end)))))))
 
 ;;; edebug support
 ;;

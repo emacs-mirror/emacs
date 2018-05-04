@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
-;; Copyright (C) 2000-2001, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2018 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -464,7 +464,7 @@ This is called by `window-configuration-change-hook'."
 
 (defun longlines-search-function ()
   (cond
-   ((or isearch-word isearch-regexp) (isearch-search-fun-default))
+   ((or isearch-regexp-function isearch-regexp) (isearch-search-fun-default))
    (isearch-forward #'longlines-search-forward)
    (t #'longlines-search-backward)))
 

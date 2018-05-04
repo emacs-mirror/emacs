@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994-1999, 2001-2015 Free Software Foundation, Inc.
+rem   Copyright (C) 1994-1999, 2001-2018 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -16,7 +16,7 @@ rem   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 rem   GNU General Public License for more details.
 
 rem   You should have received a copy of the GNU General Public License
-rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
+rem   along with GNU Emacs.  If not, see https://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
@@ -174,7 +174,7 @@ junk
 If ErrorLevel 1 Goto xmlDone
 Echo Configuring with libxml2 ...
 sed -e "/#undef HAVE_LIBXML2/s/^.*$/#define HAVE_LIBXML2 1/" <config.h2 >config.h3
-mv config.h3 config.h2
+sed -e "/#define EMACS_CONFIG_FEATURES/s/^.*$/#define EMACS_CONFIG_FEATURES \"LIBXML2\"/" <config.h3 >config.h2
 set libxml=1
 :xmlDone
 rm -f junk.c junk junk.exe
@@ -189,12 +189,9 @@ rm -f junk.c junk junk.exe
 update config.h2 config.h >nul
 rm -f config.tmp config.h2
 
-rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
-if exist dir.h ren dir.h vmsdir.h
-
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile makefile.tmp
-copy Makefile.in+lisp.mk+deps.mk makefile.tmp
+copy Makefile.in+deps.mk makefile.tmp
 sed -f ../msdos/sed1v2.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 
@@ -222,11 +219,19 @@ sed -e "/^LIBXML2_LIBS *=/s/=/= -lxml2 -lz -liconv/" <Makefile >makefile.tmp
 sed -e "/^LIBXML2_CFLAGS *=/s|=|= -I/dev/env/DJDIR/include/libxml2|" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src7
+Rem Create .d files for new files in src/
+If Not Exist deps\stamp mkdir deps
+for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\stamp
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
 sed -f ../msdos/sed3v2.inp <Makefile.in >Makefile
+mv Makefile makefile.tmp
+sed -n -e "/^AC_INIT/s/[^,]*, \([^,]*\).*/@set emver=\1/p" ../configure.ac > emver.bat
+call emver.bat
+sed -e "s/@version@/%emver%/g" <makefile.tmp >Makefile
 if "%X11%" == "" goto libsrc2a
 mv Makefile makefile.tmp
 sed -f ../msdos/sed3x.inp <makefile.tmp >Makefile
@@ -252,16 +257,24 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the doc directory, expect one "File not found" message...
 cd doc
+Rem Rename files like djtar on plain DOS filesystem would.
+If Exist emacs\emacsver.texi.in update emacs/emacsver.texi.in emacs/emacsver.in
+If Exist man\emacs.1.in update man/emacs.1.in man/emacs.in
+If Exist ..\etc\refcards\emacsver.tex.in update ../etc/refcards/emacsver.tex.in ../etc/refcards/emacsver.in
 Rem The two variants for lispintro below is for when the shell
 Rem supports long file names but DJGPP does not
-for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
+for %%d in (emacs lispref lispintro lispintr misc) do sed -e "s/@version@/%emver%/g" -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
+Rem produce emacs.1 from emacs.in
+If Exist man\emacs.1 goto manOk
+sed -e "s/@version@/%emver%/g" -e "s/@PACKAGE_BUGREPORT@/bug-gnu-emacs@gnu.org/g" < man\emacs.in > man\emacs.1
+:manOk
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lib directory...
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
-If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
+If Exist c++defs.h update c++defs.h cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
 If Exist byteswap.in.h update byteswap.in.h byteswap.in-h
 If Exist dirent.in.h update dirent.in.h dirent.in-h
@@ -269,12 +282,12 @@ If Exist errno.in.h update errno.in.h errno.in-h
 If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
 If Exist fcntl.in.h update fcntl.in.h fcntl.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist getopt-cdefs.in.h update getopt-cdefs.in.h getopt-cdefs.in-h
 If Exist inttypes.in.h update inttypes.in.h inttypes.in-h
-If Exist stdarg.in.h update stdarg.in.h stdarg.in-h
-If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
-If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist limits.in.h update limits.in.h limits.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
-If Exist stdalign.in.h update stdalign.in.h  stdalign.in-h
+If Exist signal.in.h update signal.in.h signal.in-h
+If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
@@ -282,15 +295,20 @@ If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist string.in.h update string.in.h string.in-h
 If Exist sys_select.in.h update sys_select.in.h sys_select.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
-If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist sys_time.in.h update sys_time.in.h sys_time.in-h
+If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
+If Exist gnulib.mk.in update gnulib.mk.in gnulib.mk-in
+Rem Only repository has the msdos/autogen directory
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
 If Exist ..\msdos\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\msdos\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
-Rem Create .Po files for new files in lib/
+sed -f ../msdos/sedlibcf.inp < gnulib.mk-in > gnulib.tmp
+sed -f ../msdos/sedlibmk.inp < gnulib.tmp > gnulib.mk
+rm -f gnulib.tmp
+Rem Create .d files for new files in lib/
 If Not Exist deps\stamp mkdir deps
 for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
 echo deps-stamp > deps\stamp
@@ -310,6 +328,12 @@ rem   ----------------------------------------------------------------------
 If Not Exist admin\unidata goto noadmin
 Echo Configuring the admin/unidata directory...
 cd admin\unidata
+sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
+Echo Configuring the admin/charsets directory...
+cd ..\charsets
+sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
+Echo Configuring the admin/grammars directory...
+cd ..\grammars
 sed -f ../../msdos/sedadmin.inp < Makefile.in > Makefile
 cd ..\..
 :noadmin
@@ -345,3 +369,4 @@ set nodebug=
 set djgpp_ver=
 set sys_malloc=
 set libxml=
+set emver=

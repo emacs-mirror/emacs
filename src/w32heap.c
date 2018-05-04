@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>. */
+   along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /*
   Geoff Voelker (voelker@cs.washington.edu)                          7-29-94
@@ -50,9 +50,11 @@
 #include <errno.h>
 
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include "w32common.h"
 #include "w32heap.h"
-#include "lisp.h"  /* for VALMASK */
+#include "lisp.h"
+#include "w32.h"	/* for FD_SETSIZE */
 
 /* We chose to leave those declarations here.  They are used only in
    this file.  The RtlCreateHeap is available since XP.  It is located
@@ -73,12 +75,11 @@ typedef PVOID (WINAPI * RtlCreateHeap_Proc) (
 
 typedef LONG NTSTATUS;
 
-typedef NTSTATUS
-(NTAPI * PRTL_HEAP_COMMIT_ROUTINE)(
-                                   IN PVOID Base,
-                                   IN OUT PVOID *CommitAddress,
-                                   IN OUT PSIZE_T CommitSize
-                                   );
+typedef NTSTATUS (NTAPI *PRTL_HEAP_COMMIT_ROUTINE) (
+						    IN PVOID Base,
+						    IN OUT PVOID *CommitAddress,
+						    IN OUT PSIZE_T CommitSize
+						    );
 
 typedef struct _RTL_HEAP_PARAMETERS {
   ULONG Length;
@@ -100,8 +101,8 @@ typedef struct _RTL_HEAP_PARAMETERS {
    special segment to the executable.  In order to be able to do this
    without losing too much space, we need to create a Windows heap at
    the specific address of the static array.  The RtlCreateHeap
-   available inside the NT kernel since XP will do this.  It allows to
-   create a non-growable heap at a specific address.  So before
+   available inside the NT kernel since XP will do this.  It allows the
+   creation of a non-growable heap at a specific address.  So before
    dumping, we create a non-growable heap at the address of the
    dumped_data[] array.  After dumping, we reuse memory allocated
    there without being able to free it (but most of it is not meant to
@@ -115,9 +116,9 @@ typedef struct _RTL_HEAP_PARAMETERS {
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
 #if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (20*1024*1024)
+# define DUMPED_HEAP_SIZE (22*1024*1024)
 #else
-# define DUMPED_HEAP_SIZE (12*1024*1024)
+# define DUMPED_HEAP_SIZE (13*1024*1024)
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
@@ -130,18 +131,18 @@ static DWORD_PTR committed = 0;
 /* The maximum block size that can be handled by a non-growable w32
    heap is limited by the MaxBlockSize value below.
 
-   This point deserves and explanation.
+   This point deserves an explanation.
 
-   The W32 heap allocator can be used for a growable
-   heap or a non-growable one.
+   The W32 heap allocator can be used for a growable heap or a
+   non-growable one.
 
    A growable heap is not compatible with a fixed base address for the
    heap.  Only a non-growable one is.  One drawback of non-growable
    heaps is that they can hold only objects smaller than a certain
-   size (the one defined below).  Most of the largest blocks are GC'ed
-   before dumping.  In any case and to be safe, we implement a simple
+   size (the one defined below).  Most of the larger blocks are GC'ed
+   before dumping.  In any case, and to be safe, we implement a simple
    first-fit allocation algorithm starting at the end of the
-   dumped_data[] array like depicted below:
+   dumped_data[] array as depicted below:
 
   ----------------------------------------------
   |               |              |             |
@@ -190,7 +191,7 @@ free_fn the_free_fn;
    claims for new memory.  Before dumping, we allocate space
    from the fixed size dumped_data[] array.
 */
-NTSTATUS NTAPI
+static NTSTATUS NTAPI
 dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
 {
   /* This is used before dumping.
@@ -227,7 +228,9 @@ init_heap (void)
 {
   if (using_dynamic_heap)
     {
+#ifndef MINGW_W64
       unsigned long enable_lfh = 2;
+#endif
 
       /* After dumping, use a new private heap.  We explicitly enable
          the low fragmentation heap (LFH) here, for the sake of pre
@@ -258,14 +261,23 @@ init_heap (void)
 	}
 #endif
 
-      the_malloc_fn = malloc_after_dump;
-      the_realloc_fn = realloc_after_dump;
-      the_free_fn = free_after_dump;
+      if (os_subtype == OS_9X)
+        {
+          the_malloc_fn = malloc_after_dump_9x;
+          the_realloc_fn = realloc_after_dump_9x;
+          the_free_fn = free_after_dump_9x;
+        }
+      else
+        {
+          the_malloc_fn = malloc_after_dump;
+          the_realloc_fn = realloc_after_dump;
+          the_free_fn = free_after_dump;
+        }
     }
   else
     {
       /* Find the RtlCreateHeap function.  Headers for this function
-         are provided with the w32 ddk, but the function is available
+         are provided with the w32 DDK, but the function is available
          in ntdll.dll since XP.  */
       HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
       RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
@@ -291,14 +303,26 @@ init_heap (void)
 	  exit (-1);
 	}
       heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
-      the_malloc_fn = malloc_before_dump;
-      the_realloc_fn = realloc_before_dump;
-      the_free_fn = free_before_dump;
+
+      if (os_subtype == OS_9X)
+        {
+          fprintf (stderr, "Cannot dump Emacs on Windows 9X; exiting.\n");
+          exit (-1);
+        }
+      else
+        {
+          the_malloc_fn = malloc_before_dump;
+          the_realloc_fn = realloc_before_dump;
+          the_free_fn = free_before_dump;
+        }
     }
 
   /* Update system version information to match current system.  */
   cache_system_info ();
 }
+
+
+/* malloc, realloc, free.  */
 
 #undef malloc
 #undef realloc
@@ -306,9 +330,9 @@ init_heap (void)
 
 /* FREEABLE_P checks if the block can be safely freed.  */
 #define FREEABLE_P(addr)						\
-    ((unsigned char *)(addr) > 0					\
-     && ((unsigned char *)(addr) < dumped_data				\
-	 || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE))
+  ((DWORD_PTR)(unsigned char *)(addr) > 0				\
+   && ((unsigned char *)(addr) < dumped_data				\
+       || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE))
 
 void *
 malloc_after_dump (size_t size)
@@ -504,6 +528,65 @@ free_before_dump (void *ptr)
     }
 }
 
+/* On Windows 9X, HeapAlloc may return pointers that are not aligned
+   on 8-byte boundary, alignment which is required by the Lisp memory
+   management.  To circumvent this problem, manually enforce alignment
+   on Windows 9X.  */
+
+void *
+malloc_after_dump_9x (size_t size)
+{
+  void *p = malloc_after_dump (size + 8);
+  void *pa;
+  if (p == NULL)
+    return p;
+  pa = (void*)(((intptr_t)p + 8) & ~7);
+  *((void**)pa-1) = p;
+  return pa;
+}
+
+void *
+realloc_after_dump_9x (void *ptr, size_t size)
+{
+  if (FREEABLE_P (ptr))
+    {
+      void *po = *((void**)ptr-1);
+      void *p;
+      void *pa;
+      p = realloc_after_dump (po, size + 8);
+      if (p == NULL)
+        return p;
+      pa = (void*)(((intptr_t)p + 8) & ~7);
+      if (ptr != NULL &&
+          (char*)pa - (char*)p != (char*)ptr - (char*)po)
+        {
+          /* Handle the case where alignment in pre-realloc and
+             post-realloc blocks does not match.  */
+          MoveMemory (pa, (void*)((char*)p + ((char*)ptr - (char*)po)), size);
+        }
+      *((void**)pa-1) = p;
+      return pa;
+    }
+  else
+    {
+      /* Non-freeable pointers have no alignment-enforcing header
+         (since dumping is not allowed on Windows 9X).  */
+      void* p = malloc_after_dump_9x (size);
+      if (p != NULL)
+	CopyMemory (p, ptr, size);
+      return p;
+    }
+}
+
+void
+free_after_dump_9x (void *ptr)
+{
+  if (FREEABLE_P (ptr))
+    {
+      free_after_dump (*((void**)ptr-1));
+    }
+}
+
 #ifdef ENABLE_CHECKING
 void
 report_temacs_memory_usage (void)
@@ -547,9 +630,12 @@ sbrk (ptrdiff_t increment)
   return data_region_end;
 }
 
-#define MAX_BUFFER_SIZE (512 * 1024 * 1024)
+
 
 /* MMAP allocation for buffers.  */
+
+#define MAX_BUFFER_SIZE (512 * 1024 * 1024)
+
 void *
 mmap_alloc (void **var, size_t nbytes)
 {
@@ -564,26 +650,32 @@ mmap_alloc (void **var, size_t nbytes)
      advance, and the buffer is enlarged several times as the data is
      decompressed on the fly.  */
   if (nbytes < MAX_BUFFER_SIZE)
-    p = VirtualAlloc (NULL, (nbytes * 2), MEM_RESERVE, PAGE_READWRITE);
+    p = VirtualAlloc (NULL, ROUND_UP (nbytes * 2, get_allocation_unit ()),
+		      MEM_RESERVE, PAGE_READWRITE);
 
   /* If it fails, or if the request is above 512MB, try with the
      requested size.  */
   if (p == NULL)
-    p = VirtualAlloc (NULL, nbytes, MEM_RESERVE, PAGE_READWRITE);
+    p = VirtualAlloc (NULL, ROUND_UP (nbytes, get_allocation_unit ()),
+		      MEM_RESERVE, PAGE_READWRITE);
 
   if (p != NULL)
     {
       /* Now, commit pages for NBYTES.  */
       *var = VirtualAlloc (p, nbytes, MEM_COMMIT, PAGE_READWRITE);
+      if (*var == NULL)
+	p = *var;
     }
 
   if (!p)
     {
-      if (GetLastError () == ERROR_NOT_ENOUGH_MEMORY)
+      DWORD e = GetLastError ();
+
+      if (e == ERROR_NOT_ENOUGH_MEMORY)
 	errno = ENOMEM;
       else
 	{
-	  DebPrint (("mmap_alloc: error %ld\n", GetLastError ()));
+	  DebPrint (("mmap_alloc: error %ld\n", e));
 	  errno = EINVAL;
 	}
     }
@@ -606,6 +698,7 @@ void *
 mmap_realloc (void **var, size_t nbytes)
 {
   MEMORY_BASIC_INFORMATION memInfo, m2;
+  void *old_ptr;
 
   if (*var == NULL)
     return mmap_alloc (var, nbytes);
@@ -617,52 +710,54 @@ mmap_realloc (void **var, size_t nbytes)
       return mmap_alloc (var, nbytes);
     }
 
+  memset (&memInfo, 0, sizeof (memInfo));
   if (VirtualQuery (*var, &memInfo, sizeof (memInfo)) == 0)
     DebPrint (("mmap_realloc: VirtualQuery error = %ld\n", GetLastError ()));
 
   /* We need to enlarge the block.  */
   if (memInfo.RegionSize < nbytes)
     {
-      if (VirtualQuery (*var + memInfo.RegionSize, &m2, sizeof(m2)) == 0)
+      memset (&m2, 0, sizeof (m2));
+      if (VirtualQuery ((char *)*var + memInfo.RegionSize, &m2, sizeof(m2)) == 0)
         DebPrint (("mmap_realloc: VirtualQuery error = %ld\n",
 		   GetLastError ()));
       /* If there is enough room in the current reserved area, then
 	 commit more pages as needed.  */
       if (m2.State == MEM_RESERVE
+	  && m2.AllocationBase == memInfo.AllocationBase
 	  && nbytes <= memInfo.RegionSize + m2.RegionSize)
 	{
 	  void *p;
 
-	  p = VirtualAlloc (*var + memInfo.RegionSize,
-			    nbytes - memInfo.RegionSize,
-			    MEM_COMMIT, PAGE_READWRITE);
+	  p = VirtualAlloc (*var, nbytes, MEM_COMMIT, PAGE_READWRITE);
 	  if (!p /* && GetLastError() != ERROR_NOT_ENOUGH_MEMORY */)
 	    {
-	      DebPrint (("realloc enlarge: VirtualAlloc error %ld\n",
+	      DebPrint (("realloc enlarge: VirtualAlloc (%p + %I64x, %I64x) error %ld\n",
+			 *var, (uint64_t)memInfo.RegionSize,
+			 (uint64_t)(nbytes - memInfo.RegionSize),
 			 GetLastError ()));
-	      errno = ENOMEM;
+	      DebPrint (("next region: %p %p %I64x %x\n", m2.BaseAddress,
+			 m2.AllocationBase, (uint64_t)m2.RegionSize,
+			 m2.AllocationProtect));
 	    }
+	  else
+	    return *var;
+	}
+      /* Else we must actually enlarge the block by allocating a new
+	 one and copying previous contents from the old to the new one.  */
+      old_ptr = *var;
+
+      if (mmap_alloc (var, nbytes))
+	{
+	  CopyMemory (*var, old_ptr, memInfo.RegionSize);
+	  mmap_free (&old_ptr);
 	  return *var;
 	}
       else
 	{
-	  /* Else we must actually enlarge the block by allocating a
-	     new one and copying previous contents from the old to the
-	     new one.  */
-	  void *old_ptr = *var;
-
-	  if (mmap_alloc (var, nbytes))
-	    {
-	      CopyMemory (*var, old_ptr, memInfo.RegionSize);
-	      mmap_free (&old_ptr);
-	      return *var;
-	    }
-	  else
-	    {
-	      /* We failed to enlarge the buffer.  */
-	      *var = old_ptr;
-	      return NULL;
-	    }
+	  /* We failed to reallocate the buffer.  */
+	  *var = old_ptr;
+	  return NULL;
 	}
     }
 
@@ -674,7 +769,7 @@ mmap_realloc (void **var, size_t nbytes)
         {
           /* Let's give some memory back to the system and release
 	     some pages.  */
-          void *old_ptr = *var;
+          old_ptr = *var;
 
 	  if (mmap_alloc (var, nbytes))
             {
@@ -693,7 +788,7 @@ mmap_realloc (void **var, size_t nbytes)
         }
 
       /* We still can decommit pages.  */
-      if (VirtualFree (*var + nbytes + get_page_size(),
+      if (VirtualFree ((char *)*var + nbytes + get_page_size(),
 		       memInfo.RegionSize - nbytes - get_page_size(),
 		       MEM_DECOMMIT) == 0)
         DebPrint (("mmap_realloc: VirtualFree error %ld\n", GetLastError ()));
@@ -702,4 +797,79 @@ mmap_realloc (void **var, size_t nbytes)
 
   /* Not enlarging, not shrinking by more than one page.  */
   return *var;
+}
+
+
+/* Emulation of getrlimit and setrlimit.  */
+
+int
+getrlimit (rlimit_resource_t rltype, struct rlimit *rlp)
+{
+  int retval = -1;
+
+  switch (rltype)
+    {
+    case RLIMIT_STACK:
+      {
+	MEMORY_BASIC_INFORMATION m;
+	/* Implementation note: Posix says that RLIMIT_STACK returns
+	   information about the stack size for the main thread.  The
+	   implementation below returns the stack size for the calling
+	   thread, so it's more like pthread_attr_getstacksize.  But
+	   Emacs clearly wants the latter, given how it uses the
+	   results, so the implementation below is more future-proof,
+	   if what's now the main thread will become some other thread
+	   at some future point.  */
+	if (!VirtualQuery ((LPCVOID) &m, &m, sizeof m))
+	  errno = EPERM;
+	else
+	  {
+	    rlp->rlim_cur = (DWORD_PTR) &m - (DWORD_PTR) m.AllocationBase;
+	    rlp->rlim_max =
+	      (DWORD_PTR) m.BaseAddress + m.RegionSize
+	      - (DWORD_PTR) m.AllocationBase;
+
+	    /* The last page is the guard page, so subtract that.  */
+	    rlp->rlim_cur -= getpagesize ();
+	    rlp->rlim_max -= getpagesize ();
+	    retval = 0;
+	  }
+	}
+      break;
+    case RLIMIT_NOFILE:
+      /* Implementation note: The real value is returned by
+	 _getmaxstdio.  But our FD_SETSIZE is smaller, to cater to
+	 Windows 9X, and process.c includes some logic that's based on
+	 the assumption that the handle resource is inherited to child
+	 processes.  We want to avoid that logic, so we tell process.c
+	 our current limit is already equal to FD_SETSIZE.  */
+      rlp->rlim_cur = FD_SETSIZE;
+      rlp->rlim_max = 2048;	/* see _setmaxstdio documentation */
+      retval = 0;
+      break;
+    default:
+      /* Note: we could return meaningful results for other RLIMIT_*
+	 requests, but Emacs doesn't currently need that, so we just
+	 punt for them.  */
+      errno = ENOSYS;
+      break;
+    }
+  return retval;
+}
+
+int
+setrlimit (rlimit_resource_t rltype, const struct rlimit *rlp)
+{
+  switch (rltype)
+    {
+    case RLIMIT_STACK:
+    case RLIMIT_NOFILE:
+      /* We cannot modfy these limits, so we always fail.  */
+      errno = EPERM;
+      break;
+    default:
+      errno = ENOSYS;
+      break;
+    }
+  return -1;
 }

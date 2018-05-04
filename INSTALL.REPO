@@ -10,15 +10,14 @@ that are not needed when building from a release.  You will need:
 
 autoconf  - at least the version specified near the start of
   configure.ac (in the AC_PREREQ command).
-automake  - at least the version specified near the start of
-  configure.ac (in the AM_INIT_AUTOMAKE command).
 git - at least Git 1.7.1.  If your repository was created by an older
   Git version, you may need to reclone it.
 makeinfo  - not strictly necessary, but highly recommended, so that
-  you can build the manuals.
+  you can build the manuals.  GNU Texinfo 4.13 or later should work.
 
 To use the autotools, run the following shell command to generate the
-'configure' script and some related files:
+'configure' script and some related files, and to set up your git
+configuration:
 
   $ ./autogen.sh
 
@@ -51,8 +50,21 @@ To update loaddefs.el (and similar files), do:
   $ make autoloads
 
 If either of the above partial procedures fails, try 'make bootstrap'.
-If CPU time is not an issue, 'make bootstrap' is the most thorough way
-to rebuild, and avoid any spurious problems.
+If CPU time is not an issue, 'make bootstrap' is a more thorough way
+to rebuild, avoiding spurious problems.
+
+Occasionally, there are changes that 'make bootstrap' won't be able to
+handle.  The most thorough cleaning can be achieved by 'git clean -fdx'
+which will leave you with only files from the git repository.  Here
+are some faster methods for a couple of particular error cases:
+
+    /usr/bin/m4:aclocal.m4:9: cannot open `m4/count-leading-zeros.m4': No such file or directory
+
+This can be fixed with 'rm aclocal.m4'.
+
+    make: *** No rule to make target 'lib/Makefile.am', needed by 'lib/Makefile.in'
+
+This can be fixed with 'rm lib/Makefile Makefile'.
 
 Because the repository version of Emacs is a work in progress, it will
 sometimes fail to build.  Please wait a day or so (and check the
@@ -64,7 +76,7 @@ never platform-specific.
 
 
 
-Copyright (C) 2002-2015 Free Software Foundation, Inc.
+Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -79,4 +91,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

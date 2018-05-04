@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -269,7 +269,7 @@ cover the range from the oldest annotation to the newest."
      (/ (- (if full newest current) oldest)
         (vc-annotate-oldest-in-map vc-annotate-color-map))
      (if full newest))
-    (message "Redisplaying annotation...done \(%s\)"
+    (message "Redisplaying annotation...done (%s)"
 	     (if full
 		 (format "Spanned from %.1f to %.1f days old"
 			 (- current oldest)
@@ -432,6 +432,15 @@ should be applied to the background or to the foreground."
     (with-output-to-temp-buffer temp-buffer-name
       (let ((backend (or vc-bk (vc-backend file)))
 	    (coding-system-for-read buffer-file-coding-system))
+        ;; For a VC backend running on DOS/Windows, it's normal to
+        ;; produce CRLF EOLs even if the original file has Unix EOLs,
+        ;; which will show ^M characters in the Annotate buffer.  (One
+        ;; known case in point is "svn annotate".)  Prevent that by
+        ;; forcing DOS EOL decoding.
+        (if (memq system-type '(windows-nt ms-dos))
+            (setq coding-system-for-read
+                  (coding-system-change-eol-conversion coding-system-for-read
+                                                       'dos)))
         (vc-call-backend backend 'annotate-command file
                          (get-buffer temp-buffer-name) rev)
         ;; we must setup the mode first, and then set our local

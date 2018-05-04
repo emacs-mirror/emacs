@@ -1,6 +1,6 @@
-;;; url-file.el --- File retrieval code
+;;; url-file.el --- File retrieval code  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -27,12 +27,13 @@
 (require 'url-vars)
 (require 'url-parse)
 (require 'url-dired)
+(declare-function mm-disable-multibyte "mm-util" ())
 
 (defconst url-file-default-port 21 "Default FTP port.")
 (defconst url-file-asynchronous-p t "FTP transfers are asynchronous.")
 (defalias 'url-file-expand-file-name 'url-default-expander)
 
-(defun url-file-find-possibly-compressed-file (fname &rest args)
+(defun url-file-find-possibly-compressed-file (fname &rest _)
   "Find the exact file referenced by `fname'.
 This tries the common compression extensions, because things like
 ange-ftp and efs are not quite smart enough to realize when a server
@@ -62,7 +63,7 @@ to them."
 						(match-beginning 0))
 				   (system-name)))))))
 
-(defun url-file-asynch-callback (x y name buff func args &optional efs)
+(defun url-file-asynch-callback (_x _y name buff func args &optional efs)
   (if (not (featurep 'ange-ftp))
       ;; EFS passes us an extra argument
       (setq name buff
@@ -88,7 +89,7 @@ to them."
 			    keep-date &optional msg cont nowait))
 
 (defun url-file-build-filename (url)
-  (if (not (vectorp url))
+  (if (not (url-p url))
       (setq url (url-generic-parse-url url)))
   (let* ((user (url-user url))
 	 (pass (url-password url))
@@ -113,8 +114,7 @@ to them."
 		    ((string-match "\\`/[^/]+:/" file)
 		     (concat "/:" file))
 		    (t
-		     file)))
-	 pos-index)
+		     file))))
 
     (and user pass
 	 (cond
@@ -141,17 +141,6 @@ to them."
 	     (not (string-match "/\\'" filename)))
 	(setf (url-filename url) (format "%s/" filename)))
 
-
-    ;; If it is a directory, look for an index file first.
-    (if (and (file-directory-p filename)
-	     url-directory-index-file
-	     (setq pos-index (expand-file-name url-directory-index-file filename))
-	     (file-exists-p pos-index)
-	     (file-readable-p pos-index))
-	(setq filename pos-index))
-
-    ;; Find the (possibly compressed) file
-    (setq filename (url-file-find-possibly-compressed-file filename))
     filename))
 
 ;;;###autoload
@@ -187,6 +176,7 @@ to them."
 	(url-find-file-dired filename)
       (with-current-buffer
 	  (setq buffer (generate-new-buffer " *url-file*"))
+        (require 'mm-util)
 	(mm-disable-multibyte)
 	(setq url-current-object url)
 	(insert "Content-type: " (or content-type "application/octet-stream") "\n")
@@ -209,7 +199,7 @@ to them."
 	    (if (featurep 'ange-ftp)
 		(ange-ftp-copy-file-internal filename (expand-file-name new) t
 					     nil t
-					     (list 'url-file-asynch-callback
+					     (list #'url-file-asynch-callback
 						   new (current-buffer)
 						   callback cbargs)
 					     t)
@@ -218,7 +208,7 @@ to them."
                 (efs-copy-file-internal filename (efs-ftp-path filename)
                                         new (efs-ftp-path new)
                                         t nil 0
-                                        (list 'url-file-asynch-callback
+                                        (list #'url-file-asynch-callback
                                               new (current-buffer)
                                               callback cbargs)
                                         0 nil)))))))

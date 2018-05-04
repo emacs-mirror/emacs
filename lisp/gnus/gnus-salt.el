@@ -1,6 +1,6 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996-1999, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -18,16 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (require 'easy-mmode))) ; for `define-minor-mode'
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-sum)
@@ -38,7 +35,7 @@
 ;;;
 
 (defcustom gnus-pick-display-summary nil
-  "*Display summary while reading."
+  "Display summary while reading."
   :type 'boolean
   :group 'gnus-summary-pick)
 
@@ -47,11 +44,8 @@
   :type 'hook
   :group 'gnus-summary-pick)
 
-(when (featurep 'xemacs)
-  (add-hook 'gnus-pick-mode-hook 'gnus-xmas-pick-menu-add))
-
 (defcustom gnus-mark-unpicked-articles-as-read nil
-  "*If non-nil, mark all unpicked articles as read."
+  "If non-nil, mark all unpicked articles as read."
   :type 'boolean
   :group 'gnus-summary-pick)
 
@@ -62,8 +56,8 @@
   :group 'gnus-summary-pick)
 
 (defcustom gnus-summary-pick-line-format
-  "%-5P %U\%R\%z\%I\%(%[%4L: %-23,23n%]%) %s\n"
-  "*The format specification of the lines in pick buffers.
+  "%-5P %U\ %R\ %z\ %I\ %(%[%4L: %-23,23n%]%) %s\n"
+  "The format specification of the lines in pick buffers.
 It accepts the same format specs that `gnus-summary-line-format' does."
   :type 'string
   :group 'gnus-summary-pick)
@@ -76,7 +70,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
       " " gnus-pick-next-page
       "u" gnus-pick-unmark-article-or-thread
       "." gnus-pick-article-or-thread
-      gnus-down-mouse-2 gnus-pick-mouse-pick-region
+      [down-mouse-2] gnus-pick-mouse-pick-region
       "\r" gnus-pick-start-reading)
     map))
 
@@ -99,11 +93,6 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 	 ["Buffer" gnus-summary-unmark-all-processable t])
 	["Start reading" gnus-pick-start-reading t]
 	["Switch pick mode off" gnus-pick-mode gnus-pick-mode]))))
-
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (defvar gnus-pick-mode-on-hook)
-    (defvar gnus-pick-mode-off-hook)))
 
 (define-minor-mode gnus-pick-mode
   "Minor mode for providing a pick-and-read interface in Gnus summary buffers.
@@ -142,9 +131,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defvar gnus-pick-line-number 1)
 (defun gnus-pick-line-number ()
   "Return the current line number."
-  (if (bobp)
-      (setq gnus-pick-line-number 1)
-    (incf gnus-pick-line-number)))
+  (cl-incf gnus-pick-line-number))
 
 (defun gnus-pick-start-reading (&optional catch-up)
   "Start reading the picked articles.
@@ -229,7 +216,7 @@ This must be bound to a button-down mouse event."
 	 (start-point (posn-point start-posn))
          (start-line (1+ (count-lines (point-min) start-point)))
 	 (start-window (posn-window start-posn))
-	 (bounds (gnus-window-edges start-window))
+	 (bounds (window-edges start-window))
 	 (top (nth 1 bounds))
 	 (bottom (if (window-minibuffer-p start-window)
 		     (nth 3 bounds)
@@ -339,11 +326,6 @@ This must be bound to a button-down mouse event."
       '("Pick"
 	["Switch binary mode off" gnus-binary-mode t]))))
 
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (defvar gnus-binary-mode-on-hook)
-    (defvar gnus-binary-mode-off-hook)))
-
 (define-minor-mode gnus-binary-mode
   "Minor mode for providing a binary group interface in Gnus summary buffers."
   :lighter " Binary" :keymap gnus-binary-mode-map
@@ -389,7 +371,7 @@ lines."
   :group 'gnus-summary-tree)
 
 (defcustom gnus-selected-tree-face 'mode-line
-  "*Face used for highlighting selected articles in the thread tree."
+  "Face used for highlighting selected articles in the thread tree."
   :type 'face
   :group 'gnus-summary-tree)
 
@@ -401,12 +383,12 @@ lines."
   "Characters used to connect parents with children.")
 
 (defcustom gnus-tree-mode-line-format "Gnus: %%b %S %Z"
-  "*The format specification for the tree mode line."
+  "The format specification for the tree mode line."
   :type 'string
   :group 'gnus-summary-tree)
 
 (defcustom gnus-generate-tree-function 'gnus-generate-vertical-tree
-  "*Function for generating a thread tree.
+  "Function for generating a thread tree.
 Two predefined functions are available:
 `gnus-generate-horizontal-tree' and `gnus-generate-vertical-tree'."
   :type '(radio (function-item gnus-generate-vertical-tree)
@@ -415,14 +397,9 @@ Two predefined functions are available:
   :group 'gnus-summary-tree)
 
 (defcustom gnus-tree-mode-hook nil
-  "*Hook run in tree mode buffers."
+  "Hook run in tree mode buffers."
   :type 'hook
   :group 'gnus-summary-tree)
-
-(when (featurep 'xemacs)
-  (add-hook 'gnus-tree-mode-hook 'gnus-xmas-tree-menu-add)
-  (add-hook 'gnus-tree-mode-hook 'gnus-xmas-switch-horizontal-scrollbar-off))
-
 
 ;;; Internal variables.
 
@@ -458,7 +435,7 @@ Two predefined functions are available:
     (gnus-define-keys
         map
       "\r" gnus-tree-select-article
-      gnus-mouse-2 gnus-tree-pick-article
+      [mouse-2] gnus-tree-pick-article
       "\C-?" gnus-tree-read-summary-keys
       "h" gnus-tree-show-summary
 
@@ -575,7 +552,7 @@ Two predefined functions are available:
 	     (not (one-window-p)))
     (let ((windows 0)
 	  tot-win-height)
-      (walk-windows (lambda (_window) (incf windows)))
+      (walk-windows (lambda (_window) (cl-incf windows)))
       (setq tot-win-height
 	    (- (frame-height)
 	       (* window-min-height (1- windows))
@@ -639,7 +616,7 @@ Two predefined functions are available:
 		(t (cdar gnus-tree-brackets))))
 	 (buffer-read-only nil)
 	 beg end)
-    (gnus-add-text-properties
+    (add-text-properties
      (setq beg (point))
      (setq end (progn (eval gnus-tree-line-format-spec) (point)))
      (list 'gnus-number gnus-tmp-number))
@@ -757,7 +734,7 @@ it in the environment specified by BINDINGS."
       (insert (make-string len ? )))))
 
 (defsubst gnus-tree-forward-line (n)
-  (while (>= (decf n) 0)
+  (while (>= (cl-decf n) 0)
     (unless (zerop (forward-line 1))
       (end-of-line)
       (insert "\n")))
@@ -807,7 +784,7 @@ it in the environment specified by BINDINGS."
 	(progn
 	  (goto-char (point-min))
 	  (end-of-line)
-	  (incf gnus-tmp-indent))
+	  (cl-incf gnus-tmp-indent))
       ;; Recurse downwards in all children of this article.
       (while thread
 	(gnus-generate-vertical-tree
@@ -855,8 +832,7 @@ it in the environment specified by BINDINGS."
 	  region)
       (set-buffer gnus-tree-buffer)
       (when (setq region (gnus-tree-article-region article))
-	(when (or (not gnus-selected-tree-overlay)
-		  (gnus-extent-detached-p gnus-selected-tree-overlay))
+	(when (not gnus-selected-tree-overlay)
 	  ;; Create a new overlay.
 	  (overlay-put
 	   (setq gnus-selected-tree-overlay
@@ -885,12 +861,9 @@ it in the environment specified by BINDINGS."
     (with-current-buffer (gnus-get-tree-buffer)
       (let (region)
 	(when (setq region (gnus-tree-article-region article))
-	  (gnus-put-text-property (car region) (cdr region) 'face face)
+	  (put-text-property (car region) (cdr region) 'face face)
 	  (set-window-point
 	   (gnus-get-buffer-window (current-buffer) t) (cdr region)))))))
-
-;;; Allow redefinition of functions.
-(gnus-ems-redefine)
 
 (provide 'gnus-salt)
 

@@ -1,6 +1,6 @@
 ;;; gnus-sieve.el --- Utilities to manage sieve scripts for Gnus
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: NAGY Andras <nagya@inf.elte.hu>,
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -80,7 +80,7 @@ formatting characters are recognized:
 (defun gnus-sieve-update ()
   "Update the Sieve script in gnus-sieve-file, by replacing the region
 between gnus-sieve-region-start and gnus-sieve-region-end with
-\(gnus-sieve-script gnus-sieve-select-method gnus-sieve-crosspost\), then
+\(gnus-sieve-script gnus-sieve-select-method gnus-sieve-crosspost), then
 execute gnus-sieve-update-shell-command.
 See the documentation for these variables and functions for details."
   (interactive)
@@ -97,7 +97,7 @@ See the documentation for these variables and functions for details."
 (defun gnus-sieve-generate ()
   "Generate the Sieve script in gnus-sieve-file, by replacing the region
 between gnus-sieve-region-start and gnus-sieve-region-end with
-\(gnus-sieve-script gnus-sieve-select-method gnus-sieve-crosspost\).
+\(gnus-sieve-script gnus-sieve-select-method gnus-sieve-crosspost).
 See the documentation for these variables and functions for details."
   (interactive)
   (require 'sieve)
@@ -195,9 +195,9 @@ For example:
 
 (defun gnus-sieve-script (&optional method crosspost)
   "Generate a Sieve script based on groups with select method METHOD
-\(or all groups if nil\).  Only groups having a `sieve' parameter are
+\(or all groups if nil).  Only groups having a `sieve' parameter are
 considered.  This parameter should contain an elisp test
-\(see the documentation of gnus-sieve-test for details\).  For each
+\(see the documentation of gnus-sieve-test for details).  For each
 such group, a Sieve IF control structure is generated, having the
 test as the condition and { fileinto \"group.name\"; } as the body.
 

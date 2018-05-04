@@ -1,6 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996-1999, 2001, 2004-2015 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -60,10 +60,18 @@
 (defvar url-current-mime-headers nil
   "A parsed representation of the MIME headers for the current URL.")
 
+(defvar url-current-lastloc nil
+  "A parsed representation of the URL to be considered as the last location.
+Use of this value on outbound connections is subject to
+`url-privacy-level' and `url-lastloc-privacy-level'.  This is never set
+by the url library, applications are expected to set this
+variable in buffers representing a displayed location.")
+
 (mapc 'make-variable-buffer-local
       '(
 	url-current-object
 	url-current-mime-headers
+        url-current-lastloc
 	))
 
 (defcustom url-honor-refresh-requests t
@@ -116,7 +124,8 @@ If a list, this should be a list of symbols of what NOT to send.
 Valid symbols are:
 email    -- the email address
 os       -- the operating system info
-lastloc  -- the last location
+emacs    -- the version of Emacs
+lastloc  -- the last location (see also `url-lastloc-privacy-level')
 agent    -- do not send the User-Agent string
 cookies  -- never accept HTTP cookies
 
@@ -143,9 +152,28 @@ variable."
 		(checklist :tag "Custom"
 			   (const :tag "Email address" :value email)
 			   (const :tag "Operating system" :value os)
+			   (const :tag "Emacs version" :value emacs)
 			   (const :tag "Last location" :value lastloc)
 			   (const :tag "Browser identification" :value agent)
 			   (const :tag "No cookies" :value cookie)))
+  :group 'url)
+
+(defcustom url-lastloc-privacy-level 'domain-match
+  "Further restrictions on sending the last location.
+This value is only consulted if `url-privacy-level' permits
+sending last location in the first place.
+
+Valid values are:
+none          -- Always send last location.
+domain-match  -- Send last location if the new location is within the
+                 same domain
+host-match    -- Send last location if the new location is on the
+                 same host
+"
+  :version "27.1"
+  :type '(radio (const :tag "Always send" none)
+                (const :tag "Domains match" domain-match)
+                (const :tag "Hosts match" host-match))
   :group 'url)
 
 (defvar url-inhibit-uncompression nil "Do not do decompression if non-nil.")
@@ -357,6 +385,23 @@ Currently supported methods:
 		(const :tag "Direct connection" :value native))
   :group 'url-hairy)
 
+(defcustom url-user-agent 'default
+  "User Agent used by the URL package for HTTP/HTTPS requests.
+Should be one of:
+* A string (not including the \"User-Agent:\" prefix)
+* A function of no arguments, returning a string
+* `default' (to compute a value according to `url-privacy-level')
+* nil (to omit the User-Agent header entirely)"
+  :type
+  '(choice
+    (string :tag "A static User-Agent string")
+    (function :tag "Call a function to get the User-Agent string")
+    (const :tag "No User-Agent at all" :value nil)
+    (const :tag "An string auto-generated according to `url-privacy-level'"
+           :value default))
+  :version "26.1"
+  :group 'url)
+
 (defvar url-setup-done nil "Has setup configuration been done?")
 
 (defconst url-weekday-alist
@@ -390,10 +435,6 @@ Currently supported methods:
   "Hook run after initializing the URL library."
   :group 'url
   :type 'hook)
-
-;;; Make OS/2 happy - yeeks
-;; (defvar	tcp-binary-process-input-services nil
-;;   "*Make OS/2 happy with our CRLF pairs...")
 
 (defconst url-working-buffer " *url-work")
 

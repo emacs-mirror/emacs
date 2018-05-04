@@ -52,6 +52,7 @@ jikes are the ending line and ending column.
     [javac] /src/DataBaseTestCase.java:27: unreported exception ...
     [javac] /src/DataBaseTestCase.java:49: warning: finally clause cannot complete normally
     [jikes]  foo.java:3:5:7:9: blah blah
+  [javadoc] c:\MyProject\Polynomial.java:560: error: unknown tag: math
 
 
 * Bash v2
@@ -81,6 +82,32 @@ Warning: this expression should have type unit.
   File "/usr/share/gdesklets/display/TargetGauge.py", line 41, in add_children
   File \lib\python\Products\PythonScripts\PythonScript.py, line 302, in _exec
   File "/tmp/foo.py", line 10
+
+
+* CMake
+
+symbols: cmake cmake-info
+
+CMake Error at CMakeLists.txt:19 (hurz):
+  Unknown CMake command "hurz".
+CMake Warning at cmake/modules/UseUG.cmake:73 (find_package):
+  Could not find a package configuration file provided by "UG" (requested
+  version 3.11.0) with any of the following names:
+
+    UGConfig.cmake
+    ug-config.cmake
+
+  Add the installation prefix of "UG" to CMAKE_PREFIX_PATH or set "UG_DIR" to
+  a directory containing one of the above files.  If "UG" provides a separate
+  development package or SDK, be sure it has been installed.
+Call Stack (most recent call first):
+  cmake/modules/DuneGridMacros.cmake:19 (include)
+  /home/joe/Project/EXA-DUNE/patches/dune-common/cmake/modules/DuneMacros.cmake:556 (include)
+  /home/joe/Project/EXA-DUNE/patches/dune-common/cmake/modules/DuneMacros.cmake:694 (dune_process_dependency_macros)
+  CMakeLists.txt:22 (dune_project)
+
+
+-- Could NOT find UG (missing:  UG_DIR HAVE_UG)
 
 
 * Apollo cc, 4.3BSD fc & IBM RS6000/AIX xlc compiler & Microtec mcc68k & GNAT (July 94)
@@ -598,7 +625,7 @@ Compilation segmentation fault at Thu Jul 13 10:55:49
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004-2015 Free Software Foundation, Inc.
+Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 
@@ -613,4 +640,4 @@ COPYING PERMISSIONS:
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.

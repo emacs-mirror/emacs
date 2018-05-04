@@ -1,6 +1,6 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998-2000, 2003, 2005, 2007-2015 Free Software
+;; Copyright (C) 1998-2000, 2003, 2005, 2007-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -53,19 +53,19 @@
   )
 
 (defcustom project-am-compile-project-command nil
-  "*Default command used to compile a project."
+  "Default command used to compile a project."
   :group 'project-am
   :type '(choice (const nil) string))
 
 (defcustom project-am-compile-target-command (concat ede-make-command " -k %s")
-  "*Default command used to compile a project."
+  "Default command used to compile a project."
   :group 'project-am
   :type 'string)
 
 (defcustom project-am-debug-target-function 'gdb
-  "*Default Emacs command used to debug a target."
+  "Default Emacs command used to debug a target."
   :group 'project-am
-  :type 'sexp) ; make this be a list some day
+  :type 'function) ; make this be a list some day
 
 (defconst project-am-type-alist
   '(("bin" project-am-program "bin_PROGRAMS" t)

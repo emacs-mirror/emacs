@@ -1,6 +1,6 @@
-;;; undigest.el --- digest-cracking support for the RMAIL mail reader
+;;; undigest.el --- digest-cracking support for the RMAIL mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 1996, 2001-2015 Free Software
+;; Copyright (C) 1985-1986, 1994, 1996, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'rmail)
 
 (defcustom rmail-forward-separator-regex
@@ -59,7 +60,8 @@ each undigestified message as markers.")
 	       (re-search-forward
 		(concat
 		 "^Content-type: multipart/digest;"
-		 "\\s-* boundary=\"?\\([^\";\n]+\\)[\";\n]") head-end t)
+		 "\\s-* boundary=\"?\\([^\";\n]+\\)[\";\n]")
+                head-end t)
 	       (search-forward (match-string 1) nil t)))
     ;; Ok, prolog separator found
     (let ((start (make-marker))
@@ -69,7 +71,8 @@ each undigestified message as markers.")
       (while (search-forward separator nil t)
 	(move-marker start (match-beginning 0))
 	(move-marker end (match-end 0))
-	(add-to-list 'result (cons (copy-marker start) (copy-marker end t))))
+	(cl-pushnew (cons (copy-marker start) (copy-marker end t))
+                    result :test #'equal))
       ;; Return the list of marker pairs
       (nreverse result))))
 
@@ -79,7 +82,7 @@ See rmail-digest-methods."
  (rmail-digest-rfc1153
   "^-\\{70\\}\n\n"
   "^\n-\\{30\\}\n\n"
-  "^\n-\\{30\\}\n\nEnd of .* Digest.*\n\\*\\{15,\\}\n+\'"))
+  "^\n-\\{30\\}\n\nEnd of .* Digest.*\n\\*\\{15,\\}\n+\\'"))
 
 (defun rmail-digest-parse-rfc1153sloppy ()
   "Parse using the method defined in RFC 1153, allowing for some sloppiness.
@@ -117,8 +120,8 @@ See rmail-digest-methods."
 	  (while (search-forward separator nil t)
 	    (move-marker start (match-beginning 0))
 	    (move-marker end (match-end 0))
-	    (add-to-list 'result
-			 (cons (copy-marker start) (copy-marker end t))))
+	    (cl-pushnew (cons (copy-marker start) (copy-marker end t))
+                        result :test #'equal))
 	  ;; Undo masking of separators inside digestified messages
 	  (goto-char (point-min))
 	  (while (search-forward
@@ -139,7 +142,8 @@ See rmail-digest-methods."
       (while (search-forward separator nil t)
 	(move-marker start (match-beginning 0))
 	(move-marker end (match-end 0))
-	(add-to-list 'result (cons (copy-marker start) (copy-marker end t))))
+	(cl-pushnew (cons (copy-marker start) (copy-marker end t))
+                    result :test #'equal))
       ;; Undo masking of separators inside digestified messages
       (goto-char (point-min))
       (while (search-forward "\n- -" nil t)
@@ -327,7 +331,7 @@ forwarded with `rmail-enable-mime-composing' set to nil."
 (provide 'undigest)
 
 ;; Local Variables:
-;; generated-autoload-file: "rmail.el"
+;; generated-autoload-file: "rmail-loaddefs.el"
 ;; End:
 
 ;;; undigest.el ends here

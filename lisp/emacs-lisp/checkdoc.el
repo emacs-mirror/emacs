@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -171,6 +171,7 @@
 (defvar checkdoc-version "0.6.1"
   "Release version of checkdoc you are currently running.")
 
+(require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
 
@@ -258,18 +259,20 @@ Any more than this and a warning is generated suggesting that the construct
 \\ {keymap} be used instead."
   :type 'integer)
 
-(defcustom checkdoc-arguments-in-order-flag t
+(defcustom checkdoc-arguments-in-order-flag nil
   "Non-nil means warn if arguments appear out of order.
 Setting this to nil will mean only checking that all the arguments
 appear in the proper form in the documentation, not that they are in
 the same order as they appear in the argument list.  No mention is
 made in the style guide relating to order."
+  :version "26.1"
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable #'booleanp)
 
 (defcustom checkdoc-package-keywords-flag nil
   "Non-nil means warn if this file's package keywords are not recognized.
 Currently, all recognized keywords must be on `finder-known-keywords'."
+  :version "25.1"
   :type 'boolean)
 
 (define-obsolete-variable-alias 'checkdoc-style-hooks
@@ -292,12 +295,6 @@ problem discovered.  This is useful for adding additional checks.")
 
 (defvar checkdoc-diagnostic-buffer "*Style Warnings*"
   "Name of warning message buffer.")
-
-(defvar checkdoc-defun-regexp
-  "^(def\\(un\\|var\\|custom\\|macro\\|const\\|subst\\|advice\\)\
-\\s-+\\(\\(\\sw\\|\\s_\\)+\\)[ \t\n]+"
-  "Regular expression used to identify a defun.
-A search leaves the cursor in front of the parameter list.")
 
 (defcustom checkdoc-verb-check-experimental-flag t
   "Non-nil means to attempt to check the voice of the doc string.
@@ -440,23 +437,6 @@ be re-created.")
     st)
   "Syntax table used by checkdoc in document strings.")
 
-;;; Compatibility
-;;
-(defalias 'checkdoc-make-overlay
-  (if (featurep 'xemacs) #'make-extent #'make-overlay))
-(defalias 'checkdoc-overlay-put
-  (if (featurep 'xemacs) #'set-extent-property #'overlay-put))
-(defalias 'checkdoc-delete-overlay
-  (if (featurep 'xemacs) #'delete-extent #'delete-overlay))
-(defalias 'checkdoc-overlay-start
-  (if (featurep 'xemacs) #'extent-start #'overlay-start))
-(defalias 'checkdoc-overlay-end
-  (if (featurep 'xemacs) #'extent-end #'overlay-end))
-(defalias 'checkdoc-mode-line-update
-  (if (featurep 'xemacs) #'redraw-modeline #'force-mode-line-update))
-(defalias 'checkdoc-char=
-  (if (featurep 'xemacs) #'char= #'=))
-
 ;;; User level commands
 ;;
 ;;;###autoload
@@ -479,32 +459,31 @@ the users will view as each check is completed."
 	tmp)
     (checkdoc-display-status-buffer status)
     ;; check the comments
-    (if (not buffer-file-name)
-	(setcar status "Not checked")
-      (if (checkdoc-file-comments-engine)
-	  (setcar status "Errors")
-	(setcar status "Ok")))
-    (setcar (cdr status) "Checking...")
+    (setf (nth 0 status)
+          (cond
+           ((not buffer-file-name) "Not checked")
+           ((checkdoc-file-comments-engine) "Errors")
+           (t "Ok")))
+    (setf (nth 1 status) "Checking...")
     (checkdoc-display-status-buffer status)
     ;; Check the documentation
     (setq tmp (checkdoc-interactive nil t))
-    (if tmp
-	(setcar (cdr status) (format "%d Errors" (length tmp)))
-      (setcar (cdr status) "Ok"))
-    (setcar (cdr (cdr status)) "Checking...")
+    (setf (nth 1 status)
+          (if tmp (format "%d Errors" (length tmp)) "Ok"))
+    (setf (nth 2 status) "Checking...")
     (checkdoc-display-status-buffer status)
     ;; Check the message text
-    (if (setq tmp (checkdoc-message-interactive nil t))
-	(setcar (cdr (cdr status)) (format "%d Errors" (length tmp)))
-      (setcar (cdr (cdr status)) "Ok"))
-    (setcar (cdr (cdr (cdr status))) "Checking...")
+    (setf (nth 2 status)
+          (if (setq tmp (checkdoc-message-interactive nil t))
+	      (format "%d Errors" (length tmp))
+            "Ok"))
+    (setf (nth 3 status) "Checking...")
     (checkdoc-display-status-buffer status)
     ;; Rogue spacing
-    (if (condition-case nil
-	    (checkdoc-rogue-spaces nil t)
-	  (error t))
-	(setcar (cdr (cdr (cdr status))) "Errors")
-      (setcar (cdr (cdr (cdr status))) "Ok"))
+    (setf (nth 3 status)
+          (if (ignore-errors (checkdoc-rogue-spaces nil t))
+	      "Errors"
+            "Ok"))
     (checkdoc-display-status-buffer status)))
 
 (defun checkdoc-display-status-buffer (check)
@@ -596,19 +575,19 @@ style."
       (while err-list
 	(goto-char (cdr (car err-list)))
 	;; The cursor should be just in front of the offending doc string
-	(if (stringp (car (car err-list)))
-	    (setq cdo (save-excursion (checkdoc-make-overlay
+	(setq cdo (if (stringp (car (car err-list)))
+	              (save-excursion (make-overlay
 				       (point) (progn (forward-sexp 1)
-						      (point)))))
-	  (setq cdo (checkdoc-make-overlay
+						      (point))))
+                    (make-overlay
 		     (checkdoc-error-start (car (car err-list)))
 		     (checkdoc-error-end (car (car err-list))))))
 	(unwind-protect
 	    (progn
-	      (checkdoc-overlay-put cdo 'face 'highlight)
+	      (overlay-put cdo 'face 'highlight)
 	      ;; Make sure the whole doc string is visible if possible.
 	      (sit-for 0)
-	      (if (and (looking-at "\"")
+	      (if (and (= (following-char) ?\")
 		       (not (pos-visible-in-window-p
 			     (save-excursion (forward-sexp 1) (point))
 			     (selected-window))))
@@ -631,10 +610,10 @@ style."
 	      (if (not (integerp c)) (setq c ??))
 	      (cond
 	       ;; Exit condition
-	       ((checkdoc-char= c ?\C-g) (signal 'quit nil))
+	       ((eq c ?\C-g) (signal 'quit nil))
 	       ;; Request an auto-fix
-	       ((or (checkdoc-char= c ?y) (checkdoc-char= c ?f))
-		(checkdoc-delete-overlay cdo)
+	       ((memq c '(?y ?f))
+		(delete-overlay cdo)
 		(setq cdo nil)
 		(goto-char (cdr (car err-list)))
 		;; `automatic-then-never' tells the autofix function
@@ -663,7 +642,7 @@ style."
 			    "No Additional style errors.  Continuing...")
 			   (sit-for 2))))))
 	       ;; Move to the next error (if available)
-	       ((or (checkdoc-char= c ?n) (checkdoc-char= c ?\s))
+	       ((memq c '(?n ?\s))
 		(let ((ne (funcall findfunc nil)))
 		  (if (not ne)
 		      (if showstatus
@@ -675,7 +654,7 @@ style."
 			(sit-for 2))
 		    (setq err-list (cons ne err-list)))))
 	       ;; Go backwards in the list of errors
-	       ((or (checkdoc-char= c ?p) (checkdoc-char= c ?\C-?))
+	       ((memq c '(?p ?\C-?))
 		(if (/= (length err-list) 1)
 		    (progn
 		      (setq err-list (cdr err-list))
@@ -684,10 +663,10 @@ style."
 		  (message "No Previous Errors.")
 		  (sit-for 2)))
 	       ;; Edit the buffer recursively.
-	       ((checkdoc-char= c ?e)
+	       ((eq c ?e)
 		(checkdoc-recursive-edit
 		 (checkdoc-error-text (car (car err-list))))
-		(checkdoc-delete-overlay cdo)
+		(delete-overlay cdo)
 		(setq err-list (cdr err-list)) ;back up the error found.
 		(beginning-of-defun)
 		(let ((ne (funcall findfunc nil)))
@@ -699,7 +678,7 @@ style."
 			(sit-for 2))
 		    (setq err-list (cons ne err-list)))))
 	       ;; Quit checkdoc
-	       ((checkdoc-char= c ?q)
+	       ((eq c ?q)
 		(setq returnme err-list
 		      err-list nil
 		      begin (point)))
@@ -727,7 +706,7 @@ style."
                        "C-h    - Toggle this help buffer.")))
 		  (shrink-window-if-larger-than-buffer
 		   (get-buffer-window "*Checkdoc Help*"))))))
-	  (if cdo (checkdoc-delete-overlay cdo)))))
+	  (if cdo (delete-overlay cdo)))))
     (goto-char begin)
     (if (get-buffer "*Checkdoc Help*") (kill-buffer "*Checkdoc Help*"))
     (message "Checkdoc: Done.")
@@ -748,9 +727,9 @@ buffer, otherwise searching starts at START-HERE."
       (while (checkdoc-next-docstring)
         (message "Searching for doc string spell error...%d%%"
                  (floor (* 100.0 (point)) (point-max)))
-        (if (looking-at "\"")
-            (checkdoc-ispell-docstring-engine
-             (save-excursion (forward-sexp 1) (point-marker)))))
+        (when (= (following-char) ?\")
+          (checkdoc-ispell-docstring-engine
+           (save-excursion (forward-sexp 1) (point-marker)))))
       (message "Checkdoc: Done."))))
 
 (defun checkdoc-message-interactive-ispell-loop (start-here)
@@ -768,7 +747,7 @@ buffer, otherwise searching starts at START-HERE."
       (while (checkdoc-message-text-next-string (point-max))
         (message "Searching for message string spell error...%d%%"
                  (floor (* 100.0 (point)) (point-max)))
-        (if (looking-at "\"")
+        (if (= (following-char) ?\")
             (checkdoc-ispell-docstring-engine
              (save-excursion (forward-sexp 1) (point-marker)))))
       (message "Checkdoc: Done."))))
@@ -937,13 +916,31 @@ is the starting location.  If this is nil, `point-min' is used instead."
 (defun checkdoc-next-docstring ()
   "Move to the next doc string after point, and return t.
 Return nil if there are no more doc strings."
-  (if (not (re-search-forward checkdoc-defun-regexp nil t))
-      nil
-    ;; search drops us after the identifier.  The next sexp is either
-    ;; the argument list or the value of the variable.  skip it.
-    (forward-sexp 1)
-    (skip-chars-forward " \n\t")
-    t))
+  (let (found)
+    (while (and (not (setq found (checkdoc--next-docstring)))
+                (beginning-of-defun -1)))
+    found))
+
+(defun checkdoc--next-docstring ()
+  "When looking at a definition with a doc string, find it.
+Move to the next doc string after point, and return t.  When not
+looking at a definition containing a doc string, return nil and
+don't move point."
+  (pcase (save-excursion (condition-case nil
+                             (read (current-buffer))
+                           ;; Conservatively skip syntax errors.
+                           (invalid-read-syntax)))
+    (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice)
+       ,(pred symbolp)
+       ;; Require an initializer, i.e. ignore single-argument `defvar'
+       ;; forms, which never have a doc string.
+       ,_ . ,_)
+     (down-list)
+     ;; Skip over function or macro name, symbol to be defined, and
+     ;; initializer or argument list.
+     (forward-sexp 3)
+     (skip-chars-forward " \n\t")
+     t)))
 
 ;;;###autoload
 (defun checkdoc-comments (&optional take-notes)
@@ -1026,21 +1023,12 @@ space at the end of each line."
   (interactive)
   (save-excursion
     (beginning-of-defun)
-    (if (not (looking-at checkdoc-defun-regexp))
-	;; I found this more annoying than useful.
-	;;(if (not no-error)
-	;;    (message "Cannot check this sexp's doc string."))
-	nil
-      ;; search drops us after the identifier.  The next sexp is either
-      ;; the argument list or the value of the variable.  skip it.
-      (goto-char (match-end 0))
-      (forward-sexp 1)
-      (skip-chars-forward " \n\t")
+    (when (checkdoc--next-docstring)
       (let* ((checkdoc-spellcheck-documentation-flag
-	      (car (memq checkdoc-spellcheck-documentation-flag
+              (car (memq checkdoc-spellcheck-documentation-flag
                          '(defun t))))
-	     (beg (save-excursion (beginning-of-defun) (point)))
-	     (end (save-excursion (end-of-defun) (point))))
+             (beg (save-excursion (beginning-of-defun) (point)))
+             (end (save-excursion (end-of-defun) (point))))
         (dolist (fun (list #'checkdoc-this-string-valid
                            (lambda () (checkdoc-message-text-search beg end))
                            (lambda () (checkdoc-rogue-space-check-engine beg end))))
@@ -1048,8 +1036,8 @@ space at the end of each line."
             (if msg (if no-error
                         (message "%s" (checkdoc-error-text msg))
                       (user-error "%s" (checkdoc-error-text msg))))))
-	(if (called-interactively-p 'interactive)
-	    (message "Checkdoc: done."))))))
+        (if (called-interactively-p 'interactive)
+            (message "Checkdoc: done."))))))
 
 ;;; Ispell interface for forcing a spell check
 ;;
@@ -1061,7 +1049,7 @@ Calls `checkdoc' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc nil current-prefix-arg)))
+    (call-interactively #'checkdoc)))
 
 ;;;###autoload
 (defun checkdoc-ispell-current-buffer ()
@@ -1070,7 +1058,7 @@ Calls `checkdoc-current-buffer' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-current-buffer'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-current-buffer nil current-prefix-arg)))
+    (call-interactively #'checkdoc-current-buffer)))
 
 ;;;###autoload
 (defun checkdoc-ispell-interactive ()
@@ -1079,7 +1067,7 @@ Calls `checkdoc-interactive' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-interactive'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-interactive nil current-prefix-arg)))
+    (call-interactively #'checkdoc-interactive)))
 
 ;;;###autoload
 (defun checkdoc-ispell-message-interactive ()
@@ -1098,7 +1086,7 @@ Calls `checkdoc-message-text' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-message-text'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-message-text nil current-prefix-arg)))
+    (call-interactively #'checkdoc-message-text)))
 
 ;;;###autoload
 (defun checkdoc-ispell-start ()
@@ -1107,7 +1095,7 @@ Calls `checkdoc-start' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-start'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-start nil current-prefix-arg)))
+    (call-interactively #'checkdoc-start)))
 
 ;;;###autoload
 (defun checkdoc-ispell-continue ()
@@ -1116,7 +1104,7 @@ Calls `checkdoc-continue' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-continue'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-continue nil current-prefix-arg)))
+    (call-interactively #'checkdoc-continue)))
 
 ;;;###autoload
 (defun checkdoc-ispell-comments ()
@@ -1125,7 +1113,7 @@ Calls `checkdoc-comments' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-comments'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-comments nil current-prefix-arg)))
+    (call-interactively #'checkdoc-comments)))
 
 ;;;###autoload
 (defun checkdoc-ispell-defun ()
@@ -1134,7 +1122,7 @@ Calls `checkdoc-defun' with spell-checking turned on.
 Prefix argument is the same as for `checkdoc-defun'"
   (interactive)
   (let ((checkdoc-spellcheck-documentation-flag t))
-    (call-interactively #'checkdoc-defun nil current-prefix-arg)))
+    (call-interactively #'checkdoc-defun)))
 
 ;;; Error Management
 ;;
@@ -1142,38 +1130,40 @@ Prefix argument is the same as for `checkdoc-defun'"
 ;; features and behaviors, so we need some ways of specifying
 ;; them, and making them easier to use in the wacked-out interfaces
 ;; people are requesting
-(defun checkdoc-create-error (text start end &optional unfixable)
-  "Used to create the return error text returned from all engines.
+
+(cl-defstruct (checkdoc-error
+               (:constructor nil)
+               (:constructor checkdoc--create-error (text start end &optional unfixable)))
+  (text nil :read-only t)
+  (start nil :read-only t)
+  (end nil :read-only t)
+  (unfixable nil :read-only t))
+
+(defvar checkdoc-create-error-function #'checkdoc--create-error-for-checkdoc
+  "Function called when Checkdoc encounters an error.
+Should accept as arguments (TEXT START END &optional UNFIXABLE).
+
 TEXT is the descriptive text of the error.  START and END define the region
 it is sensible to highlight when describing the problem.
 Optional argument UNFIXABLE means that the error has no auto-fix available.
 
-A list of the form (TEXT START END UNFIXABLE) is returned if we are not
-generating a buffered list of errors."
+An object of type `checkdoc-error' is returned if we are not
+generating a buffered list of errors.")
+
+(defun checkdoc-create-error (text start end &optional unfixable)
+  "Used to create the return error text returned from all engines.
+TEXT, START, END and UNFIXABLE conform to
+`checkdoc-create-error-function', which see."
+  (funcall checkdoc-create-error-function text start end unfixable))
+
+(defun checkdoc--create-error-for-checkdoc (text start end &optional unfixable)
+  "Create an error for Checkdoc.
+TEXT, START, END and UNFIXABLE conform to
+`checkdoc-create-error-function', which see."
   (if checkdoc-generate-compile-warnings-flag
       (progn (checkdoc-error start text)
 	     nil)
-    (list text start end unfixable)))
-
-(defun checkdoc-error-text (err)
-  "Return the text specified in the checkdoc ERR."
-  ;; string-p part is for backwards compatibility
-  (if (stringp err) err (car err)))
-
-(defun checkdoc-error-start (err)
-  "Return the start point specified in the checkdoc ERR."
-  ;; string-p part is for backwards compatibility
-  (if (stringp err) nil (nth 1 err)))
-
-(defun checkdoc-error-end (err)
-  "Return the end point specified in the checkdoc ERR."
-  ;; string-p part is for backwards compatibility
-  (if (stringp err) nil (nth 2 err)))
-
-(defun checkdoc-error-unfixable (err)
-  "Return the t if we cannot autofix the error specified in the checkdoc ERR."
-  ;; string-p part is for backwards compatibility
-  (if (stringp err) nil (nth 3 err)))
+    (checkdoc--create-error text start end unfixable)))
 
 ;;; Minor Mode specification
 ;;
@@ -1324,7 +1314,7 @@ See the style guide in the Emacs Lisp manual for more details."
      (if (and (not (nth 1 fp))		; not a variable
 	      (or (nth 2 fp)		; is interactive
 		  checkdoc-force-docstrings-flag) ;or we always complain
-	      (not (checkdoc-char= (following-char) ?\"))) ; no doc string
+	      (not (eq (following-char) ?\"))) ; no doc string
 	 ;; Sometimes old code has comments where the documentation should
 	 ;; be.  Let's see if we can find the comment, and offer to turn it
 	 ;; into documentation for them.
@@ -1377,7 +1367,7 @@ See the style guide in the Emacs Lisp manual for more details."
 		"All variables and subroutines might as well have a \
 documentation string")
 	      (point) (+ (point) 1) t)))))
-    (if (and (not err) (looking-at "\""))
+    (if (and (not err) (= (following-char) ?\"))
         (with-syntax-table checkdoc-syntax-table
           (checkdoc-this-string-valid-engine fp))
       err)))
@@ -1391,7 +1381,7 @@ regexp short cuts work.  FP is the function defun information."
 	;; we won't accidentally lose our place.  This could cause
 	;; end-of doc string whitespace to also delete the " char.
 	(s (point))
-	(e (if (looking-at "\"")
+	(e (if (= (following-char) ?\")
 	       (save-excursion (forward-sexp 1) (point-marker))
 	     (point))))
     (or
@@ -1453,9 +1443,9 @@ regexp short cuts work.  FP is the function defun information."
        (if (> (point) e) (goto-char e)) ;of the form (defun n () "doc" nil)
        (forward-char -1)
        (cond
-	((and (checkdoc-char= (following-char) ?\")
+	((and (eq (following-char) ?\")
 	      ;; A backslashed double quote at the end of a sentence
-	      (not (checkdoc-char= (preceding-char) ?\\)))
+	      (not (eq (preceding-char) ?\\)))
 	 ;; We might have to add a period in this case
 	 (forward-char -1)
 	 (if (looking-at "[.!?]")
@@ -1471,7 +1461,7 @@ regexp short cuts work.  FP is the function defun information."
 	((looking-at "[\\!?;:.)]")
 	 ;; These are ok
 	 nil)
-        ((and checkdoc-permit-comma-termination-flag (looking-at ","))
+        ((and checkdoc-permit-comma-termination-flag (= (following-char) ?,))
 	 nil)
 	(t
 	 ;; If it is not a complete sentence, let's see if we can
@@ -1579,7 +1569,7 @@ mouse-[0-3]\\)\\)\\>"))
 	     (if (and sym (boundp sym) (fboundp sym)
 		      (save-excursion
 			(goto-char mb)
-			(forward-word -1)
+			(forward-word-strictly -1)
 			(not (looking-at
 			      "variable\\|option\\|function\\|command\\|symbol"))))
 		 (if (checkdoc-autofix-ask-replace
@@ -1595,7 +1585,7 @@ mouse-[0-3]\\)\\)\\>"))
 			     nil t nil nil "variable")))
 		       (goto-char (1- mb))
 		       (insert disambiguate " ")
-		       (forward-word 1))
+		       (forward-word-strictly 1))
 		   (setq ret
 			 (format "Disambiguate %s by preceding w/ \
 function,command,variable,option or symbol." ms1))))))
@@ -1636,6 +1626,17 @@ function,command,variable,option or symbol." ms1))))))
 	     ;;   mean.
 	     ;; * If a user option variable records a true-or-false
 	     ;;   condition, give it a name that ends in `-flag'.
+
+	     ;; "True ..." should be "Non-nil ..."
+	     (when (looking-at "\"\\*?\\(True\\)\\b")
+               (if (checkdoc-autofix-ask-replace
+                    (match-beginning 1) (match-end 1)
+                    "Say \"Non-nil\" instead of \"True\"? "
+                    "Non-nil")
+                   nil
+                 (checkdoc-create-error
+                  "\"True\" should usually be \"Non-nil\""
+                  (match-beginning 1) (match-end 1))))
 
 	     ;; If the variable has -flag in the name, make sure
 	     (if (and (string-match "-flag$" (car fp))
@@ -1767,7 +1768,7 @@ function,command,variable,option or symbol." ms1))))))
 		    (let ((lim (save-excursion
 				 (end-of-line)
 				 ;; check string-continuation
-				 (if (checkdoc-char= (preceding-char) ?\\)
+				 (if (eq (preceding-char) ?\\)
 				     (line-end-position 2)
 				   (point))))
 			  (rs nil) replace original (case-fold-search t))
@@ -1797,6 +1798,16 @@ Replace with \"%s\"? " original replace)
 			    "Probably \"%s\" should be imperative \"%s\""
 			    original replace)
 			   (match-beginning 1) (match-end 1))))))
+	     ;; "Return true ..." should be "Return non-nil ..."
+	     (when (looking-at "\"Return \\(true\\)\\b")
+               (if (checkdoc-autofix-ask-replace
+                    (match-beginning 1) (match-end 1)
+                    "Say \"non-nil\" instead of \"true\"? "
+                    "non-nil")
+                   nil
+                 (checkdoc-create-error
+                  "\"true\" should usually be \"non-nil\""
+                  (match-beginning 1) (match-end 1))))
 	     ;; Done with functions
 	     )))
      ;;* When a documentation string refers to a Lisp symbol, write it as
@@ -2554,12 +2565,12 @@ This function returns non-nil if the text was replaced.
 This function will not modify `match-data'."
   (if (and checkdoc-autofix-flag
 	   (not (eq checkdoc-autofix-flag 'never)))
-      (let ((o (checkdoc-make-overlay start end))
+      (let ((o (make-overlay start end))
 	    (ret nil)
 	    (md (match-data)))
 	(unwind-protect
 	    (progn
-	      (checkdoc-overlay-put o 'face 'highlight)
+	      (overlay-put o 'face 'highlight)
 	      (if (or (eq checkdoc-autofix-flag 'automatic)
 		      (eq checkdoc-autofix-flag 'automatic-then-never)
 		      (and (eq checkdoc-autofix-flag 'semiautomatic)
@@ -2576,9 +2587,9 @@ This function will not modify `match-data'."
 		    (insert replacewith)
 		    (if checkdoc-bouncy-flag (sit-for 0))
 		    (setq ret t)))
-	      (checkdoc-delete-overlay o)
+	      (delete-overlay o)
 	      (set-match-data md))
-	  (checkdoc-delete-overlay o)
+	  (delete-overlay o)
 	  (set-match-data md))
 	(if (eq checkdoc-autofix-flag 'automatic-then-never)
 	    (setq checkdoc-autofix-flag 'never))

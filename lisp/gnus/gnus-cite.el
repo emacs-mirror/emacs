@@ -1,6 +1,6 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
 
@@ -17,16 +17,11 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (require 'easy-mmode))) ; for `define-minor-mode'
 
 (require 'gnus)
 (require 'gnus-range)
@@ -75,7 +70,7 @@ Set it to nil to parse all articles."
 (defcustom gnus-supercite-regexp
   (concat "^\\(" message-cite-prefix-regexp "\\)? *"
 	  ">>>>> +\"\\([^\"\n]+\\)\" +==")
-  "*Regexp matching normal Supercite attribution lines.
+  "Regexp matching normal Supercite attribution lines.
 The first grouping must match prefixes added by other packages."
   :group 'gnus-cite
   :type 'regexp)
@@ -110,13 +105,13 @@ The first regexp group should match the Supercite attribution."
 
 (defcustom gnus-cite-attribution-prefix
   "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),\\|----- ?Original Message ?-----"
-  "*Regexp matching the beginning of an attribution line."
+  "Regexp matching the beginning of an attribution line."
   :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
   "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\|----- ?Original Message ?-----\\)[ \t]*$"
-  "*Regexp matching the end of an attribution line.
+  "Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
   :group 'gnus-cite
   :type 'regexp)
@@ -139,9 +134,6 @@ the envelope From line."
 (defface gnus-cite-attribution '((t (:italic t)))
   "Face used for attribution lines."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-attribution-face 'face-alias 'gnus-cite-attribution)
-(put 'gnus-cite-attribution-face 'obsolete-face "22.1")
 
 (defcustom gnus-cite-attribution-face 'gnus-cite-attribution
   "Face used for attribution lines.
@@ -160,9 +152,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-1 'face-alias 'gnus-cite-1)
-(put 'gnus-cite-face-1 'obsolete-face "22.1")
 
 (defface gnus-cite-2 '((((class color)
 			 (background dark))
@@ -174,9 +163,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-2 'face-alias 'gnus-cite-2)
-(put 'gnus-cite-face-2 'obsolete-face "22.1")
 
 (defface gnus-cite-3 '((((class color)
 			 (background dark))
@@ -188,9 +174,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-3 'face-alias 'gnus-cite-3)
-(put 'gnus-cite-face-3 'obsolete-face "22.1")
 
 (defface gnus-cite-4 '((((class color)
 			 (background dark))
@@ -202,9 +185,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-4 'face-alias 'gnus-cite-4)
-(put 'gnus-cite-face-4 'obsolete-face "22.1")
 
 (defface gnus-cite-5 '((((class color)
 			 (background dark))
@@ -216,9 +196,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-5 'face-alias 'gnus-cite-5)
-(put 'gnus-cite-face-5 'obsolete-face "22.1")
 
 (defface gnus-cite-6 '((((class color)
 			 (background dark))
@@ -230,9 +207,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-6 'face-alias 'gnus-cite-6)
-(put 'gnus-cite-face-6 'obsolete-face "22.1")
 
 (defface gnus-cite-7 '((((class color)
 			 (background dark))
@@ -244,9 +218,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-7 'face-alias 'gnus-cite-7)
-(put 'gnus-cite-face-7 'obsolete-face "22.1")
 
 (defface gnus-cite-8 '((((class color)
 			 (background dark))
@@ -258,9 +229,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-8 'face-alias 'gnus-cite-8)
-(put 'gnus-cite-face-8 'obsolete-face "22.1")
 
 (defface gnus-cite-9 '((((class color)
 			 (background dark))
@@ -272,9 +240,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-9 'face-alias 'gnus-cite-9)
-(put 'gnus-cite-face-9 'obsolete-face "22.1")
 
 (defface gnus-cite-10 '((((class color)
 			  (background dark))
@@ -286,9 +251,6 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-10 'face-alias 'gnus-cite-10)
-(put 'gnus-cite-face-10 'obsolete-face "22.1")
 
 (defface gnus-cite-11 '((((class color)
 			  (background dark))
@@ -300,14 +262,11 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (:italic t)))
   "Citation face."
   :group 'gnus-cite)
-;; backward-compatibility alias
-(put 'gnus-cite-face-11 'face-alias 'gnus-cite-11)
-(put 'gnus-cite-face-11 'obsolete-face "22.1")
 
 (defcustom gnus-cite-face-list
   '(gnus-cite-1 gnus-cite-2 gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6
 		gnus-cite-7 gnus-cite-8 gnus-cite-9 gnus-cite-10 gnus-cite-11)
-  "*List of faces used for highlighting citations.
+  "List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
 Gnus will try to give each citation from each article its own face.
@@ -522,15 +481,19 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 (defun gnus-article-fill-cited-article (&optional width long-lines)
   "Do word wrapping in the current article.
 If WIDTH (the numerical prefix), use that text width when
-filling.  If LONG-LINES, only fill sections that have lines
-longer than the frame width."
+filling.
+
+If LONG-LINES, only fill sections that have lines longer than the
+frame width.
+
+Sections that are heuristically interpreted as not being
+text (i.e., computer code and the like) will not be folded."
   (interactive "P")
   (with-current-buffer gnus-article-buffer
     (let ((buffer-read-only nil)
 	  (inhibit-point-motion-hooks t)
 	  (marks (gnus-dissect-cited-text))
 	  (adaptive-fill-mode nil)
-	  (filladapt-mode nil)
 	  (fill-column (if width (prefix-numeric-value width) fill-column)))
       (save-restriction
 	(while (cdr marks)
@@ -544,8 +507,6 @@ longer than the frame width."
 		use-hard-newlines)
 	    (unless do-fill
 	      (setq do-fill (gnus-article-foldable-buffer (cdar marks))))
-	    ;; Note: the XEmacs version of `fill-region' inserts a newline
-	    ;; unless the region ends with a newline.
 	    (when do-fill
 	      (if (not long-lines)
 		  (fill-region (point-min) (point-max))
@@ -1121,7 +1082,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	      ((assq number gnus-cite-attribution-alist))
 	      (t
 	       (gnus-add-wash-type 'cite)
-	       (gnus-add-text-properties
+	       (add-text-properties
 		(point) (progn (forward-line 1) (point))
 		(nconc (list 'article-type 'cite)
 		       gnus-hidden-properties))))
@@ -1194,9 +1155,7 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 (defvar font-lock-keywords)
 (defvar font-lock-set-defaults)
 
-(eval-and-compile
-  (unless (featurep 'xemacs)
-    (autoload 'font-lock-set-defaults "font-lock")))
+(autoload 'font-lock-set-defaults "font-lock")
 
 (define-minor-mode gnus-message-citation-mode
   "Minor mode providing more font-lock support for nested citations.
@@ -1206,9 +1165,7 @@ When enabled, it automatically turns on `font-lock-mode'."
   nil ;; keymap
   (when (eq major-mode 'message-mode)   ;FIXME: Use derived-mode-p.
     ;; FIXME: Use font-lock-add-keywords!
-    (let ((defaults (car (if (featurep 'xemacs)
-			     (get 'message-mode 'font-lock-defaults)
-			   font-lock-defaults)))
+    (let ((defaults (car font-lock-defaults))
 	  default keywords)
       (while defaults
 	(setq default (if (consp defaults)
@@ -1227,19 +1184,11 @@ When enabled, it automatically turns on `font-lock-mode'."
 			 gnus-message-citation-keywords))
 	  (kill-local-variable default))))
     ;; Force `font-lock-set-defaults' to update `font-lock-keywords'.
-    (if (featurep 'xemacs)
-	(progn
-	  (require 'font-lock)
-	  (setq font-lock-defaults-computed nil
-		font-lock-keywords nil))
-      (setq font-lock-set-defaults nil))
+    (setq font-lock-set-defaults nil)
     (font-lock-set-defaults)
-    (cond (font-lock-mode
-           (if (fboundp 'font-lock-flush)
-               (font-lock-flush)
-             (font-lock-fontify-buffer)))
-	  (gnus-message-citation-mode
-	   (font-lock-mode 1)))))
+    (if font-lock-mode
+	(font-lock-flush)
+      (gnus-message-citation-mode (font-lock-mode 1)))))
 
 (defun turn-on-gnus-message-citation-mode ()
   "Turn on `gnus-message-citation-mode'."
@@ -1247,8 +1196,6 @@ When enabled, it automatically turns on `font-lock-mode'."
 (defun turn-off-gnus-message-citation-mode ()
   "Turn off `gnus-message-citation-mode'."
   (gnus-message-citation-mode -1))
-
-(gnus-ems-redefine)
 
 (provide 'gnus-cite)
 

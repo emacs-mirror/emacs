@@ -1,6 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -18,13 +18,13 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'reftex)
 
@@ -244,7 +244,7 @@ of master file."
 		 (when (or (null reftex-label-ignored-macros-and-environments)
 			   ;; \label{} defs should always be honored,
 			   ;; just no keyval style [label=foo] defs.
-			   (string-equal "\label{" (substring (reftex-match-string 0) 0 7))
+			   (string-equal "\\label{" (substring (reftex-match-string 0) 0 7))
                            (if (and (fboundp 'TeX-current-macro)
                                     (fboundp 'LaTeX-current-environment))
                                (not (or (member (save-match-data (TeX-current-macro))
@@ -270,7 +270,10 @@ of master file."
 		 (when (eq (char-before) ?\\) (backward-char))
                  ;; Insert in List
                  (setq toc-entry (funcall reftex-section-info-function file))
-                 (when toc-entry
+                 (when (and toc-entry
+                            (eq ;; Either both are t or both are nil.
+                             (= (char-after bound) ?%)
+                             (string-suffix-p ".dtx" file)))
                    ;; It can happen that section info returns nil
                    (setq level (nth 5 toc-entry))
                    (setq highest-level (min highest-level level))
@@ -306,7 +309,7 @@ of master file."
                  (when reftex-support-index
                    (setq index-entry (reftex-index-info file))
                    (when index-entry
-                     (add-to-list 'reftex--index-tags (nth 1 index-entry))
+                     (cl-pushnew (nth 1 index-entry) reftex--index-tags :test #'equal)
                      (push index-entry docstruct))))
 
                 ((match-end 11)
@@ -608,7 +611,7 @@ if the information is exact (t) or approximate (nil)."
         found)
     (save-excursion
       (while (not rtn)
-        (incf cnt)
+        (cl-incf cnt)
         (setq found (re-search-backward (reftex-everything-regexp) nil t))
         (setq rtn
               (cond
@@ -672,7 +675,7 @@ if the information is exact (t) or approximate (nil)."
                       (when (and (eq (car (car list)) 'index)
                                  (string= (nth 2 index-info)
                                           (nth 2 (car list))))
-                        (incf n)
+                        (cl-incf n)
                         (setq dist (abs (- (point) (nth 4 (car list)))))
                         (if (or (not last-dist) (< dist last-dist))
                             (setq last-dist dist last (car list))))
@@ -841,8 +844,8 @@ considered an argument of macro \\macro."
                             (let ((forward-sexp-function nil))
                               (backward-sexp) t)
                           (error nil)))
-              (if (eq (following-char) ?\[) (incf cnt-opt))
-              (incf cnt))
+              (if (eq (following-char) ?\[) (cl-incf cnt-opt))
+              (cl-incf cnt))
             (setq pos (point))
             (when (and (or (= (following-char) ?\[)
                            (= (following-char) ?\{))
@@ -984,18 +987,18 @@ OPT-ARGS is a list of argument numbers which are optional."
         (while (< cnt n)
           (while (and (member cnt opt-args)
                       (eq (following-char) ?\{))
-            (incf cnt))
+            (cl-incf cnt))
           (when (< cnt n)
             (unless (and (condition-case nil
                              (or (forward-list 1) t)
                            (error nil))
                          (reftex-move-to-next-arg)
-                         (incf cnt))
+                         (cl-incf cnt))
               (setq cnt 1000))))
 
         (while (and (memq cnt opt-args)
                     (eq (following-char) ?\{))
-          (incf cnt)))
+          (cl-incf cnt)))
       (if (and (= n cnt)
                (> (skip-chars-forward "{\\[") 0))
           (reftex-context-substring)
@@ -1057,7 +1060,7 @@ When point is just after a { or [, limit string to matching parenthesis"
                   (- (string-to-char number-string) ?A -1))
             (aset reftex-section-numbers i (string-to-number number-string)))
         (pop numbers))
-      (decf i)))
+      (cl-decf i)))
   (put 'reftex-section-numbers 'appendix appendix))
 
 ;;;###autoload
@@ -1081,7 +1084,7 @@ When LEVEL is non-nil, increase section numbers on that level."
           (if (or (not partspecial)
                   (not (= idx 1)))
               (aset reftex-section-numbers idx 0))
-          (incf idx))))
+          (cl-incf idx))))
     (if partspecial
         (setq string (concat "Part " (reftex-roman-number
                                       (aref reftex-section-numbers 0))))
@@ -1091,7 +1094,7 @@ When LEVEL is non-nil, increase section numbers on that level."
         (if (not (and partspecial (not (equal string ""))))
             (setq string (concat string (if (not (string= string "")) "." "")
                                  (int-to-string n))))
-        (incf idx))
+        (cl-incf idx))
       (save-match-data
         (if (string-match "\\`\\([@0]\\.\\)+" string)
             (setq string (replace-match "" nil nil string)))
@@ -1131,5 +1134,5 @@ When LEVEL is non-nil, increase section numbers on that level."
 ;;; reftex-parse.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

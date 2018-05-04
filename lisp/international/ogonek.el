@@ -1,10 +1,10 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997-1998, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
 
-;; Author: W{\l}odek Bzyl
+;; Author: Włodek Bzyl
 ;;	   Ryszard Kubiak
-;; Maintainer: Ryszard Kubiak <rysiek@ipipan.gda.pl>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -301,13 +301,12 @@ Store the name in the parameter-variable DEFAULT-NAME-VAR.
 PROMPT is a string to be shown when the user is asked for a name."
  (let ((encoding
         (completing-read
-         (format "%s (default %s): " prompt (eval default-name-var))
+         (format "%s (default %s): " prompt (symbol-value default-name-var))
          ogonek-name-encoding-alist nil t)))
-  ;; change the default name to the one just read
-  (set default-name-var
-    (if (string= encoding "") (eval default-name-var) encoding))
+  ;; change the default name to the one just read, and
   ;; return the new default as the name you read
-  (eval default-name-var)))
+  (set default-name-var
+    (if (string= encoding "") (symbol-value default-name-var) encoding))))
 
 (defun ogonek-read-prefix (prompt default-prefix-var)
   "Read a prefix character for prefix notation.

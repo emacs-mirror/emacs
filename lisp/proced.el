@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -78,9 +78,6 @@ the external command (usually \"kill\")."
     ("KILL" . "  (9.  Kill - cannot be caught or ignored)")
     ("ALRM" . "  (14. Alarm Clock)")
     ("TERM" . "  (15. Termination)")
-    ;; POSIX 1003.1-2001
-    ;; Which systems do not support these signals so that we can
-    ;; exclude them from `proced-signal-list'?
     ("CONT" . "  (Continue executing)")
     ("STOP" . "  (Stop executing / pause - cannot be caught or ignored)")
     ("TSTP" . "  (Terminal stop / pause)"))
@@ -159,15 +156,15 @@ argument, the value of the attribute.  The value nil means take as is.
 
 If JUSTIFY is an integer, its modulus gives the width of the attribute
 values formatted with FORMAT.  If JUSTIFY is positive, NAME appears
-right-justified, otherwise it appears left-justified.  If JUSTIFY is 'left
-or 'right, the field width is calculated from all field values in the listing.
-If JUSTIFY is 'left, the field values are formatted left-justified and
+right-justified, otherwise it appears left-justified.  If JUSTIFY is `left'
+or `right', the field width is calculated from all field values in the listing.
+If JUSTIFY is `left', the field values are formatted left-justified and
 right-justified otherwise.
 
 PREDICATE is the predicate for sorting and filtering the process listing
 based on attribute KEY.  PREDICATE takes two arguments P1 and P2,
 the corresponding attribute values of two processes.  PREDICATE should
-return 'equal if P1 has same rank like P2.  Any other non-nil value says
+return `equal' if P1 has same rank like P2.  Any other non-nil value says
 that P1 is \"less than\" P2, or nil if not.
 If PREDICATE is nil the attribute cannot be sorted.
 
@@ -178,7 +175,7 @@ SORT-SCHEME is a list (KEY1 KEY2 ...) defining a hierarchy of rules
 for sorting the process listing.  KEY1, KEY2, ... are KEYs appearing as cars
 of `proced-grammar-alist'.  First the PREDICATE of KEY1 is evaluated.
 If it yields non-equal, it defines the sort order for the corresponding
-processes.  If it evaluates to 'equal the PREDICATE of KEY2 is evaluated, etc.
+processes.  If it evaluates to `equal' the PREDICATE of KEY2 is evaluated, etc.
 
 REFINER can be a list of flags (LESS-B EQUAL-B LARGER-B) used by the command
 `proced-refine' (see there) to refine the listing based on attribute KEY.
@@ -186,7 +183,7 @@ This command compares the value of attribute KEY of every process with
 the value of attribute KEY of the process at the position of point
 using PREDICATE.
 If PREDICATE yields non-nil, the process is accepted if LESS-B is non-nil.
-If PREDICATE yields 'equal, the process is accepted if EQUAL-B is non-nil.
+If PREDICATE yields `equal', the process is accepted if EQUAL-B is non-nil.
 If PREDICATE yields nil, the process is accepted if LARGER-B is non-nil.
 
 REFINER can also be a list (FUNCTION HELP-ECHO).
@@ -463,6 +460,7 @@ Important: the match ends just after the marker.")
     (define-key km "\C-n" 'next-line)
     (define-key km "\C-p" 'previous-line)
     (define-key km "\C-?" 'previous-line)
+    (define-key km [?\S-\ ] 'previous-line)
     (define-key km [down] 'next-line)
     (define-key km [up] 'previous-line)
     ;; marking
@@ -604,7 +602,10 @@ Important: the match ends just after the marker.")
 
 (defun proced-header-line ()
   "Return header line for Proced buffer."
-  (list (propertize " " 'display '(space :align-to 0))
+  (list (propertize " "
+                    'display
+                    (list 'space :align-to
+                          (line-number-display-width 'columns)))
         (if (<= (window-hscroll) (length proced-header-line))
             (replace-regexp-in-string ;; preserve text properties
              "\\(%\\)" "\\1\\1"
@@ -642,6 +643,10 @@ mode line, using \"+\" or \"-\" for ascending or descending sort order.
 
 Type \\[proced-toggle-tree] to toggle whether the listing is
 displayed as process tree.
+
+Type \\[proced-toggle-auto-update] to automatically update the
+process list.  The time interval for updates can be configured
+via `proced-auto-update-interval'.
 
 An existing Proced listing can be refined by typing \\[proced-refine].
 Refining an existing listing does not update the variable `proced-filter'.
@@ -765,7 +770,7 @@ The time interval for updates is specified via `proced-auto-update-interval'."
       (while (not (eobp))
         (cond ((looking-at mark-re)
                (proced-insert-mark nil))
-              ((looking-at " ")
+              ((= (following-char) ?\s)
                (proced-insert-mark t))
               (t
                (forward-line 1)))))))
@@ -1250,9 +1255,9 @@ When called interactively, an empty string means nil, i.e., no sorting.
 
 Prefix ARG controls sort order:
 - If prefix ARG is positive (negative), sort in ascending (descending) order.
-- If ARG is nil or 'no-arg and SCHEME is equal to the previous sorting scheme,
+- If ARG is nil or `no-arg' and SCHEME is equal to the previous sorting scheme,
   reverse the sorting order.
-- If ARG is nil or 'no-arg and SCHEME differs from the previous sorting scheme,
+- If ARG is nil or `no-arg' and SCHEME differs from the previous sorting scheme,
   adopt the sorting order defined for SCHEME in `proced-grammar-alist'.
 
 Set variable `proced-sort' to SCHEME.  The current sort scheme is displayed
@@ -1434,7 +1439,7 @@ Replace newline characters by \"^J\" (two characters)."
              (hprops
               (if (nth 4 grammar)
                   (let ((descend (if (eq key sort-key) proced-descend (nth 5 grammar))))
-                    `(proced-key ,key mouse-face highlight
+                    `(proced-key ,key mouse-face header-line-highlight
                                  help-echo ,(format proced-header-help-echo
                                                     (if descend "-" "+")
                                                     (nth 1 grammar)
@@ -1799,7 +1804,7 @@ supported but discouraged.  It will be removed in a future version of Emacs."
 
   (let (failures)
     ;; Why not always use `signal-process'?  See
-    ;; http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg02955.html
+    ;; https://lists.gnu.org/r/emacs-devel/2008-03/msg02955.html
     (if (functionp proced-signal-function)
         ;; use built-in `signal-process'
         (let ((signal (if (stringp signal)

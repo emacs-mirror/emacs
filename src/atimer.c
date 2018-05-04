@@ -1,12 +1,12 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,21 +14,25 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
 
 #include "lisp.h"
+#include "keyboard.h"
 #include "syssignal.h"
 #include "systime.h"
-#include "blockinput.h"
 #include "atimer.h"
 #include <unistd.h>
 
 #ifdef HAVE_TIMERFD
 #include <errno.h>
 # include <sys/timerfd.h>
+#endif
+
+#ifdef MSDOS
+#include "msdos.h"
 #endif
 
 /* Free-list of atimer structures.  */
@@ -415,7 +419,7 @@ timerfd_callback (int fd, void *arg)
   else if (nbytes < 0)
     /* For some not yet known reason, we may get weird event and no
        data on timer descriptor.  This can break Gnus at least, see:
-       http://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00503.html.  */
+       https://lists.gnu.org/r/emacs-devel/2014-07/msg00503.html.  */
     eassert (errno == EAGAIN);
   else
     /* I don't know what else can happen with this descriptor.  */

@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -180,7 +180,7 @@ Adds the number of tags in this file to the object print name."
       ;; Else, add a tags quantifier.
       (cl-call-next-method obj (format " (%d tags)" (length (semanticdb-get-tags obj))))
     ;; Pass through.
-    (apply 'call-next-method obj strings)
+    (apply #'cl-call-next-method obj strings)
     ))
 
 ;;; Index Cache
@@ -324,9 +324,10 @@ If OBJ's file is not loaded, read it in first."
 (cl-defmethod object-print ((obj semanticdb-table) &rest strings)
   "Pretty printer extension for `semanticdb-table'.
 Adds the number of tags in this file to the object print name."
-  (apply 'call-next-method obj
-	 (cons (format " (%d tags)" (length (semanticdb-get-tags obj)))
-	       (cons (if (oref obj dirty) ", DIRTY" "") strings))))
+  (apply #'cl-call-next-method obj
+	 (format " (%d tags)" (length (semanticdb-get-tags obj)))
+         (if (oref obj dirty) ", DIRTY" "")
+         strings))
 
 ;;; DATABASE BASE CLASS
 ;;
@@ -382,13 +383,13 @@ where it may need to resynchronize with some persistent storage."
 (cl-defmethod object-print ((obj semanticdb-project-database) &rest strings)
   "Pretty printer extension for `semanticdb-project-database'.
 Adds the number of tables in this file to the object print name."
-  (apply 'call-next-method obj
-	 (cons (format " (%d tables%s)"
-		       (length (semanticdb-get-database-tables obj))
-		       (if (semanticdb-dirty-p obj)
-			   " DIRTY" "")
-		       )
-	       strings)))
+  (apply #'cl-call-next-method obj
+	 (format " (%d tables%s)"
+                 (length (semanticdb-get-database-tables obj))
+                 (if (semanticdb-dirty-p obj)
+                     " DIRTY" "")
+                 )
+         strings))
 
 (cl-defmethod semanticdb-create-database ((dbc (subclass semanticdb-project-database)) directory)
   "Create a new semantic database of class DBC for DIRECTORY and return it.
@@ -594,7 +595,7 @@ This will call `semantic-fetch-tags' if that file is in memory."
 	(kill-buffer buff))))))
 
 (cl-defmethod semanticdb-needs-refresh-p ((obj semanticdb-table))
-  "Return non-nil of OBJ's tag list is out of date.
+  "Return non-nil if OBJ's tag list is out of date.
 The file associated with OBJ does not need to be in a buffer."
   (let* ((ff (semanticdb-full-filename obj))
 	 (buff (semanticdb-in-buffer-p obj))
@@ -814,7 +815,7 @@ local variable."
 ;; associated databases.
 
 (defcustom semanticdb-project-roots nil
-  "*List of directories, where each directory is the root of some project.
+  "List of directories, where each directory is the root of some project.
 All subdirectories of a root project are considered a part of one project.
 Values in this string can be overridden by project management programs
 via the `semanticdb-project-root-functions' variable."

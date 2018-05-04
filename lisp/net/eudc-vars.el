@@ -1,6 +1,6 @@
-;;; eudc-vars.el --- Emacs Unified Directory Client -*- coding: utf-8 -*-
+;;; eudc-vars.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,7 +50,7 @@ instead."
 
 ;; Known protocols (used in completion)
 ;; Not to be mistaken with `eudc-supported-protocols'
-(defvar eudc-known-protocols '(bbdb ph ldap))
+(defvar eudc-known-protocols '(bbdb ldap))
 
 (defcustom eudc-server-hotlist nil
   "Directory servers to query.
@@ -357,6 +357,10 @@ BBDB fields.  SPECs are sexps which are evaluated:
 		       (symbol :tag "BBDB Field")
 		       (sexp :tag "Conversion Spec"))))
 
+(make-obsolete-variable 'eudc-ph-bbdb-conversion-alist
+                        "the EUDC PH/QI backend is obsolete."
+                        "25.1")
+
 ;;}}}
 
 ;;{{{ LDAP Custom Group
@@ -369,7 +373,8 @@ BBDB fields.  SPECs are sexps which are evaluated:
   '((name . cn)
     (net . mail)
     (address . (eudc-bbdbify-address postaladdress "Address"))
-    (phone . ((eudc-bbdbify-phone telephonenumber "Phone"))))
+    (phone . (eudc-bbdbify-phone telephonenumber "Phone"))
+    (company . (eudc-bbdbify-company o)))
   "A mapping from BBDB to LDAP attributes.
 This is a list of cons cells (BBDB-FIELD . SPEC-OR-LIST) where
 BBDB-FIELD is the name of a field that must be defined in your BBDB

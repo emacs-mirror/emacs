@@ -1,6 +1,6 @@
 ERC NEWS                                                       -*- outline -*-
 
-Copyright (C) 2006-2015 Free Software Foundation, Inc.
+Copyright (C) 2006-2018 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 * For changes after ERC 5.3, see the main Emacs NEWS file
@@ -313,8 +313,8 @@ This makes it easier to find modules by name.
 appear in the version of ERC that is bundled with Emacs 22.  These
 extras files may be found at:
 
- o http://ftp.gnu.org/gnu/erc/erc-5.2-extras.tar.gz, or
- o http://ftp.gnu.org/gnu/erc/erc-5.2-extras.zip.
+ o https://ftp.gnu.org/gnu/erc/erc-5.2-extras.tar.gz, or
+ o https://ftp.gnu.org/gnu/erc/erc-5.2-extras.zip.
 
 ** Renamed files
 
@@ -1077,7 +1077,7 @@ major changes for implementers, and module writers:
     corresponding hook variables.
 
     The mapping of server commands to hook variables is no longer
-    done via `erc-event-to-hook', but through an #'equal hashtable,
+    done via `erc-event-to-hook', but through an #'equal hash table,
     `erc-server-responses'.  In order to find a hook you do:
 
     (erc-get-hook command)
@@ -1343,4 +1343,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

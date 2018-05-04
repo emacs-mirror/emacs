@@ -1,6 +1,6 @@
-;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
+;;; skeleton.el --- Lisp language extension for writing statement skeletons
 
-;; Copyright (C) 1993-1996, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,13 +37,13 @@
 ;; page 2:	paired insertion
 ;; page 3:	mirror-mode, an example for setting up paired insertion
 
+(defvaralias 'skeleton-transformation 'skeleton-transformation-function)
 
 (defvar skeleton-transformation-function 'identity
   "If non-nil, function applied to literal strings before they are inserted.
 It should take strings and characters and return them transformed, or nil
 which means no transformation.
 Typical examples might be `upcase' or `capitalize'.")
-(defvaralias 'skeleton-transformation 'skeleton-transformation-function)
 
 ; this should be a fourth argument to defvar
 (put 'skeleton-transformation-function 'variable-interactive
@@ -59,18 +59,17 @@ region.")
 (make-obsolete-variable 'skeleton-autowrap nil "24.5")
 
 (defvar skeleton-end-newline t
-  "If non-nil, make sure that the skeleton inserted ends with a newline.
-This just influences the way the default `skeleton-end-hook' behaves.")
+  "If non-nil, make sure that the skeleton inserted ends with a newline.")
 
 (defvar skeleton-end-hook nil
   "Hook called at end of skeleton but before going to point of interest.
 The variables `v1' and `v2' are still set when calling this.")
 
+(defvaralias 'skeleton-filter 'skeleton-filter-function)
 
 ;;;###autoload
 (defvar skeleton-filter-function 'identity
   "Function for transforming a skeleton proxy's aliases' variable value.")
-(defvaralias 'skeleton-filter 'skeleton-filter-function)
 
 (defvar skeleton-untabify nil		; bug#12223
   "When non-nil untabifies when deleting backwards with element -ARG.")
@@ -187,6 +186,10 @@ The optional third argument STR, if specified, is the value for the
 variable `str' within the skeleton.  When this is non-nil, the
 interactor gets ignored, and this should be a valid skeleton element.
 
+When done with skeleton, but before going back to `_'-point, add
+a newline (unless `skeleton-end-newline' is nil) and run the hook
+`skeleton-end-hook'.
+
 SKELETON is made up as (INTERACTOR ELEMENT ...).  INTERACTOR may be nil if
 not needed, a prompt-string or an expression for complex read functions.
 
@@ -235,16 +238,14 @@ available:
 		then: insert previously read string once more
 	help	help-form during interaction with the user or nil
 	input	initial input (string or cons with index) while reading str
-	v1, v2	local variables for memorizing anything you want
-
-When done with skeleton, but before going back to `_'-point call
-`skeleton-end-hook' if that is non-nil."
+	v1, v2	local variables for memorizing anything you want"
   (let ((skeleton-regions regions))
     (and skeleton-regions
 	 (setq skeleton-regions
 	       (if (> skeleton-regions 0)
 		   (list (copy-marker (point) t)
-			 (save-excursion (forward-word skeleton-regions)
+			 (save-excursion (forward-word-strictly
+                                          skeleton-regions)
 					 (point-marker)))
 		 (setq skeleton-regions (- skeleton-regions))
 		 ;; copy skeleton-regions - 1 elements from `mark-ring'
@@ -486,8 +487,8 @@ Each alist element, which looks like (ELEMENT ...), is passed to
 
 Elements might be (?\\=` ?\\=` _ \"\\='\\='\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
 
-(defvar skeleton-pair-default-alist '((?( _ ?)) (?\))
-				      (?[ _ ?]) (?\])
+(defvar skeleton-pair-default-alist '((?\( _ ?\)) (?\))
+				      (?\[ _ ?\]) (?\])
 				      (?{ _ ?}) (?\})
 				      (?< _ ?>) (?\>)
 				      (?« _ ?») (?\»)

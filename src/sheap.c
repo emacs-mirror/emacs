@@ -1,14 +1,14 @@
 /* simulate `sbrk' with an array in .bss, for `unexec' support for Cygwin;
    complete rewrite of xemacs Cygwin `unexec' code
 
-   Copyright (C) 2004-2015 Free Software Foundation, Inc.
+   Copyright (C) 2004-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,99 +16,65 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#include "sheap.h"
+
 #include <stdio.h>
-
 #include "lisp.h"
-
 #include <unistd.h>
+#include <stdlib.h>		/* for exit */
 
-#ifdef __x86_64__
-#ifdef ENABLE_CHECKING
-#define STATIC_HEAP_SIZE	(28 * 1024 * 1024)
-#else
-#define STATIC_HEAP_SIZE	(19 * 1024 * 1024)
-#endif
-#else  /* x86 */
-#ifdef ENABLE_CHECKING
-#define STATIC_HEAP_SIZE	(18 * 1024 * 1024)
-#else
-#define STATIC_HEAP_SIZE	(13 * 1024 * 1024)
-#endif
-#endif	/* x86 */
-
-int debug_sheap = 0;
-
-#define BLOCKSIZE 4096
+static int debug_sheap;
 
 char bss_sbrk_buffer[STATIC_HEAP_SIZE];
-/* The following is needed in gmalloc.c */
-void *bss_sbrk_buffer_end = bss_sbrk_buffer + STATIC_HEAP_SIZE;
-char *bss_sbrk_ptr;
 char *max_bss_sbrk_ptr;
-int bss_sbrk_did_unexec;
+bool bss_sbrk_did_unexec;
 
 void *
 bss_sbrk (ptrdiff_t request_size)
 {
+  static char *bss_sbrk_ptr;
+
   if (!bss_sbrk_ptr)
     {
       max_bss_sbrk_ptr = bss_sbrk_ptr = bss_sbrk_buffer;
 #ifdef CYGWIN
-      sbrk (BLOCKSIZE);		/* force space for fork to work */
+      /* Force space for fork to work.  */
+      sbrk (4096);
 #endif
     }
 
-  if (!(int) request_size)
-    {
-      return (bss_sbrk_ptr);
-    }
-  else if (bss_sbrk_ptr + (int) request_size < bss_sbrk_buffer)
-    {
-      printf
-	("attempt to free too much: avail %d used %d failed request %d\n",
-	 STATIC_HEAP_SIZE, bss_sbrk_ptr - bss_sbrk_buffer,
-	 (int) request_size);
-      exit (-1);
-      return 0;
-    }
-  else if (bss_sbrk_ptr + (int) request_size >
-	   bss_sbrk_buffer + STATIC_HEAP_SIZE)
-    {
-      printf ("static heap exhausted: avail %d used %d failed request %d\n",
-	      STATIC_HEAP_SIZE,
-	      bss_sbrk_ptr - bss_sbrk_buffer, (int) request_size);
-      exit (-1);
-      return 0;
-    }
-  else if ((int) request_size < 0)
-    {
-      bss_sbrk_ptr += (int) request_size;
-      if (debug_sheap)
-	printf ("freed size %d\n", request_size);
-      return bss_sbrk_ptr;
-    }
-  else
-    {
-      char *ret = bss_sbrk_ptr;
-      if (debug_sheap)
-	printf ("allocated 0x%08x size %d\n", ret, request_size);
-      bss_sbrk_ptr += (int) request_size;
-      if (bss_sbrk_ptr > max_bss_sbrk_ptr)
-	max_bss_sbrk_ptr = bss_sbrk_ptr;
-      return ret;
-    }
-}
+  int used = bss_sbrk_ptr - bss_sbrk_buffer;
 
-void
-report_sheap_usage (int die_if_pure_storage_exceeded)
-{
-  char buf[200];
-  sprintf (buf, "Maximum static heap usage: %d of %d bytes",
-	   max_bss_sbrk_ptr - bss_sbrk_buffer, STATIC_HEAP_SIZE);
-  /* Don't log messages, cause at this point, we're not allowed to create
-     buffers.  */
-  message1_nolog (buf);
+  if (request_size < -used)
+    {
+      printf (("attempt to free too much: "
+	       "avail %d used %d failed request %"pD"d\n"),
+	      STATIC_HEAP_SIZE, used, request_size);
+      exit (-1);
+      return 0;
+    }
+  else if (STATIC_HEAP_SIZE - used < request_size)
+    {
+      printf ("static heap exhausted: avail %d used %d failed request %"pD"d\n",
+	      STATIC_HEAP_SIZE, used, request_size);
+      exit (-1);
+      return 0;
+    }
+
+  void *ret = bss_sbrk_ptr;
+  bss_sbrk_ptr += request_size;
+  if (max_bss_sbrk_ptr < bss_sbrk_ptr)
+    max_bss_sbrk_ptr = bss_sbrk_ptr;
+  if (debug_sheap)
+    {
+      if (request_size < 0)
+	printf ("freed size %"pD"d\n", request_size);
+      else
+	printf ("allocated %p size %"pD"d\n", ret, request_size);
+    }
+  return ret;
 }

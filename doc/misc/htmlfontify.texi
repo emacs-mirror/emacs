@@ -10,7 +10,7 @@
 This manual documents Htmlfontify, a source code -> crosslinked +
 formatted + syntax colorized html transformer.
 
-Copyright @copyright{} 2002-2003, 2013-2015 Free Software Foundation,
+Copyright @copyright{} 2002-2003, 2013-2018 Free Software Foundation,
 Inc.
 
 @quotation
@@ -126,7 +126,8 @@ entities, so you should even be able to do html-within-html fontified
 display.
 
 You should, however, note that random control or non-ASCII characters
-such as ^L (\x0c) or ¤ (\xa4) won't get mapped yet.
+such as ^L (U+000C FORM FEED (FF)) or ¤ (U+00A4 CURRENCY SIGN) won't
+get mapped yet.
 
 If the @var{srcdir} and @var{file} arguments are set, lookup etags
 derived entries in the @ref{hfy-tags-cache} and add html anchors
@@ -824,7 +825,7 @@ with a class of @code{t} is considered to match any class you specify.
 This matches Emacs's behavior when deciding on which face attributes to
 use, to the best of my understanding ).
 
-If @var{class} is @code{nil}, then you just get get whatever
+If @var{class} is @code{nil}, then you just get whatever
 @code{face-attr-construct} returns; i.e., the current specification in
 effect for @var{face}.
 
@@ -962,8 +963,9 @@ Is @ref{hfy-optimizations} member @var{symbol} set or not?
 @end lisp
 
 Return everything preceding the last @samp{/} from a relative filename,
-on the assumption that this will produce a relative directory name.  Hardly
-bombproof, but good enough in the context in which it is being used.
+on the assumption that this will produce the name of a relative
+directory.  Hardly bombproof, but good enough in the context in which
+it is being used.
 
 @item hfy-html-dekludge-buffer
 @findex hfy-html-dekludge-buffer
@@ -1114,7 +1116,7 @@ Some of the (informal) data structures used in Htmlfontify are detailed here:
 @table @code
 
 @item hfy-style-assoc
-@cindex hfy-style-assoc
+@cindex @code{hfy-style-assoc}
 @anchor{hfy-style-assoc}
 
 An assoc representing/describing an Emacs face.  Properties may be repeated,
@@ -1146,19 +1148,19 @@ Some examples:
 @end lisp
 
 @item hfy-sheet-assoc
-@cindex hfy-sheet-assoc
+@cindex @code{hfy-sheet-assoc}
 @anchor{hfy-sheet-assoc}
 
 An assoc with elements of the form @samp{(face-name style-name . style-string)}.
 The actual stylesheet for each page is derived from one of these.
 
 @lisp
-'((default       "default" . "@{ background: black; color: white@}")
-  (font-lock-string-face "string"  . "@{ color: rgb(64,224,208) @}"))
+((default       "default" . "@{ background: black; color: white@}")
+ (font-lock-string-face "string"  . "@{ color: rgb(64,224,208) @}"))
 @end lisp
 
 @item hfy-facemap-assoc
-@cindex hfy-facemap-assoc
+@cindex @code{hfy-facemap-assoc}
 @anchor{hfy-facemap-assoc}
 
 An assoc of @code{(point . @var{face-symbol})} or
@@ -1173,24 +1175,24 @@ dealt with (and therefore no longer care about) will be invalid at any
 time.
 
 @lisp
-'((64820 . end)
-  (64744 . font-lock-comment-face)
-  (64736 . end)
-  (64722 . font-lock-string-face)
-  (64630 . end)
-  (64623 . font-lock-string-face)
-  (64449 . end)
-  ;; Big similar section elided.  You get the idea.
-  (5459 . end)
-  (5431 . (:inherit font-lock-keyword-face :background "7e7e7e"))
-  (5431 . end)
-  (4285 . font-lock-constant-face)
-  (4285 . end)
-  (4221 . font-lock-comment-face)
-  (4221 . end)
-  (4197 . font-lock-constant-face)
-  (4197 . end)
-  (1 . font-lock-comment-face))
+((64820 . end)
+ (64744 . font-lock-comment-face)
+ (64736 . end)
+ (64722 . font-lock-string-face)
+ (64630 . end)
+ (64623 . font-lock-string-face)
+ (64449 . end)
+ ;; Big similar section elided.  You get the idea.
+ (5459 . end)
+ (5431 . (:inherit font-lock-keyword-face :background "7e7e7e"))
+ (5431 . end)
+ (4285 . font-lock-constant-face)
+ (4285 . end)
+ (4221 . font-lock-comment-face)
+ (4221 . end)
+ (4197 . font-lock-constant-face)
+ (4197 . end)
+ (1 . font-lock-comment-face))
 @end lisp
 
 @end table
@@ -1301,36 +1303,35 @@ access to the face spec you would use if you were connected to an X display.
 Some valid class specification elements are:
 
 @lisp
-  '(class      color)
-  '(class      grayscale)
-  '(background dark)
-  '(background light)
-  '(type       x-toolkit)
-  '(type       tty)
-  '(type       motif)
-  '(type       lucid)
+  (class      color)
+  (class      grayscale)
+  (background dark)
+  (background light)
+  (type       x-toolkit)
+  (type       tty)
+  (type       motif)
+  (type       lucid)
 @end lisp
 
 Multiple values for a tag may be combined, to indicate that any one or more
-of these values in the specification key constitutes a match, eg:
+of these values in the specification key constitutes a match.  For
+example, @code{((class color grayscale) (type tty))} would match any of:
 
-'((class color grayscale) (type tty)) would match any of:
 @lisp
-  '((class color))
-  '((class grayscale))
-  '((class color grayscale)))
-  '((class color foo))
-  '((type  tty))
-  '((type  tty) (class color))
+  ((class color))
+  ((class grayscale))
+  ((class color grayscale)))
+  ((class color foo))
+  ((type  tty))
+  ((type  tty) (class color))
 @end lisp
-and so on.
 
 @item hfy-page-header
 @vindex hfy-page-header
 @anchor{hfy-page-header}
 
 Function called with two arguments (the filename relative to the top
-level source directory being etag'd and fontified), and a string containing
+level source directory being etagged and fontified), and a string containing
 the @samp{<style>@dots{}</style>} text to embed in the document---the string
 returned will be used as the header for the htmlfontified version of
 the source file.
@@ -1355,7 +1356,7 @@ be large and take a long time to render or be difficult to navigate.
 @vindex hfy-find-cmd
 @anchor{hfy-find-cmd}
 
-``find'' command used to harvest a list of files to attempt to fontify.
+The ``find'' command used to harvest a list of files to attempt to fontify.
 
 @item hfy-extn
 @vindex hfy-extn
@@ -1378,9 +1379,9 @@ For example, I customize this to:
 ((t :background "black" :foreground "white" :family "misc-fixed"))
 @end lisp
 
-@item hfy-init-kludge-hooks
-@vindex hfy-init-kludge-hooks
-@anchor{hfy-init-kludge-hooks}
+@item hfy-init-kludge-hook
+@vindex hfy-init-kludge-hook
+@anchor{hfy-init-kludge-hook}
 
 List of functions to call when starting htmlfontify-buffer to do any
 kludging necessary to get highlighting modes to behave as you want, even

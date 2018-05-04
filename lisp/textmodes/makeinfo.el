@@ -1,6 +1,6 @@
 ;;; makeinfo.el --- run makeinfo conveniently
 
-;; Copyright (C) 1991, 1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -228,7 +228,7 @@ nonsensical results."
   "Make Info file from current buffer.
 
 Use the \\[next-error] command to move to the next error
-\(if there are errors\)."
+\(if there are errors)."
 
   (interactive)
   (cond ((null buffer-file-name)

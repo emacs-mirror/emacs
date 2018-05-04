@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
@@ -61,7 +61,8 @@ Do not call this mode function yourself.  It is meant for internal use."
 (defvar custom-theme-insert-face-marker nil)
 
 (defvar custom-theme--listed-faces '(default cursor fixed-pitch
-  variable-pitch escape-glyph minibuffer-prompt highlight region
+  variable-pitch escape-glyph homoglyph
+  minibuffer-prompt highlight region
   shadow secondary-selection trailing-whitespace
   font-lock-builtin-face font-lock-comment-delimiter-face
   font-lock-comment-face font-lock-constant-face
@@ -430,7 +431,7 @@ It includes all variables in list VARS."
       (if (bolp)
 	  (princ " "))
       (princ ")")
-      (unless (looking-at "\n")
+      (when (/= (following-char) ?\n)
 	(princ "\n")))))
 
 (defun custom-theme-write-faces (theme faces)
@@ -462,7 +463,7 @@ It includes all faces in list FACES."
 	      (princ ")")))))
       (if (bolp) (princ " "))
       (princ ")")
-      (unless (looking-at "\n")
+      (when (/= (following-char) ?\n)
 	(princ "\n")))))
 
 

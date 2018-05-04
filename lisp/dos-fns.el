@@ -1,9 +1,9 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995-1996, 2001-2015 Free Software
+;; Copyright (C) 1991, 1993, 1995-1996, 2001-2018 Free Software
 ;; Foundation, Inc.
 
-;; Maintainer: Morten Welinder <terra@diku.dk>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
 ;; Package: emacs
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -98,7 +98,7 @@ sure to obey the 8.3 limitations."
 			    string))
 	      (aset string i ?_))
 	    ;; If we don't have a period in the first 8 chars, insert one.
-	    ;; This enables to have 3 more characters from the original
+	    ;; This enables having 3 more characters from the original
 	    ;; name in the extension.
 	    (if (> (or (string-match "\\." string) (length string))
 		   8)
@@ -201,8 +201,8 @@ that are used in Emacs Lisp sources; any other file name will be
 returned unaltered."
   (cond
    ;; See files.el:dir-locals-file.
-   ((string= file-name ".dir-locals.el")
-    "_dir-locals.el")
+   ((string= file-name ".dir-locals")
+    "_dir-locals")
    (t
     file-name)))
 
@@ -212,9 +212,7 @@ returned unaltered."
 ;; Override settings chosen at startup.
 (defun dos-set-default-process-coding-system ()
   (setq default-process-coding-system
-	(if (default-value 'enable-multibyte-characters)
-	    '(undecided-dos . undecided-dos)
-	  '(raw-text-dos . raw-text-dos))))
+	'(undecided-dos . undecided-dos)))
 
 (add-hook 'before-init-hook 'dos-set-default-process-coding-system)
 

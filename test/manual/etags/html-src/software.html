@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40">
+<HTML LANG="en">
+<HEAD>
+  <STYLE TYPE="text/css"><!--
+    BODY { font-size: 12pt; }
+    P    { text-indent: 0; text-align: justify }
+    DD   { text-indent: 0; text-align: justify }
+  --></STYLE>
+  <TITLE>Francesco Potortì Software Page</TITLE>
+  <LINK  REV="made" HREF="mailto:F.Potorti@cnuce.cnr.it">
+  <META NAME="description" CONTENT="Home page of Francesco Potortì.">
+  <META NAME="keywords"
+        CONTENT="Potorti Potortì Potorti' Potorti`
+		 satellites MTG fracas simulator LEO MEO GEO
+		 GNU emacs etags checkiso debian-bug">
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+</HEAD><BODY>
+
+<CENTER>
+    [<A HREFLANG="en" HREF="/home.html">home</A>]
+    | [<A HREFLANG="en" HREF="/foda/foda.html">FODA/IBEA</A>]
+    | [<A HREFLANG="en" HREF="/galileo/index.html">GaliLEO</A>]
+    | [<A HREFLANG="en" HREF="#fracas">fracas</A>]
+    | [<A HREFLANG="en" HREF="#leasqr">leasqr</A>]<BR>
+    [<A HREFLANG="en" HREF="#etags">etags</A>]
+    | [<A HREFLANG="en" HREF="#checkiso">checkiso</A>]
+    | [<A HREFLANG="en" HREF="#cgrep">cgrep</A>]
+    | [<A HREFLANG="en" HREF="#debian-bug">debian-bug</A>]
+</CENTER>
+
+<HR> <!---------------------------------------------------------------->
+
+<H4 ID="simulation">
+    <IMG SRC="/pictures/cnr-4.png" ALIGN="right"
+         ALT="CNR logo (png 3k)">
+    Software that I wrote for supporting my research activity
+</H4>
+
+
+<H5 ID="mtg">
+  MTG
+</H5>
+
+<P> The <A
+    HREF="/curriculum/pot-abstracts.html#R05:MTG-RealTimeSystems97"><CITE>M</CITE>ulti-Application
+    <cite>t</CITE>raffic <cite>g</CITE>enerator</A> was written in 1990 to run on
+    a proprietary Motorola Delta SysV Unix running on 68030.  It is a
+    programmable packet traffic generator for Ethernet with a
+    <CITE>curses</CITE>-based frontend and a backend that I wrote.  MTG was
+    used to develop, test and evaluate the <A HREF="/foda/foda.html">FODA/IBEA</A>
+    satellite access protocol.
+
+<P> The backend of MTG
+    was a Unix device driver which took control of the timer and Lance
+    interrupts, after having programmed them at the unmaskable level.  Since I
+    had no access to the kernel sources, after having studied <CITE>Writing a
+    Unix device driver</CITE> by Egan Teixeira I had to get really well
+    acquainted with the Motorola C compiler and then to disassemble a couple of
+    kernel routines.  For anyone interested in historical programming, <A
+    HREF="ftp://fly.cnuce.cnr.it/pub/software/unix/mtg.tgz"
+    TYPE="application/octet-stream">here</A> is the code.
+
+
+<H5 ID="fracas">
+  Fracas
+</H5>
+
+<P> The <A
+    HREF="/curriculum/pot-abstracts.html#R12:Fracas-TelCommSystems99"><CITE>Fra</CITE>med
+    <CITE>C</CITE>hannel <CITE>A</CITE>ccess <CITE>S</CITE>imulator</A> was
+    written around 1995 to study MAC protocols to access a geostationary
+    satellite channel.  It is a little more general than that, though, and can
+    be used to simulate any framed multiple access scheme.  It is a very fast,
+    extensible, non-user friendly C program that has been used for several
+    protocol studies:
+    <UL>
+    <LI> <A HREF="/curriculum/pot-abstracts.html#R03:FODAIBEAvsDistributed-IJSC96">
+         <i>Comparison between distributed and centralized demand
+	 assignment TDMA satellite access schemes</i></A>
+
+    <LI><A HREF="/curriculum/pot-abstracts.html#R07:FODAIBEAvsCFRA-IJSC97">
+        <i>Delay analysis for interlan traffic using two suitable TDMA
+	satellite access schemes</i></A>
+
+    <LI><A HREF="/curriculum/pot-abstracts.html#R17:VnL-IJSC00">
+        <i>A multi-level satellite channel allocation algorithm for
+	real-time VBR data</i></A>
+    </UL>
+
+<P> Everyone is welcome to download the <A
+    HREF="ftp://fly.cnuce.cnr.it/pub/software/C/fracas.tgz"
+    TYPE="application/octet-stream">complete sources</A> and a <A
+    HREF="ftp://fly.cnuce.cnr.it/pub/software/C/fracas-man-0.0.pdf"
+    TYPE="application/pdf">draft manual</A>.  There is also a short <A
+    HREF="ftp://fly.cnuce.cnr.it/pub/data/docs/Fracas-slides.pdf">presentation</A>
+    (10 slides, 340KB).  I will be happy to assist those who would like to
+    adapt Fracas to their purposes.
+
+
+<H5 ID="galileo">
+  GaliLEO
+</H5>
+
+<P> A simulator for Low Earth Orbit satellite constellations that I contributed
+    to design and implement in Java. This is work in progress, of which I made
+    a short <A
+    HREF="ftp://fly.cnuce.cnr.it/pub/data/docs/GaliLEO-slides.pdf">presentation</A>
+    (10 slides, 500KB).  GaliLEO has <A HREF="http://galileo.tesa.prd.fr/">its
+    own page</A> and a <A HREF="/galileo/index.html">local mirror</A>.
+
+
+
+<H5 ID="leasqr">
+  Leasqr
+</H5>
+
+<P> This is a package for <A HREF="http://www.octave.org/">Octave</A>, a
+high-level language which uses a language very similar to that of Matlab.
+Leasqr uses the Levenberg-Marquardt algorithm for doing nonlinear regression.
+I found leasqr on the web, but it did not run on Octave (it was made for
+Matlab) and so I adapted it and <A
+HREF="ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/">published</A> it.
+Since then, the original authors Richard I. Shrager, A.Jutan, Ray Muzic, and
+Sean Brennan agreed to put it under the <A
+HREF="https://www.gnu.org/licenses/gpl.html">GPL</A>.  Matthias Jueschke tested
+the program using a non-linear optimization <A
+HREF="http://www.itl.nist.gov/div898/strd/nls/nls_main.shtml">test suite</A>,
+and was satisfied with the results.
+
+<P>The most current version of the leasqr is part of the optimization package
+at <a href="http://octave.sf.net">octave-forge</a>. You should refer to the
+files leasqr.m, leasqrdemo.m and dfdp.m <a
+href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/octave/octave-forge/main/optim/">therein</a>.
+The names of the individual files may change in the future.  Please let me know
+if that happens so I can update this page.
+
+<HR> <!---------------------------------------------------------------->
+
+<H4 ID="gnu">
+    <IMG SRC="/pictures/gnu-head-3.png" ALIGN="right"
+         ALT="small GNU Head (png 3k)">
+    Free software that I wrote for the GNU project or for my personal or work
+    interest
+</H4>
+
+
+<H5 ID="etags">
+  Etags
+</H5>
+
+<P> On behalf of the <A HREF="https://www.gnu.org/fsf/fsf.html">Free
+    Software Foundation (FSF)</A> I currently volunteer to maintain
+    <CITE>etags</CITE>, a program that can be compiled either as a replacement
+    of the classic <CITE>ctags</CITE> Unix program or as <CITE>etags</CITE>,
+    whose output file format is used by Emacs.  The latest (unofficial) version
+    of etags is available for <A HREF="ftp://fly.cnuce.cnr.it/pub/etags.c.gz"
+    TYPE="application/octet-stream">download</A> (30&nbsp;KB).
+
+
+<H5 ID="checkiso">
+  checkiso
+</H5>
+
+<P> A Unix <A HREF="ftp://fly.cnuce.cnr.it/pub/software/unix/checkiso"
+    TYPE="application/octet-stream">shell script</A> for checking a CD against
+    the iso image from which it has been burned.  The comparison is made using
+    an MD5 signature built from the original image or from a known good CD.
+    Shows the location of the first read error detected.  Can extract a disk Id
+    from the image or the CD itself and build a local database of Ids for
+    future checking of archived CDs.  The Id contains the image length, the MD5
+    signature and the Volume ID of the disk, so it can automatically recognize
+    the CD to check.  Contains a small internal database of <A
+    HREF="http://www.debian.org/">Debian</A> <A
+    HREF="http://cdimage.debian.org/">CD images</A>.
+
+
+<H5 ID="cgrep">
+  cgrep
+</H5>
+
+<P> A Unix <A HREF="ftp://fly.cnuce.cnr.it/pub/software/unix/cgrep"
+    TYPE="application/octet-stream">shell script</A> that wraps around grep to
+    make it understand files compressed with gzip or bzip2.  You just use it
+    like grep.  If you rename it cegrep or cfgrep it will wrap around egrep or
+    fgrep, respectively.  Instead of renaming it, you can use a symbolic or
+    hard link.
+
+
+<H5 ID="debian-bug">
+  debian-bug.el
+</H5>
+
+<P> An Emacs add-on script in emacs lisp which simplifies
+    the task of submitting a bug report to the <A
+    HREF="http://www.debian.org/Bugs/">Debian bug tracking system</A>.  Part of
+    the <A
+    HREF="http://packages.debian.org/testing/utils/debbugs-el.html">debbugs-el</A>
+    Debian package.  I handed the package over to Peter Galbraith, who is
+    maintaining it much more actively than I was.  You can download its <A
+    HREF="http://people.debian.org/~psg/debian-bug.el"
+    TYPE="application/octet-stream">latest version</A>.
+
+
+<H5 ID="tcpdump">
+  tcpdump
+</H5>
+
+<P> A Unix <A HREF="ftp://fly.cnuce.cnr.it/pub/software/unix/pottcpdump-1.3"
+    TYPE="application/octet-stream">shell wrapper</A> around
+    <CITE>tcpdump</CITE> which optionally displays the contents of the packets.
+
+
+<HR> <!---------------------------------------------------------------->
+
+<H4 ID="links">
+    Links to interesting software
+</H4>
+
+
+<DL>
+ <DT>The Error Correcting Codes (ECC) Page
+  <DD><A
+  HREF="http://www.csl.sony.co.jp/person/morelos/ecc/codes.html">This</A> is a
+  really good list of free (in various senses) programs for coding and
+  decoding.  I keep a <A HREF="codes.html">mirror</A> of this page.
+
+ <DT>Forward error correcting codes by Phil Karn
+  <DD>Phil Karn's optimized really <A HREF="http://www.ka9q.net/code/fec/">free
+  codes</A>.
+
+</DL>
+
+</BODY>
+
+<!--
+Local variables:
+fill-column: 79
+end:
+-->
+
+</HTML>

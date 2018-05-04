@@ -1,13 +1,13 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2015 Free Software Foundation,
+   Copyright (C) 1985-1987, 1993, 2001-2018 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,9 +15,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#include "systime.h"		/* for struct timespec, Time */
+#ifndef EMACS_KEYBOARD_H
+#define EMACS_KEYBOARD_H
+
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 #include "termhooks.h"
 
@@ -63,7 +65,7 @@ INLINE_HEADER_BEGIN
    as soon as a complete key arrives from some KBOARD or other,
    Emacs starts executing that key's binding.  It switches to the
    single-kboard state for the execution of that command,
-   so that that command can get input only from its own KBOARD.
+   so that the command can get input only from its own KBOARD.
 
    While in the single-kboard state, read_char can consider input only
    from the current KBOARD.  If events come from other KBOARDs, they
@@ -243,6 +245,18 @@ extern KBOARD *current_kboard;
 /* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
 extern uintmax_t num_input_events;
 
+/* The location of point immediately before the last command was
+   executed, or the last time the undo-boundary command added a
+   boundary.*/
+extern ptrdiff_t point_before_last_command_or_undo;
+
+/* The value of current_buffer immediately before the last command was
+   executed, or the last time the undo-boundary command added a
+   boundary.*/
+extern struct buffer *buffer_before_last_command_or_undo;
+
+extern struct buffer *prev_buffer;
+
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
 
@@ -401,9 +415,6 @@ extern void unuse_menu_items (void);
 #define EVENT_HEAD_KIND(event_head) \
   (Fget ((event_head), Qevent_kind))
 
-/* True while doing kbd input.  */
-extern bool waiting_for_input;
-
 /* Address (if not 0) of struct timespec to zero out if a SIGIO interrupt
    happens.  */
 extern struct timespec *input_available_clear_time;
@@ -427,6 +438,7 @@ extern unsigned int timers_run;
 extern bool menu_separator_name_p (const char *);
 extern bool parse_menu_item (Lisp_Object, int);
 
+extern void init_raw_keybuf_count (void);
 extern KBOARD *allocate_kboard (Lisp_Object);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);
@@ -475,6 +487,8 @@ extern bool kbd_buffer_events_waiting (void);
 extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, struct input_event *);
+extern bool volatile pending_signals;
+extern void process_pending_signals (void);
 extern struct timespec timer_check (void);
 extern void mark_kboards (void);
 
@@ -482,4 +496,8 @@ extern void mark_kboards (void);
 extern const char *const lispy_function_keys[];
 #endif
 
+extern char const DEV_TTY[];
+
 INLINE_HEADER_END
+
+#endif /* EMACS_KEYBOARD_H */

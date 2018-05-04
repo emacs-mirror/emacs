@@ -286,10 +286,9 @@ Emacs 可以有多个“窗格”，每个窗格显示不同的文字。后面�
 
 <Return> 是一个特殊的键，因为按下这个键后，得到的可能不仅仅是一个换行
 符。根据周围文本的不同，Emacs 可能会在换行符之后插入一些空白字符，这样，
-当你在新的一行开始打字时，文本会自动与前一行对齐。我们把这个按下一个键
-时不只是插入其对应字符的特性叫做“电动”（electric）。
+当你在新的一行开始打字时，文本会自动与前一行对齐。
 
->> 这是一个电动 <Return> 的例子。
+>> 这是一个自动缩进的例子。
    在这一行的末尾输入 <Return>。
 
 可以看到，在插入换行符之后，Emacs 插入了空格，因此光标移动到了“在”这个
@@ -998,7 +997,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2015 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.
@@ -1014,7 +1013,7 @@ and comes with permission to distribute copies on certain conditions:
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Please read the file COPYING and then do give copies of GNU Emacs to
 your friends.  Help stamp out software obstructionism ("ownership") by
@@ -1027,7 +1026,7 @@ using, writing, and sharing free software!
 
 本篇指南是 GNU Emacs 的一部分，并允许在下列条件的约束下发行其拷贝：
 
-   Copyright (C) 1985, 1996, 1998, 2001-2015 Free Software Foundation,
+   Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
    Inc.
 
    本文件为 GNU Emacs 的一部分。
@@ -1040,7 +1039,7 @@ using, writing, and sharing free software!
    售性或特定目的适用性所为的默示性担保。详情请参照GNU通用公共授权。
 
    您应已收到附随于 GNU Emacs 的GNU通用公共授权的副本；如果没有，请参照
-   <http://www.gnu.org/licenses/>.
+   <https://www.gnu.org/licenses/>.
 
 敬请阅读文件“COPYING”，然后向你的朋友们分发 GNU Emacs 拷贝。让我们以使
 用、编写和分享自由软件的实际行动来共同祛除软件障碍主义（所谓的“所有

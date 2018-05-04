@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2015 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2018 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # Note that this file is edited by msdos/sed1v2.inp for MSDOS.  That
@@ -38,9 +38,6 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 EXEEXT = @EXEEXT@
 version = @version@
-# Substitute an assignment for the MAKE variable, because
-# BSD doesn't have it as a default.
-@SET_MAKE@
 MKDIR_P = @MKDIR_P@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
 # linked with Emacs or is duplicated by the other stuff below.
@@ -51,7 +48,6 @@ lispsource = $(top_srcdir)/lisp
 lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
-leimdir = ${lispsource}/leim
 oldXMenudir = ../oldXMenu
 lwlibdir = ../lwlib
 
@@ -114,8 +110,9 @@ TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 ## around this, newer ones setfattr.  See Bug#11398 and Bug#16343.
 PAXCTL = @PAXCTL@
 SETFATTR = @SETFATTR@
-PAXCTL_if_present = $(or $(PAXCTL),: paxctl)
-SETFATTR_if_present = $(or $(SETFATTR),: setfattr)
+## Commands to set PaX flags on dumped and not-dumped instances of Emacs.
+PAXCTL_dumped = @PAXCTL_dumped@
+PAXCTL_notdumped = @PAXCTL_notdumped@
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
@@ -128,8 +125,9 @@ LIB_PTHREAD=@LIB_PTHREAD@
 
 LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
 
+XCB_LIBS=@XCB_LIBS@
 XFT_LIBS=@XFT_LIBS@
-LIBX_EXTRA=-lX11 $(XFT_LIBS)
+LIBX_EXTRA=-lX11 $(XCB_LIBS) $(XFT_LIBS)
 
 FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
 FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
@@ -151,6 +149,9 @@ DBUS_LIBS = @DBUS_LIBS@
 ## dbusbind.o if HAVE_DBUS, else empty.
 DBUS_OBJ = @DBUS_OBJ@
 
+## xwidgets.o if HAVE_XWIDGETS, else empty.
+XWIDGETS_OBJ = @XWIDGETS_OBJ@
+
 LIB_EXECINFO=@LIB_EXECINFO@
 
 SETTINGS_CFLAGS = @SETTINGS_CFLAGS@
@@ -159,16 +160,17 @@ SETTINGS_LIBS = @SETTINGS_LIBS@
 ## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
 
-## gfilenotify.o if HAVE_GFILENOTIFY.
 ## inotify.o if HAVE_INOTIFY.
+## kqueue.o if HAVE_KQUEUE.
+## gfilenotify.o if HAVE_GFILENOTIFY.
 ## w32notify.o if HAVE_W32NOTIFY.
 NOTIFY_OBJ = @NOTIFY_OBJ@
-GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
-GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
+NOTIFY_CFLAGS = @NOTIFY_CFLAGS@
+NOTIFY_LIBS = @NOTIFY_LIBS@
 
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
-## terminfo.o if TERMINFO, else tparam.o.
+## terminfo.o if TERMINFO, else (on MS-DOS only: termcap.o +) tparam.o.
 TERMCAP_OBJ=@TERMCAP_OBJ@
 
 LIBXMU=@LIBXMU@
@@ -209,14 +211,17 @@ LIBX_OTHER=@LIBX_OTHER@
 ## configure, which should set it to nil in non-X builds.
 LIBX_BASE=$(LIBXMENU) $(LD_SWITCH_X_SITE)
 
-## Only used for GNUstep
-LIBS_GNUSTEP=@LIBS_GNUSTEP@
+## Used only for GNUstep.
+LIBS_GNUSTEP=$(patsubst -specs=%-hardened-ld,,@LIBS_GNUSTEP@)
 
 LIBSOUND= @LIBSOUND@
 CFLAGS_SOUND= @CFLAGS_SOUND@
 
 RSVG_LIBS= @RSVG_LIBS@
 RSVG_CFLAGS= @RSVG_CFLAGS@
+
+WEBKIT_LIBS= @WEBKIT_LIBS@
+WEBKIT_CFLAGS= @WEBKIT_CFLAGS@
 
 CAIRO_LIBS= @CAIRO_LIBS@
 CAIRO_CFLAGS= @CAIRO_CFLAGS@
@@ -227,7 +232,17 @@ IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
+GETADDRINFO_A_LIBS = @GETADDRINFO_A_LIBS@
+
+LCMS2_LIBS = @LCMS2_LIBS@
+LCMS2_CFLAGS = @LCMS2_CFLAGS@
+
 LIBZ = @LIBZ@
+
+## system-specific libs for dynamic modules, else empty
+LIBMODULES = @LIBMODULES@
+## dynlib.o emacs-module.o if modules enabled, else empty
+MODULES_OBJ = @MODULES_OBJ@
 
 XRANDR_LIBS = @XRANDR_LIBS@
 XRANDR_CFLAGS = @XRANDR_CFLAGS@
@@ -238,10 +253,15 @@ XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
 XFIXES_LIBS = @XFIXES_LIBS@
 XFIXES_CFLAGS = @XFIXES_CFLAGS@
 
+XDBE_LIBS = @XDBE_LIBS@
+XDBE_CFLAGS = @XDBE_CFLAGS@
+
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
-## sheap.o if CYGWIN, otherwise empty.
+HYBRID_MALLOC = @HYBRID_MALLOC@
+
+## cygw32.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
 ## fontset.o fringe.o image.o if we have any window system
@@ -255,14 +275,15 @@ MSDOS_X_OBJ =
 NS_OBJ=@NS_OBJ@
 ## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o ns_fontfile if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
-## Only set if NS_IMPL_GNUSTEP.
-GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
+## Used only for GNUstep.
+GNU_OBJC_CFLAGS=$(patsubst -specs=%-hardened-cc1,,@GNU_OBJC_CFLAGS@)
 ## w32fns.o w32menu.c w32reg.o fringe.o fontset.o w32font.o w32term.o
-## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
-## empty.
+## w32xfns.o w32select.o image.o w32uniscribe.o w32cygwinx.o if HAVE_W32,
+## w32cygwinx.o if CYGWIN but not HAVE_W32, else empty.
 W32_OBJ=@W32_OBJ@
-## -lkernel32 -luser32 -lgdi32 -lole32 -lcomdlg32 lusp10 -lcomctl32
-## --lwinspool if HAVE_W32, else empty.
+## -lkernel32 -luser32 -lusp10 -lgdi32 -lole32 -lcomdlg32 -lcomctl32
+## -lwinspool if HAVE_W32,
+## -lkernel32 if CYGWIN but not HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
 
 ## emacs.res if HAVE_W32
@@ -285,19 +306,26 @@ CM_OBJ=@CM_OBJ@
 
 LIBGPM = @LIBGPM@
 
-## -lresolv, or empty.
-LIBRESOLV = @LIBRESOLV@
-
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
 LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
 LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
+
+LIBSYSTEMD_LIBS = @LIBSYSTEMD_LIBS@
+LIBSYSTEMD_CFLAGS = @LIBSYSTEMD_CFLAGS@
+
+JSON_LIBS = @JSON_LIBS@
+JSON_CFLAGS = @JSON_CFLAGS@
+JSON_OBJ = @JSON_OBJ@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = ./temacs
+
+# Whether builds should contain details. '--no-build-details' or empty.
+BUILD_DETAILS = @BUILD_DETAILS@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
@@ -326,44 +354,33 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
-DEPDIR=deps
-AUTO_DEPEND = @AUTO_DEPEND@
+# Flags that might be in WARN_CFLAGS but are not valid for Objective C.
+NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd
 
-ifeq ($(AUTO_DEPEND),yes)
-DEPFLAGS = -MMD -MF ${DEPDIR}/$*.d -MP
-MKDEPDIR = ${MKDIR_P} ${DEPDIR}
-else
-DEPFLAGS =
-MKDEPDIR = :
-endif
-
-## DO NOT use -R.  There is a special hack described in lastfile.c
-## which is used instead.  Some initialized data areas are modified
-## at initial startup, then labeled as part of the text area when
-## Emacs is dumped for the first time, and never changed again.
-##
-## -Demacs is needed to make some files produce the correct version
-## for use in Emacs.
-##
-## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
-ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
+# -Demacs makes some files produce the correct version for use in Emacs.
+# MYCPPFLAGS is for by-hand Emacs-specific overrides, e.g.,
+# "make MYCPPFLAGS='-DDBUS_DEBUG'".
+EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(top_srcdir)/lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
-  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) \
+  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) $(XDBE_CFLAGS) \
+  $(WEBKIT_CFLAGS) $(LCMS2_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
-  $(LIBGNUTLS_CFLAGS) $(GFILENOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
-  $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
-ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
+  $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) \
+  $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
+  $(WERROR_CFLAGS)
+ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
+ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
+  $(filter-out $(NON_OBJC_CFLAGS),$(WARN_CFLAGS)) $(CFLAGS) \
+  $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
 .c.o:
-	@$(MKDEPDIR)
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
 .m.o:
-	@$(MKDEPDIR)
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $(PROFILING_CFLAGS) $<
 
 ## lastfile must follow all files whose initialized data areas should
@@ -376,14 +393,17 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	minibuf.o fileio.o dired.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
-	eval.o floatfns.o fns.o font.o print.o lread.o \
+	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o intervals.o textprop.o composite.o xml.o $(NOTIFY_OBJ) \
+	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
+	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
+	thread.o systhread.o \
+	$(if $(HYBRID_MALLOC),sheap.o) \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
@@ -394,7 +414,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o \
-  w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
+  w32.o w32console.o w32cygwinx.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
   w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
   xsettings.o xgselect.o termcap.o
@@ -422,8 +442,19 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
+# Must be first, before dep inclusion!
 all: emacs$(EXEEXT) $(OTHER_FILES)
 .PHONY: all
+
+AUTO_DEPEND = @AUTO_DEPEND@
+DEPDIR = deps
+ifeq ($(AUTO_DEPEND),yes)
+  DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
+  -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
+else
+  DEPFLAGS =
+  include $(srcdir)/deps.mk
+endif
 
 ## This is the list of all Lisp files that might be loaded into the
 ## dumped Emacs.  Some of them are not loaded on all platforms, but
@@ -443,7 +474,7 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 shortlisp =
 lisp.mk: $(lispsource)/loadup.el
 	@rm -f $@
-	${AM_V_GEN}( echo "shortlisp = \\"; \
+	${AM_V_GEN}( printf 'shortlisp = \\\n'; \
 	sed -n 's/^[ \t]*(load "\([^"]*\)".*/\1/p' $< | \
 	  sed -e 's/$$/.elc \\/' -e 's/\.el\.elc/.el/'; \
 	echo "" ) > $@
@@ -461,16 +492,16 @@ lisp = $(addprefix ${lispsource}/,${shortlisp})
 LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
+   $(WEBKIT_LIBS) \
    $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
    $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
-   $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
+   $(XDBE_LIBS) \
+   $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) \
-   $(GFILENOTIFY_LIBS) $(LIB_MATH) $(LIBZ)
-
-$(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
-	$(MAKE) -C ../leim leim-list.el EMACS="$(bootstrap_exe)"
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LCMS2_LIBS) \
+   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
+   $(JSON_LIBS)
 
 ## FORCE it so that admin/unidata can decide whether these files
 ## are up-to-date.  Although since charprop depends on bootstrap-emacs,
@@ -479,6 +510,12 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
   bootstrap-emacs$(EXEEXT) FORCE
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
+
+## We require charprop.el to exist before ucs-normalize.el is
+## byte-compiled, because ucs-normalize.el needs to load 2 uni-*.el files.
+## And ns-win requires ucs-normalize.
+$(lispsource)/international/ucs-normalize.elc $(lispsource)/term/ns-win.elc: | \
+  $(lispsource)/international/charprop.el
 
 lispintdir = ${lispsource}/international
 ${lispintdir}/cp51932.el ${lispintdir}/eucjp-ms.el: FORCE
@@ -500,13 +537,15 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 ## since not all pieces are used on all platforms.  But DOC depends
 ## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
 emacs$(EXEEXT): temacs$(EXEEXT) \
-                lisp.mk $(etc)/DOC $(lisp) $(leimdir)/leim-list.el \
+                lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else
-	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
-	$(PAXCTL_if_present) -zex $@
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
+  ifneq ($(PAXCTL_dumped),)
+	$(PAXCTL_dumped) $@
+  endif
 	ln -f $@ bootstrap-emacs$(EXEEXT)
 endif
 
@@ -555,7 +594,9 @@ globals.h: gl-stamp; @true
 
 $(ALLOBJS): globals.h
 
-$(lib)/libgnu.a: $(config_h)
+LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
+
+$(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(lib) all
 
 ## We have to create $(etc) here because init_cmdargs tests its
@@ -563,13 +604,14 @@ $(lib)/libgnu.a: $(config_h)
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
 temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
-	         $(lib)/libgnu.a $(EMACSRES) ${charsets} ${charscript}
+	         $(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript}
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(lib)/libgnu.a $(W32_RES_LINK) $(LIBES)
+	  -o temacs $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
 	$(MKDIR_P) $(etc)
 ifneq ($(CANNOT_DUMP),yes)
-	$(PAXCTL_if_present) -r $@
-	$(SETFATTR_if_present) -n user.pax.flags -v er $@
+  ifneq ($(PAXCTL_notdumped),)
+	$(PAXCTL_notdumped) $@
+  endif
 endif
 
 ## The following oldxmenu-related rules are only (possibly) used if
@@ -581,16 +623,11 @@ $(oldXMenudir)/libXMenu11.a: FORCE
 FORCE:
 .PHONY: FORCE
 
-ACLOCAL_INPUTS = $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
-AUTOCONF_INPUTS = $(top_srcdir)/configure.ac $(top_srcdir)/aclocal.m4
-$(top_srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
-$(top_srcdir)/configure config.in: $(AUTOCONF_INPUTS)
 .PRECIOUS: ../config.status Makefile
-../config.status: $(top_srcdir)/configure $(top_srcdir)/lisp/version.el
+../config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
+	$(MAKE) -C .. $(notdir $@)
 Makefile: ../config.status $(srcdir)/Makefile.in
-$(top_srcdir)/aclocal.m4 $(top_srcdir)/configure config.in ../config.status \
-  Makefile:
-	$(MAKE) -C .. am--refresh
+	$(MAKE) -C .. src/$@
 
 doc.o: buildobj.h
 
@@ -612,14 +649,13 @@ mostlyclean:
 	rm -f globals.h gl-stamp
 	rm -f *.res *.tmp
 clean: mostlyclean
-	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
-	-rm -rf $(DEPDIR)
+	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
 ## but not things like config.status or TAGS.
 bootstrap-clean: clean
-	rm -f epaths.h config.h config.stamp stamp-h1
+	rm -f emacs-module.h epaths.h config.h config.stamp
 	if test -f ./.gdbinit; then \
 	  mv ./.gdbinit ./.gdbinit.save; \
 	  if test -f "$(srcdir)/.gdbinit"; then rm -f ./.gdbinit.save; \
@@ -628,41 +664,44 @@ bootstrap-clean: clean
 
 distclean: bootstrap-clean
 	rm -f Makefile lisp.mk
+	rm -fr $(DEPDIR)
 
 maintainer-clean: distclean
 	rm -f TAGS
 versionclean:
-	-rm -f emacs$(EXEEXT) emacs-*.*.*$(EXEEXT) ../etc/DOC*
+	-rm -f emacs$(EXEEXT) emacs-*.*.*[0-9]$(EXEEXT) ../etc/DOC*
 extraclean: distclean
 	-rm -f *~ \#*
 
 
-ETAGS = ../lib-src/etags
+ETAGS = ../lib-src/etags${EXEEXT}
 
-ctagsfiles1 = [xyzXYZ]*.[hc]
-ctagsfiles2 = [a-wA-W]*.[hc]
-ctagsfiles3 = [a-zA-Z]*.m
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+ctagsfiles1 = $(wildcard ${srcdir}/*.[hc])
+ctagsfiles2 = $(wildcard ${srcdir}/*.m)
 
 ## FIXME? In out-of-tree builds, should TAGS be generated in srcdir?
 
 ## This does not need to depend on ../lisp and ../lwlib TAGS files,
 ## because etags "--include" only includes a pointer to the file,
 ## rather than the file contents.
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
-	"$(ETAGS)" --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
+TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
+	${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) \
+	  $(ctagsfiles1) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(srcdir)/$(ctagsfiles3)
+	  $(ctagsfiles2)
 
 ## Arrange to make tags tables for ../lisp and ../lwlib,
 ## which the above TAGS file for the C files includes by reference.
-../lisp/TAGS:
+../lisp/TAGS: FORCE
 	$(MAKE) -C ../lisp TAGS ETAGS="$(ETAGS)"
 
-$(lwlibdir)/TAGS:
+$(lwlibdir)/TAGS: FORCE
 	$(MAKE) -C $(lwlibdir) TAGS ETAGS="$(ETAGS)"
 
 tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
@@ -707,17 +746,11 @@ bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 ifeq ($(CANNOT_DUMP),yes)
 	ln -f temacs$(EXEEXT) $@
 else
-	$(RUN_TEMACS) --batch --load loadup bootstrap
-	$(PAXCTL_if_present) -zex emacs$(EXEEXT)
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
+  ifneq ($(PAXCTL_dumped),)
+	$(PAXCTL_dumped) emacs$(EXEEXT)
+  endif
 	mv -f emacs$(EXEEXT) $@
 endif
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
-
-ifeq ($(AUTO_DEPEND),yes)
--include $(ALLOBJS:%.o=${DEPDIR}/%.d)
-else
-include $(srcdir)/deps.mk
-endif
-
-### Makefile.in ends here

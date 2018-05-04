@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   This was the old configuration script for MS Windows operating systems
-rem   Copyright (C) 1999-2015 Free Software Foundation, Inc.
+rem   Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -16,7 +16,7 @@ rem   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 rem   GNU General Public License for more details.
 
 rem   You should have received a copy of the GNU General Public License
-rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
+rem   along with GNU Emacs.  If not, see https://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
 echo ****************************************************************

@@ -1,6 +1,6 @@
 ;;; repeat.el --- convenient way to repeat the previous command  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

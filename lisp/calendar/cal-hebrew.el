@@ -1,6 +1,6 @@
 ;;; cal-hebrew.el --- calendar functions for the Hebrew calendar
 
-;; Copyright (C) 1995, 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -595,7 +595,7 @@ Hebrew date diary entries must be prefaced by `diary-hebrew-entry-symbol'
 of the Hebrew calendar entries, except that the Hebrew month
 names cannot be abbreviated.  The Hebrew months are numbered
 from 1 to 13 with Nisan being 1, 12 being Adar I and 13 being
-Adar II; you must use `Adar I' if you want Adar of a common
+Adar II; you must use \"Adar I\" if you want Adar of a common
 Hebrew year.  If a Hebrew date diary entry begins with
 `diary-nonmarking-symbol', the entry will appear in the diary
 listing, but will not be marked in the calendar.  This function

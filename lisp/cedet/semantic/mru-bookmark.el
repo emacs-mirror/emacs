@@ -1,6 +1,6 @@
 ;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -45,7 +45,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-base)
 (require 'ring)
@@ -113,7 +112,7 @@ Uses `semantic-go-to-tag' and highlighting."
 	  (forward-char o))
       (error nil))
     ;; make it visible
-    (switch-to-buffer (current-buffer))
+    (pop-to-buffer-same-window (current-buffer))
     (semantic-momentary-highlight-tag tag)
     ))
 
@@ -166,7 +165,6 @@ We can't use the built-in ring data structure because we need
 to delete some items from the ring when we don't have the data.")
 
 (defvar semantic-mru-bookmark-ring (semantic-bookmark-ring
-				    "Ring"
 				    :ring (make-ring 20))
   "The MRU bookmark ring.
 This ring tracks the most recent active tags of interest.")
@@ -263,7 +261,7 @@ If ARG is positive or nil, enable, if it is negative, disable."
    'semantic-mru-bookmark-mode (if global-semantic-mru-bookmark-mode 1 -1)))
 
 (defcustom semantic-mru-bookmark-mode-hook nil
-  "*Hook run at the end of function `semantic-mru-bookmark-mode'."
+  "Hook run at the end of function `semantic-mru-bookmark-mode'."
   :group 'semantic
   :type 'hook)
 

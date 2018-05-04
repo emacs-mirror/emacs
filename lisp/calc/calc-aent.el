@@ -1,9 +1,8 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -30,6 +29,7 @@
 (require 'calc-macs)
 
 ;; Declare functions which are defined elsewhere.
+(declare-function calc-digit-start-entry "calc" ())
 (declare-function calc-refresh-evaltos "calc-ext" (&optional which-var))
 (declare-function calc-execute-kbd-macro "calc-prog" (mac arg &rest prefix))
 (declare-function math-is-true "calc-ext" (expr))
@@ -450,12 +450,7 @@ The value t means abort and give an error message.")
 ;;;###autoload
 (defun calc-alg-digit-entry ()
   (calc-alg-entry
-   (cond ((eq last-command-event ?e)
-	  (if (> calc-number-radix 14) (format "%d.^" calc-number-radix) "1e"))
-	 ((eq last-command-event ?#) (format "%d#" calc-number-radix))
-	 ((eq last-command-event ?_) "-")
-	 ((eq last-command-event ?@) "0@ ")
-	 (t (char-to-string last-command-event)))))
+   (calc-digit-start-entry)))
 
 ;; The variable calc-digit-value is initially declared in calc.el,
 ;; but can be set by calcDigit-algebraic and calcDigit-edit.
@@ -733,7 +728,9 @@ in Calc algebraic input.")
 						 math-exp-str (1- math-exp-pos))
 				   (1- math-exp-pos))))))
 	     (or (and (memq calc-language calc-lang-c-type-hex)
-		      (string-match "0[xX][0-9a-fA-F]+" math-exp-str math-exp-pos))
+		      (eq (string-match "0[xX][0-9a-fA-F]+" math-exp-str
+                                        math-exp-pos)
+                          math-exp-pos))
 		 (string-match "_?\\([0-9]+.?0*@ *\\)?\\([0-9]+.?0*' *\\)?\\(0*\\([2-9]\\|1[0-4]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-dA-D.]+[eE][-+_]?[0-9]+\\|0*\\([2-9]\\|[0-2][0-9]\\|3[0-6]\\)\\(#[#]?\\|\\^\\^\\)[0-9a-zA-Zα-ωΑ-Ω:.]+\\|[0-9]+:[0-9:]+\\|[0-9.]+\\([eE][-+_]?[0-9]+\\)?\"?\\)?"
                                math-exp-str math-exp-pos))
 	     (setq math-exp-token 'number
@@ -1266,7 +1263,6 @@ If the current Calc language does not use placeholders, return nil."
 (provide 'calc-aent)
 
 ;; Local variables:
-;; coding: utf-8
 ;; generated-autoload-file: "calc-loaddefs.el"
 ;; End:
 

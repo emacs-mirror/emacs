@@ -1,6 +1,6 @@
 ;;; nnmh.el --- mhspool access for Gnus
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -33,7 +33,6 @@
 (require 'nnmail)
 (require 'gnus-start)
 (require 'nnoo)
-(eval-when-compile (require 'cl))
 
 (nnoo-declare nnmh)
 
@@ -242,12 +241,11 @@ as unread by Gnus.")
 	      (file-truename (file-name-as-directory
 			      (expand-file-name nnmh-toplev))))
 	     dir)
-	    (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
-	     (mm-encode-coding-string
-	      (nnheader-replace-chars-in-string
-	       (substring dir (match-end 0))
-	       ?/ ?.)
-	      nnmail-pathname-coding-system)))
+	    (encode-coding-string
+	     (nnheader-replace-chars-in-string
+	      (substring dir (match-end 0))
+	      ?/ ?.)
+	     nnmail-pathname-coding-system))
 	  (or max 0)
 	  (or min 1))))))
   t)

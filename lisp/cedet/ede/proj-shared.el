@@ -1,6 +1,6 @@
 ;;; ede-proj-shared.el --- EDE Generic Project shared library support
 
-;;; Copyright (C) 1998-2000, 2009-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2009-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -75,7 +75,6 @@ Use ldlibs to add addition libraries.")
 		      ("LTLINK" . "$(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -L. -o $@")
 		      )
 	 :rules (list (ede-makefile-rule
-		       "cc-inference-rule-libtool"
 		       :target "%.o"
 		       :dependencies "%.c"
 		       :rules '("@echo '$(LTCOMPILE) -o $@ $<'; \\"
@@ -122,7 +121,6 @@ Use ldlibs to add addition libraries.")
 		      ("LTCOMPILE" . "$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)")
 		      )
 	 :rules (list (ede-makefile-rule
-		       "c++-inference-rule-libtool"
 		       :target "%.o"
 		       :dependencies "%.cpp"
 		       :rules '("@echo '$(LTCOMPILE) -o $@ $<'; \\"
@@ -166,7 +164,7 @@ Use ldlibs to add addition libraries.")
        "%.lo: %.c\n"
        "\t@echo '$(LTCOMPILE) -c $<'; \\\n"
        "\t$(LTCOMPILE) -Wp,-MD,.deps/$(*F).p -c $<\n"
-       "\t@-sed -e 's/^\([^:]*\)\.o:/\1.lo \1.o:/' \\\n"
+       "\t@-sed -e 's/^\\([^:]*\\)\\.o:/\\1.lo \\1.o:/' \\\n"
        "\t      < .deps/$(*F).p > .deps/$(*F).P\n"
        "\t@-rm -f .deps/$(*F).p\n\n"))
   )

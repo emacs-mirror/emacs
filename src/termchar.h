@@ -1,12 +1,12 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,8 +14,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_TERMCHAR_H
+#define EMACS_TERMCHAR_H
+
+#include <stdio.h>
 #include "dispextern.h"
 
 /* Each termcap frame points to its own struct tty_output object in
@@ -145,10 +149,6 @@ struct tty_display_info
 
   int TN_max_colors;            /* "Co" -- number of colors.  */
 
-  /* "pa" -- max. number of color pairs on screen.  Not handled yet.
-     Could be a problem if not equal to TN_max_colors * TN_max_colors.  */
-  int TN_max_pairs;
-
   /* "op" -- SVr4 set default pair to its original value.  */
   const char *TS_orig_pair;
 
@@ -230,3 +230,5 @@ extern struct tty_display_info *tty_list;
    : (emacs_abort (), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
+
+#endif /* EMACS_TERMCHAR_H */

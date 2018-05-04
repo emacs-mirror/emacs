@@ -1,6 +1,6 @@
 ;;; erc-fill.el --- Filling IRC messages in various ways
 
-;; Copyright (C) 2001-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;;         Mario Lang <mlang@delysid.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
   "Filling means to reformat long lines in different ways."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-fill-mode "erc-fill" nil t)
+;;;###autoload(autoload 'erc-fill-mode "erc-fill" nil t)
 (erc-define-minor-mode erc-fill-mode
   "Toggle ERC fill mode.
 With a prefix argument ARG, enable ERC fill mode if ARG is
@@ -193,5 +193,6 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 
 ;;; erc-fill.el ends here
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: nil
 ;; End:

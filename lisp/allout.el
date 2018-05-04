@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -357,7 +357,7 @@ Examples:
         grandchildren, but completely collapse the final top-level topic.
  (-1 () : 1 0)
 	Close the first topic so only the immediate subtopics are shown,
-        leave the subsequent topics exposed as they are until the second
+        leave the subsequent topics exposed as they are until the
 	second to last topic, which is exposed at least one level, and
         completely close the last topic.
  (-2 : -1 *)
@@ -592,7 +592,7 @@ software.  By default:
 See `allout-plain-bullets-string' for the standard, alternating
 bullets.
 
-You must run `set-allout-regexp' in order for outline mode to
+You must run `allout-set-regexp' in order for outline mode to
 adopt changes of this value.
 
 DO NOT include the close-square-bracket, `]', on either of the bullet
@@ -797,9 +797,9 @@ numbers are always used."
   :group 'allout)
 ;;;_  - allout-title
 (defcustom allout-title '(or buffer-file-name (buffer-name))
-  "Expression to be evaluated to determine the title for LaTeX
-formatted copy."
+  "Expression to evaluate to determine the title for LaTeX formatted copy."
   :type 'sexp
+  :risky t
   :group 'allout)
 ;;;_  - allout-line-skip
 (defcustom allout-line-skip ".05cm"
@@ -917,7 +917,7 @@ has been customized to enable this behavior), `allout-mode' will be
 automatically activated.  The layout dictated by the value will be used to
 set the initial exposure when `allout-mode' is activated.
 
-\*You should not setq-default this variable non-nil unless you want every
+*You should not setq-default this variable non-nil unless you want every
 visited file to be treated as an allout file.*
 
 The value would typically be set by a file local variable.  For
@@ -947,13 +947,13 @@ case the value of `allout-default-layout' is used.")
 
 Any line whose beginning matches this regexp is considered a
 heading.  This var is set according to the user configuration vars
-by `set-allout-regexp'.")
+by `allout-set-regexp'.")
 (make-variable-buffer-local 'allout-regexp)
 ;;;_   = allout-bullets-string
 (defvar allout-bullets-string ""
   "A string dictating the valid set of outline topic bullets.
 
-This var should *not* be set by the user -- it is set by `set-allout-regexp',
+This var should *not* be set by the user -- it is set by `allout-set-regexp',
 and is produced from the elements of `allout-plain-bullets-string'
 and `allout-distinctive-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string)
@@ -970,7 +970,7 @@ headers at depth 2 and greater.  Use `allout-depth-one-regexp'
 for to seek topics at depth one.
 
 This var is set according to the user configuration vars by
-`set-allout-regexp'.  It is prepared with format strings for two
+`allout-set-regexp'.  It is prepared with format strings for two
 decimal numbers, which should each be one less than the depth of the
 topic prefix to be matched.")
 (make-variable-buffer-local 'allout-depth-specific-regexp)
@@ -979,7 +979,7 @@ topic prefix to be matched.")
   "Regular expression to match a heading line prefix for depth one.
 
 This var is set according to the user configuration vars by
-`set-allout-regexp'.  It is prepared with format strings for two
+`allout-set-regexp'.  It is prepared with format strings for two
 decimal numbers, which should each be one less than the depth of the
 topic prefix to be matched.")
 (make-variable-buffer-local 'allout-depth-one-regexp)
@@ -987,7 +987,7 @@ topic prefix to be matched.")
 (defvar allout-line-boundary-regexp ()
   "`allout-regexp' prepended with a newline for the search target.
 
-This is properly set by `set-allout-regexp'.")
+This is properly set by `allout-set-regexp'.")
 (make-variable-buffer-local 'allout-line-boundary-regexp)
 ;;;_   = allout-bob-regexp
 (defvar allout-bob-regexp ()
@@ -999,7 +999,7 @@ This is properly set by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-header-subtraction)
 ;;;_   = allout-plain-bullets-string-len
 (defvar allout-plain-bullets-string-len (length allout-plain-bullets-string)
-  "Length of `allout-plain-bullets-string', updated by `set-allout-regexp'.")
+  "Length of `allout-plain-bullets-string', updated by `allout-set-regexp'.")
 (make-variable-buffer-local 'allout-plain-bullets-string-len)
 
 ;;;_   = allout-doublecheck-at-and-shallower
@@ -1034,7 +1034,7 @@ suitably economical.")
   (interactive "sNew lead string: ")
   (setq allout-header-prefix header-lead)
   (setq allout-header-subtraction (1- (length allout-header-prefix)))
-  (set-allout-regexp))
+  (allout-set-regexp))
 ;;;_   X allout-lead-with-comment-string (header-lead)
 (defun allout-lead-with-comment-string (&optional header-lead)
   "Set the topic-header leading string to specified string.
@@ -1114,8 +1114,8 @@ file is programming code."
 	   comment-start
 	   (not (eq 'force allout-reindent-bodies)))
       (setq allout-reindent-bodies nil)))
-;;;_   > set-allout-regexp ()
-(defun set-allout-regexp ()
+;;;_   > allout-set-regexp ()
+(defun allout-set-regexp ()
   "Generate proper topic-header regexp form for outline functions.
 
 Works with respect to `allout-plain-bullets-string' and
@@ -1242,12 +1242,13 @@ Also refresh various data structures that hinge on the regexp."
                             "[^" allout-primary-bullet "]"))
                   "\\)"
                   ))))
+(define-obsolete-function-alias 'set-allout-regexp 'allout-set-regexp "26.1")
 ;;;_  : Menu bar
 (defvar allout-mode-exposure-menu)
 (defvar allout-mode-editing-menu)
 (defvar allout-mode-navigation-menu)
 (defvar allout-mode-misc-menu)
-(defun produce-allout-mode-menubar-entries ()
+(defun allout-produce-mode-menubar-entries ()
   (require 'easymenu)
   (easy-menu-define allout-mode-exposure-menu
 		    allout-mode-map-value
@@ -1505,41 +1506,6 @@ wrapped within allout's automatic `fill-prefix' setting.")
 (make-variable-buffer-local 'allout-outside-normal-auto-fill-function)
 ;;;_   = prevent redundant activation by desktop mode:
 (add-to-list 'desktop-minor-mode-handlers '(allout-mode . nil))
-;;;_   = allout-passphrase-verifier-string
-(defvar allout-passphrase-verifier-string nil
-  "Setting used to test solicited encryption passphrases against the one
-already associated with a file.
-
-It consists of an encrypted random string useful only to verify that a
-passphrase entered by the user is effective for decryption.  The passphrase
-itself is \*not* recorded in the file anywhere, and the encrypted contents
-are random binary characters to avoid exposing greater susceptibility to
-search attacks.
-
-The verifier string is retained as an Emacs file variable, as well as in
-the Emacs buffer state, if file variable adjustments are enabled.  See
-`allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-passphrase-verifier-string)
-(make-obsolete-variable 'allout-passphrase-verifier-string
-			'allout-passphrase-verifier-string "23.3")
-;;;###autoload
-(put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
-;;;_   = allout-passphrase-hint-string
-(defvar allout-passphrase-hint-string ""
-  "Variable used to retain reminder string for file's encryption passphrase.
-
-See the description of `allout-passphrase-hint-handling' for details about how
-the reminder is deployed.
-
-The hint is retained as an Emacs file variable, as well as in the Emacs buffer
-state, if file variable adjustments are enabled.  See
-`allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-passphrase-hint-string)
-(setq-default allout-passphrase-hint-string "")
-(make-obsolete-variable 'allout-passphrase-hint-string
-			'allout-passphrase-hint-string "23.3")
-;;;###autoload
-(put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
   "Internal variable, is nil or has the value of two points:
@@ -1686,7 +1652,7 @@ from what it did before, for backwards compatibility.
 MODE is the activation mode - see `allout-auto-activation' for
 valid values."
   (declare (obsolete allout-auto-activation "23.3"))
-  (custom-set-variables (list 'allout-auto-activation (format "%s" mode)))
+  (customize-set-variable 'allout-auto-activation (format "%s" mode))
   (format "%s" mode))
 
 ;;;_  > allout-setup-menubar ()
@@ -2029,7 +1995,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
       (allout-infer-header-lead-and-primary-bullet)
       (allout-infer-body-reindent)
 
-      (set-allout-regexp)
+      (allout-set-regexp)
       (allout-add-resumptions '(allout-encryption-ciphertext-rejection-regexps
                                 allout-line-boundary-regexp
                                 extend)
@@ -2038,7 +2004,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                                 extend))
 
       (allout-compose-and-institute-keymap)
-      (produce-allout-mode-menubar-entries)
+      (allout-produce-mode-menubar-entries)
 
       (add-to-invisibility-spec '(allout . t))
 
@@ -2245,8 +2211,8 @@ the new value of `allout-recent-prefix-beginning'."
                                       allout-recent-prefix-beginning
                                       allout-header-subtraction)))
   allout-recent-prefix-beginning)
-;;;_  > nullify-allout-prefix-data ()
-(defsubst nullify-allout-prefix-data ()
+;;;_  > allout-nullify-prefix-data ()
+(defsubst allout-nullify-prefix-data ()
   "Mark allout prefix data as being uninformative."
   (setq allout-recent-prefix-end (point)
         allout-recent-prefix-beginning (point)
@@ -2381,7 +2347,7 @@ Like `allout-current-depth', but respects hidden as well as visible topics."
           allout-recent-depth
         (progn
           ;; Oops, no prefix, nullify it:
-          (nullify-allout-prefix-data)
+          (allout-nullify-prefix-data)
           ;; ... and return 0:
           0)))))
 ;;;_    > allout-current-depth ()
@@ -3478,11 +3444,11 @@ Offer one suitable for current depth DEPTH as default."
 
   (let* ((default-bullet (or (and (stringp current-bullet) current-bullet)
                              (allout-bullet-for-depth depth)))
-	 (sans-escapes (regexp-sans-escapes allout-bullets-string))
+	 (sans-escapes (allout-regexp-sans-escapes allout-bullets-string))
 	 choice)
     (save-excursion
       (goto-char (allout-current-bullet-pos))
-      (setq choice (solicit-char-in-string
+      (setq choice (allout-solicit-char-in-string
                     (format-message
                      "Select bullet: %s (`%s' default): "
                      sans-escapes
@@ -3721,7 +3687,7 @@ Nuances:
   (save-match-data
     (let* ((inhibit-field-text-motion t)
            (depth (+ (allout-current-depth) relative-depth))
-           (opening-on-blank (if (looking-at "^\$")
+           (opening-on-blank (if (looking-at "^$")
                                  (not (setq before nil))))
            ;; bunch o vars set while computing ref-topic
            opening-numbered
@@ -4461,7 +4427,7 @@ Topic exposure is marked with text-properties, to be used by
     (if (and (/= (current-column) 0) (not (eobp)))
         (forward-char 1))
     (if (not (eobp))
-	(if (and (save-match-data (looking-at "\n"))
+	(if (and (= (following-char) ?\n)
                  (or (save-excursion
                        (or (not (allout-next-heading))
                            (= depth allout-recent-depth)))
@@ -5562,9 +5528,8 @@ Defaults:
 	  ;; Specified but not a buffer -- get it:
 	  (let ((got (get-buffer frombuf)))
 	    (if (not got)
-		(error (concat "allout-process-exposed: source buffer "
-			       frombuf
-			       " not found."))
+		(error "allout-process-exposed: source buffer %s not found."
+		       frombuf)
 	      (setq frombuf got))))
     ;; not specified -- default it:
     (setq frombuf (current-buffer)))
@@ -5909,7 +5874,7 @@ file with topics pending encryption is saved, topics pending
 encryption are encrypted.  See `allout-encrypt-unencrypted-on-saves'
 for auto-encryption specifics.
 
-\*NOTE WELL* that automatic encryption that happens during saves will
+*NOTE WELL* that automatic encryption that happens during saves will
 default to symmetric encryption -- you must deliberately (re)encrypt key-pair
 encrypted topics if you want them to continue to use the key-pair cipher.
 
@@ -6278,8 +6243,7 @@ It must also have content."
             (setq got nil
                   done t)
           (goto-char (setq got (match-beginning 0)))
-          (if (save-match-data (looking-at "\n"))
-              (forward-char 1))
+          (when (= (following-char) ?\n) (forward-char 1))
           (setq got (point)))
 
         (cond ((not got)
@@ -6342,7 +6306,7 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
                   ;; we had to wait for this 'til now so prior topics are
                   ;; encrypted, any relevant text shifts are in place:
                   editing-point (- current-mark-position
-                                   (count-trailing-whitespace-region
+                                   (allout-count-trailing-whitespace-region
                                     bo-subtree current-mark-position))))
           (allout-toggle-subtree-encryption)
           (if (not was-modified)
@@ -6504,12 +6468,12 @@ not its value."
   (let ((inhibit-field-text-motion t))
     (beginning-of-line))
   (allout-goto-prefix-doublechecked)
-  (push-mark (point))
+  (push-mark)
   (allout-end-of-current-subtree)
   (exchange-point-and-mark))
 ;;;_  : UI:
-;;;_   > solicit-char-in-string (prompt string &optional do-defaulting)
-(defun solicit-char-in-string (prompt string &optional do-defaulting)
+;;;_   > allout-solicit-char-in-string (prompt string &optional do-defaulting)
+(defun allout-solicit-char-in-string (prompt string &optional do-defaulting)
   "Solicit (with first arg PROMPT) choice of a character from string STRING.
 
 Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
@@ -6542,8 +6506,8 @@ Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
       got)
   )
 ;;;_  : Strings:
-;;;_   > regexp-sans-escapes (string)
-(defun regexp-sans-escapes (regexp &optional successive-backslashes)
+;;;_   > allout-regexp-sans-escapes (string)
+(defun allout-regexp-sans-escapes (regexp &optional successive-backslashes)
   "Return a copy of REGEXP with all character escapes stripped out.
 
 Representations of actual backslashes -- `\\\\\\\\' -- are left as a
@@ -6562,11 +6526,11 @@ Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion."
     (if (or (not successive-backslashes) (= 2 successive-backslashes))
 	;; Include first char:
 	(concat (substring regexp 0 1)
-		(regexp-sans-escapes (substring regexp 1)))
+		(allout-regexp-sans-escapes (substring regexp 1)))
       ;; Exclude first char, but maintain count:
-      (regexp-sans-escapes (substring regexp 1) successive-backslashes))))
-;;;_   > count-trailing-whitespace-region (beg end)
-(defun count-trailing-whitespace-region (beg end)
+      (allout-regexp-sans-escapes (substring regexp 1) successive-backslashes))))
+;;;_   > allout-count-trailing-whitespace-region (beg end)
+(defun allout-count-trailing-whitespace-region (beg end)
   "Return number of trailing whitespace chars between BEG and END.
 
 If BEG is bigger than END we return 0."
@@ -6798,9 +6762,9 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   "Isearch (regexp) for topic with bullet BULLET."
   (interactive)
   (if (not bullet)
-      (setq bullet (solicit-char-in-string
+      (setq bullet (allout-solicit-char-in-string
 		    "ISearch for topic with bullet: "
-		    (regexp-sans-escapes allout-bullets-string))))
+		    (allout-regexp-sans-escapes allout-bullets-string))))
 
   (let ((isearch-regexp t)
 	(isearch-string (concat "^"

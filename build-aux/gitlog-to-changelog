@@ -1,15 +1,15 @@
-eval '(exit $?0)' && eval 'exec perl -wS "$0" ${1+"$@"}'
+eval '(exit $?0)' && eval 'exec perl -wS "$0" "$@"'
   & eval 'exec perl -wS "$0" $argv:q'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2015-06-11 01:03'; # UTC
+my $VERSION = '2018-03-07 03:47'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
 # do its job.  Otherwise, update this string manually.
 
-# Copyright (C) 2008-2015 Free Software Foundation, Inc.
+# Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ my $VERSION = '2015-06-11 01:03'; # UTC
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Written by Jim Meyering
 
@@ -33,7 +33,7 @@ use POSIX qw(strftime);
 
 (my $ME = $0) =~ s|.*/||;
 
-# use File::Coda; # http://meyering.net/code/Coda/
+# use File::Coda; # https://meyering.net/code/Coda/
 END {
   defined fileno STDOUT or return;
   close STDOUT and return;
@@ -298,9 +298,7 @@ sub git_dir_option($)
             {
               if ($sha =~ /^$_/)
                 {
-                  $skipflag = 1;
-                  ## Perhaps only warn if a pattern matches more than once?
-                  warn "$ME: warning: skipping $sha due to $_\n";
+                  $skipflag = $_;
                   last;
                 }
             }
@@ -333,7 +331,7 @@ sub git_dir_option($)
           $rest =~ s/^\s*\(cherry picked from commit [\da-f]+\)\n//m;
         }
 
-      my @line = split /\s*\n/, $rest;
+      my @line = split /[ \t]*\n/, $rest;
       my $author_line = shift @line;
       defined $author_line
         or die "$ME:$.: unexpected EOF\n";
@@ -386,8 +384,17 @@ sub git_dir_option($)
       }
 
       # Ignore commits that match the --ignore-matching pattern, if specified.
-      if (! ($skipflag || (defined $ignore_matching
-             && @line && $line[0] =~ /$ignore_matching/)))
+      if (defined $ignore_matching && @line && $line[0] =~ /$ignore_matching/)
+        {
+          $skipflag = 1;
+        }
+      elsif ($skipflag)
+        {
+          ## Perhaps only warn if a pattern matches more than once?
+          warn "$ME: warning: skipping $sha due to $skipflag\n";
+        }
+
+      if (! $skipflag)
         {
           if (defined $ignore_line && @line)
             {
@@ -484,9 +491,9 @@ sub git_dir_option($)
 # Local Variables:
 # mode: perl
 # indent-tabs-mode: nil
-# eval: (add-hook 'write-file-hooks 'time-stamp)
+# eval: (add-hook 'before-save-hook 'time-stamp)
 # time-stamp-start: "my $VERSION = '"
 # time-stamp-format: "%:y-%02m-%02d %02H:%02M"
-# time-stamp-time-zone: "UTC"
+# time-stamp-time-zone: "UTC0"
 # time-stamp-end: "'; # UTC"
 # End:

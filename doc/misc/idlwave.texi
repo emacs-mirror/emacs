@@ -23,7 +23,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}.
 
-Copyright @copyright{} 1999--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -75,7 +75,7 @@ Interactive Data Language (IDL), and running IDL as an inferior shell.
 * Sources of Routine Info::     How does IDLWAVE know about routine XYZ
 * HTML Help Browser Tips::
 * Configuration Examples::      The user is king
-* Windows and MacOS::           What still works, and how
+* Windows and macOS::           What still works, and how
 * Troubleshooting::             When good computers turn bad
 * GNU Free Documentation License:: The license for this documentation.
 * Index::                       Fast access
@@ -172,7 +172,7 @@ Catalogs
 @cindex CORBA (Common Object Request Broker Architecture)
 @cindex Interface Definition Language
 @cindex Interactive Data Language
-@cindex cc-mode.el
+@cindex @file{cc-mode.el}
 @cindex @file{idl.el}
 @cindex @file{idl-shell.el}
 @cindex Feature overview
@@ -702,13 +702,13 @@ be located in the library.  E.g., if you have scanned the IDL-Astro
 library:
 
 @example
-    a=readf@key{M-@key{TAB}}
+    a=readf@kbd{M-@key{TAB}}
 @end example
 
 expands to ``readfits(''.  Then try
 
 @example
-    a=readfits(@key{C-c ?}
+    a=readfits(@kbd{C-c ?}
 @end example
 
 and you get:
@@ -935,7 +935,7 @@ IDL code.
 @cindex String splitting
 @cindex Splitting, of lines
 
-@kindex M-@key{RET}
+@kindex M-RET
 In IDL, a newline character terminates a statement unless preceded by a
 @samp{$}.  If you would like to start a continuation line, use
 @kbd{M-@key{RET}}, which calls the command @code{idlwave-split-line}.
@@ -1281,7 +1281,7 @@ the routine documentation header and/or routine source.
 @kindex M-?
 In any IDL program (or, as with most IDLWAVE commands, in the IDL
 Shell), press @kbd{M-?} (@code{idlwave-context-help}), or click with
-@kbd{S-Mouse-3} to access context sensitive online help.  The following
+@kbd{S-mouse-3} to access context sensitive online help.  The following
 locations are recognized context for help:
 
 @cindex Context, for online help
@@ -1327,11 +1327,11 @@ which online help can be accessed.
 @itemize @bullet
 @item
 Online help for routines and keywords can be accessed through the
-Routine Info display.  Click with @kbd{Mouse-3} on an item to see the
+Routine Info display.  Click with @kbd{mouse-3} on an item to see the
 corresponding help (@pxref{Routine Info}).
 @item
 When using completion and Emacs pops up a @file{*Completions*} buffer
-with possible completions, clicking with @kbd{Mouse-3} on a completion
+with possible completions, clicking with @kbd{mouse-3} on a completion
 item invokes help on that item (@pxref{Completion}).  Items for which
 help is available in the online system documentation (vs. just the
 program source itself) will be emphasized (e.g., colored blue).
@@ -1523,7 +1523,7 @@ The case-insensitive heading word in doclib headers to locate the
 @cindex Function name completion
 @cindex Procedure name completion
 
-@kindex M-@key{TAB}
+@kindex M-TAB
 @kindex C-c C-i
 IDLWAVE offers completion for class names, routine names, keywords,
 system variables, system variable tags, class structure tags, regular
@@ -1577,7 +1577,7 @@ search for a procedure matching a regexp.
 If the list of completions is too long to fit in the
 @file{*Completions*} window, the window can be scrolled by pressing
 @kbd{M-@key{TAB}} repeatedly.  Online help (if installed) for each
-possible completion is available by clicking with @kbd{Mouse-3} on the
+possible completion is available by clicking with @kbd{mouse-3} on the
 item.  Items for which system online help (from the IDL manual) is
 available will be emphasized (e.g., colored blue).  For other items, the
 corresponding source code or DocLib header will be used as the help
@@ -2372,7 +2372,7 @@ Normal hook.  Executed when @file{idlwave.el} is loaded.
 @cindex Subprocess of Emacs, IDL
 @cindex Comint, Emacs package
 @cindex Windows
-@cindex MacOS
+@cindex macOS
 
 The IDLWAVE shell is an Emacs major mode which permits running the IDL
 program as an inferior process of Emacs, and works closely with the
@@ -2382,7 +2382,7 @@ debug these programs.  The IDLWAVE shell is built on @file{comint}, an
 Emacs packages which handles the communication with the IDL program.
 Unfortunately, IDL for Windows does not have command-prompt versions and
 thus do not allow the interaction with Emacs, so the IDLWAVE shell
-currently only works under Unix and MacOSX.
+currently works under only Unix and macOS.
 
 @menu
 * Starting the Shell::          How to launch IDL as a subprocess
@@ -2519,9 +2519,9 @@ between emacs and IDL sessions.  Here is a list of commonly used
 commands:
 
 @multitable @columnfractions .12 .88
-@item @key{UP}, @key{M-p}
+@item @key{UP}, @kbd{M-p}
 @tab Cycle backwards in input history
-@item @key{DOWN}, @key{M-n}
+@item @key{DOWN}, @kbd{M-n}
 @tab Cycle forwards in input history
 @item @kbd{M-r}
 @tab Previous input matching a regexp
@@ -2811,7 +2811,7 @@ you add or remove some on the command line) using @kbd{C-c C-d C-l}.
 
 In recent IDLWAVE versions, the breakpoint line is highlighted when the
 mouse is moved over it, and a tooltip pops up describing the break
-details.  @kbd{Mouse-3} on the breakpoint line pops up a menu of
+details.  @kbd{mouse-3} on the breakpoint line pops up a menu of
 breakpoint actions, including clearing, disabling, and adding or
 changing break conditions or ``after'' break count.
 
@@ -3131,8 +3131,8 @@ variable, number, or function you see can be examined.
 If the variable @code{idlwave-shell-separate-examine-output} is
 non-@code{nil} (the default), all examine output will be sent to a
 special @file{*Examine*} buffer, rather than the shell.  The output of
-prior examine commands is saved in this buffer.  In this buffer @key{c}
-clears the contents, and @key{q} hides the buffer.
+prior examine commands is saved in this buffer.  In this buffer @kbd{c}
+clears the contents, and @kbd{q} hides the buffer.
 
 The two most basic examine commands are bound to @kbd{C-c C-d C-p}, to
 print the expression at point, and @kbd{C-c C-d ?}, to invoke help on
@@ -3151,7 +3151,7 @@ print, only an initial portion of long arrays will be printed, up to
 
 For added speed and convenience, there are mouse bindings which allow
 you to click on expressions and examine their values.  Use
-@kbd{S-Mouse-2} to print an expression and @kbd{C-M-Mouse-2} to invoke
+@kbd{S-mouse-2} to print an expression and @kbd{C-M-mouse-2} to invoke
 help (i.e., you need to hold down @key{META} and @key{CONTROL} while
 clicking with the middle mouse button).  If you simply click, the
 nearest expression will be selected in the same manner as described
@@ -3219,7 +3219,7 @@ mouse examine command, and two macros for generating your own examine
 key and mouse bindings.
 
 The most powerful and flexible mouse examine command of all is
-available on @kbd{C-S-Mouse-2}.  Just as for all the other mouse
+available on @kbd{C-S-mouse-2}.  Just as for all the other mouse
 examine commands, it permits click or drag expression selection, but
 instead of sending hard-coded commands to the shell, it pops-up a
 customizable selection list of examine functions to choose among,
@@ -3533,14 +3533,14 @@ to locate library catalogs.
 @end defopt
 
 @defopt idlwave-library-path
-IDL library path for Windows and MacOS@.  Under Unix/MacOSX, will be
+IDL library path for Windows and macOS@.  Under Unix/macOS, will be
 obtained from the Shell when run.
 @end defopt
 
 @defopt idlwave-system-directory
-The IDL system directory for Windows and MacOS@.  Also needed for
+The IDL system directory for Windows and macOS@.  Also needed for
 locating HTML help and the IDL Assistant for IDL v6.2 and later.  Under
-Unix/MacOSX, will be obtained from the Shell and recorded, if run.
+Unix/macOS, will be obtained from the Shell and recorded, if run.
 @end defopt
 
 @defopt idlwave-config-directory (@file{~/.emacs.d/idlwave})
@@ -3626,7 +3626,7 @@ performance is a problem and/or the catalogs are not needed.
 @cindex User catalog
 @cindex IDL library routine info
 @cindex Windows
-@cindex MacOS
+@cindex macOS
 @cindex IDL variable @code{!DIR}
 @cindex @code{!DIR}, IDL variable
 
@@ -3651,7 +3651,7 @@ catalog must be rescanned to update it.  Creating the user catalog is
 also much slower than scanning library catalogs.
 
 You can scan any of the directories on the currently known path.  Under
-Windows and MacOS (not OSX), you need to specify the IDL search path in
+Windows, you need to specify the IDL search path in
 the variable @code{idlwave-library-path}, and the location of the IDL
 directory (the value of the @code{!DIR} system variable) in the variable
 @code{idlwave-system-directory}, like this@footnote{The initial @samp{+}
@@ -3742,10 +3742,9 @@ files.  Therefore, such local files should not be installed inside the
 many other reasons.
 
 @cindex Windows
-@cindex MacOS
 @cindex IDL variable @code{!DIR}
 @cindex @code{!DIR}, IDL variable
-Users of Windows and MacOS (not X) also must set the variable
+Users of Windows also must set the variable
 @code{idlwave-system-directory} to the value of the @code{!DIR} system
 variable in IDL@.  IDLWAVE appends @file{lib} to the value of this
 variable and assumes that all files found on that path are system
@@ -3822,7 +3821,7 @@ etc.).
 @noindent Individual platform recommendations:
 
 @itemize @bullet
-@item Unix/MacOSX: The @uref{http://www.w3m.org,@code{w3m}} browser
+@item Unix/macOS: The @uref{http://www.w3m.org,@code{w3m}} browser
 and its associated
 @uref{http://emacs-w3m.namazu.org/,@code{emacs-w3m}} emacs mode
 provide in-buffer browsing with image display, and excellent speed and
@@ -4020,18 +4019,17 @@ user is King!
 @html
 <A NAME="WINDOWS_MAC"></A>
 @end html
-@node Windows and MacOS
-@appendix Windows and MacOS
+@node Windows and macOS
+@appendix Windows and macOS
 @cindex Windows
-@cindex MacOS
-@cindex MacOSX
+@cindex macOS
 
 IDLWAVE was developed on a UNIX system.  However, thanks to the
 portability of Emacs, much of IDLWAVE does also work under different
-operating systems like Windows (with NTEmacs or NTXEmacs) or MacOS.
+operating systems like Windows (with NTEmacs or NTXEmacs).
 
 The only real problem is that there is no command-line version of IDL
-for Windows or MacOS(<=9) with which IDLWAVE can interact.  As a
+for Windows with which IDLWAVE can interact.  As a
 result, the IDLWAVE Shell does not work and you have to rely on IDLDE
 to run and debug your programs.  However, editing IDL source files
 with Emacs/IDLWAVE works with all bells and whistles, including
@@ -4066,7 +4064,7 @@ sure you check the following things:
 @itemize @bullet
 @item When you download the IDLWAVE distribution, make sure you save the
 file under the names @file{idlwave.tar.gz}.
-@item M-TAB switches among running programs---use Esc-TAB
+@item M-@key{TAB} switches among running programs---use @key{ESC}-@key{TAB}
 instead.
 @item Other issues as yet unnamed...
 @end itemize
@@ -4112,10 +4110,10 @@ ensure @samp{idl} is on your @samp{$PATH}, or specify the full
 pathname to the idl program with the variable
 @code{idlwave-shell-explicit-file-name}.  Note that you may need to
 set your shell search path in two places when running Emacs as an Aqua
-application with MacOSX; see the next topic.
+application with macOS; see the next topic.
 
 @item @strong{IDLWAVE is disregarding my @samp{IDL_PATH} which I set
-under MacOSX}
+under macOS}
 
 If you run Emacs directly as an Aqua application, rather than from the
 console shell, the environment is set not from your usual shell
@@ -4251,7 +4249,7 @@ This actually happens when running IDL in an XTerm as well.  There are
 a couple of workarounds: @code{define_key,/control,'^d'} (e.g., in
 your @file{$IDL_STARTUP} file) will disable the @samp{EOF} character
 and give you a 512 character limit.  You won't be able to use
-@key{C-d} to quit the shell, however.  Another possibility is
+@kbd{C-d} to quit the shell, however.  Another possibility is
 @code{!EDIT_INPUT=0}, which gives you an @emph{infinite} limit (OK, a
 memory-bounded limit), but disables the processing of background
 widget events (those with @code{/NO_BLOCK} passed to @code{XManager}).

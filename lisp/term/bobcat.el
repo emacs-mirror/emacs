@@ -5,4 +5,6 @@
   (keyboard-translate ?\177 ?\^h)
   (keyboard-translate ?\^h ?\177))
 
+(provide 'term/bobcat)
+
 ;;; bobcat.el ends here

@@ -1,6 +1,6 @@
 /* Work around an fstatat bug on Solaris 9.
 
-   Copyright (C) 2006, 2009-2015 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert and Jim Meyering.  */
 
@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #undef __need_system_sys_stat_h
 
-#if HAVE_FSTATAT
+#if HAVE_FSTATAT && HAVE_WORKING_FSTATAT_ZERO_FLAG
 static int
 orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
 {
@@ -41,6 +41,8 @@ orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
    above.  */
 #include "sys/stat.h"
 
+#include "stat-time.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
@@ -50,6 +52,12 @@ orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
 # ifndef LSTAT_FOLLOWS_SLASHED_SYMLINK
 #  define LSTAT_FOLLOWS_SLASHED_SYMLINK 0
 # endif
+
+static int
+normal_fstatat (int fd, char const *file, struct stat *st, int flag)
+{
+  return stat_time_normalize (orig_fstatat (fd, file, st, flag), st);
+}
 
 /* fstatat should always follow symbolic links that end in /, but on
    Solaris 9 it doesn't if AT_SYMLINK_NOFOLLOW is specified.
@@ -63,7 +71,7 @@ orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
 int
 rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
 {
-  int result = orig_fstatat (fd, file, st, flag);
+  int result = normal_fstatat (fd, file, st, flag);
   size_t len;
 
   if (LSTAT_FOLLOWS_SLASHED_SYMLINK || result != 0)
@@ -79,7 +87,7 @@ rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
           errno = ENOTDIR;
           return -1;
         }
-      result = orig_fstatat (fd, file, st, flag & ~AT_SYMLINK_NOFOLLOW);
+      result = normal_fstatat (fd, file, st, flag & ~AT_SYMLINK_NOFOLLOW);
     }
   /* Fix stat behavior.  */
   if (result == 0 && !S_ISDIR (st->st_mode) && file[len - 1] == '/')
@@ -111,7 +119,7 @@ stat_func (char const *name, struct stat *st)
 # endif
 
 /* Replacement for Solaris' function by the same name.
-   <http://www.google.com/search?q=fstatat+site:docs.sun.com>
+   <https://www.google.com/search?q=fstatat+site:docs.oracle.com>
    First, try to simulate it via l?stat ("/proc/self/fd/FD/FILE").
    Failing that, simulate it via save_cwd/fchdir/(stat|lstat)/restore_cwd.
    If either the save_cwd or the restore_cwd fails (relatively unlikely),

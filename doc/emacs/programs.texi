@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -73,6 +73,7 @@ mode for the C programming language is @code{c-mode}.
 @cindex Python mode
 @cindex Ruby mode
 @cindex Simula mode
+@cindex Verilog mode
 @cindex VHDL mode
 @cindex M4 mode
 @cindex Shell-script mode
@@ -81,15 +82,17 @@ mode for the C programming language is @code{c-mode}.
 @cindex Conf mode
 @cindex DNS mode
 @cindex Javascript mode
+@cindex Awk mode
   Emacs has programming language modes for Lisp, Scheme, the
 Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++,
-Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, Metafont
-(@TeX{}'s companion for font creation), Modula2, Object Pascal, Objective-C,
-Octave, Pascal, Perl, Pike, PostScript, Prolog, Python, Ruby, Simula, Tcl,
-and VHDL@.  An alternative mode for Perl is called CPerl mode.  Modes are
-also available for the scripting languages of the common GNU and Unix
-shells, and MS-DOS/MS-Windows @samp{BAT} files, and for makefiles,
-DNS master files, and various sorts of configuration files.
+Fortran, Icon, IDL (CORBA), IDLWAVE, Java, Javascript, M4, Makefiles,
+Metafont (@TeX{}'s companion for font creation), Modula2, Object
+Pascal, Objective-C, Octave, Pascal, Perl, Pike, PostScript, Prolog,
+Python, Ruby, Simula, SQL, Tcl, Verilog, and VHDL@.  An alternative
+mode for Perl is called CPerl mode.  Modes are also available for the
+scripting languages of the common GNU and Unix shells, and
+MS-DOS/MS-Windows @samp{BAT} files, and for makefiles, DNS master
+files, and various sorts of configuration files.
 
   Ideally, Emacs should have a major mode for each programming
 language that you might want to edit.  If it doesn't have a mode for
@@ -100,14 +103,15 @@ distributed with Emacs (@pxref{Packages}); or you can contribute one.
 @findex backward-delete-char-untabify
   In most programming languages, indentation should vary from line to
 line to illustrate the structure of the program.  Therefore, in most
-programming language modes, typing @key{TAB} updates the indentation
-of the current line (@pxref{Program Indent}).  Furthermore, @key{DEL}
-is usually bound to @code{backward-delete-char-untabify}, which
-deletes backward treating each tab as if it were the equivalent number
-of spaces, so that you can delete one column of indentation without
-worrying whether the whitespace consists of spaces or tabs.
+programming language modes, typing @kbd{@key{TAB}} updates the
+indentation of the current line (@pxref{Program Indent}).
+Furthermore, @kbd{@key{DEL}} is usually bound to
+@code{backward-delete-char-untabify}, which deletes backward treating
+each tab as if it were the equivalent number of spaces, so that you
+can delete one column of indentation without worrying whether the
+whitespace consists of spaces or tabs.
 
-@cindex mode hook
+@cindex mode hook, and major modes
 @vindex c-mode-hook
 @vindex lisp-mode-hook
 @vindex emacs-lisp-mode-hook
@@ -122,13 +126,14 @@ For instance, entering C mode runs the hooks @code{prog-mode-hook} and
 @ifnottex
   Separate manuals are available for the modes for Ada (@pxref{Top,,
 Ada Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba
-IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), and IDLWAVE
-(@pxref{Top,, IDLWAVE, idlwave, IDLWAVE User Manual}).
+IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), Octave, VHDL,
+and IDLWAVE (@pxref{Top,, IDLWAVE, idlwave, IDLWAVE User Manual}).
 @end ifnottex
 @iftex
   The Emacs distribution contains Info manuals for the major modes for
-Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, and IDLWAVE@.  For
-Fortran mode, @pxref{Fortran,,, emacs-xtra, Specialized Emacs Features}.
+Ada, C/C++/Objective C/Java/Corba IDL/Pike/AWK, Octave, VHDL, and
+IDLWAVE@.  For Fortran mode, @pxref{Fortran,,, emacs-xtra, Specialized
+Emacs Features}.
 @end iftex
 
 @node Defuns
@@ -151,56 +156,22 @@ Emacs we use it for all languages.
 
 @cindex open-parenthesis in leftmost column
 @cindex ( in leftmost column
-  Many programming-language modes assume by default that any opening
-delimiter found at the left margin is the start of a top-level
-definition, or defun.  Therefore, @strong{don't put an opening
-delimiter at the left margin unless it should have that significance}.
-For instance, never put an open-parenthesis at the left margin in a
-Lisp file unless it is the start of a top-level list.
-
-  The convention speeds up many Emacs operations, which would
-otherwise have to scan back to the beginning of the buffer to analyze
-the syntax of the code.
-
-  If you don't follow this convention, not only will you have trouble
-when you explicitly use the commands for motion by defuns; other
-features that use them will also give you trouble.  This includes the
-indentation commands (@pxref{Program Indent}) and Font Lock mode
-(@pxref{Font Lock}).
-
-  The most likely problem case is when you want an opening delimiter
-at the start of a line inside a string.  To avoid trouble, put an
-escape character (@samp{\}, in C and Emacs Lisp, @samp{/} in some
-other Lisp dialects) before the opening delimiter.  This will not
-affect the contents of the string, but will prevent that opening
-delimiter from starting a defun.  Here's an example:
-
-@example
-  (insert "Foo:
-\(bar)
-")
-@end example
-
-  To help you catch violations of this convention, Font Lock mode
-highlights confusing opening delimiters (those that ought to be
-quoted) in bold red.
+  Many programming-language modes have traditionally assumed that any
+opening parenthesis or brace found at the left margin is the start of
+a top-level definition, or defun.  So, by default, commands which seek
+the beginning of a defun accept such a delimiter as signifying that
+position.
 
 @vindex open-paren-in-column-0-is-defun-start
-  If you need to override this convention, you can do so by setting
-the variable @code{open-paren-in-column-0-is-defun-start}.
-If this user option is set to @code{t} (the default), opening
-parentheses or braces at column zero always start defuns.  When it is
+  If you want to override this convention, you can do so by setting
+the user option @code{open-paren-in-column-0-is-defun-start} to
+@code{nil}.  If this option is set to @code{t} (the default), commands
+seeking the start of a defun will stop at opening parentheses or
+braces at column zero which aren't in a comment or string.  When it is
 @code{nil}, defuns are found by searching for parens or braces at the
-outermost level.
-
-  Usually, you should leave this option at its default value of
-@code{t}.  If your buffer contains parentheses or braces in column
-zero which don't start defuns, and it is somehow impractical to remove
-these parentheses or braces, it might be helpful to set the option to
-@code{nil}.  Be aware that this might make scrolling and display in
-large buffers quite sluggish.  Furthermore, the parentheses and braces
-must be correctly matched throughout the buffer for it to work
-properly.
+outermost level.  Since low-level Emacs routines no longer depend on
+this convention, you usually won't need to change
+@code{open-paren-in-column-0-is-defun-start} from its default.
 
 @node Moving by Defuns
 @subsection Moving by Defuns
@@ -248,11 +219,15 @@ the same as @kbd{C-M-a} with a positive argument.
 (@code{mark-defun}), which sets the mark at the end of the current
 defun and puts point at its beginning.  @xref{Marking Objects}.  This
 is the easiest way to get ready to kill the defun in order to move it
-to a different place in the file.  If you use the command while point
-is between defuns, it uses the following defun.  If you use the
-command while the mark is already active, it sets the mark but does
-not move point; furthermore, each successive use of @kbd{C-M-h}
-extends the end of the region to include one more defun.
+to a different place in the file.  If the defun is directly preceded
+by comments (with no intervening blank lines), they are marked, too.
+If you use the command while point is between defuns, it uses the
+following defun.  If you use the command while the mark is already
+active, it extends the end of the region to include one more defun.
+With a prefix argument, it marks that many defuns or extends the
+region by the appropriate number of defuns.  With negative prefix
+argument it marks defuns in the opposite direction and also changes
+the direction of selecting for subsequent uses of @code{mark-defun}.
 
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
@@ -271,7 +246,7 @@ bindings for that purpose.
   The Imenu facility offers a way to find the major definitions in
 a file by name.  It is also useful in text formatter major modes,
 where it treats each chapter, section, etc., as a definition.
-(@xref{Tags}, for a more powerful feature that handles multiple files
+(@xref{Xref}, for a more powerful feature that handles multiple files
 together.)
 
 @findex imenu
@@ -327,7 +302,7 @@ as you move around in a buffer.
 @vindex which-func-modes
   To either enable or disable Which Function mode, use the command
 @kbd{M-x which-function-mode}.  Which Function mode is a global minor
-mode.  By default, it takes effect in all major modes major modes that
+mode.  By default, it takes effect in all major modes that
 know how to support it (i.e., all the major modes that support
 Imenu).  You can restrict it to a specific list of major modes by
 changing the value of the variable @code{which-func-modes} from
@@ -358,6 +333,7 @@ language modes.
 @cindex pretty-printer
   Emacs also provides a Lisp pretty-printer in the @code{pp} package,
 which reformats Lisp objects with nice-looking indentation.
+@xref{Output Functions, pp,, elisp, The Emacs Lisp Reference Manual}.
 
 @node Basic Indent
 @subsection Basic Program Indentation Commands
@@ -371,19 +347,19 @@ Insert a newline, then adjust indentation of following line
 @end table
 
 @kindex TAB @r{(programming modes)}
-@findex c-indent-command
 @findex indent-line-function
-@findex indent-for-tab-command
-  The basic indentation command is @key{TAB}
+  The basic indentation command is @kbd{@key{TAB}}
 (@code{indent-for-tab-command}), which was documented in
-@ref{Indentation}.  In programming language modes, @key{TAB} indents
-the current line, based on the indentation and syntactic content of
-the preceding lines; if the region is active, @key{TAB} indents each
-line within the region, not just the current line.
+@ref{Indentation}.  In programming language modes, @kbd{@key{TAB}}
+indents the current line, based on the indentation and syntactic
+content of the preceding lines; if the region is active,
+@kbd{@key{TAB}} indents each line within the region, not just the
+current line.
 
-  The command @key{RET} (@code{newline}), which was documented in
-@ref{Inserting Text}, does the same as @kbd{C-j} followed by
-@key{TAB}: it inserts a new line, then adjusts the line's indentation.
+  The command @kbd{@key{RET}} (@code{newline}), which was documented
+in @ref{Inserting Text}, does the same as @kbd{C-j} followed by
+@kbd{@key{TAB}}: it inserts a new line, then adjusts the line's
+indentation.
 
   When indenting a line that starts within a parenthetical grouping,
 Emacs usually places the start of the line under the preceding line
@@ -392,7 +368,7 @@ manually give one of these lines a nonstandard indentation (e.g., for
 aesthetic purposes), the lines below will follow it.
 
   The indentation commands for most programming language modes assume
-that a open-parenthesis, open-brace or other opening delimiter at the
+that an open-parenthesis, open-brace or other opening delimiter at the
 left margin is the start of a function.  If the code you are editing
 violates this assumption---even if the delimiters occur in strings or
 comments---you must set @code{open-paren-in-column-0-is-defun-start}
@@ -404,7 +380,7 @@ Paren}.
 
   Sometimes, you may want to reindent several lines of code at a time.
 One way to do this is to use the mark; when the mark is active and the
-region is non-empty, @key{TAB} indents every line in the region.
+region is non-empty, @kbd{@key{TAB}} indents every line in the region.
 Alternatively, the command @kbd{C-M-\} (@code{indent-region}) indents
 every line in the region, whether or not the mark is active
 (@pxref{Indentation Commands}).
@@ -432,19 +408,19 @@ grouping, without affecting its overall indentation (i.e., the
 indentation of the line where the grouping starts).  The function that
 @kbd{C-M-q} runs depends on the major mode; it is
 @code{indent-pp-sexp} in Lisp mode, @code{c-indent-exp} in C mode,
-etc.  To correct the overall indentation as well, type @key{TAB}
+etc.  To correct the overall indentation as well, type @kbd{@key{TAB}}
 first.
 
 @kindex C-u TAB
   If you like the relative indentation within a grouping but not the
 indentation of its first line, move point to that first line and type
 @kbd{C-u @key{TAB}}.  In Lisp, C, and some other major modes,
-@key{TAB} with a numeric argument reindents the current line as usual,
-then reindents by the same amount all the lines in the parenthetical
-grouping starting on the current line.  It is clever, though, and does
-not alter lines that start inside strings.  Neither does it alter C
-preprocessor lines when in C mode, but it does reindent any
-continuation lines that may be attached to them.
+@kbd{@key{TAB}} with a numeric argument reindents the current line as
+usual, then reindents by the same amount all the lines in the
+parenthetical grouping starting on the current line.  It is clever,
+though, and does not alter lines that start inside strings.  Neither
+does it alter C preprocessor lines when in C mode, but it does
+reindent any continuation lines that may be attached to them.
 
 @findex indent-code-rigidly
   The command @kbd{M-x indent-code-rigidly} rigidly shifts all the
@@ -486,7 +462,7 @@ expression.
   You can override the standard pattern in various ways for individual
 functions, according to the @code{lisp-indent-function} property of
 the function name.  This is normally done for macro definitions, using
-the @code{declare} construct.  @xref{Defining Macros,,, elisp, the
+the @code{declare} construct.  @xref{Defining Macros,,, elisp, The
 Emacs Lisp Reference Manual}.
 
 @node C Indent
@@ -494,7 +470,7 @@ Emacs Lisp Reference Manual}.
 
   Here are special features for indentation in C mode and related modes:
 
-@table @code
+@table @kbd
 @item C-c C-q
 @kindex C-c C-q @r{(C mode)}
 @findex c-indent-defun
@@ -707,9 +683,7 @@ argument moves the previous balanced expression backwards across those
 before it.  An argument of zero, rather than doing nothing, transposes
 the balanced expressions ending at or after point and the mark.
 
-@kindex C-M-@@
-@kindex C-M-@key{SPC}
-@findex mark-sexp
+@kindex C-M-SPC
   To operate on balanced expressions with a command which acts on the
 region, type @kbd{C-M-@key{SPC}} (@code{mark-sexp}).  This sets the
 mark where @kbd{C-M-f} would move to.  While the mark is active, each
@@ -741,10 +715,10 @@ because of the parentheses.
   The following commands move over groupings delimited by parentheses
 (or whatever else serves as delimiters in the language you are working
 with).  They ignore strings and comments, including any parentheses
-within them, and also ignore parentheses that are ``quoted'' with an
+within them, and also ignore parentheses that are quoted with an
 escape character.  These commands are mainly intended for editing
 programs, but can be useful for editing any text containing
-parentheses.  They are referred to internally as ``list'' commands
+parentheses.  They are referred to internally as ``list commands''
 because in Lisp these groupings are lists.
 
   These commands assume that the starting point is not inside a string
@@ -766,7 +740,7 @@ Move down in parenthesis structure (@code{down-list}).
 @kindex C-M-p
 @findex forward-list
 @findex backward-list
-  The ``list'' commands @kbd{C-M-n} (@code{forward-list}) and
+  The list commands @kbd{C-M-n} (@code{forward-list}) and
 @kbd{C-M-p} (@code{backward-list}) move forward or backward over one
 (or @var{n}) parenthetical groupings.
 
@@ -833,38 +807,78 @@ displayed.  The default is 102400.
 @findex show-paren-mode
   Show Paren mode, a global minor mode, provides a more powerful kind
 of automatic matching.  Whenever point is before an opening delimiter
-or after a closing delimiter, both that delimiter and its opposite
-delimiter are highlighted.  To toggle Show Paren mode, type @kbd{M-x
-show-paren-mode}.
+or after a closing delimiter, the delimiter, its matching delimiter,
+and optionally the text between them are highlighted.  To toggle Show
+Paren mode, type @kbd{M-x show-paren-mode}.  To customize it, type
+@kbd{M-x customize-group @key{RET} paren-showing}.  The customizable
+options which control the operation of this mode include:
+
+@itemize @bullet
+@item
+@vindex show-paren-highlight-openparen
+@code{show-paren-highlight-openparen} controls whether to highlight
+an open paren when point stands just before it, and hence its position
+is marked by the cursor anyway.  The default is non-@code{nil} (yes).
+
+@item
+@vindex show-paren-style
+@code{show-paren-style} controls whether just the two parens, or also
+the space between them get highlighted.  The valid options here are
+@code{parenthesis} (show the matching paren), @code{expression}
+(highlight the entire expression enclosed by the parens), and
+@code{mixed} (highlight the matching paren if it is visible, the
+expression otherwise).
+
+@item
+@vindex show-paren-when-point-inside-paren
+@code{show-paren-when-point-inside-paren}, when non-@code{nil}, causes
+highlighting also when point is on the inside of a parenthesis.
+
+@item
+@vindex show-paren-when-point-in-periphery
+@code{show-paren-when-point-in-periphery}, when non-@code{nil}, causes
+highlighting also when point is in whitespace at the beginning or end
+of a line, and there is a paren at, respectively, the first or last,
+or the last, non-whitespace position on the line.
+@end itemize
 
 @cindex Electric Pair mode
 @cindex inserting matching parentheses
 @findex electric-pair-mode
   Electric Pair mode, a global minor mode, provides a way to easily
-insert matching delimiters.  Whenever you insert an opening delimiter,
-the matching closing delimiter is automatically inserted as well,
-leaving point between the two.  Conversely, when you insert a closing
-delimiter over an existing one, no inserting takes places and that
-position is simply skipped over.  These variables control additional
-features of Electric Pair mode:
+insert matching delimiters: parentheses, braces, brackets, etc.
+Whenever you insert an opening delimiter, the matching closing
+delimiter is automatically inserted as well, leaving point between the
+two.  Conversely, when you insert a closing delimiter over an existing
+one, no insertion takes places, and that position is simply skipped
+over.  If the region is active (@pxref{Mark}), insertion of a
+delimiter operates on the region: the characters in the region are
+enclosed in a pair of matching delimiters, leaving point after the
+delimiter you typed.
+
+These variables control additional features of Electric Pair mode:
 
 @itemize @bullet
 @item
+@vindex electric-pair-preserve-balance
 @code{electric-pair-preserve-balance}, when non-@code{nil}, makes the
 default pairing logic balance out the number of opening and closing
 delimiters.
 
 @item
+@vindex electric-pair-delete-adjacent-pairs
 @code{electric-pair-delete-adjacent-pairs}, when non-@code{nil}, makes
 backspacing between two adjacent delimiters also automatically delete
 the closing delimiter.
 
 @item
+@vindex electric-pair-open-newline-between-pairs
 @code{electric-pair-open-newline-between-pairs}, when non-@code{nil},
-makes inserting inserting a newline between two adjacent pairs also
-automatically open and extra newline after point.
+makes inserting a newline between two adjacent pairs also
+automatically open an extra newline after point.
 
 @item
+@vindex electric-pair-skip-whitespace
 @code{electric-pair-skip-whitespace}, when non-@code{nil}, causes the minor
 mode to skip whitespace forward before deciding whether to skip over
 the closing delimiter.
@@ -887,9 +901,9 @@ also do spell checking on comments with Flyspell Prog mode
 comments.  For example, in Lisp code, comments starting with two
 semicolons are indented as if they were lines of code, while those
 starting with three semicolons are supposed to be aligned to the left
-margin and are often used for sectioning purposes.  Emacs understand
-these conventions; for instance, typing @key{TAB} on a comment line
-will indent the comment to the appropriate position.
+margin and are often used for sectioning purposes.  Emacs understands
+these conventions; for instance, typing @kbd{@key{TAB}} on a comment
+line will indent the comment to the appropriate position.
 
 @example
 ;; This function is just an example.
@@ -917,13 +931,17 @@ will indent the comment to the appropriate position.
 @item @kbd{M-;}
 Insert or realign comment on current line; if the region is active,
 comment or uncomment the region instead (@code{comment-dwim}).
+@item @kbd{C-x C-;}
+Comment or uncomment the current line (@code{comment-line}).  If the
+region is active, comment or uncomment the lines in the region
+instead.
 @item @kbd{C-u M-;}
 Kill comment on current line (@code{comment-kill}).
 @item @kbd{C-x ;}
 Set comment column (@code{comment-set-column}).
 @item @kbd{C-M-j}
 @itemx @kbd{M-j}
-Like @key{RET} followed by inserting and aligning a comment
+Like @kbd{@key{RET}} followed by inserting and aligning a comment
 (@code{comment-indent-new-line}).  @xref{Multi-Line Comments}.
 @item @kbd{M-x comment-region}
 @itemx @kbd{C-c C-c} (in C-like modes)
@@ -940,7 +958,7 @@ you use it.
 
   When a region is active (@pxref{Mark}), @kbd{M-;} either adds
 comment delimiters to the region, or removes them.  If every line in
-the region is already a comment, it ``uncomments'' each of those lines
+the region is already a comment, it uncomments each of those lines
 by removing their comment delimiters.  Otherwise, it adds comment
 delimiters to enclose the text in the region.
 
@@ -953,15 +971,15 @@ negative argument @var{-n} removes @var{n} delimiters.
 current line, @kbd{M-;} adds a new comment to the current line.  If
 the line is blank (i.e., empty or containing only whitespace
 characters), the comment is indented to the same position where
-@key{TAB} would indent to (@pxref{Basic Indent}).  If the line is
-non-blank, the comment is placed after the last non-whitespace
-character on the line; normally, Emacs tries putting it at the column
-specified by the variable @code{comment-column} (@pxref{Options for
-Comments}), but if the line already extends past that column, it puts
-the comment at some suitable position, usually separated from the
-non-comment text by at least one space.  In each case, Emacs places
-point after the comment's starting delimiter, so that you can start
-typing the comment text right away.
+@kbd{@key{TAB}} would indent to (@pxref{Basic Indent}).  If the line
+is non-blank, the comment is placed after the last non-whitespace
+character on the line.  Emacs tries to fit the comment between the
+columns specified by the variables @code{comment-column} and
+@code{comment-fill-column} (@pxref{Options for Comments}), if
+possible.  Otherwise, it will choose some other suitable position,
+usually separated from the non-comment text by at least one space.  In
+each case, Emacs places point after the comment's starting delimiter,
+so that you can start typing the comment text right away.
 
   You can also use @kbd{M-;} to align an existing comment.  If a line
 already contains the comment-start string, @kbd{M-;} realigns it to
@@ -970,6 +988,18 @@ starting delimiter.  As an exception, comments starting in column 0
 are not moved.  Even when an existing comment is properly aligned,
 @kbd{M-;} is still useful for moving directly to the start of the
 comment text.
+
+@findex comment-line
+@kindex C-x C-;
+  @kbd{C-x C-;} (@code{comment-line}) comments or uncomments complete
+lines.  When a region is active (@pxref{Mark}), @kbd{C-x C-;} either
+comments or uncomments the lines in the region.  If the region is not
+active, this command comments or uncomments the line point is on.
+With a positive prefix argument @var{n}, it operates on @var{n} lines
+starting with the current one; with a negative @var{n}, it affects
+@var{n} preceding lines.  After invoking this command with a negative
+argument, successive invocations with a positive argument will operate
+on preceding lines as if the argument were negated.
 
 @findex comment-kill
 @kindex C-u M-;
@@ -982,7 +1012,7 @@ effect as @kbd{C-u M-;} by typing @kbd{M-x comment-kill}
 (@code{comment-dwim} actually calls @code{comment-kill} as a
 subroutine when it is given a prefix argument).
 
-@kindex C-c C-c (C mode)
+@kindex C-c C-c @r{(C mode)}
 @findex comment-region
 @findex uncomment-region
   The command @kbd{M-x comment-region} is equivalent to calling
@@ -991,8 +1021,7 @@ region, even if the mark is inactive.  In C mode and related modes,
 this command is bound to @kbd{C-c C-c}.  The command @kbd{M-x
 uncomment-region} uncomments each line in the region; a numeric prefix
 argument specifies the number of comment delimiters to remove
-(negative arguments specify the number of comment to delimiters to
-add).
+(negative arguments specify the number of comment delimiters to add).
 
   For C-like modes, you can configure the exact effect of @kbd{M-;} by
 setting the variables @code{c-indent-comment-alist} and
@@ -1043,13 +1072,16 @@ comment.  Enable the @code{comment-close-slash} clean-up for this.
 @subsection Options Controlling Comments
 
 @vindex comment-column
+@vindex comment-fill-column
 @kindex C-x ;
 @findex comment-set-column
   As mentioned in @ref{Comment Commands}, when the @kbd{M-j} command
-adds a comment to a line, it tries to place the comment at the column
-specified by the buffer-local variable @code{comment-column}.  You can
-set either the local value or the default value of this buffer-local
-variable in the usual way (@pxref{Locals}).  Alternatively, you can
+adds a comment to a line, it tries to place the comment between the
+columns specified by the buffer-local variables @code{comment-column}
+and @code{comment-fill-column} (or if that is @code{nil}, then the
+value of @code{fill-column}, @pxref{Fill Commands}).  You can set
+either the local value or the default value of these buffer-local
+variables in the usual way (@pxref{Locals}).  Alternatively, you can
 type @kbd{C-x ;} (@code{comment-set-column}) to set the value of
 @code{comment-column} in the current buffer to the column where point
 is currently located.  @kbd{C-u C-x ;} sets the comment column to
@@ -1097,9 +1129,12 @@ comment or for aligning an existing comment.  It is set differently by
 various major modes.  The function is called with no arguments, but with
 point at the beginning of the comment, or at the end of a line if a new
 comment is to be inserted.  It should return the column in which the
-comment ought to start.  For example, in Lisp mode, the indent hook
-function bases its decision on how many semicolons begin an existing
-comment, and on the code in the preceding lines.
+comment ought to start.  For example, the default function bases its
+decision on how many comment characters begin an existing comment.
+
+Emacs also tries to align comments on adjacent lines.  To override
+this, the function may return a cons of two (possibly equal) integers
+to indicate an acceptable range of indentation.
 
 @node Documentation
 @section Documentation Lookup
@@ -1117,9 +1152,7 @@ use in your program.
 @node Info Lookup
 @subsection Info Documentation Lookup
 
-@findex info-lookup-symbol
 @findex info-lookup-file
-@kindex C-h S
   For major modes that apply to languages which have documentation in
 Info, you can use @kbd{C-h S} (@code{info-lookup-symbol}) to view the
 Info documentation for a symbol used in the program.  You specify the
@@ -1128,13 +1161,13 @@ buffer at point.  For example, in C mode this looks for the symbol in
 the C Library Manual.  The command only works if the appropriate
 manual's Info files are installed.
 
-  The major mode determines where to look for documentation for the
-symbol---which Info files to look in, and which indices to search.
-You can also use @kbd{M-x info-lookup-file} to look for documentation
-for a file name.
+  Emacs determines where to look for documentation for the
+symbol---which Info files to look in, and which indices to
+search---based on the major mode.  You can also use @kbd{M-x
+info-lookup-file} to look for documentation for a file name.
 
   If you use @kbd{C-h S} in a major mode that does not support it,
-it asks you to specify the ``symbol help mode''.  You should enter
+it asks you to specify the symbol help mode.  You should enter
 a command such as @code{c-mode} that would select a major
 mode which @kbd{C-h S} does support.
 
@@ -1148,7 +1181,7 @@ replace man pages with better-organized manuals that you can browse
 with Info (@pxref{Misc Help}).  This process is not finished, so it is
 still useful to read manual pages.
 
-@findex manual-entry
+@findex man
   You can read the man page for an operating system command, library
 function, or system call, with the @kbd{M-x man} command.  This
 prompts for a topic, with completion (@pxref{Completion}), and runs
@@ -1165,11 +1198,11 @@ mode buffer.
 named by a digit or by a digit and a letter.  Sometimes there are man
 pages with the same name in different sections.  To read a man page
 from a specific section, type @samp{@var{topic}(@var{section})} or
-@samp{@var{section} @var{topic}} when @kbd{M-x manual-entry} prompts
-for the topic.  For example, the man page for the C library function
+@samp{@var{section} @var{topic}} when @kbd{M-x man} prompts for the
+topic.  For example, the man page for the C library function
 @code{chmod} is in section 2, but there is a shell command of the same
 name, whose man page is in section 1; to view the former, type
-@kbd{M-x manual-entry @key{RET} chmod(2) @key{RET}}.
+@w{@kbd{M-x man @key{RET} chmod(2) @key{RET}}}.
 
 @vindex Man-switches
 @kindex M-n @r{(Man mode)}
@@ -1201,6 +1234,10 @@ several manual pages by the same name exist in different sections, it
 pops up a window with possible candidates asking you to choose one of
 them.
 
+  Note that @kbd{M-x woman} doesn't yet support the latest features of
+modern man pages, so we recommend using @kbd{M-x man} if that is
+available on your system.
+
   For more information about setting up and using @kbd{M-x woman}, see
 @ifinfo
 @ref{Top, WoMan, Browse UN*X Manual Pages WithOut Man, woman, The
@@ -1220,13 +1257,16 @@ variables that you want to use.  @xref{Name Help}.
 
 @cindex Eldoc mode
 @findex eldoc-mode
+@findex global-eldoc-mode
   Eldoc is a buffer-local minor mode that helps with looking up Lisp
 documentation.  When it is enabled, the echo area displays some useful
 information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To
-toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  Eldoc mode can be used
-with the Emacs Lisp and Lisp Interaction major modes.
+toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  There's also a Global
+Eldoc mode, which is turned on by default, and affects buffers, such
+as @samp{*scratch*}, whose major mode is Emacs Lisp or Lisp
+Interaction (@w{@kbd{M-x global-eldoc-mode}} to turn it off globally).
 
 @node Hideshow
 @section Hideshow minor mode
@@ -1254,28 +1294,31 @@ count as blocks.
 @findex hs-show-block
 @findex hs-show-region
 @findex hs-hide-level
-@findex hs-minor-mode
 @kindex C-c @@ C-h
 @kindex C-c @@ C-s
 @kindex C-c @@ C-M-h
 @kindex C-c @@ C-M-s
 @kindex C-c @@ C-r
 @kindex C-c @@ C-l
-@kindex S-Mouse-2
+@kindex S-mouse-2
 @table @kbd
 @item C-c @@ C-h
+@itemx C-c @@ C-d
 Hide the current block (@code{hs-hide-block}).
 @item C-c @@ C-s
 Show the current block (@code{hs-show-block}).
 @item C-c @@ C-c
+@itemx C-x @@ C-e
 Either hide or show the current block (@code{hs-toggle-hiding}).
-@item S-Mouse-2
+@item S-mouse-2
 Toggle hiding for the block you click on (@code{hs-mouse-toggle-hiding}).
 @item C-c @@ C-M-h
+@itemx C-c @@ C-t
 Hide all top-level blocks (@code{hs-hide-all}).
 @item C-c @@ C-M-s
+@itemx C-c @@ C-a
 Show all blocks in the buffer (@code{hs-show-all}).
-@item C-c @@ C-l
+@item C-u @var{n} C-c @@ C-l
 Hide all blocks @var{n} levels below this block
 (@code{hs-hide-level}).
 @end table
@@ -1315,7 +1358,7 @@ for switching graphical windows, so you should type @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead.
 
 @cindex tags-based completion
-@findex completion-at-point
+@findex completion-at-point@r{, in programming language modes}
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
   In most programming language modes, @kbd{C-M-i} (or
@@ -1324,7 +1367,7 @@ which generates its completion list in a flexible way.  If Semantic
 mode is enabled, it tries to use the Semantic parser data for
 completion (@pxref{Semantic}).  If Semantic mode is not enabled or
 fails at performing completion, it tries to complete using the
-selected tags table (@pxref{Tags}).  If in Emacs Lisp mode, it
+selected tags table (@pxref{Tags Tables}).  If in Emacs Lisp mode, it
 performs completion using the function, variable, or property names
 defined in the current Emacs session.
 
@@ -1347,7 +1390,7 @@ using case distinctions.)  Emacs has various features to make it easier
 to deal with such symbols.
 
 @cindex Glasses mode
-@findex mode, Glasses
+@cindex mode, Glasses
   Glasses mode is a buffer-local minor mode that makes it easier to read
 such symbols, by altering how they are displayed.  By default, it
 displays extra underscores between each lower-case letter and the
@@ -1381,8 +1424,8 @@ see @ref{Top, Semantic,, semantic, Semantic}.
 see the Semantic Info manual, which is distributed with Emacs.
 @end iftex
 
-  Most of the ``language aware'' features in Emacs, such as Font Lock
-mode (@pxref{Font Lock}), rely on ``rules of thumb''@footnote{Regular
+  Most of the language-aware features in Emacs, such as Font Lock
+mode (@pxref{Font Lock}), rely on rules of thumb@footnote{Regular
 expressions and syntax tables.} that usually give good results but are
 never completely exact.  In contrast, the parsers used by Semantic
 have an exact understanding of programming language syntax.  This
@@ -1397,8 +1440,8 @@ the menu item named @samp{Source Code Parsers (Semantic)} in the
 
    When Semantic mode is enabled, Emacs automatically attempts to
 parse each file you visit.  Currently, Semantic understands C, C++,
-Scheme, Javascript, Java, HTML, and Make.  Within each parsed buffer,
-the following commands are available:
+HTML, Java, Javascript, Make, Python, Scheme, SRecode, and Texinfo.
+Within each parsed buffer, the following commands are available:
 
 @table @kbd
 @item C-c , j
@@ -1412,13 +1455,13 @@ Prompt for the name of a function defined in any file Emacs has
 parsed, and move point there (@code{semantic-complete-jump}).
 
 @item C-c , @key{SPC}
-@kindex C-c , @key{SPC}
+@kindex C-c , SPC
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a set
-of special key bindings for choosing a completion: @key{RET} accepts
-the current completion, @kbd{M-n} and @kbd{M-p} cycle through possible
-completions, @key{TAB} completes as far as possible and then cycles,
-and @kbd{C-g} or any other key aborts completion.
+of special key bindings for choosing a completion: @kbd{@key{RET}}
+accepts the current completion, @kbd{M-n} and @kbd{M-p} cycle through
+possible completions, @kbd{@key{TAB}} completes as far as possible and
+then cycles, and @kbd{C-g} or any other key aborts completion.
 
 @item C-c , l
 @kindex C-c , l
@@ -1442,7 +1485,7 @@ is idle.
 programs are useful for that nonetheless.
 
   The Emacs commands that operate on words, sentences and paragraphs
-are useful for editing code.  Most symbols names contain words
+are useful for editing code.  Most symbol names contain words
 (@pxref{Words}), while sentences can be found in strings and comments
 (@pxref{Sentences}).  As for paragraphs, they are defined in most
 programming language modes to begin and end at blank lines
@@ -1478,19 +1521,29 @@ support Outline minor mode (@pxref{Outline Mode}), which can be used
 with the Foldout package (@pxref{Foldout}).
 
 @ifinfo
-  The ``automatic typing'' features may be useful for writing programs.
+  The automatic typing features may be useful for writing programs.
 @xref{Top,,Autotyping, autotype, Autotyping}.
 @end ifinfo
 
 @findex prettify-symbols-mode
   Prettify Symbols mode is a buffer-local minor mode that replaces
-certain strings with more ``attractive'' versions for display
-purposes.  For example, in Emacs Lisp mode, it replaces the string
-``lambda'' with the Greek lambda character.  You may wish to use this
-in non-programming modes as well.  You can customize the mode by
-adding more entries to @code{prettify-symbols-alist}.  There is also a
-global version, @code{global-prettify-symbols-mode}, which enables the
-mode in all buffers that support it.
+certain strings with more attractive versions for display purposes.
+For example, in Emacs Lisp mode, it replaces the string @samp{lambda}
+with the Greek lambda character @samp{λ}.  In a @TeX{} buffer, it will
+replace @samp{\alpha} @dots{} @samp{\omega} and other math macros with
+their Unicode characters.  You may wish to use this in non-programming
+modes as well.  You can customize the mode by adding more entries to
+@code{prettify-symbols-alist}.  More elaborate customization is
+available via customizing @code{prettify-symbols-compose-predicate} if
+its default value @code{prettify-symbols-default-compose-p} is not
+appropriate.  There is also a global version,
+@code{global-prettify-symbols-mode}, which enables the mode in all
+buffers that support it.
+
+  The symbol at point can be shown in its original form.  This is
+controlled by the variable @code{prettify-symbols-unprettify-at-point}:
+if non-@code{nil}, the original form of symbol at point will be
+restored for as long as point is at it.
 
 
 @node C Modes
@@ -1576,7 +1629,7 @@ behind.  A prefix argument acts as a repeat count.  With a negative
 argument, move backward.
 
 @item M-a
-@kindex M-a (C mode)
+@kindex M-a @r{(C mode)}
 @findex c-beginning-of-statement
 Move point to the beginning of the innermost C statement
 (@code{c-beginning-of-statement}).  If point is already at the beginning
@@ -1587,7 +1640,7 @@ In comments or in strings which span more than one line, this command
 moves by sentences instead of statements.
 
 @item M-e
-@kindex M-e (C mode)
+@kindex M-e @r{(C mode)}
 @findex c-end-of-statement
 Move point to the end of the innermost C statement or sentence; like
 @kbd{M-a} except that it moves in the other direction
@@ -1600,15 +1653,16 @@ Move point to the end of the innermost C statement or sentence; like
   In C mode and related modes, certain printing characters are
 @dfn{electric}---in addition to inserting themselves, they also
 reindent the current line, and optionally also insert newlines.  The
-``electric'' characters are @kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#},
+electric characters are @kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#},
 @kbd{;}, @kbd{,}, @kbd{<}, @kbd{>}, @kbd{/}, @kbd{*}, @kbd{(}, and
 @kbd{)}.
 
   You might find electric indentation inconvenient if you are editing
 chaotically indented code.  If you are new to CC Mode, you might find
 it disconcerting.  You can toggle electric action with the command
-@kbd{C-c C-l}; when it is enabled, @samp{/l} appears in the mode line
-after the mode name:
+@kbd{C-c C-l}; when it is enabled, @samp{/@var{c}l} appears in the
+mode line after the mode name (where @var{c}, if present, is @samp{*}
+or @samp{/}):
 
 @table @kbd
 @item C-c C-l
@@ -1621,8 +1675,8 @@ negative one it disables it.
 
   Electric characters insert newlines only when, in addition to the
 electric state, the @dfn{auto-newline} feature is enabled (indicated
-by @samp{/la} in the mode line after the mode name).  You can turn
-this feature on or off with the command @kbd{C-c C-a}:
+by @samp{/@var{c}la} in the mode line after the mode name).  You can
+turn this feature on or off with the command @kbd{C-c C-a}:
 
 @table @kbd
 @item C-c C-a
@@ -1651,25 +1705,26 @@ preprocessor commands.
 @item C-c C-@key{DEL}
 @itemx C-c @key{DEL}
 @findex c-hungry-delete-backwards
-@kindex C-c C-@key{DEL} (C Mode)
-@kindex C-c @key{DEL} (C Mode)
+@kindex C-c C-DEL @r{(C Mode)}
+@kindex C-c DEL @r{(C Mode)}
 Delete the entire block of whitespace preceding point (@code{c-hungry-delete-backwards}).
 
 @item C-c C-d
 @itemx C-c C-@key{Delete}
 @itemx C-c @key{Delete}
 @findex c-hungry-delete-forward
-@kindex C-c C-d (C Mode)
-@kindex C-c C-@key{Delete} (C Mode)
-@kindex C-c @key{Delete} (C Mode)
+@kindex C-c C-d @r{(C Mode)}
+@kindex C-c C-Delete @r{(C Mode)}
+@kindex C-c Delete @r{(C Mode)}
 Delete the entire block of whitespace after point (@code{c-hungry-delete-forward}).
 @end table
 
   As an alternative to the above commands, you can enable @dfn{hungry
-delete mode}.  When this feature is enabled (indicated by @samp{/h} in
-the mode line after the mode name), a single @key{DEL} deletes all
-preceding whitespace, not just one space, and a single @kbd{C-d}
-(but @emph{not} plain @key{Delete}) deletes all following whitespace.
+delete mode}.  When this feature is enabled (indicated by @samp{h}
+after a @samp{/} in the mode line after the mode name), a single
+@kbd{@key{DEL}} deletes all preceding whitespace, not just one space,
+and a single @kbd{C-d} (but @emph{not} plain @kbd{@key{Delete}})
+deletes all following whitespace.
 
 @table @kbd
 @item M-x c-toggle-hungry-state
@@ -1692,14 +1747,14 @@ hungry-delete feature is enabled.
 @findex c-context-line-break
 This command inserts a line break and indents the new line in a manner
 appropriate to the context.  In normal code, it does the work of
-@key{RET} (@code{newline}), in a C preprocessor line it additionally
+@kbd{@key{RET}} (@code{newline}), in a C preprocessor line it additionally
 inserts a @samp{\} at the line break, and within comments it's like
 @kbd{M-j} (@code{c-indent-new-comment-line}).
 
 @code{c-context-line-break} isn't bound to a key by default, but it
 needs a binding to be useful.  The following code will bind it to
-@key{RET}.  We use @code{c-initialization-hook} here to make sure
-the keymap is loaded before we try to change it.
+@kbd{@key{RET}}.  We use @code{c-initialization-hook} here to make
+sure the keymap is loaded before we try to change it.
 
 @example
 (defun my-bind-clb ()
@@ -1797,7 +1852,7 @@ it work.
 Hide-ifdef minor mode hides selected code within @samp{#if} and
 @samp{#ifdef} preprocessor blocks.  If you change the variable
 @code{hide-ifdef-shadow} to @code{t}, Hide-ifdef minor mode
-``shadows'' preprocessor blocks by displaying them with a less
+shadows preprocessor blocks by displaying them with a less
 prominent face, instead of hiding them entirely.  See the
 documentation string of @code{hide-ifdef-mode} for more information.
 
@@ -1805,7 +1860,7 @@ documentation string of @code{hide-ifdef-mode} for more information.
 @cindex related files
 @findex ff-find-related-file
 @vindex ff-related-file-alist
-Find a file ``related'' in a special way to the file visited by the
+Find a file related in a special way to the file visited by the
 current buffer.  Typically this will be the header file corresponding
 to a C/C++ source file, or vice versa.  The variable
 @code{ff-related-file-alist} specifies how to compute related file
@@ -1824,11 +1879,14 @@ defines these commands:
 @item @key{TAB}
 @code{tab-to-tab-stop}.
 @c FIXME: Maybe this should be consistent with other programming modes.
+
 @item C-j
 Insert a newline and then indent using @code{tab-to-tab-stop}.
+
 @item :
 Insert a colon and then remove the indentation from before the label
 preceding colon.  Then do @code{tab-to-tab-stop}.
+
 @item ;
 Insert or align a comment.
 @end table

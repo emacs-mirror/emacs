@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -87,8 +87,8 @@ variable's value to take effect."
   "Called each time a process is exec'd by `eshell-gather-process-output'.
 It is passed one argument, which is the process that was just started.
 It is useful for things that must be done each time a process is
-executed in a eshell mode buffer (e.g., `process-kill-without-query').
-In contrast, `eshell-mode-hook' is only executed once when the buffer
+executed in an eshell mode buffer (e.g., `set-process-query-on-exit-flag').
+In contrast, `eshell-mode-hook' is only executed once, when the buffer
 is created."
   :type 'hook
   :group 'eshell-proc)
@@ -158,7 +158,7 @@ The signals which will cause this to happen are matched by
 
 (defalias 'eshell/wait 'eshell-wait-for-process)
 
-(defun eshell/jobs (&rest args)
+(defun eshell/jobs (&rest _args)
   "List processes, if there are any."
   (and (fboundp 'process-list)
        (process-list)
@@ -167,7 +167,8 @@ The signals which will cause this to happen are matched by
 (defun eshell/kill (&rest args)
   "Kill processes.
 Usage: kill [-<signal>] <pid>|<process> ...
-Accepts PIDs and process objects."
+Accepts PIDs and process objects.  Optionally accept signals
+and signal names."
   ;; If the first argument starts with a dash, treat it as the signal
   ;; specifier.
   (let ((signum 'SIGINT))
@@ -178,12 +179,12 @@ Accepts PIDs and process objects."
          ((string-match "\\`-[[:digit:]]+\\'" arg)
           (setq signum (abs (string-to-number arg))))
          ((string-match "\\`-\\([[:upper:]]+\\|[[:lower:]]+\\)\\'" arg)
-          (setq signum (abs (string-to-number arg)))))
+          (setq signum (intern (substring arg 1)))))
         (setq args (cdr args))))
     (while args
       (let ((arg (if (eshell-processp (car args))
                      (process-id (car args))
-                   (car args))))
+                   (string-to-number (car args)))))
         (when arg
           (cond
            ((null arg)
@@ -197,6 +198,8 @@ Accepts PIDs and process objects."
             (signal-process arg signum)))))
       (setq args (cdr args))))
   nil)
+
+(put 'eshell/kill 'eshell-no-numeric-conversions t)
 
 (defun eshell-read-process-name (prompt)
   "Read the name of a process from the minibuffer, using completion.
@@ -279,7 +282,7 @@ See `eshell-needs-pipe'."
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
 		     process-connection-type))
-		  (command (or (file-remote-p command 'localname) command)))
+		  (command (file-local-name command)))
 	      (apply 'start-file-process
 		     (file-name-nondirectory command) nil
 		     ;; `start-process' can't deal with relative filenames.
@@ -393,8 +396,20 @@ PROC is the process that's exiting.  STRING is the exit message."
 		    (unless (string= string "run")
 		      (unless (string-match "^\\(finished\\|exited\\)" string)
 			(eshell-insertion-filter proc string))
-		      (eshell-close-handles (process-exit-status proc) 'nil
-					    (cadr entry))))
+                      (let ((handles (nth 1 entry))
+                            (str (prog1 (nth 3 entry)
+                                   (setf (nth 3 entry) nil)))
+                            (status (process-exit-status proc)))
+                        ;; If we're in the middle of handling output
+                        ;; from this process then schedule the EOF for
+                        ;; later.
+                        (letrec ((finish-io
+                                  (lambda ()
+                                    (if (nth 4 entry)
+                                        (run-at-time 0 nil finish-io)
+                                      (when str (eshell-output-object str nil handles))
+                                      (eshell-close-handles status 'nil handles)))))
+                          (funcall finish-io)))))
 		(eshell-remove-process-entry entry))))
 	(eshell-kill-process-function proc string)))))
 

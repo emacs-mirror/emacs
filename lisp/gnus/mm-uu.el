@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles
 
-;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -18,13 +18,12 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'mail-parse)
 (require 'nnheader)
 (require 'mm-decode)
@@ -43,7 +42,7 @@
 (autoload 'yenc-extract-filename "yenc")
 
 (defcustom mm-uu-decode-function 'uudecode-decode-region
-  "*Function to uudecode.
+  "Function to uudecode.
 Internal function is done in Lisp by default, therefore decoding may
 appear to be horribly slow.  You can make Gnus use an external
 decoder, such as uudecode."
@@ -54,7 +53,7 @@ decoder, such as uudecode."
   :group 'gnus-article-mime)
 
 (defcustom mm-uu-binhex-decode-function 'binhex-decode-region
-  "*Function to binhex decode.
+  "Function to binhex decode.
 Internal function is done in elisp by default, therefore decoding may
 appear to be horribly slow . You can make Gnus use the external Unix
 decoder, such as hexbin."
@@ -85,7 +84,7 @@ This can be either \"inline\" or \"attachment\".")
   :group 'gnus-article-mime)
 
 (defcustom mm-uu-tex-groups-regexp "\\.tex\\>"
-  "*Regexp matching TeX groups."
+  "Regexp matching TeX groups."
   :version "23.1"
   :type 'regexp
   :group 'gnus-article-mime)
@@ -118,7 +117,7 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-shar-extract)
     (forward
      ;; Thanks to Edward J. Sabol <sabol@alderaan.gsfc.nasa.gov> and
-     ;; Peter von der Ah\'e <pahe@daimi.au.dk>
+     ;; Peter von der Ahé <pahe@daimi.au.dk>
      "^-+ \\(Start of \\)?Forwarded message"
      "^-+ End \\(of \\)?forwarded message"
      mm-uu-forward-extract
@@ -249,14 +248,7 @@ To disable dissecting shar codes, for instance, add
 (defsubst mm-uu-function-2 (entry)
   (nth 5 entry))
 
-;; In Emacs 22, we could use `min-colors' in the face definition.  But Emacs
-;; 21 and XEmacs don't support it.
-(defcustom mm-uu-hide-markers
-  (< 16 (or (and (fboundp 'defined-colors)
-		 (length (defined-colors)))
-	    (and (fboundp 'device-color-cells)
-		 (device-color-cells))
-	    0))
+(defcustom mm-uu-hide-markers (< 16 (length (defined-colors)))
   "If non-nil, hide verbatim markers.
 The value should be nil on displays where the face
 `mm-uu-extract' isn't distinguishable to the face `default'."
@@ -297,12 +289,8 @@ If PROPERTIES is non-nil, PROPERTIES are applied to the buffer,
 see `set-text-properties'.  If PROPERTIES equals t, this means to
 apply the face `mm-uu-extract'."
   (let ((obuf (current-buffer))
-        (multi (and (boundp 'enable-multibyte-characters)
-                    enable-multibyte-characters))
-	(coding-system
-         ;; Might not exist in non-MULE XEmacs
-         (when (boundp 'buffer-file-coding-system)
-           buffer-file-coding-system)))
+        (multi enable-multibyte-characters)
+	(coding-system buffer-file-coding-system))
     (with-current-buffer (generate-new-buffer " *mm-uu*")
       (if multi (mm-enable-multibyte) (mm-disable-multibyte))
       (setq buffer-file-coding-system coding-system)
@@ -322,13 +310,13 @@ apply the face `mm-uu-extract'."
   (interactive)
   (if symbol (set-default symbol value))
   (setq mm-uu-beginning-regexp nil)
-  (mapcar (lambda (entry)
-	     (if (mm-uu-configure-p (mm-uu-type entry) 'disabled)
+  (mapcar (lambda (mm-uu-entry)
+	     (if (mm-uu-configure-p (mm-uu-type mm-uu-entry) 'disabled)
 		 nil
 	       (setq mm-uu-beginning-regexp
 		     (concat mm-uu-beginning-regexp
 			     (if mm-uu-beginning-regexp "\\|")
-			     (mm-uu-beginning-regexp entry)))))
+			     (mm-uu-beginning-regexp mm-uu-entry)))))
 	  mm-uu-type-alist))
 
 (mm-uu-configure)
@@ -336,7 +324,7 @@ apply the face `mm-uu-extract'."
 (defvar file-name)
 (defvar start-point)
 (defvar end-point)
-(defvar entry)
+(defvar mm-uu-entry)
 
 (defun mm-uu-uu-filename ()
   (if (looking-at ".+")
@@ -404,7 +392,7 @@ apply the face `mm-uu-extract'."
 
 (defun mm-uu-org-src-code-block-extract ()
   (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
-                  '("text/x-org")))
+		  '("text/x-org" (charset . gnus-decoded))))
 
 (defvar gnus-newsgroup-name)
 
@@ -523,7 +511,7 @@ apply the face `mm-uu-extract'."
 	(when (and mml2015-use (null (mml2015-clear-verify-function)))
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-details
-	   (gnus-format-message
+	   (format-message
 	    "Clear verification not supported by `%s'.\n" mml2015-use)))
 	(mml2015-extract-cleartext-signature))
       (list (mm-make-handle buf mm-uu-text-plain-type)))))
@@ -587,11 +575,11 @@ apply the face `mm-uu-extract'."
 		     (not (eq charset 'ascii)))
 		;; Assume that buffer's multibyteness is turned off.
 		;; See `mml2015-pgg-clear-decrypt'.
-		(insert (mm-decode-coding-string (prog1
-						     (buffer-string)
-						   (erase-buffer)
-						   (mm-enable-multibyte))
-						 charset))
+		(insert (decode-coding-string (prog1
+						  (buffer-string)
+						(erase-buffer)
+						(mm-enable-multibyte))
+					      charset))
 	      (mm-enable-multibyte))
 	    (list (mm-make-handle buf mm-uu-text-plain-type)))
 	(list (mm-make-handle buf '("application/pgp-encrypted")))))))
@@ -612,10 +600,10 @@ apply the face `mm-uu-extract'."
 
 (defun mm-uu-gpg-key-skip-to-last ()
   (let ((point (point))
-	(end-regexp (mm-uu-end-regexp entry))
-	(beginning-regexp (mm-uu-beginning-regexp entry)))
+	(end-regexp (mm-uu-end-regexp mm-uu-entry))
+	(beginning-regexp (mm-uu-beginning-regexp mm-uu-entry)))
     (when (and end-regexp
-	       (not (mm-uu-configure-p (mm-uu-type entry) 'disabled)))
+	       (not (mm-uu-configure-p (mm-uu-type mm-uu-entry) 'disabled)))
       (while (re-search-forward end-regexp nil t)
 	(skip-chars-forward " \t\n\r")
 	(if (looking-at beginning-regexp)
@@ -635,7 +623,7 @@ MIME-TYPE specifies a MIME type and parameters, which defaults to the
 value of `mm-uu-text-plain-type'."
   (let ((case-fold-search t)
 	(mm-uu-text-plain-type (or mime-type mm-uu-text-plain-type))
-	text-start start-point end-point file-name result entry func)
+	text-start start-point end-point file-name result mm-uu-entry func)
     (save-excursion
       (goto-char (point-min))
       (cond
@@ -648,26 +636,26 @@ value of `mm-uu-text-plain-type'."
       (setq text-start (point))
       (while (re-search-forward mm-uu-beginning-regexp nil t)
 	(setq start-point (match-beginning 0)
-	      entry nil)
+	      mm-uu-entry nil)
 	(let ((alist mm-uu-type-alist)
 	      (beginning-regexp (match-string 0)))
-	  (while (not entry)
+	  (while (not mm-uu-entry)
 	    (if (string-match (mm-uu-beginning-regexp (car alist))
 			      beginning-regexp)
-		(setq entry (car alist))
+		(setq mm-uu-entry (car alist))
 	      (pop alist))))
-	(if (setq func (mm-uu-function-1 entry))
+	(if (setq func (mm-uu-function-1 mm-uu-entry))
 	    (funcall func))
 	(forward-line);; in case of failure
-	(when (and (not (mm-uu-configure-p (mm-uu-type entry) 'disabled))
-		   (let ((end-regexp (mm-uu-end-regexp entry)))
+	(when (and (not (mm-uu-configure-p (mm-uu-type mm-uu-entry) 'disabled))
+		   (let ((end-regexp (mm-uu-end-regexp mm-uu-entry)))
 		     (if (not end-regexp)
 			 (or (setq end-point (point-max)) t)
 		       (prog1
 			   (re-search-forward end-regexp nil t)
 			 (forward-line)
 			 (setq end-point (point)))))
-		   (or (not (setq func (mm-uu-function-2 entry)))
+		   (or (not (setq func (mm-uu-function-2 mm-uu-entry)))
 		       (funcall func)))
 	  (if (and (> start-point text-start)
 		   (progn
@@ -686,7 +674,7 @@ value of `mm-uu-text-plain-type'."
 		mm-uu-text-plain-type)
 	       result))
 	  (push
-	   (funcall (mm-uu-function-extract entry))
+	   (funcall (mm-uu-function-extract mm-uu-entry))
 	   result)
 	  (goto-char (setq text-start end-point))))
       (when result
@@ -722,6 +710,7 @@ Assume text has been decoded if DECODED is non-nil."
 		    ;; Mutt still uses application/pgp even though
 		    ;; it has already been withdrawn.
 		    (string-match "\\`text/\\|\\`application/pgp\\'" type)
+		    (not (string-match "/x-\\(?:diff\\|patch\\)\\'" type))
                     (equal (car (mm-handle-disposition handle))
                            "inline")
 		    (setq
@@ -770,5 +759,9 @@ Assume text has been decoded if DECODED is non-nil."
 	     (mm-uu-dissect-text-parts elem decoded))))))
 
 (provide 'mm-uu)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; mm-uu.el ends here

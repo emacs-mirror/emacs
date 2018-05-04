@@ -1,6 +1,6 @@
 ;;; gnus-score.el --- scoring code for Gnus
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -19,16 +19,17 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-sum)
+(require 'gnus-art)
 (require 'gnus-range)
 (require 'gnus-win)
 (require 'message)
@@ -42,11 +43,11 @@ for each score file or each score file directory.  Gnus will decide
 by itself what score files are applicable to which group.
 
 Say you want to use the single score file
-\"/ftp.gnus.org@ftp:/pub/larsi/ding/score/soc.motss.SCORE\" and all
+\"/ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE\" and all
 score files in the \"/ftp.some-where:/pub/score\" directory.
 
  (setq gnus-global-score-files
-       '(\"/ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE\"
+       \\='(\"/ftp.gnus.org:/pub/larsi/ding/score/soc.motss.SCORE\"
 	 \"/ftp.some-where:/pub/score\"))"
   :group 'gnus-score-files
   :type '(repeat file))
@@ -126,26 +127,26 @@ the `a' symbolic prefix to the score commands will always use
 		(function :tag "Other" :value 'ignore)))
 
 (defcustom gnus-score-interactive-default-score 1000
-  "*Scoring commands will raise/lower the score with this number as the default."
+  "Scoring commands will raise/lower the score with this number as the default."
   :group 'gnus-score-default
   :type 'integer)
 
 (defcustom gnus-score-expiry-days 7
-  "*Number of days before unused score file entries are expired.
+  "Number of days before unused score file entries are expired.
 If this variable is nil, no score file entries will be expired."
   :group 'gnus-score-expire
   :type '(choice (const :tag "never" nil)
 		 number))
 
 (defcustom gnus-update-score-entry-dates t
-  "*If non-nil, update matching score entry dates.
+  "If non-nil, update matching score entry dates.
 If this variable is nil, then score entries that provide matches
 will be expired along with non-matching score entries."
   :group 'gnus-score-expire
   :type 'boolean)
 
 (defcustom gnus-decay-scores nil
-  "*If non-nil, decay non-permanent scores.
+  "If non-nil, decay non-permanent scores.
 
 If it is a regexp, only decay score files matching regexp."
   :group 'gnus-score-decay
@@ -156,19 +157,19 @@ If it is a regexp, only decay score files matching regexp."
 		 (regexp)))
 
 (defcustom gnus-decay-score-function 'gnus-decay-score
-  "*Function called to decay a score.
+  "Function called to decay a score.
 It is called with one parameter -- the score to be decayed."
   :group 'gnus-score-decay
   :type '(radio (function-item gnus-decay-score)
 		(function :tag "Other")))
 
 (defcustom gnus-score-decay-constant 3
-  "*Decay all \"small\" scores with this amount."
+  "Decay all \"small\" scores with this amount."
   :group 'gnus-score-decay
   :type 'integer)
 
 (defcustom gnus-score-decay-scale .05
-  "*Decay all \"big\" scores with this factor."
+  "Decay all \"big\" scores with this factor."
   :group 'gnus-score-decay
   :type 'number)
 
@@ -248,7 +249,7 @@ If you use score decays, you might want to set values higher than
 				     (integer :tag "Score"))))))
 
 (defcustom gnus-adaptive-word-length-limit nil
-  "*Words of a length lesser than this limit will be ignored when doing adaptive scoring."
+  "Words of a length lesser than this limit will be ignored when doing adaptive scoring."
   :version "22.1"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
@@ -274,7 +275,7 @@ If you use score decays, you might want to set values higher than
     "being" "current" "back" "still" "go" "point" "value" "each" "did"
     "both" "true" "off" "say" "another" "state" "might" "under" "start"
     "try" "re")
-  "*Default list of words to be ignored when doing adaptive word scoring."
+  "Default list of words to be ignored when doing adaptive word scoring."
   :group 'gnus-score-adapt
   :type '(repeat string))
 
@@ -283,7 +284,7 @@ If you use score decays, you might want to set values higher than
     (,gnus-catchup-mark . -10)
     (,gnus-killed-mark . -20)
     (,gnus-del-mark . -15))
-  "*Alist of marks and scores."
+  "Alist of marks and scores."
   :group 'gnus-score-adapt
   :type '(repeat (cons (character :tag "Mark")
 		       (integer :tag "Score"))))
@@ -299,12 +300,12 @@ If you use score decays, you might want to set values higher than
   :type 'boolean)
 
 (defcustom gnus-score-mimic-keymap nil
-  "*Have the score entry functions pretend that they are a keymap."
+  "Have the score entry functions pretend that they are a keymap."
   :group 'gnus-score-default
   :type 'boolean)
 
 (defcustom gnus-score-exact-adapt-limit 10
-  "*Number that says how long a match has to be before using substring matching.
+  "Number that says how long a match has to be before using substring matching.
 When doing adaptive scoring, one normally uses fuzzy or substring
 matching.  However, if the header one matches is short, the possibility
 for false positives is great, so if the length of the match is less
@@ -513,7 +514,7 @@ of the last successful match.")
   "f" gnus-score-edit-file
   "F" gnus-score-flush-cache
   "t" gnus-score-find-trace
-  "w" gnus-score-find-favourite-words)
+  "w" gnus-score-find-favorite-words)
 
 ;; Summary score file commands
 
@@ -739,6 +740,8 @@ current score file."
       (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file current-score-file)))))
 
+(autoload 'appt-select-lowest-window "appt")
+
 (defun gnus-score-insert-help (string alist idx)
   (setq gnus-score-help-winconf (current-window-configuration))
   (with-current-buffer (gnus-get-buffer-create "*Score Help*")
@@ -773,7 +776,7 @@ current score file."
 	(setq i (1+ i))))
     (goto-char (point-min))
     ;; display ourselves in a small window at the bottom
-    (gnus-select-lowest-window)
+    (appt-select-lowest-window)
     (if (< (/ (window-height) 2) window-min-height)
 	(switch-to-buffer "*Score Help*")
       (split-window)
@@ -918,7 +921,7 @@ EXTRA is the possible non-standard header."
   (interactive (list (gnus-completing-read "Header"
                                            (mapcar
                                             'car
-                                            (gnus-remove-if-not
+                                            (seq-filter
                                              (lambda (x) (fboundp (nth 2 x)))
                                              gnus-header-index))
                                            t)
@@ -1075,11 +1078,11 @@ EXTRA is the possible non-standard header."
   "Return the score of the current article.
   With prefix ARG, return the total score of the current (sub)thread."
   (interactive "P")
-  (gnus-message 1 "%s" (if arg
-			   (gnus-thread-total-score
-			    (gnus-id-to-thread
-			     (mail-header-id (gnus-summary-article-header))))
-			   (gnus-summary-article-score))))
+  (message "%s" (if arg
+		    (gnus-thread-total-score
+		     (gnus-id-to-thread
+		      (mail-header-id (gnus-summary-article-header))))
+		  (gnus-summary-article-score))))
 
 (defun gnus-score-change-score-file (file)
   "Change current score alist."
@@ -1235,7 +1238,7 @@ If FORMAT, also format the current score file."
 		 (or (not decay)
 		     (gnus-decay-scores alist decay)))
 	(gnus-score-set 'touched '(t) alist)
-	(gnus-score-set 'decay (list (time-to-days (current-time))) alist))
+	(gnus-score-set 'decay (list (time-to-days nil)) alist))
       ;; We do not respect eval and files atoms from global score
       ;; files.
       (when (and files (not global))
@@ -1428,7 +1431,7 @@ If FORMAT, also format the current score file."
 		(and (file-exists-p file)
 		     (not (file-writable-p file))))
 	    ()
-	  (setq score (setcdr entry (gnus-delete-alist 'touched score)))
+	  (setq score (setcdr entry (assq-delete-all 'touched score)))
 	  (erase-buffer)
 	  (let (emacs-lisp-mode-hook)
 	    (if (and (not gnus-adaptive-pretty-print)
@@ -1724,7 +1727,7 @@ score in `gnus-newsgroup-scored' by SCORE."
   nil)
 
 (defun gnus-score-decode-text-parts ()
-  (gmm-labels
+  (cl-labels
       ((mm-text-parts
 	(handle)
 	(cond ((stringp (car handle))
@@ -1748,8 +1751,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	    (mm-display-inline handle)
 	    (goto-char (point-max))))))
 
-    (let (;(mm-text-html-renderer 'w3m-standalone)
-	  (handles (mm-dissect-buffer t)))
+    (let ((handles (mm-dissect-buffer t)))
       (save-excursion
 	(article-goto-body)
 	(delete-region (point) (point-max))
@@ -2315,7 +2317,7 @@ score in `gnus-newsgroup-scored' by SCORE."
     (when (or (not (listp gnus-newsgroup-adaptive))
 	      (memq 'line gnus-newsgroup-adaptive))
       (save-excursion
-	(let* ((malist (gnus-copy-sequence gnus-adaptive-score-alist))
+	(let* ((malist (copy-tree gnus-adaptive-score-alist))
 	       (alist malist)
 	       (date (current-time-string))
 	       (data gnus-newsgroup-data)
@@ -2514,7 +2516,7 @@ the score file and its full name, including the directory.")
     (set-buffer gnus-summary-buffer)
     (setq gnus-newsgroup-scored old-scored)))
 
-(defun gnus-score-find-favourite-words ()
+(defun gnus-score-find-favorite-words ()
   "List words used in scoring."
   (interactive)
   (let ((alists (gnus-score-load-files (gnus-all-score-files)))
@@ -2550,6 +2552,9 @@ the score file and its full name, including the directory.")
 	(pop rules))
       (goto-char (point-min))
       (gnus-configure-windows 'score-words))))
+(define-obsolete-function-alias
+  'gnus-score-find-favourite-words
+  'gnus-score-find-favorite-words "27.1")
 
 (defun gnus-summary-rescore ()
   "Redo the entire scoring process in the current summary."
@@ -2728,8 +2733,10 @@ GROUP using BNews sys file syntax."
 	(insert (car sfiles))
 	(goto-char (point-min))
 	;; First remove the suffix itself.
-	(when (re-search-forward (concat "." score-regexp) nil t)
-	  (replace-match "" t t)
+	(when (re-search-forward score-regexp nil t)
+          (unless (= (match-end 0) (match-beginning 0)) ; non-empty suffix
+            (replace-match "" t t)
+            (delete-char -1))   ; remove the "." before the suffix
 	  (goto-char (point-min))
 	  (if (looking-at (regexp-quote kill-dir))
 	      ;; If the file name was just "SCORE", `klen' is one character
@@ -2958,8 +2965,8 @@ The list is determined from the variable `gnus-score-file-alist'."
        (expand-file-name suffix gnus-kill-files-directory))
       ((gnus-use-long-file-name 'not-score)
        ;; Append ".SCORE" to newsgroup name.
-       (expand-file-name (concat (gnus-newsgroup-savable-name newsgroup)
-				 "." suffix)
+       (expand-file-name (let ((name (gnus-newsgroup-savable-name newsgroup)))
+                           (if (string= "" suffix) name (concat name "." suffix)))
 			 gnus-kill-files-directory))
       (t
        ;; Place "SCORE" under the hierarchical directory.
@@ -3048,23 +3055,16 @@ If ADAPT, return the home adaptive file instead."
 
 (defun gnus-decay-score (score)
   "Decay SCORE according to `gnus-score-decay-constant' and `gnus-score-decay-scale'."
-  (let ((n (- score
-	      (* (if (< score 0) -1 1)
-		 (min (abs score)
-		      (max gnus-score-decay-constant
-			   (* (abs score)
-			      gnus-score-decay-scale)))))))
-    (if (and (featurep 'xemacs)
-	     ;; XEmacs's floor can handle only the floating point
-	     ;; number below the half of the maximum integer.
-	     (> (abs n) (lsh -1 -2)))
-	(string-to-number
-	 (car (split-string (number-to-string n) "\\.")))
-      (floor n))))
+  (floor (- score
+	    (* (if (< score 0) -1 1)
+	       (min (abs score)
+		    (max gnus-score-decay-constant
+			 (* (abs score)
+			    gnus-score-decay-scale)))))))
 
 (defun gnus-decay-scores (alist day)
   "Decay non-permanent scores in ALIST."
-  (let ((times (- (time-to-days (current-time)) day))
+  (let ((times (- (time-to-days nil) day))
 	kill entry updated score n)
     (unless (zerop times)		;Done decays today already?
       (while (setq entry (pop alist))
@@ -3076,7 +3076,7 @@ If ADAPT, return the home adaptive file instead."
 	      (setq score (or (nth 1 kill)
 			      gnus-score-interactive-default-score)
 		    n times)
-	      (while (natnump (decf n))
+	      (while (natnump (cl-decf n))
 		(setq score (funcall gnus-decay-score-function score)))
 	      (setcdr kill (cons score
 				 (cdr (cdr kill)))))))))

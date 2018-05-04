@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -21,7 +21,8 @@ documentation about indenting in programming modes.
   The simplest way to perform indentation is the @key{TAB} key.  In
 most major modes, this runs the command @code{indent-for-tab-command}.
 (In C and related modes, @key{TAB} runs the command
-@code{c-indent-line-or-region}, which behaves similarly).
+@code{c-indent-line-or-region}, which behaves similarly, @pxref{C
+Indent}).
 
 @table @key
 @item TAB
@@ -35,7 +36,7 @@ mode and related major modes, @key{TAB} normally inserts some
 combination of space and tab characters to advance point to the next
 tab stop (@pxref{Tab Stops}).  For this purpose, the position of the
 first non-whitespace character on the preceding line is treated as an
-additional tab stop, so you can use @key{TAB} to ``align'' point with
+additional tab stop, so you can use @key{TAB} to align point with
 the preceding line.  If the region is active (@pxref{Using Region}),
 @key{TAB} acts specially: it indents each line in the region so that
 its first non-whitespace character is aligned with the preceding line.
@@ -98,7 +99,7 @@ argument, in which case do nothing.
 @kindex M-^
 @findex delete-indentation
 Merge the previous and the current line (@code{delete-indentation}).
-This ``joins'' the two lines cleanly, by replacing any indentation at
+This joins the two lines cleanly, by replacing any indentation at
 the front of the current line, together with the line boundary, with a
 single space.
 
@@ -123,7 +124,7 @@ that column number.
 @findex indent-rigidly
 @cindex remove indentation
 This command is used to change the indentation of all lines that begin
-in the region, moving the affected lines as a ``rigid'' unit.
+in the region, moving the affected lines as a rigid unit.
 
 If called with no argument, the command activates a transient mode for
 adjusting the indentation of the affected lines interactively.  While
@@ -200,13 +201,12 @@ are always displayed as empty spaces extending to the next
 @node Just Spaces
 @section Tabs vs.@: Spaces
 
-@vindex tab-width
-  Normally, indentation commands insert (or remove) an optimal mix of
-space characters and tab characters to align to the desired column.
-Tab characters are displayed as a stretch of empty space extending to
-the next @dfn{display tab stop}.  By default, there is one display tab
-stop every @code{tab-width} columns (the default is 8).  @xref{Text
-Display}.
+  Normally, indentation commands insert (or remove) the shortest
+possible series of tab and space characters so as to align to the
+desired column.  Tab characters are displayed as a stretch of empty
+space extending to the next @dfn{display tab stop}.  By default, there
+is one display tab stop every @code{tab-width} columns (the default is
+8).  @xref{Text Display}.
 
 @vindex indent-tabs-mode
   If you prefer, all indentation can be made from spaces only.  To

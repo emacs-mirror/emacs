@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs
 
-;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2015 Free Software
+;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,8 +28,8 @@
 
 ;;; Code:
 (require 'mail-utils)
-
 (require 'rfc2047)
+(autoload 'message-make-date "message")
 
 (defgroup sendmail nil
   "Mail sending commands for Emacs."
@@ -55,7 +55,7 @@
   :type 'file)
 
 ;;;###autoload
-(defcustom mail-from-style 'default
+(defcustom mail-from-style 'angles
   "Specifies how \"From:\" fields look.
 
 If nil, they contain just the return address like:
@@ -72,8 +72,11 @@ Otherwise, most addresses look like `angles', but they look like
 		 (const parens)
 		 (const angles)
 		 (const default))
-  :version "20.3"
+  :version "27.1"
   :group 'sendmail)
+(make-obsolete-variable
+ 'mail-from-style
+ "Only the `angles' value is valid according to RFC2822" "27.1")
 
 ;;;###autoload
 (defcustom mail-specify-envelope-from nil
@@ -242,15 +245,6 @@ If this is nil, use indentation, as specified by `mail-indentation-spaces'."
 Used by `mail-yank-original' via `mail-indent-citation'."
   :type 'integer
   :group 'sendmail)
-
-(defvar mail-yank-hooks nil
-  "Obsolete hook for modifying a citation just inserted in the mail buffer.
-Each hook function can find the citation between (point) and (mark t).
-And each hook function should leave point and mark around the citation
-text as modified.
-This is a normal hook, misnamed for historical reasons.
-It is obsolete and mail agents should no longer use it.")
-(make-obsolete-variable 'mail-yank-hooks 'mail-citation-hook "19.34")
 
 ;;;###autoload
 (defcustom mail-citation-hook nil
@@ -511,9 +505,13 @@ This also saves the value of `send-mail-function' via Customize."
   ;; If send-mail-function is already setup, we're incorrectly called
   ;; a second time, probably because someone's using an old value
   ;; of send-mail-function.
-  (when (eq send-mail-function 'sendmail-query-once)
-    (sendmail-query-user-about-smtp))
-  (funcall send-mail-function))
+  (if (not (eq send-mail-function 'sendmail-query-once))
+      (funcall send-mail-function)
+    (let ((function (sendmail-query-user-about-smtp)))
+      (funcall function)
+      (when (y-or-n-p "Save this mail sending choice?")
+        (setq send-mail-function function)
+        (customize-save-variable 'send-mail-function function)))))
 
 (defun sendmail-query-user-about-smtp ()
   (let* ((options `(("mail client" . mailclient-send-it)
@@ -555,10 +553,11 @@ This also saves the value of `send-mail-function' via Customize."
 	    (goto-char (point-min))
 	    (display-buffer (current-buffer))
 	    (let ((completion-ignore-case t))
-	      (completing-read "Send mail via: "
-			       options nil 'require-match)))))
-    (customize-save-variable 'send-mail-function
-			     (cdr (assoc-string choice options t)))))
+              (completing-read
+               (format "Send mail via (default %s): " (caar options))
+               options nil 'require-match nil nil (car options))))))
+    ;; Return the choice.
+    (cdr (assoc-string choice options t))))
 
 (defun sendmail-sync-aliases ()
   (when mail-personal-alias-file
@@ -615,7 +614,7 @@ This also saves the value of `send-mail-function' via Customize."
   (kill-local-variable 'buffer-file-coding-system)
   ;; This doesn't work for enable-multibyte-characters.
   ;; (kill-local-variable 'enable-multibyte-characters)
-  (set-buffer-multibyte (default-value 'enable-multibyte-characters))
+  (set-buffer-multibyte t)
   (if current-input-method
       (deactivate-input-method))
 
@@ -785,8 +784,12 @@ Concretely: replace the first blank line in the header with the separator."
 (defun mail-sendmail-undelimit-header ()
   "Remove header separator to put the message in correct form for sendmail.
 Leave point at the start of the delimiter line."
-  (rfc822-goto-eoh)
-  (delete-region (point) (progn (end-of-line) (point))))
+  (goto-char (point-min))
+  (when (re-search-forward
+	 (concat "^" (regexp-quote mail-header-separator) "\n")
+	 nil t)
+    (replace-match "\n"))
+  (rfc822-goto-eoh))
 
 (defun mail-mode-auto-fill ()
   "Carry out Auto Fill for Mail mode.
@@ -1110,10 +1113,11 @@ to combine them into one, and does so if the user says y."
               (save-restriction
                 ;; This is just so the screen doesn't change.
                 (narrow-to-region (point-min) old-max)
-                (goto-char old-point)
-                (setq query-asked t)
-                (if (y-or-n-p (format "Message contains multiple %s fields.  Combine? " field))
-                    (setq query-answer t))))
+                (save-excursion
+                  (goto-char old-point)
+                  (setq query-asked t)
+                  (if (y-or-n-p (format "Message contains multiple %s fields.  Combine? " field))
+                      (setq query-answer t)))))
             (when query-answer
               (let ((this-to-start (line-beginning-position))
                     this-to-end
@@ -1404,10 +1408,11 @@ just append to the file, in Babyl format if necessary."
 	(insert "\nFrom " (user-login-name) " " (current-time-string time) "\n")
 	;; Insert the time zone before the year.
 	(forward-char -1)
-	(forward-word -1)
+	(forward-word-strictly -1)
 	(require 'mail-utils)
 	(insert (mail-rfc822-time-zone time) " ")
 	(goto-char (point-max))
+	(insert "Date: " (message-make-date) "\n")
 	(insert-buffer-substring mailbuf)
 	;; Make sure messages are separated.
 	(goto-char (point-max))
@@ -1674,7 +1679,7 @@ and don't delete any header fields."
 	      ;; Call yank function, and set the mark if it doesn't.
 	      (apply (car original) (cdr original))
 	      (if (eq omark (mark t))
-		  (push-mark (point))))
+		  (push-mark)))
 	  ;; If the original message is in another window in the same
 	  ;; frame, delete that window to save space.
 	  (delete-windows-on original t)
@@ -1715,8 +1720,6 @@ and don't delete any header fields."
 			       (rfc822-goto-eoh)
 			       (point))))))
 		     (run-hooks 'mail-citation-hook)))
-		  (mail-yank-hooks
-		   (run-hooks 'mail-yank-hooks))
 		  (t
 		   (mail-indent-citation)))))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
@@ -1785,9 +1788,7 @@ and don't delete any header fields."
 			     (rfc822-goto-eoh)
 			     (point))))))
 		   (run-hooks 'mail-citation-hook))
-	       (if mail-yank-hooks
-		   (run-hooks 'mail-yank-hooks)
-		 (mail-indent-citation))))))))
+	       (mail-indent-citation)))))))
 
 (defun mail-split-line ()
   "Split current line, moving portion beyond point vertically down.
@@ -2078,7 +2079,6 @@ you can move to one of them and type C-c C-c to recover that one."
 
 ;; Local Variables:
 ;; byte-compile-dynamic: t
-;; coding: utf-8
 ;; End:
 
 ;;; sendmail.el ends here

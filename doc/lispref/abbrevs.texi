@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1999, 2001-2015 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1999, 2001-2018 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Abbrevs
@@ -134,7 +134,7 @@ abbrev in an abbrev table.
 
   When a major mode defines a system abbrev, it should call
 @code{define-abbrev} and specify @code{t} for the @code{:system}
-property.  Be aware that any saved non-``system'' abbrevs are restored
+property.  Be aware that any saved non-system abbrevs are restored
 at startup, i.e., before some major modes are loaded.  Therefore, major
 modes should not assume that their abbrev tables are empty when they
 are first loaded.
@@ -145,13 +145,13 @@ This function defines an abbrev named @var{name}, in
 with properties @var{props} (@pxref{Abbrev Properties}).  The return
 value is @var{name}.  The @code{:system} property in @var{props} is
 treated specially here: if it has the value @code{force}, then it will
-overwrite an existing definition even for a non-``system'' abbrev of
+overwrite an existing definition even for a non-system abbrev of
 the same name.
 
 @var{name} should be a string.  The argument @var{expansion} is
 normally the desired expansion (a string), or @code{nil} to undefine
 the abbrev.  If it is anything but a string or @code{nil}, then the
-abbreviation ``expands'' solely by running @var{hook}.
+abbreviation expands solely by running @var{hook}.
 
 The argument @var{hook} is a function or @code{nil}.  If @var{hook} is
 non-@code{nil}, then it is called with no arguments after the abbrev is
@@ -198,7 +198,10 @@ abbrevs in a file automatically, under the control of variables
 described here.
 
 @defopt abbrev-file-name
-This is the default file name for reading and saving abbrevs.
+This is the default file name for reading and saving abbrevs.  By
+default, Emacs will look for @file{~/.emacs.d/abbrev_defs}, and, if
+not found, for @file{~/.abbrev_defs}; if neither file exists, Emacs
+will create @file{~/.emacs.d/abbrev_defs}.
 @end defopt
 
 @defun quietly-read-abbrev-file &optional filename
@@ -216,7 +219,7 @@ A non-@code{nil} value for @code{save-abbrevs} means that Emacs should
 offer to save abbrevs (if any have changed) when files are saved.  If
 the value is @code{silently}, Emacs saves the abbrevs without asking
 the user.  @code{abbrev-file-name} specifies the file to save the
-abbrevs in.
+abbrevs in.  The default value is @code{t}.
 @end defopt
 
 @defvar abbrevs-changed
@@ -282,7 +285,7 @@ omitted, it defaults to point.  @code{name}, if non-@code{nil}, should
 be the name by which this abbrev was found (a string); it is used to
 figure out whether to adjust the capitalization of the expansion.  The
 function returns @code{abbrev} if the abbrev was successfully
-inserted.
+inserted, otherwise it returns @code{nil}.
 @end defun
 
 @deffn Command abbrev-prefix-mark &optional arg

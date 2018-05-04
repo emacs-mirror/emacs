@@ -1,7 +1,7 @@
 /* The lwlib interface to Athena widgets.
 
 Copyright (C) 1993 Chuck Thompson <cthomp@cs.uiuc.edu>
-Copyright (C) 1994, 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -515,10 +515,10 @@ make_dialog (char* name,
   XtTranslations button_override;
 #endif
 
-  if (! pop_up_p) abort (); /* not implemented */
-  if (text_input_slot) abort (); /* not implemented */
-  if (radio_box) abort (); /* not implemented */
-  if (list) abort (); /* not implemented */
+  if (! pop_up_p) emacs_abort (); /* not implemented */
+  if (text_input_slot) emacs_abort (); /* not implemented */
+  if (radio_box) emacs_abort (); /* not implemented */
+  if (list) emacs_abort (); /* not implemented */
 
   if (! actions_initted)
     {
@@ -763,7 +763,7 @@ xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
 	  break;
 	val = val->next;
       }
-    if (! val) abort ();
+    if (! val) emacs_abort ();
     user_data = val->call_data;
   }
 
@@ -789,11 +789,11 @@ wm_delete_window (Widget w,
     shell = w;
 
   if (! XtIsSubclass (shell, shellWidgetClass))
-    abort ();
+    emacs_abort ();
   XtVaGetValues (shell, XtNnumChildren, &nkids, NULL);
   XtVaGetValues (shell, XtNchildren, &kids, NULL);
   if (!kids || !*kids)
-    abort ();
+    emacs_abort ();
   for (i = 0; i < nkids; i++)
     {
       widget = kids[i];
@@ -803,11 +803,11 @@ wm_delete_window (Widget w,
   if (! widget) return;
 
   id = lw_get_widget_id (widget);
-  if (! id) abort ();
+  if (! id) emacs_abort ();
 
   {
     widget_info *info = lw_get_widget_info (id);
-    if (! info) abort ();
+    if (! info) emacs_abort ();
     if (info->selection_cb)
       info->selection_cb (widget, id, (XtPointer) -1);
   }

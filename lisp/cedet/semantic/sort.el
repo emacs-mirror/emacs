@@ -1,6 +1,6 @@
 ;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.
 
-;;; Copyright (C) 1999-2005, 2007-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2005, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -453,7 +453,7 @@ has some sort of label defining a parent.  The parent return will
 be a string.
 
 The default behavior, if not overridden with
-`tag-member-parent' gets the 'parent extra
+`tag-member-parent' gets the `parent' extra
 specifier of TAG.
 
 If this function is overridden, use

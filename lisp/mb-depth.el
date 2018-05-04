@@ -1,6 +1,6 @@
-;;; mb-depth.el --- Indicate minibuffer-depth in prompt
+;;; mb-depth.el --- Indicate minibuffer-depth in prompt -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -45,13 +45,15 @@ and must return a string.")
 (defun minibuffer-depth-setup ()
   "Set up a minibuffer for `minibuffer-depth-indicate-mode'.
 The prompt should already have been inserted."
-  (when (> (minibuffer-depth) 1)
-    (setq minibuffer-depth-overlay (make-overlay (point-min) (1+ (point-min))))
-    (overlay-put minibuffer-depth-overlay 'before-string
-		 (if minibuffer-depth-indicator-function
-		     (funcall minibuffer-depth-indicator-function (minibuffer-depth))
-		   (propertize (format "[%d]" (minibuffer-depth)) 'face 'highlight)))
-    (overlay-put minibuffer-depth-overlay 'evaporate t)))
+  (let ((depth (minibuffer-depth)))
+    (when (> depth 1)
+      (let ((pos (point-min)))
+        (setq minibuffer-depth-overlay (make-overlay pos (1+ pos))))
+      (overlay-put minibuffer-depth-overlay 'before-string
+                   (if minibuffer-depth-indicator-function
+                       (funcall minibuffer-depth-indicator-function depth)
+                     (propertize (format "[%d]" depth) 'face 'highlight)))
+      (overlay-put minibuffer-depth-overlay 'evaporate t))))
 
 ;;;###autoload
 (define-minor-mode minibuffer-depth-indicate-mode

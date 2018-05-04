@@ -4,7 +4,7 @@
 @include docstyle.texi
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2003--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -285,12 +285,12 @@ connection the SMTP library uses.  The default value is @code{nil},
 which means to use a plain connection, but try to switch to a STARTTLS
 encrypted connection if the server supports it.  Other possible values
 are: @code{starttls} to insist on STARTTLS; @code{ssl} to use TLS/SSL;
-and @code{plain} for encryption.
+and @code{plain} for no encryption.
 
 Use of any form of TLS/SSL requires support in Emacs.  You can either
 use the built-in support (in Emacs 24.1 and later), or the
 @file{starttls.el} Lisp library.  The built-in support uses the GnuTLS
-@footnote{@url{http://www.gnu.org/software/gnutls/}} library.
+@footnote{@url{https://www.gnu.org/software/gnutls/}} library.
 If your Emacs has GnuTLS support built-in, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.
 Otherwise, you must use the @file{starttls.el} library (see that file for
@@ -300,7 +300,7 @@ requires one of the following external tools to be installed:
 @enumerate
 @item
 The GnuTLS command line tool @samp{gnutls-cli}, which you can get from
-@url{http://www.gnu.org/software/gnutls/}.  This is the recommended
+@url{https://www.gnu.org/software/gnutls/}.  This is the recommended
 tool, mainly because it can verify server certificates.
 
 @item
@@ -354,7 +354,7 @@ directory to hold queued messages.  It defaults to
   The function @code{smtpmail-send-queued-mail} can be used to send
 any queued mail when @code{smtpmail-queue-mail} is enabled.  It is
 typically invoked interactively with @kbd{M-x
-smtpmail-send-queued-mail RET} when you are connected to the internet.
+smtpmail-send-queued-mail @key{RET}} when you are connected to the internet.
 
 @node Server workarounds
 @chapter Server workarounds

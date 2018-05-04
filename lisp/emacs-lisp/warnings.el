@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -68,6 +68,7 @@ Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
+(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
@@ -77,8 +78,8 @@ is not immediately displayed.  See also `warning-minimum-log-level'."
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
-(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 
+(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
@@ -89,7 +90,6 @@ because warnings not logged aren't displayed either."
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
-(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 
 (defcustom warning-suppress-log-types nil
   "List of warning types that should not be logged.

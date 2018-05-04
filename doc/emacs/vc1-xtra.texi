@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2015 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in vc-xtra.texi (when producing the
@@ -113,8 +113,9 @@ Prompt for a file name, delete the file from the working tree, and
 schedule the deletion for committing.
 
 @item M-x vc-rename-file
-Prompt for two file names, @var{var} and @var{old}, rename them in the
-working tree, and schedule the renaming for committing.
+Prompt for two file names, @var{old} and @var{new}, rename them in the
+working tree, and schedule the renaming for committing.  The @var{old}
+file defaults to the current buffer's file name if it is under VC.
 @end table
 
 @findex vc-delete-file
@@ -236,22 +237,23 @@ relevant information into the version header.
 an exception, when using RCS, Emacs uses the version header, if there
 is one, to determine the file version, since it is often more reliable
 than the RCS master file.  To inhibit using the version header this
-way, change the variable @code{vc-consult-headers} to @code{nil}.
+way, change the variable @code{vc-consult-headers} to @code{nil}.  VC
+then always uses the file permissions (if it is supposed to trust
+them), or else checks the master file.
 
-@kindex C-x v h
 @findex vc-insert-headers
 @vindex vc-@var{backend}-header
-  To insert a suitable header string into the current buffer, type
-@kbd{C-x v h} (@code{vc-insert-headers}).  This command works only on
+  To insert a suitable header string into the current buffer, use the
+command @kbd{M-x vc-insert-headers}.  This command works only on
 Subversion, CVS, RCS, and SCCS@.  The variable
 @code{vc-@var{backend}-header} contains the list of keywords to insert
 into the version header; for instance, CVS uses @code{vc-cvs-header},
 whose default value is @code{'("\$Id\$")}.  (The extra backslashes
 prevent the string constant from being interpreted as a header, if the
 Emacs Lisp file defining it is maintained with version control.)  The
-@kbd{C-x v h} command inserts each keyword in the list on a new line
-at point, surrounded by tabs, and inside comment delimiters if
-necessary.
+@code{vc-insert-headers} command inserts each keyword in the list on a
+new line at point, surrounded by tabs, and inside comment delimiters
+if necessary.
 
 @vindex vc-static-header-alist
   The variable @code{vc-static-header-alist} specifies further strings
@@ -267,7 +269,7 @@ with the file's version control type.
 @vindex vc-handled-backends
   The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
-SVN SCCS Bzr Git Hg Mtn Arch)}, so it contains all the version systems
+SVN SCCS SRC Bzr Git Hg Mtn)}, so it contains all the version systems
 that are currently supported.  If you want VC to ignore one or more of
 these systems, exclude its name from the list.  To disable VC
 entirely, set this variable to @code{nil}.
@@ -341,28 +343,14 @@ the master file can only tell you @emph{if} there's any lock on the
 file, but not whether your work file really contains that locked
 version.
 
-@vindex vc-consult-headers
   You can tell VC not to use version headers to determine the file
 status by setting @code{vc-consult-headers} to @code{nil}.  VC then
 always uses the file permissions (if it is supposed to trust them), or
 else checks the master file.
 
-@vindex vc-mistrust-permissions
-  You can specify the criterion for whether to trust the file
-permissions by setting the variable @code{vc-mistrust-permissions}.
-Its value can be @code{t} (always mistrust the file permissions and
-check the master file), @code{nil} (always trust the file
-permissions), or a function of one argument which makes the decision.
-The argument is the directory name of the @file{RCS} subdirectory.  A
-non-@code{nil} value from the function says to mistrust the file
-permissions.  If you find that the file permissions of work files are
-changed erroneously, set @code{vc-mistrust-permissions} to @code{t}.
-Then VC always checks the master file to determine the file's status.
-
   VC determines the version control state of files under SCCS much as
 with RCS@.  It does not consider SCCS version headers, though.  Thus,
-the variable @code{vc-mistrust-permissions} affects SCCS use, but
-@code{vc-consult-headers} does not.
+the variable @code{vc-consult-headers} does not affect SCCS use.
 
 @node CVS Options
 @subsubsection Options specific for CVS
@@ -373,23 +361,17 @@ operations in the variable @code{vc-cvs-global-switches}.  These
 switches are inserted immediately after the @code{cvs} command, before
 the name of the operation to invoke.
 
-@vindex vc-stay-local
 @vindex vc-cvs-stay-local
 @cindex remote repositories (CVS)
   When using a CVS repository on a remote machine, VC can try keeping
 network interactions to a minimum.  This is controlled by the variable
-@code{vc-cvs-stay-local}.  There is another variable,
-@code{vc-stay-local}, which enables the feature also for other back
-ends that support it, including CVS@.  In the following, we will talk
-only about @code{vc-cvs-stay-local}, but everything applies to
-@code{vc-stay-local} as well.
-
-  If @code{vc-cvs-stay-local} is @code{only-file} (the default), VC
-determines the version control status of each file using only the
-entry in the local CVS subdirectory and the information returned by
-previous CVS commands.  As a consequence, if you have modified a file
-and somebody else has checked in other changes, you will not be
-notified of the conflict until you try to commit.
+@code{vc-cvs-stay-local}.  If @code{vc-cvs-stay-local} is
+@code{only-file} (the default), VC determines the version control
+status of each file using only the entry in the local CVS subdirectory
+and the information returned by previous CVS commands.  As a
+consequence, if you have modified a file and somebody else has checked
+in other changes, you will not be notified of the conflict until you
+try to commit.
 
   If you change @code{vc-cvs-stay-local} to @code{nil}, VC queries the
 remote repository @emph{before} it decides what to do in
@@ -430,7 +412,7 @@ that @kbd{C-x v ~} saves old versions to
 @end ifnottex
 except for the additional dot (@samp{.}) after the version.  The
 relevant VC commands can use both kinds of version backups.  The main
-difference is that the ``manual'' version backups made by @kbd{C-x v
+difference is that the manual version backups made by @kbd{C-x v
 ~} are not deleted automatically when you commit.
 
 @cindex locking (CVS)

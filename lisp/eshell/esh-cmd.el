@@ -1,6 +1,6 @@
 ;;; esh-cmd.el --- command invocation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -80,7 +80,7 @@
 ;;
 ;;   echo x$(+ 1 2) "String $(+ 1 2)"
 ;;
-;; To pass a Lisp symbol as a argument, use the alternate quoting
+;; To pass a Lisp symbol as an argument, use the alternate quoting
 ;; syntax, since the single quote character is far too overused in
 ;; shell syntax:
 ;;
@@ -284,7 +284,7 @@ command line.")
 (defvar eshell-command-arguments nil)
 (defvar eshell-in-pipeline-p nil
   "Internal Eshell variable, non-nil inside a pipeline.
-Has the value 'first, 'last for the first/last commands in the pipeline,
+Has the value `first', `last' for the first/last commands in the pipeline,
 otherwise t.")
 (defvar eshell-in-subcommand-p nil)
 (defvar eshell-last-arguments nil)
@@ -575,14 +575,9 @@ must be implemented via rewriting, rather than as a function."
 (defvar eshell-last-command-result)     ;Defined in esh-io.el.
 
 (defun eshell-exit-success-p ()
-  "Return non-nil if the last command was \"successful\".
-For a bit of Lisp code, this means a return value of non-nil.
-For an external command, it means an exit code of 0."
-  (if (save-match-data
-	(string-match "#<\\(Lisp object\\|function .*\\)>"
-		      eshell-last-command-name))
-      eshell-last-command-result
-    (= eshell-last-command-status 0)))
+  "Return non-nil if the last command was successful.
+This means an exit code of 0."
+  (= eshell-last-command-status 0))
 
 (defvar eshell--cmd)
 
@@ -670,8 +665,8 @@ For an external command, it means an exit code of 0."
   "Separate TERMS using SEPARATOR.
 If REVERSED is non-nil, the list of separated term groups will be
 returned in reverse order.  If LAST-TERMS-SYM is a symbol, its value
-will be set to a list of all the separator operators found (or '(list
-nil)' if none)."
+will be set to a list of all the separator operators found (or (nil)
+if none)."
   (let ((sub-terms (list t))
 	(eshell-sep-terms (list t))
 	subchains)
@@ -800,7 +795,7 @@ This macro calls itself recursively, with NOTFIRST non-nil."
 (defmacro eshell-do-pipelines-synchronously (pipeline)
   "Execute the commands in PIPELINE in sequence synchronously.
 Output of each command is passed as input to the next one in the pipeline.
-This is used on systems where `start-process' is not supported."
+This is used on systems where async subprocesses are not supported."
   (when (setq pipeline (cadr pipeline))
     `(progn
        ,(when (cdr pipeline)
@@ -838,7 +833,7 @@ This is used on systems where `start-process' is not supported."
   "Execute the commands in PIPELINE, connecting each to one another."
   `(let ((eshell-in-pipeline-p t) tailproc)
      (progn
-       ,(if (fboundp 'start-process)
+       ,(if (fboundp 'make-process)
 	    `(eshell-do-pipelines ,pipeline)
 	  `(let ((tail-handles (eshell-create-handles
 				(car (aref eshell-current-handles
@@ -1153,6 +1148,8 @@ be finished later after the completion of an asynchronous subprocess."
 
 ;; command invocation
 
+(declare-function help-fns-function-description-header "help-fns")
+
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
   (dolist (name (cons command names))
@@ -1169,25 +1166,17 @@ be finished later after the completion of an asynchronous subprocess."
 		(concat name " is an alias, defined as \""
 			(cadr alias) "\"")))
       (unless program
-	(setq program (eshell-search-path name))
-	(let* ((esym (eshell-find-alias-function name))
-	       (sym (or esym (intern-soft name))))
-	  (if (and (or esym (and sym (fboundp sym)))
-		   (or eshell-prefer-lisp-functions (not direct)))
-	      (let ((desc (let ((inhibit-redisplay t))
-			    (save-window-excursion
-			      (prog1
-				  (describe-function sym)
-				(message nil))))))
-		(setq desc (if desc (substring desc 0
-					       (1- (or (string-match "\n" desc)
-						       (length desc))))
-			     ;; This should not happen.
-			     (format "%s is defined, \
-but no documentation was found" name)))
-		(if (buffer-live-p (get-buffer "*Help*"))
-		    (kill-buffer "*Help*"))
-		(setq program (or desc name))))))
+        (setq program
+              (let* ((esym (eshell-find-alias-function name))
+                     (sym (or esym (intern-soft name))))
+                (if (and (or esym (and sym (fboundp sym)))
+                         (or eshell-prefer-lisp-functions (not direct)))
+                    (or (with-output-to-string
+                          (require 'help-fns)
+                          (princ (format "%s is " sym))
+                          (help-fns-function-description-header sym))
+                        name)
+                  (eshell-search-path name)))))
       (if (not program)
 	  (eshell-error (format "which: no %s in (%s)\n"
 				name (getenv "PATH")))
@@ -1257,6 +1246,7 @@ represent a lisp form; ARGS will be ignored in that case."
         (and result (funcall printer result))
         result)
     (error
+     (setq eshell-last-command-status 1)
      (let ((msg (error-message-string err)))
        (if (and (not form-p)
                 (string-match "^Wrong number of arguments" msg)

@@ -1,6 +1,6 @@
 ;;; semantic/debug.el --- Language Debugger framework
 
-;; Copyright (C) 2003-2005, 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2008-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -36,7 +36,6 @@
 ;; Each parser must implement the interface and override any methods as needed.
 ;;
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio)
 (require 'cl-generic)
@@ -361,7 +360,6 @@ Argument ONOFF is non-nil when we are entering debug mode.
 	(semantic-debug-current-interface
 	 (let ((parserb  (semantic-debug-find-parser-source)))
 	   (semantic-debug-interface
-	    "Debug Interface"
 	    :parser-buffer parserb
 	    :parser-local-map (with-current-buffer parserb
 				(current-local-map))

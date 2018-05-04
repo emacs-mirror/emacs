@@ -1,6 +1,6 @@
 /* euidaccess -- check if effective user id can access file
 
-   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2015 Free
+   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2018 Free
    Software Foundation, Inc.
 
    This file is part of the GNU C Library.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by David MacKenzie and Torbjorn Granlund.
    Adapted for GNU C library by Roland McGrath.  */
@@ -29,8 +29,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include "root-uid.h"
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+# include <io.h>
+#else
+# include "root-uid.h"
+#endif
 
 #if HAVE_LIBGEN_H
 # include <libgen.h>
@@ -84,7 +87,9 @@ euidaccess (const char *file, int mode)
   return accessx (file, mode, ACC_SELF);
 #elif HAVE_EACCESS                      /* FreeBSD */
   return eaccess (file, mode);
-#else       /* Mac OS X, NetBSD, OpenBSD, HP-UX, Solaris, Cygwin, mingw, BeOS */
+#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__  /* mingw */
+  return _access (file, mode);
+#else              /* Mac OS X, NetBSD, OpenBSD, HP-UX, Solaris, Cygwin, BeOS */
 
   uid_t uid = getuid ();
   gid_t gid = getgid ();
@@ -197,8 +202,6 @@ weak_alias (__euidaccess, euidaccess)
 # include <stdio.h>
 # include <stdlib.h>
 
-char *program_name;
-
 int
 main (int argc, char **argv)
 {
@@ -206,7 +209,6 @@ main (int argc, char **argv)
   int mode;
   int err;
 
-  program_name = argv[0];
   if (argc < 3)
     abort ();
   file = argv[1];

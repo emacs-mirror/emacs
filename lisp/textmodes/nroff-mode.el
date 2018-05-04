@@ -1,6 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2015 Free Software
+;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
 (defgroup nroff nil
   "Nroff mode."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
-  :group 'wp
+  :group 'text
   :prefix "nroff-")
 
 
@@ -195,7 +195,7 @@ Puts a full-stop before comments on a line by themselves."
 			      9) 8)))))) ; add 9 to ensure at least two blanks
       (goto-char pt))))
 
-;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01869.html
+;; https://lists.gnu.org/r/emacs-devel/2007-10/msg01869.html
 (defun nroff-insert-comment-function ()
   "Function for `comment-insert-comment-function' in `nroff-mode'."
   (indent-to (nroff-comment-indent))
@@ -327,13 +327,6 @@ otherwise off."
     (if viewbuf
 	(kill-buffer viewbuf))
     (Man-getpage-in-background file)))
-
-;; Old names that were not namespace clean.
-(define-obsolete-function-alias 'count-text-lines 'nroff-count-text-lines "22.1")
-(define-obsolete-function-alias 'forward-text-line 'nroff-forward-text-line "22.1")
-(define-obsolete-function-alias 'backward-text-line 'nroff-backward-text-line "22.1")
-(define-obsolete-function-alias 'electric-nroff-newline 'nroff-electric-newline "22.1")
-(define-obsolete-function-alias 'electric-nroff-mode 'nroff-electric-mode "22.1")
 
 (provide 'nroff-mode)
 

@@ -1,6 +1,6 @@
-;;; timer.el --- run a function with args at some time in future
+;;; timer.el --- run a function with args at some time in future -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -141,20 +141,6 @@ omitted, they are treated as zero."
   (setf (timer--time timer)
         (timer-relative-time (timer--time timer) secs usecs psecs)))
 
-(defun timer-set-time-with-usecs (timer time usecs &optional delta)
-  "Set the trigger time of TIMER to TIME plus USECS.
-TIME must be in the internal format returned by, e.g., `current-time'.
-The microsecond count from TIME is ignored, and USECS is used instead.
-If optional fourth argument DELTA is a positive number, make the timer
-fire repeatedly that many seconds apart."
-  (declare (obsolete "use `timer-set-time' and `timer-inc-time' instead."
-		     "22.1"))
-  (setf (timer--time timer) time)
-  (setf (timer--usecs timer) usecs)
-  (setf (timer--psecs timer) 0)
-  (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
-  timer)
-
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."
   (timer--check timer)
@@ -205,7 +191,7 @@ timers).  If nil, allocate a new cell."
   "Insert TIMER into `timer-idle-list'.
 This arranges to activate TIMER whenever Emacs is next idle.
 If optional argument DONT-WAIT is non-nil, set TIMER to activate
-immediately \(see below\), or at the right time, if Emacs is
+immediately \(see below), or at the right time, if Emacs is
 already idle.
 
 REUSE-CELL, if non-nil, is a cons cell to reuse when inserting
@@ -345,18 +331,26 @@ This function is called, by name, directly by the C code."
 (defun run-at-time (time repeat function &rest args)
   "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
-TIME should be one of: a string giving an absolute time like
-\"11:23pm\" (the acceptable formats are those recognized by
-`diary-entry-time'; note that such times are interpreted as times
-today, even if in the past); a string giving a relative time like
-\"2 hours 35 minutes\" (the acceptable formats are those
-recognized by `timer-duration'); nil meaning now; a number of
-seconds from now; a value from `encode-time'; or t (with non-nil
-REPEAT) meaning the next integral multiple of REPEAT.  REPEAT may
-be an integer or floating point number.  The action is to call
-FUNCTION with arguments ARGS.
+REPEAT may be an integer or floating point number.
+TIME should be one of:
+- a string giving today's time like \"11:23pm\"
+  (the acceptable formats are HHMM, H:MM, HH:MM, HHam, HHAM,
+  HHpm, HHPM, HH:MMam, HH:MMAM, HH:MMpm, or HH:MMPM;
+  a period `.' can be used instead of a colon `:' to separate
+  the hour and minute parts);
+- a string giving a relative time like \"90\" or \"2 hours 35 minutes\"
+  (the acceptable forms are a number of seconds without units
+  or some combination of values using units in `timer-duration-words');
+- nil, meaning now;
+- a number of seconds from now;
+- a value from `encode-time';
+- or t (with non-nil REPEAT) meaning the next integral
+  multiple of REPEAT.
 
-This function returns a timer object which you can use in `cancel-timer'."
+The action is to call FUNCTION with arguments ARGS.
+
+This function returns a timer object which you can use in
+`cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
 
   (or (null repeat)
@@ -416,6 +410,8 @@ This function returns a timer object which you can use in `cancel-timer'."
 (defun add-timeout (secs function object &optional repeat)
   "Add a timer to run SECS seconds from now, to call FUNCTION on OBJECT.
 If REPEAT is non-nil, repeat the timer every REPEAT seconds.
+
+This function returns a timer object which you can use in `cancel-timer'.
 This function is for compatibility; see also `run-with-timer'."
   (run-with-timer secs repeat function object))
 

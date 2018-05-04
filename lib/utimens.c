@@ -1,6 +1,6 @@
 /* Set file access and modification times.
 
-   Copyright (C) 2003-2015 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -30,22 +30,25 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <utime.h>
 
 #include "stat-time.h"
 #include "timespec.h"
 
-#if HAVE_UTIME_H
-# include <utime.h>
-#endif
+/* On native Windows, use SetFileTime; but avoid this when compiling
+   GNU Emacs, which arranges for this in some other way and which
+   defines WIN32_LEAN_AND_MEAN itself.  */
 
-/* Some systems (even some that do have <utime.h>) don't declare this
-   structure anywhere.  */
-#ifndef HAVE_STRUCT_UTIMBUF
-struct utimbuf
-{
-  long actime;
-  long modtime;
-};
+#if ((defined _WIN32 || defined __WIN32__) \
+     && ! defined __CYGWIN__ && ! defined EMACS_CONFIGURATION)
+# define USE_SETFILETIME
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# if GNULIB_MSVC_NOTHROW
+#  include "msvc-nothrow.h"
+# else
+#  include <io.h>
+# endif
 #endif
 
 /* Avoid recursion with rpl_futimens or rpl_utimensat.  */
@@ -154,14 +157,14 @@ update_timespec (struct stat const *statbuf, struct timespec *ts[2])
   return false;
 }
 
-/* Set the access and modification time stamps of FD (a.k.a. FILE) to be
+/* Set the access and modification timestamps of FD (a.k.a. FILE) to be
    TIMESPEC[0] and TIMESPEC[1], respectively.
    FD must be either negative -- in which case it is ignored --
    or a file descriptor that is open on FILE.
    If FD is nonnegative, then FILE can be NULL, which means
    use just futimes (or equivalent) instead of utimes (or equivalent),
    and fail if on an old system without futimes (or equivalent).
-   If TIMESPEC is null, set the time stamps to the current time.
+   If TIMESPEC is null, set the timestamps to the current time.
    Return 0 on success, -1 (setting errno) on failure.  */
 
 int
@@ -190,10 +193,10 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       return -1;
     }
 
-  /* Some Linux-based NFS clients are buggy, and mishandle time stamps
+  /* Some Linux-based NFS clients are buggy, and mishandle timestamps
      of files in NFS file systems in some cases.  We have no
      configure-time test for this, but please see
-     <http://bugs.gentoo.org/show_bug.cgi?id=132673> for references to
+     <https://bugs.gentoo.org/show_bug.cgi?id=132673> for references to
      some of the problems with Linux 2.6.16.  If this affects you,
      compile with -DHAVE_BUGGY_NFS_TIME_STAMPS; this is reported to
      help in some cases, albeit at a cost in performance.  But you
@@ -247,8 +250,8 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
           result = utimensat (AT_FDCWD, file, ts, 0);
 #  ifdef __linux__
           /* Work around a kernel bug:
-             http://bugzilla.redhat.com/442352
-             http://bugzilla.redhat.com/449910
+             https://bugzilla.redhat.com/show_bug.cgi?id=442352
+             https://bugzilla.redhat.com/show_bug.cgi?id=449910
              It appears that utimensat can mistakenly return 280 rather
              than -1 upon ENOSYS failure.
              FIXME: remove in 2010 or whenever the offending kernels
@@ -283,6 +286,90 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   utimensat_works_really = -1;
   lutimensat_works_really = -1;
 #endif /* HAVE_UTIMENSAT || HAVE_FUTIMENS */
+
+#ifdef USE_SETFILETIME
+  /* On native Windows, use SetFileTime(). See
+     <https://msdn.microsoft.com/en-us/library/ms724933.aspx>
+     <https://msdn.microsoft.com/en-us/library/ms724284.aspx>  */
+  if (0 <= fd)
+    {
+      HANDLE handle;
+      FILETIME current_time;
+      FILETIME last_access_time;
+      FILETIME last_write_time;
+
+      handle = (HANDLE) _get_osfhandle (fd);
+      if (handle == INVALID_HANDLE_VALUE)
+        {
+          errno = EBADF;
+          return -1;
+        }
+
+      if (ts == NULL || ts[0].tv_nsec == UTIME_NOW || ts[1].tv_nsec == UTIME_NOW)
+        {
+          /* GetSystemTimeAsFileTime
+             <https://msdn.microsoft.com/en-us/library/ms724397.aspx>.
+             It would be overkill to use
+             GetSystemTimePreciseAsFileTime
+             <https://msdn.microsoft.com/en-us/library/hh706895.aspx>.  */
+          GetSystemTimeAsFileTime (&current_time);
+        }
+
+      if (ts == NULL || ts[0].tv_nsec == UTIME_NOW)
+        {
+          last_access_time = current_time;
+        }
+      else if (ts[0].tv_nsec == UTIME_OMIT)
+        {
+          last_access_time.dwLowDateTime = 0;
+          last_access_time.dwHighDateTime = 0;
+        }
+      else
+        {
+          ULONGLONG time_since_16010101 =
+            (ULONGLONG) ts[0].tv_sec * 10000000 + ts[0].tv_nsec / 100 + 116444736000000000LL;
+          last_access_time.dwLowDateTime = (DWORD) time_since_16010101;
+          last_access_time.dwHighDateTime = time_since_16010101 >> 32;
+        }
+
+      if (ts == NULL || ts[1].tv_nsec == UTIME_NOW)
+        {
+          last_write_time = current_time;
+        }
+      else if (ts[1].tv_nsec == UTIME_OMIT)
+        {
+          last_write_time.dwLowDateTime = 0;
+          last_write_time.dwHighDateTime = 0;
+        }
+      else
+        {
+          ULONGLONG time_since_16010101 =
+            (ULONGLONG) ts[1].tv_sec * 10000000 + ts[1].tv_nsec / 100 + 116444736000000000LL;
+          last_write_time.dwLowDateTime = (DWORD) time_since_16010101;
+          last_write_time.dwHighDateTime = time_since_16010101 >> 32;
+        }
+
+      if (SetFileTime (handle, NULL, &last_access_time, &last_write_time))
+        return 0;
+      else
+        {
+          DWORD sft_error = GetLastError ();
+          #if 0
+          fprintf (stderr, "fdutimens SetFileTime error 0x%x\n", (unsigned int) sft_error);
+          #endif
+          switch (sft_error)
+            {
+            case ERROR_ACCESS_DENIED: /* fd was opened without O_RDWR */
+              errno = EACCES; /* not specified by POSIX */
+              break;
+            default:
+              errno = EINVAL;
+              break;
+            }
+          return -1;
+        }
+    }
+#endif
 
   /* The platform lacks an interface to set file timestamps with
      nanosecond resolution, so do the best we can, discarding any
@@ -390,7 +477,9 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
         return -1;
       }
 
-#if HAVE_WORKING_UTIMES
+#ifdef USE_SETFILETIME
+    return _gl_utimens_windows (file, ts);
+#elif HAVE_WORKING_UTIMES
     return utimes (file, t);
 #else
     {
@@ -411,7 +500,7 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
   }
 }
 
-/* Set the access and modification time stamps of FILE to be
+/* Set the access and modification timestamps of FILE to be
    TIMESPEC[0] and TIMESPEC[1], respectively.  */
 int
 utimens (char const *file, struct timespec const timespec[2])
@@ -419,7 +508,7 @@ utimens (char const *file, struct timespec const timespec[2])
   return fdutimens (-1, file, timespec);
 }
 
-/* Set the access and modification time stamps of FILE to be
+/* Set the access and modification timestamps of FILE to be
    TIMESPEC[0] and TIMESPEC[1], respectively, without dereferencing
    symlinks.  Fail with ENOSYS if the platform does not support
    changing symlink timestamps, but FILE was a symlink.  */
@@ -477,8 +566,8 @@ lutimens (char const *file, struct timespec const timespec[2])
       result = utimensat (AT_FDCWD, file, ts, AT_SYMLINK_NOFOLLOW);
 # ifdef __linux__
       /* Work around a kernel bug:
-         http://bugzilla.redhat.com/442352
-         http://bugzilla.redhat.com/449910
+         https://bugzilla.redhat.com/show_bug.cgi?id=442352
+         https://bugzilla.redhat.com/show_bug.cgi?id=449910
          It appears that utimensat can mistakenly return 280 rather
          than -1 upon ENOSYS failure.
          FIXME: remove in 2010 or whenever the offending kernels

@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985-1987, 1994, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1994, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -34,9 +34,6 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
-;;;###autoload
-(define-obsolete-variable-alias 'disabled-command-hook
-  'disabled-command-function "22.1")
 ;;;###autoload
 (defvar disabled-command-function 'disabled-command-function
   "Function to call to handle disabled commands.

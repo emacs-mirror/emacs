@@ -1,6 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -32,7 +32,6 @@
 (require 'message)
 (require 'nnmail)
 (require 'nnoo)
-(eval-when-compile (require 'cl))
 (require 'gnus)
 (require 'gnus-util)
 (require 'gnus-range)
@@ -884,9 +883,7 @@ deleted.  Point is left where the deleted region was."
 	      (active (or (cadr (assoc group nnfolder-group-alist))
 			  (cons 1 0)))
 	      (scantime (assoc group nnfolder-scantime-alist))
-	      (minid (or (and (boundp 'most-positive-fixnum)
-			      most-positive-fixnum)
-			 (lsh -1 -1)))
+	      (minid most-positive-fixnum)
 	      maxid start end newscantime
 	      novbuf articles newnum
 	      buffer-read-only)
@@ -1061,7 +1058,7 @@ This command does not work if you use short group names."
 (defun nnfolder-group-pathname (group)
   "Make file name for GROUP."
   (setq group
-	(mm-encode-coding-string group nnmail-pathname-coding-system))
+	(encode-coding-string group nnmail-pathname-coding-system))
   (let ((dir (file-name-as-directory (expand-file-name nnfolder-directory))))
     ;; If this file exists, we use it directly.
     (if (or nnmail-use-long-file-names

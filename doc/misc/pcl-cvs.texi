@@ -7,7 +7,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1991--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -63,10 +63,11 @@ modify this GNU manual.''
 @node Top
 @top PCL-CVS
 
-This manual describes PCL-CVS, the GNU Emacs front-end to CVS@.  It
-is nowhere near complete, so you are advised to use @kbd{M-x
-customize-group RET pcl-cvs @key{RET}} and to look at the documentation strings
-of the various commands and major modes for further information.
+This manual describes PCL-CVS, the GNU Emacs front-end to CVS@.  It is
+nowhere near complete, so you are advised to use @kbd{M-x
+customize-group @key{RET} pcl-cvs @key{RET}} and to look at the
+documentation strings of the various commands and major modes for
+further information.
 @c This manual is updated to release 2.5 of PCL-CVS.
 
 @insertcopying
@@ -469,7 +470,7 @@ commands that @samp{tag} or @samp{diff} a file (which can be changed
 with the variable @code{cvs-invert-ignore-marks}).
 
 In addition, you may use the special prefix @code{cvs-mode-toggle-marks}
-normally bound to @key{T} to toggle the use of marks for the following
+normally bound to @kbd{T} to toggle the use of marks for the following
 command.
 
 This scheme might seem a little complicated, but once one gets used to
@@ -1109,7 +1110,7 @@ Tag all selected files by running @samp{cvs tag} on
 them (@code{cvs-mode-tag}).  It's usually preferable to tag a directory
 at a time.  Rather than selecting all files (which too often doesn't
 select all files but only the few that are displayed), clear the
-selection with @kbd{M-DEL} (@code{cvs-mode-unmark-all-files}), position
+selection with @kbd{M-@key{DEL}} (@code{cvs-mode-unmark-all-files}), position
 the cursor on the directory you want to tag and hit @kbd{t}.
 @end table
 
@@ -1331,13 +1332,13 @@ default.
 
 @node Customizing Faces
 @section Customizing Faces
-@vindex cvs-header (face)
-@vindex cvs-filename (face)
-@vindex cvs-unknown (face)
-@vindex cvs-handled (face)
-@vindex cvs-need-action (face)
-@vindex cvs-marked (face)
-@vindex cvs-msg (face)
+@vindex cvs-header @r{(face)}
+@vindex cvs-filename @r{(face)}
+@vindex cvs-unknown @r{(face)}
+@vindex cvs-handled @r{(face)}
+@vindex cvs-need-action @r{(face)}
+@vindex cvs-marked @r{(face)}
+@vindex cvs-msg @r{(face)}
 
 PCL-CVS adds a few extra features, including menus, mouse bindings, and
 fontification of the @file{*cvs*} buffer.  The faces defined for
@@ -1389,7 +1390,7 @@ the @url{http://lists.xemacs.org/mailman/listinfo/xemacs-beta,
 XEmacs mailing list}.
 
 If you have problems using PCL-CVS or other questions, send them to
-the @url{http://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+the @url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
 help-gnu-emacs mailing list}.  This is a good place to get help, as is
 the @url{http://lists.nongnu.org/mailman/listinfo/info-cvs, info-cvs list}.
 

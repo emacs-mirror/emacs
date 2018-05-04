@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@gnu.org>
 ;; Maintainer: Sam Steingold <sds@gnu.org>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -53,15 +53,12 @@ the time when it is run.")
   "Non-nil means run `midnight-hook' at midnight."
   :global t
   :initialize #'custom-initialize-default
-  (if midnight-mode (timer-activate midnight-timer)
-    (cancel-timer midnight-timer)))
-
-;;; time conversion
-
-(defun midnight-buffer-display-time (buffer)
-  "Return the time-stamp of BUFFER, or current buffer, as float."
-  (with-current-buffer buffer
-    (when buffer-display-time (float-time buffer-display-time))))
+  ;; Disable first, since the ':initialize' function above already
+  ;; starts the timer when the mode is turned on for the first time,
+  ;; via setting 'midnight-delay', which calls 'midnight-delay-set',
+  ;; which starts the timer.
+  (when (timerp midnight-timer) (cancel-timer midnight-timer))
+  (if midnight-mode (timer-activate midnight-timer)))
 
 ;;; clean-buffer-list stuff
 
@@ -163,25 +160,28 @@ the current date/time, buffer name, how many seconds ago it was
 displayed (can be nil if the buffer was never displayed) and its
 lifetime, i.e., its \"age\" when it will be purged."
   (interactive)
-  (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
+  (let ((tm (current-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
         delay cbld bn)
     (dolist (buf (buffer-list))
       (when (buffer-live-p buf)
-	(setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)
-	      delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
-	(message "[%s] `%s' [%s %d]" ts bn (if bts (round delay)) cbld)
-	(unless (or (cl-find bn clean-buffer-list-kill-never-regexps
+        (setq bts (with-current-buffer buf buffer-display-time)
+              bn (buffer-name buf)
+              delay (if bts (round (float-time (time-subtract tm bts))) 0)
+              cbld (clean-buffer-list-delay bn))
+        (message "[%s] `%s' [%s %d]" ts bn delay cbld)
+        (unless (or (cl-find bn clean-buffer-list-kill-never-regexps
                              :test (lambda (bn re)
                                      (if (functionp re)
                                          (funcall re bn)
                                        (string-match re bn))))
-		    (cl-find bn clean-buffer-list-kill-never-buffer-names
+                    (cl-find bn clean-buffer-list-kill-never-buffer-names
                              :test #'string-equal)
-		    (get-buffer-process buf)
-		    (and (buffer-file-name buf) (buffer-modified-p buf))
-		    (get-buffer-window buf 'visible) (< delay cbld))
-	  (message "[%s] killing `%s'" ts bn)
-	  (kill-buffer buf))))))
+                    (get-buffer-process buf)
+                    (and (buffer-file-name buf) (buffer-modified-p buf))
+                    (get-buffer-window buf 'visible)
+                    (< delay cbld))
+          (message "[%s] killing `%s'" ts bn)
+          (kill-buffer buf))))))
 
 ;;; midnight hook
 
@@ -217,7 +217,7 @@ You should set this variable before loading midnight.el, or
 set it by calling `midnight-delay-set', or use `custom'.
 If you wish, you can use a string instead, it will be passed as the
 first argument to `run-at-time'."
-  :type 'sexp
+  :type '(choice integer string)
   :set #'midnight-delay-set)
 
 (provide 'midnight)

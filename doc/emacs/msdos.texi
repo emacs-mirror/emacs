@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
@@ -19,6 +19,13 @@ manual (@pxref{MS-DOS,,, emacs-xtra, Specialized Emacs Features}).
 section (@pxref{MS-DOS}).
 @end ifnottex
 
+  MS-Windows is a non-free operating system; that means it denies its
+users the freedom that every computer user deserves.  That is an
+injustice.  For your freedom's sake, we urge you to switch to a free
+operating system.
+
+  We support GNU Emacs on proprietary operating systems because we
+hope this taste of freedom will inspire users to escape from them.
 
   The behavior of Emacs on MS-Windows is reasonably similar to what is
 documented in the rest of the manual, including support for long file
@@ -69,6 +76,20 @@ right-click on the shortcut, select ``Properties'', and in the
 ``Shortcut'' tab modify the ``Start in'' field to your liking.
 
 @item
+@cindex pinning Emacs to Windows task bar
+From a task-bar shortcut icon, by clicking once the left mouse button.
+Windows versions since Vista allow you to create such shortcuts by
+@dfn{pinning} the icon of a running program that appears in the task
+bar.  You can do that with Emacs, but afterwards you will have to
+change the properties of the pinned shortcut to run
+@file{runemacs.exe}, @emph{not} of @file{emacs.exe}.  You can also pin
+Emacs to the task bar by clicking the right mouse button on its icon
+in the Start menu, then selecting @samp{Pin to taskbar}.  Once again,
+be sure to specify @file{runemacs.exe} as the program to run.  You can
+control where Emacs starts by setting the ``Start in'' field of the
+shortcut's Properties.
+
+@item
 From the Command Prompt window, by typing @kbd{emacs @key{RET}} at the
 prompt.  The Command Prompt window where you did that will not be
 available for invoking other commands until Emacs exits.  In this
@@ -79,6 +100,12 @@ From the Command Prompt window, by typing @kbd{runemacs @key{RET}} at
 the prompt.  The Command Prompt window where you did that will be
 immediately available for invoking other commands.  In this case,
 Emacs will start in the current directory of the Windows shell.
+
+@item
+From the Windows @code{Run} dialog (normally reached by clicking the
+@code{Start} button).  Typing @kbd{runemacs @key{RET}} into the dialog
+will start Emacs in the parent directory of the Windows equivalent of
+your user's @code{HOME} directory, see @ref{Windows HOME}.
 
 @item
 @cindex invoking Emacs from Windows Explorer
@@ -109,7 +136,7 @@ invoked---that will always give you an editor.  When invoked via
 the program that invoked @command{emacsclient}.
 @end enumerate
 
-@cindex emacsclient, on MS-Windows
+@cindex @command{emacsclient}, on MS-Windows
 Note that, due to limitations of MS-Windows, Emacs cannot have both
 GUI and text-mode frames in the same session.  It also cannot open
 text-mode frames on more than a single @dfn{Command Prompt} window,
@@ -129,18 +156,19 @@ window.  @xref{emacsclient Options}.
 @cindex text and binary files on MS-DOS/MS-Windows
 
   GNU Emacs uses newline characters to separate text lines.  This is the
-convention used on GNU, Unix, and other Posix-compliant systems.
+convention used on GNU, Unix, and other POSIX-compliant systems.
 
 @cindex end-of-line conversion on MS-DOS/MS-Windows
-  By contrast, MS-DOS and MS-Windows normally use carriage-return linefeed,
-a two-character sequence, to separate text lines.  (Linefeed is the same
-character as newline.)  Therefore, convenient editing of typical files
-with Emacs requires conversion of these end-of-line (EOL) sequences.
-And that is what Emacs normally does: it converts carriage-return
-linefeed into newline when reading files, and converts newline into
-carriage-return linefeed when writing files.  The same mechanism that
-handles conversion of international character codes does this conversion
-also (@pxref{Coding Systems}).
+  By contrast, MS-DOS and MS-Windows normally use carriage return
+followed by linefeed, a two-character sequence, to separate text
+lines.  (Linefeed is the same character as newline.)  Therefore,
+convenient editing of typical files with Emacs requires conversion of
+these end-of-line (EOL) sequences.  And that is what Emacs normally
+does: it converts carriage return followed by linefeed into newline
+when reading files, and converts newline into carriage return followed
+by linefeed when writing files.  The same mechanism that handles
+conversion of international character codes does this conversion also
+(@pxref{Coding Systems}).
 
 @cindex cursor location, on MS-DOS
 @cindex point location, on MS-DOS
@@ -149,11 +177,11 @@ that character positions as reported by Emacs (@pxref{Position Info}) do
 not agree with the file size information known to the operating system.
 
   In addition, if Emacs recognizes from a file's contents that it uses
-newline rather than carriage-return linefeed as its line separator, it
-does not perform EOL conversion when reading or writing that file.
-Thus, you can read and edit files from GNU and Unix systems on MS-DOS
-with no special effort, and they will retain their Unix-style
-end-of-line convention after you edit them.
+newline rather than carriage return followed by linefeed as its line
+separator, it does not perform EOL conversion when reading or writing
+that file.  Thus, you can read and edit files from GNU and Unix
+systems on MS-DOS with no special effort, and they will retain their
+Unix-style end-of-line convention after you edit them.
 
   The mode line indicates whether end-of-line translation was used for
 the current buffer.  If MS-DOS end-of-line translation is in use for the
@@ -161,20 +189,20 @@ buffer, the MS-Windows build of Emacs displays a backslash @samp{\} after
 the coding system mnemonic near the beginning of the mode line
 (@pxref{Mode Line}).  If no EOL translation was performed, the string
 @samp{(Unix)} is displayed instead of the backslash, to alert you that the
-file's EOL format is not the usual carriage-return linefeed.
+file's EOL format is not the usual carriage return followed by linefeed.
 
 @cindex DOS-to-Unix conversion of files
   To visit a file and specify whether it uses DOS-style or Unix-style
 end-of-line, specify a coding system (@pxref{Text Coding}).  For
 example, @kbd{C-x @key{RET} c unix @key{RET} C-x C-f foobar.txt}
 visits the file @file{foobar.txt} without converting the EOLs; if some
-line ends with a carriage-return linefeed pair, Emacs will display
-@samp{^M} at the end of that line.  Similarly, you can direct Emacs to
-save a buffer in a specified EOL format with the @kbd{C-x @key{RET} f}
-command.  For example, to save a buffer with Unix EOL format, type
-@kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you visit a file
-with DOS EOL conversion, then save it with Unix EOL format, that
-effectively converts the file to Unix EOL style, like the
+line ends with a carriage return followed by linefeed pair, Emacs will
+display @samp{^M} at the end of that line.  Similarly, you can direct
+Emacs to save a buffer in a specified EOL format with the @kbd{C-x
+@key{RET} f} command.  For example, to save a buffer with Unix EOL
+format, type @kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you
+visit a file with DOS EOL conversion, then save it with Unix EOL
+format, that effectively converts the file to Unix EOL style, like the
 @code{dos2unix} program.
 
 @cindex untranslated file system
@@ -204,8 +232,8 @@ designates directory @file{\foo} on drive Z as an untranslated file
 system.
 
   Most often you would use @code{add-untranslated-filesystem} in your
-@file{.emacs} file, or in @file{site-start.el} so that all the users at
-your site get the benefit of it.
+@file{.emacs} or @file{init.el} init file, or in @file{site-start.el}
+so that all the users at your site get the benefit of it.
 
 @findex remove-untranslated-filesystem
   To countermand the effect of @code{add-untranslated-filesystem}, use
@@ -215,8 +243,8 @@ previously with @code{add-untranslated-filesystem}.
 
   Designating a file system as untranslated does not affect character
 set conversion, only end-of-line conversion.  Essentially, it directs
-Emacs to create new files with the Unix-style convention of using
-newline at the end of a line.  @xref{Coding Systems}.
+Emacs to default to creating new files with the Unix-style convention
+of using newline at the end of a line.  @xref{Coding Systems}.
 
 @node Windows Files
 @section File Names on MS-Windows
@@ -229,7 +257,9 @@ backslash, and also knows about drive letters in file names.
 
 @cindex file-name completion, on MS-Windows
   On MS-DOS/MS-Windows, file names are case-insensitive, so Emacs by
-default ignores letter-case in file names during completion.
+default ignores letter-case in file names during completion.  To this
+end, the default value of @code{read-file-name-completion-ignore-case}
+is non-@code{nil} on MS-DOS/MS-Windows.  @xref{Completion Options}.
 
 @vindex w32-get-true-file-attributes
   The variable @code{w32-get-true-file-attributes} controls whether
@@ -311,9 +341,9 @@ it doesn't support all of them.  Here's the list of the switches it
 does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
 @option{-c}, @option{-G}, @option{-g}, @option{-h}, @option{-i}, @option{-n},
 @option{-R}, @option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
-@option{-u}, and @option{-X}.  The @option{-F} switch is partially
-supported (it appends the character that classifies the file, but does
-not prevent symlink following).
+@option{-u}, @option{v}, and @option{-X}.  The @option{-F} switch is
+partially supported (it appends the character that classifies the
+file, but does not prevent symlink following).
 
 @vindex ls-lisp-use-insert-directory-program
   On MS-Windows and MS-DOS, @file{ls-lisp.el} is preloaded when Emacs
@@ -322,6 +352,26 @@ platforms.  If you have a ported @code{ls}, setting
 @code{ls-lisp-use-insert-directory-program} to a non-@code{nil} value
 will revert to using an external program named by the variable
 @code{insert-directory-program}.
+
+@cindex Dired sorting order, on MS-Windows/MS-DOS
+  The order in which @file{ls-lisp.el} sorts files depends on several
+customizable options described below.
+
+@vindex ls-lisp-use-string-collate
+  The default sorting order follows locale-specific rules derived from
+your system locale.  You can make the order locale-independent by
+customizing @code{ls-lisp-use-string-collate} to a @code{nil} value.
+
+@cindex Unicode Collation Algorithm (UCA), and @file{ls-lisp.el}
+@vindex ls-lisp-UCA-like-collation
+  On GNU and Unix systems, when the locale's encoding is UTF-8, the
+collation order follows the Unicode Collation Algorithm
+(@acronym{UCA}).  To have a similar effect on MS-Windows, the variable
+@code{ls-lisp-UCA-like-collation} should have a non-@code{nil} value
+(this is the default).  The resulting sorting order ignores
+punctuation, symbol characters, and whitespace characters, so
+@file{.foobar}, @file{foobar} and @w{@file{foo bar}} will appear
+together rather than far apart.
 
 @vindex ls-lisp-ignore-case
   By default, @file{ls-lisp.el} uses a case-sensitive sort order for
@@ -366,15 +416,15 @@ Emulate @sc{gnu} systems; this is the default.  This sets
 Emulate Unix systems.  Like @code{GNU}, but sets
 @code{ls-lisp-verbosity} to @code{(links uid)}.
 @item MacOS
-Emulate MacOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
+Emulate macOS@.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
 @code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.
 @item MS-Windows
 Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
 @code{ls-lisp-dirs-first} to @code{t}, and @code{ls-lisp-verbosity} to
-@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X@.
-Note that the default emulation is @emph{not} @code{MS-Windows}, even
-on Windows, since many users of Emacs on those platforms prefer the
-@sc{gnu} defaults.
+@code{nil} on Windows 9X and to @code{t} on modern versions of
+Windows.  Note that the default emulation is @emph{not}
+@code{MS-Windows}, even on Windows, since many users of Emacs on those
+platforms prefer the @sc{gnu} defaults.
 @end table
 
 @noindent
@@ -421,6 +471,8 @@ formats file time stamps according to what
 @code{ls-lisp-format-time-list} specifies.  The @samp{%}-sequences in
 @code{ls-lisp-format-time-list} produce locale-dependent month and day
 names, which might cause misalignment of columns in Dired display.
+The default value of @code{ls-lisp-use-localized-time-format} is
+@code{nil}.
 @end ifnottex
 
 @node Windows HOME
@@ -430,9 +482,9 @@ names, which might cause misalignment of columns in Dired display.
   The Windows equivalent of @code{HOME} is the @dfn{user-specific
 application data directory}.  The actual location depends on the
 Windows version; typical values are @file{C:\Documents and
-Settings\@var{username}\Application Data} on Windows 2000/XP/2K3,
-@file{C:\Users\@var{username}\AppData\Roaming} on Windows
-Vista/7/2008, and either @file{C:\WINDOWS\Application Data} or
+Settings\@var{username}\Application Data} on Windows 2000 up to XP,
+@file{C:\Users\@var{username}\AppData\Roaming} on Windows Vista and
+later, and either @file{C:\WINDOWS\Application Data} or
 @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on Windows
 9X/ME@.  If this directory does not exist or cannot be accessed, Emacs
 falls back to @file{C:\} as the default value of @code{HOME}.
@@ -453,7 +505,8 @@ default @code{HOME} location, and will not look in the application
 data directory, even if it exists.  Note that only @file{.emacs} is
 looked for in @file{C:\}; the older name @file{_emacs} (see below) is
 not.  This use of @file{C:\.emacs} to define @code{HOME} is
-deprecated.
+deprecated; Emacs will display a warning about its use during
+startup.
 
   Whatever the final place is, Emacs sets the internal value of the
 @env{HOME} environment variable to point to it, and it will use that
@@ -467,15 +520,15 @@ first line.  Likewise, to visit your init file, type @kbd{C-x C-f
 ~/.emacs @key{RET}} (assuming the file's name is @file{.emacs}).
 
 @cindex init file @file{.emacs} on MS-Windows
-  The home directory is where your init file is stored.  It can have
-any name mentioned in @ref{Init File}.
+  Your init file can have any name mentioned in @ref{Init File}.
 
 @cindex @file{_emacs} init file, MS-Windows
   Because MS-DOS does not allow file names with leading dots, and
 older Windows systems made it hard to create files with such names,
 the Windows port of Emacs supports an init file name @file{_emacs}, if
 such a file exists in the home directory and @file{.emacs} does not.
-This name is considered obsolete.
+This name is considered obsolete, so Emacs will display a warning if
+it is used.
 
 @node Windows Keyboard
 @section Keyboard Usage on MS-Windows
@@ -491,7 +544,9 @@ Emacs key bindings.  (These Emacs key bindings were established years
 before Microsoft was founded.)  Examples of conflicts include
 @kbd{C-c}, @kbd{C-x}, @kbd{C-z}, @kbd{C-a}, and @kbd{W-@key{SPC}}.
 You can redefine some of them with meanings more like the MS-Windows
-meanings by enabling CUA Mode (@pxref{CUA Bindings}).
+meanings by enabling CUA Mode (@pxref{CUA Bindings}).  Another
+optional feature which will make Emacs behave like other Windows
+applications is Delete Selection mode (@pxref{Using Region}).
 
 @iftex
 @inforef{Windows Keyboard, , emacs}, for information about additional
@@ -500,39 +555,71 @@ Windows-specific variables in this category.
 @ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
-  By default, the key labeled @key{Alt} is mapped as the @key{META}
+  By default, the key labeled @key{Alt} is mapped as the @key{Meta}
 key.  If you wish it to produce the @code{Alt} modifier instead, set
 the variable @code{w32-alt-is-meta} to a @code{nil} value.
 
 @findex w32-register-hot-key
 @findex w32-unregister-hot-key
   MS-Windows reserves certain key combinations, such as
-@kbd{@key{Alt}-@key{TAB}}, for its own use.  These key combinations are
-intercepted by the system before Emacs can see them.  You can use the
-@code{w32-register-hot-key} function to allow a key sequence to be
-seen by Emacs instead of being grabbed by Windows.  This function
-registers a key sequence as a @dfn{hot key}, overriding the special
-meaning of that key sequence for Windows.  (MS-Windows is told that
-the key sequence is a hot key only when one of the Emacs windows has
-focus, so that the special keys still have their usual meaning for
-other Windows applications.)
+@kbd{@key{Alt}-@key{TAB}} and a number of Windows key combinations,
+for its own use.  These key combinations are intercepted by the system
+before Emacs can see them.  Also, on Windows 10, all Windows key
+combinations are reserved by the system in such a way that they are
+never propagated to applications, even if the system does not
+currently define a hotkey on the specific combination.  You can use
+the @code{w32-register-hot-key} function to allow a key sequence to be
+seen by Emacs instead of being grabbed by Windows.  When registered as
+a hot key, the key combination is pulled out of the system's input
+queue before it is handled by Windows, effectively overriding the
+special meaning of that key sequence for Windows.  The override is
+only effective when Emacs is active; with other applications on the
+foreground the keys behave normally.
 
-  The argument to @code{w32-register-hot-key} must be a single key,
-with or without modifiers, in vector form that would be acceptable to
-@code{define-key}.  The meta modifier is interpreted as the @key{Alt}
-key if @code{w32-alt-is-meta} is @code{t} (the default), and the hyper
-modifier is always interpreted as the Windows key (usually labeled
-with @key{start} and the Windows logo).  If the function succeeds in
-registering the key sequence, it returns the hotkey ID, a number;
-otherwise it returns @code{nil}.
+  The argument to @code{w32-register-hot-key} must be a single key with a
+single modifier, in vector form that would be acceptable to
+@code{define-key}.  The control and shift modifiers have no effect on the
+argument.  The meta modifier is interpreted as the @key{Alt} key if
+@code{w32-alt-is-meta} is @code{t} (the default), and the super and hyper
+modifiers are interpreted according to the bindings of
+@code{w32-lwindow-modifier} and @code{w32-rwindow-modifier}.  Additionally, a
+modifier with the trailing dash but with no key indicates that all
+Windows defined hotkeys for that modifier are to be overridden in the
+favor of Emacs.
 
 @kindex M-TAB@r{, (MS-Windows)}
 @cindex @kbd{M-@key{TAB}} vs @kbd{@key{Alt}-@key{TAB}} (MS-Windows)
 @cindex @kbd{@key{Alt}-@key{TAB}} vs @kbd{M-@key{TAB}} (MS-Windows)
   For example, @code{(w32-register-hot-key [M-tab])} lets you use
-@kbd{M-@key{TAB}} normally in Emacs; for instance, to complete the word or
-symbol at point at top level, or to complete the current search string
-against previously sought strings during incremental search.
+@kbd{M-@key{TAB}} normally in Emacs; for instance, to complete the
+word or symbol at point at top level, or to complete the current
+search string against previously sought strings during incremental
+search.  @code{(w32-register-hot-key [s-])} with
+@code{w32-lwindow-modifier} bound to @code{super} disables all the
+Windows' own Windows key based shortcuts.@footnote{There is one known
+exception: The combination @kbd{@key{Windows}-L} that locks the
+workstation is handled by the system on a lower level.  For this
+reason, @code{w32-register-hot-key} cannot override this key
+combination - it always locks the computer.}
+
+  Note that @code{w32-register-hot-key} checks the
+@code{w32-[lr]window-modifier} values at the time of the function
+call.  Thus, you can set @code{w32-lwindow-modifier} as @code{super},
+then call @code{(w32-register-hot-key [s-r])}, and finally set
+@code{w32-rwindow-modifier} as @code{super} as well.  The result is
+that the left Windows key together with @kbd{R} invokes whichever
+function you have bound for the combination in Emacs, and the right
+Windows key and @kbd{R} opens the Windows @code{Run} dialog.
+
+  The hotkey registrations always also include all the shift and
+control modifier combinations for the given hotkey; that is,
+registering @kbd{s-a} as a hotkey gives you @kbd{S-s-a},
+@kbd{C-s-a} and @kbd{C-S-s-a} as well.
+
+  On Windows 98 and ME, the hotkey registration is more restricted.
+The desired hotkey must always be fully specified, and
+@code{w32-phantom-key-code} can be customized to achieve desired
+results.
 
   The function @code{w32-unregister-hot-key} reverses the effect of
 @code{w32-register-hot-key} for its argument key sequence.
@@ -543,12 +630,12 @@ keys (it converts lower-case characters to their upper-case
 variants).  However, if you set the variable
 @code{w32-capslock-is-shiftlock} to a non-@code{nil} value, the
 @key{CapsLock} key will affect non-character keys as well, as if you
-pressed the @key{Shift} key while typing the non-character key.
+pressed the @key{SHIFT} key while typing the non-character key.
 
 @vindex w32-enable-caps-lock
   If the variable @code{w32-enable-caps-lock} is set to a @code{nil}
 value, the @key{CapsLock} key produces the symbol @code{capslock}
-instead of the shifted version of they keys.  The default value is
+instead of the shifted version of typed keys.  The default value is
 @code{t}.
 
 @vindex w32-enable-num-lock
@@ -580,15 +667,19 @@ variable @code{w32-rwindow-modifier} controls the effect of the right
 Windows key, and @code{w32-scroll-lock-modifier} does the same for the
 @key{ScrLock} key.  If these variables are set to @code{nil}, the
 right Windows key produces the symbol @code{rwindow} and @key{ScrLock}
-produces the symbol @code{scroll}.
+produces the symbol @code{scroll}.  If you want @key{ScrLock} to
+produce the same effect as in other applications, i.e.@: toggle the
+Scroll Lock @acronym{LED} indication on the keyboard, set
+@code{w32-scroll-lock-modifier} to @code{t} or any non-@code{nil}
+value other than the above modifier symbols.
 
 @vindex w32-pass-alt-to-system
 @cindex Windows system menu
 @cindex @code{Alt} key invokes menu (Windows)
   Emacs compiled as a native Windows application normally turns off
 the Windows feature that tapping the @key{Alt} key invokes the Windows
-menu.  The reason is that the @key{Alt} serves as @key{META} in Emacs.
-When using Emacs, users often press the @key{META} key temporarily and
+menu.  The reason is that the @key{Alt} serves as @key{Meta} in Emacs.
+When using Emacs, users often press the @key{Meta} key temporarily and
 then change their minds; if this has the effect of bringing up the
 Windows menu, it alters the meaning of subsequent commands.  Many
 users find this frustrating.
@@ -607,23 +698,18 @@ keys are passed to Windows or swallowed by Emacs.  If the value is
 otherwise it is passed to Windows.  The default is @code{t} for both
 of these variables.  Passing each of these keys to Windows produces
 its normal effect: for example, @kbd{@key{Lwindow}} opens the
-@code{Start} menu, etc.@footnote{
-Some combinations of the ``Windows'' keys with other keys are caught
-by Windows at a low level in a way that Emacs currently cannot prevent.
-For example, @kbd{@key{Lwindow} r} always pops up the Windows
-@samp{Run} dialog.  Customizing the value of
-@code{w32-phantom-key-code} might help in some cases, though.}
+@code{Start} menu, etc.
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}
-@cindex AltGr key (MS-Windows)
+@cindex @key{AltGr} key (MS-Windows)
   The variable @code{w32-recognize-altgr} controls whether the
 @key{AltGr} key (if it exists on your keyboard), or its equivalent,
 the combination of the right @key{Alt} and left @key{Ctrl} keys
 pressed together, is recognized as the @key{AltGr} key.  The default
 is @code{t}, which means these keys produce @code{AltGr}; setting it
 to @code{nil} causes @key{AltGr} or the equivalent key combination to
-be interpreted as the combination of @key{Ctrl} and @key{META}
+be interpreted as the combination of @key{Ctrl} and @key{Meta}
 modifiers.
 @end ifnottex
 
@@ -655,19 +741,18 @@ and the right button generates @kbd{mouse-3} events.  If this variable
 is non-@code{nil}, the roles of these two buttons are reversed.
 
 @node Windows Processes
-@section Subprocesses on Windows 9X/ME and Windows NT/2K/XP
+@section Subprocesses on Windows 9X/ME and Windows NT/2K/XP/Vista/7/8/10
 @cindex subprocesses on MS-Windows
 
 @cindex DOS applications, running from Emacs
-  Emacs compiled as a native Windows application (as opposed to the DOS
-version) includes full support for asynchronous subprocesses.
-In the Windows version, synchronous and asynchronous subprocesses work
-fine on both
-Windows 9X/ME and Windows NT/2K/XP as long as you run only 32-bit Windows
-applications.  However, when you run a DOS application in a subprocess,
-you may encounter problems or be unable to run the application at all;
-and if you run two DOS applications at the same time in two
-subprocesses, you may have to reboot your system.
+  Emacs compiled as a native Windows application (as opposed to the
+DOS version) includes full support for asynchronous subprocesses.  In
+the Windows version, synchronous and asynchronous subprocesses work
+fine on all versions of MS-Windows, as long as you run only 32-bit or
+64-bit Windows applications.  However, when you run a DOS application
+in a subprocess, you may encounter problems or be unable to run the
+application at all; and if you run two DOS applications at the same
+time in two subprocesses, you may have to reboot your system.
 
 Since the standard command interpreter (and most command line utilities)
 on Windows 9X are DOS applications, these problems are significant when
@@ -692,13 +777,13 @@ first one finishes, even if either or both of them are asynchronous.
 
 @cindex kill DOS application
 If you can go to the first subprocess, and tell it to exit, the second
-subprocess should continue normally.  However, if the second subprocess
-is synchronous, Emacs itself will be hung until the first subprocess
-finishes.  If it will not finish without user input, then you have no
-choice but to reboot if you are running on Windows 9X@.  If you are
-running on Windows NT/2K/XP, you can use a process viewer application to kill
-the appropriate instance of NTVDM instead (this will terminate both DOS
-subprocesses).
+subprocess should continue normally.  However, if the second
+subprocess is synchronous, Emacs itself will be hung until the first
+subprocess finishes.  If it will not finish without user input, then
+you have no choice but to reboot if you are running on Windows 9X@.
+If you are running on Windows NT and later, you can use a process
+viewer application to kill the appropriate instance of NTVDM instead
+(this will terminate both DOS subprocesses).
 
 If you have to reboot Windows 9X in this situation, do not use the
 @code{Shutdown} command on the @code{Start} menu; that usually hangs the
@@ -712,6 +797,15 @@ the process arguments.  Non-@code{nil} means quote with the @code{"}
 character.  If the value is a character, Emacs uses that character to escape
 any quote characters that appear; otherwise it chooses a suitable escape
 character based on the type of the program.
+
+@vindex w32-pipe-buffer-size
+  The variable @code{w32-pipe-buffer-size} controls the size of the
+buffer Emacs requests from the system when it creates pipes for
+communications with subprocesses.  The default value is zero, which
+lets the OS choose the size.  Any valid positive value will request a
+buffer of that size in bytes.  This can be used to tailor
+communications with subprocesses to programs that exhibit unusual
+behavior with respect to buffering pipe I/O.
 
 @ifnottex
 @findex w32-shell-execute
@@ -729,7 +823,7 @@ more details.
   Printing commands, such as @code{lpr-buffer} (@pxref{Printing}) and
 @code{ps-print-buffer} (@pxref{PostScript}) work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
-Posix-style @code{lpr} program is unavailable.  The same Emacs
+POSIX-style @code{lpr} program is unavailable.  The same Emacs
 variables control printing on all systems, but in some cases they have
 different default values on MS-DOS and MS-Windows.
 
@@ -992,7 +1086,8 @@ the system default antialiasing.
 @node Windows Misc
 @section Miscellaneous Windows-specific features
 
-  This section describes miscellaneous Windows-specific features.
+  This section describes Windows-specific features that don't fit
+anywhere else.
 
 @vindex w32-use-visible-system-caret
 @cindex screen reader software, MS-Windows

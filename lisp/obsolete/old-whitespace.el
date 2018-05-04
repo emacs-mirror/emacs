@@ -1,6 +1,6 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -300,8 +300,6 @@ To disable timer scans, set this to zero."
 				 (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
   :group 'whitespace)
-(define-obsolete-face-alias 'whitespace-highlight-face
-  'whitespace-highlight "22.1")
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)

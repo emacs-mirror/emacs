@@ -1,11 +1,11 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2015 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2018 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
 
 This file contains general information on building GNU Emacs.
-For more information specific to the MS-Windows, GNUstep/Mac OS X, and
+For more information specific to the MS-Windows, GNUstep/macOS, and
 MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
 msdos/INSTALL.  For information about building from a repository checkout
 (rather than a release), also read the file INSTALL.REPO.
@@ -24,7 +24,7 @@ find some things, or what options to use.
 'src/config.h' file containing system-dependent definitions.
 Running the 'make' utility then builds the package for your system.
 
-Building Emacs requires GNU make, <http://www.gnu.org/software/make/>.
+Building Emacs requires GNU make, <https://www.gnu.org/software/make/>.
 On most systems that Emacs supports, this is the default 'make' program.
 
 Here's the procedure to build Emacs using 'configure' on systems which
@@ -34,7 +34,7 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 24 release requires about 200 MB of free
+  1. Unpacking the Emacs 25 release requires about 200 MB of free
   disk space.  Building Emacs uses about another 200 MB of space.
   The final installed Emacs uses about 150 MB of disk space.
   This includes the space-saving that comes from automatically
@@ -162,7 +162,7 @@ can be found (in the unlikely event that your distribution does not
 provide them).  By default, libraries marked with an X are required if
 X11 is being used.
 
-    libXaw3d          http://directory.fsf.org/project/xaw3d/
+    libXaw3d          https://directory.fsf.org/project/xaw3d/
   X libxpm for XPM:   http://www.x.org/releases/current/src/lib/
   X libpng for PNG:   http://www.libpng.org/
     libz (for PNG):   http://www.zlib.net/
@@ -187,7 +187,7 @@ them.
 On the GNU system, Emacs supports both X fonts and local fonts
 (i.e. fonts managed by the fontconfig library).  If you need more
 fonts than your distribution normally provides, you must install them
-yourself.  See <URL:http://www.gnu.org/software/freefont/> for a large
+yourself.  See <https://www.gnu.org/software/freefont/> for a large
 number of free Unicode fonts.
 
 * GNU/Linux development packages
@@ -208,7 +208,7 @@ corresponding command is 'yum-builddep emacs'.
 
 DETAILED BUILDING AND INSTALLATION:
 
-(This is for a Unix or Unix-like system.  For GNUstep and Mac OS X,
+(This is for a Unix or Unix-like system.  For GNUstep and macOS,
 see nextstep/INSTALL.  For non-ancient versions of MS Windows, see
 the file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
 
@@ -259,12 +259,24 @@ inconvenient for Emacs when running as daemon or running via a remote
 ssh connection.  In order to completely prevent the use of D-Bus, configure
 Emacs with the options '--without-dbus --without-gconf --without-gsettings'.
 
+To read email via a network protocol like IMAP or POP, you can
+configure Emacs with the option '--with-mailutils', so that it always
+uses the GNU Mailutils 'movemail' program to retrieve mail; this is
+the default if GNU Mailutils is installed.  Otherwise the Emacs build
+procedure builds and installs an auxiliary 'movemail' program, a
+limited and insecure substitute; when this happens, there are several
+configure options such as --without-pop that provide fine-grained
+control over Emacs 'movemail' construction.
+
 The Emacs mail reader RMAIL is configured to be able to read mail from
 a POP3 server by default.  Versions of the POP protocol older than
-POP3 are not supported.  For Kerberos-authenticated POP add
-'--with-kerberos', for Hesiod support add '--with-hesiod'.  While POP3
-is always enabled, whether Emacs actually uses POP is controlled by
-individual users--see the Rmail chapter of the Emacs manual.
+POP3 are not supported.  While POP3 support is typically enabled,
+whether Emacs actually uses POP3 is controlled by individual users;
+see the Rmail chapter of the Emacs manual.  Unless --with-mailutils is
+in effect, it is a good idea to configure without POP3 support so that
+users are less likely to inadvertently read email via insecure
+channels.  On native MS-Windows, --with-pop is the default; on other
+platforms, --without-pop is the default.
 
 For image support you may have to download, build, and install the
 appropriate image support libraries for image types other than XBM and
@@ -303,35 +315,39 @@ build a small executable with very basic X support, use --without-all
 use --without-all --without-x.  If you want to build with just a few
 features enabled, you can combine --without-all with --with-FEATURE.
 For example, you can use --without-all --without-x --with-dbus to
-build with DBus support and nothing more.
+build with D-Bus support and nothing more.
 
 Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a
 typical 32-bit host, Emacs integers have 62 bits instead of 30.
 
+Use --with-cairo to compile Emacs with Cairo drawing.
+
+Use --with-modules to build Emacs with support for dynamic modules.
+This needs a C compiler that supports '__attribute__ ((cleanup (...)))',
+as in GCC 3.4 and later.
+
 Use --enable-gcc-warnings to enable compile-time checks that warn
 about possibly-questionable C code.  This is intended for developers
 and is useful with GNU-compatible compilers.  On a recent GNU system
 there should be no warnings; on older and on non-GNU systems the
-generated warnings may still be useful, though you may prefer building
-with 'make WERROR_CFLAGS=' so that the warnings are not treated as
-errors.
+generated warnings may still be useful, though you may prefer
+configuring with --enable-gcc-warnings=warn-only so they are not
+treated as errors.  The default is --enable-gcc-warnings=warn-only if
+it appears to be a developer build, and is --disable-gcc-warnings
+otherwise.
 
 Use --disable-silent-rules to cause 'make' to give more details about
 the commands it executes.  This can be helpful when debugging a build
 that goes awry.  'make V=1' also enables the extra chatter.
 
-Use --enable-link-time-optimization to enable link-time optimizer.  If
-you're using GNU compiler, this feature is supported since version 4.5.0.
-If 'configure' can determine number of online CPUS on your system, final
-link-time optimization and code generation is executed in parallel using
-one job per each available online CPU.
-
-This option is also supported for clang.  You should have GNU binutils
-with 'gold' linker and plugin support, and clang with LLVMgold.so plugin.
-Read http://llvm.org/docs/GoldPlugin.html for details.  Also note that
-this feature is still experimental, so prepare to build binutils and
-clang from the corresponding source code repositories.
+Use --enable-link-time-optimization to enable link-time optimization.
+With GCC, you need GCC 4.5.0 and later, and 'configure' arranges for
+linking to be parallelized if possible.  With Clang, you need GNU
+binutils with the gold linker and plugin support, along with the LLVM
+gold plugin <http://llvm.org/docs/GoldPlugin.html>.  Link time
+optimization is not the default as it tends to cause crashes and to
+make Emacs slower.
 
 The '--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to '/usr/local'.
@@ -531,7 +547,8 @@ information on this.
 Emacs info files.
 
 8) If your system uses lock files to interlock access to mailer inbox files,
-then you might need to make the movemail program setuid or setgid
+and if --with-mailutils is not in effect, then you might need to
+make the Emacs-specific 'movemail' program setuid or setgid in order
 to enable it to write the lock files.  We believe this is safe.
 
 9) You are done!  You can remove executables and object files from
@@ -663,4 +680,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

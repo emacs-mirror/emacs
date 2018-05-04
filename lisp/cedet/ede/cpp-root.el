@@ -1,6 +1,6 @@
 ;;; ede/cpp-root.el --- A simple way to wrap a C++ project with a single root
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -137,7 +137,7 @@
 ;; Need a way to reconfigure a project, and have it affect all open buffers.
 ;; From Tobias Gerdin:
 ;;
-;;   >>3) Is there any way to refresh a ede-cpp-root-project dynamically? I have
+;;   >>3) Is there any way to refresh an ede-cpp-root-project dynamically? I have
 ;;   >>some file open part of the project, fiddle with the include paths and would
 ;;   >>like the open buffer to notice this when I re-evaluate the
 ;;   >>ede-cpp-root-project constructor.

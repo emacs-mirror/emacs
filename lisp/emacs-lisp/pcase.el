@@ -1,6 +1,6 @@
-;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t; coding: utf-8 -*-
+;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -89,7 +89,8 @@
        (functionp &rest form)
        sexp))
 
-(def-edebug-spec pcase-MACRO pcase--edebug-match-macro)
+;; See bug#24717
+(put 'pcase-MACRO 'edebug-form-spec 'pcase--edebug-match-macro)
 
 ;; Only called from edebug.
 (declare-function get-edebug-spec "edebug" (symbol))
@@ -107,38 +108,59 @@
 
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
-  "Perform ML-style pattern matching on EXP.
+  "Evaluate EXP and attempt to match it against structural patterns.
 CASES is a list of elements of the form (PATTERN CODE...).
 
-Patterns can take the following forms:
+A structural PATTERN describes a template that identifies a class
+of values.  For example, the pattern \\=`(,foo ,bar) matches any
+two element list, binding its elements to symbols named `foo' and
+`bar' -- in much the same way that `cl-destructuring-bind' would.
+
+A significant difference from `cl-destructuring-bind' is that, if
+a pattern match fails, the next case is tried until either a
+successful match is found or there are no more cases.  The CODE
+expression corresponding to the matching pattern determines the
+return value.  If there is no match the returned value is nil.
+
+Another difference is that pattern elements may be quoted,
+meaning they must match exactly: The pattern \\='(foo bar)
+matches only against two element lists containing the symbols
+`foo' and `bar' in that order.  (As a short-hand, atoms always
+match themselves, such as numbers or strings, and need not be
+quoted.)
+
+Lastly, a pattern can be logical, such as (pred numberp), that
+matches any number-like element; or the symbol `_', that matches
+anything.  Also, when patterns are backquoted, a comma may be
+used to introduce logical patterns inside backquoted patterns.
+
+The complete list of standard patterns is as follows:
+
   _		matches anything.
   SYMBOL	matches anything and binds it to SYMBOL.
+                If a SYMBOL is used twice in the same pattern
+                the second occurrence becomes an `eq'uality test.
   (or PAT...)	matches if any of the patterns matches.
   (and PAT...)	matches if all the patterns match.
-  \\='VAL		matches if the object is `equal' to VAL
+  \\='VAL		matches if the object is `equal' to VAL.
   ATOM		is a shorthand for \\='ATOM.
 		   ATOM can be a keyword, an integer, or a string.
   (pred FUN)	matches if FUN applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
   (let PAT EXP)	matches if EXP matches PAT.
   (app FUN PAT)	matches if FUN applied to the object matches PAT.
-If a SYMBOL is used twice in the same pattern (i.e. the pattern is
-\"non-linear\"), then the second occurrence is turned into an `eq'uality test.
 
-FUN can take the form
+Additional patterns can be defined using `pcase-defmacro'.
+
+The FUN argument in the `app' pattern may have the following forms:
   SYMBOL or (lambda ARGS BODY)  in which case it's called with one argument.
   (F ARG1 .. ARGn) in which case F gets called with an n+1'th argument
                         which is the value being matched.
-So a FUN of the form SYMBOL is equivalent to one of the form (FUN).
+So a FUN of the form SYMBOL is equivalent to (FUN).
 FUN can refer to variables bound earlier in the pattern.
-FUN is assumed to be pure, i.e. it can be dropped if its result is not used,
-and two identical calls can be merged into one.
-E.g. you can match pairs where the cdr is larger than the car with a pattern
-like \\=`(,a . ,(pred (< a))) or, with more checks:
-\\=`(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))
 
-Additional patterns can be defined via `pcase-defmacro'.
-Currently, the following patterns are provided this way:"
+See Info node `(elisp) Pattern matching case statement' in the
+Emacs Lisp manual for more information and examples."
   (declare (indent 1) (debug (form &rest (pcase-PAT body))))
   ;; We want to use a weak hash table as a cache, but the key will unavoidably
   ;; be based on `exp' and `cases', yet `cases' is a fresh new list each time
@@ -155,8 +177,8 @@ Currently, the following patterns are provided this way:"
       ;; (when (gethash (car cases) pcase--memoize-2)
       ;;   (message "pcase-memoize failed because of eq test on %S"
       ;;            (car cases)))
-      (when data
-        (message "pcase-memoize: equal first branch, yet different"))
+      ;; (when data
+      ;;   (message "pcase-memoize: equal first branch, yet different"))
       (let ((expansion (pcase--expand exp cases)))
         (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize)
         ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-1)
@@ -191,9 +213,10 @@ Currently, the following patterns are provided this way:"
 
 ;;;###autoload
 (defmacro pcase-exhaustive (exp &rest cases)
-  "The exhaustive version of `pcase' (which see)."
+  "The exhaustive version of `pcase' (which see).
+If EXP fails to match any of the patterns in CASES, an error is signaled."
   (declare (indent 1) (debug pcase))
-  (let* ((x (make-symbol "x"))
+  (let* ((x (gensym "x"))
          (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
     (pcase--expand
      ;; FIXME: Could we add the FILE:LINE data in the error message?
@@ -206,7 +229,7 @@ I.e. accepts the usual &optional and &rest keywords, but every
 formal argument can be any pattern accepted by `pcase' (a mere
 variable name being but a special case of it)."
   (declare (doc-string 2) (indent defun)
-           (debug ((&rest pcase-PAT) body)))
+           (debug (&define (&rest pcase-PAT) lambda-doc def-body)))
   (let* ((bindings ())
          (parsed-body (macroexp-parse-body body))
          (args (mapcar (lambda (pat)
@@ -279,10 +302,12 @@ any kind of error."
 
 ;;;###autoload
 (defmacro pcase-dolist (spec &rest body)
+  "Like `dolist' but where the binding can be a `pcase' pattern.
+\n(fn (PATTERN LIST) BODY...)"
   (declare (indent 1) (debug ((pcase-PAT form) body)))
   (if (pcase--trivial-upat-p (car spec))
       `(dolist ,spec ,@body)
-    (let ((tmpvar (make-symbol "x")))
+    (let ((tmpvar (gensym "x")))
       `(dolist (,tmpvar ,@(cdr spec))
          (pcase-let* ((,(car spec) ,tmpvar))
            ,@body)))))
@@ -396,8 +421,8 @@ to this macro."
     (when decl (setq body (remove decl body)))
     `(progn
        (defun ,fsym ,args ,@body)
-       (put ',fsym 'edebug-form-spec ',(cadr (assq 'debug decl)))
-       (put ',name 'pcase-macroexpander #',fsym))))
+       (define-symbol-prop ',fsym 'edebug-form-spec ',(cadr (assq 'debug decl)))
+       (define-symbol-prop ',name 'pcase-macroexpander #',fsym))))
 
 (defun pcase--match (val upat)
   "Build a MATCH structure, hoisting all `or's and `and's outside."
@@ -415,8 +440,10 @@ to this macro."
   ;; Don't use let*, otherwise macroexp-let* may merge it with some surrounding
   ;; let* which might prevent the setcar/setcdr in pcase--expand's fancy
   ;; codegen from later metamorphosing this let into a funcall.
-  `(let ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
-     ,@code))
+  (if vars
+      `(let ,(mapcar (lambda (b) (list (car b) (cdr b))) vars)
+         ,@code)
+    `(progn ,@code)))
 
 (defun pcase--small-branch-p (code)
   (and (= 1 (length code))
@@ -479,23 +506,30 @@ MATCH is the pattern that needs to be matched, of the form:
     (symbolp . vectorp)
     (symbolp . stringp)
     (symbolp . byte-code-function-p)
+    (symbolp . recordp)
     (integerp . consp)
     (integerp . arrayp)
     (integerp . vectorp)
     (integerp . stringp)
     (integerp . byte-code-function-p)
+    (integerp . recordp)
     (numberp . consp)
     (numberp . arrayp)
     (numberp . vectorp)
     (numberp . stringp)
     (numberp . byte-code-function-p)
+    (numberp . recordp)
     (consp . arrayp)
+    (consp . atom)
     (consp . vectorp)
     (consp . stringp)
     (consp . byte-code-function-p)
+    (consp . recordp)
     (arrayp . byte-code-function-p)
     (vectorp . byte-code-function-p)
+    (vectorp . recordp)
     (stringp . vectorp)
+    (stringp . recordp)
     (stringp . byte-code-function-p)))
 
 (defun pcase--mutually-exclusive-p (pred1 pred2)
@@ -684,7 +718,7 @@ MATCH is the pattern that needs to be matched, of the form:
            (call (progn
                    (when (memq arg vs)
                      ;; `arg' is shadowed by `env'.
-                     (let ((newsym (make-symbol "x")))
+                     (let ((newsym (gensym "x")))
                        (push (list newsym arg) env)
                        (setq arg newsym)))
                    (if (functionp fun)
@@ -811,7 +845,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         ;; A upat of the form (app FUN PAT)
         (pcase--mark-used sym)
         (let* ((fun (nth 1 upat))
-               (nsym (make-symbol "x"))
+               (nsym (gensym "x"))
                (body
                 ;; We don't change `matches' to reuse the newly computed value,
                 ;; because we assume there shouldn't be such redundancy in there.
@@ -865,8 +899,10 @@ Otherwise, it defers to REST which is a list of branches of the form
 
 (def-edebug-spec
   pcase-QPAT
+  ;; Cf. edebug spec for `backquote-form' in edebug.el.
   (&or ("," pcase-PAT)
-       (pcase-QPAT . pcase-QPAT)
+       (pcase-QPAT [&rest [&not ","] pcase-QPAT]
+		   . [&or nil pcase-QPAT])
        (vector &rest pcase-QPAT)
        sexp))
 
@@ -896,7 +932,6 @@ QPAT can take the following forms:
           (app cdr ,(list '\` (cdr qpat)))))
    ((or (stringp qpat) (integerp qpat) (symbolp qpat)) `',qpat)
    (t (error "Unknown QPAT: %S" qpat))))
-
 
 (provide 'pcase)
 ;;; pcase.el ends here

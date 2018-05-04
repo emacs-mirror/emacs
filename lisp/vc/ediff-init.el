@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -150,6 +150,26 @@ It needs to be killed when we quit the session.")
 (defsubst ediff-get-symbol-from-alist (buf-type alist)
   (cdr (assoc buf-type alist)))
 
+;; Vector of differences between the variants.  Each difference is
+;; represented by a vector of two overlays plus a vector of fine diffs,
+;; plus a no-fine-diffs flag.  The first overlay spans the
+;; difference region in the A buffer and the second overlays the diff in
+;; the B buffer.  If a difference section is empty, the corresponding
+;; overlay's endpoints coincide.
+;;
+;; The precise form of a Difference Vector for one buffer is:
+;; [diff diff diff ...]
+;; where each diff has the form:
+;; [diff-overlay fine-diff-vector no-fine-diffs-flag state-of-diff]
+;; fine-diff-vector is a vector [fine-diff-overlay fine-diff-overlay ...]
+;; no-fine-diffs-flag says if there are fine differences.
+;; state-of-difference is A, B, C, or nil, indicating which buffer is
+;;	different from the other two (used only in 3-way jobs.
+(ediff-defvar-local ediff-difference-vector-A nil "")
+(ediff-defvar-local ediff-difference-vector-B nil "")
+(ediff-defvar-local ediff-difference-vector-C nil "")
+(ediff-defvar-local ediff-difference-vector-Ancestor nil "")
+;; A-list of diff vector types associated with buffer types
 (defconst ediff-difference-vector-alist
   '((A . ediff-difference-vector-A)
     (B . ediff-difference-vector-B)
@@ -318,7 +338,7 @@ It needs to be killed when we quit the session.")
 (defsubst ediff-patch-metajob (&optional metajob)
   (memq (or metajob ediff-metajob-name)
 	'(ediff-multifile-patch)))
-;; metajob involving only one group of files, such as multipatch or directory
+;; metajob involving only one group of files, such as multi-patch or directory
 ;; revision
 (defsubst ediff-one-filegroup-metajob (&optional metajob)
   (or (ediff-revision-metajob metajob)
@@ -365,8 +385,8 @@ It needs to be killed when we quit the session.")
 
 (defsubst ediff-barf-if-not-control-buffer (&optional meta-buf-p)
   (or (ediff-in-control-buffer-p meta-buf-p)
-      (error "%S: This command runs in Ediff Control Buffer only!"
-	     this-command)))
+      (user-error "%S: This command runs in Ediff Control Buffer only!"
+		  this-command)))
 
 (defgroup ediff-highlighting nil
   "Highlighting of difference regions in Ediff."
@@ -642,32 +662,6 @@ shown in brighter colors."
 				      ;;buffer-read-only
 				      mode-line-format))
 
-;; Vector of differences between the variants.  Each difference is
-;; represented by a vector of two overlays plus a vector of fine diffs,
-;; plus a no-fine-diffs flag.  The first overlay spans the
-;; difference region in the A buffer and the second overlays the diff in
-;; the B buffer.  If a difference section is empty, the corresponding
-;; overlay's endpoints coincide.
-;;
-;; The precise form of a Difference Vector for one buffer is:
-;; [diff diff diff ...]
-;; where each diff has the form:
-;; [diff-overlay fine-diff-vector no-fine-diffs-flag state-of-diff]
-;; fine-diff-vector is a vector [fine-diff-overlay fine-diff-overlay ...]
-;; no-fine-diffs-flag says if there are fine differences.
-;; state-of-difference is A, B, C, or nil, indicating which buffer is
-;;	different from the other two (used only in 3-way jobs.
-(ediff-defvar-local ediff-difference-vector-A nil "")
-(ediff-defvar-local ediff-difference-vector-B nil "")
-(ediff-defvar-local ediff-difference-vector-C nil "")
-(ediff-defvar-local ediff-difference-vector-Ancestor nil "")
-;; A-list of diff vector types associated with buffer types
-(defconst ediff-difference-vector-alist
-  '((A . ediff-difference-vector-A)
-    (B . ediff-difference-vector-B)
-    (C . ediff-difference-vector-C)
-    (Ancestor . ediff-difference-vector-Ancestor)))
-
 ;; [ status status status ...]
 ;; Each status: [state-of-merge state-of-ancestor]
 ;; state-of-merge is default-A, default-B, prefer-A, or prefer-B.  It
@@ -718,9 +712,9 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 (defcustom ediff-coding-system-for-read 'raw-text
   "The coding system for read to use when running the diff program as a subprocess.
 In most cases, the default will do.  However, under certain circumstances in
-MS-Windows you might need to use something like 'raw-text-dos here.
+MS-Windows you might need to use something like `raw-text-dos' here.
 So, if the output that your diff program sends to Emacs contains extra ^M's,
-you might need to experiment here, if the default or 'raw-text-dos doesn't
+you might need to experiment here, if the default or `raw-text-dos' doesn't
 work."
   :type 'symbol
   :group 'ediff)
@@ -750,7 +744,7 @@ to temp files in buffer jobs and when Ediff needs to find fine differences."
 (defun ediff-check-version (op major minor &optional type-of-emacs)
   "Check the current version against MAJOR and MINOR version numbers.
 The comparison uses operator OP, which may be any of: =, >, >=, <, <=.
-TYPE-OF-EMACS is either 'xemacs or 'emacs."
+TYPE-OF-EMACS is either `emacs' or `xemacs'."
   (declare (obsolete version< "23.1"))
   (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
 	     ((eq type-of-emacs 'emacs) (featurep 'emacs))
@@ -764,7 +758,7 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 		       (funcall op emacs-minor-version minor)
 		     t)))
 	     (t
-	      (error "%S: Invalid op in ediff-check-version" op)))))
+	      (user-error "%S: Invalid op in ediff-check-version" op)))))
 
 (defun ediff-color-display-p ()
   (condition-case nil
@@ -776,7 +770,7 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 
 ;; A var local to each control panel buffer.  Indicates highlighting style
 ;; in effect for this buffer: `face', `ascii',
-;; `off' -- turned off \(on a dumb terminal only\).
+;; `off' -- turned off (on a dumb terminal only).
 (ediff-defvar-local ediff-highlighting-style
   (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
   "")
@@ -948,13 +942,17 @@ this variable represents.")
 
 (defface ediff-current-diff-Ancestor
   (if (featurep 'emacs)
-      '((((class color) (min-colors 88))
-	 (:background "VioletRed"))
-	(((class color) (min-colors 16))
-	 (:foreground "Black" :background "VioletRed"))
-	(((class color))
-	 (:foreground "black" :background "magenta3"))
-	(t (:inverse-video t)))
+      '((((class color) (min-colors 88) (background light))
+         :background "#cfdeee")
+        (((class color) (min-colors 88) (background dark))
+         :background "#004151")
+        (((class color) (min-colors 16) (background light))
+         :background "#cfdeee")
+        (((class color) (min-colors 16) (background dark))
+         :background "#004151")
+        (((class color))
+         (:foreground "black" :background "magenta3"))
+        (t (:inverse-video t)))
     '((((type tty))    (:foreground "black" :background "magenta3"))
       (((class color)) (:foreground "Black" :background "VioletRed"))
       (t (:inverse-video t))))
@@ -1058,13 +1056,17 @@ this variable represents.")
 
 (defface ediff-fine-diff-Ancestor
   (if (featurep 'emacs)
-      '((((class color) (min-colors 88))
-	 (:background "Green"))
-	(((class color) (min-colors 16))
-	 (:foreground "Black" :background "Green"))
-	(((class color))
-	 (:foreground "red3" :background "green"))
-	(t		     (:underline t :stipple "gray3")))
+      '((((class color) (min-colors 88) (background light))
+         :background "#00c5c0")
+        (((class color) (min-colors 88) (background dark))
+         :background "#009591")
+        (((class color) (min-colors 16) (background light))
+         :background "#00c5c0")
+        (((class color) (min-colors 16) (background dark))
+         :background "#009591")
+        (((class color))
+         (:foreground "red3" :background "green"))
+        (t		     (:underline t :stipple "gray3")))
     '((((type tty))    (:foreground "red3" :background "green"))
       (((class color)) (:foreground "Black" :background "Green"))
       (t	     	     (:underline t :stipple "gray3"))))
@@ -1360,6 +1362,16 @@ This property can be toggled interactively."
 
 ;; if nil, this silences some messages
 (defvar ediff-verbose-p t)
+
+(defcustom ediff-show-ancestor t
+"If non-nil, show ancestor buffer in 3way merges and refine it."
+  :type 'boolean
+  :group 'ediff-merge
+  :version "26.1")
+
+;; Store orig value of `ediff-show-ancestor'  when changed in
+;; `ediff-toggle-show-ancestor' and restore it on exit.
+(ediff-defvar-local ediff--show-ancestor-orig nil "")
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "Save the results of merge jobs automatically.

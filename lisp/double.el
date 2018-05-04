@@ -1,6 +1,6 @@
 ;;; double.el --- support for keyboard remapping with double clicking
 
-;; Copyright (C) 1994, 1997-1998, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 

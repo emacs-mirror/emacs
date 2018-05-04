@@ -15,7 +15,7 @@
 This file describes how to use Info, the menu-driven GNU
 documentation system.
 
-Copyright @copyright{} 1989, 1992, 1996--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1992, 1996--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -70,7 +70,8 @@ To read about advanced Info commands, type @kbd{n} twice.  This
 brings you to @cite{Advanced Info Commands}, skipping over the ``Getting
 Started'' chapter.
 
-Type @kbd{H} to see a summary of all available commands.
+If you are using Emacs, type @kbd{?} to see a summary of all available
+commands.  In the stand-alone Info reader, type @kbd{H} instead.
 @end ifinfo
 @end ifnottex
 
@@ -362,13 +363,15 @@ the menu, one by one.  Once you reach the end of a node, and have seen
 all of its subnodes, @key{SPC} takes you to the next node or to the
 parent's next node.
 
-@kindex PAGEUP @r{(Info mode)}
-@kindex PAGEDOWN @r{(Info mode)}
+@kindex PageUp @r{(Info mode)}
+@kindex PageDown @r{(Info mode)}
+@kindex prior @r{(Info mode)}
+@kindex next @r{(Info mode)}
   Many keyboards nowadays have two scroll keys labeled @samp{PageUp}
-and @samp{PageDown} (or maybe @samp{Prior} and @samp{Next}).  If your
+and @samp{PageDown} (or maybe @samp{prior} and @samp{next}).  If your
 keyboard has these keys, you can use them to move forward and backward
 through the text of one node, like @key{SPC} and @key{BACKSPACE} (or
-@key{DEL}).  However, @key{PAGEUP} and @key{PAGEDOWN} keys never
+@key{DEL}).  However, @key{PageUp} and @key{PageDown} keys never
 scroll beyond the beginning or the end of the current node.
 
 @kindex C-l @r{(Info mode)}
@@ -393,16 +396,18 @@ the @key{BACKSPACE} key (or @key{DEL}) many times.  You can also type
 @end format
 
 @kindex ? @r{(Info mode)}
+@kindex H @r{(stand-alone Info reader)}
 @findex Info-summary
   You have just learned a considerable number of commands.  If you
 want to use one but have trouble remembering which, you should type
-@kbd{?}, which displays a brief list of commands.  When you are
-finished looking at the list, make it go away by typing @key{SPC}
-repeatedly.
+@kbd{?} (@kbd{H} in the stand-alone Info reader), which displays a
+brief list of commands.  When you are finished looking at the list,
+make it go away by typing @key{SPC} repeatedly.
 
 @format
->> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
-   the list until finished.  Then type @key{SPC} several times.  If
+>> Type @kbd{?} (or @kbd{H} in the stand-alone Info reader) now.
+   Press @key{SPC} to see consecutive screenfuls of the list
+   until finished.  Then type @key{SPC} several times.  If
    you are using Emacs, the help will then go away automatically.
    If you are using the stand-alone Info reader, type @kbd{x} to
    return here.
@@ -671,7 +676,7 @@ the @key{Shift} key and then press @key{TAB}).
 that subtopic's node.
 
 @cindex mouse support in Info mode
-@kindex Mouse-2 @r{(Info mode)}
+@kindex mouse-2 @r{(Info mode)}
   If your terminal supports a mouse, you have yet another way of going
 to a subtopic.  Move your mouse pointer to the subtopic line,
 somewhere between the beginning @samp{*} and the colon @samp{:} which
@@ -679,22 +684,22 @@ ends the subtopic's brief name.  You will see the subtopic's name
 change its appearance (usually, its background color will change), and
 the shape of the mouse pointer will change if your platform supports
 that.  After a while, if you leave the mouse on that spot, a small
-window will pop up, saying ``Mouse-2: go to that node,'' or the same
+window will pop up, saying ``mouse-2: go to that node,'' or the same
 message may appear at the bottom of the screen.
 
-  @kbd{Mouse-2} is the second button of your mouse counting from the
+  @kbd{mouse-2} is the second button of your mouse counting from the
 left---the middle button on a 3-button mouse.  (On a 2-button mouse,
 you may have to press both buttons together to ``press the middle
-button''.)  The message tells you pressing @kbd{Mouse-2} with the
+button''.)  The message tells you pressing @kbd{mouse-2} with the
 current position of the mouse pointer (on subtopic in the menu) will
 go to that subtopic.
 
 @findex Info-mouse-follow-nearest-node
-  More generally, @kbd{Mouse-2} in an Info buffer finds the nearest
+  More generally, @kbd{mouse-2} in an Info buffer finds the nearest
 link to another node and goes there.  For example, near a cross
 reference it acts like @kbd{f}, in a menu it acts like @kbd{m}, on the
 node's header line it acts like @kbd{n}, @kbd{p}, or @kbd{u}, etc.  At
-end of the node's text @kbd{Mouse-2} moves to the next node, or up if
+end of the node's text @kbd{mouse-2} moves to the next node, or up if
 there's no next node.
 
 @format
@@ -719,7 +724,7 @@ to the subnode that the @kbd{u} command brought you from.  (Some Info
 readers may put you at the @emph{front} of the node instead---to get
 back to where you were reading, you have to type some @key{SPC}s.)
 
-  Another way to go Up is to click @kbd{Mouse-2} on the @samp{Up}
+  Another way to go Up is to click @kbd{mouse-2} on the @samp{Up}
 pointer shown in the header line (provided that you have a mouse).
 
 @format
@@ -740,7 +745,7 @@ in Emacs.  Do @kbd{M-x visible-mode} to show or hide it.)
 @findex Info-follow-reference
   You can follow a cross reference by moving the cursor to it and
 press @key{RET}, just as in a menu.  In Emacs, you can also click
-@kbd{Mouse-1} on a cross reference to follow it; you can see that the
+@kbd{mouse-1} on a cross reference to follow it; you can see that the
 cross reference is mouse-sensitive by moving the mouse pointer to the
 reference and watching how the underlying text and the mouse pointer
 change in response.
@@ -1105,6 +1110,7 @@ other file with @kbd{g(@var{filename})*@key{RET}}.
 @kindex 1 @r{through} 9 @r{(Info mode)}
 @findex Info-nth-menu-item
 @cindex select @var{n}'th menu item
+@cindex menu items, select by their numbers
   If you begrudge each character of type-in which your system requires,
 you might like to use the commands @kbd{1}, @kbd{2}, @kbd{3}, @kbd{4},
 @dots{}, @kbd{9}.  They are short for the @kbd{m} command together
@@ -1113,6 +1119,11 @@ in the current node's menu; @kbd{2} goes through the second item, etc.
 In the stand-alone reader, @kbd{0} goes through the last menu item;
 this is so you need not count how many entries are there.
 
+@cindex 3rd menu item
+@cindex third menu item
+@cindex 6th menu item
+@cindex sixth menu item
+@cindex star @samp{*} before menu item
   If your display supports multiple fonts, colors or underlining, and
 you are using Emacs's Info mode to read Info files, the third, sixth
 and ninth menu items have a @samp{*} that stands out, either in color

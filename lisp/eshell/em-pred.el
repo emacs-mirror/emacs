@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -131,7 +131,7 @@ The format of each entry is
     (?e . #'(lambda (lst) (mapcar 'file-name-extension lst)))
     (?t . #'(lambda (lst) (mapcar 'file-name-nondirectory lst)))
     (?q . #'(lambda (lst) (mapcar 'eshell-escape-arg lst)))
-    (?u . #'(lambda (lst) (eshell-uniqify-list lst)))
+    (?u . #'(lambda (lst) (eshell-uniquify-list lst)))
     (?o . #'(lambda (lst) (sort lst 'string-lessp)))
     (?O . #'(lambda (lst) (nreverse (sort lst 'string-lessp))))
     (?j . (eshell-join-members))
@@ -545,7 +545,8 @@ that `ls -l' will show in the first column of its display. "
 	  (function
 	   (lambda (str)
 	     (if (string-match ,match str)
-		 (setq str (replace-match ,replace t nil str)))
+		 (setq str (replace-match ,replace t nil str))
+	       (error (concat str ": substitution failed")))
 	     str)) lst)))))
 
 (defun eshell-include-members (&optional invert-p)

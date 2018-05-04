@@ -1,6 +1,6 @@
 /*
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994, 1999-2015 Free Software Foundation, Inc.
+Copyright (C) 1994, 1999-2018 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -15,13 +15,15 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* This part is separate from lwlib.h because it does not need X,
    and thus can be used by non-X code in Emacs proper.  */
 
 #ifndef LWLIB_WIDGET_H
 #define LWLIB_WIDGET_H
+
+#include "../src/lisp.h"
 
 typedef enum
 {
@@ -96,7 +98,7 @@ typedef struct _widget_value
   /* Whether we should free the toolkit data slot when freeing the
      widget_value itself.  */
   bool free_toolkit_data;
-#endif  
+#endif
 
 } widget_value;
 

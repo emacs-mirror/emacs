@@ -1,6 +1,6 @@
-;;; find-dired.el --- run a `find' command and dired the output
+;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1995, 2000-2015 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1995, 2000-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -72,10 +72,10 @@ a file listing in the desired format.  LS-SWITCHES is a set of
 
 The two options must be set to compatible values.
 For example, to use human-readable file sizes with GNU ls:
-   \(\"-exec ls -ldh {} +\" . \"-ldh\")
+   (\"-exec ls -ldh {} +\" . \"-ldh\")
 
 To use GNU find's inbuilt \"-ls\" option to list files:
-   \(\"-ls\" . \"-dilsb\")
+   (\"-ls\" . \"-dilsb\")
 since GNU find's output has the same format as using GNU ls with
 the options \"-dilsb\"."
   :version "24.1"	       ; add tests for -ls and -exec + support
@@ -97,7 +97,7 @@ them for `find-ls-option'."
 
 (defcustom find-grep-options
   (if (or (eq system-type 'berkeley-unix)
-	  (string-match "solaris2\\|irix" system-configuration))
+	  (string-match "solaris2" system-configuration))
       "-s" "-q")
   "Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
@@ -255,14 +255,14 @@ See `find-name-arg' to customize the arguments."
 (defalias 'lookfor-dired 'find-grep-dired)
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
-  "Find files in DIR matching a regexp REGEXP and start Dired on output.
+  "Find files in DIR that contain matches for REGEXP and start Dired on output.
 The command run (after changing into DIR) is
 
   find . \\( -type f -exec `grep-program' `find-grep-options' \\
     -e REGEXP {} \\; \\) -ls
 
-where the car of the variable `find-ls-option' specifies what to
-use in place of \"-ls\" as the final argument."
+where the first string in the value of the variable `find-ls-option'
+specifies what to use in place of \"-ls\" as the final argument."
   ;; Doc used to say "Thus ARG can also contain additional grep options."
   ;; i) Presumably ARG == REGEXP?
   ;; ii) No it can't have options, since it gets shell-quoted.
@@ -295,7 +295,7 @@ use in place of \"-ls\" as the final argument."
 		    (l-opt (and (consp find-ls-option)
 				(string-match "l" (cdr find-ls-option))))
 		    (ls-regexp (concat "^ +[^ \t\r\n]+\\( +[^ \t\r\n]+\\) +"
-				       "[^ \t\r\n]+ +[^ \t\r\n]+\\( +[0-9]+\\)")))
+				       "[^ \t\r\n]+ +[^ \t\r\n]+\\( +[^[:space:]]+\\)")))
 		(goto-char beg)
 		(insert string)
 		(goto-char beg)

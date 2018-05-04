@@ -1,6 +1,6 @@
 ;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -154,7 +154,6 @@
                every
                some
                mapcon
-               mapcan
                mapl
                maplist
                map
@@ -251,7 +250,6 @@
                eval-when
                destructuring-bind
                gentemp
-               gensym
                pairlis
                acons
                subst
@@ -259,30 +257,6 @@
                copy-list
                ldiff
                list*
-               cddddr
-               cdddar
-               cddadr
-               cddaar
-               cdaddr
-               cdadar
-               cdaadr
-               cdaaar
-               cadddr
-               caddar
-               cadadr
-               cadaar
-               caaddr
-               caadar
-               caaadr
-               caaaar
-               cdddr
-               cddar
-               cdadr
-               cdaar
-               caddr
-               cadar
-               caadr
-               caaar
                tenth
                ninth
                eighth
@@ -365,7 +339,7 @@ The two cases that are handled are:
             `(list 'lambda '(&rest --cl-rest--)
                    ,@(cl-sublis sub (nreverse decls))
                    (list 'apply
-                         (list 'quote
+                         (list 'function
                                #'(lambda ,(append new (cadr f))
                                    ,@(cl-sublis sub body)))
                          ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))

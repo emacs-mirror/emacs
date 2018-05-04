@@ -1,6 +1,6 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar
 
-;; Copyright (C) 1995, 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -71,9 +71,6 @@ Default is for Beijing.  This is an expression in `year' since it changed at
 ;; It gets eval'd.
 ;;;###autoload
 (put 'calendar-chinese-time-zone 'risky-local-variable t)
-;;;###autoload
-(put 'chinese-calendar-time-zone 'risky-local-variable t)
-
 
 ;; FIXME unused.
 (defcustom calendar-chinese-location-name "Beijing"
@@ -98,6 +95,7 @@ Default is for no daylight saving time."
 This is an expression depending on `year' because it changed
 at 1928-01-01 00:00:00 from `PMT' to `CST'."
   :type 'sexp
+  :risky t
   :group 'calendar-chinese)
 
 (defcustom calendar-chinese-daylight-time-zone-name "CDT"
@@ -115,6 +113,7 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
 Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-starts'."
   :type 'sexp
+  :risky t
   :group 'calendar-chinese)
 
 (defcustom calendar-chinese-daylight-saving-end nil
@@ -125,6 +124,7 @@ Default is for no daylight saving time.  See documentation of
 Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-ends'."
   :type 'sexp
+  :risky t
   :group 'calendar-chinese)
 
 (defcustom calendar-chinese-daylight-saving-start-time 0

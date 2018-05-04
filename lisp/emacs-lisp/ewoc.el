@@ -1,6 +1,6 @@
 ;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;	Inge Wallin <inge@lysator.liu.se>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -411,7 +411,7 @@ If the EWOC is empty, nil is returned."
      ((>= pos (ewoc--node-start-marker (ewoc--node-nth dll -2)))
       (ewoc--node-nth dll -2))
 
-     ;; We now know that pos is within a elem.
+     ;; We now know that pos is within an elem.
      (t
       ;; Make an educated guess about which of the three known
       ;; node'es (the first, the last, or GUESS) is nearest.
@@ -500,7 +500,7 @@ Return the node (or nil if we just passed the last node)."
 
 (defun ewoc-goto-node (ewoc node)
   "Move point to NODE in EWOC."
-  (ewoc--set-buffer-bind-dll ewoc
+  (with-current-buffer (ewoc--buffer ewoc)
     (goto-char (ewoc--node-start-marker node))
     (if goal-column (move-to-column goal-column))
     (setf (ewoc--last-node ewoc) node)))

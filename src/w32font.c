@@ -1,12 +1,12 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2015 Free Software Foundation, Inc.
+   Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <windows.h>
@@ -26,12 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "w32term.h"
 #include "frame.h"
-#include "dispextern.h"
-#include "character.h"
-#include "charset.h"
-#include "coding.h"
-#include "fontset.h"
-#include "font.h"
+#include "coding.h"	/* for ENCODE_SYSTEM, DECODE_SYSTEM */
 #include "w32font.h"
 #ifdef WINDOWSNT
 #include "w32.h"
@@ -106,7 +101,6 @@ static void list_all_matching_fonts (struct font_callback_data *);
 
 static BOOL g_b_init_get_outline_metrics_w;
 static BOOL g_b_init_get_text_metrics_w;
-static BOOL g_b_init_get_glyph_outline_w;
 static BOOL g_b_init_get_glyph_outline_w;
 static BOOL g_b_init_get_char_width_32_w;
 
@@ -244,7 +238,7 @@ intern_font_name (char * string)
   Lisp_Object str = DECODE_SYSTEM (build_string (string));
   ptrdiff_t len = SCHARS (str);
   Lisp_Object obarray = check_obarray (Vobarray);
-  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
+  Lisp_Object tem = oblookup (obarray, SSDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */
   return SYMBOLP (tem) ? tem : intern_driver (str, obarray, tem);
 }
@@ -291,18 +285,25 @@ static Lisp_Object
 w32font_list_family (struct frame *f)
 {
   Lisp_Object list = Qnil;
+  Lisp_Object prev_quit = Vinhibit_quit;
   LOGFONT font_match_pattern;
   HDC dc;
 
   memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   font_match_pattern.lfCharSet = DEFAULT_CHARSET;
 
+  /* Prevent quitting while EnumFontFamiliesEx runs and conses the
+     list it will return.  That's because get_frame_dc acquires the
+     critical section, so we cannot quit before we release it in
+     release_frame_dc.  */
+  Vinhibit_quit = Qt;
   dc = get_frame_dc (f);
 
   EnumFontFamiliesEx (dc, &font_match_pattern,
                       (FONTENUMPROC) add_font_name_to_list,
                       (LPARAM) &list, 0);
   release_frame_dc (f, dc);
+  Vinhibit_quit = prev_quit;
 
   return list;
 }
@@ -435,11 +436,12 @@ w32font_text_extents (struct font *font, unsigned *code,
   int i;
   HFONT old_font = NULL;
   HDC dc = NULL;
-  struct frame * f;
+  struct frame * f UNINIT;
   int total_width = 0;
   WORD *wcode;
   SIZE size;
   bool first;
+  Lisp_Object prev_quit = Vinhibit_quit;
 
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
@@ -486,6 +488,12 @@ w32font_text_extents (struct font *font, unsigned *code,
 		 is updated to pass in a frame.  */
 	      f = XFRAME (selected_frame);
 
+	      /* Prevent quitting while EnumFontFamiliesEx runs and
+		 conses the list it will return.  That's because
+		 get_frame_dc acquires the critical section, so we
+		 cannot quit before we release it in release_frame_dc.  */
+	      prev_quit = Vinhibit_quit;
+	      Vinhibit_quit = Qt;
 	      dc = get_frame_dc (f);
 	      old_font = SelectObject (dc, w32_font->hfont);
 	    }
@@ -526,6 +534,7 @@ w32font_text_extents (struct font *font, unsigned *code,
 	  /* Restore state and release DC.  */
 	  SelectObject (dc, old_font);
 	  release_frame_dc (f, dc);
+	  Vinhibit_quit = prev_quit;
 	}
       return;
     }
@@ -535,6 +544,7 @@ w32font_text_extents (struct font *font, unsigned *code,
      information.  */
 
   /* Make array big enough to hold surrogates.  */
+  eassume (0 <= nglyphs);	/* pacify GCC warning on next line */
   wcode = alloca (nglyphs * sizeof (WORD) * 2);
   for (i = 0; i < nglyphs; i++)
     {
@@ -562,6 +572,12 @@ w32font_text_extents (struct font *font, unsigned *code,
 	 frame.  */
       f = XFRAME (selected_frame);
 
+      /* Prevent quitting while EnumFontFamiliesEx runs and conses the
+	 list it will return.  That's because get_frame_dc acquires
+	 the critical section, so we cannot quit before we release it
+	 in release_frame_dc.  */
+      prev_quit = Vinhibit_quit;
+      Vinhibit_quit = Qt;
       dc = get_frame_dc (f);
       old_font = SelectObject (dc, w32_font->hfont);
     }
@@ -592,6 +608,7 @@ w32font_text_extents (struct font *font, unsigned *code,
   /* Restore state and release DC.  */
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
+  Vinhibit_quit = prev_quit;
 }
 
 /* w32 implementation of draw for font backend.
@@ -801,7 +818,8 @@ w32font_list_internal (struct frame *f, Lisp_Object font_spec,
 	  && !EQ (spec_charset, Qiso10646_1)
 	  && !EQ (spec_charset, Qunicode_bmp)
 	  && !EQ (spec_charset, Qunicode_sip)
-	  && !EQ (spec_charset, Qunknown))
+	  && !EQ (spec_charset, Qunknown)
+	  && !EQ (spec_charset, Qascii_0))
 	return Qnil;
     }
 
@@ -817,12 +835,20 @@ w32font_list_internal (struct frame *f, Lisp_Object font_spec,
     }
   else
     {
+      Lisp_Object prev_quit = Vinhibit_quit;
+
+      /* Prevent quitting while EnumFontFamiliesEx runs and conses the
+	 list it will return.  That's because get_frame_dc acquires
+	 the critical section, so we cannot quit before we release it
+	 in release_frame_dc.  */
+      Vinhibit_quit = Qt;
       dc = get_frame_dc (f);
 
       EnumFontFamiliesEx (dc, &match_data.pattern,
                           (FONTENUMPROC) add_font_entity_to_list,
                           (LPARAM) &match_data, 0);
       release_frame_dc (f, dc);
+      Vinhibit_quit = prev_quit;
     }
 
   return match_data.list;
@@ -849,12 +875,19 @@ w32font_match_internal (struct frame *f, Lisp_Object font_spec,
   if (opentype_only)
     match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
 
+  /* Prevent quitting while EnumFontFamiliesEx runs and conses the
+     list it will return.  That's because get_frame_dc acquires the
+     critical section, so we cannot quit before we release it in
+     release_frame_dc.  */
+  Lisp_Object prev_quit = Vinhibit_quit;
+  Vinhibit_quit = Qt;
   dc = get_frame_dc (f);
 
   EnumFontFamiliesEx (dc, &match_data.pattern,
                       (FONTENUMPROC) add_one_font_entity_to_list,
                       (LPARAM) &match_data, 0);
   release_frame_dc (f, dc);
+  Vinhibit_quit = prev_quit;
 
   return NILP (match_data.list) ? Qnil : XCAR (match_data.list);
 }
@@ -1478,12 +1511,12 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
      by a foundry, we accept raster fonts if the font name is found
      anywhere within the full name.  */
   if ((logical_font->elfLogFont.lfOutPrecision == OUT_STRING_PRECIS
-       && !strstr (logical_font->elfFullName,
+       && !strstr ((char *)logical_font->elfFullName,
 		   logical_font->elfLogFont.lfFaceName))
       /* Check for well known substitutions that mess things up in the
 	 presence of Type-1 fonts of the same name.  */
       || (!check_face_name (&logical_font->elfLogFont,
-			    logical_font->elfFullName)))
+			    (char *)logical_font->elfFullName)))
     return 1;
 
   /* Make a font entity for the font.  */
@@ -1595,7 +1628,7 @@ x_to_w32_charset (char * lpcs)
      Format of each entry is
        (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
   */
-  this_entry = Fassoc (build_string (charset), Vw32_charset_info_alist);
+  this_entry = Fassoc (build_string (charset), Vw32_charset_info_alist, Qnil);
 
   if (NILP (this_entry))
     {
@@ -1660,7 +1693,7 @@ registry_to_w32_charset (Lisp_Object charset)
   else if (EQ (charset, Qiso8859_1))
     return ANSI_CHARSET;
   else if (SYMBOLP (charset))
-    return x_to_w32_charset (SDATA (SYMBOL_NAME (charset)));
+    return x_to_w32_charset (SSDATA (SYMBOL_NAME (charset)));
   else
     return DEFAULT_CHARSET;
 }
@@ -1692,7 +1725,7 @@ w32_to_x_charset (int fncharset, char *matching)
       /* Handle startup case of w32-charset-info-alist not
          being set up yet. */
       if (NILP (Vw32_charset_info_alist))
-        return "iso8859-1";
+        return (char *)"iso8859-1";
       charset_type = Qw32_charset_ansi;
       break;
     case DEFAULT_CHARSET:
@@ -1752,7 +1785,7 @@ w32_to_x_charset (int fncharset, char *matching)
 
     default:
       /* Encode numerical value of unknown charset.  */
-      sprintf (buf, "*-#%u", fncharset);
+      sprintf (buf, "*-#%d", fncharset);
       return buf;
     }
 
@@ -1782,7 +1815,7 @@ w32_to_x_charset (int fncharset, char *matching)
             || !SYMBOLP (XCAR (XCDR (this_entry))))
           continue;
 
-        x_charset = SDATA (XCAR (this_entry));
+        x_charset = SSDATA (XCAR (this_entry));
         w32_charset = XCAR (XCDR (this_entry));
         codepage = XCDR (XCDR (this_entry));
 
@@ -1839,7 +1872,7 @@ w32_to_x_charset (int fncharset, char *matching)
     /* If no match, encode the numeric value. */
     if (!best_match)
       {
-        sprintf (buf, "*-#%u", fncharset);
+        sprintf (buf, "*-#%d", fncharset);
         return buf;
       }
 
@@ -1987,7 +2020,7 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
       else if (SYMBOLP (tmp))
 	{
 	  strncpy (logfont->lfFaceName,
-		   SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
+		   SSDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
 	  logfont->lfFaceName[LF_FACESIZE-1] = '\0';
 	}
     }
@@ -2069,6 +2102,12 @@ list_all_matching_fonts (struct font_callback_data *match_data)
   Lisp_Object families = w32font_list_family (XFRAME (match_data->frame));
   struct frame *f = XFRAME (match_data->frame);
 
+  /* Prevent quitting while EnumFontFamiliesEx runs and conses the
+     list it will return.  That's because get_frame_dc acquires the
+     critical section, so we cannot quit before we release it in
+     release_frame_dc.  */
+  Lisp_Object prev_quit = Vinhibit_quit;
+  Vinhibit_quit = Qt;
   dc = get_frame_dc (f);
 
   while (!NILP (families))
@@ -2083,7 +2122,7 @@ list_all_matching_fonts (struct font_callback_data *match_data)
       if (NILP (family))
         continue;
       else if (SYMBOLP (family))
-        name = SDATA (ENCODE_SYSTEM (SYMBOL_NAME (family)));
+        name = SSDATA (ENCODE_SYSTEM (SYMBOL_NAME (family)));
       else
 	continue;
 
@@ -2096,6 +2135,7 @@ list_all_matching_fonts (struct font_callback_data *match_data)
     }
 
   release_frame_dc (f, dc);
+  Vinhibit_quit = prev_quit;
 }
 
 static Lisp_Object
@@ -2149,7 +2189,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
 
   /* Match a single subrange. SYM is set if bit N is set in subranges.  */
 #define SUBRANGE(n,sym) \
-  if (subranges[(n) / 32] & (1 << ((n) % 32))) \
+  if (subranges[(n) / 32] & (1U << ((n) % 32))) \
     supported = Fcons ((sym), supported)
 
   /* Match multiple subranges. SYM is set if any MASK bit is set in
@@ -2359,7 +2399,7 @@ w32font_full_name (LOGFONT * font, Lisp_Object font_obj,
     {
       if (outline)
         {
-          float pointsize = height * 72.0 / one_w32_display_info.resy;
+          double pointsize = height * 72.0 / one_w32_display_info.resy;
           /* Round to nearest half point.  floor is used, since round is not
 	     supported in MS library.  */
           pointsize = floor (pointsize * 2 + 0.5) / 2;
@@ -2514,11 +2554,22 @@ in the font selection dialog. */)
   SelectObject (hdc, oldobj);
   ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 
-  if (!ChooseFont (&cf)
-      || logfont_to_fcname (&lf, cf.iPointSize, buf, 100) < 0)
-    return Qnil;
+  {
+    int count = SPECPDL_INDEX ();
+    Lisp_Object value = Qnil;
 
-  return DECODE_SYSTEM (build_string (buf));
+    w32_dialog_in_progress (Qt);
+    specbind (Qinhibit_redisplay, Qt);
+    record_unwind_protect (w32_dialog_in_progress, Qnil);
+
+    if (ChooseFont (&cf)
+	&& logfont_to_fcname (&lf, cf.iPointSize, buf, 100) >= 0)
+      value = DECODE_SYSTEM (build_string (buf));
+
+    unbind_to (count, Qnil);
+
+    return value;
+  }
 }
 
 static const char *const w32font_booleans [] = {
@@ -2540,7 +2591,7 @@ w32font_filter_properties (Lisp_Object font, Lisp_Object alist)
 
 struct font_driver w32font_driver =
   {
-    LISP_INITIALLY_ZERO, /* Qgdi */
+    LISPSYM_INITIALLY (Qgdi),
     false, /* case insensitive */
     w32font_get_cache,
     w32font_list,
@@ -2751,7 +2802,6 @@ versions of Windows) characters.  */);
 
   defsubr (&Sx_select_font);
 
-  w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);
 }
 

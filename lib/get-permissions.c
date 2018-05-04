@@ -1,6 +1,6 @@
-/* get-permissions.c - get permissions of a file
+/* Get permissions of a file.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
    Written by Paul Eggert, Andreas Grünbacher, and Bruno Haible.  */
 
@@ -102,7 +102,7 @@ get_permissions (const char *name, int desc, mode_t mode,
      There is an API
        pathconf (name, _PC_ACL_ENABLED)
        fpathconf (desc, _PC_ACL_ENABLED)
-     that allows to determine which of the two kinds of ACLs is supported
+     that allows us to determine which of the two kinds of ACLs is supported
      for the given file.  But some file systems may implement this call
      incorrectly, so better not use it.
      When fetching the source ACL, we simply fetch both ACL types.

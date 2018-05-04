@@ -1,6 +1,6 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -768,8 +768,7 @@ Optional RECURSING is for internal use, to limit recursion."
 
             (if allout-widgets-time-decoration-activity
                 (setq allout-widgets-last-decoration-timing
-                      (list (allout-elapsed-time-seconds (current-time)
-                                                         start-time)
+                      (list (allout-elapsed-time-seconds nil start-time)
                             allout-widgets-changes-record)))
 
             (setq allout-widgets-changes-record nil)

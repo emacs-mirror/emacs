@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993-1995, 1997, 1999-2015 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 1999-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -252,7 +252,8 @@ There should be no more than seven characters after the final `/'."
   "This routine will return the name of a new file."
   (make-temp-file jka-compr-temp-name-template))
 
-(defun jka-compr-write-region (start end file &optional append visit)
+(defun jka-compr-write-region (start end file &optional
+                                     append visit lockname mustbenew)
   (let* ((filename (expand-file-name file))
 	 (visit-file (if (stringp visit) (expand-file-name visit) filename))
 	 (info (jka-compr-get-compression-info visit-file))
@@ -334,7 +335,8 @@ There should be no more than seven characters after the final `/'."
 	      (jka-compr-run-real-handler 'write-region
 					  (list (point-min) (point-max)
 						filename
-						(and append can-append) 'dont))
+						(and append can-append) 'dont
+						lockname mustbenew))
 	      (erase-buffer)) )
 
 	  (delete-file temp-file)
@@ -365,7 +367,8 @@ There should be no more than seven characters after the final `/'."
 	  nil)
 
       (jka-compr-run-real-handler 'write-region
-				  (list start end filename append visit)))))
+				  (list start end filename append visit
+					lockname mustbenew)))))
 
 
 (defun jka-compr-insert-file-contents (file &optional visit beg end replace)
@@ -444,17 +447,18 @@ There should be no more than seven characters after the final `/'."
                  ;; If the file we wanted to uncompress does not exist,
                  ;; handle that according to VISIT as `insert-file-contents'
                  ;; would, maybe signaling the same error it normally would.
-                 (if (and (eq (car error-code) 'file-error)
+                 (if (and (eq (car error-code) 'file-missing)
                           (eq (nth 3 error-code) local-file))
                      (if visit
                          (setq notfound error-code)
-                       (signal 'file-error
+                       (signal 'file-missing
                                (cons "Opening input file"
                                      (nthcdr 2 error-code))))
                    ;; If the uncompression program can't be found,
                    ;; signal that as a non-file error
                    ;; so that find-file-noselect-1 won't handle it.
-                   (if (and (eq (car error-code) 'file-error)
+                   (if (and (memq 'file-error (get (car error-code)
+                                                   'error-conditions))
                             (equal (cadr error-code) "Searching for program"))
                        (error "Uncompression program `%s' not found"
                               (nth 3 error-code)))
@@ -487,7 +491,7 @@ There should be no more than seven characters after the final `/'."
         (and
          visit
          notfound
-         (signal 'file-error
+         (signal 'file-missing
                  (cons "Opening input file" (nth 2 notfound))))
 
         ;; This is done in insert-file-contents after we return.

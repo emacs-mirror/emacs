@@ -1,9 +1,9 @@
 ;;; sregex.el --- symbolic regular expressions
 
-;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Bob Glickstein <bobg+sregex@zanshin.com>
-;; Maintainer: Bob Glickstein <bobg+sregex@zanshin.com>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions
 ;; Obsolete-since: 24.1
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -240,7 +240,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Compatibility code for when we didn't have shy-groups
 (defvar sregex--current-sregex nil)
@@ -487,7 +487,7 @@ has one of the following forms:
 	(concat "\\(?:" (regexp-quote exp) "\\)")
       (regexp-quote exp)))
    ((symbolp exp)
-    (ecase exp
+    (cl-ecase exp
       (any ".")
       (bol "^")
       (eol "$")

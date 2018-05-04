@@ -1,6 +1,6 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -457,7 +457,7 @@ members."
 
 
 (defsubst ebrowse-extern-c-p (member)
-  "Value is non-nil if MEMBER.is `extern \"C\"'."
+  "Value is non-nil if MEMBER is `extern \"C\"'."
   (ebrowse-member-bit-set-p member 256))
 
 
@@ -1107,7 +1107,7 @@ Tree mode key bindings:
          (and tree (ebrowse-build-tree-obarray tree)))
     (set (make-local-variable 'ebrowse--frozen-flag) nil)
 
-    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn nil t)
+    (add-hook 'write-file-functions 'ebrowse-write-file-hook-fn nil t)
     (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
     (when tree
       (ebrowse-redraw-tree)
@@ -3034,7 +3034,7 @@ the first derived class."
      :help "Show the base class of this class"
      :active t]
     ["Down" ebrowse-switch-member-buffer-to-derived-class
-     :help "Show a derived class class of this class"
+     :help "Show a derived class of this class"
      :active t]
     ["Next Sibling" ebrowse-switch-member-buffer-to-next-sibling-class
      :help "Show the next sibling class"
@@ -4023,7 +4023,7 @@ If VIEW is non-nil, view else find source files."
 
 (defun ebrowse-write-file-hook-fn ()
   "Write current buffer as a class tree.
-Installed on `local-write-file-hooks'."
+Added to `write-file-functions'."
   (ebrowse-save-tree)
   t)
 

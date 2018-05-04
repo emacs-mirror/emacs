@@ -1,6 +1,6 @@
 ;;; mh-mime.el --- MH-E MIME support
 
-;; Copyright (C) 1993, 1995, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -56,7 +56,7 @@
 (autoload 'mail-content-type-get "mail-parse")
 (autoload 'mail-decode-encoded-word-string "mail-parse")
 (autoload 'mail-header-parse-content-type "mail-parse")
-(autoload 'mail-header-strip "mail-parse")
+(autoload 'mail-header-strip-cte "mail-parse")
 (autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'message-options-get "message")
 (autoload 'message-options-set "message")
@@ -268,7 +268,7 @@ usually reads the file \"/etc/mailcap\"."
               (buffer-read-only nil))
          (when (string-match "^[^% \t]+$" method)
            (setq method (concat method " %s")))
-         (mh-cl-flet
+         (mh-flet
           ((mm-handle-set-external-undisplayer
             (handle function)
             (mh-handle-set-external-undisplayer folder handle function)))
@@ -525,7 +525,7 @@ parsed and then displayed."
   (let ((handles ())
         (folder mh-show-folder-buffer)
         (raw-message-data (buffer-string)))
-    (mh-cl-flet
+    (mh-flet
      ((mm-handle-set-external-undisplayer
        (handle function)
        (mh-handle-set-external-undisplayer folder handle function)))
@@ -580,14 +580,13 @@ If message has been encoded for transfer take that into account."
                                (message-fetch-field "Content-Type" t)))
             charset (mail-content-type-get ct 'charset)
             cte (message-fetch-field "Content-Transfer-Encoding")))
-    (when (stringp cte) (setq cte (mail-header-strip cte)))
+    (when (stringp cte) (setq cte (mail-header-strip-cte cte)))
     (when (or (not ct) (equal (car ct) "text/plain"))
       (save-restriction
         (narrow-to-region (min (1+ (mh-mail-header-end)) (point-max))
                           (point-max))
         (mm-decode-body charset
-                        (and cte (intern (downcase
-                                          (gnus-strip-whitespace cte))))
+                        (and cte (intern (downcase cte)))
                         (car ct))))))
 
 (defun mh-mime-display-part (handle)
@@ -660,6 +659,7 @@ buttons for alternative parts that are usually suppressed."
          (attachmentp (equal (car (mm-handle-disposition handle))
                              "attachment"))
          (inlinep (and (equal (car (mm-handle-disposition handle)) "inline")
+                       (mm-automatic-display-p handle)
                        (mm-inlinable-p handle)
                        (mm-inlined-p handle)))
          (displayp (or inlinep                   ; show if inline OR
@@ -670,6 +670,7 @@ buttons for alternative parts that are usually suppressed."
                                 (and (not (equal
                                            (mm-handle-media-supertype handle)
                                            "image"))
+                                     (mm-automatic-display-p handle)
                                      (mm-inlinable-p handle)
                                      (mm-inlined-p handle)))))))
     (save-restriction
@@ -1049,7 +1050,7 @@ attachment, the attachment is hidden."
         (function (get-text-property (point) 'mh-callback))
         (buffer-read-only nil)
         (folder mh-show-folder-buffer))
-    (mh-cl-flet
+    (mh-flet
      ((mm-handle-set-external-undisplayer
        (handle function)
        (mh-handle-set-external-undisplayer folder handle function)))
@@ -1070,7 +1071,7 @@ to click the MIME button."
           (mm-inline-media-tests mh-mm-inline-media-tests)
           (data (get-text-property (point) 'mh-data))
           (function (get-text-property (point) 'mh-callback)))
-      (mh-cl-flet
+      (mh-flet
        ((mm-handle-set-external-undisplayer
          (handle func)
          (mh-handle-set-external-undisplayer folder handle func)))
@@ -1166,7 +1167,7 @@ this ;-)"
 (defun mh-display-emphasis ()
   "Display graphical emphasis."
   (when (and mh-graphical-emphasis-flag (mh-small-show-buffer-p))
-    (mh-cl-flet
+    (mh-flet
      ((article-goto-body ()))      ; shadow this function to do nothing
      (save-excursion
        (goto-char (point-min))
@@ -1241,7 +1242,7 @@ MESSAGE number."
                             "message/rfc822"
                             (if (string= "" description) nil description)
                             "inline"))
-          (t (error "The message number, %s, is not a integer" msg)))))
+          (t (error "The message number, %s, is not an integer" msg)))))
 
 (defun mh-mh-forward-message (&optional description folder messages)
   "Add tag to forward a message.
@@ -1715,7 +1716,7 @@ buffer, while END defaults to the end of the buffer."
 (defun mh-minibuffer-read-type (filename &optional default)
   "Return the content type associated with the given FILENAME.
 If the \"file\" command exists and recognizes the given file,
-then its value is returned\; otherwise, the user is prompted for
+then its value is returned; otherwise, the user is prompted for
 a type (see `mailcap-mime-types').
 Optional argument DEFAULT is returned if a type isn't entered."
   (mailcap-parse-mimetypes)
@@ -1756,21 +1757,21 @@ Returns nil if file command not on system."
           (kill-buffer tmp-buffer)))))))
 
 (defvar mh-file-mime-type-substitutions
-  '(("application/msword" "\.xls" "application/ms-excel")
-    ("application/msword" "\.ppt" "application/ms-powerpoint")
-    ("text/plain" "\.vcf" "text/x-vcard")
-    ("text/rtf" "\.rtf" "application/rtf")
-    ("application/x-zip" "\.sxc" "application/vnd.sun.xml.calc")
-    ("application/x-zip" "\.sxd" "application/vnd.sun.xml.draw")
-    ("application/x-zip" "\.sxi" "application/vnd.sun.xml.impress")
-    ("application/x-zip" "\.sxw" "application/vnd.sun.xml.writer")
-    ("application/x-zip" "\.odg" "application/vnd.oasis.opendocument.graphics")
-    ("application/x-zip" "\.odi" "application/vnd.oasis.opendocument.image")
-    ("application/x-zip" "\.odp"
+  '(("application/msword" "\\.xls" "application/ms-excel")
+    ("application/msword" "\\.ppt" "application/ms-powerpoint")
+    ("text/plain" "\\.vcf" "text/x-vcard")
+    ("text/rtf" "\\.rtf" "application/rtf")
+    ("application/x-zip" "\\.sxc" "application/vnd.sun.xml.calc")
+    ("application/x-zip" "\\.sxd" "application/vnd.sun.xml.draw")
+    ("application/x-zip" "\\.sxi" "application/vnd.sun.xml.impress")
+    ("application/x-zip" "\\.sxw" "application/vnd.sun.xml.writer")
+    ("application/x-zip" "\\.odg" "application/vnd.oasis.opendocument.graphics")
+    ("application/x-zip" "\\.odi" "application/vnd.oasis.opendocument.image")
+    ("application/x-zip" "\\.odp"
      "application/vnd.oasis.opendocument.presentation")
-    ("application/x-zip" "\.ods"
+    ("application/x-zip" "\\.ods"
      "application/vnd.oasis.opendocument.spreadsheet")
-    ("application/x-zip" "\.odt" "application/vnd.oasis.opendocument.text"))
+    ("application/x-zip" "\\.odt" "application/vnd.oasis.opendocument.text"))
   "Substitutions to make for Content-Type returned from file command.
 The first element is the Content-Type returned by the file command.
 The second element is a regexp matching the file name, usually the

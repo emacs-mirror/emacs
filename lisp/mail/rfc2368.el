@@ -1,6 +1,6 @@
 ;;; rfc2368.el --- support for rfc2368
 
-;; Copyright (C) 1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: mail
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -87,7 +87,7 @@
 MAILTO-URL should be a RFC 2368 (mailto) compliant url.  A cons cell w/ a
 key of `Body' is a special case and is considered a header for this purpose.
 The returned alist is intended for use w/ the `compose-mail' interface.
-Note: make sure MAILTO-URL has been 'unhtmlized' (e.g. &amp; -> &), before
+Note: make sure MAILTO-URL has been \"unhtmlized\" (e.g., &amp; -> &), before
 calling this function."
   (let ((case-fold-search t)
 	prequery query headers-alist)

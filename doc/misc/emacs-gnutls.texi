@@ -9,7 +9,7 @@
 @copying
 This file describes the Emacs GnuTLS integration.
 
-Copyright @copyright{} 2012--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 2012--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -94,7 +94,11 @@ There's one way to find out if GnuTLS is available, by calling
 Zaretskii) in the same directory as Emacs, you should be OK.
 
 @defun gnutls-available-p
-This function returns @code{t} if GnuTLS is available in this instance of Emacs.
+This function returns non-@code{nil} if GnuTLS is available in this
+instance of Emacs, @code{nil} otherwise.  If GnuTLS is available, the
+value is a list of GnuTLS capabilities supported by the installed
+GnuTLS library, which depends on the library version.  The meaning of
+the capabilities is documented in the doc string of this function.
 @end defun
 
 Oh, but sometimes things go wrong.  Budgets aren't balanced,
@@ -112,9 +116,11 @@ information.
 The @code{gnutls-algorithm-priority} variable sets the GnuTLS priority
 string.  This is global, not per host name (although
 @code{gnutls-negotiate} supports a priority string per connection so
-it could be done if needed).  The priority string syntax is in the
-@uref{http://www.gnu.org/software/gnutls/documentation.html, GnuTLS
-documentation}.
+it could be done if needed).  For details see the
+@uref{https://www.gnu.org/software/gnutls/documentation.html, GnuTLS
+documentation} and the
+@uref{https://gnutls.org/manual/html_node/Priority-Strings.html,
+GnuTLS priority string syntax and description}.
 @end defvar
 
 @defvar gnutls-trustfiles
@@ -123,14 +129,15 @@ The @code{gnutls-trustfiles} variable is a list of trustfiles
 host name (although @code{gnutls-negotiate} supports a trustfile per
 connection so it could be done if needed).  The trustfiles can be in
 PEM or DER format and examples can be found in most Unix
-distributions.  By default four locations are tried in this order:
-@file{/etc/ssl/certs/ca-certificates.crt} for Debian, Ubuntu, Gentoo
-and Arch Linux; @file{/etc/pki/tls/certs/ca-bundle.crt} for Fedora
-and RHEL; @file{/etc/ssl/ca-bundle.pem} for Suse;
-@file{/usr/ssl/certs/ca-bundle.crt} for Cygwin.  You can easily
-customize @code{gnutls-trustfiles} to be something else, but let us
-know if you do, so we can make the change to benefit the other users
-of that platform.
+distributions.  By default the following locations are tried in this
+order: @file{/etc/ssl/certs/ca-certificates.crt} for Debian, Ubuntu,
+Gentoo and Arch Linux; @file{/etc/pki/tls/certs/ca-bundle.crt} for
+Fedora and RHEL; @file{/etc/ssl/ca-bundle.pem} for Suse;
+@file{/usr/ssl/certs/ca-bundle.crt} for Cygwin;
+@file{/usr/local/share/certs/ca-root-nss.crt} for FreeBSD.  You can
+easily customize @code{gnutls-trustfiles} to be something else, but
+let us know if you do, so we can make the change to benefit the other
+users of that platform.
 @end defvar
 
 @defvar gnutls-verify-error
@@ -172,13 +179,17 @@ Just use @code{open-protocol-stream} or @code{open-network-stream}
 You should not have to use the @file{gnutls.el} functions directly.
 But you can test them with @code{open-gnutls-stream}.
 
-@defun open-gnutls-stream name buffer host service
+@defun open-gnutls-stream name buffer host service &optional nowait
 This function creates a buffer connected to a specific @var{host} and
 @var{service} (port number or service name).  The parameters and their
 syntax are the same as those given to @code{open-network-stream}
 (@pxref{Network,, Network Connections, elisp, The Emacs Lisp Reference
 Manual}).  The connection process is called @var{name} (made unique if
 necessary).  This function returns the connection process.
+
+The @var{nowait} parameter means that the socket should be
+asynchronous, and the connection process will be returned to the
+caller before TLS negotiation has happened.
 
 @lisp
 ;; open a HTTPS connection
@@ -189,6 +200,12 @@ necessary).  This function returns the connection process.
 @end lisp
 
 @end defun
+
+@findex gnutls-asynchronous-parameters
+If called with @var{nowait}, the process is returned immediately
+(before connecting to the server).  In that case, the process object
+is told what parameters to use when negotiating the connection
+by using the @code{gnutls-asynchronous-parameters} function.
 
 The function @code{gnutls-negotiate} is not generally useful and it
 may change as needed, so please see @file{gnutls.el} for the details.

@@ -1,14 +1,14 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2015 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2018 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,19 +16,20 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include "sysstdio.h"
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "lisp.h"
+#include "ptr-bounds.h"
 #include "termchar.h"
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
 #include "cm.h"
-#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -36,13 +37,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "commands.h"
 #include "disptab.h"
-#include "indent.h"
-#include "intervals.h"
 #include "blockinput.h"
-#include "process.h"
-
 #include "syssignal.h"
+#include "systime.h"
 #include "tparam.h"
+#include "xwidget.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -51,7 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #include <fpending.h>
-#include <timespec.h>
 
 #ifdef WINDOWSNT
 #include "w32.h"
@@ -69,7 +67,7 @@ struct dim
 
 /* Function prototypes.  */
 
-static void update_frame_line (struct frame *, int);
+static void update_frame_line (struct frame *, int, bool);
 static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
 static void increment_row_positions (struct glyph_row *, ptrdiff_t, ptrdiff_t);
@@ -91,7 +89,7 @@ static void check_matrix_pointers (struct glyph_matrix *,
 static void mirror_line_dance (struct window *, int, int, int *, char *);
 static bool update_window_tree (struct window *, bool);
 static bool update_window (struct window *, bool);
-static bool update_frame_1 (struct frame *, bool, bool, bool);
+static bool update_frame_1 (struct frame *, bool, bool, bool, bool);
 static bool scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
@@ -236,9 +234,7 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG */
 
 
-#if (defined PROFILING \
-     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__) \
-     && !HAVE___EXECUTABLE_START)
+#if defined PROFILING && !HAVE___EXECUTABLE_START
 /* This function comes first in the Emacs executable and is used only
    to estimate the text start for profiling.  */
 void
@@ -325,7 +321,9 @@ margin_glyphs_to_reserve (struct window *w, int total_glyphs, int margin)
       int width = w->total_cols;
       double d = max (0, margin);
       d = min (width / 2 - 1, d);
-      return (int) ((double) total_glyphs / width * d);
+      /* Since MARGIN is positive, we cannot possibly have less than
+	 one glyph for the marginal area.  */
+      return max (1, (int) ((double) total_glyphs / width * d));
     }
   return 0;
 }
@@ -378,7 +376,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
     {
       window_box (w, ANY_AREA, 0, 0, &window_width, &window_height);
 
-      header_line_p = WINDOW_WANTS_HEADER_LINE_P (w);
+      header_line_p = window_wants_header_line (w);
       header_line_changed_p = header_line_p != matrix->header_line_p;
     }
   matrix->header_line_p = header_line_p;
@@ -387,6 +385,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
      Do nothing if MATRIX' size, position, vscroll, and marginal areas
      haven't changed.  This optimization is important because preserving
      the matrix means preventing redisplay.  */
+  eassume (w != NULL || matrix->pool != NULL);
   if (matrix->pool == NULL)
     {
       left = margin_glyphs_to_reserve (w, dim.width, w->left_margin_cols);
@@ -447,7 +446,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 
 	  if (w == NULL
 	      || (row == matrix->rows + dim.height - 1
-		  && WINDOW_WANTS_MODELINE_P (w))
+		  && window_wants_mode_line (w))
 	      || (row == matrix->rows && matrix->header_line_p))
 	    {
 	      row->glyphs[TEXT_AREA]
@@ -492,7 +491,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 
 	      /* The mode line, if displayed, never has marginal areas.  */
 	      if ((row == matrix->rows + dim.height - 1
-		   && !(w && WINDOW_WANTS_MODELINE_P (w)))
+		   && !(w && window_wants_mode_line (w)))
 		  || (row == matrix->rows && matrix->header_line_p))
 		{
 		  row->glyphs[TEXT_AREA]
@@ -571,7 +570,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	     the mode line, if any, since otherwise it will remain
 	     disabled in the current matrix, and expose events won't
 	     redraw it.  */
-	  if (WINDOW_WANTS_MODELINE_P (w))
+	  if (window_wants_mode_line (w))
 	    w->update_mode_line = 1;
 	}
       else if (matrix == w->desired_matrix)
@@ -685,7 +684,9 @@ void
 clear_glyph_matrix_rows (struct glyph_matrix *matrix, int start, int end)
 {
   eassert (start <= end);
-  eassert (start >= 0 && start < matrix->nrows);
+  eassert (start >= 0 && (start < matrix->nrows
+			  /* matrix->nrows can be 0 for the initial frame.  */
+			  || (matrix->nrows == 0)));
   eassert (end >= 0 && end <= matrix->nrows);
 
   for (; start < end; ++start)
@@ -1279,7 +1280,7 @@ row_equal_p (struct glyph_row *a, struct glyph_row *b, bool mouse_face_p)
    with zeros.  If GLYPH_DEBUG and ENABLE_CHECKING are in effect, the global
    variable glyph_pool_count is incremented for each pool allocated.  */
 
-static struct glyph_pool *
+static struct glyph_pool * ATTRIBUTE_MALLOC
 new_glyph_pool (void)
 {
   struct glyph_pool *result = xzalloc (sizeof *result);
@@ -1336,10 +1337,8 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 	       || matrix_dim.width != pool->ncolumns);
 
   /* Enlarge the glyph pool.  */
-  needed = matrix_dim.width;
-  if (INT_MULTIPLY_OVERFLOW (needed, matrix_dim.height))
+  if (INT_MULTIPLY_WRAPV (matrix_dim.height, matrix_dim.width, &needed))
     memory_full (SIZE_MAX);
-  needed *= matrix_dim.height;
   if (needed > pool->nglyphs)
     {
       ptrdiff_t old_nglyphs = pool->nglyphs;
@@ -1699,7 +1698,8 @@ required_matrix_height (struct window *w)
 
   if (FRAME_WINDOW_P (f))
     {
-      int ch_height = FRAME_SMALLEST_FONT_HEIGHT (f);
+      /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
+      int ch_height = max (FRAME_SMALLEST_FONT_HEIGHT (f), 1);
       int window_pixel_height = window_box_height (w) + eabs (w->vscroll);
 
       return (((window_pixel_height + ch_height - 1)
@@ -1725,7 +1725,8 @@ required_matrix_width (struct window *w)
   struct frame *f = XFRAME (w->frame);
   if (FRAME_WINDOW_P (f))
     {
-      int ch_width = FRAME_SMALLEST_CHAR_WIDTH (f);
+      /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */
+      int ch_width = max (FRAME_SMALLEST_CHAR_WIDTH (f), 1);
 
       /* Compute number of glyphs needed in a glyph row.  */
       return (((WINDOW_PIXEL_WIDTH (w) + ch_width - 1)
@@ -3119,15 +3120,15 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 
       /* Update the display.  */
       update_begin (f);
-      paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1);
+      paused_p = update_frame_1 (f, force_p, inhibit_hairy_id_p, 1, false);
       update_end (f);
 
       if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
         {
           if (FRAME_TTY (f)->termscript)
-            fflush (FRAME_TTY (f)->termscript);
+	    fflush_unlocked (FRAME_TTY (f)->termscript);
 	  if (FRAME_TERMCAP_P (f))
-	    fflush (FRAME_TTY (f)->output);
+	    fflush_unlocked (FRAME_TTY (f)->output);
         }
 
       /* Check window matrices for lost pointers.  */
@@ -3172,7 +3173,7 @@ update_frame_with_menu (struct frame *f, int row, int col)
   cursor_at_point_p = !(row >= 0 && col >= 0);
   /* Force update_frame_1 not to stop due to pending input, and not
      try scrolling.  */
-  paused_p = update_frame_1 (f, 1, 1, cursor_at_point_p);
+  paused_p = update_frame_1 (f, 1, 1, cursor_at_point_p, true);
   /* ROW and COL tell us where in the menu to position the cursor, so
      that screen readers know the active region on the screen.  */
   if (!cursor_at_point_p)
@@ -3180,8 +3181,8 @@ update_frame_with_menu (struct frame *f, int row, int col)
   update_end (f);
 
   if (FRAME_TTY (f)->termscript)
-    fflush (FRAME_TTY (f)->termscript);
-  fflush (FRAME_TTY (f)->output);
+    fflush_unlocked (FRAME_TTY (f)->termscript);
+  fflush_unlocked (FRAME_TTY (f)->output);
   /* Check window matrices for lost pointers.  */
 #if GLYPH_DEBUG
 #if 0
@@ -3548,6 +3549,7 @@ update_window (struct window *w, bool force_p)
   add_window_display_history (w, w->current_matrix->method, paused_p);
 #endif
 
+  xwidget_end_redisplay (w, w->current_matrix);
   clear_glyph_matrix (desired_matrix);
 
   return paused_p;
@@ -4121,6 +4123,11 @@ scrolling_window (struct window *w, bool header_line_p)
 	break;
     }
 
+#ifdef HAVE_XWIDGETS
+  /* Currently this seems needed to detect xwidget movement reliably. */
+    return 0;
+#endif
+
   /* Give up if some rows in the desired matrix are not enabled.  */
   if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
     return -1;
@@ -4466,7 +4473,7 @@ scrolling_window (struct window *w, bool header_line_p)
 
 static bool
 update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
-		bool set_cursor_p)
+		bool set_cursor_p, bool updating_menu_p)
 {
   /* Frame matrices to work on.  */
   struct glyph_matrix *current_matrix = f->current_matrix;
@@ -4505,7 +4512,7 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 
   /* Update the individual lines as needed.  Do bottom line first.  */
   if (MATRIX_ROW_ENABLED_P (desired_matrix, desired_matrix->nrows - 1))
-    update_frame_line (f, desired_matrix->nrows - 1);
+    update_frame_line (f, desired_matrix->nrows - 1, updating_menu_p);
 
   /* Now update the rest of the lines.  */
   for (i = 0; i < desired_matrix->nrows - 1 && (force_p || !input_pending); i++)
@@ -4524,14 +4531,14 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 		  ptrdiff_t outq = __fpending (display_output);
 		  if (outq > 900
 		      || (outq > 20 && ((i - 1) % preempt_count == 0)))
-		    fflush (display_output);
+		    fflush_unlocked (display_output);
 		}
 	    }
 
 	  if (!force_p && (i - 1) % preempt_count == 0)
 	    detect_input_pending_ignore_squeezables ();
 
-	  update_frame_line (f, i);
+	  update_frame_line (f, i, updating_menu_p);
 	}
     }
 
@@ -4644,6 +4651,11 @@ scrolling (struct frame *frame)
   unsigned *new_hash = old_hash + height;
   int *draw_cost = (int *) (new_hash + height);
   int *old_draw_cost = draw_cost + height;
+  old_hash = ptr_bounds_clip (old_hash, height * sizeof *old_hash);
+  new_hash = ptr_bounds_clip (new_hash, height * sizeof *new_hash);
+  draw_cost = ptr_bounds_clip (draw_cost, height * sizeof *draw_cost);
+  old_draw_cost = ptr_bounds_clip (old_draw_cost,
+				   height * sizeof *old_draw_cost);
 
   eassert (current_matrix);
 
@@ -4767,7 +4779,7 @@ count_match (struct glyph *str1, struct glyph *end1, struct glyph *str2, struct 
 /* Perform a frame-based update on line VPOS in frame FRAME.  */
 
 static void
-update_frame_line (struct frame *f, int vpos)
+update_frame_line (struct frame *f, int vpos, bool updating_menu_p)
 {
   struct glyph *obody, *nbody, *op1, *op2, *np1, *nend;
   int tem;
@@ -4805,6 +4817,12 @@ update_frame_line (struct frame *f, int vpos)
 
   current_row->enabled_p = true;
   current_row->used[TEXT_AREA] = desired_row->used[TEXT_AREA];
+
+  /* For some reason, cursor is sometimes moved behind our back when a
+     frame with a TTY menu is redrawn.  Homing the cursor as below
+     fixes that.  */
+  if (updating_menu_p)
+    cursor_to (f, 0, 0);
 
   /* If desired line is empty, just clear the line.  */
   if (!desired_row->enabled_p)
@@ -5135,6 +5153,29 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      include the hscroll. */
   to_x += it.first_visible_x;
 
+  /* If we are hscrolling only the current line, and Y is at the line
+     containing point, augment TO_X with the hscroll amount of the
+     current line.  */
+  if (it.line_wrap == TRUNCATE
+      && EQ (automatic_hscrolling, Qcurrent_line) && IT_CHARPOS (it) < PT)
+    {
+      struct it it2 = it;
+      void *it2data = bidi_shelve_cache ();
+      it2.last_visible_x = 1000000;
+      /* If the line at Y shows point, the call below to
+	 move_it_in_display_line will succeed in reaching point.  */
+      move_it_in_display_line (&it2, PT, -1, MOVE_TO_POS);
+      if (IT_CHARPOS (it2) >= PT)
+	{
+	  to_x += (w->hscroll - w->min_hscroll) * FRAME_COLUMN_WIDTH (it.f);
+	  /* We need to pretend the window is hscrolled, so that
+	     move_it_in_display_line below will DTRT with TO_X.  */
+	  it.first_visible_x += w->hscroll * FRAME_COLUMN_WIDTH (it.f);
+	  it.last_visible_x += w->hscroll * FRAME_COLUMN_WIDTH (it.f);
+	}
+      bidi_unshelve_cache (it2data, 0);
+    }
+
   /* Now move horizontally in the row to the glyph under *X.  Second
      argument is ZV to prevent move_it_in_display_line from matching
      based on buffer positions.  */
@@ -5171,8 +5212,13 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
     {
-      if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
-	  && !NILP (img->spec))
+      /* Note that this ignores images that are fringe bitmaps,
+	 because their image ID is zero, and so IMAGE_OPT_FROM_ID will
+	 return NULL.  This is okay, since fringe bitmaps are not
+	 displayed in the text area, and so are never the object we
+	 are interested in.  */
+      img = IMAGE_OPT_FROM_ID (it.f, it.image_id);
+      if (img && !NILP (img->spec))
 	*object = img->spec;
     }
 #endif
@@ -5181,7 +5227,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      start position, i.e. it excludes the header-line row, but
      MATRIX_ROW includes the header-line row.  Adjust for a possible
      header-line row.  */
-  it_vpos = it.vpos + WINDOW_WANTS_HEADER_LINE_P (w);
+  it_vpos = it.vpos + window_wants_header_line (w);
   if (it_vpos < w->current_matrix->nrows
       && (row = MATRIX_ROW (w->current_matrix, it_vpos),
 	  row->enabled_p))
@@ -5269,7 +5315,7 @@ mode_line_string (struct window *w, enum window_part part,
 	  if (glyph->type == IMAGE_GLYPH)
 	    {
 	      struct image *img;
-	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      img = IMAGE_OPT_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
@@ -5356,7 +5402,7 @@ marginal_area_string (struct window *w, enum window_part part,
 	  if (glyph->type == IMAGE_GLYPH)
 	    {
 	      struct image *img;
-	      img = IMAGE_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
+	      img = IMAGE_OPT_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
@@ -5608,13 +5654,13 @@ when TERMINAL is nil.  */)
 
       if (tty->termscript)
 	{
-	  fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
-	  fflush (tty->termscript);
+	  fwrite_unlocked (SDATA (string), 1, SBYTES (string), tty->termscript);
+	  fflush_unlocked (tty->termscript);
 	}
       out = tty->output;
     }
-  fwrite (SDATA (string), 1, SBYTES (string), out);
-  fflush (out);
+  fwrite_unlocked (SDATA (string), 1, SBYTES (string), out);
+  fflush_unlocked (out);
   unblock_input ();
   return Qnil;
 }
@@ -5629,7 +5675,7 @@ terminate any keyboard macro currently executing.  */)
   if (!NILP (arg))
     {
       if (noninteractive)
-	putchar (07);
+	putchar_unlocked (07);
       else
 	ring_bell (XFRAME (selected_frame));
     }
@@ -5643,7 +5689,7 @@ void
 bitch_at_user (void)
 {
   if (noninteractive)
-    putchar (07);
+    putchar_unlocked (07);
   else if (!INTERACTIVE)  /* Stop executing a keyboard macro.  */
     {
       const char *msg
@@ -6032,11 +6078,11 @@ init_display (void)
 #endif
 
   /* If no window system has been specified, try to use the terminal.  */
-  if (! isatty (0))
+  if (! isatty (STDIN_FILENO))
     fatal ("standard input is not a tty");
 
 #ifdef WINDOWSNT
-  terminal_type = "w32console";
+  terminal_type = (char *)"w32console";
 #else
   terminal_type = getenv ("TERM");
 #endif
@@ -6097,15 +6143,15 @@ init_display (void)
     struct frame *sf = SELECTED_FRAME ();
     int width = FRAME_TOTAL_COLS (sf);
     int height = FRAME_TOTAL_LINES (sf);
+    int area;
 
     /* If these sizes are so big they cause overflow, just ignore the
        change.  It's not clear what better we could do.  The rest of
        the code assumes that (width + 2) * height * sizeof (struct glyph)
        does not overflow and does not exceed PTRDIFF_MAX or SIZE_MAX.  */
-    if (INT_ADD_RANGE_OVERFLOW (width, 2, INT_MIN, INT_MAX)
-	|| INT_MULTIPLY_RANGE_OVERFLOW (width + 2, height, INT_MIN, INT_MAX)
-	|| (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph)
-	    < (width + 2) * height))
+    if (INT_ADD_WRAPV (width, 2, &area)
+	|| INT_MULTIPLY_WRAPV (height, area, &area)
+	|| min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph) < area)
       fatal ("screen size %dx%d too big", width, height);
   }
 
@@ -6211,10 +6257,10 @@ It is up to you to set this variable if your terminal can do that.  */);
 	       doc: /* Name of the window system that Emacs uses for the first frame.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
- 'x' for an Emacs frame that is really an X window,
- 'w32' for an Emacs frame that is a window on MS-Windows display,
- 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- 'pc' for a direct-write MS-DOS frame.
+ `x' for an Emacs frame that is really an X window,
+ `w32' for an Emacs frame that is a window on MS-Windows display,
+ `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ `pc' for a direct-write MS-DOS frame.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
@@ -6224,10 +6270,10 @@ predicates which report frame's specific UI-related capabilities.  */);
 		 doc: /* Name of window system through which the selected frame is displayed.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
- 'x' for an Emacs frame that is really an X window,
- 'w32' for an Emacs frame that is a window on MS-Windows display,
- 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- 'pc' for a direct-write MS-DOS frame.
+ `x' for an Emacs frame that is really an X window,
+ `w32' for an Emacs frame that is a window on MS-Windows display,
+ `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ `pc' for a direct-write MS-DOS frame.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'

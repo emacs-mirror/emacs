@@ -1,6 +1,6 @@
 /* Get the system load averages.
 
-   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2015 Free Software
+   Copyright (C) 1985-1989, 1991-1995, 1997, 1999-2000, 2003-2018 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with gnulib.
@@ -17,7 +17,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Compile-time symbols that this file uses:
 

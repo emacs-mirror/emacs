@@ -1,6 +1,6 @@
 ;;; nxml-util.el --- utility functions for nxml-*.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -35,20 +35,6 @@
   (when nxml-debug
     `(nxml-debug "%s: %S" ,name
                 (buffer-substring-no-properties ,start ,end))))
-
-(defmacro nxml-debug-set-inside (start end)
-  (when nxml-debug
-    `(let ((overlay (make-overlay ,start ,end)))
-       (overlay-put overlay 'face '(:background "red"))
-       (overlay-put overlay 'nxml-inside-debug t)
-       (nxml-debug-change "nxml-set-inside" ,start ,end))))
-
-(defmacro nxml-debug-clear-inside (start end)
-  (when nxml-debug
-    `(cl-loop for overlay in (overlays-in ,start ,end)
-           if (overlay-get overlay 'nxml-inside-debug)
-           do (delete-overlay overlay)
-           finally (nxml-debug-change "nxml-clear-inside" ,start ,end))))
 
 (defun nxml-make-namespace (str)
   "Return a symbol for the namespace URI STR.

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -23,7 +23,7 @@ not be displayed in any windows.
 * Buffer File Name::    The buffer file name indicates which file is visited.
 * Buffer Modification:: A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::   Determining whether the visited file was changed
-                         ``behind Emacs's back''.
+                         behind Emacs's back.
 * Read Only Buffers::   Modifying text is not allowed in a read-only buffer.
 * Buffer List::         How to look at all the existing buffers.
 * Creating Buffers::    Functions that create buffers.
@@ -647,7 +647,7 @@ visiting a file or if the time has been explicitly cleared by
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
-If the buffer is not visiting a file, this function returns -1.
+If the buffer is not visiting a file, this function returns @minus{}1.
 @end defun
 
 @defun set-visited-file-modtime &optional time
@@ -656,7 +656,8 @@ of the visited file, to the value specified by @var{time} if @var{time}
 is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
-If @var{time} is neither @code{nil} nor zero, it should have the form
+If @var{time} is neither @code{nil} nor an integer flag returned
+by @code{visited-file-modtime}, it should have the form
 @code{(@var{high} @var{low} @var{microsec} @var{picosec})},
 the format used by @code{current-time} (@pxref{Time of Day}).
 
@@ -667,10 +668,11 @@ reason.
 
 @defun ask-user-about-supersession-threat filename
 This function is used to ask a user how to proceed after an attempt to
-modify an buffer visiting file @var{filename} when the file is newer
+modify a buffer visiting file @var{filename} when the file is newer
 than the buffer text.  Emacs detects this because the modification
-time of the file on disk is newer than the last save-time of the
-buffer.  This means some other program has probably altered the file.
+time of the file on disk is newer than the last save-time and its contents
+have changed.
+This means some other program has probably altered the file.
 
 @kindex file-supersession
 Depending on the user's answer, the function may return normally, in
@@ -716,7 +718,9 @@ The special commands of these modes bind @code{buffer-read-only} to
 
 @defvar buffer-read-only
 This buffer-local variable specifies whether the buffer is read-only.
-The buffer is read-only if this variable is non-@code{nil}.
+The buffer is read-only if this variable is non-@code{nil}.  However,
+characters that have the @code{inhibit-read-only} text property can
+still be modified.  @xref{Special Properties, inhibit-read-only}.
 @end defvar
 
 @defvar inhibit-read-only
@@ -753,10 +757,14 @@ When disabling Read Only mode, it disables View mode if View mode was
 enabled.
 @end deffn
 
-@defun barf-if-buffer-read-only
+@defun barf-if-buffer-read-only &optional position
 This function signals a @code{buffer-read-only} error if the current
-buffer is read-only.  @xref{Using Interactive}, for another way to
-signal an error if the current buffer is read-only.
+buffer is read-only.  If the text at @var{position} (which defaults to
+point) has the @code{inhibit-read-only} text property set, the error
+will not be raised.
+
+@xref{Using Interactive}, for another way to signal an error if the
+current buffer is read-only.
 @end defun
 
 @node Buffer List
@@ -808,7 +816,7 @@ regardless of which frames they were displayed on.
 @group
 ;; @r{Note that the name of the minibuffer}
 ;;   @r{begins with a space!}
-(mapcar (function buffer-name) (buffer-list))
+(mapcar #'buffer-name (buffer-list))
     @result{} ("buffers.texi" " *Minibuf-1*"
         "buffer.c" "*Help*" "TAGS")
 @end group
@@ -883,7 +891,7 @@ This function operates on each frame's @code{buffer-list} parameter as
 well as the fundamental buffer list; therefore, the buffer that you bury
 will come last in the value of @code{(buffer-list @var{frame})} and in
 the value of @code{(buffer-list)}.  In addition, it also puts the buffer
-at the end of the list of buffer of the selected window (@pxref{Window
+at the end of the list of buffers of the selected window (@pxref{Window
 History}) provided it is shown in that window.
 
 If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
@@ -893,7 +901,7 @@ another buffer is shown in it.  More precisely, if the selected window
 is dedicated (@pxref{Dedicated Windows}) and there are other windows on
 its frame, the window is deleted.  If it is the only window on its frame
 and that frame is not the only frame on its terminal, the frame is
-``dismissed'' by calling the function specified by
+dismissed by calling the function specified by
 @code{frame-auto-hide-function} (@pxref{Quitting Windows}).  Otherwise,
 it calls @code{switch-to-prev-buffer} (@pxref{Window History}) to show
 another buffer in that window.  If @var{buffer-or-name} is displayed in
@@ -1032,7 +1040,7 @@ memory for other uses or to be returned to the operating system.  If
 buffer.
 
 Any processes that have this buffer as the @code{process-buffer} are
-sent the @code{SIGHUP} (``hangup'') signal, which normally causes them
+sent the @code{SIGHUP} (hangup) signal, which normally causes them
 to terminate.  @xref{Signals to Processes}.
 
 If the buffer is visiting a file and contains unsaved changes,
@@ -1082,12 +1090,15 @@ is not cleared by changing major modes.
 
 @defopt buffer-offer-save
 This variable, if non-@code{nil} in a particular buffer, tells
-@code{save-buffers-kill-emacs} and @code{save-some-buffers} (if the
-second optional argument to that function is @code{t}) to offer to
-save that buffer, just as they offer to save file-visiting buffers.
-@xref{Definition of save-some-buffers}.  The variable
-@code{buffer-offer-save} automatically becomes buffer-local when set
-for any reason.  @xref{Buffer-Local Variables}.
+@code{save-buffers-kill-emacs} to offer to save that buffer, just as
+it offers to save file-visiting buffers.  If @code{save-some-buffers}
+is called with the second optional argument set to @code{t}, it will
+also offer to save the buffer.  Lastly, if this variable is set to the
+symbol @code{always}, both @code{save-buffers-kill-emacs} and
+@code{save-some-buffers} will always offer to save.  @xref{Definition
+of save-some-buffers}.  The variable @code{buffer-offer-save}
+automatically becomes buffer-local when set for any reason.
+@xref{Buffer-Local Variables}.
 @end defopt
 
 @defvar buffer-save-without-query
@@ -1139,7 +1150,7 @@ be a live buffer or the name (a string) of an existing buffer.  If
 @var{name} is the name of an existing buffer, an error is signaled.
 
 If @var{clone} is non-@code{nil}, then the indirect buffer originally
-shares the ``state'' of @var{base-buffer} such as major mode, minor
+shares the state of @var{base-buffer} such as major mode, minor
 modes, buffer local variables and so on.  If @var{clone} is omitted
 or @code{nil} the indirect buffer's state is set to the default state
 for new buffers.
@@ -1205,6 +1216,12 @@ swapped as well: the positions of point and mark, all the markers, the
 overlays, the text properties, the undo list, the value of the
 @code{enable-multibyte-characters} flag (@pxref{Text Representations,
 enable-multibyte-characters}), etc.
+
+@strong{Warning:} If this function is called from within a
+@code{save-excursion} form, the current buffer will be set to
+@var{buffer} upon leaving the form, since the marker used by
+@code{save-excursion} to save the position and buffer will be swapped
+as well.
 @end defun
 
   If you use @code{buffer-swap-text} on a file-visiting buffer, you

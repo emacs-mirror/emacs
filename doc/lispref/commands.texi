@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -132,7 +132,7 @@ byte compiler to warn if the command is called from Lisp.  The output
 of @code{describe-function} will include similar information.
 The value of the property can be: a string, which the byte-compiler
 will use directly in its warning (it should end with a period, and not
-start with a capital, e.g., ``use @dots{} instead.''); @code{t}; any
+start with a capital, e.g., @code{"use (system-name) instead."}); @code{t}; any
 other symbol, which should be an alternative function to use in Lisp
 code.
 
@@ -395,7 +395,7 @@ Completion, Prompt.
 The position of point, as an integer (@pxref{Point}).  No I/O.
 
 @item D
-A directory name.  The default is the current default directory of the
+A directory.  The default is the current default directory of the
 current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
@@ -484,7 +484,8 @@ I/O.
 @cindex region argument
 Point and the mark, as two numeric arguments, smallest first.  This is
 the only code letter that specifies two successive arguments rather than
-one.  No I/O.
+one.  This will signal an error if the mark is not set in the buffer
+which is current when the command is invoked.  No I/O.
 
 @item s
 Arbitrary text, read in the minibuffer and returned as a string
@@ -691,6 +692,14 @@ default is the return value of @code{this-command-keys-vector}.
 @xref{Definition of this-command-keys-vector}.
 @end defun
 
+@defun funcall-interactively function &rest arguments
+This function works like @code{funcall} (@pxref{Calling Functions}),
+but it makes the call look like an interactive invocation: a call to
+@code{called-interactively-p} inside @var{function} will return
+@code{t}.  If @var{function} is not a command, it is called without
+signaling an error.
+@end defun
+
 @defun command-execute command &optional record-flag keys special
 @cindex keyboard macro execution
 This function executes @var{command}.  The argument @var{command} must
@@ -739,7 +748,7 @@ part of the prompt.
 @group
 (execute-extended-command 3)
 ---------- Buffer: Minibuffer ----------
-3 M-x forward-word RET
+3 M-x forward-word @key{RET}
 ---------- Buffer: Minibuffer ----------
      @result{} t
 @end group
@@ -996,11 +1005,11 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 @cindex @code{display} property, and point display
 @cindex @code{composition} property, and point display
 
-  It is not easy to display a value of point in the middle of a
-sequence of text that has the @code{display}, @code{composition} or
-is invisible.  Therefore, after a command finishes and returns to the
-command loop, if point is within such a sequence, the command loop
-normally moves point to the edge of the sequence.
+  Emacs cannot display the cursor when point is in the middle of a
+sequence of text that has the @code{display} or @code{composition}
+property, or is invisible.  Therefore, after a command finishes and
+returns to the command loop, if point is within such a sequence, the
+command loop normally moves point to the edge of the sequence.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:
@@ -1557,8 +1566,8 @@ the command binding of the double click event to assume that the
 single-click command has already run.  It must produce the desired
 results of a double click, starting from the results of a single click.
 
-This is convenient, if the meaning of a double click somehow ``builds
-on'' the meaning of a single click---which is recommended user interface
+This is convenient, if the meaning of a double click somehow builds
+on the meaning of a single click---which is recommended user interface
 design practice for double clicks.
 
 If you click a button, then press it down again and start moving the
@@ -1656,7 +1665,8 @@ gets keyboard input.  This choice of window is called the @dfn{focus}.
 When the user does something to switch between Emacs frames, that
 generates a @dfn{focus event}.  The normal definition of a focus event,
 in the global keymap, is to select a new frame within Emacs, as the user
-would expect.  @xref{Input Focus}.
+would expect.  @xref{Input Focus}, which also describes hooks related
+to focus events.
 
 Focus events are represented in Lisp as lists that look like this:
 
@@ -1968,7 +1978,7 @@ in @code{event-modifiers}.  For example:
 
 @defun mouse-movement-p object
 This function returns non-@code{nil} if @var{object} is a mouse movement
-event.
+event.  @xref{Motion Events}.
 @end defun
 
 @defun event-convert-list list
@@ -2444,7 +2454,7 @@ same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
 elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-``prefix keys'', all of which are symbols: @code{header-line},
+prefix keys, all of which are symbols: @code{header-line},
 @code{horizontal-scroll-bar}, @code{menu-bar}, @code{mode-line},
 @code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
 meanings for mouse clicks in special window parts by defining key
@@ -2587,7 +2597,7 @@ If you wish to read a single key taking these translations into
 account, use the function @code{read-key}:
 
 @defun read-key &optional prompt
-This function reads a single key.  It is ``intermediate'' between
+This function reads a single key.  It is intermediate between
 @code{read-key-sequence} and @code{read-event}.  Unlike the former, it
 reads a single key, not a key sequence.  Unlike the latter, it does
 not return a raw event, but decodes and translates the user input
@@ -2607,6 +2617,31 @@ keyboard-quit events while it is waiting for valid input.  If you bind
 while calling @code{read-char-choice}, then pressing @code{help-char}
 causes it to evaluate @code{help-form} and display the result.  It
 then continues to wait for a valid input character, or keyboard-quit.
+@end defun
+
+@defun read-multiple-choice prompt choices
+Ask user a multiple choice question.  @var{prompt} should be a string
+that will be displayed as the prompt.
+
+@var{choices} is an alist where the first element in each entry is a
+character to be entered, the second element is a short name for the
+entry to be displayed while prompting (if there's room, it might be
+shortened), and the third, optional entry is a longer explanation that
+will be displayed in a help buffer if the user requests more help.
+
+The return value is the matching value from @var{choices}.
+
+@lisp
+(read-multiple-choice
+ "Continue connecting?"
+ '((?a "always" "Accept certificate for this and future sessions.")
+   (?s "session only" "Accept certificate this session only.")
+   (?n "no" "Refuse to use certificate, close connection.")))
+@end lisp
+
+The @code{read-multiple-choice-face} face is used to highlight the
+matching characters in the name string on graphical terminals.
+
 @end defun
 
 @node Event Mod
@@ -2633,7 +2668,7 @@ character for this purpose, but as a character with no modifiers.
 Thus, setting @code{extra-keyboard-modifiers} to zero cancels any
 modification.
 
-When using a window system, the program can ``press'' any of the
+When using a window system, the program can press any of the
 modifier keys in this way.  Otherwise, only the @key{CTL} and @key{META}
 keys can be virtually pressed.
 
@@ -2783,7 +2818,7 @@ What character @kbd{1 7 7}-
 @node Event Input Misc
 @subsection Miscellaneous Event Input Features
 
-This section describes how to ``peek ahead'' at events without using
+This section describes how to peek ahead at events without using
 them up, how to check for pending input, and how to discard pending
 input.  See also the function @code{read-passwd} (@pxref{Reading a
 Password}).
@@ -2882,6 +2917,12 @@ like this:
     (progn . @var{body})))
 @end example
 @end defmac
+
+@defvar while-no-input-ignore-events
+This variable allow setting which special events @code{while-no-input}
+should ignore.  It is a list of symbols.
+
+@end defvar
 
 @defun discard-input
 @cindex flushing input
@@ -3048,7 +3089,7 @@ usual result of this---a quit---is prevented.  Eventually,
 binding is unwound at the end of a @code{let} form.  At that time, if
 @code{quit-flag} is still non-@code{nil}, the requested quit happens
 immediately.  This behavior is ideal when you wish to make sure that
-quitting does not happen within a ``critical section'' of the program.
+quitting does not happen within a critical section of the program.
 
 @cindex @code{read-quoted-char} quitting
   In some functions (such as @code{read-quoted-char}), @kbd{C-g} is
@@ -3311,7 +3352,7 @@ using the minibuffer.  Usually it is more convenient for the user if you
 change the major mode of the current buffer temporarily to a special
 major mode, which should have a command to go back to the previous mode.
 (The @kbd{e} command in Rmail uses this technique.)  Or, if you wish to
-give the user different text to edit ``recursively'', create and select
+give the user different text to edit recursively, create and select
 a new buffer in a special mode.  In this mode, define a command to
 complete the processing and go back to the previous buffer.  (The
 @kbd{m} command in Rmail does this.)

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -45,9 +45,12 @@ messages and show you where the errors occurred.
 @item M-x compile
 Run a compiler asynchronously under Emacs, with error messages going to
 the @file{*compilation*} buffer.
+
 @item M-x recompile
+@itemx g@r{ (Compilation mode)}
 Invoke a compiler with the same command as in the last invocation of
 @kbd{M-x compile}.
+
 @item M-x kill-compilation
 Kill the running compilation subprocess.
 @end table
@@ -58,8 +61,8 @@ compile}.  This reads a shell command line using the minibuffer, and
 then executes the command by running a shell as a subprocess (or
 @dfn{inferior process}) of Emacs.  The output is inserted in a buffer
 named @file{*compilation*}.  The current buffer's default directory is
-used as the working directory for the execution of the command;
-normally, therefore, compilation takes place in this directory.
+used as the working directory for the execution of the command, so by
+default compilation takes place in that directory.
 
 @vindex compile-command
   The default compilation command is @samp{make -k}, which is usually
@@ -90,6 +93,10 @@ inserted above point, which remains at the end.  Otherwise, point
 remains fixed while compilation output is added at the end of the
 buffer.
 
+  While compilation proceeds, the mode line shows the number of
+errors, warnings, and informational messages emitted by the compiler
+so far.
+
 @cindex compilation buffer, keeping point at end
 @vindex compilation-scroll-output
   If you change the variable @code{compilation-scroll-output} to a
@@ -105,18 +112,19 @@ recompile}.  This reuses the compilation command from the last
 invocation of @kbd{M-x compile}.  It also reuses the
 @file{*compilation*} buffer and starts the compilation in its default
 directory, which is the directory in which the previous compilation
-was started.
+was started.  In @file{*compilation*} buffers this command is bound to
+@kbd{g}.
 
 @findex kill-compilation
 @vindex compilation-always-kill
   Starting a new compilation also kills any compilation already
 running in @file{*compilation*}, as the buffer can only handle one
-compilation at any time.  However, @kbd{M-x compile} asks for
-confirmation before actually killing a compilation that is running; to
-always automatically kill the compilation without asking, change the
-variable @code{compilation-always-kill} to @code{t}.  You can also
-kill a compilation process with the command @kbd{M-x
-kill-compilation}.
+compilation at any time.  However, @kbd{M-x compile} and @kbd{M-x
+recompile} ask for confirmation before actually killing a compilation
+that is running; to always automatically kill the compilation without
+asking, change the variable @code{compilation-always-kill} to
+@code{t}.  You can also kill a compilation process with the command
+@kbd{M-x kill-compilation}.
 
   To run two compilations at once, start the first one, then rename
 the @file{*compilation*} buffer (perhaps using @code{rename-uniquely};
@@ -179,6 +187,12 @@ different file (@code{compilation-previous-file}).
 @item C-c C-f
 Toggle Next Error Follow minor mode, which makes cursor motion in the
 compilation buffer produce automatic source display.
+@item g
+Re-run the last command whose output is shown in the
+@file{*compilation*} buffer.
+@item M-x next-error-select-buffer
+Select a buffer to be used by next invocation of @code{next-error} and
+@code{previous-error}.
 @end table
 
 @kindex M-g M-n
@@ -191,28 +205,34 @@ compilation buffer produce automatic source display.
 This command can be invoked from any buffer, not just a Compilation
 mode buffer.  The first time you invoke it after a compilation, it
 visits the locus of the first error message.  Each subsequent
-@w{@kbd{C-x `}} visits the next error, in a similar fashion.  If you
+@w{@kbd{M-g M-n}} visits the next error, in a similar fashion.  If you
 visit a specific error with @key{RET} or a mouse click in the
-@file{*compilation*} buffer, subsequent @w{@kbd{C-x `}} commands
-advance from there.  When @w{@kbd{C-x `}} finds no more error messages
-to visit, it signals an error.  @w{@kbd{C-u C-x `}} starts again from
+@file{*compilation*} buffer, subsequent @w{@kbd{M-g M-n}} commands
+advance from there.  When @w{@kbd{M-g M-n}} finds no more error messages
+to visit, it signals an error.  @w{@kbd{C-u M-g M-n}} starts again from
 the beginning of the compilation buffer, and visits the first locus.
 
   @kbd{M-g M-p} or @kbd{M-g p} (@code{previous-error}) iterates
 through errors in the opposite direction.
 
+@vindex next-error-find-buffer-function
+@findex next-error-select-buffer
   The @code{next-error} and @code{previous-error} commands don't just
 act on the errors or matches listed in @file{*compilation*} and
 @file{*grep*} buffers; they also know how to iterate through error or
 match lists produced by other commands, such as @kbd{M-x occur}
-(@pxref{Other Repeating Search}).  If you are already in a buffer
-containing error messages or matches, those are the ones that are
-iterated through; otherwise, Emacs looks for a buffer containing error
-messages or matches amongst the windows of the selected frame, then
-for one that @code{next-error} or @code{previous-error} previously
-iterated through, and finally amongst all other buffers.  If the
-buffer chosen for iterating through is not currently displayed in a
-window, it will be displayed.
+(@pxref{Other Repeating Search}).  If the current buffer contains
+error messages or matches, these commands will iterate through them;
+otherwise, Emacs looks for a buffer containing error messages or
+matches amongst the windows of the selected frame (if the variable
+@code{next-error-find-buffer-function} is customized to the value
+@code{next-error-buffer-on-selected-frame}), then for a buffer used
+previously by @code{next-error} or @code{previous-error}, and finally
+all other buffers.  Any buffer these commands iterate through that is
+not currently displayed in a window will be displayed.  You can use
+the @command{next-error-select-buffer} command to switch to
+a different buffer to be used by the subsequent invocation of
+@code{next-error}.
 
 @vindex compilation-skip-threshold
   By default, the @code{next-error} and @code{previous-error} commands
@@ -275,6 +295,12 @@ Names}).
 @node Compilation Shell
 @section Subshells for Compilation
 
+  This section includes various techniques and advice for using a
+shell and its features in compilation buffers.  This material is
+specific to local compilations, and will most probably not work in (or
+be irrelevant to) compilation buffers whose default directory is on
+remote hosts.
+
   The @kbd{M-x compile} command uses a shell to run the compilation
 command, but specifies the option for a noninteractive shell.  This
 means, in particular, that the shell should start with no prompt.  If
@@ -299,6 +325,11 @@ And here's how to do it in csh:
 if ($?prompt) set prompt = @dots{}
 @end example
 
+@vindex TERM@r{, environment variable, in compilation mode}
+  If you want to customize the value of the @env{TERM} environment
+variable passed to the compilation subshell, customize the variable
+@code{comint-terminfo-terminal} (@pxref{Shell Options}).
+
   Emacs does not expect a compiler process to launch asynchronous
 subprocesses; if it does, and they keep running after the main
 compiler process has terminated, Emacs may kill them or their output
@@ -322,7 +353,7 @@ nohup @var{command}; sleep 1
 @end example
 
 @ifnottex
-  On the MS-DOS ``operating system'', asynchronous subprocesses are
+  On MS-DOS, asynchronous subprocesses are
 not supported, so @kbd{M-x compile} runs the compilation command
 synchronously (i.e., you must wait until the command finishes before
 you can do anything else in Emacs).  @xref{MS-DOS}.
@@ -334,7 +365,7 @@ you can do anything else in Emacs).  @xref{MS-DOS}.
   Just as you can run a compiler from Emacs and then visit the lines
 with compilation errors, you can also run @command{grep} and then
 visit the lines on which matches were found.  This works by treating
-the matches reported by @command{grep} as if they were ``errors''.
+the matches reported by @command{grep} as if they were errors.
 The output buffer uses Grep mode, which is a variant of Compilation
 mode (@pxref{Compilation Mode}).
 
@@ -360,8 +391,8 @@ that specifies how to run @command{grep}.  Use the same arguments you
 would give @command{grep} when running it normally: a @command{grep}-style
 regexp (usually in single-quotes to quote the shell's special
 characters) followed by file names, which may use wildcards.  If you
-specify a prefix argument for @kbd{M-x grep}, it finds the tag
-(@pxref{Tags}) in the buffer around point, and puts that into the
+specify a prefix argument for @kbd{M-x grep}, it finds the identifier
+(@pxref{Xref}) in the buffer around point, and puts that into the
 default @command{grep} command.
 
   Your command need not simply run @command{grep}; you can use any shell
@@ -373,14 +404,29 @@ grep -nH -e foo *.el | grep bar | grep toto
 @end example
 
   The output from @command{grep} goes in the @file{*grep*} buffer.  You
-can find the corresponding lines in the original files using @w{@kbd{C-x
-`}}, @key{RET}, and so forth, just like compilation errors.
+can find the corresponding lines in the original files using @w{@kbd{M-g
+M-n}}, @key{RET}, and so forth, just like compilation errors.
+@xref{Compilation Mode}, for detailed description of commands and key
+bindings available in the @file{*grep*} buffer.
 
   Some grep programs accept a @samp{--color} option to output special
 markers around matches for the purpose of highlighting.  You can make
 use of this feature by setting @code{grep-highlight-matches} to
 @code{t}.  When displaying a match in the source buffer, the exact
 match will be highlighted, instead of the entire source line.
+
+  As with compilation commands (@pxref{Compilation}), while the grep
+command runs, the mode line shows the running number of matches found
+and highlighted so far.
+
+  The @command{grep} commands will offer to save buffers before
+running.  This is controlled by the @code{grep-save-buffers} variable.
+The possible values are either @code{nil} (don't save), @code{ask}
+(ask before saving), or a function which will be used as a predicate
+(and is called with the file name as the parameter and should return
+non-@code{nil} if the buffer is to be saved).  Any other
+non-@code{nil} value means that all buffers should be saved without
+asking.  The default is @code{ask}.
 
 @findex grep-find
 @findex find-grep
@@ -412,6 +458,18 @@ the variable @code{grep-files-aliases}.
 @code{grep-find-ignored-directories} are automatically skipped by
 @kbd{M-x rgrep}.  The default value includes the data directories used
 by various version control systems.
+
+@vindex grep-find-abbreviate
+@findex grep-find-toggle-abbreviation
+  By default, the shell commands constructed for @code{lgrep},
+@code{rgrep}, and @code{zgrep} are abbreviated for display by
+concealing the part that contains a long list of files and directories
+to ignore.  You can reveal the concealed part by clicking on the
+button with ellipsis, which represents them.  You can also
+interactively toggle viewing the concealed part by typing @kbd{M-x
+grep-find-toggle-abbreviation}.  To disable this abbreviation of the
+shell commands, customize the option @code{grep-find-abbreviate} to a
+@code{nil} value.
 
 @node Flymake
 @section Finding Syntax Errors On The Fly
@@ -457,8 +515,8 @@ see the Flymake Info manual, which is distributed with Emacs.
 
 The GUD (Grand Unified Debugger) library provides an Emacs interface
 to a wide variety of symbolic debuggers.  It can run the GNU Debugger
-(GDB), as well as DBX, SDB, XDB, Perl's debugging mode, the Python
-debugger PDB, and the Java Debugger JDB.
+(GDB), as well as DBX, SDB, XDB, Guile REPL debug commands, Perl's
+debugging mode, the Python debugger PDB, and the Java Debugger JDB.
 
   Emacs provides a special interface to GDB, which uses extra Emacs
 windows to display the state of the debugged program.  @xref{GDB
@@ -510,6 +568,10 @@ Run the Java debugger.
 @item M-x pdb
 @findex pdb
 Run the Python debugger.
+
+@item M-x guiler
+@findex guiler
+Run Guile REPL for debugging Guile Scheme programs.
 
 @item M-x dbx
 @findex dbx
@@ -590,15 +652,16 @@ to recompile and restart the program.
 @vindex gud-tooltip-echo-area
   GUD Tooltip mode is a global minor mode that adds tooltip support to
 GUD@.  To toggle this mode, type @kbd{M-x gud-tooltip-mode}.  It is
-disabled by default.  If enabled, you can move the mouse cursor over a
+disabled by default.  If enabled, you can move the mouse pointer over a
 variable, a function, or a macro (collectively called
 @dfn{identifiers}) to show their values in tooltips
-(@pxref{Tooltips}).  Alternatively, mark an identifier or an
-expression by dragging the mouse over it, then leave the mouse in the
-marked area to have the value of the expression displayed in a
-tooltip.  The GUD Tooltip mode takes effect in the GUD interaction
-buffer, and in all source buffers with major modes listed in the
-variable @code{gud-tooltip-modes}.  If the variable
+(@pxref{Tooltips}).  If just placing the mouse pointer over an
+expression doesn't show the value of the expression you had in mind,
+you can tell Emacs more explicitly what expression to evaluate by
+dragging the mouse over the expression, then leaving the mouse inside
+the marked area.  The GUD Tooltip mode takes effect in the GUD
+interaction buffer, and in all source buffers with major modes listed
+in the variable @code{gud-tooltip-modes}.  If the variable
 @code{gud-tooltip-echo-area} is non-@code{nil}, or if you turned off
 the tooltip mode, values are shown in the echo area instead of a
 tooltip.
@@ -627,7 +690,7 @@ Set a breakpoint on the source line that point is on.
 buffer, sets a debugger breakpoint on the current source line.  This
 command is available only after starting GUD@.  If you call it in a
 buffer that is not associated with any debugger subprocess, it signals
-a error.
+an error.
 
 @kindex C-x C-a @r{(GUD)}
   The following commands are available both in the GUD interaction
@@ -769,12 +832,14 @@ Instead, type @kbd{C-q @key{TAB}} to enter a tab.
 @vindex perldb-mode-hook
 @vindex pdb-mode-hook
 @vindex jdb-mode-hook
+@vindex guiler-mode-hook
   On startup, GUD runs one of the following hooks:
 @code{gdb-mode-hook}, if you are using GDB; @code{dbx-mode-hook}, if
 you are using DBX; @code{sdb-mode-hook}, if you are using SDB;
-@code{xdb-mode-hook}, if you are using XDB; @code{perldb-mode-hook},
-for Perl debugging mode; @code{pdb-mode-hook}, for PDB;
-@code{jdb-mode-hook}, for JDB@.  @xref{Hooks}.
+@code{xdb-mode-hook}, if you are using XDB; @code{guiler-mode-hook}
+for Guile REPL debugging; @code{perldb-mode-hook}, for Perl debugging
+mode; @code{pdb-mode-hook}, for PDB; @code{jdb-mode-hook}, for JDB@.
+@xref{Hooks}.
 
   The @code{gud-def} Lisp macro (@pxref{Defining Macros,,, elisp, the
 Emacs Lisp Reference Manual}) provides a convenient way to define an
@@ -800,12 +865,12 @@ the command to @kbd{C-c @var{binding}} in the GUD buffer's mode and to
 @table @samp
 @item %f
 The name of the current source file.  If the current buffer is the GUD
-buffer, then the ``current source file'' is the file that the program
+buffer, then the current source file is the file that the program
 stopped in.
 
 @item %l
 The number of the current source line.  If the current buffer is the GUD
-buffer, then the ``current source line'' is the line that the program
+buffer, then the current source line is the line that the program
 stopped in.
 
 @item %e
@@ -848,7 +913,7 @@ GUD}).  You must use this if you want to debug multiple programs
 within one Emacs session, as that is currently unsupported by @kbd{M-x
 gdb}.
 
-  Internally, @kbd{M-x gdb} informs GDB that its ``screen size'' is
+  Internally, @kbd{M-x gdb} informs GDB that its screen size is
 unlimited; for correct operation, you must not change GDB's screen
 height and width values during the debugging session.
 
@@ -893,15 +958,23 @@ displays the following frame layout:
 
 @findex gdb-restore-windows
 @findex gdb-many-windows
-  If you ever change the window layout, you can restore the ``many
-windows'' layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
+  If you ever change the window layout, you can restore the many-windows
+layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
 between the many windows layout and a simple layout with just the GUD
 interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 
+  If you have an elaborate window setup, and don't want
+@code{gdb-many-windows} to disrupt that, it is better to invoke
+@kbd{M-x gdb} in a separate frame to begin with, then the arrangement
+of windows on your original frame will not be affected.  A separate
+frame for GDB sessions can come in especially handy if you work on a
+text-mode terminal, where the screen estate for windows could be at a
+premium.
+
   You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
-want by typing @code{M-x gdb-display-@var{buffertype}-buffer} or
-@code{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype}
+want by typing @kbd{M-x gdb-display-@var{buffertype}-buffer} or
+@kbd{M-x gdb-frame-@var{buffertype}-buffer}, where @var{buffertype}
 is the relevant buffer type, such as @samp{breakpoints}.  You can do
 the same with the menu bar, with the @samp{GDB-Windows} and
 @samp{GDB-Frames} sub-menus of the @samp{GUD} menu.
@@ -921,23 +994,25 @@ still in the right places.
 @cindex fringes, for debugging
 
 @table @asis
-@item @kbd{Mouse-1} (in fringe)
-Set or clear a breakpoint on that line.
+@item @kbd{mouse-1} (in fringe)
+Set or clear a breakpoint on that line
+(@code{gdb-mouse-set-clear-breakpoint}).
 
-@item @kbd{C-Mouse-1} (in fringe)
-Enable or disable a breakpoint on that line.
+@item @kbd{C-mouse-1} (in fringe)
+Enable or disable a breakpoint on that line
+(@code{gdb-mouse-toggle-breakpoint-margin}).
 
-@item @kbd{Mouse-3} (in fringe)
-Continue execution to that line.
+@item @kbd{mouse-3} (in fringe)
+Continue execution to that line (@code{gdb-mouse-until}).
 
-@item @kbd{C-Mouse-3} (in fringe)
-Jump to that line.
+@item @kbd{C-mouse-3} (in fringe)
+Jump to that line (@code{gdb-mouse-jump}).
 @end table
 
-  On a graphical display, you can click @kbd{Mouse-1} in the fringe of
+  On a graphical display, you can click @kbd{mouse-1} in the fringe of
 a source buffer, to set a breakpoint on that line (@pxref{Fringes}).
 A red dot appears in the fringe, where you clicked.  If a breakpoint
-already exists there, the click removes it.  A @kbd{C-Mouse-1} click
+already exists there, the click removes it.  A @kbd{C-mouse-1} click
 enables or disables an existing breakpoint; a breakpoint that is
 disabled, but not unset, is indicated by a gray dot.
 
@@ -949,10 +1024,10 @@ of the window.  Disabled breakpoints are indicated with @samp{b}.
   A solid arrow in the left fringe of a source buffer indicates the
 line of the innermost frame where the debugged program has stopped.  A
 hollow arrow indicates the current execution line of a higher-level
-frame.  If you drag the arrow in the fringe with @kbd{Mouse-1}, that
+frame.  If you drag the arrow in the fringe with @kbd{mouse-1}, that
 causes execution to advance to the line where you release the button.
-Alternatively, you can click @kbd{Mouse-3} in the fringe to advance to
-that line.  You can click @kbd{C-Mouse-3} in the fringe to jump to
+Alternatively, you can click @kbd{mouse-3} in the fringe to advance to
+that line.  You can click @kbd{C-mouse-3} in the fringe to jump to
 that line without executing the intermediate lines.  This command
 allows you to go backwards, which can be useful for running through
 code that has already executed, in order to examine its execution in
@@ -986,15 +1061,16 @@ Delete the current breakpoint (@code{gdb-delete-breakpoint}).
 Visit the source line for the current breakpoint
 (@code{gdb-goto-breakpoint}).
 
-@item Mouse-2
-@kindex Mouse-2 @r{(GDB Breakpoints buffer)}
-Visit the source line for the breakpoint you click on.
+@item mouse-2
+@kindex mouse-2 @r{(GDB Breakpoints buffer)}
+Visit the source line for the breakpoint you click on
+(@code{gdb-goto-breakpoint}).
 @end table
 
 @vindex gdb-show-threads-by-default
   When @code{gdb-many-windows} is non-@code{nil}, the GDB Breakpoints
 buffer shares its window with the GDB Threads buffer.  To switch from
-one to the other click with @kbd{Mouse-1} on the relevant button in
+one to the other click with @kbd{mouse-1} on the relevant button in
 the header line.  If @code{gdb-show-threads-by-default} is
 non-@code{nil}, the GDB Threads buffer is the one shown by default.
 
@@ -1006,11 +1082,11 @@ non-@code{nil}, the GDB Threads buffer is the one shown by default.
 debugged program.  @xref{Threads, Threads, Debugging programs with
 multiple threads, gdb, The GNU debugger}.  To select a thread, move
 point there and press @key{RET} (@code{gdb-select-thread}), or click on
-it with @kbd{Mouse-2}.  This also displays the associated source
+it with @kbd{mouse-2}.  This also displays the associated source
 buffer, and updates the contents of the other GDB buffers.
 
-  You can customize variables under @code{gdb-buffers} group to select
-fields included in GDB Threads buffer.
+  You can customize variables in the @code{gdb-buffers} group to
+select fields included in GDB Threads buffer.
 
 @table @code
 @item gdb-thread-buffer-verbose-names
@@ -1066,9 +1142,9 @@ display the corresponding buffer in a new frame.
   When you create a buffer showing information about some specific
 thread, it becomes bound to that thread and keeps showing actual
 information while you debug your program.  The mode indicator for each
-GDB buffer shows the number of thread it is showing information about.
-The thread number is also included in the buffer name of bound
-buffers.
+GDB buffer shows the number of the thread whose information that
+buffer displays.  The thread number is also included in the name of
+each bound buffer.
 
   Further commands are available in the GDB Threads buffer which
 depend on the mode of GDB that is used for controlling execution of
@@ -1087,7 +1163,7 @@ debugger}.
 arrow in the fringe.  On text terminals, or when fringes are disabled,
 the selected stack frame is displayed in reverse contrast.  To select
 a stack frame, move point in its line and type @key{RET}
-(@code{gdb-frames-select}), or click @kbd{Mouse-2} on it.  Doing so
+(@code{gdb-frames-select}), or click @kbd{mouse-2} on it.  Doing so
 also updates the Locals buffer
 @ifnottex
 (@pxref{Other GDB Buffers}).
@@ -1104,19 +1180,19 @@ also updates the Locals buffer
 This buffer displays the values of local variables of the current
 frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).  Press @key{RET} or
-click @kbd{Mouse-2} on the value if you want to edit it.
+click @kbd{mouse-2} on the value if you want to edit it.
 
 Arrays and structures display their type only.  With GDB 6.4 or later,
 you can examine the value of the local variable at point by typing
-@key{RET}, or with a @kbd{Mouse-2} click.  With earlier versions of
-GDB, use @key{RET} or @kbd{Mouse-2} on the type description
+@key{RET}, or with a @kbd{mouse-2} click.  With earlier versions of
+GDB, use @key{RET} or @kbd{mouse-2} on the type description
 (@samp{[struct/union]} or @samp{[array]}).  @xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers
 This buffer displays the values held by the registers
 (@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
-click @kbd{Mouse-2} on a register if you want to edit its value.  With
+click @kbd{mouse-2} on a register if you want to edit its value.  With
 GDB 6.4 or later, recently changed register values display with
 @code{font-lock-warning-face}.
 
@@ -1129,17 +1205,17 @@ the fringe or margin.
 @item Memory Buffer
 The memory buffer lets you examine sections of program memory
 (@pxref{Memory, Memory, Examining memory, gdb, The GNU debugger}).
-Click @kbd{Mouse-1} on the appropriate part of the header line to
+Click @kbd{mouse-1} on the appropriate part of the header line to
 change the starting address or number of data items that the buffer
 displays.  Alternatively, use @kbd{S} or @kbd{N} respectively.  Click
-@kbd{Mouse-3} on the header line to select the display format or unit
+@kbd{mouse-3} on the header line to select the display format or unit
 size for these data items.
 @end table
 
 When @code{gdb-many-windows} is non-@code{nil}, the locals buffer
 shares its window with the registers buffer, just like breakpoints and
 threads buffers.  To switch from one to the other, click with
-@kbd{Mouse-1} on the relevant button in the header line.
+@kbd{mouse-1} on the relevant button in the header line.
 
 @node Watch Expressions
 @subsubsection Watch Expressions
@@ -1163,7 +1239,7 @@ name and type otherwise.  Root expressions also display the frame
 address as a tooltip to help identify the frame in which they were
 defined.
 
-  To expand or contract a complex data type, click @kbd{Mouse-2} or
+  To expand or contract a complex data type, click @kbd{mouse-2} or
 press @key{SPC} on the tag to the left of the expression.  Emacs asks
 for confirmation before expanding the expression if its number of
 immediate children exceeds the value of the variable
@@ -1178,7 +1254,7 @@ expression in the speedbar and type @kbd{D} (@code{gdb-var-delete}).
 @findex gdb-edit-value
   To edit a variable with a simple data type, or a simple element of a
 complex data type, move point there in the speedbar and type @key{RET}
-(@code{gdb-edit-value}).  Or you can click @kbd{Mouse-2} on a value to
+(@code{gdb-edit-value}).  Or you can click @kbd{mouse-2} on a value to
 edit it.  Either way, this reads the new value using the minibuffer.
 
 @vindex gdb-show-changed-values
@@ -1192,9 +1268,9 @@ edit its value.
 @vindex gdb-delete-out-of-scope
   If the variable @code{gdb-delete-out-of-scope} is non-@code{nil}
 (the default value), Emacs automatically deletes watch expressions
-which go out of scope.  Sometimes, when re-entering the same function,
-it may be useful to set this value to @code{nil} so that you don't
-need to recreate the watch expression.
+which go out of scope.  Sometimes, when your program re-enters the
+same function many times, it may be useful to set this value to
+@code{nil} so that you don't need to recreate the watch expression.
 
 @vindex gdb-use-colon-colon-notation
   If the variable @code{gdb-use-colon-colon-notation} is
@@ -1259,7 +1335,7 @@ execution control commands.
 value), interruption and continuation commands apply to all threads,
 so you can halt or continue all your threads with one command using
 @code{gud-stop-subjob} and @code{gud-cont}, respectively.  The
-@samp{Go} button is shown on the toolbar when at least one thread is
+@samp{Go} button is shown on the tool bar when at least one thread is
 stopped, whereas @samp{Stop} button is shown when at least one thread
 is running.
 
@@ -1267,8 +1343,8 @@ is running.
 
 When @code{gdb-gud-control-all-threads} is @code{nil}, only the
 current thread is stopped/continued.  @samp{Go} and @samp{Stop}
-buttons on the GUD toolbar are shown depending on the state of current
-thread.
+buttons on the GUD tool bar are shown depending on the state of
+current thread.
 @end table
 
 You can change the current value of @code{gdb-gud-control-all-threads}
@@ -1377,15 +1453,16 @@ Loading,,, elisp, the Emacs Lisp Reference Manual}.
 
 @vindex load-path
   The Emacs Lisp load path is specified by the variable
-@code{load-path}.  Its value should be a list of directory names
+@code{load-path}.  Its value should be a list of directories
 (strings).  These directories are searched, in the specified order, by
 the @kbd{M-x load-library} command, the lower-level @code{load}
-function, and other Emacs functions that find Emacs Lisp libraries.  A
-list entry in @code{load-path} can also have the special value
+function, and other Emacs functions that find Emacs Lisp libraries.
+An entry in @code{load-path} can also have the special value
 @code{nil}, which stands for the current default directory, but it is
-almost always a bad idea to use this.  (If you find yourself wishing
-that @code{nil} were in the list, most likely what you really want is
-to use @kbd{M-x load-file}.)
+almost always a bad idea to use this, because its meaning will depend
+on the buffer that is current when @code{load-path} is used by Emacs.
+(If you find yourself wishing that @code{nil} were in the list, most
+likely what you really want is to use @kbd{M-x load-file}.)
 
   The default value of @code{load-path} is a list of directories where
 the Lisp code for Emacs itself is stored.  If you have libraries of
@@ -1418,7 +1495,7 @@ buffer).  To disable this feature, change the variable
 @vindex load-dangerous-libraries
 @cindex Lisp files byte-compiled by XEmacs
   By default, Emacs refuses to load compiled Lisp files which were
-compiled with XEmacs, a modified versions of Emacs---they can cause
+compiled with XEmacs, a modified version of Emacs---they can cause
 Emacs to crash.  Set the variable @code{load-dangerous-libraries} to
 @code{t} if you want to try loading them.
 
@@ -1459,7 +1536,7 @@ Evaluate all the Emacs Lisp expressions in the buffer.
 @ifinfo
 @c This uses 'colon' instead of a literal ':' because Info cannot
 @c cope with a ':' in a menu.
-@kindex M-@key{colon}
+@kindex M-colon
 @end ifinfo
 @ifnotinfo
 @kindex M-:
@@ -1477,7 +1554,9 @@ expression.)
 Emacs Lisp expression preceding point in the buffer, and displays the
 value in the echo area.  When the result of an evaluation is an
 integer, it is displayed together with the value in other formats
-(octal, hexadecimal, and character).
+(octal, hexadecimal, and character if
+@code{eval-expression-print-maximum-character}, described below,
+allows it).
 
   If @kbd{M-:} or @kbd{C-x C-e} is given a prefix argument, it inserts
 the value into the current buffer at point, rather than displaying it
@@ -1485,8 +1564,10 @@ in the echo area.  If the prefix argument is zero, any integer output
 is inserted together with its value in other formats (octal,
 hexadecimal, and character).  Such a prefix argument also prevents
 abbreviation of the output according to the variables
-@code{eval-expression-print-level} and @code{eval-expression-print-length}
-(see below).
+@code{eval-expression-print-level} and
+@code{eval-expression-print-length} (see below).  Similarly, a prefix
+argument of @code{-1} overrides the effect of
+@code{eval-expression-print-length}.
 
 @kindex C-M-x @r{(Emacs Lisp mode)}
 @findex eval-defun
@@ -1516,6 +1597,7 @@ eval-buffer} is similar but evaluates the entire buffer.
 
 @vindex eval-expression-print-level
 @vindex eval-expression-print-length
+@vindex eval-expression-print-maximum-character
 @vindex eval-expression-debug-on-error
   The options @code{eval-expression-print-level} and
 @code{eval-expression-print-length} control the maximum depth and
@@ -1525,6 +1607,8 @@ before abbreviating them.  Supplying a zero prefix argument to
 printed in full.  @code{eval-expression-debug-on-error} controls
 whether evaluation errors invoke the debugger when these commands are
 used; its default is @code{t}.
+@code{eval-expression-print-maximum-character} prevents integers which
+are larger than it from being displayed as characters.
 
 @node Lisp Interaction
 @section Lisp Interaction Buffers

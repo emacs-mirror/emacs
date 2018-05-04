@@ -5,25 +5,19 @@ what parts of the Emacs distribution.  The areas can be defined
 "arbitrarily", but should provide fairly well-defined boundaries so
 that there are not too many ambiguities.
 
-The list below consists of 3 parts.  First, the list of areas that
-someone wants to be maintaining (i.e. has a particularly keen interest
-for it); then the list of areas that someone is willing to maintain,
-although he would not necessarily mind if someone else was the
-official maintainer; and finally the list of areas for which no
-maintainer has been found so far.
-
 ==============================================================================
-1.
+1. Areas that someone wants to be maintaining (i.e. has a particularly
+keen interest in).  There's no need to list files where you are
+mentioned in the file's header.
 ==============================================================================
-
-Jason Rumney
-	W32
 
 Eli Zaretskii
 
 	src/bidi.c
 	bidirectional editing support in xdisp.c and elsewhere
 	lisp/term/tty-colors.el
+	test/biditest.el
+	test/redisplay-testsuite.el
 
 	The MS-DOS (a.k.a. DJGPP) port:
 	    config.bat
@@ -50,32 +44,91 @@ Stefan Monnier
 	minor-mode/major-mode infrastructure
 	text filling
 	minibuffer completion
-	lisp/textmodes/outline.el
-
-Miles Bader
-	src/xfaces.c
-	field-property related stuff
-	lisp/comint.el
-	lisp/shell.el
-	[other comint-related packages]
-	lisp/button.el
-	lisp/image-file.el
-	lisp/minibuf-eldef.el
-	lisp/rfn-eshadow.el
-
-Jay Belanger
-        Calc
-            lisp/calc/*
-            etc/calccard.tex
-            doc/misc/calc.texi
+	lisp/outline.el
 
 Bastien Guerry
         Org
             lisp/org/*
 	    doc/misc/org.texi
 
+Artur Malabarba
+	lisp/emacs-lisp/package.el
+	lisp/emacs-lisp/let-alist.el
+	lisp/character-fold.el
+
+Michael Albinus
+        Tramp
+            lisp/net/tramp*.el
+            lisp/url/url-tramp.el
+            doc/misc/tramp*.texi
+            test/lisp/net/tramp-tests.el
+            test/lisp/url/url-tramp-tests.el
+
+        D-Bus
+	    src/dbusbind.c
+	    lisp/net/dbus.el
+	    lisp/net/secrets.el
+            lisp/net/zeroconf.el
+	    doc/misc/dbus.texi
+            test/lisp/net/dbus-tests.el
+
+        File Notifications
+	    src/gfilenotify.c
+	    src/kqueue.c
+	    lisp/filenotify.el
+	    test/lisp/filenotify-tests.el
+
+Simen Heggestøyl
+	lisp/textmodes/css-mode.el
+
+Nicolas Petton
+	lisp/emacs-lisp/map.el
+	test/lisp/emac-lisp/map-tests.el
+	lisp/emacs-lisp/seq.el
+	test/lisp/emac-lisp/seq-tests.el
+	lisp/emacs-lisp/thunk.el
+	test/lisp/emac-lisp/thunk-tests.el
+
+The GNU AUCTeX maintainers (auctex-devel@gnu.org)
+	RefTeX
+	    lisp/textmodes/reftex-auc.el
+	    lisp/textmodes/reftex-cite.el
+	    lisp/textmodes/reftex-dcr.el
+	    lisp/textmodes/reftex-global.el
+	    lisp/textmodes/reftex-index.el
+	    lisp/textmodes/reftex-parse.el
+	    lisp/textmodes/reftex-ref.el
+	    lisp/textmodes/reftex-sel.el
+	    lisp/textmodes/reftex-toc.el
+	    lisp/textmodes/reftex-vars.el
+	    lisp/textmodes/reftex.el
+
+Dmitry Gutov
+	lisp/progmodes/ruby-mode.el
+	test/lisp/progmodes/ruby-mode-tests.el
+	test/indent/ruby.rb
+	lisp/progmodes/xref.el
+	lisp/progmodes/project.el
+
+Ulf Jasper
+	Newsticker
+	    doc/misc/newsticker.texi
+	    etc/images/newsticker/*
+	    lisp/net/newst-backend.el
+	    lisp/net/newst-plainview.el
+	    lisp/net/newst-reader.el
+	    lisp/net/newst-ticker.el
+	    lisp/net/newst-treeview.el
+	    lisp/net/newsticker.el
+	    test/lisp/net/newsticker-tests.el
+
+	Icalendar
+	    lisp/calendar/icalendar.el
+	    test/lisp/calendar/icalendar-tests.el
+
 ==============================================================================
-2.
+2. Areas that someone is willing to maintain, although he would not
+necessarily mind if someone else was the official maintainer.
 ==============================================================================
 
 Kelvin White
@@ -85,7 +138,6 @@ Kelvin White
 
 Eli Zaretskii
     	doc/*
-	lispref/*
 
 	src/xfaces.c
 	src/xdisp.c
@@ -94,10 +146,16 @@ Eli Zaretskii
 	src/dispextern.h
 	src/frame.c
 	src/dired.c
+	src/fileio.c
 	src/unexw32.c
 	src/w32*.[ch]
 	src/window.c
+	src/indent.c
+	src/region-cache.[ch]
 	nt/*
+
+	lib-src/ntlib.[ch]
+	lib-src/etags.c
 
 	lisp/arc-mode.el
 	lisp/menu-bar.el
@@ -105,9 +163,20 @@ Eli Zaretskii
 	lisp/info.el
 	lisp/ls-lisp.el
 	lisp/startup.el
+	lisp/filenotify.el
 	lisp/w32*.el
+	lisp/term/w32*.el
+	lisp/progmodes/gdb-mi.el
+	lisp/textmodes/ispell.el
+	lisp/textmodes/flyspell.el
+	lisp/mail/rmail*.el
+
+	Mule
 
 	admin/unidata/*
+	admin/nt/dump.bat
+
+	test/etags/*
 
 Stefan Monnier
 	src/intervals.c
@@ -117,88 +186,52 @@ Stefan Monnier
 	lisp/progmodes/tcl.el
 	lisp/emacs-lisp/easymenu.el
 
-Miles Bader
-	src/eval.c
-	src/bytecode.c
-	src/editfns.c
-	lisp/textmodes/refill.el
+Artur Malabarba
+        lisp/isearch.el
 
-==============================================================================
-3.
-==============================================================================
+Paul Eggert
+	.dir-locals.el
+	.gitattributes
+	.gitignore
+	GNUmakefile
+	Makefile.in
+	admin/merge-gnulib
+	admin/merge-pkg-config
+	admin/update-copyright
+	autogen.sh
+	build-aux/*
+	configure.ac
+	lib/*
+	lib-src/* (except for files others want to maintain)
+	m4/*
+	make-dist
+	src/* (except for *.m, *w32*, bitmaps, files others want to maintain)
 
-src/Makefile.in
-src/abbrev.c
-src/alloc.c
-src/alloca.c
-src/alloca.s
-src/atimer.c
-src/bitmaps/
-src/buffer.c
-src/callint.c
-src/callproc.c
-src/casefiddle.c
-src/casetab.c
-src/category.c
-src/ccl.c
-src/charset.c
-src/cm.c
-src/cmds.c
-src/coding.c
-src/composite.c
-src/config.in
-src/data.c
-src/doc.c
-src/doprnt.c
-src/ecrt0.c
-src/emacs.c
-src/epaths.in
-src/fileio.c
-src/filelock.c
-src/filemode.c
-src/firstfile.c
-src/floatfns.c
-src/fringe.c
-src/fns.c
-src/fontset.c
-src/getloadavg.c
-src/gmalloc.c
-src/gtkutil.c
-src/indent.c
-src/insdel.c
-src/image.c
-src/lastfile.c
-src/lread.c
-src/macros.c
-src/makefile.w32-in
-src/marker.c
-src/md5.c
-src/minibuf.c
-src/mktime.c
-src/pre-crt0.c
-src/prefix-args.c
-src/print.c
-src/process.c
-src/ralloc.c
-src/region-cache.c
-src/scroll.c
-src/search.c
-src/sound.c
-src/strftime.c
-src/sysdep.c
-src/termcap.c
-src/terminfo.c
-src/textprop.c
-src/tparam.c
-src/undo.c
-src/unexaix.c
-src/unexalpha.c
-src/unexelf.c
-src/unexhp9k800.c
-src/vm-limit.c
-src/widget.c
-src/xfns.c
-src/xmenu.c
-src/xrdb.c
-src/xselect.c
-src/xterm.c
+Michael Albinus
+	src/inotify.c
+        lisp/autorevert.el
+	lisp/eshell/em-tramp.el
+	lisp/notifications.el
+        test/lisp/autorevert-tests.el
+	test/src/inotify-test.el
+
+Nicolas Petton
+	lisp/emacs-lisp/subr-x.el
+	lisp/arc-mode.el
+
+Tassilo Horn
+	lisp/doc-view.el
+
+Dmitry Gutov
+	lisp/whitespace.el
+	lisp/vc/*
+
+Vibhav Pant
+       lisp/net/browse-url.el
+       lisp/erc/*
+
+
+;;; Local Variables:
+;;;   coding: utf-8
+;;;   indent-tabs-mode: t
+;;; End:

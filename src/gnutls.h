@@ -1,12 +1,12 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2015 Free Software Foundation, Inc.
+   Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_GNUTLS_DEFINED
 #define EMACS_GNUTLS_DEFINED
@@ -23,8 +23,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
-/* This limits the attempts to handshake per process (connection).  */
-#define GNUTLS_EMACS_HANDSHAKES_LIMIT 100
+#if 0x030000 <= GNUTLS_VERSION_NUMBER
+# define HAVE_GNUTLS3
+# include <gnutls/crypto.h>
+#endif
+
+#include "lisp.h"
+
+/* This limits the attempts to handshake per process (connection).  It
+   should work out to about one minute in asynchronous cases. */
+#define GNUTLS_EMACS_HANDSHAKES_LIMIT 6000
 
 typedef enum
 {
@@ -68,7 +76,7 @@ typedef enum
 #define GNUTLS_LOG2i(level, max, string, extra)			\
   do {								\
     if ((level) <= (max))					\
-      gnutls_log_function2i (level, "(Emacs) " string, extra);	\
+      message ("gnutls.c: [%d] %s %d", level, string, extra);	\
   } while (false)
 
 extern ptrdiff_t
@@ -79,8 +87,12 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte);
 extern ptrdiff_t emacs_gnutls_record_check_pending (gnutls_session_t state);
 #ifdef WINDOWSNT
 extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
+extern int w32_gnutls_rnd (gnutls_rnd_level_t, void *, size_t);
 #endif
 extern Lisp_Object emacs_gnutls_deinit (Lisp_Object);
+extern Lisp_Object emacs_gnutls_global_init (void);
+extern int gnutls_try_handshake (struct Lisp_Process *p);
+extern Lisp_Object gnutls_verify_boot (Lisp_Object proc, Lisp_Object proplist);
 
 #endif
 

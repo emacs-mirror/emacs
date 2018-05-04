@@ -1,6 +1,6 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -121,7 +121,7 @@ character (i.e., an integer), @code{nil} otherwise.
   The following functions create strings, either from scratch, or by
 putting strings together, or by taking them apart.
 
-@defun make-string count character
+@defun make-string count character &optional multibyte
 This function returns a string made up of @var{count} repetitions of
 @var{character}.  If @var{count} is negative, an error is signaled.
 
@@ -131,6 +131,13 @@ This function returns a string made up of @var{count} repetitions of
 (make-string 0 ?x)
      @result{} ""
 @end example
+
+  Normally, if @var{character} is an @acronym{ASCII} character, the
+result is a unibyte string.  But if the optional argument
+@var{multibyte} is non-@code{nil}, the function will produce a
+multibyte string instead.  This is useful when you later need to
+concatenate the result with non-@acronym{ASCII} strings or replace
+some of its characters with non-@acronym{ASCII} characters.
 
   Other functions to compare with this one include @code{make-vector}
 (@pxref{Vectors}) and @code{make-list} (@pxref{Building Lists}).
@@ -145,11 +152,12 @@ This returns a string containing the characters @var{characters}.
 @end example
 @end defun
 
-@defun substring string start &optional end
+@defun substring string &optional start end
 This function returns a new string which consists of those characters
 from @var{string} in the range from (and including) the character at the
 index @var{start} up to (but excluding) the character at the index
-@var{end}.  The first character is at index zero.
+@var{end}.  The first character is at index zero.  With one argument,
+this function just copies @var{string}.
 
 @example
 @group
@@ -278,17 +286,26 @@ expression @var{separators} (@pxref{Regular Expressions}).  Each match
 for @var{separators} defines a splitting point; the substrings between
 splitting points are made into a list, which is returned.
 
+If @var{separators} is @code{nil} (or omitted), the default is the
+value of @code{split-string-default-separators} and the function
+behaves as if @var{omit-nulls} were @code{t}.
+
 If @var{omit-nulls} is @code{nil} (or omitted), the result contains
 null strings whenever there are two consecutive matches for
 @var{separators}, or a match is adjacent to the beginning or end of
 @var{string}.  If @var{omit-nulls} is @code{t}, these null strings are
 omitted from the result.
 
-If @var{separators} is @code{nil} (or omitted), the default is the
-value of @code{split-string-default-separators}.
+If the optional argument @var{trim} is non-@code{nil}, it should be a
+regular expression to match text to trim from the beginning and end of
+each substring.  If trimming makes the substring empty, it is treated
+as null.
 
-As a special case, when @var{separators} is @code{nil} (or omitted),
-null strings are always omitted from the result.  Thus:
+If you need to split a string into a list of individual command-line
+arguments suitable for @code{call-process} or @code{start-process},
+see @ref{Shell Arguments, split-string-and-unquote}.
+
+Examples:
 
 @example
 (split-string "  two words ")
@@ -304,8 +321,6 @@ useful.  If you need such a result, use an explicit value for
               split-string-default-separators)
      @result{} ("" "two" "words" "")
 @end example
-
-More examples:
 
 @example
 (split-string "Soup is good food" "o")
@@ -353,15 +368,6 @@ practice:
 (split-string "ooo" "\\|o+" t)
      @result{} ("o" "o" "o")
 @end example
-
-If the optional argument @var{trim} is non-@code{nil}, it should be a
-regular expression to match text to trim from the beginning and end of
-each substring.  If trimming makes the substring empty, it is treated
-as null.
-
-If you need to split a string into a list of individual command-line
-arguments suitable for @code{call-process} or @code{start-process},
-see @ref{Shell Arguments, split-string-and-unquote}.
 @end defun
 
 @defvar split-string-default-separators
@@ -465,6 +471,7 @@ Representations}.
 @code{string-equal} is another name for @code{string=}.
 @end defun
 
+@cindex locale-dependent string equivalence
 @defun string-collate-equalp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} and @var{string2} are
 equal with respect to collation rules.  A collation rule is not only
@@ -493,6 +500,7 @@ systems.
 If @var{ignore-case} is non-@code{nil}, characters are converted to lower-case
 before comparing them.
 
+@vindex w32-collate-ignore-punctuation
 To emulate Unicode-compliant collation on MS-Windows systems,
 bind @code{w32-collate-ignore-punctuation} to a non-@code{nil} value, since
 the codeset part of the locale cannot be @code{"UTF-8"} on MS-Windows.
@@ -500,25 +508,12 @@ the codeset part of the locale cannot be @code{"UTF-8"} on MS-Windows.
 If your system does not support a locale environment, this function
 behaves like @code{string-equal}.
 
-Do @emph{not} use this function to compare file names for equality, only
-for sorting them.
+Do @emph{not} use this function to compare file names for equality, as
+filesystems generally don't honor linguistic equivalence of strings
+that collation implements.
 @end defun
 
-@defun string-prefix-p string1 string2 &optional ignore-case
-This function returns non-@code{nil} if @var{string1} is a prefix of
-@var{string2}; i.e., if @var{string2} starts with @var{string1}.  If
-the optional argument @var{ignore-case} is non-@code{nil}, the
-comparison ignores case differences.
-@end defun
-
-@defun string-suffix-p suffix string &optional ignore-case
-This function returns non-@code{nil} if @var{suffix} is a suffix of
-@var{string}; i.e., if @var{string} ends with @var{suffix}.  If the
-optional argument @var{ignore-case} is non-@code{nil}, the comparison
-ignores case differences.
-@end defun
-
-@cindex lexical comparison
+@cindex lexical comparison of strings
 @defun string< string1 string2
 @c (findex string< causes problems for permuted index!!)
 This function compares two strings a character at a time.  It
@@ -569,13 +564,20 @@ no characters is less than any other string.
 @end example
 
 Symbols are also allowed as arguments, in which case their print names
-are used.
+are compared.
 @end defun
 
 @defun string-lessp string1 string2
 @code{string-lessp} is another name for @code{string<}.
 @end defun
 
+@defun string-greaterp string1 string2
+This function returns the result of comparing @var{string1} and
+@var{string2} in the opposite order, i.e., it is equivalent to calling
+@code{(string-lessp @var{string2} @var{string1})}.
+@end defun
+
+@cindex locale-dependent string comparison
 @defun string-collate-lessp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} is less than
 @var{string2} in collation order.  A collation order is not only
@@ -584,8 +586,8 @@ determined by the lexicographic order of the characters contained in
 relations between these characters.  Usually, it is defined by the
 @var{locale} environment Emacs is running with.
 
-For example, punctuation and whitespace characters might be considered
-less significant for @ref{Sorting,,sorting}.
+For example, punctuation and whitespace characters might be ignored
+for sorting (@pxref{Sequence Functions}):
 
 @example
 @group
@@ -594,12 +596,15 @@ less significant for @ref{Sorting,,sorting}.
 @end group
 @end example
 
+This behavior is system-dependent; e.g., punctuation and whitespace
+are never ignored on Cygwin, regardless of locale.
+
 The optional argument @var{locale}, a string, overrides the setting of
 your current locale identifier for collation.  The value is system
 dependent; a @var{locale} @code{"en_US.UTF-8"} is applicable on POSIX
 systems, while it would be, e.g., @code{"enu_USA.1252"} on MS-Windows
-systems.  The @var{locale} @code{"POSIX"} lets @code{string-collate-lessp}
-behave like @code{string-lessp}:
+systems.  The @var{locale} value of @code{"POSIX"} or @code{"C"} lets
+@code{string-collate-lessp} behave like @code{string-lessp}:
 
 @example
 @group
@@ -618,6 +623,14 @@ the codeset part of the locale cannot be @code{"UTF-8"} on MS-Windows.
 
 If your system does not support a locale environment, this function
 behaves like @code{string-lessp}.
+@end defun
+
+@defun string-version-lessp string1 string2
+This function compares strings lexicographically, except it treats
+sequences of numerical characters as if they comprised a base-ten
+number, and then compares the numbers.  So @samp{foo2.png} is
+``smaller'' than @samp{foo12.png} according to this predicate, even if
+@samp{12} is lexicographically ``smaller'' than @samp{2}.
 @end defun
 
 @defun string-prefix-p string1 string2 &optional ignore-case
@@ -644,10 +657,10 @@ string.  Likewise, the specified part of @var{string2} runs from index
 @var{start2} up to index @var{end2}.
 
 The strings are compared by the numeric values of their characters.
-For instance, @var{str1} is considered ``smaller than'' @var{str2} if
+For instance, @var{str1} is considered less than @var{str2} if
 its first differing character has a smaller numeric value.  If
 @var{ignore-case} is non-@code{nil}, characters are converted to
-lower-case before comparing them.  Unibyte strings are converted to
+upper-case before comparing them.  Unibyte strings are converted to
 multibyte for comparison (@pxref{Text Representations}), so that a
 unibyte string and its conversion to multibyte are always regarded as
 equal.
@@ -660,11 +673,34 @@ of the two strings.  The sign is negative if @var{string1} (or its
 specified portion) is less.
 @end defun
 
+@cindex Levenshtein distance
+@cindex distance between strings
+@cindex edit distance between strings
+@defun string-distance string1 string2 &optional bytecompare
+This function returns the @dfn{Levenshtein distance} between the
+source string @var{string1} and the target string @var{string2}.  The
+Levenshtein distance is the number of single-character
+changes---deletions, insertions, or replacements---required to
+transform the source string into the target string; it is one possible
+definition of the @dfn{edit distance} between strings.
+
+Letter-case of the strings is significant for the computed distance,
+but their text properties are ignored.  If the optional argument
+@var{bytecompare} is non-@code{nil}, the function calculates the
+distance in terms of bytes instead of characters.  The byte-wise
+comparison uses the internal Emacs representation of characters, so it
+will produce inaccurate results for multibyte strings that include raw
+bytes (@pxref{Text Representations}); make the strings unibyte by
+encoding them (@pxref{Explicit Encoding}) if you need accurate results
+with raw bytes.
+@end defun
+
 @defun assoc-string key alist &optional case-fold
 This function works like @code{assoc}, except that @var{key} must be a
 string or symbol, and comparison is done using @code{compare-strings}.
 Symbols are converted to strings before testing.
-If @var{case-fold} is non-@code{nil}, it ignores case differences.
+If @var{case-fold} is non-@code{nil}, @var{key} and the elements of
+@var{alist} are converted to upper-case before comparison.
 Unlike @code{assoc}, this function can also match elements of the alist
 that are strings or symbols rather than conses.  In particular, @var{alist} can
 be a list of strings or symbols rather than an actual alist.
@@ -685,7 +721,7 @@ against a string, can be used for a kind of string comparison; see
 strings and integers.  @code{format} (@pxref{Formatting Strings}) and
 @code{prin1-to-string} (@pxref{Output Functions}) can also convert
 Lisp objects into strings.  @code{read-from-string} (@pxref{Input
-Functions}) can ``convert'' a string representation of a Lisp object
+Functions}) can convert a string representation of a Lisp object
 into an object.  The functions @code{string-to-multibyte} and
 @code{string-to-unibyte} convert the text representation of a string
 (@pxref{Converting Representations}).
@@ -713,7 +749,7 @@ minus sign if the argument is negative.
      @result{} "-23.5"
 @end example
 
-@cindex int-to-string
+@cindex @code{int-to-string}
 @code{int-to-string} is a semi-obsolete alias for this function.
 
 See also the function @code{format} in @ref{Formatting Strings}.
@@ -805,24 +841,32 @@ formatting feature described here; they differ from @code{format-message} only
 in how they use the result of formatting.
 
 @defun format string &rest objects
-This function returns a new string that is made by copying
-@var{string} and then replacing any format specification
-in the copy with encodings of the corresponding @var{objects}.  The
+This function returns a string equal to @var{string}, replacing any format
+specifications with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
 
 The characters in @var{string}, other than the format specifications,
 are copied directly into the output, including their text properties,
-if any.
+if any.  Any text properties of the format specifications are copied
+to the produced string representations of the argument @var{objects}.
+
+The output string need not be newly-allocated.  For example, if
+@code{x} is the string @code{"foo"}, the expressions @code{(eq x
+(format x))} and @code{(eq x (format "%s" x))} might both yield
+@code{t}.
 @end defun
 
 @defun format-message string &rest objects
-@cindex curved quotes
-@cindex curly quotes
+@cindex curved quotes, in formatted messages
+@cindex curly quotes, in formatted messages
 This function acts like @code{format}, except it also converts any
-curved single quotes in @var{string} as per the value of
-@code{text-quoting-style}, and treats grave accent (@t{`}) and
-apostrophe (@t{'}) as if they were curved single quotes.  @xref{Keys
-in Documentation}.
+grave accents (@t{`}) and apostrophes (@t{'}) in @var{string} as per the
+value of @code{text-quoting-style}.
+
+Typically grave accent and apostrophe in the format translate to
+matching curved quotes, e.g., @t{"Missing `%s'"} might result in
+@t{"Missing ‘foo’"}.  @xref{Text Quoting Style}, for how to influence
+or inhibit this translation.
 @end defun
 
 @cindex @samp{%} in format
@@ -851,14 +895,6 @@ below, as the first argument, and the string as the second, like this:
   (format "%s" @var{arbitrary-string})
 @end example
 
-  If @var{string} contains more than one format specification, the
-format specifications correspond to successive values from
-@var{objects}.  Thus, the first format specification in @var{string}
-uses the first such value, the second format specification uses the
-second such value, and so on.  Any extra format specifications (those
-for which there are no corresponding values) cause an error.  Any
-extra values to be formatted are ignored.
-
   Certain format specifications require values of particular types.  If
 you supply a value that doesn't fit the requirements, an error is
 signaled.
@@ -886,17 +922,18 @@ Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @item %o
 @cindex integer to octal
 Replace the specification with the base-eight representation of an
-integer.
+unsigned integer.
 
 @item %d
-Replace the specification with the base-ten representation of an
+Replace the specification with the base-ten representation of a signed
 integer.
 
 @item %x
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-integer.  @samp{%x} uses lower case and @samp{%X} uses upper case.
+unsigned integer.  @samp{%x} uses lower case and @samp{%X} uses upper
+case.
 
 @item %c
 Replace the specification with the character which is the value given.
@@ -911,12 +948,17 @@ floating-point number.
 
 @item %g
 Replace the specification with notation for a floating-point number,
-using either exponential notation or decimal-point notation, whichever
-is shorter.
+using either exponential notation or decimal-point notation.  The
+exponential notation is used if the exponent would be less than @minus{}4 or
+greater than or equal to the precision (default: 6).  By default,
+trailing zeros are removed from the fractional portion of the result
+and a decimal-point character appears only if it is followed by a
+digit.
 
 @item %%
 Replace the specification with a single @samp{%}.  This format
-specification is unusual in that it does not use a value.  For example,
+specification is unusual in that its only form is plain
+@samp{%%} and that it does not use a value.  For example,
 @code{(format "%% %d" 30)} returns @code{"% 30"}.
 @end table
 
@@ -943,14 +985,80 @@ operation} error.
 @end group
 @end example
 
+  By default, format specifications correspond to successive values from
+@var{objects}.  Thus, the first format specification in @var{string}
+uses the first such value, the second format specification uses the
+second such value, and so on.  Any extra format specifications (those
+for which there are no corresponding values) cause an error.  Any
+extra values to be formatted are ignored.
+
+@cindex field numbers in format spec
+  A format specification can have a @dfn{field number}, which is a
+decimal number immediately after the initial @samp{%}, followed by a
+literal dollar sign @samp{$}.  It causes the format specification to
+convert the argument with the given number instead of the next
+argument.  Field numbers start at 1.  A format can contain either
+numbered or unnumbered format specifications but not both, except that
+@samp{%%} can be mixed with numbered specifications.
+
+@example
+(format "%2$s, %3$s, %%, %1$s" "x" "y" "z")
+     @result{} "y, z, %, x"
+@end example
+
+@cindex flags in format specifications
+  After the @samp{%} and any field number, you can put certain
+@dfn{flag characters}.
+
+  The flag @samp{+} inserts a plus sign before a positive number, so
+that it always has a sign.  A space character as flag inserts a space
+before a positive number.  (Otherwise, positive numbers start with the
+first digit.)  These flags are useful for ensuring that positive
+numbers and negative numbers use the same number of columns.  They are
+ignored except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}, and if
+both flags are used, @samp{+} takes precedence.
+
+  The flag @samp{#} specifies an alternate form which depends on
+the format in use.  For @samp{%o}, it ensures that the result begins
+with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes the result
+with @samp{0x} or @samp{0X}.  For @samp{%e} and @samp{%f}, the
+@samp{#} flag means include a decimal point even if the precision is
+zero.  For @samp{%g}, it always includes a decimal point, and also
+forces any trailing zeros after the decimal point to be left in place
+where they would otherwise be removed.
+
+  The flag @samp{0} ensures that the padding consists of @samp{0}
+characters instead of spaces.  This flag is ignored for non-numerical
+specification characters like @samp{%s}, @samp{%S} and @samp{%c}.
+These specification characters accept the @samp{0} flag, but still pad
+with @emph{spaces}.
+
+  The flag @samp{-} causes any padding inserted by the width,
+if specified, to be inserted on the right rather than the left.
+If both @samp{-} and @samp{0} are present, the @samp{0} flag is
+ignored.
+
+@example
+@group
+(format "%06d is padded on the left with zeros" 123)
+     @result{} "000123 is padded on the left with zeros"
+
+(format "'%-6d' is padded on the right" 123)
+     @result{} "'123   ' is padded on the right"
+
+(format "The word '%-7s' actually has %d letters in it."
+        "foo" (length "foo"))
+     @result{} "The word 'foo    ' actually has 3 letters in it."
+@end group
+@end example
+
 @cindex field width
 @cindex padding
   A specification can have a @dfn{width}, which is a decimal number
-between the @samp{%} and the specification character.  If the printed
+that appears after any field number and flags.  If the printed
 representation of the object contains fewer characters than this
-width, @code{format} extends it with padding.  The width specifier is
-ignored for the @samp{%%} specification.  Any padding introduced by
-the width specifier normally consists of spaces inserted on the left:
+width, @code{format} extends it with padding.  Any padding introduced by
+the width normally consists of spaces inserted on the left:
 
 @example
 (format "%5d is padded on the left with spaces" 123)
@@ -978,61 +1086,22 @@ is not truncated.
 @end group
 @end example
 
-@cindex flags in format specifications
-  Immediately after the @samp{%} and before the optional width
-specifier, you can also put certain @dfn{flag characters}.
-
-  The flag @samp{+} inserts a plus sign before a positive number, so
-that it always has a sign.  A space character as flag inserts a space
-before a positive number.  (Otherwise, positive numbers start with the
-first digit.)  These flags are useful for ensuring that positive
-numbers and negative numbers use the same number of columns.  They are
-ignored except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}, and if
-both flags are used, @samp{+} takes precedence.
-
-  The flag @samp{#} specifies an ``alternate form'' which depends on
-the format in use.  For @samp{%o}, it ensures that the result begins
-with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes the result
-with @samp{0x} or @samp{0X}.  For @samp{%e}, @samp{%f}, and @samp{%g},
-the @samp{#} flag means include a decimal point even if the precision
-is zero.
-
-  The flag @samp{0} ensures that the padding consists of @samp{0}
-characters instead of spaces.  This flag is ignored for non-numerical
-specification characters like @samp{%s}, @samp{%S} and @samp{%c}.
-These specification characters accept the @samp{0} flag, but still pad
-with @emph{spaces}.
-
-  The flag @samp{-} causes the padding inserted by the width
-specifier, if any, to be inserted on the right rather than the left.
-If both @samp{-} and @samp{0} are present, the @samp{0} flag is
-ignored.
-
-@example
-@group
-(format "%06d is padded on the left with zeros" 123)
-     @result{} "000123 is padded on the left with zeros"
-
-(format "'%-6d' is padded on the right" 123)
-     @result{} "'123   ' is padded on the right"
-
-(format "The word '%-7s' actually has %d letters in it."
-        "foo" (length "foo"))
-     @result{} "The word 'foo    ' actually has 3 letters in it."
-@end group
-@end example
-
 @cindex precision in format specifications
   All the specification characters allow an optional @dfn{precision}
-before the character (after the width, if present).  The precision is
+after the field number, flags and width, if present.  The precision is
 a decimal-point @samp{.} followed by a digit-string.  For the
-floating-point specifications (@samp{%e}, @samp{%f}, @samp{%g}), the
-precision specifies how many decimal places to show; if zero, the
-decimal-point itself is also omitted.  For @samp{%s} and @samp{%S},
-the precision truncates the string to the given width, so @samp{%.3s}
+floating-point specifications (@samp{%e} and @samp{%f}), the
+precision specifies how many digits following the decimal point to
+show; if zero, the decimal-point itself is also omitted.  For
+@samp{%g}, the precision specifies how many significant digits to show
+(significant digits are the first digit before the decimal point and
+all the digits after it).  If the precision of %g is zero or
+unspecified, it is treated as 1.  For @samp{%s} and @samp{%S}, the
+precision truncates the string to the given width, so @samp{%.3s}
 shows only the first three characters of the representation for
-@var{object}.  Precision has no effect for other specification
-characters.
+@var{object}.  For other specification characters, the effect of
+precision is what the local library functions of the @code{printf}
+family produce.
 
 @node Case Conversion
 @section Case Conversion in Lisp
@@ -1150,6 +1219,47 @@ When the argument to @code{upcase-initials} is a character,
 @end example
 @end defun
 
+  Note that case conversion is not a one-to-one mapping of codepoints
+and length of the result may differ from length of the argument.
+Furthermore, because passing a character forces return type to be
+a character, functions are unable to perform proper substitution and
+result may differ compared to treating a one-character string.  For
+example:
+
+@ifnottex
+@example
+@group
+(upcase "ﬁ")  ; note: single character, ligature "fi"
+     @result{} "FI"
+@end group
+@group
+(upcase ?ﬁ)
+     @result{} 64257  ; i.e. ?ﬁ
+@end group
+@end example
+@end ifnottex
+@iftex
+@example
+@group
+(upcase "@r{fi}")  ; note: single character, ligature "fi"
+     @result{} "FI"
+@end group
+@group
+(upcase ?@r{fi})
+     @result{} 64257  ; i.e. ?@r{fi}
+@end group
+@end example
+@end iftex
+
+  To avoid this, a character must first be converted into a string,
+using @code{string} function, before being passed to one of the casing
+functions.  Of course, no assumptions on the length of the result may
+be made.
+
+  Mapping for such special cases are taken from
+@code{special-uppercase}, @code{special-lowercase} and
+@code{special-titlecase} @xref{Character Properties}.
+
   @xref{Text Comparison}, for functions that compare strings; some of
 them ignore case differences, or can optionally ignore case differences.
 
@@ -1245,8 +1355,8 @@ Exits}).
 
   Some language environments modify the case conversions of
 @acronym{ASCII} characters; for example, in the Turkish language
-environment, the @acronym{ASCII} character @samp{I} is downcased into
-a Turkish ``dotless i''.  This can interfere with code that requires
+environment, the @acronym{ASCII} capital I is downcased into
+a Turkish dotless i (@samp{ı}).  This can interfere with code that requires
 ordinary @acronym{ASCII} case conversion, such as implementations of
 @acronym{ASCII}-based network protocols.  In that case, use the
 @code{with-case-table} macro with the variable @var{ascii-case-table},

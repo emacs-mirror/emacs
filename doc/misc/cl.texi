@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -77,6 +77,7 @@ Appendices
 Indexes
 * Function Index::                 An entry for each documented function.
 * Variable Index::                 An entry for each documented variable.
+* Concept Index::                  An entry for each concept.
 @end menu
 
 @node Overview
@@ -147,6 +148,11 @@ the beginning:
 @noindent
 You may wish to add such a statement to your init file, if you
 make frequent use of features from this package.
+
+Code that only uses macros from this package can enclose the above in
+@code{eval-when-compile}.  Internally, this library is divided into
+several files, @pxref{Organization}.  Your code should only ever load
+the main @file{cl-lib} file, which will load the others as needed.
 
 @node Organization
 @section Organization
@@ -311,7 +317,7 @@ This is analogous to the @code{defsubst} form;
 @code{cl-defsubst} uses a different method (compiler macros) which
 works in all versions of Emacs, and also generates somewhat more
 @c For some examples,
-@c see http://lists.gnu.org/archive/html/emacs-devel/2012-11/msg00009.html
+@c see https://lists.gnu.org/r/emacs-devel/2012-11/msg00009.html
 efficient inline expansions.  In particular, @code{cl-defsubst}
 arranges for the processing of keyword arguments, default values,
 etc., to be done at compile-time whenever possible.
@@ -883,6 +889,7 @@ provides an even more convenient way to swap two variables;
 
 @node Generalized Variables
 @section Generalized Variables
+@cindex generalized variable
 
 A @dfn{generalized variable} or @dfn{place form} is one of the many
 places in Lisp memory where values can be stored.  The simplest place
@@ -1174,6 +1181,11 @@ behavior.  (@code{point} and @code{point-marker} are equivalent
 as @code{setf} places; each will accept either an integer or a
 marker as the stored value.)
 
+Like in the case of @code{let}, the @var{value} forms are evaluated in
+the order they appear, but the order of bindings is unspecified.
+Therefore, avoid binding the same @var{place} more than once in a
+single @code{cl-letf} form.
+
 Since generalized variables look like lists, @code{let}'s shorthand
 of using @samp{foo} for @samp{(foo nil)} as a @var{binding} would
 be ambiguous in @code{cl-letf} and is not allowed.
@@ -1195,7 +1207,7 @@ must have a well-defined value outside the @code{cl-letf} body.
 There is essentially only one exception to this, which is @var{place}
 a plain variable with a specified @var{value} (such as @code{(a 17)}
 in the above example).
-@c See http://debbugs.gnu.org/12758
+@c See https://debbugs.gnu.org/12758
 @c Some or all of this was true for cl.el, but not for cl-lib.el.
 @ignore
 The only exceptions are plain variables and calls to
@@ -1242,6 +1254,7 @@ of symbol macros; @pxref{Macro Bindings}.
 
 @node Variable Bindings
 @section Variable Bindings
+@cindex variable binding
 
 @noindent
 These Lisp forms make bindings to variables and function names,
@@ -1258,6 +1271,7 @@ are also related to variable bindings.
 
 @node Dynamic Bindings
 @subsection Dynamic Bindings
+@cindex dynamic binding
 
 @noindent
 The standard @code{let} form binds variables whose names are known
@@ -1278,6 +1292,7 @@ are ignored.
 
 @node Function Bindings
 @subsection Function Bindings
+@cindex function binding
 
 @noindent
 These forms make @code{let}-like bindings to functions instead
@@ -1331,6 +1346,7 @@ differently.  @xref{Obsolete Macros}.
 
 @node Macro Bindings
 @subsection Macro Bindings
+@cindex macro binding
 
 @noindent
 These forms create local macros and ``symbol macros''.
@@ -1373,7 +1389,7 @@ treated like a @code{cl-letf} or @code{cl-letf*}.  This differs from true
 Common Lisp, where the rules of lexical scoping cause a @code{let}
 binding to shadow a @code{symbol-macrolet} binding.  In this package,
 such shadowing does not occur, even when @code{lexical-binding} is
-@c See http://debbugs.gnu.org/12119
+@c See https://debbugs.gnu.org/12119
 @code{t}.  (This behavior predates the addition of lexical binding to
 Emacs Lisp, and may change in future to respect @code{lexical-binding}.)
 At present in this package, only @code{lexical-let} and
@@ -1424,6 +1440,7 @@ works much like @code{my-dolist}.
 
 @node Conditionals
 @section Conditionals
+@cindex conditionals
 
 @noindent
 These conditional forms augment Emacs Lisp's simple @code{if},
@@ -1481,7 +1498,7 @@ for a description of type specifiers.  For example,
 (cl-typecase x
   (integer (munch-integer x))
   (float (munch-float x))
-  (string (munch-integer (string-to-int x)))
+  (string (munch-integer (string-to-number x)))
   (t (munch-anything x)))
 @end example
 
@@ -1499,6 +1516,7 @@ simply returning @code{nil}.
 @node Blocks and Exits
 @section Blocks and Exits
 @cindex block
+@cindex exit
 
 @noindent
 Common Lisp @dfn{blocks} provide a non-local exit mechanism very
@@ -1578,6 +1596,7 @@ Labels have lexical scope and dynamic extent.
 
 @node Iteration
 @section Iteration
+@cindex iteration
 
 @noindent
 The macros described here provide more sophisticated, high-level
@@ -1693,9 +1712,9 @@ but surrounds the loop with an implicit @code{nil} block.
 The body is executed with @var{var} bound to the integers
 from zero (inclusive) to @var{count} (exclusive), in turn.  Then
 @c FIXME lispref does not state this part explicitly, could move this there.
-the @code{result} form is evaluated with @var{var} bound to the total
+the @var{result} form is evaluated with @var{var} bound to the total
 number of iterations that were done (i.e., @code{(max 0 @var{count})})
-to get the return value for the loop form.
+to get the return value for the loop form.  Use of @var{result} is deprecated.
 @end defmac
 
 @defmac cl-do-symbols (var [obarray [result]]) forms@dots{}
@@ -1718,6 +1737,7 @@ iterating over vectors or lists.
 
 @node Loop Facility
 @section Loop Facility
+@cindex loop facility
 
 @noindent
 A common complaint with Lisp's traditional looping constructs was
@@ -1955,18 +1975,6 @@ This clause iterates @var{var} over all the cons cells of @var{list}.
 (cl-loop for x on '(1 2 3 4) collect x)
         @result{} ((1 2 3 4) (2 3 4) (3 4) (4))
 @end example
-
-With @code{by}, there is no real reason that the @code{on} expression
-must be a list.  For example:
-
-@example
-(cl-loop for x on first-animal by 'next-animal collect x)
-@end example
-
-@noindent
-where @code{(next-animal x)} takes an ``animal'' @var{x} and returns
-the next in the (assumed) sequence of animals, or @code{nil} if
-@var{x} was the last animal in the sequence.
 
 @item for @var{var} in-ref @var{list} by @var{function}
 This is like a regular @code{in} clause, but @var{var} becomes
@@ -2232,8 +2240,8 @@ were non-@code{nil}, the loop returns @code{t}:
 
 @example
 (if (cl-loop for size in size-list always (> size 10))
-    (some-big-sizes)
-  (no-big-sizes))
+    (only-big-sizes)
+  (some-small-sizes))
 @end example
 
 @item never @var{condition}
@@ -2472,6 +2480,7 @@ buffers are Emacs-specific extensions.
 
 @node Multiple Values
 @section Multiple Values
+@cindex multiple values
 
 @noindent
 Common Lisp functions can return zero or more results.  Emacs Lisp
@@ -2937,7 +2946,7 @@ error if the argument is not an integer.
 
 @defun cl-digit-char-p char radix
 Test if @var{char} is a digit in the specified @var{radix} (default is
-10).  If true return the decimal value of digit @var{char} in
+10).  If it is, return the numerical value of digit @var{char} in
 @var{radix}.
 @end defun
 
@@ -3027,9 +3036,10 @@ of @code{cl-truncate}.
 This function implements the Common Lisp @code{parse-integer}
 function.  It parses an integer in the specified @var{radix} from the
 substring of @var{string} between @var{start} and @var{end}.  Any
-leading and trailing whitespace chars are ignored. It signals an error
-if the substring between @var{start} and @var{end} cannot be parsed as
-an integer unless @var{junk-allowed} is non-nil.
+leading and trailing whitespace chars are ignored.  The function
+signals an error if the substring between @var{start} and @var{end}
+cannot be parsed as an integer, unless @var{junk-allowed} is
+non-@code{nil}.
 @end defun
 
 @node Random Numbers
@@ -3114,12 +3124,11 @@ machines, but will fail if the machine's arithmetic is extremely
 unusual, e.g., decimal.
 @end defun
 
-Since true Common Lisp supports up to four different floating-point
-precisions, it has families of constants like
+Since true Common Lisp supports up to four different kinds of floating-point
+numbers, it has families of constants like
 @code{most-positive-single-float}, @code{most-positive-double-float},
 @code{most-positive-long-float}, and so on.  Emacs has only one
-floating-point precision, so this package omits the precision word
-from the constants' names.
+kind of floating-point number, so this package just uses single constants.
 
 @defvar cl-most-positive-float
 This constant equals the largest value a Lisp float can hold.
@@ -3316,7 +3325,7 @@ the first sequence.  This function is more general than the Emacs
 primitive @code{mapc}.  (Note that this function is called
 @code{cl-mapc} even in @file{cl.el}, rather than @code{mapc*} as you
 might expect.)
-@c http://debbugs.gnu.org/6575
+@c https://debbugs.gnu.org/6575
 @end defun
 
 @defun cl-mapl function list &rest more-lists
@@ -3363,7 +3372,7 @@ was @code{nil} for all elements.
 @defun cl-notevery predicate seq &rest more-seqs
 This function calls @var{predicate} on each element of the sequence(s)
 in turn; it returns a non-@code{nil} value as soon as @var{predicate}
-returns @code{nil} for any element, or @code{t} if the predicate was
+returns @code{nil} for any element, or @code{nil} if the predicate was
 true for all elements.
 @end defun
 
@@ -3683,7 +3692,7 @@ i.e., chains of cons cells.
 
 @defun cl-caddr x
 This function is equivalent to @code{(car (cdr (cdr @var{x})))}.
-Likewise, this package defines all 24 @code{c@var{xxx}r} functions
+Likewise, this package aliases all 24 @code{c@var{xxx}r} functions
 where @var{xxx} is up to four @samp{a}s and/or @samp{d}s.
 All of these functions are @code{setf}-able, and calls to them
 are expanded inline by the byte-compiler for maximum efficiency.
@@ -3990,10 +3999,7 @@ Given a @code{person}, @code{(copy-person @var{p})} makes a new
 object of the same type whose slots are @code{eq} to those of @var{p}.
 
 Given any Lisp object @var{x}, @code{(person-p @var{x})} returns
-true if @var{x} looks like a @code{person}, and false otherwise.  (Again,
-in Common Lisp this predicate would be exact; in Emacs Lisp the
-best it can do is verify that @var{x} is a vector of the correct
-length that starts with the correct tag symbol.)
+true if @var{x} is a @code{person}, and false otherwise.
 
 Accessors like @code{person-name} normally check their arguments
 (effectively using @code{person-p}) and signal an error if the
@@ -4199,16 +4205,16 @@ allow for such a feature, so this package simply ignores
 @code{:print-function}.
 
 @item :type
-The argument should be one of the symbols @code{vector} or @code{list}.
-This tells which underlying Lisp data type should be used to implement
-the new structure type.  Vectors are used by default, but
-@code{(:type list)} will cause structure objects to be stored as
-lists instead.
+The argument should be one of the symbols @code{vector} or
+@code{list}.  This tells which underlying Lisp data type should be
+used to implement the new structure type.  Records are used by
+default, but @code{(:type vector)} will cause structure objects to be
+stored as vectors and @code{(:type list)} lists instead.
 
-The vector representation for structure objects has the advantage
-that all structure slots can be accessed quickly, although creating
-vectors is a bit slower in Emacs Lisp.  Lists are easier to create,
-but take a relatively long time accessing the later slots.
+The record and vector representations for structure objects have the
+advantage that all structure slots can be accessed quickly, although
+creating them are a bit slower in Emacs Lisp.  Lists are easier to
+create, but take a relatively long time accessing the later slots.
 
 @item :named
 This option, which takes no arguments, causes a characteristic ``tag''
@@ -4217,21 +4223,24 @@ symbol to be stored at the front of the structure object.  Using
 structure type stored as plain vectors or lists with no identifying
 features.
 
-The default, if you don't specify @code{:type} explicitly, is to
-use named vectors.  Therefore, @code{:named} is only useful in
-conjunction with @code{:type}.
+The default, if you don't specify @code{:type} explicitly, is to use
+records, which are always tagged.  Therefore, @code{:named} is only
+useful in conjunction with @code{:type}.
 
 @example
 (cl-defstruct (person1) name age sex)
 (cl-defstruct (person2 (:type list) :named) name age sex)
 (cl-defstruct (person3 (:type list)) name age sex)
+(cl-defstruct (person4 (:type vector)) name age sex)
 
 (setq p1 (make-person1))
-     @result{} [cl-struct-person1 nil nil nil]
+     @result{} #s(person1 nil nil nil)
 (setq p2 (make-person2))
      @result{} (person2 nil nil nil)
 (setq p3 (make-person3))
      @result{} (nil nil nil)
+(setq p4 (make-person4))
+     @result{} [nil nil nil]
 
 (person1-p p1)
      @result{} t
@@ -4271,9 +4280,9 @@ introspection functions.
 
 @defun cl-struct-sequence-type struct-type
 This function returns the underlying data structure for
-@code{struct-type}, which is a symbol.  It returns @code{vector} or
-@code{list}, or @code{nil} if @code{struct-type} is not actually a
-structure.
+@code{struct-type}, which is a symbol.  It returns @code{record},
+@code{vector} or @code{list}, or @code{nil} if @code{struct-type} is
+not actually a structure.
 @end defun
 
 @defun cl-struct-slot-info struct-type
@@ -4385,7 +4394,7 @@ is expanded at compile-time to the Lisp form
 @end example
 
 @noindent
-which is the most efficient ways of doing this operation
+which is the most efficient way of doing this operation
 in Lisp.  Thus, there is no performance penalty for using the more
 readable @code{cl-incf} form in your compiled code.
 
@@ -4500,8 +4509,9 @@ referenced by @code{cl-return} or @code{cl-return-from} inside the block.
 @appendix Common Lisp Compatibility
 
 @noindent
-The following is a list of all known incompatibilities between this
-package and Common Lisp as documented in Steele (2nd edition).
+The following is a list of some of the most important
+incompatibilities between this package and Common Lisp as documented
+in Steele (2nd edition).
 
 The word @code{cl-defun} is required instead of @code{defun} in order
 to use extended Common Lisp argument lists in a function.  Likewise,
@@ -4539,9 +4549,8 @@ set down in Steele's book.
 
 The variable @code{cl--gensym-counter} starts out with zero.
 
-The @code{cl-defstruct} facility is compatible, except that structures
-are of type @code{:type vector :named} by default rather than some
-special, distinct type.  Also, the @code{:type} slot option is ignored.
+The @code{cl-defstruct} facility is compatible, except that the
+@code{:type} slot option is ignored.
 
 The second argument of @code{cl-check-type} is treated differently.
 
@@ -4690,9 +4699,9 @@ Lisp.  Rational numbers and complex numbers are not present,
 nor are large integers (all integers are ``fixnums'').  All
 arrays are one-dimensional.  There are no readtables or pathnames;
 streams are a set of existing data types rather than a new data
-type of their own.  Hash tables, random-states, structures, and
-packages (obarrays) are built from Lisp vectors or lists rather
-than being distinct types.
+type of their own.  Hash tables, random-states, and packages
+(obarrays) are built from Lisp vectors or lists rather than being
+distinct types.
 
 @item
 The Common Lisp Object System (CLOS) is not implemented,
@@ -5187,12 +5196,14 @@ that called @code{get-setf-method}.
 
 @node Function Index
 @unnumbered Function Index
-
 @printindex fn
 
 @node Variable Index
 @unnumbered Variable Index
-
 @printindex vr
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
 
 @bye

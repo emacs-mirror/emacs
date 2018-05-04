@@ -1,6 +1,6 @@
-;;; url-parse.el --- Uniform Resource Locator parser
+;;; url-parse.el --- Uniform Resource Locator parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -36,7 +36,8 @@
                                      target attributes fullness))
             (:copier nil))
   type user password host portspec filename target attributes fullness
-  silent (use-cookies t))
+  silent (use-cookies t)
+  (asynchronous t))
 
 (defsubst url-port (urlobj)
   "Return the port number for the URL specified by URLOBJ.
@@ -59,8 +60,6 @@ where each of PATH and QUERY are strings or nil."
 	  (setq path  (substring name 0 (match-beginning 0))
 		query (substring name (match-end 0)))
 	(setq path name)))
-    (if (equal path "") (setq path nil))
-    (if (equal query "") (setq query nil))
     (cons path query)))
 
 (defun url-port-if-non-default (urlobj)
@@ -217,8 +216,7 @@ parses to
 	    (when (looking-at "#")
 	      (let ((opoint (point)))
 		(forward-char 1)
-		(unless (eobp)
-		  (setq fragment (buffer-substring (point) (point-max))))
+                (setq fragment (buffer-substring (point) (point-max)))
 		(delete-region opoint (point-max)))))
 
           (if (and host (string-match "%[0-9][0-9]" host))
@@ -227,7 +225,7 @@ parses to
 				 fragment nil full))))))
 
 (defmacro url-bit-for-url (method lookfor url)
-  `(let* ((urlobj (url-generic-parse-url url))
+  `(let* ((urlobj (url-generic-parse-url ,url))
           (bit (funcall ,method urlobj))
           (methods (list 'url-recreate-url
                          'url-host))

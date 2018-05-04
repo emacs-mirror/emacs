@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; LCD Archive Entry
 ;; supercite|Barry A. Warsaw|supercite-help@python.org
@@ -302,6 +302,9 @@ during the initial citing via `sc-cite-original'."
   "Hook which gets run once after Supercite loads."
   :type 'hook
   :group 'supercite-hooks)
+(make-obsolete-variable 'sc-load-hook
+                        "use `with-eval-after-load' instead." "26.1")
+
 (defcustom sc-pre-hook nil
   "Hook which gets run before each invocation of `sc-cite-original'."
   :type 'hook
@@ -631,12 +634,7 @@ the list should be unique."
 		(deallocate-event event))
 	    (setq quit-flag nil)
 	    (signal 'quit '())))
-      (let ((char
-	     (if (featurep 'xemacs)
-		 (let* ((key (and (key-press-event-p event) (event-key event)))
-			(char (and key (event-to-character event))))
-		   char)
-	       event))
+      (let ((char event)
 	    elt)
 	(if char (setq char (downcase char)))
 	(cond
@@ -648,9 +646,7 @@ the list should be unique."
 	  nil)
 	 (t
 	  (message "%s%s" p (single-key-description event))
-	  (if (featurep 'xemacs)
-	      (ding nil 'y-or-n-p)
-	    (ding))
+	  (ding)
 	  (discard-input)
 	  (if (eq p prompt)
 	      (setq p (concat "Try again.  " prompt)))))))
@@ -710,7 +706,7 @@ the list should be unique."
 
 ;; regi functions
 
-;; http://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00691.html
+;; https://lists.gnu.org/r/emacs-devel/2009-02/msg00691.html
 ;; When rmail replies to a message with full headers visible, the "From "
 ;; line can be included.
 (defun sc-mail-check-from ()
@@ -1884,8 +1880,7 @@ and `sc-post-hook' is run after the guts of this function."
   ;; grab point and mark since the region is probably not active when
   ;; this function gets automatically called. we want point to be a
   ;; mark so any deleting before point works properly
-  (let* ((zmacs-regions nil)		; for XEemacs
-	 (mark-active t)		; for Emacs
+  (let* ((mark-active t)
 	 (point (point-marker))
 	 (mark  (copy-marker (mark-marker))))
 

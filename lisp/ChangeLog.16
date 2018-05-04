@@ -1371,7 +1371,7 @@
 
 	* frame.el (toggle-frame-maximized, toggle-frame-fullscreen):
 	Use fullboth as an alias for fullscreen.  Suggested by Jan Djärv in
-	<http://lists.gnu.org/archive/html/emacs-devel/2013-01/msg00203.html>.
+	<https://lists.gnu.org/r/emacs-devel/2013-01/msg00203.html>.
 
 2013-01-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2422,7 +2422,7 @@
 
 	* epg.el: Support pinentry-curses.
 	Suggested by Werner Koch in
-	<http://lists.gnu.org/archive/html/emacs-devel/2007-02/msg00755.html>.
+	<https://lists.gnu.org/r/emacs-devel/2007-02/msg00755.html>.
 	(epg-agent-file, epg-agent-mtime): New variable.
 	(epg--start): Record the modified time of gpg-agent socket file,
 	to restore Emacs frame after pinentry-curses termination.
@@ -2448,7 +2448,7 @@
 	(toggle-frame-maximized): Rewrite and bind to M-<f10>.
 	(toggle-frame-fullscreen): New command bound to <f11> instead of
 	`toggle-frame-maximized'.
-	http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00703.html
+	https://lists.gnu.org/r/emacs-devel/2012-12/msg00703.html
 
 2012-12-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2686,7 +2686,7 @@
 	(isearch-insert-char-by-name): New command.
 	* international/mule-cmds.el (read-char-by-name): Let-bind
 	`enable-recursive-minibuffers' to t.
-	http://lists.gnu.org/archive/html/emacs-devel/2012-12/msg00234.html
+	https://lists.gnu.org/r/emacs-devel/2012-12/msg00234.html
 
 2012-12-15  Juri Linkov  <juri@jurta.org>
 
@@ -2728,7 +2728,7 @@
 
 	* vc/ediff-util.el (ediff-buffer-type): New function.
 	(ediff-clone-buffer-for-current-diff-comparison): Compute the buf-type
-	rather than taking it as as argument.
+	rather than taking it as an argument.
 	(ediff-inferior-compare-regions): Adjust calls accordingly (bug#11319).
 
 2012-12-14  Ryan Crum  <ryan.crum@eleostech.com>
@@ -4831,7 +4831,7 @@
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Adjust the msft regexp to the output of Studio 2010, and move msft
 	before edg-1.  See the discussion on emacs-devel,
-	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00579.html,
+	https://lists.gnu.org/r/emacs-devel/2012-09/msg00579.html,
 	for the details.
 
 2012-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -5453,7 +5453,7 @@
 
 	* profiler.el (profiler-sampling-interval): Change default back to 1.
 	See Stefan Monnier in
-	<http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00863.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-09/msg00863.html>.
 
 2012-10-01  Fabián Ezequiel Gallina  <fgallina@cuca>
 
@@ -6641,7 +6641,7 @@
 	search-whitespace-regexp if isearch-lax-whitespace or
 	isearch-regexp-lax-whitespace is non-nil.
 	(Info-mode): Don't set local variable search-whitespace-regexp.
-	http://lists.gnu.org/archive/html/emacs-devel/2012-08/msg00811.html
+	https://lists.gnu.org/r/emacs-devel/2012-08/msg00811.html
 
 2012-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -7037,7 +7037,7 @@
 2012-09-02  Juri Linkov  <juri@jurta.org>
 
 	Toggle whitespace matching mode with M-s SPC.
-	http://lists.gnu.org/archive/html/emacs-devel/2012-09/msg00008.html
+	https://lists.gnu.org/r/emacs-devel/2012-09/msg00008.html
 
 	* isearch.el (search-whitespace-regexp): Doc fix.
 	Remove cons cell customization.
@@ -7343,7 +7343,7 @@
 	(js-paren-indent-offset, js-square-indent-offset)
 	(js-curly-indent-offset): Add :safe (Bug#12257).
 
-2012-08-22  Edward O'Connor  <hober0@gmail.com>
+2012-08-22  Theresa O'Connor  <hober0@gmail.com>
 
 	* json.el (json-key-format): Add error properties.
 	(json-encode-key): New function.
@@ -8109,7 +8109,7 @@
 
 	* whitespace.el (whitespace-display-mappings): Use Unicode
 	codepoints, instead of emacs-mule codepoints.  See
-	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-07/msg00366.html
+	https://lists.gnu.org/r/help-gnu-emacs/2012-07/msg00366.html
 	for the details.
 
 	* files.el (file-truename): Don't skip symlink-chasing part on
@@ -8164,7 +8164,7 @@
 	* international/mule-cmds.el: Create
 	inactivate-current-input-method-function as an obsolete alias for
 	deactivate-current-input-method-function.  See Katsumi Yamaoka in
-	<http://bugs.gnu.org/10150#46>.
+	<https://bugs.gnu.org/10150#46>.
 
 2012-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -8513,7 +8513,7 @@
 	* startup.el (command-line): Don't display an empty user name in
 	the error message about non-existent home directory, when
 	init-file-user was set to an empty string.  See
-	http://lists.gnu.org/archive/html/bug-gnu-emacs/2012-07/msg00835.html
+	https://lists.gnu.org/r/bug-gnu-emacs/2012-07/msg00835.html
 	for the details and context.
 
 2012-07-22  Vincent Belaïche  <vincentb1@users.sourceforge.net>
@@ -9419,7 +9419,7 @@
 
 	* calendar/calendar.el (calendar-exit): Don't try to delete or
 	iconify last frame.  See:
-	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00372.html
+	https://lists.gnu.org/r/emacs-devel/2012-06/msg00372.html
 
 2012-06-25  Jim Diamond  <Jim.Diamond@AcadiaU.ca>  (tiny change)
 
@@ -10430,7 +10430,7 @@
 	* descr-text.el (describe-char): Mention how to insert the
 	character, if the current input method doesn't support it.
 	See the discussion in this thread for the details:
-	http://lists.gnu.org/archive/html/emacs-devel/2012-05/msg00533.html.
+	https://lists.gnu.org/r/emacs-devel/2012-05/msg00533.html.
 
 2012-06-08  Sam Steingold  <sds@gnu.org>
 
@@ -11992,11 +11992,11 @@
 	* progmodes/verilog-mode.el (verilog-pretty-expr): Don't line up
 	assignment with tests in ifs and for loops.
 	(verilog-extended-complete-re, verilog-complete-reg): Change so
-	that DPI inport functions don't look like fuction declarations.
+	that DPI inport functions don't look like function declarations.
 	(verilog-pretty-expr): Don't line up assignment
 	operations to the test and increment in if and for loops
 	(verilog-extended-complete-re, verilog-complete-reg): Change so
-	that DPI inport functions don't look like fuction declarations.
+	that DPI inport functions don't look like function declarations.
 
 2012-05-03  Kenichi Handa  <handa@m17n.org>
 
@@ -13909,7 +13909,7 @@
 	Insert invisible LRM characters before each character in a keyboard
 	layout cell, to prevent their reordering by bidi display engine.
 	For details, see the discussion in
-	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00085.html.
+	https://lists.gnu.org/r/emacs-devel/2012-03/msg00085.html.
 
 2012-03-08  Alan Mackenzie  <acm@muc.de>
 
@@ -13927,7 +13927,7 @@
 
 	* international/quail.el (quail-help):
 	Force bidi-paragraph-direction be left-to-right.  See discussion in
-	http://lists.gnu.org/archive/html/emacs-devel/2012-03/msg00062.html
+	https://lists.gnu.org/r/emacs-devel/2012-03/msg00062.html
 	for the reason.
 
 2012-03-07  Michael Albinus  <michael.albinus@gmx.de>
@@ -15004,7 +15004,7 @@
 
 	* descr-text.el (describe-char): Show the raw character, not only
 	its display form at POS.  Suggested by Kenichi Handa <handa@m17n.org>.
-	See http://lists.gnu.org/archive/html/emacs-devel/2012-01/msg00760.html
+	See https://lists.gnu.org/r/emacs-devel/2012-01/msg00760.html
 	for the reasons.
 
 2012-01-28  Phil Hagelberg  <phil@hagelb.org>
@@ -15362,7 +15362,7 @@
 	* time.el (display-time-load-average)
 	(display-time-default-load-average): Doc fixes.  See the thread
 	starting at
-	http://lists.gnu.org/archive/html/help-gnu-emacs/2012-01/msg00059.html
+	https://lists.gnu.org/r/help-gnu-emacs/2012-01/msg00059.html
 	for the details.
 
 2012-01-06  Glenn Morris  <rgm@gnu.org>
@@ -15769,7 +15769,7 @@
 	(texinfo-insert-master-menu-list): Improve the error message
 	displayed if there's no menu in the Top node.
 	(Bug#2975)  See also this thread:
-	http://lists.gnu.org/archive/html/emacs-devel/2011-12/msg00156.html.
+	https://lists.gnu.org/r/emacs-devel/2011-12/msg00156.html.
 
 2011-12-09  Manuel Gómez  <mgrojo@gmail.com>  (tiny change)
 
@@ -20919,7 +20919,7 @@
 	(ses-formula-references): Robustify against self-referring cells.
 	(ses-mode): Use ses-set-localvars.
 	(ses-command-hook): Add call to ses-initialize-Dijkstra-attempt
-	before lauching the update processing.
+	before launching the update processing.
 	(ses-initialize-Dijkstra-attempt): New function.
 	(ses-recalculate-cell): Update for cycle detection based on
 	Dijkstra algorithm.
@@ -22485,7 +22485,7 @@
 	* nxml/nxml-mode.el (nxml-electric-slash): Reindent when completion is
 	enabled.  Suggested by James Ahlborn <jahlborn@gmail.com> (bug#8704).
 
-2011-05-20  Nix  <nix@esperi.org.uk>
+2011-05-20  Nick Alcock  <nix@esperi.org.uk>
 
 	* files.el (basic-save-buffer-2):
 	Fix handling of break-hardlink-on-save with non-existent files.
@@ -24381,7 +24381,7 @@
 
 	* help-fns.el (describe-variable): Complete all variables having
 	documentation, including keywords.
-	http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00112.html
+	https://lists.gnu.org/r/emacs-devel/2011-04/msg00112.html
 
 2011-04-04  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -25223,7 +25223,7 @@ See ChangeLog.15 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2011-2015 Free Software Foundation, Inc.
+  Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -25238,4 +25238,4 @@ See ChangeLog.15 for earlier changes.
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

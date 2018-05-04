@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
 
-Copyright (C) 1994, 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 
 Author: Geoff Voelker (voelker@cs.washington.edu)
 Created: 10-8-94
@@ -9,8 +9,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <windows.h>
 #include <stdlib.h>
@@ -33,6 +33,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mbstring.h>
 
 #include "ntlib.h"
+
+char *sys_ctime (const time_t *);
+FILE *sys_fopen (const char *, const char *);
+int sys_mkdir (const char *, mode_t);
+int sys_chdir (const char *);
+int mkostemp (char *, int);
+int sys_rename (const char *, const char *);
+int sys_open (const char *, int, int);
 
 /* MinGW64 defines _TIMEZONE_DEFINED and defines 'struct timespec' in
    its system headers.  */
@@ -90,7 +98,7 @@ getppid (void)
       getppid_parent = OpenProcess (SYNCHRONIZE, FALSE, atoi (ppid));
       if (!getppid_parent)
 	{
-	  printf ("Failed to open handle to parent process: %d\n",
+	  printf ("Failed to open handle to parent process: %lu\n",
 		 GetLastError ());
 	  exit (1);
 	}
@@ -107,7 +115,7 @@ getppid (void)
       return 1;
     case WAIT_FAILED:
     default:
-      printf ("Checking parent status failed: %d\n", GetLastError ());
+      printf ("Checking parent status failed: %lu\n", GetLastError ());
       exit (1);
     }
 }
@@ -221,43 +229,10 @@ getpass (const char * prompt)
   return NULL;
 }
 
-/* This is needed because lib/gettime.c calls gettimeofday, which MSVC
-   doesn't have.  Copied from w32.c.  */
-void
-gettimeofday (struct timeval *tv, struct timezone *tz)
-{
-  struct _timeb tb;
-  _ftime (&tb);
-
-  tv->tv_sec = tb.time;
-  tv->tv_usec = tb.millitm * 1000L;
-  /* Implementation note: _ftime sometimes doesn't update the dstflag
-     according to the new timezone when the system timezone is
-     changed.  We could fix that by using GetSystemTime and
-     GetTimeZoneInformation, but that doesn't seem necessary, since
-     Emacs always calls gettimeofday with the 2nd argument NULL (see
-     current_emacs_time).  */
-  if (tz)
-    {
-      tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
-      tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
-    }
-}
-
 int
 fchown (int fd, unsigned uid, unsigned gid)
 {
   return 0;
-}
-
-/* Place a wrapper around the MSVC version of ctime.  It returns NULL
-   on network directories, so we handle that case here.
-   (Ulrich Leodolter, 1/11/95).  */
-char *
-sys_ctime (const time_t *t)
-{
-  char *str = (char *) ctime (t);
-  return (str ? str : "Sun Jan 01 00:00:00 1970");
 }
 
 FILE *
@@ -270,6 +245,12 @@ int
 sys_chdir (const char * path)
 {
   return _chdir (path);
+}
+
+int
+sys_mkdir (const char * path, mode_t mode)
+{
+  return _mkdir (path);
 }
 
 static FILETIME utc_base_ft;
@@ -423,61 +404,6 @@ lstat (const char * path, struct stat * buf)
   return stat (path, buf);
 }
 
-/* Implementation of mkostemp for MS-Windows, to avoid race conditions
-   when using mktemp.  Copied from w32.c.
-
-   This is used only in update-game-score.c.  It is overkill for that
-   use case, since update-game-score renames the temporary file into
-   the game score file, which isn't atomic on MS-Windows anyway, when
-   the game score already existed before running the program, which it
-   almost always does.  But using a simpler implementation just to
-   make a point is uneconomical...  */
-
-int
-mkostemp (char * template, int flags)
-{
-  char * p;
-  int i, fd = -1;
-  unsigned uid = GetCurrentThreadId ();
-  int save_errno = errno;
-  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
-
-  errno = EINVAL;
-  if (template == NULL)
-    return -1;
-
-  p = template + strlen (template);
-  i = 5;
-  /* replace up to the last 5 X's with uid in decimal */
-  while (--p >= template && p[0] == 'X' && --i >= 0)
-    {
-      p[0] = '0' + uid % 10;
-      uid /= 10;
-    }
-
-  if (i < 0 && p[0] == 'X')
-    {
-      i = 0;
-      do
-	{
-	  p[0] = first_char[i];
-	  if ((fd = open (template,
-			  flags | _O_CREAT | _O_EXCL | _O_RDWR,
-			  S_IRUSR | S_IWUSR)) >= 0
-	      || errno != EEXIST)
-	    {
-	      if (fd >= 0)
-		errno = save_errno;
-	      return fd;
-	    }
-	}
-      while (++i < sizeof (first_char));
-    }
-
-  /* Template is badly formed or else we can't generate a unique name.  */
-  return -1;
-}
-
 /* On Windows, you cannot rename into an existing file.  */
 int
 sys_rename (const char *from, const char *to)
@@ -490,4 +416,10 @@ sys_rename (const char *from, const char *to)
 	retval = rename (from, to);
     }
   return retval;
+}
+
+int
+sys_open (const char * path, int oflag, int mode)
+{
+  return _open (path, oflag, mode);
 }

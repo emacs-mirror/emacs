@@ -1,6 +1,6 @@
 ;;; indian.el --- Quail packages for inputting Indian
 
-;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: KAWABATA, Taichi <kawabata@m17n.org>
 
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -469,5 +469,106 @@ Full key sequences are listed below:")
  indian-tml-base-table inscript-tml-keytable
  "tamil-inscript" "Tamil" "TmlIS"
  "Tamil keyboard Inscript.")
+
+;; Probhat Input Method
+(quail-define-package
+ "bengali-probhat" "Bengali" "BngPB" t
+ "Probhat keyboard for Bengali/Bangla" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+  ("!" ?!)
+  ("1" ?১)
+  ("@" ?@)
+  ("2" ?২)
+  ("#" ?#)
+  ("3" ?৩)
+  ("$" ?৳)
+  ("4" ?৪)
+  ("%" ?%)
+  ("5" ?৫)
+  ("^" ?^)
+  ("6" ?৬)
+  ("&" ?ঞ)
+  ("7" ?৭)
+  ("*" ?ৎ)
+  ("8" ?৮)
+  ("(" ?\()
+  ("9" ?৯)
+  (")" ?\))
+  ("0" ?০)
+  ("_" ?_)
+  ("-" ?-)
+  ("+" ?+)
+  ("=" ?=)
+  ("Q" ?ধ)
+  ("q" ?দ)
+  ("W" ?ঊ)
+  ("w" ?ূ)
+  ("E" ?ঈ)
+  ("e" ?ী)
+  ("R" ?ড়)
+  ("r" ?র)
+  ("T" ?ঠ)
+  ("t" ?ট)
+  ("Y" ?ঐ)
+  ("y" ?এ)
+  ("U" ?উ)
+  ("u" ?ু)
+  ("I" ?ই)
+  ("i" ?ি)
+  ("O" ?ঔ)
+  ("o" ?ও)
+  ("P" ?ফ)
+  ("p" ?প)
+  ("{" ?ৈ)
+  ("[" ?ে)
+  ("}" ?ৌ)
+  ("]" ?ো)
+  ("A" ?অ)
+  ("a" ?া)
+  ("S" ?ষ)
+  ("s" ?স)
+  ("D" ?ঢ)
+  ("d" ?ড)
+  ("F" ?থ)
+  ("f" ?ত)
+  ("G" ?ঘ)
+  ("g" ?গ)
+  ("H" ?ঃ)
+  ("h" ?হ)
+  ("J" ?ঝ)
+  ("j" ?জ)
+  ("K" ?খ)
+  ("k" ?ক)
+  ("L" ?ং)
+  ("l" ?ল)
+  (":" ?:)
+  (";" ?\;)
+  ("\"" ?\")
+  ("'" ?')
+  ("|" ?॥)
+  ("" ?‌)
+  ("~" ?~)
+  ("`" ?‍)
+  ("Z" ?য)
+  ("z" ?য়)
+  ("X" ?ঢ়)
+  ("x" ?শ)
+  ("C" ?ছ)
+  ("c" ?চ)
+  ("V" ?ঋ)
+  ("v" ?আ)
+  ("B" ?ভ)
+  ("b" ?ব)
+  ("N" ?ণ)
+  ("n" ?ন)
+  ("M" ?ঙ)
+  ("m" ?ম)
+  ("<" ?ৃ)
+  ("," ?,)
+  (">" ?ঁ)
+  ("." ?।)
+  ("?" ?\?)
+  ("/" ?্))
 
 ;;; indian.el ends here

@@ -12,18 +12,23 @@ write that in full each time, we'll use the following abbreviations:
 
 Important note: to end the Emacs session, type C-x C-c.  (Two characters.)
 To quit a partially entered command, type C-g.
+To stop the tutorial, type C-x k, then <Return> at the prompt.
 The characters ">>" at the left margin indicate directions for you to
 try using a command.  For instance:
 <<Blank lines inserted around following line by help-with-tutorial>>
 [Middle of page left blank for didactic purposes.   Text continues below]
->> Now type C-v (View next screen) to move to the next screen.
+>> Now type C-v (View next screen) to scroll down in the tutorial.
 	(go ahead, do it by holding down the CONTROL key while typing v).
-	From now on, you should do this again whenever you finish
-	reading the screen.
+	From now on, please do this whenever you reach the end of the screen.
 
-Note that there is an overlap of two lines when you move from screen
-to screen; this provides some continuity so you can continue reading
+Note that there is an overlap of two lines when you scroll a whole
+screenful; this provides some continuity so you can continue reading
 the text.
+
+This is a copy of the Emacs tutorial text, customized slightly for
+you.  Later on we will instruct you to try various commands to alter
+this text.  Don't worry if you change this text before we tell you to;
+that is called "editing" and that's what Emacs is for.
 
 The first thing that you need to know is how to move around from place
 to place in the text.  You already know how to move forward one screen,
@@ -32,6 +37,7 @@ and type v, or type <ESC>v if you do not have a META, EDIT, or ALT key).
 
 >> Try typing M-v and then C-v, a few times.
 
+It is ok to scroll this text in other ways, if you know how.
 
 * SUMMARY
 ---------
@@ -54,7 +60,6 @@ The following commands are useful for viewing screenfuls:
 You can also use the PageUp and PageDn keys to move by screenfuls, if
 your terminal has them, but you can edit more efficiently if you use
 C-v and M-v.
-
 
 * BASIC CURSOR CONTROL
 ----------------------
@@ -698,9 +703,9 @@ Emacs deletes its auto save file.
 
 If the computer crashes, you can recover your auto-saved editing by
 finding the file normally (the file you were editing, not the auto
-save file) and then typing M-x recover-file <Return>.  When it asks for
-confirmation, type yes<Return> to go ahead and recover the auto-save
-data.
+save file) and then typing M-x recover-this-file <Return>.  When it
+asks fo confirmation, type yes<Return> to go ahead and recover the
+auto-save data.
 
 
 * ECHO AREA
@@ -947,13 +952,13 @@ most other applications call a "window".  Multiple graphical frames
 can be shown on the screen at the same time.  On a text terminal, only
 one frame can be shown at a time.
 
->> Type M-x make-frame <Return>.
+>> Type C-x 5 2.
    See a new frame appear on your screen.
 
 You can do everything you did in the original frame in the new frame.
 There is nothing special about the first frame.
 
->> Type M-x delete-frame <Return>.
+>> Type C-x 5 0.
    This removes the selected frame.
 
 You can also remove a frame by using the normal method provided by the
@@ -1017,8 +1022,8 @@ are chosen to indicate what the command does, they can serve as
 very brief documentation--sufficient to remind you of commands you
 have already learned.
 
-Multi-character commands such as C-x C-s and (if you have no META or
-EDIT or ALT key) <ESC>v are also allowed after C-h c.
+Multi-character commands such as C-x C-s and <ESC>v (instead of M-v,
+if you have no META or EDIT or ALT key) are also allowed after C-h c.
 
 To get more information about a command, use C-h k instead of C-h c.
 
@@ -1046,8 +1051,9 @@ You need to type in the name of the variable when Emacs prompts for it.
    C-h a	Command Apropos.  Type in a keyword and Emacs will list
 		all the commands whose names contain that keyword.
 		These commands can all be invoked with META-x.
-		For some commands, Command Apropos will also list a one
-		or two character sequence which runs the same command.
+		For some commands, Command Apropos will also list a
+		sequence of one or more characters which runs the same
+		command.
 
 >> Type C-h a file <Return>.
 
@@ -1063,7 +1069,7 @@ corresponding command names (such as C-x C-f beside find-file).
 		you into a special buffer called "*info*" where you
 		can read manuals for the packages installed on your system.
 		Type m emacs <Return> to read the Emacs manual.
-		If you have never before used Info, type ? and Emacs
+		If you have never before used Info, type h and Emacs
 		will take you on a guided tour of Info mode facilities.
 		Once you are through with this tutorial, you should
 		consult the Emacs Info manual as your primary documentation.
@@ -1110,7 +1116,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2015 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.
@@ -1126,7 +1132,7 @@ and comes with permission to distribute copies on certain conditions:
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Please read the file COPYING and then do give copies of GNU Emacs to
 your friends.  Help stamp out software obstructionism ("ownership") by

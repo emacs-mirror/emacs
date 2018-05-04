@@ -1,9 +1,9 @@
 ;;; expand.el --- make abbreviations more usable
 
-;; Copyright (C) 1995-1996, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
-;; Maintainer: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -213,7 +213,7 @@
     "for"                               ; foreach
     (concat
      "for (  )\n"
-     "{\n\n\}"
+     "{\n\n}"
      )
     (list 7 12))
 
@@ -221,7 +221,7 @@
     "whi"                               ; foreach
     (concat
      "while (  )\n"
-     "{\n\n\}"
+     "{\n\n}"
      )
     (list 9 15))
 
@@ -233,7 +233,7 @@
     "iff"
     (concat
      "if (  )\n"
-     "{\n\n\}"
+     "{\n\n}"
      )
     (list 6 12))
 

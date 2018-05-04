@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -82,7 +82,7 @@ See the command `recentf-save-list'."
                 recentf-mode
                 (recentf-load-list)))))
 
-(defcustom recentf-save-file-modes 384 ;; 0600
+(defcustom recentf-save-file-modes #o600
   "Mode bits of recentf save file, as an integer, or nil.
 If non-nil, after writing `recentf-save-file', set its mode bits to
 this value.  By default give R/W access only to the user who owns that
@@ -227,10 +227,6 @@ elements (see `recentf-make-menu-element' for menu element form)."
 This item will replace the \"More...\" item."
   :group 'recentf
   :type 'boolean)
-
-(define-obsolete-variable-alias 'recentf-menu-append-commands-p
-                                'recentf-menu-append-commands-flag
-                                "22.1")
 
 (defcustom recentf-menu-append-commands-flag t
   "Non-nil means to append command items to the menu."
@@ -1064,7 +1060,6 @@ Go to the beginning of buffer if not found."
     (define-key km "q" 'recentf-cancel-dialog)
     (define-key km "n" 'next-line)
     (define-key km "p" 'previous-line)
-    (define-key km [follow-link] "\C-m")
     km)
   "Keymap used in recentf dialogs.")
 
@@ -1125,8 +1120,9 @@ IGNORE arguments."
   (recentf-dialog (format "*%s - Edit list*" recentf-menu-title)
     (set (make-local-variable 'recentf-edit-list) nil)
     (widget-insert
-     "Click on OK to delete selected files from the recent list.
-Click on Cancel or type `q' to cancel.\n")
+     (format-message
+      "Click on OK to delete selected files from the recent list.
+Click on Cancel or type `q' to cancel.\n"))
     ;; Insert the list of files as checkboxes
     (dolist (item recentf-list)
       (widget-create 'checkbox
@@ -1187,6 +1183,9 @@ IGNORE other arguments."
            :format "%[%t\n%]"
            :help-echo ,(concat "Open " (cdr menu-element))
            :action recentf-open-files-action
+           ;; Override the (problematic) follow-link property of the
+           ;; `link' widget (bug#22434).
+           :follow-link nil
            ,(cdr menu-element))))
 
 (defun recentf-open-files-items (files)
@@ -1301,7 +1300,9 @@ Read data from the file specified by `recentf-save-file'.
 When `recentf-initialize-file-name-history' is non-nil, initialize an
 empty `file-name-history' with the recent list."
   (interactive)
-  (let ((file (expand-file-name recentf-save-file)))
+  (let ((file (expand-file-name recentf-save-file))
+        ;; We do not want Tramp asking for passwords.
+        (non-essential t))
     (when (file-readable-p file)
       (load-file file)
       (and recentf-initialize-file-name-history

@@ -1,6 +1,6 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
-;; Copyright (C) 1991-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -38,9 +38,6 @@
 ;;;;
 ;;;; config variables
 ;;;;
-
-(define-obsolete-variable-alias 'cvs-display-full-path
-    'cvs-display-full-name "22.1")
 
 (defcustom cvs-display-full-name t
   "Specifies how the filenames should be displayed in the listing.
@@ -69,7 +66,6 @@ to confuse some users sometimes."
     (t (:weight bold)))
   "PCL-CVS face used to highlight directory changes."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-header-face 'cvs-header "22.1")
 
 (defface cvs-filename
   '((((class color) (background dark))
@@ -79,7 +75,6 @@ to confuse some users sometimes."
     (t ()))
   "PCL-CVS face used to highlight file names."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-filename-face 'cvs-filename "22.1")
 
 (defface cvs-unknown
   '((((class color) (background dark))
@@ -89,7 +84,6 @@ to confuse some users sometimes."
     (t (:slant italic)))
   "PCL-CVS face used to highlight unknown file status."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-unknown-face 'cvs-unknown "22.1")
 
 (defface cvs-handled
   '((((class color) (background dark))
@@ -99,7 +93,6 @@ to confuse some users sometimes."
     (t ()))
   "PCL-CVS face used to highlight handled file status."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-handled-face 'cvs-handled "22.1")
 
 (defface cvs-need-action
   '((((class color) (background dark))
@@ -109,7 +102,6 @@ to confuse some users sometimes."
     (t (:slant italic)))
   "PCL-CVS face used to highlight status of files needing action."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-need-action-face 'cvs-need-action "22.1")
 
 (defface cvs-marked
   '((((min-colors 88) (class color) (background dark))
@@ -121,13 +113,11 @@ to confuse some users sometimes."
     (t (:weight bold)))
   "PCL-CVS face used to highlight marked file indicator."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-marked-face 'cvs-marked "22.1")
 
 (defface cvs-msg
   '((t :slant italic))
   "PCL-CVS face used to highlight CVS messages."
   :group 'pcl-cvs)
-(define-obsolete-face-alias 'cvs-msg-face 'cvs-msg "22.1")
 
 (defvar cvs-fi-up-to-date-face 'cvs-handled)
 (defvar cvs-fi-unknown-face 'cvs-unknown)
@@ -218,8 +208,6 @@ to confuse some users sometimes."
       ;; Here, I use `concat' rather than `expand-file-name' because I want
       ;; the resulting path to stay relative if `dir' is relative.
       (concat dir (cvs-fileinfo->file fileinfo)))))
-(define-obsolete-function-alias 'cvs-fileinfo->full-path
-    'cvs-fileinfo->full-name "22.1")
 
 (defun cvs-fileinfo->pp-name (fi)
   "Return the filename of FI as it should be displayed."
@@ -465,7 +453,7 @@ DIR can also be a file."
 	       ((equal date "Result of merge") (setq subtype 'MERGED))
 	       ((let ((mtime (nth 5 (file-attributes (concat dir f))))
 		      (system-time-locale "C"))
-		  (setq timestamp (format-time-string "%c" mtime 'utc))
+		  (setq timestamp (format-time-string "%c" mtime t))
 		  ;; Solaris sometimes uses "Wed Sep 05", not "Wed Sep  5".
 		  ;; See "grep '[^a-z_]ctime' cvs/src/*.c" for reference.
 		  (if (= (aref timestamp 8) ?0)

@@ -1,0 +1,306 @@
+### @configure_input@
+
+# Copyright (C) 2010-2018 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Some targets:
+## check: re-run all tests, writing to .log files.
+## check-maybe: run all tests which are outdated with their .log file
+## or the source files they are testing.
+## filename.log: run tests from filename.el(c) if .log file needs updating
+## filename: re-run tests from filename.el(c), with no logging
+
+### Code:
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+abs_top_srcdir=@abs_top_srcdir@
+VPATH = $(srcdir)
+
+FIND_DELETE = @FIND_DELETE@
+MKDIR_P = @MKDIR_P@
+CC = @CC@
+CFLAGS = @CFLAGS@
+PROFILING_CFLAGS = @PROFILING_CFLAGS@
+WARN_CFLAGS = @WARN_CFLAGS@
+WERROR_CFLAGS = @WERROR_CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+SO = @MODULES_SUFFIX@
+
+SEPCHAR = @SEPCHAR@
+
+
+# 'make' verbosity.
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 =
+
+AM_V_ELC = $(am__v_ELC_@AM_V@)
+am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
+am__v_ELC_0 = @echo "  ELC     " $@;
+am__v_ELC_1 =
+
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN     " $@;
+am__v_GEN_1 =
+
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
+am__v_at_1 =
+
+
+# We never change directory before running Emacs, so a relative file
+# name is fine, and makes life easier.  If we need to change
+# directory, we can use emacs --chdir.
+EMACS = ../src/emacs
+
+EMACS_EXTRAOPT=
+
+# Command line flags for Emacs.
+# Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
+# but we might as well be explicit.
+EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
+
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
+
+## To run tests under a debugger, set this to eg: "gdb --args".
+GDB =
+
+# The locale to run tests under.  Tests should work if this is set to
+# any supported locale.  Use the C locale by default, as it should be
+# supported everywhere.
+TEST_LOCALE = C
+
+# Whether to run tests from .el files in preference to .elc, we do
+# this by default since it gives nicer stacktraces.
+# If you just want a pass/fail, setting this to no is much faster.
+export TEST_LOAD_EL ?= \
+    $(if $(findstring $(MAKECMDGOALS), all check check-maybe),no,yes)
+
+# Additional settings for ert.
+ert_opts =
+
+# Maximum length of lines in ert backtraces; nil for no limit.
+# (if empty, use the default ert-batch-backtrace-right-margin).
+TEST_BACKTRACE_LINE_LENGTH =
+
+ifneq (${TEST_BACKTRACE_LINE_LENGTH},)
+ert_opts += --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
+endif
+
+ifeq (@HAVE_MODULES@, yes)
+MODULES_EMACSOPT := --module-assertions
+else
+MODULES_EMACSOPT :=
+endif
+
+# The actual Emacs command run in the targets below.
+# Prevent any setting of EMACSLOADPATH in user environment causing problems.
+emacs = EMACSLOADPATH= LC_ALL=$(TEST_LOCALE) \
+ EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
+ $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
+
+test_module_dir := data/emacs-module
+
+.PHONY: all check
+
+all: check
+
+SELECTOR_DEFAULT = (quote (not (or (tag :expensive-test) (tag :unstable))))
+SELECTOR_EXPENSIVE = (quote (not (tag :unstable)))
+SELECTOR_ALL = nil
+ifdef SELECTOR
+SELECTOR_ACTUAL=$(SELECTOR)
+else ifndef MAKECMDGOALS
+SELECTOR_ACTUAL=$(SELECTOR_DEFAULT)
+else ifeq ($(MAKECMDGOALS),all)
+SELECTOR_ACTUAL=$(SELECTOR_DEFAULT)
+else ifeq ($(MAKECMDGOALS),check)
+SELECTOR_ACTUAL=$(SELECTOR_DEFAULT)
+else ifeq ($(MAKECMDGOALS),check-maybe)
+SELECTOR_ACTUAL=$(SELECTOR_DEFAULT)
+else
+SELECTOR_ACTUAL=$(SELECTOR_EXPENSIVE)
+endif
+
+## Byte-compile all test files to test for errors.
+%.elc: %.el
+	$(AM_V_ELC)$(emacs) -f batch-byte-compile $<
+
+## Save logs, and show logs for failed tests.
+WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
+ifdef EMACS_HYDRA_CI
+## On Hydra, always show logs for certain problematic tests.
+lisp/net/tramp-tests.log \
+: WRITE_LOG = 2>&1 | tee $@
+endif
+
+ifeq ($(TEST_LOAD_EL), yes)
+testloadfile = $*.el
+else
+testloadfile = $*
+endif
+
+%.log: %.elc
+	$(AM_V_at)${MKDIR_P} $(dir $@)
+	$(AM_V_GEN)HOME=/nonexistent $(emacs) \
+	  -l ert ${ert_opts} -l $(testloadfile) \
+	  --eval "(ert-run-tests-batch-and-exit ${SELECTOR_ACTUAL})" ${WRITE_LOG}
+
+ifeq (@HAVE_MODULES@, yes)
+maybe_exclude_module_tests :=
+else
+maybe_exclude_module_tests := -name emacs-module-tests.el -prune -o
+endif
+
+## To speed up parallel builds, put these slow test files (which can
+## take longer than all the rest combined) at the start of the list.
+SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
+
+ELFILES := $(sort $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
+		-path "${srcdir}/data" -prune -o \
+		-name "*resources" -prune -o \
+		${maybe_exclude_module_tests} \
+		-name "*.el" ! -name ".*" -print))
+
+$(foreach slow,${SLOW_TESTS},$(eval ELFILES:= ${slow} $(filter-out ${slow},${ELFILES})))
+
+## .log files may be in a different directory for out of source builds
+LOGFILES := $(patsubst %.el,%.log, \
+		$(patsubst $(srcdir)/%,%,$(ELFILES)))
+TESTS := $(LOGFILES:.log=)
+
+## If we have to interrupt a hanging test, preserve the log so we can
+## see what the problem was.
+.PRECIOUS: %.log
+
+## Stop make deleting these as intermediate files.
+.SECONDARY: ${ELFILES:.el=.elc} $(test_module_dir)/*.o
+
+.PHONY: ${TESTS}
+
+define test_template
+  ## A test FOO-tests depends on the source file with the similar
+  ## name, unless FOO itself contains the string '-tests/'.
+  ## The similar name is FOO.c if FOO begins with '{lib-,}src/', FOO.el
+  ## otherwise.  Although this heuristic does not identify all the
+  ## dependencies, it is better than nothing.
+  ifeq (,$(patsubst %-tests,,$(1))$(findstring -tests/,$(1)))
+    $(1).log: $(patsubst %-tests,$(srcdir)/../%,$(1))$(if \
+					$(patsubst src/%,,$(patsubst lib-src/%,,$(1))),.el,.c)
+  endif
+
+  ## Short aliases that always re-run the tests, with no logging.
+  ## Define both with and without the directory name for ease of use.
+  .PHONY: $(1) $(notdir $(1))
+  $(1):
+	@test ! -f $(1).log || mv $(1).log $(1).log~
+	@$(MAKE) $(1).log WRITE_LOG=
+  $(notdir $(1)): $(1)
+endef
+
+$(foreach test,${TESTS},$(eval $(call test_template,${test})))
+
+ifeq (@HAVE_MODULES@, yes)
+# -fPIC is a no-op on Windows, but causes a compiler warning
+ifeq ($(SO),.dll)
+FPIC_CFLAGS =
+else
+FPIC_CFLAGS = -fPIC
+endif
+
+MODULE_CFLAGS = -I../src $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
+  $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
+
+test_module = $(test_module_dir)/mod-test${SO}
+src/emacs-module-tests.log: $(test_module)
+$(test_module): $(test_module:${SO}=.c) $(srcdir)/../src/emacs-module.h
+	$(AM_V_at)${MKDIR_P} $(dir $@)
+	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
+	  -o $@ $<
+endif
+
+## Check that there is no 'automated' subdirectory, which would
+## indicate an incomplete merge from an older version of Emacs where
+## the tests were arranged differently.
+.PHONY: check-no-automated-subdir
+check-no-automated-subdir:
+	${AM_V_at}test ! -d $(srcdir)/automated
+
+## Rerun all default tests.
+check: mostlyclean check-no-automated-subdir
+	@${MAKE} check-doit SELECTOR="${SELECTOR_ACTUAL}"
+
+## Rerun all default and expensive tests.
+.PHONY: check-expensive
+check-expensive: mostlyclean check-no-automated-subdir
+	@${MAKE} check-doit SELECTOR="${SELECTOR_EXPENSIVE}"
+
+## Run all tests, regardless of tag.
+.PHONY: check-all
+check-all: mostlyclean check-no-automated-subdir
+	@${MAKE} check-doit SELECTOR="${SELECTOR_ALL}"
+
+## Re-run all tests which are outdated. A test is outdated if its
+## logfile is out-of-date with either the test file, or the source
+## files that the tests depend on.  See test_template.
+.PHONY: check-maybe
+check-maybe: check-no-automated-subdir
+	@${MAKE} check-doit SELECTOR="${SELECTOR_ACTUAL}"
+
+## Run the tests.
+.PHONY: check-doit
+## We can't put LOGFILES as prerequisites, because that would stop the
+## summarizing step from running when there is an error.
+check-doit:
+	-@${MAKE} -k  ${LOGFILES}
+	@$(emacs) -l ert --eval \
+	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
+
+.PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
+
+mostlyclean:
+	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
+	rm -f *.tmp
+
+clean:
+	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
+	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
+	  $(test_module_dir)/*.dll
+
+bootstrap-clean: clean
+	find $(srcdir) -name '*.elc' $(FIND_DELETE)
+
+distclean: clean
+	rm -f Makefile
+
+maintainer-clean: distclean bootstrap-clean
+
+.PHONY: check-declare
+
+check-declare:
+	$(emacs) -l check-declare \
+	  --eval '(check-declare-directory "$(srcdir)")'

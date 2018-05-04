@@ -1,6 +1,6 @@
 ;;; light-blue-theme.el --- Custom theme for faces
 
-;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
 ;; Author: Drew Adams <drew.adams@oracle.com>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -48,6 +48,7 @@
    `(mode-line-inactive ((,class (:inherit mode-line :background "LightGray" :foreground "grey20" :box (:line-width -1 :color "grey75") :weight light))))
    ;; Escape and prompt faces
    `(escape-glyph ((,class (:background "gold" :foreground "blue" :box (:line-width 1 :color "blue" :style released-button)))))
+   `(homoglyph ((,class (:background "gold" :foreground "blue" :box (:line-width 1 :color "blue" :style released-button)))))
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground "#b35caf"))))
    `(font-lock-constant-face ((,class (:foreground "#00006DE06DE0"))))

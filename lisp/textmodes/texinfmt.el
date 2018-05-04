@@ -1,6 +1,6 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2015 Free Software
+;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -891,7 +891,7 @@ commands."
       ;; @ is followed by a command-word; find the end of the word.
       (setq texinfo-command-start (1- (point)))
       (if (= (char-syntax (following-char)) ?w)
-          (forward-word 1)
+          (forward-word-strictly 1)
         (forward-char 1))
       (setq texinfo-command-end (point))
       ;; Detect the case of two @-commands in a row;
@@ -1043,7 +1043,7 @@ Leave point after argument."
            (setq texinfo-command-end (point)))
           (t
            (error
-            "Invalid `texinfo-optional-braces-discard' format \(need braces?\)")))
+            "Invalid `texinfo-optional-braces-discard' format (need braces?)")))
     (delete-region texinfo-command-start texinfo-command-end)))
 
 (defun texinfo-format-parse-line-args ()
@@ -1190,7 +1190,7 @@ Leave point after argument."
     (forward-paragraph)
     (let ((end (point)))
       (if (save-excursion
-            (backward-word 1)
+            (backward-word-strictly 1)
             (search-forward "@refill" end t))
           (setq anchor-string "@anchor-yes-refill")
         (setq anchor-string "@anchor-no-refill")))
@@ -2003,7 +2003,7 @@ commands that are defined in texinfo.tex for printed output.
       (error "In @multitable, @columnfractions misspelled"))
      ;; Case 1: @columnfractions .25 .3 .45
      ((looking-at "@columnfractions")
-      (forward-word 1)
+      (forward-word-strictly 1)
       (while (not (eolp))
         (push (truncate
                (1-
@@ -2022,7 +2022,7 @@ commands that are defined in texinfo.tex for printed output.
             (push (- end-of-template start-of-template)
                   texinfo-multitable-width-list)
             ;; Remove carriage return from within a template, if any.
-            ;; This helps those those who want to use more than
+            ;; This helps those who want to use more than
             ;; one line's worth of words in @multitable line.
             (narrow-to-region start-of-template end-of-template)
             (goto-char (point-min))
@@ -2118,7 +2118,7 @@ This command is executed when texinfmt sees @item inside @multitable."
                       ;; Delete the @tab command, including the @-sign
                       (delete-region
                        (point)
-                       (progn (forward-word -1) (1- (point)))))
+                       (progn (forward-word-strictly -1) (1- (point)))))
                   (point)))
       ;; Set fill-column *wider* than needed to produce inter-column space
       (setq fill-column (+ 1
@@ -2336,7 +2336,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 ;; Write a `@definfoenclose' command on a line and follow it with three
 ;; arguments separated by commas (commas are used as separators in an
 ;; `@node' line in the same way).  The first argument to
-;; `@definfoenclose' is the @-command name \(without the `@'\); the
+;; `@definfoenclose' is the @-command name (without the `@'); the
 ;; second argument is the Info start delimiter string; and the third
 ;; argument is the Info end delimiter string.  The latter two arguments
 ;; enclose the highlighted text in the Info file.  A delimiter string
@@ -2447,7 +2447,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 (defun texinfo-format-option ()
   "Insert \\=` ... \\=' around arg unless inside a table; in that case, no quotes."
   ;; `looking-at-backward' not available in v. 18.57, 20.2
-  (if (not (search-backward ""    ; searched-for character is a control-H
+  (if (not (search-backward "\^H"
                     (line-beginning-position)
                     t))
       (insert "`" (texinfo-parse-arg-discard) "'")
@@ -2491,8 +2491,8 @@ surrounded by in angle brackets."
 Enclose the verbatim text, including the delimiters, in braces.  Print
 text exactly as written (but not the delimiters) in a fixed-width.
 
-For example, @verb\{|@|\} results in @ and
-@verb\{+@\\='e?\\=`!\\=`+} results in @\\='e?\\=`!\\=`."
+For example, @verb{|@|} results in @ and
+@verb{+@\\='e?\\=`!\\=`+} results in @\\='e?\\=`!\\=`."
 
   (let ((delimiter (buffer-substring-no-properties
 		    (1+ texinfo-command-end) (+ 2 texinfo-command-end))))

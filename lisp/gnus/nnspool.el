@@ -1,6 +1,6 @@
 ;;; nnspool.el --- spool access for GNU Emacs
 
-;; Copyright (C) 1988-1990, 1993-1998, 2000-2015 Free Software
+;; Copyright (C) 1988-1990, 1993-1998, 2000-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,17 +29,17 @@
 (require 'nnheader)
 (require 'nntp)
 (require 'nnoo)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Probably this entire thing should be obsolete.
 ;; It's only used to init nnspool-spool-directory, so why not just
 ;; set that variable's default directly?
 (eval-and-compile
+  (defvaralias 'news-path 'news-directory)
   (defvar news-directory (if (file-exists-p "/usr/spool/news/")
 			     "/usr/spool/news/"
 			   "/var/spool/news/")
-    "The root directory below which all news files are stored.")
-  (defvaralias 'news-path 'news-directory))
+    "The root directory below which all news files are stored."))
 
 ;; Ditto re obsolescence.
 (defvar news-inews-program
@@ -105,7 +105,7 @@ If nil, nnspool will load the entire file into a buffer and process it
 there.")
 
 (defvoo nnspool-rejected-article-hook nil
-  "*A hook that will be run when an article has been rejected by the server.")
+  "A hook that will be run when an article has been rejected by the server.")
 
 (defvoo nnspool-file-coding-system nnheader-file-coding-system
   "Coding system for nnspool.")
@@ -172,7 +172,7 @@ there.")
 	      (delete-region (point) (point-max)))
 
 	    (and do-message
-		 (zerop (% (incf count) 20))
+		 (zerop (% (cl-incf count) 20))
 		 (nnheader-message 5 "nnspool: Receiving headers... %d%%"
 				   (floor (* count 100.0) number))))
 
@@ -306,7 +306,7 @@ there.")
 			  "\\([^ ]+\\) +\\([0-9]+\\)[0-9][0-9][0-9] "))
 		    (zerop (forward-line -1))))
 	;; We require nnheader which requires gnus-util.
-	(let ((seconds (gnus-float-time (date-to-time date)))
+	(let ((seconds (float-time (date-to-time date)))
 	      groups)
 	  ;; Go through lines and add the latest groups to a list.
 	  (while (and (looking-at "\\([^ ]+\\) +[0-9]+ ")
@@ -335,6 +335,7 @@ there.")
   (save-excursion
     (let* ((process-connection-type nil) ; t bugs out on Solaris
 	   (inews-buffer (generate-new-buffer " *nnspool post*"))
+	   (buf (current-buffer))
 	   (proc
 	    (condition-case err
 		(apply 'start-process "*nnspool inews*" inews-buffer
@@ -346,7 +347,11 @@ there.")
 	  ()
 	(nnheader-report 'nnspool "")
 	(set-process-sentinel proc 'nnspool-inews-sentinel)
-	(mm-with-unibyte-current-buffer
+	(with-temp-buffer
+	  (set-buffer-multibyte nil)
+	  (insert-buffer-substring buf)
+	  (encode-coding-region (point-min) (point-max)
+				nnspool-file-coding-system)
 	  (process-send-region proc (point-min) (point-max)))
 	;; We slap a condition-case around this, because the process may
 	;; have exited already...

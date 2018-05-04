@@ -1,6 +1,6 @@
 ;;; erc-capab.el --- support for dancer-ircd and hyperion's CAPAB
 
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -90,7 +90,7 @@ character not found in IRC nicknames to avoid confusion."
 
 ;;; Define module:
 
-;;;###autoload (autoload 'erc-capab-identify-mode "erc-capab" nil t)
+;;;###autoload(autoload 'erc-capab-identify-mode "erc-capab" nil t)
 (define-erc-module capab-identify nil
   "Handle dancer-ircd's CAPAB IDENTIFY-MSG and IDENTIFY-CTCP."
   ;; append so that `erc-server-parameters' is already set by `erc-server-005'
@@ -191,7 +191,8 @@ PARSED is an `erc-parsed' response struct."
                  (re-search-forward (regexp-quote nickname) nil t))
         (goto-char (match-beginning 0))
         (insert (erc-propertize erc-capab-identify-prefix
-                                'face 'erc-capab-identify-unidentified))))))
+                                'font-lock-face
+                                'erc-capab-identify-unidentified))))))
 
 (defun erc-capab-identify-get-unidentified-nickname (parsed)
   "Return the nickname of the user if unidentified.
@@ -206,3 +207,7 @@ PARSED is an `erc-parsed' response struct."
 (provide 'erc-capab)
 
 ;;; erc-capab.el ends here
+
+;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
+;; End:

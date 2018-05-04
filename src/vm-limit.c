@@ -1,12 +1,12 @@
 /* Functions for memory limit warnings.
-   Copyright (C) 1990, 1992, 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1992, 2001-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <unistd.h> /* for 'environ', on AIX */
@@ -51,9 +51,16 @@ char data_start[1] = { 1 };
 # endif
 #endif
 
-/* From gmalloc.c.  */
-extern void (* __after_morecore_hook) (void);
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
+#ifndef DOUG_LEA_MALLOC
+# ifndef __MALLOC_HOOK_VOLATILE
+#  define __MALLOC_HOOK_VOLATILE volatile
+# endif
 extern void *(*__morecore) (ptrdiff_t);
+extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
+#endif
 
 /* From ralloc.c.  */
 #ifdef REL_ALLOC
@@ -170,19 +177,13 @@ check_memory_limits (void)
   if (new_warnlevel > warnlevel || new_warnlevel == warned_95)
     {
       warnlevel = new_warnlevel;
-      switch (warnlevel)
+      static char const *const warn_diagnostic[] =
 	{
-	case warned_75:
-	  (*warn_function) ("Warning: past 75% of memory limit");
-	  break;
-
-	case warned_85:
-	  (*warn_function) ("Warning: past 85% of memory limit");
-	  break;
-
-	case warned_95:
-	  (*warn_function) ("Warning: past 95% of memory limit");
-	}
+	  "Warning: past 75% of memory limit",
+	  "Warning: past 85% of memory limit",
+	  "Warning: past 95% of memory limit"
+	};
+      warn_function (warn_diagnostic[warnlevel - 1]);
     }
   /* Handle going down in usage levels, with some hysteresis.  */
   else

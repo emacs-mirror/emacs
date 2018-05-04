@@ -1,7 +1,7 @@
 ### @configure_input@
 
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2015 Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -16,17 +16,19 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # This was taken from the output of Imake using Lucid's Imakefile.
 # and set up to be configured by ../configure.
 
+all: liblw.a
+.PHONY: all
+
 srcdir=@srcdir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
-@SET_MAKE@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 C_SWITCH_SYSTEM=@C_SWITCH_SYSTEM@
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
@@ -44,6 +46,7 @@ RANLIB=@RANLIB@
 AR = @AR@
 ARFLAGS = @ARFLAGS@
 MKDIR_P = @MKDIR_P@
+EXEEXT = @EXEEXT@
 
 LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
 MOTIF_OBJS = lwlib-Xm.o
@@ -71,15 +74,14 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
-DEPDIR = deps
 AUTO_DEPEND = @AUTO_DEPEND@
-
+DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
-DEPFLAGS = -MMD -MF ${DEPDIR}/$*.d -MP
-MKDEPDIR = ${MKDIR_P} ${DEPDIR}
+  DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
+  -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
 else
-DEPFLAGS =
-MKDEPDIR = :
+  DEPFLAGS =
+  include $(srcdir)/deps.mk
 endif
 
 ## ../src is where the generated file (config.h, globals.h) are.
@@ -94,11 +96,7 @@ ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   -Demacs -I../src \
   -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
 
-all: liblw.a
-.PHONY: all
-
 .c.o:
-	@$(MKDEPDIR)
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
 liblw.a: $(OBJS)
@@ -110,33 +108,29 @@ globals_h = ../src/globals.h
 $(globals_h):
 	$(MAKE) -C ../src globals.h
 
-ifeq ($(AUTO_DEPEND),yes)
--include $(ALLOBJS:%.o=${DEPDIR}/%.d)
-else
-include $(srcdir)/deps.mk
-endif
-
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f *.o liblw.a \#*
-	-rm -rf ${DEPDIR}
+	rm -f *.o liblw.a \#* $(DEPDIR)/*
 
 distclean: clean
 	rm -f Makefile
+	rm -fr $(DEPDIR)
 
 bootstrap-clean maintainer-clean: distclean
 	rm -f TAGS
 
+ETAGS = ../lib-src/etags${EXEEXT}
 
-ETAGS = ../lib-src/etags
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
 
-ctagsfiles= $(srcdir)/*.[ch]
+ctagsfiles= $(wildcard ${srcdir}/*.[ch])
 
-TAGS: $(ctagsfiles)
-	"$(ETAGS)" $(ctagsfiles)
+FORCE:
+.PHONY: tags FORCE
 tags: TAGS
-.PHONY: tags
-
+TAGS: ${ETAGS} $(ctagsfiles)
+	${ETAGS} $(ctagsfiles)
 
 ### Makefile.in ends here

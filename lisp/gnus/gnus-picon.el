@@ -1,6 +1,6 @@
 ;;; gnus-picon.el --- displaying pretty icons in Gnus
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news xpm annotation glyph faces
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-art)
@@ -45,17 +45,17 @@
 ;;; User variables:
 
 (defcustom gnus-picon-news-directories '("news")
-  "*List of directories to search for newsgroups faces."
+  "List of directories to search for newsgroups faces."
   :type '(repeat string)
   :group 'gnus-picon)
 
 (defcustom gnus-picon-user-directories '("users" "usenix" "local" "misc")
-  "*List of directories to search for user faces."
+  "List of directories to search for user faces."
   :type '(repeat string)
   :group 'gnus-picon)
 
 (defcustom gnus-picon-domain-directories '("domains")
-  "*List of directories to search for domain faces.
+  "List of directories to search for domain faces.
 Some people may want to add \"unknown\" to this list."
   :type '(repeat string)
   :group 'gnus-picon)
@@ -67,13 +67,13 @@ Some people may want to add \"unknown\" to this list."
     (when (gnus-image-type-available-p 'xpm)
       (push "xpm" types))
     types)
-  "*List of suffixes on picon file names to try."
+  "List of suffixes on picon file names to try."
   :type '(repeat string)
   :group 'gnus-picon)
 
 (defcustom gnus-picon-properties '(:color-symbols (("None" . "white")))
   "List of image properties applied to picons."
-  :type 'sexp
+  :type 'plist
   :version "24.3"
   :group 'gnus-picon)
 
@@ -81,7 +81,6 @@ Some people may want to add \"unknown\" to this list."
   "How should picons be displayed.
 If `inline', the textual representation is replaced.  If `right', picons are
 added right to the textual representation."
-  ;; FIXME: `right' needs improvement for XEmacs.
   :type '(choice (const inline)
 		 (const right))
   :group 'gnus-picon)
@@ -212,7 +211,7 @@ replacement is added."
 
 	 (gnus-article-goto-header header)
 	 (mail-header-narrow-to-field)
-	 (case gnus-picon-style
+	 (cl-case gnus-picon-style
 	       (right
 		(when (= (length addresses) 1)
 		  (setq len (apply '+ (mapcar (lambda (x)

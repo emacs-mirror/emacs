@@ -1,6 +1,6 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
@@ -33,6 +33,7 @@ Help, emacs, The GNU Emacs Manual}.
 * Documentation Basics::      Where doc strings are defined and stored.
 * Accessing Documentation::   How Lisp programs can access doc strings.
 * Keys in Documentation::     Substituting current key bindings.
+* Text Quoting Style::        Quotation marks in doc strings and messages.
 * Describing Characters::     Making printable descriptions of
                                 non-printing characters and key sequences.
 * Help Functions::            Subroutines used by Emacs help facilities.
@@ -242,6 +243,11 @@ Semipermanent goal column for vertical motion, as set by @dots{}
 @c That makes them incorrect.
 
 @group
+minibuffer-temporary-goal-position      Variable
+not documented
+@end group
+
+@group
 set-goal-column Keys: C-x C-n
 Set the current horizontal position as a goal for C-n and C-p.
 @end group
@@ -249,17 +255,26 @@ Set the current horizontal position as a goal for C-n and C-p.
 @group
 Those commands will move to this position in the line moved to
 rather than trying to keep the same horizontal position.
-With a non-nil argument, clears out the goal column
+With a non-nil argument ARG, clears out the goal column
 so that C-n and C-p resume vertical motion.
-The goal column is stored in the variable `goal-column'.
+The goal column is stored in the variable ‘goal-column’.
+
+(fn ARG)
 @end group
 
 @group
 temporary-goal-column   Variable
 Current goal column for vertical motion.
-It is the column where point was
-at the start of current run of vertical motion commands.
-When the `track-eol' feature is doing its job, the value is 9999.
+It is the column where point was at the start of the current run
+of vertical motion commands.
+
+When moving by visual lines via the function ‘line-move-visual’, it is a cons
+cell (COL . HSCROLL), where COL is the x-position, in pixels,
+divided by the default column width, and HSCROLL is the number of
+columns by which window is scrolled from left margin.
+
+When the ‘track-eol’ feature is doing its job, the value is
+‘most-positive-fixnum’.
 ---------- Buffer: *Help* ----------
 @end group
 @end smallexample
@@ -318,13 +333,16 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
-@item ‘
-@itemx `
-(left single quotation mark and grave accent) both stand for a left quote.
+@item `
+(grave accent) stands for a left quote.
+This generates a left single quotation mark, an apostrophe, or a grave
+accent depending on the value of @code{text-quoting-style}.
+@xref{Text Quoting Style}.
 
-@item ’
-@itemx '
-(right single quotation mark and apostrophe) both stand for a right quote.
+@item '
+(apostrophe) stands for a right quote.
+This generates a right single quotation mark or an apostrophe
+depending on the value of @code{text-quoting-style}.
 
 @item \=
 quotes the following character and is discarded; thus, @samp{\=`} puts
@@ -335,20 +353,24 @@ and @samp{\=\=} puts @samp{\=} into the output.
 @strong{Please note:} Each @samp{\} must be doubled when written in a
 string in Emacs Lisp.
 
-@defvar text-quoting-style
+@defopt text-quoting-style
 @cindex curved quotes
 @cindex curly quotes
-The value of this variable specifies the style used to generate text
-quotes.  If the variable's value is @code{curve}, the style is
-@t{‘like this’} with curved single quotes.  If the value is
-@code{straight}, the style is @t{'like this'} with straight
-apostrophes.  If the value is @code{grave}, the style is @t{`like
-this'} with grave accent and apostrophe.  The default value @code{nil}
-acts like @code{curve} if curved single quotes are displayable, and
-like @code{grave} otherwise.  To use the traditional @code{grave}
-style, put the line @code{(setq text-quoting-style 'grave)} into your
-@file{~/.emacs} file.
-@end defvar
+The value of this variable is a symbol that specifies the style Emacs
+should use for single quotes in the wording of help and messages.  If
+the variable's value is @code{curve}, the style is @t{‘like this’}
+with curved single quotes.  If the value is @code{straight}, the style
+is @t{'like this'} with straight apostrophes.  If the value is
+@code{grave}, quotes are not translated and the style is @t{`like
+this'} with grave accent and apostrophe, the standard style before
+Emacs version 25.  The default value @code{nil} acts like @code{curve}
+if curved single quotes seem to be displayable, and like @code{grave}
+otherwise.
+
+This option is useful on platforms that have problems with curved
+quotes.  You can customize it freely according to your personal
+preference.
+@end defopt
 
 @defun substitute-command-keys string
 This function scans @var{string} for the above special sequences and
@@ -407,6 +429,53 @@ C-g             abort-recursive-edit
   There are other special conventions for the text in documentation
 strings---for instance, you can refer to functions, variables, and
 sections of this manual.  @xref{Documentation Tips}, for details.
+
+@node Text Quoting Style
+@section Text Quoting Style
+
+  Typically, grave accents and apostrophes are treated specially in
+documentation strings and diagnostic messages, and translate to matching
+single quotation marks (also called ``curved quotes'').  For example,
+the documentation string @t{"Alias for `foo'."} and the function call
+@code{(message "Alias for `foo'.")} both translate to @t{"Alias for
+‘foo’."}.  Less commonly, Emacs displays grave accents and apostrophes
+as themselves, or as apostrophes only (e.g., @t{"Alias for 'foo'."}).
+Documentation strings and message formats should be written so that
+they display well with any of these styles.  For example, the
+documentation string @t{"Alias for 'foo'."} is probably not what you
+want, as it can display as @t{"Alias for ’foo’."}, an unusual style in
+English.
+
+  Sometimes you may need to display a grave accent or apostrophe
+without translation, regardless of text quoting style.  In a
+documentation string, you can do this with escapes.  For example, in
+the documentation string @t{"\\=`(a ,(sin 0)) ==> (a 0.0)"} the grave
+accent is intended to denote Lisp code, so it is escaped and displays
+as itself regardless of quoting style.  In a call to @code{message} or
+@code{error}, you can avoid translation by using a format @t{"%s"}
+with an argument that is a call to @code{format}.  For example,
+@code{(message "%s" (format "`(a ,(sin %S)) ==> (a %S)" x (sin x)))}
+displays a message that starts with grave accent regardless of text
+quoting style.
+
+@defopt text-quoting-style
+@cindex curved quotes
+@cindex curly quotes
+The value of this user option is a symbol that specifies the style
+Emacs should use for single quotes in the wording of help and
+messages.  If the option's value is @code{curve}, the style is
+@t{‘like this’} with curved single quotes.  If the value is
+@code{straight}, the style is @t{'like this'} with straight
+apostrophes.  If the value is @code{grave}, quotes are not translated
+and the style is @t{`like this'} with grave accent and apostrophe, the
+standard style before Emacs version 25.  The default value @code{nil}
+acts like @code{curve} if curved single quotes seem to be displayable,
+and like @code{grave} otherwise.
+
+This option is useful on platforms that have problems with curved
+quotes.  You can customize it freely according to your personal
+preference.
+@end defopt
 
 @node Describing Characters
 @section Describing Characters for Help Messages
@@ -539,11 +608,11 @@ about them, see @ref{Help, , Help, emacs, The GNU Emacs Manual}.  Here
 we describe some program-level interfaces to the same information.
 
 @deffn Command apropos pattern &optional do-all
-This function finds all ``meaningful'' symbols whose names contain a
+This function finds all meaningful symbols whose names contain a
 match for the apropos pattern @var{pattern}.  An apropos pattern is
 either a word to match, a space-separated list of words of which at
 least two must match, or a regular expression (if any special regular
-expression characters occur).  A symbol is ``meaningful'' if it has a
+expression characters occur).  A symbol is meaningful if it has a
 definition as a function, variable, or face, or has properties.
 
 The function returns a list of elements that look like this:
@@ -608,7 +677,7 @@ subcommands of the prefix key.
 
 @defopt help-event-list
 The value of this variable is a list of event types that serve as
-alternative ``help characters''.  These events are handled just like the
+alternative help characters.  These events are handled just like the
 event specified by @code{help-char}.
 @end defopt
 
@@ -643,7 +712,7 @@ sequence.  (The last event is, presumably, the help character.)
 @end deffn
 
   The following two functions are meant for modes that want to provide
-help without relinquishing control, such as the ``electric'' modes.
+help without relinquishing control, such as the electric modes.
 Their names begin with @samp{Helper} to distinguish them from the
 ordinary help functions.
 
@@ -675,16 +744,17 @@ This function returns the name of the help buffer, which is normally
 @end defun
 
 @vindex help-window-select
-@defmac with-help-window buffer-name body@dots{}
+@defmac with-help-window buffer-or-name body@dots{}
 This macro evaluates @var{body} like @code{with-output-to-temp-buffer}
-(@pxref{Temporary Displays}), inserting any output produced by its forms
-into a buffer named @var{buffer-name}.  (Usually, @var{buffer-name}
-should be the value returned by the function @code{help-buffer}.)  It
-also puts the specified buffer into Help mode and displays a message
-telling the user how to quit and scroll the help window.  It selects the
-help window if the current value of the user option
-@code{help-window-select} has been set accordingly.  It returns the last
-value in @var{body}.
+(@pxref{Temporary Displays}), inserting any output produced by its
+forms into a buffer specified by @var{buffer-or-name}, which can be a
+buffer or the name of a buffer.  (Frequently, @var{buffer-or-name} is
+the value returned by the function @code{help-buffer}.)  This macro
+puts the specified buffer into Help mode and displays a message
+telling the user how to quit and scroll the help window.  It selects
+the help window if the current value of the user option
+@code{help-window-select} has been set accordingly.  It returns the
+last value in @var{body}.
 @end defmac
 
 @defun help-setup-xref item interactive-p

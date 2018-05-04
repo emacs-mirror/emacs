@@ -1,13 +1,13 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2015 Free Software Foundation, Inc.
+Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,44 +15,50 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include <getopt.h>
 
+#include <flexmember.h>
+#include <min-max.h>
+#include <unlocked-io.h>
+
 /* The SunOS compiler doesn't have SEEK_END.  */
 #ifndef SEEK_END
 #define SEEK_END 2
 #endif
 
-/* Conditionalize function prototypes.  */
-
-/* Value is non-zero if strings X and Y compare equal.  */
-
-#define streq(X, Y) (*(X) == *(Y) && strcmp ((X) + 1, (Y) + 1) == 0)
-
-#include <min-max.h>
-
 /* Files are read in chunks of this number of bytes.  */
 
-#define READ_CHUNK_SIZE (100 * 1024)
+enum { READ_CHUNK_SIZE = 100 * 1024 };
 
-#if defined (__MSDOS__)
-#define FILENAME_EQ(X,Y)    (strcasecmp (X,Y) == 0)
+/* Value is true if strings X and Y compare equal.  */
+
+static bool
+streq (char const *x, char const *y)
+{
+  return strcmp (x, y) == 0;
+}
+
+static bool
+filename_eq (char const *x, char const *y)
+{
+#ifdef __MSDOS__
+  return strcasecmp (x, y) == 0;
+#elif defined WINDOWSNT
+  return stricmp (x, y) == 0;
 #else
-#if defined (WINDOWSNT)
-#define FILENAME_EQ(X,Y)    (stricmp (X,Y) == 0)
-#else
-#define FILENAME_EQ(X,Y)    (streq (X,Y))
+  return streq (x, y);
 #endif
-#endif
+}
+
 /* The default output file name.  */
 
 #define DEFAULT_OUTFILE "BROWSE"
@@ -217,10 +223,19 @@ enum visibility
 #define F_EXTERNC	256	/* Is declared extern "C".  */
 #define F_DEFINE	512	/* Is a #define.  */
 
-/* Two macros to set and test a bit in an int.  */
+/* Set and test a bit in an int.  */
 
-#define SET_FLAG(F, FLAG)	((F) |= (FLAG))
-#define HAS_FLAG(F, FLAG)	(((F) & (FLAG)) != 0)
+static void
+set_flag (int *f, int flag)
+{
+  *f |= flag;
+}
+
+static bool
+has_flag (int f, int flag)
+{
+  return (f & flag) != 0;
+}
 
 /* Structure describing a class member.  */
 
@@ -479,7 +494,7 @@ yyerror (const char *format, const char *s)
 /* Like malloc but print an error and exit if not enough memory is
    available.  */
 
-static void *
+static void * ATTRIBUTE_MALLOC
 xmalloc (size_t nbytes)
 {
   void *p = malloc (nbytes);
@@ -568,7 +583,7 @@ add_sym (const char *name, struct sym *nested_in_class)
 	  puts (name);
 	}
 
-      sym = xmalloc (offsetof (struct sym, name) + strlen (name) + 1);
+      sym = xmalloc (FLEXSIZEOF (struct sym, name, strlen (name) + 1));
       memset (sym, 0, offsetof (struct sym, name));
       strcpy (sym->name, name);
       sym->namesp = scope;
@@ -682,7 +697,7 @@ add_member_decl (struct sym *cls, char *name, char *regexp, int pos, unsigned in
     m = add_member (cls, name, var, sc, hash);
 
   /* Have we seen a new filename?  If so record that.  */
-  if (!cls->filename || !FILENAME_EQ (cls->filename, filename))
+  if (!cls->filename || !filename_eq (cls->filename, filename))
     m->filename = filename;
 
   m->regexp = regexp;
@@ -745,7 +760,7 @@ add_member_defn (struct sym *cls, char *name, char *regexp, int pos, unsigned in
   if (!cls->sfilename)
     cls->sfilename = filename;
 
-  if (!FILENAME_EQ (cls->sfilename, filename))
+  if (!filename_eq (cls->sfilename, filename))
     m->def_filename = filename;
 
   m->def_regexp = regexp;
@@ -830,7 +845,7 @@ add_global_decl (char *name, char *regexp, int pos, unsigned int hash, int var, 
   if (!found)
     {
       if (!global_symbols->filename
-	  || !FILENAME_EQ (global_symbols->filename, filename))
+	  || !filename_eq (global_symbols->filename, filename))
 	m->filename = filename;
 
       m->regexp = regexp;
@@ -853,8 +868,8 @@ add_global_decl (char *name, char *regexp, int pos, unsigned int hash, int var, 
 static struct member *
 add_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
 {
-  struct member *m = xmalloc (offsetof (struct member, name)
-			      + strlen (name) + 1);
+  struct member *m = xmalloc (FLEXSIZEOF (struct member, name,
+					  strlen (name) + 1));
   struct member **list;
   struct member *p;
   struct member *prev;
@@ -931,11 +946,11 @@ mark_virtual (struct sym *r)
   for (p = r->subs; p; p = p->next)
     {
       for (m = r->fns; m; m = m->next)
-        if (HAS_FLAG (m->flags, F_VIRTUAL))
+        if (has_flag (m->flags, F_VIRTUAL))
           {
             for (m2 = p->sym->fns; m2; m2 = m2->next)
               if (m->param_hash == m2->param_hash && streq (m->name, m2->name))
-                SET_FLAG (m2->flags, F_VIRTUAL);
+                set_flag (&m2->flags, F_VIRTUAL);
           }
 
       mark_virtual (p->sym);
@@ -964,7 +979,7 @@ mark_inherited_virtual (void)
 static struct sym *
 make_namespace (char *name, struct sym *context)
 {
-  struct sym *s = xmalloc (offsetof (struct sym, name) + strlen (name) + 1);
+  struct sym *s = xmalloc (FLEXSIZEOF (struct sym, name, strlen (name) + 1));
   memset (s, 0, offsetof (struct sym, name));
   strcpy (s->name, name);
   s->next = all_namespaces;
@@ -1048,7 +1063,7 @@ register_namespace_alias (char *new_name, struct link *old_name)
     if (streq (new_name, al->name) && (al->namesp == current_namespace))
       return;
 
-  al = xmalloc (offsetof (struct alias, name) + strlen (new_name) + 1);
+  al = xmalloc (FLEXSIZEOF (struct alias, name, strlen (new_name) + 1));
   strcpy (al->name, new_name);
   al->next = namespace_alias_table[h];
   al->namesp = current_namespace;
@@ -1159,7 +1174,7 @@ sym_scope_1 (struct sym *p)
   strcpy (scope_buffer + scope_buffer_len, p->name);
   scope_buffer_len += len;
 
-  if (HAS_FLAG (p->flags, F_TEMPLATE))
+  if (has_flag (p->flags, F_TEMPLATE))
     {
       ensure_scope_buffer_room (3);
       strcpy (scope_buffer + scope_buffer_len, "<>");
@@ -2435,7 +2450,7 @@ parm_list (int *flags)
         {
           /* We can overload the same function on `const' */
           hash = (hash << 1) ^ CONST;
-          SET_FLAG (*flags, F_CONST);
+          set_flag (flags, F_CONST);
           MATCH ();
         }
 
@@ -2443,7 +2458,7 @@ parm_list (int *flags)
         {
           MATCH ();
           SKIP_MATCHING_IF ('(');
-          SET_FLAG (*flags, F_THROW);
+          set_flag (flags, F_THROW);
         }
 
       if (LOOKING_AT ('='))
@@ -2452,7 +2467,7 @@ parm_list (int *flags)
           if (LOOKING_AT (CINT) && yyival == 0)
             {
               MATCH ();
-              SET_FLAG (*flags, F_PURE);
+              set_flag (flags, F_PURE);
             }
         }
     }
@@ -2505,25 +2520,25 @@ member (struct sym *cls, int vis)
           /* A function or class may follow.  */
         case TEMPLATE:
           MATCH ();
-          SET_FLAG (flags, F_TEMPLATE);
+          set_flag (&flags, F_TEMPLATE);
           /* Skip over template argument list */
           SKIP_MATCHING_IF ('<');
           break;
 
         case EXPLICIT:
-          SET_FLAG (flags, F_EXPLICIT);
+          set_flag (&flags, F_EXPLICIT);
           goto typeseen;
 
         case MUTABLE:
-          SET_FLAG (flags, F_MUTABLE);
+          set_flag (&flags, F_MUTABLE);
           goto typeseen;
 
         case T_INLINE:
-          SET_FLAG (flags, F_INLINE);
+          set_flag (&flags, F_INLINE);
           goto typeseen;
 
         case VIRTUAL:
-          SET_FLAG (flags, F_VIRTUAL);
+          set_flag (&flags, F_VIRTUAL);
           goto typeseen;
 
         case '[':
@@ -2761,7 +2776,7 @@ parse_classname (void)
       if (LOOKING_AT ('<'))
         {
           skip_matching ();
-          SET_FLAG (last_class->flags, F_TEMPLATE);
+          set_flag (&last_class->flags, F_TEMPLATE);
         }
 
       if (!LOOKING_AT (DCOLON))
@@ -3044,8 +3059,7 @@ class_definition (struct sym *containing, int tag, int flags, int nested)
                  MATCH until we see something like `;' or `{'.  */
               while (!LOOKING_AT3 (';', YYEOF, '{'))
                 MATCH ();
-	      done = 1;
-
+	      FALLTHROUGH;
             case '{':
               done = 1;
 	      break;
@@ -3169,7 +3183,7 @@ declaration (int flags)
 	      free (id);
 	      return;
 	    }
-
+	  FALLTHROUGH;
         case '=':
           /* Assumed to be the start of an initialization in this
 	     context.  */
@@ -3189,7 +3203,7 @@ declaration (int flags)
           break;
 
         case T_INLINE:
-          SET_FLAG (flags, F_INLINE);
+          set_flag (&flags, F_INLINE);
           MATCH ();
           break;
 
@@ -3335,14 +3349,14 @@ globals (int start_flags)
                   MATCH_IF ('}');
                 }
               else
-                SET_FLAG (flags, F_EXTERNC);
+                set_flag (&flags, F_EXTERNC);
             }
           break;
 
         case TEMPLATE:
           MATCH ();
           SKIP_MATCHING_IF ('<');
-          SET_FLAG (flags, F_TEMPLATE);
+          set_flag (&flags, F_TEMPLATE);
           break;
 
         case CLASS: case STRUCT: case UNION:

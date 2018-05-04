@@ -1,6 +1,6 @@
-;;; help.el --- help commands for Emacs
+;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2015 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -67,6 +67,7 @@
     (define-key map "\C-n" 'view-emacs-news)
     (define-key map "\C-o" 'describe-distribution)
     (define-key map "\C-p" 'view-emacs-problems)
+    (define-key map "\C-s" 'search-forward-help-for-help)
     (define-key map "\C-t" 'view-emacs-todo)
     (define-key map "\C-w" 'describe-no-warranty)
 
@@ -240,6 +241,7 @@ C-m         How to order printed Emacs manuals.
 C-n         News of recent Emacs changes.
 C-o         Emacs ordering and distribution information.
 C-p         Info about known Emacs problems.
+C-s         Search forward \"help window\".
 C-t         Emacs TODO list.
 C-w         Information on absence of warranty for GNU Emacs."
   help-map)
@@ -306,9 +308,7 @@ If that doesn't give a function, return nil."
 (defun describe-gnu-project ()
   "Browse online information on the GNU project."
   (interactive)
-  (browse-url "http://www.gnu.org/gnu/thegnuproject.html"))
-
-(define-obsolete-function-alias 'describe-project 'describe-gnu-project "22.2")
+  (browse-url "https://www.gnu.org/gnu/thegnuproject.html"))
 
 (defun describe-no-warranty ()
   "Display info on all the kinds of warranty Emacs does NOT have."
@@ -355,7 +355,7 @@ With argument, display info only for the selected version."
 		   (while (re-search-forward
 			   (if (member file '("NEWS.18" "NEWS.1-17"))
 			       "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
-			     "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
+			     "^\\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
 		     (setq res (cons (match-string-no-properties 1) res)))))
 	       (cons "NEWS"
 		     (directory-files data-directory nil
@@ -392,7 +392,7 @@ With argument, display info only for the selected version."
       (when (re-search-forward
 	     (concat (if (< vn 19)
 			 "Changes in Emacs[ \t]*"
-		       "^\* [^0-9\n]*") version "$")
+		       "^\\* [^0-9\n]*") version "$")
 	     nil t)
 	(beginning-of-line)
 	(narrow-to-region
@@ -402,7 +402,7 @@ With argument, display info only for the selected version."
 			     (re-search-forward
 			      (if (< vn 19)
 				  "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
-				"^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
+				"^\\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
 		       (equal (match-string-no-properties 1) version)))
 	   (or res (goto-char (point-max)))
 	   (beginning-of-line)
@@ -412,9 +412,6 @@ With argument, display info only for the selected version."
   "Display the Emacs TODO list."
   (interactive "P")
   (view-help-file "TODO"))
-
-(define-obsolete-function-alias 'view-todo 'view-emacs-todo "22.2")
-
 
 (defun view-echo-area-messages ()
   "View the log of recent echo-area messages: the `*Messages*' buffer.
@@ -455,6 +452,8 @@ is specified by the variable `message-log-max'."
 
 (defun view-lossage ()
   "Display last few input keystrokes and the commands run.
+For convenience this uses the same format as
+`edit-last-kbd-macro'.
 
 To record all your input, use `open-dribble-file'."
   (interactive)
@@ -465,8 +464,8 @@ To record all your input, use `open-dribble-file'."
     (princ (mapconcat (lambda (key)
 			(cond
 			 ((and (consp key) (null (car key)))
-			  (format "[%s]\n" (if (symbolp (cdr key)) (cdr key)
-					   "anonymous-command")))
+			  (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
+					      "anonymous-command")))
 			 ((or (integerp key) (symbolp key) (listp key))
 			  (single-key-description key))
 			 (t
@@ -475,11 +474,11 @@ To record all your input, use `open-dribble-file'."
 		      " "))
     (with-current-buffer standard-output
       (goto-char (point-min))
-      (while (not (eobp))
-	(move-to-column 50)
-	(unless (eolp)
-	  (fill-region (line-beginning-position) (line-end-position)))
-	(forward-line 1))
+      (let ((comment-start ";; ")
+            (comment-column 24))
+        (while (not (eobp))
+          (comment-indent)
+	  (forward-line 1)))
       ;; jidanni wants to see the last keystrokes immediately.
       (set-marker help-window-point-marker (point)))))
 
@@ -593,75 +592,83 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	    string
 	  (format "%s (translated from %s)" string otherstring))))))
 
-(defun describe-key-briefly (&optional key insert untranslated)
-  "Print the name of the function KEY invokes.  KEY is a string.
-If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
-If non-nil, UNTRANSLATED is a vector of the untranslated events.
-It can also be a number in which case the untranslated events from
-the last key hit are used.
+(defun help--binding-undefined-p (defn)
+  (or (null defn) (integerp defn) (equal defn 'undefined)))
 
-If KEY is a menu item or a tool-bar button that is disabled, this command
-temporarily enables it to allow getting help on disabled items and buttons."
-  (interactive
-   (let ((enable-disabled-menus-and-buttons t)
-	 (cursor-in-echo-area t)
-	 saved-yank-menu)
-     (unwind-protect
-	 (let (key)
-	   ;; If yank-menu is empty, populate it temporarily, so that
-	   ;; "Select and Paste" menu can generate a complete event.
-	   (when (null (cdr yank-menu))
-	     (setq saved-yank-menu (copy-sequence yank-menu))
-	     (menu-bar-update-yank-menu "(any string)" nil))
-	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
-	   ;; Clear the echo area message (Bug#7014).
-	   (message nil)
-	   ;; If KEY is a down-event, read and discard the
-	   ;; corresponding up-event.  Note that there are also
-	   ;; down-events on scroll bars and mode lines: the actual
-	   ;; event then is in the second element of the vector.
-	   (and (vectorp key)
-		(let ((last-idx (1- (length key))))
-		  (and (eventp (aref key last-idx))
-		       (memq 'down (event-modifiers (aref key last-idx)))))
-		(read-event))
-	   (list
-	    key
-	    (if current-prefix-arg (prefix-numeric-value current-prefix-arg))
-	    1))
-       ;; Put yank-menu back as it was, if we changed it.
-       (when saved-yank-menu
-	 (setq yank-menu (copy-sequence saved-yank-menu))
-	 (fset 'yank-menu (cons 'keymap yank-menu))))))
+(defun help--analyze-key (key untranslated)
+  "Get information about KEY its corresponding UNTRANSLATED events.
+Returns a list of the form (BRIEF-DESC DEFN EVENT MOUSE-MSG)."
   (if (numberp untranslated)
-      (setq untranslated (this-single-command-raw-keys)))
-  (let* ((event (if (and (symbolp (aref key 0))
-			 (> (length key) 1)
-			 (consp (aref key 1)))
-		    (aref key 1)
-		  (aref key 0)))
+      (error "Missing `untranslated'!"))
+  (let* ((event (when (> (length key) 0)
+                  (aref key (if (and (symbolp (aref key 0))
+		                     (> (length key) 1)
+		                     (consp (aref key 1)))
+                                ;; Look at the second event when the first
+                                ;; is a pseudo-event like `mode-line' or
+                                ;; `left-fringe'.
+		                1
+	                      0))))
 	 (modifiers (event-modifiers event))
-	 (standard-output (if insert (current-buffer) standard-output))
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
-			    (memq 'drag modifiers)) " at that spot" ""))
-	 (defn (key-binding key t))
-	 key-desc)
+			    (memq 'drag modifiers))
+                        " at that spot" ""))
+	 (defn (key-binding key t)))
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
-    (if (and (eq defn nil)
-	     (stringp (aref key (1- (length key))))
-	     (eq (key-binding (substring key 0 -1)) 'yank-menu))
-	(setq defn 'menu-bar-select-yank))
+    (when (and (eq defn nil)
+	       (stringp (aref key (1- (length key))))
+	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
+      (setq defn 'menu-bar-select-yank))
     ;; Don't bother user with strings from (e.g.) the select-paste menu.
-    (if (stringp (aref key (1- (length key))))
-	(aset key (1- (length key)) "(any string)"))
-    (if (and (> (length untranslated) 0)
-	     (stringp (aref untranslated (1- (length untranslated)))))
-	(aset untranslated (1- (length untranslated)) "(any string)"))
-    ;; Now describe the key, perhaps as changed.
-    (setq key-desc (help-key-description key untranslated))
-    (if (or (null defn) (integerp defn) (equal defn 'undefined))
-	(princ (format "%s%s is undefined" key-desc mouse-msg))
-      (princ (format "%s%s runs the command %S" key-desc mouse-msg defn)))))
+    (when (stringp (aref key (1- (length key))))
+      (aset key (1- (length key)) "(any string)"))
+    (when (and untranslated
+               (stringp (aref untranslated (1- (length untranslated)))))
+      (aset untranslated (1- (length untranslated)) "(any string)"))
+    (list
+     ;; Now describe the key, perhaps as changed.
+     (let ((key-desc (help-key-description key untranslated)))
+       (if (help--binding-undefined-p defn)
+           (format "%s%s is undefined" key-desc mouse-msg)
+         (format "%s%s runs the command %S" key-desc mouse-msg defn)))
+     defn event mouse-msg)))
+
+(defun help--filter-info-list (info-list i)
+  "Drop the undefined keys."
+  (or
+   ;; Remove all `undefined' keys.
+   (delq nil (mapcar (lambda (x)
+                       (unless (help--binding-undefined-p (nth i x)) x))
+                     info-list))
+   ;; If nothing left, then keep one (the last one).
+   (last info-list)))
+
+(defun describe-key-briefly (&optional key-list insert untranslated)
+  "Print the name of the functions KEY-LIST invokes.
+KEY-LIST is a list of pairs (SEQ . RAW-SEQ) of key sequences, where
+RAW-SEQ is the untranslated form of the key sequence SEQ.
+If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
+
+While reading KEY-LIST interactively, this command temporarily enables
+menu items or tool-bar buttons that are disabled to allow getting help
+on them."
+  (declare (advertised-calling-convention (key-list &optional insert) "27.1"))
+  (interactive
+   ;; Ignore mouse movement events because it's too easy to miss the
+   ;; message while moving the mouse.
+   (let ((key-list (help--read-key-sequence 'no-mouse-movement)))
+     `(,key-list ,current-prefix-arg)))
+  (when (arrayp key-list)
+    ;; Old calling convention, changed
+    (setq key-list (list (cons key-list
+                               (if (numberp untranslated)
+                                   (this-single-command-raw-keys)
+                                 untranslated)))))
+  (let* ((info-list (mapcar (lambda (kr)
+                              (help--analyze-key (car kr) (cdr kr)))
+                            key-list))
+         (msg (mapconcat #'car (help--filter-info-list info-list 1) "\n")))
+    (if insert (insert msg) (message "%s" msg))))
 
 (defun help--key-binding-keymap (key &optional accept-default no-remap position)
   "Return a keymap holding a binding for KEY within current keymaps.
@@ -708,8 +715,7 @@ function `key-binding'."
                                               (format "%s-map" mode)))))
                                        minor-mode-map-alist))
                                 (list 'global-map
-                                      (intern-soft (format "%s-map" major-mode)))))
-              found)
+                                      (intern-soft (format "%s-map" major-mode))))))
           ;; Look into these advertised symbols first.
           (dolist (sym advertised-syms)
             (when (and
@@ -726,154 +732,137 @@ function `key-binding'."
                (throw 'found x))))
           nil)))))
 
-(defun describe-key (&optional key untranslated up-event)
-  "Display documentation of the function invoked by KEY.
-KEY can be any kind of a key sequence; it can include keyboard events,
+(defun help--read-key-sequence (&optional no-mouse-movement)
+  "Read a key sequence from the user.
+Usually reads a single key sequence, except when that sequence might
+hide another one (e.g. a down event, where the user is interested
+in getting info about the up event, or a click event, where the user
+wants to get info about the double click).
+Return a list of elements of the form (SEQ . RAW-SEQ), where SEQ is a key
+sequence, and RAW-SEQ is its untranslated form.
+If NO-MOUSE-MOVEMENT is non-nil, ignore key sequences starting
+with `mouse-movement' events."
+  (let ((enable-disabled-menus-and-buttons t)
+        (cursor-in-echo-area t)
+        saved-yank-menu)
+    (unwind-protect
+        (let (last-modifiers key-list)
+          ;; If yank-menu is empty, populate it temporarily, so that
+          ;; "Select and Paste" menu can generate a complete event.
+          (when (null (cdr yank-menu))
+            (setq saved-yank-menu (copy-sequence yank-menu))
+            (menu-bar-update-yank-menu "(any string)" nil))
+          (while
+              ;; Read at least one key-sequence.
+              (or (null key-list)
+                  ;; After a down event, also read the (presumably) following
+                  ;; up-event.
+                  (memq 'down last-modifiers)
+                  ;; After a click, see if a double click is on the way.
+                  (and (memq 'click last-modifiers)
+                       (not (sit-for (/ double-click-time 1000.0) t))))
+            (let* ((seq (read-key-sequence "\
+Describe the following key, mouse click, or menu item: "))
+                   (raw-seq (this-single-command-raw-keys))
+                   (keyn (when (> (length seq) 0)
+                           (aref seq (1- (length seq)))))
+                   (base (event-basic-type keyn))
+                   (modifiers (event-modifiers keyn)))
+              (cond
+               ((zerop (length seq)))   ;FIXME: Can this happen?
+               ((and no-mouse-movement (eq base 'mouse-movement)) nil)
+               ((eq base 'help-echo) nil)
+               (t
+                (setq last-modifiers modifiers)
+                (push (cons seq raw-seq) key-list)))))
+          (nreverse key-list))
+      ;; Put yank-menu back as it was, if we changed it.
+      (when saved-yank-menu
+        (setq yank-menu (copy-sequence saved-yank-menu))
+        (fset 'yank-menu (cons 'keymap yank-menu))))))
+
+(defun describe-key (&optional key-list buffer up-event)
+  "Display documentation of the function invoked by KEY-LIST.
+KEY-LIST can be any kind of a key sequence; it can include keyboard events,
 mouse events, and/or menu events.  When calling from a program,
-pass KEY as a string or a vector.
+pass KEY-LIST as a list of elements (SEQ . RAW-SEQ) where SEQ is
+a key-sequence and RAW-SEQ is its untranslated form.
 
-If non-nil, UNTRANSLATED is a vector of the corresponding untranslated events.
-It can also be a number, in which case the untranslated events from
-the last key sequence entered are used.
-UP-EVENT is the up-event that was discarded by reading KEY, or nil.
+While reading KEY-LIST interactively, this command temporarily enables
+menu items or tool-bar buttons that are disabled to allow getting help
+on them.
 
-If KEY is a menu item or a tool-bar button that is disabled, this command
-temporarily enables it to allow getting help on disabled items and buttons."
-  (interactive
-   (let ((enable-disabled-menus-and-buttons t)
-	 (cursor-in-echo-area t)
-	 saved-yank-menu)
-     (unwind-protect
-	 (let (key)
-	   ;; If yank-menu is empty, populate it temporarily, so that
-	   ;; "Select and Paste" menu can generate a complete event.
-	   (when (null (cdr yank-menu))
-	     (setq saved-yank-menu (copy-sequence yank-menu))
-	     (menu-bar-update-yank-menu "(any string)" nil))
-	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
-	   (list
-	    key
-	    (prefix-numeric-value current-prefix-arg)
-	    ;; If KEY is a down-event, read and include the
-	    ;; corresponding up-event.  Note that there are also
-	    ;; down-events on scroll bars and mode lines: the actual
-	    ;; event then is in the second element of the vector.
-	    (and (vectorp key)
-		 (let ((last-idx (1- (length key))))
-		   (and (eventp (aref key last-idx))
-			(memq 'down (event-modifiers (aref key last-idx)))))
-		 (or (and (eventp (aref key 0))
-			  (memq 'down (event-modifiers (aref key 0)))
-			  ;; However, for the C-down-mouse-2 popup
-			  ;; menu, there is no subsequent up-event.  In
-			  ;; this case, the up-event is the next
-			  ;; element in the supplied vector.
-			  (= (length key) 1))
-		     (and (> (length key) 1)
-			  (eventp (aref key 1))
-			  (memq 'down (event-modifiers (aref key 1)))))
-		 (read-event))))
-       ;; Put yank-menu back as it was, if we changed it.
-       (when saved-yank-menu
-	 (setq yank-menu (copy-sequence saved-yank-menu))
-	 (fset 'yank-menu (cons 'keymap yank-menu))))))
-  (if (numberp untranslated)
-      (setq untranslated (this-single-command-raw-keys)))
-  (let* ((event (aref key (if (and (symbolp (aref key 0))
-				   (> (length key) 1)
-				   (consp (aref key 1)))
-			      1
-			    0)))
-	 (modifiers (event-modifiers event))
-	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
-			    (memq 'drag modifiers)) " at that spot" ""))
-	 (defn (key-binding key t))
-         key-locus key-locus-up key-locus-up-tricky
-	 defn-up defn-up-tricky ev-type
-	 mouse-1-remapped mouse-1-tricky)
-
-    ;; Handle the case where we faked an entry in "Select and Paste" menu.
-    (when (and (eq defn nil)
-	       (stringp (aref key (1- (length key))))
-	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
-      (setq defn 'menu-bar-select-yank))
-    (if (or (null defn) (integerp defn) (equal defn 'undefined))
-	(message "%s%s is undefined"
-		 (help-key-description key untranslated) mouse-msg)
-      (help-setup-xref (list #'describe-function defn)
-		       (called-interactively-p 'interactive))
-      ;; Don't bother user with strings from (e.g.) the select-paste menu.
-      (when (stringp (aref key (1- (length key))))
-	(aset key (1- (length key)) "(any string)"))
-      (when (and untranslated
-		 (stringp (aref untranslated (1- (length untranslated)))))
-	(aset untranslated (1- (length untranslated))
-	      "(any string)"))
-      ;; Need to do this before erasing *Help* buffer in case event
-      ;; is a mouse click in an existing *Help* buffer.
-      (when up-event
-	(setq ev-type (event-basic-type up-event))
-	(let ((sequence (vector up-event)))
-	  (when (and (eq ev-type 'mouse-1)
-		     mouse-1-click-follows-link
-		     (not (eq mouse-1-click-follows-link 'double))
-		     (setq mouse-1-remapped
-			   (mouse-on-link-p (event-start up-event))))
-	    (setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
-				      (> mouse-1-click-follows-link 0)))
-	    (cond ((stringp mouse-1-remapped)
-		   (setq sequence mouse-1-remapped))
-		  ((vectorp mouse-1-remapped)
-		   (setcar up-event (elt mouse-1-remapped 0)))
-		  (t (setcar up-event 'mouse-2))))
-	  (setq defn-up (key-binding sequence nil nil (event-start up-event)))
-          (setq key-locus-up (help--binding-locus sequence (event-start up-event)))
-	  (when mouse-1-tricky
-	    (setq sequence (vector up-event))
-	    (aset sequence 0 'mouse-1)
-	    (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event)))
-            (setq key-locus-up-tricky (help--binding-locus sequence (event-start up-event))))))
-      (setq key-locus (help--binding-locus key (event-start event)))
+BUFFER is the buffer in which to lookup those keys; it defaults to the
+current buffer."
+  (declare (advertised-calling-convention (key-list &optional buffer) "27.1"))
+  (interactive (list (help--read-key-sequence)))
+  (when (arrayp key-list)
+    ;; Compatibility with old calling convention.
+    (setq key-list (cons (list key-list) (if up-event (list up-event))))
+    (when buffer
+      (let ((raw (if (numberp buffer) (this-single-command-raw-keys) buffer)))
+        (setf (cdar (last key-list)) raw)))
+    (setq buffer nil))
+  (let* ((buf (or buffer (current-buffer)))
+         (on-link
+          (mapcar (lambda (kr)
+                    (let ((raw (cdr kr)))
+                      (and (not (memq mouse-1-click-follows-link '(nil double)))
+                           (> (length raw) 0)
+                           (eq (car-safe (aref raw 0)) 'mouse-1)
+                           (with-current-buffer buf
+                             (mouse-on-link-p (event-start (aref raw 0)))))))
+                  key-list))
+         (info-list
+          (help--filter-info-list
+           (with-current-buffer buf
+             (mapcar (lambda (x)
+                       (pcase-let* ((`(,seq . ,raw-seq) x)
+                                    (`(,brief-desc ,defn ,event ,_mouse-msg)
+                                     (help--analyze-key seq raw-seq))
+                                    (locus
+                                     (help--binding-locus
+                                      seq (event-start event))))
+                         `(,seq ,brief-desc ,defn ,locus)))
+                     key-list))
+           2)))
+    (help-setup-xref (list (lambda (key-list buf)
+                             (describe-key key-list
+                                           (if (buffer-live-p buf) buf)))
+                           key-list buf)
+		     (called-interactively-p 'interactive))
+    (if (and (<= (length info-list) 1)
+             (help--binding-undefined-p (nth 2 (car info-list))))
+        (message "%s" (nth 1 (car info-list)))
       (with-help-window (help-buffer)
-	(princ (help-key-description key untranslated))
-	(princ (format "%s runs the command %S%s, which is "
-		       mouse-msg defn (if key-locus
-                                          (format " (found in %s)" key-locus)
-                                        "")))
-	(describe-function-1 defn)
-	(when up-event
-	  (unless (or (null defn-up)
-		      (integerp defn-up)
-		      (equal defn-up 'undefined))
-	    (princ (format "
+        (when (> (length info-list) 1)
+          ;; FIXME: Make this into clickable hyperlinks.
+          (princ "There were several key-sequences:\n\n")
+          (princ (mapconcat (lambda (info)
+                              (pcase-let ((`(,_seq ,brief-desc ,_defn ,_locus)
+                                           info))
+                                (concat "  " brief-desc)))
+                            info-list
+                            "\n"))
+          (when (delq nil on-link)
+            (princ "\n\nThose are influenced by `mouse-1-click-follows-link'"))
+          (princ "\n\nThey're all described below."))
+        (pcase-dolist (`(,_seq ,brief-desc ,defn ,locus)
+                       info-list)
+          (when defn
+            (when (> (length info-list) 1)
+              (with-current-buffer standard-output
+                (insert "\n\n"
+                        ;; FIXME: Can't use eval-when-compile because purified
+                        ;; strings lose their text properties :-(
+                        (propertize "\n" 'face '(:height 0.1 :inverse-video t))
+                        "\n")))
 
------------------ up-event %s----------------
-
-%s%s%s runs the command %S%s, which is "
-			   (if mouse-1-tricky "(short click) " "")
-			   (key-description (vector up-event))
-			   mouse-msg
-			   (if mouse-1-remapped
-                               " is remapped to <mouse-2>, which" "")
-			   defn-up (if key-locus-up
-                                       (format " (found in %s)" key-locus-up)
-                                     "")))
-	    (describe-function-1 defn-up))
-	  (unless (or (null defn-up-tricky)
-		      (integerp defn-up-tricky)
-		      (eq defn-up-tricky 'undefined))
-	    (princ (format "
-
------------------ up-event (long click) ----------------
-
-Pressing <%S>%s for longer than %d milli-seconds
-runs the command %S%s, which is "
-			   ev-type mouse-msg
-			   mouse-1-click-follows-link
-			   defn-up-tricky (if key-locus-up-tricky
-                                              (format " (found in %s)" key-locus-up-tricky)
-                                            "")))
-	    (describe-function-1 defn-up-tricky)))))))
+            (princ brief-desc)
+            (when locus
+              (princ (format " (found in %s)" locus)))
+            (princ ", which is ")
+	    (describe-function-1 defn)))))))
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
@@ -930,14 +919,15 @@ documentation for the major and minor modes of that buffer."
 	      (let ((mode-function (nth 0 mode))
 		    (pretty-minor-mode (nth 1 mode))
 		    (indicator (nth 2 mode)))
-		(add-text-properties 0 (length pretty-minor-mode)
-				     '(face bold) pretty-minor-mode)
 		(save-excursion
 		  (goto-char (point-max))
 		  (princ "\n\f\n")
 		  (push (point-marker) help-button-cache)
 		  ;; Document the minor modes fully.
-		  (insert pretty-minor-mode)
+                  (insert-text-button
+                   pretty-minor-mode 'type 'help-function
+                   'help-args (list mode-function)
+                   'button '(t))
 		  (princ (format " minor mode (%s):\n"
 				 (if (zerop (length indicator))
 				     "no indicator"
@@ -977,6 +967,13 @@ documentation for the major and minor modes of that buffer."
   ;; For the sake of IELM and maybe others
   nil)
 
+(defun search-forward-help-for-help ()
+  "Search forward \"help window\"."
+  (interactive)
+  ;; Move cursor to the "help window".
+  (pop-to-buffer " *Metahelp*")
+  ;; Do incremental search forward.
+  (isearch-forward nil t))
 
 (defun describe-minor-mode (minor-mode)
   "Display documentation of a minor mode given as MINOR-MODE.
@@ -1066,10 +1063,13 @@ is currently activated with completion."
 	  (setq minor-modes (cdr minor-modes)))))
     result))
 
+(declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+(declare-function x-display-pixel-width "xfns.c" (&optional terminal))
+
 ;;; Automatic resizing of temporary buffers.
 (defcustom temp-buffer-max-height
-  (lambda (buffer)
-    (if (eq (selected-window) (frame-root-window))
+  (lambda (_buffer)
+    (if (and (display-graphic-p) (eq (selected-window) (frame-root-window)))
 	(/ (x-display-pixel-height) (frame-char-height) 2)
       (/ (- (frame-height) 2) 2)))
   "Maximum height of a window displaying a temporary buffer.
@@ -1085,8 +1085,8 @@ function is called, the window to be resized is selected."
   :version "24.3")
 
 (defcustom temp-buffer-max-width
-  (lambda (buffer)
-    (if (eq (selected-window) (frame-root-window))
+  (lambda (_buffer)
+    (if (and (display-graphic-p) (eq (selected-window) (frame-root-window)))
 	(/ (x-display-pixel-width) (frame-char-width) 2)
       (/ (- (frame-width) 2) 2)))
   "Maximum width of a window displaying a temporary buffer.
@@ -1318,15 +1318,14 @@ Return VALUE."
 
 ;; (4) A marker (`help-window-point-marker') to move point in the help
 ;;     window to an arbitrary buffer position.
-(defmacro with-help-window (buffer-name &rest body)
-  "Display buffer named BUFFER-NAME in a help window.
-Evaluate the forms in BODY with standard output bound to a buffer
-called BUFFER-NAME (creating it if it does not exist), put that
-buffer in `help-mode', display the buffer in a window (see
-`with-temp-buffer-window' for details) and issue a message how to
-deal with that \"help\" window when it's no more needed.  Select
-the help window if the current value of the user option
-`help-window-select' says so.  Return last value in BODY."
+(defmacro with-help-window (buffer-or-name &rest body)
+  "Evaluate BODY, send output to BUFFER-OR-NAME and show in a help window.
+This construct is like `with-temp-buffer-window' but unlike that
+puts the buffer specified by BUFFER-OR-NAME in `help-mode' and
+displays a message about how to delete the help window when it's no
+longer needed.  The help window will be selected if
+`help-window-select' is non-nil.  See `help-window-setup' for
+more options."
   (declare (indent 1) (debug t))
   `(progn
      ;; Make `help-window-point-marker' point nowhere.  The only place
@@ -1338,7 +1337,7 @@ the help window if the current value of the user option
 	    (cons 'help-mode-finish temp-buffer-window-show-hook)))
        (setq help-window-old-frame (selected-frame))
        (with-temp-buffer-window
-	,buffer-name nil 'help-window-setup (progn ,@body)))))
+	,buffer-or-name nil 'help-window-setup (progn ,@body)))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
 ;; Don't print to *Help*; that would clobber Help history.
@@ -1357,7 +1356,7 @@ The result, when formatted by `substitute-command-keys', should equal STRING."
 
 ;; The following functions used to be in help-fns.el, which is not preloaded.
 ;; But for various reasons, they are more widely needed, so they were
-;; moved to this file, which is preloaded.  http://debbugs.gnu.org/17001
+;; moved to this file, which is preloaded.  https://debbugs.gnu.org/17001
 
 (defun help-split-fundoc (docstring def)
   "Split a function DOCSTRING into the actual doc and the usage info.
@@ -1394,17 +1393,21 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 	    (if (string-match "\n?\n\\'" docstring)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
-	    (if (and (stringp arglist)
-		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
-		(concat "(fn" (match-string 1 arglist) ")")
+	    (if (stringp arglist)
+                (if (string-match "\\`[^ ]+\\(.*\\))\\'" arglist)
+                    (concat "(fn" (match-string 1 arglist) ")")
+                  (error "Unrecognized usage format"))
 	      (help--make-usage-docstring 'fn arglist)))))
 
 (defun help-function-arglist (def &optional preserve-names)
   "Return a formal argument list for the function DEF.
-IF PRESERVE-NAMES is non-nil, return a formal arglist that uses
+If PRESERVE-NAMES is non-nil, return a formal arglist that uses
 the same names as used in the original source code, when possible."
   ;; Handle symbols aliased to other symbols.
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
+  ;; Advice wrappers have "catch all" args, so fetch the actual underlying
+  ;; function to find the real arguments.
+  (while (advice--p def) (setq def (advice--cdr def)))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
@@ -1412,7 +1415,7 @@ the same names as used in the original source code, when possible."
    ((eq (car-safe def) 'lambda) (nth 1 def))
    ((eq (car-safe def) 'closure) (nth 2 def))
    ((or (and (byte-code-function-p def) (integerp (aref def 0)))
-        (subrp def))
+        (subrp def) (module-function-p def))
     (or (when preserve-names
           (let* ((doc (condition-case nil (documentation def) (error nil)))
                  (docargs (if doc (car (help-split-fundoc doc nil))))
@@ -1428,25 +1431,18 @@ the same names as used in the original source code, when possible."
                                (not (string-match "\\." name)))))
                 (setq valid nil)))
             (when valid arglist)))
-        (let* ((args-desc (if (not (subrp def))
-                              (aref def 0)
-                            (let ((a (subr-arity def)))
-                              (logior (car a)
-                                      (if (numberp (cdr a))
-                                          (lsh (cdr a) 8)
-                                        (lsh 1 7))))))
-               (max (lsh args-desc -8))
-               (min (logand args-desc 127))
-               (rest (logand args-desc 128))
+        (let* ((arity (func-arity def))
+               (max (cdr arity))
+               (min (car arity))
                (arglist ()))
           (dotimes (i min)
             (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
-          (when (> max min)
+          (when (and (integerp max) (> max min))
             (push '&optional arglist)
             (dotimes (i (- max min))
               (push (intern (concat "arg" (number-to-string (+ 1 i min))))
                     arglist)))
-          (unless (zerop rest) (push '&rest arglist) (push 'rest arglist))
+          (unless (integerp max) (push '&rest arglist) (push 'rest arglist))
           (nreverse arglist))))
    ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
     "[Arg list not available until function definition is loaded.]")
@@ -1467,7 +1463,8 @@ the same names as used in the original source code, when possible."
 (define-obsolete-function-alias 'help-make-usage 'help--make-usage "25.1")
 
 (defun help--make-usage-docstring (fn arglist)
-  (help--docstring-quote (format "%S" (help--make-usage fn arglist))))
+  (let ((print-escape-newlines t))
+    (help--docstring-quote (format "%S" (help--make-usage fn arglist)))))
 
 
 (provide 'help)

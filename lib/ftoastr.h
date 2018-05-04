@@ -1,6 +1,6 @@
 /* floating point to accurate string
 
-   Copyright (C) 2010-2015 Free Software Foundation, Inc.
+   Copyright (C) 2010-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
 
@@ -88,7 +88,7 @@ enum
 # elif FLT_RADIX <= 16 /* IBM hex floating point has FLT_RADIX == 16.  */
 #  define _GL_FLOAT_DIG_BITS_BOUND 4
 # else /* no machine is this bad, but let's be complete */
-#  define _GL_FLOAT_DIG_BITS_BOUND (CHAR_BIT * (int) sizeof (int) - 1)
+#  define _GL_FLOAT_DIG_BITS_BOUND ((int) TYPE_WIDTH (int) - 1)
 # endif
 
 /* An upper bound on the number of decimal digits needed to represent
@@ -96,7 +96,7 @@ enum
    DIG digits.  For why the "+ 1" is needed, see "Binary to Decimal
    Conversion" in David Goldberg's paper "What Every Computer
    Scientist Should Know About Floating-Point Arithmetic"
-   <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html>.  */
+   <https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html>.  */
 # define _GL_FLOAT_PREC_BOUND(dig) \
    (INT_BITS_STRLEN_BOUND ((dig) * _GL_FLOAT_DIG_BITS_BOUND) + 1)
 

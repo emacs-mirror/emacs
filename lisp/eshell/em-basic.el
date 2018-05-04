@@ -1,6 +1,6 @@
 ;;; em-basic.el --- basic shell builtin commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -50,12 +50,6 @@
 ;;
 ;; The umask command changes the default file permissions for newly
 ;; created files.  It uses the same syntax as bash.
-;;
-;;;_* `version'
-;;
-;; This command reports the version number for Eshell and all its
-;; dependent module, including the date when those modules were last
-;; modified.
 
 ;;; Code:
 

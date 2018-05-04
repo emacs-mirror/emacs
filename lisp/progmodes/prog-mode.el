@@ -1,6 +1,6 @@
 ;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -29,7 +29,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-lib)
+                   (require 'subr-x))
 
 (defgroup prog-mode nil
   "Generic programming mode, from which others derive."
@@ -49,49 +50,27 @@
   "Keymap used for programming modes.")
 
 (defvar prog-indentation-context nil
-  "Non-nil while indenting embedded code chunks.
+  "When non-nil, provides context for indenting embedded code chunks.
+
 There are languages where part of the code is actually written in
-a sub language, e.g., a Yacc/Bison or ANTLR grammar also consists
-of plain C code.  This variable enables the major mode of the
-main language to use the indentation engine of the sub mode for
-lines in code chunks written in the sub language.
+a sub language, e.g., a Yacc/Bison or ANTLR grammar can also include
+JS or Python code.  This variable enables the primary mode of the
+main language to use the indentation engine of the sub-mode for
+lines in code chunks written in the sub-mode's language.
 
 When a major mode of such a main language decides to delegate the
 indentation of a line/region to the indentation engine of the sub
-mode, it is supposed to bind this variable to non-nil around the call.
+mode, it should bind this variable to non-nil around the call.
 
-The non-nil value looks as follows
-   \(FIRST-COLUMN (START . END) PREVIOUS-CHUNKS)
+The non-nil value should be a list of the form:
 
-FIRST-COLUMN is the column the indentation engine of the sub mode
-should usually choose for top-level language constructs inside
-the code chunk (instead of 0).
+   (FIRST-COLUMN . REST)
 
-START to END is the region of the code chunk.  See function
-`prog-widen' for additional info.
+FIRST-COLUMN is the column the indentation engine of the sub-mode
+should use for top-level language constructs inside the code
+chunk (instead of 0).
 
-PREVIOUS-CHUNKS, if non-nil, provides the indentation engine of
-the sub mode with the virtual context of the code chunk.  Valid
-values are:
-
- - A string containing code which the indentation engine can
-   consider as standing in front of the code chunk.  To cache the
-   string's calculated syntactic information for repeated calls
-   with the same string, it is valid and expected for the inner
-   mode to add text-properties to the string.
-
-   A typical use case is for grammars with code chunks which are
-   to be indented like function bodies - the string would contain
-   a corresponding function header.
-
- - A function called with the start position of the current
-   chunk.  It will return either the region of the previous chunk
-   as \(PREV-START . PREV-END) or nil if there is no further
-   previous chunk.
-
-   A typical use case are literate programming sources - the
-   function would successively return the code chunks of the
-   previous macro definitions for the same name.")
+REST is currently unused.")
 
 (defun prog-indent-sexp (&optional defun)
   "Indent the expression after point.
@@ -110,34 +89,21 @@ instead."
   "Return the indentation column normally used for top-level constructs."
   (or (car prog-indentation-context) 0))
 
-(defun prog-widen ()
-  "Remove restrictions (narrowing) from current code chunk or buffer.
-This function can be used instead of `widen' in any function used
-by the indentation engine to make it respect the value
-`prog-indentation-context'.
-
-This function (like `widen') is useful inside a
-`save-restriction' to make the indentation correctly work when
-narrowing is in effect."
-  (let ((chunk (cadr prog-indentation-context)))
-    (if chunk
-        ;; no widen necessary here, as narrow-to-region changes (not
-        ;; just narrows) existing restrictions
-        (narrow-to-region (car chunk) (or (cdr chunk) (point-max)))
-      (widen))))
-
-
 (defvar-local prettify-symbols-alist nil
   "Alist of symbol prettifications.
 Each element looks like (SYMBOL . CHARACTER), where the symbol
 matching SYMBOL (a string, not a regexp) will be shown as
-CHARACTER instead.")
+CHARACTER instead.
+
+CHARACTER can be a character, or it can be a list or vector, in
+which case it will be used to compose the new symbol as per the
+third argument of `compose-region'.")
 
 (defun prettify-symbols-default-compose-p (start end _match)
   "Return true iff the symbol MATCH should be composed.
 The symbol starts at position START and ends at position END.
-This is default `prettify-symbols-compose-predicate' which is
-suitable for most programming languages such as C or Lisp."
+This is the default for `prettify-symbols-compose-predicate'
+which is suitable for most programming languages such as C or Lisp."
   ;; Check that the chars should really be composed into a symbol.
   (let* ((syntaxes-beg (if (memq (char-syntax (char-after start)) '(?w ?_))
                            '(?w ?_) '(?. ?\\)))
@@ -149,25 +115,32 @@ suitable for most programming languages such as C or Lisp."
 
 (defvar-local prettify-symbols-compose-predicate
   #'prettify-symbols-default-compose-p
-  "A predicate deciding if the currently matched symbol is to be composed.
+  "A predicate for deciding if the currently matched symbol is to be composed.
 The matched symbol is the car of one entry in `prettify-symbols-alist'.
-The predicate receives the match's start and end position as well
+The predicate receives the match's start and end positions as well
 as the match-string as arguments.")
 
 (defun prettify-symbols--compose-symbol (alist)
   "Compose a sequence of characters into a symbol.
-Regexp match data 0 points to the chars."
+Regexp match data 0 specifies the characters to be composed."
   ;; Check that the chars should really be composed into a symbol.
   (let ((start (match-beginning 0))
         (end (match-end 0))
         (match (match-string 0)))
-    (if (funcall prettify-symbols-compose-predicate start end match)
+    (if (and (not (equal prettify-symbols--current-symbol-bounds (list start end)))
+             (funcall prettify-symbols-compose-predicate start end match))
         ;; That's a symbol alright, so add the composition.
-        (compose-region start end (cdr (assoc match alist)))
+        (with-silent-modifications
+          (compose-region start end (cdr (assoc match alist)))
+          (add-text-properties
+           start end
+           `(prettify-symbols-start ,start prettify-symbols-end ,end)))
       ;; No composition for you.  Let's actually remove any
       ;; composition we may have added earlier and which is now
       ;; incorrect.
-      (remove-text-properties start end '(composition))))
+      (remove-text-properties start end '(composition
+                                          prettify-symbols-start
+                                          prettify-symbols-end))))
   ;; Return nil because we're not adding any face property.
   nil)
 
@@ -178,6 +151,47 @@ Regexp match data 0 points to the chars."
     nil))
 
 (defvar-local prettify-symbols--keywords nil)
+
+(defvar-local prettify-symbols--current-symbol-bounds nil)
+
+(defcustom prettify-symbols-unprettify-at-point nil
+  "If non-nil, show the non-prettified version of a symbol when point is on it.
+If set to the symbol `right-edge', also unprettify if point
+is immediately after the symbol.  The prettification will be
+reapplied as soon as point moves away from the symbol.  If
+set to nil, the prettification persists even when point is
+on the symbol."
+  :version "25.1"
+  :type '(choice (const :tag "Never unprettify" nil)
+                 (const :tag "Unprettify when point is inside" t)
+                 (const :tag "Unprettify when point is inside or at right edge" right-edge))
+  :group 'prog-mode)
+
+(defun prettify-symbols--post-command-hook ()
+  (cl-labels ((get-prop-as-list
+               (prop)
+               (remove nil
+                       (list (get-text-property (point) prop)
+                             (when (and (eq prettify-symbols-unprettify-at-point 'right-edge)
+                                        (not (bobp)))
+                               (get-text-property (1- (point)) prop))))))
+    ;; Re-apply prettification to the previous symbol.
+    (when (and prettify-symbols--current-symbol-bounds
+	       (or (< (point) (car prettify-symbols--current-symbol-bounds))
+		   (> (point) (cadr prettify-symbols--current-symbol-bounds))
+		   (and (not (eq prettify-symbols-unprettify-at-point 'right-edge))
+			(= (point) (cadr prettify-symbols--current-symbol-bounds)))))
+      (apply #'font-lock-flush prettify-symbols--current-symbol-bounds)
+      (setq prettify-symbols--current-symbol-bounds nil))
+    ;; Unprettify the current symbol.
+    (when-let* ((c (get-prop-as-list 'composition))
+	        (s (get-prop-as-list 'prettify-symbols-start))
+	        (e (get-prop-as-list 'prettify-symbols-end))
+	        (s (apply #'min s))
+	        (e (apply #'max e)))
+      (with-silent-modifications
+	(setq prettify-symbols--current-symbol-bounds (list s e))
+	(remove-text-properties s e '(composition))))))
 
 ;;;###autoload
 (define-minor-mode prettify-symbols-mode
@@ -205,9 +219,16 @@ support it."
       (when (setq prettify-symbols--keywords (prettify-symbols--make-keywords))
         (font-lock-add-keywords nil prettify-symbols--keywords)
         (setq-local font-lock-extra-managed-props
-                    (cons 'composition font-lock-extra-managed-props))
+                    (append font-lock-extra-managed-props
+                            '(composition
+                              prettify-symbols-start
+                              prettify-symbols-end)))
+        (when prettify-symbols-unprettify-at-point
+          (add-hook 'post-command-hook
+                    #'prettify-symbols--post-command-hook nil t))
         (font-lock-flush))
     ;; Turn off
+    (remove-hook 'post-command-hook #'prettify-symbols--post-command-hook t)
     (when prettify-symbols--keywords
       (font-lock-remove-keywords nil prettify-symbols--keywords)
       (setq prettify-symbols--keywords nil))

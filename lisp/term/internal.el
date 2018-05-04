@@ -1,6 +1,6 @@
 ;;; internal.el --- support for PC internal terminal
 
-;; Copyright (C) 1993-1994, 1998-1999, 2001-2015 Free Software
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2018 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -233,13 +233,13 @@
        "U*!" "U*'" "R*;" "!:" ":'" "!*" nil nil nil "w*j"
        nil nil "w*?" nil "O*!" "O*'" "W*!" "W*'" "W*J" "/*"
        ";;" nil nil nil "1N" "1M" "3M" "4M" "6M" nil          ; Gen Punct
-       nil "1T" "1H" nil nil nil "LRM" "RLM" "-1" nil
-       nil "--" "---" "===" "!2" "=2" "6`" "'9" ".9" "9'"
-       "``" "''" ":9" "9``" "/-" "/=" "sb" "3b" nil ".."
+       nil "1T" "1H" nil nil nil "LRM" "RLM" "-" "-"
+       "-" "--" "---" "===" "!2" "=2" "'" "'" ".9" "9'"
+       "\"" "\"" ":9" "9``" "/-" "/=" "sb" "3b" nil ".."
        "..." ".-" "LSep" "PSep" "LR[" "RL[" "PDF" "LRO" "RLO" 255
        "%o" "%oo" "'" "''" "\"'" "`" "``" "```" ".^" "<,"
        ",>" ":X" "!!" "?!" "'-" nil nil nil nil "-b"
-       "/f" nil nil nil nil nil nil nil nil nil
+       "/f" nil nil "??" "?!" "!?" nil nil nil nil
        nil nil nil nil nil nil nil nil nil nil
        nil nil nil nil nil nil nil nil nil nil
        nil nil nil nil nil nil nil nil nil nil
@@ -265,17 +265,17 @@
        "oK" "AO" nil nil "Est" nil nil nil nil nil
        nil "Aleph" "Bet" "Gimel" "Dalet" "=i=" nil nil nil nil
        nil nil nil nil nil nil nil nil nil nil
-       nil nil nil nil nil nil nil nil nil nil
-       nil "1/3" "2/3" "1/5" "2/5" "3/5" "4/5" "1/6" "5/6" "1/8"
+       nil nil nil nil nil nil nil nil "1/7" "1/9"
+       "1/10" "1/3" "2/3" "1/5" "2/5" "3/5" "4/5" "1/6" "5/6" "1/8"
        "3/8" "5/8" "7/8" "1/" ".I" "II" "III" "IV" ".V" "VI"
        "VII" "VIII" "IX" "X" "XI" "XII" ".L" ".C" ".D" ".M"
        ".i" "ii" "iii" "iv" ".v" "vi" "vii" "viii" "ix" ".x"
-       "xi" ".l" ".c" ".d" ".m" "CD" "DD" "CoD" "CI" nil
+       "xi" "xii" ".l" ".c" ".d" ".m" "CD" "DD" "CoD" "CI"
        nil nil nil nil nil nil nil nil nil nil
-       nil "<-" "|^" "->" "|v" "<->" "v|^" "^\\" "/^" "\\v"
-       "v/" "<-/" "/->" "<~" "~>" "<<-" "|^^" "->>" "|vv" "<-<"
-       ">->" "<-|" "_|^" "|->" "-|v" "_v|^" "<-?" "?->" "<-o" "o->"
-       "<~>" "<-/>" nil nil nil nil nil nil nil nil
+       nil nil "<-" "|^" "->" "|v" "<->" "v|^" "^\\" "/^"
+       "\\v" "v/" "<-/" "/->" "<~" "~>" "<<-" "|^^" "->>" "|vv"
+       "<-<" ">->" "<-|" "_|^" "|->" "-|v" "_v|^" "<-?" "?->" "<-o"
+       "o->" "<~>" "<-/>" nil nil nil nil nil nil nil
        nil nil nil nil nil nil nil nil nil nil
        nil nil nil nil nil nil nil nil nil nil
        nil nil nil "<=/" "<=/>" "/=>" "<=" "||^" "=>" "||v"
@@ -299,7 +299,7 @@
        "~<'" "`>~" "/<'" "/`>" "(C" ")C" "/(C" "/)C" "(_" ")_"
        "/(_" "/)_" nil nil nil nil nil nil nil nil
        nil nil nil "0+" "0-" "0x" "0/" "0." "0o" "0*"
-       "0=" "0_" nil nil nil nil "|T" "T|" "-T" "_T"
+       "0=" "0_" nil nil nil nil "|-" "-|" "-T" "_T"
        nil nil nil nil nil nil nil nil nil nil
        nil nil nil nil nil nil nil nil nil "-,-"
        nil "XOR" "NAND" "NOR" nil nil nil nil nil nil
@@ -357,8 +357,10 @@
        "M-o" "N-o" "O-o" "P-o" "Q-o" "R-o" "S-o" "T-o" "U-o" "V-o"
        "W-o" "X-o" "Y-o" "Z-o" "a-o" "b-o" "c-o" "d-o" "e-o" "f-o"
        "g-o" "h-o" "i-o" "j-o" "k-o" "l-o" "m-o" "n-o" "o-o" "p-o"
-       "q-o" "r-o" "s-o" "t-o" "u-o" "v-o" "w-o" "x-o" "y-o" "z-o"
-       "0-o" ]
+       "q-o" "r-o" "s-o" "t-o" "u-o" "v-o" "w-o" "x-o" "y-o" "z-o" "0-o" ]
+     )
+    (9733 9734
+      ["-!-" "-*-"]
      )
     )
 
@@ -593,8 +595,7 @@ list.  You can (and should) also run it if and when the value of
     (set-selection-coding-system coding-dos)
     (IT-setup-unicode-display coding-unix)
     (prefer-coding-system coding-dos)
-    (and (default-value 'enable-multibyte-characters)
-	 (setq unibyte-display-via-language-environment t))
+    (setq unibyte-display-via-language-environment t)
     ;; Some codepages have sporadic support for Latin-1, Greek, and
     ;; symbol glyphs, which don't belong to their native character
     ;; set.  It's a nuisance to have all those glyphs here, for all
@@ -603,5 +604,7 @@ list.  You can (and should) also run it if and when the value of
     ;; squeeze every bit of support out of their terminal/font.
     (run-hooks 'dos-codepage-setup-hook)
     ))
+
+(provide 'term/internal)
 
 ;;; internal.el ends here

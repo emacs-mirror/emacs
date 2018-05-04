@@ -1,6 +1,6 @@
 ;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output
 
-;; Copyright (C) 1996, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Tom Houlder <thoulder@icor.fr>
 ;; Created: 10 Dec 1996
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -89,7 +89,7 @@
   (save-excursion
     (goto-char (point-min))
     (message "Removing comments")
-    (while (re-search-forward "^[A-z\.()+0-9: ]*`\\|'.*$" nil t)
+    (while (re-search-forward "^[A-z.()+0-9: ]*`\\|'.*$" nil t)
       (replace-match ""))))
 
 (defun mantemp-remove-memfuncs ()
@@ -128,7 +128,7 @@
 
 (defun mantemp-insert-cxx-syntax ()
   "Insert C++ syntax around each template class and function.
-Insert 'template class' for classes, 'template' for
+Insert `template class' for classes, `template' for
 functions and add the statement delimiter `;' at the end of
 the lines."
   (save-excursion
@@ -157,8 +157,8 @@ the lines."
 	    "^template class [A-z :&*<>~=,0-9+!]*(" nil t nil)
       (progn
 	(beginning-of-line)
-	(forward-word 1)
-	(delete-region (point) (progn (forward-word 1) (point)))))))
+	(forward-word-strictly 1)
+	(delete-region (point) (progn (forward-word-strictly 1) (point)))))))
 
 (defun mantemp-make-mantemps ()
   "Gathering interface to the functions modifying the buffer."

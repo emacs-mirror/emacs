@@ -1,9 +1,8 @@
 ;;; calc-forms.el --- data format conversion functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -18,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -318,7 +317,9 @@
 	 (list 'calcFunc-hms a))
 	((math-negp a)
 	 (math-neg (math-to-hms (math-neg a) ang)))
-	((eq (or ang calc-angle-mode) 'rad)
+	((eq (or ang
+                 (and (not math-simplifying-units) calc-angle-mode))
+                 'rad)
 	 (math-to-hms (math-div a (math-pi-over-180)) 'deg))
 	((memq (car-safe a) '(cplx polar)) a)
 	(t
@@ -355,12 +356,16 @@
 	   (if (eq (car-safe a) 'sdev)
 	       (math-make-sdev (math-from-hms (nth 1 a) ang)
 			       (math-from-hms (nth 2 a) ang))
-	     (if (eq (or ang calc-angle-mode) 'rad)
+	     (if (eq (or ang
+                         (and (not math-simplifying-units) calc-angle-mode))
+                     'rad)
 		 (list 'calcFunc-rad a)
 	       (list 'calcFunc-deg a)))))
 	((math-negp a)
 	 (math-neg (math-from-hms (math-neg a) ang)))
-	((eq (or ang calc-angle-mode) 'rad)
+	((eq (or ang
+                 (and (not math-simplifying-units) calc-angle-mode))
+             'rad)
 	 (math-mul (math-from-hms a 'deg) (math-pi-over-180)))
 	(t
 	 (math-add (math-div (math-add (math-div (nth 3 a)

@@ -1,6 +1,6 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -203,13 +203,6 @@ Character sets for defining other charsets, or for backward compatibility
 (defvar non-iso-charset-alist nil
   "Obsolete.")
 (make-obsolete-variable 'non-iso-charset-alist "no longer relevant." "23.1")
-
-(defun decode-codepage-char (codepage code)
-  "Decode a character that has code CODE in CODEPAGE.
-Return a decoded character string.  Each CODEPAGE corresponds to a
-coding system cpCODEPAGE."
-  (declare (obsolete decode-char "23.1"))
-  (decode-char (intern (format "cp%d" codepage)) code))
 
 ;; A variable to hold charset input history.
 (defvar charset-history nil)
@@ -845,7 +838,8 @@ The font must be already used by Emacs."
   (interactive "sFont name (default current choice for ASCII chars): ")
   (or (and window-system (fboundp 'fontset-list))
       (error "No fonts being used"))
-  (let (font-info)
+  (let ((xref-item (list #'describe-font fontname))
+        font-info)
     (if (or (not fontname) (= (length fontname) 0))
 	(setq fontname (face-attribute 'default :font)))
     (setq font-info (font-info fontname))
@@ -857,6 +851,7 @@ The font must be already used by Emacs."
 	    ;; this problem.
 	    (message "No information about \"%s\"" (font-xlfd-name fontname))
 	  (message "No matching font found"))
+      (help-setup-xref xref-item (called-interactively-p 'interactive))
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info)))))
 
@@ -1108,8 +1103,6 @@ system which uses fontsets)."
       (insert "Version of this emacs:\n  " (emacs-version) "\n\n")
       (insert "Configuration options:\n  " system-configuration-options "\n\n")
       (insert "Multibyte characters awareness:\n"
-	      (format "  default: %S\n" (default-value
-					  'enable-multibyte-characters))
 	      (format "  current-buffer: %S\n\n" enable-multibyte-characters))
       (insert "Current language environment: " current-language-environment
 	      "\n\n")
@@ -1121,7 +1114,7 @@ system which uses fontsets)."
       (insert "\n\n")
 
       (if window-system
-	  (let ((font (cdr (assq 'font (frame-parameters)))))
+	  (let ((font (frame-parameter nil 'font)))
 	    (insert "The font and fontset of the selected frame are:\n"
 		    "     font: " font "\n"
 		    "  fontset: " (face-attribute 'default :fontset) "\n"))

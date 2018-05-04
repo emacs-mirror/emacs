@@ -1,0 +1,382 @@
+#! /un/bin/env perl
+
+# htmlify-cystic-l-faq:  turn text version of cystic-l faq into html
+# run like this:   htmlify-cystic-l-faq < cystic-l-faq-all
+
+# Ron Trueworthy should put the date on the FAQ.
+
+use English;
+use Carp;
+use strict;
+
+my @section_name;
+my @appendix_name;
+
+my @section_toc;
+my @appendix_toc;
+
+my $new_tag = "[NEW]";
+
+if (! -d "faq")
+{ die "Can't find faq directory"; }
+
+# Initially undefined
+my $appendix;
+my $section;
+my $subsection;
+my $subsubsection;
+
+my $this_file_toc = "";
+my %file_tocs;
+
+my @output_files = ();
+my $file_index = 0;
+
+my $output_file;
+
+my $line;
+while (defined($line = <>))
+{
+  ### Message headers
+  if ($line =~ /^From /)
+    { while ($line ne "\n")
+	{ $line = <>; } }
+
+  if ($line =~ /^See PART ONE of this FAQ for/)
+    { while (defined($line = <>) && ($line ne "\n"))
+	{ }
+      next; }
+
+  if ($line =~ /^\s*[-+]+$/)
+    { next; }
+
+  ### File headers
+  if ($line =~ /^\s*CYSTIC-L Frequently Asked Questions - PART (.*)\n$/)
+    { # print "part $1\n";
+      if ($1 ne "ONE")
+	{ next; }
+      if ($output_file)
+	{ die "output_file shouldn't have been set yet: $output_file"; }
+      $output_file = "faq/index.html";
+      open(OUTPUT, ">$output_file") || die "Couldn't open $output_file";
+      select OUTPUT;
+      print "<HEAD>
+<TITLE>CYSTIC-L FAQ Table of Contents
+</TITLE>
+</HEAD>
+<BODY>
+<H1>CYSTIC-L Frequently Asked Questions</H1>
+<h2>Knowledge Is Power</h2>
+";
+      next; }
+
+  if ($line =~ /^\s*~ Knowledge Is Power ~$/)
+    { next; }
+
+  ### Table of contents
+  if ($line =~ /^\s*~ FAQ Table of Contents ~$/)
+      { read_toc();
+	print "<hr><a href=\"../\">Info-Zone</a> <a href=\"../../\">CF-WEB</a>\n";
+	close(OUTPUT);
+	next;
+      }
+
+  if ($line =~ /^PART /)
+    { next; }
+
+  if ($line =~ s/^>?APPENDIX ([A-Z])\.\s*//)
+    { if (!defined($appendix))
+	{ if ($1 ne "A")
+	    { die "First appendix is $1"; } }
+      elsif ($1 ne chr(ord($appendix)+1))
+	{ die "Appendix $1 follows Appendix $appendix"; }
+
+      file_end();
+      close(OUTPUT);
+      $appendix = $1;
+      $section = undef;
+      $subsection = undef;
+      $subsubsection = undef;
+      $output_file = section_url_base();
+      open(OUTPUT, "> faq/$output_file") || die "Can't open faq/$output_file";
+      select OUTPUT;
+
+      chomp($line);
+      print "<title>$line</title>\n<h1>$line</h1>\n";
+      if (defined($file_tocs{$output_file}) && $file_tocs{$output_file})
+	{ print "Contents: $file_tocs{$output_file}\n"; }
+      next; }
+
+  if (($line =~ /^>?([0-9]+)\.\s+/) && (!defined($section) || ($1 == $section+1)))
+    { $line =~ s/^>?([0-9]+)\.\s+//;
+      if (!defined($appendix))
+	{ # should do some more here
+	  if (defined($section))
+	    { file_end(); }
+	  close(OUTPUT); }
+      $section = $1;
+      $subsection = undef;
+      $subsubsection = undef;
+      $output_file = section_url_base();
+      if (!defined($appendix))
+	{ open(OUTPUT, "> faq/$output_file") || die "Can't open faq/$output_file";
+	  select OUTPUT;
+	  chomp($line);
+	  print "<title>$line</title>\n<h1>$line</h1>\n";
+	  if (defined($file_tocs{$output_file}) && $file_tocs{$output_file})
+	    { print "Contents: $file_tocs{$output_file}\n"; }
+	  next; }
+    }
+
+  if ($line =~ s/^>?o\s+//)
+    { $line =~ s/^>//;		# sometimes the > follows the itemization
+      if (!defined($subsection))
+	{ $subsection = 1; }
+      else
+	{ $subsection++; }
+      $subsubsection = undef;
+      print "<h2>", section_name($line), "</h2>\n";
+      next; }
+
+  if ($line =~ s/^>?-\s+//)
+    { $line =~ s/^>//;		# sometimes the > follows the itemization
+      if (!defined($subsubsection))
+	{ $subsubsection = 1; }
+      else
+	{ $subsubsection++; }
+      print "<h3>", section_name($line), "</h3>\n";
+      next; }
+
+  ### A paragraph of ordinary text
+  if ($line !~ /^\s*$/)
+    { print "<p>$line";
+      while (defined($line = <>) && ($line ne "\n"))
+	{ print $line; }
+      print "</p>\n";
+    }
+
+}
+file_end();
+
+my $subsection_marker;
+
+my $new;
+
+sub read_toc ()
+{ # These variables are initially undefined
+  if (defined($appendix)
+      || defined($section)
+      || defined($subsection)
+      || defined($subsubsection))
+    { die "some value should have been undefined when calling read_toc: `$appendix' `$section' `$subsection' `$subsubsection'"; }
+
+  while (defined($line = <>) && $line)
+    { if ($line =~ /^\s*$/)
+	{ next; }
+      if ($line =~ /^\s*\((Portions updated since.*)>\)\n/)
+	{ print "$1$new_tag<p>\n";
+	  next; }
+      if ($line =~ /^PART (.*)$/)
+	#	{ if ($MATCH eq "ONE")
+	#	    { print ... }
+	{ next; }
+      if ($line eq "APPENDICES\n")
+	{ next; }
+      if ($line =~ /^\s*INDEX/)
+	{ next; }
+
+      if ($line =~ /^\s*[-+]+$/)
+	{ finish_appendices();
+	  if (defined($appendix)
+	      || defined($section)
+	      || defined($subsection)
+	      || defined($subsubsection))
+	    { die "some value should have been undefined when exiting read_toc: `$appendix' `$section' `$subsection' `$subsubsection'"; }
+	  return; }
+
+      $new = ($line =~ s/>//);
+
+      # # Not sure if this is the right place to do this.
+      # if (($line !~ /^\s*([-o]|[0-9A-Z]+\.|APPENDIX [A-Z]\.)/)
+      # 	  && ($line !~ /[ .]*[0-9]+$/))
+      # 	{ die "What line? $line"; }
+      while (!($line =~ s/[ .]*[0-9]+$//))
+	{ $line .= <>; }
+      chomp($line);
+
+      if ($line =~ s/^\s*APPENDIX ([A-Z])\.\s*//)
+	{ finish_sections();
+	  if (!defined($appendix))
+	    { if ($1 ne "A")
+		{ die "First appendix is $1"; }
+	      print "Appendices\n";
+	      print "<ol type=\"A\" start=\"$1\">\n"; }
+	  elsif ($1 ne chr(ord($appendix)+1))
+	    { die "Appendix $1 follows Appendix $appendix"; }
+	  $appendix = $1;
+	  $appendix_name[ord($appendix)-ord('A')+1] = $line;
+	  my $entry = toc_line($line);
+	  print $entry;
+	  push(@output_files,section_url_base());
+	  next; }
+
+      if ($line =~ s/^\s*([0-9]+)\.\s*//)
+	{ finish_subsections();
+	  if (!defined($section))
+	    { my $entry = "<ol start=$1>\n";
+	      print $entry;
+	      if (defined($appendix))
+		{ $this_file_toc .= $entry; } }
+	  elsif ($1 != $section+1)
+	    { die "Section $1 follows section $section"; }
+	  $section = $1;
+	  $section_name[$section] = $line;
+	  my $entry = "  " . toc_line($line);
+	  print $entry;
+	  if (defined($appendix))
+	    { $this_file_toc .= $entry; }
+	  else
+	    { push(@output_files,section_url_base()); }
+	  next; }
+
+      if ($line =~ s/^\s*o\s+//)
+	{ if (!defined($subsection))
+	    { $subsection = 1;
+	      my $entry = "  <ul>\n";
+	      print $entry;
+	      $this_file_toc .= $entry;
+	      $subsection_marker = "ul"; }
+	  else
+	    { finish_subsubsections();
+	      $subsection++; }
+	  my $entry = "    " . toc_line($line);
+	  print $entry;
+	  $this_file_toc .= $entry;
+	  next; }
+
+      if ($line =~ s/^\s*([A-Z])\.\s+//)
+	{ finish_subsubsections();
+	  if (!defined($subsection))
+	    { my $entry = "  <ol type=\"A\" start=\"$1\">\n";
+	      print $entry;
+	      $this_file_toc .= $entry;
+	      $subsection_marker = "ol"; }
+	  else
+	    { if ($1 ne chr(ord($subsection)+1))
+		{ die "Subsection $1 follows subsection $subsection"; } }
+	  $subsection = $1;
+	  my $entry = "      " . toc_line($line);
+	  print $entry;
+	  $this_file_toc .= $entry;
+	  next; }
+
+      if ($line =~ s/^\s*-\s+//)
+	{ if (!defined($subsubsection))
+	    { $subsubsection = 1;
+	      my $entry = "    <ul>\n";
+	      print $entry;
+	      $this_file_toc .= $entry; }
+	  else
+	    { $subsubsection++; }
+	  my $entry = "        " . toc_line($line);
+	  print $entry;
+	  $this_file_toc .= $entry;
+	  next; }
+
+      # Itemized line without leading "o" (grrr).
+       if (!defined($subsection))
+	  { my $entry = "  <ul>\n";
+	    print $entry;
+	    $this_file_toc .= $entry;
+	    $subsection = 1;
+	    $subsection_marker = "ul"; }
+	else
+	  { $subsection++; }
+	$line =~ s/^\s*//;
+      my $entry = "      " . toc_line($line);
+      $this_file_toc .= $entry;
+      print $entry;
+    }
+}
+
+sub finish_subsubsections ()
+{ if (defined($subsubsection))
+    { my $entry = "      </ul>\n";
+      print $entry;
+      $this_file_toc .= $entry;
+      $subsubsection = undef; } }
+
+sub finish_subsections ()
+{ finish_subsubsections();
+  if (defined($subsection))
+    { my $entry = "    </$subsection_marker>\n";
+      print $entry;
+      $this_file_toc .= $entry;
+      $subsection = undef;
+      if (!defined($appendix))
+	{ $file_tocs{section_url_base()} = $this_file_toc;
+	  $this_file_toc = ""; } } }
+
+sub finish_sections ()
+{ finish_subsections();
+  if (defined($section))
+    { my $entry = "  </ol>\n";
+      print $entry;
+      if (defined($appendix))
+	{ $this_file_toc .= $entry;
+	  $file_tocs{section_url_base()} = $this_file_toc;
+	  $this_file_toc = ""; }
+      $section = undef; } }
+
+sub finish_appendices ()
+{ finish_sections();
+  if (defined($appendix))
+    { print "</ol>\n";
+      $appendix = undef; } }
+
+sub section_url_base ()
+{ if (!defined($appendix) && !defined($section))
+    { die "undefined appendix and section"; }
+  return (defined($appendix) ? "app-$appendix.html" : "sec-$section.html"); }
+
+sub section_url_name ()
+{ my $sans_subsubsection
+    = (defined($appendix)
+       ? (defined($section)
+	  ? "sec-$section" . (defined($subsection)
+				? "-$subsection" : "")
+	  : "")
+       : (defined($subsection) ? "ssec-$subsection" : ""));
+  if (defined($subsubsection))
+    { $sans_subsubsection . "-$subsubsection"; }
+  else
+    { $sans_subsubsection; } }
+
+sub section_url ()
+{ my $base = section_url_base();
+  my $name = section_url_name();
+  if ($name)
+    { return $base . "\#" . $name; }
+  else
+    { return $base; } }
+
+
+sub section_href ($)
+{ my ($text) = @_;
+  return "<a href=\"" . section_url() . "\">$text</a>"; }
+
+sub section_name ($)
+{ my ($text) = @_;
+  return "<a name=\"" . section_url_name() . "\">$text</a>"; }
+
+sub toc_line ($)
+{ return " <LI>" . section_href($line) . ($new ? " $new_tag" : "") . "\n"; }
+
+sub file_end ()
+{ print "\n\n<hr>\n"
+    . (($file_index < $#output_files)
+       ? "<a href=\"$output_files[$file_index+1]\">Next</a> " : "")
+      . (($file_index > 0)
+	 ? "<a href=\"$output_files[$file_index-1]\">Previous</a> " : "")
+	. "<a href=\"./\">FAQ</a> <a href=\"../\">Info-Zone</a> <a href=\"../../\">CF-WEB</a>\n";
+  $file_index++; }

@@ -1,6 +1,6 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects
 
-;; Copyright (C) 2002-2004, 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -39,7 +39,7 @@
   "Enable autojoining."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-autojoin-mode "erc-join" nil t)
+;;;###autoload(autoload 'erc-autojoin-mode "erc-join" nil t)
 (define-erc-module autojoin nil
   "Makes ERC autojoin on connects and reconnects."
   ((add-hook 'erc-after-connect 'erc-autojoin-channels)
@@ -129,7 +129,7 @@ This function is run from `erc-nickserv-identified-hook'."
       (setq erc--autojoin-timer
 	    (erc-cancel-timer erc--autojoin-timer)))
   (when (eq erc-autojoin-timing 'ident)
-    (let ((server (or erc-server-announced-name erc-session-server))
+    (let ((server (or erc-session-server erc-server-announced-name))
 	  (joined (mapcar (lambda (buf)
 			    (with-current-buffer buf (erc-default-target)))
 			  (erc-channel-list erc-server-process))))
@@ -155,32 +155,24 @@ This function is run from `erc-nickserv-identified-hook'."
     ;; `erc-autojoin-timing' is `connect':
     (dolist (l erc-autojoin-channels-alist)
       (when (string-match (car l) server)
-	(dolist (chan (cdr l))
-	  (erc-server-join-channel server chan)))))
+	(let ((server (or erc-session-server erc-server-announced-name)))
+	  (dolist (chan (cdr l))
+	    (let ((buffer (erc-get-buffer chan)))
+	      ;; Only auto-join the channels that we aren't already in
+	      ;; using a different nick.
+	      (when (or (not buffer)
+			(not (with-current-buffer buffer
+			       (erc-server-process-alive))))
+		(erc-server-join-channel server chan))))))))
   ;; Return nil to avoid stomping on any other hook funcs.
   nil)
-
-(defun erc-server-join-channel (server channel)
-  (let* ((secret (plist-get (nth 0 (auth-source-search
-				    :max 1
-				    :host server
-				    :port "irc"
-				    :user channel))
-			    :secret))
-	 (password (if (functionp secret)
-		       (funcall secret)
-		     secret)))
-    (erc-server-send (concat "join " channel
-			     (if password
-				 (concat " " password)
-			       "")))))
 
 (defun erc-autojoin-add (proc parsed)
   "Add the channel being joined to `erc-autojoin-channels-alist'."
   (let* ((chnl (erc-response.contents parsed))
 	 (nick (car (erc-parse-user (erc-response.sender parsed))))
 	 (server (with-current-buffer (process-buffer proc)
-		   (or erc-server-announced-name erc-session-server))))
+		   (or erc-session-server erc-server-announced-name))))
     (when (erc-current-nick-p nick)
       (when (and erc-autojoin-domain-only
 		 (string-match "[^.\n]+\\.\\([^.\n]+\\.[^.\n]+\\)$" server))
@@ -203,7 +195,7 @@ This function is run from `erc-nickserv-identified-hook'."
   (let* ((chnl (car (erc-response.command-args parsed)))
 	 (nick (car (erc-parse-user (erc-response.sender parsed))))
 	 (server (with-current-buffer (process-buffer proc)
-		   (or erc-server-announced-name erc-session-server))))
+		   (or erc-session-server erc-server-announced-name))))
     (when (erc-current-nick-p nick)
       (when (and erc-autojoin-domain-only
 		 (string-match "[^.\n]+\\.\\([^.\n]+\\.[^.\n]+\\)$" server))
@@ -223,7 +215,7 @@ This function is run from `erc-nickserv-identified-hook'."
 ;;; erc-join.el ends here
 ;;
 ;; Local Variables:
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

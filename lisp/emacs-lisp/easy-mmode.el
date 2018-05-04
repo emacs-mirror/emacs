@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -68,6 +68,7 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 				     "toggle-\\|-mode\\'" ""
                                      (symbol-name mode))))
 		       " mode")))
+    (setq name (replace-regexp-in-string "\\`Global-" "Global " name))
     (if (not (stringp lighter)) name
       ;; Strip leading and trailing whitespace from LIGHTER.
       (setq lighter (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
@@ -107,9 +108,10 @@ Optional LIGHTER is displayed in the mode line when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
   or an expression that returns either a keymap or a list of
-  arguments for `easy-mmode-define-keymap'.  If you supply a KEYMAP
-  argument that is not a symbol, this macro defines the variable
-  MODE-map and gives it the value that KEYMAP specifies.
+  (KEY . BINDING) pairs where KEY and BINDING are suitable for
+  `define-key'.  If you supply a KEYMAP argument that is not a
+  symbol, this macro defines the variable MODE-map and gives it
+  the value that KEYMAP specifies.
 
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
@@ -136,7 +138,7 @@ BODY contains code to execute each time the mode is enabled or disabled.
 :variable PLACE	The location to use instead of the variable MODE to store
 		the state of the mode.	This can be simply a different
 		named variable, or a generalized variable.
-		PLACE can also be of the form \(GET . SET), where GET is
+		PLACE can also be of the form (GET . SET), where GET is
 		an expression that returns the current state, and SET is
 		a function that takes one argument, the new state, and
 		sets it.  If you specify a :variable, this function does
@@ -148,16 +150,15 @@ BODY contains code to execute each time the mode is enabled or disabled.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
-    :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
+    :lighter \" Foo\" :require \\='foo :global t :group \\='hassle :version \"27.5\"
     ...BODY CODE...)"
   (declare (doc-string 2)
            (debug (&define name string-or-null-p
-                           [&optional [&not keywordp] sexp
-                            &optional [&not keywordp] sexp
-                            &optional [&not keywordp] sexp]
-                           [&rest [keywordp sexp]]
-                           def-body))
-           (indent 1))
+			   [&optional [&not keywordp] sexp
+			    &optional [&not keywordp] sexp
+			    &optional [&not keywordp] sexp]
+			   [&rest [keywordp sexp]]
+			   def-body)))
 
   ;; Allow skipping the first three args.
   (cond
@@ -252,7 +253,8 @@ Use the command `%s' to change this variable." pretty-name mode))
          (t
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
-See the command `%s' for a description of this minor mode."
+See the `%s' command
+for a description of this minor mode."
                          (if body "
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
@@ -307,11 +309,13 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
        ;; up-to-here.
        :autoload-end
 
-       (defvar ,hook nil
-         ,(format "Hook run after entering or leaving `%s'.
+       (defvar ,hook nil)
+       (unless (get ',hook 'variable-documentation)
+         (put ',hook 'variable-documentation
+              ,(format "Hook run after entering or leaving `%s'.
 No problems result if this variable is not bound.
 `add-hook' automatically binds it.  (This is true for all hook variables.)"
-		  modefun))
+                       modefun)))
 
        ;; Define the minor-mode keymap.
        ,(unless (symbolp keymap)	;nil is also a symbol.
@@ -502,7 +506,7 @@ Valid keywords and arguments are:
   :inherit   Parent keymap.
   :group     Ignored.
   :suppress  Non-nil to call `suppress-keymap' on keymap,
-             'nodigits to suppress digits as prefix arguments."
+             `nodigits' to suppress digits as prefix arguments."
   (let (inherit dense suppress)
     (while args
       (let ((key (pop args))
@@ -541,6 +545,7 @@ Valid keywords and arguments are:
   "Define a constant M whose value is the result of `easy-mmode-define-keymap'.
 The M, BS, and ARGS arguments are as per that function.  DOC is
 the constant's documentation."
+  (declare (indent 1))
   `(defconst ,m
      (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
      ,doc))
@@ -567,6 +572,7 @@ the constant's documentation."
 (defmacro easy-mmode-defsyntax (st css doc &rest args)
   "Define variable ST as a syntax-table.
 CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
+  (declare (indent 1))
   `(progn
      (autoload 'easy-mmode-define-syntax "easy-mmode")
      (defconst ,st (easy-mmode-define-syntax ,css ,(cons 'list args)) ,doc)))

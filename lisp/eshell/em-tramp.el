@@ -1,6 +1,6 @@
 ;;; em-tramp.el --- Eshell features that require TRAMP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Aidan Gauland <aidalgol@no8wireless.co.nz>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,12 +26,15 @@
 ;;; Code:
 
 (require 'esh-util)
+(require 'esh-cmd)
 
 (eval-when-compile
   (require 'esh-mode)
   (require 'eshell)
   (require 'tramp))
 
+;; There are no items in this custom group, but eshell modules (ab)use
+;; custom groups.
 ;;;###autoload
 (progn
  (defgroup eshell-tramp nil
@@ -72,8 +75,7 @@ Become another USER during a login session.")
 	    (let ((user "root")
 		  (host (or (file-remote-p default-directory 'host)
 			    "localhost"))
-		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory)))
+		  (dir (file-local-name (expand-file-name default-directory)))
 		  (prefix (file-remote-p default-directory)))
 	      (dolist (arg args)
 		(if (string-equal arg "-") (setq login t) (setq user arg)))
@@ -111,8 +113,7 @@ Execute a COMMAND as the superuser or another USER.")
 	    (let ((user (or user "root"))
 		  (host (or (file-remote-p default-directory 'host)
 			    "localhost"))
-		  (dir (or (file-remote-p default-directory 'localname)
-			   (expand-file-name default-directory)))
+		  (dir (file-local-name (expand-file-name default-directory)))
 		  (prefix (file-remote-p default-directory)))
 	      ;; `eshell-eval-using-options' reads options of COMMAND.
 	      (while (and (stringp (car orig-args))

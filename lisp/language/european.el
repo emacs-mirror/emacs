@@ -1,6 +1,6 @@
 ;;; european.el --- support for European languages -*- coding: utf-8; -*-
 
-;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -24,7 +24,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -506,7 +506,7 @@ and it selects the Spanish tutorial."))
 	     (input-method . "turkish-postfix")
 	     (sample-text . "Turkish (Türkçe)	Merhaba")
 	     (setup-function . turkish-case-conversion-enable)
-	     (setup-function . turkish-case-conversion-disable)
+	     (exit-function . turkish-case-conversion-disable)
 	     (documentation . "Support for Turkish.
 Differs from the Latin-5 environment in using the `turkish-postfix' input
 method and applying Turkish case rules for the characters i, I, ı, İ.")))
@@ -613,6 +613,28 @@ method and applying Turkish case rules for the characters i, I, ı, İ.")))
 	    (sample-text . "Oi")
 	    (documentation . "Support for Brazilian Portuguese."))
  '("European"))
+
+(set-language-info-alist
+ "Catalan" '((charset iso-8859-1)
+	     (coding-system iso-8859-1 iso-8859-15)
+	     (coding-priority iso-8859-1)
+	     (input-method . "catalan-prefix")
+	     (nonascii-translation . iso-8859-1)
+	     (unibyte-display . iso-8859-1)
+	     (setup-function
+	      . (lambda ()
+		  (modify-syntax-entry ?· "w" (standard-syntax-table))))
+	     (exit-function
+	      . (lambda ()
+		  (modify-syntax-entry ?· "_" (standard-syntax-table))))
+	     (sample-text . "\
+Catalan (Català)  Avui demà i ahir s'esfullarà una rosa.")
+	     (documentation . "\
+This language environment uses the ISO-8859-1 character set,
+sets the default input method to \"catalan-prefix\", and sets
+the syntax of the middle dot character `·' to word."))
+  '("European"))
+
 
 
 (define-coding-system 'mac-roman

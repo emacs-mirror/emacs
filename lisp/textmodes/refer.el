@@ -1,9 +1,9 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001-2018 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
-;; Maintainer: Gernot Heiser <gernot@acm.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Adapted-By: ESR
 ;; Keywords: bib
 
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -73,17 +73,17 @@
 (defgroup refer nil
   "Look up references in bibliography files."
   :prefix "refer-"
-  :group 'wp)
+  :group 'text)
 
 (defcustom refer-bib-directory nil
   "Directory, or list of directories, to search for \\.bib files.
-Can be set to 'bibinputs or 'texinputs, in which case the environment
+Can be set to `bibinputs' or `texinputs', in which case the environment
 variable BIBINPUTS or TEXINPUTS, respectively, is used to obtain a
-list of directories.  Useful only if `refer-bib-files' is set to 'dir or
+list of directories.  Useful only if `refer-bib-files' is set to `dir' or
 a list of file names (without directory).  A value of nil indicates the
 current working directory.
 
-If `refer-bib-directory' is 'bibinputs or 'texinputs, it is setq'd to
+If `refer-bib-directory' is `bibinputs' or `texinputs', it is setq'd to
 the appropriate list of directories when it is first used.
 
 Note that an empty directory is interpreted by BibTeX as indicating
@@ -229,7 +229,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                     (sit-for 1)
                     (setq files (cdr files))))))
        (ding)
-       (message "Keywords \"%s\" not found in any \.bib file" keywords))
+       (message "Keywords \"%s\" not found in any .bib file" keywords))
      (select-window old-window)))
 
 (defun refer-find-entry-in-file (keywords-list file &optional old-pos)
@@ -351,21 +351,21 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                         (if (progn
                               (goto-char (point-min))
                               (re-search-forward (concat refer-bib-files-regexp
-                                                         "\\s-*\{") nil t))
+                                                         "\\s-*{") nil t))
                             (let ((files (list (buffer-substring
                                                 (point)
                                                 (progn
-                                                  (re-search-forward "[,\}]"
+                                                  (re-search-forward "[,}]"
                                                                      nil t)
                                                   (backward-char 1)
                                                   (point))))))
-                              (while (not (looking-at "\}"))
+                              (while (not (looking-at "}"))
                                 (setq files (append files
                                                     (list (buffer-substring
                                                            (progn (forward-char 1)
                                                                   (point))
                                                            (progn (re-search-forward
-                                                                   "[,\}]" nil t)
+                                                                   "[,}]" nil t)
                                                                   (backward-char 1)
                                                                   (point)))))))
                               files)

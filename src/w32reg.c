@@ -1,13 +1,15 @@
 /* Emulate the X Resource Manager through the registry.
-   Copyright (C) 1990, 1993-1994, 2001-2015 Free Software Foundation,
-   Inc.
+
+Copyright (C) 1990, 1993-1994, 2001-2018 Free Software Foundation, Inc.
+
+Author: Kevin Gallo
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,13 +17,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
-
-/* Written by Kevin Gallo */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
-#include "w32term.h"
+#include "w32term.h"	/* for XrmDatabase, xrdb */
 #include "blockinput.h"
 
 #include <stdio.h>
@@ -56,9 +56,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 static char *
-w32_get_rdb_resource (char *rdb, const char *resource)
+w32_get_rdb_resource (const char *rdb, const char *resource)
 {
-  char *value = rdb;
+  char *value = (char *)rdb;
   int len = strlen (resource);
 
   while (*value)
@@ -73,7 +73,7 @@ w32_get_rdb_resource (char *rdb, const char *resource)
   return NULL;
 }
 
-static LPBYTE
+static char *
 w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
 {
   LPBYTE lpvalue = NULL;
@@ -134,7 +134,7 @@ w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
       /* Check if there are Windows specific defaults defined.  */
       return w32_get_rdb_resource (SYSTEM_DEFAULT_RESOURCES, name);
     }
-  return (lpvalue);
+  return (char *)lpvalue;
 }
 
 /* Retrieve the string resource specified by NAME with CLASS from

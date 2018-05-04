@@ -1,6 +1,6 @@
 ;;; japan-util.el --- utilities for Japanese -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -21,7 +21,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -57,6 +57,7 @@
     (?っ ?ッ ?ｯ)
     (?ゃ ?ャ ?ｬ) (?ゅ ?ュ ?ｭ) (?ょ ?ョ ?ｮ)
     (?ゎ ?ヮ "ﾜ")
+    (?ゝ ?ヽ) (?ゞ ?ヾ)
     ("う゛" ?ヴ "ｳﾞ") (nil ?ヵ "ｶ") (nil ?ヶ "ｹ"))
   "Japanese JISX0208 Kana character table.
 Each element is of the form (HIRAGANA KATAKANA HANKAKU-KATAKANA), where
@@ -101,8 +102,8 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     (?： ?:) (?； ?\;) (?？ ??) (?！ ?!) (?゛ nil ?ﾞ) (?゜ nil ?ﾟ)
     (?´ ?') (?｀ ?`) (?＾ ?^) (?＿ ?_) (?ー ?- ?ｰ) (?― ?-) (?‐ ?-)
     (?／ ?/) (?＼ ?\\) (?〜 ?~)  (?｜ ?|) (?‘ ?`) (?’ ?') (?“ ?\") (?” ?\")
-    (?\（ ?\() (?\） ?\)) (?\［ ?[) (?\］ ?]) (?\｛ ?{) (?\｝ ?})
-    (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣) 
+    (?\（ ?\() (?\） ?\)) (?\［ ?\[) (?\］ ?\]) (?\｛ ?{) (?\｝ ?})
+    (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣)
     (?＋ ?+) (?− ?-) (?＝ ?=) (?＜ ?<) (?＞ ?>)
     (?′ ?') (?″ ?\") (?￥ ?\\) (?＄ ?$) (?％ ?%) (?＃ ?#) (?＆ ?&) (?＊ ?*)
     (?＠ ?@)
@@ -146,7 +147,7 @@ and HANKAKU belongs to `japanese-jisx0201-kana'.")
     (?ｐ . ?p) (?ｑ . ?q) (?ｒ . ?r) (?ｓ . ?s) (?ｔ . ?t)
     (?ｕ . ?u) (?ｖ . ?v) (?ｗ . ?w) (?ｘ . ?x) (?ｙ . ?y) (?ｚ . ?z))
   "Japanese JISX0208 alpha numeric character table.
-Each element is of the form (ALPHA-NUMERIC ASCII), where ALPHA-NUMERIC
+Each element is of the form (ALPHA-NUMERIC . ASCII), where ALPHA-NUMERIC
 belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 
 ;; Put properties 'jisx0208 and 'ascii to each Japanese alpha numeric
@@ -175,9 +176,9 @@ belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.
 Optional argument HANKAKU t means to convert to `hankaku' Katakana
- \(`japanese-jisx0201-kana'), in which case return value
- may be a string even if OBJ is a character if two Katakanas are
- necessary to represent OBJ."
+\(`japanese-jisx0201-kana'), in which case return value
+may be a string even if OBJ is a character if two Katakanas are
+necessary to represent OBJ."
   (if (stringp obj)
       (japanese-string-conversion obj 'japanese-katakana-region hankaku)
     (or (get-char-code-property obj (if hankaku 'jisx0201 'katakana))

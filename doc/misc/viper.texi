@@ -8,7 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2018 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -368,16 +368,16 @@ toggles Viperization of Emacs on and off.
 @node States in Viper
 @section States in Viper
 
-@kindex @kbd{C-z}
-@kindex @key{ESC}
-@kindex @kbd{i}
+@kindex C-z
+@kindex ESC
+@kindex i
 @cindex Emacs state
 @cindex Vi state
 @cindex Insert state
 @cindex Replace state
 @cindex Ex commands
-@findex @code{viper-go-away}
-@findex @code{toggle-viper-mode}
+@findex viper-go-away
+@findex toggle-viper-mode
 
 Viper has four states, Emacs, Vi, Insert, and Replace.
 
@@ -474,7 +474,7 @@ to allow Emacs keys in Insert state.
 @node Emacs State
 @subsection Emacs State
 
-@kindex @kbd{C-z}
+@kindex C-z
 @cindex Emacs state
 
 
@@ -514,7 +514,7 @@ exceptions are:
 
 @table @kbd
 @item C-x
-@kindex @kbd{C-x}
+@kindex C-x
 @kbd{C-x} is used to invoke Emacs commands, mainly those that do window
 management.  @kbd{C-x 2} will split a window, @kbd{C-x 0} will close a
 window.  @kbd{C-x 1} will close all other windows.  @kbd{C-xb} is used to
@@ -523,14 +523,14 @@ These are about the only necessary keystrokes.
 For the rest, see the GNU Emacs Manual.
 
 @item C-c
-@kindex @kbd{C-c}
+@kindex C-c
 For user levels 2 and higher, this key serves as a prefix key for the key
 sequences used by various major modes.  For users at Viper level 1, @kbd{C-c}
 simply beeps.
 
 @item C-g and C-]
-@kindex @kbd{C-g}
-@kindex @kbd{C-]}
+@kindex C-g
+@kindex C-]
 
 These are the Emacs @samp{quit} keys.
 There will be cases where you will have to
@@ -543,7 +543,7 @@ Edit,Recursive Edit,emacs,The GNU Emacs Manual}.
 At user level 1, @kbd{C-g} is bound to @code{viper-info-on-file}
 function instead.
 @item C-\
-@kindex @kbd{C-\}
+@kindex C-\
 @cindex Meta key
 
 Viper uses @key{ESC} as a switch between Insert and Vi states.  Emacs uses
@@ -569,7 +569,7 @@ about are:
 
 @table @samp
 @item Undo
-@kindex @kbd{u}
+@kindex u
 @kbd{u} will undo.  Undo can be repeated by the @kbd{.} key.  Undo itself
 can be undone.  Another @kbd{u} will change the direction.  The presence
 of repeatable undo means that @kbd{U}, undoing lines, is not very
@@ -599,7 +599,7 @@ to case-insensitive and back.
 @cindex vanilla search
 @cindex case-sensitive search
 @cindex case-insensitive search
-@kindex @kbd{C-c /}
+@kindex C-c /
 
 @item Ex commands
 @cindex Ex commands
@@ -1083,7 +1083,7 @@ remembered (This is called ``learn mode'' in some editors.)
 where @samp{register} is any character from @samp{a} through @samp{z}.  Then
 you can execute this macro using @kbd{@@register}.  It is, of course,
 possible to yank some text into a register and execute it using
-@kbd{@@register}.  Typing @kbd{@@@@}, @kbd{@@RET}, or @kbd{@@C-j} will
+@kbd{@@register}.  Typing @kbd{@@@@}, @kbd{@@@key{RET}}, or @kbd{@@C-j} will
 execute the last macro that was executed using @kbd{@@register}.
 
 Viper will automatically lowercase the register, so that pressing the
@@ -1182,7 +1182,7 @@ variable that controls how search patterns are highlighted is
 @example
 (copy-face 'default 'viper-search-face)
 @end example
-@vindex @code{viper-search-face}
+@vindex viper-search-face
 @noindent
 in your Viper customization file.  If you want to change how patterns are
 highlighted, you will have to change @code{viper-search-face} to your liking.
@@ -1240,7 +1240,7 @@ watch out for is that it is possible to be on the end-of-line character.
 The keys @kbd{x} and @kbd{%} will still work correctly, i.e., as if they
 were on the last character.
 
-@vindex @code{viper-syntax-preference}
+@vindex viper-syntax-preference
 @cindex syntax table
 
 The word-movement commands @kbd{w}, @kbd{e}, etc., and the associated
@@ -1278,7 +1278,7 @@ the following example:
 (viper-set-syntax-preference nil "emacs")
 @end example
 
-@findex @code{viper-set-syntax-preference}
+@findex viper-set-syntax-preference
 
 The above discussion of the meaning of Viper's words concerns only Viper's
 movement commands.  In regular expressions, words remain the same as in
@@ -1302,8 +1302,8 @@ These commands have no Vi analogs.
 
 @table @kbd
 @item C-x, C-c
-@kindex @kbd{C-x}
-@kindex @kbd{C-c}
+@kindex C-x
+@kindex C-c
 These two keys invoke many important Emacs functions.  For example, if you
 hit @kbd{C-x} followed by @kbd{2}, then the current window will be split
 into 2.  Except for novice users, @kbd{C-c} is also set to execute an Emacs
@@ -1313,11 +1313,11 @@ configure @key{ESC} as Meta by setting @code{viper-no-multiple-ESC} to
 @kbd{C-\} in Insert, Replace, or Vi states will make Emacs think
 @kbd{Meta} has been hit.
 @item \
-@kindex @kbd{\}
+@kindex \
 Escape to Emacs to execute a single Emacs command.  For instance,
 @kbd{\ @key{ESC}} will act like a Meta key.
 @item Q
-@kindex @kbd{Q}
+@kindex Q
 @cindex query replace
 @kbd{Q} is for query replace.  By default,
 each string to be replaced is treated as a regular expression.  You can use
@@ -1327,16 +1327,16 @@ that @kbd{:se nomagic} turns Regexps off completely, unlike Vi).
 @item v
 @itemx V
 @itemx C-v
-@kindex @kbd{v}
-@kindex @kbd{V}
-@kindex @kbd{C-v}
+@kindex v
+@kindex V
+@kindex C-v
 These keys are used to visit files.  @kbd{v} will switch to a buffer
 visiting file whose name can be entered in the minibuffer.  @kbd{V} is
 similar, but will use a window different from the current window.
 @kbd{C-v} is like @kbd{V}, except that a new frame (X window) will be used
 instead of a new Emacs window.
 @item #
-@kindex @kbd{#}
+@kindex #
 If followed by a certain character @var{ch}, it becomes an operator whose
 argument is the region determined by the motion command that follows
 (indicated as <move>).
@@ -1344,34 +1344,34 @@ Currently, @var{ch} can be one of @kbd{c}, @kbd{C}, @kbd{g}, @kbd{q}, and
 @kbd{s}.  For instance, @kbd{#qr} will prompt you for a string and then
 prepend this string to each line in the buffer.
 @item # c
-@kindex @kbd{#c<move>}
+@kindex #c<move>
 @cindex changing case
 Change upper-case characters in the region to lower-case
 (@code{downcase-region}).
 Emacs command @kbd{M-l} does the same for words.
 @item # C
-@kindex @kbd{#C<move>}
+@kindex #C<move>
 Change lower-case characters in the region to upper-case.  For instance,
 @kbd{# C 3 w} will capitalize 3 words from the current point
 (@code{upcase-region}).
 Emacs command @kbd{M-u} does the same for words.
 @item # g
-@kindex @kbd{#g<move>}
+@kindex #g<move>
 Execute last keyboard macro for each line in the region
 (@code{viper-global-execute}).
 @item # q
-@kindex @kbd{#q<move>}
+@kindex #q<move>
 Insert specified string at the beginning of each line in the region
 (@code{viper-quote-region}).  The default string is composed of the comment
 character(s) appropriate for the current major mode.
 @item # s
-@kindex @kbd{#s<move>}
+@kindex #s<move>
 Check spelling of words in the region (@code{spell-region}).
 The function used for spelling is determined from the variable
 @code{viper-spell-function}.
-@vindex @code{viper-spell-function}
+@vindex viper-spell-function
 @item *
-@kindex @kbd{*}
+@kindex *
 Call last keyboard macro.
 @item m .
 Set mark at point and push old mark off the ring
@@ -1382,41 +1382,41 @@ Set mark at beginning and end of buffer, respectively.
 Jump to mark and pop mark off the ring.  @xref{Mark,,Mark,emacs,The GNU
 Emacs Manual}, for more info.
 @item ] register
-@kindex @kbd{]<a-z>}
+@kindex ]<a-z>
 View contents of register
 @item [ textmarker
-@kindex @kbd{[<a-z>}
+@kindex [<a-z>
 View filename and position of textmarker
 @item @@#
 @item @@register
 @item @@!
-@kindex @kbd{@@#}
-@kindex @kbd{@@<a-z>}
-@kindex @kbd{@@!}
+@kindex @@#
+@kindex @@<a-z>
+@kindex @@!
 @cindex keyboard macros
 @cindex register execution
 
 Begin/end keyboard macro.  @@register has a different meaning when used after
 a @kbd{@@#}.  @xref{Macros and Registers}, for details
 @item []
-@kindex @kbd{[]}
+@kindex []
 Go to end of heading.
 @item g <@emph{movement command}>
 Search buffer for text delimited by movement command.  The canonical
 example is @kbd{gw} to search for the word under the cursor.
 @xref{Improved Search}, for details.
 @item C-g and C-]
-@kindex @kbd{C-g}
-@kindex @kbd{C-]}
+@kindex C-g
+@kindex C-]
 Quit and Abort Recursive edit.  These may be necessary on occasion.
 @xref{Vi State}, for a reason.
 @item C-c C-g
-@kindex @kbd{C-c C-g}
+@kindex C-c C-g
 Hitting @kbd{C-c} followed by @kbd{C-g} will display the information on the
 current buffer.  This is the same as hitting @kbd{C-g} in Vi, but, as
 explained above, @kbd{C-g} is needed for other purposes in Emacs.
 @item C-c /
-@kindex @kbd{C-c /}
+@kindex C-c /
 Without a prefix argument, this command toggles
 case-sensitive/case-insensitive search modes and plain vanilla/regular
 expression search.  With the prefix argument 1, i.e.,
@@ -1429,21 +1429,21 @@ this function.
 @cindex case-insensitive search
 
 @item M-p and M-n
-@kindex @kbd{M-p}
-@kindex @kbd{M-n}
+@kindex M-p
+@kindex M-n
 In the minibuffer, these commands navigate through the minibuffer
 histories, such as the history of search strings, Ex commands, etc.
 
 @item C-s
-@kindex @kbd{C-s}
+@kindex C-s
 If the minibuffer is entered via a Viper search commands @kbd{/} or @kbd{?},
 then typing this key inserts the last search string used by the
 Emacs incremental search command (that is bound to @kbd{C-s} everywhere
 except in this case).
 
 @item C-c M-p and C-c M-n
-@kindex @kbd{C-c M-p}
-@kindex @kbd{C-c M-n}
+@kindex C-c M-p
+@kindex C-c M-n
 @cindex Insertion history
 @cindex Insertion ring
 @cindex Command history
@@ -1743,7 +1743,7 @@ lines, etc.  @xref{Movement and Markers}, for more info.
 @item viper-ex-style-editing t
 Set this to @code{nil}, if you want
 @kbd{C-h} and @key{DEL} to not stop
-at the beginning of a line in Insert state, @key{X} and @key{x} to delete
+at the beginning of a line in Insert state, @kbd{X} and @kbd{x} to delete
 characters across lines in Vi command state, etc.
 @item viper-ESC-moves-cursor-back t
 It @code{t}, cursor moves back 1 character when switching from insert state to vi
@@ -1767,7 +1767,7 @@ Function used by the command @kbd{#c<move>} to spell.
 @item viper-glob-function
 The value of this variable is the function symbol used to expand wildcard
 symbols. This is platform-dependent. The default tries to set this variable
-to work with most shells, MS Windows, OS/2, etc. However, if it
+to work with most shells, MS Windows, etc.  However, if it
 doesn't work the way you expect, you should write your own.
 Use @code{viper-glob-unix-files} and @code{viper-glob-mswindows-files} in
 @file{viper-util.el} as examples.
@@ -1775,7 +1775,7 @@ Use @code{viper-glob-unix-files} and @code{viper-glob-mswindows-files} in
 This feature is used to expand wildcards in the Ex command @kbd{:e}.
 Note that Viper doesn't support wildcards in the @kbd{:r} and @kbd{:w}
 commands, because file completion is a better mechanism.
-@findex @code{viper-glob-function}
+@findex viper-glob-function
 
 @item ex-cycle-other-window t
 If not @code{nil}, @kbd{:n} and @kbd{:b} will cycle through files in another
@@ -1845,16 +1845,16 @@ For a complete list of colors available to you, evaluate the expression
 hit the @kbd{C-j} key.
 
 @item viper-replace-overlay-cursor-color  "Red"
-@vindex @code{viper-replace-overlay-cursor-color}
+@vindex viper-replace-overlay-cursor-color
 Cursor color when it is inside the replacement region.
 This has effect only on color displays and only when Emacs runs as an X
 application.
 @item viper-insert-state-cursor-color nil
-@vindex @code{viper-insert-state-cursor-color}
+@vindex viper-insert-state-cursor-color
 If set to a valid color, this will be the cursor color when Viper is in
 insert state.
 @item viper-emacs-state-cursor-color nil
-@vindex @code{viper-emacs-state-cursor-color}
+@vindex viper-emacs-state-cursor-color
 If set to a valid color, this will be the cursor color when Viper is in
 emacs state.
 @item viper-replace-region-end-delimiter "$"
@@ -1913,45 +1913,45 @@ can include a line like this in your Viper customization file:
 @example
 (setq viper-case-fold-search t)
 @end example
-@vindex @code{viper-auto-indent}
-@vindex @code{viper-electric-mode}
-@vindex @code{viper-case-fold-search}
-@vindex @code{viper-re-search}
-@vindex @code{viper-shift-width}
-@vindex @code{buffer-read-only}
-@vindex @code{viper-search-wrap-around}
-@vindex @code{viper-search-scroll-threshold}
-@vindex @code{viper-search-face}
-@vindex @code{viper-tags-file-name}
-@vindex @code{viper-re-query-replace}
-@vindex @code{viper-want-ctl-h-help}
-@vindex @code{viper-vi-style-in-minibuffer}
-@vindex @code{viper-no-multiple-ESC}
-@vindex @code{viper-always}
-@vindex @code{viper-fast-keyseq-timeout}
-@vindex @code{viper-ex-style-motion}
-@vindex @code{viper-ex-style-editing}
-@vindex @code{viper-ESC-moves-cursor-back}
-@vindex @code{viper-custom-file-name}
-@vindex @code{viper-spell-function}
-@vindex @code{ex-cycle-other-window}
-@vindex @code{ex-cycle-through-non-files}
-@vindex @code{viper-want-emacs-keys-in-insert}
-@vindex @code{viper-want-emacs-keys-in-vi}
-@vindex @code{viper-keep-point-on-repeat}
-@vindex @code{viper-keep-point-on-undo}
-@vindex @code{viper-delete-backwards-in-replace}
-@vindex @code{viper-replace-overlay-face}
-@vindex @code{viper-replace-region-end-symbol}
-@vindex @code{viper-replace-region-start-symbol}
-@vindex @code{viper-allow-multiline-replace-regions}
-@vindex @code{viper-toggle-key}
-@vindex @code{viper-buffer-search-char}
-@vindex @code{viper-surrounding-word-function}
-@vindex @code{viper-vi-state-hook}
-@vindex @code{viper-insert-state-hook}
-@vindex @code{viper-replace-state-hook}
-@vindex @code{viper-emacs-state-hook}
+@vindex viper-auto-indent
+@vindex viper-electric-mode
+@vindex viper-case-fold-search
+@vindex viper-re-search
+@vindex viper-shift-width
+@vindex buffer-read-only
+@vindex viper-search-wrap-around
+@vindex viper-search-scroll-threshold
+@vindex viper-search-face
+@vindex viper-tags-file-name
+@vindex viper-re-query-replace
+@vindex viper-want-ctl-h-help
+@vindex viper-vi-style-in-minibuffer
+@vindex viper-no-multiple-ESC
+@vindex viper-always
+@vindex viper-fast-keyseq-timeout
+@vindex viper-ex-style-motion
+@vindex viper-ex-style-editing
+@vindex viper-ESC-moves-cursor-back
+@vindex viper-custom-file-name
+@vindex viper-spell-function
+@vindex ex-cycle-other-window
+@vindex ex-cycle-through-non-files
+@vindex viper-want-emacs-keys-in-insert
+@vindex viper-want-emacs-keys-in-vi
+@vindex viper-keep-point-on-repeat
+@vindex viper-keep-point-on-undo
+@vindex viper-delete-backwards-in-replace
+@vindex viper-replace-overlay-face
+@vindex viper-replace-region-end-symbol
+@vindex viper-replace-region-start-symbol
+@vindex viper-allow-multiline-replace-regions
+@vindex viper-toggle-key
+@vindex viper-buffer-search-char
+@vindex viper-surrounding-word-function
+@vindex viper-vi-state-hook
+@vindex viper-insert-state-hook
+@vindex viper-replace-state-hook
+@vindex viper-emacs-state-hook
 
 @node Key Bindings
 @section Key Bindings
@@ -2059,7 +2059,7 @@ Viper users can also change bindings on a per major mode basis.  As with
 global bindings, this can be done separately for each of the three main Viper
 states.  To this end, Viper provides the function
 @code{viper-modify-major-mode}.
-@findex @code{viper-modify-major-mode}
+@findex viper-modify-major-mode
 
 To modify keys in Emacs state for @code{my-favorite-major-mode}, the user
 needs to create a sparse keymap, say, @code{my-fancy-map}, bind whatever
@@ -2099,7 +2099,7 @@ Dired functions, the trick can be accomplished via the following code:
 
 Yet another way to customize key bindings in a major mode is to edit the
 list @code{viper-major-mode-modifier-list} using the customization widget.
-@vindex @code{viper-major-mode-modifier-list}
+@vindex viper-major-mode-modifier-list
 (This variable is in the Viper-misc customization group.)
 The elements of this list are triples of the form: (major-mode viper-state
 keymap), where the keymap contains bindings that are supposed to be active
@@ -2184,13 +2184,13 @@ So much about Viper-specific bindings.
 Manual}, and the Emacs quick reference card for the general info on key
 bindings in Emacs.
 
-@vindex @code{input-decode-map}
-@vindex @code{function-key-map}
-@vindex @code{viper-vi-global-user-map}
-@vindex @code{viper-insert-global-user-map}
-@vindex @code{viper-emacs-global-user-map}
-@findex @code{viper-add-local-keys}
-@findex @code{viper-zap-local-keys}
+@vindex input-decode-map
+@vindex function-key-map
+@vindex viper-vi-global-user-map
+@vindex viper-insert-global-user-map
+@vindex viper-emacs-global-user-map
+@findex viper-add-local-keys
+@findex viper-zap-local-keys
 
 @node Packages that Change Keymaps
 @section Packages that Change Keymaps
@@ -2261,9 +2261,9 @@ on the @code{viper-emacs-state-mode-list} list and delete them from
 @code{viper-vi-state-mode-list}.
 Likewise, you can force Viper's Insert state on a major mode by putting it
 in @code{viper-insert-state-mode-list}.
-@vindex @code{viper-emacs-state-mode-list}
-@vindex @code{viper-insert-state-mode-list}
-@vindex @code{viper-vi-state-mode-list}
+@vindex viper-emacs-state-mode-list
+@vindex viper-insert-state-mode-list
+@vindex viper-vi-state-mode-list
 
 It is also possible to impose Vi on some major modes, even though they may
 bind common keys to specialized commands.  This might make sense for modes
@@ -2312,14 +2312,14 @@ compatible with Viper is to have the file @file{my-mode.el} include the followin
     (viper-harness-minor-mode lib)))
 @end lisp
 
-@vindex @code{viper-want-emacs-keys-in-vi}
-@vindex @code{viper-want-emacs-keys-in-insert}
-@vindex @code{viper-always}
-@findex @code{viper-set-hooks}
-@findex @code{viper-mode}
-@findex @code{viper-harness-minor-mode}
-@findex @code{remove-hook}
-@findex @code{add-hook}
+@vindex viper-want-emacs-keys-in-vi
+@vindex viper-want-emacs-keys-in-insert
+@vindex viper-always
+@findex viper-set-hooks
+@findex viper-mode
+@findex viper-harness-minor-mode
+@findex remove-hook
+@findex add-hook
 
 @node Viper Specials
 @section Viper Specials
@@ -2339,8 +2339,8 @@ sets @code{viper-buffer-search-char} to @kbd{g}.  Alternatively, the user can
 set @code{viper-buffer-search-char} in his/her Viper customization file to a key
 sequence to be used for buffer search.  There is no need to call
 @code{viper-buffer-search-enable} in that case.
-@findex @code{viper-buffer-search-enable}
-@vindex @code{viper-buffer-search-char}
+@findex viper-buffer-search-enable
+@vindex viper-buffer-search-char
 @item viper-toggle-search-style
 This function, bound to @kbd{C-c /}, lets one toggle case-sensitive and
 case-insensitive search, and also switch between plain vanilla search and
@@ -2365,7 +2365,7 @@ feature, put this in the file:
 @example
 (viper-set-searchstyle-toggling-macros 'undefine)
 @end example
-@findex @code{viper-set-searchstyle-toggling-macros}
+@findex viper-set-searchstyle-toggling-macros
 
 If you don't like this feature as a default, but would still like to have
 it in some major modes, you can do so by first unsetting it globally, as
@@ -2389,8 +2389,8 @@ case-insensitivity and regexp-search.
 If you don't like these features---which I don't really understand---you
 can unbind @kbd{/} and @kbd{:} in @code{viper-dired-modifier-map} (for
 Dired) or in @code{viper-slash-and-colon-map}, for other modes.
-@vindex @code{viper-slash-and-colon-map}
-@vindex @code{viper-dired-modifier-map}
+@vindex viper-slash-and-colon-map
+@vindex viper-dired-modifier-map
 
 To unbind the macros @kbd{//} and @kbd{///} for a major mode where you
 feel they
@@ -2400,7 +2400,7 @@ prefix argument, or by placing
 @example
 (viper-set-emacs-state-searchstyle-macros 'undefine)
 @end example
-@findex @code{viper-set-emacs-state-searchstyle-macros}
+@findex viper-set-emacs-state-searchstyle-macros
 in the hook to the major mode (e.g., @code{dired-mode-hook}).
 @xref{Vi Macros}, for more information on Vi macros.
 
@@ -2414,10 +2414,10 @@ Regular Expressions for @kbd{[[} and @kbd{]]}.  Note that Emacs defines
 Regexps for paragraphs and sentences.  @xref{Paragraphs,,Paragraphs and
 Sentences,emacs,The GNU Emacs Manual}, for details.
 @item M-x viper-set-expert-level
-@findex @code{viper-set-expert-level}
+@findex viper-set-expert-level
 Change your user level interactively.
 @item viper-smart-suffix-list  '("" "tex" "c" "cc" "el" "p")
-@vindex @code{viper-smart-suffix-list}
+@vindex viper-smart-suffix-list
 Viper supports Emacs-style file completion when it prompts the user for a
 file name.  However, in many cases, the same directory may contain files
 with identical prefix but different suffixes, e.g., prog.c, prog.o,
@@ -2437,7 +2437,7 @@ the intended file name, hitting return will accept it.
 To turn this feature off, set the above variable to @code{nil}.
 
 @item viper-insertion-ring-size  14
-@vindex @code{viper-insertion-ring-size}
+@vindex viper-insertion-ring-size
 @cindex Insertion ring
 Viper remembers what was previously inserted in Insert and Replace states.
 Several such recent insertions are kept in a special ring of strings of size
@@ -2470,7 +2470,7 @@ this will interfere with the minibuffer histories and, possibly, other
 major modes.
 
 @item viper-command-ring-size  14
-@vindex @code{viper-command-ring-size}
+@vindex viper-command-ring-size
 @cindex Destructive command ring
 @cindex Destructive command history
 Viper keeps track of the recent history of destructive
@@ -2527,11 +2527,11 @@ indication of the current Viper state in the minibuffer.  (This is important
 if the user accidentally switches to another Viper state by typing @key{ESC} or
 @kbd{C-z}).
 @item M-x viper-go-away
-@findex @code{viper-go-away}
+@findex viper-go-away
 Make Viper disappear from the face of your running Emacs instance.  If your
 fingers start aching again, @kbd{M-x viper-mode} might save your day.
 @item M-x toggle-viper-mode
-@findex @code{toggle-viper-mode}
+@findex toggle-viper-mode
 Toggle Viperization of Emacs on and off.
 @end table
 
@@ -2568,7 +2568,7 @@ above block should be commented out.
 
 Even though these commands are sometimes useful, they are no substitute for
 the powerful @emph{tag table} facility of Emacs.  Viper's @kbd{:tag} command
-in a primitive interface to Emacs tags.  @xref{Tags,Tags,Tags,emacs,
+in a primitive interface to Emacs tags.  @xref{Tags Tables,,,emacs,
 The GNU Emacs Manual}, for more information on tags.
 
 The following two commands are normally bound to a mouse click and are part
@@ -2581,7 +2581,7 @@ is available).  Clicking the mouse when Emacs is invoked in an Xterm window
 @cindex mouse
 @cindex mouse-search
 @item viper-mouse-search-key  (meta shift 1)
-@vindex @code{viper-mouse-insert-key}
+@vindex viper-mouse-insert-key
 This variable controls the @emph{mouse-search} feature of Viper.  The
 default value
 states that holding Meta and Shift keys while clicking mouse button 1
@@ -2591,7 +2591,7 @@ occurrence of the pattern to search for.
 
 Note: while loading initially, Viper binds this mouse action only if it is
 not already bound to something else.  If you want to use the mouse-search
-feature, and the @kbd{Meta-Shift-Mouse-1} mouse action is already bound to
+feature, and the @kbd{Meta-Shift-mouse-1} mouse action is already bound to
 something else, you can rebind the mouse-search feature by setting
 @code{viper-mouse-search-key} to something else in
 your Viper customization file:
@@ -2636,7 +2636,7 @@ occurred with all leading and trailing spaces and tabs removed.
 
 @cindex mouse-insert
 @item viper-mouse-insert-key (meta shift 2)
-@vindex @code{viper-mouse-insert-key}
+@vindex viper-mouse-insert-key
 This variable controls the @emph{mouse-insert} feature of Viper.
 The above default value states that
 holding Meta and Shift keys while clicking mouse button 2
@@ -2669,13 +2669,13 @@ purpose of mouse search and mouse insert.  By default, this is set to
 @code{double-click-time} in Emacs and to
 @code{mouse-track-multi-click-time} milliseconds in XEmacs.
 @end table
-@kindex @kbd{S-Mouse-1}
-@kindex @kbd{S-Mouse-2}
-@kindex @kbd{meta shift button1up}
-@kindex @kbd{meta shift button2up}
-@vindex @code{viper-multiclick-timeout}
-@findex @code{viper-mouse-click-insert-word}
-@findex @code{viper-mouse-click-search-word}
+@kindex S-mouse-1
+@kindex S-mouse-2
+@kindex META SHIFT button1up
+@kindex META SHIFT button2up
+@vindex viper-multiclick-timeout
+@findex viper-mouse-click-insert-word
+@findex viper-mouse-click-search-word
 
 Note: The above functions search and insert in the selected window of
 the latest active frame.  This means that you can click in another window or
@@ -2852,7 +2852,7 @@ The latter is more powerful, since it can delete macros even in
 needed only when the user needs to get rid of the macros that are already
 predefined in Viper.
 The syntax is:
-@findex @code{viper-unrecord-kbd-macro}
+@findex viper-unrecord-kbd-macro
 @example
 (viper-unrecord-kbd-macro macro state)
 @end example
@@ -2992,7 +2992,7 @@ keys have to be redefined for TTY's (and possibly for every type of TTY you
 may be using).  To do this, start Emacs on an appropriate TTY device and
 define the macro using @kbd{:map}, as usual.
 
-@findex @code{viper-describe-kbd-macros}
+@findex viper-describe-kbd-macros
 Finally, Viper provides a function that conveniently displays all macros
 currently defined.  To see all macros along with their definitions, type
 @kbd{M-x viper-describe-kbd-macros}.
@@ -3199,8 +3199,8 @@ modes, you should execute, for example,
 
 in the appropriate major mode hooks.
 
-@vindex @code{viper-syntax-preference}
-@findex @code{viper-set-syntax-preference}
+@vindex viper-syntax-preference
+@findex viper-set-syntax-preference
 @cindex syntax table
 
 
@@ -3378,66 +3378,66 @@ don't want this macro, put
 @example
 (viper-set-parsing-style-toggling-macro 'undefine)
 @end example
-@findex @code{viper-set-parsing-style-toggling-macro}
+@findex viper-set-parsing-style-toggling-macro
 
 in your Viper customization file.
 
 @end table
-@kindex @kbd{%}
-@kindex @kbd{C-c /}
-@kindex @kbd{N}
-@kindex @kbd{n}
-@kindex @kbd{?<cr>}
-@kindex @kbd{/<cr>}
-@kindex @kbd{?<string>}
-@kindex @kbd{/<string>}
-@kindex @kbd{''}
-@kindex @kbd{``}
-@kindex @kbd{]<a-z>}
-@kindex @kbd{[<a-z>}
-@kindex @kbd{'<a-z>}
-@kindex @kbd{`<a-z>}
-@kindex @kbd{m<a-z>}
-@kindex @kbd{[]}
-@kindex @kbd{[[}
-@kindex @kbd{]]}
-@kindex @kbd{@{}
-@kindex @kbd{@}}
-@kindex @kbd{(}
-@kindex @kbd{)}
-@kindex @kbd{M}
-@kindex @kbd{L}
-@kindex @kbd{H}
-@kindex @kbd{G}
-@kindex @kbd{E}
-@kindex @kbd{e}
-@kindex @kbd{B}
-@kindex @kbd{b}
-@kindex @kbd{W}
-@kindex @kbd{w}
-@kindex @kbd{,}
-@kindex @kbd{;}
-@kindex @kbd{T<char>}
-@kindex @kbd{F<char>}
-@kindex @kbd{t<char>}
-@kindex @kbd{f<char>}
-@kindex @kbd{|}
-@kindex @kbd{0}
-@kindex @kbd{<cr>}
-@kindex @kbd{+}
-@kindex @kbd{-}
-@kindex @kbd{^}
-@kindex @kbd{$}
-@kindex @kbd{C-p}
-@kindex @kbd{<lf>}
-@kindex @kbd{<sp>}
-@kindex @kbd{C-n}
-@kindex @kbd{C-h}
-@kindex @kbd{h}
-@kindex @kbd{j}
-@kindex @kbd{k}
-@kindex @kbd{l}
-@vindex @code{viper-parse-sexp-ignore-comments}
+@kindex %
+@kindex C-c /
+@kindex N
+@kindex n
+@kindex ?<cr>
+@kindex /<cr>
+@kindex ?<string>
+@kindex /<string>
+@kindex ''
+@kindex ``
+@kindex ]<a-z>
+@kindex [<a-z>
+@kindex '<a-z>
+@kindex `<a-z>
+@kindex m<a-z>
+@kindex []
+@kindex [[
+@kindex ]]
+@kindex @{
+@kindex @}
+@kindex (
+@kindex )
+@kindex M
+@kindex L
+@kindex H
+@kindex G
+@kindex E
+@kindex e
+@kindex B
+@kindex b
+@kindex W
+@kindex w
+@kindex ,
+@kindex ;
+@kindex T<char>
+@kindex F<char>
+@kindex t<char>
+@kindex f<char>
+@kindex |
+@kindex 0
+@kindex CR
+@kindex +
+@kindex -
+@kindex ^
+@kindex $
+@kindex C-p
+@kindex LF
+@kindex SPC
+@kindex C-n
+@kindex C-h
+@kindex h
+@kindex j
+@kindex k
+@kindex l
+@vindex viper-parse-sexp-ignore-comments
 
 @node Marking
 @subsection Marking
@@ -3478,18 +3478,18 @@ Go to specified Viper mark.
 @item `<a-z>
 Go to specified Viper mark and go to the first CHAR on line.
 @end table
-@kindex @kbd{m<a-z>}
-@kindex @kbd{m.}
-@kindex @kbd{m>}
-@kindex @kbd{m<}
-@kindex @kbd{m,}
-@kindex @kbd{m^}
+@kindex m<a-z>
+@kindex m.
+@kindex m>
+@kindex m<
+@kindex m,
+@kindex m^
 @findex @kbd{Ex mark}
 @findex @kbd{Ex k}
-@kindex @kbd{''}
-@kindex @kbd{``}
-@kindex @kbd{`<a-z>}
-@kindex @kbd{'<a-z>}
+@kindex ''
+@kindex ``
+@kindex `<a-z>
+@kindex '<a-z>
 
 @node  Appending Text
 @subsection Appending Text
@@ -3556,22 +3556,22 @@ Since typing the above sequences of keys may be tedious, the
 functions doing the perusing can be bound to unused keyboard keys in the
 Viper customization file.  @xref{Viper Specials}, for details.
 @end table
-@kindex @kbd{C-c M-p}
-@kindex @kbd{C-c M-n}
-@kindex @kbd{.}
-@kindex @kbd{]<a-z>}
-@kindex @kbd{[<a-z>}
-@kindex @kbd{P}
-@kindex @kbd{p}
-@kindex @kbd{"<a-z1-9>p}
-@kindex @kbd{"<a-z1-9>P}
-@kindex @kbd{>>}
-@kindex @kbd{><move>}
-@kindex @kbd{O}
-@kindex @kbd{o}
-@kindex @kbd{i}
-@kindex @kbd{A}
-@kindex @kbd{a}
+@kindex C-c M-p
+@kindex C-c M-n
+@kindex .
+@kindex ]<a-z>
+@kindex [<a-z>
+@kindex P
+@kindex p
+@kindex "<a-z1-9>p
+@kindex "<a-z1-9>P
+@kindex >>
+@kindex ><move>
+@kindex O
+@kindex o
+@kindex i
+@kindex A
+@kindex a
 
 @node Editing in Insert State
 @subsection Editing in Insert State
@@ -3579,7 +3579,7 @@ Viper customization file.  @xref{Viper Specials}, for details.
 Minibuffer can be edited similarly to Insert state, and you can switch
 between Insert/Replace/Vi states at will.
 Some users prefer plain Emacs feel in the minibuffer.  To this end, set
-@var{viper-vi-style-in-minibuffer} to @code{nil}.
+@code{viper-vi-style-in-minibuffer} to @code{nil}.
 
 @cindex Insert state
 
@@ -3595,9 +3595,9 @@ Back to the begin of the change on the
 current line.
 
 @end table
-@kindex @kbd{C-u}
-@kindex @kbd{C-w}
-@kindex @kbd{C-v}
+@kindex C-u
+@kindex C-w
+@kindex C-v
 
 @node Deleting Text
 @subsection Deleting Text
@@ -3634,13 +3634,13 @@ shiftwidth to the left (layout!).
 @item <count>  <<
 Shift <count> lines one shiftwidth to the left.
 @end table
-@kindex @kbd{<<}
-@kindex @kbd{<<move>}
-@kindex @kbd{D}
-@kindex @kbd{dd}
-@kindex @kbd{d<move>}
-@kindex @kbd{X}
-@kindex @kbd{x}
+@kindex <<
+@kindex <<move>
+@kindex D
+@kindex dd
+@kindex d<move>
+@kindex X
+@kindex x
 
 @node Changing Text
 @subsection Changing Text
@@ -3727,28 +3727,28 @@ In Vi state, these keys are bound to functions that peruse the history of
 destructive Vi commands.
 @xref{Viper Specials}, for details.
 @end table
-@kindex @kbd{C-c M-p}
-@kindex @kbd{C-c M-n}
-@kindex @kbd{#q<move> }
-@kindex @kbd{#C<move>}
-@kindex @kbd{#c<move>}
-@kindex @kbd{&}
-@kindex @kbd{\&}
+@kindex C-c M-p
+@kindex C-c M-n
+@kindex #q<move>
+@kindex #C<move>
+@kindex #c<move>
+@kindex &
+@kindex \&
 @findex @kbd{Ex substitute/<pat>/<repl>/<f>}
 @findex @kbd{Ex s/<pat>/<repl>/<f>}
 @findex @kbd{Ex copy [z]}
 @findex @kbd{Ex t [z]}
 @findex @kbd{Ex move [z]}
-@kindex @kbd{J}
-@kindex @kbd{~}
-@kindex @kbd{=<move>}
-@kindex @kbd{C}
-@kindex @kbd{cc}
-@kindex @kbd{c<move>}
-@kindex @kbd{S}
-@kindex @kbd{s}
-@kindex @kbd{R}
-@kindex @kbd{r<char>}
+@kindex J
+@kindex ~
+@kindex =<move>
+@kindex C
+@kindex cc
+@kindex c<move>
+@kindex S
+@kindex s
+@kindex R
+@kindex r<char>
 
 @node Search and Replace
 @subsection Search and Replace
@@ -3817,21 +3817,21 @@ Execute <ex-command> on all lines that match <pattern>.
 @itemx :v /<pattern>/<ex-command>
 Execute <ex-command> on all lines that do not match <pattern>.
 @end table
-@kindex @kbd{&}
+@kindex &
 @findex @kbd{Ex substitute/<pat>/<repl>/<f>}
-@kindex @kbd{Q}
-@kindex @kbd{#g<move>}
+@kindex Q
+@kindex #g<move>
 @findex @kbd{Ex v}
 @findex @kbd{Ex g}
 @findex @kbd{Ex global}
 @findex @kbd{Ex vglobal}
 @findex @kbd{Ex tag <name>}
-@kindex @kbd{%}
-@kindex @kbd{N}
-@kindex @kbd{n}
-@kindex @kbd{g<move>}
-@kindex @kbd{?<string>}
-@kindex @kbd{/<string>}
+@kindex %
+@kindex N
+@kindex n
+@kindex g<move>
+@kindex ?<string>
+@kindex /<string>
 
 @node Yanking
 @subsection Yanking
@@ -3865,19 +3865,19 @@ be automatically down-cased.
 Put the contents of the (default undo) buffer
 <count> times before the cursor.  The register will
 @end table
-@kindex @kbd{P}
-@kindex @kbd{p}
-@kindex @kbd{"<a-z1-9>p}
-@kindex @kbd{"<a-z1-9>P}
-@kindex @kbd{]<a-z>}
-@kindex @kbd{[<a-z>}
-@kindex @kbd{m<a-z>}
-@kindex @kbd{Y}
-@kindex @kbd{yy}
-@kindex @kbd{"<A-Z>y<move>}
-@kindex @kbd{"<a-z>y<move>}
-@kindex @kbd{y<move>}
-@kindex @kbd{yank}
+@kindex P
+@kindex p
+@kindex "<a-z1-9>p
+@kindex "<a-z1-9>P
+@kindex ]<a-z>
+@kindex [<a-z>
+@kindex m<a-z>
+@kindex Y
+@kindex yy
+@kindex "<A-Z>y<move>
+@kindex "<a-z>y<move>
+@kindex y<move>
+@kindex yank
 @findex @kbd{Ex yank}
 
 @node Undoing
@@ -3902,9 +3902,9 @@ that have a @samp{~} appended to them.
 @findex @kbd{Ex rec}
 @findex @kbd{Ex e!}
 @findex @kbd{Ex q!}
-@kindex @kbd{.}
-@kindex @kbd{U}
-@kindex @kbd{u}
+@kindex .
+@kindex U
+@kindex u
 
 @node Display
 @section Display
@@ -3948,21 +3948,21 @@ Put line <count> at the bottom of the window
 Put line <count> in the center of the window
 (default the current line).
 @end table
-@kindex @kbd{zM}
-@kindex @kbd{zL}
-@kindex @kbd{zH}
-@kindex @kbd{z<cr>}
-@kindex @kbd{z.}
-@kindex @kbd{z-}
-@kindex @kbd{z<cr>}
-@kindex @kbd{C-b}
-@kindex @kbd{C-f}
-@kindex @kbd{C-u}
-@kindex @kbd{C-d}
-@kindex @kbd{C-y}
-@kindex @kbd{C-e}
-@kindex @kbd{C-l}
-@kindex @kbd{C-g}
+@kindex zM
+@kindex zL
+@kindex zH
+@kindex z<cr>
+@kindex z.
+@kindex z-
+@kindex z<cr>
+@kindex C-b
+@kindex C-f
+@kindex C-u
+@kindex C-d
+@kindex C-y
+@kindex C-e
+@kindex C-l
+@kindex C-g
 
 
 @node File and Buffer Handling
@@ -4061,28 +4061,28 @@ List files not shown anywhere with counts for next
 Edit <count> file, or edit files.  The count comes from @kbd{:args}.
 @item :N [count] [+<cmd>] [<files>]
 Like @kbd{:n}, but the meaning of the variable
-@var{ex-cycle-other-window} is reversed.
+@code{ex-cycle-other-window} is reversed.
 @item :b
-Switch to another buffer.  If @var{ex-cycle-other-window} is @code{t},
+Switch to another buffer.  If @code{ex-cycle-other-window} is @code{t},
 switch in another window.  Buffer completion is supported.
-The variable @var{viper-read-buffer-function} controls which function is
+The variable @code{viper-read-buffer-function} controls which function is
 actually used to read the buffer name. The default is @code{read-buffer},
 but better alternatives are also available in Emacs (e.g.,
 @code{ido-read-buffer}).
-@vindex @var{viper-read-buffer-function}
+@vindex viper-read-buffer-function
 @item :B
-Like @kbd{:b}, but the meaning of @var{ex-cycle-other-window} is reversed.
+Like @kbd{:b}, but the meaning of @code{ex-cycle-other-window} is reversed.
 @item :<address>r <name>
 Read the file <name> into the buffer after the line <address>.
 @item v, V, C-v
 Edit a file in current or another window, or in another frame.  File name
 is typed in minibuffer.  File completion and history are supported.
 @end table
-@kindex @kbd{v}
-@kindex @kbd{V}
+@kindex v
+@kindex V
 @findex @kbd{Ex args}
 @findex @kbd{Ex rew}
-@kindex @kbd{C-^}
+@kindex C-^
 @findex @kbd{Ex e!@: [<files>]}
 @findex @kbd{Ex e [<files>]}
 @findex @kbd{Ex edit [<files>]}
@@ -4096,7 +4096,7 @@ is typed in minibuffer.  File completion and history are supported.
 @findex @kbd{Ex r}
 @findex @kbd{Ex read}
 @findex @kbd{Ex pre}
-@kindex @kbd{ZZ}
+@kindex ZZ
 @findex @kbd{Ex wq}
 @findex @kbd{Ex w <file>}
 @findex @kbd{Ex w!@: <file>}
@@ -4171,14 +4171,14 @@ Show contents of textmarker.
 @item ]<a-z>
 Show contents of register.
 @end table
-@kindex @kbd{]<a-z>}
-@kindex @kbd{[<a-z>}
-@kindex @kbd{#g<move>}
-@kindex @kbd{*}
-@kindex @kbd{@@!<a-z>}
-@kindex @kbd{@@#}
-@kindex @kbd{@@@@}
-@kindex @kbd{@@<a-z>}
+@kindex ]<a-z>
+@kindex [<a-z>
+@kindex #g<move>
+@kindex *
+@kindex @@!<a-z>
+@kindex @@#
+@kindex @@@@
+@kindex @@<a-z>
 @findex @kbd{Ex unmap <char>}
 @findex @kbd{Ex map <char> <seq>}
 @findex @kbd{Ex unmap!@: <char>}
@@ -4410,16 +4410,16 @@ Undoes the last @kbd{C-y} and puts another kill from the kill ring.
 Using this command, you can try may different kills until you find the one
 you need.
 @end table
-@kindex @kbd{M-y}
-@kindex @kbd{C-y}
-@kindex @kbd{C-xC-f}
-@kindex @kbd{C-xo}
-@kindex @kbd{C-x2}
-@kindex @kbd{C-x1}
-@kindex @kbd{C-x0}
-@kindex @kbd{C-z}
-@kindex @kbd{C-\}
-@kindex @kbd{C-c\}
+@kindex M-y
+@kindex C-y
+@kindex C-x C-f
+@kindex C-x o
+@kindex C-x 2
+@kindex C-x 1
+@kindex C-x 0
+@kindex C-z
+@kindex C-\
+@kindex C-c\
 
 @node Mouse-bound Commands
 @section Mouse-bound Commands
@@ -4428,7 +4428,7 @@ The following two mouse actions are normally bound to special search and
 insert commands in of Viper:
 
 @table @kbd
-@item S-Mouse-1
+@item S-mouse-1
 Holding Shift and clicking mouse button 1 will
 initiate search for
 a region under the mouse pointer.
@@ -4437,7 +4437,7 @@ binding only if this mouse action is not
 already bound to something else.
 @xref{Viper Specials}, for more information.
 
-@item S-Mouse-2
+@item S-mouse-2
 Holding Shift and clicking button 2 of the mouse will
 insert a region surrounding the mouse pointer.
 This command can also take a prefix argument.
@@ -4445,10 +4445,10 @@ Note: Viper sets this binding only if this mouse action is not
 already bound to something else.
 @xref{Viper Specials}, for more details.
 @end table
-@kindex @kbd{S-Mouse-1}
-@kindex @kbd{S-Mouse-2}
-@kindex @kbd{meta button1up}
-@kindex @kbd{meta button2up}
+@kindex S-mouse-1
+@kindex S-mouse-2
+@kindex META button1up
+@kindex META button2up
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

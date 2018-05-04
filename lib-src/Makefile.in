@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2015 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2018 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 SHELL = @SHELL@
 
@@ -24,7 +24,7 @@ SHELL = @SHELL@
 EMACS = ../src/emacs${EXEEXT}
 EMACSOPT = -batch --no-site-file --no-site-lisp
 
-# ==================== Things `configure' will edit ====================
+# ==================== Things 'configure' will edit ====================
 
 CC=@CC@
 CFLAGS=@CFLAGS@
@@ -40,7 +40,6 @@ C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
 WARN_CFLAGS = @WARN_CFLAGS@
 WERROR_CFLAGS = @WERROR_CFLAGS@
-UPDATE_MANIFEST = @UPDATE_MANIFEST@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@
@@ -75,7 +74,7 @@ am__v_at_1 =
 
 # ==================== Where To Install Things ====================
 
-# Location to install Emacs.app under GNUstep / Mac OS X.
+# Location to install Emacs.app under GNUstep / macOS.
 # Later values may use this.
 ns_appbindir=@ns_appbindir@
 
@@ -83,31 +82,34 @@ ns_appbindir=@ns_appbindir@
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
 # not need to change them.  This is set with the --prefix option to
-# `../configure'.
+# '../configure'.
 prefix=@prefix@
 
-# Like `prefix', but used for architecture-specific files.  This is
-# set with the --exec-prefix option to `../configure'.
+# Like 'prefix', but used for architecture-specific files.  This is
+# set with the --exec-prefix option to '../configure'.
 exec_prefix=@exec_prefix@
 
 # Where to install Emacs and other binaries that people will want to
 # run directly (like etags).  This is set with the --bindir option
-# to `../configure'.
+# to '../configure'.
 bindir=@bindir@
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
 # data.  ${archlibdir} is usually below this.  This is set with the
-# --libexecdir option to `../configure'.
+# --libexecdir option to '../configure'.
 libexecdir=@libexecdir@
+
+# Nonempty if Emacs can assume Mailutils is installed.
+with_mailutils=@with_mailutils@
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
 
 # Where to find the source code.  This is set by the configure
-# script's `--srcdir' option.  However, the value of ${srcdir} in
+# script's '--srcdir' option.  However, the value of ${srcdir} in
 # this makefile is not identical to what was specified with --srcdir,
-# since the variable here has `/lib-src' added at the end.
+# since the variable here has '/lib-src' added at the end.
 
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
@@ -127,12 +129,18 @@ abs_top_srcdir=@abs_top_srcdir@
 # This path usually includes the Emacs version and configuration name,
 # so that multiple configurations for multiple versions of Emacs may
 # be installed at once.  This can be set with the --archlibdir option
-# to `../configure'.
+# to '../configure'.
 archlibdir=@archlibdir@
 
-gamedir=@gamedir@
+# User or group of the auxiliary program update-game-score, which is
+# installed on platforms with a game directory shared by multiple users.
+# On other platforms Emacs can update the score files itself.
 gameuser=@gameuser@
 gamegroup=@gamegroup@
+# Where to install game score files, if gameuser or gamegroup is nonempty.
+gamedir=@gamedir@
+# Nonempty if and only if a shared gamedir is used.
+use_gamedir=$(gameuser)$(gamegroup)
 
 # ==================== Utility Programs for the Build =================
 
@@ -155,14 +163,15 @@ INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} $(CLIENTW) \
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES = profile${EXEEXT} movemail${EXEEXT} hexl${EXEEXT} \
-            update-game-score${EXEEXT}
+UTILITIES = profile${EXEEXT} hexl${EXEEXT} \
+	    $(if $(with_mailutils), , movemail${EXEEXT}) \
+            $(and $(use_gamedir), update-game-score${EXEEXT})
 
 DONT_INSTALL= make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
-SCRIPTS= rcs2log $(UPDATE_MANIFEST)
+SCRIPTS= rcs2log
 
 # All files that are created by the linker, i.e., whose names end in ${EXEEXT}.
 EXE_FILES = ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -257,10 +266,9 @@ need-blessmail: blessmail
 maybe-blessmail: $(BLESSMAIL_TARGET)
 
 ## Install the internal utilities.  Until they are installed, we can
-## just run them directly from lib-src.
-## If the chown/chmod commands fail, that is not a big deal.
-## update-game-score will detect at runtime that it is not setuid,
-## and handle things accordingly.
+## just run them directly from lib-src.  When installing, do not give
+## up if chown or chgrp fails, as the package responsible for
+## installing Emacs can fix this problem later.
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
@@ -272,28 +280,26 @@ $(DESTDIR)${archlibdir}: all
 	      "$(DESTDIR)${archlibdir}/$$file" || exit; \
 	  done ; \
         fi
-	umask 022 && ${MKDIR_P} "$(DESTDIR)${gamedir}" && \
+  ifneq (,$(use_gamedir))
+	umask 022 && ${MKDIR_P} "$(DESTDIR)${gamedir}"
 	touch "$(DESTDIR)${gamedir}/snake-scores" \
 	      "$(DESTDIR)${gamedir}/tetris-scores"
-ifneq ($(gameuser),)
-	if chown ${gameuser} \
-	     "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" && \
-	   chmod u+s,go-r \
-	     "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}"; \
-	then \
-	  chown ${gameuser} "$(DESTDIR)${gamedir}" && \
-	  chmod u=rwx,g=rx,o=rx "$(DESTDIR)${gamedir}"; \
-	fi
-else ifneq ($(gamegroup),)
-	if chgrp ${gamegroup} \
-	     "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" && \
-	   chmod g+s,o-r \
-	     "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}"; \
-	then \
-	  chgrp ${gamegroup} "$(DESTDIR)${gamedir}" && \
-	  chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"; \
-	fi
-endif
+    ifneq (,$(gameuser))
+	-chown ${gameuser} \
+	   "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" \
+	   "$(DESTDIR)${gamedir}" && \
+	 chmod u+s,go-r \
+	   "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" && \
+	 chmod u=rwx,g=rx,o=rx "$(DESTDIR)${gamedir}"
+    else
+	-chgrp ${gamegroup} \
+	   "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" \
+	   "$(DESTDIR)${gamedir}" && \
+	 chmod g+s,o-r \
+	   "$(DESTDIR)${archlibdir}/update-game-score${EXEEXT}" && \
+	 chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"
+    endif
+  endif
 	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd` && \
 	if [ "$$exp_archlibdir" != "`cd ${srcdir} && /bin/pwd`" ]; then \
 	  for file in ${SCRIPTS}; do \
@@ -345,9 +351,12 @@ extraclean: maintainer-clean
 check:
 	@echo "We don't have any tests for the lib-src/ directory yet."
 
+tagsfiles = $(wildcard ${srcdir}/*.[ch])
+
+.PHONY: tags
 tags: TAGS
-TAGS: etags${EXEEXT}
-	etags *.[ch]
+TAGS: etags${EXEEXT} ${tagsfiles}
+	./etags ${tagsfiles}
 
 ../lib/libgnu.a: $(config_h)
 	$(MAKE) -C ../lib all

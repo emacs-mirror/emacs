@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2015 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -53,7 +53,7 @@ Additional extensions to Picture mode can be found in
 @menu
 * Basic Picture::         Basic concepts and simple commands of Picture Mode.
 * Insert in Picture::     Controlling direction of cursor motion
-                            after ``self-inserting'' characters.
+                            after self-inserting characters.
 * Tabs in Picture::       Various features for tab stops and indentation.
 * Rectangles in Picture:: Clearing and superimposing rectangles.
 @end menu
@@ -136,17 +136,27 @@ Picture}).
 @findex picture-movement-sw
 @findex picture-movement-se
 @kindex C-c < @r{(Picture mode)}
+@kindex C-c LEFT @r{(Picture mode)}
 @kindex C-c > @r{(Picture mode)}
+@kindex C-c RIGHT @r{(Picture mode)}
 @kindex C-c ^ @r{(Picture mode)}
+@kindex C-c UP @r{(Picture mode)}
 @kindex C-c . @r{(Picture mode)}
+@kindex C-c DOWN @r{(Picture mode)}
 @kindex C-c ` @r{(Picture mode)}
+@kindex C-c Home @r{(Picture mode)}
 @kindex C-c ' @r{(Picture mode)}
+@kindex C-c PageUp @r{(Picture mode)}
+@kindex C-c prior @r{(Picture mode)}
 @kindex C-c / @r{(Picture mode)}
+@kindex C-c End @r{(Picture mode)}
 @kindex C-c \ @r{(Picture mode)}
-  Since ``self-inserting'' characters in Picture mode overwrite and move
+@kindex C-c PageDown @r{(Picture mode)}
+@kindex C-c next @r{(Picture mode)}
+  Since self-inserting characters in Picture mode overwrite and move
 point, there is no essential restriction on how point should be moved.
 Normally point moves right, but you can specify any of the eight
-orthogonal or diagonal directions for motion after a ``self-inserting''
+orthogonal or diagonal directions for motion after a self-inserting
 character.  This is useful for drawing lines in the buffer.
 
 @table @kbd
@@ -166,6 +176,7 @@ Move down after insertion (@code{picture-movement-down}).
 @itemx C-c @key{Home}
 Move up and left (``northwest'') after insertion (@code{picture-movement-nw}).
 @item C-c '
+@itemx C-c @key{PageUp}
 @itemx C-c @key{prior}
 Move up and right (``northeast'') after insertion
 (@code{picture-movement-ne}).
@@ -174,6 +185,7 @@ Move up and right (``northeast'') after insertion
 Move down and left (``southwest'') after insertion
 @*(@code{picture-movement-sw}).
 @item C-c \
+@itemx C-c @key{PageDown}
 @itemx C-c @key{next}
 Move down and right (``southeast'') after insertion
 @*(@code{picture-movement-se}).
@@ -185,7 +197,7 @@ Move down and right (``southeast'') after insertion
 @findex picture-motion-reverse
   Two motion commands move based on the current Picture insertion
 direction.  The command @kbd{C-c C-f} (@code{picture-motion}) moves in the
-same direction as motion after ``insertion'' currently does, while @kbd{C-c
+same direction as motion after insertion currently does, while @kbd{C-c
 C-b} (@code{picture-motion-reverse}) moves in the opposite direction.
 
 @node Tabs in Picture
@@ -199,7 +211,7 @@ C-b} (@code{picture-motion-reverse}) moves in the opposite direction.
 With no argument, it moves to a point underneath the next
 ``interesting'' character that follows whitespace in the previous
 nonblank line.  ``Next'' here means ``appearing at a horizontal position
-greater than the one point starts out at''.  With an argument, as in
+greater than the one point starts out at''.  With prefix argument, as in
 @kbd{C-u M-@key{TAB}}, this command moves to the next such interesting
 character in the current line.  @kbd{M-@key{TAB}} does not change the
 text; it only moves point.  ``Interesting'' characters are defined by
@@ -251,6 +263,13 @@ text.
 @item C-c C-w @var{r}
 Similar, but save rectangle contents in register @var{r} first
 (@code{picture-clear-rectangle-to-register}).
+@iftex
+@xref{Registers,,, emacs, the Emacs Manual}.
+@end iftex
+@ifnottex
+@xref{Registers}.
+@end ifnottex
+
 @item C-c C-y
 Copy last killed rectangle into the buffer by overwriting, with upper
 left corner at point (@code{picture-yank-rectangle}).  With argument,

@@ -1,6 +1,6 @@
 ;;; semantic/fw.el --- Framework for Semantic
 
-;;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -30,7 +30,7 @@
 ;;
 (require 'mode-local)
 (require 'eieio)
-(load "semantic/loaddefs" nil 'nomessage)
+(load "semantic/loaddefs" 'noerror 'nomessage)
 
 ;;; Compatibility
 ;;
@@ -171,7 +171,7 @@ That is remove the unsupported :help stuff."
 NAME specifies a special name that can be searched for later to
 recover the cached data with `semantic-get-cache-data'.
 LIFESPAN indicates how long the data cache will be remembered.
-The default LIFESPAN is 'end-of-command.
+The default LIFESPAN is `end-of-command'.
 Possible Lifespans are:
   `end-of-command' - Remove the cache at the end of the currently
                      executing command.
@@ -193,7 +193,7 @@ Possible Lifespans are:
     ))
 
 (defun semantic-cache-data-post-command-hook ()
-  "Flush `semantic-cache-data-overlays' based 'lifespan property.
+  "Flush `semantic-cache-data-overlays' based `lifespan' property.
 Remove self from `post-command-hook' if it is empty."
   (let ((newcache nil)
         (oldcache semantic-cache-data-overlays))

@@ -1,9 +1,9 @@
 ;;; vc-src.el --- support for SRC version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
-;; Maintainer: Eric S. Raymond <esr@thyrsus.com>
+;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -84,6 +84,8 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'vc))
+
+(declare-function vc-setup-buffer "vc-dispatcher" (buf))
 
 (defgroup vc-src nil
   "VC SRC backend."
@@ -178,7 +180,7 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-src-dir-status-files (dir files update-function)
   ;; FIXME: Use one src status -a call for this
-  (if (not files) (setq files (vc-expand-dirs (list dir) 'RCS)))
+  (if (not files) (setq files (vc-expand-dirs (list dir) 'SRC)))
   (let ((result nil))
     (dolist (file files)
       (let ((state (vc-state file))
@@ -227,7 +229,7 @@ This function differs from vc-do-command in that it invokes `vc-src-program'."
                                           file
                                         (file-name-directory file)))))
 
-(defun vc-src-checkin (files comment)
+(defun vc-src-checkin (files comment &optional _rev)
   "SRC-specific version of `vc-backend-checkin'.
 REV is ignored."
   (vc-src-command nil files "commit" "-m" comment))

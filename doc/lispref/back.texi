@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2001-2015 Free Software Foundation, Inc.
+@c Copyright (C) 2001-2018 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @c
 @c %**start of header
@@ -17,7 +17,7 @@
   Most of the GNU Emacs text editor is written in the programming
 language called Emacs Lisp.  You can write new code in Emacs Lisp and
 install it as an extension to the editor.  However, Emacs Lisp is more
-than a mere ``extension language''; it is a full computer programming
+than a mere extension language; it is a full computer programming
 language in its own right.  You can use it as you would any other
 programming language.
 

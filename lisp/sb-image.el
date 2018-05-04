@@ -1,6 +1,6 @@
 ;;; sb-image --- Image management for speedbar
 
-;; Copyright (C) 1999-2003, 2005-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2003, 2005-2018 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -18,7 +18,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;

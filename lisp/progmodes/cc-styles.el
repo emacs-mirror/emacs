@@ -1,6 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -26,7 +26,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -47,6 +47,7 @@
 ;; `c-add-style' often contains references to functions defined there.
 
 ;; Silence the compiler.
+(cc-bytecomp-defun c-guess-basic-syntax)
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 
 
@@ -67,6 +68,7 @@
 			 (arglist-close . c-lineup-arglist)
 			 (inline-open . 0)
 			 (brace-list-open . +)
+			 (brace-list-intro . c-lineup-arglist-intro-after-paren)
 			 (topmost-intro-cont
 			  . (first c-lineup-topmost-intro-cont
 				   c-lineup-gnu-DEFUN-intro-cont))))

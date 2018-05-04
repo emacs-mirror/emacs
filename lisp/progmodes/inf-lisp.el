@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993-1994, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1994, 2001-2018 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -108,8 +108,8 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.
-(define-key lisp-mode-map "\M-\C-x"  'lisp-eval-defun)     ; Gnu convention
-(define-key lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp) ; Gnu convention
+(define-key lisp-mode-map "\M-\C-x"  'lisp-eval-defun)     ; GNU convention
+(define-key lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp) ; GNU convention
 (define-key lisp-mode-map "\C-c\C-e" 'lisp-eval-defun)
 (define-key lisp-mode-map "\C-c\C-r" 'lisp-eval-region)
 (define-key lisp-mode-map "\C-c\C-n" 'lisp-eval-form-and-next)
@@ -510,7 +510,7 @@ Used by these commands to determine defaults."
 				     (file-name-nondirectory file-name)))
   (comint-send-string (inferior-lisp-proc) (concat "(compile-file \""
 						   file-name
-						   "\"\)\n"))
+						   "\")\n"))
   (switch-to-lisp t))
 
 

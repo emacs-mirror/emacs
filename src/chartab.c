@@ -7,8 +7,8 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,14 +16,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
-#include "ccl.h"
 
 /* 64/16/32/128 */
 
@@ -186,7 +185,7 @@ Lisp_Object
 copy_char_table (Lisp_Object table)
 {
   Lisp_Object copy;
-  int size = XCHAR_TABLE (table)->header.size & PSEUDOVECTOR_SIZE_MASK;
+  int size = PVSIZE (table);
   int i;
 
   copy = Fmake_vector (make_number (size), Qnil);
@@ -493,7 +492,7 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
       int lim = CHARTAB_IDX (to, 0, 0);
       int i, c;
 
-      for (i = CHARTAB_IDX (from, 0, 0), c = 0; i <= lim;
+      for (i = CHARTAB_IDX (from, 0, 0), c = i * chartab_chars[0]; i <= lim;
 	   i++, c += chartab_chars[0])
 	{
 	  if (c > to)

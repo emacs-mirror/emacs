@@ -1,0 +1,108 @@
+// Comment!
+
+nav {
+    ul {
+        margin: 0;              /* More comment */
+        padding: 0;
+        list-style: none;
+    }
+
+    li { display: inline-block; }
+
+    a {
+        display: block;
+        padding: 6px 12px;
+        text-decoration: none;
+    }
+}
+nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+nav li {
+    display: inline-block;
+}
+
+nav a var
+{
+    display: block;
+    padding: 6px 12px;
+    text-decoration: none;
+}
+
+$name: foo;
+$attr: border;
+p.#{$name} var
+{
+    x#{$attr}-color: blue;
+}
+article[role="main"] {
+    $toto: 500 !global;
+    $var-with-default: 300 !default;
+    float: left !important;
+    width: 600px / 888px * 100%;
+    height: 100px / 888px * 100%;
+}
+
+%placeholder {
+    color: #f0f0f0;
+}
+
+button {
+    @extend %placeholder !optional;
+}
+
+@import 'reset';
+
+@mixin border-radius($radius) {
+    -webkit-border-radius: $radius;
+    -moz-border-radius: $radius;
+    -ms-border-radius: $radius;
+    border-radius: $radius;
+}
+
+.box { @include border-radius(10px); }
+
+// bug:21230
+$list: (
+    ('a', #000000, #fff)
+    ('b', #000000, #fff)
+    ('c', #000000, #fff)
+    ('d', #000000, #fff)
+    ('e', #000000, #fff)
+    ('f', #000000, #fff)
+);
+
+// bug:13425
+div:first-child,
+div:last-child {
+    @include foo-mixin(
+        $foo: 'foo',
+        $bar: 'bar',
+    );
+
+    font: 15px "Helvetica Neue", Helvetica, Arial,
+          "Nimbus Sans L", sans-serif;
+
+    div:first-child,
+    div:last-child {
+        font: 15px "Helvetica Neue", Helvetica, Arial,
+              "Nimbus Sans L", sans-serif;
+    }
+}
+
+body {
+    font:
+        15px "Helvetica Neue", Helvetica, Arial,
+        "Nimbus Sans L", sans-serif;
+    font-family:
+        sans-serif;
+
+    article {
+        font:
+            15px "Helvetica Neue", Helvetica, Arial,
+            "Nimbus Sans L", sans-serif;
+    }
+}

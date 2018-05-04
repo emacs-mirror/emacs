@@ -1,6 +1,6 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
@@ -19,7 +19,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
