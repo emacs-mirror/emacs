@@ -293,13 +293,15 @@ Execute program (or connect to <host>:<port>) "
                   (y-or-n-p "[eglot] Live process found, reconnect instead? "))
              (eglot-reconnect current-process interactive))
             (t
+             (when (process-live-p current-process)
+               (eglot-shutdown current-process 'sync))
              (eglot--connect
               project
               managed-major-mode
               short-name
               command
               (lambda (proc)
-                (eglot--message "Connected! Process `%s' now managing `%s'\
+                (eglot--message "Connected! Process `%s' now managing `%s' \
 buffers in project %s."
                                 proc
                                 managed-major-mode
