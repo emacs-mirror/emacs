@@ -192,9 +192,40 @@ CONTACT is as `eglot--contact'.  Returns a process object."
 (defun eglot--client-capabilities ()
   "What the EGLOT LSP client supports."
   (eglot--obj
-   :workspace (eglot--obj)
+   :workspace    (eglot--obj
+                  :applyEdit nil
+                  :workspaceEdit nil
+                  :didChangeConfiguration nil
+                  :didChangeWatchedFiles nil
+                  :symbol nil
+                  :executeCommand nil
+                  :workspaceFolders nil
+                  :configuration nil)
    :textDocument (eglot--obj
-                  :publishDiagnostics `(:relatedInformation nil))))
+                  :synchronization (eglot--obj
+                                    :dynamicRegistration :json-false
+                                    :willSave t
+                                    :willSaveWaitUntil :json-false
+                                    :didSave t)
+                  :completion nil
+                  :hover nil
+                  :signatureHelp nil
+                  :references nil
+                  :documentHighlight nil
+                  :documentSymbol nil
+                  :formatting nil
+                  :rangeFormatting nil
+                  :onTypeFormatting nil
+                  :definition nil
+                  :typeDefinition nil
+                  :implementation nil
+                  :codeAction nil
+                  :codeLens nil
+                  :documentLink nil
+                  :colorProvider nil
+                  :rename nil
+                  :publishDiagnostics `(:relatedInformation :json-false))
+   :experimental (eglot--obj)))
 
 (defun eglot--connect (project managed-major-mode
                                short-name contact &optional success-fn)
