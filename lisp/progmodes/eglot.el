@@ -133,30 +133,40 @@ A list (ID WHAT DONE-P)." t)
   "Status as declared by the server.
 A list (WHAT SERIOUS-P)." t)
 
-(eglot--define-process-var eglot--bootstrap-fn nil
-  "Function for returning processes/connetions to LSP servers.
-Must be a function of one arg, a name, returning a process
-object.")
+(eglot--define-process-var eglot--contact nil
+  "Method used to contact a server.
+Either a list of strings (a shell command and arguments), or a
+list of a single string of the form <host>:<port>")
 
 (eglot--define-process-var eglot--buffer-open-count (make-hash-table)
   "Keeps track of didOpen/didClose notifs for each buffer.")
 
-(defun eglot-make-local-process (name command)
-  "Make a local LSP process from COMMAND.
+(defun eglot--make-process (name contact)
+  "Make a process from CONTACT.
 NAME is a name to give the inferior process or connection.
-Returns a process object."
+CONTACT is as `eglot--contact'.  Returns a process object."
   (let* ((readable-name (format "EGLOT server (%s)" name))
+         (buffer (get-buffer-create
+                  (format "*%s inferior*" readable-name)))
+         (singleton (and (null (cdr contact)) (car contact)))
          (proc
-          (make-process
-           :name readable-name
-           :buffer (get-buffer-create
-                    (format "*%s inferior*" readable-name))
-           :command command
-           :connection-type 'pipe
-           :filter 'eglot--process-filter
-           :sentinel 'eglot--process-sentinel
-           :stderr (get-buffer-create (format "*%s stderr*"
-                                              name)))))
+          (if (and
+               singleton
+               (string-match "^[\s\t]*\\(.*\\):\\([[:digit:]]+\\)[\s\t]*$"
+                             singleton))
+              (open-network-stream readable-name
+                                   buffer
+                                   (match-string 1 singleton)
+                                   (string-to-number (match-string 2 singleton)))
+            (make-process
+             :name readable-name
+             :buffer buffer
+             :command contact
+             :connection-type 'pipe
+             :stderr (get-buffer-create (format "*%s stderr*"
+                                                name))))))
+    (set-process-filter proc #'eglot--process-filter)
+    (set-process-sentinel proc #'eglot--process-sentinel)
     proc))
 
 (defmacro eglot--obj (&rest what)
@@ -180,13 +190,12 @@ Returns a process object."
     retval))
 
 (defun eglot--connect (project managed-major-mode
-                               short-name bootstrap-fn &optional success-fn)
-  "Make a connection for PROJECT, SHORT-NAME and MANAGED-MAJOR-MODE.
-Use BOOTSTRAP-FN to make the actual process object.  Call
+                               short-name contact &optional success-fn)
+  "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
 SUCCESS-FN with no args if all goes well."
-  (let* ((proc (funcall bootstrap-fn short-name))
+  (let* ((proc (eglot--make-process short-name contact))
          (buffer (process-buffer proc)))
-    (setf (eglot--bootstrap-fn proc) bootstrap-fn
+    (setf (eglot--contact proc) contact
           (eglot--project proc) project
           (eglot--major-mode proc) managed-major-mode)
     (with-current-buffer buffer
@@ -226,15 +235,17 @@ SUCCESS-FN with no args if all goes well."
   "History of COMMAND arguments to `eglot'.")
 
 (defun eglot (managed-major-mode command &optional interactive)
-  ;; FIXME: Later make this function also connect to TCP servers by
-  ;; overloading semantics on COMMAND.
   "Start a Language Server Protocol server.
 Server is started with COMMAND and manages buffers of
 MANAGED-MAJOR-MODE for the current project.
 
 COMMAND is a list of strings, an executable program and
-optionally its arguments.  MANAGED-MAJOR-MODE is an Emacs major
-mode.
+optionally its arguments.  If the first and only string in the
+list is of the form \"<host>:<port>\" it is taken as an
+indication to connect to a server instead of starting one.  This
+is also know as the server's \"contact\".
+
+MANAGED-MAJOR-MODE is an Emacs major mode.
 
 With a prefix arg, prompt for MANAGED-MAJOR-MODE and COMMAND,
 else guess them from current context and `eglot-executables'.
@@ -257,47 +268,45 @@ INTERACTIVE is t if called interactively."
            (cdr (assoc managed-major-mode eglot-executables))))
      (list
       managed-major-mode
-      (if current-prefix-arg
-          (split-string-and-unquote
-           (read-shell-command "[eglot] Run program: "
-                               (combine-and-quote-strings guessed-command)
-                               'eglot-command-history))
-        guessed-command)
+      (let ((prompt
+             (cond (current-prefix-arg
+                    "[eglot] Execute program (or connect to <host>:<port>) ")
+                   ((null guessed-command)
+                    (format "[eglot] Sorry, couldn't guess for `%s'!\n\
+Execute program (or connect to <host>:<port>) "
+                            managed-major-mode)))))
+        (if prompt
+            (split-string-and-unquote
+             (read-shell-command prompt
+                                 (combine-and-quote-strings guessed-command)
+                                 'eglot-command-history))
+          guessed-command))
       t)))
   (let* ((project (project-current))
          (short-name (eglot--project-short-name project)))
-    (unless project (eglot--error
-                     "Cannot work without a current project!"))
-    (let ((current-process (eglot--current-process))
-          (command
-           (or command
-               (eglot--error "Don't know how to start EGLOT for %s buffers"
-                             major-mode))))
-      (cond
-       ((and current-process
-             (process-live-p current-process))
-        (when (and
-               interactive
-               (y-or-n-p "[eglot] Live process found, reconnect instead? "))
-          (eglot-reconnect current-process interactive)))
-       (t
-        (eglot--connect
-         project
-         managed-major-mode
-         short-name
-         (lambda (name)
-           (eglot-make-local-process
-            name
-            command))
-         (lambda (proc)
-           (eglot--message "Connected! Process `%s' now managing `%s'\
+    (unless project (eglot--error "Cannot work without a current project!"))
+    (unless command (eglot--error "Don't know how to start EGLOT for %s buffers"
+                                  major-mode))
+    (let ((current-process (eglot--current-process)))
+      (cond ((and (process-live-p current-process)
+                  interactive
+                  (y-or-n-p "[eglot] Live process found, reconnect instead? "))
+             (eglot-reconnect current-process interactive))
+            (t
+             (eglot--connect
+              project
+              managed-major-mode
+              short-name
+              command
+              (lambda (proc)
+                (eglot--message "Connected! Process `%s' now managing `%s'\
 buffers in project %s."
-                           proc
-                           managed-major-mode
-                           short-name)
-           (dolist (buffer (buffer-list))
-             (with-current-buffer buffer
-               (eglot--maybe-activate-editing-mode proc))))))))))
+                                proc
+                                managed-major-mode
+                                short-name)
+                (dolist (buffer (buffer-list))
+                  (with-current-buffer buffer
+                    (eglot--maybe-activate-editing-mode proc))))))))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
@@ -309,7 +318,7 @@ INTERACTIVE is t if called interactively."
    (eglot--project process)
    (eglot--major-mode process)
    (eglot--short-name process)
-   (eglot--bootstrap-fn process)
+   (eglot--contact process)
    (lambda (proc)
      (eglot--message "Reconnected!")
      (dolist (buffer (buffer-list))
