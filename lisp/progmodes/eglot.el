@@ -962,6 +962,19 @@ running.  INTERACTIVE is t if called interactively."
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
+(cl-defun eglot--server-client/registerCapability
+    (proc &key id registrations)
+  "Handle notification client/registerCapability"
+  (mapc (lambda (reg)
+          (apply (cl-function
+                  (lambda (&key _id _method _registerOptions)
+                    ;;; TODO: handle this
+                    ))
+                 reg))
+        registrations)
+  (eglot--reply proc id :error (eglot--obj :code -32601
+                                           :message "sorry :-(")))
+
 (defvar eglot--recent-before-changes nil
   "List of recent changes as collected by `eglot--before-change'.")
 (defvar eglot--recent-after-changes nil
