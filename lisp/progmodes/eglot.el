@@ -460,7 +460,7 @@ INTERACTIVE is t if called interactively."
   "Log an eglot-related event.
 PROC is the current process.  TYPE is an identifier.  MESSAGE is
 a JSON-like plist or anything else.  ID is a continuation
-identifier.  ERROR is non-nil if this is an error."
+identifier.  ERROR is non-nil if this is a JSON-RPC error."
   (with-current-buffer (eglot-events-buffer proc)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
@@ -475,53 +475,49 @@ identifier.  ERROR is non-nil if this is an error."
 
 (defun eglot--process-receive (proc message)
   "Process MESSAGE from PROC."
-  (let* ((response-id (plist-get message :id))
+  (let* ((id (plist-get message :id))
+         (method (plist-get message :method))
          (err (plist-get message :error))
-         (continuations (and response-id
-                             (gethash response-id
-                                      (eglot--pending-continuations proc)))))
+         (continuations (and id
+                             (not method)
+                             (gethash id (eglot--pending-continuations proc)))))
     (eglot--log-event proc
-                      (cond ((not response-id)
-                             'server-notification)
-                            ((not continuations)
-                             'unexpected-server-reply)
-                            (t
-                             'server-reply))
+                      (cond ((and method id)       'server-request)
+                            (method                'server-notification)
+                            (continuations         'server-reply)
+                            ;; pyls keeps on sending these
+                            (t                     'unexpected-server-thingy))
                       message
-                      response-id
+                      id
                       err)
-    (when err
-      (setf (eglot--status proc) '("error" t)))
-    (cond ((and response-id
-                (not continuations))
-           (eglot--warn "Ooops no continuation for id %s" response-id))
-          (continuations
-           (cancel-timer (cl-third continuations))
-           (remhash response-id
-                    (eglot--pending-continuations proc))
-           (cond (err
-                  (apply (cl-second continuations) err))
-                 (t
-                  (apply (cl-first continuations) (plist-get message :result)))))
-          (t
+    (when err (setf (eglot--status proc) '("error" t)))
+    (cond (method
            ;; a server notification or a server request
-           (let* ((method (plist-get message :method))
-                  (handler-sym (intern (concat "eglot--server-"
+           (let* ((handler-sym (intern (concat "eglot--server-"
                                                method))))
              (if (functionp handler-sym)
                  (apply handler-sym proc (append
                                           (plist-get message :params)
-                                          (let ((id (plist-get message :id)))
-                                            (if id `(:id ,id)))))
-               ;; pyls keeps on sending nil notifs for each notif we
-               ;; send it, just ignore these.
-               (unless (null method)
-                 (eglot--warn "No implemetation for notification %s yet"
-                              method))))))))
+                                          (if id `(:id ,id))))
+               (eglot--warn "No implementation of method %s yet"
+                            method)
+               (when id
+                 (eglot--reply
+                  proc id
+                  :error (eglot--obj :code -32601
+                                     :message "Method unimplemented"))))))
+          (continuations
+           (cancel-timer (cl-third continuations))
+           (remhash id (eglot--pending-continuations proc))
+           (if err
+               (apply (cl-second continuations) err)
+             (apply (cl-first continuations) (plist-get message :result))))
+          (id
+           (eglot--warn "Ooops no continuation for id %s" id)))))
 
 (defvar eglot--expect-carriage-return nil)
 
-(defun eglot--process-send (id proc message)
+(defun eglot--process-send (id proc message &optional reply)
   "Send MESSAGE to PROC (ID is optional)."
   (let* ((json (json-encode message))
          (to-send (format "Content-Length: %d\r\n\r\n%s"
@@ -529,9 +525,11 @@ identifier.  ERROR is non-nil if this is an error."
                           json)))
     (process-send-string proc to-send)
     (eglot--log-event proc (if id
-                               'client-request
+                               (if reply
+                                   'client-reply
+                                 'client-request)
                              'client-notification)
-                      message id nil)))
+                      message id (plist-get message :error))))
 
 (defvar eglot--next-request-id 0)
 
@@ -626,6 +624,15 @@ identifier.  ERROR is non-nil if this is an error."
                                    :id nil
                                    :method method
                                    :params params)))
+
+(cl-defun eglot--reply (process id &key result error)
+  "Reply to PROCESS's request ID with MESSAGE."
+  (eglot--process-send id process
+                       (eglot--obj :jsonrpc  "2.0"
+                                   :id nil
+                                   :result result
+                                   :error error)
+                       t))
 
 
 ;;; Helpers
@@ -884,13 +891,11 @@ running.  INTERACTIVE is t if called interactively."
                nil
                t
                (plist-get (elt actions 0) :title)))
-      (eglot--process-send
-       id
-       process
-       (if reply
-           (eglot--obj :result (eglot--obj :title reply))
-         ;; request cancelled
-         (eglot--obj :error -32800))))))
+      (if reply
+          (eglot--reply process id :result (eglot--obj :title reply))
+        (eglot--reply process id
+                      :error (eglot--obj :code -32800
+                                         :message "User cancelled"))))))
 
 (cl-defun eglot--server-window/logMessage
     (_process &key type message)
