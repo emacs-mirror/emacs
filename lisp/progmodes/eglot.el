@@ -189,6 +189,13 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                   (push sym retval))))
     retval))
 
+(defun eglot--client-capabilities ()
+  "What the EGLOT LSP client supports."
+  (eglot--obj
+   :workspace (eglot--obj)
+   :textDocument (eglot--obj
+                  :publishDiagnostics `(:relatedInformation nil))))
+
 (defun eglot--connect (project managed-major-mode
                                short-name contact &optional success-fn)
   "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
@@ -218,11 +225,7 @@ SUCCESS-FN with no args if all goes well."
                                  (expand-file-name (car (project-roots
                                                          (project-current)))))
                      :initializationOptions  []
-                     :capabilities
-                     (eglot--obj
-                      :workspace (eglot--obj)
-                      :textDocument (eglot--obj
-                                     :publishDiagnostics `(:relatedInformation t))))
+                     :capabilities (eglot--client-capabilities))
          :success-fn
          (cl-function
           (lambda (&key capabilities)
