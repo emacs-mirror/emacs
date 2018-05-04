@@ -234,6 +234,39 @@ SUCCESS-FN with no args if all goes well."
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
 
+(defun eglot--interactive ()
+  "Helper for `eglot'."
+  (let* ((managed-major-mode
+          (cond
+           ((or current-prefix-arg
+                (not buffer-file-name))
+            (intern
+             (completing-read
+              "[eglot] Start a server to manage buffers of what major mode? "
+              (mapcar #'symbol-name
+                      (eglot--all-major-modes)) nil t
+              (symbol-name major-mode) nil
+              (symbol-name major-mode) nil)))
+           (t major-mode)))
+         (guessed-command
+          (cdr (assoc managed-major-mode eglot-executables))))
+    (list
+     managed-major-mode
+     (let ((prompt
+            (cond (current-prefix-arg
+                   "[eglot] Execute program (or connect to <host>:<port>) ")
+                  ((null guessed-command)
+                   (format "[eglot] Sorry, couldn't guess for `%s'!\n\
+Execute program (or connect to <host>:<port>) "
+                           managed-major-mode)))))
+       (if prompt
+           (split-string-and-unquote
+            (read-shell-command prompt
+                                (combine-and-quote-strings guessed-command)
+                                'eglot-command-history))
+         guessed-command))
+     t)))
+
 (defun eglot (managed-major-mode command &optional interactive)
   "Start a Language Server Protocol server.
 Server is started with COMMAND and manages buffers of
@@ -251,64 +284,33 @@ With a prefix arg, prompt for MANAGED-MAJOR-MODE and COMMAND,
 else guess them from current context and `eglot-executables'.
 
 INTERACTIVE is t if called interactively."
-  (interactive
-   (let* ((managed-major-mode
-           (cond
-            ((or current-prefix-arg
-                 (not buffer-file-name))
-             (intern
-              (completing-read
-               "[eglot] Start a server to manage buffers of what major mode? "
-               (mapcar #'symbol-name
-                       (eglot--all-major-modes)) nil t
-               (symbol-name major-mode) nil
-               (symbol-name major-mode) nil)))
-            (t major-mode)))
-          (guessed-command
-           (cdr (assoc managed-major-mode eglot-executables))))
-     (list
-      managed-major-mode
-      (let ((prompt
-             (cond (current-prefix-arg
-                    "[eglot] Execute program (or connect to <host>:<port>) ")
-                   ((null guessed-command)
-                    (format "[eglot] Sorry, couldn't guess for `%s'!\n\
-Execute program (or connect to <host>:<port>) "
-                            managed-major-mode)))))
-        (if prompt
-            (split-string-and-unquote
-             (read-shell-command prompt
-                                 (combine-and-quote-strings guessed-command)
-                                 'eglot-command-history))
-          guessed-command))
-      t)))
+  (interactive (eglot--interactive))
   (let* ((project (project-current))
          (short-name (eglot--project-short-name project)))
     (unless project (eglot--error "Cannot work without a current project!"))
     (unless command (eglot--error "Don't know how to start EGLOT for %s buffers"
                                   major-mode))
     (let ((current-process (eglot--current-process)))
-      (cond ((and (process-live-p current-process)
-                  interactive
-                  (y-or-n-p "[eglot] Live process found, reconnect instead? "))
-             (eglot-reconnect current-process interactive))
-            (t
-             (when (process-live-p current-process)
-               (eglot-shutdown current-process 'sync))
-             (eglot--connect
-              project
-              managed-major-mode
-              short-name
-              command
-              (lambda (proc)
-                (eglot--message "Connected! Process `%s' now managing `%s' \
+      (if (and (process-live-p current-process)
+               interactive
+               (y-or-n-p "[eglot] Live process found, reconnect instead? "))
+          (eglot-reconnect current-process interactive)
+        (when (process-live-p current-process)
+          (eglot-shutdown current-process 'sync))
+        (eglot--connect
+         project
+         managed-major-mode
+         short-name
+         command
+         (lambda (proc)
+           (eglot--message "Connected! Process `%s' now managing `%s' \
 buffers in project %s."
-                                proc
-                                managed-major-mode
-                                short-name)
-                (dolist (buffer (buffer-list))
-                  (with-current-buffer buffer
-                    (eglot--maybe-activate-editing-mode proc))))))))))
+                           proc
+                           managed-major-mode
+                           short-name)
+           (dolist (buffer (buffer-list))
+             (with-current-buffer buffer
+               (eglot--maybe-activate-editing-mode proc)))))))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
