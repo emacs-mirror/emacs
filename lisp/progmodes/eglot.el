@@ -546,7 +546,10 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
            (remhash id (eglot--pending-continuations proc))
            (if err
                (apply (cl-second continuations) err)
-             (apply (cl-first continuations) (plist-get message :result))))
+             (let ((res (plist-get message :result)))
+               (if (listp res)
+                   (apply (cl-first continuations) res)
+                 (funcall (cl-first continuations) res)))))
           (id
            (eglot--warn "Ooops no continuation for id %s" id)))))
 
@@ -592,8 +595,7 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
           (or timeout-fn
               (lambda ()
                 (eglot--warn
-                 "(request) Tired of waiting for reply to %s" id)
-                (remhash id (eglot--pending-continuations process)))))
+                 "(request) Tired of waiting for reply to %s" id))))
          (error-fn
           (or error-fn
               (cl-function
@@ -618,11 +620,15 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
                                      :params params))
     (catch catch-tag
       (let ((timeout-timer
-             (run-with-timer 5 nil
-                             (if async-p
-                                 timeout-fn
-                               (lambda ()
-                                 (throw catch-tag (funcall timeout-fn)))))))
+             (run-with-timer
+              5 nil
+              (if async-p
+                  (lambda ()
+                    (remhash id (eglot--pending-continuations process))
+                    (funcall timeout-fn))
+                (lambda ()
+                  (remhash id (eglot--pending-continuations process))
+                  (throw catch-tag (funcall timeout-fn)))))))
         (puthash id
                  (list (if async-p
                            success-fn
@@ -650,6 +656,23 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
               (eglot--message
                "(request) Last-change cancelling timer for continuation %s" id)
               (cancel-timer timeout-timer))))))))
+
+(defun eglot--sync-request (proc method params)
+  "Like `eglot--request' for PROC, METHOD and PARAMS, but synchronous.
+Meaning only return locally if successful, otherwise exit non-locally."
+  (eglot--request proc method params
+                  :success-fn (lambda (&rest args)
+                                (if (vectorp (car args))
+                                    (car args)
+                                  args))
+                  :error-fn (cl-function
+                             (lambda (&key code message &allow-other-keys)
+                               (eglot--error "Oops: %s: %s" code message)))
+                  :timeout-fn (lambda ()
+                                (lambda ()
+                                  (eglot--error
+                                   "Tired of waiting for reply to sync request")))
+                  :async-p nil))
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
