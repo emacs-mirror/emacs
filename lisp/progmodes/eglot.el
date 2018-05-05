@@ -721,11 +721,35 @@ Meaning only return locally if successful, otherwise exit non-locally."
                      (apply #'format format args)
                      :warning)))
 
+(defun eglot--pos-to-lsp-position (&optional pos)
+  "Convert point POS to LSP position."
+  (save-excursion
+    (eglot--obj :line
+                ;; F!@(#*&#$)CKING OFF-BY-ONE
+                (1- (line-number-at-pos pos t))
+                :character
+                (- (goto-char (or pos (point)))
+                   (line-beginning-position)))))
+
+(defun eglot--mapply (fun seq)
+  "Apply FUN to every element of SEQ."
+  (mapcar (lambda (e) (apply fun e)) seq))
+
+(cl-defmacro eglot--lambda (cl-lambda-list &body body)
+  (declare (indent 1))
+  `(cl-function
+    (lambda ,cl-lambda-list
+      ,@body)))
+
 (defun eglot--path-to-uri (path)
   "Urify PATH."
   (url-hexify-string
    (concat "file://" (file-truename path))
    url-path-allowed-chars))
+
+(defun eglot--uri-to-path (uri)
+  "Convert URI to a file path."
+  (url-filename (url-generic-parse-url (url-unhex-string uri))))
 
 
 ;;; Minor modes
@@ -750,6 +774,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
     ;; (add-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
+    (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
     (flymake-mode 1))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
@@ -759,7 +784,8 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (remove-hook 'before-revert-hook 'eglot--signal-textDocument/didClose t)
     ;; (remove-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen t)
     (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
-    (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t))))
+    (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
+    (remove-hook 'xref-backend-functions 'eglot-xref-backend t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -1080,16 +1106,6 @@ running.  INTERACTIVE is t if called interactively."
                  (widen)
                  (buffer-substring-no-properties (point-min) (point-max))))))
 
-(defun eglot--pos-to-lsp-position (pos)
-  "Convert point POS to LSP position."
-  (save-excursion
-    (eglot--obj :line
-                ;; F!@(#*&#$)CKING OFF-BY-ONE
-                (1- (line-number-at-pos pos t))
-                :character
-                (- (goto-char pos)
-                   (line-beginning-position)))))
-
 (defun eglot--before-change (start end)
   "Hook onto `before-change-functions'.
 Records START and END, crucially convert them into
@@ -1213,6 +1229,61 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   ;; Take this opportunity to signal a didChange that might eventually
   ;; make the server report new diagnostics.
   (eglot--signal-textDocument/didChange))
+
+(defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
+
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
+  (eglot--mapply
+   (eglot--lambda (&key name _kind _location _containerName)
+     ;; a shame we have to throw all that good stuff away
+     name)
+   (eglot--sync-request
+    (eglot--current-process-or-lose)
+    :textDocument/documentSymbol
+    (eglot--obj
+     :textDocument (eglot--current-buffer-TextDocumentIdentifier)))))
+
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
+  (let ((symatpt (symbol-at-point)))
+    (when symatpt
+      (propertize (symbol-name symatpt)
+                  :textDocument (eglot--current-buffer-TextDocumentIdentifier)
+                  :position (eglot--pos-to-lsp-position)))))
+
+(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
+  (eglot--mapply
+   (eglot--lambda (&key uri range)
+     (xref-make identifier
+                (xref-make-file-location
+                 (eglot--uri-to-path uri)
+                 (plist-get (plist-get range :start) :line)
+                 (plist-get (plist-get range :start) :character))))
+   (or
+    ;; `identifier' already has `:locations' property if it was
+    ;; computed via `xref-backend-identifier-completion-table'...
+    ;;
+    (get-text-property 0 :locations identifier)
+    ;; otherwise, it came from
+    ;; `xref-backend-identifier-at-point', and we have to fetch
+    ;; manually
+    ;;
+    (let ((location-or-locations
+           (eglot--sync-request (eglot--current-process-or-lose)
+                                :textDocument/definition
+                                (eglot--obj
+                                 :textDocument
+                                 (get-text-property 0 :textDocument identifier)
+                                 :position
+                                 (get-text-property 0 :position identifier)))))
+      (if (vectorp (car location-or-locations))
+          (car location-or-locations)
+        location-or-locations)))))
+
+(cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
+  (error "Not implemented"))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql eglot)) _identifier)
+  (error "Not implemented"))
 
 
 ;;; Dynamic registration
