@@ -254,9 +254,8 @@ SUCCESS-FN with no args if all goes well."
          (eglot--obj :processId (unless (eq (process-type proc)
                                             'network)
                                   (emacs-pid))
-                     :rootUri  (eglot--uri
-                                (expand-file-name (car (project-roots
-                                                        (project-current)))))
+                     :rootUri  (eglot--path-to-uri
+                                (car (project-roots (project-current))))
                      :initializationOptions  []
                      :capabilities (eglot--client-capabilities))
          :success-fn
@@ -699,7 +698,11 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
                      (apply #'format format args)
                      :warning)))
 
-(defun eglot--uri (path) "Add file:// to PATH." (concat "file://" path))
+(defun eglot--path-to-uri (path)
+  "Urify PATH."
+  (url-hexify-string
+   (concat "file://" (file-truename path))
+   url-path-allowed-chars))
 
 
 ;;; Minor modes
@@ -1033,15 +1036,14 @@ running.  INTERACTIVE is t if called interactively."
 
 (defvar-local eglot--versioned-identifier 0)
 
+(defun eglot--current-buffer-TextDocumentIdentifier ()
+  "Compute TextDocumentIdentifier object for current buffer."
+  (eglot--obj :uri (eglot--path-to-uri buffer-file-name)))
+
 (defun eglot--current-buffer-VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
-  (eglot--obj :uri
-              (eglot--uri
-               (url-hexify-string
-                (file-truename buffer-file-name)
-                url-path-allowed-chars))
-              ;; FIXME: later deal with workspaces
-              :version eglot--versioned-identifier))
+  (append (eglot--current-buffer-TextDocumentIdentifier)
+          (eglot--obj :version eglot--versioned-identifier)))
 
 (defun eglot--current-buffer-TextDocumentItem ()
   "Compute TextDocumentItem object for current buffer."
@@ -1154,7 +1156,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
     (eglot--notify proc
                    :textDocument/didClose
                    (eglot--obj :textDocument
-                               (eglot--current-buffer-TextDocumentItem)))))
+                               (eglot--current-buffer-TextDocumentIdentifier)))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
@@ -1163,7 +1165,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
    :textDocument/willSave
    (eglot--obj
     :reason 1 ; Manual, emacs laughs in the face of auto-save muahahahaha
-    :textDocument (eglot--current-buffer-TextDocumentItem))))
+    :textDocument (eglot--current-buffer-TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/didSave ()
   "Send textDocument/didSave to server."
@@ -1173,7 +1175,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
    (eglot--obj
     ;; TODO: Handle TextDocumentSaveRegistrationOptions to control this.
     :text (buffer-substring-no-properties (point-min) (point-max))
-    :textDocument (eglot--current-buffer-TextDocumentItem))))
+    :textDocument (eglot--current-buffer-TextDocumentIdentifier))))
 
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
