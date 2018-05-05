@@ -33,6 +33,7 @@
 (require 'compile) ; for some faces
 (require 'warnings)
 (require 'flymake)
+(require 'xref)
 
 
 ;;; User tweakable stuff
@@ -171,6 +172,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
 
 (defmacro eglot--obj (&rest what)
   "Make WHAT a suitable argument for `json-encode'."
+  (declare (debug (&rest form)))
   ;; FIXME: maybe later actually do something, for now this just fixes
   ;; the indenting of literal plists.
   `(list ,@what))
@@ -736,7 +738,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
   (mapcar (lambda (e) (apply fun e)) seq))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
-  (declare (indent 1))
+  (declare (indent 1) (debug (sexp &rest form)))
   `(cl-function
     (lambda ,cl-lambda-list
       ,@body)))
@@ -1232,16 +1234,46 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
 
 (defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
 
+(defvar eglot--xref-known-symbols nil)
+
+(defun eglot--xref-reset-known-symbols ()
+  "Reset `eglot--xref-reset-known-symbols'."
+  (setq eglot--xref-known-symbols nil))
+
+(advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
+(advice-add 'xref-find-references :after #'eglot--xref-reset-known-symbols)
+
+(defun eglot--xref-make (name uri position)
+  "Like `xref-make' but with LSP's NAME, URI and POSITION."
+  (xref-make name
+             (xref-make-file-location
+              (eglot--uri-to-path uri)
+              ;; F!@(#*&#$)CKING OFF-BY-ONE again
+              (1+ (plist-get position :line))
+              (plist-get position :character))))
+
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
-  (eglot--mapply
-   (eglot--lambda (&key name _kind _location _containerName)
-     ;; a shame we have to throw all that good stuff away
-     name)
-   (eglot--sync-request
-    (eglot--current-process-or-lose)
-    :textDocument/documentSymbol
-    (eglot--obj
-     :textDocument (eglot--current-buffer-TextDocumentIdentifier)))))
+  (let ((proc (eglot--current-process-or-lose))
+        (text-id (eglot--current-buffer-TextDocumentIdentifier)))
+    (completion-table-with-cache
+     (lambda (string)
+       (setq eglot--xref-known-symbols
+             (eglot--mapply
+              (eglot--lambda (&key name kind location containerName)
+                (propertize name
+                            :position (plist-get
+                                       (plist-get location :range)
+                                       :start)
+                            :locations (list location)
+                            :textDocument text-id
+                            :kind kind
+                            :containerName containerName))
+              (eglot--sync-request
+               proc
+               :textDocument/documentSymbol
+               (eglot--obj
+                :textDocument text-id))))
+       (all-completions string eglot--xref-known-symbols)))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
   (let ((symatpt (symbol-at-point)))
@@ -1251,39 +1283,55 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
                   :position (eglot--pos-to-lsp-position)))))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
+  (let* ((rich-identifier
+          (car (member identifier eglot--xref-known-symbols)))
+         (location-or-locations
+          (if rich-identifier
+              (get-text-property 0 :locations rich-identifier)
+            (eglot--sync-request (eglot--current-process-or-lose)
+                                 :textDocument/definition
+                                 (eglot--obj
+                                  :textDocument
+                                  (get-text-property 0 :textDocument identifier)
+                                  :position
+                                  (get-text-property 0 :position identifier))))))
+    (eglot--mapply
+     (eglot--lambda (&key uri range)
+       (eglot--xref-make identifier uri (plist-get range :start)))
+     location-or-locations)))
+
+(cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
+  (let* ((identifier (if (get-text-property 0 :position identifier)
+                         identifier
+                       (car (member identifier eglot--xref-known-symbols))))
+         (position
+          (and identifier (get-text-property 0 :position identifier)))
+         (textDocument
+          (and identifier (get-text-property 0 :textDocument identifier))))
+    (unless (and position textDocument)
+      (eglot--error "Sorry, can't discover where %s is in the workspace"
+                    identifier))
+    (eglot--mapply
+     (eglot--lambda (&key uri range)
+       (eglot--xref-make identifier uri (plist-get range :start)))
+     (eglot--sync-request (eglot--current-process-or-lose)
+                          :textDocument/references
+                          (eglot--obj
+                           :textDocument
+                           textDocument
+                           :position
+                           position
+                           :context (eglot--obj :includeDeclaration t))))))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (eglot--mapply
-   (eglot--lambda (&key uri range)
-     (xref-make identifier
-                (xref-make-file-location
-                 (eglot--uri-to-path uri)
-                 (plist-get (plist-get range :start) :line)
-                 (plist-get (plist-get range :start) :character))))
-   (or
-    ;; `identifier' already has `:locations' property if it was
-    ;; computed via `xref-backend-identifier-completion-table'...
-    ;;
-    (get-text-property 0 :locations identifier)
-    ;; otherwise, it came from
-    ;; `xref-backend-identifier-at-point', and we have to fetch
-    ;; manually
-    ;;
-    (let ((location-or-locations
-           (eglot--sync-request (eglot--current-process-or-lose)
-                                :textDocument/definition
-                                (eglot--obj
-                                 :textDocument
-                                 (get-text-property 0 :textDocument identifier)
-                                 :position
-                                 (get-text-property 0 :position identifier)))))
-      (if (vectorp (car location-or-locations))
-          (car location-or-locations)
-        location-or-locations)))))
-
-(cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
-  (error "Not implemented"))
-
-(cl-defmethod xref-backend-apropos ((_backend (eql eglot)) _identifier)
-  (error "Not implemented"))
+   (eglot--lambda (&key name location &allow-other-keys)
+     (let ((range (plist-get location :range))
+           (uri (plist-get location :uri)))
+       (eglot--xref-make name uri (plist-get range :start))))
+   (eglot--sync-request (eglot--current-process-or-lose)
+                        :workspace/symbol
+                        (eglot--obj :query pattern))))
 
 
 ;;; Dynamic registration
