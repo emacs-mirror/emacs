@@ -663,9 +663,8 @@ Meaning only return locally if successful, otherwise exit non-locally."
                              (lambda (&key code message &allow-other-keys)
                                (eglot--error "Oops: %s: %s" code message)))
                   :timeout-fn (lambda ()
-                                (lambda ()
-                                  (eglot--error
-                                   "Tired of waiting for reply to sync request")))
+                                (eglot--error
+                                 "Tired of waiting for reply to sync request"))
                   :async-p nil))
 
 (cl-defun eglot--notify (process method params)
