@@ -61,19 +61,11 @@
 (defvar eglot--processes-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
-(defvar-local eglot--special-buffer-process nil
-  "Current buffer's eglot process.")
-
 (defun eglot--current-process ()
   "The current logical EGLOT process."
-  (or eglot--special-buffer-process
-      (let* ((cur (project-current))
-             (processes
-              (and cur
-                   (gethash cur eglot--processes-by-project))))
-        (cl-find major-mode
-                 processes
-                 :key #'eglot--major-mode))))
+  (let* ((cur (project-current))
+         (processes (and cur (gethash cur eglot--processes-by-project))))
+    (cl-find major-mode processes :key #'eglot--major-mode)))
 
 (defun eglot--current-process-or-lose ()
   "Return the current EGLOT process or error."
@@ -465,9 +457,7 @@ INTERACTIVE is t if called interactively."
                        (with-current-buffer buffer
                          (buffer-disable-undo)
                          (read-only-mode t)
-                         (setf (eglot--events-buffer process) buffer
-                               eglot--special-buffer-process process)
-                         (eglot-mode))
+                         (setf (eglot--events-buffer process) buffer))
                        buffer))))
     (when interactive (display-buffer buffer))
     buffer))
