@@ -740,6 +740,10 @@ Meaning only return locally if successful, otherwise exit non-locally."
            (font-lock-ensure)
            (buffer-string)))))
 
+(defun eglot--server-capable (feat)
+  "Determine if current server is capable of FEAT."
+  (plist-get (eglot--capabilities (eglot--current-process-or-lose)) feat))
+
 
 ;;; Minor modes
 ;;;
@@ -1158,7 +1162,9 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   ;; make the server report new diagnostics.
   (eglot--signal-textDocument/didChange))
 
-(defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
+(defun eglot-xref-backend ()
+  "EGLOT xref backend."
+  (when (eglot--server-capable :definitionProvider) 'eglot))
 
 (defvar eglot--xref-known-symbols nil)
 
@@ -1179,26 +1185,27 @@ DUMMY is ignored"
                    (plist-get position :character))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
-  (let ((proc (eglot--current-process-or-lose))
-        (text-id (eglot--current-buffer-TextDocumentIdentifier)))
-    (completion-table-with-cache
-     (lambda (string)
-       (setq eglot--xref-known-symbols
-             (eglot--mapply
-              (eglot--lambda (&key name kind location containerName)
-                (propertize name
-                            :position (plist-get
-                                       (plist-get location :range)
-                                       :start)
-                            :locations (list location)
-                            :textDocument text-id
-                            :kind kind
-                            :containerName containerName))
-              (eglot--sync-request proc
-                                   :textDocument/documentSymbol
-                                   (eglot--obj
-                                    :textDocument text-id))))
-       (all-completions string eglot--xref-known-symbols)))))
+  (when (eglot--server-capable :documentSymbolProvider)
+    (let ((proc (eglot--current-process-or-lose))
+          (text-id (eglot--current-buffer-TextDocumentIdentifier)))
+      (completion-table-with-cache
+       (lambda (string)
+         (setq eglot--xref-known-symbols
+               (eglot--mapply
+                (eglot--lambda (&key name kind location containerName)
+                  (propertize name
+                              :position (plist-get
+                                         (plist-get location :range)
+                                         :start)
+                              :locations (list location)
+                              :textDocument text-id
+                              :kind kind
+                              :containerName containerName))
+                (eglot--sync-request proc
+                                     :textDocument/documentSymbol
+                                     (eglot--obj
+                                      :textDocument text-id))))
+         (all-completions string eglot--xref-known-symbols))))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
   (let ((symatpt (symbol-at-point)))
@@ -1226,6 +1233,7 @@ DUMMY is ignored"
      location-or-locations)))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
+  (unless (eglot--server-capable :referencesProvider) (cl-return nil))
   (let* ((identifier (if (get-text-property 0 :position identifier)
                          identifier
                        (car (member identifier eglot--xref-known-symbols))))
@@ -1234,8 +1242,7 @@ DUMMY is ignored"
          (textDocument
           (and identifier (get-text-property 0 :textDocument identifier))))
     (unless (and position textDocument)
-      (eglot--error "Sorry, can't discover where %s is in the workspace"
-                    identifier))
+      (eglot--error "Don't know where %s is in the workspace" identifier))
     (eglot--mapply
      (eglot--lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
@@ -1249,21 +1256,21 @@ DUMMY is ignored"
                            :context (eglot--obj :includeDeclaration t))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
-  (eglot--mapply
-   (eglot--lambda (&key name location &allow-other-keys)
-     (let ((range (plist-get location :range))
-           (uri (plist-get location :uri)))
-       (eglot--xref-make name uri (plist-get range :start))))
-   (eglot--sync-request (eglot--current-process-or-lose)
-                        :workspace/symbol
-                        (eglot--obj :query pattern))))
+  (when (eglot--server-capable :workspaceSymbolProvider)
+    (eglot--mapply
+     (eglot--lambda (&key name location &allow-other-keys)
+       (let ((range (plist-get location :range))
+             (uri (plist-get location :uri)))
+         (eglot--xref-make name uri (plist-get range :start))))
+     (eglot--sync-request (eglot--current-process-or-lose)
+                          :workspace/symbol
+                          (eglot--obj :query pattern)))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
   (let ((bounds (bounds-of-thing-at-point 'sexp))
         (proc (eglot--current-process-or-lose)))
-    (when (plist-get (eglot--capabilities proc)
-                     :completionProvider)
+    (when (eglot--server-capable :completionProvider)
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
@@ -1299,18 +1306,19 @@ DUMMY is ignored"
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function."
-  (eglot--request (eglot--current-process-or-lose)
-                  :textDocument/hover
-                  (eglot--obj
-                   :textDocument (eglot--current-buffer-TextDocumentIdentifier)
-                   :position (eglot--pos-to-lsp-position))
-                  :success-fn (eglot--lambda (&key contents _range)
-                                (eldoc-message
-                                 (mapconcat #'eglot--format-markup
-                                            (if (vectorp contents)
-                                                contents
-                                              (list contents))
-                                            "\n"))))
+  (when (eglot--server-capable :hoverProvider)
+    (eglot--request (eglot--current-process-or-lose)
+                    :textDocument/hover
+                    (eglot--obj
+                     :textDocument (eglot--current-buffer-TextDocumentIdentifier)
+                     :position (eglot--pos-to-lsp-position))
+                    :success-fn (eglot--lambda (&key contents _range)
+                                  (eldoc-message
+                                   (mapconcat #'eglot--format-markup
+                                              (if (vectorp contents)
+                                                  contents
+                                                (list contents))
+                                              "\n")))))
   nil)
 
 
