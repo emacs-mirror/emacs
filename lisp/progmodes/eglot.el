@@ -215,23 +215,10 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                                     :willSave t
                                     :willSaveWaitUntil :json-false
                                     :didSave t)
-                  :completion nil
-                  :hover nil
-                  :signatureHelp nil
-                  :references nil
-                  :documentHighlight nil
-                  :documentSymbol nil
-                  :formatting nil
-                  :rangeFormatting nil
-                  :onTypeFormatting nil
-                  :definition nil
-                  :typeDefinition nil
-                  :implementation nil
-                  :codeAction nil
-                  :codeLens nil
-                  :documentLink nil
-                  :colorProvider nil
-                  :rename nil
+                  :completion `(:dynamicRegistration :json-false)
+                  :hover      `(:dynamicRegistration :json-false)
+                  :references `(:dynamicRegistration :json-false)
+                  :definition `(:dynamicRegistration :json-false)
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
