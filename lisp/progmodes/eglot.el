@@ -48,8 +48,11 @@
 
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
-  "Face for package-name in EGLOT's mode line."
-  :group 'eglot)
+  "Face for package-name in EGLOT's mode line.")
+
+(defcustom eglot-request-timeout 10
+  "How many seconds to way for a reply from the server."
+  :type :integer)
 
 
 ;;; Process management
@@ -617,7 +620,7 @@ is a symbol saying if this is a client or server originated."
     (catch catch-tag
       (let ((timeout-timer
              (run-with-timer
-              5 nil
+              eglot-request-timeout nil
               (if async-p
                   (lambda ()
                     (remhash id (eglot--pending-continuations process))
